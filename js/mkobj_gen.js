@@ -1,4 +1,4 @@
-// mkobj_new.js -- Object creation for dungeon generation
+// mkobj_gen.js -- Object creation for dungeon generation
 // Faithful port of mkobj.c from NetHack 3.7
 // Focus: PRNG-faithful RNG consumption for level generation alignment
 
@@ -16,7 +16,7 @@ import {
     BAG_OF_HOLDING, OILSKIN_SACK, BAG_OF_TRICKS, SACK,
     initObjectData,
 } from './objects.js';
-import { rndmonnum } from './makemon_new.js';
+import { rndmonnum } from './makemon_gen.js';
 import { mons, G_NOCORPSE, M2_NEUTER, M2_FEMALE, M2_MALE } from './monsters.js';
 
 // Named object indices we need (exported from objects.js)
@@ -194,7 +194,7 @@ function mkobj_erosions(obj) {
     if (!rn2(1000)) obj.greased = true;
 }
 
-// rndmonnum imported from makemon_new.js (circular but safe — called at runtime only)
+// rndmonnum imported from makemon_gen.js (circular but safe — called at runtime only)
 
 // C ref: mon.c undead_to_corpse() — map undead monsters to their living form
 function undead_to_corpse(mndx) {

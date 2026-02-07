@@ -1,9 +1,9 @@
-// makemon_new.js -- Monster creation for dungeon generation
+// makemon_gen.js -- Monster creation for dungeon generation
 // Faithful port of makemon.c from NetHack 3.7
 // Focus: PRNG-faithful RNG consumption for level generation alignment
 
 import { rn2, rnd, rn1, d } from './rng.js';
-import { mksobj } from './mkobj_new.js';
+import { mksobj } from './mkobj_gen.js';
 import { ROCK } from './objects.js';
 import {
     mons, LOW_PM, SPECIAL_PM,
