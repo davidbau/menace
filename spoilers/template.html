@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Traveler's Guide to the Mazes of Menace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Source+Code+Pro:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav id="sidebar-toc" aria-label="Table of contents">
+  <div class="sidebar-title">Contents</div>
+  <ul id="sidebar-toc-list"></ul>
+</nav>
+<aside id="sidebar-search" aria-label="Search">
+  <div class="sidebar-title">Search</div>
+  <input type="text" id="search-input" placeholder="Search the guide...">
+  <div id="search-results"></div>
+  <div id="search-index"></div>
+</aside>
+<main id="guide-content">
+$body$
+</main>
+<script>
+(function() {
+  // --- Build TOC from headings ---
+  var tocList = document.getElementById('sidebar-toc-list');
+  var headings = document.querySelectorAll('main h2, main h3');
+  var tocItems = [];
+
+  headings.forEach(function(h) {
+    var section = h.closest('section') || h.parentElement;
+    var id = section.id || h.id;
+    if (!id) return;
+
+    var li = document.createElement('li');
+    li.className = h.tagName === 'H2' ? 'toc-part' : 'toc-chapter';
+    var a = document.createElement('a');
+    a.href = '#' + id;
+    a.textContent = h.textContent;
+    a.setAttribute('data-target', id);
+    li.appendChild(a);
+    tocList.appendChild(li);
+    tocItems.push({ el: li, id: id, heading: h });
+  });
+
+  // --- Scroll tracking via IntersectionObserver ---
+  var currentActive = null;
+
+  if ('IntersectionObserver' in window) {
+    var sections = [];
+    tocItems.forEach(function(item) {
+      var target = document.getElementById(item.id);
+      if (target) sections.push({ id: item.id, el: target, tocItem: item.el });
+    });
+
+    // Track which sections are visible
+    var visibleSections = new Set();
+
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        var id = entry.target.id;
+        if (entry.isIntersecting) {
+          visibleSections.add(id);
+        } else {
+          visibleSections.delete(id);
+        }
+      });
+
+      // Find the first visible section in document order
+      var firstVisible = null;
+      for (var i = 0; i < sections.length; i++) {
+        if (visibleSections.has(sections[i].id)) {
+          firstVisible = sections[i];
+          break;
+        }
+      }
+
+      if (firstVisible) {
+        if (currentActive) currentActive.classList.remove('active');
+        firstVisible.tocItem.classList.add('active');
+        currentActive = firstVisible.tocItem;
+
+        // Update URL hash to reflect current section
+        if (history.replaceState) {
+          history.replaceState(null, '', '#' + firstVisible.id);
+        }
+
+        // Scroll TOC to keep active item visible
+        var tocContainer = document.getElementById('sidebar-toc');
+        var itemTop = firstVisible.tocItem.offsetTop;
+        var containerHeight = tocContainer.clientHeight;
+        var scrollTop = tocContainer.scrollTop;
+        if (itemTop < scrollTop + 60 || itemTop > scrollTop + containerHeight - 40) {
+          tocContainer.scrollTop = itemTop - containerHeight / 3;
+        }
+      }
+    }, {
+      rootMargin: '-5% 0px -70% 0px',
+      threshold: 0
+    });
+
+    sections.forEach(function(s) { observer.observe(s.el); });
+  }
+
+  // --- Search ---
+  var searchInput = document.getElementById('search-input');
+  var searchResults = document.getElementById('search-results');
+  var searchIndex = document.getElementById('search-index');
+
+  // Build searchable data from headings and paragraphs
+  var searchData = [];
+  var contentSections = document.querySelectorAll('main section[id]');
+  contentSections.forEach(function(section) {
+    var heading = section.querySelector('h1, h2, h3, h4');
+    if (!heading) return;
+    // Gather text from direct child p, li, td elements
+    var textEls = section.querySelectorAll(':scope > p, :scope > ul > li, :scope > ol > li, :scope > table td, :scope > blockquote p');
+    var text = '';
+    textEls.forEach(function(el) { text += el.textContent + ' '; });
+    searchData.push({
+      id: section.id,
+      title: heading.textContent,
+      text: text.substring(0, 2000),
+      level: heading.tagName
+    });
+  });
+
+  var searchTimeout = null;
+  searchInput.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(doSearch, 200);
+  });
+
+  function doSearch() {
+    var query = searchInput.value.trim().toLowerCase();
+    if (query.length < 2) {
+      searchResults.innerHTML = '';
+      searchResults.style.display = 'none';
+      searchIndex.style.display = '';
+      return;
+    }
+    searchIndex.style.display = 'none';
+    searchResults.style.display = '';
+
+    var words = query.split(/\s+/);
+    var matches = [];
+    searchData.forEach(function(item) {
+      var haystack = (item.title + ' ' + item.text).toLowerCase();
+      var score = 0;
+      var allMatch = true;
+      words.forEach(function(w) {
+        if (haystack.indexOf(w) === -1) {
+          allMatch = false;
+        } else {
+          // Title matches score higher
+          if (item.title.toLowerCase().indexOf(w) !== -1) score += 10;
+          // Count occurrences in text
+          var idx = 0;
+          while ((idx = haystack.indexOf(w, idx)) !== -1) { score++; idx += w.length; }
+        }
+      });
+      if (allMatch && score > 0) {
+        matches.push({ item: item, score: score });
+      }
+    });
+
+    matches.sort(function(a, b) { return b.score - a.score; });
+
+    if (matches.length === 0) {
+      searchResults.innerHTML = '<div class="search-empty">No results found.<br><span class="search-hint">The dungeon keeps its secrets.</span></div>';
+      return;
+    }
+
+    var html = '';
+    var shown = Math.min(matches.length, 15);
+    for (var i = 0; i < shown; i++) {
+      var m = matches[i].item;
+      // Find a snippet containing the query
+      var snippet = getSnippet(m.text, words[0]);
+      html += '<a class="search-result" href="#' + m.id + '">';
+      html += '<span class="search-result-title">' + highlightMatches(m.title, words) + '</span>';
+      if (snippet) html += '<span class="search-result-snippet">' + highlightMatches(snippet, words) + '</span>';
+      html += '</a>';
+    }
+    if (matches.length > shown) {
+      html += '<div class="search-more">' + (matches.length - shown) + ' more results...</div>';
+    }
+    searchResults.innerHTML = html;
+  }
+
+  function getSnippet(text, word) {
+    var idx = text.toLowerCase().indexOf(word);
+    if (idx === -1) return '';
+    var start = Math.max(0, idx - 40);
+    var end = Math.min(text.length, idx + word.length + 60);
+    var s = text.substring(start, end).replace(/\s+/g, ' ').trim();
+    if (start > 0) s = '\u2026' + s;
+    if (end < text.length) s = s + '\u2026';
+    return s;
+  }
+
+  function escHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function highlightMatches(text, words) {
+    var safe = escHtml(text);
+    // Build a regex matching any of the search words (longest first to avoid partial overlap)
+    var sorted = words.slice().sort(function(a, b) { return b.length - a.length; });
+    var reChars = /[.*+?^$${}()|[\]\\]/g;
+    var escaped = sorted.map(function(w) { return escHtml(w).replace(reChars, '\\$$&'); });
+    var re = new RegExp('(' + escaped.join('|') + ')', 'gi');
+    return safe.replace(re, '<b>$$1</b>');
+  }
+
+  // --- Humorous index (shown when search is empty) ---
+  var indexEntries = [
+    ['Acid blob, rubber-banded', 'your-first-descent'],
+    ['Amulet of Yendor, retrieving', 'the-ascension-run'],
+    ['Ascension, how to not die during', 'the-ascension-run'],
+    ['Boulders, pushing (see: Sokoban)', 'sokoban-solutions'],
+    ['Castle, storming the', 'the-castle'],
+    ['Cockatrice corpse, wielding', 'dangerous-encounters'],
+    ['Death, causes of (see: everything)', 'dangerous-encounters'],
+    ['Drowning, preventable', 'dangerous-encounters'],
+    ['Elbereth, writing frantically', 'traps-and-hazards'],
+    ['Floating eye, do not hit', 'a-field-guide-to-dungeon-fauna'],
+    ['Food, running out of', 'provisions-and-dining'],
+    ['Gehennom, why is it so hot', 'gehennom'],
+    ['Gods, angering', 'divine-relations'],
+    ['Identify, never enough scrolls of', 'the-identification-problem'],
+    ['Luck, secretly ruining yours', 'luck-and-fortune'],
+    ['Mines, gnomish', 'branches-and-landmarks'],
+    ['Pet, accidentally killing your', 'making-friends'],
+    ['Prayer, when to', 'divine-relations'],
+    ['Shopkeeper, angering', 'shopping-and-shopkeeper-pricing'],
+    ['Sokoban, solving without cheating', 'sokoban-solutions'],
+    ['Stoning, avoiding', 'dangerous-encounters'],
+    ['Tourists, playing as', 'choosing-your-expedition'],
+    ['Unicorn horn, no longer a cure-all', 'what-changed-since-last-time'],
+    ['Wand, identifying by engraving', 'the-identification-problem'],
+    ['Wishes, optimal use of', 'wishes-and-wishing'],
+    ['YASD, inevitability of', 'your-first-descent'],
+  ];
+
+  var indexHtml = '<div class="humorous-index"><div class="index-title">Index of Useful Knowledge</div>';
+  indexEntries.forEach(function(entry) {
+    indexHtml += '<a class="index-entry" href="#' + entry[1] + '">' + entry[0] + '</a>';
+  });
+  indexHtml += '</div>';
+  searchIndex.innerHTML = indexHtml;
+})();
+</script>
+</body>
+</html>

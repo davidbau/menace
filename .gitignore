@@ -7,3 +7,7 @@ nethack-c/
 test/comparison/c-harness/results/
 test/comparison/isaac64_reference
 notes/
+.venv/
+spoilers/fonts/
+spoilers/guide.pdf
+spoilers/index.html

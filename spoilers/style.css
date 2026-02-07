@@ -1,0 +1,1009 @@
+/* ============================================================
+   A Traveler's Guide to the Mazes of Menace
+   Stylesheet for screen (responsive) and print (5″ handbook)
+   ============================================================ */
+
+/* --- Font faces (local files for PDF generation) ------------ */
+
+@font-face {
+  font-family: 'EB Garamond';
+  src: url('fonts/EBGaramond.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'EB Garamond';
+  src: url('fonts/EBGaramond.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'EB Garamond';
+  src: url('fonts/EBGaramond-Italic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'EB Garamond';
+  src: url('fonts/EBGaramond-Italic.ttf') format('truetype');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Code Pro';
+  src: url('fonts/SourceCodePro.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Code Pro';
+  src: url('fonts/SourceCodePro-Italic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* --- Fonts & Variables -------------------------------------- */
+
+:root {
+  --font-body: 'EB Garamond', 'Garamond', 'Georgia', serif;
+  --font-mono: 'Source Code Pro', 'Menlo', 'Consolas', monospace;
+  --color-text: #1a1a1a;
+  --color-bg: #fffff8;
+  --color-accent: #6b2c2c;
+  --color-rule: #c4a882;
+  --color-code-bg: #f5f0e8;
+  --color-table-border: #c4a882;
+  --color-table-stripe: #fcfaf5;
+  --color-link: #4a2020;
+  --color-blockquote-border: #c4a882;
+  --color-blockquote-bg: #faf6ef;
+}
+
+/* --- Base --------------------------------------------------- */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 18px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: 1.55;
+  margin: 0 auto;
+  max-width: 38em;
+  padding: 2em 1.5em 4em;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Headings ----------------------------------------------- */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  line-height: 1.2;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+  color: var(--color-text);
+}
+
+/* Title */
+h1 {
+  font-size: 2.4em;
+  font-weight: 700;
+  text-align: center;
+  margin-top: 1.5em;
+  margin-bottom: 0.3em;
+  letter-spacing: 0.01em;
+}
+
+/* Parts: "Part One: Before You Set Out" */
+h2 {
+  font-size: 1.6em;
+  font-weight: 600;
+  margin-top: 2.5em;
+  padding-bottom: 0.2em;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+/* Chapters: "Choosing Your Expedition" */
+h3 {
+  font-size: 1.3em;
+  font-weight: 600;
+  margin-top: 2em;
+}
+
+/* Sections within chapters */
+h4 {
+  font-size: 1.1em;
+  font-weight: 600;
+  margin-top: 1.5em;
+}
+
+h5 {
+  font-size: 1em;
+  font-weight: 600;
+  font-style: italic;
+}
+
+.nobr {
+  white-space: nowrap;
+}
+
+/* --- Paragraphs --------------------------------------------- */
+
+p {
+  margin: 0.8em 0;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+/* --- Links -------------------------------------------------- */
+
+a {
+  color: var(--color-link);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+
+a:hover {
+  border-bottom-color: var(--color-link);
+}
+
+/* --- Blockquotes -------------------------------------------- */
+
+blockquote {
+  margin: 1.5em 0;
+  padding: 1em 1.2em;
+  background: var(--color-blockquote-bg);
+  border-left: 3px solid var(--color-blockquote-border);
+  border-radius: 0 4px 4px 0;
+  font-style: italic;
+}
+
+blockquote p {
+  margin: 0.5em 0;
+}
+
+blockquote p:first-child {
+  margin-top: 0;
+}
+
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Bold inside blockquote (attribution headers) stays upright */
+blockquote strong {
+  font-style: normal;
+}
+
+/* --- Horizontal Rules --------------------------------------- */
+
+hr {
+  border: none;
+  border-top: 1px solid var(--color-rule);
+  height: 0;
+  margin: 2em auto;
+  max-width: 8em;
+  position: relative;
+  overflow: visible;
+}
+
+/* Decorative diamond centered on the rule */
+hr::after {
+  content: '\25C6'; /* ◆ */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--color-rule);
+  font-size: 0.8em;
+  line-height: 1;
+  background: var(--color-bg);
+  padding: 0 0.3em;
+}
+
+/* --- Code --------------------------------------------------- */
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  background: var(--color-code-bg);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.78em;
+  line-height: 1.45;
+  background: var(--color-code-bg);
+  padding: 1em 1.2em;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 1.2em 0;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  border-radius: 0;
+}
+
+/* --- Tables ------------------------------------------------- */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.2em 0;
+  font-size: 0.92em;
+  line-height: 1.4;
+}
+
+thead {
+  border-bottom: 2px solid var(--color-table-border);
+}
+
+th {
+  font-weight: 600;
+  text-align: left;
+  padding: 0.5em 0.7em;
+  white-space: nowrap;
+}
+
+td {
+  padding: 0.4em 0.7em;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  vertical-align: top;
+}
+
+/* Zebra striping */
+tbody tr:nth-child(even) {
+  background: var(--color-table-stripe);
+}
+
+/* --- Lists -------------------------------------------------- */
+
+ul, ol {
+  margin: 0.8em 0;
+  padding-left: 1.5em;
+}
+
+main ul {
+  list-style: none;
+}
+
+main ul > li::before {
+  content: '\25C6'; /* ◆ */
+  font-size: 0.5em;
+  position: relative;
+  top: -0.1em;
+  margin-left: -1.5em;
+  margin-right: calc(1.5em - 0.5em);
+  display: inline-block;
+  width: 0.5em;
+}
+
+li {
+  margin: 0.3em 0;
+}
+
+li > p {
+  margin: 0.4em 0;
+}
+
+/* Nested lists */
+li > ul, li > ol {
+  margin: 0.2em 0;
+}
+
+/* Hide the decorative HR right after Part headings on screen —
+   the h2 border-bottom already provides a visual break */
+h2 + hr {
+  display: none;
+}
+
+/* --- Strong / Emphasis -------------------------------------- */
+
+strong {
+  font-weight: 600;
+}
+
+em {
+  font-style: italic;
+}
+
+/* --- Sections (pandoc --section-divs) ----------------------- */
+
+/* The opening epigraph — first blockquote in the document */
+section.level1 > blockquote:first-of-type {
+  text-align: center;
+  border-left: none;
+  background: none;
+  font-size: 1.1em;
+  padding: 0.5em 2em;
+  margin: 0 auto 1em;
+  max-width: 28em;
+}
+
+/* --- Table of Contents -------------------------------------- */
+
+section#table-of-contents h2 {
+  border-bottom: none;
+  text-align: center;
+  font-size: 1.3em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 1em;
+}
+
+section#table-of-contents p strong {
+  /* Part headers in TOC */
+  display: block;
+  margin-top: 1.2em;
+  margin-bottom: 0.2em;
+  font-size: 0.95em;
+  letter-spacing: 0.02em;
+  color: var(--color-accent);
+}
+
+section#table-of-contents ol,
+section#table-of-contents ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0 0 0.5em;
+}
+
+section#table-of-contents li {
+  margin: 0.15em 0;
+  padding-left: 2.2em;
+  text-indent: -2.2em;
+  line-height: 1.5;
+}
+
+section#table-of-contents a {
+  color: var(--color-text);
+  border-bottom: none;
+}
+
+section#table-of-contents a:hover {
+  color: var(--color-link);
+}
+
+/* --- Colophon (final lines) --------------------------------- */
+
+section.level1 > p:last-of-type,
+section.level1 > p:nth-last-of-type(2) {
+  text-align: center;
+}
+
+/* --- Responsive --------------------------------------------- */
+
+@media screen and (max-width: 640px) {
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    padding: 1em 1em 3em;
+  }
+
+  h1 {
+    font-size: 1.8em;
+  }
+
+  h2 {
+    font-size: 1.4em;
+  }
+
+  pre {
+    font-size: 0.72em;
+    padding: 0.8em;
+  }
+
+  table {
+    font-size: 0.85em;
+  }
+
+  th, td {
+    padding: 0.3em 0.4em;
+  }
+
+  blockquote {
+    padding: 0.7em 0.8em;
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+@media screen and (max-width: 420px) {
+  html {
+    font-size: 15px;
+  }
+
+  h1 {
+    font-size: 1.6em;
+  }
+
+  pre {
+    font-size: 0.68em;
+    padding: 0.6em;
+    border-radius: 0;
+    margin-left: -1em;
+    margin-right: -1em;
+  }
+
+  table {
+    font-size: 0.78em;
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+/* ============================================================
+   SIDEBAR NAVIGATION & SEARCH
+   ============================================================ */
+
+/* --- Hidden by default (narrow screens) --------------------- */
+
+#sidebar-toc,
+#sidebar-search {
+  display: none;
+}
+
+/* --- Wide screens: show TOC on left ------------------------- */
+
+@media screen and (min-width: 1200px) {
+  #sidebar-toc {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 240px;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 1.5em 0.8em 2em 1em;
+    font-size: 13px;
+    line-height: 1.35;
+    background: var(--color-bg);
+    border-right: 1px solid rgba(0, 0, 0, 0.06);
+    z-index: 10;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-rule) transparent;
+  }
+
+  #sidebar-toc::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  #sidebar-toc::-webkit-scrollbar-thumb {
+    background: var(--color-rule);
+    border-radius: 2px;
+  }
+
+  .sidebar-title {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin-bottom: 0.8em;
+    padding-bottom: 0.4em;
+    border-bottom: 1px solid var(--color-rule);
+  }
+
+  #sidebar-toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  #sidebar-toc-list li {
+    margin: 0;
+  }
+
+  #sidebar-toc-list li a {
+    display: block;
+    padding: 0.2em 0.5em;
+    color: var(--color-text);
+    border-bottom: none;
+    border-radius: 3px;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #sidebar-toc-list li a:hover {
+    background: var(--color-code-bg);
+    color: var(--color-link);
+  }
+
+  /* Part headings in TOC sidebar */
+  #sidebar-toc-list li.toc-part {
+    margin-top: 0.8em;
+  }
+
+  #sidebar-toc-list li.toc-part a {
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--color-accent);
+    padding: 0.25em 0.5em;
+  }
+
+  /* Chapter headings */
+  #sidebar-toc-list li.toc-chapter a {
+    padding-left: 1em;
+    font-size: 12.5px;
+  }
+
+  /* Active section highlight */
+  #sidebar-toc-list li.active > a {
+    background: var(--color-accent);
+    color: white;
+  }
+
+  #sidebar-toc-list li.toc-part.active > a {
+    background: var(--color-accent);
+    color: white;
+  }
+}
+
+/* --- Extra-wide: also show search on right ------------------ */
+
+@media screen and (min-width: 1400px) {
+  #sidebar-search {
+    display: block;
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 270px;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 1.5em 1em 2em 0.8em;
+    font-size: 13px;
+    line-height: 1.4;
+    background: var(--color-bg);
+    border-left: 1px solid rgba(0, 0, 0, 0.06);
+    z-index: 10;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-rule) transparent;
+  }
+
+  #sidebar-search::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  #sidebar-search::-webkit-scrollbar-thumb {
+    background: var(--color-rule);
+    border-radius: 2px;
+  }
+
+  #sidebar-search .sidebar-title {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin-bottom: 0.8em;
+    padding-bottom: 0.4em;
+    border-bottom: 1px solid var(--color-rule);
+  }
+
+  #search-input {
+    width: 100%;
+    padding: 0.45em 0.6em;
+    font-family: var(--font-body);
+    font-size: 13px;
+    border: 1px solid var(--color-rule);
+    border-radius: 4px;
+    background: white;
+    color: var(--color-text);
+    outline: none;
+    margin-bottom: 0.6em;
+  }
+
+  #search-input:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 2px rgba(107, 44, 44, 0.15);
+  }
+
+  #search-input::placeholder {
+    color: #aaa;
+    font-style: italic;
+  }
+
+  /* Search results */
+  .search-result {
+    display: block;
+    padding: 0.4em 0.5em;
+    margin-bottom: 0.2em;
+    border-radius: 3px;
+    border-bottom: none;
+    color: var(--color-text);
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+
+  .search-result:hover {
+    background: var(--color-code-bg);
+  }
+
+  .search-result-title {
+    display: block;
+    font-weight: 600;
+    font-size: 12.5px;
+    color: var(--color-link);
+  }
+
+  .search-result-snippet {
+    display: block;
+    font-size: 11.5px;
+    color: #777;
+    margin-top: 0.15em;
+    line-height: 1.3;
+  }
+
+  .search-empty {
+    padding: 1em 0.5em;
+    color: #999;
+    font-style: italic;
+    text-align: center;
+    font-size: 12.5px;
+  }
+
+  .search-hint {
+    font-size: 11px;
+    color: #bbb;
+  }
+
+  .search-more {
+    padding: 0.3em 0.5em;
+    color: #999;
+    font-size: 11.5px;
+    font-style: italic;
+  }
+
+  /* Humorous index */
+  .humorous-index {
+    margin-top: 0.3em;
+  }
+
+  .index-title {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 12px;
+    font-style: italic;
+    color: var(--color-accent);
+    margin-bottom: 0.5em;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .index-entry {
+    display: block;
+    padding: 0.15em 0.4em;
+    font-size: 12px;
+    color: var(--color-text);
+    border-bottom: none;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .index-entry:hover {
+    color: var(--color-link);
+    background: var(--color-code-bg);
+    border-radius: 2px;
+  }
+}
+
+/* ============================================================
+   PRINT / PDF STYLES — 5″ × 8″ handbook
+   ============================================================ */
+
+@media print {
+
+  /* --- Page setup ------------------------------------------- */
+
+  @page {
+    size: 5in 8in;
+    margin: 0.55in 0.5in 0.65in 0.6in; /* top right bottom left(inner) */
+
+    @bottom-center {
+      content: counter(page);
+      font-family: 'EB Garamond', 'Georgia', serif;
+      font-size: 9pt;
+      color: #888;
+    }
+  }
+
+  @page :first {
+    margin-top: 0;
+    @bottom-center {
+      content: none;
+    }
+  }
+
+  @page :left {
+    margin-left: 0.5in;
+    margin-right: 0.6in;
+  }
+
+  @page :right {
+    margin-left: 0.6in;
+    margin-right: 0.5in;
+  }
+
+  /* --- Hide sidebars ---------------------------------------- */
+
+  #sidebar-toc,
+  #sidebar-search {
+    display: none !important;
+  }
+
+  /* --- Base ------------------------------------------------- */
+
+  :root {
+    --color-bg: white;
+  }
+
+  html {
+    font-size: 10pt;
+  }
+
+  body {
+    font-family: var(--font-body);
+    color: black;
+    background: white;
+    max-width: none;
+    padding: 0;
+    margin: 0;
+    line-height: 1.45;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+  }
+
+  /* --- Title page ------------------------------------------- */
+
+  h1 {
+    font-size: 22pt;
+    margin-top: 2.2in;
+    margin-bottom: 0.3em;
+    page-break-before: avoid;
+    text-align: center;
+  }
+
+  /* Opening epigraph in print */
+  section.level1 > blockquote:first-of-type {
+    border-left: none;
+    text-align: center;
+    font-size: 10.5pt;
+    margin: 0.5em auto 0;
+    padding: 0;
+    max-width: none;
+    page-break-after: always;
+  }
+
+  /* --- Part headings ---------------------------------------- */
+
+  h2 {
+    font-size: 15pt;
+    page-break-before: always;
+    margin-top: 1.5in;
+    padding-top: 0;
+    padding-bottom: 0.15em;
+    border-bottom: 0.5pt solid #999;
+    text-align: center;
+  }
+
+  /* Don't break before the very first h2 ("Before You Read Further") */
+  section.level1 > section.level2:first-of-type > h2 {
+    page-break-before: avoid;
+    margin-top: 0;
+    text-align: left;
+  }
+
+  /* --- Chapter headings ------------------------------------- */
+
+  h3 {
+    font-size: 13pt;
+    page-break-before: always;
+    margin-top: 0.5em;
+    page-break-after: avoid;
+  }
+
+  /* Don't page-break before the first chapter in a part */
+  section.level2 > section.level3:first-of-type > h3 {
+    page-break-before: avoid;
+  }
+
+  h4 {
+    font-size: 11pt;
+    page-break-after: avoid;
+    margin-top: 1.2em;
+  }
+
+  h5 {
+    font-size: 10pt;
+    page-break-after: avoid;
+  }
+
+  /* --- Table of Contents (print) ----------------------------- */
+
+  section#table-of-contents > h2 {
+    page-break-before: always;
+    margin-top: 1.6in;
+    margin-bottom: 0.5in;
+    font-size: 14pt;
+    border-bottom: none;
+  }
+
+  section#table-of-contents p strong {
+    color: black;
+    font-size: 10pt;
+  }
+
+  section#table-of-contents ol,
+  section#table-of-contents ul {
+    font-size: 9.5pt;
+  }
+
+  section#table-of-contents li {
+    line-height: 1.5;
+  }
+
+  /* TOC page numbers via target-counter */
+  section#table-of-contents li a[href^="#"]::after {
+    content: target-counter(attr(href), page);
+    float: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  section#table-of-contents {
+    page-break-after: always;
+  }
+
+  /* --- Widow / orphan control ------------------------------- */
+
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+
+  h2, h3, h4, h5 {
+    orphans: 4;
+    widows: 4;
+  }
+
+  /* --- Blockquotes ------------------------------------------ */
+
+  blockquote {
+    background: none;
+    border-left: none;
+    padding: 0.3em 0;
+    margin: 0.8em 0;
+    page-break-inside: avoid;
+    font-size: 9.5pt;
+    font-style: italic;
+  }
+
+  /* --- Horizontal rules ------------------------------------- */
+
+  hr {
+    border-top-color: #aaa;
+    margin: 0.5in auto;
+  }
+
+  /* Restore HRs after Part headings in print */
+  h2 + hr {
+    display: block;
+  }
+
+  hr::after {
+    background: white;
+    color: #aaa;
+  }
+
+  /* --- Code ------------------------------------------------- */
+
+  pre {
+    font-size: 7pt;
+    line-height: 1.3;
+    background: none;
+    border: 0.5pt solid #ccc;
+    padding: 0.5em 0.6em;
+    page-break-inside: avoid;
+    overflow: hidden;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  code {
+    font-size: 0.85em;
+    background: none;
+    padding: 0;
+  }
+
+  /* --- Tables ----------------------------------------------- */
+
+  table {
+    font-size: 8pt;
+    page-break-inside: avoid;
+    margin: 0.8em 0;
+    width: 100%;
+  }
+
+  thead {
+    border-bottom: 1pt solid black;
+  }
+
+  th {
+    font-size: 8pt;
+    padding: 0.25em 0.35em;
+    font-weight: 600;
+  }
+
+  td {
+    padding: 0.2em 0.35em;
+    border-bottom: 0.5pt solid #ddd;
+  }
+
+  tbody tr:nth-child(even) {
+    background: none;
+  }
+
+  /* --- Links ------------------------------------------------ */
+
+  a {
+    color: black;
+    border-bottom: none;
+  }
+
+  /* --- Lists ------------------------------------------------ */
+
+  /* Allow lists to break across pages to avoid large gaps */
+  ul, ol {
+    page-break-inside: auto;
+  }
+
+  /* But keep individual list items together */
+  li {
+    page-break-inside: avoid;
+  }
+
+  /* --- Colophon --------------------------------------------- */
+
+  section.level1 > p:last-of-type,
+  section.level1 > p:nth-last-of-type(2) {
+    text-align: center;
+    font-size: 10pt;
+  }
+}

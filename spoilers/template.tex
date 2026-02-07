@@ -1,0 +1,287 @@
+% LaTeX template for "A Traveler's Guide to the Mazes of Menace"
+% 5" × 8" handbook format, used with pandoc and latex-filter.lua
+\documentclass[openany,10pt]{book}
+
+% --- Page geometry: 5×8 inch with binding margins ---
+\usepackage[
+  paperwidth=5in,
+  paperheight=8in,
+  inner=0.6in,
+  outer=0.5in,
+  top=0.65in,
+  bottom=0.6in,
+  headheight=14pt,
+  headsep=0.15in,
+  footskip=0.3in
+]{geometry}
+
+% --- Fonts via fontspec (XeLaTeX) ---
+\usepackage{fontspec}
+\setmainfont{EB Garamond}[
+  Path=fonts/,
+  Extension=.ttf,
+  UprightFont=EBGaramond,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond,
+  BoldFeatures={FakeBold=4},
+  BoldItalicFont=EBGaramond-Italic,
+  BoldItalicFeatures={FakeBold=4}
+]
+\setmonofont{Source Code Pro}[
+  Path=fonts/,
+  Extension=.ttf,
+  UprightFont=SourceCodePro,
+  UprightFeatures={FakeBold=3},
+  ItalicFont=SourceCodePro-Italic,
+  ItalicFeatures={FakeBold=3},
+  BoldFont=SourceCodePro,
+  BoldFeatures={FakeBold=5},
+  BoldItalicFont=SourceCodePro-Italic,
+  BoldItalicFeatures={FakeBold=5},
+  Scale=0.80
+]
+
+% --- Typography ---
+\usepackage{microtype}
+\usepackage{setspace}
+\setstretch{1.1}
+
+% --- No-indent paragraphs with inter-paragraph spacing ---
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.4em plus 0.1em minus 0.05em}
+
+% --- Colors ---
+\usepackage{xcolor}
+\definecolor{codeframe}{gray}{0.35}
+
+% --- Etoolbox for conditional commands ---
+\usepackage{etoolbox}
+
+% --- Running part name for headers ---
+\def\currentpartname{}
+
+% --- Headers and footers ---
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Redefine marks: chapter sets \leftmark, no section marks
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{}
+
+% Running header: "Part Name · Chapter Name" on left, page on right
+% Uses centered dot with generous space; omits dot when no chapter set
+\fancyhead[L]{\small\itshape
+  \ifdefempty{\currentpartname}%
+    {\leftmark}%
+    {\currentpartname\ifx\leftmark\empty\else\hspace{0.8em}\textperiodcentered\hspace{0.8em}\leftmark\fi}}
+\fancyhead[R]{\small\thepage}
+
+% Plain style for chapter openers: just page number, no rule
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyhead[R]{\small\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+% Part page style: completely empty
+\fancypagestyle{partpage}{
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+% --- Chapter/section formatting ---
+\usepackage{titlesec}
+\usepackage{needspace}
+
+% Chapter formatting
+\titleformat{\chapter}[display]
+  {\normalfont\LARGE\bfseries}
+  {}
+  {0pt}
+  {\LARGE}
+\titlespacing*{\chapter}{0pt}{0.3in}{0.2in}
+
+% Section formatting — needspace ensures heading stays with following content
+\titleformat{\section}
+  {\needspace{5\baselineskip}\normalfont\Large\bfseries}
+  {}
+  {0pt}
+  {}
+\titlespacing*{\section}{0pt}{1.5em}{0.5em}
+
+% Subsection formatting
+\titleformat{\subsection}
+  {\needspace{4\baselineskip}\normalfont\large\bfseries}
+  {}
+  {0pt}
+  {}
+\titlespacing*{\subsection}{0pt}{1.2em}{0.3em}
+
+% Subsubsection (italic bold)
+\titleformat{\subsubsection}
+  {\needspace{3\baselineskip}\normalfont\normalsize\bfseries\itshape}
+  {}
+  {0pt}
+  {}
+
+% --- Remove chapter/section numbering ---
+\setcounter{secnumdepth}{-2}
+
+% --- Lists ---
+\usepackage{enumitem}
+\setlist{nosep, leftmargin=1.5em}
+\setlist[itemize]{label={\raisebox{0.4ex}{\fontsize{3pt}{3pt}\selectfont◆}}}
+
+% --- Links ---
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=black,
+  pdfborder={0 0 0}
+}
+
+% --- Tables ---
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{calc}
+\renewcommand{\arraystretch}{1.15}
+% Pandoc uses \def\LTcaptype{none} for uncaptioned tables
+\newcounter{none}
+% Reduce table font size to fit 5-inch pages
+\AtBeginEnvironment{longtable}{\footnotesize}
+
+% --- Code blocks ---
+\usepackage{fancyvrb}
+\usepackage{fvextra}
+
+% Shaded environment: minipage to prevent page breaks in code
+\newenvironment{Shaded}{%
+  \begin{minipage}{\linewidth}\vspace{0.5em}%
+}{%
+  \vspace{0.5em}\end{minipage}%
+}
+
+% Pandoc highlighting macros (token styles, may redefine Shaded)
+$if(highlighting-macros)$
+$highlighting-macros$
+% Re-override Shaded with our minipage version
+\renewenvironment{Shaded}{%
+  \begin{minipage}{\linewidth}\vspace{0.5em}%
+}{%
+  \vspace{0.5em}\end{minipage}%
+}
+$endif$
+
+% Override Highlighting for our formatting
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{
+  fontsize=\footnotesize,
+  frame=single,
+  framesep=0.3em,
+  rulecolor=\color{codeframe},
+  commandchars=\\\{\},
+  breaklines=true,
+  breaksymbol={}
+}
+
+% Plain verbatim: also footnotesize with frame
+\DefineVerbatimEnvironment{verbatim}{Verbatim}{
+  fontsize=\footnotesize,
+  breaklines=true,
+  breakanywhere=true,
+  frame=single,
+  framesep=0.3em,
+  rulecolor=\color{codeframe}
+}
+
+% Prevent plain verbatim from splitting across pages
+\BeforeBeginEnvironment{verbatim}{\begin{minipage}{\linewidth}\vspace{0.3em}}
+\AfterEndEnvironment{verbatim}{\vspace{0.3em}\end{minipage}}
+
+% --- Block quotes ---
+\usepackage{quoting}
+\renewenvironment{quote}
+  {\begin{quoting}[leftmargin=1.5em, rightmargin=1em, vskip=0.5em]\small\itshape}
+  {\end{quoting}}
+
+% --- Graphics ---
+\usepackage{graphicx}
+\usepackage{grffile}
+
+% --- Widows and orphans ---
+\widowpenalty=10000
+\clubpenalty=10000
+
+% --- Tight list support for pandoc ---
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% --- Pandoc column width support ---
+\makeatletter
+\newlength{\currentparskip}
+\providecommand{\columnbreak}{\vfill\break}
+$if(tables)$
+\usepackage{longtable,booktabs,array}
+$if(multiline-tables)$
+\usepackage{multirow}
+$endif$
+\providecommand{\toprule}[1][]{\hline}
+\providecommand{\bottomrule}[1][]{\hline}
+\providecommand{\midrule}[1][]{\hline}
+$endif$
+\makeatother
+
+% --- CSL refs support (pandoc may generate these) ---
+$if(csl-refs)$
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newenvironment{CSLReferences}[2]{}{}
+$endif$
+
+% ============================================================
+\begin{document}
+
+% --- Title page ---
+\begin{titlepage}
+\thispagestyle{empty}
+\vspace*{2in}
+\begin{center}
+{\LARGE\bfseries A Traveler's Guide to the\\[0.3em]Mazes of Menace}
+\end{center}
+\end{titlepage}
+
+% --- Epigraph page ---
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+{\itshape Do not read this guide aloud. The dungeon is listening.}
+\end{center}
+\vspace*{\fill}
+\clearpage
+
+% --- Table of Contents ---
+\frontmatter
+\thispagestyle{empty}
+{
+\hypersetup{linkcolor=black}
+\setcounter{tocdepth}{0}
+\small
+\setlength{\parskip}{0.3em}
+\renewcommand{\baselinestretch}{0.92}\selectfont
+% Indent chapter entries in TOC to bring them closer to page numbers
+\makeatletter
+\renewcommand{\l@chapter}{\@dottedtocline{0}{1.5em}{0em}}
+\makeatother
+\tableofcontents
+}
+
+% --- Main content ---
+\mainmatter
+
+$body$
+
+\end{document}
