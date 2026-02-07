@@ -6,16 +6,32 @@ import assert from 'node:assert/strict';
 import puppeteer from 'puppeteer';
 import { startServer } from './serve.js';
 
-let browser, page, serverInfo;
+let browser, serverInfo;
+
+// File-level setup: one browser + one server for all tests
+before(async () => {
+    serverInfo = await startServer();
+    browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
+});
+
+after(async () => {
+    if (browser) await browser.close();
+    if (serverInfo) serverInfo.server.close();
+});
+
+let page;
 
 async function sendChar(ch) {
     await page.keyboard.type(ch);
-    await page.evaluate(() => new Promise(r => setTimeout(r, 50)));
+    await page.evaluate(() => new Promise(r => setTimeout(r, 20)));
 }
 
 async function sendKey(key) {
     await page.keyboard.press(key);
-    await page.evaluate(() => new Promise(r => setTimeout(r, 50)));
+    await page.evaluate(() => new Promise(r => setTimeout(r, 20)));
 }
 
 async function getRow(row) {
@@ -61,31 +77,24 @@ async function startNewGame() {
     );
     // Select Barbarian (b) -- high HP/STR for survival
     await sendChar('b');
-    await page.evaluate(() => new Promise(r => setTimeout(r, 200)));
+    await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
     await sendChar(' ');
-    await page.evaluate(() => new Promise(r => setTimeout(r, 500)));
+    await page.evaluate(() => new Promise(r => setTimeout(r, 200)));
 }
 
 describe('E2E: Extended gameplay', () => {
     before(async () => {
-        serverInfo = await startServer();
-        browser = await puppeteer.launch({
-            headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        });
         page = await browser.newPage();
         page.on('pageerror', err => console.error(`  [browser] ${err.message}`));
     });
 
     after(async () => {
-        if (browser) await browser.close();
-        if (serverInfo) serverInfo.server.close();
+        if (page) await page.close();
     });
 
     it('can play for several turns without crashing', async () => {
         await startNewGame();
 
-        // Wait a few turns -- player may or may not survive depending on RNG
         let turnsPlayed = 0;
         for (let i = 0; i < 10; i++) {
             if (await isGameOver()) break;
@@ -93,11 +102,9 @@ describe('E2E: Extended gameplay', () => {
             turnsPlayed++;
         }
 
-        // Verify turn counter advanced or game ended properly
         const status = await getRow(23);
         const hpMatch = status.match(/HP:(\d+)\((\d+)\)/);
         const gameOver = await isGameOver();
-        // Either still alive with HP > 0, or died cleanly (game over screen)
         if (hpMatch) {
             assert.ok(parseInt(hpMatch[1]) >= 0, 'HP should be non-negative');
         }
@@ -107,7 +114,6 @@ describe('E2E: Extended gameplay', () => {
     it('player can explore by moving around', async () => {
         await startNewGame();
 
-        // Move in a pattern to explore the room
         const moves = ['l', 'l', 'l', 'j', 'j', 'h', 'h', 'h', 'k', 'k'];
         let totalMoves = 0;
         for (const key of moves) {
@@ -121,7 +127,6 @@ describe('E2E: Extended gameplay', () => {
     it('remembers seen terrain (memory)', async () => {
         await startNewGame();
 
-        // Move right a few times to see terrain, then move back
         for (let i = 0; i < 3; i++) {
             if (await isGameOver()) break;
             await sendChar('l');
@@ -131,8 +136,6 @@ describe('E2E: Extended gameplay', () => {
             await sendChar('h');
         }
 
-        // The terminal should still show walls and floor from memory
-        // DECGraphics: room floor is middle dot U+00B7
         const text = await getTerminalText();
         const hasDots = (text.match(/\u00b7/g) || []).length;
         assert.ok(hasDots > 5, `Should have remembered floor tiles, found ${hasDots}`);
@@ -142,7 +145,6 @@ describe('E2E: Extended gameplay', () => {
         await startNewGame();
 
         const status1 = await getRow(22);
-        // Barbarian has high Str (16)
         assert.ok(status1.includes('St:16') || status1.includes('Barbarian'),
             `Status should show Barbarian stats, got: "${status1.trim()}"`);
     });
@@ -150,13 +152,10 @@ describe('E2E: Extended gameplay', () => {
     it('can pick up gold automatically', async () => {
         await startNewGame();
 
-        // Gold is auto-picked up on walk; we just need to walk over some
-        // Check initial gold
         const initialStatus = await getRow(23);
         const goldMatch = initialStatus.match(/\$:(\d+)/);
         const initialGold = goldMatch ? parseInt(goldMatch[1]) : 0;
 
-        // Walk around a lot to find gold
         const pattern = ['l', 'l', 'l', 'j', 'j', 'j', 'h', 'h', 'h', 'k', 'k', 'k',
                          'l', 'j', 'l', 'j', 'h', 'k', 'h', 'k'];
         for (const key of pattern) {
@@ -164,21 +163,16 @@ describe('E2E: Extended gameplay', () => {
             await sendChar(key);
         }
 
-        // Check if gold changed (might not if no gold on floor)
         const finalStatus = await getRow(23);
         const finalGoldMatch = finalStatus.match(/\$:(\d+)/);
         const finalGold = finalGoldMatch ? parseInt(finalGoldMatch[1]) : 0;
 
-        // This is not guaranteed since gold placement is random,
-        // but the mechanism should work without errors
         assert.ok(finalGold >= initialGold, 'Gold should not decrease');
     });
 
     it('can find and descend stairs', async () => {
         await startNewGame();
 
-        // Walk around extensively to find the downstairs
-        // Use a systematic exploration pattern
         const directions = ['l', 'l', 'l', 'l', 'l', 'j', 'j', 'j', 'j',
                            'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h', 'h',
                            'k', 'k', 'k', 'k', 'k', 'k', 'k',
@@ -189,7 +183,6 @@ describe('E2E: Extended gameplay', () => {
             if (await isGameOver()) break;
             await sendChar(key);
 
-            // Check messages for stairs
             const msg = await getRow(0);
             if (msg.includes('staircase down')) {
                 foundStairs = true;
@@ -198,28 +191,24 @@ describe('E2E: Extended gameplay', () => {
         }
 
         if (foundStairs) {
-            // Try to descend
             const statusBefore = await getRow(23);
 
             await sendChar('>');
-            await page.evaluate(() => new Promise(r => setTimeout(r, 500)));
+            await page.evaluate(() => new Promise(r => setTimeout(r, 200)));
 
             const statusAfter = await getRow(23);
-            // Check if level changed
             const levelMatch = statusAfter.match(/Dlvl:(\d+)/);
             if (levelMatch) {
                 assert.ok(parseInt(levelMatch[1]) >= 1,
                     'Should be on a valid dungeon level');
             }
         }
-        // If didn't find stairs, that's OK -- random map layout
         assert.ok(true, 'Exploration completed without errors');
     });
 
     it('game handles many turns without crashing', async () => {
         await startNewGame();
 
-        // Simulate 50 turns of random-ish play
         const actions = ['.', '.', 'l', 'h', 'j', 'k', '.', 'l', 'j',
                         '.', '.', 'h', 'k', '.', 'l', 'j', 'h', 'k',
                         '.', '.', '.', 'l', 'l', 'h', 'h', 'j', 'j',
@@ -240,7 +229,6 @@ describe('E2E: Extended gameplay', () => {
     it('search command can find hidden doors', async () => {
         await startNewGame();
 
-        // Search many times near walls (where secret doors might be)
         let foundHidden = false;
         for (let i = 0; i < 30; i++) {
             if (await isGameOver()) break;
@@ -251,46 +239,35 @@ describe('E2E: Extended gameplay', () => {
                 break;
             }
         }
-        // Secret doors are rare; just verify no crashes
         assert.ok(true, 'Search completed without errors');
     });
 
     it('open command works on doors', async () => {
         await startNewGame();
 
-        // Try to open a door (may not be adjacent)
         await sendChar('o');
-        await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
+        await page.evaluate(() => new Promise(r => setTimeout(r, 50)));
 
-        // Should ask "In what direction?"
         const msg = await getRow(0);
         const valid = msg.includes('direction') || msg.includes('door') || msg.includes('Never mind');
 
-        // Send direction then check result
         await sendChar('l');
-        await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
+        await page.evaluate(() => new Promise(r => setTimeout(r, 50)));
 
         const result = await getRow(0);
-        // Should get some response about the door or lack thereof
         assert.ok(result.trim().length > 0, 'Open command should produce a response');
     });
 });
 
 describe('E2E: Color rendering', () => {
     before(async () => {
-        serverInfo = await startServer();
-        browser = await puppeteer.launch({
-            headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        });
         page = await browser.newPage();
         page.on('pageerror', err => console.error(`  [browser] ${err.message}`));
         await startNewGame();
     });
 
     after(async () => {
-        if (browser) await browser.close();
-        if (serverInfo) serverInfo.server.close();
+        if (page) await page.close();
     });
 
     it('player @ is white', async () => {
@@ -302,7 +279,6 @@ describe('E2E: Color rendering', () => {
             return null;
         });
         assert.ok(color, 'Player @ should have a color');
-        // White is rgb(255, 255, 255) or #fff
         assert.ok(color.includes('255') || color.includes('fff') || color === 'rgb(255, 255, 255)',
             `Player should be white, got: ${color}`);
     });
@@ -312,7 +288,6 @@ describe('E2E: Color rendering', () => {
             const spans = document.querySelectorAll('#terminal span');
             const result = { wall: null, floor: null };
             for (const span of spans) {
-                // DECGraphics: walls are box-drawing, floor is middle dot
                 if (span.textContent === '\u2500' && !result.wall) result.wall = span.style.color;
                 if (span.textContent === '\u00b7' && !result.floor) result.floor = span.style.color;
             }
@@ -323,13 +298,10 @@ describe('E2E: Color rendering', () => {
     });
 
     it('status line text uses gray', async () => {
-        // Status lines (row 22, 23) should have gray text
         const grayCount = await page.evaluate(() => {
             const pre = document.getElementById('terminal');
             if (!pre) return 0;
             const spans = Array.from(pre.querySelectorAll('span'));
-            // The spans for rows 22-23 (approximate offset)
-            // Row 22 starts at span index 22*80, row 23 at 23*80
             let gray = 0;
             for (let i = 22 * 80; i < 24 * 80 && i < spans.length; i++) {
                 const c = spans[i].style.color;

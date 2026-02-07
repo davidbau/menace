@@ -75,7 +75,7 @@ function handleKeyDown(e) {
     }
 }
 
-function pushInput(ch) {
+export function pushInput(ch) {
     if (inputResolver) {
         const resolve = inputResolver;
         inputResolver = null;

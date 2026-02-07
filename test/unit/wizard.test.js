@@ -10,6 +10,7 @@ import { generateLevel, wallification } from '../../js/dungeon.js';
 import { populateLevel } from '../../js/makemon.js';
 import { processCommand } from '../../js/commands.js';
 import { FOV } from '../../js/fov.js';
+import { pushInput } from '../../js/input.js';
 
 // Mock display that captures messages
 function mockDisplay() {
@@ -175,6 +176,7 @@ describe('Wizard mode', () => {
     describe('Non-time-consuming commands', () => {
         it('help command does not take time', async () => {
             const game = mockGame({ wizard: false });
+            pushInput('q'.charCodeAt(0));  // dismiss help menu
             const result = await processCommand('?'.charCodeAt(0), game);
             assert.equal(result.tookTime, false);
             assert.ok(game.display.messages.length > 0, 'Help should display a message');
