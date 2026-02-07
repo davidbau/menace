@@ -42,7 +42,8 @@
 
         #main {
             display: flex;
-            gap: 16px;
+            flex-wrap: wrap;
+            gap: 0 16px;
             align-items: flex-start;
         }
 
@@ -137,11 +138,11 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
             padding-top: 0.6em;
+            text-align: left;
         }
 
         /* Hover info panel (right panel) */
         #hover-panel {
-            padding-top: 1.8em;
             padding-left: 1em;
         }
 
@@ -182,9 +183,22 @@
             margin-top: 2em;
         }
 
-        /* Nav toggle links */
+        /* Panel toggle links (flanking the game) */
+        #panel-toggles {
+            display: flex;
+            justify-content: space-between;
+            flex-basis: 100%;
+            font-size: 11px;
+            padding: 0.3em 0;
+        }
+
         .nav-toggle {
             cursor: pointer;
+            color: #666;
+        }
+
+        .nav-toggle:hover {
+            color: #aaa;
         }
 
         /* Responsive: stack vertically on narrow screens */
@@ -234,9 +248,12 @@
             <a href="https://nethackwiki.com/wiki/Guidebook" target="_blank">How to Play</a>
             <a href="https://github.com/davidbau/webhack" target="_blank">About This Project</a>
             <a href="spoilers/" target="_blank">Spoilers Guide</a>
-            <a id="nav-controls" class="nav-toggle" style="display:none" title="Show keyboard controls">Controls</a>
         </nav>
         <div id="main">
+            <div id="panel-toggles">
+                <span id="nav-controls" class="nav-toggle" style="display:none" title="Show keyboard controls">Controls</span>
+                <span id="nav-explore" class="nav-toggle" style="display:none" title="Show explore panel">Explore</span>
+            </div>
             <!-- Left: keyboard controls -->
             <div id="keyref" class="side-panel">
                 <div class="side-panel-header">
@@ -282,6 +299,10 @@
 
             <!-- Right: hover symbol info -->
             <div id="hover-panel" class="side-panel">
+                <div class="side-panel-header">
+                    <span>EXPLORE</span>
+                    <span class="side-panel-close" id="hover-close" title="Hide">&times;</span>
+                </div>
                 <div id="hover-info">
                     <span id="hover-symbol"></span>
                     <span id="hover-name"></span>
@@ -294,32 +315,35 @@
     </div>
 
     <script>
-    // Keyboard quick-reference: toggle visibility, persist preference
+    // Side panel toggle logic: hide/show with localStorage persistence
     (function() {
-        var panel = document.getElementById('keyref');
-        var close = document.getElementById('keyref-close');
-        var show = document.getElementById('nav-controls');
-        var key = 'webhack-keyref-hidden';
+        function setupToggle(panelId, closeId, showId, storageKey) {
+            var panel = document.getElementById(panelId);
+            var close = document.getElementById(closeId);
+            var show = document.getElementById(showId);
 
-        function hide() {
-            panel.style.display = 'none';
-            show.style.display = '';
-            try { localStorage.setItem(key, '1'); } catch(e) {}
+            function hide() {
+                panel.style.display = 'none';
+                show.style.display = '';
+                try { localStorage.setItem(storageKey, '1'); } catch(e) {}
+            }
+
+            function reveal() {
+                panel.style.display = '';
+                show.style.display = 'none';
+                try { localStorage.removeItem(storageKey); } catch(e) {}
+            }
+
+            close.addEventListener('click', hide);
+            show.addEventListener('click', reveal);
+
+            try {
+                if (localStorage.getItem(storageKey)) hide();
+            } catch(e) {}
         }
 
-        function reveal() {
-            panel.style.display = '';
-            show.style.display = 'none';
-            try { localStorage.removeItem(key); } catch(e) {}
-        }
-
-        close.addEventListener('click', hide);
-        show.addEventListener('click', reveal);
-
-        // Restore preference
-        try {
-            if (localStorage.getItem(key)) hide();
-        } catch(e) {}
+        setupToggle('keyref', 'keyref-close', 'nav-controls', 'webhack-keyref-hidden');
+        setupToggle('hover-panel', 'hover-close', 'nav-explore', 'webhack-hover-hidden');
     })();
     </script>
 
