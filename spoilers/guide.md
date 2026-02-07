@@ -70,17 +70,21 @@ could pray — read on. We'll do our best to keep you alive.
 23. [Spellcasting](#spellcasting) — Magic for the studious adventurer
 24. [Curses and How to Break Them](#curses-and-how-to-break-them)
 25. [Luck and Fortune](#luck-and-fortune) — The hidden numbers that shape your fate
+26. [Polymorph](#polymorph) — Transformation strategy and risks
 
 **Part Six: The Deep Dungeon**
-26. [The Castle](#the-castle) — The gateway to Gehennom
-27. [Gehennom](#gehennom) — A travel advisory
-28. [The Ascension Run](#the-ascension-run) — Getting back out alive
-29. [The Elemental Planes](#the-elemental-planes) — The final gauntlet
+27. [The Castle](#the-castle) — The gateway to Gehennom
+28. [Gehennom](#gehennom) — A travel advisory
+29. [The Ascension Run](#the-ascension-run) — Getting back out alive
+30. [The Elemental Planes](#the-elemental-planes) — The final gauntlet
 
 **Appendices**
 - [Sokoban Solutions](#sokoban-solutions) — All eight level variants, solved
 - [Voluntary Challenges](#voluntary-challenges) — Conducts and self-imposed restrictions
 - [Shopping and Shopkeeper Pricing](#shopping-and-shopkeeper-pricing) — Commerce in the dungeon
+- [Experience Levels and Rank Titles](#experience-levels-and-rank-titles) — XP thresholds and progression
+- [Score Calculation](#score-calculation) — How your final score is computed
+- [Alchemy Recipe Reference](#alchemy-recipe-reference) — Potion mixing and holy water
 - [What Changed Since Last Time](#what-changed) — Notable differences in the current edition
 - [Acknowledgements](#acknowledgements) — Standing on the shoulders of giants
 
@@ -537,38 +541,70 @@ and monsters scattered about. But some rooms are special:
   Items are for sale.     $ = piles of gold        Monsters guard it.
 ```
 
-**Shops.** Identified by the shopkeeper standing in the doorway (or
-inside). Shops sell items of a particular type: general
-stores, armor shops, weapon shops, scroll shops, potion shops, and
-more. Items on the shop floor belong to the shopkeeper; pick one up
-and you'll be quoted a price. You can sell items too. Shopkeepers are
-extremely powerful in combat, so don't steal unless you have a plan.
+Each special room type appears only at certain dungeon depths and
+with a specific probability. Knowing when to expect them helps you
+prepare:
 
-**Temples.** A room with an altar and a priest or priestess tending
-it. The altar's alignment matters: if it matches yours, you can
-sacrifice here for good effects. If it doesn't, the resident priest
-won't be friendly about your attempts.
+| Room type       | Earliest depth | Chance | What's inside                     |
+| --------------- | -------------- | ------ | --------------------------------- |
+| Shop            | Level 2        | 3/DL   | Shopkeeper, items for sale        |
+| Throne room     | Level 5        | 1/6    | Throne, sleeping monsters, chests |
+| Leprechaun hall | Level 6        | 1/8    | Sleeping leprechauns, gold piles  |
+| Zoo             | Level 7        | 1/7    | Sleeping monsters, gold piles     |
+| Temple          | Level 9        | 1/5    | Altar, aligned priest             |
+| Beehive         | Level 10       | 1/5    | Killer bees, queen bee, jelly     |
+| Graveyard       | Level 12       | 1/6    | Undead, corpses, graves, chests   |
+| Anthole         | Level 13       | 1/8    | Ants, food                        |
+| Barracks        | Level 15       | 1/4    | Soldiers, treasure chests         |
+| Swamp           | Level 16       | 1/6    | Pools, swamp creatures            |
+| Cockatrice nest | Level 17       | 1/8    | Cockatrices, statues              |
 
-**Throne rooms.** A room with a throne (`\`) and usually surrounded
-by monsters. Sitting on the throne has random effects, sometimes
-wonderful, sometimes terrible. See
-[Points of Interest](#points-of-interest).
+Special rooms never appear on Oracle, Big Room, Rogue, Medusa, or
+Castle levels. Vaults (isolated 2x2 rooms filled with gold) appear
+separately with about a 35% chance, sometimes with a portal to
+Fort Ludios.
 
-**Zoos.** A room packed with sleeping monsters and gold. If you open
-the door, they all wake up. Fight from the doorway and pick them off
-one at a time.
+**Shops** are identified by the shopkeeper standing in the doorway
+(or inside). Shops sell items of a particular type: general stores
+(44% of shops), armor shops (14%), scroll shops (10%), potion shops
+(10%), weapon shops (5%), and rarer specialties like jewelers, wand
+shops, and rare bookstores. Items on the shop floor belong to the
+shopkeeper; pick one up and you'll be quoted a price. You can sell
+items too. Shopkeepers are extremely powerful in combat, so don't
+steal unless you have a plan.
 
-**Barracks.** A room full of soldiers. They're organized and armed,
-but they're also carrying good equipment. Worth clearing if you can
-handle the fight.
+**Temples** contain an altar and a priest or priestess. The altar's
+alignment matters: if it matches yours, you can sacrifice here, use
+it for BUC-testing, and chat with the priest to donate gold for
+divine protection. If it doesn't match, the resident priest won't
+appreciate your attempts to sacrifice.
 
-**Beehives.** A room full of killer bees and royal jelly. The bees
-are dangerous in numbers, but royal jelly is excellent food.
+**Zoos** are dangerous early on. All monsters inside are asleep
+until the door opens, then they all wake at once. Fight from the
+doorway and pick them off one at a time. The upside: each monster
+sits on a pile of gold.
 
-**Themed rooms.** Newer editions of the dungeon include a variety
-of themed rooms: collections of specific monster types, item caches,
-and environmental setups. These are too varied to catalog completely
-here, but they add welcome variety to the standard layout.
+**Beehives** are filled with killer bees, a queen bee, and lumps
+of royal jelly. The bees are dangerous in swarms but royal jelly
+is excellent food. Fight from the corridor.
+
+**Barracks** are full of soldiers and sometimes contain treasure
+chests. Soldiers carry useful equipment (especially in the
+mid-game) but they're organized and can overwhelm you.
+
+**Graveyards** contain undead and are marked by grave tiles. They
+tend to appear in the mid-dungeon and are worth exploring for the
+corpses and chests they contain, but be ready for wraiths (which
+drain levels) and ghosts (which slow you).
+
+**Cockatrice nests** are deadly. The cockatrices inside can turn
+you to stone with a single touch attack. Always have a lizard
+corpse or acidic source available before entering one.
+
+**Themed rooms** in the current edition add further variety:
+collections of specific monster types, item caches, and
+environmental setups. These are too varied to catalog here, but
+they add welcome diversity to the standard layout.
 
 ---
 
@@ -1665,13 +1701,13 @@ depends on what you're doing:
 
 When nutrition drops below certain thresholds, you get warnings:
 
-| Nutrition | Status    | Effect                                    |
-| --------- | --------- | ----------------------------------------- |
-| 1000+     | Satiated  | Overfull. Eating more risks choking.      |
-| 150-999   | Normal    | Fine.                                     |
-| 50-149    | Hungry    | Warning message. Time to eat.             |
-| 0-49      | Weak      | Movement slowed. Pray if possible.        |
-| Below 0   | Fainting  | Collapse randomly. Eat NOW or die.        |
+| Nutrition | Status   | Effect                               |
+| --------- | -------- | ------------------------------------ |
+| 1000+     | Satiated | Overfull. Eating more risks choking. |
+| 150-999   | Normal   | Fine.                                |
+| 50-149    | Hungry   | Warning message. Time to eat.        |
+| 0-49      | Weak     | Movement slowed. Pray if possible.   |
+| Below 0   | Fainting | Collapse randomly. Eat NOW or die.   |
 
 The practical takeaway: eat when you get the "Hungry" message. Don't
 wait for "Weak." If you hit Fainting and have no food, pray to your
@@ -1719,19 +1755,19 @@ spinach increases your strength.
 
 #### Useful Corpse Effects
 
-| Corpse               | Effect                             |
-| -------------------- | ---------------------------------- |
-| Floating eye         | Telepathy (but paralyzes you too)  |
-| Killer bee           | Poison resistance                  |
-| Fire giant/ant       | Fire resistance                    |
-| Winter wolf          | Cold resistance                    |
-| Wraith               | Gain an experience level           |
-| Giant                | Increase strength                  |
-| Lizard               | Cures stoning in progress          |
-| Newt                 | May restore 1 to 3 mana            |
-| Stalker              | Invisibility (and see invisible)   |
-| Tengu                | Teleportitis / teleport control    |
-| Disenchanter         | Intrinsic protection               |
+| Corpse         | Effect                            |
+| -------------- | --------------------------------- |
+| Floating eye   | Telepathy (but paralyzes you too) |
+| Killer bee     | Poison resistance                 |
+| Fire giant/ant | Fire resistance                   |
+| Winter wolf    | Cold resistance                   |
+| Wraith         | Gain an experience level          |
+| Giant          | Increase strength                 |
+| Lizard         | Cures stoning in progress         |
+| Newt           | May restore 1 to 3 mana           |
+| Stalker        | Invisibility (and see invisible)  |
+| Tengu          | Teleportitis / teleport control   |
+| Disenchanter   | Intrinsic protection              |
 
 Eating for intrinsics is one of the most important things you can
 do in the early and mid game. Poison resistance should be a top
@@ -1804,14 +1840,14 @@ Potions can be mixed by dipping one into another. Most random
 combinations produce useless results (or explosions), but a few
 recipes are reliable and valuable:
 
-| Dip this            | Into this           | Result         |
-| ------------------- | ------------------- | -------------- |
-| Healing             | Gain energy/level   | Extra healing  |
-| Extra healing       | Gain energy/level   | Full healing   |
-| Full healing        | Gain energy/level   | Gain ability   |
-| Fruit juice         | Gain energy/level   | See invisible  |
-| Speed               | Healing             | Extra healing  |
-| Speed               | Extra healing       | Levitation     |
+| Dip this      | Into this         | Result        |
+| ------------- | ----------------- | ------------- |
+| Healing       | Gain energy/level | Extra healing |
+| Extra healing | Gain energy/level | Full healing  |
+| Full healing  | Gain energy/level | Gain ability  |
+| Fruit juice   | Gain energy/level | See invisible |
+| Speed         | Healing           | Extra healing |
+| Speed         | Extra healing     | Levitation    |
 
 The chain from healing up to gain ability via gain energy or gain
 level is the core alchemy sequence. If you find potions of gain
@@ -1924,32 +1960,32 @@ area around you.
 
 #### The Wand Table
 
-| Price | Wand                    | Type  | Max Charges |
-| ----- | ----------------------- | ----- | ----------- |
-| $100  | Light                   | NODIR | 15          |
-| $100  | Nothing                 | BEAM  | 15          |
-| $150  | Digging                 | RAY   | 8           |
-| $150  | Enlightenment           | NODIR | 15          |
-| $150  | Magic missile           | RAY   | 8           |
-| $150  | Make invisible          | BEAM  | 8           |
-| $150  | Opening                 | BEAM  | 8           |
-| $150  | Probing                 | BEAM  | 8           |
-| $150  | Secret door detection   | NODIR | 15          |
-| $150  | Slow monster            | BEAM  | 8           |
-| $150  | Speed monster           | BEAM  | 8           |
-| $150  | Striking                | BEAM  | 8           |
-| $150  | Undead turning          | BEAM  | 8           |
-| $150  | Locking                 | BEAM  | 8           |
-| $175  | Cold                    | RAY   | 8           |
-| $175  | Fire                    | RAY   | 8           |
-| $175  | Lightning               | RAY   | 8           |
-| $175  | Sleep                   | RAY   | 8           |
-| $200  | Cancellation            | BEAM  | 8           |
-| $200  | Create monster          | NODIR | 15          |
-| $200  | Polymorph               | BEAM  | 8           |
-| $200  | Teleportation           | BEAM  | 8           |
-| $500  | Death                   | RAY   | 8           |
-| $500  | Wishing                 | NODIR | 3           |
+| Price | Wand                  | Type  | Max Charges |
+| ----- | --------------------- | ----- | ----------- |
+| $100  | Light                 | NODIR | 15          |
+| $100  | Nothing               | BEAM  | 15          |
+| $150  | Digging               | RAY   | 8           |
+| $150  | Enlightenment         | NODIR | 15          |
+| $150  | Magic missile         | RAY   | 8           |
+| $150  | Make invisible        | BEAM  | 8           |
+| $150  | Opening               | BEAM  | 8           |
+| $150  | Probing               | BEAM  | 8           |
+| $150  | Secret door detection | NODIR | 15          |
+| $150  | Slow monster          | BEAM  | 8           |
+| $150  | Speed monster         | BEAM  | 8           |
+| $150  | Striking              | BEAM  | 8           |
+| $150  | Undead turning        | BEAM  | 8           |
+| $150  | Locking               | BEAM  | 8           |
+| $175  | Cold                  | RAY   | 8           |
+| $175  | Fire                  | RAY   | 8           |
+| $175  | Lightning             | RAY   | 8           |
+| $175  | Sleep                 | RAY   | 8           |
+| $200  | Cancellation          | BEAM  | 8           |
+| $200  | Create monster        | NODIR | 15          |
+| $200  | Polymorph             | BEAM  | 8           |
+| $200  | Teleportation         | BEAM  | 8           |
+| $500  | Death                 | RAY   | 8           |
+| $500  | Wishing               | NODIR | 3           |
 
 #### Key Wands
 
@@ -2075,16 +2111,16 @@ you don't currently need.
 Amulets are simpler than rings. All cost $150, so you can't price-ID
 them. The key ones:
 
-| Amulet                 | Effect                                      |
-| ---------------------- | ------------------------------------------- |
-| Life saving            | Revives you once from death, then crumbles  |
-| Reflection             | Reflects ray attacks                        |
-| Magical breathing      | Survive underwater and without air          |
-| ESP                    | Detect monsters via telepathy               |
-| Unchanging             | Prevents involuntary polymorph              |
-| Versus poison          | Poison resistance                           |
-| Strangulation          | Slowly kills you (always cursed)            |
-| Restful sleep          | Puts you to sleep randomly (usually cursed) |
+| Amulet            | Effect                                      |
+| ----------------- | ------------------------------------------- |
+| Life saving       | Revives you once from death, then crumbles  |
+| Reflection        | Reflects ray attacks                        |
+| Magical breathing | Survive underwater and without air          |
+| ESP               | Detect monsters via telepathy               |
+| Unchanging        | Prevents involuntary polymorph              |
+| Versus poison     | Poison resistance                           |
+| Strangulation     | Slowly kills you (always cursed)            |
+| Restful sleep     | Puts you to sleep randomly (usually cursed) |
 
 **Amulet of life saving** is the most important. Wear it in
 dangerous situations (endgame, unfamiliar special levels). When
@@ -2165,19 +2201,19 @@ produce noise but no special effects.
 
 #### Other Notable Tools
 
-| Tool               | Use                                           |
-| ------------------ | --------------------------------------------- |
-| Pickaxe / mattock  | Dig through walls and floors                  |
-| Unicorn horn       | Cure poison, confusion, blindness, nausea     |
-| Stethoscope        | Check HP and status of a monster              |
-| Tin opener         | Open tins in one turn                         |
-| Tinning kit        | Preserve corpses as tins                      |
-| Blindfold          | Voluntarily go blind (useful for telepathy)   |
-| Towel              | Wipe cream pie from face, use as blindfold    |
-| Magic marker       | Write scrolls and spellbooks on blank paper   |
-| Crystal ball       | Detect objects, traps, and portals on a level |
-| Bell of Opening    | Invocation item (found in Vlad's Tower area)  |
-| Leash              | Tie a pet to you so it follows through stairs |
+| Tool              | Use                                           |
+| ----------------- | --------------------------------------------- |
+| Pickaxe / mattock | Dig through walls and floors                  |
+| Unicorn horn      | Cure poison, confusion, blindness, nausea     |
+| Stethoscope       | Check HP and status of a monster              |
+| Tin opener        | Open tins in one turn                         |
+| Tinning kit       | Preserve corpses as tins                      |
+| Blindfold         | Voluntarily go blind (useful for telepathy)   |
+| Towel             | Wipe cream pie from face, use as blindfold    |
+| Magic marker      | Write scrolls and spellbooks on blank paper   |
+| Crystal ball      | Detect objects, traps, and portals on a level |
+| Bell of Opening   | Invocation item (found in Vlad's Tower area)  |
+| Leash             | Tie a pet to you so it follows through stairs |
 
 A **unicorn horn** is one of the best tools in the game. Apply it
 to cure confusion, blindness, sickness, hallucination, and
@@ -2205,25 +2241,43 @@ attacks.
 
 The key armor slots:
 
-| Slot   | Best mundane options                       | Best magical options                  |
-| ------ | ------------------------------------------ | ------------------------------------- |
-| Body   | Splint mail, banded mail                   | Dragon scale mail (two resistances!)  |
-| Cloak  | Cloak of protection                        | Cloak of magic resistance             |
-| Helmet | Helm of brilliance                         | Helm of telepathy                     |
-| Gloves | Gauntlets of power                         | Gauntlets of dexterity                |
-| Boots  | Speed boots                                | Water walking boots, levitation boots |
-| Shield | Shield of reflection                       | Small shield (for spellcasters)       |
+| Slot   | Best mundane options     | Best magical options                  |
+| ------ | ------------------------ | ------------------------------------- |
+| Body   | Splint mail, banded mail | Dragon scale mail (one resistance)    |
+| Cloak  | Cloak of protection      | Cloak of magic resistance             |
+| Helmet | Helm of brilliance       | Helm of telepathy                     |
+| Gloves | Gauntlets of power       | Gauntlets of dexterity                |
+| Boots  | Speed boots              | Water walking boots, levitation boots |
+| Shield | Shield of reflection     | Small shield (for spellcasters)       |
 
-**Dragon scale mail** is the endgame body armor of choice. In
-current editions, each color provides two extrinsic resistances.
-Gray dragon scale mail provides magic resistance and is the most
-popular wish target. Silver provides reflection. Black provides
-disintegration resistance.
+**Dragon scale mail** is the endgame body armor of choice. Each
+color provides one extrinsic resistance while offering excellent
+base AC (9 when unenchanted). The ten colors:
 
-To get dragon scale mail: kill a dragon, pick up the scales it
-drops, then either read a blessed scroll of enchant armor while
-wearing the scales (they transform into scale mail), or wish for
-the mail directly.
+| Color  | Resistance               | Base cost | Notes                         |
+| ------ | ------------------------ | --------- | ----------------------------- |
+| Gray   | Magic resistance         | 1200 zm   | Best overall wish target      |
+| Silver | Reflection               | 1200 zm   | Frees up amulet/shield slot   |
+| Black  | Disintegration res.      | 1200 zm   | Essential for Astral Plane    |
+| Red    | Fire resistance          | 900 zm    | Common damage type coverage   |
+| White  | Cold resistance          | 900 zm    | Also useful for ice terrain   |
+| Blue   | Shock resistance         | 900 zm    | Fewer threats, lower priority |
+| Green  | Poison resistance        | 900 zm    | Many roles get this innately  |
+| Orange | Sleep resistance         | 900 zm    | Useful, but lower priority    |
+| Yellow | Acid resistance          | 900 zm    | Niche, few acid threats       |
+| Gold   | Light source (when worn) | 900 zm    | New color, no resistance      |
+
+**Gray dragon scale mail** (magic resistance) is the most popular
+wish target by far. Magic resistance blocks a wide range of
+instant-death attacks and hostile magic. If your role's quest
+artifact already provides magic resistance, wish for silver
+(reflection) instead.
+
+**How to get dragon scale mail:** Kill a dragon, pick up the
+scales it drops, then read a scroll of enchant armor while
+wearing the scales (they transform into scale mail at the same
+enchantment level). Or wish for the mail directly. Wishing is
+more efficient but scales-into-mail lets you use wishes elsewhere.
 
 **Speed boots** are critical. Being faster than your enemies
 means you get more turns, which means more chances to attack,
@@ -2237,16 +2291,16 @@ slot and freeing up other slots for different resistances.
 
 Weapon choice depends heavily on your role and skill caps.
 
-| Weapon         | Damage (sm/lg) | Notes                              |
-| -------------- | -------------- | ---------------------------------- |
-| Long sword     | d8 / d12       | Lawfuls can dip for Excalibur      |
-| Katana         | d10 / d12      | Best base damage for a one-hander  |
-| Silver saber   | d8 / d8        | +d20 vs silver-hating monsters     |
-| Crysknife      | d10 / d10      | Excellent damage, fragile          |
-| Tsurugi        | d16 / d8+2d6   | Two-handed, bisects small monsters |
-| Runesword      | d4 / d6+d4     | Chaotic weapon                     |
-| Battle-axe     | d8+d4 / d6+2d4 | Two-handed, good damage            |
-| Rubber hose    | d4 / d3        | No, seriously, don't use this      |
+| Weapon       | Damage (sm/lg) | Notes                              |
+| ------------ | -------------- | ---------------------------------- |
+| Long sword   | d8 / d12       | Lawfuls can dip for Excalibur      |
+| Katana       | d10 / d12      | Best base damage for a one-hander  |
+| Silver saber | d8 / d8        | +d20 vs silver-hating monsters     |
+| Crysknife    | d10 / d10      | Excellent damage, fragile          |
+| Tsurugi      | d16 / d8+2d6   | Two-handed, bisects small monsters |
+| Runesword    | d4 / d6+d4     | Chaotic weapon                     |
+| Battle-axe   | d8+d4 / d6+2d4 | Two-handed, good damage            |
+| Rubber hose  | d4 / d3        | No, seriously, don't use this      |
 
 **Excalibur** (long sword dipped in a fountain while Lawful) is one
 of the best weapons: +d5 to hit and damage, level drain resistance,
@@ -2308,34 +2362,89 @@ that doesn't match your alignment:
 - **Other misaligned artifacts**: 4d4 damage on first touch, 1/4
   chance of being blasted each subsequent touch.
 
-#### Key Artifacts
+#### Non-Quest Artifacts
 
-**Excalibur** (Lawful, long sword): +d5 to hit and damage, level
-drain resistance, automatic searching. The go-to weapon for Lawful
-characters.
+These can appear via sacrifice, wishing, or (for a few) special
+methods. Artifacts with an alignment restrict who can wield them
+comfortably; unaligned artifacts work for anyone.
 
-**Grayswandir** (Lawful, silver saber): +d5 to hit and damage,
-double damage dealt, halved physical damage received. One of the
-best weapons in the game. Wishable.
+| Artifact     | Type          | Align   | To-hit | Special                                    |
+| ------------ | ------------- | ------- | ------ | ------------------------------------------ |
+| Excalibur    | Long sword    | Lawful  | +d5    | +d10 dam, drain res, searching. Fountain.  |
+| Grayswandir  | Silver saber  | Lawful  | +d5    | Double damage, halved phys damage taken    |
+| Snickersnee  | Katana        | Lawful  | +0     | +d8 damage. Samurai sacrifice gift         |
+| Sunsword     | Long sword    | Lawful  | +d5    | Double vs undead, blindness res, light     |
+| Demonbane    | Silver mace   | Lawful  | +d5    | Vs demons. Invoke: banish. Priest gift     |
+| Mjollnir     | War hammer    | Neutral | +d5    | +d24 shock dam. Thrown at STR 25. Val gift |
+| Vorpal Blade | Long sword    | Neutral | +d5    | Beheading chance on hit                    |
+| Giantslayer  | Long sword    | Neutral | +d5    | Vs giants                                  |
+| Magicbane    | Athame        | Neutral | +d3    | Stun/scare/cancel, MR defense. Wizard gift |
+| Cleaver      | Battle-axe    | Neutral | +d3    | +d6 dam, hits adjacent. Barbarian gift     |
+| Stormbringer | Runesword     | Chaotic | +d5    | Drains levels (+8 HP each). Auto-attacks   |
+| Grimtooth    | Orcish dagger | Chaotic | +d2    | +d6 dam, poison res. Orc sacrifice gift    |
+| Orcrist      | Elven sword   | Chaotic | +d5    | Warns of orcs. Elf sacrifice gift          |
+| Sting        | Elven dagger  | Chaotic | +d5    | Warns of orcs. Elf sacrifice gift          |
+| Frost Brand  | Long sword    | None    | +d5    | Cold attack & defense. Invoke: snowstorm   |
+| Fire Brand   | Long sword    | None    | +d5    | Fire attack & defense. Invoke: firestorm   |
+| Dragonbane   | Broadsword    | None    | +d5    | Vs dragons, grants reflection              |
+| Werebane     | Silver saber  | None    | +d5    | Vs werecreatures, lycanthropy resistance   |
+| Trollsbane   | Morning star  | None    | +d5    | Vs trolls, regeneration                    |
+| Ogresmasher  | War hammer    | None    | +d5    | Vs ogres                                   |
 
-**Mjollnir** (Neutral, war hammer): Can be thrown and returns like
-a boomerang (if STR 25). +d5 to hit and +d24 damage against non-
-shock-resistant targets. Requires high strength to use effectively.
+**Excalibur** is obtained by dipping a long sword in a fountain
+while Lawful at experience level 5 or higher. It's the go-to
+weapon for Lawful characters: level drain resistance, automatic
+searching, and solid damage make it a complete package.
 
-**Magicbane** (Neutral, athame): +d3 to hit and damage, protects
-against curses while carried, cancels monsters on hit. Useful as
-a secondary weapon. Can be obtained by sacrifice.
+**Grayswandir** is widely considered the best weapon in the game.
+It deals double damage against everything (not just silver-haters)
+and halves physical damage you take. Silver sabers also get +d20
+against silver-vulnerable monsters (demons, undead, werecreatures),
+making Grayswandir devastating in the endgame.
 
-**Stormbringer** (Chaotic, runesword): +d5 to hit and damage,
-drains one level from hit targets (you gain it). Attacks peaceful
-monsters automatically, which can cause alignment problems.
+**Mjollnir** can be thrown and returns when you have 25 Strength.
+The +d24 lightning damage makes it one of the highest damage
+weapons, but it requires gauntlets of power or equivalent.
 
-**The Eyes of the Overworld** (Neutral, lenses): Magic resistance,
-astral vision. A quest artifact for Monks.
+**Magicbane** is valuable as a secondary carry item even if you
+don't wield it: it provides magic resistance while wielded and
+blocks 95% of curses while carried. Get it early via sacrifice
+as a Wizard.
 
-**Quest artifacts** vary wildly by role but most provide magic
-resistance, which makes them essential to carry even if you don't
-wield them. Check your specific role's artifact.
+**Stormbringer** drains levels from everything it hits, including
+peaceful monsters. This makes it powerful but socially hazardous.
+The level drain gives you +8 max HP per drain, making you
+progressively tougher.
+
+#### Quest Artifacts
+
+Each role has a unique quest artifact obtained by completing the
+quest dungeon around experience levels 14-16. These are
+intelligent and self-willed: they blast anyone who isn't the
+intended role.
+
+| Role         | Artifact                     | Type           | Key properties                     |
+| ------------ | ---------------------------- | -------------- | ---------------------------------- |
+| Archeologist | The Orb of Detection         | Crystal ball   | ESP, half spell dam, MR (carry)    |
+| Barbarian    | The Heart of Ahriman         | Luckstone      | Stealth, invoke: levitation        |
+| Cave Dweller | The Sceptre of Might         | Mace           | MR (defense), invoke: conflict     |
+| Healer       | The Staff of Aesculapius     | Quarterstaff   | Drain attack/def, regen, healing   |
+| Knight       | The Magic Mirror of Merlin   | Mirror         | ESP, MR (carry)                    |
+| Monk         | The Eyes of the Overworld    | Lenses         | MR (defense), x-ray, enlightening  |
+| Priest       | The Mitre of Holiness        | Helm of brill. | Fire res (carry), invoke: energy   |
+| Ranger       | The Longbow of Diana         | Bow            | ESP, reflection, create ammo       |
+| Rogue        | The Master Key of Thievery   | Skeleton key   | Warning, teleport ctrl, untrap     |
+| Samurai      | The Tsurugi of Muramasa      | Tsurugi        | Beheading, luck, protection        |
+| Tourist      | The Platinum Yend. Exp. Card | Credit card    | ESP, half spell dam, MR (carry)    |
+| Valkyrie     | The Orb of Fate              | Crystal ball   | Warning, half dam, level teleport  |
+| Wizard       | The Eye of the Aethiopica    | Amulet of ESP  | MR (defense), energy regen, portal |
+
+Many quest artifacts provide **magic resistance**, either as a
+defense property (while worn/wielded) or carry property (just
+having it in inventory). This makes your quest artifact essential
+to carry even if you never wield it. Roles whose quest artifact
+doesn't grant MR (Barbarian, Ranger, Samurai) need to get it from
+dragon scale mail or a cloak instead.
 
 ---
 
@@ -2409,13 +2518,49 @@ production, and BUC testing.
 
 #### Crowning
 
-If your alignment record is very high (through sacrifice and good
-behavior), your god may crown you. Crowning grants a special title,
-an artifact weapon (if one is available), and some intrinsics.
-However, crowning also locks your alignment (you can never change
-it) and raises the prayer timeout significantly. Many experienced
-players avoid being crowned because the increased timeout is a
-steep price.
+If your alignment record is very high (piously aligned, +20 or
+more) and you're extremely lucky (Luck +10), a successful prayer
+may result in your god crowning you. You receive a title based
+on alignment:
+
+- **Lawful:** Hand of Elbereth
+- **Neutral:** Envoy of Balance
+- **Chaotic:** Glory of Arioch
+
+**Benefits:** Crowning grants six intrinsics at once: fire
+resistance, cold resistance, poison resistance, sleep resistance,
+shock resistance, and see invisible. Your god also gifts you a
+weapon: Excalibur (Lawful), Vorpal Blade (Neutral), or
+Stormbringer (Chaotic). Wizards receive a blessed spellbook of
+finger of death instead; Monks receive a blessed spellbook of
+restore ability.
+
+**The drawback:** After crowning, your average prayer timeout
+roughly doubles. This means you can pray far less often for the
+rest of the game. Since prayer is your ultimate emergency escape,
+this is a steep price. Many experienced players deliberately avoid
+crowning by keeping Luck below +10 or alignment below +20 when
+praying. Getting crowned accidentally is one of the more common
+mid-game regrets.
+
+#### Donating to Priests
+
+Chatting with a peaceful, aligned priest in a temple lets you
+donate gold. The rewards scale with the amount donated relative
+to your experience level (XL):
+
+| Donation amount  | Result                                       |
+| ---------------- | -------------------------------------------- |
+| Nothing (0)      | Priest disapproves, alignment drops by 1     |
+| 1 to 200*XL-1    | Token thanks, minor alignment benefit        |
+| 200*XL to 399*XL | Clairvoyance (500-999 turns, map revealed)   |
+| 400*XL to 599*XL | Chance of divine protection (AC improvement) |
+| 600*XL or more   | Alignment increases by 2                     |
+
+**Divine protection** from the 400-600*XL tier grants intrinsic
+AC improvements that stack with worn armor. The protection chance
+decreases at lower AC values, with -10 as the hard limit. This is
+one of the only ways to improve AC beyond what equipment provides.
 
 ---
 
@@ -2514,29 +2659,62 @@ wand and a magic lamp. Plan ahead.
 
 #### What to Wish For
 
-The conventional wisdom for wish priority:
+The conventional priority list. Wish for the first thing you
+don't already have:
 
-1. **Gray dragon scale mail** (magic resistance + AC, if you don't
-   have magic resistance yet).
-2. **Silver dragon scale mail** (reflection + AC, if you don't have
-   reflection yet).
-3. **Speed boots** (if you don't have speed).
-4. **Gauntlets of power** (STR 25, +AC, if your role benefits).
-5. **Amulet of life saving** (insurance for the endgame).
-6. **A specific artifact** (Grayswandir is a common wish target).
+1. **Gray dragon scale mail** — Magic resistance is the single
+   most important resistance. Skip if your quest artifact provides
+   it (Wizard, Monk, several others).
+2. **Silver dragon scale mail** — Reflection stops many instadeath
+   attacks. Skip if you have an amulet of reflection or shield of
+   reflection.
+3. **Speed boots** — Being faster than enemies is transformative.
+   Skip if you already have speed intrinsic or boots.
+4. **Gauntlets of power** — STR 25 gives massive damage and carry
+   bonuses. Best for melee-heavy roles.
+5. **Amulet of life saving** — Insurance for the endgame. One
+   mistake doesn't end your run.
+6. **Grayswandir** — The best weapon in the game (double damage,
+   silver saber). Other good artifact wishes: Frost Brand,
+   Dragonbane.
 
-Don't wish for consumables (scrolls, potions) unless you
-desperately need a specific one. Items you can find or create
-through normal play aren't worth a wish.
+**Conditional priorities by role:**
+
+- **Wizard/Monk:** Skip GDSM (quest artifact provides MR). Start
+  with SDSM, then speed boots, then cloak of protection.
+- **Valkyrie:** If Lawful, you already have Excalibur. Wish for
+  GDSM, then SDSM, then Grayswandir if you want to dual-wield.
+- **Barbarian/Samurai:** No intrinsic MR source. GDSM is
+  essential.
+- **Tourist:** Everything. You need it all. GDSM first.
+
+**Never waste wishes on:**
+- Consumables you can find (scrolls, potions, food).
+- Items you can get from polymorph piles (random armor, weapons).
+- Artifacts that are already generated (the wish fails).
+- The Amulet of Yendor (nice try).
+- Gold (you get a handful; it's not worth a wish).
+
+**Common mistakes:**
+- Wishing for "dragon scale mail" without specifying gray, silver,
+  or another color. You'll get a random color.
+- Forgetting to say "blessed" — you get uncursed +0 by default.
+- Wishing for something you could have found or polypiled for.
+- Wishing for a second amulet of life saving when you still need
+  key resistances.
 
 #### Wish Syntax
 
 When the game asks "For what do you wish?", be specific:
 
-- "blessed +3 gray dragon scale mail" gets you exactly that.
-- Just "gray dragon scale mail" gives you an uncursed +0 version.
-- You cannot wish for artifacts that are already generated.
-- You cannot wish for the Amulet of Yendor (nice try).
+- `blessed +3 gray dragon scale mail` — Gets you exactly that.
+- `gray dragon scale mail` — Gets uncursed +0. Fine but wasteful.
+- `blessed greased +3 silver dragon scale mail` — Yes, you can
+  request greased items.
+- `2 blessed scrolls of genocide` — You can wish for multiples
+  of some items.
+- Artifacts: can only wish for one that hasn't been generated yet.
+  Cross-aligned artifacts have a chance to resist your wish.
 
 ---
 
@@ -2565,16 +2743,16 @@ some spells but with less efficiency.
 
 #### Key Spells
 
-| Spell           | Level | Effect                                  |
-| --------------- | ----- | --------------------------------------- |
-| Force bolt      | 1     | Ranged attack (d6 to 4d6 by skill)      |
-| Healing         | 1     | Restore hit points                      |
-| Identify        | 3     | Identify items (saves scrolls)          |
-| Magic mapping   | 5     | Reveal the level (saves scrolls)        |
-| Finger of death | 7     | Kill one monster (resisted by MR)       |
-| Charm monster   | 3     | Tame an adjacent creature               |
-| Detect monsters | 1     | Sense nearby monsters                   |
-| Remove curse    | 3     | Uncurse worn/wielded items              |
+| Spell           | Level | Effect                             |
+| --------------- | ----- | ---------------------------------- |
+| Force bolt      | 1     | Ranged attack (d6 to 4d6 by skill) |
+| Healing         | 1     | Restore hit points                 |
+| Identify        | 3     | Identify items (saves scrolls)     |
+| Magic mapping   | 5     | Reveal the level (saves scrolls)   |
+| Finger of death | 7     | Kill one monster (resisted by MR)  |
+| Charm monster   | 3     | Tame an adjacent creature          |
+| Detect monsters | 1     | Sense nearby monsters              |
+| Remove curse    | 3     | Uncurse worn/wielded items         |
 
 For Wizards, learning **identify** and **magic mapping** as spells
 dramatically reduces your need for scrolls of those types.
@@ -2705,6 +2883,89 @@ to keep luck positive, and don't kill peacefuls.
 
 ---
 
+### Polymorph
+
+Polymorph is one of the most versatile and dangerous mechanics in
+the game. It transforms monsters, items, or even you into something
+else. Used well, it's a powerful tool. Used poorly, it's a
+disaster.
+
+#### Self-Polymorph
+
+Quaffing a potion of polymorph, being hit by a polymorph trap, or
+zapping yourself with a wand of polymorph transforms you into a
+random monster. This is dangerous without preparation:
+
+- **You might become something weak** (a newt, a grid bug) and die
+  immediately to nearby threats.
+- **Your items might not fit** your new form. Armor breaks or falls
+  off, rings slip free from clawless forms.
+- **You lose your spellcasting** in many forms.
+- **Your HP are replaced** by the monster's. When you revert (or
+  die in that form), you return to your original HP.
+
+**Controlled polymorph** (via polymorph control from a ring or
+intrinsic) lets you choose your form. This changes everything.
+Useful forms:
+
+| Form               | Why                                      |
+| ------------------ | ---------------------------------------- |
+| Xorn               | Phase through walls, eat metal           |
+| Vampire lord       | Fly, drain life, regeneration            |
+| Air elemental      | Very fast, phases, hard to hit           |
+| Master mind flayer | Brain-eating attacks, psychic resistance |
+| Giant              | High carrying capacity and damage        |
+| Dragon (any)       | Fly, breathe, thick hide, good damage    |
+
+Polymorphing into a form that has useful intrinsics (fire
+resistance from a red dragon, for instance) grants those
+intrinsics while you remain in that form. Revert and they vanish.
+
+**Polymorph control** is essential before experimenting with
+self-polymorph. Without it, self-polymorph is a gamble you'll
+usually lose.
+
+#### Item Polymorph
+
+Zapping a pile of items with polymorph transforms each into a
+random item of the same class. This is one of the most powerful
+production techniques:
+
+- **Pile of junk armor** → chance of dragon scale mail, speed
+  boots, or other rare armor.
+- **Pile of bad potions** → chance of gain ability, full healing,
+  gain level.
+- **Pile of useless scrolls** → chance of enchant weapon, enchant
+  armor, genocide.
+
+The trick: polymorph many items at once for the best odds. A pile
+of 20 junk armor pieces gives you 20 chances to hit something
+good. Items retain their blessed/cursed status but lose
+enchantment.
+
+**Important cautions:**
+- Artifacts cannot be polymorphed.
+- Wands of polymorph have limited charges. Don't waste them on
+  single items.
+- Named items and artifacts resist polymorph.
+- Items in a container are unaffected.
+
+#### Monster Polymorph
+
+Zapping a wand of polymorph at monsters transforms them randomly.
+This is useful in several situations:
+
+- **Turn a tough monster into something weaker** (unreliable but
+  worth trying in desperation).
+- **Polymorph a tame monster** to get a more powerful pet.
+- **Polymorph a monster** hoping it becomes something whose corpse
+  grants a useful intrinsic (a chameleon strategy).
+
+The risk: the monster might polymorph into something *worse*.
+Zapping a gnome and getting a dragon is a bad day.
+
+---
+
 ## Part Six: The Deep Dungeon
 
 ---
@@ -2820,6 +3081,48 @@ After taking the Amulet of Yendor from Moloch's Sanctum, you need
 to carry it from the bottom of Gehennom all the way back to the
 surface and through the Elemental Planes. This is the Ascension Run,
 and it's where many otherwise successful games end.
+
+#### Endgame Checklist
+
+Before you enter the ascension run, make sure you have:
+
+**Resistances (all essential):**
+- [ ] Fire resistance
+- [ ] Cold resistance
+- [ ] Shock resistance
+- [ ] Poison resistance
+- [ ] Disintegration resistance (black DSM or eaten corpse)
+- [ ] Magic resistance (quest artifact, gray DSM, or cloak)
+- [ ] Reflection (silver DSM, shield, or amulet)
+- [ ] Free action (ring or amulet)
+
+**Equipment:**
+- [ ] Speed boots (or intrinsic speed)
+- [ ] Levitation source (boots, ring, or potion)
+- [ ] Amulet of life saving (at least one backup)
+- [ ] Wand of death (for the Wizard, priests, other threats)
+- [ ] Wand of teleportation (for moving threats aside)
+- [ ] Wand of digging (for cutting through Gehennom mazes)
+- [ ] Scrolls of teleportation (for fast staircase access)
+- [ ] Magical breathing (amulet or spell, for Plane of Water)
+- [ ] Ring of conflict (invaluable on Elemental Planes)
+- [ ] Unicorn horn (for curing status effects)
+
+**Invocation items (gathered in Gehennom):**
+- [ ] Bell of Opening (from the Castle)
+- [ ] Candelabrum of Invocation (from Vlad)
+- [ ] 7 candles (attached to the Candelabrum)
+- [ ] Book of the Dead (from the Wizard of Yendor)
+
+**Supplies:**
+- [ ] Plenty of food (you can't pray in Gehennom)
+- [ ] Holy water and scrolls of remove curse
+- [ ] Blank scrolls and magic marker (for emergency scrolls)
+- [ ] At least 2 scrolls of gold detection (for portals on the
+  Elemental Planes, when confused)
+
+If you're missing critical items, go back for them. Many games are
+lost because a player entered the endgame underprepared.
 
 #### The Problems
 
@@ -2978,20 +3281,20 @@ of a game, the final score screen lists which conducts you
 maintained. Nobody forces you to follow any of them. That's what
 makes them interesting.
 
-| Conduct         | Restriction                                        |
-| --------------- | -------------------------------------------------- |
-| Foodless        | Never eat anything at all                          |
-| Vegan           | Eat only vegan-safe food (no animal products)      |
-| Vegetarian      | Eat only vegetarian food (no meat corpses)         |
-| Atheist         | Never pray, sacrifice, or use altars               |
-| Weaponless      | Never hit a monster with a wielded weapon          |
-| Pacifist        | Never directly kill a monster                      |
-| Illiterate      | Never read anything (scrolls, spellbooks, signs)   |
-| Genocideless    | Never genocide a monster species                   |
-| Polypileless    | Never polymorph objects                            |
-| Polyselfless    | Never polymorph yourself                           |
-| Wishless        | Never make a wish                                  |
-| Artiwishless    | Never wish for an artifact                         |
+| Conduct      | Restriction                                      |
+| ------------ | ------------------------------------------------ |
+| Foodless     | Never eat anything at all                        |
+| Vegan        | Eat only vegan-safe food (no animal products)    |
+| Vegetarian   | Eat only vegetarian food (no meat corpses)       |
+| Atheist      | Never pray, sacrifice, or use altars             |
+| Weaponless   | Never hit a monster with a wielded weapon        |
+| Pacifist     | Never directly kill a monster                    |
+| Illiterate   | Never read anything (scrolls, spellbooks, signs) |
+| Genocideless | Never genocide a monster species                 |
+| Polypileless | Never polymorph objects                          |
+| Polyselfless | Never polymorph yourself                         |
+| Wishless     | Never make a wish                                |
+| Artiwishless | Never wish for an artifact                       |
 
 Some of these are straightforward variations on normal play
 (genocideless, artiwishless). Others fundamentally change how you
@@ -3105,6 +3408,78 @@ for everything you took.
 
 ---
 
+### Experience Levels and Rank Titles
+
+As you defeat monsters and complete objectives, you accumulate
+experience points (XP). At certain thresholds, you advance to the
+next experience level, gaining hit points, power, and sometimes
+intrinsic abilities.
+
+#### Experience Point Thresholds
+
+| Level | XP required | Level | XP required |
+| ----- | ----------- | ----- | ----------- |
+| 1     | 0           | 16    | 320,000     |
+| 2     | 20          | 17    | 640,000     |
+| 3     | 40          | 18    | 1,280,000   |
+| 4     | 80          | 19    | 2,560,000   |
+| 5     | 160         | 20    | 5,120,000   |
+| 6     | 320         | 21    | 10,000,000  |
+| 7     | 640         | 22    | 20,000,000  |
+| 8     | 1,280       | 23    | 40,000,000  |
+| 9     | 2,560       | 24    | 80,000,000  |
+| 10    | 5,120       | 25    | 100,000,000 |
+| 11    | 10,000      | 26-30 | 100,000,000 |
+| 12    | 20,000      |       |             |
+| 13    | 40,000      |       |             |
+| 14    | 80,000      |       |             |
+| 15    | 160,000     |       |             |
+
+Experience roughly doubles each level through 24. Most players
+reach levels 14-16 by quest time and 20-25 during the ascension
+run. Reaching level 30 is uncommon and not necessary to win.
+
+#### Important Level Milestones
+
+- **Level 5:** Excalibur becomes available via fountain dipping
+  (Lawful characters).
+- **Level 7:** Maximum enchantment of +7 becomes safely achievable
+  for weapons.
+- **Level 10:** Most quest leaders begin accepting you for the
+  quest around this level.
+- **Level 14:** The quest portal typically appears. You need your
+  quest leader's approval (and your quest artifact) to proceed
+  deeper.
+- **Level 20+:** By this point most characters have acquired all
+  the intrinsics their role will ever gain through leveling.
+
+#### Rank Titles
+
+Each role has nine rank titles, displayed at levels 1-2, 3-5,
+6-9, 10-13, 14-17, 18-21, 22-25, 26-29, and 30.
+
+| Role         | Lvl 1 title | Lvl 10 title      | Lvl 30 title |
+| ------------ | ----------- | ----------------- | ------------ |
+| Archeologist | Digger      | Exhumer           | Curator      |
+| Barbarian    | Plunderer   | Brigand           | Conqueror    |
+| Cave Dweller | Troglodyte  | Vagrant           | Pioneer      |
+| Healer       | Rhizotomist | Dresser           | Chirurgeon   |
+| Knight       | Gallant     | Sergeant          | Paladin      |
+| Monk         | Candidate   | Student of Stones | Master       |
+| Priest       | Aspirant    | Priest            | High Priest  |
+| Ranger       | Tenderfoot  | Reconnoiterer     | Marksman     |
+| Rogue        | Footpad     | Pilferer          | Thief        |
+| Samurai      | Hatamoto    | Joshu             | Shogun       |
+| Tourist      | Rambler     | Peregrinator      | Adventurer   |
+| Valkyrie     | Stripling   | Man-at-arms       | Lord / Lady  |
+| Wizard       | Evoker      | Magician          | Mage         |
+
+Your current rank title appears on the status line and is used in
+final scores and tombstones. Some titles have gender variants
+(Plunderess, Enchantress, etc.).
+
+---
+
 ### What Changed Since Last Time
 
 If you're an experienced traveler returning after some time away, the
@@ -3122,8 +3497,10 @@ version you may remember. The most significant:
 - **Unicorn horns** no longer restore lost attributes. This is a
   major change. In previous editions, the unicorn horn was a
   cure-all; now you'll need other solutions.
-- **Dragon scale mail** now provides two extrinsic resistances
-  instead of one. This makes it even more desirable.
+- **Gold dragon scale mail** is a new addition. It acts as a light
+  source when worn but provides no resistance property.
+- **Dragon scale mail** properties are otherwise unchanged from
+  previous editions (one extrinsic each).
 - **Bags of holding** no longer destroy their contents on explosion.
   Items are scattered on the floor instead, which is bad but not
   catastrophic.
@@ -3133,6 +3510,104 @@ version you may remember. The most significant:
 - **Special levels** can now generate mirrored (flipped), so don't
   rely on fixed maps.
 - **Monsters** can now use containers and unlock chests.
+
+---
+
+### Score Calculation
+
+When your game ends (whether by ascension, death, or escape),
+the game computes a final score. Understanding how scoring works
+can help you maximize your ranking on the high score table, though
+most players pursue ascension rather than score optimization.
+
+#### During Play
+
+| Action                                 | Points                  |
+| -------------------------------------- | ----------------------- |
+| Killing a monster                      | 4 * monster's XP value  |
+| Identifying a wand (by engraving/zap)  | 10                      |
+| Identifying a potion (by quaffing)     | 10                      |
+| Identifying a scroll (by reading)      | 10                      |
+| Oiling/greasing a squeaky board        | 9                       |
+| Eating tripe ration (non-carnivore)    | 4                       |
+| Quaffing from a sink ("awful water")   | 4                       |
+| Minor oracle consultation (first time) | 21                      |
+| Major oracle consultation (first time) | 210 + (21 * your level) |
+
+#### At Game End
+
+| Factor                      | Points                                      |
+| --------------------------- | ------------------------------------------- |
+| Gold beyond starting amount | 1 per zorkmid (90% if you died)             |
+| Dungeon depth reached       | 50 * (deepest level - 1)                    |
+| Deep exploration bonus      | 1000 per level beyond depth 20 (max 10,000) |
+| Inventory value at escape   | Varies by item (gems, amulets, artifacts)   |
+| Pets alive at escape        | Their remaining HP                          |
+
+**Ascending doubles your final score.** This is the single biggest
+scoring factor, which is why ascension is the primary goal.
+
+---
+
+### Alchemy Recipe Reference
+
+Mixing potions by dipping one into another is called alchemy.
+Successful mixtures produce a diluted, uncursed result. There is
+a 10% chance of explosion on any non-water mixture (guaranteed
+if the dipped potion is cursed or is acid).
+
+#### Useful Alchemy Chains
+
+The most important recipes, chained from common potions to rare
+ones:
+
+```
+  fruit juice + gain energy/level = see invisible
+  speed + fruit juice = booze
+  speed + healing = extra healing
+  extra healing + gain energy/level = full healing
+  full healing + gain energy/level = gain ability
+  speed + extra healing = levitation
+```
+
+#### Complete Alchemy Table
+
+| Dip this            | Into this         | Result                             |
+| ------------------- | ----------------- | ---------------------------------- |
+| Booze               | Enlightenment     | Confusion                          |
+| Booze               | Gain energy/level | Hallucination                      |
+| Confusion           | Gain energy/level | 1/3 enlightenment, 2/3 booze       |
+| Enlightenment       | Booze             | Confusion                          |
+| Enlightenment       | Fruit juice       | Booze                              |
+| Enlightenment       | Levitation        | 2/3 gain level, 1/3 random         |
+| Extra healing       | Gain energy/level | Full healing                       |
+| Fruit juice         | Enlightenment     | Booze                              |
+| Fruit juice         | Gain energy/level | See invisible                      |
+| Fruit juice         | Speed             | Booze                              |
+| Full healing        | Gain energy/level | Gain ability                       |
+| Gain energy/level   | Healing           | Extra healing                      |
+| See invisible       | Gain energy/level | Healing                            |
+| Speed               | Extra healing     | Levitation                         |
+| Speed               | Fruit juice       | Booze                              |
+| Speed               | Healing           | Extra healing                      |
+| Levitation          | Enlightenment     | 2/3 gain level, 1/3 random         |
+| Unknown combination | (undiluted)       | 1/2 evap, 1/4 sickness, 1/8 random |
+| Unknown combination | (diluted)         | Uncursed water                     |
+
+#### Unicorn Horn and Amethyst Dipping
+
+| Dip this       | Into this                     | Result         |
+| -------------- | ----------------------------- | -------------- |
+| Unicorn horn   | Blindness, confusion, halluc. | Uncursed water |
+| Unicorn horn   | Sickness                      | Fruit juice    |
+| Amethyst stone | Booze                         | Fruit juice    |
+
+#### Holy Water Production
+
+Drop uncursed water potions on a co-aligned altar and pray.
+They convert to holy water. You can then multiply holy water
+indefinitely by dipping uncursed water into existing holy water.
+Holy water blesses items dipped in it; unholy water curses them.
 
 ---
 
