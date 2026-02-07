@@ -1,0 +1,33 @@
+#
+# Minimal macOS hints for TTY-only NetHack build (counterpart of linux-minimal)
+#
+#-PRE
+# This hints file provides the base for a minimal tty build for macOS
+
+PREFIX=$(wildcard ~)/nethack-minimal
+HACKDIR=$(PREFIX)/games/lib/$(GAME)dir
+SHELLDIR=$(PREFIX)/games
+INSTDIR=$(HACKDIR)
+VARDIR=$(HACKDIR)
+
+CFLAGS=-g -I../include -DNOTPARMDECL
+
+# when building liblua.a, avoid warning that use of tmpnam() should be
+# replaced by mkstemp(); the lua code doesn't use nethack's config.h so
+# this needs to be passed via make rather than defined in unixconf.h
+SYSCFLAGS=-DLUA_USE_MACOSX
+
+LINK=$(CC)
+
+WINSRC = $(WINTTYSRC)
+WINOBJ = $(WINTTYOBJ)
+WINLIB = $(WINTTYLIB)
+
+WINTTYLIB=-lncurses
+
+CHOWN=true
+CHGRP=true
+
+VARDIRPERM = 0755
+VARFILEPERM = 0600
+GAMEPERM = 0755

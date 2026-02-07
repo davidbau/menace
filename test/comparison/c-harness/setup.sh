@@ -6,7 +6,9 @@
 #
 # Idempotent: safe to re-run. Will skip clone if source exists at correct commit.
 #
-# Prerequisites: gcc, make, bison, flex, ncurses-dev
+# Prerequisites:
+#   Linux: gcc, make, bison, flex, ncurses-dev
+#   macOS: Xcode command-line tools (xcode-select --install)
 #
 # Usage:
 #   cd test/comparison/c-harness && bash setup.sh
@@ -14,6 +16,28 @@
 #   bash test/comparison/c-harness/setup.sh
 
 set -euo pipefail
+
+# --- OS Detection ---
+OS="$(uname -s)"
+case "$OS" in
+    Linux)
+        HINTS_FILE="sys/unix/hints/linux-minimal"
+        LUA_SYSCFLAGS="-DLUA_USE_POSIX"
+        NPROC="$(nproc)"
+        sed_inplace() { sed -i "$@"; }
+        ;;
+    Darwin)
+        HINTS_FILE="sys/unix/hints/macosx-minimal"
+        LUA_SYSCFLAGS="-DLUA_USE_MACOSX"
+        NPROC="$(sysctl -n hw.ncpu)"
+        sed_inplace() { sed -i '' "$@"; }
+        ;;
+    *)
+        echo "[FAIL] Unsupported OS: $OS"
+        exit 1
+        ;;
+esac
+echo "    OS detected: $OS"
 
 # --- Configuration ---
 NETHACK_REPO="https://github.com/NetHack/NetHack.git"
@@ -65,7 +89,18 @@ for patch in "$PATCHES_DIR"/*.patch; do
 done
 echo ""
 
-# --- Step 3: Fetch Lua (required dependency) ---
+# --- Step 3: Configure build system ---
+cd "$NETHACK_DIR"
+# On macOS, install our minimal hints file (no macosx-minimal in upstream)
+if [ "$OS" = "Darwin" ]; then
+    cp "$SCRIPT_DIR/macosx-minimal" sys/unix/hints/macosx-minimal
+fi
+echo "[...] Running sys/unix/setup.sh with hints: $HINTS_FILE"
+bash sys/unix/setup.sh "$HINTS_FILE"
+echo "[OK] Build system configured"
+echo ""
+
+# --- Step 4: Fetch Lua (required dependency) ---
 echo "[...] Fetching Lua..."
 cd "$NETHACK_DIR"
 if [ ! -f lib/lua-5.4.8/src/lua.h ]; then
@@ -76,22 +111,15 @@ else
 fi
 echo ""
 
-# --- Step 4: Configure with linux-minimal hints ---
-echo "[...] Running sys/unix/setup.sh with linux-minimal hints"
-cd "$NETHACK_DIR"
-bash sys/unix/setup.sh sys/unix/hints/linux-minimal
-echo "[OK] Build system configured"
-echo ""
-
 # --- Step 5: Build ---
-echo "[...] Building NetHack (TTY-only, linux-minimal)"
+echo "[...] Building NetHack (TTY-only, $OS)"
 cd "$NETHACK_DIR"
 # Build Lua first (avoids parallel build race condition)
-( cd lib/lua-5.4.8/src && make CC='cc' SYSCFLAGS='-DLUA_USE_POSIX' a 2>&1 ) | tail -3
+( cd lib/lua-5.4.8/src && make CC='cc' SYSCFLAGS="$LUA_SYSCFLAGS" a 2>&1 ) | tail -3
 mkdir -p lib/lua
 cp -f lib/lua-5.4.8/src/liblua.a lib/lua/liblua-5.4.8.a 2>/dev/null || true
 # Now build the rest
-make -j"$(nproc)" 2>&1 | tail -5
+make -j"$NPROC" 2>&1 | tail -5
 echo ""
 
 # --- Step 6: Install (copies data files to HACKDIR) ---
@@ -106,7 +134,12 @@ if [ -x "$BINARY" ]; then
             cp "$NETHACK_DIR/sys/unix/sysconf" "$INSTALL_DIR/sysconf"
         fi
         # Allow all users to use wizard mode (needed for #dumpmap)
-        sed -i 's/^WIZARDS=.*/WIZARDS=*/' "$INSTALL_DIR/sysconf"
+        sed_inplace 's/^WIZARDS=.*/WIZARDS=*/' "$INSTALL_DIR/sysconf"
+        # Fix paths that may not exist on this platform (avoids "sysconf errors" on startup)
+        sed_inplace 's|^GDBPATH=.*|#GDBPATH=/usr/bin/gdb|' "$INSTALL_DIR/sysconf"
+        if [ "$OS" = "Darwin" ]; then
+            sed_inplace 's|^GREPPATH=.*|GREPPATH=/usr/bin/grep|' "$INSTALL_DIR/sysconf"
+        fi
         echo "[OK] Installed to $INSTALL_DIR"
     else
         echo "[WARN] Install directory not found at expected location"
