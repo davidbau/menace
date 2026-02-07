@@ -30,63 +30,64 @@ go learn things the hard way. There is real joy in that.
 
 But if you've died to one too many rubber-banded acid blobs, or you're
 tired of starving on dungeon level four because you didn't know you
-could pray — read on. We'll do our best to keep you alive.
+could pray -- read on. We'll do our best to keep you alive.
 
 ---
 
 ## Table of Contents
 
 **Part One: Before You Set Out**
-1. [Choosing Your Expedition](#choosing-your-expedition) — Roles, races, and alignments
-2. [What to Pack](#what-to-pack) — Starting equipment and early priorities
-3. [Your First Descent](#your-first-descent) — Surviving the early dungeon
+1. [Choosing Your Expedition](#choosing-your-expedition) -- Roles, races, and alignments
+2. [What to Pack](#what-to-pack) -- Starting equipment and early priorities
+3. [Your First Descent](#your-first-descent) -- Surviving the early dungeon
+- [Role-Specific Tips](#role-specific-tips) -- Class-by-class advice from veteran travelers
 
 **Part Two: Reading the Terrain**
-4. [The Lay of the Land](#the-lay-of-the-land) — Rooms, corridors, and dungeon features
-5. [Points of Interest](#points-of-interest) — Fountains, altars, thrones, and sinks
-6. [Branches and Landmarks](#branches-and-landmarks) — The Mines, Sokoban, and beyond
-7. [Traps and Hazards](#traps-and-hazards) — What the dungeon has in store for you
+4. [The Lay of the Land](#the-lay-of-the-land) -- Rooms, corridors, and dungeon features
+5. [Points of Interest](#points-of-interest) -- Fountains, altars, thrones, and sinks
+6. [Branches and Landmarks](#branches-and-landmarks) -- The Mines, Sokoban, and beyond
+7. [Traps and Hazards](#traps-and-hazards) -- What the dungeon has in store for you
 
 **Part Three: The Locals**
-8. [A Field Guide to Dungeon Fauna](#a-field-guide-to-dungeon-fauna) — Monster classes at a glance
-9. [Dangerous Encounters](#dangerous-encounters) — Special abilities, instadeaths, and what to fear
-10. [Making Friends](#making-friends) — Pets, taming, and peaceful coexistence
+8. [A Field Guide to Dungeon Fauna](#a-field-guide-to-dungeon-fauna) -- Monster classes at a glance
+9. [Dangerous Encounters](#dangerous-encounters) -- Special abilities, instadeaths, and what to fear
+10. [Making Friends](#making-friends) -- Pets, taming, and peaceful coexistence
 
 **Part Four: Gear and Provisions**
-11. [The Identification Problem](#the-identification-problem) — Figuring out what you've found
-12. [Provisions and Dining](#provisions-and-dining) — Food, nutrition, and the adventurer's cookbook
-13. [The Apothecary](#the-apothecary) — Potions and their many uses
-14. [The Scroll Rack](#the-scroll-rack) — Scrolls, their effects, and confused reading
-15. [Wands and Staves](#wands-and-staves) — Magical implements
-16. [Rings and Amulets](#rings-and-amulets) — Jewelry, for better or worse
-17. [Tools of the Trade](#tools-of-the-trade) — From pickaxes to magic lamps
-18. [The Armory](#the-armory) — Weapons, armor, and hitting things
-19. [Artifacts](#artifacts) — Legendary equipment and how to obtain it
+11. [The Identification Problem](#the-identification-problem) -- Figuring out what you've found
+12. [Provisions and Dining](#provisions-and-dining) -- Food, nutrition, and the adventurer's cookbook
+13. [The Apothecary](#the-apothecary) -- Potions and their many uses
+14. [The Scroll Rack](#the-scroll-rack) -- Scrolls, their effects, and confused reading
+15. [Wands and Staves](#wands-and-staves) -- Magical implements
+16. [Rings and Amulets](#rings-and-amulets) -- Jewelry, for better or worse
+17. [Tools of the Trade](#tools-of-the-trade) -- From pickaxes to magic lamps
+18. [The Armory](#the-armory) -- Weapons, armor, and hitting things
+19. [Artifacts](#artifacts) -- Legendary equipment and how to obtain it
 
 **Part Five: The Craft of Adventuring**
-20. [Divine Relations](#divine-relations) — Prayer, sacrifice, and altars
-21. [The Art of Combat](#the-art-of-combat) — Hit probability, damage, and tactics
-22. [Wishes and Wishing](#wishes-and-wishing) — Getting what you want
-23. [Spellcasting](#spellcasting) — Magic for the studious adventurer
+20. [Divine Relations](#divine-relations) -- Prayer, sacrifice, and altars
+21. [The Art of Combat](#the-art-of-combat) -- Hit probability, damage, and tactics
+22. [Wishes and Wishing](#wishes-and-wishing) -- Getting what you want
+23. [Spellcasting](#spellcasting) -- Magic for the studious adventurer
 24. [Curses and How to Break Them](#curses-and-how-to-break-them)
-25. [Luck and Fortune](#luck-and-fortune) — The hidden numbers that shape your fate
-26. [Polymorph](#polymorph) — Transformation strategy and risks
+25. [Luck and Fortune](#luck-and-fortune) -- The hidden numbers that shape your fate
+26. [Polymorph](#polymorph) -- Transformation strategy and risks
 
 **Part Six: The Deep Dungeon**
-27. [The Castle](#the-castle) — The gateway to Gehennom
-28. [Gehennom](#gehennom) — A travel advisory
-29. [The Ascension Run](#the-ascension-run) — Getting back out alive
-30. [The Elemental Planes](#the-elemental-planes) — The final gauntlet
+27. [The Castle](#the-castle) -- The gateway to Gehennom
+28. [Gehennom](#gehennom) -- A travel advisory
+29. [The Ascension Run](#the-ascension-run) -- Getting back out alive
+30. [The Elemental Planes](#the-elemental-planes) -- The final gauntlet
 
 **Appendices**
-- [Sokoban Solutions](#sokoban-solutions) — All eight level variants, solved
-- [Voluntary Challenges](#voluntary-challenges) — Conducts and self-imposed restrictions
-- [Shopping and Shopkeeper Pricing](#shopping-and-shopkeeper-pricing) — Commerce in the dungeon
-- [Experience Levels and Rank Titles](#experience-levels-and-rank-titles) — XP thresholds and progression
-- [Score Calculation](#score-calculation) — How your final score is computed
-- [Alchemy Recipe Reference](#alchemy-recipe-reference) — Potion mixing and holy water
-- [What Changed Since Last Time](#what-changed) — Notable differences in the current edition
-- [Acknowledgements](#acknowledgements) — Standing on the shoulders of giants
+- [Sokoban Solutions](#sokoban-solutions) -- All eight level variants, solved
+- [Voluntary Challenges](#voluntary-challenges) -- Conducts and self-imposed restrictions
+- [Shopping and Shopkeeper Pricing](#shopping-and-shopkeeper-pricing) -- Commerce in the dungeon
+- [Experience Levels and Rank Titles](#experience-levels-and-rank-titles) -- XP thresholds and progression
+- [Score Calculation](#score-calculation) -- How your final score is computed
+- [Alchemy Recipe Reference](#alchemy-recipe-reference) -- Potion mixing and holy water
+- [What Changed Since Last Time](#what-changed) -- Notable differences in the current edition
+- [Acknowledgements](#acknowledgements) -- Standing on the shoulders of giants
 
 ---
 
@@ -237,6 +238,51 @@ useful. They tend to have high strength but low charisma. The trade-off
 is that some shopkeepers are less friendly. Available for: Barbarian,
 Ranger, Rogue, Wizard.
 
+#### Starting Statistics
+
+Every character gets 75 attribute points distributed across six
+stats. Your role determines the minimum base values; whatever is
+left over gets randomly allocated. Barbarians get most of their
+points locked into Strength and Constitution (as befits someone
+whose answer to every problem is "hit it harder"). Rogues get
+almost nothing guaranteed, which means more randomness. Fitting
+for a class that lives by its wits and luck.
+
+| Role         | STR | INT | WIS | DEX | CON | CHA | Base sum | Random |
+| ------------ | --- | --- | --- | --- | --- | --- | -------- | ------ |
+| Archeologist | 7   | 10  | 10  | 7   | 7   | 7   | 48       | 27     |
+| Barbarian    | 16  | 7   | 7   | 15  | 16  | 6   | 67       | 8      |
+| Cave Dweller | 10  | 7   | 7   | 7   | 8   | 6   | 45       | 30     |
+| Healer       | 7   | 7   | 13  | 7   | 11  | 16  | 61       | 14     |
+| Knight       | 13  | 7   | 14  | 8   | 10  | 17  | 69       | 6      |
+| Monk         | 10  | 7   | 8   | 8   | 7   | 7   | 47       | 28     |
+| Priest       | 7   | 7   | 10  | 7   | 7   | 7   | 45       | 30     |
+| Ranger       | 13  | 13  | 13  | 9   | 13  | 7   | 68       | 7      |
+| Rogue        | 7   | 7   | 7   | 10  | 7   | 6   | 44       | 31     |
+| Samurai      | 10  | 8   | 7   | 10  | 17  | 6   | 58       | 17     |
+| Tourist      | 7   | 10  | 6   | 7   | 7   | 10  | 47       | 28     |
+| Valkyrie     | 10  | 7   | 7   | 7   | 10  | 7   | 48       | 27     |
+| Wizard       | 7   | 10  | 7   | 7   | 7   | 7   | 45       | 30     |
+
+Knights have the highest base sum (69 of 75 points locked in),
+which means your Knight will feel very similar every time you roll
+one. A Rogue, by contrast, could come out with surprisingly high
+Intelligence or surprisingly low everything.
+
+**Racial attribute maximums** cap how high each stat can go:
+
+| Race  | STR   | INT | WIS | DEX | CON | CHA |
+| ----- | ----- | --- | --- | --- | --- | --- |
+| Human | 18/** | 18  | 18  | 18  | 18  | 18  |
+| Dwarf | 18/** | 16  | 16  | 20  | 20  | 16  |
+| Elf   | 18    | 20  | 20  | 18  | 16  | 18  |
+| Gnome | 18/50 | 19  | 18  | 18  | 18  | 18  |
+| Orc   | 18/50 | 16  | 16  | 18  | 18  | 16  |
+
+Dwarves excel in Dexterity and Constitution. Elves have the highest
+Intelligence and Wisdom potential. The human "18/**" means they can
+reach the full 18/xx Strength range (up to 18/100).
+
 #### Alignment
 
 Your alignment (Lawful, Neutral, or Chaotic) determines which gods
@@ -284,6 +330,31 @@ Every role starts with equipment suited to its strengths. The
 important thing isn't what's in your pack on turn one; it's knowing
 what to scavenge from the first few levels to shore up your
 weaknesses.
+
+#### Starting Kit Highlights
+
+A quick reference of what each role brings to the dungeon:
+
+| Role         | Weapon           | Key items                              |
+| ------------ | ---------------- | -------------------------------------- |
+| Archeologist | +2 bullwhip      | Pick-axe, tinning kit, fedora          |
+| Barbarian    | +0 two-handed sw | Ring mail, poison resistance           |
+| Cave Dweller | +1 club          | Sling, rocks, leather armor            |
+| Healer       | +1 scalpel       | Stethoscope, healing potions           |
+| Knight       | +1 long sword    | Lance, ring mail, shield, pony+saddle  |
+| Monk         | (bare hands)     | Leather gloves, food, sleep resistance |
+| Priest       | +1 mace          | Holy/unholy water, BUC sense           |
+| Ranger       | +1 bow, arrows   | Cloak of displacement, dagger          |
+| Rogue        | +1 short sword   | Daggers, sack, lockpick, stealth       |
+| Samurai      | +0 katana        | Wakizashi, yumi+arrows, splint mail    |
+| Tourist      | darts (many)     | Camera, credit card, Hawaiian shirt    |
+| Valkyrie     | +1 long sword    | Small shield, cold resistance          |
+| Wizard       | +1 quarterstaff  | Cloak of MR, spellbook, wand, ring     |
+
+Items vary by race (Orcs get orcish variants, Elves get elven
+gear). Wizards have the most random starting items: their
+spellbook, wand, and ring are all randomly chosen. Knights start
+with a pony mount, which is both an asset and a liability.
 
 #### The Early Shopping List
 
@@ -419,6 +490,98 @@ you might accidentally swap places with it repeatedly instead of
 moving. Worse, if you attack it (because you got confused or forgot
 it was there), you lose alignment and trust. Be aware of where your
 pet is.
+
+---
+
+### Role-Specific Tips
+
+A few notes for specific roles, from travelers who've been there
+before. This is not comprehensive -- just the things that aren't
+obvious.
+
+**Valkyrie.** The recommended first role for a reason. Get
+Excalibur at level 5 by dipping a long sword in a fountain. Your
+cold resistance means you can eat things that would freeze other
+adventurers. In the late game, consider wishing for Grayswandir
+to complement Excalibur.
+
+**Wizard.** You are made of tissue paper for the first ten levels.
+Lean on Elbereth, your force bolt spell, and your starting cloak
+of magic resistance (which is *incredibly* valuable -- don't take
+it off). Get Magicbane from sacrifice early. Once you have finger
+of death and magic mapping as spells, you become one of the most
+powerful roles in the game.
+
+**Monk.** Do not wear body armor. Monks get an AC bonus for
+fighting without it that scales with level, and wearing any
+non-robe body armor breaks this bonus. Fight with bare hands --
+your martial arts damage improves with level and eventually
+surpasses most weapons. Wished-for items: "blessed +3 silver
+dragon scale mail" is controversial for Monks; many prefer a
+cloak of magic resistance and to stay armorless. Your quest
+artifact (Eyes of the Overworld) provides magic resistance.
+
+**Samurai.** Your katana is one of the best starting weapons.
+Keep it. Your skill caps favor katana and long sword. You can't
+get Excalibur (wrong alignment), so the Tsurugi of Muramasa from
+your quest is your endgame weapon.
+
+**Tourist.** Yes, it's designed to be hard. Your darts are actually
+useful for training ranged combat skills. The camera blinds
+monsters, which is a genuine tactical tool. Survive to the Castle,
+wish for equipment, and you'll be as strong as anyone. The real
+challenge is getting there.
+
+**Healer.** Your stethoscope tells you monster HP, which is
+incredibly useful for deciding when to fight and when to flee.
+You start with poison resistance, which prevents many early deaths.
+Your quest artifact (Staff of Aesculapius) is one of the best in
+the game: drain life and regeneration.
+
+**Rogue.** Stealth from level 1 means many monsters won't wake up
+as you walk past them. Your backstab ability makes the first hit
+in combat significantly stronger. Use daggers as ranged weapons --
+you get bonuses for throwing them.
+
+**Knight.** Your starting pony is powerful early but gets in the
+way in tight corridors. Feed it and keep it alive; a well-leveled
+warhorse is devastating. Use your lance from horseback for jousting
+attacks. Follow the code of conduct: don't attack fleeing enemies.
+(Yes, the game tracks this. Yes, it matters.)
+
+**Barbarian.** You hit things hard and you can eat almost anything
+without getting sick, which makes the early food problem largely
+someone else's problem. Poison resistance from level 1 is a nice
+bonus. Your two-handed sword does impressive damage but means no
+shield -- get good AC from other sources. Like the Valkyrie, a
+straightforward role for players who prefer solving problems by
+hitting them.
+
+**Priestess/Priest.** You start with a mace, holy water, and an
+uncanny sense for altar alignment. Your healing spells make the
+early game surprisingly safe. Crowned priests get excellent gifts.
+The main annoyance: you really want an aligned altar early, and if
+the dungeon doesn't cooperate, you'll feel it.
+
+**Ranger.** You're the ranged combat specialist, and you start
+with a pile of arrows to prove it. Stay at range whenever possible
+-- your melee skills are mediocre. The quest artifact (Longbow of
+Diana) is solid but requires reaching the quest alive, which means
+surviving the awkward period when you run out of arrows. Make more.
+Buy more. Hoard them like a dragon hoards gold.
+
+**Archaeologist.** You start with a pick-axe (instant corridor
+creation!), a touchstone (gem identification!), and a fedora (style
+points only). The early game is rough because your combat stats are
+terrible. Think of yourself as an engineer: dig around problems,
+identify gems for shop credit, and build up through cleverness
+rather than brute force.
+
+**Caveperson.** Your club isn't glamorous but it works. You start
+with decent strength and HP, which counts for a lot in the early
+levels. You can eat almost anything. The quest artifact (Sceptre of
+Might) provides magic resistance when carried, solving one of the
+game's biggest equipment puzzles for you.
 
 ---
 
@@ -2537,11 +2700,12 @@ restore ability.
 
 **The drawback:** After crowning, your average prayer timeout
 roughly doubles. This means you can pray far less often for the
-rest of the game. Since prayer is your ultimate emergency escape,
-this is a steep price. Many experienced players deliberately avoid
+rest of the game. Since prayer is your ultimate emergency escape
+(the "oh no" button you press when everything goes wrong), this
+is a steep price. Many experienced players deliberately avoid
 crowning by keeping Luck below +10 or alignment below +20 when
-praying. Getting crowned accidentally is one of the more common
-mid-game regrets.
+praying. Getting crowned accidentally -- usually by being too pious
+for your own good -- is one of the more ironic mid-game regrets.
 
 #### Donating to Priests
 
@@ -2662,19 +2826,19 @@ wand and a magic lamp. Plan ahead.
 The conventional priority list. Wish for the first thing you
 don't already have:
 
-1. **Gray dragon scale mail** — Magic resistance is the single
+1. **Gray dragon scale mail** -- Magic resistance is the single
    most important resistance. Skip if your quest artifact provides
    it (Wizard, Monk, several others).
-2. **Silver dragon scale mail** — Reflection stops many instadeath
+2. **Silver dragon scale mail** -- Reflection stops many instadeath
    attacks. Skip if you have an amulet of reflection or shield of
    reflection.
-3. **Speed boots** — Being faster than enemies is transformative.
+3. **Speed boots** -- Being faster than enemies is transformative.
    Skip if you already have speed intrinsic or boots.
-4. **Gauntlets of power** — STR 25 gives massive damage and carry
+4. **Gauntlets of power** -- STR 25 gives massive damage and carry
    bonuses. Best for melee-heavy roles.
-5. **Amulet of life saving** — Insurance for the endgame. One
+5. **Amulet of life saving** -- Insurance for the endgame. One
    mistake doesn't end your run.
-6. **Grayswandir** — The best weapon in the game (double damage,
+6. **Grayswandir** -- The best weapon in the game (double damage,
    silver saber). Other good artifact wishes: Frost Brand,
    Dragonbane.
 
@@ -2698,7 +2862,7 @@ don't already have:
 **Common mistakes:**
 - Wishing for "dragon scale mail" without specifying gray, silver,
   or another color. You'll get a random color.
-- Forgetting to say "blessed" — you get uncursed +0 by default.
+- Forgetting to say "blessed" -- you get uncursed +0 by default.
 - Wishing for something you could have found or polypiled for.
 - Wishing for a second amulet of life saving when you still need
   key resistances.
@@ -2707,11 +2871,11 @@ don't already have:
 
 When the game asks "For what do you wish?", be specific:
 
-- `blessed +3 gray dragon scale mail` — Gets you exactly that.
-- `gray dragon scale mail` — Gets uncursed +0. Fine but wasteful.
-- `blessed greased +3 silver dragon scale mail` — Yes, you can
+- `blessed +3 gray dragon scale mail` -- Gets you exactly that.
+- `gray dragon scale mail` -- Gets uncursed +0. Fine but wasteful.
+- `blessed greased +3 silver dragon scale mail` -- Yes, you can
   request greased items.
-- `2 blessed scrolls of genocide` — You can wish for multiples
+- `2 blessed scrolls of genocide` -- You can wish for multiples
   of some items.
 - Artifacts: can only wish for one that hasn't been generated yet.
   Cross-aligned artifacts have a chance to resist your wish.
@@ -2922,8 +3086,8 @@ resistance from a red dragon, for instance) grants those
 intrinsics while you remain in that form. Revert and they vanish.
 
 **Polymorph control** is essential before experimenting with
-self-polymorph. Without it, self-polymorph is a gamble you'll
-usually lose.
+self-polymorph. Without it, self-polymorph is Russian roulette
+with four chambers loaded. Don't do it.
 
 #### Item Polymorph
 
@@ -2962,7 +3126,8 @@ This is useful in several situations:
   grants a useful intrinsic (a chameleon strategy).
 
 The risk: the monster might polymorph into something *worse*.
-Zapping a gnome and getting a dragon is a bad day.
+Zapping a gnome and getting a titan is the kind of lesson you
+only need to learn once.
 
 ---
 
@@ -2976,38 +3141,69 @@ We covered the Castle's location and how to enter it in
 [Branches and Landmarks](#branches-and-landmarks). Here's what to
 do once you're inside.
 
+The Castle is across a moat. You'll need levitation, a drawbridge
+(lowered by playing a note with the passtune or a wand of opening),
+or another way across. The passtune is five notes played on a
+tonal instrument (bugle, tooled horn, etc.) -- experiment or check a
+bones file.
+
 The Castle contains:
 
 - A **throne room** with a throne and guards. Sitting on the throne
   is tempting but risky (see
   [Points of Interest](#points-of-interest)).
-- **Barracks** with soldiers carrying decent equipment.
-- **Four outer rooms** along the north and south walls. One contains
-  the **wand of wishing** in a chest. Search them all.
-- A **maze section** with a minotaur guarding it. The minotaur hits
-  hard but isn't especially resistant to magic.
+- **Barracks** with soldiers carrying decent equipment (shields,
+  long swords, lances, crossbows). Kill or conflict them.
+- **Treasure rooms** behind secret doors along the outer walls.
+  One contains the **wand of wishing** in a locked chest. Search
+  all four corners systematically.
+- A **maze section** patrolled by a minotaur. The minotaur hits
+  hard but isn't magic-resistant.
+- **The Bell of Opening** on the east side, needed for the
+  Invocation ritual later.
 
-Strategy: clear the Castle carefully. Use a ring of conflict to turn
-the guards against each other. Loot everything. Use your wand of
-wishing to fill critical gaps in your equipment (gray dragon scale
-mail, silver dragon scale mail, gauntlets of power, speed boots,
-whatever you're missing).
+#### Castle Tactics
 
-Once you're fully equipped, the staircase down leads to Gehennom.
-Take a moment before descending. Make sure you have:
+1. **Ring of conflict first.** Put it on before entering the
+   barracks. Soldiers and guards will fight each other while you
+   watch from a doorway. Pick off survivors.
 
-- Magic resistance
-- Reflection
-- Fire resistance
-- Poison resistance
-- A wand of digging
-- A unicorn horn
-- Plenty of food
-- Holy water
+2. **Search for secret doors.** The treasure rooms are hidden
+   behind walls on the north and south sides. Search (or zap a
+   wand of secret door detection) along every wall.
+
+3. **Loot the wand of wishing carefully.** The chest may be
+   trapped. Use your thiefing skills or a wand to disarm it.
+   The wand typically has 1-3 charges and can be recharged once.
+   See [Wishes and Wishing](#wishes-and-wishing) for what to
+   wish for.
+
+4. **Pick up the Bell of Opening.** You'll need it much later
+   for the Invocation. Don't leave without it.
+
+5. **Prepare fully before descending.** The staircase down leads
+   to Gehennom, where you cannot pray. Once you go, you're
+   committed.
+
+#### Pre-Gehennom Checklist
+
+Before descending from the Castle, make sure you have:
+
+- Magic resistance (quest artifact, gray DSM, or cloak)
+- Reflection (silver DSM, amulet, or shield)
+- Fire and cold resistance (armor, rings, or intrinsic)
+- Poison resistance (intrinsic or armor)
+- Speed boots (or intrinsic speed)
+- A wand of digging (for maze navigation)
+- A unicorn horn (for status curing)
+- Plenty of food (you can't pray for it below)
+- Holy water and scrolls of remove curse
 - Scrolls of teleportation and identify
 - Your quest artifact
+- The Bell of Opening
 
-If you're missing any of these, go back up and find them.
+If you're missing critical items, go back up. Many runs die in
+Gehennom because the player descended underprepared.
 
 ---
 
@@ -3121,8 +3317,10 @@ Before you enter the ascension run, make sure you have:
 - [ ] At least 2 scrolls of gold detection (for portals on the
   Elemental Planes, when confused)
 
-If you're missing critical items, go back for them. Many games are
-lost because a player entered the endgame underprepared.
+If you're missing critical items, go back for them. The dungeons
+above are still there, and they're friendlier than what lies ahead.
+Many games are lost not to some terrible monster but to the simple
+fact that the player descended before they were ready.
 
 #### The Problems
 
@@ -3545,16 +3743,20 @@ most players pursue ascension rather than score optimization.
 | Pets alive at escape        | Their remaining HP                          |
 
 **Ascending doubles your final score.** This is the single biggest
-scoring factor, which is why ascension is the primary goal.
+scoring factor, which is why nobody cares about their score until
+they've ascended. Get out alive first; worry about points never.
 
 ---
 
 ### Alchemy Recipe Reference
 
 Mixing potions by dipping one into another is called alchemy.
-Successful mixtures produce a diluted, uncursed result. There is
-a 10% chance of explosion on any non-water mixture (guaranteed
-if the dipped potion is cursed or is acid).
+It is the closest thing the Mazes have to a crafting system, and
+like all good crafting systems, there is a meaningful chance of
+blowing yourself up. Successful mixtures produce a diluted,
+uncursed result. There is a 10% chance of explosion on any
+non-water mixture (guaranteed if the dipped potion is cursed or
+is acid). Budget for losses.
 
 #### Useful Alchemy Chains
 
