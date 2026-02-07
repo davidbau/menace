@@ -137,19 +137,20 @@ export const NUM_ATTRS = 6;
 
 // Room types (mkroom.h)
 export const OROOM = 0;
-export const COURT = 1;
-export const SWAMP = 2;
-export const VAULT = 3;
-export const BEEHIVE = 4;
-export const MORGUE = 5;
-export const BARRACKS = 6;
-export const ZOO = 7;
-export const DELPHI = 8;
-export const TEMPLE = 9;
-export const LEPREHALL = 10;
-export const COCKNEST = 11;
-export const ANTHOLE = 12;
-export const SHOPBASE = 13;
+export const THEMEROOM = 1;
+export const COURT = 2;
+export const SWAMP = 3;
+export const VAULT = 4;
+export const BEEHIVE = 5;
+export const MORGUE = 6;
+export const BARRACKS = 7;
+export const ZOO = 8;
+export const DELPHI = 9;
+export const TEMPLE = 10;
+export const LEPREHALL = 11;
+export const COCKNEST = 12;
+export const ANTHOLE = 13;
+export const SHOPBASE = 14;
 
 // Window types (wintype.h)
 export const NHW_MESSAGE = 1;

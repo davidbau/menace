@@ -14,7 +14,7 @@ import {
     D_NODOOR, D_CLOSED, D_ISOPEN, D_LOCKED, D_TRAPPED,
     DIR_N, DIR_S, DIR_E, DIR_W, DIR_180,
     xdir, ydir, N_DIRS,
-    OROOM, VAULT, MAXNROFROOMS, ROOMOFFSET,
+    OROOM, THEMEROOM, VAULT, MAXNROFROOMS, ROOMOFFSET,
     IS_WALL, IS_DOOR, IS_ROCK, IS_ROOM, IS_OBSTRUCTED, IS_FURNITURE,
     IS_POOL, IS_LAVA, ACCESSIBLE, isok,
     NO_TRAP, ARROW_TRAP, DART_TRAP, ROCKTRAP, SQKY_BOARD, BEAR_TRAP,
@@ -28,12 +28,18 @@ import {
 import { GameMap, makeRoom } from './map.js';
 import { rn2, rnd, rn1, d, skipRng } from './rng.js';
 import { mkobj, mksobj } from './mkobj_new.js';
-import { makemon, NO_MM_FLAGS } from './makemon_new.js';
+import { makemon, NO_MM_FLAGS, MM_NOGRP } from './makemon_new.js';
 import { init_objects } from './o_init.js';
 import {
     ARROW, DART, ROCK, BOULDER, LARGE_BOX, CHEST, GOLD_PIECE, CORPSE,
     STATUE, TALLOW_CANDLE, WAX_CANDLE, BELL,
     WEAPON_CLASS, TOOL_CLASS, FOOD_CLASS, GEM_CLASS,
+    ARMOR_CLASS, SCROLL_CLASS, POTION_CLASS, RING_CLASS, SPBOOK_CLASS,
+    POT_HEALING, POT_EXTRA_HEALING, POT_SPEED, POT_GAIN_ENERGY,
+    SCR_ENCHANT_WEAPON, SCR_ENCHANT_ARMOR, SCR_CONFUSE_MONSTER, SCR_SCARE_MONSTER,
+    SCR_TELEPORTATION,
+    WAN_DIGGING, SPE_HEALING, SPE_BLANK_PAPER, SPE_NOVEL,
+    objectData, bases,
 } from './objects.js';
 
 // ========================================================================
@@ -549,13 +555,19 @@ function makerooms(map, depth) {
                     || map.nroom >= Math.floor(MAXNROFROOMS / 6))
                     break;
                 // else continue trying
-            } else if (themeroomPick >= 5 && themeroomPick <= 7) {
-                // Room created successfully and a themed fill room was picked.
-                // Simulate themeroom_fill RNG consumption.
-                // C ref: themerms.lua — indices 5,6,7 all call themeroom_fill()
-                const room = map.rooms[map.nroom - 1];
-                const forceLit = (themeroomPick === 6) ? false : undefined;
-                simulateThemeroomFill(map, room, depth, forceLit);
+            } else {
+                // C ref: non-default themerooms get rtype=THEMEROOM
+                if (themeroomPick !== 0) {
+                    map.rooms[map.nroom - 1].rtype = THEMEROOM;
+                }
+                if (themeroomPick >= 5 && themeroomPick <= 7) {
+                    // Room created successfully and a themed fill room was picked.
+                    // Simulate themeroom_fill RNG consumption.
+                    // C ref: themerms.lua — indices 5,6,7 all call themeroom_fill()
+                    const room = map.rooms[map.nroom - 1];
+                    const forceLit = (themeroomPick === 6) ? false : undefined;
+                    simulateThemeroomFill(map, room, depth, forceLit);
+                }
             }
         }
     }
@@ -995,8 +1007,11 @@ function generate_stairs_room_good(map, croom, phase) {
                        && map.upstair.y >= croom.ly && map.upstair.y <= croom.hy);
     const has_dnstairs = (map.dnstair.x >= croom.lx && map.dnstair.x <= croom.hx
                        && map.dnstair.y >= croom.ly && map.dnstair.y <= croom.hy);
-    return ((!has_dnstairs && !has_upstairs) || phase < 1)
-        && (croom.rtype === OROOM || phase < 2);
+    // C ref: mklev.c:2199-2203
+    return (croom.needjoining || phase < 0)
+        && ((!has_dnstairs && !has_upstairs) || phase < 1)
+        && (croom.rtype === OROOM
+            || (phase < 2 && croom.rtype === THEMEROOM));
 }
 
 // C ref: mklev.c generate_stairs_find_room()
@@ -1121,12 +1136,17 @@ function makeniche(map, depth, trap_type) {
                 if (!rn2(5) && IS_WALL(map.at(xx, yy).typ)) {
                     map.at(xx, yy).typ = IRONBARS;
                     if (rn2(3)) {
-                        // Would make corpse -- skip for now
+                        // C ref: mkcorpstat(CORPSE, 0, mkclass(S_HUMAN, 0), ...)
+                        // TODO: port mkclass (consumes ~41 rn2 + rnd calls) + mksobj(CORPSE)
+                        // For now, skip — iron bars + corpse is rare (~2% of niches)
+                        mksobj(CORPSE, true, false);
                     }
                 }
-                // Would place scroll of teleportation -- skip
+                // C ref: mklev.c:780-782 — scroll of teleportation in niche
+                mksobj(SCR_TELEPORTATION, true, false);
                 if (!rn2(3)) {
-                    // Would place random object -- skip
+                    // C ref: mklev.c:783-784 — random object in niche
+                    mkobj(0, true); // RANDOM_CLASS = 0
                 }
             }
         }
@@ -1565,16 +1585,50 @@ function mkgrave(map, croom, depth) {
     }
 }
 
+// C ref: objnam.c rnd_class() -- pick random object in index range by probability
+function rnd_class(first, last) {
+    let sum = 0;
+    for (let i = first; i <= last; i++)
+        sum += objectData[i].prob || 0;
+    if (!sum) return rn1(last - first + 1, first);
+    let x = rnd(sum);
+    for (let i = first; i <= last; i++) {
+        x -= objectData[i].prob || 0;
+        if (x <= 0) return i;
+    }
+    return first;
+}
+
+// SPBOOK_no_NOVEL = -SPBOOK_CLASS: generates spellbook but excludes novel
+const SPBOOK_no_NOVEL = -SPBOOK_CLASS;
+
+// Supply items for Oracle supply chest
+// C ref: mklev.c:1039-1049
+const supply_items = [
+    POT_EXTRA_HEALING, POT_SPEED, POT_GAIN_ENERGY,
+    SCR_ENCHANT_WEAPON, SCR_ENCHANT_ARMOR, SCR_CONFUSE_MONSTER, SCR_SCARE_MONSTER,
+    WAN_DIGGING, SPE_HEALING,
+];
+
+// Extra classes for supply chest bonus item
+// C ref: mklev.c:1076-1087
+const extra_classes = [
+    FOOD_CLASS, WEAPON_CLASS, ARMOR_CLASS, GEM_CLASS,
+    SCROLL_CLASS, POTION_CLASS, RING_CLASS,
+    SPBOOK_no_NOVEL, SPBOOK_no_NOVEL, SPBOOK_no_NOVEL,
+];
+
 // C ref: mklev.c fill_ordinary_room()
+// C ref: ROOM_IS_FILLABLE: (rtype == OROOM || rtype == THEMEROOM) && needfill == FILL_NORMAL
 function fill_ordinary_room(map, croom, depth, bonusItems) {
-    if (croom.rtype !== OROOM) return;
+    if (croom.rtype !== OROOM && croom.rtype !== THEMEROOM) return;
 
     // Put a sleeping monster inside (1/3 chance)
     // C ref: (u.uhave.amulet || !rn2(3)) && somexyspace(...)
     if (!rn2(3)) {
         const pos = somexyspace(map, croom);
         if (pos) {
-            makemon(null, pos.x, pos.y, NO_MM_FLAGS, depth);
+            makemon(null, pos.x, pos.y, MM_NOGRP, depth);
         }
     }
 
@@ -1628,18 +1682,69 @@ function fill_ordinary_room(map, croom, depth, bonusItems) {
         }
     }
 
-    // C ref: mklev.c:1015-1100 — bonus_items section
-    // C calls somexyspace, then checks branch conditions (Mines food, Oracle supply chest).
-    // At depth 1 in main dungeon: no branch conditions match, so only somexyspace is consumed.
-    // The mksobj call only happens for deeper depths with matching branch.
+    // C ref: mklev.c:1015-1117 — bonus_items section
+    // Oracle supply chest: at depth 1 in main dungeon, oracle_level.dnum matches,
+    // and u.uz.dlevel < oracle_level.dlevel, so supply chest created with 2/3 prob.
+    let skip_chests = false;
     if (bonusItems) {
         const pos = somexyspace(map, croom);
-        // At depth 1: no Mines/Oracle branch match → no items created
-        // TODO: For deeper depths, port Mines food / Oracle supply chest logic
+        if (pos) {
+            // At depth 1: branch to surface exists but doesn't connect to mines,
+            // so mines food check (Is_branchlev) fails. Falls to Oracle check.
+            // C ref: u.uz.dnum == oracle_level.dnum && u.uz.dlevel < oracle_level.dlevel
+            if (rn2(3)) {
+                // Create supply chest (2/3 chance)
+                // C ref: mklev.c:1033-1034
+                mksobj(rn2(3) ? CHEST : LARGE_BOX, false, false);
+                rn2(6); // olocked check
+
+                // Supply items loop
+                // C ref: mklev.c:1038-1070
+                let tryct = 0;
+                let cursed;
+                do {
+                    const otyp = rn2(2) ? POT_HEALING : supply_items[rn2(9)];
+                    const otmp = mksobj(otyp, true, false);
+                    if (otyp === POT_HEALING && rn2(2)) {
+                        // quan = 2 (no extra RNG, just weight update)
+                    }
+                    cursed = otmp.cursed;
+                    ++tryct;
+                    if (tryct === 50) break;
+                } while (cursed || !rn2(5));
+
+                // Maybe add extra random item
+                // C ref: mklev.c:1075-1110
+                if (rn2(3)) {
+                    const oclass = extra_classes[rn2(10)];
+                    let otmp;
+                    if (oclass === SPBOOK_no_NOVEL) {
+                        const otyp = rnd_class(bases[SPBOOK_CLASS], SPE_BLANK_PAPER);
+                        otmp = mksobj(otyp, true, false);
+                    } else {
+                        otmp = mkobj(oclass, false);
+                    }
+                    // Bias towards lower-level spellbooks
+                    if (oclass === SPBOOK_no_NOVEL) {
+                        const maxpass = (depth > 2) ? 2 : 3;
+                        for (let pass = 1; pass <= maxpass; pass++) {
+                            let otmp2;
+                            const otyp2 = rnd_class(bases[SPBOOK_CLASS], SPE_BLANK_PAPER);
+                            otmp2 = mksobj(otyp2, true, false);
+                            if (objectData[otmp.otyp].oc2 > objectData[otmp2.otyp].oc2) {
+                                otmp = otmp2;
+                            }
+                        }
+                    }
+                }
+
+                skip_chests = true;
+            }
+        }
     }
 
     // C ref: box/chest (!rn2(nroom * 5 / 2))
-    if (!rn2(Math.max(Math.floor(map.nroom * 5 / 2), 1))) {
+    if (!skip_chests && !rn2(Math.max(Math.floor(map.nroom * 5 / 2), 1))) {
         const pos = somexyspace(map, croom);
         if (pos) {
             mksobj(rn2(3) ? LARGE_BOX : CHEST, true, false);
@@ -1899,12 +2004,12 @@ export function generateLevel(depth) {
     // C ref: mklev.c:1381-1401 — bonus item room selection + fill loop
     let fillableCount = 0;
     for (const croom of map.rooms) {
-        if (croom.rtype === OROOM) fillableCount++;
+        if (croom.rtype === OROOM || croom.rtype === THEMEROOM) fillableCount++;
     }
     let bonusCountdown = fillableCount > 0 ? rn2(fillableCount) : -1;
 
     for (const croom of map.rooms) {
-        const fillable = (croom.rtype === OROOM);
+        const fillable = (croom.rtype === OROOM || croom.rtype === THEMEROOM);
         fill_ordinary_room(map, croom, depth,
                            fillable && bonusCountdown === 0);
         if (fillable) bonusCountdown--;

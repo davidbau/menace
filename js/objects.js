@@ -557,7 +557,7 @@ export const HEAVY_IRON_BALL = 473;
 export const IRON_CHAIN = 474;
 export const BLINDING_VENOM = 475;
 export const ACID_VENOM = 476;
-export const NUM_OBJECTS = 478;
+export const NUM_OBJECTS = 477; // C: 477 real objects (0..476), fencepost at [477]
 
 // -- Markers ---------------------------
 export const LAST_GENERIC = 17;
@@ -9197,8 +9197,9 @@ export function initObjectData() {
         }
         first = last;
     }
-    bases[MAXOCLASSES_OBJ] = objectData.length;
-    bases[MAXOCLASSES_OBJ + 1] = objectData.length;
+    // C: bases[MAXOCLASSES] = NUM_OBJECTS (excludes fencepost entry)
+    bases[MAXOCLASSES_OBJ] = objectData.length - 1;
+    bases[MAXOCLASSES_OBJ + 1] = objectData.length - 1;
     // Fill gaps: if a class has no objects, point to next class
     for (let i = MAXOCLASSES_OBJ - 1; i >= 0; i--) {
         if (!bases[i]) bases[i] = bases[i + 1];

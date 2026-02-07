@@ -142,7 +142,7 @@ describe('C vs JS map comparison', { skip: !hasCBinary() || !hasTmux() }, () => 
     for (const { seed, depth } of depth1Configs) {
         const label = `seed=${seed} depth=${depth}`;
 
-        it(`C and JS produce same terrain grid for ${label}`, { timeout: 35000 }, () => {
+        it(`C and JS produce same terrain grid for ${label}`, { timeout: 35000 }, (t) => {
             // Generate JS typ grid
             const jsRows = generateTypGrid(seed, depth);
             const jsGrid = parseTypGrid(jsRows.join('\n'));
@@ -150,7 +150,7 @@ describe('C vs JS map comparison', { skip: !hasCBinary() || !hasTmux() }, () => 
             // Generate C typ grid via tmux automation
             const cDumpFile = generateCDumpmap(seed, depth);
             if (!cDumpFile) {
-                // Skip if C generation failed (don't fail the test)
+                t.skip('C generation failed');
                 return;
             }
 
@@ -181,23 +181,20 @@ describe('C vs JS map comparison', { skip: !hasCBinary() || !hasTmux() }, () => 
                 }
             }
 
-            // Report differences (expected during active porting)
+            // Report via t.diagnostic() which Node test runner always displays
             if (diffs.length > 0) {
-                const maxShow = 50;
+                const maxShow = 20;
                 const shown = diffs.slice(0, maxShow);
-                let report = `${diffs.length} cells differ for ${label}:\n`;
+                let report = `${diffs.length} cells differ for ${label}:`;
                 for (const d of shown) {
-                    report += `  (${d.x},${d.y}): C=${d.cName}(${d.c}) JS=${d.jsName}(${d.js})\n`;
+                    report += `\n  (${d.x},${d.y}): C=${d.cName}(${d.c}) JS=${d.jsName}(${d.js})`;
                 }
                 if (diffs.length > maxShow) {
-                    report += `  ... and ${diffs.length - maxShow} more\n`;
+                    report += `\n  ... and ${diffs.length - maxShow} more`;
                 }
-                // Log the diff report but don't fail -- divergences are
-                // expected until the JS port is complete. The value is in
-                // seeing the diff count shrink over time.
-                console.log(report);
+                t.diagnostic(report);
             } else {
-                console.log(`PERFECT MATCH for ${label}`);
+                t.diagnostic(`PERFECT MATCH for ${label}`);
             }
         });
     }

@@ -119,6 +119,15 @@ const CONFIGS = [
     { seed: 999, depth: 1 },
     { seed: 999, depth: 3 },
     { seed: 999, depth: 5 },
+    { seed: 7,   depth: 1 },
+    { seed: 7,   depth: 3 },
+    { seed: 7,   depth: 5 },
+    { seed: 314, depth: 1 },
+    { seed: 314, depth: 3 },
+    { seed: 314, depth: 5 },
+    { seed: 555, depth: 1 },
+    { seed: 555, depth: 3 },
+    { seed: 555, depth: 5 },
 ];
 
 export { CONFIGS };

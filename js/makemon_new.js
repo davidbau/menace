@@ -20,6 +20,8 @@ import {
     M2_HOSTILE, M2_PEACEFUL, M2_DOMESTIC, M2_NEUTER, M2_GREEDY,
     M1_FLY, M1_NOHANDS,
     PM_SOLDIER, AT_WEAP,
+    PM_GOBLIN, PM_ORC_CAPTAIN, PM_MORDOR_ORC, PM_URUK_HAI, PM_ORC_SHAMAN,
+    PM_OGRE_LEADER, PM_OGRE_TYRANT,
 } from './monsters.js';
 import {
     DAGGER, KNIFE, SHORT_SWORD, LONG_SWORD, SILVER_SABER, BROADSWORD,
@@ -28,7 +30,7 @@ import {
     TWO_HANDED_SWORD, MORNING_STAR, STILETTO, PICK_AXE,
     ORCISH_DAGGER, ORCISH_SHORT_SWORD, ORCISH_SPEAR, ORCISH_HELM,
     ORCISH_SHIELD, ORCISH_RING_MAIL, ORCISH_CHAIN_MAIL,
-    ORCISH_BOW, ORCISH_ARROW,
+    ORCISH_BOW, ORCISH_ARROW, ORCISH_CLOAK, URUK_HAI_SHIELD,
     ELVEN_DAGGER, ELVEN_SHORT_SWORD, ELVEN_BOW, ELVEN_ARROW,
     ELVEN_LEATHER_HELM, ELVEN_MITHRIL_COAT, ELVEN_CLOAK,
     ELVEN_SHIELD, ELVEN_BOOTS,
@@ -317,33 +319,36 @@ function m_initweap(mndx, depth) {
         if (!rn2(3)) mksobj(rn2(2) ? CLUB : RUBBER_HOSE, true, false);
         break;
 
-    case S_ORC:
-        if (!rn2(2)) mksobj(ORCISH_HELM, true, false);
-        // Check specific orc type by name
-        if (ptr.name && (ptr.name === 'Mordor orc' || ptr.name === 'orc-captain')) {
-            if (rn2(2)) {
-                // Mordor variant
-                mksobj(SCIMITAR, true, false);
-                if (!rn2(3)) mksobj(ORCISH_SHIELD, true, false);
-                if (!rn2(3)) mksobj(KNIFE, true, false);
-                if (!rn2(3)) mksobj(ORCISH_CHAIN_MAIL, true, false);
-            } else {
-                // Uruk-hai variant
-                mksobj(BROADSWORD, true, false);
-                if (!rn2(3)) mksobj(ORCISH_SHIELD, true, false);
-                if (!rn2(3)) mksobj(IRON_SHOES, true, false);
-                if (!rn2(3)) mksobj(ORCISH_RING_MAIL, true, false);
+    case S_ORC: {
+        // C ref: makemon.c:411-446
+        if (rn2(2)) mksobj(ORCISH_HELM, true, false);
+        const orcType = (mndx !== PM_ORC_CAPTAIN) ? mndx
+            : rn2(2) ? PM_MORDOR_ORC : PM_URUK_HAI;
+        if (orcType === PM_MORDOR_ORC) {
+            if (!rn2(3)) mksobj(SCIMITAR, true, false);
+            if (!rn2(3)) mksobj(ORCISH_SHIELD, true, false);
+            if (!rn2(3)) mksobj(KNIFE, true, false);
+            if (!rn2(3)) mksobj(ORCISH_CHAIN_MAIL, true, false);
+        } else if (orcType === PM_URUK_HAI) {
+            if (!rn2(3)) mksobj(ORCISH_CLOAK, true, false);
+            if (!rn2(3)) mksobj(ORCISH_SHORT_SWORD, true, false);
+            if (!rn2(3)) mksobj(IRON_SHOES, true, false);
+            if (!rn2(3)) {
+                mksobj(ORCISH_BOW, true, false);
+                m_initthrow(ORCISH_ARROW, 12);
             }
+            if (!rn2(3)) mksobj(URUK_HAI_SHIELD, true, false);
         } else {
-            // Common orc
-            if (rn2(2)) mksobj(ORCISH_DAGGER, true, false);
-            else mksobj(rn2(2) ? SCIMITAR : ORCISH_SHORT_SWORD, true, false);
+            // default: common orc
+            if (mndx !== PM_ORC_SHAMAN && rn2(2))
+                mksobj((mndx === PM_GOBLIN || rn2(2) === 0) ? ORCISH_DAGGER : SCIMITAR, true, false);
         }
         break;
+    }
 
     case S_OGRE:
-        // Ogre: battle axe or club based on difficulty
-        if (!rn2(Math.max(2, ptr.difficulty))) {
+        // C ref: makemon.c:447-452
+        if (!rn2(mndx === PM_OGRE_TYRANT ? 3 : mndx === PM_OGRE_LEADER ? 6 : 12)) {
             mksobj(BATTLE_AXE, true, false);
         } else {
             mksobj(CLUB, true, false);
