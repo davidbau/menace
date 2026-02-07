@@ -114,6 +114,9 @@ function bcsign(obj) {
 
 // Create a blank object
 function newobj(otyp) {
+    // C ref: mkobj.c:1183 — otmp->o_id = next_ident()
+    // next_ident() consumes rnd(2) for unique object ID
+    rnd(2);
     return {
         otyp: otyp,
         oclass: objectData[otyp].oc_class,

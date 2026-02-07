@@ -29,9 +29,9 @@ import { GameMap, makeRoom } from './map.js';
 import { rn2, rnd, rn1, d, skipRng } from './rng.js';
 import { mkobj, mksobj } from './mkobj_new.js';
 import { makemon, NO_MM_FLAGS } from './makemon_new.js';
+import { init_objects } from './o_init.js';
 import {
-    initObjectData,
-    ARROW, DART, ROCK, LARGE_BOX, CHEST, GOLD_PIECE, CORPSE,
+    ARROW, DART, ROCK, BOULDER, LARGE_BOX, CHEST, GOLD_PIECE, CORPSE,
     STATUE, TALLOW_CANDLE, WAX_CANDLE, BELL,
     WEAPON_CLASS, TOOL_CLASS, FOOD_CLASS, GEM_CLASS,
 } from './objects.js';
@@ -797,7 +797,8 @@ function dig_corridor(map, org, dest, nxcor, depth) {
                 npoints++;
                 crm.typ = ftyp;
                 if (nxcor && !rn2(50)) {
-                    // Would place boulder -- skip for now
+                    // C ref: sp_lev.c:2596 — mksobj_at(BOULDER, ...)
+                    mksobj(BOULDER, true, false);
                 }
             }
         } else if (crm.typ !== ftyp && crm.typ !== SCORR) {
@@ -1278,7 +1279,8 @@ function maketrap(map, x, y, typ) {
         // C ref: mkroll_launch
         const launchCoord = find_random_launch_coord(map, trap);
         if (launchCoord) {
-            // Place boulder at launch coord (object creation skipped for now)
+            // C ref: mkroll_launch — mksobj_at(BOULDER, ...)
+            mksobj(BOULDER, true, false);
             trap.launch = { x: launchCoord.x, y: launchCoord.y };
             trap.launch2 = {
                 x: x - (launchCoord.x - x),
@@ -1777,12 +1779,11 @@ function do_fill_vault(map, vaultCheck, depth) {
 
 // C ref: mklev.c makelevel()
 export function generateLevel(depth) {
-    // Initialize object data tables (bases[], prob totals) on first call
-    initObjectData();
+    // C ref: o_init.c init_objects() — shuffle descriptions, 198 rn2 calls
+    init_objects();
 
-    // Simulate C pre-makelevel startup RNG consumption:
-    // o_init(198) + dungeon.c(53) + nhlua(4) + u_init(1) + bones(1) = 257
-    skipRng(257);
+    // Skip remaining pre-makelevel RNG: dungeon.c(53) + nhlua(4) + u_init(1) + bones(1) = 59
+    skipRng(59);
 
     const map = new GameMap();
     map.clear();

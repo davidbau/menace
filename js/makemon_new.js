@@ -547,6 +547,10 @@ export function makemon(ptr_or_null, x, y, mmflags, depth) {
     // C ref: newmonhp
     const { hp, m_lev } = newmonhp(mndx);
 
+    // C ref: makemon.c:1252 — mtmp->m_id = next_ident()
+    // next_ident() consumes rnd(2) for unique monster ID
+    rnd(2);
+
     // Gender assignment
     // C ref: makemon.c:1278-1290
     if (!is_male(ptr) && !is_female(ptr) && !is_neuter(ptr)) {

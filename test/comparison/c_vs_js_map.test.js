@@ -183,7 +183,7 @@ describe('C vs JS map comparison', { skip: !hasCBinary() || !hasTmux() }, () => 
 
             // Report differences (expected during active porting)
             if (diffs.length > 0) {
-                const maxShow = 20;
+                const maxShow = 50;
                 const shown = diffs.slice(0, maxShow);
                 let report = `${diffs.length} cells differ for ${label}:\n`;
                 for (const d of shown) {

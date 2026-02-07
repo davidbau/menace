@@ -85,15 +85,21 @@ function generateCRngLog(seed) {
 }
 
 // Generate JS RNG log
-function generateJSRngLog(seed, skipCount) {
+// generateLevel() now handles its own PRNG alignment internally:
+//   init_objects() consumes 198 rn2 calls (logged)
+//   skipRng(59) consumes 59 ISAAC64 calls (NOT logged)
+// So the JS log starts with 198 init_objects calls, then level gen.
+function generateJSRngLog(seed) {
     enableRngLog();
     initRng(seed);
-    if (skipCount > 0) skipRng(skipCount);
     generateLevel(1);
     const log = getRngLog();
     disableRngLog();
     return log;
 }
+
+// Number of logged init_objects calls at the start of generateLevel
+const JS_INIT_OBJECTS_CALLS = 198;
 
 // Find the first call from a given file in the C log
 function findFirstCallFrom(cLines, targetFile) {
@@ -142,19 +148,22 @@ describe('PRNG call log comparison', { skip: !hasCBinary() || !hasTmux() }, () =
         const preMklevLines = cLines.slice(0, mklevStart);
         const skipCount = countIsaac64Calls(preMklevLines);
 
-        // Generate JS log with PRNG fast-forwarded past startup
-        const jsLines = generateJSRngLog(42, skipCount);
+        // Generate JS log — includes init_objects (198 logged calls) then level gen
+        const jsLines = generateJSRngLog(42);
 
-        // Compare C's mklev portion against JS
+        // Skip the init_objects calls at the start of the JS log
+        const jsLevelLines = jsLines.slice(JS_INIT_OBJECTS_CALLS);
+
+        // Compare C's mklev portion against JS level gen
         const cMklevLines = cLines.slice(mklevStart);
 
         // Find first divergence
-        const maxCompare = Math.min(cMklevLines.length, jsLines.length);
+        const maxCompare = Math.min(cMklevLines.length, jsLevelLines.length);
         let firstDivergence = -1;
         for (let i = 0; i < maxCompare; i++) {
             const cStripped = stripFileInfo(cMklevLines[i]);
             const cParsed = parseLogLine(cStripped);
-            const jsParsed = parseLogLine(jsLines[i]);
+            const jsParsed = parseLogLine(jsLevelLines[i]);
             if (!cParsed || !jsParsed) continue;
             // Compare function and args (ignore call number since they differ)
             if (cParsed.func !== jsParsed.func ||
@@ -165,14 +174,14 @@ describe('PRNG call log comparison', { skip: !hasCBinary() || !hasTmux() }, () =
             }
         }
 
-        console.log(`\nRNG Log Comparison (seed=42, skip=${skipCount}):`);
+        console.log(`\nRNG Log Comparison (seed=42):`);
         console.log(`  C mklev calls: ${cMklevLines.length}`);
-        console.log(`  JS level gen calls: ${jsLines.length}`);
+        console.log(`  JS level gen calls: ${jsLevelLines.length} (after ${JS_INIT_OBJECTS_CALLS} init_objects calls)`);
 
         if (firstDivergence >= 0) {
             console.log(`  First divergence at call #${firstDivergence + 1}:`);
             const cLine = stripFileInfo(cMklevLines[firstDivergence]);
-            const jsLine = jsLines[firstDivergence];
+            const jsLine = jsLevelLines[firstDivergence];
             console.log(`    C:  ${cLine}`);
             console.log(`    JS: ${jsLine}`);
             // Show context around divergence
@@ -182,8 +191,8 @@ describe('PRNG call log comparison', { skip: !hasCBinary() || !hasTmux() }, () =
             for (let i = start; i < end; i++) {
                 const marker = i === firstDivergence ? '>>>' : '   ';
                 const c = stripFileInfo(cMklevLines[i] || '');
-                const j = jsLines[i] || '';
-                const match = stripFileInfo(cMklevLines[i] || '') === jsLines[i] ? '=' : '!';
+                const j = jsLevelLines[i] || '';
+                const match = stripFileInfo(cMklevLines[i] || '') === jsLevelLines[i] ? '=' : '!';
                 console.log(`    ${marker} C:${c}`);
                 console.log(`    ${marker} J:${j}  [${match}]`);
             }
