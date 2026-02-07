@@ -2917,6 +2917,194 @@ reach the correct altar.
 
 ---
 
+### Sokoban Solutions
+
+> *Boudewijn Waijers mapped solutions for all eight Sokoban level
+> variants in 2001. The puzzles haven't changed. His solutions
+> still work.*
+
+Sokoban is a fixed set of four puzzle floors, each with two
+possible layouts (A and B, randomly chosen). You push boulders onto
+holes to fill them, or onto traps to block them, clearing a path
+to the stairs up. You cannot pull boulders, so every push is
+permanent. One wrong move can make the level unsolvable.
+
+The prize at the top is either a **bag of holding** (variant A)
+or an **amulet of reflection** (variant B).
+
+A few universal rules:
+
+- **No teleportation** works in Sokoban. No digging either.
+- Going back downstairs costs **-1 Luck each time**. Solve each
+  floor in one visit.
+- Using a scroll of earth in Sokoban also costs **-1 Luck**.
+- After solving a level, push leftover boulders into corners so
+  they don't block your path if you pass through again.
+
+The eight level maps and their solutions are too large to reproduce
+in full here, but the general approach for each floor:
+
+1. **Identify which variant you have** by comparing the layout to
+   known maps. The two variants for each floor are visually
+   distinct.
+2. **Work from the holes outward.** Figure out which boulder needs
+   to end up in each hole, then trace backward to find the push
+   sequence.
+3. **Don't push boulders against walls** unless that's their final
+   position. A boulder flush against a wall can only be pushed
+   along the wall, never away from it.
+4. **Clear the easy boulders first.** Some boulders only need one
+   or two pushes. Get those into position before tackling the
+   complex sequences.
+
+The solutions are deterministic: for each variant, there is a known
+sequence of pushes that works every time. Experienced players
+memorize them. If you prefer to solve the puzzles yourself, the
+above tips are enough to get started. If you get stuck, the
+community has published step-by-step solutions for every variant.
+
+---
+
+### Voluntary Challenges
+
+> *Dion Nicolaas cataloged the voluntary challenge conducts for
+> RGRN, with contributions from Kate Nepveu, Raisse, Wim Benthem,
+> Stephen Churchill, nyra, and Dylan O'Donnell.*
+
+Once you've ascended a few times, you may find yourself looking
+for a harder challenge. NetHack tracks a set of **conducts**:
+voluntary restrictions that you can impose on yourself. At the end
+of a game, the final score screen lists which conducts you
+maintained. Nobody forces you to follow any of them. That's what
+makes them interesting.
+
+| Conduct         | Restriction                                        |
+| --------------- | -------------------------------------------------- |
+| Foodless        | Never eat anything at all                          |
+| Vegan           | Eat only vegan-safe food (no animal products)      |
+| Vegetarian      | Eat only vegetarian food (no meat corpses)         |
+| Atheist         | Never pray, sacrifice, or use altars               |
+| Weaponless      | Never hit a monster with a wielded weapon          |
+| Pacifist        | Never directly kill a monster                      |
+| Illiterate      | Never read anything (scrolls, spellbooks, signs)   |
+| Genocideless    | Never genocide a monster species                   |
+| Polypileless    | Never polymorph objects                            |
+| Polyselfless    | Never polymorph yourself                           |
+| Wishless        | Never make a wish                                  |
+| Artiwishless    | Never wish for an artifact                         |
+
+Some of these are straightforward variations on normal play
+(genocideless, artiwishless). Others fundamentally change how you
+approach the game:
+
+**Foodless** is brutal. You can't eat, so you must survive entirely
+on prayer, rings of slow digestion, and careful nutrition
+management through other means. Every turn counts.
+
+**Atheist** removes prayer as a safety net. No emergency healing,
+no hunger rescue, no altar-based identification. You're on your
+own with what the dungeon gives you.
+
+**Pacifist** means you can't kill anything directly. Your pet can
+kill for you. Traps can kill for you. Boulders, conflict, and
+creative use of the environment can kill for you. But you
+personally cannot deal the killing blow. This turns the game into
+a puzzle of indirect violence.
+
+**Illiterate** is one of the hardest. No scrolls, no spellbooks,
+no engraving Elbereth (it contains letters). This eliminates most
+of the identification system, all scroll effects, and all spells.
+
+Conducts can be combined. A vegan atheist pacifist ascension is
+possible. It has been done. Some players have ascended with all
+conducts simultaneously, which requires extraordinary knowledge of
+the game's edge cases and a great deal of patience.
+
+The conduct system is one of NetHack's best features: it turns a
+single game into dozens of different games, each with its own
+constraints and discoveries.
+
+---
+
+### Shopping and Shopkeeper Pricing
+
+> *Gregory Bond's shopping guide (2001) was the first to document
+> the deterministic pricing formulas that shopkeepers use. The
+> price identification technique described here is based on his
+> work.*
+
+Shopkeepers are your primary source of gold-for-goods exchange, and
+also one of your best tools for identification. Their pricing is
+not random. It follows a formula, and if you understand the formula,
+you can figure out what an item is just by asking how much it costs.
+
+#### How Prices Work
+
+Every item has a **base price** set by its type. When a shopkeeper
+quotes you a price, the base price has been modified by several
+factors:
+
+- **Charisma.** High charisma gets discounts (up to 50% off at
+  CHA 19+). Low charisma gets markups (up to double at CHA 5 or
+  below).
+- **Unidentified markup.** If you haven't identified the item, 1
+  in 4 chance of a 33% markup on the buy price.
+- **Tourist tax.** Tourists (or anyone wearing a Hawaiian shirt)
+  pay 33% more.
+- **Anger surcharge.** An angry shopkeeper charges 33% more.
+- **Enchantment.** Weapons and armor gain 10gp per point of
+  positive enchantment.
+
+#### Using Prices for Identification
+
+The key insight: even with the charisma modifier and random markup,
+you can often figure out the base price of an item by picking it
+up in a shop and noting the quoted price. Divide by your charisma
+modifier, account for the possible 33% markup, and you'll land on
+a base price that narrows the item to one or two possibilities.
+
+This is especially useful for:
+
+- **Scrolls.** Identify scrolls ($20) are the only scrolls at
+  their price point. Any scroll quoted cheaply in a shop is almost
+  certainly identify.
+- **Potions.** The $50, $100, $150, $200, and $300 groups each
+  contain a manageable number of potions. A price check splits
+  a pile of unknown potions into small groups.
+- **Rings.** The $100, $150, $200, and $300 groups are useful for
+  narrowing rings.
+- **Wands.** The $100, $150, $175, $200, and $500 groups work well.
+  A $500 wand is either death or wishing.
+
+#### Selling and Credit
+
+When you sell items, you get roughly half the base price (1/3 for
+Tourists). Unidentified items may lose an additional 25%. The sell
+price is less useful for identification than the buy price, but
+it's still a data point.
+
+Shopkeepers extend credit. If you drop gold in a shop, it becomes
+credit. If you can't afford an item, some shopkeepers will let you
+take it on credit (you'll owe them). Leaving the shop without
+paying is theft, and the shopkeeper will attack.
+
+#### Stealing
+
+The most common method of acquiring expensive items for free is
+**pet theft.** If your pet picks up an item from the shop floor
+and carries it outside the shop doorway, you haven't stolen it.
+The pet did. The shopkeeper doesn't blame you. This takes patience
+(the pet has to wander onto the item, then wander out the door)
+but it costs nothing and angers nobody.
+
+Other methods: teleporting out with merchandise, digging through
+the floor, or using a scroll of teleportation on the shopkeeper
+himself. These are all technically theft and will make the
+shopkeeper hostile. Pacifying an angry shopkeeper requires paying
+for everything you took.
+
+---
+
 ### What Changed Since Last Time
 
 If you're an experienced traveler returning after some time away, the
