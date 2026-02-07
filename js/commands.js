@@ -8,6 +8,7 @@ import { rn2, rnd, d } from './rng.js';
 import { nhgetch, ynFunction, getlin } from './input.js';
 import { playerAttackMonster } from './combat.js';
 import { createMonster, monsterTypes } from './makemon.js';
+import { showPager } from './pager.js';
 
 // Direction key mappings
 // C ref: cmd.c -- movement key definitions
@@ -148,7 +149,7 @@ export async function processCommand(ch, game) {
 
     // Help (?)
     if (c === '?') {
-        return handleHelp(display);
+        return await handleHelp(game);
     }
 
     // Save (S)
@@ -789,13 +790,78 @@ function handlePrevMessages(display) {
     return { moved: false, tookTime: false };
 }
 
-// Handle help
-function handleHelp(display) {
-    display.putstr_message(
-        'Move: hjklyubn  Pickup: ,  Stairs: <>  Open: o  Close: c  ' +
-        'Inventory: i  Wield: w  Wear: W'
-    );
+// Handle help (?)
+// C ref: cmd.c dohelp() -- shows help menu
+async function handleHelp(game) {
+    const { display } = game;
+
+    display.putstr_message('Help menu: ? keys, g guidebook, q quit [?gq]');
+    const ch = await nhgetch();
+    const c = String.fromCharCode(ch);
+
+    if (c === '?' || c === 'k') {
+        // Show key bindings
+        const keyHelp = [
+            '                    NetHack Command Reference',
+            '',
+            ' Movement:',
+            '   y k u      Also: arrow keys, or numpad',
+            '    \\|/',
+            '   h-.-l      Shift + direction = run',
+            '    /|\\',
+            '   b j n',
+            '',
+            ' Actions:',
+            '   .  wait/rest           s  search adjacent',
+            '   ,  pick up item        d  drop item',
+            '   o  open door           c  close door',
+            '   >  go downstairs       <  go upstairs',
+            '   e  eat food            q  quaff potion',
+            '   w  wield weapon        W  wear armor',
+            '   T  take off armor      i  inventory',
+            '   :  look here           ;  identify position',
+            '',
+            ' Other:',
+            '   ?    this help menu',
+            '   S    save game',
+            '   #    extended command',
+            '   ^P   previous messages',
+            '   ^R   redraw screen',
+            '   ^C   quit',
+            '',
+            ' In pager (guidebook, help):',
+            '   space/enter  next page     b  previous page',
+            '   /  search    n  next match',
+            '   g  first page              G  last page',
+            '   q/ESC  exit',
+        ].join('\n');
+        await showPager(display, keyHelp, 'Key Bindings');
+    } else if (c === 'g') {
+        // Show guidebook
+        await showGuidebook(display);
+    }
+    // q, ESC, or anything else = dismiss
+
     return { moved: false, tookTime: false };
+}
+
+// Guidebook text cache
+let guidebookText = null;
+
+// Fetch and display the NetHack Guidebook
+async function showGuidebook(display) {
+    if (!guidebookText) {
+        display.putstr_message('Loading Guidebook...');
+        try {
+            const resp = await fetch('Guidebook.txt');
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            guidebookText = await resp.text();
+        } catch (e) {
+            display.putstr_message('Failed to load Guidebook.');
+            return;
+        }
+    }
+    await showPager(display, guidebookText, 'NetHack Guidebook');
 }
 
 // Search for hidden doors and traps adjacent to player
