@@ -162,17 +162,32 @@ How to manage these in JS?
 
 ---
 
-## Decision 8: RNG -- Seeded PRNG for Reproducibility
+## Decision 8: RNG -- ISAAC64 for Exact C Compatibility
 
 **Context:** NetHack uses a seeded RNG for reproducible games. The C code uses
 ISAAC64 (isaac64.c) for the main game RNG and the system RNG for initial
 seeding.
 
-**Choice:** Implement a JS PRNG seeded from `Math.random()` at game start.
-Use a simple but adequate algorithm (xoshiro128**) rather than porting ISAAC64,
-since exact RNG sequence compatibility with the C version is not a goal for the
-initial port. Comparison tests will focus on deterministic behavior given the
-same game state, not RNG sequence matching.
+**Choice (updated):** Port ISAAC64 faithfully using JavaScript BigInt for
+64-bit unsigned integer arithmetic. This gives bit-for-bit identical output
+to the C version for any given seed, enabling deterministic comparison tests.
+
+**Implementation notes:**
+- `js/isaac64.js` is a direct port of `isaac64.c` (public domain, by
+  Timothy B. Terriberry). It uses BigInt for all 64-bit arithmetic.
+- `js/rng.js` wraps ISAAC64 with `rn2()`, `rnd()`, `d()` etc., matching
+  the C `rnd.c` logic exactly: `RND(x) = isaac64_next_uint64() % x`.
+- Seeding matches `init_isaac64()` from `rnd.c`: the seed is converted to
+  8 little-endian bytes (matching `sizeof(unsigned long)` = 8 on 64-bit
+  Linux) and passed to `isaac64_init()`.
+- Golden reference tests verify 500 consecutive values for 4 different seeds
+  against output from a compiled C reference program.
+- Performance: BigInt operations are fast enough. ISAAC64 generates 256
+  values per batch; the ~1024 BigInt operations per batch take microseconds.
+  For a turn-based game this is negligible.
+
+**Previous choice (initial port):** xoshiro128** was used temporarily for the
+first prototype, but was replaced with ISAAC64 to enable exact C matching.
 
 ---
 
