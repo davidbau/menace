@@ -1,0 +1,454 @@
+// display.js -- Browser-based TTY display
+// Implements the window_procs interface from winprocs.h for browser rendering.
+// See DECISIONS.md #2 for why we use <pre> with <span> elements.
+
+import {
+    COLNO, ROWNO, TERMINAL_COLS, TERMINAL_ROWS,
+    MESSAGE_ROW, MAP_ROW_START, STATUS_ROW_1, STATUS_ROW_2,
+    STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
+    CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL, DOOR, CORR, ROOM,
+    STAIRS, FOUNTAIN, THRONE, SINK, GRAVE, ALTAR, POOL, MOAT,
+    WATER, LAVAPOOL, LAVAWALL, ICE, IRONBARS, TREE,
+    DRAWBRIDGE_UP, DRAWBRIDGE_DOWN, AIR, CLOUD, SDOOR, SCORR,
+    D_NODOOR, D_CLOSED, D_ISOPEN, D_LOCKED,
+    IS_WALL, IS_DOOR, IS_ROOM
+} from './config.js';
+
+// Color constants (color.h)
+// C ref: include/color.h
+export const CLR_BLACK = 0;
+export const CLR_RED = 1;
+export const CLR_GREEN = 2;
+export const CLR_BROWN = 3;
+export const CLR_BLUE = 4;
+export const CLR_MAGENTA = 5;
+export const CLR_CYAN = 6;
+export const CLR_GRAY = 7;
+export const NO_COLOR = 8;
+export const CLR_ORANGE = 8;
+export const CLR_BRIGHT_GREEN = 9;
+export const CLR_YELLOW = 10;
+export const CLR_BRIGHT_BLUE = 11;
+export const CLR_BRIGHT_MAGENTA = 12;
+export const CLR_BRIGHT_CYAN = 13;
+export const CLR_WHITE = 14;
+export const HI_METAL = CLR_CYAN;
+export const HI_WOOD = CLR_BROWN;
+export const HI_GOLD = CLR_YELLOW;
+export const HI_ZAP = CLR_BRIGHT_BLUE;
+
+// CSS color strings for each NetHack color
+// See DECISIONS.md #2 for color choices
+const COLOR_CSS = [
+    '#555',    // CLR_BLACK (dark gray for visibility on black bg)
+    '#a00',    // CLR_RED
+    '#0a0',    // CLR_GREEN
+    '#a50',    // CLR_BROWN
+    '#00d',    // CLR_BLUE
+    '#a0a',    // CLR_MAGENTA
+    '#0aa',    // CLR_CYAN
+    '#aaa',    // CLR_GRAY
+    '#f80',    // CLR_ORANGE / NO_COLOR
+    '#0f0',    // CLR_BRIGHT_GREEN
+    '#ff0',    // CLR_YELLOW
+    '#55f',    // CLR_BRIGHT_BLUE
+    '#f5f',    // CLR_BRIGHT_MAGENTA
+    '#0ff',    // CLR_BRIGHT_CYAN
+    '#fff',    // CLR_WHITE
+];
+
+// Default symbol for each terrain type
+// C ref: defsym.h PCHAR definitions
+// Uses Unicode box-drawing characters (DECGraphics / Enhanced1 from dat/symbols)
+const TERRAIN_SYMBOLS = {
+    [STONE]:   { ch: ' ', color: CLR_GRAY },
+    [VWALL]:   { ch: '\u2502', color: CLR_GRAY },   // BOX VERT
+    [HWALL]:   { ch: '\u2500', color: CLR_GRAY },   // BOX HORIZ
+    [TLCORNER]: { ch: '\u250c', color: CLR_GRAY },  // BOX TL
+    [TRCORNER]: { ch: '\u2510', color: CLR_GRAY },  // BOX TR
+    [BLCORNER]: { ch: '\u2514', color: CLR_GRAY },  // BOX BL
+    [BRCORNER]: { ch: '\u2518', color: CLR_GRAY },  // BOX BR
+    [CROSSWALL]: { ch: '\u253c', color: CLR_GRAY },  // BOX CROSS
+    [TUWALL]:  { ch: '\u2534', color: CLR_GRAY },   // BOX UP-T
+    [TDWALL]:  { ch: '\u252c', color: CLR_GRAY },   // BOX DOWN-T
+    [TLWALL]:  { ch: '\u2524', color: CLR_GRAY },   // BOX LEFT-T
+    [TRWALL]:  { ch: '\u251c', color: CLR_GRAY },   // BOX RIGHT-T
+    [DOOR]:    { ch: '+', color: CLR_BROWN },        // closed door default
+    [CORR]:    { ch: '#', color: CLR_GRAY },
+    [ROOM]:    { ch: '\u00b7', color: CLR_GRAY },    // MIDDLE DOT
+    [STAIRS]:  { ch: '<', color: CLR_GRAY },         // default to up
+    [FOUNTAIN]: { ch: '{', color: CLR_BRIGHT_BLUE },
+    [THRONE]:  { ch: '\\', color: HI_GOLD },
+    [SINK]:    { ch: '#', color: CLR_GRAY },
+    [GRAVE]:   { ch: '\u2020', color: CLR_WHITE },   // DAGGER
+    [ALTAR]:   { ch: '_', color: CLR_GRAY },
+    [POOL]:    { ch: '\u2248', color: CLR_BLUE },    // APPROX EQUAL
+    [MOAT]:    { ch: '\u2248', color: CLR_BLUE },    // APPROX EQUAL
+    [WATER]:   { ch: '\u2248', color: CLR_BRIGHT_BLUE }, // APPROX EQUAL
+    [LAVAPOOL]: { ch: '\u2248', color: CLR_RED },    // APPROX EQUAL
+    [LAVAWALL]: { ch: '\u2248', color: CLR_ORANGE }, // APPROX EQUAL
+    [ICE]:     { ch: '\u00b7', color: CLR_CYAN },    // MIDDLE DOT
+    [IRONBARS]: { ch: '#', color: HI_METAL },
+    [TREE]:    { ch: '#', color: CLR_GREEN },
+    [DRAWBRIDGE_UP]:   { ch: '#', color: CLR_BROWN },
+    [DRAWBRIDGE_DOWN]: { ch: '\u00b7', color: CLR_BROWN }, // MIDDLE DOT
+    [AIR]:     { ch: ' ', color: CLR_CYAN },
+    [CLOUD]:   { ch: '#', color: CLR_GRAY },
+    [SDOOR]:   { ch: '\u2502', color: CLR_GRAY },   // BOX VERT (looks like wall)
+    [SCORR]:   { ch: ' ', color: CLR_GRAY },         // looks like stone
+};
+
+export class Display {
+    constructor(containerId) {
+        this.container = document.getElementById(containerId);
+        this.cols = TERMINAL_COLS;
+        this.rows = TERMINAL_ROWS;
+
+        // The character grid: [row][col] = {ch, color}
+        this.grid = [];
+        for (let r = 0; r < this.rows; r++) {
+            this.grid[r] = [];
+            for (let c = 0; c < this.cols; c++) {
+                this.grid[r][c] = { ch: ' ', color: CLR_GRAY };
+            }
+        }
+
+        // DOM spans: [row][col] = <span>
+        this.spans = [];
+
+        // Message history
+        this.messages = [];
+        this.topMessage = '';
+
+        this._createDOM();
+    }
+
+    _createDOM() {
+        // Create the pre element
+        const pre = document.createElement('pre');
+        pre.id = 'terminal';
+        pre.style.cssText = `
+            font-family: "DejaVu Sans Mono", "Courier New", monospace;
+            font-size: 16px;
+            line-height: 1.2;
+            background: #000;
+            color: #aaa;
+            padding: 8px;
+            margin: 0;
+            display: inline-block;
+            white-space: pre;
+            cursor: default;
+            user-select: none;
+        `;
+
+        // Create spans for each cell
+        for (let r = 0; r < this.rows; r++) {
+            this.spans[r] = [];
+            for (let c = 0; c < this.cols; c++) {
+                const span = document.createElement('span');
+                span.textContent = ' ';
+                span.style.color = COLOR_CSS[CLR_GRAY];
+                this.spans[r][c] = span;
+                pre.appendChild(span);
+            }
+            if (r < this.rows - 1) {
+                pre.appendChild(document.createTextNode('\n'));
+            }
+        }
+
+        this.container.innerHTML = '';
+        this.container.appendChild(pre);
+    }
+
+    // Set a character at terminal position (col, row) with color
+    setCell(col, row, ch, color) {
+        if (row < 0 || row >= this.rows || col < 0 || col >= this.cols) return;
+        const cell = this.grid[row][col];
+        if (cell.ch === ch && cell.color === color) return; // no change
+        cell.ch = ch;
+        cell.color = color;
+        const span = this.spans[row][col];
+        span.textContent = ch;
+        span.style.color = COLOR_CSS[color] || COLOR_CSS[CLR_GRAY];
+    }
+
+    // Clear a row
+    clearRow(row) {
+        for (let c = 0; c < this.cols; c++) {
+            this.setCell(c, row, ' ', CLR_GRAY);
+        }
+    }
+
+    // Write a string at position (col, row)
+    putstr(col, row, str, color = CLR_GRAY) {
+        for (let i = 0; i < str.length && col + i < this.cols; i++) {
+            this.setCell(col + i, row, str[i], color);
+        }
+    }
+
+    // --- Window interface methods (mirrors winprocs.h) ---
+
+    // Display a message on the top line
+    // C ref: winprocs.h win_putstr for NHW_MESSAGE
+    putstr_message(msg) {
+        this.clearRow(MESSAGE_ROW);
+        this.putstr(0, MESSAGE_ROW, msg.substring(0, this.cols), CLR_WHITE);
+        this.topMessage = msg;
+        if (msg.trim()) {
+            this.messages.push(msg);
+        }
+    }
+
+    // Display "--More--" and wait for input
+    // C ref: tty_display_nhwindow for message window
+    async morePrompt(nhgetch) {
+        const msg = this.topMessage;
+        const moreStr = '--More--';
+        const col = Math.min(msg.length + 1, this.cols - moreStr.length);
+        this.putstr(col, MESSAGE_ROW, moreStr, CLR_GREEN);
+        await nhgetch();
+        this.clearRow(MESSAGE_ROW);
+    }
+
+    // Render the map from game state
+    // C ref: display.c newsym() and print_glyph()
+    renderMap(gameMap, player, fov) {
+        for (let y = 0; y < ROWNO; y++) {
+            for (let x = 0; x < COLNO; x++) {
+                const row = y + MAP_ROW_START;
+                const col = x;
+
+                if (!fov || !fov.canSee(x, y)) {
+                    // Show remembered terrain or nothing
+                    const loc = gameMap.at(x, y);
+                    if (loc && loc.seenv) {
+                        // Show remembered (dimmed)
+                        const sym = this.terrainSymbol(loc);
+                        this.setCell(col, row, sym.ch, CLR_BLACK);
+                    } else {
+                        this.setCell(col, row, ' ', CLR_GRAY);
+                    }
+                    continue;
+                }
+
+                const loc = gameMap.at(x, y);
+                if (!loc) {
+                    this.setCell(col, row, ' ', CLR_GRAY);
+                    continue;
+                }
+
+                // Mark as seen
+                loc.seenv = 0xFF;
+
+                // Check for player at this position
+                if (player && x === player.x && y === player.y) {
+                    this.setCell(col, row, '@', CLR_WHITE);
+                    continue;
+                }
+
+                // Check for monsters
+                const mon = gameMap.monsterAt(x, y);
+                if (mon) {
+                    this.setCell(col, row, mon.displayChar, mon.displayColor);
+                    continue;
+                }
+
+                // Check for objects on the ground
+                const objs = gameMap.objectsAt(x, y);
+                if (objs.length > 0) {
+                    const topObj = objs[objs.length - 1];
+                    this.setCell(col, row, topObj.displayChar, topObj.displayColor);
+                    continue;
+                }
+
+                // Check for traps
+                const trap = gameMap.trapAt(x, y);
+                if (trap && trap.tseen) {
+                    this.setCell(col, row, '^', CLR_MAGENTA);
+                    continue;
+                }
+
+                // Show terrain
+                const sym = this.terrainSymbol(loc);
+                this.setCell(col, row, sym.ch, sym.color);
+            }
+        }
+    }
+
+    // Get the display symbol for a terrain type
+    // C ref: defsym.h PCHAR definitions, display.c back_to_glyph()
+    terrainSymbol(loc) {
+        const typ = loc.typ;
+
+        // Handle door states
+        // C ref: dat/symbols DECgraphics -- S_ndoor=dot, S_vodoor/S_hodoor=dot
+        if (typ === DOOR) {
+            if (loc.flags & D_ISOPEN) {
+                return { ch: '\u00b7', color: CLR_BROWN };  // MIDDLE DOT open door
+            } else if (loc.flags & D_CLOSED || loc.flags & D_LOCKED) {
+                return { ch: '+', color: CLR_BROWN };
+            } else {
+                return { ch: '\u00b7', color: CLR_GRAY };   // MIDDLE DOT doorway
+            }
+        }
+
+        // Handle stairs
+        if (typ === STAIRS) {
+            if (loc.flags === 1) { // up
+                return { ch: '<', color: CLR_GRAY };
+            } else { // down
+                return { ch: '>', color: CLR_GRAY };
+            }
+        }
+
+        // Handle secret door/corridor (appears as wall/stone when unseen)
+        if (typ === SDOOR) {
+            return loc.horizontal
+                ? { ch: '\u2500', color: CLR_GRAY }   // BOX HORIZ wall
+                : { ch: '\u2502', color: CLR_GRAY };   // BOX VERT wall
+        }
+
+        return TERRAIN_SYMBOLS[typ] || { ch: '?', color: CLR_MAGENTA };
+    }
+
+    // Render the status lines
+    // C ref: botl.c bot(), botl.h
+    renderStatus(player) {
+        if (!player) return;
+
+        // Status line 1: Name, attributes, etc.
+        // C ref: botl.c bot1str()
+        const line1Parts = [];
+        line1Parts.push(player.name);
+        line1Parts.push(`St:${player.attributes[0]}`);
+        line1Parts.push(`Dx:${player.attributes[3]}`);
+        line1Parts.push(`Co:${player.attributes[4]}`);
+        line1Parts.push(`In:${player.attributes[1]}`);
+        line1Parts.push(`Wi:${player.attributes[2]}`);
+        line1Parts.push(`Ch:${player.attributes[5]}`);
+        const alignStr = player.alignment < 0 ? 'Chaotic'
+                       : player.alignment > 0 ? 'Lawful' : 'Neutral';
+        line1Parts.push(alignStr);
+        // Score
+        if (player.score > 0) {
+            line1Parts.push(`S:${player.score}`);
+        }
+
+        const line1 = line1Parts.join('  ');
+        this.clearRow(STATUS_ROW_1);
+        this.putstr(0, STATUS_ROW_1, line1.substring(0, this.cols), CLR_GRAY);
+
+        // Status line 2: Dungeon level, HP, Pw, AC, etc.
+        // C ref: botl.c bot2str()
+        const line2Parts = [];
+        line2Parts.push(`Dlvl:${player.dungeonLevel}`);
+        line2Parts.push(`$:${player.gold}`);
+        line2Parts.push(`HP:${player.hp}(${player.hpmax})`);
+        line2Parts.push(`Pw:${player.pw}(${player.pwmax})`);
+        line2Parts.push(`AC:${player.ac}`);
+
+        // Experience
+        if (player.showExp) {
+            line2Parts.push(`Xp:${player.level}/${player.exp}`);
+        } else {
+            line2Parts.push(`Exp:${player.level}`);
+        }
+
+        line2Parts.push(`T:${player.turns}`);
+
+        // Hunger status
+        if (player.hunger <= 50) {
+            line2Parts.push('Fainting');
+        } else if (player.hunger <= 150) {
+            line2Parts.push('Weak');
+        } else if (player.hunger <= 300) {
+            line2Parts.push('Hungry');
+        }
+
+        // Conditions
+        if (player.blind) line2Parts.push('Blind');
+        if (player.confused) line2Parts.push('Conf');
+        if (player.stunned) line2Parts.push('Stun');
+        if (player.hallucinating) line2Parts.push('Hallu');
+
+        const line2 = line2Parts.join('  ');
+        this.clearRow(STATUS_ROW_2);
+        this.putstr(0, STATUS_ROW_2, line2.substring(0, this.cols), CLR_GRAY);
+
+        // Color HP based on percentage
+        const hpPct = player.hpmax > 0 ? player.hp / player.hpmax : 1;
+        const hpColor = hpPct <= 0.15 ? CLR_RED
+                      : hpPct <= 0.33 ? CLR_ORANGE
+                      : CLR_GRAY;
+        // Find and recolor the HP portion
+        const hpStr = `HP:${player.hp}(${player.hpmax})`;
+        const hpIdx = line2.indexOf(hpStr);
+        if (hpIdx >= 0) {
+            for (let i = 0; i < hpStr.length; i++) {
+                this.setCell(hpIdx + i, STATUS_ROW_2, hpStr[i], hpColor);
+            }
+        }
+    }
+
+    // Display a simple menu and return selection (async)
+    // C ref: winprocs.h win_select_menu
+    async showMenu(title, items, nhgetch) {
+        // Save the current map area
+        const savedCells = [];
+        const startRow = MAP_ROW_START + 1;
+        const maxItems = Math.min(items.length, ROWNO - 4);
+
+        for (let r = startRow; r < startRow + maxItems + 2; r++) {
+            savedCells[r] = [];
+            for (let c = 0; c < this.cols; c++) {
+                savedCells[r][c] = { ...this.grid[r][c] };
+            }
+        }
+
+        // Draw menu
+        this.clearRow(startRow);
+        this.putstr(2, startRow, title, CLR_WHITE);
+
+        const displayItems = items.slice(0, maxItems);
+        for (let i = 0; i < displayItems.length; i++) {
+            const row = startRow + 1 + i;
+            this.clearRow(row);
+            const item = displayItems[i];
+            const letter = item.letter || String.fromCharCode(97 + i); // a, b, c...
+            this.putstr(2, row, `${letter} - ${item.text}`, CLR_GRAY);
+        }
+
+        // Wait for selection
+        this.putstr_message('(end) ');
+        const ch = await nhgetch();
+
+        // Restore map
+        for (let r = startRow; r < startRow + maxItems + 2; r++) {
+            if (!savedCells[r]) continue;
+            for (let c = 0; c < this.cols; c++) {
+                const saved = savedCells[r][c];
+                this.setCell(c, r, saved.ch, saved.color);
+            }
+        }
+        this.clearRow(MESSAGE_ROW);
+
+        // Find which item was selected
+        const charStr = String.fromCharCode(ch);
+        const selected = displayItems.find((item, idx) => {
+            const letter = item.letter || String.fromCharCode(97 + idx);
+            return letter === charStr;
+        });
+
+        return selected || null;
+    }
+
+    // Place cursor on the player
+    // C ref: display.c curs_on_u()
+    cursorOnPlayer(player) {
+        // In a browser, we could blink or highlight the player cell
+        // For now, just ensure the player @ is bright
+        if (player) {
+            this.setCell(player.x, player.y + MAP_ROW_START, '@', CLR_WHITE);
+        }
+    }
+}

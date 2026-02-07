@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetHack JS -- Mazes of Menace</title>
+    <style>
+        /* Faithful terminal appearance */
+        body {
+            background: #111;
+            color: #aaa;
+            font-family: "DejaVu Sans Mono", "Courier New", "Lucida Console", monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        #game {
+            /* Terminal container */
+            background: #000;
+            border: 2px solid #333;
+            padding: 4px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        #terminal {
+            /* The pre element is created by display.js */
+            /* These styles are set in JS but we provide fallbacks */
+            font-family: "DejaVu Sans Mono", "Courier New", "Lucida Console", monospace;
+            font-size: 16px;
+            line-height: 1.2;
+            background: #000;
+            color: #aaa;
+        }
+
+        /* Prevent text selection during gameplay */
+        #game * {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Loading message */
+        #loading {
+            color: #aaa;
+            font-size: 16px;
+            padding: 20px;
+        }
+
+        /* Focus indicator */
+        #game:focus-within {
+            border-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <div id="loading">Loading NetHack JS...</div>
+    </div>
+
+    <!-- ES6 Module entry point -->
+    <script type="module" src="js/nethack.js"></script>
+
+    <!-- Fallback for browsers without module support -->
+    <noscript>
+        <p>NetHack JS requires JavaScript to be enabled.</p>
+    </noscript>
+</body>
+</html>
