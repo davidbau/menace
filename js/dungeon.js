@@ -1135,81 +1135,161 @@ function make_niches(map, depth) {
     }
 }
 
-// C ref: mklev.c fill_ordinary_room() (simplified)
-function fill_ordinary_room(map, croom, depth) {
+// C ref: mkroom.c find_okay_roompos() -- find non-occupied, non-bydoor pos
+function find_okay_roompos(map, croom) {
+    let tryct = 0;
+    do {
+        if (++tryct > 200) return null;
+        const pos = somexyspace(map, croom);
+        if (!pos) return null;
+        if (!bydoor(map, pos.x, pos.y))
+            return pos;
+    } while (true);
+}
+
+// C ref: mkroom.c mkfount()
+function mkfount(map, croom) {
+    const pos = find_okay_roompos(map, croom);
+    if (!pos) return;
+    const loc = map.at(pos.x, pos.y);
+    if (!loc) return;
+    loc.typ = FOUNTAIN;
+    // C ref: blessed fountain check
+    if (!rn2(7)) {
+        // blessedftn flag -- not tracked in JS yet, just consume RNG
+    }
+    map.flags.nfountains++;
+}
+
+// C ref: mkroom.c mksink()
+function mksink(map, croom) {
+    const pos = find_okay_roompos(map, croom);
+    if (!pos) return;
+    const loc = map.at(pos.x, pos.y);
+    if (!loc) return;
+    loc.typ = SINK;
+    map.flags.nsinks++;
+}
+
+// C ref: mkroom.c mkaltar()
+function mkaltar(map, croom) {
+    if (croom.rtype !== OROOM) return;
+    const pos = find_okay_roompos(map, croom);
+    if (!pos) return;
+    const loc = map.at(pos.x, pos.y);
+    if (!loc) return;
+    loc.typ = ALTAR;
+    // C ref: alignment = rn2(A_LAWFUL+2) - 1
+    rn2(3);
+}
+
+// C ref: mkroom.c mkgrave()
+function mkgrave(map, croom, depth) {
+    if (croom.rtype !== OROOM) return;
+    const dobell = !rn2(10);
+    const pos = find_okay_roompos(map, croom);
+    if (!pos) return;
+    const loc = map.at(pos.x, pos.y);
+    if (!loc) return;
+    loc.typ = GRAVE;
+    // C ref: possibly fill with gold
+    if (!rn2(3)) {
+        // mksobj(GOLD_PIECE, TRUE, FALSE) — internal RNG for gold object
+        // gold->quan = rnd(20) + level_difficulty() * rnd(5)
+        rnd(20);
+        rnd(5);
+    }
+    // C ref: bury random objects
+    let tryct = rn2(5);
+    while (tryct--) {
+        // mkobj(RANDOM_CLASS, TRUE) — complex internal RNG, can't simulate
+        // Just consume the rn2(5) loop counter
+    }
+    // C ref: leave a bell if dobell
+    if (dobell) {
+        // mksobj_at(BELL, ...) — internal RNG we can't simulate
+    }
+}
+
+// C ref: mklev.c fill_ordinary_room()
+function fill_ordinary_room(map, croom, depth, bonusItems) {
     if (croom.rtype !== OROOM) return;
 
     // Put a sleeping monster inside (1/3 chance)
+    // C ref: (u.uhave.amulet || !rn2(3)) && somexyspace(...)
     if (!rn2(3)) {
         const pos = somexyspace(map, croom);
         // Would call makemon() -- skip for now
     }
 
-    // Traps (simplified: skip)
+    // Traps
+    // C ref: x = 8 - (level_difficulty() / 6)
     const x = 8 - Math.floor(depth / 6);
     const trapChance = Math.max(x, 2);
-    // C: while (!rn2(x) && trycnt < 1000) mktrap(...)
-    // Consume same PRNG values
     let trycnt = 0;
     while (!rn2(trapChance) && (++trycnt < 1000)) {
-        // Would place trap -- skip for now
+        // Would call mktrap() -- skip for now
     }
 
     // Gold (1/3 chance)
     if (!rn2(3)) {
         const pos = somexyspace(map, croom);
-        // Would place gold -- skip
+        // Would call mkgold() -- skip
     }
 
     // Fountain (1/10 chance)
-    if (!rn2(10)) {
-        const pos = somexyspace(map, croom);
-        if (pos) {
-            const loc = map.at(pos.x, pos.y);
-            if (loc && !bydoor(map, pos.x, pos.y)) {
-                loc.typ = FOUNTAIN;
-                map.flags.nfountains++;
-            }
-        }
-    }
+    if (!rn2(10))
+        mkfount(map, croom);
 
     // Sink (1/60 chance)
-    if (!rn2(60)) {
-        const pos = somexyspace(map, croom);
-        if (pos) {
-            const loc = map.at(pos.x, pos.y);
-            if (loc && !bydoor(map, pos.x, pos.y)) {
-                loc.typ = SINK;
-                map.flags.nsinks++;
-            }
-        }
-    }
+    if (!rn2(60))
+        mksink(map, croom);
 
     // Altar (1/60 chance)
-    if (!rn2(60)) {
-        const pos = somexyspace(map, croom);
-        if (pos) {
-            const loc = map.at(pos.x, pos.y);
-            if (loc && !bydoor(map, pos.x, pos.y))
-                loc.typ = ALTAR;
-        }
-    }
+    if (!rn2(60))
+        mkaltar(map, croom);
 
     // Grave
-    const graveChance = 80 - (depth * 2);
-    if (!rn2(Math.max(graveChance, 2))) {
-        const pos = somexyspace(map, croom);
-        if (pos) {
-            const loc = map.at(pos.x, pos.y);
-            if (loc && !bydoor(map, pos.x, pos.y))
-                loc.typ = GRAVE;
-        }
-    }
+    // C ref: x = 80 - (depth(&u.uz) * 2)
+    const graveX = 80 - (depth * 2);
+    const graveChance = Math.max(graveX, 2);
+    if (!rn2(graveChance))
+        mkgrave(map, croom, depth);
 
     // Statue (1/20 chance)
     if (!rn2(20)) {
         const pos = somexyspace(map, croom);
-        // Would place statue -- skip
+        // Would call mkcorpstat(STATUE, ...) -- skip
+    }
+
+    // C ref: bonus_items section — complex supply chest logic
+    if (bonusItems) {
+        const pos = somexyspace(map, croom);
+        // Supply chest internals consume many RNG calls we can't simulate
+    }
+
+    // C ref: box/chest (!rn2(nroom * 5 / 2))
+    if (!rn2(Math.max(Math.floor(map.nroom * 5 / 2), 1))) {
+        const pos = somexyspace(map, croom);
+        // Would call mksobj_at(rn2(3) ? LARGE_BOX : CHEST, ...) -- skip
+    }
+
+    // C ref: graffiti (!rn2(27 + 3 * abs(depth)))
+    if (!rn2(27 + 3 * Math.abs(depth))) {
+        // random_engraving consumes RNG, then somexyspace loop
+        // Skip: can't simulate engraving internals
+    }
+
+    // C ref: random objects (!rn2(3))
+    if (!rn2(3)) {
+        const pos = somexyspace(map, croom);
+        // Would call mkobj_at() -- skip
+        trycnt = 0;
+        while (!rn2(5)) {
+            if (++trycnt > 100) break;
+            const pos2 = somexyspace(map, croom);
+            // Would call mkobj_at() -- skip
+        }
     }
 }
 
@@ -1277,6 +1357,53 @@ function setWallType(map, x, y) {
     // Otherwise leave as HWALL or VWALL
 }
 
+// C ref: mklev.c:1312-1322 — vault creation and fill
+// Called when check_room succeeds for vault position.
+// Creates the vault room structure, fills with gold (simulated RNG),
+// and runs wallification on the vault region.
+function do_fill_vault(map, vaultCheck, depth) {
+    const lowx = vaultCheck.lowx;
+    const lowy = vaultCheck.lowy;
+    const hix = lowx + vaultCheck.ddx;
+    const hiy = lowy + vaultCheck.ddy;
+
+    add_room_to_map(map, lowx, lowy, hix, hiy, true, VAULT, false);
+    map.flags.has_vault = true;
+
+    // C ref: fill_special_room for VAULT — mkgold per cell
+    // mkgold(rn1(abs(depth)*100, 51), x, y) for each cell
+    // rn1(n, base) = rn2(n) + base, then mkgold calls mksobj_at internally.
+    // We consume rn2 for the amount but can't simulate mksobj internals.
+    const vroom = map.rooms[map.nroom - 1];
+    for (let vx = vroom.lx; vx <= vroom.hx; vx++) {
+        for (let vy = vroom.ly; vy <= vroom.hy; vy++) {
+            rn2(Math.abs(depth) * 100 || 100); // rn1 amount
+        }
+    }
+
+    // C ref: mk_knox_portal(vault_x + w, vault_y + h)
+    // At depth 1: Is_branchlev(&u.uz) is TRUE (level 1 is a branch level),
+    // so mk_knox_portal returns early WITHOUT consuming any RNG.
+    // At depths > 10: source->dnum < n_dgns is FALSE, then rn2(3) consumed.
+    // At depths 2-10 that aren't branch levels: rn2(3) consumed, then
+    //   u_depth > 10 check fails, returns.
+    if (depth > 1) {
+        // Simplified: at depth > 1, not a branch level, consume rn2(3)
+        rn2(3);
+    }
+
+    // C ref: !rn2(3) → makevtele()
+    // makevtele = makeniche(TELEP_TRAP)
+    if (!rn2(3)) {
+        // makeniche consumes rn2 for room selection + place_niche RNG
+        // At depth 1 this is a niche attempt — simulate the RNG
+        makeniche(map, depth, 1); // 1 = TELEP_TRAP equivalent
+    }
+
+    // Re-run wallification around the vault region to fix wall types
+    wallify(map, lowx - 1, lowy - 1, hix + 1, hiy + 1);
+}
+
 // ========================================================================
 // Main entry point
 // ========================================================================
@@ -1324,15 +1451,90 @@ export function generateLevel(depth) {
     // Fix wall types after corridors are dug
     wallification(map);
 
-    // Fill rooms with contents
-    // C ref: mklev.c:1394-1401
-    for (const croom of map.rooms) {
-        fill_ordinary_room(map, croom, depth);
+    // C ref: mklev.c:1305-1331 — do_vault()
+    // Make a secret treasure vault, not connected to the rest
+    if (map.vault_x !== undefined && map.vault_x >= 0) {
+        let w = 1, h = 1;
+        const vaultCheck = check_room(map, map.vault_x, w, map.vault_y, h, true);
+        if (vaultCheck) {
+            do_fill_vault(map, vaultCheck, depth);
+        } else if (rnd_rect()) {
+            // Retry: create_vault() = create_room(-1,-1,2,2,-1,-1,VAULT,TRUE)
+            if (create_room(map, -1, -1, 2, 2, -1, -1, VAULT, true, depth)) {
+                // create_room for vault saves position but doesn't add room
+                if (map.vault_x >= 0) {
+                    w = 1; h = 1;
+                    const vc2 = check_room(map, map.vault_x, w, map.vault_y, h, true);
+                    if (vc2) {
+                        do_fill_vault(map, vc2, depth);
+                    }
+                }
+            }
+        }
     }
 
-    // Light rooms based on depth
-    // C ref: done inside do_room_or_subroom via litstate_rnd
-    // (Already handled during room creation)
+    // C ref: mklev.c:1333-1365 — do_mkroom chain
+    // Special room type selection based on depth.
+    // At depth 1: u_depth > 1 fails, so entire chain is skipped (no RNG consumed).
+    // For deeper depths, the chain consumes rn2() calls for each check.
+    if (depth > 1) {
+        const room_threshold = 3; // simplified: no branch check
+        // C ref: each check consumes one rn2() if it reaches that point
+        if (depth > 1 && map.nroom >= room_threshold && rn2(depth) < 3) {
+            // do_mkroom(SHOPBASE) — skip actual shop creation
+        } else if (depth > 4 && !rn2(6)) {
+            // do_mkroom(COURT)
+        } else if (depth > 5 && !rn2(8)) {
+            // do_mkroom(LEPREHALL)
+        } else if (depth > 6 && !rn2(7)) {
+            // do_mkroom(ZOO)
+        } else if (depth > 8 && !rn2(5)) {
+            // do_mkroom(TEMPLE)
+        } else if (depth > 9 && !rn2(5)) {
+            // do_mkroom(BEEHIVE)
+        } else if (depth > 11 && !rn2(6)) {
+            // do_mkroom(MORGUE)
+        } else if (depth > 12 && !rn2(8)) {
+            // do_mkroom(ANTHOLE) — antholemon() check skipped
+        } else if (depth > 14 && !rn2(4)) {
+            // do_mkroom(BARRACKS)
+        } else if (depth > 15 && !rn2(6)) {
+            // do_mkroom(SWAMP)
+        } else if (depth > 16 && !rn2(8)) {
+            // do_mkroom(COCKNEST)
+        }
+    }
+
+    // C ref: mklev.c:1367-1376 — place_branch()
+    // At depth 1: branch exists (entry from surface), place branch stairs
+    if (depth === 1) {
+        const branchRoom = generate_stairs_find_room(map);
+        if (branchRoom) {
+            const pos = somexyspace(map, branchRoom);
+            if (pos) {
+                const loc = map.at(pos.x, pos.y);
+                if (loc) {
+                    loc.typ = STAIRS;
+                    loc.flags = 1; // up (branch goes up to surface)
+                    map.upstair = { x: pos.x, y: pos.y };
+                }
+            }
+        }
+    }
+
+    // C ref: mklev.c:1381-1401 — bonus item room selection + fill loop
+    let fillableCount = 0;
+    for (const croom of map.rooms) {
+        if (croom.rtype === OROOM) fillableCount++;
+    }
+    let bonusCountdown = fillableCount > 0 ? rn2(fillableCount) : -1;
+
+    for (const croom of map.rooms) {
+        const fillable = (croom.rtype === OROOM);
+        fill_ordinary_room(map, croom, depth,
+                           fillable && bonusCountdown === 0);
+        if (fillable) bonusCountdown--;
+    }
 
     return map;
 }
