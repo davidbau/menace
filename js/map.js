@@ -50,6 +50,7 @@ export function makeRoom() {
         fdoor: 0,          // index of first door in doors[]
         irregular: false,  // is this an irregular room?
         nsubrooms: 0,      // number of subrooms
+        sbrooms: [],       // C ref: mkroom.h sbrooms[] — subroom pointers
         roomnoidx: 0,      // room index before sort (for sort_rooms)
     };
 }

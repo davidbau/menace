@@ -486,6 +486,7 @@ function add_subroom_to_map(map, proom, lowx, lowy, hix, hiy, lit, rtype, specia
     map.nsubroom = nsubroom + 1;
     do_room_or_subroom(map, croom, lowx, lowy, hix, hiy, lit, rtype,
                        special, false, roomIdx);
+    proom.sbrooms[proom.nsubrooms] = croom;
     proom.nsubrooms++;
     return croom;
 }
@@ -1237,22 +1238,52 @@ function makecorridors(map, depth) {
 function somex(croom) { return rn1(croom.hx - croom.lx + 1, croom.lx); }
 function somey(croom) { return rn1(croom.hy - croom.ly + 1, croom.ly); }
 
-// C ref: mkroom.c somexyspace() -- find accessible space in room
-// C ref: mkroom.c somexyspace(croom, c, mflags)
-// SPACE_POS(typ) && typ != STAIRS/LADDER
-// mflags & SPCFLG_NOMON: also reject cells with monsters
-const SPCFLG_NOMON = 1;
-function somexyspace(map, croom, mflags = 0) {
-    let trycnt = 0;
-    do {
+// C ref: mkroom.c inside_room() -- check if (x,y) is inside room bounds (including walls)
+function inside_room(croom, x, y) {
+    return x >= croom.lx - 1 && x <= croom.hx + 1
+        && y >= croom.ly - 1 && y <= croom.hy + 1;
+}
+
+// C ref: mkroom.c somexy() -- pick random position in room, avoiding subrooms
+function somexy(croom, map) {
+    let try_cnt = 0;
+
+    if (!croom.nsubrooms) {
+        return { x: somex(croom), y: somey(croom) };
+    }
+
+    // Check that coords don't fall into a subroom or into a wall
+    while (try_cnt++ < 100) {
         const x = somex(croom);
         const y = somey(croom);
-        if (isok(x, y)) {
-            const loc = map.at(x, y);
-            if (loc && loc.typ > DOOR && loc.typ !== STAIRS && loc.typ !== LADDER
-                && (!(mflags & SPCFLG_NOMON) || !map.monsterAt(x, y)))
-                return { x, y };
+        const loc = map.at(x, y);
+        if (loc && IS_WALL(loc.typ))
+            continue;
+        let inSubroom = false;
+        for (let i = 0; i < croom.nsubrooms; i++) {
+            if (inside_room(croom.sbrooms[i], x, y)) {
+                inSubroom = true;
+                break;
+            }
         }
+        if (!inSubroom)
+            return { x, y };
+    }
+    return null;
+}
+
+// C ref: mkroom.c somexyspace() -- find accessible space in room
+function somexyspace(map, croom) {
+    let trycnt = 0;
+    let okay;
+    do {
+        const pos = somexy(croom, map);
+        okay = pos && isok(pos.x, pos.y) && !occupied(map, pos.x, pos.y);
+        if (okay) {
+            const loc = map.at(pos.x, pos.y);
+            okay = loc && (loc.typ === ROOM || loc.typ === CORR || loc.typ === ICE);
+        }
+        if (okay) return pos;
     } while (trycnt++ < 100);
     return null;
 }
@@ -2084,9 +2115,9 @@ function fill_ordinary_room(map, croom, depth, bonusItems) {
     if (croom.rtype !== OROOM && croom.rtype !== THEMEROOM) return;
 
     // Put a sleeping monster inside (1/3 chance)
-    // C ref: (u.uhave.amulet || !rn2(3)) && somexyspace(..., SPCFLG_NOMON)
+    // C ref: (u.uhave.amulet || !rn2(3)) && somexyspace(croom, &pos)
     if (!rn2(3)) {
-        const pos = somexyspace(map, croom, SPCFLG_NOMON);
+        const pos = somexyspace(map, croom);
         if (pos) {
             makemon(null, pos.x, pos.y, MM_NOGRP, depth, map);
         }
