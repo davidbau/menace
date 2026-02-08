@@ -596,15 +596,20 @@ here, but they add welcome variety to the standard layout.
 
 ### Points of Interest
 
-The dungeon contains several types of special features worth knowing
-about. Each offers both opportunities and risks.
+Not everything interesting in the dungeon is trying to kill you.
+Scattered throughout the levels are fixtures that reward the
+curious—and occasionally punish them. Learning what to do (and what
+*not* to do) with each of these is a rite of passage.
 
 #### Fountains `{`
 
-Fountains are sources of water that can be quaffed from or dipped
-into. Both actions carry risk and reward.
+Ah, fountains. That gentle bubbling sound has lured more adventurers
+to their doom than any trap. Every experienced player has a fountain
+story—the time they summoned a water demon on dungeon level 3, the
+time they quaffed and got a wish, the time snakes poured out of
+the basin.
 
-**Quaffing from a fountain** has many possible outcomes:
+**Quaffing from a fountain** is a slot machine with these reels:
 
 | Outcome         | Effect                                                |
 | --------------- | ----------------------------------------------------- |
@@ -617,79 +622,98 @@ into. Both actions carry risk and reward.
 | See invisible   | You gain the ability to see invisible creatures       |
 | Nothing         | "The water is cool and refreshing"                    |
 
-**Dipping in a fountain** is most notable for one thing: if you are
-Lawful and at least experience level 5, dipping a long sword may
-transform it into Excalibur, one of the best weapons in the game.
-Knights have a 1/6 chance per fountain dip; for all other roles, the
-odds are a slim 1/30. Otherwise, dipping can rust metallic items,
-create hostile water creatures, or occasionally bless the dipped item.
+Most of the time, nothing happens. Sometimes something wonderful
+happens. And sometimes a water demon appears and reminds you that
+curiosity has a body count.
 
-The conventional wisdom is: if you're a lawful Knight with a long
-sword, dip in every fountain you find until you get Excalibur. Other
-lawful characters should still try, but expect to go through more
-fountains. If you're not lawful, fountains are mostly a trap.
+**Dipping in a fountain** is a different gamble, and one that Lawful
+characters should know by heart. If you're at least experience level
+5, dipping a long sword may transform it into Excalibur—one of the
+finest weapons in the dungeon. Knights get a generous 1/6 chance per
+dip; everyone else gets a meager 1/30. Otherwise, dipping can rust
+your gear, summon hostile water creatures, or occasionally bless
+the dipped item.
+
+The conventional wisdom: if you're a lawful Knight carrying a long
+sword, dip in every fountain you see until Excalibur appears. Other
+lawful characters should try too, but pack patience. And if you're
+not lawful? Walk past the fountain. It has nothing for you but wet
+boots and regret.
 
 #### Altars `_`
 
-Altars are among the most useful features in the dungeon, especially
-for identification.
+If fountains are slot machines, altars are the single most useful
+piece of furniture in the dungeon. Treat every altar like the
+treasure it is.
 
-**Dropping items on an altar** reveals their blessed/cursed/uncursed
-status:
-- **Amber flash** → the item is blessed
-- **Black flash** → the item is cursed
-- No flash → the item is uncursed
+**Dropping items on an altar** reveals their BUC status instantly:
+- **Amber flash** → blessed
+- **Black flash** → cursed
+- No flash → uncursed
 
-This is the cheapest and most reliable way to check items in the
-early game. Always clear a path to an altar and ferry suspicious
-items there for testing.
+This is free, unlimited, and works on everything. In the early game,
+your first altar becomes your testing laboratory—haul every
+suspicious piece of gear there before putting it on. Many promising
+ascensions have been saved by the simple discipline of altar-testing
+before wearing.
 
-**Sacrificing monster corpses on an altar** builds your relationship
-with your god. Fresh corpses are required (old ones won't do). The
-bigger the monster, the better the sacrifice. Eventually, sufficient
-sacrifice may summon an artifact weapon aligned to your cause. See
-[Divine Relations](#divine-relations) for full details.
+**Sacrificing monster corpses on an altar** deepens your relationship
+with your god. The corpse must be fresh (stale sacrifices are an
+insult) and the bigger the monster, the more your god is impressed.
+Sacrifice enough and your deity may reward you with an artifact
+weapon aligned to your cause. See [Divine Relations](#divine-relations)
+for the full theology.
 
-**Converting an altar** is possible by offering a same-race corpse of
-a different alignment on it. This is useful if you find an altar that
-doesn't match your alignment.
+**Converting an altar** to your alignment is possible by offering a
+same-race sacrifice on an altar of a different alignment. It's a
+grisly business—but useful when the dungeon gives you an altar to
+the wrong god.
 
 #### Thrones `\`
 
-Sitting on a throne is a gamble. The possible effects include:
+Sitting on a throne is the purest gamble in NetHack. The list of
+possible outcomes reads like a wish list shuffled with a hit list:
 
 - A wish (if your luck is positive)
 - Genocide of a monster class
 - Free identification of items in your pack
-- A stat boost or stat drain
+- A stat boost—or a stat drain
 - An electric shock
 - Full healing
-- Summoning a crowd of hostile monsters
+- A crowd of hostile monsters, summoned for your amusement
 - Confusion
 - A curse on one of your items
 - Magic mapping of the level
-- Gaining see invisible
-- Losing all your gold
+- See invisible
+- All your gold, vanished
 
-The odds aren't terrible (about one in six for something to happen
-at all) but the variance is wild. Sit on a throne when you can
-afford to deal with the worst outcome.
+About one time in six, something happens—but you won't know which
+column of the ledger it's going to hit. Sit on a throne when you're
+strong enough to survive the worst row of that table, and ideally
+when your luck is positive (for a shot at the wish). Thrones
+have a one-in-three chance of disappearing each time you sit,
+regardless of the outcome—so you might get several tries, or
+none at all.
 
 #### Sinks `#`
 
-Sinks are found in kitchens and have several uses:
+Sinks are the dungeon's most underrated identification tool, hiding
+in plain sight in kitchen-themed rooms.
 
-- **Kicking a sink** can produce a black pudding (dangerous!) or a
-  ring, or just hurt your foot
-- **Quaffing from a sink** can have various minor effects
-- **Dropping a ring down a sink** produces a characteristic message
-  that can help identify the ring type. This is one of the more
-  reliable non-magical identification methods for rings
-- **Dipping items in a sink** lets you wash objects or pour potions
-  down the drain. Pouring certain potions produces identifying effects:
-  a polymorph potion transforms the sink into a fountain, an oil
-  potion leaves an oily film. This is a useful way to identify
-  potions without drinking them
+- **Kicking a sink** can shake loose a ring (useful!), summon a
+  black pudding (terrifying!), or just stub your toe. Worth a kick
+  in the early game if you can handle what comes out
+- **Dropping a ring down a sink** produces a message unique to the
+  ring type—"The water flow seems greater" for a ring of gain
+  constitution, for example. This is one of the most reliable
+  non-magical identification methods for rings
+- **Pouring potions down a sink** (by dipping) produces telltale
+  effects: a polymorph potion transforms the sink into a fountain,
+  an oil potion leaves a film on the basin. A clever way to narrow
+  down potion identities without risking a sip
+- **Quaffing from a sink** mostly produces minor effects, but
+  occasionally yields something interesting. It's the least
+  rewarding interaction
 
 ---
 
@@ -941,17 +965,19 @@ fountain risks.
 
 ### Traps and Hazards
 
-The dungeon is littered with traps, represented by `^` on the map
-once you've discovered them. Traps are invisible until you step on
-one, detect it with a search, or reveal it by other means. Searching
-(the `s` command) in a square adjacent to a trap has a chance of
-revealing it each time, but the chance is not 100%, so search
-repeatedly if you suspect traps.
+You never see them coming. That's the whole point.
 
-Pets are useful trap detectors. A pet will hesitate to step on a
-known trap, so watch your pet's movement for clues.
+Traps are invisible until you step on one, detect it with a search
+(`s` command), or reveal it by other means. Once discovered, they
+show up as `^` on your map—small consolation after you've already
+fallen in a pit. Each search of an adjacent square has an independent
+chance of revealing a trap, but the chance is well under 100%, so
+search repeatedly in suspicious areas. Your pet, being closer to the
+ground and warier by nature, will hesitate to step on traps it
+knows about—watch its movement for clues.
 
-Here are the traps you'll encounter, roughly grouped by severity:
+Here are the traps you'll encounter, roughly grouped by how much
+you'll regret finding them:
 
 #### Nuisance Traps
 
@@ -963,9 +989,9 @@ Here are the traps you'll encounter, roughly grouped by severity:
 | Rust trap       | Splashes water, rusting exposed metal equipment     |
 | Rolling boulder | A boulder rolls at you (dodge or take heavy damage) |
 
-These traps are annoying but rarely lethal on their own. Arrow and
-dart traps have the small upside of producing ammunition you can
-collect afterward.
+Annoying but rarely lethal. The silver lining: arrow and dart traps
+produce free ammunition. Veterans sometimes trigger them deliberately
+to stock up.
 
 #### Movement Traps
 
@@ -979,12 +1005,12 @@ collect afterward.
 | Hole             | Like a trapdoor, but you can see it                        |
 | Magic portal     | Transports to a different branch (branch entrances)        |
 
-Trapdoors and level teleporters are the most disruptive. They can
-separate you from your pet and your carefully explored map. If you
-have teleport control (from an item or intrinsic), teleport traps
-become convenient transportation instead.
-
-Levitation makes you immune to pit traps and holes.
+Trapdoors and level teleporters are the most disruptive—one wrong
+step and you're separated from your pet, your stash, and your
+carefully explored map. But with teleport control (from an item or
+intrinsic), teleport traps become free transportation. Levitation
+makes you immune to pits and holes entirely, floating serenely
+above them.
 
 #### Dangerous Traps
 
@@ -998,33 +1024,35 @@ Levitation makes you immune to pit traps and holes.
 | Anti-magic field  | Drains your magical energy to zero                   |
 | Polymorph trap    | Polymorphs you into a random creature                |
 
-Fire traps are the sleeper threat here. A fire trap that ignites
-when you're carrying a stack of scrolls of identify or potions of
-healing can ruin your day. Fire resistance prevents the damage to
-you but doesn't protect inventory.
+Fire traps are the sleeper threat. The fire itself hurts, but
+the real catastrophe is your inventory: scrolls burn, potions
+shatter, and that stack of twenty scrolls of identify you've been
+hoarding is suddenly ash. Fire resistance saves your skin but
+*not* your belongings.
 
-Polymorph traps can be useful if you know what you're doing (and
-have polymorph control), but without control, you'll become
-something random and possibly unable to use your equipment.
+Polymorph traps are a double-edged sword. With polymorph control,
+they're a free polymorphing booth. Without it, you become something
+random—possibly a newt that can't use any of its equipment.
 
-Sleeping gas traps are deadly in areas with monsters, since you'll
-be unconscious and unable to fight back while they hit you.
+Sleeping gas is murder in monster-rich areas. You can't fight, you
+can't run, you can't even wake up on purpose. Monsters line up
+to hit you like it's a buffet.
 
 #### Searching and Detection
 
-The best defense against traps is finding them before they find you.
+The best defense against traps is finding them before they find you:
 
-- **Search (`s`)** in place to check adjacent squares. Each search
-  has an independent chance to reveal each adjacent trap, so search
-  multiple times. Your Luck affects the detection chance.
-- **Wand of secret door detection** reveals traps in its path.
-- **Crystal ball** can reveal traps on the level.
-- **Pets** will avoid known traps, giving behavioral clues.
-- **Flying and levitation** make you immune to most floor traps.
+- **Search (`s`)** repeatedly—each search has an independent chance
+  to reveal each adjacent trap, and Luck improves the odds
+- **Wand of secret door detection** reveals traps in its path
+- **Crystal ball** can reveal traps across the entire level
+- **Pets** avoid known traps, so watch their pathfinding for clues
+- **Flying and levitation** make you immune to most floor traps
 
-In corridors where traps are common (especially around dungeon
-level 5 and below), a quick search before stepping into a new
-corridor segment can save you from unpleasant surprises.
+Below dungeon level 5, a quick search before stepping into a new
+corridor segment is cheap insurance. The turn you spend searching
+is always cheaper than the turns you spend climbing out of a
+spiked pit.
 
 #### Elbereth
 
@@ -1376,88 +1404,91 @@ else is luxury. These are survival.
 
 ### Making Friends
 
-Not everything in the Mazes wants to kill you. Some creatures can
-be tamed, and a tame creature is one of the most useful assets
-you can have.
+The Mazes of Menace are dark, hostile, and full of things that want
+to eat you. Under those circumstances, a loyal companion is worth
+more than a bag of gold. Fortunately, the dungeon provides.
 
 #### Starting Pets
 
-Most roles begin the game with a pet: either a little dog or a
-kitten, depending on your role. Your starting pet is loyal, follows
-you between levels (if adjacent when you take stairs), and will
-fight on your behalf. It will also pick up items and eat food it
-finds.
+Most roles begin with a faithful pet—a little dog or a kitten,
+depending on your role. This small creature is more useful than it
+looks. It follows you between levels (if adjacent when you take
+stairs), fights alongside you, picks up items, and eats food it
+finds on the floor. Think of it as a self-propelled, self-feeding
+trap detector with teeth.
 
-A pet that eats enough and fights enough will grow. A little dog
+A pet that eats well and fights often will grow. A little dog
 becomes a dog, then a large dog. A kitten becomes a housecat, then
-a large cat. Grown pets are substantially more dangerous in combat.
+a large cat. A grown large dog or large cat is a genuine combat
+asset, capable of taking on mid-dungeon threats that would give
+you trouble.
 
-Your pet will not step on cursed items willingly. This is one of
-the cheapest ways to detect cursed items in the early game: drop
-items on the ground and see if your pet avoids them.
+One more thing: your pet will not step on cursed items willingly.
+This makes it one of the cheapest identification tools in the
+game—drop items on the ground and watch whether your pet avoids
+them. If it refuses to walk over a square, something cursed is
+sitting there.
 
 #### Feeding and Loyalty
 
-Pets have a tameness score that decreases over time and when they
-take damage. If tameness reaches zero, the pet goes feral. Feeding
-your pet keeps tameness high:
+Pets have an invisible tameness score that decreases over time and
+when they take damage. When tameness hits zero, your loyal friend
+goes feral and turns on you. Feeding is the antidote:
 
-- **Dogs** eat tripe rations and most meat.
-- **Cats** eat tripe rations and most meat.
-- **Horses** eat apples, carrots, and other vegetarian food.
+- **Dogs and cats** love tripe rations and most meat
+- **Horses** prefer apples, carrots, and other vegetarian fare
 
 Tripe rations are ideal for dogs and cats. You'll find them
-scattered through the dungeon. When you see one, pick it up even
-if you don't want to eat it yourself (it's terrible food for
-humans, but pets love it).
-
-If your pet dies, you can tame a new creature. The most common
-method is throwing appropriate food at a suitable animal.
+scattered through the dungeon—always pick them up, even though
+they're revolting food for humans. Your pet will adore you for it.
 
 #### Taming New Creatures
 
-Several methods work:
+If your starting pet perishes (or you want an army), several
+methods of taming exist:
 
-- **Throwing food** at a creature appropriate to its diet. Dogs
-  and cats take tripe, meat, and other food. Horses take
-  vegetarian food.
-- **Scroll of taming** tames creatures in a radius around you.
-- **Spell of charm monster** tames a single adjacent creature.
-- **Magic trap effects** occasionally produce taming.
+- **Throwing food** at a suitable creature: meat for dogs and cats,
+  produce for horses
+- **Scroll of taming** tames all creatures within a radius
+- **Spell of charm monster** tames a single adjacent creature
+- **Magic trap effects** occasionally produce taming
 
-You can tame most creatures this way, including powerful ones.
-A tame purple worm, dragon, or titan is a formidable ally. The
-main exceptions are unique monsters (Medusa, the Wizard) and
-certain special creatures that resist taming.
+The beautiful thing is that taming isn't limited to small animals.
+With a scroll of taming or the charm monster spell, you can recruit
+almost anything: a purple worm to swallow your enemies whole, a
+dragon to breathe fire at them, a titan to crush them underfoot.
+Only unique monsters (Medusa, the Wizard) and a few special
+creatures resist your charms entirely.
 
 #### What Pets Do for You
 
-A well-maintained pet provides several services:
+A well-fed pet earns its keep in several ways:
 
-- **Combat.** Pets attack hostile monsters on your behalf. A strong
-  pet can clear rooms for you.
-- **Cursed item detection.** Pets refuse to step on cursed items,
-  which is a free and reliable test.
-- **Stealing from shops.** If your pet picks up an item in a shop
-  and carries it outside, you haven't technically stolen it. This
-  is the cheapest way to acquire expensive shop items. It takes
-  patience (the pet must wander onto the item and then wander out
-  the door) but costs nothing.
-- **Sacrifice fodder.** When a pet kills a monster, the corpse can
-  be sacrificed on an altar just as if you'd killed it yourself.
+- **Combat muscle.** A strong pet clears rooms and softens up
+  dangerous monsters before you engage
+- **Curse detection.** The old drop-and-watch trick, described
+  above—free, reliable, and available from turn one
+- **Shoplifting.** If your pet picks up an item inside a shop and
+  carries it out the door, the shopkeeper blames the animal, not
+  you. This takes patience (the pet must wander onto the item,
+  then wander back out) but it's the cheapest way to acquire a
+  wand of wishing from a shop
+- **Sacrifice fodder.** Monsters your pet kills leave corpses
+  you can sacrifice on altars, exactly as if you'd killed them
+  yourself
 
 #### Keeping Your Pet Alive
 
-Pets can die from the same things that kill you: traps, poison,
-powerful monsters. They can also drown if they follow you across
-water. Keep an eye on your pet's health (use the farlook command,
-`;`, to check) and avoid leading it into danger it can't handle.
+Pets die from the same things you do: traps, poison, powerful
+monsters, drowning in water. Keep an eye on your companion's
+health (`;` to farlook) and don't lead it into fights it can't
+win. A dead pet is not just a loss of utility—it's a cold feeling
+in the pit of your stomach.
 
-If you change levels and your pet isn't adjacent, it won't follow
-you. You'll see the message "You have a sad feeling for a moment."
-Your pet is still alive on the level you left, but it will lose
-tameness while separated from you. Come back for it before it goes
-feral.
+If you change levels and your pet isn't adjacent, it won't follow.
+The game tells you: *"You have a sad feeling for a moment."* Your
+pet is still alive on the previous level, but its loyalty is
+ticking down. Go back for it before it forgets you were friends.
 
 ---
 
@@ -1994,16 +2025,17 @@ priority.
 
 ### The Apothecary
 
-Potions are common finds in the dungeon, appearing as colorful
-liquids in randomized bottles. The color tells you nothing about
-the contents until you've identified that color for this game. A
-"smoky potion" might be healing in one game and paralysis in the
-next.
+The dungeon is full of mysterious bottles. Ruby liquids, milky
+fluids, smoky concoctions—each one a small gamble between salvation
+and catastrophe. The colors are shuffled every game, so the "bubbly
+potion" that healed you last time might polymorph you this time.
+Identification is everything.
 
 #### The Potion Table
 
-Potions are organized by price. Cross-reference any unidentified
-potion's shop price with this table to narrow down what it might be:
+As with all randomized items, price is your best friend. A shop
+visit narrows a mysterious bottle from "could be anything" to a
+short list of candidates:
 
 | Price | Potions at this price                                                              |
 | ----- | ---------------------------------------------------------------------------------- |
@@ -2014,43 +2046,48 @@ potion's shop price with this table to narrow down what it might be:
 | $250  | Acid, oil                                                                          |
 | $300  | Gain ability, gain level, paralysis                                                |
 
-Water is the oddity in the $100 group. It appears as "clear potion"
-and is always identifiable on sight.
+Water is the oddity in the $100 group—it always appears as "clear
+potion," identifiable on sight. Don't underestimate it; water is
+the raw material for holy water, which is the foundation of
+everything.
 
 #### Key Potions
 
-**Healing, extra healing, full healing.** The healing chain. Extra
-healing is the workhorse, curing blindness and sickness in addition
-to restoring hit points. Blessed extra healing and full healing also
-raise your maximum HP. Stockpile these.
+**Healing, extra healing, full healing.** The healing chain, and
+your lifeline in combat. Extra healing is the workhorse: it cures
+blindness and sickness in addition to restoring HP. Blessed extra
+healing and full healing also raise your maximum HP permanently.
+You can never have too many of these.
 
-**Gain ability.** Raises all stats by 1 when blessed, or one random
-stat when uncursed. Extremely valuable. Save these until you can
-bless them.
+**Gain ability.** When blessed, raises *all* your stats by 1.
+Uncursed raises a random stat. This is liquid gold: save every
+one until you can bless it.
 
-**Speed.** Grants the speed intrinsic, which is one of the most
-important buffs in the game. Quaff one blessed potion of speed and
-you're permanently faster. Note that in current editions, the wand
-of speed monster no longer grants permanent speed when self-zapped;
-it gives only temporary "very fast" speed for 50–74 turns. Use the
-potion instead.
+**Speed.** One blessed quaff and you're permanently faster for the
+rest of the game. Speed is arguably the single most important buff
+in NetHack; the difference between moving at normal speed and fast
+speed is the difference between trading blows and hitting twice
+before they swing once. In current editions, the wand of speed
+monster no longer grants permanent speed when self-zapped—only a
+temporary burst of 50–74 turns. The potion is the real prize.
 
-**Holy water.** Created by dropping uncursed water potions on a
-co-aligned altar and praying. Holy water (blessed water) can bless
-items you dip into it. This is the foundation of item management:
-bless your scrolls of identify, your potions of gain ability, your
-scrolls of enchant weapon. Stockpile holy water aggressively.
+**Holy water.** Not a potion you find—a potion you *make*. Drop
+uncursed water on a co-aligned altar, pray, and the gods bless it
+for you. Holy water can then bless any item you dip into it. This
+is the engine that drives your entire inventory: blessed scrolls
+of identify, blessed potions of gain ability, blessed scrolls of
+enchant weapon. You will never have enough holy water.
 
-**Gain level.** Raises your experience level by one. Useful for
-reaching quest eligibility. More importantly, reading a confused
-scroll of teleportation while standing on the right square can
-interact with this in complex ways.
+**Gain level.** Raises your experience level by 1. Useful for
+reaching quest eligibility quickly, or converting into something
+better through alchemy.
 
 #### Alchemy
 
-Potions can be mixed by dipping one into another. Most random
-combinations produce useless results (or explosions), but a few
-recipes are reliable and valuable:
+Here's where potions get interesting. Dip one potion into another
+and you might create something better—or you might cause an
+explosion. Most combinations are duds, but the useful recipes are
+worth memorizing:
 
 | Dip this            | Into this           | Result         |
 | ------------------- | ------------------- | -------------- |
@@ -2061,36 +2098,42 @@ recipes are reliable and valuable:
 | Speed               | Healing             | Extra healing  |
 | Speed               | Extra healing       | Levitation     |
 
-The chain from healing up to gain ability via gain energy or gain
-level is the core alchemy sequence. If you find potions of gain
-energy (cheap and common), you can upgrade your healing potions into
-much more valuable ones.
+The chain from healing → extra healing → full healing → gain ability
+via gain energy or gain level is the core alchemy sequence, and it's
+extraordinarily powerful. A handful of common healing potions and a
+gain energy or two can be transmuted into the rarest potions in the
+game. Treat every gain energy potion like the catalyst it is.
 
-There is a 10% chance of explosion on any non-water mixture, so do
-this in a safe place. Cursed potions always explode when used as the
-dipping target.
+Fair warning: there's a 10% chance of explosion on any non-water
+mixture, so do your chemistry in a safe place and away from your
+stash. Cursed potions used as the dipping target always explode.
 
 #### Unicorn Horn Interactions
 
-Dipping a unicorn horn into certain potions converts them:
+A unicorn horn dipped into certain potions purifies them:
 
-- **Blindness, confusion, hallucination** become uncursed water.
-- **Sickness** becomes fruit juice.
+- **Blindness, confusion, hallucination** → uncursed water
+- **Sickness** → fruit juice
 
-This is useful for cleaning up dangerous potions you've accidentally
-picked up, or for generating water for holy water production.
+This turns dangerous potions into useful raw materials. The water
+can be blessed into holy water; the fruit juice can be alchemized
+into see invisible. Nothing is wasted in a well-run dungeon
+pharmacy.
 
 ---
 
 ### The Scroll Rack
 
-Scrolls are single-use magical documents that produce effects when
-read. They appear with random labels ("ZELGO MER," "DAIYEN FOOELS,"
-and so on) that are consistent within a game but randomized between
-games. Once you identify a scroll by label, you know all scrolls
-with that label for the rest of the run.
+Scrolls are the dungeon's single-use spells: read once, triggered,
+gone. They appear with absurd randomized labels—"ZELGO MER,"
+"DAIYEN FOOELS," "PRATYAVAYAH"—that stay consistent within a game
+but mean nothing until you identify them. The labels are part of
+the charm. You'll develop superstitious favorites.
 
 #### The Scroll Table
+
+Price-identification is especially powerful for scrolls, because the
+cheapest scroll ($20) is always identify—the one you need most:
 
 | Price | Scrolls at this price                                                                                             |
 | ----- | ----------------------------------------------------------------------------------------------------------------- |
@@ -2102,63 +2145,75 @@ with that label for the rest of the run.
 | $200  | Amnesia, create monster, earth, taming                                                                            |
 | $300  | Charging, genocide, punishment, stinking cloud                                                                    |
 
-The $20 scroll is always identify, the most common and most useful
-scroll in the game. The $60 group is very valuable (enchant weapon).
-The $80 group is similarly good (enchant armor, remove curse). The
-$100 group is large and mixed, containing both excellent scrolls
-(magic mapping, teleportation) and dangerous ones (destroy armor).
+The $60 group is treasure (enchant weapon lurks there alongside
+innocent blank paper). The $80 group is equally good: enchant armor
+and remove curse, two scrolls you'll always want more of. The $100
+group is the danger zone—a grab-bag mixing magic mapping and
+teleportation with destroy armor. And at $300, you'll find both
+genocide (one of the strongest effects in the game) and punishment
+(a ball and chain permanently attached to your ankle). Choose wisely.
 
 #### Key Scrolls
 
-**Identify.** The workhorse. Use it on items that resist other
-identification methods. Blessed identify may identify multiple items
-at once (with positive luck, always at least two).
+**Identify.** The bread and butter of dungeon life. Blessed identify
+reveals multiple items at once (with positive luck, always at least
+two). You will never have enough of these.
 
-**Enchant weapon and enchant armor.** These raise the enchantment of
-your wielded weapon or a random piece of worn armor by +1 (uncursed)
-or potentially more (blessed). Save these until you have your
-endgame gear, then bless them and use them. Enchanting beyond +5
-risks destroying the item, but blessed scrolls can safely push
-higher.
+**Enchant weapon / enchant armor.** The path to endgame power.
+Each scroll raises enchantment by +1 (uncursed) or potentially
+more (blessed). The critical rule: enchanting beyond +5 risks
+destroying the item entirely, but blessed scrolls can safely push
+to +7. Save these for your ascension kit, bless them, then savor
+every +1.
 
-**Remove curse.** Uncurses worn and wielded items. Blessed remove
-curse uncurses everything in your main inventory. Essential if
-you've accidentally put on a cursed item.
+**Remove curse.** Frees you from cursed equipment. Uncursed version
+works on worn and wielded items only; blessed version uncurses your
+entire inventory. Every adventurer has a "put on a cursed ring"
+story. This scroll is the happy ending.
 
-**Charging.** Recharges wands and other items. Save these for your
-wand of wishing (to get an extra wish or two) or other critical
-wands. Blessed charging gives more charges. Don't recharge a wand
-too many times, as the explosion chance increases with each recharge.
+**Charging.** Recharges wands and rechargeable tools. Save these
+for your wand of wishing—one charge means one more wish. Blessed
+charging restores more charges. But don't get greedy: each recharge
+increases the chance the wand explodes. The second recharge is
+pushing your luck; the third is usually fatal for the wand.
 
-**Genocide.** Eliminates a monster species (uncursed) or an entire
-monster class (blessed) from the game permanently. Use it on
-liches, mind flayers, or whatever is causing you the most trouble.
-Confused reading genocides your own race, which kills you.
+**Genocide.** The nuclear option. Uncursed eliminates a single
+species; blessed wipes an entire monster class from the game
+forever. Liches and mind flayers are popular targets. Read one
+while confused and you genocide your own race—which kills you
+instantly. Read carefully.
 
-**Magic mapping.** Reveals the entire level layout. Blessed also
-reveals secret doors. Extremely useful in Gehennom's mazes.
+**Magic mapping.** Reveals the entire level layout; blessed also
+shows secret doors. Invaluable in Gehennom's maddening mazes,
+where mapping by hand could take a lifetime you don't have.
 
-**Scare monster.** Don't read it. Drop it on the floor and stand
-on it. It works like a permanent Elbereth, frightening most
-monsters. Pick it up and it crumbles to dust (if it has ever been
-dropped before).
+**Scare monster.** The trick: don't read it. Drop it on the floor
+and stand on it. It works like a permanent Elbereth, frightening
+most monsters away. The catch: pick it up after it's been dropped
+and it crumbles to dust. So choose your standing spot wisely.
 
-**Teleportation.** Teleports you randomly on the level (uncursed)
-or to a different level (cursed or confused). With teleport control,
-you choose the destination.
+**Teleportation.** Uncursed teleports you randomly on the level.
+Cursed or confused reading sends you to a random dungeon level.
+With teleport control, *you* choose where you land—making this
+one of the most versatile escape tools in the game.
 
 #### Confused Reading
 
-Many scrolls have different effects when read while confused. Some
-useful confused readings:
+Here's a trick the dungeon doesn't advertise: many scrolls do
+something completely different when read while confused. Some of
+these alternate effects are *better* than the normal ones:
 
-- **Confused remove curse** has a 25% chance of blessing or cursing
-  each uncursed item (risky but sometimes useful for creating holy
-  water: confuse-read remove curse while wielding uncursed water).
-- **Confused destroy armor** actually erodeproofs a piece of armor.
-- **Confused enchant armor** erodeproofs a piece of armor.
-- **Confused enchant weapon** erodeproofs your weapon.
-- **Confused genocide** genocides your own role. Don't do this.
+- **Confused destroy armor** doesn't destroy anything—it
+  *erodeproofs* a piece of armor. One of the best tricks in the game
+- **Confused enchant armor / enchant weapon** also erodeproof
+  instead of enchanting. Useful when you need protection from rust
+  more than another +1
+- **Confused remove curse** has a 25% chance of blessing *or*
+  cursing each uncursed item—risky, but it's a clever way to create
+  holy water if you confuse-read while carrying uncursed potions of
+  water
+- **Confused genocide** genocides your own role. This kills you.
+  Don't get confused at the wrong moment
 
 ---
 
@@ -2320,9 +2375,11 @@ wishing too.
 
 ### Rings and Amulets
 
-Rings are worn on your fingers (you can wear two at a time) and
-provide passive effects. Amulets are worn around your neck (one at
-a time). Both are randomized by appearance.
+Two ring fingers. One neck. These are the most constrained equipment
+slots in the game, which makes choosing what to wear a genuine
+strategic decision. Both rings and amulets have randomized
+appearances, and some of the best items in the game hide behind
+unassuming descriptions like "granite ring" or "circular amulet."
 
 #### The Ring Table
 
@@ -2357,24 +2414,30 @@ a time). Both are randomized by appearance.
 | $300  | Polymorph control              | Choose polymorph form          |
 | $300  | Teleport control               | Choose teleport destination    |
 
-Rings that say "auto-curse" generate cursed 90% of the time. If you
-put on a ring and find you can't remove it, it's probably one of
-these.
+Rings marked "auto-curse" generate cursed 90% of the time. If you
+slip on a ring and can't remove it, you've just learned what
+auto-curse means the hard way.
 
-**Essential rings:** Free action (prevents paralysis, critical for
-endgame), teleport control (turns random teleportation into
-controlled transportation), conflict (monsters attack each other
-instead of you, excellent for crowded levels), slow digestion (wear
-between meals to conserve food).
+**The rings that matter most:** Free action is arguably the single
+best ring in the game—paralysis is death in the late game, and
+this ring makes you immune. Teleport control turns random
+teleportation from a nuisance into on-demand transportation.
+Conflict makes monsters attack each other instead of you, which
+is devastating on crowded levels (though it also turns your pets
+hostile). Slow digestion lets you go indefinitely between meals.
 
-**Warning:** All rings cause additional hunger while worn. Wearing
-two rings drains your food supply noticeably faster. Remove rings
-you don't currently need.
+**The hidden cost:** Every ring you wear increases your hunger rate.
+Two rings drain food noticeably faster. The veteran habit is to
+keep rings in inventory and slip them on only when needed—free
+action before fighting mind flayers, conflict before entering a
+throne room. Economy of fingers is an art.
 
 #### Amulets
 
-Amulets are simpler than rings. All cost $150, so you can't price-ID
-them. The key ones:
+Amulets are simpler in theory but harder to identify—they all cost
+$150, so price is no help. You'll need to wear-test or use a scroll
+of identify. The stakes are high, because the range runs from "saves
+your life" to "slowly strangles you to death":
 
 | Amulet                 | Effect                                      |
 | ---------------------- | ------------------------------------------- |
@@ -2389,36 +2452,44 @@ them. The key ones:
 | Strangulation          | Slowly kills you (always cursed)            |
 | Restful sleep          | Puts you to sleep randomly (usually cursed) |
 
-**Amulet of life saving** is the most important. Wear it in
-dangerous situations (endgame, unfamiliar special levels). When
-it triggers, you come back with full HP but the amulet is gone.
+**Life saving** is the crown jewel. When you die—any kind of
+death—it triggers, revives you at full HP, and crumbles to dust.
+Wear it whenever you're going somewhere dangerous. Take it off when
+you're safe. You only get the one miracle.
 
-**Amulet of reflection** is excellent if you didn't get the shield
-of reflection elsewhere. It frees up your shield slot.
+**Reflection** is excellent if you didn't get a shield of reflection
+from Perseus's statue or elsewhere. Wearing it as an amulet frees
+up your shield slot for a small shield or two-weapon fighting.
 
-**Amulet of guarding** is valuable for its +2 MC contribution.
-Combined with a cloak of magic resistance (MC1), it gets you to
-MC3 without needing the cloak of protection, freeing your cloak
-slot for magic resistance.
+**Guarding** provides +2 AC and +2 magic cancellation (MC). This
+is a new addition in current editions that neatly solves the MC
+puzzle: pair it with a cloak of magic resistance (MC1) and you
+reach MC3, freeing you from needing the less versatile cloak of
+protection.
 
-**Amulet of magical breathing** prevents drowning, which matters
-at Medusa's level and on the Plane of Water.
+**Magical breathing** prevents drowning—which sounds niche until
+you reach Medusa's level (surrounded by water) or the Plane of
+Water (entirely underwater). Then it's existential.
 
 #### Identification
 
-Rings and amulets are tricky to identify because many have subtle
-effects. The methods from
-[The Identification Problem](#the-identification-problem) apply:
-sink-drop for rings, wear-test for both. Amulets all share the
-same price, so shop identification doesn't help narrow them down.
+Rings and amulets resist casual identification. The best approaches:
+drop rings down sinks (each type produces a unique message),
+wear-test in safe areas (risky with auto-cursing types), or use
+scrolls of identify. For amulets, there's no price trick—identify
+scrolls or careful wear-testing are your main options. Always
+BUC-test an amulet before putting it on; cursed amulets of
+strangulation are one of the most embarrassing ways to die.
 
 ---
 
 ### Tools of the Trade
 
-Tools are a grab-bag category covering everything from pickaxes to
-magic lamps. They're identified by the `(` symbol and include some
-of the most useful items in the game.
+The `(` symbol covers the dungeon's most eclectic category: pickaxes,
+magic lamps, unicorn horns, musical instruments, crystal balls, and
+bags that eat other bags. If it doesn't fit neatly into any other
+class, it's a tool. Some of the most powerful items in the game hide
+in this grab-bag.
 
 #### Containers
 
@@ -2432,44 +2503,52 @@ of the most useful items in the game.
 | Chest          | 600    | Holds 0 to 5 items, often locked         |
 | Ice box        | 900    | Preserves corpses from rotting           |
 
-A **bag of holding** is one of the most important items in the
-game. Blessed, it reduces the weight of contents to roughly 1/4.
-This lets you carry your entire supply of potions, scrolls, and
-backup gear without being burdened. Get one from Sokoban or wish
-for one.
+The **bag of holding** deserves its own paragraph because it
+transforms how you play. A blessed bag reduces the weight of
+everything inside to roughly one quarter—meaning you can carry your
+entire potion supply, your backup armor, your scroll library, and
+still have room for loot. Get one from Sokoban or wish for one
+early. It's that important.
 
-Never put a wand of cancellation, another bag of holding, or a
-charged bag of tricks inside a bag of holding. The bag will explode,
-scattering your items across the floor (in current editions, items
-are scattered rather than destroyed, but it's still catastrophic).
+The cardinal rule: **never** put a wand of cancellation, another bag
+of holding, or a charged bag of tricks inside a bag of holding. The
+resulting magical explosion scatters your carefully curated
+inventory across the floor. In older editions it *destroyed*
+everything. Either way, it's a game-ending mistake that every
+veteran has made exactly once.
 
 #### Unlocking Tools
 
-A **skeleton key** is the best: 70%+ success rate on doors, 75%+
-on boxes. A **lock pick** is decent. A **credit card** is worst
-but still useful. Always carry one of these.
+The dungeon is full of locked things, and brute force is noisy and
+slow. A **skeleton key** is the gold standard (70%+ success on
+doors, 75%+ on boxes). A **lock pick** is respectable. A **credit
+card** is the worst but still better than kicking. Always carry one
+of these—the weight is negligible and the utility is constant.
 
 #### Light Sources
 
-**Oil lamps** and **candles** provide light in dark areas. A
-**magic lamp** is special: rubbing it has a chance of releasing a
-djinni who may grant a wish (80% chance with a blessed lamp). Don't
-waste your magic lamp on light. Rub it while blessed for the wish.
+**Oil lamps** and **candles** light dark corridors, which is
+pleasant but not essential. The real prize is the **magic lamp**:
+rub it while blessed and there's an 80% chance a djinni emerges
+and grants you a wish. Never, ever use a magic lamp for light.
+That's like using a winning lottery ticket as a bookmark.
 
 The **Candelabrum of Invocation** is a unique candelabra found in
 Vlad's Tower. It's one of three items needed for the invocation
 ritual to enter Moloch's Sanctum. You'll need seven candles to
-attach to it.
+fill it—so start hoarding candles when you find them.
 
 #### Musical Instruments
 
-Instruments can be played to produce various effects. A **tooled
-horn** or **bugle** is needed to play the passtune at the Castle
-drawbridge. A **magic harp** or **magic flute** tames or puts
-monsters to sleep. A **drum of earthquake** creates pits around you.
+Music has power in the Mazes. A **tooled horn** or **bugle** is
+needed to play the passtune at the Castle drawbridge (you'll find
+the notes nearby—listen carefully). A **magic harp** charms monsters
+into tameness. A **magic flute** puts them to sleep. A **drum of
+earthquake** creates pits around you, which is as chaotic as it
+sounds.
 
-Leather drums and wooden instruments are non-magical variants that
-produce noise but no special effects.
+Non-magical instruments (wooden flute, leather drum) produce noise
+but no special effects—useful only for confusing the issue.
 
 #### Other Notable Tools
 
@@ -2487,14 +2566,18 @@ produce noise but no special effects.
 | Bell of Opening    | Invocation item (found in Vlad's Tower area)  |
 | Leash              | Tie a pet to you so it follows through stairs |
 
-A **unicorn horn** is one of the best tools in the game. Apply it
-to cure confusion, blindness, sickness, hallucination, and
-nausea. Always carry one.
+The **unicorn horn** is arguably the single most important tool in
+the game. Apply it to cure confusion, blindness, sickness,
+hallucination, and nausea—basically every status ailment that
+matters. Carry one at all times. If you don't have one, getting
+one should be near the top of your priority list.
 
-A **magic marker** lets you write scrolls of identify, enchant
-weapon, enchant armor, and other useful scrolls on blank paper.
-Charges are limited, so use them wisely. Writing scrolls you've
-already identified costs fewer charges.
+The **magic marker** is a printing press for scrolls. Write scrolls
+of identify, enchant weapon, enchant armor, or anything else on
+blank paper or blank scrolls. Charges are limited and precious:
+writing a scroll you've already identified costs fewer charges, so
+identify first, write second. A well-used magic marker can produce
+half your ascension kit.
 
 ---
 
@@ -2910,11 +2993,9 @@ travelers realize:
   treasure room. Rechargeable once for 1 additional charge.
   The Castle chest also contains a potion of gain level, because
   the Mazes occasionally feel generous.
-- **Vlad's throne:** Guaranteed to grant a wish before vanishing.
-  Vlad won't be using it anymore.
-- **The Amulet of Yendor:** Grants a wish when you first pick it
-  up. Apparently the most important artifact in the dungeon wants
-  to make sure you're properly dressed for the ascension.
+- **Vlad's throne:** Worth sitting on—it's a regular throne,
+  but one you can reach reliably. A wish is one of the possible
+  outcomes, though the throne may vanish before obliging.
 - **Magic lamp:** Rub a blessed lamp for an 80% chance of a wish.
   Either a magic lamp or a magic marker is guaranteed in
   Orcus-town.
@@ -3077,53 +3158,72 @@ holding a stick.
 
 ### Curses and How to Break Them
 
-Cursed items are items that have been touched by malign influence.
-They cling to you, malfunction, or actively harm you.
+Sooner or later, you will put on something cursed. Maybe it's a
+ring you didn't test. Maybe it's boots from a bones level. Maybe
+a monster touched your inventory and you didn't notice. However it
+happens, you're now wearing an item that refuses to come off, and
+it's probably doing something terrible. Welcome to the curse
+problem.
 
 #### How Items Get Cursed
 
-- Generated cursed (some item types, like rings of teleportation,
-  are almost always cursed).
-- Stepping on a cursed item in a bones level (80% curse chance on
-  bones items).
-- A monster cursing your inventory.
-- Reading a confused scroll of remove curse.
-- Contact with unholy water.
+- **Born that way.** Some items generate cursed most of the time
+  (rings of teleportation, rings of polymorph, amulets of
+  strangulation—anything the dungeon thinks is funny)
+- **Bones inheritance.** Items on a bones level have an 80% chance
+  of being cursed. That tempting armor on the dead adventurer's
+  corpse? Probably trapped
+- **Monster interference.** Certain monsters can curse items in
+  your inventory
+- **Confused remove curse.** Reading it confused has a chance of
+  *cursing* items instead of uncursing them
+- **Unholy water.** The evil twin of holy water
 
 #### Effects of Cursed Items
 
-- **Cursed worn armor and rings** can't be removed. You're stuck
-  with them until the curse is lifted.
-- **Cursed weapons** can't be unwielded.
-- **Cursed potions** may have reversed or worsened effects.
-- **Cursed scrolls** often do the opposite of what you want.
-- **Cursed tools** malfunction. A cursed bag of holding doubles the
-  weight of its contents instead of reducing it.
-- **Cursed food** doesn't taste great but isn't usually lethal.
+- **Cursed armor and rings** bond to you and can't be removed—a
+  cursed ring of teleportation means random teleports you can't
+  stop, and a cursed pair of levitation boots means you can never
+  touch the ground again
+- **Cursed weapons** can't be unwielded. Hope you like that -3
+  orcish dagger
+- **Cursed potions and scrolls** often do the opposite of what
+  you want, or a weakened version of the normal effect
+- **Cursed tools** malfunction spectacularly. A cursed bag of
+  holding *doubles* the weight of its contents instead of reducing
+  it
+- **Cursed food** is unpleasant but rarely fatal. Small mercies
 
 #### Detecting Curses
 
-- **Altar test.** Drop an item on an altar. Black flash means
-  cursed.
-- **Pet test.** Your pet refuses to step on cursed items.
-- **Priest test.** A temple priest will identify BUC status for a
-  fee.
-- **Scroll of identify.** Always reveals the full status.
+Prevention is better than cure. Test items *before* wearing them:
+
+- **Altar test.** Drop an item on an altar. A black flash means
+  cursed. This is free, instant, and should become instinct
+- **Pet test.** Your pet refuses to step on cursed items. Drop
+  and observe
+- **Temple priest.** Will identify BUC status for a fee—convenient
+  in Minetown
+- **Scroll of identify.** Always reveals the full status
 
 #### Removing Curses
 
-- **Scroll of remove curse.** Uncursed version uncurses worn and
-  wielded items. Blessed version uncurses everything in your
-  inventory.
-- **Holy water.** Dip a cursed item in holy water: it becomes
-  uncursed.
-- **Prayer.** A pleased god will uncurse your worn items as part of
-  answering a prayer (though praying just to uncurse items is
-  wasteful).
+When prevention fails, you have three remedies:
 
-Always carry holy water and a scroll of remove curse for
-emergencies. Getting stuck with a cursed ring of teleportation or
-cursed levitation boots is a common way runs go sideways.
+- **Scroll of remove curse.** Uncursed removes curses from worn
+  and wielded items. Blessed uncurses your entire inventory. The
+  blessed version is one of the most relieving moments in NetHack
+- **Holy water.** Dip a cursed item in holy water and it becomes
+  uncursed. Simple, reliable, and reason enough to stockpile holy
+  water
+- **Prayer.** A pleased god uncurses your worn items as a side
+  benefit of answering prayer. Don't waste a prayer solely on this,
+  but it's a nice bonus
+
+The lesson: always carry holy water and a scroll of remove curse.
+The moment you find yourself stuck with cursed levitation boots
+over a moat, you'll understand why veterans never leave home
+without them.
 
 ---
 
@@ -3259,71 +3359,83 @@ If you're missing any of these, go back up and find them.
 
 ### Gehennom
 
-Gehennom is the second half of the dungeon, and it's a different
-experience from everything above. The levels are mazes, the monsters
-are demons, and your god can't hear your prayers here.
+Below the Castle, the dungeon changes. The corridors give way to
+mazes. The monsters give way to demons. The comforting knowledge
+that you can pray to your god for help gives way to silence—because
+your god can't hear you in Gehennom. You are deeper than faith
+reaches.
 
-Consider this your travel advisory: Gehennom is hostile territory
-from the moment you arrive.
+This is the part of the game that separates tourists from
+ascenders. Everything you've prepared for has been leading here.
 
 #### What's Different
 
-- **No prayer.** Your god cannot hear you in Gehennom (unless you
-  worship Moloch). This means no emergency healing, no food rescue,
-  no curse removal via prayer. You are on your own.
-- **Fire everywhere.** Fire traps are common. Many monsters breathe
-  fire. Make sure you have fire resistance.
-- **Hot ground.** In current editions, the ground in Gehennom is
-  literally hot: potions dropped on the floor may boil and shatter.
-  Keep your potions in a bag.
-- **Demon lords.** Named demon lords (Orcus, Baalzebub, Asmodeus,
-  Juiblex, Yeenoghu, Demogorgon) appear on specific levels. Each is
-  a major fight. Some can summon other demons.
+- **No prayer.** Your god is deaf to you in Gehennom (unless you're
+  a Moloch worshipper, and you're not). No emergency healing. No
+  food rescue. No curse removal via divine intervention. Pack
+  accordingly, because down here, you are completely on your own
+- **Fire everywhere.** Fire traps litter the corridors. Demons
+  breathe fire as casually as you breathe air. If you don't have
+  fire resistance by now, turn around
+- **Hot ground.** In current editions, the ground itself is hot
+  enough to shatter potions dropped on the floor. Keep everything
+  in a bag at all times
+- **Demon lords.** Named demon lords—Orcus, Baalzebub, Asmodeus,
+  Juiblex, Yeenoghu, and if you're very unlucky, Demogorgon—hold
+  court on specific levels. Each is a major battle. Several can
+  summon reinforcements. All of them are angry you're here
 - **Teleportation restrictions.** In current editions, teleportation
-  is blocked on a demon lord's lair level only while that demon lord
-  is present. Kill or banish them and you can teleport freely again.
-  In older editions, most Gehennom levels permanently blocked
-  teleportation.
-- **Mazes.** Most Gehennom levels are mazes rather than rooms and
-  corridors. A wand of digging or pickaxe is essential for cutting
-  through walls.
+  is blocked on a demon lord's lair level while that lord still
+  lives. Kill or banish them and the restriction lifts. In older
+  editions, most Gehennom levels permanently blocked teleportation
+- **Mazes.** Nearly every level is a maze. A wand of digging or
+  pickaxe isn't optional here—it's as essential as your weapon.
+  Dig straight lines to the stairs and don't look back
 
 #### Key Objectives in Gehennom
 
-1. **Vlad's Tower.** A three-level tower within Gehennom. Vlad the
-   Impaler (a vampire lord) sits at the top, guarding the
-   Candelabrum of Invocation. Kill Vlad, take the Candelabrum.
+You're here for three artifacts, one ritual, and one extremely
+dangerous robbery:
 
-2. **The Wizard's Tower.** The Wizard of Yendor is here, along with
-   the Book of the Dead. The Wizard is extremely dangerous: he can
-   teleport, summon monsters, steal the Amulet, and harass you for
-   the rest of the game after you disturb him. Kill him, take the
-   Book of the Dead.
+1. **Vlad's Tower.** A three-level tower where Vlad the Impaler
+   (a vampire lord) guards the Candelabrum of Invocation at the
+   top. Kill Vlad. Take the Candelabrum. Don't linger.
+
+2. **The Wizard's Tower.** The Wizard of Yendor waits here with
+   the Book of the Dead. He is the most dangerous enemy in the
+   game—not because he's the strongest fighter, but because he
+   never stops. He teleports, summons monsters, steals the Amulet,
+   curses your gear, and once you wake him, he *will not leave you
+   alone* for the rest of the game. Kill him. Take the Book.
 
 3. **The vibrating square.** Somewhere on the level directly above
-   Moloch's Sanctum, there is a square that vibrates when you stand
-   on it. This is where you perform the Invocation ritual.
+   Moloch's Sanctum, a single square vibrates when you step on it.
+   This is the ritual site. Finding it in a maze is part of the
+   challenge—scrolls of magic mapping help enormously.
 
-4. **The Invocation.** At the vibrating square, with the
-   Candelabrum lit (7 candles attached), the Bell of Opening rung,
-   and the Book of the Dead read, you open the passage to Moloch's
-   Sanctum.
+4. **The Invocation.** At the vibrating square, light the
+   Candelabrum (with 7 candles attached), ring the Bell of Opening,
+   and read the Book of the Dead. The passage to Moloch's Sanctum
+   opens.
 
 5. **Moloch's Sanctum.** The high priest of Moloch guards the
-   Amulet of Yendor. Defeat him and take the Amulet. Then turn
-   around and climb all the way back up through the entire dungeon.
+   Amulet of Yendor. Defeat him and take it. Then turn around and
+   realize you must carry it all the way back up through the entire
+   dungeon you just descended.
 
 #### Survival Tips
 
-- Carry extra food. You can't pray for it.
-- Carry scrolls of remove curse. You can't pray curses away.
-- Dig through maze walls instead of navigating them.
-- Kill the Wizard fast. Once disturbed, he teleports to you
-  periodically to harass you, steal items, and curse your gear. The
-  sooner you end him (temporarily, he comes back), the fewer
-  interruptions you'll face.
-- Level teleportation out of Gehennom doesn't work while you carry
-  the Amulet. You must walk all the way up.
+- **Bring extra food.** You can't pray for it
+- **Bring scrolls of remove curse.** You can't pray curses away
+- **Dig, don't navigate.** Maze walls are faster to go through
+  than around
+- **Kill the Wizard quickly.** Every turn he lives is another
+  summoned monster, another stolen item, another cursed piece of
+  gear. He'll come back—he always comes back—but the intervals
+  between his appearances give you breathing room
+- **The Amulet anchors you.** Level teleportation doesn't work
+  while you carry it. Every step back to the surface must be
+  climbed by foot
 
 ---
 
@@ -3393,60 +3505,70 @@ last obstacle between you and divinity.
 
 ### The Elemental Planes
 
-The Elemental Planes are the final gauntlet: four special levels
-between you and the Astral Plane. Each has a magic portal to the
-next plane, and you must reach it to progress.
+Beyond the top of the Dungeons of Doom, the world dissolves into
+its raw elements. Four planes stand between you and the gods, each
+one a different flavor of hostile. There are no stairs here—only
+magic portals, hidden somewhere in each level, leading to the next.
+Find the portal. Survive the plane. Move on. There is no going back.
 
 #### Plane of Earth
 
-A level packed with boulders and earth elementals. The portal is
-hidden somewhere in the level. Use a wand of digging to tunnel
-through boulders and walls. A crystal ball or scroll of magic
-mapping will reveal the portal's location. Move fast; the level
-is claustrophobic and elementals hit hard.
+You arrive encased in solid rock and boulders, surrounded by earth
+elementals that hit like the mountain itself. The portal is buried
+somewhere in the level. Dig. A wand of digging is essential; a
+scroll of magic mapping or crystal ball reveals the portal's
+location so you can dig *toward* it instead of blind. This level
+is claustrophobic, dark, and punishing—but it's the gentlest of
+the four.
 
 #### Plane of Air
 
-An open expanse with no walls, just air. Air elementals are
-extremely fast and attack multiple times per turn. They cannot be
-genocided. A ring of conflict helps immensely (let them fight each
-other). A scroll of magic mapping reveals the portal. Being
-engulfed by a vortex can paradoxically help: the vortex carries you
-around the level, and if it happens to cross the portal, you're
-through.
+The opposite extreme: an open void with no walls, no floor you can
+feel, just empty sky and air elementals moving faster than thought.
+They attack multiple times per turn and they cannot be genocided.
+A ring of conflict is devastating here—let them tear each other
+apart while you search for the portal. A scroll of magic mapping
+reveals it. One strange trick: if a vortex engulfs you, it carries
+you randomly around the level—and if it happens to cross the
+portal, you're pulled through. Sometimes the fastest route is to
+surrender to the wind.
 
 #### Plane of Fire
 
-Fire everywhere. Everything is on fire. Fire resistance is
-mandatory. Fire elementals and other fire creatures fill the level.
-The portal is hidden among the flames. Map the level, find the
-portal, reach it.
+Everything is on fire. The ground is fire. The air is fire. Fire
+elementals fill the level, and fire traps dot every corridor. Fire
+resistance isn't just recommended—without it, you'll be dead in
+turns. Map the level, find the portal among the flames, and get
+there. Don't stop to fight anything you don't have to.
 
 #### Plane of Water
 
-Underwater. You need magical breathing (from an amulet or intrinsic)
-to survive here. The level is a series of water-filled chambers with
-occasional air pockets. Sea monsters will try to drown you. Find
-the portal and get through. This is the last obstacle before the
-Astral Plane.
+The entire level is underwater. Without magical breathing (an
+amulet or intrinsic), you will drown—and drowning is instant death,
+no saving throw. The level is a labyrinth of water-filled chambers
+with occasional air pockets. Sea monsters prowl the corridors.
+Find the portal and push through. This is the last barrier between
+you and the gods.
 
 #### The Astral Plane
 
-The final level. Three altars line the central temple: one Lawful,
-one Neutral, one Chaotic. You must sacrifice the Amulet of Yendor
-on the altar matching your alignment to ascend and win the game.
+You surface into the presence of the divine. Three altars stand in
+the great temple: Lawful, Neutral, and Chaotic. You must sacrifice
+the Amulet of Yendor on the altar matching your alignment to
+ascend. Choose wrong and the Amulet is lost—you'll need to fight
+to retrieve it.
 
-The Astral Plane is swarming with Angels, the three Riders (Death,
-Famine, Pestilence), and other powerful enemies. The Riders cannot
-be permanently killed. Your goal is not to fight everything but to
-reach the correct altar.
+The plane is swarming with Angels and the three Riders: Death,
+Famine, and Pestilence. The Riders cannot be permanently killed—
+they revive, they pursue, they do not stop. Don't try to clear
+the level. You are not here to fight. You are here to reach one
+altar, make one sacrifice, and end this.
 
-- Use a wand of teleportation or conflict to clear a path.
-- The Riders will follow you. Don't engage unless you have to.
-- If you sacrifice on the wrong altar, you'll lose the Amulet and
-  need to retrieve it.
-- Once you sacrifice on the correct altar: you ascend. You win.
-  Congratulations.
+- Conflict and teleportation wands clear a path through the crowds
+- Identify the correct altar quickly—farlook (`;`) shows alignment
+- The Riders will follow you. Outrun them, don't outfight them
+- When you offer the Amulet on the correct altar: you ascend.
+  The game is won. You've done what so few have done. Congratulations.
 
 ---
 
@@ -4314,33 +4436,34 @@ The process:
 For example: a shopkeeper asks 80 zm for an unidentified scroll,
 and your Charisma is 12 (modifier ×1.00). The base price is either
 80 zm or, after removing a possible 33% surcharge, 60 zm. Checking
-the scroll price table: 80 zm scrolls include enchant weapon,
-enchant armor, remove curse, and several others. A 60 zm scroll
-is fire, earth, or a few other types. Either way, you've narrowed
-the possibilities dramatically.
+the scroll price table: 80 zm scrolls are enchant armor and
+remove curse—both excellent. A 60 zm scroll is blank paper or
+enchant weapon. Either way, you've narrowed the possibilities
+dramatically.
 
 **Common base prices by item class:**
 
-*Scrolls:* 20 zm (identify), 50 zm (light, blank), 60 zm
-(confuse monster, enchant weapon, fire, food detection, gold
-detection, remove curse, scare monster, teleportation), 80 zm
-(enchant armor, amnesia, create monster, earth), 100 zm (charging,
-magic mapping, stinking cloud, taming), 200 zm (genocide), 300 zm
-(punishment).
+*Scrolls:* 20 zm (identify), 50 zm (light), 60 zm (blank paper,
+enchant weapon), 80 zm (enchant armor, remove curse), 100 zm
+(confuse monster, destroy armor, fire, food detection, gold
+detection, magic mapping, scare monster, teleportation), 200 zm
+(amnesia, create monster, earth, taming), 300 zm (charging,
+genocide, punishment, stinking cloud).
 
-*Potions:* 0 zm (uncursed water), 50 zm (booze, fruit juice,
-see invisible, sickness), 100 zm (confusion, extra healing,
-hallucination, healing, restore ability, sleeping, water), 150 zm
+*Potions:* 50 zm (booze, fruit juice, see invisible, sickness),
+100 zm (confusion, extra healing, hallucination, healing, restore
+ability, sleeping, water), 150 zm
 (blindness, gain energy, invisibility, monster detection, object
 detection), 200 zm (enlightenment, full healing, levitation,
 polymorph, speed), 250 zm (acid, oil), 300 zm (gain ability, gain
 level, paralysis).
 
 *Wands:* 100 zm (light, nothing), 150 zm (digging, enlightenment,
-make invisible, secret door detection, speed monster, striking),
-175 zm (undead turning), 200 zm (cold, fire, lightning, sleep),
-300 zm (polymorph, cancellation, create monster, teleportation),
-500 zm (death, wishing).
+locking, magic missile, make invisible, opening, probing, secret
+door detection, slow monster, speed monster, striking, undead
+turning), 175 zm (cold, fire, lightning, sleep), 200 zm
+(cancellation, create monster, polymorph, teleportation), 500 zm
+(death, wishing).
 
 *Rings:* 100 zm (adornment, hunger, protection, protection from
 shape changers, stealth, sustain ability, warning), 150 zm
