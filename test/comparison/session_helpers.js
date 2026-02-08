@@ -124,13 +124,11 @@ export function generateMapsSequential(seed, maxDepth) {
 // ---------------------------------------------------------------------------
 
 // Convert JS log entry to compact session format.
-// JS format: "1 rn2(12) = 2" or "1 rn2(12) = 2 @ caller(file.js:45)"
+// JS format: "1 rn2(12)=2" or "1 rn2(12)=2 @ caller(file.js:45)"
 // Compact:   "rn2(12)=2" or "rn2(12)=2 @ caller(file.js:45)"
 function toCompactRng(entry) {
-    // Strip leading count prefix: "1 rn2(...) = result ..." → "rn2(...) = result ..."
-    const noCount = entry.replace(/^\d+\s+/, '');
-    // Compress " = " → "="
-    return noCount.replace(' = ', '=');
+    // Strip leading count prefix: "1 rn2(...)=result ..." → "rn2(...)=result ..."
+    return entry.replace(/^\d+\s+/, '');
 }
 
 // Extract the fn(arg)=result portion from a compact RNG entry, ignoring @ source tags.
