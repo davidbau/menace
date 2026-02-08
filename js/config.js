@@ -186,15 +186,15 @@ export function IS_DOOR(typ) {
     return typ === DOOR;
 }
 export function IS_ROOM(typ) {
-    return typ === ROOM || typ === STAIRS || typ === FOUNTAIN ||
-           typ === THRONE || typ === SINK || typ === GRAVE ||
-           typ === ALTAR || typ === ICE;
+    // C ref: rm.h -- #define IS_ROOM(typ) ((typ) >= ROOM)
+    return typ >= ROOM;
 }
 export function IS_FURNITURE(typ) {
     return typ >= STAIRS && typ <= ALTAR;
 }
 export function ACCESSIBLE(typ) {
-    return typ >= DOOR && typ <= ICE;
+    // C ref: rm.h -- #define ACCESSIBLE(typ) ((typ) >= DOOR)
+    return typ >= DOOR;
 }
 export function IS_POOL(typ) {
     return typ === POOL || typ === MOAT || typ === WATER;

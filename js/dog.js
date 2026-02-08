@@ -379,3 +379,87 @@ export function can_carry(mon, obj) {
 
     return iquan;
 }
+
+// ========================================================================
+// dog_eat — pet eats an object after moving to its position
+// C ref: dogmove.c:217-342 dog_eat()
+// RNG: dogfood() reward check → obj_resists(0,95) → rn2(100)
+//      delobj → obj_resists(0,0) → rn2(100)
+// ========================================================================
+
+// C ref: dogmove.c:171-214 dog_nutrition() — simplified for RNG alignment
+// This function does NOT consume RNG.
+function dog_nutrition(mon, obj) {
+    if (obj.otyp === CORPSE) {
+        return 5 * (obj.corpsenm !== undefined && ismnum(obj.corpsenm)
+            ? (mons[obj.corpsenm].nutrition || 0)
+            : 0);
+    }
+    if (obj.oclass === FOOD_CLASS) {
+        return objectData[obj.otyp].nutrition || 0;
+    }
+    // Non-food (metallivore, gelatinous cube, etc.)
+    return 5 * (objectData[obj.otyp].nutrition || 0);
+}
+
+// Returns 2 if pet dies (not implemented), otherwise 1
+// map is needed to remove the eaten object
+export function dog_eat(mon, obj, map, turnCount) {
+    const edog = mon.edog;
+    if (!edog) return 1;
+
+    // C ref: dogmove.c:231-232 — clamp hungrytime
+    if (edog.hungrytime < turnCount)
+        edog.hungrytime = turnCount;
+
+    // C ref: dogmove.c:233 — nutrition calculation (no RNG)
+    let nutrit = dog_nutrition(mon, obj);
+
+    // C ref: dogmove.c:241 — update hungrytime
+    edog.hungrytime += nutrit;
+
+    // C ref: dogmove.c:242-247 — clear confusion, starvation penalty
+    mon.confused = 0;
+    if (edog.mhpmax_penalty) {
+        mon.mhpmax = (mon.mhpmax || 0) + edog.mhpmax_penalty;
+        edog.mhpmax_penalty = 0;
+    }
+
+    // C ref: dogmove.c:248-249 — reduce flee time
+    if (mon.flee && mon.fleetim > 1)
+        mon.fleetim = Math.floor(mon.fleetim / 2);
+
+    // C ref: dogmove.c:250-251 — increase tameness
+    if (mon.tame < 20)
+        mon.tame++;
+
+    // C ref: dogmove.c:263-264 — split stacked food (quantity > 1)
+    // splitobj creates a single-item copy; the original stays on the map
+    let removeFromMap = true;
+    if ((obj.quan || 1) > 1 && obj.oclass === FOOD_CLASS) {
+        obj.quan--;
+        // Create a virtual copy for the eaten portion (reward check uses otyp, invlet)
+        obj = { ...obj, quan: 1 };
+        removeFromMap = false; // original stays on map with reduced quantity
+    }
+
+    // C ref: dogmove.c:313-337 — reward check + consume
+    // (Not a rust monster with oerodeproof, so always hits the else branch)
+    // Reward check: dogfood(mtmp, obj) == DOGFOOD && obj->invlet
+    // dogfood → obj_resists(obj, 0, 95) → rn2(100)
+    if (dogfood(mon, obj, turnCount) === DOGFOOD && obj.invlet) {
+        // C ref: dogmove.c:318-325 — apport update
+        edog.apport += Math.floor(200 / ((edog.dropdist || 0) + turnCount
+                                          - (edog.droptime || 0)));
+        if (edog.apport <= 0) edog.apport = 1;
+    }
+
+    // C ref: dogmove.c:337 — m_consume_obj → delobj → delobj_core
+    // delobj_core calls obj_resists(obj, 0, 0) → rn2(100) (always false for non-invocation)
+    obj_resists(obj, 0, 0); // consume rn2(100)
+    if (removeFromMap) {
+        map.removeObject(obj);
+    }
+
+    return 1;
+}

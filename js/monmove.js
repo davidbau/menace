@@ -9,7 +9,7 @@ import { COLNO, ROWNO, STONE, IS_WALL, IS_DOOR, IS_ROOM,
 import { rn2, rnd } from './rng.js';
 import { monsterAttackPlayer } from './combat.js';
 import { FOOD_CLASS, BOULDER } from './objects.js';
-import { dogfood, can_carry, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT,
+import { dogfood, dog_eat, can_carry, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT,
          POISON, UNDEF, TABU } from './dog.js';
 import { couldsee, m_cansee } from './vision.js';
 import { PM_GRID_BUG } from './monsters.js';
@@ -383,6 +383,8 @@ function dog_move(mon, map, player, display, fov) {
     // Second pass: evaluate positions
     // C ref: dogmove.c:1088-1268
     // C ref: distmin check for backtrack avoidance (hoisted from loop)
+    let do_eat = false;
+    let eatObj = null;
     const distmin_pu = Math.max(Math.abs(omx - player.x), Math.abs(omy - player.y));
     for (let i = 0; i < cnt; i++) {
         const nx = positions[i].x, ny = positions[i].y;
@@ -402,6 +404,8 @@ function dog_move(mon, map, player, display, fov) {
                     if (otyp < MANFOOD
                         && (otyp < ACCFOOD || turnCount >= edog.hungrytime)) {
                         nix = nx; niy = ny; chi = i;
+                        do_eat = true;
+                        eatObj = obj;
                         foundFood = true;
                         cursemsg[i] = false; // C ref: not reluctant
                         break;
@@ -452,8 +456,10 @@ function dog_move(mon, map, player, display, fov) {
     }
 
     // Move the dog
+    // C ref: dogmove.c:1282-1327 — newdogpos label
     if (nix !== omx || niy !== omy) {
         // Update track history (shift old positions, add current)
+        // C ref: dogmove.c:1319 — mon_track_add(mtmp, omx, omy)
         if (mon.mtrack) {
             for (let k = MTSZ - 1; k > 0; k--) {
                 mon.mtrack[k] = mon.mtrack[k - 1];
@@ -462,6 +468,11 @@ function dog_move(mon, map, player, display, fov) {
         }
         mon.mx = nix;
         mon.my = niy;
+
+        // C ref: dogmove.c:1324-1327 — eat after moving
+        if (do_eat && eatObj) {
+            dog_eat(mon, eatObj, map, turnCount);
+        }
     }
 
     return nix !== omx || niy !== omy ? 1 : 0;
