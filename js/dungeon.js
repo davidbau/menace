@@ -29,7 +29,7 @@ import {
 } from './config.js';
 import { GameMap, makeRoom, FILL_NONE, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1, d } from './rng.js';
-import { mkobj, mksobj, setLevelDepth } from './mkobj_gen.js';
+import { mkobj, mksobj, weight, setLevelDepth } from './mkobj_gen.js';
 import { makemon, NO_MM_FLAGS, MM_NOGRP } from './makemon_gen.js';
 import { init_objects } from './o_init.js';
 import {
@@ -1260,8 +1260,13 @@ function dig_corridor(map, org, dest, nxcor, depth) {
                 npoints++;
                 crm.typ = ftyp;
                 if (nxcor && !rn2(50)) {
-                    // C ref: sp_lev.c:2596 — mksobj_at(BOULDER, ...)
-                    mksobj(BOULDER, true, false);
+                    // C ref: mksobj_at(BOULDER, xx, yy) — place boulder in corridor
+                    const otmp = mksobj(BOULDER, true, false);
+                    if (otmp) {
+                        otmp.ox = xx;
+                        otmp.oy = yy;
+                        map.objects.push(otmp);
+                    }
                 }
             }
         } else if (crm.typ !== ftyp && crm.typ !== SCORR) {
@@ -1931,8 +1936,13 @@ function maketrap(map, x, y, typ) {
         // C ref: mkroll_launch
         const launchCoord = find_random_launch_coord(map, trap);
         if (launchCoord) {
-            // C ref: mkroll_launch — mksobj_at(BOULDER, ...)
-            mksobj(BOULDER, true, false);
+            // C ref: mkroll_launch — mksobj_at(BOULDER, cc.x, cc.y)
+            const boulderObj = mksobj(BOULDER, true, false);
+            if (boulderObj) {
+                boulderObj.ox = launchCoord.x;
+                boulderObj.oy = launchCoord.y;
+                map.objects.push(boulderObj);
+            }
             trap.launch = { x: launchCoord.x, y: launchCoord.y };
             trap.launch2 = {
                 x: x - (launchCoord.x - x),
@@ -2304,6 +2314,7 @@ function fill_ordinary_room(map, croom, depth, bonusItems) {
             if (gold) {
                 gold.ox = pos.x; gold.oy = pos.y;
                 gold.quan = amount;
+                gold.owt = weight(gold);
                 map.objects.push(gold);
             }
         }
@@ -2871,9 +2882,12 @@ function mineralize(map, depth) {
                     otmp.ox = x;
                     otmp.oy = y;
                     otmp.quan = 1 + rnd(goldprob * 3);
-                    // C: !rn2(3) → add_to_buried, else place_object
-                    // We just consume the rn2(3) for RNG alignment
-                    rn2(3);
+                    otmp.owt = weight(otmp);
+                    // C ref: !rn2(3) → add_to_buried, else place_object
+                    if (rn2(3) !== 0) {
+                        map.objects.push(otmp);
+                    }
+                    // else: buried — don't add to map.objects
                 }
             }
             // Try to place gems
@@ -2887,8 +2901,11 @@ function mineralize(map, depth) {
                         } else {
                             otmp.ox = x;
                             otmp.oy = y;
-                            // C: !rn2(3) → add_to_buried, else place_object
-                            rn2(3);
+                            // C ref: !rn2(3) → add_to_buried, else place_object
+                            if (rn2(3) !== 0) {
+                                map.objects.push(otmp);
+                            }
+                            // else: buried — don't add to map.objects
                         }
                     }
                 }

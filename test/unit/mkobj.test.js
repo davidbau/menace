@@ -77,7 +77,7 @@ describe('Level object population', () => {
         assert.ok(map.objects.length > 0, 'Level should have objects');
     });
 
-    it('objects are placed on accessible terrain', () => {
+    it('objects are placed on accessible terrain or in stone (mineralize)', () => {
         initRng(42);
         initLevelGeneration();
         const map = generateLevel(1);
@@ -86,8 +86,9 @@ describe('Level object population', () => {
 
         for (const obj of map.objects) {
             const loc = map.at(obj.ox, obj.oy);
-            assert.ok(loc && ACCESSIBLE(loc.typ),
-                `Object "${obj.name}" at ${obj.ox},${obj.oy} should be on accessible terrain`);
+            // Mineralize objects are placed in STONE tiles (gold/gem deposits)
+            assert.ok(loc && (ACCESSIBLE(loc.typ) || loc.typ === 0),
+                `Object "${obj.name}" at ${obj.ox},${obj.oy} should be on accessible terrain or stone`);
         }
     });
 

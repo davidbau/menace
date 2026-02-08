@@ -14,6 +14,7 @@ import {
     GOLD_PIECE, DILITHIUM_CRYSTAL, LOADSTONE,
     WAN_CANCELLATION, WAN_LIGHT, WAN_LIGHTNING,
     BAG_OF_HOLDING, OILSKIN_SACK, BAG_OF_TRICKS, SACK,
+    LARGE_BOX, CHEST, ICE_BOX, CORPSE, STATUE,
     initObjectData,
 } from './objects.js';
 import { rndmonnum } from './makemon_gen.js';
@@ -92,6 +93,45 @@ function is_rottable(obj) {
 function is_corrodeable(obj) {
     const mat = objectData[obj.otyp].material;
     return mat === COPPER || mat === IRON;
+}
+
+// C ref: Is_container(otmp) — is object a container?
+function Is_container(obj) {
+    return obj.otyp === LARGE_BOX || obj.otyp === CHEST || obj.otyp === ICE_BOX
+        || obj.otyp === SACK || obj.otyp === OILSKIN_SACK
+        || obj.otyp === BAG_OF_HOLDING || obj.otyp === BAG_OF_TRICKS;
+}
+
+// C ref: mkobj.c weight() — compute actual weight of an object
+// Considers quantity, corpse type, container contents, coins
+export function weight(obj) {
+    let wt = objectData[obj.otyp].weight;
+    if (obj.quan < 1) return 0;
+    if (Is_container(obj) || obj.otyp === STATUE) {
+        if (obj.otyp === STATUE && obj.corpsenm >= 0 && obj.corpsenm < mons.length) {
+            wt = Math.floor(3 * mons[obj.corpsenm].weight / 2);
+            const msize = mons[obj.corpsenm].size || 0;
+            const minwt = (msize * 2 + 1) * 100;
+            if (wt < minwt) wt = minwt;
+        }
+        // Container contents weight — cobj not tracked in JS yet, so cwt=0
+        let cwt = 0;
+        if (obj.cobj) {
+            for (const c of obj.cobj) cwt += weight(c);
+            if (obj.otyp === BAG_OF_HOLDING)
+                cwt = obj.cursed ? (cwt * 2)
+                    : obj.blessed ? Math.floor((cwt + 3) / 4)
+                    : Math.floor((cwt + 1) / 2);
+        }
+        return wt + cwt;
+    }
+    if (obj.otyp === CORPSE && obj.corpsenm >= 0 && obj.corpsenm < mons.length) {
+        return obj.quan * mons[obj.corpsenm].weight;
+    }
+    if (obj.oclass === COIN_CLASS) {
+        return Math.max(Math.floor((obj.quan + 50) / 100), 1);
+    }
+    return wt ? wt * obj.quan : (obj.quan + 1) >> 1;
 }
 
 // Helper: can object generate eroded?
@@ -240,7 +280,9 @@ function undead_to_corpse_fast(mndx) {
 }
 
 // C ref: mkobj.c mksobj_init() -- class-specific object initialization
-function mksobj_init(obj, artif) {
+// skipErosion: if true, skip mkobj_erosions (used by ini_inv — C's mksobj
+// path for starting inventory doesn't include erosion)
+function mksobj_init(obj, artif, skipErosion) {
     const oclass = obj.oclass;
     const otyp = obj.otyp;
     const od = objectData[otyp];
@@ -461,7 +503,7 @@ function mksobj_init(obj, artif) {
         break;
     }
 
-    mkobj_erosions(obj);
+    if (!skipErosion) mkobj_erosions(obj);
 }
 
 // C ref: mkobj.c mkbox_cnts() -- fill container with random items
@@ -566,11 +608,14 @@ function mksobj_postinit(obj) {
 }
 
 // C ref: mkobj.c mksobj() -- create a specific object type
-export function mksobj(otyp, init, artif) {
+// skipErosion: if true, skip mkobj_erosions (for ini_inv items)
+export function mksobj(otyp, init, artif, skipErosion) {
     if (otyp < 0 || otyp >= NUM_OBJECTS) otyp = 0;
     const obj = newobj(otyp);
-    if (init) mksobj_init(obj, artif);
+    if (init) mksobj_init(obj, artif, skipErosion);
     mksobj_postinit(obj);
+    // C ref: mkobj.c — otmp->owt = weight(otmp) after full initialization
+    obj.owt = weight(obj);
     return obj;
 }
 

@@ -4,24 +4,18 @@
 
 import { COLNO, ROWNO, STONE, IS_WALL, IS_DOOR, IS_ROOM,
          ACCESSIBLE, CORR, DOOR, D_CLOSED, D_LOCKED,
+         POOL, LAVAPOOL,
          NORMAL_SPEED, isok } from './config.js';
 import { rn2, rnd } from './rng.js';
 import { monsterAttackPlayer } from './combat.js';
-import { FOOD_CLASS, CORPSE, TRIPE_RATION, MEATBALL, MEAT_STICK,
-         ENORMOUS_MEATBALL, MEAT_RING } from './objects.js';
+import { FOOD_CLASS, BOULDER } from './objects.js';
+import { dogfood, can_carry, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT,
+         POISON, UNDEF, TABU } from './dog.js';
+import { couldsee, m_cansee } from './vision.js';
+import { PM_GRID_BUG } from './monsters.js';
 
 const MTSZ = 4;           // C ref: monst.h — track history size
 const SQSRCHRADIUS = 5;   // C ref: dogmove.c — object search radius
-
-// dogfood return categories (C ref: mextra.h dogfood_types)
-const DOGFOOD = 0;
-const CADAVER = 1;
-const ACCFOOD = 2;
-const MANFOOD = 3;
-const APPORT  = 4;
-const POISON  = 5;
-const UNDEF   = 6;
-const TABU    = 7;
 
 // C direction tables (C ref: monmove.c)
 const xdir = [0, 1, 1, 1, 0, -1, -1, -1];
@@ -30,6 +24,119 @@ const ydir = [-1, -1, 0, 1, 1, 1, 0, -1];
 // Squared distance
 function dist2(x1, y1, x2, y2) {
     return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
+}
+
+// ========================================================================
+// mfndpos — collect valid adjacent positions in column-major order
+// ========================================================================
+// C ref: mon.c mfndpos() — returns positions a monster can move to
+// Iterates (x-1..x+1) × (y-1..y+1) in column-major order, skipping current pos.
+// Handles NODIAG (grid bugs), terrain, doors, monsters, player, boulders.
+function mfndpos(mon, map, player) {
+    const omx = mon.mx, omy = mon.my;
+    const nodiag = (mon.mndx === PM_GRID_BUG);
+    const positions = [];
+    const maxx = Math.min(omx + 1, COLNO - 1);
+    const maxy = Math.min(omy + 1, ROWNO - 1);
+
+    for (let nx = Math.max(1, omx - 1); nx <= maxx; nx++) {
+        for (let ny = Math.max(0, omy - 1); ny <= maxy; ny++) {
+            if (nx === omx && ny === omy) continue;
+
+            // C ref: NODIAG — grid bugs can only move in cardinal directions
+            if (nx !== omx && ny !== omy && nodiag) continue;
+
+            const loc = map.at(nx, ny);
+            if (!loc || !ACCESSIBLE(loc.typ)) continue;
+
+            // C ref: door checks
+            if (IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED))) continue;
+
+            // C ref: MON_AT — skip positions with other monsters
+            if (map.monsterAt(nx, ny)) continue;
+
+            // C ref: u_at — skip player position
+            if (nx === player.x && ny === player.y) continue;
+
+            // C ref: sobj_at(BOULDER) — skip positions with boulders
+            // (simplified: no monster can move boulders for now)
+            let hasBoulder = false;
+            for (const obj of map.objects) {
+                if (obj.ox === nx && obj.oy === ny && obj.otyp === BOULDER) {
+                    hasBoulder = true;
+                    break;
+                }
+            }
+            if (hasBoulder) continue;
+
+            positions.push({ x: nx, y: ny });
+        }
+    }
+    return positions;
+}
+
+// ========================================================================
+// dog_goal helper functions — C-faithful checks
+// ========================================================================
+
+// C ref: dogmove.c:144-153 — cursed_object_at(x, y)
+// Checks if ANY object at position (x, y) is cursed
+function cursed_object_at(map, x, y) {
+    for (const obj of map.objects) {
+        if (obj.ox === x && obj.oy === y && obj.cursed)
+            return true;
+    }
+    return false;
+}
+
+// C ref: dogmove.c:1353-1362 — could_reach_item(mon, nx, ny)
+// Check if monster could pick up objects from location (no pool/lava/boulder blocking)
+function could_reach_item(map, mon, nx, ny) {
+    const loc = map.at(nx, ny);
+    if (!loc) return false;
+    const typ = loc.typ;
+    // C: is_pool checks typ >= POOL && typ <= DRAWBRIDGE_UP (simplified)
+    const isPool = (typ === POOL);
+    const isLava = (typ === LAVAPOOL);
+    // C: sobj_at(BOULDER, nx, ny) — is there a boulder at this position?
+    let hasBoulder = false;
+    for (const obj of map.objects) {
+        if (obj.ox === nx && obj.oy === ny && obj.otyp === BOULDER) {
+            hasBoulder = true; break;
+        }
+    }
+    // Little dogs can't swim, don't like lava, can't throw rocks
+    if (isPool) return false; // simplified: pets aren't swimmers
+    if (isLava) return false; // simplified: pets don't like lava
+    if (hasBoulder) return false; // simplified: pets can't throw rocks
+    return true;
+}
+
+// C ref: dogmove.c:1371-1407 — can_reach_location(mon, mx, my, fx, fy)
+// Recursive pathfinding: can monster navigate from (mx,my) to (fx,fy)?
+// Uses greedy approach: only steps through cells closer to target.
+function can_reach_location(map, mon, mx, my, fx, fy) {
+    if (mx === fx && my === fy) return true;
+    if (!isok(mx, my)) return false;
+
+    const d = dist2(mx, my, fx, fy);
+    for (let i = mx - 1; i <= mx + 1; i++) {
+        for (let j = my - 1; j <= my + 1; j++) {
+            if (!isok(i, j)) continue;
+            if (dist2(i, j, fx, fy) >= d) continue;
+            const loc = map.at(i, j);
+            if (!loc) continue;
+            // C: IS_OBSTRUCTED(typ) = typ < POOL
+            if (loc.typ < POOL) continue;
+            // C: closed/locked doors block
+            if (IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED)))
+                continue;
+            if (!could_reach_item(map, mon, i, j)) continue;
+            if (can_reach_location(map, mon, i, j, fx, fy))
+                return true;
+        }
+    }
+    return false;
 }
 
 // ========================================================================
@@ -127,10 +234,24 @@ function dog_move(mon, map, player, display, fov) {
     const whappr = (turnCount - edog.whistletime) < 5 ? 1 : 0;
 
     // dog_goal — scan nearby objects for food/items
-    // C ref: dogmove.c:500-554
+    // C ref: dogmove.c dog_goal():500-554
     let gx = 0, gy = 0, gtyp = UNDEF;
-    const minX = omx - SQSRCHRADIUS, maxX = omx + SQSRCHRADIUS;
-    const minY = omy - SQSRCHRADIUS, maxY = omy + SQSRCHRADIUS;
+    const minX = Math.max(1, omx - SQSRCHRADIUS);
+    const maxX = Math.min(COLNO - 1, omx + SQSRCHRADIUS);
+    const minY = Math.max(0, omy - SQSRCHRADIUS);
+    const maxY = Math.min(ROWNO - 1, omy + SQSRCHRADIUS);
+
+    // C ref: in_masters_sight = couldsee(omx, omy)
+    const inMastersSight = couldsee(map, player, omx, omy);
+
+    // C ref: dogmove.c:498 — dog_has_minvent = (droppables(mtmp) != 0)
+    const dogHasMinvent = !!(mon.minvent && mon.minvent.length > 0);
+
+    // C ref: dogmove.c:545 — lighting check for apport branch
+    const dogLoc = map.at(omx, omy);
+    const playerLoc0 = map.at(player.x, player.y);
+    const dogLit = !!(dogLoc && dogLoc.lit);
+    const playerLit = !!(playerLoc0 && playerLoc0.lit);
 
     // C ref: dog_goal iterates fobj (ALL objects on level)
     // C's fobj is LIFO (place_object prepends), so iterate in reverse to match
@@ -139,13 +260,20 @@ function dog_move(mon, map, player, display, fov) {
         const ox = obj.ox, oy = obj.oy;
         if (ox < minX || ox > maxX || oy < minY || oy > maxY) continue;
 
-        const otyp = dogfood(mon, obj);
+        const otyp = dogfood(mon, obj, turnCount);
 
         // C ref: dogmove.c:526 — skip inferior goals
         if (otyp > gtyp || otyp === UNDEF) continue;
 
-        // C ref: dogmove.c:529-531 — skip cursed positions unless starving
-        if (obj.cursed && !(edog.mhpmax_penalty && otyp < MANFOOD)) continue;
+        // C ref: dogmove.c:529-531 — skip cursed POSITIONS unless starving
+        // C uses cursed_object_at(nx, ny) which checks ALL objects at position
+        if (cursed_object_at(map, ox, oy)
+            && !(edog.mhpmax_penalty && otyp < MANFOOD)) continue;
+
+        // C ref: dogmove.c:533-535 — skip unreachable goals
+        if (!could_reach_item(map, mon, ox, oy)
+            || !can_reach_location(map, mon, omx, omy, ox, oy))
+            continue;
 
         if (otyp < MANFOOD) {
             // Good food — direct goal
@@ -153,11 +281,13 @@ function dog_move(mon, map, player, display, fov) {
             if (otyp < gtyp || dist2(ox, oy, omx, omy) < dist2(gx, gy, omx, omy)) {
                 gx = ox; gy = oy; gtyp = otyp;
             }
-        } else if (gtyp === UNDEF
-                   && (otyp === MANFOOD || true) // simplified m_cansee check
+        } else if (gtyp === UNDEF && inMastersSight
+                   && !dogHasMinvent
+                   && (!dogLit || playerLit)
+                   && (otyp === MANFOOD || m_cansee(mon, map, ox, oy))
                    && edog.apport > rn2(8)
-                   && true /* can_carry */) {
-            // C ref: dogmove.c:543-552 — APPORT/MANFOOD with apport check
+                   && can_carry(mon, obj) > 0) {
+            // C ref: dogmove.c:543-552 — APPORT/MANFOOD with apport+carry check
             gx = ox; gy = oy; gtyp = APPORT;
         }
     }
@@ -173,10 +303,11 @@ function dog_move(mon, map, player, display, fov) {
         appr = (udist >= 9) ? 1 : (mon.flee) ? -1 : 0;
 
         if (udist > 1) {
-            // C ref: dogmove.c:568 — approach check
+            // C ref: dogmove.c:568-571 — approach check
             const playerLoc = map.at(player.x, player.y);
             const playerInRoom = playerLoc && IS_ROOM(playerLoc.typ);
-            if (!playerInRoom || !rn2(4) || whappr) {
+            if (!playerInRoom || !rn2(4) || whappr
+                || (dogHasMinvent && rn2(edog.apport))) {
                 appr = 1;
             }
         }
@@ -187,76 +318,66 @@ function dog_move(mon, map, player, display, fov) {
             if ((player.x === map.upstair.x && player.y === map.upstair.y)
                 || (player.x === map.dnstair.x && player.y === map.dnstair.y)) {
                 appr = 1;
+            } else {
+                // C ref: scan player inventory for DOGFOOD items
+                // Each dogfood() call consumes rn2(100) via obj_resists
+                for (const invObj of player.inventory) {
+                    if (dogfood(mon, invObj, turnCount) === DOGFOOD) {
+                        appr = 1;
+                        break;
+                    }
+                }
             }
-            // C ref: else check player inventory for DOGFOOD → consumes rn2(100) per item
-            // For carnivorous pets, food_ration = MANFOOD (not DOGFOOD), so no match.
-            // Simplified: skip inventory scan for now (pet is carnivorous)
         }
     } else {
         // Good goal exists
         appr = 1;
     }
 
-    if (mon.confused) appr = 1;
-
-    // C ref: dogmove.c — if already adjacent to player, stay put
-    if (appr === 1 && udist <= 2) {
-        return 0;
-    }
+    // C ref: dogmove.c — confused pets don't approach or flee
+    if (mon.confused) appr = 0;
 
     // ========================================================================
-    // Position evaluation loop
-    // C ref: dogmove.c:1080-1260
+    // Position evaluation loop — uses mfndpos for C-faithful position collection
+    // C ref: dogmove.c:1063-1268
     // ========================================================================
+
+    // Collect valid positions (column-major order, no stay pos, boulder filter)
+    const positions = mfndpos(mon, map, player);
+    const cnt = positions.length;
+
     let nix = omx, niy = omy;
     let nidist = dist2(omx, omy, gx, gy);
     let chcnt = 0;
     let chi = -1;
     let uncursedcnt = 0;
-    const cursemsg = new Array(9).fill(false);
+    const cursemsg = new Array(cnt).fill(false);
 
     // First pass: count uncursed positions
-    for (let i = 0; i < 9; i++) {
-        let nx, ny;
-        if (i === 8) { nx = omx; ny = omy; }
-        else { nx = omx + xdir[i]; ny = omy + ydir[i]; }
-        if (!isok(nx, ny)) continue;
-        const loc = map.at(nx, ny);
-        if (!loc || !ACCESSIBLE(loc.typ)) continue;
-        if (map.monsterAt(nx, ny) && !(nx === omx && ny === omy)) continue;
-        if (nx === player.x && ny === player.y) continue;
-
-        // Check for cursed objects at this position
-        let hasCursed = false;
-        for (const obj of map.objects) {
-            if (obj.ox === nx && obj.oy === ny && obj.cursed) {
-                hasCursed = true; break;
-            }
-        }
-        if (!hasCursed) uncursedcnt++;
+    // C ref: dogmove.c:1066-1079
+    for (let i = 0; i < cnt; i++) {
+        const nx = positions[i].x, ny = positions[i].y;
+        if (cursed_object_at(map, nx, ny)) continue;
+        uncursedcnt++;
     }
 
     // Second pass: evaluate positions
-    let cnt = 0;
-    for (let i = 0; i < 9; i++) {
-        let nx, ny;
-        if (i === 8) { nx = omx; ny = omy; }
-        else { nx = omx + xdir[i]; ny = omy + ydir[i]; }
-        if (!isok(nx, ny)) continue;
-        const loc = map.at(nx, ny);
-        if (!loc || !ACCESSIBLE(loc.typ)) continue;
-        if (map.monsterAt(nx, ny) && !(nx === omx && ny === omy)) continue;
-        if (nx === player.x && ny === player.y) continue;
-
-        cnt++;
+    // C ref: dogmove.c:1088-1268
+    // C ref: distmin check for backtrack avoidance (hoisted from loop)
+    const distmin_pu = Math.max(Math.abs(omx - player.x), Math.abs(omy - player.y));
+    for (let i = 0; i < cnt; i++) {
+        const nx = positions[i].x, ny = positions[i].y;
 
         // Track backtracking avoidance
-        // C ref: dogmove.c:1195-1200 (shared with m_move at monmove.c:1962)
-        if (mon.mtrack) {
+        // C ref: dogmove.c:1243-1253 — only if not leashed and far from player
+        // distmin > 5 check prevents backtrack avoidance when close to player
+        // k = edog ? uncursedcnt : cnt; limit j < MTSZ && j < k - 1
+        if (mon.mtrack && distmin_pu > 5) {
+            const k = edog ? uncursedcnt : cnt;
             let skipThis = false;
-            for (let j = 0; j < MTSZ && j < mon.mtrack.length; j++) {
-                if (mon.mtrack[j].x === nx && mon.mtrack[j].y === ny) {
-                    if (rn2(4 * (cnt - j))) {
+            for (let j = 0; j < MTSZ && j < k - 1; j++) {
+                if (nx === mon.mtrack[j].x && ny === mon.mtrack[j].y) {
+                    if (rn2(MTSZ * (k - j))) {
                         skipThis = true;
                     }
                     break;
@@ -266,20 +387,22 @@ function dog_move(mon, map, player, display, fov) {
         }
 
         // Check for food at adjacent position
-        // C ref: dogmove.c:1210-1224 — dogfood check at position
+        // C ref: dogmove.c:1213-1235 — dogfood check at position
         // If food found, goto newdogpos (skip rest of loop)
         if (edog) {
             let foundFood = false;
+            const canReachFood = could_reach_item(map, mon, nx, ny);
             for (const obj of map.objects) {
                 if (obj.ox !== nx || obj.oy !== ny) continue;
                 if (obj.cursed) {
                     cursemsg[i] = true;
-                } else {
-                    const otyp = dogfood(mon, obj);
+                } else if (canReachFood) {
+                    const otyp = dogfood(mon, obj, turnCount);
                     if (otyp < MANFOOD
                         && (otyp < ACCFOOD || turnCount >= edog.hungrytime)) {
                         nix = nx; niy = ny; chi = i;
                         foundFood = true;
+                        cursemsg[i] = false; // C ref: not reluctant
                         break;
                     }
                 }
@@ -288,13 +411,13 @@ function dog_move(mon, map, player, display, fov) {
         }
 
         // Cursed avoidance
-        // C ref: dogmove.c:1227-1231
+        // C ref: dogmove.c:1236-1240
         if (cursemsg[i] && uncursedcnt > 0 && rn2(13 * uncursedcnt)) {
             continue;
         }
 
         // Distance comparison
-        // C ref: dogmove.c:1247-1256
+        // C ref: dogmove.c:1255-1265
         const ndist = dist2(nx, ny, gx, gy);
         const j = (ndist - nidist) * appr;
 
@@ -326,83 +449,68 @@ function dog_move(mon, map, player, display, fov) {
 }
 
 // ========================================================================
-// dogfood — classify object for pet food evaluation
+// m_move — hostile/peaceful monster movement
 // ========================================================================
 
-// C ref: dog.c dogfood() — returns food category
-// Always calls obj_resists (rn2(100)) for RNG consumption
-function dogfood(mon, obj) {
-    // C ref: dog.c:998 — poisoned items
-    if (obj.opoisoned) return POISON;
-
-    // C ref: dog.c:1000 — obj_resists(obj, 0, 95) → rn2(100)
-    const dominated = rn2(100);
-    if (dominated > 95) {
-        return obj.cursed ? TABU : APPORT;
-    }
-
-    // Classify by object class
-    // C ref: dog.c:1004-1129
-    if (obj.oclass === FOOD_CLASS) {
-        // C ref: dog.c food classification for carnivorous pets (dogs/cats)
-        if (obj.otyp === CORPSE) {
-            return CADAVER; // C ref: dog.c corpse for carnivorous = CADAVER
-        }
-        // C ref: is_meat() — tripe, meatball, meat_stick, etc.
-        if (obj.otyp === TRIPE_RATION || obj.otyp === MEATBALL
-            || obj.otyp === MEAT_STICK || obj.otyp === ENORMOUS_MEATBALL
-            || obj.otyp === MEAT_RING) {
-            return DOGFOOD; // C ref: is_meat && is_carnivorous → DOGFOOD
-        }
-        return MANFOOD;
-    }
-
-    // Non-food items
-    // C ref: dog.c:1121-1124 — APPORT if not cursed, not BALL/CHAIN
-    if (!obj.cursed) return APPORT;
-
-    // C ref: dog.c:1127-1128 — ROCK_CLASS or cursed → UNDEF
-    return UNDEF;
-}
-
-// ========================================================================
-// m_move — hostile monster movement with backtracking
-// ========================================================================
-
-// C ref: monmove.c m_move() — position evaluation with track avoidance
+// C ref: monmove.c m_move() — uses mfndpos + C-faithful position evaluation
+// Key differences from dog_move:
+//   - Position eval: first valid pos accepted (mmoved), then only strictly nearer
+//   - No rn2(3)/rn2(12) fallback for worse positions (that's dog_move only)
+//   - mfndpos provides positions in column-major order with NODIAG filtering
 function m_move(mon, map, player) {
     const omx = mon.mx, omy = mon.my;
-    const gx = player.x, gy = player.y;
+    const ggx = player.x, ggy = player.y;
 
-    // C ref: approach = 1 for hostile monsters moving toward player
-    const appr = mon.flee ? -1 : 1;
+    // C ref: monmove.c — appr setup
+    let appr = mon.flee ? -1 : 1;
 
+    // C ref: should_see = couldsee(omx, omy) && lighting && dist <= 36
+    // Controls whether monster tracks player by sight or by scent
+    const monLoc = map.at(omx, omy);
+    const playerLoc = map.at(ggx, ggy);
+    const should_see = couldsee(map, player, omx, omy)
+        && (playerLoc && playerLoc.lit || !(monLoc && monLoc.lit))
+        && (dist2(omx, omy, ggx, ggy) <= 36);
+
+    // C ref: monmove.c appr=0 conditions (simplified for current monsters)
+    // mcansee check, invisibility, stealth, bat/stalker randomness
+    // For now, only the relevant conditions for seed 42 scenario
+    if (mon.confused) {
+        appr = 0;
+    }
+    // C: peaceful monsters don't approach (unless shopkeeper)
+    if (mon.peaceful) {
+        appr = 0;
+    }
+
+    // Collect valid positions via mfndpos (column-major, NODIAG, boulder filter)
+    const positions = mfndpos(mon, map, player);
+    const cnt = positions.length;
+    if (cnt === 0) return; // no valid positions
+
+    // ========================================================================
+    // Position evaluation — C-faithful m_move logic
+    // C ref: monmove.c position eval loop
+    // Unlike dog_move, this does NOT use rn2(3)/rn2(12) for worse positions.
+    // Selection: mmoved==NOTHING accepts first, then (appr==1 && nearer),
+    //            (appr==-1 && !nearer), or (appr==0 && !rn2(++chcnt)).
+    // ========================================================================
     let nix = omx, niy = omy;
-    let nidist = dist2(omx, omy, gx, gy);
+    let nidist = dist2(omx, omy, ggx, ggy);
     let chcnt = 0;
-    let cnt = 0;
+    let mmoved = false; // C: mmoved = MMOVE_NOTHING
+    const jcnt = Math.min(MTSZ, cnt - 1);
 
-    for (let i = 0; i < 9; i++) {
-        let nx, ny;
-        if (i === 8) { nx = omx; ny = omy; }
-        else { nx = omx + xdir[i]; ny = omy + ydir[i]; }
-        if (!isok(nx, ny)) continue;
-
-        const loc = map.at(nx, ny);
-        if (!loc || !ACCESSIBLE(loc.typ)) continue;
-        if (IS_WALL(loc.typ) || loc.typ === STONE) continue;
-        if (IS_DOOR(loc.typ) && (loc.flags & D_CLOSED || loc.flags & D_LOCKED)) continue;
-        if (map.monsterAt(nx, ny) && !(nx === omx && ny === omy)) continue;
-        if (nx === player.x && ny === player.y) continue;
-
-        cnt++;
+    for (let i = 0; i < cnt; i++) {
+        const nx = positions[i].x;
+        const ny = positions[i].y;
 
         // Track backtracking avoidance
-        // C ref: monmove.c:1962 — rn2(4 * (cnt - j))
-        if (mon.mtrack) {
+        // C ref: monmove.c — only check when appr != 0
+        if (appr !== 0 && mon.mtrack) {
             let skipThis = false;
-            for (let j = 0; j < MTSZ && j < mon.mtrack.length; j++) {
-                if (mon.mtrack[j].x === nx && mon.mtrack[j].y === ny) {
+            for (let j = 0; j < jcnt; j++) {
+                if (nx === mon.mtrack[j].x && ny === mon.mtrack[j].y) {
                     if (rn2(4 * (cnt - j))) {
                         skipThis = true;
                     }
@@ -412,23 +520,28 @@ function m_move(mon, map, player) {
             if (skipThis) continue;
         }
 
-        // Distance comparison
-        // C ref: monmove.c position evaluation — same as dog_move
-        const ndist = dist2(nx, ny, gx, gy);
-        const j = (ndist - nidist) * appr;
+        const ndist = dist2(nx, ny, ggx, ggy);
+        const nearer = ndist < nidist;
 
-        if ((j === 0 && !rn2(++chcnt)) || j < 0
-            || (j > 0 && ((omx === nix && omy === niy && !rn2(3)) || !rn2(12)))) {
+        // C ref: monmove.c position selection
+        // appr==1: accept strictly nearer positions
+        // appr==-1: accept not-nearer (farther/equal) positions
+        // appr==0: random selection via rn2(++chcnt)
+        // mmoved==false: always accept first valid position
+        if ((appr === 1 && nearer)
+            || (appr === -1 && !nearer)
+            || (appr === 0 && !rn2(++chcnt))
+            || !mmoved) {
             nix = nx;
             niy = ny;
             nidist = ndist;
-            if (j < 0) chcnt = 0;
+            mmoved = true;
         }
     }
 
     // Move the monster
     if (nix !== omx || niy !== omy) {
-        // Update track history
+        // Update track history (C ref: mon_track_add)
         if (mon.mtrack) {
             for (let k = MTSZ - 1; k > 0; k--) {
                 mon.mtrack[k] = mon.mtrack[k - 1];

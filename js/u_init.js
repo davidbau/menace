@@ -15,7 +15,7 @@
 
 import { rn2, rnd, d } from './rng.js';
 import { mksobj } from './mkobj_gen.js';
-import { isok, NUM_ATTRS, PM_VALKYRIE, ACCESSIBLE } from './config.js';
+import { isok, NUM_ATTRS, PM_VALKYRIE, ACCESSIBLE, COLNO, ROWNO } from './config.js';
 import {
     SPEAR, DAGGER, SMALL_SHIELD, FOOD_RATION, OIL_LAMP,
     WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS, TOOL_CLASS,
@@ -29,26 +29,38 @@ import { mons, PM_LITTLE_DOG, PM_KITTEN } from './monsters.js';
 
 // C ref: teleport.c collect_coords() — collect positions by ring and shuffle
 // In NEW_ENEXTO, called once with maxRadius=3, processes all rings.
-// For each ring, collects all isok() positions and shuffles with
-// modified Fisher-Yates: while n > 1, swap candy[0] with candy[rn2(n)], n--.
+// For each ring, collects all isok() positions in row-major order (y outer,
+// x inner), matching C's for(y=loy..hiy) for(x=lox..hix) loop.
+// Then shuffles with Fisher-Yates from front: swap [i] with [i+rn2(n)], i++, n--.
 // Returns the array of shuffled positions (ring 1 first, then ring 2, ring 3).
 function collectCoordsShuffle(cx, cy, maxRadius) {
     const allPositions = [];
     for (let radius = 1; radius <= maxRadius; radius++) {
         const ring = [];
-        for (let dx = -radius; dx <= radius; dx++) {
-            for (let dy = -radius; dy <= radius; dy++) {
-                if (Math.max(Math.abs(dx), Math.abs(dy)) !== radius) continue;
-                if (isok(cx + dx, cy + dy)) ring.push({ x: cx + dx, y: cy + dy });
+        // C ref: teleport.c:671-690 — row-major: y outer loop, x inner loop
+        const loy = cy - radius, hiy = cy + radius;
+        const lox = cx - radius, hix = cx + radius;
+        for (let y = Math.max(loy, 0); y <= hiy; y++) {
+            if (y > ROWNO - 1) break;
+            for (let x = Math.max(lox, 1); x <= hix; x++) {
+                if (x > COLNO - 1) break;
+                // C: skip non-edge positions (not on ring boundary)
+                if (x !== lox && x !== hix && y !== loy && y !== hiy) continue;
+                if (isok(x, y)) ring.push({ x, y });
             }
         }
-        // C-faithful shuffle: always swap [0] with [rn2(n)]
+        // C ref: teleport.c:694-702 — Fisher-Yates from front
+        // swap passcc[0] with passcc[rn2(n)], then advance passcc, decrement n
+        let start = 0;
         let n = ring.length;
         while (n > 1) {
-            const j = rn2(n);
-            const temp = ring[0];
-            ring[0] = ring[j];
-            ring[j] = temp;
+            const k = rn2(n);
+            if (k !== 0) {
+                const temp = ring[start];
+                ring[start] = ring[start + k];
+                ring[start + k] = temp;
+            }
+            start++;
             n--;
         }
         for (const pos of ring) allPositions.push(pos);
@@ -151,14 +163,20 @@ function makedog(map, playerX, playerY, depth) {
         dead: false,
         passive: false,
         mtrack: [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }],
+        mnum: pmIdx,     // C ref: monst.h — index into mons[]
         // C ref: mextra.h struct edog — pet-specific data
+        // C ref: dog.c initedog(mtmp, TRUE) — full initialization
         edog: {
-            apport: 0,      // ACURR(A_CHA) — 0 before attribute init
-            hungrytime: 1000, // 1000 + moves (moves=0 at start)
+            apport: 0,          // ACURR(A_CHA) — set after attribute init
+            hungrytime: 1000,   // svm.moves + 1000 (moves=0 at start)
             droptime: 0,
             dropdist: 10000,
+            whistletime: 0,
             ogoal: { x: -1, y: -1 },
             abuse: 0,
+            revivals: 0,
+            mhpmax_penalty: 0,
+            killed_by_u: false,
         },
     };
 
@@ -349,6 +367,13 @@ export function simulatePostLevelInit(player, map, depth) {
 
     // 1. makedog() — pet creation (actually places pet on map)
     const pet = makedog(map, player.x, player.y, depth || 1);
+
+    // C ref: dog.c initedog() — apport = ACURR(A_CHA)
+    // Called inside makedog() BEFORE init_attr(), and u.acurr is still zeroed.
+    // acurr() computes max(u.abon + u.atemp + u.acurr, 3) = 3 at this point.
+    if (pet && pet.edog) {
+        pet.edog.apport = 3;
+    }
 
     // 2. u_init_inventory_attrs()
     //    a. u_init_role() → ini_inv(Valkyrie) + rn2(6) lamp check
