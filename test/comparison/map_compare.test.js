@@ -20,7 +20,7 @@ import {
     IS_WALL, IS_DOOR, ACCESSIBLE, isok
 } from '../../js/config.js';
 import { initRng } from '../../js/rng.js';
-import { initLevelGeneration, generateLevel, wallification } from '../../js/dungeon.js';
+import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 import { renderMap, generateMapText, CONFIGS } from './gen_golden.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -157,7 +157,7 @@ describe('Room wall completeness', () => {
         it(`all rooms have complete wall borders for ${label}`, () => {
             initRng(seed);
             initLevelGeneration();
-            const map = generateLevel(depth);
+            const map = makelevel(depth);
             wallification(map);
 
             for (const room of map.rooms) {
@@ -218,7 +218,7 @@ describe('Corridor connectivity', () => {
         it(`all rooms are reachable from first room for ${label}`, () => {
             initRng(seed);
             initLevelGeneration();
-            const map = generateLevel(depth);
+            const map = makelevel(depth);
             wallification(map);
 
             // Find first non-vault room
@@ -277,7 +277,7 @@ describe('Stairs placement', () => {
         it(`has a downstairs for ${label}`, () => {
             initRng(seed);
             initLevelGeneration();
-            const map = generateLevel(depth);
+            const map = makelevel(depth);
 
             assert.ok(
                 map.dnstair.x > 0 || map.dnstair.y > 0,
@@ -292,7 +292,7 @@ describe('Stairs placement', () => {
             it(`has an upstairs for ${label}`, () => {
                 initRng(seed);
                 initLevelGeneration();
-                const map = generateLevel(depth);
+                const map = makelevel(depth);
 
                 assert.ok(
                     map.upstair.x > 0 || map.upstair.y > 0,
@@ -308,7 +308,7 @@ describe('Stairs placement', () => {
     it('downstairs renders as > in the text map', () => {
         initRng(42);
         initLevelGeneration();
-        const map = generateLevel(1);
+        const map = makelevel(1);
         wallification(map);
         const rows = renderMap(map);
         const { x, y } = map.dnstair;
@@ -319,7 +319,7 @@ describe('Stairs placement', () => {
     it('upstairs renders as < in the text map', () => {
         initRng(42);
         initLevelGeneration();
-        const map = generateLevel(3);
+        const map = makelevel(3);
         wallification(map);
         const rows = renderMap(map);
         const { x, y } = map.upstair;

@@ -39,7 +39,7 @@ const RUN_KEYS = {
 // Process a command from the player
 // C ref: cmd.c rhack() -- main command dispatch
 // Returns: { moved: boolean, tookTime: boolean }
-export async function processCommand(ch, game) {
+export async function rhack(ch, game) {
     const { player, map, display, fov } = game;
     const c = String.fromCharCode(ch);
 
@@ -59,7 +59,7 @@ export async function processCommand(ch, game) {
         if (c === 's') {
             display.putstr_message('You search...');
             // C ref: detect.c dosearch0() -- check adjacent squares for hidden things
-            searchAround(player, map, display);
+            dosearch0(player, map, display);
         } else {
             display.putstr_message('You wait.');
         }
@@ -867,7 +867,7 @@ async function showGuidebook(display) {
 
 // Search for hidden doors and traps adjacent to player
 // C ref: detect.c dosearch0()
-export function searchAround(player, map, display) {
+export function dosearch0(player, map, display) {
     let found = false;
     for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {

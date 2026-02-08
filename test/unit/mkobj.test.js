@@ -9,7 +9,7 @@ import { mksobj, mkobj, RANDOM_CLASS } from '../../js/mkobj.js';
 import { objectData, NUM_OBJECTS,
     WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS, COIN_CLASS, WAND_CLASS,
 } from '../../js/objects.js';
-import { initLevelGeneration, generateLevel, wallification } from '../../js/dungeon.js';
+import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 
 describe('Object creation (C-faithful)', () => {
     it('objectData has expected number of entries', () => {
@@ -78,10 +78,10 @@ describe('Object creation (C-faithful)', () => {
 });
 
 describe('Level object population (C-faithful)', () => {
-    it('generateLevel places objects on the map', () => {
+    it('makelevel places objects on the map', () => {
         initRng(42);
         initLevelGeneration();
-        const map = generateLevel(1);
+        const map = makelevel(1);
         wallification(map);
 
         assert.ok(map.objects.length > 0, 'Level should have objects');
@@ -90,7 +90,7 @@ describe('Level object population (C-faithful)', () => {
     it('objects have C-faithful properties', () => {
         initRng(42);
         initLevelGeneration();
-        const map = generateLevel(1);
+        const map = makelevel(1);
         wallification(map);
 
         for (const obj of map.objects) {
@@ -106,7 +106,7 @@ describe('Level object population (C-faithful)', () => {
     it('gold pieces have quantity > 1', () => {
         initRng(42);
         initLevelGeneration();
-        const map = generateLevel(1);
+        const map = makelevel(1);
         wallification(map);
 
         const gold = map.objects.filter(o => o.oclass === COIN_CLASS);

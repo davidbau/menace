@@ -146,7 +146,7 @@ function can_reach_location(map, mon, mx, my, fx, fy) {
 // Move all monsters on the level
 // C ref: mon.c movemon() — multi-pass loop until no monster can move
 // Called from gameLoop after hero action, BEFORE mcalcmove.
-export function moveMonsters(map, player, display, fov) {
+export function movemon(map, player, display, fov) {
     let anyMoved;
     do {
         anyMoved = false;

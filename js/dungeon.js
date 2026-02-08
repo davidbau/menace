@@ -2929,7 +2929,7 @@ export function initLevelGeneration() {
 }
 
 // C ref: mklev.c makelevel()
-export function generateLevel(depth) {
+export function makelevel(depth) {
     setLevelDepth(depth);
 
     // C ref: bones.c getbones() — in wizard mode, always consumes rn2(3)

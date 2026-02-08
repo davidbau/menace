@@ -248,7 +248,7 @@ C binary (with 003-prng-logging.patch):
   → 258 rn2(5) = 2 @ mklev.c:1276
 
 JS (with enableRngLog()):
-  enableRngLog(); initRng(42); skipRng(257); generateLevel(1);
+  enableRngLog(); initRng(42); skipRng(257); makelevel(1);
   → 1 rn2(6) = 0    ← different! (algorithms diverge)
 ```
 

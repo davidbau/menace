@@ -8,12 +8,12 @@ import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { initRng, rn2, rnd, rn1 } from '../../js/rng.js';
-import { initLevelGeneration, generateLevel, wallification } from '../../js/dungeon.js';
+import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 import { Player } from '../../js/player.js';
 import { simulatePostLevelInit } from '../../js/u_init.js';
-import { moveMonsters } from '../../js/monmove.js';
+import { movemon } from '../../js/monmove.js';
 import { FOV } from '../../js/vision.js';
-import { searchAround } from '../../js/commands.js';
+import { dosearch0 } from '../../js/commands.js';
 import {
     COLNO, ROWNO, NORMAL_SPEED, A_DEX, A_CON,
     STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
@@ -238,7 +238,7 @@ function setupGame() {
     player.initRole(11);
     player.name = session.character.name;
     player.gender = 1;
-    const map = generateLevel(1);
+    const map = makelevel(1);
     wallification(map);
     player.x = map.upstair.x;
     player.y = map.upstair.y;
@@ -250,7 +250,7 @@ function setupGame() {
 }
 
 function doTurn(game) {
-    moveMonsters(game.map, game.player, game.display, game.fov);
+    movemon(game.map, game.player, game.display, game.fov);
     simulateTurnEnd(game);
     game.fov.compute(game.map, game.player.x, game.player.y);
 }
@@ -285,7 +285,7 @@ describe('Screen comparison (seed 42)', () => {
                     game.player.x += dir[0];
                     game.player.y += dir[1];
                 } else if (state.step.key === 's') {
-                    searchAround(game.player, game.map);
+                    dosearch0(game.player, game.map);
                 }
 
                 if (!NON_TURN_KEYS.has(state.step.key)) {

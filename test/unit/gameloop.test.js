@@ -5,7 +5,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { initRng, rn2, rnd, enableRngLog, getRngLog, disableRngLog } from '../../js/rng.js';
-import { initLevelGeneration, generateLevel, wallification } from '../../js/dungeon.js';
+import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 import { Player, roles } from '../../js/player.js';
 import { simulatePostLevelInit } from '../../js/u_init.js';
 import { NORMAL_SPEED, A_DEX } from '../../js/config.js';
@@ -18,7 +18,7 @@ function setupTestGame() {
     player.initRole(11); // PM_VALKYRIE
     player.name = 'Wizard';
     player.gender = 1; // female
-    const map = generateLevel(1);
+    const map = makelevel(1);
     wallification(map);
     player.x = map.upstair.x;
     player.y = map.upstair.y;

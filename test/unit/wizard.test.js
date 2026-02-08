@@ -6,8 +6,8 @@ import assert from 'node:assert/strict';
 import { COLNO, ROWNO, ROOM, STONE, ACCESSIBLE } from '../../js/config.js';
 import { initRng, rn2 } from '../../js/rng.js';
 import { GameMap } from '../../js/map.js';
-import { initLevelGeneration, generateLevel, wallification } from '../../js/dungeon.js';
-import { processCommand } from '../../js/commands.js';
+import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
+import { rhack } from '../../js/commands.js';
 import { FOV } from '../../js/vision.js';
 import { pushInput } from '../../js/input.js';
 
@@ -28,7 +28,7 @@ function mockDisplay() {
 function mockGame(opts = {}) {
     initRng(42);
     initLevelGeneration();
-    const map = generateLevel(1);
+    const map = makelevel(1);
     wallification(map);
     const display = mockDisplay();
     const fov = new FOV();
@@ -58,7 +58,7 @@ function mockGame(opts = {}) {
             if (!this.levels[depth]) {
                 initRng(42 + depth);
                 initLevelGeneration();
-                const newMap = generateLevel(depth);
+                const newMap = makelevel(depth);
                 wallification(newMap);
                 this.levels[depth] = newMap;
             }
@@ -92,7 +92,7 @@ describe('Wizard mode', () => {
             assert.ok(unseenBefore > 0, 'Some cells should be unseen initially');
 
             // Ctrl+F = char code 6
-            const result = await processCommand(6, game);
+            const result = await rhack(6, game);
 
             // After: all cells should have seenv = 0xff
             for (let x = 0; x < COLNO; x++) {
@@ -108,7 +108,7 @@ describe('Wizard mode', () => {
 
         it('rejects Ctrl+F in non-wizard mode', async () => {
             const game = mockGame({ wizard: false });
-            const result = await processCommand(6, game);
+            const result = await rhack(6, game);
             // Should show unknown command (not wizard mode)
             assert.equal(result.tookTime, false);
         });
@@ -117,7 +117,7 @@ describe('Wizard mode', () => {
     describe('Wizard commands rejected outside wizard mode', () => {
         it('Ctrl+V (levelchange) shows unknown command', async () => {
             const game = mockGame({ wizard: false });
-            const result = await processCommand(22, game);
+            const result = await rhack(22, game);
             assert.equal(result.tookTime, false);
             // Non-wizard mode should show unknown command message
             assert.ok(game.display.messages.length > 0);
@@ -125,25 +125,25 @@ describe('Wizard mode', () => {
 
         it('Ctrl+T (teleport) shows unknown command', async () => {
             const game = mockGame({ wizard: false });
-            const result = await processCommand(20, game);
+            const result = await rhack(20, game);
             assert.equal(result.tookTime, false);
         });
 
         it('Ctrl+G (genesis) shows unknown command', async () => {
             const game = mockGame({ wizard: false });
-            const result = await processCommand(7, game);
+            const result = await rhack(7, game);
             assert.equal(result.tookTime, false);
         });
 
         it('Ctrl+W (wish) shows unknown command', async () => {
             const game = mockGame({ wizard: false });
-            const result = await processCommand(23, game);
+            const result = await rhack(23, game);
             assert.equal(result.tookTime, false);
         });
 
         it('Ctrl+I (identify) shows unknown command', async () => {
             const game = mockGame({ wizard: false });
-            const result = await processCommand(9, game);
+            const result = await rhack(9, game);
             assert.equal(result.tookTime, false);
         });
     });
@@ -151,7 +151,7 @@ describe('Wizard mode', () => {
     describe('Magic mapping details', () => {
         it('sets lit = true on all cells', async () => {
             const game = mockGame({ wizard: true });
-            await processCommand(6, game);
+            await rhack(6, game);
             for (let x = 0; x < COLNO; x++) {
                 for (let y = 0; y < ROWNO; y++) {
                     assert.equal(game.map.at(x, y).lit, true,
@@ -176,20 +176,20 @@ describe('Wizard mode', () => {
         it('help command does not take time', async () => {
             const game = mockGame({ wizard: false });
             pushInput('q'.charCodeAt(0));  // dismiss help menu
-            const result = await processCommand('?'.charCodeAt(0), game);
+            const result = await rhack('?'.charCodeAt(0), game);
             assert.equal(result.tookTime, false);
             assert.ok(game.display.messages.length > 0, 'Help should display a message');
         });
 
         it('look command does not take time', async () => {
             const game = mockGame({ wizard: false });
-            const result = await processCommand(':'.charCodeAt(0), game);
+            const result = await rhack(':'.charCodeAt(0), game);
             assert.equal(result.tookTime, false);
         });
 
         it('inventory command does not take time', async () => {
             const game = mockGame({ wizard: false });
-            const result = await processCommand('i'.charCodeAt(0), game);
+            const result = await rhack('i'.charCodeAt(0), game);
             assert.equal(result.tookTime, false);
             assert.ok(game.display.messages.some(m => m.includes('Not carrying')));
         });
@@ -198,14 +198,14 @@ describe('Wizard mode', () => {
     describe('Wait and search commands', () => {
         it('wait takes a turn', async () => {
             const game = mockGame({ wizard: false });
-            const result = await processCommand('.'.charCodeAt(0), game);
+            const result = await rhack('.'.charCodeAt(0), game);
             assert.equal(result.tookTime, true);
             assert.ok(game.display.messages.some(m => m.includes('wait')));
         });
 
         it('search takes a turn', async () => {
             const game = mockGame({ wizard: false });
-            const result = await processCommand('s'.charCodeAt(0), game);
+            const result = await rhack('s'.charCodeAt(0), game);
             assert.equal(result.tookTime, true);
             assert.ok(game.display.messages.some(m => m.includes('search')));
         });

@@ -363,7 +363,7 @@ the start of `makelevel()`.  These come from:
 | `bones.c` | 1 | Bones file check |
 
 JS doesn't implement these subsystems yet.  If we just call `initRng(seed)` and
-then `generateLevel()`, the PRNG state is 257 values behind the C version.
+then `makelevel()`, the PRNG state is 257 values behind the C version.
 
 **Choice:** `skipRng(n)` -- consume n raw ISAAC64 values without logging, to
 fast-forward past C startup calls that JS doesn't need yet.

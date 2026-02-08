@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { initRng } from '../../js/rng.js';
 import { COLNO, ROWNO, ROOM, STONE, HWALL } from '../../js/config.js';
 import { GameMap } from '../../js/map.js';
-import { moveMonsters } from '../../js/monmove.js';
+import { movemon } from '../../js/monmove.js';
 import { Player } from '../../js/player.js';
 
 // Mock display
@@ -52,7 +52,7 @@ describe('Monster movement', () => {
         map.monsters.push(mon);
 
         const startDist = Math.abs(mon.mx - player.x) + Math.abs(mon.my - player.y);
-        moveMonsters(map, player, mockDisplay);
+        movemon(map, player, mockDisplay);
         const endDist = Math.abs(mon.mx - player.x) + Math.abs(mon.my - player.y);
 
         assert.ok(endDist <= startDist,
@@ -80,7 +80,7 @@ describe('Monster movement', () => {
         map.monsters.push(mon);
 
         const startX = mon.mx, startY = mon.my;
-        moveMonsters(map, player, mockDisplay);
+        movemon(map, player, mockDisplay);
 
         // Sleeping monster far from player should stay put
         assert.equal(mon.mx, startX);
@@ -106,7 +106,7 @@ describe('Monster movement', () => {
         });
 
         assert.equal(map.monsters.length, 1);
-        moveMonsters(map, player, mockDisplay);
+        movemon(map, player, mockDisplay);
         assert.equal(map.monsters.length, 0, 'Dead monsters should be removed');
     });
 
@@ -135,7 +135,7 @@ describe('Monster movement', () => {
         };
         map.monsters.push(mon);
 
-        moveMonsters(map, player, mockDisplay);
+        movemon(map, player, mockDisplay);
 
         // Monster should not have passed through the wall
         assert.ok(mon.mx <= 16 || mon.mx >= 18,

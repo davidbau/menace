@@ -8,13 +8,13 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { initRng, rn2, rnd, rn1, enableRngLog, getRngLog, disableRngLog } from '../../js/rng.js';
-import { initLevelGeneration, generateLevel, wallification } from '../../js/dungeon.js';
+import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 import { Player } from '../../js/player.js';
 import { simulatePostLevelInit } from '../../js/u_init.js';
-import { moveMonsters } from '../../js/monmove.js';
+import { movemon } from '../../js/monmove.js';
 import { FOV } from '../../js/vision.js';
 import { NORMAL_SPEED, A_DEX, A_CON } from '../../js/config.js';
-import { searchAround } from '../../js/commands.js';
+import { dosearch0 } from '../../js/commands.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SESSION_DIR = join(__dirname, '../comparison/sessions');
@@ -88,7 +88,7 @@ function setupGame() {
     player.initRole(11); // PM_VALKYRIE
     player.name = session.character.name;
     player.gender = 1; // female
-    const map = generateLevel(1);
+    const map = makelevel(1);
     wallification(map);
     player.x = map.upstair.x;
     player.y = map.upstair.y;
@@ -100,7 +100,7 @@ function setupGame() {
 }
 
 function doTurn(game) {
-    moveMonsters(game.map, game.player, game.display, game.fov);
+    movemon(game.map, game.player, game.display, game.fov);
     simulateTurnEnd(game);
     game.fov.compute(game.map, game.player.x, game.player.y);
 }
@@ -112,7 +112,7 @@ function applyAction(game, step) {
         game.player.x += dir[0];
         game.player.y += dir[1];
     } else if (step.key === 's') {
-        searchAround(game.player, game.map, game.display);
+        dosearch0(game.player, game.map, game.display);
     }
     // '.', ':', 'i', '@' etc. — no pre-turn action
 }

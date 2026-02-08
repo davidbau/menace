@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 
 import { initRng, enableRngLog, getRngLog, disableRngLog, skipRng } from '../../js/rng.js';
-import { initLevelGeneration, generateLevel } from '../../js/dungeon.js';
+import { initLevelGeneration, makelevel } from '../../js/dungeon.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -86,18 +86,18 @@ function generateCRngLog(seed) {
 
 // Generate JS RNG log
 // initLevelGeneration() runs init_objects() (198 rn2 calls) + simulateDungeonInit()
-// (variable rn2 calls), then generateLevel() runs the per-level bones rn2(3) + makelevel.
+// (variable rn2 calls), then makelevel() runs the per-level bones rn2(3) + makelevel.
 function generateJSRngLog(seed) {
     enableRngLog();
     initRng(seed);
     initLevelGeneration();
-    generateLevel(1);
+    makelevel(1);
     const log = getRngLog();
     disableRngLog();
     return log;
 }
 
-// Number of logged init_objects calls at the start of generateLevel
+// Number of logged init_objects calls at the start of makelevel
 const JS_INIT_OBJECTS_CALLS = 198;
 
 // Find the first call from a given file in the C log

@@ -9,9 +9,9 @@ import { initInput, nhgetch } from './input.js';
 import { FOV } from './vision.js';
 import { Player, roles } from './player.js';
 import { GameMap } from './map.js';
-import { initLevelGeneration, generateLevel, wallification } from './dungeon.js';
-import { processCommand } from './commands.js';
-import { moveMonsters } from './monmove.js';
+import { initLevelGeneration, makelevel, wallification } from './dungeon.js';
+import { rhack } from './commands.js';
+import { movemon } from './monmove.js';
 import { simulatePostLevelInit } from './u_init.js';
 
 // Parse URL parameters for game options
@@ -163,7 +163,7 @@ class NetHackGame {
             this.map = this.levels[depth];
         } else {
             // Generate new level
-            this.map = generateLevel(depth);
+            this.map = makelevel(depth);
             wallification(this.map);
             this.levels[depth] = this.map;
         }
@@ -220,14 +220,14 @@ class NetHackGame {
             this.display.clearRow(0); // clear message line
 
             // Process command
-            const result = await processCommand(ch, this);
+            const result = await rhack(ch, this);
 
             // If time passed, process turn effects
             // C ref: allmain.c moveloop_core() -- context.move handling
             if (result.tookTime) {
                 // Move monsters
                 // C ref: allmain.c moveloop_core() -> movemon()
-                moveMonsters(this.map, this.player, this.display, this.fov);
+                movemon(this.map, this.player, this.display, this.fov);
 
                 // C ref: allmain.c — new turn setup (after both hero and monsters done)
                 this.simulateTurnEnd();

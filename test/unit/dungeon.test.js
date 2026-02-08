@@ -8,13 +8,13 @@ import { COLNO, ROWNO, STONE, ROOM, CORR, DOOR, STAIRS, HWALL, VWALL,
          IS_WALL, IS_DOOR, ACCESSIBLE, isok } from '../../js/config.js';
 function REACHABLE(typ) { return ACCESSIBLE(typ) || typ === SDOOR || typ === SCORR; }
 import { initRng } from '../../js/rng.js';
-import { initLevelGeneration, generateLevel, wallification } from '../../js/dungeon.js';
+import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 
 describe('Dungeon generation', () => {
     it('generates a level with rooms', () => {
         initRng(42);
         initLevelGeneration();
-        const map = generateLevel(1);
+        const map = makelevel(1);
         assert.ok(map.rooms.length >= 1, 'Level should have at least 1 room');
         assert.ok(map.rooms.length <= 10, 'Level should have at most 10 rooms');
     });
@@ -22,7 +22,7 @@ describe('Dungeon generation', () => {
     it('rooms have valid dimensions', () => {
         initRng(42);
         initLevelGeneration();
-        const map = generateLevel(1);
+        const map = makelevel(1);
         for (const room of map.rooms) {
             assert.ok(room.lx >= 1 && room.lx < COLNO - 1);
             assert.ok(room.hx >= room.lx && room.hx < COLNO - 1);
@@ -44,7 +44,7 @@ describe('Dungeon generation', () => {
     it('rooms are filled with accessible tiles', () => {
         initRng(42);
         initLevelGeneration();
-        const map = generateLevel(1);
+        const map = makelevel(1);
         for (const room of map.rooms) {
             for (let x = room.lx; x <= room.hx; x++) {
                 for (let y = room.ly; y <= room.hy; y++) {
@@ -60,7 +60,7 @@ describe('Dungeon generation', () => {
     it('rooms have walls around them', () => {
         initRng(42);
         initLevelGeneration();
-        const map = generateLevel(1);
+        const map = makelevel(1);
         wallification(map);
         for (const room of map.rooms) {
             // Check top and bottom walls
@@ -84,7 +84,7 @@ describe('Dungeon generation', () => {
     it('has a downstairs', () => {
         initRng(42);
         initLevelGeneration();
-        const map = generateLevel(1);
+        const map = makelevel(1);
         assert.ok(map.dnstair.x > 0 || map.dnstair.y > 0,
             'Level 1 should have a downstairs');
     });
@@ -92,7 +92,7 @@ describe('Dungeon generation', () => {
     it('downstairs is on accessible terrain', () => {
         initRng(42);
         initLevelGeneration();
-        const map = generateLevel(1);
+        const map = makelevel(1);
         if (map.dnstair.x > 0 || map.dnstair.y > 0) {
             const loc = map.at(map.dnstair.x, map.dnstair.y);
             assert.ok(ACCESSIBLE(loc.typ),
@@ -103,7 +103,7 @@ describe('Dungeon generation', () => {
     it('corridors connect rooms', () => {
         initRng(42);
         initLevelGeneration();
-        const map = generateLevel(1);
+        const map = makelevel(1);
         // Count corridor tiles
         let corrCount = 0;
         for (let x = 0; x < COLNO; x++) {
@@ -119,7 +119,7 @@ describe('Dungeon generation', () => {
     it('all rooms are reachable from the first room', () => {
         initRng(42);
         initLevelGeneration();
-        const map = generateLevel(1);
+        const map = makelevel(1);
         // Skip vault rooms -- they are intentionally disconnected in NetHack
         const nonVaultRooms = map.rooms.filter(r => r.rtype !== VAULT);
         if (nonVaultRooms.length <= 1) return;
@@ -157,10 +157,10 @@ describe('Dungeon generation', () => {
     it('produces different layouts with different seeds', () => {
         initRng(1);
         initLevelGeneration();
-        const map1 = generateLevel(1);
+        const map1 = makelevel(1);
         initRng(2);
         initLevelGeneration();
-        const map2 = generateLevel(1);
+        const map2 = makelevel(1);
         // Compare room counts or positions
         const rooms1 = map1.rooms.map(r => `${r.lx},${r.ly}`).join(';');
         const rooms2 = map2.rooms.map(r => `${r.lx},${r.ly}`).join(';');
@@ -171,7 +171,7 @@ describe('Dungeon generation', () => {
         for (let depth = 1; depth <= 10; depth++) {
             initRng(42 + depth);
             initLevelGeneration();
-            const map = generateLevel(depth);
+            const map = makelevel(depth);
             assert.ok(map.rooms.length >= 1, `Level ${depth} should have rooms`);
         }
     });

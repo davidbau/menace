@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 
 import { COLNO, ROWNO } from '../../js/config.js';
 import { initRng } from '../../js/rng.js';
-import { initLevelGeneration, generateLevel, wallification } from '../../js/dungeon.js';
+import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -22,7 +22,7 @@ const GOLDEN_DIR = join(__dirname, 'golden');
 export function generateTypGrid(seed, depth) {
     initRng(seed);
     initLevelGeneration();
-    const map = generateLevel(depth);
+    const map = makelevel(depth);
     wallification(map);
 
     const rows = [];
@@ -45,7 +45,7 @@ export function generateTypGridSequential(seed, maxDepth) {
     initLevelGeneration();
     const grids = {};
     for (let depth = 1; depth <= maxDepth; depth++) {
-        const map = generateLevel(depth);
+        const map = makelevel(depth);
         wallification(map);
         const rows = [];
         for (let y = 0; y < ROWNO; y++) {

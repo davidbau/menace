@@ -37,7 +37,7 @@ const NODIR = 1;
 const IMMEDIATE = 2;
 
 // Save canonical (unshuffled) object properties on first call.
-// Since JS may call init_objects() multiple times (once per generateLevel),
+// Since JS may call init_objects() multiple times (once per makelevel),
 // we restore originals before each shuffle to ensure determinism.
 let savedProps = null;
 
