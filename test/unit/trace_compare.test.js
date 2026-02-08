@@ -14,7 +14,8 @@ import { Player, roles } from '../../js/player.js';
 import { simulatePostLevelInit } from '../../js/u_init.js';
 import { moveMonsters } from '../../js/monmove.js';
 import { FOV } from '../../js/fov.js';
-import { NORMAL_SPEED, A_DEX } from '../../js/config.js';
+import { NORMAL_SPEED, A_DEX, A_CON } from '../../js/config.js';
+import { searchAround } from '../../js/commands.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TRACE_DIR = join(__dirname, '../comparison/traces/seed42_reference');
@@ -48,7 +49,49 @@ function mcalcmove(mon) {
     return mmove;
 }
 
-// Inline simulateTurnEnd (mirrors nethack.js, without display/hunger side effects)
+// C ref: attrib.c exercise() — accumulate attribute exercise
+// Only matters for RNG when called with inc_or_dec=true and abs(AEXE) < AVAL(50)
+function exercise(player, attrIndex, inc_or_dec) {
+    // C ref: attrib.c:489-490 — can't exercise INT or CHA
+    if (attrIndex === 1 || attrIndex === 5) return; // A_INT, A_CHA
+    // C ref: attrib.c:496 — abs(AEXE(i)) < AVAL (50)
+    // At startup AEXE is always 0, so this is always true in our short trace
+    if (inc_or_dec) {
+        rn2(19); // C ref: attrib.c:506 — rn2(19) > ACURR(i)
+    } else {
+        rn2(2);  // C ref: attrib.c:506 — -rn2(2)
+    }
+}
+
+// C ref: attrib.c exerper() — periodic exercise accumulation
+function exerper(game) {
+    const { player } = game;
+    // C ref: svm.moves starts at 1, JS turnCount starts at 0, so add 1
+    // to get the C-equivalent value (svm.moves is already incremented
+    // before exerchk runs in allmain.c:241 → 355)
+    const moves = game.turnCount + 1;
+
+    // C ref: attrib.c:520 — hunger checks every 10 turns
+    if (!(moves % 10)) {
+        // Player hunger > 150 = NOT_HUNGRY → exercise(A_CON, TRUE)
+        // Player hunger > 1000 = SATIATED → exercise(A_DEX, FALSE) + monk check
+        // For our Valkyrie with starting hunger 900, NOT_HUNGRY applies
+        if (player.hunger > 1000) {
+            exercise(player, A_DEX, false);
+        } else if (player.hunger > 150) {
+            exercise(player, A_CON, true);
+        }
+        // Encumbrance: UNENCUMBERED → no exercise
+    }
+
+    // C ref: attrib.c:567 — status checks every 5 turns
+    if (!(moves % 5)) {
+        // No clairvoyant, regeneration, sick, confusion, etc. at startup
+        // So no exercise calls from status checks
+    }
+}
+
+// Inline simulateTurnEnd (mirrors nethack.js + C's allmain.c moveloop_core per-turn tail)
 function simulateTurnEnd(game) {
     const { player, map } = game;
     game.turnCount++;
@@ -62,6 +105,9 @@ function simulateTurnEnd(game) {
     rn2(70);  // monster spawn
     rn2(400); // dosounds
     rn2(20);  // gethungry
+
+    // C ref: attrib.c exerchk() — called between gethungry and engrave wipe
+    exerper(game);
 
     const dex = player.attributes ? player.attributes[A_DEX] : 14;
     rn2(40 + dex * 3); // engrave wipe
@@ -304,6 +350,72 @@ describe('C trace comparison (seed 42)', () => {
                 `Turn 4 call ${i}: expected ${cEntry.call}, got ${jsMatch[1]}`);
             assert.equal(parseInt(jsMatch[2]), cEntry.result,
                 `Turn 4 call ${i}: ${cEntry.call} expected result ${cEntry.result}, got ${jsMatch[2]}`);
+        }
+    });
+
+    // Turns 5-11: extends move sequence :hhlhhhh.hhs
+    // Turn 5=h, 6=h, 7=h, 8=., 9=h, 10=h, 11=s
+    it('turns 5-11 match C traces rng_006 through rng_012', () => {
+        const game = setupGame();
+
+        // Replay turns 1-4 (no logging)
+        movePlayer(game, -1, 0); doTurn(game); // turn 1: h
+        movePlayer(game, -1, 0); doTurn(game); // turn 2: h
+        movePlayer(game, 1, 0);  doTurn(game); // turn 3: l
+        movePlayer(game, -1, 0); doTurn(game); // turn 4: h
+
+        // Define turns 5-11
+        const turns = [
+            { turn: 5,  action: 'move', dx: -1, dy: 0, trace: 'rng_006_h_move-west.txt' },
+            { turn: 6,  action: 'move', dx: -1, dy: 0, trace: 'rng_007_h_move-west.txt' },
+            { turn: 7,  action: 'move', dx: -1, dy: 0, trace: 'rng_008_h_move-west.txt' },
+            { turn: 8,  action: 'wait', dx: 0,  dy: 0, trace: 'rng_009_._wait.txt' },
+            { turn: 9,  action: 'move', dx: -1, dy: 0, trace: 'rng_010_h_move-west.txt' },
+            { turn: 10, action: 'move', dx: -1, dy: 0, trace: 'rng_011_h_move-west.txt' },
+            { turn: 11, action: 'search', dx: 0, dy: 0, trace: 'rng_012_s_search.txt' },
+        ];
+
+        for (const t of turns) {
+            const cTrace = parseTrace(t.trace);
+
+            // Apply action before logging
+            if (t.action === 'move') {
+                movePlayer(game, t.dx, t.dy);
+            } else if (t.action === 'search') {
+                // searchAround checks adjacent SDOOR/SCORR with rn2(7)
+                // At this player position, no hidden features → 0 RNG calls
+                searchAround(game.player, game.map, game.display);
+            }
+            // 'wait' = no action before doTurn
+
+            enableRngLog();
+            doTurn(game);
+            const jsLog = getRngLog();
+            disableRngLog();
+
+            console.log(`\nTurn ${t.turn}: ${jsLog.length} RNG calls (C expects ${cTrace.length})`);
+
+            if (jsLog.length !== cTrace.length) {
+                console.log('JS calls:');
+                for (const entry of jsLog) console.log(`  ${entry}`);
+                console.log('C calls:');
+                for (const entry of cTrace) console.log(`  ${entry.idx} ${entry.call} = ${entry.result}`);
+            }
+
+            assert.equal(jsLog.length, cTrace.length,
+                `Turn ${t.turn}: expected ${cTrace.length} RNG calls, got ${jsLog.length}`);
+
+            // Compare each call
+            for (let i = 0; i < cTrace.length; i++) {
+                const jsEntry = jsLog[i];
+                const cEntry = cTrace[i];
+                const jsMatch = jsEntry.match(/\d+\s+(rn[d12]\(\d+\))\s*=\s*(\d+)/);
+                assert.ok(jsMatch, `Could not parse JS log entry: ${jsEntry}`);
+                assert.equal(jsMatch[1], cEntry.call,
+                    `Turn ${t.turn} call ${i}: expected ${cEntry.call}, got ${jsMatch[1]}`);
+                assert.equal(parseInt(jsMatch[2]), cEntry.result,
+                    `Turn ${t.turn} call ${i}: ${cEntry.call} expected result ${cEntry.result}, got ${jsMatch[2]}`);
+            }
         }
     });
 });

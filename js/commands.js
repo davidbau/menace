@@ -866,7 +866,7 @@ async function showGuidebook(display) {
 
 // Search for hidden doors and traps adjacent to player
 // C ref: detect.c dosearch0()
-function searchAround(player, map, display) {
+export function searchAround(player, map, display) {
     let found = false;
     for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {

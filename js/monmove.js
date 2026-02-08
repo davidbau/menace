@@ -228,7 +228,10 @@ function dog_move(mon, map, player, display, fov) {
     const omx = mon.mx, omy = mon.my;
     const udist = dist2(omx, omy, player.x, player.y);
     const edog = mon.edog || { apport: 0, hungrytime: 1000, whistletime: 0 };
-    const turnCount = player.turns || 0;
+    // C ref: dog_move uses svm.moves which is incremented at end of turn,
+    // so during movemon() svm.moves = (completed turns + 1).
+    // JS player.turns is incremented after movemon(), so add 1 to match C.
+    const turnCount = (player.turns || 0) + 1;
 
     // C ref: dogmove.c — whappr = (monstermoves - edog->whistletime < 5)
     const whappr = (turnCount - edog.whistletime) < 5 ? 1 : 0;
@@ -368,26 +371,8 @@ function dog_move(mon, map, player, display, fov) {
     for (let i = 0; i < cnt; i++) {
         const nx = positions[i].x, ny = positions[i].y;
 
-        // Track backtracking avoidance
-        // C ref: dogmove.c:1243-1253 — only if not leashed and far from player
-        // distmin > 5 check prevents backtrack avoidance when close to player
-        // k = edog ? uncursedcnt : cnt; limit j < MTSZ && j < k - 1
-        if (mon.mtrack && distmin_pu > 5) {
-            const k = edog ? uncursedcnt : cnt;
-            let skipThis = false;
-            for (let j = 0; j < MTSZ && j < k - 1; j++) {
-                if (nx === mon.mtrack[j].x && ny === mon.mtrack[j].y) {
-                    if (rn2(MTSZ * (k - j))) {
-                        skipThis = true;
-                    }
-                    break;
-                }
-            }
-            if (skipThis) continue;
-        }
-
         // Check for food at adjacent position
-        // C ref: dogmove.c:1213-1235 — dogfood check at position
+        // C ref: dogmove.c:1207-1227 — dogfood check at position
         // If food found, goto newdogpos (skip rest of loop)
         if (edog) {
             let foundFood = false;
@@ -411,13 +396,31 @@ function dog_move(mon, map, player, display, fov) {
         }
 
         // Cursed avoidance
-        // C ref: dogmove.c:1236-1240
+        // C ref: dogmove.c:1230-1232
         if (cursemsg[i] && uncursedcnt > 0 && rn2(13 * uncursedcnt)) {
             continue;
         }
 
+        // Track backtracking avoidance
+        // C ref: dogmove.c:1239-1245 — only if not leashed and far from player
+        // distmin > 5 check prevents backtrack avoidance when close to player
+        // k = edog ? uncursedcnt : cnt; limit j < MTSZ && j < k - 1
+        if (mon.mtrack && distmin_pu > 5) {
+            const k = edog ? uncursedcnt : cnt;
+            let skipThis = false;
+            for (let j = 0; j < MTSZ && j < k - 1; j++) {
+                if (nx === mon.mtrack[j].x && ny === mon.mtrack[j].y) {
+                    if (rn2(MTSZ * (k - j))) {
+                        skipThis = true;
+                    }
+                    break;
+                }
+            }
+            if (skipThis) continue;
+        }
+
         // Distance comparison
-        // C ref: dogmove.c:1255-1265
+        // C ref: dogmove.c:1247-1257
         const ndist = dist2(nx, ny, gx, gy);
         const j = (ndist - nidist) * appr;
 
