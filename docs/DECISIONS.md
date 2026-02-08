@@ -1,6 +1,11 @@
 # Design Decision Log
 
+> *"You feel as if someone is watching you make choices. It must be
+> the DevTeam."*
+
 ## Decision 1: Async Game Loop via Promise Queue
+
+> *"You are momentarily blinded by the Promise."*
 
 **Context:** The C NetHack game loop calls `nhgetch()` which blocks the thread
 until a key is pressed. JavaScript in the browser cannot block.
@@ -28,6 +33,8 @@ input function must be async. This is pervasive but mechanical.
 
 ## Decision 2: Single-Page HTML with Inline Terminal
 
+> *"The walls of the room are covered in `<span>` tags."*
+
 **Context:** How to render the 80×24 character display.
 
 **Options considered:**
@@ -51,6 +58,8 @@ screen redraws at 60fps would be fine.
 
 ## Decision 3: ES6 Modules Without Build Step
 
+> *"You don't need a build tool. You feel remarkably unburdened."*
+
 **Context:** How to organize the JavaScript code.
 
 **Options considered:**
@@ -70,6 +79,8 @@ screen redraws at 60fps would be fine.
 
 ## Decision 4: Faithful DEC Symbols via Unicode
 
+> *"You see here a box-drawing character (U+2502)."*
+
 **Context:** Classic NetHack uses DEC Special Graphics characters for wall
 drawing. These are box-drawing characters like ─│┌┐└┘├┤┬┴┼.
 
@@ -87,6 +98,8 @@ TTY experience.
 ---
 
 ## Decision 5: Simplified Vision for Initial Port
+
+> *"It is dark. You can't see anything but the pragmatic choice."*
 
 **Context:** NetHack's vision.c implements a complex raycasting algorithm for
 field of view.
@@ -107,6 +120,8 @@ FOV initially.
 ---
 
 ## Decision 6: Monster & Object Data as Structured JS Arrays
+
+> *"You see here 382 monsters and 478 objects. They have been carefully catalogued."*
 
 **Context:** The C code defines monster data via C macros in monsters.h
 (3927 lines) and object data in objects.h (1647 lines).
@@ -144,6 +159,9 @@ The C line reference in the comment allows cross-referencing.
 
 ## Decision 7: Global State Object Pattern
 
+> *"You feel the weight of hundreds of global variables settle into a
+> single namespace."*
+
 **Context:** The C code uses many global variables (decl.c has hundreds).
 How to manage these in JS?
 
@@ -163,6 +181,8 @@ How to manage these in JS?
 ---
 
 ## Decision 8: RNG -- ISAAC64 for Exact C Compatibility
+
+> *"You feel the hand of fate guiding you. It is using BigInt arithmetic."*
 
 **Context:** NetHack uses a seeded RNG for reproducible games. The C code uses
 ISAAC64 (isaac64.c) for the main game RNG and the system RNG for initial
@@ -193,6 +213,8 @@ first prototype, but was replaced with ISAAC64 to enable exact C matching.
 
 ## Decision 9: Corridor Algorithm -- Faithful Port of join()
 
+> *"You hear the rumble of distant digging. The corridors connect."*
+
 **Context:** mklev.c's `join()` function creates L-shaped corridors between
 rooms. This is a signature visual element of NetHack's dungeon.
 
@@ -206,6 +228,8 @@ This ensures the dungeon "looks like NetHack."
 ---
 
 ## Decision 10: Wizard Mode via URL Parameters
+
+> *"You are in wizard mode. All query parameters are at your disposal."*
 
 **Context:** NetHack's wizard mode (debug mode) is invaluable for testing. The C
 version activates it via compile-time flags or special user names. We need a
@@ -380,3 +404,8 @@ information.
 **Future:** When we port `o_init()`, `dungeon.c` init, etc., the skip count
 drops accordingly.  When all startup systems are ported, `skipRng()` is no
 longer needed.  The PRNG log comparison tests track progress toward this goal.
+
+---
+
+> *"You have reached the bottom of the decision log. There are more decisions
+> to come. The strident call of the DevTeam echoes in the distance."*

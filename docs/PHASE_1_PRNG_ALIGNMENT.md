@@ -667,3 +667,7 @@ After all 10 steps:
 - **RNG traces**: Per-turn PERFECT MATCH
 - **Screen comparison**: 0 total differences across game states
 - **Maps**: 17 seeds × 5 depths, all matching cell-for-cell
+
+> *"You ascend to the Plane of Determinism. All randomness is accounted for.
+> You offer the Amulet of ISAAC64 to your deity... The voice of fate booms:
+> 'Congratulations, mortal, thy code is bit-exact!'"*

@@ -1,4 +1,7 @@
-# NetHack JavaScript Port - Architecture & Design
+# Architecture & Design
+
+> *"You enter a vast hall of interconnected modules. The architecture is elegant,
+> if somewhat maze-like."*
 
 ## Overview
 
@@ -8,6 +11,8 @@ JavaScript** that mirrors the C implementation's logic, with comments referencin
 the original C source files and line numbers.
 
 ## Design Principles
+
+> *"The strident call of fidelity echoes through the corridors."*
 
 1. **Fidelity over convenience** -- The JS code mirrors the C logic so a reader
    can follow along with the original source. Variable names, function names,
@@ -19,9 +24,12 @@ the original C source files and line numbers.
 
 3. **Readable, not compiled** -- This is a hand-ported readable JS codebase, not
    an Emscripten/WASM compilation. Every function can be read and understood.
+   You could print it out and read it on the bus, though your fellow passengers
+   might edge away.
 
 4. **Incremental faithfulness** -- We port the core game loop first, then layer
-   on subsystems. Each layer adds more faithful behavior.
+   on subsystems. Each layer adds more faithful behavior. Like descending
+   through the dungeon, each level reveals more.
 
 ## Architecture
 
@@ -65,6 +73,8 @@ webhack/
 
 ### Display Architecture
 
+> *"The walls of the room are covered in `<span>` tags."*
+
 **Choice: `<pre>` with per-cell `<span>` elements**
 
 The display uses a `<pre>` element containing an 80×24 grid. Each character
@@ -90,6 +100,8 @@ four as regions within the terminal grid, with menus overlaying the map.
 
 ### Input Architecture
 
+> *"You wait for input. Time passes..."*
+
 **Choice: Async queue with Promise-based waiting**
 
 The C game loop is synchronous: `ch = nhgetch()` blocks until a key is pressed.
@@ -105,6 +117,8 @@ else follows from this: the game loop, command dispatch, and all input-requestin
 functions become async.
 
 ### Game Loop Architecture
+
+> *"You are caught in an infinite loop!"*
 
 **C version** (allmain.c:593):
 ```c
@@ -135,6 +149,8 @@ The core loop structure mirrors the C exactly:
 
 ### Data Porting Strategy
 
+> *"You see here 382 monsters and 478 objects."*
+
 **Monster data** (`monsters.h`, 3927 lines): The C uses macro-heavy definitions
 like `MON(NAM("giant ant"), S_ANT, LVL(2,18,3,0,0), ...)`. We port these to
 JS objects: `{ name: "giant ant", symbol: 'a', level: 2, speed: 18, ... }`.
@@ -147,6 +163,8 @@ ported to JS objects with traceability comments.
 descriptions, and colors. Ported to a JS array of `{ch, desc, color}` objects.
 
 ### Level Generation Strategy
+
+> *"You hear the rumble of distant construction."*
 
 NetHack's dungeon generation (mklev.c) uses this algorithm:
 1. Decide number of rooms (3-5 on most levels)
@@ -162,6 +180,8 @@ from `join()` in mklev.c which creates L-shaped corridors.
 
 ### Combat Architecture
 
+> *"You hit the grid bug! The grid bug is killed!"*
+
 Combat mirrors the C's `uhitm.c` (hero hits monster) and `mhitu.c` (monster
 hits hero). The core flow:
 1. To-hit roll: `1d20 + bonuses >= target AC + 10`
@@ -169,6 +189,8 @@ hits hero). The core flow:
 3. Special effects (poison, drain, etc.)
 
 ### Vision/FOV Architecture
+
+> *"It is dark. You can see four directions."*
 
 The C version uses a sophisticated raycasting algorithm in `vision.c`. For the
 initial port, we implement a simplified but correct line-of-sight algorithm
@@ -178,6 +200,8 @@ that produces equivalent results for standard room-and-corridor levels:
 - Dark rooms: see only adjacent squares
 
 ## Global State Management
+
+> *"You feel the weight of hundreds of global variables."*
 
 The C version uses extensive global variables (declared in decl.c/decl.h):
 - `u` -- the player (`struct you`)
@@ -201,6 +225,8 @@ const NH = {
 ```
 
 ## Map Representation
+
+> *"You try to map the level. This is too hard to map!"*
 
 The C version uses `level.locations[x][y]` (an array of `struct rm`).
 Each location has:
@@ -258,3 +284,8 @@ aligning the state.  Even so, the algorithms currently diverge at call #1
 because the room placement algorithms differ.  As we port C's `rect.c` and
 `mklev.c` more faithfully, the divergence point moves later, and the diff
 count drops.  The goal: zero divergence.
+
+---
+
+> *"You ascend to a higher plane of existence. The architecture makes sense
+> from up here."*
