@@ -215,9 +215,15 @@ function dochug(mon, map, player, display, fov) {
     if (!phase3Cond) phase3Cond = !!(mon.peaceful);
 
     if (phase3Cond) {
-        // Inside condition block: m_move (routes to dog_move for tame)
-        // C ref: monmove.c:911 — m_move() for all monsters in this path
-        if (mon.tame) {
+        // C ref: monmove.c:1743-1748 — meating check (inside m_move)
+        // If monster is still eating, decrement meating and skip movement
+        if (mon.meating) {
+            mon.meating--;
+            // C ref: dogmove.c:1454 finish_meating — clear meating when done
+            // (no RNG consumed)
+        } else if (mon.tame) {
+            // Inside condition block: m_move (routes to dog_move for tame)
+            // C ref: monmove.c:911 — m_move() for all monsters in this path
             dog_move(mon, map, player, display, fov);
         } else {
             m_move(mon, map, player);

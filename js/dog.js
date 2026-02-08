@@ -7,6 +7,7 @@ import {
     MR_POISON, MR_ACID, MR_STONE, MR_FIRE,
     M1_NOTAKE, M1_NOHANDS, M2_STRONG, M2_ROCKTHROW,
     WT_HUMAN, MZ_HUMAN,
+    MZ_TINY, MZ_SMALL, MZ_MEDIUM, MZ_LARGE, MZ_HUGE, MZ_GIGANTIC,
     AT_ENGL,
     S_BLOB, S_JELLY, S_FUNGUS, S_VORTEX, S_LIGHT, S_ELEMENTAL,
     S_GOLEM, S_GHOST, S_YETI, S_KOBOLD, S_ORC, S_OGRE, S_NYMPH, S_DRAGON,
@@ -387,19 +388,44 @@ export function can_carry(mon, obj) {
 //      delobj → obj_resists(0,0) → rn2(100)
 // ========================================================================
 
-// C ref: dogmove.c:171-214 dog_nutrition() — simplified for RNG alignment
-// This function does NOT consume RNG.
+// C ref: dogmove.c:155-214 dog_nutrition()
+// Sets mon.meating (turns spent eating) and returns nutrition value.
+// No RNG consumed.
 function dog_nutrition(mon, obj) {
-    if (obj.otyp === CORPSE) {
-        return 5 * (obj.corpsenm !== undefined && ismnum(obj.corpsenm)
-            ? (mons[obj.corpsenm].nutrition || 0)
-            : 0);
-    }
+    const mdat = mons[mon.mnum];
+    let nutrit;
+
     if (obj.oclass === FOOD_CLASS) {
-        return objectData[obj.otyp].nutrition || 0;
+        if (obj.otyp === CORPSE) {
+            const corpsenm = obj.corpsenm !== undefined ? obj.corpsenm : 0;
+            // C ref: dogmove.c:166
+            mon.meating = 3 + (mons[corpsenm].weight >> 6);
+            nutrit = mons[corpsenm].nutrition || 0;
+        } else {
+            // C ref: dogmove.c:169
+            mon.meating = objectData[obj.otyp].delay || 0;
+            nutrit = objectData[obj.otyp].nutrition || 0;
+        }
+        // C ref: dogmove.c:172-192 — size multiplier
+        switch (mdat.size) {
+            case MZ_TINY:     nutrit *= 8; break;
+            case MZ_SMALL:    nutrit *= 6; break;
+            default:
+            case MZ_MEDIUM:   nutrit *= 5; break;
+            case MZ_LARGE:    nutrit *= 4; break;
+            case MZ_HUGE:     nutrit *= 3; break;
+            case MZ_GIGANTIC: nutrit *= 2; break;
+        }
+        // C ref: dogmove.c:193-196 — eaten_stat for partially eaten (skip for now)
+    } else if (obj.oclass === COIN_CLASS) {
+        mon.meating = Math.floor((obj.quan || 1) / 2000) + 1;
+        nutrit = Math.floor((obj.quan || 1) / 20);
+    } else {
+        // Non-food (metallivore, gelatinous cube, etc.)
+        mon.meating = Math.floor((obj.owt || 0) / 20) + 1;
+        nutrit = 5 * (objectData[obj.otyp].nutrition || 0);
     }
-    // Non-food (metallivore, gelatinous cube, etc.)
-    return 5 * (objectData[obj.otyp].nutrition || 0);
+    return nutrit;
 }
 
 // Returns 2 if pet dies (not implemented), otherwise 1
