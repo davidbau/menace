@@ -15,6 +15,7 @@ import {
     WAN_CANCELLATION, WAN_LIGHT, WAN_LIGHTNING,
     BAG_OF_HOLDING, OILSKIN_SACK, BAG_OF_TRICKS, SACK,
     LARGE_BOX, CHEST, ICE_BOX, CORPSE, STATUE,
+    CLASS_SYMBOLS,
     initObjectData,
 } from './objects.js';
 import { rndmonnum } from './makemon_gen.js';
@@ -203,6 +204,7 @@ function newobj(otyp) {
         opoisoned: 0,
         corpsenm: -1, // NON_PM
         owt: objectData[otyp].weight,
+        displayChar: CLASS_SYMBOLS[objectData[otyp].oc_class] || '?',
         ox: 0, oy: 0,
         where: 'free',
         lamplit: false,
