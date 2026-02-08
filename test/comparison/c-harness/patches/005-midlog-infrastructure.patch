@@ -1,0 +1,267 @@
+diff --git a/include/extern.h b/include/extern.h
+index 959db5978..fdbd43f66 100644
+--- a/include/extern.h
++++ b/include/extern.h
+@@ -2732,6 +2732,10 @@ extern void shuffle_int_array(int *, int) NONNULLARG1;
+ /* PRNG call logging (003-prng-logging patch) */
+ extern void rng_log_init(void);
+ extern void rng_log_set_caller(const char *, int, const char *);
++/* Mid-level function tracing (005-midlog-infrastructure patch) */
++extern void midlog_enter(const char *, const char *, int, const char *);
++extern void midlog_exit_int(const char *, int, const char *, int, const char *);
++extern void midlog_exit_void(const char *, const char *, int, const char *);
+ 
+ /* ### role.c ### */
+ 
+diff --git a/include/hack.h b/include/hack.h
+index 4f6bf9353..500d01cf7 100644
+--- a/include/hack.h
++++ b/include/hack.h
+@@ -1597,6 +1597,86 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
+ #define rnz(x) (rng_log_set_caller(__FILE__, __LINE__, __func__), rnz(x))
+ #endif /* RNGLOG_IN_RND_C */
+ 
++/*
++ * Mid-level function tracing macros (005-midlog-infrastructure patch).
++ *
++ * These wrap calls to key functions with >entry/<exit log lines,
++ * interleaved with the RNG log.  Uses the same C99 self-reference
++ * trick as the RNG macros: the macro name found during its own
++ * expansion resolves to the real function.
++ *
++ * Each source file defining traced functions suppresses its own
++ * macros via MIDLOG_IN_xxx_C (analogous to RNGLOG_IN_RND_C).
++ */
++static inline int
++midlog_wrap_int(const char *fn, int r, const char *f, int l, const char *c)
++{
++    midlog_exit_int(fn, r, f, l, c);
++    return r;
++}
++
++/* Bool-returning: somexy, somexyspace */
++#ifndef MIDLOG_IN_MKROOM_C
++#define somexy(a,b) \
++    (midlog_enter("somexy", __FILE__, __LINE__, __func__), \
++     midlog_wrap_int("somexy", somexy(a,b), __FILE__, __LINE__, __func__))
++#define somexyspace(a,b) \
++    (midlog_enter("somexyspace", __FILE__, __LINE__, __func__), \
++     midlog_wrap_int("somexyspace", somexyspace(a,b), __FILE__, __LINE__, __func__))
++#endif
++
++/* Int-returning: rndmonnum */
++#ifndef MIDLOG_IN_MKOBJ_C
++#define rndmonnum() \
++    (midlog_enter("rndmonnum", __FILE__, __LINE__, __func__), \
++     midlog_wrap_int("rndmonnum", rndmonnum(), __FILE__, __LINE__, __func__))
++#endif
++
++/* Int-returning: dochug, m_move */
++#ifndef MIDLOG_IN_MONMOVE_C
++#define dochug(a) \
++    (midlog_enter("dochug", __FILE__, __LINE__, __func__), \
++     midlog_wrap_int("dochug", dochug(a), __FILE__, __LINE__, __func__))
++#define m_move(a,b) \
++    (midlog_enter("m_move", __FILE__, __LINE__, __func__), \
++     midlog_wrap_int("m_move", m_move(a,b), __FILE__, __LINE__, __func__))
++#endif
++
++/* Int-returning: dog_move */
++#ifndef MIDLOG_IN_DOGMOVE_C
++#define dog_move(a,b) \
++    (midlog_enter("dog_move", __FILE__, __LINE__, __func__), \
++     midlog_wrap_int("dog_move", dog_move(a,b), __FILE__, __LINE__, __func__))
++#endif
++
++/* Int-returning: mattacku */
++#ifndef MIDLOG_IN_MHITU_C
++#define mattacku(a) \
++    (midlog_enter("mattacku", __FILE__, __LINE__, __func__), \
++     midlog_wrap_int("mattacku", mattacku(a), __FILE__, __LINE__, __func__))
++#endif
++
++/* Int-returning: thitu */
++#ifndef MIDLOG_IN_MTHROWU_C
++#define thitu(a,b,c,d) \
++    (midlog_enter("thitu", __FILE__, __LINE__, __func__), \
++     midlog_wrap_int("thitu", thitu(a,b,c,d), __FILE__, __LINE__, __func__))
++#endif
++
++/* Int-returning: dosearch0 */
++#ifndef MIDLOG_IN_DETECT_C
++#define dosearch0(a) \
++    (midlog_enter("dosearch0", __FILE__, __LINE__, __func__), \
++     midlog_wrap_int("dosearch0", dosearch0(a), __FILE__, __LINE__, __func__))
++#endif
++
++/* Int-returning: mfndpos */
++#ifndef MIDLOG_IN_MON_C
++#define mfndpos(a,b,c) \
++    (midlog_enter("mfndpos", __FILE__, __LINE__, __func__), \
++     midlog_wrap_int("mfndpos", mfndpos(a,b,c), __FILE__, __LINE__, __func__))
++#endif
++
+ #endif  /* RECOVER_C */
+ 
+ #endif /* HACK_H */
+diff --git a/src/detect.c b/src/detect.c
+index bf536e127..22c543043 100644
+--- a/src/detect.c
++++ b/src/detect.c
+@@ -8,6 +8,7 @@
+  * command.
+  */
+ 
++#define MIDLOG_IN_DETECT_C
+ #include "hack.h"
+ #include "artifact.h"
+ 
+diff --git a/src/dogmove.c b/src/dogmove.c
+index c22eba74b..e3f96f262 100644
+--- a/src/dogmove.c
++++ b/src/dogmove.c
+@@ -3,6 +3,7 @@
+ /*-Copyright (c) Robert Patrick Rankin, 2012. */
+ /* NetHack may be freely redistributed.  See license for details. */
+ 
++#define MIDLOG_IN_DOGMOVE_C
+ #include "hack.h"
+ 
+ #include "mfndpos.h"
+diff --git a/src/mhitu.c b/src/mhitu.c
+index 79b12a737..93affd89f 100644
+--- a/src/mhitu.c
++++ b/src/mhitu.c
+@@ -3,6 +3,7 @@
+ /*-Copyright (c) Robert Patrick Rankin, 2012. */
+ /* NetHack may be freely redistributed.  See license for details. */
+ 
++#define MIDLOG_IN_MHITU_C
+ #include "hack.h"
+ #include "artifact.h"
+ 
+diff --git a/src/mkobj.c b/src/mkobj.c
+index f2adf2185..648448d53 100644
+--- a/src/mkobj.c
++++ b/src/mkobj.c
+@@ -3,6 +3,7 @@
+ /*-Copyright (c) Derek S. Ray, 2015. */
+ /* NetHack may be freely redistributed.  See license for details. */
+ 
++#define MIDLOG_IN_MKOBJ_C
+ #include "hack.h"
+ 
+ staticfn boolean may_generate_eroded(struct obj *);
+diff --git a/src/mkroom.c b/src/mkroom.c
+index c859b1c0e..3c7fc0f90 100644
+--- a/src/mkroom.c
++++ b/src/mkroom.c
+@@ -15,6 +15,7 @@
+  *      cmap_to_type() -- convert S_xxx symbol to XXX topology code
+  */
+ 
++#define MIDLOG_IN_MKROOM_C
+ #include "hack.h"
+ 
+ #ifndef SFCTOOL
+diff --git a/src/mon.c b/src/mon.c
+index 883db340c..fb9dab42a 100644
+--- a/src/mon.c
++++ b/src/mon.c
+@@ -3,6 +3,7 @@
+ /*-Copyright (c) Derek S. Ray, 2015. */
+ /* NetHack may be freely redistributed.  See license for details. */
+ 
++#define MIDLOG_IN_MON_C
+ #include "hack.h"
+ #include "mfndpos.h"
+ 
+diff --git a/src/monmove.c b/src/monmove.c
+index 3830e3713..d60962dcb 100644
+--- a/src/monmove.c
++++ b/src/monmove.c
+@@ -3,6 +3,7 @@
+ /*-Copyright (c) Michael Allison, 2006. */
+ /* NetHack may be freely redistributed.  See license for details. */
+ 
++#define MIDLOG_IN_MONMOVE_C
+ #include "hack.h"
+ #include "mfndpos.h"
+ #include "artifact.h"
+diff --git a/src/mthrowu.c b/src/mthrowu.c
+index 613150656..e40e850bd 100644
+--- a/src/mthrowu.c
++++ b/src/mthrowu.c
+@@ -3,6 +3,7 @@
+ /*-Copyright (c) Pasi Kallinen, 2016. */
+ /* NetHack may be freely redistributed.  See license for details. */
+ 
++#define MIDLOG_IN_MTHROWU_C
+ #include "hack.h"
+ 
+ staticfn int monmulti(struct monst *, struct obj *, struct obj *);
+diff --git a/src/rnd.c b/src/rnd.c
+index 695c156f0..c7e6c2429 100644
+--- a/src/rnd.c
++++ b/src/rnd.c
+@@ -76,6 +76,60 @@ rng_log_write(const char *func, const char *args, int result)
+     }
+ }
+ 
++/*
++ * Mid-level function tracing (005-midlog-infrastructure patch).
++ *
++ * Logs >entry and <exit markers for key functions, interleaved with the
++ * RNG call log.  Uses the same rng_logfile and rng_call_count.
++ *
++ * Format:
++ *   >funcname @ caller(file:line)
++ *   <funcname=result #start-end @ caller(file:line)
++ *
++ * A stack records rng_call_count at entry so exit can report the
++ * RNG call range consumed by the function.
++ */
++#define MIDLOG_STACK_SIZE 16
++static int midlog_stack[MIDLOG_STACK_SIZE];
++static int midlog_depth = 0;
++
++void
++midlog_enter(const char *fn, const char *file, int line, const char *caller)
++{
++    if (!rng_logfile)
++        return;
++    if (midlog_depth < MIDLOG_STACK_SIZE)
++        midlog_stack[midlog_depth] = rng_call_count;
++    midlog_depth++;
++    fprintf(rng_logfile, ">%s @ %s(%s:%d)\n", fn, caller, file, line);
++}
++
++void
++midlog_exit_int(const char *fn, int result,
++                const char *file, int line, const char *caller)
++{
++    if (!rng_logfile)
++        return;
++    --midlog_depth;
++    int entry = (midlog_depth >= 0 && midlog_depth < MIDLOG_STACK_SIZE)
++                    ? midlog_stack[midlog_depth] : 0;
++    fprintf(rng_logfile, "<%s=%d #%d-%d @ %s(%s:%d)\n",
++            fn, result, entry + 1, rng_call_count, caller, file, line);
++}
++
++void
++midlog_exit_void(const char *fn,
++                 const char *file, int line, const char *caller)
++{
++    if (!rng_logfile)
++        return;
++    --midlog_depth;
++    int entry = (midlog_depth >= 0 && midlog_depth < MIDLOG_STACK_SIZE)
++                    ? midlog_stack[midlog_depth] : 0;
++    fprintf(rng_logfile, "<%s #%d-%d @ %s(%s:%d)\n",
++            fn, entry + 1, rng_call_count, caller, file, line);
++}
++
+ #ifdef USE_ISAAC64
+ #include "isaac64.h"
+ 

@@ -64,11 +64,18 @@ def parse_rng_lines(lines):
     Filters out wrapper function entries (rne, rnz, d) that the C PRNG logger
     records separately from their internal rn2/rnd/rn1 calls. Only primitive
     RNG functions are kept, matching the JS logging convention.
+
+    Mid-level function tracing lines (>entry/<exit from 005-midlog patch)
+    are passed through unchanged.
     """
     entries = []
     for line in lines:
         line = line.strip()
         if not line:
+            continue
+        # Mid-level tracing: >funcname ... or <funcname ... — pass through as-is
+        if line[0] in ('>', '<'):
+            entries.append(line)
             continue
         parts = line.split(None, 1)
         if len(parts) < 2:
@@ -166,14 +173,16 @@ def generate_one(seed, max_depth, with_rng):
                 rng_count, rng_lines = read_rng_log(rng_log_file)
                 delta_lines = rng_lines[prev_rng_count:rng_count]
                 rng_entries = parse_rng_lines(delta_lines)
-                level_data['rngCalls'] = len(rng_entries)
+                level_data['rngCalls'] = sum(1 for e in rng_entries if e[0] not in ('>', '<'))
                 level_data['rng'] = rng_entries
                 prev_rng_count = rng_count
             else:
                 # Even without full traces, capture the count
                 if rng_log_file and os.path.exists(rng_log_file):
-                    rng_count, _ = read_rng_log(rng_log_file)
-                    level_data['rngCalls'] = rng_count - prev_rng_count
+                    rng_count, rng_lines_raw = read_rng_log(rng_log_file)
+                    delta_lines = rng_lines_raw[prev_rng_count:rng_count]
+                    actual_rng = sum(1 for l in delta_lines if l.strip() and l.strip()[0] not in ('>', '<'))
+                    level_data['rngCalls'] = actual_rng
                     prev_rng_count = rng_count
 
             levels.append(level_data)

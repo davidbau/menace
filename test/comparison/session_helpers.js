@@ -123,10 +123,17 @@ export function generateMapsSequential(seed, maxDepth) {
 // RNG trace capture and comparison
 // ---------------------------------------------------------------------------
 
+// Check if a log entry is a mid-level function trace (>entry or <exit).
+function isMidlogEntry(entry) {
+    return entry.length > 0 && (entry[0] === '>' || entry[0] === '<');
+}
+
 // Convert JS log entry to compact session format.
 // JS format: "1 rn2(12)=2" or "1 rn2(12)=2 @ caller(file.js:45)"
 // Compact:   "rn2(12)=2" or "rn2(12)=2 @ caller(file.js:45)"
+// Mid-level trace entries (>/<) are passed through unchanged.
 function toCompactRng(entry) {
+    if (isMidlogEntry(entry)) return entry;
     // Strip leading count prefix: "1 rn2(...)=result ..." → "rn2(...)=result ..."
     return entry.replace(/^\d+\s+/, '');
 }
@@ -140,18 +147,30 @@ function rngCallPart(entry) {
 // Compare two RNG trace arrays.
 // Returns { index: -1 } on match, or { index, js, session } at first divergence.
 // Compares fn(arg)=result portion only (ignores @ source:line tags).
+// Mid-level trace entries (>/<) from C sessions are skipped during comparison
+// since JS does not (yet) emit them.
 export function compareRng(jsRng, sessionRng) {
-    const len = Math.min(jsRng.length, sessionRng.length);
-    for (let i = 0; i < len; i++) {
-        if (rngCallPart(jsRng[i]) !== rngCallPart(sessionRng[i])) {
-            return { index: i, js: jsRng[i], session: sessionRng[i] };
+    let si = 0; // session index
+    let ji = 0; // js index
+    while (ji < jsRng.length && si < sessionRng.length) {
+        // Skip midlog entries in session trace
+        if (isMidlogEntry(sessionRng[si])) { si++; continue; }
+        // Skip midlog entries in JS trace (future-proofing)
+        if (isMidlogEntry(jsRng[ji])) { ji++; continue; }
+        if (rngCallPart(jsRng[ji]) !== rngCallPart(sessionRng[si])) {
+            return { index: ji, js: jsRng[ji], session: sessionRng[si] };
         }
+        ji++;
+        si++;
     }
-    if (jsRng.length !== sessionRng.length) {
+    // Skip trailing midlog entries
+    while (si < sessionRng.length && isMidlogEntry(sessionRng[si])) si++;
+    while (ji < jsRng.length && isMidlogEntry(jsRng[ji])) ji++;
+    if (ji < jsRng.length || si < sessionRng.length) {
         return {
-            index: len,
-            js: jsRng[len] || '(end)',
-            session: sessionRng[len] || '(end)',
+            index: ji,
+            js: jsRng[ji] || '(end)',
+            session: sessionRng[si] || '(end)',
         };
     }
     return { index: -1 };
