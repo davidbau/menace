@@ -1,5 +1,6 @@
 {
-  "version": 1,
+  "version": 2,
+  "type": "gameplay",
   "seed": 1,
   "wizard": true,
   "character": {

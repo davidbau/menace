@@ -1,40 +1,76 @@
-# C Reference Session Format
+# Session Format (v2)
 
 > *"You carefully read the scroll. It describes a session format."*
 
 ## Overview
 
-A **session file** is a single JSON document that captures everything needed
-to verify the JS port against C NetHack for a given playthrough: the random
-seed, character options, command sequence, and ground-truth data (screen
-states, RNG traces, terrain grids) captured from the C binary.
+A **session file** is a single JSON document that captures reference data for
+verifying the JS port against C NetHack. All test reference data lives in
+session files — there is one unified format for both map-only grid comparison
+and full gameplay replay.
 
-Each session file is self-contained. One file can span multiple dungeon
-levels. Test code reads these files and replays the same sequence in JS,
-comparing screen output and RNG consumption at each step.
+**Two session types:**
+- **`"map"`** — terrain type grids at multiple dungeon depths (no gameplay)
+- **`"gameplay"`** — full playthrough with RNG traces, screens, and step data
+
+All data fields are optional except `version` and `seed`. The test runner
+(`session_runner.test.js`) verifies whatever fields are present and skips
+the rest. This means a minimal session with just a seed and one typGrid is
+a valid test.
 
 **File location:** `test/comparison/sessions/`
-**Naming convention:** `seed<N>.session.json` (e.g., `seed42.session.json`)
+**Naming:** `seed<N>_maps.session.json` (map) or `seed<N>.session.json` (gameplay)
 
-## Why JSON?
+## Map-Only Sessions
 
-Previously, reference data was scattered across ~30 files per seed in
-3 different text formats:
-- `screen_NNN_*.txt` — 24-line terminal captures (DEC graphics)
-- `rng_NNN_*.txt` — numbered RNG call logs with C source locations
-- `typ_seed*_depth*.txt` — space-separated terrain type grids
-- `trace_summary.txt` — human-readable summary
-
-This made it hard to add new test sessions, required custom parsers for
-each format, and spread related data across many files. A single JSON
-document per session is easier to generate, parse, version, and extend.
-
-## Format Specification
+Map sessions capture terrain type grids at multiple dungeon depths.
+The test runner generates levels 1→N sequentially on one continuous RNG
+stream (matching C's behavior when wizard-teleporting through levels).
 
 ```jsonc
 {
-  // Schema version — increment when format changes
-  "version": 1,
+  "version": 2,
+  "seed": 42,
+  "type": "map",
+  "source": "js",  // "js" = generated from JS, "c" = captured from C binary
+  "levels": [
+    { "depth": 1, "typGrid": [[0, 0, ...], ...21 rows of 80 ints] },
+    { "depth": 2, "typGrid": [[...], ...] },
+    { "depth": 3, "typGrid": [[...], ...] },
+    { "depth": 4, "typGrid": [[...], ...] },
+    { "depth": 5, "typGrid": [[...], ...] }
+  ]
+}
+```
+
+The test runner calls `generateMapsSequential(seed, maxDepth)` which runs
+`initRng(seed) → initLevelGeneration() → makelevel(1) → ... → makelevel(N)`,
+then compares the JS typGrid at each stored depth against the session data.
+Structural tests (wall completeness, corridor connectivity, stairs placement)
+also run on each generated level.
+
+**Generating map sessions from JS:**
+```bash
+node test/comparison/gen_typ_grid.js --sessions 5
+```
+
+**Generating map sessions from C** (captures ground-truth reference data):
+```bash
+python3 test/comparison/c-harness/gen_map_sessions.py 42 5
+```
+
+## Gameplay Sessions
+
+Gameplay sessions capture a full playthrough: startup state and a sequence
+of player actions with per-step RNG traces, screens, and terrain grids.
+
+```jsonc
+{
+  // Schema version
+  "version": 2,
+
+  // Session type
+  "type": "gameplay",
 
   // PRNG seed (passed as NETHACK_SEED to C binary)
   "seed": 42,

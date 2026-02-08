@@ -105,10 +105,96 @@ const CONFIGS = [
 
 export { CONFIGS };
 
-// When executed directly, write golden typ grid files
-function main() {
-    mkdirSync(GOLDEN_DIR, { recursive: true });
+// Collect unique seeds from CONFIGS
+function uniqueSeeds() {
+    const seeds = new Set();
+    for (const { seed } of CONFIGS) seeds.add(seed);
+    return [...seeds].sort((a, b) => a - b);
+}
 
+// Generate v2 map-only session JSON files using sequential generation.
+// Each session covers depths 1→maxDepth for one seed.
+function generateSessions(maxDepth = 5) {
+    const sessionsDir = join(__dirname, 'sessions');
+    mkdirSync(sessionsDir, { recursive: true });
+
+    for (const seed of uniqueSeeds()) {
+        initRng(seed);
+        initLevelGeneration();
+
+        const levels = [];
+        for (let depth = 1; depth <= maxDepth; depth++) {
+            const map = makelevel(depth);
+            wallification(map);
+            const grid = [];
+            for (let y = 0; y < ROWNO; y++) {
+                const row = [];
+                for (let x = 0; x < COLNO; x++) {
+                    const loc = map.at(x, y);
+                    row.push(loc ? loc.typ : 0);
+                }
+                grid.push(row);
+            }
+            levels.push({ depth, typGrid: grid });
+        }
+
+        const session = {
+            version: 2,
+            seed,
+            type: 'map',
+            source: 'js',
+            levels,
+        };
+
+        // Write with compact typGrid rows (arrays of numbers on one line)
+        const raw = JSON.stringify(session, null, 2);
+        const lines = raw.split('\n');
+        const result = [];
+        let i = 0;
+        while (i < lines.length) {
+            const line = lines[i];
+            // Detect start of a number array
+            if (line.trimEnd().endsWith('[') && i + 1 < lines.length) {
+                const next = lines[i + 1].trim();
+                if (next && /^-?\d/.test(next.replace(/,$/, ''))) {
+                    const prefix = line.trimEnd();
+                    const nums = [];
+                    let j = i + 1;
+                    while (j < lines.length) {
+                        const t = lines[j].trim();
+                        if (t === ']' || t === '],') {
+                            result.push(`${prefix}${nums.join(', ')}${t}`);
+                            i = j + 1;
+                            break;
+                        }
+                        nums.push(t.replace(/,$/, ''));
+                        j++;
+                    }
+                    continue;
+                }
+            }
+            result.push(line);
+            i++;
+        }
+
+        const filename = `seed${seed}_maps.session.json`;
+        const filepath = join(sessionsDir, filename);
+        writeFileSync(filepath, result.join('\n') + '\n', 'utf-8');
+        console.log(`Wrote ${filepath} (${levels.length} levels)`);
+    }
+}
+
+// When executed directly, write golden typ grid files or session files
+function main() {
+    const mode = process.argv[2];
+
+    if (mode === '--sessions') {
+        const maxDepth = parseInt(process.argv[3] || '5', 10);
+        generateSessions(maxDepth);
+        return;
+    }
+
+    mkdirSync(GOLDEN_DIR, { recursive: true });
     for (const { seed, depth } of CONFIGS) {
         const rows = generateTypGrid(seed, depth);
         const filename = `typ_seed${seed}_depth${depth}.txt`;
