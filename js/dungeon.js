@@ -2770,7 +2770,7 @@ export function makelevel(depth) {
     // C ref: mklev.c:1300 make_niches()
     make_niches(map, depth);
 
-    // Fix wall types after corridors are dug
+    // Fix wall types after corridors are dug (needed for structural consistency)
     wallification(map);
 
     // C ref: mklev.c:1305-1331 — do_vault()
@@ -2859,6 +2859,21 @@ export function makelevel(depth) {
         fill_ordinary_room(map, croom, depth,
                            fillable && bonusCountdown === 0);
         if (fillable) bonusCountdown--;
+    }
+
+    // C ref: mklev.c:1405-1407 — second fill_special_room pass for all rooms.
+    // This runs AFTER fill_ordinary_room and BEFORE mineralize.
+    // For VAULT rooms, gold was already placed during vault creation (first fill),
+    // so mkgold just adds to existing gold: only rn2 for amount, no rnd(2) since
+    // g_at(x,y) finds the existing gold object and skips mksobj_at/newobj.
+    for (const croom of map.rooms) {
+        if (croom.rtype === VAULT && croom.needfill === FILL_NORMAL) {
+            for (let vx = croom.lx; vx <= croom.hx; vx++) {
+                for (let vy = croom.ly; vy <= croom.hy; vy++) {
+                    rn2(Math.abs(depth) * 100 || 100);
+                }
+            }
+        }
     }
 
     // C ref: mklev.c:1538-1539 — level_finalize_topology() → mineralize()
