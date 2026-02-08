@@ -1,4 +1,4 @@
-// fov.js -- Field of view / vision system
+// vision.js -- Field of view / vision system
 // C-faithful port of NetHack's Algorithm C from vision.c
 // Replaces the simplified rule-based approach with the actual
 // recursive line-of-sight scanner used by C NetHack.

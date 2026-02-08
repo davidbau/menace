@@ -5,8 +5,8 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { initRng } from '../../js/rng.js';
 import { COLNO, ROWNO, ACCESSIBLE } from '../../js/config.js';
-import { createObject, populateObjects, objectTypes,
-         WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS, COIN_CLASS } from '../../js/mkobj.js';
+import { createObject, populateObjects, objectTypes } from '../../js/mkobj.js';
+import { WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS, COIN_CLASS } from '../../js/objects.js';
 import { initLevelGeneration, generateLevel, wallification } from '../../js/dungeon.js';
 
 describe('Object creation', () => {

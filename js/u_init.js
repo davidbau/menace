@@ -14,7 +14,7 @@
 //   4. welcome(TRUE)           — rndencode + seer_turn
 
 import { rn2, rnd, d } from './rng.js';
-import { mksobj } from './mkobj_gen.js';
+import { mksobj } from './mkobj.js';
 import { isok, NUM_ATTRS, PM_VALKYRIE, ACCESSIBLE, COLNO, ROWNO } from './config.js';
 import {
     SPEAR, DAGGER, SMALL_SHIELD, FOOD_RATION, OIL_LAMP,

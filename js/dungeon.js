@@ -29,8 +29,8 @@ import {
 } from './config.js';
 import { GameMap, makeRoom, FILL_NONE, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1, d } from './rng.js';
-import { mkobj, mksobj, weight, setLevelDepth } from './mkobj_gen.js';
-import { makemon, NO_MM_FLAGS, MM_NOGRP } from './makemon_gen.js';
+import { mkobj, mksobj, weight, setLevelDepth } from './mkobj.js';
+import { makemon, NO_MM_FLAGS, MM_NOGRP } from './makemon.js';
 import { init_objects } from './o_init.js';
 import {
     ARROW, DART, ROCK, BOULDER, LARGE_BOX, CHEST, GOLD_PIECE, CORPSE,
