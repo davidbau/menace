@@ -5,7 +5,7 @@
 // Sequence:
 //   1. makedog()               — pet creation + placement
 //   2. u_init_inventory_attrs() — inventory + attribute rolling
-//      a. u_init_role()  → ini_inv(Valkyrie) + rn2(6) lamp check
+//      a. u_init_role()  → ini_inv(role_table) + conditional extras
 //      b. u_init_race()  → nothing for Human
 //      c. init_attr(75)  → distribute 75 pts via weighted rnd_attr
 //      d. vary_init_attr → 1/20 chance per attr of rn2(7)-2 variation
@@ -13,14 +13,53 @@
 //   3. com_pager("legacy")     — NHCORE_START_NEW_GAME lua shuffle
 //   4. welcome(TRUE)           — rndencode + seer_turn
 
-import { rn2, rnd, d } from './rng.js';
-import { mksobj } from './mkobj.js';
-import { isok, NUM_ATTRS, PM_KNIGHT, PM_VALKYRIE, ACCESSIBLE, COLNO, ROWNO } from './config.js';
+import { rn2, rnd, rn1, rne, d } from './rng.js';
+import { mksobj, mkobj } from './mkobj.js';
+import { isok, NUM_ATTRS,
+         PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVEMAN, PM_HEALER,
+         PM_KNIGHT, PM_MONK, PM_PRIEST, PM_RANGER, PM_ROGUE,
+         PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD,
+         ACCESSIBLE, COLNO, ROWNO } from './config.js';
 import {
-    LONG_SWORD, LANCE, SPEAR, DAGGER, RING_MAIL, HELMET,
-    SMALL_SHIELD, LEATHER_GLOVES, APPLE, CARROT, SADDLE,
-    FOOD_RATION, OIL_LAMP,
+    // Weapons
+    LONG_SWORD, LANCE, SPEAR, DAGGER, SHORT_SWORD, AXE, BULLWHIP,
+    TWO_HANDED_SWORD, BATTLE_AXE, CLUB, SLING, KATANA, YUMI, YA,
+    BOW, ARROW, DART, MACE, QUARTERSTAFF, SCALPEL,
+    // Armor
+    RING_MAIL, HELMET, SMALL_SHIELD, LEATHER_GLOVES, LEATHER_JACKET,
+    FEDORA, LEATHER_ARMOR, ROBE, CLOAK_OF_DISPLACEMENT,
+    CLOAK_OF_MAGIC_RESISTANCE, SPLINT_MAIL, HAWAIIAN_SHIRT,
+    // Food
+    APPLE, CARROT, FOOD_RATION, CRAM_RATION, ORANGE, FORTUNE_COOKIE,
+    CLOVE_OF_GARLIC, SPRIG_OF_WOLFSBANE,
+    // Potions
+    POT_HEALING, POT_EXTRA_HEALING, POT_SICKNESS, POT_WATER,
+    // Scrolls
+    SCR_MAGIC_MAPPING,
+    // Spellbooks
+    SPE_HEALING, SPE_EXTRA_HEALING, SPE_STONE_TO_FLESH,
+    SPE_FORCE_BOLT, SPE_PROTECTION, SPE_CONFUSE_MONSTER,
+    // Wands
+    WAN_SLEEP,
+    // Tools
+    SADDLE, OIL_LAMP, PICK_AXE, TINNING_KIT, STETHOSCOPE,
+    EXPENSIVE_CAMERA, CREDIT_CARD, TIN_OPENER, LOCK_PICK,
+    BLINDFOLD, MAGIC_MARKER, LEASH, TOWEL, SACK,
+    // Gems
+    TOUCHSTONE, FLINT, ROCK,
+    // Classes
     WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS, TOOL_CLASS,
+    RING_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
+    WAND_CLASS, GEM_CLASS,
+    // Filter exclusions
+    WAN_WISHING, WAN_NOTHING, RIN_LEVITATION, RIN_AGGRAVATE_MONSTER,
+    RIN_HUNGER, POT_HALLUCINATION, POT_ACID, SCR_AMNESIA, SCR_FIRE,
+    SCR_BLANK_PAPER, SPE_BLANK_PAPER, SPE_NOVEL, SCR_ENCHANT_WEAPON,
+    // Polymorph nocreate tracking
+    WAN_POLYMORPH, RIN_POLYMORPH, RIN_POLYMORPH_CONTROL,
+    POT_POLYMORPH, SPE_POLYMORPH,
+    // Object data for level/charged checks
+    objectData,
 } from './objects.js';
 import { roles } from './player.js';
 import { mons, PM_LITTLE_DOG, PM_KITTEN, PM_PONY } from './monsters.js';
@@ -215,10 +254,69 @@ function makedog(map, player, depth) {
 // ========================================================================
 
 // C ref: u_init.c struct trobj constants
-const UNDEF_BLESS = -1;
+const UNDEF_BLESS = -1;  // C: UNDEF_BLESS = 2; keep mksobj default
+const UNDEF_SPE = 127;   // C: UNDEF_SPE = '\177'; keep mksobj default
+const UNDEF_TYP = 0;     // C: UNDEF_TYP = 0; random from class
 
-// Knight starting inventory
-// C ref: u_init.c:90-100
+// Module-level nocreate state — persists across ini_inv calls within u_init_role
+let nocreate = 0, nocreate2 = 0, nocreate3 = 0, nocreate4 = 0;
+
+// ---- Role Inventory Tables ----
+// C ref: u_init.c — each role's trobj array
+// Fields: otyp (0=UNDEF_TYP=random), spe (127=UNDEF_SPE), oclass, qmin, qmax, bless (-1=UNDEF)
+
+// Archeologist: u_init.c:42-53
+const Archeologist_inv = [
+    { otyp: BULLWHIP,      spe: 2,         oclass: WEAPON_CLASS, qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+    { otyp: LEATHER_JACKET, spe: 0,        oclass: ARMOR_CLASS,  qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+    { otyp: FEDORA,         spe: 0,        oclass: ARMOR_CLASS,  qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+    { otyp: FOOD_RATION,    spe: 0,        oclass: FOOD_CLASS,   qmin: 3,  qmax: 3,  bless: 0 },
+    { otyp: PICK_AXE,       spe: UNDEF_SPE, oclass: TOOL_CLASS,  qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+    { otyp: TINNING_KIT,    spe: UNDEF_SPE, oclass: TOOL_CLASS,  qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+    { otyp: TOUCHSTONE,     spe: 0,        oclass: GEM_CLASS,    qmin: 1,  qmax: 1,  bless: 0 },
+    { otyp: SACK,           spe: 0,        oclass: TOOL_CLASS,   qmin: 1,  qmax: 1,  bless: 0 },
+];
+
+// Barbarian weapon set 0 (rn2(100) >= 50): u_init.c:54-60
+const Barbarian_0_inv = [
+    { otyp: TWO_HANDED_SWORD, spe: 0, oclass: WEAPON_CLASS, qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: AXE,              spe: 0, oclass: WEAPON_CLASS, qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: RING_MAIL,        spe: 0, oclass: ARMOR_CLASS,  qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: FOOD_RATION,      spe: 0, oclass: FOOD_CLASS,   qmin: 1, qmax: 1, bless: 0 },
+];
+
+// Barbarian weapon set 1 (rn2(100) < 50): u_init.c:61-67
+const Barbarian_1_inv = [
+    { otyp: BATTLE_AXE,   spe: 0, oclass: WEAPON_CLASS, qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: SHORT_SWORD,  spe: 0, oclass: WEAPON_CLASS, qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: RING_MAIL,    spe: 0, oclass: ARMOR_CLASS,  qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: FOOD_RATION,  spe: 0, oclass: FOOD_CLASS,   qmin: 1, qmax: 1, bless: 0 },
+];
+
+// Caveman: u_init.c:68-75
+const Caveman_inv = [
+    { otyp: CLUB,           spe: 1, oclass: WEAPON_CLASS, qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+    { otyp: SLING,          spe: 2, oclass: WEAPON_CLASS, qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+    { otyp: FLINT,          spe: 0, oclass: GEM_CLASS,    qmin: 10, qmax: 20, bless: UNDEF_BLESS },
+    { otyp: ROCK,           spe: 0, oclass: GEM_CLASS,    qmin: 3,  qmax: 3,  bless: 0 },
+    { otyp: LEATHER_ARMOR,  spe: 0, oclass: ARMOR_CLASS,  qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+];
+
+// Healer: u_init.c:76-89
+const Healer_inv = [
+    { otyp: SCALPEL,           spe: 0,         oclass: WEAPON_CLASS, qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: LEATHER_GLOVES,    spe: 1,         oclass: ARMOR_CLASS,  qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: STETHOSCOPE,       spe: 0,         oclass: TOOL_CLASS,   qmin: 1, qmax: 1, bless: 0 },
+    { otyp: POT_HEALING,       spe: 0,         oclass: POTION_CLASS, qmin: 4, qmax: 4, bless: UNDEF_BLESS },
+    { otyp: POT_EXTRA_HEALING, spe: 0,         oclass: POTION_CLASS, qmin: 4, qmax: 4, bless: UNDEF_BLESS },
+    { otyp: WAN_SLEEP,         spe: UNDEF_SPE, oclass: WAND_CLASS,   qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: SPE_HEALING,       spe: 0,         oclass: SPBOOK_CLASS, qmin: 1, qmax: 1, bless: 1 },
+    { otyp: SPE_EXTRA_HEALING, spe: 0,         oclass: SPBOOK_CLASS, qmin: 1, qmax: 1, bless: 1 },
+    { otyp: SPE_STONE_TO_FLESH, spe: 0,        oclass: SPBOOK_CLASS, qmin: 1, qmax: 1, bless: 1 },
+    { otyp: APPLE,             spe: 0,         oclass: FOOD_CLASS,   qmin: 5, qmax: 5, bless: 0 },
+];
+
+// Knight: u_init.c:90-100
 const Knight_inv = [
     { otyp: LONG_SWORD,      spe: 1, oclass: WEAPON_CLASS, qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
     { otyp: LANCE,            spe: 1, oclass: WEAPON_CLASS, qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
@@ -230,44 +328,220 @@ const Knight_inv = [
     { otyp: CARROT,           spe: 0, oclass: FOOD_CLASS,   qmin: 10, qmax: 10, bless: 0 },
 ];
 
-// Valkyrie starting inventory
-// C ref: u_init.c:160-166
-const Valkyrie_inv = [
-    { otyp: SPEAR, spe: 1, oclass: WEAPON_CLASS, qmin: 1, qmax: 1, bless: UNDEF_BLESS },
-    { otyp: DAGGER, spe: 0, oclass: WEAPON_CLASS, qmin: 1, qmax: 1, bless: UNDEF_BLESS },
-    { otyp: SMALL_SHIELD, spe: 3, oclass: ARMOR_CLASS, qmin: 1, qmax: 1, bless: UNDEF_BLESS },
-    { otyp: FOOD_RATION, spe: 0, oclass: FOOD_CLASS, qmin: 1, qmax: 1, bless: 0 },
+// Monk: u_init.c:101-113
+const Monk_inv = [
+    { otyp: LEATHER_GLOVES,  spe: 2,         oclass: ARMOR_CLASS,  qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: ROBE,            spe: 1,         oclass: ARMOR_CLASS,  qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: UNDEF_TYP,      spe: UNDEF_SPE, oclass: SCROLL_CLASS, qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: POT_HEALING,    spe: 0,         oclass: POTION_CLASS, qmin: 3, qmax: 3, bless: UNDEF_BLESS },
+    { otyp: FOOD_RATION,    spe: 0,         oclass: FOOD_CLASS,   qmin: 3, qmax: 3, bless: 0 },
+    { otyp: APPLE,           spe: 0,         oclass: FOOD_CLASS,   qmin: 5, qmax: 5, bless: UNDEF_BLESS },
+    { otyp: ORANGE,          spe: 0,         oclass: FOOD_CLASS,   qmin: 5, qmax: 5, bless: UNDEF_BLESS },
+    { otyp: FORTUNE_COOKIE,  spe: 0,         oclass: FOOD_CLASS,   qmin: 3, qmax: 3, bless: UNDEF_BLESS },
 ];
 
-// Oil lamp table for the optional Lamp item
+// Priest: u_init.c:114-123
+const Priest_inv = [
+    { otyp: MACE,               spe: 1,         oclass: WEAPON_CLASS, qmin: 1, qmax: 1, bless: 1 },
+    { otyp: ROBE,               spe: 0,         oclass: ARMOR_CLASS,  qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: SMALL_SHIELD,       spe: 0,         oclass: ARMOR_CLASS,  qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: POT_WATER,          spe: 0,         oclass: POTION_CLASS, qmin: 4, qmax: 4, bless: 1 },
+    { otyp: CLOVE_OF_GARLIC,    spe: 0,         oclass: FOOD_CLASS,   qmin: 1, qmax: 1, bless: 0 },
+    { otyp: SPRIG_OF_WOLFSBANE, spe: 0,         oclass: FOOD_CLASS,   qmin: 1, qmax: 1, bless: 0 },
+    { otyp: UNDEF_TYP,          spe: UNDEF_SPE, oclass: SPBOOK_CLASS, qmin: 2, qmax: 2, bless: UNDEF_BLESS },
+];
+
+// Ranger: u_init.c:124-132
+const Ranger_inv = [
+    { otyp: DAGGER,               spe: 1, oclass: WEAPON_CLASS, qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+    { otyp: BOW,                  spe: 1, oclass: WEAPON_CLASS, qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+    { otyp: ARROW,                spe: 2, oclass: WEAPON_CLASS, qmin: 50, qmax: 59, bless: UNDEF_BLESS },
+    { otyp: ARROW,                spe: 0, oclass: WEAPON_CLASS, qmin: 30, qmax: 39, bless: UNDEF_BLESS },
+    { otyp: CLOAK_OF_DISPLACEMENT, spe: 2, oclass: ARMOR_CLASS, qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+    { otyp: CRAM_RATION,          spe: 0, oclass: FOOD_CLASS,   qmin: 4,  qmax: 4,  bless: 0 },
+];
+
+// Rogue: u_init.c:133-141
+const Rogue_inv = [
+    { otyp: SHORT_SWORD,    spe: 0, oclass: WEAPON_CLASS, qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+    { otyp: DAGGER,          spe: 0, oclass: WEAPON_CLASS, qmin: 6,  qmax: 15, bless: 0 },
+    { otyp: LEATHER_ARMOR,   spe: 1, oclass: ARMOR_CLASS,  qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+    { otyp: POT_SICKNESS,    spe: 0, oclass: POTION_CLASS, qmin: 1,  qmax: 1,  bless: 0 },
+    { otyp: LOCK_PICK,       spe: 0, oclass: TOOL_CLASS,   qmin: 1,  qmax: 1,  bless: 0 },
+    { otyp: SACK,            spe: 0, oclass: TOOL_CLASS,   qmin: 1,  qmax: 1,  bless: 0 },
+];
+
+// Samurai: u_init.c:142-149
+const Samurai_inv = [
+    { otyp: KATANA,       spe: 0, oclass: WEAPON_CLASS, qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+    { otyp: SHORT_SWORD,  spe: 0, oclass: WEAPON_CLASS, qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+    { otyp: YUMI,         spe: 0, oclass: WEAPON_CLASS, qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+    { otyp: YA,           spe: 0, oclass: WEAPON_CLASS, qmin: 26, qmax: 45, bless: UNDEF_BLESS },
+    { otyp: SPLINT_MAIL,  spe: 0, oclass: ARMOR_CLASS,  qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+];
+
+// Tourist: u_init.c:150-159
+const Tourist_inv = [
+    { otyp: DART,              spe: 2,         oclass: WEAPON_CLASS, qmin: 21, qmax: 40, bless: UNDEF_BLESS },
+    { otyp: UNDEF_TYP,        spe: UNDEF_SPE, oclass: FOOD_CLASS,   qmin: 10, qmax: 10, bless: 0 },
+    { otyp: POT_EXTRA_HEALING, spe: 0,         oclass: POTION_CLASS, qmin: 2,  qmax: 2,  bless: UNDEF_BLESS },
+    { otyp: SCR_MAGIC_MAPPING, spe: 0,         oclass: SCROLL_CLASS, qmin: 4,  qmax: 4,  bless: UNDEF_BLESS },
+    { otyp: HAWAIIAN_SHIRT,    spe: 0,         oclass: ARMOR_CLASS,  qmin: 1,  qmax: 1,  bless: UNDEF_BLESS },
+    { otyp: EXPENSIVE_CAMERA,  spe: UNDEF_SPE, oclass: TOOL_CLASS,   qmin: 1,  qmax: 1,  bless: 0 },
+    { otyp: CREDIT_CARD,       spe: 0,         oclass: TOOL_CLASS,   qmin: 1,  qmax: 1,  bless: 0 },
+];
+
+// Valkyrie: u_init.c:160-166
+const Valkyrie_inv = [
+    { otyp: SPEAR,        spe: 1, oclass: WEAPON_CLASS, qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: DAGGER,       spe: 0, oclass: WEAPON_CLASS, qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: SMALL_SHIELD, spe: 3, oclass: ARMOR_CLASS,  qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: FOOD_RATION,  spe: 0, oclass: FOOD_CLASS,   qmin: 1, qmax: 1, bless: 0 },
+];
+
+// Wizard: u_init.c:167-178
+const Wizard_inv = [
+    { otyp: QUARTERSTAFF,             spe: 1,         oclass: WEAPON_CLASS, qmin: 1, qmax: 1, bless: 1 },
+    { otyp: CLOAK_OF_MAGIC_RESISTANCE, spe: 0,        oclass: ARMOR_CLASS,  qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: UNDEF_TYP,                spe: UNDEF_SPE, oclass: WAND_CLASS,   qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: UNDEF_TYP,                spe: UNDEF_SPE, oclass: RING_CLASS,   qmin: 2, qmax: 2, bless: UNDEF_BLESS },
+    { otyp: UNDEF_TYP,                spe: UNDEF_SPE, oclass: POTION_CLASS, qmin: 3, qmax: 3, bless: UNDEF_BLESS },
+    { otyp: UNDEF_TYP,                spe: UNDEF_SPE, oclass: SCROLL_CLASS, qmin: 3, qmax: 3, bless: UNDEF_BLESS },
+    { otyp: SPE_FORCE_BOLT,            spe: 0,        oclass: SPBOOK_CLASS, qmin: 1, qmax: 1, bless: 1 },
+    { otyp: UNDEF_TYP,                spe: UNDEF_SPE, oclass: SPBOOK_CLASS, qmin: 1, qmax: 1, bless: UNDEF_BLESS },
+    { otyp: MAGIC_MARKER,              spe: 19,       oclass: TOOL_CLASS,   qmin: 1, qmax: 1, bless: 0 },
+];
+
+// ---- Shared Optional Item Tables ----
+// C ref: u_init.c:184-219
+
+const Tinopener_inv = [
+    { otyp: TIN_OPENER, spe: 0, oclass: TOOL_CLASS, qmin: 1, qmax: 1, bless: 0 },
+];
 const Lamp_inv = [
     { otyp: OIL_LAMP, spe: 1, oclass: TOOL_CLASS, qmin: 1, qmax: 1, bless: 0 },
 ];
+const Magicmarker_inv = [
+    { otyp: MAGIC_MARKER, spe: 19, oclass: TOOL_CLASS, qmin: 1, qmax: 1, bless: 0 },
+];
+const Blindfold_inv = [
+    { otyp: BLINDFOLD, spe: 0, oclass: TOOL_CLASS, qmin: 1, qmax: 1, bless: 0 },
+];
+const Leash_inv = [
+    { otyp: LEASH, spe: 0, oclass: TOOL_CLASS, qmin: 1, qmax: 1, bless: 0 },
+];
+const Towel_inv = [
+    { otyp: TOWEL, spe: 0, oclass: TOOL_CLASS, qmin: 1, qmax: 1, bless: 0 },
+];
 
-// C ref: u_init.c ini_inv() — create starting inventory from trobj table
+// Monk spellbook options
+const Healing_book = [
+    { otyp: SPE_HEALING, spe: UNDEF_SPE, oclass: SPBOOK_CLASS, qmin: 1, qmax: 1, bless: 1 },
+];
+const Protection_book = [
+    { otyp: SPE_PROTECTION, spe: UNDEF_SPE, oclass: SPBOOK_CLASS, qmin: 1, qmax: 1, bless: 1 },
+];
+const Confuse_monster_book = [
+    { otyp: SPE_CONFUSE_MONSTER, spe: UNDEF_SPE, oclass: SPBOOK_CLASS, qmin: 1, qmax: 1, bless: 1 },
+];
+const M_spell = [Healing_book, Protection_book, Confuse_monster_book];
+
+// ---- UNDEF_TYP Item Filter ----
+// C ref: u_init.c ini_inv_mkobj_filter() — create random object, reject dangerous items
+function iniInvMkobjFilter(oclass, gotSp1, roleIndex) {
+    let trycnt = 0;
+    while (true) {
+        if (++trycnt > 1000) break; // fallback (shouldn't happen)
+        const obj = mkobj(oclass, false, /* skipErosion */ true);
+        const otyp = obj.otyp;
+        // C ref: u_init.c:1115-1175 — filter conditions
+        if (otyp === WAN_WISHING || otyp === nocreate
+            || otyp === nocreate2 || otyp === nocreate3
+            || otyp === nocreate4 || otyp === RIN_LEVITATION
+            || otyp === POT_HALLUCINATION || otyp === POT_ACID
+            || otyp === SCR_AMNESIA || otyp === SCR_FIRE
+            || otyp === SCR_BLANK_PAPER || otyp === SPE_BLANK_PAPER
+            || otyp === RIN_AGGRAVATE_MONSTER || otyp === RIN_HUNGER
+            || otyp === WAN_NOTHING
+            || (otyp === SCR_ENCHANT_WEAPON && roleIndex === PM_MONK)
+            || (otyp === SPE_FORCE_BOLT && roleIndex === PM_WIZARD)
+            || (oclass === SPBOOK_CLASS
+                && ((objectData[otyp].oc2 || 0) > (gotSp1 ? 3 : 1)))
+            || otyp === SPE_NOVEL) {
+            continue; // reject, try again
+        }
+        return obj;
+    }
+    // Fallback: shouldn't reach here
+    return mksobj(FOOD_RATION, true, false, true);
+}
+
+// ---- ini_inv: Create starting inventory from trobj table ----
+// C ref: u_init.c ini_inv() — processes table entries, handles UNDEF_TYP
 function iniInv(player, table) {
     let tropIdx = 0;
     let quan = trquan(table[tropIdx]);
+    let gotSp1 = false;
 
     while (tropIdx < table.length) {
         const trop = table[tropIdx];
+        let obj, otyp;
 
-        // C ref: u_init.c:1310 — mksobj(otyp, TRUE, FALSE)
-        // ini_inv uses mksobj directly (no erosion in C)
-        const obj = mksobj(trop.otyp, true, false, /* skipErosion */ true);
+        if (trop.otyp !== UNDEF_TYP) {
+            // Fixed item: mksobj directly (no erosion for ini_inv)
+            obj = mksobj(trop.otyp, true, false, /* skipErosion */ true);
+            otyp = trop.otyp;
+        } else {
+            // Random item: mkobj with filter
+            obj = iniInvMkobjFilter(trop.oclass, gotSp1, player.roleIndex);
+            otyp = obj.otyp;
+            // C ref: u_init.c:1318-1337 — nocreate tracking
+            switch (otyp) {
+                case WAN_POLYMORPH:
+                case RIN_POLYMORPH:
+                case POT_POLYMORPH:
+                    nocreate = RIN_POLYMORPH_CONTROL;
+                    break;
+                case RIN_POLYMORPH_CONTROL:
+                    nocreate = RIN_POLYMORPH;
+                    nocreate2 = SPE_POLYMORPH;
+                    nocreate3 = POT_POLYMORPH;
+                    break;
+            }
+            if (obj.oclass === RING_CLASS || obj.oclass === SPBOOK_CLASS) {
+                nocreate4 = otyp;
+            }
+        }
 
-        // C ref: u_init.c:1330-1345 — ini_inv_adjust_obj
+        // C ref: u_init.c ini_inv_adjust_obj()
         obj.known = true;
         obj.dknown = true;
         obj.cursed = false;
-        // For WEAPON_CLASS or TOOL_CLASS: re-call trquan
         if (obj.oclass === WEAPON_CLASS || obj.oclass === TOOL_CLASS) {
             obj.quan = trquan(trop);
             quan = 1; // stop flag
+        } else if (obj.oclass === GEM_CLASS && otyp !== FLINT) {
+            // Graystone (touchstone) gets quantity 1
+            // C ref: is_graystone check — for simplicity, TOUCHSTONE and similar
+            if (otyp === TOUCHSTONE) obj.quan = 1;
         }
-        // Override spe
-        obj.spe = trop.spe;
-        // Override bless/curse
+
+        // C ref: u_init.c:1231-1240 — spe handling
+        if (trop.spe !== UNDEF_SPE) {
+            obj.spe = trop.spe;
+            // Magic marker: add rn2(4) to spe if < 96
+            if (trop.otyp === MAGIC_MARKER && obj.spe < 96) {
+                obj.spe += rn2(4);
+            }
+        } else {
+            // UNDEF_SPE: keep mksobj default, but fix rings with spe <= 0
+            if (obj.oclass === RING_CLASS
+                && objectData[otyp].charged && obj.spe <= 0) {
+                obj.spe = rne(3);
+            }
+        }
+
+        // C ref: u_init.c:1243-1244 — bless handling
         if (trop.bless !== UNDEF_BLESS) {
             obj.blessed = trop.bless > 0;
             obj.cursed = trop.bless < 0;
@@ -276,7 +550,12 @@ function iniInv(player, table) {
         // Add to player inventory
         player.addToInventory(obj);
 
-        if (--quan > 0) continue; // make another identical item
+        // Track level-1 spellbooks for filter
+        if (obj.oclass === SPBOOK_CLASS && (objectData[otyp].oc2 || 0) === 1) {
+            gotSp1 = true;
+        }
+
+        if (--quan > 0) continue; // make another of same entry
         tropIdx++;
         if (tropIdx < table.length) {
             quan = trquan(table[tropIdx]);
@@ -292,16 +571,76 @@ function trquan(trop) {
 
 // C ref: u_init.c u_init_role() — role-specific starting inventory
 function u_init_role(player) {
+    // Reset nocreate state for this role
+    nocreate = nocreate2 = nocreate3 = nocreate4 = 0;
+
     switch (player.roleIndex) {
+        case PM_ARCHEOLOGIST:
+            iniInv(player, Archeologist_inv);
+            if (!rn2(10)) iniInv(player, Tinopener_inv);
+            else if (!rn2(4)) iniInv(player, Lamp_inv);
+            else if (!rn2(5)) iniInv(player, Magicmarker_inv);
+            break;
+        case PM_BARBARIAN:
+            if (rn2(100) >= 50) {
+                iniInv(player, Barbarian_0_inv);
+            } else {
+                iniInv(player, Barbarian_1_inv);
+            }
+            if (!rn2(6)) iniInv(player, Lamp_inv);
+            break;
+        case PM_CAVEMAN:
+            iniInv(player, Caveman_inv);
+            break;
+        case PM_HEALER:
+            rn1(1000, 1001); // u.umoney0 = rn1(1000, 1001)
+            iniInv(player, Healer_inv);
+            if (!rn2(25)) iniInv(player, Lamp_inv);
+            break;
         case PM_KNIGHT:
             iniInv(player, Knight_inv);
+            break;
+        case PM_MONK:
+            iniInv(player, Monk_inv);
+            iniInv(player, M_spell[Math.floor(rn2(90) / 30)]);
+            if (!rn2(4)) iniInv(player, Magicmarker_inv);
+            else if (!rn2(10)) iniInv(player, Lamp_inv);
+            break;
+        case PM_PRIEST:
+            iniInv(player, Priest_inv);
+            if (!rn2(5)) iniInv(player, Magicmarker_inv);
+            else if (!rn2(10)) iniInv(player, Lamp_inv);
+            break;
+        case PM_RANGER:
+            iniInv(player, Ranger_inv);
+            break;
+        case PM_ROGUE:
+            // u.umoney0 = 0 (no RNG)
+            iniInv(player, Rogue_inv);
+            if (!rn2(5)) iniInv(player, Blindfold_inv);
+            break;
+        case PM_SAMURAI:
+            iniInv(player, Samurai_inv);
+            if (!rn2(5)) iniInv(player, Blindfold_inv);
+            break;
+        case PM_TOURIST:
+            rnd(1000); // u.umoney0 = rnd(1000)
+            iniInv(player, Tourist_inv);
+            if (!rn2(25)) iniInv(player, Tinopener_inv);
+            else if (!rn2(25)) iniInv(player, Leash_inv);
+            else if (!rn2(25)) iniInv(player, Towel_inv);
+            else if (!rn2(20)) iniInv(player, Magicmarker_inv);
             break;
         case PM_VALKYRIE:
             iniInv(player, Valkyrie_inv);
             if (!rn2(6)) iniInv(player, Lamp_inv);
             break;
+        case PM_WIZARD:
+            iniInv(player, Wizard_inv);
+            if (!rn2(5)) iniInv(player, Blindfold_inv);
+            break;
         default:
-            // Other roles not yet implemented — fall through to Valkyrie
+            // Unknown role — use Valkyrie as fallback
             iniInv(player, Valkyrie_inv);
             if (!rn2(6)) iniInv(player, Lamp_inv);
             break;

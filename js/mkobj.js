@@ -600,7 +600,8 @@ export function mksobj(otyp, init, artif, skipErosion) {
 }
 
 // C ref: mkobj.c mkobj() -- create random object of a class
-export function mkobj(oclass, artif) {
+// skipErosion: if true, skip mkobj_erosions (for ini_inv UNDEF_TYP items)
+export function mkobj(oclass, artif, skipErosion) {
     // RANDOM_CLASS selection
     if (oclass === 0) { // RANDOM_CLASS = 0 in C, but our ILLOBJ_CLASS = 0
         // Use mkobjprobs table
@@ -629,7 +630,7 @@ export function mkobj(oclass, artif) {
         i = bases[oclass];
     }
 
-    return mksobj(i, true, artif);
+    return mksobj(i, true, artif, skipErosion);
 }
 
 // RANDOM_CLASS constant (matches C's RANDOM_CLASS = 0)

@@ -253,7 +253,11 @@ function runGameplaySession(file, session) {
 // ---------------------------------------------------------------------------
 
 // Roles with implemented JS chargen inventory
-const CHARGEN_SUPPORTED_ROLES = new Set(['Knight', 'Valkyrie']);
+const CHARGEN_SUPPORTED_ROLES = new Set([
+    'Archeologist', 'Barbarian', 'Caveman', 'Healer', 'Knight',
+    'Monk', 'Priest', 'Ranger', 'Rogue', 'Samurai', 'Tourist',
+    'Valkyrie', 'Wizard',
+]);
 
 // Collect all startup RNG from a chargen session: confirm-ok + welcome ("more") steps.
 // Returns the combined RNG array, or null if no confirm-ok step found.
