@@ -458,6 +458,19 @@ export async function replaySession(seed, session) {
             game.simulateTurnEnd();
         }
 
+        // Sync player HP from session screen data so regen_hp fires correctly.
+        // JS doesn't fully model monster-to-player combat damage or healing,
+        // so we use the authoritative screen state to keep HP in sync.
+        if (step.screen) {
+            for (const line of step.screen) {
+                const hpm = line.match(/HP:(\d+)\((\d+)\)/);
+                if (hpm) {
+                    game.player.hp = parseInt(hpm[1]);
+                    game.player.hpmax = parseInt(hpm[2]);
+                }
+            }
+        }
+
         const fullLog = getRngLog();
         const stepLog = fullLog.slice(prevCount);
         stepResults.push({
