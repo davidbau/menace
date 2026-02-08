@@ -1,9 +1,12 @@
 // Screen comparison test: headless JS rendering vs C NetHack reference screens
-// Compares map area (rows 1-21) for all 13 game states of seed 42
+// Loads reference data from sessions/seed42.session.json (see docs/SESSION_FORMAT.md)
+// Compares map area (rows 1-21) for all game states in the session.
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { initRng, rn2, rnd, rn1 } from '../../js/rng.js';
 import { initLevelGeneration, generateLevel, wallification } from '../../js/dungeon.js';
 import { Player } from '../../js/player.js';
@@ -21,23 +24,29 @@ import {
     D_ISOPEN, D_CLOSED, D_LOCKED,
 } from '../../js/config.js';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const SESSION_DIR = join(__dirname, '../comparison/sessions');
+
+// Load session reference data
+const session = JSON.parse(readFileSync(join(SESSION_DIR, 'seed42.session.json'), 'utf8'));
+
 // ========================================================================
-// DEC Graphics → Unicode mapping (for parsing C reference screens)
+// DEC Graphics -> Unicode mapping (for parsing C reference screens)
 // Only applied to map rows (1-21), NOT message/status rows
 // ========================================================================
 const DEC_TO_UNICODE = {
-    'l': '\u250c', // ┌ TL corner
-    'q': '\u2500', // ─ horizontal wall
-    'k': '\u2510', // ┐ TR corner
-    'x': '\u2502', // │ vertical wall
-    'm': '\u2514', // └ BL corner
-    'j': '\u2518', // ┘ BR corner
-    'n': '\u253c', // ┼ cross wall
-    't': '\u251c', // ├ right T (from inside)
-    'u': '\u2524', // ┤ left T (from inside)
-    'v': '\u2534', // ┴ bottom T
-    'w': '\u252c', // ┬ top T
-    '~': '\u00b7', // · room floor (middle dot)
+    'l': '\u250c', // TL corner
+    'q': '\u2500', // horizontal wall
+    'k': '\u2510', // TR corner
+    'x': '\u2502', // vertical wall
+    'm': '\u2514', // BL corner
+    'j': '\u2518', // BR corner
+    'n': '\u253c', // cross wall
+    't': '\u251c', // right T (from inside)
+    'u': '\u2524', // left T (from inside)
+    'v': '\u2534', // bottom T
+    'w': '\u252c', // top T
+    '~': '\u00b7', // room floor (middle dot)
 };
 
 // ========================================================================
@@ -91,7 +100,7 @@ function terrainChar(loc) {
 }
 
 // ========================================================================
-// Headless screen renderer — produces 80-char map rows matching display.js
+// Headless screen renderer -- produces 80-char map rows matching display.js
 // ========================================================================
 function renderMapRow(map, player, fov, y) {
     let row = '';
@@ -99,7 +108,6 @@ function renderMapRow(map, player, fov, y) {
         if (!fov || !fov.canSee(x, y)) {
             const loc = map.at(x, y);
             if (loc && loc.seenv) {
-                // C remembers last glyph: show objects that were seen before
                 const rObjs = map.objectsAt(x, y);
                 if (rObjs.length > 0 && loc._lastObjChar) {
                     row += loc._lastObjChar;
@@ -115,68 +123,56 @@ function renderMapRow(map, player, fov, y) {
         const loc = map.at(x, y);
         if (!loc) { row += ' '; continue; }
 
-        // Mark as seen
         loc.seenv = 0xFF;
 
-        // Player
         if (player && x === player.x && y === player.y) {
             row += '@';
             continue;
         }
 
-        // Monster
         const mon = map.monsterAt(x, y);
         if (mon) {
             row += mon.displayChar;
             continue;
         }
 
-        // Objects (top of stack)
         const objs = map.objectsAt(x, y);
         if (objs.length > 0) {
             const topObj = objs[objs.length - 1];
             row += topObj.displayChar;
-            loc._lastObjChar = topObj.displayChar;  // remember for out-of-sight display
+            loc._lastObjChar = topObj.displayChar;
             continue;
         }
 
-        // Traps
         const trap = map.trapAt(x, y);
         if (trap && trap.tseen) {
             row += '^';
             continue;
         }
 
-        // Terrain
         row += terrainChar(loc);
     }
     return row;
 }
 
 // ========================================================================
-// Parse C reference screen — convert DEC graphics in map rows to Unicode
+// Parse C reference screen from session data
 // ========================================================================
-function parseCScreen(filename) {
-    const text = readFileSync(filename, 'utf8');
-    const lines = text.split('\n');
-    // C screen is 24 lines (rows 0-23) + possible trailing newline
+function parseCScreenFromSession(screenLines) {
+    // Session screen is 24 lines (rows 0-23)
     // Row 0: message line
-    // Rows 1-21: map (y=0..20)
-    // Row 22: status line 1
-    // Row 23: status line 2
+    // Rows 1-21: map (y=0..20) — uses DEC graphics
+    // Row 22-23: status lines
     //
-    // The tmux capture is shifted 1 column left (column 0 not captured),
-    // so prepend a space to each map row to realign with 0-based coordinates.
+    // tmux capture is shifted 1 column left (column 0 not captured),
+    // so prepend a space to each map row to realign.
     const result = [];
     for (let row = 0; row < 24; row++) {
-        let line = (lines[row] || '').replace(/\r$/, '');
-        // Map rows need 1-column shift correction from tmux capture
+        let line = (screenLines[row] || '').replace(/\r$/, '');
         if (row >= 1 && row <= 21) {
             line = ' ' + line;
         }
-        // Pad to 80 chars
         line = line.padEnd(80);
-        // Only apply DEC mapping to map rows (1-21)
         if (row >= 1 && row <= 21) {
             let mapped = '';
             for (const ch of line) {
@@ -190,8 +186,9 @@ function parseCScreen(filename) {
 }
 
 // ========================================================================
-// Game setup and turn simulation (same as trace_compare)
+// Game setup and turn simulation
 // ========================================================================
+
 function mcalcmove(mon) {
     let mmove = mon.speed;
     const mmoveAdj = mmove % NORMAL_SPEED;
@@ -202,11 +199,7 @@ function mcalcmove(mon) {
 
 function exercise(player, attrIndex, inc_or_dec) {
     if (attrIndex === 1 || attrIndex === 5) return;
-    if (inc_or_dec) {
-        rn2(19);
-    } else {
-        rn2(2);
-    }
+    if (inc_or_dec) { rn2(19); } else { rn2(2); }
 }
 
 function exerper(game) {
@@ -218,9 +211,6 @@ function exerper(game) {
         } else if (player.hunger > 150) {
             exercise(player, A_CON, true);
         }
-    }
-    if (!(moves % 5)) {
-        // No exercise calls from status checks at startup
     }
 }
 
@@ -242,11 +232,11 @@ function simulateTurnEnd(game) {
 }
 
 function setupGame() {
-    initRng(42);
+    initRng(session.seed);
     initLevelGeneration();
     const player = new Player();
     player.initRole(11);
-    player.name = 'Wizard';
+    player.name = session.character.name;
     player.gender = 1;
     const map = generateLevel(1);
     wallification(map);
@@ -265,64 +255,52 @@ function doTurn(game) {
     game.fov.compute(game.map, game.player.x, game.player.y);
 }
 
-// ========================================================================
-// Move sequence: screen_000=start, then :hhlhhhh.hhs
-// ========================================================================
-const MOVES = [
-    { file: 'screen_000_start.txt',        action: 'start' },
-    { file: 'screen_001_:_look.txt',        action: 'look' },
-    { file: 'screen_002_h_move-west.txt',   action: 'move', dx: -1, dy: 0 },
-    { file: 'screen_003_h_move-west.txt',   action: 'move', dx: -1, dy: 0 },
-    { file: 'screen_004_l_move-east.txt',   action: 'move', dx: 1, dy: 0 },
-    { file: 'screen_005_h_move-west.txt',   action: 'move', dx: -1, dy: 0 },
-    { file: 'screen_006_h_move-west.txt',   action: 'move', dx: -1, dy: 0 },
-    { file: 'screen_007_h_move-west.txt',   action: 'move', dx: -1, dy: 0 },
-    { file: 'screen_008_h_move-west.txt',   action: 'move', dx: -1, dy: 0 },
-    { file: 'screen_009_._wait.txt',        action: 'wait' },
-    { file: 'screen_010_h_move-west.txt',   action: 'move', dx: -1, dy: 0 },
-    { file: 'screen_011_h_move-west.txt',   action: 'move', dx: -1, dy: 0 },
-    { file: 'screen_012_s_search.txt',      action: 'search' },
-];
+// Direction vectors for movement keys
+const KEY_DIRS = {
+    'h': [-1, 0], 'l': [1, 0], 'j': [0, 1], 'k': [0, -1],
+    'y': [-1, -1], 'u': [1, -1], 'b': [-1, 1], 'n': [1, 1],
+};
 
-const TRACE_DIR = 'test/comparison/traces/seed42_reference';
+// Keys that don't consume a game turn
+const NON_TURN_KEYS = new Set([':', 'i', '@']);
 
 describe('Screen comparison (seed 42)', () => {
-    it('map rendering matches C for all 13 game states', () => {
+    it('map rendering matches C for all session states', () => {
         const game = setupGame();
         let totalDiffs = 0;
         let totalDataDiffs = 0;
         let totalFovDiffs = 0;
 
-        for (let mi = 0; mi < MOVES.length; mi++) {
-            const move = MOVES[mi];
+        // Compare startup screen + all steps
+        const allStates = [
+            { screen: session.startup.screen, label: 'startup', key: null },
+            ...session.steps.map((s, i) => ({ screen: s.screen, label: `step ${i + 1} (${s.key}/${s.action})`, key: s.key, step: s })),
+        ];
 
-            // Apply action
-            if (move.action === 'start') {
-                // Initial state after setup, FOV already computed
-            } else if (move.action === 'look') {
-                // ":" look command — doesn't take a turn, just re-displays
-                // No game state change
-            } else if (move.action === 'move') {
-                game.player.x += move.dx;
-                game.player.y += move.dy;
-                doTurn(game);
-                game.fov.compute(game.map, game.player.x, game.player.y);
-            } else if (move.action === 'wait') {
-                doTurn(game);
-                game.fov.compute(game.map, game.player.x, game.player.y);
-            } else if (move.action === 'search') {
-                searchAround(game.player, game.map);
-                doTurn(game);
-                game.fov.compute(game.map, game.player.x, game.player.y);
+        for (const state of allStates) {
+            // Apply action for non-startup states
+            if (state.step) {
+                const dir = KEY_DIRS[state.step.key];
+                if (dir) {
+                    game.player.x += dir[0];
+                    game.player.y += dir[1];
+                } else if (state.step.key === 's') {
+                    searchAround(game.player, game.map);
+                }
+
+                if (!NON_TURN_KEYS.has(state.step.key)) {
+                    doTurn(game);
+                    game.fov.compute(game.map, game.player.x, game.player.y);
+                }
             }
 
-            // Parse C reference
-            const cScreen = parseCScreen(`${TRACE_DIR}/${move.file}`);
+            // Parse C reference screen from session data
+            const cScreen = parseCScreenFromSession(state.screen);
 
-            // Render JS map rows (1-21, which map to y=0..20)
+            // Render JS map rows (1-21 = y=0..20)
             const diffs = [];
             for (let mapY = 0; mapY < ROWNO; mapY++) {
-                const screenRow = mapY + 1; // map row in screen coordinates
+                const screenRow = mapY + 1;
                 const jsRow = renderMapRow(game.map, game.player, game.fov, mapY);
                 const cRow = cScreen[screenRow];
 
@@ -335,17 +313,11 @@ describe('Screen comparison (seed 42)', () => {
                 }
             }
 
-            // Classify diffs as FOV (JS reveals more) vs DATA (actual mismatch)
+            // Classify diffs as FOV vs DATA
             const fovDiffs = [];
             const dataDiffs = [];
             for (const d of diffs) {
-                // FOV diff: JS shows something where C shows space (JS sees more)
-                // OR: C shows terrain but JS shows monster/object at that spot
-                //     (monster is at the position — JS shows it, C remembers old terrain)
                 const cIsSpace = d.cChar === ' ';
-                const jsIsSpace = d.jsChar === ' ';
-                // If C has space and JS has content → JS FOV wider
-                // If C has terrain and JS has monster char → JS showing monster C can't see
                 const jsIsMon = d.jsChar.match(/^[a-zA-Z]$/);
                 const cIsTerrain = d.cChar.match(/^[·#<>+\u2500\u2502\u250c\u2510\u2514\u2518\u253c\u2534\u252c\u2524\u251c{%?)(\[=\/"!\/\$\*`_]$/);
                 if (cIsSpace || (jsIsMon && cIsTerrain)) {
@@ -356,7 +328,7 @@ describe('Screen comparison (seed 42)', () => {
             }
 
             if (dataDiffs.length > 0) {
-                console.log(`\n${move.file}: ${dataDiffs.length} DATA differences (non-FOV)`);
+                console.log(`\n${state.label}: ${dataDiffs.length} DATA differences`);
                 for (const d of dataDiffs.slice(0, 20)) {
                     const jsHex = d.jsChar.codePointAt(0).toString(16);
                     const cHex = d.cChar.codePointAt(0).toString(16);
@@ -370,7 +342,6 @@ describe('Screen comparison (seed 42)', () => {
         }
 
         console.log(`\nTotal: ${totalDiffs} differences (${totalFovDiffs} FOV, ${totalDataDiffs} data)`);
-        // Fail on non-FOV data differences only
         assert.equal(totalDataDiffs, 0,
             `Expected 0 non-FOV differences, got ${totalDataDiffs} (plus ${totalFovDiffs} FOV diffs)`);
     });

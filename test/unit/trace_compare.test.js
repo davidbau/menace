@@ -1,8 +1,7 @@
 // trace_compare.test.js -- Compare per-turn RNG calls against C reference trace
-// Verifies that moveMonsters + simulateTurnEnd produce exact RNG alignment
-// with C's movemon + mcalcmove + per-turn tail for seed 42 wizard mode.
+// Loads reference data from sessions/seed42.session.json (see docs/SESSION_FORMAT.md)
 
-import { describe, it, beforeEach } from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -10,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 import { initRng, rn2, rnd, rn1, enableRngLog, getRngLog, disableRngLog } from '../../js/rng.js';
 import { initLevelGeneration, generateLevel, wallification } from '../../js/dungeon.js';
-import { Player, roles } from '../../js/player.js';
+import { Player } from '../../js/player.js';
 import { simulatePostLevelInit } from '../../js/u_init.js';
 import { moveMonsters } from '../../js/monmove.js';
 import { FOV } from '../../js/vision.js';
@@ -18,164 +17,133 @@ import { NORMAL_SPEED, A_DEX, A_CON } from '../../js/config.js';
 import { searchAround } from '../../js/commands.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const TRACE_DIR = join(__dirname, '../comparison/traces/seed42_reference');
+const SESSION_DIR = join(__dirname, '../comparison/sessions');
 
-// Parse a C trace file into an array of {idx, call, result} entries
-function parseTrace(filename) {
-    const text = readFileSync(join(TRACE_DIR, filename), 'utf8');
-    const entries = [];
-    for (const line of text.trim().split('\n')) {
-        if (!line.trim()) continue;
-        const m = line.match(/^(\d+)\s+(rn[d12]\(\d+\))\s*=\s*(\d+)/);
-        if (m) {
-            entries.push({
-                idx: parseInt(m[1]),
-                call: m[2],
-                result: parseInt(m[3]),
-            });
-        }
-    }
-    return entries;
+// Load session reference data
+const session = JSON.parse(readFileSync(join(SESSION_DIR, 'seed42.session.json'), 'utf8'));
+
+// Direction vectors for movement keys
+const KEY_DIRS = {
+    'h': [-1, 0], 'l': [1, 0], 'j': [0, 1], 'k': [0, -1],
+    'y': [-1, -1], 'u': [1, -1], 'b': [-1, 1], 'n': [1, 1],
+};
+
+// Parse a session RNG entry: "rn2(12)=2 @ mon.c:1145" → {call: "rn2(12)", result: 2}
+function parseRngEntry(entry) {
+    const m = entry.match(/^(rn[d12]\([^)]+\))=(\d+)/);
+    if (!m) return null;
+    return { call: m[1], result: parseInt(m[2]) };
 }
 
-// Inline mcalcmove (mirrors nethack.js)
+// ========================================================================
+// Game simulation (JS side under test)
+// ========================================================================
+
 function mcalcmove(mon) {
     let mmove = mon.speed;
     const mmoveAdj = mmove % NORMAL_SPEED;
     mmove -= mmoveAdj;
-    if (rn2(NORMAL_SPEED) < mmoveAdj) {
-        mmove += NORMAL_SPEED;
-    }
+    if (rn2(NORMAL_SPEED) < mmoveAdj) mmove += NORMAL_SPEED;
     return mmove;
 }
 
-// C ref: attrib.c exercise() — accumulate attribute exercise
-// Only matters for RNG when called with inc_or_dec=true and abs(AEXE) < AVAL(50)
 function exercise(player, attrIndex, inc_or_dec) {
-    // C ref: attrib.c:489-490 — can't exercise INT or CHA
     if (attrIndex === 1 || attrIndex === 5) return; // A_INT, A_CHA
-    // C ref: attrib.c:496 — abs(AEXE(i)) < AVAL (50)
-    // At startup AEXE is always 0, so this is always true in our short trace
-    if (inc_or_dec) {
-        rn2(19); // C ref: attrib.c:506 — rn2(19) > ACURR(i)
-    } else {
-        rn2(2);  // C ref: attrib.c:506 — -rn2(2)
-    }
+    if (inc_or_dec) { rn2(19); } else { rn2(2); }
 }
 
-// C ref: attrib.c exerper() — periodic exercise accumulation
 function exerper(game) {
     const { player } = game;
-    // C ref: svm.moves starts at 1, JS turnCount starts at 0, so add 1
-    // to get the C-equivalent value (svm.moves is already incremented
-    // before exerchk runs in allmain.c:241 → 355)
     const moves = game.turnCount + 1;
-
-    // C ref: attrib.c:520 — hunger checks every 10 turns
     if (!(moves % 10)) {
-        // Player hunger > 150 = NOT_HUNGRY → exercise(A_CON, TRUE)
-        // Player hunger > 1000 = SATIATED → exercise(A_DEX, FALSE) + monk check
-        // For our Valkyrie with starting hunger 900, NOT_HUNGRY applies
         if (player.hunger > 1000) {
             exercise(player, A_DEX, false);
         } else if (player.hunger > 150) {
             exercise(player, A_CON, true);
         }
-        // Encumbrance: UNENCUMBERED → no exercise
-    }
-
-    // C ref: attrib.c:567 — status checks every 5 turns
-    if (!(moves % 5)) {
-        // No clairvoyant, regeneration, sick, confusion, etc. at startup
-        // So no exercise calls from status checks
     }
 }
 
-// Inline simulateTurnEnd (mirrors nethack.js + C's allmain.c moveloop_core per-turn tail)
 function simulateTurnEnd(game) {
     const { player, map } = game;
     game.turnCount++;
     player.turns = game.turnCount;
-
     for (const mon of map.monsters) {
         if (mon.dead) continue;
         mon.movement += mcalcmove(mon);
     }
-
-    rn2(70);  // monster spawn
-    rn2(400); // dosounds
-    rn2(20);  // gethungry
-
-    // C ref: attrib.c exerchk() — called between gethungry and engrave wipe
+    rn2(70); rn2(400); rn2(20);
     exerper(game);
-
     const dex = player.attributes ? player.attributes[A_DEX] : 14;
-    rn2(40 + dex * 3); // engrave wipe
-
+    rn2(40 + dex * 3);
     if (game.turnCount >= game.seerTurn) {
-        const rn1_31_15 = 15 + rn2(31);
-        game.seerTurn = game.turnCount + rn1_31_15;
+        game.seerTurn = game.turnCount + 15 + rn2(31);
     }
 }
 
-// Set up the full game state for seed 42 wizard mode
 function setupGame() {
-    initRng(42);
+    initRng(session.seed);
     initLevelGeneration();
-
     const player = new Player();
     player.initRole(11); // PM_VALKYRIE
-    player.name = 'Wizard';
+    player.name = session.character.name;
     player.gender = 1; // female
-
     const map = generateLevel(1);
     wallification(map);
-
-    // Place player at upstair
     player.x = map.upstair.x;
     player.y = map.upstair.y;
     player.dungeonLevel = 1;
-
     simulatePostLevelInit(player, map, 1);
-
     const fov = new FOV();
     fov.compute(map, player.x, player.y);
-
-    return {
-        player,
-        map,
-        fov,
-        display: { putstr_message: () => {} },
-        turnCount: 0,
-        seerTurn: 0,
-    };
+    return { player, map, fov, display: { putstr_message: () => {} }, turnCount: 0, seerTurn: 0 };
 }
 
-// Simulate one turn: moveMonsters + simulateTurnEnd
 function doTurn(game) {
     moveMonsters(game.map, game.player, game.display, game.fov);
     simulateTurnEnd(game);
-
-    // Recompute FOV for next turn
     game.fov.compute(game.map, game.player.x, game.player.y);
 }
 
-// Move the player in a direction (no RNG consumption — pure position update)
-function movePlayer(game, dx, dy) {
-    game.player.x += dx;
-    game.player.y += dy;
+// Apply a session step's action to the game state (before doTurn)
+function applyAction(game, step) {
+    const dir = KEY_DIRS[step.key];
+    if (dir) {
+        game.player.x += dir[0];
+        game.player.y += dir[1];
+    } else if (step.key === 's') {
+        searchAround(game.player, game.map, game.display);
+    }
+    // '.', ':', 'i', '@' etc. — no pre-turn action
 }
 
+// Compare JS RNG log against session reference
+function compareRng(jsLog, cRng, label) {
+    assert.equal(jsLog.length, cRng.length,
+        `${label}: expected ${cRng.length} RNG calls, got ${jsLog.length}`);
+
+    for (let i = 0; i < cRng.length; i++) {
+        const cEntry = parseRngEntry(cRng[i]);
+        if (!cEntry) continue;
+        const jsMatch = jsLog[i].match(/\d+\s+(rn[d12]\([^)]+\))\s*=\s*(\d+)/);
+        assert.ok(jsMatch, `${label}: could not parse JS log entry ${i}: ${jsLog[i]}`);
+        assert.equal(jsMatch[1], cEntry.call,
+            `${label} call ${i}: expected ${cEntry.call}, got ${jsMatch[1]}`);
+        assert.equal(parseInt(jsMatch[2]), cEntry.result,
+            `${label} call ${i}: ${cEntry.call} expected result ${cEntry.result}, got ${jsMatch[2]}`);
+    }
+}
+
+// Keys that don't consume a game turn
+const NON_TURN_KEYS = new Set([':', 'i', '@']);
+
 describe('C trace comparison (seed 42)', () => {
-    it('startup consumes exactly 2802 RNG calls', () => {
-        // C trace has 2807 lines: 2801 rn2/rnd/rn1 + 1 d() + 5 rne/rnz summaries
-        // rne/rnz summaries are NOT additional RNG consumptions (internal rn2 calls
-        // are already logged separately), so actual count = 2802
+    it('startup RNG count matches session reference', () => {
         enableRngLog();
-        const game = setupGame();
+        setupGame();
         const log = getRngLog();
         disableRngLog();
-
+        // C trace has 2807 entries but 5 are rne/rnz summaries (not separate consumptions)
         assert.equal(log.length, 2802,
             `Startup should consume 2802 RNG calls, got ${log.length}`);
     });
@@ -194,227 +162,35 @@ describe('C trace comparison (seed 42)', () => {
         console.log(`DEX: ${game.player.attributes[A_DEX]}`);
     });
 
-    it('turn 1 (first h move-west) matches C trace rng_002', () => {
+    // Test each step from the session that has RNG calls
+    it('all session steps match C RNG traces', () => {
         const game = setupGame();
-        const cTrace = parseTrace('rng_002_h_move-west.txt');
+        const steps = session.steps;
 
-        // Move player west
-        movePlayer(game, -1, 0);
+        for (let si = 0; si < steps.length; si++) {
+            const step = steps[si];
 
-        // Execute turn
-        enableRngLog();
-        doTurn(game);
-        const jsLog = getRngLog();
-        disableRngLog();
+            // Apply action
+            applyAction(game, step);
 
-        console.log(`\nTurn 1: ${jsLog.length} RNG calls (C expects ${cTrace.length})`);
-        if (jsLog.length !== cTrace.length) {
-            console.log('JS calls:');
-            for (const entry of jsLog) console.log(`  ${entry}`);
-            console.log('C calls:');
-            for (const entry of cTrace) console.log(`  ${entry.idx} ${entry.call} = ${entry.result}`);
-        }
+            // Steps that consume a game turn
+            if (!NON_TURN_KEYS.has(step.key)) {
+                enableRngLog();
+                doTurn(game);
+                const jsLog = getRngLog();
+                disableRngLog();
 
-        assert.equal(jsLog.length, cTrace.length,
-            `Turn 1: expected ${cTrace.length} RNG calls, got ${jsLog.length}`);
+                const label = `Step ${si + 1} (${step.key}/${step.action}, turn ${step.turn})`;
+                console.log(`\n${label}: ${jsLog.length} RNG calls (C expects ${step.rng.length})`);
 
-        // Compare each call
-        for (let i = 0; i < cTrace.length; i++) {
-            const jsEntry = jsLog[i];
-            const cEntry = cTrace[i];
-            const jsMatch = jsEntry.match(/\d+\s+(rn[d12]\(\d+\))\s*=\s*(\d+)/);
-            assert.ok(jsMatch, `Could not parse JS log entry: ${jsEntry}`);
-            assert.equal(jsMatch[1], cEntry.call,
-                `Turn 1 call ${i}: expected ${cEntry.call}, got ${jsMatch[1]}`);
-            assert.equal(parseInt(jsMatch[2]), cEntry.result,
-                `Turn 1 call ${i}: ${cEntry.call} expected result ${cEntry.result}, got ${jsMatch[2]}`);
-        }
-    });
+                if (jsLog.length !== step.rng.length) {
+                    console.log('JS calls:');
+                    for (const entry of jsLog) console.log(`  ${entry}`);
+                    console.log('C calls:');
+                    for (const entry of step.rng) console.log(`  ${entry}`);
+                }
 
-    it('turn 2 (second h move-west) matches C trace rng_003', () => {
-        const game = setupGame();
-        const cTrace = parseTrace('rng_003_h_move-west.txt');
-
-        // Turn 1: move west
-        movePlayer(game, -1, 0);
-        doTurn(game);
-
-        // Turn 2: move west
-        movePlayer(game, -1, 0);
-
-        enableRngLog();
-        doTurn(game);
-        const jsLog = getRngLog();
-        disableRngLog();
-
-        console.log(`\nTurn 2: ${jsLog.length} RNG calls (C expects ${cTrace.length})`);
-        if (jsLog.length !== cTrace.length) {
-            console.log('JS calls:');
-            for (const entry of jsLog) console.log(`  ${entry}`);
-            console.log('C calls:');
-            for (const entry of cTrace) console.log(`  ${entry.idx} ${entry.call} = ${entry.result}`);
-        }
-
-        assert.equal(jsLog.length, cTrace.length,
-            `Turn 2: expected ${cTrace.length} RNG calls, got ${jsLog.length}`);
-
-        for (let i = 0; i < cTrace.length; i++) {
-            const jsEntry = jsLog[i];
-            const cEntry = cTrace[i];
-            const jsMatch = jsEntry.match(/\d+\s+(rn[d12]\(\d+\))\s*=\s*(\d+)/);
-            assert.ok(jsMatch, `Could not parse JS log entry: ${jsEntry}`);
-            assert.equal(jsMatch[1], cEntry.call,
-                `Turn 2 call ${i}: expected ${cEntry.call}, got ${jsMatch[1]}`);
-            assert.equal(parseInt(jsMatch[2]), cEntry.result,
-                `Turn 2 call ${i}: ${cEntry.call} expected result ${cEntry.result}, got ${jsMatch[2]}`);
-        }
-    });
-
-    it('turn 3 (l move-east) matches C trace rng_004', () => {
-        const game = setupGame();
-        const cTrace = parseTrace('rng_004_l_move-east.txt');
-
-        // Turn 1: move west
-        movePlayer(game, -1, 0);
-        doTurn(game);
-
-        // Turn 2: move west
-        movePlayer(game, -1, 0);
-        doTurn(game);
-
-        // Turn 3: move east
-        movePlayer(game, 1, 0);
-
-        enableRngLog();
-        doTurn(game);
-        const jsLog = getRngLog();
-        disableRngLog();
-
-        console.log(`\nTurn 3: ${jsLog.length} RNG calls (C expects ${cTrace.length})`);
-        if (jsLog.length !== cTrace.length) {
-            console.log('JS calls:');
-            for (const entry of jsLog) console.log(`  ${entry}`);
-            console.log('C calls:');
-            for (const entry of cTrace) console.log(`  ${entry.idx} ${entry.call} = ${entry.result}`);
-        }
-
-        assert.equal(jsLog.length, cTrace.length,
-            `Turn 3: expected ${cTrace.length} RNG calls, got ${jsLog.length}`);
-
-        for (let i = 0; i < cTrace.length; i++) {
-            const jsEntry = jsLog[i];
-            const cEntry = cTrace[i];
-            const jsMatch = jsEntry.match(/\d+\s+(rn[d12]\(\d+\))\s*=\s*(\d+)/);
-            assert.ok(jsMatch, `Could not parse JS log entry: ${jsEntry}`);
-            assert.equal(jsMatch[1], cEntry.call,
-                `Turn 3 call ${i}: expected ${cEntry.call}, got ${jsMatch[1]}`);
-            assert.equal(parseInt(jsMatch[2]), cEntry.result,
-                `Turn 3 call ${i}: ${cEntry.call} expected result ${cEntry.result}, got ${jsMatch[2]}`);
-        }
-    });
-
-    it('turn 4 (h move-west) matches C trace rng_005', () => {
-        const game = setupGame();
-        const cTrace = parseTrace('rng_005_h_move-west.txt');
-
-        // Turns 1-3
-        movePlayer(game, -1, 0); doTurn(game); // turn 1: h
-        movePlayer(game, -1, 0); doTurn(game); // turn 2: h
-        movePlayer(game, 1, 0);  doTurn(game); // turn 3: l
-
-        // Turn 4: move west
-        movePlayer(game, -1, 0);
-
-        enableRngLog();
-        doTurn(game);
-        const jsLog = getRngLog();
-        disableRngLog();
-
-        console.log(`\nTurn 4: ${jsLog.length} RNG calls (C expects ${cTrace.length})`);
-        if (jsLog.length !== cTrace.length) {
-            console.log('JS calls:');
-            for (const entry of jsLog) console.log(`  ${entry}`);
-            console.log('C calls:');
-            for (const entry of cTrace) console.log(`  ${entry.idx} ${entry.call} = ${entry.result}`);
-        }
-
-        assert.equal(jsLog.length, cTrace.length,
-            `Turn 4: expected ${cTrace.length} RNG calls, got ${jsLog.length}`);
-
-        for (let i = 0; i < cTrace.length; i++) {
-            const jsEntry = jsLog[i];
-            const cEntry = cTrace[i];
-            const jsMatch = jsEntry.match(/\d+\s+(rn[d12]\(\d+\))\s*=\s*(\d+)/);
-            assert.ok(jsMatch, `Could not parse JS log entry: ${jsEntry}`);
-            assert.equal(jsMatch[1], cEntry.call,
-                `Turn 4 call ${i}: expected ${cEntry.call}, got ${jsMatch[1]}`);
-            assert.equal(parseInt(jsMatch[2]), cEntry.result,
-                `Turn 4 call ${i}: ${cEntry.call} expected result ${cEntry.result}, got ${jsMatch[2]}`);
-        }
-    });
-
-    // Turns 5-11: extends move sequence :hhlhhhh.hhs
-    // Turn 5=h, 6=h, 7=h, 8=., 9=h, 10=h, 11=s
-    it('turns 5-11 match C traces rng_006 through rng_012', () => {
-        const game = setupGame();
-
-        // Replay turns 1-4 (no logging)
-        movePlayer(game, -1, 0); doTurn(game); // turn 1: h
-        movePlayer(game, -1, 0); doTurn(game); // turn 2: h
-        movePlayer(game, 1, 0);  doTurn(game); // turn 3: l
-        movePlayer(game, -1, 0); doTurn(game); // turn 4: h
-
-        // Define turns 5-11
-        const turns = [
-            { turn: 5,  action: 'move', dx: -1, dy: 0, trace: 'rng_006_h_move-west.txt' },
-            { turn: 6,  action: 'move', dx: -1, dy: 0, trace: 'rng_007_h_move-west.txt' },
-            { turn: 7,  action: 'move', dx: -1, dy: 0, trace: 'rng_008_h_move-west.txt' },
-            { turn: 8,  action: 'wait', dx: 0,  dy: 0, trace: 'rng_009_._wait.txt' },
-            { turn: 9,  action: 'move', dx: -1, dy: 0, trace: 'rng_010_h_move-west.txt' },
-            { turn: 10, action: 'move', dx: -1, dy: 0, trace: 'rng_011_h_move-west.txt' },
-            { turn: 11, action: 'search', dx: 0, dy: 0, trace: 'rng_012_s_search.txt' },
-        ];
-
-        for (const t of turns) {
-            const cTrace = parseTrace(t.trace);
-
-            // Apply action before logging
-            if (t.action === 'move') {
-                movePlayer(game, t.dx, t.dy);
-            } else if (t.action === 'search') {
-                // searchAround checks adjacent SDOOR/SCORR with rn2(7)
-                // At this player position, no hidden features → 0 RNG calls
-                searchAround(game.player, game.map, game.display);
-            }
-            // 'wait' = no action before doTurn
-
-            enableRngLog();
-            doTurn(game);
-            const jsLog = getRngLog();
-            disableRngLog();
-
-            console.log(`\nTurn ${t.turn}: ${jsLog.length} RNG calls (C expects ${cTrace.length})`);
-
-            if (jsLog.length !== cTrace.length) {
-                console.log('JS calls:');
-                for (const entry of jsLog) console.log(`  ${entry}`);
-                console.log('C calls:');
-                for (const entry of cTrace) console.log(`  ${entry.idx} ${entry.call} = ${entry.result}`);
-            }
-
-            assert.equal(jsLog.length, cTrace.length,
-                `Turn ${t.turn}: expected ${cTrace.length} RNG calls, got ${jsLog.length}`);
-
-            // Compare each call
-            for (let i = 0; i < cTrace.length; i++) {
-                const jsEntry = jsLog[i];
-                const cEntry = cTrace[i];
-                const jsMatch = jsEntry.match(/\d+\s+(rn[d12]\(\d+\))\s*=\s*(\d+)/);
-                assert.ok(jsMatch, `Could not parse JS log entry: ${jsEntry}`);
-                assert.equal(jsMatch[1], cEntry.call,
-                    `Turn ${t.turn} call ${i}: expected ${cEntry.call}, got ${jsMatch[1]}`);
-                assert.equal(parseInt(jsMatch[2]), cEntry.result,
-                    `Turn ${t.turn} call ${i}: ${cEntry.call} expected result ${cEntry.result}, got ${jsMatch[2]}`);
+                compareRng(jsLog, step.rng, label);
             }
         }
     });
