@@ -10,7 +10,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { COLNO, ROWNO } from '../../js/config.js';
-import { initRng } from '../../js/rng.js';
+import { initRng, enableRngLog, getRngLog, disableRngLog } from '../../js/rng.js';
 import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -112,17 +112,26 @@ function uniqueSeeds() {
     return [...seeds].sort((a, b) => a - b);
 }
 
+// Convert JS RNG log entry to compact session format.
+// JS: "1 rn2(12) = 2" → "rn2(12)=2"
+function toCompactRng(entry) {
+    return entry.replace(/^\d+\s+/, '').replace(' = ', '=');
+}
+
 // Generate v2 map-only session JSON files using sequential generation.
 // Each session covers depths 1→maxDepth for one seed.
-function generateSessions(maxDepth = 5) {
+// When withRng is true, full RNG traces are included per level.
+function generateSessions(maxDepth = 5, withRng = false) {
     const sessionsDir = join(__dirname, 'sessions');
     mkdirSync(sessionsDir, { recursive: true });
 
     for (const seed of uniqueSeeds()) {
+        enableRngLog();
         initRng(seed);
         initLevelGeneration();
 
         const levels = [];
+        let prevCount = 0;
         for (let depth = 1; depth <= maxDepth; depth++) {
             const map = makelevel(depth);
             wallification(map);
@@ -135,8 +144,16 @@ function generateSessions(maxDepth = 5) {
                 }
                 grid.push(row);
             }
-            levels.push({ depth, typGrid: grid });
+            const fullLog = getRngLog();
+            const depthLog = fullLog.slice(prevCount);
+            const levelData = { depth, typGrid: grid, rngCalls: depthLog.length };
+            if (withRng) {
+                levelData.rng = depthLog.map(toCompactRng);
+            }
+            levels.push(levelData);
+            prevCount = fullLog.length;
         }
+        disableRngLog();
 
         const session = {
             version: 2,
@@ -189,8 +206,10 @@ function main() {
     const mode = process.argv[2];
 
     if (mode === '--sessions') {
-        const maxDepth = parseInt(process.argv[3] || '5', 10);
-        generateSessions(maxDepth);
+        const args = process.argv.slice(3);
+        const withRng = args.includes('--with-rng');
+        const maxDepth = parseInt(args.find(a => !a.startsWith('--')) || '5', 10);
+        generateSessions(maxDepth, withRng);
         return;
     }
 

@@ -18,8 +18,8 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
-    generateMapsSequential, extractTypGrid,
-    compareGrids, formatDiffs,
+    generateMapsSequential, generateMapsWithRng, extractTypGrid,
+    compareGrids, formatDiffs, compareRng,
     checkWallCompleteness, checkConnectivity, checkStairs,
     checkDimensions, checkValidTypValues,
 } from './session_helpers.js';
@@ -40,10 +40,15 @@ const sessionFiles = readdirSync(SESSIONS_DIR)
 function runMapSession(file, session) {
     const maxDepth = Math.max(...session.levels.map(l => l.depth));
 
+    // Use RNG-aware generator when any level has rng or rngCalls data
+    const needsRng = session.levels.some(l => l.rng || l.rngCalls !== undefined);
+
     // Generate all levels sequentially (matching C's RNG stream)
     let result;
     it('generates levels sequentially', () => {
-        result = generateMapsSequential(session.seed, maxDepth);
+        result = needsRng
+            ? generateMapsWithRng(session.seed, maxDepth)
+            : generateMapsSequential(session.seed, maxDepth);
     });
 
     // Compare typGrid at each stored depth
@@ -57,6 +62,34 @@ function runMapSession(file, session) {
             assert.equal(diffs.length, 0,
                 `seed=${session.seed} depth=${level.depth}: ${formatDiffs(diffs)}`);
         });
+    }
+
+    // RNG count and trace comparison at each stored depth
+    for (const level of session.levels) {
+        if (level.rngCalls !== undefined) {
+            it(`rngCalls matches at depth ${level.depth}`, () => {
+                assert.ok(result, 'Level generation failed');
+                assert.ok(result.rngLogs, 'RNG logs not captured');
+                assert.equal(result.rngLogs[level.depth].rngCalls, level.rngCalls,
+                    `seed=${session.seed} depth=${level.depth}: ` +
+                    `JS=${result.rngLogs[level.depth].rngCalls} session=${level.rngCalls}`);
+            });
+        }
+
+        if (level.rng) {
+            it(`RNG trace matches at depth ${level.depth}`, () => {
+                assert.ok(result, 'Level generation failed');
+                assert.ok(result.rngLogs, 'RNG logs not captured');
+                const divergence = compareRng(
+                    result.rngLogs[level.depth].rng,
+                    level.rng,
+                );
+                assert.equal(divergence.index, -1,
+                    `seed=${session.seed} depth=${level.depth}: ` +
+                    `RNG diverges at call ${divergence.index}: ` +
+                    `JS="${divergence.js}" session="${divergence.session}"`);
+            });
+        }
     }
 
     // Structural tests on each generated level

@@ -34,29 +34,46 @@ stream (matching C's behavior when wizard-teleporting through levels).
   "type": "map",
   "source": "js",  // "js" = generated from JS, "c" = captured from C binary
   "levels": [
-    { "depth": 1, "typGrid": [[0, 0, ...], ...21 rows of 80 ints] },
-    { "depth": 2, "typGrid": [[...], ...] },
-    { "depth": 3, "typGrid": [[...], ...] },
-    { "depth": 4, "typGrid": [[...], ...] },
-    { "depth": 5, "typGrid": [[...], ...] }
+    {
+      "depth": 1,
+      "typGrid": [[0, 0, ...], ...21 rows of 80 ints],
+      "rngCalls": 2686,              // optional: RNG calls consumed for this level
+      "rng": ["rn2(2)=1", ...]       // optional: per-call RNG trace (compact format)
+    },
+    { "depth": 2, "typGrid": [[...], ...], "rngCalls": 2354 },
+    // ...
   ]
 }
 ```
 
-The test runner calls `generateMapsSequential(seed, maxDepth)` which runs
-`initRng(seed) → initLevelGeneration() → makelevel(1) → ... → makelevel(N)`,
-then compares the JS typGrid at each stored depth against the session data.
-Structural tests (wall completeness, corridor connectivity, stairs placement)
-also run on each generated level.
+Each level has optional RNG fields:
+- **`rngCalls`** — integer count of RNG calls consumed generating this level.
+  Cheap to include and useful for quick divergence detection.
+- **`rng`** — full per-call trace array. Same compact format as gameplay
+  sessions: `fn(arg)=result` with optional `@ source:line` suffix. Large
+  (thousands of entries per level), so only included on request.
+
+When the test runner finds `rngCalls` or `rng` in a level, it uses
+`generateMapsWithRng()` to capture JS RNG traces and compares them.
+Cross-language comparison (C session vs JS) compares only the `fn(arg)=result`
+portion, ignoring `@ source:line` tags (since C and JS source files differ).
 
 **Generating map sessions from JS:**
 ```bash
+# With rngCalls counts (default, committed to repo):
 node test/comparison/gen_typ_grid.js --sessions 5
+
+# With full RNG traces (for debugging):
+node test/comparison/gen_typ_grid.js --sessions 5 --with-rng
 ```
 
 **Generating map sessions from C** (captures ground-truth reference data):
 ```bash
+# With just typGrid + rngCalls:
 python3 test/comparison/c-harness/gen_map_sessions.py 42 5
+
+# With full RNG traces:
+python3 test/comparison/c-harness/gen_map_sessions.py 42 5 --with-rng
 ```
 
 ## Gameplay Sessions
@@ -198,17 +215,33 @@ of player actions with per-step RNG traces, screens, and terrain grids.
 
 ## Field Reference
 
-### Top Level
+### Top Level (all sessions)
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `version` | number | yes | Schema version (currently 1) |
+| `version` | number | yes | Schema version (currently 2) |
 | `seed` | number | yes | PRNG seed for ISAAC64 |
+| `type` | string | yes | `"map"` or `"gameplay"` |
+| `source` | string | no | `"js"` or `"c"` — which engine generated the data |
+
+### Top Level (gameplay sessions)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
 | `wizard` | boolean | yes | Whether wizard mode (`-D`) is enabled |
 | `character` | object | yes | Character creation options |
 | `symset` | string | yes | Terminal symbol set (`"DECgraphics"`) |
 | `startup` | object | yes | Game state after initialization |
 | `steps` | array | yes | Ordered player actions with ground truth |
+
+### `levels[i]` (map sessions)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `depth` | number | yes | Dungeon level number |
+| `typGrid` | number[][] | yes | 21x80 terrain type grid |
+| `rngCalls` | number | no | RNG calls consumed generating this level |
+| `rng` | string[] | no | Per-call RNG trace; length === `rngCalls` |
 
 ### `character`
 

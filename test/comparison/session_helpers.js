@@ -8,7 +8,7 @@ import {
     IS_WALL, IS_DOOR, ACCESSIBLE, SDOOR, SCORR, IRONBARS,
     CORR, ROOM, DOOR, isok
 } from '../../js/config.js';
-import { initRng } from '../../js/rng.js';
+import { initRng, enableRngLog, getRngLog, disableRngLog } from '../../js/rng.js';
 import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 
 // Terrain type names for readable diffs (matches C's levltyp[] in cmd.c)
@@ -109,6 +109,73 @@ export function generateMapsSequential(seed, maxDepth) {
         maps[depth] = map;
     }
     return { grids, maps };
+}
+
+// ---------------------------------------------------------------------------
+// RNG trace capture and comparison
+// ---------------------------------------------------------------------------
+
+// Convert JS log entry to compact session format.
+// JS format: "1 rn2(12) = 2" or "1 rn2(12) = 2 @ caller(file.js:45)"
+// Compact:   "rn2(12)=2" or "rn2(12)=2 @ caller(file.js:45)"
+function toCompactRng(entry) {
+    // Strip leading count prefix: "1 rn2(...) = result ..." → "rn2(...) = result ..."
+    const noCount = entry.replace(/^\d+\s+/, '');
+    // Compress " = " → "="
+    return noCount.replace(' = ', '=');
+}
+
+// Extract the fn(arg)=result portion from a compact RNG entry, ignoring @ source tags.
+function rngCallPart(entry) {
+    const atIdx = entry.indexOf(' @ ');
+    return atIdx >= 0 ? entry.substring(0, atIdx) : entry;
+}
+
+// Compare two RNG trace arrays.
+// Returns { index: -1 } on match, or { index, js, session } at first divergence.
+// Compares fn(arg)=result portion only (ignores @ source:line tags).
+export function compareRng(jsRng, sessionRng) {
+    const len = Math.min(jsRng.length, sessionRng.length);
+    for (let i = 0; i < len; i++) {
+        if (rngCallPart(jsRng[i]) !== rngCallPart(sessionRng[i])) {
+            return { index: i, js: jsRng[i], session: sessionRng[i] };
+        }
+    }
+    if (jsRng.length !== sessionRng.length) {
+        return {
+            index: len,
+            js: jsRng[len] || '(end)',
+            session: sessionRng[len] || '(end)',
+        };
+    }
+    return { index: -1 };
+}
+
+// Generate levels 1→maxDepth with RNG trace capture.
+// Returns { grids, maps, rngLogs } where rngLogs[depth] = { rngCalls, rng }.
+export function generateMapsWithRng(seed, maxDepth) {
+    enableRngLog();
+    initRng(seed);
+    initLevelGeneration();
+    const grids = {};
+    const maps = {};
+    const rngLogs = {};
+    let prevCount = 0;
+    for (let depth = 1; depth <= maxDepth; depth++) {
+        const map = makelevel(depth);
+        wallification(map);
+        grids[depth] = extractTypGrid(map);
+        maps[depth] = map;
+        const fullLog = getRngLog();
+        const depthLog = fullLog.slice(prevCount);
+        rngLogs[depth] = {
+            rngCalls: depthLog.length,
+            rng: depthLog.map(toCompactRng),
+        };
+        prevCount = fullLog.length;
+    }
+    disableRngLog();
+    return { grids, maps, rngLogs };
 }
 
 // ---------------------------------------------------------------------------
