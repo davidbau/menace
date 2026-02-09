@@ -522,7 +522,7 @@ function m_initweap(mndx, depth) {
         break;
 
     case S_KOBOLD:
-        if (!rn2(4)) m_initthrow(DART, 6);
+        if (!rn2(4)) m_initthrow(DART, 12);
         break;
 
     case S_CENTAUR:
