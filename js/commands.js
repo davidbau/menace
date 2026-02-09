@@ -462,7 +462,7 @@ async function handleDownstairs(player, map, display, game) {
     }
     display.putstr_message('You descend the staircase.');
 
-    // Generate new level
+    // Generate new level (changeLevel sets player.dungeonLevel)
     game.changeLevel(newDepth);
     return { moved: false, tookTime: true };
 }

@@ -778,13 +778,21 @@ export function floodFillAndRegister(map, sx, sy, rtype, lit) {
     }
 }
 
+// C ref: mklev.c:363 — gl.luathemes[] tracks whether Lua theme state is loaded
+// On first level generation, nhl_loadlua() consumes rn2(3) and rn2(2).
+// Subsequent levels reuse the cached state with no RNG.
+let _themesLoaded = false;
+
 // C ref: mklev.c makerooms()
 function makerooms(map, depth) {
     let tried_vault = false;
     let themeroom_tries = 0;
 
-    // C ref: mklev.c:386-388 — pre_themerooms_generate Lua calls
-    rn2(3); rn2(2);
+    // C ref: mklev.c:365-380 — load Lua themes on first call only
+    if (!_themesLoaded) {
+        _themesLoaded = true;
+        rn2(3); rn2(2);
+    }
 
     // Make rooms until satisfied (no more rects available)
     // C ref: mklev.c:393-417
@@ -2981,6 +2989,7 @@ function mineralize(map, depth) {
 export function initLevelGeneration(roleIndex) {
     init_objects();
     simulateDungeonInit(roleIndex);
+    _themesLoaded = false; // Reset Lua theme state for new game
 }
 
 // C ref: mklev.c makelevel()

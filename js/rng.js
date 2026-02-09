@@ -170,6 +170,8 @@ export function d(n, x) {
 }
 
 // C ref: rnd.c rnz() -- randomized scaling
+// C logs rnz summary via explicit rng_log_write; internal rn2 calls are
+// suppressed by RNGLOG_IN_RND_C. Internal rne(4) IS logged (explicit log).
 export function rnz(i) {
     enterRng();
     let x = i;
@@ -188,6 +190,8 @@ export function rnz(i) {
 
 // C ref: rnd.c rne() -- 1 <= rne(x) <= max(u.ulevel/3, 5)
 // During mklev at level 1, u.ulevel = 1, so utmp = 5
+// C logs rne summary via explicit rng_log_write; internal rn2 calls are
+// suppressed by RNGLOG_IN_RND_C. We match this with rngDepth check in rn2.
 export function rne(x) {
     enterRng();
     const utmp = 5; // u.ulevel < 15 → utmp = 5
