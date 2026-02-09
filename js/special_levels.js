@@ -79,9 +79,8 @@ export function hasSpecialLevel(dnum, dlevel) {
 }
 
 // Register Fort Ludios (Knox)
-// Accessible via magic portal, not fixed location
-// For now, register at a placeholder location
-// registerSpecialLevel(KNOX, 1, generateKnox, 'knox');
+// Fort Ludios is its own branch, accessed via magic portal
+registerSpecialLevel(KNOX, 1, generateKnox, 'knox');
 
 // Register Vlad's Tower (3 levels)
 // Tower is in its own branch, levels 1-3
@@ -90,12 +89,10 @@ registerSpecialLevel(VLADS_TOWER, 2, generateTower2, 'tower2');
 registerSpecialLevel(VLADS_TOWER, 3, generateTower3, 'tower3');
 
 // Register Gehennom levels
-// Valley is the entrance to Gehennom
-// Sanctum is the final level
-// Note: These should be at specific depths determined by dungeon generation
-// For now, using placeholder depths
-// registerSpecialLevel(GEHENNOM, 1, generateValley, 'valley');
-// registerSpecialLevel(GEHENNOM, -1, generateSanctum, 'sanctum'); // Last level
+// Valley is the entrance to Gehennom (level 1)
+// Sanctum is the final level (level 10 in a typical game)
+registerSpecialLevel(GEHENNOM, 1, generateValley, 'valley');
+registerSpecialLevel(GEHENNOM, 10, generateSanctum, 'sanctum');
 
 // Register Sokoban levels (4 levels, 2 variants each)
 // Sokoban is accessed from Dungeons of Doom around depth 6-9
@@ -107,9 +104,9 @@ registerSpecialLevel(SOKOBAN, 3, generateSoko3a, 'soko3a');
 registerSpecialLevel(SOKOBAN, 4, generateSoko4a, 'soko4a');
 
 // Register Medusa's lair
-// In Dungeons of Doom, typically around depth 20-25
-// Note: Exact depth varies by game
-// registerSpecialLevel(DUNGEONS_OF_DOOM, 20, generateMedusa, 'medusa');
+// In Dungeons of Doom, at a depth that varies by dungeon generation
+// Using depth 20 as a typical location (actual depth determined at runtime)
+registerSpecialLevel(DUNGEONS_OF_DOOM, 20, generateMedusa, 'medusa');
 
 /**
  * Get list of all registered special levels
