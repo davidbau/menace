@@ -1,6 +1,22 @@
 /**
- * Sanctum - Moloch's temple (final Gehennom level)
+ * Sanctum - Moloch's Temple (final Gehennom level)
  * Ported from nethack-c/dat/sanctum.lua
+ *
+ * The endgame temple level in Gehennom where the player must defeat
+ * Moloch's high priests to claim the Amulet of Yendor.
+ *
+ * Features:
+ * - Fixed 76×20 map with temple region
+ * - Sanctum altar (noalign)
+ * - Fire trap ring surrounding temple (34 traps)
+ * - Morgue region with undead
+ * - 14+ monsters: devils (horned, barbed, erinys, marilith, nalfeshnee),
+ *   aligned clerics (Moloch's horde), liches, vampires
+ * - 16 random objects: armor, weapons, gems, potions, scrolls
+ * - Non-diggable walls and non-passwall barriers
+ * - No teleportation or magic mapping allowed
+ *
+ * @returns {GameMap} The generated Sanctum level
  */
 
 import { des, selection } from '../sp_lev.js';

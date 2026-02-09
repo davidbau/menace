@@ -755,6 +755,25 @@ function objectClassToType(classChar) {
  * @param {number} x - X coordinate (if name_or_opts is string)
  * @param {number} y - Y coordinate (if name_or_opts is string)
  */
+/**
+ * des.object(name_or_opts, x, y)
+ * Place an object on the level.
+ * C ref: sp_lev.c spobject()
+ *
+ * Supported formats:
+ * 1. des.object('[') - Random armor at random location (object class)
+ * 2. des.object('!') - Random potion at random location (object class)
+ * 3. des.object('boulder', x, y) - Named object at specific location
+ * 4. des.object({ id: 'chest', x, y }) - Object with options
+ * 5. des.object({ id: 'chest', coord: {x, y} }) - Object with coord format
+ *
+ * Object classes: '[' (armor), ')' (weapon), '!' (potion), '?' (scroll),
+ *                 '*' (gem/rock), '%' (food), '+' (spellbook), etc.
+ *
+ * @param {string|Object} name_or_opts - Object name, class symbol, or options object
+ * @param {number} [x] - X coordinate (if name_or_opts is string)
+ * @param {number} [y] - Y coordinate (if name_or_opts is string)
+ */
 export function object(name_or_opts, x, y) {
     if (!levelState.map) {
         levelState.map = new GameMap();
@@ -875,6 +894,26 @@ function trapNameToType(name) {
  * @param {number} x - X coordinate
  * @param {number} y - Y coordinate
  */
+/**
+ * des.trap(type_or_opts, x, y)
+ * Place a trap on the level.
+ * C ref: sp_lev.c sptrap()
+ *
+ * Supported formats:
+ * 1. des.trap('fire') - Fire trap at random location
+ * 2. des.trap('fire', x, y) - Fire trap at specific location
+ * 3. des.trap({ type: 'pit', x, y }) - Trap with options
+ * 4. des.trap({ type: 'pit', coord: {x, y} }) - Trap with coord format
+ * 5. des.trap() - Random trap type at random location
+ *
+ * Trap types: 'arrow', 'dart', 'pit', 'spiked pit', 'hole', 'trap door',
+ *             'teleport', 'fire', 'rust', 'anti magic', 'magic', 'sleep gas',
+ *             'land mine', 'bear', 'squeaky board', 'rolling boulder', 'level teleport'
+ *
+ * @param {string|Object} [type_or_opts] - Trap type name or options object
+ * @param {number} [x] - X coordinate (if type_or_opts is string)
+ * @param {number} [y] - Y coordinate (if type_or_opts is string)
+ */
 export function trap(type_or_opts, x, y) {
     if (!levelState.map) {
         levelState.map = new GameMap();
@@ -949,6 +988,25 @@ export function trap(type_or_opts, x, y) {
  *
  * @param {Object} selection - Selection object (from selection.area())
  * @param {string} type - Region type (e.g., "lit")
+ */
+/**
+ * des.region(opts)
+ * Define a region with special properties (lighting, room type, etc.).
+ * C ref: sp_lev.c spregion()
+ *
+ * Supported formats:
+ * - des.region({ region: [x1, y1, x2, y2], lit: true, type: 'temple' })
+ * - des.region({ region: {x1, y1, x2, y2}, lit: false, type: 'morgue', filled: 2 })
+ *
+ * Region types: 'temple', 'morgue', 'zoo', 'beehive', 'ordinary'
+ * Properties: lit (boolean), type (string), filled (number), irregular (boolean)
+ *
+ * @param {Object} opts - Region options
+ * @param {Array|Object} opts.region - Region coordinates [x1,y1,x2,y2] or {x1,y1,x2,y2}
+ * @param {boolean} [opts.lit] - Whether region is lit
+ * @param {string} [opts.type] - Region type (temple, morgue, etc.)
+ * @param {number} [opts.filled] - Fill density for monsters/objects
+ * @param {boolean} [opts.irregular] - Whether region has irregular shape
  */
 export function region(opts) {
     if (!levelState.map) {
@@ -1058,6 +1116,27 @@ export function exclusion(opts) {
  *   - waiting: If true, monster waits (doesn't move)
  *   - peaceful: Monster is peaceful
  *   - asleep: Monster is asleep
+ */
+/**
+ * des.monster(opts_or_class, x, y)
+ * Place a monster on the level.
+ * C ref: sp_lev.c spmonster()
+ *
+ * Supported formats:
+ * 1. des.monster('V') - Random vampire at random location (monster class)
+ * 2. des.monster('L') - Random lich at random location (monster class)
+ * 3. des.monster('vampire', x, y) - Named monster at specific location
+ * 4. des.monster({ id: 'vampire', x, y }) - Monster with options
+ * 5. des.monster({ id: 'Vlad the Impaler', x, y, asleep: 1 }) - Named boss with properties
+ *
+ * Monster classes: 'V' (vampire), 'L' (lich), '&' (demon), 'D' (dragon),
+ *                  'H' (giant humanoid), etc.
+ *
+ * Options: id, x, y, coord, peaceful, asleep, waiting, align, name
+ *
+ * @param {string|Object} opts_or_class - Monster name, class symbol, or options object
+ * @param {number} [x] - X coordinate (if opts_or_class is string)
+ * @param {number} [y] - Y coordinate (if opts_or_class is string)
  */
 export function monster(opts_or_class, x, y) {
     if (!levelState.map) {
@@ -1293,10 +1372,16 @@ export function teleport_region(opts) {
 }
 
 /**
- * Finalize level generation.
- * This should be called after all des.* calls to apply flipping and other
- * post-processing.
- * C ref: sp_lev.c sp_level_loader() calls wallification(), flip_level_rnd(), solidify_map(), etc.
+ * des.finalize_level()
+ * Finalize level generation - must be called after all des.* calls.
+ * C ref: sp_lev.c sp_level_loader()
+ *
+ * Performs post-processing steps:
+ * 1. Copies monster requests from levelState to map.monsters
+ * 2. Applies wallification (computes wall junction types)
+ * 3. Applies random level flipping (horizontal/vertical)
+ *
+ * @returns {GameMap} The finalized map ready for gameplay
  */
 export function finalize_level() {
     // Copy monster requests to map
