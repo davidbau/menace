@@ -32,7 +32,7 @@ import {
     BOULDER, SCROLL_CLASS, FOOD_CLASS, WEAPON_CLASS, ARMOR_CLASS,
     POTION_CLASS, RING_CLASS, WAND_CLASS, TOOL_CLASS, AMULET_CLASS,
     GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS, VENOM_CLASS,
-    SCR_EARTH
+    SCR_EARTH, objectData
 } from './objects.js';
 
 // Aliases for compatibility with C naming
@@ -683,11 +683,18 @@ export function stair(direction, x, y) {
 function objectNameToType(name) {
     const lowerName = name.toLowerCase();
 
+    // Quick checks for common objects
     if (lowerName === 'boulder') return BOULDER;
     if (lowerName === 'scroll of earth') return SCR_EARTH;
 
-    // Add more object name mappings as needed
-    // For now, return -1 for unknown objects
+    // Search objectData for matching name
+    for (let i = 0; i < objectData.length; i++) {
+        if (objectData[i].name && objectData[i].name.toLowerCase() === lowerName) {
+            return i; // Object type index
+        }
+    }
+
+    // Not found
     return -1;
 }
 
@@ -728,7 +735,7 @@ export function object(name_or_opts, x, y) {
     if (typeof name_or_opts === 'string') {
         // des.object("boulder", x, y) - place named object at position
         const otyp = objectNameToType(name_or_opts);
-        if (otyp >= 0 && x >= 0 && x < 80 && y >= 0 && y < 21) {
+        if (otyp >= 0 && x !== undefined && y !== undefined && x >= 0 && x < 80 && y >= 0 && y < 21) {
             const obj = mksobj(otyp, true, false);
             if (obj) {
                 obj.ox = x;
@@ -737,8 +744,33 @@ export function object(name_or_opts, x, y) {
             }
         }
     } else if (name_or_opts && typeof name_or_opts === 'object') {
-        // des.object({ class = "%" }) - place random object from class
-        if (name_or_opts.class) {
+        // Handle various object placement formats
+        let objId = name_or_opts.id;
+        let coordX, coordY;
+
+        // Get coordinates from various formats
+        if (name_or_opts.coord) {
+            coordX = name_or_opts.coord.x;
+            coordY = name_or_opts.coord.y;
+        } else if (name_or_opts.x !== undefined && name_or_opts.y !== undefined) {
+            coordX = name_or_opts.x;
+            coordY = name_or_opts.y;
+        }
+
+        if (objId) {
+            // des.object({ id: 'chest', coord: {x, y} }) or des.object({ id: 'chest', x, y })
+            const otyp = objectNameToType(objId);
+            if (otyp >= 0 && coordX !== undefined && coordY !== undefined &&
+                coordX >= 0 && coordX < 80 && coordY >= 0 && coordY < 21) {
+                const obj = mksobj(otyp, true, false);
+                if (obj) {
+                    obj.ox = coordX;
+                    obj.oy = coordY;
+                    levelState.map.objects.push(obj);
+                }
+            }
+        } else if (name_or_opts.class) {
+            // des.object({ class: "%" }) - place random object from class
             const objClass = objectClassToType(name_or_opts.class);
             if (objClass >= 0) {
                 // Place random object from this class at random location
@@ -796,18 +828,38 @@ function trapNameToType(name) {
  * @param {number} x - X coordinate
  * @param {number} y - Y coordinate
  */
-export function trap(type, x, y) {
+export function trap(type_or_opts, x, y) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
 
-    const ttyp = trapNameToType(type);
-    if (ttyp < 0 || x < 0 || x >= 80 || y < 0 || y >= 21) {
+    let trapType, trapX, trapY;
+
+    if (typeof type_or_opts === 'string') {
+        // des.trap("pit", x, y)
+        trapType = type_or_opts;
+        trapX = x;
+        trapY = y;
+    } else if (type_or_opts && typeof type_or_opts === 'object') {
+        // des.trap({ coord: {x, y} }) or des.trap({ type: "pit", coord: {x, y} })
+        trapType = type_or_opts.type;
+        if (type_or_opts.coord) {
+            trapX = type_or_opts.coord.x;
+            trapY = type_or_opts.coord.y;
+        } else if (type_or_opts.x !== undefined && type_or_opts.y !== undefined) {
+            trapX = type_or_opts.x;
+            trapY = type_or_opts.y;
+        }
+    }
+
+    const ttyp = trapNameToType(trapType || '');
+    if (ttyp < 0 || trapX === undefined || trapY === undefined ||
+        trapX < 0 || trapX >= 80 || trapY < 0 || trapY >= 21) {
         return;
     }
 
     // Check if trap already exists at this position
-    const existing = levelState.map.trapAt(x, y);
+    const existing = levelState.map.trapAt(trapX, trapY);
     if (existing) {
         return; // Don't overwrite existing trap
     }
@@ -815,8 +867,8 @@ export function trap(type, x, y) {
     // Create trap structure matching dungeon.js maketrap()
     const newTrap = {
         ttyp: ttyp,
-        tx: x,
-        ty: y,
+        tx: trapX,
+        ty: trapY,
         tseen: (ttyp === HOLE), // Holes are always visible (unhideable_trap)
         launch: { x: -1, y: -1 },
         launch2: { x: -1, y: -1 },
@@ -956,6 +1008,29 @@ export function engraving(opts) {
 }
 
 /**
+ * des.ladder(direction, x, y)
+ * Place a ladder at a location.
+ * C ref: sp_lev.c spladder()
+ *
+ * @param {string} direction - "up" or "down"
+ * @param {number} x - X coordinate
+ * @param {number} y - Y coordinate
+ */
+export function ladder(direction, x, y) {
+    if (!levelState.map) {
+        levelState.map = new GameMap();
+    }
+
+    if (x >= 0 && x < 80 && y >= 0 && y < 21) {
+        // Place LADDER terrain
+        levelState.map.locations[x][y].typ = LADDER;
+
+        // Note: In C, ladders have additional metadata (up vs down)
+        // For now, just place the terrain
+    }
+}
+
+/**
  * Finalize level generation.
  * This should be called after all des.* calls to apply flipping and other
  * post-processing.
@@ -985,6 +1060,33 @@ export function finalize_level() {
 export function percent(n) {
     return rn2(100) < n;
 }
+
+/**
+ * shuffle(array)
+ * Fisher-Yates shuffle - randomize array order in place.
+ * Used by Lua level scripts for random placement.
+ *
+ * @param {Array} arr - Array to shuffle
+ */
+export function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = rn2(i + 1);
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+}
+
+/**
+ * nh object - NetHack game state queries
+ * Stub implementations for Lua level compatibility
+ */
+export const nh = {
+    /**
+     * nh.is_genocided(monster_class)
+     * Check if a monster class has been genocided.
+     * Stub: always returns false (no genocide in basic game)
+     */
+    is_genocided: (monClass) => false,
+};
 
 /**
  * Selection API - create rectangular selections
@@ -1035,6 +1137,7 @@ export const des = {
     map,
     terrain,
     stair,
+    ladder,
     object,
     trap,
     region,
