@@ -28,6 +28,8 @@ call in every turn matching the C reference, turn for turn, call for call.
 10. [The Long Tail of Gameplay Bugs](#10-the-long-tail-of-gameplay-bugs)
 11. [Final Result](#11-final-result)
 12. [Architecture of the Test Infrastructure](#12-architecture-of-the-test-infrastructure)
+13. [Lessons Learned](#13-lessons-learned)
+14. [The Art of RNG Forensics](#14-the-art-of-rng-forensics)
 
 ---
 
@@ -675,6 +677,243 @@ This "inference from RNG arguments" technique was the breakthrough that
 made Phase 2 debugging tractable. Rather than instrumenting both codebases
 with matching debug output, the RNG trace itself encodes enough information
 to reconstruct the internal decision state.
+
+---
+
+## 13. Lessons Learned
+
+Six months from now, someone will add a helpful feature to the JS port —
+auto-pickup gold, or a shortcut that opens doors silently — and 45 tests
+will break in ways that make no sense. These lessons are for that person.
+
+### Never add behavior that C doesn't have
+
+The gold auto-pickup bug was perhaps the most instructive failure of the
+entire project. Someone looked at C NetHack — where gold coins sit on the
+floor until you type `,` — and thought, *who wants to manually pick up
+gold? Let's just grab it automatically when the player walks over it.* Six
+lines of code. Perfectly reasonable game design. Catastrophic for RNG
+alignment.
+
+Here's what those six lines actually did: they called `map.removeObject(gold)`
+during player movement, *before* `movemon()` ran. When the kitten's
+`dog_goal` later scanned nearby objects, C found a gold pile and called
+`dogfood()` → `obj_resists()` → `rn2(100)`. JS found nothing. One phantom
+`rn2(100)`, invisible in any diff, shifted the PRNG stream and broke 45
+consecutive steps.
+
+The door auto-open was the same pattern in miniature. C calls `rnl(20)` for
+the strength check and `rn2(19)` for exercise when you walk into a closed
+door. JS was opening doors silently — two missing RNG calls per door
+encounter.
+
+The rule is absolute: **if C doesn't do it, JS can't either.** Not even if
+it's obviously better. Not even if it's just a display optimization. The
+PRNG doesn't care about your intentions; it counts calls.
+
+### One missing call means total divergence
+
+ISAAC64 is a counter-based PRNG. Every call to `rn2()` advances a global
+counter. Skip call #4,217 and calls #4,218 through infinity all return
+different values. There's no damping, no error correction, no gradual
+drift. You're either perfectly synchronized or completely wrong.
+
+This makes RNG alignment feel like balancing on a knife edge. The seed1
+session makes ~350 RNG calls per step across 67 steps — roughly 23,000
+calls total. A single missing `rn2(100)` at step 22 (call ~7,700) made
+the remaining ~15,300 calls produce different values. The error doesn't
+attenuate. It doesn't average out. It's not "close enough."
+
+But this same property makes bugs *findable*. When the trace diverges, it
+diverges at an exact index, and that index tells you exactly which call is
+missing or extra. You don't need statistical analysis or fuzzy matching.
+The trace is a digital signal: it's either 1 or 0.
+
+### Self-correction is real (and diagnostic)
+
+After fixing the gold and door bugs, steps 22-44 passed but step 45 failed
+with a subtle `do_clear_area` iteration difference. Then steps 46-50 failed
+as the shifted stream cascaded. But then step 51 *passed*, and so did
+steps 52-65 — fifteen consecutive steps, perfectly synchronized.
+
+What happened? At step 51, the kitten walked back into the player's line
+of sight. The `!in_masters_sight` code path stopped firing, the `wantdoor`
+search (where the subtle iteration difference lives) stopped being called,
+and both C and JS fell back to the simple `goal = player position` path.
+With the same goal and the same positions to evaluate, the streams
+re-synchronized on their own.
+
+This reveals something important about RNG divergence: **it's not permanent,
+it's conditional.** Divergence lives in specific code paths. When those
+paths stop executing — the pet comes home, the monster dies, the player
+leaves the room — the streams can snap back together. Self-correction
+means that a bug in one subsystem doesn't necessarily doom every subsequent
+step. It also means that when you see a *window* of failures surrounded by
+passes, the bug lives in whatever code path is active during that window
+and inactive otherwise.
+
+### Fix bugs in the order they appear, not the order they matter
+
+There's a temptation, when you see `dog_invent` in the C trace and know
+it's unimplemented, to go implement it immediately. Resist. If gold
+auto-pickup is removing objects at step 22 and `dog_invent` doesn't fire
+until step 44, implementing `dog_invent` first is useless — the stream is
+already shifted by step 22, so step 44's trace won't match regardless.
+
+The productive approach is to extend the *matching prefix*:
+
+1. Run tests. Note the first failing step.
+2. Read the C annotation at the divergence index.
+3. Fix that specific divergence.
+4. Re-run. The matching prefix extends. A new divergence appears later.
+5. Repeat.
+
+This is why the five pet AI fixes were discovered in order: gold (step 22),
+door (step 22), ALLOW_M (step 22), gettrack (step 41), dog_invent (step 44).
+Each fix extended the frontier. Trying to fix them out of order would have
+been like debugging a program by reading the crash dump from a *different*
+crash.
+
+### Pet AI is the final boss
+
+Of NetHack's many subsystems, pet AI is the hardest to align. Combat has
+maybe 5 RNG calls per attack. Dungeon sounds have 10 calls per turn. Pet
+behavior routinely consumes 15-30 calls per turn, and the logic touches
+*everything*:
+
+- **Position**: Where is the pet? Where is the player? Can the pet see
+  the player? (Requires full line-of-sight computation.)
+- **Memory**: Where has the player been? (Requires a 100-position circular
+  buffer, updated each turn.)
+- **Perception**: What objects are within 5 tiles? What's the food
+  classification of each one? (Each object triggers `rn2(100)` via
+  `obj_resists`.)
+- **Inventory**: Is the pet carrying anything? Should it drop something?
+  Should it pick up what's at its feet? (`rn2(udist+1)`, `rn2(apport)`,
+  `rn2(10)`, `rn2(20)`, `rn2(udist)`)
+- **Navigation**: Which adjacent squares are valid? Is there a door
+  blocking diagonal movement? A monster the pet could attack? A boulder?
+  (The position count feeds directly into `rn2(cnt)`.)
+- **Decision**: Approach the goal? Flee? Random walk? Accept a worse
+  position? (`rn2(3)`, `rn2(12)`)
+
+Miss any one of these inputs — a gold coin removed from the map, a
+diagonal move allowed through a doorway, a monster-occupied square
+excluded from valid positions — and the output diverges. The pet is a
+function of the entire game state, and the entire game state is what
+you must get right.
+
+---
+
+## 14. The Art of RNG Forensics
+
+Section 12 described the debugging *workflow*. This section is about
+the deeper skill: reading an RNG trace the way a mechanic reads engine
+sounds — hearing the misfire in a stream of numbers.
+
+### The annotation is the autopsy report
+
+The C harness PRNG patch emits lines like:
+
+```
+42: rn2(100)=15 @ obj_resists [dog_goal]
+```
+
+Every field matters:
+- **42**: This is the 42nd call in this step. If JS diverges at index 42,
+  you know exactly how many calls matched before it went wrong.
+- **rn2(100)**: The function and argument. `rn2(100)` is almost always
+  `obj_resists`. `rn2(12)` or `rn2(3)` is position evaluation. `rn2(20)`
+  is `dog_invent` pickup. `rn2(5)` is `distfleeck`.
+- **=15**: The return value. Usually not the interesting part — the
+  argument matters more.
+- **@ obj_resists**: The C function that called `rn2`. This is produced by
+  the `__func__` macro in the logging patch.
+- **[dog_goal]**: A semantic context tag showing *why* the function was
+  called. This is the crucial part — it tells you that `obj_resists` was
+  invoked during the pet's object scan, not during combat or inventory.
+
+Without annotations, debugging RNG alignment would be like debugging
+assembly without symbols. You'd see numbers but not meaning.
+
+### Reading the argument
+
+This is the single most powerful technique in Phase 2 debugging.
+The argument to `rn2()` isn't just a range — it encodes the internal
+state of the calling code.
+
+**Position count from cursed avoidance:**
+C trace shows `rn2(20)` in a track avoidance call. The formula is
+`rn2(MTSZ * (k - j))` where MTSZ=4, so `k - j = 5`. That means 5
+positions have uncursed objects. If JS shows `rn2(24)`, that's `k - j = 6` —
+one extra position. Now you know: JS has one more valid position than C.
+Check `mfndpos`. Something is being included that shouldn't be, or
+excluded that shouldn't be.
+
+**Object count from dog_goal:**
+If C has three consecutive `rn2(100)` calls annotated `[dog_goal]` and JS
+has two, there are 3 objects within SQSRCHRADIUS in C but only 2 in JS.
+An object was removed (auto-pickup), never created (level gen bug), or
+is at a different position (pet position drift).
+
+**Better-position status from rn2(3) vs rn2(12):**
+In the position evaluation loop, `rn2(3)` fires when `omx === nix` (pet
+hasn't moved to any better position yet), while `rn2(12)` fires when it
+has. Seeing `rn2(3)` where C shows `rn2(12)` means JS found a better
+position earlier in the loop that C didn't — or vice versa. The position
+evaluation order must differ.
+
+You don't need printf debugging when the RNG trace *is* the debug output.
+
+### The cascade tells you the scope
+
+When a bug causes divergence, the *pattern* of failing steps tells you
+about the bug's nature:
+
+- **One step fails, rest pass**: The bug is isolated — a missing call in
+  a path that only fires once (like a door strength check).
+- **All steps after N fail**: A persistent state change — an object
+  removed, a flag set, a position shifted. The world is now different
+  and every subsequent scan sees the difference.
+- **Window of failures, then self-correction**: A conditional code path.
+  The bug lives in code that's only active sometimes (like
+  `!in_masters_sight` — active only when pet is out of view, inactive
+  when pet returns).
+- **Every Nth step fails**: A periodic effect. Maybe a timer-based event
+  fires at a different frequency.
+
+The seed1 cascade was a textbook case of the third pattern: steps 45-50
+failed (pet out of sight, divergent `do_clear_area`), then steps 51-65
+passed (pet back in sight, streams resynchronized), then step 66 failed
+(level transition — a completely different issue).
+
+### Cross-referencing the C source
+
+Every divergence is resolved the same way: open the C source, find the
+exact code path, and implement it. Not "implement something similar."
+Not "implement the documented behavior." Implement the *code*, including
+its quirks.
+
+Example: C's `gettrack()` returns `NULL` when the pet is *on* a track
+position (distance 0) but returns the position when adjacent (distance 1).
+This seems like a bug — why wouldn't you use a track position you're
+standing on? — but it's the behavior, and the RNG calls downstream
+depend on it. Implement the "bug." Your job is not to improve NetHack;
+your job is to match it.
+
+Example: C's `dog_invent` drops items by iterating the inventory and
+placing each non-cursed item on the map, *then* reduces `apport`. The
+`rn2(10) < edog.apport` check uses the *old* apport value for all items
+in the inventory. If you "optimize" this by reducing apport after each
+drop, the later `rn2(10)` checks see a lower apport and produce different
+results.
+
+Example: C's `mfndpos` blocks diagonal movement through doorways even when
+the door is open (`D_ISOPEN`). Only `D_BROKEN` doors allow diagonal entry.
+This is arguably a design flaw — open doors should be passable — but the
+position count changes if you "fix" it, and `rn2(cnt)` changes with it.
+
+The C source is the spec. The spec has quirks. The quirks are load-bearing.
 
 ---
 

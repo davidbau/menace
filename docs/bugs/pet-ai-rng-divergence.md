@@ -3,17 +3,18 @@
 ## Summary
 
 The JS `dog_move`/`dog_goal` pet AI diverged from C starting at step 22 of the seed1
-gameplay session. Five root causes were identified and fixed, recovering 39 of the
-original 45 failing steps. seed1 now passes 61/67 steps (was 22/67). The remaining
-6 failures (steps 45, 47-50, 66) trace to subtle `do_clear_area` iteration
-differences and an unported level-transition sequence.
+gameplay session. Six root causes were identified and fixed, recovering 44 of the
+original 45 failing steps. seed1 now passes 66/67 steps (was 22/67). The sole
+remaining failure (step 66) is the level descent, where C calls `getbones()` —
+a system outside the current port scope.
 
 **Original impact**: 55 of 67 steps in seed1 had pet RNG. Once divergence started at
 step 22, all remaining steps cascaded.
 
-**Resolution**: Five fixes applied — gold auto-pickup removal, door auto-open RNG,
-ALLOW_M in mfndpos, player tracking with !in_masters_sight goal redirect, and
-dog_invent. See `PHASE_1_PRNG_ALIGNMENT.md` Phase 2 for detailed writeup.
+**Resolution**: Six fixes applied — gold auto-pickup removal, door auto-open RNG,
+ALLOW_M in mfndpos, player tracking with !in_masters_sight goal redirect,
+dog_invent, and diagonal-through-door filtering. See `PHASE_2_GAMEPLAY_ALIGNMENT.md`
+for the full writeup.
 
 ## Root Cause Analysis
 
@@ -143,18 +144,21 @@ The JS `dogfood()` in `dog.js` (lines 131-284) implements the full food classifi
    (`rn2(udist+1)`, `rn2(apport)`, `rn2(10)`) and pickup path (`rn2(20)`, `rn2(udist)`).
    Only 2 occurrences in seed1 but critical at steps 44 and 47.
 
+6. **Diagonal-through-door in mfndpos** (`monmove.js`) — C's `mfndpos()` blocks
+   diagonal movement through non-broken doorways (mon.c:2228-2238). JS was allowing
+   diagonals through open doors, producing a different position count. With a kitten
+   at `(56,3)` next to an open door, JS had 6 positions vs C's 5 — changing
+   `rn2(12)` to `rn2(3)` in position evaluation. Fixed steps 45-65.
+
 ## What's NOT yet implemented
 
 1. **Occupation system for eating** — C's `doeat()` is a multi-turn occupation (~6 turns
    for food rations). Each turn processes monster movement. JS treats eat as instant.
    The seed42_items session step 8 shows 230 RNG calls (6 turns × ~38 per-turn).
 
-2. **Remaining `do_clear_area` iteration differences** — Steps 45 and 47-50 in seed1
-   diverge in position evaluation, likely due to subtle differences in wantdoor goal
-   selection (LOS iteration order or range boundary handling in `do_clear_area`).
-
-3. **Level transition RNG** — Step 66 in seed1 shows JS=18 vs C=2615 RNG calls,
-   suggesting a multi-turn occupation or complex trap/stair sequence not yet ported.
+2. **Level transition / getbones** — Step 66 in seed1 shows JS=18 vs C=2615 RNG calls.
+   C calls `getbones()` on level descent, which consumes extensive RNG for bones file
+   checking. This system is not yet ported.
 
 ## Debugging approach
 
@@ -251,14 +255,12 @@ requires:
 |---------|-----------|------------|-------|
 | seed42.session.json | 12/12 | 0 | All pass (was 10/12 before ALLOW_M fix) |
 | seed42_items.session.json | 8/9 | 1 | Only eat (step 8) fails — needs occupation system |
-| seed1.session.json | 61/67 | 6 | Steps 45, 47-50, 66 fail (was 22/67) |
+| seed1.session.json | 66/67 | 1 | Only step 66 fails — level descent/bones (was 22/67) |
 
-**Overall session runner**: 604 pass, 78 fail (was 565 pass, 117 fail before pet AI fixes)
+**Overall session runner**: 609 pass, 73 fail (was 565 pass, 117 fail before pet AI fixes)
 
-### Remaining seed1 failures
+### Remaining seed1 failure
 
 | Step | Symptom | Likely cause |
 |------|---------|-------------|
-| 45 | Position eval: C `rn2(3)` vs JS `rn2(12)` | wantdoor goal differs → different omx==nix check |
-| 47-50 | Cascading from step 45 divergence | dog_invent at 47 + shifted stream |
-| 66 | JS=18 calls vs C=2615 calls | Level transition or multi-turn occupation |
+| 66 | JS=18 calls vs C=2615 calls | Level descent calls `getbones()` — not yet ported |
