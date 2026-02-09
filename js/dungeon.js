@@ -2284,7 +2284,7 @@ function fill_ordinary_room(map, croom, depth, bonusItems) {
         mkgrave(map, croom, depth);
 
     // Statue (1/20 chance)
-    // C ref: mkcorpstat(STATUE, ...) → mksobj(STATUE, TRUE, FALSE) internally
+    // C ref: mkcorpstat(STATUE, NULL, NULL, ...) → mksobj calls rndmonnum() internally
     if (!rn2(20)) {
         const pos = somexyspace(map, croom);
         if (pos) {
