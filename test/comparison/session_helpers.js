@@ -106,6 +106,7 @@ export function extractTypGrid(map) {
 // Generate levels 1→maxDepth sequentially on one continuous RNG stream.
 // Returns { grids: { depth: number[][] }, maps: { depth: GameMap } }
 export function generateMapsSequential(seed, maxDepth) {
+    initrack(); // reset player track buffer between tests
     initRng(seed);
     setGameSeed(seed);
     initLevelGeneration();
@@ -194,6 +195,7 @@ export function compareRng(jsRng, sessionRng) {
 // Generate levels 1→maxDepth with RNG trace capture.
 // Returns { grids, maps, rngLogs } where rngLogs[depth] = { rngCalls, rng }.
 export function generateMapsWithRng(seed, maxDepth) {
+    initrack(); // reset player track buffer between tests
     enableRngLog();
     initRng(seed);
     setGameSeed(seed);
@@ -256,6 +258,7 @@ function countPreStartupRng(session) {
 // For chargen sessions, pre-startup menu RNG calls are consumed first.
 // Returns { grid, map, rngCalls, rng }.
 export function generateStartupWithRng(seed, session) {
+    initrack(); // reset player track buffer between tests
     enableRngLog();
     initRng(seed);
     setGameSeed(seed);
