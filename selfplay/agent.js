@@ -727,52 +727,69 @@ export class Agent {
                     }
                 }
 
-                // Search very aggressively for secret doors (might be hiding stairs)
-                // Search up to 30 times for ~99.5% success rate (1/7 probability)
-                if (this.searchesAtPosition < 30) {
+                // Only search aggressively if we've explored most reachable areas
+                // If there are still frontier cells, we should explore them first
+                const frontier = level.getExplorationFrontier();
+                if (frontier.length < 10 && this.searchesAtPosition < 30) {
+                    // Very few unexplored cells - search for secrets
                     this.searchesAtPosition++;
                     if (currentCell) currentCell.searched++;
                     return { type: 'search', key: 's', reason: `aggressive search for hidden stairs (stuck ${this.levelStuckCounter})` };
                 }
 
-                // After extensive searching, if still stuck, blacklist nearby targets and try elsewhere
+                // After extensive searching, if still stuck, try different strategies
                 if (this.levelStuckCounter > 100) {
-                    // On Dlvl 1, if very stuck (>200 turns), force aggressive random exploration
-                    // since we can't retreat upstairs
-                    if (this.dungeon.currentDepth === 1 && this.levelStuckCounter > 200) {
-                        const directions = ['h', 'j', 'k', 'l', 'y', 'u', 'b', 'n'];
-                        const randomDir = directions[Math.floor(Math.random() * directions.length)];
-                        return { type: 'random_move', key: randomDir, reason: `Dlvl 1 stuck >200 turns, random exploration` };
-                    }
-
-                    // Blacklist all nearby frontier cells (they're probably unreachable)
                     const frontier = level.getExplorationFrontier();
-                    let blacklistedCount = 0;
-                    for (const target of frontier) {
-                        const dist = Math.max(Math.abs(target.x - px), Math.abs(target.y - py));
-                        if (dist <= 5) {
-                            const tKey = target.y * 80 + target.x;
-                            this.failedTargets.add(tKey);
-                            blacklistedCount++;
-                        }
-                    }
-                    // Also blacklist search candidates that we're stuck near
-                    const searchCandidates = level.getSearchCandidates();
-                    for (const cand of searchCandidates) {
-                        const dist = Math.max(Math.abs(cand.x - px), Math.abs(cand.y - py));
-                        if (dist <= 3) {
-                            const cKey = cand.y * 80 + cand.x;
-                            this.failedTargets.add(cKey);
-                            blacklistedCount++;
+
+                    // If there are many frontier cells (> 30), we're not exploring efficiently
+                    // Clear blacklist and try random movement to get unstuck
+                    if (frontier.length > 30) {
+                        // Every 30 turns of being stuck, clear the blacklist and do random moves
+                        if (this.levelStuckCounter % 30 === 0) {
+                            this.failedTargets.clear();
+                            const directions = ['h', 'j', 'k', 'l', 'y', 'u', 'b', 'n'];
+                            const randomDir = directions[Math.floor(Math.random() * directions.length)];
+                            return { type: 'random_move', key: randomDir, reason: `stuck with ${frontier.length} frontier cells, clearing blacklist and random move` };
                         }
                     }
 
-                    // Only do this blacklisting once per stuck period
-                    // DON'T reset levelStuckCounter - let it keep growing to trigger other escapes
-                    if (blacklistedCount > 0) {
-                        this.stuckCounter = 0;
-                        // Reduce levelStuckCounter slightly but don't reset to 0
-                        this.levelStuckCounter = Math.max(50, this.levelStuckCounter - 30);
+                    // Blacklist nearby frontier cells only if frontier is small (they're probably unreachable)
+                    if (frontier.length <= 30) {
+                        let blacklistedCount = 0;
+                        for (const target of frontier) {
+                            const dist = Math.max(Math.abs(target.x - px), Math.abs(target.y - py));
+                            if (dist <= 5) {
+                                const tKey = target.y * 80 + target.x;
+                                this.failedTargets.add(tKey);
+                                blacklistedCount++;
+                            }
+                        }
+                        // Also blacklist search candidates that we're stuck near
+                        const searchCandidates = level.getSearchCandidates();
+                        for (const cand of searchCandidates) {
+                            const dist = Math.max(Math.abs(cand.x - px), Math.abs(cand.y - py));
+                            if (dist <= 3) {
+                                const cKey = cand.y * 80 + cand.x;
+                                this.failedTargets.add(cKey);
+                                blacklistedCount++;
+                            }
+                        }
+
+                        // Only do this blacklisting once per stuck period
+                        // DON'T reset levelStuckCounter - let it keep growing to trigger other escapes
+                        if (blacklistedCount > 0) {
+                            this.stuckCounter = 0;
+                            // Reduce levelStuckCounter slightly but don't reset to 0
+                            this.levelStuckCounter = Math.max(50, this.levelStuckCounter - 30);
+                        }
+
+                        // On Dlvl 1 with small frontier, if very stuck (>200 turns), force random exploration
+                        // since we can't retreat upstairs and have probably exhausted reachable areas
+                        if (this.dungeon.currentDepth === 1 && this.levelStuckCounter > 200) {
+                            const directions = ['h', 'j', 'k', 'l', 'y', 'u', 'b', 'n'];
+                            const randomDir = directions[Math.floor(Math.random() * directions.length)];
+                            return { type: 'random_move', key: randomDir, reason: `Dlvl 1 stuck >200 turns, random exploration` };
+                        }
                     }
                 }
             }
@@ -870,12 +887,16 @@ export class Agent {
         // If we've explored available areas but haven't found stairs, systematically
         // search walls to reveal secret doors/corridors
         // Search probability is 1/7, so search each location up to 30 times for ~99.5% success rate
-        const frontierSmall = level.getExplorationFrontier().length < 30;
+        const frontier = level.getExplorationFrontier();
+        const frontierSmall = frontier.length < 10;  // Very few unexplored cells
         const exploredPercent = level.exploredCount / (80 * 21);
-        // Trigger searching if: no downstairs OR stuck for long time (even with downstairs visible)
-        // The stuck threshold allows searching when downstairs exist but are unreachable
-        const shouldSearch = (level.stairsDown.length === 0 || this.levelStuckCounter > 30) && this.turnNumber > 60 &&
-            (this.levelStuckCounter > 15 || (frontierSmall && exploredPercent > 0.10) || this.turnNumber > 200);
+
+        // CRITICAL: Only search for secrets if we've thoroughly explored reachable areas
+        // Don't waste time searching when there are still many unexplored frontier cells
+        const thoroughlyExplored = frontierSmall || exploredPercent > 0.50;  // Explored 50%+ of map
+
+        // Trigger searching if: no downstairs found AND explored most reachable areas
+        const shouldSearch = level.stairsDown.length === 0 && this.turnNumber > 60 && thoroughlyExplored;
         if (shouldSearch) {
             const searchCandidates = level.getSearchCandidates();
             // Filter to candidates that haven't been heavily searched yet
@@ -1063,8 +1084,14 @@ export class Agent {
             }
         }
 
-        // 10. Search for secret doors
-        if (this.searchesAtPosition < 20) {
+        // 10. Search for secret doors (only if thoroughly explored)
+        // IMPORTANT: Only search if we've exhausted reachable areas
+        // Don't waste time searching when frontier cells remain
+        const frontierForSearch = level.getExplorationFrontier();
+        const exploredPercentForSearch = level.exploredCount / (80 * 21);
+        const thoroughlyExploredForSearch = frontierForSearch.length < 10 || exploredPercentForSearch > 0.50;
+
+        if (thoroughlyExploredForSearch && this.searchesAtPosition < 20) {
             this.searchesAtPosition++;
             if (currentCell) currentCell.searched++;
             return { type: 'search', key: 's', reason: 'searching for secret passages' };
