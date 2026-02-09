@@ -2064,6 +2064,14 @@ function mkgrave(map, croom, depth) {
     const loc = map.at(pos.x, pos.y);
     if (!loc) return;
     loc.typ = GRAVE;
+    // C ref: make_grave() → get_rnd_text(EPITAPHFILE, ...) when str=NULL
+    // get_rnd_line calls rn2(filechunksize) to pick a random epitaph offset.
+    // filechunksize = epitaph file size minus "don't edit" comment = 24075 bytes.
+    // This only happens when dobell is false (str=NULL); when dobell is true,
+    // a fixed "Saved by the bell!" string is used (no RNG).
+    if (!dobell) {
+        rn2(24075); // epitaph selection via get_rnd_text → get_rnd_line
+    }
     // C ref: possibly fill with gold
     if (!rn2(3)) {
         mksobj(GOLD_PIECE, true, false);
