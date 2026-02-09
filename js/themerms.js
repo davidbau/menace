@@ -11,6 +11,9 @@ import {
     D_NODOOR, D_BROKEN, D_CLOSED, D_ISOPEN, D_LOCKED, D_SECRET,
     OROOM, THEMEROOM, ROOMOFFSET,
     isok,
+    ARROW_TRAP, DART_TRAP, ROCKTRAP, BEAR_TRAP, LANDMINE, SLP_GAS_TRAP,
+    RUST_TRAP, ANTI_MAGIC, ROLLING_BOULDER_TRAP, WEB, STATUE_TRAP,
+    TELEP_TRAP, MKTRAP_NOFLAGS, MKTRAP_NOSPIDERONWEB,
 } from './config.js';
 import { FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1, rnz, d } from './rng.js';
@@ -28,6 +31,7 @@ import {
 } from './monsters.js';
 import {
     create_room, create_subroom, sp_create_door, floodFillAndRegister, enexto,
+    mktrap,
 } from './dungeon.js';
 
 // ========================================================================
@@ -582,27 +586,52 @@ function des_monster_class(map, room, classChar, depth, opts = {}) {
     }
 }
 
-// C ref: sp_lev.c create_trap() — trap at specific coord or random pos.
+// C ref: sp_lev.c trap_types[] — trap name to constant mapping
+const TRAP_NAME_MAP = {
+    'arrow': ARROW_TRAP, 'dart': DART_TRAP, 'falling rock': ROCKTRAP,
+    'bear': BEAR_TRAP, 'land mine': LANDMINE, 'sleep gas': SLP_GAS_TRAP,
+    'rust': RUST_TRAP, 'anti magic': ANTI_MAGIC,
+    'rolling boulder': ROLLING_BOULDER_TRAP, 'web': WEB,
+    'statue': STATUE_TRAP, 'teleport': TELEP_TRAP,
+};
+
+// C ref: sp_lev.c create_trap() → mklev.c mktrap() — full trap creation.
 // For themeroom fills, traps at explicit (x,y) skip location RNG.
-// Trap placement via get_free_room_loc → get_location_coord → somexy.
+// Non-statue traps go through mktrap() which handles maketrap(), the victim
+// check (rnd(4)), and mktrap_victim().
 function des_trap(map, room, trapType, opts = {}) {
-    if (!opts.atCoord) {
-        // get_free_room_loc → get_location_coord → somexy loop
-        des_get_location(map, room);
-        // get_free_room_loc may retry via get_room_loc if not ROOM type.
-        // For normal rooms, first attempt usually succeeds — no extra RNG.
-    }
-    // C ref: trap.c maketrap() switch — some trap types create objects/monsters
-    if (trapType === 'statue') {
-        // C ref: trap.c mk_trap_statue() — create a "living" statue
+    // Resolve trap type constant from string name or integer
+    const trapConst = typeof trapType === 'string'
+        ? (TRAP_NAME_MAP[trapType] ?? 0) : trapType;
+    const depth = opts.depth ?? 1;
+
+    if (trapConst === STATUE_TRAP) {
+        // Statue traps: JS maketrap() doesn't implement mk_trap_statue(),
+        // so we handle the statue RNG here, then consume rnd(4) for the victim
+        // check (STATUE_TRAP=19 >= HOLE=13 and != MAGIC_TRAP=20 → always fails).
+        if (!opts.atCoord) {
+            des_get_location(map, room);
+        }
         mk_trap_statue_rng(map, room);
+        rnd(4); // victim check consumed but condition always false for statue
+        return;
     }
-    // C ref: mklev.c mktrap() victim check — rnd(4) always consumed during mklev
-    // At depth 1, lvl(=1) <= rnd(4)(>=1) is always TRUE, so rnd(4) is consumed
-    // for all trap types (unless MKTRAP_NOVICTIM is set, which it isn't for
-    // themeroom traps). The full condition may still be FALSE due to later
-    // checks (e.g. kind < HOLE), but rnd(4) is already consumed by then.
-    rnd(4); // mktrap victim check (consumed regardless of outcome)
+
+    // For all other trap types, call mktrap() which handles:
+    // - maketrap() (trap object creation + type-specific init)
+    // - WEB spider creation (if applicable, currently stubbed)
+    // - Victim check rnd(4) + mktrap_victim() when condition passes
+    // C ref: sp_lev.c create_trap() calls mktrap(kind, 0, croom, &tm)
+    let tm;
+    if (opts.atCoord) {
+        tm = { x: opts.x, y: opts.y };
+    } else {
+        // C ref: lspo_trap → get_location_coord → get_free_room_loc
+        const pos = des_get_location(map, room);
+        tm = pos;
+    }
+    const flags = opts.flags ?? MKTRAP_NOFLAGS;
+    mktrap(map, trapConst, flags, room, tm, depth);
 }
 
 // C ref: trap.c mk_trap_statue() — create statue with embedded monster inventory.
@@ -761,7 +790,7 @@ function simulateThemeroomFill(map, room, depth, forceLit) {
                 if (rn2(100) < 50) { // percent(50)
                     des_object_named(map, room, 'boulder', { atCoord: true });
                 } else {
-                    des_trap(map, room, 'rolling boulder', { atCoord: true });
+                    des_trap(map, room, ROLLING_BOULDER_TRAP, { atCoord: true, x, y, depth });
                 }
             });
             break;
@@ -779,7 +808,7 @@ function simulateThemeroomFill(map, room, depth, forceLit) {
                 if (spooders) {
                     rn2(100); // percent(80) — always consumed when spooders=true
                 }
-                des_trap(map, room, 'web', { atCoord: true });
+                des_trap(map, room, WEB, { atCoord: true, x, y, depth });
             });
             break;
         }
@@ -788,12 +817,15 @@ function simulateThemeroomFill(map, room, depth, forceLit) {
             // local traps = { "arrow", "dart", "falling rock", "bear",
             //                 "land mine", "sleep gas", "rust", "anti magic" }
             // shuffle(traps) → 7 rn2 calls (8 elements)
-            const traps = [0, 1, 2, 3, 4, 5, 6, 7]; // placeholder array of 8
+            const traps = [
+                ARROW_TRAP, DART_TRAP, ROCKTRAP, BEAR_TRAP,
+                LANDMINE, SLP_GAS_TRAP, RUST_TRAP, ANTI_MAGIC,
+            ];
             shuffleArray(traps); // 7 rn2 calls
             const sel = selectionRoom(map, room);
             const locs = selectionPercentage(sel, 30);
             selectionIterate(locs, (x, y) => {
-                des_trap(map, room, traps[0], { atCoord: true });
+                des_trap(map, room, traps[0], { atCoord: true, x, y, depth });
             });
             break;
         }
@@ -924,7 +956,7 @@ function simulateThemeroomFill(map, room, depth, forceLit) {
             // d(3) with single arg = math.random(1, 3) = rn2(3) + 1
             const trapCount = rn2(3) + 1;
             for (let i = 0; i < trapCount; i++) {
-                des_trap(map, room, 'statue');
+                des_trap(map, room, STATUE_TRAP, { depth });
             }
             break;
         }

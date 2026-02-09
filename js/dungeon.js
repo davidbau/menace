@@ -1971,7 +1971,7 @@ function traptype_rnd(depth) {
 }
 
 // C ref: mklev.c:2021 mktrap() — select trap type, find location, create trap
-function mktrap(map, num, mktrapflags, croom, tm, depth) {
+export function mktrap(map, num, mktrapflags, croom, tm, depth) {
     if (!tm && !croom && !(mktrapflags & MKTRAP_MAZEFLAG)) return;
 
     let kind;
@@ -2020,7 +2020,6 @@ function mktrap(map, num, mktrapflags, croom, tm, depth) {
 
     // mktrap_victim: at depth 1, lvl <= rnd(4) is always true
     // Called for ARROW_TRAP, DART_TRAP, ROCKTRAP, BEAR_TRAP, MAGIC_TRAP
-    // Needs mksobj/mkobj — skip for now (will implement with mkobj task)
     if (!(mktrapflags & MKTRAP_NOVICTIM) && lvl <= rnd(4)
         && kind !== SQKY_BOARD && kind !== RUST_TRAP
         && !is_pit(kind) && (kind < HOLE || kind === MAGIC_TRAP)) {
