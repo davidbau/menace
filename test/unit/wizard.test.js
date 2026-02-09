@@ -1,7 +1,7 @@
 // test/unit/wizard.test.js -- Tests for wizard mode commands
 // Tests the wizard mode functionality: magic mapping, level change, teleport, genesis
 
-import { describe, it } from 'node:test';
+import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { COLNO, ROWNO, ROOM, STONE, ACCESSIBLE,
          PM_WIZARD, RACE_ELF, A_CHAOTIC } from '../../js/config.js';
@@ -10,7 +10,7 @@ import { GameMap } from '../../js/map.js';
 import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 import { rhack } from '../../js/commands.js';
 import { FOV } from '../../js/vision.js';
-import { pushInput } from '../../js/input.js';
+import { pushInput, clearInputQueue } from '../../js/input.js';
 import { doname, mksobj } from '../../js/mkobj.js';
 import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, WAND_CLASS, TOOL_CLASS,
     POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
@@ -87,6 +87,8 @@ function mockGame(opts = {}) {
 }
 
 describe('Wizard mode', () => {
+    beforeEach(() => clearInputQueue());
+
     describe('Magic mapping (Ctrl+F)', () => {
         it('reveals entire map in wizard mode', async () => {
             const game = mockGame({ wizard: true });

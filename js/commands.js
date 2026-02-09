@@ -10,6 +10,7 @@ import { nhgetch, ynFunction, getlin } from './input.js';
 import { playerAttackMonster } from './combat.js';
 import { makemon } from './makemon.js';
 import { mons } from './monsters.js';
+import { doname } from './mkobj.js';
 import { showPager } from './pager.js';
 import { saveGame, loadFlags, saveFlags, OPTION_DEFS } from './storage.js';
 
@@ -96,7 +97,7 @@ export async function rhack(ch, game) {
 
     // Inventory
     if (c === 'i') {
-        return handleInventory(player, display);
+        return await handleInventory(player, display);
     }
 
     // Wield weapon
@@ -568,16 +569,41 @@ async function handleClose(player, map, display) {
 
 // Handle inventory display
 // C ref: invent.c ddoinv()
-function handleInventory(player, display) {
+async function handleInventory(player, display) {
     if (player.inventory.length === 0) {
         display.putstr_message('Not carrying anything.');
-    } else {
-        let msg = 'Inventory: ';
-        for (const item of player.inventory) {
-            msg += `${item.invlet}) ${item.name}  `;
-        }
-        display.putstr_message(msg.substring(0, 79));
+        return { moved: false, tookTime: false };
     }
+
+    // Group items by class, display in C inventory order
+    // C ref: invent.c display_inventory() / display_pickinv()
+    const CLASS_NAMES = {
+        1: 'Weapons', 2: 'Armor', 3: 'Rings', 4: 'Amulets',
+        5: 'Tools', 6: 'Comestibles', 7: 'Potions', 8: 'Scrolls',
+        9: 'Spellbooks', 10: 'Wands', 11: 'Coins', 12: 'Gems/Stones',
+    };
+    const INV_ORDER = [11, 4, 1, 2, 6, 8, 9, 7, 3, 10, 5, 12, 13, 14, 15];
+
+    const groups = {};
+    for (const item of player.inventory) {
+        const cls = item.oclass;
+        if (!groups[cls]) groups[cls] = [];
+        groups[cls].push(item);
+    }
+
+    const lines = [];
+    for (const cls of INV_ORDER) {
+        if (!groups[cls]) continue;
+        lines.push(` ${CLASS_NAMES[cls] || 'Other'}`);
+        for (const item of groups[cls]) {
+            lines.push(` ${item.invlet} - ${doname(item, player)}`);
+        }
+    }
+    lines.push(' (end)');
+
+    display.renderChargenMenu(lines, true);
+    await nhgetch(); // wait for dismissal
+
     return { moved: false, tookTime: false };
 }
 

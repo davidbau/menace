@@ -285,7 +285,7 @@ describe('Screen comparison (seed 42)', () => {
                     game.player.x += dir[0];
                     game.player.y += dir[1];
                 } else if (state.step.key === 's') {
-                    dosearch0(game.player, game.map);
+                    dosearch0(game.player, game.map, game.display);
                 }
 
                 if (!NON_TURN_KEYS.has(state.step.key)) {
