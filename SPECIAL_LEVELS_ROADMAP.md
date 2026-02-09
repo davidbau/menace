@@ -18,7 +18,9 @@ Epic: `interface-3br` - Complete special level system for all dungeon branches
 - **Utility Functions**: shuffle(), percent(), objectNameToType(), trapNameToType() ✓
 - **Wallification & Flipping**: Complete wall junction computation and random flipping ✓
 - **C Traces Collected**: Sokoban, Mines, Ludios, Tower, Valley, Main dungeon specials ✓
-- **Test Infrastructure**: 12/12 tests passing across 5 level implementations ✓
+- **Test Infrastructure**: 21/21 tests passing across 12 level implementations ✓
+  - Tower (4 tests), Knox (2), Valley (2), Sanctum (2), Medusa (2)
+  - Wizard levels (4 tests), Demon lairs (5 tests)
 - **Comprehensive Documentation**: Full JSDoc for all API functions with examples ✓
 
 ### ◐ IN PROGRESS
@@ -257,7 +259,7 @@ Port end-game planes (after C trace collection).
 - Tier 3 Complex Fixed Maps: 1 level ✓ (medusa)
 - Tier 4 Demon Lairs: 5 levels ✓ (asmodeus, baalz, juiblex, orcus, sanctum)
 - Total: 22 of ~80 special levels implemented and tested
-- **All 12/12 special level tests passing**
+- **All 21/21 special level tests passing** (4 tower + 2 knox + 2 valley + 2 sanctum + 2 medusa + 4 wizard + 5 demon)
 - **Integration complete**: All levels playable via (dnum, dlevel) coordinates
 
 **Next Target**: ~35% (Complete Phase 2)
