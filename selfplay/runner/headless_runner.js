@@ -14,6 +14,7 @@ import { parseStatus } from '../perception/status_parser.js';
 
 // Import game modules
 import { initRng, rn2, rnd } from '../../js/rng.js';
+import { pushInput } from '../../js/input.js';
 import { initLevelGeneration, makelevel, wallification, setGameSeed } from '../../js/dungeon.js';
 import { Player, roles } from '../../js/player.js';
 import { rhack } from '../../js/commands.js';
@@ -30,6 +31,7 @@ import {
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN, AIR, CLOUD, SDOOR, SCORR,
     D_NODOOR, D_CLOSED, D_ISOPEN, D_LOCKED, ACCESSIBLE, MAXLEVEL,
 } from '../../js/config.js';
+import { doname } from '../../js/mkobj.js';
 
 // Terrain symbol mapping (matches display.js)
 function getTerrainSymbol(loc) {
@@ -60,6 +62,38 @@ function getTerrainSymbol(loc) {
         [CLOUD]: { ch: '#', color: 7 }, [SCORR]: { ch: ' ', color: 7 },
     };
     return syms[typ] || { ch: '?', color: 5 };
+}
+
+const INVENTORY_CLASS_NAMES = {
+    1: 'Weapons', 2: 'Armor', 3: 'Rings', 4: 'Amulets',
+    5: 'Tools', 6: 'Comestibles', 7: 'Potions', 8: 'Scrolls',
+    9: 'Spellbooks', 10: 'Wands', 11: 'Coins', 12: 'Gems/Stones',
+};
+
+const INVENTORY_ORDER = [11, 4, 1, 2, 6, 8, 9, 7, 3, 10, 5, 12, 13, 14, 15];
+
+function buildInventoryLines(player) {
+    if (!player || player.inventory.length === 0) {
+        return ['Not carrying anything.'];
+    }
+
+    const groups = {};
+    for (const item of player.inventory) {
+        const cls = item.oclass;
+        if (!groups[cls]) groups[cls] = [];
+        groups[cls].push(item);
+    }
+
+    const lines = [];
+    for (const cls of INVENTORY_ORDER) {
+        if (!groups[cls]) continue;
+        lines.push(` ${INVENTORY_CLASS_NAMES[cls] || 'Other'}`);
+        for (const item of groups[cls]) {
+            lines.push(` ${item.invlet} - ${doname(item, player)}`);
+        }
+    }
+    lines.push(' (end)');
+    return lines;
 }
 
 /**
@@ -369,6 +403,15 @@ class HeadlessAdapter {
         // waiting for nhgetch(). The key is that we need to ensure
         // subsequent sendKey calls provide the expected input.
         await this.game.executeCommand(key);
+    }
+
+    queueInput(key) {
+        const ch = typeof key === 'number' ? key : key.charCodeAt(0);
+        pushInput(ch);
+    }
+
+    async getInventoryLines() {
+        return buildInventoryLines(this.game.player);
     }
 
     async readScreen() {

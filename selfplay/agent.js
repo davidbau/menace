@@ -4,7 +4,7 @@
 // and map tracker for perception, the strategy/tactics modules for
 // decisions, and sends commands through the platform adapter interface.
 
-import { parseScreen, parseTmuxCapture, findMonsters, findStairs } from './perception/screen_parser.js';
+import { parseScreen, findMonsters, findStairs } from './perception/screen_parser.js';
 import { parseStatus } from './perception/status_parser.js';
 import { DungeonTracker } from './perception/map_tracker.js';
 import { findPath, findExplorationTarget, findNearest, directionKey, directionDelta } from './brain/pathing.js';
@@ -759,6 +759,23 @@ export class Agent {
         if (action.type !== 'rest') {
             this.restTurns = 0;
         }
+        if (this.adapter.queueInput) {
+            if (action.type === 'wield' && this.pendingWieldLetter) {
+                const letter = this.pendingWieldLetter;
+                this.pendingWieldLetter = null;
+                this.adapter.queueInput(letter);
+            } else if (action.type === 'wear' && this.pendingWearLetter) {
+                const letter = this.pendingWearLetter;
+                this.pendingWearLetter = null;
+                this.adapter.queueInput(letter);
+            } else if (action.type === 'quaff' && this.pendingQuaffLetter) {
+                const letter = this.pendingQuaffLetter;
+                this.pendingQuaffLetter = null;
+                this.adapter.queueInput(letter);
+            } else if (action.type === 'eat') {
+                this.adapter.queueInput('a');
+            }
+        }
         await this.adapter.sendKey(action.key);
     }
 
@@ -767,28 +784,23 @@ export class Agent {
      * This is expensive (requires extra key press + screen read), so call sparingly.
      */
     async _refreshInventory() {
-        // In headless mode, skip inventory screen scraping.
-        // The inventory command ('i') blocks waiting for dismissal,
-        // causing the agent to hang. Instead, track inventory through
-        // game state or message parsing in headless mode.
-        // TODO: Implement proper inventory tracking for headless mode
-        if (!this.adapter.isTmux) {
-            // Headless JS mode - skip for now
-            this.inventory.lastUpdate = this.turnNumber;
-            return false;
+        // Headless adapters can provide inventory lines directly.
+        if (this.adapter.getInventoryLines) {
+            const lines = await this.adapter.getInventoryLines();
+            const success = this.inventory.parseFromLines(lines);
+            if (success) {
+                this.inventory.lastUpdate = this.turnNumber;
+            }
+            return success;
         }
 
         // Send 'i' to view inventory
         await this.adapter.sendKey('i');
 
-        // Read the inventory screen
+        // Read the inventory screen (use raw lines so row 0 is included)
         const rawScreen = await this.adapter.readScreen();
-        const invScreen = this.adapter.isTmux
-            ? parseTmuxCapture(rawScreen)
-            : parseScreen(rawScreen);
-
-        // Parse inventory
-        const success = this.inventory.parseFromScreen(invScreen);
+        const lines = rawScreen.map(row => row.map(cell => cell.ch || ' ').join(''));
+        const success = this.inventory.parseFromLines(lines);
 
         // Dismiss inventory screen (space or escape)
         await this.adapter.sendKey(' ');

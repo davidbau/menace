@@ -34,6 +34,7 @@ export class TmuxAdapter extends GameAdapter {
         this.keyDelay = options.keyDelay || DEFAULT_KEY_DELAY;
         this._running = false;
         this._homeDir = null;
+        this.isTmux = true;
     }
 
     /**

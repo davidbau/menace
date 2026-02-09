@@ -39,6 +39,27 @@ export class InventoryTracker {
      */
     parseFromScreen(screen) {
         if (!screen || !screen.map) return false;
+        const lines = screen.map.map(row => this._getLineText(row));
+        return this.parseFromLines(lines);
+    }
+
+    /**
+     * Get text content from a screen row (array of cells)
+     */
+    _getLineText(row) {
+        if (!row) return '';
+        return row.map(cell => cell.ch || ' ').join('');
+    }
+
+    /**
+     * Parse inventory from an array of text lines.
+     * Accepts full-screen inventory dumps (row 0..23).
+     *
+     * @param {Array<string>} lines
+     * @returns {boolean}
+     */
+    parseFromLines(lines) {
+        if (!lines || lines.length === 0) return false;
 
         // Look for inventory display pattern
         // Format:
@@ -52,17 +73,17 @@ export class InventoryTracker {
         this.items = [];
         let currentCategory = null;
 
-        for (let y = 0; y < screen.map.length; y++) {
-            const line = this._getLineText(screen.map[y]);
+        for (let y = 0; y < lines.length; y++) {
+            const line = lines[y];
 
             // Category header (indented with single space, no dash)
-            if (line.match(/^ [A-Z][a-z]+/)) {
+            if (line.match(/^\s+[A-Z][a-z]+/)) {
                 currentCategory = line.trim();
                 continue;
             }
 
             // Item line: " <letter> - <description>"
-            const itemMatch = line.match(/^ ([a-zA-Z]) - (.+)$/);
+            const itemMatch = line.match(/^\s*([a-zA-Z]) - (.+)$/);
             if (itemMatch) {
                 const letter = itemMatch[1];
                 const name = itemMatch[2].trim();
@@ -82,14 +103,6 @@ export class InventoryTracker {
 
         // If we found items but no (end) marker, still consider it successful
         return this.items.length > 0;
-    }
-
-    /**
-     * Get text content from a screen row (array of cells)
-     */
-    _getLineText(row) {
-        if (!row) return '';
-        return row.map(cell => cell.ch || ' ').join('');
     }
 
     /**
