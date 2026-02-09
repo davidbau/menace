@@ -74,6 +74,10 @@ try {
                 const actionStr = act ? `${act.type}(${act.key}): ${act.reason}` : '?';
                 console.log(`  Turn ${info.turn}: HP=${info.hp}/${info.hpmax} Dlvl=${info.dlvl} pos=(${info.position?.x},${info.position?.y}) ${actionStr}`);
             }
+            // Dump agent map at intervals for diagnostics
+            if (info.turn === 50 || info.turn === 100 || info.turn === 200 || info.turn % 200 === 0) {
+                dumpAgentMap(agent, info.turn);
+            }
         } : null,
     });
 
@@ -91,4 +95,45 @@ try {
     console.log('\nCleaning up tmux session...');
     await adapter.stop();
     console.log('Done.');
+}
+
+function dumpAgentMap(agent, turn) {
+    const level = agent.dungeon.currentLevel;
+    const px = agent.screen?.playerX ?? -1;
+    const py = agent.screen?.playerY ?? -1;
+    console.log(`\n=== Agent Map at Turn ${turn} (Dlvl ${agent.dungeon.currentDepth}) ===`);
+    let minX = 80, maxX = 0, minY = 21, maxY = 0;
+    for (let y = 0; y < 21; y++) {
+        for (let x = 0; x < 80; x++) {
+            if (level.at(x, y).explored) {
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+            }
+        }
+    }
+    minX = Math.max(0, minX - 2);
+    maxX = Math.min(79, maxX + 2);
+    minY = Math.max(0, minY - 2);
+    maxY = Math.min(20, maxY + 2);
+    for (let y = minY; y <= maxY; y++) {
+        let row = '';
+        for (let x = minX; x <= maxX; x++) {
+            if (x === px && y === py) { row += '@'; continue; }
+            const cell = level.at(x, y);
+            if (!cell.explored) { row += ' '; continue; }
+            row += cell.ch === ' ' ? '.' : cell.ch;
+        }
+        console.log(`  ${String(y).padStart(2)}| ${row}`);
+    }
+    console.log(`  Stairs up: ${JSON.stringify(level.stairsUp)}`);
+    console.log(`  Stairs down: ${JSON.stringify(level.stairsDown)}`);
+    console.log(`  Frontier cells: ${level.getExplorationFrontier().length}`);
+    console.log(`  Explored cells: ${level.exploredCount}`);
+    console.log(`  Failed targets: ${agent.failedTargets.size}`);
+    if (agent.committedTarget) {
+        console.log(`  Committed target: (${agent.committedTarget.x}, ${agent.committedTarget.y})`);
+    }
+    console.log('');
 }

@@ -7,7 +7,7 @@
 import { parseScreen, parseTmuxCapture, findMonsters, findStairs } from './perception/screen_parser.js';
 import { parseStatus } from './perception/status_parser.js';
 import { DungeonTracker } from './perception/map_tracker.js';
-import { findPath, findExplorationTarget, findNearest, directionKey } from './brain/pathing.js';
+import { findPath, findExplorationTarget, findNearest, directionKey, directionDelta } from './brain/pathing.js';
 
 // Direction keys for movement toward a target
 const DIR_KEYS = {
@@ -59,6 +59,8 @@ export class Agent {
         this.committedTarget = null; // {x, y} of committed exploration target
         this.committedPath = null; // PathResult we're currently following
         this.targetStuckCount = 0; // how many turns we've been stuck on committed path
+        this.failedTargets = new Set(); // targets we've failed to reach (blacklisted)
+        this.consecutiveFailedMoves = 0; // consecutive turns where movement failed
 
         // Statistics
         this.stats = {
@@ -97,6 +99,9 @@ export class Agent {
                 continue; // UI interaction consumed a turn's worth of input
             }
 
+            // Detect movement failures from last turn
+            this._checkLastMoveFailed();
+
             // Detect pet displacement: if we "attacked" and swapped positions
             this._detectPetDisplacement();
 
@@ -108,7 +113,12 @@ export class Agent {
 
             // Decide and act
             const action = this._decide();
+            const prePos = { x: this.screen.playerX, y: this.screen.playerY };
             await this._act(action);
+
+            // Detect movement failure: if we sent a movement/explore key and didn't move,
+            // mark the target cell as not walkable (wall, closed door, etc.)
+            this._detectMovementFailure(action, prePos);
 
             // Post-action bookkeeping
             this.turnNumber++;
@@ -122,6 +132,8 @@ export class Agent {
                     this.stuckCounter = 0;
                     this.committedTarget = null;
                     this.committedPath = null;
+                    this.failedTargets.clear();
+                    this.consecutiveFailedMoves = 0;
                 }
             }
 
@@ -172,12 +184,27 @@ export class Agent {
             return true;
         }
 
-        // Handle door messages: just bump the door again.
-        // JS port auto-opens closed doors on bump; locked doors we avoid.
-        // (Multi-key commands like 'o' and Ctrl-D hang the headless adapter
-        //  because rhack internally calls nhgetch() for direction.)
-        if (this.screen.message.includes('This door is locked')) {
-            // Mark the locked door position so pathfinding avoids it
+        // Handle "This door is closed" — open it (C binary only; JS auto-opens)
+        if (this.screen.message.includes('This door is closed')) {
+            // Clear pending movement failure check — bouncing off a door is expected
+            this._lastMoveAction = null;
+            this._lastMovePrePos = null;
+            this.consecutiveFailedMoves = 0;
+            const adjDoor = this._findAdjacentDoor(this.screen.playerX, this.screen.playerY);
+            if (adjDoor) {
+                await this.adapter.sendKey('o');
+                await this.adapter.sendKey(adjDoor.key);
+                return true;
+            }
+        }
+
+        // Handle locked doors — mark as impassable and reroute
+        if (this.screen.message.includes('This door is locked') ||
+            this.screen.message.includes('The door resists!')) {
+            // Clear pending movement failure check
+            this._lastMoveAction = null;
+            this._lastMovePrePos = null;
+            this.consecutiveFailedMoves = 0;
             const adjDoor = this._findAdjacentDoor(this.screen.playerX, this.screen.playerY);
             if (adjDoor) {
                 const cell = this.dungeon.currentLevel.at(adjDoor.x, adjDoor.y);
@@ -185,6 +212,9 @@ export class Agent {
                     cell.walkable = false; // treat as impassable
                 }
             }
+            // Abandon committed path through this door
+            this.committedTarget = null;
+            this.committedPath = null;
             return false; // let _decide pick a new path
         }
 
@@ -331,7 +361,7 @@ export class Agent {
         // 6. If we've spent too long stuck on this level, head for stairs
         if (this.levelStuckCounter > 20 && level.stairsDown.length > 0) {
             const stairs = level.stairsDown[0];
-            const path = findPath(level, px, py, stairs.x, stairs.y);
+            const path = findPath(level, px, py, stairs.x, stairs.y, { allowUnexplored: true });
             if (path.found) {
                 return this._followPath(path, 'navigate', `heading to downstairs (level stuck ${this.levelStuckCounter}) at (${stairs.x},${stairs.y})`);
             }
@@ -359,7 +389,7 @@ export class Agent {
             // Head for downstairs if known
             if (level.stairsDown.length > 0) {
                 const stairs = level.stairsDown[0];
-                const path = findPath(level, px, py, stairs.x, stairs.y);
+                const path = findPath(level, px, py, stairs.x, stairs.y, { allowUnexplored: true });
                 if (path.found) {
                     return this._followPath(path, 'navigate', `heading to downstairs (stuck) at (${stairs.x},${stairs.y})`);
                 }
@@ -368,9 +398,12 @@ export class Agent {
             // Force explore with allowUnexplored to reach frontier through unexplored territory
             const frontier = level.getExplorationFrontier();
             if (frontier.length > 0) {
-                for (const target of frontier.slice(0, 10)) {
+                for (const target of frontier.slice(0, 20)) {
+                    const tKey = target.y * 80 + target.x;
+                    if (this.failedTargets.has(tKey)) continue;
                     const path = findPath(level, px, py, target.x, target.y, { allowUnexplored: true });
                     if (path.found) {
+                        this.committedTarget = { x: target.x, y: target.y };
                         return this._followPath(path, 'explore', `force-exploring toward (${target.x},${target.y})`);
                     }
                 }
@@ -390,7 +423,7 @@ export class Agent {
         // 9. No unexplored areas -- head for downstairs
         if (level.stairsDown.length > 0) {
             const stairs = level.stairsDown[0];
-            const path = findPath(level, px, py, stairs.x, stairs.y);
+            const path = findPath(level, px, py, stairs.x, stairs.y, { allowUnexplored: true });
             if (path.found) {
                 return this._followPath(path, 'navigate', `heading to downstairs at (${stairs.x},${stairs.y})`);
             }
@@ -568,14 +601,17 @@ export class Agent {
         }
 
         // Find a new target: use findExplorationTarget but commit to its destination
+        // Skip blacklisted targets we've failed to reach
         const explorationPath = findExplorationTarget(level, px, py, this.recentPositions);
         if (explorationPath && explorationPath.found) {
-            // Commit to the destination (last point on the path)
             const dest = explorationPath.path[explorationPath.path.length - 1];
-            this.committedTarget = { x: dest.x, y: dest.y };
-            this.committedPath = explorationPath;
-            this.consecutiveWaits = 0;
-            return this._followPath(explorationPath, 'explore', `exploring toward (${dest.x},${dest.y})`);
+            const destKey = dest.y * 80 + dest.x;
+            if (!this.failedTargets.has(destKey)) {
+                this.committedTarget = { x: dest.x, y: dest.y };
+                this.committedPath = explorationPath;
+                this.consecutiveWaits = 0;
+                return this._followPath(explorationPath, 'explore', `exploring toward (${dest.x},${dest.y})`);
+            }
         }
 
         return null;
@@ -600,6 +636,69 @@ export class Agent {
             }
         }
         return null;
+    }
+
+    /**
+     * Detect movement failure: if we tried to move but position didn't change,
+     * the target cell is blocked. Mark it as not walkable so pathfinding avoids it.
+     */
+    _detectMovementFailure(action, prePos) {
+        if (!action || !prePos) return;
+
+        // Only check movement-type actions (not attack — staying in place is expected)
+        const moveTypes = new Set(['explore', 'navigate', 'flee', 'random_move']);
+        if (!moveTypes.has(action.type)) return;
+
+        // Check if position changed (need to re-read screen for post-move position)
+        // We can't re-read here since _act already sent the key. We'll check on next turn.
+        // Instead, save the action for checking on the next turn.
+        this._lastMoveAction = action;
+        this._lastMovePrePos = prePos;
+    }
+
+    /**
+     * Check if the last movement action failed and mark cells accordingly.
+     * Called at the start of each turn with the new screen.
+     */
+    _checkLastMoveFailed() {
+        if (!this._lastMoveAction || !this._lastMovePrePos || !this.screen) return;
+
+        const px = this.screen.playerX;
+        const py = this.screen.playerY;
+        const prePos = this._lastMovePrePos;
+        const action = this._lastMoveAction;
+
+        // If position didn't change and we tried to move, the target was blocked
+        if (px === prePos.x && py === prePos.y && action.key) {
+            this.consecutiveFailedMoves++;
+            const delta = directionDelta(action.key);
+            if (delta) {
+                const tx = prePos.x + delta.dx;
+                const ty = prePos.y + delta.dy;
+                const level = this.dungeon.currentLevel;
+                const cell = level.at(tx, ty);
+                if (cell && !cell.explored) {
+                    // Mark unexplored cell we couldn't walk into as explored wall
+                    cell.explored = true;
+                    cell.type = 'wall';
+                    cell.walkable = false;
+                    cell.stale = true;
+                }
+
+                // If we've failed to move repeatedly, blacklist committed target
+                if (this.consecutiveFailedMoves >= 3 && this.committedTarget) {
+                    const tKey = this.committedTarget.y * 80 + this.committedTarget.x;
+                    this.failedTargets.add(tKey);
+                    this.committedTarget = null;
+                    this.committedPath = null;
+                }
+            }
+        } else {
+            this.consecutiveFailedMoves = 0;
+        }
+
+        this._lastMoveAction = null;
+        this._lastMovePrePos = null;
     }
 
     /**

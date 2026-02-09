@@ -240,6 +240,26 @@ export function parseScreen(grid) {
         }
     }
 
+    // --- Structural door detection ---
+    // When color info is unavailable (tmux), open doors look like floor ('.')
+    // but are actually doors. Detect them structurally: a '.' cell with wall
+    // characters on exactly two opposite sides (N-S or E-W) is likely a door.
+    for (let y = 0; y < MAP_ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+            const cell = screen.map[y][x];
+            if (cell.type !== 'floor' || cell.color !== 7) continue;
+            // Check N-S walls: wall above and below
+            const north = (y > 0) ? screen.map[y - 1][x] : null;
+            const south = (y < MAP_ROWS - 1) ? screen.map[y + 1][x] : null;
+            const east = (x < COLS - 1) ? screen.map[y][x + 1] : null;
+            const west = (x > 0) ? screen.map[y][x - 1] : null;
+            const isWall = (c) => c && c.type === 'wall';
+            if ((isWall(north) && isWall(south)) || (isWall(east) && isWall(west))) {
+                cell.type = 'door_open';
+            }
+        }
+    }
+
     // --- Status lines ---
     screen.statusLine1 = extractRowText(grid[STATUS_ROW_1]);
     screen.statusLine2 = extractRowText(grid[STATUS_ROW_2]);

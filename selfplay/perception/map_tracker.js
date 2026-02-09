@@ -87,15 +87,29 @@ export class LevelMap {
                 const oldExplored = cell.explored;
                 const oldType = cell.type;
 
-                cell.ch = screenCell.ch;
-                cell.color = screenCell.color;
-                cell.type = screenCell.type;
-                cell.explored = true;
-                cell.stale = false;
-                cell.lastSeenTurn = turn;
-
-                // Classify walkability
-                cell.walkable = isWalkable(screenCell.type);
+                // When the player or a monster stands on a cell, preserve
+                // the underlying terrain type (door, floor, etc.) so the
+                // pathfinder can make correct diagonal-through-door checks.
+                if (screenCell.type === 'player' || screenCell.type === 'monster') {
+                    cell.explored = true;
+                    cell.stale = false;
+                    cell.lastSeenTurn = turn;
+                    // Keep existing terrain type/walkable if already known
+                    if (!oldExplored) {
+                        cell.ch = '.';   // visual placeholder
+                        cell.type = 'floor'; // assume floor under entity if first visit
+                        cell.walkable = true;
+                    }
+                    // Don't overwrite ch/color/type with entity character
+                } else {
+                    cell.ch = screenCell.ch;
+                    cell.color = screenCell.color;
+                    cell.type = screenCell.type;
+                    cell.explored = true;
+                    cell.stale = false;
+                    cell.lastSeenTurn = turn;
+                    cell.walkable = isWalkable(screenCell.type);
+                }
 
                 if (!oldExplored) {
                     this.exploredCount++;

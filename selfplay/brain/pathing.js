@@ -153,6 +153,11 @@ export function findPath(levelMap, sx, sy, gx, gy, opts = {}) {
                 if (currentCell && isDoorType(currentCell.type)) {
                     continue; // can't move diagonally from a door
                 }
+                // Can't move diagonally INTO a door either
+                const destCell = levelMap.at(nx, ny);
+                if (destCell && destCell.explored && isDoorType(destCell.type)) {
+                    continue;
+                }
             }
 
             const tentativeG = gScore[currentIdx] + cost;
