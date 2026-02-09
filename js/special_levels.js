@@ -5,6 +5,8 @@
  * C ref: sp_lev.c, dungeon.c
  */
 
+import { rn2 } from './rng.js';
+
 // Import special level generators
 import { generate as generateKnox } from './levels/knox.js';
 import { generate as generateMedusa } from './levels/medusa.js';
@@ -47,7 +49,7 @@ export const VLADS_TOWER = 6;
 
 /**
  * Special level lookup table
- * Maps (dnum, dlevel) to generator function
+ * Maps (dnum, dlevel) to generator function(s)
  *
  * Note: This is a simplified version for the levels we've ported.
  * Full implementation would use C's sp_lev.c level selection logic.
@@ -55,11 +57,17 @@ export const VLADS_TOWER = 6;
 const specialLevels = new Map();
 
 /**
+ * Cache for variant selections (so the same variant is used consistently)
+ * Maps "dnum:dlevel" to chosen variant index
+ */
+const variantCache = new Map();
+
+/**
  * Register a special level at a specific dungeon location
  * @param {number} dnum - Dungeon number
  * @param {number} dlevel - Dungeon level (1-based)
- * @param {Function} generator - Level generator function
- * @param {string} name - Level name (for debugging)
+ * @param {Function|Array<Function>} generator - Level generator function or array of variant generators
+ * @param {string|Array<string>} name - Level name(s) for debugging
  */
 function registerSpecialLevel(dnum, dlevel, generator, name) {
     const key = `${dnum}:${dlevel}`;
@@ -74,7 +82,40 @@ function registerSpecialLevel(dnum, dlevel, generator, name) {
  */
 export function getSpecialLevel(dnum, dlevel) {
     const key = `${dnum}:${dlevel}`;
-    return specialLevels.get(key) || null;
+    const entry = specialLevels.get(key);
+
+    if (!entry) {
+        return null;
+    }
+
+    // Handle variant arrays
+    if (Array.isArray(entry.generator)) {
+        // Check cache first
+        let variantIndex = variantCache.get(key);
+
+        // If not cached, pick a variant using RNG
+        if (variantIndex === undefined) {
+            variantIndex = rn2(entry.generator.length);
+            variantCache.set(key, variantIndex);
+        }
+
+        return {
+            generator: entry.generator[variantIndex],
+            name: Array.isArray(entry.name) ? entry.name[variantIndex] : entry.name,
+            dnum: entry.dnum,
+            dlevel: entry.dlevel
+        };
+    }
+
+    // Single generator
+    return entry;
+}
+
+/**
+ * Reset variant cache (called when starting a new game)
+ */
+export function resetVariantCache() {
+    variantCache.clear();
 }
 
 /**
@@ -115,11 +156,11 @@ registerSpecialLevel(GEHENNOM, 13, generateWizard3, 'wizard3');
 // Register Sokoban levels (4 levels, 2 variants each)
 // Sokoban is accessed from Dungeons of Doom around depth 6-9
 // Player gets one of two variants per level (a or b)
-// For now, using 'a' variants as default
-registerSpecialLevel(SOKOBAN, 1, generateSoko1a, 'soko1a');
-registerSpecialLevel(SOKOBAN, 2, generateSoko2a, 'soko2a');
-registerSpecialLevel(SOKOBAN, 3, generateSoko3a, 'soko3a');
-registerSpecialLevel(SOKOBAN, 4, generateSoko4a, 'soko4a');
+// Variant selection happens at first access using RNG, then cached
+registerSpecialLevel(SOKOBAN, 1, [generateSoko1a, generateSoko1b], ['soko1-1', 'soko1-2']);
+registerSpecialLevel(SOKOBAN, 2, [generateSoko2a, generateSoko2b], ['soko2-1', 'soko2-2']);
+registerSpecialLevel(SOKOBAN, 3, [generateSoko3a, generateSoko3b], ['soko3-1', 'soko3-2']);
+registerSpecialLevel(SOKOBAN, 4, [generateSoko4a, generateSoko4b], ['soko4-1', 'soko4-2']);
 
 // Register Medusa's lair
 // In Dungeons of Doom, at a depth that varies by dungeon generation
@@ -128,12 +169,16 @@ registerSpecialLevel(DUNGEONS_OF_DOOM, 20, generateMedusa, 'medusa');
 
 /**
  * Get list of all registered special levels
- * @returns {Array} Array of { dnum, dlevel, name }
+ * @returns {Array} Array of { dnum, dlevel, name, variants }
  */
 export function listSpecialLevels() {
-    return Array.from(specialLevels.values()).map(({ dnum, dlevel, name }) => ({
-        dnum,
-        dlevel,
-        name
-    }));
+    return Array.from(specialLevels.values()).map(({ dnum, dlevel, name, generator }) => {
+        const isVariant = Array.isArray(generator);
+        return {
+            dnum,
+            dlevel,
+            name: isVariant ? name.join(' / ') : name,
+            variants: isVariant ? name.length : 1
+        };
+    });
 }

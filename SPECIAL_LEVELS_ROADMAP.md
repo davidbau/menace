@@ -5,10 +5,11 @@ Epic: `interface-3br` - Complete special level system for all dungeon branches
 ## Current Status
 
 ### ✓ COMPLETED (15 levels, 18.75%)
-- **Sokoban** (8 levels): soko1-1/2, soko2-1/2, soko3-1/2, soko4-1/2 ✓
+- **Sokoban** (8 levels): soko1-1/2, soko2-1/2, soko3-1/2, soko4-1/2 ✓ (variant selection implemented)
 - **Tier 1: Simple Fixed Maps** (5 levels): tower1-3, valley, knox ✓
 - **Tier 3: Complex Fixed Maps** (1 level): medusa ✓
 - **Tier 4: Demon Lairs** (1 level): sanctum ✓
+- **Integration** (complete): All 15 levels registered and playable via (dnum, dlevel) coordinates ✓
 - **des.* API Foundation**: level_init, level_flags, map, terrain, stair, region, ladder, feature ✓
 - **Random Placement System**: des.object(), des.monster(), des.trap() with no-argument support ✓
 - **Object/Trap Placement**: Full coord/selection/class format support with intelligent defaults ✓
@@ -20,7 +21,7 @@ Epic: `interface-3br` - Complete special level system for all dungeon branches
 - **Comprehensive Documentation**: Full JSDoc for all API functions with examples ✓
 
 ### ◐ IN PROGRESS
-- **Branch-aware level generation** (`interface-9a0`): Integrate special levels into makelevel()
+- None currently
 
 ---
 
