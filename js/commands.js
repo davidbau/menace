@@ -456,14 +456,14 @@ async function handleDownstairs(player, map, display, game) {
     }
 
     // Go to next level
-    player.dungeonLevel++;
-    if (player.dungeonLevel > player.maxDungeonLevel) {
-        player.maxDungeonLevel = player.dungeonLevel;
+    const newDepth = player.dungeonLevel + 1;
+    if (newDepth > player.maxDungeonLevel) {
+        player.maxDungeonLevel = newDepth;
     }
     display.putstr_message('You descend the staircase.');
 
     // Generate new level
-    game.changeLevel(player.dungeonLevel);
+    game.changeLevel(newDepth);
     return { moved: false, tookTime: true };
 }
 
@@ -486,9 +486,9 @@ async function handleUpstairs(player, map, display, game) {
         return { moved: false, tookTime: false };
     }
 
-    player.dungeonLevel--;
+    const newDepth = player.dungeonLevel - 1;
     display.putstr_message('You climb the staircase.');
-    game.changeLevel(player.dungeonLevel);
+    game.changeLevel(newDepth);
     return { moved: false, tookTime: true };
 }
 

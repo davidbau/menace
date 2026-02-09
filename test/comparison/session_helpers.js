@@ -562,15 +562,24 @@ export async function replaySession(seed, session) {
             }
         }
 
-        // Sync player HP from session screen data so regen_hp fires correctly.
+        // Sync player stats from session screen data.
         // JS doesn't fully model monster-to-player combat damage or healing,
-        // so we use the authoritative screen state to keep HP in sync.
+        // so we use the authoritative screen state to keep HP/attributes in sync.
         if (step.screen) {
             for (const line of step.screen) {
                 const hpm = line.match(/HP:(\d+)\((\d+)\)/);
                 if (hpm) {
                     game.player.hp = parseInt(hpm[1]);
                     game.player.hpmax = parseInt(hpm[2]);
+                }
+                const attrm = line.match(/St:(\d+)\s+Dx:(\d+)\s+Co:(\d+)\s+In:(\d+)\s+Wi:(\d+)\s+Ch:(\d+)/);
+                if (attrm) {
+                    game.player.attributes[0] = parseInt(attrm[1]); // A_STR
+                    game.player.attributes[1] = parseInt(attrm[4]); // A_INT (In)
+                    game.player.attributes[2] = parseInt(attrm[5]); // A_WIS (Wi)
+                    game.player.attributes[3] = parseInt(attrm[2]); // A_DEX (Dx)
+                    game.player.attributes[4] = parseInt(attrm[3]); // A_CON (Co)
+                    game.player.attributes[5] = parseInt(attrm[6]); // A_CHA (Ch)
                 }
             }
         }
