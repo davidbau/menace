@@ -227,6 +227,35 @@ The recommended order prioritizes getting testable results quickly:
 - Root cause: spoiler maps drawn visually without applying wall_extends() algorithm
 - Created bd issue interface-llb to fix after debugging convergence issues in wall computation script
 
+### des.* API Implementation
+
+**GameMap coordinate system:**
+- C uses `level.locations[x][y]` (column-major indexing)
+- JS GameMap also uses `locations[x][y]`, NOT `grid[y][x]` (row-major)
+- Always index as `map.locations[x][y]` where x=0..79, y=0..20
+
+**Core des.* functions implemented (js/sp_lev.js):**
+- `des.level_init(opts)`: Initializes level with fill style (solidfill, mazegrid, maze, rogue, mines, swamp)
+- `des.level_flags(...flags)`: Sets level behavior flags (noteleport, hardfloor, mazelevel, premapped, solidify, etc.)
+- `des.map(data)`: Places ASCII map with alignment (halign: left/center/right, valign: top/center/bottom) or explicit x,y coords
+- `des.terrain(x, y, type)`: Sets individual terrain at coordinate
+
+**Map character to terrain type mapping:**
+- Space → STONE, `-` → HWALL, `|` → VWALL, `.` → ROOM, `#` → CORR
+- `+` → DOOR, `<` → STAIRS_UP, `>` → STAIRS_DOWN
+- `{` → FOUNTAIN, `}` → MOAT, `P` → POOL, `L` → LAVAPOOL
+- `I` → ICE, `W` → WATER, `T` → TREE, `F` → IRONBARS
+- `C` → CLOUD, `A` → AIR, `\\` → THRONE, `K` → SINK
+
+**Level state management:**
+- Global `levelState` tracks: map, flags, coder options, init parameters, placement offsets
+- `resetLevelState()` clears state between level generations
+- `getLevelState()` provides access for testing/debugging
+
+**Test coverage:**
+- 6 unit tests in test/unit/sp_lev.test.js
+- Verified: solidfill init, flag setting, map placement, terrain setting, alignment, explicit coords
+
 ---
 
 ## Reference
