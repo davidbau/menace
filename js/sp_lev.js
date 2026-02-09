@@ -185,8 +185,25 @@ export function level_init(opts = {}) {
                 levelState.map.locations[x][y].typ = fillChar;
             }
         }
+    } else if (style === 'mazegrid' || style === 'maze') {
+        // Fill entire map with background character (typically walls for mazes)
+        // The actual maze/structure is overlaid by subsequent des.map() calls
+        const fillChar = levelState.init.bg !== -1 ? levelState.init.bg : STONE;
+        for (let x = 0; x < 80; x++) {
+            for (let y = 0; y < 21; y++) {
+                levelState.map.locations[x][y].typ = fillChar;
+            }
+        }
     } else {
-        throw new Error(`Level init style "${style}" not yet implemented`);
+        // Other styles (rogue, mines, swamp) would need more complex generation
+        // For now, default to solidfill behavior
+        console.warn(`Level init style "${style}" using default solidfill behavior`);
+        const fillChar = levelState.init.fg;
+        for (let x = 0; x < 80; x++) {
+            for (let y = 0; y < 21; y++) {
+                levelState.map.locations[x][y].typ = fillChar;
+            }
+        }
     }
 }
 

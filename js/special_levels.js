@@ -13,6 +13,9 @@ import { generate as generateValley } from './levels/valley.js';
 import { generate as generateTower1 } from './levels/tower1.js';
 import { generate as generateTower2 } from './levels/tower2.js';
 import { generate as generateTower3 } from './levels/tower3.js';
+import { generate as generateWizard1 } from './levels/wizard1.js';
+import { generate as generateWizard2 } from './levels/wizard2.js';
+import { generate as generateWizard3 } from './levels/wizard3.js';
 
 // Sokoban levels
 import { generate as generateSoko1a } from './levels/soko1-1.js';
@@ -90,9 +93,13 @@ registerSpecialLevel(VLADS_TOWER, 3, generateTower3, 'tower3');
 
 // Register Gehennom levels
 // Valley is the entrance to Gehennom (level 1)
+// Wizard's Tower appears after getting the Amulet (levels 11-13)
 // Sanctum is the final level (level 10 in a typical game)
 registerSpecialLevel(GEHENNOM, 1, generateValley, 'valley');
 registerSpecialLevel(GEHENNOM, 10, generateSanctum, 'sanctum');
+registerSpecialLevel(GEHENNOM, 11, generateWizard1, 'wizard1');
+registerSpecialLevel(GEHENNOM, 12, generateWizard2, 'wizard2');
+registerSpecialLevel(GEHENNOM, 13, generateWizard3, 'wizard3');
 
 // Register Sokoban levels (4 levels, 2 variants each)
 // Sokoban is accessed from Dungeons of Doom around depth 6-9
