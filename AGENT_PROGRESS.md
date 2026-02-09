@@ -192,9 +192,9 @@ _checkLastMoveFailed() {
 - Root cause: Dlvl 1 with seed 42 may not have generated downstairs in explored area
 
 ### Combat Limitations
-- Basic HP management (rests when low, but no healing items)
+- Improved HP management (rests when safe, uses healing potions when critical)
 - Limited tactical combat (flee from dangerous monsters, but no kiting/ranged)
-- No inventory management (can't use healing potions, scrolls, wands)
+- Basic inventory management (healing potions, food) - no scrolls/wands yet
 
 ### No Strategic Play
 - Can't identify items
@@ -228,6 +228,24 @@ Implemented intelligent HP recovery to prevent agent from fighting at dangerousl
 - **Prevent Infinite Loop:** After max rest turns, give up and continue (HP heals while exploring)
 
 Key insight: Since HP regeneration is probabilistic, the agent can't wait indefinitely for full HP. The rest limit ensures the agent doesn't get stuck in an infinite rest loop when regeneration is slow.
+
+### Inventory Management and Item Usage (2026-02-09)
+
+Implemented inventory tracking and basic item usage for survival:
+
+- **Inventory Tracking:** Parse inventory screen ('i' command) to know what items we have
+- **Food Management:** Check inventory before eating (prevents infinite eat loop when no food)
+- **Healing Potions:** Automatically quaff healing potions when HP < 30% (critical threshold)
+- **Smart Refresh:** Update inventory every 100 turns or when items likely changed
+- **Category Detection:** Identify items by category (Weapons, Armor, Comestibles, Potions, etc.)
+
+Item usage priority:
+1. HP < 30%: Drink healing potion if available
+2. HP critical: Flee from monsters
+3. HP < 50%: Rest when safe (up to 50 turns)
+4. Hungry: Eat food if available
+
+This significantly improves survival by using available resources before relying on fleeing or natural regeneration.
 
 ## Test Coverage
 
