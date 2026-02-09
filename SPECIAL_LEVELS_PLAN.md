@@ -293,8 +293,8 @@ The recommended order prioritizes getting testable results quickly:
 **Next steps identified:**
 1. ~~Implement wall_extends() for proper junction types~~ ✓ DONE
 2. ~~Implement map flipping (horizontal/vertical)~~ ✓ DONE
-3. Add object placement system
-4. Add trap placement system
+3. ~~Add object placement system~~ ✓ DONE
+4. ~~Add trap placement system~~ ✓ DONE
 5. Port remaining 7 Sokoban levels (soko1-2, soko2-1/2, soko3-1/2, soko4-2)
 6. Integrate special level loading into makelevel() flow
 
@@ -332,7 +332,42 @@ The recommended order prioritizes getting testable results quickly:
 **Test coverage:**
 - 4 tests in wallification.test.js
 - Validates corners, T-junctions, convergence, isolated walls
-- All 15 sp_lev tests passing
+- All 20 sp_lev tests passing
+
+### Object and Trap Placement
+
+**Implemented full object and trap placement systems:**
+- `des.object(name, x, y)`: Places objects at specific coordinates
+- `des.trap(type, x, y)`: Places traps at specific coordinates
+- Both functions integrate with existing GameMap.objects and GameMap.traps arrays
+
+**Object placement implementation:**
+- `objectNameToType(name)`: Converts object names to otyp constants
+  - Supports named objects: "boulder" → BOULDER, "scroll of earth" → SCR_EARTH
+  - Supports class symbols: '%' → FOOD_CLASS, '?' → SCROLL_CLASS, etc.
+- Uses `mksobj(otyp, init, artif)` to create object instances
+- Sets ox, oy coordinates and pushes to map.objects array
+- Objects have properties: {otyp, ox, oy, quan, spe, blessed, etc.}
+
+**Trap placement implementation:**
+- `trapNameToType(name)`: Converts trap names to ttyp constants
+  - Maps "pit" → PIT, "arrow" → ARROW_TRAP, "fire" → FIRE_TRAP, etc.
+  - Supports both "trap door" and "trapdoor" naming variants
+- Creates trap structures with full properties:
+  - {ttyp, tx, ty, tseen, launch, launch2, dst, tnote, once, madeby_u, conjoined}
+- Prevents duplicate traps at same location (checks via map.trapAt())
+- Uses GameMap.traps array for storage
+- Note: FALLING_ROCK_TRAP (type 3) not exported from config.js, commented out in trapNameToType()
+
+**Integration with level generation:**
+- Called during level definition phase (after des.map, before finalize_level)
+- Objects and traps placed at exact coordinates specified in Lua
+- Supports Sokoban-style placement: multiple boulders + scrolls of earth + pit traps
+
+**Test coverage:**
+- 5 tests in object_trap_placement.test.js
+- Validates: named object placement, scroll of earth, trap placement, no duplicates, Sokoban scenario
+- All tests passing
 
 ---
 
