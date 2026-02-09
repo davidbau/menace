@@ -11,6 +11,7 @@ import { findPath, findExplorationTarget, findNearest, directionKey, directionDe
 import { shouldEngageMonster, getMonsterName } from './brain/danger.js';
 import { InventoryTracker } from './brain/inventory.js';
 import { PrayerTracker } from './brain/prayer.js';
+import { EquipmentManager } from './brain/equipment.js';
 
 // Direction keys for movement toward a target
 const DIR_KEYS = {
@@ -44,6 +45,7 @@ export class Agent {
         this.status = null;
         this.inventory = new InventoryTracker();
         this.prayer = new PrayerTracker();
+        this.equipment = new EquipmentManager();
 
         // State
         this.turnNumber = 0;
@@ -62,6 +64,8 @@ export class Agent {
         this.knownPetChars = new Set(); // monster chars confirmed as pets via displacement
         this.pendingDoorDir = null; // direction key for "In what direction?" prompt after 'o'
         this.pendingQuaffLetter = null; // potion letter for "What do you want to quaff?" prompt
+        this.pendingWieldLetter = null; // weapon letter for "Wield what?" prompt
+        this.pendingWearLetter = null; // armor letter for "Wear what?" prompt
         this.committedTarget = null; // {x, y} of committed exploration target
         this.committedPath = null; // PathResult we're currently following
         this.targetStuckCount = 0; // how many turns we've been stuck on committed path
@@ -277,6 +281,26 @@ export class Agent {
             return '\x1b'; // ESC to cancel if no potion selected
         }
 
+        // "Wield what?" or "What do you want to wield?" -- use saved weapon letter
+        if (lower.includes('wield')) {
+            if (this.pendingWieldLetter) {
+                const letter = this.pendingWieldLetter;
+                this.pendingWieldLetter = null;
+                return letter;
+            }
+            return '\x1b'; // ESC to cancel
+        }
+
+        // "Wear what?" or "What do you want to wear?" -- use saved armor letter
+        if (lower.includes('wear')) {
+            if (this.pendingWearLetter) {
+                const letter = this.pendingWearLetter;
+                this.pendingWearLetter = null;
+                return letter;
+            }
+            return '\x1b'; // ESC to cancel
+        }
+
         // "In what direction?" -- provide saved direction (from door-open, etc.)
         if (lower.includes('direction')) {
             if (this.pendingDoorDir) {
@@ -441,6 +465,33 @@ export class Agent {
                 return { type: 'eat', key: 'e', reason: 'hungry and have food' };
             }
             // No food available - continue exploring (might find food)
+        }
+
+        // 2b. Check equipment at game start and after picking up items
+        // Wield best weapon and wear armor for better combat survival
+        if (!this.equipment.hasCheckedStarting && this.turnNumber >= 5 && this.turnNumber <= 20) {
+            // Check starting equipment early in game
+            if (this.inventory.lastUpdate === 0) {
+                await this._refreshInventory();
+            }
+
+            const weapon = this.equipment.shouldWieldWeapon(this.inventory);
+            if (weapon) {
+                this.equipment.hasCheckedStarting = true;
+                this.equipment.recordWield(weapon.name);
+                this.pendingWieldLetter = weapon.letter;
+                return { type: 'wield', key: 'w', reason: `wielding ${weapon.name}` };
+            }
+
+            const armor = this.equipment.shouldWearArmor(this.inventory);
+            if (armor) {
+                this.equipment.hasCheckedStarting = true;
+                this.equipment.recordWear(armor.name);
+                this.pendingWearLetter = armor.letter;
+                return { type: 'wear', key: 'W', reason: `wearing ${armor.name}` };
+            }
+
+            this.equipment.hasCheckedStarting = true;
         }
 
         // --- Tactical checks ---
