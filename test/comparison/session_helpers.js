@@ -12,8 +12,10 @@ import { initRng, enableRngLog, getRngLog, disableRngLog, rn2, rnd, rn1 } from '
 import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 import { simulatePostLevelInit } from '../../js/u_init.js';
 import { Player, roles } from '../../js/player.js';
-import { NORMAL_SPEED, A_DEX, A_CON } from '../../js/config.js';
+import { NORMAL_SPEED, A_DEX, A_CON,
+         RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC } from '../../js/config.js';
 import { rhack } from '../../js/commands.js';
+import { pushInput } from '../../js/input.js';
 import { movemon, initrack, settrack } from '../../js/monmove.js';
 import { FOV } from '../../js/vision.js';
 
@@ -231,6 +233,16 @@ export function generateStartupWithRng(seed, session) {
     player.name = charOpts.name || 'Wizard';
     player.gender = charOpts.gender === 'female' ? 1 : 0;
 
+    // Override alignment if session specifies one (for non-default alignment variants)
+    const alignMap = { lawful: 1, neutral: 0, chaotic: -1 };
+    if (charOpts.align && alignMap[charOpts.align] !== undefined) {
+        player.alignment = alignMap[charOpts.align];
+    }
+
+    // Set race from session (default Human)
+    const raceMap = { human: RACE_HUMAN, elf: RACE_ELF, dwarf: RACE_DWARF, gnome: RACE_GNOME, orc: RACE_ORC };
+    player.race = raceMap[charOpts.race] ?? RACE_HUMAN;
+
     // Place player at upstair (matching C's u_on_upstairs)
     if (map.upstair) {
         player.x = map.upstair.x;
@@ -344,7 +356,8 @@ class HeadlessGame {
         const dex = this.player.attributes ? this.player.attributes[A_DEX] : 14;
         rn2(40 + dex * 3); // engrave wipe
 
-        // C ref: allmain.c:414 — svm.moves starts at 1, JS turnCount starts at 0
+        // C ref: allmain.c:414 seer_turn check
+        // C's svm.moves is +1 ahead of turnCount (same offset as exerchk)
         if (moves >= this.seerTurn) {
             this.seerTurn = moves + rn1(31, 15);
         }
@@ -407,6 +420,16 @@ export async function replaySession(seed, session) {
     player.name = session.character?.name || 'Wizard';
     player.gender = session.character?.gender === 'female' ? 1 : 0;
 
+    // Override alignment if session specifies one (for non-default alignment variants)
+    const replayAlignMap = { lawful: 1, neutral: 0, chaotic: -1 };
+    if (session.character?.align && replayAlignMap[session.character.align] !== undefined) {
+        player.alignment = replayAlignMap[session.character.align];
+    }
+
+    // Set race from session (default Human)
+    const replayRaceMap = { human: RACE_HUMAN, elf: RACE_ELF, dwarf: RACE_DWARF, gnome: RACE_GNOME, orc: RACE_ORC };
+    player.race = replayRaceMap[session.character?.race] ?? RACE_HUMAN;
+
     // Parse actual attributes from session screen (u_init randomizes them)
     // Screen format: "St:18 Dx:11 Co:18 In:11 Wi:9 Ch:8"
     const screen = session.startup?.screen || [];
@@ -453,6 +476,13 @@ export async function replaySession(seed, session) {
         const prevCount = getRngLog().length;
 
         // Feed the key to the game engine
+        // For multi-char keys (e.g. "wb" = wield item b), push trailing chars
+        // into input queue so nhgetch() returns them immediately
+        if (step.key.length > 1) {
+            for (let i = 1; i < step.key.length; i++) {
+                pushInput(step.key.charCodeAt(i));
+            }
+        }
         const ch = step.key.charCodeAt(0);
         const result = await rhack(ch, game);
 

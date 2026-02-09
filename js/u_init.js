@@ -6,7 +6,7 @@
 //   1. makedog()               — pet creation + placement
 //   2. u_init_inventory_attrs() — inventory + attribute rolling
 //      a. u_init_role()  → ini_inv(role_table) + conditional extras
-//      b. u_init_race()  → nothing for Human
+//      b. u_init_race()  → race-specific items (instruments, food, subs)
 //      c. init_attr(75)  → distribute 75 pts via weighted rnd_attr
 //      d. vary_init_attr → 1/20 chance per attr of rn2(7)-2 variation
 //      e. u_init_carry_attr_boost — no RNG
@@ -19,7 +19,8 @@ import { isok, NUM_ATTRS,
          PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVEMAN, PM_HEALER,
          PM_KNIGHT, PM_MONK, PM_PRIEST, PM_RANGER, PM_ROGUE,
          PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD,
-         ACCESSIBLE, COLNO, ROWNO } from './config.js';
+         ACCESSIBLE, COLNO, ROWNO,
+         RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC } from './config.js';
 import {
     // Weapons
     LONG_SWORD, LANCE, SPEAR, DAGGER, SHORT_SWORD, AXE, BULLWHIP,
@@ -47,6 +48,20 @@ import {
     BLINDFOLD, MAGIC_MARKER, LEASH, TOWEL, SACK,
     // Gems
     TOUCHSTONE, FLINT, ROCK,
+    // Race-specific items (Elf)
+    ELVEN_DAGGER, ELVEN_SPEAR, ELVEN_SHORT_SWORD, ELVEN_BOW, ELVEN_ARROW,
+    ELVEN_LEATHER_HELM, ELVEN_CLOAK, LEMBAS_WAFER,
+    // Race-specific items (Dwarf)
+    DWARVISH_SPEAR, DWARVISH_SHORT_SWORD, DWARVISH_IRON_HELM,
+    // Race-specific items (Gnome)
+    CROSSBOW, CROSSBOW_BOLT,
+    // Race-specific items (Orc)
+    ORCISH_DAGGER, ORCISH_SPEAR, ORCISH_SHORT_SWORD, ORCISH_BOW,
+    ORCISH_ARROW, ORCISH_HELM, ORCISH_SHIELD, ORCISH_RING_MAIL,
+    ORCISH_CHAIN_MAIL, TRIPE_RATION,
+    // Instruments (Elf Cleric/Wizard)
+    WOODEN_FLUTE, TOOLED_HORN, WOODEN_HARP, BELL, BUGLE, LEATHER_DRUM,
+    CHAIN_MAIL,
     // Classes
     WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS, TOOL_CLASS,
     RING_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
@@ -185,7 +200,7 @@ function makedog(map, player, depth) {
     // For neutral-aligned players, it calls rn2(16+record) && rn2(2+abs(mal)).
     // For lawful/chaotic players, it returns early (race_peaceful) with no RNG.
     // Knight/pony is a special case: also no peace_minded (pony handling).
-    const playerAlign = roles[player.roleIndex]?.align || 0;
+    const playerAlign = player.alignment;
     if (pmIdx !== PM_PONY && playerAlign === 0) {
         // Neutral align: rn2(16 + record) && rn2(2 + abs(dominated_alignment))
         const peacefulFirst = rn2(16);
@@ -513,6 +528,17 @@ function iniInv(player, table) {
             }
         }
 
+        // C ref: u_init.c ini_inv_obj_substitution() — race-specific item swaps
+        if (player.race !== RACE_HUMAN) {
+            for (const [race, from, to] of INV_SUBS) {
+                if (race === player.race && obj.otyp === from) {
+                    obj.otyp = to;
+                    otyp = to;
+                    break;
+                }
+            }
+        }
+
         // C ref: u_init.c ini_inv_adjust_obj()
         obj.known = true;
         obj.dknown = true;
@@ -647,6 +673,36 @@ function u_init_role(player) {
     }
 }
 
+// C ref: u_init.c u_init_race() — race-specific starting inventory
+function u_init_race(player) {
+    switch (player.race) {
+        case RACE_HUMAN:
+            break;
+        case RACE_ELF:
+            // Elf Cleric/Wizard gets a random instrument
+            if (player.roleIndex === PM_PRIEST || player.roleIndex === PM_WIZARD) {
+                const instruments = [WOODEN_FLUTE, TOOLED_HORN, WOODEN_HARP,
+                                     BELL, BUGLE, LEATHER_DRUM];
+                const instrTyp = instruments[rn2(6)];
+                const Instrument_inv = [
+                    { otyp: instrTyp, spe: 0, oclass: TOOL_CLASS, qmin: 1, qmax: 1, bless: 0 },
+                ];
+                iniInv(player, Instrument_inv);
+            }
+            break;
+        case RACE_DWARF:
+            break;
+        case RACE_GNOME:
+            break;
+        case RACE_ORC:
+            // Compensate for generally inferior equipment
+            if (player.roleIndex !== PM_WIZARD) {
+                iniInv(player, Xtra_food);
+            }
+            break;
+    }
+}
+
 // ========================================================================
 // Attribute Rolling
 // ========================================================================
@@ -669,9 +725,57 @@ const ROLE_ATTRDIST = {
     12: [10, 30, 10, 20, 20, 10],  // Wizard
 };
 
-// Human race constants
-const HUMAN_ATTRMIN = [3, 3, 3, 3, 3, 3];
-const HUMAN_ATTRMAX = [18, 18, 18, 18, 18, 18];
+// Race attribute bounds
+// C ref: role.c races[].attrmin/attrmax
+const RACE_ATTRMIN = [3, 3, 3, 3, 3, 3]; // Same for all races
+const RACE_ATTRMAX = {
+    [RACE_HUMAN]: [18, 18, 18, 18, 18, 18],
+    [RACE_ELF]:   [18, 20, 20, 18, 16, 18],
+    [RACE_DWARF]: [18, 16, 16, 20, 20, 16],
+    [RACE_GNOME]: [18, 19, 18, 18, 18, 18],
+    [RACE_ORC]:   [18, 16, 16, 18, 18, 16],
+};
+
+// Race HP/PW init bonuses
+// C ref: role.c races[].hpadv.infix (HP init), races[].enadv.infix (PW init)
+const RACE_HP = { [RACE_HUMAN]: 2, [RACE_ELF]: 1, [RACE_DWARF]: 4, [RACE_GNOME]: 1, [RACE_ORC]: 1 };
+const RACE_PW = { [RACE_HUMAN]: 1, [RACE_ELF]: 2, [RACE_DWARF]: 0, [RACE_GNOME]: 2, [RACE_ORC]: 1 };
+
+// Race-specific inventory substitutions
+// C ref: u_init.c inv_subs[] — applied per item in iniInv
+const INV_SUBS = [
+    [RACE_ELF, DAGGER, ELVEN_DAGGER],
+    [RACE_ELF, SPEAR, ELVEN_SPEAR],
+    [RACE_ELF, SHORT_SWORD, ELVEN_SHORT_SWORD],
+    [RACE_ELF, BOW, ELVEN_BOW],
+    [RACE_ELF, ARROW, ELVEN_ARROW],
+    [RACE_ELF, HELMET, ELVEN_LEATHER_HELM],
+    [RACE_ELF, CLOAK_OF_DISPLACEMENT, ELVEN_CLOAK],
+    [RACE_ELF, CRAM_RATION, LEMBAS_WAFER],
+    [RACE_ORC, DAGGER, ORCISH_DAGGER],
+    [RACE_ORC, SPEAR, ORCISH_SPEAR],
+    [RACE_ORC, SHORT_SWORD, ORCISH_SHORT_SWORD],
+    [RACE_ORC, BOW, ORCISH_BOW],
+    [RACE_ORC, ARROW, ORCISH_ARROW],
+    [RACE_ORC, HELMET, ORCISH_HELM],
+    [RACE_ORC, SMALL_SHIELD, ORCISH_SHIELD],
+    [RACE_ORC, RING_MAIL, ORCISH_RING_MAIL],
+    [RACE_ORC, CHAIN_MAIL, ORCISH_CHAIN_MAIL],
+    [RACE_ORC, CRAM_RATION, TRIPE_RATION],
+    [RACE_ORC, LEMBAS_WAFER, TRIPE_RATION],
+    [RACE_DWARF, SPEAR, DWARVISH_SPEAR],
+    [RACE_DWARF, SHORT_SWORD, DWARVISH_SHORT_SWORD],
+    [RACE_DWARF, HELMET, DWARVISH_IRON_HELM],
+    [RACE_DWARF, LEMBAS_WAFER, CRAM_RATION],
+    [RACE_GNOME, BOW, CROSSBOW],
+    [RACE_GNOME, ARROW, CROSSBOW_BOLT],
+];
+
+// Orc extra food (non-Wizard)
+// C ref: u_init.c Xtra_food[] — UNDEF_TYP food, qty 2
+const Xtra_food = [
+    { otyp: UNDEF_TYP, spe: UNDEF_SPE, oclass: FOOD_CLASS, qmin: 2, qmax: 2, bless: 0 },
+];
 
 // C ref: attrib.c rnd_attr() — weighted random attribute selection
 function rnd_attr(attrdist) {
@@ -718,8 +822,8 @@ function initAttributes(player) {
     const attrdist = ROLE_ATTRDIST[player.roleIndex] || [17, 17, 17, 17, 16, 16];
     const role = roles[player.roleIndex];
     const attrbase = [role.str, role.int, role.wis, role.dex, role.con, role.cha];
-    const attrmin = HUMAN_ATTRMIN;
-    const attrmax = HUMAN_ATTRMAX;
+    const attrmin = RACE_ATTRMIN;
+    const attrmax = RACE_ATTRMAX[player.race] || RACE_ATTRMAX[RACE_HUMAN];
 
     // C ref: attrib.c init_attr(75)
     let np = 75;
@@ -763,17 +867,19 @@ export function simulatePostLevelInit(player, map, depth) {
     // 2. u_init_inventory_attrs()
     //    a. u_init_role() → role-specific inventory
     u_init_role(player);
-    //    b. u_init_race() → Human: nothing (no RNG)
+    //    b. u_init_race() → race-specific inventory (instruments, food)
+    u_init_race(player);
     //    c+d. init_attr(75) + vary_init_attr()
     initAttributes(player);
     //    e. u_init_carry_attr_boost() — no RNG
 
     // Set HP/PW from role + race
     // C ref: u_init.c u_init_misc() — newhp() = role_hp + race_hp
-    // Valkyrie: 14, Human: +2 = 16 HP; Valkyrie: 1, Human: +1 = 2 PW
-    player.hp = role.startingHP + 2; // Human race HP bonus
+    const raceHP = RACE_HP[player.race] ?? 2;
+    const racePW = RACE_PW[player.race] ?? 1;
+    player.hp = role.startingHP + raceHP;
     player.hpmax = player.hp;
-    player.pw = role.startingPW + 1; // Human race PW bonus
+    player.pw = role.startingPW + racePW;
     player.pwmax = player.pw;
 
     // Set AC from equipment

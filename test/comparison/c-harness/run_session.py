@@ -271,13 +271,32 @@ def describe_key(key):
     }
     return names.get(key, f'key-{key}')
 
+# Multi-key commands: first char triggers a prompt, second char is the response.
+# These are encoded as two chars in the move string.
+# w<x> = wield item x, W<x> = wear item x, T<x> = takeoff item x,
+# e<x> = eat item x, q<x> = quaff item x, d<x> = drop item x,
+# r<x> = read item x, z<x> = zap item x, a<x> = apply item x,
+# t<dir> = throw (then item select), P<x> = put on item x, R<x> = remove item x
+ITEM_COMMANDS = {
+    'w': 'wield', 'W': 'wear', 'T': 'takeoff',
+    'e': 'eat', 'q': 'quaff', 'd': 'drop',
+    'r': 'read', 'z': 'zap', 'a': 'apply',
+    'P': 'puton', 'R': 'remove',
+}
+
 
 def parse_moves(move_str):
     moves = []
     i = 0
     while i < len(move_str):
-        if move_str[i] == 'F' and i + 1 < len(move_str):
+        ch = move_str[i]
+        if ch == 'F' and i + 1 < len(move_str):
             moves.append(('F' + move_str[i+1], f'fight-{describe_key(move_str[i+1])}'))
+            i += 2
+        elif ch in ITEM_COMMANDS and i + 1 < len(move_str):
+            item_ch = move_str[i+1]
+            cmd_name = ITEM_COMMANDS[ch]
+            moves.append((ch + item_ch, f'{cmd_name}-{item_ch}'))
             i += 2
         else:
             moves.append((move_str[i], describe_key(move_str[i])))
@@ -368,8 +387,10 @@ def main():
         for entry in config['session_seeds']['sessions']:
             seed = entry['seed']
             moves = entry['moves']
-            output = os.path.join(sessions_dir, f'seed{seed}.session.json')
-            print(f'\n=== Regenerating session seed={seed} ===')
+            label = entry.get('label', '')
+            suffix = f'_{label}' if label else ''
+            output = os.path.join(sessions_dir, f'seed{seed}{suffix}.session.json')
+            print(f'\n=== Regenerating session seed={seed}{suffix} ===')
             sys.argv = [sys.argv[0], str(seed), output, moves]
             run_session(seed, output, moves)
         return
@@ -469,9 +490,10 @@ def run_session(seed, output_json, move_str):
 
         print(f'\n=== MOVES ({len(moves)} steps) ===')
         for idx, (key, description) in enumerate(moves):
-            # Send the keystroke
-            if key.startswith('F'):
-                tmux_send(session_name, 'F', 0.1)
+            # Send the keystroke(s)
+            if len(key) == 2:
+                # Multi-key command: F<dir>, w<item>, e<item>, etc.
+                tmux_send(session_name, key[0], 0.1)
                 tmux_send(session_name, key[1], 0.1)
             else:
                 tmux_send(session_name, key, 0.1)
@@ -490,9 +512,10 @@ def run_session(seed, output_json, move_str):
             depth = detect_depth(screen)
 
             # Determine turn number
-            # Movement keys, wait, and search consume a turn; look (:) does not
+            # Movement keys, wait, search, and item actions consume a turn;
+            # look (:), inventory (i), and autopickup (@) do not
             non_turn_keys = {':', 'i', '@'}
-            if key not in non_turn_keys:
+            if key not in non_turn_keys and not (len(key) == 1 and key in non_turn_keys):
                 turn += 1
 
             step = {

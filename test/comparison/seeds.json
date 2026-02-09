@@ -15,13 +15,14 @@
     "_comment": "Seeds for full gameplay sessions (C run_session.py). Each entry has a move sequence.",
     "sessions": [
       {"seed": 42, "moves": ":hhlhhhh.hhs"},
-      {"seed": 1,  "moves": ":hhhhhhhhhhhhhhjhhkkhhhhjjhhhhhhhhhhhjjjhhjhhhjhhjhhjjllllllllllll>"}
+      {"seed": 1,  "moves": ":hhhhhhhhhhhhhhjhhkkhhhhjjhhhhhhhhhhhjjjhhjhhhjhhjhhjjllllllllllll>"},
+      {"seed": 42, "label": "items", "moves": ":hhwb.w-wa.ed"}
     ]
   },
 
   "chargen_seeds": {
-    "_comment": "Character creation sessions (C gen_chargen_sessions.py). One session per role, all using the same seed. Keys: role/race/gender/align menu accelerators.",
-    "seed": 42,
+    "_comment": "Character creation sessions (C gen_chargen_sessions.py). One session per role per seed. Keys: role/race/gender/align menu accelerators.",
+    "seeds": [42, 1, 100, 200, 300],
     "sessions": [
       {"role": "a", "race": "h", "gender": "m", "align": "n", "label": "Archeologist"},
       {"role": "b", "race": "h", "gender": "m", "align": "n", "label": "Barbarian"},
@@ -36,6 +37,43 @@
       {"role": "t", "race": "h", "gender": "m", "align": "n", "label": "Tourist"},
       {"role": "v", "race": "h", "gender": "f", "align": "n", "label": "Valkyrie"},
       {"role": "w", "race": "h", "gender": "m", "align": "n", "label": "Wizard"}
-    ]
+    ],
+    "alignment_variants": {
+      "_comment": "Non-default alignment variants for roles with multiple valid alignments. Seed 42 only.",
+      "seeds": [42],
+      "sessions": [
+        {"role": "a", "race": "h", "gender": "m", "align": "l", "label": "Archeologist_lawful"},
+        {"role": "b", "race": "h", "gender": "m", "align": "c", "label": "Barbarian_chaotic"},
+        {"role": "c", "race": "h", "gender": "m", "align": "l", "label": "Caveman_lawful"},
+        {"role": "m", "race": "h", "gender": "m", "align": "l", "label": "Monk_lawful"},
+        {"role": "m", "race": "h", "gender": "m", "align": "c", "label": "Monk_chaotic"},
+        {"role": "p", "race": "h", "gender": "m", "align": "l", "label": "Priest_lawful"},
+        {"role": "p", "race": "h", "gender": "m", "align": "c", "label": "Priest_chaotic"},
+        {"role": "R", "race": "h", "gender": "m", "align": "c", "label": "Ranger_chaotic"},
+        {"role": "v", "race": "h", "gender": "f", "align": "l", "label": "Valkyrie_lawful"},
+        {"role": "w", "race": "h", "gender": "m", "align": "c", "label": "Wizard_chaotic"}
+      ]
+    },
+    "race_variants": {
+      "_comment": "Non-Human race variants. Each race has fixed alignment. Seed 42 only.",
+      "seeds": [42],
+      "sessions": [
+        {"role": "p", "race": "e", "gender": "m", "align": "c", "label": "Priest_elf"},
+        {"role": "R", "race": "e", "gender": "m", "align": "c", "label": "Ranger_elf"},
+        {"role": "w", "race": "e", "gender": "m", "align": "c", "label": "Wizard_elf"},
+        {"role": "a", "race": "d", "gender": "m", "align": "l", "label": "Archeologist_dwarf"},
+        {"role": "c", "race": "d", "gender": "m", "align": "l", "label": "Caveman_dwarf"},
+        {"role": "v", "race": "d", "gender": "f", "align": "l", "label": "Valkyrie_dwarf"},
+        {"role": "a", "race": "g", "gender": "m", "align": "n", "label": "Archeologist_gnome"},
+        {"role": "c", "race": "g", "gender": "m", "align": "n", "label": "Caveman_gnome"},
+        {"role": "h", "race": "g", "gender": "m", "align": "n", "label": "Healer_gnome"},
+        {"role": "R", "race": "g", "gender": "m", "align": "n", "label": "Ranger_gnome"},
+        {"role": "w", "race": "g", "gender": "m", "align": "n", "label": "Wizard_gnome"},
+        {"role": "b", "race": "o", "gender": "m", "align": "c", "label": "Barbarian_orc"},
+        {"role": "R", "race": "o", "gender": "m", "align": "c", "label": "Ranger_orc"},
+        {"role": "r", "race": "o", "gender": "m", "align": "c", "label": "Rogue_orc"},
+        {"role": "w", "race": "o", "gender": "m", "align": "c", "label": "Wizard_orc"}
+      ]
+    }
   }
 }

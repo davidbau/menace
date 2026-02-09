@@ -2,12 +2,17 @@
 // Mirrors allmain.c from the C source.
 // This is the heart of the JS port: the game initialization and main loop.
 
-import { COLNO, ROWNO, ROOM, STAIRS, NORMAL_SPEED, ACCESSIBLE, isok, A_DEX, A_CON } from './config.js';
+import { COLNO, ROWNO, ROOM, STAIRS, NORMAL_SPEED, ACCESSIBLE, isok, A_DEX, A_CON,
+         A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
+         RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
+         FEMALE, MALE, TERMINAL_COLS } from './config.js';
 import { initRng, rn2, rnd, rn1, getRngState, setRngState, getRngCallCount, setRngCallCount } from './rng.js';
 import { Display } from './display.js';
 import { initInput, nhgetch } from './input.js';
 import { FOV } from './vision.js';
-import { Player, roles } from './player.js';
+import { Player, roles, races, validRacesForRole, validAlignsForRoleRace,
+         needsGenderMenu, rankOf, godForRoleAlign, isGoddess, greetingForRole,
+         roleNameForGender, alignName, formatLoreText } from './player.js';
 import { GameMap } from './map.js';
 import { initLevelGeneration, makelevel, wallification } from './dungeon.js';
 import { rhack } from './commands.js';
@@ -49,6 +54,14 @@ class NetHackGame {
         // RNG accessors for storage.js (avoids circular imports)
         this._rngAccessors = {
             getRngState, setRngState, getRngCallCount, setRngCallCount,
+        };
+        // C ref: role.c rfilter — chargen filtering state
+        // true = filtered out (unacceptable)
+        this.rfilter = {
+            roles: new Array(roles.length).fill(false),
+            races: new Array(races.length).fill(false),
+            genders: new Array(2).fill(false),  // [MALE, FEMALE]
+            aligns: new Array(3).fill(false),   // indexed by align+1: [chaotic, neutral, lawful]
         };
     }
 
@@ -106,7 +119,9 @@ class NetHackGame {
             // Wizard mode: auto-select Valkyrie (index 11)
             this.player.initRole(11); // PM_VALKYRIE
             this.player.name = 'Wizard';
-            this.player.gender = 1; // female
+            this.player.race = RACE_HUMAN;
+            this.player.gender = FEMALE;
+            this.player.alignment = A_NEUTRAL;
         } else {
             await this.playerSelection();
         }
@@ -204,52 +219,739 @@ class NetHackGame {
         return true;
     }
 
-    // Player role selection
+    // Player role selection -- faithful C chargen flow
     // C ref: role.c player_selection() -- choose role, race, gender, alignment
     async playerSelection() {
-        this.display.putstr_message('Choose your role:');
+        // Phase 1: "Shall I pick character's race, role, gender and alignment for you?"
+        this.display.putstr_message(
+            "Shall I pick character's race, role, gender and alignment for you? [ynaq]"
+        );
+        const pickCh = await nhgetch();
+        const pickC = String.fromCharCode(pickCh);
 
-        // Build role menu
-        const items = roles.map((role, idx) => ({
-            letter: String.fromCharCode(97 + idx),
-            text: role.name,
-            index: idx,
-        }));
-
-        // Simple role selection: show options and wait for key
-        let menuText = '';
-        for (const item of items) {
-            menuText += `${item.letter}) ${item.text}  `;
-        }
-        this.display.putstr(0, 2, menuText.substring(0, 79), 7); // CLR_GRAY
-
-        // Show second line if needed
-        if (menuText.length > 79) {
-            this.display.putstr(0, 3, menuText.substring(79, 158), 7);
+        if (pickC === 'q') {
+            window.location.reload();
+            return;
         }
 
-        this.display.putstr_message('Pick a role [a-m, or * for random]:');
-        const ch = await nhgetch();
-        const c = String.fromCharCode(ch);
+        if (pickC === 'y' || pickC === 'a') {
+            // Auto-pick all attributes randomly
+            await this._autoPickAll(pickC === 'y');
+            return;
+        }
 
-        let roleIdx;
-        if (c === '*' || c === ' ') {
-            roleIdx = rn2(roles.length);
+        // 'n' or anything else → manual selection
+        await this._manualSelection();
+    }
+
+    // Auto-pick all chargen attributes randomly
+    // C ref: role.c plnamesiz auto-pick path
+    async _autoPickAll(showConfirm) {
+        // Pick role
+        let roleIdx = rn2(roles.length);
+        // Pick race
+        const vr = validRacesForRole(roleIdx);
+        let raceIdx = vr[rn2(vr.length)];
+        // Pick gender
+        let gender;
+        if (roles[roleIdx].forceGender === 'female') {
+            gender = FEMALE;
+            rn2(1); // C consumes rn2(1) for forced gender
         } else {
-            roleIdx = ch - 97; // 'a' = 0
-            if (roleIdx < 0 || roleIdx >= roles.length) {
-                roleIdx = rn2(roles.length);
+            gender = rn2(2); // 0=male, 1=female
+        }
+        // Pick alignment
+        const va = validAlignsForRoleRace(roleIdx, raceIdx);
+        let align = va[rn2(va.length)];
+
+        this.player.roleIndex = roleIdx;
+        this.player.race = raceIdx;
+        this.player.gender = gender;
+        this.player.alignment = align;
+
+        if (showConfirm) {
+            // Show confirmation screen
+            const confirmed = await this._showConfirmation(roleIdx, raceIdx, gender, align);
+            if (!confirmed) {
+                // 'n' → restart from manual selection
+                await this._manualSelection();
+                return;
             }
         }
 
+        // Apply the selection
         this.player.initRole(roleIdx);
-        this.player.name = `Player the ${roles[roleIdx].name}`;
+        this.player.alignment = align;
 
-        // Ask for player name
-        this.display.clearRow(2);
-        this.display.clearRow(3);
-        this.display.putstr_message(`You are a ${roles[roleIdx].name}. Press any key to begin.`);
+        // Show lore and welcome
+        await this._showLoreAndWelcome(roleIdx, raceIdx, gender, align);
+    }
+
+    // C ref: role.c ok_role/ok_race/ok_gend/ok_align — filter checks
+    _okRole(i) { return !this.rfilter.roles[i]; }
+    _okRace(i) { return !this.rfilter.races[i]; }
+    _okGend(g) { return !this.rfilter.genders[g]; }
+    _okAlign(a) { return !this.rfilter.aligns[a + 1]; } // a: -1,0,1 → index 0,1,2
+    _hasFilters() {
+        return this.rfilter.roles.some(Boolean) || this.rfilter.races.some(Boolean) ||
+               this.rfilter.genders.some(Boolean) || this.rfilter.aligns.some(Boolean);
+    }
+    _filterLabel() {
+        return this._hasFilters() ? 'Reset role/race/&c filtering' : 'Set role/race/&c filtering';
+    }
+
+    // Show the ~ filter menu (PICK_ANY multi-select)
+    // C ref: role.c reset_role_filtering() — four sections with toggle selection
+    async _showFilterMenu() {
+        const lines = [];
+        const prompt = this._hasFilters()
+            ? 'Pick all that apply and/or unpick any that no longer apply'
+            : 'Pick all that apply';
+        lines.push(prompt);
+        lines.push('');
+
+        // Build item list: letter → { type, index, selected }
+        const items = [];
+
+        // Section 1: Unacceptable roles
+        lines.push('Unacceptable roles');
+        for (let i = 0; i < roles.length; i++) {
+            const ch = roles[i].menuChar;
+            const sel = this.rfilter.roles[i];
+            const article = roles[i].menuArticle || 'a';
+            const nameDisplay = roles[i].namef
+                ? `${roles[i].name}/${roles[i].namef}`
+                : roles[i].name;
+            lines.push(` ${ch} ${sel ? '+' : '-'} ${article} ${nameDisplay}`);
+            items.push({ ch, type: 'roles', index: i, selected: sel });
+        }
+
+        // Section 2: Unacceptable races (uppercase to avoid conflict with role letters)
+        // C ref: setup_racemenu uses highc(this_ch) in filter mode
+        lines.push('Unacceptable races');
+        for (let i = 0; i < races.length; i++) {
+            const ch = races[i].menuChar.toUpperCase();
+            const sel = this.rfilter.races[i];
+            lines.push(` ${ch} ${sel ? '+' : '-'} ${races[i].name}`);
+            items.push({ ch, type: 'races', index: i, selected: sel });
+        }
+
+        // Section 3: Unacceptable genders (uppercase)
+        // C ref: setup_gendmenu uses highc(this_ch) in filter mode
+        lines.push('Unacceptable genders');
+        const genderChars = ['M', 'F'];
+        const genderNames = ['male', 'female'];
+        for (let i = 0; i < 2; i++) {
+            const ch = genderChars[i];
+            const sel = this.rfilter.genders[i];
+            lines.push(` ${ch} ${sel ? '+' : '-'} ${genderNames[i]}`);
+            items.push({ ch, type: 'genders', index: i, selected: sel });
+        }
+
+        // Section 4: Unacceptable alignments (uppercase)
+        // C ref: setup_algnmenu uses highc(this_ch) in filter mode
+        lines.push('Unacceptable alignments');
+        const alignChars = ['L', 'N', 'C'];
+        const alignNames = ['lawful', 'neutral', 'chaotic'];
+        const alignIndices = [2, 1, 0]; // A_LAWFUL=1→idx2, A_NEUTRAL=0→idx1, A_CHAOTIC=-1→idx0
+        for (let i = 0; i < 3; i++) {
+            const ch = alignChars[i];
+            const sel = this.rfilter.aligns[alignIndices[i]];
+            lines.push(` ${ch} ${sel ? '+' : '-'} ${alignNames[i]}`);
+            items.push({ ch, type: 'aligns', index: alignIndices[i], selected: sel });
+        }
+
+        lines.push('(end)');
+
+        // Build a lookup from char to item indices (some chars are reused across sections)
+        // In C, each item has a unique accelerator; we use the same scheme
+        const charToItems = {};
+        for (let i = 0; i < items.length; i++) {
+            if (!charToItems[items[i].ch]) charToItems[items[i].ch] = [];
+            charToItems[items[i].ch].push(i);
+        }
+
+        // Render and handle input loop
+        // PICK_ANY: user toggles items, Enter/Esc to finish
+        this.display.renderChargenMenu(lines, true);
+
+        while (true) {
+            const ch = await nhgetch();
+            const c = String.fromCharCode(ch);
+
+            if (c === '\r' || c === '\n' || c === ' ') {
+                // Confirm: apply current selections
+                for (const item of items) {
+                    this.rfilter[item.type][item.index] = item.selected;
+                }
+                return;
+            }
+
+            if (ch === 27) { // ESC
+                // Cancel: no changes
+                return;
+            }
+
+            // Toggle items matching this character
+            if (charToItems[c]) {
+                for (const idx of charToItems[c]) {
+                    items[idx].selected = !items[idx].selected;
+                }
+                // Re-render the menu with updated selections
+                const updatedLines = [];
+                updatedLines.push(lines[0]); // prompt
+                updatedLines.push('');
+                let itemIdx = 0;
+
+                updatedLines.push('Unacceptable roles');
+                for (let i = 0; i < roles.length; i++) {
+                    const item = items[itemIdx++];
+                    const article = roles[i].menuArticle || 'a';
+                    const nameDisplay = roles[i].namef
+                        ? `${roles[i].name}/${roles[i].namef}`
+                        : roles[i].name;
+                    updatedLines.push(` ${item.ch} ${item.selected ? '+' : '-'} ${article} ${nameDisplay}`);
+                }
+
+                updatedLines.push('Unacceptable races');
+                for (let i = 0; i < races.length; i++) {
+                    const item = items[itemIdx++];
+                    updatedLines.push(` ${item.ch} ${item.selected ? '+' : '-'} ${races[i].name}`);
+                }
+
+                updatedLines.push('Unacceptable genders');
+                for (let g = 0; g < 2; g++) {
+                    const item = items[itemIdx++];
+                    updatedLines.push(` ${item.ch} ${item.selected ? '+' : '-'} ${genderNames[g]}`);
+                }
+
+                updatedLines.push('Unacceptable alignments');
+                for (let ai = 0; ai < 3; ai++) {
+                    const item = items[itemIdx++];
+                    updatedLines.push(` ${item.ch} ${item.selected ? '+' : '-'} ${alignNames[ai]}`);
+                }
+
+                updatedLines.push('(end)');
+                this.display.renderChargenMenu(updatedLines, true);
+            }
+        }
+    }
+
+    // Manual selection loop: role → race → gender → alignment
+    // C ref: role.c player_selection() manual path
+    async _manualSelection() {
+        let roleIdx = -1;
+        let raceIdx = -1;
+        let gender = -1;
+        let align = -128; // A_NONE
+        let isFirstMenu = true;
+
+        // Selection loop
+        selectionLoop:
+        while (true) {
+            // Determine what we still need to pick
+            // C order: role → race → gender → alignment
+            // But navigation keys can jump to any step
+
+            // --- ROLE ---
+            if (roleIdx < 0) {
+                const result = await this._showRoleMenu(raceIdx, gender, align, isFirstMenu);
+                isFirstMenu = false;
+                if (result.action === 'quit') { window.location.reload(); return; }
+                if (result.action === 'pick-race') { raceIdx = -1; roleIdx = -1; continue; }
+                if (result.action === 'pick-gender') { gender = -1; roleIdx = -1; continue; }
+                if (result.action === 'pick-align') { align = -128; roleIdx = -1; continue; }
+                if (result.action === 'filter') { await this._showFilterMenu(); isFirstMenu = true; continue; }
+                if (result.action === 'selected') {
+                    roleIdx = result.value;
+                    // Force gender if needed
+                    if (roles[roleIdx].forceGender === 'female') {
+                        gender = FEMALE;
+                        rn2(1); // C consumes rn2(1) for forced gender
+                    }
+                }
+            }
+
+            // --- RACE ---
+            if (roleIdx >= 0 && raceIdx < 0) {
+                const validRaces = validRacesForRole(roleIdx).filter(ri => this._okRace(ri));
+                // Filter down to valid races given current constraints
+                if (validRaces.length === 1) {
+                    raceIdx = validRaces[0];
+                    // Will show as forced in next menu
+                } else {
+                    const result = await this._showRaceMenu(roleIdx, gender, align, isFirstMenu);
+                    isFirstMenu = false;
+                    if (result.action === 'quit') { window.location.reload(); return; }
+                    if (result.action === 'pick-role') { roleIdx = -1; raceIdx = -1; gender = -1; align = -128; continue; }
+                    if (result.action === 'pick-gender') { gender = -1; continue; }
+                    if (result.action === 'pick-align') { align = -128; continue; }
+                    if (result.action === 'filter') { await this._showFilterMenu(); roleIdx = -1; raceIdx = -1; gender = -1; align = -128; isFirstMenu = true; continue; }
+                    if (result.action === 'selected') {
+                        raceIdx = result.value;
+                    }
+                }
+            }
+
+            // --- GENDER ---
+            if (roleIdx >= 0 && raceIdx >= 0 && gender < 0) {
+                if (!needsGenderMenu(roleIdx)) {
+                    gender = roles[roleIdx].forceGender === 'female' ? FEMALE : MALE;
+                } else {
+                    const result = await this._showGenderMenu(roleIdx, raceIdx, align, isFirstMenu);
+                    isFirstMenu = false;
+                    if (result.action === 'quit') { window.location.reload(); return; }
+                    if (result.action === 'pick-role') { roleIdx = -1; raceIdx = -1; gender = -1; align = -128; continue; }
+                    if (result.action === 'pick-race') { raceIdx = -1; gender = -1; continue; }
+                    if (result.action === 'pick-align') { align = -128; continue; }
+                    if (result.action === 'filter') { await this._showFilterMenu(); roleIdx = -1; raceIdx = -1; gender = -1; align = -128; isFirstMenu = true; continue; }
+                    if (result.action === 'selected') {
+                        gender = result.value;
+                    }
+                }
+            }
+
+            // --- ALIGNMENT ---
+            if (roleIdx >= 0 && raceIdx >= 0 && gender >= 0 && align === -128) {
+                const validAligns = validAlignsForRoleRace(roleIdx, raceIdx).filter(a => this._okAlign(a));
+                if (validAligns.length === 1) {
+                    align = validAligns[0];
+                } else {
+                    const result = await this._showAlignMenu(roleIdx, raceIdx, gender, isFirstMenu);
+                    isFirstMenu = false;
+                    if (result.action === 'quit') { window.location.reload(); return; }
+                    if (result.action === 'pick-role') { roleIdx = -1; raceIdx = -1; gender = -1; align = -128; continue; }
+                    if (result.action === 'pick-race') { raceIdx = -1; align = -128; continue; }
+                    if (result.action === 'pick-gender') { gender = -1; align = -128; continue; }
+                    if (result.action === 'filter') { await this._showFilterMenu(); roleIdx = -1; raceIdx = -1; gender = -1; align = -128; isFirstMenu = true; continue; }
+                    if (result.action === 'selected') {
+                        align = result.value;
+                    }
+                }
+            }
+
+            // --- CONFIRMATION ---
+            if (roleIdx >= 0 && raceIdx >= 0 && gender >= 0 && align !== -128) {
+                const confirmed = await this._showConfirmation(roleIdx, raceIdx, gender, align);
+                if (confirmed) {
+                    // Apply selection
+                    this.player.roleIndex = roleIdx;
+                    this.player.race = raceIdx;
+                    this.player.gender = gender;
+                    this.player.alignment = align;
+                    this.player.initRole(roleIdx);
+                    this.player.alignment = align;
+                    // Show lore and welcome
+                    await this._showLoreAndWelcome(roleIdx, raceIdx, gender, align);
+                    return;
+                } else {
+                    // Start over
+                    roleIdx = -1;
+                    raceIdx = -1;
+                    gender = -1;
+                    align = -128;
+                    isFirstMenu = true;
+                    continue;
+                }
+            }
+        }
+    }
+
+    // Build the header line showing current selections
+    // C ref: role.c plnamesiz — "<role> <race> <gender> <alignment>"
+    _buildHeaderLine(roleIdx, raceIdx, gender, align) {
+        const parts = [];
+        // Role
+        if (roleIdx >= 0) {
+            const female = gender === FEMALE;
+            parts.push(roleNameForGender(roleIdx, female));
+        } else {
+            parts.push('<role>');
+        }
+        // Race
+        if (raceIdx >= 0) {
+            parts.push(races[raceIdx].name);
+        } else {
+            parts.push('<race>');
+        }
+        // Gender
+        if (gender === FEMALE) {
+            parts.push('female');
+        } else if (gender === MALE) {
+            parts.push('male');
+        } else {
+            parts.push('<gender>');
+        }
+        // Alignment
+        if (align !== -128) {
+            parts.push(alignName(align));
+        } else {
+            parts.push('<alignment>');
+        }
+        return parts.join(' ');
+    }
+
+    // Show role menu and wait for selection
+    async _showRoleMenu(raceIdx, gender, align, isFirstMenu) {
+        const lines = [];
+        lines.push(' Pick a role or profession');
+        lines.push('');
+        lines.push(' ' + this._buildHeaderLine(-1, raceIdx, gender, align));
+        lines.push('');
+
+        // Role items
+        const roleLetters = {};
+        for (let i = 0; i < roles.length; i++) {
+            const role = roles[i];
+            // Filter by ~ filtering
+            if (!this._okRole(i)) continue;
+            // Filter by race constraint if race is already picked
+            if (raceIdx >= 0 && !role.validRaces.includes(raceIdx)) continue;
+            // Filter by alignment constraint if alignment is already picked
+            if (align !== -128 && !role.validAligns.includes(align)) continue;
+
+            const ch = role.menuChar;
+            const article = role.menuArticle || 'a';
+            const nameDisplay = role.namef
+                ? `${role.name}/${role.namef}`
+                : role.name;
+            lines.push(` ${ch} - ${article} ${nameDisplay}`);
+            roleLetters[ch] = i;
+        }
+
+        // Extra items
+        lines.push(' * * Random');
+        lines.push(' / - Pick race first');
+        lines.push(' " - Pick gender first');
+        lines.push(' [ - Pick alignment first');
+        lines.push(` ~ - ${this._filterLabel()}`);
+        lines.push(' q - Quit');
+        lines.push(' (end)');
+
+        this.display.renderChargenMenu(lines, isFirstMenu);
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+
+        if (c === 'q') return { action: 'quit' };
+        if (c === '/') return { action: 'pick-race' };
+        if (c === '"') return { action: 'pick-gender' };
+        if (c === '[') return { action: 'pick-align' };
+        if (c === '~') return { action: 'filter' };
+        if (c === '*') {
+            // Random role from valid ones
+            const validKeys = Object.keys(roleLetters);
+            const pick = validKeys[rn2(validKeys.length)];
+            return { action: 'selected', value: roleLetters[pick] };
+        }
+        if (roleLetters[c] !== undefined) {
+            return { action: 'selected', value: roleLetters[c] };
+        }
+        // Invalid key: re-show
+        return { action: 'selected', value: -1 };
+    }
+
+    // Show race menu and wait for selection
+    async _showRaceMenu(roleIdx, gender, align, isFirstMenu) {
+        const role = roles[roleIdx];
+        const validRaces = validRacesForRole(roleIdx);
+        const lines = [];
+        lines.push('Pick a race or species');
+        lines.push('');
+        lines.push(this._buildHeaderLine(roleIdx, -1, gender, align));
+        lines.push('');
+
+        const raceLetters = {};
+        for (const ri of validRaces) {
+            const race = races[ri];
+            // Filter by ~ filtering
+            if (!this._okRace(ri)) continue;
+            // Filter by alignment constraint if already set
+            if (align !== -128) {
+                const vAligns = validAlignsForRoleRace(roleIdx, ri);
+                if (!vAligns.includes(align)) continue;
+            }
+            lines.push(`${race.menuChar} - ${race.name}`);
+            raceLetters[race.menuChar] = ri;
+        }
+        lines.push('* * Random');
+
+        // Navigation: blank line before nav items
+        lines.push('');
+        lines.push('? - Pick another role first');
+
+        // Constraint notes and available navigation
+        const notes = [];
+        if (role.forceGender === 'female') {
+            notes.push('    role forces female');
+        }
+        // Only show gender nav if gender not forced
+        if (gender < 0 && needsGenderMenu(roleIdx)) {
+            lines.push('" - Pick gender first');
+        }
+
+        // Show forced constraint notes
+        for (const note of notes) {
+            lines.push(note);
+        }
+
+        // Alignment navigation if not forced
+        const validAligns = validAlignsForRoleRace(roleIdx, raceLetters[Object.keys(raceLetters)[0]] ?? RACE_HUMAN);
+        if (align === -128 && validAligns.length > 1) {
+            lines.push('[ - Pick alignment first');
+        }
+
+        lines.push(`~ - ${this._filterLabel()}`);
+        lines.push('q - Quit');
+        lines.push('(end)');
+
+        this.display.renderChargenMenu(lines, isFirstMenu);
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+
+        if (c === 'q') return { action: 'quit' };
+        if (c === '?') return { action: 'pick-role' };
+        if (c === '/') return { action: 'pick-race' };
+        if (c === '"') return { action: 'pick-gender' };
+        if (c === '[') return { action: 'pick-align' };
+        if (c === '~') return { action: 'filter' };
+        if (c === '*') {
+            const validKeys = Object.keys(raceLetters);
+            const pick = validKeys[rn2(validKeys.length)];
+            return { action: 'selected', value: raceLetters[pick] };
+        }
+        if (raceLetters[c] !== undefined) {
+            return { action: 'selected', value: raceLetters[c] };
+        }
+        return { action: 'selected', value: -1 };
+    }
+
+    // Show gender menu
+    async _showGenderMenu(roleIdx, raceIdx, align, isFirstMenu) {
+        const role = roles[roleIdx];
+        const validAligns = validAlignsForRoleRace(roleIdx, raceIdx);
+        const lines = [];
+        lines.push('Pick a gender or sex');
+        lines.push('');
+
+        // Build header with current alignment if forced
+        const alignDisplay = validAligns.length === 1 ? validAligns[0] : -128;
+        lines.push(this._buildHeaderLine(roleIdx, raceIdx, -1, alignDisplay));
+        lines.push('');
+
+        const genderOptions = [];
+        if (this._okGend(MALE)) { lines.push('m - male'); genderOptions.push(MALE); }
+        if (this._okGend(FEMALE)) { lines.push('f - female'); genderOptions.push(FEMALE); }
+        lines.push('* * Random');
+
+        // Navigation
+        lines.push('');
+        lines.push('? - Pick another role first');
+        lines.push('/ - Pick another race first');
+
+        // Constraint notes
+        const validRaces = validRacesForRole(roleIdx);
+        if (validRaces.length === 1) {
+            lines.push('    role forces ' + races[validRaces[0]].name);
+        }
+        if (races[raceIdx].validAligns.length === 1 && validAligns.length === 1) {
+            lines.push('    race forces ' + alignName(validAligns[0]));
+        } else if (validAligns.length === 1) {
+            lines.push('    role forces ' + alignName(validAligns[0]));
+        }
+
+        // Alignment nav if multiple options
+        if (align === -128 && validAligns.length > 1) {
+            lines.push('[ - Pick alignment first');
+        }
+
+        lines.push(`~ - ${this._filterLabel()}`);
+        lines.push('q - Quit');
+        lines.push('(end)');
+
+        this.display.renderChargenMenu(lines, isFirstMenu);
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+
+        if (c === 'q') return { action: 'quit' };
+        if (c === '?') return { action: 'pick-role' };
+        if (c === '/') return { action: 'pick-race' };
+        if (c === '"') return { action: 'pick-gender' };
+        if (c === '[') return { action: 'pick-align' };
+        if (c === '~') return { action: 'filter' };
+        if (c === 'm' && this._okGend(MALE)) return { action: 'selected', value: MALE };
+        if (c === 'f' && this._okGend(FEMALE)) return { action: 'selected', value: FEMALE };
+        if (c === '*') {
+            if (genderOptions.length > 0) return { action: 'selected', value: genderOptions[rn2(genderOptions.length)] };
+            return { action: 'selected', value: rn2(2) };
+        }
+        return { action: 'selected', value: -1 };
+    }
+
+    // Show alignment menu
+    async _showAlignMenu(roleIdx, raceIdx, gender, isFirstMenu) {
+        const validAligns = validAlignsForRoleRace(roleIdx, raceIdx);
+        const lines = [];
+        lines.push('Pick an alignment or creed');
+        lines.push('');
+        lines.push(this._buildHeaderLine(roleIdx, raceIdx, gender, -128));
+        lines.push('');
+
+        const alignLetters = {};
+        const alignChars = { [A_LAWFUL]: 'l', [A_NEUTRAL]: 'n', [A_CHAOTIC]: 'c' };
+        for (const a of validAligns) {
+            // Filter by ~ filtering
+            if (!this._okAlign(a)) continue;
+            const ch = alignChars[a];
+            lines.push(`${ch} - ${alignName(a)}`);
+            alignLetters[ch] = a;
+        }
+        lines.push('* * Random');
+
+        // Navigation
+        lines.push('');
+        lines.push('? - Pick another role first');
+        lines.push('/ - Pick another race first');
+
+        // Constraint notes
+        const role = roles[roleIdx];
+        if (role.forceGender === 'female') {
+            lines.push('    role forces female');
+        }
+        if (needsGenderMenu(roleIdx)) {
+            lines.push('" - Pick another gender first');
+        }
+
+        lines.push(`~ - ${this._filterLabel()}`);
+        lines.push('q - Quit');
+        lines.push('(end)');
+
+        this.display.renderChargenMenu(lines, isFirstMenu);
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+
+        if (c === 'q') return { action: 'quit' };
+        if (c === '?') return { action: 'pick-role' };
+        if (c === '/') return { action: 'pick-race' };
+        if (c === '"') return { action: 'pick-gender' };
+        if (c === '~') return { action: 'filter' };
+        if (c === '*') {
+            const pick = validAligns[rn2(validAligns.length)];
+            return { action: 'selected', value: pick };
+        }
+        if (alignLetters[c] !== undefined) {
+            return { action: 'selected', value: alignLetters[c] };
+        }
+        return { action: 'selected', value: -128 };
+    }
+
+    // Show confirmation screen
+    // Returns true if confirmed, false if user wants to restart
+    async _showConfirmation(roleIdx, raceIdx, gender, align) {
+        const female = gender === FEMALE;
+        const rName = roleNameForGender(roleIdx, female);
+        const raceName = races[raceIdx].adj;
+        const genderStr = female ? 'female' : 'male';
+        const alignStr = alignName(align);
+        const confirmText = `${this.player.name} the ${alignStr} ${genderStr} ${raceName} ${rName}`;
+
+        const lines = [];
+        lines.push('Is this ok? [ynq]');
+        lines.push('');
+        lines.push(confirmText);
+        lines.push('');
+        lines.push('y * Yes; start game');
+        lines.push('n - No; choose role again');
+        lines.push('q - Quit');
+        lines.push('(end)');
+
+        this.display.renderChargenMenu(lines, false);
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+
+        if (c === 'q') { window.location.reload(); return false; }
+        return c === 'y';
+    }
+
+    // Show lore text and welcome message
+    async _showLoreAndWelcome(roleIdx, raceIdx, gender, align) {
+        const female = gender === FEMALE;
+
+        // Get deity name for the alignment
+        let deityName = godForRoleAlign(roleIdx, align);
+        let goddess = isGoddess(roleIdx, align);
+
+        // Priest special case: gods are null, pick from random role's pantheon
+        // C ref: role.c role_init() — if Priest has no gods, pick random role's gods
+        // This must consume the same RNG as C
+        if (!deityName) {
+            // Find a role that has gods via rn2
+            let donorRole;
+            do {
+                donorRole = rn2(roles.length);
+            } while (!roles[donorRole].gods[0]);
+            // Use donor role's gods
+            deityName = godForRoleAlign(donorRole, align);
+            goddess = isGoddess(donorRole, align);
+            // Store the donor pantheon on the role temporarily
+            // so lore text references are correct
+        }
+
+        const godOrGoddess = goddess ? 'goddess' : 'god';
+        const rankTitle = rankOf(1, roleIdx, female);
+        const loreText = formatLoreText(deityName, godOrGoddess, rankTitle);
+        const loreLines = loreText.split('\n');
+
+        // Calculate offset for lore text display
+        // C ref: The lore text is displayed with an offset that allows the map to show through
+        let maxLoreWidth = 0;
+        for (const line of loreLines) {
+            if (line.length > maxLoreWidth) maxLoreWidth = line.length;
+        }
+        const loreOffx = Math.max(0, TERMINAL_COLS - maxLoreWidth - 1);
+
+        // Add --More-- at the end
+        loreLines.push('--More--');
+
+        // Render lore text overlaid on screen
+        this.display.renderLoreText(loreLines, loreOffx);
+
+        // Wait for key to dismiss lore
         await nhgetch();
+
+        // Clear the lore text area
+        for (let r = 0; r < loreLines.length && r < this.display.rows - 2; r++) {
+            for (let c = loreOffx; c < this.display.cols; c++) {
+                this.display.setCell(c, r, ' ', 7);
+            }
+        }
+
+        // Welcome message
+        // C ref: allmain.c welcome() — "<greeting> <name>, welcome to NetHack!  You are a <align> <gender?> <race> <role>."
+        const greeting = greetingForRole(roleIdx);
+        const rName = roleNameForGender(roleIdx, female);
+        const raceAdj = races[raceIdx].adj;
+        const alignStr = alignName(align);
+
+        // C only shows gender in welcome when role has gendered variants
+        // For Priestess/Cavewoman: gender is implicit in the role name, so it's omitted
+        // For others: include gender if the role name doesn't change
+        let genderStr = '';
+        if (roles[roleIdx].namef) {
+            // Role has gendered name (Priest/Priestess, Caveman/Cavewoman)
+            // Don't include gender word — it's implicit in the role name
+        } else {
+            genderStr = female ? 'female ' : 'male ';
+        }
+
+        const welcomeMsg = `${greeting} ${this.player.name}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
+        this.display.putstr_message(welcomeMsg);
+
+        // Show --More-- after welcome
+        const moreStr = '--More--';
+        const moreCol = Math.min(welcomeMsg.length, this.display.cols - moreStr.length);
+        this.display.putstr(moreCol, 0, moreStr, 2); // CLR_GREEN
+        await nhgetch();
+        this.display.clearRow(0);
     }
 
     // Generate or retrieve a level

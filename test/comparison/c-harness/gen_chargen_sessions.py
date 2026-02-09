@@ -379,15 +379,44 @@ def main():
     if '--from-config' in sys.argv:
         config = load_seeds_config()
         chargen = config['chargen_seeds']
-        seed = chargen['seed']
-        print(f'Generating chargen sessions for seed {seed}\n')
-        for entry in chargen['sessions']:
-            generate_one(
-                str(seed),
-                entry['role'], entry['race'],
-                entry['gender'], entry['align'],
-                entry['label']
-            )
+        # Support both old "seed" (single) and new "seeds" (array) format
+        if 'seeds' in chargen:
+            seeds = chargen['seeds']
+        else:
+            seeds = [chargen['seed']]
+        # Optional --seed flag to generate for a specific seed only
+        seed_filter = None
+        for arg in sys.argv[1:]:
+            if arg.startswith('--seed='):
+                seed_filter = int(arg.split('=')[1])
+        for seed in seeds:
+            if seed_filter is not None and seed != seed_filter:
+                continue
+            print(f'Generating chargen sessions for seed {seed}\n')
+            for entry in chargen['sessions']:
+                generate_one(
+                    str(seed),
+                    entry['role'], entry['race'],
+                    entry['gender'], entry['align'],
+                    entry['label']
+                )
+
+        # Generate variant sessions (alignment_variants, race_variants)
+        for variant_key in ('alignment_variants', 'race_variants'):
+            if variant_key in chargen:
+                vr = chargen[variant_key]
+                vr_seeds = vr.get('seeds', seeds)
+                for seed in vr_seeds:
+                    if seed_filter is not None and seed != seed_filter:
+                        continue
+                    print(f'Generating {variant_key} sessions for seed {seed}\n')
+                    for entry in vr['sessions']:
+                        generate_one(
+                            str(seed),
+                            entry['role'], entry['race'],
+                            entry['gender'], entry['align'],
+                            entry['label']
+                        )
         return
 
     args = [a for a in sys.argv[1:] if not a.startswith('--')]
