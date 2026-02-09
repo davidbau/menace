@@ -76,11 +76,13 @@ function dist2(x1, y1, x2, y2) {
 // C ref: mon.c mfndpos() — returns positions a monster can move to
 // Iterates (x-1..x+1) × (y-1..y+1) in column-major order, skipping current pos.
 // Handles NODIAG (grid bugs), terrain, doors, monsters, player, boulders.
+// Returns array of {x, y, info} where info contains ALLOW_TRAPS flag for harmful traps.
 function mfndpos(mon, map, player) {
     const omx = mon.mx, omy = mon.my;
     const nodiag = (mon.mndx === PM_GRID_BUG);
     // C ref: mon.c:2061-2062 — tame monsters get ALLOW_M | ALLOW_TRAPS
     const allowM = !!mon.tame;
+    const allowTraps = !!mon.tame; // Only pets check trap avoidance
     const positions = [];
     const maxx = Math.min(omx + 1, COLNO - 1);
     const maxy = Math.min(omy + 1, ROWNO - 1);
@@ -124,7 +126,17 @@ function mfndpos(mon, map, player) {
             }
             if (hasBoulder) continue;
 
-            positions.push({ x: nx, y: ny });
+            // C ref: mon.c:2283-2290 — set ALLOW_TRAPS for harmful traps
+            // Non-harmful traps don't get this flag, so trap avoidance won't check them
+            let info = 0;
+            if (allowTraps) {
+                const trap = map.trapAt(nx, ny);
+                if (trap && !m_harmless_trap(mon, trap)) {
+                    info |= 1; // ALLOW_TRAPS flag
+                }
+            }
+
+            positions.push({ x: nx, y: ny, info });
         }
     }
     return positions;
@@ -601,14 +613,22 @@ function dog_move(mon, map, player, display, fov) {
     const distmin_pu = Math.max(Math.abs(omx - player.x), Math.abs(omy - player.y));
     for (let i = 0; i < cnt; i++) {
         const nx = positions[i].x, ny = positions[i].y;
+        const info = positions[i].info || 0;
 
         // Trap avoidance — C ref: dogmove.c:1182-1204
-        // Pets avoid harmful seen traps with 39/40 probability
-        const trap = map.trapAt(nx, ny);
-        if (trap && !m_harmless_trap(mon, trap)) {
-            if (!mon.mleashed) {
-                if (trap.tseen && rn2(40))
-                    continue;
+        // Only check positions with ALLOW_TRAPS flag (harmful traps)
+        // Non-harmful traps don't have ALLOW_TRAPS in info[]
+        if (info & 1) { // ALLOW_TRAPS flag
+            const trap = map.trapAt(nx, ny);
+            if (trap) {
+                if (mon.mleashed) {
+                    // C: if (!Deaf) whimper(mtmp);
+                    // Simplified: skip whimper for now
+                } else {
+                    // 1/40 chance of stepping on trap anyway
+                    if (trap.tseen && rn2(40))
+                        continue;
+                }
             }
         }
 
