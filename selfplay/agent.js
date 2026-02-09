@@ -668,6 +668,9 @@ export class Agent {
             // do random movement - pathfinding is clearly not working
             const veryStuck = this.levelStuckCounter > 80;
 
+            // Check if we need exhaustive exploration (no stairs found after long time)
+            const needsExhaustiveSearch = (this.turnNumber > 150 && level.stairsDown.length === 0);
+
             if (!veryStuck) {
                 // Head for downstairs if known
                 if (level.stairsDown.length > 0) {
@@ -681,13 +684,36 @@ export class Agent {
                 // Force explore with allowUnexplored to reach frontier through unexplored territory
                 const frontier = level.getExplorationFrontier();
                 if (frontier.length > 0) {
-                    for (const target of frontier.slice(0, 20)) {
+                    // If we need exhaustive search, try ALL frontier cells, not just first 20
+                    const targetsToTry = needsExhaustiveSearch ? frontier : frontier.slice(0, 20);
+
+                    for (const target of targetsToTry) {
                         const tKey = target.y * 80 + target.x;
                         if (this.failedTargets.has(tKey)) continue;
                         const path = findPath(level, px, py, target.x, target.y, { allowUnexplored: true });
                         if (path.found) {
                             this.committedTarget = { x: target.x, y: target.y };
-                            return this._followPath(path, 'explore', `force-exploring toward (${target.x},${target.y})`);
+                            const reason = needsExhaustiveSearch ?
+                                `exhaustive search (no stairs found, turn ${this.turnNumber})` :
+                                `force-exploring toward (${target.x},${target.y})`;
+                            return this._followPath(path, 'explore', reason);
+                        }
+                    }
+                }
+
+                // If exhaustive search needed and frontier empty, search for secret doors
+                if (needsExhaustiveSearch && frontier.length === 0) {
+                    const dirs = [
+                        { dx: 0, dy: -1 }, { dx: -1, dy: 0 }, { dx: 1, dy: 0 }, { dx: 0, dy: 1 },
+                        { dx: -1, dy: -1 }, { dx: 1, dy: -1 }, { dx: -1, dy: 1 }, { dx: 1, dy: 1 },
+                    ];
+
+                    for (const dir of dirs) {
+                        const nx = px + dir.dx, ny = py + dir.dy;
+                        const cell = level.at(nx, ny);
+                        if (cell && cell.type === 'wall' && cell.searched < 5) {
+                            if (currentCell) currentCell.searched++;
+                            return { type: 'search', key: 's', reason: 'searching walls for secret doors (no stairs found)' };
                         }
                     }
                 }
@@ -722,7 +748,42 @@ export class Agent {
             return { type: 'random_move', key: randomDir, reason: 'stuck, trying random direction' };
         }
 
-        // 8. Explore: move toward nearest unexplored area
+        // 8. Exhaustive exploration: if stairs not found after many turns, be aggressive
+        // This runs even when not stuck, to ensure we find stairs
+        if (this.turnNumber > 150 && level.stairsDown.length === 0) {
+            const frontier = level.getExplorationFrontier();
+
+            // Try ALL frontier cells with allowUnexplored
+            if (frontier.length > 0) {
+                for (const target of frontier) {
+                    const tKey = target.y * 80 + target.x;
+                    if (this.failedTargets.has(tKey)) continue;
+
+                    const path = findPath(level, px, py, target.x, target.y, { allowUnexplored: true });
+                    if (path.found) {
+                        return this._followPath(path, 'explore', `exhaustive search for stairs (turn ${this.turnNumber})`);
+                    }
+                }
+            }
+
+            // If frontier empty, search walls for secret doors
+            if (frontier.length === 0) {
+                const dirs = [
+                    { dx: 0, dy: -1 }, { dx: -1, dy: 0 }, { dx: 1, dy: 0 }, { dx: 0, dy: 1 },
+                ];
+
+                for (const dir of dirs) {
+                    const nx = px + dir.dx, ny = py + dir.dy;
+                    const cell = level.at(nx, ny);
+                    if (cell && cell.type === 'wall' && cell.searched < 10) {
+                        if (currentCell) currentCell.searched++;
+                        return { type: 'search', key: 's', reason: `searching for secret doors (no stairs after ${this.turnNumber} turns)` };
+                    }
+                }
+            }
+        }
+
+        // 9. Explore: move toward nearest unexplored area
         //    Use path commitment: stick with a target until we reach it or can't progress
         const exploreAction = this._commitToExploration(level, px, py);
         if (exploreAction) return exploreAction;
