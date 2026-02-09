@@ -205,7 +205,7 @@ describe('Top ten: buildEntry', () => {
 
     it('builds correct role abbreviation for each role', () => {
         const expectedAbbrs = ['Arc', 'Bar', 'Cav', 'Hea', 'Kni', 'Mon',
-            'Pri', 'Ran', 'Rog', 'Sam', 'Tou', 'Val', 'Wiz'];
+            'Pri', 'Rog', 'Ran', 'Sam', 'Tou', 'Val', 'Wiz'];
         for (let i = 0; i < roles.length; i++) {
             const p = makeTestPlayer({ roleIndex: i });
             const entry = buildEntry(p, 'killed', roles, races);

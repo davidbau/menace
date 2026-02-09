@@ -658,10 +658,21 @@ class NetHackGame {
     async _showRaceMenu(roleIdx, gender, align, isFirstMenu) {
         const role = roles[roleIdx];
         const validRaces = validRacesForRole(roleIdx);
+
+        // Check if alignment is forced across all valid races for this role
+        // If so, show the forced alignment in the header
+        const allAligns = new Set();
+        for (const ri of validRaces) {
+            for (const a of validAlignsForRoleRace(roleIdx, ri)) {
+                allAligns.add(a);
+            }
+        }
+        const alignForHeader = allAligns.size === 1 ? [...allAligns][0] : align;
+
         const lines = [];
         lines.push('Pick a race or species');
         lines.push('');
-        lines.push(this._buildHeaderLine(roleIdx, -1, gender, align));
+        lines.push(this._buildHeaderLine(roleIdx, -1, gender, alignForHeader));
         lines.push('');
 
         const raceLetters = {};
@@ -679,28 +690,26 @@ class NetHackGame {
         }
         lines.push('* * Random');
 
-        // Navigation: blank line before nav items
+        // Navigation — C ref: wintty.c menu navigation items
+        // Order: ?, ", constraint notes, [, ~, q, (end)
         lines.push('');
         lines.push('? - Pick another role first');
 
-        // Constraint notes and available navigation
-        const notes = [];
-        if (role.forceGender === 'female') {
-            notes.push('    role forces female');
-        }
         // Only show gender nav if gender not forced
         if (gender < 0 && needsGenderMenu(roleIdx)) {
             lines.push('" - Pick gender first');
         }
 
-        // Show forced constraint notes
-        for (const note of notes) {
-            lines.push(note);
+        // Constraint notes
+        if (role.forceGender === 'female') {
+            lines.push('    role forces female');
+        }
+        if (allAligns.size === 1) {
+            lines.push('    role forces ' + alignName([...allAligns][0]));
         }
 
         // Alignment navigation if not forced
-        const validAligns = validAlignsForRoleRace(roleIdx, raceLetters[Object.keys(raceLetters)[0]] ?? RACE_HUMAN);
-        if (align === -128 && validAligns.length > 1) {
+        if (align === -128 && allAligns.size > 1) {
             lines.push('[ - Pick alignment first');
         }
 
@@ -747,20 +756,25 @@ class NetHackGame {
         if (this._okGend(FEMALE)) { lines.push('f - female'); genderOptions.push(FEMALE); }
         lines.push('* * Random');
 
-        // Navigation
+        // Navigation — C ref: wintty.c menu navigation items
+        // Order: ?, /, constraint notes, [, ~, q, (end)
         lines.push('');
         lines.push('? - Pick another role first');
-        lines.push('/ - Pick another race first');
 
-        // Constraint notes
+        // Only show "/" if there are multiple valid races for this role
         const validRaces = validRacesForRole(roleIdx);
+        if (validRaces.length > 1) {
+            lines.push('/ - Pick another race first');
+        }
+
+        // Constraint notes (after ? and / nav items)
         if (validRaces.length === 1) {
             lines.push('    role forces ' + races[validRaces[0]].name);
         }
-        if (races[raceIdx].validAligns.length === 1 && validAligns.length === 1) {
-            lines.push('    race forces ' + alignName(validAligns[0]));
-        } else if (validAligns.length === 1) {
-            lines.push('    role forces ' + alignName(validAligns[0]));
+        if (validAligns.length === 1) {
+            // C ref: "role forces" if role has only one alignment, "race forces" if race restricts it
+            const forcer = role.validAligns.length === 1 ? 'role' : 'race';
+            lines.push(`    ${forcer} forces ` + alignName(validAligns[0]));
         }
 
         // Alignment nav if multiple options
@@ -811,16 +825,27 @@ class NetHackGame {
         }
         lines.push('* * Random');
 
-        // Navigation
+        // Navigation — C ref: wintty.c menu navigation items
+        // Order: ?, /, constraint notes, ", ~, q, (end)
         lines.push('');
         lines.push('? - Pick another role first');
-        lines.push('/ - Pick another race first');
 
-        // Constraint notes
+        // Only show "/" if there are multiple valid races for this role
         const role = roles[roleIdx];
+        const validRacesForAlign = validRacesForRole(roleIdx);
+        if (validRacesForAlign.length > 1) {
+            lines.push('/ - Pick another race first');
+        }
+
+        // Constraint notes (after ? and / nav items)
+        if (validRacesForAlign.length === 1) {
+            lines.push('    role forces ' + races[validRacesForAlign[0]].name);
+        }
         if (role.forceGender === 'female') {
             lines.push('    role forces female');
         }
+
+        // Gender nav if gender is not forced
         if (needsGenderMenu(roleIdx)) {
             lines.push('" - Pick another gender first');
         }
@@ -856,7 +881,7 @@ class NetHackGame {
         const raceName = races[raceIdx].adj;
         const genderStr = female ? 'female' : 'male';
         const alignStr = alignName(align);
-        const confirmText = `${this.player.name} the ${alignStr} ${genderStr} ${raceName} ${rName}`;
+        const confirmText = `${this.player.name.toLowerCase()} the ${alignStr} ${genderStr} ${raceName} ${rName}`;
 
         const lines = [];
         lines.push('Is this ok? [ynq]');
@@ -936,26 +961,36 @@ class NetHackGame {
         const raceAdj = races[raceIdx].adj;
         const alignStr = alignName(align);
 
-        // C only shows gender in welcome when role has gendered variants
+        // C only shows gender in welcome when role has gendered variants or forced gender
         // For Priestess/Cavewoman: gender is implicit in the role name, so it's omitted
-        // For others: include gender if the role name doesn't change
+        // For Valkyrie: forceGender is set, so gender word is omitted
+        // For others: include gender if the role name doesn't change and gender isn't forced
         let genderStr = '';
-        if (roles[roleIdx].namef) {
-            // Role has gendered name (Priest/Priestess, Caveman/Cavewoman)
-            // Don't include gender word — it's implicit in the role name
+        if (roles[roleIdx].namef || roles[roleIdx].forceGender) {
+            // Gender implicit in role name or forced — omit gender word
         } else {
             genderStr = female ? 'female ' : 'male ';
         }
 
-        const welcomeMsg = `${greeting} ${this.player.name}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
+        const welcomeMsg = `${greeting} ${this.player.name.toLowerCase()}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
         this.display.putstr_message(welcomeMsg);
 
         // Show --More-- after welcome
+        // C ref: if message + --More-- exceeds terminal width, wrap to next line
         const moreStr = '--More--';
-        const moreCol = Math.min(welcomeMsg.length, this.display.cols - moreStr.length);
-        this.display.putstr(moreCol, 0, moreStr, 2); // CLR_GREEN
+        let moreRow = 0;
+        let moreCol;
+        if (welcomeMsg.length + moreStr.length > this.display.cols) {
+            // Doesn't fit on one line: put --More-- on row 1, col 0
+            moreRow = 1;
+            moreCol = 0;
+        } else {
+            moreCol = welcomeMsg.length;
+        }
+        this.display.putstr(moreCol, moreRow, moreStr, 2); // CLR_GREEN
         await nhgetch();
         this.display.clearRow(0);
+        if (moreRow > 0) this.display.clearRow(moreRow);
     }
 
     // Generate or retrieve a level
