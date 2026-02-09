@@ -9,6 +9,7 @@ import { parseStatus } from './perception/status_parser.js';
 import { DungeonTracker } from './perception/map_tracker.js';
 import { findPath, findExplorationTarget, findNearest, directionKey, directionDelta } from './brain/pathing.js';
 import { shouldEngageMonster, getMonsterName } from './brain/danger.js';
+import { InventoryTracker } from './brain/inventory.js';
 
 // Direction keys for movement toward a target
 const DIR_KEYS = {
@@ -40,6 +41,7 @@ export class Agent {
         this.dungeon = new DungeonTracker();
         this.screen = null;
         this.status = null;
+        this.inventory = new InventoryTracker();
 
         // State
         this.turnNumber = 0;
@@ -57,11 +59,14 @@ export class Agent {
         this.lastAttemptedAttackPos = null; // position of last attempted attack target
         this.knownPetChars = new Set(); // monster chars confirmed as pets via displacement
         this.pendingDoorDir = null; // direction key for "In what direction?" prompt after 'o'
+        this.pendingQuaffLetter = null; // potion letter for "What do you want to quaff?" prompt
         this.committedTarget = null; // {x, y} of committed exploration target
         this.committedPath = null; // PathResult we're currently following
         this.targetStuckCount = 0; // how many turns we've been stuck on committed path
         this.failedTargets = new Set(); // targets we've failed to reach (blacklisted)
         this.consecutiveFailedMoves = 0; // consecutive turns where movement failed
+        this.restTurns = 0; // consecutive turns spent resting
+        this.lastHP = null; // track HP to detect healing progress
 
         // Statistics
         this.stats = {
@@ -113,7 +118,7 @@ export class Agent {
             this._updatePets();
 
             // Decide and act
-            const action = this._decide();
+            const action = await this._decide();
             const prePos = { x: this.screen.playerX, y: this.screen.playerY };
             await this._act(action);
 
@@ -260,6 +265,16 @@ export class Agent {
         // "What do you want to eat?" -- select first item (a)
         if (lower.includes('want to eat')) return 'a';
 
+        // "What do you want to quaff?" -- use saved potion letter
+        if (lower.includes('want to quaff') || lower.includes('want to drink')) {
+            if (this.pendingQuaffLetter) {
+                const letter = this.pendingQuaffLetter;
+                this.pendingQuaffLetter = null;
+                return letter;
+            }
+            return '\x1b'; // ESC to cancel if no potion selected
+        }
+
         // "In what direction?" -- provide saved direction (from door-open, etc.)
         if (lower.includes('direction')) {
             if (this.pendingDoorDir) {
@@ -282,7 +297,7 @@ export class Agent {
      * Core decision engine: choose the next action.
      * Returns an action object: { type, key, reason }
      */
-    _decide() {
+    async _decide() {
         const level = this.dungeon.currentLevel;
         const px = this.screen.playerX;
         const py = this.screen.playerY;
@@ -314,6 +329,23 @@ export class Agent {
 
         // --- Emergency checks (highest priority) ---
 
+        // 0. If HP is very low (< 30%), use healing potion if available
+        if (this.status && this.status.hp < this.status.hpmax * 0.3) {
+            // Refresh inventory if needed
+            if (this.turnNumber - this.inventory.lastUpdate > 100 || this.inventory.lastUpdate === 0) {
+                await this._refreshInventory();
+            }
+
+            const healingPotions = this.inventory.findHealingPotions();
+            if (healingPotions.length > 0) {
+                // Quaff the first healing potion
+                const potion = healingPotions[0];
+                // Store the potion letter for the prompt handler
+                this.pendingQuaffLetter = potion.letter;
+                return { type: 'quaff', key: 'q', reason: `HP low (${this.status.hp}/${this.status.hpmax}), drinking ${potion.name}` };
+            }
+        }
+
         // 1. If HP is critical and we have no way to heal, try to flee
         if (this.status && this.status.hpCritical) {
             const nearbyMonsters = findMonsters(this.screen);
@@ -325,12 +357,57 @@ export class Agent {
             }
         }
 
-        // 2. If hungry and have food, eat
-        // TODO: Check inventory for food items before trying to eat
-        // For now, skip eating to avoid infinite loop when no food available
-        // if (this.status && this.status.needsFood) {
-        //     return { type: 'eat', key: 'e', reason: 'need food' };
-        // }
+        // 1b. If HP is low and no monsters nearby, rest to heal
+        // NetHack HP regen: (XL + CON)% chance per turn to heal 1 HP
+        // At XL1 with CON~10, only 11% chance per turn!
+        if (this.status && this.status.hp < this.status.hpmax) {
+            const hpPercent = this.status.hp / this.status.hpmax;
+            const nearbyMonsters = findMonsters(this.screen);
+            const monstersNearby = nearbyMonsters.length > 0;
+
+            // Check if HP increased since last check (natural regen occurred)
+            if (this.lastHP !== null && this.status.hp > this.lastHP) {
+                this.restTurns = 0; // HP increased, reset rest counter
+            }
+            this.lastHP = this.status.hp;
+
+            // Rest if HP is low and no monsters nearby
+            // Critical HP < 25%: rest for up to 100 turns
+            // Moderate HP < 50%: rest for up to 50 turns
+            // (HP regen is probabilistic: (XL+CON)% chance per turn)
+            if (hpPercent < 0.25 && !monstersNearby && this.restTurns < 100) {
+                this.restTurns++;
+                return { type: 'rest', key: '.', reason: `HP critical, resting (${this.status.hp}/${this.status.hpmax}, ${this.restTurns}/100)` };
+            } else if (hpPercent < 0.5 && !monstersNearby && this.restTurns < 50) {
+                this.restTurns++;
+                return { type: 'rest', key: '.', reason: `resting to heal (${this.status.hp}/${this.status.hpmax}, ${this.restTurns}/50)` };
+            }
+
+            // If we've rested enough, give up and continue (HP will heal while exploring)
+            if (this.restTurns >= 50) {
+                this.restTurns = 0; // Reset for next time
+            }
+        } else {
+            // HP is full, reset rest counter
+            this.restTurns = 0;
+        }
+
+        // If we reached here without returning a rest action, reset rest counter
+        // (will be set back to 0 at the end of _decide if we take any other action)
+
+        // 2. If hungry, check inventory and eat if we have food
+        if (this.status && this.status.needsFood) {
+            // Refresh inventory every 100 turns or if never checked
+            if (this.turnNumber - this.inventory.lastUpdate > 100 || this.inventory.lastUpdate === 0) {
+                await this._refreshInventory();
+            }
+
+            // If we have food, eat it
+            if (this.inventory.hasFood()) {
+                return { type: 'eat', key: 'e', reason: 'hungry and have food' };
+            }
+            // No food available - continue exploring (might find food)
+        }
 
         // --- Tactical checks ---
 
@@ -478,7 +555,39 @@ export class Agent {
      */
     async _act(action) {
         this.lastAction = action.type;
+        // Reset rest counter when taking non-rest actions
+        if (action.type !== 'rest') {
+            this.restTurns = 0;
+        }
         await this.adapter.sendKey(action.key);
+    }
+
+    /**
+     * Refresh inventory by sending 'i' and parsing the result.
+     * This is expensive (requires extra key press + screen read), so call sparingly.
+     */
+    async _refreshInventory() {
+        // Send 'i' to view inventory
+        await this.adapter.sendKey('i');
+
+        // Read the inventory screen
+        const rawScreen = await this.adapter.readScreen();
+        const invScreen = this.adapter.isTmux
+            ? parseTmuxCapture(rawScreen)
+            : parseScreen(rawScreen);
+
+        // Parse inventory
+        const success = this.inventory.parseFromScreen(invScreen);
+
+        // Dismiss inventory screen (space or escape)
+        await this.adapter.sendKey(' ');
+
+        // Update last check turn
+        if (success) {
+            this.inventory.lastUpdate = this.turnNumber;
+        }
+
+        return success;
     }
 
     /**

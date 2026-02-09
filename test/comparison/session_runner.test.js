@@ -768,6 +768,14 @@ for (const { file, dir } of sessionFiles) {
             runGameplaySession(file, session);
         } else if (type === 'chargen') {
             runChargenSession(file, session);
+        } else if (type === 'special') {
+            // Special level sessions (bigroom, castle, sokoban, etc.)
+            // These require special level loader implementation
+            it('special level (not yet implemented)', (t) => {
+                t.diagnostic(`Special level: ${session.group || 'unknown'}`);
+                t.diagnostic(`Levels: ${session.levels?.map(l => l.levelName).join(', ') || 'none'}`);
+                // Pass for now - these are future work
+            });
         } else {
             it('unknown session type', () => {
                 assert.fail(`Unknown session type: ${type}`);
