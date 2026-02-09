@@ -219,6 +219,8 @@ Patches live in `test/comparison/c-harness/patches/` and are applied by
 > *"You hear the rumble of distant compilation."*
 
 The C harness builds a patched NetHack 3.7 binary for ground-truth comparison.
+The C source is **frozen at commit `79c688cc6`** and never modified directly —
+only patches in `test/comparison/c-harness/patches/` are applied on top.
 Three patches make the C binary testable:
 
 **`001-deterministic-seed.patch`** — Reads `NETHACK_SEED` from the environment

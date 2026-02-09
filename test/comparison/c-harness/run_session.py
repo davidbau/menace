@@ -109,11 +109,19 @@ def read_rng_log(rng_log_file):
 
 
 def parse_rng_lines(lines):
-    """Convert raw RNG log lines to compact format: 'fn(arg)=result @ source:line'"""
+    """Convert raw RNG log lines to compact format: 'fn(arg)=result @ source:line'
+
+    Mid-level function tracing lines (>entry/<exit from 005-midlog patch)
+    are passed through unchanged.
+    """
     entries = []
     for line in lines:
         line = line.strip()
         if not line:
+            continue
+        # Mid-level tracing: >funcname ... or <funcname ... — pass through as-is
+        if line[0] in ('>', '<'):
+            entries.append(line)
             continue
         # Format: "2808 rn2(12) = 2 @ mon.c:1145"
         # Parse: idx fn(args) = result @ source
@@ -466,6 +474,7 @@ def run_session(seed, output_json, move_str):
 
         # Build session object
         startup_rng_entries = parse_rng_lines(startup_rng_lines)
+        startup_actual_rng = sum(1 for e in startup_rng_entries if e[0] not in ('>', '<'))
         session_data = {
             'version': 1,
             'seed': seed,
@@ -473,7 +482,7 @@ def run_session(seed, output_json, move_str):
             'character': CHARACTER.copy(),
             'symset': 'DECgraphics',
             'startup': {
-                'rngCalls': startup_rng_count,
+                'rngCalls': startup_actual_rng,
                 'rng': startup_rng_entries,
                 'typGrid': startup_typ_grid,
                 'screen': startup_screen,

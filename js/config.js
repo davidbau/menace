@@ -173,9 +173,10 @@ export const MAXOCLASSES = 18;
 export const MAXMCLASSES = 34;
 export const ROOMOFFSET = 3;
 
-// Check if position is within map bounds (global.h)
+// Check if position is within map bounds
+// C ref: cmd.c isok() — x >= 1 && x <= COLNO-1 && y >= 0 && y <= ROWNO-1
 export function isok(x, y) {
-    return x >= 1 && x < COLNO - 1 && y >= 0 && y < ROWNO;
+    return x >= 1 && x <= COLNO - 1 && y >= 0 && y <= ROWNO - 1;
 }
 
 // Check terrain type helpers (rm.h)

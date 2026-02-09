@@ -8,6 +8,11 @@
       "_comment": "Seeds that include per-level RNG traces for debugging. These are themeroom seeds and other cases that have been difficult to align between C and JS.",
       "js": [16, 72, 119, 163, 306],
       "c": [16, 72, 119, 163, 306]
+    },
+    "c_golden": {
+      "_comment": "Seeds for broad C-vs-JS typGrid comparison. Grid-only (no RNG traces) for speed. Depths 1-20 cover all special room type thresholds (COCKNEST needs depth > 16).",
+      "seeds": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 72, 100, 112, 119, 163, 200, 212, 306, 314, 555, 999, 2468, 31337],
+      "max_depth": 20
     }
   },
 

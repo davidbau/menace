@@ -19,7 +19,7 @@ import {
     initObjectData,
 } from './objects.js';
 import { rndmonnum } from './makemon.js';
-import { mons, G_NOCORPSE, M2_NEUTER, M2_FEMALE, M2_MALE } from './monsters.js';
+import { mons, G_NOCORPSE, M2_NEUTER, M2_FEMALE, M2_MALE, MZ_SMALL, PM_LIZARD, PM_LICHEN, S_TROLL, MS_RIDER } from './monsters.js';
 
 // Named object indices we need (exported from objects.js)
 // Check: CORPSE, EGG, TIN, SLIME_MOLD, KELP_FROND, CANDY_BAR,
@@ -316,7 +316,7 @@ function mksobj_init(obj, artif, skipErosion) {
                     if (mndx >= 0 && mons[mndx].nutrition > 0
                         && !(mons[mndx].geno & G_NOCORPSE)) {
                         obj.corpsenm = mndx;
-                        rn2(10); // set_tin_variety RANDOM_TIN: rn2(TTSZ-1) = rn2(10)
+                        rn2(15); // set_tin_variety RANDOM_TIN: rn2(TTSZ-1) where TTSZ=16
                         break;
                     }
                 }
@@ -327,11 +327,9 @@ function mksobj_init(obj, artif, skipErosion) {
         } else if (od.name === 'candy bar') {
             rn2(15); // assign_candy_wrapper: rn2(SIZE(candy_wrappers)-1)
         }
-        // General food: possible quan=2
+        // General food: possible quan=2 (C: else branch of Is_pudding)
         if (od.name !== 'corpse' && od.name !== 'meat ring'
-            && od.name !== 'kelp frond' && od.name !== 'egg'
-            && od.name !== 'tin' && od.name !== 'candy bar') {
-            // Check if pudding (glob) -- skip pudding logic
+            && od.name !== 'kelp frond') {
             if (!rn2(6)) obj.quan = 2;
         }
         break;
@@ -470,7 +468,12 @@ function mksobj_init(obj, artif, skipErosion) {
     case ROCK_CLASS:
         if (od.name === 'statue') {
             obj.corpsenm = rndmonnum(); // corpsenm = rndmonnum()
-            if (rn2(Math.floor(1 / 2 + 10)) > 10) { // level_difficulty()/2+10, at depth 1: rn2(10) > 10 always false
+            // C ref: !verysmall() && rn2(level_difficulty()/2+10) > 10
+            // verysmall = msize < MZ_SMALL (i.e., MZ_TINY)
+            // Short-circuit: skip rn2 if monster is very small
+            if (obj.corpsenm >= 0 && obj.corpsenm < mons.length
+                && mons[obj.corpsenm].size >= MZ_SMALL
+                && rn2(Math.floor(1 / 2 + 10)) > 10) {
                 // would add spellbook to container -- skip
             }
         }
@@ -582,7 +585,9 @@ function mksobj_postinit(obj) {
     }
     // C ref: mkobj.c:1224 set_corpsenm → start_corpse_timeout for CORPSE
     // start_corpse_timeout calls rnz(rot_adjust) where rot_adjust=25 at depth 1
-    if (od.name === 'corpse' && obj.corpsenm >= 0) {
+    // C ref: mkobj.c:1400 — lizard and lichen corpses skip start_corpse_timeout
+    if (od.name === 'corpse' && obj.corpsenm >= 0
+        && obj.corpsenm !== PM_LIZARD && obj.corpsenm !== PM_LICHEN) {
         rnz(25); // start_corpse_timeout
     }
 }
@@ -597,6 +602,57 @@ export function mksobj(otyp, init, artif, skipErosion) {
     // C ref: mkobj.c — otmp->owt = weight(otmp) after full initialization
     obj.owt = weight(obj);
     return obj;
+}
+
+// C ref: mkobj.c special_corpse() macro
+function special_corpse(mndx) {
+    if (mndx < 0) return false;
+    return mndx === PM_LIZARD || mndx === PM_LICHEN
+        || mons[mndx].symbol === S_TROLL
+        || mons[mndx].sound === MS_RIDER;
+}
+
+// C ref: mkobj.c start_corpse_timeout() — consume RNG for corpse rot/revive timing
+// Only called for RNG alignment; we don't actually track timers.
+const TAINT_AGE = 50;
+const TROLL_REVIVE_CHANCE = 37;
+function start_corpse_timeout_rng(corpsenm) {
+    // Lizards and lichen don't rot or revive
+    if (corpsenm === PM_LIZARD || corpsenm === PM_LICHEN) return;
+    // rot_adjust=25 during mklev; consume rnz(25)
+    rnz(25);
+    // Rider: rn2(3) loop for revival time
+    if (mons[corpsenm].sound === MS_RIDER) {
+        const minturn = 12; // non-Death rider default
+        for (let when = minturn; when < 67; when++) {
+            if (!rn2(3)) break;
+        }
+    } else if (mons[corpsenm].symbol === S_TROLL) {
+        // Troll: rn2(37) loop up to TAINT_AGE times
+        for (let age = 2; age <= TAINT_AGE; age++) {
+            if (!rn2(TROLL_REVIVE_CHANCE)) break;
+        }
+    }
+}
+
+// C ref: mkobj.c mkcorpstat() — create a corpse or statue with specific monster type
+// ptr_mndx: monster index to override corpsenm (-1 for random/no override)
+// init: whether to call mksobj_init (CORPSTAT_INIT flag)
+export function mkcorpstat(objtype, ptr_mndx, init) {
+    const otmp = mksobj(objtype, init, false);
+    if (ptr_mndx >= 0) {
+        const old_corpsenm = otmp.corpsenm;
+        otmp.corpsenm = ptr_mndx;
+        otmp.owt = weight(otmp);
+        if (objectData[otmp.otyp]?.name === 'corpse'
+            && (special_corpse(old_corpsenm)
+                || special_corpse(ptr_mndx))) {
+            // C: obj_stop_timers(otmp) — no RNG consumed
+            // Restart corpse timeout with new corpsenm
+            start_corpse_timeout_rng(ptr_mndx);
+        }
+    }
+    return otmp;
 }
 
 // C ref: mkobj.c mkobj() -- create random object of a class

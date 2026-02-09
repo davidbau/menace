@@ -3,8 +3,7 @@
 // C ref: makemon.c — monster creation, selection, weapon/inventory assignment
 
 import { rn2, rnd, rn1, d } from './rng.js';
-import { mksobj } from './mkobj.js';
-import { ROCK } from './objects.js';
+import { mksobj, mkobj } from './mkobj.js';
 import { def_monsyms } from './symbols.js';
 import {
     mons, LOW_PM, SPECIAL_PM, MAXMCLASSES,
@@ -18,16 +17,21 @@ import {
     S_GNOME, S_GIANT, S_JABBERWOCK, S_KOP, S_LICH, S_MUMMY,
     S_NAGA, S_OGRE, S_PUDDING, S_QUANTMECH, S_RUSTMONST, S_SNAKE,
     S_TROLL, S_UMBER, S_VAMPIRE, S_WRAITH, S_XORN, S_YETI, S_ZOMBIE,
-    S_HUMAN, S_GHOST, S_GOLEM, S_DEMON, S_EEL, S_LIZARD,
+    S_HUMAN, S_GHOST, S_GOLEM, S_DEMON, S_EEL, S_LIZARD, S_MIMIC_DEF,
     M2_MERC, M2_LORD, M2_PRINCE, M2_NASTY, M2_FEMALE, M2_MALE,
     M2_HOSTILE, M2_PEACEFUL, M2_DOMESTIC, M2_NEUTER, M2_GREEDY,
     M1_FLY, M1_NOHANDS,
     PM_ORC, PM_GIANT, PM_ELF, PM_HUMAN,
     PM_SOLDIER, AT_WEAP,
     PM_GOBLIN, PM_ORC_CAPTAIN, PM_MORDOR_ORC, PM_URUK_HAI, PM_ORC_SHAMAN,
-    PM_OGRE_LEADER, PM_OGRE_TYRANT,
+    PM_OGRE_LEADER, PM_OGRE_TYRANT, PM_GHOST,
 } from './monsters.js';
 import {
+    ROCK, STATUE, FIGURINE, EGG, TIN, STRANGE_OBJECT, GOLD_PIECE,
+    RING_CLASS, WAND_CLASS, WEAPON_CLASS, FOOD_CLASS, COIN_CLASS,
+    SCROLL_CLASS, POTION_CLASS, ARMOR_CLASS, AMULET_CLASS, TOOL_CLASS,
+    ROCK_CLASS, GEM_CLASS, SPBOOK_CLASS,
+    TALLOW_CANDLE, WAX_CANDLE,
     DAGGER, KNIFE, SHORT_SWORD, LONG_SWORD, SILVER_SABER, BROADSWORD,
     SCIMITAR, SPEAR, JAVELIN, TRIDENT, AXE, BATTLE_AXE, MACE, WAR_HAMMER,
     FLAIL, HALBERD, CLUB, AKLYS, RUBBER_HOSE, BULLWHIP, QUARTERSTAFF,
@@ -697,6 +701,69 @@ function m_initinv(mndx, depth, m_lev) {
 }
 
 // ========================================================================
+// ========================================================================
+// set_mimic_sym — assign mimic appearance
+// C ref: makemon.c:2386-2475
+// For RNG alignment during level generation.
+// During mklev, mimics are placed in ordinary rooms (OROOM), so we always
+// take the default "else" branch: ROLL_FROM(syms) → rn2(17).
+// ========================================================================
+
+const MAXOCLASSES = 18; // C ref: config.h
+
+// C ref: makemon.c:2378 — syms[] array for mimic appearance
+const mimic_syms = [
+    MAXOCLASSES,  MAXOCLASSES,     RING_CLASS,   WAND_CLASS,   WEAPON_CLASS,
+    FOOD_CLASS,   COIN_CLASS,      SCROLL_CLASS, POTION_CLASS, ARMOR_CLASS,
+    AMULET_CLASS, TOOL_CLASS,      ROCK_CLASS,   GEM_CLASS,    SPBOOK_CLASS,
+    S_MIMIC_DEF,  S_MIMIC_DEF,
+];
+
+function set_mimic_sym(mndx, x, y, map) {
+    // During level generation in ordinary rooms, we always reach the default
+    // "else" branch since: not OBJ_AT (no objects at mimic position typically
+    // during sp_lev placement), not IS_DOOR/IS_WALL (mimics placed in ROOM),
+    // not maze level, roomno >= 0 but rt == OROOM (themeroom is OROOM).
+    // So: s_sym = ROLL_FROM(syms) = syms[rn2(17)]
+    const s_sym = mimic_syms[rn2(17)];
+
+    let appear;
+    if (s_sym === MAXOCLASSES) {
+        // Furniture appearance: rn2(8) from furnsyms
+        rn2(8);
+        // No further RNG — furniture doesn't trigger corpsenm fixup
+        return;
+    } else if (s_sym === S_MIMIC_DEF) {
+        appear = STRANGE_OBJECT;
+    } else if (s_sym === COIN_CLASS) {
+        appear = GOLD_PIECE;
+    } else {
+        // mkobj(s_sym, FALSE) — create a temp object to get its otyp
+        // This consumes RNG for object selection + mksobj init.
+        // C then calls obfree() to discard it.
+        const obj = mkobj(s_sym, false);
+        appear = obj ? obj.otyp : STRANGE_OBJECT;
+    }
+
+    // Post-fixup: if appearance is STATUE/FIGURINE/CORPSE/EGG/TIN,
+    // pick a monster type for corpsenm
+    // C ref: makemon.c:2458-2475
+    if (appear === STATUE || appear === FIGURINE
+        || appear === CORPSE || appear === EGG || appear === TIN) {
+        const rndmndx = rndmonnum();
+        const nocorpse = (mons[rndmndx].geno & G_NOCORPSE) !== 0;
+        if (appear === CORPSE && nocorpse) {
+            // C: rn1(PM_WIZARD - PM_ARCHEOLOGIST + 1, PM_ARCHEOLOGIST) = rn1(13, 330)
+            rn1(13, 330); // consumes 1 rn2(13) call
+        }
+        // For EGG with non-hatchable or TIN with nocorpse: mndx = NON_PM (no extra RNG)
+    }
+
+    // Altar appearance fixup: if S_altar, rn2(3) for alignment
+    // This can't happen from the default branch (S_altar comes from furnsyms
+    // which already returned above), so no RNG here.
+}
+
 // makemon -- main monster creation
 // C ref: makemon.c:1148-1505
 // Simplified for level generation PRNG alignment
@@ -735,10 +802,30 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         rn2(2); // random gender
     }
 
+    // C ref: makemon.c:1299-1310 — post-placement switch on mlet
+    if (ptr.symbol === S_MIMIC) {
+        set_mimic_sym(mndx, x, y, map);
+    } else if ((ptr.symbol === S_SPIDER || ptr.symbol === S_SNAKE) && map) {
+        // C ref: in_mklev && x && y → mkobj_at(RANDOM_CLASS, x, y, TRUE)
+        // mkobj_at creates a random object (consumes RNG), then hideunder (no RNG)
+        if (x && y) {
+            mkobj(0, true); // RANDOM_CLASS = 0, artif = true
+        }
+        // hideunder() — no RNG
+    }
+
     // Sleep check for certain types during level gen
     // C ref: makemon.c:1328, 1385
     if (ptr.symbol === S_JABBERWOCK || ptr.symbol === S_NYMPH) {
         rn2(5);
+    }
+
+    // C ref: makemon.c:1370-1371 — ghost naming via rndghostname()
+    // rndghostname: rn2(7), and if nonzero, rn2(34) to pick from ghostnames
+    if (mndx === PM_GHOST) {
+        if (rn2(7)) {
+            rn2(34); // ROLL_FROM(ghostnames)
+        }
     }
 
     // Weapon/inventory initialization

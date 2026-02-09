@@ -13,11 +13,19 @@ import {
     isok,
 } from './config.js';
 import { FILL_NORMAL } from './map.js';
-import { rn2, rnd, rn1, rnz } from './rng.js';
-import { mksobj } from './mkobj.js';
-import { mkclass, def_char_to_monclass, makemon, NO_MM_FLAGS } from './makemon.js';
-import { CORPSE } from './objects.js';
-import { mons, G_NOGEN, G_IGNORE, MAXMCLASSES } from './monsters.js';
+import { rn2, rnd, rn1, rnz, d } from './rng.js';
+import { mksobj, mkobj, RANDOM_CLASS } from './mkobj.js';
+import { mkclass, def_char_to_monclass, makemon, rndmonnum, NO_MM_FLAGS } from './makemon.js';
+import {
+    CORPSE, STATUE, BOULDER, CHEST, OIL_LAMP, DAGGER, BOW, ARROW,
+    objectData, CLASS_SYMBOLS,
+    WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, SCROLL_CLASS, TOOL_CLASS,
+} from './objects.js';
+import {
+    mons, G_NOGEN, G_IGNORE, MAXMCLASSES, PM_LIZARD, PM_LICHEN,
+    PM_GHOST, PM_FOG_CLOUD, PM_WOOD_NYMPH, PM_GIANT_SPIDER,
+    S_MIMIC, M2_MALE, M2_FEMALE,
+} from './monsters.js';
 import {
     create_room, create_subroom, sp_create_door, floodFillAndRegister,
 } from './dungeon.js';
@@ -275,63 +283,300 @@ function fillerRegion(map, absX, absY, depth) {
 }
 
 // ========================================================================
-// des.object / des.monster helpers for themeroom contents
-// These simulate the RNG consumption of C's sp_lev.c create_object()
-// and create_monster() without actually placing the objects/monsters.
+// Selection API helpers — lightweight equivalents of C's selvar.c
+// These operate on arrays of {x,y} coordinates. RNG consumption matches
+// C's selection_filter_percent, selection_rndcoord, etc. exactly.
 // ========================================================================
+
+// C ref: selvar.c selection_from_mkroom() — collects room tiles.
+// Iteration: y-major (y outer, x inner). Checks roomno match and !edge.
+// No RNG consumed.
+function selectionRoom(map, room) {
+    const points = [];
+    const rmno = room.roomno !== undefined ? room.roomno : 0;
+    for (let y = room.ly; y <= room.hy; y++) {
+        for (let x = room.lx; x <= room.hx; x++) {
+            if (!isok(x, y)) continue;
+            const loc = map.at(x, y);
+            // C checks: !edge && roomno == rmno
+            // For themerooms, all interior tiles qualify
+            if (loc && !loc.edge && loc.typ === ROOM) {
+                points.push({ x, y });
+            }
+        }
+    }
+    return points;
+}
+
+// C ref: selvar.c selection_filter_percent() — keep points where rn2(100) < pct.
+// Iteration: x-major (x outer, y inner) over selection bounds.
+// One rn2(100) per point in the ORIGINAL selection.
+function selectionPercentage(points, pct) {
+    // C iterates x-major over the bounding rect of the selection.
+    // We must replicate x-major order: sort by x first, then y.
+    const sorted = [...points].sort((a, b) => a.x - b.x || a.y - b.y);
+    const result = [];
+    for (const p of sorted) {
+        if (rn2(100) < pct) {
+            result.push(p);
+        }
+    }
+    return result;
+}
+
+// C ref: selvar.c selection_rndcoord() — pick random point.
+// Counts points, calls rn2(count), finds the nth point in x-major order.
+// If removeit, removes the chosen point from the array.
+function selectionRndcoord(points, removeit) {
+    if (points.length === 0) return { x: -1, y: -1 };
+    // C iterates x-major for both counting and finding
+    const sorted = [...points].sort((a, b) => a.x - b.x || a.y - b.y);
+    const idx = rn2(sorted.length);
+    const chosen = sorted[idx];
+    if (removeit) {
+        // Remove from original array
+        const origIdx = points.findIndex(p => p.x === chosen.x && p.y === chosen.y);
+        if (origIdx >= 0) points.splice(origIdx, 1);
+    }
+    return chosen;
+}
+
+// C ref: selvar.c selection_filter_mapchar() — filter by terrain type.
+// Iteration: x-major. Default lit=-2 means no RNG.
+// No RNG consumed (we always use lit=-2 default).
+function selectionFilterMapchar(map, points, ch) {
+    const typ = CHAR_TO_TYP[ch];
+    if (typ === undefined) return [];
+    const sorted = [...points].sort((a, b) => a.x - b.x || a.y - b.y);
+    return sorted.filter(p => {
+        const loc = map.at(p.x, p.y);
+        return loc && loc.typ === typ;
+    });
+}
+
+// C ref: nhlsel.c l_selection_iterate() — iterate in y-major order.
+// Calls callback(x, y) for each selected point.
+function selectionIterate(points, callback) {
+    const sorted = [...points].sort((a, b) => a.y - b.y || a.x - b.x);
+    for (const p of sorted) {
+        callback(p.x, p.y);
+    }
+}
+
+// ========================================================================
+// des.object / des.monster / des.trap helpers for themeroom contents
+// These simulate the RNG consumption of C's sp_lev.c create_object(),
+// create_monster(), create_trap(), create_altar() without actually
+// placing the entities. Only RNG alignment matters.
+// ========================================================================
+
+// Helper: resolve random position in room via somexy loop.
+// C ref: sp_lev.c get_location() with croom → somexy(croom, &tmpc)
+// somexy calls somex + somey per attempt, retries if wall or subroom.
+function des_get_location(map, room) {
+    for (let tries = 0; tries < 100; tries++) {
+        const x = rn1(room.hx - room.lx + 1, room.lx); // somex
+        const y = rn1(room.hy - room.ly + 1, room.ly); // somey
+        const loc = map.at(x, y);
+        if (loc && loc.typ > DOOR) return { x, y }; // SPACE_POS
+    }
+    return { x: room.lx, y: room.ly }; // fallback
+}
+
+// Helper: look up object index by name.
+function objNameToIndex(name) {
+    for (let i = 0; i < objectData.length; i++) {
+        if (objectData[i].name === name) return i;
+    }
+    return -1;
+}
+
+// Helper: look up object class from display character.
+// C ref: objnam.c def_char_to_objclass()
+function def_char_to_objclass(ch) {
+    for (let i = 0; i < 17; i++) {
+        if (CLASS_SYMBOLS[i] === ch) return i;
+    }
+    return 17; // MAXOCLASSES
+}
+
+// Helper: look up monster index by name.
+function monNameToIndex(name) {
+    for (let i = 0; i < mons.length; i++) {
+        if (mons[i].name === name) return i;
+    }
+    return -1;
+}
 
 // C ref: sp_lev.c create_object() for CORPSE with specific montype name.
 // Simulates: get_location + mksobj(CORPSE) + set_corpsenm override.
 // The mksobj creates a "wasted" random corpse (rndmonnum + rnz) that gets
 // overridden by set_corpsenm (another rnz). Both consume RNG.
 function des_object_corpse_named(map, room, montype, buried) {
-    // get_location_coord with RANDOM coords: somexy → 2 rn1 calls
-    rn1(room.hx - room.lx + 1, room.lx); // somex
-    rn1(room.hy - room.ly + 1, room.ly); // somey
+    des_get_location(map, room);
     // mksobj(CORPSE, TRUE, TRUE) — creates random corpse then overrides
-    const obj = mksobj(CORPSE, true, true);
+    mksobj(CORPSE, true, true);
     // create_object overrides corpsenm: second set_corpsenm → rnz(25)
-    rnz(25);
-    // C ref: dig.c bury_an_obj() → zap.c obj_resists(otmp, 0, 0)
-    // When buried, create_object calls bury_an_obj which gates on obj_resists.
-    // obj_resists always consumes rn2(100) for non-special objects.
+    // C ref: mkobj.c:1399-1400 — lizard/lichen corpses skip start_corpse_timeout
+    if (montype !== PM_LIZARD && montype !== PM_LICHEN) {
+        rnz(25);
+    }
+    // C ref: dig.c bury_an_obj() → obj_resists(otmp, 0, 0) → rn2(100)
     if (buried) {
-        rn2(100);
+        rn2(100); // obj_resists
     }
 }
 
 // C ref: sp_lev.c create_object() for CORPSE with montype class char.
-// Similar to named but uses mkclass to select the monster type first.
 function des_object_corpse_class(map, room, classChar) {
-    // lspo_object: mkclass(def_char_to_monclass(classChar), G_NOGEN|G_IGNORE)
     const monclass = def_char_to_monclass(classChar);
     mkclass(monclass, G_NOGEN | G_IGNORE);
-    // get_location_coord with fixed coords (0,0) → no RNG
-    // mksobj(CORPSE, TRUE, TRUE)
-    const obj = mksobj(CORPSE, true, true);
-    // create_object overrides corpsenm: second set_corpsenm → rnz(25)
-    rnz(25);
+    mksobj(CORPSE, true, true);
+    rnz(25); // second set_corpsenm
+}
+
+// C ref: sp_lev.c create_object() for named object at random room pos.
+// Used for: "boulder", "statue", "chest", "oil lamp", "dagger", "bow", "arrow"
+// Flags: buc (0=random, 6=not-blessed), buried, lit, atCoord, contents
+function des_object_named(map, room, objName, opts = {}) {
+    const otyp = objNameToIndex(objName);
+    if (otyp < 0) return;
+
+    // Location: skip if explicit coord provided
+    if (!opts.atCoord) {
+        des_get_location(map, room);
+    }
+
+    // mksobj_at(otyp, x, y, TRUE, !named) — named=true so artif=false
+    const obj = mksobj(otyp, true, false);
+
+    // Curse state: "not-blessed" = case 6 → unbless (no RNG)
+    // Default (random) = keep what mksobj gave (no RNG)
+    // No additional RNG for buc handling in either case.
+
+    // Corpsenm override for corpse with named montype
+    if (opts.montype !== undefined && objectData[otyp].name === 'corpse') {
+        rnz(25); // second set_corpsenm timeout
+    }
+
+    // Buried: obj_resists + possibly organic rot
+    if (opts.buried) {
+        rn2(100); // obj_resists(otmp, 0, 0)
+        // Chest is WOOD (organic), so: !obj_resists(5,95) + rnd(250) for rot timer
+        if (objectData[otyp].material <= 8) { // material <= WOOD = organic
+            rn2(100); // obj_resists(otmp, 5, 95)
+            rnd(250); // start_timer rot
+        }
+    }
+
+    // Lit: begin_burn — no RNG
+    // Contents callback for containers
+    if (opts.contents) {
+        opts.contents(obj);
+    }
+}
+
+// C ref: sp_lev.c create_object() for object by class char at coord.
+// Used for ghost fill: des.object({ class = ")", coord, buc = "not-blessed" })
+function des_object_class_char(map, room, classChar, opts = {}) {
+    if (!opts.atCoord) {
+        des_get_location(map, room);
+    }
+    const oclass = def_char_to_objclass(classChar);
+    if (oclass === 11) { // COIN_CLASS
+        // mkgold: rnd(level_difficulty+2) * rnd(75) or similar — simplified
+        rnd(200); // gold amount
+    } else {
+        // mkobj_at(oclass, x, y, !named) — named=false so artif=true
+        mkobj(oclass, true);
+    }
+    // buc = "not-blessed" = case 6 → unbless (no RNG)
+}
+
+// C ref: sp_lev.c create_object() with no id/class — completely random.
+function des_object_random(map, room) {
+    des_get_location(map, room);
+    // mkobj_at(RANDOM_CLASS, x, y, !named) — artif=true
+    mkobj(RANDOM_CLASS, true);
+}
+
+// C ref: sp_lev.c create_monster() for monster with specific id.
+// Used for: "ghost", "fog cloud", "wood nymph", "giant spider"
+function des_monster_named(map, room, monName, depth, opts = {}) {
+    const mndx = monNameToIndex(monName);
+    if (mndx < 0) return;
+
+    // C ref: find_montype() in sp_lev.c:3144-3148
+    // For monsters not explicitly male or female: rn2(2) for gender
+    const ptr = mons[mndx];
+    const is_m = !!(ptr.flags2 & M2_MALE);
+    const is_f = !!(ptr.flags2 & M2_FEMALE);
+    if (!is_m && !is_f) {
+        rn2(2); // find_montype gender assignment
+    }
+
+    // sp_amask_to_amask(AM_SPLEV_RANDOM) → induced_align(80)
+    // For regular dungeon: no special level align, no dungeon align → rn2(3)
+    rn2(3); // induced_align
+
+    // Location
+    if (!opts.atCoord) {
+        des_get_location(map, room);
+    }
+
+    // makemon(pm, x, y, NO_MM_FLAGS)
+    makemon(mndx, room.lx, room.ly, NO_MM_FLAGS, depth, map);
 }
 
 // C ref: sp_lev.c create_monster() for monster with class char.
-// Used by Mausoleum: des.monster({ class=X, x=0, y=0, waiting=1 })
-function des_monster_class(map, room, classChar, depth) {
-    // C ref: sp_lev.c:1943 sp_amask_to_amask(AM_SPLEV_RANDOM)
-    //   → induced_align(80) in dungeon.c:1993
-    //   For regular DoD levels: no special level align, no dungeon align
-    //   → falls through to rn2(3) at dungeon.c:2006
-    rn2(3); // induced_align — random alignment (unused but consumes RNG)
-    // lspo_monster: mkclass(def_char_to_monclass(classChar), G_NOGEN)
+// Used by Mausoleum and Storeroom (mimics).
+function des_monster_class(map, room, classChar, depth, opts = {}) {
+    rn2(3); // induced_align
     const monclass = def_char_to_monclass(classChar);
     const mndx = mkclass(monclass, G_NOGEN, depth);
-    // get_location_coord with fixed coords (0,0) → no RNG
-    // Place at room's (lx, ly)
-    const x = room.lx;
-    const y = room.ly;
-    // makemon(pm, x, y, NO_MM_FLAGS) — full monster creation
-    if (mndx >= 0) {
-        makemon(mndx, x, y, NO_MM_FLAGS, depth, map);
+    if (!opts.atCoord) {
+        des_get_location(map, room);
     }
+    if (mndx >= 0) {
+        makemon(mndx, room.lx, room.ly, NO_MM_FLAGS, depth, map);
+    }
+}
+
+// C ref: sp_lev.c create_trap() — trap at specific coord or random pos.
+// For themeroom fills, traps at explicit (x,y) skip location RNG.
+// Trap placement via get_free_room_loc → get_location_coord → somexy.
+function des_trap(map, room, trapType, opts = {}) {
+    if (!opts.atCoord) {
+        // get_free_room_loc → get_location_coord → somexy loop
+        des_get_location(map, room);
+        // get_free_room_loc may retry via get_room_loc if not ROOM type.
+        // For normal rooms, first attempt usually succeeds — no extra RNG.
+    }
+    // mktrap creates the trap entity — no additional RNG for sp_lev traps
+    // (the trap type is already known, no traptype_rnd needed)
+}
+
+// C ref: sp_lev.c create_altar() — altar at random room pos.
+// For temple fill: des.altar({ align = "law"/"neutral"/"chaos" })
+// Explicit alignment → no sp_amask_to_amask RNG needed.
+function des_altar(map, room, align) {
+    // get_free_room_loc → somexy
+    const { x, y } = des_get_location(map, room);
+    // sp_amask_to_amask: explicit alignment (not random) → no RNG
+    const loc = map.at(x, y);
+    if (loc) loc.typ = ALTAR;
+}
+
+// C ref: sp_lev.c lspo_gold() — gold at random room pos.
+function des_gold(map, room) {
+    des_get_location(map, room);
+    rnd(200); // gold amount
+}
+
+// C ref: sp_lev.c lspo_feature() for "fountain" — at random room pos.
+function des_feature_fountain(map, room) {
+    des_get_location(map, room);
+    // No additional RNG — just sets terrain type
 }
 
 // ========================================================================
@@ -391,38 +636,154 @@ function simulateThemeroomFill(map, room, depth, forceLit) {
     //   shuffle(list) → (len-1) rn2 calls
     const w = room.hx - room.lx + 1;
     const h = room.hy - room.ly + 1;
-    const floorTiles = w * h; // all floor tiles (lx..hx × ly..hy)
     switch (pickName) {
-        case 'ice':
-            // C ref: themerms.lua Ice room — selection.room() then des.terrain(ice, "I")
-            // selection.room() selects all floor tiles from lx..hx, ly..hy
-            for (let y = room.ly; y <= room.hy; y++) {
-                for (let x = room.lx; x <= room.hx; x++) {
-                    const loc = map.at(x, y);
-                    if (loc && loc.typ === ROOM) loc.typ = ICE;
-                }
+        case 'ice': {
+            // C ref: themerms.lua "Ice room"
+            // selection.room() → des.terrain(ice, "I")
+            const sel = selectionRoom(map, room);
+            for (const p of sel) {
+                const loc = map.at(p.x, p.y);
+                if (loc) loc.typ = ICE;
             }
             // percent(25) → rn2(100)
             if (rn2(100) < 25) {
-                // ice:iterate(ice_melter) — nh.rn2(1000) per floor tile
-                for (let i = 0; i < floorTiles; i++) {
-                    rn2(1000);
+                // ice:iterate(ice_melter) — iterate y-major, rn2(1000) per point
+                selectionIterate(sel, () => { rn2(1000); });
+            }
+            break;
+        }
+        case 'cloud': {
+            // C ref: themerms.lua "Cloud room"
+            // local fog = selection.room()
+            const sel = selectionRoom(map, room);
+            const npts = sel.length;
+            // for i = 1, npts/4 do des.monster("fog cloud", asleep=true)
+            const count = Math.floor(npts / 4);
+            for (let i = 0; i < count; i++) {
+                des_monster_named(map, room, 'fog cloud', depth, { asleep: true });
+            }
+            // des.gas_cloud({ selection = fog }) — no RNG
+            break;
+        }
+        case 'boulder': {
+            // C ref: themerms.lua "Boulder room" (mindiff=4)
+            // selection.room():percentage(30) → iterate: percent(50) ? boulder : rolling boulder trap
+            const sel = selectionRoom(map, room);
+            const locs = selectionPercentage(sel, 30);
+            selectionIterate(locs, (x, y) => {
+                if (rn2(100) < 50) { // percent(50)
+                    des_object_named(map, room, 'boulder', { atCoord: true });
+                } else {
+                    des_trap(map, room, 'rolling boulder', { atCoord: true });
+                }
+            });
+            break;
+        }
+        case 'spider': {
+            // C ref: themerms.lua "Spider nest"
+            // spooders = level_difficulty() > 8
+            const spooders = depth > 8;
+            const sel = selectionRoom(map, room);
+            const locs = selectionPercentage(sel, 30);
+            selectionIterate(locs, (x, y) => {
+                // des.trap({ type="web", x=x, y=y, spider_on_web = spooders and percent(80) })
+                // The percent(80) is ALWAYS evaluated when spooders is true (Lua short-circuit)
+                // But in Lua: `spooders and percent(80)` → if spooders=false, percent not called
+                if (spooders) {
+                    rn2(100); // percent(80) — always consumed when spooders=true
+                }
+                des_trap(map, room, 'web', { atCoord: true });
+            });
+            break;
+        }
+        case 'trap': {
+            // C ref: themerms.lua "Trap room"
+            // local traps = { "arrow", "dart", "falling rock", "bear",
+            //                 "land mine", "sleep gas", "rust", "anti magic" }
+            // shuffle(traps) → 7 rn2 calls (8 elements)
+            const traps = [0, 1, 2, 3, 4, 5, 6, 7]; // placeholder array of 8
+            shuffleArray(traps); // 7 rn2 calls
+            const sel = selectionRoom(map, room);
+            const locs = selectionPercentage(sel, 30);
+            selectionIterate(locs, (x, y) => {
+                des_trap(map, room, traps[0], { atCoord: true });
+            });
+            break;
+        }
+        case 'garden': {
+            // C ref: themerms.lua "Garden" (needsLit)
+            // local s = selection.room(); npts = s:numpoints() / 6
+            const sel = selectionRoom(map, room);
+            const npts = Math.floor(sel.length / 6);
+            for (let i = 0; i < npts; i++) {
+                // des.monster({ id = "wood nymph", asleep = true })
+                des_monster_named(map, room, 'wood nymph', depth, { asleep: true });
+                // if percent(30) then des.feature("fountain")
+                if (rn2(100) < 30) {
+                    des_feature_fountain(map, room);
+                }
+            }
+            // Postprocessor: make_garden_walls
+            // table.insert(postprocess, { handler = make_garden_walls,
+            //                             data = { sel = selection.room() } })
+            // selection.room() is called again — no RNG, just collects points
+            // Postprocessor runs after level gen: sel:grow() then replace_terrain
+            // replace_terrain("w" → "T"): iterates all points, no RNG (chance=100%)
+            // replace_terrain("S" → "A"): iterates all points, no RNG
+            // The grow() + replace operations don't consume RNG.
+
+            // Apply garden wall transformation: convert room walls to trees
+            // C ref: make_garden_walls — sel:grow() expands selection by 1 in all dirs
+            // then replace_terrain fromterrain="w" (any wall) toterrain="T" (tree)
+            for (let y = room.ly - 1; y <= room.hy + 1; y++) {
+                for (let x = room.lx - 1; x <= room.hx + 1; x++) {
+                    if (!isok(x, y)) continue;
+                    const loc = map.at(x, y);
+                    if (!loc) continue;
+                    if (loc.typ === HWALL || loc.typ === VWALL) {
+                        loc.typ = TREE;
+                    }
                 }
             }
             break;
-        case 'temple':
-            // Temple of the gods: 3 altars × (somex + somey)
-            // C ref: themerms.lua Temple of the gods, mkroom.c somex/somey
-            for (let i = 0; i < 3; i++) {
-                const ax = rn2(w) + room.lx; // somex: rn1(hx-lx+1, lx)
-                const ay = rn2(h) + room.ly; // somey: rn1(hy-ly+1, ly)
-                const loc = map.at(ax, ay);
-                if (loc) loc.typ = ALTAR;
+        }
+        case 'buried_treasure': {
+            // C ref: themerms.lua "Buried treasure"
+            // des.object({ id="chest", buried=true, contents=function(otmp)
+            //   ... for i=1,d(3,4) do des.object() end ... })
+            des_object_named(map, room, 'chest', {
+                buried: true,
+                contents: () => {
+                    // d(3,4) = 3 × rn2(4) → sum
+                    const numObjs = (rn2(4) + 1) + (rn2(4) + 1) + (rn2(4) + 1);
+                    for (let i = 0; i < numObjs; i++) {
+                        des_object_random(map, room);
+                    }
+                },
+            });
+            // Postprocessor: make_dig_engraving
+            // selection.negate():filter_mapchar(".") → no RNG (filter_mapchar default lit=-2)
+            // floors:rndcoord(0) → rn2(count)
+            // des.engraving — no RNG
+            // We need to simulate the postprocessor RNG: rndcoord on all floor tiles
+            // C ref: selection.negate() selects ALL map tiles, then filter_mapchar(".")
+            // filters to ROOM type. Then rndcoord(0) picks one.
+            // Count all ROOM tiles on the entire level for the negate+filter
+            let floorCount = 0;
+            for (let y = 0; y < ROWNO; y++) {
+                for (let x = 1; x < COLNO; x++) {
+                    const loc = map.at(x, y);
+                    if (loc && loc.typ === ROOM) floorCount++;
+                }
+            }
+            if (floorCount > 0) {
+                rn2(floorCount); // rndcoord(0) on all floor tiles
             }
             break;
+        }
         case 'buried_zombies': {
             // C ref: themerms.lua "Buried zombies"
-            const diff = depth; // level_difficulty() = depth for main dungeon
+            const diff = depth;
             const zombifiable = ['kobold', 'gnome', 'orc', 'dwarf'];
             if (diff > 3) {
                 zombifiable.push('elf', 'human');
@@ -432,15 +793,164 @@ function simulateThemeroomFill(map, room, depth, forceLit) {
             }
             const count = Math.floor((w * h) / 2);
             for (let i = 0; i < count; i++) {
-                shuffleArray(zombifiable); // (len-1) rn2 calls
+                shuffleArray(zombifiable);
                 des_object_corpse_named(map, room, zombifiable[0], true);
-                // o:stop_timer("rot-corpse") — no RNG
-                // o:start_timer("zombify-mon", math.random(990, 1010))
                 rn2(21); // math.random(990, 1010)
             }
             break;
         }
-        // TODO: simulate other fill types (cloud, spider, trap, etc.)
+        case 'massacre': {
+            // C ref: themerms.lua "Massacre"
+            // 27 monster names, math.random(#mon) → rn2(27), d(5,5) corpses
+            const monNames = [
+                'apprentice', 'warrior', 'ninja', 'thug',
+                'hunter', 'acolyte', 'abbot', 'page',
+                'attendant', 'neanderthal', 'chieftain',
+                'student', 'wizard', 'valkyrie', 'tourist',
+                'samurai', 'rogue', 'ranger', 'priestess',
+                'priest', 'monk', 'knight', 'healer',
+                'cavewoman', 'caveman', 'barbarian',
+                'archeologist',
+            ];
+            let idx = rn2(monNames.length); // math.random(#mon) → rn2(27)
+            // d(5,5) = 5 × math.random(1,5) = 5 × (rn2(5) + 1)
+            const corpseCount = (rn2(5)+1) + (rn2(5)+1) + (rn2(5)+1) + (rn2(5)+1) + (rn2(5)+1);
+            for (let i = 0; i < corpseCount; i++) {
+                if (rn2(100) < 10) { // percent(10)
+                    idx = rn2(monNames.length); // re-pick
+                }
+                // des.object({ id="corpse", montype=mon[idx] })
+                // Look up the montype by name for set_corpsenm
+                const mndx = monNameToIndex(monNames[idx]);
+                des_object_corpse_named(map, room, mndx, false);
+            }
+            break;
+        }
+        case 'statuary': {
+            // C ref: themerms.lua "Statuary"
+            // for i = 1, d(5,5): des.object({ id = "statue" })
+            const statueCount = (rn2(5)+1) + (rn2(5)+1) + (rn2(5)+1) + (rn2(5)+1) + (rn2(5)+1);
+            for (let i = 0; i < statueCount; i++) {
+                des_object_named(map, room, 'statue');
+            }
+            // for i = 1, d(3): des.trap("statue")
+            // d(3) with single arg = math.random(1, 3) = rn2(3) + 1
+            const trapCount = rn2(3) + 1;
+            for (let i = 0; i < trapCount; i++) {
+                des_trap(map, room, 'statue');
+            }
+            break;
+        }
+        case 'light_source': {
+            // C ref: themerms.lua "Light source" (needsUnlit)
+            // des.object({ id = "oil lamp", lit = true })
+            des_object_named(map, room, 'oil lamp', { lit: true });
+            break;
+        }
+        case 'temple': {
+            // C ref: themerms.lua "Temple of the gods"
+            // 3 altars with explicit alignment — uses get_free_room_loc
+            // des.altar({ align = align[1/2/3] })
+            // align[] was shuffled at nhlib.lua load time (global, 3 rn2 calls)
+            // but that shuffle is NOT per-fill — it's at Lua state init.
+            // For themeroom fills, each altar just does get_free_room_loc.
+            for (let i = 0; i < 3; i++) {
+                des_altar(map, room, i);
+            }
+            break;
+        }
+        case 'ghost': {
+            // C ref: themerms.lua "Ghost of an Adventurer"
+            // local loc = selection.room():rndcoord(0)
+            const sel = selectionRoom(map, room);
+            const loc = selectionRndcoord(sel, 0);
+            // des.monster({ id="ghost", asleep=true, waiting=true, coord=loc })
+            des_monster_named(map, room, 'ghost', depth, { atCoord: true });
+            // 6 percent checks with conditional object creation
+            // percent(65) → dagger at coord, buc="not-blessed"
+            if (rn2(100) < 65) {
+                des_object_named(map, room, 'dagger', { atCoord: true });
+            }
+            // percent(55) → class ")" at coord, buc="not-blessed"
+            if (rn2(100) < 55) {
+                des_object_class_char(map, room, ')', { atCoord: true });
+            }
+            // percent(45) → bow + arrow at coord, buc="not-blessed"
+            if (rn2(100) < 45) {
+                des_object_named(map, room, 'bow', { atCoord: true });
+                des_object_named(map, room, 'arrow', { atCoord: true });
+            }
+            // percent(65) → class "[" at coord, buc="not-blessed"
+            if (rn2(100) < 65) {
+                des_object_class_char(map, room, '[', { atCoord: true });
+            }
+            // percent(20) → class "=" at coord, buc="not-blessed"
+            if (rn2(100) < 20) {
+                des_object_class_char(map, room, '=', { atCoord: true });
+            }
+            // percent(20) → class "?" at coord, buc="not-blessed"
+            if (rn2(100) < 20) {
+                des_object_class_char(map, room, '?', { atCoord: true });
+            }
+            break;
+        }
+        case 'storeroom': {
+            // C ref: themerms.lua "Storeroom"
+            // selection.room():percentage(30) → iterate:
+            //   percent(25) ? des.object("chest") : des.monster(class="m", appear_as="obj:chest")
+            const sel = selectionRoom(map, room);
+            const locs = selectionPercentage(sel, 30);
+            selectionIterate(locs, (x, y) => {
+                if (rn2(100) < 25) { // percent(25)
+                    // des.object("chest") — named object, no coord (random pos)
+                    // But we're iterating selected points, so the Lua passes no coord
+                    // to des.object — it uses random room position
+                    des_object_named(map, room, 'chest');
+                } else {
+                    // des.monster({ class="m", appear_as="obj:chest" })
+                    des_monster_class(map, room, 'm', depth);
+                }
+            });
+            break;
+        }
+        case 'teleport': {
+            // C ref: themerms.lua "Teleportation hub"
+            // local locs = selection.room():filter_mapchar(".")
+            const sel = selectionRoom(map, room);
+            const floorLocs = selectionFilterMapchar(map, sel, '.');
+            // for i = 1, 2 + nh.rn2(3):
+            const count = 2 + rn2(3);
+            for (let i = 0; i < count; i++) {
+                // local pos = locs:rndcoord(1) — remove=true
+                const pos = selectionRndcoord(floorLocs, 1);
+                // Postprocessor stored but no immediate RNG
+                // pos.x/y adjusted by region offset — no RNG
+            }
+            // Postprocessors: make_a_trap for each stored position
+            // make_a_trap: selection.negate():filter_mapchar(".") → no RNG
+            //   repeat rndcoord(1) until dest != coord → rn2(count) per attempt
+            // For each trap position, simulate make_a_trap postprocessor
+            // Count all ROOM tiles on level for the negate+filter selection
+            let totalFloor = 0;
+            for (let y = 0; y < ROWNO; y++) {
+                for (let x = 1; x < COLNO; x++) {
+                    const loc = map.at(x, y);
+                    if (loc && loc.typ === ROOM) totalFloor++;
+                }
+            }
+            // Each make_a_trap: repeat rndcoord(1) until teledest != coord
+            // Typically 1-2 attempts. Each attempt: rn2(remaining_count).
+            for (let i = 0; i < count; i++) {
+                if (totalFloor > 0) {
+                    // At least one rndcoord call; may need more if dest == coord
+                    rn2(totalFloor);
+                    totalFloor--;
+                    // Rarely needs retry (only if same position picked)
+                    // For RNG alignment, simulate the typical single-attempt case
+                }
+            }
+            break;
+        }
     }
 }
 
@@ -594,7 +1104,7 @@ function themeroom_pick9_mausoleum(map, depth) {
         if (rn2(100) < 50) { // percent(50) — monster
             const monClasses = ['M', 'V', 'L', 'Z']; // mummy, vampire, lich, zombie
             shuffleArray(monClasses); // 3 rn2 calls
-            des_monster_class(map, inner, monClasses[0], depth);
+            des_monster_class(map, inner, monClasses[0], depth, { atCoord: true });
         } else {
             // des.object({ id="corpse", montype="@", coord={0,0} })
             des_object_corpse_class(map, inner, '@');
@@ -636,14 +1146,18 @@ function themeroom_default(map, depth) {
     return true;
 }
 
-// C ref: themerms.lua picks 5-7 — des.room({ type="themed", filled=1 })
+// C ref: themerms.lua picks 5-7 — des.room({ type="themed", ... })
 // with themeroom_fill callback. Pick 6 is dark (lit=0).
+// Only pick 7 has filled=1; picks 5 and 6 default to filled=0 in C
+// (gi.in_mk_themerooms makes the default 0 in lspo_room).
 function themeroom_desroom_fill(map, pick, depth) {
     rn2(100);
     if (!create_room(map, -1, -1, -1, -1, -1, -1, OROOM, -1, depth, true))
         return false;
     const room = map.rooms[map.nroom - 1];
-    room.needfill = FILL_NORMAL;
+    if (pick === 7) {
+        room.needfill = FILL_NORMAL;
+    }
     room.rtype = THEMEROOM;
     const forceLit = (pick === 6) ? false : undefined;
     simulateThemeroomFill(map, room, depth, forceLit);
