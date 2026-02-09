@@ -277,19 +277,26 @@ The recommended order prioritizes getting testable results quickly:
 - `des.exclusion()`: Monster generation exclusion zones
 - `des.non_passwall()`: Passwall prevention
 
-**Map flipping challenge:**
-- C NetHack randomly flips maps horizontally and/or vertically based on RNG
-- Controlled by `allow_flips` coder flag (bit 0=vertical, bit 1=horizontal)
-- seed1 soko4 has vertical flip applied (verified in C trace)
-- JS currently places maps without flipping
-- **TODO**: Implement flip logic to match C's random_dir() calls
+**Map flipping implemented:**
+- C NetHack randomly flips entire level after all maps placed
+- `flip_level_rnd()` called at end of sp_level_loader (not per-map)
+- Uses `rn2(2)` to decide each flip: vertical (bit 0), horizontal (bit 1)
+- Controlled by `allow_flips` coder flag: 3=both, 2=horiz only, 1=vert only, 0=none
+- JS implementation in `flipLevelRandom()`:
+  - Finds bounds of non-STONE terrain
+  - Applies FlipX(val) = (maxx - val) + minx for horizontal
+  - Applies FlipY(val) = (maxy - val) + miny for vertical
+  - Swaps cells in-place within flip area
+- Called via `finalize_level()` at end of level generation
+- Tested with seed1 soko4 (vertical flip case) - works correctly
 
 **Next steps identified:**
 1. Implement wall_extends() for proper junction types
-2. Implement map flipping (horizontal/vertical)
+2. ~~Implement map flipping (horizontal/vertical)~~ ✓ DONE
 3. Add object placement system
 4. Add trap placement system
 5. Port remaining 7 Sokoban levels (soko1-2, soko2-1/2, soko3-1/2, soko4-2)
+6. Integrate special level loading into makelevel() flow
 
 ---
 
