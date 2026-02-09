@@ -14,11 +14,10 @@ import { rhack } from './commands.js';
 import { movemon } from './monmove.js';
 import { simulatePostLevelInit } from './u_init.js';
 import { loadSave, deleteSave, hasSave, saveGame,
-         saveBones, loadOptions, deserializeRng,
-         saveLev, saveMon, saveObjChn,
-         restGameState, restLev } from './storage.js';
-import { mons, PM_GHOST, S_GHOST } from './monsters.js';
-import { def_monsyms } from './symbols.js';
+         loadFlags, deserializeRng,
+         restGameState, restLev,
+         listSavedData, clearAllData } from './storage.js';
+import { savebones } from './bones.js';
 
 // Parse URL parameters for game options
 // Supports: ?wizard=1, ?seed=N, ?role=X
@@ -28,6 +27,7 @@ function parseUrlParams() {
         wizard: params.get('wizard') === '1' || params.get('wizard') === 'true',
         seed: params.has('seed') ? parseInt(params.get('seed'), 10) : null,
         role: params.get('role') || null,
+        reset: params.get('reset') === '1' || params.get('reset') === 'true',
     };
 }
 
@@ -65,9 +65,13 @@ class NetHackGame {
         // Initialize input
         initInput();
 
-        // Load user options
-        const options = loadOptions();
-        this.options = options;
+        // Handle ?reset=1 — prompt to delete all saved data
+        if (urlOpts.reset) {
+            await this.handleReset();
+        }
+
+        // Load user flags (C ref: flags struct from flag.h)
+        this.flags = loadFlags();
 
         // Check for saved game before RNG init
         const saveData = loadSave();
@@ -122,8 +126,8 @@ class NetHackGame {
             this.seerTurn = initResult.seerTurn;
         }
 
-        // Apply options
-        this.player.showExp = options.showExp;
+        // Apply flags
+        this.player.showExp = this.flags.showexp;
 
         // Initial display
         this.fov.compute(this.map, this.player.x, this.player.y);
@@ -188,10 +192,9 @@ class NetHackGame {
         // Delete save (single-save semantics)
         deleteSave();
 
-        // Load options
-        const options = loadOptions();
-        this.options = options;
-        this.player.showExp = options.showExp;
+        // Load flags (C ref: flags struct)
+        this.flags = restored.flags || loadFlags();
+        this.player.showExp = this.flags.showexp;
 
         // Render
         this.fov.compute(this.map, this.player.x, this.player.y);
@@ -314,6 +317,38 @@ class NetHackGame {
         }
     }
 
+    // Handle ?reset=1 — list saved data and prompt for deletion
+    async handleReset() {
+        const items = listSavedData();
+        if (items.length === 0) {
+            this.display.putstr_message('No saved data found.');
+            await nhgetch();
+        } else {
+            this.display.putstr_message('Saved data found:');
+            // Show each item on rows 2+
+            for (let i = 0; i < items.length && i < 18; i++) {
+                this.display.putstr(2, 2 + i, `- ${items[i].label}`, 7);
+            }
+            this.display.putstr(0, 2 + Math.min(items.length, 18),
+                'Delete all saved data? [yn]', 15);
+            const ch = await nhgetch();
+            if (String.fromCharCode(ch) === 'y') {
+                clearAllData();
+                this.display.putstr_message('All saved data deleted.');
+            } else {
+                this.display.putstr_message('Cancelled.');
+            }
+            // Clear the listing rows
+            for (let i = 0; i < 20; i++) {
+                this.display.clearRow(2 + i);
+            }
+        }
+        // Remove ?reset from URL and reload clean
+        const url = new URL(window.location.href);
+        url.searchParams.delete('reset');
+        window.history.replaceState({}, '', url.toString());
+    }
+
     // Main game loop
     // C ref: allmain.c moveloop() -> moveloop_core()
     async gameLoop() {
@@ -340,7 +375,7 @@ class NetHackGame {
                 if (this.player.isDead) {
                     this.gameOver = true;
                     this.gameOverReason = 'killed';
-                    this.saveBonesOnDeath();
+                    savebones(this);
                 }
             }
 
@@ -458,60 +493,6 @@ class NetHackGame {
         if (f.has_zoo && !rn2(200)) { return; }
         if (f.has_shop && !rn2(200)) { rn2(2); return; }
         if (f.has_temple && !rn2(200)) { return; }
-    }
-
-    // Save bones level on player death.
-    // Creates a ghost and drops player inventory at death position.
-    // C ref: bones.c savebones()
-    saveBonesOnDeath() {
-        const depth = this.player.dungeonLevel;
-        if (!this.map) return;
-
-        // C ref: savelev() — serialize current level
-        const mapData = saveLev(this.map);
-
-        // Remove tame monsters from bones
-        mapData.monsters = mapData.monsters.filter(m => !m.tame);
-
-        // C ref: savemon() — create a ghost at the player's death position
-        const ghostType = mons[PM_GHOST];
-        const ghost = saveMon({
-            mndx: PM_GHOST,
-            type: ghostType,
-            name: 'Ghost of ' + this.player.name,
-            displayChar: ' ',
-            displayColor: ghostType.color,
-            mx: this.player.x, my: this.player.y,
-            mhp: this.player.level * 10,
-            mhpmax: this.player.level * 10,
-            mlevel: this.player.level,
-            mac: ghostType.ac,
-            speed: ghostType.speed,
-            movement: 0,
-            attacks: ghostType.attacks,
-            peaceful: false, tame: false,
-            flee: false, confused: false, stunned: false,
-            blind: false, sleeping: false, dead: false,
-            passive: false,
-            mtrack: [{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}],
-        });
-        mapData.monsters.push(ghost);
-
-        // Drop player inventory as floor objects at death position
-        // C ref: saveobjchn() for dropped inventory
-        const droppedItems = saveObjChn(this.player.inventory).map(sobj => {
-            sobj.ox = this.player.x;
-            sobj.oy = this.player.y;
-            return sobj;
-        });
-        mapData.objects = [...(mapData.objects || []), ...droppedItems];
-
-        // Mark as bones level
-        mapData.isBones = true;
-
-        saveBones(depth, mapData, this.player.name,
-                  this.player.x, this.player.y,
-                  this.player.level, this.player.inventory);
     }
 
     // Display game over screen

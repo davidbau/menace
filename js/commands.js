@@ -11,7 +11,7 @@ import { playerAttackMonster } from './combat.js';
 import { makemon } from './makemon.js';
 import { mons } from './monsters.js';
 import { showPager } from './pager.js';
-import { saveGame, loadOptions, saveOptions, getOption } from './storage.js';
+import { saveGame, loadFlags, saveFlags, OPTION_DEFS } from './storage.js';
 
 // Direction key mappings
 // C ref: cmd.c -- movement key definitions
@@ -47,7 +47,7 @@ export async function rhack(ch, game) {
 
     // Movement keys
     if (DIRECTION_KEYS[c]) {
-        return handleMovement(DIRECTION_KEYS[c], player, map, display);
+        return handleMovement(DIRECTION_KEYS[c], player, map, display, game);
     }
 
     // Run keys (capital letter = run in that direction)
@@ -160,9 +160,9 @@ export async function rhack(ch, game) {
         return await handleSave(game);
     }
 
-    // Options (O)
+    // Options (O) — C ref: doset()
     if (c === 'O') {
-        return await handleOptions(game);
+        return await handleSet(game);
     }
 
     // Quit (#quit or Ctrl+C)
@@ -240,7 +240,7 @@ export async function rhack(ch, game) {
 
 // Handle directional movement
 // C ref: hack.c domove() -- the core movement function
-function handleMovement(dir, player, map, display) {
+function handleMovement(dir, player, map, display, game) {
     const nx = player.x + dir[0];
     const ny = player.y + dir[1];
 
@@ -322,7 +322,7 @@ function handleMovement(dir, player, map, display) {
 
     // Autopickup non-gold items if option is on
     const remaining = map.objectsAt(nx, ny);
-    if (getOption('autopickup') && remaining.length > 0) {
+    if (game.flags.pickup && remaining.length > 0) {
         const item = remaining.find(o => o.oc_class !== 10);
         if (item) {
             player.addToInventory(item);
@@ -359,7 +359,7 @@ function handleMovement(dir, player, map, display) {
 async function handleRun(dir, player, map, display, fov, game) {
     let steps = 0;
     while (steps < 80) { // safety limit
-        const result = handleMovement(dir, player, map, display);
+        const result = handleMovement(dir, player, map, display, game);
         if (!result.moved) break;
         steps++;
 
@@ -958,36 +958,34 @@ async function handleSave(game) {
     return { moved: false, tookTime: false };
 }
 
-// Handle options (O)
-// C ref: cmd.c doset()
-async function handleOptions(game) {
+// Handle options (O) — C ref: cmd.c doset()
+// Metadata-driven from OPTION_DEFS (mirrors C allopt[])
+async function handleSet(game) {
     const { display, player } = game;
-    const opts = loadOptions();
-    const lines = [
-        'Options (press letter to toggle, ESC to exit):',
-        `  a) autopickup: ${opts.autopickup ? 'ON' : 'OFF'}`,
-        `  b) showExp:    ${opts.showExp ? 'ON' : 'OFF'}`,
-        `  c) color:      ${opts.color ? 'ON' : 'OFF'}`,
-    ];
-    display.putstr_message(lines.join('  '));
+    const flags = game.flags;
+    // Build menu from OPTION_DEFS
+    let menuText = 'Set options (press letter to toggle, ESC to exit):';
+    for (const def of OPTION_DEFS) {
+        if (def.type === 'boolean') {
+            menuText += `  ${def.menuChar}) ${def.label}: ${flags[def.name] ? 'ON' : 'OFF'}`;
+        }
+    }
+    display.putstr_message(menuText);
     const ch = await nhgetch();
     const c = String.fromCharCode(ch);
-    if (c === 'a') {
-        opts.autopickup = !opts.autopickup;
-        display.putstr_message(`autopickup: ${opts.autopickup ? 'ON' : 'OFF'}`);
-    } else if (c === 'b') {
-        opts.showExp = !opts.showExp;
-        player.showExp = opts.showExp;
-        display.putstr_message(`showExp: ${opts.showExp ? 'ON' : 'OFF'}`);
-    } else if (c === 'c') {
-        opts.color = !opts.color;
-        display.putstr_message(`color: ${opts.color ? 'ON' : 'OFF'}`);
+    // Find matching option by menuChar
+    const def = OPTION_DEFS.find(d => d.menuChar === c);
+    if (def && def.type === 'boolean') {
+        flags[def.name] = !flags[def.name];
+        display.putstr_message(`${def.label}: ${flags[def.name] ? 'ON' : 'OFF'}`);
+        // Apply side-effects for specific flags
+        if (def.name === 'showexp') {
+            player.showExp = flags.showexp;
+        }
+        saveFlags(flags);
     } else {
         display.putstr_message('Never mind.');
-        return { moved: false, tookTime: false };
     }
-    saveOptions(opts);
-    game.options = opts;
     return { moved: false, tookTime: false };
 }
 

@@ -22,6 +22,10 @@ import {
     serializeRng, deserializeRng,
     buildSaveData, loadSave, deleteSave, saveGame,
     saveBones, loadBones, deleteBones,
+    loadFlags, saveFlags, getFlag, setFlag,
+    DEFAULT_FLAGS, OPTION_DEFS,
+    hasSave, listSavedData, clearAllData,
+    // backward-compatible aliases
     loadOptions, saveOptions, getOption, setOption,
 } from '../../js/storage.js';
 
@@ -33,6 +37,8 @@ globalThis.localStorage = {
     setItem(key, value) { store.set(key, String(value)); },
     removeItem(key) { store.delete(key); },
     clear() { store.clear(); },
+    key(i) { return [...store.keys()][i] ?? null; },
+    get length() { return store.size; },
 };
 
 // ========================================================================
@@ -726,54 +732,89 @@ describe('Bones files (localStorage)', () => {
 });
 
 // ========================================================================
-// localStorage: options
+// localStorage: flags (C ref: flag.h struct flag + options.c)
 // ========================================================================
-describe('Options (localStorage)', () => {
+describe('Flags (localStorage)', () => {
     beforeEach(() => {
         store.clear();
     });
 
-    it('loadOptions returns defaults when nothing saved', () => {
-        const opts = loadOptions();
-        assert.equal(opts.autopickup, true);
-        assert.equal(opts.showExp, true);
-        assert.equal(opts.color, true);
+    it('loadFlags returns defaults when nothing saved', () => {
+        const flags = loadFlags();
+        assert.equal(flags.pickup, true);
+        assert.equal(flags.showexp, true);
+        assert.equal(flags.color, true);
+        assert.equal(flags.time, false);
+        assert.equal(flags.safe_pet, true);
+        assert.equal(flags.verbose, true);
     });
 
-    it('saveOptions + loadOptions round-trips', () => {
-        saveOptions({ autopickup: false, showExp: true, color: false });
-        const opts = loadOptions();
-        assert.equal(opts.autopickup, false);
-        assert.equal(opts.showExp, true);
-        assert.equal(opts.color, false);
+    it('saveFlags + loadFlags round-trips', () => {
+        saveFlags({ pickup: false, showexp: true, color: false });
+        const flags = loadFlags();
+        assert.equal(flags.pickup, false);
+        assert.equal(flags.showexp, true);
+        assert.equal(flags.color, false);
     });
 
-    it('getOption returns individual values', () => {
-        saveOptions({ autopickup: false });
-        assert.equal(getOption('autopickup'), false);
-        assert.equal(getOption('showExp'), true); // default
+    it('getFlag returns individual values', () => {
+        saveFlags({ pickup: false });
+        assert.equal(getFlag('pickup'), false);
+        assert.equal(getFlag('showexp'), true); // default
     });
 
-    it('setOption updates a single value', () => {
-        setOption('color', false);
-        assert.equal(getOption('color'), false);
-        assert.equal(getOption('autopickup'), true); // unchanged
+    it('setFlag updates a single value', () => {
+        setFlag('color', false);
+        assert.equal(getFlag('color'), false);
+        assert.equal(getFlag('pickup'), true); // unchanged
     });
 
-    it('loadOptions merges saved with defaults for new keys', () => {
-        // Simulate a save from older version missing a key
-        store.set('webhack-options', JSON.stringify({ autopickup: false }));
-        const opts = loadOptions();
-        assert.equal(opts.autopickup, false);
-        assert.equal(opts.showExp, true); // default filled in
-        assert.equal(opts.color, true);   // default filled in
+    it('loadFlags merges saved with defaults for new keys', () => {
+        store.set('webhack-options', JSON.stringify({ pickup: false }));
+        const flags = loadFlags();
+        assert.equal(flags.pickup, false);
+        assert.equal(flags.showexp, true);
+        assert.equal(flags.color, true);
     });
 
-    it('handles corrupt options gracefully', () => {
+    it('handles corrupt data gracefully', () => {
         store.set('webhack-options', 'not-json');
-        const opts = loadOptions();
-        // Should fall back to defaults
-        assert.equal(opts.autopickup, true);
+        const flags = loadFlags();
+        assert.equal(flags.pickup, true);
+    });
+
+    it('migrates old autopickup key to pickup', () => {
+        store.set('webhack-options', JSON.stringify({ autopickup: false }));
+        const flags = loadFlags();
+        assert.equal(flags.pickup, false);
+        assert.equal(flags.autopickup, undefined); // old key removed
+    });
+
+    it('migrates old showExp key to showexp', () => {
+        store.set('webhack-options', JSON.stringify({ showExp: false }));
+        const flags = loadFlags();
+        assert.equal(flags.showexp, false);
+    });
+
+    it('backward-compatible aliases work', () => {
+        // loadOptions/saveOptions/getOption/setOption are aliases
+        assert.equal(loadOptions, loadFlags);
+        assert.equal(saveOptions, saveFlags);
+        assert.equal(getOption, getFlag);
+        assert.equal(setOption, setFlag);
+    });
+
+    it('DEFAULT_FLAGS has all keys from OPTION_DEFS', () => {
+        for (const def of OPTION_DEFS) {
+            assert.ok(def.name in DEFAULT_FLAGS,
+                `DEFAULT_FLAGS should have key '${def.name}'`);
+        }
+    });
+
+    it('OPTION_DEFS has unique menuChars', () => {
+        const chars = OPTION_DEFS.map(d => d.menuChar);
+        const unique = new Set(chars);
+        assert.equal(unique.size, chars.length, 'menuChars should be unique');
     });
 });
 
@@ -853,6 +894,7 @@ describe('saveGameState/restGameState round-trip', () => {
             display: { messages: ['test message'] },
             levels: {},
             seed: 42, turnCount: 10, wizard: true, seerTurn: 25,
+            flags: { pickup: false, showexp: true, color: true },
             _rngAccessors: { getRngState, getRngCallCount },
         };
 
@@ -871,5 +913,109 @@ describe('saveGameState/restGameState round-trip', () => {
         assert.equal(restored.seerTurn, 25);
         assert.equal(restored.seed, 42);
         assert.deepEqual(restored.messages, ['test message']);
+        // Flags round-trip
+        assert.deepEqual(restored.flags, { pickup: false, showexp: true, color: true });
+    });
+});
+
+// ========================================================================
+// hasSave
+// ========================================================================
+describe('hasSave', () => {
+    beforeEach(() => {
+        store.clear();
+    });
+
+    it('returns false when no save exists', () => {
+        assert.equal(hasSave(), false);
+    });
+
+    it('returns true when a save exists', () => {
+        store.set('webhack-save', '{"version":2}');
+        assert.equal(hasSave(), true);
+    });
+});
+
+// ========================================================================
+// listSavedData / clearAllData (reset feature)
+// ========================================================================
+describe('listSavedData / clearAllData (reset feature)', () => {
+    beforeEach(() => {
+        store.clear();
+    });
+
+    it('listSavedData returns empty array when nothing stored', () => {
+        const items = listSavedData();
+        assert.deepEqual(items, []);
+    });
+
+    it('listSavedData finds a saved game', () => {
+        store.set('webhack-save', '{"version":2}');
+        const items = listSavedData();
+        assert.equal(items.length, 1);
+        assert.equal(items[0].label, 'Saved game');
+    });
+
+    it('listSavedData finds bones files with depth labels', () => {
+        store.set('webhack-bones-3', '{}');
+        store.set('webhack-bones-7', '{}');
+        const items = listSavedData();
+        assert.equal(items.length, 2);
+        const labels = items.map(i => i.label).sort();
+        assert.deepEqual(labels, ['Bones file (depth 3)', 'Bones file (depth 7)']);
+    });
+
+    it('listSavedData finds options/flags', () => {
+        store.set('webhack-options', '{}');
+        const items = listSavedData();
+        assert.equal(items.length, 1);
+        assert.equal(items[0].label, 'Options/flags');
+    });
+
+    it('listSavedData finds all types together', () => {
+        store.set('webhack-save', '{}');
+        store.set('webhack-bones-2', '{}');
+        store.set('webhack-bones-5', '{}');
+        store.set('webhack-options', '{}');
+        store.set('unrelated-key', 'should be ignored');
+        const items = listSavedData();
+        assert.equal(items.length, 4);
+    });
+
+    it('listSavedData ignores non-webhack keys', () => {
+        store.set('other-app-data', '{}');
+        store.set('some-key', 'value');
+        const items = listSavedData();
+        assert.equal(items.length, 0);
+    });
+
+    it('clearAllData removes all webhack keys', () => {
+        store.set('webhack-save', '{}');
+        store.set('webhack-bones-2', '{}');
+        store.set('webhack-bones-5', '{}');
+        store.set('webhack-options', '{}');
+        store.set('unrelated-key', 'should survive');
+        clearAllData();
+        assert.equal(store.has('webhack-save'), false);
+        assert.equal(store.has('webhack-bones-2'), false);
+        assert.equal(store.has('webhack-bones-5'), false);
+        assert.equal(store.has('webhack-options'), false);
+        assert.equal(store.get('unrelated-key'), 'should survive');
+    });
+
+    it('clearAllData is safe when nothing stored', () => {
+        clearAllData(); // should not throw
+        assert.equal(store.size, 0);
+    });
+
+    it('listSavedData then clearAllData round-trip', () => {
+        store.set('webhack-save', '{}');
+        store.set('webhack-bones-4', '{}');
+        store.set('webhack-options', '{}');
+        const before = listSavedData();
+        assert.equal(before.length, 3);
+        clearAllData();
+        const after = listSavedData();
+        assert.equal(after.length, 0);
     });
 });

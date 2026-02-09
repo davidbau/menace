@@ -312,7 +312,7 @@ export function saveEquip(player) {
 // Game state save/restore -- C ref: save.c savegamestate() / restore.c restgamestate()
 // ========================================================================
 
-// C ref: savegamestate() — save game context + you + inventory + equip + rng
+// C ref: savegamestate() — save game context + you + inventory + equip + rng + flags
 export function saveGameState(game) {
     const { player, display } = game;
     const { getRngState, getRngCallCount } = game._rngAccessors;
@@ -327,11 +327,12 @@ export function saveGameState(game) {
         invent: saveObjChn(player.inventory),
         equip: saveEquip(player),
         messages: display.messages.slice(-200),
+        flags: game.flags || null,
     };
 }
 
-// C ref: restgamestate() — restore game context + you + inventory + equip
-// Returns { player, turnCount, wizard, seerTurn, seed, rng, rngCallCount, messages }
+// C ref: restgamestate() — restore game context + you + inventory + equip + flags
+// Returns { player, turnCount, wizard, seerTurn, seed, rng, rngCallCount, messages, flags }
 export function restGameState(gameState) {
     const player = restYou(gameState.you);
     player.inventory = restObjChn(gameState.invent);
@@ -345,6 +346,7 @@ export function restGameState(gameState) {
         rng: gameState.rng,
         rngCallCount: gameState.rngCallCount,
         messages: gameState.messages || [],
+        flags: gameState.flags || null,
     };
 }
 
@@ -426,6 +428,46 @@ export function hasSave() {
     try { return s.getItem(SAVE_KEY) !== null; } catch (e) { return false; }
 }
 
+// List all webhack save/bones entries in localStorage.
+// Returns array of { key, label } describing each stored item.
+export function listSavedData() {
+    const s = storage();
+    if (!s) return [];
+    const items = [];
+    try {
+        for (let i = 0; i < s.length; i++) {
+            const key = s.key(i);
+            if (key === SAVE_KEY) {
+                items.push({ key, label: 'Saved game' });
+            } else if (key.startsWith(BONES_KEY_PREFIX)) {
+                const depth = key.slice(BONES_KEY_PREFIX.length);
+                items.push({ key, label: `Bones file (depth ${depth})` });
+            } else if (key === OPTIONS_KEY) {
+                items.push({ key, label: 'Options/flags' });
+            }
+        }
+    } catch (e) { /* ignore */ }
+    return items;
+}
+
+// Delete all webhack data from localStorage.
+export function clearAllData() {
+    const s = storage();
+    if (!s) return;
+    const toRemove = [];
+    try {
+        for (let i = 0; i < s.length; i++) {
+            const key = s.key(i);
+            if (key === SAVE_KEY || key.startsWith(BONES_KEY_PREFIX) || key === OPTIONS_KEY) {
+                toRemove.push(key);
+            }
+        }
+        for (const key of toRemove) {
+            s.removeItem(key);
+        }
+    } catch (e) { /* ignore */ }
+}
+
 // ========================================================================
 // Bones files -- C ref: bones.c savebones() / getbones()
 // ========================================================================
@@ -484,44 +526,89 @@ export function deleteBones(depth) {
 }
 
 // ========================================================================
-// Options
+// Flags -- C ref: flag.h struct flag + options.c allopt[]
 // ========================================================================
 
-const DEFAULT_OPTIONS = {
-    autopickup: true,
-    showExp: true,
-    color: true,
+// C ref: flag.h — struct flag fields relevant to JS port
+export const DEFAULT_FLAGS = {
+    pickup: true,         // C: flags.pickup
+    showexp: true,        // C: flags.showexp
+    color: true,          // C: iflags.wc_color
+    time: false,          // C: flags.time
+    safe_pet: true,       // C: flags.safe_pet
+    confirm: true,        // C: flags.confirm
+    verbose: true,        // C: flags.verbose
+    tombstone: true,      // C: flags.tombstone
+    rest_on_space: false,  // C: flags.rest_on_space
+    number_pad: false,    // C: iflags.num_pad
+    lit_corridor: false,  // C: flags.lit_corridor
 };
 
-// Load options from localStorage, merged with defaults.
-export function loadOptions() {
+// C ref: options.c allopt[] — metadata for each option
+export const OPTION_DEFS = [
+    { name: 'pickup', type: 'boolean', label: 'Auto-pickup', menuChar: 'a' },
+    { name: 'showexp', type: 'boolean', label: 'Show experience', menuChar: 'e' },
+    { name: 'color', type: 'boolean', label: 'Color', menuChar: 'c' },
+    { name: 'time', type: 'boolean', label: 'Show turns', menuChar: 't' },
+    { name: 'safe_pet', type: 'boolean', label: 'Safe pet', menuChar: 's' },
+    { name: 'confirm', type: 'boolean', label: 'Confirm attacks', menuChar: 'f' },
+    { name: 'verbose', type: 'boolean', label: 'Verbose messages', menuChar: 'v' },
+    { name: 'tombstone', type: 'boolean', label: 'Tombstone', menuChar: 'b' },
+    { name: 'rest_on_space', type: 'boolean', label: 'Rest on space', menuChar: 'r' },
+    { name: 'number_pad', type: 'boolean', label: 'Number pad', menuChar: 'n' },
+    { name: 'lit_corridor', type: 'boolean', label: 'Lit corridors', menuChar: 'l' },
+];
+
+// Migrate old option keys to new flag keys
+function migrateFlags(saved) {
+    // autopickup → pickup (pre-flags rename)
+    if ('autopickup' in saved && !('pickup' in saved)) {
+        saved.pickup = saved.autopickup;
+        delete saved.autopickup;
+    }
+    // showExp → showexp (case normalization)
+    if ('showExp' in saved && !('showexp' in saved)) {
+        saved.showexp = saved.showExp;
+        delete saved.showExp;
+    }
+    return saved;
+}
+
+// C ref: options.c initoptions() — load flags from localStorage, merged with defaults
+export function loadFlags() {
     const s = storage();
-    if (!s) return { ...DEFAULT_OPTIONS };
+    if (!s) return { ...DEFAULT_FLAGS };
     try {
         const json = s.getItem(OPTIONS_KEY);
-        if (!json) return { ...DEFAULT_OPTIONS };
-        const saved = JSON.parse(json);
-        return { ...DEFAULT_OPTIONS, ...saved };
+        if (!json) return { ...DEFAULT_FLAGS };
+        const saved = migrateFlags(JSON.parse(json));
+        return { ...DEFAULT_FLAGS, ...saved };
     } catch (e) {
-        return { ...DEFAULT_OPTIONS };
+        return { ...DEFAULT_FLAGS };
     }
 }
 
-// Save options to localStorage.
-export function saveOptions(opts) {
+// C ref: options.c doset() — save flags to localStorage
+export function saveFlags(flags) {
     const s = storage();
     if (!s) return;
-    try { s.setItem(OPTIONS_KEY, JSON.stringify(opts)); } catch (e) { /* ignore */ }
+    try { s.setItem(OPTIONS_KEY, JSON.stringify(flags)); } catch (e) { /* ignore */ }
 }
 
-// Get a single option value.
-export function getOption(key) {
-    return loadOptions()[key];
+// Get a single flag value.
+export function getFlag(key) {
+    return loadFlags()[key];
 }
 
-// Set a single option and persist.
-export function setOption(key, value) {
-    const opts = loadOptions();
-    opts[key] = value;
-    saveOptions(opts);
+// Set a single flag and persist.
+export function setFlag(key, value) {
+    const flags = loadFlags();
+    flags[key] = value;
+    saveFlags(flags);
 }
+
+// Backward-compatible aliases
+export const loadOptions = loadFlags;
+export const saveOptions = saveFlags;
+export const getOption = getFlag;
+export const setOption = setFlag;
