@@ -207,12 +207,26 @@ export function generateMapsWithRng(seed, maxDepth) {
         wallification(map);
         grids[depth] = extractTypGrid(map);
         maps[depth] = map;
+
+        // C map harness runs a full game as Valkyrie. Depth 1 includes
+        // post-level init (pet creation, hero inventory, attributes, welcome).
+        if (depth === 1) {
+            const player = new Player();
+            player.initRole(11); // Valkyrie
+            if (map.upstair) {
+                player.x = map.upstair.x;
+                player.y = map.upstair.y;
+            }
+            simulatePostLevelInit(player, map, 1);
+        }
+
         const fullLog = getRngLog();
         const depthLog = fullLog.slice(prevCount);
-        rngLogs[depth] = {
-            rngCalls: depthLog.length,
-            rng: depthLog.map(toCompactRng),
-        };
+        const compactRng = depthLog.map(toCompactRng);
+        // Count only non-midlog, non-composite entries to match C's rngCalls counting
+        const rngCalls = compactRng.filter(e =>
+            !isMidlogEntry(e) && !isCompositeEntry(rngCallPart(e))).length;
+        rngLogs[depth] = { rngCalls, rng: compactRng };
         prevCount = fullLog.length;
     }
     disableRngLog();
