@@ -25,6 +25,9 @@ import { generate as generateBaalz } from './levels/baalz.js';
 import { generate as generateJuiblex } from './levels/juiblex.js';
 import { generate as generateOrcus } from './levels/orcus.js';
 
+// Special room variants
+import { generate as generateBigroom } from './levels/bigroom.js';
+
 // Sokoban levels
 import { generate as generateSoko1a } from './levels/soko1-1.js';
 import { generate as generateSoko1b } from './levels/soko1-2.js';
@@ -162,9 +165,10 @@ registerSpecialLevel(SOKOBAN, 2, [generateSoko2a, generateSoko2b], ['soko2-1', '
 registerSpecialLevel(SOKOBAN, 3, [generateSoko3a, generateSoko3b], ['soko3-1', 'soko3-2']);
 registerSpecialLevel(SOKOBAN, 4, [generateSoko4a, generateSoko4b], ['soko4-1', 'soko4-2']);
 
-// Register Medusa's lair
-// In Dungeons of Doom, at a depth that varies by dungeon generation
-// Using depth 20 as a typical location (actual depth determined at runtime)
+// Register Medusa's lair and special rooms in main dungeon
+// In Dungeons of Doom, at depths that vary by dungeon generation
+// Using specific depths for testing (actual depths determined at runtime)
+registerSpecialLevel(DUNGEONS_OF_DOOM, 15, generateBigroom, 'bigroom');
 registerSpecialLevel(DUNGEONS_OF_DOOM, 20, generateMedusa, 'medusa');
 
 /**
