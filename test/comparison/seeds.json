@@ -21,7 +21,8 @@
     "sessions": [
       {"seed": 42, "moves": ":hhlhhhh.hhs"},
       {"seed": 1,  "moves": ":hhhhhhhhhhhhhhjhhkkhhhhjjhhhhhhhhhhhjjjhhjhhhjhhjhhjjllllllllllll>....."},
-      {"seed": 42, "label": "items", "moves": ":hhwb.w-wa.ed"}
+      {"seed": 42, "label": "items", "moves": ":hhwb.w-wa.ed"},
+      {"seed": 2, "label": "wizard_fountains", "character": "wizard", "moves": ":zcnjbojjjlllllluulllllllllllllulolllnqyl>"}
     ]
   },
 

@@ -42,13 +42,19 @@ RESULTS_DIR = os.path.join(SCRIPT_DIR, 'results')
 INSTALL_DIR = os.path.join(PROJECT_ROOT, 'nethack-c', 'install', 'games', 'lib', 'nethackdir')
 NETHACK_BINARY = os.path.join(INSTALL_DIR, 'nethack')
 
-# Character options (must match .nethackrc)
+# Default character options (must match .nethackrc)
 CHARACTER = {
     'name': 'Wizard',
     'role': 'Valkyrie',
     'race': 'human',
     'gender': 'female',
     'align': 'neutral',
+}
+
+# Named character presets
+CHARACTER_PRESETS = {
+    'valkyrie': {'name': 'Wizard', 'role': 'Valkyrie', 'race': 'human', 'gender': 'female', 'align': 'neutral'},
+    'wizard':   {'name': 'Wizard', 'role': 'Wizard',   'race': 'human', 'gender': 'male',   'align': 'neutral'},
 }
 
 
@@ -283,13 +289,25 @@ def describe_key(key):
 # These are encoded as two chars in the move string.
 # w<x> = wield item x, W<x> = wear item x, T<x> = takeoff item x,
 # e<x> = eat item x, q<x> = quaff item x, d<x> = drop item x,
-# r<x> = read item x, z<x> = zap item x, a<x> = apply item x,
-# t<dir> = throw (then item select), P<x> = put on item x, R<x> = remove item x
+# r<x> = read item x, a<x> = apply item x,
+# P<x> = put on item x, R<x> = remove item x
 ITEM_COMMANDS = {
     'w': 'wield', 'W': 'wear', 'T': 'takeoff',
     'e': 'eat', 'q': 'quaff', 'd': 'drop',
-    'r': 'read', 'z': 'zap', 'a': 'apply',
+    'r': 'read', 'a': 'apply',
     'P': 'puton', 'R': 'remove',
+}
+
+# Three-key commands: command + item + direction.
+# z<item><dir> = zap wand in direction, t<item><dir> = throw item in direction
+ITEM_DIRECTION_COMMANDS = {
+    'z': 'zap', 't': 'throw',
+}
+
+# Direction commands: first char is the command, second char is the direction.
+# o<dir> = open door, c<dir> = close door
+DIRECTION_COMMANDS = {
+    'o': 'open', 'c': 'close',
 }
 
 
@@ -300,6 +318,25 @@ def parse_moves(move_str):
         ch = move_str[i]
         if ch == 'F' and i + 1 < len(move_str):
             moves.append(('F' + move_str[i+1], f'fight-{describe_key(move_str[i+1])}'))
+            i += 2
+        elif ch == '^' and i + 1 < len(move_str) and i + 2 < len(move_str):
+            # ^X<dir> = ctrl-X + direction (e.g., ^Dh = kick west)
+            ctrl_ch = chr(ord(move_str[i+1]) & 0x1f)  # ctrl version
+            dir_ch = move_str[i+2]
+            ctrl_name = f'ctrl-{move_str[i+1]}'
+            moves.append((ctrl_ch + dir_ch, f'{ctrl_name}-{describe_key(dir_ch)}'))
+            i += 3
+        elif ch in ITEM_DIRECTION_COMMANDS and i + 2 < len(move_str):
+            # z<item><dir> = zap, t<item><dir> = throw
+            item_ch = move_str[i+1]
+            dir_ch = move_str[i+2]
+            cmd_name = ITEM_DIRECTION_COMMANDS[ch]
+            moves.append((ch + item_ch + dir_ch, f'{cmd_name}-{item_ch}-{describe_key(dir_ch)}'))
+            i += 3
+        elif ch in DIRECTION_COMMANDS and i + 1 < len(move_str):
+            dir_ch = move_str[i+1]
+            cmd_name = DIRECTION_COMMANDS[ch]
+            moves.append((ch + dir_ch, f'{cmd_name}-{describe_key(dir_ch)}'))
             i += 2
         elif ch in ITEM_COMMANDS and i + 1 < len(move_str):
             item_ch = move_str[i+1]
@@ -398,20 +435,42 @@ def main():
             label = entry.get('label', '')
             suffix = f'_{label}' if label else ''
             output = os.path.join(sessions_dir, f'seed{seed}{suffix}.session.json')
+            # Apply character preset if specified
+            CHARACTER.update(CHARACTER_PRESETS.get('valkyrie', {}))  # reset to default
+            if 'character' in entry:
+                preset = entry['character'].lower()
+                if preset in CHARACTER_PRESETS:
+                    CHARACTER.update(CHARACTER_PRESETS[preset])
+                else:
+                    print(f"Warning: unknown character preset '{preset}', using default")
             print(f'\n=== Regenerating session seed={seed}{suffix} ===')
             sys.argv = [sys.argv[0], str(seed), output, moves]
             run_session(seed, output, moves)
         return
 
-    if len(sys.argv) < 3:
-        print(f"Usage: {sys.argv[0]} <seed> <output_json> [move_sequence]")
+    # Parse --character <preset> flag from anywhere in argv
+    args = list(sys.argv[1:])
+    if '--character' in args:
+        idx = args.index('--character')
+        preset = args[idx + 1].lower()
+        if preset not in CHARACTER_PRESETS:
+            print(f"Unknown character preset: {preset}")
+            print(f"Available: {', '.join(CHARACTER_PRESETS.keys())}")
+            sys.exit(1)
+        CHARACTER.update(CHARACTER_PRESETS[preset])
+        args = args[:idx] + args[idx+2:]
+
+    if len(args) < 2:
+        print(f"Usage: {sys.argv[0]} <seed> <output_json> [move_sequence] [--character <preset>]")
         print(f"       {sys.argv[0]} --from-config")
+        print(f"Character presets: {', '.join(CHARACTER_PRESETS.keys())} (default: valkyrie)")
         print(f"Example: {sys.argv[0]} 42 sessions/seed42.session.json ':hhlhhhh.hhs'")
+        print(f"Example: {sys.argv[0]} 2 sessions/seed2_wiz.session.json ':hhh' --character wizard")
         sys.exit(1)
 
-    seed = int(sys.argv[1])
-    output_json = os.path.abspath(sys.argv[2])
-    move_str = sys.argv[3] if len(sys.argv) >= 4 else '...........'
+    seed = int(args[0])
+    output_json = os.path.abspath(args[1])
+    move_str = args[2] if len(args) >= 3 else '...........'
     run_session(seed, output_json, move_str)
 
 
@@ -500,10 +559,14 @@ def run_session(seed, output_json, move_str):
         print(f'\n=== MOVES ({len(moves)} steps) ===')
         for idx, (key, description) in enumerate(moves):
             # Send the keystroke(s)
-            if len(key) == 2:
-                # Multi-key command: F<dir>, w<item>, e<item>, etc.
-                tmux_send(session_name, key[0], 0.1)
-                tmux_send(session_name, key[1], 0.1)
+            if len(key) >= 2:
+                # Multi-key command: send each key separately with delay
+                for ch in key:
+                    if ord(ch) < 32:
+                        # Ctrl character: use tmux C-x syntax
+                        tmux_send_special(session_name, f'C-{chr(ord(ch) + 96)}', 0.1)
+                    else:
+                        tmux_send(session_name, ch, 0.1)
             else:
                 tmux_send(session_name, key, 0.1)
 
