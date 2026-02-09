@@ -779,6 +779,18 @@ export function object(name_or_opts, x, y) {
         levelState.map = new GameMap();
     }
 
+    // Handle des.object() with no arguments - random object at random location
+    if (name_or_opts === undefined) {
+        const randClass = rn2(10);  // Random object class
+        const obj = mkobj(randClass, true);
+        if (obj) {
+            obj.ox = rn2(60) + 10;
+            obj.oy = rn2(15) + 3;
+            levelState.map.objects.push(obj);
+        }
+        return;
+    }
+
     if (typeof name_or_opts === 'string') {
         // Check if it's a single-character object class (e.g., '[', ')', '!', etc.)
         if (name_or_opts.length === 1 && x === undefined) {
@@ -826,13 +838,20 @@ export function object(name_or_opts, x, y) {
         if (objId) {
             // des.object({ id: 'chest', coord: {x, y} }) or des.object({ id: 'chest', x, y })
             const otyp = objectNameToType(objId);
-            if (otyp >= 0 && coordX !== undefined && coordY !== undefined &&
-                coordX >= 0 && coordX < 80 && coordY >= 0 && coordY < 21) {
-                const obj = mksobj(otyp, true, false);
-                if (obj) {
-                    obj.ox = coordX;
-                    obj.oy = coordY;
-                    levelState.map.objects.push(obj);
+            if (otyp >= 0) {
+                // Random placement if no coordinates
+                if (coordX === undefined || coordY === undefined) {
+                    coordX = rn2(60) + 10;
+                    coordY = rn2(15) + 3;
+                }
+
+                if (coordX >= 0 && coordX < 80 && coordY >= 0 && coordY < 21) {
+                    const obj = mksobj(otyp, true, false);
+                    if (obj) {
+                        obj.ox = coordX;
+                        obj.oy = coordY;
+                        levelState.map.objects.push(obj);
+                    }
                 }
             }
         } else if (name_or_opts.class) {
@@ -921,7 +940,12 @@ export function trap(type_or_opts, x, y) {
 
     let trapType, trapX, trapY;
 
-    if (typeof type_or_opts === 'string') {
+    // Handle des.trap() with no arguments - random trap at random location
+    if (type_or_opts === undefined) {
+        trapType = undefined;  // Will be set to PIT later
+        trapX = undefined;  // Will trigger random placement
+        trapY = undefined;
+    } else if (typeof type_or_opts === 'string') {
         // des.trap("pit", x, y)
         trapType = type_or_opts;
         trapX = x;
@@ -1008,28 +1032,44 @@ export function trap(type_or_opts, x, y) {
  * @param {number} [opts.filled] - Fill density for monsters/objects
  * @param {boolean} [opts.irregular] - Whether region has irregular shape
  */
-export function region(opts) {
+export function region(opts_or_selection, type) {
     if (!levelState.map) {
         return;
     }
 
-    // Parse region coordinates
-    let x1, y1, x2, y2;
-    if (opts.region) {
-        if (Array.isArray(opts.region)) {
-            [x1, y1, x2, y2] = opts.region;
-        } else {
-            x1 = opts.region.x1;
-            y1 = opts.region.y1;
-            x2 = opts.region.x2;
-            y2 = opts.region.y2;
-        }
+    // Handle two formats:
+    // 1. des.region(selection.area(x1,y1,x2,y2), "lit") - old format
+    // 2. des.region({ region: [x1,y1,x2,y2], lit: true }) - new format
+
+    let x1, y1, x2, y2, lit, opts;
+
+    if (typeof type === 'string') {
+        // Old format: des.region(selection, "lit" | "unlit")
+        x1 = opts_or_selection.x1;
+        y1 = opts_or_selection.y1;
+        x2 = opts_or_selection.x2;
+        y2 = opts_or_selection.y2;
+        lit = (type === 'lit');
+        opts = {};
     } else {
-        return; // No region specified
+        // New format: des.region({ region: ..., lit: ..., type: ... })
+        opts = opts_or_selection;
+        if (opts.region) {
+            if (Array.isArray(opts.region)) {
+                [x1, y1, x2, y2] = opts.region;
+            } else {
+                x1 = opts.region.x1;
+                y1 = opts.region.y1;
+                x2 = opts.region.x2;
+                y2 = opts.region.y2;
+            }
+        } else {
+            return; // No region specified
+        }
+        lit = opts.lit !== undefined ? opts.lit : false;
     }
 
-    // Handle lit flag - mark all cells in region as lit/unlit
-    const lit = opts.lit !== undefined ? opts.lit : false;
+    // Mark all cells in region as lit/unlit
     for (let x = x1; x <= x2; x++) {
         for (let y = y1; y <= y2; y++) {
             if (x >= 0 && x < 80 && y >= 0 && y < 21) {
@@ -1143,6 +1183,20 @@ export function monster(opts_or_class, x, y) {
         levelState.map = new GameMap();
     }
 
+    // Handle des.monster() with no arguments - random monster at random location
+    if (opts_or_class === undefined) {
+        const randClass = String.fromCharCode(65 + rn2(26));  // Random letter A-Z
+        if (!levelState.monsters) {
+            levelState.monsters = [];
+        }
+        levelState.monsters.push({
+            id: randClass,
+            x: rn2(60) + 10,
+            y: rn2(15) + 3
+        });
+        return;
+    }
+
     // Handle different call formats:
     // 1. des.monster('V') - random monster from class at random location
     // 2. des.monster('vampire', x, y) - named monster at specific location
@@ -1165,9 +1219,9 @@ export function monster(opts_or_class, x, y) {
             opts = {};
         }
     } else if (opts_or_class && typeof opts_or_class === 'object') {
-        // des.monster({ id: 'vampire', x, y, ... })
+        // des.monster({ id: 'vampire', x, y, ... }) or des.monster({ class: 'S', x, y })
         opts = opts_or_class;
-        monsterId = opts.id;
+        monsterId = opts.id || opts.class;  // Support both 'id' and 'class' parameters
 
         if (opts.coord) {
             coordX = opts.coord.x;
