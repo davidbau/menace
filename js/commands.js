@@ -2,9 +2,10 @@
 // Mirrors cmd.c from the C source.
 // Maps keyboard input to game actions.
 
-import { COLNO, ROWNO, DOOR, STAIRS, FOUNTAIN, IS_DOOR, D_CLOSED, D_LOCKED,
+import { COLNO, ROWNO, DOOR, STAIRS, FOUNTAIN, ROOM, IS_DOOR, D_CLOSED, D_LOCKED,
          D_ISOPEN, D_NODOOR, ACCESSIBLE, IS_WALL, MAXLEVEL, VERSION_STRING,
          isok, A_STR, A_DEX, A_CON } from './config.js';
+import { SQKY_BOARD } from './symbols.js';
 import { rn2, rnd, rnl, d } from './rng.js';
 import { objectData } from './objects.js';
 import { nhgetch, ynFunction, getlin } from './input.js';
@@ -129,7 +130,7 @@ export async function rhack(ch, game) {
 
     // Quaff (drink)
     if (c === 'q') {
-        return await handleQuaff(player, display);
+        return await handleQuaff(player, map, display);
     }
 
     // Zap wand
@@ -346,6 +347,21 @@ function handleMovement(dir, player, map, display, game) {
     player.y = ny;
     player.moved = true;
 
+    // Check for traps — C ref: hack.c spoteffects() → dotrap()
+    // C ref: trap.c trapeffect_*() — trap-specific effects
+    const trap = map.trapAt(nx, ny);
+    if (trap) {
+        // C ref: trap.c seetrap() — mark trap as discovered
+        if (!trap.tseen) {
+            trap.tseen = true;
+        }
+        // Trap-specific effects (no RNG for SQKY_BOARD)
+        if (trap.ttyp === SQKY_BOARD) {
+            display.putstr_message('A board beneath you squeaks loudly.');
+        }
+        // TODO: implement other trap effects (fire, pit, etc.) with RNG
+    }
+
     // Show what's here (no auto-pickup; C NetHack 3.7 requires explicit pickup)
     const objs = map.objectsAt(nx, ny);
     if (objs.length > 0) {
@@ -532,8 +548,18 @@ async function handleOpen(player, map, display) {
     }
 
     if (loc.flags & D_CLOSED) {
-        loc.flags = D_ISOPEN;
-        display.putstr_message("The door opens.");
+        // C ref: lock.c:904 doopen_indir — rnl(20) strength check
+        const str = player.attributes ? player.attributes[A_STR] : 18;
+        const dex = player.attributes ? player.attributes[A_DEX] : 11;
+        const con = player.attributes ? player.attributes[A_CON] : 18;
+        const threshold = Math.floor((str + dex + con) / 3);
+        if (rnl(20) < threshold) {
+            loc.flags = D_ISOPEN;
+            display.putstr_message("The door opens.");
+        } else {
+            rn2(19); // exercise(A_STR, TRUE)
+            display.putstr_message("The door resists!");
+        }
         return { moved: false, tookTime: true };
     }
 
@@ -788,7 +814,18 @@ async function handleEat(player, display, game) {
 
 // Handle quaffing a potion
 // C ref: potion.c dodrink()
-async function handleQuaff(player, display) {
+async function handleQuaff(player, map, display) {
+    // C ref: potion.c:540-550 — check for fountain first
+    const loc = map.at(player.x, player.y);
+    if (loc && loc.typ === FOUNTAIN) {
+        display.putstr_message('Drink from the fountain?');
+        const ans = await nhgetch();
+        if (String.fromCharCode(ans) === 'y') {
+            drinkfountain(player, map, display);
+            return { moved: false, tookTime: true };
+        }
+    }
+
     const potions = player.inventory.filter(o => o.oclass === 7); // POTION_CLASS
     if (potions.length === 0) {
         display.putstr_message("You don't have anything to drink.");
@@ -819,6 +856,70 @@ async function handleQuaff(player, display) {
 
     display.putstr_message("Never mind.");
     return { moved: false, tookTime: false };
+}
+
+// C ref: fountain.c:243 drinkfountain() — drink from a fountain
+function drinkfountain(player, map, display) {
+    const loc = map.at(player.x, player.y);
+    const mgkftn = loc && loc.blessedftn === 1;
+    const fate = rnd(30);
+
+    // C ref: fountain.c:254 — blessed fountain jackpot
+    if (mgkftn && (player.luck || 0) >= 0 && fate >= 10) {
+        display.putstr_message('Wow!  This makes you feel great!');
+        rn2(6); // rn2(A_MAX) — random starting attribute
+        // adjattrib loop — simplified, no RNG for basic case
+        display.putstr_message('A wisp of vapor escapes the fountain...');
+        rn2(19); // exercise(A_WIS, TRUE)
+        if (loc) loc.blessedftn = 0;
+        return; // NO dryup on blessed jackpot path
+    }
+
+    if (fate < 10) {
+        // C ref: fountain.c:279 — cool draught refreshes
+        display.putstr_message('The cool draught refreshes you.');
+        player.hunger += rnd(10);
+        if (mgkftn) return; // blessed fountain, no dryup
+    } else {
+        // C ref: fountain.c:286-387 — switch on fate
+        switch (fate) {
+        case 19:
+            display.putstr_message('You feel self-knowledgeable...');
+            rn2(19); // exercise(A_WIS, TRUE)
+            break;
+        case 20:
+            display.putstr_message('The water is foul!  You gag and vomit.');
+            rn2(20) + 11; // rn1(20, 11) = rn2(20) + 11 for morehungry
+            break;
+        case 21:
+            display.putstr_message('The water is contaminated!');
+            rn2(4) + 3; // rn1(4, 3) for poison_strdmg
+            rnd(10);    // damage
+            rn2(19);    // exercise(A_CON, FALSE)
+            break;
+        // cases 22-30: complex effects with sub-functions
+        // TODO: implement dowatersnakes, dowaterdemon, etc.
+        default:
+            display.putstr_message('This tepid water is tasteless.');
+            break;
+        }
+    }
+    // C ref: fountain.c:389 — dryup at end of all non-jackpot paths
+    dryup(player.x, player.y, map, display);
+}
+
+// C ref: fountain.c:200 dryup() — chance to dry up fountain
+function dryup(x, y, map, display) {
+    const loc = map.at(x, y);
+    if (loc && loc.typ === FOUNTAIN) {
+        if (!rn2(3)) {
+            // Fountain dries up
+            loc.typ = ROOM;
+            loc.flags = 0;
+            loc.blessedftn = 0;
+            display.putstr_message('The fountain dries up!');
+        }
+    }
 }
 
 // Handle looking at what's here

@@ -499,46 +499,21 @@ export class Display {
         }
 
         // C ref: wintty.c offx calculation
-        // offx = max(10, terminal_cols - maxcol - 1)
-        // If offx == 10 OR menu too tall for terminal OR first menu: offx = 0, clear screen
-        let offx = Math.max(10, this.cols - maxcol - 1);
-        let clearFirst = false;
+        // offx = max(10, min(41, cols - maxcol - 2))
+        // The 41 is the persistent default from C's role menu maxcol tracking.
+        // If offx == 10 OR menu too tall for terminal OR first menu: offx = 0, full-screen
+        let offx = Math.max(10, Math.min(41, this.cols - maxcol - 2));
 
         if (isFirstMenu || offx === 10 || lines.length >= this.rows) {
             offx = 0;
-            clearFirst = true;
         }
 
-        if (clearFirst) {
-            this.clearScreen();
-        }
+        // Always clear entire screen before rendering (C dismisses previous window first)
+        this.clearScreen();
 
         // Render each line at the offset
         for (let i = 0; i < lines.length && i < this.rows; i++) {
-            if (clearFirst) {
-                // Full-screen: write from column offx, clearing each row
-                this.putstr(offx, i, lines[i], CLR_GRAY);
-            } else {
-                // Overlay: write at offx, clearing from offx to end of line
-                for (let c = offx; c < this.cols; c++) {
-                    this.setCell(c, i, ' ', CLR_GRAY);
-                }
-                this.putstr(offx, i, lines[i], CLR_GRAY);
-            }
-        }
-
-        // Clear remaining rows if full-screen
-        if (clearFirst) {
-            for (let i = lines.length; i < this.rows; i++) {
-                this.clearRow(i);
-            }
-        } else {
-            // Overlay: clear lines beyond menu content in the overlay area
-            for (let i = lines.length; i < this.rows; i++) {
-                for (let c = offx; c < this.cols; c++) {
-                    this.setCell(c, i, ' ', CLR_GRAY);
-                }
-            }
+            this.putstr(offx, i, lines[i], CLR_GRAY);
         }
 
         return offx;

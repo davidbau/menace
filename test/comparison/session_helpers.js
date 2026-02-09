@@ -6,7 +6,7 @@
 import {
     COLNO, ROWNO, STONE, VWALL, HWALL, STAIRS, VAULT,
     IS_WALL, IS_DOOR, ACCESSIBLE, SDOOR, SCORR, IRONBARS,
-    CORR, ROOM, DOOR, isok
+    CORR, ROOM, DOOR, isok, TERMINAL_COLS, TERMINAL_ROWS
 } from '../../js/config.js';
 import { initRng, enableRngLog, getRngLog, disableRngLog, rn2, rnd, rn1 } from '../../js/rng.js';
 import { initLevelGeneration, makelevel, wallification, setGameSeed } from '../../js/dungeon.js';
@@ -780,4 +780,104 @@ export function checkValidTypValues(grid) {
         }
     }
     return errors;
+}
+
+// ---------------------------------------------------------------------------
+// HeadlessDisplay — grid-based display matching Display without DOM
+// ---------------------------------------------------------------------------
+
+const CLR_GRAY = 7;
+
+// Headless display for testing chargen screen rendering.
+// Same grid-based rendering as Display but without any DOM dependency.
+export class HeadlessDisplay {
+    constructor() {
+        this.cols = TERMINAL_COLS;
+        this.rows = TERMINAL_ROWS;
+        this.grid = [];
+        for (let r = 0; r < this.rows; r++) {
+            this.grid[r] = [];
+            for (let c = 0; c < this.cols; c++) {
+                this.grid[r][c] = ' ';
+            }
+        }
+    }
+
+    setCell(col, row, ch) {
+        if (row >= 0 && row < this.rows && col >= 0 && col < this.cols) {
+            this.grid[row][col] = ch;
+        }
+    }
+
+    clearRow(row) {
+        for (let c = 0; c < this.cols; c++) {
+            this.grid[row][c] = ' ';
+        }
+    }
+
+    clearScreen() {
+        for (let r = 0; r < this.rows; r++) {
+            this.clearRow(r);
+        }
+    }
+
+    putstr(col, row, str) {
+        for (let i = 0; i < str.length; i++) {
+            this.setCell(col + i, row, str[i]);
+        }
+    }
+
+    putstr_message(msg) {
+        this.clearRow(0);
+        this.putstr(0, 0, msg.substring(0, this.cols));
+    }
+
+    // Matches Display.renderChargenMenu() — always clears screen, applies offset
+    renderChargenMenu(lines, isFirstMenu) {
+        let maxcol = 0;
+        for (const line of lines) {
+            if (line.length > maxcol) maxcol = line.length;
+        }
+
+        let offx = Math.max(10, Math.min(41, this.cols - maxcol - 2));
+        if (isFirstMenu || offx === 10 || lines.length >= this.rows) {
+            offx = 0;
+        }
+
+        this.clearScreen();
+
+        for (let i = 0; i < lines.length && i < this.rows; i++) {
+            this.putstr(offx, i, lines[i]);
+        }
+
+        return offx;
+    }
+
+    // Matches Display.renderLoreText()
+    renderLoreText(lines, offx) {
+        for (let i = 0; i < lines.length && i < this.rows; i++) {
+            for (let c = offx; c < this.cols; c++) {
+                this.grid[i][c] = ' ';
+            }
+            this.putstr(offx, i, lines[i]);
+        }
+        for (let i = lines.length; i < this.rows - 2; i++) {
+            for (let c = offx; c < this.cols; c++) {
+                this.grid[i][c] = ' ';
+            }
+        }
+    }
+
+    // Return 24-line string array matching C TTY screen format
+    getScreenLines() {
+        const result = [];
+        for (let r = 0; r < this.rows; r++) {
+            // Join chars, trim trailing spaces to match session format
+            let line = this.grid[r].join('');
+            // Right-trim spaces (C session screens are right-trimmed)
+            line = line.replace(/ +$/, '');
+            result.push(line);
+        }
+        return result;
+    }
 }

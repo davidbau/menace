@@ -111,10 +111,12 @@ function classifyCell(ch, color) {
         return 'floor';
     }
 
-    // Closed door
+    // Closed door / spellbook
     if (ch === '+') {
-        if (color === 3) return 'door_closed'; // CLR_BROWN = door
-        return 'item'; // spellbook if not brown
+        // CLR_BROWN (3) = door. CLR_GRAY (7) = ambiguous (no color from tmux), assume door.
+        // Only classify as item (spellbook) when color is clearly non-door.
+        if (color === 3 || color === 7) return 'door_closed';
+        return 'item'; // spellbook if distinctly colored
     }
 
     // Stairs
@@ -234,6 +236,26 @@ export function parseScreen(grid) {
             if (cell.ch === '@') {
                 screen.playerX = x;
                 screen.playerY = y;
+            }
+        }
+    }
+
+    // --- Structural door detection ---
+    // When color info is unavailable (tmux), open doors look like floor ('.')
+    // but are actually doors. Detect them structurally: a '.' cell with wall
+    // characters on exactly two opposite sides (N-S or E-W) is likely a door.
+    for (let y = 0; y < MAP_ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+            const cell = screen.map[y][x];
+            if (cell.type !== 'floor' || cell.color !== 7) continue;
+            // Check N-S walls: wall above and below
+            const north = (y > 0) ? screen.map[y - 1][x] : null;
+            const south = (y < MAP_ROWS - 1) ? screen.map[y + 1][x] : null;
+            const east = (x < COLS - 1) ? screen.map[y][x + 1] : null;
+            const west = (x > 0) ? screen.map[y][x - 1] : null;
+            const isWall = (c) => c && c.type === 'wall';
+            if ((isWall(north) && isWall(south)) || (isWall(east) && isWall(west))) {
+                cell.type = 'door_open';
             }
         }
     }

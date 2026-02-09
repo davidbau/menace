@@ -96,9 +96,11 @@ describe('Pathfinding', () => {
     });
 
     it('navigates through corridors', () => {
+        // Door at (3,1) approached cardinally from (2,1) — NetHack blocks
+        // diagonal movement into/out of doors, so the path must go cardinal
         const level = makeLevelMap([
             '...|  ',
-            '---+##',
+            '...+##',
             '   |..',
         ]);
         const result = findPath(level, 0, 0, 5, 2);

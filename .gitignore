@@ -1,7 +1,11 @@
 node_modules/
 __pycache__/
 nethack-c/
-.beads/
+.beads/*.db
+.beads/*.db-shm
+.beads/*.db-wal
+.beads/bd.sock
+.beads/daemon.*
 .claude/
 *.pyc
 test/comparison/c-harness/results/
@@ -11,3 +15,4 @@ notes/
 spoilers/fonts/
 spoilers/guide.pdf
 spoilers/guide-latex.pdf
+selfplay/.nethack-home/
