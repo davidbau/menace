@@ -2,7 +2,7 @@
 // Faithful port of makemon.c from NetHack 3.7
 // C ref: makemon.c — monster creation, selection, weapon/inventory assignment
 
-import { rn2, rnd, rn1, d } from './rng.js';
+import { rn2, rnd, rn1, d, getRngLog } from './rng.js';
 import { mksobj, mkobj, next_ident } from './mkobj.js';
 import { def_monsyms } from './symbols.js';
 import { SHOPBASE, ROOMOFFSET } from './config.js';
@@ -139,6 +139,16 @@ export function rndmonst_adj(minadj, maxadj, depth) {
     let totalweight = 0;
     let selected_mndx = -1; // NON_PM
 
+    // DEBUG: Disabled (set to true to debug depth 3 rndmonst_adj)
+    const DEBUG_RNG = false; // (depth === 3 && minadj === 0 && maxadj === 0);
+    if (DEBUG_RNG) {
+        const log = getRngLog();
+        const callNum = log ? log.length : 0;
+        console.log(`\n=== rndmonst_adj(${minadj}, ${maxadj}, ${depth}) at RNG call ${callNum} (within depth 3) ===`);
+        console.log(`Difficulty range: ${minmlev}-${maxmlev}`);
+    }
+    let iterCount = 0;
+
     for (let mndx = LOW_PM; mndx < SPECIAL_PM; mndx++) {
         const ptr = mons[mndx];
 
@@ -154,8 +164,24 @@ export function rndmonst_adj(minadj, maxadj, depth) {
         if (weight < 0 || weight > 127) weight = 0;
 
         if (weight > 0) {
+            const oldTotal = totalweight;
             totalweight += weight;
-            if (rn2(totalweight) < weight)
+
+            // DEBUG: Log first 10 eligible monsters
+            if (DEBUG_RNG && iterCount < 10) {
+                console.log(`[${iterCount}] mndx=${mndx} ${ptr.name.padEnd(20)} diff=${ptr.difficulty} geno=0x${ptr.geno.toString(16)} freq=${ptr.geno & G_FREQ} weight=${weight} total=${oldTotal}->${totalweight}`);
+                iterCount++;
+            }
+
+            // DEBUG: Log actual rn2 call
+            if (depth === 3 && minadj === 0 && maxadj === 0 && iterCount < 5) {
+                console.log(`  -> Calling rn2(${totalweight})`);
+            }
+            const roll = rn2(totalweight);
+            if (depth === 3 && minadj === 0 && maxadj === 0 && iterCount < 5) {
+                console.log(`  -> Result: ${roll}, weight=${weight}, selected=${roll < weight ? mndx : 'unchanged'}`);
+            }
+            if (roll < weight)
                 selected_mndx = mndx;
         }
     }
@@ -993,6 +1019,12 @@ function makemon_rnd_goodpos(map, ptr) {
 
 export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     let mndx;
+
+    // DEBUG: Disabled
+    const DEBUG_MAKEMON = false;
+    if (DEBUG_MAKEMON && depth >= 2) {
+        console.log(`\nmakemon(${ptr_or_null === null ? 'null' : ptr_or_null}, ${x}, ${y}, ${mmflags}, depth=${depth})`);
+    }
 
     if (ptr_or_null === null || ptr_or_null === undefined) {
         // Random monster selection
