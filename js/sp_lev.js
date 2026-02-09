@@ -271,6 +271,77 @@ export function level_flags(...flags) {
 }
 
 /**
+ * Apply random flipping to the entire level after all maps are placed.
+ * This matches C's flip_level_rnd() which is called at the end of level loading.
+ * C ref: sp_lev.c flip_level_rnd() and flip_level()
+ */
+function flipLevelRandom() {
+    const allowFlips = levelState.coder.allow_flips;
+    let flipBits = 0;
+
+    // Determine which flips to apply using RNG (matching C's flip_level_rnd)
+    // Bit 0: vertical flip (up/down)
+    // Bit 1: horizontal flip (left/right)
+    if ((allowFlips & 1) && rn2(2)) {
+        flipBits |= 1;
+    }
+    if ((allowFlips & 2) && rn2(2)) {
+        flipBits |= 2;
+    }
+
+    if (flipBits === 0) {
+        return; // No flips applied
+    }
+
+    const map = levelState.map;
+    if (!map) return;
+
+    // Find the bounds of non-STONE terrain
+    let minX = 80, minY = 21, maxX = -1, maxY = -1;
+    for (let x = 0; x < 80; x++) {
+        for (let y = 0; y < 21; y++) {
+            if (map.locations[x][y].typ !== STONE) {
+                minX = Math.min(minX, x);
+                minY = Math.min(minY, y);
+                maxX = Math.max(maxX, x);
+                maxY = Math.max(maxY, y);
+            }
+        }
+    }
+
+    if (maxX < 0) return; // No terrain to flip
+
+    // C uses FlipX(val) = (maxx - val) + minx and FlipY(val) = (maxy - val) + miny
+    const flipX = (x) => (maxX - x) + minX;
+    const flipY = (y) => (maxY - y) + minY;
+
+    // Apply flips by swapping cells
+    // Vertical flip: swap rows
+    if (flipBits & 1) {
+        for (let x = minX; x <= maxX; x++) {
+            for (let y = minY; y < minY + Math.floor((maxY - minY + 1) / 2); y++) {
+                const ny = flipY(y);
+                const temp = map.locations[x][y];
+                map.locations[x][y] = map.locations[x][ny];
+                map.locations[x][ny] = temp;
+            }
+        }
+    }
+
+    // Horizontal flip: swap columns
+    if (flipBits & 2) {
+        for (let x = minX; x < minX + Math.floor((maxX - minX + 1) / 2); x++) {
+            for (let y = minY; y <= maxY; y++) {
+                const nx = flipX(x);
+                const temp = map.locations[x][y];
+                map.locations[x][y] = map.locations[nx][y];
+                map.locations[nx][y] = temp;
+            }
+        }
+    }
+}
+
+/**
  * des.map([[...]])
  *
  * Place an ASCII map at the specified location or alignment.
@@ -588,6 +659,17 @@ export function levregion(opts) {
 export function exclusion(opts) {
     // Stub - would mark exclusion zones for monster generation
     // For now, just ignore
+}
+
+/**
+ * Finalize level generation.
+ * This should be called after all des.* calls to apply flipping and other
+ * post-processing.
+ * C ref: sp_lev.c sp_level_loader() calls flip_level_rnd() at the end
+ */
+export function finalize_level() {
+    flipLevelRandom();
+    // TODO: Add other finalization steps (solidify, premapping, etc.)
 }
 
 /**

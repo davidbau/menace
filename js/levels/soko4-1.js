@@ -5,7 +5,7 @@
  * Original: Copyright (c) 1998-1999 by Kevin Hugo
  */
 
-import { des, selection } from '../sp_lev.js';
+import { des, selection, finalize_level } from '../sp_lev.js';
 
 export function generate() {
     // Bottom (first) level of Sokoban
@@ -72,4 +72,7 @@ export function generate() {
     des.object({ class: '%' });
     des.object({ class: '=' });
     des.object({ class: '/' });
+
+    // Finalize level (applies random flipping)
+    finalize_level();
 }
