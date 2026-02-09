@@ -75,8 +75,11 @@ async function startNewGame() {
         () => document.querySelectorAll('#terminal span').length > 100,
         { timeout: 5000 }
     );
-    // Select Barbarian (b) -- high HP/STR for survival
-    await sendChar('b');
+    // New chargen flow: "Shall I pick..." → 'a' (auto-pick, skip confirm)
+    // Then dismiss lore --More-- and welcome --More--
+    await sendChar('a');
+    await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
+    await sendChar(' ');
     await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
     await sendChar(' ');
     await page.evaluate(() => new Promise(r => setTimeout(r, 200)));
@@ -141,12 +144,12 @@ describe('E2E: Extended gameplay', () => {
         assert.ok(hasDots > 5, `Should have remembered floor tiles, found ${hasDots}`);
     });
 
-    it('status bar shows Barbarian stats', async () => {
+    it('status bar shows character stats', async () => {
         await startNewGame();
 
         const status1 = await getRow(22);
-        assert.ok(status1.includes('St:16') || status1.includes('Barbarian'),
-            `Status should show Barbarian stats, got: "${status1.trim()}"`);
+        assert.ok(status1.includes('St:') && status1.includes('Dx:'),
+            `Status should show character stats, got: "${status1.trim()}"`);
     });
 
     it('can pick up gold automatically', async () => {

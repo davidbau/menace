@@ -87,9 +87,15 @@ async function waitForGameLoad(page) {
 }
 
 // Helper: select role and start game
+// New chargen flow: 'a' = auto-pick all (skip confirm), then dismiss lore + welcome --More--
 async function selectRoleAndStart(page) {
+    // "Shall I pick..." → 'a' (auto-pick all, skip confirmation)
     await sendChar(page, 'a');
     await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
+    // Dismiss lore --More--
+    await sendChar(page, ' ');
+    await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
+    // Dismiss welcome --More--
     await sendChar(page, ' ');
     await page.evaluate(() => new Promise(r => setTimeout(r, 200)));
 }
@@ -127,7 +133,7 @@ describe('E2E: Game loads and initializes', () => {
     });
 
     it('shows welcome/role selection message', async () => {
-        const has = await screenContains(page, 'role') || await screenContains(page, 'NetHack');
+        const has = await screenContains(page, 'Shall I pick') || await screenContains(page, 'role') || await screenContains(page, 'NetHack');
         assert.ok(has, 'Should show welcome or role selection');
     });
 });

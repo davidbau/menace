@@ -2,38 +2,362 @@
 // Mirrors struct you from you.h and player-related globals from decl.h
 
 import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
-         NORMAL_SPEED, A_NEUTRAL, RACE_HUMAN } from './config.js';
+         NORMAL_SPEED, A_NEUTRAL, A_LAWFUL, A_CHAOTIC,
+         RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
+         FEMALE, MALE } from './config.js';
 
-// Roles table -- simplified from role.c
+// Roles table -- from role.c
 // C ref: src/role.c roles[] array
+// Gods: names starting with '_' indicate a goddess (strip underscore for display)
 export const roles = [
     { name: 'Archeologist', abbr: 'Arc', str: 7, int: 10, wis: 10, dex: 7, con: 7, cha: 7,
-      startingHP: 11, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: null },  // NON_PM
+      startingHP: 11, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: null,
+      namef: null,
+      validRaces: [RACE_HUMAN, RACE_DWARF, RACE_GNOME],
+      validAligns: [A_LAWFUL, A_NEUTRAL],
+      forceGender: null,
+      gods: ['Quetzalcoatl', 'Camaxtli', 'Huhetotl'],
+      ranks: [
+        {m:'Digger',f:'Digger'}, {m:'Field Worker',f:'Field Worker'},
+        {m:'Investigator',f:'Investigator'}, {m:'Exhumer',f:'Exhumer'},
+        {m:'Excavator',f:'Excavator'}, {m:'Spelunker',f:'Spelunker'},
+        {m:'Speleologist',f:'Speleologist'}, {m:'Collector',f:'Collector'},
+        {m:'Curator',f:'Curator'}
+      ],
+      greeting: 'Hello',
+      menuChar: 'a', menuArticle: 'an' },
     { name: 'Barbarian', abbr: 'Bar', str: 16, int: 7, wis: 7, dex: 15, con: 16, cha: 6,
-      startingHP: 14, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: null },  // NON_PM
+      startingHP: 14, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: null,
+      namef: null,
+      validRaces: [RACE_HUMAN, RACE_ORC],
+      validAligns: [A_NEUTRAL, A_CHAOTIC],
+      forceGender: null,
+      gods: ['Mitra', 'Crom', 'Set'],
+      ranks: [
+        {m:'Plunderer',f:'Plunderess'}, {m:'Pillager',f:'Pillager'},
+        {m:'Bandit',f:'Bandit'}, {m:'Brigand',f:'Brigand'},
+        {m:'Raider',f:'Raider'}, {m:'Reaver',f:'Reaver'},
+        {m:'Slayer',f:'Slayer'}, {m:'Chieftain',f:'Chieftainess'},
+        {m:'Conqueror',f:'Conqueress'}
+      ],
+      greeting: 'Hello',
+      menuChar: 'b', menuArticle: 'a' },
     { name: 'Caveman', abbr: 'Cav', str: 10, int: 7, wis: 7, dex: 7, con: 8, cha: 6,
-      startingHP: 14, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: 'dog' },
+      startingHP: 14, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: 'dog',
+      namef: 'Cavewoman',
+      validRaces: [RACE_HUMAN, RACE_DWARF, RACE_GNOME],
+      validAligns: [A_LAWFUL, A_NEUTRAL],
+      forceGender: null,
+      gods: ['Anu', '_Ishtar', 'Anshar'],
+      ranks: [
+        {m:'Troglodyte',f:'Troglodyte'}, {m:'Aborigine',f:'Aborigine'},
+        {m:'Wanderer',f:'Wanderer'}, {m:'Vagrant',f:'Vagrant'},
+        {m:'Wayfarer',f:'Wayfarer'}, {m:'Roamer',f:'Roamer'},
+        {m:'Nomad',f:'Nomad'}, {m:'Rover',f:'Rover'},
+        {m:'Pioneer',f:'Pioneer'}
+      ],
+      greeting: 'Hello',
+      menuChar: 'c', menuArticle: 'a' },
     { name: 'Healer', abbr: 'Hea', str: 7, int: 7, wis: 13, dex: 7, con: 11, cha: 16,
-      startingHP: 11, startingPW: 1, enadv: 4, align: A_NEUTRAL, petType: null },  // NON_PM
+      startingHP: 11, startingPW: 1, enadv: 4, align: A_NEUTRAL, petType: null,
+      namef: null,
+      validRaces: [RACE_HUMAN, RACE_GNOME],
+      validAligns: [A_NEUTRAL],
+      forceGender: null,
+      gods: ['_Athena', 'Hermes', 'Poseidon'],
+      ranks: [
+        {m:'Rhizotomist',f:'Rhizotomist'}, {m:'Empiric',f:'Empiric'},
+        {m:'Embalmer',f:'Embalmer'}, {m:'Dresser',f:'Dresser'},
+        {m:'Medicus ossium',f:'Medica ossium'}, {m:'Herbalist',f:'Herbalist'},
+        {m:'Magister',f:'Magistra'}, {m:'Physician',f:'Physician'},
+        {m:'Chirurgeon',f:'Chirurgeon'}
+      ],
+      greeting: 'Hello',
+      menuChar: 'h', menuArticle: 'a' },
     { name: 'Knight', abbr: 'Kni', str: 13, int: 7, wis: 14, dex: 8, con: 10, cha: 17,
-      startingHP: 14, startingPW: 1, enadv: 4, align: 1, petType: 'pony' },
+      startingHP: 14, startingPW: 1, enadv: 4, align: A_LAWFUL, petType: 'pony',
+      namef: null,
+      validRaces: [RACE_HUMAN],
+      validAligns: [A_LAWFUL],
+      forceGender: null,
+      gods: ['Lugh', '_Brigit', 'Manannan Mac Lir'],
+      ranks: [
+        {m:'Gallant',f:'Gallant'}, {m:'Esquire',f:'Esquire'},
+        {m:'Bachelor',f:'Bachelor'}, {m:'Sergeant',f:'Sergeant'},
+        {m:'Knight',f:'Dame'}, {m:'Banneret',f:'Banneret'},
+        {m:'Chevalier',f:'Chevaliere'}, {m:'Seignieur',f:'Dame'},
+        {m:'Paladin',f:'Paladin'}
+      ],
+      greeting: 'Salutations',
+      menuChar: 'k', menuArticle: 'a' },
     { name: 'Monk', abbr: 'Mon', str: 10, int: 7, wis: 8, dex: 8, con: 7, cha: 7,
-      startingHP: 12, startingPW: 2, enadv: 2, align: A_NEUTRAL, petType: null },  // NON_PM
+      startingHP: 12, startingPW: 2, enadv: 2, align: A_NEUTRAL, petType: null,
+      namef: null,
+      validRaces: [RACE_HUMAN],
+      validAligns: [A_LAWFUL, A_NEUTRAL, A_CHAOTIC],
+      forceGender: null,
+      gods: ['Shan Lai Ching', 'Chih Sung-tzu', 'Huan Ti'],
+      ranks: [
+        {m:'Bonze',f:'Bonze'}, {m:'Mendicant',f:'Mendicant'},
+        {m:'Acolyte',f:'Acolyte'}, {m:'Monk',f:'Nun'},
+        {m:'Lama',f:'Lama'}, {m:'Abbot',f:'Abbess'},
+        {m:'Guru',f:'Guru'}, {m:'Swami',f:'Swami'},
+        {m:'Grand Master',f:'Grand Master'}
+      ],
+      greeting: 'Hello',
+      menuChar: 'm', menuArticle: 'a' },
     { name: 'Priest', abbr: 'Pri', str: 7, int: 7, wis: 10, dex: 7, con: 7, cha: 7,
-      startingHP: 12, startingPW: 4, enadv: 3, align: A_NEUTRAL, petType: null },  // NON_PM
+      startingHP: 12, startingPW: 4, enadv: 3, align: A_NEUTRAL, petType: null,
+      namef: 'Priestess',
+      validRaces: [RACE_HUMAN, RACE_ELF],
+      validAligns: [A_LAWFUL, A_NEUTRAL, A_CHAOTIC],
+      forceGender: null,
+      gods: [null, null, null],  // Priest has no fixed gods; assigned at role_init from random role's pantheon
+      ranks: [
+        {m:'Aspirant',f:'Aspirant'}, {m:'Acolyte',f:'Acolyte'},
+        {m:'Adept',f:'Adept'}, {m:'Priest',f:'Priestess'},
+        {m:'Curate',f:'Curate'}, {m:'Canon',f:'Canoness'},
+        {m:'Lama',f:'Lama'}, {m:'Patriarch',f:'Matriarch'},
+        {m:'High Priest',f:'High Priestess'}
+      ],
+      greeting: 'Hello',
+      menuChar: 'p', menuArticle: 'a' },
     { name: 'Ranger', abbr: 'Ran', str: 13, int: 13, wis: 13, dex: 9, con: 13, cha: 7,
-      startingHP: 13, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: 'dog' },
+      startingHP: 13, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: 'dog',
+      namef: null,
+      validRaces: [RACE_HUMAN, RACE_ELF, RACE_GNOME, RACE_ORC],
+      validAligns: [A_NEUTRAL, A_CHAOTIC],
+      forceGender: null,
+      gods: ['Mercury', '_Venus', 'Mars'],
+      ranks: [
+        {m:'Tenderfoot',f:'Tenderfoot'}, {m:'Lookout',f:'Lookout'},
+        {m:'Trailblazer',f:'Trailblazer'}, {m:'Reconnoiterer',f:'Reconnoiteress'},
+        {m:'Scout',f:'Scout'}, {m:'Arbalester',f:'Arbalester'},
+        {m:'Archer',f:'Archer'}, {m:'Sharpshooter',f:'Sharpshooter'},
+        {m:'Ranger',f:'Ranger'}
+      ],
+      greeting: 'Hello',
+      menuChar: 'R', menuArticle: 'a' },
     { name: 'Rogue', abbr: 'Rog', str: 7, int: 7, wis: 7, dex: 10, con: 7, cha: 6,
-      startingHP: 10, startingPW: 1, enadv: 0, align: -1, petType: null },  // NON_PM
+      startingHP: 10, startingPW: 1, enadv: 0, align: A_CHAOTIC, petType: null,
+      namef: null,
+      validRaces: [RACE_HUMAN, RACE_ORC],
+      validAligns: [A_CHAOTIC],
+      forceGender: null,
+      gods: ['Issek', 'Mog', 'Kos'],
+      ranks: [
+        {m:'Footpad',f:'Footpad'}, {m:'Cutpurse',f:'Cutpurse'},
+        {m:'Rogue',f:'Rogue'}, {m:'Pilferer',f:'Pilferer'},
+        {m:'Robber',f:'Robber'}, {m:'Burglar',f:'Burglar'},
+        {m:'Filcher',f:'Filcher'}, {m:'Magsman',f:'Magswoman'},
+        {m:'Thief',f:'Thief'}
+      ],
+      greeting: 'Hello',
+      menuChar: 'r', menuArticle: 'a' },
     { name: 'Samurai', abbr: 'Sam', str: 10, int: 8, wis: 7, dex: 10, con: 17, cha: 6,
-      startingHP: 13, startingPW: 1, enadv: 0, align: 1, petType: 'dog' },
+      startingHP: 13, startingPW: 1, enadv: 0, align: A_LAWFUL, petType: 'dog',
+      namef: null,
+      validRaces: [RACE_HUMAN],
+      validAligns: [A_LAWFUL],
+      forceGender: null,
+      gods: ['_Amaterasu Omikami', 'Raijin', 'Susanowo'],
+      ranks: [
+        {m:'Hatamoto',f:'Hatamoto'}, {m:'Ronin',f:'Ronin'},
+        {m:'Ninja',f:'Kunoichi'}, {m:'Joshu',f:'Joshu'},
+        {m:'Ryoshu',f:'Ryoshu'}, {m:'Kokushu',f:'Kokushu'},
+        {m:'Daimyo',f:'Daimyo'}, {m:'Kuge',f:'Kuge'},
+        {m:'Shogun',f:'Shogun'}
+      ],
+      greeting: 'Konnichi wa',
+      menuChar: 's', menuArticle: 'a' },
     { name: 'Tourist', abbr: 'Tou', str: 7, int: 10, wis: 6, dex: 7, con: 7, cha: 10,
-      startingHP: 8, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: null },  // NON_PM
+      startingHP: 8, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: null,
+      namef: null,
+      validRaces: [RACE_HUMAN],
+      validAligns: [A_NEUTRAL],
+      forceGender: null,
+      gods: ['Blind Io', '_The Lady', 'Offler'],
+      ranks: [
+        {m:'Rambler',f:'Rambler'}, {m:'Sightseer',f:'Sightseer'},
+        {m:'Excursionist',f:'Excursionist'}, {m:'Peregrinator',f:'Peregrinatrix'},
+        {m:'Traveler',f:'Traveler'}, {m:'Journeyer',f:'Journeyer'},
+        {m:'Voyager',f:'Voyager'}, {m:'Explorer',f:'Explorer'},
+        {m:'Adventurer',f:'Adventurer'}
+      ],
+      greeting: 'Hello',
+      menuChar: 't', menuArticle: 'a' },
     { name: 'Valkyrie', abbr: 'Val', str: 10, int: 7, wis: 7, dex: 7, con: 10, cha: 7,
-      startingHP: 14, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: null },  // NON_PM
+      startingHP: 14, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: null,
+      namef: null,
+      validRaces: [RACE_HUMAN, RACE_DWARF],
+      validAligns: [A_LAWFUL, A_NEUTRAL],
+      forceGender: 'female',
+      gods: ['Tyr', 'Odin', 'Loki'],
+      ranks: [
+        {m:'Stripling',f:'Stripling'}, {m:'Skirmisher',f:'Skirmisher'},
+        {m:'Fighter',f:'Fighter'}, {m:'Man-at-arms',f:'Woman-at-arms'},
+        {m:'Warrior',f:'Warrior'}, {m:'Swashbuckler',f:'Swashbuckler'},
+        {m:'Hero',f:'Heroine'}, {m:'Champion',f:'Champion'},
+        {m:'Lord',f:'Lady'}
+      ],
+      greeting: 'Velkommen',
+      menuChar: 'v', menuArticle: 'a' },
     { name: 'Wizard', abbr: 'Wiz', str: 7, int: 10, wis: 7, dex: 7, con: 7, cha: 7,
-      startingHP: 10, startingPW: 4, enadv: 3, align: A_NEUTRAL, petType: 'cat' },
+      startingHP: 10, startingPW: 4, enadv: 3, align: A_NEUTRAL, petType: 'cat',
+      namef: null,
+      validRaces: [RACE_HUMAN, RACE_ELF, RACE_GNOME, RACE_ORC],
+      validAligns: [A_NEUTRAL, A_CHAOTIC],
+      forceGender: null,
+      gods: ['Ptah', 'Thoth', 'Anhur'],
+      ranks: [
+        {m:'Evoker',f:'Evoker'}, {m:'Conjurer',f:'Conjurer'},
+        {m:'Thaumaturge',f:'Thaumaturge'}, {m:'Magician',f:'Magician'},
+        {m:'Enchanter',f:'Enchantress'}, {m:'Sorcerer',f:'Sorceress'},
+        {m:'Necromancer',f:'Necromancer'}, {m:'Wizard',f:'Wizard'},
+        {m:'Mage',f:'Mage'}
+      ],
+      greeting: 'Hello',
+      menuChar: 'w', menuArticle: 'a' },
 ];
+
+// Races table -- from role.c
+// C ref: src/role.c races[] array
+export const races = [
+    { name: 'human', adj: 'human', validAligns: [A_LAWFUL, A_NEUTRAL, A_CHAOTIC],
+      menuChar: 'h', hpBonus: 2, pwBonus: 1,
+      attrmin: [3,3,3,3,3,3], attrmax: [18,18,18,18,18,18] },
+    { name: 'elf', adj: 'elven', validAligns: [A_CHAOTIC],
+      menuChar: 'e', hpBonus: 1, pwBonus: 2,
+      attrmin: [3,3,3,3,3,3], attrmax: [18,18,18,18,16,18] },
+    { name: 'dwarf', adj: 'dwarven', validAligns: [A_LAWFUL],
+      menuChar: 'd', hpBonus: 4, pwBonus: 0,
+      attrmin: [3,3,3,3,3,3], attrmax: [18,16,18,18,20,16] },
+    { name: 'gnome', adj: 'gnomish', validAligns: [A_NEUTRAL],
+      menuChar: 'g', hpBonus: 1, pwBonus: 2,
+      attrmin: [3,3,3,3,3,3], attrmax: [18,19,18,18,18,18] },
+    { name: 'orc', adj: 'orcish', validAligns: [A_CHAOTIC],
+      menuChar: 'o', hpBonus: 1, pwBonus: 1,
+      attrmin: [3,3,3,3,3,3], attrmax: [18,16,16,18,18,16] },
+];
+
+// --- Chargen Helper Functions ---
+
+// Returns indices of races valid for a given role
+export function validRacesForRole(roleIdx) {
+    const role = roles[roleIdx];
+    if (!role) return [];
+    return role.validRaces.slice();
+}
+
+// Returns valid alignment values for a given role+race combination (intersection)
+export function validAlignsForRoleRace(roleIdx, raceIdx) {
+    const role = roles[roleIdx];
+    const race = races[raceIdx];
+    if (!role || !race) return [];
+    return role.validAligns.filter(a => race.validAligns.includes(a));
+}
+
+// Returns true if gender menu is needed (i.e. gender is not forced)
+export function needsGenderMenu(roleIdx) {
+    const role = roles[roleIdx];
+    return !role || !role.forceGender;
+}
+
+// Returns the rank title for a given level, role, and gender
+// C ref: role.c rank_of(level, role, female)
+// Level 1 = rank 0, levels 2-5 = rank 1, etc.
+export function rankOf(level, roleIdx, female) {
+    const role = roles[roleIdx];
+    if (!role) return 'Adventurer';
+    // C ref: role.c rank_of() — rank thresholds: 0,3,6,10,14,18,22,26,30
+    const thresholds = [0, 3, 6, 10, 14, 18, 22, 26, 30];
+    let rankIdx = 0;
+    for (let i = thresholds.length - 1; i >= 0; i--) {
+        if (level >= thresholds[i]) {
+            rankIdx = i;
+            break;
+        }
+    }
+    const rank = role.ranks[rankIdx];
+    return female ? rank.f : rank.m;
+}
+
+// Returns the deity name for a role+alignment
+// C ref: role.c — gods[0]=lawful, gods[1]=neutral, gods[2]=chaotic
+// Names starting with '_' are goddesses (strip the underscore)
+export function godForRoleAlign(roleIdx, alignValue) {
+    const role = roles[roleIdx];
+    if (!role) return 'Unknown';
+    let godIdx;
+    if (alignValue > 0) godIdx = 0;       // lawful
+    else if (alignValue === 0) godIdx = 1; // neutral
+    else godIdx = 2;                        // chaotic
+    const raw = role.gods[godIdx];
+    if (!raw) return null; // Priest with no gods
+    return raw.startsWith('_') ? raw.substring(1) : raw;
+}
+
+// Returns whether the deity is a goddess (name starts with '_' in the data)
+export function isGoddess(roleIdx, alignValue) {
+    const role = roles[roleIdx];
+    if (!role) return false;
+    let godIdx;
+    if (alignValue > 0) godIdx = 0;
+    else if (alignValue === 0) godIdx = 1;
+    else godIdx = 2;
+    const raw = role.gods[godIdx];
+    if (!raw) return false;
+    return raw.startsWith('_');
+}
+
+// Returns the greeting string for a role
+export function greetingForRole(roleIdx) {
+    const role = roles[roleIdx];
+    return role ? role.greeting : 'Hello';
+}
+
+// Returns the role name, using female variant if applicable
+export function roleNameForGender(roleIdx, female) {
+    const role = roles[roleIdx];
+    if (!role) return 'Adventurer';
+    if (female && role.namef) return role.namef;
+    return role.name;
+}
+
+// Returns the alignment name string
+export function alignName(alignValue) {
+    if (alignValue > 0) return 'lawful';
+    if (alignValue < 0) return 'chaotic';
+    return 'neutral';
+}
+
+// Lore text template -- from quest.lua
+// Substitutions: %d=deity name, %G=god/goddess, %r=rank title
+export const LORE_TEXT_TEMPLATE = `It is written in the Book of %d:
+
+    After the Creation, the cruel god Moloch rebelled
+    against the authority of Marduk the Creator.
+    Moloch stole from Marduk the most powerful of all
+    the artifacts of the gods, the Amulet of Yendor,
+    and he hid it in the dark cavities of Gehennom, the
+    Under World, where he now lurks, and bides his time.
+
+Your %G %d seeks to possess the Amulet, and with it
+to gain deserved ascendance over the other gods.
+
+You, a newly trained %r, have been heralded
+from birth as the instrument of %d.  You are destined
+to recover the Amulet for your deity, or die in the
+attempt.  Your hour of destiny has come.  For the sake
+of us all:  Go bravely with %d!`;
+
+// Format lore text with specific values
+export function formatLoreText(deityName, godOrGoddess, rankTitle) {
+    return LORE_TEXT_TEMPLATE
+        .replace(/%d/g, deityName)
+        .replace(/%G/g, godOrGoddess)
+        .replace(/%r/g, rankTitle);
+}
 
 export class Player {
     constructor() {

@@ -479,6 +479,89 @@ export class Display {
         return selected || null;
     }
 
+    // Clear the entire screen
+    clearScreen() {
+        for (let r = 0; r < this.rows; r++) {
+            this.clearRow(r);
+        }
+    }
+
+    // Display a chargen menu matching C TTY positioning
+    // C ref: wintty.c tty_display_nhwindow() for NHW_MENU
+    // lines: array of strings (the menu content lines)
+    // isFirstMenu: if true, always renders full-screen (col 0)
+    // Returns: the lines displayed and the offx used
+    renderChargenMenu(lines, isFirstMenu) {
+        // Calculate max content width
+        let maxcol = 0;
+        for (const line of lines) {
+            if (line.length > maxcol) maxcol = line.length;
+        }
+
+        // C ref: wintty.c offx calculation
+        // offx = max(10, terminal_cols - maxcol - 1)
+        // If offx == 10 OR menu too tall for terminal OR first menu: offx = 0, clear screen
+        let offx = Math.max(10, this.cols - maxcol - 1);
+        let clearFirst = false;
+
+        if (isFirstMenu || offx === 10 || lines.length >= this.rows) {
+            offx = 0;
+            clearFirst = true;
+        }
+
+        if (clearFirst) {
+            this.clearScreen();
+        }
+
+        // Render each line at the offset
+        for (let i = 0; i < lines.length && i < this.rows; i++) {
+            if (clearFirst) {
+                // Full-screen: write from column offx, clearing each row
+                this.putstr(offx, i, lines[i], CLR_GRAY);
+            } else {
+                // Overlay: write at offx, clearing from offx to end of line
+                for (let c = offx; c < this.cols; c++) {
+                    this.setCell(c, i, ' ', CLR_GRAY);
+                }
+                this.putstr(offx, i, lines[i], CLR_GRAY);
+            }
+        }
+
+        // Clear remaining rows if full-screen
+        if (clearFirst) {
+            for (let i = lines.length; i < this.rows; i++) {
+                this.clearRow(i);
+            }
+        } else {
+            // Overlay: clear lines beyond menu content in the overlay area
+            for (let i = lines.length; i < this.rows; i++) {
+                for (let c = offx; c < this.cols; c++) {
+                    this.setCell(c, i, ' ', CLR_GRAY);
+                }
+            }
+        }
+
+        return offx;
+    }
+
+    // Display lore text overlaid on the map area
+    // C ref: The lore text is displayed starting at a calculated column offset
+    renderLoreText(lines, offx) {
+        for (let i = 0; i < lines.length && i < this.rows; i++) {
+            // Clear from offx to end of line, then write text
+            for (let c = offx; c < this.cols; c++) {
+                this.setCell(c, i, ' ', CLR_GRAY);
+            }
+            this.putstr(offx, i, lines[i], CLR_GRAY);
+        }
+        // Clear remaining rows in the overlay area
+        for (let i = lines.length; i < this.rows - 2; i++) {
+            for (let c = offx; c < this.cols; c++) {
+                this.setCell(c, i, ' ', CLR_GRAY);
+            }
+        }
+    }
+
     // Place cursor on the player
     // C ref: display.c curs_on_u()
     cursorOnPlayer(player) {
