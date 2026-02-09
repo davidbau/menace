@@ -256,12 +256,15 @@ export function generateMapsWithRng(seed, maxDepth) {
         const fullLog = getRngLog();
         const depthLog = fullLog.slice(prevCount);
         const compactRng = depthLog.map(toCompactRng);
-        // Filter out composite entries (rne, rnz) to match C map session format
-        // (C logs them but gen_map_sessions.py filters them out at line 93)
-        const filteredRng = compactRng.filter(e =>
-            !isCompositeEntry(rngCallPart(e)));
-        // Count only non-midlog entries to match C's rngCalls counting
-        const rngCalls = filteredRng.filter(e => !isMidlogEntry(e)).length;
+        // Filter out composite entries (rne, rnz, d) and midlog markers (>, <)
+        // to match C map session comparison format.
+        // Note: C session files contain midlog markers, but we filter them for comparison
+        // since JS doesn't generate them (JS suppresses nested RNG logging instead).
+        const filteredRng = compactRng.filter(e => {
+            const call = rngCallPart(e);
+            return !isCompositeEntry(call) && !isMidlogEntry(e);
+        });
+        const rngCalls = filteredRng.length;
         rngLogs[depth] = { rngCalls, rng: filteredRng };
         prevCount = fullLog.length;
     }
