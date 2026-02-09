@@ -282,25 +282,10 @@ class HeadlessGame {
         const result = await rhack(code, this);
 
         if (result && result.tookTime) {
+            // C ref: allmain.c — record hero position before movemon
             settrack(this.player);
             movemon(this.map, this.player, this.display, this.fov);
-            this.turnCount++;
-            this.player.turns = this.turnCount;
-
-            // Monster speed adjustments
-            for (const mon of this.map.monsters) {
-                if (mon.dead) continue;
-                let mmove = mon.speed;
-                const mmoveAdj = mmove % NORMAL_SPEED;
-                mmove -= mmoveAdj;
-                if (rn2(NORMAL_SPEED) < mmoveAdj) mmove += NORMAL_SPEED;
-                mon.movement += mmove;
-            }
-
-            // Per-turn effects
-            rn2(70);   // monster spawn check
-            rn2(20);   // gethungry
-            this.player.hunger--;
+            this.simulateTurnEnd();
         }
 
         // Re-render
@@ -314,6 +299,55 @@ class HeadlessGame {
         }
 
         return result;
+    }
+
+    // C ref: mon.c mcalcmove() — random rounding of monster speed
+    mcalcmove(mon) {
+        let mmove = mon.speed;
+        const mmoveAdj = mmove % NORMAL_SPEED;
+        mmove -= mmoveAdj;
+        if (rn2(NORMAL_SPEED) < mmoveAdj) mmove += NORMAL_SPEED;
+        return mmove;
+    }
+
+    // C ref: allmain.c moveloop_core() — per-turn effects after monster movement
+    simulateTurnEnd() {
+        // C ref: allmain.c:239 — settrack() called after movemon, before moves++
+        settrack(this.player);
+        this.turnCount++;
+        this.player.turns = this.turnCount;
+
+        // C ref: allmain.c:226-227 — reallocate movement to monsters via mcalcmove
+        for (const mon of this.map.monsters) {
+            if (mon.dead) continue;
+            mon.movement += this.mcalcmove(mon);
+        }
+
+        // C ref: allmain.c:232-236 — occasionally spawn a new monster
+        rn2(70);   // monster spawn check (rn2(25) if demigod, rn2(50) below stronghold)
+
+        // C ref: allmain.c:289-295 regen_hp()
+        if (this.player.hp < this.player.hpmax) {
+            const con = this.player.attributes ? this.player.attributes[A_CON] : 10;
+            const heal = (this.player.level + con) > rn2(100) ? 1 : 0;
+            if (heal) {
+                this.player.hp = Math.min(this.player.hp + heal, this.player.hpmax);
+            }
+        }
+
+        // C ref: allmain.c:297 dosounds()
+        this.dosounds();
+
+        // C ref: allmain.c:303 gethungry() — simplified hunger tracking
+        rn2(20);   // gethungry RNG
+        this.player.hunger--;
+    }
+
+    // C ref: sounds.c dosounds() — ambient sounds with occasional messages
+    dosounds() {
+        // C ref: sounds.c:313 — rn2(200) determines if ambient sound plays
+        const soundRoll = rn2(200);
+        // Simplified: just consume the RNG, don't generate sound messages
     }
 }
 
