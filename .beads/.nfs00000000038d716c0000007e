@@ -2111,3 +2111,110 @@ time=2026-02-09T17:35:01.611-05:00 level=INFO msg="Skipping: in backoff period" 
 time=2026-02-09T17:37:54.962-05:00 level=INFO msg="JSONL file created" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
 time=2026-02-09T17:37:55.964-05:00 level=INFO msg="Import triggered by file change"
 time=2026-02-09T17:37:55.970-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import
+time=2026-02-09T17:38:01.625-05:00 level=INFO msg="Git ref change detected" path=/share/u/davidbau/git/mazesofmenace/.git/refs/heads/main.lock
+time=2026-02-09T17:38:02.627-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T17:38:02.630-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import
+time=2026-02-09T17:38:06.610-05:00 level=INFO msg="JSONL file created" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:38:06.610-05:00 level=INFO msg="File change detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:38:07.604-05:00 level=INFO msg="File change detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:38:07.604-05:00 level=INFO msg="JSONL removed/renamed, re-establishing watch"
+time=2026-02-09T17:38:07.610-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T17:38:07.617-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import
+time=2026-02-09T17:38:07.654-05:00 level=INFO msg="Successfully re-established JSONL watch" delay=50ms
+time=2026-02-09T17:38:07.654-05:00 level=INFO msg="JSONL file created" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:38:08.656-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T17:38:08.660-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import
+time=2026-02-09T17:38:13.347-05:00 level=INFO msg="JSONL file created" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:38:13.348-05:00 level=INFO msg="File change detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:38:13.395-05:00 level=INFO msg="Git ref change detected" path=/share/u/davidbau/git/mazesofmenace/.git/refs/heads/main.lock
+time=2026-02-09T17:38:14.396-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T17:38:14.412-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import
+time=2026-02-09T17:38:20.320-05:00 level=INFO msg="JSONL file created" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:38:20.321-05:00 level=INFO msg="File change detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:38:21.322-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T17:38:21.338-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import
+time=2026-02-09T17:49:44.617-05:00 level=INFO msg="Git ref change detected" path=/share/u/davidbau/git/mazesofmenace/.git/refs/heads/main.lock
+time=2026-02-09T17:49:45.618-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T17:49:45.622-05:00 level=INFO msg="Starting auto-import" mode=auto-import
+time=2026-02-09T17:49:46.346-05:00 level=INFO msg="File change detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:49:46.346-05:00 level=INFO msg="JSONL removed/renamed, re-establishing watch"
+time=2026-02-09T17:49:46.390-05:00 level=INFO msg="Pulled from remote"
+time=2026-02-09T17:49:46.390-05:00 level=INFO msg="🔍 Checking JSONL content hash AFTER pull (fix: auto-pull-not-pulling)"
+time=2026-02-09T17:49:46.392-05:00 level=INFO msg="JSONL content changed, proceeding with operation..." mode=auto-import
+time=2026-02-09T17:49:46.397-05:00 level=INFO msg="Successfully re-established JSONL watch" delay=50ms
+time=2026-02-09T17:49:46.397-05:00 level=INFO msg="JSONL file created" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:49:46.397-05:00 level=INFO msg="Git ref change detected" path=/share/u/davidbau/git/mazesofmenace/.git/refs/heads/main.lock
+time=2026-02-09T17:49:46.669-05:00 level=INFO msg="Imported from JSONL"
+time=2026-02-09T17:49:46.674-05:00 level=INFO msg="Auto-import complete"
+time=2026-02-09T17:49:47.398-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T17:49:47.401-05:00 level=INFO msg="Starting auto-import" mode=auto-import
+time=2026-02-09T17:49:47.936-05:00 level=INFO msg="Pulled from remote"
+time=2026-02-09T17:49:47.936-05:00 level=INFO msg="🔍 Checking JSONL content hash AFTER pull (fix: auto-pull-not-pulling)"
+time=2026-02-09T17:49:47.937-05:00 level=INFO msg="JSONL content changed, proceeding with operation..." mode=auto-import
+time=2026-02-09T17:49:47.962-05:00 level=INFO msg="Imported from JSONL"
+time=2026-02-09T17:49:47.966-05:00 level=INFO msg="Auto-import complete"
+time=2026-02-09T17:49:49.611-05:00 level=INFO msg="JSONL file created" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:49:50.613-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T17:49:50.619-05:00 level=INFO msg="Starting auto-import" mode=auto-import
+time=2026-02-09T17:49:50.629-05:00 level=INFO msg="WARNING: Uncommitted local changes detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:49:50.629-05:00 level=INFO msg="   Pulling from remote may overwrite local unpushed changes."
+time=2026-02-09T17:49:50.629-05:00 level=INFO msg="   Consider running 'bd sync' to commit and push your changes first."
+time=2026-02-09T17:49:51.132-05:00 level=INFO msg="Pulled from remote"
+time=2026-02-09T17:49:51.132-05:00 level=INFO msg="🔍 Checking JSONL content hash AFTER pull (fix: auto-pull-not-pulling)"
+time=2026-02-09T17:49:51.135-05:00 level=INFO msg="JSONL content changed, proceeding with operation..." mode=auto-import
+time=2026-02-09T17:49:51.168-05:00 level=INFO msg="Imported from JSONL"
+time=2026-02-09T17:49:51.172-05:00 level=INFO msg="Auto-import complete"
+time=2026-02-09T17:49:52.656-05:00 level=INFO msg="JSONL file created" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:49:52.656-05:00 level=INFO msg="File change detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:49:53.657-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T17:49:53.666-05:00 level=INFO msg="Starting auto-import" mode=auto-import
+time=2026-02-09T17:49:53.673-05:00 level=INFO msg="WARNING: Uncommitted local changes detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:49:53.673-05:00 level=INFO msg="   Pulling from remote may overwrite local unpushed changes."
+time=2026-02-09T17:49:53.673-05:00 level=INFO msg="   Consider running 'bd sync' to commit and push your changes first."
+time=2026-02-09T17:49:54.166-05:00 level=INFO msg="Pulled from remote"
+time=2026-02-09T17:49:54.166-05:00 level=INFO msg="🔍 Checking JSONL content hash AFTER pull (fix: auto-pull-not-pulling)"
+time=2026-02-09T17:49:54.168-05:00 level=INFO msg="Skipping: JSONL content unchanged" mode=auto-import
+time=2026-02-09T17:54:06.757-05:00 level=INFO msg="Git ref change detected" path=/share/u/davidbau/git/mazesofmenace/.git/refs/heads/main.lock
+time=2026-02-09T17:54:07.759-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T17:54:07.761-05:00 level=INFO msg="Starting auto-import" mode=auto-import
+time=2026-02-09T17:54:07.769-05:00 level=INFO msg="WARNING: Uncommitted local changes detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:54:07.769-05:00 level=INFO msg="   Pulling from remote may overwrite local unpushed changes."
+time=2026-02-09T17:54:07.769-05:00 level=INFO msg="   Consider running 'bd sync' to commit and push your changes first."
+time=2026-02-09T17:54:08.452-05:00 level=INFO msg="Pull failed" error="git pull failed: exit status 128\nFrom github.com:davidbau/webhack\n * branch            main       -> FETCH_HEAD\n   f9ae1f7..3b884a0  main       -> origin/main\nerror: Your local changes to the following files would be overwritten by merge:\n\t.beads/issues.jsonl\nPlease commit your changes or stash them before you merge.\nAborting\n" backoff=1m0s
+time=2026-02-09T17:54:22.228-05:00 level=INFO msg="Git ref change detected" path=/share/u/davidbau/git/mazesofmenace/.git/refs/heads/main.lock
+time=2026-02-09T17:54:23.229-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T17:54:23.232-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import
+time=2026-02-09T17:54:26.894-05:00 level=INFO msg="File change detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:54:26.894-05:00 level=INFO msg="JSONL removed/renamed, re-establishing watch"
+time=2026-02-09T17:54:26.945-05:00 level=INFO msg="Successfully re-established JSONL watch" delay=50ms
+time=2026-02-09T17:54:26.945-05:00 level=INFO msg="JSONL file created" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:54:27.946-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T17:54:27.950-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import
+time=2026-02-09T17:54:31.326-05:00 level=INFO msg="JSONL file created" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:54:31.326-05:00 level=INFO msg="File change detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T17:54:32.327-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T17:54:32.347-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import
+time=2026-02-09T17:54:32.910-05:00 level=INFO msg="Git ref change detected" path=/share/u/davidbau/git/mazesofmenace/.git/refs/heads/main.lock
+time=2026-02-09T17:54:33.911-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T17:54:33.914-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import
+time=2026-02-09T18:27:18.223-05:00 level=INFO msg="JSONL file created" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T18:27:19.224-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T18:27:19.230-05:00 level=INFO msg="Starting auto-import" mode=auto-import
+time=2026-02-09T18:27:19.239-05:00 level=INFO msg="WARNING: Uncommitted local changes detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T18:27:19.239-05:00 level=INFO msg="   Pulling from remote may overwrite local unpushed changes."
+time=2026-02-09T18:27:19.239-05:00 level=INFO msg="   Consider running 'bd sync' to commit and push your changes first."
+time=2026-02-09T18:27:19.949-05:00 level=INFO msg="Pull failed" error="git pull failed: exit status 1\nFrom github.com:davidbau/webhack\n * branch            main       -> FETCH_HEAD\nerror: cannot lock ref 'refs/remotes/origin/main': is at 450d125a4676acae4ad290c9227b5258244b00d0 but expected db07585b077007915c5bf920405f65c30d6692b2\n ! db07585..450d125  main       -> origin/main  (unable to update local ref)\n" backoff=2m0s
+time=2026-02-09T18:29:04.738-05:00 level=INFO msg="JSONL file created" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T18:29:04.738-05:00 level=INFO msg="File change detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T18:29:05.740-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T18:29:05.749-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import
+time=2026-02-09T18:29:14.893-05:00 level=INFO msg="Git ref change detected" path=/share/u/davidbau/git/mazesofmenace/.git/refs/heads/main.lock
+time=2026-02-09T18:29:15.895-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T18:29:15.899-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import
+time=2026-02-09T18:29:19.049-05:00 level=INFO msg="File change detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T18:29:19.049-05:00 level=INFO msg="JSONL removed/renamed, re-establishing watch"
+time=2026-02-09T18:29:19.100-05:00 level=INFO msg="Successfully re-established JSONL watch" delay=50ms
+time=2026-02-09T18:29:19.100-05:00 level=INFO msg="JSONL file created" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T18:29:19.100-05:00 level=INFO msg="Git ref change detected" path=/share/u/davidbau/git/mazesofmenace/.git/refs/heads/main.lock
+time=2026-02-09T18:29:20.101-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T18:29:20.105-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import

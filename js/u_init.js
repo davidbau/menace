@@ -150,11 +150,14 @@ const MONSYM_CHARS = {
 // C ref: dog.c:90-101 pet_type() — determine starting pet monster index
 function pet_type(roleIndex) {
     const role = roles[roleIndex];
+    // C ref: dog.c:100 — ALWAYS calls rn2(2) even for predetermined pet types
+    // This maintains RNG alignment across all roles
+    const roll = rn2(2);
     if (role.petType === 'pony') return PM_PONY;
     if (role.petType === 'cat') return PM_KITTEN;
     if (role.petType === 'dog') return PM_LITTLE_DOG;
-    // null / NON_PM → random: rn2(2) ? PM_KITTEN : PM_LITTLE_DOG
-    return rn2(2) ? PM_KITTEN : PM_LITTLE_DOG;
+    // null / NON_PM → random: use roll result
+    return roll ? PM_KITTEN : PM_LITTLE_DOG;
 }
 
 // C ref: dog.c makedog() → makemon.c makemon()
