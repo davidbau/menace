@@ -615,7 +615,7 @@ function special_corpse(mndx) {
 
 // C ref: mkobj.c start_corpse_timeout() — consume RNG for corpse rot/revive timing
 // Only called for RNG alignment; we don't actually track timers.
-const TAINT_AGE = 50;
+export const TAINT_AGE = 50;
 const TROLL_REVIVE_CHANCE = 37;
 function start_corpse_timeout_rng(corpsenm) {
     // Lizards and lichen don't rot or revive

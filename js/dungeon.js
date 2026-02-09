@@ -30,7 +30,7 @@ import {
 import { GameMap, makeRoom, FILL_NONE, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1, d } from './rng.js';
 import { getbones } from './bones.js';
-import { mkobj, mksobj, mkcorpstat, weight, setLevelDepth } from './mkobj.js';
+import { mkobj, mksobj, mkcorpstat, weight, setLevelDepth, TAINT_AGE } from './mkobj.js';
 import { makemon, mkclass, NO_MM_FLAGS, MM_NOGRP } from './makemon.js';
 import { S_HUMAN, PM_ELF, PM_HUMAN, PM_GNOME, PM_DWARF, PM_ORC, PM_ARCHEOLOGIST, PM_WIZARD } from './monsters.js';
 import { init_objects } from './o_init.js';
@@ -2005,6 +2005,9 @@ function mktrap_victim(map, trap, depth) {
     // C ref: mklev.c:1921 — mkcorpstat(CORPSE, NULL, &mons[victim_mnum], ...)
     // Uses mkcorpstat which handles special_corpse restart logic for start_corpse_timeout
     otmp = mkcorpstat(CORPSE, victim_mnum, true);
+    // C ref: mklev.c:1922 — age corpse so it's too old to safely eat
+    // TAINT_AGE=50; subtracting 51 makes (age + 50 <= moves) true at game start
+    otmp.age -= (TAINT_AGE + 1);
     placeObj(otmp);
 }
 
