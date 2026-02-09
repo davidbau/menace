@@ -25,7 +25,7 @@ import {
     VIBRATING_SQUARE, TRAPPED_DOOR, TRAPPED_CHEST, TRAPNUM,
     is_pit, is_hole,
     MKTRAP_NOFLAGS, MKTRAP_MAZEFLAG, MKTRAP_NOSPIDERONWEB, MKTRAP_NOVICTIM,
-    PM_ARCHEOLOGIST, PM_WIZARD
+    PM_ARCHEOLOGIST as ROLE_ARCHEOLOGIST, PM_WIZARD as ROLE_WIZARD
 } from './config.js';
 import { GameMap, makeRoom, FILL_NONE, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1, d } from './rng.js';
@@ -2500,7 +2500,7 @@ function simulateDungeonInit(roleIndex) {
     // nemesis lacks M2_MALE/M2_FEMALE/M2_NEUTER flags.
     // C ref: role.c:2060 — only Archeologist (Minion of Huhetotl) and
     // Wizard (Dark One) need this call; all other nemeses have explicit gender.
-    if (roleIndex === PM_ARCHEOLOGIST || roleIndex === PM_WIZARD) {
+    if (roleIndex === ROLE_ARCHEOLOGIST || roleIndex === ROLE_WIZARD) {
         rn2(100);
     }
 
