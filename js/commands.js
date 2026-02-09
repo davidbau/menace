@@ -13,6 +13,7 @@ import { makemon } from './makemon.js';
 import { mons } from './monsters.js';
 import { doname } from './mkobj.js';
 import { showPager } from './pager.js';
+import { handleZap } from './zap.js';
 import { saveGame, loadFlags, saveFlags, OPTION_DEFS } from './storage.js';
 
 // Direction key mappings
@@ -129,6 +130,11 @@ export async function rhack(ch, game) {
     // Quaff (drink)
     if (c === 'q') {
         return await handleQuaff(player, display);
+    }
+
+    // Zap wand
+    if (c === 'z') {
+        return await handleZap(player, map, display, game);
     }
 
     // Look (:)
