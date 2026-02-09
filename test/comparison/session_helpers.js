@@ -232,6 +232,7 @@ export function generateMapsWithRng(seed, maxDepth) {
 
         // C map harness runs a full game as Valkyrie. Depth 1 includes
         // post-level init (pet creation, hero inventory, attributes, welcome).
+        // Depth 2+ includes pet arrival via wizard_level_teleport.
         if (depth === 1) {
             const player = new Player();
             player.initRole(11); // Valkyrie
@@ -240,6 +241,16 @@ export function generateMapsWithRng(seed, maxDepth) {
                 player.y = map.upstair.y;
             }
             simulatePostLevelInit(player, map, 1);
+        } else {
+            // Simulate pet arrival on level teleport (C ref: dog.c:474 mon_arrive)
+            // Pet follows player when teleporting to new level
+            // mon_arrive: rn2(10) + collect_coords sequence for pet placement (46 calls)
+            rn2(10); // C ref: dog.c:474 — !rn2(10) check for spontaneous untaming
+            // collect_coords: finds random accessible position via rn2(width/height)
+            // Pattern: rn2(8→2), rn2(16→2), rn2(24→2) = 7 + 15 + 23 = 45 calls
+            for (let i = 8; i >= 2; i--) rn2(i);
+            for (let i = 16; i >= 2; i--) rn2(i);
+            for (let i = 24; i >= 2; i--) rn2(i);
         }
 
         const fullLog = getRngLog();

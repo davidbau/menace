@@ -58,14 +58,17 @@ import {
     HELM_OF_BRILLIANCE, ROBE, MUMMY_WRAPPING,
     K_RATION, C_RATION, TIN_WHISTLE, BUGLE, SADDLE,
     MIRROR, POT_OBJECT_DETECTION, POT_HEALING, POT_EXTRA_HEALING,
-    POT_FULL_HEALING, POT_SICKNESS,
-    POT_SPEED, CRYSTAL_BALL, BRASS_LANTERN, SKELETON_KEY,
+    POT_FULL_HEALING, POT_SICKNESS, POT_SPEED, POT_INVISIBILITY,
+    POT_GAIN_LEVEL, POT_POLYMORPH,
+    CRYSTAL_BALL, BRASS_LANTERN, SKELETON_KEY,
     WAN_STRIKING, FOOD_RATION, TIN_OPENER,
     WAN_MAGIC_MISSILE, WAN_DEATH, WAN_SLEEP, WAN_FIRE, WAN_COLD, WAN_LIGHTNING,
     WAN_TELEPORTATION, WAN_CREATE_MONSTER, WAN_DIGGING,
+    WAN_MAKE_INVISIBLE, WAN_SPEED_MONSTER, WAN_POLYMORPH,
     POT_ACID, POT_CONFUSION, POT_BLINDNESS, POT_SLEEPING, POT_PARALYSIS,
     SCR_EARTH, SCR_TELEPORTATION, SCR_CREATE_MONSTER,
     RIN_INVISIBILITY,
+    AMULET_OF_LIFE_SAVING,
     CORPSE,
 } from './objects.js';
 
@@ -675,6 +678,46 @@ function rnd_defensive_item(mndx) {
 }
 
 // ========================================================================
+// rnd_misc_item -- select random misc item for monster
+// C ref: muse.c:2619-2657
+// ========================================================================
+
+function rnd_misc_item(mndx) {
+    const ptr = mons[mndx];
+    const difficulty = ptr.difficulty || 0;
+
+    // Animals, exploders, mindless, ghosts, Kops don't get misc items
+    if (is_animal(ptr) || attacktype(ptr, AT_EXPL) || mindless(ptr)
+        || ptr.symbol === S_GHOST || ptr.symbol === S_KOP) {
+        return 0;
+    }
+
+    // Weak monsters (difficulty < 6) can get polymorph items
+    if (difficulty < 6 && !rn2(30)) {
+        return rn2(6) ? POT_POLYMORPH : WAN_POLYMORPH;
+    }
+
+    // Non-living monsters and vampshifters don't get amulet of life saving
+    // Note: is_vampshifter check omitted (only applies to existing monsters)
+    const nonliving_monster = !!(ptr.flags3 & 0x00000040); // MZ_NONLIVING
+    if (!rn2(40) && !nonliving_monster) {
+        return AMULET_OF_LIFE_SAVING;
+    }
+
+    switch (rn2(3)) {
+    case 0:
+        // Note: mtmp->isgd (vault guard) check omitted (not set during creation)
+        return rn2(6) ? POT_SPEED : WAN_SPEED_MONSTER;
+    case 1:
+        // Note: mtmp->mpeaceful and See_invisible checks omitted (not relevant at creation)
+        return rn2(6) ? POT_INVISIBILITY : WAN_MAKE_INVISIBLE;
+    case 2:
+        return POT_GAIN_LEVEL;
+    }
+    return 0;
+}
+
+// ========================================================================
 // m_initinv -- inventory items
 // C ref: makemon.c:590-810
 // Simplified: only port branches that consume RNG
@@ -791,8 +834,8 @@ function m_initinv(mndx, depth, m_lev) {
         if (otyp) mksobj(otyp, true, false);
     }
     if (m_lev > rn2(100)) {
-        // rnd_misc_item → mongets → mksobj
-        // TODO: Implement rnd_misc_item when needed
+        const otyp = rnd_misc_item(mndx);
+        if (otyp) mksobj(otyp, true, false);
     }
     if ((ptr.flags2 & M2_GREEDY) && !rn2(5)) {
         // mkmonmoney: d(level_difficulty(), minvent ? 5 : 10)
