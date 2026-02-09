@@ -62,6 +62,8 @@ export class Agent {
         this.targetStuckCount = 0; // how many turns we've been stuck on committed path
         this.failedTargets = new Set(); // targets we've failed to reach (blacklisted)
         this.consecutiveFailedMoves = 0; // consecutive turns where movement failed
+        this.restTurns = 0; // consecutive turns spent resting
+        this.lastHP = null; // track HP to detect healing progress
 
         // Statistics
         this.stats = {
@@ -325,6 +327,44 @@ export class Agent {
             }
         }
 
+        // 1b. If HP is low and no monsters nearby, rest to heal
+        // NetHack HP regen: (XL + CON)% chance per turn to heal 1 HP
+        // At XL1 with CON~10, only 11% chance per turn!
+        if (this.status && this.status.hp < this.status.hpmax) {
+            const hpPercent = this.status.hp / this.status.hpmax;
+            const nearbyMonsters = findMonsters(this.screen);
+            const monstersNearby = nearbyMonsters.length > 0;
+
+            // Check if HP increased since last check (natural regen occurred)
+            if (this.lastHP !== null && this.status.hp > this.lastHP) {
+                this.restTurns = 0; // HP increased, reset rest counter
+            }
+            this.lastHP = this.status.hp;
+
+            // Rest if HP is low and no monsters nearby
+            // Critical HP < 25%: rest for up to 100 turns
+            // Moderate HP < 50%: rest for up to 50 turns
+            // (HP regen is probabilistic: (XL+CON)% chance per turn)
+            if (hpPercent < 0.25 && !monstersNearby && this.restTurns < 100) {
+                this.restTurns++;
+                return { type: 'rest', key: '.', reason: `HP critical, resting (${this.status.hp}/${this.status.hpmax}, ${this.restTurns}/100)` };
+            } else if (hpPercent < 0.5 && !monstersNearby && this.restTurns < 50) {
+                this.restTurns++;
+                return { type: 'rest', key: '.', reason: `resting to heal (${this.status.hp}/${this.status.hpmax}, ${this.restTurns}/50)` };
+            }
+
+            // If we've rested enough, give up and continue (HP will heal while exploring)
+            if (this.restTurns >= 50) {
+                this.restTurns = 0; // Reset for next time
+            }
+        } else {
+            // HP is full, reset rest counter
+            this.restTurns = 0;
+        }
+
+        // If we reached here without returning a rest action, reset rest counter
+        // (will be set back to 0 at the end of _decide if we take any other action)
+
         // 2. If hungry and have food, eat
         // TODO: Check inventory for food items before trying to eat
         // For now, skip eating to avoid infinite loop when no food available
@@ -478,6 +518,10 @@ export class Agent {
      */
     async _act(action) {
         this.lastAction = action.type;
+        // Reset rest counter when taking non-rest actions
+        if (action.type !== 'rest') {
+            this.restTurns = 0;
+        }
         await this.adapter.sendKey(action.key);
     }
 
