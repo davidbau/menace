@@ -15,6 +15,7 @@ import { Player, roles } from '../../js/player.js';
 import { NORMAL_SPEED, A_DEX, A_CON,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC } from '../../js/config.js';
 import { rhack } from '../../js/commands.js';
+import { pushInput } from '../../js/input.js';
 import { movemon } from '../../js/monmove.js';
 import { FOV } from '../../js/vision.js';
 
@@ -352,8 +353,10 @@ class HeadlessGame {
         const dex = this.player.attributes ? this.player.attributes[A_DEX] : 14;
         rn2(40 + dex * 3); // engrave wipe
 
-        if (this.turnCount >= this.seerTurn) {
-            this.seerTurn = this.turnCount + rn1(31, 15);
+        // C ref: allmain.c:414 seer_turn check
+        // C's svm.moves is +1 ahead of turnCount (same offset as exerchk)
+        if (moves >= this.seerTurn) {
+            this.seerTurn = moves + rn1(31, 15);
         }
     }
 
@@ -470,6 +473,13 @@ export async function replaySession(seed, session) {
         const prevCount = getRngLog().length;
 
         // Feed the key to the game engine
+        // For multi-char keys (e.g. "wb" = wield item b), push trailing chars
+        // into input queue so nhgetch() returns them immediately
+        if (step.key.length > 1) {
+            for (let i = 1; i < step.key.length; i++) {
+                pushInput(step.key.charCodeAt(i));
+            }
+        }
         const ch = step.key.charCodeAt(0);
         const result = await rhack(ch, game);
 

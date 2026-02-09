@@ -321,7 +321,7 @@ function handleMovement(dir, player, map, display) {
 
     // Auto-pickup gold
     const objs = map.objectsAt(nx, ny);
-    const gold = objs.find(o => o.oc_class === 10); // COIN_CLASS
+    const gold = objs.find(o => o.oclass === 11); // COIN_CLASS
     if (gold) {
         player.gold += gold.quantity;
         display.putstr_message(`${gold.quantity} gold piece${gold.quantity > 1 ? 's' : ''}.`);
@@ -420,7 +420,7 @@ function handlePickup(player, map, display) {
     }
 
     // Pick up first non-gold item
-    const obj = objs.find(o => o.oc_class !== 10); // not gold
+    const obj = objs.find(o => o.oclass !== 11); // not gold
     if (!obj) {
         display.putstr_message('There is nothing here to pick up.');
         return { moved: false, tookTime: false };
@@ -572,7 +572,7 @@ function handleInventory(player, display) {
 // Handle wielding a weapon
 // C ref: wield.c dowield()
 async function handleWield(player, display) {
-    const weapons = player.inventory.filter(o => o.oc_class === 0);
+    const weapons = player.inventory.filter(o => o.oclass === 1); // WEAPON_CLASS
     if (weapons.length === 0) {
         display.putstr_message('You have no weapons to wield.');
         return { moved: false, tookTime: false };
@@ -602,7 +602,7 @@ async function handleWield(player, display) {
 // Handle wearing armor
 // C ref: do_wear.c dowear()
 async function handleWear(player, display) {
-    const armor = player.inventory.filter(o => o.oc_class === 1);
+    const armor = player.inventory.filter(o => o.oclass === 2); // ARMOR_CLASS
     if (armor.length === 0) {
         display.putstr_message('You have no armor to wear.');
         return { moved: false, tookTime: false };
@@ -671,7 +671,7 @@ async function handleDrop(player, map, display) {
 // Handle eating
 // C ref: eat.c doeat()
 async function handleEat(player, display) {
-    const food = player.inventory.filter(o => o.oc_class === 5);
+    const food = player.inventory.filter(o => o.oclass === 6); // FOOD_CLASS
     if (food.length === 0) {
         display.putstr_message("You don't have anything to eat.");
         return { moved: false, tookTime: false };
@@ -701,7 +701,7 @@ async function handleEat(player, display) {
 // Handle quaffing a potion
 // C ref: potion.c dodrink()
 async function handleQuaff(player, display) {
-    const potions = player.inventory.filter(o => o.oc_class === 6);
+    const potions = player.inventory.filter(o => o.oclass === 7); // POTION_CLASS
     if (potions.length === 0) {
         display.putstr_message("You don't have anything to drink.");
         return { moved: false, tookTime: false };
