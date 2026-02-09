@@ -317,14 +317,27 @@ export class Agent {
             this.stuckCounter++;
             this.levelStuckCounter++;
         } else {
-            // Detect oscillation: if we've been in this position in the last 6 turns
+            // Detect short-term oscillation: if we've been in this position in the last 6 turns
             const recentCount = this.recentPositionsList.slice(-6).filter(k => k === posKey).length;
             if (recentCount >= 2) {
                 this.stuckCounter++;
                 this.levelStuckCounter++;
             } else {
-                this.stuckCounter = 0;
-                this.searchesAtPosition = 0;
+                // Check for longer-term stuck pattern: if we've barely moved in the last 30 turns
+                if (this.recentPositionsList.length >= 30) {
+                    const uniquePositions = new Set(this.recentPositionsList.slice(-30));
+                    // If we've only been in 3 or fewer positions in last 30 turns, we're stuck
+                    if (uniquePositions.size <= 3) {
+                        this.stuckCounter++;
+                        this.levelStuckCounter++;
+                    } else {
+                        this.stuckCounter = 0;
+                        this.searchesAtPosition = 0;
+                    }
+                } else {
+                    this.stuckCounter = 0;
+                    this.searchesAtPosition = 0;
+                }
             }
         }
         this.lastPosition = { x: px, y: py };
@@ -487,11 +500,32 @@ export class Agent {
         }
 
         // 6. If we've spent too long stuck on this level, head for stairs
-        if (this.levelStuckCounter > 20 && level.stairsDown.length > 0) {
-            const stairs = level.stairsDown[0];
-            const path = findPath(level, px, py, stairs.x, stairs.y, { allowUnexplored: true });
-            if (path.found) {
-                return this._followPath(path, 'navigate', `heading to downstairs (level stuck ${this.levelStuckCounter}) at (${stairs.x},${stairs.y})`);
+        if (this.levelStuckCounter > 20) {
+            if (level.stairsDown.length > 0) {
+                const stairs = level.stairsDown[0];
+                const path = findPath(level, px, py, stairs.x, stairs.y, { allowUnexplored: true });
+                if (path.found) {
+                    return this._followPath(path, 'navigate', `heading to downstairs (level stuck ${this.levelStuckCounter}) at (${stairs.x},${stairs.y})`);
+                }
+            }
+
+            // No downstairs found and very stuck - aggressive searching or go back up
+            if (this.levelStuckCounter > 50) {
+                // If we're deep in the dungeon and truly stuck, try going back upstairs
+                if (this.dungeon.currentDepth > 1 && level.stairsUp.length > 0) {
+                    const stairs = level.stairsUp[0];
+                    const path = findPath(level, px, py, stairs.x, stairs.y, { allowUnexplored: true });
+                    if (path.found) {
+                        return this._followPath(path, 'navigate', `giving up on level, going back up (stuck ${this.levelStuckCounter})`);
+                    }
+                }
+
+                // Search very aggressively for secret doors (might be hiding stairs)
+                if (this.searchesAtPosition < 10) {
+                    this.searchesAtPosition++;
+                    if (currentCell) currentCell.searched++;
+                    return { type: 'search', key: 's', reason: `aggressive search for hidden stairs (stuck ${this.levelStuckCounter})` };
+                }
             }
         }
 
