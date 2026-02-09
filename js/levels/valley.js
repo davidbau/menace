@@ -173,5 +173,5 @@ export function generate() {
     des.monster({ id: 'M' });
     des.monster({ id: 'M' });
 
-    finalize_level();
+    return finalize_level();
 }

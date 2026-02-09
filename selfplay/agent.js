@@ -566,7 +566,8 @@ export class Agent {
 
         // 5b. Proactive descent: if we've found stairs and explored enough, head down
         // This encourages forward progress instead of exhaustive exploration
-        if (level.stairsDown.length > 0 && this.turnNumber > 30) {
+        // BUT: if we're stuck, skip this and let section 6 handle it with allowUnexplored
+        if (level.stairsDown.length > 0 && this.turnNumber > 30 && this.levelStuckCounter <= 15) {
             const exploredPercent = level.exploredCount / (80 * 21); // rough estimate
             const frontierCells = level.getExplorationFrontier().length;
 
@@ -635,10 +636,20 @@ export class Agent {
         }
 
         // 7. If oscillating / stuck, try different strategies
-        if (this.stuckCounter > 3) {
+        // Also trigger if we're totally immobile (same position for 5+ turns)
+        const totallyStuck = this.lastPosition &&
+            this.lastPosition.x === px && this.lastPosition.y === py &&
+            this.stuckCounter >= 5;
+
+        if (this.stuckCounter > 3 || totallyStuck) {
             // Abandon committed path since we're stuck
             this.committedTarget = null;
             this.committedPath = null;
+
+            // If we're totally stuck (immobile), skip searching and try moving
+            if (totallyStuck && this.searchesAtPosition >= 1) {
+                this.searchesAtPosition = 3; // Skip further searches
+            }
 
             // Try searching briefly for secret doors
             if (this.searchesAtPosition < 3) {
@@ -653,25 +664,80 @@ export class Agent {
                 this._markDeadEndFrontier(px, py, level);
             }
 
-            // Head for downstairs if known
-            if (level.stairsDown.length > 0) {
-                const stairs = level.stairsDown[0];
-                const path = findPath(level, px, py, stairs.x, stairs.y, { allowUnexplored: true });
-                if (path.found) {
-                    return this._followPath(path, 'navigate', `heading to downstairs (stuck) at (${stairs.x},${stairs.y})`);
+            // If we're VERY stuck (levelStuckCounter > 80), skip pathfinding and just
+            // do random movement - pathfinding is clearly not working
+            const veryStuck = this.levelStuckCounter > 80;
+
+            // Check if we need exhaustive exploration (no stairs found after long time)
+            const needsExhaustiveSearch = (this.turnNumber > 150 && level.stairsDown.length === 0);
+
+            if (!veryStuck) {
+                // Head for downstairs if known
+                if (level.stairsDown.length > 0) {
+                    const stairs = level.stairsDown[0];
+                    const path = findPath(level, px, py, stairs.x, stairs.y, { allowUnexplored: true });
+                    if (path.found) {
+                        return this._followPath(path, 'navigate', `heading to downstairs (stuck) at (${stairs.x},${stairs.y})`);
+                    }
+                }
+
+                // Force explore with allowUnexplored to reach frontier through unexplored territory
+                const frontier = level.getExplorationFrontier();
+                if (frontier.length > 0) {
+                    // If we need exhaustive search, try ALL frontier cells, not just first 20
+                    const targetsToTry = needsExhaustiveSearch ? frontier : frontier.slice(0, 20);
+
+                    for (const target of targetsToTry) {
+                        const tKey = target.y * 80 + target.x;
+                        if (this.failedTargets.has(tKey)) continue;
+                        const path = findPath(level, px, py, target.x, target.y, { allowUnexplored: true });
+                        if (path.found) {
+                            this.committedTarget = { x: target.x, y: target.y };
+                            const reason = needsExhaustiveSearch ?
+                                `exhaustive search (no stairs found, turn ${this.turnNumber})` :
+                                `force-exploring toward (${target.x},${target.y})`;
+                            return this._followPath(path, 'explore', reason);
+                        }
+                    }
+                }
+
+                // If exhaustive search needed and frontier empty, search for secret doors
+                if (needsExhaustiveSearch && frontier.length === 0) {
+                    const dirs = [
+                        { dx: 0, dy: -1 }, { dx: -1, dy: 0 }, { dx: 1, dy: 0 }, { dx: 0, dy: 1 },
+                        { dx: -1, dy: -1 }, { dx: 1, dy: -1 }, { dx: -1, dy: 1 }, { dx: 1, dy: 1 },
+                    ];
+
+                    for (const dir of dirs) {
+                        const nx = px + dir.dx, ny = py + dir.dy;
+                        const cell = level.at(nx, ny);
+                        if (cell && cell.type === 'wall' && cell.searched < 5) {
+                            if (currentCell) currentCell.searched++;
+                            return { type: 'search', key: 's', reason: 'searching walls for secret doors (no stairs found)' };
+                        }
+                    }
                 }
             }
 
-            // Force explore with allowUnexplored to reach frontier through unexplored territory
-            const frontier = level.getExplorationFrontier();
-            if (frontier.length > 0) {
-                for (const target of frontier.slice(0, 20)) {
-                    const tKey = target.y * 80 + target.x;
-                    if (this.failedTargets.has(tKey)) continue;
-                    const path = findPath(level, px, py, target.x, target.y, { allowUnexplored: true });
-                    if (path.found) {
-                        this.committedTarget = { x: target.x, y: target.y };
-                        return this._followPath(path, 'explore', `force-exploring toward (${target.x},${target.y})`);
+            // If we're totally stuck (same position for many turns), be more aggressive
+            if (totallyStuck) {
+                // Try multiple random directions until we find a walkable one
+                const level = this.dungeon.currentLevel;
+                const dirs = ['h', 'j', 'k', 'l', 'y', 'u', 'b', 'n'];
+                // Shuffle directions for variety
+                for (let i = dirs.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [dirs[i], dirs[j]] = [dirs[j], dirs[i]];
+                }
+                // Try each direction and pick first that looks walkable
+                for (const dir of dirs) {
+                    const delta = directionDelta(dir);
+                    if (delta) {
+                        const nx = px + delta.dx, ny = py + delta.dy;
+                        const cell = level.at(nx, ny);
+                        if (cell && cell.walkable !== false) {
+                            return { type: 'random_move', key: dir, reason: `totally stuck, trying ${dir}` };
+                        }
                     }
                 }
             }

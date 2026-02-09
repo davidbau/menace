@@ -165,5 +165,5 @@ export function generate() {
     des.object({ id: 'amethyst', x: 47, y: 13 });
     des.object({ id: 'amethyst', x: 48, y: 13 });
 
-    finalize_level();
+    return finalize_level();
 }
