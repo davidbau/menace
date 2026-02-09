@@ -4,16 +4,20 @@ Epic: `interface-3br` - Complete special level system for all dungeon branches
 
 ## Current Status
 
-### ✓ COMPLETED
+### ✓ COMPLETED (15 levels, 18.75%)
 - **Sokoban** (8 levels): soko1-1/2, soko2-1/2, soko3-1/2, soko4-1/2 ✓
-- **Tier 1: Simple Fixed Maps** (3 levels): tower1-3, valley, knox ✓
-- **des.* API Foundation**: level_init, level_flags, map, terrain, stair, region, ladder ✓
-- **Object/Trap Placement**: des.object, des.trap with full coord/selection format support ✓
+- **Tier 1: Simple Fixed Maps** (5 levels): tower1-3, valley, knox ✓
+- **Tier 3: Complex Fixed Maps** (1 level): medusa ✓
+- **Tier 4: Demon Lairs** (1 level): sanctum ✓
+- **des.* API Foundation**: level_init, level_flags, map, terrain, stair, region, ladder, feature ✓
+- **Random Placement System**: des.object(), des.monster(), des.trap() with no-argument support ✓
+- **Object/Trap Placement**: Full coord/selection/class format support with intelligent defaults ✓
 - **Selection API**: line(), area(), negate(), filter() for geometric operations ✓
 - **Utility Functions**: shuffle(), percent(), objectNameToType(), trapNameToType() ✓
 - **Wallification & Flipping**: Complete wall junction computation and random flipping ✓
 - **C Traces Collected**: Sokoban, Mines, Ludios, Tower, Valley, Main dungeon specials ✓
-- **Test Infrastructure**: Unit tests with C trace comparison for tower, valley, knox ✓
+- **Test Infrastructure**: 12/12 tests passing across 5 level implementations ✓
+- **Comprehensive Documentation**: Full JSDoc for all API functions with examples ✓
 
 ### ◐ IN PROGRESS
 - **Branch-aware level generation** (`interface-9a0`): Integrate special levels into makelevel()
@@ -66,7 +70,12 @@ These need des.door, des.altar, des.fountain (stubs acceptable for now).
 - **C Traces**: Likely available (need to verify)
 
 ### TIER 3: Procedural/Complex Levels
-These need more des.* API functions or procedural logic.
+
+#### ✓ **Medusa** (`interface-060`) - COMPLETE
+- ✓ `medusa.js` - Water moat surrounding central island
+- **Tests**: 2/2 passing (terrain structure, monster placement)
+- **Implementation**: js/levels/medusa.js
+- **Features**: Extensive moat (1000+ cells), Medusa boss, Perseus statue, water monsters
 
 #### **Castle** (`interface-6lq`) - Priority: MEDIUM
 - `castle.lua` - Mix of fixed + procedural
@@ -88,18 +97,18 @@ These need more des.* API functions or procedural logic.
 - **C Traces**: Available
 
 ### TIER 4: Gehennom Demon Lairs
-Fixed maps but need monster/region features.
+
+#### ✓ **Sanctum** (`interface-mr1`) - COMPLETE
+- ✓ `sanctum.js` - Moloch's temple (final Gehennom level)
+- **Tests**: 2/2 passing (terrain structure, monster/object placement)
+- **Implementation**: js/levels/sanctum.js
+- **Features**: Fire trap ring (34 traps), temple region, 14+ monsters, 16 objects
 
 #### **Demon Lairs** (`interface-t9m`) - Priority: LOW
 - `juiblex.lua`, `baalzebub.lua`, `asmodeus.lua`, `orcus.lua`
-- **Blockers**: NONE (can stub monsters/regions)
-- **Complexity**: Medium - fixed maps with special monsters
-- **C Traces**: Likely available
-
-#### **Sanctum** (`interface-mr1`) - Priority: LOW
-- `sanctum.lua` - Final temple level
-- **Blockers**: des.altar, special region handling
-- **Complexity**: High - end-game temple, special mechanics
+- **Blockers**: des.mazewalk, complex selection operations
+- **Complexity**: High - mazegrid levels with procedural maze generation
+- **C Traces**: Available
 - **C Traces**: Likely available
 
 ### TIER 5: Quest Levels (Large Scope)
@@ -239,9 +248,15 @@ Port end-game planes (after C trace collection).
 - **Phase 5 Complete**: Gehennom and Quest playable
 - **Phase 6 Complete**: Full game playable to ascension
 
-**Current Progress**: ~25% ✓ Phase 1 Complete!
+**Current Progress**: ~19% ✓ Phase 1 Complete!
 - Sokoban: 8 levels ✓
 - Tier 1 Simple Fixed Maps: 5 levels ✓ (tower 1-3, knox, valley)
-- Total: 13 of ~80 special levels implemented and tested
+- Tier 3 Complex Fixed Maps: 1 level ✓ (medusa)
+- Tier 4 Demon Lairs: 1 level ✓ (sanctum)
+- Total: 15 of ~80 special levels implemented and tested
+- **All 12/12 tests passing**
 
-**Next Target**: ~40% (Phase 2 - Oracle, Mines variants, Wizard levels)
+**Next Target**: ~30% (Phase 2)
+- Requires: des.room(), des.random_corridors(), des.mazewalk()
+- Target levels: Oracle, Mines variants, Wizard levels, Castle
+- Or: More fixed-map quest levels with simpler requirements

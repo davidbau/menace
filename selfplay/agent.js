@@ -230,6 +230,31 @@ export class Agent {
             return false; // let _decide pick a new path
         }
 
+        // Detect secret door/corridor discoveries and prioritize exploring them
+        if (this.screen.message.includes('You find a hidden door!') ||
+            this.screen.message.includes('You find a hidden passage!')) {
+            // A secret was just revealed adjacent to our position
+            // Find all adjacent doors (newly revealed secrets)
+            const px = this.screen.playerX;
+            const py = this.screen.playerY;
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    if (dx === 0 && dy === 0) continue;
+                    const nx = px + dx;
+                    const ny = py + dy;
+                    const cell = this.dungeon.currentLevel.at(nx, ny);
+                    if (cell && (cell.type === 'door_closed' || cell.type === 'corridor')) {
+                        // Mark as a high-priority target
+                        if (!this.newlyRevealedDoors) this.newlyRevealedDoors = [];
+                        this.newlyRevealedDoors.push({ x: nx, y: ny, turn: this.turnNumber });
+                    }
+                }
+            }
+            // Reset stuck counters since we made progress
+            this.stuckCounter = 0;
+            this.levelStuckCounter = Math.max(0, this.levelStuckCounter - 20);
+        }
+
         return false;
     }
 
@@ -629,9 +654,52 @@ export class Agent {
                             this.failedTargets.add(tKey);
                         }
                     }
+                    // Also blacklist search candidates that we're stuck near
+                    const searchCandidates = level.getSearchCandidates();
+                    for (const cand of searchCandidates) {
+                        const dist = Math.max(Math.abs(cand.x - px), Math.abs(cand.y - py));
+                        if (dist <= 3) {
+                            const cKey = cand.y * 80 + cand.x;
+                            this.failedTargets.add(cKey);
+                        }
+                    }
                     // Reset stuck counter to try again with new targets
                     this.stuckCounter = 0;
                     this.levelStuckCounter = 0;
+                }
+            }
+        }
+
+        // 6.3. Prioritize exploring newly revealed secret doors/corridors
+        // When we find a secret, immediately path to it and explore beyond
+        if (this.newlyRevealedDoors && this.newlyRevealedDoors.length > 0) {
+            // Remove stale entries (older than 50 turns)
+            this.newlyRevealedDoors = this.newlyRevealedDoors.filter(d => this.turnNumber - d.turn < 50);
+
+            // Try to path to the nearest revealed door
+            for (const door of this.newlyRevealedDoors) {
+                const path = findPath(level, px, py, door.x, door.y, { allowUnexplored: false });
+                if (path.found) {
+                    // If we're at the door, move through it to explore beyond
+                    if (px === door.x && py === door.y) {
+                        // Remove this door from the list
+                        this.newlyRevealedDoors = this.newlyRevealedDoors.filter(d => d.x !== door.x || d.y !== door.y);
+                        // Find the best direction to explore through the door
+                        const frontier = level.getExplorationFrontier();
+                        if (frontier.length > 0) {
+                            // Path to nearest frontier beyond the door
+                            const nearestFrontier = frontier[0];
+                            const path2 = findPath(level, px, py, nearestFrontier.x, nearestFrontier.y, { allowUnexplored: true });
+                            if (path2.found) {
+                                return this._followPath(path2, 'explore', `exploring beyond revealed door at (${door.x},${door.y})`);
+                            }
+                        }
+                        // If no frontier, just continue normal exploration
+                        this.newlyRevealedDoors = this.newlyRevealedDoors.filter(d => d.x !== door.x || d.y !== door.y);
+                    } else {
+                        // Path to the door
+                        return this._followPath(path, 'navigate', `heading to newly revealed door at (${door.x},${door.y})`);
+                    }
                 }
             }
         }
@@ -641,8 +709,9 @@ export class Agent {
         // search walls to reveal secret doors/corridors
         // Search probability is 1/7, so search each location up to 20 times for ~95% success rate
         const frontierSmall = level.getExplorationFrontier().length < 30;
+        const exploredPercent = level.exploredCount / (80 * 21);
         const shouldSearch = level.stairsDown.length === 0 && this.turnNumber > 60 &&
-            (this.levelStuckCounter > 15 || (frontierSmall && this.turnNumber > 100));
+            (this.levelStuckCounter > 15 || (frontierSmall && exploredPercent > 0.10) || this.turnNumber > 200);
         if (shouldSearch) {
             const searchCandidates = level.getSearchCandidates();
             // Filter to candidates that haven't been heavily searched yet
@@ -651,6 +720,11 @@ export class Agent {
             if (unsearchedCandidates.length > 0) {
                 // Try to path to the nearest unsearched candidate
                 for (const candidate of unsearchedCandidates.slice(0, 10)) {
+                    const candKey = candidate.y * 80 + candidate.x;
+
+                    // Skip if we've been trying to reach this candidate for too long
+                    if (this.failedTargets && this.failedTargets.has(candKey)) continue;
+
                     const path = findPath(level, px, py, candidate.x, candidate.y, { allowUnexplored: false });
                     if (path.found) {
                         // If we're at the candidate, search it
