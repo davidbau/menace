@@ -1742,54 +1742,17 @@ export class Agent {
         }
 
         // No frontier found - need to expand vision by moving toward unexplored areas
-        if (exploredPercent < 0.50 && frontier.length === 0) {
-            console.log(`[EXPAND-VISION] No frontier, coverage ${Math.round(exploredPercent*100)}% - trying to break out of room`);
+        // ULTRA-SIMPLE approach: Just walk in cardinal directions to reveal more map
+        if (exploredPercent < 0.30 && frontier.length === 0) {
+            // Cycle through directions every 30 turns: N, E, S, W
+            const dirCycle = Math.floor(this.turnNumber / 30) % 4;
+            const directions = ['k', 'l', 'j', 'h']; // north, east, south, west
+            const dirNames = ['north', 'east', 'south', 'west'];
+            const key = directions[dirCycle];
+            const name = dirNames[dirCycle];
 
-            // Strategy: Try to move in a direction that has unexplored cells nearby
-            // Count unexplored cells in each direction
-            const directions = [
-                { dx: 0, dy: -1, key: 'k', name: 'north' },
-                { dx: 0, dy: 1, key: 'j', name: 'south' },
-                { dx: -1, dy: 0, key: 'h', name: 'west' },
-                { dx: 1, dy: 0, key: 'l', name: 'east' },
-            ];
-
-            let bestDir = null;
-            let bestScore = -1;
-
-            for (const dir of directions) {
-                const nx = px + dir.dx;
-                const ny = py + dir.dy;
-                const ncell = level.at(nx, ny);
-
-                // Skip if out of bounds or definitely a wall
-                if (!ncell || (ncell.explored && !ncell.walkable)) continue;
-
-                // Count unexplored cells in a 5x5 area in this direction
-                let unexploredCount = 0;
-                for (let dy = -2; dy <= 2; dy++) {
-                    for (let dx = -2; dx <= 2; dx++) {
-                        const tx = nx + dx;
-                        const ty = ny + dy;
-                        const tcell = level.at(tx, ty);
-                        if (!tcell || !tcell.explored) {
-                            unexploredCount++;
-                        }
-                    }
-                }
-
-                if (unexploredCount > bestScore) {
-                    bestScore = unexploredCount;
-                    bestDir = dir;
-                }
-            }
-
-            if (bestDir) {
-                console.log(`[EXPAND-VISION] Moving ${bestDir.name} toward unexplored area (score=${bestScore})`);
-                return { type: 'explore', key: bestDir.key, reason: `expanding vision ${bestDir.name} - ${Math.round(exploredPercent*100)}% coverage` };
-            } else {
-                console.log(`[EXPAND-VISION] All directions blocked!`);
-            }
+            console.log(`[EXPAND-VISION] Walking ${name} to reveal map (coverage ${Math.round(exploredPercent*100)}%, cycle=${dirCycle})`);
+            return { type: 'explore', key, reason: `walking ${name} to expand vision - ${Math.round(exploredPercent*100)}% coverage` };
         }
 
         return null;
