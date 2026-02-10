@@ -2388,3 +2388,27 @@ time=2026-02-09T19:54:23.271-05:00 level=INFO msg="   Consider running 'bd sync'
 time=2026-02-09T19:54:23.774-05:00 level=INFO msg="Pulled from remote"
 time=2026-02-09T19:54:23.774-05:00 level=INFO msg="🔍 Checking JSONL content hash AFTER pull (fix: auto-pull-not-pulling)"
 time=2026-02-09T19:54:23.776-05:00 level=INFO msg="Skipping: JSONL content unchanged" mode=auto-import
+time=2026-02-09T20:09:43.334-05:00 level=INFO msg="Git ref change detected" path=/share/u/davidbau/git/mazesofmenace/.git/refs/heads/main.lock
+time=2026-02-09T20:09:44.336-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T20:09:44.339-05:00 level=INFO msg="Starting auto-import" mode=auto-import
+time=2026-02-09T20:09:45.123-05:00 level=INFO msg="File change detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T20:09:45.123-05:00 level=INFO msg="JSONL removed/renamed, re-establishing watch"
+time=2026-02-09T20:09:45.157-05:00 level=INFO msg="Pull failed" error="git pull failed: exit status 1\nFrom github.com:davidbau/webhack\n * branch            main       -> FETCH_HEAD\n   abc78d3..c65d611  main       -> origin/main\nRemoving js/levels/workshop.js\nRemoving js/levels/water.js\nRemoving js/levels/volcano.js\nRemoving js/levels/vault.js\nRemoving js/levels/throne.js\nRemoving js/levels/temple.js\nRemoving js/levels/swamp.js\nRemoving js/levels/stronghold.js\nRemoving js/levels/spider_nest.js\nRemoving js/levels/sewers.js\nRemoving js/levels/sanctum2.js\nRemoving js/levels/ruins.js\nRemoving js/levels/quarry.js\nRemoving js/levels/prison.js\nRemoving js/levels/pillars.js\nRemoving js/levels/observatory.js\nRemoving js/levels/oasis.js\nRemoving js/levels/necropolis.js\nRemoving js/levels/mines.js\nRemoving js/levels/menagerie.js\nRemoving js/levels/maze2.js\nRemoving js/levels/library.js\nRemoving js/levels/lava.js\nRemoving js/levels/laboratory.js\nRemoving js/levels/ice.js\nRemoving js/levels/hedgemaze.js\nRemoving js/levels/graveyard.js\nRemoving js/levels/glacier.js\nRemoving js/levels/garden.js\nRemoving js/levels/fungus.js\nRemoving js/levels/foundry.js\nRemoving js/levels/forest.js\nRemoving js/levels/dragon_lair.js\nRemoving js/levels/desert.js\nRemoving js/levels/crystal.js\nRemoving js/levels/crypt.js\nRemoving js/levels/coral.js\nRemoving js/levels/colosseum.js\nRemoving js/levels/clouds.js\nRemoving js/levels/chasm.js\nRemoving js/levels/cavern2.js\nRemoving js/levels/cavern.js\nRemoving js/levels/cathedral.js\nRemoving js/levels/beehive.js\nRemoving js/levels/bazaar.js\nRemoving js/levels/barracks.js\nRemoving js/levels/armory.js\nRemoving js/levels/arena.js\nRemoving js/levels/anthill.js\nRemoving js/levels/abyss.js\nAuto-merging .beads/issues.jsonl\nCONFLICT (content): Merge conflict in .beads/issues.jsonl\nAutomatic merge failed; fix conflicts and then commit the result.\n" backoff=1m0s
+time=2026-02-09T20:09:45.174-05:00 level=INFO msg="Successfully re-established JSONL watch" delay=50ms
+time=2026-02-09T20:09:45.174-05:00 level=INFO msg="JSONL file created" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T20:09:46.175-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T20:09:46.180-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import
+time=2026-02-09T20:09:46.768-05:00 level=INFO msg="JSONL file created" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T20:09:46.768-05:00 level=INFO msg="File change detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T20:09:47.770-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T20:09:47.779-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import
+time=2026-02-09T20:09:58.997-05:00 level=INFO msg="JSONL file created" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T20:09:58.997-05:00 level=INFO msg="File change detected" path=/share/u/davidbau/git/mazesofmenace/.beads/issues.jsonl
+time=2026-02-09T20:09:59.999-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T20:10:00.015-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import
+time=2026-02-09T20:10:00.583-05:00 level=INFO msg="Git ref change detected" path=/share/u/davidbau/git/mazesofmenace/.git/refs/heads/main.lock
+time=2026-02-09T20:10:01.585-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T20:10:01.588-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import
+time=2026-02-09T20:10:04.595-05:00 level=INFO msg="Git ref change detected" path=/share/u/davidbau/git/mazesofmenace/.git/refs/heads/main.lock
+time=2026-02-09T20:10:05.596-05:00 level=INFO msg="Import triggered by file change"
+time=2026-02-09T20:10:05.600-05:00 level=INFO msg="Skipping: in backoff period" mode=auto-import

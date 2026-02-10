@@ -3190,34 +3190,16 @@ export function makelevel(depth, dnum, dlevel) {
     // C ref: mklev.c:1367-1376 — place_branch()
     // At depth 1: branch exists (entry from surface), place branch stairs
     if (depth === 1) {
-        // C ref: mklev.c:1658 find_branch_room
-        // Selects an existing room, then calls somexyspace to verify it has space
+        // C ref: find_branch_room → somexyspace
+        // NOTE: Despite C having rn2(5) after find_branch_room, analysis shows
+        // C actually has 5 rooms total, same as JS should have after 5 build_room successes.
+        // The rn2(5) is for the bonus item room selection, not room count.
+        // So DON'T create an extra branch room - just call somexyspace for RNG alignment.
         const candidateRoom = generate_stairs_find_room(map);
         if (candidateRoom) {
-            // C's find_branch_room calls somexyspace which consumes RNG
+            // Call somexyspace to match C's RNG consumption
             const pos = somexyspace(map, candidateRoom);
-            // C's find_branch_room creates a new room entry, incrementing nroom
-            // This happens WITHOUT an rn2(100) build check
-            // Create a minimal branch room structure around the stair location
             if (pos) {
-                // Add a small branch room (2x2 area around the stairs)
-                const branchRoom = {
-                    lx: Math.max(1, pos.x - 1),
-                    hx: Math.min(COLNO - 2, pos.x + 1),
-                    ly: Math.max(0, pos.y - 1),
-                    hy: Math.min(ROWNO - 1, pos.y + 1),
-                    rtype: OROOM,
-                    needjoining: false,
-                    needfill: 0,
-                    nsubrooms: 0,
-                    sbrooms: []
-                };
-
-                // Add to map.rooms array at the next available index
-                map.rooms.push(branchRoom);
-                map.nroom = (map.nroom || 0) + 1;
-
-                // Place stairs in the new branch room
                 const loc = map.at(pos.x, pos.y);
                 if (loc) {
                     loc.typ = STAIRS;
