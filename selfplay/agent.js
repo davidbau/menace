@@ -7,7 +7,7 @@
 import { parseScreen, findMonsters, findStairs } from './perception/screen_parser.js';
 import { parseStatus } from './perception/status_parser.js';
 import { DungeonTracker } from './perception/map_tracker.js';
-import { findPath, findExplorationTarget, findNearest, directionKey, directionDelta, analyzeCorridorPosition } from './brain/pathing.js';
+import { findPath, findExplorationTarget, findNearest, directionKey, directionDelta } from './brain/pathing.js';
 import { shouldEngageMonster, getMonsterName, countNearbyMonsters, assessMonsterDanger, DangerLevel } from './brain/danger.js';
 import { InventoryTracker } from './brain/inventory.js';
 import { PrayerTracker } from './brain/prayer.js';
@@ -81,10 +81,6 @@ export class Agent {
         this.secretDoorSearch = null; // {position: {x,y}, searchesNeeded: 20, searchesDone: 0, wallCandidates: []}
 
         // Corridor following state
-        this.corridorFollowing = false; // true when actively following a corridor
-        this.corridorDirection = null; // direction key for corridor following
-        this.corridorStartPos = null; // {x, y} where we entered the corridor
-
         // Combat oscillation detection
         this.combatPositions = []; // last 8 positions during combat: [{x, y, turn}, ...]
         this.oscillationHoldTurns = 0; // remaining turns to hold position when oscillation detected
@@ -218,9 +214,6 @@ export class Agent {
                     this.committedPath = null;
                     this.failedTargets.clear();
                     this.consecutiveFailedMoves = 0;
-                    this.corridorFollowing = false;
-                    this.corridorDirection = null;
-                    this.corridorStartPos = null;
                 }
             }
 
@@ -722,8 +715,7 @@ export class Agent {
             // Assess location safety for resting
             const onStairs = level.stairsUp.some(s => s.x === px && s.y === py) ||
                            level.stairsDown.some(s => s.x === px && s.y === py);
-            const corridorAnalysis = analyzeCorridorPosition(level, px, py);
-            const inCorridor = corridorAnalysis.inCorridor;
+            const inCorridor = false; // Corridor following removed due to exploration regression
 
             // Safe locations get extended rest time:
             // - On stairs: safest (can escape quickly)
@@ -913,8 +905,7 @@ export class Agent {
             const nearbyCount = countNearbyMonsters(nearbyMonsters, px, py, 3) - 1; // -1 to exclude adjacent monster
 
             // Check if we're in a corridor (tactical advantage)
-            const corridorAnalysis = analyzeCorridorPosition(level, px, py);
-            const inCorridor = corridorAnalysis.inCorridor;
+            const inCorridor = false; // Corridor following removed due to exploration regression
 
             const engagement = shouldEngageMonster(
                 adjacentMonster.ch,
@@ -972,39 +963,6 @@ export class Agent {
         }
 
         // 4b. Corridor following - commit to following corridors to completion
-        // Corridors connect rooms and often lead to important features
-        const corridorAnalysis = analyzeCorridorPosition(level, px, py);
-
-        // If we're in a corridor and not currently following one, start following
-        if (corridorAnalysis.inCorridor && !corridorAnalysis.endReached && !this.corridorFollowing) {
-            this.corridorFollowing = true;
-            this.corridorDirection = corridorAnalysis.direction;
-            this.corridorStartPos = { x: px, y: py };
-            console.log(`[CORRIDOR] Starting to follow corridor from (${px},${py}) direction=${corridorAnalysis.direction}`);
-        }
-
-        // If we're following a corridor, continue in that direction
-        if (this.corridorFollowing) {
-            if (corridorAnalysis.endReached) {
-                // Corridor ended - reached room or dead-end
-                console.log(`[CORRIDOR] Reached end of corridor at (${px},${py})`);
-                this.corridorFollowing = false;
-                this.corridorDirection = null;
-                this.corridorStartPos = null;
-            } else if (corridorAnalysis.inCorridor && corridorAnalysis.direction) {
-                // Continue following the corridor
-                const dir = corridorAnalysis.direction;
-                console.log(`[CORRIDOR] Continuing corridor from (${px},${py}) in direction ${dir}`);
-                return { type: 'corridor', key: dir, reason: 'following corridor' };
-            } else if (!corridorAnalysis.inCorridor) {
-                // Left the corridor (reached a room)
-                console.log(`[CORRIDOR] Exited corridor at (${px},${py}) into room`);
-                this.corridorFollowing = false;
-                this.corridorDirection = null;
-                this.corridorStartPos = null;
-            }
-        }
-
         // --- Strategic movement ---
 
         // 5. If on downstairs, evaluate whether it's safe to descend
