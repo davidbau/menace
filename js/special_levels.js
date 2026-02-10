@@ -86,6 +86,12 @@ import { generate as generateQuarry } from './levels/quarry.js';
 import { generate as generateSpiderNest } from './levels/spider_nest.js';
 import { generate as generateBazaar } from './levels/bazaar.js';
 import { generate as generateArmory } from './levels/armory.js';
+import { generate as generateColosseum } from './levels/colosseum.js';
+import { generate as generateObservatory } from './levels/observatory.js';
+import { generate as generateSewers } from './levels/sewers.js';
+import { generate as generateBeehive } from './levels/beehive.js';
+import { generate as generateFoundry } from './levels/foundry.js';
+import { generate as generateSanctum2 } from './levels/sanctum2.js';
 
 // Sokoban levels
 import { generate as generateSoko1a } from './levels/soko1-1.js';
@@ -284,6 +290,12 @@ registerSpecialLevel(DUNGEONS_OF_DOOM, 59, generateQuarry, 'quarry');
 registerSpecialLevel(DUNGEONS_OF_DOOM, 60, generateSpiderNest, 'spider_nest');
 registerSpecialLevel(DUNGEONS_OF_DOOM, 61, generateBazaar, 'bazaar');
 registerSpecialLevel(DUNGEONS_OF_DOOM, 62, generateArmory, 'armory');
+registerSpecialLevel(DUNGEONS_OF_DOOM, 63, generateColosseum, 'colosseum');
+registerSpecialLevel(DUNGEONS_OF_DOOM, 64, generateObservatory, 'observatory');
+registerSpecialLevel(DUNGEONS_OF_DOOM, 65, generateSewers, 'sewers');
+registerSpecialLevel(DUNGEONS_OF_DOOM, 66, generateBeehive, 'beehive');
+registerSpecialLevel(DUNGEONS_OF_DOOM, 67, generateFoundry, 'foundry');
+registerSpecialLevel(DUNGEONS_OF_DOOM, 68, generateSanctum2, 'sanctum2');
 
 /**
  * Get list of all registered special levels
