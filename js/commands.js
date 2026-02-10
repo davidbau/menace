@@ -225,6 +225,35 @@ export async function rhack(ch, game) {
         return await handleExtendedCommand(game);
     }
 
+    // Travel command (_)
+    // C ref: cmd.c dotravel()
+    if (c === '_') {
+        return await handleTravel(game);
+    }
+
+    // Retravel (Ctrl+_)
+    // C ref: cmd.c dotravel_target()
+    if (ch === 31) { // Ctrl+_ (ASCII 31)
+        if (game.travelX !== undefined && game.travelY !== undefined) {
+            const path = findPath(map, player.x, player.y, game.travelX, game.travelY);
+            if (!path) {
+                display.putstr_message('No path to previous destination.');
+                return { moved: false, tookTime: false };
+            }
+            if (path.length === 0) {
+                display.putstr_message('You are already there.');
+                return { moved: false, tookTime: false };
+            }
+            game.travelPath = path;
+            game.travelStep = 0;
+            display.putstr_message(`Traveling... (${path.length} steps)`);
+            return executeTravelStep(game);
+        } else {
+            display.putstr_message('No previous travel destination.');
+            return { moved: false, tookTime: false };
+        }
+    }
+
     // Wizard mode: Ctrl+V = #levelchange
     // C ref: cmd.c wiz_level_change()
     if (ch === 22 && game.wizard) {
@@ -1796,4 +1825,142 @@ async function wizGenesis(game) {
         display.putstr_message('There is no room near you to create a monster.');
     }
     return { moved: false, tookTime: false };
+}
+
+// BFS pathfinding for travel command
+// C ref: cmd.c dotravel() -> hack.c findtravelpath()
+function findPath(map, startX, startY, endX, endY) {
+    if (!isok(endX, endY)) return null;
+    if (startX === endX && startY === endY) return [];
+
+    const queue = [[startX, startY, []]];
+    const visited = new Set();
+    visited.add(`${startX},${startY}`);
+
+    while (queue.length > 0) {
+        const [x, y, path] = queue.shift();
+
+        // Check all 8 directions
+        for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0], [-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+            const nx = x + dx;
+            const ny = y + dy;
+
+            if (nx === endX && ny === endY) {
+                return [...path, [dx, dy]];
+            }
+
+            const key = `${nx},${ny}`;
+            if (visited.has(key)) continue;
+            if (!isok(nx, ny)) continue;
+
+            const loc = map.at(nx, ny);
+            if (!loc || !ACCESSIBLE(loc.typ)) continue;
+
+            visited.add(key);
+            queue.push([nx, ny, [...path, [dx, dy]]]);
+        }
+
+        // Limit search to prevent infinite loops
+        if (visited.size > 500) return null;
+    }
+
+    return null; // No path found
+}
+
+// Handle travel command (_)
+// C ref: cmd.c dotravel()
+async function handleTravel(game) {
+    const { player, map, display } = game;
+
+    display.putstr_message('Where do you want to travel to? (use arrow keys, then .)');
+
+    // Simple cursor-based destination selection
+    let cursorX = player.x;
+    let cursorY = player.y;
+
+    while (true) {
+        // Render map with cursor
+        display.renderMap(map, player, game.fov, game.flags);
+        // Show cursor at target location (we'll just use a simple marker)
+        const row = cursorY + (game.flags.msg_window ? 3 : 1);
+        const oldCell = display.grid[row][cursorX];
+        display.setCell(cursorX, row, 'X', 14); // White X for cursor
+        display.render();
+
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+
+        // Restore cell
+        display.setCell(cursorX, row, oldCell.ch, oldCell.color);
+
+        // Handle cursor movement
+        if (c === 'h' && cursorX > 0) cursorX--;
+        else if (c === 'l' && cursorX < COLNO - 1) cursorX++;
+        else if (c === 'k' && cursorY > 0) cursorY--;
+        else if (c === 'j' && cursorY < ROWNO - 1) cursorY++;
+        else if (c === 'y' && cursorX > 0 && cursorY > 0) { cursorX--; cursorY--; }
+        else if (c === 'u' && cursorX < COLNO - 1 && cursorY > 0) { cursorX++; cursorY--; }
+        else if (c === 'b' && cursorX > 0 && cursorY < ROWNO - 1) { cursorX--; cursorY++; }
+        else if (c === 'n' && cursorX < COLNO - 1 && cursorY < ROWNO - 1) { cursorX++; cursorY++; }
+        else if (c === '.' || ch === 13) { // period or enter
+            // Confirm destination
+            break;
+        } else if (ch === 27) { // ESC
+            display.putstr_message('Travel cancelled.');
+            return { moved: false, tookTime: false };
+        }
+    }
+
+    // Store travel destination
+    game.travelX = cursorX;
+    game.travelY = cursorY;
+
+    // Find path
+    const path = findPath(map, player.x, player.y, cursorX, cursorY);
+    if (!path) {
+        display.putstr_message('No path to that location.');
+        return { moved: false, tookTime: false };
+    }
+
+    if (path.length === 0) {
+        display.putstr_message('You are already there.');
+        return { moved: false, tookTime: false };
+    }
+
+    // Start traveling
+    game.travelPath = path;
+    game.travelStep = 0;
+    display.putstr_message(`Traveling... (${path.length} steps)`);
+
+    // Execute first step
+    return executeTravelStep(game);
+}
+
+// Execute one step of travel
+// C ref: hack.c domove() with context.travel flag
+export function executeTravelStep(game) {
+    const { player, map, display } = game;
+
+    if (!game.travelPath || game.travelStep >= game.travelPath.length) {
+        // Travel complete
+        game.travelPath = null;
+        game.travelStep = 0;
+        display.putstr_message('You arrive at your destination.');
+        return { moved: false, tookTime: false };
+    }
+
+    const [dx, dy] = game.travelPath[game.travelStep];
+    game.travelStep++;
+
+    // Execute movement
+    const result = handleMovement([dx, dy], player, map, display, game);
+
+    // If movement failed, stop traveling
+    if (!result.moved) {
+        game.travelPath = null;
+        game.travelStep = 0;
+        display.putstr_message('Travel interrupted.');
+    }
+
+    return result;
 }

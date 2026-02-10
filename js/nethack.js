@@ -1150,6 +1150,29 @@ class NetHackGame {
                 continue;
             }
 
+            // Travel continuation - C ref: hack.c domove() with context.travel
+            if (this.travelPath && this.travelStep < this.travelPath.length) {
+                const { executeTravelStep } = await import('./commands.js');
+                const result = await executeTravelStep(this);
+
+                if (result.tookTime) {
+                    // Run turn effects
+                    settrack(this.player);
+                    movemon(this.map, this.player, this.display, this.fov);
+                    this.simulateTurnEnd();
+                    if (this.player.isDead) {
+                        this.gameOver = true;
+                        this.gameOverReason = 'killed';
+                        savebones(this);
+                    }
+                }
+
+                this.fov.compute(this.map, this.player.x, this.player.y);
+                this.display.renderMap(this.map, this.player, this.fov, this.flags);
+                this.display.renderStatus(this.player);
+                continue;
+            }
+
             let ch;
 
             // C ref: allmain.c:519-535 — multi-command repeat handling
