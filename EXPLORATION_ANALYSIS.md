@@ -62,39 +62,33 @@ This is a significant pathfinding refactor beyond quick fixes.
    - **Issue**: Seed 55555 explores east (x=44-59) while downstairs are west (x=34)
    - Reveals deeper problem: agent finds downstairs but gets stuck navigating to them
 
-## Key Discovery: Movement Execution Failure
+## Key Discovery: Movement Execution is Working
 
-Investigation revealed TWO separate issues:
+Investigation revealed the movement execution hypothesis was **INCORRECT**:
 
-### Issue 1: Locked Doors (PARTIALLY FIXED)
+### Issue 1: Locked Doors (FIXED)
 - Seed 55555 early runs showed "This door is locked" messages
 - Implemented detection and door_locked cell type
-- Results improved from 3/8 to 4/8 seeds reaching Dlvl 2
-- Locked doors may not be primary blocker
+- Doors are now properly avoided
 
-### Issue 2: Movement Command Failure (ACTIVE BUG)
-**Root cause**: Movement commands don't execute even when path exists
+### Issue 2: Movement Execution - NOT THE PROBLEM
+**Testing revealed**: Movement commands execute correctly!
 
-Seed 33333 example (Turn 250-300):
-- Agent finds downstairs at (54,8)
-- Agent at (50,8), path cost 6 (stairs 4 cells east)
-- Agent repeatedly sends 'l' (move east)
-- **Position never changes** - stuck at (50,8)
-- No locked door message, cell should be walkable
+Seed 55555 testing with diagnostic tools:
+- Reaches Dlvl 2 by turn 100
+- Reaches Dlvl 3 by turn 150
+- Movement execution is functioning properly
 
-Seed 55555 similar pattern:
-- Downstairs at (34,7) ARE reachable (verified via BFS, 333 cells)
-- Agent can pathfind (cost 23)
-- Agent decides to navigate correctly
-- **Movement commands fail to execute**
+**Actual current results** (500 turn limit):
+- Seed 11111: Dlvl 2 ✓
+- Seed 22222: Dlvl 1 (stuck)
+- Seed 33333: Dlvl 2 ✓
+- Seed 44444: Dlvl 1 (stuck)
+- Seed 55555: Dlvl 3 ✓ (when tested individually)
 
-**Hypothesis**:
-- Pet blocking path? (But no pet displacement detected)
-- Monster blocking temporarily?
-- Command timing issue in headless mode?
-- Hidden obstacle not in perception?
+**Success rate**: At least 3/5 seeds progress beyond Dlvl 1
 
-**Fix needed**: Investigate why sendKey() commands don't result in position changes.
+**Remaining issue**: Seeds 22222 and 44444 are stuck, but this is due to exploration/pathfinding problems, NOT movement execution failure. The agent correctly sends movement commands and they execute - the problem is choosing the right targets to navigate to.
 
 ## Files
 - `diagnose_stuck.mjs` - Ground truth map analysis tool

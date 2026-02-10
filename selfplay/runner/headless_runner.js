@@ -99,7 +99,7 @@ function buildInventoryLines(player) {
 /**
  * A headless game instance that mirrors NetHackGame but without DOM dependencies.
  */
-class HeadlessGame {
+export class HeadlessGame {
     constructor(seed, roleIndex = 11) { // default Valkyrie
         this.seed = seed;
         this.roleIndex = roleIndex;
@@ -441,7 +441,7 @@ class HeadlessGame {
 /**
  * Custom adapter for the headless game that drives it directly.
  */
-class HeadlessAdapter {
+export class HeadlessAdapter {
     constructor(game) {
         this.game = game;
         this._running = true;

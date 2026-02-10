@@ -174,13 +174,13 @@ export function rndmonst_adj(minadj, maxadj, depth) {
             }
 
             // DEBUG: Log actual rn2 call
-            if (depth === 3 && minadj === 0 && maxadj === 0 && iterCount < 5) {
-                console.log(`  -> Calling rn2(${totalweight})`);
-            }
+            // if (depth === 3 && minadj === 0 && maxadj === 0 && iterCount < 5) {
+            //     console.log(`  -> Calling rn2(${totalweight})`);
+            // }
             const roll = rn2(totalweight);
-            if (depth === 3 && minadj === 0 && maxadj === 0 && iterCount < 5) {
-                console.log(`  -> Result: ${roll}, weight=${weight}, selected=${roll < weight ? mndx : 'unchanged'}`);
-            }
+            // if (depth === 3 && minadj === 0 && maxadj === 0 && iterCount < 5) {
+            //     console.log(`  -> Result: ${roll}, weight=${weight}, selected=${roll < weight ? mndx : 'unchanged'}`);
+            // }
             if (roll < weight)
                 selected_mndx = mndx;
         }
