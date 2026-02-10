@@ -16,6 +16,7 @@
 import { GameMap } from './map.js';
 import { rn2, rnd } from './rng.js';
 import { mksobj, mkobj } from './mkobj.js';
+import { create_room } from './dungeon.js';
 import {
     STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
     CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL, ROOM, CORR,
@@ -82,6 +83,10 @@ let levelState = {
     ystart: 0,              // Map placement offset Y
     xsize: 0,               // Map fragment width
     ysize: 0,               // Map fragment height
+    // Room tracking (for nested rooms in special levels)
+    currentRoom: null,      // Current room being populated
+    roomStack: [],          // Stack of nested rooms
+    roomDepth: 0,           // Current nesting depth
 };
 
 // Special level flags
@@ -130,6 +135,9 @@ export function resetLevelState() {
         ystart: 0,
         xsize: 0,
         ysize: 0,
+        currentRoom: null,
+        roomStack: [],
+        roomDepth: 0,
     };
     icedpools = false;
     Sokoban = false;
@@ -790,6 +798,166 @@ function wallification(map) {
 }
 
 /**
+ * des.room(opts)
+ *
+ * Creates a room with optional nested subrooms and contents.
+ * C ref: sp_lev.c lspo_room()
+ *
+ * Options:
+ * - x, y: Room position (default: -1 for random)
+ * - w, h: Room size (default: -1 for automatic)
+ * - xalign, yalign: Alignment within parent ("left", "center", "right"/"top", "bottom"; default: "random")
+ * - type: Room type ("ordinary", "delphi", "temple", "shop", etc.; default: "ordinary")
+ * - lit: Lighting (1=lit, 0=dark, -1=random; default: -1)
+ * - filled: Whether room is filled with floor (default: 1)
+ * - joined: Whether room is joined to others via corridors (default: true)
+ * - chance: Percentage chance room is created (default: 100)
+ * - contents: Function to execute inside room context for placing features
+ *
+ * @param {Object} opts - Room options
+ * @returns {boolean} - True if room was created successfully
+ */
+export function room(opts = {}) {
+    if (!levelState.map) {
+        levelState.map = new GameMap();
+    }
+
+    // Parse alignment strings
+    const alignMap = {
+        'left': -1, 'half-left': -2, 'center': 0, 'half-right': 2, 'right': 1,
+        'top': -1, 'bottom': 1, 'random': -1
+    };
+
+    // Parse room type strings
+    const roomTypeMap = {
+        'ordinary': 0,  // OROOM
+        'themed': 1,    // THEMEROOM
+        'delphi': 9,    // DELPHI
+        'temple': 10,   // TEMPLE
+        'shop': 14,     // SHOPBASE
+        'tool shop': 14, 'candle shop': 14, 'wand shop': 14,
+        'food shop': 14, 'armor shop': 14, 'weapon shop': 14,
+    };
+
+    // Extract and normalize options
+    const x = opts.x ?? -1;
+    const y = opts.y ?? -1;
+    const w = opts.w ?? -1;
+    const h = opts.h ?? -1;
+    const xalign = alignMap[opts.xalign] ?? -1;
+    const yalign = alignMap[opts.yalign] ?? -1;
+    const type = opts.type ?? 'ordinary';
+    const rtype = roomTypeMap[type] ?? 0;
+    const lit = opts.lit ?? -1;
+    const filled = opts.filled ?? 1;
+    const chance = opts.chance ?? 100;
+    const contents = opts.contents;
+
+    // Check chance (e.g., shops may have chance < 100%)
+    if (chance < 100 && rn2(100) >= chance) {
+        return false;
+    }
+
+    // Validate x,y pair (both must be -1 or both must be specified)
+    if ((x === -1 || y === -1) && x !== y) {
+        console.error('Room must have both x and y, or neither');
+        return false;
+    }
+
+    // Validate w,h pair
+    if ((w === -1 || h === -1) && w !== h) {
+        console.error('Room must have both w and h, or neither');
+        return false;
+    }
+
+    // Check nesting depth (max 10 levels deep to prevent infinite recursion)
+    if (levelState.roomDepth > 10) {
+        console.error('Too deeply nested rooms');
+        return false;
+    }
+
+    // For special levels, we create rooms differently than procedural dungeons
+    // Special levels use fixed coordinates, not BSP rectangle selection
+    const DEBUG = process.env.DEBUG_ROOMS === '1';
+
+    if (DEBUG) {
+        console.log(`des.room(): x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, rtype=${rtype}, lit=${lit}`);
+    }
+
+    // Calculate actual room position and size
+    // If x, y are specified, use them directly (special level fixed position)
+    // If -1, would need random placement (not implemented yet)
+    let roomX, roomY, roomW, roomH;
+
+    if (x >= 0 && y >= 0 && w > 0 && h > 0) {
+        // Fixed position special level room
+        roomX = x;
+        roomY = y;
+        roomW = w;
+        roomH = h;
+    } else {
+        // Random placement would go here
+        // For now, create a small default room at 10,5
+        roomX = 10;
+        roomY = 5;
+        roomW = 5;
+        roomH = 3;
+    }
+
+    // Create room entry in map.rooms array
+    const room = {
+        lx: roomX,
+        ly: roomY,
+        hx: roomX + roomW - 1,
+        hy: roomY + roomH - 1,
+        rtype: rtype,
+        rlit: lit >= 0 ? lit : (rn2(2) === 1 ? 1 : 0),
+        irregular: false
+    };
+
+    // Mark floor tiles for the room
+    for (let ry = roomY; ry < roomY + roomH; ry++) {
+        for (let rx = roomX; rx < roomX + roomW; rx++) {
+            if (rx >= 0 && rx < COLNO && ry >= 0 && ry < ROWNO) {
+                levelState.map.locations[rx][ry].typ = ROOM;
+                levelState.map.locations[rx][ry].lit = room.rlit;
+            }
+        }
+    }
+
+    // Add room to map's room list
+    levelState.map.rooms.push(room);
+    levelState.map.nroom = levelState.map.rooms.length;
+
+    if (DEBUG) {
+        console.log(`des.room(): created room at (${roomX},${roomY}) size ${roomW}x${roomH}, map.nroom=${levelState.map.nroom}`);
+    }
+
+    // If room creation succeeded and there's a contents callback, execute it
+    if (contents && typeof contents === 'function') {
+        // Save current room state
+        const parentRoom = levelState.currentRoom;
+        levelState.roomStack.push(parentRoom);
+        levelState.roomDepth++;
+
+        // Set current room (for nested features to reference)
+        // TODO: Get actual room object from create_room return value
+        levelState.currentRoom = { x, y, w, h, rtype };
+
+        try {
+            // Execute contents callback
+            contents();
+        } finally {
+            // Restore parent room state
+            levelState.currentRoom = levelState.roomStack.pop();
+            levelState.roomDepth--;
+        }
+    }
+
+    return true;
+}
+
+/**
  * des.stair(direction, x, y)
  *
  * Place a staircase at the specified location.
@@ -1395,24 +1563,51 @@ export function monster(opts_or_class, x, y) {
  * @param {number} y - Y coordinate
  */
 /**
- * des.door(state, x, y)
+ * des.door(state_or_opts, x, y)
  * Place a door at a location with specified state.
+ * Can be called as:
+ * - des.door("open", x, y) - place door at specific location
+ * - des.door({ state: "nodoor", wall: "all" }) - place doors on room walls
+ *
  * C ref: sp_lev.c lspo_door()
  *
- * @param {string} state - Door state: "open", "closed", "locked", "nodoor", "broken", "secret", "random"
- * @param {number} x - X coordinate
- * @param {number} y - Y coordinate
+ * @param {string|Object} state_or_opts - Door state string OR options object
+ * @param {number} x - X coordinate (if first param is string)
+ * @param {number} y - Y coordinate (if first param is string)
  */
-export function door(state, x, y) {
+export function door(state_or_opts, x, y) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
 
-    if (x < 0 || x >= 80 || y < 0 || y >= 21) {
-        return; // Out of bounds
+    let state, doorX, doorY, wall;
+
+    // Handle both calling styles
+    if (typeof state_or_opts === 'object') {
+        // Options object style: des.door({ state: "nodoor", wall: "all" })
+        state = state_or_opts.state || 'closed';
+        wall = state_or_opts.wall;
+        doorX = state_or_opts.x ?? -1;
+        doorY = state_or_opts.y ?? -1;
+
+        // If wall is specified, place doors on room walls
+        if (wall && levelState.currentRoom) {
+            placeDoorOnWall(levelState.currentRoom, state, wall);
+            return;
+        }
+    } else {
+        // String style: des.door("open", x, y)
+        state = state_or_opts;
+        doorX = x;
+        doorY = y;
     }
 
-    const loc = levelState.map.locations[x][y];
+    // Validate coordinates
+    if (doorX < 0 || doorX >= COLNO || doorY < 0 || doorY >= ROWNO) {
+        return; // Out of bounds or unspecified
+    }
+
+    const loc = levelState.map.locations[doorX][doorY];
 
     // Map state string to door flags
     // C ref: sp_lev.c doorstates2i[]
@@ -1448,6 +1643,27 @@ export function door(state, x, y) {
     // Set terrain type and flags
     loc.typ = DOOR;
     loc.flags = doorFlags;
+}
+
+/**
+ * Helper: Place doors on room walls
+ * @param {Object} room - Room object with lx, ly, hx, hy
+ * @param {string} state - Door state
+ * @param {string} wall - Which walls ("north", "south", "east", "west", "all", "random")
+ */
+function placeDoorOnWall(room, state, wall) {
+    // For "nodoor" state with "all" walls, this typically means
+    // the room should have no doors (open passages). In C this is
+    // handled by setting NODOOR flag. For special levels, we just skip
+    // creating actual door terrain.
+    if (state === 'nodoor') {
+        // No doors to place - subrooms in special levels often have nodoor
+        // to create open passages
+        return;
+    }
+
+    // TODO: Implement actual door placement on walls for other states
+    // This would place doors at random or specific positions on the specified walls
 }
 
 /**
@@ -1543,6 +1759,26 @@ export function feature(type, x, y) {
 export function teleport_region(opts) {
     // Stub - would mark region for teleportation behavior
     // For now, just ignore
+}
+
+/**
+ * des.random_corridors()
+ *
+ * Generate random corridors connecting rooms.
+ * C ref: sp_lev.c (called as part of level finalization)
+ *
+ * This is a stub implementation - in the full version, this would:
+ * - Connect all rooms using corridors
+ * - Use RNG to determine corridor paths
+ * - Add doors at corridor/room junctions
+ *
+ * For now, we skip corridor generation for special levels that explicitly
+ * place their own layout. Most special levels use des.map() anyway.
+ */
+export function random_corridors() {
+    // Stub - special levels typically use pre-mapped layouts
+    // Random corridor generation is complex and not needed for basic level testing
+    // TODO: Implement full corridor generation algorithm from C mklev.c join_rooms()
 }
 
 /**
