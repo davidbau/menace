@@ -109,9 +109,6 @@ export function generate() {
     des.monster({ id: "fire giant", x: 18, y: 1, peaceful: 0 });
     des.monster({ id: "fire giant", x: 10, y: 16, peaceful: 0 });
 
-
-
-    }
     return des.finalize_level();
 }
 
