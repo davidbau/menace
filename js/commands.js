@@ -445,6 +445,10 @@ function handleMovement(dir, player, map, display, game) {
     player.y = ny;
     player.moved = true;
 
+    // Save nopick state before clearing prefix flags
+    // C ref: cmd.c sets context.nopick based on iflags.menu_requested
+    const nopick = game.menuRequested;
+
     // Clear prefix flags after successful movement
     game.menuRequested = false;
     game.forceFight = false;
@@ -464,9 +468,24 @@ function handleMovement(dir, player, map, display, game) {
         // TODO: implement other trap effects (fire, pit, etc.) with RNG
     }
 
-    // Show what's here (no auto-pickup; C NetHack 3.7 requires explicit pickup)
+    // Autopickup — C ref: hack.c:3265 pickup(1)
+    // C ref: pickup.c pickup() checks flags.pickup && !context.nopick
     const objs = map.objectsAt(nx, ny);
-    if (objs.length > 0) {
+    let pickedUp = false;
+    if (game.flags.pickup && !nopick && objs.length > 0) {
+        // Pick up first non-gold item
+        const obj = objs.find(o => o.oclass !== 11); // not gold
+        if (obj) {
+            player.addToInventory(obj);
+            map.removeObject(obj);
+            display.putstr_message(`${obj.invlet} - ${obj.name}.`);
+            pickedUp = true;
+        }
+    }
+
+    // Show what's here if autopickup didn't happen
+    // C ref: hack.c prints "You see here" only if nothing was picked up
+    if (!pickedUp && objs.length > 0) {
         if (objs.length === 1) {
             display.putstr_message(`You see here ${objs[0].name}.`);
         } else {
