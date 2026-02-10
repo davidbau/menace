@@ -1,0 +1,15 @@
+diff --git a/win/tty/termcap.c b/win/tty/termcap.c
+index abcd1234..efgh5678 100644
+--- a/win/tty/termcap.c
++++ b/win/tty/termcap.c
+@@ -500,6 +500,10 @@ cmov(int x, int y)
+ void
+ tty_delay_output(void)
+ {
++#ifdef ANIMATION_TRACE
++    extern void log_animation_event(const char *, int, int, int, int);
++    log_animation_event("delay_output", 0, 0, 0, 0);
++#endif
+ #if defined(MICRO)
+     int i;
+ #endif

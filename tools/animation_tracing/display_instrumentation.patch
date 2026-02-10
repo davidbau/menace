@@ -1,0 +1,98 @@
+diff --git a/src/display.c b/src/display.c
+index abcd1234..efgh5678 100644
+--- a/src/display.c
++++ b/src/display.c
+@@ -50,6 +50,29 @@ static void set_item_discovery(struct obj *);
+ static int check_map_spot(coordxy, coordxy, char, unsigned);
+ static void show_glyph_ascii(coordxy, coordxy, int);
+ 
++#ifdef ANIMATION_TRACE
++static FILE *anim_trace_file = NULL;
++static struct timeval anim_start_time = {0, 0};
++static struct timeval last_event_time = {0, 0};
++static int event_count = 0;
++
++static void log_animation_event(const char *call, int arg1, int arg2, int arg3, int arg4) {
++    if (!anim_trace_file) {
++        char filename[256];
++        sprintf(filename, "test/animations/traces/c/anim_trace_%ld.json", (long)time(NULL));
++        anim_trace_file = fopen(filename, "w");
++        fprintf(anim_trace_file, "{\"animation_events\": [\n");
++        gettimeofday(&anim_start_time, NULL);
++        last_event_time = anim_start_time;
++    }
++    
++    struct timeval now;
++    gettimeofday(&now, NULL);
++    long elapsed_ms = (now.tv_sec - last_event_time.tv_sec) * 1000 
++                    + (now.tv_usec - last_event_time.tv_usec) / 1000;
++    long total_ms = (now.tv_sec - anim_start_time.tv_sec) * 1000 
++                  + (now.tv_usec - anim_start_time.tv_usec) / 1000;
++    
++    if (event_count > 0) {
++        fprintf(anim_trace_file, ",\n");
++    }
++    
++    if (strcmp(call, "tmp_at") == 0) {
++        int mode = arg1;
++        int x = arg2;
++        int y = arg3;
++        int glyph = arg4;
++        
++        // Determine if this is mode initialization or position display
++        if (mode < 0) {
++            // Mode initialization: tmp_at(mode, glyph)
++            fprintf(anim_trace_file,
++                "  {\"call\": \"tmp_at\", \"type\": \"init\", "
++                "\"mode\": %d, \"glyph\": %d, "
++                "\"elapsed_ms\": %ld, \"timestamp\": %ld}",
++                mode, glyph, elapsed_ms, total_ms);
++        } else if (mode == 0 && x >= 0 && y >= 0) {
++            // Position display: tmp_at(x, y)
++            fprintf(anim_trace_file,
++                "  {\"call\": \"tmp_at\", \"type\": \"display\", "
++                "\"x\": %d, \"y\": %d, "
++                "\"elapsed_ms\": %ld, \"timestamp\": %ld}",
++                x, y, elapsed_ms, total_ms);
++        }
++    } else if (strcmp(call, "delay_output") == 0) {
++        fprintf(anim_trace_file,
++            "  {\"call\": \"delay_output\", "
++            "\"elapsed_ms\": %ld, \"timestamp\": %ld}",
++            elapsed_ms, total_ms);
++    }
++    
++    event_count++;
++    last_event_time = now;
++    fflush(anim_trace_file);
++}
++
++void close_animation_trace() {
++    if (anim_trace_file) {
++        fprintf(anim_trace_file, "\n]}\n");
++        fclose(anim_trace_file);
++        anim_trace_file = NULL;
++        event_count = 0;
++    }
++}
++#endif /* ANIMATION_TRACE */
++
+ #ifdef INVISIBLE_OBJECTS
+ /*
+  * vobj_at()
+@@ -1165,6 +1210,13 @@ tmp_at(coordxy x, coordxy y)
+ {
+     static struct tmp_glyph *tglyph = (struct tmp_glyph *) 0;
+     struct tmp_glyph *tmp;
++
++#ifdef ANIMATION_TRACE
++    // Log this call - use different encoding for mode vs position
++    if (x < 0) {
++        log_animation_event("tmp_at", x, 0, 0, y);  // mode init: tmp_at(mode, glyph)
++    } else {
++        log_animation_event("tmp_at", 0, x, y, 0);  // position: tmp_at(x, y)
++    }
++#endif
+ 
+     switch (x) {
+     case DISP_BEAM:
