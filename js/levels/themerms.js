@@ -925,7 +925,7 @@ export function generate() {
     // Given a point in a themed room, ensure that themed room is stocked with
     // regular room contents.
     // With 30% chance, also give it a random themed fill.
-    function filler_region(x, y) {
+    let filler_region = function(x, y) {
        let rmtyp = "ordinary";
        func = null;
        if ((percent(30))) {
@@ -935,7 +935,7 @@ export function generate() {
        des.region({ region: [x,y,x,y], type: rmtyp, irregular: true, filled: 1, contents: func });
     }
 
-    function is_eligible(room, mkrm) {
+    let is_eligible = function(room, mkrm) {
        let t = type(room);
        diff = nh.level_difficulty();
        if ((room.mindiff !== null && diff < room.mindiff)) {
@@ -950,7 +950,7 @@ export function generate() {
     }
 
     // given the name of a themed room || fill, return its index in that array
-    function lookup_by_name(name, checkfills) {
+    let lookup_by_name = function(name, checkfills) {
        if (name == null) {
           // return null
        }
@@ -971,7 +971,7 @@ export function generate() {
     }
 
     // called repeatedly until the core decides there are enough rooms
-    function themerooms_generate() {
+    let themerooms_generate = function() {
        if (debug_rm_idx !== null) {
           // room may ! be suitable for stairs/portals, so create the "default"
           // room half of the time
@@ -1023,7 +1023,7 @@ export function generate() {
     }
 
     // called before any rooms are generated
-    function pre_themerooms_generate() {
+    let pre_themerooms_generate = function() {
        let debug_themerm = nh.debug_themerm(false)
        let debug_fill = nh.debug_themerm(true)
        let xtrainfo = ""
@@ -1045,10 +1045,10 @@ export function generate() {
 
     // called after all rooms have been generated
     // but before creating connecting corridors/doors, || filling rooms
-    function post_themerooms_generate() {
+    let post_themerooms_generate = function() {
     }
 
-    function themeroom_fill(rm) {
+    let themeroom_fill = function(rm) {
        if (debug_fill_idx !== null) {
           if (is_eligible(themeroom_fills[debug_fill_idx], rm)) {
              themeroom_fills[debug_fill_idx].contents(rm);
@@ -1088,7 +1088,7 @@ export function generate() {
     }
 
     // postprocess callback: create an engraving pointing at a location
-    function make_dig_engraving(data) {
+    let make_dig_engraving = function(data) {
        let floors = selection.negate().filter_mapchar(".");
        pos = floors.rndcoord(0);
        let tx = data.x - pos.x - 1;
@@ -1108,7 +1108,7 @@ export function generate() {
     }
 
     // postprocess callback: turn room walls into trees
-    function make_garden_walls(data) {
+    let make_garden_walls = function(data) {
        let sel = data.sel.grow();
        // change walls to trees
        des.replace_terrain({ selection: sel, fromterrain: "w", toterrain: "T" });
@@ -1117,7 +1117,7 @@ export function generate() {
     }
 
     // postprocess callback: make a trap
-    function make_a_trap(data) {
+    let make_a_trap = function(data) {
        if ((data.teledest == 1 && data.type == "teleport")) {
           locs = selection.negate().filter_mapchar(".");
           repeat
@@ -1128,7 +1128,7 @@ export function generate() {
     }
 
     // called once after the whole level has been generated
-    function post_level_generate() {
+    let post_level_generate = function() {
        for i, v in ipairs(postprocess) do
           v.handler(v.data);
        }
