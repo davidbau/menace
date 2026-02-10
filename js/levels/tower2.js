@@ -31,9 +31,9 @@ export function generate() {
 
     ` });
     // Random places are the 10 niches
-    const place = { {3,1],{7,1],{11,1],{1,3],{13,3],
-    	   [01,7],{13,7],{3,9],{7,9],{11,9} ]
-    shuffle(place)
+    const place = [ [3,1],[7,1],[11,1],[1,3],[13,3],
+    	   [1,7],[13,7],[3,9],[7,9],[11,9] ];
+    shuffle(place);
 
     des.ladder("up", 11,5);
     des.ladder("down", 3,7);
@@ -49,7 +49,7 @@ export function generate() {
     des.object("water walking boots",place[7]);
     des.object("crystal plate mail",place[8]);
 
-    const spbooks = {
+    const spbooks = [
        "spellbook of invisibility",
        "spellbook of cone of cold",
        "spellbook of create familiar",
@@ -57,8 +57,8 @@ export function generate() {
        "spellbook of charm monster",
        "spellbook of stone to flesh",
        "spellbook of polymorph"
-    }
-    shuffle(spbooks)
+    ];
+    shuffle(spbooks);
     des.object(spbooks[1],place[9]);
 
     // Walls in the tower are non diggable
