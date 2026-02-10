@@ -51,20 +51,66 @@ Improve `findExplorationTarget()` to:
 
 This is a significant pathfinding refactor beyond quick fixes.
 
-## Current Results (After Exploration Improvements)
+## Current Results (After Secret Door Improvements)
 - **4/8 seeds (50%)** reach Dlvl 2+ with 500 turn limit
 - **Working seeds**: 11111 (Dlvl 2), 33333 (Dlvl 2), 55555 (Dlvl 2-3), 77777 (Dlvl 2)
 - **Stuck seeds**: 22222, 44444, 66666, 88888 (all stuck at Dlvl 1)
 
-### Improvements Made
-1. **Far target selection when stuck** - When frontier > 50 and explored < 20%, pick farthest targets instead of nearest to break out of local loops (pathing.js)
-2. **Early secret door searching** - Start searching at turn 150 if stuck (frontier high, exploration low) even if not thoroughly explored (agent.js)
+### Deep Investigation: Secret Doors & Disconnected Maps
 
-### Remaining Issues
-- Stuck seeds (22222, 44444) explore only ~15-17% of map with ~100 frontier cells
-- Agent tries far targets but can't reach them (likely behind multiple secret doors)
-- Search actions increase but don't find the critical secret doors in time
-- Some map layouts may require more sophisticated exploration strategies
+**Seed 22222 Analysis** (comprehensive ground-truth investigation):
+- Map has **3 secret doors** at (43,1), (3,16), (61,8)
+- Only **19 cells initially reachable** from start (7,13) without finding secret doors
+- Stairs at (62,7) blocked by secret door at (61,8)
+- To reach stairs, must first find SD at (3,16) or (43,1) to unlock new sections
+- Agent explores 190/346 walkable cells (54.9%) but misses critical corridor with stairs
+
+**Search Candidate System Analysis**:
+- Search candidates ARE created for positions adjacent to secret doors ✓
+- Position (3,15) next to SD(3,16) is reachable with path cost 25-26 ✓
+- BUT: (3,15) ranked **43/136** by priority (priority=5, not high enough)
+- Agent tries top 10 candidates but never reaches rank 43
+
+### Improvements Made (Latest)
+1. **Opportunistic wall searching** - Agent now searches whenever at a position with adjacent walls, even during exploration (not just when `shouldSearch` triggers)
+   - Result: 34 searches in 200 turns vs 1 search before ✓
+
+2. **Reachable candidate filtering** - Filter search candidates to only reachable ones before selecting top candidates
+   - Prevents wasting turns trying to reach unreachable positions ✓
+
+3. **Increased candidate limit** - Try 50 search candidates instead of 10
+   - Ensures lower-priority but critical candidates are eventually attempted ✓
+
+4. **Stuck exploration detection** - Abandon committed exploration paths when stuck (frontier high, coverage low)
+   - Allows switching to far targets or searching ✓
+
+### Remaining Core Problem: Incomplete Exploration Coverage
+
+**Root Cause**: Agent's exploration algorithm doesn't ensure it visits ALL reachable cells.
+
+**Evidence**:
+- Seed 22222: Position (3,15) is REACHABLE (path exists, distance 25-26)
+- It's a search candidate (rank 43/136)
+- Opportunistic searching works (agent searches 34 times)
+- BUT: Agent **never reaches** (3,15) even in 500 turns!
+- Agent gets stuck oscillating in initially explored area (~19 cells)
+- Never expands to distant but reachable areas like (3,15)
+
+**Why This Happens**:
+1. Agent explores locally using nearest frontier targets
+2. Gets stuck when local area exhausted
+3. Tries far targets but they're often in disconnected sections
+4. Oscillates and blacklists targets without systematic coverage
+5. Never actually visits all reachable cells before giving up
+
+**Solution Needed**:
+The exploration algorithm needs to be fundamentally more systematic:
+- **Flood-fill exploration**: Track and ensure all reachable cells are visited
+- **Wall-following**: Follow walls to ensure complete corridor coverage
+- **Sector-based exploration**: Divide map into sectors, ensure each is thoroughly explored
+- **Distance-forcing**: When stuck, force movement to furthest reachable unexplored cell
+
+This is a significant architectural refactor beyond incremental fixes.
 
 ## Previous Attempts
 

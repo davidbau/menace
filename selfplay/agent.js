@@ -904,6 +904,39 @@ export class Agent {
         // If we've explored available areas but haven't found stairs, systematically
         // search walls to reveal secret doors/corridors
         // Search probability is 1/7, so search each location up to 30 times for ~99.5% success rate
+
+        // CRITICAL FIX: If currently at a search candidate position, search immediately
+        // This ensures we search whenever we reach a candidate, even during normal exploration
+        if (level.stairsDown.length === 0 && currentCell && currentCell.walkable) {
+            const hasAdjacentWall = level._hasAdjacentWall(px, py);
+            if (hasAdjacentWall && currentCell.searched < 30) {
+                // Search adjacent walls
+                const directions = [
+                    [-1, -1], [0, -1], [1, -1],
+                    [-1,  0],          [1,  0],
+                    [-1,  1], [0,  1], [1,  1],
+                ];
+
+                for (const [dx, dy] of directions) {
+                    const nx = px + dx, ny = py + dy;
+                    if (nx < 0 || nx >= 80 || ny < 0 || ny >= 21) continue;
+
+                    const adjCell = level.at(nx, ny);
+                    if (adjCell && adjCell.explored && adjCell.type === 'wall' && adjCell.searched < 10) {
+                        adjCell.searched++;
+                        currentCell.searched++;
+                        return { type: 'search', key: 's', reason: `opportunistic wall search at (${px},${py}) checking (${nx},${ny})` };
+                    }
+                }
+
+                // No unsearched walls, but mark position as searched
+                if (currentCell.searched < 10) {
+                    currentCell.searched++;
+                    return { type: 'search', key: 's', reason: `opportunistic search at candidate (${px},${py})` };
+                }
+            }
+        }
+
         const frontier = level.getExplorationFrontier();
         const frontierSmall = frontier.length < 10;  // Very few unexplored cells
         const exploredPercent = level.exploredCount / (80 * 21);
@@ -914,6 +947,7 @@ export class Agent {
 
         // Also consider stuck: high frontier but very low exploration progress
         // This indicates frontier cells are unreachable without finding secrets
+        // Trigger at turn 150 to allow searching before far exploration dominates
         const stuckExploring = (
             this.turnNumber > 150 &&
             frontier.length > 50 &&   // Many frontier cells
@@ -928,13 +962,18 @@ export class Agent {
             const unsearchedCandidates = searchCandidates.filter(c => c.searched < 30);
 
             if (unsearchedCandidates.length > 0) {
-                // Try to path to the nearest unsearched candidate
-                for (const candidate of unsearchedCandidates.slice(0, 10)) {
+                // Filter to REACHABLE candidates first to avoid wasting turns
+                const reachableCandidates = unsearchedCandidates.filter(c => {
+                    const candKey = c.y * 80 + c.x;
+                    if (this.failedTargets && this.failedTargets.has(candKey)) return false;
+                    const path = findPath(level, px, py, c.x, c.y, { allowUnexplored: false });
+                    return path.found;
+                });
+
+                // Try to path to the nearest reachable candidate
+                // Increased from 10 to 50 to ensure we find secret doors at lower priority
+                for (const candidate of reachableCandidates.slice(0, 50)) {
                     const candKey = candidate.y * 80 + candidate.x;
-
-                    // Skip if we've been trying to reach this candidate for too long
-                    if (this.failedTargets && this.failedTargets.has(candKey)) continue;
-
                     const path = findPath(level, px, py, candidate.x, candidate.y, { allowUnexplored: false });
                     if (path.found) {
                         // If we're at the candidate, use breadth-first searching

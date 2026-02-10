@@ -8,11 +8,12 @@ import { runHeadless } from './selfplay/runner/headless_runner.js';
 const SEEDS = [11111, 22222, 33333, 44444, 55555, 66666, 77777, 88888];
 const MAX_TURNS = 500;  // Reduced to speed up testing
 
-console.log(`Testing ${SEEDS.length} seeds with ${MAX_TURNS} max turns...\\n`);
+async function main() {
+    console.log(`Testing ${SEEDS.length} seeds with ${MAX_TURNS} max turns...\\n`);
 
-const results = [];
+    const results = [];
 
-for (const seed of SEEDS) {
+    for (const seed of SEEDS) {
     try {
         const result = await runHeadless({
             seed,
@@ -38,17 +39,23 @@ for (const seed of SEEDS) {
             error: error.message
         });
     }
-}
+    }
 
-console.log(`\\n=== Summary ===`);
-const dlvl2Plus = results.filter(r => !r.error && r.maxDepth >= 2).length;
-console.log(`Seeds reaching Dlvl 2+: ${dlvl2Plus}/${SEEDS.length}`);
+    console.log(`\\n=== Summary ===`);
+    const dlvl2Plus = results.filter(r => !r.error && r.maxDepth >= 2).length;
+    console.log(`Seeds reaching Dlvl 2+: ${dlvl2Plus}/${SEEDS.length}`);
 
-console.log(`\\nDetailed results:`);
-for (const r of results) {
-    if (r.error) {
-        console.log(`  ${r.seed}: ERROR - ${r.error}`);
-    } else {
-        console.log(`  ${r.seed}: Dlvl ${r.maxDepth}, ${r.turns} turns, ${r.cause}`);
+    console.log(`\\nDetailed results:`);
+    for (const r of results) {
+        if (r.error) {
+            console.log(`  ${r.seed}: ERROR - ${r.error}`);
+        } else {
+            console.log(`  ${r.seed}: Dlvl ${r.maxDepth}, ${r.turns} turns, ${r.cause}`);
+        }
     }
 }
+
+main().catch(err => {
+    console.error('Error:', err);
+    process.exit(1);
+});
