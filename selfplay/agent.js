@@ -845,13 +845,15 @@ export class Agent {
             const frontierCells = level.getExplorationFrontier().length;
 
             // Head to stairs if:
-            // - We've explored at least 15% of the map (found main areas), AND
             // - HP is above 50%, AND
-            // - Either: frontier is small (< 30) OR we've been here 100+ turns OR path is cheap (< 30)
+            // - EITHER:
+            //   a) We've explored 15%+ AND (frontier small OR been here 100+ turns OR path cheap)
+            //   b) We've been here 500+ turns (give up on full exploration)
             const hpGood = this.status && (this.status.hp / this.status.hpmax) > 0.5;
-            const exploredEnough = exploredPercent > 0.15;  // Raised from 10% to ensure basic exploration
-            const frontierSmall = frontierCells < 30;        // Raised from 20 to be less restrictive
-            const beenHereLong = this.turnNumber > 100;      // Raised from 50 to avoid premature descent
+            const exploredEnough = exploredPercent > 0.15;
+            const frontierSmall = frontierCells < 30;
+            const beenHereLong = this.turnNumber > 100;
+            const veryLongTime = this.turnNumber > 500;  // Give up after 500 turns
 
             // Check if path to stairs is short (if so, worth going even with more frontier)
             const stairs = level.stairsDown[0];
@@ -862,10 +864,14 @@ export class Agent {
             const path = findPath(level, px, py, stairs.x, stairs.y, { allowUnexplored: false });
             const pathIsCheap = path.found && path.cost < 30;  // Stairs are nearby
 
-            if (hpGood && exploredEnough && (frontierSmall || beenHereLong || pathIsCheap)) {
-                if (path.found) {
-                    return this._followPath(path, 'navigate', `heading to downstairs (explored ${Math.round(exploredPercent*100)}%, frontier ${frontierCells}, cost ${Math.round(path.cost)})`);
-                }
+            // Descend if: HP good AND (explored enough to be safe OR been here too long)
+            const shouldDescend = hpGood && (
+                (exploredEnough && (frontierSmall || beenHereLong || pathIsCheap)) ||
+                veryLongTime  // After 500 turns, just go down regardless
+            );
+
+            if (shouldDescend && path.found) {
+                return this._followPath(path, 'navigate', `heading to downstairs (explored ${Math.round(exploredPercent*100)}%, frontier ${frontierCells}, turn ${this.turnNumber}, cost ${Math.round(path.cost)})`);
             }
         }
 
