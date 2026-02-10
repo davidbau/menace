@@ -176,7 +176,7 @@ import { generate as generateDungeon } from './levels/dungeon.js';
 import { generate as generateHellfill } from './levels/hellfill.js';
 import { generate as generateFakewiz1 } from './levels/fakewiz1.js';
 import { generate as generateFakewiz2 } from './levels/fakewiz2.js';
-// TEMP: Disabled due to syntax errors
+// TEMP: Commented out due to Lua syntax error at line 119
 // import { generate as generateThemerms } from './levels/themerms.js';
 import { generate as generateTut1 } from './levels/tut-1.js';
 import { generate as generateTut2 } from './levels/tut-2.js';
@@ -473,7 +473,6 @@ export const medusaVariants = [
 ];
 
 // Export elemental plane generators
-// TEMP: Disabled due to import errors
 export const elementalPlanes = {
     air: generateAir,
     earth: generateEarth,
@@ -491,8 +490,7 @@ export const otherSpecialLevels = {
     minefill: generateMinefill,
     fakewiz1: generateFakewiz1,
     fakewiz2: generateFakewiz2,
-    // TEMP: Disabled due to syntax errors
-    // themerms: generateThemerms,
+    // themerms: generateThemerms,  // Commented out due to Lua syntax error
     tut1: generateTut1,
     tut2: generateTut2
 };

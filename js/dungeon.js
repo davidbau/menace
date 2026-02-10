@@ -445,6 +445,11 @@ function do_room_or_subroom(map, croom, lowx, lowy, hix, hiy,
             }
         }
         // Fill interior with ROOM
+        const DEBUG = process.env.DEBUG_ROOM_FILL === '1';
+        if (DEBUG) {
+            const area = (hix - lowx + 1) * (hiy - lowy + 1);
+            console.log(`Filling room (${lowx},${lowy})-(${hix},${hiy}) area=${area}`);
+        }
         for (let x = lowx; x <= hix; x++) {
             for (let y = lowy; y <= hiy; y++) {
                 const loc = map.at(x, y);
@@ -1047,6 +1052,11 @@ function dig_corridor(map, org, dest, nxcor, depth) {
     const ftyp = CORR;
     const btyp = STONE;
 
+    const DEBUG = process.env.DEBUG_CORRIDORS === '1';
+    if (DEBUG) {
+        console.log(`dig_corridor: (${org.x},${org.y}) -> (${dest.x},${dest.y}) nxcor=${nxcor}`);
+    }
+
     if (xx <= 0 || yy <= 0 || tx <= 0 || ty <= 0
         || xx > COLNO - 1 || tx > COLNO - 1
         || yy > ROWNO - 1 || ty > ROWNO - 1)
@@ -1063,14 +1073,18 @@ function dig_corridor(map, org, dest, nxcor, depth) {
     cct = 0;
 
     while (xx !== tx || yy !== ty) {
-        if (cct++ > 500 || (nxcor && !rn2(35)))
+        if (cct++ > 500 || (nxcor && !rn2(35))) {
+            if (DEBUG) console.log(`  -> failed: cct=${cct} or rn2(35) abort, npoints=${npoints}`);
             return { success: false, npoints };
+        }
 
         xx += dx;
         yy += dy;
 
-        if (xx >= COLNO - 1 || xx <= 0 || yy <= 0 || yy >= ROWNO - 1)
+        if (xx >= COLNO - 1 || xx <= 0 || yy <= 0 || yy >= ROWNO - 1) {
+            if (DEBUG) console.log(`  -> failed: boundary check (${xx},${yy}), npoints=${npoints}`);
             return { success: false, npoints };
+        }
 
         const crm = map.at(xx, yy);
         if (crm.typ === btyp) {
@@ -1092,6 +1106,7 @@ function dig_corridor(map, org, dest, nxcor, depth) {
                 }
             }
         } else if (crm.typ !== ftyp && crm.typ !== SCORR) {
+            if (DEBUG) console.log(`  -> failed: collision at (${xx},${yy}) typ=${crm.typ}, npoints=${npoints}`);
             return { success: false, npoints };
         }
 
@@ -1146,6 +1161,9 @@ function dig_corridor(map, org, dest, nxcor, depth) {
             continue;
         dy = -dy;
         dx = -dx;
+    }
+    if (DEBUG) {
+        console.log(`  -> success: true, npoints: ${npoints}`);
     }
     return { success: true, npoints };
 }
