@@ -34,7 +34,7 @@ export function generate() {
 
 
 
-    questtext: [
+    questtext: {
        // If a role doesn't have a specific message, try a fallback
        msg_fallbacks: {
           goal_alt: "goal_next"
@@ -3568,7 +3568,7 @@ export function generate() {
     `,
           },
        },
-    }]
+    }
 
     // return des.finalize_level();
 }
