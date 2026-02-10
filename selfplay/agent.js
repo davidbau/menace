@@ -76,6 +76,7 @@ export class Agent {
         this.restTurns = 0; // consecutive turns spent resting
         this.lastHP = null; // track HP to detect healing progress
         this.pendingLockedDoor = null; // {x, y, attempts} for locked door we're trying to kick
+        this.secretDoorSearch = null; // {position: {x,y}, searchesNeeded: 20, searchesDone: 0, wallCandidates: []}
 
         // Statistics
         this.stats = {
@@ -720,7 +721,28 @@ export class Agent {
             console.log(`[DEBUG] At downstairs, descending`); return { type: 'descend', key: '>', reason: 'descending stairs' };
         }
 
-        // 5b. Proactive descent: if we've found stairs and explored enough, head down
+        // 5b. Check for obvious dead-end situations needing secret door search
+        // Do this BEFORE normal exploration to avoid wasting time wandering
+        if (level.isDeadEnd(px, py) && level.stairsDown.length === 0) {
+            const candidates = level.getSecretDoorCandidates(px, py);
+            if (candidates.length > 0 && candidates[0].searchCount < 10) {
+                // We're adjacent to unsearched walls in a dead-end - search now!
+                const candidate = candidates[0];
+                const cell = level.at(candidate.x, candidate.y);
+                if (cell) {
+                    cell.searchCount++;
+                    cell.lastSearchTurn = this.turnNumber;
+                }
+                const currentCell = level.at(px, py);
+                if (currentCell) {
+                    currentCell.searchCount++;
+                    currentCell.lastSearchTurn = this.turnNumber;
+                }
+                return { type: 'search', key: 's', reason: `dead-end detected, searching wall at (${candidate.x},${candidate.y}) [${cell?.searchCount || 0}/20]` };
+            }
+        }
+
+        // 5c. Proactive descent: if we've found stairs and explored enough, head down
         // This encourages forward progress instead of exhaustive exploration
         if (level.stairsDown.length > 0 && this.turnNumber > 30) {
             const exploredPercent = level.exploredCount / (80 * 21); // rough estimate
@@ -781,7 +803,72 @@ export class Agent {
                 }
             }
 
-            // No downstairs found and very stuck - aggressive searching or go back up
+            // No downstairs found and very stuck - try systematic secret door searching
+            if (this.levelStuckCounter > 30 && level.stairsDown.length === 0) {
+                // Systematic wall searching for secret doors
+                if (!this.secretDoorSearch) {
+                    // Check if we're in a dead-end situation
+                    if (level.isDeadEnd(px, py)) {
+                        // Get wall candidates to search
+                        const candidates = level.getSecretDoorCandidates(px, py);
+                        if (candidates.length > 0) {
+                            this.secretDoorSearch = {
+                                wallCandidates: candidates,
+                                currentIndex: 0,
+                                searchesNeeded: 20, // NetHack wiki recommendation
+                                searchesDone: 0,
+                            };
+                            console.log(`[SECRET DOOR] Starting systematic search of ${candidates.length} wall positions`);
+                        }
+                    }
+                }
+
+                // If we have an active secret door search, continue it
+                if (this.secretDoorSearch) {
+                    const search = this.secretDoorSearch;
+                    const candidate = search.wallCandidates[search.currentIndex];
+
+                    if (candidate) {
+                        // Move to search position if not there
+                        if (px !== candidate.fromX || py !== candidate.fromY) {
+                            const path = findPath(level, px, py, candidate.fromX, candidate.fromY, { allowUnexplored: false });
+                            if (path.found) {
+                                return this._followPath(path, 'navigate', `moving to secret door search position (${candidate.fromX},${candidate.fromY})`);
+                            }
+                        }
+
+                        // Search from this position
+                        if (search.searchesDone < search.searchesNeeded) {
+                            search.searchesDone++;
+                            const cell = level.at(candidate.x, candidate.y);
+                            if (cell) {
+                                cell.searchCount++;
+                                cell.lastSearchTurn = this.turnNumber;
+                            }
+                            const currentCell = level.at(px, py);
+                            if (currentCell) {
+                                currentCell.searchCount++;
+                                currentCell.lastSearchTurn = this.turnNumber;
+                            }
+                            return { type: 'search', key: 's', reason: `systematic secret door search ${search.searchesDone}/${search.searchesNeeded} at wall (${candidate.x},${candidate.y})` };
+                        } else {
+                            // Done with this wall position, move to next
+                            search.currentIndex++;
+                            search.searchesDone = 0;
+
+                            if (search.currentIndex >= search.wallCandidates.length) {
+                                // Finished all candidates
+                                console.log(`[SECRET DOOR] Completed systematic search of ${search.wallCandidates.length} positions, no secret door found`);
+                                this.secretDoorSearch = null;
+                            } else {
+                                console.log(`[SECRET DOOR] Moving to next wall position (${search.currentIndex + 1}/${search.wallCandidates.length})`);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // No downstairs found and very stuck - go back up or random movement
             if (this.levelStuckCounter > 50) {
                 // If we're deep in the dungeon and truly stuck, try going back upstairs
                 if (this.dungeon.currentDepth > 1 && level.stairsUp.length > 0) {

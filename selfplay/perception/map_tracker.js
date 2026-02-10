@@ -21,7 +21,9 @@ export class TrackedCell {
         this.stale = false;      // true if cell is remembered but not currently visible
         this.monster = null;     // monster info if present: {ch, color, lastSeenTurn}
         this.items = [];         // item info: [{ch, color, lastSeenTurn}]
-        this.searched = 0;       // how many times we've searched adjacent to this cell
+        this.searched = 0;       // how many times we've searched adjacent to this cell (legacy)
+        this.searchCount = 0;    // how many times we've searched FROM this position
+        this.lastSearchTurn = -1; // turn number when last searched from this position
     }
 }
 
@@ -309,6 +311,84 @@ export class LevelMap {
             if (neighbor.explored && neighbor.type === 'wall') return true;
             if (!neighbor.explored) return true; // unexplored = potential wall
         }
+        return false;
+    }
+
+    /**
+     * Get wall positions adjacent to player that could be secret doors.
+     * Returns sorted array of candidates [{x, y, fromX, fromY, direction, searchCount, priority}]
+     */
+    getSecretDoorCandidates(px, py) {
+        const candidates = [];
+        const DIRS_WITH_NAMES = [
+            {dx: -1, dy: 0, name: 'west'},
+            {dx: 1, dy: 0, name: 'east'},
+            {dx: 0, dy: -1, name: 'north'},
+            {dx: 0, dy: 1, name: 'south'},
+            {dx: -1, dy: -1, name: 'northwest'},
+            {dx: 1, dy: -1, name: 'northeast'},
+            {dx: -1, dy: 1, name: 'southwest'},
+            {dx: 1, dy: 1, name: 'southeast'},
+        ];
+
+        for (const dir of DIRS_WITH_NAMES) {
+            const wx = px + dir.dx;
+            const wy = py + dir.dy;
+            const cell = this.at(wx, wy);
+
+            if (!cell || !cell.explored) continue;
+
+            // Check if this is a wall that could be a secret door
+            if (cell.type === 'wall' && cell.searchCount < 20) {
+                // Check if there's unexplored space beyond
+                const beyondX = wx + dir.dx;
+                const beyondY = wy + dir.dy;
+                const beyondCell = this.at(beyondX, beyondY);
+
+                // Higher priority if unexplored beyond or low search count
+                let priority = 10;
+                if (!beyondCell || !beyondCell.explored) priority += 5;
+                priority -= cell.searchCount * 0.5;
+
+                candidates.push({
+                    x: wx,
+                    y: wy,
+                    fromX: px,
+                    fromY: py,
+                    direction: dir.name,
+                    searchCount: cell.searchCount,
+                    priority: priority,
+                });
+            }
+        }
+
+        candidates.sort((a, b) => b.priority - a.priority);
+        return candidates;
+    }
+
+    /**
+     * Check if player is in dead-end situation needing systematic wall search.
+     * Only returns true if we've EXHAUSTED normal exploration options.
+     */
+    isDeadEnd(px, py) {
+        // Don't trigger if there are still frontier cells to explore!
+        // Secret door search is a LAST RESORT, not a first option
+        const frontier = this.getExplorationFrontier();
+        if (frontier.length > 5) {
+            return false; // Still have places to explore normally
+        }
+
+        // Check 1: No downstairs found and frontier exhausted?
+        if (frontier.length <= 5 && this.stairsDown.length === 0) {
+            return true;
+        }
+
+        // Check 2: Explored a decent amount but still no downstairs?
+        const exploredPercent = this.exploredCount / (MAP_COLS * MAP_ROWS);
+        if (exploredPercent > 0.10 && this.stairsDown.length === 0 && frontier.length <= 5) {
+            return true;
+        }
+
         return false;
     }
 }
