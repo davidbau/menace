@@ -415,6 +415,29 @@ function handleMovement(dir, player, map, display, game) {
             return { moved: true, tookTime: true };
         }
 
+        // Safety checks before attacking
+        // C ref: flag.h flags.safe_pet - prevent attacking pets
+        if (mon.tame && flags.safe_pet) {
+            display.putstr_message("You cannot attack your pet!");
+            game.forceFight = false;
+            return { moved: false, tookTime: false };
+        }
+
+        // C ref: flag.h flags.confirm - confirm attacking peacefuls
+        if (mon.peaceful && !mon.tame && flags.confirm) {
+            const answer = await ynFunction(
+                `Really attack ${mon.name}?`,
+                'yn',
+                'n'.charCodeAt(0),
+                display
+            );
+            if (answer !== 'y'.charCodeAt(0)) {
+                display.putstr_message("Cancelled.");
+                game.forceFight = false;
+                return { moved: false, tookTime: false };
+            }
+        }
+
         // Attack the monster (or forced attack on peaceful)
         game.forceFight = false; // Clear prefix after use
         // C ref: hack.c domove() -> do_attack() -> attack() -> hitum()
