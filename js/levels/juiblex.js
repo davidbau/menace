@@ -62,7 +62,7 @@ export function generate() {
 
     `);
     // Random registers
-    const monster = ["j","b","P","F"]
+    const monster = ["j", "b", "P", "F"]
     shuffle(monster)
 
     const place = selection.new();

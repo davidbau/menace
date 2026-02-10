@@ -13,7 +13,7 @@ export function generate() {
     // Copyright (c) 1991-95 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
     // 
-    // Mine end level variant 1
+    // Mine } level variant 1
     // "Mimic of the Mines"
 
     des.level_init({ style: "solidfill", fg: " " });
@@ -44,7 +44,7 @@ export function generate() {
     `);
 
     // Dungeon Description
-    const place = { {8,16],{13,7],{21,8],{41,14],{50,4],{50,16],{66,1] }
+    const place = [[8, 16], [13, 7], [21, 8], [41, 14], [50, 4], [50, 16], [66, 1]]
     shuffle(place)
 
     // make the entry chamber a real room; it affects monster arrival

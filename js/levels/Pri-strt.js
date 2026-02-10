@@ -52,7 +52,7 @@ export function generate() {
 
     des.replace_terrain({ region: [0,0, 10,19], fromterrain: ".", toterrain: "T", chance: 10 });
     des.replace_terrain({ region: [65,0, 75,19], fromterrain: ".", toterrain: "T", chance: 10 });
-    des.terrain({5,4], ".");
+    des.terrain([5,4], ".");
 
     const spacelocs = selection.floodfill(5,4);
 

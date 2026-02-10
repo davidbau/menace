@@ -65,7 +65,7 @@ export function generate() {
     des.door("locked",47,8);
     des.door("locked",47,12);
     // Stairs
-    des.terrain({3,17], ".");
+    des.terrain([3,17], ".");
     des.stair("up", 3,17);
     des.stair("down", 48,10);
     // Non diggable walls

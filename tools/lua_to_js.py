@@ -233,6 +233,30 @@ class LuaToJsConverter:
                 i += 1
                 continue
 
+            # Handle multiline arrays in variable assignments
+            # Check if line has an assignment with an opening brace but no closing brace
+            stripped = line.strip()
+            if ('=' in stripped and '{' in stripped and
+                not stripped.startswith('des.') and  # Not a des.* call (handled above)
+                not (stripped.count('{') == stripped.count('}'))):  # Unbalanced braces
+
+                # Collect the complete multi-line statement
+                multiline = [line]
+                brace_count = stripped.count('{') - stripped.count('}')
+                i += 1
+
+                while i < len(lines) and brace_count > 0:
+                    multiline.append(lines[i])
+                    brace_count += lines[i].count('{') - lines[i].count('}')
+                    i += 1
+
+                # Join and convert as a single statement
+                combined = ' '.join(line.strip() for line in multiline)
+                converted = self.convert_line(combined)
+                if converted:
+                    js_lines.append(converted)
+                continue
+
             # Convert the line
             converted = self.convert_line(line)
             if converted is not None:
@@ -564,8 +588,8 @@ class LuaToJsConverter:
 
         # Check if it's an array-like table (all values, no keys)
         if not '=' in inner:
-            # Array literal
-            return '{' + self.convert_expression(inner) + '}'
+            # Array literal - use square brackets for JavaScript arrays
+            return '[' + self.convert_expression(inner) + ']'
 
         # Convert key=value pairs to key: value
         result = []
@@ -832,9 +856,9 @@ class LuaToJsConverter:
         # Boolean/null values
         expr = re.sub(r'\bnil\b', 'null', expr)
 
-        # Array literals: convert Lua array syntax
-        # {1, 2, 3} stays the same
-        # { {1,2}, {3,4} } stays but inner arrays need conversion
+        # Array literals: convert Lua array syntax to JavaScript
+        # {1, 2, 3} → [1, 2, 3]
+        # { {1,2}, {3,4} } → [ [1,2], [3,4] ]
         expr = self.convert_array_syntax(expr)
 
         # Restore template literals
@@ -844,16 +868,113 @@ class LuaToJsConverter:
         return expr
 
     def convert_array_syntax(self, expr):
-        """Convert Lua array syntax to JS."""
+        """Convert Lua array syntax to JS recursively."""
         # Lua arrays like { {1,2}, {3,4} } → [ [1,2], [3,4] ]
-        # Only convert top-level {} to []
-        if expr.strip().startswith('{') and expr.strip().endswith('}'):
-            # Check if it's array-like (no = signs)
-            inner = expr.strip()[1:-1]
+        # This function finds and converts arrays within expressions
+
+        expr_stripped = expr.strip()
+
+        # If the entire expression is an array, convert it
+        if expr_stripped.startswith('{') and expr_stripped.endswith('}'):
+            inner = expr_stripped[1:-1]
+            # Check if it's array-like (no = signs at depth 0)
             if '=' not in inner or self.is_array_like(inner):
-                # Convert to array
-                return '[' + inner + ']'
-        return expr
+                return self._convert_array_recursive(expr_stripped)
+
+        # Otherwise, find and replace arrays within the expression
+        # This handles cases like "arr1 = { 1, 2, 3 }"
+        result = []
+        i = 0
+        while i < len(expr):
+            if expr[i] == '{':
+                # Found start of potential array
+                # Find the matching }
+                depth = 1
+                j = i + 1
+                in_string = False
+                string_char = None
+
+                while j < len(expr) and depth > 0:
+                    if expr[j] in ['"', "'"] and (j == 0 or expr[j-1] != '\\'):
+                        if not in_string:
+                            in_string = True
+                            string_char = expr[j]
+                        elif expr[j] == string_char:
+                            in_string = False
+                    elif not in_string:
+                        if expr[j] == '{':
+                            depth += 1
+                        elif expr[j] == '}':
+                            depth -= 1
+                    j += 1
+
+                # Extract the array/object
+                array_str = expr[i:j]
+                inner = array_str[1:-1]
+
+                # Check if it's an array (no = at depth 0)
+                if '=' not in inner or self.is_array_like(inner):
+                    # It's an array - convert it
+                    result.append(self._convert_array_recursive(array_str))
+                else:
+                    # It's an object - keep as is
+                    result.append(array_str)
+
+                i = j
+            else:
+                result.append(expr[i])
+                i += 1
+
+        return ''.join(result)
+
+    def _convert_array_recursive(self, array_str):
+        """Recursively convert a Lua array to JavaScript array syntax."""
+        array_str = array_str.strip()
+        if not (array_str.startswith('{') and array_str.endswith('}')):
+            return array_str
+
+        inner = array_str[1:-1]
+
+        # Split by commas at depth 0
+        result = []
+        current = []
+        depth = 0
+        in_string = False
+        string_char = None
+
+        for i, char in enumerate(inner):
+            if char in ['"', "'"] and (i == 0 or inner[i-1] != '\\'):
+                if not in_string:
+                    in_string = True
+                    string_char = char
+                elif char == string_char:
+                    in_string = False
+                current.append(char)
+            elif not in_string:
+                if char == '{':
+                    depth += 1
+                    current.append(char)
+                elif char == '}':
+                    depth -= 1
+                    current.append(char)
+                elif char == ',' and depth == 0:
+                    item = ''.join(current).strip()
+                    if item:
+                        # Recursively convert if it contains arrays
+                        result.append(self.convert_array_syntax(item))
+                    current = []
+                else:
+                    current.append(char)
+            else:
+                current.append(char)
+
+        # Last item
+        if current:
+            item = ''.join(current).strip()
+            if item:
+                result.append(self.convert_array_syntax(item))
+
+        return '[' + ', '.join(result) + ']'
 
     def is_array_like(self, content):
         """Check if table content is array-like (no key=value pairs)."""

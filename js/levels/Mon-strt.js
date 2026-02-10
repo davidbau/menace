@@ -56,7 +56,7 @@ export function generate() {
     const spacelocs = selection.floodfill(5,4);
 
     // Portal arrival point
-    des.terrain({5,4], ".");
+    des.terrain([5,4], ".");
     des.levregion({ region: [5,4,5,4], type: "branch" });
     // Stairs
     des.stair("down", 52,9);

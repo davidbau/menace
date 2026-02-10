@@ -41,7 +41,7 @@ export function generate() {
 
     `);
     // Dungeon Description
-    const place = { {2,11],{42,9] }
+    const place = [[2, 11], [42, 9]]
     const placeidx = Math.random(1, place.length);
 
     des.region(selection.area(0,0,44,19), "unlit");
@@ -54,13 +54,13 @@ export function generate() {
     des.stair({ dir: "up", coord: place[placeidx] });
 
     // Holes in the concentric ring walls
-    const place = { {22,14],{30,10],{22, 6],{14,10] }
+    const place = [[22, 14], [30, 10], [22, 6], [14, 10]]
     const placeidx = Math.random(1, place.length);
     des.terrain(place[placeidx], ".");
-    const place = { {22, 4],{35,10],{22,16],{ 9,10] }
+    const place = [[22, 4], [35, 10], [22, 16], [9, 10]]
     const placeidx = Math.random(1, place.length);
     des.terrain(place[placeidx], ".");
-    const place = { {22, 2],{22,18] }
+    const place = [[22, 2], [22, 18]]
     const placeidx = Math.random(1, place.length);
     des.terrain(place[placeidx], ".");
 

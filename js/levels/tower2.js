@@ -31,8 +31,7 @@ export function generate() {
 
     ` });
     // Random places are the 10 niches
-    const place = { {3,1],{7,1],{11,1],{1,3],{13,3],
-    	   [01,7],{13,7],{3,9],{7,9],{11,9} ]
+    const place = [[3, 1], [7, 1], [11, 1], [1, 3], [13, 3], [1, 7], [13, 7], [3, 9], [7, 9], [11, 9]]
     shuffle(place)
 
     des.ladder("up", 11,5);
@@ -49,15 +48,7 @@ export function generate() {
     des.object("water walking boots",place[7]);
     des.object("crystal plate mail",place[8]);
 
-    const spbooks = {
-       "spellbook of invisibility",
-       "spellbook of cone of cold",
-       "spellbook of create familiar",
-       "spellbook of clairvoyance",
-       "spellbook of charm monster",
-       "spellbook of stone to flesh",
-       "spellbook of polymorph"
-    }
+    const spbooks = ["spellbook of invisibility", "spellbook of cone of cold", "spellbook of create familiar", "spellbook of clairvoyance", "spellbook of charm monster", "spellbook of stone to flesh", "spellbook of polymorph"]
     shuffle(spbooks)
     des.object(spbooks[1],place[9]);
 

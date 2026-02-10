@@ -15,7 +15,7 @@ export function generate() {
     // 
     // Boulder "maze" with wide corridors
 
-    function t_or_f() return percent(50) and true or false; end {
+    function t_or_f() return percent(50) and true or false; } {
 
     des.level_flags("mazelevel", "noflip");
     des.level_init({ style: "maze", corrwid: 3 + nh.rn2(3), wallthick: 1, deadends: t_or_f() });

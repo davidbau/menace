@@ -34,7 +34,7 @@ export function generate() {
 
     ` });
 
-    const niches = [ [3,1], [3,9], [7,1], [7,9], [11,1], [11,9] ];
+    const niches = [[3, 1], [3, 9], [7, 1], [7, 9], [11, 1], [11, 9]];
     shuffle(niches)
 
     des.ladder("down", 11,5);
@@ -51,7 +51,7 @@ export function generate() {
     // and we use those titles here.  Marking them as 'waiting' forces them to
     // start in vampire form instead of vampshifted into bat/fog/wolf form.
     const Vgenod = nh.is_genocided("vampire");
-    const Vnames = [ null, null, null ];
+    const Vnames = [null, null, null];
     if ((! Vgenod)) {
        Vnames = ["Madame", "Marquise", "Countess"]
     }
