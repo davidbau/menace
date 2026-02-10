@@ -216,7 +216,17 @@ export function split_rects(r1, r2) {
     }
 
     if (DEBUG) {
+        const top_space = r2.ly - old_r.ly - 1;
+        const top_thresh = (old_r.hy < ROWNO - 1 ? 2 * YLIM : YLIM + 1) + 4;
+        const left_space = r2.lx - old_r.lx - 1;
+        const left_thresh = (old_r.hx < COLNO - 1 ? 2 * XLIM : XLIM + 1) + 4;
+        const bottom_space = old_r.hy - r2.hy - 1;
+        const bottom_thresh = (old_r.ly > 0 ? 2 * YLIM : YLIM + 1) + 4;
+        const right_space = old_r.hx - r2.hx - 1;
+        const right_thresh = (old_r.lx > 0 ? 2 * XLIM : XLIM + 1) + 4;
+
         console.log(`  split_rects: (${old_r.lx},${old_r.ly})-(${old_r.hx},${old_r.hy}) by room (${r2.lx},${r2.ly})-(${r2.hx},${r2.hy}), pool ${old_cnt}->${rect_cnt}`);
+        console.log(`    T:${top_space}>${top_thresh}=${top_space>top_thresh}, L:${left_space}>${left_thresh}=${left_space>left_thresh}, B:${bottom_space}>${bottom_thresh}=${bottom_space>bottom_thresh}, R:${right_space}>${right_thresh}=${right_space>right_thresh}`);
     }
 }
 
@@ -380,9 +390,11 @@ export function create_room(map, x, y, w, h, xal, yal, rtype, rlit, depth, inThe
             const y_rng = rn2(hy - (ly > 0 ? ly : 2) - dy - yborder + 1);
             yabs = ly + (ly > 0 ? ylim : 2) + y_rng;
             if (DEBUG_THEME) console.log(`  Room pos: xabs=${lx}+3+${x_rng}=${xabs}, yabs=${ly}+2+${y_rng}=${yabs}`);
+            // C ref: sp_lev.c:1566-1571 — special case for full-height rectangles in bottom half
+            // CRITICAL: Check (yabs + dy > ROWNO / 2) BEFORE calling rn2(map.nroom) to match C evaluation
             if (ly === 0 && hy >= ROWNO - 1
-                && (!map.nroom || !rn2(map.nroom))
-                && (yabs + dy > Math.floor(ROWNO / 2))) {
+                && (yabs + dy > Math.floor(ROWNO / 2))
+                && (!map.nroom || !rn2(map.nroom))) {
                 yabs = rn1(3, 2);
                 if (map.nroom < 4 && dy > 1)
                     dy--;
