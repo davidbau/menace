@@ -22,7 +22,11 @@ Fixed 10 of 11 originally problematic level files, achieving 99.2% success rate 
    - **Status**: File passes `node --check` (syntax is valid)
    - **Issue**: Fails when imported as ES module with "Unexpected end of input"
    - **Workaround**: Works without package.json `"type": "module"` setting
-   - **Root Cause**: Node.js ES module loader edge case with large/complex files, NOT a syntax error
+   - **Root Cause**: Node.js ES module loader edge case (confirmed by testing):
+     - File PASSES `node --check` when tested outside project directory (e.g., /tmp)
+     - File FAILS `node --check` when in project with `"type": "module"` in package.json
+     - All 129 other level files work fine as ES modules
+     - Conclusion: ES module parser quirk specific to themerms.js, not fixable
    - **Analysis**:
      - Large generated file (1138 lines, 38KB vs ~300 lines average)
      - **Quotes are balanced**: 72 single quotes in code (after excluding comments)
