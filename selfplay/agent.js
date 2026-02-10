@@ -907,9 +907,17 @@ export class Agent {
         // search walls to reveal secret doors/corridors
         // Search probability is 1/7, so search each location up to 30 times for ~99.5% success rate
 
-        // CRITICAL FIX: If currently at a search candidate position, search immediately
-        // This ensures we search whenever we reach a candidate, even during normal exploration
-        if (level.stairsDown.length === 0 && currentCell && currentCell.walkable) {
+        // Opportunistic wall searching: search when at positions with adjacent walls
+        // BUT: Only if we've explored enough to avoid excessive searching
+        // Require BOTH low frontier AND reasonable exploration to prevent premature searching
+        const opportunisticFrontier = level.getExplorationFrontier();
+        const opportunisticExploredPct = level.exploredCount / (80 * 21);
+        const shouldSearchOpportunistically = (
+            opportunisticFrontier.length < 10 &&  // Very low frontier
+            opportunisticExploredPct > 0.15       // Explored at least 15% of map
+        );
+
+        if (level.stairsDown.length === 0 && currentCell && currentCell.walkable && shouldSearchOpportunistically) {
             const hasAdjacentWall = level._hasAdjacentWall(px, py);
             if (hasAdjacentWall && currentCell.searched < 30) {
                 // Search adjacent walls
