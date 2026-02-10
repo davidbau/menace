@@ -15,8 +15,7 @@ export function generate() {
 
     // Data in nh_lua_variables table can be set and queried with nh.variable()
     // This table is saved and restored along with the game.
-    nh_lua_variables = {
-    }
+    nh_lua_variables = []
 
     // wrapper to simplify calling from nethack core
     function get_variables_string() {
@@ -130,28 +129,7 @@ export function generate() {
     }
 
     // Callback functions
-    nhcore = {
-        // start_new_game called once, when starting a new game
-        // after "Welcome to NetHack" message has been given.
-        // start_new_game = function() nh.pline("NEW GAME!"); end,
-
-        // restore_old_game called once, when restoring a saved game
-        // after "Welcome back to NetHack" message has been given.
-        // restore_old_game = function() nh.pline("RESTORED OLD GAME!"); end,
-
-        // moveloop_turn is called once per turn.
-        // moveloop_turn = mk_dgl_extrainfo,
-
-        // game_exit is called when the game exits (quit, saved, ...args)
-        // game_exit = function() end,
-
-        // getpos_tip is called the first time the code enters getpos()
-        getpos_tip = show_getpos_tip,
-
-        // enter_tutorial and leave_tutorial
-        enter_tutorial = tutorial_enter,
-        leave_tutorial = tutorial_leave,
-    }
+    nhcore = { //  start_new_game called once, when starting a new game -- after "Welcome to NetHack" message has been given. -- start_new_game = function() nh.pline("NEW GAME!"); end,  -- restore_old_game called once, when restoring a saved game -- after "Welcome back to NetHack" message has been given. -- restore_old_game = function() nh.pline("RESTORED OLD GAME!"); end,  -- moveloop_turn is called once per turn. -- moveloop_turn = mk_dgl_extrainfo,  -- game_exit is called when the game exits (quit, saved, ...args) -- game_exit = function() end,  -- getpos_tip is called the first time the code enters getpos() getpos_tip = show_getpos_tip,  -- enter_tutorial and leave_tutorial enter_tutorial = tutorial_enter, leave_tutorial = tutorial_leave, };
 
 
 

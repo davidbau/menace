@@ -41,7 +41,7 @@ export function generate() {
 
     if (percent(40)) {
        // occasionally it's not a fog maze
-       const terrain = ["L", "}", "T", "-", "F"];
+    const terrain = ["L", "}", "T", "-", "F"];
        const tidx = Math.random(1, terrain.length);
        // break it up a bit
        des.replace_terrain({ region: [0, 0, 70, 18], fromterrain: "C", toterrain: ".", chance: 5 });

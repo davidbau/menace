@@ -39,7 +39,7 @@ export function generate() {
     `);
 
     if (percent(40)) {
-       const terrain = ["L", "}", "T", ".", "-", "C"];
+    const terrain = ["L", "}", "T", ".", "-", "C"];
        const tidx = Math.random(1, terrain.length);
        des.replace_terrain({ region: [0,0, 74,17], fromterrain: "F", toterrain: terrain[tidx] });
     };

@@ -233,6 +233,30 @@ class LuaToJsConverter:
                 i += 1
                 continue
 
+            # Handle multiline arrays in variable assignments
+            # Check if line has an assignment with an opening brace but no closing brace
+            stripped = line.strip()
+            if ('=' in stripped and '{' in stripped and
+                not stripped.startswith('des.') and  # Not a des.* call (handled above)
+                not (stripped.count('{') == stripped.count('}'))):  # Unbalanced braces
+
+                # Collect the complete multi-line statement
+                multiline = [line]
+                brace_count = stripped.count('{') - stripped.count('}')
+                i += 1
+
+                while i < len(lines) and brace_count > 0:
+                    multiline.append(lines[i])
+                    brace_count += lines[i].count('{') - lines[i].count('}')
+                    i += 1
+
+                # Join and convert as a single statement
+                combined = ' '.join(line.strip() for line in multiline)
+                converted = self.convert_line(combined)
+                if converted:
+                    js_lines.append(converted)
+                continue
+
             # Convert the line
             converted = self.convert_line(line)
             if converted is not None:
