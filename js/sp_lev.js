@@ -87,6 +87,11 @@ let levelState = {
     currentRoom: null,      // Current room being populated
     roomStack: [],          // Stack of nested rooms
     roomDepth: 0,           // Current nesting depth
+    // Deferred execution queues (for RNG alignment with C)
+    // C defers object/monster/trap placement until after corridor generation
+    deferredObjects: [],    // Queued object placements
+    deferredMonsters: [],   // Queued monster placements
+    deferredTraps: [],      // Queued trap placements
 };
 
 // Special level flags
@@ -336,6 +341,9 @@ export function resetLevelState() {
         currentRoom: null,
         roomStack: [],
         roomDepth: 0,
+        deferredObjects: [],
+        deferredMonsters: [],
+        deferredTraps: [],
     };
     icedpools = false;
     Sokoban = false;
@@ -1072,11 +1080,13 @@ export function room(opts = {}) {
     const chance = opts.chance ?? 100;
     const contents = opts.contents;
 
-    // C ref: sp_lev.c:2803 build_room() — always calls rn2(100) and uses result
-    // to decide room type. If roll >= chance, room becomes OROOM (ordinary) instead
-    // of the requested type. Room is still created, just with different type.
+    // C ref: sp_lev.c:2803 build_room() — ALWAYS calls rn2(100) to consume RNG state
+    // If roll >= chance, room becomes OROOM (ordinary) instead of requested type.
+    // For chance=100, the roll doesn't matter (room always gets requested type),
+    // but C still makes the rn2(100) call for RNG alignment.
     const requestedRtype = roomTypeMap[type] ?? 0;
-    const rtype = (!chance || rn2(100) < chance) ? requestedRtype : 0; // 0 = OROOM
+    const roll = rn2(100);
+    const rtype = (roll >= chance) ? 0 : requestedRtype; // 0 = OROOM
 
     // Validate x,y pair (both must be -1 or both must be specified)
     if ((x === -1 || y === -1) && x !== y) {
@@ -1297,98 +1307,9 @@ export function object(name_or_opts, x, y) {
         levelState.map = new GameMap();
     }
 
-    // Handle des.object() with no arguments - random object at random location
-    if (name_or_opts === undefined) {
-        const randClass = rn2(10);  // Random object class
-        const obj = mkobj(randClass, true);
-        if (obj) {
-            obj.ox = rn2(60) + 10;
-            obj.oy = rn2(15) + 3;
-            levelState.map.objects.push(obj);
-        }
-        return;
-    }
-
-    if (typeof name_or_opts === 'string') {
-        // Check if it's a single-character object class (e.g., '[', ')', '!', etc.)
-        if (name_or_opts.length === 1 && x === undefined) {
-            // des.object('[') - place random object from class at random location
-            const objClass = objectClassToType(name_or_opts);
-            if (objClass >= 0) {
-                // Place random object from this class at random ROOM location
-                // TODO: Implement proper random room location selection
-                // For now, place at a semi-random location based on RNG
-                const randX = rn2(60) + 10;  // Avoid edges
-                const randY = rn2(15) + 3;
-                const obj = mkobj(objClass, true);
-                if (obj) {
-                    obj.ox = randX;
-                    obj.oy = randY;
-                    levelState.map.objects.push(obj);
-                }
-            }
-        } else if (x !== undefined && y !== undefined) {
-            // des.object("boulder", x, y) - place named object at position
-            const otyp = objectNameToType(name_or_opts);
-            if (otyp >= 0 && x >= 0 && x < 80 && y >= 0 && y < 21) {
-                const obj = mksobj(otyp, true, false);
-                if (obj) {
-                    obj.ox = x;
-                    obj.oy = y;
-                    levelState.map.objects.push(obj);
-                }
-            }
-        }
-    } else if (name_or_opts && typeof name_or_opts === 'object') {
-        // Handle various object placement formats
-        let objId = name_or_opts.id;
-        let coordX, coordY;
-
-        // Get coordinates from various formats
-        if (name_or_opts.coord) {
-            coordX = name_or_opts.coord.x;
-            coordY = name_or_opts.coord.y;
-        } else if (name_or_opts.x !== undefined && name_or_opts.y !== undefined) {
-            coordX = name_or_opts.x;
-            coordY = name_or_opts.y;
-        }
-
-        // If no coordinates provided, use random placement
-        if (coordX === undefined || coordY === undefined) {
-            coordX = rn2(60) + 10;  // Avoid edges
-            coordY = rn2(15) + 3;
-        }
-
-        if (objId) {
-            // des.object({ id: 'chest', coord: {x, y} }) or des.object({ id: 'chest', x, y })
-            // des.object({ id: 'corpse', montype: 'wizard' }) - corpse with monster type
-            const otyp = objectNameToType(objId);
-            if (otyp >= 0 && coordX >= 0 && coordX < 80 && coordY >= 0 && coordY < 21) {
-                const obj = mksobj(otyp, true, false);
-                if (obj) {
-                    obj.ox = coordX;
-                    obj.oy = coordY;
-                    // Handle corpse with montype
-                    if (name_or_opts.montype && objId.toLowerCase() === 'corpse') {
-                        // Store montype for corpse generation
-                        obj.corpsenm = name_or_opts.montype;
-                    }
-                    levelState.map.objects.push(obj);
-                }
-            }
-        } else if (name_or_opts.class) {
-            // des.object({ class: "%" }) - place random object from class
-            const objClass = objectClassToType(name_or_opts.class);
-            if (objClass >= 0 && coordX >= 0 && coordX < 80 && coordY >= 0 && coordY < 21) {
-                const obj = mkobj(objClass, true);
-                if (obj) {
-                    obj.ox = coordX;
-                    obj.oy = coordY;
-                    levelState.map.objects.push(obj);
-                }
-            }
-        }
-    }
+    // DEFERRED EXECUTION: Queue object placement instead of executing immediately
+    // This matches C's behavior which defers object creation until after corridor generation
+    levelState.deferredObjects.push({ name_or_opts, x, y });
 }
 
 /**
@@ -1462,70 +1383,9 @@ export function trap(type_or_opts, x, y) {
         levelState.map = new GameMap();
     }
 
-    let trapType, trapX, trapY;
-
-    // Handle des.trap() with no arguments - random trap at random location
-    if (type_or_opts === undefined) {
-        trapType = undefined;  // Will be set to PIT later
-        trapX = undefined;  // Will trigger random placement
-        trapY = undefined;
-    } else if (typeof type_or_opts === 'string') {
-        // des.trap("pit", x, y)
-        trapType = type_or_opts;
-        trapX = x;
-        trapY = y;
-    } else if (type_or_opts && typeof type_or_opts === 'object') {
-        // des.trap({ coord: {x, y} }) or des.trap({ type: "pit", coord: {x, y} })
-        trapType = type_or_opts.type;
-        if (type_or_opts.coord) {
-            trapX = type_or_opts.coord.x;
-            trapY = type_or_opts.coord.y;
-        } else if (type_or_opts.x !== undefined && type_or_opts.y !== undefined) {
-            trapX = type_or_opts.x;
-            trapY = type_or_opts.y;
-        }
-    }
-
-    // Random placement if no coordinates specified
-    if (trapX === undefined || trapY === undefined) {
-        trapX = rn2(60) + 10;  // Avoid edges
-        trapY = rn2(15) + 3;
-    }
-
-    // If no trap type specified, use a random one (default to PIT for now)
-    let ttyp;
-    if (!trapType) {
-        ttyp = PIT; // TODO: Implement random trap selection
-    } else {
-        ttyp = trapNameToType(trapType);
-    }
-
-    if (ttyp < 0 || trapX < 0 || trapX >= 80 || trapY < 0 || trapY >= 21) {
-        return;
-    }
-
-    // Check if trap already exists at this position
-    const existing = levelState.map.trapAt(trapX, trapY);
-    if (existing) {
-        return; // Don't overwrite existing trap
-    }
-
-    // Create trap structure matching dungeon.js maketrap()
-    const newTrap = {
-        ttyp: ttyp,
-        tx: trapX,
-        ty: trapY,
-        tseen: (ttyp === HOLE), // Holes are always visible (unhideable_trap)
-        launch: { x: -1, y: -1 },
-        launch2: { x: -1, y: -1 },
-        dst: { dnum: -1, dlevel: -1 },
-        tnote: 0,
-        once: 0,
-        madeby_u: 0,
-        conjoined: 0,
-    };
-
-    levelState.map.traps.push(newTrap);
+    // DEFERRED EXECUTION: Queue trap placement instead of executing immediately
+    // This matches C's behavior which defers trap creation until after corridor generation
+    levelState.deferredTraps.push({ type_or_opts, x, y });
 }
 
 /**
@@ -1707,94 +1567,9 @@ export function monster(opts_or_class, x, y) {
         levelState.map = new GameMap();
     }
 
-    // Handle des.monster() with no arguments - random monster at random location
-    if (opts_or_class === undefined) {
-        const randClass = String.fromCharCode(65 + rn2(26));  // Random letter A-Z
-        if (!levelState.monsters) {
-            levelState.monsters = [];
-        }
-        levelState.monsters.push({
-            id: randClass,
-            x: rn2(60) + 10,
-            y: rn2(15) + 3
-        });
-        return;
-    }
-
-    // Handle different call formats:
-    // 1. des.monster() - random monster at random location
-    // 2. des.monster('V') - random monster from class at random location
-    // 3. des.monster('vampire', x, y) - named monster at specific location
-    // 4. des.monster({ id: 'vampire', x, y, ... }) - full options object
-
-    let monsterId, coordX, coordY, opts;
-
-    if (opts_or_class === undefined) {
-        // des.monster() - completely random monster at random location
-        monsterId = '@';  // Random monster (any class)
-        coordX = rn2(60) + 10;  // Avoid edges
-        coordY = rn2(15) + 3;
-        opts = {};
-    } else if (typeof opts_or_class === 'string') {
-        if (x === undefined) {
-            // des.monster('V') - random placement
-            monsterId = opts_or_class;
-            coordX = rn2(60) + 10;  // Avoid edges
-            coordY = rn2(15) + 3;
-            opts = {};
-        } else {
-            // des.monster('vampire', x, y) - specific placement
-            monsterId = opts_or_class;
-            coordX = x;
-            coordY = y;
-            opts = {};
-        }
-    } else if (opts_or_class && typeof opts_or_class === 'object') {
-        // des.monster({ id: 'vampire', x, y, ... }) or des.monster({ class: 'S', x, y })
-        // des.monster({ x, y }) - random monster at specific location
-        opts = opts_or_class;
-        monsterId = opts.id || opts.class || '@';  // Support 'id', 'class', or default to random
-
-        if (opts.coord) {
-            coordX = opts.coord.x;
-            coordY = opts.coord.y;
-        } else {
-            coordX = opts.x;
-            coordY = opts.y;
-        }
-
-        // Random placement if no coordinates
-        if (coordX === undefined || coordY === undefined) {
-            coordX = rn2(60) + 10;
-            coordY = rn2(15) + 3;
-        }
-    }
-
-    if (!monsterId || coordX === undefined || coordY === undefined ||
-        coordX < 0 || coordX >= 80 || coordY < 0 || coordY >= 21) {
-        return; // Invalid parameters
-    }
-
-    // Store monster request in levelState
-    if (!levelState.monsters) {
-        levelState.monsters = [];
-    }
-
-    levelState.monsters.push({
-        id: monsterId,
-        x: coordX,
-        y: coordY,
-        name: opts.name,
-        waiting: opts.waiting || false,
-        peaceful: opts.peaceful,
-        asleep: opts.asleep,
-        align: opts.align
-    });
-
-    // Note: Full implementation would call makemon() with appropriate parameters
-    // and set monster properties like mtame, mpeaceful, msleeping, etc.
-    // This requires the game to be fully initialized, which happens during
-    // actual gameplay, not during level generation.
+    // DEFERRED EXECUTION: Queue monster placement instead of executing immediately
+    // This matches C's behavior which defers monster creation until after corridor generation
+    levelState.deferredMonsters.push({ opts_or_class, x, y });
 }
 
 /**
@@ -2038,18 +1813,261 @@ export function random_corridors() {
 }
 
 /**
+ * Execute all deferred object placements
+ * Called from finalize_level() after corridor generation
+ */
+function executeDeferredObjects() {
+    for (const deferred of levelState.deferredObjects) {
+        const { name_or_opts, x, y } = deferred;
+
+        // Execute the original object() logic
+        // Handle des.object() with no arguments - random object at random location
+        if (name_or_opts === undefined) {
+            const randClass = rn2(10);  // Random object class
+            const obj = mkobj(randClass, true);
+            if (obj) {
+                obj.ox = rn2(60) + 10;
+                obj.oy = rn2(15) + 3;
+                levelState.map.objects.push(obj);
+            }
+            continue;
+        }
+
+        if (typeof name_or_opts === 'string') {
+            // Check if it's a single-character object class
+            if (name_or_opts.length === 1 && x === undefined) {
+                const objClass = objectClassToType(name_or_opts);
+                if (objClass >= 0) {
+                    const randX = rn2(60) + 10;
+                    const randY = rn2(15) + 3;
+                    const obj = mkobj(objClass, true);
+                    if (obj) {
+                        obj.ox = randX;
+                        obj.oy = randY;
+                        levelState.map.objects.push(obj);
+                    }
+                }
+            } else if (x !== undefined && y !== undefined) {
+                const otyp = objectNameToType(name_or_opts);
+                if (otyp >= 0 && x >= 0 && x < 80 && y >= 0 && y < 21) {
+                    const obj = mksobj(otyp, true, false);
+                    if (obj) {
+                        obj.ox = x;
+                        obj.oy = y;
+                        levelState.map.objects.push(obj);
+                    }
+                }
+            }
+        } else if (name_or_opts && typeof name_or_opts === 'object') {
+            let objId = name_or_opts.id;
+            let coordX, coordY;
+
+            if (name_or_opts.coord) {
+                coordX = name_or_opts.coord.x;
+                coordY = name_or_opts.coord.y;
+            } else if (name_or_opts.x !== undefined && name_or_opts.y !== undefined) {
+                coordX = name_or_opts.x;
+                coordY = name_or_opts.y;
+            }
+
+            if (coordX === undefined || coordY === undefined) {
+                coordX = rn2(60) + 10;
+                coordY = rn2(15) + 3;
+            }
+
+            if (objId) {
+                const otyp = objectNameToType(objId);
+                if (otyp >= 0 && coordX >= 0 && coordX < 80 && coordY >= 0 && coordY < 21) {
+                    const obj = mksobj(otyp, true, false);
+                    if (obj) {
+                        obj.ox = coordX;
+                        obj.oy = coordY;
+                        if (name_or_opts.montype && objId.toLowerCase() === 'corpse') {
+                            obj.corpsenm = name_or_opts.montype;
+                        }
+                        levelState.map.objects.push(obj);
+                    }
+                }
+            } else if (name_or_opts.class) {
+                const objClass = objectClassToType(name_or_opts.class);
+                if (objClass >= 0 && coordX >= 0 && coordX < 80 && coordY >= 0 && coordY < 21) {
+                    const obj = mkobj(objClass, true);
+                    if (obj) {
+                        obj.ox = coordX;
+                        obj.oy = coordY;
+                        levelState.map.objects.push(obj);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Execute all deferred monster placements
+ * Called from finalize_level() after corridor generation
+ */
+function executeDeferredMonsters() {
+    for (const deferred of levelState.deferredMonsters) {
+        const { opts_or_class, x, y } = deferred;
+
+        // Execute the original monster() logic
+        let monsterId, coordX, coordY, opts;
+
+        if (opts_or_class === undefined) {
+            const randClass = String.fromCharCode(65 + rn2(26));
+            if (!levelState.monsters) {
+                levelState.monsters = [];
+            }
+            levelState.monsters.push({
+                id: randClass,
+                x: rn2(60) + 10,
+                y: rn2(15) + 3
+            });
+            continue;
+        }
+
+        if (typeof opts_or_class === 'string') {
+            if (x === undefined) {
+                monsterId = opts_or_class;
+                coordX = rn2(60) + 10;
+                coordY = rn2(15) + 3;
+                opts = {};
+            } else {
+                monsterId = opts_or_class;
+                coordX = x;
+                coordY = y;
+                opts = {};
+            }
+        } else if (opts_or_class && typeof opts_or_class === 'object') {
+            opts = opts_or_class;
+            monsterId = opts.id || opts.class || '@';
+
+            if (opts.coord) {
+                coordX = opts.coord.x;
+                coordY = opts.coord.y;
+            } else {
+                coordX = opts.x;
+                coordY = opts.y;
+            }
+
+            if (coordX === undefined || coordY === undefined) {
+                coordX = rn2(60) + 10;
+                coordY = rn2(15) + 3;
+            }
+        }
+
+        if (!monsterId || coordX === undefined || coordY === undefined ||
+            coordX < 0 || coordX >= 80 || coordY < 0 || coordY >= 21) {
+            continue;
+        }
+
+        if (!levelState.monsters) {
+            levelState.monsters = [];
+        }
+
+        levelState.monsters.push({
+            id: monsterId,
+            x: coordX,
+            y: coordY,
+            name: opts?.name,
+            waiting: opts?.waiting || false,
+            peaceful: opts?.peaceful,
+            asleep: opts?.asleep,
+            align: opts?.align
+        });
+    }
+}
+
+/**
+ * Execute all deferred trap placements
+ * Called from finalize_level() after corridor generation
+ */
+function executeDeferredTraps() {
+    for (const deferred of levelState.deferredTraps) {
+        const { type_or_opts, x, y } = deferred;
+
+        // Execute the original trap() logic
+        let trapType, trapX, trapY;
+
+        if (type_or_opts === undefined) {
+            trapType = undefined;
+            trapX = undefined;
+            trapY = undefined;
+        } else if (typeof type_or_opts === 'string') {
+            trapType = type_or_opts;
+            trapX = x;
+            trapY = y;
+        } else if (type_or_opts && typeof type_or_opts === 'object') {
+            trapType = type_or_opts.type;
+            if (type_or_opts.coord) {
+                trapX = type_or_opts.coord.x;
+                trapY = type_or_opts.coord.y;
+            } else if (type_or_opts.x !== undefined && type_or_opts.y !== undefined) {
+                trapX = type_or_opts.x;
+                trapY = type_or_opts.y;
+            }
+        }
+
+        if (trapX === undefined || trapY === undefined) {
+            trapX = rn2(60) + 10;
+            trapY = rn2(15) + 3;
+        }
+
+        let ttyp;
+        if (!trapType) {
+            ttyp = PIT;
+        } else {
+            ttyp = trapNameToType(trapType);
+        }
+
+        if (ttyp < 0 || trapX < 0 || trapX >= 80 || trapY < 0 || trapY >= 21) {
+            continue;
+        }
+
+        const existing = levelState.map.trapAt(trapX, trapY);
+        if (existing) {
+            continue;
+        }
+
+        const newTrap = {
+            ttyp: ttyp,
+            tx: trapX,
+            ty: trapY,
+            tseen: (ttyp === HOLE),
+            launch: { x: -1, y: -1 },
+            launch2: { x: -1, y: -1 },
+            dst: { dnum: -1, dlevel: -1 },
+            tnote: 0,
+            once: 0,
+            madeby_u: 0,
+            conjoined: 0,
+        };
+
+        levelState.map.traps.push(newTrap);
+    }
+}
+
+/**
  * des.finalize_level()
  * Finalize level generation - must be called after all des.* calls.
  * C ref: sp_lev.c sp_level_loader()
  *
  * Performs post-processing steps:
- * 1. Copies monster requests from levelState to map.monsters
- * 2. Applies wallification (computes wall junction types)
- * 3. Applies random level flipping (horizontal/vertical)
+ * 1. Execute all deferred placements (objects, monsters, traps)
+ * 2. Copies monster requests from levelState to map.monsters
+ * 3. Applies wallification (computes wall junction types)
+ * 4. Applies random level flipping (horizontal/vertical)
  *
  * @returns {GameMap} The finalized map ready for gameplay
  */
 export function finalize_level() {
+    // CRITICAL: Execute deferred placements BEFORE wallification
+    // This matches C's execution order: rooms → corridors → entities → wallify
+    executeDeferredObjects();
+    executeDeferredMonsters();
+    executeDeferredTraps();
+
     // Copy monster requests to map
     if (levelState.monsters && levelState.map) {
         if (!levelState.map.monsters) {
