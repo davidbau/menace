@@ -99,8 +99,8 @@ export function generate() {
           name: "Spider nest",
           contents: function(rm) {
              let spooders = nh.level_difficulty() > 8;
-             const locs = selection.room().percentage(30);
-             const func = function(x,y) {
+             let locs = selection.room().percentage(30);
+             let func = function(x,y) {
                 des.trap({ type: "web", x: x, y: y,
                            spider_on_web: spooders && percent(80) });
              };
@@ -115,10 +115,10 @@ export function generate() {
                             "land mine", "sleep gas", "rust",
                             "anti magic" ];
              shuffle(traps);
-             locs: selection.room().percentage(30);
-             func: function(x,y) {
+             let locs = selection.room().percentage(30);
+             let func = function(x,y) {
                 des.trap(traps[1], x, y);
-             }
+             };
              locs.iterate(func);
           },
        },
@@ -259,8 +259,8 @@ export function generate() {
        {
           name: "Storeroom",
           contents: function(rm) {
-             locs: selection.room().percentage(30);
-             func: function(x,y) {
+             let locs = selection.room().percentage(30);
+             let func = function(x,y) {
                 if ((percent(25))) {
                    des.object("chest");
                 } else {
@@ -274,7 +274,7 @@ export function generate() {
        {
           name: "Teleportation hub",
           contents: function(rm) {
-             locs: selection.room().filter_mapchar(".");
+             let locs = selection.room().filter_mapchar(".");
              for (let i = 1; i <= 2 + nh.rn2(3); i++) {
                 let pos = locs.rndcoord(1);
                 if ((pos.x > 0)) {
@@ -865,7 +865,7 @@ export function generate() {
        {
           name: 'Twin businesses',
           mindiff: 4, // arbitrary
-          contents = function() {
+          contents: function() {
              // Due to the way room connections work in mklev.c, we must guarantee
              // that the "aisle" between the shops touches all four walls of the
              // larger room. Thus it has an extra width && height.
@@ -886,9 +886,9 @@ export function generate() {
                       { lx: 2, ly: 1, rx: 5, ry: 1, lwall: southwest(), rwall: "south" },
                       { lx: 2, ly: 2, rx: 5, ry: 2, lwall: northwest(), rwall: "north" }
                    ]
-                   ltype,rtype: "weapon shop","armor shop"
+                   let ltype = "weapon shop", rtype = "armor shop";
                    if (percent(50)) {
-                      ltype,rtype: rtype,ltype
+                      [ltype, rtype] = [rtype, ltype];
                    }
                    shopdoorstate = function() {
                       if (percent(1)) {
@@ -915,12 +915,12 @@ export function generate() {
           }
        },
 
-    };
+    ];
 
     // store these at global scope, they will be reinitialized in
     // pre_themerooms_generate
-    debug_rm_idx = null
-    debug_fill_idx = null
+    let debug_rm_idx = null;
+    let debug_fill_idx = null;
 
     // Given a point in a themed room, ensure that themed room is stocked with
     // regular room contents.
@@ -1129,11 +1129,11 @@ export function generate() {
 
     // called once after the whole level has been generated
     let post_level_generate = function() {
-       for i, v in ipairs(postprocess) do
+       for (const v of postprocess) {
           v.handler(v.data);
        }
        postprocess = [ ];
-    }]
+    };
 
-    // return des.finalize_level();
+    return des.finalize_level();
 }
