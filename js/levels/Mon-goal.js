@@ -34,7 +34,7 @@ export function generate() {
 
     `);
     // Dungeon Description
-    const place = { {14,4],{13,7] }
+    const place = [[14, 4], [13, 7]]
     const placeidx = Math.random(1, place.length);
 
     des.region(selection.area(0,0,25,10), "unlit");

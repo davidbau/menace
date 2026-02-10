@@ -81,7 +81,7 @@ export function generate() {
     des.replace_terrain({ region: [28,12,28,14], fromterrain: "|", toterrain: ".", chance: 33 });
 
     // One spot each in most shops...
-    const place = { {5,4],{9,5],{13,4],{26,4],{31,5],{30,14],{5,14],{10,13],{26,14],{27,13] }
+    const place = [[5, 4], [9, 5], [13, 4], [26, 4], [31, 5], [30, 14], [5, 14], [10, 13], [26, 14], [27, 13]]
     shuffle(place)
 
     // scatter some bodies

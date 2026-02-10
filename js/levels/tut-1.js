@@ -33,7 +33,7 @@ export function generate() {
 
     function tut_key_help(x, y) {
        if ((tut_ctrl_key !== null)) {
-          des.engraving({ coord: {x,y}, type: "engrave", text: "Note: Outside the tutorial, Ctrl-key combinations are shown prefixed with a caret, like '^" + tut_ctrl_key + "'", degrade: false });
+          des.engraving({ coord: [x,y], type: "engrave", text: "Note: Outside the tutorial, Ctrl-key combinations are shown prefixed with a caret, like '^" + tut_ctrl_key + "'", degrade: false });
           tut_ctrl_key = null
        }
     }
@@ -140,7 +140,7 @@ export function generate() {
     // 
 
     des.engraving({ coord: [15,11], type: "engrave", text: "There are four traps next to you! Search for them.", degrade: false });
-    const locs = { {14,11], {14,12], {15,12], {16,12], {16,11] };
+    const locs = [[14, 11], [14, 12], [15, 12], [16, 12], [16, 11]];
     shuffle(locs)
     for (let i = 1; i <= 4; i++) {
     des.trap({ type: percent(50) && "sleep gas" || "board", coord: locs[i], victim: false });
@@ -353,7 +353,7 @@ export function generate() {
     // temporary stuff here
     // des.trap({ type = "magic portal", coord = { 9,5 }, seen = true });
     // des.trap({ type = "magic portal", coord = { 9,1 }, seen = true });
-    // des.object({ id = "leather armor", spe = 0, coord = { 9,2] });
+    // des.object({ id = "leather armor", spe = 0, coord = { 9,2} });
 
 
 

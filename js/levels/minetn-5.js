@@ -63,7 +63,7 @@ export function generate() {
       des.terrain(selection.line(14,9, 14,10), "|");
     }
     if (percent(50)) {
-      des.terrain({46,13], "|");
+      des.terrain([46,13], "|");
       des.terrain(selection.line(43,5, 47,5), "-");
       des.terrain(selection.line(42,6, 46,6), ".");
       des.terrain(selection.line(46,7, 47,7), ".");

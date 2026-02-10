@@ -32,8 +32,7 @@ export function generate() {
 
     ` });
     // Random places are the 10 niches
-    const place = [ [5,1],[9,1],[13,1],[3,3],[15,3],
-    	   [3,7],[15,7],[5,9],[9,9],[13,9] ];
+    const place = [[5, 1], [9, 1], [13, 1], [3, 3], [15, 3], [3, 7], [15, 7], [5, 9], [9, 9], [13, 9]]
 
     des.levregion({ type: "branch", region: [2,5,2,5] });
     des.ladder("up", 5,7);

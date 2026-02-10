@@ -57,7 +57,7 @@ export function generate() {
 
     // The down stairs is at one of the 4 "exits".  The others are mimics,
     // mimicking stairwells.
-    const place = { {33,0], {0,12], {25,20], {75,5] }
+    const place = [[33, 0], [0, 12], [25, 20], [75, 5]]
     shuffle(place)
 
     des.stair({ dir: "down", coord: place[1] });

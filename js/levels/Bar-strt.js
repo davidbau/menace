@@ -53,7 +53,7 @@ export function generate() {
     des.replace_terrain({ region: [65,0, 75,19], fromterrain: ".", toterrain: "T", chance: 20 });
     // guarantee a path and free spot for the portal
     des.terrain(selection.randline(selection.new(), 37,7, 62,2, 7), ".");
-    des.terrain({62,2], ".");
+    des.terrain([62,2], ".");
 
     // Dungeon Description
     des.region(selection.area(0,0,75,19), "lit");

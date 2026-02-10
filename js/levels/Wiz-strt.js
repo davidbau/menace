@@ -60,7 +60,7 @@ export function generate() {
     // Stairs
     des.stair("down", 30,10);
     // Portal arrival point
-    des.terrain({63,6], ".");
+    des.terrain([63,6], ".");
     des.levregion({ region: [63,6,63,6], type: "branch" });
     // Doors
     des.door("closed",31,9);

@@ -15,7 +15,7 @@ export function generate() {
     // NetHack may be freely redistributed.  See license for details.
     // compatibility shim
     math.random = function( + .)
-       const arg = { + .};
+       const arg = [+ .];
        if ((#arg === 1)) {
           return 1 + nh.rn2(arg[1]);;
        } else if ((#arg === 2)) {
@@ -152,7 +152,7 @@ export function generate() {
 
     // pline with variable number of arguments
     function pline(fmt, ...args) {
-       nh.pline(string.format(fmt, table.unpack({ + .})))
+       nh.pline(string.format(fmt, table.unpack([+ .])))
     }
 
     // wrapper to make calling from nethack core easier
@@ -192,9 +192,7 @@ export function generate() {
     // 
 
     // extended commands NOT available in tutorial
-    const tutorial_blacklist_commands = {
-       ["save"] = true,
-    }
+    const tutorial_blacklist_commands = { ["save"] = true, };
 
     function tutorial_cmd_before(cmd) {
        // nh.pline("TUT:cmd_before:" .. cmd);
@@ -227,19 +225,7 @@ export function generate() {
        nh.gamestate(true)
     }
 
-    const tutorial_events = {
-       {
-          func = function()
-             if ((u.uhunger < 148)) {
-                const o = obj.new("blessed food ration");
-                o.placeobj(u.ux, u.uy)
-                nh.pline("Looks like you're getting hungry.  You'll starve to death, unless you eat something.", true)
-                nh.pline("Comestibles are eaten with '" + nh.eckey("eat") + "'", true)
-                return true;;
-             }
-          }
-       },
-    }
+    const tutorial_events = [{ func = function() if ((u.uhunger < 148)) { o = obj.new("blessed food ration"); o.placeobj(u.ux, u.uy); nh.pline("Looks like you're getting hungry.  You'll starve to death, unless you eat something.", true); nh.pline("Comestibles are eaten with '" + nh.eckey("eat") + "'", true); return true; } } }];
 
     function tutorial_turn() {
        for (const [k, v] of Object.entries(tutorial_events)) {

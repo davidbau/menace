@@ -12,7 +12,7 @@ export function generate() {
     // Copyright (c) 1991-95 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
     // 
-    // Mine end level variant 2
+    // Mine } level variant 2
     // "Gnome King's Wine Cellar"
 
     des.level_init({ style: "solidfill", fg: " " });
@@ -43,26 +43,26 @@ export function generate() {
     `);
 
     if (percent(50)) {
-       des.terrain({55,14],"-");
-       des.terrain({56,14],"-");
-       des.terrain({61,15],"|");
-       des.terrain({52,5], "S");
+       des.terrain([55,14],"-");
+       des.terrain([56,14],"-");
+       des.terrain([61,15],"|");
+       des.terrain([52,5], "S");
        des.door("locked", 52,5);
     }
     if (percent(50)) {
-       des.terrain({18,1], "|");
+       des.terrain([18,1], "|");
        des.terrain(selection.area(7,12, 8,13), ".");
     }
     if (percent(50)) {
-       des.terrain({49,4], "|");
-       des.terrain({21,5], ".");
+       des.terrain([49,4], "|");
+       des.terrain([21,5], ".");
     }
     if (percent(50)) {
        if (percent(50)) {
-          des.terrain({22,1], "|");
+          des.terrain([22,1], "|");
        } else {
-          des.terrain({50,7], "-");
-          des.terrain({51,7], "-");
+          des.terrain([50,7], "-");
+          des.terrain([51,7], "-");
        }
     }
 
@@ -73,7 +73,7 @@ export function generate() {
     des.teleport_region({ region: [23,3,48,16], region_islev: 1 });
 
     // Dungeon Description
-    des.feature("fountain", {14,13});
+    des.feature("fountain", [14, 13]);
     des.region(selection.area(23,3,48,6),"lit");
     des.region(selection.area(21,6,22,6),"lit");
     des.region(selection.area(14,4,14,4),"unlit");
@@ -94,8 +94,8 @@ export function generate() {
     des.non_diggable(selection.area(53,14,61,14));
     // The Gnome King's wine cellar.
     // the Trespassers sign is a long-running joke
-    des.engraving({12,3], "engrave", "You are now entering the Gnome King's wine cellar.");
-    des.engraving({12,4], "engrave", "Trespassers will be persecuted!");
+    des.engraving([12,3], "engrave", "You are now entering the Gnome King's wine cellar.");
+    des.engraving([12,4], "engrave", "Trespassers will be persecuted!");
     des.object("potion of booze", 10, 7);
     des.object("potion of booze", 10, 7);
     des.object("!", 10, 7);

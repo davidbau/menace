@@ -42,8 +42,8 @@ export function generate() {
     `);
 
     des.replace_terrain({ region: [0, 0,30,20], fromterrain: ".", toterrain: "C", chance: 15 });
-    des.replace_terrain({ region: [68, 0,75,20], fromterrain: ".", toterrain: " }", chance=25 });
-    des.replace_terrain({ region: [34, 1,68,19], fromterrain: " }", toterrain=".", chance=2 });
+    des.replace_terrain({ region: [68, 0,75,20], fromterrain: ".", toterrain: " }", chance:25 });
+    des.replace_terrain({ region: [34, 1,68,19], fromterrain: " }", toterrain:".", chance:2 });
 
     // Dungeon Description
     des.region(selection.area(0,0,75,20), "lit");
@@ -65,7 +65,7 @@ export function generate() {
     des.door("locked",47,8);
     des.door("locked",47,12);
     // Stairs
-    des.terrain({3,17], ".");
+    des.terrain([3,17], ".");
     des.stair("up", 3,17);
     des.stair("down", 48,10);
     // Non diggable walls

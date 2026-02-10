@@ -39,29 +39,7 @@ export function generate() {
 
     `);
 
-    const terrain = ["L", "T", "{", "."];
-    const tidx = Math.random(1, terrain.length);
-    des.replace_terrain({ region: [0,0, 74,18], fromterrain: "L", toterrain: terrain[tidx] });
-
-    des.region(selection.area(1,1,73,17), "lit");
-
-    des.stair("up");
-    des.stair("down");
-
-    des.non_diggable();
-
-    for (let i = 1; i <= 15; i++) {
-       des.object();
-    }
-
-    for (let i = 1; i <= 6; i++) {
-       des.trap();
-    }
-
-    for (let i = 1; i <= 28; i++) {
-      des.monster();
-    }
-
+    const terrain = ["L", "T", "{", "."]; tidx = Math.random(1, terrain.length); des.replace_terrain({ region={00,0, 74,18}, fromterrain:"L", toterrain:terrain[tidx] });  des.region(selection.area(1,1,73,17), "lit");  des.stair("up"); des.stair("down");  des.non_diggable();  for i = 1,15 do des.object(); }  for i = 1,6 do des.trap(); }  for i = 1,28 do des.monster(); end
 
     return des.finalize_level();
 }

@@ -41,7 +41,7 @@ export function generate() {
 
     if (percent(40)) {
        // occasionally it's not a fog maze
-       const terrain = ["L", "}", "T", "-", "F"];
+    const terrain = ["L", "}", "T", "-", "F"];
        const tidx = Math.random(1, terrain.length);
        // break it up a bit
        des.replace_terrain({ region: [0, 0, 70, 18], fromterrain: "C", toterrain: ".", chance: 5 });
@@ -50,7 +50,7 @@ export function generate() {
 
     des.region(selection.area(0,0,70,18), "lit");
 
-    // when falling down on this level, never end up in the fog maze
+    // when falling down on this level, never } up in the fog maze
     des.teleport_region({ region: [0,0,70,18], exclude: [2,3,68,15], dir: "down" });
 
     for (let i = 1; i <= 15; i++) {
