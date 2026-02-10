@@ -490,6 +490,11 @@ export function map(data) {
     if (levelState.coder.solidify) {
         wallification(levelState.map);
     }
+
+    // Execute contents callback if provided
+    if (contents && typeof contents === 'function') {
+        contents();
+    }
 }
 
 /**

@@ -37,7 +37,7 @@ let asmo1 = des.map({ halign: "half-left", valign: "center", map: `
    des.door("closed",4,3);
    des.door("locked",18,4);
    des.door("closed",18,8);
-   --
+   //
    des.stair("down", 13,7)
    // Non diggable walls
    des.non_diggable(selection.area(0,0,20,11))
