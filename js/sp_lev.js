@@ -16,7 +16,7 @@
 import { GameMap } from './map.js';
 import { rn2, rnd, rn1 } from './rng.js';
 import { mksobj, mkobj } from './mkobj.js';
-import { create_room, makecorridors } from './dungeon.js';
+import { create_room, makecorridors, init_rect } from './dungeon.js';
 import {
     STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
     CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL, ROOM, CORR,
@@ -188,21 +188,43 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
         rtype = 0; // OROOM
     }
 
-    // C ref: sp_lev.c:1510 — determine lighting (ALWAYS calls litstate_rnd)
-    rlit = litstate_rnd(rlit, depth);
-
-    // C ref: sp_lev.c:1530-1572 — Check which placement path to use
+    // C ref: sp_lev.c:1530-1572 — Check which placement path to use FIRST
     // Path 1: "Totally random" — ALL params -1 or vault → uses rnd_rect() + BSP
     // Path 2: "Some params random" — grid placement with alignment
+    // IMPORTANT: Check this BEFORE calling litstate_rnd to avoid consuming RNG on failure!
 
     const fullyRandom = (x < 0 && y < 0 && w < 0 && xalign < 0 && yalign < 0);
 
     if (fullyRandom) {
-        // C ref: sp_lev.c:1534 — totally random uses procedural rnd_rect()
-        // This path requires BSP rectangle selection which we haven't ported yet
-        // For now, signal that caller should use procedural create_room
-        return null;
+        // C ref: sp_lev.c:1534 — totally random uses procedural rnd_rect() + BSP
+        // Use dungeon.js create_room which implements this path
+        // Note: create_room calls litstate_rnd internally, so we don't call it here
+
+        if (!levelState.map) {
+            return null; // No map available for BSP room placement
+        }
+
+        // Call dungeon.create_room with map - it modifies map directly
+        // Returns false if no space available, true on success
+        const success = create_room(levelState.map, x, y, w, h, xalign, yalign,
+                                     rtype, rlit, depth, false);
+
+        if (!success) {
+            return null;
+        }
+
+        // Extract the last room that was added to map.rooms
+        const room = levelState.map.rooms[levelState.map.rooms.length - 1];
+
+        // Mark this room as already added to map so caller knows to skip duplicate work
+        room._alreadyAdded = true;
+
+        return room; // Return the room object for caller
     }
+
+    // C ref: sp_lev.c:1510 — determine lighting (ALWAYS calls litstate_rnd)
+    // Only call this AFTER we know the room will succeed (not fully random)
+    rlit = litstate_rnd(rlit, depth);
 
     // C ref: sp_lev.c:1574-1593 — "Only some parameters are random" path
     // Uses grid placement (1-5) with alignment
@@ -347,6 +369,10 @@ export function resetLevelState() {
     };
     icedpools = false;
     Sokoban = false;
+
+    // Initialize BSP rectangle pool for random room placement
+    // C ref: sp_lev.c special level generation requires rect pool initialization
+    init_rect();
 }
 
 /**
@@ -1080,13 +1106,12 @@ export function room(opts = {}) {
     const chance = opts.chance ?? 100;
     const contents = opts.contents;
 
-    // C ref: sp_lev.c:2803 build_room() — ALWAYS calls rn2(100) to consume RNG state
+    // C ref: sp_lev.c:2803 build_room() — calls rn2(100) ONLY for fixed-position rooms
     // If roll >= chance, room becomes OROOM (ordinary) instead of requested type.
     // For chance=100, the roll doesn't matter (room always gets requested type),
     // but C still makes the rn2(100) call for RNG alignment.
+    // Random-placement rooms (no x/y/w/h) do NOT call rn2(100) for chance check.
     const requestedRtype = roomTypeMap[type] ?? 0;
-    const roll = rn2(100);
-    const rtype = (roll >= chance) ? 0 : requestedRtype; // 0 = OROOM
 
     // Validate x,y pair (both must be -1 or both must be specified)
     if ((x === -1 || y === -1) && x !== y) {
@@ -1110,17 +1135,27 @@ export function room(opts = {}) {
     // Special levels use fixed coordinates, not BSP rectangle selection
     const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_ROOMS === '1';
 
-    if (DEBUG) {
-        console.log(`des.room(): x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, rtype=${rtype}, lit=${lit}`);
-    }
-
     // Calculate actual room position and size
     // If x, y are specified, use them directly (special level fixed position)
     // If -1, would need random placement (not implemented yet)
-    let roomX, roomY, roomW, roomH;
+    let roomX, roomY, roomW, roomH, rtype;
 
     if (x >= 0 && y >= 0 && w > 0 && h > 0) {
         // Fixed position special level room
+        // C ref: sp_lev.c:2803 — rn2(100) called for TOP-LEVEL fixed-position rooms only
+        // Nested rooms (roomDepth > 0) do NOT call rn2(100) for chance check
+        if (levelState.roomDepth === 0) {
+            const roll = rn2(100);
+            rtype = (roll >= chance) ? 0 : requestedRtype; // 0 = OROOM
+        } else {
+            // Nested rooms use requested type directly, no chance roll
+            rtype = requestedRtype;
+        }
+
+        if (DEBUG) {
+            console.log(`des.room(): FIXED position x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, rtype=${rtype}, lit=${lit}, depth=${levelState.roomDepth}`);
+        }
+
         roomX = x;
         roomY = y;
         roomW = w;
@@ -1129,7 +1164,14 @@ export function room(opts = {}) {
         lit = litstate_rnd(lit, levelState.depth || 1);
     } else {
         // Random placement - use sp_lev.c's create_room algorithm
-        // C ref: sp_lev.c:1486 create_room() — different RNG pattern from procedural
+        // C ref: sp_lev.c:1486 create_room() — NO rn2(100) call for random-placement rooms
+        // The room type is used directly without a chance roll
+        rtype = requestedRtype;
+
+        if (DEBUG) {
+            console.log(`des.room(): RANDOM placement x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, rtype=${rtype}, lit=${lit}`);
+        }
+
         const roomCalc = create_room_splev(x, y, w, h, xalign, yalign,
                                            rtype, lit, levelState.depth || 1);
 
@@ -1138,6 +1180,34 @@ export function room(opts = {}) {
                 console.log(`des.room(): create_room_splev failed, no space available`);
             }
             return false;
+        }
+
+        // Check if create_room_splev already added the room to the map (fully random path)
+        if (roomCalc._alreadyAdded) {
+            if (DEBUG) {
+                console.log(`des.room(): room already added by create_room (fully random), executing contents callback`);
+            }
+
+            // Room is already in map, just execute contents callback if needed
+            if (contents && typeof contents === 'function') {
+                const parentRoom = levelState.currentRoom;
+                levelState.roomStack.push(parentRoom);
+                levelState.roomDepth++;
+
+                // Add width/height for compatibility
+                roomCalc.width = roomCalc.hx - roomCalc.lx + 1;
+                roomCalc.height = roomCalc.hy - roomCalc.ly + 1;
+                levelState.currentRoom = roomCalc;
+
+                try {
+                    contents(roomCalc);
+                } finally {
+                    levelState.currentRoom = levelState.roomStack.pop();
+                    levelState.roomDepth--;
+                }
+            }
+
+            return true; // Early return - room already created
         }
 
         // Extract coordinates from calculated room

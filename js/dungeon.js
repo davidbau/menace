@@ -101,8 +101,8 @@ let rects = [];
 let rect_cnt = 0;
 const n_rects = Math.floor((COLNO * ROWNO) / 30);
 
-// C ref: rect.c init_rect()
-function init_rect() {
+// C ref: rect.c init_rect() - exported for sp_lev.js special level initialization
+export function init_rect() {
     rects = new Array(n_rects);
     rect_cnt = 1;
     rects[0] = { lx: 0, ly: 0, hx: COLNO - 1, hy: ROWNO - 1 };
