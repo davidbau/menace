@@ -2,6 +2,21 @@
 
 This document captures lessons learned while achieving bit-exact RNG alignment between the JavaScript port and C NetHack 3.7.
 
+## Reference Seed for RNG Alignment Testing
+
+**Seed 99999** is the reference seed for RNG alignment testing, achieving **8 consecutive turns of perfect RNG alignment** (turns 1-8). This is the best consecutive alignment achieved across all tested seeds.
+
+### Seed Comparison
+
+| Seed   | Perfect Turns | Divergence Point | Overall Match (20 turns) | Notes |
+|--------|---------------|------------------|--------------------------|-------|
+| **99999**  | **1-8 (8 turns)** | Turn 9           | 98.4%                   | **Reference seed - best consecutive alignment** |
+| 13296  | 1-7 (7 turns) | Turn 8           | 98.9%                   | Original test seed |
+| 100002 | 1-6 (6 turns) | Turn 7           | 99.8%                   | Good overall match |
+| 55555  | 0 turns       | Turn 2           | 99.9%                   | Best overall match, but no consecutive alignment |
+
+For detailed analysis of seed 99999, see [RNG_ALIGNMENT_RESULTS.md](RNG_ALIGNMENT_RESULTS.md).
+
 ## Current Status (2026-02-09)
 
 - **Unit tests**: 454 pass / 0 fail ✓
