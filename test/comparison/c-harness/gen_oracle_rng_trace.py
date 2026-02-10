@@ -222,15 +222,17 @@ def generate_oracle_trace(seed, verbose=False):
     tmpdir = tempfile.mkdtemp(prefix=f'oracle-trace-{seed}-')
     dumpmap_file = os.path.join(tmpdir, 'dumpmap.txt')
     rnglog_file = os.path.join(tmpdir, 'rnglog.txt')
+    rectlog_file = os.path.join(tmpdir, 'rectlog.txt')
     session_name = f'oracle-trace-{seed}-{os.getpid()}'
 
     try:
-        # Run NetHack with RNGLOG and DUMPMAP enabled
+        # Run NetHack with RNGLOG, DUMPMAP, and RECTLOG enabled
         cmd = (
             f'NETHACKDIR={INSTALL_DIR} '
             f'NETHACK_SEED={seed} '
             f'NETHACK_DUMPMAP={dumpmap_file} '
             f'NETHACK_RNGLOG={rnglog_file} '
+            f'NETHACK_RECTLOG={rectlog_file} '
             f'HOME={RESULTS_DIR} '
             f'TERM=xterm-256color '
             f'{NETHACK_BINARY} -u Wizard -D; '
@@ -274,6 +276,18 @@ def generate_oracle_trace(seed, verbose=False):
 
         print(f"  Captured terrain: {len(typGrid)} rows × {len(typGrid[0]) if typGrid else 0} cols")
         print(f"  Captured RNG calls: {len(rngLog)}")
+
+        # Display rectangle split debug log if available
+        if os.path.exists(rectlog_file):
+            with open(rectlog_file) as f:
+                rectlog = f.read().strip()
+            if rectlog:
+                lines = rectlog.split('\n')
+                print(f"\n  Rectangle split log:")
+                for line in lines[:10]:  # Show first 10 lines
+                    print(f"    {line}")
+                if len(lines) > 10:
+                    print(f"    ... ({len(lines)} total lines)")
 
         # Build trace JSON
         trace = {

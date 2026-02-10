@@ -3256,11 +3256,28 @@ export function makelevel(depth, dnum, dlevel) {
     resetThemermsState(); // Reset themed room state for new level
     _mtInitialized = false; // Reset MT RNG state - init happens per level, not per session
 
+    // C ref: bones.c getbones() — rn2(3) + bones load pipeline
+    // Must happen BEFORE special level check to match C RNG order
+    const bonesMap = getbones(null, depth);
+    if (bonesMap) return bonesMap;
+
+    // C ref: mklev.c:1276 — maze level check (consumed but not acted on)
+    // Must happen BEFORE special level check to match C RNG order
+    rn2(5);
+
     // Check for special level if branch coordinates provided
     if (dnum !== undefined && dlevel !== undefined) {
         const special = getSpecialLevel(dnum, dlevel);
         if (special) {
             console.log(`Generating special level: ${special.name} at (${dnum}, ${dlevel})`);
+
+            // C ref: mklev.c:365-380 — Lua theme shuffle when loading special level
+            // In C, loading oracle.lua triggers themerms.lua load, which does rn2(3), rn2(2)
+            if (!_themesLoaded) {
+                _themesLoaded = true;
+                rn2(3); rn2(2);
+            }
+
             const specialMap = special.generator();
             if (specialMap) {
                 return specialMap;
@@ -3270,18 +3287,11 @@ export function makelevel(depth, dnum, dlevel) {
         }
     }
 
-    // C ref: bones.c getbones() — rn2(3) + bones load pipeline
-    const bonesMap = getbones(null, depth);
-    if (bonesMap) return bonesMap;
-
     const map = new GameMap();
     map.clear();
 
     // Initialize rectangle pool for BSP room placement
     init_rect();
-
-    // C ref: mklev.c:1276 — maze level check (consumed but not acted on)
-    rn2(5);
 
     // Make rooms using rect BSP algorithm
     // C ref: mklev.c:1287 makerooms()

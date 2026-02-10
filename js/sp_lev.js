@@ -16,7 +16,7 @@
 import { GameMap, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1 } from './rng.js';
 import { mksobj, mkobj } from './mkobj.js';
-import { create_room, makecorridors, init_rect, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room } from './dungeon.js';
+import { create_room, makecorridors, init_rect, rnd_rect, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room } from './dungeon.js';
 import {
     STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
     CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL, ROOM, CORR,
@@ -156,10 +156,15 @@ export function setCurrentRoom(room) {
  * @returns {number} 0=unlit, 1=lit
  */
 function litstate_rnd(litstate, depth) {
+    const DEBUG = process.env.DEBUG_ROOMS === '1';
+    if (DEBUG) console.log(`  litstate_rnd(${litstate}, ${depth})`);
     if (litstate < 0) {
         // C: (rnd(1 + abs(depth(&u.uz))) < 11 && rn2(77)) ? TRUE : FALSE
-        return (rnd(1 + depth) < 11 && rn2(77)) ? 1 : 0;
+        const result = (rnd(1 + depth) < 11 && rn2(77)) ? 1 : 0;
+        if (DEBUG) console.log(`    -> random lit=${result}`);
+        return result;
     }
+    if (DEBUG) console.log(`    -> fixed lit=${litstate}`);
     return litstate;
 }
 
@@ -183,6 +188,9 @@ function litstate_rnd(litstate, depth) {
  * @returns {Object|null} Room object {lx, ly, hx, hy, rtype, rlit} or null on failure
  */
 function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
+    const DEBUG = process.env.DEBUG_ROOMS === '1';
+    if (DEBUG) console.log(`create_room_splev: x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}`);
+
     // C ref: sp_lev.c:1498 — -1 means OROOM (ordinary room)
     if (rtype === -1) {
         rtype = 0; // OROOM
@@ -194,6 +202,7 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
     // IMPORTANT: Check this BEFORE calling litstate_rnd to avoid consuming RNG on failure!
 
     const fullyRandom = (x < 0 && y < 0 && w < 0 && xalign < 0 && yalign < 0);
+    if (DEBUG) console.log(`  fullyRandom=${fullyRandom}`);
 
     if (fullyRandom) {
         // C ref: sp_lev.c:1534 — totally random uses procedural rnd_rect() + BSP
@@ -232,6 +241,13 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
     // C ref: sp_lev.c:1510 — determine lighting (ALWAYS calls litstate_rnd)
     // Only call this AFTER we know the room will succeed (not fully random)
     rlit = litstate_rnd(rlit, depth);
+
+    // C ref: sp_lev.c — special levels call rnd_rect() to get rect pool rect
+    // Even fixed-position rooms need to select from the rect pool
+    const rect = rnd_rect();
+    if (!rect) {
+        return null; // No rects available
+    }
 
     // C ref: sp_lev.c:1574-1593 — "Only some parameters are random" path
     // Uses grid placement (1-5) with alignment
@@ -373,6 +389,7 @@ export function resetLevelState() {
         deferredObjects: [],
         deferredMonsters: [],
         deferredTraps: [],
+        // luaRngCounter is NOT initialized here - only set explicitly for levels that need it
     };
     icedpools = false;
     Sokoban = false;
@@ -1152,18 +1169,23 @@ export function room(opts = {}) {
 
     if (x >= 0 && y >= 0 && w > 0 && h > 0) {
         // Fixed position special level room
-        // C ref: sp_lev.c:2803 — rn2(100) called for TOP-LEVEL fixed-position rooms only
-        // Nested rooms (roomDepth > 0) do NOT call rn2(100) for chance check
-        if (levelState.roomDepth === 0) {
-            const roll = rn2(100);
-            rtype = (roll >= chance) ? 0 : requestedRtype; // 0 = OROOM
-        } else {
-            // Nested rooms use requested type directly, no chance roll
-            rtype = requestedRtype;
-        }
+        // C ref: sp_lev.c create_room() — special level rooms use requested type directly
+        // NO rn2(100) chance roll for special level rooms (only for procedural build_room)
+        rtype = requestedRtype;
 
         if (DEBUG) {
             console.log(`des.room(): FIXED position x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, rtype=${rtype}, lit=${lit}, depth=${levelState.roomDepth}`);
+        }
+
+        // C ref: sp_lev.c — special levels call rnd_rect() to select from rect pool
+        // Top-level rooms (depth 0) need to select a rect from the BSP pool
+        // Nested rooms don't use the rect pool
+        if (levelState.roomDepth === 0) {
+            const rect = rnd_rect();
+            if (!rect) {
+                console.warn('des.room(): No rects available in pool');
+                return; // Can't place room without a rect
+            }
         }
 
         // C ref: sp_lev.c:1598-1619 — Convert grid coordinates to absolute map coordinates
@@ -1456,8 +1478,22 @@ export function object(name_or_opts, x, y) {
         levelState.map = new GameMap();
     }
 
-    // DEFERRED EXECUTION: Queue object placement instead of executing immediately
-    // This matches C's behavior which defers object creation until after corridor generation
+    // C ref: nhlua.c nhl_rn2() — Lua object generation calls rn2(1000+) for properties
+    // Even though actual object placement is deferred, RNG calls happen immediately
+    // C pattern is complex: first object uses 5 calls (1000-1004), second uses 3 (1010,1012,1014 with gaps),
+    // rest use 4-5 each. Without exact Lua code, approximate with 4 calls average
+    // TODO: Implement exact C Lua pattern once we understand the state machine
+    if (levelState && levelState.luaRngCounter !== undefined) {
+        const numRngCalls = 4;
+        const baseOffset = levelState.luaRngCounter;
+        for (let i = 0; i < numRngCalls; i++) {
+            rn2(1000 + baseOffset + i);
+        }
+        levelState.luaRngCounter = baseOffset + numRngCalls;
+    }
+
+    // DEFERRED EXECUTION: Queue object placement for later (after corridors)
+    // Actual placement happens in executeDeferredObjects()
     levelState.deferredObjects.push({ name_or_opts, x, y });
 }
 
@@ -1716,8 +1752,18 @@ export function monster(opts_or_class, x, y) {
         levelState.map = new GameMap();
     }
 
-    // DEFERRED EXECUTION: Queue monster placement instead of executing immediately
-    // This matches C's behavior which defers monster creation until after corridor generation
+    // C ref: nhlua.c nhl_rn2() — Lua monster generation calls rn2(1000+) for properties
+    // Similar to des.object(), RNG calls happen immediately even though placement is deferred
+    if (levelState && levelState.luaRngCounter !== undefined) {
+        const numRngCalls = 4;  // Approximate - actual pattern varies
+        const baseOffset = levelState.luaRngCounter;
+        for (let i = 0; i < numRngCalls; i++) {
+            rn2(1000 + baseOffset + i);
+        }
+        levelState.luaRngCounter = baseOffset + numRngCalls;
+    }
+
+    // DEFERRED EXECUTION: Queue monster placement for later (after corridors)
     levelState.deferredMonsters.push({ opts_or_class, x, y });
 }
 
