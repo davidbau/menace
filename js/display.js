@@ -234,7 +234,11 @@ export class Display {
         cell.color = color;
         const span = this.spans[row][col];
         span.textContent = ch;
-        span.style.color = COLOR_CSS[color] || COLOR_CSS[CLR_GRAY];
+
+        // Apply color flag - disable colors when color=false
+        // C ref: iflags.wc_color
+        const displayColor = (this.flags.color !== false) ? color : CLR_GRAY;
+        span.style.color = COLOR_CSS[displayColor] || COLOR_CSS[CLR_GRAY];
     }
 
     // Clear a row
@@ -461,6 +465,12 @@ export class Display {
             return loc.horizontal
                 ? (useDEC ? { ch: '\u2500', color: CLR_GRAY } : { ch: '-', color: CLR_GRAY })
                 : (useDEC ? { ch: '\u2502', color: CLR_GRAY } : { ch: '|', color: CLR_GRAY });
+        }
+
+        // Handle lit_corridor option
+        // C ref: flag.h flags.lit_corridor - corridors shown with bright color
+        if (typ === CORR && this.flags.lit_corridor) {
+            return { ch: '#', color: CLR_CYAN };
         }
 
         return TERRAIN_SYMBOLS[typ] || { ch: '?', color: CLR_MAGENTA };
