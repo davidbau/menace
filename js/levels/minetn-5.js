@@ -4,10 +4,10 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
+import { selection, percent } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack mines minetn-5.lua	$NHDT-Date: 1652196031 2022/05/10 15:20:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
+    // NetHack mines minetn-5.lua	$NHDT-Date: 1652196031 2022/5/10 15:20:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
     // Copyright (c) 1989-95 by Jean-Christophe Collet
     // Copyright (c) 1991-95 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -145,8 +145,11 @@ export function generate() {
     // Temple
     des.region({ region: [29,2, 33,4], lit: 1, type: "temple", filled: 1 });
     des.door("closed",31,5);
-    des.altar({ x: 31, y: 3, align: align[1], type: "shrine" });
+    des.altar({ x: 31,y: 3, align: align[1], type: "shrine" });
 
 
+    // }
+}
+}
     return des.finalize_level();
 }

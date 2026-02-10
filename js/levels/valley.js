@@ -4,12 +4,12 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
+import { selection, percent } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack gehennom valley.lua	$NHDT-Date: 1652196038 2022/05/10 15:20:38 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
+    // NetHack gehennom valley.lua	$NHDT-Date: 1652196038 2022/5/10 15:20:38 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
-    // Copyright (c) 1992 by M. Stephenson and Izchak Miller
+    // Copyright (c) 1992 by M. Stephenson && Izchak Miller
     // NetHack may be freely redistributed.  See license for details.
     // 
     // 
@@ -62,11 +62,11 @@ export function generate() {
 
     // Dungeon Description
     // The shrine to Moloch.
-    des.region({ region: [1,6, 5,14], lit: 1, type: "temple", filled: 2 });
+    des.region({ region: [1,6, 5,14],lit: 1,type: "temple",filled: 2 });
     // The Morgues
-    des.region({ region: [19,1, 24,8], lit: 0, type: "morgue", filled: 1, irregular: 1 });
-    des.region({ region: [9,14, 16,18], lit: 0, type: "morgue", filled: 1, irregular: 1 });
-    des.region({ region: [37,9, 43,14], lit: 0, type: "morgue", filled: 1, irregular: 1 });
+    des.region({ region: [19,1, 24,8],lit: 0,type: "morgue",filled: 1,irregular: 1 });
+    des.region({ region: [9,14, 16,18],lit: 0,type: "morgue",filled: 1,irregular: 1 });
+    des.region({ region: [37,9, 43,14],lit: 0,type: "morgue",filled: 1,irregular: 1 });
     // Stairs
     des.stair("down", 1,1);
     // Branch location
@@ -79,40 +79,40 @@ export function generate() {
     des.door("locked",6,6);
 
     // The altar of Moloch.
-    des.altar({ x: 3, y: 10, align: "noalign", type: "shrine" });
+    des.altar({ x: 3,y: 10,align: "noalign", type: "shrine" });
 
     // Non diggable walls - everywhere!
     des.non_diggable(selection.area(0,0,75,19));
 
     // Objects
     // **LOTS** of dead bodies (all human).
-    // note: no priest(esse)s or monks - maybe Moloch has a *special*
+    // note: no priest(esse)s || monks - maybe Moloch has a *special*
     // fate reserved for members of *those* classes.
     // 
-    des.object({ id: "corpse", montype: "archeologist" });
-    des.object({ id: "corpse", montype: "archeologist" });
-    des.object({ id: "corpse", montype: "barbarian" });
-    des.object({ id: "corpse", montype: "barbarian" });
-    des.object({ id: "corpse", montype: "caveman" });
-    des.object({ id: "corpse", montype: "cavewoman" });
-    des.object({ id: "corpse", montype: "healer" });
-    des.object({ id: "corpse", montype: "healer" });
-    des.object({ id: "corpse", montype: "knight" });
-    des.object({ id: "corpse", montype: "knight" });
-    des.object({ id: "corpse", montype: "ranger" });
-    des.object({ id: "corpse", montype: "ranger" });
-    des.object({ id: "corpse", montype: "rogue" });
-    des.object({ id: "corpse", montype: "rogue" });
-    des.object({ id: "corpse", montype: "samurai" });
-    des.object({ id: "corpse", montype: "samurai" });
-    des.object({ id: "corpse", montype: "tourist" });
-    des.object({ id: "corpse", montype: "tourist" });
-    des.object({ id: "corpse", montype: "valkyrie" });
-    des.object({ id: "corpse", montype: "valkyrie" });
-    des.object({ id: "corpse", montype: "wizard" });
-    des.object({ id: "corpse", montype: "wizard" });
+    des.object({ id: "corpse",montype: "archeologist" });
+    des.object({ id: "corpse",montype: "archeologist" });
+    des.object({ id: "corpse",montype: "barbarian" });
+    des.object({ id: "corpse",montype: "barbarian" });
+    des.object({ id: "corpse",montype: "caveman" });
+    des.object({ id: "corpse",montype: "cavewoman" });
+    des.object({ id: "corpse",montype: "healer" });
+    des.object({ id: "corpse",montype: "healer" });
+    des.object({ id: "corpse",montype: "knight" });
+    des.object({ id: "corpse",montype: "knight" });
+    des.object({ id: "corpse",montype: "ranger" });
+    des.object({ id: "corpse",montype: "ranger" });
+    des.object({ id: "corpse",montype: "rogue" });
+    des.object({ id: "corpse",montype: "rogue" });
+    des.object({ id: "corpse",montype: "samurai" });
+    des.object({ id: "corpse",montype: "samurai" });
+    des.object({ id: "corpse",montype: "tourist" });
+    des.object({ id: "corpse",montype: "tourist" });
+    des.object({ id: "corpse",montype: "valkyrie" });
+    des.object({ id: "corpse",montype: "valkyrie" });
+    des.object({ id: "corpse",montype: "wizard" });
+    des.object({ id: "corpse",montype: "wizard" });
     // 
-    // Some random weapons and armor.
+    // Some random weapons && armor.
     // 
     des.object("[");
     des.object("[");
@@ -185,5 +185,5 @@ export function generate() {
     des.monster("M");
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

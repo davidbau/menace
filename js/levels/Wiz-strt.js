@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Wizard Wiz-strt.lua	$NHDT-Date: 1652196019 2022/05/10 15:20:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $
+    // NetHack Wizard Wiz-strt.lua	$NHDT-Date: 1652196019 2022/5/10 15:20:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $
     // Copyright (c) 1992 by David Cohrs
     // NetHack may be freely redistributed.  See license for details.
     // 
@@ -15,7 +15,7 @@ export function generate() {
     // The "start" level for the quest.
     // 
     // Here you meet your (besieged) class leader, Neferet the Green
-    // and receive your quest assignment.
+    // && receive your quest assignment.
     // 
     des.level_init({ style: "solidfill", fg: " " });
 
@@ -72,8 +72,10 @@ export function generate() {
     des.door("locked",19,10);
     des.door("locked",20,10);
     // Neferet the Green, the quest leader
-    des.monster({ id: "Neferet the Green", coord: [23, 5], inventory: function() { des.object({ id: "elven cloak", spe: 5 });
-            des.object({ id: "quarterstaff", spe: 5 }); } });
+    des.monster({ id: "Neferet the Green", coord: [23, 5], inventory: function() {
+       des.object({ id: "elven cloak", spe: 5 });
+       des.object({ id: "quarterstaff", spe: 5 });
+    } })
     // The treasure of the quest leader
     des.object("chest", 24, 5);
     // apprentice guards for the audience chamber
@@ -116,5 +118,5 @@ export function generate() {
     des.monster({ class: "B", x: 10, y: 19, peaceful: 0 });
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

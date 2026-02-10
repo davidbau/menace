@@ -7,23 +7,23 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack endgame air.lua	$NHDT-Date: 1652196019 2022/05/10 15:20:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
+    // NetHack endgame air.lua	$NHDT-Date: 1652196019 2022/5/10 15:20:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1992,1993 by Izchak Miller, David Cohrs,
-    // and Timo Hakulinen
+    // && Timo Hakulinen
     // NetHack may be freely redistributed.  See license for details.
     // 
     des.level_init({ style: "solidfill", fg: " " });
 
     des.level_flags("mazelevel", "noteleport", "hardfloor", "shortsighted", "stormy");
     // The following messages are somewhat obtuse, to make then
-    // equally meaningful if the player can see or not.
+    // equally meaningful if the player can see || !.
     des.message("What a strange feeling!");
     des.message("You notice that there is no gravity here.");
     // The player lands, upon arrival, in the
     // lower-left area.  The location of the
     // portal to the next level is randomly chosen.
-    // This map has no visible outer boundary, and
+    // This map has no visible outer boundary, &&
     // is all "air".
     des.map(`
 
@@ -49,7 +49,7 @@ export function generate() {
     AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
     `);
-    // Use up and down regions to partition the level into three parts;
+    // Use up && down regions to partition the level into three parts;
     // teleportation can't cross from one part into another.
     // The up region is where you'll arrive after activating the portal from
     // the preceding level; the exit portal is placed inside the down region.
@@ -119,5 +119,5 @@ export function generate() {
 
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

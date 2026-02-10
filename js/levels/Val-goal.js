@@ -4,10 +4,10 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
+import { selection, percent } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Valkyrie Val-goal.lua	$NHDT-Date: 1652196017 2022/05/10 15:20:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
+    // NetHack Valkyrie Val-goal.lua	$NHDT-Date: 1652196017 2022/5/10 15:20:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991-2 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -108,12 +108,12 @@ export function generate() {
     // 
     // The "fill" levels for the quest.
     // 
-    // These levels are used to fill out any levels not occupied by specific
+    // These levels are used to fill out any levels ! occupied by specific
     // levels as defined above. "filla" is the upper filler, between the
-    // start and locate levels, and "fillb" the lower between the locate
-    // and goal levels.
+    // start && locate levels, && "fillb" the lower between the locate
+    // && goal levels.
     // 
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

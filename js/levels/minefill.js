@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { percent } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack mines minefill.lua	$NHDT-Date: 1652196028 2022/05/10 15:20:28 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $
+    // NetHack mines minefill.lua	$NHDT-Date: 1652196028 2022/5/10 15:20:28 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $
     // Copyright (c) 1989-95 by Jean-Christophe Collet
     // Copyright (c) 1991-95 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -16,7 +16,7 @@ export function generate() {
 
     // The "fill" level for the mines.
     // 
-    // This level is used to fill out any levels not occupied by
+    // This level is used to fill out any levels ! occupied by
     // specific levels.
     // 
     des.level_init({ style: "solidfill", fg: " " });
@@ -29,20 +29,20 @@ export function generate() {
     des.stair("up");
     des.stair("down");
     // 
-    for (let i = 1; i <= math.random(2; i += 5)) {
+    for (let i = 1; i <= Math.random(2, 5); i++) {
        des.object("*");
     }
     des.object("(");
-    for (let i = 1; i <= math.random(2; i += 4)) {
+    for (let i = 1; i <= Math.random(2, 4); i++) {
        des.object();
     }
     if (percent(75)) {
-       for (let i = 1; i <= math.random(1; i += 2)) {
+       for (let i = 1; i <= Math.random(1, 2); i++) {
           des.object("boulder");
        }
     }
     // 
-    for (let i = 1; i <= math.random(6; i += 8)) {
+    for (let i = 1; i <= Math.random(6, 8); i++) {
        des.monster("gnome");
     }
     des.monster("gnome lord");
@@ -60,5 +60,5 @@ export function generate() {
     des.trap();
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

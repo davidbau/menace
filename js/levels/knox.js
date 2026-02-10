@@ -4,10 +4,10 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
+import { selection, percent } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack knox knox.lua	$NHDT-Date: 1652196027 2022/05/10 15:20:27 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
+    // NetHack knox knox.lua	$NHDT-Date: 1652196027 2022/5/10 15:20:27 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1992 by Izchak Miller
     // NetHack may be freely redistributed.  See license for details.
@@ -50,8 +50,8 @@ export function generate() {
     des.teleport_region({ region: [6,15,9,16], dir: "up" });
     des.teleport_region({ region: [6,15,9,16], dir: "down" });
     // Throne room, with Croesus on the throne
-    des.region({ x1: 37, y1: 8, x2: 46, y2: 11, lit: 1, type: "throne", filled: 1 });
-    // 50% chance each to move throne and/or fort's entry secret door up one row
+    des.region({ x1: 37,y1: 8,x2: 46,y2: 11, lit: 1, type: "throne", filled: 1 });
+    // 50% chance each to move throne &&/|| fort's entry secret door up one row
     if (percent(50)) {
        des.monster({ id: "Croesus", x: 43, y: 10, peaceful: 0 });
     } else {
@@ -67,8 +67,8 @@ export function generate() {
     // The Vault
     function treasure_spot(x,y) {
        des.gold({ x: x, y: y, amount: 600 + Math.random(0, 300) });
-       if ((math.random(0,2) === 0)) {
-          if ((math.random(0,2) === 0)) {
+       if ((Math.random(0,2) == 0)) {
+          if ((Math.random(0,2) == 0)) {
              des.trap("spiked pit", x,y);
           } else {
              des.trap("land mine", x,y);
@@ -77,8 +77,8 @@ export function generate() {
     }
 
     des.region({ region: [21,8,35,11], lit: 1, type: "ordinary" });
-    const treasury = selection.area(21,8,35,11);
-    treasury.iterate(treasure_spot)
+    let treasury = selection.area(21,8,35,11);
+    treasury.iterate(treasure_spot);
 
     // Vault entrance also varies
     if (percent(50)) {
@@ -91,36 +91,36 @@ export function generate() {
     des.region(selection.area(19,13,21,13),"lit");
     des.region(selection.area(46,13,48,13),"lit");
     // A welcoming committee
-    des.region({ region: [3,10,7,13], lit: 1, type: "zoo", filled: 1, irregular: 1 });
+    des.region({ region: [3,10,7,13],lit: 1,type: "zoo",filled: 1,irregular: 1 });
     // arrival chamber; needs to be a real room to control migrating monsters,
-    // and `unfilled' is a kludge to force an ordinary room to remain a room
-    des.region({ region: [6,15,9,16], lit: 0, type: "ordinary", arrival_room: true });
+    // && `unfilled' is a kludge to force an ordinary room to remain a room
+    des.region({ region: [6,15,9,16],lit: 0,type: "ordinary",arrival_room: true });
 
     // 3.6.2:  Entering level carrying a lit candle would show the whole entry
     // chamber except for its top right corner even though some of the revealed
     // spots are farther away than that is.  This is because the lit treasure zoo
     // is forcing the walls around it to be lit too (see light_region(sp_lev.c)),
-    // and lit walls show up when light reaches the spot next to them.  The unlit
-    // corner is beyond candle range and isn't flagged as lit so it doesn't show
+    // && lit walls show up when light reaches the spot next to them.  The unlit
+    // corner is beyond candle range && isn't flagged as lit so it doesn't show
     // up until light reaches it rather than when light gets next to it.
     // 
-    // Force left and top walls of the arrival chamber to be unlit in order to
+    // Force left && top walls of the arrival chamber to be unlit in order to
     // hide this lighting quirk.
     des.region(selection.area(5,14,5,17),"unlit");
     des.region(selection.area(5,14,9,14),"unlit");
-    // (Entering the treasure zoo while blind and then regaining sight might
-    // expose the new oddity of these walls not appearing when on the lit side
+    // (Entering the treasure zoo while blind && then regaining sight might
+    // expose the new oddity of these walls ! appearing when on the lit side
     // but that's even less likely to occur than the rare instance of entering
     // the level with a candle.  They'll almost always be mapped from the arrival
     // side before entering the treasure zoo.
     // 
-    // A prior workaround lit the top right corner wall and then jumped through
+    // A prior workaround lit the top right corner wall && then jumped through
     // hoops to suppress the extra light in the 3x3 lit area that produced.
-    // This is simpler and makes the short range candle light behave more like
+    // This is simpler && makes the short range candle light behave more like
     // it is expected to work.)
 
     // Barracks
-    des.region({ region: [62,3,71,4], lit: 1, type: "barracks", filled: 1, irregular: 1 });
+    des.region({ region: [62,3,71,4],lit: 1,type: "barracks",filled: 1,irregular: 1 });
     // Doors
     des.door("closed",6,14);
     des.door("closed",9,3);
@@ -178,5 +178,5 @@ export function generate() {
     des.object("amethyst",48,13);
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

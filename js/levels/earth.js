@@ -6,15 +6,15 @@
 import * as des from '../sp_lev.js';
 
 export function generate() {
-    // NetHack endgame earth.lua	$NHDT-Date: 1652196025 2022/05/10 15:20:25 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
+    // NetHack endgame earth.lua	$NHDT-Date: 1652196025 2022/5/10 15:20:25 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1992,1993 by Izchak Miller, David Cohrs,
-    // and Timo Hakulinen
+    // && Timo Hakulinen
     // NetHack may be freely redistributed.  See license for details.
     // 
     // 
-    // These are the ENDGAME levels: earth, air, fire, water, and astral.
-    // The top-most level, the Astral Level, has 3 temples and shrines.
+    // These are the ENDGAME levels: earth, air, fire, water, && astral.
+    // The top-most level, the Astral Level, has 3 temples && shrines.
     // Players are supposed to sacrifice the Amulet of Yendor on the appropriate
     // shrine.
 
@@ -23,13 +23,13 @@ export function generate() {
     des.level_flags("mazelevel", "noteleport", "hardfloor", "shortsighted");
 
     des.message("Well done, mortal!");
-    des.message("But now thou must face the final Test + .");
+    des.message("But now thou must face the final Test...args");
     des.message("Prove thyself worthy || perish!");
 
     // The player lands, upon arrival, in the
     // lower-right cavern.  The location of the
     // portal to the next level is randomly chosen.
-    // This map has no visible outer boundary, and
+    // This map has no visible outer boundary, &&
     // is mostly diggable "rock".
     des.map(`
 
@@ -59,10 +59,10 @@ export function generate() {
     des.replace_terrain({ region: [0,0, 75,19], fromterrain: " ", toterrain: ".", lit: 0, chance: 5 });
 
     // Since there are no stairs, this forces the hero's initial placement
-    des.teleport_region({ region: [69,16,69,16] });
+    des.teleport_region({region: [69,16,69,16] });
     des.levregion({ region: [0,0,75,19], exclude: [65,13,75,19], type: "portal", name: "air" });
     // Some helpful monsters.  Making sure a
-    // pick axe and at least one wand of digging
+    // pick axe && at least one wand of digging
     // are available.
     des.monster("Elvenking", 67,16);
     des.monster("minotaur", 67,14);
@@ -140,5 +140,5 @@ export function generate() {
 
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

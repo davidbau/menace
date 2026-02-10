@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Tourist Tou-loca.lua	$NHDT-Date: 1652196015 2022/05/10 15:20:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
+    // NetHack Tourist Tou-loca.lua	$NHDT-Date: 1652196015 2022/5/10 15:20:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991,92 by M. Stephenson, P. Winner
     // NetHack may be freely redistributed.  See license for details.
@@ -138,7 +138,7 @@ export function generate() {
     des.object("blank paper", 71, 12);
     des.object("blank paper", 71, 12);
     // Random traps - must avoid the 2 shops
-    const validtraps = selection.area(0,0,75,19):filter_mapchar('.')
+    let validtraps = selection.area(0,0,75,19).filter_mapchar('.')
     validtraps = validtraps - (selection.area(15,3,20,5) + selection.area(62,3,71,4))
     for (let i = 1; i <= 9; i++) {
        des.trap(validtraps.rndcoord(1));
@@ -164,5 +164,5 @@ export function generate() {
     des.monster("s");
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

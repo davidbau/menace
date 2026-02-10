@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Priest Pri-strt.lua	$NHDT-Date: 1652196009 2022/05/10 15:20:09 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
+    // NetHack Priest Pri-strt.lua	$NHDT-Date: 1652196009 2022/5/10 15:20:9 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991-2 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -16,7 +16,7 @@ export function generate() {
     // The "start" level for the quest.
     // 
     // Here you meet your (besieged) class leader, High Priest
-    // and receive your quest assignment.
+    // && receive your quest assignment.
     // 
     des.level_init({ style: "solidfill", fg: " " });
 
@@ -54,7 +54,7 @@ export function generate() {
     des.replace_terrain({ region: [65,0, 75,19], fromterrain: ".", toterrain: "T", chance: 10 });
     des.terrain([5,4], ".");
 
-    const spacelocs = selection.floodfill(5,4);
+    let spacelocs = selection.floodfill(5,4);
 
     // Portal arrival point
     des.levregion({ region: [5,4,5,4], type: "branch" });
@@ -82,8 +82,10 @@ export function generate() {
     // Unattended Altar - unaligned due to conflict - player must align it.
     des.altar({ x: 28, y: 9, align: "noalign", type: "altar" });
     // High Priest
-    des.monster({ id: "Arch Priest", coord: [28, 10], inventory: function() { des.object({ id: "robe", spe: 4 });
-            des.object({ id: "mace", spe: 4 }); } });
+    des.monster({ id: "Arch Priest", coord: [28, 10], inventory: function() {
+       des.object({ id: "robe", spe: 4 });
+       des.object({ id: "mace", spe: 4 });
+    } })
     // The treasure of High Priest
     des.object("chest", 27, 10);
     // knight guards for the audience chamber
@@ -111,5 +113,5 @@ export function generate() {
     }
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

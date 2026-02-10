@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Wizard Wiz-goal.lua	$NHDT-Date: 1652196018 2022/05/10 15:20:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
+    // NetHack Wizard Wiz-goal.lua	$NHDT-Date: 1652196018 2022/5/10 15:20:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1992 by David Cohrs
     // NetHack may be freely redistributed.  See license for details.
     // 
@@ -78,7 +78,7 @@ export function generate() {
     des.stair("up", 55,5);
     // Non diggable walls
     des.non_diggable(selection.area(0,0,75,19));
-    // The altar.  This is not a shrine.
+    // The altar.  This is ! a shrine.
     des.altar({ coord: [16,11], aligned: "noncoaligned", type: "altar" });
     // Objects
     des.object({ id: "amulet of ESP", x: 16, y: 11, buc: "blessed", spe: 0, name: "The Eye of the Aethiopica" });
@@ -105,24 +105,24 @@ export function generate() {
     des.trap();
     // Random monsters.
     des.monster("Dark One", 16, 11);
-    des.monster({ class: "B", random, peaceful: 0 });
-    des.monster({ class: "B", random, peaceful: 0 });
-    des.monster({ class: "B", random, peaceful: 0 });
-    des.monster({ class: "B", random, peaceful: 0 });
-    des.monster({ class: "B", random, peaceful: 0 });
-    des.monster({ class: "B", random, peaceful: 0 });
-    des.monster({ class: "B", random, peaceful: 0 });
-    des.monster({ class: "B", random, peaceful: 0 });
-    des.monster({ class: "B", random, peaceful: 0 });
-    des.monster({ class: "B", random, peaceful: 0 });
-    des.monster({ class: "B", random, peaceful: 0 });
-    des.monster({ class: "i", random, peaceful: 0 });
-    des.monster({ class: "i", random, peaceful: 0 });
-    des.monster({ class: "i", random, peaceful: 0 });
-    des.monster({ class: "i", random, peaceful: 0 });
-    des.monster({ class: "i", random, peaceful: 0 });
-    des.monster({ class: "i", random, peaceful: 0 });
-    des.monster({ class: "i", random, peaceful: 0 });
+    des.monster({ class: "B",random, peaceful: 0 });
+    des.monster({ class: "B",random, peaceful: 0 });
+    des.monster({ class: "B",random, peaceful: 0 });
+    des.monster({ class: "B",random, peaceful: 0 });
+    des.monster({ class: "B",random, peaceful: 0 });
+    des.monster({ class: "B",random, peaceful: 0 });
+    des.monster({ class: "B",random, peaceful: 0 });
+    des.monster({ class: "B",random, peaceful: 0 });
+    des.monster({ class: "B",random, peaceful: 0 });
+    des.monster({ class: "B",random, peaceful: 0 });
+    des.monster({ class: "B",random, peaceful: 0 });
+    des.monster({ class: "i",random, peaceful: 0 });
+    des.monster({ class: "i",random, peaceful: 0 });
+    des.monster({ class: "i",random, peaceful: 0 });
+    des.monster({ class: "i",random, peaceful: 0 });
+    des.monster({ class: "i",random, peaceful: 0 });
+    des.monster({ class: "i",random, peaceful: 0 });
+    des.monster({ class: "i",random, peaceful: 0 });
     des.monster("vampire bat");
     des.monster("vampire bat");
     des.monster("vampire bat");
@@ -131,7 +131,7 @@ export function generate() {
     des.monster("vampire bat");
     des.monster("vampire bat");
     des.monster("vampire bat");
-    des.monster({ class: "i", random, peaceful: 0 });
+    des.monster({ class: "i",random, peaceful: 0 });
     // Captive Monsters in the dungeon
     des.monster({ id: "rogue", x: 35, y: 6, peaceful: 1, name: "Pug" });
     des.monster({ id: "owlbear", x: 47, y: 6, peaceful: 1, asleep: 1 });
@@ -143,5 +143,5 @@ export function generate() {
     des.monster({ id: "prisoner", x: 41, y: 11, peaceful: 1, asleep: 1 });
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

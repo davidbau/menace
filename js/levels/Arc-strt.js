@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Archeologist Arc-strt.lua	$NHDT-Date: 1652195999 2022/05/10 15:19:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
+    // NetHack Archeologist Arc-strt.lua	$NHDT-Date: 1652195999 2022/5/10 15:19:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -16,7 +16,7 @@ export function generate() {
     // The "start" level for the quest.
     // 
     // Here you meet your (besieged) class leader, Lord Carnarvon
-    // and receive your quest assignment.
+    // && receive your quest assignment.
     // 
     des.level_init({ style: "solidfill", fg: " " });
 
@@ -81,8 +81,10 @@ export function generate() {
     des.door("closed",31,14);
     des.door("locked",49,14);
     // Lord Carnarvon
-    des.monster({ id: "Lord Carnarvon", coord: [25, 10], inventory: function() { des.object({ id: "fedora", spe: 5 });
-            des.object({ id: "bullwhip", spe: 4 }); } });
+    des.monster({ id: "Lord Carnarvon", coord: [25, 10], inventory: function() {
+       des.object({ id: "fedora", spe: 5 });
+       des.object({ id: "bullwhip", spe: 4 });
+    } })
     // The treasure of Lord Carnarvon
     des.object("chest", 25, 10);
     // student guards for the audience chamber
@@ -125,5 +127,5 @@ export function generate() {
     des.monster("S", 10, 19);
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

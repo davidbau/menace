@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Wizard Wiz-loca.lua	$NHDT-Date: 1652196019 2022/05/10 15:20:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
+    // NetHack Wizard Wiz-loca.lua	$NHDT-Date: 1652196019 2022/5/10 15:20:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1992 by David Cohrs
     // NetHack may be freely redistributed.  See license for details.
     // 
@@ -41,23 +41,47 @@ export function generate() {
 
     `);
 
-    des.replace_terrain({ region: [0, 0,30,20], fromterrain: ".", toterrain: "C", chance: 15 });
-    des.replace_terrain({ region: [68, 0,75,20], fromterrain: ".", toterrain: " }", chance=25 });
-    des.replace_terrain({ region: [34, 1,68,19], fromterrain: " }", toterrain=".", chance=2 });
+    des.replace_terrain({ region: [ 0, 0,30,20], fromterrain: ".", toterrain: "C", chance: 15 });
+    des.replace_terrain({ region: [68, 0,75,20], fromterrain: ".", toterrain: "}", chance: 25 });
+    des.replace_terrain({ region: [34, 1,68,19], fromterrain: "}", toterrain: ".", chance: 2 });
 
     // Dungeon Description
     des.region(selection.area(0,0,75,20), "lit");
-    des.region({ region: [37,4,65,16], lit: 0, type: "ordinary", irregular: 1, contents: function() { des.door({ state: "secret", wall: "random" }); } });
-    des.region({ region: [39,6,63,14], lit: 0, type: "ordinary", irregular: 1, contents: function() { des.door({ state: "secret", wall: "random" }); } });
+    des.region({ region: [37,4,65,16], lit: 0, type: "ordinary", irregular: 1,
+                 contents: function() {
+                    des.door({ state: "secret", wall: "random" });
+                    }
+    })
+    des.region({ region: [39,6,63,14], lit: 0, type: "ordinary", irregular: 1,
+                 contents: function() {
+                    des.door({ state: "secret", wall: "random" });
+                 }
+    })
 
-    des.region({ region: [41,8,46,12], lit: 1, type: "ordinary", irregular: 1, contents: function() { walls = ["north", "south", "west"] widx = Math.random(1, walls.length) des.door({ state: "secret", wall: walls[widx] }); } });
+    des.region({ region: [41,8,46,12], lit: 1, type: "ordinary", irregular: 1,
+                 contents: function() {
+                    let walls = [ "north", "south", "west" ]
+                    let widx = Math.random(1, walls.length)
+                    des.door({ state: "secret", wall: walls[widx] });
+                 }
+    })
 
-    des.region({ region: [56,8,61,12], lit: 1, type: "ordinary", irregular: 1, contents: function() { walls = ["north", "south", "east"] widx = Math.random(1, walls.length) des.door({ state: "secret", wall: walls[widx] }); } });
+    des.region({ region: [56,8,61,12], lit: 1, type: "ordinary", irregular: 1,
+                 contents: function() {
+                    walls = [ "north", "south", "east" ]
+                    widx = Math.random(1, walls.length)
+                    des.door({ state: "secret", wall: walls[widx] });
+                 }
+    })
 
     des.region(selection.area(48,8,54,8), "unlit");
     des.region(selection.area(48,12,54,12), "unlit");
 
-    des.region({ region: [48,10,54,10], lit: 0, type: "ordinary", irregular: 1, contents: function() { des.door({ state: "secret", wall: "random" }); } });
+    des.region({ region: [48,10,54,10], lit: 0, type: "ordinary", irregular: 1,
+                 contents: function() {
+                    des.door({ state: "secret", wall: "random" });
+                 }
+    })
 
     // Doors
     des.door("locked",55,8);
@@ -138,5 +162,5 @@ export function generate() {
     des.monster({ class: "i", peaceful: 0 });
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

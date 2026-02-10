@@ -4,11 +4,10 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
-import { percent } from '../sp_lev.js';
+import { selection, percent } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack medusa medusa-1.lua	$NHDT-Date: 1652196027 2022/05/10 15:20:27 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
+    // NetHack medusa medusa-1.lua	$NHDT-Date: 1652196027 2022/5/10 15:20:27 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1990, 1991 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -48,8 +47,8 @@ export function generate() {
     // Dungeon Description
     des.region(selection.area(0,0,74,19),"lit");
     des.region(selection.area(31,7,45,7),"unlit");
-    // make the downstairs room a real room to control arriving monsters,
-    // and also as a fixup_special hack; the first room defined on Medusa's level
+    // make the downstairs room a real room to control arriving monsters, 
+    // && also as a fixup_special hack; the first room defined on Medusa's level
     // receives some statues
     des.region({ region: [35,9, 41,10], lit: 0, type: "ordinary", arrival_room: true });
     des.region(selection.area(31,12,45,12),"unlit");
@@ -64,16 +63,28 @@ export function generate() {
     des.door("locked",38,8);
     des.door("locked",38,11);
     des.door("closed",30,12);
-    // Branch, not allowed inside Medusa's building.
+    // Branch, ! allowed inside Medusa's building.
     des.levregion({ region: [1,0,79,20], exclude: [30,6,46,13], type: "branch" });
     // Non diggable walls
     des.non_diggable(selection.area(30,6,46,13));
     // Objects
-    des.object({ id: "statue", x: 36, y: 10, buc: "uncursed", montype: "knight", historic: 1, male: 1, name: "Perseus", contents: function() { if (percent(75)) {
-            des.object({ id: "shield of reflection", buc: "cursed", spe: 0 }) } if (percent(25)) {
-            des.object({ id: "levitation boots", spe: 0 }) } if (percent(50)) {
-            des.object({ id: "scimitar", buc: "blessed", spe: 2 }) } if (percent(50)) {
-            des.object("sack") } } });
+    des.object({ id: "statue", x: 36,y: 10, buc: "uncursed",
+                 montype: "knight", historic: 1, male: 1, name: "Perseus",
+                 contents: function() {
+                    if (percent(75)) {
+                       des.object({ id: "shield of reflection", buc: "cursed", spe: 0 });
+                    }
+                    if (percent(25)) {
+                       des.object({ id: "levitation boots", spe: 0 });
+                    }
+                    if (percent(50)) {
+                       des.object({ id: "scimitar", buc: "blessed", spe: 2 });
+                    }
+                    if (percent(50)) {
+                       des.object("sack");
+                    }
+                 }
+    });
 
     // Specifying explicit contents forces them to be empty.
     des.object({ id: "statue", contents: 0 });
@@ -100,7 +111,7 @@ export function generate() {
     des.trap("board",38,7);
     des.trap("board",38,12);
     // Random monsters
-    des.monster({ id: "Medusa", x: 36, y: 10, asleep: 1 });
+    des.monster({ id: "Medusa", x: 36,y: 10, asleep: 1 });
     des.monster("giant eel",11,6);
     des.monster("giant eel",23,13);
     des.monster("giant eel",29,2);
@@ -123,5 +134,5 @@ export function generate() {
     des.monster();
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

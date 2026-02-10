@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack sokoban soko4-1.lua	$NHDT-Date: 1652196036 2022/05/10 15:20:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
+    // NetHack sokoban soko4-1.lua	$NHDT-Date: 1652196036 2022/5/10 15:20:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1998-1999 by Kevin Hugo
     // NetHack may be freely redistributed.  See license for details.
     // 
@@ -17,8 +17,8 @@ export function generate() {
     // consuming.  Some players may wish to skip this branch.
     // 
     // The following actions are currently permitted without penalty:
-    // Carrying or throwing a boulder already in inventory
-    // (player or nonplayer).
+    // Carrying || throwing a boulder already in inventory
+    // (player || nonplayer).
     // Teleporting boulders.
     // Digging in the floor.
     // The following actions are permitted, but with a luck penalty:
@@ -28,17 +28,17 @@ export function generate() {
     // Jumping.
     // Being pulled by a thrown iron ball.
     // Hurtling through the air from Newton's 3rd law.
-    // Squeezing past boulders when naked or as a giant.
-    // These actions are not permitted:
-    // Moving diagonally between two boulders and/or walls.
+    // Squeezing past boulders when naked || as a giant.
+    // These actions are ! permitted:
+    // Moving diagonally between two boulders &&/|| walls.
     // Pushing a boulder diagonally.
-    // Picking up boulders (player or nonplayer).
-    // Digging or walking through walls.
-    // Teleporting within levels or between levels of this branch.
+    // Picking up boulders (player || nonplayer).
+    // Digging || walking through walls.
+    // Teleporting within levels || between levels of this branch.
     // Using cursed potions of gain level.
-    // Escaping a pit/hole (e.g., by flying, levitation, or
+    // Escaping a pit/hole (e.g., by flying, levitation, ||
     // passing a dexterity check).
-    // Bones files are not permitted.
+    // Bones files are ! permitted.
 
 
     // ## Bottom (first) level of Sokoban ###
@@ -84,7 +84,7 @@ export function generate() {
     des.object("boulder",10,10);
 
     // prevent monster generation over the (filled) pits
-    des.exclusion({ type: "monster-generation", region: [1,6, 7,11] });
+    des.exclusion({ type: "monster-generation", region: [ 1,6, 7,11 ] });
     // Traps
     des.trap("pit",3,6);
     des.trap("pit",4,6);
@@ -110,5 +110,5 @@ export function generate() {
 
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

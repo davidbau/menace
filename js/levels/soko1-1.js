@@ -4,10 +4,10 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
+import { selection, percent } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack sokoban soko1-1.lua	$NHDT-Date: 1652196034 2022/05/10 15:20:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.6 $
+    // NetHack sokoban soko1-1.lua	$NHDT-Date: 1652196034 2022/5/10 15:20:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.6 $
     // Copyright (c) 1998-1999 by Kevin Hugo
     // NetHack may be freely redistributed.  See license for details.
     // 
@@ -37,10 +37,10 @@ export function generate() {
 
     `);
 
-    place = selection.new()
-    place.set(16,11)
-    place.set(16,13)
-    place.set(16,15)
+    place: selection.new();
+    place.set(16,11);
+    place.set(16,13);
+    place.set(16,15);
 
     des.stair("down", 1, 1);
     des.region(selection.area(0,0,25,17),"lit");
@@ -71,7 +71,7 @@ export function generate() {
     des.object("boulder", 3, 14);
 
     // prevent monster generation over the (filled) holes
-    des.exclusion({ type: "monster-generation", region: [8,1, 23,1] });
+    des.exclusion({ type: "monster-generation", region: [ 8,1, 23,1 ] });
     // Traps
     des.trap("hole", 8, 1);
     des.trap("hole", 9, 1);
@@ -109,16 +109,18 @@ export function generate() {
 
     des.region({ region: [18,10, 22,16], lit: 1, type: "zoo", filled: 1, irregular: 1 });
 
-    const pt = selection.rndcoord(place);
+    let pt = selection.rndcoord(place);
     if (percent(75)) {
-    des.object({ id: "bag of holding", coord: pt, buc: "!-cursed", achievement: 1 });
+       des.object({ id: "bag of holding", coord: pt,
+    		buc: "!-cursed", achievement: 1 });
     } else {
-    des.object({ id: "amulet of reflection", coord: pt, buc: "!-cursed", achievement: 1 });
+       des.object({ id: "amulet of reflection", coord: pt,
+    		buc: "!-cursed", achievement: 1 });
     }
     des.engraving({ coord: pt, type: "burn", text: "Elbereth" });
     des.object({ id: "scroll of scare monster", coord: pt, buc: "cursed" });
 
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

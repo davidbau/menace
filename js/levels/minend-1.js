@@ -4,11 +4,10 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
-import { shuffle } from '../sp_lev.js';
+import { selection, shuffle } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack mines minend-1.lua	$NHDT-Date: 1652196029 2022/05/10 15:20:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $
+    // NetHack mines minend-1.lua	$NHDT-Date: 1652196029 2022/5/10 15:20:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $
     // Copyright (c) 1989-95 by Jean-Christophe Collet
     // Copyright (c) 1991-95 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -44,7 +43,7 @@ export function generate() {
     `);
 
     // Dungeon Description
-    const place = [[8, 16], [13, 7], [21, 8], [41, 14], [50, 4], [50, 16], [66, 1]]
+    let place = [ [8,16],[13,7],[21,8],[41,14],[50,4],[50,16],[66,1] ]
     shuffle(place)
 
     // make the entry chamber a real room; it affects monster arrival
@@ -131,5 +130,5 @@ export function generate() {
     des.monster("h");
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

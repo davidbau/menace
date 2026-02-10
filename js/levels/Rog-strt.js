@@ -4,12 +4,11 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
+import { selection, shuffle } from '../sp_lev.js';
 import { d } from '../rng.js';
-import { shuffle } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Rogue Rog-strt.lua	$NHDT-Date: 1652196012 2022/05/10 15:20:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
+    // NetHack Rogue Rog-strt.lua	$NHDT-Date: 1652196012 2022/5/10 15:20:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1992 by Dean Luick
     // NetHack may be freely redistributed.  See license for details.
     // 
@@ -17,7 +16,7 @@ export function generate() {
     // The "start" level for the quest.
     // 
     // Here you meet your (besieged) class leader, Master of Thieves
-    // and receive your quest assignment.
+    // && receive your quest assignment.
     // 
     des.level_init({ style: "solidfill", fg: " " });
 
@@ -53,11 +52,11 @@ export function generate() {
     // Dungeon Description
     // REGION:(0,0,75,20),lit,"ordinary"
 
-    const streets = selection.floodfill(0,12)
+    let streets = selection.floodfill(0,12)
 
     // The down stairs is at one of the 4 "exits".  The others are mimics,
     // mimicking stairwells.
-    const place = [[33, 0], [0, 12], [25, 20], [75, 5]]
+    let place = [ [33,0], [0,12], [25,20], [75,5] ]
     shuffle(place)
 
     des.stair({ dir: "down", coord: place[1] });
@@ -116,21 +115,23 @@ export function generate() {
     des.door("closed", 65,18);
     des.door("closed", 68,18);
     // Master of Thieves
-    des.monster({ id: "Master of Thieves", coord: [36, 11], inventory: function() { des.object({ id: "leather armor", spe: 5 });
-            des.object({ id: "silver dagger", spe: 4 });
-            des.object({ id: "dagger", spe: 2, quantity: d(2,4), buc: "!-cursed" }); } });
+    des.monster({ id: "Master of Thieves", coord: [36, 11], inventory: function() {
+       des.object({ id: "leather armor", spe: 5 });
+       des.object({ id: "silver dagger", spe: 4 });
+       des.object({ id: "dagger", spe: 2, quantity: d(2,4), buc: "!-cursed" });
+    } })
     // The treasure of Master of Thieves
     des.object("chest", 36, 11);
-    // thug guards, room #1
+    // thug guards, room 1.length
     des.monster("thug", 28, 10);
     des.monster("thug", 29, 11);
     des.monster("thug", 30, 9);
     des.monster("thug", 31, 7);
-    // thug guards, room #2
+    // thug guards, room 2.length
     des.monster("thug", 31, 13);
     des.monster("thug", 33, 14);
     des.monster("thug", 30, 15);
-    // thug guards, room #3
+    // thug guards, room 3.length
     des.monster("thug", 35, 9);
     des.monster("thug", 36, 13);
     // Non diggable walls
@@ -168,14 +169,14 @@ export function generate() {
     des.monster({ id: "leprechaun", x: 25, y: 19, peaceful: 0 });
     des.monster({ id: "water nymph", x: 25, y: 18, peaceful: 0 });
     // Wandering the streets.
-    for (let i = 1; i <= 4 + math.random(1 - 1; i += 1*3)) {
+    for (let i = 1; i <= 4 + Math.random(1 - 1,1*3); i++) {
        des.monster({ id: "water nymph", coord: streets.rndcoord(1), peaceful: 0 });
        des.monster({ id: "leprechaun", coord: streets.rndcoord(1), peaceful: 0 });
     }
-    for (let i = 1; i <= 7 + math.random(1 - 1; i += 1*3)) {
+    for (let i = 1; i <= 7 + Math.random(1 - 1,1*3); i++) {
        des.monster({ id: "chameleon", coord: streets.rndcoord(1), peaceful: 0 });
     }
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

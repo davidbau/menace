@@ -7,9 +7,9 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack gehennom baalz.lua	$NHDT-Date: 1652196020 2022/05/10 15:20:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
+    // NetHack gehennom baalz.lua	$NHDT-Date: 1652196020 2022/5/10 15:20:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
-    // Copyright (c) 1992 by M. Stephenson and Izchak Miller
+    // Copyright (c) 1992 by M. Stephenson && Izchak Miller
     // NetHack may be freely redistributed.  See license for details.
     // 
     des.level_init({ style: "solidfill", fg: " ", lit: 0 });
@@ -18,7 +18,7 @@ export function generate() {
 
     des.level_flags("mazelevel", "corrmaze");
     // the two pools are fakes used to mark spots which need special wall fixups
-    // the two iron bars are eyes and spots to their left will be made diggable
+    // the two iron bars are eyes && spots to their left will be made diggable
     des.map({ halign: "right", valign: "center", map: `
 
     -------------------------------------------------
@@ -38,7 +38,7 @@ export function generate() {
     ` });
     des.levregion({ region: [1,0,15,20], region_islev: 1, exclude: [15,1,70,16], exclude_islev: 1, type: "stair-up" });
     des.levregion({ region: [1,0,15,20], region_islev: 1, exclude: [15,1,70,16], exclude_islev: 1, type: "branch" });
-    des.teleport_region({ region: [1,0,15,20], region_islev: 1, exclude: [15,1,70,16], exclude_islev: 1 });
+    des.teleport_region({region: [1,0,15,20], region_islev: 1, exclude: [15,1,70,16], exclude_islev: 1 });
     // this actually leaves the farthest right column diggable
     des.non_diggable(selection.area(0,0,47,12));
     des.mazewalk(0,6,"west");
@@ -46,7 +46,7 @@ export function generate() {
     des.door("locked",0,6);
     // The fellow in residence
     des.monster("Baalzebub",35,6);
-    // Some random weapons and armor.
+    // Some random weapons && armor.
     des.object("[");
     des.object("[");
     des.object(")");
@@ -77,5 +77,5 @@ export function generate() {
 
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

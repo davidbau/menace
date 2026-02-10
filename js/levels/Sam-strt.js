@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Samurai Sam-strt.lua	$NHDT-Date: 1695932714 2023/09/28 20:25:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
+    // NetHack Samurai Sam-strt.lua	$NHDT-Date: 1695932714 2023/9/28 20:25:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991-92 by M. Stephenson, P. Winner
     // NetHack may be freely redistributed.  See license for details.
@@ -16,7 +16,7 @@ export function generate() {
     // The "start" level for the quest.
     // 
     // Here you meet your (besieged) class leader, Lord Sato
-    // and receive your quest assignment.
+    // && receive your quest assignment.
     // 
     // The throne room designation produces random atmospheric
     // messages (until the room is entered) but this one doesn't
@@ -69,8 +69,10 @@ export function generate() {
     des.door("closed",50,4);
     des.door("closed",50,6);
     // Lord Sato
-    des.monster({ id: "Lord Sato", coord: [20, 4], inventory: function() { des.object({ id: "splint mail", spe: 5, eroded: -1, buc: "!-cursed" });
-            des.object({ id: "katana", spe: 4, eroded: -1, buc: "!-cursed" }); } });
+    des.monster({ id: "Lord Sato", coord: [20, 4], inventory: function() {
+       des.object({ id: "splint mail", spe: 5, eroded: -1, buc: "!-cursed" });
+       des.object({ id: "katana", spe: 4, eroded: -1, buc: "!-cursed" });
+    } })
     // The treasure of Lord Sato
     des.object("chest", 20, 4);
     // roshi guards for the audience chamber
@@ -107,5 +109,5 @@ export function generate() {
     des.monster("stalker");
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

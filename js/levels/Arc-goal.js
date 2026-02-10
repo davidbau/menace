@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Archeologist Arc-goal.lua	$NHDT-Date: 1652195998 2022/05/10 15:19:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
+    // NetHack Archeologist Arc-goal.lua	$NHDT-Date: 1652195998 2022/5/10 15:19:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -70,9 +70,9 @@ export function generate() {
     // Non diggable walls
     des.non_diggable(selection.area(0,0,75,19));
     // The altar of Huhetotl.  Unattended.
-    des.altar({ x: 50, y: 14, align: "chaos", type: "altar" });
+    des.altar({ x: 50,y: 14,align: "chaos",type: "altar" });
     // Objects
-    des.object({ id: "crystal ball", x: 50, y: 14, buc: "blessed", spe: 5, name: "The Orb of Detection" });
+    des.object({ id: "crystal ball", x: 50, y: 14,buc: "blessed",spe: 5,name: "The Orb of Detection" });
     des.object();
     des.object();
     des.object();
@@ -126,5 +126,5 @@ export function generate() {
     des.monster("M");
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

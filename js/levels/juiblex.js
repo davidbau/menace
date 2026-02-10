@@ -4,13 +4,12 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
-import { shuffle } from '../sp_lev.js';
+import { selection, shuffle } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack gehennom juiblex.lua	$NHDT-Date: 1652196026 2022/05/10 15:20:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
+    // NetHack gehennom juiblex.lua	$NHDT-Date: 1652196026 2022/5/10 15:20:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
     // Copyright (c) 1989 by Jean-Christophe Collet
-    // Copyright (c) 1992 by M. Stephenson and Izchak Miller
+    // Copyright (c) 1992 by M. Stephenson && Izchak Miller
     // NetHack may be freely redistributed.  See license for details.
     // 
 
@@ -62,22 +61,22 @@ export function generate() {
 
     `);
     // Random registers
-    const monster = ["j", "b", "P", "F"]
+    let monster = [ "j","b","P","F" ]
     shuffle(monster)
 
-    const place = selection.new();
-    place.set(4,2)
-    place.set(46,2)
-    place.set(4,15)
-    place.set(46,15)
+    let place = selection.new();
+    place.set(4,2);
+    place.set(46,2);
+    place.set(4,15);
+    place.set(46,15);
 
     // Dungeon description
     des.region({ region: [0,0,50,17], lit: 0, type: "swamp", filled: 2 });
     des.levregion({ region: [1,0,11,20], region_islev: 1, exclude: [0,0,50,17], type: "stair-down" });
     des.levregion({ region: [69,0,79,20], region_islev: 1, exclude: [0,0,50,17], type: "stair-up" });
     des.levregion({ region: [1,0,11,20], region_islev: 1, exclude: [0,0,50,17], type: "branch" });
-    des.teleport_region({ region: [1,0,11,20], region_islev: 1, exclude: [0,0,50,17], dir: "up" });
-    des.teleport_region({ region: [69,0,79,20], region_islev: 1, exclude: [0,0,50,17], dir: "down" });
+    des.teleport_region({ region: [1,0,11,20], region_islev: 1, exclude: [0,0,50,17],dir: "up" });
+    des.teleport_region({ region: [69,0,79,20], region_islev: 1, exclude: [0,0,50,17],dir: "down" });
     des.feature("fountain", place.rndcoord(1));
     des.monster({ id: "giant mimic", coord: place.rndcoord(1), appear_as: "ter:fountain" });
     des.monster({ id: "giant mimic", coord: place.rndcoord(1), appear_as: "ter:fountain" });
@@ -88,7 +87,7 @@ export function generate() {
     des.monster("lemure",43,8);
     des.monster("lemure",44,8);
     des.monster("lemure",45,8);
-    // Some liquids and gems
+    // Some liquids && gems
     des.object("*",43,6);
     des.object("*",45,6);
     des.object("!",43,9);
@@ -138,5 +137,5 @@ export function generate() {
     des.trap("magic");
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

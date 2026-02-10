@@ -1,13 +1,13 @@
 /**
- * bigrm-2 - NetHack special level
- * Converted from: bigrm-2.lua
+ * bigrm-1 - NetHack special level
+ * Converted from: bigrm-1.lua
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
+import { selection, percent } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack bigroom bigrm-2.lua	$NHDT-Date: 1652196021 2022/05/10 15:20:21 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
+    // NetHack bigroom bigrm-1.lua	$NHDT-Date: 1652196021 2022/5/10 15:20:21 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1990 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -37,49 +37,60 @@ export function generate() {
     ---------------------------------------------------------------------------
 
     `);
-    // Dungeon Description
-    des.region(selection.area(1,1,73,16),"lit");
 
-    const darkness;
 
-    const choice = Math.random(0, 3)
-    if (choice === 0) {
-       darkness = selection.area(1,7,22,9)
-          | selection.area(24,1,50,5)
-          | selection.area(24,11,50,16)
-          | selection.area(52,7,73,9)
-    } else if (choice === 1) {
-       darkness = selection.area(24,1,50,16)
-    } else if (choice === 2) {
-       darkness = selection.area(1,1,22,16)
-          | selection.area(52,1,73,16)
-    }
-
-    if (darkness !== null) {
-       des.region(darkness,"unlit");
-       if (percent(25)) {
-    des.replace_terrain({ selection: darkness.grow(), fromterrain: ".", toterrain: "I" });
+    if (percent(80)) {
+       let terrains = [ "-", "F", "L", "T", "C" ];
+       let tidx = Math.random(1, terrains.length);
+       let choice = Math.random(0, 5);
+       if (choice == 0) {
+          // one horizontal line
+          des.terrain(selection.line(10,8, 65,8), terrains[tidx]);
+       } else if (choice == 1) {
+          // two vertical lines
+          let sel = selection.line(15,4, 15, 13) | selection.line(59,4, 59, 13);
+          des.terrain(sel, terrains[tidx]);
+       } else if (choice == 2) {
+          // plus sign
+          sel: selection.line(10,8, 64, 8) | selection.line(37,3, 37, 14);
+          des.terrain(sel, terrains[tidx]);
+       } else if (choice == 3) {
+          // brackets:  [  ]
+          des.terrain(selection.rect(4,4, 70,13), terrains[tidx]);
+          sel: selection.line(25,4, 50,4) | selection.line(25,13, 50,13);
+          des.terrain(sel, '.');
+       } else if (choice == 4) {
+          // snake
+          des.terrain(selection.fillrect(5,5, 69, 12), terrains[tidx]);
+          for (let i = 0; i <= 7; i++) {
+             let x = 6 + i*8;
+             let y = 5 + (i%2);
+             des.terrain(selection.fillrect(x, y, x+6, y+6), '.');
+          }
+       } else {
+          // nothing
        }
     }
 
-    // Stairs
+    des.region(selection.area(1,1, 73, 16), "lit");
+
     des.stair("up");
     des.stair("down");
-    // Non diggable walls
+
     des.non_diggable();
-    // Objects
+
     for (let i = 1; i <= 15; i++) {
        des.object();
     }
-    // Random traps
+
     for (let i = 1; i <= 6; i++) {
        des.trap();
     }
-    // Random monsters.
+
     for (let i = 1; i <= 28; i++) {
-       des.monster();
+      des.monster();
     }
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

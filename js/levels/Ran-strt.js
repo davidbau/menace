@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Ranger Ran-strt.lua	$NHDT-Date: 1652196011 2022/05/10 15:20:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
+    // NetHack Ranger Ran-strt.lua	$NHDT-Date: 1652196011 2022/5/10 15:20:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -16,7 +16,7 @@ export function generate() {
     // The "start" level for the quest.
     // 
     // Here you meet your (besieged) class leader, Orion,
-    // and receive your quest assignment.
+    // && receive your quest assignment.
     // 
     des.level_init({ style: "solidfill", fg: "." });
 
@@ -57,9 +57,11 @@ export function generate() {
     // Portal arrival point; just about anywhere on the right hand side of the map
     des.levregion({ region: [51,2,77,18], region_islev: 1, type: "branch" });
     // Orion
-    des.monster({ id: "Orion", coord: [20, 10], inventory: function() { des.object({ id: "leather armor", spe: 4 });
-            des.object({ id: "yumi", spe: 4 });
-            des.object({ id: "ya", spe: 4, quantity: 50 }); } });
+    des.monster({ id: "Orion", coord: [20, 10], inventory: function() {
+       des.object({ id: "leather armor", spe: 4 });
+       des.object({ id: "yumi", spe: 4 });
+       des.object({ id: "ya", spe: 4, quantity: 50 });
+    } })
     // The treasure of Orion
     des.object("chest", 20, 10);
     // Guards for the audience chamber
@@ -110,5 +112,5 @@ export function generate() {
     des.monster({ id: "scorpion", peaceful: 0 });
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

@@ -4,11 +4,10 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
-import { shuffle } from '../sp_lev.js';
+import { selection, shuffle } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack castle castle.lua	$NHDT-Date: 1652196024 2022/05/10 15:20:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.7 $
+    // NetHack castle castle.lua	$NHDT-Date: 1652196024 2022/5/10 15:20:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.7 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // NetHack may be freely redistributed.  See license for details.
     // 
@@ -22,10 +21,10 @@ export function generate() {
     // of water walking, etc.)
     // 
     // Note : If you don't play the right tune, you get indications like in the
-    // MasterMind game...
+    // MasterMind game...args
     // 
-    // To motivate the player : there are 4 storerooms (armors, weapons, food and
-    // gems) and a wand of wishing in one of the 4 towers...
+    // To motivate the player : there are 4 storerooms (armors, weapons, food &&
+    // gems) && a wand of wishing in one of the 4 towers...args
 
     des.level_init({ style: "mazegrid", bg: "-" });
 
@@ -54,16 +53,16 @@ export function generate() {
     `);
 
     // Random registers initialisation
-    const object = ["[", ")", "*", "%"];
+    let object = [ "[", ")", "*", "%" ];
     shuffle(object)
 
-    const place = selection.new();
-    place.set(4,2)
-    place.set(58,2)
-    place.set(4,14)
-    place.set(58,14)
+    let place = selection.new();
+    place.set(4,2);
+    place.set(58,2);
+    place.set(4,14);
+    place.set(58,14);
 
-    const monster = ["L", "N", "E", "H", "M", "O", "R", "T", "X", "Z"]
+    let monster = [ "L", "N", "E", "H", "M", "O", "R", "T", "X", "Z" ]
     shuffle(monster)
 
     des.teleport_region({ region: [1,0,10,20], region_islev: 1, exclude: [1,1,61,15], dir: "down" });
@@ -90,7 +89,7 @@ export function generate() {
     des.door("closed",7,13);
     des.door("closed",55,13);
     // The drawbridge
-    des.drawbridge({ dir: "east", state: "closed", x: 5, y: 8 });
+    des.drawbridge({ dir: "east", state: "closed", x: 5,y: 8});
     // Storeroom number 1
     des.object(object[1],39,5);
     des.object(object[1],40,5);
@@ -152,9 +151,13 @@ export function generate() {
     des.object(object[4],54,11);
     des.object(object[4],55,11);
     // THE WAND OF WISHING in 1 of the 4 towers
-    const loc = place.rndcoord(1);
-    des.object({ id: "chest", trapped: 0, locked: 1, coord: loc, contents: function() { des.object("wishing");
-            des.object("potion of gain level"); } });
+    let loc = place.rndcoord(1);
+    des.object({ id: "chest", trapped: 0, locked: 1, coord: loc ,
+                 contents: function() {
+                    des.object("wishing");
+                    des.object("potion of gain level");
+                 }
+    });
     // Prevent monsters from eating it.  (@'s never eat objects)
     des.engraving({ coord: loc, type: "burn", text: "Elbereth" });
     des.object({ id: "scroll of scare monster", coord: loc, buc: "cursed" });
@@ -199,7 +202,7 @@ export function generate() {
     des.monster("shark",5,16);
     des.monster("shark",57,0);
     des.monster("shark",57,16);
-    // The throne room and the court monsters
+    // The throne room && the court monsters
     des.monster(monster[10],27,5);
     des.monster(monster[1],30,5);
     des.monster(monster[2],33,5);
@@ -239,7 +242,7 @@ export function generate() {
     des.region(selection.area(0,5,5,11),"lit");
     des.region(selection.area(57,5,62,11),"lit");
     // Throne room
-    des.region({ region: [27,5, 37,11], lit: 1, type: "throne", filled: 2 });
+    des.region({ region: [27,5, 37,11],lit: 1,type: "throne", filled: 2 });
     // Antechamber
     des.region(selection.area(7,5,14,11),"lit");
     // Storerooms
@@ -253,8 +256,8 @@ export function generate() {
     des.region(selection.area(2,13,6,14),"lit");
     des.region(selection.area(56,13,60,14),"lit");
     // Barracks
-    des.region({ region: [16,5, 25,6], lit: 1, type: "barracks", filled: 1 });
-    des.region({ region: [16,10, 25,11], lit: 1, type: "barracks", filled: 1 });
+    des.region({ region: [16,5, 25,6],lit: 1,type: "barracks", filled: 1 });
+    des.region({ region: [16,10, 25,11],lit: 1,type: "barracks", filled: 1 });
     // Hallways
     des.region(selection.area(8,3,54,3),"unlit");
     des.region(selection.area(8,13,54,13),"unlit");
@@ -265,5 +268,5 @@ export function generate() {
     des.region(selection.area(47,10,47,11),"unlit");
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

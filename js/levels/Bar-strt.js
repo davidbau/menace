@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Barbarian Bar-strt.lua	$NHDT-Date: 1652196001 2022/05/10 15:20:01 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
+    // NetHack Barbarian Bar-strt.lua	$NHDT-Date: 1652196001 2022/5/10 15:20:1 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -16,7 +16,7 @@ export function generate() {
     // The "start" level for the quest.
     // 
     // Here you meet your (besieged) class leader, Pelias,
-    // and receive your quest assignment.
+    // && receive your quest assignment.
     // 
     des.level_init({ style: "solidfill", fg: " " });
 
@@ -51,7 +51,7 @@ export function generate() {
     des.replace_terrain({ region: [37,0, 59,19], fromterrain: ".", toterrain: "T", chance: 5 });
     des.replace_terrain({ region: [60,0, 64,19], fromterrain: ".", toterrain: "T", chance: 10 });
     des.replace_terrain({ region: [65,0, 75,19], fromterrain: ".", toterrain: "T", chance: 20 });
-    // guarantee a path and free spot for the portal
+    // guarantee a path && free spot for the portal
     des.terrain(selection.randline(selection.new(), 37,7, 62,2, 7), ".");
     des.terrain([62,2], ".");
 
@@ -80,8 +80,10 @@ export function generate() {
     des.door("open",25,10);
     des.door("open",28,5);
     // Elder
-    des.monster({ id: "Pelias", coord: [10, 7], inventory: function() { des.object({ id: "runesword", spe: 5 });
-            des.object({ id: "chain mail", spe: 5 }); } });
+    des.monster({ id: "Pelias", coord: [10, 7], inventory: function() {
+       des.object({ id: "runesword", spe: 5 });
+       des.object({ id: "chain mail", spe: 5 });
+    } })
     // The treasure of Pelias
     des.object("chest", 9, 5);
     // chieftain guards for the audience chamber
@@ -102,11 +104,11 @@ export function generate() {
     des.monster("giant eel", 37, 9);
     des.monster("giant eel", 39, 15);
     // Monsters on siege duty.
-    const ogrelocs = selection.floodfill(37,7) & selection.area(40,3, 45,20)
+    let ogrelocs = selection.floodfill(37,7) & selection.area(40,3, 45,20)
     for (let i = 0; i <= 11; i++) {
        des.monster({ id: "ogre", coord: ogrelocs.rndcoord(1), peaceful: 0 });
     }
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

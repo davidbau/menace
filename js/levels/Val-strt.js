@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Valkyrie Val-strt.lua	$NHDT-Date: 1652196017 2022/05/10 15:20:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
+    // NetHack Valkyrie Val-strt.lua	$NHDT-Date: 1652196017 2022/5/10 15:20:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991-2 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -16,24 +16,24 @@ export function generate() {
     // The "start" level for the quest.
     // 
     // Here you meet your (besieged) class leader, the Norn,
-    // and receive your quest assignment.
+    // && receive your quest assignment.
     // 
 
     des.level_flags("mazelevel", "noteleport", "hardfloor", "icedpools");
     des.level_init({ style: "solidfill", fg: "I" });
 
-    const pools = selection.new()
+    let pools = selection.new()
     // random locations
     for (let i = 1; i <= 13; i++) {
-       pools.set()
+       pools.set();
     }
     // some bigger ones
-    pools = pools | selection.grow(selection.set(selection.new()), "west")
-    pools = pools | selection.grow(selection.set(selection.new()), "north")
-    pools = pools | selection.grow(selection.set(selection.new()), "random")
+    pools: pools | selection.grow(selection.set(selection.new()), "west")
+    pools: pools | selection.grow(selection.set(selection.new()), "north")
+    pools: pools | selection.grow(selection.set(selection.new()), "random")
 
     // Lava pools surrounded by water
-    des.terrain(pools.clone():grow("all"), "P");
+    des.terrain(pools.clone().grow("all"), "P");
     des.terrain(pools, "L");
 
     des.map(`
@@ -71,8 +71,10 @@ export function generate() {
     des.door("locked",26,10);
     des.door("locked",43,10);
     // Norn
-    des.monster({ id: "Norn", coord: [35, 10], inventory: function() { des.object({ id: "banded mail", spe: 5 });
-            des.object({ id: "long sword", spe: 4 }); } });
+    des.monster({ id: "Norn", coord: [35, 10], inventory: function() {
+       des.object({ id: "banded mail", spe: 5 });
+       des.object({ id: "long sword", spe: 4 });
+    } })
     // The treasure of the Norn
     des.object("chest", 36, 10);
     // valkyrie guards for the audience chamber
@@ -109,5 +111,6 @@ export function generate() {
 
 
 
+    // }
     return des.finalize_level();
 }

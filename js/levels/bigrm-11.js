@@ -4,18 +4,17 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
+import { selection, percent } from '../sp_lev.js';
 import { rn2 } from '../rng.js';
-import * as nh from '../sp_lev.js';
 
 export function generate() {
-    // NetHack bigroom bigrm-11.lua	$NHDT-Date: 1652196024 2022/05/10 15:20:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.0 $
+    // NetHack bigroom bigrm-11.lua	$NHDT-Date: 1652196024 2022/5/10 15:20:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.0 $
     // Copyright (c) 2021 by Pasi Kallinen
     // NetHack may be freely redistributed.  See license for details.
     // 
     // Boulder "maze" with wide corridors
 
-    function t_or_f() return percent(50) and true or false; } {
+    function t_or_f() { return percent(50) && true || false; }
 
     des.level_flags("mazelevel", "noflip");
     des.level_init({ style: "maze", corrwid: 3 + nh.rn2(3), wallthick: 1, deadends: t_or_f() });
@@ -28,12 +27,16 @@ export function generate() {
        des.object("boulder", x, y);
     }
 
-    // replace horizontal and vertical walls
-    const sel = selection.match([[.w.]]) | selection.match(".\nw\n.");
-    sel.iterate(replace_wall_boulder)
+    // replace horizontal && vertical walls
+    let sel = selection.match(`
+    .w.
+    `) | selection.match(".\nw\n.");
+    sel.iterate(replace_wall_boulder);
     // replace the leftover corner walls
-    const sel = selection.match([[.w.]]);
-    sel.iterate(replace_wall_boulder)
+    sel: selection.match(`
+    .w.
+    `);
+    sel.iterate(replace_wall_boulder);
 
     des.stair("up");
     des.stair("down");
@@ -50,5 +53,5 @@ export function generate() {
 
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

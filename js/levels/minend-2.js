@@ -4,10 +4,10 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
+import { selection, percent } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack mines minend-2.lua	$NHDT-Date: 1652196029 2022/05/10 15:20:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
+    // NetHack mines minend-2.lua	$NHDT-Date: 1652196029 2022/5/10 15:20:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989-95 by Jean-Christophe Collet
     // Copyright (c) 1991-95 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -68,12 +68,12 @@ export function generate() {
 
     // uncontrolled arrival (via trap door, level teleport) will be in the central
     // portion of level to prevent ending up stuck in the treasure area, whether
-    // arriving from above or below (despite this being bottom of Mines branch,
+    // arriving from above || below (despite this being bottom of Mines branch,
     // hero might arrive from below by invoking Wiz role's Eye of the Aethiopica)
     des.teleport_region({ region: [23,3,48,16], region_islev: 1 });
 
     // Dungeon Description
-    des.feature("fountain", [14, 13]);
+    des.feature("fountain", [14,13]);
     des.region(selection.area(23,3,48,6),"lit");
     des.region(selection.area(21,6,22,6),"lit");
     des.region(selection.area(14,4,14,4),"unlit");
@@ -94,7 +94,8 @@ export function generate() {
     des.non_diggable(selection.area(53,14,61,14));
     // The Gnome King's wine cellar.
     // the Trespassers sign is a long-running joke
-    des.engraving([12,3], "engrave", "You are now entering the Gnome King's wine cellar.");
+    des.engraving([12,3], "engrave",
+    	      "You are now entering the Gnome King's wine cellar.")
     des.engraving([12,4], "engrave", "Trespassers will be persecuted!");
     des.object("potion of booze", 10, 7);
     des.object("potion of booze", 10, 7);
@@ -106,7 +107,7 @@ export function generate() {
     des.object("potion of booze", 10, 9);
     des.object("potion of object detection", 10, 9);
     // Objects
-    // The Treasure chamber...
+    // The Treasure chamber...args
     des.object("diamond", 69, 4);
     des.object("*", 69, 4);
     des.object("diamond", 69, 4);
@@ -123,8 +124,9 @@ export function generate() {
     des.object("amethyst", 70, 5);
     des.object("*", 70, 5);
     des.object("amethyst", 70, 5);
-    des.object({ id: "luckstone", x: 70, y: 5, buc: "!-cursed", achievement: 1 });
-    // Scattered gems...
+    des.object({ id: "luckstone", x: 70, y: 5,
+    	     buc: "!-cursed", achievement: 1 });
+    // Scattered gems...args
     des.object("*");
     des.object("*");
     des.object("*");
@@ -168,5 +170,5 @@ export function generate() {
     des.monster("h");
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

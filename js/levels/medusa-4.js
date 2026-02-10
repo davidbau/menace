@@ -4,11 +4,10 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
-import { percent } from '../sp_lev.js';
+import { selection, percent } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack medusa medusa-4.lua	$NHDT-Date: 1716152274 2024/05/19 20:57:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.8 $
+    // NetHack medusa medusa-4.lua	$NHDT-Date: 1716152274 2024/5/19 20:57:54 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.8 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1990, 1991 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -47,21 +46,21 @@ export function generate() {
 
     // 
     // place handling is similar to medusa-3.lua except that there are 4
-    // downstairs-eligible rooms rather than 3, and only 2 of them are used
-    const place = selection.new();
+    // downstairs-eligible rooms rather than 3, && only 2 of them are used
+    let place = selection.new();
     // each of these spots are inside a distinct room
-    place.set(4,8)
-    place.set(10,4)
-    place.set(10,8)
-    place.set(10,12)
+    place.set(4,8);
+    place.set(10,4);
+    place.set(10,8);
+    place.set(10,12);
 
-    // location of Medusa and downstairs and Perseus's statue
-    const medloc = place.rndcoord(1,1);
+    // location of Medusa && downstairs && Perseus's statue
+    let medloc = place.rndcoord(1,1);
     // specific location for some other statue in a different downstairs-eligible
     // room, to prevent object detection from becoming a trivial way to pinpoint
     // Medusa's location
     // [usefulness depends on future STATUE->dknown changes in nethack's core]
-    const altloc = place.rndcoord(1,1);
+    let altloc = place.rndcoord(1,1);
 
     // 
     des.region(selection.area(0,0,74,19),"lit");
@@ -93,13 +92,25 @@ export function generate() {
     des.object("crystal ball", 7,8);
     // 
     // same spot as Medusa plus downstairs
-    des.object({ id: "statue", coord: medloc, buc: "uncursed", montype: "knight", historic: 1, male: 1, name: "Perseus", contents: function() { if (percent(75)) {
-            des.object({ id: "shield of reflection", buc: "cursed", spe: 0 }) } if (percent(25)) {
-            des.object({ id: "levitation boots", spe: 0 }) } if (percent(50)) {
-            des.object({ id: "scimitar", buc: "blessed", spe: 2 }) } if (percent(50)) {
-            des.object("sack") } } });
+    des.object({ id: "statue", coord: medloc, buc: "uncursed",
+                          montype: "knight", historic: 1, male: 1,name: "Perseus",
+                          contents: function() {
+                             if (percent(75)) {
+                                des.object({ id: "shield of reflection", buc: "cursed", spe: 0 });
+                             }
+                             if (percent(25)) {
+                                des.object({ id: "levitation boots", spe: 0 });
+                             }
+                             if (percent(50)) {
+                                des.object({ id: "scimitar", buc: "blessed", spe: 2 });
+                             }
+                             if (percent(50)) {
+                                des.object("sack");
+                             }
+                          }
+    });
     // 
-    // first random statue is in one of the designated stair rooms but not the
+    // first random statue is in one of the designated stair rooms but ! the
     // one with Medusa plus downstairs
     des.object({ id: "statue", coord: altloc, contents: 0 });
     des.object({ id: "statue", contents: 0 });
@@ -124,7 +135,7 @@ export function generate() {
     // the nesting dragon
     des.monster({ id: "yellow dragon", x: 5, y: 4, asleep: 1 });
     if (percent(50)) {
-       des.monster({ id: "baby yellow dragon", x: 4, y: 4, asleep: 1 });
+       des.monster({ id: "baby yellow dragon", x: 4,y: 4, asleep: 1 });
     }
     if (percent(25)) {
        des.monster({ id: "baby yellow dragon", x: 4, y: 5, asleep: 1 });
@@ -149,8 +160,8 @@ export function generate() {
        des.monster("black naga");
     }
 
-    // #medusa-4.lua
+    // medusa.length-4.lua
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

@@ -4,10 +4,10 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
+import { selection, percent } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack bigroom bigrm-10.lua	$NHDT-Date: 1652196024 2022/05/10 15:20:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
+    // NetHack bigroom bigrm-10.lua	$NHDT-Date: 1652196024 2022/5/10 15:20:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1990 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -40,9 +40,9 @@ export function generate() {
     `);
 
     if (percent(40)) {
-       // occasionally it's not a fog maze
-    const terrain = ["L", "}", "T", "-", "F"];
-       const tidx = Math.random(1, terrain.length);
+       // occasionally it's ! a fog maze
+       let terrain = [ "L", "}", "T", "-", "F" ];
+       let tidx = Math.random(1, terrain.length);
        // break it up a bit
        des.replace_terrain({ region: [0, 0, 70, 18], fromterrain: "C", toterrain: ".", chance: 5 });
        des.replace_terrain({ region: [0, 0, 70, 18], fromterrain: "C", toterrain: terrain[tidx] });
@@ -67,10 +67,10 @@ export function generate() {
 
     des.mazewalk({ x: 4, y: 2, dir: "south", stocked: 0 });
 
-    // Stairs up, not in the fog maze
-    des.levregion({ region: [0,0,70,18], exclude: [2,3,68,15], type: "stair-up" });
+    // Stairs up, ! in the fog maze
+    des.levregion({ region: [0,0,70,18], exclude: [2,3,68,15], type: "stair-up"});
     des.stair("down");
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

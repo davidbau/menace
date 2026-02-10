@@ -4,11 +4,10 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
-import { percent } from '../sp_lev.js';
+import { selection, percent } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack medusa medusa-3.lua	$NHDT-Date: 1716152250 2024/05/19 20:57:30 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.8 $
+    // NetHack medusa medusa-3.lua	$NHDT-Date: 1716152250 2024/5/19 20:57:30 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.8 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1990, 1991 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -43,21 +42,21 @@ export function generate() {
 
     `);
 
-    const place = selection.new();
+    let place = selection.new();
     // each of these spots are inside a distinct room
-    place.set(8,6)
-    place.set(66,5)
-    place.set(46,15)
+    place.set(8,6);
+    place.set(66,5);
+    place.set(46,15);
 
-    // location of Medusa and downstairs and Perseus's statue
-    const medloc = place.rndcoord(1,1);
+    // location of Medusa && downstairs && Perseus's statue
+    let medloc = place.rndcoord(1,1);
     // specific location for some other statue in a different downstairs-eligible
     // room, to prevent object detection from becoming a trivial way to pinpoint
     // Medusa's location
     // [usefulness depends on future STATUE->dknown changes in nethack's core]
-    const altloc = place.rndcoord(1,1);
+    let altloc = place.rndcoord(1,1);
     // location of a fountain, in the remaining of three downstairs-eligible rooms
-    const othloc = place.rndcoord(1,1);
+    let othloc = place.rndcoord(1,1);
     // once here, all three points set in 'place' have been used up
 
     des.region(selection.area(0,0,74,19),"lit");
@@ -86,19 +85,31 @@ export function generate() {
     des.door("random",50,13);
     des.door("locked",48,15);
     // 
-    // in one of the three designated rooms, but not the one with Medusa plus
-    // downstairs and also not 'altloc' where a random statue will be placed
+    // in one of the three designated rooms, but ! the one with Medusa plus
+    // downstairs && also ! 'altloc' where a random statue will be placed
     des.feature("fountain", othloc);
     // 
     // same spot as Medusa plus downstairs
-    des.object({ id: "statue", coord: medloc, buc: "uncursed", montype: "knight", historic: 1, male: 1, name: "Perseus", contents: function() { if (percent(75)) {
-            des.object({ id: "shield of reflection", buc: "cursed", spe: 0 }) } if (percent(25)) {
-            des.object({ id: "levitation boots", spe: 0 }) } if (percent(50)) {
-            des.object({ id: "scimitar", buc: "blessed", spe: 2 }) } if (percent(50)) {
-            des.object("sack") } } });
+    des.object({ id: "statue", coord: medloc, buc: "uncursed",
+                          montype: "knight", historic: 1, male: 1,name: "Perseus",
+                          contents: function() {
+                             if (percent(75)) {
+                                des.object({ id: "shield of reflection", buc: "cursed", spe: 0 });
+                             }
+                             if (percent(25)) {
+                                des.object({ id: "levitation boots", spe: 0 });
+                             }
+                             if (percent(50)) {
+                                des.object({ id: "scimitar", buc: "blessed", spe: 2 });
+                             }
+                             if (percent(50)) {
+                                des.object("sack");
+                             }
+                          }
+    });
     // 
-    // first random statue is in one of the three designated rooms but not the
-    // one with Medusa plus downstairs or the one with the fountain
+    // first random statue is in one of the three designated rooms but ! the
+    // one with Medusa plus downstairs || the one with the fountain
     des.object({ id: "statue", coord: altloc, contents: 0 });
     des.object({ id: "statue", contents: 0 });
     des.object({ id: "statue", contents: 0 });
@@ -135,8 +146,8 @@ export function generate() {
        des.monster({ id: "raven", peaceful: 0 });
     }
 
-    // #medusa-3.lua
+    // medusa.length-3.lua
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

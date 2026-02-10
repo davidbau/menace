@@ -4,7 +4,7 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
+import { selection, percent } from '../sp_lev.js';
 
 export function generate() {
     // NetHack bigroom bigrm-12.lua	$NHDT-Date: $  $NHDT-Branch: NetHack-3.7 $
@@ -50,7 +50,7 @@ export function generate() {
        }
     }
 
-    // maybe replace pools with floor and then possibly walls with pools
+    // maybe replace pools with floor && then possibly walls with pools
     if (percent(25)) {
        des.replace_terrain({ fromterrain: "P", toterrain: "." });
        if (percent(75)) {
@@ -96,5 +96,5 @@ export function generate() {
     }
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

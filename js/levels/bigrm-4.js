@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack bigroom bigrm-4.lua	$NHDT-Date: 1652196022 2022/05/10 15:20:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
+    // NetHack bigroom bigrm-4.lua	$NHDT-Date: 1652196022 2022/5/10 15:20:22 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1990 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -38,9 +38,9 @@ export function generate() {
 
     `);
 
-    const terrains = [".", ".", ".", ".", "P", "L", "-", "T", "W", "Z"];
-    const tidx = Math.random(1, terrains.length);
-    const toterr = terrains[tidx];
+    let terrains = [ ".", ".", ".", ".", "P", "L", "-", "T", "W", "Z" ];
+    let tidx = Math.random(1, terrains.length);
+    let toterr = terrains[tidx];
     if ((toterr !== "L")) {
        des.replace_terrain({ fromterrain: "L", toterrain: toterr });
     }
@@ -70,5 +70,5 @@ export function generate() {
     }
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

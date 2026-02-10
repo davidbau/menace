@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Ranger Ran-goal.lua	$NHDT-Date: 1652196010 2022/05/10 15:20:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
+    // NetHack Ranger Ran-goal.lua	$NHDT-Date: 1652196010 2022/5/10 15:20:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -49,14 +49,14 @@ export function generate() {
     // Objects
     des.object({ id: "bow", x: 37, y: 10, buc: "blessed", spe: 0, name: "The Longbow of Diana" });
     des.object("chest", 37, 10);
-    des.object({ coord: [36, 9] });
-    des.object({ coord: [36, 10] });
-    des.object({ coord: [36, 11] });
-    des.object({ coord: [37, 9] });
-    des.object({ coord: [37, 11] });
-    des.object({ coord: [38, 9] });
-    des.object({ coord: [38, 10] });
-    des.object({ coord: [38, 11] });
+    des.object({ coord: [ 36, 9 ] });
+    des.object({ coord: [ 36, 10 ] });
+    des.object({ coord: [ 36, 11 ] });
+    des.object({ coord: [ 37, 9 ] });
+    des.object({ coord: [ 37, 11 ] });
+    des.object({ coord: [ 38, 9 ] });
+    des.object({ coord: [ 38, 10 ] });
+    des.object({ coord: [ 38, 11 ] });
     des.object();
     des.object();
     des.object();
@@ -117,5 +117,5 @@ export function generate() {
     des.wallify();
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

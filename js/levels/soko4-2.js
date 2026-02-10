@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack sokoban soko4-2.lua	$NHDT-Date: 1652196036 2022/05/10 15:20:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
+    // NetHack sokoban soko4-2.lua	$NHDT-Date: 1652196036 2022/5/10 15:20:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1998-1999 by Kevin Hugo
     // NetHack may be freely redistributed.  See license for details.
     // 
@@ -53,8 +53,8 @@ export function generate() {
     des.object("boulder",10,8);
 
     // prevent monster generation over the (filled) pits
-    des.exclusion({ type: "monster-generation", region: [1,1, 1,9] });
-    des.exclusion({ type: "monster-generation", region: [1,8, 7,9] });
+    des.exclusion({ type: "monster-generation", region: [ 1,1, 1,9 ] });
+    des.exclusion({ type: "monster-generation", region: [ 1,8, 7,9 ] });
     // Traps
     des.trap("pit",1,2);
     des.trap("pit",1,3);
@@ -82,5 +82,5 @@ export function generate() {
 
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

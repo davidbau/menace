@@ -4,10 +4,10 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
+import { selection, percent } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack bigroom bigrm-8.lua	$NHDT-Date: 1652196023 2022/05/10 15:20:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
+    // NetHack bigroom bigrm-8.lua	$NHDT-Date: 1652196023 2022/5/10 15:20:23 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1990 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -39,8 +39,8 @@ export function generate() {
     `);
 
     if (percent(40)) {
-    const terrain = ["L", "}", "T", ".", "-", "C"];
-       const tidx = Math.random(1, terrain.length);
+       let terrain = [ "L", "}", "T", ".", "-", "C" ];
+       let tidx = Math.random(1, terrain.length);
        des.replace_terrain({ region: [0,0, 74,17], fromterrain: "F", toterrain: terrain[tidx] });
     };
 
@@ -64,5 +64,5 @@ export function generate() {
     }
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

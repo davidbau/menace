@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Archeologist Arc-loca.lua	$NHDT-Date: 1652195999 2022/05/10 15:19:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
+    // NetHack Archeologist Arc-loca.lua	$NHDT-Date: 1652195999 2022/5/10 15:19:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -76,9 +76,9 @@ export function generate() {
     des.stair("up", 3,17);
     des.stair("down", 39,10);
     // Altars - three types.  All are unattended.
-    des.altar({ x: 26, y: 5, align: align[1], type: "altar" });
-    des.altar({ x: 26, y: 10, align: align[2], type: "altar" });
-    des.altar({ x: 26, y: 15, align: align[3], type: "altar" });
+    des.altar({ x: 26,y: 5,align: align[1], type: "altar" });
+    des.altar({ x: 26,y: 10,align: align[2], type: "altar" });
+    des.altar({ x: 26,y: 15,align: align[3], type: "altar" });
     // Non diggable walls
     des.non_diggable(selection.area(0,0,75,19));
     // Objects
@@ -156,5 +156,5 @@ export function generate() {
     des.monster("M");
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

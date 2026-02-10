@@ -6,10 +6,10 @@
 import * as des from '../sp_lev.js';
 
 export function generate() {
-    // NetHack endgame water.lua	$NHDT-Date: 1652196038 2022/05/10 15:20:38 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
+    // NetHack endgame water.lua	$NHDT-Date: 1652196038 2022/5/10 15:20:38 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1992,1993 by Izchak Miller, David Cohrs,
-    // and Timo Hakulinen
+    // && Timo Hakulinen
     // NetHack may be freely redistributed.  See license for details.
     // 
     des.level_init({ style: "solidfill", fg: " " });
@@ -47,7 +47,7 @@ export function generate() {
     `);
     des.teleport_region({ region: [0,0,25,19] });
     des.levregion({ type: "portal", region: [51,0,75,19], name: "astral" });
-    // A fisherman's dream...
+    // A fisherman's dream...args
     des.monster("giant eel");
     des.monster("giant eel");
     des.monster("giant eel");
@@ -112,5 +112,5 @@ export function generate() {
 
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

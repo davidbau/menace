@@ -4,11 +4,11 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
-import { percent } from '../sp_lev.js';
+import { selection, percent } from '../sp_lev.js';
+import { rn2 } from '../rng.js';
 
 export function generate() {
-    // NetHack Knight Kni-strt.lua	$NHDT-Date: 1652196006 2022/05/10 15:20:06 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
+    // NetHack Knight Kni-strt.lua	$NHDT-Date: 1652196006 2022/5/10 15:20:6 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991,92 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -17,7 +17,7 @@ export function generate() {
     // The "start" level for the quest.
     // 
     // Here you meet your (besieged) class leader, King Arthur
-    // and receive your quest assignment.
+    // && receive your quest assignment.
     // 
     des.level_init({ style: "solidfill", fg: "." });
 
@@ -74,8 +74,10 @@ export function generate() {
     des.door("closed",4,12);
     des.door("closed",45,12);
     // King Arthur
-    des.monster({ id: "King Arthur", coord: [9, 7], inventory: function() { des.object({ id: "long sword", spe: 4, buc: "blessed", name: "Excalibur" });
-            des.object({ id: "plate mail", spe: 4 }); } });
+    des.monster({ id: "King Arthur", coord: [9, 7], inventory: function() {
+       des.object({ id: "long sword", spe: 4, buc: "blessed", name: "Excalibur" });
+       des.object({ id: "plate mail", spe: 4 });
+    } })
     // The treasure of King Arthur
     des.object("chest", 9, 7);
     // knight guards for the watchrooms
@@ -119,5 +121,5 @@ export function generate() {
     }
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

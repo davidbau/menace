@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Priest Pri-goal.lua	$NHDT-Date: 1687033651 2023/06/17 20:27:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
+    // NetHack Priest Pri-goal.lua	$NHDT-Date: 1687033651 2023/6/17 20:27:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991-2 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -34,14 +34,15 @@ export function generate() {
 
     `);
     // Dungeon Description
-    const place = [[14, 4], [13, 7]]
-    const placeidx = Math.random(1, place.length);
+    let place = [ [14,4], [13,7] ]
+    let placeidx = Math.random(1, place.length);
 
     des.region(selection.area(0,0,25,10), "unlit");
     // Stairs
     des.stair("up", 20,5);
     // Objects [note: eroded=-1 => obj->oerodeproof=1]
-    des.object({ id: "helm of brilliance", coord: place[placeidx], buc: "blessed", spe: 0, eroded: -1, name: "The Mitre of Holiness" });
+    des.object({ id: "helm of brilliance", coord: place[placeidx],
+                 buc: "blessed", spe: 0, eroded: -1, name: "The Mitre of Holiness" })
     des.object();
     des.object();
     des.object();
@@ -94,5 +95,5 @@ export function generate() {
     des.monster("W");
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

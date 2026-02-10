@@ -7,16 +7,16 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack gehennom sanctum.lua	$NHDT-Date: 1652196034 2022/05/10 15:20:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
+    // NetHack gehennom sanctum.lua	$NHDT-Date: 1652196034 2022/5/10 15:20:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
     // Copyright (c) 1989 by Jean-Christophe Collet
-    // Copyright (c) 1992 by M. Stephenson and Izchak Miller
+    // Copyright (c) 1992 by M. Stephenson && Izchak Miller
     // NetHack may be freely redistributed.  See license for details.
     // 
     des.level_init({ style: "solidfill", fg: " " });
 
     des.level_flags("mazelevel", "noteleport", "hardfloor", "nommap");
     // This is outside the main map, below, so we must do it before adding
-    // that map and anchoring coordinates to it. This extends the invisible
+    // that map && anchoring coordinates to it. This extends the invisible
     // barrier up to the top row, which falls outside the drawn map.
     des.non_passwall(selection.area(39,0,41,0));
     des.map(`
@@ -43,7 +43,9 @@ export function generate() {
     ----------------------------------------------------------------------------
 
     `);
-    des.region({ region: [15,7, 21,10], lit: 1, type: "temple", filled: 2, contents: function() { des.door({ wall: "random", state: "secret" }); } });
+    des.region({ region: [15,7, 21,10], lit: 1, type: "temple", filled: 2, contents: function() {
+                    des.door({ wall: "random", state: "secret" });
+    } })
     des.altar({ x: 18, y: 8, align: "noalign", type: "sanctum" });
     des.region({ region: [41,6, 48,11], lit: 0, type: "morgue", filled: 1, irregular: 1 });
     // Non diggable walls
@@ -115,21 +117,21 @@ export function generate() {
     des.object("?");
     des.object("?");
     // Some monsters.
-    des.monster({ id: "horned devil", x: 14, y: 12, peaceful: 0 });
-    des.monster({ id: "barbed devil", x: 18, y: 8, peaceful: 0 });
-    des.monster({ id: "erinys", x: 10, y: 4, peaceful: 0 });
-    des.monster({ id: "marilith", x: 7, y: 9, peaceful: 0 });
-    des.monster({ id: "nalfeshnee", x: 27, y: 8, peaceful: 0 });
+    des.monster({ id: "horned devil", x: 14,y: 12,peaceful: 0 });
+    des.monster({ id: "barbed devil", x: 18,y: 8,peaceful: 0 });
+    des.monster({ id: "erinys", x: 10,y: 4,peaceful: 0 });
+    des.monster({ id: "marilith", x: 7,y: 9,peaceful: 0 });
+    des.monster({ id: "nalfeshnee", x: 27,y: 8,peaceful: 0 });
     // Moloch's horde
-    des.monster({ id: "aligned cleric", x: 20, y: 3, align: "noalign", peaceful: 0 });
-    des.monster({ id: "aligned cleric", x: 15, y: 4, align: "noalign", peaceful: 0 });
-    des.monster({ id: "aligned cleric", x: 11, y: 5, align: "noalign", peaceful: 0 });
-    des.monster({ id: "aligned cleric", x: 11, y: 7, align: "noalign", peaceful: 0 });
-    des.monster({ id: "aligned cleric", x: 11, y: 9, align: "noalign", peaceful: 0 });
-    des.monster({ id: "aligned cleric", x: 11, y: 12, align: "noalign", peaceful: 0 });
-    des.monster({ id: "aligned cleric", x: 15, y: 13, align: "noalign", peaceful: 0 });
-    des.monster({ id: "aligned cleric", x: 17, y: 13, align: "noalign", peaceful: 0 });
-    des.monster({ id: "aligned cleric", x: 21, y: 13, align: "noalign", peaceful: 0 });
+    des.monster({ id: "aligned cleric", x: 20,y: 3,align: "noalign",peaceful: 0 });
+    des.monster({ id: "aligned cleric", x: 15,y: 4,align: "noalign",peaceful: 0 });
+    des.monster({ id: "aligned cleric", x: 11,y: 5,align: "noalign",peaceful: 0 });
+    des.monster({ id: "aligned cleric", x: 11,y: 7,align: "noalign",peaceful: 0 });
+    des.monster({ id: "aligned cleric", x: 11,y: 9,align: "noalign",peaceful: 0 });
+    des.monster({ id: "aligned cleric", x: 11,y: 12,align: "noalign",peaceful: 0 });
+    des.monster({ id: "aligned cleric", x: 15,y: 13,align: "noalign",peaceful: 0 });
+    des.monster({ id: "aligned cleric", x: 17,y: 13,align: "noalign",peaceful: 0 });
+    des.monster({ id: "aligned cleric", x: 21,y: 13,align: "noalign",peaceful: 0 });
     // A few nasties
     des.monster("L");
     des.monster("L");
@@ -142,5 +144,5 @@ export function generate() {
     des.teleport_region({ region: [54,1,79,18], region_islev: 1, dir: "down" });
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

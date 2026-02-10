@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Monk Mon-strt.lua	$NHDT-Date: 1652196007 2022/05/10 15:20:07 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
+    // NetHack Monk Mon-strt.lua	$NHDT-Date: 1652196007 2022/5/10 15:20:7 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991-2 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -16,7 +16,7 @@ export function generate() {
     // The "start" level for the quest.
     // 
     // Here you meet your (besieged) class leader, the Grand Master
-    // and receive your quest assignment.
+    // && receive your quest assignment.
     // 
     des.level_init({ style: "solidfill", fg: " " });
 
@@ -53,7 +53,7 @@ export function generate() {
     des.replace_terrain({ region: [0,0, 10,19], fromterrain: ".", toterrain: "T", chance: 10 });
     des.replace_terrain({ region: [65,0, 75,19], fromterrain: ".", toterrain: "T", chance: 10 });
 
-    const spacelocs = selection.floodfill(5,4);
+    let spacelocs = selection.floodfill(5,4);
 
     // Portal arrival point
     des.terrain([5,4], ".");
@@ -80,9 +80,11 @@ export function generate() {
     des.door("closed",46,14);
     des.door("closed",52,14);
     // Unattended Altar - unaligned due to conflict - player must align it.
-    des.altar({ x: 28, y: 9, align: "noalign", type: "altar" });
+    des.altar({ x: 28,y: 9, align: "noalign", type: "altar" });
     // The Grand Master
-    des.monster({ id: "Grand Master", coord: [28, 10], inventory: function() { des.object({ id: "robe", spe: 6 }); } });
+    des.monster({ id: "Grand Master", coord: [28, 10], inventory: function() {
+       des.object({ id: "robe", spe: 6 });
+    } })
     // No treasure chest!
     // guards for the audience chamber
     des.monster("abbot", 32, 7);
@@ -110,12 +112,12 @@ export function generate() {
     for (let i = 1; i <= 4; i++) {
        des.monster("xorn", spacelocs.rndcoord(1));
     }
-    // next to leader, so possibly tricky to pick up if not ready for quest yet;
+    // next to leader, so possibly tricky to pick up if ! ready for quest yet;
     // there's no protection against a xorn eating these tins; BUC state is random
     des.object({ id: "tin", coord: [29, 9], quantity: 2, montype: "spinach" });
     // ensure enough vegetarian food generates for vegetarian games
-    des.object({ id: "food ration", coord: [46, 4], quantity: 4 });
+    des.object({ id: "food ration", coord: [46, 4], quantity: 4});
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

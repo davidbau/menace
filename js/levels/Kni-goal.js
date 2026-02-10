@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack Knight Kni-goal.lua	$NHDT-Date: 1652196005 2022/05/10 15:20:05 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
+    // NetHack Knight Kni-goal.lua	$NHDT-Date: 1652196005 2022/5/10 15:20:5 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991,92 by M. Stephenson
     // NetHack may be freely redistributed.  See license for details.
@@ -48,22 +48,22 @@ export function generate() {
     // Non diggable walls
     des.non_diggable(selection.area(0,0,75,19));
     // Objects
-    des.object({ id: "mirror", x: 50, y: 6, buc: "blessed", spe: 0, name: "The Magic Mirror of Merlin" });
-    des.object({ coord: [33, 1] });
-    des.object({ coord: [33, 2] });
-    des.object({ coord: [33, 3] });
-    des.object({ coord: [33, 4] });
-    des.object({ coord: [33, 5] });
-    des.object({ coord: [34, 1] });
-    des.object({ coord: [34, 2] });
-    des.object({ coord: [34, 3] });
-    des.object({ coord: [34, 4] });
-    des.object({ coord: [34, 5] });
-    des.object({ coord: [35, 1] });
-    des.object({ coord: [35, 2] });
-    des.object({ coord: [35, 3] });
-    des.object({ coord: [35, 4] });
-    des.object({ coord: [35, 5] });
+    des.object({ id: "mirror", x: 50,y: 6, buc: "blessed", spe: 0, name: "The Magic Mirror of Merlin" });
+    des.object({ coord: [ 33, 1 ] });
+    des.object({ coord: [ 33, 2 ] });
+    des.object({ coord: [ 33, 3 ] });
+    des.object({ coord: [ 33, 4 ] });
+    des.object({ coord: [ 33, 5 ] });
+    des.object({ coord: [ 34, 1 ] });
+    des.object({ coord: [ 34, 2 ] });
+    des.object({ coord: [ 34, 3 ] });
+    des.object({ coord: [ 34, 4 ] });
+    des.object({ coord: [ 34, 5 ] });
+    des.object({ coord: [ 35, 1 ] });
+    des.object({ coord: [ 35, 2 ] });
+    des.object({ coord: [ 35, 3 ] });
+    des.object({ coord: [ 35, 4 ] });
+    des.object({ coord: [ 35, 5 ] });
     des.object();
     des.object();
     des.object();
@@ -110,5 +110,5 @@ export function generate() {
     des.monster({ class: "j", peaceful: 0 });
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

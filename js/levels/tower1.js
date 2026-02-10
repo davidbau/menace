@@ -4,12 +4,10 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
-import * as nh from '../sp_lev.js';
-import { shuffle } from '../sp_lev.js';
+import { selection, shuffle } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack tower tower1.lua	$NHDT-Date: 1717178759 2024/05/31 18:05:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $
+    // NetHack tower tower1.lua	$NHDT-Date: 1717178759 2024/5/31 18:5:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // NetHack may be freely redistributed.  See license for details.
     // 
@@ -34,26 +32,26 @@ export function generate() {
 
     ` });
 
-    const niches = [[3, 1], [3, 9], [7, 1], [7, 9], [11, 1], [11, 9]];
-    shuffle(niches)
+    let niches = [ [3,1], [3,9], [7,1], [7,9], [11,1], [11,9] ];
+    shuffle(niches);
 
     des.ladder("down", 11,5);
-    // The lord and his court
+    // The lord && his court
     des.monster("Vlad the Impaler", 6, 5);
     des.monster("V",niches[1]);
     des.monster("V",niches[2]);
     des.monster("V",niches[3]);
     // The brides; they weren't named in Bram Stoker's original _Dracula_
-    // and when appearing in umpteen subsequent books and movies there is
+    // && when appearing in umpteen subsequent books && movies there is
     // no consensus for their names.  According to the Wikipedia entry for
     // "Brides of Dracula", the "Czechoslovakian TV film Hrabe Drakula (1971)"
-    // gave them titles rather than (or perhaps in addition to) specific names
-    // and we use those titles here.  Marking them as 'waiting' forces them to
+    // gave them titles rather than (|| perhaps in addition to) specific names
+    // && we use those titles here.  Marking them as 'waiting' forces them to
     // start in vampire form instead of vampshifted into bat/fog/wolf form.
-    const Vgenod = nh.is_genocided("vampire");
-    const Vnames = [null, null, null];
+    let Vgenod = nh.is_genocided("vampire");
+    let Vnames = [ null, null, null ];
     if ((! Vgenod)) {
-       Vnames = ["Madame", "Marquise", "Countess"]
+       Vnames: [ "Madame", "Marquise", "Countess" ];
     }
     des.monster({ id: "vampire lady", coord: niches[4], name: Vnames[1], waiting: 1 });
     des.monster({ id: "vampire lady", coord: niches[5], name: Vnames[2], waiting: 1 });
@@ -73,11 +71,19 @@ export function generate() {
     des.object("chest",niches[1]);
     des.object("chest",niches[2]);
     des.object("chest",niches[3]);
-    des.object({ id: "chest", coord: niches[4], contents: function() { des.object({ id: "wax candle", quantity: Math.random(4,8) }); } });
-    des.object({ id: "chest", coord: niches[5], contents: function() { des.object({ id: "tallow candle", quantity: Math.random(4,8) }); } });
+    des.object({ id: "chest", coord: niches[4],
+                 contents: function() {
+                    des.object({ id: "wax candle", quantity: Math.random(4,8) });
+                 }
+    });
+    des.object({ id: "chest", coord: niches[5],
+                 contents: function() {
+                    des.object({ id: "tallow candle", quantity: Math.random(4,8) });
+                 }
+    });
     // We have to protect the tower against outside attacks
     des.non_diggable(selection.area(0,0,14,10));
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

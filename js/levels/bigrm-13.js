@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
 export function generate() {
-    // NetHack bigroom bigrm-13.lua	$NHDT-Date: 1652196024 2022/05/10 15:20:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.0 $
+    // NetHack bigroom bigrm-13.lua	$NHDT-Date: 1652196024 2022/5/10 15:20:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.0 $
     // Copyright (c) 2026 by Pasi Kallinen
     // NetHack may be freely redistributed.  See license for details.
     // 
@@ -40,21 +40,38 @@ export function generate() {
 
     `);
 
-    const pillar = `
+    let pillar = `
 
     ---
     | |
     ---
     `;
 
-    filters = { //  1: all pillars function(x, y) return true; end, -- 2: 3 vertical lines function(x, y) return (x%2 == 1); end, -- 3: checkerboard function(x, y) return (((x+y)%2) == 0); end, -- 4: center row function(x, y) return (y%2 == 1); end, -- 5: top and bottom rows function(x, y) return (y%2 == 0); end, -- 6: random 50% function(x, y) return (math.random(0,1) == 0); end, -- 7: corners and center function(x, y) return ((x/3)%2 == y%2); end, -- 8: slanted function(x, y) return ((x+1)//3 == y); end, };
+    filters: {
+       // 1: all pillars
+       function(x, y) { return true; },
+       // 2: 3 vertical lines
+       function(x, y) { return (x%2 == 1); },
+       // 3: checkerboard
+       function(x, y) { return (((x+y)%2) == 0); },
+       // 4: center row
+       function(x, y) { return (y%2 == 1); },
+       // 5: top && bottom rows
+       function(x, y) { return (y%2 == 0); },
+       // 6: random 50%
+       function(x, y) { return (Math.random(0,1) == 0); },
+       // 7: corners && center
+       function(x, y) { return ((x/3)%2 == y%2); },
+       // 8: slanted
+       function(x, y) { return ((x+1)//3 == y); },
+    };
 
-    idx = Math.random(1, filters.length)
+    idx: Math.random(1, filters.length);
 
     for (let y = 0; y <= 2; y++) {
        for (let x = 0; x <= 6; x++) {
           if ((filters[idx](x, y))) {
-             des.map({ coord: [12 + x*9, 4 + y*5], map: pillar, contents: function() {} });
+             des.map({ coord: [12 + x*9, 4 + y*5], map: pillar, contents: function() { } });
           }
        }
     }
@@ -78,5 +95,5 @@ export function generate() {
 
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }

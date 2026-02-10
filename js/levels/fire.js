@@ -9,7 +9,7 @@ export function generate() {
     // NetHack endgame fire.lua	$NHDT-Date: 1700398454 2023/11/19 12:54:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1992,1993 by Izchak Miller, David Cohrs,
-    // and Timo Hakulinen
+    // && Timo Hakulinen
     // NetHack may be freely redistributed.  See license for details.
     // 
     des.level_init({ style: "solidfill", fg: " " });
@@ -18,8 +18,8 @@ export function generate() {
     // The player lands, upon arrival, in the
     // lower-right.  The location of the
     // portal to the next level is randomly chosen.
-    // This map has no visible outer boundary, and
-    // is mostly open area, with lava lakes and bunches of fire traps.
+    // This map has no visible outer boundary, &&
+    // is mostly open area, with lava lakes && bunches of fire traps.
     // It fills the entire mappable area.
     des.map(`
 
@@ -168,5 +168,5 @@ export function generate() {
 
 
 
-    return des.finalize_level();
+    // return des.finalize_level();
 }
