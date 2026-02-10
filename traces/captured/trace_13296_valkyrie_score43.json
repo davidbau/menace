@@ -1,0 +1,825 @@
+{
+  "metadata": {
+    "seed": 13296,
+    "role": "Valkyrie",
+    "captureDate": "2026-02-09T21:09:51.073Z",
+    "maxTurns": 50,
+    "finalStats": {
+      "turns": 50,
+      "kills": 0,
+      "levelsExplored": 0,
+      "maxDepth": 1,
+      "deathCause": ""
+    },
+    "interestingness": 43
+  },
+  "turns": [
+    {
+      "turn": 1,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 6,
+        "y": 6
+      },
+      "action": {
+        "type": "explore",
+        "key": "l",
+        "reason": "exploring toward (9,8)"
+      }
+    },
+    {
+      "turn": 2,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 7,
+        "y": 6
+      },
+      "action": {
+        "type": "explore",
+        "key": "n",
+        "reason": "exploring toward (9,8)"
+      }
+    },
+    {
+      "turn": 3,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 8,
+        "y": 7
+      },
+      "action": {
+        "type": "explore",
+        "key": "l",
+        "reason": "following path to (9,8)"
+      }
+    },
+    {
+      "turn": 4,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 9,
+        "y": 7
+      },
+      "action": {
+        "type": "explore",
+        "key": "j",
+        "reason": "following path to (9,8)"
+      }
+    },
+    {
+      "turn": 5,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 9,
+        "y": 8
+      },
+      "action": {
+        "type": "explore",
+        "key": "j",
+        "reason": "exploring toward (8,9)"
+      }
+    },
+    {
+      "turn": 6,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 9,
+        "y": 9
+      },
+      "action": {
+        "type": "wield",
+        "key": "w",
+        "reason": "wielding a +1 spear (weapon in right hand)"
+      }
+    },
+    {
+      "turn": 7,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 9,
+        "y": 9
+      },
+      "action": {
+        "type": "explore",
+        "key": "h",
+        "reason": "following path to (8,9)"
+      }
+    },
+    {
+      "turn": 8,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 8,
+        "y": 9
+      },
+      "action": {
+        "type": "attack",
+        "key": "u",
+        "reason": "attacking f"
+      }
+    },
+    {
+      "turn": 9,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 8,
+        "y": 9
+      },
+      "action": {
+        "type": "attack",
+        "key": "u",
+        "reason": "attacking f"
+      }
+    },
+    {
+      "turn": 10,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 9,
+        "y": 8
+      },
+      "action": {
+        "type": "attack",
+        "key": "j",
+        "reason": "attacking f"
+      }
+    },
+    {
+      "turn": 11,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 9,
+        "y": 8
+      },
+      "action": {
+        "type": "explore",
+        "key": "j",
+        "reason": "following path to (8,9)"
+      }
+    },
+    {
+      "turn": 12,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 9,
+        "y": 9
+      },
+      "action": {
+        "type": "attack",
+        "key": "h",
+        "reason": "attacking f"
+      }
+    },
+    {
+      "turn": 13,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 9,
+        "y": 9
+      },
+      "action": {
+        "type": "attack",
+        "key": "k",
+        "reason": "attacking f"
+      }
+    },
+    {
+      "turn": 14,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 9,
+        "y": 8
+      },
+      "action": {
+        "type": "search",
+        "key": "s",
+        "reason": "searching for secret passages (stuck)"
+      }
+    },
+    {
+      "turn": 15,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 9,
+        "y": 8
+      },
+      "action": {
+        "type": "explore",
+        "key": "k",
+        "reason": "force-exploring toward (13,5)"
+      }
+    },
+    {
+      "turn": 16,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 9,
+        "y": 7
+      },
+      "action": {
+        "type": "explore",
+        "key": "u",
+        "reason": "exploring toward (12,6)"
+      }
+    },
+    {
+      "turn": 17,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 10,
+        "y": 6
+      },
+      "action": {
+        "type": "explore",
+        "key": "l",
+        "reason": "following path to (12,6)"
+      }
+    },
+    {
+      "turn": 18,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 11,
+        "y": 6
+      },
+      "action": {
+        "type": "explore",
+        "key": "l",
+        "reason": "following path to (12,6)"
+      }
+    },
+    {
+      "turn": 19,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 11,
+        "y": 6
+      },
+      "action": {
+        "type": "explore",
+        "key": "b",
+        "reason": "exploring toward (8,10)"
+      }
+    },
+    {
+      "turn": 20,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 10,
+        "y": 7
+      },
+      "action": {
+        "type": "explore",
+        "key": "h",
+        "reason": "following path to (8,10)"
+      }
+    },
+    {
+      "turn": 21,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 9,
+        "y": 7
+      },
+      "action": {
+        "type": "explore",
+        "key": "j",
+        "reason": "following path to (8,10)"
+      }
+    },
+    {
+      "turn": 22,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 9,
+        "y": 8
+      },
+      "action": {
+        "type": "attack",
+        "key": "j",
+        "reason": "attacking f"
+      }
+    },
+    {
+      "turn": 23,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 9,
+        "y": 9
+      },
+      "action": {
+        "type": "attack",
+        "key": "h",
+        "reason": "attacking f"
+      }
+    },
+    {
+      "turn": 24,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 8,
+        "y": 9
+      },
+      "action": {
+        "type": "attack",
+        "key": "j",
+        "reason": "attacking f"
+      }
+    },
+    {
+      "turn": 25,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 8,
+        "y": 10
+      },
+      "action": {
+        "type": "explore",
+        "key": "b",
+        "reason": "exploring toward (7,11)"
+      }
+    },
+    {
+      "turn": 26,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 7,
+        "y": 11
+      },
+      "action": {
+        "type": "attack",
+        "key": "u",
+        "reason": "attacking f"
+      }
+    },
+    {
+      "turn": 27,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 8,
+        "y": 10
+      },
+      "action": {
+        "type": "explore",
+        "key": "b",
+        "reason": "following path to (7,11)"
+      }
+    },
+    {
+      "turn": 28,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 7,
+        "y": 11
+      },
+      "action": {
+        "type": "explore",
+        "key": "l",
+        "reason": "exploring toward (8,11)"
+      }
+    },
+    {
+      "turn": 29,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 8,
+        "y": 11
+      },
+      "action": {
+        "type": "explore",
+        "key": "b",
+        "reason": "exploring toward (7,12)"
+      }
+    },
+    {
+      "turn": 30,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 7,
+        "y": 12
+      },
+      "action": {
+        "type": "explore",
+        "key": "j",
+        "reason": "exploring toward (7,13)"
+      }
+    },
+    {
+      "turn": 31,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 7,
+        "y": 13
+      },
+      "action": {
+        "type": "explore",
+        "key": "j",
+        "reason": "exploring toward (7,14)"
+      }
+    },
+    {
+      "turn": 32,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 7,
+        "y": 14
+      },
+      "action": {
+        "type": "explore",
+        "key": "b",
+        "reason": "exploring toward (6,15)"
+      }
+    },
+    {
+      "turn": 33,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 6,
+        "y": 15
+      },
+      "action": {
+        "type": "attack",
+        "key": "n",
+        "reason": "attacking o"
+      }
+    },
+    {
+      "turn": 34,
+      "hp": 15,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 6,
+        "y": 15
+      },
+      "action": {
+        "type": "attack",
+        "key": "n",
+        "reason": "attacking o"
+      }
+    },
+    {
+      "turn": 35,
+      "hp": 15,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 6,
+        "y": 15
+      },
+      "action": {
+        "type": "explore",
+        "key": "l",
+        "reason": "exploring toward (10,17)"
+      }
+    },
+    {
+      "turn": 36,
+      "hp": 15,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 7,
+        "y": 15
+      },
+      "action": {
+        "type": "explore",
+        "key": "n",
+        "reason": "following path to (10,17)"
+      }
+    },
+    {
+      "turn": 37,
+      "hp": 15,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 8,
+        "y": 16
+      },
+      "action": {
+        "type": "explore",
+        "key": "n",
+        "reason": "following path to (10,17)"
+      }
+    },
+    {
+      "turn": 38,
+      "hp": 15,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 9,
+        "y": 17
+      },
+      "action": {
+        "type": "explore",
+        "key": "l",
+        "reason": "following path to (10,17)"
+      }
+    },
+    {
+      "turn": 39,
+      "hp": 15,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 10,
+        "y": 17
+      },
+      "action": {
+        "type": "explore",
+        "key": "l",
+        "reason": "exploring toward (11,16)"
+      }
+    },
+    {
+      "turn": 40,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 11,
+        "y": 17
+      },
+      "action": {
+        "type": "explore",
+        "key": "k",
+        "reason": "following path to (11,16)"
+      }
+    },
+    {
+      "turn": 41,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 11,
+        "y": 16
+      },
+      "action": {
+        "type": "explore",
+        "key": "k",
+        "reason": "exploring toward (11,15)"
+      }
+    },
+    {
+      "turn": 42,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 11,
+        "y": 15
+      },
+      "action": {
+        "type": "explore",
+        "key": "k",
+        "reason": "exploring toward (11,14)"
+      }
+    },
+    {
+      "turn": 43,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 11,
+        "y": 14
+      },
+      "action": {
+        "type": "explore",
+        "key": "l",
+        "reason": "exploring toward (12,14)"
+      }
+    },
+    {
+      "turn": 44,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 12,
+        "y": 14
+      },
+      "action": {
+        "type": "explore",
+        "key": "l",
+        "reason": "exploring toward (13,14)"
+      }
+    },
+    {
+      "turn": 45,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 13,
+        "y": 14
+      },
+      "action": {
+        "type": "explore",
+        "key": "l",
+        "reason": "exploring toward (14,14)"
+      }
+    },
+    {
+      "turn": 46,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 14,
+        "y": 14
+      },
+      "action": {
+        "type": "explore",
+        "key": "u",
+        "reason": "exploring toward (15,13)"
+      }
+    },
+    {
+      "turn": 47,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 15,
+        "y": 13
+      },
+      "action": {
+        "type": "explore",
+        "key": "k",
+        "reason": "exploring toward (15,12)"
+      }
+    },
+    {
+      "turn": 48,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 15,
+        "y": 12
+      },
+      "action": {
+        "type": "explore",
+        "key": "k",
+        "reason": "exploring toward (15,11)"
+      }
+    },
+    {
+      "turn": 49,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 15,
+        "y": 11
+      },
+      "action": {
+        "type": "explore",
+        "key": "k",
+        "reason": "exploring toward (15,10)"
+      }
+    },
+    {
+      "turn": 50,
+      "hp": 16,
+      "hpmax": 16,
+      "dlvl": 1,
+      "position": {
+        "x": 15,
+        "y": 10
+      },
+      "action": {
+        "type": "explore",
+        "key": "k",
+        "reason": "exploring toward (15,9)"
+      }
+    }
+  ],
+  "interesting": [
+    {
+      "turn": 8,
+      "event": "combat",
+      "detail": "attacking f"
+    },
+    {
+      "turn": 9,
+      "event": "combat",
+      "detail": "attacking f"
+    },
+    {
+      "turn": 10,
+      "event": "combat",
+      "detail": "attacking f"
+    },
+    {
+      "turn": 12,
+      "event": "combat",
+      "detail": "attacking f"
+    },
+    {
+      "turn": 13,
+      "event": "combat",
+      "detail": "attacking f"
+    },
+    {
+      "turn": 22,
+      "event": "combat",
+      "detail": "attacking f"
+    },
+    {
+      "turn": 23,
+      "event": "combat",
+      "detail": "attacking f"
+    },
+    {
+      "turn": 24,
+      "event": "combat",
+      "detail": "attacking f"
+    },
+    {
+      "turn": 26,
+      "event": "combat",
+      "detail": "attacking f"
+    },
+    {
+      "turn": 33,
+      "event": "combat",
+      "detail": "attacking o"
+    },
+    {
+      "turn": 34,
+      "event": "combat",
+      "detail": "attacking o"
+    }
+  ]
+}

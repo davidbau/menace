@@ -13,7 +13,8 @@ import { parseScreen } from '../perception/screen_parser.js';
 import { parseStatus } from '../perception/status_parser.js';
 
 // Import game modules
-import { initRng, rn2, rnd } from '../../js/rng.js';
+import { initRng, rn2, rnd, rn1 } from '../../js/rng.js';
+import { pushInput } from '../../js/input.js';
 import { initLevelGeneration, makelevel, wallification, setGameSeed } from '../../js/dungeon.js';
 import { Player, roles } from '../../js/player.js';
 import { rhack } from '../../js/commands.js';
@@ -30,6 +31,7 @@ import {
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN, AIR, CLOUD, SDOOR, SCORR,
     D_NODOOR, D_CLOSED, D_ISOPEN, D_LOCKED, ACCESSIBLE, MAXLEVEL,
 } from '../../js/config.js';
+import { doname } from '../../js/mkobj.js';
 
 // Terrain symbol mapping (matches display.js)
 function getTerrainSymbol(loc) {
@@ -60,6 +62,38 @@ function getTerrainSymbol(loc) {
         [CLOUD]: { ch: '#', color: 7 }, [SCORR]: { ch: ' ', color: 7 },
     };
     return syms[typ] || { ch: '?', color: 5 };
+}
+
+const INVENTORY_CLASS_NAMES = {
+    1: 'Weapons', 2: 'Armor', 3: 'Rings', 4: 'Amulets',
+    5: 'Tools', 6: 'Comestibles', 7: 'Potions', 8: 'Scrolls',
+    9: 'Spellbooks', 10: 'Wands', 11: 'Coins', 12: 'Gems/Stones',
+};
+
+const INVENTORY_ORDER = [11, 4, 1, 2, 6, 8, 9, 7, 3, 10, 5, 12, 13, 14, 15];
+
+function buildInventoryLines(player) {
+    if (!player || player.inventory.length === 0) {
+        return ['Not carrying anything.'];
+    }
+
+    const groups = {};
+    for (const item of player.inventory) {
+        const cls = item.oclass;
+        if (!groups[cls]) groups[cls] = [];
+        groups[cls].push(item);
+    }
+
+    const lines = [];
+    for (const cls of INVENTORY_ORDER) {
+        if (!groups[cls]) continue;
+        lines.push(` ${INVENTORY_CLASS_NAMES[cls] || 'Other'}`);
+        for (const item of groups[cls]) {
+            lines.push(` ${item.invlet} - ${doname(item, player)}`);
+        }
+    }
+    lines.push(' (end)');
+    return lines;
 }
 
 /**
@@ -335,19 +369,35 @@ class HeadlessGame {
             }
         }
 
-        // C ref: allmain.c:297 dosounds()
+        // C ref: allmain.c:351 dosounds() — ambient level sounds
         this.dosounds();
 
-        // C ref: allmain.c:303 gethungry() — simplified hunger tracking
-        rn2(20);   // gethungry RNG
+        // C ref: allmain.c:353 gethungry()
+        rn2(20);
         this.player.hunger--;
+
+        // C ref: allmain.c:359 — engrave wipe check
+        const dex = this.player.attributes ? this.player.attributes[A_DEX] : 14;
+        rn2(40 + dex * 3);
+
+        // C ref: allmain.c:408-414 — seer_turn (clairvoyance timer)
+        if (this.turnCount >= this.seerTurn) {
+            this.seerTurn = this.turnCount + rn1(31, 15);
+        }
     }
 
     // C ref: sounds.c dosounds() — ambient sounds with occasional messages
     dosounds() {
-        // C ref: sounds.c:313 — rn2(200) determines if ambient sound plays
-        const soundRoll = rn2(200);
-        // Simplified: just consume the RNG, don't generate sound messages
+        const f = this.map.flags || {};
+        if (f.nfountains && !rn2(400)) { rn2(3); }
+        if (f.nsinks && !rn2(300)) { rn2(2); }
+        if (f.has_court && !rn2(200)) { return; }
+        if (f.has_swamp && !rn2(200)) { rn2(2); return; }
+        if (f.has_vault && !rn2(200)) { rn2(2); return; }
+        if (f.has_beehive && !rn2(200)) { return; }
+        if (f.has_morgue && !rn2(200)) { rn2(5); return; }
+        if (f.has_barracks && !rn2(200)) { rn2(2); return; }
+        if (f.has_zoo && !rn2(200)) { rn2(2); return; }
     }
 }
 
@@ -358,6 +408,7 @@ class HeadlessAdapter {
     constructor(game) {
         this.game = game;
         this._running = true;
+        this.stripColors = false;
     }
 
     async start() { this._running = true; }
@@ -371,8 +422,27 @@ class HeadlessAdapter {
         await this.game.executeCommand(key);
     }
 
+    queueInput(key) {
+        const ch = typeof key === 'number' ? key : key.charCodeAt(0);
+        pushInput(ch);
+    }
+
+    async getInventoryLines() {
+        return buildInventoryLines(this.game.player);
+    }
+
     async readScreen() {
-        return this.game.display.grid;
+        if (!this.stripColors) return this.game.display.grid;
+        const grid = this.game.display.grid;
+        const stripped = [];
+        for (let r = 0; r < grid.length; r++) {
+            stripped[r] = [];
+            for (let c = 0; c < grid[r].length; c++) {
+                const cell = grid[r][c];
+                stripped[r][c] = cell ? { ch: cell.ch, color: 7 } : { ch: ' ', color: 7 };
+            }
+        }
+        return stripped;
     }
 
     async isRunning() {
@@ -390,6 +460,8 @@ export async function runHeadless(options = {}) {
     const maxTurns = options.maxTurns || 1000;
     const verbose = options.verbose || false;
     const roleIndex = options.roleIndex || 11; // Valkyrie
+    const userOnTurn = options.onTurn || null;
+    const dumpMaps = options.dumpMaps !== false;
 
     if (verbose) {
         console.log(`Starting headless game: seed=${seed}, maxTurns=${maxTurns}, role=${roles[roleIndex].name}`);
@@ -397,22 +469,35 @@ export async function runHeadless(options = {}) {
 
     const game = new HeadlessGame(seed, roleIndex);
     const adapter = new HeadlessAdapter(game);
+    if (options.colorless) {
+        adapter.stripColors = true;
+    }
+    const onPerceive = options.onPerceive
+        ? (info) => options.onPerceive({ ...info, game, adapter })
+        : null;
+
     const agent = new Agent(adapter, {
         maxTurns,
-        onTurn: verbose ? (info) => {
-            const act = info.action;
-            const actionStr = act ? `${act.type}(${act.key}): ${act.reason}` : '?';
-            if (info.turn <= 50 || info.turn % 50 === 0 || info.turn % 100 === 0) {
-                console.log(`  Turn ${info.turn}: HP=${info.hp}/${info.hpmax} Dlvl=${info.dlvl} pos=(${info.position?.x},${info.position?.y}) ${actionStr}`);
+        onPerceive,
+        onTurn: (info) => {
+            if (verbose) {
+                const act = info.action;
+                const actionStr = act ? `${act.type}(${act.key}): ${act.reason}` : '?';
+                if (info.turn <= 50 || info.turn % 50 === 0 || info.turn % 100 === 0) {
+                    console.log(`  Turn ${info.turn}: HP=${info.hp}/${info.hpmax} Dlvl=${info.dlvl} pos=(${info.position?.x},${info.position?.y}) ${actionStr}`);
+                }
             }
-        } : null,
+            if (userOnTurn) {
+                userOnTurn(info);
+            }
+        },
     });
 
     // Dump the agent's known map at specific turns for debugging
     const origOnTurn = agent.onTurn;
     agent.onTurn = (info) => {
         if (origOnTurn) origOnTurn(info);
-        if (info.turn === 50 || info.turn === 200) {
+        if (dumpMaps && (info.turn === 50 || info.turn === 200)) {
             dumpAgentMap(agent, info.turn);
         }
     };
