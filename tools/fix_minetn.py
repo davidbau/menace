@@ -50,11 +50,14 @@ def fix_minetn_file(input_file, output_file):
     # Match after { or , to only catch object properties
     js = re.sub(r'([{,]\s*)(\w+)\s*=\s*', r'\1\2: ', js)
 
-    # Step 4: Convert function() to () => {
-    js = re.sub(r'function\(\s*\)', '() => {', js)
+    # Step 4: Convert function() to () => { (with optional parameters)
+    js = re.sub(r'function\(([^)]*)\)', r'(\1) => {', js)
 
     # Step 5: Convert local variable declarations
     js = re.sub(r'\blocal\s+(\w+)', r'let \1', js)
+
+    # Step 5b: Rename JavaScript reserved words used as variables
+    js = re.sub(r'\bprotected\b', 'protectedArea', js)
 
     # Step 6: Convert for loops
     js = re.sub(r'for\s+(\w+)\s*=\s*(\d+)\s*,\s*(\d+)\s+do', r'for (let \1 = \2; \1 <= \3; \1++) {', js)
@@ -72,8 +75,12 @@ def fix_minetn_file(input_file, output_file):
     # Step 10: Convert 'end' keywords to '}'
     js = re.sub(r'\bend\b', '}', js)
 
-    # Step 11: Fix coordinate syntax {x,y} to [x,y]
-    js = re.sub(r'\{(\d+)\s*,\s*(\d+)\}', r'[\1, \2]', js)
+    # Step 10b: Convert Lua method call syntax (object:method() to object.method())
+    js = re.sub(r'(\w+):(\w+)\(', r'\1.\2(', js)
+
+    # Step 11: Fix coordinate/array syntax {x,y,...} to [x,y,...]
+    # Handle 2-element, 4-element, and other numeric arrays
+    js = re.sub(r'\{(\d+(?:\s*,\s*\d+)+)\}', r'[\1]', js)
 
     # Step 12: Fix octal literals (0X to X)
     js = re.sub(r'\b0(\d)\b', r'\1', js)

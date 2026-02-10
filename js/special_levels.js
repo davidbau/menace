@@ -23,8 +23,7 @@ import { generate as generateWizard2 } from './levels/wizard2.js';
 import { generate as generateWizard3 } from './levels/wizard3.js';
 
 // Demon lair levels
-// TODO: Fix converter issues in asmodeus.js
-// import { generate as generateAsmodeus } from './levels/asmodeus.js';
+import { generate as generateAsmodeus } from './levels/asmodeus.js';
 import { generate as generateBaalz } from './levels/baalz.js';
 import { generate as generateJuiblex } from './levels/juiblex.js';
 import { generate as generateOrcus } from './levels/orcus.js';
@@ -72,8 +71,7 @@ import { generate as generateSoko4b } from './levels/soko4-2.js';
 
 // Elemental Planes
 import { generate as generateAir } from './levels/air.js';
-// TODO: Fix converter issues in astral.js
-// import { generate as generateAstral } from './levels/astral.js';
+import { generate as generateAstral } from './levels/astral.js';
 import { generate as generateEarth } from './levels/earth.js';
 import { generate as generateFire } from './levels/fire.js';
 import { generate as generateWater } from './levels/water.js';
@@ -188,8 +186,7 @@ registerSpecialLevel(VLADS_TOWER, 3, generateTower3, 'tower3');
 // Sanctum is the final level (level 10 in a typical game)
 // Wizard's Tower appears after getting the Amulet (levels 11-13)
 registerSpecialLevel(GEHENNOM, 1, generateValley, 'valley');
-// TODO: Fix converter issues in asmodeus.js
-// registerSpecialLevel(GEHENNOM, 3, generateAsmodeus, 'asmodeus');
+registerSpecialLevel(GEHENNOM, 3, generateAsmodeus, 'asmodeus');
 registerSpecialLevel(GEHENNOM, 4, generateBaalz, 'baalz');
 registerSpecialLevel(GEHENNOM, 5, generateJuiblex, 'juiblex');
 registerSpecialLevel(GEHENNOM, 6, generateOrcus, 'orcus');
@@ -221,8 +218,7 @@ registerSpecialLevel(ELEMENTAL_PLANES, 1, generateEarth, 'earth');
 registerSpecialLevel(ELEMENTAL_PLANES, 2, generateAir, 'air');
 registerSpecialLevel(ELEMENTAL_PLANES, 3, generateFire, 'fire');
 registerSpecialLevel(ELEMENTAL_PLANES, 4, generateWater, 'water');
-// TODO: Fix converter issues in astral.js
-// registerSpecialLevel(ELEMENTAL_PLANES, 5, generateAstral, 'astral');
+registerSpecialLevel(ELEMENTAL_PLANES, 5, generateAstral, 'astral');
 
 // Register special levels in main dungeon
 // In Dungeons of Doom, at depths that vary by dungeon generation
