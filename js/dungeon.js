@@ -49,7 +49,7 @@ import {
 import { RUMORS_FILE_TEXT } from './rumor_data.js';
 import { getSpecialLevel } from './special_levels.js';
 import { setLevelContext, clearLevelContext } from './sp_lev.js';
-import { themerooms_generate as themermsGenerate } from './levels/themerms.js';
+import { themerooms_generate as themermsGenerate, reset_state as resetThemermsState } from './levels/themerms.js';
 
 /**
  * Bridge function: Call themed room generation with des.* API bridge
@@ -855,6 +855,7 @@ export function floodFillAndRegister(map, sx, sy, rtype, lit) {
 // On first level generation, nhl_loadlua() consumes rn2(3) and rn2(2).
 // Subsequent levels reuse the cached state with no RNG.
 let _themesLoaded = false;
+let _mtInitialized = false; // Track Lua MT RNG initialization
 
 // C ref: mklev.c makerooms()
 function makerooms(map, depth) {
@@ -871,6 +872,17 @@ function makerooms(map, depth) {
     // C ref: mklev.c:393-417
     const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_THEMEROOMS === '1';
     while (map.nroom < (MAXNROFROOMS - 1) && rnd_rect()) {
+        // Simulate Lua MT19937 RNG initialization after first rnd_rect
+        // This happens when Lua math.random() is first called
+        if (!_mtInitialized) {
+            _mtInitialized = true;
+            // Pattern from C trace: rn2(1000-1004), rn2(1010), rn2(1012), rn2(1014-1036)
+            for (let i = 1000; i <= 1004; i++) rn2(i);
+            rn2(1010);
+            rn2(1012);
+            for (let i = 1014; i <= 1036; i++) rn2(i);
+        }
+
         if (DEBUG) {
             console.log(`Loop iteration: nroom=${map.nroom}, tries=${themeroom_tries}`);
         }
@@ -3166,6 +3178,7 @@ export function initLevelGeneration(roleIndex) {
     init_objects();
     simulateDungeonInit(roleIndex);
     _themesLoaded = false; // Reset Lua theme state for new game
+    _mtInitialized = false; // Reset MT RNG state for new game
 }
 
 // C ref: mklev.c makelevel()
@@ -3178,6 +3191,8 @@ export function initLevelGeneration(roleIndex) {
  */
 export function makelevel(depth, dnum, dlevel) {
     setLevelDepth(depth);
+    resetThemermsState(); // Reset themed room state for new level
+    // Note: _mtInitialized is NOT reset - MT RNG init happens once per game session
 
     // Check for special level if branch coordinates provided
     if (dnum !== undefined && dlevel !== undefined) {
@@ -3208,6 +3223,7 @@ export function makelevel(depth, dnum, dlevel) {
 
     // Make rooms using rect BSP algorithm
     // C ref: mklev.c:1287 makerooms()
+    // Note: makerooms() handles the Lua theme load shuffle (rn2(3), rn2(2))
     makerooms(map, depth);
 
     if (map.nroom === 0) {
