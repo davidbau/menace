@@ -913,8 +913,8 @@ export class Agent {
         const opportunisticFrontier = level.getExplorationFrontier();
         const opportunisticExploredPct = level.exploredCount / (80 * 21);
         const shouldSearchOpportunistically = (
-            opportunisticFrontier.length < 10 &&  // Very low frontier
-            opportunisticExploredPct > 0.15       // Explored at least 15% of map
+            opportunisticFrontier.length < 15 &&  // Low frontier
+            opportunisticExploredPct > 0.05       // Explored at least 5% of map (~84 cells)
         );
 
         if (level.stairsDown.length === 0 && currentCell && currentCell.walkable && shouldSearchOpportunistically) {
