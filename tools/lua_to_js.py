@@ -163,6 +163,8 @@ class LuaToJsConverter:
                         before = combined_text[:start_idx]
                         template_content = combined_text[start_idx + 2:end_idx]
                         after = combined_text[end_idx + 2:]
+                        # Escape backticks in template content
+                        template_content = template_content.replace('`', '\\`')
                         combined_text = before + '`\n' + template_content + '\n`' + after
 
                     # Combine into one line but preserve newlines inside template literals
@@ -223,6 +225,8 @@ class LuaToJsConverter:
 
                 # Convert multiline string to JS template literal
                 string_content = '\n'.join(self.multiline_string_lines)
+                # Escape backticks in template content
+                string_content = string_content.replace('`', '\\`')
                 converted_line = before + '`\n' + string_content + '\n`' + after
                 js_lines.append(self.convert_line(converted_line))
                 self.in_multiline_string = False
@@ -749,6 +753,35 @@ class LuaToJsConverter:
         """Convert a Lua expression to JavaScript."""
         expr = expr.strip()
 
+        # Extract template literals to protect them from regex replacements
+        template_literals = []
+        def extract_templates(text):
+            result = []
+            i = 0
+            while i < len(text):
+                if text[i] == '`':
+                    # Found start of template literal
+                    template_start = i
+                    i += 1
+                    # Find the end, handling escaped backticks
+                    while i < len(text):
+                        if text[i] == '\\' and i + 1 < len(text):
+                            i += 2  # Skip escaped character
+                        elif text[i] == '`':
+                            # Found end of template
+                            template_literals.append(text[template_start:i+1])
+                            result.append(f'__TEMPLATE_{len(template_literals)-1}__')
+                            i += 1
+                            break
+                        else:
+                            i += 1
+                else:
+                    result.append(text[i])
+                    i += 1
+            return ''.join(result)
+
+        expr = extract_templates(expr)
+
         # Remove local keyword
         expr = re.sub(r'\blocal\s+', '', expr)
 
@@ -803,6 +836,10 @@ class LuaToJsConverter:
         # {1, 2, 3} stays the same
         # { {1,2}, {3,4} } stays but inner arrays need conversion
         expr = self.convert_array_syntax(expr)
+
+        # Restore template literals
+        for i, template in enumerate(template_literals):
+            expr = expr.replace(f'__TEMPLATE_{i}__', template)
 
         return expr
 
