@@ -207,6 +207,27 @@ function split_rects(r1, r2) {
     }
 }
 
+// C ref: rect.c split_rects() -- exported for sp_lev.js fixed-position rooms
+// After creating a fixed-position room, split all intersecting rectangles in the pool
+// to avoid future random rooms overlapping with it.
+export function update_rect_pool_for_room(room) {
+    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_RECTS === '1';
+    const old_cnt = rect_cnt;
+
+    // Walk through all rectangles and split those that intersect with the room
+    // Need to walk backwards since split_rects modifies the pool
+    for (let i = rect_cnt - 1; i >= 0; i--) {
+        const r = intersect(rects[i], room);
+        if (r) {
+            split_rects(rects[i], room);
+        }
+    }
+
+    if (DEBUG && rect_cnt !== old_cnt) {
+        console.log(`  update_rect_pool_for_room: split around (${room.lx},${room.ly})-(${room.hx},${room.hy}), pool ${old_cnt}->${rect_cnt}`);
+    }
+}
+
 // ========================================================================
 // sp_lev.c -- Room creation (check_room, create_room)
 // ========================================================================
