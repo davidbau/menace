@@ -48,19 +48,37 @@ import {
 } from './objects.js';
 import { RUMORS_FILE_TEXT } from './rumor_data.js';
 import { getSpecialLevel } from './special_levels.js';
-// TEMP: Disabled due to syntax errors
-// import { themerooms_generate } from './themerms.js';
-// Stub function - creates regular rooms instead of themerooms
+import { setLevelContext, clearLevelContext } from './sp_lev.js';
+import { themerooms_generate as themermsGenerate } from './levels/themerms.js';
+
+/**
+ * Bridge function: Call themed room generation with des.* API bridge
+ *
+ * Sets up levelState to point at our procedural map, calls themerms,
+ * then cleans up. This allows themed rooms (which use des.room()) to
+ * work with procedural dungeon generation.
+ */
 function themerooms_generate(map, depth) {
     const DEBUG = process.env.DEBUG_THEMEROOMS === '1';
-    // Create a regular room with automatic sizing (like C does when no theme)
-    // Use -1 for automatic placement, no size constraints
-    const result = create_room(map, -1, -1, -1, -1, -1, -1, OROOM, false, depth);
-    if (DEBUG) {
-        console.log(`themerooms_generate stub: create_room returned ${result}, nroom=${map.nroom}`);
+
+    try {
+        // Bridge: Point sp_lev's levelState.map at our procedural map
+        setLevelContext(map, depth);
+
+        // Call ported themerms (uses des.* API internally)
+        const result = themermsGenerate(map, depth);
+
+        if (DEBUG) {
+            console.log(`themerooms_generate: result=${result}, nroom=${map.nroom}`);
+        }
+
+        return result;
+    } finally {
+        // Always cleanup levelState, even on error
+        clearLevelContext();
     }
-    return result;
 }
+
 import { parseEncryptedDataFile, parseRumorsFile } from './hacklib.js';
 import { EPITAPH_FILE_TEXT } from './epitaph_data.js';
 import { ENGRAVE_FILE_TEXT } from './engrave_data.js';
