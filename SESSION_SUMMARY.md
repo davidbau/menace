@@ -1,4 +1,73 @@
-# Session Summary - 2026-02-10
+# Session Summary - 2026-02-10 (Continued)
+
+## Overview
+Fixed critical RNG alignment bug and achieved perfect startup alignment for seed2 Knight session.
+
+## Critical Bug Fixed: pet_type() RNG Alignment
+
+### Problem
+The `pet_type()` function in `js/u_init.js` was incorrectly calling `rn2(2)` for ALL roles, including those with predetermined pet types (Knight/pony, Caveman/dog, Samurai/dog). This caused the JS startup to consume 2 extra RNG calls compared to C NetHack.
+
+### Root Cause
+The original comment claimed "C ref: dog.c:100 — ALWAYS calls rn2(2) even for predetermined pet types" but this was incorrect. Analysis of the C RNG trace showed that C's `pet_type()` returns immediately for predetermined pets without consuming RNG.
+
+### Fix (commit efcc525)
+```javascript
+// Before: Always called rn2(2)
+const roll = rn2(2);
+if (role.petType === 'pony') return PM_PONY;
+// ...
+
+// After: Only call rn2(2) for random pet selection
+if (role.petType === 'pony') return PM_PONY;
+if (role.petType === 'cat') return PM_KITTEN;
+if (role.petType === 'dog') return PM_LITTLE_DOG;
+// Only random pets reach here
+const roll = rn2(2);
+return roll ? PM_KITTEN : PM_LITTLE_DOG;
+```
+
+### Impact
+- **seed2_knight startup**: 2583 RNG calls (was 2585) — now matches C exactly
+- **seed2_wizard startup**: 3119 RNG calls (was 3121) — now matches C exactly
+- ✅ All startup rngCalls tests now pass
+- ✅ All startup RNG trace tests now pass
+
+## Test Results
+
+### Comparison Tests
+- **Before fix**: ~1075/1279 passing (84.0%)
+- **After fix**: **1077/1278 passing (84.3%)**
+- New passing tests: seed2_knight and seed2_wizard startup RNG alignment
+
+### Seed2 Knight Session
+- Generated 111-turn gameplay session from C NetHack 3.7
+- Startup alignment: **Perfect** ✅
+  - RNG calls: 2583 (matches C exactly)
+  - RNG trace: All 2583 calls align perfectly
+  - typGrid: 21×80 terrain grid matches exactly
+- Gameplay alignment: Partial (step 0-3 fail, step 4+ pass intermittently)
+  - Failing steps show missing monster AI, combat, sounds, hunger RNG calls
+  - These require implementing full game engine systems
+
+## Commits This Session
+1. `efcc525` - Fix pet_type() RNG alignment for predetermined pets
+2. `f4a99b9` - Add seed2 Knight gameplay session (111 turns, full traces)
+
+## Next Steps for Full Gameplay Alignment
+
+The remaining gameplay RNG misalignments require implementing:
+1. **Monster AI** (`mcalcmove`, `dog_move`, `mfndpos`) - movement decisions
+2. **Combat system** (`do_attack`, `distfleeck`) - attack calculations
+3. **Sound effects** (`dosounds`) - ambient sounds (rn2(400), rn2(300))
+4. **Hunger system** (`gethungry`) - food consumption (rn2(20))
+5. **Turn loop RNG** (`moveloop_core`) - various per-turn checks
+
+These systems are partially implemented in `js/commands.js`, `js/monmove.js`, etc., but need careful RNG alignment work to match C's exact call sequences and values.
+
+---
+
+# Previous Session Summary - 2026-02-10
 
 ## Overview
 Continued work on improving test coverage and fixing critical bugs in the NetHack JavaScript port.
