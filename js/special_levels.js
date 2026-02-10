@@ -177,7 +177,8 @@ import { generate as generateDungeon } from './levels/dungeon.js';
 import { generate as generateHellfill } from './levels/hellfill.js';
 import { generate as generateFakewiz1 } from './levels/fakewiz1.js';
 import { generate as generateFakewiz2 } from './levels/fakewiz2.js';
-import { generate as generateThemerms } from './levels/themerms.js';
+// TEMP: Commented out due to Lua syntax error at line 119
+// import { generate as generateThemerms } from './levels/themerms.js';
 import { generate as generateTut1 } from './levels/tut-1.js';
 import { generate as generateTut2 } from './levels/tut-2.js';
 
@@ -465,32 +466,34 @@ export const bigroomVariants = [
 ];
 
 // Export medusa variants for random selection
-export const medusaVariants = [
-    generateMedusa1,
-    generateMedusa2,
-    generateMedusa3,
-    generateMedusa4
-];
+// TEMP: Commented out because medusa level imports are commented out
+// export const medusaVariants = [
+//     generateMedusa1,
+//     generateMedusa2,
+//     generateMedusa3,
+//     generateMedusa4
+// ];
 
 // Export elemental plane generators
-export const elementalPlanes = {
-    air: generateAir,
-    earth: generateEarth,
-    fire: generateFire,
-    water: generateWater,
-    astral: generateAstral
-};
+// TEMP: All commented out due to Lua syntax errors in elemental plane files
+// export const elementalPlanes = {
+//     air: generateAir,
+//     earth: generateEarth,
+//     fire: generateFire,
+//     water: generateWater,
+//     astral: generateAstral
+// };
 
 // Export other special level generators
 export const otherSpecialLevels = {
-    oracle: generateOracle,
-    castle: generateCastle,
+    // oracle: generateOracle,  // Commented out (import disabled)
+    // castle: generateCastle,  // Commented out (import disabled)
     dungeon: generateDungeon,
     hellfill: generateHellfill,
     minefill: generateMinefill,
     fakewiz1: generateFakewiz1,
     fakewiz2: generateFakewiz2,
-    themerms: generateThemerms,
+    // themerms: generateThemerms,  // Commented out due to Lua syntax error
     tut1: generateTut1,
     tut2: generateTut2
 };

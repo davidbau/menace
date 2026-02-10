@@ -103,7 +103,7 @@ export function generate() {
              let func = function(x,y) {
                 des.trap({ type: "web", x: x, y: y,
                            spider_on_web: spooders && percent(80) });
-             }
+             };
              locs.iterate(func);
           },
        },
@@ -118,7 +118,7 @@ export function generate() {
              let locs = selection.room().percentage(30);
              let func = function(x,y) {
                 des.trap(traps[1], x, y);
-             }
+             };
              locs.iterate(func);
           },
        },
@@ -915,12 +915,12 @@ export function generate() {
           }
        },
 
-    };
+    ];
 
     // store these at global scope, they will be reinitialized in
     // pre_themerooms_generate
-    debug_rm_idx = null
-    debug_fill_idx = null
+    let debug_rm_idx = null;
+    let debug_fill_idx = null;
 
     // Given a point in a themed room, ensure that themed room is stocked with
     // regular room contents.
@@ -1129,11 +1129,11 @@ export function generate() {
 
     // called once after the whole level has been generated
     let post_level_generate = function() {
-       for i, v in ipairs(postprocess) do
+       for (const v of postprocess) {
           v.handler(v.data);
        }
        postprocess = [ ];
-    }]
+    };
 
     return des.finalize_level();
 }
