@@ -960,6 +960,8 @@ function makerooms(map, depth) {
     if (DEBUG) {
         console.log(`Exited loop: nroom=${map.nroom}, tries=${themeroom_tries}`);
     }
+    // Always log room count for debugging "big mine" issue
+    console.log(`makerooms() finished: ${map.nroom} rooms created, themeroom_tries=${themeroom_tries}`);
 }
 
 // ========================================================================
@@ -3274,7 +3276,10 @@ export function makelevel(depth, dnum, dlevel) {
 
     if (map.nroom === 0) {
         // Fallback: should never happen, but safety
+        console.warn(`⚠️ makerooms() created 0 rooms! Using fallback single room. This is a bug!`);
         add_room_to_map(map, 10, 5, 20, 10, true, OROOM, false);
+    } else {
+        console.log(`✓ makerooms() created ${map.nroom} rooms`);
     }
 
     // Sort rooms left-to-right
