@@ -962,6 +962,20 @@ function makerooms(map, depth) {
     }
     // Always log room count for debugging "big mine" issue
     console.log(`makerooms() finished: ${map.nroom} rooms created, themeroom_tries=${themeroom_tries}`);
+
+    // Log room sizes and positions
+    let totalArea = 0;
+    for (let i = 0; i < map.nroom; i++) {
+        const r = map.rooms[i];
+        const w = r.hx - r.lx + 1;
+        const h = r.hy - r.ly + 1;
+        const area = w * h;
+        totalArea += area;
+        if (i < 5) { // Log first 5 rooms
+            console.log(`  Room ${i}: (${r.lx},${r.ly})-(${r.hx},${r.hy}) size=${w}x${h} area=${area}`);
+        }
+    }
+    console.log(`  Total room area: ${totalArea} squares (screen is ~1920 squares)`);
 }
 
 // ========================================================================
