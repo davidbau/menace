@@ -92,7 +92,16 @@ function init_rect() {
 
 // C ref: rect.c rnd_rect()
 function rnd_rect() {
-    return rect_cnt > 0 ? rects[rn2(rect_cnt)] : null;
+    const DEBUG = process.env.DEBUG_THEMEROOMS === '1';
+    const result = rect_cnt > 0 ? rects[rn2(rect_cnt)] : null;
+    if (DEBUG) {
+        if (result) {
+            console.log(`  rnd_rect: selected rect (${result.lx},${result.ly})-(${result.hx},${result.hy}), pool=${rect_cnt}`);
+        } else {
+            console.log(`  rnd_rect: NO RECTS AVAILABLE, pool=${rect_cnt}`);
+        }
+    }
+    return result;
 }
 
 // C ref: rect.c get_rect_ind()
@@ -147,6 +156,8 @@ function intersect(r1, r2) {
 
 // C ref: rect.c split_rects() -- split r1 around allocated r2
 function split_rects(r1, r2) {
+    const DEBUG = process.env.DEBUG_RECTS === '1';
+    const old_cnt = rect_cnt;
     const old_r = { lx: r1.lx, ly: r1.ly, hx: r1.hx, hy: r1.hy };
     remove_rect(r1);
 
@@ -171,6 +182,10 @@ function split_rects(r1, r2) {
     if (old_r.hx - r2.hx - 1
         > (old_r.lx > 0 ? 2 * XLIM : XLIM + 1) + 4) {
         add_rect({ lx: r2.hx + 2, ly: old_r.ly, hx: old_r.hx, hy: old_r.hy });
+    }
+
+    if (DEBUG) {
+        console.log(`  split_rects: (${old_r.lx},${old_r.ly})-(${old_r.hx},${old_r.hy}) by room (${r2.lx},${r2.ly})-(${r2.hx},${r2.hy}), pool ${old_cnt}->${rect_cnt}`);
     }
 }
 
@@ -284,8 +299,11 @@ export function create_room(map, x, y, w, h, xal, yal, rtype, rlit, depth, inThe
             if (vault) {
                 dx = dy = 1;
             } else {
-                dx = 2 + rn2((hx - lx > 28) ? 12 : 8);
-                dy = 2 + rn2(4);
+                const dx_rng = rn2((hx - lx > 28) ? 12 : 8);
+                dx = 2 + dx_rng;
+                const dy_rng = rn2(4);
+                dy = 2 + dy_rng;
+                if (DEBUG_THEME) console.log(`  Room size: dx=2+${dx_rng}=${dx}, dy=2+${dy_rng}=${dy}`);
                 if (dx * dy > 50)
                     dy = Math.floor(50 / dx);
             }
@@ -295,10 +313,11 @@ export function create_room(map, x, y, w, h, xal, yal, rtype, rlit, depth, inThe
                 r1 = null;
                 continue;
             }
-            xabs = lx + (lx > 0 ? xlim : 3)
-                   + rn2(hx - (lx > 0 ? lx : 3) - dx - xborder + 1);
-            yabs = ly + (ly > 0 ? ylim : 2)
-                   + rn2(hy - (ly > 0 ? ly : 2) - dy - yborder + 1);
+            const x_rng = rn2(hx - (lx > 0 ? lx : 3) - dx - xborder + 1);
+            xabs = lx + (lx > 0 ? xlim : 3) + x_rng;
+            const y_rng = rn2(hy - (ly > 0 ? ly : 2) - dy - yborder + 1);
+            yabs = ly + (ly > 0 ? ylim : 2) + y_rng;
+            if (DEBUG_THEME) console.log(`  Room pos: xabs=${lx}+3+${x_rng}=${xabs}, yabs=${ly}+2+${y_rng}=${yabs}`);
             if (ly === 0 && hy >= ROWNO - 1
                 && (!map.nroom || !rn2(map.nroom))
                 && (yabs + dy > Math.floor(ROWNO / 2))) {
