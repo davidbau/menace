@@ -54,6 +54,14 @@ import { generate as generateTemple } from './levels/temple.js';
 import { generate as generatePrison } from './levels/prison.js';
 import { generate as generateLibrary } from './levels/library.js';
 import { generate as generateCavern } from './levels/cavern.js';
+import { generate as generateArena } from './levels/arena.js';
+import { generate as generateThrone } from './levels/throne.js';
+import { generate as generateDesert } from './levels/desert.js';
+import { generate as generateSwamp } from './levels/swamp.js';
+import { generate as generateCrystal } from './levels/crystal.js';
+import { generate as generateRuins } from './levels/ruins.js';
+import { generate as generateLaboratory } from './levels/laboratory.js';
+import { generate as generateHedgemaze } from './levels/hedgemaze.js';
 
 // Sokoban levels
 import { generate as generateSoko1a } from './levels/soko1-1.js';
@@ -220,6 +228,14 @@ registerSpecialLevel(DUNGEONS_OF_DOOM, 27, generateTemple, 'temple');
 registerSpecialLevel(DUNGEONS_OF_DOOM, 28, generatePrison, 'prison');
 registerSpecialLevel(DUNGEONS_OF_DOOM, 29, generateLibrary, 'library');
 registerSpecialLevel(DUNGEONS_OF_DOOM, 30, generateCavern, 'cavern');
+registerSpecialLevel(DUNGEONS_OF_DOOM, 31, generateArena, 'arena');
+registerSpecialLevel(DUNGEONS_OF_DOOM, 32, generateThrone, 'throne');
+registerSpecialLevel(DUNGEONS_OF_DOOM, 33, generateDesert, 'desert');
+registerSpecialLevel(DUNGEONS_OF_DOOM, 34, generateSwamp, 'swamp');
+registerSpecialLevel(DUNGEONS_OF_DOOM, 35, generateCrystal, 'crystal');
+registerSpecialLevel(DUNGEONS_OF_DOOM, 36, generateRuins, 'ruins');
+registerSpecialLevel(DUNGEONS_OF_DOOM, 37, generateLaboratory, 'laboratory');
+registerSpecialLevel(DUNGEONS_OF_DOOM, 38, generateHedgemaze, 'hedgemaze');
 
 /**
  * Get list of all registered special levels

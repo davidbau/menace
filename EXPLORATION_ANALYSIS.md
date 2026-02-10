@@ -56,6 +56,27 @@ This is a significant pathfinding refactor beyond quick fixes.
 - **1/8 seeds** reach Dlvl 3 (seed 44444, up from Dlvl 1)
 - Stuck seeds: 55555 (was 2→1 regression), 77777 (1), 88888 (1), 66666 (0)
 
+4. **Directional Diversification** (failed):
+   - Pick from farther candidates every N turns to break directional bias
+   - **Result**: No improvement; agent still stuck exploring wrong side of map
+   - **Issue**: Seed 55555 explores east (x=44-59) while downstairs are west (x=34)
+   - Reveals deeper problem: agent finds downstairs but gets stuck navigating to them
+
+## Key Discovery: Navigation Failure
+
+Investigation of seed 55555 revealed:
+- Agent **finds** downstairs at (34, 7) around turn 150
+- Agent tries to navigate: "heading to downstairs (level stuck 22)"
+- Agent gets **stuck at same position (46, 8) for 50+ turns**
+- Agent abandons navigation and returns to exploration
+
+**Root cause**: Movement execution failure, not pathfinding. Possible causes:
+- Closed door not being opened properly
+- Pet/monster blocking path
+- PathResult.firstKey bug (returns null for 1-element paths)
+- Missing "already at stairs" check for downstairs (only exists for upstairs)
+
 ## Files
 - `diagnose_stuck.mjs` - Ground truth map analysis tool
 - `selfplay/agent.js` - Exploration priority fixes (commit e08b771)
+- Test results: 3/8 seeds reach Dlvl 2+, 1/8 reaches Dlvl 3

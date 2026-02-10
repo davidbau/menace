@@ -32,12 +32,12 @@
         }
 
         #nav a {
-            color: #555;
+            color: #aaa;
             text-decoration: none;
         }
 
         #nav a:hover {
-            color: #888;
+            color: #c3c3c3;
         }
 
         #main {
@@ -91,11 +91,33 @@
             line-height: 1.3;
             width: 180px;
             flex-shrink: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .side-panel.hidden {
+            width: 0;
+            opacity: 0;
+            pointer-events: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #keyref.hidden {
+            transform: translateX(-180px);
+            padding-right: 0;
+        }
+
+        #hover-panel.hidden {
+            transform: translateX(180px);
+            padding-left: 0;
         }
 
         .side-panel-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
             margin-bottom: 0.5em;
             color: #999;
@@ -110,6 +132,32 @@
 
         .side-panel-close:hover {
             color: #bbb;
+        }
+
+        /* Vertical text labels */
+        .vertical-label {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            cursor: pointer;
+            color: #aaa;
+            font-size: 11px;
+            letter-spacing: 0.15em;
+            padding: 0 8px;
+            display: flex;
+            align-items: center;
+            user-select: none;
+            transition: color 0.2s ease, opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .vertical-label.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .vertical-label:hover {
+            color: #ddd;
         }
 
         /* Keyboard quick-reference (left panel) */
@@ -127,13 +175,13 @@
         }
 
         #keyref td:first-child {
-            color: #aaa;
+            color: #d4d4d4;
             text-align: right;
             padding-right: 0.8em;
         }
 
-        #keyref .keyref-section {
-            color: #999;
+        #keyref .keyref-section td {
+            color: #ccc;
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -158,14 +206,14 @@
         }
 
         #hover-name {
-            color: #bbb;
+            color: #ddd;
             font-size: 14px;
             display: block;
             margin-bottom: 0.2em;
         }
 
         #hover-desc {
-            color: #999;
+            color: #ccc;
             font-size: 11px;
             display: block;
         }
@@ -181,25 +229,6 @@
             color: #666;
             font-size: 11px;
             margin-top: 2em;
-        }
-
-        /* Panel toggle links (in navbar) */
-        .nav-toggle {
-            cursor: pointer;
-            color: #555;
-            text-decoration: none;
-        }
-
-        .nav-toggle:hover {
-            color: #888;
-        }
-
-        #nav-controls {
-            margin-right: auto;
-        }
-
-        #nav-explore {
-            margin-left: auto;
         }
 
         /* Responsive: stack vertically on narrow screens */
@@ -245,18 +274,15 @@
 <body>
     <div id="page">
         <nav id="nav">
-            <span id="nav-controls" class="nav-toggle" style="visibility:hidden" title="Show keyboard controls">Controls</span>
             <a href="https://en.wikipedia.org/wiki/NetHack" target="_blank">About NetHack</a>
             <a href="https://nethackwiki.com/wiki/Guidebook" target="_blank">How to Play</a>
             <a href="https://github.com/davidbau/webhack" target="_blank">About This Project</a>
             <a href="spoilers/" target="_blank">A Traveler's Guide</a>
-            <span id="nav-explore" class="nav-toggle" style="visibility:hidden" title="Show explore panel">Explore</span>
         </nav>
         <div id="main">
             <!-- Left: keyboard controls -->
             <div id="keyref" class="side-panel">
                 <div class="side-panel-header">
-                    <span>CONTROLS</span>
                     <span class="side-panel-close" id="keyref-close" title="Hide">&times;</span>
                 </div>
                 <table>
@@ -265,7 +291,7 @@
                     <tr><td>y u b n</td><td>diagonals</td></tr>
                     <tr><td>.</td><td>wait one turn</td></tr>
                     <tr><td>s</td><td>search adjacent</td></tr>
-                    <tr><td>&lt; &gt;</td><td>go up / down stairs</td></tr>
+                    <tr><td>&lt; &gt;</td><td>go up/down stairs</td></tr>
                     <tr class="keyref-section"><td colspan="2">Actions</td></tr>
                     <tr><td>o</td><td>open door</td></tr>
                     <tr><td>c</td><td>close door</td></tr>
@@ -291,15 +317,20 @@
                 </table>
             </div>
 
+            <!-- Vertical text label for left panel -->
+            <div id="controls-label" class="vertical-label" title="Show/hide controls">CONTROLS</div>
+
             <!-- Center: game terminal -->
             <div id="game">
                 <div id="loading">Loading NetHack JS...</div>
             </div>
 
+            <!-- Vertical text label for right panel -->
+            <div id="explore-label" class="vertical-label" title="Show/hide explore">EXPLORE</div>
+
             <!-- Right: hover symbol info -->
             <div id="hover-panel" class="side-panel">
                 <div class="side-panel-header">
-                    <span>EXPLORE</span>
                     <span class="side-panel-close" id="hover-close" title="Hide">&times;</span>
                 </div>
                 <div id="hover-info">
@@ -314,35 +345,44 @@
     </div>
 
     <script>
-    // Side panel toggle logic: hide/show with localStorage persistence
+    // Side panel toggle logic: slide panels in/out with vertical label controls
     (function() {
-        function setupToggle(panelId, closeId, showId, storageKey) {
-            var panel = document.getElementById(panelId);
-            var close = document.getElementById(closeId);
-            var show = document.getElementById(showId);
+        var keyrefPanel = document.getElementById('keyref');
+        var hoverPanel = document.getElementById('hover-panel');
+        var keyrefClose = document.getElementById('keyref-close');
+        var hoverClose = document.getElementById('hover-close');
+        var controlsLabel = document.getElementById('controls-label');
+        var exploreLabel = document.getElementById('explore-label');
+        var storageKey = 'webhack-panels-hidden';
 
-            function hide() {
-                panel.style.display = 'none';
-                show.style.visibility = 'visible';
-                try { localStorage.setItem(storageKey, '1'); } catch(e) {}
-            }
-
-            function reveal() {
-                panel.style.display = '';
-                show.style.visibility = 'hidden';
-                try { localStorage.removeItem(storageKey); } catch(e) {}
-            }
-
-            close.addEventListener('click', hide);
-            show.addEventListener('click', reveal);
-
-            try {
-                if (localStorage.getItem(storageKey)) hide();
-            } catch(e) {}
+        function hideBoth() {
+            keyrefPanel.classList.add('hidden');
+            hoverPanel.classList.add('hidden');
+            controlsLabel.classList.add('visible');
+            exploreLabel.classList.add('visible');
+            try { localStorage.setItem(storageKey, '1'); } catch(e) {}
         }
 
-        setupToggle('keyref', 'keyref-close', 'nav-controls', 'webhack-keyref-hidden');
-        setupToggle('hover-panel', 'hover-close', 'nav-explore', 'webhack-hover-hidden');
+        function showBoth() {
+            keyrefPanel.classList.remove('hidden');
+            hoverPanel.classList.remove('hidden');
+            controlsLabel.classList.remove('visible');
+            exploreLabel.classList.remove('visible');
+            try { localStorage.removeItem(storageKey); } catch(e) {}
+        }
+
+        // Close buttons hide both panels
+        keyrefClose.addEventListener('click', hideBoth);
+        hoverClose.addEventListener('click', hideBoth);
+
+        // Vertical labels show both panels
+        controlsLabel.addEventListener('click', showBoth);
+        exploreLabel.addEventListener('click', showBoth);
+
+        // Restore hidden state from localStorage
+        try {
+            if (localStorage.getItem(storageKey)) hideBoth();
+        } catch(e) {}
     })();
     </script>
 
