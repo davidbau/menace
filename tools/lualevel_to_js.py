@@ -561,8 +561,32 @@ class SimpleLuaConverter:
             js = re.sub(r'(postprocess = \[ \];)\s*\n\s*\}\]',
                        r'\1\n    }', js)
 
-            # Fix 9: Add missing semicolons to nh.impossible calls
-            js = re.sub(r"(nh\.impossible\([^)]+\))(?!;)", r"\1;", js)
+            # Fix 9: Add missing semicolons - more comprehensive approach
+            # Process line by line to add semicolons where needed
+            lines = js.split('\n')
+            fixed_lines = []
+            for line in lines:
+                stripped = line.rstrip()
+                # Skip empty lines, comments, and lines that already end with ; or { or }
+                if not stripped or stripped.startswith('//') or stripped.endswith((';', '{', '}')):
+                    fixed_lines.append(line)
+                    continue
+
+                # Add semicolon to lines ending with ) that look like statements
+                # But NOT if they're control structures or function definitions
+                if stripped.endswith(')'):
+                    # Check if it's a control structure or function definition
+                    is_control = any(keyword in line for keyword in [
+                        ' if (', ' for (', ' while (', ' do {', 'function(',
+                        '} else', '}) {', ' => {', 'return '
+                    ])
+                    if not is_control:
+                        fixed_lines.append(stripped + ';')
+                        continue
+
+                fixed_lines.append(line)
+
+            js = '\n'.join(fixed_lines)
 
             # Fix 10: Add 'let' to bare variable assignments in function scope
             # Pattern: indented line starting with lowercase identifier followed by =

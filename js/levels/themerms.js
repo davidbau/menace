@@ -33,7 +33,7 @@ export function generate() {
     // * Frequency of themeroom_fills is a separate pool from themerooms, && has
     // no effect on how likely that any given room will receive a themeroom_fill.
     // 
-    // des.room({ type: "ordinary", filled: 1 })
+    // des.room({ type: "ordinary", filled: 1 });
     // - ordinary rooms can be converted to shops || any other special rooms.
     // - filled = 1 means the room gets random room contents, even if it
     // doesn't get converted into a special room. Without filled,
@@ -159,7 +159,7 @@ export function generate() {
        {
           name: "Buried zombies",
           contents: function(rm) {
-             let diff = nh.level_difficulty()
+             let diff = nh.level_difficulty();
              // start with [1 + 4] for low difficulty
              let zombifiable = [ "kobold", "gnome", "orc", "dwarf" ];
              if (diff > 3) {          // medium difficulty
@@ -823,7 +823,7 @@ export function generate() {
                 let nasty_undead = [ "giant zombie", "ettin zombie", "vampire lord" ];
                 let chest_spots = [ [ 2, 2 ], [ 3, 2 ], [ 2, 3 ], [ 3, 3 ] ];
 
-                shuffle(chest_spots)
+                shuffle(chest_spots);
                 // Guarantee an escape item inside one of the chests, to prevent
                 // the hero falling in from above && becoming permanently stuck
                 // [cf. generate_way_out_method(sp_lev.c)].
@@ -838,7 +838,7 @@ export function generate() {
                    "wand of teleportation", "wand of digging"
                 ];
                 let itm = obj.new(escape_items[Math.random(escape_items.length)]);
-                let itmcls = itm.class()
+                let itmcls = itm.class();
                 let box
                 if (itmcls[ "material" ] == "glass") {
                       // explicitly force chest to be unlocked
@@ -976,22 +976,22 @@ export function generate() {
           // room half of the time
           // (if the user specified BOTH a room && a fill, presumably they are
           // interested in what happens when that room gets that fill, so don't
-          // bother generating default-with-fill rooms as happens below)
+          // bother generating default-with-fill rooms as happens below);
           let actualrm = lookup_by_name("default", false);
           if (percent(50)) {
              if (is_eligible(themerooms[debug_rm_idx])) {
                 actualrm = debug_rm_idx
              } else {
-                pline("Warning: themeroom '" + themerooms[debug_rm_idx].name + "' is ineligible")
+                pline("Warning: themeroom '" + themerooms[debug_rm_idx].name + "' is ineligible");
              }
           }
           themerooms[actualrm].contents();
           // return } else if (debug_fill_idx !== null) {
           // when a fill is requested but ! a room, still create the "default"
           // room half of the time, && "default with themed fill" half of the time
-          // (themeroom_fill will take care of guaranteeing the fill in it)
+          // (themeroom_fill will take care of guaranteeing the fill in it);
           actualrm = lookup_by_name(percent(50) && "Default room with themed fill"
-                                                      || "default")
+                                                      || "default");
           themerooms[actualrm].contents();
           // return }
        let pick = null;
@@ -1023,22 +1023,22 @@ export function generate() {
 
     // called before any rooms are generated
     let pre_themerooms_generate = function() {
-       let debug_themerm = nh.debug_themerm(false)
-       let debug_fill = nh.debug_themerm(true)
+       let debug_themerm = nh.debug_themerm(false);
+       let debug_fill = nh.debug_themerm(true);
        let xtrainfo = ""
-       let debug_rm_idx = lookup_by_name(debug_themerm, false)
-       let debug_fill_idx = lookup_by_name(debug_fill, true)
+       let debug_rm_idx = lookup_by_name(debug_themerm, false);
+       let debug_fill_idx = lookup_by_name(debug_fill, true);
        if (debug_themerm !== null && debug_rm_idx == null) {
           if (lookup_by_name(debug_themerm, true) !== null) {
              let xtrainfo = "; it is a fill type"
           }
-          pline("Warning: themeroom '" + debug_themerm + "' ! found in themerooms" + xtrainfo, true)
+          pline("Warning: themeroom '" + debug_themerm + "' ! found in themerooms" + xtrainfo, true);
        }
        if (debug_fill !== null && debug_fill_idx == null) {
           if (lookup_by_name(debug_fill, false) !== null) {
              let xtrainfo = "; it is a room type"
           }
-          pline("Warning: themeroom fill '" + debug_fill + "' ! found in themeroom_fills" + xtrainfo, true)
+          pline("Warning: themeroom fill '" + debug_fill + "' ! found in themeroom_fills" + xtrainfo, true);
        }
     }
 
@@ -1056,7 +1056,7 @@ export function generate() {
              // some more context on whether it failed because of difficulty ||
              // because of eligible function returning false; the warning doesn't
              // necessarily mean anything.
-             pline("Warning: fill '" + themeroom_fills[debug_fill_idx].name + "' is ! eligible in room that generated it")
+             pline("Warning: fill '" + themeroom_fills[debug_fill_idx].name + "' is ! eligible in room that generated it");
           }
           // return }
        let pick = null;
