@@ -409,19 +409,24 @@ class HeadlessGame {
         return mmove;
     }
 
-    // C ref: allmain.c moveloop_core() — per-turn effects
-    simulateTurnEnd() {
-        // C ref: allmain.c:239 — settrack() called after movemon, before moves++
-        settrack(this.player);
-        this.turnCount++;
-        this.player.turns = this.turnCount;
-
+    // C ref: allmain.c moveloop_core() — turn start (before movemon)
+    simulateTurnStart() {
+        // C ref: mon.c mcalcmove() — add movement points to all monsters
         for (const mon of this.map.monsters) {
             if (mon.dead) continue;
             mon.movement += this.mcalcmove(mon);
         }
 
-        rn2(70);   // monster spawn check
+        // C ref: allmain.c:232 — monster spawn check (rn2(70))
+        rn2(70);
+    }
+
+    // C ref: allmain.c moveloop_core() — turn end (after movemon)
+    simulateTurnEnd() {
+        // C ref: allmain.c:239 — settrack() called after movemon, before moves++
+        settrack(this.player);
+        this.turnCount++;
+        this.player.turns = this.turnCount;
 
         // C ref: allmain.c:289-295 regen_hp()
         if (this.player.hp < this.player.hpmax) {
@@ -462,14 +467,28 @@ class HeadlessGame {
         }
         // Status checks every 5 moves: none apply in early game (no intrinsics/conditions)
 
-        const dex = this.player.attributes ? this.player.attributes[A_DEX] : 14;
-        rn2(40 + dex * 3); // engrave wipe
+        // C ref: allmain.c:408 — engrave wipe only if engravings exist
+        // Check if there are any engravings on the level
+        let hasEngravings = false;
+        for (let y = 0; y < this.map.height && !hasEngravings; y++) {
+            for (let x = 0; x < this.map.width && !hasEngravings; x++) {
+                const loc = this.map.at(x, y);
+                if (loc && loc.engraving) hasEngravings = true;
+            }
+        }
+        if (hasEngravings) {
+            const dex = this.player.attributes ? this.player.attributes[A_DEX] : 14;
+            rn2(40 + dex * 3); // engrave wipe
+        }
 
         // C ref: allmain.c:414 seer_turn check
         // C's svm.moves is +1 ahead of turnCount (same offset as exerchk)
         if (moves >= this.seerTurn) {
             this.seerTurn = moves + rn1(31, 15);
         }
+
+        // C ref: allmain.c:359 — final turn end check (rn2(64))
+        rn2(64);
     }
 
     // C ref: sounds.c:202-339 dosounds() — ambient level sounds
@@ -608,23 +627,31 @@ export async function replaySession(seed, session) {
             pushInput(32); // SPACE to dismiss modal display
         }
 
+        // C ref: allmain.c moveloop_core() — monsters move FIRST (using prev turn's movement)
+        settrack(game.player);
+        movemon(game.map, game.player, game.display, game.fov);
+
         const result = await rhack(ch, game);
 
-        // If the command took time, run monster movement and turn effects
+        // If the command took time, add movement for next turn and run turn effects
         if (result && result.tookTime) {
-            settrack(game.player); // C ref: allmain.c — record hero position before movemon
-            movemon(game.map, game.player, game.display, game.fov);
+            game.simulateTurnStart(); // mcalcmove + rn2(70) AFTER player action
             game.simulateTurnEnd();
 
             // Run occupation continuation turns (multi-turn eating, etc.)
             // C ref: allmain.c moveloop_core() — occupation runs before next input
             while (game.occupation) {
+                // Monsters move first (using accumulated movement)
+                settrack(game.player);
+                movemon(game.map, game.player, game.display, game.fov);
+
                 const cont = game.occupation.fn(game);
                 if (!cont) {
                     game.occupation = null;
                 }
-                settrack(game.player);
-                movemon(game.map, game.player, game.display, game.fov);
+
+                // Add movement for next turn
+                game.simulateTurnStart(); // mcalcmove + rn2(70)
                 game.simulateTurnEnd();
 
                 // Sync HP each occupation turn (monsters may attack)

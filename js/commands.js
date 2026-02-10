@@ -289,8 +289,25 @@ function handleMovement(dir, player, map, display, game) {
     // Check for monster at target position
     const mon = map.monsterAt(nx, ny);
     if (mon) {
-        // Attack the monster
-        // C ref: hack.c domove() -> do_attack() -> attack() -> hitum()
+        // C ref: hack.c domove() -> do_attack()
+        if (mon.tame || mon.peaceful) {
+            // Swap places with tame/peaceful monster
+            // C ref: uhitm.c do_attack() → attack() → Normally_attack
+            // For peaceful/tame: skip to "You swap places" without combat RNG
+            // Only RNG: rn2(7) for Normally_attack check (uhitm.c:473)
+            rn2(7);
+            // Swap positions
+            const tmpx = player.x, tmpy = player.y;
+            player.x = mon.mx;
+            player.y = mon.my;
+            mon.mx = tmpx;
+            mon.my = tmpy;
+            display.putstr_message(mon.tame ? `You swap places with your ${mon.type.name}.` : `You swap places with the ${mon.type.name}.`);
+            player.moved = true;
+            return { moved: true, tookTime: true };
+        }
+
+        // Attack hostile monster
         // C ref: hack.c:3036 overexertion() unconditionally calls gethungry() -> rn2(20)
         rn2(20); // overexertion/gethungry before attack
         // C ref: uhitm.c:550 exercise(A_STR, TRUE) before hitum()
