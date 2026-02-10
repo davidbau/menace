@@ -938,12 +938,54 @@ export function room(opts = {}) {
         roomW = w;
         roomH = h;
     } else {
-        // Random placement would go here
-        // For now, create a small default room at 10,5
-        roomX = 10;
-        roomY = 5;
-        roomW = 5;
-        roomH = 3;
+        // Random placement - use procedural generation's create_room
+        // This uses BSP rectangle selection to find available space
+        const result = create_room(levelState.map, -1, -1, -1, -1,
+                                   xalign, yalign, rtype, false, levelState.depth || 1);
+
+        if (!result || !levelState.map || levelState.map.nroom === 0) {
+            if (DEBUG) {
+                console.log(`des.room(): create_room failed, no space available`);
+            }
+            return false;
+        }
+
+        // Extract coordinates from the newly created room
+        const createdRoom = levelState.map.rooms[levelState.map.nroom - 1];
+        roomX = createdRoom.lx;
+        roomY = createdRoom.ly;
+        roomW = createdRoom.hx - createdRoom.lx + 1;
+        roomH = createdRoom.hy - createdRoom.ly + 1;
+
+        if (DEBUG) {
+            console.log(`des.room(): used create_room, got room at (${roomX},${roomY}) size ${roomW}x${roomH}`);
+        }
+
+        // Room already created and added to map.rooms[] by create_room,
+        // so we need to skip the manual room creation below
+        // Set a flag to indicate this
+        const roomAlreadyCreated = true;
+
+        // If room creation succeeded and there's a contents callback, execute it
+        if (contents && typeof contents === 'function') {
+            // Save current room state
+            const parentRoom = levelState.currentRoom;
+            levelState.roomStack.push(parentRoom);
+            levelState.roomDepth++;
+
+            // Set current room (for nested features to reference)
+            levelState.currentRoom = createdRoom;
+
+            // Execute room contents
+            contents(createdRoom);
+
+            // Restore parent room state
+            levelState.currentRoom = parentRoom;
+            levelState.roomStack.pop();
+            levelState.roomDepth--;
+        }
+
+        return true;  // Early return since create_room handled everything
     }
 
     // Create room entry in map.rooms array
