@@ -1338,11 +1338,17 @@ export class Agent {
                     const targetsToTry = needsExhaustiveSearch ? frontier : frontier.slice(0, 20);
 
                     for (const target of targetsToTry) {
+                        // Skip if we're already at this target
+                        if (px === target.x && py === target.y) continue;
+
                         const tKey = target.y * 80 + target.x;
                         if (this.failedTargets.has(tKey)) continue;
                         const path = findPath(level, px, py, target.x, target.y, { allowUnexplored: true });
                         if (path.found) {
                             this.committedTarget = { x: target.x, y: target.y };
+                            // Reset stuckCounter to give the agent a chance to reach this target
+                            // before abandoning it on the next turn
+                            this.stuckCounter = 0;
                             const reason = needsExhaustiveSearch ?
                                 `exhaustive search (no stairs found, turn ${this.turnNumber})` :
                                 `force-exploring toward (${target.x},${target.y})`;
@@ -1684,13 +1690,14 @@ export class Agent {
             const tx = this.committedTarget.x;
             const ty = this.committedTarget.y;
             if (px === tx && py === ty) {
-                // Reached it! Before clearing, check if we should continue through a door/corridor
+                // Reached it! Before clearing, check if we should continue through a door
                 const currentCell = level.at(px, py);
                 const atDoor = currentCell && (currentCell.type === 'door_open' || currentCell.type === 'door_closed');
-                const exploredPercent = level.exploredCount / (80 * 21);
 
-                if (atDoor || exploredPercent < 0.30) {
-                    // Check all cardinal directions for unexplored space or corridors
+                // Only use door-continuation logic for actual doors, not corridors
+                // (corridor logic was causing oscillation by walking backwards)
+                if (atDoor) {
+                    // Check all cardinal directions for unexplored space
                     const dirs = [
                         { key: 'k', dx: 0, dy: -1, name: 'north' },
                         { key: 'j', dx: 0, dy: 1, name: 'south' },
@@ -1703,16 +1710,10 @@ export class Agent {
                         const ny = py + dir.dy;
                         const ncell = level.at(nx, ny);
 
-                        // Walk through doors or into unexplored cells
+                        // Walk through doors into unexplored cells
                         if (!ncell || !ncell.explored) {
-                            console.log(`[DOOR-EXPLORE] At target, continuing ${dir.name} into unexplored at (${nx},${ny})`);
-                            return { type: 'explore', key: dir.key, reason: `continuing ${dir.name} through ${atDoor ? 'door' : 'opening'}` };
-                        }
-
-                        // Walk into corridors that might lead somewhere
-                        if (ncell.explored && ncell.walkable && ncell.type === 'corridor') {
-                            console.log(`[DOOR-EXPLORE] At target, continuing ${dir.name} into corridor at (${nx},${ny})`);
-                            return { type: 'explore', key: dir.key, reason: `following corridor ${dir.name}` };
+                            console.log(`[DOOR-EXPLORE] At door, continuing ${dir.name} into unexplored at (${nx},${ny})`);
+                            return { type: 'explore', key: dir.key, reason: `continuing ${dir.name} through door` };
                         }
                     }
                 }
@@ -1760,18 +1761,31 @@ export class Agent {
 
         // Re-path to committed target
         if (this.committedTarget) {
-            const path = findPath(level, px, py, this.committedTarget.x, this.committedTarget.y);
-            console.log(`[COMMIT] Re-pathing from (${px},${py}) to target (${this.committedTarget.x},${this.committedTarget.y}): found=${path.found}, cost=${path.cost}`);
-            if (path.found) {
-                this.committedPath = path;
-                this.consecutiveWaits = 0;
-                return this._followPath(path, 'explore', `following path to (${this.committedTarget.x},${this.committedTarget.y})`);
+            const tx = this.committedTarget.x;
+            const ty = this.committedTarget.y;
+
+            // If we're already at the target, clear it and find a new one
+            // This can happen if the target was set but we're already there
+            if (px === tx && py === ty) {
+                console.log(`[COMMIT] Already at target (${tx},${ty}), clearing and finding new target`);
+                this.committedTarget = null;
+                this.committedPath = null;
+                this.targetStuckCount = 0;
+                // Fall through to find a new target below
+            } else {
+                const path = findPath(level, px, py, tx, ty);
+                console.log(`[COMMIT] Re-pathing from (${px},${py}) to target (${tx},${ty}): found=${path.found}, cost=${path.cost}`);
+                if (path.found) {
+                    this.committedPath = path;
+                    this.consecutiveWaits = 0;
+                    return this._followPath(path, 'explore', `following path to (${tx},${ty})`);
+                }
+                // Can't reach target anymore — abandon it
+                console.log(`[COMMIT] Abandoning target (${tx},${ty}) - path not found`);
+                this.committedTarget = null;
+                this.committedPath = null;
+                this.targetStuckCount = 0;
             }
-            // Can't reach target anymore — abandon it
-            console.log(`[COMMIT] Abandoning target (${this.committedTarget.x},${this.committedTarget.y}) - path not found`);
-            this.committedTarget = null;
-            this.committedPath = null;
-            this.targetStuckCount = 0;
         }
 
         // Find a new target: use findExplorationTarget but commit to its destination

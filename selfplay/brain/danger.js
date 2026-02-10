@@ -188,17 +188,18 @@ export function shouldEngageMonster(monsterChar, playerHP, playerMaxHP, playerLe
     }
 
     // LOW or SAFE
-    // For harmless monsters, IGNORE them - don't fight, don't flee, just explore
-    if (!isBlocking && danger === DangerLevel.LOW) {
+    // For harmless monsters, IGNORE them - don't fight, don't flee, just walk through
+    // When blocking, NetHack will auto-swap positions ("You swap places with your kitten.")
+    if (danger === DangerLevel.LOW || danger === DangerLevel.SAFE) {
         return {
             shouldEngage: false,
             shouldFlee: false,  // Don't flee from harmless monsters
             ignore: true,
-            reason: `ignoring harmless ${monsterChar}`,
+            reason: isBlocking ? `walking through harmless ${monsterChar} (blocking)` : `ignoring harmless ${monsterChar}`,
         };
     }
 
-    // Safe monsters or blocking low-danger: OK to fight
+    // Unknown/default: engage cautiously
     return {
         shouldEngage: true,
         shouldFlee: false,
