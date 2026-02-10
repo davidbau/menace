@@ -57,6 +57,10 @@ class NetHackGame {
         this.commandCount = 0; // C ref: cmd.c gc.command_count — user-entered count
         this.cmdKey = 0;      // C ref: cmd.c gc.cmd_key — command to repeat
         this.lastCommand = null; // C ref: cmd.c CQ_REPEAT — last command for Ctrl+A repeat
+        // Prefix command flags
+        this.menuRequested = false; // C ref: iflags.menu_requested — 'm' prefix
+        this.forceFight = false;    // C ref: context.forcefight — 'F' prefix
+        this.runMode = 0;           // C ref: context.run — 'G'/'g' prefix (2=rush, 3=run)
         // RNG accessors for storage.js (avoids circular imports)
         this._rngAccessors = {
             getRngState, setRngState, getRngCallCount, setRngCallCount,
