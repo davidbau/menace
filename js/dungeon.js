@@ -875,12 +875,16 @@ function makerooms(map, depth) {
         // Simulate Lua MT19937 RNG initialization after first rnd_rect
         // This happens when Lua math.random() is first called
         if (!_mtInitialized) {
+            if (DEBUG) console.log(`MT init starting, flag was: ${_mtInitialized}`);
             _mtInitialized = true;
             // Pattern from C trace: rn2(1000-1004), rn2(1010), rn2(1012), rn2(1014-1036)
             for (let i = 1000; i <= 1004; i++) rn2(i);
             rn2(1010);
             rn2(1012);
             for (let i = 1014; i <= 1036; i++) rn2(i);
+            if (DEBUG) console.log(`MT init complete, flag now: ${_mtInitialized}`);
+        } else {
+            if (DEBUG) console.log(`Skipping MT init, flag is: ${_mtInitialized}`);
         }
 
         if (DEBUG) {
@@ -3192,7 +3196,7 @@ export function initLevelGeneration(roleIndex) {
 export function makelevel(depth, dnum, dlevel) {
     setLevelDepth(depth);
     resetThemermsState(); // Reset themed room state for new level
-    // Note: _mtInitialized is NOT reset - MT RNG init happens once per game session
+    _mtInitialized = false; // Reset MT RNG state - init happens per level, not per session
 
     // Check for special level if branch coordinates provided
     if (dnum !== undefined && dlevel !== undefined) {
