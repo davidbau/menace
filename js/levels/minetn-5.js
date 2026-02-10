@@ -148,8 +148,6 @@ export function generate() {
     des.altar({ x: 31,y: 3, align: align[1], type: "shrine" });
 
 
-    // }
-}
-}
     return des.finalize_level();
 }
+
