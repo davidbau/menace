@@ -48,7 +48,19 @@ import {
 } from './objects.js';
 import { RUMORS_FILE_TEXT } from './rumor_data.js';
 import { getSpecialLevel } from './special_levels.js';
-import { themerooms_generate } from './levels/themerms.js';
+// TEMP: Disabled due to syntax errors
+// import { themerooms_generate } from './themerms.js';
+// Stub function - creates regular rooms instead of themerooms
+function themerooms_generate(map, depth) {
+    const DEBUG = process.env.DEBUG_THEMEROOMS === '1';
+    // Create a regular room with automatic sizing (like C does when no theme)
+    // Use -1 for automatic placement, no size constraints
+    const result = create_room(map, -1, -1, -1, -1, -1, -1, OROOM, false, depth);
+    if (DEBUG) {
+        console.log(`themerooms_generate stub: create_room returned ${result}, nroom=${map.nroom}`);
+    }
+    return result;
+}
 import { parseEncryptedDataFile, parseRumorsFile } from './hacklib.js';
 import { EPITAPH_FILE_TEXT } from './epitaph_data.js';
 import { ENGRAVE_FILE_TEXT } from './engrave_data.js';
