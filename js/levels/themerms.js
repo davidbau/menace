@@ -14,7 +14,7 @@
 
 import * as des from '../sp_lev.js';
 import { selection, percent, shuffle } from '../sp_lev.js';
-import { rn2, rnd, d } from '../rng.js';
+import { rn2, rnd } from '../rng.js'; // rnd(n) = Lua d(n) dice rolls
 
 // Module-level state for postprocessing callbacks
 let postprocess = [];
@@ -145,7 +145,7 @@ export const themeroom_fills = [
                postprocess.push({ handler: make_dig_engraving,
                                  data: { x: xobj.ox, y: xobj.oy }});
             }
-            for (let i = 1; i <= d(3,4); i++) {
+            for (let i = 1; i <= rnd(3,4); i++) {
                des.object();
             }
          } });
@@ -188,7 +188,7 @@ export const themeroom_fills = [
                      "cavewoman", "caveman", "barbarian",
                      "archeologist" ];
          let idx = rn2(mon.length);
-         for (let i = 1; i <= d(5,5); i++) {
+         for (let i = 1; i <= rnd(5,5); i++) {
             if (percent(10)) { idx = rn2(mon.length); }
             des.object({ id: "corpse", montype: mon[idx] });
          }
@@ -198,10 +198,10 @@ export const themeroom_fills = [
    {
       name: "Statuary",
       contents: function(rm) {
-         for (let i = 1; i <= d(5,5); i++) {
+         for (let i = 1; i <= rnd(5,5); i++) {
             des.object({ id: "statue" });
          }
-         for (let i = 1; i <= d(3); i++) {
+         for (let i = 1; i <= rnd(3); i++) {
             des.trap("statue");
          }
       },
@@ -846,7 +846,7 @@ xx|.....|xx
                      return "open";
                   }
                }
-               const p = placements[d(placements.length) - 1];
+               const p = placements[rnd(placements.length) - 1];
                des.room({ type: ltype, x: p["lx"], y: p["ly"], w: 3, h: 3, filled: 1, joined: false,
                            contents: function() {
                      des.door({ state: shopdoorstate(), wall: p["lwall"] })
