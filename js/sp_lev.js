@@ -1307,9 +1307,12 @@ export function room(opts = {}) {
 
     // C ref: rect.c split_rects() — Split BSP rectangle pool around this room
     // This is needed for manually created rooms (fixed-position and grid-placement)
-    // Fully random rooms (handled by dungeon.create_room) already split in create_room
-    // Nested rooms (subrooms) do NOT split rectangles - C ref: create_subroom() has no split_rects call
-    if (levelState.roomDepth === 0) {
+    // C behavior: Only fully random rooms (x=-1,y=-1) split the rectangle pool
+    // Fixed-position rooms (like oracle's x=3,y=3) do NOT split - they bypass BSP entirely
+    // Nested rooms (subrooms) also do NOT split - C ref: create_subroom() has no split_rects call
+    // Evidence: C trace shows split_rects is never called for oracle fixed-position rooms
+    const isFullyRandomRoom = (x === -1 && y === -1 && w === -1 && h === -1);
+    if (levelState.roomDepth === 0 && isFullyRandomRoom) {
         update_rect_pool_for_room(room);
     }
 
