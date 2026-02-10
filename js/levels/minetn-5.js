@@ -67,10 +67,10 @@ export function generate() {
       des.terrain(selection.line(43,5, 47,5), "-");
       des.terrain(selection.line(42,6, 46,6), ".");
       des.terrain(selection.line(46,7, 47,7), ".");
-    // removed extra }
+    }
     if (percent(50)) {
       des.terrain(selection.area(69,11, 71,11), "-");
-    // removed extra }
+    }
 
     des.stair("up", 1,1);
     des.stair("down", 46,3);
