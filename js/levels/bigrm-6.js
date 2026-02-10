@@ -56,8 +56,10 @@ export function generate() {
 
     for (let i = 1; i <= 28; i++) {
       des.monster();
+    // removed extra 
     }
-
-
+}
+}
     return des.finalize_level();
 }
+
