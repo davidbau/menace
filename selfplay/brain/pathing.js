@@ -235,7 +235,7 @@ export function findNearest(levelMap, sx, sy, predicate) {
 export function findExplorationTarget(levelMap, sx, sy, recentTargets = null, options = {}) {
     // BFS outward from player, collecting ALL reachable frontier cells.
     // A frontier cell is an explored walkable cell that borders unexplored space.
-    // Pick the best one considering: search history, distance, and recency.
+    // Pick the best one considering: search history, distance, recency, and corridor continuation.
     //
     // options.preferFar: When true, prefer distant targets to break out of local loops
     const preferFar = options.preferFar || false;
@@ -246,6 +246,10 @@ export function findExplorationTarget(levelMap, sx, sy, recentTargets = null, op
     visited[idx(sx, sy)] = 1;
 
     const candidates = [];
+
+    // Check if player is in a corridor
+    const playerCell = levelMap.at(sx, sy);
+    const playerInCorridor = playerCell && playerCell.type === 'corridor';
 
     while (queue.length > 0) {
         const { x, y, dist } = queue.shift();
@@ -271,7 +275,13 @@ export function findExplorationTarget(levelMap, sx, sy, recentTargets = null, op
                 // How much has this cell been searched? High = less promising
                 const searched = cell.searched || 0;
 
-                candidates.push({ x, y, dist, chebyshev, isRecent, searched });
+                // Is this target a corridor cell?
+                const isCorridor = cell.type === 'corridor';
+
+                // Check if target continues the corridor (player in corridor moving to adjacent corridor)
+                const continuesCorridor = playerInCorridor && isCorridor && dist <= 3;
+
+                candidates.push({ x, y, dist, chebyshev, isRecent, searched, isCorridor, continuesCorridor });
             }
         }
 
@@ -294,17 +304,27 @@ export function findExplorationTarget(levelMap, sx, sy, recentTargets = null, op
 
     // Sort by priority:
     // 1. Strongly prefer non-recently-visited
-    // 2. Prefer less-searched cells (more likely to lead somewhere)
-    // 3. Among remaining, prefer nearest by BFS distance (or farthest if preferFar)
+    // 2. Strongly prefer corridor continuation when in corridor (keeps exploring corridors to completion)
+    // 3. Prefer corridor cells over room cells (corridors lead to new areas)
+    // 4. Prefer less-searched cells (more likely to lead somewhere)
+    // 5. Among remaining, prefer nearest by BFS distance (or farthest if preferFar)
     //
     // Note: we do NOT penalize adjacent cells. In corridors, the next
     // frontier cell IS adjacent and we want to keep moving forward.
     // Path commitment handles oscillation instead.
     candidates.sort((a, b) => {
         if (a.isRecent !== b.isRecent) return a.isRecent ? 1 : -1;
+
+        // Corridor continuation gets highest priority (when player is in corridor)
+        if (a.continuesCorridor !== b.continuesCorridor) return a.continuesCorridor ? -1 : 1;
+
+        // Corridor cells generally preferred over room cells
+        if (a.isCorridor !== b.isCorridor) return a.isCorridor ? -1 : 1;
+
         // Strongly prefer unsearched over heavily-searched
         if (a.searched >= 3 && b.searched < 3) return 1;
         if (b.searched >= 3 && a.searched < 3) return -1;
+
         // When stuck, prefer FAR targets to break out of local loops
         if (preferFar) return b.dist - a.dist;  // Reverse sort for farthest first
         return a.dist - b.dist;  // Normal: nearest first

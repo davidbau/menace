@@ -78,6 +78,12 @@ export class Agent {
         this.pendingLockedDoor = null; // {x, y, attempts} for locked door we're trying to kick
         this.secretDoorSearch = null; // {position: {x,y}, searchesNeeded: 20, searchesDone: 0, wallCandidates: []}
 
+        // Combat oscillation detection
+        this.combatPositions = []; // last 8 positions during combat: [{x, y, turn}, ...]
+        this.oscillationHoldTurns = 0; // remaining turns to hold position when oscillation detected
+        this.oscillationHoldAttempted = false; // track if we already tried holding (next step: flee)
+        this.inCombat = false; // track if we're currently in combat
+
         // Statistics
         this.stats = {
             turns: 0,
@@ -670,6 +676,42 @@ export class Agent {
         // 3. If there's a monster adjacent, decide whether to fight it
         const adjacentMonster = this._findAdjacentMonster(px, py);
         if (adjacentMonster) {
+            this.inCombat = true;
+
+            // Detect oscillation: are we bouncing between same 2-3 positions?
+            const oscillating = this._detectCombatOscillation(px, py);
+
+            if (oscillating && this.oscillationHoldTurns === 0) {
+                if (!this.oscillationHoldAttempted) {
+                    // First response: hold position and wait for monster
+                    this.oscillationHoldTurns = 3;
+                    this.oscillationHoldAttempted = true;
+                    console.log(`[OSCILLATION] Detected at (${px},${py}), holding position for 3 turns`);
+                } else {
+                    // Holding didn't work - flee instead
+                    const nearbyMonsters = findMonsters(this.screen);
+                    const fleeDir = this._fleeFrom(px, py, nearbyMonsters, level);
+                    if (fleeDir) {
+                        // Clear oscillation state and flee
+                        this.combatPositions = [];
+                        this.oscillationHoldAttempted = false;
+                        console.log(`[OSCILLATION] Holding failed, fleeing from (${px},${py})`);
+                        return { type: 'flee', key: fleeDir, reason: 'fleeing to break oscillation' };
+                    }
+                }
+            }
+
+            // If holding position due to oscillation, stay still and wait for monster
+            if (this.oscillationHoldTurns > 0) {
+                this.oscillationHoldTurns--;
+                if (this.oscillationHoldTurns === 0) {
+                    // Done holding - clear combat history to reset oscillation detection
+                    this.combatPositions = [];
+                }
+                // Stay in place and wait (let monster approach us)
+                return { type: 'wait', key: '.', reason: `holding position (oscillation prevention, ${this.oscillationHoldTurns + 1} turns left)` };
+            }
+
             // Assess danger and decide whether to engage
             const playerLevel = this.status?.experienceLevel || 1;
             const engagement = shouldEngageMonster(
@@ -702,6 +744,14 @@ export class Agent {
             const key = DIR_KEYS[`${dx},${dy}`];
             if (key) {
                 return { type: 'attack', key, reason: engagement.reason };
+            }
+        } else {
+            // No adjacent monster - clear combat state
+            if (this.inCombat) {
+                this.inCombat = false;
+                this.combatPositions = [];
+                this.oscillationHoldTurns = 0;
+                this.oscillationHoldAttempted = false;
             }
         }
 
@@ -1454,6 +1504,42 @@ export class Agent {
             }
         }
         return null;
+    }
+
+    /**
+     * Detect combat oscillation: agent moving between same 2-3 positions repeatedly.
+     * Returns true if oscillation detected (same 2-3 positions, 3+ times in last 8 combat turns).
+     */
+    _detectCombatOscillation(px, py) {
+        // Add current position to combat history
+        this.combatPositions.push({ x: px, y: py, turn: this.turnNumber });
+
+        // Keep only last 8 positions
+        if (this.combatPositions.length > 8) {
+            this.combatPositions.shift();
+        }
+
+        // Need at least 8 positions to detect oscillation
+        if (this.combatPositions.length < 8) {
+            return false;
+        }
+
+        // Count unique positions in last 8 turns
+        const positionCounts = new Map();
+        for (const pos of this.combatPositions) {
+            const key = `${pos.x},${pos.y}`;
+            positionCounts.set(key, (positionCounts.get(key) || 0) + 1);
+        }
+
+        const uniquePositions = positionCounts.size;
+        const maxRepeats = Math.max(...positionCounts.values());
+
+        // Oscillation: 2-3 unique positions, with at least one repeated 3+ times
+        if (uniquePositions <= 3 && maxRepeats >= 3) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
