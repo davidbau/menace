@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "seed": 304,
+  "type": "option_test",
+  "option": "DECgraphics",
+  "option_value": true,
+  "description": "Test DECgraphics=on - should show box-drawing walls (│ ─ ┌ etc.)",
+  "character": {
+    "name": "Wizard",
+    "role": "Wizard",
+    "race": "elf",
+    "gender": "male",
+    "align": "chaotic"
+  },
+  "startup": {
+    "rngCalls": 2329,
+    "screen": [
+      "",
+      "",
+      "",
+      "             lqqqqk",
+      "             x{~~~x",
+      "             x~~~xx",
+      "             x~f~~x",
+      "             x@~~~x",
+      "             +~~~$x",
+      "             mq~qqj",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "Wizard the Evoker              St:9 Dx:14 Co:14 In:17 Wi:10 Ch:11 Chaotic",
+      "Dlvl:1 $:0 HP:11(11) Pw:8(8) AC:9 Xp:1"
+    ]
+  },
+  "steps": []
+}

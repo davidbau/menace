@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "seed": 303,
+  "type": "option_test",
+  "option": "DECgraphics",
+  "option_value": false,
+  "description": "Test DECgraphics=off - should show ASCII walls (| - )",
+  "character": {
+    "name": "Wizard",
+    "role": "Wizard",
+    "race": "elf",
+    "gender": "male",
+    "align": "chaotic"
+  },
+  "startup": {
+    "rngCalls": 2008,
+    "screen": [
+      "",
+      "",
+      "",
+      "                                                         ----------------",
+      "                                                         |.....Z........|",
+      "                                                         +..............|",
+      "                                                         |.........@....|",
+      "                                                         ...........f...|",
+      "                                                         - --------------",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "Wizard the Evoker              St:10 Dx:12 Co:10 In:20 Wi:10 Ch:11 Chaotic",
+      "Dlvl:1 $:0 HP:11(11) Pw:7(7) AC:9 Xp:1"
+    ]
+  },
+  "steps": []
+}
