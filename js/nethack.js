@@ -1214,6 +1214,16 @@ class NetHackGame {
             // Process command
             const result = await rhack(ch, this);
 
+            // C ref: allmain.c:948 interrupt_multi() — check for interruptions
+            // Interrupt multi-command sequences if something interesting happens
+            if (this.multi > 0 && result.tookTime) {
+                if (this.shouldInterruptMulti()) {
+                    this.multi = 0;
+                    this.display.putstr_message('--More--');
+                    await nhgetch(); // Wait for keypress
+                }
+            }
+
             // If time passed, process turn effects
             // C ref: allmain.c moveloop_core() -- context.move handling
             if (result.tookTime) {
@@ -1248,6 +1258,36 @@ class NetHackGame {
 
         // Game over
         await this.showGameOver();
+    }
+
+    // Check if multi-command sequence should be interrupted
+    // C ref: allmain.c:948 interrupt_multi()
+    shouldInterruptMulti() {
+        // Don't interrupt during run mode (handled separately)
+        if (this.runMode > 0) {
+            return false;
+        }
+
+        // Interrupt if there's a hostile monster adjacent to player
+        const { x, y } = this.player;
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                if (dx === 0 && dy === 0) continue;
+                const mon = this.map.monsterAt(x + dx, y + dy);
+                if (mon && !mon.tame && !mon.peaceful) {
+                    return true; // Hostile monster nearby!
+                }
+            }
+        }
+
+        // Interrupt if HP changed (took damage or healed)
+        if (this.lastHP !== undefined && this.player.hp !== this.lastHP) {
+            this.lastHP = this.player.hp;
+            return true;
+        }
+        this.lastHP = this.player.hp;
+
+        return false;
     }
 
     // C ref: mon.c mcalcmove() — calculate monster's movement for a turn
