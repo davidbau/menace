@@ -356,10 +356,7 @@ class HeadlessGame {
     }
 
     // C ref: mon.c movemon() — returns TRUE if any monster can move
-    // Also calls settrack() before moving monsters
     _movemon_check() {
-        // C ref: allmain.c:205/238-239 — settrack before movemon and before moves++
-        settrack(this.player);
         movemon(this.map, this.player, this.display, this.fov);
         // Check if any monster still has movement >= NORMAL_SPEED
         for (const mon of this.map.monsters) {
@@ -387,15 +384,18 @@ class HeadlessGame {
             mon.movement += this.mcalcmove(mon);
         }
 
+        // C ref: allmain.c:232-236 — monster spawn check
+        rn2(70);   // rn2(25) if demigod, rn2(50) below stronghold
+
         // C ref: allmain.c:237 — u_calc_moveamt() reallocates player movement
         this.player.movement += NORMAL_SPEED;
+
+        // C ref: allmain.c:239 — settrack() AFTER movement allocation
+        settrack(this.player);
 
         // C ref: allmain.c:240 — moves++ (turn counter)
         this.turnCount++;
         this.player.turns = this.turnCount;
-
-        // C ref: allmain.c:232-236 — occasionally spawn a new monster
-        rn2(70);   // monster spawn check (rn2(25) if demigod, rn2(50) below stronghold)
 
         // C ref: allmain.c:289-295 regen_hp()
         if (this.player.hp < this.player.hpmax) {
