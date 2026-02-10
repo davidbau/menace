@@ -8,65 +8,65 @@
 import { rn2 } from './rng.js';
 
 // Import special level generators
-import { generate as generateKnox } from './levels/knox.js';
-import { generate as generateMedusa } from './levels/medusa.js';
-import { generate as generateMedusa2 } from './levels/medusa-2.js';
-import { generate as generateMedusa3 } from './levels/medusa-3.js';
-import { generate as generateSanctum } from './levels/sanctum.js';
-import { generate as generateValley } from './levels/valley.js';
-import { generate as generateTower1 } from './levels/tower1.js';
-import { generate as generateTower2 } from './levels/tower2.js';
-import { generate as generateTower3 } from './levels/tower3.js';
-// TEMP: Commented out due to syntax errors from Lua conversion
+// import { generate as generateKnox } from './levels/knox.js';
+// import { generate as generateMedusa } from './levels/medusa.js';
+// TEMP: Commented out due to syntax errors from Lua converter
+// import { generate as generateMedusa2 } from './levels/medusa-2.js';
+// import { generate as generateMedusa3 } from './levels/medusa-3.js';
+// import { generate as generateSanctum } from './levels/sanctum.js';
+// import { generate as generateValley } from './levels/valley.js';
+// import { generate as generateTower1 } from './levels/tower1.js';
+// import { generate as generateTower2 } from './levels/tower2.js';
+// import { generate as generateTower3 } from './levels/tower3.js';
 // import { generate as generateWizard1 } from './levels/wizard1.js';
 // import { generate as generateWizard2 } from './levels/wizard2.js';
 // import { generate as generateWizard3 } from './levels/wizard3.js';
 
 // Demon lair levels
-import { generate as generateAsmodeus } from './levels/asmodeus.js';
-import { generate as generateBaalz } from './levels/baalz.js';
-import { generate as generateJuiblex } from './levels/juiblex.js';
-import { generate as generateOrcus } from './levels/orcus.js';
+// import { generate as generateAsmodeus } from './levels/asmodeus.js';
+// import { generate as generateBaalz } from './levels/baalz.js';
+// import { generate as generateJuiblex } from './levels/juiblex.js';
+// import { generate as generateOrcus } from './levels/orcus.js';
 
 // Main dungeon special levels
-import { generate as generateCastle } from './levels/castle.js';
-import { generate as generateOracle } from './levels/oracle.js';
+// import { generate as generateCastle } from './levels/castle.js';
+// import { generate as generateOracle } from './levels/oracle.js';
 
 // Medusa levels (4 variants)
-import { generate as generateMedusa1 } from './levels/medusa-1.js';
-import { generate as generateMedusa4 } from './levels/medusa-4.js';
+// import { generate as generateMedusa1 } from './levels/medusa-1.js';
+// import { generate as generateMedusa4 } from './levels/medusa-4.js';
 
 // Elemental planes
-import { generate as generateAir } from './levels/air.js';
-import { generate as generateEarth } from './levels/earth.js';
-import { generate as generateFire } from './levels/fire.js';
-import { generate as generateWater } from './levels/water.js';
-import { generate as generateAstral } from './levels/astral.js';
+// import { generate as generateAir } from './levels/air.js';
+// import { generate as generateEarth } from './levels/earth.js';
+// import { generate as generateFire } from './levels/fire.js';
+// import { generate as generateWater } from './levels/water.js';
+// import { generate as generateAstral } from './levels/astral.js';
 
 // Special room variants (all 13 bigrooms)
-import { generate as generateBigroom1 } from './levels/bigroom-1.js';
-import { generate as generateBigroom2 } from './levels/bigroom-2.js';
-import { generate as generateBigroom3 } from './levels/bigroom-3.js';
-import { generate as generateBigroom4 } from './levels/bigroom-4.js';
-import { generate as generateBigroom5 } from './levels/bigroom-5.js';
-import { generate as generateBigroom6 } from './levels/bigroom-6.js';
-import { generate as generateBigroom7 } from './levels/bigroom-7.js';
-import { generate as generateBigroom8 } from './levels/bigroom-8.js';
-import { generate as generateBigroom9 } from './levels/bigroom-9.js';
-import { generate as generateBigroom10 } from './levels/bigroom-10.js';
-import { generate as generateBigroom11 } from './levels/bigroom-11.js';
-import { generate as generateBigroom12 } from './levels/bigroom-12.js';
-import { generate as generateBigroom13 } from './levels/bigroom-13.js';
+// import { generate as generateBigroom1 } from './levels/bigroom-1.js';
+// import { generate as generateBigroom2 } from './levels/bigroom-2.js';
+// import { generate as generateBigroom3 } from './levels/bigroom-3.js';
+// import { generate as generateBigroom4 } from './levels/bigroom-4.js';
+// import { generate as generateBigroom5 } from './levels/bigroom-5.js';
+// import { generate as generateBigroom6 } from './levels/bigroom-6.js';
+// import { generate as generateBigroom7 } from './levels/bigroom-7.js';
+// import { generate as generateBigroom8 } from './levels/bigroom-8.js';
+// import { generate as generateBigroom9 } from './levels/bigroom-9.js';
+// import { generate as generateBigroom10 } from './levels/bigroom-10.js';
+// import { generate as generateBigroom11 } from './levels/bigroom-11.js';
+// import { generate as generateBigroom12 } from './levels/bigroom-12.js';
+// import { generate as generateBigroom13 } from './levels/bigroom-13.js';
 
 // Sokoban levels
-import { generate as generateSoko1a } from './levels/soko1-1.js';
-import { generate as generateSoko1b } from './levels/soko1-2.js';
-import { generate as generateSoko2a } from './levels/soko2-1.js';
-import { generate as generateSoko2b } from './levels/soko2-2.js';
-import { generate as generateSoko3a } from './levels/soko3-1.js';
-import { generate as generateSoko3b } from './levels/soko3-2.js';
-import { generate as generateSoko4a } from './levels/soko4-1.js';
-import { generate as generateSoko4b } from './levels/soko4-2.js';
+// import { generate as generateSoko1a } from './levels/soko1-1.js';
+// import { generate as generateSoko1b } from './levels/soko1-2.js';
+// import { generate as generateSoko2a } from './levels/soko2-1.js';
+// import { generate as generateSoko2b } from './levels/soko2-2.js';
+// import { generate as generateSoko3a } from './levels/soko3-1.js';
+// import { generate as generateSoko3b } from './levels/soko3-2.js';
+// import { generate as generateSoko4a } from './levels/soko4-1.js';
+// import { generate as generateSoko4b } from './levels/soko4-2.js';
 
 /**
  * Dungeon branch numbers
@@ -163,26 +163,25 @@ export function hasSpecialLevel(dnum, dlevel) {
 
 // Register Fort Ludios (Knox)
 // Fort Ludios is its own branch, accessed via magic portal
-registerSpecialLevel(KNOX, 1, generateKnox, 'knox');
+// registerSpecialLevel(KNOX, 1, generateKnox, 'knox');
 
 // Register Vlad's Tower (3 levels)
 // Tower is in its own branch, levels 1-3
-registerSpecialLevel(VLADS_TOWER, 1, generateTower1, 'tower1');
-registerSpecialLevel(VLADS_TOWER, 2, generateTower2, 'tower2');
-registerSpecialLevel(VLADS_TOWER, 3, generateTower3, 'tower3');
+// registerSpecialLevel(VLADS_TOWER, 1, generateTower1, 'tower1');
+// registerSpecialLevel(VLADS_TOWER, 2, generateTower2, 'tower2');
+// registerSpecialLevel(VLADS_TOWER, 3, generateTower3, 'tower3');
 
 // Register Gehennom levels
 // Valley is the entrance to Gehennom (level 1)
 // Demon lairs are scattered throughout Gehennom (levels 3-6)
 // Sanctum is the final level (level 10 in a typical game)
 // Wizard's Tower appears after getting the Amulet (levels 11-13)
-registerSpecialLevel(GEHENNOM, 1, generateValley, 'valley');
-registerSpecialLevel(GEHENNOM, 3, generateAsmodeus, 'asmodeus');
-registerSpecialLevel(GEHENNOM, 4, generateBaalz, 'baalz');
-registerSpecialLevel(GEHENNOM, 5, generateJuiblex, 'juiblex');
-registerSpecialLevel(GEHENNOM, 6, generateOrcus, 'orcus');
-registerSpecialLevel(GEHENNOM, 10, generateSanctum, 'sanctum');
-// TEMP: Commented out due to syntax errors
+// registerSpecialLevel(GEHENNOM, 1, generateValley, 'valley');
+// registerSpecialLevel(GEHENNOM, 3, generateAsmodeus, 'asmodeus');
+// registerSpecialLevel(GEHENNOM, 4, generateBaalz, 'baalz');
+// registerSpecialLevel(GEHENNOM, 5, generateJuiblex, 'juiblex');
+// registerSpecialLevel(GEHENNOM, 6, generateOrcus, 'orcus');
+// registerSpecialLevel(GEHENNOM, 10, generateSanctum, 'sanctum');
 // registerSpecialLevel(GEHENNOM, 11, generateWizard1, 'wizard1');
 // registerSpecialLevel(GEHENNOM, 12, generateWizard2, 'wizard2');
 // registerSpecialLevel(GEHENNOM, 13, generateWizard3, 'wizard3');
@@ -191,10 +190,10 @@ registerSpecialLevel(GEHENNOM, 10, generateSanctum, 'sanctum');
 // Sokoban is accessed from Dungeons of Doom around depth 6-9
 // Player gets one of two variants per level (a or b)
 // Variant selection happens at first access using RNG, then cached
-registerSpecialLevel(SOKOBAN, 1, [generateSoko1a, generateSoko1b], ['soko1-1', 'soko1-2']);
-registerSpecialLevel(SOKOBAN, 2, [generateSoko2a, generateSoko2b], ['soko2-1', 'soko2-2']);
-registerSpecialLevel(SOKOBAN, 3, [generateSoko3a, generateSoko3b], ['soko3-1', 'soko3-2']);
-registerSpecialLevel(SOKOBAN, 4, [generateSoko4a, generateSoko4b], ['soko4-1', 'soko4-2']);
+// registerSpecialLevel(SOKOBAN, 1, [generateSoko1a, generateSoko1b], ['soko1-1', 'soko1-2']);
+// registerSpecialLevel(SOKOBAN, 2, [generateSoko2a, generateSoko2b], ['soko2-1', 'soko2-2']);
+// registerSpecialLevel(SOKOBAN, 3, [generateSoko3a, generateSoko3b], ['soko3-1', 'soko3-2']);
+// registerSpecialLevel(SOKOBAN, 4, [generateSoko4a, generateSoko4b], ['soko4-1', 'soko4-2']);
 
 // Register special levels in main dungeon
 // In Dungeons of Doom, at depths that vary by dungeon generation
