@@ -197,16 +197,17 @@ def convert_guidebook(input_file, output_file):
         line = re.sub(r'\b(ESC|SPACE|RETURN|ENTER|TAB|DELETE|BACKSPACE)\b', r'`\1`', line)
 
         # Wrap inline configuration examples (e.g., AUTOCOMPLETE=..., BIND=...)
-        # Match WORD= followed by content, wrap in backticks
-        line = re.sub(r'\b(AUTOCOMPLETE|BIND|MSGTYPE|SYMBOLS)=([^\s]+)', r'`\1=\2`', line)
+        # Match WORD= followed by content, wrap in backticks (including quoted strings)
+        line = re.sub(r'\b(AUTOCOMPLETE|BIND|MSGTYPE|SYMBOLS|OPTION|autopickup_exception)=((?:"[^"]*"|[^\s]+))', r'`\1=\2`', line)
 
-        # Wrap configuration file syntax (OPTIONS=, CHOOSE=, AUTOCOMPLETE=, BIND=, SYMBOLS=, [section])
+        # Wrap configuration file syntax (all config patterns, comments, and sections)
         # These are configuration file examples that should be in code blocks (when at line start)
-        # Also handle comment lines (# followed by space or #$ for empty comments)
-        if (line.startswith('OPTIONS=') or line.startswith('CHOOSE=') or
-            line.startswith('AUTOCOMPLETE=') or line.startswith('BIND=') or
-            line.startswith('SYMBOLS=') or line.startswith('# ') or line == '#' or
-            re.match(r'^\[.*\]', line)):
+        # Also handle comment lines (# followed by space or # for empty comments)
+        if (line.startswith('OPTIONS=') or line.startswith('OPTION=') or
+            line.startswith('CHOOSE=') or line.startswith('AUTOCOMPLETE=') or
+            line.startswith('BIND=') or line.startswith('SYMBOLS=') or
+            line.startswith('MSGTYPE=') or line.startswith('autopickup_exception=') or
+            line.startswith('# ') or line == '#' or re.match(r'^\[.*\]', line)):
             line = '    ' + line  # Indent with 4 spaces to make it a code block in markdown
 
         # Wrap option names (standalone lowercase words, possibly with underscores/numbers)
