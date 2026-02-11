@@ -109,7 +109,7 @@ const maxCalls = Math.max(jsRngCalls.length, cLevelGenCalls.length);
 let firstMismatch = -1;
 let matchingCalls = 0;
 
-for (let i = 0; i < Math.min(maxCalls, 500); i++) {
+for (let i = 0; i < Math.min(maxCalls, 2000); i++) {
     const jCall = jsRngCalls[i];
     const cCall = cLevelGenCalls[i];
 
@@ -173,8 +173,8 @@ const comparison = {
     matchingCalls,
     firstMismatch: firstMismatch >= 0 ? firstMismatch + 1 : null,
     gap: jsRngCalls.length - cLevelGenCalls.length,
-    jsCalls: jsRngCalls.slice(0, 500),
-    cCalls: cLevelGenCalls.slice(0, 500),
+    jsCalls: jsRngCalls.slice(0, 1000),
+    cCalls: cLevelGenCalls.slice(0, 1000),
 };
 
 fs.writeFileSync('debug_seed4_comparison.json', JSON.stringify(comparison, null, 2));

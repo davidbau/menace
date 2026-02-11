@@ -390,14 +390,18 @@ export function create_room(map, x, y, w, h, xal, yal, rtype, rlit, depth, inThe
             const y_rng = rn2(hy - (ly > 0 ? ly : 2) - dy - yborder + 1);
             yabs = ly + (ly > 0 ? ylim : 2) + y_rng;
             if (DEBUG_THEME) console.log(`  Room pos: xabs=${lx}+3+${x_rng}=${xabs}, yabs=${ly}+2+${y_rng}=${yabs}`);
-            // C ref: sp_lev.c:1566-1571 — special case for full-height rectangles in bottom half
-            // CRITICAL: Check (yabs + dy > ROWNO / 2) BEFORE calling rn2(map.nroom) to match C evaluation
-            if (ly === 0 && hy >= ROWNO - 1
-                && (yabs + dy > Math.floor(ROWNO / 2))
-                && (!map.nroom || !rn2(map.nroom))) {
-                yabs = rn1(3, 2);
-                if (map.nroom < 4 && dy > 1)
-                    dy--;
+            // C ref: sp_lev.c:1564-1571 — special case for full-height rectangles in bottom half
+            // CRITICAL: Call rn2(map.nroom) BEFORE other checks to match C RNG sequence
+            // C calls rn2(map.nroom) at line 1564, then checks condition at 1566-1571
+            let nroom_check = false;
+            if (ly === 0 && hy >= ROWNO - 1) {
+                // Always call rn2(map.nroom) for RNG alignment, even if other conditions fail
+                nroom_check = !map.nroom || !rn2(map.nroom);
+                if ((yabs + dy > Math.floor(ROWNO / 2)) && nroom_check) {
+                    yabs = rn1(3, 2);
+                    if (map.nroom < 4 && dy > 1)
+                        dy--;
+                }
             }
             const result = check_room(map, xabs, dx, yabs, dy, vault, inThemerooms);
             if (!result) {
