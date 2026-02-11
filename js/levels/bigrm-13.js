@@ -54,7 +54,7 @@ export function generate() {
        // 5: top && bottom rows
        function(x, y) { return (y%2 == 0); },
        // 6: random 50%
-       function(x, y) { return (Math.random(0,1) == 0); },
+       function(x, y) { return (rn2(2) == 0); },
        // 7: corners && center
        function(x, y) { return ((x/3)%2 == y%2); },
        // 8: slanted

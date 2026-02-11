@@ -470,7 +470,7 @@ export function generate() {
 
     };
 
-    let hellno = Math.random(1, hells.length);
+    let hellno = rn2(hells.length);
     hells[hellno]();
 
     // 
