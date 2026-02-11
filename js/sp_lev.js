@@ -1251,12 +1251,17 @@ export function room(opts = {}) {
             console.log(`des.room(): FIXED position x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, rtype=${rtype}, lit=${lit}, depth=${levelState.roomDepth}`);
         }
 
-        // C ref: sp_lev.c:1510 — litstate_rnd called before rnd_rect for RNG alignment
-        // Note: C's build_room always passes -1 (random) to create_room/litstate_rnd,
-        // ignoring the Lua lit parameter. The Lua lit is applied AFTER room creation.
-        const rndLit = litstate_rnd(-1, levelState.depth || 1);
-        // Use the Lua-specified lit value if provided, otherwise use the random result
-        lit = opts.lit !== undefined ? opts.lit : rndLit;
+        // C ref: sp_lev.c:1510 — litstate_rnd called with r->rlit from room template
+        // C ref: sp_lev.c:2803 — build_room passes r->rlit to create_room
+        // If rlit >= 0, litstate_rnd returns immediately without calling RNG
+        // If rlit < 0, litstate_rnd calls rnd() and rn2(77) to determine lighting
+        if (DEBUG_BUILD) {
+            console.log(`  [RNG ${getRngCallCount()}] Calling litstate_rnd(${lit}, ${levelState.depth || 1})`);
+        }
+        lit = litstate_rnd(lit, levelState.depth || 1);
+        if (DEBUG_BUILD) {
+            console.log(`  [RNG ${getRngCallCount()}] litstate_rnd -> ${lit}`);
+        }
 
         // C ref: sp_lev.c — special levels call rnd_rect() to select from rect pool
         // Top-level rooms (depth 0) need to select a rect from the BSP pool
