@@ -1030,6 +1030,13 @@ export function themerooms_generate(map, depth) {
       return false;
    }
 
+   // Mark MT as initialized after reservoir sampling to prevent lazy init
+   // The reservoir sampling consumed the MT init pattern (rn2(1000-1036) calls)
+   // Set luaRngCounter=37 to match C's state after MT init (see sp_lev.js:237)
+   if (levelState && levelState.luaRngCounter === 0) {
+      levelState.luaRngCounter = 37;
+   }
+
    const DEBUG_THEME = typeof process !== 'undefined' && process.env.DEBUG_THEMEROOMS === '1';
    if (DEBUG_THEME) {
       console.log(`Selected themed room [${pick}]: "${themerooms[pick].name}"`);
