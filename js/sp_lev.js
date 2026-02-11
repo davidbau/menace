@@ -1226,9 +1226,8 @@ export function room(opts = {}) {
     // Special levels use fixed coordinates, not BSP rectangle selection
     const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_ROOMS === '1';
 
-    // C ref: sp_lev.c:2808 build_room() — Apply chance check to determine final room type
-    // If chance roll fails, room becomes OROOM instead of requested type
-    // This happens BEFORE room creation, matching C's build_room() sequence
+    // C ref: sp_lev.c:2803 build_room() — build_room() ALWAYS calls rn2(100) for chance check
+    // This applies to ALL rooms created via des.room(), not just fixed-position rooms
     const DEBUG_BUILD = typeof process !== 'undefined' && process.env.DEBUG_BUILD_ROOM === '1';
     if (DEBUG_BUILD) {
         const before = getRngCallCount();
@@ -1247,7 +1246,6 @@ export function room(opts = {}) {
 
     if (x >= 0 && y >= 0 && w > 0 && h > 0) {
         // Fixed position special level room
-        // rtype already determined by chance check above
 
         if (DEBUG) {
             console.log(`des.room(): FIXED position x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, rtype=${rtype}, lit=${lit}, depth=${levelState.roomDepth}`);
@@ -1331,7 +1329,7 @@ export function room(opts = {}) {
         }
     } else {
         // Random placement - use sp_lev.c's create_room algorithm
-        // rtype already determined by chance check above (line 1188)
+        // Random-placement rooms do NOT call build_room's rn2(100) chance check
 
         if (DEBUG) {
             console.log(`des.room(): RANDOM placement x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, rtype=${rtype}, lit=${lit}`);

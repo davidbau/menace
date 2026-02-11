@@ -110,7 +110,10 @@ export function generateMapsSequential(seed, maxDepth) {
     initrack(); // reset player track buffer between tests
     initRng(seed);
     setGameSeed(seed);
-    initLevelGeneration();
+
+    // initLevelGeneration handles init_objects() and simulateDungeonInit() internally
+    // Pass roleIndex=11 for Valkyrie (matches C map test harness)
+    initLevelGeneration(11);
     const grids = {};
     const maps = {};
     for (let depth = 1; depth <= maxDepth; depth++) {
@@ -202,18 +205,9 @@ export function generateMapsWithRng(seed, maxDepth) {
     setGameSeed(seed);
     enableRngLog(); // Start logging RNG calls
 
-    // Object initialization (matches C's o_init.c)
-    // C ref: 198 RNG calls (3 gem colors + 194 shuffles + 1 wand direction)
-    init_objects();
-
-    // Dungeon and hero initialization (matches C's dungeon.c, bones.c, u_init.c)
-    // For Valkyrie (roleIndex=11) — consumes variable RNG calls based on dungeon layout
-    simulateDungeonInit(11);
-
-    // C ref: bones.c:643 getbones() - check for bones file
-    rn2(3);
-
-    initLevelGeneration();
+    // initLevelGeneration handles init_objects() and simulateDungeonInit() internally
+    // Pass roleIndex=11 for Valkyrie (matches C map test harness)
+    initLevelGeneration(11);
     const grids = {};
     const maps = {};
     const rngLogs = {};
