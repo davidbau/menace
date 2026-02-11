@@ -5,6 +5,7 @@
 
 import * as des from '../sp_lev.js';
 import { selection, percent, shuffle } from '../sp_lev.js';
+import { rnd, rn2 } from '../rng.js';
 
 export function generate() {
     // NetHack 3.7	mines minetn-1.lua	$NHDT-Date: 1652196030 2022/5/10 15:20:30 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.8 $
@@ -99,7 +100,7 @@ export function generate() {
     des.object({ id: "corpse", montype: "watch captain" });
 
     // Rubble!
-    for (let i = 1; i <= 9 + Math.random(2 - 1,2*5); i++) {
+    for (let i = 1; i <= 9 + rnd(10); i++) {
       if (percent(90)) {
         des.object("boulder");
       }
@@ -107,13 +108,13 @@ export function generate() {
     }
 
     // Guarantee 7 candles since we won't have Izchak available
-    des.object({ id: "wax candle", coord: place[4], quantity: Math.random(1,2) });
+    des.object({ id: "wax candle", coord: place[4], quantity: rnd(2) });
 
-    des.object({ id: "wax candle", coord: place[1], quantity: Math.random(2,4) });
-    des.object({ id: "wax candle", coord: place[2], quantity: Math.random(1,2) });
-    des.object({ id: "tallow candle", coord: place[3], quantity: Math.random(1,3) });
-    des.object({ id: "tallow candle", coord: place[2], quantity: Math.random(1,2) });
-    des.object({ id: "tallow candle", coord: place[4], quantity: Math.random(1,2) });
+    des.object({ id: "wax candle", coord: place[1], quantity: 2 + rn2(3) });
+    des.object({ id: "wax candle", coord: place[2], quantity: rnd(2) });
+    des.object({ id: "tallow candle", coord: place[3], quantity: rnd(3) });
+    des.object({ id: "tallow candle", coord: place[2], quantity: rnd(2) });
+    des.object({ id: "tallow candle", coord: place[4], quantity: rnd(2) });
 
     // go ahead && leave a lamp next to one corpse to be suggestive
     // && some empty wands...args
@@ -127,9 +128,9 @@ export function generate() {
     // the Orcish Army
 
     let inside = selection.floodfill(18,8)
-    let near_temple = selection.area(17,8, 23,14) & inside
+    let near_temple = selection.area(17,8, 23,14).intersect(inside)
 
-    for (let i = 1; i <= 5 + Math.random(1 - 1,1*10); i++) {
+    for (let i = 1; i <= 5 + rn2(11); i++) {
        if (percent(50)) {
           des.monster({ id: "orc-captain", coord: inside.rndcoord(1), peaceful: 0 });
        } else {
@@ -141,12 +142,12 @@ export function generate() {
        }
     }
     // shamans can be hanging out in/near the temple
-    for (let i = 1; i <= Math.random(2 - 1,2*3); i++) {
+    for (let i = 1; i <= rnd(6); i++) {
        des.monster({ id: "orc shaman", coord: near_temple.rndcoord(0), peaceful: 0 });
     }
     // these are ! such a big deal
     // to run into outside the bars
-    for (let i = 1; i <= 9 + Math.random(2 - 1,2*5); i++) {
+    for (let i = 1; i <= 9 + rnd(10); i++) {
        if (percent(90)) {
           des.monster({ id: "hill orc", peaceful: 0 });
        } else {

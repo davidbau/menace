@@ -1182,41 +1182,44 @@ export class Agent {
                                     console.log(`[SECRET DOOR] All occupancy targets exhausted, no secret door found`);
                                     this.secretDoorSearch = null;
                                 }
-                                return this.decide(state); // Try next target
+                                // Fall through to try other exploration strategies
                             }
                         }
 
-                        // We're adjacent to the wall - search it!
-                        search.searchesDone++;
+                        // Only search if we're adjacent (dist check passed above)
+                        if (dist <= 1) {
+                            // We're adjacent to the wall - search it!
+                            search.searchesDone++;
 
-                        // Track search count in the wall cell
-                        const wallCell = level.at(target.x, target.y);
-                        if (wallCell) {
-                            wallCell.searchCount = (wallCell.searchCount || 0) + 1;
-                            wallCell.lastSearchTurn = this.turnNumber;
-                        }
-
-                        // Track search count in the player's current position too
-                        if (currentCell) {
-                            currentCell.searchCount = (currentCell.searchCount || 0) + 1;
-                            currentCell.lastSearchTurn = this.turnNumber;
-                        }
-
-                        console.log(`[SECRET DOOR] Searching target ${search.currentIndex+1}/${search.targets.length} at (${target.x},${target.y}) [${search.searchesDone}/${search.searchesNeeded}]`);
-
-                        if (search.searchesDone >= search.searchesNeeded) {
-                            // Done with this target - move to next
-                            console.log(`[SECRET DOOR] Completed ${search.searchesNeeded} searches at (${target.x},${target.y}), moving to next`);
-                            search.currentIndex++;
-                            search.searchesDone = 0;
-
-                            if (search.currentIndex >= search.targets.length) {
-                                console.log(`[SECRET DOOR] All occupancy targets searched (${search.targets.length} walls), no secret door found`);
-                                this.secretDoorSearch = null;
+                            // Track search count in the wall cell
+                            const wallCell = level.at(target.x, target.y);
+                            if (wallCell) {
+                                wallCell.searchCount = (wallCell.searchCount || 0) + 1;
+                                wallCell.lastSearchTurn = this.turnNumber;
                             }
-                        }
 
-                        return {type: 'search', key: 's', reason: `occupancy-based secret door search at (${target.x},${target.y})`};
+                            // Track search count in the player's current position too
+                            if (currentCell) {
+                                currentCell.searchCount = (currentCell.searchCount || 0) + 1;
+                                currentCell.lastSearchTurn = this.turnNumber;
+                            }
+
+                            console.log(`[SECRET DOOR] Searching target ${search.currentIndex+1}/${search.targets.length} at (${target.x},${target.y}) [${search.searchesDone}/${search.searchesNeeded}]`);
+
+                            if (search.searchesDone >= search.searchesNeeded) {
+                                // Done with this target - move to next
+                                console.log(`[SECRET DOOR] Completed ${search.searchesNeeded} searches at (${target.x},${target.y}), moving to next`);
+                                search.currentIndex++;
+                                search.searchesDone = 0;
+
+                                if (search.currentIndex >= search.targets.length) {
+                                    console.log(`[SECRET DOOR] All occupancy targets searched (${search.targets.length} walls), no secret door found`);
+                                    this.secretDoorSearch = null;
+                                }
+                            }
+
+                            return {type: 'search', key: 's', reason: `occupancy-based secret door search at (${target.x},${target.y})`};
+                        }
                     } else {
                         // No more targets
                         this.secretDoorSearch = null;
