@@ -454,7 +454,7 @@ export const themerooms = [
          des.room({ type: "themed", w: 5 + rn2(3)*2, h: 5 + rn2(3)*2,
                   contents: function(rm) {
                      des.room({ type: "themed",
-                                 x: (rm.width - 1) / 2, y: (rm.height - 1) / 2,
+                                 x: Math.floor((rm.width - 1) / 2), y: Math.floor((rm.height - 1) / 2),
                                  w: 1, h: 1, joined: false,
                                  contents: function() {
                                     if (percent(50)) {
