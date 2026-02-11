@@ -2578,6 +2578,21 @@ function executeDeferredTraps() {
  *
  * @returns {GameMap} The finalized map ready for gameplay
  */
+
+/**
+ * des.wallify()
+ * Explicitly wallify the current map (compute wall junction types).
+ * Usually called automatically by finalize_level(), but some levels call it explicitly.
+ * C ref: sp_lev.c spo_wallify()
+ */
+export function wallify() {
+    if (!levelState.map) {
+        console.warn('wallify called but no map exists');
+        return;
+    }
+    wallification(levelState.map);
+}
+
 export function finalize_level() {
     // CRITICAL: Execute deferred placements BEFORE wallification
     // This matches C's execution order: rooms → corridors → entities → wallify
@@ -2810,6 +2825,21 @@ export const selection = {
                 });
                 return result;
             },
+            intersect: (other) => {
+                if (!other || !other.coords) {
+                    return selection.new();
+                }
+                const otherSet = new Set();
+                other.coords.forEach(c => otherSet.add(`${c.x},${c.y}`));
+                const result = selection.new();
+                coords.forEach(c => {
+                    const key = `${c.x},${c.y}`;
+                    if (otherSet.has(key)) {
+                        result.set(c.x, c.y);
+                    }
+                });
+                return result;
+            },
         };
     },
 
@@ -2928,6 +2958,26 @@ export const selection = {
                 coordSet.forEach(key => {
                     const [x, y] = key.split(',').map(Number);
                     result.set(x, y);
+                });
+                return result;
+            },
+            /**
+             * intersect(other)
+             * Return a new selection containing only coords present in both selections.
+             * C ref: Lua operator & for selections
+             */
+            intersect: (other) => {
+                if (!other || !other.coords) {
+                    return selection.new();
+                }
+                const otherSet = new Set();
+                other.coords.forEach(c => otherSet.add(`${c.x},${c.y}`));
+                const result = selection.new();
+                coords.forEach(c => {
+                    const key = `${c.x},${c.y}`;
+                    if (otherSet.has(key)) {
+                        result.set(c.x, c.y);
+                    }
                 });
                 return result;
             },
@@ -3117,7 +3167,9 @@ export const selection = {
      * @returns {Object} Selection with coords array
      */
     floodfill: (x, y, matchFn) => {
-        if (!levelState.map) return { coords: [] };
+        if (!levelState.map) {
+            return selection.new();
+        }
 
         const coords = [];
         const visited = new Set();
@@ -3144,7 +3196,10 @@ export const selection = {
             }
         }
 
-        return { coords };
+        // Return a proper selection object with all methods
+        const sel = selection.new();
+        coords.forEach(c => sel.set(c.x, c.y));
+        return sel;
     },
 
     /**
