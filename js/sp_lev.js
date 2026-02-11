@@ -2303,8 +2303,20 @@ export function feature(type, x, y) {
     };
 
     const terrain = terrainMap[type];
-    if (terrain !== undefined && x >= 0 && x < 80 && y >= 0 && y < 21) {
-        levelState.map.locations[x][y].typ = terrain;
+    if (terrain === undefined) return;
+
+    // Convert relative coordinates to absolute if inside a nested room
+    // C ref: Lua automatically handles coordinate conversion based on room context
+    let absX = x;
+    let absY = y;
+    if (levelState.currentRoom && x !== undefined && y !== undefined) {
+        // Coordinates are relative to room interior (excluding walls)
+        absX = levelState.currentRoom.lx + 1 + x;
+        absY = levelState.currentRoom.ly + 1 + y;
+    }
+
+    if (absX >= 0 && absX < 80 && absY >= 0 && absY < 21) {
+        levelState.map.locations[absX][absY].typ = terrain;
     }
 }
 
