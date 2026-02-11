@@ -3451,6 +3451,8 @@ export function initLevelGeneration(roleIndex) {
     simulateDungeonInit(roleIndex);
     _themesLoaded = false; // Reset Lua theme state for new game
     setMtInitialized(false); // Reset MT RNG state for new game
+
+    // NOTE: xoshiro256** seeding happens in test harness before calling this
 }
 
 // C ref: mklev.c makelevel()

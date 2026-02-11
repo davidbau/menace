@@ -1019,8 +1019,16 @@ export function themerooms_generate(map, depth) {
          // avoid rn2(0) if a room has freq 0
          // C ref: Lua reservoir sampling uses math.random (invisible), not nhl_rn2
          // Use xoshiroRandom() to match Lua's math.random (xoshiro256** seeded per MT init)
-         if (this_frequency > 0 && xoshiroRandom() * total_frequency < this_frequency) {
-            pick = i;
+         if (this_frequency > 0) {
+            const randValue = xoshiroRandom();
+            const threshold = this_frequency / total_frequency;
+            const DEBUG_RESERVOIR = typeof process !== 'undefined' && process.env.DEBUG_RESERVOIR === '1';
+            if (DEBUG_RESERVOIR) {
+               console.log(`  Room ${i} (${themerooms[i].name || 'unnamed'}): rand=${randValue.toFixed(6)}, thresh=${threshold.toFixed(6)}, freq=${this_frequency}, total=${total_frequency}, pick=${randValue < threshold ? 'YES' : 'no'}`);
+            }
+            if (randValue < threshold) {
+               pick = i;
+            }
          }
       }
    }

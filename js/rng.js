@@ -78,9 +78,17 @@ function logRng(func, args, result) {
     rngLog.push(`${rngCallCount} ${func}(${args})=${result}${tag}`);
 }
 
+let _currentSeed = 0;
+
+// Get the current RNG seed
+export function getRngSeed() {
+    return _currentSeed;
+}
+
 // Initialize the PRNG with a seed (unsigned long, up to 64 bits)
 // C ref: rnd.c init_isaac64() -- converts seed to little-endian bytes
 export function initRng(seed) {
+    _currentSeed = seed;
     // Convert seed to BigInt, then to 8 little-endian bytes
     // C ref: rnd.c init_isaac64() -- sizeof(unsigned long) = 8 on 64-bit Linux
     let s = BigInt(seed) & 0xFFFFFFFFFFFFFFFFn;

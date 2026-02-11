@@ -214,19 +214,16 @@ export function initLuaMT() {
         console.log(`luaRngCounter BEFORE init: ${levelState ? levelState.luaRngCounter : 'no levelState'}`);
     }
 
-    // Capture MT init values to seed xoshiro for THIS themed room
-    const mtInitValues = [];
-    for (let i = 1000; i <= 1004; i++) mtInitValues.push(rn2(i));
-    mtInitValues.push(rn2(1010));
-    mtInitValues.push(rn2(1012));
-    for (let i = 1014; i <= 1036; i++) mtInitValues.push(rn2(i));
+    // Execute MT init pattern (30 RNG calls) but DON'T reseed xoshiro
+    // C ref: Lua's math.random state might persist across themed rooms, not reset per room
+    for (let i = 1000; i <= 1004; i++) rn2(i);
+    rn2(1010);
+    rn2(1012);
+    for (let i = 1014; i <= 1036; i++) rn2(i);
     _mtInitializedLocal = true;
 
-    // Seed xoshiro256** for THIS themed room's reservoir sampling
-    // C ref: Each themed room might get fresh Lua state with fresh math.random seed
-    if (typeof seedFromMT === 'function') {
-        seedFromMT(mtInitValues);
-    }
+    // NOTE: xoshiro is seeded ONCE at initRng() time and state persists
+    // This matches Lua having persistent math.random state, not reset per themed room
 
     if (DEBUG) {
         const rngCount = typeof getRngCallCount === 'function' ? getRngCallCount() : '?';
