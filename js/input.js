@@ -2,6 +2,8 @@
 // Implements an async input queue that replaces the C's blocking nhgetch().
 // See DECISIONS.md #1 for the rationale.
 
+import { CLR_WHITE } from './display.js';
+
 const inputQueue = [];
 let inputResolver = null;
 
@@ -130,22 +132,39 @@ export function nhgetch() {
 // Get a line of input (async)
 // C ref: winprocs.h win_getlin
 export async function getlin(prompt, display) {
-    if (display) display.putstr_message(prompt);
     let line = '';
+
+    // Helper to update display
+    const updateDisplay = () => {
+        if (display) {
+            // Clear the message row and display prompt + current input
+            // Don't use putstr_message as it concatenates short messages
+            display.clearRow(0);
+            display.putstr(0, 0, prompt + line, CLR_WHITE);
+        }
+    };
+
+    // Initial display
+    updateDisplay();
+
     while (true) {
         const ch = await nhgetch();
         if (ch === 13 || ch === 10) { // Enter
+            // Clear topMessage to prevent message concatenation issues
+            if (display) display.topMessage = null;
             return line;
         } else if (ch === 27) { // ESC
+            // Clear topMessage to prevent message concatenation issues
+            if (display) display.topMessage = null;
             return null; // cancelled
         } else if (ch === 8 || ch === 127) { // Backspace
             if (line.length > 0) {
                 line = line.slice(0, -1);
-                if (display) display.putstr_message(prompt + line);
+                updateDisplay();
             }
         } else if (ch >= 32 && ch < 127) {
             line += String.fromCharCode(ch);
-            if (display) display.putstr_message(prompt + line);
+            updateDisplay();
         }
     }
 }

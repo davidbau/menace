@@ -19,7 +19,7 @@ import { rhack } from './commands.js';
 import { movemon, settrack } from './monmove.js';
 import { simulatePostLevelInit } from './u_init.js';
 import { loadSave, deleteSave, hasSave, saveGame,
-         loadFlags, deserializeRng,
+         loadFlags, saveFlags, deserializeRng,
          restGameState, restLev,
          listSavedData, clearAllData } from './storage.js';
 import { savebones } from './bones.js';
@@ -241,6 +241,15 @@ class NetHackGame {
     async _promptPlayerName() {
         const MAX_NAME_LENGTH = 31; // C ref: global.h PL_NSIZ = 32 (31 chars + null)
 
+        // Check if name is already saved in options (like C NetHack config file)
+        // C ref: options.c — name can be set via OPTIONS=name:playername
+        if (this.flags.name && this.flags.name.trim() !== '') {
+            // Use saved name (skip prompt)
+            this.player.name = this.flags.name.trim().substring(0, MAX_NAME_LENGTH);
+            return;
+        }
+
+        // No saved name - prompt for it
         while (true) {
             const name = await getlin('Who are you? ', this.display);
 
@@ -255,6 +264,11 @@ class NetHackGame {
 
             // C NetHack accepts any non-empty name
             this.player.name = trimmedName;
+
+            // Save name to options for future games (like C NetHack config)
+            this.flags.name = trimmedName;
+            saveFlags(this.flags);
+
             return;
         }
     }
@@ -946,7 +960,7 @@ class NetHackGame {
         const raceName = races[raceIdx].adj;
         const genderStr = female ? 'female' : 'male';
         const alignStr = alignName(align);
-        const confirmText = `${this.player.name.toLowerCase()} the ${alignStr} ${genderStr} ${raceName} ${rName}`;
+        const confirmText = `${this.player.name} the ${alignStr} ${genderStr} ${raceName} ${rName}`;
 
         const lines = [];
         lines.push('Is this ok? [ynq]');
@@ -963,7 +977,8 @@ class NetHackGame {
         const c = String.fromCharCode(ch);
 
         if (c === 'q') { window.location.reload(); return false; }
-        return c === 'y';
+        // Both 'y' and '*' accept (as shown in menu: "y * Yes")
+        return c === 'y' || c === '*';
     }
 
     // Show lore text and welcome message
@@ -1037,7 +1052,7 @@ class NetHackGame {
             genderStr = female ? 'female ' : 'male ';
         }
 
-        const welcomeMsg = `${greeting} ${this.player.name.toLowerCase()}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
+        const welcomeMsg = `${greeting} ${this.player.name}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
         this.display.putstr_message(welcomeMsg);
 
         // Show --More-- after welcome

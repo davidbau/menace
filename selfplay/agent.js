@@ -1149,8 +1149,10 @@ export class Agent {
             );
 
             // Occupancy map secret door search (Campbell & Verbrugge 2017 approach)
+            // NOTE: Secret doors only exist on Dlvl 3+ (depth > 2 per js/dungeon.js:1281)
             // Trigger when stuck and no downstairs found
             const shouldSearchSecretDoors =
+                this.dungeon.currentDepth > 2 &&         // Secret doors only on Dlvl 3+
                 this.levelStuckCounter > 20 &&           // Stuck for 20+ turns
                 level.stairsDown.length === 0 &&         // No downstairs found yet
                 coverageForSearch < 0.90;                // Not almost fully explored
@@ -1412,8 +1414,8 @@ export class Agent {
                 // Only search aggressively if we've explored most reachable areas
                 // If there are still frontier cells, we should explore them first
                 const frontier = level.getExplorationFrontier();
-                if (frontier.length < 10 && this.searchesAtPosition < 30) {
-                    // Very few unexplored cells - search for secrets
+                if (frontier.length < 10 && this.searchesAtPosition < 30 && this.dungeon.currentDepth > 2) {
+                    // Very few unexplored cells - search for secrets (only on Dlvl 3+)
                     this.searchesAtPosition++;
                     if (currentCell) currentCell.searched++;
                     return { type: 'search', key: 's', reason: `aggressive search for hidden stairs (stuck ${this.levelStuckCounter})` };
@@ -1719,8 +1721,8 @@ export class Agent {
             }
 
             // If no reachable search candidates, or all are heavily searched,
-            // just search from current position (might help in edge cases)
-            if (this.levelStuckCounter > 40 && currentCell && currentCell.searched < 30) {
+            // just search from current position (might help in edge cases, only on Dlvl 3+)
+            if (this.levelStuckCounter > 40 && currentCell && currentCell.searched < 30 && this.dungeon.currentDepth > 2) {
                 currentCell.searched++;
                 return { type: 'search', key: 's', reason: `exhaustive search from current position (stuck ${this.levelStuckCounter})` };
             }
@@ -1742,8 +1744,8 @@ export class Agent {
                 this.searchesAtPosition = 3; // Skip further searches
             }
 
-            // Try searching briefly for secret doors
-            if (this.searchesAtPosition < 3) {
+            // Try searching briefly for secret doors (only on Dlvl 3+ where they exist)
+            if (this.searchesAtPosition < 3 && this.dungeon.currentDepth > 2) {
                 this.searchesAtPosition++;
                 if (currentCell) currentCell.searched++;
                 return { type: 'search', key: 's', reason: 'searching for secret passages (stuck)' };
@@ -1968,7 +1970,8 @@ export class Agent {
         const exploredPercentForSearch = level.exploredCount / (80 * 21);
         const thoroughlyExploredForSearch = frontierForSearch.length < 10 || exploredPercentForSearch > 0.50;
 
-        if (thoroughlyExploredForSearch && this.searchesAtPosition < 20) {
+        // Only search for secret doors on Dlvl 3+ where they actually exist
+        if (thoroughlyExploredForSearch && this.searchesAtPosition < 20 && this.dungeon.currentDepth > 2) {
             this.searchesAtPosition++;
             if (currentCell) currentCell.searched++;
             return { type: 'search', key: 's', reason: 'searching for secret passages' };

@@ -1729,8 +1729,20 @@ async function handleSet(game) {
         lines.push('Current Options:');
         lines.push('');
 
-        // Group options by category
-        // C ref: options.c optS_type[] categories
+        // C ref: C NetHack shows string options first ("Compounds"), then booleans
+        // Display string/compound options
+        const stringOpts = OPTION_DEFS.filter(d => d.type === 'string');
+        if (stringOpts.length > 0) {
+            lines.push('Compounds (selecting will prompt for new value):');
+            for (const def of stringOpts) {
+                const value = flags[def.name] || '';
+                // C ref: format is "x) label [current_value]"
+                lines.push(`  ${def.menuChar}) ${def.label} [${value}]`);
+            }
+            lines.push('');
+        }
+
+        // Display boolean options by category
         const categories = {
             'Gameplay': ['pickup', 'safe_pet', 'confirm'],
             'Display': ['showexp', 'color', 'time', 'lit_corridor', 'DECgraphics'],
@@ -1783,27 +1795,52 @@ async function handleSet(game) {
             continue;
         }
 
-        // Check for option toggle
+        // Check for option selection
         const def = OPTION_DEFS.find(d => d.menuChar === c);
-        if (def && def.type === 'boolean') {
-            // Toggle the option - C ref: immediate toggle in menu
-            flags[def.name] = !flags[def.name];
+        if (def) {
+            if (def.type === 'boolean') {
+                // Toggle boolean option - C ref: immediate toggle in menu
+                flags[def.name] = !flags[def.name];
 
-            // Apply side-effects for specific flags
-            if (def.name === 'showexp') {
-                player.showExp = flags.showexp;
+                // Apply side-effects for specific flags
+                if (def.name === 'showexp') {
+                    player.showExp = flags.showexp;
+                }
+                if (def.name === 'time') {
+                    player.showTime = flags.time;
+                }
+
+                // Update global flags for input handler
+                window.gameFlags = flags;
+
+                // Save immediately (persist to localStorage)
+                saveFlags(flags);
+            } else if (def.type === 'string') {
+                // Prompt for string option value
+                // C ref: options.c - "Set <option> to what?"
+                const newValue = await getlin(`Set ${def.name} to what? `, display);
+
+                // ESC cancels (getlin returns null)
+                if (newValue !== null) {
+                    // Enforce max length for name (31 chars)
+                    const MAX_NAME_LENGTH = 31;
+                    if (def.name === 'name' && newValue.length > MAX_NAME_LENGTH) {
+                        flags[def.name] = newValue.substring(0, MAX_NAME_LENGTH);
+                    } else {
+                        flags[def.name] = newValue;
+                    }
+
+                    // Update player name if changed
+                    if (def.name === 'name') {
+                        player.name = flags.name;
+                    }
+
+                    // Save immediately
+                    saveFlags(flags);
+                }
+                // After editing string option, clear and redraw menu
+                // (getlin modifies display, so we need to redraw)
             }
-            if (def.name === 'time') {
-                player.showTime = flags.time;
-            }
-
-            // Update global flags for input handler
-            window.gameFlags = flags;
-
-            // Save immediately (persist to localStorage)
-            // C ref: options.c - options persist immediately when changed
-            saveFlags(flags);
-
             // Loop continues - menu stays open
         }
         // If invalid key, just loop again (menu stays open, no error message)

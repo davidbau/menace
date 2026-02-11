@@ -55,6 +55,10 @@
             padding: 4px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
             flex-shrink: 0;
+            /* Pre-size to prevent layout shift when game loads */
+            /* Terminal is 80 cols × 24 rows at 16px font, 1.2 line-height, 8px padding */
+            min-width: calc(80ch + 16px);  /* 80 chars + padding */
+            min-height: calc(24 * 16px * 1.2 + 16px);  /* 24 rows × line-height + padding = 477px */
         }
 
         #terminal {
@@ -78,6 +82,11 @@
             color: #aaa;
             font-size: 16px;
             padding: 20px;
+            /* Center in the pre-sized container */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(24 * 16px * 1.2 + 16px - 40px);  /* Match game height minus padding */
         }
 
         /* Focus indicator */
