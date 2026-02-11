@@ -599,9 +599,10 @@ async function handleMovement(dir, player, map, display, game) {
         }
     }
 
-    // Check for stairs
+    // Check for stairs (but don't overwrite pickup messages!)
     // C ref: do.c:738 flags.verbose gates "There is a staircase..."
-    if (game.flags.verbose && loc.typ === STAIRS) {
+    // Only show terrain messages if nothing was picked up
+    if (!pickedUp && game.flags.verbose && loc.typ === STAIRS) {
         if (loc.flags === 1) {
             display.putstr_message('There is a staircase up here.');
         } else {
@@ -610,7 +611,7 @@ async function handleMovement(dir, player, map, display, game) {
     }
 
     // C ref: do.c:774 flags.verbose gates terrain feature descriptions
-    if (game.flags.verbose && loc.typ === FOUNTAIN) {
+    if (!pickedUp && game.flags.verbose && loc.typ === FOUNTAIN) {
         display.putstr_message('There is a fountain here.');
     }
 
