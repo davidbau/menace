@@ -477,6 +477,21 @@ export class Display {
             }
         }
 
+        // Handle altar alignment colors
+        // C ref: display.h altar_color enum, display.c altarcolors[]
+        if (typ === ALTAR) {
+            const align = loc.altarAlign !== undefined ? loc.altarAlign : 0;
+            let altarColor;
+            if (align === 1) {        // A_LAWFUL
+                altarColor = CLR_WHITE;
+            } else if (align === -1) { // A_CHAOTIC
+                altarColor = CLR_BLACK;
+            } else {                   // A_NEUTRAL (0) or unaligned
+                altarColor = CLR_GRAY;
+            }
+            return { ch: '_', color: altarColor };
+        }
+
         // Handle secret door/corridor (appears as wall/stone when unseen)
         if (typ === SDOOR) {
             return loc.horizontal

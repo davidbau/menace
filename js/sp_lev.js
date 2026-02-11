@@ -1334,17 +1334,24 @@ export function room(opts = {}) {
     const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_ROOMS === '1';
     const DEBUG_BUILD = typeof process !== 'undefined' && process.env.DEBUG_BUILD_ROOM === '1';
 
-    // C ref: sp_lev.c — build_room() RNG ordering differs for top-level vs nested rooms
-    // Top-level rooms (depth 0): build_room rn2(100) → litstate_rnd → create_room
+    // C ref: sp_lev.c — build_room() RNG ordering differs based on room type:
+    // Fixed-position rooms: build_room rn2(100) → litstate_rnd → create_room
+    // Random-placement rooms: create_room (alignment) → build_room rn2(100)
     // Nested rooms (depth > 0): create_room → build_room rn2(100)
-    // We'll call build_room's rn2(100) at the appropriate time based on depth
-    let rtype; // Will be set at the right time depending on nesting level
+    // We'll call build_room's rn2(100) at the appropriate time based on room type
+    let rtype; // Will be set at the right time depending on room type
 
-    // For top-level rooms, call build_room's rn2(100) FIRST
-    if (levelState.roomDepth === 0) {
+    // Check if this is a random-placement room (x/y not specified)
+    // The key distinction is whether x/y coordinates are fixed, not whether w/h are specified
+    // e.g., des.room({ w: 10, h: 10 }) with x=-1, y=-1 is still random-placement
+    const isRandomPlacement = (x === -1 && y === -1);
+
+    // For top-level FIXED-POSITION rooms, call build_room's rn2(100) FIRST
+    // Random-placement rooms skip this and call rn2(100) later (after create_room alignment)
+    if (levelState.roomDepth === 0 && !isRandomPlacement) {
         if (DEBUG_BUILD) {
             const before = getRngCallCount();
-            console.log(`\n=== [RNG ${before}] des.room() build_room chance check (TOP-LEVEL) ===`);
+            console.log(`\n=== [RNG ${before}] des.room() build_room chance check (TOP-LEVEL FIXED) ===`);
             console.log(`  chance=${chance}, requestedRtype=${requestedRtype}, type="${type}"`);
         }
         rtype = (!chance || rn2(100) < chance) ? requestedRtype : 0; // 0 = OROOM
@@ -1496,8 +1503,11 @@ export function room(opts = {}) {
             console.log(`des.room(): RANDOM placement x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, rtype=${rtype}, lit=${lit}`);
         }
 
+        // For random-placement rooms, skip litstate_rnd in create_room_splev
+        // We'll call it later, after build_room's rn2(100) chance check
+        // C ref: For themed rooms, litstate_rnd happens AFTER alignment and build_room
         const roomCalc = create_room_splev(x, y, w, h, xalign, yalign,
-                                           rtype, lit, levelState.depth || 1);
+                                           rtype, lit, levelState.depth || 1, true); // skipLitstate=true
 
         if (!roomCalc) {
             if (DEBUG) {
@@ -1514,6 +1524,34 @@ export function room(opts = {}) {
         if (roomCalc._alreadyAdded) {
             if (DEBUG) {
                 console.log(`des.room(): room already added by create_room (fully random), executing contents callback`);
+            }
+
+            // For top-level random-placement rooms, call build_room's rn2(100) now
+            // (after create_room's alignment randomization)
+            // C ref: For random-placement rooms, C does: create_room (alignment) → build_room rn2(100) → litstate_rnd
+            if (levelState.roomDepth === 0) {
+                if (DEBUG_BUILD) {
+                    const before = getRngCallCount();
+                    console.log(`\n=== [RNG ${before}] des.room() build_room chance check (TOP-LEVEL random-placement) ===`);
+                    console.log(`  chance=${chance}, requestedRtype=${requestedRtype}, type="${type}"`);
+                }
+                rtype = (!chance || rn2(100) < chance) ? requestedRtype : 0; // 0 = OROOM
+                if (DEBUG_BUILD) {
+                    console.log(`  [RNG ${getRngCallCount()}] rn2(100) done, rtype=${rtype}`);
+                }
+                // Update room type if chance roll changed it
+                roomCalc.rtype = rtype;
+
+                // Now call litstate_rnd (after build_room's rn2(100))
+                if (DEBUG_BUILD) {
+                    const before = getRngCallCount();
+                    console.log(`  [RNG ${before}] des.room() calling litstate_rnd(${lit}, ${levelState.depth || 1}) after build_room`);
+                }
+                lit = litstate_rnd(lit, levelState.depth || 1);
+                roomCalc.rlit = lit; // Update room's lighting
+                if (DEBUG_BUILD) {
+                    console.log(`  [RNG ${getRngCallCount()}] litstate_rnd returned ${lit}`);
+                }
             }
 
             // For nested rooms on the fully-random path, call build_room's rn2(100) now
@@ -1634,7 +1672,7 @@ export function room(opts = {}) {
     // Fixed-position rooms (like oracle's x=3,y=3) do NOT split - they bypass BSP entirely
     // Nested rooms (subrooms) also do NOT split - C ref: create_subroom() has no split_rects call
     // Themed rooms have x=-1,y=-1 (random placement) but may specify w,h (fixed size)
-    const isRandomPlacement = (x === -1 && y === -1);
+    // Use isRandomPlacement variable already defined at top of function
     if (levelState.roomDepth === 0 && isRandomPlacement) {
         update_rect_pool_for_room(room);
     }

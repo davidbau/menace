@@ -7,7 +7,8 @@ import {
     COLNO, ROWNO, STONE, VWALL, HWALL, STAIRS, VAULT,
     IS_WALL, IS_DOOR, ACCESSIBLE, SDOOR, SCORR, IRONBARS,
     CORR, ROOM, DOOR, isok, TERMINAL_COLS, TERMINAL_ROWS,
-    D_ISOPEN, D_CLOSED, D_LOCKED, D_NODOOR
+    D_ISOPEN, D_CLOSED, D_LOCKED, D_NODOOR,
+    ALTAR, A_LAWFUL, A_NEUTRAL, A_CHAOTIC
 } from '../../js/config.js';
 import { initRng, enableRngLog, getRngLog, disableRngLog, rn2, rnd, rn1 } from '../../js/rng.js';
 import { initLevelGeneration, makelevel, setGameSeed, wallification, simulateDungeonInit } from '../../js/dungeon.js';
@@ -1047,6 +1048,21 @@ export class HeadlessDisplay {
                     ? { ch: '\u00b7', color: 7 }  // CLR_GRAY = 7
                     : { ch: '.', color: 7 };
             }
+        }
+
+        // Handle altar alignment colors
+        // C ref: display.h altar_color enum
+        if (typ === ALTAR) {
+            const align = loc.altarAlign !== undefined ? loc.altarAlign : 0;
+            let altarColor;
+            if (align === A_LAWFUL) {
+                altarColor = 15;  // CLR_WHITE
+            } else if (align === A_CHAOTIC) {
+                altarColor = 0;   // CLR_BLACK
+            } else {
+                altarColor = 7;   // CLR_GRAY (neutral or unaligned)
+            }
+            return { ch: '_', color: altarColor };
         }
 
         // For other terrain types, return basic symbol

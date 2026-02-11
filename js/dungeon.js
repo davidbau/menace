@@ -2515,7 +2515,8 @@ function mkaltar(map, croom) {
     if (!loc) return;
     loc.typ = ALTAR;
     // C ref: alignment = rn2(A_LAWFUL+2) - 1
-    rn2(3);
+    // Store alignment: A_CHAOTIC (-1), A_NEUTRAL (0), or A_LAWFUL (1)
+    loc.altarAlign = rn2(3) - 1;
 }
 
 // C ref: mkroom.c mkgrave()
