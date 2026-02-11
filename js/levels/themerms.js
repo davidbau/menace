@@ -1028,9 +1028,10 @@ export function themerooms_generate(map, depth) {
    }
 
    const rngAfter = rngLog ? getRngLog().length : 0;
-   if (rngLog && rngAfter - rngBefore > 100) {
-      console.log(`themerooms[${pick}].contents() consumed ${rngAfter - rngBefore} RNG calls (name: ${themerooms[pick].name})`);
-   }
+   // Disabled: too spammy during investigation
+   // if (rngLog && rngAfter - rngBefore > 100) {
+   //    console.log(`themerooms[${pick}].contents() consumed ${rngAfter - rngBefore} RNG calls (name: ${themerooms[pick].name})`);
+   // }
 
    // C ref: mklev.c:408 — return failure if theme room creation failed
    // The contents() function calls des.room() which sets themeroom_failed flag on failure
