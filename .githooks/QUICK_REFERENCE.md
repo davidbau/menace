@@ -6,17 +6,17 @@
 
 ### Daily Workflow (Recommended)
 ```bash
-# Edit files
-vim js/file.js
+# Edit files, then run tests
+.githooks/test-and-log.sh
 
-# Commit with tests (all-in-one)
-.githooks/commit-with-tests-notes.sh "Fix bug" js/file.js
+# Commit — post-commit hook attaches test note automatically
+git add file.js && git commit -m "Fix bug"
 
-# Push
+# Push — pre-push verifies note exists, push carries it
 git push
 ```
 
-That's it! The helper does everything.
+That's it! Hooks handle test tracking automatically.
 
 ---
 
@@ -28,25 +28,16 @@ git config core.hooksPath .githooks
 git config --add remote.origin.push '+refs/notes/test-results:refs/notes/test-results'
 ```
 
-### Commit with Tests
-```bash
-# Git notes approach (recommended)
-.githooks/commit-with-tests-notes.sh "message" file1.js file2.js
-
-# Legacy approach
-.githooks/commit-with-tests.sh "message" file1.js file2.js
-```
+### How It Works
+1. `test-and-log.sh` runs tests → writes `teststats/pending.jsonl` with `"commit":"HEAD"`
+2. `post-commit` hook replaces `"HEAD"` with real hash → attaches as git note
+3. `pre-push` hook verifies note exists (runs tests as fallback if not)
+4. `git push` carries the note automatically (via remote.origin.push refspec)
 
 ### Manual Testing
 ```bash
-# Git notes
-.githooks/test-and-log-to-note.sh
-.githooks/sync-notes-to-jsonl.sh
-git add teststats/results.jsonl && git commit -m "Update dashboard"
-
-# Legacy
-.githooks/test-and-log.sh
-git add teststats/results.jsonl && git commit -m "Test results"
+.githooks/test-and-log.sh        # Run tests, writes pending.jsonl
+git notes --ref=test-results show HEAD  # View note after commit
 ```
 
 ### View Results
