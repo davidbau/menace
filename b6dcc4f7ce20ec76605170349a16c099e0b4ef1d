@@ -1,0 +1,43 @@
+{
+  "commit": "b6dcc4f",
+  "parent": "ed30797",
+  "date": "2026-02-11T15:45:47Z",
+  "author": "David Bau",
+  "message": "Add comprehensive Special Room and Window Type accuracy tests",
+  "stats": {
+    "total": 1731,
+    "pass": 572,
+    "fail": 1159,
+    "skip": 0,
+    "duration": 2
+  },
+  "categories": {
+    "chargen": {
+      "total": 180,
+      "pass": 180,
+      "fail": 00
+    },
+    "gameplay": {
+      "total": 26,
+      "pass": 3,
+      "fail": 23
+    },
+    "map": {
+      "total": 10,
+      "pass": 00,
+      "fail": 10
+    },
+    "special": {
+      "total": 84,
+      "pass": 84,
+      "fail": 00
+    },
+    "unit": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    }
+  },
+  "regression": false,
+  "newTests": 370
+}
