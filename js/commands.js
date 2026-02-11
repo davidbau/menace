@@ -541,7 +541,7 @@ async function handleMovement(dir, player, map, display, game) {
     }
 
     // Then pick up other items if autopickup is enabled
-    if (game.flags.pickup && !nopick && objs.length > 0) {
+    if (game.flags?.pickup && !nopick && objs.length > 0) {
         // TODO: implement pickup_types filtering (like C NetHack's pickup_types option)
         // For now, pick up first non-gold item
         const obj = objs.find(o => o.oclass !== COIN_CLASS);
