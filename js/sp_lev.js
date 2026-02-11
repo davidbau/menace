@@ -116,9 +116,10 @@ export function setLevelContext(map, depth) {
     levelState.roomStack = [];
     levelState.roomDepth = 0;
     levelState.currentRoom = null;
-    // Enable Lua RNG for themed rooms (matches C behavior)
-    // C ref: Themed rooms in C use Lua for object/monster generation
-    levelState.luaRngCounter = 0;
+    // Lua RNG counter is NOT set for themed rooms - they use regular RNG
+    // Only special levels (Oracle, etc.) set luaRngCounter explicitly
+    // C ref: Themed rooms use nhl_rn2/nhl_random without the MT19937 pattern
+    levelState.luaRngCounter = undefined;
     // Callback for room creation failure (set by themed room generator)
     levelState.roomFailureCallback = null;
 }
@@ -1589,11 +1590,9 @@ export function object(name_or_opts, x, y) {
             console.log(`Counter: ${baseOffset}, Stack:\n${stack}`);
         }
 
-        // Lazy MT initialization: On first Lua RNG use, initialize MT state
-        // C ref: MT init happens when Lua math.random() is first called
-        if (!isMtInitialized()) {
-            initLuaMT();
-        }
+        // MT initialization is handled separately for special levels
+        // For themed rooms, we use Lua RNG (nhl_rn2) without MT init
+        // For special levels (Oracle, etc.), they call initLuaMT() explicitly
 
         const numRngCalls = 4;
         for (let i = 0; i < numRngCalls; i++) {
@@ -1865,11 +1864,9 @@ export function monster(opts_or_class, x, y) {
     // C ref: nhlua.c nhl_rn2() — Lua monster generation calls rn2(1000+) for properties
     // Similar to des.object(), RNG calls happen immediately even though placement is deferred
     if (levelState && levelState.luaRngCounter !== undefined) {
-        // Lazy MT initialization: On first Lua RNG use, initialize MT state
-        // C ref: MT init happens when Lua math.random() is first called
-        if (!isMtInitialized()) {
-            initLuaMT();
-        }
+        // MT initialization is handled separately for special levels
+        // For themed rooms, we use Lua RNG (nhl_rn2) without MT init
+        // For special levels (Oracle, etc.), they call initLuaMT() explicitly
 
         const numRngCalls = 4;  // Approximate - actual pattern varies
         const baseOffset = levelState.luaRngCounter;

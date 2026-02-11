@@ -700,10 +700,14 @@ describe('C trace comparison: seed 42 Wizard inventory', () => {
     });
 
     it('find makelevel divergence point vs C trace file', async () => {
+        // C session was generated with wizard mode (-D flag), which enables THEMERM debug mode
+        // This skips reservoir sampling and uses a different RNG pattern for themed rooms
+        process.env.THEMERM = '';  // Enable debug mode to match C behavior
+
         // Load C trace and compare entry by entry through all of makelevel
         const fs = await import('node:fs');
         const cTrace = JSON.parse(fs.readFileSync(
-            'test/comparison/sessions/seed42_inventory_wizard.session.json', 'utf8'));
+            'test/comparison/sessions/seed42_inventory_wizard_gameplay.session.json', 'utf8'));
         const cRng = cTrace.startup.rng;
 
         // Extract just func(arg)=result from C entries
@@ -722,9 +726,9 @@ describe('C trace comparison: seed 42 Wizard inventory', () => {
         player.race = RACE_ELF;
         player.gender = 0;
         player.alignment = A_CHAOTIC;
-        // Generate Oracle level (DUNGEONS_OF_DOOM=0, dlevel=5) to match C trace
-        const { DUNGEONS_OF_DOOM } = await import('../../js/special_levels.js');
-        const map = makelevel(5, DUNGEONS_OF_DOOM, 5);
+        // Generate dlevel 1 (startup level) to match C trace
+        // C trace is from seed42_inventory_wizard_gameplay startup, which is dlevel=1
+        const map = makelevel(1);
         wallification(map);
         const fullLog = getRngLog();
         disableRngLog();
@@ -835,6 +839,9 @@ describe('C trace comparison: seed 42 Wizard inventory', () => {
     });
 
     it('RNG call count from start matches C trace', async () => {
+        // C session was generated with wizard mode (-D flag), which enables THEMERM debug mode
+        process.env.THEMERM = '';  // Enable debug mode to match C behavior
+
         // C trace has 2810 RNG calls before the first trquan (inventory start).
         // Verify our total matches.
         initRng(42);
@@ -847,9 +854,9 @@ describe('C trace comparison: seed 42 Wizard inventory', () => {
         player.race = RACE_ELF;
         player.gender = 0;
         player.alignment = A_CHAOTIC;
-        // Generate Oracle level (DUNGEONS_OF_DOOM=0, dlevel=5) to match C trace
-        const { DUNGEONS_OF_DOOM } = await import('../../js/special_levels.js');
-        const map = makelevel(5, DUNGEONS_OF_DOOM, 5);
+        // Generate dlevel 1 (startup level) to match C trace
+        // C trace is from seed42_inventory_wizard_gameplay startup, which is dlevel=1
+        const map = makelevel(1);
         wallification(map);
         const wallCount = getRngLog().length; // snapshot count
         simulatePostLevelInit(player, map, 1);
