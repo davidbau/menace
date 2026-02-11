@@ -83,6 +83,13 @@ export class Agent {
         this.pendingLockedDoor = null; // {x, y, attempts} for locked door we're trying to kick
         this.secretDoorSearch = null; // {position: {x,y}, searchesNeeded: 20, searchesDone: 0, wallCandidates: []}
 
+        // Search loop prevention
+        this.searchSessionTurn = null; // turn when current search session started
+        this.searchesThisSession = 0; // total searches in current session
+        this.lastSearchPosition = null; // {x, y} of last search position
+        this.searchesAtCurrentPosition = 0; // searches at current position
+        this.searchExhausted = false; // true when all search approaches exhausted
+
         // Corridor following state
         // Combat oscillation detection
         this.combatPositions = []; // last 8 positions during combat: [{x, y, turn}, ...]
@@ -218,6 +225,12 @@ export class Agent {
                     this.committedPath = null;
                     this.failedTargets.clear();
                     this.consecutiveFailedMoves = 0;
+                    // Reset search tracking
+                    this.searchSessionTurn = null;
+                    this.searchesThisSession = 0;
+                    this.searchesAtCurrentPosition = 0;
+                    this.lastSearchPosition = null;
+                    this.searchExhausted = false;
                 }
             }
 
@@ -1215,16 +1228,78 @@ export class Agent {
                                 if (search.currentIndex >= search.targets.length) {
                                     console.log(`[SECRET DOOR] All occupancy targets searched (${search.targets.length} walls), no secret door found`);
                                     this.secretDoorSearch = null;
+                                    this.searchExhausted = true; // Mark search as exhausted
                                 }
                             }
 
-                            return {type: 'search', key: 's', reason: `occupancy-based secret door search at (${target.x},${target.y})`};
+                            // Track search session to prevent infinite loops
+                            if (!this.searchSessionTurn) {
+                                this.searchSessionTurn = this.turnNumber;
+                            }
+                            this.searchesThisSession++;
+
+                            // Track position changes
+                            if (!this.lastSearchPosition || this.lastSearchPosition.x !== px || this.lastSearchPosition.y !== py) {
+                                this.lastSearchPosition = {x: px, y: py};
+                                this.searchesAtCurrentPosition = 1;
+                            } else {
+                                this.searchesAtCurrentPosition++;
+                            }
+
+                            // Check if stuck searching too long at same position
+                            if (this.searchesAtCurrentPosition > 100) {
+                                console.log(`[SEARCH-LOOP] Searched same position ${this.searchesAtCurrentPosition} times, forcing escape`);
+                                this.secretDoorSearch = null;
+                                this.searchExhausted = true;
+                                // Fall through to escape logic below
+                            } else if (this.searchesThisSession > 200) {
+                                console.log(`[SEARCH-LOOP] Search session exhausted (${this.searchesThisSession} searches), forcing escape`);
+                                this.secretDoorSearch = null;
+                                this.searchExhausted = true;
+                                // Fall through to escape logic below
+                            } else {
+                                return {type: 'search', key: 's', reason: `occupancy-based secret door search at (${target.x},${target.y})`};
+                            }
                         }
                     } else {
                         // No more targets
                         this.secretDoorSearch = null;
                     }
                 }
+            }
+
+            // Search exhaustion escape: force movement after too many searches
+            if (this.searchExhausted && this.levelStuckCounter > 30) {
+                console.log(`[SEARCH-ESCAPE] Search exhausted, forcing exploration escape (stuck ${this.levelStuckCounter})`);
+
+                // Clear search state
+                this.searchSessionTurn = null;
+                this.searchesThisSession = 0;
+                this.searchesAtCurrentPosition = 0;
+                this.lastSearchPosition = null;
+
+                // Clear failed targets to allow re-exploration
+                const oldSize = this.failedTargets.size;
+                this.failedTargets.clear();
+                console.log(`[SEARCH-ESCAPE] Cleared ${oldSize} failed targets, attempting far exploration`);
+
+                // Try far exploration to break out
+                const frontier = level.getExplorationFrontier();
+                if (frontier.length > 0) {
+                    const explorationPath = findExplorationTarget(level, px, py, this.recentPositions, { preferFar: true });
+                    if (explorationPath && explorationPath.found) {
+                        this.searchExhausted = false; // Reset for next time
+                        const dest = explorationPath.path[explorationPath.path.length - 1];
+                        return this._followPath(explorationPath, 'explore', `[SEARCH-ESCAPE] breaking out to (${dest.x},${dest.y})`);
+                    }
+                }
+
+                // Last resort: random movement
+                console.log(`[SEARCH-ESCAPE] No exploration path found, random walk`);
+                this.searchExhausted = false; // Reset for next time
+                const directions = ['h', 'j', 'k', 'l', 'y', 'u', 'b', 'n'];
+                const randomDir = directions[Math.floor(Math.random() * directions.length)];
+                return { type: 'random_move', key: randomDir, reason: `search exhausted, random walk to escape loop` };
             }
 
             // No downstairs found and very stuck - go back up or random movement
