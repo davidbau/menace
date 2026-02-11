@@ -46,22 +46,24 @@ export const HI_ZAP = CLR_BRIGHT_BLUE;
 
 // CSS color strings for each NetHack color
 // See DECISIONS.md #2 for color choices
+// C ref: display.h color constants (0-7, skip 8, 9-15)
 const COLOR_CSS = [
-    '#555',    // CLR_BLACK (dark gray for visibility on black bg)
-    '#a00',    // CLR_RED
-    '#0a0',    // CLR_GREEN
-    '#a50',    // CLR_BROWN
-    '#00d',    // CLR_BLUE
-    '#a0a',    // CLR_MAGENTA
-    '#0aa',    // CLR_CYAN
-    '#ccc',    // CLR_GRAY
-    '#f80',    // CLR_ORANGE / NO_COLOR
-    '#0f0',    // CLR_BRIGHT_GREEN
-    '#ff0',    // CLR_YELLOW
-    '#55f',    // CLR_BRIGHT_BLUE
-    '#f5f',    // CLR_BRIGHT_MAGENTA
-    '#0ff',    // CLR_BRIGHT_CYAN
-    '#fff',    // CLR_WHITE
+    '#555',    // 0  - CLR_BLACK (dark gray for visibility on black bg)
+    '#a00',    // 1  - CLR_RED
+    '#0a0',    // 2  - CLR_GREEN
+    '#a50',    // 3  - CLR_BROWN
+    '#00d',    // 4  - CLR_BLUE
+    '#a0a',    // 5  - CLR_MAGENTA
+    '#0aa',    // 6  - CLR_CYAN
+    '#ccc',    // 7  - CLR_GRAY
+    '#ccc',    // 8  - NO_COLOR (unused, defaults to gray)
+    '#f80',    // 9  - CLR_ORANGE
+    '#0f0',    // 10 - CLR_BRIGHT_GREEN
+    '#ff0',    // 11 - CLR_YELLOW
+    '#55f',    // 12 - CLR_BRIGHT_BLUE
+    '#f5f',    // 13 - CLR_BRIGHT_MAGENTA
+    '#0ff',    // 14 - CLR_BRIGHT_CYAN
+    '#fff',    // 15 - CLR_WHITE
 ];
 
 // Default symbol for each terrain type
