@@ -5,9 +5,11 @@
 import { COLNO, ROWNO, DOOR, STAIRS, FOUNTAIN, ROOM, IS_DOOR, D_CLOSED, D_LOCKED,
          D_ISOPEN, D_NODOOR, ACCESSIBLE, IS_WALL, MAXLEVEL, VERSION_STRING,
          isok, A_STR, A_DEX, A_CON } from './config.js';
-import { SQKY_BOARD } from './symbols.js';
+import { SQKY_BOARD, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
+         TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
+         WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS } from './symbols.js';
 import { rn2, rnd, rnl, d } from './rng.js';
-import { objectData, COIN_CLASS } from './objects.js';
+import { objectData } from './objects.js';
 import { nhgetch, ynFunction, getlin } from './input.js';
 import { playerAttackMonster } from './combat.js';
 import { makemon } from './makemon.js';
@@ -189,7 +191,7 @@ export async function rhack(ch, game) {
 
     // Previous messages (Ctrl+P)
     if (ch === 16) {
-        return handlePrevMessages(display);
+        return await handlePrevMessages(display);
     }
 
     // Help (?)
@@ -520,6 +522,35 @@ async function handleMovement(dir, player, map, display, game) {
         // TODO: implement other trap effects (fire, pit, etc.) with RNG
     }
 
+    // Helper function: Check if object class matches pickup_types string
+    // C ref: pickup.c pickup_filter() and flags.pickup_types
+    function shouldAutopickup(obj, pickupTypes) {
+        // If pickup_types is empty, pick up all non-gold items (backward compat)
+        if (!pickupTypes || pickupTypes === '') {
+            return true;
+        }
+
+        // Map object class to symbol character
+        const classToSymbol = {
+            [WEAPON_CLASS]: ')',
+            [ARMOR_CLASS]: '[',
+            [RING_CLASS]: '=',
+            [AMULET_CLASS]: '"',
+            [TOOL_CLASS]: '(',
+            [FOOD_CLASS]: '%',
+            [POTION_CLASS]: '!',
+            [SCROLL_CLASS]: '?',
+            [SPBOOK_CLASS]: '+',
+            [WAND_CLASS]: '/',
+            [COIN_CLASS]: '$',
+            [GEM_CLASS]: '*',
+            [ROCK_CLASS]: '`',
+        };
+
+        const symbol = classToSymbol[obj.oclass];
+        return symbol && pickupTypes.includes(symbol);
+    }
+
     // Autopickup — C ref: hack.c:3265 pickup(1)
     // C ref: pickup.c pickup() checks flags.pickup && !context.nopick
     const objs = map.objectsAt(nx, ny);
@@ -541,10 +572,10 @@ async function handleMovement(dir, player, map, display, game) {
     }
 
     // Then pick up other items if autopickup is enabled
+    // C ref: pickup.c pickup() filters by pickup_types
     if (game.flags?.pickup && !nopick && objs.length > 0) {
-        // TODO: implement pickup_types filtering (like C NetHack's pickup_types option)
-        // For now, pick up first non-gold item
-        const obj = objs.find(o => o.oclass !== COIN_CLASS);
+        const pickupTypes = game.flags?.pickup_types || '';
+        const obj = objs.find(o => o.oclass !== COIN_CLASS && shouldAutopickup(o, pickupTypes));
         if (obj) {
             player.addToInventory(obj);
             map.removeObject(obj);
@@ -1214,13 +1245,69 @@ async function handleKick(player, map, display) {
 
 // Handle previous messages
 // C ref: cmd.c doprev_message()
-function handlePrevMessages(display) {
-    const recent = display.messages.slice(-5);
-    if (recent.length === 0) {
+// Enhanced message history viewer with paging support
+async function handlePrevMessages(display) {
+    const messages = display.messages || [];
+
+    if (messages.length === 0) {
         display.putstr_message('No previous messages.');
-    } else {
-        display.putstr_message(recent.join(' | ').substring(0, 79));
+        return { moved: false, tookTime: false };
     }
+
+    // Show message history in a paged viewer
+    const maxPerPage = 20; // Show up to 20 messages at once
+    let currentPage = 0;
+    const totalPages = Math.ceil(messages.length / maxPerPage);
+
+    while (true) {
+        // Calculate start and end indices for current page
+        const startIdx = currentPage * maxPerPage;
+        const endIdx = Math.min(startIdx + maxPerPage, messages.length);
+        const pageMessages = messages.slice(startIdx, endIdx);
+
+        // Build display text
+        const lines = [];
+        lines.push('=== Message History ===');
+        lines.push('');
+
+        // Show messages in chronological order (oldest first on this page)
+        for (let i = 0; i < pageMessages.length; i++) {
+            const msgNum = startIdx + i + 1;
+            lines.push(`${msgNum}. ${pageMessages[i]}`);
+        }
+
+        lines.push('');
+        if (totalPages > 1) {
+            lines.push(`Page ${currentPage + 1}/${totalPages}`);
+            lines.push('[Space/Enter] Next page  [ESC/q] Close');
+        } else {
+            lines.push('[Space/Enter/ESC/q] Close');
+        }
+
+        // Show in pager
+        showPager(lines.join('\n'), '');
+
+        // Wait for user input
+        const ch = await nhgetch();
+
+        if (ch === ' ' || ch === '\n' || ch === '\r') {
+            // Next page or close if on last page
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+            } else {
+                break; // Close viewer
+            }
+        } else if (ch === '\x1b' || ch === 'q') {
+            // ESC or 'q' - close viewer
+            break;
+        } else if (ch === 'p' || ch === 'P') {
+            // Previous page
+            if (currentPage > 0) {
+                currentPage--;
+            }
+        }
+    }
+
     return { moved: false, tookTime: false };
 }
 

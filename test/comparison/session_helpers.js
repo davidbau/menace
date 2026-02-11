@@ -11,6 +11,8 @@ import {
 import { initRng, enableRngLog, getRngLog, disableRngLog, rn2, rnd, rn1 } from '../../js/rng.js';
 import { initLevelGeneration, makelevel, setGameSeed, wallification } from '../../js/dungeon.js';
 import { simulatePostLevelInit } from '../../js/u_init.js';
+import { init_objects } from '../../js/o_init.js';
+import { init_dungeon_and_hero } from '../../js/dungeon_init.js';
 import { Player, roles } from '../../js/player.js';
 import { NORMAL_SPEED, A_DEX, A_CON,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC } from '../../js/config.js';
@@ -197,9 +199,18 @@ export function compareRng(jsRng, sessionRng) {
 // Returns { grids, maps, rngLogs } where rngLogs[depth] = { rngCalls, rng }.
 export function generateMapsWithRng(seed, maxDepth) {
     initrack(); // reset player track buffer between tests
-    enableRngLog();
     initRng(seed);
     setGameSeed(seed);
+    enableRngLog(); // Start logging RNG calls
+
+    // Object initialization (matches C's o_init.c)
+    // C ref: 198 RNG calls (3 gem colors + 194 shuffles + 1 wand direction)
+    init_objects();
+
+    // Dungeon and hero initialization (matches C's dungeon.c, bones.c, u_init.c)
+    // C ref: 59 RNG calls (2 nhl + 48 dungeon + 5 castle + 1 misc + 2 nhl + 1 bones)
+    init_dungeon_and_hero();
+
     initLevelGeneration();
     const grids = {};
     const maps = {};

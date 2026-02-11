@@ -784,7 +784,7 @@ export class Agent {
                 this.pendingLockedDoor = null;
             }
             // If adjacent and haven't tried too many times, kick it
-            else if (isAdjacent && door.attempts < 5) {
+            else if (isAdjacent && door.attempts < 10) {
                 this.pendingLockedDoor.attempts++;
                 // NetHack kick: Ctrl+D, then direction
                 const dx = door.x - px;
@@ -792,11 +792,11 @@ export class Agent {
                 const dir = DIR_KEYS[`${dx},${dy}`];
                 if (dir) {
                     this.pendingDoorDir = dir;
-                    return { type: 'kick', key: '\x04', reason: `kicking locked door at (${door.x},${door.y})` };
+                    return { type: 'kick', key: '\x04', reason: `kicking locked door at (${door.x},${door.y}) [attempt ${door.attempts}/10]` };
                 }
             }
             // If tried too many times or not adjacent, give up and mark as unwalkable
-            else if (door.attempts >= 5 || !isAdjacent) {
+            else if (door.attempts >= 10 || !isAdjacent) {
                 console.log(`[DOOR KICK] Giving up on door at (${door.x},${door.y}) after ${door.attempts} attempts`);
                 if (doorCell) doorCell.walkable = false;
                 this.pendingLockedDoor = null;
@@ -2186,6 +2186,46 @@ export class Agent {
         // to allow reconsidering distant targets that may have been prematurely blacklisted
         if (isStuckExploring && this.turnNumber % 50 === 0) {
             this.failedTargets.clear();
+        }
+
+        // PRIORITY: Systematic door opening when stuck with high frontier
+        // If we have many unreachable frontier cells, closed doors are likely blocking access
+        if (frontier.length > 40 && this.levelStuckCounter > 20) {
+            // Find all closed/locked doors in explored areas
+            const closedDoors = [];
+            for (let y = 0; y < 21; y++) {
+                for (let x = 0; x < 80; x++) {
+                    const cell = level.at(x, y);
+                    if (cell && cell.explored && (cell.type === 'door_closed' || cell.type === 'door_locked')) {
+                        // Check if we've already tried this door recently
+                        const doorKey = y * 80 + x;
+                        if (!this.failedTargets.has(doorKey)) {
+                            closedDoors.push({ x, y, type: cell.type, dist: Math.max(Math.abs(x - px), Math.abs(y - py)) });
+                        }
+                    }
+                }
+            }
+
+            if (closedDoors.length > 0) {
+                console.log(`[DOOR-SYSTEMATIC] Found ${closedDoors.length} closed/locked doors to try`);
+                // Sort by distance, try nearest door first
+                closedDoors.sort((a, b) => a.dist - b.dist);
+
+                for (const door of closedDoors) {
+                    const path = findPath(level, px, py, door.x, door.y, { allowUnexplored: false });
+                    if (path.found) {
+                        const action = door.type === 'door_locked' ? 'kicking' : 'opening';
+                        console.log(`[DOOR-SYSTEMATIC] ${action} ${door.type} door at (${door.x},${door.y}) to unlock frontier (${frontier.length} unreachable)`);
+
+                        // Set pending locked door if it's locked (will trigger kicking logic)
+                        if (door.type === 'door_locked' && !this.pendingLockedDoor) {
+                            this.pendingLockedDoor = { x: door.x, y: door.y, attempts: 0 };
+                        }
+
+                        return this._followPath(path, 'navigate', `${action} door at (${door.x},${door.y}) to unlock areas`);
+                    }
+                }
+            }
         }
 
         const options = { preferFar: isStuckExploring };

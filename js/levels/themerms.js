@@ -15,6 +15,7 @@
 import * as des from '../sp_lev.js';
 import { selection, percent, shuffle, levelState, nh as nhGlobal } from '../sp_lev.js';
 import { rn2, rnd, d, getRngLog } from '../rng.js';
+import { setMtInitialized } from '../dungeon.js';
 
 // Module-level state for postprocessing callbacks
 let postprocess = [];
@@ -1046,15 +1047,13 @@ export function themerooms_generate(map, depth) {
 // called before any rooms are generated
 let _mtInitCount = 0;
 export function pre_themerooms_generate() {
-   // Initialize Lua MT19937 RNG on first themed room use
-   // C ref: This happens when Lua math.random() is first called
-   // Pattern from C trace: rn2(1000-1004), rn2(1010), rn2(1012), rn2(1014-1036)
+   // C ref: MT initialization happens lazily on first Lua RNG call (des.object/des.monster),
+   // NOT here in pre_themerooms_generate(). Removing MT init from here to match C timing.
+   // Theme selection happens BEFORE MT init in C (calls 260-261 vs 263-292 in seed 4).
    _mtInitCount++;
    console.log(`pre_themerooms_generate called (count=${_mtInitCount})`);
-   for (let i = 1000; i <= 1004; i++) rn2(i);
-   rn2(1010);
-   rn2(1012);
-   for (let i = 1014; i <= 1036; i++) rn2(i);
+
+   // NOTE: MT init removed - now handled lazily in sp_lev.js des.object/des.monster
 
    const debug_themerm = nh.debug_themerm(false);
    const debug_fill = nh.debug_themerm(true);

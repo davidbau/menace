@@ -14,9 +14,9 @@
  */
 
 import { GameMap, FILL_NORMAL } from './map.js';
-import { rn2, rnd, rn1 } from './rng.js';
+import { rn2, rnd, rn1, getRngCallCount } from './rng.js';
 import { mksobj, mkobj } from './mkobj.js';
-import { create_room, create_subroom, makecorridors, init_rect, rnd_rect, get_rect, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room, litstate_rnd, _mtInitialized, setMtInitialized } from './dungeon.js';
+import { create_room, create_subroom, makecorridors, init_rect, rnd_rect, get_rect, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized } from './dungeon.js';
 import {
     STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
     CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL, ROOM, CORR,
@@ -163,9 +163,12 @@ export function initLuaMT() {
     rn2(1012);
     for (let i = 1014; i <= 1036; i++) rn2(i);
     setMtInitialized(true);
-    // Advance luaRngCounter to account for MT init calls (1000-1036 = 37 calls)
+    // Advance luaRngCounter to account for MT init calls (30 RNG calls total)
+    // MT init pattern: 1000-1004(5), 1010(1), 1012(1), 1014-1036(23) = 30 calls
+    // BUT counter should be 37 because offsets continue: next calls use 1037+
+    // C ref: seed 4 trace shows first object after MT uses same gap pattern
     if (levelState && levelState.luaRngCounter !== undefined) {
-        levelState.luaRngCounter = 37;
+        levelState.luaRngCounter = 37;  // Offset after 1036, continuing the sequence
     }
 }
 
@@ -821,6 +824,21 @@ export function map(data) {
     if (levelState.coder.solidify) {
         wallification(levelState.map);
     }
+
+    // Execute contents callback if provided
+    // C ref: Lua des.map() calls the contents function after placing the map
+    if (contents && typeof contents === 'function') {
+        // Create a room-like object for compatibility with room-based contents
+        const mapRegion = {
+            lx: x,
+            ly: y,
+            hx: x + width - 1,
+            hy: y + height - 1,
+            width: width,
+            height: height
+        };
+        contents(mapRegion);
+    }
 }
 
 /**
@@ -1210,7 +1228,16 @@ export function room(opts = {}) {
     // C ref: sp_lev.c:2808 build_room() — Apply chance check to determine final room type
     // If chance roll fails, room becomes OROOM instead of requested type
     // This happens BEFORE room creation, matching C's build_room() sequence
+    const DEBUG_BUILD = typeof process !== 'undefined' && process.env.DEBUG_BUILD_ROOM === '1';
+    if (DEBUG_BUILD) {
+        const before = getRngCallCount();
+        console.log(`\n=== [RNG ${before}] des.room() build_room chance check ===`);
+        console.log(`  chance=${chance}, requestedRtype=${requestedRtype}, type="${type}"`);
+    }
     let rtype = (!chance || rn2(100) < chance) ? requestedRtype : 0; // 0 = OROOM
+    if (DEBUG_BUILD) {
+        console.log(`  [RNG ${getRngCallCount()}] rn2(100) done, rtype=${rtype}`);
+    }
 
     // Calculate actual room position and size
     // If x, y are specified, use them directly (special level fixed position)
@@ -1553,14 +1580,22 @@ export function object(name_or_opts, x, y) {
     // rest use 4-5 each. Without exact Lua code, approximate with 4 calls average
     // TODO: Implement exact C Lua pattern once we understand the state machine
     if (levelState && levelState.luaRngCounter !== undefined) {
+        const DEBUG_LUA_RNG = typeof process !== 'undefined' && process.env.DEBUG_LUA_RNG === '1';
+        const baseOffset = levelState.luaRngCounter;
+
+        if (DEBUG_LUA_RNG) {
+            const stack = new Error().stack;
+            console.log(`\n=== Lua RNG triggered for des.object() ===`);
+            console.log(`Counter: ${baseOffset}, Stack:\n${stack}`);
+        }
+
         // Lazy MT initialization: On first Lua RNG use, initialize MT state
         // C ref: MT init happens when Lua math.random() is first called
-        if (!_mtInitialized) {
+        if (!isMtInitialized()) {
             initLuaMT();
         }
 
         const numRngCalls = 4;
-        const baseOffset = levelState.luaRngCounter;
         for (let i = 0; i < numRngCalls; i++) {
             rn2(1000 + baseOffset + i);
         }
@@ -1832,7 +1867,7 @@ export function monster(opts_or_class, x, y) {
     if (levelState && levelState.luaRngCounter !== undefined) {
         // Lazy MT initialization: On first Lua RNG use, initialize MT state
         // C ref: MT init happens when Lua math.random() is first called
-        if (!_mtInitialized) {
+        if (!isMtInitialized()) {
             initLuaMT();
         }
 
