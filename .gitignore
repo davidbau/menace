@@ -15,6 +15,9 @@ selfplay/.nethack-home/
 .nfs*
 .beads/.nfs*
 
+# Transient test results (pre-push hook promotes to git note)
+teststats/pending.jsonl
+
 # Debug scripts should go in scripts/debug/, not root
 /*.mjs
 /CURRENT_ISSUE.md

@@ -1,5 +1,7 @@
 #!/bin/bash
-# Test runner that executes tests and appends result to teststats/results.jsonl
+# Test runner: runs tests and writes results to teststats/pending.jsonl
+# The pending entry uses "commit": "HEAD" as a placeholder.
+# The pre-push hook replaces "HEAD" with the real hash when creating the git note.
 # Usage: ./test-and-log.sh [--allow-regression]
 
 set -e
@@ -8,6 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 TEST_HISTORY_DIR="$PROJECT_ROOT/teststats"
 RESULTS_FILE="$TEST_HISTORY_DIR/results.jsonl"
+PENDING_FILE="$TEST_HISTORY_DIR/pending.jsonl"
 ALLOW_REGRESSION=false
 
 # Parse arguments
@@ -24,23 +27,16 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Ensure .test-history directory exists
+# Ensure directory exists
 mkdir -p "$TEST_HISTORY_DIR"
 
 # Get commit information
-# NOTE: We log tests for the CURRENT HEAD commit
-# The test log entry will be committed SEPARATELY after tests pass
-COMMIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "pending")
 COMMIT_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 COMMIT_AUTHOR=$(git config user.name || echo "unknown")
 COMMIT_MESSAGE=$(git show -s --format=%s HEAD 2>/dev/null || echo "uncommitted changes")
-PARENT_HASH=$(git rev-parse --short HEAD^ 2>/dev/null || echo "none")
-
-echo "NOTE: Logging tests for commit $COMMIT_HASH"
-echo "      Test log will be committed separately"
 
 echo "========================================="
-echo "Running tests for commit: $COMMIT_HASH"
+echo "Running tests..."
 echo "Date: $COMMIT_DATE"
 echo "Author: $COMMIT_AUTHOR"
 echo "Message: $COMMIT_MESSAGE"
@@ -158,11 +154,12 @@ if [ -f "$RESULTS_FILE" ]; then
   NEW_TESTS=$((TOTAL_COUNT - LAST_TOTAL))
 fi
 
-# Generate JSON log entry
+# Generate JSON log entry with "HEAD" placeholder for commit
+# The pre-push hook will replace "HEAD" with the real commit hash
 cat > "$TEST_OUTPUT.json" <<EOF
 {
-  "commit": "$COMMIT_HASH",
-  "parent": "$PARENT_HASH",
+  "commit": "HEAD",
+  "parent": "",
   "date": "$COMMIT_DATE",
   "author": "$COMMIT_AUTHOR",
   "message": "$COMMIT_MESSAGE",
@@ -205,37 +202,12 @@ cat > "$TEST_OUTPUT.json" <<EOF
 }
 EOF
 
-# Store test results in git notes (source of truth)
-# The pre-commit hook will rebuild results.jsonl from all notes
-COMMIT_TO_ANNOTATE="$COMMIT_HASH"
-if [ "$COMMIT_TO_ANNOTATE" = "pending" ]; then
-  # If no commit yet, we'll annotate HEAD once it exists
-  echo "⚠️  No commit yet, will annotate after commit"
-else
-  # Add git note with test results
-  cat "$TEST_OUTPUT.json" | git notes --ref=test-results add -f -F - "$COMMIT_TO_ANNOTATE"
-  echo "✅ Test results stored in git notes for commit $COMMIT_TO_ANNOTATE"
-fi
-
-# Also append to results file for immediate use (will be rebuilt from notes)
-cat "$TEST_OUTPUT.json" >> "$RESULTS_FILE"
+# Write to pending.jsonl (single entry, overwritten each run)
+cp "$TEST_OUTPUT.json" "$PENDING_FILE"
+echo "✅ Test results written to teststats/pending.jsonl"
 
 # Cleanup
 rm "$TEST_OUTPUT" "$TEST_OUTPUT.json"
-
-echo ""
-echo "✅ Test results logged"
-
-# Push test notes to remote immediately (so other contributors can see them)
-if [ "$COMMIT_TO_ANNOTATE" != "pending" ] && git show-ref refs/notes/test-results >/dev/null 2>&1; then
-  echo ""
-  echo "Pushing test notes to remote..."
-  if git push --no-verify origin refs/notes/test-results:refs/notes/test-results 2>/dev/null; then
-    echo "✅ Test notes pushed to GitHub"
-  else
-    echo "ℹ️  Could not push notes (offline or no permissions)"
-  fi
-fi
 
 if [ "$REGRESSION" = true ]; then
   exit 1
