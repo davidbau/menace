@@ -2128,6 +2128,10 @@ export class Agent {
                 const letter = this.pendingEatLetter;
                 this.pendingEatLetter = null;
                 this.adapter.queueInput(letter);
+            } else if ((action.type === 'kick' || action.type === 'open') && this.pendingDoorDir) {
+                const dir = this.pendingDoorDir;
+                this.pendingDoorDir = null;
+                this.adapter.queueInput(dir);
             }
         }
         await this.adapter.sendKey(action.key);
