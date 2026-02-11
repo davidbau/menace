@@ -116,6 +116,7 @@ try {
 
 } catch (err) {
     console.error('Error:', err.message);
+    console.error('Stack:', err.stack);
     process.exit(1);
 } finally {
     console.log('\nCleaning up tmux session...');

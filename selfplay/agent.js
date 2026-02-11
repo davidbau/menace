@@ -171,6 +171,8 @@ export class Agent {
                 this.stats.died = true;
 
                 // Track what killed us for learning
+                const px = this.screen.playerX;
+                const py = this.screen.playerY;
                 const nearbyMonsters = findMonsters(this.screen);
                 const adjacentMonster = this._findAdjacentMonster(px, py);
                 const dungeonLevel = this.status.dungeonLevel || 1;
