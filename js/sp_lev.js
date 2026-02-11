@@ -2747,6 +2747,7 @@ function executeDeferredObjects() {
                 if (otyp >= 0 && x >= 0 && x < 80 && y >= 0 && y < 21) {
                     const obj = mksobj(otyp, true, false);
                     if (obj) {
+                        obj.id = name_or_opts;  // Store the original name
                         obj.ox = x;
                         obj.oy = y;
                         levelState.map.objects.push(obj);
