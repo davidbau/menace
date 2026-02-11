@@ -948,10 +948,10 @@ function makerooms(map, depth) {
     // C ref: mklev.c:393-417
     const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_THEMEROOMS === '1';
     let loopCount = 0;
-    console.log('makerooms: starting main loop');
+    if (DEBUG) console.log('makerooms: starting main loop');
     while (map.nroom < (MAXNROFROOMS - 1) && rnd_rect()) {
         loopCount++;
-        if (loopCount === 1 || loopCount === 10 || loopCount === 100 || loopCount % 10000 === 0) {
+        if (DEBUG && (loopCount === 1 || loopCount === 10 || loopCount === 100 || loopCount % 10000 === 0)) {
             console.log(`makerooms loop iteration ${loopCount}, nroom=${map.nroom}`);
         }
         if (loopCount > 500000) {
@@ -970,12 +970,7 @@ function makerooms(map, depth) {
             create_room(map, -1, -1, 2, 2, -1, -1, VAULT, true, depth, true);
         } else {
             // C ref: mklev.c:402-407
-            let rngBefore2 = getRngLog().length;
             const result = themerooms_generate(map, depth);
-            let rngAfter2 = getRngLog().length;
-            if (loopCount === 1 || loopCount === 10 || loopCount === 100) {
-                console.log(`  themerooms_generate: ${rngAfter2 - rngBefore2} RNG calls, result=${result}`);
-            }
             if (!result) {
                 // themeroom_failed
                 if (DEBUG) {
@@ -992,29 +987,28 @@ function makerooms(map, depth) {
             }
         }
     }
-    console.log(`makerooms: exited loop after ${loopCount} iterations, nroom=${map.nroom}`);
     if (DEBUG) {
+        console.log(`makerooms: exited loop after ${loopCount} iterations, nroom=${map.nroom}`);
         console.log(`Exited loop: nroom=${map.nroom}, tries=${themeroom_tries}`);
-    }
-    // Always log room count for debugging "big mine" issue
-    console.log(`makerooms() finished: ${map.nroom} rooms created, themeroom_tries=${themeroom_tries}`);
+        console.log(`makerooms() finished: ${map.nroom} rooms created, themeroom_tries=${themeroom_tries}`);
 
-    // Log room sizes and positions
-    let totalArea = 0;
-    let loggedCount = 0;
-    for (let i = 0; i < map.nroom; i++) {
-        const r = map.rooms[i];
-        if (!r) continue; // Skip undefined rooms (sparse array)
-        const w = r.hx - r.lx + 1;
-        const h = r.hy - r.ly + 1;
-        const area = w * h;
-        totalArea += area;
-        if (loggedCount < 5) { // Log first 5 valid rooms
-            console.log(`  Room ${i}: (${r.lx},${r.ly})-(${r.hx},${r.hy}) size=${w}x${h} area=${area}`);
-            loggedCount++;
+        // Log room sizes and positions
+        let totalArea = 0;
+        let loggedCount = 0;
+        for (let i = 0; i < map.nroom; i++) {
+            const r = map.rooms[i];
+            if (!r) continue; // Skip undefined rooms (sparse array)
+            const w = r.hx - r.lx + 1;
+            const h = r.hy - r.ly + 1;
+            const area = w * h;
+            totalArea += area;
+            if (loggedCount < 5) { // Log first 5 valid rooms
+                console.log(`  Room ${i}: (${r.lx},${r.ly})-(${r.hx},${r.hy}) size=${w}x${h} area=${area}`);
+                loggedCount++;
+            }
         }
+        console.log(`  Total room area: ${totalArea} squares (screen is ~1920 squares)`);
     }
-    console.log(`  Total room area: ${totalArea} squares (screen is ~1920 squares)`);
 }
 
 // ========================================================================
