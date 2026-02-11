@@ -201,10 +201,13 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
         rtype = 0; // OROOM
     }
 
-    // C ref: sp_lev.c:1530-1572 — Check which placement path to use FIRST
+    // C ref: sp_lev.c:1510 — Call litstate_rnd FIRST, before any path checks
+    // C always calls litstate_rnd at the start of create_room, regardless of which path is taken
+    const lit = litstate_rnd(rlit, depth);
+
+    // C ref: sp_lev.c:1530-1572 — Check which placement path to use
     // Path 1: "Totally random" — ALL params -1 or vault → uses rnd_rect() + BSP
     // Path 2: "Some params random" — grid placement with alignment
-    // IMPORTANT: Check this BEFORE calling litstate_rnd to avoid consuming RNG on failure!
 
     const fullyRandom = (x < 0 && y < 0 && w < 0 && xalign < 0 && yalign < 0);
     if (DEBUG) console.log(`  fullyRandom=${fullyRandom}`);
@@ -212,7 +215,7 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
     if (fullyRandom) {
         // C ref: sp_lev.c:1534 — totally random uses procedural rnd_rect() + BSP
         // Use dungeon.js create_room which implements this path
-        // Note: create_room calls litstate_rnd internally, so we don't call it here
+        // IMPORTANT: Pass resolved `lit` (not `rlit`) since we already called litstate_rnd above
 
         if (!levelState.map) {
             return null; // No map available for BSP room placement
@@ -220,8 +223,9 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
 
         // Call dungeon.create_room with map - it modifies map directly
         // Returns false if no space available, true on success
+        // Pass `lit` (already resolved) instead of `rlit` to avoid double litstate_rnd call
         const success = create_room(levelState.map, x, y, w, h, xalign, yalign,
-                                     rtype, rlit, depth, false);
+                                     rtype, lit, depth, false);
 
         if (!success) {
             return null;
@@ -242,10 +246,6 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
 
         return room; // Return the room object for caller
     }
-
-    // C ref: sp_lev.c:1510 — determine lighting (ALWAYS calls litstate_rnd)
-    // Only call this AFTER we know the room will succeed (not fully random)
-    rlit = litstate_rnd(rlit, depth);
 
     // C ref: sp_lev.c:1522-1649 — Retry loop for room creation (up to 100 attempts)
     // The loop retries if get_rect or check_room fails
@@ -383,7 +383,7 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
         hx: xabs + dx,
         hy: yabs + dy,
         rtype: rtype,
-        rlit: rlit,
+        rlit: lit,  // Use resolved `lit` value from litstate_rnd
         irregular: false,
         nsubrooms: 0,      // C ref: mkroom.h — number of subrooms
         sbrooms: []        // C ref: mkroom.h — subroom array
