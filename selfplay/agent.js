@@ -2455,7 +2455,7 @@ export class Agent {
         const frontier = level.getExplorationFrontier();
         const exploredPercent = level.exploredCount / (80 * 21);
         const isStuckExploring = (
-            frontier.length > 10 &&                      // Has frontier to explore
+            frontier.length > 5 &&                       // Has frontier to explore
             (this.levelStuckCounter > 20 ||              // Been stuck, OR
              (this.turnNumber > 150 && exploredPercent < 0.25)) &&  // Taking too long with low coverage
             exploredPercent < 0.60                       // Not yet thoroughly explored
