@@ -356,7 +356,7 @@ describe('Interface Tests', () => {
       let state = null;
       const stepResults = [];
 
-      for (let i = 0; i < Math.min(3, session.steps.length); i++) {
+      for (let i = 0; i < Math.min(5, session.steps.length); i++) {
         const step = session.steps[i];
         const jsResult = await simulateJSStep(step, state);
         state = jsResult.state;
