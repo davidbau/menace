@@ -131,14 +131,66 @@ def convert_guidebook(input_file, output_file):
                 output.append(cleaned + '\n')
                 prev_line_empty = False
 
-    # Post-process to wrap inline symbol references
+    # Post-process to wrap inline symbol references and group config blocks
     # e.g., "appear as #" -> "appear as `#`"
     processed_output = []
+    in_config_block = False
+    config_block_lines = []
+
+    def close_config_block():
+        """Helper to close an open config block."""
+        nonlocal in_config_block, config_block_lines
+        if in_config_block and config_block_lines:
+            processed_output.append('```\n')
+            processed_output.extend(config_block_lines)
+            processed_output.append('```\n\n')
+            config_block_lines = []
+            in_config_block = False
+
     for line in output:
-        # Skip lines that are already in code blocks or headings
-        if line.startswith('#') or line.startswith('```'):
+        # Skip lines that are markdown headings or existing code blocks
+        # The document title is special: "# A Guide to the Mazes of Menace"
+        # Other headings use ## or more
+        if (line.startswith('##') or
+            line.startswith('```') or
+            line.startswith('# A Guide to the Mazes')):
+            close_config_block()
             processed_output.append(line)
             continue
+
+        # Empty lines end config blocks
+        if not line.strip():
+            close_config_block()
+            processed_output.append(line)
+            continue
+
+        # Check if this is a config line (BEFORE any other processing)
+        config_starts = (
+            'OPTIONS=', 'OPTION=', 'CHOOSE=', 'AUTOCOMPLETE=', 'BIND=',
+            'SYMBOLS=', 'MSGTYPE=', 'MENUCOLOR=', 'SOUND=', 'SOUNDDIR=',
+            'WIZKIT=', 'autopickup_exception='
+        )
+        # Config comments start with "# " (but not the document title which we already skipped)
+        is_config_comment = line.startswith('# ')
+        is_config_line = (line.startswith(config_starts) or
+                         is_config_comment or
+                         line.strip() == '#' or
+                         re.match(r'^\[.*\]', line.strip()))
+
+        if is_config_line:
+            # Add to config block
+            if not in_config_block:
+                in_config_block = True
+            config_block_lines.append(line)
+            continue
+
+        # Not a config line - close any open block and process normally
+        close_config_block()
+
+        # Wrap single letter keys in tables FIRST (before #command wrapping)
+        # Pattern: start of line, single letter, spaces, #command
+        # This must run before the general #command pattern to wrap both together
+        line = re.sub(r'^([a-zA-Z])\s+(#[a-z]+)', r'`\1`    `\2`', line)
 
         # Wrap #commands (e.g., #attributes, #quit)
         # Match #command after space, start of line, or quote
@@ -154,10 +206,6 @@ def convert_guidebook(input_file, output_file):
 
         # Wrap Meta key combinations (M-x, M-X, etc.)
         line = re.sub(r'\b(M-[a-zA-Z])\b', r'`\1`', line)
-
-        # Wrap single letter keys in tables (e.g., "h    #help")
-        # Pattern: start of line, single letter, spaces, #command
-        line = re.sub(r'^([a-zA-Z])\s+(#[a-z]+)', r'`\1`    `\2`', line)
 
         # Special case: ``' (backtick character) needs double backticks to escape
         # Convert ``' -> `` ` `` (backtick shown in code)
@@ -196,25 +244,13 @@ def convert_guidebook(input_file, output_file):
         # Wrap special key names (ESC, SPACE, RETURN, etc.)
         line = re.sub(r'\b(ESC|SPACE|RETURN|ENTER|TAB|DELETE|BACKSPACE)\b', r'`\1`', line)
 
-        # Wrap inline configuration examples
+        # Wrap inline configuration examples (for mid-sentence references)
         # Match config keywords followed by values, wrap in backticks (including quoted strings)
         config_keywords = (
             'AUTOCOMPLETE|BIND|MSGTYPE|SYMBOLS|OPTION|OPTIONS|CHOOSE|'
             'MENUCOLOR|SOUND|SOUNDDIR|WIZKIT|autopickup_exception'
         )
         line = re.sub(rf'\b({config_keywords})=((?:"[^"]*"|[^\s]+))', r'`\1=\2`', line)
-
-        # Wrap configuration file syntax (all config patterns, comments, and sections)
-        # These are configuration file examples that should be in code blocks (when at line start)
-        # Also handle comment lines (# followed by space or # for empty comments)
-        config_starts = (
-            'OPTIONS=', 'OPTION=', 'CHOOSE=', 'AUTOCOMPLETE=', 'BIND=',
-            'SYMBOLS=', 'MSGTYPE=', 'MENUCOLOR=', 'SOUND=', 'SOUNDDIR=',
-            'WIZKIT=', 'autopickup_exception='
-        )
-        if (line.startswith(config_starts) or
-            line.startswith('# ') or line == '#' or re.match(r'^\[.*\]', line)):
-            line = '    ' + line  # Indent with 4 spaces to make it a code block in markdown
 
         # Wrap option names (standalone lowercase words, possibly with underscores/numbers)
         # These appear as definition terms in the options section
@@ -232,6 +268,9 @@ def convert_guidebook(input_file, output_file):
         line = re.sub(r'\bas ([#@$%^&*+|<>._-])(\s)', r'as `\1`\2', line)
         line = re.sub(r'\bshown as ([#@$%^&*+|<>._-])(\s)', r'shown as `\1`\2', line)
         processed_output.append(line)
+
+    # Close any remaining open config block at end of file
+    close_config_block()
 
     with open(output_file, 'w', encoding='utf-8') as f:
         f.writelines(processed_output)
