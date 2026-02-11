@@ -4,7 +4,7 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection, shuffle } from '../sp_lev.js';
+import { selection, shuffle, nh } from '../sp_lev.js';
 
 export function generate() {
     // NetHack tower tower1.lua	$NHDT-Date: 1717178759 2024/5/31 18:5:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $
