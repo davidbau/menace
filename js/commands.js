@@ -2,7 +2,8 @@
 // Mirrors cmd.c from the C source.
 // Maps keyboard input to game actions.
 
-import { COLNO, ROWNO, DOOR, STAIRS, FOUNTAIN, ROOM, IS_DOOR, D_CLOSED, D_LOCKED,
+import { COLNO, ROWNO, DOOR, STAIRS, LADDER, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE,
+         POOL, LAVAPOOL, IRONBARS, TREE, ROOM, IS_DOOR, D_CLOSED, D_LOCKED,
          D_ISOPEN, D_NODOOR, ACCESSIBLE, IS_WALL, MAXLEVEL, VERSION_STRING,
          isok, A_STR, A_DEX, A_CON } from './config.js';
 import { SQKY_BOARD } from './symbols.js';
@@ -1179,9 +1180,22 @@ function handleLook(player, map, display) {
 
     let msg = '';
     if (loc) {
+        // Describe terrain features - C ref: cmd.c dolook() describes current location
         if (loc.typ === STAIRS && loc.flags === 1) msg += 'There is a staircase up here. ';
         else if (loc.typ === STAIRS && loc.flags === 0) msg += 'There is a staircase down here. ';
+        else if (loc.typ === LADDER && loc.flags === 1) msg += 'There is a ladder up here. ';
+        else if (loc.typ === LADDER && loc.flags === 0) msg += 'There is a ladder down here. ';
         else if (loc.typ === FOUNTAIN) msg += 'There is a fountain here. ';
+        else if (loc.typ === SINK) msg += 'There is a sink here. ';
+        else if (loc.typ === THRONE) msg += 'There is a throne here. ';
+        else if (loc.typ === ALTAR) msg += 'There is an altar here. ';
+        else if (loc.typ === GRAVE) msg += 'There is a grave here. ';
+        else if (loc.typ === POOL) msg += 'There is a pool of water here. ';
+        else if (loc.typ === LAVAPOOL) msg += 'There is molten lava here. ';
+        else if (loc.typ === DOOR && loc.flags > 0) msg += 'There is an open door here. ';
+        else if (loc.typ === DOOR && loc.flags === 0) msg += 'There is a closed door here. ';
+        else if (loc.typ === IRONBARS) msg += 'There are iron bars here. ';
+        else if (loc.typ === TREE) msg += 'There is a tree here. ';
     }
 
     if (objs.length > 0) {
