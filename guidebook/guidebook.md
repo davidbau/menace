@@ -3148,8 +3148,8 @@ tiple  options  separated  by  commas in a single OPTIONS directive.
 
 Example:
 
-    OPTIONS=dogname:Fido
-    OPTIONS=!legacy,autopickup,pickup_types:$"=/!?+
+`OPTIONS=dogname:Fido`
+`OPTIONS=!legacy,autopickup,pickup_types:$"=/!?+`
 
 **`HACKDIR`**
 Default location of files NetHack needs. On Windows HACKDIR defaults
@@ -3207,14 +3207,14 @@ section name.  Lines in other sections are ignored.
 
 Example:
 
-    OPTIONS=color
-    CHOOSE=char A,char B
+`OPTIONS=color`
+`CHOOSE=char` A,char B
     [char A]
-    OPTIONS=role:arc,race:dwa,align:law,gender:fem
+`OPTIONS=role:arc,race:dwa,align:law,gender:fem`
     [char B]
-    OPTIONS=role:wiz,race:elf,align:cha,gender:mal
+`OPTIONS=role:wiz,race:elf,align:cha,gender:mal`
     [] `#end` of CHOOSE
-    OPTIONS=!`rest_on_space`
+`OPTIONS=!`rest_on_space``
 
 If [] is present, the preceding section is closed and no new section
 begins;  whatever follows will be common to all sections.  Otherwise
@@ -3257,26 +3257,26 @@ function that handles wishing.
 
 Example:
 
-WIZKIT=~/wizkit.txt
+`WIZKIT=~/wizkit.txt`
 
 Here is an example of configuration file contents:
 
 # Set your character's role, race, gender, and alignment.
-    OPTIONS=role:Valkyrie, race:Human, gender:female, align:lawful
+`OPTIONS=role:Valkyrie,` race:Human, gender:female, align:lawful
 #
 # Turn on autopickup, set automatically picked up object types
-    OPTIONS=autopickup,pickup_types:$"=/!?+
+`OPTIONS=autopickup,pickup_types:$"=/!?+`
 #
 # Map customization
-    OPTIONS=color           # Display things in color if possible
-    OPTIONS=`lit_corridor`    # Show lit corridors differently
-    OPTIONS=`hilite_pet`,`hilite_pile`
+`OPTIONS=color`           # Display things in color if possible
+`OPTIONS=`lit_corridor``    # Show lit corridors differently
+`OPTIONS=`hilite_pet`,`hilite_pile``
 # Replace small punctuation (tick marks) with digits
-    OPTIONS=boulder:0
+`OPTIONS=boulder:0`
 `SYMBOLS=S_golem:7`
 #
 # No startup splash screen. Windows GUI only.
-    OPTIONS=!`splash_screen`
+`OPTIONS=!`splash_screen``
 
 
 ### 9.3. Using the NETHACKOPTIONS environment variable
@@ -3305,7 +3305,7 @@ $ export NETHACKOPTIONS
 in sh, ksh, or bash.
 
 The NETHACKOPTIONS value is effectively  the  same  as  a  single
-OPTIONS  directive  in a configuration file.  The "OPTIONS=" prefix is
+OPTIONS  directive  in a configuration file.  The "`OPTIONS="` prefix is
 implied and comma separated options are processed from right to  left.
 Other  types  of  configuration directives such as BIND or MSGTYPE are
 not allowed.
@@ -4067,8 +4067,8 @@ plished in the same manner as with boolean options, by prefixing the
 option or its value(s) with `!` or "no".
 Examples:
 
-    OPTIONS=role:!arc !bar !kni
-    OPTIONS=!role:arc bar kni
+`OPTIONS=role:!arc` !bar !kni
+`OPTIONS=!role:arc` bar kni
 
 There  can  be  multiple instances of the role option if they're all
 negations.
@@ -4631,7 +4631,7 @@ hang if this is turned on.  Cannot be set with the `O` command.
 `subkeyvalue`
 (Win32  tty  NetHack  only).  May be used to alter the value of key-
 strokes that the operating system returns to NetHack to help compen-
-sate  for international keyboard issues.  OPTIONS=subkeyvalue:171/92
+sate  for international keyboard issues.  `OPTIONS=subkeyvalue:171/92`
 will return 92 to  NetHack,  if  171  was  originally  going  to  be
 returned.   You can use multiple subkeyvalue assignments in the con-
 figuration file if needed.  Cannot be set with the `O` command.
@@ -4926,7 +4926,7 @@ curses, win32tty and win32gui interfaces support this.
 In general, the configuration file entries to describe  the  menu
 color mappings look like this:
 
-MENUCOLOR="pattern"=color&attribute
+`MENUCOLOR="pattern"`=color&attribute
 
 pattern    - the pattern to match;
 color      - the color to use for lines matching the pattern;
@@ -4949,9 +4949,9 @@ form used may interpret the attributes any way it wants.
 Here's  an  example  of menu colors using NetHack's internal pattern
 matching facility:
 
-MENUCOLOR="* blessed *"=green
-MENUCOLOR="* cursed *"=red
-MENUCOLOR="* cursed *(being worn)"=red&underline
+`MENUCOLOR="* blessed *"`=green
+`MENUCOLOR="* cursed *"`=red
+`MENUCOLOR="* cursed *(being worn)"`=red&underline
 
 specifies that any menu line with " blessed " contained in  it  will
 be shown in green color, lines with " cursed " will be shown in red,
@@ -4996,9 +4996,9 @@ The pattern should be a regular expression.
 
 For example:
 
-SOUNDDIR=C:\nethack\sounds
-SOUND=MESG "This door is locked" "lock.wav" 100
-SOUND=MESG hide "^You miss the " "swing.wav" 75
+`SOUNDDIR=C:\nethack\sounds`
+`SOUND=MESG` "This door is locked" "lock.wav" 100
+`SOUND=MESG` hide "^You miss the " "swing.wav" 75
 
 
 ### 9.14. Configuring Status Hilites
@@ -5395,7 +5395,7 @@ or individually within your nethack.rc file.
 
 The format for defining a glyph representation is:
 
-    OPTIONS=glyph:glyphid/U+nnnn/R-G-B
+`OPTIONS=glyph:glyphid/U+nnnn/R-G-B`
 
 The window port that is active needs to provide support for  dis-
 playing  UTF-8  character sequences and explicit red-green-blue colors
@@ -5404,7 +5404,7 @@ following  line in your configuration file will cause the glyph repre-
 sentation for glyphid G_pool to use Unicode codepoint U+224B  and  the
 color represented by R-G-B value 0-0-160:
 
-    OPTIONS=glyph:G_pool/U+224B/0-0-160
+`OPTIONS=glyph:G_pool/U+224B/0-0-160`
 
 The  list  of acceptable glyphid's can be produced by nethack --dumpg-
 lyphids.  Individual NetHack glyphs can be specified using the G_ pre-
