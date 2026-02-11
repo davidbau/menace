@@ -143,6 +143,7 @@ describe('Dlvl 3-5 Combat Tactics', () => {
     it('ignores weak monsters even when multiple present', () => {
         // Weak (LOW danger) monsters are ignored - we walk through them
         // Even when multiple are present, if they're LOW danger we ignore them
+        // Note: Rats are special-cased to MEDIUM danger to prevent deaths
         const engagement = shouldEngageMonster(
             'g',          // hobgoblin (mid-game threat, but LOW danger with good HP)
             14, 16,       // good HP (87.5%)
@@ -152,7 +153,7 @@ describe('Dlvl 3-5 Combat Tactics', () => {
             1,            // 1 other nearby monster
             true          // in corridor
         );
-        // Should ignore LOW danger monsters
+        // Should ignore LOW danger monsters (they might be pets)
         assert.equal(engagement.ignore, true);
         assert.equal(engagement.shouldEngage, false);
     });

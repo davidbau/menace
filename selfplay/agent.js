@@ -691,7 +691,18 @@ export class Agent {
         // Adjust based on monster danger and dungeon level
         const hpPercent = this.status ? this.status.hp / this.status.hpmax : 1;
         const nearbyMonsters = findMonsters(this.screen);
-        const adjacentMonster = this._findAdjacentMonster(px, py);
+        let adjacentMonster = this._findAdjacentMonster(px, py);
+
+        // Filter out pets from combat consideration
+        if (adjacentMonster) {
+            const monPosKey = adjacentMonster.y * 80 + adjacentMonster.x;
+            const isPet = this.petPositions.has(monPosKey) || this.knownPetChars.has(adjacentMonster.ch);
+            if (isPet) {
+                // Don't treat pets as hostile - ignore them for combat purposes
+                adjacentMonster = null;
+            }
+        }
+
         const hasHostileMonsters = nearbyMonsters.length > 0 || adjacentMonster !== null;
 
         // Calculate retreat threshold based on threats
@@ -2832,8 +2843,9 @@ export class Agent {
 
             const dist = Math.max(Math.abs(mon.x - px), Math.abs(mon.y - py));
 
-            // On first few turns, adjacent d/f/C are almost certainly pets
-            if (this.turnNumber < 5 && dist <= 2 && petChars.has(mon.ch)) {
+            // On first ~15 turns, adjacent d/f/C are likely starting pets
+            // After turn 15, wild d/f/C animals may appear - don't assume they're pets
+            if (this.turnNumber < 15 && dist <= 2 && petChars.has(mon.ch)) {
                 this.petPositions.add(mon.y * 80 + mon.x);
             }
         }

@@ -77,6 +77,12 @@ export function assessMonsterDanger(monsterChar, playerHP, playerMaxHP, playerLe
         return DangerLevel.INSTADEATH;
     }
 
+    // Rats ('r') are always hostile and should be fought/fled, never ignored
+    // Treat as MEDIUM danger to ensure we engage or flee (not ignore like LOW danger)
+    if (monsterChar === 'r') {
+        return DangerLevel.MEDIUM;
+    }
+
     // Uppercase = more dangerous (with some exceptions)
     const isUppercase = monsterChar === monsterChar.toUpperCase() && monsterChar.match(/[A-Z]/);
 
@@ -277,13 +283,14 @@ export function shouldEngageMonster(
         };
     }
 
-    // LOW or SAFE
-    // For harmless monsters, IGNORE them - don't fight, don't flee, just walk through
+    // LOW or SAFE danger
+    // For weak/harmless monsters, IGNORE them - don't fight, don't flee, just walk through
     // When blocking, NetHack will auto-swap positions ("You swap places with your kitten.")
+    // Note: Rats are upgraded to MEDIUM danger, so they won't be ignored
     if (danger === DangerLevel.LOW || danger === DangerLevel.SAFE) {
         return {
             shouldEngage: false,
-            shouldFlee: false,  // Don't flee from harmless monsters
+            shouldFlee: false,
             ignore: true,
             reason: isBlocking ? `walking through harmless ${monsterChar} (blocking)` : `ignoring harmless ${monsterChar}`,
         };
