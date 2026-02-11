@@ -271,3 +271,40 @@ code {
         height: 200px;
     }
 }
+/* Additions to dashboard.css for new layout */
+
+.scrubber-section {
+    padding: 0.5rem;
+}
+
+.combined-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    margin-bottom: 0.5rem;
+}
+
+.category-chart-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.category-chart-container h2 {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.chart-container-small {
+    position: relative;
+    height: 200px;
+    flex-grow: 1;
+}
+
+@media (max-width: 900px) {
+    .combined-section {
+        grid-template-columns: 1fr;
+    }
+}

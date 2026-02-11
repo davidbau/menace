@@ -14,32 +14,45 @@
     </header>
 
     <main>
-        <!-- Summary Cards -->
-        <section class="summary-cards">
-            <div class="card">
-                <h3>Latest Commit</h3>
-                <div id="latest-commit" class="stat">Loading...</div>
-                <div id="latest-message" class="detail"></div>
+        <!-- Scrubber at top -->
+        <section class="scrubber-section">
+            <h2>📜 Commit Browser</h2>
+            <div class="scrubber-container">
+                <input type="range" id="commit-scrubber" min="0" max="100" value="100">
+                <div id="scrubber-info"></div>
             </div>
-            <div class="card">
-                <h3>Total Tests</h3>
-                <div id="total-tests" class="stat">-</div>
-                <div id="new-tests" class="detail"></div>
+        </section>
+
+        <!-- Summary Cards + Category Chart side by side -->
+        <section class="combined-section">
+            <div class="summary-cards">
+                <div class="card">
+                    <h3>Commit</h3>
+                    <div id="latest-commit" class="stat">Loading...</div>
+                    <div id="latest-message" class="detail"></div>
+                </div>
+                <div class="card">
+                    <h3>Total Tests</h3>
+                    <div id="total-tests" class="stat">-</div>
+                    <div id="new-tests" class="detail"></div>
+                </div>
+                <div class="card pass">
+                    <h3>Passing</h3>
+                    <div id="pass-count" class="stat">-</div>
+                    <div id="pass-percent" class="detail"></div>
+                </div>
+                <div class="card fail">
+                    <h3>Failing</h3>
+                    <div id="fail-count" class="stat">-</div>
+                    <div id="fail-percent" class="detail"></div>
+                </div>
             </div>
-            <div class="card pass">
-                <h3>Passing</h3>
-                <div id="pass-count" class="stat">-</div>
-                <div id="pass-percent" class="detail"></div>
-            </div>
-            <div class="card fail">
-                <h3>Failing</h3>
-                <div id="fail-count" class="stat">-</div>
-                <div id="fail-percent" class="detail"></div>
-            </div>
-            <div class="card" id="regression-card">
-                <h3>Regressions</h3>
-                <div id="regression-count" class="stat">-</div>
-                <div id="regression-detail" class="detail"></div>
+            
+            <div class="category-chart-container">
+                <h2>🎲 Test Categories</h2>
+                <div class="chart-container-small">
+                    <canvas id="category-chart"></canvas>
+                </div>
             </div>
         </section>
 
@@ -49,23 +62,11 @@
             <div class="chart-container">
                 <canvas id="timeline-chart"></canvas>
             </div>
-            <div class="scrubber-container">
-                <input type="range" id="commit-scrubber" min="0" max="100" value="100">
-                <div id="scrubber-info"></div>
-            </div>
-        </section>
-
-        <!-- Category Breakdown -->
-        <section class="category-section">
-            <h2>🎲 Test Categories — *You identify your scrolls*</h2>
-            <div class="chart-container">
-                <canvas id="category-chart"></canvas>
-            </div>
         </section>
 
         <!-- Recent Commits Table -->
         <section class="commits-section">
-            <h2>📜 Recent Commits — *The scroll of git log reveals...*</h2>
+            <h2>📜 Recent Commits</h2>
             <div class="table-controls">
                 <label>
                     <input type="checkbox" id="show-all-commits" checked>
@@ -96,12 +97,6 @@
                     </tbody>
                 </table>
             </div>
-        </section>
-
-        <!-- Regression Details -->
-        <section class="regression-section" id="regression-section" style="display: none;">
-            <h2>⚠️ Regressions — *You feel a dark presence*</h2>
-            <div id="regression-list"></div>
         </section>
     </main>
 

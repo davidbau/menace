@@ -4,6 +4,7 @@
 let testData = [];
 let timelineChart = null;
 let categoryChart = null;
+let currentIndex = -1;
 
 // Load and parse JSONL file
 async function loadTestData() {
@@ -34,57 +35,81 @@ function renderDashboard() {
         return;
     }
 
-    const latest = testData[testData.length - 1];
+    currentIndex = testData.length - 1;
 
-    // Update summary cards
-    renderSummaryCards(latest);
+    // Setup scrubber first
+    setupScrubber();
 
-    // Render timeline chart
+    // Render timeline chart (shows all history)
     renderTimelineChart();
-
-    // Render category chart
-    renderCategoryChart(latest);
 
     // Render commits table
     renderCommitsTable();
 
-    // Setup scrubber
-    setupScrubber();
-
     // Update last updated timestamp
     document.getElementById('last-updated').textContent = new Date().toLocaleString();
+
+    // Trigger initial display via scrubber
+    updateForCommit(currentIndex);
 }
 
-// Render summary cards
-function renderSummaryCards(latest) {
-    document.getElementById('latest-commit').textContent = latest.commit;
-    document.getElementById('latest-message').textContent = latest.message;
+// Update summary cards and category chart for a specific commit
+function updateForCommit(index) {
+    const commit = testData[index];
+    if (!commit) return;
 
-    document.getElementById('total-tests').textContent = latest.stats.total;
-    document.getElementById('pass-count').textContent = latest.stats.pass;
-    document.getElementById('fail-count').textContent = latest.stats.fail;
+    currentIndex = index;
 
-    const passPercent = ((latest.stats.pass / latest.stats.total) * 100).toFixed(1);
-    const failPercent = ((latest.stats.fail / latest.stats.total) * 100).toFixed(1);
+    // Update summary cards
+    document.getElementById('latest-commit').textContent = commit.commit;
+    document.getElementById('latest-message').textContent = commit.message;
+
+    document.getElementById('total-tests').textContent = commit.stats.total;
+    document.getElementById('pass-count').textContent = commit.stats.pass;
+    document.getElementById('fail-count').textContent = commit.stats.fail;
+
+    const passPercent = ((commit.stats.pass / commit.stats.total) * 100).toFixed(1);
+    const failPercent = ((commit.stats.fail / commit.stats.total) * 100).toFixed(1);
 
     document.getElementById('pass-percent').textContent = `${passPercent}%`;
     document.getElementById('fail-percent').textContent = `${failPercent}%`;
 
-    if (latest.newTests !== 0) {
-        const sign = latest.newTests > 0 ? '+' : '';
-        document.getElementById('new-tests').textContent = `${sign}${latest.newTests} new`;
-    }
-
-    // Regression card
-    const regressionCount = testData.filter(d => d.regression).length;
-    document.getElementById('regression-count').textContent = regressionCount;
-
-    if (latest.regression) {
-        document.getElementById('regression-card').classList.add('regression');
-        document.getElementById('regression-detail').textContent = 'Latest commit regressed';
+    if (commit.newTests !== 0) {
+        const sign = commit.newTests > 0 ? '+' : '';
+        document.getElementById('new-tests').textContent = `${sign}${commit.newTests} new`;
     } else {
-        document.getElementById('regression-detail').textContent = 'Last 10 commits';
+        document.getElementById('new-tests').textContent = '';
     }
+
+    // Update category chart
+    renderCategoryChart(commit);
+}
+
+// Setup scrubber
+function setupScrubber() {
+    const scrubber = document.getElementById('commit-scrubber');
+    const scrubberInfo = document.getElementById('scrubber-info');
+
+    scrubber.max = testData.length - 1;
+    scrubber.value = testData.length - 1;
+
+    scrubber.addEventListener('input', (e) => {
+        const index = parseInt(e.target.value);
+        const commit = testData[index];
+
+        if (commit) {
+            const date = new Date(commit.date).toLocaleDateString();
+            const passPercent = ((commit.stats.pass / commit.stats.total) * 100).toFixed(1);
+
+            scrubberInfo.textContent = `${commit.commit} (${date}): ${commit.stats.pass}/${commit.stats.total} (${passPercent}%) - ${commit.message}`;
+
+            // Update summary cards and category chart
+            updateForCommit(index);
+        }
+    });
+
+    // Trigger initial display
+    scrubber.dispatchEvent(new Event('input'));
 }
 
 // Render timeline chart
@@ -112,26 +137,17 @@ function renderTimelineChart() {
                 {
                     label: 'Passing',
                     data: passData,
-                    borderColor: '#4caf50',
-                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                    borderColor: '#5a5',
+                    backgroundColor: 'rgba(85, 170, 85, 0.1)',
                     fill: true,
                     tension: 0.4
                 },
                 {
                     label: 'Failing',
                     data: failData,
-                    borderColor: '#f44336',
-                    backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                    borderColor: '#d55',
+                    backgroundColor: 'rgba(221, 85, 85, 0.1)',
                     fill: true,
-                    tension: 0.4
-                },
-                {
-                    label: 'Total',
-                    data: totalData,
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    borderDash: [5, 5],
-                    fill: false,
                     tension: 0.4
                 }
             ]
@@ -145,34 +161,22 @@ function renderTimelineChart() {
             },
             plugins: {
                 legend: {
-                    position: 'top'
+                    position: 'top',
+                    labels: { color: '#aaa' }
                 },
                 title: {
                     display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        footer: function(context) {
-                            const index = context[0].dataIndex;
-                            const data = testData[index];
-                            return `Author: ${data.author}\nMessage: ${data.message}`;
-                        }
-                    }
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Test Count'
-                    }
+                    grid: { color: '#333' },
+                    ticks: { color: '#888' }
                 },
                 x: {
-                    title: {
-                        display: true,
-                        text: 'Commit'
-                    }
+                    grid: { color: '#333' },
+                    ticks: { color: '#888', maxRotation: 45 }
                 }
             }
         }
@@ -180,10 +184,10 @@ function renderTimelineChart() {
 }
 
 // Render category chart
-function renderCategoryChart(latest) {
+function renderCategoryChart(commit) {
     const ctx = document.getElementById('category-chart').getContext('2d');
 
-    const categories = latest.categories || {};
+    const categories = commit.categories || {};
     const labels = Object.keys(categories);
     const passData = labels.map(cat => categories[cat].pass);
     const failData = labels.map(cat => categories[cat].fail);
@@ -200,12 +204,12 @@ function renderCategoryChart(latest) {
                 {
                     label: 'Passing',
                     data: passData,
-                    backgroundColor: '#4caf50'
+                    backgroundColor: '#5a5'
                 },
                 {
                     label: 'Failing',
                     data: failData,
-                    backgroundColor: '#f44336'
+                    backgroundColor: '#d55'
                 }
             ]
         },
@@ -214,24 +218,21 @@ function renderCategoryChart(latest) {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'top'
+                    position: 'top',
+                    labels: { color: '#aaa', font: { size: 10 } }
                 }
             },
             scales: {
                 x: {
                     stacked: true,
-                    title: {
-                        display: true,
-                        text: 'Test Category'
-                    }
+                    grid: { color: '#333' },
+                    ticks: { color: '#888', font: { size: 10 } }
                 },
                 y: {
                     stacked: true,
                     beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Test Count'
-                    }
+                    grid: { color: '#333' },
+                    ticks: { color: '#888' }
                 }
             }
         }
@@ -247,27 +248,37 @@ function renderCommitsTable() {
     const recentData = testData.slice(-20).reverse();
 
     recentData.forEach((commit, index) => {
+        const prevIndex = testData.length - index - 2;
+        const prev = prevIndex >= 0 ? testData[prevIndex] : null;
+
         const row = document.createElement('tr');
 
-        // Determine if regression or improvement
+        // Add regression/improvement highlighting
         if (commit.regression) {
             row.classList.add('regression-row');
+        } else if (prev && commit.stats.pass > prev.stats.pass) {
+            row.classList.add('improvement-row');
         }
 
-        // Calculate delta from previous commit
-        const prevIndex = testData.length - 1 - index - 1;
-        let delta = 0;
-        let deltaClass = 'delta-neutral';
-        if (prevIndex >= 0) {
-            const prev = testData[prevIndex];
-            delta = commit.stats.pass - prev.stats.pass;
-            deltaClass = delta > 0 ? 'delta-positive' : delta < 0 ? 'delta-negative' : 'delta-neutral';
-        }
-
-        const deltaText = delta > 0 ? `+${delta}` : delta < 0 ? delta : '–';
-
-        const date = new Date(commit.date).toLocaleString();
+        const date = new Date(commit.date).toLocaleDateString();
         const passPercent = ((commit.stats.pass / commit.stats.total) * 100).toFixed(1);
+
+        let delta = '';
+        let deltaClass = 'delta-neutral';
+        if (prev) {
+            const diff = commit.stats.pass - prev.stats.pass;
+            if (diff > 0) {
+                delta = `+${diff}`;
+                deltaClass = 'delta-positive';
+            } else if (diff < 0) {
+                delta = `${diff}`;
+                deltaClass = 'delta-negative';
+            } else {
+                delta = '–';
+            }
+        }
+
+        const deltaText = delta || '–';
 
         row.innerHTML = `
             <td><span class="commit-hash">${commit.commit}</span></td>
@@ -283,33 +294,6 @@ function renderCommitsTable() {
 
         tbody.appendChild(row);
     });
-}
-
-// Setup scrubber
-function setupScrubber() {
-    const scrubber = document.getElementById('commit-scrubber');
-    const scrubberInfo = document.getElementById('scrubber-info');
-
-    scrubber.max = testData.length - 1;
-    scrubber.value = testData.length - 1;
-
-    scrubber.addEventListener('input', (e) => {
-        const index = parseInt(e.target.value);
-        const commit = testData[index];
-
-        if (commit) {
-            const date = new Date(commit.date).toLocaleDateString();
-            const passPercent = ((commit.stats.pass / commit.stats.total) * 100).toFixed(1);
-
-            scrubberInfo.textContent = `${commit.commit}: ${commit.stats.pass}/${commit.stats.total} (${passPercent}%) - ${commit.message} (${date})`;
-
-            // Optionally update charts to show historical view
-            // This could be enhanced to show state at that point in time
-        }
-    });
-
-    // Trigger initial display
-    scrubber.dispatchEvent(new Event('input'));
 }
 
 // Initialize dashboard
