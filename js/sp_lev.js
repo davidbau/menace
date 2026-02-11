@@ -16,7 +16,7 @@
 import { GameMap, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1 } from './rng.js';
 import { mksobj, mkobj } from './mkobj.js';
-import { create_room, create_subroom, makecorridors, init_rect, rnd_rect, get_rect, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room, _mtInitialized, setMtInitialized } from './dungeon.js';
+import { create_room, create_subroom, makecorridors, init_rect, rnd_rect, get_rect, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room, litstate_rnd, _mtInitialized, setMtInitialized } from './dungeon.js';
 import {
     STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
     CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL, ROOM, CORR,
@@ -157,36 +157,12 @@ export function setCurrentRoom(room) {
  *
  * This is called lazily on the first Lua RNG use (des.object/des.monster) to match C behavior.
  */
-function initLuaMT() {
+export function initLuaMT() {
     for (let i = 1000; i <= 1004; i++) rn2(i);
     rn2(1010);
     rn2(1012);
     for (let i = 1014; i <= 1036; i++) rn2(i);
     setMtInitialized(true);
-}
-
-/**
- * Determine if a room/level should be lit based on litstate and depth.
- * C ref: mkmap.c:446 litstate_rnd()
- *
- * When litstate < 0 (random), calculates: rnd(1+depth) < 11 && rn2(77)
- * At shallow depths (1-10), this usually results in lit rooms.
- *
- * @param {number} litstate - Lighting state: -1=random, 0=unlit, 1=lit
- * @param {number} depth - Current dungeon depth
- * @returns {number} 0=unlit, 1=lit
- */
-function litstate_rnd(litstate, depth) {
-    const DEBUG = process.env.DEBUG_ROOMS === '1';
-    if (DEBUG) console.log(`  litstate_rnd(${litstate}, ${depth})`);
-    if (litstate < 0) {
-        // C: (rnd(1 + abs(depth(&u.uz))) < 11 && rn2(77)) ? TRUE : FALSE
-        const result = (rnd(1 + depth) < 11 && rn2(77)) ? 1 : 0;
-        if (DEBUG) console.log(`    -> random lit=${result}`);
-        return result;
-    }
-    if (DEBUG) console.log(`    -> fixed lit=${litstate}`);
-    return litstate;
 }
 
 /**
@@ -1245,6 +1221,13 @@ export function room(opts = {}) {
             console.log(`des.room(): FIXED position x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, rtype=${rtype}, lit=${lit}, depth=${levelState.roomDepth}`);
         }
 
+        // C ref: sp_lev.c:1510 — litstate_rnd called before rnd_rect for RNG alignment
+        // Note: C's build_room always passes -1 (random) to create_room/litstate_rnd,
+        // ignoring the Lua lit parameter. The Lua lit is applied AFTER room creation.
+        const rndLit = litstate_rnd(-1, levelState.depth || 1);
+        // Use the Lua-specified lit value if provided, otherwise use the random result
+        lit = opts.lit !== undefined ? opts.lit : rndLit;
+
         // C ref: sp_lev.c — special levels call rnd_rect() to select from rect pool
         // Top-level rooms (depth 0) need to select a rect from the BSP pool
         // Nested rooms don't use the rect pool
@@ -1314,9 +1297,6 @@ export function room(opts = {}) {
                 console.log(`  Nested room: relative (${x},${y}) -> absolute (${roomX},${roomY}) within parent`);
             }
         }
-
-        // C ref: sp_lev.c:1510 — litstate_rnd called regardless of position mode
-        lit = litstate_rnd(lit, levelState.depth || 1);
     } else {
         // Random placement - use sp_lev.c's create_room algorithm
         // rtype already determined by chance check above (line 1188)
