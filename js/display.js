@@ -522,7 +522,9 @@ export class Display {
         // C ref: botl.c bot1str()
         const line1Parts = [];
         line1Parts.push(player.name);
-        line1Parts.push(`St:${player.attributes[0]}`);
+        // Use strDisplay for proper 18/xx exceptional strength formatting
+        // C ref: attrib.c str_string()
+        line1Parts.push(`St:${player.strDisplay}`);
         line1Parts.push(`Dx:${player.attributes[3]}`);
         line1Parts.push(`Co:${player.attributes[4]}`);
         line1Parts.push(`In:${player.attributes[1]}`);
