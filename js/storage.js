@@ -534,6 +534,7 @@ export function deleteBones(depth) {
 
 // C ref: flag.h — struct flag fields relevant to JS port
 export const DEFAULT_FLAGS = {
+    name: '',             // C: plname (player name) — remembered across sessions
     pickup: true,         // C: flags.pickup
     pickup_types: '',     // C: flags.pickup_types — empty means all types (backward compat)
     showexp: true,        // C: flags.showexp
@@ -552,9 +553,14 @@ export const DEFAULT_FLAGS = {
 
 // C ref: options.c allopt[] — metadata for each option
 export const OPTION_DEFS = [
-    { name: 'pickup', type: 'boolean', label: 'Auto-pickup', menuChar: 'a' },
+    // String/compound options (C: "Compounds - selecting will prompt for new value")
+    { name: 'name', type: 'string', label: 'Your character\'s name', menuChar: 'N',
+      help: 'Your character\'s name (e.g., name:Merlin)' },
     { name: 'pickup_types', type: 'string', label: 'Pickup types', menuChar: 'p',
       help: 'Object types to autopickup (e.g., "$/!?+" for gold/potions/scrolls/rings/spellbooks). Empty = all types.' },
+
+    // Boolean options
+    { name: 'pickup', type: 'boolean', label: 'Auto-pickup', menuChar: 'a' },
     { name: 'showexp', type: 'boolean', label: 'Show experience', menuChar: 'e' },
     { name: 'color', type: 'boolean', label: 'Color', menuChar: 'c' },
     { name: 'time', type: 'boolean', label: 'Show turns', menuChar: 't' },

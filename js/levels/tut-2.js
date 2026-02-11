@@ -4,7 +4,7 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection } from '../sp_lev.js';
+import { selection, nh } from '../sp_lev.js';
 
 export function generate() {
 

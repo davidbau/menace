@@ -4,7 +4,7 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection, percent, shuffle } from '../sp_lev.js';
+import { selection, percent, shuffle, nh, u } from '../sp_lev.js';
 import { rn2 } from '../rng.js';
 
 export function generate() {

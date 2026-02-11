@@ -39,14 +39,14 @@ export function generate() {
 
     let choice = rn2(4)
     if (choice == 0) {
-       darkness: selection.area(1,7,22,9)
+       darkness = selection.area(1,7,22,9)
           | selection.area(24,1,50,5)
           | selection.area(24,11,50,16)
           | selection.area(52,7,73,9);
     } else if (choice == 1) {
-       darkness: selection.area(24,1,50,16);
+       darkness = selection.area(24,1,50,16);
     } else if (choice == 2) {
-       darkness: selection.area(1,1,22,16)
+       darkness = selection.area(1,1,22,16)
           | selection.area(52,1,73,16);
     }
 

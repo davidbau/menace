@@ -8,7 +8,7 @@ import { COLNO, ROWNO, ROOM, STAIRS, NORMAL_SPEED, ACCESSIBLE, isok, A_DEX, A_CO
          FEMALE, MALE, TERMINAL_COLS } from './config.js';
 import { initRng, rn2, rnd, rn1, getRngState, setRngState, getRngCallCount, setRngCallCount } from './rng.js';
 import { Display } from './display.js';
-import { initInput, nhgetch, getCount } from './input.js';
+import { initInput, nhgetch, getCount, getlin } from './input.js';
 import { FOV } from './vision.js';
 import { Player, roles, races, validRacesForRole, validAlignsForRoleRace,
          needsGenderMenu, rankOf, godForRoleAlign, isGoddess, greetingForRole,
@@ -19,7 +19,7 @@ import { rhack } from './commands.js';
 import { movemon, settrack } from './monmove.js';
 import { simulatePostLevelInit } from './u_init.js';
 import { loadSave, deleteSave, hasSave, saveGame,
-         loadFlags, deserializeRng,
+         loadFlags, saveFlags, deserializeRng,
          restGameState, restLev,
          listSavedData, clearAllData } from './storage.js';
 import { savebones } from './bones.js';
@@ -96,8 +96,10 @@ class NetHackGame {
         // Load user flags (C ref: flags struct from flag.h)
         this.flags = loadFlags();
 
-        // Expose flags globally for input handler (number_pad mode)
+        // Expose flags and display globally for input handler
+        // (flags for number_pad mode, display for message acknowledgement)
         window.gameFlags = this.flags;
+        window.gameDisplay = this.display;
 
         // Check for saved game before RNG init
         const saveData = loadSave();
@@ -236,9 +238,51 @@ class NetHackGame {
         return true;
     }
 
+    // Prompt for player name
+    // C ref: role.c plnamesuffix() -> askname()
+    async _promptPlayerName() {
+        const MAX_NAME_LENGTH = 31; // C ref: global.h PL_NSIZ = 32 (31 chars + null)
+
+        // Check if name is already saved in options (like C NetHack config file)
+        // C ref: options.c — name can be set via OPTIONS=name:playername
+        if (this.flags.name && this.flags.name.trim() !== '') {
+            // Use saved name (skip prompt)
+            this.player.name = this.flags.name.trim().substring(0, MAX_NAME_LENGTH);
+            return;
+        }
+
+        // No saved name - prompt for it
+        while (true) {
+            const name = await getlin('Who are you? ', this.display);
+
+            // C NetHack doesn't allow ESC to cancel - recursively prompts until valid
+            if (name === null || name.trim() === '') {
+                // Empty or cancelled - prompt again
+                continue;
+            }
+
+            // Enforce max length (truncate if too long)
+            const trimmedName = name.trim().substring(0, MAX_NAME_LENGTH);
+
+            // C NetHack accepts any non-empty name
+            this.player.name = trimmedName;
+
+            // Save name to options for future games (like C NetHack config)
+            this.flags.name = trimmedName;
+            saveFlags(this.flags);
+
+            return;
+        }
+    }
+
     // Player role selection -- faithful C chargen flow
     // C ref: role.c player_selection() -- choose role, race, gender, alignment
     async playerSelection() {
+        // Phase 0: Prompt for player name
+        // C ref: role.c plnamesuffix() -> askname() — prompts "Who are you?"
+        // Name prompt happens BEFORE role/race/gender/alignment selection
+        await this._promptPlayerName();
+
         // Phase 1: "Shall I pick character's race, role, gender and alignment for you?"
         this.display.putstr_message(
             "Shall I pick character's race, role, gender and alignment for you? [ynaq]"
@@ -918,7 +962,7 @@ class NetHackGame {
         const raceName = races[raceIdx].adj;
         const genderStr = female ? 'female' : 'male';
         const alignStr = alignName(align);
-        const confirmText = `${this.player.name.toLowerCase()} the ${alignStr} ${genderStr} ${raceName} ${rName}`;
+        const confirmText = `${this.player.name} the ${alignStr} ${genderStr} ${raceName} ${rName}`;
 
         const lines = [];
         lines.push('Is this ok? [ynq]');
@@ -935,7 +979,8 @@ class NetHackGame {
         const c = String.fromCharCode(ch);
 
         if (c === 'q') { window.location.reload(); return false; }
-        return c === 'y';
+        // Both 'y' and '*' accept (as shown in menu: "y * Yes")
+        return c === 'y' || c === '*';
     }
 
     // Show lore text and welcome message
@@ -1009,7 +1054,7 @@ class NetHackGame {
             genderStr = female ? 'female ' : 'male ';
         }
 
-        const welcomeMsg = `${greeting} ${this.player.name.toLowerCase()}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
+        const welcomeMsg = `${greeting} ${this.player.name}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
         this.display.putstr_message(welcomeMsg);
 
         // Show --More-- after welcome
@@ -1222,7 +1267,8 @@ class NetHackGame {
             } else {
                 // Get player input with optional count prefix
                 // C ref: cmd.c:4942-4960 parse() -> get_count()
-                this.display.clearRow(0); // clear message line
+                // Note: Don't clear message line here - messages should persist until
+                // a new message is displayed (putstr_message clears it automatically)
 
                 // Read first character
                 const firstCh = await nhgetch();

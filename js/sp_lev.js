@@ -2192,6 +2192,24 @@ export function non_diggable(selection) {
 }
 
 /**
+ * des.message(text)
+ *
+ * Queue a message to display when the level is entered.
+ * C ref: sp_lev.c lspo_message()
+ *
+ * @param {string} text - Message to display
+ */
+export function message(text) {
+    if (!levelState.map) {
+        levelState.map = { messages: [] };
+    }
+    if (!levelState.map.messages) {
+        levelState.map.messages = [];
+    }
+    levelState.map.messages.push(text);
+}
+
+/**
  * des.non_passwall(selection)
  *
  * Make an area non-passwallable.
@@ -2970,6 +2988,63 @@ export const nh = {
 
         return value;
     },
+
+    /**
+     * nh.eckey(command)
+     * Returns the key binding for an extended command name.
+     * Used in tutorial levels to show players which keys to press.
+     * C ref: nhlua.c nhl_eckey()
+     *
+     * @param {string} command - Command name (e.g., "up", "down", "inventory")
+     * @returns {string} Key for the command
+     */
+    eckey: (command) => {
+        const keymap = {
+            'up': '<',
+            'down': '>',
+            'inventory': 'i',
+            'look': ':',
+            'search': 's',
+            'wait': '.',
+            'help': '?',
+        };
+        return keymap[command] || '?';
+    },
+
+    /**
+     * nh.parse_config(config_string)
+     * Parses a configuration option string.
+     * Used in tutorial levels to set options like "mention_walls".
+     * C ref: nhlua.c nhl_parse_config()
+     *
+     * Note: This is a stub implementation for level generation.
+     * In a full game, this would parse and apply the config option.
+     *
+     * @param {string} config_string - Config string (e.g., "OPTIONS=mention_walls")
+     */
+    parse_config: (config_string) => {
+        // Stub: Config parsing only affects runtime behavior, not level generation
+        // Tutorial levels use this to set display options, but since we're just
+        // generating the level structure, we can safely ignore it
+        return;
+    },
+};
+
+/**
+ * Stub player object for level generation
+ * C ref: you.h struct you
+ *
+ * During level generation, there is no actual player yet.
+ * This stub provides default values so that level generators
+ * (especially tutorial levels) can reference player properties
+ * without causing errors.
+ *
+ * In a full game, this would be replaced by the actual player object.
+ */
+export const u = {
+    role: null,  // Player role (e.g., "Knight", "Wizard", etc.)
+    race: null,  // Player race
+    alignment: null,  // Player alignment
 };
 
 /**

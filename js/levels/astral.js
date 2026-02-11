@@ -4,16 +4,19 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection, percent } from '../sp_lev.js';
+import { selection, percent, shuffle } from '../sp_lev.js';
 import { rn2 } from '../rng.js';
+import { A_CHAOTIC, A_NEUTRAL, A_LAWFUL } from '../config.js';
 
 export function generate() {
+    const align = [A_CHAOTIC, A_NEUTRAL, A_LAWFUL];
+    shuffle(align);
     // NetHack endgame astral.lua	$NHDT-Date: 1652196020 2022/5/10 15:20:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.7 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1992,1993 by Izchak Miller, David Cohrs,
     // && Timo Hakulinen
     // NetHack may be freely redistributed.  See license for details.
-    // 
+    //
     des.level_init({ style: "solidfill", fg: " " });
 
     des.level_flags("mazelevel", "noteleport", "hardfloor", "nommap", "shortsighted", "solidify");
@@ -53,20 +56,21 @@ export function generate() {
        // only, 24% right side only, 16% that neither side opens up
        let hall;
        if (percent(60)) {
+         let hall;
          if (i == 1) {
             des.terrain(selection.area(17,14, 30,18),".");
             des.wallify();
             // temporarily close off the area to be filled so that it doesn't cover
             // the entire entry area
             des.terrain(33,18, "|");
-            hall: selection.floodfill(30,16)
+            hall = selection.floodfill(30,16);
             // re-connect the opened wing with the rest of the map
             des.terrain(33,18, ".");
          } else {
             des.terrain(selection.area(44,14, 57,18),".");
             des.wallify();
             des.terrain(41,18, "|");
-            hall: selection.floodfill(44,16)
+            hall = selection.floodfill(44,16);
             des.terrain(41,18, ".");
          }
          // extra monsters; was [6 + 3d4] when both wings were opened up at once

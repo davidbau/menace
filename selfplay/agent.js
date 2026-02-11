@@ -89,6 +89,7 @@ export class Agent {
         this.lastSearchPosition = null; // {x, y} of last search position
         this.searchesAtCurrentPosition = 0; // searches at current position
         this.searchExhausted = false; // true when all search approaches exhausted
+        this.searchCooldownUntil = 0; // turn number until which new searches are blocked
 
         // Corridor following state
         // Combat oscillation detection
@@ -231,6 +232,7 @@ export class Agent {
                     this.searchesAtCurrentPosition = 0;
                     this.lastSearchPosition = null;
                     this.searchExhausted = false;
+                    this.searchCooldownUntil = 0;
                 }
             }
 
@@ -1147,13 +1149,16 @@ export class Agent {
             );
 
             // Occupancy map secret door search (Campbell & Verbrugge 2017 approach)
+            // NOTE: Secret doors only exist on Dlvl 3+ (depth > 2 per js/dungeon.js:1281)
             // Trigger when stuck and no downstairs found
             const shouldSearchSecretDoors =
+                this.dungeon.currentDepth > 2 &&         // Secret doors only on Dlvl 3+
                 this.levelStuckCounter > 20 &&           // Stuck for 20+ turns
                 level.stairsDown.length === 0 &&         // No downstairs found yet
                 coverageForSearch < 0.90;                // Not almost fully explored
 
-            if (shouldSearchSecretDoors) {
+            // Don't start new searches if exhausted or in cooldown period (prevents infinite loops)
+            if (shouldSearchSecretDoors && !this.searchExhausted && this.turnCount >= this.searchCooldownUntil) {
                 if (!this.secretDoorSearch) {
                     // Use occupancy map approach: identify large hidden components
                     const allTargets = level.getSecretDoorSearchTargets({x: px, y: py}, 5);
@@ -1239,6 +1244,7 @@ export class Agent {
                         // Cancel search session to prioritize exploration of newly accessible area
                         this.secretDoorSearch = null;
                         this.searchExhausted = false;
+                        this.searchCooldownUntil = 0; // Allow new searches after finding a door
 
                         // Reset search tracking
                         this.searchSessionTurn = null;
@@ -1367,7 +1373,8 @@ export class Agent {
                 if (frontier.length > 0) {
                     const explorationPath = findExplorationTarget(level, px, py, this.recentPositions, { preferFar: true });
                     if (explorationPath && explorationPath.found) {
-                        this.searchExhausted = false; // Reset for next time
+                        this.searchExhausted = false;
+                        this.searchCooldownUntil = this.turnCount + 50; // Block new searches for 50 turns
                         const dest = explorationPath.path[explorationPath.path.length - 1];
                         return this._followPath(explorationPath, 'explore', `[SEARCH-ESCAPE] breaking out to (${dest.x},${dest.y})`);
                     }
@@ -1375,7 +1382,8 @@ export class Agent {
 
                 // Last resort: random movement
                 console.log(`[SEARCH-ESCAPE] No exploration path found, random walk`);
-                this.searchExhausted = false; // Reset for next time
+                this.searchExhausted = false;
+                this.searchCooldownUntil = this.turnCount + 50; // Block new searches for 50 turns
                 const directions = ['h', 'j', 'k', 'l', 'y', 'u', 'b', 'n'];
                 const randomDir = directions[Math.floor(Math.random() * directions.length)];
                 return { type: 'random_move', key: randomDir, reason: `search exhausted, random walk to escape loop` };
@@ -1406,8 +1414,8 @@ export class Agent {
                 // Only search aggressively if we've explored most reachable areas
                 // If there are still frontier cells, we should explore them first
                 const frontier = level.getExplorationFrontier();
-                if (frontier.length < 10 && this.searchesAtPosition < 30) {
-                    // Very few unexplored cells - search for secrets
+                if (frontier.length < 10 && this.searchesAtPosition < 30 && this.dungeon.currentDepth > 2) {
+                    // Very few unexplored cells - search for secrets (only on Dlvl 3+)
                     this.searchesAtPosition++;
                     if (currentCell) currentCell.searched++;
                     return { type: 'search', key: 's', reason: `aggressive search for hidden stairs (stuck ${this.levelStuckCounter})` };
@@ -1713,8 +1721,8 @@ export class Agent {
             }
 
             // If no reachable search candidates, or all are heavily searched,
-            // just search from current position (might help in edge cases)
-            if (this.levelStuckCounter > 40 && currentCell && currentCell.searched < 30) {
+            // just search from current position (might help in edge cases, only on Dlvl 3+)
+            if (this.levelStuckCounter > 40 && currentCell && currentCell.searched < 30 && this.dungeon.currentDepth > 2) {
                 currentCell.searched++;
                 return { type: 'search', key: 's', reason: `exhaustive search from current position (stuck ${this.levelStuckCounter})` };
             }
@@ -1736,8 +1744,8 @@ export class Agent {
                 this.searchesAtPosition = 3; // Skip further searches
             }
 
-            // Try searching briefly for secret doors
-            if (this.searchesAtPosition < 3) {
+            // Try searching briefly for secret doors (only on Dlvl 3+ where they exist)
+            if (this.searchesAtPosition < 3 && this.dungeon.currentDepth > 2) {
                 this.searchesAtPosition++;
                 if (currentCell) currentCell.searched++;
                 return { type: 'search', key: 's', reason: 'searching for secret passages (stuck)' };
@@ -1962,7 +1970,8 @@ export class Agent {
         const exploredPercentForSearch = level.exploredCount / (80 * 21);
         const thoroughlyExploredForSearch = frontierForSearch.length < 10 || exploredPercentForSearch > 0.50;
 
-        if (thoroughlyExploredForSearch && this.searchesAtPosition < 20) {
+        // Only search for secret doors on Dlvl 3+ where they actually exist
+        if (thoroughlyExploredForSearch && this.searchesAtPosition < 20 && this.dungeon.currentDepth > 2) {
             this.searchesAtPosition++;
             if (currentCell) currentCell.searched++;
             return { type: 'search', key: 's', reason: 'searching for secret passages' };
@@ -2271,35 +2280,36 @@ export class Agent {
             const tx = this.committedTarget.x;
             const ty = this.committedTarget.y;
             if (px === tx && py === ty) {
-                // Reached it! Before clearing, check if we should continue through a door
+                // Reached it! Before clearing, check if we should continue into unexplored space
                 const currentCell = level.at(px, py);
                 const atDoor = currentCell && (currentCell.type === 'door_open' || currentCell.type === 'door_closed');
+                const inCorridor = currentCell && currentCell.type === 'corridor';
 
-                // Only use door-continuation logic for actual doors, not corridors
-                // (corridor logic was causing oscillation by walking backwards)
-                if (atDoor) {
-                    // Check all cardinal directions for unexplored space
-                    const dirs = [
-                        { key: 'k', dx: 0, dy: -1, name: 'north' },
-                        { key: 'j', dx: 0, dy: 1, name: 'south' },
-                        { key: 'h', dx: -1, dy: 0, name: 'west' },
-                        { key: 'l', dx: 1, dy: 0, name: 'east' },
-                    ];
+                // Check all cardinal directions for unexplored space
+                const dirs = [
+                    { key: 'k', dx: 0, dy: -1, name: 'north' },
+                    { key: 'j', dx: 0, dy: 1, name: 'south' },
+                    { key: 'h', dx: -1, dy: 0, name: 'west' },
+                    { key: 'l', dx: 1, dy: 0, name: 'east' },
+                ];
 
+                // For doors and corridors, continue into adjacent unexplored cells
+                if (atDoor || inCorridor) {
                     for (const dir of dirs) {
                         const nx = px + dir.dx;
                         const ny = py + dir.dy;
                         const ncell = level.at(nx, ny);
 
-                        // Walk through doors into unexplored cells
+                        // Walk into unexplored cells
                         if (!ncell || !ncell.explored) {
-                            console.log(`[DOOR-EXPLORE] At door, continuing ${dir.name} into unexplored at (${nx},${ny})`);
-                            return { type: 'explore', key: dir.key, reason: `continuing ${dir.name} through door` };
+                            const cellType = atDoor ? 'door' : 'corridor';
+                            console.log(`[CONTINUE] At ${cellType}, continuing ${dir.name} into unexplored at (${nx},${ny})`);
+                            return { type: 'explore', key: dir.key, reason: `continuing ${dir.name} through ${cellType}` };
                         }
                     }
                 }
 
-                // Reached target and nothing to continue through - clear and find next
+                // Reached target and no unexplored adjacents - clear and find next
                 this.committedTarget = null;
                 this.committedPath = null;
                 this.targetStuckCount = 0;
