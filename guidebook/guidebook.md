@@ -1,6 +1,6 @@
 # A Guide to the Mazes of Menace
 
-*Guidebook for NetHack*
+<p style="text-align: center; font-style: italic; margin: 1.5em 0;">Guidebook for NetHack</p>
 
 > Original version - Eric S. Raymond
 >

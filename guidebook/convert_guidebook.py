@@ -27,7 +27,7 @@ def convert_guidebook(input_file, output_file):
             if i == 0:
                 output.append('# A Guide to the Mazes of Menace\n')
                 output.append('\n')
-                output.append('*Guidebook for NetHack*\n')
+                output.append('<p style="text-align: center; font-style: italic; margin: 1.5em 0;">Guidebook for NetHack</p>\n')
                 output.append('\n')
             elif 'Eric S. Raymond' in line:
                 output.append('> ' + line.strip() + '\n')
