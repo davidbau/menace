@@ -283,7 +283,7 @@ $body$
 
           // Only scroll if the highlight is below the comfortable reading area
           if (rect.top > scrollThreshold) {
-            highlightSpan.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            highlightSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
           // If highlight is in top 60% or above, don't scroll - it's visible
         }, 100);
