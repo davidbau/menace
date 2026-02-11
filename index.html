@@ -11,6 +11,19 @@
             scroll-behavior: smooth;
         }
 
+        /* Respect user's motion preferences */
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
         body {
             background: #f9f7f1;  /* Cream parchment color like guidebooks */
             color: #333;
@@ -499,13 +512,19 @@
         const gameDiv = document.getElementById('game');
 
         // Load saved theme
-        const savedTheme = localStorage.getItem('nh-theme') || 'light';
+        let savedTheme = 'light';
+        try {
+            savedTheme = localStorage.getItem('nh-theme') || 'light';
+        } catch(e) {}
         if (savedTheme === 'dark') {
             document.body.classList.add('dark-mode');
         }
 
         // Load and apply saved font size
-        const savedFontSize = localStorage.getItem('nh-font-size') || '16';
+        let savedFontSize = '16';
+        try {
+            savedFontSize = localStorage.getItem('nh-font-size') || '16';
+        } catch(e) {}
 
         function applyFontSize(size) {
             // Apply to game div - will cascade to terminal when it's created
@@ -523,22 +542,34 @@
         themeToggle.addEventListener('click', function() {
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('nh-theme', isDark ? 'dark' : 'light');
+            try {
+                localStorage.setItem('nh-theme', isDark ? 'dark' : 'light');
+            } catch(e) {}
         });
 
         // Font size controls
         fontSmaller.addEventListener('click', function() {
-            let size = parseInt(localStorage.getItem('nh-font-size')) || 16;
+            let size = 16;
+            try {
+                size = parseInt(localStorage.getItem('nh-font-size')) || 16;
+            } catch(e) {}
             size = Math.max(12, size - 2);
             applyFontSize(size);
-            localStorage.setItem('nh-font-size', size);
+            try {
+                localStorage.setItem('nh-font-size', size);
+            } catch(e) {}
         });
 
         fontLarger.addEventListener('click', function() {
-            let size = parseInt(localStorage.getItem('nh-font-size')) || 16;
+            let size = 16;
+            try {
+                size = parseInt(localStorage.getItem('nh-font-size')) || 16;
+            } catch(e) {}
             size = Math.min(24, size + 2);
             applyFontSize(size);
-            localStorage.setItem('nh-font-size', size);
+            try {
+                localStorage.setItem('nh-font-size', size);
+            } catch(e) {}
         });
     })();
 
@@ -571,7 +602,10 @@
     // Watch for terminal creation and apply font size
     (function() {
         const gameDiv = document.getElementById('game');
-        const savedFontSize = localStorage.getItem('nh-font-size');
+        let savedFontSize = null;
+        try {
+            savedFontSize = localStorage.getItem('nh-font-size');
+        } catch(e) {}
         if (!savedFontSize || !gameDiv) return;
 
         const observer = new MutationObserver(function(mutations) {
