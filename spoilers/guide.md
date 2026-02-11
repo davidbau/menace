@@ -29,7 +29,7 @@ go learn things the hard way. There is real joy in that.
 
 **Looking for the manual instead?** If you're just looking for game
 commands, item lists, and mechanics without spoilers, you want the
-[official NetHack Guidebook](guidebook/) instead. That's the reference
+[official NetHack Guidebook](../guidebook/) instead. That's the reference
 manual that comes with NetHack. This document is a *strategic* guide —
 it assumes you already know how to play and want to know how to
 *survive*.
