@@ -1090,11 +1090,16 @@ export class Agent {
             }
 
             // No downstairs found and very stuck - try systematic secret door searching
-            // Allow searching even at low coverage if genuinely trapped (frontier=0, very stuck)
+            // Allow searching even with moderate frontier if genuinely stuck for a long time
             const coverageForSearch = level.exploredCount / (80 * 21);
             const frontierForSearch = level.getExplorationFrontier();
             const genuinelyTrapped = frontierForSearch.length === 0 && this.levelStuckCounter > 50;
-            if (this.levelStuckCounter > 20 && level.stairsDown.length === 0 && frontierForSearch.length < 20 && (coverageForSearch > 0.15 || genuinelyTrapped)) {
+            const shouldSearchDoors = (
+                (frontierForSearch.length < 40 && coverageForSearch > 0.10) ||
+                genuinelyTrapped ||
+                this.levelStuckCounter > 100
+            );
+            if (this.levelStuckCounter > 20 && level.stairsDown.length === 0 && shouldSearchDoors) {
                 // Systematic wall searching for secret doors
                 if (!this.secretDoorSearch) {
                     // Remove dead-end restriction - search near frontier cells
