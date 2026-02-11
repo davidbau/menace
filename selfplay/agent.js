@@ -517,6 +517,29 @@ export class Agent {
         const px = this.screen.playerX;
         const py = this.screen.playerY;
 
+        // Position sanity check: if player position not found, handle gracefully
+        if (px === -1 || py === -1) {
+            console.log(`[POSITION] Player position not found (${px},${py}) - checking for menu/prompt`);
+            console.log(`[POSITION] Message: "${this.screen.message}"`);
+            console.log(`[POSITION] inMenu=${this.screen.inMenu}, inPrompt=${this.screen.inPrompt}`);
+
+            // If in a menu, try to exit it
+            if (this.screen.inMenu) {
+                console.log(`[POSITION] In menu - exiting with ESC`);
+                return { type: 'navigate', key: '\x1b', reason: 'exiting menu (position lost)' };
+            }
+
+            // If in a prompt, answer 'n' (safe default)
+            if (this.screen.inPrompt) {
+                console.log(`[POSITION] In prompt - answering 'n'`);
+                return { type: 'navigate', key: 'n', reason: 'answering prompt (position lost)' };
+            }
+
+            // Otherwise, this is an error - wait and hope it resolves
+            console.log(`[POSITION] ERROR: position lost but not in menu/prompt. Waiting...`);
+            return { type: 'wait', key: '.', reason: 'position lost, waiting for screen update' };
+        }
+
         // Track recent positions for anti-oscillation (always, even when moving)
         const posKey = py * 80 + px;
         this.recentPositions.add(posKey);
