@@ -147,8 +147,17 @@ def convert_guidebook(input_file, output_file):
         # Wrap control character patterns
         # ^<key> pattern (generic placeholder)
         line = re.sub(r'\^<([a-z]+)>', r'`^<\1>`', line)
-        # ^X, ^C etc. (specific keys)
+        # ^X, ^C etc. (uppercase specific keys)
         line = re.sub(r'\^([A-Z])\b', r'`^\1`', line)
+        # ^x, ^c etc. (lowercase specific keys)
+        line = re.sub(r'\^([a-z])\b', r'`^\1`', line)
+
+        # Wrap Meta key combinations (M-x, M-X, etc.)
+        line = re.sub(r'\b(M-[a-zA-Z])\b', r'`\1`', line)
+
+        # Wrap single letter keys in tables (e.g., "h    #help")
+        # Pattern: start of line, single letter, spaces, #command
+        line = re.sub(r'^([a-zA-Z])\s+(#[a-z]+)', r'`\1`    `\2`', line)
 
         # Special case: ``' (backtick character) needs double backticks to escape
         # Convert ``' -> `` ` `` (backtick shown in code)
@@ -187,15 +196,35 @@ def convert_guidebook(input_file, output_file):
         # Wrap special key names (ESC, SPACE, RETURN, etc.)
         line = re.sub(r'\b(ESC|SPACE|RETURN|ENTER|TAB|DELETE|BACKSPACE)\b', r'`\1`', line)
 
-        # Wrap configuration file syntax (OPTIONS=, CHOOSE=, [section])
-        # These are configuration file examples that should be in code blocks
-        if line.startswith('OPTIONS=') or line.startswith('CHOOSE=') or re.match(r'^\[.*\]', line):
+        # Wrap inline configuration examples
+        # Match config keywords followed by values, wrap in backticks (including quoted strings)
+        config_keywords = (
+            'AUTOCOMPLETE|BIND|MSGTYPE|SYMBOLS|OPTION|OPTIONS|CHOOSE|'
+            'MENUCOLOR|SOUND|SOUNDDIR|WIZKIT|autopickup_exception'
+        )
+        line = re.sub(rf'\b({config_keywords})=((?:"[^"]*"|[^\s]+))', r'`\1=\2`', line)
+
+        # Wrap configuration file syntax (all config patterns, comments, and sections)
+        # These are configuration file examples that should be in code blocks (when at line start)
+        # Also handle comment lines (# followed by space or # for empty comments)
+        config_starts = (
+            'OPTIONS=', 'OPTION=', 'CHOOSE=', 'AUTOCOMPLETE=', 'BIND=',
+            'SYMBOLS=', 'MSGTYPE=', 'MENUCOLOR=', 'SOUND=', 'SOUNDDIR=',
+            'WIZKIT=', 'autopickup_exception='
+        )
+        if (line.startswith(config_starts) or
+            line.startswith('# ') or line == '#' or re.match(r'^\[.*\]', line)):
             line = '    ' + line  # Indent with 4 spaces to make it a code block in markdown
+
+        # Wrap option names (standalone lowercase words, possibly with underscores/numbers)
+        # These appear as definition terms in the options section
+        line_stripped = line.rstrip('\n')
+        if re.match(r'^([a-z][a-z0-9_]*[a-zA-Z0-9])$', line_stripped) and len(line_stripped) > 2:
+            line = '`' + line_stripped + '`\n'  # Wrap in code formatting
 
         # Wrap environment variable names (HACKDIR, LEVELDIR, etc.)
         # These are definition terms, wrap in inline code
-        line_stripped = line.rstrip('\n')
-        if re.match(r'^([A-Z_]+)$', line_stripped) and len(line_stripped) > 2:
+        elif re.match(r'^([A-Z_]+)$', line_stripped) and len(line_stripped) > 2:
             line = '**`' + line_stripped + '`**\n'  # Bold code for visibility
 
         # Wrap single symbols in common phrases

@@ -56,6 +56,9 @@ export class Agent {
         this.stuckCounter = 0;      // detect when agent is stuck (resets on real progress)
         this.levelStuckCounter = 0; // total stuck turns on this level (never resets)
         this.lastFrontierSize = null; // track frontier for progress detection
+        this.visitedFrontierCells = new Set(); // frontier cells we've explored (for systematic clearing)
+        this.lastFleePosition = null; // track position we're fleeing from
+        this.fleeLoopCounter = 0; // consecutive turns fleeing from same position
         this.lastPosition = null;
         this.searchesAtPosition = 0; // how many times we've searched at current pos
         this.currentPath = null;     // current navigation path
@@ -77,6 +80,9 @@ export class Agent {
         this.lastCommittedDistance = null; // track distance for progress detection
         this.failedTargets = new Set(); // targets we've failed to reach (blacklisted)
         this.abandonedLevels = new Map(); // depth → turn when abandoned (to prevent immediate re-descent)
+
+        // Deterministic RNG for agent decisions (seeded by game seed + turn)
+        this.rngState = 0; // Will be seeded on first use
         this.consecutiveFailedMoves = 0; // consecutive turns where movement failed
         this.restTurns = 0; // consecutive turns spent resting
         this.lastHP = null; // track HP to detect healing progress
@@ -110,12 +116,44 @@ export class Agent {
     }
 
     /**
+     * Deterministic RNG for agent decisions.
+     * Uses xorshift32 algorithm - fast, simple, deterministic.
+     * Seeded by turn number to ensure consistent behavior per turn.
+     * @returns {number} - Random number in range [0, 1)
+     */
+    _rng() {
+        // Seed RNG based on turn number if not yet seeded
+        if (this.rngState === 0) {
+            this.rngState = (this.turnNumber + 1) ^ 0x9E3779B9;
+        }
+
+        // xorshift32
+        let x = this.rngState;
+        x ^= x << 13;
+        x ^= x >>> 17;
+        x ^= x << 5;
+        this.rngState = x >>> 0; // Keep unsigned 32-bit
+
+        return (this.rngState >>> 0) / 0x100000000; // [0, 1)
+    }
+
+    /**
+     * Reset RNG seed for new turn (called at start of each turn).
+     */
+    _seedRNG() {
+        this.rngState = (this.turnNumber + 1) ^ 0x9E3779B9;
+    }
+
+    /**
      * Run the agent's main loop until the game ends or maxTurns is reached.
      * @returns {Object} - Final stats
      */
     async run() {
         while (this.turnNumber < this.maxTurns) {
             if (this.shouldStop()) break;
+
+            // Seed RNG for deterministic decisions this turn
+            this._seedRNG();
 
             // Perceive
             const grid = await this.adapter.readScreen();
@@ -136,6 +174,8 @@ export class Agent {
                 this.stats.died = true;
 
                 // Track what killed us for learning
+                const px = this.screen.playerX;
+                const py = this.screen.playerY;
                 const nearbyMonsters = findMonsters(this.screen);
                 const adjacentMonster = this._findAdjacentMonster(px, py);
                 const dungeonLevel = this.status.dungeonLevel || 1;
@@ -222,6 +262,7 @@ export class Agent {
                     this.levelStuckCounter = 0;
                     this.stuckCounter = 0;
                     this.lastFrontierSize = null;
+                    this.visitedFrontierCells.clear();
                     this.committedTarget = null;
                     this.committedPath = null;
                     this.failedTargets.clear();
@@ -654,7 +695,18 @@ export class Agent {
         // Adjust based on monster danger and dungeon level
         const hpPercent = this.status ? this.status.hp / this.status.hpmax : 1;
         const nearbyMonsters = findMonsters(this.screen);
-        const adjacentMonster = this._findAdjacentMonster(px, py);
+        let adjacentMonster = this._findAdjacentMonster(px, py);
+
+        // Filter out pets from combat consideration
+        if (adjacentMonster) {
+            const monPosKey = adjacentMonster.y * 80 + adjacentMonster.x;
+            const isPet = this.petPositions.has(monPosKey) || this.knownPetChars.has(adjacentMonster.ch);
+            if (isPet) {
+                // Don't treat pets as hostile - ignore them for combat purposes
+                adjacentMonster = null;
+            }
+        }
+
         const hasHostileMonsters = nearbyMonsters.length > 0 || adjacentMonster !== null;
 
         // Calculate retreat threshold based on threats
@@ -952,6 +1004,28 @@ export class Agent {
                 // Don't fight, don't flee - just let normal exploration handle it
                 // Fall through to exploration logic
             } else if (!engagement.shouldEngage && engagement.shouldFlee) {
+                // Detect flee loops: if we've been fleeing from the same position for 20+ turns, fight instead
+                const currentPosKey = py * 80 + px;
+                if (this.lastFleePosition === currentPosKey) {
+                    this.fleeLoopCounter++;
+                } else {
+                    this.lastFleePosition = currentPosKey;
+                    this.fleeLoopCounter = 1;
+                }
+
+                // If stuck in a flee loop (20+ consecutive turns), fight the monster instead
+                if (this.fleeLoopCounter >= 20) {
+                    console.log(`[FLEE-LOOP] Stuck fleeing for ${this.fleeLoopCounter} turns - fighting instead`);
+                    const dx = adjacentMonster.x - px;
+                    const dy = adjacentMonster.y - py;
+                    const key = DIR_KEYS[`${dx},${dy}`];
+                    if (key) {
+                        this.fleeLoopCounter = 0; // Reset counter
+                        this.lastFleePosition = null;
+                        return { type: 'attack', key, reason: `breaking flee loop by fighting ${adjacentMonster.ch}` };
+                    }
+                }
+
                 // Dangerous monster - try to flee
                 const nearbyMonsters = findMonsters(this.screen);
                 const fleeDir = this._fleeFrom(px, py, nearbyMonsters, level);
@@ -983,6 +1057,9 @@ export class Agent {
                 this.oscillationHoldTurns = 0;
                 this.oscillationHoldAttempted = false;
             }
+            // Reset flee loop tracking
+            this.lastFleePosition = null;
+            this.fleeLoopCounter = 0;
         }
 
         // 4. Pick up items at current position
@@ -1010,7 +1087,7 @@ export class Agent {
                 console.log(`[DEBUG] At downstairs but not safe to descend: ${descendDecision.reason}`);
                 // Move in a random direction away from stairs to avoid descending accidentally
                 const directions = ['h', 'j', 'k', 'l', 'y', 'u', 'b', 'n'];
-                const randomDir = directions[Math.floor(Math.random() * directions.length)];
+                const randomDir = directions[Math.floor(this._rng() * directions.length)];
                 return { type: 'avoid_descend', key: randomDir, reason: `not safe to descend: ${descendDecision.reason}` };
             }
         }
@@ -1385,7 +1462,7 @@ export class Agent {
                 this.searchExhausted = false;
                 this.searchCooldownUntil = this.turnCount + 50; // Block new searches for 50 turns
                 const directions = ['h', 'j', 'k', 'l', 'y', 'u', 'b', 'n'];
-                const randomDir = directions[Math.floor(Math.random() * directions.length)];
+                const randomDir = directions[Math.floor(this._rng() * directions.length)];
                 return { type: 'random_move', key: randomDir, reason: `search exhausted, random walk to escape loop` };
             }
 
@@ -1406,7 +1483,7 @@ export class Agent {
                     // to try to find a way out or discover new areas
                     if (this.levelStuckCounter > 150) {
                         const directions = ['h', 'j', 'k', 'l', 'y', 'u', 'b', 'n'];
-                        const randomDir = directions[Math.floor(Math.random() * directions.length)];
+                        const randomDir = directions[Math.floor(this._rng() * directions.length)];
                         return { type: 'random_move', key: randomDir, reason: `can't reach upstairs, random walk (stuck ${this.levelStuckCounter})` };
                     }
                 }
@@ -1432,7 +1509,7 @@ export class Agent {
                         if (this.levelStuckCounter % 30 === 0) {
                             this.failedTargets.clear();
                             const directions = ['h', 'j', 'k', 'l', 'y', 'u', 'b', 'n'];
-                            const randomDir = directions[Math.floor(Math.random() * directions.length)];
+                            const randomDir = directions[Math.floor(this._rng() * directions.length)];
                             return { type: 'random_move', key: randomDir, reason: `stuck with ${frontier.length} frontier cells, clearing blacklist and random move` };
                         }
                     }
@@ -1471,7 +1548,7 @@ export class Agent {
                         // since we can't retreat upstairs and have probably exhausted reachable areas
                         if (this.dungeon.currentDepth === 1 && this.levelStuckCounter > 200) {
                             const directions = ['h', 'j', 'k', 'l', 'y', 'u', 'b', 'n'];
-                            const randomDir = directions[Math.floor(Math.random() * directions.length)];
+                            const randomDir = directions[Math.floor(this._rng() * directions.length)];
                             return { type: 'random_move', key: randomDir, reason: `Dlvl 1 stuck >200 turns, random exploration` };
                         }
                     }
@@ -1575,9 +1652,12 @@ export class Agent {
         // Opportunistic wall searching: search when at positions with adjacent walls
         // BUT: Only if we've explored enough to avoid excessive searching
         // Require BOTH low frontier AND reasonable exploration to prevent premature searching
+        // CRITICAL: Secret doors only exist on Dlvl 3+ (depth > 2), so skip on Dlvl 1-2
+        const dungeonDepth = this.dungeon.currentDepth;
         const opportunisticFrontier = level.getExplorationFrontier();
         const opportunisticExploredPct = level.exploredCount / (80 * 21);
         const shouldSearchOpportunistically = (
+            dungeonDepth > 2 &&                   // Secret doors only on Dlvl 3+
             opportunisticFrontier.length < 15 &&  // Low frontier
             opportunisticExploredPct > 0.05       // Explored at least 5% of map (~84 cells)
         );
@@ -1864,7 +1944,7 @@ export class Agent {
                 const dirs = ['h', 'j', 'k', 'l', 'y', 'u', 'b', 'n'];
                 // Shuffle directions for variety
                 for (let i = dirs.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
+                    const j = Math.floor(this._rng() * (i + 1));
                     [dirs[i], dirs[j]] = [dirs[j], dirs[i]];
                 }
                 // Try each direction and pick first that looks walkable
@@ -1882,7 +1962,7 @@ export class Agent {
 
             // Try a random direction to unstick
             const dirs = ['h', 'j', 'k', 'l', 'y', 'u', 'b', 'n'];
-            const randomDir = dirs[Math.floor(Math.random() * dirs.length)];
+            const randomDir = dirs[Math.floor(this._rng() * dirs.length)];
             return { type: 'random_move', key: randomDir, reason: 'stuck, trying random direction' };
         }
 
@@ -1980,7 +2060,7 @@ export class Agent {
         // 11. Last resort: random walk
         this.consecutiveWaits++;
         const dirs = ['h', 'j', 'k', 'l', 'y', 'u', 'b', 'n'];
-        const randomDir = dirs[Math.floor(Math.random() * dirs.length)];
+        const randomDir = dirs[Math.floor(this._rng() * dirs.length)];
         return { type: 'random_move', key: randomDir, reason: 'fully explored, random walk' };
     }
 
@@ -2420,7 +2500,7 @@ export class Agent {
         const frontier = level.getExplorationFrontier();
         const exploredPercent = level.exploredCount / (80 * 21);
         const isStuckExploring = (
-            frontier.length > 10 &&                      // Has frontier to explore
+            frontier.length > 5 &&                       // Has frontier to explore
             (this.levelStuckCounter > 20 ||              // Been stuck, OR
              (this.turnNumber > 150 && exploredPercent < 0.25)) &&  // Taking too long with low coverage
             exploredPercent < 0.60                       // Not yet thoroughly explored
@@ -2432,18 +2512,83 @@ export class Agent {
             this.failedTargets.clear();
         }
 
+        // PRIORITY: Systematic frontier clearing mode
+        // When we have a moderate number of frontier cells (10-80) but are stuck,
+        // systematically visit each unvisited frontier cell to ensure thorough exploration
+        const shouldSystematicallyClearFrontier = (
+            frontier.length >= 10 &&
+            frontier.length <= 80 &&
+            this.levelStuckCounter > 20 &&
+            level.stairsDown.length === 0
+        );
+
+        if (shouldSystematicallyClearFrontier) {
+            // Find unvisited frontier cells
+            const unvisitedFrontier = frontier.filter(cell => {
+                const cellKey = cell.y * 80 + cell.x;
+                return !this.visitedFrontierCells.has(cellKey) && !this.failedTargets.has(cellKey);
+            });
+
+            if (unvisitedFrontier.length > 0) {
+                // Pick the nearest unvisited frontier cell
+                let nearestCell = null;
+                let nearestDist = Infinity;
+
+                for (const cell of unvisitedFrontier) {
+                    const dist = Math.max(Math.abs(cell.x - px), Math.abs(cell.y - py));
+                    if (dist < nearestDist) {
+                        nearestDist = dist;
+                        nearestCell = cell;
+                    }
+                }
+
+                if (nearestCell) {
+                    const path = findPath(level, px, py, nearestCell.x, nearestCell.y);
+                    if (path.found) {
+                        console.log(`[SYSTEMATIC-FRONTIER] Targeting unvisited frontier cell (${nearestCell.x},${nearestCell.y}) - ${unvisitedFrontier.length}/${frontier.length} unvisited`);
+
+                        // Mark this cell as visited (we're committing to visit it)
+                        const cellKey = nearestCell.y * 80 + nearestCell.x;
+                        this.visitedFrontierCells.add(cellKey);
+
+                        // Commit to this target
+                        this.committedTarget = { x: nearestCell.x, y: nearestCell.y };
+                        this.committedPath = path;
+                        this.consecutiveWaits = 0;
+                        this.targetStuckCount = 0;
+                        this.lastCommittedDistance = nearestDist;
+
+                        return this._followPath(path, 'explore', `systematic frontier clearing to (${nearestCell.x},${nearestCell.y})`);
+                    } else {
+                        // Can't reach this cell - mark as failed
+                        const cellKey = nearestCell.y * 80 + nearestCell.x;
+                        this.failedTargets.add(cellKey);
+                        this.visitedFrontierCells.add(cellKey);  // Also mark as visited to avoid retrying
+                    }
+                }
+            } else {
+                // All frontier cells have been visited - clear the set and try again
+                console.log(`[SYSTEMATIC-FRONTIER] All ${frontier.length} frontier cells visited, resetting for another pass`);
+                this.visitedFrontierCells.clear();
+            }
+        }
+
         // PRIORITY: Systematic door opening when stuck with high frontier
         // If we have many unreachable frontier cells, closed doors are likely blocking access
-        if (frontier.length > 25 && this.levelStuckCounter > 20) {
+        // OR when we have good coverage but no downstairs (likely behind unexplored door)
+        const highCoverageNoDoors = exploredPercent > 0.05 && this.levelStuckCounter > 30 && level.stairsDown.length === 0;
+        if ((frontier.length > 25 && this.levelStuckCounter > 20) || highCoverageNoDoors) {
+
             // Find all closed/locked doors in explored areas
             const closedDoors = [];
             for (let y = 0; y < 21; y++) {
                 for (let x = 0; x < 80; x++) {
                     const cell = level.at(x, y);
                     if (cell && cell.explored && (cell.type === 'door_closed' || cell.type === 'door_locked')) {
-                        // Check if we've already tried this door recently
                         const doorKey = y * 80 + x;
-                        if (!this.failedTargets.has(doorKey)) {
+                        // For high-coverage case, retry ALL doors (ignore failedTargets)
+                        // For normal case, skip recently failed doors
+                        if (highCoverageNoDoors || !this.failedTargets.has(doorKey)) {
                             closedDoors.push({ x, y, type: cell.type, dist: Math.max(Math.abs(x - px), Math.abs(y - py)) });
                         }
                     }
@@ -2456,17 +2601,45 @@ export class Agent {
                 closedDoors.sort((a, b) => a.dist - b.dist);
 
                 for (const door of closedDoors) {
-                    const path = findPath(level, px, py, door.x, door.y, { allowUnexplored: false });
-                    if (path.found) {
-                        const action = door.type === 'door_locked' ? 'kicking' : 'opening';
-                        console.log(`[DOOR-SYSTEMATIC] ${action} ${door.type} door at (${door.x},${door.y}) to unlock frontier (${frontier.length} unreachable)`);
+                    // Check if we're cardinally adjacent (north/south/east/west only, not diagonal)
+                    // NetHack's 'o' (open) command doesn't work diagonally
+                    const dx = door.x - px;
+                    const dy = door.y - py;
+                    const isCardinallyAdjacent = (Math.abs(dx) === 1 && dy === 0) || (dx === 0 && Math.abs(dy) === 1);
 
-                        // Set pending locked door if it's locked (will trigger kicking logic)
-                        if (door.type === 'door_locked' && !this.pendingLockedDoor) {
-                            this.pendingLockedDoor = { x: door.x, y: door.y, attempts: 0 };
+                    if (isCardinallyAdjacent) {
+                        // We're cardinally adjacent - send 'o' (open) command for closed doors, or kick for locked doors
+                        const dir = DIR_KEYS[`${dx},${dy}`];
+
+                        if (dir) {
+                            if (door.type === 'door_locked') {
+                                // Locked door - kick it
+                                console.log(`[DOOR-SYSTEMATIC] kicking locked door at (${door.x},${door.y}) [adjacent]`);
+                                if (!this.pendingLockedDoor) {
+                                    this.pendingLockedDoor = { x: door.x, y: door.y, attempts: 0 };
+                                }
+                                // pendingLockedDoor logic will handle the kicking
+                            } else {
+                                // Closed door - open it with 'o' command + direction
+                                console.log(`[DOOR-SYSTEMATIC] opening door_closed at (${door.x},${door.y})`);
+                                this.pendingDoorDir = dir;
+                                this.justOpenedDoor = { x: door.x, y: door.y }; // Mark for perception fix
+                                return { type: 'open', key: 'o', reason: `opening door at (${door.x},${door.y})` };
+                            }
                         }
+                    } else {
+                        // Not adjacent - navigate TO the door first
+                        const path = findPath(level, px, py, door.x, door.y, { allowUnexplored: false });
+                        if (path.found) {
+                            const action = door.type === 'door_locked' ? 'kicking' : 'opening';
+                            console.log(`[DOOR-SYSTEMATIC] navigating to ${door.type} door at (${door.x},${door.y}) to ${action} it (frontier=${frontier.length})`);
 
-                        return this._followPath(path, 'navigate', `${action} door at (${door.x},${door.y}) to unlock areas`);
+                            if (door.type === 'door_locked' && !this.pendingLockedDoor) {
+                                this.pendingLockedDoor = { x: door.x, y: door.y, attempts: 0 };
+                            }
+
+                            return this._followPath(path, 'navigate', `approaching door at (${door.x},${door.y})`);
+                        }
                     }
                 }
             }
@@ -2795,8 +2968,9 @@ export class Agent {
 
             const dist = Math.max(Math.abs(mon.x - px), Math.abs(mon.y - py));
 
-            // On first few turns, adjacent d/f/C are almost certainly pets
-            if (this.turnNumber < 5 && dist <= 2 && petChars.has(mon.ch)) {
+            // On first ~15 turns, adjacent d/f/C are likely starting pets
+            // After turn 15, wild d/f/C animals may appear - don't assume they're pets
+            if (this.turnNumber < 15 && dist <= 2 && petChars.has(mon.ch)) {
                 this.petPositions.add(mon.y * 80 + mon.x);
             }
         }
