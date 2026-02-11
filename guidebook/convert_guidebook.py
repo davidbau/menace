@@ -31,10 +31,14 @@ def convert_guidebook(input_file, output_file):
                 output.append('\n')
             elif 'Eric S. Raymond' in line:
                 output.append('> ' + line.strip() + '\n')
+                output.append('>\n')  # Blank line in blockquote to separate items
             elif 'Edited and expanded' in line or 'Mike Stephenson' in line:
                 output.append('> ' + line.strip() + '\n')
+                output.append('>\n')  # Blank line in blockquote to separate items
             elif re.search(r'\d{4}$', line.strip()):  # Date line (any month, ends with year)
-                output.append('> ' + line.strip() + '\n')
+                # Wrap date in nobr span to prevent line wrapping
+                date_text = line.strip()
+                output.append('> <span class="nobr">' + date_text + '</span>\n')
                 output.append('\n')
                 output.append('---\n')
                 output.append('\n')

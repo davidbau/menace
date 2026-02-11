@@ -3,8 +3,10 @@
 *Guidebook for NetHack*
 
 > Original version - Eric S. Raymond
+>
 > (Edited and expanded for NetHack 3.7.0 by Mike Stephenson and others)
-> December 11, 2025
+>
+> <span class="nobr">December 11, 2025</span>
 
 ---
 
