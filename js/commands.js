@@ -1301,15 +1301,14 @@ async function handlePrevMessages(display) {
 // Toggle autopickup (@)
 // C ref: options.c dotogglepickup()
 async function handleTogglePickup(game) {
-    const { player, display } = game;
-    const flags = player.flags;
+    const { display } = game;
 
     // Toggle pickup flag
-    flags.pickup = !flags.pickup;
+    game.flags.pickup = !game.flags.pickup;
 
     // Build message matching C NetHack format
     let msg;
-    if (flags.pickup) {
+    if (game.flags.pickup) {
         // For now, show simple "ON" message
         // TODO: Add pickup_types support ("ON, for $ objects" etc.)
         msg = 'Autopickup: ON, for all objects.';
