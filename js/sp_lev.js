@@ -214,7 +214,7 @@ export function initLuaMT() {
         console.log(`luaRngCounter BEFORE init: ${levelState ? levelState.luaRngCounter : 'no levelState'}`);
     }
 
-    // Capture MT init values to seed xoshiro for reservoir sampling
+    // Capture MT init values to seed xoshiro for THIS themed room
     const mtInitValues = [];
     for (let i = 1000; i <= 1004; i++) mtInitValues.push(rn2(i));
     mtInitValues.push(rn2(1010));
@@ -222,9 +222,8 @@ export function initLuaMT() {
     for (let i = 1014; i <= 1036; i++) mtInitValues.push(rn2(i));
     _mtInitializedLocal = true;
 
-    // Seed xoshiro256** for Lua math.random() emulation (reservoir sampling)
-    // C ref: Lua's math.random uses xoshiro256**, seeded from MT state
-    // Import is at top of file
+    // Seed xoshiro256** for THIS themed room's reservoir sampling
+    // C ref: Each themed room might get fresh Lua state with fresh math.random seed
     if (typeof seedFromMT === 'function') {
         seedFromMT(mtInitValues);
     }

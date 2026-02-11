@@ -1018,7 +1018,7 @@ export function themerooms_generate(map, depth) {
          total_frequency = total_frequency + this_frequency;
          // avoid rn2(0) if a room has freq 0
          // C ref: Lua reservoir sampling uses math.random (invisible), not nhl_rn2
-         // Use xoshiroRandom() to match Lua's math.random (xoshiro256** seeded from MT)
+         // Use xoshiroRandom() to match Lua's math.random (xoshiro256** seeded per MT init)
          if (this_frequency > 0 && xoshiroRandom() * total_frequency < this_frequency) {
             pick = i;
          }

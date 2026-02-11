@@ -78,6 +78,56 @@ export function getXoshiroState() {
 }
 
 /**
+ * Seed xoshiro from main NetHack RNG seed
+ * C ref: Lua's math.random might be seeded from the main game seed, not MT init
+ *
+ * @param {number} seed - Main RNG seed (e.g., 163)
+ */
+export function seedFromMainRng(seed) {
+    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_XOSHIRO === '1';
+
+    if (DEBUG) {
+        console.log(`\n[xoshiro] Seeding from main RNG seed: ${seed}`);
+    }
+
+    // Use SplitMix64 to generate 4 independent seeds from the main seed
+    const seeds = splitmix64(BigInt(seed));
+    seedXoshiro(seeds[0], seeds[1], seeds[2], seeds[3]);
+
+    // Warm up the generator - Lua might advance state during initialization
+    // Try different warmup counts to match C's behavior
+    const warmupCount = 0; // Adjust this if needed
+    for (let i = 0; i < warmupCount; i++) {
+        xoshiroRandom();
+    }
+
+    if (DEBUG) {
+        console.log('[xoshiro] SplitMix seeds:', seeds.map(s => s.toString(16)));
+        console.log('[xoshiro] Warmup iterations:', warmupCount);
+        console.log('[xoshiro] State after warmup:', getXoshiroState());
+    }
+}
+
+/**
+ * Simple SplitMix64 generator for seeding xoshiro from a single 64-bit value
+ * C ref: Common pattern for seeding xoshiro from a single seed
+ */
+function splitmix64(seed) {
+    const results = [];
+    let state = BigInt.asUintN(64, seed);
+
+    for (let i = 0; i < 4; i++) {
+        state = BigInt.asUintN(64, state + 0x9e3779b97f4a7c15n);
+        let z = state;
+        z = BigInt.asUintN(64, (z ^ (z >> 30n)) * 0xbf58476d1ce4e5b9n);
+        z = BigInt.asUintN(64, (z ^ (z >> 27n)) * 0x94d049bb133111ebn);
+        results.push(BigInt.asUintN(64, z ^ (z >> 31n)));
+    }
+
+    return results;
+}
+
+/**
  * Seed xoshiro from NetHack MT initialization
  *
  * C ref: When Lua is initialized, math.random is seeded from system entropy or MT state
@@ -98,31 +148,26 @@ export function seedFromMT(mtInitValues) {
         console.warn(`seedFromMT: got ${mtInitValues.length} values, expected 30`);
     }
 
-    // Try different seeding strategy: use sequential values with mixing
-    // Lua may use a different approach to seed xoshiro from entropy
-    // Let's try using values at specific positions mixed with constants
-    const v0 = mtInitValues[0] || 0;
-    const v1 = mtInitValues[1] || 0;
-    const v2 = mtInitValues[2] || 0;
-    const v3 = mtInitValues[3] || 0;
-    const v4 = mtInitValues[4] || 0;
-    const v5 = mtInitValues[5] || 0;
-    const v6 = mtInitValues[6] || 0;
-    const v7 = mtInitValues[7] || 0;
+    // Strategy: Use first few MT values to create a seed, then use SplitMix64 to expand
+    // This is a common pattern for seeding xoshiro from limited entropy
+    const v0 = BigInt(mtInitValues[0] || 0);
+    const v1 = BigInt(mtInitValues[1] || 0);
+    const v2 = BigInt(mtInitValues[2] || 0);
+    const v3 = BigInt(mtInitValues[3] || 0);
 
-    // Mix the values to create 64-bit seeds
-    // This is experimental - trying to match C's Lua seeding
-    const seed0 = (BigInt(v0) << 32n) | BigInt(v1) | (BigInt(v2) << 16n);
-    const seed1 = (BigInt(v3) << 32n) | BigInt(v4) | (BigInt(v5) << 16n);
-    const seed2 = (BigInt(v6) << 32n) | BigInt(v7) | (BigInt(v0) ^ BigInt(v4));
-    const seed3 = (BigInt(v1) << 32n) | (BigInt(v2) ^ BigInt(v6)) | BigInt(v3);
+    // Combine first 4 values into a 64-bit seed
+    const combinedSeed = (v0 << 48n) | (v1 << 32n) | (v2 << 16n) | v3;
 
-    seedXoshiro(seed0, seed1, seed2, seed3);
+    // Use SplitMix64 to generate 4 independent 64-bit seeds
+    const seeds = splitmix64(combinedSeed);
+
+    seedXoshiro(seeds[0], seeds[1], seeds[2], seeds[3]);
 
     const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_XOSHIRO === '1';
     if (DEBUG) {
-        console.log('\n[xoshiro] Seeded from MT init values:', mtInitValues.slice(0, 8));
-        console.log('[xoshiro] Seeds: [', seed0.toString(16), seed1.toString(16), seed2.toString(16), seed3.toString(16), ']');
+        console.log('\n[xoshiro] Seeded from MT init values:', mtInitValues.slice(0, 4));
+        console.log('[xoshiro] Combined seed:', combinedSeed.toString(16));
+        console.log('[xoshiro] SplitMix seeds:', seeds.map(s => s.toString(16)));
         console.log('[xoshiro] State:', getXoshiroState());
     }
 }
