@@ -5,6 +5,7 @@
 
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
+import { hell_tweaks } from './hellfill.js';
 
 export function generate() {
     // NetHack gehennom orcus.lua	$NHDT-Date: 1652196033 2022/5/10 15:20:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $

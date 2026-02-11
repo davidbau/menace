@@ -229,10 +229,13 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
         rtype = 0; // OROOM
     }
 
-    // C ref: sp_lev.c:1530-1572 — Check which placement path to use FIRST
+    // C ref: sp_lev.c:1510 — Call litstate_rnd FIRST, before any path checks
+    // C always calls litstate_rnd at the start of create_room, regardless of which path is taken
+    const lit = litstate_rnd(rlit, depth);
+
+    // C ref: sp_lev.c:1530-1572 — Check which placement path to use
     // Path 1: "Totally random" — ALL params -1 or vault → uses rnd_rect() + BSP
     // Path 2: "Some params random" — grid placement with alignment
-    // IMPORTANT: Check this BEFORE calling litstate_rnd to avoid consuming RNG on failure!
 
     const fullyRandom = (x < 0 && y < 0 && w < 0 && xalign < 0 && yalign < 0);
     if (DEBUG) console.log(`  fullyRandom=${fullyRandom}`);
@@ -240,7 +243,7 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
     if (fullyRandom) {
         // C ref: sp_lev.c:1534 — totally random uses procedural rnd_rect() + BSP
         // Use dungeon.js create_room which implements this path
-        // Note: create_room calls litstate_rnd internally, so we don't call it here
+        // IMPORTANT: Pass resolved `lit` (not `rlit`) since we already called litstate_rnd above
 
         if (!levelState.map) {
             return null; // No map available for BSP room placement
@@ -248,8 +251,9 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
 
         // Call dungeon.create_room with map - it modifies map directly
         // Returns false if no space available, true on success
+        // Pass `lit` (already resolved) instead of `rlit` to avoid double litstate_rnd call
         const success = create_room(levelState.map, x, y, w, h, xalign, yalign,
-                                     rtype, rlit, depth, false);
+                                     rtype, lit, depth, false);
 
         if (!success) {
             return null;
@@ -270,10 +274,6 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
 
         return room; // Return the room object for caller
     }
-
-    // C ref: sp_lev.c:1510 — determine lighting (ALWAYS calls litstate_rnd)
-    // Only call this AFTER we know the room will succeed (not fully random)
-    rlit = litstate_rnd(rlit, depth);
 
     // C ref: sp_lev.c:1522-1649 — Retry loop for room creation (up to 100 attempts)
     // The loop retries if get_rect or check_room fails
@@ -411,7 +411,7 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
         hx: xabs + dx,
         hy: yabs + dy,
         rtype: rtype,
-        rlit: rlit,
+        rlit: lit,  // Use resolved `lit` value from litstate_rnd
         irregular: false,
         nsubrooms: 0,      // C ref: mkroom.h — number of subrooms
         sbrooms: []        // C ref: mkroom.h — subroom array
@@ -1279,12 +1279,17 @@ export function room(opts = {}) {
             console.log(`des.room(): FIXED position x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, rtype=${rtype}, lit=${lit}, depth=${levelState.roomDepth}`);
         }
 
-        // C ref: sp_lev.c:1510 — litstate_rnd called before rnd_rect for RNG alignment
-        // Note: C's build_room always passes -1 (random) to create_room/litstate_rnd,
-        // ignoring the Lua lit parameter. The Lua lit is applied AFTER room creation.
-        const rndLit = litstate_rnd(-1, levelState.depth || 1);
-        // Use the Lua-specified lit value if provided, otherwise use the random result
-        lit = opts.lit !== undefined ? opts.lit : rndLit;
+        // C ref: sp_lev.c:1510 — litstate_rnd called with r->rlit from room template
+        // C ref: sp_lev.c:2803 — build_room passes r->rlit to create_room
+        // If rlit >= 0, litstate_rnd returns immediately without calling RNG
+        // If rlit < 0, litstate_rnd calls rnd() and rn2(77) to determine lighting
+        if (DEBUG_BUILD) {
+            console.log(`  [RNG ${getRngCallCount()}] Calling litstate_rnd(${lit}, ${levelState.depth || 1})`);
+        }
+        lit = litstate_rnd(lit, levelState.depth || 1);
+        if (DEBUG_BUILD) {
+            console.log(`  [RNG ${getRngCallCount()}] litstate_rnd -> ${lit}`);
+        }
 
         // C ref: sp_lev.c — special levels call rnd_rect() to select from rect pool
         // Top-level rooms (depth 0) need to select a rect from the BSP pool
@@ -1444,7 +1449,9 @@ export function room(opts = {}) {
         rlit: lit >= 0 ? lit : (rn2(2) === 1 ? 1 : 0),
         irregular: false,
         // C ref: mklev.c - OROOM and THEMEROOM get needfill=FILL_NORMAL by default
-        needfill: (rtype === OROOM_LOCAL || rtype === THEMEROOM_LOCAL) ? FILL_NORMAL : undefined
+        needfill: (rtype === OROOM_LOCAL || rtype === THEMEROOM_LOCAL) ? FILL_NORMAL : undefined,
+        // Lua compatibility: region property for accessing room bounds
+        region: { x1: roomX, y1: roomY, x2: roomX + roomW - 1, y2: roomY + roomH - 1 }
     };
 
     // Mark floor tiles for the room
@@ -2612,10 +2619,64 @@ export const selection = {
 
     /**
      * selection.area(x1, y1, x2, y2)
-     * Create a rectangular selection.
+     * Create a rectangular selection (filled rectangle).
+     * Returns an object with both coords array and x1/y1/x2/y2 properties for compatibility.
      */
     area: (x1, y1, x2, y2) => {
-        return { x1, y1, x2, y2 };
+        const coords = [];
+        for (let y = y1; y <= y2; y++) {
+            for (let x = x1; x <= x2; x++) {
+                coords.push({ x, y });
+            }
+        }
+
+        return {
+            coords,
+            x1, y1, x2, y2, // Keep these for des.region compatibility
+            set: (x, y) => coords.push({ x, y }),
+            numpoints: () => coords.length,
+            percentage: (pct) => {
+                const newSel = selection.new();
+                for (const coord of coords) {
+                    if (rn2(100) < pct) {
+                        newSel.set(coord.x, coord.y);
+                    }
+                }
+                return newSel;
+            },
+            rndcoord: (filterValue) => {
+                if (coords.length === 0) return undefined;
+                const idx = rn2(coords.length);
+                return coords[idx];
+            },
+            iterate: (func) => {
+                for (const coord of coords) {
+                    func(coord.x, coord.y);
+                }
+            },
+            filter_mapchar: (ch) => {
+                return selection.filter_mapchar({ coords, x1, y1, x2, y2 }, ch);
+            },
+            negate: () => {
+                return selection.negate({ coords, x1, y1, x2, y2 });
+            },
+            grow: (iterations = 1) => {
+                return selection.grow({ coords, x1, y1, x2, y2 }, iterations);
+            },
+            union: (other) => {
+                const coordSet = new Set();
+                coords.forEach(c => coordSet.add(`${c.x},${c.y}`));
+                if (other && other.coords) {
+                    other.coords.forEach(c => coordSet.add(`${c.x},${c.y}`));
+                }
+                const result = selection.new();
+                coordSet.forEach(key => {
+                    const [x, y] = key.split(',').map(Number);
+                    result.set(x, y);
+                });
+                return result;
+            },
+        };
     },
 
     /**
@@ -2696,6 +2757,45 @@ export const selection = {
                 for (const coord of coords) {
                     func(coord.x, coord.y);
                 }
+            },
+            /**
+             * filter_mapchar(ch)
+             * Filter this selection to only include tiles matching a map character.
+             * Returns a new selection.
+             */
+            filter_mapchar: (ch) => {
+                return selection.filter_mapchar(sel, ch);
+            },
+            /**
+             * negate()
+             * Return a new selection with all map tiles NOT in this selection.
+             */
+            negate: () => {
+                return selection.negate(sel);
+            },
+            /**
+             * grow(iterations)
+             * Expand selection by N cells in all 8 directions.
+             */
+            grow: (iterations = 1) => {
+                return selection.grow(sel, iterations);
+            },
+            /**
+             * union(other)
+             * Return a new selection containing all coords from this selection and another.
+             */
+            union: (other) => {
+                const coordSet = new Set();
+                coords.forEach(c => coordSet.add(`${c.x},${c.y}`));
+                if (other && other.coords) {
+                    other.coords.forEach(c => coordSet.add(`${c.x},${c.y}`));
+                }
+                const result = selection.new();
+                coordSet.forEach(key => {
+                    const [x, y] = key.split(',').map(Number);
+                    result.set(x, y);
+                });
+                return result;
             },
         };
         return sel;
@@ -2785,12 +2885,14 @@ export const selection = {
             coordSet = newCoords;
         }
 
-        // Convert back to coords array
+        // Convert back to coords array and return proper selection object
         const coords = Array.from(coordSet).map(key => {
             const [x, y] = key.split(',').map(Number);
             return { x, y };
         });
-        return { coords };
+        const result = selection.new();
+        coords.forEach(c => result.set(c.x, c.y));
+        return result;
     },
 
     /**
@@ -2835,42 +2937,9 @@ export const selection = {
             }
         }
 
-        // Return selection object with methods
-        const result = {
-            coords,
-            bounds: function() {
-                if (coords.length === 0) return { lx: 0, ly: 0, hx: 0, hy: 0 };
-                let lx = coords[0].x, hx = coords[0].x;
-                let ly = coords[0].y, hy = coords[0].y;
-                for (const c of coords) {
-                    if (c.x < lx) lx = c.x;
-                    if (c.x > hx) hx = c.x;
-                    if (c.y < ly) ly = c.y;
-                    if (c.y > hy) hy = c.y;
-                }
-                return { lx, ly, hx, hy };
-            },
-            negate: function() {
-                return selection.negate(this);
-            },
-            union: function(other) {
-                const coordSet = new Set();
-                this.coords.forEach(c => coordSet.add(`${c.x},${c.y}`));
-                if (other && other.coords) {
-                    other.coords.forEach(c => coordSet.add(`${c.x},${c.y}`));
-                }
-                const unionCoords = Array.from(coordSet).map(s => {
-                    const [x, y] = s.split(',').map(Number);
-                    return { x, y };
-                });
-                return {
-                    coords: unionCoords,
-                    bounds: result.bounds,
-                    negate: result.negate,
-                    union: result.union
-                };
-            }
-        };
+        // Return a proper selection object with all methods
+        const result = selection.new();
+        coords.forEach(c => result.set(c.x, c.y));
         return result;
     },
 
@@ -3103,7 +3172,10 @@ export const selection = {
             return loc && loc.typ === targetType;
         });
 
-        return { coords };
+        // Return a proper selection object with methods
+        const result = selection.new();
+        coords.forEach(c => result.set(c.x, c.y));
+        return result;
     },
 };
 

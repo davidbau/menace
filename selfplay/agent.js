@@ -76,6 +76,7 @@ export class Agent {
         this.targetStuckCount = 0; // how many turns we've been stuck on committed path
         this.lastCommittedDistance = null; // track distance for progress detection
         this.failedTargets = new Set(); // targets we've failed to reach (blacklisted)
+        this.abandonedLevels = new Map(); // depth → turn when abandoned (to prevent immediate re-descent)
         this.consecutiveFailedMoves = 0; // consecutive turns where movement failed
         this.restTurns = 0; // consecutive turns spent resting
         this.lastHP = null; // track HP to detect healing progress
@@ -1025,37 +1026,55 @@ export class Agent {
         // 5c. Proactive descent: if we've found stairs and explored enough, head down
         // This encourages forward progress instead of exhaustive exploration
         if (level.stairsDown.length > 0 && this.turnNumber > 30) {
-            const exploredPercent = level.exploredCount / (80 * 21); // rough estimate
-            const frontierCells = level.getExplorationFrontier().length;
+            const targetDepth = this.dungeon.currentDepth + 1;
+            let shouldConsiderDescent = true;
 
-            // Head to stairs if:
-            // - HP is above 50%, AND
-            // - EITHER:
-            //   a) We've explored 15%+ AND (frontier small OR been here 100+ turns OR path cheap)
-            //   b) We've been here 500+ turns (give up on full exploration)
-            const hpGood = this.status && (this.status.hp / this.status.hpmax) > 0.5;
-            const exploredEnough = exploredPercent > 0.15;
-            const frontierSmall = frontierCells < 30;
-            const beenHereLong = this.turnNumber > 100;
-            const veryLongTime = this.turnNumber > 500;  // Give up after 500 turns
-
-            // Check if path to stairs is short (if so, worth going even with more frontier)
-            const stairs = level.stairsDown[0];
-            if (px === stairs.x && py === stairs.y) {
-                console.log(`[DEBUG] At downstairs, descending`); return { type: 'descend', key: '>', reason: `descending (explored ${Math.round(exploredPercent*100)}%)` };
+            // Don't descend to recently abandoned levels (wait at least 500 turns)
+            if (this.abandonedLevels.has(targetDepth)) {
+                const abandonedTurn = this.abandonedLevels.get(targetDepth);
+                const turnsSinceAbandoned = this.turnNumber - abandonedTurn;
+                if (turnsSinceAbandoned < 500) {
+                    console.log(`[ABANDON] Skipping descent to Dlvl ${targetDepth} (abandoned ${turnsSinceAbandoned} turns ago)`);
+                    shouldConsiderDescent = false;
+                } else {
+                    console.log(`[ABANDON] Allowing retry of Dlvl ${targetDepth} (abandoned ${turnsSinceAbandoned} turns ago)`);
+                    this.abandonedLevels.delete(targetDepth); // Remove from abandoned list
+                }
             }
 
-            const path = findPath(level, px, py, stairs.x, stairs.y, { allowUnexplored: false });
-            const pathIsCheap = path.found && path.cost < 30;  // Stairs are nearby
+            if (shouldConsiderDescent) {
+                const exploredPercent = level.exploredCount / (80 * 21); // rough estimate
+                const frontierCells = level.getExplorationFrontier().length;
 
-            // Descend if: HP good AND (explored enough to be safe OR been here too long)
-            const shouldDescend = hpGood && (
-                (exploredEnough && (frontierSmall || beenHereLong || pathIsCheap)) ||
-                veryLongTime  // After 500 turns, just go down regardless
-            );
+                // Head to stairs if:
+                // - HP is above 50%, AND
+                // - EITHER:
+                //   a) We've explored 15%+ AND (frontier small OR been here 100+ turns OR path cheap)
+                //   b) We've been here 500+ turns (give up on full exploration)
+                const hpGood = this.status && (this.status.hp / this.status.hpmax) > 0.5;
+                const exploredEnough = exploredPercent > 0.15;
+                const frontierSmall = frontierCells < 30;
+                const beenHereLong = this.turnNumber > 100;
+                const veryLongTime = this.turnNumber > 500;  // Give up after 500 turns
 
-            if (shouldDescend && path.found) {
-                return this._followPath(path, 'navigate', `heading to downstairs (explored ${Math.round(exploredPercent*100)}%, frontier ${frontierCells}, turn ${this.turnNumber}, cost ${Math.round(path.cost)})`);
+                // Check if path to stairs is short (if so, worth going even with more frontier)
+                const stairs = level.stairsDown[0];
+                if (px === stairs.x && py === stairs.y) {
+                    console.log(`[DEBUG] At downstairs, descending`); return { type: 'descend', key: '>', reason: `descending (explored ${Math.round(exploredPercent*100)}%)` };
+                }
+
+                const path = findPath(level, px, py, stairs.x, stairs.y, { allowUnexplored: false });
+                const pathIsCheap = path.found && path.cost < 30;  // Stairs are nearby
+
+                // Descend if: HP good AND (explored enough to be safe OR been here too long)
+                const shouldDescend = hpGood && (
+                    (exploredEnough && (frontierSmall || beenHereLong || pathIsCheap)) ||
+                    veryLongTime  // After 500 turns, just go down regardless
+                );
+
+                if (shouldDescend && path.found) {
+                    return this._followPath(path, 'navigate', `heading to downstairs (explored ${Math.round(exploredPercent*100)}%, frontier ${frontierCells}, turn ${this.turnNumber}, cost ${Math.round(path.cost)})`);
+                }
             }
         }
 
@@ -1065,6 +1084,11 @@ export class Agent {
             // This handles cases where downstairs exist but are unreachable (secret doors)
             if (this.levelStuckCounter > 100 && this.dungeon.currentDepth > 1 && level.stairsUp.length > 0) {
                 const stairs = level.stairsUp[0];
+                // Mark this level as abandoned to prevent immediate re-descent
+                const currentDepth = this.dungeon.currentDepth;
+                this.abandonedLevels.set(currentDepth, this.turnNumber);
+                console.log(`[ABANDON] Marking Dlvl ${currentDepth} as abandoned (stuck ${this.levelStuckCounter} turns)`);
+
                 // If we're already at the stairs, ascend immediately
                 if (px === stairs.x && py === stairs.y) {
                     return { type: 'ascend', key: '<', reason: `extremely stuck, giving up on level (${this.levelStuckCounter} turns)` };

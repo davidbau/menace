@@ -3471,6 +3471,13 @@ export function makelevel(depth, dnum, dlevel) {
         if (special) {
             if (DEBUG) console.log(`Generating special level: ${special.name} at (${dnum}, ${dlevel})`);
 
+            // C ref: mklev.c:365-380 — Lua theme shuffle when loading special level
+            // In C, loading oracle.lua triggers themerms.lua load, which does rn2(3), rn2(2)
+            if (!_themesLoaded) {
+                _themesLoaded = true;
+                rn2(3); rn2(2);
+            }
+
             const specialMap = special.generator();
             if (specialMap) {
                 return specialMap;
@@ -3484,27 +3491,12 @@ export function makelevel(depth, dnum, dlevel) {
     map.clear();
 
     // C ref: mklev.c:1274-1287 — maze vs rooms decision (else-if chain)
-    // } else if (In_hell(&u.uz) || (rn2(5) && u.uz.dnum == medusa_level.dnum && depth(&u.uz) > depth(&medusa_level)))
-    // CRITICAL: rn2(5) only called if checking past-Medusa condition (short-circuit evaluation)
+    // The rn2(5) is part of the final condition in the chain
+    // For procedural levels: check if In_hell or (rn2(5) && past Medusa)
     const isGehennom = (dnum === 1);
+    const mazeRoll = rn2(5); // 0-4, maze if non-zero (80% chance) - C ref: mklev.c:1276
     const isPastMedusa = (dnum === 0 || dnum === undefined) && depth > 25;
-
-    if (DEBUG && depth === 1) {
-        console.log(`makelevel depth=${depth} dnum=${dnum} isGehennom=${isGehennom} isPastMedusa=${isPastMedusa}`);
-    }
-
-    // C ref: Short-circuit OR evaluation
-    // If In_hell(): make maze WITHOUT calling rn2(5)
-    // If NOT In_hell(): ALWAYS call rn2(5), then check medusa+depth conditions
-    let shouldMakeMaze = isGehennom;
-    if (!isGehennom) {
-        // Not in Gehennom - ALWAYS call rn2(5) for RNG alignment
-        if (DEBUG) console.log(`Calling rn2(5) for maze check`);
-        const mazeRoll = rn2(5); // 0-4, maze if non-zero (80% chance)
-        // Make maze if: rn2(5) != 0 AND (in medusa dungeon AND past medusa level)
-        const inMedusaDungeon = (dnum === 0 || dnum === undefined); // Main dungeon
-        shouldMakeMaze = (mazeRoll !== 0) && isPastMedusa && inMedusaDungeon;
-    }
+    const shouldMakeMaze = isGehennom || (mazeRoll !== 0 && isPastMedusa);
 
     if (shouldMakeMaze) {
         // C ref: mklev.c:1278 makemaz("")
