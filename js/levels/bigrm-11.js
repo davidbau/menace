@@ -33,7 +33,7 @@ export function generate() {
     `) | selection.match(".\nw\n.");
     sel.iterate(replace_wall_boulder);
     // replace the leftover corner walls
-    sel: selection.match(`
+    sel = selection.match(`
     .w.
     `);
     sel.iterate(replace_wall_boulder);
