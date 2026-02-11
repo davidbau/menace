@@ -8,7 +8,7 @@ import { COLNO, ROWNO, ROOM, STAIRS, NORMAL_SPEED, ACCESSIBLE, isok, A_DEX, A_CO
          FEMALE, MALE, TERMINAL_COLS } from './config.js';
 import { initRng, rn2, rnd, rn1, getRngState, setRngState, getRngCallCount, setRngCallCount } from './rng.js';
 import { Display } from './display.js';
-import { initInput, nhgetch, getCount } from './input.js';
+import { initInput, nhgetch, getCount, getlin } from './input.js';
 import { FOV } from './vision.js';
 import { Player, roles, races, validRacesForRole, validAlignsForRoleRace,
          needsGenderMenu, rankOf, godForRoleAlign, isGoddess, greetingForRole,
@@ -236,9 +236,37 @@ class NetHackGame {
         return true;
     }
 
+    // Prompt for player name
+    // C ref: role.c plnamesuffix() -> askname()
+    async _promptPlayerName() {
+        const MAX_NAME_LENGTH = 31; // C ref: global.h PL_NSIZ = 32 (31 chars + null)
+
+        while (true) {
+            const name = await getlin('Who are you? ', this.display);
+
+            // C NetHack doesn't allow ESC to cancel - recursively prompts until valid
+            if (name === null || name.trim() === '') {
+                // Empty or cancelled - prompt again
+                continue;
+            }
+
+            // Enforce max length (truncate if too long)
+            const trimmedName = name.trim().substring(0, MAX_NAME_LENGTH);
+
+            // C NetHack accepts any non-empty name
+            this.player.name = trimmedName;
+            return;
+        }
+    }
+
     // Player role selection -- faithful C chargen flow
     // C ref: role.c player_selection() -- choose role, race, gender, alignment
     async playerSelection() {
+        // Phase 0: Prompt for player name
+        // C ref: role.c plnamesuffix() -> askname() — prompts "Who are you?"
+        // Name prompt happens BEFORE role/race/gender/alignment selection
+        await this._promptPlayerName();
+
         // Phase 1: "Shall I pick character's race, role, gender and alignment for you?"
         this.display.putstr_message(
             "Shall I pick character's race, role, gender and alignment for you? [ynaq]"
