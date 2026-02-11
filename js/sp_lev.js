@@ -45,7 +45,7 @@ const LADDER_UP = LADDER;
 const LADDER_DOWN = LADDER;
 
 // Level generation state (equivalent to C's sp_level sp)
-let levelState = {
+export let levelState = {
     map: null,              // GameMap instance being built
     flags: {
         noteleport: false,
@@ -119,6 +119,8 @@ export function setLevelContext(map, depth) {
     // Enable Lua RNG for themed rooms (matches C behavior)
     // C ref: Themed rooms in C use Lua for object/monster generation
     levelState.luaRngCounter = 0;
+    // Callback for room creation failure (set by themed room generator)
+    levelState.roomFailureCallback = null;
 }
 
 /**
@@ -1250,6 +1252,10 @@ export function room(opts = {}) {
             const rect = rnd_rect();
             if (!rect) {
                 console.warn('des.room(): No rects available in pool');
+                // Signal failure to themed room generator
+                if (levelState.roomFailureCallback) {
+                    levelState.roomFailureCallback();
+                }
                 return; // Can't place room without a rect
             }
         }
@@ -1406,13 +1412,13 @@ export function room(opts = {}) {
     levelState.map.nroom = levelState.map.rooms.length;
 
     // C ref: rect.c split_rects() — Split BSP rectangle pool around this room
-    // This is needed for manually created rooms (fixed-position and grid-placement)
-    // C behavior: Only fully random rooms (x=-1,y=-1) split the rectangle pool
+    // This is needed for randomly-placed rooms (procedural and themed)
+    // C behavior: Rooms with random placement (x=-1,y=-1) split the rectangle pool
     // Fixed-position rooms (like oracle's x=3,y=3) do NOT split - they bypass BSP entirely
     // Nested rooms (subrooms) also do NOT split - C ref: create_subroom() has no split_rects call
-    // Evidence: C trace shows split_rects is never called for oracle fixed-position rooms
-    const isFullyRandomRoom = (x === -1 && y === -1 && w === -1 && h === -1);
-    if (levelState.roomDepth === 0 && isFullyRandomRoom) {
+    // Themed rooms have x=-1,y=-1 (random placement) but may specify w,h (fixed size)
+    const isRandomPlacement = (x === -1 && y === -1);
+    if (levelState.roomDepth === 0 && isRandomPlacement) {
         update_rect_pool_for_room(room);
     }
 

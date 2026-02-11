@@ -13,7 +13,7 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection, percent, shuffle } from '../sp_lev.js';
+import { selection, percent, shuffle, levelState } from '../sp_lev.js';
 import { rn2, rnd, d, getRngLog } from '../rng.js';
 
 // Module-level state for postprocessing callbacks
@@ -478,7 +478,7 @@ export const themerooms = [
                   contents: function(rm) {
                      const feature = [ "C", "L", "I", "P", "T" ];
                      shuffle(feature);
-                     des.terrain((rm.width - 1) / 2, (rm.height - 1) / 2,
+                     des.terrain(Math.floor((rm.width - 1) / 2), Math.floor((rm.height - 1) / 2),
                                  feature[0]);
                   }
          });
@@ -1002,10 +1002,22 @@ export function themerooms_generate(map, depth) {
       nh.impossible('no eligible themed rooms?');
       return false;
    }
-   const rngBefore = getRngLog().length;
-   themerooms[pick].contents();
-   const rngAfter = getRngLog().length;
-   if (rngAfter - rngBefore > 100) {
+   const rngLog = getRngLog();
+   const rngBefore = rngLog ? rngLog.length : 0;
+
+   // Set up failure callback so des.room() can signal when it can't create a room
+   // This bridges the sp_lev → themerms communication without circular dependency
+   levelState.roomFailureCallback = () => { themeroom_failed = true; };
+
+   try {
+      themerooms[pick].contents();
+   } finally {
+      // Always clear the callback after contents() completes
+      levelState.roomFailureCallback = null;
+   }
+
+   const rngAfter = rngLog ? getRngLog().length : 0;
+   if (rngLog && rngAfter - rngBefore > 100) {
       console.log(`themerooms[${pick}].contents() consumed ${rngAfter - rngBefore} RNG calls (name: ${themerooms[pick].name})`);
    }
 
