@@ -256,12 +256,12 @@ export function initLuaMT() {
  * @param {number} depth - Current dungeon depth (for litstate_rnd)
  * @returns {Object|null} Room object {lx, ly, hx, hy, rtype, rlit} or null on failure
  */
-function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth, skipLitstate = false, forceRandomize = false) {
+function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth, skipLitstate = false, forceRandomize = false, deferCreateRoom = false) {
     const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_ROOMS === '1';
     const DEBUG_BUILD = typeof process !== 'undefined' && process.env.DEBUG_BUILD_ROOM === '1';
     if (DEBUG || DEBUG_BUILD) {
         const rngBefore = typeof getRngCallCount === 'function' ? getRngCallCount() : '?';
-        console.log(`[RNG ${rngBefore}] create_room_splev: x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, skipLitstate=${skipLitstate}, forceRandomize=${forceRandomize}`);
+        console.log(`[RNG ${rngBefore}] create_room_splev: x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, skipLitstate=${skipLitstate}, deferCreateRoom=${deferCreateRoom}`);
     }
 
     // C ref: sp_lev.c:1498 — -1 means OROOM (ordinary room)
@@ -301,10 +301,24 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth, skipL
     if (fullyRandom) {
         // C ref: sp_lev.c:1534 — totally random uses procedural rnd_rect() + BSP
         // Use dungeon.js create_room which implements this path
-        // IMPORTANT: Pass resolved `lit` (not `rlit`) since we already called litstate_rnd above
 
         if (!levelState.map) {
             return null; // No map available for BSP room placement
+        }
+
+        // If deferCreateRoom is true, return room parameters without actually creating the room
+        // This allows caller to call build_room + litstate_rnd before calling create_room
+        // C ref: build_room() calls litstate_rnd THEN create_room, not before
+        if (deferCreateRoom) {
+            if (DEBUG_BUILD) {
+                console.log(`  create_room_splev: deferCreateRoom=true, returning params without calling create_room`);
+            }
+            // Return stub object with parameters for later create_room call
+            return {
+                _deferredRoom: true,
+                x, y, w, h, xalign, yalign,
+                rtype, rlit: lit, depth
+            };
         }
 
         // NOTE: MT initialization for room CONTENTS happens AFTER room creation,
@@ -1503,11 +1517,11 @@ export function room(opts = {}) {
             console.log(`des.room(): RANDOM placement x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, rtype=${rtype}, lit=${lit}`);
         }
 
-        // For random-placement rooms, skip litstate_rnd in create_room_splev
-        // We'll call it later, after build_room's rn2(100) chance check
-        // C ref: For themed rooms, litstate_rnd happens AFTER alignment and build_room
+        // For random-placement rooms, defer create_room call to match C's build_room structure
+        // C ref: build_room() does: rn2(100) → litstate_rnd() → create_room()
+        // We'll skip litstate_rnd AND defer create_room, then call both at the right time
         const roomCalc = create_room_splev(x, y, w, h, xalign, yalign,
-                                           rtype, lit, levelState.depth || 1, true); // skipLitstate=true
+                                           rtype, lit, levelState.depth || 1, true, false, true); // skipLitstate=true, forceRandomize=false, deferCreateRoom=true
 
         if (!roomCalc) {
             if (DEBUG) {
@@ -1518,6 +1532,114 @@ export function room(opts = {}) {
                 levelState.roomFailureCallback();
             }
             return false;
+        }
+
+        // Check if this is a deferred room (create_room not called yet)
+        if (roomCalc._deferredRoom) {
+            if (DEBUG_BUILD) {
+                console.log(`des.room(): deferred room, calling build_room → litstate_rnd → create_room`);
+            }
+
+            // C ref: build_room() does rn2(100), litstate_rnd(), then create_room()
+            // 1. build_room rn2(100) chance check
+            if (DEBUG_BUILD) {
+                const before = getRngCallCount();
+                console.log(`\n=== [RNG ${before}] des.room() build_room chance check (deferred room) ===`);
+                console.log(`  chance=${chance}, requestedRtype=${requestedRtype}, type="${type}"`);
+            }
+            rtype = (!chance || rn2(100) < chance) ? requestedRtype : 0; // 0 = OROOM
+            if (DEBUG_BUILD) {
+                console.log(`  [RNG ${getRngCallCount()}] rn2(100) done, rtype=${rtype}`);
+            }
+            roomCalc.rtype = rtype; // Update room type based on chance roll
+
+            // 2. litstate_rnd()
+            if (DEBUG_BUILD) {
+                const before = getRngCallCount();
+                console.log(`  [RNG ${before}] des.room() calling litstate_rnd(${lit}, ${levelState.depth || 1})`);
+            }
+            lit = litstate_rnd(lit, levelState.depth || 1);
+            if (DEBUG_BUILD) {
+                console.log(`  [RNG ${getRngCallCount()}] litstate_rnd returned ${lit}`);
+            }
+
+            // 3. create_room() - NOW make the dimension randomization calls
+            if (!levelState.map) {
+                console.error('des.room(): no map available for deferred create_room');
+                return false;
+            }
+
+            if (DEBUG_BUILD) {
+                const before = getRngCallCount();
+                console.log(`  [RNG ${before}] des.room() calling create_room() for deferred room`);
+            }
+            const success = create_room(levelState.map, roomCalc.x, roomCalc.y, roomCalc.w, roomCalc.h,
+                                       roomCalc.xalign, roomCalc.yalign, roomCalc.rtype, lit,
+                                       roomCalc.depth, false);
+            if (DEBUG_BUILD) {
+                console.log(`  [RNG ${getRngCallCount()}] create_room() done, success=${success}`);
+            }
+
+            if (!success) {
+                if (DEBUG) {
+                    console.log(`des.room(): deferred create_room failed`);
+                }
+                // Signal failure to themed room generator
+                if (levelState.roomFailureCallback) {
+                    levelState.roomFailureCallback();
+                }
+                return false;
+            }
+
+            // Extract the room that was just added
+            const room = levelState.map.rooms[levelState.map.rooms.length - 1];
+
+            // Set needfill for OROOM and THEMEROOM
+            const OROOM_LOCAL = 0;
+            const THEMEROOM_LOCAL = 1;
+            if (rtype === OROOM_LOCAL || rtype === THEMEROOM_LOCAL) {
+                room.needfill = FILL_NORMAL;
+            }
+
+            // Continue with room contents execution below
+            roomX = room.lx;
+            roomY = room.ly;
+            roomW = room.hx - room.lx + 1;
+            roomH = room.hy - room.ly + 1;
+
+            if (DEBUG) {
+                console.log(`des.room(): deferred room created at (${roomX},${roomY}) size ${roomW}x${roomH}`);
+            }
+
+            // Execute room contents callback if provided
+            if (contents && typeof contents === 'function') {
+                const parentRoom = levelState.currentRoom;
+                levelState.roomStack.push(parentRoom);
+                levelState.roomDepth++;
+
+                // Add width/height for compatibility
+                room.width = roomW;
+                room.height = roomH;
+                levelState.currentRoom = room;
+
+                if (DEBUG) {
+                    console.log(`des.room(): EXECUTING contents callback for deferred room at (${roomX},${roomY})`);
+                }
+
+                try {
+                    contents(room);
+                } finally {
+                    levelState.currentRoom = levelState.roomStack.pop();
+                    levelState.roomDepth--;
+                }
+            }
+
+            // Update rect pool for random-placement room
+            if (levelState.roomDepth === 0 && isRandomPlacement) {
+                update_rect_pool_for_room(room);
+            }
+
+            return true; // Early return - deferred room created and processed
         }
 
         // Check if create_room_splev already added the room to the map (fully random path)

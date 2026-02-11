@@ -1044,6 +1044,13 @@ export function themerooms_generate(map, depth) {
    // This bridges the sp_lev → themerms communication without circular dependency
    levelState.roomFailureCallback = () => { themeroom_failed = true; };
 
+   // Debug: Log which themed room was selected
+   const DEBUG_SELECTION = typeof process !== 'undefined' && process.env.DEBUG_THEMERM_SELECT === '1';
+   if (DEBUG_SELECTION) {
+      const rngCount = typeof getRngCallCount === 'function' ? getRngCallCount() : '?';
+      console.log(`\n[RNG ${rngCount}] Selected themed room #${pick}: ${themerooms[pick].name || 'default'}`);
+   }
+
    try {
       themerooms[pick].contents();
    } finally {
