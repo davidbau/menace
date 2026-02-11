@@ -340,20 +340,20 @@ export function generate() {
     function rnd_hell_prefab(coldhell) {
        let dorepeat = true;
        let nloops = 0;
-       repeat
+       do {
           nloops = nloops + 1;
           let pf = rn2(hell_prefabs.length);
           let fab = hell_prefabs[pf];
-          let fabtype = type(fab);
+          let fabtype = typeof fab;
 
           if ((fabtype == "function")) {
              fab(coldhell);
              dorepeat = false;
-          } else if ((fabtype == "table")) {
+          } else if ((fabtype == "object")) {
              fab.contents(coldhell);
              dorepeat = ! (fab.repeatable && rn2(nloops * 2 + 1) == 0);
           }
-       until ((! dorepeat) || (nloops > 5));
+       } while (dorepeat && nloops <= 5);
     }
 
     hells = {
