@@ -1244,8 +1244,8 @@ async function handleKick(player, map, display) {
 }
 
 // Handle previous messages
-// C ref: cmd.c doprev_message()
-// Enhanced message history viewer with paging support
+// C ref: cmd.c doprev_message() -> topl.c tty_doprev_message()
+// Default mode 's' (single): shows one message at a time on top line
 async function handlePrevMessages(display) {
     const messages = display.messages || [];
 
@@ -1254,57 +1254,39 @@ async function handlePrevMessages(display) {
         return { moved: false, tookTime: false };
     }
 
-    // Show message history in a paged viewer
-    const maxPerPage = 20; // Show up to 20 messages at once
-    let currentPage = 0;
-    const totalPages = Math.ceil(messages.length / maxPerPage);
+    // C ref: topl.c:102 mode 's' (single)
+    // Shows messages one at a time on top line, cycling backwards
+    // User can press Ctrl+P repeatedly to see older messages
+
+    let messageIndex = messages.length - 1; // Start with most recent message
 
     while (true) {
-        // Calculate start and end indices for current page
-        const startIdx = currentPage * maxPerPage;
-        const endIdx = Math.min(startIdx + maxPerPage, messages.length);
-        const pageMessages = messages.slice(startIdx, endIdx);
-
-        // Build display text
-        const lines = [];
-        lines.push('=== Message History ===');
-        lines.push('');
-
-        // Show messages in chronological order (oldest first on this page)
-        for (let i = 0; i < pageMessages.length; i++) {
-            const msgNum = startIdx + i + 1;
-            lines.push(`${msgNum}. ${pageMessages[i]}`);
+        // Show current message on top line
+        // C ref: redotoplin(cw->data[cw->maxcol])
+        if (messageIndex >= 0 && messageIndex < messages.length) {
+            display.putstr_message(messages[messageIndex]);
         }
 
-        lines.push('');
-        if (totalPages > 1) {
-            lines.push(`Page ${currentPage + 1}/${totalPages}`);
-            lines.push('[Space/Enter] Next page  [ESC/q] Close');
-        } else {
-            lines.push('[Space/Enter/ESC/q] Close');
-        }
+        // Move to next older message for next iteration
+        // C ref: cw->maxcol--
+        messageIndex--;
 
-        // Show in pager
-        showPager(lines.join('\n'), '');
+        // Wrap around to newest if we've gone past oldest
+        // C ref: if (cw->maxcol < 0) cw->maxcol = cw->rows - 1
+        if (messageIndex < 0) {
+            messageIndex = messages.length - 1;
+        }
 
         // Wait for user input
+        // C ref: } while (morc == C('p'))
         const ch = await nhgetch();
 
-        if (ch === ' ' || ch === '\n' || ch === '\r') {
-            // Next page or close if on last page
-            if (currentPage < totalPages - 1) {
-                currentPage++;
-            } else {
-                break; // Close viewer
-            }
-        } else if (ch === '\x1b' || ch === 'q') {
-            // ESC or 'q' - close viewer
+        // If user presses Ctrl+P again, continue to next older message
+        if (ch === 16) { // Ctrl+P
+            continue;
+        } else {
+            // Any other key exits
             break;
-        } else if (ch === 'p' || ch === 'P') {
-            // Previous page
-            if (currentPage > 0) {
-                currentPage--;
-            }
         }
     }
 
