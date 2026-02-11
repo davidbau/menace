@@ -146,7 +146,7 @@ function get_rect_ind(r) {
 }
 
 // C ref: rect.c get_rect() -- find a free rect that contains r
-function get_rect(r) {
+export function get_rect(r) {
     for (let i = 0; i < rect_cnt; i++) {
         if (r.lx >= rects[i].lx && r.ly >= rects[i].ly &&
             r.hx <= rects[i].hx && r.hy <= rects[i].hy)
@@ -268,7 +268,7 @@ export function update_rect_pool_for_room(room) {
 // C ref: sp_lev.c check_room()
 // Verifies room area is all STONE with required margins.
 // May shrink the room. Returns { lowx, ddx, lowy, ddy } or null.
-function check_room(map, lowx, ddx, lowy, ddy, vault, inThemerooms) {
+export function check_room(map, lowx, ddx, lowy, ddy, vault, inThemerooms) {
     let hix = lowx + ddx, hiy = lowy + ddy;
     const xlim = XLIM + (vault ? 1 : 0);
     const ylim = YLIM + (vault ? 1 : 0);
@@ -911,7 +911,13 @@ export function floodFillAndRegister(map, sx, sy, rtype, lit) {
 // On first level generation, nhl_loadlua() consumes rn2(3) and rn2(2).
 // Subsequent levels reuse the cached state with no RNG.
 let _themesLoaded = false;
-let _mtInitialized = false; // Track Lua MT RNG initialization
+
+// Track Lua MT RNG initialization (shared with sp_lev.js via export)
+// Lazy initialization happens on first Lua RNG use (des.object/des.monster)
+export let _mtInitialized = false;
+export function setMtInitialized(val) {
+    _mtInitialized = val;
+}
 
 // C ref: mklev.c makerooms()
 function makerooms(map, depth) {
@@ -3240,7 +3246,7 @@ export function initLevelGeneration(roleIndex) {
     init_objects();
     simulateDungeonInit(roleIndex);
     _themesLoaded = false; // Reset Lua theme state for new game
-    _mtInitialized = false; // Reset MT RNG state for new game
+    setMtInitialized(false); // Reset MT RNG state for new game
 }
 
 // C ref: mklev.c makelevel()
@@ -3254,7 +3260,7 @@ export function initLevelGeneration(roleIndex) {
 export function makelevel(depth, dnum, dlevel) {
     setLevelDepth(depth);
     resetThemermsState(); // Reset themed room state for new level
-    _mtInitialized = false; // Reset MT RNG state - init happens per level, not per session
+    setMtInitialized(false); // Reset MT RNG state - init happens per level, not per session
 
     // C ref: bones.c getbones() — rn2(3) + bones load pipeline
     // Must happen BEFORE special level check to match C RNG order

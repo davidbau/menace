@@ -997,14 +997,7 @@ export function themerooms_generate(map, depth) {
 
 // called before any rooms are generated
 export function pre_themerooms_generate() {
-   // Initialize Lua MT19937 RNG on first themed room use
-   // C ref: This happens when Lua math.random() is first called
-   // Pattern from C trace: rn2(1000-1004), rn2(1010), rn2(1012), rn2(1014-1036)
-   for (let i = 1000; i <= 1004; i++) rn2(i);
-   rn2(1010);
-   rn2(1012);
-   for (let i = 1014; i <= 1036; i++) rn2(i);
-
+   // C ref: Theme debug setup (no MT init here - that's done lazily on first Lua RNG use)
    const debug_themerm = nh.debug_themerm(false);
    const debug_fill = nh.debug_themerm(true);
    let xtrainfo = "";

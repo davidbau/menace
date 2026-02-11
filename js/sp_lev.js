@@ -16,7 +16,7 @@
 import { GameMap, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1 } from './rng.js';
 import { mksobj, mkobj } from './mkobj.js';
-import { create_room, makecorridors, init_rect, rnd_rect, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room } from './dungeon.js';
+import { create_room, makecorridors, init_rect, rnd_rect, get_rect, check_room, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room, _mtInitialized, setMtInitialized } from './dungeon.js';
 import {
     STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
     CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL, ROOM, CORR,
@@ -116,6 +116,9 @@ export function setLevelContext(map, depth) {
     levelState.roomStack = [];
     levelState.roomDepth = 0;
     levelState.currentRoom = null;
+    // Enable Lua RNG for themed rooms (matches C behavior)
+    // C ref: Themed rooms in C use Lua for object/monster generation
+    levelState.luaRngCounter = 0;
 }
 
 /**
@@ -128,6 +131,7 @@ export function clearLevelContext() {
     levelState.roomStack = [];
     levelState.roomDepth = 0;
     levelState.currentRoom = null;
+    levelState.luaRngCounter = undefined; // Clear Lua RNG state
 }
 
 /**
@@ -143,6 +147,21 @@ export function setCurrentRoom(room) {
 // ========================================================================
 // Helper Functions (sp_lev.c internal functions)
 // ========================================================================
+
+/**
+ * Initialize Lua MT19937 RNG state (lazy initialization).
+ * C ref: This happens when Lua's math.random() is first called from themed room code.
+ * Pattern observed from C RNG trace: rn2(1000-1004), rn2(1010), rn2(1012), rn2(1014-1036)
+ *
+ * This is called lazily on the first Lua RNG use (des.object/des.monster) to match C behavior.
+ */
+function initLuaMT() {
+    for (let i = 1000; i <= 1004; i++) rn2(i);
+    rn2(1010);
+    rn2(1012);
+    for (let i = 1014; i <= 1036; i++) rn2(i);
+    setMtInitialized(true);
+}
 
 /**
  * Determine if a room/level should be lit based on litstate and depth.
@@ -242,52 +261,52 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
     // Only call this AFTER we know the room will succeed (not fully random)
     rlit = litstate_rnd(rlit, depth);
 
-    // C ref: sp_lev.c — special levels call rnd_rect() to get rect pool rect
-    // Even fixed-position rooms need to select from the rect pool
-    const rect = rnd_rect();
-    if (!rect) {
-        return null; // No rects available
-    }
+    // C ref: sp_lev.c:1522-1649 — Retry loop for room creation (up to 100 attempts)
+    // The loop retries if get_rect or check_room fails
+    let r1 = null;
+    let trycnt = 0;
+    let xabs, yabs, dx, dy;
+    let roomValid = false; // Track if room passed check_room
 
-    // C ref: sp_lev.c:1574-1593 — "Only some parameters are random" path
-    // Uses grid placement (1-5) with alignment
+    do {
+        // C ref: sp_lev.c:1525-1530 — Reset parameters at start of each retry
+        roomValid = false; // Reset for each iteration
+        let xtmp = x;
+        let ytmp = y;
+        let wtmp = w;
+        let htmp = h;
+        let xaltmp = xalign;
+        let yaltmp = yalign;
 
-    let xtmp = x;
-    let ytmp = y;
-    let wtmp = w;
-    let htmp = h;
-    let xaltmp = xalign;
-    let yaltmp = yalign;
-
-    // C ref: sp_lev.c:1581-1585 — Position is RANDOM (x < 0 && y < 0)
+    // C ref: sp_lev.c:1587-1590 — Position is RANDOM (x < 0 && y < 0)
     if (xtmp < 0 && ytmp < 0) {
         xtmp = rnd(5);  // Grid position 1-5
         ytmp = rnd(5);
     }
 
-    // C ref: sp_lev.c:1587-1591 — Size is RANDOM (w < 0 || h < 0)
+    // C ref: sp_lev.c:1592-1594 — Size is RANDOM (w < 0 || h < 0)
     if (wtmp < 0 || htmp < 0) {
         wtmp = rn1(15, 3);  // rnd(15) + 3-1 = 3-17
         htmp = rn1(8, 2);   // rnd(8) + 2-1 = 2-9
     }
 
-    // C ref: sp_lev.c:1593-1595 — Horizontal alignment is RANDOM
+    // C ref: sp_lev.c:1596-1597 — Horizontal alignment is RANDOM
     if (xaltmp === -1) {
         xaltmp = rnd(3);  // 1=left, 2=center, 3=right
     }
 
-    // C ref: sp_lev.c:1597-1599 — Vertical alignment is RANDOM
+    // C ref: sp_lev.c:1598-1599 — Vertical alignment is RANDOM
     if (yaltmp === -1) {
         yaltmp = rnd(3);  // 1=top, 2=center, 3=bottom
     }
 
-    // C ref: sp_lev.c:1601-1622 — Calculate absolute coordinates from grid position
-    // Grid divides map into 5×5 sections: COLNO/5 = 16, ROWNO/5 = 4.2 ≈ 4
-    const COLNO_DIV5 = Math.floor(COLNO / 5);  // 16
-    const ROWNO_DIV5 = Math.floor(ROWNO / 5);  // 4
+        // C ref: sp_lev.c:1601-1622 — Calculate absolute coordinates from grid position
+        // Grid divides map into 5×5 sections: COLNO/5 = 16, ROWNO/5 = 4.2 ≈ 4
+        const COLNO_DIV5 = Math.floor(COLNO / 5);  // 16
+        const ROWNO_DIV5 = Math.floor(ROWNO / 5);  // 4
 
-    let xabs = Math.floor(((xtmp - 1) * COLNO) / 5) + 1;
-    let yabs = Math.floor(((ytmp - 1) * ROWNO) / 5) + 1;
+        xabs = Math.floor(((xtmp - 1) * COLNO) / 5) + 1;
+        yabs = Math.floor(((ytmp - 1) * ROWNO) / 5) + 1;
 
     // Apply alignment
     switch (xaltmp) {
@@ -312,7 +331,7 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
             break;
     }
 
-    // C ref: sp_lev.c:1624-1629 — Clamp to map bounds
+    // C ref: sp_lev.c:1626-1633 — Clamp to map bounds
     if (xabs + wtmp - 1 > COLNO - 2) {
         xabs = COLNO - wtmp - 3;
     }
@@ -326,15 +345,56 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth) {
         yabs = 2;
     }
 
-    // TODO: C does rectangle collision check and splitting here (lines 1631-1644)
-    // For now, return the calculated room — this may overlap with existing rooms
-    // but that's acceptable for initial implementation to get RNG aligned
+        // C ref: sp_lev.c:1637-1641 — Create r2 rectangle and find containing rect
+        // rndpos is 1 if position was random (original x/y were -1), else 0
+        const rndpos = (x < 0 && y < 0) ? 1 : 0;
+        const r2 = {
+            lx: xabs - 1,
+            ly: yabs - 1,
+            hx: xabs + wtmp + rndpos,
+            hy: yabs + htmp + rndpos
+        };
+
+        r1 = get_rect(r2);
+        if (!r1) {
+            continue; // No rectangle found, retry
+        }
+
+        // C ref: sp_lev.c:1642-1647 — Set dx/dy and call check_room to validate
+        dx = wtmp;
+        dy = htmp;
+
+        // C ref: sp_lev.c:1645 — Call check_room to validate placement
+        // check_room may shrink the room if overlaps detected, or fail entirely
+        // It calls rn2(3) when overlap is detected
+        const vault = false; // Special levels don't create vaults in this path
+        const inThemerooms = false; // We're not in themerooms mode here
+
+        const checkResult = check_room(levelState.map, xabs, dx, yabs, dy, vault, inThemerooms);
+        if (!checkResult) {
+            r1 = null; // C ref: sp_lev.c:1646 — Set r1=0 to retry
+            continue;
+        }
+
+        // Update dimensions if check_room shrunk the room
+        xabs = checkResult.lowx;
+        yabs = checkResult.lowy;
+        dx = checkResult.ddx;
+        dy = checkResult.ddy;
+        roomValid = true; // Room successfully validated
+
+    } while (++trycnt <= 100 && !roomValid); // C ref: sp_lev.c:1649 (loop until valid)
+
+    // C ref: sp_lev.c:1650-1652 — If all retries failed, return null
+    if (!roomValid) {
+        return null;
+    }
 
     return {
         lx: xabs,
         ly: yabs,
-        hx: xabs + wtmp - 1,
-        hy: yabs + htmp - 1,
+        hx: xabs + dx,
+        hy: yabs + dy,
         rtype: rtype,
         rlit: rlit,
         irregular: false
@@ -1162,16 +1222,19 @@ export function room(opts = {}) {
     // Special levels use fixed coordinates, not BSP rectangle selection
     const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_ROOMS === '1';
 
+    // C ref: sp_lev.c:2808 build_room() — Apply chance check to determine final room type
+    // If chance roll fails, room becomes OROOM instead of requested type
+    // This happens BEFORE room creation, matching C's build_room() sequence
+    let rtype = (!chance || rn2(100) < chance) ? requestedRtype : 0; // 0 = OROOM
+
     // Calculate actual room position and size
     // If x, y are specified, use them directly (special level fixed position)
     // If -1, would need random placement (not implemented yet)
-    let roomX, roomY, roomW, roomH, rtype;
+    let roomX, roomY, roomW, roomH;
 
     if (x >= 0 && y >= 0 && w > 0 && h > 0) {
         // Fixed position special level room
-        // C ref: sp_lev.c create_room() — special level rooms use requested type directly
-        // NO rn2(100) chance roll for special level rooms (only for procedural build_room)
-        rtype = requestedRtype;
+        // rtype already determined by chance check above
 
         if (DEBUG) {
             console.log(`des.room(): FIXED position x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, rtype=${rtype}, lit=${lit}, depth=${levelState.roomDepth}`);
@@ -1247,9 +1310,7 @@ export function room(opts = {}) {
         lit = litstate_rnd(lit, levelState.depth || 1);
     } else {
         // Random placement - use sp_lev.c's create_room algorithm
-        // C ref: sp_lev.c:1486 create_room() — NO rn2(100) call for random-placement rooms
-        // The room type is used directly without a chance roll
-        rtype = requestedRtype;
+        // rtype already determined by chance check above (line 1188)
 
         if (DEBUG) {
             console.log(`des.room(): RANDOM placement x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, rtype=${rtype}, lit=${lit}`);
@@ -1484,6 +1545,12 @@ export function object(name_or_opts, x, y) {
     // rest use 4-5 each. Without exact Lua code, approximate with 4 calls average
     // TODO: Implement exact C Lua pattern once we understand the state machine
     if (levelState && levelState.luaRngCounter !== undefined) {
+        // Lazy MT initialization: On first Lua RNG use, initialize MT state
+        // C ref: MT init happens when Lua math.random() is first called
+        if (!_mtInitialized) {
+            initLuaMT();
+        }
+
         const numRngCalls = 4;
         const baseOffset = levelState.luaRngCounter;
         for (let i = 0; i < numRngCalls; i++) {
@@ -1755,6 +1822,12 @@ export function monster(opts_or_class, x, y) {
     // C ref: nhlua.c nhl_rn2() — Lua monster generation calls rn2(1000+) for properties
     // Similar to des.object(), RNG calls happen immediately even though placement is deferred
     if (levelState && levelState.luaRngCounter !== undefined) {
+        // Lazy MT initialization: On first Lua RNG use, initialize MT state
+        // C ref: MT init happens when Lua math.random() is first called
+        if (!_mtInitialized) {
+            initLuaMT();
+        }
+
         const numRngCalls = 4;  // Approximate - actual pattern varies
         const baseOffset = levelState.luaRngCounter;
         for (let i = 0; i < numRngCalls; i++) {
