@@ -1,0 +1,43 @@
+{
+  "commit": "3f54fac",
+  "parent": "21c9b00",
+  "date": "2026-02-11T16:02:42Z",
+  "author": "David Bau",
+  "message": "Add test results for commit 21c9b00",
+  "stats": {
+    "total": 1732,
+    "pass": 573,
+    "fail": 1159,
+    "skip": 0,
+    "duration": 2
+  },
+  "categories": {
+    "chargen": {
+      "total": 180,
+      "pass": 180,
+      "fail": 00
+    },
+    "gameplay": {
+      "total": 26,
+      "pass": 3,
+      "fail": 23
+    },
+    "map": {
+      "total": 10,
+      "pass": 00,
+      "fail": 10
+    },
+    "special": {
+      "total": 84,
+      "pass": 84,
+      "fail": 00
+    },
+    "unit": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    }
+  },
+  "regression": false,
+  "newTests": 0
+}
