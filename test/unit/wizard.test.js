@@ -700,10 +700,6 @@ describe('C trace comparison: seed 42 Wizard inventory', () => {
     });
 
     it('find makelevel divergence point vs C trace file', async () => {
-        // C session was generated with wizard mode (-D flag), which enables THEMERM debug mode
-        // This skips reservoir sampling and uses a different RNG pattern for themed rooms
-        process.env.THEMERM = '';  // Enable debug mode to match C behavior
-
         // Load C trace and compare entry by entry through all of makelevel
         const fs = await import('node:fs');
         const cTrace = JSON.parse(fs.readFileSync(
@@ -839,9 +835,6 @@ describe('C trace comparison: seed 42 Wizard inventory', () => {
     });
 
     it('RNG call count from start matches C trace', async () => {
-        // C session was generated with wizard mode (-D flag), which enables THEMERM debug mode
-        process.env.THEMERM = '';  // Enable debug mode to match C behavior
-
         // C trace has 2810 RNG calls before the first trquan (inventory start).
         // Verify our total matches.
         initRng(42);

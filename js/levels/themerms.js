@@ -1103,10 +1103,12 @@ export function themeroom_fill(rm) {
    }
    let pick = null;
    let total_frequency = 0;
+   let eligible_count = 0;
    for (let i = 0; i < themeroom_fills.length; i++) {
       if (typeof themeroom_fills[i] !== "object") {
          nh.impossible('themeroom fill ' + i + ' must be a table');
       } else if (is_eligible(themeroom_fills[i], rm)) {
+         eligible_count++;
          // Reservoir sampling: select one room from the set of eligible rooms,
          // which may change on different levels because of level difficulty.
          let this_frequency;
@@ -1120,12 +1122,28 @@ export function themeroom_fill(rm) {
          if (this_frequency > 0 && rn2(total_frequency) < this_frequency) {
             pick = i;
          }
+
+         // Debug: Log each eligible room
+         if (typeof process !== 'undefined' && process.env.DEBUG_THEMERM_ELIGIBLE === '1') {
+            console.log(`  Eligible[${eligible_count}]: ${themeroom_fills[i].name} (freq=${this_frequency}, total=${total_frequency}, picked=${pick === i})`);
+         }
       }
    }
+
+   if (typeof process !== 'undefined' && process.env.DEBUG_THEMERM_ELIGIBLE === '1') {
+      console.log(`Total eligible rooms: ${eligible_count}, final frequency: ${total_frequency}`);
+   }
+
    if (pick === null) {
       nh.impossible('no eligible themed room fills?');
       return;
    }
+
+   // Debug: Log which themed room was selected
+   if (typeof process !== 'undefined' && process.env.DEBUG_THEMERM_EXEC === '1') {
+      console.log(`\n=== Executing themed room fill: ${themeroom_fills[pick].name} ===`);
+   }
+
    des.setCurrentRoom(rm);
    themeroom_fills[pick].contents(rm);
    des.setCurrentRoom(null);
