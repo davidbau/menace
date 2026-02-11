@@ -31,10 +31,14 @@ def convert_guidebook(input_file, output_file):
                 output.append('\n')
             elif 'Eric S. Raymond' in line:
                 output.append('> ' + line.strip() + '\n')
+                output.append('>\n')  # Blank line in blockquote to separate items
             elif 'Edited and expanded' in line or 'Mike Stephenson' in line:
                 output.append('> ' + line.strip() + '\n')
+                output.append('>\n')  # Blank line in blockquote to separate items
             elif re.search(r'\d{4}$', line.strip()):  # Date line (any month, ends with year)
-                output.append('> ' + line.strip() + '\n')
+                # Wrap date in nobr span to prevent line wrapping
+                date_text = line.strip()
+                output.append('> <span class="nobr">' + date_text + '</span>\n')
                 output.append('\n')
                 output.append('---\n')
                 output.append('\n')
@@ -140,8 +144,34 @@ def convert_guidebook(input_file, output_file):
         # Match #command after space, start of line, or quote
         line = re.sub(r'(^|[\s"\(])(#[a-z]+)(\s|[,.\)\"]|$)', r'\1`\2`\3', line)
 
-        # Wrap control characters (e.g., ^X, ^C)
+        # Wrap control character patterns
+        # ^<key> pattern (generic placeholder)
+        line = re.sub(r'\^<([a-z]+)>', r'`^<\1>`', line)
+        # ^X, ^C etc. (specific keys)
         line = re.sub(r'\^([A-Z])\b', r'`^\1`', line)
+
+        # Special case: ``' (backtick character) needs double backticks to escape
+        # Convert ``' -> `` ` `` (backtick shown in code)
+        line = re.sub(r"``'", r'`` ` ``', line)
+
+        # Convert ASCII quotes around single chars to proper backticks
+        # e.g., `m' -> `m` or `x' -> `x` or `,' -> `,` or `\' -> `\`
+        line = re.sub(r"`([a-zA-Z0-9#@+\-\.,\\'])'", r'`\1`', line)
+
+        # Wrap movement key patterns (vi keys)
+        # [yuhjklbn], [YUHJKLBN], m[yuhjklbn], etc.
+        # Match at word boundary or start of line
+        line = re.sub(r'(^|\s)([mMfFgG]?\[yuhjklbn\])(\s|$)', r'\1`\2`\3', line)
+        line = re.sub(r'(^|\s)(\[YUHJKLBN\])(\s|$)', r'\1`\2`\3', line)
+
+        # Wrap <Control>+[yuhjklbn] pattern first
+        line = re.sub(r'<Control>\+\[yuhjklbn\]', r'`<Control>+[yuhjklbn]`', line)
+
+        # Wrap <X>+<Y> patterns (e.g., <Control>+<key>, <Control>+<direction>)
+        line = re.sub(r'<(Control|Shift|Ctrl)>\+<([a-z]+)>', r'`<\1>+<\2>`', line)
+
+        # Wrap standalone <key> references (avoiding those already in backticks)
+        line = re.sub(r'(?<!`)<(Control|Shift|Ctrl|key|direction)>(?![+`])', r'`<\1>`', line)
 
         # Wrap single symbols in common phrases
         # Pattern: "as X" or "shown as X" where X is a single non-alphanumeric char
