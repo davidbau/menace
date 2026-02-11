@@ -2117,14 +2117,14 @@ export class Agent {
         // Find a new target: use findExplorationTarget but commit to its destination
         // Skip blacklisted targets we've failed to reach
         //
-        // Stuck detection: If frontier is high but exploration progress is low,
+        // Stuck detection: If frontier exists but exploration progress is low,
         // switch to picking FAR targets to break out of local loops
         const frontier = level.getExplorationFrontier();
         const exploredPercent = level.exploredCount / (80 * 21);
         const isStuckExploring = (
-            this.turnNumber > 100 &&
-            frontier.length > 50 &&  // High frontier
-            exploredPercent < 0.20   // But low coverage
+            frontier.length > 15 &&         // Has frontier to explore
+            this.levelStuckCounter > 30 &&  // Been stuck for a while
+            exploredPercent < 0.40          // Low coverage - agent is oscillating
         );
 
         // When stuck exploring (moving but not progressing), clear blacklist
