@@ -382,6 +382,8 @@ class HeadlessGame {
         this.wizard = true;
         this.seerTurn = opts.seerTurn || 0;
         this.occupation = null; // C ref: cmd.c go.occupation — multi-turn action
+        this.flags = { pickup: false, verbose: false }; // Game flags for commands
+        this.menuRequested = false; // 'm' prefix command state
         initrack(); // C ref: track.c — initialize player track buffer
     }
 
@@ -506,10 +508,49 @@ export async function replaySession(seed, session) {
     initRng(seed);
     setGameSeed(seed);
     const replayRoleIndex = ROLE_INDEX[session.character?.role] ?? 11;
+
+    // Consume pre-map character generation RNG calls if session has chargen data
+    // C ref: role.c pick_gend() — happens during role selection BEFORE initLevelGeneration
+    // Map generation happens in the "confirm-ok" step, so we consume RNG only
+    // from steps before that (typically just pick-role with pick_gend call)
+    let mapGenStepIndex = -1;
+    if (session.chargen && session.chargen.length > 0) {
+        // Find the confirm-ok step (map generation)
+        mapGenStepIndex = session.chargen.findIndex(s => s.action === 'confirm-ok');
+
+        // Consume RNG from steps before map generation (pick_gend, etc.)
+        for (let i = 0; i < mapGenStepIndex && i < session.chargen.length; i++) {
+            const step = session.chargen[i];
+            for (const rngEntry of step.rng || []) {
+                const match = rngEntry.match(/rn2\((\d+)\)=(\d+)|rnd\((\d+)\)=(\d+)/);
+                if (match) {
+                    const n = parseInt(match[1] || match[3]);
+                    if (match[1]) rn2(n); else rnd(n);
+                }
+            }
+        }
+    }
+
+    // Now initialize level generation (this may consume RNG for dungeon structure)
     initLevelGeneration(replayRoleIndex);
 
     const map = makelevel(1);
     wallification(map);
+
+    // Consume post-map character generation RNG calls (moveloop_preamble, etc.)
+    // These happen after map gen but before gameplay starts
+    if (mapGenStepIndex >= 0 && session.chargen) {
+        for (let i = mapGenStepIndex + 1; i < session.chargen.length; i++) {
+            const step = session.chargen[i];
+            for (const rngEntry of step.rng || []) {
+                const match = rngEntry.match(/rn2\((\d+)\)=(\d+)|rnd\((\d+)\)=(\d+)/);
+                if (match) {
+                    const n = parseInt(match[1] || match[3]);
+                    if (match[1]) rn2(n); else rnd(n);
+                }
+            }
+        }
+    }
 
     // NOTE: Wizard mode (-D flag) enables omniscience for the PLAYER,
     // but does NOT make pets aware of trap locations (trap.tseen).

@@ -55,6 +55,7 @@ export class Agent {
         this.consecutiveWaits = 0;
         this.stuckCounter = 0;      // detect when agent is stuck (resets on real progress)
         this.levelStuckCounter = 0; // total stuck turns on this level (never resets)
+        this.lastFrontierSize = null; // track frontier for progress detection
         this.lastPosition = null;
         this.searchesAtPosition = 0; // how many times we've searched at current pos
         this.currentPath = null;     // current navigation path
@@ -73,6 +74,7 @@ export class Agent {
         this.committedTarget = null; // {x, y} of committed exploration target
         this.committedPath = null; // PathResult we're currently following
         this.targetStuckCount = 0; // how many turns we've been stuck on committed path
+        this.lastCommittedDistance = null; // track distance for progress detection
         this.failedTargets = new Set(); // targets we've failed to reach (blacklisted)
         this.consecutiveFailedMoves = 0; // consecutive turns where movement failed
         this.restTurns = 0; // consecutive turns spent resting
@@ -210,6 +212,7 @@ export class Agent {
                     // Reset level stuck counter on level change
                     this.levelStuckCounter = 0;
                     this.stuckCounter = 0;
+                    this.lastFrontierSize = null;
                     this.committedTarget = null;
                     this.committedPath = null;
                     this.failedTargets.clear();
@@ -498,18 +501,25 @@ export class Agent {
             this.turnsAtSamePosition = 0;
         }
 
+        // Track frontier progress
+        const currentFrontier = level?.getExplorationFrontier ? level.getExplorationFrontier().length : 0;
+        if (!this.lastFrontierSize) this.lastFrontierSize = currentFrontier;
+
         // Track if we're stuck (same position OR oscillating between nearby positions)
         // But don't count resting as stuck - resting is intentional healing
         const wasResting = this.lastAction && this.lastAction.type === 'rest';
+        const frontierProgress = this.lastFrontierSize - currentFrontier;
+        const makingFrontierProgress = frontierProgress > 0;
+
         if (this.lastPosition && this.lastPosition.x === px && this.lastPosition.y === py) {
-            if (!wasResting) {
+            if (!wasResting && !makingFrontierProgress) {
                 this.stuckCounter++;
                 this.levelStuckCounter++;
             }
         } else {
             // Detect short-term oscillation: if we've been in this position in the last 6 turns
             const recentCount = this.recentPositionsList.slice(-6).filter(k => k === posKey).length;
-            if (recentCount >= 2 && !wasResting) {
+            if (recentCount >= 2 && !wasResting && !makingFrontierProgress) {
                 this.stuckCounter++;
                 this.levelStuckCounter++;
             } else {
@@ -518,7 +528,7 @@ export class Agent {
                     const uniquePositions = new Set(this.recentPositionsList.slice(-30));
                     // If we've only been in 3 or fewer positions in last 30 turns, we're stuck
                     // (unless we were intentionally resting)
-                    if (uniquePositions.size <= 3 && !wasResting) {
+                    if (uniquePositions.size <= 3 && !wasResting && !makingFrontierProgress) {
                         this.stuckCounter++;
                         this.levelStuckCounter++;
                     } else {
@@ -532,6 +542,9 @@ export class Agent {
             }
         }
         this.lastPosition = { x: px, y: py };
+
+        // Update frontier tracking
+        this.lastFrontierSize = currentFrontier;
 
         // --- Emergency checks (highest priority) ---
 
@@ -1077,26 +1090,51 @@ export class Agent {
             }
 
             // No downstairs found and very stuck - try systematic secret door searching
-            // Allow searching even at low coverage if genuinely trapped (frontier=0, very stuck)
+            // Allow searching even with moderate frontier if genuinely stuck for a long time
             const coverageForSearch = level.exploredCount / (80 * 21);
             const frontierForSearch = level.getExplorationFrontier();
             const genuinelyTrapped = frontierForSearch.length === 0 && this.levelStuckCounter > 50;
-            if (this.levelStuckCounter > 30 && level.stairsDown.length === 0 && (coverageForSearch > 0.20 || genuinelyTrapped)) {
+            const shouldSearchDoors = (
+                (frontierForSearch.length < 40 && coverageForSearch > 0.10) ||
+                genuinelyTrapped ||
+                this.levelStuckCounter > 100
+            );
+            if (this.levelStuckCounter > 20 && level.stairsDown.length === 0 && shouldSearchDoors) {
                 // Systematic wall searching for secret doors
                 if (!this.secretDoorSearch) {
-                    // Check if we're in a dead-end situation
-                    if (level.isDeadEnd(px, py)) {
-                        // Get wall candidates to search
-                        const candidates = level.getSecretDoorCandidates(px, py);
-                        if (candidates.length > 0) {
-                            this.secretDoorSearch = {
-                                wallCandidates: candidates,
-                                currentIndex: 0,
-                                searchesNeeded: 20, // NetHack wiki recommendation
-                                searchesDone: 0,
-                            };
-                            console.log(`[SECRET DOOR] Starting systematic search of ${candidates.length} wall positions`);
+                    // Remove dead-end restriction - search near frontier cells
+                    const candidates = level.getSecretDoorCandidates(px, py);
+
+                    // Prioritize walls adjacent to frontier cells
+                    const frontierAdjacentCandidates = candidates.filter(cand => {
+                        for (let dy = -1; dy <= 1; dy++) {
+                            for (let dx = -1; dx <= 1; dx++) {
+                                const checkX = cand.x + dx;
+                                const checkY = cand.y + dy;
+                                const checkCell = level.at(checkX, checkY);
+                                if (checkCell && checkCell.explored && checkCell.walkable) {
+                                    // Is this a frontier cell?
+                                    const neighbors = [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];
+                                    for (const [ndx, ndy] of neighbors) {
+                                        const n = level.at(checkX + ndx, checkY + ndy);
+                                        if (n && !n.explored) return true;
+                                    }
+                                }
+                            }
                         }
+                        return false;
+                    });
+
+                    const finalCandidates = frontierAdjacentCandidates.length > 0 ? frontierAdjacentCandidates : candidates;
+
+                    if (finalCandidates.length > 0) {
+                        this.secretDoorSearch = {
+                            wallCandidates: finalCandidates,
+                            currentIndex: 0,
+                            searchesNeeded: 20, // NetHack wiki recommendation
+                            searchesDone: 0,
+                        };
+                        console.log(`[SECRET DOOR] Starting systematic search of ${finalCandidates.length} wall positions (${frontierAdjacentCandidates.length} frontier-adjacent)`);
                     }
                 }
 
@@ -1977,6 +2015,7 @@ export class Agent {
                 this.committedTarget = null;
                 this.committedPath = null;
                 this.targetStuckCount = 0;
+                this.lastCommittedDistance = null;
             }
         }
 
@@ -2009,6 +2048,7 @@ export class Agent {
                 this.committedTarget = null;
                 this.committedPath = null;
                 this.targetStuckCount = 0;
+                this.lastCommittedDistance = null;
             } else if (!stillFrontier && veryClose) {
                 console.log(`[COMMIT] Keeping target (${tx},${ty}) despite not frontier: veryClose=${veryClose}, distToTarget=${distToTarget}`);
             }
@@ -2026,6 +2066,7 @@ export class Agent {
                 this.committedTarget = null;
                 this.committedPath = null;
                 this.targetStuckCount = 0;
+                this.lastCommittedDistance = null;
                 // Fall through to find a new target below
             } else {
                 const path = findPath(level, px, py, tx, ty);
@@ -2033,13 +2074,43 @@ export class Agent {
                 if (path.found) {
                     this.committedPath = path;
                     this.consecutiveWaits = 0;
-                    return this._followPath(path, 'explore', `following path to (${tx},${ty})`);
+
+                    // Track distance progress
+                    const distToTarget = Math.max(Math.abs(px - tx), Math.abs(py - ty));
+                    if (!this.lastCommittedDistance) this.lastCommittedDistance = distToTarget;
+
+                    // Abandon if no progress in 5 turns
+                    if (distToTarget >= this.lastCommittedDistance) {
+                        this.targetStuckCount++;
+                        if (this.targetStuckCount >= 5) {
+                            console.log(`[COMMIT] Abandoning target (${tx},${ty}) - no progress in 5 turns (dist=${distToTarget})`);
+                            const tKey = ty * 80 + tx;
+                            this.failedTargets.add(tKey);
+                            this.committedTarget = null;
+                            this.committedPath = null;
+                            this.targetStuckCount = 0;
+                            this.lastCommittedDistance = null;
+                            // Fall through to find new target
+                        } else {
+                            this.lastCommittedDistance = distToTarget;
+                            return this._followPath(path, 'explore', `following path to (${tx},${ty}) [stuck=${this.targetStuckCount}]`);
+                        }
+                    } else {
+                        // Making progress - reset counter
+                        this.targetStuckCount = 0;
+                        this.lastCommittedDistance = distToTarget;
+                        return this._followPath(path, 'explore', `following path to (${tx},${ty})`);
+                    }
+                } else {
+                    // Can't reach target - blacklist immediately
+                    console.log(`[COMMIT] Abandoning target (${tx},${ty}) - path not found`);
+                    const tKey = ty * 80 + tx;
+                    this.failedTargets.add(tKey);
+                    this.committedTarget = null;
+                    this.committedPath = null;
+                    this.targetStuckCount = 0;
+                    this.lastCommittedDistance = null;
                 }
-                // Can't reach target anymore — abandon it
-                console.log(`[COMMIT] Abandoning target (${tx},${ty}) - path not found`);
-                this.committedTarget = null;
-                this.committedPath = null;
-                this.targetStuckCount = 0;
             }
         }
 
