@@ -1713,74 +1713,106 @@ async function handleSave(game) {
     return { moved: false, tookTime: false };
 }
 
-// Handle options (O) — C ref: cmd.c doset()
-// Metadata-driven from OPTION_DEFS (mirrors C allopt[])
+// Handle options (O) — C ref: cmd.c doset(), options.c doset()
+// Interactive menu with immediate toggle - stays open until q/ESC
 async function handleSet(game) {
     const { display, player } = game;
     const flags = game.flags;
 
-    // C ref: options.c doset_simple() — show current options
-    const lines = [];
-    lines.push('Current Options:');
-    lines.push('');
-    lines.push('Press a letter to toggle an option, ESC to exit');
-    lines.push('');
+    let currentPage = 0;
+    const ITEMS_PER_PAGE = 20; // Supports pagination for future expansion
 
-    // Group options by category for better readability
-    const categories = {
-        'Gameplay': ['pickup', 'safe_pet', 'confirm'],
-        'Display': ['showexp', 'color', 'time', 'lit_corridor', 'DECgraphics'],
-        'Interface': ['verbose', 'tombstone', 'rest_on_space', 'number_pad', 'msg_window'],
-    };
-
-    for (const [category, optNames] of Object.entries(categories)) {
-        lines.push(`${category}:`);
-        for (const optName of optNames) {
-            const def = OPTION_DEFS.find(d => d.name === optName);
-            if (def && def.type === 'boolean') {
-                const value = flags[def.name] ? 'ON' : 'OFF';
-                lines.push(`  ${def.menuChar}) ${def.label}: ${value}`);
-            }
-        }
+    // Interactive loop - C ref: options.c doset() menu loop
+    while (true) {
+        // Build options display
+        const lines = [];
+        lines.push('Current Options:');
         lines.push('');
-    }
 
-    lines.push('Note: number_pad changes movement keys (1-9 for directions).');
-    lines.push('      DECgraphics enables Unicode box-drawing characters.');
-    lines.push('      msg_window shows 3-line message history window.');
+        // Group options by category
+        // C ref: options.c optS_type[] categories
+        const categories = {
+            'Gameplay': ['pickup', 'safe_pet', 'confirm'],
+            'Display': ['showexp', 'color', 'time', 'lit_corridor', 'DECgraphics'],
+            'Interface': ['verbose', 'tombstone', 'rest_on_space', 'number_pad', 'msg_window'],
+        };
 
-    await showPager(display, lines.join('\n'), 'Options');
-
-    // After showing pager, ask if user wants to toggle an option
-    display.putstr_message('Toggle option (letter) or ESC: ');
-    const ch = await nhgetch();
-    const c = String.fromCharCode(ch);
-
-    if (ch === 27) { // ESC
-        display.putstr_message('Never mind.');
-        return { moved: false, tookTime: false };
-    }
-
-    // Find matching option by menuChar
-    const def = OPTION_DEFS.find(d => d.menuChar === c);
-    if (def && def.type === 'boolean') {
-        flags[def.name] = !flags[def.name];
-        display.putstr_message(`${def.label}: ${flags[def.name] ? 'ON' : 'OFF'}`);
-
-        // Apply side-effects for specific flags
-        if (def.name === 'showexp') {
-            player.showExp = flags.showexp;
+        for (const [category, optNames] of Object.entries(categories)) {
+            lines.push(`${category}:`);
+            for (const optName of optNames) {
+                const def = OPTION_DEFS.find(d => d.name === optName);
+                if (def && def.type === 'boolean') {
+                    const value = flags[def.name] ? 'ON' : 'OFF';
+                    lines.push(`  ${def.menuChar}) ${def.label}: ${value}`);
+                }
+            }
+            lines.push('');
         }
-        if (def.name === 'time') {
-            player.showTime = flags.time;
-        }
-        // Update global flags for input handler
-        window.gameFlags = flags;
 
-        saveFlags(flags);
-    } else {
-        display.putstr_message(`No option '${c}'.`);
+        lines.push('Press letter to toggle, q/ESC to exit');
+        lines.push('Navigation: > (next) < (prev) ^ (first)');
+
+        // Clear screen and display options
+        // C ref: TTY interface - full screen option display
+        display.clearScreen();
+        for (let i = 0; i < lines.length && i < display.rows; i++) {
+            display.putstr(0, i, lines[i].substring(0, display.cols));
+        }
+
+        // Get input - C ref: options.c menu input loop
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+
+        // Check for exit
+        if (ch === 27 || c === 'q') { // ESC or q
+            break;
+        }
+
+        // Check for navigation - C ref: MENU_NEXT_PAGE, MENU_PREVIOUS_PAGE, MENU_FIRST_PAGE
+        if (c === '>') {
+            // Next page (currently only 1 page, structured for future)
+            continue;
+        }
+        if (c === '<') {
+            // Previous page
+            continue;
+        }
+        if (c === '^') {
+            // First page
+            currentPage = 0;
+            continue;
+        }
+
+        // Check for option toggle
+        const def = OPTION_DEFS.find(d => d.menuChar === c);
+        if (def && def.type === 'boolean') {
+            // Toggle the option - C ref: immediate toggle in menu
+            flags[def.name] = !flags[def.name];
+
+            // Apply side-effects for specific flags
+            if (def.name === 'showexp') {
+                player.showExp = flags.showexp;
+            }
+            if (def.name === 'time') {
+                player.showTime = flags.time;
+            }
+
+            // Update global flags for input handler
+            window.gameFlags = flags;
+
+            // Save immediately (persist to localStorage)
+            // C ref: options.c - options persist immediately when changed
+            saveFlags(flags);
+
+            // Loop continues - menu stays open
+        }
+        // If invalid key, just loop again (menu stays open, no error message)
     }
+
+    // Restore game display after exiting menu
+    display.renderMap(game.map, player, game.fov, flags);
+    display.renderStatus(player);
+
     return { moved: false, tookTime: false };
 }
 
