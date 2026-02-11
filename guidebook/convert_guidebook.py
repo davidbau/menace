@@ -10,11 +10,16 @@ def convert_guidebook(input_file, output_file):
 
     output = []
     in_code_block = False
+    in_ascii_diagram = False
     prev_line_empty = True
 
     for i, line in enumerate(lines):
         # Remove trailing whitespace but preserve leading spaces
         line = line.rstrip()
+
+        # Skip page headers (NetHack 3.7.0 ... December 11, 2025)
+        if 'NetHack 3.7.0' in line and 'December' in line:
+            continue
 
         # Skip the opening title and metadata (first ~9 lines)
         if i < 9:
@@ -56,6 +61,28 @@ def convert_guidebook(input_file, output_file):
             num, title = subsubsection.groups()
             output.append(f'\n#### {num}. {title}\n\n')
             prev_line_empty = True
+            continue
+
+        # Check for ASCII diagram start (lines with +------+ patterns)
+        if re.match(r'^\+[-=]+\+?\s*$', line) and not in_ascii_diagram:
+            in_ascii_diagram = True
+            output.append('```\n')
+            output.append(line + '\n')
+            prev_line_empty = False
+            continue
+
+        # Check for ASCII diagram end
+        if in_ascii_diagram and re.match(r'^\+[-=]+[A-Za-z0-9\s-]*\+?\s*$', line):
+            output.append(line + '\n')
+            output.append('```\n\n')
+            in_ascii_diagram = False
+            prev_line_empty = True
+            continue
+
+        # Inside ASCII diagram - preserve exactly
+        if in_ascii_diagram:
+            output.append(line + '\n')
+            prev_line_empty = False
             continue
 
         # Empty lines

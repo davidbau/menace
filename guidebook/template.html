@@ -18,6 +18,7 @@
   <div class="sidebar-title">Search</div>
   <input type="text" id="search-input" placeholder="Search the guidebook...">
   <div id="search-results"></div>
+  <div id="search-index"></div>
 </aside>
 <main id="guide-content">
 $body$
@@ -107,6 +108,7 @@ $body$
   // --- Search ---
   var searchInput = document.getElementById('search-input');
   var searchResults = document.getElementById('search-results');
+  var searchIndex = document.getElementById('search-index');
 
   // Build searchable data from headings and paragraphs
   var searchData = [];
@@ -137,8 +139,10 @@ $body$
     if (query.length < 2) {
       searchResults.innerHTML = '';
       searchResults.style.display = 'none';
+      searchIndex.style.display = '';
       return;
     }
+    searchIndex.style.display = 'none';
     searchResults.style.display = '';
 
     var words = query.split(/\s+/);
@@ -317,6 +321,41 @@ $body$
     var re = new RegExp('(' + escaped.join('|') + ')', 'gi');
     return safe.replace(re, '<b>$$1</b>');
   }
+
+  // --- Quick Reference Index (shown when search is empty) ---
+  var indexEntries = [
+    ['Commands reference', 'commands'],
+    ['Player roles and races', 'what-is-going-on-here'],
+    ['Screen symbols and display', 'what-do-all-those-things-on-the-screen-mean'],
+    ['Status lines', 'the-status-lines-bottom'],
+    ['Movement commands', 'commands'],
+    ['Inventory management', 'commands'],
+    ['Combat and fighting', 'fighting'],
+    ['Rooms, corridors, and doors', 'rooms-and-corridors'],
+    ['Dungeon traps', 'traps'],
+    ['Stairs and level navigation', 'stairs-and-ladders'],
+    ['Shops and shopping', 'shops-and-shopping'],
+    ['Monsters and combat', 'monsters'],
+    ['Your pet', 'your-pet'],
+    ['Object types', 'objects'],
+    ['Weapons', 'weapons'],
+    ['Armor', 'armor'],
+    ['Food and nutrition', 'food'],
+    ['Scrolls', 'scrolls'],
+    ['Potions', 'potions'],
+    ['Wands', 'wands'],
+    ['Rings', 'rings'],
+    ['Conduct and challenges', 'conduct'],
+    ['Game options', 'options'],
+    ['Scoring system', 'scoring'],
+  ];
+
+  var indexHtml = '<div class="humorous-index"><div class="index-title">Quick Reference</div>';
+  indexEntries.forEach(function(entry) {
+    indexHtml += '<a class="index-entry" href="#' + entry[1] + '">' + entry[0] + '</a>';
+  });
+  indexHtml += '</div>';
+  searchIndex.innerHTML = indexHtml;
 })();
 </script>
 </body>
