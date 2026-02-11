@@ -1,10 +1,11 @@
 #!/bin/bash
-# Pre-push hook: Ensure tests have been run for HEAD
+# Pre-push hook: Verify tests have been run for HEAD
 #
-# 3-step workflow:
-#   1. test-and-log.sh runs tests, writes results to teststats/pending.jsonl with "commit":"HEAD"
-#   2. This hook reads pending.jsonl, replaces "HEAD" with the real commit hash, creates git note
-#   3. sync-notes-to-jsonl.sh (pre-commit hook) rebuilds results.jsonl from all git notes
+# Workflow:
+#   1. test-and-log.sh runs tests → teststats/pending.jsonl ("commit":"HEAD")
+#   2. post-commit hook stamps real hash → git note
+#   3. git push carries the note (via remote.origin.push refspec)
+#   4. This hook just verifies a note exists; runs tests as fallback
 #
 # Install: git config core.hooksPath .githooks
 
@@ -26,47 +27,28 @@ echo "========================================"
 CURRENT_COMMIT=$(git rev-parse HEAD)
 CURRENT_SHORT=$(git rev-parse --short HEAD)
 
-# Step 1: If a git note already exists for this commit, we're good
+# If a git note already exists for this commit, we're good
 if git notes --ref=test-results show "$CURRENT_COMMIT" >/dev/null 2>&1; then
-  echo "✅ Test note already exists for commit $CURRENT_SHORT"
-  echo ""
-  git notes --ref=test-results show "$CURRENT_COMMIT" | jq '.'
-  echo ""
-  echo "✅ Push allowed"
+  echo "✅ Test note exists for commit $CURRENT_SHORT — push allowed"
   exit 0
 fi
 
-# Step 2: Check for pending test results (from a previous test-and-log.sh run)
+# Check for pending results not yet promoted (e.g. post-commit hook didn't run)
 if [ -f "$PENDING_FILE" ]; then
   PENDING_COMMIT=$(jq -r '.commit' "$PENDING_FILE" 2>/dev/null)
   if [ "$PENDING_COMMIT" = "HEAD" ]; then
-    echo "Found pending test results — attaching to commit $CURRENT_SHORT"
-
-    # Replace "HEAD" with real commit hash and parent
+    echo "Promoting pending test results to commit $CURRENT_SHORT"
     PARENT_SHORT=$(git rev-parse --short HEAD^ 2>/dev/null || echo "none")
     jq --arg commit "$CURRENT_SHORT" --arg parent "$PARENT_SHORT" \
       '.commit = $commit | .parent = $parent' "$PENDING_FILE" \
       | git notes --ref=test-results add -f -F - "$CURRENT_COMMIT"
-
-    echo "✅ Test note created for commit $CURRENT_SHORT"
-
-    # Clean up pending file
     rm -f "$PENDING_FILE"
-
-    # Push notes to remote
-    if git push --no-verify origin refs/notes/test-results:refs/notes/test-results 2>/dev/null; then
-      echo "✅ Test notes pushed to remote"
-    else
-      echo "ℹ️  Could not push notes (offline or no permissions)"
-    fi
-
-    echo ""
-    echo "✅ Push allowed"
+    echo "✅ Test note created — push allowed"
     exit 0
   fi
 fi
 
-# Step 3: No note and no pending results — run tests now
+# No note and no pending results — run tests as fallback
 echo ""
 echo "No test results found. Running tests..."
 "$SCRIPT_DIR/test-and-log.sh"
@@ -78,23 +60,16 @@ if [ $exit_code -ne 0 ]; then
   exit 1
 fi
 
-# test-and-log.sh wrote to pending.jsonl — now attach as git note
+# Promote the freshly-written pending results
 if [ -f "$PENDING_FILE" ]; then
   PARENT_SHORT=$(git rev-parse --short HEAD^ 2>/dev/null || echo "none")
   jq --arg commit "$CURRENT_SHORT" --arg parent "$PARENT_SHORT" \
     '.commit = $commit | .parent = $parent' "$PENDING_FILE" \
     | git notes --ref=test-results add -f -F - "$CURRENT_COMMIT"
-
-  echo "✅ Test note created for commit $CURRENT_SHORT"
   rm -f "$PENDING_FILE"
-
-  if git push --no-verify origin refs/notes/test-results:refs/notes/test-results 2>/dev/null; then
-    echo "✅ Test notes pushed to remote"
-  else
-    echo "ℹ️  Could not push notes (offline or no permissions)"
-  fi
+  echo "✅ Test note created for commit $CURRENT_SHORT"
 fi
 
 echo ""
-echo "✅ Tests passed and logged. Push allowed."
+echo "✅ Tests passed — push allowed."
 exit 0
