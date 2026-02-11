@@ -16,7 +16,7 @@
 import { GameMap, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1 } from './rng.js';
 import { mksobj, mkobj } from './mkobj.js';
-import { create_room, create_subroom, makecorridors, init_rect, rnd_rect, get_rect, check_room, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room, _mtInitialized, setMtInitialized } from './dungeon.js';
+import { create_room, create_subroom, makecorridors, init_rect, rnd_rect, get_rect, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room, _mtInitialized, setMtInitialized } from './dungeon.js';
 import {
     STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
     CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL, ROOM, CORR,
@@ -1422,6 +1422,9 @@ export function room(opts = {}) {
 
     // If room creation succeeded and there's a contents callback, execute it
     if (contents && typeof contents === 'function') {
+        if (DEBUG) {
+            console.log(`des.room(): EXECUTING contents callback for room at (${roomX},${roomY})`);
+        }
         // Save current room state
         const parentRoom = levelState.currentRoom;
         levelState.roomStack.push(parentRoom);
@@ -1436,11 +1439,19 @@ export function room(opts = {}) {
         try {
             // Execute contents callback
             contents(room);  // Pass room as parameter for Lua compatibility
+            if (DEBUG) {
+                console.log(`des.room(): FINISHED contents callback for room at (${roomX},${roomY})`);
+            }
         } finally {
             // Restore parent room state
             levelState.currentRoom = levelState.roomStack.pop();
             levelState.roomDepth--;
         }
+    }
+
+    // C ref: sp_lev.c lspo_room line 78 — Add doors to room after contents
+    if (levelState.map) {
+        add_doors_to_room(levelState.map, room);
     }
 
     return true;

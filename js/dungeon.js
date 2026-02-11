@@ -1190,6 +1190,43 @@ function add_door(map, x, y, aroom) {
     map.doors[aroom.fdoor] = { x, y };
 }
 
+// C ref: sp_lev.c add_doors_to_room()
+// Link any doors within/bordering the room to the room
+export function add_doors_to_room(map, croom) {
+    const DOOR = 8, SDOOR = 9; // Door types from map.js
+
+    for (let x = croom.lx - 1; x <= croom.hx + 1; x++) {
+        for (let y = croom.ly - 1; y <= croom.hy + 1; y++) {
+            if (x < 0 || y < 0 || x >= COLNO || y >= ROWNO) continue;
+            const loc = map.at(x, y);
+            if (loc && (loc.typ === DOOR || loc.typ === SDOOR)) {
+                maybe_add_door(map, x, y, croom);
+            }
+        }
+    }
+
+    // Recursively add doors for subrooms
+    if (croom.sbrooms) {
+        for (let i = 0; i < croom.sbrooms.length; i++) {
+            add_doors_to_room(map, croom.sbrooms[i]);
+        }
+    }
+}
+
+// C ref: sp_lev.c maybe_add_door()
+function maybe_add_door(map, x, y, droom) {
+    // Check if this door location is associated with this room
+    if (droom.hx >= 0) {
+        const inside = (x >= droom.lx && x <= droom.hx && y >= droom.ly && y <= droom.hy);
+        const loc = map.at(x, y);
+        const roomMatch = loc && loc.roomno === droom.roomno;
+
+        if ((!droom.irregular && inside) || roomMatch) {
+            add_door(map, x, y, droom);
+        }
+    }
+}
+
 // C ref: sp_lev.c dig_corridor()
 // Digs a corridor from org to dest through stone.
 // Returns { success, npoints }.

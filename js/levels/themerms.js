@@ -413,10 +413,14 @@ export const themerooms = [
    {
       name: 'Pillars',
       contents: function() {
+         const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_THEMEROOMS === '1';
+         if (DEBUG) console.log('Pillars: outer contents() called, about to call des.room()');
          des.room({ type: "themed", w: 10, h: 10,
                   contents: function(rm) {
+                     if (DEBUG) console.log(`Pillars: inner contents() called for room at (${rm.lx},${rm.ly}), about to shuffle`);
                      const terr = [ "-", "-", "-", "-", "L", "P", "T" ];
                      shuffle(terr);
+                     if (DEBUG) console.log('Pillars: shuffle complete, terr=', terr);
                      for (let x = 0; x < (rm.width / 4); x++) {
                         for (let y = 0; y < (rm.height / 4); y++) {
                            des.terrain({ x: x * 4 + 2, y: y * 4 + 2, typ: terr[0], lit: -2 });
@@ -427,6 +431,7 @@ export const themerooms = [
                      }
                   }
          });
+         if (DEBUG) console.log('Pillars: outer contents() returning');
       },
    },
 
@@ -991,6 +996,10 @@ export function themerooms_generate(map, depth) {
       nh.impossible('no eligible themed rooms?');
       return false;
    }
+   const DEBUG_THEME = typeof process !== 'undefined' && process.env.DEBUG_THEMEROOMS === '1';
+   if (DEBUG_THEME) {
+      console.log(`Selected themed room [${pick}]: "${themerooms[pick].name}"`);
+   }
    themerooms[pick].contents();
    return true;
 }
@@ -1025,6 +1034,10 @@ export function post_themerooms_generate() {
 }
 
 export function themeroom_fill(rm) {
+   const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_THEMEROOMS === '1';
+   if (DEBUG) {
+      console.log(`themeroom_fill() called for room at (${rm.lx},${rm.ly})`);
+   }
    if (debug_fill_idx !== null) {
       if (is_eligible(themeroom_fills[debug_fill_idx], rm)) {
          des.setCurrentRoom(rm);

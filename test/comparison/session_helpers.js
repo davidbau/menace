@@ -535,7 +535,7 @@ export async function replaySession(seed, session) {
     initLevelGeneration(replayRoleIndex);
 
     const map = makelevel(1);
-    wallification(map);
+    // Note: wallification is now called inside makelevel, no need to call it here
 
     // Consume post-map character generation RNG calls (moveloop_preamble, etc.)
     // These happen after map gen but before gameplay starts
