@@ -138,11 +138,16 @@ test('options - advanced features default to off', () => {
 test('options - no invalid flag values', () => {
     const flags = loadFlags();
 
-    // All flags should be booleans
+    // All flags should be booleans or strings (some options like 'name' and 'pickup_types' are strings)
+    const validTypes = ['boolean', 'string'];
     for (const [key, value] of Object.entries(flags)) {
-        assert.strictEqual(typeof value, 'boolean',
-            `Option ${key} should be boolean, got ${typeof value}`);
+        assert.ok(validTypes.includes(typeof value),
+            `Option ${key} should be boolean or string, got ${typeof value}`);
     }
+
+    // Verify specific string options are actually strings
+    assert.strictEqual(typeof flags.name, 'string', 'name should be a string');
+    assert.strictEqual(typeof flags.pickup_types, 'string', 'pickup_types should be a string');
 });
 
 test('options - compatibility with C NetHack flag names', () => {

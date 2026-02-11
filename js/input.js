@@ -123,7 +123,7 @@ export function pushInput(ch) {
 export function nhgetch() {
     // Clear message acknowledgement flag when user presses a key
     // C ref: win/tty/topl.c - toplin gets set to TOPLINE_EMPTY after keypress
-    if (window.gameDisplay) {
+    if (typeof window !== 'undefined' && window.gameDisplay) {
         window.gameDisplay.messageNeedsMore = false;
     }
 
