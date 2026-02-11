@@ -72,26 +72,26 @@ Guidebook for NetHack
 <p>NetHack generates a new dungeon every time you play it; even the authors still find it an entertaining and exciting game despite having won several times.</p>
 <p>NetHack offers a variety of display options. The options avail- able to you will vary from port to port, depending on the capabilities of your hardware and software, and whether various compile-time options were enabled when your executable was created. The three pos- sible display options are: a monochrome character interface, a color character interface, and a graphical interface using small pictures called tiles. The two character interfaces allow fonts with other characters to be substituted, but the default assignments use standard ASCII characters to represent everything. There is no difference between the various display options with respect to game play. Because we cannot reproduce the tiles or colors in the Guidebook, and because it is common to all ports, we will use the default ASCII char- acters from the monochrome character display when referring to things you might see on the screen during your game.</p>
 <p>In order to understand what is going on in NetHack, first you must understand what NetHack is doing with the screen. The NetHack screen replaces the “You see …” descriptions of text adventure games. Figure 1 is a sample of what a NetHack screen might look like. The way the screen looks for you depends on your platform.</p>
-<pre><code>+---------------------------------------------------------------+
-|The bat bites!                                                 |
-|                                                               |
-|    ------                                                     |
-|    |....|    ----------                                       |
-|    |.&lt;..|####...@...$.|                                       |
-|    |....-#   |...B....+                                       |
-|    |....|    |.d......|                                       |
-|    ------    -------|--                                       |
-|                                                               |
-|                                                               |
-|                                                               |
-|Player the Rambler   St:12 Dx:7 Co:18 In:11 Wi:9 Ch:15 Neutral |
-|Dlvl:1 $:993 HP:9(12) Pw:3(3) AC:10 Exp:1/19 T:752 Hungry Conf |
-+---------------------------Figure-1----------------------------+</code></pre>
-<pre><code>+---------------------------------------------------------------+
-|Player the Rambler   St:12 Dx:7 Co:18 In:11 Wi:9 Ch:15         |
-|Neutral $:993 HP:9(12) Pw:3(3) AC:10 Exp:1/19 Hungry           |
-|Dlvl:1 T:752                                  Conf             |
-+---------------------------Figure-2----------------------------+</code></pre>
+<pre><code>        +---------------------------------------------------------------+
+        |The bat bites!                                                 |
+        |                                                               |
+        |    ------                                                     |
+        |    |....|    ----------                                       |
+        |    |.&lt;..|####...@...$.|                                       |
+        |    |....-#   |...B....+                                       |
+        |    |....|    |.d......|                                       |
+        |    ------    -------|--                                       |
+        |                                                               |
+        |                                                               |
+        |                                                               |
+        |Player the Rambler   St:12 Dx:7 Co:18 In:11 Wi:9 Ch:15 Neutral |
+        |Dlvl:1 $:993 HP:9(12) Pw:3(3) AC:10 Exp:1/19 T:752 Hungry Conf |
+        +---------------------------Figure-1----------------------------+</code></pre>
+<pre><code>        +---------------------------------------------------------------+
+        |Player the Rambler   St:12 Dx:7 Co:18 In:11 Wi:9 Ch:15         |
+        |Neutral $:993 HP:9(12) Pw:3(3) AC:10 Exp:1/19 Hungry           |
+        |Dlvl:1 T:752                                  Conf             |
+        +---------------------------Figure-2----------------------------+</code></pre>
 <section id="the-status-lines-bottom" class="level3">
 <h3>3.1. The status lines (bottom)</h3>
 <p>The bottom two (or three) lines of the screen contain several cryptic pieces of information describing your current status. Figure 1 shows the traditional two-line status area below the map. Figure 2 shows just the status area, when the <code>statuslines:3</code> option has been set (not all interfaces support this option). If any status line becomes wider than the screen, you might not see all of it due to truncation. When the numbers grow bigger and multiple conditions are present, the two-line format will run out of room on the second line, but sta- tuslines:2 is the default because a basic 24-line terminal isn’t tall enough for the third line.</p>
@@ -180,14 +180,14 @@ Guidebook for NetHack
 <p><code>&gt;</code> Go down to the next level (if you are on a staircase or ladder).</p>
 <p><code>[yuhjklbn]</code> Go one step in the direction indicated (see Figure 3). If you sense or remember a monster there, you will fight the monster instead. Only these one-step movement commands cause you to</p>
 <p>fight monsters; the others (below) are “safe.”</p>
-<pre><code>+----------------------------------------------------------------+
-|          y  k  u                             7  8  9           |
-|           \ | /                               \ | /            |
-|          h- . -l                             4- . -6           |
-|           / | \                               / | \            |
-|          b  j  n                             1  2  3           |
-|      (`number_pad` off)                    (`number_pad` on)       |
-+---------------------------Figure-3-----------------------------+</code></pre>
+<pre><code>          +----------------------------------------------------------------+
+          |          y  k  u                             7  8  9           |
+          |           \ | /                               \ | /            |
+          |          h- . -l                             4- . -6           |
+          |           / | \                               / | \            |
+          |          b  j  n                             1  2  3           |
+          |      (`number_pad` off)                    (`number_pad` on)       |
+          +---------------------------Figure-3-----------------------------+</code></pre>
 <p><code>[YUHJKLBN]</code> Go in that direction until you hit a wall or run into something.</p>
 <p><code>m[yuhjklbn]</code> Prefix: move without picking up objects or fighting (even if you remember a monster there).</p>
 <p>A few non-movement commands use the <code>m</code> prefix to request operat- ing via menu (to temporarily override the <code>menustyle:traditional</code> option). Primarily useful for <code>,</code> (pickup) when there is only one class of objects present (where there won’t be any “what kinds of objects?” prompt, so no opportunity to answer <code>m</code> at that prompt).</p>

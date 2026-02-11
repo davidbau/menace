@@ -72,21 +72,21 @@ def convert_guidebook(input_file, output_file):
         if re.match(r'^\s*\+[-=]+\+\s*$', line.rstrip()) and not in_ascii_diagram:
             in_ascii_diagram = True
             output.append('```\n')
-            output.append(line.lstrip() + '\n')
+            output.append(line + '\n')  # Preserve exact formatting
             prev_line_empty = False
             continue
 
         # Check for ASCII diagram end (lines like +---Figure-1---+ or +----+)
         if in_ascii_diagram and re.match(r'^\s*\+[-=A-Za-z0-9\s]*\+\s*$', line.rstrip()):
-            output.append(line.lstrip() + '\n')
+            output.append(line + '\n')  # Preserve exact formatting
             output.append('```\n\n')
             in_ascii_diagram = False
             prev_line_empty = True
             continue
 
-        # Inside ASCII diagram - preserve but strip leading indent
+        # Inside ASCII diagram - preserve exact formatting including all spaces
         if in_ascii_diagram:
-            output.append(line.lstrip() + '\n')
+            output.append(line + '\n')  # Preserve exact formatting
             prev_line_empty = False
             continue
 
