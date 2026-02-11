@@ -1156,21 +1156,55 @@ export class Agent {
             if (shouldSearchSecretDoors) {
                 if (!this.secretDoorSearch) {
                     // Use occupancy map approach: identify large hidden components
-                    const targets = level.getSecretDoorSearchTargets({x: px, y: py}, 5);
+                    const allTargets = level.getSecretDoorSearchTargets({x: px, y: py}, 5);
 
-                    if (targets.length > 0) {
-                        const componentIds = new Set(targets.map(t => t.componentId));
-                        console.log(`[SECRET DOOR] OCCUPANCY search: ${targets.length} high-value walls from ${componentIds.size} hidden components`);
+                    // Filter for reachable targets only (critical fix for stuck agents)
+                    const reachableTargets = allTargets.filter(t => {
+                        const path = findPath(level, px, py, t.x, t.y, { allowUnexplored: false });
+                        return path.found;
+                    });
+
+                    if (reachableTargets.length > 0) {
+                        const componentIds = new Set(reachableTargets.map(t => t.componentId));
+                        console.log(`[SECRET DOOR] OCCUPANCY search: ${reachableTargets.length}/${allTargets.length} reachable walls from ${componentIds.size} hidden components`);
                         console.log(`[SECRET DOOR] Coverage: ${(coverageForSearch*100).toFixed(1)}%, Frontier: ${frontierForSearch.length} cells`);
 
                         this.secretDoorSearch = {
-                            targets: targets,           // Prioritized wall list from occupancy map
+                            targets: reachableTargets,  // FILTERED: Only reachable walls
                             currentIndex: 0,            // Which target we're on
                             searchesNeeded: 20,         // 20 searches = 94% success for SDOOR
                             searchesDone: 0,            // Searches at current target
                         };
-                    } else {
-                        console.log(`[SECRET DOOR] No hidden components found (map fully explored or no large components)`);
+                    } else if (allTargets.length > 0) {
+                        // Fallback: No occupancy targets reachable, search adjacent walls
+                        console.log(`[SECRET DOOR] Occupancy targets unreachable, searching adjacent walls (${allTargets.length} identified)`);
+
+                        // Find walls adjacent to player
+                        const adjacentWalls = [];
+                        for (let dy = -1; dy <= 1; dy++) {
+                            for (let dx = -1; dx <= 1; dx++) {
+                                if (dx === 0 && dy === 0) continue;
+                                const wx = px + dx;
+                                const wy = py + dy;
+                                const cell = level.at(wx, wy);
+                                if (cell && cell.type === 'wall') {
+                                    adjacentWalls.push({x: wx, y: wy, searchCount: cell.searchCount || 0});
+                                }
+                            }
+                        }
+
+                        if (adjacentWalls.length > 0) {
+                            // Sort by search count (prefer unsearched walls)
+                            adjacentWalls.sort((a, b) => a.searchCount - b.searchCount);
+                            console.log(`[SECRET DOOR] Found ${adjacentWalls.length} adjacent walls to search`);
+
+                            this.secretDoorSearch = {
+                                targets: adjacentWalls,
+                                currentIndex: 0,
+                                searchesNeeded: 15,  // Slightly fewer since we're already adjacent
+                                searchesDone: 0,
+                            };
+                        }
                     }
                 }
 
@@ -1857,19 +1891,53 @@ export class Agent {
 
         if (hasUnreachableFrontier && this.levelStuckCounter > 30 && level.stairsDown.length === 0) {
             // Use occupancy map to find likely secret door locations
-            const targets = level.getSecretDoorSearchTargets({x: px, y: py}, 5);
+            const allTargets = level.getSecretDoorSearchTargets({x: px, y: py}, 5);
 
-            if (targets.length > 0 && !this.secretDoorSearch) {
-                const componentIds = new Set(targets.map(t => t.componentId));
+            // Filter for reachable targets only
+            const reachableTargets = allTargets.filter(t => {
+                const path = findPath(level, px, py, t.x, t.y, { allowUnexplored: false });
+                return path.found;
+            });
+
+            if (reachableTargets.length > 0 && !this.secretDoorSearch) {
+                const componentIds = new Set(reachableTargets.map(t => t.componentId));
                 console.log(`[SECRET DOOR TRIGGER] Stuck with ${unreachableFrontier.length} unreachable frontier cells at ${(coveragePercent*100).toFixed(1)}% coverage`);
-                console.log(`[SECRET DOOR] Starting occupancy search: ${targets.length} walls from ${componentIds.size} hidden components`);
+                console.log(`[SECRET DOOR] Starting occupancy search: ${reachableTargets.length}/${allTargets.length} reachable walls from ${componentIds.size} hidden components`);
 
                 this.secretDoorSearch = {
-                    targets: targets,
+                    targets: reachableTargets,  // FILTERED: Only reachable walls
                     currentIndex: 0,
                     searchesNeeded: 20,  // Full 94% success rate when truly stuck
                     searchesDone: 0,
                 };
+            } else if (allTargets.length > 0 && !this.secretDoorSearch) {
+                // Fallback: Search adjacent walls when occupancy targets unreachable
+                console.log(`[SECRET DOOR TRIGGER] Occupancy targets unreachable, falling back to adjacent walls`);
+
+                const adjacentWalls = [];
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        if (dx === 0 && dy === 0) continue;
+                        const wx = px + dx;
+                        const wy = py + dy;
+                        const cell = level.at(wx, wy);
+                        if (cell && cell.type === 'wall') {
+                            adjacentWalls.push({x: wx, y: wy, searchCount: cell.searchCount || 0});
+                        }
+                    }
+                }
+
+                if (adjacentWalls.length > 0) {
+                    adjacentWalls.sort((a, b) => a.searchCount - b.searchCount);
+                    console.log(`[SECRET DOOR] Searching ${adjacentWalls.length} adjacent walls (stuck ${this.levelStuckCounter})`);
+
+                    this.secretDoorSearch = {
+                        targets: adjacentWalls,
+                        currentIndex: 0,
+                        searchesNeeded: 15,
+                        searchesDone: 0,
+                    };
+                }
             }
         }
 
