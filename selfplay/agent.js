@@ -1128,8 +1128,10 @@ export class Agent {
         // 5b. Check for obvious dead-end situations needing secret door search
         // Do this BEFORE normal exploration to avoid wasting time wandering
         // BUT: Don't trigger this when coverage is very low (< 15%) - we probably just need to explore more
+        // CRITICAL: Secret doors only exist on Dlvl 3+ (depth > 2)
         const exploredPercentDeadEnd = level.exploredCount / (80 * 21);
-        if (level.isDeadEnd(px, py) && level.stairsDown.length === 0 && exploredPercentDeadEnd > 0.15) {
+        const canHaveSecretDoorsDeadEnd = this.dungeon.currentDepth > 2;
+        if (canHaveSecretDoorsDeadEnd && level.isDeadEnd(px, py) && level.stairsDown.length === 0 && exploredPercentDeadEnd > 0.15) {
             const candidates = level.getSecretDoorCandidates(px, py);
             if (candidates.length > 0 && candidates[0].searchCount < 10) {
                 // We're adjacent to unsearched walls in a dead-end - search now!
@@ -1875,7 +1877,8 @@ export class Agent {
             const veryStuck = this.levelStuckCounter > 80;
 
             // Check if we need exhaustive exploration (no stairs found after long time)
-            const needsExhaustiveSearch = (this.turnNumber > 150 && level.stairsDown.length === 0);
+            // Only search for secret doors on Dlvl 3+ where they exist
+            const needsExhaustiveSearch = (this.turnNumber > 150 && level.stairsDown.length === 0 && this.dungeon.currentDepth > 2);
 
             if (!veryStuck) {
                 // Head for downstairs if known
