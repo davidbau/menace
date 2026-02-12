@@ -71,10 +71,16 @@ describe('Vlad\'s Tower level generation', () => {
 
         let objectCount = map.objects.length;
         let trapCount = map.traps.length;
+        const objectIds = new Set(map.objects.map((o) => o.id).filter(Boolean));
 
-        // Tower3 has: 4 trapped objects
-        assert.equal(objectCount, 4, 'Should have 4 objects');
+        // Tower3 guarantees 4 scripted trapped objects. Extra objects may be
+        // generated as trap victims depending on random trap type selection.
+        assert.ok(objectCount >= 4, `Should have at least 4 objects (found ${objectCount})`);
         assert.equal(trapCount, 4, 'Should have 4 traps (one per object)');
+        assert.ok(objectIds.has('long sword'), 'Should include scripted long sword');
+        assert.ok(objectIds.has('lock pick'), 'Should include scripted lock pick');
+        assert.ok(objectIds.has('elven cloak'), 'Should include scripted elven cloak');
+        assert.ok(objectIds.has('blindfold'), 'Should include scripted blindfold');
     });
 
     it('should shuffle niches randomly in tower1', () => {

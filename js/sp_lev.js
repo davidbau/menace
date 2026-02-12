@@ -32,7 +32,7 @@ import {
     MAGIC_PORTAL, ANTI_MAGIC, POLY_TRAP, STATUE_TRAP, MAGIC_TRAP,
     VIBRATING_SQUARE,
     D_NODOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN,
-    COLNO, ROWNO, IS_OBSTRUCTED, IS_WALL,
+    COLNO, ROWNO, IS_OBSTRUCTED, IS_WALL, IS_POOL, IS_LAVA,
     MKTRAP_MAZEFLAG, MKTRAP_NOSPIDERONWEB
 } from './config.js';
 import {
@@ -1520,6 +1520,141 @@ function toAbsoluteCoords(x, y) {
     return { x, y };
 }
 
+// C ref: sp_lev.c get_location()/get_location_coord() flags.
+const GETLOC_ANY_LOC = 1 << 0;
+const GETLOC_SOLID = 1 << 1;
+const GETLOC_DRY = 1 << 2;
+const GETLOC_WET = 1 << 3;
+const GETLOC_HOT = 1 << 4;
+const GETLOC_SPACELOC = 1 << 5;
+const GETLOC_NO_LOC_WARN = 1 << 6;
+
+function hasBoulderAt(x, y) {
+    for (const obj of levelState.map.objects || []) {
+        if (obj?.otyp === BOULDER && obj.ox === x && obj.oy === y) return true;
+    }
+    for (const deferred of levelState.deferredObjects) {
+        if (deferred?.obj?.otyp === BOULDER
+            && deferred.x === x && deferred.y === y) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function isOkLocation(x, y, humidity) {
+    if ((humidity & GETLOC_ANY_LOC) !== 0) return true;
+    if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return false;
+    const typ = levelState.map.locations[x][y].typ;
+
+    if ((humidity & GETLOC_SOLID) !== 0) return IS_OBSTRUCTED(typ);
+
+    if ((humidity & (GETLOC_DRY | GETLOC_SPACELOC)) !== 0 && typ > DOOR) {
+        // C ref: sp_lev.c is_ok_location() boulder rejection in DRY/SPACELOC.
+        if (!hasBoulderAt(x, y) || (humidity & GETLOC_SOLID) !== 0) return true;
+    }
+    if ((humidity & GETLOC_WET) !== 0 && IS_POOL(typ)) return true;
+    if ((humidity & GETLOC_HOT) !== 0 && IS_LAVA(typ)) return true;
+    return false;
+}
+
+function getLocation(rawX, rawY, humidity, croom, noLocWarn = false) {
+    let cpt = 0;
+    const mx = croom ? croom.lx : (levelState.xsize > 0 ? levelState.xstart : 1);
+    const my = croom ? croom.ly : (levelState.ysize > 0 ? levelState.ystart : 0);
+    const sx = croom ? (croom.hx - croom.lx + 1) : (levelState.xsize > 0 ? levelState.xsize : (COLNO - 1));
+    const sy = croom ? (croom.hy - croom.ly + 1) : (levelState.ysize > 0 ? levelState.ysize : ROWNO);
+
+    let x = rawX;
+    let y = rawY;
+    if (x >= 0 && y >= 0) {
+        x += mx;
+        y += my;
+    } else {
+        do {
+            x = mx + rn2(sx);
+            y = my + rn2(sy);
+            if (isOkLocation(x, y, humidity)) break;
+        } while (++cpt < 100);
+
+        if (cpt >= 100) {
+            for (let xx = 0; xx < sx; xx++) {
+                for (let yy = 0; yy < sy; yy++) {
+                    x = mx + xx;
+                    y = my + yy;
+                    if (isOkLocation(x, y, humidity)) return { x, y };
+                }
+            }
+            if (noLocWarn || (humidity & GETLOC_NO_LOC_WARN) !== 0) {
+                return { x: -1, y: -1 };
+            }
+        }
+    }
+    return { x, y };
+}
+
+function legacyRandomDryCoord(croom) {
+    if (croom) {
+        const width = croom.hx - croom.lx + 1;
+        const height = croom.hy - croom.ly + 1;
+        for (let i = 0; i < 100; i++) {
+            const tx = rn2(width) + croom.lx;
+            const ty = rn2(height) + croom.ly;
+            if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
+            if (levelState.map.locations[tx][ty].typ > DOOR) return { x: tx, y: ty };
+        }
+        for (let tx = croom.lx; tx <= croom.hx; tx++) {
+            for (let ty = croom.ly; ty <= croom.hy; ty++) {
+                if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
+                if (levelState.map.locations[tx][ty].typ > DOOR) return { x: tx, y: ty };
+            }
+        }
+        return null;
+    }
+
+    const mx = levelState.xsize > 0 ? levelState.xstart : 1;
+    const my = levelState.ysize > 0 ? levelState.ystart : 0;
+    const sx = levelState.xsize > 0 ? levelState.xsize : (COLNO - 1);
+    const sy = levelState.ysize > 0 ? levelState.ysize : ROWNO;
+    for (let i = 0; i < 100; i++) {
+        const tx = mx + rn2(sx);
+        const ty = my + rn2(sy);
+        if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
+        if (levelState.map.locations[tx][ty].typ > DOOR) return { x: tx, y: ty };
+    }
+    for (let tx = mx; tx < mx + sx; tx++) {
+        for (let ty = my; ty < my + sy; ty++) {
+            if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
+            if (levelState.map.locations[tx][ty].typ > DOOR) return { x: tx, y: ty };
+        }
+    }
+    return null;
+}
+
+function getLocationCoord(rawX, rawY, humidity, croom) {
+    if (!levelState.finalizeContext) {
+        const isRandomLegacy = rawX === undefined || rawY === undefined;
+        if (isRandomLegacy) return legacyRandomDryCoord(croom) || { x: -1, y: -1 };
+        if (croom) return { x: croom.lx + 1 + rawX, y: croom.ly + 1 + rawY };
+        if (levelState.mapCoordMode) return toAbsoluteCoords(rawX, rawY);
+        return { x: rawX, y: rawY };
+    }
+
+    const isRandom = rawX === undefined || rawY === undefined || rawX < 0 || rawY < 0;
+    if (isRandom) {
+        // C ref: get_location_coord() first tries NO_LOC_WARN for random packed coords.
+        let pos = getLocation(-1, -1, humidity | GETLOC_NO_LOC_WARN, croom, true);
+        if (pos.x === -1 && pos.y === -1) pos = getLocation(-1, -1, humidity, croom, false);
+        return pos;
+    }
+
+    if (croom) {
+        return { x: croom.lx + 1 + rawX, y: croom.ly + 1 + rawY };
+    }
+    if (levelState.mapCoordMode) return toAbsoluteCoords(rawX, rawY);
+    return { x: rawX, y: rawY };
+}
+
 /**
  * des.terrain(x, y, type)
  *
@@ -2480,61 +2615,10 @@ export function stair(direction, x, y) {
     }
 
     const stairType = direction === 'up' ? STAIRS_UP : STAIRS_DOWN;
-    let stairX = x;
-    let stairY = y;
-
-    // C ref: l_create_stairway() uses random location when no coords provided.
-    const randomLocation = (stairX === undefined || stairY === undefined
-                            || (stairX < 0 && stairY < 0));
-    if (randomLocation) {
-        const mx = levelState.xsize > 0 ? levelState.xstart : 1;
-        const my = levelState.ysize > 0 ? levelState.ystart : 0;
-        const sx = levelState.xsize > 0 ? levelState.xsize : (COLNO - 1);
-        const sy = levelState.ysize > 0 ? levelState.ysize : ROWNO;
-
-        let found = false;
-        for (let i = 0; i < 100; i++) {
-            const tx = mx + rn2(sx);
-            const ty = my + rn2(sy);
-            if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-            const typ = levelState.map.locations[tx][ty].typ;
-            if (typ === ROOM || typ === CORR || typ === ICE) {
-                stairX = tx;
-                stairY = ty;
-                found = true;
-                break;
-            }
-        }
-
-        // C fallback: exhaustive scan when retries fail.
-        if (!found) {
-            for (let tx = mx; tx < mx + sx && !found; tx++) {
-                for (let ty = my; ty < my + sy; ty++) {
-                    if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-                    const typ = levelState.map.locations[tx][ty].typ;
-                    if (typ === ROOM || typ === CORR || typ === ICE) {
-                        stairX = tx;
-                        stairY = ty;
-                        found = true;
-                        break;
-                    }
-                }
-            }
-        }
-    } else {
-        // Map-relative coordinate conversion after des.map().
-        if (levelState.mapCoordMode) {
-            const abs = toAbsoluteCoords(stairX, stairY);
-            stairX = abs.x;
-            stairY = abs.y;
-        }
-
-        // Room-relative coordinate conversion inside des.room() contents.
-        if (levelState.currentRoom) {
-            stairX = levelState.currentRoom.lx + 1 + stairX;
-            stairY = levelState.currentRoom.ly + 1 + stairY;
-        }
-    }
+    const pos = getLocationCoord(x, y, GETLOC_DRY, levelState.currentRoom || null);
+    const stairX = pos.x;
+    const stairY = pos.y;
+    if (stairX < 0 || stairY < 0) return;
 
     if (stairX >= 0 && stairX < COLNO && stairY >= 0 && stairY < ROWNO) {
         if (!canPlaceStair(direction)) {
@@ -2662,73 +2746,9 @@ export function object(name_or_opts, x, y) {
         }
     }
 
-    const resolveRandomDryCoord = (room = null) => {
-        if (room) {
-            const width = room.hx - room.lx + 1;
-            const height = room.hy - room.ly + 1;
-            for (let i = 0; i < 100; i++) {
-                const tx = rn2(width) + room.lx;
-                const ty = rn2(height) + room.ly;
-                if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-                if (levelState.map.locations[tx][ty].typ > DOOR) {
-                    return { x: tx, y: ty };
-                }
-            }
-            for (let tx = room.lx; tx <= room.hx; tx++) {
-                for (let ty = room.ly; ty <= room.hy; ty++) {
-                    if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-                    if (levelState.map.locations[tx][ty].typ > DOOR) {
-                        return { x: tx, y: ty };
-                    }
-                }
-            }
-            return null;
-        }
-
-        const mx = levelState.xsize > 0 ? levelState.xstart : 1;
-        const my = levelState.ysize > 0 ? levelState.ystart : 0;
-        const sx = levelState.xsize > 0 ? levelState.xsize : (COLNO - 1);
-        const sy = levelState.ysize > 0 ? levelState.ysize : ROWNO;
-
-        for (let i = 0; i < 100; i++) {
-            const tx = mx + rn2(sx);
-            const ty = my + rn2(sy);
-            if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-            if (levelState.map.locations[tx][ty].typ > DOOR) {
-                return { x: tx, y: ty };
-            }
-        }
-        for (let tx = mx; tx < mx + sx; tx++) {
-            for (let ty = my; ty < my + sy; ty++) {
-                if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-                if (levelState.map.locations[tx][ty].typ > DOOR) {
-                    return { x: tx, y: ty };
-                }
-            }
-        }
-        return null;
-    };
-
-    // Resolve coordinates now to match C get_location_coord() timing.
-    let absX = x;
-    let absY = y;
-    if (absX !== undefined && absY !== undefined) {
-        if (levelState.mapCoordMode) {
-            const mapCoords = toAbsoluteCoords(absX, absY);
-            absX = mapCoords.x;
-            absY = mapCoords.y;
-        }
-        if (levelState.currentRoom) {
-            absX = levelState.currentRoom.lx + 1 + absX;
-            absY = levelState.currentRoom.ly + 1 + absY;
-        }
-    } else {
-        const randomPos = resolveRandomDryCoord(levelState.currentRoom || null);
-        if (randomPos) {
-            absX = randomPos.x;
-            absY = randomPos.y;
-        }
-    }
+    const pos = getLocationCoord(x, y, GETLOC_DRY, levelState.currentRoom || null);
+    let absX = pos.x;
+    let absY = pos.y;
 
     // C ref: Object creation happens IMMEDIATELY (calls next_ident, rndmonst_adj, etc.)
     // even though map placement is deferred until after corridors
@@ -2859,72 +2879,29 @@ export function trap(type_or_opts, x, y) {
         levelState.map = new GameMap();
     }
 
-    const resolveRandomDryCoord = (room = null) => {
-        if (room) {
-            const width = room.hx - room.lx + 1;
-            const height = room.hy - room.ly + 1;
-            for (let i = 0; i < 100; i++) {
-                const tx = rn2(width) + room.lx;
-                const ty = rn2(height) + room.ly;
-                if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-                if (levelState.map.locations[tx][ty].typ > DOOR) {
-                    return { x: tx, y: ty };
-                }
+    // Normalize coordinates from object-style calls:
+    // des.trap({ coord: [x, y] }) / des.trap({ coord: {x, y} }) / des.trap({ x, y }).
+    let srcX = x;
+    let srcY = y;
+    if (type_or_opts && typeof type_or_opts === 'object' && srcX === undefined && srcY === undefined) {
+        if (type_or_opts.coord) {
+            if (Array.isArray(type_or_opts.coord)) {
+                srcX = type_or_opts.coord[0];
+                srcY = type_or_opts.coord[1];
+            } else {
+                srcX = type_or_opts.coord.x;
+                srcY = type_or_opts.coord.y;
             }
-            for (let tx = room.lx; tx <= room.hx; tx++) {
-                for (let ty = room.ly; ty <= room.hy; ty++) {
-                    if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-                    if (levelState.map.locations[tx][ty].typ > DOOR) {
-                        return { x: tx, y: ty };
-                    }
-                }
-            }
-            return null;
-        }
-
-        const mx = levelState.xsize > 0 ? levelState.xstart : 1;
-        const my = levelState.ysize > 0 ? levelState.ystart : 0;
-        const sx = levelState.xsize > 0 ? levelState.xsize : (COLNO - 1);
-        const sy = levelState.ysize > 0 ? levelState.ysize : ROWNO;
-        for (let i = 0; i < 100; i++) {
-            const tx = mx + rn2(sx);
-            const ty = my + rn2(sy);
-            if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-            if (levelState.map.locations[tx][ty].typ > DOOR) {
-                return { x: tx, y: ty };
-            }
-        }
-        for (let tx = mx; tx < mx + sx; tx++) {
-            for (let ty = my; ty < my + sy; ty++) {
-                if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-                if (levelState.map.locations[tx][ty].typ > DOOR) {
-                    return { x: tx, y: ty };
-                }
-            }
-        }
-        return null;
-    };
-
-    let absX = x;
-    let absY = y;
-    const randomRequested = (absX === undefined || absY === undefined);
-    if (absX !== undefined && absY !== undefined) {
-        if (levelState.mapCoordMode) {
-            const mapCoords = toAbsoluteCoords(absX, absY);
-            absX = mapCoords.x;
-            absY = mapCoords.y;
-        }
-        if (levelState.currentRoom) {
-            absX = levelState.currentRoom.lx + 1 + absX;
-            absY = levelState.currentRoom.ly + 1 + absY;
-        }
-    } else {
-        const randomPos = resolveRandomDryCoord(levelState.currentRoom || null);
-        if (randomPos) {
-            absX = randomPos.x;
-            absY = randomPos.y;
+        } else {
+            srcX = type_or_opts.x;
+            srcY = type_or_opts.y;
         }
     }
+
+    const randomRequested = (srcX === undefined || srcY === undefined);
+    const pos = getLocationCoord(srcX, srcY, GETLOC_DRY, levelState.currentRoom || null);
+    let absX = pos.x;
+    let absY = pos.y;
 
     // C ref: create_trap() re-rolls random coordinates when they land on
     // stairs/ladder before calling mktrap().
@@ -2934,8 +2911,8 @@ export function trap(type_or_opts, x, y) {
         while (trycnt++ <= 100) {
             const typ = levelState.map.locations[absX][absY]?.typ;
             if (typ !== STAIRS && typ !== LADDER) break;
-            const randomPos = resolveRandomDryCoord(null);
-            if (!randomPos) break;
+            const randomPos = getLocationCoord(undefined, undefined, GETLOC_DRY, null);
+            if (randomPos.x < 0 || randomPos.y < 0) break;
             absX = randomPos.x;
             absY = randomPos.y;
         }
@@ -3169,71 +3146,9 @@ export function monster(opts_or_class, x, y) {
         }
     }
 
-    const resolveRandomDryCoord = (room = null) => {
-        if (room) {
-            const width = room.hx - room.lx + 1;
-            const height = room.hy - room.ly + 1;
-            for (let i = 0; i < 100; i++) {
-                const tx = rn2(width) + room.lx;
-                const ty = rn2(height) + room.ly;
-                if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-                if (levelState.map.locations[tx][ty].typ > DOOR) {
-                    return { x: tx, y: ty };
-                }
-            }
-            for (let tx = room.lx; tx <= room.hx; tx++) {
-                for (let ty = room.ly; ty <= room.hy; ty++) {
-                    if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-                    if (levelState.map.locations[tx][ty].typ > DOOR) {
-                        return { x: tx, y: ty };
-                    }
-                }
-            }
-            return null;
-        }
-
-        const mx = levelState.xsize > 0 ? levelState.xstart : 1;
-        const my = levelState.ysize > 0 ? levelState.ystart : 0;
-        const sx = levelState.xsize > 0 ? levelState.xsize : (COLNO - 1);
-        const sy = levelState.ysize > 0 ? levelState.ysize : ROWNO;
-        for (let i = 0; i < 100; i++) {
-            const tx = mx + rn2(sx);
-            const ty = my + rn2(sy);
-            if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-            if (levelState.map.locations[tx][ty].typ > DOOR) {
-                return { x: tx, y: ty };
-            }
-        }
-        for (let tx = mx; tx < mx + sx; tx++) {
-            for (let ty = my; ty < my + sy; ty++) {
-                if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-                if (levelState.map.locations[tx][ty].typ > DOOR) {
-                    return { x: tx, y: ty };
-                }
-            }
-        }
-        return null;
-    };
-
-    let absX = srcX;
-    let absY = srcY;
-    if (absX !== undefined && absY !== undefined) {
-        if (levelState.mapCoordMode) {
-            const mapCoords = toAbsoluteCoords(absX, absY);
-            absX = mapCoords.x;
-            absY = mapCoords.y;
-        }
-        if (levelState.currentRoom) {
-            absX = levelState.currentRoom.lx + 1 + absX;
-            absY = levelState.currentRoom.ly + 1 + absY;
-        }
-    } else {
-        const randomPos = resolveRandomDryCoord(levelState.currentRoom || null);
-        if (randomPos) {
-            absX = randomPos.x;
-            absY = randomPos.y;
-        }
-    }
+    const pos = getLocationCoord(srcX, srcY, GETLOC_DRY, levelState.currentRoom || null);
+    let absX = pos.x;
+    let absY = pos.y;
 
     // DEFERRED EXECUTION: Queue monster placement for later (after corridors)
     // Store absolute coordinates since currentRoom context will be lost
@@ -3688,9 +3603,18 @@ function executeDeferredTrap(deferred) {
         trapY = y;
     } else if (type_or_opts && typeof type_or_opts === 'object') {
         trapType = type_or_opts.type;
-        if (type_or_opts.coord) {
-            trapX = type_or_opts.coord.x;
-            trapY = type_or_opts.coord.y;
+        // Prefer absolute coordinates captured at enqueue time.
+        if (x !== undefined && y !== undefined) {
+            trapX = x;
+            trapY = y;
+        } else if (type_or_opts.coord) {
+            if (Array.isArray(type_or_opts.coord)) {
+                trapX = type_or_opts.coord[0];
+                trapY = type_or_opts.coord[1];
+            } else {
+                trapX = type_or_opts.coord.x;
+                trapY = type_or_opts.coord.y;
+            }
         } else if (type_or_opts.x !== undefined && type_or_opts.y !== undefined) {
             trapX = type_or_opts.x;
             trapY = type_or_opts.y;
@@ -3803,9 +3727,10 @@ export function finalize_level() {
         levelState.map.monsters.push(...levelState.monsters);
     }
 
-    // C ref: mklev.c:1388-1422 — Fill ordinary rooms with random content
-    // This happens AFTER deferred content but BEFORE wallification
-    if (levelState.map) {
+    // C ref: mklev.c:1388-1422 — Fill ordinary rooms with random content.
+    // Scope this to explicit parity contexts to avoid drifting handcrafted
+    // special levels during normal generation.
+    if (levelState.map && levelState.finalizeContext) {
         const map = levelState.map;
         const depth = levelState.levelDepth || 1;
         const OROOM = 0;
