@@ -19,40 +19,11 @@ import { rhack } from './commands.js';
 import { movemon, settrack } from './monmove.js';
 import { simulatePostLevelInit } from './u_init.js';
 import { loadSave, deleteSave, hasSave, saveGame,
-         loadFlags, saveFlags, deserializeRng,
+         loadFlags, saveFlags, getUrlParams, deserializeRng,
          restGameState, restLev,
          listSavedData, clearAllData } from './storage.js';
 import { savebones } from './bones.js';
 import { buildEntry, saveScore, loadScores, formatTopTenEntry, formatTopTenHeader } from './topten.js';
-
-// Parse URL parameters for game options
-// Supports: ?wizard=1, ?seed=N, ?role=X
-function parseUrlParams() {
-    const params = new URLSearchParams(window.location.search);
-    return {
-        wizard: params.get('wizard') === '1' || params.get('wizard') === 'true',
-        seed: params.has('seed') ? parseInt(params.get('seed'), 10) : null,
-        role: params.get('role') || null,
-        reset: params.get('reset') === '1' || params.get('reset') === 'true',
-        // Flag overrides from URL parameters (e.g., ?DECgraphics=true&pickup=false)
-        flagOverrides: parseFlagOverrides(params),
-    };
-}
-
-// Parse URL parameters that match known flag names into overrides
-function parseFlagOverrides(params) {
-    // Import would be circular, so use inline list of boolean flag names
-    const boolFlags = ['pickup', 'showexp', 'color', 'time', 'safe_pet', 'confirm',
-        'verbose', 'tombstone', 'rest_on_space', 'number_pad', 'lit_corridor',
-        'DECgraphics', 'msg_window'];
-    const overrides = {};
-    for (const flag of boolFlags) {
-        if (params.has(flag)) {
-            overrides[flag] = params.get(flag) === '1' || params.get(flag) === 'true';
-        }
-    }
-    return overrides;
-}
 
 // --- Game State ---
 // C ref: decl.h -- globals are accessed via NH object (see DECISIONS.md #7)
@@ -96,7 +67,7 @@ class NetHackGame {
     // C ref: allmain.c early_init() + moveloop_preamble()
     async init() {
         // Parse URL params
-        const urlOpts = parseUrlParams();
+        const urlOpts = getUrlParams();
         this.wizard = urlOpts.wizard;
 
         // Initialize display
@@ -111,12 +82,8 @@ class NetHackGame {
         }
 
         // Load user flags (C ref: flags struct from flag.h)
+        // loadFlags() merges: C defaults < JS overrides < localStorage < URL params
         this.flags = loadFlags();
-
-        // Apply URL flag overrides (e.g., ?DECgraphics=true)
-        if (urlOpts.flagOverrides) {
-            Object.assign(this.flags, urlOpts.flagOverrides);
-        }
 
         // Expose flags and display globally for input handler
         // (flags for number_pad mode, display for message acknowledgement)

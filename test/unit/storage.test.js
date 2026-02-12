@@ -741,12 +741,13 @@ describe('Flags (localStorage)', () => {
 
     it('loadFlags returns defaults when nothing saved', () => {
         const flags = loadFlags();
-        assert.equal(flags.pickup, true);
-        assert.equal(flags.showexp, true);
+        assert.equal(flags.pickup, false);
+        assert.equal(flags.showexp, false);
         assert.equal(flags.color, true);
         assert.equal(flags.time, false);
         assert.equal(flags.safe_pet, true);
         assert.equal(flags.verbose, true);
+        assert.equal(flags.DECgraphics, true);
     });
 
     it('saveFlags + loadFlags round-trips', () => {
@@ -758,29 +759,29 @@ describe('Flags (localStorage)', () => {
     });
 
     it('getFlag returns individual values', () => {
-        saveFlags({ pickup: false });
-        assert.equal(getFlag('pickup'), false);
-        assert.equal(getFlag('showexp'), true); // default
+        saveFlags({ pickup: true });
+        assert.equal(getFlag('pickup'), true);
+        assert.equal(getFlag('showexp'), false); // default (matches C)
     });
 
     it('setFlag updates a single value', () => {
         setFlag('color', false);
         assert.equal(getFlag('color'), false);
-        assert.equal(getFlag('pickup'), true); // unchanged
+        assert.equal(getFlag('pickup'), false); // unchanged (default is false)
     });
 
     it('loadFlags merges saved with defaults for new keys', () => {
-        store.set('webhack-options', JSON.stringify({ pickup: false }));
+        store.set('webhack-options', JSON.stringify({ pickup: true }));
         const flags = loadFlags();
-        assert.equal(flags.pickup, false);
-        assert.equal(flags.showexp, true);
+        assert.equal(flags.pickup, true);
+        assert.equal(flags.showexp, false); // default (matches C)
         assert.equal(flags.color, true);
     });
 
     it('handles corrupt data gracefully', () => {
         store.set('webhack-options', 'not-json');
         const flags = loadFlags();
-        assert.equal(flags.pickup, true);
+        assert.equal(flags.pickup, false); // default (matches C)
     });
 
     it('migrates old autopickup key to pickup', () => {

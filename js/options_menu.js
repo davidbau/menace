@@ -5,7 +5,7 @@
  * Displays current option values and allows toggling.
  */
 
-import { loadFlags, saveFlags } from './storage.js';
+import { loadFlags, saveFlags, DEFAULT_FLAGS } from './storage.js';
 
 /**
  * Options menu data structure matching C NetHack
@@ -17,7 +17,7 @@ export const OPTIONS_DATA = {
         {
             category: 'General',
             options: [
-                { key: 'a', name: 'fruit', type: 'text', flag: 'fruit', default: 'slime mold', help: 'name of a fruit you enjoy eating' },
+                { key: 'a', name: 'fruit', type: 'text', flag: 'fruit', help: 'name of a fruit you enjoy eating' },
                 { key: 'b', name: 'number_pad', type: 'bool', flag: 'number_pad', help: 'use the number pad for movement' }
             ]
         },
@@ -29,13 +29,13 @@ export const OPTIONS_DATA = {
                 { key: 'e', name: 'autopickup', type: 'bool', flag: 'pickup', help: 'automatically pick up objects' },
                 { key: 'f', name: 'autopickup exceptions', type: 'count', flag: 'autopickup_exceptions', help: 'exceptions to autopickup' },
                 { key: 'g', name: 'autoquiver', type: 'bool', flag: 'autoquiver', help: 'automatically fill quiver' },
-                { key: 'h', name: 'autounlock', type: 'text', flag: 'autounlock', default: 'apply-key', help: 'method for unlocking' },
+                { key: 'h', name: 'autounlock', type: 'text', flag: 'autounlock', help: 'method for unlocking' },
                 { key: 'i', name: 'cmdassist', type: 'bool', flag: 'cmdassist', help: 'provide assistance with commands' },
                 { key: 'j', name: 'dropped_nopick', type: 'bool', flag: 'dropped_nopick', help: 'do not autopickup dropped items', suffix: '(for autopickup)' },
                 { key: 'k', name: 'fireassist', type: 'bool', flag: 'fireassist', help: 'provide assistance with firing' },
                 { key: 'l', name: 'pickup_stolen', type: 'bool', flag: 'pickup_stolen', help: 'autopickup stolen items', suffix: '(for autopickup)' },
                 { key: 'm', name: 'pickup_thrown', type: 'bool', flag: 'pickup_thrown', help: 'autopickup thrown items', suffix: '(for autopickup)' },
-                { key: 'n', name: 'pickup_types', type: 'text', flag: 'pickup_types', default: 'all', help: 'types to autopickup', suffix: '(for autopickup)' },
+                { key: 'n', name: 'pickup_types', type: 'text', flag: 'pickup_types', help: 'types to autopickup', suffix: '(for autopickup)' },
                 { key: 'o', name: 'pushweapon', type: 'bool', flag: 'pushweapon', help: 'push old weapon into second slot' }
             ]
         }
@@ -54,7 +54,7 @@ export const OPTIONS_DATA = {
                 { key: 'f', name: 'hilite_pile', type: 'bool', flag: 'hilite_pile', help: 'highlight piles of objects' },
                 { key: 'g', name: 'showrace', type: 'bool', flag: 'showrace', help: 'show race in status' },
                 { key: 'h', name: 'sparkle', type: 'bool', flag: 'sparkle', help: 'sparkle effect for resists' },
-                { key: 'i', name: 'symset', type: 'text', flag: 'symset', default: 'default', help: 'symbol set to use' }
+                { key: 'i', name: 'symset', type: 'text', flag: 'symset', help: 'symbol set to use' }
             ]
         },
         {
@@ -65,7 +65,7 @@ export const OPTIONS_DATA = {
                 { key: 'l', name: 'showexp', type: 'bool', flag: 'showexp', help: 'show experience points' },
                 { key: 'm', name: 'status condition fields', type: 'count', flag: 'statusconditions', count: 16, help: 'status condition fields' },
                 { key: 'n', name: 'status highlight rules', type: 'count', flag: 'statushighlights', help: 'status highlight rules' },
-                { key: 'o', name: 'statuslines', type: 'number', flag: 'statuslines', default: 2, help: 'number of status lines' },
+                { key: 'o', name: 'statuslines', type: 'number', flag: 'statuslines', help: 'number of status lines' },
                 { key: 'p', name: 'time', type: 'bool', flag: 'time', help: 'show elapsed time' }
             ]
         }
@@ -230,12 +230,12 @@ function getOptionValue(opt, flags) {
 
         case 'text':
             // [value]
-            return flagValue || opt.default || '';
+            return flagValue || DEFAULT_FLAGS[opt.flag] || '';
 
         case 'number':
             // [N]
-            const num = flagValue !== undefined ? flagValue : opt.default;
-            return String(num);
+            const num = flagValue !== undefined ? flagValue : DEFAULT_FLAGS[opt.flag];
+            return String(num !== undefined ? num : '');
 
         case 'count':
             // [(N currently set)]

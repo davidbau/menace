@@ -241,7 +241,9 @@ pre {
   padding: 1em 1.2em;
   border-radius: 4px;
   overflow-x: auto;
-  margin: 1.2em 0;
+  margin: 1.2em auto;
+  width: fit-content;
+  max-width: 100%;
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 

@@ -141,15 +141,17 @@ describe('E2E: Critical startup checks', () => {
             await page.evaluate(() => new Promise(r => setTimeout(r, 200)));
 
             // Wait for game to start and render map with dungeon features
-            // ASCII mode: @ (player), . (floor), - and | (walls)
+            // DECgraphics is on by default: @ (player), . (floor), box-drawing walls
             try {
                 await page.waitForFunction(
                     () => {
                         const pre = document.getElementById('terminal');
                         if (!pre) return false;
                         const text = pre.textContent;
-                        return text.includes('@') && text.includes('.') &&
-                               text.includes('-') && text.includes('|');
+                        // Accept ASCII (-/|) or box-drawing wall chars
+                        const hasWalls = (text.includes('-') && text.includes('|')) ||
+                                         /[\u2500-\u257F]/.test(text);
+                        return text.includes('@') && text.includes('.') && hasWalls;
                     },
                     { timeout: 5000 }
                 );
@@ -166,8 +168,9 @@ describe('E2E: Critical startup checks', () => {
                 const pre = document.getElementById('terminal');
                 if (!pre) return false;
                 const text = pre.textContent;
-                return text.includes('@') && text.includes('.') &&
-                       text.includes('-') && text.includes('|');
+                const hasWalls = (text.includes('-') && text.includes('|')) ||
+                                 /[\u2500-\u257F]/.test(text);
+                return text.includes('@') && text.includes('.') && hasWalls;
             });
 
             assert.ok(hasDungeonChars, 'Map should show player, floor, and wall characters');

@@ -532,24 +532,44 @@ export function deleteBones(depth) {
 // Flags -- C ref: flag.h struct flag + options.c allopt[]
 // ========================================================================
 
-// C ref: flag.h — struct flag fields relevant to JS port
-export const DEFAULT_FLAGS = {
-    name: '',             // C: plname (player name) — remembered across sessions
-    pickup: true,         // C: flags.pickup
-    pickup_types: '',     // C: flags.pickup_types — empty means all types (backward compat)
-    showexp: true,        // C: flags.showexp
-    color: true,          // C: iflags.wc_color
-    time: false,          // C: flags.time
-    safe_pet: true,       // C: flags.safe_pet
-    confirm: true,        // C: flags.confirm
-    verbose: true,        // C: flags.verbose
-    tombstone: true,      // C: flags.tombstone
-    rest_on_space: false,  // C: flags.rest_on_space
-    number_pad: false,    // C: iflags.num_pad
-    lit_corridor: false,  // C: flags.lit_corridor
-    DECgraphics: false,   // C: symset DECgraphics — use box-drawing characters for walls
-    msg_window: false,    // C: iflags.prevmsg_window — dedicated message pane (3 lines)
+// Complete C NetHack 3.7 defaults (from optlist.h + options.c initoptions_init)
+const C_DEFAULTS = {
+    // Identity (empty = prompt at start)
+    name: '', role: '', race: '', gender: '', alignment: '',
+    catname: '', dogname: '', horsename: '', pettype: '',
+
+    // Boolean: ON in C
+    acoustics: true, autoopen: true, autodescribe: true, bones: true,
+    cmdassist: true, color: true, confirm: true, dark_room: true,
+    dropped_nopick: true, fireassist: true, fixinv: true, help: true,
+    implicit_uncursed: true, legacy: true, mail: true,
+    pickup_stolen: true, pickup_thrown: true,
+    safe_pet: true, safe_wait: true, silent: true, sortpack: true,
+    sparkle: true, splash_screen: true, status_updates: true,
+    tips: true, tombstone: true, travel: true,
+    use_darkgray: true, use_inverse: true, verbose: true,
+
+    // Boolean: OFF in C
+    autodig: false, pickup: false, autoquiver: false,
+    hilite_pet: false, hilite_pile: false, lit_corridor: false,
+    lootabc: false, menucolors: false, number_pad: false,
+    perm_invent: false, pushweapon: false, rest_on_space: false,
+    showdamage: false, showexp: false, showrace: false, time: false,
+
+    // Compound options
+    fruit: 'slime mold', pickup_types: '', menustyle: 'full',
+    runmode: 'leap', pickup_burden: 'moderate', sortloot: 'loot',
+    pile_limit: 5, msghistory: 20, statuslines: 2,
+    msg_window: false, DECgraphics: false,
 };
+
+// JS-specific overrides from C defaults
+const JS_OVERRIDES = {
+    DECgraphics: true,  // C has DECgraphics off; we use box-drawing by default
+};
+
+// Computed: the effective defaults for this JS port
+export const DEFAULT_FLAGS = { ...C_DEFAULTS, ...JS_OVERRIDES };
 
 // C ref: options.c allopt[] — metadata for each option
 export const OPTION_DEFS = [
@@ -590,18 +610,74 @@ function migrateFlags(saved) {
     return saved;
 }
 
+// Parse URL parameters, coercing types based on C_DEFAULTS
+function parseUrlFlags() {
+    if (typeof window === 'undefined') return {};
+    const params = new URLSearchParams(window.location.search);
+    const urlFlags = {};
+    for (const [key, value] of params) {
+        // Special non-flag params pass through as-is
+        if (['wizard', 'reset', 'seed'].includes(key)) {
+            urlFlags[key] = key === 'seed'
+                ? parseInt(value, 10)
+                : (value === '1' || value === 'true');
+            continue;
+        }
+        // Known flag — coerce type from C_DEFAULTS
+        if (key in C_DEFAULTS) {
+            const defVal = C_DEFAULTS[key];
+            if (typeof defVal === 'boolean')
+                urlFlags[key] = value === '1' || value === 'true' || value === '';
+            else if (typeof defVal === 'number')
+                urlFlags[key] = parseInt(value, 10);
+            else
+                urlFlags[key] = value;
+        }
+    }
+    return urlFlags;
+}
+
+// Get non-flag URL parameters for game init (wizard mode, seed, etc.)
+export function getUrlParams() {
+    const url = parseUrlFlags();
+    return {
+        wizard: url.wizard || false,
+        seed: url.seed || null,
+        role: url.role || null,
+        reset: url.reset || false,
+    };
+}
+
 // C ref: options.c initoptions() — load flags from localStorage, merged with defaults
 export function loadFlags() {
+    const defaults = { ...C_DEFAULTS, ...JS_OVERRIDES };
+
+    // localStorage
+    let saved = {};
     const s = storage();
-    if (!s) return { ...DEFAULT_FLAGS };
-    try {
-        const json = s.getItem(OPTIONS_KEY);
-        if (!json) return { ...DEFAULT_FLAGS };
-        const saved = migrateFlags(JSON.parse(json));
-        return { ...DEFAULT_FLAGS, ...saved };
-    } catch (e) {
-        return { ...DEFAULT_FLAGS };
+    if (s) {
+        try {
+            const json = s.getItem(OPTIONS_KEY);
+            if (json) saved = migrateFlags(JSON.parse(json));
+        } catch (e) {}
     }
+
+    // URL parameters (highest priority)
+    const urlFlags = parseUrlFlags();
+
+    // Merge: defaults < localStorage < URL
+    const flags = { ...defaults, ...saved, ...urlFlags };
+
+    // Persist URL flag overrides to localStorage
+    const persistable = {};
+    for (const [k, v] of Object.entries(urlFlags)) {
+        if (k in C_DEFAULTS) persistable[k] = v;
+    }
+    if (Object.keys(persistable).length > 0) {
+        saveFlags({ ...saved, ...persistable });
+    }
+
+    return flags;
 }
 
 // C ref: options.c doset() — save flags to localStorage

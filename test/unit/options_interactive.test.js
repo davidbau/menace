@@ -63,9 +63,9 @@ test('options menu: all required options are present', () => {
 test('options menu: default flags are valid', () => {
     const flags = loadFlags();
 
-    // Check expected defaults
-    assert.strictEqual(flags.pickup, true, 'pickup should default to true');
-    assert.strictEqual(flags.showexp, true, 'showexp should default to true');
+    // Check expected defaults (matching C NetHack + JS_OVERRIDES)
+    assert.strictEqual(flags.pickup, false, 'pickup should default to false (C default)');
+    assert.strictEqual(flags.showexp, false, 'showexp should default to false (C default)');
     assert.strictEqual(flags.color, true, 'color should default to true');
     assert.strictEqual(flags.safe_pet, true, 'safe_pet should default to true');
     assert.strictEqual(flags.confirm, true, 'confirm should default to true');
@@ -77,7 +77,7 @@ test('options menu: default flags are valid', () => {
     assert.strictEqual(flags.rest_on_space, false, 'rest_on_space should default to false');
     assert.strictEqual(flags.number_pad, false, 'number_pad should default to false');
     assert.strictEqual(flags.lit_corridor, false, 'lit_corridor should default to false');
-    assert.strictEqual(flags.DECgraphics, false, 'DECgraphics should default to false');
+    assert.strictEqual(flags.DECgraphics, true, 'DECgraphics should default to true (JS override)');
     assert.strictEqual(flags.msg_window, false, 'msg_window should default to false');
 });
 

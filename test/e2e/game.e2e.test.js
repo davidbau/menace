@@ -188,11 +188,14 @@ describe('E2E: Role selection and game start', () => {
 
     it('shows dungeon features (walls, floor)', async () => {
         // The map should already be rendered after selectRoleAndStart()
-        // Check for ASCII characters (default mode): floor is '.', walls are '-' and '|'
+        // DECgraphics is on by default: walls use box-drawing chars, floor is still '.'
         const text = await getTerminalText(page);
         assert.ok(text.includes('.'), 'Should show floor tiles');
-        assert.ok(text.includes('-') && text.includes('|'),
-            'Should show wall tiles');
+        // Accept both ASCII (-/|) and DECgraphics box-drawing wall characters
+        const hasAsciiWalls = text.includes('-') && text.includes('|');
+        const hasBoxWalls = /[\u2500-\u257F]/.test(text);
+        assert.ok(hasAsciiWalls || hasBoxWalls,
+            'Should show wall tiles (ASCII or box-drawing)');
     });
 
     it('shows status lines at the bottom', async () => {
@@ -533,14 +536,15 @@ describe('E2E: Display integrity', () => {
         if (page) await page.close();
     });
 
-    it('map uses correct graphics characters (ASCII mode by default)', async () => {
+    it('map uses correct graphics characters (DECgraphics mode by default)', async () => {
         const text = await getTerminalText(page);
-        // Default is ASCII mode (DECgraphics=false)
-        const hasWalls = text.includes('-') && text.includes('|');
+        // Default is DECgraphics mode — walls use box-drawing characters
+        const hasAsciiWalls = text.includes('-') && text.includes('|');
+        const hasBoxWalls = /[\u2500-\u257F]/.test(text);
         const hasFloor = text.includes('.');
         const hasPlayer = text.includes('@');
-        assert.ok(hasWalls, 'Map should have ASCII wall characters (- and |)');
-        assert.ok(hasFloor, 'Map should have ASCII floor character (.)');
+        assert.ok(hasAsciiWalls || hasBoxWalls, 'Map should have wall characters (ASCII or box-drawing)');
+        assert.ok(hasFloor, 'Map should have floor character (.)');
         assert.ok(hasPlayer, 'Map should have player @');
     });
 
