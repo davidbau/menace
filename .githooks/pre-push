@@ -31,8 +31,9 @@ else
 fi
 
 # Push notes alongside branches (force-push: local note is always for a fresh commit)
+# Use --no-verify to avoid recursion (this push triggers pre-push again otherwise)
 echo "Syncing test-results notes..."
-git push origin +refs/notes/test-results:refs/notes/test-results 2>/dev/null && \
+git push --no-verify origin +refs/notes/test-results:refs/notes/test-results 2>/dev/null && \
   echo "✅ Notes pushed" || \
   echo "ℹ️  No notes to push"
 
