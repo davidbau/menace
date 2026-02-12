@@ -269,15 +269,27 @@ for (let i = 0; i < roles.length; i++) ROLE_INDEX[roles[i].name] = i;
 
 // Count RNG calls consumed during character selection menus before newgame().
 // For chargen sessions, steps before "confirm-ok" may consume RNG (e.g., pick_align).
-// For gameplay sessions, this returns 0.
+// For gameplay sessions with chargen data, count RNG from chargen steps before confirm-ok.
+// C ref: role.c pick_gend() — happens during role selection BEFORE initLevelGeneration.
 function countPreStartupRng(session) {
-    if (session.type !== 'chargen') return 0;
-    let count = 0;
-    for (const step of (session.steps || [])) {
-        if (step.action === 'confirm-ok') break;
-        count += (step.rng || []).length;
+    if (session.type === 'chargen') {
+        let count = 0;
+        for (const step of (session.steps || [])) {
+            if (step.action === 'confirm-ok') break;
+            count += (step.rng || []).length;
+        }
+        return count;
     }
-    return count;
+    // Gameplay/selfplay sessions may have a chargen field with pre-startup RNG
+    if (session.chargen && session.chargen.length > 0) {
+        let count = 0;
+        const confirmIndex = session.chargen.findIndex(s => s.action === 'confirm-ok');
+        for (let i = 0; i < confirmIndex && i < session.chargen.length; i++) {
+            count += (session.chargen[i].rng || []).length;
+        }
+        return count;
+    }
+    return 0;
 }
 
 // Generate full startup (map gen + post-level init) with RNG trace capture.
@@ -346,8 +358,11 @@ export function generateStartupWithRng(seed, session) {
     const fullLog = getRngLog();
     disableRngLog();
 
-    // Strip pre-startup menu RNG calls from the log
-    const startupLog = fullLog.slice(preStartupCalls);
+    // Strip pre-startup menu RNG calls from the log.
+    // For chargen-type sessions, session.startup.rng excludes chargen steps, so strip them.
+    // For gameplay sessions with chargen, session.startup.rng INCLUDES chargen RNG, so keep them.
+    const stripCount = session.type === 'chargen' ? preStartupCalls : 0;
+    const startupLog = fullLog.slice(stripCount);
 
     // Isolate chargen-only RNG (post-map: pet + inventory + attributes + welcome)
     const chargenLog = fullLog.slice(preChargenCount);
