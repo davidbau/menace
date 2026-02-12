@@ -2,15 +2,21 @@
 """Generate C map traces for special levels across all dungeon branches.
 
 Usage:
-    python3 gen_special_sessions.py <group> [--seeds 42,1,100]
+    python3 gen_special_sessions.py <group> [--seeds 42,1,100] [--verbose]
     python3 gen_special_sessions.py --list-groups
-    python3 gen_special_sessions.py --all [--seeds 42,1,100]
+    python3 gen_special_sessions.py --all [--seeds 42,1,100] [--verbose]
 
 Groups: sokoban, mines, vlad, knox, oracle, castle, medusa, valley,
-        gehennom, wizard, quest, planes, rogue, bigroom
+        gehennom, wizard, quest, planes, rogue, bigroom, filler, tutorial
 
 Each group generates session files for the special levels in that category,
 capturing typGrid via #dumpmap after teleporting to each level.
+
+Quest capture is role-aware: quest levels are collected in separate runs using
+the matching role to avoid cross-role level contamination.
+
+Note: Elemental planes often require endgame state (Amulet possession). If
+"planes" capture returns 0 levels, run gen_planes_with_amulet.py.
 
 Output: test/comparison/maps/seed<N>_special_<group>.session.json
 
@@ -219,11 +225,27 @@ LEVEL_GROUPS = {
     },
 }
 
+QUEST_ROLE_BY_PREFIX = {
+    'Arc': 'Archeologist',
+    'Bar': 'Barbarian',
+    'Cav': 'Caveman',
+    'Hea': 'Healer',
+    'Kni': 'Knight',
+    'Mon': 'Monk',
+    'Pri': 'Priest',
+    'Ran': 'Ranger',
+    'Rog': 'Rogue',
+    'Sam': 'Samurai',
+    'Tou': 'Tourist',
+    'Val': 'Valkyrie',
+    'Wiz': 'Wizard',
+}
+
 
 def wizard_teleport_to_level(session, level_name, verbose):
     """Use Ctrl+V ? menu to teleport to a named level.
 
-    Name-based teleport only works within the current branch, so we use
+    Name-based teleport only works within the current branch, so this uses
     the interactive menu (?) which supports cross-branch teleport. The
     menu lists all levels with their letter keys. We scan pages to find
     the target level name and select its letter.
@@ -328,12 +350,16 @@ def wizard_teleport_to_level(session, level_name, verbose):
             tmux_send_special(session, 'Space', 0.3)
             continue
 
-        if 'Dlvl:' in content or 'Plane' in content or 'End Game' in content:
+        # Quest levels show branch-local status like "Home 1"/"Goal 2"
+        # rather than Dlvl, so accept those as successful arrival too.
+        if ('Dlvl:' in content or 'Plane' in content or 'End Game' in content
+                or re.search(r'\b(Home|Loca|Goal)\s+\d+\b', content)):
             first_line = content.split('\n')[0] if content else ''
             if 'teleport' not in first_line.lower():
                 if verbose:
                     for line in content.split('\n'):
-                        if 'Dlvl:' in line or 'Plane' in line:
+                        if ('Dlvl:' in line or 'Plane' in line
+                                or re.search(r'\b(Home|Loca|Goal)\s+\d+\b', line)):
                             print(f'  [teleport] Arrived: {line.strip()[:60]}')
                             break
                 break
@@ -356,7 +382,7 @@ def parse_dumpmap(dumpmap_file):
 
 
 def generate_group(group_name, seeds, verbose=False):
-    """Generate special level traces for a group of levels."""
+    """Generate special-level traces for one group across all requested seeds."""
     if group_name not in LEVEL_GROUPS:
         print(f"Error: unknown group '{group_name}'")
         print(f"Available: {', '.join(sorted(LEVEL_GROUPS.keys()))}")
@@ -371,7 +397,6 @@ def generate_group(group_name, seeds, verbose=False):
         print(f"Run setup.sh first.")
         sys.exit(1)
 
-    setup_home()
     os.makedirs(SESSIONS_DIR, exist_ok=True)
 
     for seed in seeds:
@@ -379,11 +404,20 @@ def generate_group(group_name, seeds, verbose=False):
 
         tmpdir = tempfile.mkdtemp(prefix=f'webhack-special-{seed}-')
         dumpmap_file = os.path.join(tmpdir, 'dumpmap.txt')
-        session_name = f'webhack-special-{seed}-{os.getpid()}'
 
         levels = []
 
-        try:
+        def capture_level_batch(level_defs, role_name=None):
+            """Capture a batch of level definitions in one game session."""
+            role_tag = role_name.lower() if role_name else 'default'
+            session_name = f'webhack-special-{seed}-{role_tag}-{os.getpid()}'
+
+            # For quest captures, role must match requested quest levels.
+            if role_name:
+                setup_home(role=role_name, race=None, gender=None, align=None)
+            else:
+                setup_home()
+
             cmd = (
                 f'NETHACKDIR={INSTALL_DIR} '
                 f'NETHACK_SEED={seed} '
@@ -398,53 +432,77 @@ def generate_group(group_name, seeds, verbose=False):
                 check=True
             )
 
-            time.sleep(1.0)
-            wait_for_game_ready(session_name, verbose)
-            time.sleep(0.3)
+            try:
+                time.sleep(1.0)
+                wait_for_game_ready(session_name, verbose)
+                time.sleep(0.3)
 
-            for level_def in group['levels']:
-                level_name = level_def['name']
-                print(f"  Teleporting to {level_name}...")
+                for level_def in level_defs:
+                    level_name = level_def['name']
+                    print(f"  Teleporting to {level_name}...")
 
-                # Teleport to the level
-                wizard_teleport_to_level(session_name, level_name, verbose)
+                    # Teleport to the level
+                    wizard_teleport_to_level(session_name, level_name, verbose)
 
-                # Clean previous dumpmap
-                if os.path.exists(dumpmap_file):
-                    os.unlink(dumpmap_file)
+                    # Clean previous dumpmap
+                    if os.path.exists(dumpmap_file):
+                        os.unlink(dumpmap_file)
 
-                # Execute #dumpmap
-                execute_dumpmap(session_name)
-                time.sleep(0.2)
+                    # Execute #dumpmap
+                    execute_dumpmap(session_name)
+                    time.sleep(0.2)
 
-                # Read the dumpmap
-                if not os.path.exists(dumpmap_file):
-                    print(f"  WARNING: dumpmap failed for {level_name}")
-                    continue
+                    # Read the dumpmap
+                    if not os.path.exists(dumpmap_file):
+                        print(f"  WARNING: dumpmap failed for {level_name}")
+                        continue
 
-                grid = parse_dumpmap(dumpmap_file)
-                if len(grid) != 21:
-                    print(f"  WARNING: {level_name} has {len(grid)} rows (expected 21)")
+                    grid = parse_dumpmap(dumpmap_file)
+                    if len(grid) != 21:
+                        print(f"  WARNING: {level_name} has {len(grid)} rows (expected 21)")
 
-                level_data = {
-                    'levelName': level_name,
-                    'branch': level_def['branch'],
-                    'typGrid': grid,
-                }
-                if 'branchLevel' in level_def:
-                    level_data['branchLevel'] = level_def['branchLevel']
-                if 'nlevels' in level_def:
-                    level_data['nlevels'] = level_def['nlevels']
+                    level_data = {
+                        'levelName': level_name,
+                        'branch': level_def['branch'],
+                        'typGrid': grid,
+                    }
+                    if 'branchLevel' in level_def:
+                        level_data['branchLevel'] = level_def['branchLevel']
+                    if 'nlevels' in level_def:
+                        level_data['nlevels'] = level_def['nlevels']
+                    if role_name:
+                        level_data['role'] = role_name
 
-                levels.append(level_data)
-                print(f"  Captured {level_name}: {len(grid)} rows, {len(grid[0]) if grid else 0} cols")
+                    levels.append(level_data)
+                    print(f"  Captured {level_name}: {len(grid)} rows, {len(grid[0]) if grid else 0} cols")
 
-            # Quit the game
-            quit_game(session_name)
+                # Quit the game
+                quit_game(session_name)
+            finally:
+                subprocess.run(['tmux', 'kill-session', '-t', session_name],
+                               capture_output=True)
 
+        try:
+            if group_name == 'quest':
+                role_batches = {}
+                for level_def in group['levels']:
+                    level_name = level_def['name']
+                    prefix = level_name.split('-')[0]
+                    role_name = QUEST_ROLE_BY_PREFIX.get(prefix)
+                    if not role_name:
+                        print(f"  WARNING: unknown quest role prefix for {level_name}, skipping")
+                        continue
+                    role_batches.setdefault(role_name, []).append(level_def)
+
+                for role_name in QUEST_ROLE_BY_PREFIX.values():
+                    batch = role_batches.get(role_name, [])
+                    if not batch:
+                        continue
+                    print(f"  Capturing quest levels as role {role_name}...")
+                    capture_level_batch(batch, role_name=role_name)
+            else:
+                capture_level_batch(group['levels'])
         finally:
-            subprocess.run(['tmux', 'kill-session', '-t', session_name],
-                           capture_output=True)
             if os.path.exists(dumpmap_file):
                 os.unlink(dumpmap_file)
             try:

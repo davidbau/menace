@@ -11,7 +11,7 @@ Everything is derived from the script's location in the project tree.
 The C binary must have been built and installed via setup.sh first.
 
 This script:
-1. Sets up a temporary HOME with .nethackrc for deterministic character selection
+1. Sets up HOME/.nethackrc for deterministic character selection
 2. Starts a tmux session running nethack with NETHACK_SEED and NETHACK_DUMPMAP set
 3. Sends keystrokes to get through character selection
 4. If depth > 1, uses Ctrl+V wizard teleport to reach the target level
@@ -52,16 +52,23 @@ def tmux_capture(session):
     )
     return result.stdout
 
-def setup_home():
-    """Create a temporary HOME directory with .nethackrc for deterministic play."""
+def setup_home(role='Valkyrie', race='human', gender='female', align='neutral'):
+    """Create HOME/.nethackrc for deterministic play.
+
+    Any of role/race/gender/align may be None to leave that option unset.
+    """
     os.makedirs(RESULTS_DIR, exist_ok=True)
     nethackrc = os.path.join(RESULTS_DIR, '.nethackrc')
     with open(nethackrc, 'w') as f:
         f.write('OPTIONS=name:Wizard\n')
-        f.write('OPTIONS=race:human\n')
-        f.write('OPTIONS=role:Valkyrie\n')
-        f.write('OPTIONS=gender:female\n')
-        f.write('OPTIONS=align:neutral\n')
+        if race:
+            f.write(f'OPTIONS=race:{race}\n')
+        if role:
+            f.write(f'OPTIONS=role:{role}\n')
+        if gender:
+            f.write(f'OPTIONS=gender:{gender}\n')
+        if align:
+            f.write(f'OPTIONS=align:{align}\n')
         f.write('OPTIONS=!autopickup\n')
         f.write('OPTIONS=suppress_alert:3.4.3\n')
         f.write('OPTIONS=symset:DECgraphics\n')
