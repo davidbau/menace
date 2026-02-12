@@ -54,6 +54,15 @@ export function resetIdentCounter() {
     _identCounter = 0;
 }
 
+// Some parity tests generate special levels directly without running the full
+// o_init.c-style bootstrap. Ensure class bases/probability totals exist before
+// mkobj() uses them for class-weighted random selection.
+function ensureObjectClassTablesInitialized() {
+    if (bases[WEAPON_CLASS] === 0 || oclass_prob_totals[WEAPON_CLASS] === 0) {
+        initObjectData();
+    }
+}
+
 // C ref: objnam.c rnd_class() -- pick random object in index range by probability
 function rnd_class(first, last) {
     let sum = 0;
@@ -699,6 +708,8 @@ export function mkcorpstat(objtype, ptr_mndx, init) {
 // C ref: mkobj.c mkobj() -- create random object of a class
 // skipErosion: if true, skip mkobj_erosions (for ini_inv UNDEF_TYP items)
 export function mkobj(oclass, artif, skipErosion) {
+    ensureObjectClassTablesInitialized();
+
     // RANDOM_CLASS selection
     if (oclass === 0) { // RANDOM_CLASS = 0 in C, but our ILLOBJ_CLASS = 0
         // Use mkobjprobs table
@@ -816,4 +827,3 @@ export function doname(obj, player) {
 
     return result;
 }
-

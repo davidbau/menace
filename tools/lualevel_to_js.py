@@ -14,6 +14,8 @@ import re
 import os
 from pathlib import Path
 
+RISKY_LOOP_BOUND_FUNCS = ('rn2(', 'rnd(', 'd(', 'Math.random(')
+
 
 class SimpleLuaConverter:
     def __init__(self):
@@ -262,16 +264,26 @@ class SimpleLuaConverter:
                     start = parts[0].strip()
                     end = parts[1].strip()
                     step = parts[2].strip() if len(parts) > 2 else '1'
+                    end_var = f'__end_{var}'
+                    step_var = f'__step_{var}'
 
                     # Lua idiom: for i = 1, #arr do  -> JS: for (let i = 0; i < arr.length; i++)
                     # Keep i as zero-based so arr[i] works naturally after conversion.
                     if step == '1' and start == '1' and end.startswith('#'):
                         arr = end[1:].strip()
-                        result.append(f'{indent}for (let {var} = 0; {var} < {arr}.length; {var}++) {{')
+                        result.append(
+                            f'{indent}for (let {var} = 0, {end_var} = {arr}.length; {var} < {end_var}; {var}++) {{'
+                        )
                     elif step == '1':
-                        result.append(f'{indent}for (let {var} = {start}; {var} <= {end}; {var}++) {{')
+                        result.append(
+                            f'{indent}for (let {var} = {start}, {end_var} = {end}; {var} <= {end_var}; {var}++) {{'
+                        )
                     else:
-                        result.append(f'{indent}for (let {var} = {start}; {var} <= {end}; {var} += {step}) {{')
+                        result.append(
+                            f'{indent}for (let {var} = {start}, {end_var} = {end}, {step_var} = {step}; '
+                            f'{step_var} >= 0 ? {var} <= {end_var} : {var} >= {end_var}; '
+                            f'{var} += {step_var}) {{'
+                        )
                 else:
                     # Fallback - keep original
                     result.append(line)
@@ -835,6 +847,18 @@ def convert_lua_file(input_path, output_path=None):
         lua_content = f.read()
 
     js_content = converter.convert_file(lua_content, os.path.basename(input_path))
+    for lineno, line in enumerate(js_content.splitlines(), start=1):
+        if 'for (' not in line:
+            continue
+        m = re.search(r'for\s*\(([^;]*);([^;]*);([^)]*)\)', line)
+        if not m:
+            continue
+        loop_cond = m.group(2)
+        for token in RISKY_LOOP_BOUND_FUNCS:
+            if token in loop_cond:
+                raise RuntimeError(
+                    f'Unsafe loop condition in converted output at line {lineno}: {line.strip()}'
+                )
 
     if output_path:
         os.makedirs(os.path.dirname(output_path), exist_ok=True)

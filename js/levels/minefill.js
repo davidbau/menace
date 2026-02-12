@@ -30,20 +30,20 @@ export function generate() {
     des.stair("up");
     des.stair("down");
     // 
-    for (let i = 1; i <= (rn2((5) - (2) + 1) + (2)); i++) {
+    for (let i = 1, __end_i = (rn2((5) - (2) + 1) + (2)); i <= __end_i; i++) {
        des.object("*");
     }
     des.object("(");
-    for (let i = 1; i <= (rn2((4) - (2) + 1) + (2)); i++) {
+    for (let i = 1, __end_i = (rn2((4) - (2) + 1) + (2)); i <= __end_i; i++) {
        des.object();
     }
     if (percent(75)) {
-       for (let i = 1; i <= (rn2((2) - (1) + 1) + (1)); i++) {
+       for (let i = 1, __end_i = (rn2((2) - (1) + 1) + (1)); i <= __end_i; i++) {
           des.object("boulder");
        }
     }
     // 
-    for (let i = 1; i <= (rn2((8) - (6) + 1) + (6)); i++) {
+    for (let i = 1, __end_i = (rn2((8) - (6) + 1) + (6)); i <= __end_i; i++) {
        des.monster("gnome");
     }
     des.monster("gnome lord");

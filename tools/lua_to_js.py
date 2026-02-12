@@ -11,6 +11,8 @@ import sys
 import os
 from pathlib import Path
 
+RISKY_LOOP_BOUND_FUNCS = ('rn2(', 'rnd(', 'd(', 'Math.random(')
+
 
 class LuaToJsConverter:
     def __init__(self):
@@ -515,15 +517,21 @@ class LuaToJsConverter:
         start = range_parts[0]
         end = range_parts[1]
         step = range_parts[2] if len(range_parts) > 2 else '1'
+        end_var = f"__end_{var_name}"
+        step_var = f"__step_{var_name}"
 
         # Lua idiom: for i = 1,#arr do  -> JS: for (let i = 0; i < arr.length; i++)
         if step == '1' and start == '1' and end.startswith('#'):
             arr = end[1:].strip()
-            return f"for (let {var_name} = 0; {var_name} < {arr}.length; {var_name}++) {{"
+            return f"for (let {var_name} = 0, {end_var} = {arr}.length; {var_name} < {end_var}; {var_name}++) {{"
         if step == '1':
-            return f"for (let {var_name} = {start}; {var_name} <= {end}; {var_name}++) {{"
+            return f"for (let {var_name} = {start}, {end_var} = {end}; {var_name} <= {end_var}; {var_name}++) {{"
         else:
-            return f"for (let {var_name} = {start}; {var_name} <= {end}; {var_name} += {step}) {{"
+            return (
+                f"for (let {var_name} = {start}, {end_var} = {end}, {step_var} = {step}; "
+                f"{step_var} >= 0 ? {var_name} <= {end_var} : {var_name} >= {end_var}; "
+                f"{var_name} += {step_var}) {{"
+            )
 
     def convert_iterator_loop(self, for_str):
         """Convert iterator for loop."""
@@ -1094,6 +1102,18 @@ def convert_lua_file(input_path, output_path=None):
 
     converter = LuaToJsConverter()
     js_content = converter.convert_file(lua_content, os.path.basename(input_path))
+    for lineno, line in enumerate(js_content.splitlines(), start=1):
+        if 'for (' not in line:
+            continue
+        m = re.search(r'for\s*\(([^;]*);([^;]*);([^)]*)\)', line)
+        if not m:
+            continue
+        loop_cond = m.group(2)
+        for token in RISKY_LOOP_BOUND_FUNCS:
+            if token in loop_cond:
+                raise RuntimeError(
+                    f'Unsafe loop condition in converted output at line {lineno}: {line.strip()}'
+                )
 
     if output_path:
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
