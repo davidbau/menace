@@ -58,14 +58,12 @@ describe('Wizard\'s Tower level generation', () => {
         // Check for the Wizard
         const wizard = map.monsters.find(m => m.id === 'Wizard of Yendor');
         assert.ok(wizard, 'Wizard of Yendor should be present');
-        // Wizard1 map is at origin (25,4), so map coords (16,5) become absolute (41,9)
-        // But monsters seem to use map-relative coordinates in output
-        assert.equal(wizard.x, 16, 'Wizard X position');
-        assert.equal(wizard.y, 5, 'Wizard Y position');
+        // C parity: map-relative coords are converted to absolute after des.map().
+        assert.equal(wizard.x, 41, 'Wizard X position');
+        assert.equal(wizard.y, 10, 'Wizard Y position');
 
-        // Check for Book of the Dead (appears as first object at wizard's location)
-        // Objects use absolute coordinates after map-relative conversion
-        const objectsAtWizard = map.objects.filter(o => o.ox === 41 && o.oy === 9);
+        // Book of the Dead should be placed at the wizard's tile.
+        const objectsAtWizard = map.objects.filter(o => o.ox === wizard.x && o.oy === wizard.y);
         assert.ok(objectsAtWizard.length >= 1, 'Should have object at wizard location (Book of the Dead)');
     });
 

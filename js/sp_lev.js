@@ -24,6 +24,7 @@ import {
     DOOR, SDOOR, IRONBARS, TREE, FOUNTAIN, POOL, MOAT, WATER,
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN, LAVAPOOL, LAVAWALL, ICE, CLOUD, AIR,
     STAIRS, LADDER, ALTAR, GRAVE, THRONE, SINK,
+    SCORR, MAX_TYPE,
     PIT, SPIKED_PIT, HOLE, TRAPDOOR, ARROW_TRAP, DART_TRAP,
     SQKY_BOARD, BEAR_TRAP, LANDMINE, ROLLING_BOULDER_TRAP,
     SLP_GAS_TRAP, RUST_TRAP, FIRE_TRAP, TELEP_TRAP, LEVEL_TELEP,
@@ -890,9 +891,13 @@ export function map(data) {
         contents = data.contents;
     }
 
-    // Parse map string into 2D array
-    // Match C behavior: keep leading spaces; only skip completely empty lines.
-    let lines = mapStr.split('\n').filter(line => line.length > 0);
+    // Parse map string into 2D array.
+    // C ref: mapfrag_fromstr() keeps internal blank lines, but a trailing
+    // newline at end of the literal does not create an extra map row.
+    let lines = mapStr.split('\n');
+    if (lines.length > 0 && lines[lines.length - 1] === '') {
+        lines.pop();
+    }
 
     const height = lines.length;
     const width = Math.max(...lines.map(line => line.length));
@@ -1154,12 +1159,16 @@ function mapchrToTerrain(ch) {
         case 'F': return IRONBARS;
         case 'C': return CLOUD;
         case 'A': return AIR;
+        case 'S': return SDOOR;
+        case 'H': return SCORR;
+        case 'x': return MAX_TYPE;  // C ref: "see-through" pseudo terrain
+        case 'B': return CROSSWALL; // C ref: boundary location hack
         // Other characters that appear in maps
         case '^': return ROOM; // trap placeholder, will be replaced
         case '@': return ROOM; // player position placeholder
         default:
-            // Unknown character - treat as stone
-            return STONE;
+            // C ref: nhlua.c splev_chr2typ() returns INVALID_TYPE for unknown map chars.
+            return -1;
     }
 }
 
@@ -2293,12 +2302,31 @@ export function monster(opts_or_class, x, y) {
     // NOTE: Lua RNG simulation removed - all themed rooms converted to JS
     // Monster creation RNG happens during executeDeferredMonsters()
 
+    // Normalize coordinates from object-style calls:
+    // des.monster({ x, y }) or des.monster({ coord: [x, y] }).
+    let srcX = x;
+    let srcY = y;
+    if (opts_or_class && typeof opts_or_class === 'object' && srcX === undefined && srcY === undefined) {
+        if (opts_or_class.coord) {
+            if (Array.isArray(opts_or_class.coord)) {
+                srcX = opts_or_class.coord[0];
+                srcY = opts_or_class.coord[1];
+            } else {
+                srcX = opts_or_class.coord.x;
+                srcY = opts_or_class.coord.y;
+            }
+        } else {
+            srcX = opts_or_class.x;
+            srcY = opts_or_class.y;
+        }
+    }
+
     // Convert map-relative coordinates to absolute
     // C ref: Lua coordinates after des.map() are relative to map origin
-    let absX = x;
-    let absY = y;
-    if (levelState.mapCoordMode && x !== undefined && y !== undefined) {
-        const mapCoords = toAbsoluteCoords(x, y);
+    let absX = srcX;
+    let absY = srcY;
+    if (levelState.mapCoordMode && srcX !== undefined && srcY !== undefined) {
+        const mapCoords = toAbsoluteCoords(srcX, srcY);
         absX = mapCoords.x;
         absY = mapCoords.y;
     }
@@ -2643,10 +2671,18 @@ function executeDeferredMonsters() {
         } else if (opts_or_class && typeof opts_or_class === 'object') {
             opts = opts_or_class;
             monsterId = opts.id || opts.class || '@';
-
-            if (opts.coord) {
-                coordX = opts.coord.x;
-                coordY = opts.coord.y;
+            // Prefer absolute coords captured at enqueue time.
+            if (x !== undefined && y !== undefined) {
+                coordX = x;
+                coordY = y;
+            } else if (opts.coord) {
+                if (Array.isArray(opts.coord)) {
+                    coordX = opts.coord[0];
+                    coordY = opts.coord[1];
+                } else {
+                    coordX = opts.coord.x;
+                    coordY = opts.coord.y;
+                }
             } else {
                 coordX = opts.x;
                 coordY = opts.y;
