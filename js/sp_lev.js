@@ -16,7 +16,7 @@
 import { GameMap, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1, getRngCallCount } from './rng.js';
 import { mksobj, mkobj, mkcorpstat, set_corpsenm } from './mkobj.js';
-import { create_room, create_subroom, makecorridors, init_rect, rnd_rect, get_rect, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, place_lregion, mktrap, enexto } from './dungeon.js';
+import { create_room, create_subroom, makecorridors, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, place_lregion, mktrap, enexto } from './dungeon.js';
 import { seedFromMT } from './xoshiro256.js';
 import { makemon, mkclass, def_char_to_monclass, NO_MM_FLAGS } from './makemon.js';
 import {
@@ -696,8 +696,10 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth, skipL
     // C ref: sp_lev.c:1522-1649 — Retry loop for room creation (up to 100 attempts)
     // The loop retries if get_rect or check_room fails
     let r1 = null;
+    let r2 = null; // C ref: sp_lev.c:1634-1637 — r2 built before check_room, used for split_rects after loop
     let trycnt = 0;
     let xabs, yabs, dx, dy;
+    let origWtmp, origHtmp; // Original room dimensions before check_room modification
     let roomValid = false; // Track if room passed check_room
 
     do {
@@ -749,26 +751,28 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth, skipL
         xabs = Math.floor(((xtmp - 1) * COLNO) / 5) + 1;
         yabs = Math.floor(((ytmp - 1) * ROWNO) / 5) + 1;
 
-    // Apply alignment
+    // Apply alignment — C constants: SPLEV_LEFT=1, SPLEV_CENTER=3, SPLEV_RIGHT=5
+    // rnd(3) returns 1-3, so only LEFT(1) and CENTER(3) are reachable;
+    // value 2 falls through with no case match (no adjustment), matching C behavior
     switch (xaltmp) {
-        case 1: // LEFT
+        case 1: // SPLEV_LEFT
             break;
-        case 3: // RIGHT
-            xabs += COLNO_DIV5 - wtmp;
-            break;
-        case 2: // CENTER
+        case 3: // SPLEV_CENTER
             xabs += Math.floor((COLNO_DIV5 - wtmp) / 2);
+            break;
+        case 5: // SPLEV_RIGHT (only from explicit level scripts)
+            xabs += COLNO_DIV5 - wtmp;
             break;
     }
 
     switch (yaltmp) {
         case 1: // TOP
             break;
-        case 3: // BOTTOM
-            yabs += ROWNO_DIV5 - htmp;
-            break;
-        case 2: // CENTER
+        case 3: // SPLEV_CENTER
             yabs += Math.floor((ROWNO_DIV5 - htmp) / 2);
+            break;
+        case 5: // BOTTOM (only from explicit level scripts)
+            yabs += ROWNO_DIV5 - htmp;
             break;
     }
 
@@ -789,7 +793,7 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth, skipL
         // C ref: sp_lev.c:1637-1641 — Create r2 rectangle and find containing rect
         // rndpos is 1 if position was random (original x/y were -1), else 0
         const rndpos = (x < 0 && y < 0) ? 1 : 0;
-        const r2 = {
+        r2 = {
             lx: xabs - 1,
             ly: yabs - 1,
             hx: xabs + wtmp + rndpos,
@@ -804,6 +808,8 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth, skipL
         // C ref: sp_lev.c:1642-1647 — Set dx/dy and call check_room to validate
         dx = wtmp;
         dy = htmp;
+        origWtmp = wtmp;  // Save before check_room may modify dx
+        origHtmp = htmp;  // Save before check_room may modify dy
 
         // C ref: sp_lev.c:1645 — Call check_room to validate placement
         // check_room may shrink the room if overlaps detected, or fail entirely
@@ -831,17 +837,26 @@ function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth, skipL
         return null;
     }
 
-    // C ref: Must initialize sbrooms array for potential nested rooms
+    // C ref: sp_lev.c:1650 — split_rects(r1, &r2) called AFTER the retry loop
+    // r2 was built with rndpos inside the loop, before check_room modified xabs
+    if (DEBUG_BUILD) {
+        console.log(`  create_room_splev: calling split_rects(r1=${JSON.stringify(r1)}, r2=${JSON.stringify(r2)})`);
+    }
+    split_rects(r1, r2);
+
+    // C ref: sp_lev.c:1654 — add_room(xabs, yabs, xabs + wtmp - 1, yabs + htmp - 1, ...)
+    // C uses ORIGINAL wtmp/htmp (not check_room-modified dx/dy) with modified xabs/yabs
     return {
         lx: xabs,
         ly: yabs,
-        hx: xabs + dx,
-        hy: yabs + dy,
+        hx: xabs + origWtmp - 1,
+        hy: yabs + origHtmp - 1,
         rtype: rtype,
         rlit: lit,  // Use resolved `lit` value from litstate_rnd
         irregular: false,
         nsubrooms: 0,      // C ref: mkroom.h — number of subrooms
-        sbrooms: []        // C ref: mkroom.h — subroom array
+        sbrooms: [],       // C ref: mkroom.h — subroom array
+        _splitDone: true   // split_rects already called, caller should skip update_rect_pool_for_room
     };
 }
 
@@ -1321,10 +1336,14 @@ export function map(data) {
         contents = data.contents;
     }
 
-    // Parse map string into 2D array.
-    // C ref: mapfrag_fromstr() keeps trailing blank rows from the source
-    // string; that trailing empty line still influences centering math.
+    // Parse map string into lines.
+    // C ref: mapfrag_fromstr() counts lines by '\n' separators.
+    // Lua's [[\n...]] strips the leading newline; JS template literals don't.
+    // Also, C doesn't count a trailing empty segment after the final '\n'.
+    // Strip leading empty line (from template literal) and trailing empty line.
     let lines = mapStr.split('\n');
+    if (lines.length > 0 && lines[0] === '') lines = lines.slice(1);
+    while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
 
     const height = lines.length;
     const width = Math.max(...lines.map(line => line.length));
@@ -1334,7 +1353,69 @@ export function map(data) {
 
     // Determine placement coordinates
     const explicitCoords = (x !== undefined && y !== undefined);
-    if (!explicitCoords) {
+    // C ref: sp_lev.c lspo_map() — detect whether halign/valign were explicitly set.
+    // In C, lr/tb default to -1 (unspecified). In Lua themed rooms, des.map({map=...})
+    // doesn't specify halign/valign, so lr=-1 and tb=-1, triggering random placement.
+    // In JS, we detect this by checking if data.halign/valign were NOT in the input.
+    const hasExplicitAlign = data && typeof data === 'object'
+        && (data.halign !== undefined || data.valign !== undefined);
+
+    if (levelState.inThemerooms && !explicitCoords && !hasExplicitAlign) {
+        // C ref: sp_lev.c:6132-6264 — themed room random placement with retry
+        // When in_mk_themerooms, lr==-1, tb==-1, and no explicit x/y,
+        // pick random position and retry up to 100 times if conflicts detected
+        let tryct = 0;
+        let placed = false;
+
+        while (tryct <= 100) {
+            // C ref: sp_lev.c:6144 — random x placement
+            x = 1 + rn2(COLNO - 1 - width);
+            // C ref: sp_lev.c:6154 — random y placement
+            y = rn2(ROWNO - height);
+
+            // C ref: sp_lev.c:6236-6264 — check that themed room map doesn't
+            // overwrite existing non-STONE tiles or tiles with roomno set
+            let isokp = true;
+            for (let cy = y - 1; cy < Math.min(ROWNO, y + height) + 1 && isokp; cy++) {
+                for (let cx = x - 1; cx < Math.min(COLNO, x + width) + 1 && isokp; cx++) {
+                    if (cx < 0 || cx >= COLNO || cy < 0 || cy >= ROWNO) {
+                        isokp = false;
+                    } else if (cy < y || cy >= y + height || cx < x || cx >= x + width) {
+                        // Border cell — must be STONE with no room
+                        const loc = levelState.map.locations[cx][cy];
+                        if (loc.typ !== STONE || loc.roomno !== 0) {
+                            isokp = false;
+                        }
+                    } else {
+                        // Interior cell — check map char
+                        const mapLine = lines[cy - y];
+                        const mapCh = mapLine ? mapLine[cx - x] : undefined;
+                        const mptyp = mapCh ? mapchrToTerrain(mapCh) : -1;
+                        if (mptyp === -1) continue; // MAX_TYPE / transparent — skip
+                        const loc = levelState.map.locations[cx][cy];
+                        if ((loc.typ !== STONE && loc.typ !== mptyp) || loc.roomno !== 0) {
+                            isokp = false;
+                        }
+                    }
+                }
+            }
+
+            if (isokp) {
+                placed = true;
+                break;
+            }
+
+            tryct++;
+            if (tryct > 100) {
+                // C ref: sp_lev.c:6261 — themeroom_failed = TRUE; goto skipmap;
+                if (levelState.roomFailureCallback) {
+                    levelState.roomFailureCallback();
+                }
+                return; // Skip map placement entirely
+            }
+        }
+    } else if (!explicitCoords) {
+        // Non-themeroom alignment-based placement
         // C ref: sp_lev.c lspo_map() alignment math.
         const xMazeMax = (COLNO - 1) & ~1;
         const yMazeMax = (ROWNO - 1) & ~1;
@@ -1374,7 +1455,7 @@ export function map(data) {
     levelState.xstart = x;
     levelState.ystart = y;
 
-    // Place the map
+    // Place the map tiles
     for (let ly = 0; ly < lines.length; ly++) {
         const line = lines[ly];
         for (let lx = 0; lx < line.length; lx++) {
@@ -1472,18 +1553,31 @@ export function terrain(x_or_opts, y_or_type, type) {
             }
         } else if (x_or_opts.x !== undefined && x_or_opts.y !== undefined) {
             // {x, y, typ} format
+            // C ref: sp_lev.c lspo_terrain() applies room offset via get_location_coord()
+            let ax = x_or_opts.x, ay = x_or_opts.y;
+            if (levelState.currentRoom && ax >= 0 && ay >= 0) {
+                ax += levelState.currentRoom.lx;
+                ay += levelState.currentRoom.ly;
+            }
             const terrainType = mapchrToTerrain(x_or_opts.typ);
-            if (terrainType !== -1 && x_or_opts.x >= 0 && x_or_opts.x < 80 &&
-                x_or_opts.y >= 0 && x_or_opts.y < 21) {
-                levelState.map.locations[x_or_opts.x][x_or_opts.y].typ = terrainType;
+            if (terrainType !== -1 && ax >= 0 && ax < 80 &&
+                ay >= 0 && ay < 21) {
+                levelState.map.locations[ax][ay].typ = terrainType;
             }
         }
     } else if (typeof x_or_opts === 'number') {
         // (x, y, type) format
-        if (x_or_opts >= 0 && x_or_opts < 80 && y_or_type >= 0 && y_or_type < 21) {
+        // C ref: sp_lev.c lspo_terrain() calls get_location_coord() which
+        // adds croom->lx/ly offset for room-relative coordinates
+        let ax = x_or_opts, ay = y_or_type;
+        if (levelState.currentRoom && ax >= 0 && ay >= 0) {
+            ax += levelState.currentRoom.lx;
+            ay += levelState.currentRoom.ly;
+        }
+        if (ax >= 0 && ax < 80 && ay >= 0 && ay < 21) {
             const terrainType = mapchrToTerrain(type);
             if (terrainType !== -1) {
-                levelState.map.locations[x_or_opts][y_or_type].typ = terrainType;
+                levelState.map.locations[ax][ay].typ = terrainType;
             }
         }
     }
@@ -1588,7 +1682,7 @@ function mapchrToTerrain(ch) {
         case 'A': return AIR;
         case 'S': return SDOOR;
         case 'H': return SCORR;
-        case 'x': return MAX_TYPE;  // C ref: "see-through" pseudo terrain
+        case 'x': return -1;  // C ref: MAX_TYPE "see-through" = skip this tile
         case 'B': return CROSSWALL; // C ref: boundary location hack
         // Other characters that appear in maps
         case '^': return ROOM; // trap placeholder, will be replaced
@@ -1773,6 +1867,7 @@ export function room(opts = {}) {
     // If x, y are specified, use them directly (special level fixed position)
     // If -1, would need random placement (not implemented yet)
     let roomX, roomY, roomW, roomH;
+    let splitDone = false; // Set true when create_room_splev already called split_rects
 
     if (x >= 0 && y >= 0 && w > 0 && h > 0 && levelState.roomDepth > 0) {
         // Nested room with fixed coordinates
@@ -1967,17 +2062,76 @@ export function room(opts = {}) {
         const fullyRandom = (x < 0 && y < 0 && w < 0 && xalign < 0 && yalign < 0);
 
         if (!fullyRandom) {
-            // Partially random room (e.g., Mausoleum: specified w/h, random x/y)
+            // Partially random room (e.g., specified w/h, random x/y)
+            // Route through create_room (dungeon.js) which handles position randomization,
+            // check_room, split_rects with rndpos, and add_room_to_map with correct
+            // dimensions and wall tiles — matching C's exact code path.
             // C ref: build_room sp_lev.c:2803 — rn2(100) chance check FIRST
             rtype = (!chance || rn2(100) < chance) ? requestedRtype : 0; // 0 = OROOM
-            // C ref: create_room sp_lev.c:1512 — litstate_rnd BEFORE position randomization
+            // C ref: create_room sp_lev.c:1512 — litstate_rnd called inside create_room
+            // We call it here so create_room's internal call is a no-op
             lit = litstate_rnd(lit, levelState.depth || 1);
+
+            if (!levelState.map) {
+                console.error('des.room(): no map available for partially-random create_room');
+                return false;
+            }
+
+            const success = create_room(levelState.map, x, y, w, h, xalign, yalign,
+                                        rtype, lit, levelState.depth || 1, false);
+
+            if (!success) {
+                if (DEBUG) {
+                    console.log(`des.room(): partially-random create_room failed`);
+                }
+                if (levelState.roomFailureCallback) {
+                    levelState.roomFailureCallback();
+                }
+                return false;
+            }
+
+            // Extract the room that was just added
+            const room = levelState.map.rooms[levelState.map.rooms.length - 1];
+
+            const OROOM_LOCAL = 0;
+            const THEMEROOM_LOCAL = 1;
+            if (rtype === OROOM_LOCAL || rtype === THEMEROOM_LOCAL) {
+                room.needfill = (filled !== undefined) ? filled : (levelState.inThemerooms ? 0 : FILL_NORMAL);
+            }
+
+            roomX = room.lx;
+            roomY = room.ly;
+            roomW = room.hx - room.lx + 1;
+            roomH = room.hy - room.ly + 1;
+
+            if (DEBUG) {
+                console.log(`des.room(): partially-random room created at (${roomX},${roomY}) size ${roomW}x${roomH}`);
+            }
+
+            // Execute room contents callback if provided
+            if (contents && typeof contents === 'function') {
+                const parentRoom = levelState.currentRoom;
+                levelState.roomStack.push(parentRoom);
+                levelState.roomDepth++;
+
+                room.width = roomW;
+                room.height = roomH;
+                levelState.currentRoom = room;
+
+                try {
+                    contents(room);
+                } finally {
+                    levelState.currentRoom = levelState.roomStack.pop();
+                    levelState.roomDepth--;
+                }
+            }
+
+            return true; // Early return - partially-random room created
         }
 
-        // For fully-random rooms, defer create_room call so we can do rn2(100)+litstate_rnd first
-        // For partially-random rooms, rn2(100)+litstate_rnd already done above
+        // Fully-random rooms: defer create_room call so we can do rn2(100)+litstate_rnd first
         const roomCalc = create_room_splev(x, y, w, h, xalign, yalign,
-                                           rtype, lit, levelState.depth || 1, true, false, fullyRandom); // skipLitstate=true always, deferCreateRoom only for fullyRandom
+                                           rtype, lit, levelState.depth || 1, true, false, true); // skipLitstate=true, deferCreateRoom=true
 
         if (!roomCalc) {
             if (DEBUG) {
@@ -2093,10 +2247,8 @@ export function room(opts = {}) {
                 }
             }
 
-            // Update rect pool for random-placement room
-            if (levelState.roomDepth === 0 && isRandomPlacement) {
-                update_rect_pool_for_room(room);
-            }
+            // NOTE: No update_rect_pool_for_room here — create_room() above
+            // already called split_rects() internally (C ref: sp_lev.c:1650)
 
             return true; // Early return - deferred room created and processed
         }
@@ -2180,6 +2332,8 @@ export function room(opts = {}) {
         roomH = roomCalc.hy - roomCalc.ly + 1;
         // Use calculated rlit from litstate_rnd (already processed)
         lit = roomCalc.rlit;
+        // create_room_splev already called split_rects with correct rndpos
+        splitDone = !!roomCalc._splitDone;
 
         if (DEBUG) {
             console.log(`des.room(): used create_room_splev, got room at (${roomX},${roomY}) size ${roomW}x${roomH}, lit=${lit}`);
@@ -2259,10 +2413,14 @@ export function room(opts = {}) {
     // C behavior: Rooms with random placement (x=-1,y=-1) split the rectangle pool
     // Fixed-position rooms (like oracle's x=3,y=3) do NOT split - they bypass BSP entirely
     // Nested rooms (subrooms) also do NOT split - C ref: create_subroom() has no split_rects call
-    // Themed rooms have x=-1,y=-1 (random placement) but may specify w,h (fixed size)
-    // Use isRandomPlacement variable already defined at top of function
-    if (levelState.roomDepth === 0 && isRandomPlacement) {
+    // If create_room_splev already called split_rects (with correct rndpos), skip this
+    if (levelState.roomDepth === 0 && isRandomPlacement && !splitDone) {
+        if (DEBUG_BUILD) {
+            console.log(`  des.room(): calling update_rect_pool_for_room (splitDone=${splitDone})`);
+        }
         update_rect_pool_for_room(room);
+    } else if (DEBUG_BUILD && levelState.roomDepth === 0 && isRandomPlacement) {
+        console.log(`  des.room(): SKIPPING update_rect_pool_for_room (splitDone=${splitDone})`);
     }
 
     if (DEBUG) {
@@ -3295,9 +3453,9 @@ export function feature(type, x, y) {
     let absX = x;
     let absY = y;
     if (levelState.currentRoom && x !== undefined && y !== undefined) {
-        // Coordinates are relative to room interior (excluding walls)
-        absX = levelState.currentRoom.lx + 1 + x;
-        absY = levelState.currentRoom.ly + 1 + y;
+        // C ref: sp_lev.c get_location() adds croom->lx/ly (NOT lx+1)
+        absX = levelState.currentRoom.lx + x;
+        absY = levelState.currentRoom.ly + y;
     }
 
     if (absX >= 0 && absX < 80 && absY >= 0 && absY < 21) {
@@ -3863,11 +4021,19 @@ export const selection = {
             return selection.new();
         }
 
-        // Create a selection with all cells in the room (excluding walls)
+        // Create a selection with all interior cells in the room
+        // C ref: selvar.c selection_from_mkroom() — iterates lx..hx, ly..hy (inclusive)
+        // and checks !edge && roomno == rmno
         const sel = selection.new();
-        for (let y = currentRoom.ly + 1; y < currentRoom.hy; y++) {
-            for (let x = currentRoom.lx + 1; x < currentRoom.hx; x++) {
-                sel.set(x, y);
+        const rmno = currentRoom.roomnoidx !== undefined
+            ? currentRoom.roomnoidx + 3  // ROOMOFFSET = 3
+            : 0;
+        for (let y = currentRoom.ly; y <= currentRoom.hy; y++) {
+            for (let x = currentRoom.lx; x <= currentRoom.hx; x++) {
+                const loc = levelState.map && levelState.map.at(x, y);
+                if (loc && !loc.edge && (!rmno || loc.roomno === rmno)) {
+                    sel.set(x, y);
+                }
             }
         }
         return sel;
@@ -3907,7 +4073,16 @@ export const selection = {
             },
             iterate: (func) => {
                 for (const coord of coords) {
-                    func(coord.x, coord.y);
+                    // C ref: nhlsel.c l_selection_iterate() calls cvt_to_relcoord()
+                    let rx = coord.x, ry = coord.y;
+                    if (levelState.currentRoom) {
+                        rx -= levelState.currentRoom.lx;
+                        ry -= levelState.currentRoom.ly;
+                    } else if (levelState.xstart !== undefined) {
+                        rx -= levelState.xstart;
+                        ry -= levelState.ystart;
+                    }
+                    func(rx, ry);
                 }
             },
             filter_mapchar: (ch) => {
@@ -4022,11 +4197,21 @@ export const selection = {
             /**
              * iterate(func)
              * Call a function for each coordinate in the selection.
-             * The function receives (x, y) as parameters.
+             * Coordinates are converted to room-relative via cvt_to_relcoord.
+             * C ref: nhlsel.c l_selection_iterate() calls cvt_to_relcoord()
              */
             iterate: (func) => {
                 for (const coord of coords) {
-                    func(coord.x, coord.y);
+                    let rx = coord.x, ry = coord.y;
+                    // C ref: sp_lev.c cvt_to_relcoord() — subtract room/map origin
+                    if (levelState.currentRoom) {
+                        rx -= levelState.currentRoom.lx;
+                        ry -= levelState.currentRoom.ly;
+                    } else if (levelState.xstart !== undefined) {
+                        rx -= levelState.xstart;
+                        ry -= levelState.ystart;
+                    }
+                    func(rx, ry);
                 }
             },
             /**
