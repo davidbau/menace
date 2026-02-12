@@ -48,6 +48,10 @@ describe('E2E: Critical startup checks', () => {
             // Load the page
             await page.goto(serverInfo.url);
 
+            // Clear localStorage and reload to prevent state leakage between tests
+            await page.evaluate(() => localStorage.clear());
+            await page.reload({ waitUntil: 'networkidle0' });
+
             // Wait for terminal to be ready
             await page.waitForSelector('#terminal', { timeout: 5000 });
 
@@ -65,7 +69,7 @@ describe('E2E: Critical startup checks', () => {
             await page.keyboard.press('Enter');
             await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
             // Auto-select role and start game (this triggers makerooms())
-            await page.keyboard.type('a'); // Auto-pick all
+            await page.keyboard.type('a'); // Auto-pick all (skips to lore)
             await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
             await page.keyboard.press('Space'); // Dismiss lore
             await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
@@ -109,6 +113,11 @@ describe('E2E: Critical startup checks', () => {
 
         try {
             await page.goto(serverInfo.url);
+
+            // Clear localStorage and reload to prevent state leakage between tests
+            await page.evaluate(() => localStorage.clear());
+            await page.reload({ waitUntil: 'networkidle0' });
+
             await page.waitForSelector('#terminal', { timeout: 5000 });
 
             // Wait for game to be ready for input
@@ -124,33 +133,41 @@ describe('E2E: Critical startup checks', () => {
             await page.keyboard.type('Test');
             await page.keyboard.press('Enter');
             await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
-            await page.keyboard.type('a');
+            await page.keyboard.type('a'); // Auto-pick all (skips to lore)
             await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
-            await page.keyboard.press('Space');
+            await page.keyboard.press('Space'); // Dismiss lore
             await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
-            await page.keyboard.press('Space');
+            await page.keyboard.press('Space'); // Dismiss welcome
             await page.evaluate(() => new Promise(r => setTimeout(r, 200)));
 
-            // Wait for game to start and render (may take longer on first load)
-            await page.waitForFunction(
-                () => {
-                    const pre = document.getElementById('terminal');
-                    if (!pre) return false;
-                    return pre.textContent.includes('@');
-                },
-                { timeout: 5000 }
-            );
+            // Wait for game to start and render map with dungeon features
+            // ASCII mode: @ (player), . (floor), - and | (walls)
+            try {
+                await page.waitForFunction(
+                    () => {
+                        const pre = document.getElementById('terminal');
+                        if (!pre) return false;
+                        const text = pre.textContent;
+                        return text.includes('@') && text.includes('.') &&
+                               text.includes('-') && text.includes('|');
+                    },
+                    { timeout: 5000 }
+                );
+            } catch (e) {
+                // Debug: show what's actually on screen
+                const content = await page.evaluate(() => document.getElementById('terminal')?.textContent || 'NO TERMINAL');
+                console.error('Timeout waiting for map. Terminal content:');
+                console.error(content.substring(0, 500));
+                throw e;
+            }
 
-            // Check for dungeon characters (walls, floor)
+            // Double-check dungeon characters are present
             const hasDungeonChars = await page.evaluate(() => {
                 const pre = document.getElementById('terminal');
                 if (!pre) return false;
                 const text = pre.textContent;
-                // Check for: player (@), floor (·), walls (─│┌┐└┘├┤┬┴┼)
-                const hasPlayer = text.includes('@');
-                const hasFloor = text.includes('·');
-                const hasWalls = /[─│┌┐└┘├┤┬┴┼]/.test(text);
-                return hasPlayer && hasFloor && hasWalls;
+                return text.includes('@') && text.includes('.') &&
+                       text.includes('-') && text.includes('|');
             });
 
             assert.ok(hasDungeonChars, 'Map should show player, floor, and wall characters');

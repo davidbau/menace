@@ -70,6 +70,11 @@ async function isGameOver() {
 
 async function startNewGame() {
     await page.goto(serverInfo.url);
+
+    // Clear localStorage and reload to prevent state leakage between tests
+    await page.evaluate(() => localStorage.clear());
+    await page.reload({ waitUntil: 'networkidle0' });
+
     await page.waitForSelector('#terminal', { timeout: 5000 });
     await page.waitForFunction(
         () => document.querySelectorAll('#terminal span').length > 100,
@@ -90,7 +95,7 @@ async function startNewGame() {
     await sendChar('t');
     await sendKey('Enter');
     await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
-    // "Shall I pick..." → 'a' (auto-pick, skip confirm)
+    // "Shall I pick..." → 'a' (auto-pick, skips to lore)
     await sendChar('a');
     await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
     // Dismiss lore --More--

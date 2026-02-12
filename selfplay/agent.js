@@ -517,6 +517,29 @@ export class Agent {
         const px = this.screen.playerX;
         const py = this.screen.playerY;
 
+        // Position sanity check: if player position not found, handle gracefully
+        if (px === -1 || py === -1) {
+            console.log(`[POSITION] Player position not found (${px},${py}) - checking for menu/prompt`);
+            console.log(`[POSITION] Message: "${this.screen.message}"`);
+            console.log(`[POSITION] inMenu=${this.screen.inMenu}, inPrompt=${this.screen.inPrompt}`);
+
+            // If in a menu, try to exit it
+            if (this.screen.inMenu) {
+                console.log(`[POSITION] In menu - exiting with ESC`);
+                return { type: 'navigate', key: '\x1b', reason: 'exiting menu (position lost)' };
+            }
+
+            // If in a prompt, answer 'n' (safe default)
+            if (this.screen.inPrompt) {
+                console.log(`[POSITION] In prompt - answering 'n'`);
+                return { type: 'navigate', key: 'n', reason: 'answering prompt (position lost)' };
+            }
+
+            // Otherwise, this is an error - wait and hope it resolves
+            console.log(`[POSITION] ERROR: position lost but not in menu/prompt. Waiting...`);
+            return { type: 'wait', key: '.', reason: 'position lost, waiting for screen update' };
+        }
+
         // Track recent positions for anti-oscillation (always, even when moving)
         const posKey = py * 80 + px;
         this.recentPositions.add(posKey);
@@ -1105,8 +1128,10 @@ export class Agent {
         // 5b. Check for obvious dead-end situations needing secret door search
         // Do this BEFORE normal exploration to avoid wasting time wandering
         // BUT: Don't trigger this when coverage is very low (< 15%) - we probably just need to explore more
+        // CRITICAL: Secret doors only exist on Dlvl 3+ (depth > 2)
         const exploredPercentDeadEnd = level.exploredCount / (80 * 21);
-        if (level.isDeadEnd(px, py) && level.stairsDown.length === 0 && exploredPercentDeadEnd > 0.15) {
+        const canHaveSecretDoorsDeadEnd = this.dungeon.currentDepth > 2;
+        if (canHaveSecretDoorsDeadEnd && level.isDeadEnd(px, py) && level.stairsDown.length === 0 && exploredPercentDeadEnd > 0.15) {
             const candidates = level.getSecretDoorCandidates(px, py);
             if (candidates.length > 0 && candidates[0].searchCount < 10) {
                 // We're adjacent to unsearched walls in a dead-end - search now!
@@ -1852,7 +1877,8 @@ export class Agent {
             const veryStuck = this.levelStuckCounter > 80;
 
             // Check if we need exhaustive exploration (no stairs found after long time)
-            const needsExhaustiveSearch = (this.turnNumber > 150 && level.stairsDown.length === 0);
+            // Only search for secret doors on Dlvl 3+ where they exist
+            const needsExhaustiveSearch = (this.turnNumber > 150 && level.stairsDown.length === 0 && this.dungeon.currentDepth > 2);
 
             if (!veryStuck) {
                 // Head for downstairs if known
@@ -2102,6 +2128,10 @@ export class Agent {
                 const letter = this.pendingEatLetter;
                 this.pendingEatLetter = null;
                 this.adapter.queueInput(letter);
+            } else if ((action.type === 'kick' || action.type === 'open') && this.pendingDoorDir) {
+                const dir = this.pendingDoorDir;
+                this.pendingDoorDir = null;
+                this.adapter.queueInput(dir);
             }
         }
         await this.adapter.sendKey(action.key);

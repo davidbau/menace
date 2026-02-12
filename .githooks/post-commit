@@ -1,0 +1,29 @@
+#!/bin/bash
+# Post-commit hook: Promote pending test results to a git note
+#
+# If teststats/pending.jsonl exists with "commit":"HEAD", replace HEAD
+# with the real commit hash and attach as a git note. The next push
+# will carry the note automatically (via remote.origin.push refspec).
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+PENDING_FILE="$REPO_ROOT/teststats/pending.jsonl"
+
+if [ ! -f "$PENDING_FILE" ]; then
+  exit 0
+fi
+
+PENDING_COMMIT=$(jq -r '.commit' "$PENDING_FILE" 2>/dev/null)
+if [ "$PENDING_COMMIT" != "HEAD" ]; then
+  exit 0
+fi
+
+CURRENT_COMMIT=$(git rev-parse HEAD)
+CURRENT_SHORT=$(git rev-parse --short HEAD)
+PARENT_SHORT=$(git rev-parse --short HEAD^ 2>/dev/null || echo "none")
+
+jq --arg commit "$CURRENT_SHORT" --arg parent "$PARENT_SHORT" \
+  '.commit = $commit | .parent = $parent' "$PENDING_FILE" \
+  | git notes --ref=test-results add -f -F - "$CURRENT_COMMIT"
+
+rm -f "$PENDING_FILE"
+echo "✅ Test note attached to commit $CURRENT_SHORT"

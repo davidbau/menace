@@ -171,6 +171,11 @@
             opacity: 1;
         }
 
+        #panel-toggle.panels-auto-hidden {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
         /* ============================================================
            Dark Mode Variables
            ============================================================ */
@@ -541,7 +546,7 @@
                     <tr><td>S</td><td>save &amp; quit</td></tr>
                     <tr><td>?</td><td>help</td></tr>
                 </table>
-            </div>
+            </aside>
 
             <!-- Center: game terminal -->
             <div id="game" role="application" aria-label="NetHack game terminal">
@@ -589,56 +594,113 @@
         var keyrefPanel = document.getElementById('keyref');
         var hoverPanel = document.getElementById('hover-panel');
         var panelToggle = document.getElementById('panel-toggle');
+        var gameDiv = document.getElementById('game');
         var storageKey = 'webhack-panels-hidden';
+        var autoHidden = false;
 
-        /**
-         * Update panel toggle button appearance based on panel visibility
-         */
-        function updateToggleButton() {
-            var isHidden = keyrefPanel.classList.contains('hidden');
-            if (isHidden) {
-                panelToggle.classList.add('panels-hidden');
-                panelToggle.title = 'Show side panels';
+        function userWantsHidden() {
+            try { return !!localStorage.getItem(storageKey); } catch(e) { return false; }
+        }
+
+        function setPanelsVisible(show) {
+            if (show) {
+                keyrefPanel.classList.remove('hidden');
+                hoverPanel.classList.remove('hidden');
             } else {
+                keyrefPanel.classList.add('hidden');
+                hoverPanel.classList.add('hidden');
+            }
+        }
+
+        function updateToggleButton() {
+            if (autoHidden) {
+                panelToggle.classList.add('panels-auto-hidden');
                 panelToggle.classList.remove('panels-hidden');
-                panelToggle.title = 'Hide side panels';
+            } else if (keyrefPanel.classList.contains('hidden')) {
+                panelToggle.classList.remove('panels-auto-hidden');
+                panelToggle.classList.add('panels-hidden');
+            } else {
+                panelToggle.classList.remove('panels-auto-hidden');
+                panelToggle.classList.remove('panels-hidden');
             }
         }
 
         /**
-         * Toggle visibility of both side panels and persist state
+         * Check whether side panels fit alongside the game terminal.
+         * Auto-hides panels when viewport is too narrow for all three,
+         * and restores them (respecting user preference) when space returns.
          */
-        function togglePanels() {
-            var isHidden = keyrefPanel.classList.contains('hidden');
-
-            if (isHidden) {
-                // Show panels
-                keyrefPanel.classList.remove('hidden');
-                hoverPanel.classList.remove('hidden');
-                try { localStorage.removeItem(storageKey); } catch(e) {}
-            } else {
-                // Hide panels
-                keyrefPanel.classList.add('hidden');
-                hoverPanel.classList.add('hidden');
-                try { localStorage.setItem(storageKey, '1'); } catch(e) {}
+        function checkPanelFit() {
+            // Only relevant on wide screens where panels are side-by-side
+            if (window.innerWidth < 1100) {
+                if (autoHidden) {
+                    autoHidden = false;
+                    if (!userWantsHidden()) setPanelsVisible(true);
+                    updateToggleButton();
+                }
+                return;
             }
 
+            // Compute game terminal's minimum occupied width (content + padding + border)
+            var gs = getComputedStyle(gameDiv);
+            var gameNeeded = (parseFloat(gs.minWidth) || 0)
+                + (parseFloat(gs.paddingLeft) || 0) + (parseFloat(gs.paddingRight) || 0)
+                + (parseFloat(gs.borderLeftWidth) || 0) + (parseFloat(gs.borderRightWidth) || 0);
+
+            // Side panels: 180px content + 12px padding each = 192px each
+            // Flex gaps: 16px × 2 = 32px.  Total overhead: 416px.
+            var totalNeeded = gameNeeded + 416;
+
+            // Use clientWidth (excludes scrollbar) for accurate available layout space
+            var availableWidth = document.documentElement.clientWidth;
+
+            if (totalNeeded > availableWidth) {
+                if (!autoHidden) {
+                    autoHidden = true;
+                    setPanelsVisible(false);
+                    updateToggleButton();
+                }
+            } else {
+                if (autoHidden) {
+                    autoHidden = false;
+                    if (!userWantsHidden()) setPanelsVisible(true);
+                    updateToggleButton();
+                }
+            }
+        }
+
+        function togglePanels() {
+            if (autoHidden) return;
+
+            var isHidden = keyrefPanel.classList.contains('hidden');
+            if (isHidden) {
+                setPanelsVisible(true);
+                try { localStorage.removeItem(storageKey); } catch(e) {}
+            } else {
+                setPanelsVisible(false);
+                try { localStorage.setItem(storageKey, '1'); } catch(e) {}
+            }
             updateToggleButton();
         }
 
-        // Panel toggle button
         panelToggle.addEventListener('click', togglePanels);
 
-        // Restore hidden state from localStorage
-        try {
-            if (localStorage.getItem(storageKey)) {
-                keyrefPanel.classList.add('hidden');
-                hoverPanel.classList.add('hidden');
-            }
-        } catch(e) {}
+        // Restore user preference
+        if (userWantsHidden()) setPanelsVisible(false);
 
-        // Update button state on load
+        // Re-evaluate on viewport resize
+        window.addEventListener('resize', checkPanelFit);
+
+        // Re-evaluate when game terminal resizes (e.g. font-size changes ch units)
+        if (window.ResizeObserver) {
+            new ResizeObserver(checkPanelFit).observe(gameDiv);
+        }
+
+        checkPanelFit();
         updateToggleButton();
+
+        // Expose so font-size controls can trigger a re-check
+        window._checkPanelFit = checkPanelFit;
     })();
 
     /* ============================================================
@@ -683,6 +745,7 @@
         }
 
         applyFontSize(savedFontSize);
+        if (window._checkPanelFit) requestAnimationFrame(window._checkPanelFit);
 
         // Theme toggle
         themeToggle.addEventListener('click', function() {
@@ -701,6 +764,7 @@
             } catch(e) {}
             size = Math.max(12, size - 2);
             applyFontSize(size);
+            if (window._checkPanelFit) requestAnimationFrame(window._checkPanelFit);
             try {
                 localStorage.setItem('nh-font-size', size);
             } catch(e) {}
@@ -713,6 +777,7 @@
             } catch(e) {}
             size = Math.min(24, size + 2);
             applyFontSize(size);
+            if (window._checkPanelFit) requestAnimationFrame(window._checkPanelFit);
             try {
                 localStorage.setItem('nh-font-size', size);
             } catch(e) {}

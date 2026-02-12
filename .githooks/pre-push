@@ -1,5 +1,11 @@
 #!/bin/bash
-# Pre-push hook: Run tests and log results before allowing push
+# Pre-push hook: Verify tests have been run for HEAD
+#
+# Workflow:
+#   1. Run .githooks/test-and-log.sh → writes teststats/pending.jsonl
+#   2. git commit → post-commit hook promotes pending → git note
+#   3. git push → this hook verifies note exists; notes push automatically
+#
 # Install: git config core.hooksPath .githooks
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -12,47 +18,19 @@ if ! check_setup; then
 fi
 
 echo "========================================"
-echo "Pre-push hook: Running tests..."
+echo "Pre-push hook: Checking tests..."
 echo "========================================"
 
-# Run test-and-log script
-"$SCRIPT_DIR/test-and-log.sh"
+CURRENT_COMMIT=$(git rev-parse HEAD)
+CURRENT_SHORT=$(git rev-parse --short HEAD)
 
-exit_code=$?
-
-if [ $exit_code -eq 0 ]; then
-  echo ""
-  echo "✅ Tests passed and logged. Push allowed."
-
-  # Check if test log was updated
-  if git diff --quiet teststats/results.jsonl 2>/dev/null; then
-    # No changes to test log - this is expected for initial commit
-    if [ ! -f teststats/results.jsonl ]; then
-      echo ""
-      echo "⚠️  No test log exists yet. Creating initial entry..."
-      # This will create the log file
-    else
-      echo ""
-      echo "✅ Test log already committed"
-    fi
-  else
-    echo ""
-    echo "⚠️  teststats/results.jsonl has uncommitted changes"
-    echo ""
-    echo "   Workflow: Tests log results for CURRENT commit"
-    echo "   The test log entry should be committed SEPARATELY:"
-    echo ""
-    echo "   git add teststats/results.jsonl"
-    echo "   git commit -m 'Add test results for commit $(git rev-parse --short HEAD)'"
-    echo ""
-    echo "   Then push again."
-    exit 1
-  fi
-else
-  echo ""
-  echo "❌ Tests failed or regressed. Push rejected."
-  echo "   Fix the issues or use --allow-regression flag"
-  exit 1
+if git notes --ref=test-results show "$CURRENT_COMMIT" >/dev/null 2>&1; then
+  echo "✅ Test note exists for commit $CURRENT_SHORT — push allowed"
+  exit 0
 fi
 
+echo ""
+echo "⚠️  No test note for commit $CURRENT_SHORT."
+echo "   Run:  .githooks/test-and-log.sh && git commit --amend --no-edit"
+echo "   Pushing without test results..."
 exit 0

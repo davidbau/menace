@@ -104,6 +104,22 @@ export class HeadlessGame {
         this.seed = seed;
         this.roleIndex = roleIndex;
 
+        // Game flags (C ref: flags struct from flag.h)
+        this.flags = {
+            pickup: true,
+            pickup_types: '',
+            showexp: true,
+            color: true,
+            time: false,
+            safe_pet: true,
+            confirm: true,
+            verbose: true,
+            tombstone: true,
+            rest_on_space: false,
+            number_pad: false,
+            lit_corridor: false,
+        };
+
         // Initialize RNG and level generation (match test/comparison/session_helpers.js sequence)
         initrack();  // reset player track buffer
         initRng(seed);

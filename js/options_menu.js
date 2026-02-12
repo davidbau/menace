@@ -24,9 +24,9 @@ export const OPTIONS_DATA = {
         {
             category: 'Behavior',
             options: [
-                { key: 'c', name: 'autodig', type: 'bool', flag: 'autodig', help: 'dig if moving towards stone' },
-                { key: 'd', name: 'autoopen', type: 'bool', flag: 'autoopen', help: 'open doors if moving towards one' },
-                { key: 'e', name: 'autopickup', type: 'bool', flag: 'pickup', help: 'automatically pick up items' },
+                { key: 'c', name: 'autodig', type: 'bool', flag: 'autodig', help: 'dig if moving and wielding a digging tool' },
+                { key: 'd', name: 'autoopen', type: 'bool', flag: 'autoopen', help: 'walking into a door attempts to open it' },
+                { key: 'e', name: 'autopickup', type: 'bool', flag: 'pickup', help: 'automatically pick up objects' },
                 { key: 'f', name: 'autopickup exceptions', type: 'count', flag: 'autopickup_exceptions', help: 'exceptions to autopickup' },
                 { key: 'g', name: 'autoquiver', type: 'bool', flag: 'autoquiver', help: 'automatically fill quiver' },
                 { key: 'h', name: 'autounlock', type: 'text', flag: 'autounlock', default: 'apply-key', help: 'method for unlocking' },
@@ -80,88 +80,135 @@ export const OPTIONS_DATA = {
  * @returns {object} - {screen: string[], attrs: string[]}
  */
 export function renderOptionsMenu(page, showHelp, flags) {
-    const screen = Array(24).fill('').map(() => ' '.repeat(80));
-    const attrs = Array(24).fill('').map(() => '0'.repeat(80));
+    // C NetHack uses variable-length lines, not fixed 80-char
+    const screen = Array(24).fill('');
+    const attrs = Array(24).fill('');
 
     let row = 0;
+    let optionsRendered = 0;
+    const maxOptionsInHelpMode = 5; // C shows only ~5 options per screen in help mode
 
-    // Header (exactly 20 chars with padding)
-    screen[row] = ' Options            ' + ' '.repeat(60);
-    row += 1;
-
-    // Blank line (exactly 20 chars)
-    screen[row] = ' '.repeat(20) + ' '.repeat(60);
-    row += 1;
-
-    // Help text
-    if (showHelp) {
-        screen[row] = ' Use command \'#optionsfull\' to get the complete options list.                   ';
+    // Page 1 shows header and help, page 2 starts directly with categories
+    if (page === 1) {
+        // Header (exactly 20 chars with inverse video on "Options")
+        screen[row] = ' Options            ';
+        // Inverse video on positions 1-7 ("Options")
+        attrs[row] = '0' + '1'.repeat(7) + '0'.repeat(12);
         row += 1;
-        screen[row] = ' ? - hide help      ' + ' '.repeat(60);
-    } else {
-        screen[row] = ' ? - show help      ' + ' '.repeat(60);
+
+        // Blank line (exactly 20 chars)
+        screen[row] = ' '.repeat(20);
+        attrs[row] = '0'.repeat(20);
+        row += 1;
+
+        // Help text
+        if (showHelp) {
+            screen[row] = ' Use command \'#optionsfull\' to get the complete options list.                   ';
+            attrs[row] = '0'.repeat(screen[row].length);
+            row += 1;
+            screen[row] = ' ? - hide help      ';
+            attrs[row] = '0'.repeat(20);
+        } else {
+            screen[row] = ' ? - show help      ';
+            attrs[row] = '0'.repeat(20);
+        }
+        row += 1;
     }
-    row += 1;
 
     // Get page data
     const pageData = page === 1 ? OPTIONS_DATA.page1 : OPTIONS_DATA.page2;
 
     // Render each category
+    let firstCategory = true;
     for (const category of pageData) {
-        // Blank line before category (exactly 20 chars)
-        screen[row] = ' '.repeat(20) + ' '.repeat(60);
-        row += 1;
+        // Blank line before category (except first on page 2)
+        if (!(page === 2 && firstCategory)) {
+            screen[row] = ' '.repeat(20);
+            attrs[row] = '0'.repeat(20);
+            row += 1;
+        }
+        firstCategory = false;
 
         // Category header (indented with 2 spaces, total 40 chars)
         const catHeader = '  ' + category.category;
-        screen[row] = catHeader.padEnd(40, ' ') + ' '.repeat(40);
+        screen[row] = catHeader.padEnd(40, ' ');
+        // Inverse video from position 1-32 (C always uses exactly 32 chars)
+        attrs[row] = '0' + '1'.repeat(32) + '0'.repeat(7);
         row += 1;
 
         // Render options
         for (const opt of category.options) {
+            // In help mode, limit to maxOptionsInHelpMode per screen
+            if (showHelp && optionsRendered >= maxOptionsInHelpMode) break;
             if (row >= 23) break; // Save room for footer
 
-            // Format: " a - option_name              [value]        "
+            // Format: " a - option_name              [value]"
             // Key and name part
             let line = ' ' + opt.key + ' - ' + opt.name;
 
-            // Pad to exactly column 28 for value alignment
-            line = line.padEnd(28, ' ');
+            // Pad to exactly column 29 for value alignment (C has value at col 29)
+            line = line.padEnd(29, ' ');
 
             // Get value
             const value = getOptionValue(opt, flags);
             line += '[' + value + ']';
 
-            // Pad after value - C NetHack has specific padding
+            // Determine line length based on content
             if (opt.suffix) {
-                // Pad to column 45 before suffix
-                line = line.padEnd(45, ' ');
-                line += opt.suffix;
+                // Has suffix - add 2 spaces after value, then suffix, then to 80
+                line += '  ' + opt.suffix;
+                line = line.padEnd(80, ' ');
+            } else if (value.length > 10 || value.includes('currently set')) {
+                // Long value - pad to 80
+                line = line.padEnd(80, ' ');
+            } else {
+                // Short value - pad to 40
+                line = line.padEnd(40, ' ');
             }
 
-            // Pad to exactly 80
-            line = line.padEnd(80, ' ');
             screen[row] = line;
+            attrs[row] = '0'.repeat(line.length);
             row += 1;
+            optionsRendered++;
 
             // Show help text if enabled
             if (showHelp && opt.help) {
                 const helpLine = '     ' + opt.help;
-                screen[row] = helpLine + ' '.repeat(80 - helpLine.length);
+                screen[row] = helpLine.padEnd(80, ' ');
+                attrs[row] = '0'.repeat(80);
                 row += 1;
 
-                // Blank line after help
+                // Blank line after help (20 chars)
                 if (row < 23) {
-                    screen[row] = ' '.repeat(80);
+                    screen[row] = ' '.repeat(20);
+                    attrs[row] = '0'.repeat(20);
                     row += 1;
                 }
             }
         }
     }
 
-    // Footer - page indicator
-    const footer = ' (' + page + ' of 2)           ';
-    screen[23] = footer + ' '.repeat(80 - footer.length);
+    // Blank line before footer (only on page 1 in non-help mode)
+    // In help mode, the blank after last help text serves this purpose
+    if (page === 1 && !showHelp) {
+        screen[row] = ' '.repeat(20);
+        attrs[row] = '0'.repeat(20);
+        row += 1;
+    }
+
+    // Footer - page indicator on current row (exactly 20 chars)
+    // In help mode, show total help pages (C shows 5 for full options)
+    const totalPages = showHelp ? 5 : 2;
+    screen[row] = ' (' + page + ' of ' + totalPages + ')           ';
+    attrs[row] = '0'.repeat(20);
+    row += 1;
+
+    // Fill remaining rows with blank lines (20 chars each)
+    while (row < 24) {
+        screen[row] = ' '.repeat(20);
+        attrs[row] = '0'.repeat(20);
+        row += 1;
+    }
 
     return { screen, attrs };
 }
