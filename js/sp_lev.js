@@ -910,10 +910,14 @@ export function map(data) {
         contents = data.contents;
     }
 
-    // Parse map string into 2D array.
-    // C ref: mapfrag_fromstr() keeps trailing blank rows from the source
-    // string; that trailing empty line still influences centering math.
+    // Parse map string into lines.
+    // C ref: mapfrag_fromstr() counts lines by '\n' separators.
+    // Lua's [[\n...]] strips the leading newline; JS template literals don't.
+    // Also, C doesn't count a trailing empty segment after the final '\n'.
+    // Strip leading empty line (from template literal) and trailing empty line.
     let lines = mapStr.split('\n');
+    if (lines.length > 0 && lines[0] === '') lines = lines.slice(1);
+    while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
 
     const height = lines.length;
     const width = Math.max(...lines.map(line => line.length));
@@ -923,7 +927,69 @@ export function map(data) {
 
     // Determine placement coordinates
     const explicitCoords = (x !== undefined && y !== undefined);
-    if (!explicitCoords) {
+    // C ref: sp_lev.c lspo_map() — detect whether halign/valign were explicitly set.
+    // In C, lr/tb default to -1 (unspecified). In Lua themed rooms, des.map({map=...})
+    // doesn't specify halign/valign, so lr=-1 and tb=-1, triggering random placement.
+    // In JS, we detect this by checking if data.halign/valign were NOT in the input.
+    const hasExplicitAlign = data && typeof data === 'object'
+        && (data.halign !== undefined || data.valign !== undefined);
+
+    if (levelState.inThemerooms && !explicitCoords && !hasExplicitAlign) {
+        // C ref: sp_lev.c:6132-6264 — themed room random placement with retry
+        // When in_mk_themerooms, lr==-1, tb==-1, and no explicit x/y,
+        // pick random position and retry up to 100 times if conflicts detected
+        let tryct = 0;
+        let placed = false;
+
+        while (tryct <= 100) {
+            // C ref: sp_lev.c:6144 — random x placement
+            x = 1 + rn2(COLNO - 1 - width);
+            // C ref: sp_lev.c:6154 — random y placement
+            y = rn2(ROWNO - height);
+
+            // C ref: sp_lev.c:6236-6264 — check that themed room map doesn't
+            // overwrite existing non-STONE tiles or tiles with roomno set
+            let isokp = true;
+            for (let cy = y - 1; cy < Math.min(ROWNO, y + height) + 1 && isokp; cy++) {
+                for (let cx = x - 1; cx < Math.min(COLNO, x + width) + 1 && isokp; cx++) {
+                    if (cx < 0 || cx >= COLNO || cy < 0 || cy >= ROWNO) {
+                        isokp = false;
+                    } else if (cy < y || cy >= y + height || cx < x || cx >= x + width) {
+                        // Border cell — must be STONE with no room
+                        const loc = levelState.map.locations[cx][cy];
+                        if (loc.typ !== STONE || loc.roomno !== 0) {
+                            isokp = false;
+                        }
+                    } else {
+                        // Interior cell — check map char
+                        const mapLine = lines[cy - y];
+                        const mapCh = mapLine ? mapLine[cx - x] : undefined;
+                        const mptyp = mapCh ? mapchrToTerrain(mapCh) : -1;
+                        if (mptyp === -1) continue; // MAX_TYPE / transparent — skip
+                        const loc = levelState.map.locations[cx][cy];
+                        if ((loc.typ !== STONE && loc.typ !== mptyp) || loc.roomno !== 0) {
+                            isokp = false;
+                        }
+                    }
+                }
+            }
+
+            if (isokp) {
+                placed = true;
+                break;
+            }
+
+            tryct++;
+            if (tryct > 100) {
+                // C ref: sp_lev.c:6261 — themeroom_failed = TRUE; goto skipmap;
+                if (levelState.roomFailureCallback) {
+                    levelState.roomFailureCallback();
+                }
+                return; // Skip map placement entirely
+            }
+        }
+    } else if (!explicitCoords) {
+        // Non-themeroom alignment-based placement
         // C ref: sp_lev.c lspo_map() alignment math.
         const xMazeMax = (COLNO - 1) & ~1;
         const yMazeMax = (ROWNO - 1) & ~1;
@@ -963,7 +1029,7 @@ export function map(data) {
     levelState.xstart = x;
     levelState.ystart = y;
 
-    // Place the map
+    // Place the map tiles
     for (let ly = 0; ly < lines.length; ly++) {
         const line = lines[ly];
         for (let lx = 0; lx < line.length; lx++) {
@@ -2111,9 +2177,9 @@ export function object(name_or_opts, x, y) {
     // Then convert room-relative coordinates to absolute if inside a nested room
     // C ref: Lua automatically handles coordinate conversion based on room context
     if (levelState.currentRoom && absX !== undefined && absY !== undefined) {
-        // Coordinates are relative to room interior (excluding walls)
-        absX = levelState.currentRoom.lx + 1 + absX;
-        absY = levelState.currentRoom.ly + 1 + absY;
+        // C ref: sp_lev.c get_location() adds croom->lx/ly (NOT lx+1)
+        absX = levelState.currentRoom.lx + absX;
+        absY = levelState.currentRoom.ly + absY;
     }
 
     // C ref: mkroom.c somexy() - when no coordinates specified and in a room,
@@ -2268,9 +2334,9 @@ export function trap(type_or_opts, x, y) {
     // Then convert room-relative coordinates to absolute if inside a nested room
     // C ref: Lua automatically handles coordinate conversion based on room context
     if (levelState.currentRoom && absX !== undefined && absY !== undefined) {
-        // Coordinates are relative to room interior (excluding walls)
-        absX = levelState.currentRoom.lx + 1 + absX;
-        absY = levelState.currentRoom.ly + 1 + absY;
+        // C ref: sp_lev.c get_location() adds croom->lx/ly (NOT lx+1)
+        absX = levelState.currentRoom.lx + absX;
+        absY = levelState.currentRoom.ly + absY;
     }
 
     // DEFERRED EXECUTION: Queue trap placement instead of executing immediately
@@ -2511,9 +2577,9 @@ export function monster(opts_or_class, x, y) {
     // Then convert room-relative coordinates to absolute if inside a nested room
     // C ref: Lua automatically handles coordinate conversion based on room context
     if (levelState.currentRoom && absX !== undefined && absY !== undefined) {
-        // Coordinates are relative to room interior (excluding walls)
-        absX = levelState.currentRoom.lx + 1 + absX;
-        absY = levelState.currentRoom.ly + 1 + absY;
+        // C ref: sp_lev.c get_location() adds croom->lx/ly (NOT lx+1)
+        absX = levelState.currentRoom.lx + absX;
+        absY = levelState.currentRoom.ly + absY;
     }
 
     // DEFERRED EXECUTION: Queue monster placement for later (after corridors)
@@ -2731,9 +2797,9 @@ export function feature(type, x, y) {
     let absX = x;
     let absY = y;
     if (levelState.currentRoom && x !== undefined && y !== undefined) {
-        // Coordinates are relative to room interior (excluding walls)
-        absX = levelState.currentRoom.lx + 1 + x;
-        absY = levelState.currentRoom.ly + 1 + y;
+        // C ref: sp_lev.c get_location() adds croom->lx/ly (NOT lx+1)
+        absX = levelState.currentRoom.lx + x;
+        absY = levelState.currentRoom.ly + y;
     }
 
     if (absX >= 0 && absX < 80 && absY >= 0 && absY < 21) {
@@ -3220,11 +3286,19 @@ export const selection = {
             return selection.new();
         }
 
-        // Create a selection with all cells in the room (excluding walls)
+        // Create a selection with all interior cells in the room
+        // C ref: selvar.c selection_from_mkroom() — iterates lx..hx, ly..hy (inclusive)
+        // and checks !edge && roomno == rmno
         const sel = selection.new();
-        for (let y = currentRoom.ly + 1; y < currentRoom.hy; y++) {
-            for (let x = currentRoom.lx + 1; x < currentRoom.hx; x++) {
-                sel.set(x, y);
+        const rmno = currentRoom.roomnoidx !== undefined
+            ? currentRoom.roomnoidx + 3  // ROOMOFFSET = 3
+            : 0;
+        for (let y = currentRoom.ly; y <= currentRoom.hy; y++) {
+            for (let x = currentRoom.lx; x <= currentRoom.hx; x++) {
+                const loc = levelState.map && levelState.map.at(x, y);
+                if (loc && !loc.edge && (!rmno || loc.roomno === rmno)) {
+                    sel.set(x, y);
+                }
             }
         }
         return sel;
@@ -3264,7 +3338,16 @@ export const selection = {
             },
             iterate: (func) => {
                 for (const coord of coords) {
-                    func(coord.x, coord.y);
+                    // C ref: nhlsel.c l_selection_iterate() calls cvt_to_relcoord()
+                    let rx = coord.x, ry = coord.y;
+                    if (levelState.currentRoom) {
+                        rx -= levelState.currentRoom.lx;
+                        ry -= levelState.currentRoom.ly;
+                    } else if (levelState.xstart !== undefined) {
+                        rx -= levelState.xstart;
+                        ry -= levelState.ystart;
+                    }
+                    func(rx, ry);
                 }
             },
             filter_mapchar: (ch) => {
@@ -3379,11 +3462,21 @@ export const selection = {
             /**
              * iterate(func)
              * Call a function for each coordinate in the selection.
-             * The function receives (x, y) as parameters.
+             * Coordinates are converted to room-relative via cvt_to_relcoord.
+             * C ref: nhlsel.c l_selection_iterate() calls cvt_to_relcoord()
              */
             iterate: (func) => {
                 for (const coord of coords) {
-                    func(coord.x, coord.y);
+                    let rx = coord.x, ry = coord.y;
+                    // C ref: sp_lev.c cvt_to_relcoord() — subtract room/map origin
+                    if (levelState.currentRoom) {
+                        rx -= levelState.currentRoom.lx;
+                        ry -= levelState.currentRoom.ly;
+                    } else if (levelState.xstart !== undefined) {
+                        rx -= levelState.xstart;
+                        ry -= levelState.ystart;
+                    }
+                    func(rx, ry);
                 }
             },
             /**
