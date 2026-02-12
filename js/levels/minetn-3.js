@@ -77,14 +77,14 @@ export function generate() {
                  }
       })
 
-      des.room({ type: "ordinary",random,x: 14,y: 8,w: 2,h: 2,
+      des.room({ type: "ordinary", random: 1, x: 14,y: 8,w: 2,h: 2,
                  contents: function() {
                     des.door({ state: "locked", wall: "north" });
                     des.monster("G");
                  }
       })
 
-      des.room({ type: "ordinary",random,x: 14,y: 11,w: 2,h: 2,
+      des.room({ type: "ordinary", random: 1, x: 14,y: 11,w: 2,h: 2,
                  contents: function() {
                     des.door({ state: "closed", wall: "south" });
                  }
@@ -109,13 +109,13 @@ export function generate() {
                  }
       })
 
-      des.room({ type: "ordinary",random,x: 16,y: 2,w: 2,h: 2,
+      des.room({ type: "ordinary", random: 1, x: 16,y: 2,w: 2,h: 2,
                  contents: function() {
                     des.door({ state: "closed", wall: "west" });
                  }
       })
 
-      des.room({ type: "ordinary",random,x: 19,y: 2,w: 2,h: 2,
+      des.room({ type: "ordinary", random: 1, x: 19,y: 2,w: 2,h: 2,
                  contents: function() {
                     des.door({ state: "closed", wall: "north" });
                  }

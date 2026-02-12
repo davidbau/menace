@@ -574,6 +574,12 @@ class SimpleLuaConverter:
         # from broad table-field replacement.
         js = re.sub(r'^(\s*)([A-Za-z_]\w*)\s*:\s*(\[[^\n]*\])\s*;', r'\1\2 = \3;', js, flags=re.MULTILINE)
 
+        # Fix 4c: Lua table shorthand "{ ..., random, ... }" appears in some
+        # level files and should become an explicit boolean-like field.
+        # In JS, bare "random" inside object literals becomes invalid when no
+        # variable is in scope, so normalize to "random: 1".
+        js = re.sub(r'([,{]\s*)random(\s*[,}])', r'\1random: 1\2', js)
+
         # Fix 5: Remove orphan return statements (return outside function)
         # Pattern: }\n    return des.finalize_level();\n}
         # OR: }\n    // return des.finalize_level();\n} (when Fix 3 commented it out)

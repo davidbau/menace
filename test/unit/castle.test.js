@@ -72,15 +72,20 @@ describe('Castle (Stronghold) level generation', () => {
 
         const state = getLevelState();
         const map = state.map;
+        const ox = state.xstart;
+        const oy = state.ystart;
 
         // Castle has 4 storerooms × 7 objects each × 2 rows = 56 objects
         // Plus wand of wishing + potion + chest + scare monster scroll = 60 total
         assert.ok(map.objects.length >= 55, `Should have many objects (found ${map.objects.length})`);
 
-        // Check that storerooms exist (objects in specific y-ranges)
-        // Castle map is at origin (2,2), so map coords (39,5) become absolute (41,7)
-        const storeroom1 = map.objects.filter(o => o.oy >= 7 && o.oy <= 8 && o.ox >= 41 && o.ox <= 47);
-        const storeroom2 = map.objects.filter(o => o.oy >= 7 && o.oy <= 8 && o.ox >= 51 && o.ox <= 57);
+        // Check that storerooms exist at coordinates relative to map origin.
+        const storeroom1 = map.objects.filter(o =>
+            o.oy >= oy + 5 && o.oy <= oy + 6 && o.ox >= ox + 39 && o.ox <= ox + 45
+        );
+        const storeroom2 = map.objects.filter(o =>
+            o.oy >= oy + 5 && o.oy <= oy + 6 && o.ox >= ox + 49 && o.ox <= ox + 55
+        );
 
         assert.ok(storeroom1.length >= 10, `Storeroom 1 should have objects (found ${storeroom1.length})`);
         assert.ok(storeroom2.length >= 10, `Storeroom 2 should have objects (found ${storeroom2.length})`);
@@ -93,11 +98,12 @@ describe('Castle (Stronghold) level generation', () => {
 
         const state = getLevelState();
         const map = state.map;
+        const ox = state.xstart;
+        const oy = state.ystart;
 
-        // Throne room has 26 monsters in specific positions
-        // Castle map is at origin (2,2), so map coords (27-37,5-11) become absolute (29-39,7-13)
+        // Throne room has 28 court monsters in map-relative coordinates.
         const throneMonsters = map.monsters.filter(m =>
-            m.x >= 29 && m.x <= 39 && m.y >= 7 && m.y <= 13
+            m.x >= ox + 27 && m.x <= ox + 37 && m.y >= oy + 5 && m.y <= oy + 11
         );
 
         assert.ok(throneMonsters.length >= 20, `Throne room should have many monsters (found ${throneMonsters.length})`);

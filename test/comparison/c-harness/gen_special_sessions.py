@@ -287,8 +287,9 @@ def wizard_teleport_to_level(session, level_name, verbose):
         if target_key:
             break
 
-        # Check if there are more pages
-        if '(end)' in content or 'Pick' in content:
+        # Check if there are more pages.
+        # "Pick" is part of the normal pager prompt and should not stop paging.
+        if '(end)' in content:
             break
         if re.search(r'\(\d+ of \d+\)', content):
             # More pages available, press Space to scroll
