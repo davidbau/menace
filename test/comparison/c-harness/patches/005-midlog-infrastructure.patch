@@ -14,10 +14,10 @@ index 959db5978..fdbd43f66 100644
  /* ### role.c ### */
  
 diff --git a/include/hack.h b/include/hack.h
-index 4f6bf9353..500d01cf7 100644
+index 4f6bf9353..26da07c3f 100644
 --- a/include/hack.h
 +++ b/include/hack.h
-@@ -1597,6 +1597,86 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
+@@ -1597,6 +1597,97 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
  #define rnz(x) (rng_log_set_caller(__FILE__, __LINE__, __func__), rnz(x))
  #endif /* RNGLOG_IN_RND_C */
  
@@ -101,9 +101,76 @@ index 4f6bf9353..500d01cf7 100644
 +     midlog_wrap_int("mfndpos", mfndpos(a,b,c), __FILE__, __LINE__, __func__))
 +#endif
 +
++/* Int-returning: monster_nearby; void-returning: runmode_delay_output */
++#ifndef MIDLOG_IN_HACK_C
++#define monster_nearby() \
++    (midlog_enter("monster_nearby", __FILE__, __LINE__, __func__), \
++     midlog_wrap_int("monster_nearby", monster_nearby(), __FILE__, __LINE__, __func__))
++#define runmode_delay_output() \
++    (midlog_enter("runmode_delay_output", __FILE__, __LINE__, __func__), \
++     runmode_delay_output(), \
++     midlog_exit_void("runmode_delay_output", __FILE__, __LINE__, __func__))
++#endif
++
  #endif  /* RECOVER_C */
  
  #endif /* HACK_H */
+diff --git a/src/allmain.c b/src/allmain.c
+index 7a431ea27..00f7e5b1b 100644
+--- a/src/allmain.c
++++ b/src/allmain.c
+@@ -679,6 +679,7 @@ regen_hp(int wtcap)
+ void
+ stop_occupation(void)
+ {
++    midlog_enter("stop_occupation", __FILE__, __LINE__, __func__);
+     if (go.occupation) {
+         if (!maybe_finished_meal(TRUE))
+             You("stop %s.", go.occtxt);
+@@ -689,6 +690,7 @@ stop_occupation(void)
+         nomul(0);
+     }
+     cmdq_clear(CQ_CANNED);
++    midlog_exit_void("stop_occupation", __FILE__, __LINE__, __func__);
+ }
+ 
+ void
+diff --git a/src/cmd.c b/src/cmd.c
+index d77454878..e98737f00 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -169,10 +169,14 @@ doprev_message(void)
+ staticfn int
+ timed_occupation(void)
+ {
++    int result;
++    midlog_enter("timed_occupation", __FILE__, __LINE__, __func__);
+     (*timed_occ_fn)();
+     if (gm.multi > 0)
+         gm.multi--;
+-    return gm.multi > 0;
++    result = gm.multi > 0;
++    midlog_exit_int("timed_occupation", result, __FILE__, __LINE__, __func__);
++    return result;
+ }
+ 
+ /* If you have moved since initially setting some occupations, they
+@@ -203,6 +207,7 @@ reset_occupations(void)
+ void
+ set_occupation(int (*fn)(void), const char *txt, cmdcount_nht xtime)
+ {
++    midlog_enter("set_occupation", __FILE__, __LINE__, __func__);
+     if (xtime) {
+         go.occupation = timed_occupation;
+         timed_occ_fn = fn;
+@@ -210,6 +215,7 @@ set_occupation(int (*fn)(void), const char *txt, cmdcount_nht xtime)
+         go.occupation = fn;
+     go.occtxt = txt;
+     go.occtime = 0;
++    midlog_exit_void("set_occupation", __FILE__, __LINE__, __func__);
+     return;
+ }
+ 
 diff --git a/src/detect.c b/src/detect.c
 index bf536e127..22c543043 100644
 --- a/src/detect.c
@@ -115,6 +182,38 @@ index bf536e127..22c543043 100644
 +#define MIDLOG_IN_DETECT_C
  #include "hack.h"
  #include "artifact.h"
+ 
+diff --git a/src/do.c b/src/do.c
+index 875d0c62f..bd275ff5f 100644
+--- a/src/do.c
++++ b/src/do.c
+@@ -2314,6 +2314,7 @@ boolean
+ cmd_safety_prevention(const char *ucverb, const char *cmddesc,
+                       const char *act, int *flagcounter)
+ {
++    midlog_enter("cmd_safety_prevention", __FILE__, __LINE__, __func__);
+     if (flags.safe_wait && !iflags.menu_requested && !gm.multi) {
+         char buf[QBUFSZ];
+ 
+@@ -2324,13 +2325,19 @@ cmd_safety_prevention(const char *ucverb, const char *cmddesc,
+ 
+         if (monster_nearby()) {
+             Norep("%s%s", act, buf);
++            midlog_exit_int("cmd_safety_prevention", TRUE,
++                            __FILE__, __LINE__, __func__);
+             return TRUE;
+         } else if (danger_uprops()) {
+             Norep("%s doesn't feel like a good idea right now.", ucverb);
++            midlog_exit_int("cmd_safety_prevention", TRUE,
++                            __FILE__, __LINE__, __func__);
+             return TRUE;
+         }
+     }
+     *flagcounter = 0;
++    midlog_exit_int("cmd_safety_prevention", FALSE,
++                    __FILE__, __LINE__, __func__);
+     return FALSE;
+ }
  
 diff --git a/src/dogmove.c b/src/dogmove.c
 index c22eba74b..e3f96f262 100644
@@ -128,6 +227,18 @@ index c22eba74b..e3f96f262 100644
  #include "hack.h"
  
  #include "mfndpos.h"
+diff --git a/src/hack.c b/src/hack.c
+index c27e86357..9cd56e22e 100644
+--- a/src/hack.c
++++ b/src/hack.c
+@@ -3,6 +3,7 @@
+ /*-Copyright (c) Derek S. Ray, 2015. */
+ /* NetHack may be freely redistributed.  See license for details. */
+ 
++#define MIDLOG_IN_HACK_C
+ #include "hack.h"
+ #include "extern.h"
+ 
 diff --git a/src/mhitu.c b/src/mhitu.c
 index 79b12a737..93affd89f 100644
 --- a/src/mhitu.c
