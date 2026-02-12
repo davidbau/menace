@@ -57,16 +57,12 @@ describe('sp_lev.js - des.* API', () => {
 
         const state = getLevelState();
         const map = state.map;
+        const ox = state.xstart;
+        const oy = state.ystart;
 
-        // Map should be centered (width=5, height=4)
-        // Center X = (80-5)/2 = 37
-        // Center Y = (21-4)/2 = 8
-        const cx = 37;
-        const cy = 8;
-
-        assert.equal(map.locations[cx][cy].typ, HWALL, 'Top-left should be wall');
-        assert.equal(map.locations[cx][cy+1].typ, VWALL, 'Left edge should be wall');
-        assert.equal(map.locations[cx+1][cy+1].typ, ROOM, 'Inside should be room');
+        assert.equal(map.locations[ox][oy].typ, HWALL, 'Top-left should be wall');
+        assert.equal(map.locations[ox][oy + 1].typ, VWALL, 'Left edge should be wall');
+        assert.equal(map.locations[ox + 1][oy + 1].typ, ROOM, 'Inside should be room');
     });
 
     it('should set individual terrain with des.terrain', () => {
@@ -95,11 +91,12 @@ describe('sp_lev.js - des.* API', () => {
 
         const state = getLevelState();
         const map = state.map;
+        const ox = state.xstart;
+        const oy = state.ystart;
 
-        // Left-top alignment: x=1, y=1
-        assert.equal(map.locations[1][1].typ, HWALL);
-        assert.equal(map.locations[1][2].typ, VWALL);
-        assert.equal(map.locations[2][2].typ, ROOM);
+        assert.equal(map.locations[ox][oy].typ, HWALL);
+        assert.equal(map.locations[ox][oy + 1].typ, VWALL);
+        assert.equal(map.locations[ox + 1][oy + 1].typ, ROOM);
     });
 
     it('should handle explicit x,y coordinates for map placement', () => {
@@ -118,5 +115,40 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[51][10].typ, ROOM);
         assert.equal(map.locations[50][11].typ, ROOM);
         assert.equal(map.locations[51][11].typ, ROOM);
+    });
+
+    it('should preserve leading and trailing blank map lines', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: ' ' });
+
+        des.map({ map: '..\n..', x: 10, y: 5 });
+        let state = getLevelState();
+        let map = state.map;
+        assert.equal(state.xsize, 2);
+        assert.equal(state.ysize, 2);
+        assert.equal(map.locations[10][5].typ, ROOM);
+        assert.equal(map.locations[10][6].typ, ROOM);
+
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: ' ' });
+        des.map({ map: '..\n..\n', x: 10, y: 5 });
+        state = getLevelState();
+        map = state.map;
+        assert.equal(state.xsize, 2);
+        assert.equal(state.ysize, 3);
+        assert.equal(map.locations[10][5].typ, ROOM);
+        assert.equal(map.locations[10][6].typ, ROOM);
+        assert.equal(map.locations[10][7].typ, STONE);
+
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: ' ' });
+        des.map({ map: '\n..\n..\n', x: 10, y: 5 });
+        state = getLevelState();
+        map = state.map;
+        assert.equal(state.xsize, 2);
+        assert.equal(state.ysize, 4);
+        assert.equal(map.locations[10][5].typ, STONE);
+        assert.equal(map.locations[10][6].typ, ROOM);
+        assert.equal(map.locations[10][7].typ, ROOM);
     });
 });

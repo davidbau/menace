@@ -896,12 +896,9 @@ export function map(data) {
     }
 
     // Parse map string into 2D array.
-    // C ref: mapfrag_fromstr() keeps internal blank lines, but a trailing
-    // newline at end of the literal does not create an extra map row.
+    // C ref: mapfrag_fromstr() keeps trailing blank rows from the source
+    // string; that trailing empty line still influences centering math.
     let lines = mapStr.split('\n');
-    if (lines.length > 0 && lines[lines.length - 1] === '') {
-        lines.pop();
-    }
 
     const height = lines.length;
     const width = Math.max(...lines.map(line => line.length));
