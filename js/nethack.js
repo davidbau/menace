@@ -1120,7 +1120,10 @@ class NetHackGame {
             // C ref: dog.c:474 mon_arrive — pet arrival on level change
             // When descending to a new level (depth > 1), pet follows player.
             if (depth > 1) {
-                mon_arrive(previousMap, this.map, this.player);
+                mon_arrive(previousMap, this.map, this.player, {
+                    heroX: this.map.upstair.x,
+                    heroY: this.map.upstair.y,
+                });
             }
         }
 

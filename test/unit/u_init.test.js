@@ -7,8 +7,8 @@ import assert from 'node:assert/strict';
 import { initRng, rn2, enableRngLog, getRngLog, disableRngLog } from '../../js/rng.js';
 import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 import { Player, roles } from '../../js/player.js';
-import { simulatePostLevelInit, mon_arrive } from '../../js/u_init.js';
-import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS, STONE } from '../../js/config.js';
+import { simulatePostLevelInit, mon_arrive, MON_ARRIVE_WITH_YOU } from '../../js/u_init.js';
+import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS, STONE, ROOM } from '../../js/config.js';
 import { GOLD_PIECE } from '../../js/objects.js';
 
 // Helper: create a level-1 wizard-mode Valkyrie game state
@@ -194,10 +194,12 @@ describe('Post-level initialization (u_init)', () => {
 
         const oldCount = oldMap.monsters.length;
         const newCount = newMap.monsters.length;
-        const moved = mon_arrive(oldMap, newMap, newPlayer);
+        const failedArrivals = [];
+        const moved = mon_arrive(oldMap, newMap, newPlayer, { failedArrivals });
         assert.equal(moved, false, 'mon_arrive should fail if no valid placement exists');
-        assert.equal(oldMap.monsters.length, oldCount, 'pet should remain on old map when placement fails');
+        assert.equal(oldMap.monsters.length, oldCount - 1, 'failed pet should leave old map and move to failed-arrivals queue');
         assert.equal(newMap.monsters.length, newCount, 'no pet should be force-placed on new map');
+        assert.equal(failedArrivals.length, 1, 'failed pet arrival should be tracked');
     });
 
     it('mon_arrive leaves trapped pets behind', () => {
@@ -222,6 +224,143 @@ describe('Post-level initialization (u_init)', () => {
         assert.equal(moved, false, 'trapped pets should not be migrated');
         assert.equal(oldMap.monsters.length, oldCount, 'trapped pet should remain on old map');
         assert.equal(newMap.monsters.length, newCount, 'no trapped pet should arrive on new map');
+    });
+
+    it('mon_arrive uses explicit destination hero coordinates when provided', () => {
+        const { player, map: oldMap } = setupSeed42Game();
+        oldMap.monsters.push({
+            mx: player.x + 1,
+            my: player.y,
+            mhp: 5,
+            dead: false,
+            tame: true,
+            mtame: 10,
+            mpeaceful: true,
+            mtrapped: false,
+            meating: 0,
+        });
+
+        const { map: newMap } = setupSeed42Game();
+        const oldCount = oldMap.monsters.length;
+        const moved = mon_arrive(oldMap, newMap, player, { heroX: 10, heroY: 10 });
+        assert.equal(moved, true, 'pet should migrate with explicit destination hero coordinates');
+        assert.equal(oldMap.monsters.length, oldCount - 1, 'migrated pet should leave old map');
+        const arrived = newMap.monsters.find(m => m.tame && m.mhp > 0);
+        assert.ok(arrived, 'migrated pet should be on new map');
+        const dx = Math.abs(arrived.mx - 10);
+        const dy = Math.abs(arrived.my - 10);
+        assert.ok(dx <= 3 && dy <= 3, 'arrived pet should be placed near explicit destination');
+    });
+
+    it('mon_arrive retries pets from failedArrivals queue', () => {
+        const { player, map: oldMap } = setupSeed42Game();
+        const queuedPet = {
+            mx: player.x + 10,
+            my: player.y + 10,
+            mhp: 5,
+            dead: false,
+            tame: true,
+            mtame: 10,
+            mpeaceful: true,
+            mtrapped: false,
+            meating: 0,
+        };
+        oldMap.failedArrivals = [queuedPet];
+
+        const { player: newPlayer, map: newMap } = setupSeed42Game();
+        const moved = mon_arrive(oldMap, newMap, newPlayer);
+        assert.equal(moved, true, 'queued failed arrival should be retried');
+        assert.equal((oldMap.failedArrivals || []).length, 0, 'source failed queue should be drained for retry');
+        const arrived = newMap.monsters.find(m => m === queuedPet);
+        assert.ok(arrived, 'queued pet should be placed on destination when space is available');
+    });
+
+    it('mon_arrive supports non-With_you exact locale placement', () => {
+        const { player, map: oldMap } = setupSeed42Game();
+        const queuedPet = {
+            mx: player.x + 10,
+            my: player.y + 10,
+            mhp: 5,
+            dead: false,
+            tame: true,
+            mtame: 10,
+            mpeaceful: true,
+            mtrapped: false,
+            meating: 0,
+        };
+        oldMap.failedArrivals = [queuedPet];
+        const { map: newMap } = setupSeed42Game();
+        const localeX = 12;
+        const localeY = 10;
+        const locale = newMap.at(localeX, localeY);
+        if (locale) locale.typ = ROOM;
+        newMap.monsters = newMap.monsters.filter(m => !(m.mx === localeX && m.my === localeY));
+
+        const moved = mon_arrive(oldMap, newMap, player, {
+            when: 'After_you',
+            localeX,
+            localeY,
+            localeExact: true,
+        });
+        assert.equal(moved, true, 'exact locale non-With_you arrival should succeed when tile is available');
+        const arrived = newMap.monsters.find(m => m === queuedPet);
+        assert.ok(arrived, 'pet should arrive on destination');
+        assert.equal(arrived.mx, localeX);
+        assert.equal(arrived.my, localeY);
+    });
+
+    it('mon_arrive keeps With_you default behavior', () => {
+        const { player, map: oldMap } = setupSeed42Game();
+        oldMap.monsters.push({
+            mx: player.x + 1,
+            my: player.y,
+            mhp: 5,
+            dead: false,
+            tame: true,
+            mtame: 10,
+            mpeaceful: true,
+            mtrapped: false,
+            meating: 0,
+        });
+        const { map: newMap } = setupSeed42Game();
+        const moved = mon_arrive(oldMap, newMap, player, {
+            when: MON_ARRIVE_WITH_YOU,
+            heroX: 15,
+            heroY: 10,
+        });
+        assert.equal(moved, true, 'With_you mode should continue to migrate nearby pets');
+    });
+
+    it('mon_arrive applies wander radius for non-With_you locale arrivals', () => {
+        const { player, map: oldMap } = setupSeed42Game();
+        const queuedPet = {
+            mx: player.x + 10,
+            my: player.y + 10,
+            mhp: 5,
+            dead: false,
+            tame: true,
+            mtame: 10,
+            mpeaceful: true,
+            mtrapped: false,
+            meating: 0,
+        };
+        oldMap.failedArrivals = [queuedPet];
+        const { map: newMap } = setupSeed42Game();
+        const baseX = 20;
+        const baseY = 8;
+
+        const moved = mon_arrive(oldMap, newMap, player, {
+            when: 'After_you',
+            localeX: baseX,
+            localeY: baseY,
+            localeExact: false,
+            wander: 4,
+        });
+        assert.equal(moved, true, 'non-With_you wander arrival should place pet');
+        const arrived = newMap.monsters.find(m => m === queuedPet);
+        assert.ok(arrived, 'queued pet should arrive');
+        assert.ok(Math.abs(arrived.mx - baseX) <= 7, 'arrived x should stay within wander+mnexto neighborhood');
+        assert.ok(Math.abs(arrived.my - baseY) <= 7, 'arrived y should stay within wander+mnexto neighborhood');
     });
 
     it('Healer gets startup money as gold inventory object', () => {

@@ -277,7 +277,10 @@ export function generateMapsWithRng(seed, maxDepth) {
         } else {
             // C ref: dog.c:474 mon_arrive — use real migration path.
             if (harnessPlayer && previousMap) {
-                mon_arrive(previousMap, map, harnessPlayer);
+                mon_arrive(previousMap, map, harnessPlayer, {
+                    heroX: map.upstair.x,
+                    heroY: map.upstair.y,
+                });
             }
         }
 
@@ -576,7 +579,10 @@ class HeadlessGame {
             // C ref: dog.c:474 mon_arrive — pet arrival on level change
             // Use real migration logic to preserve startup/replay fidelity.
             if (depth > 1) {
-                mon_arrive(previousMap, this.map, this.player);
+                mon_arrive(previousMap, this.map, this.player, {
+                    heroX: this.map.upstair.x,
+                    heroY: this.map.upstair.y,
+                });
             }
         }
         this.player.dungeonLevel = depth;
