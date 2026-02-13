@@ -456,6 +456,7 @@ describe('Post-level initialization (u_init)', () => {
         assert.equal(queuedPet.meating, 0, 'elapsed-time catch-up should finish eating');
         const arrived = newMap.monsters.find(m => m === queuedPet);
         assert.ok(arrived, 'queued pet should be placed on destination map');
+        assert.equal(queuedPet.mlstmv, 10, 'arrival bookkeeping should refresh mlstmv');
     });
 
     it('Healer gets startup money as gold inventory object', () => {

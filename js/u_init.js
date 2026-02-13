@@ -504,6 +504,11 @@ export function mon_arrive(oldMap, newMap, player, opts = {}) {
         pet.my = petY;
         pet.sleeping = false;
         pet.dead = false;
+        // C ref: dog.c mon_arrive() clears migration/limbo state and
+        // refreshes last-move bookkeeping on successful placement.
+        if (Number.isInteger(currentMoves)) pet.mlstmv = currentMoves;
+        if ('migrating' in pet) pet.migrating = false;
+        if ('limbo' in pet) pet.limbo = false;
         newMap.monsters.unshift(pet);
         migratedCount++;
     }
