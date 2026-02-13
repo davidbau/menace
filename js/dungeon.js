@@ -1650,7 +1650,7 @@ function inside_room(croom, x, y) {
 }
 
 // C ref: mkroom.c somexy() -- pick random position in room, avoiding subrooms
-function somexy(croom, map) {
+export function somexy(croom, map) {
     let try_cnt = 0;
 
     // C ref: mkroom.c somexy() irregular path — !edge && roomno == i
