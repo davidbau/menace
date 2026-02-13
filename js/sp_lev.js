@@ -16,7 +16,7 @@
 import { GameMap, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1, getRngCallCount } from './rng.js';
 import { mksobj, mkobj, mkcorpstat, set_corpsenm } from './mkobj.js';
-import { create_room, create_subroom, makecorridors, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, place_lregion, mktrap, enexto } from './dungeon.js';
+import { create_room, create_subroom, makecorridors, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, place_lregion, mktrap, enexto, somexy } from './dungeon.js';
 import { seedFromMT } from './xoshiro256.js';
 import { makemon, mkclass, def_char_to_monclass, NO_MM_FLAGS, MM_NOGRP } from './makemon.js';
 import {
@@ -106,6 +106,7 @@ export let levelState = {
     // Optional context to emulate C topology/fixup behavior.
     finalizeContext: null,
     branchPlaced: false,
+    levRegions: [],
 };
 
 // Special level flags
@@ -916,6 +917,7 @@ export function resetLevelState() {
         deferredActions: [],
         finalizeContext: null,
         branchPlaced: false,
+        levRegions: [],
         // luaRngCounter is NOT initialized here - only set explicitly for levels that need it
     };
     icedpools = false;
@@ -968,10 +970,58 @@ function canPlaceStair(direction) {
 
 function fixupSpecialLevel() {
     if (!levelState.map || levelState.branchPlaced) return;
+    // C ref: mkmaze.c fixup_special()
+    const LR_TELE = 0;
+    const LR_DOWNTELE = 1;
+    const LR_UPTELE = 2;
+    const LR_PORTAL = 3;
+    const LR_BRANCH = 4;
+    const LR_UPSTAIR = 5;
+    const LR_DOWNSTAIR = 6;
+
+    let addedBranch = false;
+    for (const region of levelState.levRegions || []) {
+        switch (region.rtype) {
+            case LR_BRANCH:
+                addedBranch = true;
+                // fall through to placement path
+            case LR_PORTAL:
+            case LR_UPSTAIR:
+            case LR_DOWNSTAIR:
+                place_lregion(levelState.map,
+                    region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
+                    region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
+                    region.rtype);
+                break;
+            case LR_TELE:
+            case LR_UPTELE:
+            case LR_DOWNTELE:
+                // C stores teleport region outlines for goto_level().
+                if (region.rtype === LR_TELE || region.rtype === LR_UPTELE) {
+                    levelState.map.updest = {
+                        lx: region.inarea.x1, ly: region.inarea.y1,
+                        hx: region.inarea.x2, hy: region.inarea.y2,
+                        nlx: region.delarea.x1, nly: region.delarea.y1,
+                        nhx: region.delarea.x2, nhy: region.delarea.y2
+                    };
+                }
+                if (region.rtype === LR_TELE || region.rtype === LR_DOWNTELE) {
+                    levelState.map.dndest = {
+                        lx: region.inarea.x1, ly: region.inarea.y1,
+                        hx: region.inarea.x2, hy: region.inarea.y2,
+                        nlx: region.delarea.x1, nly: region.delarea.y1,
+                        nhx: region.delarea.x2, nhy: region.delarea.y2
+                    };
+                }
+                break;
+        }
+    }
+
     const ctx = levelState.finalizeContext;
-    if (!ctx || !ctx.isBranchLevel) return;
-    // C ref: mkmaze.c fixup_special() -> place_lregion(..., LR_BRANCH)
-    place_lregion(levelState.map, 0, 0, 0, 0, 0, 0, 0, 0, 4);
+    if (!addedBranch && ctx && ctx.isBranchLevel) {
+        // C fallback: place dungeon branch if no LR_BRANCH was explicitly added.
+        place_lregion(levelState.map, 0, 0, 0, 0, 0, 0, 0, 0, LR_BRANCH);
+    }
     levelState.branchPlaced = true;
 }
 
@@ -1058,16 +1108,29 @@ export function level_init(opts = {}) {
                 loc.lit = lit ? 1 : 0;
             }
         }
-    } else if (style === 'mazegrid' || style === 'maze') {
-        // Fill map with background character (typically walls for mazes)
-        // C NetHack doesn't fill the entire grid - it preserves STONE in borders
-        // and unfilled areas. Only fill the interior region.
+    } else if (style === 'mazegrid') {
+        // C ref: sp_lev.c splev_initlev() LVLINIT_MAZEGRID -> lvlfill_maze_grid()
+        // Fill a checker/grid pattern in the interior while preserving stone
+        // boundaries. This significantly affects subsequent map overlays.
         const fillChar = levelState.init.bg !== -1 ? levelState.init.bg : STONE;
+        const xMazeMax = (COLNO - 1) & ~1;
+        const yMazeMax = (ROWNO - 1) & ~1;
+        const corrmaze = !!levelState.flags.corrmaze;
+
+        for (let x = 2; x <= xMazeMax; x++) {
+            for (let y = 0; y <= yMazeMax; y++) {
+                const loc = levelState.map.locations[x][y];
+                if (corrmaze) {
+                    loc.typ = STONE;
+                } else {
+                    loc.typ = (y < 2 || ((x % 2) && (y % 2))) ? STONE : fillChar;
+                }
+            }
+        }
+    } else if (style === 'maze') {
+        // TODO: C create_maze() parity path
         for (let x = 0; x < 80; x++) {
             for (let y = 0; y < 21; y++) {
-                // C NetHack behavior: All cells start as STONE(0), no background fill
-                // The des.map() overlay replaces STONE with actual terrain
-                // So we leave everything as STONE (already initialized by GameMap)
                 levelState.map.locations[x][y].typ = STONE;
             }
         }
@@ -1235,16 +1298,30 @@ export function level_flags(...flags) {
  */
 function flipLevelRandom() {
     const allowFlips = levelState.coder.allow_flips;
+    const DEBUG_FLIP = typeof process !== 'undefined' && process.env.DEBUG_FLIP === '1';
+    const rngBefore = DEBUG_FLIP && typeof getRngCallCount === 'function' ? getRngCallCount() : null;
     let flipBits = 0;
+    let flipYRoll = null;
+    let flipXRoll = null;
 
     // Determine which flips to apply using RNG (matching C's flip_level_rnd)
     // Bit 0: vertical flip (up/down)
     // Bit 1: horizontal flip (left/right)
-    if ((allowFlips & 1) && rn2(2)) {
-        flipBits |= 1;
+    if (allowFlips & 1) {
+        flipYRoll = rn2(2);
+        if (flipYRoll) {
+            flipBits |= 1;
+        }
     }
-    if ((allowFlips & 2) && rn2(2)) {
-        flipBits |= 2;
+    if (allowFlips & 2) {
+        flipXRoll = rn2(2);
+        if (flipXRoll) {
+            flipBits |= 2;
+        }
+    }
+    if (DEBUG_FLIP) {
+        const rngAfterRolls = typeof getRngCallCount === 'function' ? getRngCallCount() : null;
+        console.log(`[DEBUG_FLIP] allow=${allowFlips} rollY=${flipYRoll} rollX=${flipXRoll} bits=${flipBits} rngBefore=${rngBefore} rngAfter=${rngAfterRolls}`);
     }
 
     if (flipBits === 0) return false; // No flips applied
@@ -1252,20 +1329,16 @@ function flipLevelRandom() {
     const map = levelState.map;
     if (!map) return false;
 
-    // Find the bounds of non-STONE terrain
-    let minX = 80, minY = 21, maxX = -1, maxY = -1;
-    for (let x = 0; x < 80; x++) {
-        for (let y = 0; y < 21; y++) {
-            if (map.locations[x][y].typ !== STONE) {
-                minX = Math.min(minX, x);
-                minY = Math.min(minY, y);
-                maxX = Math.max(maxX, x);
-                maxY = Math.max(maxY, y);
-            }
-        }
+    const extents = getLevelExtentsForFlip(map);
+    if (!extents) return false;
+    let { minX, minY, maxX, maxY } = extents;
+    if (minY < 0) minY = 0;
+    if (minX < 1) minX = 1;
+    if (maxX >= COLNO) maxX = COLNO - 1;
+    if (maxY >= ROWNO) maxY = ROWNO - 1;
+    if (DEBUG_FLIP) {
+        console.log(`[DEBUG_FLIP] extents min=(${minX},${minY}) max=(${maxX},${maxY}) maze=${!!levelState.flags.is_maze_lev}`);
     }
-
-    if (maxX < 0) return false; // No terrain to flip
 
     // C uses FlipX(val) = (maxx - val) + minx and FlipY(val) = (maxy - val) + miny
     const flipX = (x) => (maxX - x) + minX;
@@ -1295,7 +1368,110 @@ function flipLevelRandom() {
             }
         }
     }
+
+    // C ref: sp_lev.c flip_level() also flips levregion rectangles so
+    // later fixup_special() placement uses post-flip coordinates.
+    for (const region of levelState.levRegions || []) {
+        if (flipBits & 1) {
+            region.inarea.y1 = flipY(region.inarea.y1);
+            region.inarea.y2 = flipY(region.inarea.y2);
+            if (region.inarea.y1 > region.inarea.y2) {
+                const tmp = region.inarea.y1;
+                region.inarea.y1 = region.inarea.y2;
+                region.inarea.y2 = tmp;
+            }
+            region.delarea.y1 = flipY(region.delarea.y1);
+            region.delarea.y2 = flipY(region.delarea.y2);
+            if (region.delarea.y1 > region.delarea.y2) {
+                const tmp = region.delarea.y1;
+                region.delarea.y1 = region.delarea.y2;
+                region.delarea.y2 = tmp;
+            }
+        }
+        if (flipBits & 2) {
+            region.inarea.x1 = flipX(region.inarea.x1);
+            region.inarea.x2 = flipX(region.inarea.x2);
+            if (region.inarea.x1 > region.inarea.x2) {
+                const tmp = region.inarea.x1;
+                region.inarea.x1 = region.inarea.x2;
+                region.inarea.x2 = tmp;
+            }
+            region.delarea.x1 = flipX(region.delarea.x1);
+            region.delarea.x2 = flipX(region.delarea.x2);
+            if (region.delarea.x1 > region.delarea.x2) {
+                const tmp = region.delarea.x1;
+                region.delarea.x1 = region.delarea.x2;
+                region.delarea.x2 = tmp;
+            }
+        }
+    }
+
     return true;
+}
+
+function getLevelExtentsForFlip(map) {
+    const isMazeLevel = !!levelState.flags.is_maze_lev;
+    let found = false;
+    let nonwall = false;
+
+    let xmin = 0;
+    for (; !found && xmin < COLNO; xmin++) {
+        for (let y = 0; y < ROWNO; y++) {
+            const typ = map.locations[xmin][y].typ;
+            if (typ !== STONE) {
+                found = true;
+                if (!IS_WALL(typ)) nonwall = true;
+            }
+        }
+    }
+    if (!found) return null;
+    xmin -= (nonwall || !isMazeLevel) ? 2 : 1;
+    if (xmin < 0) xmin = 0;
+
+    found = false;
+    nonwall = false;
+    let xmax = COLNO - 1;
+    for (; !found && xmax >= 0; xmax--) {
+        for (let y = 0; y < ROWNO; y++) {
+            const typ = map.locations[xmax][y].typ;
+            if (typ !== STONE) {
+                found = true;
+                if (!IS_WALL(typ)) nonwall = true;
+            }
+        }
+    }
+    xmax += (nonwall || !isMazeLevel) ? 2 : 1;
+    if (xmax >= COLNO) xmax = COLNO - 1;
+
+    found = false;
+    nonwall = false;
+    let ymin = 0;
+    for (; !found && ymin < ROWNO; ymin++) {
+        for (let x = xmin; x <= xmax; x++) {
+            const typ = map.locations[x][ymin].typ;
+            if (typ !== STONE) {
+                found = true;
+                if (!IS_WALL(typ)) nonwall = true;
+            }
+        }
+    }
+    ymin -= (nonwall || !isMazeLevel) ? 2 : 1;
+
+    found = false;
+    nonwall = false;
+    let ymax = ROWNO - 1;
+    for (; !found && ymax >= 0; ymax--) {
+        for (let x = xmin; x <= xmax; x++) {
+            const typ = map.locations[x][ymax].typ;
+            if (typ !== STONE) {
+                found = true;
+                if (!IS_WALL(typ)) nonwall = true;
+            }
+        }
+    }
+    ymax += (nonwall || !isMazeLevel) ? 2 : 1;
+
+    return { minX: xmin, minY: ymin, maxX: xmax, maxY: ymax };
 }
 
 /**
@@ -1338,13 +1514,17 @@ export function map(data) {
     }
 
     // Parse map string into lines.
-    // C ref: mapfrag_fromstr() counts lines by '\n' separators.
-    // Lua's [[\n...]] strips the leading newline; JS template literals don't.
-    // Also, C doesn't count a trailing empty segment after the final '\n'.
-    // Strip leading empty line (from template literal) and trailing empty line.
+    // Preserve explicit leading/trailing empty lines only for object-form maps
+    // with explicit coordinates (x/y or coord), where callers expect exact text
+    // dimensions. Keep legacy trimming behavior for alignment-based maps and
+    // raw string maps used by converted level files.
     let lines = mapStr.split('\n');
-    if (lines.length > 0 && lines[0] === '') lines = lines.slice(1);
-    while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
+    const preserveExactBlankLines = !!(data && typeof data === 'object'
+        && (data.coord !== undefined || data.x !== undefined || data.y !== undefined));
+    if (!preserveExactBlankLines) {
+        if (lines.length > 0 && lines[0] === '') lines = lines.slice(1);
+        while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
+    }
 
     const height = lines.length;
     const width = Math.max(...lines.map(line => line.length));
@@ -1580,8 +1760,15 @@ function getLocation(rawX, rawY, humidity, croom, noLocWarn = false) {
         y += my;
     } else {
         do {
-            x = mx + rn2(sx);
-            y = my + rn2(sy);
+            if (croom) {
+                const pos = somexy(croom, levelState.map);
+                if (!pos) break;
+                x = pos.x;
+                y = pos.y;
+            } else {
+                x = mx + rn2(sx);
+                y = my + rn2(sy);
+            }
             if (isOkLocation(x, y, humidity)) break;
         } while (++cpt < 100);
 
@@ -1598,56 +1785,17 @@ function getLocation(rawX, rawY, humidity, croom, noLocWarn = false) {
             }
         }
     }
+    if ((humidity & GETLOC_ANY_LOC) === 0 && (x < 0 || x >= COLNO || y < 0 || y >= ROWNO)) {
+        if (noLocWarn || (humidity & GETLOC_NO_LOC_WARN) !== 0) {
+            return { x: -1, y: -1 };
+        }
+        return { x: COLNO - 1, y: ROWNO - 1 };
+    }
+
     return { x, y };
 }
 
-function legacyRandomDryCoord(croom) {
-    if (croom) {
-        const width = croom.hx - croom.lx + 1;
-        const height = croom.hy - croom.ly + 1;
-        for (let i = 0; i < 100; i++) {
-            const tx = rn2(width) + croom.lx;
-            const ty = rn2(height) + croom.ly;
-            if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-            if (levelState.map.locations[tx][ty].typ > DOOR) return { x: tx, y: ty };
-        }
-        for (let tx = croom.lx; tx <= croom.hx; tx++) {
-            for (let ty = croom.ly; ty <= croom.hy; ty++) {
-                if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-                if (levelState.map.locations[tx][ty].typ > DOOR) return { x: tx, y: ty };
-            }
-        }
-        return null;
-    }
-
-    const mx = levelState.xsize > 0 ? levelState.xstart : 1;
-    const my = levelState.ysize > 0 ? levelState.ystart : 0;
-    const sx = levelState.xsize > 0 ? levelState.xsize : (COLNO - 1);
-    const sy = levelState.ysize > 0 ? levelState.ysize : ROWNO;
-    for (let i = 0; i < 100; i++) {
-        const tx = mx + rn2(sx);
-        const ty = my + rn2(sy);
-        if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-        if (levelState.map.locations[tx][ty].typ > DOOR) return { x: tx, y: ty };
-    }
-    for (let tx = mx; tx < mx + sx; tx++) {
-        for (let ty = my; ty < my + sy; ty++) {
-            if (tx < 0 || tx >= COLNO || ty < 0 || ty >= ROWNO) continue;
-            if (levelState.map.locations[tx][ty].typ > DOOR) return { x: tx, y: ty };
-        }
-    }
-    return null;
-}
-
 function getLocationCoord(rawX, rawY, humidity, croom) {
-    if (!levelState.finalizeContext) {
-        const isRandomLegacy = rawX === undefined || rawY === undefined;
-        if (isRandomLegacy) return legacyRandomDryCoord(croom) || { x: -1, y: -1 };
-        if (croom) return { x: croom.lx + 1 + rawX, y: croom.ly + 1 + rawY };
-        if (levelState.mapCoordMode) return toAbsoluteCoords(rawX, rawY);
-        return { x: rawX, y: rawY };
-    }
-
     const isRandom = rawX === undefined || rawY === undefined || rawX < 0 || rawY < 0;
     if (isRandom) {
         // C ref: get_location_coord() first tries NO_LOC_WARN for random packed coords.
@@ -1657,7 +1805,7 @@ function getLocationCoord(rawX, rawY, humidity, croom) {
     }
 
     if (croom) {
-        return { x: croom.lx + 1 + rawX, y: croom.ly + 1 + rawY };
+        return { x: croom.lx + rawX, y: croom.ly + rawY };
     }
     if (levelState.mapCoordMode) return toAbsoluteCoords(rawX, rawY);
     return { x: rawX, y: rawY };
@@ -1685,42 +1833,44 @@ export function terrain(x_or_opts, y_or_type, type) {
 
     if (typeof x_or_opts === 'object') {
         if (Array.isArray(x_or_opts)) {
-            // selection.line() returns array of coords
             const terrainType = mapchrToTerrain(y_or_type);
-            if (terrainType !== -1) {
-                for (const coord of x_or_opts) {
-                    if (coord.x >= 0 && coord.x < 80 && coord.y >= 0 && coord.y < 21) {
-                        levelState.map.locations[coord.x][coord.y].typ = terrainType;
-                    }
+            if (terrainType === -1) return;
+
+            // des.terrain([x,y], typ)
+            if (x_or_opts.length === 2
+                && Number.isFinite(x_or_opts[0]) && Number.isFinite(x_or_opts[1])) {
+                const pos = getLocationCoord(x_or_opts[0], x_or_opts[1], GETLOC_ANY_LOC, levelState.currentRoom || null);
+                if (pos.x >= 0 && pos.x < COLNO && pos.y >= 0 && pos.y < ROWNO) {
+                    levelState.map.locations[pos.x][pos.y].typ = terrainType;
+                }
+                return;
+            }
+
+            // selection.line() / selection.area() coord list
+            for (const coord of x_or_opts) {
+                if (coord.x >= 0 && coord.x < 80 && coord.y >= 0 && coord.y < 21) {
+                    levelState.map.locations[coord.x][coord.y].typ = terrainType;
                 }
             }
         } else if (x_or_opts.x !== undefined && x_or_opts.y !== undefined) {
             // {x, y, typ} format
             // C ref: sp_lev.c lspo_terrain() applies room offset via get_location_coord()
-            let ax = x_or_opts.x, ay = x_or_opts.y;
-            if (levelState.currentRoom && ax >= 0 && ay >= 0) {
-                ax += levelState.currentRoom.lx;
-                ay += levelState.currentRoom.ly;
-            }
+            const pos = getLocationCoord(x_or_opts.x, x_or_opts.y, GETLOC_ANY_LOC, levelState.currentRoom || null);
             const terrainType = mapchrToTerrain(x_or_opts.typ);
-            if (terrainType !== -1 && ax >= 0 && ax < 80 &&
-                ay >= 0 && ay < 21) {
-                levelState.map.locations[ax][ay].typ = terrainType;
+            if (terrainType !== -1 && pos.x >= 0 && pos.x < 80 &&
+                pos.y >= 0 && pos.y < 21) {
+                levelState.map.locations[pos.x][pos.y].typ = terrainType;
             }
         }
     } else if (typeof x_or_opts === 'number') {
         // (x, y, type) format
         // C ref: sp_lev.c lspo_terrain() calls get_location_coord() which
         // adds croom->lx/ly offset for room-relative coordinates
-        let ax = x_or_opts, ay = y_or_type;
-        if (levelState.currentRoom && ax >= 0 && ay >= 0) {
-            ax += levelState.currentRoom.lx;
-            ay += levelState.currentRoom.ly;
-        }
-        if (ax >= 0 && ax < 80 && ay >= 0 && ay < 21) {
+        const pos = getLocationCoord(x_or_opts, y_or_type, GETLOC_ANY_LOC, levelState.currentRoom || null);
+        if (pos.x >= 0 && pos.x < 80 && pos.y >= 0 && pos.y < 21) {
             const terrainType = mapchrToTerrain(type);
             if (terrainType !== -1) {
-                levelState.map.locations[ax][ay].typ = terrainType;
+                levelState.map.locations[pos.x][pos.y].typ = terrainType;
             }
         }
     }
@@ -1914,8 +2064,9 @@ export function room(opts = {}) {
     // Parse alignment strings - C ref: sp_lev.c defines LEFT=1, CENTER=2, RIGHT=3, TOP=1, BOTTOM=3
     // Note: C uses same constants for vertical (TOP=1=LEFT, BOTTOM=3=RIGHT)
     const alignMap = {
-        'left': 1, 'center': 2, 'right': 3,
-        'top': 1, 'bottom': 3,
+        // C ref: sp_lev.c uses odd constants (LEFT/TOP=1, CENTER=3, RIGHT/BOTTOM=5).
+        'left': 1, 'center': 3, 'right': 5,
+        'top': 1, 'bottom': 5,
         'half-left': -2, 'half-right': -2,  // Not standard C values
         'random': -1
     };
@@ -2088,19 +2239,19 @@ export function room(opts = {}) {
             const COLNO_DIV5 = Math.floor(COLNO / 5);  // 16
             const ROWNO_DIV5 = Math.floor(ROWNO / 5);  // 4
 
-            // xalign/yalign already converted by alignMap: 1=LEFT/TOP, 2=CENTER, 3=RIGHT/BOTTOM
+            // xalign/yalign already converted by alignMap: 1=LEFT/TOP, 3=CENTER, 5=RIGHT/BOTTOM
             // Apply horizontal alignment
-            if (xalign === 3) { // RIGHT
+            if (xalign === 5) { // RIGHT
                 roomX += COLNO_DIV5 - w;
-            } else if (xalign === 2) { // CENTER
+            } else if (xalign === 3) { // CENTER
                 roomX += Math.floor((COLNO_DIV5 - w) / 2);
             }
             // LEFT (1) needs no offset
 
             // Apply vertical alignment
-            if (yalign === 3) { // BOTTOM
+            if (yalign === 5) { // BOTTOM
                 roomY += ROWNO_DIV5 - h;
-            } else if (yalign === 2) { // CENTER
+            } else if (yalign === 3) { // CENTER
                 roomY += Math.floor((ROWNO_DIV5 - h) / 2);
             }
             // TOP (1) needs no offset
@@ -3076,6 +3227,15 @@ export function region(opts_or_selection, type) {
                 x2 = opts.region.x2;
                 y2 = opts.region.y2;
             }
+        } else if (
+            Number.isFinite(opts.x1) && Number.isFinite(opts.y1)
+            && Number.isFinite(opts.x2) && Number.isFinite(opts.y2)
+        ) {
+            // C ref: lspo_region accepts either x1/y1/x2/y2 fields or region table.
+            x1 = opts.x1;
+            y1 = opts.y1;
+            x2 = opts.x2;
+            y2 = opts.y2;
         } else {
             return; // No region specified
         }
@@ -3157,8 +3317,57 @@ export function non_passwall(selection) {
  * @param {Object} opts - Region options
  */
 export function levregion(opts) {
-    // Stub - would register branch entry point
-    // For now, just ignore
+    if (!opts || typeof opts !== 'object') return;
+
+    // C ref: sp_lev.c lspo_levregion() + levregion_add().
+    const LR_TELE = 0;
+    const LR_DOWNTELE = 1;
+    const LR_UPTELE = 2;
+    const LR_PORTAL = 3;
+    const LR_BRANCH = 4;
+    const LR_UPSTAIR = 5;
+    const LR_DOWNSTAIR = 6;
+
+    if (!Array.isArray(opts.region) || opts.region.length < 4) return;
+    const inIslev = !!opts.region_islev;
+
+    let delArea = opts.exclude;
+    let delIslev = !!opts.exclude_islev;
+    if (!Array.isArray(delArea) || delArea.length < 4) {
+        delArea = [-1, -1, -1, -1];
+        // C forces exclude_islev=true when no exclude was supplied.
+        delIslev = true;
+    }
+
+    const type = String(opts.type || 'stair-down').toLowerCase();
+    let rtype = LR_DOWNSTAIR;
+    if (type === 'stair-up' || type === 'stair_up') rtype = LR_UPSTAIR;
+    else if (type === 'portal') rtype = LR_PORTAL;
+    else if (type === 'branch') rtype = LR_BRANCH;
+    else if (type === 'teleport') rtype = LR_TELE;
+    else if (type === 'teleport-up' || type === 'teleport_up') rtype = LR_UPTELE;
+    else if (type === 'teleport-down' || type === 'teleport_down') rtype = LR_DOWNTELE;
+
+    const in1 = inIslev
+        ? { x: opts.region[0], y: opts.region[1] }
+        : getLocation(opts.region[0], opts.region[1], GETLOC_ANY_LOC, null, false);
+    const in2 = inIslev
+        ? { x: opts.region[2], y: opts.region[3] }
+        : getLocation(opts.region[2], opts.region[3], GETLOC_ANY_LOC, null, false);
+    const del1 = delIslev
+        ? { x: delArea[0], y: delArea[1] }
+        : getLocation(delArea[0], delArea[1], GETLOC_ANY_LOC, null, false);
+    const del2 = delIslev
+        ? { x: delArea[2], y: delArea[3] }
+        : getLocation(delArea[2], delArea[3], GETLOC_ANY_LOC, null, false);
+
+    levelState.levRegions.push({
+        inarea: { x1: in1.x, y1: in1.y, x2: in2.x, y2: in2.y },
+        delarea: { x1: del1.x, y1: del1.y, x2: del2.x, y2: del2.y },
+        rtype,
+        padding: Number.isFinite(opts.padding) ? opts.padding : 0,
+        rname: opts.name || null
+    });
 }
 
 /**
@@ -3467,18 +3676,19 @@ export function feature(type, x, y) {
     const terrain = terrainMap[type];
     if (terrain === undefined) return;
 
-    // Convert relative coordinates to absolute if inside a nested room
-    // C ref: Lua automatically handles coordinate conversion based on room context
-    let absX = x;
-    let absY = y;
-    if (levelState.currentRoom && x !== undefined && y !== undefined) {
-        // C ref: sp_lev.c get_location() adds croom->lx/ly (NOT lx+1)
-        absX = levelState.currentRoom.lx + x;
-        absY = levelState.currentRoom.ly + y;
+    let fx = x;
+    let fy = y;
+    if (Array.isArray(x)) {
+        fx = x[0];
+        fy = x[1];
+    } else if (x && typeof x === 'object' && y === undefined) {
+        fx = x.x;
+        fy = x.y;
     }
 
-    if (absX >= 0 && absX < 80 && absY >= 0 && absY < 21) {
-        levelState.map.locations[absX][absY].typ = terrain;
+    const pos = getLocationCoord(fx, fy, GETLOC_ANY_LOC, levelState.currentRoom || null);
+    if (pos.x >= 0 && pos.x < 80 && pos.y >= 0 && pos.y < 21) {
+        levelState.map.locations[pos.x][pos.y].typ = terrain;
     }
 }
 
@@ -3490,8 +3700,20 @@ export function feature(type, x, y) {
  * @param {Object} opts - Region options (region, dir)
  */
 export function teleport_region(opts) {
-    // Stub - would mark region for teleportation behavior
-    // For now, just ignore
+    if (!opts || typeof opts !== 'object') return;
+
+    const dir = String(opts.dir || 'both').toLowerCase();
+    let type = 'teleport';
+    if (dir === 'up') type = 'teleport-up';
+    else if (dir === 'down') type = 'teleport-down';
+
+    levregion({
+        region: opts.region,
+        exclude: opts.exclude,
+        region_islev: opts.region_islev,
+        exclude_islev: opts.exclude_islev,
+        type
+    });
 }
 
 /**
@@ -3874,7 +4096,7 @@ export function wallify() {
 export function finalize_level() {
     // CRITICAL: Execute deferred placements BEFORE wallification
     // This matches C's execution order: rooms → corridors → entities → wallify
-    if (levelState.finalizeContext && levelState.deferredActions.length > 0) {
+    if (levelState.deferredActions.length > 0) {
         for (const action of levelState.deferredActions) {
             if (action.kind === 'object') {
                 executeDeferredObject(levelState.deferredObjects[action.idx]);
@@ -4814,21 +5036,80 @@ export function mazewalk(x, y, direction) {
         return;
     }
 
-    // Mazewalk creates a winding passage from the given point
-    // For now, stub - in full implementation this would:
-    // 1. Start at (x, y)
-    // 2. Randomly walk in the general direction, carving CORR terrain
-    // 3. Continue until hitting the edge or another passage
+    const map = levelState.map;
+    const start = getLocationCoord(x, y, GETLOC_ANY_LOC, levelState.currentRoom || null);
+    let sx = start.x;
+    let sy = start.y;
+    if (sx < 0 || sx >= COLNO || sy < 0 || sy >= ROWNO) return;
 
-    // Simple stub: just ensure the starting point is passable
-    if (x >= 0 && x < 80 && y >= 0 && y < 21) {
-        const loc = levelState.map.locations[x][y];
-        if (loc.typ === STONE || loc.typ === 0) {
-            loc.typ = CORR;
+    const dirName = direction || 'random';
+    const dirs = [
+        { name: 'north', dx: 0, dy: -1 },
+        { name: 'south', dx: 0, dy: 1 },
+        { name: 'east', dx: 1, dy: 0 },
+        { name: 'west', dx: -1, dy: 0 }
+    ];
+    const pickDir = () => dirs[rn2(4)];
+    let dir = dirs.find(d => d.name === dirName) || pickDir();
+
+    // C ref: lspo_mazewalk() takes one step in the requested direction first.
+    sx += dir.dx;
+    sy += dir.dy;
+    if (sx < 0 || sx >= COLNO || sy < 0 || sy >= ROWNO) return;
+
+    const setFloorish = (xx, yy, typ = ROOM) => {
+        if (xx < 0 || xx >= COLNO || yy < 0 || yy >= ROWNO) return;
+        const loc = map.locations[xx][yy];
+        if (loc.typ !== DOOR && loc.typ !== SDOOR) {
+            loc.typ = typ;
+            loc.flags = 0;
         }
+    };
+
+    setFloorish(sx, sy, ROOM);
+
+    // C ref: enforce odd parity before walkfrom().
+    if ((sx % 2) === 0) {
+        sx += (dir.dx > 0) ? 1 : -1;
+        if (sx < 0 || sx >= COLNO) return;
+        setFloorish(sx, sy, ROOM);
+    }
+    if ((sy % 2) === 0) {
+        sy += (dir.dy > 0) ? 1 : -1;
+        if (sy < 0 || sy >= ROWNO) return;
     }
 
-    // TODO: Implement full mazewalk algorithm
+    const isStone = (xx, yy) => {
+        if (xx < 0 || xx >= COLNO || yy < 0 || yy >= ROWNO) return false;
+        return map.locations[xx][yy].typ === STONE;
+    };
+    const inWalkBounds = (xx, yy) => xx >= 3 && yy >= 3 && xx <= (COLNO - 2) && yy <= (ROWNO - 2);
+
+    const stack = [{ x: sx, y: sy }];
+    setFloorish(sx, sy, ROOM);
+    while (stack.length > 0) {
+        const cur = stack[stack.length - 1];
+        const order = [0, 1, 2, 3];
+        for (let i = order.length - 1; i > 0; i--) {
+            const j = rn2(i + 1);
+            [order[i], order[j]] = [order[j], order[i]];
+        }
+
+        let carved = false;
+        for (const oi of order) {
+            const d = dirs[oi];
+            const nx = cur.x + d.dx * 2;
+            const ny = cur.y + d.dy * 2;
+            if (!inWalkBounds(nx, ny) || !isStone(nx, ny)) continue;
+
+            setFloorish(cur.x + d.dx, cur.y + d.dy, ROOM);
+            setFloorish(nx, ny, ROOM);
+            stack.push({ x: nx, y: ny });
+            carved = true;
+            break;
+        }
+        if (!carved) stack.pop();
+    }
 }
 
 // Export the des.* API

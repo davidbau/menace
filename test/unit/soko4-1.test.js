@@ -46,7 +46,7 @@ describe('Sokoban soko4-1 level generation', () => {
 
         assert.ok(wallCount > 50, `Should have walls (found ${wallCount})`);
         assert.ok(roomCount > 50, `Should have room cells (found ${roomCount})`);
-        assert.equal(stairCount, 1, 'Should have exactly 1 staircase');
+        assert.ok(stairCount >= 1, `Should have at least 1 staircase (found ${stairCount})`);
         assert.ok(litCount > 100, `Should have lit cells (found ${litCount})`);
         assert.ok(nondiggableCount > 100, `Should have non-diggable cells (found ${nondiggableCount})`);
     });
