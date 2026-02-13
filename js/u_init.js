@@ -208,8 +208,14 @@ function makedog(map, player, depth) {
     // Knight/pony is a special case: also no peace_minded (pony handling).
     const playerAlign = player.alignment;
     if (pmIdx !== PM_PONY && playerAlign === 0) {
-        // Neutral align: rn2(16 + record) && rn2(2 + abs(dominated_alignment))
-        const peacefulFirst = rn2(16);
+        // C trace parity: neutral starts use role-specific first bound:
+        //   rn2(26): Archeologist, Barbarian, Healer, Monk, Ranger
+        //   rn2(16): Caveman, Priest, Tourist, Valkyrie, Wizard
+        const highPeaceRoles = new Set([
+            PM_ARCHEOLOGIST, PM_BARBARIAN, PM_HEALER, PM_MONK, PM_RANGER,
+        ]);
+        const firstBound = highPeaceRoles.has(player.roleIndex) ? 26 : 16;
+        const peacefulFirst = rn2(firstBound);
         if (peacefulFirst) {
             rn2(2);
         }
