@@ -2488,6 +2488,8 @@ function mktrap_victim(map, trap, depth) {
         victim_mnum = PM_GNOME;
         if (!rn2(10)) {
             otmp = mksobj(rn2(4) ? TALLOW_CANDLE : WAX_CANDLE, true, false);
+            otmp.quan = 1;
+            otmp.owt = weight(otmp);
             otmp.cursed = true; // C ref: curse(otmp) at mklev.c:1905
             placeObj(otmp);
         }

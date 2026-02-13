@@ -5,6 +5,10 @@
 - Fixed broken special-level imports that were crashing the test runner:
   - `js/special_levels.js` now imports `./levels/fakewiz1.js` and `./levels/fakewiz2.js` (previously pointed to missing `wizdecoy*.js`).
 - `npm run test:chargen` now executes successfully again.
+- Replay/startup harness now uses real pet migration (`mon_arrive`) instead of manual RNG burn/deferred simulation.
+- Startup now runs post-level init for normal games as well (matching C `newgame()` flow, not wizard-only).
+- Ported C `u.umoney0` flow into startup inventory: Healer/Tourist starting money is now emitted via `Money` inventory object (`GOLD_PIECE`) with coin-class quantity semantics.
+- Tightened `mktrap_victim` candle object fields to match C (explicit `quan=1`, recalculated weight).
 
 ## Validation snapshot
 

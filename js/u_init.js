@@ -14,7 +14,7 @@
 //   4. welcome(TRUE)           — rndencode + seer_turn
 
 import { rn2, rnd, rn1, rne, d, c_d, getRngLog } from './rng.js';
-import { mksobj, mkobj } from './mkobj.js';
+import { mksobj, mkobj, weight } from './mkobj.js';
 import { isok, NUM_ATTRS,
          PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVEMAN, PM_HEALER,
          PM_KNIGHT, PM_MONK, PM_PRIEST, PM_RANGER, PM_ROGUE,
@@ -65,7 +65,8 @@ import {
     // Classes
     WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS, TOOL_CLASS,
     RING_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
-    WAND_CLASS, GEM_CLASS,
+    WAND_CLASS, COIN_CLASS, GEM_CLASS,
+    GOLD_PIECE,
     // Armor categories
     ARM_SUIT, ARM_SHIELD, ARM_HELM, ARM_GLOVES, ARM_BOOTS, ARM_CLOAK, ARM_SHIRT,
     // Filter exclusions
@@ -514,6 +515,9 @@ const Leash_inv = [
 const Towel_inv = [
     { otyp: TOWEL, spe: 0, oclass: TOOL_CLASS, qmin: 1, qmax: 1, bless: 0 },
 ];
+const Money_inv = [
+    { otyp: GOLD_PIECE, spe: 0, oclass: COIN_CLASS, qmin: 1, qmax: 1, bless: 0 },
+];
 
 // Monk spellbook options
 const Healing_book = [
@@ -606,38 +610,43 @@ function iniInv(player, table) {
         }
 
         // C ref: u_init.c ini_inv_adjust_obj()
-        obj.known = true;
-        obj.dknown = true;
-        obj.bknown = true;
-        obj.cursed = false;
-        if (obj.oclass === WEAPON_CLASS || obj.oclass === TOOL_CLASS) {
-            obj.quan = trquan(trop);
-            quan = 1; // stop flag
-        } else if (obj.oclass === GEM_CLASS && otyp !== FLINT) {
-            // Graystone (touchstone) gets quantity 1
-            // C ref: is_graystone check — for simplicity, TOUCHSTONE and similar
-            if (otyp === TOUCHSTONE) obj.quan = 1;
-        }
-
-        // C ref: u_init.c:1231-1240 — spe handling
-        if (trop.spe !== UNDEF_SPE) {
-            obj.spe = trop.spe;
-            // Magic marker: add rn2(4) to spe if < 96
-            if (trop.otyp === MAGIC_MARKER && obj.spe < 96) {
-                obj.spe += rn2(4);
-            }
+        if (trop.oclass === COIN_CLASS) {
+            obj.quan = player.umoney0 || 0;
+            obj.owt = weight(obj);
         } else {
-            // UNDEF_SPE: keep mksobj default, but fix rings with spe <= 0
-            if (obj.oclass === RING_CLASS
-                && objectData[otyp].charged && obj.spe <= 0) {
-                obj.spe = rne(3);
+            obj.known = true;
+            obj.dknown = true;
+            obj.bknown = true;
+            obj.cursed = false;
+            if (obj.oclass === WEAPON_CLASS || obj.oclass === TOOL_CLASS) {
+                obj.quan = trquan(trop);
+                quan = 1; // stop flag
+            } else if (obj.oclass === GEM_CLASS && otyp !== FLINT) {
+                // Graystone (touchstone) gets quantity 1
+                // C ref: is_graystone check — for simplicity, TOUCHSTONE and similar
+                if (otyp === TOUCHSTONE) obj.quan = 1;
             }
-        }
 
-        // C ref: u_init.c:1243-1244 — bless handling
-        if (trop.bless !== UNDEF_BLESS) {
-            obj.blessed = trop.bless > 0;
-            obj.cursed = trop.bless < 0;
+            // C ref: u_init.c:1231-1240 — spe handling
+            if (trop.spe !== UNDEF_SPE) {
+                obj.spe = trop.spe;
+                // Magic marker: add rn2(4) to spe if < 96
+                if (trop.otyp === MAGIC_MARKER && obj.spe < 96) {
+                    obj.spe += rn2(4);
+                }
+            } else {
+                // UNDEF_SPE: keep mksobj default, but fix rings with spe <= 0
+                if (obj.oclass === RING_CLASS
+                    && objectData[otyp].charged && obj.spe <= 0) {
+                    obj.spe = rne(3);
+                }
+            }
+
+            // C ref: u_init.c:1243-1244 — bless handling
+            if (trop.bless !== UNDEF_BLESS) {
+                obj.blessed = trop.bless > 0;
+                obj.cursed = trop.bless < 0;
+            }
         }
 
         // Add to player inventory
@@ -666,6 +675,7 @@ function trquan(trop) {
 function u_init_role(player) {
     // Reset nocreate state for this role
     nocreate = nocreate2 = nocreate3 = nocreate4 = 0;
+    player.umoney0 = 0;
 
     switch (player.roleIndex) {
         case PM_ARCHEOLOGIST:
@@ -686,7 +696,7 @@ function u_init_role(player) {
             iniInv(player, Caveman_inv);
             break;
         case PM_HEALER:
-            rn1(1000, 1001); // u.umoney0 = rn1(1000, 1001)
+            player.umoney0 = rn1(1000, 1001); // u.umoney0 = rn1(1000, 1001)
             iniInv(player, Healer_inv);
             if (!rn2(25)) iniInv(player, Lamp_inv);
             break;
@@ -708,7 +718,7 @@ function u_init_role(player) {
             iniInv(player, Ranger_inv);
             break;
         case PM_ROGUE:
-            // u.umoney0 = 0 (no RNG)
+            player.umoney0 = 0; // u.umoney0 = 0 (no RNG)
             iniInv(player, Rogue_inv);
             if (!rn2(5)) iniInv(player, Blindfold_inv);
             break;
@@ -717,7 +727,7 @@ function u_init_role(player) {
             if (!rn2(5)) iniInv(player, Blindfold_inv);
             break;
         case PM_TOURIST:
-            rnd(1000); // u.umoney0 = rnd(1000)
+            player.umoney0 = rnd(1000); // u.umoney0 = rnd(1000)
             iniInv(player, Tourist_inv);
             if (!rn2(25)) iniInv(player, Tinopener_inv);
             else if (!rn2(25)) iniInv(player, Leash_inv);
@@ -987,6 +997,13 @@ export function simulatePostLevelInit(player, map, depth) {
     u_init_role(player);
     //    b. u_init_race() → race-specific inventory (instruments, food)
     u_init_race(player);
+    // C ref: u_init.c u_init_inventory_attrs() — ini_inv(Money) after role/race items.
+    if (player.umoney0 > 0) {
+        iniInv(player, Money_inv);
+        player.gold = player.umoney0;
+    } else {
+        player.gold = 0;
+    }
     equipInitialGear(player);
     //    c+d. init_attr(75) + vary_init_attr()
     initAttributes(player);
