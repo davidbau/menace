@@ -41,3 +41,42 @@ In `selfplay/agent.js`, gate secret-search candidate flows to Dlvl 3+:
 1. Keep C-first validation loop: dev seeds -> held-out aggregate.
 2. Focus next on early Dlvl 1 survival/escape against canine/reptile threats.
 3. Improve downstairs discovery on shallow levels without triggering secret-search behavior.
+
+## Update: Dlvl2 Retreat Loop Fix (2026-02-13, later session)
+
+### Additional Root Cause
+On some C seeds, once on Dlvl2 the agent would hit `levelStuckCounter > 50` and ascend back to Dlvl1 before exhausting reachable frontier. This created a Dlvl1<->Dlvl2 loop and blocked Dlvl3 progression.
+
+Also, abandoned-level bookkeeping was being re-marked every turn, resetting cooldown repeatedly and creating prolonged "skip descent" loops.
+
+### Fixes Kept
+In `selfplay/agent.js`:
+- Restrict the `stuck > 50` "give up and ascend" fallback from `currentDepth > 1` to `currentDepth > 2`, so Dlvl2 keeps exploring for downstairs instead of prematurely retreating.
+- Guard abandoned-level marking with `if (!this.abandonedLevels.has(currentDepth))` so cooldown timestamps are not continuously reset.
+
+### Held-Out Validation (C, 600 turns, 10 seeds)
+Same held-out seeds: `2,5,10,50,200,1000,2000,3000,5000,7000`
+
+Previous best baseline:
+- Mean depth: `1.5`
+- Median depth: `1.5`
+- Dlvl 2+: `5/10`
+- Dlvl 3+: `0/10`
+- Deaths: `0/10`
+
+After these fixes:
+- Mean depth: `1.6`
+- Median depth: `1.5`
+- Dlvl 2+: `5/10`
+- Dlvl 3+: `1/10`
+- Deaths: `0/10`
+- Abandon marks: reduced from noisy triple-digit intermediate behavior to `3` in held-out run
+
+### Longer-Horizon Spot Check (C, 2000 turns)
+Representative seeds:
+- Seed `2`: depth `3`, survived
+- Seed `1000`: depth `2`, survived
+- Seed `3000`: depth `4`, survived
+
+Interpretation:
+- This is a real progression improvement (first held-out Dlvl3 breakthrough and higher mean depth) without survival regression.

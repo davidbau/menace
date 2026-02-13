@@ -1213,8 +1213,10 @@ export class Agent {
                 const stairs = level.stairsUp[0];
                 // Mark this level as abandoned to prevent immediate re-descent
                 const currentDepth = this.dungeon.currentDepth;
-                this.abandonedLevels.set(currentDepth, this.turnNumber);
-                console.log(`[ABANDON] Marking Dlvl ${currentDepth} as abandoned (stuck ${this.levelStuckCounter} turns)`);
+                if (!this.abandonedLevels.has(currentDepth)) {
+                    this.abandonedLevels.set(currentDepth, this.turnNumber);
+                    console.log(`[ABANDON] Marking Dlvl ${currentDepth} as abandoned (stuck ${this.levelStuckCounter} turns)`);
+                }
 
                 // If we're already at the stairs, ascend immediately
                 if (px === stairs.x && py === stairs.y) {
@@ -1504,7 +1506,7 @@ export class Agent {
             // No downstairs found and very stuck - go back up or random movement
             if (this.levelStuckCounter > 50) {
                 // If we're deep in the dungeon and truly stuck, try going back upstairs
-                if (this.dungeon.currentDepth > 1 && level.stairsUp.length > 0) {
+                if (this.dungeon.currentDepth > 2 && level.stairsUp.length > 0) {
                     const stairs = level.stairsUp[0];
                     // If we're already at the stairs, ascend immediately
                     if (px === stairs.x && py === stairs.y) {

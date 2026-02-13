@@ -278,7 +278,7 @@ def wizard_teleport_to_level(session, level_name, verbose, branch_name=None, all
     else:
         if verbose:
             print(f'  [teleport] WARNING: never got level prompt')
-        return False
+        return False, None
 
     # Type ? and Enter to open menu
     tmux_send(session, '?', 0.3)
@@ -286,6 +286,7 @@ def wizard_teleport_to_level(session, level_name, verbose, branch_name=None, all
 
     # Scan menu pages to find the target level
     target_key = None
+    target_depth = None
     branch_key = None
     for page in range(5):  # max 5 pages
         time.sleep(0.5)
@@ -305,9 +306,10 @@ def wizard_teleport_to_level(session, level_name, verbose, branch_name=None, all
         for line in content.split('\n'):
             line = line.strip()
             # Match pattern like "B -   soko1: 6" or "c -   oracle: 9"
-            m = re.match(r'^([a-zA-Z])\s+-\s+[*]?\s*' + re.escape(level_name) + r':', line)
+            m = re.match(r'^([a-zA-Z])\s+-\s+[*]?\s*' + re.escape(level_name) + r':\s*(-?\d+)', line)
             if m:
                 target_key = m.group(1)
+                target_depth = int(m.group(2))
                 if verbose:
                     print(f'  [menu] Found "{level_name}" → key "{target_key}" in: {line}')
                 break
@@ -342,12 +344,13 @@ def wizard_teleport_to_level(session, level_name, verbose, branch_name=None, all
         # Cancel menu
         tmux_send_special(session, 'Escape', 0.3)
         time.sleep(0.3)
-        return False
+        return False, None
 
     # Select the level
     tmux_send(session, target_key, 0.5)
 
     # Wait for teleport to complete
+    arrived_depth = None
     for attempt in range(50):
         try:
             content = tmux_capture(session)
@@ -373,6 +376,9 @@ def wizard_teleport_to_level(session, level_name, verbose, branch_name=None, all
                 or re.search(r'\b(Home|Loca|Goal)\s+\d+\b', content)):
             first_line = content.split('\n')[0] if content else ''
             if 'teleport' not in first_line.lower():
+                arrived_depth = _extract_dlvl(content)
+                if arrived_depth is None:
+                    arrived_depth = target_depth
                 if verbose:
                     for line in content.split('\n'):
                         if ('Dlvl:' in line or 'Plane' in line
@@ -384,7 +390,7 @@ def wizard_teleport_to_level(session, level_name, verbose, branch_name=None, all
         time.sleep(0.2)
 
     time.sleep(0.3)
-    return True
+    return True, arrived_depth
 
 
 def _extract_dlvl(content):
@@ -405,7 +411,7 @@ def wizard_load_des_level(session, level_name, verbose, rnglog_file=None):
         try:
             content = tmux_capture(session)
         except subprocess.CalledProcessError:
-            return False
+            return False, None, None
         if '--More--' in content:
             tmux_send_special(session, 'Space', 0.2)
             continue
@@ -418,13 +424,13 @@ def wizard_load_des_level(session, level_name, verbose, rnglog_file=None):
     else:
         if verbose:
             print(f'  [wizloaddes] WARNING: no file prompt for {level_name}')
-        return False, None
+        return False, None, None
 
     for _ in range(60):
         try:
             content = tmux_capture(session)
         except subprocess.CalledProcessError:
-            return False
+            return False, None, None
         if '--More--' in content:
             tmux_send_special(session, 'Space', 0.2)
             continue
@@ -434,12 +440,12 @@ def wizard_load_des_level(session, level_name, verbose, rnglog_file=None):
             rng_call_start = calibrate_wizload_rng_start(
                 rnglog_file, prompt_rng, settled_rng
             )
-            return True, rng_call_start
+            return True, rng_call_start, _extract_dlvl(content)
         time.sleep(0.1)
 
     if verbose:
         print(f'  [wizloaddes] WARNING: timeout waiting for level load of {level_name}')
-    return False, None
+    return False, None, None
 
 
 def capture_filler_level(session, level_name, verbose, rnglog_file=None):
@@ -689,22 +695,32 @@ def generate_group(group_name, seeds, verbose=False):
                     print(f"  Teleporting to {level_name}...")
                     rnglog_file = os.environ.get('NETHACK_RNGLOG')
                     rng_call_start = get_rng_call_count(rnglog_file)
+                    abs_depth = None
 
                     # Teleport to the level
                     if bool(level_def.get('forceWizload')):
-                        ok, wiz_rng_start = wizard_load_des_level(
+                        ok, wiz_rng_start, abs_depth = wizard_load_des_level(
+                            session_name, level_name, verbose, rnglog_file
+                        )
+                        if ok and wiz_rng_start is not None:
+                            rng_call_start = wiz_rng_start
+                    elif group_name == 'quest':
+                        # Wizard teleport menu often reports the correct quest key
+                        # but lands back on "Home 1". For quest parity captures,
+                        # load the exact des level directly.
+                        ok, wiz_rng_start, abs_depth = wizard_load_des_level(
                             session_name, level_name, verbose, rnglog_file
                         )
                         if ok and wiz_rng_start is not None:
                             rng_call_start = wiz_rng_start
                     elif group_name == 'filler':
-                        ok, wiz_rng_start = capture_filler_level(
+                        ok, wiz_rng_start, abs_depth = capture_filler_level(
                             session_name, level_name, verbose, rnglog_file
                         )
                         if wiz_rng_start is not None:
                             rng_call_start = wiz_rng_start
                     else:
-                        ok = wizard_teleport_to_level(
+                        ok, abs_depth = wizard_teleport_to_level(
                             session_name,
                             level_name,
                             verbose,
@@ -712,7 +728,7 @@ def generate_group(group_name, seeds, verbose=False):
                             allow_branch_fallback=bool(level_def.get('allowBranchFallback')),
                         )
                         if (not ok) and bool(level_def.get('allowWizloadFallback')):
-                            ok, wiz_rng_start = wizard_load_des_level(
+                            ok, wiz_rng_start, abs_depth = wizard_load_des_level(
                                 session_name, level_name, verbose, rnglog_file
                             )
                             if ok and wiz_rng_start is not None:
@@ -752,6 +768,8 @@ def generate_group(group_name, seeds, verbose=False):
                         level_data['nlevels'] = level_def['nlevels']
                     if role_name:
                         level_data['role'] = role_name
+                    if abs_depth is not None:
+                        level_data['absDepth'] = int(abs_depth)
                     if rng_call_start is not None:
                         level_data['rngCallStart'] = int(rng_call_start)
                         raw_start = get_rng_raw_draw_count(
