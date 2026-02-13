@@ -32,6 +32,7 @@ import { generate as generateOrcus } from './levels/orcus.js';
 // Main dungeon special levels
 import { generate as generateCastle } from './levels/castle.js';
 import { generate as generateOracle } from './levels/oracle.js';
+import { generate as generateRogue } from './levels/rogue.js';
 
 // Medusa levels (4 variants) - medusa1-3 imported above
 import { generate as generateMedusa4 } from './levels/medusa-4.js';
@@ -337,6 +338,9 @@ registerSpecialLevel(DUNGEONS_OF_DOOM, 5, generateOracle, 'oracle');
 // Castle (Stronghold) level (typically depth 17 in Dungeons of Doom)
 registerSpecialLevel(DUNGEONS_OF_DOOM, 17, generateCastle, 'castle');
 
+// Rogue branch placeholder level (Dungeons of Doom depth 15 in harness parity checks)
+registerSpecialLevel(DUNGEONS_OF_DOOM, 15, generateRogue, 'rogue');
+
 // Medusa level (4 variants, typically depth 20 in Dungeons of Doom)
 registerSpecialLevel(DUNGEONS_OF_DOOM, 20, [
     generateMedusa1,
@@ -552,6 +556,7 @@ export const elementalPlanes = {
 // Export other special level generators
 export const otherSpecialLevels = {
     oracle: generateOracle,
+    rogue: generateRogue,
     castle: generateCastle,
     dungeon: generateDungeon,
     hellfill: generateHellfill,
