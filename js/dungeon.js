@@ -39,13 +39,15 @@ import { roles } from './player.js';
 import {
     ARROW, DART, ROCK, BOULDER, LARGE_BOX, CHEST, GOLD_PIECE, CORPSE,
     STATUE, TALLOW_CANDLE, WAX_CANDLE, BELL, KELP_FROND,
+    AMULET_OF_YENDOR, SPE_BOOK_OF_THE_DEAD, CANDELABRUM_OF_INVOCATION, BELL_OF_OPENING,
+    POT_WATER, EXPENSIVE_CAMERA, EGG, CREAM_PIE, MELON, ACID_VENOM, BLINDING_VENOM,
     WEAPON_CLASS, TOOL_CLASS, FOOD_CLASS, GEM_CLASS, WAND_CLASS,
     ARMOR_CLASS, SCROLL_CLASS, POTION_CLASS, RING_CLASS, SPBOOK_CLASS,
     POT_HEALING, POT_EXTRA_HEALING, POT_SPEED, POT_GAIN_ENERGY,
     SCR_ENCHANT_WEAPON, SCR_ENCHANT_ARMOR, SCR_CONFUSE_MONSTER, SCR_SCARE_MONSTER,
     SCR_TELEPORTATION,
     WAN_DIGGING, SPE_HEALING, SPE_BLANK_PAPER, SPE_NOVEL,
-    objectData, bases,
+    objectData, bases, GLASS,
 } from './objects.js';
 import { RUMORS_FILE_TEXT } from './rumor_data.js';
 import { getSpecialLevel } from './special_levels.js';
@@ -2442,23 +2444,40 @@ function mktrap_victim(map, trap, depth) {
     // Random possession loop
     // C ref: mklev.c:1843-1877
     const classMap = [WEAPON_CLASS, TOOL_CLASS, FOOD_CLASS, GEM_CLASS];
-    // C ref: dothrow.c breaktest() + zap.c obj_resists().
-    // In this path, only the RNG side effect is parity-critical:
-    // obj_resists() consumes rn2(100) when checking whether a fragile
-    // item survives an exploded landmine (ttyp==PIT here).
+    // C ref: zap.c obj_resists()
+    const objResistsLike = (obj, ochance, achance) => {
+        if (obj.otyp === AMULET_OF_YENDOR
+            || obj.otyp === SPE_BOOK_OF_THE_DEAD
+            || obj.otyp === CANDELABRUM_OF_INVOCATION
+            || obj.otyp === BELL_OF_OPENING) {
+            return true;
+        }
+        const chance = rn2(100);
+        return chance < (obj.oartifact ? achance : ochance);
+    };
+    // C ref: dothrow.c breaktest()
     const breaktestLike = (obj) => {
-        if (trap.ttyp !== PIT) return false;
-        // Non-artifact path used for these generated possessions.
-        const nonbreakResists = rn2(100) < 1;
-        if (nonbreakResists) return false;
-        const name = String(objectData[obj.otyp]?.name || '').toLowerCase();
-        if (obj.oclass === POTION_CLASS) return true;
+        if (trap.ttyp !== PIT) return false; // only exploded landmine path
+        const od = objectData[obj.otyp] || {};
+        let nonbreakchance = 1;
+        if (obj.oclass === ARMOR_CLASS && od.material === GLASS) {
+            nonbreakchance = 90;
+        }
+        if (objResistsLike(obj, nonbreakchance, 99)) {
+            return false;
+        }
+        if (od.material === GLASS && !obj.oartifact && obj.oclass !== GEM_CLASS) {
+            return true;
+        }
+        const breakTyp = (obj.oclass === POTION_CLASS) ? POT_WATER : obj.otyp;
         return (
-            name === 'egg'
-            || name === 'cream pie'
-            || name === 'melon'
-            || name === 'acid venom'
-            || name === 'blinding venom'
+            breakTyp === EXPENSIVE_CAMERA
+            || breakTyp === POT_WATER
+            || breakTyp === EGG
+            || breakTyp === CREAM_PIE
+            || breakTyp === MELON
+            || breakTyp === ACID_VENOM
+            || breakTyp === BLINDING_VENOM
         );
     };
 

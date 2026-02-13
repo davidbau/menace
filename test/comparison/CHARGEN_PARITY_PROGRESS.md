@@ -9,6 +9,7 @@
 - Startup now runs post-level init for normal games as well (matching C `newgame()` flow, not wizard-only).
 - Ported C `u.umoney0` flow into startup inventory: Healer/Tourist starting money is now emitted via `Money` inventory object (`GOLD_PIECE`) with coin-class quantity semantics.
 - Tightened `mktrap_victim` candle object fields to match C (explicit `quan=1`, recalculated weight).
+- Replaced `mktrap_victim` landmine breakage approximation with direct C-faithful `breaktest()` + `obj_resists()` logic (including invocation-item immunity and glass-material handling).
 
 ## Validation snapshot
 
