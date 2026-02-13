@@ -2092,7 +2092,6 @@ function mapchrToTerrain(ch) {
         case '{': return FOUNTAIN;
         case '\\': return THRONE;
         case 'K': return SINK;
-        case '_': return ALTAR;
         case '}': return MOAT;
         case 'P': return POOL;
         case 'L': return LAVAPOOL;

@@ -10,7 +10,7 @@ import {
 import { place_lregion } from '../../js/dungeon.js';
 import {
     STONE, ROOM, HWALL, VWALL, STAIRS, LAVAPOOL, PIT, MAGIC_PORTAL, CROSSWALL,
-    ALTAR, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
+    ALTAR, THRONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
 } from '../../js/config.js';
 import { BOULDER, DAGGER } from '../../js/objects.js';
 
@@ -158,13 +158,13 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[20][8].altarAlign, A_NEUTRAL);
     });
 
-    it('des.map parses underscore as ALTAR terrain', () => {
+    it('des.map parses backslash as THRONE terrain', () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
-        des.map({ map: '_', x: 10, y: 5 });
+        des.map({ map: '\\\\', x: 10, y: 5 });
 
         const map = getLevelState().map;
-        assert.equal(map.locations[10][5].typ, ALTAR);
+        assert.equal(map.locations[10][5].typ, THRONE);
     });
 
     it('des.altar does not overwrite stairs/ladder tiles', () => {
