@@ -146,10 +146,8 @@ class NetHackGame {
 
         // Post-level initialization: pet, inventory, attributes, welcome
         // C ref: allmain.c newgame() — makedog through welcome(TRUE)
-        if (this.wizard) {
-            const initResult = simulatePostLevelInit(this.player, this.map, 1);
-            this.seerTurn = initResult.seerTurn;
-        }
+        const initResult = simulatePostLevelInit(this.player, this.map, 1);
+        this.seerTurn = initResult.seerTurn;
 
         // Apply flags
         this.player.showExp = this.flags.showexp;
