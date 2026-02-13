@@ -10,9 +10,9 @@ import assert from 'node:assert';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { resetLevelState } from '../../js/sp_lev.js';
-import { getSpecialLevel, DUNGEONS_OF_DOOM, GEHENNOM, VLADS_TOWER, KNOX, SOKOBAN, GNOMISH_MINES, QUEST } from '../../js/special_levels.js';
-import { initRng } from '../../js/rng.js';
+import { resetLevelState, setFinalizeContext } from '../../js/sp_lev.js';
+import { getSpecialLevel, resetVariantCache, DUNGEONS_OF_DOOM, GEHENNOM, VLADS_TOWER, KNOX, SOKOBAN, GNOMISH_MINES, QUEST } from '../../js/special_levels.js';
+import { initRng, skipRng, rn2, c_d, rne, rnz } from '../../js/rng.js';
 
 const ROWNO = 21;
 const COLNO = 80;
@@ -101,10 +101,104 @@ function testLevel(seed, dnum, dlevel, levelName, cSession) {
         console.log(`Warning: ${levelName} not found in C session`);
         return;
     }
+    const rngCallStart = (
+        (typeof cLevel.rngRawCallStart === 'number'
+            && typeof cLevel.rngCallStart === 'number'
+            && cLevel.rngRawCallStart > cLevel.rngCallStart)
+            ? cLevel.rngRawCallStart
+            : cLevel.rngCallStart
+    );
+
+    const replayPrelude = () => {
+        if (!Array.isArray(cLevel.preRngCalls)) return;
+        for (const call of cLevel.preRngCalls) {
+            if (!call || call.fn !== 'rn2' || typeof call.arg !== 'number') continue;
+            rn2(call.arg);
+        }
+    };
+
+    const calibrateStartOffset = () => {
+        if (!Array.isArray(cLevel.rngFingerprint) || cLevel.rngFingerprint.length === 0) {
+            return 0;
+        }
+        if (typeof rngCallStart !== 'number' || rngCallStart <= 0) {
+            return 0;
+        }
+
+        let bestOffset = 0;
+        let bestScore = -1;
+        let bestCount = 0;
+        const offsets = [];
+        for (let off = -6; off <= 6; off++) offsets.push(off);
+
+        for (const off of offsets) {
+            initRng(seed);
+            skipRng(rngCallStart + off);
+            replayPrelude();
+
+            let score = 0;
+            for (const fp of cLevel.rngFingerprint) {
+                if (!fp || typeof fp.result !== 'number') continue;
+                let got = null;
+                if ((fp.fn === 'rn2' || fp.fn === 'rnd' || fp.fn === 'rne' || fp.fn === 'rnz')
+                    && typeof fp.arg !== 'number') continue;
+                if (fp.fn === 'rn2') got = rn2(fp.arg);
+                else if (fp.fn === 'rnd') got = (rn2(fp.arg) + 1);
+                else if (fp.fn === 'rne') got = rne(fp.arg);
+                else if (fp.fn === 'rnz') got = rnz(fp.arg);
+                else if (fp.fn === 'd' && Array.isArray(fp.args) && fp.args.length === 2) {
+                    got = c_d(fp.args[0], fp.args[1]);
+                }
+                if (got === null) continue;
+                if (got === fp.result) score++;
+            }
+
+            if (
+                score > bestScore
+                || (score === bestScore && Math.abs(off) < Math.abs(bestOffset))
+                || (score === bestScore && Math.abs(off) === Math.abs(bestOffset) && off > bestOffset)
+            ) {
+                bestScore = score;
+                bestOffset = off;
+                bestCount = 1;
+            } else if (score === bestScore) {
+                bestCount++;
+            }
+        }
+
+        // Apply offset only when fingerprint match is exact and unambiguous.
+        // Near-matches are too weak because C logged calls can hide additional
+        // underlying PRNG draws, which can produce false-positive offsets.
+        if (bestScore !== cLevel.rngFingerprint.length) {
+            return 0;
+        }
+        if (bestCount > 1 && bestOffset !== 0) {
+            return 0;
+        }
+        return bestOffset;
+    };
 
     // Generate JS version
+    let startOffset = 0;
+    if (typeof rngCallStart === 'number' && rngCallStart > 0) {
+        startOffset = calibrateStartOffset();
+    }
     initRng(seed);
+    if (typeof rngCallStart === 'number' && rngCallStart > 0) {
+        // Align with C harness state captured immediately before level load.
+        skipRng(rngCallStart + startOffset);
+    }
+    replayPrelude();
+    // Keep each seeded parity check independent: variant picks must come from
+    // this test's RNG state rather than previous test cache entries.
+    resetVariantCache();
     resetLevelState();
+    setFinalizeContext(null);
+    // Filler levels are captured through #wizloaddes from a branch-level context.
+    // Emulate that finalization context so branch stair fixups match C traces.
+    if (cSession.group === 'filler' && levelName.toLowerCase() === 'minefill') {
+        setFinalizeContext({ isBranchLevel: true, dunlev: 1, dunlevs: 99 });
+    }
 
     const specialLevel = getSpecialLevel(dnum, dlevel);
     if (!specialLevel) {

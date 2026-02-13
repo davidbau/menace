@@ -15,8 +15,8 @@
 
 import { GameMap, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1, getRngCallCount } from './rng.js';
-import { mksobj, mkobj, mkcorpstat, set_corpsenm } from './mkobj.js';
-import { create_room, create_subroom, makecorridors, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, place_lregion, mktrap, enexto, somexy } from './dungeon.js';
+import { mksobj, mkobj, mkcorpstat, set_corpsenm, weight } from './mkobj.js';
+import { create_room, create_subroom, makecorridors, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, place_lregion, mktrap, enexto, somexy, sp_create_door } from './dungeon.js';
 import { seedFromMT } from './xoshiro256.js';
 import { makemon, mkclass, def_char_to_monclass, NO_MM_FLAGS, MM_NOGRP } from './makemon.js';
 import {
@@ -31,7 +31,7 @@ import {
     SLP_GAS_TRAP, RUST_TRAP, FIRE_TRAP, TELEP_TRAP, LEVEL_TELEP,
     MAGIC_PORTAL, ANTI_MAGIC, POLY_TRAP, STATUE_TRAP, MAGIC_TRAP,
     VIBRATING_SQUARE,
-    D_NODOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN,
+    D_NODOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN, D_SECRET,
     COLNO, ROWNO, IS_OBSTRUCTED, IS_WALL, IS_POOL, IS_LAVA,
     MKTRAP_MAZEFLAG, MKTRAP_NOSPIDERONWEB
 } from './config.js';
@@ -39,7 +39,7 @@ import {
     BOULDER, SCROLL_CLASS, FOOD_CLASS, WEAPON_CLASS, ARMOR_CLASS,
     POTION_CLASS, RING_CLASS, WAND_CLASS, TOOL_CLASS, AMULET_CLASS,
     GEM_CLASS, SPBOOK_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS, VENOM_CLASS,
-    SCR_EARTH, objectData
+    SCR_EARTH, objectData, GOLD_PIECE
 } from './objects.js';
 import { mons, M2_FEMALE, M2_MALE, G_NOGEN } from './monsters.js';
 
@@ -3445,7 +3445,9 @@ export function monster(opts_or_class, x, y) {
         }
     }
 
-    if (levelState.finalizeContext) {
+    const parityImmediate = !!(opts_or_class && typeof opts_or_class === 'object'
+        && opts_or_class.parityImmediate);
+    if (levelState.finalizeContext || parityImmediate) {
         // C ref: sp_lev.c lspo_monster() creates monsters immediately.
         // Preserve that RNG order in parity mode, but still resolve coords at
         // execution time to mirror get_location_coord() timing.
@@ -3454,7 +3456,8 @@ export function monster(opts_or_class, x, y) {
             deferCoord: true,
             rawX: srcX,
             rawY: srcY,
-            room: levelState.currentRoom || null
+            room: levelState.currentRoom || null,
+            parityImmediate
         });
         return;
     }
@@ -3493,13 +3496,18 @@ export function door(state_or_opts, x, y) {
         levelState.map = new GameMap();
     }
 
-    let state, doorX, doorY, wall;
+    let state;
+    let doorX = -1;
+    let doorY = -1;
+    let wall;
+    let pos = -1;
 
     // Handle both calling styles
     if (typeof state_or_opts === 'object') {
         // Options object style: des.door({ state: "nodoor", wall: "all" })
-        state = state_or_opts.state || 'closed';
+        state = state_or_opts.state || 'random';
         wall = state_or_opts.wall;
+        pos = Number.isFinite(state_or_opts.pos) ? state_or_opts.pos : -1;
         if (Array.isArray(state_or_opts.coord)) {
             doorX = state_or_opts.coord[0];
             doorY = state_or_opts.coord[1];
@@ -3507,87 +3515,101 @@ export function door(state_or_opts, x, y) {
             doorX = state_or_opts.x ?? -1;
             doorY = state_or_opts.y ?? -1;
         }
-
-        // If wall is specified, place doors on room walls
-        if (wall && levelState.currentRoom) {
-            placeDoorOnWall(levelState.currentRoom, state, wall);
-            return;
-        }
     } else {
         // String style: des.door("open", x, y)
-        state = state_or_opts;
+        state = state_or_opts || 'random';
         doorX = x;
         doorY = y;
     }
 
-    // Convert map-relative coordinates to absolute
-    // C ref: Lua coordinates after des.map() are relative to map origin
-    const absCoords = toAbsoluteCoords(doorX, doorY);
-    doorX = absCoords.x;
-    doorY = absCoords.y;
-
-    // Validate coordinates
-    if (doorX < 0 || doorX >= COLNO || doorY < 0 || doorY >= ROWNO) {
-        return; // Out of bounds or unspecified
-    }
-
-    const loc = levelState.map.locations[doorX][doorY];
-
-    // Map state string to door flags
-    // C ref: sp_lev.c doorstates2i[]
-    let doorFlags;
-    switch (state.toLowerCase()) {
+    // C ref: sp_lev.c lspo_door() doorstates2i + rnddoor()
+    let doorMask;
+    switch (String(state).toLowerCase()) {
         case 'open':
-            doorFlags = D_ISOPEN;
+            doorMask = D_ISOPEN;
             break;
         case 'closed':
-            doorFlags = D_CLOSED;
+            doorMask = D_CLOSED;
             break;
         case 'locked':
-            doorFlags = D_LOCKED;
+            doorMask = D_LOCKED;
             break;
         case 'nodoor':
-            doorFlags = D_NODOOR;
+            doorMask = D_NODOOR;
             break;
         case 'broken':
-            doorFlags = D_BROKEN || D_NODOOR; // Broken is like nodoor if constant not defined
+            doorMask = D_BROKEN;
             break;
         case 'secret':
-            // Secret doors are SDOOR terrain type, not DOOR
-            loc.typ = SDOOR;
-            return;
+            doorMask = D_SECRET;
+            break;
         case 'random':
-            // Random door state - C uses rnddoor()
-            doorFlags = rn2(3) === 0 ? D_ISOPEN : (rn2(2) === 0 ? D_CLOSED : D_LOCKED);
+            {
+                const states = [D_NODOOR, D_BROKEN, D_ISOPEN, D_CLOSED, D_LOCKED];
+                doorMask = states[rn2(states.length)];
+            }
             break;
         default:
-            doorFlags = D_CLOSED; // Default to closed
+            doorMask = D_CLOSED;
+            break;
     }
 
-    // Set terrain type and flags
-    loc.typ = DOOR;
-    loc.flags = doorFlags;
-}
-
-/**
- * Helper: Place doors on room walls
- * @param {Object} room - Room object with lx, ly, hx, hy
- * @param {string} state - Door state
- * @param {string} wall - Which walls ("north", "south", "east", "west", "all", "random")
- */
-function placeDoorOnWall(room, state, wall) {
-    // For "nodoor" state with "all" walls, this typically means
-    // the room should have no doors (open passages). In C this is
-    // handled by setting NODOOR flag. For special levels, we just skip
-    // creating actual door terrain.
-    if (state === 'nodoor') {
-        // No doors to place - subrooms in special levels often have nodoor
-        // to create open passages
+    // x/y omitted => create random wall door within current room.
+    if (doorX === -1 && doorY === -1) {
+        if (!levelState.currentRoom) return;
+        const WALL_ANY = 1 | 2 | 4 | 8;
+        const wallMap = {
+            all: WALL_ANY,
+            random: WALL_ANY,
+            north: 1,
+            south: 2,
+            east: 4,
+            west: 8
+        };
+        const wallMask = wallMap[String(wall || 'all').toLowerCase()] ?? WALL_ANY;
+        const dd = {
+            secret: (doorMask === D_SECRET) ? 1 : 0,
+            mask: doorMask,
+            pos,
+            wall: wallMask
+        };
+        sp_create_door(levelState.map, dd, levelState.currentRoom);
         return;
     }
 
-    // TODO: Implement actual door placement on walls for other states
-    // This would place doors at random or specific positions on the specified walls
+    const posCoord = getLocationCoord(doorX, doorY, GETLOC_ANY_LOC, levelState.currentRoom || null);
+    doorX = posCoord.x;
+    doorY = posCoord.y;
+    if (doorX < 0 || doorX >= COLNO || doorY < 0 || doorY >= ROWNO) {
+        return;
+    }
+
+    const loc = levelState.map.locations[doorX][doorY];
+    if (!loc) return;
+
+    // C ref: sel_set_door()
+    // Secret doors force SDOOR even if a door terrain is already present.
+    if (doorMask & D_SECRET) {
+        loc.typ = SDOOR;
+    } else if (loc.typ !== DOOR && loc.typ !== SDOOR) {
+        loc.typ = DOOR;
+    }
+    if (doorMask & D_SECRET) {
+        doorMask &= ~D_SECRET;
+        if (doorMask < D_CLOSED) {
+            doorMask = D_CLOSED;
+        }
+    }
+    // Doors are horizontal if they adjoin a wall on left.
+    if (doorX > 0) {
+        const left = levelState.map.locations[doorX - 1][doorY];
+        if (left && (IS_WALL(left.typ) || !!left.horizontal)) {
+            loc.horizontal = true;
+        } else {
+            loc.horizontal = false;
+        }
+    }
+    loc.flags = doorMask;
 }
 
 /**
@@ -3651,8 +3673,40 @@ export function altar(opts) {
  * @param {Object} opts - Gold options (x, y, amount)
  */
 export function gold(opts) {
-    // Stub - would create gold object with specified amount
-    // For now, just ignore
+    let gx;
+    let gy;
+    let amount = 1;
+
+    if (opts === undefined) {
+        gx = -1;
+        gy = -1;
+    } else if (Array.isArray(opts)) {
+        gx = opts[0];
+        gy = opts[1];
+    } else if (typeof opts === 'object') {
+        gx = opts.x ?? (Array.isArray(opts.coord) ? opts.coord[0] : -1);
+        gy = opts.y ?? (Array.isArray(opts.coord) ? opts.coord[1] : -1);
+        if (typeof opts.amount === 'number' && Number.isFinite(opts.amount)) {
+            amount = Math.max(1, Math.floor(opts.amount));
+        }
+    } else {
+        return;
+    }
+
+    const pos = getLocationCoord(gx, gy, GETLOC_ANY_LOC, levelState.currentRoom || null);
+    if (pos.x < 0 || pos.x >= COLNO || pos.y < 0 || pos.y >= ROWNO) {
+        return;
+    }
+
+    const gold = mksobj(GOLD_PIECE, true, false);
+    if (!gold) return;
+    gold.ox = pos.x;
+    gold.oy = pos.y;
+    gold.quan = amount;
+    gold.owt = weight(gold);
+    if (levelState.map && Array.isArray(levelState.map.objects)) {
+        levelState.map.objects.push(gold);
+    }
 }
 
 /**
@@ -3689,6 +3743,45 @@ export function feature(type, x, y) {
     const pos = getLocationCoord(fx, fy, GETLOC_ANY_LOC, levelState.currentRoom || null);
     if (pos.x >= 0 && pos.x < 80 && pos.y >= 0 && pos.y < 21) {
         levelState.map.locations[pos.x][pos.y].typ = terrain;
+    }
+}
+
+/**
+ * des.gas_cloud(opts)
+ * Mark tiles as gas cloud terrain.
+ * C ref: sp_lev.c lspo_gas_cloud()
+ *
+ * @param {Object} opts - { selection } or { region:[x1,y1,x2,y2] }
+ */
+export function gas_cloud(opts = {}) {
+    if (!levelState.map) return;
+
+    const applyAt = (x, y) => {
+        if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return;
+        levelState.map.locations[x][y].typ = CLOUD;
+    };
+
+    const sel = opts.selection;
+    if (sel && Array.isArray(sel.coords)) {
+        for (const c of sel.coords) applyAt(c.x, c.y);
+        return;
+    }
+    if (sel && Number.isFinite(sel.x1) && Number.isFinite(sel.y1)
+        && Number.isFinite(sel.x2) && Number.isFinite(sel.y2)) {
+        for (let y = sel.y1; y <= sel.y2; y++) {
+            for (let x = sel.x1; x <= sel.x2; x++) {
+                applyAt(x, y);
+            }
+        }
+        return;
+    }
+    if (Array.isArray(opts.region) && opts.region.length >= 4) {
+        const [x1, y1, x2, y2] = opts.region;
+        for (let y = y1; y <= y2; y++) {
+            for (let x = x1; x <= x2; x++) {
+                applyAt(x, y);
+            }
+        }
     }
 }
 
@@ -3782,6 +3875,7 @@ function executeDeferredObjects() {
  */
 function executeDeferredMonster(deferred) {
     const { opts_or_class, x, y } = deferred;
+    const immediateParity = !!levelState.finalizeContext || !!deferred.parityImmediate;
 
     const resolveMonsterIndex = (monsterId, depth) => {
         if (typeof monsterId === 'string' && monsterId.length === 1) {
@@ -3828,10 +3922,10 @@ function executeDeferredMonster(deferred) {
         }
         const coordX = (x !== undefined) ? x : rn2(60) + 10;
         const coordY = (y !== undefined) ? y : rn2(15) + 3;
-        if (levelState.finalizeContext) {
-            // C ref: create_monster() default AM_SPLEV_RANDOM -> induced_align()
-            // consumes alignment RNG even when result is not used by JS parity path.
-            rn2(3);
+    if (immediateParity) {
+        // C ref: create_monster() default AM_SPLEV_RANDOM -> induced_align()
+        // consumes alignment RNG even when result is not used by JS parity path.
+        rn2(3);
             createMonster(randClass, coordX, coordY);
             return;
         }
@@ -3894,7 +3988,7 @@ function executeDeferredMonster(deferred) {
         levelState.monsters = [];
     }
 
-    if (levelState.finalizeContext) {
+    if (immediateParity) {
         const depth = (levelState.finalizeContext && Number.isFinite(levelState.finalizeContext.dunlev))
             ? levelState.finalizeContext.dunlev
             : (levelState.levelDepth || 1);
@@ -4037,26 +4131,11 @@ function executeDeferredTrap(deferred) {
         return;
     }
 
-    const existing = levelState.map.trapAt(trapX, trapY);
-    if (existing) {
-        return;
-    }
-
-    const newTrap = {
-        ttyp: ttyp,
-        tx: trapX,
-        ty: trapY,
-        tseen: (ttyp === HOLE),
-        launch: { x: -1, y: -1 },
-        launch2: { x: -1, y: -1 },
-        dst: { dnum: -1, dlevel: -1 },
-        tnote: 0,
-        once: 0,
-        madeby_u: 0,
-        conjoined: 0,
-    };
-
-    levelState.map.traps.push(newTrap);
+    const tm = { x: trapX, y: trapY };
+    const depth = (levelState.finalizeContext && Number.isFinite(levelState.finalizeContext.dunlev))
+        ? levelState.finalizeContext.dunlev
+        : (levelState.levelDepth || 1);
+    mktrap(levelState.map, ttyp, MKTRAP_NOSPIDERONWEB, null, tm, depth);
 }
 
 function executeDeferredTraps() {
@@ -5129,6 +5208,7 @@ export const des = {
     non_passwall,
     levregion,
     feature,
+    gas_cloud,
     teleport_region,
     exclusion,
     monster,

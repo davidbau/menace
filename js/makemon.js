@@ -31,6 +31,7 @@ import {
     PM_SOLDIER, PM_SHOPKEEPER, AT_WEAP, AT_EXPL, PM_PESTILENCE,
     PM_GOBLIN, PM_ORC_CAPTAIN, PM_MORDOR_ORC, PM_URUK_HAI, PM_ORC_SHAMAN,
     PM_OGRE_LEADER, PM_OGRE_TYRANT, PM_GHOST,
+    PM_CROESUS,
 } from './monsters.js';
 import {
     ROCK, STATUE, FIGURINE, EGG, TIN, STRANGE_OBJECT, GOLD_PIECE,
@@ -1101,6 +1102,16 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         if (rn2(7)) {
             rn2(34); // ROLL_FROM(ghostnames)
         }
+    }
+
+    // C ref: makemon.c mitem special-cases before m_initweap/m_initinv.
+    // Needed for PRNG parity on special unique monsters (notably Croesus).
+    let mitem = STRANGE_OBJECT;
+    if (mndx === PM_CROESUS) {
+        mitem = TWO_HANDED_SWORD;
+    }
+    if (mitem !== STRANGE_OBJECT) {
+        mksobj(mitem, true, false);
     }
 
     // Group formation

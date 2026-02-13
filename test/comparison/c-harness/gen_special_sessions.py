@@ -83,7 +83,14 @@ LEVEL_GROUPS = {
     'knox': {
         'description': 'Fort Ludios',
         'levels': [
-            {'name': 'knox', 'branch': 'Fort Ludios', 'branchLevel': 1},
+            {
+                'name': 'knox',
+                'branch': 'Fort Ludios',
+                'branchLevel': 1,
+                'allowBranchFallback': True,
+                'allowWizloadFallback': True,
+                'forceWizload': True,
+            },
         ],
     },
     'oracle': {
@@ -385,7 +392,7 @@ def _extract_dlvl(content):
     return int(m.group(1)) if m else None
 
 
-def wizard_load_des_level(session, level_name, verbose):
+def wizard_load_des_level(session, level_name, verbose, rnglog_file=None):
     """Load a special-level Lua file via #wizloaddes."""
     if verbose:
         print(f'  [wizloaddes] Loading {level_name}.lua')
@@ -403,6 +410,7 @@ def wizard_load_des_level(session, level_name, verbose):
             tmux_send_special(session, 'Space', 0.2)
             continue
         if 'Load which des lua file?' in content:
+            prompt_rng = get_rng_call_count(rnglog_file)
             tmux_send(session, level_name, 0.2)
             tmux_send_special(session, 'Enter', 0.5)
             break
@@ -410,7 +418,7 @@ def wizard_load_des_level(session, level_name, verbose):
     else:
         if verbose:
             print(f'  [wizloaddes] WARNING: no file prompt for {level_name}')
-        return False
+        return False, None
 
     for _ in range(60):
         try:
@@ -422,17 +430,21 @@ def wizard_load_des_level(session, level_name, verbose):
             continue
         # A settled status line with Dlvl indicates map is ready.
         if _extract_dlvl(content) is not None:
-            return True
+            settled_rng = get_rng_call_count(rnglog_file)
+            rng_call_start = calibrate_wizload_rng_start(
+                rnglog_file, prompt_rng, settled_rng
+            )
+            return True, rng_call_start
         time.sleep(0.1)
 
     if verbose:
         print(f'  [wizloaddes] WARNING: timeout waiting for level load of {level_name}')
-    return False
+    return False, None
 
 
-def capture_filler_level(session, level_name, verbose):
+def capture_filler_level(session, level_name, verbose, rnglog_file=None):
     """Capture filler levels by loading the exact des Lua file."""
-    return wizard_load_des_level(session, level_name, verbose)
+    return wizard_load_des_level(session, level_name, verbose, rnglog_file)
 
 
 def parse_dumpmap(dumpmap_file):
@@ -444,6 +456,160 @@ def parse_dumpmap(dumpmap_file):
         row = [int(x) for x in line.strip().split()]
         grid.append(row)
     return grid
+
+
+def get_rng_call_count(rnglog_file):
+    """Return the last RNG call number from an RNG log file, or None."""
+    if not rnglog_file or not os.path.exists(rnglog_file):
+        return None
+    last = None
+    with open(rnglog_file, 'r', encoding='utf-8', errors='ignore') as f:
+        for line in f:
+            m = re.match(r'^\s*(\d+)\s+', line)
+            if m:
+                last = int(m.group(1))
+    return last
+
+
+def get_rng_raw_draw_count(rnglog_file, upto_call_no=None):
+    """Estimate underlying raw PRNG draws up to an optional logged call number."""
+    if not rnglog_file or not os.path.exists(rnglog_file):
+        return None
+
+    line_re = re.compile(
+        r'^\s*(\d+)\s+([a-zA-Z0-9_]+)\(([^)]*)\)\s*=\s*(-?\d+)'
+    )
+
+    def draw_count(fn, args_text, result):
+        # Primitive RNG wrappers consume one raw draw.
+        if fn in ('rn2', 'rnd', 'rnl'):
+            return 1
+        # d(n,x) consumes n raw draws in C rnd.c.
+        if fn == 'd':
+            parts = [p.strip() for p in args_text.split(',')]
+            if parts and re.fullmatch(r'-?\d+', parts[0]):
+                return max(0, int(parts[0]))
+            return 1
+        # rne(x) is logged as a summary in traces that also include its
+        # underlying rn2 calls, so treat this entry as non-consuming here.
+        if fn == 'rne':
+            return 0
+        # rnz() is typically logged alongside its component calls in our traces.
+        # Count 0 here to avoid double-counting when those calls are present.
+        if fn == 'rnz':
+            return 0
+        return 1
+
+    total = 0
+    with open(rnglog_file, 'r', encoding='utf-8', errors='ignore') as f:
+        for line in f:
+            m = line_re.match(line.rstrip('\n'))
+            if not m:
+                continue
+            call_no = int(m.group(1))
+            if upto_call_no is not None and call_no > int(upto_call_no):
+                break
+            fn = m.group(2)
+            args_text = m.group(3).strip()
+            result = int(m.group(4))
+            total += draw_count(fn, args_text, result)
+    return total
+
+
+def extract_rng_prelude_calls(rnglog_file, rng_call_start):
+    """Extract nhlua prelude RNG calls between start and special-level init."""
+    if not rnglog_file or not os.path.exists(rnglog_file) or rng_call_start is None:
+        return None
+
+    line_re = re.compile(
+        r'^\s*(\d+)\s+([a-zA-Z0-9_]+)\(([^)]*)\)\s*=\s*.*?\s+@\s+(.+)$'
+    )
+    calls = []
+    with open(rnglog_file, 'r', encoding='utf-8', errors='ignore') as f:
+        for line in f:
+            m = line_re.match(line.rstrip('\n'))
+            if not m:
+                continue
+            call_no = int(m.group(1))
+            if call_no <= int(rng_call_start):
+                continue
+            fn = m.group(2)
+            arg_text = m.group(3).strip()
+            src = m.group(4)
+
+            # Prelude ends once level_init's random-lit call starts.
+            if 'splev_initlev(sp_lev.c:2984)' in src:
+                break
+            if 'nhl_rn2(nhlua.c:930)' not in src:
+                continue
+            if fn != 'rn2':
+                continue
+            if not re.fullmatch(r'-?\d+', arg_text):
+                continue
+            calls.append({'fn': 'rn2', 'arg': int(arg_text)})
+
+    return calls if calls else None
+
+
+def extract_post_prelude_fingerprint(rnglog_file, rng_call_start, limit=20):
+    """Capture first simple RNG ops after prelude for offset calibration."""
+    if not rnglog_file or not os.path.exists(rnglog_file) or rng_call_start is None:
+        return None
+
+    line_re = re.compile(
+        r'^\s*(\d+)\s+([a-zA-Z0-9_]+)\(([^)]*)\)\s*=\s*(-?\d+).*?\s+@\s+(.+)$'
+    )
+    calls = []
+    with open(rnglog_file, 'r', encoding='utf-8', errors='ignore') as f:
+        for line in f:
+            m = line_re.match(line.rstrip('\n'))
+            if not m:
+                continue
+            call_no = int(m.group(1))
+            if call_no <= int(rng_call_start):
+                continue
+            fn = m.group(2)
+            arg_text = m.group(3).strip()
+            result = int(m.group(4))
+            src = m.group(5)
+
+            # Skip prelude Lua rn2 calls; they are replayed separately.
+            if 'nhl_rn2(nhlua.c:930)' in src:
+                continue
+            if fn not in ('rn2', 'rnd', 'd', 'rne', 'rnz'):
+                continue
+            entry = {'fn': fn, 'result': result}
+            if fn in ('rn2', 'rnd', 'rne', 'rnz'):
+                if not re.fullmatch(r'-?\d+', arg_text):
+                    continue
+                entry['arg'] = int(arg_text)
+            elif fn == 'd':
+                parts = [p.strip() for p in arg_text.split(',')]
+                if len(parts) != 2:
+                    continue
+                if not re.fullmatch(r'-?\d+', parts[0]) or not re.fullmatch(r'-?\d+', parts[1]):
+                    continue
+                entry['args'] = [int(parts[0]), int(parts[1])]
+            else:
+                continue
+            calls.append(entry)
+            if len(calls) >= limit:
+                break
+    return calls if calls else None
+
+
+def calibrate_wizload_rng_start(rnglog_file, prompt_rng, settled_rng):
+    """Estimate rngCallStart for #wizloaddes from RNG-log source locations."""
+    if prompt_rng is None:
+        return None
+    # Use the RNG count at the "Load which des lua file?" prompt directly.
+    #
+    # Rationale:
+    # Previous marker-based scanning could jump forward into sp_lev/mk* calls
+    # and over-skip early wizload RNG, causing large flip/parity divergences
+    # on some seeds (notably knox seed 1). Using prompt_rng is stable across
+    # seeds and keeps JS/C alignment at the command boundary.
+    return prompt_rng
 
 
 def generate_group(group_name, seeds, verbose=False):
@@ -506,10 +672,22 @@ def generate_group(group_name, seeds, verbose=False):
                 for level_def in level_defs:
                     level_name = level_def['name']
                     print(f"  Teleporting to {level_name}...")
+                    rnglog_file = os.environ.get('NETHACK_RNGLOG')
+                    rng_call_start = get_rng_call_count(rnglog_file)
 
                     # Teleport to the level
-                    if group_name == 'filler':
-                        ok = capture_filler_level(session_name, level_name, verbose)
+                    if bool(level_def.get('forceWizload')):
+                        ok, wiz_rng_start = wizard_load_des_level(
+                            session_name, level_name, verbose, rnglog_file
+                        )
+                        if ok and wiz_rng_start is not None:
+                            rng_call_start = wiz_rng_start
+                    elif group_name == 'filler':
+                        ok, wiz_rng_start = capture_filler_level(
+                            session_name, level_name, verbose, rnglog_file
+                        )
+                        if wiz_rng_start is not None:
+                            rng_call_start = wiz_rng_start
                     else:
                         ok = wizard_teleport_to_level(
                             session_name,
@@ -518,6 +696,12 @@ def generate_group(group_name, seeds, verbose=False):
                             branch_name=level_def.get('branch'),
                             allow_branch_fallback=bool(level_def.get('allowBranchFallback')),
                         )
+                        if (not ok) and bool(level_def.get('allowWizloadFallback')):
+                            ok, wiz_rng_start = wizard_load_des_level(
+                                session_name, level_name, verbose, rnglog_file
+                            )
+                            if ok and wiz_rng_start is not None:
+                                rng_call_start = wiz_rng_start
                     if not ok:
                         print(f"  WARNING: teleport failed for {level_name}, skipping capture")
                         continue
@@ -553,6 +737,23 @@ def generate_group(group_name, seeds, verbose=False):
                         level_data['nlevels'] = level_def['nlevels']
                     if role_name:
                         level_data['role'] = role_name
+                    if rng_call_start is not None:
+                        level_data['rngCallStart'] = int(rng_call_start)
+                        raw_start = get_rng_raw_draw_count(
+                            rnglog_file, rng_call_start
+                        )
+                        if raw_start is not None:
+                            level_data['rngRawCallStart'] = int(raw_start)
+                        prelude_calls = extract_rng_prelude_calls(
+                            rnglog_file, rng_call_start
+                        )
+                        if prelude_calls:
+                            level_data['preRngCalls'] = prelude_calls
+                        fingerprint = extract_post_prelude_fingerprint(
+                            rnglog_file, rng_call_start
+                        )
+                        if fingerprint:
+                            level_data['rngFingerprint'] = fingerprint
 
                     levels.append(level_data)
                     print(f"  Captured {level_name}: {len(grid)} rows, {len(grid[0]) if grid else 0} cols")
