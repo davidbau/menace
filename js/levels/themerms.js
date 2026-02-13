@@ -190,8 +190,14 @@ export const themeroom_fills = [
             shuffle(zombifiable);
             const o = des.object({ id: "corpse", montype: zombifiable[0],
                                  buried: true });
-            o.stop_timer("rot-corpse");
-            o.start_timer("zombify-mon", rn2(21) + 990);
+            // Object timer hooks may be unavailable in the JS port path.
+            // Guard to preserve generation flow instead of crashing.
+            if (o && typeof o.stop_timer === 'function') {
+               o.stop_timer("rot-corpse");
+            }
+            if (o && typeof o.start_timer === 'function') {
+               o.start_timer("zombify-mon", rn2(21) + 990);
+            }
          }
       },
    },

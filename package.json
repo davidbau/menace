@@ -4,9 +4,9 @@
   "description": "Faithful JavaScript port of NetHack",
   "type": "module",
   "scripts": {
-    "test": "node --test test/unit/*.test.js test/e2e/*.test.js",
+    "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "node --test test/unit/*.test.js",
-    "test:e2e": "node --test test/e2e/*.test.js",
+    "test:e2e": "node --test --test-concurrency=1 test/e2e/*.test.js",
     "serve": "python3 -m http.server 8080",
     "postinstall": "./scripts/setup-testing.sh"
   },

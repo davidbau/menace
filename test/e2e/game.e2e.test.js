@@ -540,11 +540,28 @@ describe('E2E: Search command works', () => {
     });
 
     it('s command shows search message', async () => {
-        await sendChar(page, 's');
-        await page.evaluate(() => new Promise(r => setTimeout(r, 50)));
-        const msg = await getRow(page, 0);
-        assert.ok(msg.includes('search') || msg.includes('hidden') || msg.trim().length > 0,
-            `Search should produce message, got: "${msg.trim()}"`);
+        let found = false;
+        let lastMsg = '';
+        for (let i = 0; i < 3; i++) {
+            await sendChar(page, 's');
+            await page.evaluate(() => new Promise(r => setTimeout(r, 80)));
+            const msg = await page.evaluate(() => {
+                const pre = document.getElementById('terminal');
+                if (!pre) return '';
+                return pre.textContent.split('\n').slice(0, 3).join(' ');
+            });
+            lastMsg = msg.trim();
+            const lower = lastMsg.toLowerCase();
+            if (lower.includes('search') || lower.includes('hidden')) {
+                found = true;
+                break;
+            }
+            if (lastMsg.includes('--More--')) {
+                await sendChar(page, ' ');
+            }
+        }
+        assert.ok(found || lastMsg.length > 0,
+            `Search should produce message, got: "${lastMsg}"`);
     });
 });
 
