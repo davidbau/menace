@@ -697,6 +697,15 @@ def generate_group(group_name, seeds, verbose=False):
                         )
                         if ok and wiz_rng_start is not None:
                             rng_call_start = wiz_rng_start
+                    elif group_name == 'quest':
+                        # Wizard teleport menu often reports the correct quest key
+                        # but lands back on "Home 1". For quest parity captures,
+                        # load the exact des level directly.
+                        ok, wiz_rng_start = wizard_load_des_level(
+                            session_name, level_name, verbose, rnglog_file
+                        )
+                        if ok and wiz_rng_start is not None:
+                            rng_call_start = wiz_rng_start
                     elif group_name == 'filler':
                         ok, wiz_rng_start = capture_filler_level(
                             session_name, level_name, verbose, rnglog_file
