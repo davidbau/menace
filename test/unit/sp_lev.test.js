@@ -8,7 +8,10 @@ import {
     des, resetLevelState, getLevelState
 } from '../../js/sp_lev.js';
 import { place_lregion } from '../../js/dungeon.js';
-import { STONE, ROOM, HWALL, VWALL, STAIRS, LAVAPOOL, PIT, MAGIC_PORTAL, CROSSWALL } from '../../js/config.js';
+import {
+    STONE, ROOM, HWALL, VWALL, STAIRS, LAVAPOOL, PIT, MAGIC_PORTAL, CROSSWALL,
+    ALTAR, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
+} from '../../js/config.js';
 import { BOULDER, DAGGER } from '../../js/objects.js';
 
 // Alias for stairs
@@ -117,6 +120,51 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[51][10].typ, ROOM);
         assert.equal(map.locations[50][11].typ, ROOM);
         assert.equal(map.locations[51][11].typ, ROOM);
+    });
+
+    it('des.altar places ALTAR terrain and alignment metadata', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: '.' });
+
+        des.altar({ x: 12, y: 7, align: 'law' });
+        let map = getLevelState().map;
+        assert.equal(map.locations[12][7].typ, ALTAR);
+        assert.equal(map.locations[12][7].altarAlign, A_LAWFUL);
+
+        des.altar({ x: 13, y: 7, align: 'chaos' });
+        map = getLevelState().map;
+        assert.equal(map.locations[13][7].typ, ALTAR);
+        assert.equal(map.locations[13][7].altarAlign, A_CHAOTIC);
+    });
+
+    it('des.altar honors map-relative coordinates after des.map', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: ' ' });
+        des.map({ map: '..\n..', x: 10, y: 5 });
+
+        des.altar({ x: 1, y: 1, align: 'neutral' });
+        const map = getLevelState().map;
+        assert.equal(map.locations[11][6].typ, ALTAR);
+        assert.equal(map.locations[11][6].altarAlign, A_NEUTRAL);
+    });
+
+    it('des.feature(\"altar\") places ALTAR terrain', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: '.' });
+        des.feature('altar', 20, 8);
+
+        const map = getLevelState().map;
+        assert.equal(map.locations[20][8].typ, ALTAR);
+        assert.equal(map.locations[20][8].altarAlign, A_NEUTRAL);
+    });
+
+    it('des.map parses underscore as ALTAR terrain', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: ' ' });
+        des.map({ map: '_', x: 10, y: 5 });
+
+        const map = getLevelState().map;
+        assert.equal(map.locations[10][5].typ, ALTAR);
     });
 
     it('should preserve leading and trailing blank map lines', () => {

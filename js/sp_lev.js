@@ -33,6 +33,7 @@ import {
     VIBRATING_SQUARE,
     D_NODOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN, D_SECRET,
     COLNO, ROWNO, IS_OBSTRUCTED, IS_WALL, IS_POOL, IS_LAVA,
+    A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
     MKTRAP_MAZEFLAG, MKTRAP_NOSPIDERONWEB
 } from './config.js';
 import {
@@ -2035,6 +2036,7 @@ function mapchrToTerrain(ch) {
         case '{': return FOUNTAIN;
         case '\\': return THRONE;
         case 'K': return SINK;
+        case '_': return ALTAR;
         case '}': return MOAT;
         case 'P': return POOL;
         case 'L': return LAVAPOOL;
@@ -3754,8 +3756,64 @@ export function ladder(direction, x, y) {
  * @param {Object} opts - Altar options (x, y, align, type)
  */
 export function altar(opts) {
-    // Stub - would place ALTAR terrain and add to altars list
-    // For now, just ignore
+    if (!levelState.map) {
+        levelState.map = new GameMap();
+    }
+
+    let ax;
+    let ay;
+    let alignSpec;
+
+    if (opts === undefined) {
+        ax = -1;
+        ay = -1;
+    } else if (Array.isArray(opts)) {
+        ax = opts[0];
+        ay = opts[1];
+    } else if (typeof opts === 'object') {
+        if (Array.isArray(opts.coord)) {
+            ax = opts.coord[0];
+            ay = opts.coord[1];
+        } else if (opts.coord && typeof opts.coord === 'object') {
+            ax = opts.coord.x;
+            ay = opts.coord.y;
+        } else {
+            ax = opts.x;
+            ay = opts.y;
+        }
+        // Some converted scripts use aligned instead of align.
+        alignSpec = opts.align ?? opts.aligned;
+    } else {
+        return;
+    }
+
+    const pos = getLocationCoord(ax, ay, GETLOC_DRY, levelState.currentRoom || null);
+    if (pos.x < 0 || pos.x >= COLNO || pos.y < 0 || pos.y >= ROWNO) {
+        return;
+    }
+
+    // C ref: sp_lev.c get_alignment() for altar alignment parsing.
+    let altarAlign = A_NEUTRAL;
+    if (typeof alignSpec === 'number' && Number.isFinite(alignSpec)) {
+        altarAlign = Math.max(A_CHAOTIC, Math.min(A_LAWFUL, Math.trunc(alignSpec)));
+    } else if (typeof alignSpec === 'string') {
+        const a = alignSpec.toLowerCase();
+        if (a === 'law' || a === 'lawful') altarAlign = A_LAWFUL;
+        else if (a === 'chaos' || a === 'chaotic') altarAlign = A_CHAOTIC;
+        else if (a === 'neutral' || a === 'noalign') altarAlign = A_NEUTRAL;
+        else if (a === 'coaligned') altarAlign = A_NEUTRAL;
+        else if (a === 'noncoaligned') altarAlign = A_CHAOTIC;
+        else altarAlign = A_NEUTRAL;
+    } else if (alignSpec === undefined) {
+        // C default: random alignment when not specified.
+        altarAlign = rn2(3) - 1;
+    }
+
+    const loc = levelState.map.locations[pos.x][pos.y];
+    loc.typ = ALTAR;
+    loc.altarAlign = altarAlign;
+    loc.flags = altarAlign;
+    markSpLevTouched(pos.x, pos.y);
 }
 
 /**
@@ -3817,8 +3875,8 @@ export function feature(type, x, y) {
         'fountain': FOUNTAIN,
         'sink': SINK,
         'throne': THRONE,
-        'altar': ROOM, // Altar is handled by des.altar()
-        'grave': ROOM  // Grave is a special object
+        'altar': ALTAR,
+        'grave': GRAVE,
     };
 
     const terrain = terrainMap[type];
@@ -3837,6 +3895,9 @@ export function feature(type, x, y) {
     const pos = getLocationCoord(fx, fy, GETLOC_ANY_LOC, levelState.currentRoom || null);
     if (pos.x >= 0 && pos.x < 80 && pos.y >= 0 && pos.y < 21) {
         levelState.map.locations[pos.x][pos.y].typ = terrain;
+        if (terrain === ALTAR) {
+            levelState.map.locations[pos.x][pos.y].altarAlign = A_NEUTRAL;
+        }
         markSpLevTouched(pos.x, pos.y);
     }
 }
