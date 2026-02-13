@@ -972,6 +972,41 @@ function equipInitialGear(player) {
     }
 }
 
+// C ref: shk.c contained_gold() / vault.c hidden_gold(TRUE)
+function containedGold(obj, evenIfUnknown) {
+    const children = obj?.cobj || obj?.contents || [];
+    let value = 0;
+    for (const child of children) {
+        if (!child) continue;
+        if (child.oclass === COIN_CLASS) {
+            value += child.quan || 0;
+        } else {
+            const hasContents = !!((child.cobj && child.cobj.length) || (child.contents && child.contents.length));
+            if (hasContents && (child.cknown || evenIfUnknown)) {
+                value += containedGold(child, evenIfUnknown);
+            }
+        }
+    }
+    return value;
+}
+
+function hiddenGold(player, evenIfUnknown) {
+    let value = 0;
+    for (const obj of player.inventory) {
+        const hasContents = !!((obj.cobj && obj.cobj.length) || (obj.contents && obj.contents.length));
+        if (hasContents && (obj.cknown || evenIfUnknown)) {
+            value += containedGold(obj, evenIfUnknown);
+        }
+    }
+    return value;
+}
+
+function moneyCount(player) {
+    return player.inventory
+        .filter(obj => obj.oclass === COIN_CLASS)
+        .reduce((sum, obj) => sum + (obj.quan || 0), 0);
+}
+
 // ========================================================================
 // Main Entry Point
 // ========================================================================
@@ -1000,10 +1035,10 @@ export function simulatePostLevelInit(player, map, depth) {
     // C ref: u_init.c u_init_inventory_attrs() — ini_inv(Money) after role/race items.
     if (player.umoney0 > 0) {
         iniInv(player, Money_inv);
-        player.gold = player.umoney0;
-    } else {
-        player.gold = 0;
     }
+    // C ref: u_init.c u.umoney0 += hidden_gold(TRUE)
+    player.umoney0 += hiddenGold(player, true);
+    player.gold = moneyCount(player) + hiddenGold(player, true);
     equipInitialGear(player);
     //    c+d. init_attr(75) + vary_init_attr()
     initAttributes(player);
