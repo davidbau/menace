@@ -332,17 +332,34 @@ export function mon_arrive(oldMap, newMap, player, opts = {}) {
     const failedArrivals = Array.isArray(opts.failedArrivals)
         ? opts.failedArrivals
         : (newMap.failedArrivals || (newMap.failedArrivals = []));
-    const pets = (oldMap.monsters || []).filter((m) => {
+    const oldFailed = Array.isArray(oldMap.failedArrivals) ? oldMap.failedArrivals : [];
+    const seen = new Set();
+    const addUnique = (arr, mon) => {
+        if (!mon || seen.has(mon)) return;
+        seen.add(mon);
+        arr.push(mon);
+    };
+
+    const candidates = [];
+    // Retry previously failed arrivals first (C-like failed_arrivals retry behavior).
+    for (const m of oldFailed) addUnique(candidates, m);
+    for (const m of (oldMap.monsters || [])) addUnique(candidates, m);
+
+    const pets = candidates.filter((m) => {
         const tameLike = !!m?.tame || (m?.mtame || 0) > 0;
         if (!m || m.dead || !tameLike) return false;
         // C ref: dog.c keepdogs() — pets still trapped/eating don't follow.
         if (m.mtrapped || m.meating) return false;
+        // Previously failed arrivals are already in transit; don't require
+        // source-level proximity for another retry.
+        if (oldFailed.includes(m)) return true;
         const dx = Math.abs((m.mx ?? 0) - player.x);
         const dy = Math.abs((m.my ?? 0) - player.y);
         // C ref: keepdogs() monnear(mtmp, u.ux, u.uy) on source level.
         return dx <= 1 && dy <= 1;
     });
     if (pets.length === 0) return false;
+    if (oldFailed.length) oldMap.failedArrivals = [];
 
     let migratedCount = 0;
 
@@ -378,7 +395,7 @@ export function mon_arrive(oldMap, newMap, player, opts = {}) {
         }
         if (!foundPos) {
             // C ref: dog.c mon_arrive() relmon(..., &failed_arrivals)
-            failedArrivals.push(pet);
+            if (!failedArrivals.includes(pet)) failedArrivals.push(pet);
             continue;
         }
 

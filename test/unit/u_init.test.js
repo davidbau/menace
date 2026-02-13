@@ -252,6 +252,29 @@ describe('Post-level initialization (u_init)', () => {
         assert.ok(dx <= 3 && dy <= 3, 'arrived pet should be placed near explicit destination');
     });
 
+    it('mon_arrive retries pets from failedArrivals queue', () => {
+        const { player, map: oldMap } = setupSeed42Game();
+        const queuedPet = {
+            mx: player.x + 10,
+            my: player.y + 10,
+            mhp: 5,
+            dead: false,
+            tame: true,
+            mtame: 10,
+            mpeaceful: true,
+            mtrapped: false,
+            meating: 0,
+        };
+        oldMap.failedArrivals = [queuedPet];
+
+        const { player: newPlayer, map: newMap } = setupSeed42Game();
+        const moved = mon_arrive(oldMap, newMap, newPlayer);
+        assert.equal(moved, true, 'queued failed arrival should be retried');
+        assert.equal((oldMap.failedArrivals || []).length, 0, 'source failed queue should be drained for retry');
+        const arrived = newMap.monsters.find(m => m === queuedPet);
+        assert.ok(arrived, 'queued pet should be placed on destination when space is available');
+    });
+
     it('Healer gets startup money as gold inventory object', () => {
         const { player, map } = setupRoleGame(1, 'Healer');
         simulatePostLevelInit(player, map, 1);
