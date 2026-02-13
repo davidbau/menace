@@ -10,7 +10,7 @@ import assert from 'node:assert';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { resetLevelState, setFinalizeContext } from '../../js/sp_lev.js';
+import { resetLevelState, setFinalizeContext, setSpecialLevelDepth } from '../../js/sp_lev.js';
 import { getSpecialLevel, resetVariantCache, DUNGEONS_OF_DOOM, GEHENNOM, VLADS_TOWER, KNOX, SOKOBAN, GNOMISH_MINES, QUEST } from '../../js/special_levels.js';
 import { initRng, skipRng, rn2, c_d, rne, rnz } from '../../js/rng.js';
 
@@ -187,6 +187,8 @@ function testLevel(seed, dnum, dlevel, levelName, cSession) {
         resetVariantCache();
         resetLevelState();
         setFinalizeContext(null);
+        const depthForSpecial = Number.isFinite(cLevel.absDepth) ? cLevel.absDepth : dlevel;
+        setSpecialLevelDepth(depthForSpecial);
         if (cSession.group === 'filler' && levelName.toLowerCase() === 'minefill') {
             setFinalizeContext({ isBranchLevel: true, dunlev: 1, dunlevs: 99 });
         }

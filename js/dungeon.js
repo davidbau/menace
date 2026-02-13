@@ -51,7 +51,7 @@ import {
 } from './objects.js';
 import { RUMORS_FILE_TEXT } from './rumor_data.js';
 import { getSpecialLevel } from './special_levels.js';
-import { setLevelContext, clearLevelContext, initLuaMT } from './sp_lev.js';
+import { setLevelContext, clearLevelContext, initLuaMT, setSpecialLevelDepth } from './sp_lev.js';
 import { themerooms_generate as themermsGenerate, reset_state as resetThemermsState } from './levels/themerms.js';
 
 /**
@@ -3885,6 +3885,9 @@ export function makelevel(depth, dnum, dlevel) {
         const special = getSpecialLevel(dnum, dlevel);
         if (special) {
             if (DEBUG) console.log(`Generating special level: ${special.name} at (${dnum}, ${dlevel})`);
+            // C parity: special-level depth-sensitive logic should use absolute depth,
+            // not branch-local dlevel.
+            setSpecialLevelDepth(depth);
 
             // C ref: mklev.c:365-380 — Lua theme shuffle when loading special level
             // In C, loading oracle.lua triggers themerms.lua load, which does rn2(3), rn2(2)

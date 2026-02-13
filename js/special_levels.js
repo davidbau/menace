@@ -6,7 +6,6 @@
  */
 
 import { rn2 } from './rng.js';
-import { setSpecialLevelDepth } from './sp_lev.js';
 
 // Import special level generators
 import { generate as generateKnox } from './levels/knox.js';
@@ -222,16 +221,10 @@ const variantCache = new Map();
 function registerSpecialLevel(dnum, dlevel, generator, name) {
     const key = `${dnum}:${dlevel}`;
     if (Array.isArray(generator)) {
-        const wrappedGenerators = generator.map((gen) => () => {
-            setSpecialLevelDepth(dlevel);
-            return gen();
-        });
+        const wrappedGenerators = generator.map((gen) => () => gen());
         specialLevels.set(key, { generator: wrappedGenerators, name, dnum, dlevel });
     } else {
-        const wrapped = () => {
-            setSpecialLevelDepth(dlevel);
-            return generator();
-        };
+        const wrapped = () => generator();
         specialLevels.set(key, { generator: wrapped, name, dnum, dlevel });
     }
 }
