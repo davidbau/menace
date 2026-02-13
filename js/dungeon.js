@@ -2484,6 +2484,7 @@ function mktrap_victim(map, trap, depth) {
     do {
         const poss_class = classMap[rn2(4)];
         otmp = mkobj(poss_class, false);
+        otmp.blessed = false;
         otmp.cursed = true; // C ref: curse(otmp) at mklev.c:1865
         if (!breaktestLike(otmp)) {
             placeObj(otmp);
@@ -2509,6 +2510,7 @@ function mktrap_victim(map, trap, depth) {
             otmp = mksobj(rn2(4) ? TALLOW_CANDLE : WAX_CANDLE, true, false);
             otmp.quan = 1;
             otmp.owt = weight(otmp);
+            otmp.blessed = false;
             otmp.cursed = true; // C ref: curse(otmp) at mklev.c:1905
             placeObj(otmp);
         }
