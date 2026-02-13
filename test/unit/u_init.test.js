@@ -363,6 +363,33 @@ describe('Post-level initialization (u_init)', () => {
         assert.ok(Math.abs(arrived.my - baseY) <= 7, 'arrived y should stay within wander+mnexto neighborhood');
     });
 
+    it('mon_arrive supports random-placement mode for non-With_you arrivals', () => {
+        const { player, map: oldMap } = setupSeed42Game();
+        const queuedPet = {
+            mx: player.x + 10,
+            my: player.y + 10,
+            mhp: 5,
+            dead: false,
+            tame: true,
+            mtame: 10,
+            mpeaceful: true,
+            mtrapped: false,
+            meating: 0,
+        };
+        oldMap.failedArrivals = [queuedPet];
+        const { map: newMap } = setupSeed42Game();
+
+        const moved = mon_arrive(oldMap, newMap, player, {
+            when: 'After_you',
+            randomPlacement: true,
+        });
+        assert.equal(moved, true, 'random-placement arrival should succeed when map has valid squares');
+        const arrived = newMap.monsters.find(m => m === queuedPet);
+        assert.ok(arrived, 'queued pet should arrive via random placement');
+        const loc = newMap.at(arrived.mx, arrived.my);
+        assert.ok(loc && loc.typ !== STONE, 'random placement should land on a non-stone accessible tile');
+    });
+
     it('Healer gets startup money as gold inventory object', () => {
         const { player, map } = setupRoleGame(1, 'Healer');
         simulatePostLevelInit(player, map, 1);
