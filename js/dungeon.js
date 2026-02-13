@@ -2398,7 +2398,11 @@ export function mktrap(map, num, mktrapflags, croom, tm, depth) {
 
     // C ref: mklev.c mktrap() victim gate uses strict less-than.
     // Called for ARROW_TRAP, DART_TRAP, ROCKTRAP, BEAR_TRAP, MAGIC_TRAP
-    if (!(mktrapflags & MKTRAP_NOVICTIM) && lvl < rnd(4)
+    const victimRoll = rnd(4);
+    const victimGate = (map.flags && map.flags.is_maze_lev)
+        ? (lvl <= victimRoll)
+        : (lvl < victimRoll);
+    if (!(mktrapflags & MKTRAP_NOVICTIM) && victimGate
         && kind !== SQKY_BOARD && kind !== RUST_TRAP
         && !is_pit(kind) && (kind < HOLE || kind === MAGIC_TRAP)) {
         // LANDMINE: convert to PIT (exploded)

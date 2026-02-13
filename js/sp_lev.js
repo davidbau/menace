@@ -1124,13 +1124,17 @@ export function level_init(opts = {}) {
         levelState.mazeMaxX = (COLNO - 1) & ~1;
         levelState.mazeMaxY = (ROWNO - 1) & ~1;
         const lit = levelState.init.lit < 0 ? rn2(2) : levelState.init.lit;
-        // Fill entire map with foreground character
+        // C ref: sp_lev.c lvlfill_solid(): fill x=2..x_maze_max, y=0..y_maze_max
         const fillChar = levelState.init.fg;
-        for (let x = 0; x < 80; x++) {
-            for (let y = 0; y < 21; y++) {
+        for (let x = 2; x <= levelState.mazeMaxX; x++) {
+            for (let y = 0; y <= levelState.mazeMaxY; y++) {
                 const loc = levelState.map.locations[x][y];
                 loc.typ = fillChar;
                 loc.lit = lit ? 1 : 0;
+                loc.flags = 0;
+                loc.horizontal = 0;
+                loc.roomno = 0;
+                loc.edge = 0;
             }
         }
     } else if (style === 'mazegrid') {
@@ -1166,21 +1170,47 @@ export function level_init(opts = {}) {
     } else if (style === 'swamp') {
         levelState.mazeMaxX = (COLNO - 1) & ~1;
         levelState.mazeMaxY = (ROWNO - 1) & ~1;
-        // Swamp level - procedurally generate mixture of land, water, and pools
-        // The map will be mostly land with scattered pools and water
-        // Subsequent des.map() calls overlay specific terrain features
-        for (let x = 0; x < 80; x++) {
-            for (let y = 0; y < 21; y++) {
-                const roll = rn2(100);
-                if (roll < 70) {
-                    // 70% land
-                    levelState.map.locations[x][y].typ = ROOM;
-                } else if (roll < 90) {
-                    // 20% water/moat
-                    levelState.map.locations[x][y].typ = POOL;
-                } else {
-                    // 10% deep water
-                    levelState.map.locations[x][y].typ = MOAT;
+        // C ref: sp_lev.c lvlfill_swamp()
+        const fgTyp = levelState.init.fg;
+        const bgTyp = levelState.init.bg !== -1 ? levelState.init.bg : MOAT;
+        const lit = levelState.init.lit < 0 ? rn2(2) : levelState.init.lit;
+        const xMazeMax = levelState.mazeMaxX;
+        const yMazeMax = levelState.mazeMaxY;
+
+        for (let x = 2; x <= xMazeMax; x++) {
+            for (let y = 0; y <= yMazeMax; y++) {
+                const loc = levelState.map.locations[x][y];
+                loc.typ = bgTyp;
+                loc.lit = lit ? 1 : 0;
+                loc.flags = 0;
+            }
+        }
+
+        for (let x = 2; x <= Math.min(xMazeMax, COLNO - 2); x += 2) {
+            for (let y = 0; y <= Math.min(yMazeMax, ROWNO - 2); y += 2) {
+                levelState.map.locations[x][y].typ = fgTyp;
+                levelState.map.locations[x][y].lit = lit ? 1 : 0;
+
+                let c = 0;
+                if (levelState.map.locations[x + 1][y].typ === bgTyp) c++;
+                if (levelState.map.locations[x][y + 1].typ === bgTyp) c++;
+                if (levelState.map.locations[x + 1][y + 1].typ === bgTyp) c++;
+
+                if (c === 3) {
+                    switch (rn2(3)) {
+                    case 0:
+                        levelState.map.locations[x + 1][y].typ = fgTyp;
+                        levelState.map.locations[x + 1][y].lit = lit ? 1 : 0;
+                        break;
+                    case 1:
+                        levelState.map.locations[x][y + 1].typ = fgTyp;
+                        levelState.map.locations[x][y + 1].lit = lit ? 1 : 0;
+                        break;
+                    default:
+                        levelState.map.locations[x + 1][y + 1].typ = fgTyp;
+                        levelState.map.locations[x + 1][y + 1].lit = lit ? 1 : 0;
+                        break;
+                    }
                 }
             }
         }
@@ -1631,8 +1661,8 @@ export function map(data) {
     } else if (!explicitCoords) {
         // Non-themeroom alignment-based placement
         // C ref: sp_lev.c lspo_map() alignment math.
-        const xMazeMax = (COLNO - 1) & ~1;
-        const yMazeMax = (ROWNO - 1) & ~1;
+        const xMazeMax = levelState.mazeMaxX || ((COLNO - 1) & ~1);
+        const yMazeMax = levelState.mazeMaxY || ((ROWNO - 1) & ~1);
 
         if (halign === 'left') {
             x = levelState.splevInitPresent ? 1 : 3;
