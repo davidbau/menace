@@ -408,6 +408,7 @@ export function mon_arrive(oldMap, newMap, player, opts = {}) {
             let localeY = Number.isInteger(opts.localeY) ? opts.localeY : heroY;
             const exact = !!opts.localeExact;
             const wander = exact ? 0 : Math.max(0, Math.min(8, opts.wander || 0));
+            const randomPlacement = !!opts.randomPlacement;
 
             // C ref: dog.c mon_arrive() xlocale && wander path.
             // Minimal faithful subset: random perturbation within wander radius.
@@ -420,20 +421,36 @@ export function mon_arrive(oldMap, newMap, player, opts = {}) {
                 localeY = rn1(ymax - ymin + 1, ymin);
             }
 
-            const exactLoc = newMap.at(localeX, localeY);
-            if (exact && exactLoc && ACCESSIBLE(exactLoc.typ) && !newMap.monsterAt(localeX, localeY)) {
-                petX = localeX;
-                petY = localeY;
-                foundPos = true;
-            } else {
-                const positions = collectCoordsShuffle(localeX, localeY, 3);
-                for (const pos of positions) {
-                    const loc = newMap.at(pos.x, pos.y);
-                    if (loc && ACCESSIBLE(loc.typ) && !newMap.monsterAt(pos.x, pos.y)) {
-                        petX = pos.x;
-                        petY = pos.y;
+            if (randomPlacement) {
+                // C ref: dog.c MIGR_RANDOM -> rloc(mtmp, RLOC_NOMSG)
+                // Minimal faithful subset: map-wide random valid accessible square.
+                for (let tries = 0; tries < (COLNO * ROWNO); tries++) {
+                    const rx = rn1(COLNO - 1, 1);
+                    const ry = rn2(ROWNO);
+                    const loc = newMap.at(rx, ry);
+                    if (loc && ACCESSIBLE(loc.typ) && !newMap.monsterAt(rx, ry)) {
+                        petX = rx;
+                        petY = ry;
                         foundPos = true;
                         break;
+                    }
+                }
+            } else {
+                const exactLoc = newMap.at(localeX, localeY);
+                if (exact && exactLoc && ACCESSIBLE(exactLoc.typ) && !newMap.monsterAt(localeX, localeY)) {
+                    petX = localeX;
+                    petY = localeY;
+                    foundPos = true;
+                } else {
+                    const positions = collectCoordsShuffle(localeX, localeY, 3);
+                    for (const pos of positions) {
+                        const loc = newMap.at(pos.x, pos.y);
+                        if (loc && ACCESSIBLE(loc.typ) && !newMap.monsterAt(pos.x, pos.y)) {
+                            petX = pos.x;
+                            petY = pos.y;
+                            foundPos = true;
+                            break;
+                        }
                     }
                 }
             }

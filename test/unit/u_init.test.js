@@ -8,7 +8,7 @@ import { initRng, rn2, enableRngLog, getRngLog, disableRngLog } from '../../js/r
 import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 import { Player, roles } from '../../js/player.js';
 import { simulatePostLevelInit, mon_arrive, MON_ARRIVE_WITH_YOU } from '../../js/u_init.js';
-import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS, STONE, ROOM } from '../../js/config.js';
+import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS, STONE, ROOM, ACCESSIBLE } from '../../js/config.js';
 import { GOLD_PIECE } from '../../js/objects.js';
 
 // Helper: create a level-1 wizard-mode Valkyrie game state
@@ -361,6 +361,33 @@ describe('Post-level initialization (u_init)', () => {
         assert.ok(arrived, 'queued pet should arrive');
         assert.ok(Math.abs(arrived.mx - baseX) <= 7, 'arrived x should stay within wander+mnexto neighborhood');
         assert.ok(Math.abs(arrived.my - baseY) <= 7, 'arrived y should stay within wander+mnexto neighborhood');
+    });
+
+    it('mon_arrive supports random-placement mode for non-With_you arrivals', () => {
+        const { player, map: oldMap } = setupSeed42Game();
+        const queuedPet = {
+            mx: player.x + 10,
+            my: player.y + 10,
+            mhp: 5,
+            dead: false,
+            tame: true,
+            mtame: 10,
+            mpeaceful: true,
+            mtrapped: false,
+            meating: 0,
+        };
+        oldMap.failedArrivals = [queuedPet];
+        const { map: newMap } = setupSeed42Game();
+
+        const moved = mon_arrive(oldMap, newMap, player, {
+            when: 'After_you',
+            randomPlacement: true,
+        });
+        assert.equal(moved, true, 'random-placement arrival should succeed when map has valid squares');
+        const arrived = newMap.monsters.find(m => m === queuedPet);
+        assert.ok(arrived, 'queued pet should arrive via random placement');
+        const loc = newMap.at(arrived.mx, arrived.my);
+        assert.ok(loc && ACCESSIBLE(loc.typ), 'random placement should land on an accessible tile');
     });
 
     it('Healer gets startup money as gold inventory object', () => {
