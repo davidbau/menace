@@ -1664,14 +1664,17 @@ export function map(data) {
         const xMazeMax = levelState.mazeMaxX || ((COLNO - 1) & ~1);
         const yMazeMax = levelState.mazeMaxY || ((ROWNO - 1) & ~1);
 
+        // C integer division truncates toward zero; JS Math.floor differs for negatives.
+        const cdiv = (num, den) => Math.trunc(num / den);
+
         if (halign === 'left') {
             x = levelState.splevInitPresent ? 1 : 3;
         } else if (halign === 'half-left') {
-            x = 2 + Math.floor((xMazeMax - 2 - width) / 4);
+            x = 2 + cdiv((xMazeMax - 2 - width), 4);
         } else if (halign === 'center') {
-            x = 2 + Math.floor((xMazeMax - 2 - width) / 2);
+            x = 2 + cdiv((xMazeMax - 2 - width), 2);
         } else if (halign === 'half-right') {
-            x = 2 + Math.floor(((xMazeMax - 2 - width) * 3) / 4);
+            x = 2 + cdiv(((xMazeMax - 2 - width) * 3), 4);
         } else if (halign === 'right') {
             x = xMazeMax - width - 1;
         }
@@ -1679,7 +1682,7 @@ export function map(data) {
         if (valign === 'top') {
             y = 3;
         } else if (valign === 'center') {
-            y = 2 + Math.floor((yMazeMax - 2 - height) / 2);
+            y = 2 + cdiv((yMazeMax - 2 - height), 2);
         } else if (valign === 'bottom') {
             y = yMazeMax - height - 1;
         }
