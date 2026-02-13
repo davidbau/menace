@@ -80,12 +80,12 @@ import {
     // Object data for level/charged checks
     objectData,
 } from './objects.js';
-import { roles, initialAlignmentRecordForRole } from './player.js';
+import { roles, races, initialAlignmentRecordForRole } from './player.js';
 import { always_hostile, always_peaceful } from './mondata.js';
 import {
     mons, PM_LITTLE_DOG, PM_KITTEN, PM_PONY, PM_ERINYS,
     MS_LEADER, MS_NEMESIS, MS_GUARDIAN,
-    M2_MINION, M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC,
+    M2_MINION,
 } from './monsters.js';
 
 // ========================================================================
@@ -174,34 +174,14 @@ function sgn(x) {
 
 function race_peaceful(ptr, player) {
     const flags2 = ptr.flags2 || 0;
-    switch (player.race) {
-        case RACE_ELF:
-            return !!(flags2 & M2_ELF);
-        case RACE_DWARF:
-            return !!(flags2 & (M2_DWARF | M2_GNOME));
-        case RACE_GNOME:
-            return !!(flags2 & (M2_DWARF | M2_GNOME));
-        default:
-            return false;
-    }
+    const lovemask = races[player.race]?.lovemask || 0;
+    return !!(flags2 & lovemask);
 }
 
 function race_hostile(ptr, player) {
     const flags2 = ptr.flags2 || 0;
-    switch (player.race) {
-        case RACE_HUMAN:
-            return !!(flags2 & (M2_GNOME | M2_ORC));
-        case RACE_ELF:
-            return !!(flags2 & M2_ORC);
-        case RACE_DWARF:
-            return !!(flags2 & M2_ORC);
-        case RACE_GNOME:
-            return !!(flags2 & M2_HUMAN);
-        case RACE_ORC:
-            return !!(flags2 & (M2_HUMAN | M2_ELF | M2_DWARF));
-        default:
-            return false;
-    }
+    const hatemask = races[player.race]?.hatemask || 0;
+    return !!(flags2 & hatemask);
 }
 
 // C ref: makemon.c peace_minded(struct permonst *ptr)
@@ -811,10 +791,7 @@ function u_init_role(player) {
             if (!rn2(5)) iniInv(player, Blindfold_inv);
             break;
         default:
-            // Unknown role — use Valkyrie as fallback
-            iniInv(player, Valkyrie_inv);
-            if (!rn2(6)) iniInv(player, Lamp_inv);
-            break;
+            throw new Error(`u_init_role: unknown role index ${player.roleIndex}`);
     }
 }
 

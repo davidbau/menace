@@ -3,8 +3,9 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { Player, roles, initialAlignmentRecordForRole } from '../../js/player.js';
+import { Player, roles, races, initialAlignmentRecordForRole } from '../../js/player.js';
 import { initRng } from '../../js/rng.js';
+import { M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC } from '../../js/monsters.js';
 
 describe('Player', () => {
     it('creates a player with default values', () => {
@@ -27,6 +28,19 @@ describe('Player', () => {
         assert.ok(roleNames.includes('Wizard'));
         assert.ok(roleNames.includes('Valkyrie'));
         assert.ok(roleNames.includes('Samurai'));
+    });
+
+    it('race masks match C love/hostility tables', () => {
+        const [human, elf, dwarf, gnome, orc] = races;
+        assert.equal(human.selfmask, M2_HUMAN);
+        assert.equal(human.lovemask, 0);
+        assert.equal(human.hatemask, M2_GNOME | M2_ORC);
+        assert.equal(elf.selfmask, M2_ELF);
+        assert.equal(elf.lovemask, M2_ELF);
+        assert.equal(elf.hatemask, M2_ORC);
+        assert.equal(dwarf.lovemask, M2_DWARF | M2_GNOME);
+        assert.equal(gnome.hatemask, M2_HUMAN);
+        assert.equal(orc.hatemask, M2_HUMAN | M2_ELF | M2_DWARF);
     });
 
     it('initRole sets role-specific stats', () => {
