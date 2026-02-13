@@ -1784,11 +1784,18 @@ export function map(data) {
             if (gx >= 0 && gx < 80 && gy >= 0 && gy < 21) {
                 const terrain = mapchrToTerrain(ch);
                 if (terrain !== -1) {
-                    levelState.map.locations[gx][gy].typ = terrain;
+                    // C ref: sp_lev.c lspo_map() clears per-tile metadata for
+                    // valid mapped cells before applying terrain.
+                    const loc = levelState.map.locations[gx][gy];
+                    loc.flags = 0;
+                    loc.horizontal = 0;
+                    loc.roomno = 0;
+                    loc.edge = 0;
+                    loc.typ = terrain;
                     markSpLevMap(gx, gy);
                     markSpLevTouched(gx, gy);
                     if (lit) {
-                        levelState.map.locations[gx][gy].lit = 1;
+                        loc.lit = 1;
                     }
                 }
             }

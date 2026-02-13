@@ -122,6 +122,25 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[51][11].typ, ROOM);
     });
 
+    it('des.map clears per-cell metadata before applying terrain', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: '.' });
+
+        const map = getLevelState().map;
+        map.locations[10][5].flags = 0x7fff;
+        map.locations[10][5].horizontal = 1;
+        map.locations[10][5].roomno = 42;
+        map.locations[10][5].edge = 1;
+
+        des.map({ map: '.', x: 10, y: 5 });
+
+        assert.equal(map.locations[10][5].typ, ROOM);
+        assert.equal(map.locations[10][5].flags, 0);
+        assert.equal(map.locations[10][5].horizontal, 0);
+        assert.equal(map.locations[10][5].roomno, 0);
+        assert.equal(map.locations[10][5].edge, 0);
+    });
+
     it('des.altar places ALTAR terrain and alignment metadata', () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
