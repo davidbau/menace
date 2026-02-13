@@ -330,6 +330,8 @@ export function mon_arrive(oldMap, newMap, player) {
     const pets = (oldMap.monsters || []).filter((m) => {
         const tameLike = !!m?.tame || (m?.mtame || 0) > 0;
         if (!m || m.dead || !tameLike) return false;
+        // C ref: dog.c keepdogs() — pets still trapped/eating don't follow.
+        if (m.mtrapped || m.meating) return false;
         const dx = Math.abs((m.mx ?? 0) - player.x);
         const dy = Math.abs((m.my ?? 0) - player.y);
         // C-like stair following behavior: only nearby pets can follow.

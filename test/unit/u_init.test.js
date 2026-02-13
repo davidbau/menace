@@ -200,6 +200,30 @@ describe('Post-level initialization (u_init)', () => {
         assert.equal(newMap.monsters.length, newCount, 'no pet should be force-placed on new map');
     });
 
+    it('mon_arrive leaves trapped pets behind', () => {
+        const { player, map: oldMap } = setupSeed42Game();
+        oldMap.monsters.push({
+            mx: player.x + 1,
+            my: player.y,
+            mhp: 5,
+            dead: false,
+            tame: true,
+            mtame: 10,
+            mpeaceful: true,
+            mtrapped: true,
+            meating: 0,
+        });
+
+        const { player: newPlayer, map: newMap } = setupSeed42Game();
+        const oldCount = oldMap.monsters.length;
+        const newCount = newMap.monsters.length;
+
+        const moved = mon_arrive(oldMap, newMap, newPlayer);
+        assert.equal(moved, false, 'trapped pets should not be migrated');
+        assert.equal(oldMap.monsters.length, oldCount, 'trapped pet should remain on old map');
+        assert.equal(newMap.monsters.length, newCount, 'no trapped pet should arrive on new map');
+    });
+
     it('Healer gets startup money as gold inventory object', () => {
         const { player, map } = setupRoleGame(1, 'Healer');
         simulatePostLevelInit(player, map, 1);
