@@ -454,19 +454,6 @@ export function mon_arrive(oldMap, newMap, player, opts = {}) {
                     }
                 }
             }
-            if (!foundPos && !randomPlacement) {
-                for (let tries = 0; tries < (COLNO * ROWNO); tries++) {
-                    const rx = rn1(COLNO - 1, 1);
-                    const ry = rn2(ROWNO);
-                    const loc = newMap.at(rx, ry);
-                    if (loc && ACCESSIBLE(loc.typ) && !newMap.monsterAt(rx, ry)) {
-                        petX = rx;
-                        petY = ry;
-                        foundPos = true;
-                        break;
-                    }
-                }
-            }
         }
         if (!foundPos) {
             // C ref: dog.c mon_arrive() relmon(..., &failed_arrivals)
