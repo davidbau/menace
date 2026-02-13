@@ -325,8 +325,11 @@ function makedog(map, player, depth) {
 // Migrate all living tame monsters from oldMap to newMap and place each near
 // the arrival position using collect_coords-style placement.
 // Returns true if at least one pet was migrated.
+export const MON_ARRIVE_WITH_YOU = 'With_you';
+
 export function mon_arrive(oldMap, newMap, player, opts = {}) {
     if (!oldMap || !newMap) return false;
+    const when = opts.when || MON_ARRIVE_WITH_YOU;
     const heroX = Number.isInteger(opts.heroX) ? opts.heroX : player.x;
     const heroY = Number.isInteger(opts.heroY) ? opts.heroY : player.y;
     const failedArrivals = Array.isArray(opts.failedArrivals)
@@ -376,24 +379,50 @@ export function mon_arrive(oldMap, newMap, player, opts = {}) {
         let petX = 0;
         let petY = 0;
         let foundPos = false;
-        if (!newMap.monsterAt(heroX, heroY) && !rn2(bound)) {
-            // C ref: dog.c mon_arrive(With_you): rloc_to(mtmp, u.ux, u.uy)
-            petX = heroX;
-            petY = heroY;
-            foundPos = true;
+
+        if (when === MON_ARRIVE_WITH_YOU) {
+            if (!newMap.monsterAt(heroX, heroY) && !rn2(bound)) {
+                // C ref: dog.c mon_arrive(With_you): rloc_to(mtmp, u.ux, u.uy)
+                petX = heroX;
+                petY = heroY;
+                foundPos = true;
+            } else {
+                // C ref: dog.c mon_arrive(With_you): mnexto(mtmp, RLOC_NOMSG)
+                const positions = collectCoordsShuffle(heroX, heroY, 3);
+                for (const pos of positions) {
+                    const loc = newMap.at(pos.x, pos.y);
+                    if (loc && ACCESSIBLE(loc.typ)
+                        && !newMap.monsterAt(pos.x, pos.y)
+                        && !(pos.x === heroX && pos.y === heroY)) {
+                        petX = pos.x;
+                        petY = pos.y;
+                        foundPos = true;
+                        break;
+                    }
+                }
+            }
         } else {
-            // C ref: dog.c mon_arrive(With_you): mnexto(mtmp, RLOC_NOMSG)
-            // In this startup path, place near hero position (not stairs fallback).
-            const positions = collectCoordsShuffle(heroX, heroY, 3);
-            for (const pos of positions) {
-                const loc = newMap.at(pos.x, pos.y);
-                if (loc && ACCESSIBLE(loc.typ)
-                    && !newMap.monsterAt(pos.x, pos.y)
-                    && !(pos.x === heroX && pos.y === heroY)) {
-                    petX = pos.x;
-                    petY = pos.y;
-                    foundPos = true;
-                    break;
+            // C ref: dog.c non-With_you paths ultimately use mnearto/rloc
+            // by arrival locale/migration mode. Support locale exact/approx.
+            const localeX = Number.isInteger(opts.localeX) ? opts.localeX : heroX;
+            const localeY = Number.isInteger(opts.localeY) ? opts.localeY : heroY;
+            const exact = !!opts.localeExact;
+
+            const exactLoc = newMap.at(localeX, localeY);
+            if (exact && exactLoc && ACCESSIBLE(exactLoc.typ) && !newMap.monsterAt(localeX, localeY)) {
+                petX = localeX;
+                petY = localeY;
+                foundPos = true;
+            } else {
+                const positions = collectCoordsShuffle(localeX, localeY, 3);
+                for (const pos of positions) {
+                    const loc = newMap.at(pos.x, pos.y);
+                    if (loc && ACCESSIBLE(loc.typ) && !newMap.monsterAt(pos.x, pos.y)) {
+                        petX = pos.x;
+                        petY = pos.y;
+                        foundPos = true;
+                        break;
+                    }
                 }
             }
         }

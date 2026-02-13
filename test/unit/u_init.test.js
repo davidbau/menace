@@ -7,8 +7,8 @@ import assert from 'node:assert/strict';
 import { initRng, rn2, enableRngLog, getRngLog, disableRngLog } from '../../js/rng.js';
 import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 import { Player, roles } from '../../js/player.js';
-import { simulatePostLevelInit, mon_arrive } from '../../js/u_init.js';
-import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS, STONE } from '../../js/config.js';
+import { simulatePostLevelInit, mon_arrive, MON_ARRIVE_WITH_YOU } from '../../js/u_init.js';
+import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS, STONE, ROOM } from '../../js/config.js';
 import { GOLD_PIECE } from '../../js/objects.js';
 
 // Helper: create a level-1 wizard-mode Valkyrie game state
@@ -273,6 +273,62 @@ describe('Post-level initialization (u_init)', () => {
         assert.equal((oldMap.failedArrivals || []).length, 0, 'source failed queue should be drained for retry');
         const arrived = newMap.monsters.find(m => m === queuedPet);
         assert.ok(arrived, 'queued pet should be placed on destination when space is available');
+    });
+
+    it('mon_arrive supports non-With_you exact locale placement', () => {
+        const { player, map: oldMap } = setupSeed42Game();
+        const queuedPet = {
+            mx: player.x + 10,
+            my: player.y + 10,
+            mhp: 5,
+            dead: false,
+            tame: true,
+            mtame: 10,
+            mpeaceful: true,
+            mtrapped: false,
+            meating: 0,
+        };
+        oldMap.failedArrivals = [queuedPet];
+        const { map: newMap } = setupSeed42Game();
+        const localeX = 12;
+        const localeY = 10;
+        const locale = newMap.at(localeX, localeY);
+        if (locale) locale.typ = ROOM;
+        newMap.monsters = newMap.monsters.filter(m => !(m.mx === localeX && m.my === localeY));
+
+        const moved = mon_arrive(oldMap, newMap, player, {
+            when: 'After_you',
+            localeX,
+            localeY,
+            localeExact: true,
+        });
+        assert.equal(moved, true, 'exact locale non-With_you arrival should succeed when tile is available');
+        const arrived = newMap.monsters.find(m => m === queuedPet);
+        assert.ok(arrived, 'pet should arrive on destination');
+        assert.equal(arrived.mx, localeX);
+        assert.equal(arrived.my, localeY);
+    });
+
+    it('mon_arrive keeps With_you default behavior', () => {
+        const { player, map: oldMap } = setupSeed42Game();
+        oldMap.monsters.push({
+            mx: player.x + 1,
+            my: player.y,
+            mhp: 5,
+            dead: false,
+            tame: true,
+            mtame: 10,
+            mpeaceful: true,
+            mtrapped: false,
+            meating: 0,
+        });
+        const { map: newMap } = setupSeed42Game();
+        const moved = mon_arrive(oldMap, newMap, player, {
+            when: MON_ARRIVE_WITH_YOU,
+            heroX: 15,
+            heroY: 10,
+        });
+        assert.equal(moved, true, 'With_you mode should continue to migrate nearby pets');
     });
 
     it('Healer gets startup money as gold inventory object', () => {
