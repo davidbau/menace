@@ -4261,6 +4261,35 @@ export function wallify() {
     wallification(levelState.map);
 }
 
+// C ref: sp_lev.c map_cleanup() — post-gen cleanup of liquid squares.
+function map_cleanup(map) {
+    if (!map) return;
+
+    const undestroyableTrap = (ttyp) =>
+        ttyp === MAGIC_PORTAL || ttyp === VIBRATING_SQUARE;
+
+    if (Array.isArray(map.objects) && map.objects.length > 0) {
+        map.objects = map.objects.filter((obj) => {
+            if (!obj || obj.otyp !== BOULDER) return true;
+            const loc = map.at(obj.ox, obj.oy);
+            if (!loc) return true;
+            return !(IS_LAVA(loc.typ) || IS_POOL(loc.typ));
+        });
+    }
+
+    if (Array.isArray(map.traps) && map.traps.length > 0) {
+        map.traps = map.traps.filter((trap) => {
+            if (!trap) return false;
+            const tx = Number.isInteger(trap.tx) ? trap.tx : trap.x;
+            const ty = Number.isInteger(trap.ty) ? trap.ty : trap.y;
+            const loc = map.at(tx, ty);
+            if (!loc) return true;
+            if (!(IS_LAVA(loc.typ) || IS_POOL(loc.typ))) return true;
+            return undestroyableTrap(trap.ttyp);
+        });
+    }
+}
+
 export function finalize_level() {
     // CRITICAL: Execute deferred placements BEFORE wallification
     // This matches C's execution order: rooms → corridors → entities → wallify
@@ -4286,6 +4315,11 @@ export function finalize_level() {
             levelState.map.monsters = [];
         }
         levelState.map.monsters.push(...levelState.monsters);
+    }
+
+    // C ref: sp_lev.c map_cleanup() runs before wallification.
+    if (levelState.map) {
+        map_cleanup(levelState.map);
     }
 
     // C ref: mklev.c:1388-1422 — Fill ordinary rooms with random content.

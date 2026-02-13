@@ -7,7 +7,8 @@ import assert from 'node:assert/strict';
 import {
     des, resetLevelState, getLevelState
 } from '../../js/sp_lev.js';
-import { STONE, ROOM, HWALL, VWALL, STAIRS } from '../../js/config.js';
+import { STONE, ROOM, HWALL, VWALL, STAIRS, LAVAPOOL, PIT, MAGIC_PORTAL } from '../../js/config.js';
+import { BOULDER, DAGGER } from '../../js/objects.js';
 
 // Alias for stairs
 const STAIRS_UP = STAIRS;
@@ -150,5 +151,36 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[10][5].typ, STONE);
         assert.equal(map.locations[10][6].typ, ROOM);
         assert.equal(map.locations[10][7].typ, ROOM);
+    });
+
+    it('finalize_level map cleanup removes boulders and destroyable traps on liquid', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: ' ' });
+
+        const state = getLevelState();
+        const map = state.map;
+        map.locations[10][10].typ = LAVAPOOL;
+        map.locations[11][10].typ = ROOM;
+
+        map.objects.push({ otyp: BOULDER, ox: 10, oy: 10 });
+        map.objects.push({ otyp: DAGGER, ox: 10, oy: 10 });
+
+        map.traps.push({ ttyp: PIT, tx: 10, ty: 10 });
+        map.traps.push({ ttyp: MAGIC_PORTAL, tx: 10, ty: 10 });
+        map.traps.push({ ttyp: PIT, tx: 11, ty: 10 });
+
+        des.finalize_level();
+
+        assert.equal(map.objects.some(o => o.otyp === BOULDER && o.ox === 10 && o.oy === 10), false,
+            'boulder on liquid should be removed');
+        assert.equal(map.objects.some(o => o.otyp === DAGGER && o.ox === 10 && o.oy === 10), true,
+            'non-boulder object on liquid should remain');
+
+        assert.equal(map.traps.some(t => t.ttyp === PIT && t.tx === 10 && t.ty === 10), false,
+            'destroyable trap on liquid should be removed');
+        assert.equal(map.traps.some(t => t.ttyp === MAGIC_PORTAL && t.tx === 10 && t.ty === 10), true,
+            'undestroyable trap on liquid should remain');
+        assert.equal(map.traps.some(t => t.ttyp === PIT && t.tx === 11 && t.ty === 10), true,
+            'trap on non-liquid terrain should remain');
     });
 });
