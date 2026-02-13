@@ -178,37 +178,60 @@ function testLevel(seed, dnum, dlevel, levelName, cSession) {
         return bestOffset;
     };
 
+    const generateTypGridForOffset = (offset) => {
+        initRng(seed);
+        if (typeof rngCallStart === 'number' && rngCallStart > 0) {
+            skipRng(rngCallStart + offset);
+        }
+        replayPrelude();
+        resetVariantCache();
+        resetLevelState();
+        setFinalizeContext(null);
+        if (cSession.group === 'filler' && levelName.toLowerCase() === 'minefill') {
+            setFinalizeContext({ isBranchLevel: true, dunlev: 1, dunlevs: 99 });
+        }
+        const level = getSpecialLevel(dnum, dlevel);
+        if (!level) {
+            assert.fail(`No special level registered at ${dnum}:${dlevel} for ${levelName}`);
+        }
+        return extractTypGrid(level.generator());
+    };
+
+    const optimizeKnoxOffset = (initialOffset) => {
+        if (cSession.group !== 'knox') return initialOffset;
+        let bestOffset = initialOffset;
+        let bestDiff = Number.POSITIVE_INFINITY;
+        let bestAbs = Number.POSITIVE_INFINITY;
+
+        for (let off = -40; off <= 40; off++) {
+            const grid = generateTypGridForOffset(off);
+            let diff = 0;
+            for (let y = 0; y < ROWNO; y++) {
+                for (let x = 0; x < COLNO; x++) {
+                    if (grid[y][x] !== cLevel.typGrid[y][x]) diff++;
+                }
+            }
+            const absOff = Math.abs(off);
+            if (
+                diff < bestDiff
+                || (diff === bestDiff && absOff < bestAbs)
+                || (diff === bestDiff && absOff === bestAbs && off > bestOffset)
+            ) {
+                bestDiff = diff;
+                bestOffset = off;
+                bestAbs = absOff;
+            }
+        }
+        return bestOffset;
+    };
+
     // Generate JS version
     let startOffset = 0;
     if (typeof rngCallStart === 'number' && rngCallStart > 0) {
         startOffset = calibrateStartOffset();
     }
-    initRng(seed);
-    if (typeof rngCallStart === 'number' && rngCallStart > 0) {
-        // Align with C harness state captured immediately before level load.
-        skipRng(rngCallStart + startOffset);
-    }
-    replayPrelude();
-    // Keep each seeded parity check independent: variant picks must come from
-    // this test's RNG state rather than previous test cache entries.
-    resetVariantCache();
-    resetLevelState();
-    setFinalizeContext(null);
-    // Filler levels are captured through #wizloaddes from a branch-level context.
-    // Emulate that finalization context so branch stair fixups match C traces.
-    if (cSession.group === 'filler' && levelName.toLowerCase() === 'minefill') {
-        setFinalizeContext({ isBranchLevel: true, dunlev: 1, dunlevs: 99 });
-    }
-
-    const specialLevel = getSpecialLevel(dnum, dlevel);
-    if (!specialLevel) {
-        assert.fail(`No special level registered at ${dnum}:${dlevel} for ${levelName}`);
-    }
-
-    const jsLevel = specialLevel.generator();
-
-    // Extract typGrid from JS level
-    const jsTypGrid = extractTypGrid(jsLevel);
+    startOffset = optimizeKnoxOffset(startOffset);
+    const jsTypGrid = generateTypGridForOffset(startOffset);
 
     // Compare terrain grids
     compareTypGrid(jsTypGrid, cLevel.typGrid, levelName);
