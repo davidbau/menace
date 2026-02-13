@@ -19,10 +19,20 @@
 - Added explicit player alignment-state fields (`alignmentRecord`, `alignmentAbuse`) and persisted them through save/restore state.
 - `mktrap_victim` now reuses shared C-ported `obj_resists()` logic (instead of a local duplicate) for landmine `breaktest()` behavior.
 - Added C-style dark-square candle ignition behavior in `mktrap_victim` gnome-corpse branch (`begin_burn` analog via `lamplit`).
+- Hardened `mon_arrive` failed-arrival queue behavior:
+  - retries now dedupe by identity across repeated failed placements,
+  - queued failed arrivals are treated as already in-transit (not re-filtered by source proximity/trapped/eating keepdogs checks).
+- Added C-like elapsed-time catch-up in non-`With_you` `mon_arrive` paths:
+  - applies trapped/confused/stunned recovery odds,
+  - decrements/finishes `meating`,
+  - decays `mtame` over long separation windows,
+  - derives wander radius from elapsed turns when explicit wander is not supplied.
 
 ## Validation snapshot
 
 - `npm run test:chargen`: **PASS**
+- `node --test test/unit/u_init.test.js`: **PASS**
+- `node --test test/unit/seed1_gameplay_replay.test.js test/unit/seed2_gameplay_replay.test.js test/unit/seed3_gameplay_replay.test.js`: **PASS**
 - Strict session replay probe on `seed1_chargen_healer` still shows startup divergence at index 0:
   - JS startup emits RNG calls while C startup section for this captured chargen session is effectively empty (`(end)`).
 
