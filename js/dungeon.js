@@ -1048,6 +1048,11 @@ function makemaz(map, protofile, dnum, dlevel, depth) {
         console.warn(`makemaz: special level "${protofile}" not implemented, using procedural maze`);
     }
 
+    // C ref: Invocation_lev(&u.uz) in mkmaze.c.
+    // In current branch topology, Sanctum is Gehennom level 10, so invocation
+    // level is the level above it (9). Allow explicit override via makelevel opts.
+    const isInvocationLevel = !!map._isInvocationLevel;
+
     // C ref: mkmaze.c:1189-1191
     // Set maze flags
     map.flags = map.flags || {};
@@ -1057,7 +1062,7 @@ function makemaz(map, protofile, dnum, dlevel, depth) {
     // C ref: mkmaze.c:1193-1197
     // Determine maze creation parameters
     // create_maze has different params based on Invocation level check
-    const useInvocationParams = rn2(2); // !Invocation_lev && rn2(2)
+    const useInvocationParams = !isInvocationLevel && !!rn2(2);
     if (useInvocationParams) {
         // create_maze(-1, -1, !rn2(5))
         create_maze(map, -1, -1, !rn2(5));
@@ -1079,8 +1084,15 @@ function makemaz(map, protofile, dnum, dlevel, depth) {
     const upstair = mazexy(map);
     mkstairs(map, upstair.x, upstair.y, true); // up stairs
 
-    const downstair = mazexy(map);
-    mkstairs(map, downstair.x, downstair.y, false); // down stairs
+    if (!isInvocationLevel) {
+        const downstair = mazexy(map);
+        mkstairs(map, downstair.x, downstair.y, false); // down stairs
+    } else {
+        const invPos = pick_vibrasquare_location(map);
+        if (invPos) {
+            maketrap(map, invPos.x, invPos.y, VIBRATING_SQUARE);
+        }
+    }
 
     // C ref: mkmaze.c:1211 — place_branch(Is_branchlev(&u.uz), 0, 0)
     // Only invoke placement when this exact level is a branch endpoint.
@@ -1098,6 +1110,48 @@ function makemaz(map, protofile, dnum, dlevel, depth) {
 
     // C ref: mkmaze.c:1213 — populate_maze()
     populate_maze(map, depth);
+}
+
+// C ref: mkmaze.c pick_vibrasquare_location()
+function pick_vibrasquare_location(map) {
+    const x_maze_min = 2;
+    const y_maze_min = 2;
+    const INVPOS_X_MARGIN = 4;
+    const INVPOS_Y_MARGIN = 3;
+    const INVPOS_DISTANCE = 11;
+
+    const xMazeMax = Number.isInteger(map._mazeMaxX) ? map._mazeMaxX : (COLNO - 1);
+    const yMazeMax = Number.isInteger(map._mazeMaxY) ? map._mazeMaxY : (ROWNO - 1);
+    const xRange = xMazeMax - x_maze_min - 2 * INVPOS_X_MARGIN - 1;
+    const yRange = yMazeMax - y_maze_min - 2 * INVPOS_Y_MARGIN - 1;
+    if (xRange <= 0 || yRange <= 0) {
+        const fallback = mazexy(map);
+        map._invPos = fallback ? { x: fallback.x, y: fallback.y } : null;
+        return fallback;
+    }
+
+    const up = map.upstair;
+    const distmin = (x1, y1, x2, y2) => Math.max(Math.abs(x1 - x2), Math.abs(y1 - y2));
+    const SPACE_POS = (typ) => typ > DOOR;
+    let x = 0, y = 0;
+    let tryct = 0;
+    do {
+        x = rn1(xRange, x_maze_min + INVPOS_X_MARGIN + 1);
+        y = rn1(yRange, y_maze_min + INVPOS_Y_MARGIN + 1);
+        if (++tryct > 1000) break;
+        const loc = map.at(x, y);
+        if (!up) break;
+        const tooNearUp = (x === up.x || y === up.y
+            || Math.abs(x - up.x) === Math.abs(y - up.y)
+            || distmin(x, y, up.x, up.y) <= INVPOS_DISTANCE);
+        if (tooNearUp) continue;
+        if (!loc || !SPACE_POS(loc.typ) || occupied(map, x, y)) continue;
+        break;
+    } while (true);
+
+    const pos = { x, y };
+    map._invPos = pos;
+    return pos;
 }
 
 // C ref: mkmaze.c populate_maze()
@@ -1158,6 +1212,8 @@ function create_maze(map, x0, y0, smoothed) {
     // Determine maze bounds
     const x_maze_max = (x0 < 0) ? x0 = Math.min(COLNO - 1, rn2(29) + 11) : (COLNO - 1);
     const y_maze_max = (y0 < 0) ? y0 = Math.min(ROWNO - 1, rn2(11) + 7) : (ROWNO - 1);
+    map._mazeMaxX = x_maze_max;
+    map._mazeMaxY = y_maze_max;
 
     // Create a simple maze using recursive backtracking
     // Start from (x0, y0) and carve passages
@@ -4379,6 +4435,8 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
 
     const map = new GameMap();
     map.clear();
+    map._isInvocationLevel = !!opts.invocationLevel
+        || (dnum === GEHENNOM && dlevel === 9);
 
     // C ref: mklev.c:1274-1287 — maze vs rooms decision (else-if chain)
     // The rn2(5) is part of the final condition in the chain
