@@ -200,7 +200,25 @@ async function runUnitTests() {
     });
 }
 
-// Analyze session files for step counts
+// Count RNG calls in a gameplay/chargen session
+function countSessionRng(session) {
+    let rngCalls = 0;
+    // Startup RNG calls
+    if (session.startup?.rngCalls) {
+        rngCalls += session.startup.rngCalls;
+    }
+    // Per-step RNG calls
+    if (session.steps) {
+        for (const step of session.steps) {
+            if (step.rng) {
+                rngCalls += step.rng.length;
+            }
+        }
+    }
+    return rngCalls;
+}
+
+// Analyze session files for step counts and RNG calls
 async function analyzeSessionFiles() {
     const sessionsDir = join(REPO_ROOT, 'test/comparison/sessions');
     const sessionInfo = {};
@@ -217,8 +235,10 @@ async function analyzeSessionFiles() {
 
                 sessionInfo[name] = {
                     totalSteps: session.steps?.length || 0,
+                    totalRng: countSessionRng(session),
                     type: session.type || 'unknown',
-                    seed: session.seed
+                    seed: session.seed,
+                    source: 'sessions'
                 };
             } catch (e) {
                 // Skip unreadable files
@@ -229,6 +249,78 @@ async function analyzeSessionFiles() {
     }
 
     return sessionInfo;
+}
+
+// Analyze map session files (special levels)
+async function analyzeMapFiles() {
+    const mapsDir = join(REPO_ROOT, 'test/comparison/maps');
+    const mapInfo = {};
+
+    try {
+        const files = await readdir(mapsDir);
+        for (const file of files) {
+            if (!file.endsWith('.session.json')) continue;
+
+            try {
+                const content = await readFile(join(mapsDir, file), 'utf-8');
+                const session = JSON.parse(content);
+                const name = basename(file, '.session.json');
+
+                // Map sessions have levels array with rngFingerprint
+                let totalRng = 0;
+                let totalLevels = 0;
+                if (session.levels) {
+                    totalLevels = session.levels.length;
+                    for (const level of session.levels) {
+                        if (level.rngFingerprint) {
+                            totalRng += level.rngFingerprint.length;
+                        }
+                    }
+                }
+
+                mapInfo[name] = {
+                    totalLevels,
+                    totalRng,
+                    type: 'map',
+                    group: session.group || 'unknown',
+                    seed: session.seed,
+                    source: 'maps'
+                };
+            } catch (e) {
+                // Skip unreadable files
+            }
+        }
+    } catch (e) {
+        // Maps dir may not exist in early commits
+    }
+
+    return mapInfo;
+}
+
+// Calculate fixture totals from session/map files
+function calculateFixtureTotals(sessionInfo, mapInfo) {
+    const totals = {
+        sessions: 0,
+        steps: 0,
+        rngCalls: 0,
+        mapSessions: 0,
+        mapLevels: 0,
+        mapRngCalls: 0
+    };
+
+    for (const info of Object.values(sessionInfo)) {
+        totals.sessions++;
+        totals.steps += info.totalSteps || 0;
+        totals.rngCalls += info.totalRng || 0;
+    }
+
+    for (const info of Object.values(mapInfo)) {
+        totals.mapSessions++;
+        totals.mapLevels += info.totalLevels || 0;
+        totals.mapRngCalls += info.totalRng || 0;
+    }
+
+    return totals;
 }
 
 // Main
@@ -253,21 +345,46 @@ async function main() {
     console.error('Analyzing session files...');
     const sessionInfo = await analyzeSessionFiles();
 
+    console.error('Analyzing map files...');
+    const mapInfo = await analyzeMapFiles();
+
+    // Calculate fixture totals
+    const fixtureTotals = calculateFixtureTotals(sessionInfo, mapInfo);
+
     // Merge session file info with test results
     for (const [name, info] of Object.entries(sessionInfo)) {
         if (comparisonResults.sessions[name]) {
             comparisonResults.sessions[name].totalSteps = info.totalSteps;
+            comparisonResults.sessions[name].totalRng = info.totalRng;
             // Estimate passed steps from test results
             const sessionTests = comparisonResults.sessions[name].tests || [];
             const passingTests = sessionTests.filter(t => t.status === 'pass').length;
-            comparisonResults.sessions[name].passedSteps = Math.round(
-                info.totalSteps * (passingTests / Math.max(1, sessionTests.length))
-            );
+            const passRatio = passingTests / Math.max(1, sessionTests.length);
+            comparisonResults.sessions[name].passedSteps = Math.round(info.totalSteps * passRatio);
+            comparisonResults.sessions[name].passedRng = Math.round(info.totalRng * passRatio);
             if (info.totalSteps > 0) {
                 comparisonResults.sessions[name].coveragePercent =
                     (comparisonResults.sessions[name].passedSteps / info.totalSteps) * 100;
             }
         }
+    }
+
+    // Track map session results (from test output categorized as 'special' or 'map')
+    for (const [name, info] of Object.entries(mapInfo)) {
+        // Map tests appear in comparisonResults with names containing the session name
+        const mapTestResults = comparisonResults.pass.filter(t => t.includes(name)).length;
+        const mapTestFails = comparisonResults.fail.filter(t => t.includes(name)).length;
+        const total = mapTestResults + mapTestFails;
+        const passRatio = total > 0 ? mapTestResults / total : 0;
+
+        comparisonResults.sessions[name] = {
+            status: mapTestFails > 0 ? 'fail' : (mapTestResults > 0 ? 'pass' : 'unknown'),
+            totalLevels: info.totalLevels,
+            totalRng: info.totalRng,
+            passedRng: Math.round(info.totalRng * passRatio),
+            type: 'map',
+            group: info.group
+        };
     }
 
     // Combine results
@@ -282,6 +399,25 @@ async function main() {
         fail: unitResults.fail.length
     };
 
+    // Calculate aggregate session stats
+    let sessionsPassing = 0, sessionsTotal = 0;
+    let stepsPassing = 0, stepsTotal = 0;
+    let rngPassing = 0, rngTotal = 0;
+
+    for (const session of Object.values(comparisonResults.sessions)) {
+        sessionsTotal++;
+        if (session.status === 'pass') sessionsPassing++;
+
+        if (session.totalSteps) {
+            stepsTotal += session.totalSteps;
+            stepsPassing += session.passedSteps || 0;
+        }
+        if (session.totalRng) {
+            rngTotal += session.totalRng;
+            rngPassing += session.passedRng || 0;
+        }
+    }
+
     // Build final output
     const output = {
         stats: {
@@ -291,6 +427,17 @@ async function main() {
             skip: allSkip.length,
             duration: Math.round((comparisonResults.duration + unitResults.duration) * 10) / 10
         },
+        // Aggregate session metrics for dashboard
+        sessionStats: {
+            sessionsPassing,
+            sessionsTotal,
+            stepsPassing,
+            stepsTotal,
+            rngPassing,
+            rngTotal
+        },
+        // Fixture totals (what's available in test fixtures)
+        fixtureTotals,
         categories: comparisonResults.categories,
         sessions: comparisonResults.sessions,
         skipComparison: SKIP_COMPARISON  // Flag to indicate partial test run

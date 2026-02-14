@@ -13,6 +13,7 @@ let currentView = 'sessions';
 let currentRange = 'all';
 let selectedCommit = null;
 let chart = null;
+let sessionFilter = null;  // null = all, 'chargen' / 'gameplay' / 'map' = group, 'seed1_gameplay' = specific session
 
 // Chart colors - parchment-friendly palette
 const COLORS = {
@@ -184,53 +185,160 @@ function updateChart() {
       });
     });
   } else if (currentView === 'sessions') {
-    // Show aggregate session metrics: total steps passing across all gameplay sessions
-    // Use null for commits without session data (Chart.js will skip them)
-    datasets.push({
-      label: 'Gameplay Steps Passing',
-      data: filteredData.map(d => {
-        if (!d.sessions || Object.keys(d.sessions).length === 0) return null;
-        let totalSteps = 0;
-        let passedSteps = 0;
-        Object.entries(d.sessions).forEach(([name, session]) => {
-          if (name.includes('gameplay')) {
-            totalSteps += session.totalSteps || 0;
-            passedSteps += session.passedSteps || 0;
-          }
+    // Session metrics toggles
+    const showSessions = document.getElementById('show-sessions')?.checked ?? true;
+    const showSteps = document.getElementById('show-steps')?.checked ?? true;
+    const showRng = document.getElementById('show-rng')?.checked ?? false;
+    const showTotals = document.getElementById('show-totals')?.checked ?? false;
+
+    // Helper to aggregate session stats from a commit (respects sessionFilter)
+    function getSessionStats(d) {
+      if (!d.sessions || Object.keys(d.sessions).length === 0) {
+        // Check for new sessionStats format (only when no filter is set)
+        if (d.sessionStats && !sessionFilter) {
+          return {
+            sessionsPassing: d.sessionStats.sessionsPassing || 0,
+            sessionsTotal: d.sessionStats.sessionsTotal || 0,
+            stepsPassing: d.sessionStats.stepsPassing || 0,
+            stepsTotal: d.sessionStats.stepsTotal || 0,
+            rngPassing: d.sessionStats.rngPassing || 0,
+            rngTotal: d.sessionStats.rngTotal || 0,
+          };
+        }
+        return null;
+      }
+
+      let sessionsPassing = 0, sessionsTotal = 0;
+      let stepsPassing = 0, stepsTotal = 0;
+      let rngPassing = 0, rngTotal = 0;
+
+      Object.entries(d.sessions).forEach(([name, session]) => {
+        // Apply filter
+        if (sessionFilter) {
+          // Exact session name match
+          if (sessionFilter.includes('seed') && name !== sessionFilter) return;
+          // Group match
+          if (!sessionFilter.includes('seed') && getSessionType(name) !== sessionFilter) return;
+        }
+
+        sessionsTotal++;
+        if (session.status === 'pass') sessionsPassing++;
+        stepsPassing += session.passedSteps || 0;
+        stepsTotal += session.totalSteps || 0;
+        rngPassing += session.passedRng || 0;
+        rngTotal += session.totalRng || 0;
+      });
+
+      // Return null if filter excludes all sessions
+      if (sessionsTotal === 0) return null;
+
+      return { sessionsPassing, sessionsTotal, stepsPassing, stepsTotal, rngPassing, rngTotal };
+    }
+
+    // Sessions passing
+    if (showSessions) {
+      datasets.push({
+        label: 'Sessions Passing',
+        data: filteredData.map(d => {
+          const stats = getSessionStats(d);
+          return stats ? stats.sessionsPassing : null;
+        }),
+        borderColor: COLORS.chargen,
+        backgroundColor: COLORS.chargen.replace('0.85', '0.2'),
+        borderWidth: 2,
+        fill: true,
+        tension: 0.3,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        spanGaps: true,
+      });
+      if (showTotals) {
+        datasets.push({
+          label: 'Sessions Total',
+          data: filteredData.map(d => {
+            const stats = getSessionStats(d);
+            return stats ? stats.sessionsTotal : null;
+          }),
+          borderColor: COLORS.chargen,
+          borderWidth: 1,
+          borderDash: [5, 5],
+          fill: false,
+          tension: 0.3,
+          pointRadius: 2,
+          spanGaps: true,
         });
-        return passedSteps;
-      }),
-      borderColor: COLORS.pass,
-      backgroundColor: COLORS.passFill,
-      borderWidth: 2,
-      fill: true,
-      tension: 0.3,
-      pointRadius: 3,
-      pointHoverRadius: 6,
-      spanGaps: true,  // Connect points across missing data
-    });
-    datasets.push({
-      label: 'Gameplay Steps Total',
-      data: filteredData.map(d => {
-        if (!d.sessions || Object.keys(d.sessions).length === 0) return null;
-        let totalSteps = 0;
-        Object.entries(d.sessions).forEach(([name, session]) => {
-          if (name.includes('gameplay')) {
-            totalSteps += session.totalSteps || 0;
-          }
+      }
+    }
+
+    // Steps passing
+    if (showSteps) {
+      datasets.push({
+        label: 'Steps Passing',
+        data: filteredData.map(d => {
+          const stats = getSessionStats(d);
+          return stats ? stats.stepsPassing : null;
+        }),
+        borderColor: COLORS.pass,
+        backgroundColor: COLORS.passFill,
+        borderWidth: 2,
+        fill: true,
+        tension: 0.3,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        spanGaps: true,
+      });
+      if (showTotals) {
+        datasets.push({
+          label: 'Steps Total',
+          data: filteredData.map(d => {
+            const stats = getSessionStats(d);
+            return stats ? stats.stepsTotal : null;
+          }),
+          borderColor: COLORS.pass,
+          borderWidth: 1,
+          borderDash: [5, 5],
+          fill: false,
+          tension: 0.3,
+          pointRadius: 2,
+          spanGaps: true,
         });
-        return totalSteps;
-      }),
-      borderColor: COLORS.rate,
-      backgroundColor: 'transparent',
-      borderWidth: 1,
-      borderDash: [5, 5],
-      fill: false,
-      tension: 0.3,
-      pointRadius: 2,
-      pointHoverRadius: 5,
-      spanGaps: true,
-    });
+      }
+    }
+
+    // RNG calls matching
+    if (showRng) {
+      datasets.push({
+        label: 'RNG Matching',
+        data: filteredData.map(d => {
+          const stats = getSessionStats(d);
+          return stats ? stats.rngPassing : null;
+        }),
+        borderColor: COLORS.rate,
+        backgroundColor: COLORS.rateFill,
+        borderWidth: 2,
+        fill: true,
+        tension: 0.3,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        spanGaps: true,
+      });
+      if (showTotals) {
+        datasets.push({
+          label: 'RNG Total',
+          data: filteredData.map(d => {
+            const stats = getSessionStats(d);
+            return stats ? stats.rngTotal : null;
+          }),
+          borderColor: COLORS.rate,
+          borderWidth: 1,
+          borderDash: [5, 5],
+          fill: false,
+          tension: 0.3,
+          pointRadius: 2,
+          spanGaps: true,
+        });
+      }
+    }
   } else if (currentView === 'code') {
     datasets.push({
       label: 'Lines Added',
@@ -504,7 +612,17 @@ function updateCategoryBreakdown() {
   grid.innerHTML = html;
 }
 
-// Update session breakdown
+// Categorize session by type
+function getSessionType(name) {
+  if (name.includes('chargen')) return 'chargen';
+  if (name.includes('gameplay') || name.includes('selfplay')) return 'gameplay';
+  if (name.includes('special') || name.includes('map')) return 'map';
+  if (name.includes('option')) return 'options';
+  if (name.includes('interface')) return 'interface';
+  return 'other';
+}
+
+// Update session breakdown with clickable groups
 function updateSessionBreakdown() {
   const latest = filteredData[filteredData.length - 1];
   const list = document.getElementById('session-list');
@@ -514,20 +632,67 @@ function updateSessionBreakdown() {
     return;
   }
 
-  let html = '';
-  const sessions = Object.entries(latest.sessions)
-    .sort((a, b) => (a[1].coveragePercent || 0) - (b[1].coveragePercent || 0));
+  // Group sessions by type
+  const groups = {};
+  Object.entries(latest.sessions).forEach(([name, session]) => {
+    const type = getSessionType(name);
+    if (!groups[type]) {
+      groups[type] = { sessions: [], passing: 0, total: 0, stepsPassing: 0, stepsTotal: 0 };
+    }
+    groups[type].sessions.push({ name, ...session });
+    groups[type].total++;
+    if (session.status === 'pass') groups[type].passing++;
+    groups[type].stepsPassing += session.passedSteps || 0;
+    groups[type].stepsTotal += session.totalSteps || 0;
+  });
 
-  for (const [name, session] of sessions) {
-    const status = session.status === 'pass' ? 'pass' : 'fail';
-    const coverage = session.coveragePercent?.toFixed(0) || '?';
-    html += `<div class="session-item ${status}">
-      <span class="session-name">${name}</span>
-      <span class="session-coverage">${coverage}%</span>
+  let html = '';
+
+  // "All" button
+  const allActive = sessionFilter === null ? 'active' : '';
+  html += `<div class="session-group-header ${allActive}" onclick="setSessionFilter(null)">
+    <span class="group-name">📊 All Sessions</span>
+    <span class="group-stats">${Object.keys(latest.sessions).length}</span>
+  </div>`;
+
+  // Group headers
+  const groupOrder = ['gameplay', 'chargen', 'map', 'options', 'interface', 'other'];
+  for (const type of groupOrder) {
+    const group = groups[type];
+    if (!group) continue;
+
+    const isGroupActive = sessionFilter === type ? 'active' : '';
+    const pct = group.total > 0 ? Math.round(group.passing / group.total * 100) : 0;
+    const icon = type === 'gameplay' ? '🎮' : type === 'chargen' ? '🧙' : type === 'map' ? '🗺️' : type === 'options' ? '⚙️' : '📋';
+
+    html += `<div class="session-group-header ${isGroupActive}" onclick="setSessionFilter('${type}')">
+      <span class="group-name">${icon} ${type}</span>
+      <span class="group-stats">${group.passing}/${group.total} (${pct}%)</span>
     </div>`;
+
+    // Show individual sessions if this group is selected
+    if (sessionFilter === type) {
+      const sorted = group.sessions.sort((a, b) => (a.coveragePercent || 0) - (b.coveragePercent || 0));
+      for (const session of sorted) {
+        const status = session.status === 'pass' ? 'pass' : 'fail';
+        const isActive = sessionFilter === session.name ? 'active' : '';
+        const coverage = session.coveragePercent?.toFixed(0) || (session.status === 'pass' ? '100' : '?');
+        html += `<div class="session-item ${status} ${isActive}" onclick="event.stopPropagation(); setSessionFilter('${session.name}')">
+          <span class="session-name">${session.name}</span>
+          <span class="session-coverage">${coverage}%</span>
+        </div>`;
+      }
+    }
   }
 
   list.innerHTML = html;
+}
+
+// Set session filter and update chart
+function setSessionFilter(filter) {
+  sessionFilter = filter;
+  updateSessionBreakdown();
+  updateChart();
 }
 
 // Event listeners
@@ -543,6 +708,12 @@ document.querySelectorAll('.view-btn').forEach(btn => {
     document.getElementById('session-breakdown').style.display =
       currentView === 'sessions' ? 'block' : 'none';
 
+    // Show/hide appropriate controls
+    document.getElementById('test-controls').style.display =
+      currentView === 'tests' ? 'flex' : 'none';
+    document.getElementById('session-controls').style.display =
+      currentView === 'sessions' ? 'flex' : 'none';
+
     updateChart();
   });
 });
@@ -557,6 +728,10 @@ document.querySelectorAll('.range-btn').forEach(btn => {
 });
 
 document.querySelectorAll('#show-pass, #show-fail, #show-rate').forEach(cb => {
+  cb.addEventListener('change', updateChart);
+});
+
+document.querySelectorAll('#show-sessions, #show-steps, #show-rng, #show-totals').forEach(cb => {
   cb.addEventListener('change', updateChart);
 });
 

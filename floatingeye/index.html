@@ -43,9 +43,9 @@
     <section class="controls">
       <div class="control-group">
         <span class="control-label">View:</span>
-        <button class="view-btn active" data-view="tests">Tests</button>
+        <button class="view-btn" data-view="tests">Tests</button>
         <button class="view-btn" data-view="categories">Categories</button>
-        <button class="view-btn" data-view="sessions">Sessions</button>
+        <button class="view-btn active" data-view="sessions">Sessions</button>
         <button class="view-btn" data-view="code">Code</button>
       </div>
       <div class="control-group">
@@ -54,7 +54,7 @@
         <button class="range-btn" data-range="100">100</button>
         <button class="range-btn active" data-range="all">All</button>
       </div>
-      <div class="control-group">
+      <div class="control-group" id="test-controls" style="display:none;">
         <label class="checkbox-label">
           <input type="checkbox" id="show-pass" checked> Pass
         </label>
@@ -63,6 +63,20 @@
         </label>
         <label class="checkbox-label">
           <input type="checkbox" id="show-rate"> Rate %
+        </label>
+      </div>
+      <div class="control-group" id="session-controls">
+        <label class="checkbox-label">
+          <input type="checkbox" id="show-sessions" checked> Sessions
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="show-steps" checked> Steps
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="show-rng"> RNG
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="show-totals"> Totals
         </label>
       </div>
       <div class="control-group zoom-controls">
@@ -85,7 +99,7 @@
     </section>
 
     <!-- Session Coverage (shown when Sessions view active) -->
-    <section class="breakdown-section" id="session-breakdown" style="display: none;">
+    <section class="breakdown-section" id="session-breakdown">
       <h2>Session Coverage <span class="section-hint">(The Oracle remembers every step)</span></h2>
       <div class="session-list" id="session-list"></div>
     </section>

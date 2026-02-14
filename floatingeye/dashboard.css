@@ -360,6 +360,52 @@ main {
 .session-item.pass .session-coverage { color: var(--pass); }
 .session-item.fail .session-coverage { color: var(--fail); }
 
+.session-item.active,
+.session-group-header.active {
+  background: var(--bg-accent);
+  border-color: var(--accent);
+}
+
+.session-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-section);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 0.3rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.session-group-header:hover {
+  background: var(--bg-accent);
+}
+
+.group-name {
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.group-stats {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.session-item {
+  cursor: pointer;
+  margin-left: 1rem;
+  transition: background 0.15s;
+}
+
+.session-item:hover {
+  background: var(--bg-accent);
+}
+
 /* --- Table Section --- */
 
 .table-section {
