@@ -948,10 +948,16 @@ export async function replaySession(seed, session, opts = {}) {
                 // continue into nested prompts (getlin/menus) afterward.
                 pendingKind = null;
             }
-            const settled = await Promise.race([
-                pendingCommand.then(v => ({ done: true, value: v })),
-                new Promise(resolve => setTimeout(() => resolve({ done: false }), 0)),
-            ]);
+            let settled = { done: false };
+            // Prompt-driven commands (read/drop/throw/etc.) usually resolve
+            // immediately after input, but can take a few ticks. Poll briefly
+            // to avoid shifting subsequent keystrokes across steps.
+            for (let attempt = 0; attempt < 6 && !settled.done; attempt++) {
+                settled = await Promise.race([
+                    pendingCommand.then(v => ({ done: true, value: v })),
+                    new Promise(resolve => setTimeout(() => resolve({ done: false }), 5)),
+                ]);
+            }
             if (!settled.done) {
                 result = { moved: false, tookTime: false };
             } else {
@@ -983,7 +989,7 @@ export async function replaySession(seed, session, opts = {}) {
             const commandPromise = rhack(ch, game);
             const settled = await Promise.race([
                 commandPromise.then(v => ({ done: true, value: v })),
-                new Promise(resolve => setTimeout(() => resolve({ done: false }), 0)),
+                new Promise(resolve => setTimeout(() => resolve({ done: false }), 5)),
             ]);
 
             if (!settled.done) {

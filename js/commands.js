@@ -172,6 +172,12 @@ export async function rhack(ch, game) {
         return await handleWield(player, display);
     }
 
+    // Throw item
+    // C ref: dothrow()
+    if (c === 't') {
+        return await handleThrow(player, map, display);
+    }
+
     // Wear armor
     if (c === 'W') {
         return await handleWear(player, display);
@@ -200,6 +206,11 @@ export async function rhack(ch, game) {
     // Read scroll/spellbook
     // C ref: read.c doread()
     if (c === 'r') {
+        if (game.menuRequested) {
+            game.menuRequested = false;
+            display.putstr_message("The read command does not accept 'm' prefix.");
+            return { moved: false, tookTime: false };
+        }
         return await handleRead(player, display);
     }
 
@@ -472,6 +483,15 @@ async function handleMovement(dir, player, map, display, game) {
     }
 
     const loc = map.at(nx, ny);
+
+    // C ref: movement into doorways — diagonal entry into an intact doorway is blocked.
+    if (loc && IS_DOOR(loc.typ) && Math.abs(dir[0]) + Math.abs(dir[1]) === 2) {
+        const openDoorway = (loc.flags & D_ISOPEN) !== 0;
+        if (openDoorway) {
+            display.putstr_message("You can't move diagonally into an intact doorway.");
+            return { moved: false, tookTime: false };
+        }
+    }
 
     // Check for monster at target position
     const mon = map.monsterAt(nx, ny);
@@ -1162,7 +1182,7 @@ async function handleDrop(player, map, display) {
         display.putstr_message('What do you want to drop? [*]');
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
-        if (ch === 27 || c === ' ') {
+        if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
@@ -1257,6 +1277,53 @@ async function handleEat(player, display, game) {
     return { moved: false, tookTime: false };
 }
 
+// Handle throwing
+// C ref: dothrow()
+async function handleThrow(player, map, display) {
+    if (!player.inventory || player.inventory.length === 0) {
+        display.putstr_message("You don't have anything to throw.");
+        return { moved: false, tookTime: false };
+    }
+    while (true) {
+        display.putstr_message('What do you want to throw? [*]');
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+        if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
+            display.putstr_message('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+        if (c === '?' || c === '*') {
+            continue;
+        }
+        const item = player.inventory.find(o => o.invlet === c);
+        if (!item) continue;
+
+        display.putstr_message('In what direction?');
+        const dirCh = await nhgetch();
+        const dch = String.fromCharCode(dirCh);
+        const dir = DIRECTION_KEYS[dch];
+        display.topMessage = null;
+        if (!dir) {
+            display.putstr_message('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+
+        // Minimal throw behavior for replay flow fidelity.
+        player.removeFromInventory(item);
+        item.ox = player.x + dir[0];
+        item.oy = player.y + dir[1];
+        if (isok(item.ox, item.oy)) {
+            map.objects.push(item);
+        } else {
+            item.ox = player.x;
+            item.oy = player.y;
+            map.objects.push(item);
+        }
+        display.putstr_message(`You throw ${doname(item, null)}.`);
+        return { moved: false, tookTime: true };
+    }
+}
+
 // Handle reading
 // C ref: read.c doread()
 async function handleRead(player, display) {
@@ -1265,7 +1332,7 @@ async function handleRead(player, display) {
         display.putstr_message('What do you want to read? [*]');
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
-        if (ch === 27 || c === ' ') {
+        if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
