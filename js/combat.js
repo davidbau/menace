@@ -154,6 +154,7 @@ export function playerAttackMonster(player, monster, display, map) {
                     oclass: FOOD_CLASS,
                     material: FLESH,
                     corpsenm: monster.mndx || 0,
+                    name: `${monster.name} corpse`,
                     ox: monster.mx,
                     oy: monster.my,
                     cursed: false,
@@ -235,8 +236,13 @@ export function monsterAttackPlayer(monster, player, display) {
             rn2(6);
 
             if (died) {
-                player.deathCause = `killed by a ${monster.name}`;
-                display.putstr_message(`You die...`);
+                if (player.wizard) {
+                    player.hp = 1;
+                    display.putstr_message('You survived that attempt on your life.');
+                } else {
+                    player.deathCause = `killed by a ${monster.name}`;
+                    display.putstr_message('You die...');
+                }
             }
         }
     }

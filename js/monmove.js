@@ -9,6 +9,7 @@ import { COLNO, ROWNO, STONE, IS_WALL, IS_DOOR, IS_ROOM,
 import { rn2, rnd, c_d } from './rng.js';
 import { monsterAttackPlayer } from './combat.js';
 import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS } from './objects.js';
+import { doname } from './mkobj.js';
 import { dogfood, dog_eat, can_carry, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT,
          POISON, UNDEF, TABU } from './dog.js';
 import { couldsee, m_cansee, do_clear_area } from './vision.js';
@@ -276,7 +277,7 @@ function can_reach_location(map, mon, mx, my, fx, fy) {
 // C ref: dogmove.c:392-471
 // Returns: 0 (no action), 1 (ate something), 2 (died)
 // ========================================================================
-function dog_invent(mon, edog, udist, map, turnCount) {
+function dog_invent(mon, edog, udist, map, turnCount, display, player) {
     if (mon.meating) return 0;
     const omx = mon.mx, omy = mon.my;
 
@@ -293,6 +294,9 @@ function dog_invent(mon, edog, udist, map, turnCount) {
                     if (!o.cursed) {
                         o.ox = omx; o.oy = omy;
                         map.objects.push(o);
+                        if (display && player && couldsee(map, player, mon.mx, mon.my)) {
+                            display.putstr_message(`The ${mon.name} drops ${doname(o, null)}.`);
+                        }
                     } else {
                         keep.push(o);
                     }
@@ -334,6 +338,10 @@ function dog_invent(mon, edog, udist, map, turnCount) {
                         map.removeObject(obj);
                         if (!mon.minvent) mon.minvent = [];
                         mon.minvent.push(obj);
+                        // C ref: dogmove.c "The <pet> picks up <obj>." when observed.
+                        if (display && player && couldsee(map, player, mon.mx, mon.my)) {
+                            display.putstr_message(`The ${mon.name} picks up ${doname(obj, null)}.`);
+                        }
                     }
                 }
             }
@@ -716,7 +724,7 @@ function dog_move(mon, map, player, display, fov) {
 
     // C ref: dogmove.c:1024-1029 — dog_invent before dog_goal
     if (edog) {
-        const invResult = dog_invent(mon, edog, udist, map, turnCount);
+        const invResult = dog_invent(mon, edog, udist, map, turnCount, display, player);
         if (invResult === 1) return 1; // ate something — done
         if (invResult === 2) return 0; // died
     }

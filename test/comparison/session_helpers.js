@@ -614,7 +614,15 @@ class HeadlessGame {
         if (f.has_morgue && !rn2(200)) { return; }
         if (f.has_barracks && !rn2(200)) { rn2(3); return; }
         if (f.has_zoo && !rn2(200)) { return; }
-        if (f.has_shop && !rn2(200)) { rn2(2); return; }
+        if (f.has_shop && !rn2(200)) {
+            const which = rn2(2);
+            if (which === 0) {
+                this.display.putstr_message('You hear someone cursing shoplifters.');
+            } else {
+                this.display.putstr_message('You hear the chime of a cash register.');
+            }
+            return;
+        }
         if (f.has_temple && !rn2(200)) { return; }
     }
 
@@ -705,6 +713,7 @@ export async function replaySession(seed, session, opts = {}) {
 
     const player = new Player();
     player.initRole(replayRoleIndex);
+    player.wizard = true;
     player.name = session.character?.name || 'Wizard';
     player.gender = session.character?.gender === 'female' ? 1 : 0;
 
@@ -864,13 +873,6 @@ export async function replaySession(seed, session, opts = {}) {
                 for (let i = 1; i < step.key.length; i++) {
                     pushInput(step.key.charCodeAt(i));
                 }
-            }
-
-            // Modal commands (inventory, etc.) need dismissal key
-            // C ref: invent.c display_inventory() waits for nhgetch() dismissal
-            const needsDismissal = ['i', 'I'].includes(String.fromCharCode(ch));
-            if (needsDismissal) {
-                pushInput(32); // SPACE to dismiss modal display
             }
 
             // Execute the command once (one turn per keystroke)

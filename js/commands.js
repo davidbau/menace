@@ -113,17 +113,20 @@ export async function rhack(ch, game) {
                 }
             }
             if (monNearby) {
-                // C ref: do.c cmd_safety_prevention() warning text for blocked wait/search.
-                display.putstr_message("Are you waiting to get hit?  Use 'm' prefix to force a no-op (to rest).");
+                // C ref: do.c cmd_safety_prevention() has distinct wait vs search warnings.
+                if (c === 's') {
+                    display.putstr_message("You already found a monster.  Use 'm' prefix to force another search.");
+                } else {
+                    display.putstr_message("Are you waiting to get hit?  Use 'm' prefix to force a no-op (to rest).");
+                }
                 return { moved: false, tookTime: false };
             }
         }
         // C ref: cmd.c -- '.' is rest, 's' is search
         if (c === 's') {
-            display.putstr_message('You search...');
             // C ref: detect.c dosearch0() -- check adjacent squares for hidden things
             dosearch0(player, map, display);
-        }
+        } 
         return { moved: false, tookTime: true };
     }
 
@@ -479,7 +482,7 @@ async function handleMovement(dir, player, map, display, game) {
             player.x = nx;
             player.y = ny;
             player.moved = true;
-            display.putstr_message(`You swap places with ${mon.name}.`);
+            display.putstr_message(`You swap places with your ${mon.name}.`);
             game.forceFight = false; // Clear prefix (shouldn't reach here but be safe)
             return { moved: true, tookTime: true };
         }
@@ -688,7 +691,17 @@ async function handleMovement(dir, player, map, display, game) {
     // C ref: hack.c prints "You see here" only if nothing was picked up
     if (!pickedUp && objs.length > 0) {
         if (objs.length === 1) {
-            display.putstr_message(`You see here ${objs[0].name}.`);
+            const seen = objs[0];
+            if (seen.oclass === COIN_CLASS) {
+                const count = seen.quan || 1;
+                const plural = count === 1 ? '' : 's';
+                display.putstr_message(`You see here ${count} gold piece${plural}.`);
+            } else if (seen.otyp !== undefined && seen.name && /corpse$/.test(seen.name)) {
+                const article = /^[aeiou]/i.test(seen.name) ? 'an' : 'a';
+                display.putstr_message(`You see here ${article} ${seen.name}.`);
+            } else {
+                display.putstr_message(`You see here ${doname(seen, null)}.`);
+            }
         } else {
             display.putstr_message(`You see here several objects.`);
         }
@@ -777,6 +790,11 @@ function checkRunStop(map, player, fov, dir) {
 function handlePickup(player, map, display) {
     const objs = map.objectsAt(player.x, player.y);
     if (objs.length === 0) {
+        const loc = map.at(player.x, player.y);
+        if (loc && loc.typ === STAIRS) {
+            display.putstr_message('The stairs are solidly affixed.');
+            return { moved: false, tookTime: false };
+        }
         display.putstr_message('There is nothing here to pick up.');
         return { moved: false, tookTime: false };
     }
@@ -820,8 +838,6 @@ async function handleDownstairs(player, map, display, game) {
     if (newDepth > player.maxDungeonLevel) {
         player.maxDungeonLevel = newDepth;
     }
-    display.putstr_message('You descend the staircase.');
-
     // Generate new level (changeLevel sets player.dungeonLevel)
     game.changeLevel(newDepth, 'down');
     return { moved: false, tookTime: true };
@@ -848,7 +864,6 @@ async function handleUpstairs(player, map, display, game) {
     }
 
     const newDepth = player.dungeonLevel - 1;
-    display.putstr_message('You climb the staircase.');
     game.changeLevel(newDepth, 'up');
     return { moved: false, tookTime: true };
 }
@@ -858,6 +873,8 @@ async function handleUpstairs(player, map, display, game) {
 async function handleOpen(player, map, display, game) {
     display.putstr_message('In what direction?');
     const dirCh = await nhgetch();
+    // Prompt should not concatenate with outcome message.
+    display.topMessage = null;
     const c = String.fromCharCode(dirCh);
     const dir = DIRECTION_KEYS[c];
     if (!dir) {
@@ -876,7 +893,12 @@ async function handleOpen(player, map, display, game) {
         return { moved: false, tookTime: false };
     }
 
-    if (loc.flags & D_ISOPEN || loc.flags === D_NODOOR) {
+    if (loc.flags & D_ISOPEN) {
+        display.putstr_message('This door is already open.');
+        return { moved: false, tookTime: false };
+    }
+
+    if (loc.flags === D_NODOOR) {
         display.putstr_message("This doorway has no door.");
         return { moved: false, tookTime: false };
     }
@@ -967,10 +989,15 @@ async function handleInventory(player, display) {
         groups[cls].push(item);
     }
 
+    const centered = (text) => {
+        const start = Math.max(0, Math.floor((80 - text.length) / 2) - 2);
+        return `${' '.repeat(start)}${text}`;
+    };
+
     const lines = [];
     for (const cls of INV_ORDER) {
         if (!groups[cls]) continue;
-        lines.push(` ${CLASS_NAMES[cls] || 'Other'}`);
+        lines.push(centered(CLASS_NAMES[cls] || 'Other'));
         for (const item of groups[cls]) {
             lines.push(` ${item.invlet} - ${doname(item, player)}`);
         }
@@ -1164,6 +1191,7 @@ async function handleQuaff(player, map, display) {
     if (loc && loc.typ === FOUNTAIN) {
         display.putstr_message('Drink from the fountain?');
         const ans = await nhgetch();
+        display.topMessage = null;
         if (String.fromCharCode(ans) === 'y') {
             drinkfountain(player, map, display);
             return { moved: false, tookTime: true };

@@ -151,6 +151,7 @@ class NetHackGame {
         // Post-level initialization: pet, inventory, attributes, welcome
         // C ref: allmain.c newgame() — makedog through welcome(TRUE)
         const initResult = simulatePostLevelInit(this.player, this.map, 1);
+        this.player.wizard = this.wizard;
         this.seerTurn = initResult.seerTurn;
 
         // Apply flags
@@ -191,6 +192,7 @@ class NetHackGame {
         // Restore game state: player + inventory + equip + context
         const restored = restGameState(gs);
         this.player = restored.player;
+        this.player.wizard = this.wizard;
         setMakemonPlayerContext(this.player);
         this.wizard = restored.wizard;
         this.turnCount = restored.turnCount;
@@ -1500,7 +1502,15 @@ class NetHackGame {
         if (f.has_morgue && !rn2(200)) { return; }
         if (f.has_barracks && !rn2(200)) { rn2(3); return; }
         if (f.has_zoo && !rn2(200)) { return; }
-        if (f.has_shop && !rn2(200)) { rn2(2); return; }
+        if (f.has_shop && !rn2(200)) {
+            const which = rn2(2);
+            if (which === 0) {
+                this.display.putstr_message('You hear someone cursing shoplifters.');
+            } else {
+                this.display.putstr_message('You hear the chime of a cash register.');
+            }
+            return;
+        }
         if (f.has_temple && !rn2(200)) { return; }
     }
 

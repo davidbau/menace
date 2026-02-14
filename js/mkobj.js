@@ -362,7 +362,7 @@ function mksobj_init(obj, artif, skipErosion) {
         } else if (od.name === 'kelp frond') {
             obj.quan = rnd(2);
         } else if (od.name === 'candy bar') {
-            rn2(15); // assign_candy_wrapper: rn2(SIZE(candy_wrappers)-1)
+            rn2(12); // C ref: read.c assign_candy_wrapper() uses rn2(12) in 3.7 trace
         }
         // General food: possible quan=2 (C: else branch of Is_pudding)
         if (od.name !== 'corpse' && od.name !== 'meat ring'
@@ -784,13 +784,35 @@ export function doname(obj, player) {
         parts.push('potion of ' + od.name);
         break;
     case SCROLL_CLASS:
-        parts.push('scroll of ' + od.name);
+        if (!obj.known && od.desc) {
+            parts.push(`scroll labeled ${od.desc}`);
+        } else {
+            parts.push('scroll of ' + od.name);
+        }
         break;
     case SPBOOK_CLASS:
         parts.push('spellbook of ' + od.name);
         break;
     case WAND_CLASS:
-        parts.push('wand of ' + od.name);
+        if (!obj.known && od.desc) {
+            parts.push(`${od.desc} wand`);
+        } else {
+            parts.push('wand of ' + od.name);
+        }
+        break;
+    case FOOD_CLASS:
+        if (obj.otyp === CORPSE) {
+            const corpseIdx = Number.isInteger(obj.corpsem) ? obj.corpsem : obj.corpsenm;
+            if (Number.isInteger(corpseIdx) && mons[corpseIdx]) {
+                parts.push(`${mons[corpseIdx].name} corpse`);
+                break;
+            }
+        }
+        if (obj.otyp === CORPSE) {
+            parts.push('corpse');
+        } else {
+            parts.push(od.name);
+        }
         break;
     default:
         parts.push(od.name);
