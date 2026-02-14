@@ -50,8 +50,17 @@ import {
     objectData, bases, GLASS,
 } from './objects.js';
 import { RUMORS_FILE_TEXT } from './rumor_data.js';
-import { getSpecialLevel } from './special_levels.js';
-import { setLevelContext, clearLevelContext, initLuaMT, setSpecialLevelDepth } from './sp_lev.js';
+import {
+    getSpecialLevel,
+    DUNGEONS_OF_DOOM,
+    GNOMISH_MINES,
+    SOKOBAN,
+    QUEST,
+    KNOX,
+    GEHENNOM,
+    VLADS_TOWER
+} from './special_levels.js';
+import { setLevelContext, clearLevelContext, initLuaMT, setSpecialLevelDepth, setFinalizeContext } from './sp_lev.js';
 import { themerooms_generate as themermsGenerate, reset_state as resetThemermsState } from './levels/themerms.js';
 
 /**
@@ -88,6 +97,20 @@ function themerooms_generate(map, depth) {
 }
 
 import { parseEncryptedDataFile, parseRumorsFile } from './hacklib.js';
+
+// Branch type constants (C ref: include/dungeon.h)
+const BR_STAIR = 0;
+const BR_NO_END1 = 1;
+const BR_NO_END2 = 2;
+const BR_PORTAL = 3;
+
+// Snapshot of branch topology chosen during simulateDungeonInit().
+// Each entry: { type, end1:{dnum,dlevel}, end2:{dnum,dlevel}, end1_up }.
+let _branchTopology = [];
+
+export function clearBranchTopology() {
+    _branchTopology = [];
+}
 import { EPITAPH_FILE_TEXT } from './epitaph_data.js';
 import { ENGRAVE_FILE_TEXT } from './engrave_data.js';
 import { shtypes, stock_room } from './shknam.js';
@@ -933,6 +956,52 @@ export function floodFillAndRegister(map, sx, sy, rtype, lit) {
 // On first level generation, nhl_loadlua() consumes rn2(3) and rn2(2).
 // Subsequent levels reuse the cached state with no RNG.
 let _themesLoaded = false;
+
+function branchPlacementForEnd(branch, onEnd1) {
+    if (branch.type === BR_PORTAL) {
+        return { placement: 'portal' };
+    }
+
+    let makeStairs = true;
+    if (onEnd1 && branch.type === BR_NO_END1) makeStairs = false;
+    if (!onEnd1 && branch.type === BR_NO_END2) makeStairs = false;
+    if (!makeStairs) {
+        return { placement: 'none' };
+    }
+
+    const goesUp = onEnd1 ? !!branch.end1_up : !branch.end1_up;
+    return { placement: goesUp ? 'stair-up' : 'stair-down' };
+}
+
+// C-faithful branch placement resolution for special-level LR_BRANCH handling.
+// Mirrors place_branch(Is_branchlev(&u.uz), x, y):
+// - no branch on this level => none
+// - BR_PORTAL => portal
+// - BR_NO_END* => one-way stair (or none on blocked side)
+// - BR_STAIR => stair, direction based on end1_up and which end we're on
+export function resolveBranchPlacementForLevel(dnum, dlevel) {
+    if (!Number.isFinite(dnum) || !Number.isFinite(dlevel)) {
+        return { placement: 'none' };
+    }
+
+    // In isolated generator contexts (tests that don't run init_dungeons),
+    // preserve historical behavior: LR_BRANCH acts like down stair.
+    if (!_branchTopology.length) {
+        return { placement: 'stair-down' };
+    }
+
+    // Exact topology if available (normal gameplay path).
+    for (const br of _branchTopology) {
+        if (br.end1.dnum === dnum && br.end1.dlevel === dlevel) {
+            return branchPlacementForEnd(br, true);
+        }
+        if (br.end2.dnum === dnum && br.end2.dlevel === dlevel) {
+            return branchPlacementForEnd(br, false);
+        }
+    }
+
+    return { placement: 'none' };
+}
 
 // Track Lua MT RNG initialization (shared with sp_lev.js via export)
 // Lazy initialization happens on first Lua RNG use (des.object/des.monster)
@@ -3344,6 +3413,100 @@ export function generate_rogue_level(depth = 15) {
 //   4. u_init.c: rn2(10)
 //   5. nhlua pre_themerooms shuffle: rn2(3), rn2(2)
 //   6. bones.c: rn2(3)
+function parentDepthFromSelector(selector, dungeonLayouts) {
+    if (selector.kind === 'fixed') {
+        return { base: selector.base, count: selector.count };
+    }
+    if (selector.kind === 'chain') {
+        const parentPlaced = dungeonLayouts[selector.parentDungeon]?.placed || [];
+        const chainLevel = parentPlaced[selector.chainLevelIndex];
+        if (!Number.isFinite(chainLevel)) {
+            return { base: selector.base, count: selector.count };
+        }
+        return { base: chainLevel + selector.baseOffset, count: selector.count };
+    }
+    return { base: 1, count: 1 };
+}
+
+function pickParentDepth(base, count, roll, parentDnum, occupiedByParent) {
+    // C ref: dungeon.c parent_dlevel():
+    // i = j = rn2(num); do { ++i (wrap); test base+i } while (occupied && i != j)
+    const used = occupiedByParent.get(parentDnum) || new Set();
+    let i = Number.isFinite(roll) ? roll : 0;
+    const j = i;
+    do {
+        i = (i + 1) % count;
+        const candidate = base + i;
+        if (!used.has(candidate)) {
+            used.add(candidate);
+            occupiedByParent.set(parentDnum, used);
+            return candidate;
+        }
+    } while (i !== j);
+    // If all candidates occupied, C returns last checked slot.
+    const candidate = base + i;
+    used.add(candidate);
+    occupiedByParent.set(parentDnum, used);
+    return candidate;
+}
+
+function buildBranchTopology(dungeonLayouts, parentRolls) {
+    const branchSpecs = [
+        // child dnum 1: Gehennom, parent DoD castle, no_down -> BR_NO_END1 (end1_up=false)
+        {
+            childDnum: GEHENNOM, childEntry: 1, parentDnum: DUNGEONS_OF_DOOM,
+            selector: { kind: 'chain', parentDungeon: DUNGEONS_OF_DOOM, chainLevelIndex: 4, baseOffset: 0, count: 1 },
+            type: BR_NO_END1, end1_up: false
+        },
+        // child dnum 2: Mines, base 2 range 3
+        {
+            childDnum: GNOMISH_MINES, childEntry: 1, parentDnum: DUNGEONS_OF_DOOM,
+            selector: { kind: 'fixed', base: 2, count: 3 },
+            type: BR_STAIR, end1_up: false
+        },
+        // child dnum 3: Quest, chain oracle +6 range2, portal
+        {
+            childDnum: QUEST, childEntry: 1, parentDnum: DUNGEONS_OF_DOOM,
+            selector: { kind: 'chain', parentDungeon: DUNGEONS_OF_DOOM, chainLevelIndex: 1, baseOffset: 6, count: 2 },
+            type: BR_PORTAL, end1_up: false
+        },
+        // child dnum 4: Sokoban, chain oracle +1, direction up
+        {
+            childDnum: SOKOBAN, childEntry: 4, parentDnum: DUNGEONS_OF_DOOM,
+            selector: { kind: 'chain', parentDungeon: DUNGEONS_OF_DOOM, chainLevelIndex: 1, baseOffset: 1, count: 1 },
+            type: BR_STAIR, end1_up: true
+        },
+        // child dnum 5: Fort Ludios, base 18 range 4, portal
+        {
+            childDnum: KNOX, childEntry: 1, parentDnum: DUNGEONS_OF_DOOM,
+            selector: { kind: 'fixed', base: 18, count: 4 },
+            type: BR_PORTAL, end1_up: false
+        },
+        // child dnum 6: Vlad's Tower, parent Gehennom base9 range5, direction up
+        {
+            childDnum: VLADS_TOWER, childEntry: 1, parentDnum: GEHENNOM,
+            selector: { kind: 'fixed', base: 9, count: 5 },
+            type: BR_STAIR, end1_up: true
+        }
+    ];
+
+    const occupiedByParent = new Map();
+    const branches = [];
+    for (const spec of branchSpecs) {
+        const { base, count } = parentDepthFromSelector(spec.selector, dungeonLayouts);
+        const roll = parentRolls.get(spec.childDnum) || 0;
+        const parentDepth = pickParentDepth(base, count, roll, spec.parentDnum, occupiedByParent);
+        branches.push({
+            type: spec.type,
+            end1: { dnum: spec.parentDnum, dlevel: parentDepth },
+            end2: { dnum: spec.childDnum, dlevel: spec.childEntry },
+            end1_up: spec.end1_up
+        });
+    }
+
+    return branches;
+}
+
 export function simulateDungeonInit(roleIndex) {
     // 0. role_init: quest nemesis gender — rn2(100) for roles whose
     // nemesis lacks M2_MALE/M2_FEMALE/M2_NEUTER flags.
@@ -3458,21 +3621,44 @@ export function simulateDungeonInit(roleIndex) {
         },
     ];
 
+    const dungeonLayouts = new Map();
+    const parentRolls = new Map();
+    const C_DGN_TO_JS_DNUM = [
+        DUNGEONS_OF_DOOM, // 0: DoD
+        GEHENNOM,         // 1: Gehennom
+        GNOMISH_MINES,    // 2: Mines
+        QUEST,            // 3: Quest
+        SOKOBAN,          // 4: Sokoban
+        KNOX,             // 5: Ludios
+        VLADS_TOWER,      // 6: Tower
+        -1,               // 7: Planes (not a special_levels branch dnum)
+        -1,               // 8: Tutorial
+    ];
+
     // Process each dungeon
-    for (const dgn of DUNGEON_DEFS) {
+    for (let dgnIndex = 0; dgnIndex < DUNGEON_DEFS.length; dgnIndex++) {
+        const dgn = DUNGEON_DEFS[dgnIndex];
         // 2a. rn1(range, base) for level count
         const numLevels = dgn.range > 0
             ? rn2(dgn.range) + dgn.base
             : dgn.base;
 
         // 2b. parent_dlevel → rn2(num)
+        let parentRoll = 0;
         if (dgn.hasParent) {
-            rn2(dgn.parentBranchNum);
+            parentRoll = rn2(dgn.parentBranchNum);
         }
 
         // 2c. place_level — recursive backtracking
-        placeLevelSim(dgn.levels, numLevels);
+        const placed = placeLevelSim(dgn.levels, numLevels);
+        const jsDnum = C_DGN_TO_JS_DNUM[dgnIndex];
+        if (jsDnum >= 0) {
+            parentRolls.set(jsDnum, parentRoll);
+            dungeonLayouts.set(jsDnum, { numLevels, parentRoll, placed });
+        }
     }
+
+    _branchTopology = buildBranchTopology(dungeonLayouts, parentRolls);
 
     // 3. init_castle_tune: 5 × rn2(7)
     for (let i = 0; i < 5; i++) rn2(7);
@@ -3560,6 +3746,7 @@ function placeLevelSim(rawLevels, numLevels) {
     }
 
     doPlace(0);
+    return placed;
 }
 
 // ========================================================================
@@ -3887,6 +4074,7 @@ function mkshop(map) {
 export function initLevelGeneration(roleIndex) {
     init_objects();
     setMakemonRoleContext(roleIndex);
+    _branchTopology = [];  // reset before recalculating from init_dungeons RNG
     simulateDungeonInit(roleIndex);
     _themesLoaded = false; // Reset Lua theme state for new game
     setMtInitialized(false); // Reset MT RNG state for new game
@@ -3921,6 +4109,10 @@ export function makelevel(depth, dnum, dlevel) {
             // C parity: special-level depth-sensitive logic should use absolute depth,
             // not branch-local dlevel.
             setSpecialLevelDepth(depth);
+            setFinalizeContext({
+                dnum,
+                dlevel
+            });
 
             // C ref: mklev.c:365-380 — Lua theme shuffle when loading special level
             // In C, loading oracle.lua triggers themerms.lua load, which does rn2(3), rn2(2)
@@ -4218,7 +4410,8 @@ function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot) {
             break;
 
         case LR_PORTAL:
-            // Portal - not needed for basic implementation
+            // C parity: branch portal does not alter terrain, it adds MAGIC_PORTAL.
+            maketrap(map, x, y, MAGIC_PORTAL);
             break;
 
         case LR_DOWNSTAIR:
@@ -4230,13 +4423,26 @@ function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot) {
             break;
 
         case LR_BRANCH:
-            // Branch stairs (entrance to sub-dungeon like Mines)
-            // For Gnomish Mines at depth 2-4, this is a down stair
-            mkstairs(map, x, y, false);
+            placeBranchFeature(map, x, y);
             break;
     }
 
     return true;
+}
+
+function placeBranchFeature(map, x, y) {
+    const hint = map?._branchPlacementHint;
+    if (hint === 'none') return;
+    if (hint === 'portal') {
+        maketrap(map, x, y, MAGIC_PORTAL);
+        return;
+    }
+    if (hint === 'stair-up') {
+        mkstairs(map, x, y, true);
+        return;
+    }
+    // Default to down stair for compatibility with existing behavior.
+    mkstairs(map, x, y, false);
 }
 
 // C ref: mkmaze.c:356-410 — place_lregion
@@ -4268,7 +4474,7 @@ export function place_lregion(map, lx, ly, hx, hy, nlx, nly, nhx, nhy, rtype) {
                     console.warn(`Couldn't place lregion type ${rtype}!`);
                     return;
                 }
-                mkstairs(map, pos.x, pos.y, false);
+                placeBranchFeature(map, pos.x, pos.y);
                 return;
             }
 

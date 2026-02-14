@@ -10,9 +10,10 @@ import assert from 'node:assert';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { simulateDungeonInit, resolveBranchPlacementForLevel, clearBranchTopology } from '../../js/dungeon.js';
 import { resetLevelState, setFinalizeContext, setSpecialLevelDepth } from '../../js/sp_lev.js';
 import { getSpecialLevel, resetVariantCache, DUNGEONS_OF_DOOM, GEHENNOM, VLADS_TOWER, KNOX, SOKOBAN, GNOMISH_MINES, QUEST } from '../../js/special_levels.js';
-import { initRng, skipRng, rn2, c_d, rne, rnz } from '../../js/rng.js';
+import { initRng, skipRng, rn2, c_d, rne, rnz, getRngState, setRngState, getRngCallCount, setRngCallCount } from '../../js/rng.js';
 
 const ROWNO = 21;
 const COLNO = 80;
@@ -36,6 +37,27 @@ function extractTypGrid(level) {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const MAPS_DIR = path.join(__dirname, '..', 'comparison', 'maps');
+const branchPlacementCache = new Map();
+
+function inferRuntimeBranchPlacement(seed, dnum, dlevel) {
+    const key = `${seed}:${dnum}:${dlevel}`;
+    if (branchPlacementCache.has(key)) return branchPlacementCache.get(key);
+
+    const savedState = getRngState();
+    const savedCount = getRngCallCount();
+    let placement = 'stair-down';
+    try {
+        initRng(seed);
+        simulateDungeonInit(undefined);
+        placement = resolveBranchPlacementForLevel(dnum, dlevel).placement || 'stair-down';
+    } finally {
+        clearBranchTopology();
+        setRngState(savedState);
+        setRngCallCount(savedCount);
+    }
+    branchPlacementCache.set(key, placement);
+    return placement;
+}
 
 /**
  * Load C reference session for a special level
@@ -211,11 +233,28 @@ function testLevel(seed, dnum, dlevel, levelName, cSession) {
         replayPrelude();
         resetVariantCache();
         resetLevelState();
-        setFinalizeContext(null);
+        const runtimeBranchPlacement = inferRuntimeBranchPlacement(seed, dnum, dlevel);
+        const finalizeCtx = { dnum, dlevel };
+        // Apply runtime branch overrides only for DoD parent-side branch depths.
+        // Other standalone wizloaddes sessions currently match C better with
+        // default LR_BRANCH stair-down behavior.
+        if (dnum === DUNGEONS_OF_DOOM
+            && (runtimeBranchPlacement === 'portal' || runtimeBranchPlacement === 'none')) {
+            finalizeCtx.branchPlacement = runtimeBranchPlacement;
+        }
+        setFinalizeContext(finalizeCtx);
         const depthForSpecial = Number.isFinite(cLevel.absDepth) ? cLevel.absDepth : dlevel;
         setSpecialLevelDepth(depthForSpecial);
         if (cSession.group === 'filler' && levelName.toLowerCase() === 'minefill') {
-            setFinalizeContext({ isBranchLevel: true, dunlev: 1, dunlevs: 99, applyRoomFill: true });
+            setFinalizeContext({
+                dnum,
+                dlevel,
+                branchPlacement: finalizeCtx.branchPlacement,
+                isBranchLevel: true,
+                dunlev: 1,
+                dunlevs: 99,
+                applyRoomFill: true
+            });
         }
         const level = getSpecialLevel(dnum, dlevel);
         if (!level) {

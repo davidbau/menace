@@ -16,7 +16,7 @@
 import { GameMap, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1, getRngCallCount } from './rng.js';
 import { mksobj, mkobj, mkcorpstat, set_corpsenm, weight } from './mkobj.js';
-import { create_room, create_subroom, makecorridors, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, fix_wall_spines, place_lregion, mktrap, enexto, somexy, sp_create_door, floodFillAndRegister } from './dungeon.js';
+import { create_room, create_subroom, makecorridors, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, fix_wall_spines, place_lregion, mktrap, enexto, somexy, sp_create_door, floodFillAndRegister, resolveBranchPlacementForLevel } from './dungeon.js';
 import { seedFromMT } from './xoshiro256.js';
 import { makemon, mkclass, def_char_to_monclass, NO_MM_FLAGS, MM_NOGRP } from './makemon.js';
 import {
@@ -1030,6 +1030,9 @@ export function resetLevelState() {
  * @param {number} [ctx.dunlev]
  * @param {number} [ctx.dunlevs]
  * @param {boolean} [ctx.applyRoomFill]
+ * @param {number} [ctx.dnum]
+ * @param {number} [ctx.dlevel]
+ * @param {"stairs"|"portal"|"none"} [ctx.branchPlacement]
  */
 export function setFinalizeContext(ctx = null) {
     if (!ctx) {
@@ -1040,7 +1043,14 @@ export function setFinalizeContext(ctx = null) {
         isBranchLevel: !!ctx.isBranchLevel,
         dunlev: Number.isFinite(ctx.dunlev) ? ctx.dunlev : undefined,
         dunlevs: Number.isFinite(ctx.dunlevs) ? ctx.dunlevs : undefined,
-        applyRoomFill: !!ctx.applyRoomFill
+        applyRoomFill: !!ctx.applyRoomFill,
+        dnum: Number.isFinite(ctx.dnum) ? ctx.dnum : undefined,
+        dlevel: Number.isFinite(ctx.dlevel) ? ctx.dlevel : undefined,
+        branchPlacement: (ctx.branchPlacement === 'stairs'
+            || ctx.branchPlacement === 'portal'
+            || ctx.branchPlacement === 'none')
+            ? ctx.branchPlacement
+            : undefined
     };
 }
 
@@ -1077,11 +1087,73 @@ function fixupSpecialLevel() {
     const LR_DOWNSTAIR = 6;
 
     let addedBranch = false;
+    const withBranchHint = (placement, fn) => {
+        const map = levelState.map;
+        const prev = map._branchPlacementHint;
+        map._branchPlacementHint = placement;
+        try {
+            fn();
+        } finally {
+            if (prev === undefined) {
+                delete map._branchPlacementHint;
+            } else {
+                map._branchPlacementHint = prev;
+            }
+        }
+    };
     for (const region of levelState.levRegions || []) {
         switch (region.rtype) {
             case LR_BRANCH:
                 addedBranch = true;
-                // fall through to placement path
+                // Explicit override is only for diagnostics; default path below
+                // follows C place_branch(Is_branchlev(&u.uz), ...).
+                const explicit = levelState.finalizeContext?.branchPlacement;
+                if (explicit === 'none') {
+                    break;
+                }
+                if (explicit === 'portal') {
+                    withBranchHint('portal', () => place_lregion(levelState.map,
+                        region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
+                        region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
+                        LR_BRANCH));
+                    break;
+                }
+                if (explicit === 'stairs') {
+                    withBranchHint('stair-down', () => place_lregion(levelState.map,
+                        region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
+                        region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
+                        LR_BRANCH));
+                    break;
+                }
+
+                const ctx = levelState.finalizeContext || {};
+                const branch = resolveBranchPlacementForLevel(ctx.dnum, ctx.dlevel);
+                if (branch.placement === 'none') {
+                    break;
+                }
+                if (branch.placement === 'portal') {
+                    withBranchHint('portal', () => place_lregion(levelState.map,
+                        region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
+                        region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
+                        LR_BRANCH));
+                    break;
+                }
+                if (branch.placement === 'stair-up') {
+                    withBranchHint('stair-up', () => place_lregion(levelState.map,
+                        region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
+                        region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
+                        LR_BRANCH));
+                    break;
+                }
+                if (branch.placement === 'stair-down') {
+                    withBranchHint('stair-down', () => place_lregion(levelState.map,
+                        region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
+                        region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
+                        LR_BRANCH));
+                    break;
+                }
+                // Fallback for unknown resolver states.
+                // fall through to default placement path.
             case LR_PORTAL:
             case LR_UPSTAIR:
             case LR_DOWNSTAIR:
@@ -1114,10 +1186,17 @@ function fixupSpecialLevel() {
         }
     }
 
-    const ctx = levelState.finalizeContext;
-    if (!addedBranch && ctx && ctx.isBranchLevel) {
-        // C fallback: place dungeon branch if no LR_BRANCH was explicitly added.
-        place_lregion(levelState.map, 0, 0, 0, 0, 0, 0, 0, 0, LR_BRANCH);
+    const ctx = levelState.finalizeContext || {};
+    if (!addedBranch && ctx.isBranchLevel) {
+        // C fallback: fixup_special() places branch if Is_branchlev(&u.uz) true.
+        const branch = resolveBranchPlacementForLevel(ctx.dnum, ctx.dlevel);
+        if (branch.placement === 'portal') {
+            withBranchHint('portal', () => place_lregion(levelState.map, 0, 0, 0, 0, 0, 0, 0, 0, LR_BRANCH));
+        } else if (branch.placement === 'stair-up') {
+            withBranchHint('stair-up', () => place_lregion(levelState.map, 0, 0, 0, 0, 0, 0, 0, 0, LR_BRANCH));
+        } else if (branch.placement === 'stair-down') {
+            withBranchHint('stair-down', () => place_lregion(levelState.map, 0, 0, 0, 0, 0, 0, 0, 0, LR_BRANCH));
+        }
     }
     levelState.branchPlaced = true;
 }
@@ -1899,6 +1978,20 @@ export function map(data) {
                     loc.roomno = 0;
                     loc.edge = 0;
                     loc.typ = terrain;
+                    // C ref: sp_lev.c sel_set_ter() post-terrain adjustments.
+                    if (loc.typ === SDOOR || loc.typ === DOOR) {
+                        if (loc.typ === SDOOR) {
+                            loc.doormask = D_CLOSED;
+                        }
+                        if (gx > 0) {
+                            const left = levelState.map.locations[gx - 1][gy];
+                            if (IS_WALL(left.typ) || left.horizontal) {
+                                loc.horizontal = 1;
+                            }
+                        }
+                    } else if (loc.typ === HWALL || loc.typ === IRONBARS) {
+                        loc.horizontal = 1;
+                    }
                     markSpLevMap(gx, gy);
                     markSpLevTouched(gx, gy);
                     if (lit) {
@@ -3057,6 +3150,9 @@ export function stair(direction, x, y) {
     if (stairX < 0 || stairY < 0) return;
 
     if (stairX >= 0 && stairX < COLNO && stairY >= 0 && stairY < ROWNO) {
+        if (typeof process !== 'undefined' && process.env.WEBHACK_DEBUG_STAIR === '1') {
+            console.log(`[DEBUG_STAIR] dir=${dir} raw=(${sx},${sy}) abs=(${stairX},${stairY}) mapOrigin=(${levelState.mapOriginX},${levelState.mapOriginY}) mapCoordMode=${levelState.mapCoordMode}`);
+        }
         // C ref: l_create_stairway() marks SpLev_Map before mkstairs(),
         // even if mkstairs later rejects placement at dungeon boundaries.
         markSpLevTouched(stairX, stairY);
@@ -4983,7 +5079,7 @@ export const selection = {
             for (let x = currentRoom.lx; x <= currentRoom.hx; x++) {
                 const loc = levelState.map && levelState.map.at(x, y);
                 if (loc && !loc.edge && (!rmno || loc.roomno === rmno)) {
-                    sel.set(x, y);
+                    sel.set(x, y, true);
                 }
             }
         }
@@ -4997,11 +5093,18 @@ export const selection = {
      */
     area: (x1, y1, x2, y2) => {
         const coords = [];
+        const coordSet = new Set();
         const ax1 = Math.min(x1, x2);
         const ay1 = Math.min(y1, y2);
         const ax2 = Math.max(x1, x2);
         const ay2 = Math.max(y1, y2);
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        const addCoord = (abs) => {
+            const key = `${abs.x},${abs.y}`;
+            if (coordSet.has(key)) return;
+            coordSet.add(key);
+            coords.push(abs);
+        };
         const updateBounds = (abs) => {
             if (abs.x < minX) minX = abs.x;
             if (abs.y < minY) minY = abs.y;
@@ -5011,17 +5114,18 @@ export const selection = {
         for (let y = ay1; y <= ay2; y++) {
             for (let x = ax1; x <= ax2; x++) {
                 const abs = selection._toAbsoluteCoord(x, y);
-                coords.push(abs);
+                addCoord(abs);
                 updateBounds(abs);
             }
         }
 
+        const orderedCoords = () => [...coords].sort((a, b) => (a.x - b.x) || (a.y - b.y));
         return {
             coords,
             x1: minX, y1: minY, x2: maxX, y2: maxY, // Absolute bounds for region/non_diggable
             set: (x, y) => {
                 const abs = selection._toAbsoluteCoord(x, y);
-                coords.push(abs);
+                addCoord(abs);
                 updateBounds(abs);
             },
             numpoints: () => coords.length,
@@ -5029,15 +5133,21 @@ export const selection = {
                 const newSel = selection.new();
                 for (const coord of coords) {
                     if (rn2(100) < pct) {
-                        newSel.set(coord.x, coord.y);
+                        newSel.set(coord.x, coord.y, true);
                     }
                 }
                 return newSel;
             },
             rndcoord: (filterValue) => {
                 if (coords.length === 0) return undefined;
-                const idx = rn2(coords.length);
-                const coord = coords[idx];
+                const ordered = orderedCoords();
+                const idx = rn2(ordered.length);
+                const coord = ordered[idx];
+                if (filterValue) {
+                    const rawIdx = coords.findIndex(c => c.x === coord.x && c.y === coord.y);
+                    if (rawIdx >= 0) coords.splice(rawIdx, 1);
+                    coordSet.delete(`${coord.x},${coord.y}`);
+                }
                 let rx = coord.x, ry = coord.y;
                 if (levelState.currentRoom) {
                     rx -= levelState.currentRoom.lx;
@@ -5049,7 +5159,7 @@ export const selection = {
                 return { x: rx, y: ry };
             },
             iterate: (func) => {
-                for (const coord of coords) {
+                for (const coord of orderedCoords()) {
                     // C ref: nhlsel.c l_selection_iterate() calls cvt_to_relcoord()
                     let rx = coord.x, ry = coord.y;
                     if (levelState.currentRoom) {
@@ -5080,7 +5190,7 @@ export const selection = {
                 const result = selection.new();
                 coordSet.forEach(key => {
                     const [x, y] = key.split(',').map(Number);
-                    result.set(x, y);
+                    result.set(x, y, true);
                 });
                 return result;
             },
@@ -5094,7 +5204,7 @@ export const selection = {
                 coords.forEach(c => {
                     const key = `${c.x},${c.y}`;
                     if (otherSet.has(key)) {
-                        result.set(c.x, c.y);
+                        result.set(c.x, c.y, true);
                     }
                 });
                 return result;
@@ -5138,10 +5248,31 @@ export const selection = {
      */
     new: () => {
         const coords = [];
+        const coordSet = new Set();
+        const orderedCoords = () => [...coords].sort((a, b) => (a.x - b.x) || (a.y - b.y));
+        const toRelative = (coord) => {
+            let rx = coord.x;
+            let ry = coord.y;
+            if (levelState.currentRoom) {
+                rx -= levelState.currentRoom.lx;
+                ry -= levelState.currentRoom.ly;
+            } else if (levelState.xstart !== undefined) {
+                rx -= levelState.xstart;
+                ry -= levelState.ystart;
+            }
+            return { x: rx, y: ry };
+        };
+        const addCoord = (abs) => {
+            const key = `${abs.x},${abs.y}`;
+            if (coordSet.has(key)) return;
+            coordSet.add(key);
+            coords.push(abs);
+        };
         const sel = {
             coords,
-            set: (x, y) => {
-                coords.push({ x, y });
+            set: (x, y, alreadyAbsolute = false) => {
+                const abs = alreadyAbsolute ? { x, y } : selection._toAbsoluteCoord(x, y);
+                addCoord(abs);
             },
             /**
              * numpoints()
@@ -5159,17 +5290,23 @@ export const selection = {
                 const newSel = selection.new();
                 for (const coord of coords) {
                     if (rn2(100) < pct) {
-                        newSel.set(coord.x, coord.y);
+                        newSel.set(coord.x, coord.y, true);
                     }
                 }
                 return newSel;
             },
             // Add rndcoord as a method for Lua compatibility
             rndcoord: (filterValue) => {
-                // filterValue parameter is for Lua compatibility, usually unused
                 if (coords.length === 0) return undefined;
-                const idx = rn2(coords.length);
-                return coords[idx];
+                const ordered = orderedCoords();
+                const idx = rn2(ordered.length);
+                const coord = ordered[idx];
+                if (filterValue) {
+                    const rawIdx = coords.findIndex(c => c.x === coord.x && c.y === coord.y);
+                    if (rawIdx >= 0) coords.splice(rawIdx, 1);
+                    coordSet.delete(`${coord.x},${coord.y}`);
+                }
+                return toRelative(coord);
             },
             /**
              * iterate(func)
@@ -5178,16 +5315,8 @@ export const selection = {
              * C ref: nhlsel.c l_selection_iterate() calls cvt_to_relcoord()
              */
             iterate: (func) => {
-                for (const coord of coords) {
-                    let rx = coord.x, ry = coord.y;
-                    // C ref: sp_lev.c cvt_to_relcoord() — subtract room/map origin
-                    if (levelState.currentRoom) {
-                        rx -= levelState.currentRoom.lx;
-                        ry -= levelState.currentRoom.ly;
-                    } else if (levelState.xstart !== undefined) {
-                        rx -= levelState.xstart;
-                        ry -= levelState.ystart;
-                    }
+                for (const coord of orderedCoords()) {
+                    const { x: rx, y: ry } = toRelative(coord);
                     func(rx, ry);
                 }
             },
@@ -5226,7 +5355,7 @@ export const selection = {
                 const result = selection.new();
                 coordSet.forEach(key => {
                     const [x, y] = key.split(',').map(Number);
-                    result.set(x, y);
+                    result.set(x, y, true);
                 });
                 return result;
             },
@@ -5245,7 +5374,7 @@ export const selection = {
                 coords.forEach(c => {
                     const key = `${c.x},${c.y}`;
                     if (otherSet.has(key)) {
-                        result.set(c.x, c.y);
+                        result.set(c.x, c.y, true);
                     }
                 });
                 return result;
@@ -5344,7 +5473,7 @@ export const selection = {
             return { x, y };
         });
         const result = selection.new();
-        coords.forEach(c => result.set(c.x, c.y));
+        coords.forEach(c => result.set(c.x, c.y, true));
         return result;
     },
 
@@ -5392,7 +5521,7 @@ export const selection = {
 
         // Return a proper selection object with all methods
         const result = selection.new();
-        coords.forEach(c => result.set(c.x, c.y));
+        coords.forEach(c => result.set(c.x, c.y, true));
         return result;
     },
 
@@ -5467,7 +5596,7 @@ export const selection = {
 
         // Return a proper selection object with all methods
         const sel = selection.new();
-        coords.forEach(c => sel.set(c.x, c.y));
+        coords.forEach(c => sel.set(c.x, c.y, true));
         return sel;
     },
 
@@ -5632,7 +5761,7 @@ export const selection = {
 
         // Return a proper selection object with methods
         const result = selection.new();
-        coords.forEach(c => result.set(c.x, c.y));
+        coords.forEach(c => result.set(c.x, c.y, true));
         return result;
     },
 };
