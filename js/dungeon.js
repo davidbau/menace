@@ -2604,6 +2604,11 @@ function occupied(map, x, y) {
     if (!loc) return true;
     if (IS_FURNITURE(loc.typ)) return true;
     if (IS_LAVA(loc.typ) || IS_POOL(loc.typ)) return true;
+    // C ref: hack.c invocation_pos() used by mklev.c occupied().
+    if (map._isInvocationLevel && map._invPos
+        && x === map._invPos.x && y === map._invPos.y) {
+        return true;
+    }
     return false;
 }
 
