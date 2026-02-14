@@ -39,6 +39,26 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[79][20].typ, STONE);
     });
 
+    it('should honor solidfill filling override like C level_init', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: '.', filling: ' ' });
+
+        const state = getLevelState();
+        assert.equal(state.init.fg, ROOM, 'fg should still parse independently');
+        assert.equal(state.init.filling, STONE, 'filling should parse and override solidfill terrain');
+        assert.equal(state.map.locations[40][10].typ, STONE, 'solidfill should use filling, not fg');
+    });
+
+    it('should parse maze init deadends/corrwid/wallthick like C', () => {
+        resetLevelState();
+        des.level_init({ style: 'maze', corrwid: 2, wallthick: 3, deadends: false });
+
+        const state = getLevelState();
+        assert.equal(state.init.corrwid, 2);
+        assert.equal(state.init.wallthick, 3);
+        assert.equal(state.init.rm_deadends, true, 'rm_deadends should invert deadends option');
+    });
+
     it('exposes C-registered des API surface for implemented functions', () => {
         assert.equal(typeof des.message, 'function');
         assert.equal(typeof des.room, 'function');

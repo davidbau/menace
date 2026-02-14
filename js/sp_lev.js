@@ -140,6 +140,10 @@ export let levelState = {
         style: 'solidfill', // solidfill, mazegrid, maze, rogue, mines, swamp
         fg: ROOM,           // foreground fill character
         bg: STONE,          // background fill character
+        filling: ROOM,      // C ref: lev_init.filling defaults to fg
+        corrwid: -1,        // C ref: lev_init.corrwid default
+        wallthick: -1,      // C ref: lev_init.wallthick default
+        rm_deadends: false, // C ref: lev_init.rm_deadends = !deadends (default deadends=true)
         smoothed: false,
         joined: false,
         lit: -1,            // -1 = C BOOL_RANDOM
@@ -986,6 +990,10 @@ export function resetLevelState() {
             style: 'solidfill',
             fg: ROOM,
             bg: STONE,
+            filling: ROOM,
+            corrwid: -1,
+            wallthick: -1,
+            rm_deadends: false,
             smoothed: false,
             joined: false,
             lit: -1,
@@ -1269,6 +1277,12 @@ export function level_init(opts = {}) {
     levelState.init.style = style;
     levelState.init.fg = mapchrToTerrain(opts.fg || '.');
     levelState.init.bg = opts.bg !== undefined ? mapchrToTerrain(opts.bg) : -1;
+    levelState.init.filling = opts.filling !== undefined
+        ? mapchrToTerrain(opts.filling)
+        : levelState.init.fg;
+    levelState.init.corrwid = Number.isInteger(opts.corrwid) ? opts.corrwid : -1;
+    levelState.init.wallthick = Number.isInteger(opts.wallthick) ? opts.wallthick : -1;
+    levelState.init.rm_deadends = !(opts.deadends !== undefined ? !!opts.deadends : true);
     levelState.init.smoothed = opts.smoothed || false;
     levelState.init.joined = opts.joined || false;
     levelState.init.lit = opts.lit !== undefined ? opts.lit : -1;
@@ -1292,7 +1306,7 @@ export function level_init(opts = {}) {
         levelState.mazeMaxY = (ROWNO - 1) & ~1;
         const lit = levelState.init.lit < 0 ? rn2(2) : levelState.init.lit;
         // C ref: sp_lev.c lvlfill_solid(): fill x=2..x_maze_max, y=0..y_maze_max
-        const fillChar = levelState.init.fg;
+        const fillChar = levelState.init.filling;
         for (let x = 2; x <= levelState.mazeMaxX; x++) {
             for (let y = 0; y <= levelState.mazeMaxY; y++) {
                 const loc = levelState.map.locations[x][y];
