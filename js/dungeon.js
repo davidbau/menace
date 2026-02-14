@@ -3869,13 +3869,15 @@ function water_has_kelp(map, x, y, kelp_pool, kelp_moat) {
     return false;
 }
 
-export function mineralize(map, depth) {
+export function mineralize(map, depth, opts = null) {
     // C ref: mklev.c:1438-1530 — full mineralize implementation
     // C signature: mineralize(kelp_pool, kelp_moat, goldprob, gemprob, skip_lvl_checks)
     // JS uses defaults: -1, -1, -1, -1, false (normal behavior)
 
-    const kelp_pool = 10;   // C default when kelp_pool < 0
-    const kelp_moat = 30;   // C default when kelp_moat < 0
+    const kelp_pool = (opts && Number.isFinite(opts.kelp_pool) && opts.kelp_pool >= 0)
+        ? Math.trunc(opts.kelp_pool) : 10; // C default when kelp_pool < 0
+    const kelp_moat = (opts && Number.isFinite(opts.kelp_moat) && opts.kelp_moat >= 0)
+        ? Math.trunc(opts.kelp_moat) : 30; // C default when kelp_moat < 0
 
     const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_MINERALIZE === '1';
     let eligible_count = 0;
@@ -3903,8 +3905,10 @@ export function mineralize(map, depth) {
     // For now, proceed with mineralization.
 
     // C ref: mklev.c:1468-1472 — default probabilities
-    let goldprob = 20 + Math.floor(depth / 3);
-    let gemprob = Math.floor(goldprob / 4);
+    let goldprob = (opts && Number.isFinite(opts.gold_prob) && opts.gold_prob >= 0)
+        ? Math.trunc(opts.gold_prob) : (20 + Math.floor(depth / 3));
+    let gemprob = (opts && Number.isFinite(opts.gem_prob) && opts.gem_prob >= 0)
+        ? Math.trunc(opts.gem_prob) : Math.floor(goldprob / 4);
 
     // C ref: mklev.c:1475-1483 — adjust probabilities for dungeon branches
     // Mines: goldprob *= 2, gemprob *= 3

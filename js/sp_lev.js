@@ -16,7 +16,7 @@
 import { GameMap, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1, getRngCallCount } from './rng.js';
 import { mksobj, mkobj, mkcorpstat, set_corpsenm, weight } from './mkobj.js';
-import { create_room, create_subroom, makecorridors, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, wallify_region as dungeonWallifyRegion, fix_wall_spines, place_lregion, mktrap, enexto, somexy, sp_create_door, floodFillAndRegister, resolveBranchPlacementForLevel } from './dungeon.js';
+import { create_room, create_subroom, makecorridors, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize as dungeonMineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, wallify_region as dungeonWallifyRegion, fix_wall_spines, place_lregion, mktrap, enexto, somexy, sp_create_door, floodFillAndRegister, resolveBranchPlacementForLevel } from './dungeon.js';
 import { seedFromMT } from './xoshiro256.js';
 import { makemon, mkclass, def_char_to_monclass, NO_MM_FLAGS, MM_NOGRP } from './makemon.js';
 import {
@@ -4900,6 +4900,29 @@ export function random_corridors() {
 }
 
 /**
+ * des.mineralize(opts)
+ *
+ * Deposit minerals in walls with optional C-style probability overrides.
+ * C ref: sp_lev.c lspo_mineralize()
+ *
+ * @param {Object} opts - Optional table: gem_prob/gold_prob/kelp_moat/kelp_pool
+ */
+export function mineralize(opts = {}) {
+    if (!levelState.map) return;
+
+    const parseOpt = (value) => (Number.isFinite(value) ? Math.trunc(value) : -1);
+    const params = {
+        gem_prob: parseOpt(opts.gem_prob),
+        gold_prob: parseOpt(opts.gold_prob),
+        kelp_moat: parseOpt(opts.kelp_moat),
+        kelp_pool: parseOpt(opts.kelp_pool),
+    };
+
+    const depth = levelState.levelDepth || 1;
+    dungeonMineralize(levelState.map, depth, params);
+}
+
+/**
  * Execute all deferred object placements
  * Called from finalize_level() after corridor generation
  * Objects are already created (RNG consumed), just need to be placed on the map
@@ -5587,7 +5610,7 @@ export function finalize_level() {
         // Skip mineralize for maze levels (special levels with custom maps)
         // C ref: Special levels don't get gold/gems in walls
         if (!levelState.flags.is_maze_lev) {
-            mineralize(levelState.map, depth);
+            dungeonMineralize(levelState.map, depth);
         }
     }
 
@@ -6814,6 +6837,7 @@ export const des = {
     door,
     engraving,
     drawbridge,
+    mineralize,
     random_corridors,
     wallify,
     mazewalk,

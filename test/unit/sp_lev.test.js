@@ -43,6 +43,7 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(typeof des.message, 'function');
         assert.equal(typeof des.room, 'function');
         assert.equal(typeof des.replace_terrain, 'function');
+        assert.equal(typeof des.mineralize, 'function');
         assert.equal(typeof des.random_corridors, 'function');
         assert.equal(typeof des.wallify, 'function');
     });
@@ -323,6 +324,15 @@ describe('sp_lev.js - des.* API', () => {
 
         des.wallify({ x1: 10, y1: 10, x2: 10, y2: 10 });
         assert.equal(map.locations[10][10].typ, STONE, 'isolated wall should be cleaned to stone');
+    });
+
+    it('accepts des.mineralize option table without regressions', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: ' ' });
+        des.mineralize({ gem_prob: 0, gold_prob: 0, kelp_pool: 0, kelp_moat: 0 });
+
+        const map = getLevelState().map;
+        assert.ok(map, 'map should remain valid after mineralize options call');
     });
 
     it('finalize_level map cleanup removes boulders and destroyable traps on liquid', () => {
