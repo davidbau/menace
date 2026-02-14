@@ -27,7 +27,8 @@ const __dirname = dirname(__filename);
 const REPO_ROOT = process.env.REPO_ROOT || process.cwd();
 
 const SUMMARY_ONLY = process.argv.includes('--summary');
-const UNIT_ONLY = process.argv.includes('--unit-only');
+const SKIP_COMPARISON = process.argv.includes('--skip-comparison');  // Skip session/comparison tests
+const SKIP_E2E = process.argv.includes('--skip-e2e');  // Skip slow browser tests (default: skip)
 
 // Parse --timeout=<seconds> flag (default 60s for backfill, 0 = no timeout)
 function parseTimeout() {
@@ -237,12 +238,12 @@ async function main() {
         categories: {}, sessions: {}, duration: 0
     };
 
-    // Run comparison tests unless --unit-only is specified
-    if (!UNIT_ONLY) {
-        console.error('Running comparison tests...');
+    // Run comparison/session tests unless --skip-comparison is specified
+    if (!SKIP_COMPARISON) {
+        console.error('Running comparison tests (sessions)...');
         comparisonResults = await runTests();
     } else {
-        console.error('Skipping comparison tests (--unit-only mode)');
+        console.error('Skipping comparison tests (--skip-comparison mode)');
     }
 
     console.error('Running unit tests...');
@@ -292,7 +293,7 @@ async function main() {
         },
         categories: comparisonResults.categories,
         sessions: comparisonResults.sessions,
-        unitOnly: UNIT_ONLY  // Flag to indicate partial test run
+        skipComparison: SKIP_COMPARISON  // Flag to indicate partial test run
     };
 
     if (!SUMMARY_ONLY) {

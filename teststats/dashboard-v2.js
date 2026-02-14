@@ -9,7 +9,7 @@ const GITHUB_REPO = 'https://github.com/davidbau/mazesofmenace';
 // State
 let allData = [];
 let filteredData = [];
-let currentView = 'tests';
+let currentView = 'sessions';
 let currentRange = 'all';
 let selectedCommit = null;
 let chart = null;

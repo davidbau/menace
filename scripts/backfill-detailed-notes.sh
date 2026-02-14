@@ -201,13 +201,10 @@ for i in "${!COMMIT_ARRAY[@]}"; do
         fi
 
         if [ "$HAS_TESTS" = true ]; then
-            if [ "$RUN_E2E" = true ]; then
-                [ "$VERBOSE" = true ] && echo "  Running full tests (with E2E)..." >&2
-                TEST_ARGS="--summary"
-            else
-                [ "$VERBOSE" = true ] && echo "  Running unit tests only..." >&2
-                TEST_ARGS="--summary --unit-only"
-            fi
+            # Always run unit + comparison tests (fast)
+            # E2E browser tests are not included in collect-test-results
+            [ "$VERBOSE" = true ] && echo "  Running tests..." >&2
+            TEST_ARGS="--summary"
             # Add timeout if specified
             if [ "$TEST_TIMEOUT" -gt 0 ]; then
                 TEST_ARGS="$TEST_ARGS --timeout=$TEST_TIMEOUT"
@@ -224,11 +221,7 @@ for i in "${!COMMIT_ARRAY[@]}"; do
 
                     PASS=$(echo "$STATS" | jq -r '.pass // 0')
                     FAIL=$(echo "$STATS" | jq -r '.fail // 0')
-                    if [ "$RUN_E2E" = true ]; then
-                        echo "  ✅ $PASS pass, $FAIL fail (full)" >&2
-                    else
-                        echo "  ✅ $PASS pass, $FAIL fail (unit-only)" >&2
-                    fi
+                    echo "  ✅ $PASS pass, $FAIL fail" >&2
                     TESTS_RUN=$((TESTS_RUN + 1))
                 else
                     TEST_ERROR="invalid_json"
