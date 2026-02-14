@@ -19,7 +19,7 @@ import {
     GRAY_DRAGON_SCALES, YELLOW_DRAGON_SCALES, LENSES,
     ELVEN_SHIELD, ORCISH_SHIELD, SHIELD_OF_REFLECTION,
     WORM_TOOTH, UNICORN_HORN, POT_WATER,
-    SPE_BOOK_OF_THE_DEAD,
+    SPE_BOOK_OF_THE_DEAD, SPE_NOVEL,
     ARM_SHIELD, ARM_GLOVES, ARM_BOOTS,
     CLASS_SYMBOLS,
     initObjectData,
@@ -609,6 +609,11 @@ function mksobj_postinit(obj) {
     // Corpse: if corpsenm not set, assign one
     if (od.name === 'corpse' && obj.corpsenm === -1) {
         obj.corpsenm = undead_to_corpse(rndmonnum());
+    }
+    // C ref: mkobj.c mksobj() SPE_NOVEL case:
+    // initialize novelidx and consume noveltitle() selection RNG.
+    if (obj.otyp === SPE_NOVEL) {
+        obj.novelidx = rn2(41);
     }
     // Statue/figurine: if corpsenm not set, assign one
     // C ref: mkobj.c:1212 — otmp->corpsenm = rndmonnum()

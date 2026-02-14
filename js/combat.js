@@ -164,6 +164,9 @@ export function playerAttackMonster(player, monster, display, map) {
                     cursed: false,
                     blessed: false,
                     oartifact: 0,
+                    // C ref: mkobj.c set_corpsenm() stamps corpse age with monstermoves.
+                    // During hero action, JS player.turns is one behind C's effective moves.
+                    age: (player?.turns || 0) + 1,
                 };
                 map.objects.push(corpse);
             }

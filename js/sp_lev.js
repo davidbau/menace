@@ -563,6 +563,7 @@ export function setLevelContext(map, depth) {
 
     levelState.map = map;
     levelState.depth = depth || 1;
+    levelState.levelDepth = depth || 1;
     levelState.roomStack = [];
     levelState.roomDepth = 0;
     levelState.currentRoom = null;
@@ -581,6 +582,7 @@ export function setLevelContext(map, depth) {
 export function clearLevelContext() {
     levelState.map = null;
     levelState.depth = 1;
+    levelState.levelDepth = undefined;
     levelState.roomStack = [];
     levelState.roomDepth = 0;
     levelState.currentRoom = null;

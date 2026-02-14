@@ -225,7 +225,8 @@ function xkilled(mon, map, player, display) {
                 cursed: false,
                 blessed: false,
                 oartifact: 0,
-                age: 1,
+                // C ref: mkobj.c set_corpsenm() stamps corpse age with monstermoves.
+                age: (player?.turns || 0) + 1,
             };
             map.objects.push(corpse);
         }

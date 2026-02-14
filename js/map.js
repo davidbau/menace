@@ -204,6 +204,11 @@ export class GameMap {
         return this.traps.find(t => t.tx === x && t.ty === y) || null;
     }
 
+    // Find engraving at (x,y)
+    engravingAt(x, y) {
+        return this.engravings.find(e => e.x === x && e.y === y) || null;
+    }
+
     // Remove a dead monster
     removeMonster(mon) {
         const idx = this.monsters.indexOf(mon);

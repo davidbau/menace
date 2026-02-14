@@ -526,10 +526,18 @@ function m_initthrow(otyp, oquan) {
 // This is a huge function. We port all branches to consume correct RNG.
 // ========================================================================
 
-function m_initweap(mndx, depth) {
+function m_initweap(mon, mndx, depth) {
     const ptr = mons[mndx];
     const mm = ptr.symbol; // mlet
     const bias = is_lord(ptr) ? 1 : is_prince(ptr) ? 2 : is_nasty(ptr) ? 1 : 0;
+    const mongets = (otyp, init = true, artif = false) => {
+        const obj = mksobj(otyp, init, artif);
+        if (mon) {
+            if (!mon.minvent) mon.minvent = [];
+            mon.minvent.push(obj);
+        }
+        return obj;
+    };
 
     switch (mm) {
     case S_GIANT:
@@ -660,27 +668,27 @@ function m_initweap(mndx, depth) {
 
     case S_ORC: {
         // C ref: makemon.c:411-446
-        if (rn2(2)) mksobj(ORCISH_HELM, true, false);
+        if (rn2(2)) mongets(ORCISH_HELM, true, false);
         const orcType = (mndx !== PM_ORC_CAPTAIN) ? mndx
             : rn2(2) ? PM_MORDOR_ORC : PM_URUK_HAI;
         if (orcType === PM_MORDOR_ORC) {
-            if (!rn2(3)) mksobj(SCIMITAR, true, false);
-            if (!rn2(3)) mksobj(ORCISH_SHIELD, true, false);
-            if (!rn2(3)) mksobj(KNIFE, true, false);
-            if (!rn2(3)) mksobj(ORCISH_CHAIN_MAIL, true, false);
+            if (!rn2(3)) mongets(SCIMITAR, true, false);
+            if (!rn2(3)) mongets(ORCISH_SHIELD, true, false);
+            if (!rn2(3)) mongets(KNIFE, true, false);
+            if (!rn2(3)) mongets(ORCISH_CHAIN_MAIL, true, false);
         } else if (orcType === PM_URUK_HAI) {
-            if (!rn2(3)) mksobj(ORCISH_CLOAK, true, false);
-            if (!rn2(3)) mksobj(ORCISH_SHORT_SWORD, true, false);
-            if (!rn2(3)) mksobj(IRON_SHOES, true, false);
+            if (!rn2(3)) mongets(ORCISH_CLOAK, true, false);
+            if (!rn2(3)) mongets(ORCISH_SHORT_SWORD, true, false);
+            if (!rn2(3)) mongets(IRON_SHOES, true, false);
             if (!rn2(3)) {
-                mksobj(ORCISH_BOW, true, false);
+                mongets(ORCISH_BOW, true, false);
                 m_initthrow(ORCISH_ARROW, 12);
             }
-            if (!rn2(3)) mksobj(URUK_HAI_SHIELD, true, false);
+            if (!rn2(3)) mongets(URUK_HAI_SHIELD, true, false);
         } else {
             // default: common orc
             if (mndx !== PM_ORC_SHAMAN && rn2(2))
-                mksobj((mndx === PM_GOBLIN || rn2(2) === 0) ? ORCISH_DAGGER : SCIMITAR, true, false);
+                mongets((mndx === PM_GOBLIN || rn2(2) === 0) ? ORCISH_DAGGER : SCIMITAR, true, false);
         }
         break;
     }
@@ -811,7 +819,7 @@ function m_initweap(mndx, depth) {
                 }
             }
         }
-        if (otyp) mksobj(otyp, true, false);
+        if (otyp) mongets(otyp, true, false);
     }
 }
 
@@ -1411,6 +1419,7 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         sleeping: false,  // sleep handled by C's finalize_creation, not here
         dead: false,
         passive: false,
+        minvent: [],
         mtrack: [{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}],
     };
     mon.mpeaceful = mon.peaceful;
@@ -1456,7 +1465,7 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     // Weapon/inventory initialization
     // C ref: makemon.c:1438-1440
     if (is_armed(ptr))
-        m_initweap(mndx, depth || 1);
+        m_initweap(mon, mndx, depth || 1);
     m_initinv(mndx, depth || 1, m_lev);
 
     // C ref: makemon.c:1443-1448 — saddle for domestic monsters

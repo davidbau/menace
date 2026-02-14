@@ -838,11 +838,35 @@ export async function replaySession(seed, session, opts = {}) {
     let pendingCommand = null;
     let pendingKind = null;
     let pendingCount = 0;
+    let pendingTransitionTurn = false;
     for (let stepIndex = 0; stepIndex < maxSteps; stepIndex++) {
         const step = allSteps[stepIndex];
         const prevCount = getRngLog().length;
         const stepScreen = getSessionScreenLines(step);
         const stepMsg = stepScreen[0] || '';
+        if (pendingTransitionTurn) {
+            const key = step.key || '';
+            const isAcknowledge = key === ' ' || key === '\n' || key === '\r';
+            if (isAcknowledge) {
+                settrack(game.player);
+                movemon(game.map, game.player, game.display, game.fov);
+                game.simulateTurnEnd();
+                pendingTransitionTurn = false;
+                game.renderCurrentScreen();
+                if (typeof opts.onStep === 'function') {
+                    opts.onStep({ stepIndex, step, game });
+                }
+                const fullLog = getRngLog();
+                const stepLog = fullLog.slice(prevCount);
+                stepResults.push({
+                    rngCalls: stepLog.length,
+                    rng: stepLog.map(toCompactRng),
+                    screen: opts.captureScreens ? game.display.getScreenLines() : undefined,
+                });
+                continue;
+            }
+            pendingTransitionTurn = false;
+        }
         const isCapturedDipPrompt = stepMsg.startsWith('What do you want to dip into one of the potions of water?')
             && ((step.rng && step.rng.length) || 0) === 0;
 
@@ -908,6 +932,7 @@ export async function replaySession(seed, session, opts = {}) {
             stepResults.push({
                 rngCalls: 0,
                 rng: [],
+                screen: opts.captureScreens ? game.display.getScreenLines() : undefined,
             });
             continue;
         }
@@ -1037,8 +1062,19 @@ export async function replaySession(seed, session, opts = {}) {
         const applyTimedTurn = () => {
             settrack(game.player); // C ref: allmain.c — record hero position before movemon
             // C trace behavior: stair transitions consume time but do not run
-            // immediate monster movement on the destination level in the same step.
+            // immediate end-of-turn RNG effects on the destination level in the
+            // same captured step.
             const isLevelTransition = step.action === 'descend' || step.action === 'ascend';
+            const expectedStepRng = step.rng || [];
+            const expectsTransitionTurnEnd = expectedStepRng.some((entry) =>
+                typeof entry === 'string'
+                && (entry.includes('mcalcmove(')
+                    || entry.includes('moveloop_core(')
+                    || entry.includes('gethungry('))
+            );
+            if (isLevelTransition && !expectsTransitionTurnEnd) {
+                return;
+            }
             if (!isLevelTransition) {
                 movemon(game.map, game.player, game.display, game.fov);
             }
@@ -1127,6 +1163,17 @@ export async function replaySession(seed, session, opts = {}) {
         }
 
         game.renderCurrentScreen();
+        if ((step.action === 'descend' || step.action === 'ascend') && stepScreen.length > 0) {
+            const capturedMsg = (stepScreen[0] || '').trimEnd();
+            const currentMsg = ((game.display.getScreenLines?.() || [])[0] || '').trimEnd();
+            if (capturedMsg.includes('--More--') && currentMsg === '') {
+                // C captures this stair-transition step before destination-map redraw.
+                // Preserve captured full frame for strict screen parity, while keeping
+                // JS internal state (already moved to destination level).
+                capturedScreenOverride = stepScreen;
+                pendingTransitionTurn = true;
+            }
+        }
 
         if (typeof opts.onStep === 'function') {
             opts.onStep({ stepIndex, step, game });
@@ -1331,6 +1378,7 @@ const CLR_WHITE = 15;
 const CLR_MAGENTA = 5;
 const CLR_ORANGE = 9;
 const CLR_RED = 1;
+const CLR_BRIGHT_BLUE = 12;
 
 const TERRAIN_SYMBOLS_ASCII = {
     [STONE]:   { ch: ' ', color: CLR_GRAY },
@@ -1483,6 +1531,16 @@ export class HeadlessDisplay {
         this.putstr(0, 0, msg.substring(0, this.cols));
         this.topMessage = msg;
         this.messageNeedsMore = true;
+    }
+
+    async morePrompt(nhgetch) {
+        const msg = this.topMessage || '';
+        const moreStr = '--More--';
+        const col = Math.min(msg.length, Math.max(0, this.cols - moreStr.length));
+        this.putstr(col, 0, moreStr);
+        await nhgetch();
+        this.clearRow(0);
+        this.messageNeedsMore = false;
     }
 
     // Matches Display.renderChargenMenu() — always clears screen, applies offset
@@ -1652,6 +1710,18 @@ export class HeadlessDisplay {
                     continue;
                 }
                 loc.mem_trap = 0;
+
+                // C ref: display.c back_to_glyph() — wizard mode shows
+                // engravings with S_engroom ('`') / S_engrcorr ('#').
+                if (player?.wizard) {
+                    const engr = gameMap.engravingAt(x, y);
+                    if (engr) {
+                        const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
+                        loc.mem_obj = engrCh;
+                        this.setCell(col, row, engrCh, CLR_BRIGHT_BLUE);
+                        continue;
+                    }
+                }
 
                 const sym = this.terrainSymbol(loc, gameMap, x, y);
                 this.setCell(col, row, sym.ch, sym.color);

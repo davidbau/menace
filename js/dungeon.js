@@ -109,6 +109,8 @@ const BR_PORTAL = 3;
 // Snapshot of branch topology chosen during simulateDungeonInit().
 // Each entry: { type, end1:{dnum,dlevel}, end2:{dnum,dlevel}, end1_up }.
 let _branchTopology = [];
+// C ref: decl.h gi.in_mklev — true only while makelevel() runs.
+let inMklev = false;
 
 // C ref: dungeon.c init_dungeons() -> svd.dungeons[dnum].flags.align
 export const DUNGEON_ALIGN_BY_DNUM = {
@@ -2391,7 +2393,7 @@ const RUBOUTS = {
 // C ref: engrave.c wipeout_text() with seed=0 (random mode)
 // Simulates the RNG consumption pattern without needing the actual text result.
 function wipeout_text(text, cnt) {
-    if (!text.length || cnt <= 0) return;
+    if (!text.length || cnt <= 0) return text;
     const chars = text.split('');
     const lth = chars.length;
     while (cnt--) {
@@ -2411,6 +2413,7 @@ function wipeout_text(text, cnt) {
             chars[nxt] = '?';
         }
     }
+    return chars.join('');
 }
 
 // C ref: engrave.c random_engraving() — engraving texts from ENGRAVEFILE
@@ -2500,7 +2503,7 @@ function random_engraving_rng() {
         }
     }
     // C: wipeout_text(outbuf, (int)(strlen(outbuf) / 4), 0);
-    wipeout_text(text, Math.floor(text.length / 4));
+    return wipeout_text(text, Math.floor(text.length / 4));
 }
 
 // C ref: mklev.c trap_engravings[] — engraving text for trap niches
@@ -2601,6 +2604,16 @@ function occupied(map, x, y) {
     if (!loc) return true;
     if (IS_FURNITURE(loc.typ)) return true;
     if (IS_LAVA(loc.typ) || IS_POOL(loc.typ)) return true;
+    return false;
+}
+
+// C ref: obj.h sobj_at(BOULDER, x, y) checks for boulder object at location.
+function hasBoulderAt(map, x, y) {
+    for (const obj of map.objects || []) {
+        if (obj && obj.otyp === BOULDER && obj.ox === x && obj.oy === y) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -2817,6 +2830,11 @@ function traptype_rnd(depth, mktrapflags = MKTRAP_NOFLAGS) {
 // C ref: mklev.c:2021 mktrap() — select trap type, find location, create trap
 export function mktrap(map, num, mktrapflags, croom, tm, depth) {
     if (!tm && !croom && !(mktrapflags & MKTRAP_MAZEFLAG)) return;
+    // C ref: mklev.c mktrap() — "no traps in pools".
+    if (tm) {
+        const loc = map.at(tm.x, tm.y);
+        if (!loc || IS_POOL(loc.typ) || IS_LAVA(loc.typ)) return;
+    }
 
     let kind;
     const lvl = depth;
@@ -2857,7 +2875,7 @@ export function mktrap(map, num, mktrapflags, croom, tm, depth) {
                 mx = pos.x;
                 my = pos.y;
             }
-        } while (occupied(map, mx, my));
+        } while (occupied(map, mx, my) || (avoid_boulder && hasBoulderAt(map, mx, my)));
     }
 
     const t = maketrap(map, mx, my, kind);
@@ -2867,36 +2885,23 @@ export function mktrap(map, num, mktrapflags, croom, tm, depth) {
     // WEB: create giant spider (needs makemon — skip for now)
     // At depth < 7, WEB can't generate anyway
 
-    // C ref: mklev.c victim-predecessor gate ordering:
-    // rnd(4) is skipped only when MKTRAP_NOVICTIM is set, but is otherwise
-    // consumed before later trap-kind exclusions.
-    if (!(mktrapflags & MKTRAP_NOVICTIM)) {
-        const victimRoll = rnd(4);
-        // Tutorial replay parity follows C's gate semantics exactly.
-        // Outside tutorial, preserve legacy behavior for existing non-tutorial
-        // replay fixtures while broader trap timing ports are in progress.
-        const useStrictTutorialGate = !!map.flags?.is_tutorial;
-        if (useStrictTutorialGate) {
-            const skipVictim = (mktrapflags & MKTRAP_MAZEFLAG)
-                ? (lvl <= victimRoll)
-                : (lvl < victimRoll);
-            if (skipVictim) return;
-        } else {
-            const legacyVictimGate = (map.flags && map.flags.is_maze_lev)
-                ? (lvl <= victimRoll)
-                : (lvl < victimRoll);
-            if (!legacyVictimGate) return;
+    // C ref: mklev.c:2124-2140 mktrap predecessor victim block.
+    const victimRoll = (!(mktrapflags & MKTRAP_NOVICTIM) && inMklev && kind !== NO_TRAP)
+        ? rnd(4)
+        : null;
+    if (inMklev
+        && kind !== NO_TRAP && !(mktrapflags & MKTRAP_NOVICTIM)
+        && lvl <= victimRoll
+        && kind !== SQKY_BOARD && kind !== RUST_TRAP
+        && !(kind === ROLLING_BOULDER_TRAP
+            && t.launch.x === t.tx && t.launch.y === t.ty)
+        && !is_pit(kind) && (kind < HOLE || kind === MAGIC_TRAP)) {
+        if (kind === LANDMINE) {
+            // C ref: exploded landmine becomes a revealed pit.
+            t.ttyp = PIT;
+            t.tseen = true;
         }
-
-        if (kind !== SQKY_BOARD && kind !== RUST_TRAP
-            && !is_pit(kind) && (kind < HOLE || kind === MAGIC_TRAP)) {
-            // LANDMINE: convert to PIT (exploded)
-            if (kind === LANDMINE) {
-                t.ttyp = PIT;
-                t.tseen = true;
-            }
-            mktrap_victim(map, t, depth);
-        }
+        mktrap_victim(map, t, depth);
     }
 }
 
@@ -3298,12 +3303,24 @@ export function fill_ordinary_room(map, croom, depth, bonusItems) {
     // C ref: graffiti (!rn2(27 + 3 * abs(depth)))
     if (!rn2(27 + 3 * Math.abs(depth))) {
         // C: random_engraving(buf, pristinebuf) — selects text + wipeout_text
-        random_engraving_rng();
+        const engrText = random_engraving_rng();
         // C: do { somexyspace(croom, &pos); } while (typ != ROOM && !rn2(40));
         let pos;
         do {
             pos = somexyspace(map, croom);
         } while (pos && map.at(pos.x, pos.y).typ !== ROOM && !rn2(40));
+        if (pos) {
+            map.engravings = map.engravings.filter(e => !(e.x === pos.x && e.y === pos.y));
+            map.engravings.push({
+                x: pos.x,
+                y: pos.y,
+                // C ref: mklev.c fill_ordinary_room() graffiti uses MARK, not DUST.
+                type: 'mark',
+                text: engrText || '',
+                degrade: true,
+                guardobjects: false,
+            });
+        }
     }
 
     // C ref: random objects (!rn2(3))
@@ -4697,6 +4714,8 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
     // Must happen BEFORE special level check to match C RNG order
     const bonesMap = getbones(null, depth);
     if (bonesMap) return bonesMap;
+    inMklev = true;
+    try {
 
     // Check for special level if branch coordinates provided
     const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_MAKELEVEL === '1';
@@ -4945,6 +4964,9 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
     // TODO: wire this to real dungeon branch state from init_dungeons().
 
     return map;
+    } finally {
+        inMklev = false;
+    }
 }
 
 // =============================================================================

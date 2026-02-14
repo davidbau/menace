@@ -49,6 +49,17 @@ export const TABU     = 7;
 
 const NON_PM = -1;
 
+function monIndex(mon) {
+    if (Number.isInteger(mon?.mnum)) return mon.mnum;
+    if (Number.isInteger(mon?.mndx)) return mon.mndx;
+    return NON_PM;
+}
+
+function monPtr(mon) {
+    const idx = monIndex(mon);
+    return ismnum(idx) ? mons[idx] : null;
+}
+
 // ========================================================================
 // Helper predicates matching C macros from mondata.h
 // ========================================================================
@@ -79,9 +90,9 @@ function is_rider(ptr) {
 
 // Resistance checks using mr1 flags (innate monster resistances)
 // C ref: monst.h — resists_poison/acid/ston use Resists_Elem
-function resists_poison(mon) { return !!(mons[mon.mnum].mr1 & MR_POISON); }
-function resists_acid(mon)   { return !!(mons[mon.mnum].mr1 & MR_ACID); }
-function resists_ston(mon)   { return !!(mons[mon.mnum].mr1 & MR_STONE); }
+function resists_poison(mon) { return !!(monPtr(mon)?.mr1 & MR_POISON); }
+function resists_acid(mon)   { return !!(monPtr(mon)?.mr1 & MR_ACID); }
+function resists_ston(mon)   { return !!(monPtr(mon)?.mr1 & MR_STONE); }
 
 // C ref: mondata.h — likes_fire(ptr) — fire vortex, flaming sphere, lava lovers
 function likes_fire(ptr) { return !!(ptr.mr1 & MR_FIRE); }
@@ -95,7 +106,8 @@ function slimeproof(ptr) { return false; } // dogs/cats aren't slimeproof
 
 // C ref: mon.c — mon_hates_silver(mon) — undead, werewolves, demons, etc.
 function mon_hates_silver(mon) {
-    const ptr = mons[mon.mnum];
+    const ptr = monPtr(mon);
+    if (!ptr) return false;
     return !!(ptr.flags2 & 0x00000400); // M2_UNDEAD check is simplification
     // Full check involves were, demon, vampire, shade — not relevant for pets
 }
@@ -129,7 +141,8 @@ function peek_at_iced_corpse_age(obj) { return obj.age || 0; }
 // RNG: calls obj_resists(obj, 0, 95) which consumes rn2(100) for non-invocation items.
 // @param moves — current game turn (svm.moves in C)
 export function dogfood(mon, obj, moves) {
-    const mptr = mons[mon.mnum];
+    const mptr = monPtr(mon);
+    if (!mptr) return APPORT;
     const carni = carnivorous(mptr);
     const herbi = herbivorous(mptr);
 
@@ -176,7 +189,7 @@ export function dogfood(mon, obj, moves) {
         const mblind = false; // mon.mcansee is not tracked yet
 
         // Line 1036: Ghoul special case
-        if (mon.mnum === PM_GHOUL) {
+        if (monIndex(mon) === PM_GHOUL) {
             if (obj.otyp === CORPSE) {
                 const corpseAge = peek_at_iced_corpse_age(obj);
                 return (corpseAge + 50 <= (moves || 0)
@@ -266,11 +279,11 @@ export function dogfood(mon, obj, moves) {
         && objectData[obj.otyp].material === SILVER)
         return TABU;
 
-    if (mon.mnum === PM_GELATINOUS_CUBE && is_organic(obj))
+    if (monIndex(mon) === PM_GELATINOUS_CUBE && is_organic(obj))
         return ACCFOOD;
 
     if (is_metallivore(mptr) && is_metallic(obj)
-        && (is_rustprone(obj) || mon.mnum !== PM_RUST_MONSTER)) {
+        && (is_rustprone(obj) || monIndex(mon) !== PM_RUST_MONSTER)) {
         return (is_rustprone(obj) && !obj.oerodeproof) ? DOGFOOD : ACCFOOD;
     }
 
@@ -293,7 +306,8 @@ const MAX_CARR_CAP = 1000; // C ref: weight.h
 // C ref: dogmove.c:1908-1935 max_mon_load(mtmp)
 // C field names: cwt → JS weight, msize → JS size
 function max_mon_load(mon) {
-    const mdat = mons[mon.mnum];
+    const mdat = monPtr(mon);
+    if (!mdat) return 0;
     const strong = !!(mdat.flags2 & M2_STRONG);
     const cwt = mdat.weight || 0;  // C: permonst.cwt (corpse weight)
     const msize = mdat.size || 0;  // C: permonst.msize
@@ -316,7 +330,7 @@ function max_mon_load(mon) {
 // C ref: dogmove.c:1894-1905 curr_mon_load(mtmp)
 function curr_mon_load(mon) {
     let load = 0;
-    const throws = !!(mons[mon.mnum].flags2 & M2_ROCKTHROW);
+    const throws = !!(monPtr(mon)?.flags2 & M2_ROCKTHROW);
     if (mon.minvent) {
         for (const obj of mon.minvent) {
             if (obj.otyp !== BOULDER || !throws)
@@ -330,7 +344,8 @@ function curr_mon_load(mon) {
 // Returns: 0 if can't carry, or quantity that can be carried
 // No RNG consumed (rn2 for huge stacks not relevant in early game)
 export function can_carry(mon, obj) {
-    const mdat = mons[mon.mnum];
+    const mdat = monPtr(mon);
+    if (!mdat) return 0;
 
     // C: notake(mdat) — can't carry anything
     if (mdat.flags1 & M1_NOTAKE) return 0;
@@ -392,7 +407,8 @@ export function can_carry(mon, obj) {
 // Sets mon.meating (turns spent eating) and returns nutrition value.
 // No RNG consumed.
 function dog_nutrition(mon, obj) {
-    const mdat = mons[mon.mnum];
+    const mdat = monPtr(mon);
+    if (!mdat) return 0;
     let nutrit;
 
     if (obj.oclass === FOOD_CLASS) {

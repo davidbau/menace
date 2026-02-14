@@ -109,6 +109,37 @@ function playerHasGold(player) {
     return (player?.gold || 0) > 0 || hasGold(player?.inventory);
 }
 
+function wipeoutEngravingText(text, cnt) {
+    if (!text || cnt <= 0) return text || '';
+    const chars = text.split('');
+    const lth = chars.length;
+    while (cnt-- > 0) {
+        let nxt;
+        do {
+            nxt = rn2(lth);
+        } while (chars[nxt] === ' ');
+        chars[nxt] = ' ';
+    }
+    return chars.join('');
+}
+
+// C ref: engrave.c wipe_engr_at(), used by monmove.c pre-movement.
+function wipeEngravingAt(map, x, y, cnt) {
+    if (!map || !Array.isArray(map.engravings)) return;
+    const idx = map.engravings.findIndex((e) => e && e.x === x && e.y === y);
+    if (idx < 0) return;
+    const engr = map.engravings[idx];
+    if (!engr || engr.type === 'headstone' || engr.nowipeout) return;
+    let erase = cnt;
+    if (engr.type !== 'dust' && engr.type !== 'blood') {
+        erase = rn2(1 + Math.floor(50 / (cnt + 1))) ? 0 : 1;
+    }
+    if (erase > 0) {
+        engr.text = wipeoutEngravingText(engr.text || '', erase).replace(/^ +/, '');
+        if (!engr.text) map.engravings.splice(idx, 1);
+    }
+}
+
 // C ref: monmove.c m_avoid_kicked_loc()
 function m_avoid_kicked_loc(mon, nx, ny, player) {
     const kl = player?.kickedloc;
@@ -433,6 +464,9 @@ function dochug(mon, map, player, display, fov) {
     if (mon.type && mon.type.symbol === S_MIMIC) {
         return;
     }
+
+    // C ref: monmove.c:735 — monsters wipe floor engravings before movement.
+    wipeEngravingAt(map, mon.mx, mon.my, 1);
 
     // Phase 2: Sleep check
     // C ref: monmove.c disturb() — wake sleeping monster if player visible & close
@@ -1009,6 +1043,15 @@ function dog_move(mon, map, player, display, fov, after = false) {
                     // C path: mattackm -> mhitm_knockback -> mon killed -> corpse_chance -> grow_up.
                     target.mhp -= Math.max(1, dmg);
                     if (target.mhp <= 0) {
+                        // C ref: mondied() drops monster inventory on death.
+                        if (Array.isArray(target.minvent) && target.minvent.length > 0) {
+                            for (const obj of target.minvent) {
+                                obj.ox = target.mx;
+                                obj.oy = target.my;
+                                map.objects.push(obj);
+                            }
+                            target.minvent = [];
+                        }
                         target.dead = true;
                         map.removeMonster(target);
                         if (display && target.name) {
