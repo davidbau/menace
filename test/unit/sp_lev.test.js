@@ -284,6 +284,28 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[0][0].nondiggable, false, 'absolute origin should remain diggable');
     });
 
+    it('applies des.wall_property default nondiggable to region coordinates', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: ' ' });
+        des.map({ map: '--\n..', x: 10, y: 5 });
+
+        des.wall_property({ region: [0, 0, 0, 0] });
+        const map = getLevelState().map;
+        assert.equal(map.locations[10][5].nondiggable, true, 'relative region should target map origin');
+        assert.equal(map.locations[10][6].nondiggable, false, 'non-wall tiles should remain unchanged');
+    });
+
+    it('applies des.wall_property nonpasswall option', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: ' ' });
+        des.map({ map: '--\n..', x: 10, y: 5 });
+
+        des.wall_property({ x1: 0, y1: 0, x2: 0, y2: 0, property: 'nonpasswall' });
+        const map = getLevelState().map;
+        assert.equal(map.locations[10][5].nonpasswall, true, 'wall should become non-passwall');
+        assert.equal(map.locations[10][6].nonpasswall, undefined, 'non-wall tiles should remain unchanged');
+    });
+
     it('finalize_level map cleanup removes boulders and destroyable traps on liquid', () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });

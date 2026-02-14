@@ -3857,6 +3857,103 @@ export function region(opts_or_selection, type) {
     add_doors_to_room(levelState.map, createdRoom);
 }
 
+function setWallPropertyInSelection(selection, propKind) {
+    if (!levelState.map) return;
+
+    const applyAt = (x, y) => {
+        if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return;
+        const loc = levelState.map.locations[x][y];
+        if (!loc) return;
+        // C ref: sel_set_wall_property() only applies to walls, trees, and iron bars.
+        if (!(IS_WALL(loc.typ) || loc.typ === TREE || loc.typ === IRONBARS)) return;
+        if (propKind === 'nondiggable') loc.nondiggable = true;
+        else if (propKind === 'nonpasswall') loc.nonpasswall = true;
+    };
+
+    if (!selection) {
+        // C ref: set_wallprop_in_selection() with no args creates a full-map selection.
+        for (let x = 0; x < COLNO; x++) {
+            for (let y = 0; y < ROWNO; y++) {
+                applyAt(x, y);
+            }
+        }
+        return;
+    }
+
+    if (Array.isArray(selection.coords)) {
+        for (const c of selection.coords) {
+            let x = c.x;
+            let y = c.y;
+            if (levelState.mapCoordMode) {
+                const abs = toAbsoluteCoords(x, y);
+                x = abs.x;
+                y = abs.y;
+            }
+            applyAt(x, y);
+        }
+        return;
+    }
+
+    let x1 = selection.x1;
+    let y1 = selection.y1;
+    let x2 = selection.x2;
+    let y2 = selection.y2;
+    if (!Number.isFinite(x1) || !Number.isFinite(y1)
+        || !Number.isFinite(x2) || !Number.isFinite(y2)) {
+        return;
+    }
+    if (levelState.mapCoordMode) {
+        const c1 = toAbsoluteCoords(x1, y1);
+        const c2 = toAbsoluteCoords(x2, y2);
+        x1 = c1.x;
+        y1 = c1.y;
+        x2 = c2.x;
+        y2 = c2.y;
+    }
+    for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+        for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+            applyAt(x, y);
+        }
+    }
+}
+
+/**
+ * des.wall_property(opts)
+ *
+ * Set wall flags in a region (nondiggable/nonpasswall).
+ * C ref: sp_lev.c lspo_wall_property()
+ *
+ * @param {Object} opts - Options containing x1/y1/x2/y2 or region and property
+ */
+export function wall_property(opts) {
+    if (!levelState.map || !opts || typeof opts !== 'object') return;
+
+    const propName = (typeof opts.property === 'string') ? opts.property : 'nondiggable';
+    const propKind = (propName === 'nonpasswall') ? 'nonpasswall' : 'nondiggable';
+
+    let x1 = -1;
+    let y1 = -1;
+    let x2 = -1;
+    let y2 = -1;
+    if (Array.isArray(opts.region) && opts.region.length >= 4) {
+        [x1, y1, x2, y2] = opts.region;
+    } else {
+        if (Number.isFinite(opts.x1)) x1 = opts.x1;
+        if (Number.isFinite(opts.y1)) y1 = opts.y1;
+        if (Number.isFinite(opts.x2)) x2 = opts.x2;
+        if (Number.isFinite(opts.y2)) y2 = opts.y2;
+    }
+
+    if (x1 === -1) x1 = (Number.isFinite(levelState.xstart) ? levelState.xstart - 1 : 0);
+    if (y1 === -1) y1 = (Number.isFinite(levelState.ystart) ? levelState.ystart - 1 : 0);
+    if (x2 === -1) x2 = (Number.isFinite(levelState.xstart) && Number.isFinite(levelState.xsize))
+        ? levelState.xstart + levelState.xsize + 1 : COLNO - 1;
+    if (y2 === -1) y2 = (Number.isFinite(levelState.ystart) && Number.isFinite(levelState.ysize))
+        ? levelState.ystart + levelState.ysize + 1 : ROWNO - 1;
+
+    setWallPropertyInSelection({ x1, y1, x2, y2 }, propKind);
+}
+
 /**
  * des.non_diggable(selection)
  *
@@ -3869,66 +3966,7 @@ export function non_diggable(selection) {
     if (!levelState.map) {
         return;
     }
-    const applyWallProp = (propKind) => {
-        const applyAt = (x, y) => {
-            if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return;
-            const loc = levelState.map.locations[x][y];
-            if (!loc) return;
-            // C ref: sel_set_wall_property() only applies to stone walls,
-            // trees, and iron bars.
-            if (!(IS_WALL(loc.typ) || loc.typ === TREE || loc.typ === IRONBARS)) return;
-            if (propKind === 'nondiggable') loc.nondiggable = true;
-            else if (propKind === 'nonpasswall') loc.nonpasswall = true;
-        };
-
-        if (!selection) {
-            // C ref: lspo_non_{diggable,passwall}() with no args creates a
-            // full-map selection and iterates it.
-            for (let x = 0; x < COLNO; x++) {
-                for (let y = 0; y < ROWNO; y++) {
-                    applyAt(x, y);
-                }
-            }
-            return;
-        }
-
-        if (Array.isArray(selection.coords)) {
-            for (const c of selection.coords) {
-                let x = c.x;
-                let y = c.y;
-                if (levelState.mapCoordMode) {
-                    const abs = toAbsoluteCoords(x, y);
-                    x = abs.x;
-                    y = abs.y;
-                }
-                applyAt(x, y);
-            }
-            return;
-        }
-
-        let x1 = selection.x1;
-        let y1 = selection.y1;
-        let x2 = selection.x2;
-        let y2 = selection.y2;
-        if (!Number.isFinite(x1) || !Number.isFinite(y1)
-            || !Number.isFinite(x2) || !Number.isFinite(y2)) {
-            return;
-        }
-        if (levelState.mapCoordMode) {
-            const c1 = toAbsoluteCoords(x1, y1);
-            const c2 = toAbsoluteCoords(x2, y2);
-            x1 = c1.x;
-            y1 = c1.y;
-            x2 = c2.x;
-            y2 = c2.y;
-        }
-        for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
-            for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
-                applyAt(x, y);
-            }
-        }
-    };
-    applyWallProp('nondiggable');
+    setWallPropertyInSelection(selection, 'nondiggable');
 }
 
 /**
@@ -3962,56 +4000,7 @@ export function non_passwall(selection) {
         return;
     }
     // C ref: lspo_non_passwall() reuses set_wallprop_in_selection().
-    const applyWallProp = (sel) => {
-        const applyXY = (x, y) => {
-            if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return;
-            const loc = levelState.map.locations[x][y];
-            if (!loc) return;
-            if (!(IS_WALL(loc.typ) || loc.typ === TREE || loc.typ === IRONBARS)) return;
-            loc.nonpasswall = true;
-        };
-        if (!sel) {
-            for (let x = 0; x < COLNO; x++) {
-                for (let y = 0; y < ROWNO; y++) applyXY(x, y);
-            }
-            return;
-        }
-        if (Array.isArray(sel.coords)) {
-            for (const c of sel.coords) {
-                let x = c.x;
-                let y = c.y;
-                if (levelState.mapCoordMode) {
-                    const abs = toAbsoluteCoords(x, y);
-                    x = abs.x;
-                    y = abs.y;
-                }
-                applyXY(x, y);
-            }
-            return;
-        }
-        let x1 = sel.x1;
-        let y1 = sel.y1;
-        let x2 = sel.x2;
-        let y2 = sel.y2;
-        if (!Number.isFinite(x1) || !Number.isFinite(y1)
-            || !Number.isFinite(x2) || !Number.isFinite(y2)) {
-            return;
-        }
-        if (levelState.mapCoordMode) {
-            const c1 = toAbsoluteCoords(x1, y1);
-            const c2 = toAbsoluteCoords(x2, y2);
-            x1 = c1.x;
-            y1 = c1.y;
-            x2 = c2.x;
-            y2 = c2.y;
-        }
-        for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
-            for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
-                applyXY(x, y);
-            }
-        }
-    };
-    applyWallProp(selection);
+    setWallPropertyInSelection(selection, 'nonpasswall');
 }
 
 /**
@@ -6792,6 +6781,7 @@ export const des = {
     object,
     trap,
     region,
+    wall_property,
     non_diggable,
     non_passwall,
     levregion,
