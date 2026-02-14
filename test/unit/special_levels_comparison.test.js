@@ -261,7 +261,7 @@ function testLevel(seed, dnum, dlevel, levelName, cSession) {
         resetVariantCache();
         resetLevelState();
         const runtimeBranchPlacement = inferRuntimeBranchPlacement(seed, dnum, dlevel);
-        const finalizeCtx = { dnum, dlevel };
+        const finalizeCtx = { dnum, dlevel, specialName: levelName };
         // Apply runtime branch overrides only for DoD parent-side branch depths.
         // Other standalone wizloaddes sessions currently match C better with
         // default LR_BRANCH stair-down behavior.
@@ -283,6 +283,7 @@ function testLevel(seed, dnum, dlevel, levelName, cSession) {
             setFinalizeContext({
                 dnum,
                 dlevel,
+                specialName: levelName,
                 branchPlacement: finalizeCtx.branchPlacement,
                 isBranchLevel: true,
                 dunlev: 1,
