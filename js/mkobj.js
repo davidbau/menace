@@ -942,7 +942,7 @@ export function doname(obj, player) {
 
     const baseName = xname_for_doname(obj, dknown, known, bknown);
     let result = `${prefix}${baseName}`.trimStart();
-    if (quan === 1 && obj.otyp !== CORPSE && !result.startsWith('the ')) {
+    if (quan === 1 && !result.startsWith('the ')) {
         result = `${just_an(result)} ${result}`;
     }
 

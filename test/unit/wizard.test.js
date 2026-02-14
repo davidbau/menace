@@ -552,6 +552,17 @@ describe('doname', () => {
         assert.equal(doname(obj, null), '2 corpses');
     });
 
+    it('singular corpse gets an article', () => {
+        const obj = {
+            otyp: CORPSE,
+            oclass: FOOD_CLASS,
+            corpsenm: -1,
+            quan: 1,
+            known: true, dknown: true, bknown: false,
+        };
+        assert.equal(doname(obj, null), 'a corpse');
+    });
+
     it('plural pair-of armor keeps "pair of" wording like C', () => {
         const obj = {
             otyp: LOW_BOOTS, oclass: ARMOR_CLASS,
