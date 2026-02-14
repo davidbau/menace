@@ -465,6 +465,29 @@ def parse_dumpmap(dumpmap_file):
     return grid
 
 
+def read_checkpoint_entries(checkpoint_file, start_index=0):
+    """Read JSONL checkpoint entries from checkpoint_file starting at start_index."""
+    if not checkpoint_file or not os.path.exists(checkpoint_file):
+        return [], start_index
+
+    entries = []
+    next_index = int(start_index)
+    with open(checkpoint_file, 'r', encoding='utf-8', errors='ignore') as f:
+        for idx, line in enumerate(f):
+            if idx < int(start_index):
+                continue
+            next_index = idx + 1
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entries.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+
+    return entries, next_index
+
+
 def get_rng_call_count(rnglog_file):
     """Return the last RNG call number from an RNG log file, or None."""
     if not rnglog_file or not os.path.exists(rnglog_file):
@@ -657,6 +680,7 @@ def generate_group(group_name, seeds, verbose=False):
 
         tmpdir = tempfile.mkdtemp(prefix=f'webhack-special-{seed}-')
         dumpmap_file = os.path.join(tmpdir, 'dumpmap.txt')
+        checkpoint_file = os.path.join(tmpdir, 'checkpoints.jsonl')
 
         levels = []
 
@@ -664,6 +688,7 @@ def generate_group(group_name, seeds, verbose=False):
             """Capture a batch of level definitions in one game session."""
             role_tag = role_name.lower() if role_name else 'default'
             session_name = f'webhack-special-{seed}-{role_tag}-{os.getpid()}'
+            checkpoint_cursor = 0
 
             # For quest captures, role must match requested quest levels.
             if role_name:
@@ -676,6 +701,7 @@ def generate_group(group_name, seeds, verbose=False):
                 f'NETHACKDIR={INSTALL_DIR} '
                 f'NETHACK_SEED={seed} '
                 f'NETHACK_DUMPMAP={dumpmap_file} '
+                f'NETHACK_DUMPSNAP={checkpoint_file} '
                 f"{('NETHACK_RNGLOG=' + os.environ['NETHACK_RNGLOG'] + ' ') if os.environ.get('NETHACK_RNGLOG') else ''}"
                 f'HOME={RESULTS_DIR} '
                 f'TERM=xterm-256color '
@@ -697,6 +723,7 @@ def generate_group(group_name, seeds, verbose=False):
                     print(f"  Teleporting to {level_name}...")
                     rnglog_file = os.environ.get('NETHACK_RNGLOG')
                     rng_call_start = get_rng_call_count(rnglog_file)
+                    level_checkpoint_start = checkpoint_cursor
                     abs_depth = None
 
                     # Teleport to the level
@@ -759,11 +786,17 @@ def generate_group(group_name, seeds, verbose=False):
                         print(f"  WARNING: {level_name} has shape {rows}x{cols} (expected 21x80), skipping capture")
                         continue
 
+                    checkpoints, checkpoint_cursor = read_checkpoint_entries(
+                        checkpoint_file, level_checkpoint_start
+                    )
+
                     level_data = {
                         'levelName': level_name,
                         'branch': level_def['branch'],
                         'typGrid': grid,
                     }
+                    if checkpoints:
+                        level_data['checkpoints'] = checkpoints
                     if 'branchLevel' in level_def:
                         level_data['branchLevel'] = level_def['branchLevel']
                     if 'nlevels' in level_def:
@@ -822,6 +855,8 @@ def generate_group(group_name, seeds, verbose=False):
         finally:
             if os.path.exists(dumpmap_file):
                 os.unlink(dumpmap_file)
+            if os.path.exists(checkpoint_file):
+                os.unlink(checkpoint_file)
             try:
                 os.rmdir(tmpdir)
             except OSError:
