@@ -11,7 +11,13 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { simulateDungeonInit, resolveBranchPlacementForLevel, clearBranchTopology } from '../../js/dungeon.js';
-import { resetLevelState, setFinalizeContext, setSpecialLevelDepth } from '../../js/sp_lev.js';
+import {
+    resetLevelState,
+    setFinalizeContext,
+    setSpecialLevelDepth,
+    setCheckpointCaptureEnabled,
+    getLevelCheckpoints
+} from '../../js/sp_lev.js';
 import { getSpecialLevel, resetVariantCache, DUNGEONS_OF_DOOM, GEHENNOM, VLADS_TOWER, KNOX, SOKOBAN, GNOMISH_MINES, QUEST, TUTORIAL, questLevels, otherSpecialLevels } from '../../js/special_levels.js';
 import { initRng, skipRng, rn2, c_d, rne, rnz, getRngState, setRngState, getRngCallCount, setRngCallCount } from '../../js/rng.js';
 
@@ -120,6 +126,51 @@ function countTypGridMismatches(jsGrid, cGrid, stopAfter = Number.POSITIVE_INFIN
         }
     }
     return mismatches;
+}
+
+function firstGridMismatch(jsGrid, cGrid) {
+    if (!Array.isArray(jsGrid) || !Array.isArray(cGrid)) {
+        return { x: -1, y: -1, js: null, c: null };
+    }
+    const rows = Math.min(jsGrid.length, cGrid.length);
+    for (let y = 0; y < rows; y++) {
+        const jsRow = jsGrid[y];
+        const cRow = cGrid[y];
+        const cols = Math.min(Array.isArray(jsRow) ? jsRow.length : 0, Array.isArray(cRow) ? cRow.length : 0);
+        for (let x = 0; x < cols; x++) {
+            if (jsRow[x] !== cRow[x]) {
+                return { x, y, js: jsRow[x], c: cRow[x] };
+            }
+        }
+    }
+    return null;
+}
+
+function describeCheckpointDivergence(levelName, seed, cCheckpoints, jsCheckpoints) {
+    if (!Array.isArray(cCheckpoints) || cCheckpoints.length === 0) return null;
+    if (!Array.isArray(jsCheckpoints) || jsCheckpoints.length === 0) {
+        return `${levelName} seed ${seed}: JS captured no checkpoints`;
+    }
+
+    const cPhases = cCheckpoints.map(cp => cp?.phase ?? '?');
+    const jsPhases = jsCheckpoints.map(cp => cp?.phase ?? '?');
+    const n = Math.min(cCheckpoints.length, jsCheckpoints.length);
+
+    for (let i = 0; i < n; i++) {
+        if (cPhases[i] !== jsPhases[i]) {
+            return `${levelName} seed ${seed}: phase mismatch at #${i}: C=${cPhases[i]} JS=${jsPhases[i]}`;
+        }
+        const mismatch = firstGridMismatch(jsCheckpoints[i]?.typGrid, cCheckpoints[i]?.typGrid);
+        if (mismatch) {
+            return `${levelName} seed ${seed}: first typGrid divergence at phase ${cPhases[i]} (#${i}) `
+                + `coord=(${mismatch.x},${mismatch.y}) C=${mismatch.c} JS=${mismatch.js}`;
+        }
+    }
+
+    if (cCheckpoints.length !== jsCheckpoints.length) {
+        return `${levelName} seed ${seed}: checkpoint count mismatch C=${cCheckpoints.length} JS=${jsCheckpoints.length}`;
+    }
+    return null;
 }
 
 function resolveLevelGenerator(dnum, dlevel, levelName) {
@@ -252,63 +303,70 @@ function testLevel(seed, dnum, dlevel, levelName, cSession) {
         return bestOffset;
     };
 
-    const generateTypGridForOffset = (offset) => {
+    const generateTypGridForOffset = (offset, captureCheckpoints = false) => {
+        setCheckpointCaptureEnabled(captureCheckpoints);
         initRng(seed);
-        if (canUseRngStart && typeof rngCallStart === 'number' && rngCallStart > 0) {
-            skipRng(rngCallStart + offset);
+        try {
+            if (canUseRngStart && typeof rngCallStart === 'number' && rngCallStart > 0) {
+                skipRng(rngCallStart + offset);
+            }
+            replayPrelude();
+            resetVariantCache();
+            resetLevelState();
+            const runtimeBranchPlacement = inferRuntimeBranchPlacement(seed, dnum, dlevel);
+            const finalizeCtx = { dnum, dlevel, specialName: levelName };
+            // Apply runtime branch overrides only for DoD parent-side branch depths.
+            // Other standalone wizloaddes sessions currently match C better with
+            // default LR_BRANCH stair-down behavior.
+            if (dnum === DUNGEONS_OF_DOOM
+                && (runtimeBranchPlacement === 'portal' || runtimeBranchPlacement === 'none')) {
+                finalizeCtx.branchPlacement = runtimeBranchPlacement;
+            }
+            setFinalizeContext(finalizeCtx);
+            let depthForSpecial = Number.isFinite(cLevel.absDepth) ? cLevel.absDepth : dlevel;
+            // Mines filler sessions need branch-local depth for mkstairs gating.
+            // Gehennom filler traces are recorded with their absolute depth and
+            // should use fixture absDepth as-is.
+            if (cSession.group === 'filler' && dnum === GNOMISH_MINES) {
+                depthForSpecial = dlevel;
+            }
+            setSpecialLevelDepth(depthForSpecial);
+            if (cSession.group === 'filler' && levelName.toLowerCase() === 'minefill') {
+                // Mine filler session metadata does not carry the full branch-level
+                // context needed by mkstairs()/fixup_special parity.
+                setFinalizeContext({
+                    dnum,
+                    dlevel,
+                    specialName: levelName,
+                    branchPlacement: finalizeCtx.branchPlacement,
+                    isBranchLevel: true,
+                    dunlev: 1,
+                    dunlevs: 99,
+                    applyRoomFill: true
+                });
+            } else if (cSession.group === 'filler' && levelName.toLowerCase() === 'hellfill') {
+                // Gehennom filler capture is recorded at branch-local depth 1.
+                // Use that depth for finalize context so fixup_special() can place
+                // the branch stair in the same C branch window.
+                setFinalizeContext({
+                    dnum,
+                    dlevel: depthForSpecial,
+                    isBranchLevel: true,
+                    dunlev: depthForSpecial,
+                    dunlevs: 99,
+                    applyRoomFill: true
+                });
+            }
+            const level = resolveLevelGenerator(dnum, dlevel, levelName);
+            if (!level) {
+                assert.fail(`No special level generator found at ${dnum}:${dlevel} for ${levelName}`);
+            }
+            const typGrid = extractTypGrid(level.generator());
+            const checkpoints = captureCheckpoints ? getLevelCheckpoints() : [];
+            return { typGrid, checkpoints };
+        } finally {
+            setCheckpointCaptureEnabled(false);
         }
-        replayPrelude();
-        resetVariantCache();
-        resetLevelState();
-        const runtimeBranchPlacement = inferRuntimeBranchPlacement(seed, dnum, dlevel);
-        const finalizeCtx = { dnum, dlevel, specialName: levelName };
-        // Apply runtime branch overrides only for DoD parent-side branch depths.
-        // Other standalone wizloaddes sessions currently match C better with
-        // default LR_BRANCH stair-down behavior.
-        if (dnum === DUNGEONS_OF_DOOM
-            && (runtimeBranchPlacement === 'portal' || runtimeBranchPlacement === 'none')) {
-            finalizeCtx.branchPlacement = runtimeBranchPlacement;
-        }
-        setFinalizeContext(finalizeCtx);
-        let depthForSpecial = Number.isFinite(cLevel.absDepth) ? cLevel.absDepth : dlevel;
-        // Mines filler sessions need branch-local depth for mkstairs gating.
-        // Gehennom filler traces are recorded with their absolute depth and
-        // should use fixture absDepth as-is.
-        if (cSession.group === 'filler' && dnum === GNOMISH_MINES) {
-            depthForSpecial = dlevel;
-        }
-        setSpecialLevelDepth(depthForSpecial);
-        if (cSession.group === 'filler' && levelName.toLowerCase() === 'minefill') {
-            // Mine filler session metadata does not carry the full branch-level
-            // context needed by mkstairs()/fixup_special parity.
-            setFinalizeContext({
-                dnum,
-                dlevel,
-                specialName: levelName,
-                branchPlacement: finalizeCtx.branchPlacement,
-                isBranchLevel: true,
-                dunlev: 1,
-                dunlevs: 99,
-                applyRoomFill: true
-            });
-        } else if (cSession.group === 'filler' && levelName.toLowerCase() === 'hellfill') {
-            // Gehennom filler capture is recorded at branch-local depth 1.
-            // Use that depth for finalize context so fixup_special() can place
-            // the branch stair in the same C branch window.
-            setFinalizeContext({
-                dnum,
-                dlevel: depthForSpecial,
-                isBranchLevel: true,
-                dunlev: depthForSpecial,
-                dunlevs: 99,
-                applyRoomFill: true
-            });
-        }
-        const level = resolveLevelGenerator(dnum, dlevel, levelName);
-        if (!level) {
-            assert.fail(`No special level generator found at ${dnum}:${dlevel} for ${levelName}`);
-        }
-        return extractTypGrid(level.generator());
     };
 
     // Generate JS version
@@ -316,7 +374,8 @@ function testLevel(seed, dnum, dlevel, levelName, cSession) {
     if (canUseRngStart && typeof rngCallStart === 'number' && rngCallStart > 0) {
         startOffset = calibrateStartOffset();
     }
-    let jsTypGrid = generateTypGridForOffset(startOffset);
+    let genResult = generateTypGridForOffset(startOffset, false);
+    let jsTypGrid = genResult.typGrid;
     let mismatchCount = countTypGridMismatches(jsTypGrid, cLevel.typGrid);
 
     // Fallback calibration for rngCallStart drift:
@@ -331,7 +390,7 @@ function testLevel(seed, dnum, dlevel, levelName, cSession) {
 
         for (let off = -120; off <= 120; off++) {
             if (off === startOffset) continue;
-            const candidate = generateTypGridForOffset(off);
+            const candidate = generateTypGridForOffset(off, false).typGrid;
             const candidateMismatch = countTypGridMismatches(candidate, cLevel.typGrid, bestMismatch);
             if (candidateMismatch < bestMismatch) {
                 bestMismatch = candidateMismatch;
@@ -343,6 +402,16 @@ function testLevel(seed, dnum, dlevel, levelName, cSession) {
 
         startOffset = bestOffset;
         jsTypGrid = bestGrid;
+    }
+
+    if (Array.isArray(cLevel.checkpoints) && cLevel.checkpoints.length > 0) {
+        genResult = generateTypGridForOffset(startOffset, true);
+        jsTypGrid = genResult.typGrid;
+        mismatchCount = countTypGridMismatches(jsTypGrid, cLevel.typGrid);
+        const phaseDiff = describeCheckpointDivergence(levelName, seed, cLevel.checkpoints, genResult.checkpoints);
+        if (phaseDiff) {
+            console.log(`  [CHKPTDIFF] ${phaseDiff}`);
+        }
     }
 
     // Compare terrain grids
