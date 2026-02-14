@@ -47,12 +47,21 @@ Also available manually in wizard mode:
 
 ## Session JSON Integration
 
-`gen_special_sessions.py` now sets `NETHACK_DUMPSNAP` per run and attaches
-captured entries to each generated level object:
+`gen_special_sessions.py` sets `NETHACK_DUMPSNAP` and `NETHACK_RNGLOG` by default
+for every run, attaching captured entries to each generated level object:
 
 - `levels[i].checkpoints`: ordered list of checkpoint objects emitted during
-  generation of that captured level.
+  generation of that captured level. Each checkpoint includes `rngCallCount`
+  for correlation with the RNG log.
 
 Entries are sliced by JSONL line cursor between level captures, so each level
 gets only newly appended checkpoints.
 
+## Usage
+
+```bash
+# Regenerate all special-level sessions with checkpoints and RNG call counts
+python3 -u test/comparison/c-harness/gen_special_sessions.py --all --seeds 1,42,100
+```
+
+No environment variables needed — checkpoints and RNG logging are enabled by default.

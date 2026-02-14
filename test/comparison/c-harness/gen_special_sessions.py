@@ -687,6 +687,7 @@ def generate_group(group_name, seeds, verbose=False):
 
         def capture_level_batch(level_defs, role_name=None):
             """Capture a batch of level definitions in one game session."""
+            nonlocal rnglog_file
             role_tag = role_name.lower() if role_name else 'default'
             session_name = f'webhack-special-{seed}-{role_tag}-{os.getpid()}'
             checkpoint_cursor = 0
@@ -817,9 +818,8 @@ def generate_group(group_name, seeds, verbose=False):
                         )
                         if prelude_calls:
                             level_data['preRngCalls'] = prelude_calls
-                        # Capture full RNG sequence (not just 20 calls) for debugging
                         fingerprint = extract_post_prelude_fingerprint(
-                            rnglog_file, rng_call_start, limit=10000
+                            rnglog_file, rng_call_start
                         )
                         if fingerprint:
                             level_data['rngFingerprint'] = fingerprint
