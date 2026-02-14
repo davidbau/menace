@@ -12,7 +12,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { simulateDungeonInit, resolveBranchPlacementForLevel, clearBranchTopology } from '../../js/dungeon.js';
 import { resetLevelState, setFinalizeContext, setSpecialLevelDepth } from '../../js/sp_lev.js';
-import { getSpecialLevel, resetVariantCache, DUNGEONS_OF_DOOM, GEHENNOM, VLADS_TOWER, KNOX, SOKOBAN, GNOMISH_MINES, QUEST } from '../../js/special_levels.js';
+import { getSpecialLevel, resetVariantCache, DUNGEONS_OF_DOOM, GEHENNOM, VLADS_TOWER, KNOX, SOKOBAN, GNOMISH_MINES, QUEST, TUTORIAL } from '../../js/special_levels.js';
 import { initRng, skipRng, rn2, c_d, rne, rnz, getRngState, setRngState, getRngCallCount, setRngCallCount } from '../../js/rng.js';
 
 const ROWNO = 21;
@@ -245,17 +245,6 @@ function testLevel(seed, dnum, dlevel, levelName, cSession) {
         setFinalizeContext(finalizeCtx);
         const depthForSpecial = Number.isFinite(cLevel.absDepth) ? cLevel.absDepth : dlevel;
         setSpecialLevelDepth(depthForSpecial);
-        if (cSession.group === 'filler' && levelName.toLowerCase() === 'minefill') {
-            setFinalizeContext({
-                dnum,
-                dlevel,
-                branchPlacement: finalizeCtx.branchPlacement,
-                isBranchLevel: true,
-                dunlev: 1,
-                dunlevs: 99,
-                applyRoomFill: true
-            });
-        }
         const level = getSpecialLevel(dnum, dlevel);
         if (!level) {
             assert.fail(`No special level registered at ${dnum}:${dlevel} for ${levelName}`);
@@ -590,13 +579,13 @@ test('Gehennom Filler - seed 100', () => {
 test('Tutorial 1 - seed 1', () => {
     const cSession = loadCReference(1, 'tutorial');
     if (!cSession) return;
-    testLevel(1, DUNGEONS_OF_DOOM, 1, 'tut-1', cSession);
+    testLevel(1, TUTORIAL, 1, 'tut-1', cSession);
 });
 
 test('Tutorial 2 - seed 1', () => {
     const cSession = loadCReference(1, 'tutorial');
     if (!cSession) return;
-    testLevel(1, DUNGEONS_OF_DOOM, 2, 'tut-2', cSession);
+    testLevel(1, TUTORIAL, 2, 'tut-2', cSession);
 });
 
 // Mines filler levels
