@@ -706,16 +706,11 @@ describe('C trace comparison: seed 42 Wizard inventory', () => {
             'test/comparison/sessions/seed42_inventory_wizard_gameplay.session.json', 'utf8'));
         const cRng = cTrace.startup.rng;
 
-        // Extract normalized RNG calls from C entries.
-        // Newer C traces can include marker lines (e.g. >somexy/<somexy) that
-        // don't correspond to an RNG result entry; skip those for parity.
-        const normalizeEntry = (entry) => {
+        // Extract just func(arg)=result from C entries
+        const cEntries = cRng.slice(271, 2762).map(entry => {
             const m = entry.match(/^(\S+\(\S+\))\s*=\s*(\S+)/);
-            return m ? `${m[1]}=${m[2]}` : null;
-        };
-        const cEntries = cRng.slice(271, 2762)
-            .map(normalizeEntry)
-            .filter(Boolean);
+            return m ? `${m[1]}=${m[2]}` : entry;
+        });
 
         initRng(42);
         enableRngLog(true);
@@ -734,12 +729,10 @@ describe('C trace comparison: seed 42 Wizard inventory', () => {
         const fullLog = getRngLog();
         disableRngLog();
 
-        const jsEntries = fullLog.slice(initCount)
-            .map(entry => {
-                const m = entry.match(/^\d+ (\S+\(\S+\))\s*=\s*(\S+)/);
-                return m ? `${m[1]}=${m[2]}` : null;
-            })
-            .filter(Boolean);
+        const jsEntries = fullLog.slice(initCount).map(entry => {
+            const m = entry.match(/^\d+ (\S+\(\S+\))\s*=\s*(\S+)/);
+            return m ? `${m[1]}=${m[2]}` : entry;
+        });
 
         // Find first divergence
         let firstDiv = -1;
@@ -751,8 +744,9 @@ describe('C trace comparison: seed 42 Wizard inventory', () => {
             }
         }
 
-        // C trace capture can omit tail markers/entries after full makelevel
-        // alignment. If all overlapping entries match, treat that as success.
+        if (firstDiv < 0 && jsEntries.length !== cEntries.length) {
+            firstDiv = minLen; // length mismatch
+        }
 
         if (firstDiv >= 0) {
             const start = Math.max(0, firstDiv - 5);
