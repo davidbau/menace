@@ -4968,10 +4968,51 @@ function within_bounded_area(x, y, lx, ly, hx, hy) {
 
 // C ref: mkmaze.c:317-332 — is_exclusion_zone
 // Check if position is in an exclusion zone for this region type
-// Stub implementation: no exclusion zones for now
-function is_exclusion_zone(rtype, x, y) {
-    // TODO: implement exclusion zones when needed
-    // For now, no exclusion zones
+function is_exclusion_zone(map, rtype, x, y) {
+    const zones = Array.isArray(map?.exclusionZones) ? map.exclusionZones : null;
+    if (!zones || zones.length === 0) return false;
+
+    const normalizeZoneType = (zoneType) => {
+        // JS des.exclusion() stores string tags.
+        if (typeof zoneType === 'string') {
+            switch (zoneType) {
+                case 'teleport':
+                    return LR_TELE;
+                case 'teleport-down':
+                    return LR_DOWNTELE;
+                case 'teleport-up':
+                    return LR_UPTELE;
+                case 'monster-generation':
+                    return 7; // LR_MONGEN equivalent
+                default:
+                    return undefined;
+            }
+        }
+        // Accept both JS-local constants and C enum values when numeric.
+        if (typeof zoneType === 'number') {
+            if (zoneType === LR_TELE || zoneType === 4) return LR_TELE;
+            if (zoneType === LR_UPTELE || zoneType === 5) return LR_UPTELE;
+            if (zoneType === LR_DOWNTELE || zoneType === 6) return LR_DOWNTELE;
+            if (zoneType === 7) return 7; // LR_MONGEN
+        }
+        return undefined;
+    };
+
+    for (const zone of zones) {
+        const zoneType = normalizeZoneType(zone?.type ?? zone?.zonetype);
+        if (zoneType === undefined) continue;
+
+        const typeMatches = (
+            (rtype === LR_DOWNTELE && (zoneType === LR_DOWNTELE || zoneType === LR_TELE))
+            || (rtype === LR_UPTELE && (zoneType === LR_UPTELE || zoneType === LR_TELE))
+            || (rtype === zoneType)
+        );
+        if (!typeMatches) continue;
+
+        if (within_bounded_area(x, y, zone.lx, zone.ly, zone.hx, zone.hy)) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -5008,7 +5049,7 @@ function bad_location(map, x, y, nlx, nly, nhx, nhy) {
 function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot) {
     // Check if location is bad.
     let invalid = bad_location(map, x, y, nlx, nly, nhx, nhy)
-        || is_exclusion_zone(rtype, x, y);
+        || is_exclusion_zone(map, rtype, x, y);
     if (invalid) {
         if (!oneshot) {
             return false; // Try again
@@ -5022,7 +5063,7 @@ function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot) {
             map.traps = map.traps.filter(t => t !== trap);
         }
         invalid = bad_location(map, x, y, nlx, nly, nhx, nhy)
-            || is_exclusion_zone(rtype, x, y);
+            || is_exclusion_zone(map, rtype, x, y);
         if (invalid) return false;
     }
 
