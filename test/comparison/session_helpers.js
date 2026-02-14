@@ -1519,6 +1519,10 @@ export class HeadlessDisplay {
                             this.setCell(col, row, loc.mem_obj, CLR_BLACK);
                             continue;
                         }
+                        if (loc.mem_trap) {
+                            this.setCell(col, row, loc.mem_trap, CLR_BLACK);
+                            continue;
+                        }
                         const sym = this.terrainSymbol(loc, gameMap, x, y);
                         this.setCell(col, row, sym.ch, CLR_BLACK);
                     } else {
@@ -1557,9 +1561,11 @@ export class HeadlessDisplay {
 
                 const trap = gameMap.trapAt(x, y);
                 if (trap && trap.tseen) {
+                    loc.mem_trap = '^';
                     this.setCell(col, row, '^', CLR_MAGENTA);
                     continue;
                 }
+                loc.mem_trap = 0;
 
                 const sym = this.terrainSymbol(loc, gameMap, x, y);
                 this.setCell(col, row, sym.ch, sym.color);
