@@ -16,7 +16,7 @@
 import { GameMap, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1, getRngCallCount } from './rng.js';
 import { mksobj, mkobj, mkcorpstat, set_corpsenm, weight } from './mkobj.js';
-import { create_room, create_subroom, makecorridors, create_corridor, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize as dungeonMineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, wallify_region as dungeonWallifyRegion, fix_wall_spines, place_lregion, mktrap, enexto, somexy, sp_create_door, floodFillAndRegister, resolveBranchPlacementForLevel, random_epitaph_text, induced_align, DUNGEON_ALIGN_BY_DNUM } from './dungeon.js';
+import { create_room, create_subroom, makecorridors, create_corridor, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize as dungeonMineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, wallify_region as dungeonWallifyRegion, fix_wall_spines, set_wall_state, place_lregion, mktrap, enexto, somexy, sp_create_door, floodFillAndRegister, resolveBranchPlacementForLevel, random_epitaph_text, induced_align, DUNGEON_ALIGN_BY_DNUM } from './dungeon.js';
 import { seedFromMT } from './xoshiro256.js';
 import { makemon, mkclass, def_char_to_monclass, NO_MM_FLAGS, MM_NOGRP } from './makemon.js';
 import {
@@ -1662,7 +1662,7 @@ export function level_flags(...flags) {
  * This matches C's flip_level_rnd() which is called at the end of level loading.
  * C ref: sp_lev.c flip_level_rnd() and flip_level()
  */
-function flipLevelRandom() {
+function flipLevelRandom(extras = false) {
     const allowFlips = levelState.coder.allow_flips;
     const DEBUG_FLIP = typeof process !== 'undefined' && process.env.DEBUG_FLIP === '1';
     const rngBefore = DEBUG_FLIP && typeof getRngCallCount === 'function' ? getRngCallCount() : null;
@@ -1886,6 +1886,11 @@ function flipLevelRandom() {
         if (Number.isInteger(mon.y)) mon.y = fy;
     }
 
+    // C ref: sp_lev.c flip_level(): when extras && flp, set_wall_state().
+    // In normal generation extras is false.
+    if (extras && flipBits) {
+        set_wall_state(map);
+    }
     return true;
 }
 
