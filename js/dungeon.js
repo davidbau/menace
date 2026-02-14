@@ -32,9 +32,9 @@ import {
 import { GameMap, makeRoom, FILL_NONE, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1, d, getRngCallCount } from './rng.js';
 import { getbones } from './bones.js';
-import { mkobj, mksobj, mkcorpstat, weight, setLevelDepth, TAINT_AGE } from './mkobj.js';
+import { mkobj, mksobj, mkcorpstat, weight, setLevelDepth, TAINT_AGE, RANDOM_CLASS } from './mkobj.js';
 import { makemon, mkclass, NO_MM_FLAGS, MM_NOGRP, setMakemonRoleContext, setMakemonLevelContext } from './makemon.js';
-import { S_HUMAN, PM_ELF, PM_HUMAN, PM_GNOME, PM_DWARF, PM_ORC, PM_ARCHEOLOGIST, PM_WIZARD } from './monsters.js';
+import { S_HUMAN, PM_ELF, PM_HUMAN, PM_GNOME, PM_DWARF, PM_ORC, PM_ARCHEOLOGIST, PM_WIZARD, PM_MINOTAUR } from './monsters.js';
 import { init_objects } from './o_init.js';
 import { roles } from './player.js';
 import {
@@ -1038,7 +1038,7 @@ export function setMtInitialized(val) {
 
 // C ref: mkmaze.c makemaz()
 // Generate a maze level (used in Gehennom and deep dungeon past Medusa)
-function makemaz(map, protofile, dnum, dlevel) {
+function makemaz(map, protofile, dnum, dlevel, depth) {
     // C ref: mkmaze.c:1127-1204
     // If protofile specified, try to load special level
     // For now, we only handle the procedural case (protofile === "")
@@ -1097,7 +1097,49 @@ function makemaz(map, protofile, dnum, dlevel) {
     }
 
     // C ref: mkmaze.c:1213 — populate_maze()
-    // Skip for now - this would add monsters/traps/items
+    populate_maze(map, depth);
+}
+
+// C ref: mkmaze.c populate_maze()
+function populate_maze(map, depth) {
+    const placeObjAt = (obj, x, y) => {
+        if (!obj) return;
+        obj.ox = x;
+        obj.oy = y;
+        map.objects.push(obj);
+    };
+
+    for (let i = rn1(8, 11); i > 0; i--) {
+        const pos = mazexy(map);
+        const oclass = rn2(2) ? GEM_CLASS : RANDOM_CLASS;
+        placeObjAt(mkobj(oclass, true), pos.x, pos.y);
+    }
+    for (let i = rn1(10, 2); i > 0; i--) {
+        const pos = mazexy(map);
+        placeObjAt(mksobj(BOULDER, true, false), pos.x, pos.y);
+    }
+    for (let i = rn2(3); i > 0; i--) {
+        const pos = mazexy(map);
+        makemon(PM_MINOTAUR, pos.x, pos.y, NO_MM_FLAGS, depth, map);
+    }
+    for (let i = rn1(5, 7); i > 0; i--) {
+        const pos = mazexy(map);
+        makemon(null, pos.x, pos.y, NO_MM_FLAGS, depth, map);
+    }
+    for (let i = rn1(6, 7); i > 0; i--) {
+        const pos = mazexy(map);
+        const mul = rnd(Math.max(Math.floor(30 / Math.max(12 - depth, 2)), 1));
+        const amount = 1 + rnd(depth + 2) * mul;
+        const gold = mksobj(GOLD_PIECE, true, false);
+        if (gold) {
+            gold.quan = amount;
+            gold.owt = weight(gold);
+        }
+        placeObjAt(gold, pos.x, pos.y);
+    }
+    for (let i = rn1(6, 7); i > 0; i--) {
+        mktrap(map, 0, MKTRAP_MAZEFLAG, null, null, depth);
+    }
 }
 
 // Helper function to create the actual maze
@@ -2624,7 +2666,12 @@ export function mktrap(map, num, mktrapflags, croom, tm, depth) {
                 mx = pos.x;
                 my = pos.y;
             } else {
-                return; // maze mode not implemented
+                // C ref: mklev.c mktrap() maze path uses mazexy().
+                if (!(mktrapflags & MKTRAP_MAZEFLAG)) return;
+                const pos = mazexy(map);
+                if (!pos) return;
+                mx = pos.x;
+                my = pos.y;
             }
         } while (occupied(map, mx, my));
     }
@@ -4343,7 +4390,7 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
 
     if (shouldMakeMaze) {
         // C ref: mklev.c:1278 makemaz("")
-        makemaz(map, "", dnum, dlevel);
+        makemaz(map, "", dnum, dlevel, depth);
     } else {
         // C ref: mklev.c:1287 makerooms()
         // Initialize rectangle pool for BSP room placement
