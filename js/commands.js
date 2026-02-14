@@ -4,18 +4,18 @@
 
 import { COLNO, ROWNO, DOOR, STAIRS, LADDER, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE,
          POOL, LAVAPOOL, IRONBARS, TREE, ROOM, IS_DOOR, D_CLOSED, D_LOCKED,
-         D_ISOPEN, D_NODOOR, D_BROKEN, ACCESSIBLE, IS_WALL, MAXLEVEL, VERSION_STRING,
+         D_ISOPEN, D_NODOOR, D_BROKEN, ACCESSIBLE, IS_WALL, MAXLEVEL, VERSION_STRING, ICE,
          isok, A_STR, A_DEX, A_CON, A_WIS } from './config.js';
 import { SQKY_BOARD, SLP_GAS_TRAP, FIRE_TRAP, PIT, SPIKED_PIT } from './symbols.js';
 import { rn2, rnd, rnl, d, c_d } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
          TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
-         WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS } from './objects.js';
+         WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, CORPSE } from './objects.js';
 import { nhgetch, ynFunction, getlin } from './input.js';
 import { playerAttackMonster } from './combat.js';
 import { makemon, setMakemonPlayerContext } from './makemon.js';
-import { mons } from './monsters.js';
+import { mons, PM_LIZARD, PM_LICHEN } from './monsters.js';
 import { doname } from './mkobj.js';
 import { observeObject, getDiscoveriesMenuLines } from './discovery.js';
 import { showPager } from './pager.js';
@@ -50,6 +50,12 @@ const STATUS_CONDITION_DEFAULT_ON = new Set([
     'cond_grab', 'cond_hallucinat', 'cond_iron', 'cond_lava', 'cond_levitate',
     'cond_ride', 'cond_slime', 'cond_stone', 'cond_strngl', 'cond_stun', 'cond_termIll'
 ]);
+
+function formatGoldPickupMessage(gold) {
+    const count = gold?.quan || 1;
+    const plural = count === 1 ? '' : 's';
+    return `$ - ${count} gold piece${plural}.`;
+}
 
 // Direction key mappings
 // C ref: cmd.c -- movement key definitions
@@ -751,10 +757,7 @@ async function handleMovement(dir, player, map, display, game) {
         if (gold) {
             player.addToInventory(gold);
             map.removeObject(gold);
-            // C uses "n gold piece(s)" format
-            const count = gold.quan || 1;
-            const plural = count === 1 ? '' : 's';
-            display.putstr_message(`${count} gold piece${plural}.`);
+            display.putstr_message(formatGoldPickupMessage(gold));
             pickedUp = true;
         }
     }
@@ -776,6 +779,9 @@ async function handleMovement(dir, player, map, display, game) {
     // Show what's here if nothing was picked up
     // C ref: hack.c prints "You see here" only if nothing was picked up
     if (!pickedUp && objs.length > 0) {
+        if (IS_DOOR(loc.typ) && !(loc.flags & (D_CLOSED | D_LOCKED))) {
+            display.putstr_message('There is a doorway here.');
+        }
         if (objs.length === 1) {
             const seen = objs[0];
             if (seen.oclass === COIN_CLASS) {
@@ -812,16 +818,46 @@ async function handleMovement(dir, player, map, display, game) {
 
 // C ref: hack.c maybe_smudge_engr()
 // On successful movement, attempt to smudge engravings at origin/destination.
+function wipeoutEngravingText(text, cnt) {
+    if (!text || cnt <= 0) return text || '';
+    const chars = text.split('');
+    const lth = chars.length;
+    while (cnt-- > 0) {
+        let nxt;
+        do {
+            nxt = rn2(lth);
+        } while (chars[nxt] === ' ');
+        chars[nxt] = ' ';
+    }
+    return chars.join('');
+}
+
+// C ref: engrave.c wipe_engr_at()
+function wipeEngravingAt(map, x, y, cnt, magical = false) {
+    if (!map || !Array.isArray(map.engravings)) return;
+    const idx = map.engravings.findIndex((e) => e && e.x === x && e.y === y);
+    if (idx < 0) return;
+    const engr = map.engravings[idx];
+    if (!engr || engr.type === 'headstone' || engr.nowipeout) return;
+    const loc = map.at(x, y);
+    const isIce = !!loc && loc.typ === ICE;
+    if (engr.type !== 'burn' || isIce || (magical && !rn2(2))) {
+        let erase = cnt;
+        if (engr.type !== 'dust' && engr.type !== 'blood') {
+            erase = rn2(1 + Math.floor(50 / (cnt + 1))) ? 0 : 1;
+        }
+        if (erase > 0) {
+            engr.text = wipeoutEngravingText(engr.text || '', erase).replace(/^ +/, '');
+            if (!engr.text) {
+                map.engravings.splice(idx, 1);
+            }
+        }
+    }
+}
+
 function maybeSmudgeEngraving(map, x1, y1, x2, y2) {
-    const engravings = map?.engravings;
-    if (!Array.isArray(engravings) || engravings.length === 0) return;
-    const hasEngraving = (x, y) => engravings.find(e => e.x === x && e.y === y && e.type !== 'headstone');
-    if (hasEngraving(x1, y1)) {
-        rnd(5);
-    }
-    if ((x2 !== x1 || y2 !== y1) && hasEngraving(x2, y2)) {
-        rnd(5);
-    }
+    // C ref: u_wipe_engr(1) on movement: only current hero square is wiped.
+    wipeEngravingAt(map, x2, y2, 1, false);
 }
 
 // Handle running in a direction
@@ -902,9 +938,7 @@ function handlePickup(player, map, display) {
     if (gold) {
         player.addToInventory(gold);
         map.removeObject(gold);
-        const count = gold.quan || 1;
-        const plural = count === 1 ? '' : 's';
-        display.putstr_message(`${count} gold piece${plural}.`);
+        display.putstr_message(formatGoldPickupMessage(gold));
         return { moved: false, tookTime: true };
     }
 
@@ -1227,12 +1261,24 @@ async function handleEat(player, display, game) {
         return { moved: false, tookTime: false };
     }
 
-    display.putstr_message(`Eat what? [${food.map(f => f.invlet).join('')}]`);
+    const eatChoices = food.map(f => f.invlet).join('');
+    display.putstr_message(`What do you want to eat? [${eatChoices} or ?*]`);
     const ch = await nhgetch();
     const c = String.fromCharCode(ch);
 
     const item = food.find(f => f.invlet === c);
     if (item) {
+        // C ref: eat.c eatcorpse() RNG used by taint/rotting checks.
+        if (item.otyp === CORPSE) {
+            const cnum = Number.isInteger(item.corpsenm) ? item.corpsenm : -1;
+            const nonrotting = (cnum === PM_LIZARD || cnum === PM_LICHEN);
+            if (!nonrotting) {
+                rn2(20); // rotted denominator
+                rn2(7);  // rottenfood gate (when no prior taste effect triggered)
+            }
+            rn2(10); // palatable taste gate
+            rn2(5);  // palatable message choice index for non-vegetarian corpse
+        }
         const od = objectData[item.otyp];
         const reqtime = (od ? od.delay : 0) + 1; // C ref: eat.c reqtime = oc_delay + 1
         const baseNutr = od ? od.nutrition : 200;

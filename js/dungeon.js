@@ -109,6 +109,8 @@ const BR_PORTAL = 3;
 // Snapshot of branch topology chosen during simulateDungeonInit().
 // Each entry: { type, end1:{dnum,dlevel}, end2:{dnum,dlevel}, end1_up }.
 let _branchTopology = [];
+// C ref: decl.h gi.in_mklev — true only while makelevel() runs.
+let inMklev = false;
 
 // C ref: dungeon.c init_dungeons() -> svd.dungeons[dnum].flags.align
 export const DUNGEON_ALIGN_BY_DNUM = {
@@ -1324,8 +1326,9 @@ function create_maze(map, corrwid, wallthick, rmdeadends) {
                 }
                 if (idx2 >= 3 && dirok.length > 0) {
                     const dir = dirok[rn2(dirok.length)];
-                    let dest = mzMove(x, y, dir);
-                    dest = mzMove(dest.x, dest.y, dir);
+                    // C ref: mkmaze.c maze_remove_deadends():
+                    // carve the immediate neighboring wall, not the far room node.
+                    const dest = mzMove(x, y, dir);
                     const loc = map.at(dest.x, dest.y);
                     if (loc) loc.typ = carveType;
                 }
@@ -2391,7 +2394,7 @@ const RUBOUTS = {
 // C ref: engrave.c wipeout_text() with seed=0 (random mode)
 // Simulates the RNG consumption pattern without needing the actual text result.
 function wipeout_text(text, cnt) {
-    if (!text.length || cnt <= 0) return;
+    if (!text.length || cnt <= 0) return text;
     const chars = text.split('');
     const lth = chars.length;
     while (cnt--) {
@@ -2411,6 +2414,7 @@ function wipeout_text(text, cnt) {
             chars[nxt] = '?';
         }
     }
+    return chars.join('');
 }
 
 // C ref: engrave.c random_engraving() — engraving texts from ENGRAVEFILE
@@ -2500,7 +2504,7 @@ function random_engraving_rng() {
         }
     }
     // C: wipeout_text(outbuf, (int)(strlen(outbuf) / 4), 0);
-    wipeout_text(text, Math.floor(text.length / 4));
+    return wipeout_text(text, Math.floor(text.length / 4));
 }
 
 // C ref: mklev.c trap_engravings[] — engraving text for trap niches
@@ -2601,6 +2605,21 @@ function occupied(map, x, y) {
     if (!loc) return true;
     if (IS_FURNITURE(loc.typ)) return true;
     if (IS_LAVA(loc.typ) || IS_POOL(loc.typ)) return true;
+    // C ref: hack.c invocation_pos() used by mklev.c occupied().
+    if (map._isInvocationLevel && map._invPos
+        && x === map._invPos.x && y === map._invPos.y) {
+        return true;
+    }
+    return false;
+}
+
+// C ref: obj.h sobj_at(BOULDER, x, y) checks for boulder object at location.
+function hasBoulderAt(map, x, y) {
+    for (const obj of map.objects || []) {
+        if (obj && obj.otyp === BOULDER && obj.ox === x && obj.oy === y) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -2817,6 +2836,11 @@ function traptype_rnd(depth, mktrapflags = MKTRAP_NOFLAGS) {
 // C ref: mklev.c:2021 mktrap() — select trap type, find location, create trap
 export function mktrap(map, num, mktrapflags, croom, tm, depth) {
     if (!tm && !croom && !(mktrapflags & MKTRAP_MAZEFLAG)) return;
+    // C ref: mklev.c mktrap() — "no traps in pools".
+    if (tm) {
+        const loc = map.at(tm.x, tm.y);
+        if (!loc || IS_POOL(loc.typ) || IS_LAVA(loc.typ)) return;
+    }
 
     let kind;
     const lvl = depth;
@@ -2857,7 +2881,7 @@ export function mktrap(map, num, mktrapflags, croom, tm, depth) {
                 mx = pos.x;
                 my = pos.y;
             }
-        } while (occupied(map, mx, my));
+        } while (occupied(map, mx, my) || (avoid_boulder && hasBoulderAt(map, mx, my)));
     }
 
     const t = maketrap(map, mx, my, kind);
@@ -2867,36 +2891,23 @@ export function mktrap(map, num, mktrapflags, croom, tm, depth) {
     // WEB: create giant spider (needs makemon — skip for now)
     // At depth < 7, WEB can't generate anyway
 
-    // C ref: mklev.c victim-predecessor gate ordering:
-    // rnd(4) is skipped only when MKTRAP_NOVICTIM is set, but is otherwise
-    // consumed before later trap-kind exclusions.
-    if (!(mktrapflags & MKTRAP_NOVICTIM)) {
-        const victimRoll = rnd(4);
-        // Tutorial replay parity follows C's gate semantics exactly.
-        // Outside tutorial, preserve legacy behavior for existing non-tutorial
-        // replay fixtures while broader trap timing ports are in progress.
-        const useStrictTutorialGate = !!map.flags?.is_tutorial;
-        if (useStrictTutorialGate) {
-            const skipVictim = (mktrapflags & MKTRAP_MAZEFLAG)
-                ? (lvl <= victimRoll)
-                : (lvl < victimRoll);
-            if (skipVictim) return;
-        } else {
-            const legacyVictimGate = (map.flags && map.flags.is_maze_lev)
-                ? (lvl <= victimRoll)
-                : (lvl < victimRoll);
-            if (!legacyVictimGate) return;
+    // C ref: mklev.c:2124-2140 mktrap predecessor victim block.
+    const victimRoll = (!(mktrapflags & MKTRAP_NOVICTIM) && inMklev && kind !== NO_TRAP)
+        ? rnd(4)
+        : null;
+    if (inMklev
+        && kind !== NO_TRAP && !(mktrapflags & MKTRAP_NOVICTIM)
+        && lvl <= victimRoll
+        && kind !== SQKY_BOARD && kind !== RUST_TRAP
+        && !(kind === ROLLING_BOULDER_TRAP
+            && t.launch.x === t.tx && t.launch.y === t.ty)
+        && !is_pit(kind) && (kind < HOLE || kind === MAGIC_TRAP)) {
+        if (kind === LANDMINE) {
+            // C ref: exploded landmine becomes a revealed pit.
+            t.ttyp = PIT;
+            t.tseen = true;
         }
-
-        if (kind !== SQKY_BOARD && kind !== RUST_TRAP
-            && !is_pit(kind) && (kind < HOLE || kind === MAGIC_TRAP)) {
-            // LANDMINE: convert to PIT (exploded)
-            if (kind === LANDMINE) {
-                t.ttyp = PIT;
-                t.tseen = true;
-            }
-            mktrap_victim(map, t, depth);
-        }
+        mktrap_victim(map, t, depth);
     }
 }
 
@@ -3298,12 +3309,24 @@ export function fill_ordinary_room(map, croom, depth, bonusItems) {
     // C ref: graffiti (!rn2(27 + 3 * abs(depth)))
     if (!rn2(27 + 3 * Math.abs(depth))) {
         // C: random_engraving(buf, pristinebuf) — selects text + wipeout_text
-        random_engraving_rng();
+        const engrText = random_engraving_rng();
         // C: do { somexyspace(croom, &pos); } while (typ != ROOM && !rn2(40));
         let pos;
         do {
             pos = somexyspace(map, croom);
         } while (pos && map.at(pos.x, pos.y).typ !== ROOM && !rn2(40));
+        if (pos) {
+            map.engravings = map.engravings.filter(e => !(e.x === pos.x && e.y === pos.y));
+            map.engravings.push({
+                x: pos.x,
+                y: pos.y,
+                // C ref: mklev.c fill_ordinary_room() graffiti uses MARK, not DUST.
+                type: 'mark',
+                text: engrText || '',
+                degrade: true,
+                guardobjects: false,
+            });
+        }
     }
 
     // C ref: random objects (!rn2(3))
@@ -3433,6 +3456,24 @@ const SPINE_ARRAY = [
     VWALL, TLWALL, TRWALL, CROSSWALL,
 ];
 
+// C ref: rm.h WM_* wall mode flags (stored in rm.flags/wall_info low bits)
+const WM_MASK = 0x07;
+const WM_W_LEFT = 1;
+const WM_W_RIGHT = 2;
+const WM_W_TOP = WM_W_LEFT;
+const WM_W_BOTTOM = WM_W_RIGHT;
+const WM_C_OUTER = 1;
+const WM_C_INNER = 2;
+const WM_T_LONG = 1;
+const WM_T_BL = 2;
+const WM_T_BR = 3;
+const WM_X_TL = 1;
+const WM_X_TR = 2;
+const WM_X_BL = 3;
+const WM_X_BR = 4;
+const WM_X_TLBR = 5;
+const WM_X_BLTR = 6;
+
 // C ref: mkmaze.c fix_wall_spines() — set correct wall type based on neighbors
 function setWallType(map, x, y) {
     const loc = map.at(x, y);
@@ -3463,6 +3504,142 @@ function setWallType(map, x, y) {
 
     // Don't change typ if wall is free-standing
     if (bits) loc.typ = SPINE_ARRAY[bits];
+}
+
+// C ref: display.c check_pos()
+function check_wall_pos(map, x, y, which) {
+    if (!isok(x, y)) return which;
+    const type = map.at(x, y)?.typ;
+    if (type === undefined) return which;
+    if (IS_STWALL(type) || type === CORR || type === SCORR || type === SDOOR) {
+        return which;
+    }
+    return 0;
+}
+
+function moreThanOne(a, b, c) {
+    return ((a && (b || c)) || (b && (a || c)) || (c && (a || b)));
+}
+
+// C ref: display.c set_twall()
+function set_twall_mode(map, x1, y1, x2, y2, x3, y3) {
+    const is1 = check_wall_pos(map, x1, y1, WM_T_LONG);
+    const is2 = check_wall_pos(map, x2, y2, WM_T_BL);
+    const is3 = check_wall_pos(map, x3, y3, WM_T_BR);
+    if (moreThanOne(is1, is2, is3)) return 0;
+    return is1 + is2 + is3;
+}
+
+// C ref: display.c set_wall()
+function set_wall_mode(map, x, y, horiz) {
+    let is1, is2;
+    if (horiz) {
+        is1 = check_wall_pos(map, x, y - 1, WM_W_TOP);
+        is2 = check_wall_pos(map, x, y + 1, WM_W_BOTTOM);
+    } else {
+        is1 = check_wall_pos(map, x - 1, y, WM_W_LEFT);
+        is2 = check_wall_pos(map, x + 1, y, WM_W_RIGHT);
+    }
+    if (moreThanOne(is1, is2, 0)) return 0;
+    return is1 + is2;
+}
+
+// C ref: display.c set_corn()
+function set_corner_mode(map, x1, y1, x2, y2, x3, y3, x4, y4) {
+    const is1 = check_wall_pos(map, x1, y1, 1);
+    const is2 = check_wall_pos(map, x2, y2, 1);
+    const is3 = check_wall_pos(map, x3, y3, 1);
+    const is4 = check_wall_pos(map, x4, y4, 1);
+    if (is4) return WM_C_INNER;
+    if (is1 && is2 && is3) return WM_C_OUTER;
+    return 0;
+}
+
+// C ref: display.c set_crosswall()
+function set_crosswall_mode(map, x, y) {
+    const is1 = check_wall_pos(map, x - 1, y - 1, 1);
+    const is2 = check_wall_pos(map, x + 1, y - 1, 1);
+    const is3 = check_wall_pos(map, x + 1, y + 1, 1);
+    const is4 = check_wall_pos(map, x - 1, y + 1, 1);
+
+    let wmode = is1 + is2 + is3 + is4;
+    if (wmode > 1) {
+        if (is1 && is3 && (is2 + is4 === 0)) {
+            wmode = WM_X_TLBR;
+        } else if (is2 && is4 && (is1 + is3 === 0)) {
+            wmode = WM_X_BLTR;
+        } else {
+            wmode = 0;
+        }
+    } else if (is1) {
+        wmode = WM_X_TL;
+    } else if (is2) {
+        wmode = WM_X_TR;
+    } else if (is3) {
+        wmode = WM_X_BR;
+    } else if (is4) {
+        wmode = WM_X_BL;
+    }
+    return wmode;
+}
+
+// C ref: display.c xy_set_wall_state()
+export function xy_set_wall_state(map, x, y) {
+    const loc = map.at(x, y);
+    if (!loc) return;
+    let wmode = -1;
+    switch (loc.typ) {
+    case SDOOR:
+        wmode = set_wall_mode(map, x, y, loc.horizontal ? 1 : 0);
+        break;
+    case VWALL:
+        wmode = set_wall_mode(map, x, y, 0);
+        break;
+    case HWALL:
+        wmode = set_wall_mode(map, x, y, 1);
+        break;
+    case TDWALL:
+        wmode = set_twall_mode(map, x, y - 1, x - 1, y + 1, x + 1, y + 1);
+        break;
+    case TUWALL:
+        wmode = set_twall_mode(map, x, y + 1, x + 1, y - 1, x - 1, y - 1);
+        break;
+    case TLWALL:
+        wmode = set_twall_mode(map, x + 1, y, x - 1, y - 1, x - 1, y + 1);
+        break;
+    case TRWALL:
+        wmode = set_twall_mode(map, x - 1, y, x + 1, y + 1, x + 1, y - 1);
+        break;
+    case TLCORNER:
+        wmode = set_corner_mode(map, x - 1, y - 1, x, y - 1, x - 1, y, x + 1, y + 1);
+        break;
+    case TRCORNER:
+        wmode = set_corner_mode(map, x, y - 1, x + 1, y - 1, x + 1, y, x - 1, y + 1);
+        break;
+    case BLCORNER:
+        wmode = set_corner_mode(map, x, y + 1, x - 1, y + 1, x - 1, y, x + 1, y - 1);
+        break;
+    case BRCORNER:
+        wmode = set_corner_mode(map, x + 1, y, x + 1, y + 1, x, y + 1, x - 1, y - 1);
+        break;
+    case CROSSWALL:
+        wmode = set_crosswall_mode(map, x, y);
+        break;
+    default:
+        break;
+    }
+    if (wmode >= 0) {
+        loc.flags = (loc.flags & ~WM_MASK) | wmode;
+    }
+}
+
+// C ref: display.c set_wall_state()
+export function set_wall_state(map) {
+    for (let x = 0; x < COLNO; x++) {
+        for (let y = 0; y < ROWNO; y++) {
+            xy_set_wall_state(map, x, y);
+        }
+    }
 }
 
 // C ref: gb.bughack.inarea defaults to an invalid rectangle so bounded checks fail.
@@ -3521,6 +3698,20 @@ function do_fill_vault(map, vaultCheck, depth) {
 
     // Re-run wallification around the vault region to fix wall types
     wallify(map, lowx - 1, lowy - 1, hix + 1, hiy + 1);
+    // C ref: vault.c wall repair paths call xy_set_wall_state() immediately
+    // after setting repaired wall types.
+    for (let x = lowx - 1; x <= hix + 1; x++) {
+        for (let y = lowy - 1; y <= hiy + 1; y++) {
+            // Match vault.c scope: only boundary tiles around the vault.
+            if (x !== lowx - 1 && x !== hix + 1 && y !== lowy - 1 && y !== hiy + 1) continue;
+            const loc = map.at(x, y);
+            if (!loc) continue;
+            if (!(IS_WALL(loc.typ) || loc.typ === SDOOR)) continue;
+            // C sets wall_info/doormask to 0 before xy_set_wall_state().
+            loc.flags &= ~WM_MASK;
+            xy_set_wall_state(map, x, y);
+        }
+    }
 }
 
 const XL_UP = 1;
@@ -4529,6 +4720,8 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
     // Must happen BEFORE special level check to match C RNG order
     const bonesMap = getbones(null, depth);
     if (bonesMap) return bonesMap;
+    inMklev = true;
+    try {
 
     // Check for special level if branch coordinates provided
     const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_MAKELEVEL === '1';
@@ -4764,12 +4957,22 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
     // bound_digging marks boundary stone as non-diggable before mineralize
     bound_digging(map);
     mineralize(map, depth);
+    // C ref: mklev.c:1558 — level_finalize_topology() calls set_wall_state().
+    // This computes wall_info mode bits (stored in rm.flags low bits).
+    set_wall_state(map);
+    // C ref: mklev.c:1561-1562 — persist original room type snapshot.
+    for (let i = 0; i < map.rooms.length; i++) {
+        map.rooms[i].orig_rtype = map.rooms[i].rtype;
+    }
 
     // Branch stair placement must be gated by actual chosen branch depth.
     // Unconditional placement on depths 2..4 over-consumes RNG and is incorrect.
     // TODO: wire this to real dungeon branch state from init_dungeons().
 
     return map;
+    } finally {
+        inMklev = false;
+    }
 }
 
 // =============================================================================
@@ -4793,10 +4996,51 @@ function within_bounded_area(x, y, lx, ly, hx, hy) {
 
 // C ref: mkmaze.c:317-332 — is_exclusion_zone
 // Check if position is in an exclusion zone for this region type
-// Stub implementation: no exclusion zones for now
-function is_exclusion_zone(rtype, x, y) {
-    // TODO: implement exclusion zones when needed
-    // For now, no exclusion zones
+function is_exclusion_zone(map, rtype, x, y) {
+    const zones = Array.isArray(map?.exclusionZones) ? map.exclusionZones : null;
+    if (!zones || zones.length === 0) return false;
+
+    const normalizeZoneType = (zoneType) => {
+        // JS des.exclusion() stores string tags.
+        if (typeof zoneType === 'string') {
+            switch (zoneType) {
+                case 'teleport':
+                    return LR_TELE;
+                case 'teleport-down':
+                    return LR_DOWNTELE;
+                case 'teleport-up':
+                    return LR_UPTELE;
+                case 'monster-generation':
+                    return 7; // LR_MONGEN equivalent
+                default:
+                    return undefined;
+            }
+        }
+        // Accept both JS-local constants and C enum values when numeric.
+        if (typeof zoneType === 'number') {
+            if (zoneType === LR_TELE || zoneType === 4) return LR_TELE;
+            if (zoneType === LR_UPTELE || zoneType === 5) return LR_UPTELE;
+            if (zoneType === LR_DOWNTELE || zoneType === 6) return LR_DOWNTELE;
+            if (zoneType === 7) return 7; // LR_MONGEN
+        }
+        return undefined;
+    };
+
+    for (const zone of zones) {
+        const zoneType = normalizeZoneType(zone?.type ?? zone?.zonetype);
+        if (zoneType === undefined) continue;
+
+        const typeMatches = (
+            (rtype === LR_DOWNTELE && (zoneType === LR_DOWNTELE || zoneType === LR_TELE))
+            || (rtype === LR_UPTELE && (zoneType === LR_UPTELE || zoneType === LR_TELE))
+            || (rtype === zoneType)
+        );
+        if (!typeMatches) continue;
+
+        if (within_bounded_area(x, y, zone.lx, zone.ly, zone.hx, zone.hy)) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -4833,7 +5077,7 @@ function bad_location(map, x, y, nlx, nly, nhx, nhy) {
 function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot) {
     // Check if location is bad.
     let invalid = bad_location(map, x, y, nlx, nly, nhx, nhy)
-        || is_exclusion_zone(rtype, x, y);
+        || is_exclusion_zone(map, rtype, x, y);
     if (invalid) {
         if (!oneshot) {
             return false; // Try again
@@ -4844,10 +5088,14 @@ function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot) {
         const undestroyable = (trap?.ttyp === MAGIC_PORTAL
             || trap?.ttyp === VIBRATING_SQUARE);
         if (trap && !undestroyable) {
+            const mon = map.monsterAt(x, y);
+            if (mon && mon.mtrapped) {
+                mon.mtrapped = 0;
+            }
             map.traps = map.traps.filter(t => t !== trap);
         }
         invalid = bad_location(map, x, y, nlx, nly, nhx, nhy)
-            || is_exclusion_zone(rtype, x, y);
+            || is_exclusion_zone(map, rtype, x, y);
         if (invalid) return false;
     }
 
@@ -4859,12 +5107,38 @@ function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot) {
         case LR_TELE:
         case LR_UPTELE:
         case LR_DOWNTELE:
-            // Teleport region - not needed for basic implementation
+            // C ref: mkmaze.c put_lregion_here():
+            // if monster occupies destination, retry unless oneshot;
+            // oneshot relocates monster, and if impossible removes it from level.
+            {
+                const mon = map.monsterAt(x, y);
+                if (mon) {
+                    if (!oneshot) {
+                        return false;
+                    }
+                    const pos = enexto(x, y, map);
+                    if (pos) {
+                        mon.mx = pos.x;
+                        mon.my = pos.y;
+                    } else {
+                        map.removeMonster(mon);
+                    }
+                }
+            }
+            // C's u_on_newpos(x,y) has no levelgen-side equivalent here.
             break;
 
         case LR_PORTAL:
             // C parity: branch portal does not alter terrain, it adds MAGIC_PORTAL.
-            maketrap(map, x, y, MAGIC_PORTAL);
+            {
+                const trap = maketrap(map, x, y, MAGIC_PORTAL);
+                if (trap && map?._portalDestOverride) {
+                    trap.dst = {
+                        dnum: map._portalDestOverride.dnum,
+                        dlevel: map._portalDestOverride.dlevel
+                    };
+                }
+            }
             break;
 
         case LR_DOWNSTAIR:

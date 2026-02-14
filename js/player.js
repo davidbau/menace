@@ -556,6 +556,21 @@ export class Player {
     // Add an item to inventory, assigning an inventory letter
     // C ref: invent.c addinv()
     addToInventory(obj) {
+        // Keep coins in inventory for existing gameplay logic, but do not let
+        // them consume a normal inventory letter slot.
+        if (obj.oclass === COIN_CLASS) {
+            this.gold += (obj.quan || 1);
+            const existingCoin = this.inventory.find(it => it.oclass === COIN_CLASS);
+            if (existingCoin) {
+                existingCoin.quan = (existingCoin.quan || 1) + (obj.quan || 1);
+                existingCoin.invlet = '$';
+                return existingCoin;
+            }
+            obj.invlet = '$';
+            this.inventory.push(obj);
+            return obj;
+        }
+
         // C ref: invent.c mergable() — merge before assigning a new invlet.
         const canMerge = (a, b) => {
             if (!a || !b || a === b) return false;
@@ -607,6 +622,9 @@ export class Player {
     removeFromInventory(obj) {
         const idx = this.inventory.indexOf(obj);
         if (idx >= 0) {
+            if (obj.oclass === COIN_CLASS) {
+                this.gold = Math.max(0, this.gold - (obj.quan || 1));
+            }
             this.inventory.splice(idx, 1);
         }
     }

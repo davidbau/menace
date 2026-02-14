@@ -16,9 +16,9 @@
 import { GameMap, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1, getRngCallCount } from './rng.js';
 import { mksobj, mkobj, mkcorpstat, set_corpsenm, weight } from './mkobj.js';
-import { create_room, create_subroom, makecorridors, create_corridor, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize as dungeonMineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, wallify_region as dungeonWallifyRegion, fix_wall_spines, place_lregion, mktrap, enexto, somexy, sp_create_door, floodFillAndRegister, resolveBranchPlacementForLevel, random_epitaph_text, induced_align, DUNGEON_ALIGN_BY_DNUM } from './dungeon.js';
+import { create_room, create_subroom, makecorridors, create_corridor, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize as dungeonMineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, wallify_region as dungeonWallifyRegion, fix_wall_spines, set_wall_state, place_lregion, mktrap, enexto, somexy, sp_create_door, floodFillAndRegister, resolveBranchPlacementForLevel, random_epitaph_text, induced_align, DUNGEON_ALIGN_BY_DNUM } from './dungeon.js';
 import { seedFromMT } from './xoshiro256.js';
-import { makemon, mkclass, def_char_to_monclass, NO_MM_FLAGS, MM_NOGRP } from './makemon.js';
+import { makemon, mkclass, def_char_to_monclass, NO_MM_FLAGS, MM_NOGRP, rndmonnum, getMakemonRoleIndex } from './makemon.js';
 import {
     STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
     CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL, DBWALL, ROOM, CORR,
@@ -26,7 +26,7 @@ import {
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN, LAVAPOOL, LAVAWALL, ICE, CLOUD, AIR,
     STAIRS, LADDER, ALTAR, GRAVE, THRONE, SINK,
     SCORR, MAX_TYPE,
-    PIT, SPIKED_PIT, HOLE, TRAPDOOR, ARROW_TRAP, DART_TRAP,
+    PIT, SPIKED_PIT, HOLE, TRAPDOOR, ARROW_TRAP, DART_TRAP, ROCKTRAP,
     SQKY_BOARD, BEAR_TRAP, LANDMINE, ROLLING_BOULDER_TRAP,
     SLP_GAS_TRAP, RUST_TRAP, FIRE_TRAP, TELEP_TRAP, LEVEL_TELEP,
     MAGIC_PORTAL, WEB, ANTI_MAGIC, POLY_TRAP, STATUE_TRAP, MAGIC_TRAP,
@@ -35,15 +35,17 @@ import {
     COLNO, ROWNO, IS_OBSTRUCTED, IS_WALL, IS_STWALL, IS_POOL, IS_LAVA,
     A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
     MKTRAP_SEEN, MKTRAP_MAZEFLAG, MKTRAP_NOSPIDERONWEB, MKTRAP_NOVICTIM,
-    MAXNROFROOMS, ROOMOFFSET
+    MAXNROFROOMS, ROOMOFFSET,
+    PM_PRIEST as ROLE_PRIEST
 } from './config.js';
 import {
     BOULDER, SCROLL_CLASS, FOOD_CLASS, WEAPON_CLASS, ARMOR_CLASS,
     POTION_CLASS, RING_CLASS, WAND_CLASS, TOOL_CLASS, AMULET_CLASS,
     GEM_CLASS, SPBOOK_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS, VENOM_CLASS,
-    SCR_EARTH, objectData, GOLD_PIECE
+    SCR_EARTH, objectData, GOLD_PIECE, STATUE
 } from './objects.js';
-import { mons, M2_FEMALE, M2_MALE, G_NOGEN, PM_MINOTAUR } from './monsters.js';
+import { mons, M2_FEMALE, M2_MALE, G_NOGEN, PM_MINOTAUR, MR_STONE } from './monsters.js';
+import { findSpecialLevelByName } from './special_levels.js';
 
 // Aliases for compatibility with C naming
 const STAIRS_UP = STAIRS;
@@ -562,6 +564,7 @@ export function setLevelContext(map, depth) {
 
     levelState.map = map;
     levelState.depth = depth || 1;
+    levelState.levelDepth = depth || 1;
     levelState.roomStack = [];
     levelState.roomDepth = 0;
     levelState.currentRoom = null;
@@ -580,6 +583,7 @@ export function setLevelContext(map, depth) {
 export function clearLevelContext() {
     levelState.map = null;
     levelState.depth = 1;
+    levelState.levelDepth = undefined;
     levelState.roomStack = [];
     levelState.roomDepth = 0;
     levelState.currentRoom = null;
@@ -1109,6 +1113,24 @@ function fixupSpecialLevel() {
     const LR_BRANCH = 4;
     const LR_UPSTAIR = 5;
     const LR_DOWNSTAIR = 6;
+    const ctx = levelState.finalizeContext || {};
+    const specialName = (typeof ctx.specialName === 'string') ? ctx.specialName.toLowerCase() : '';
+
+    // C ref: mkmaze.c fixup_special():
+    // Is_waterlevel/Is_airlevel forces hero_memory off and runs setup_waterlevel()
+    // before processing levregions.
+    if (specialName === 'water' || specialName === 'air') {
+        levelState.map.flags.hero_memory = false;
+        const baseTyp = (specialName === 'water') ? WATER : AIR;
+        for (let x = 1; x < COLNO; x++) {
+            for (let y = 0; y < ROWNO; y++) {
+                const loc = levelState.map.at(x, y);
+                if (loc && loc.typ === STONE) {
+                    loc.typ = baseTyp;
+                }
+            }
+        }
+    }
 
     let addedBranch = false;
     const withBranchHint = (placement, fn) => {
@@ -1125,6 +1147,50 @@ function fixupSpecialLevel() {
             }
         }
     };
+    const withPortalDest = (dest, fn) => {
+        const map = levelState.map;
+        const prev = map._portalDestOverride;
+        if (dest) {
+            map._portalDestOverride = { dnum: dest.dnum, dlevel: dest.dlevel };
+        } else {
+            delete map._portalDestOverride;
+        }
+        try {
+            fn();
+        } finally {
+            if (prev === undefined) {
+                delete map._portalDestOverride;
+            } else {
+                map._portalDestOverride = prev;
+            }
+        }
+    };
+    const resolvePortalDest = (region, ctx) => {
+        if (region?.rtype !== LR_PORTAL) return null;
+        const rname = (typeof region.rname === 'string') ? region.rname.trim() : '';
+        if (!rname) return null;
+
+        // C ref: mkmaze.c fixup_special() LR_PORTAL:
+        // numeric rname keeps current dungeon and sets destination dlevel.
+        if (/^\d+$/.test(rname)) {
+            const dlevel = Number.parseInt(rname, 10);
+            if (Number.isFinite(ctx?.dnum) && Number.isFinite(dlevel)) {
+                return { dnum: ctx.dnum, dlevel };
+            }
+            return null;
+        }
+
+        // Named portal destination: resolve by registered special-level name.
+        return findSpecialLevelByName(rname);
+    };
+    const placeRegion = (region, explicitType = region.rtype) => {
+        const ctx = levelState.finalizeContext || {};
+        const portalDest = resolvePortalDest(region, ctx);
+        withPortalDest(portalDest, () => place_lregion(levelState.map,
+            region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
+            region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
+            explicitType));
+    };
     for (const region of levelState.levRegions || []) {
         switch (region.rtype) {
             case LR_BRANCH:
@@ -1136,44 +1202,28 @@ function fixupSpecialLevel() {
                     break;
                 }
                 if (explicit === 'portal') {
-                    withBranchHint('portal', () => place_lregion(levelState.map,
-                        region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
-                        region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
-                        LR_BRANCH));
+                    withBranchHint('portal', () => placeRegion(region, LR_BRANCH));
                     break;
                 }
                 if (explicit === 'stairs') {
-                    withBranchHint('stair-down', () => place_lregion(levelState.map,
-                        region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
-                        region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
-                        LR_BRANCH));
+                    withBranchHint('stair-down', () => placeRegion(region, LR_BRANCH));
                     break;
                 }
 
-                const ctx = levelState.finalizeContext || {};
                 const branch = resolveBranchPlacementForLevel(ctx.dnum, ctx.dlevel);
                 if (branch.placement === 'none') {
                     break;
                 }
                 if (branch.placement === 'portal') {
-                    withBranchHint('portal', () => place_lregion(levelState.map,
-                        region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
-                        region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
-                        LR_BRANCH));
+                    withBranchHint('portal', () => placeRegion(region, LR_BRANCH));
                     break;
                 }
                 if (branch.placement === 'stair-up') {
-                    withBranchHint('stair-up', () => place_lregion(levelState.map,
-                        region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
-                        region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
-                        LR_BRANCH));
+                    withBranchHint('stair-up', () => placeRegion(region, LR_BRANCH));
                     break;
                 }
                 if (branch.placement === 'stair-down') {
-                    withBranchHint('stair-down', () => place_lregion(levelState.map,
-                        region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
-                        region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
-                        LR_BRANCH));
+                    withBranchHint('stair-down', () => placeRegion(region, LR_BRANCH));
                     break;
                 }
                 // Fallback for unknown resolver states.
@@ -1181,10 +1231,7 @@ function fixupSpecialLevel() {
             case LR_PORTAL:
             case LR_UPSTAIR:
             case LR_DOWNSTAIR:
-                place_lregion(levelState.map,
-                    region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
-                    region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
-                    region.rtype);
+                placeRegion(region);
                 break;
             case LR_TELE:
             case LR_UPTELE:
@@ -1210,7 +1257,6 @@ function fixupSpecialLevel() {
         }
     }
 
-    const ctx = levelState.finalizeContext || {};
     if (!addedBranch && ctx.isBranchLevel) {
         // C fallback: fixup_special() places branch if Is_branchlev(&u.uz) true.
         const branch = resolveBranchPlacementForLevel(ctx.dnum, ctx.dlevel);
@@ -1223,12 +1269,89 @@ function fixupSpecialLevel() {
         }
     }
 
-    const specialName = (typeof ctx.specialName === 'string') ? ctx.specialName.toLowerCase() : '';
     if (specialName === 'baalz') {
         baalz_fixup(levelState.map);
     }
+    if (specialName.startsWith('medusa')) {
+        medusa_fixup(levelState.map);
+    }
+    // C ref: mkmaze.c fixup_special():
+    // Role_if(PM_CLERIC) && In_quest(&u.uz) => level.flags.graveyard = 1
+    // In JS, role context is tracked via makemon role context; quest dnum is 3.
+    const roleIndex = Number.isInteger(ctx.roleIndex) ? ctx.roleIndex : getMakemonRoleIndex();
+    if (roleIndex === ROLE_PRIEST && ctx.dnum === 3) {
+        levelState.map.flags.graveyard = true;
+    }
+    // C ref: mkmaze.c fixup_special():
+    // - Is_stronghold(&u.uz) => level.flags.graveyard = 1
+    // - Is_special(&u.uz)->flags.town (Mine Town variants) => has_town = 1
+    if (specialName === 'castle') {
+        levelState.map.flags.graveyard = true;
+    }
+    if (specialName.startsWith('minetn')) {
+        levelState.map.flags.has_town = true;
+    }
 
     levelState.branchPlaced = true;
+}
+
+// C ref: mkmaze.c fixup_special() Medusa branch
+function medusa_fixup(map) {
+    if (!map || !Array.isArray(map.rooms) || map.rooms.length === 0) return;
+    const croom = map.rooms[0]; // first room defined on Medusa level
+    if (!croom) return;
+
+    const randRoomPos = () => ({
+        x: rn1(croom.hx - croom.lx + 1, croom.lx),
+        y: rn1(croom.hy - croom.ly + 1, croom.ly),
+    });
+    const medusaGoodpos = (x, y) => {
+        const loc = map.at(x, y);
+        return !!loc && loc.typ > DOOR && !map.monsterAt(x, y);
+    };
+    const polyWhenStoned = (_mnum) => false; // TODO: port full polymorph-on-stone table
+    const statueNeedsReroll = (obj) => {
+        if (!obj || !Number.isInteger(obj.corpsenm)) return false;
+        if (obj.corpsenm < 0 || obj.corpsenm >= mons.length) return false;
+        const m = mons[obj.corpsenm];
+        if (!m) return false;
+        return !!(m.mr1 & MR_STONE) || polyWhenStoned(obj.corpsenm);
+    };
+    const mk_tt_statue = (x, y) => {
+        const otmp = mksobj(STATUE, true, false);
+        if (!otmp) return null;
+        placeObjectAt(otmp, x, y);
+        return otmp;
+    };
+
+    // for (tryct = rnd(4); tryct; tryct--) { ... }
+    for (let tryct = rnd(4); tryct > 0; tryct--) {
+        const { x, y } = randRoomPos();
+        if (!medusaGoodpos(x, y)) continue;
+        let tryct2 = 0;
+        let otmp = mk_tt_statue(x, y);
+        while (++tryct2 < 100 && otmp && statueNeedsReroll(otmp)) {
+            set_corpsenm(otmp, rndmonnum(levelState.levelDepth || 1));
+        }
+    }
+
+    let otmp = null;
+    {
+        const { x, y } = randRoomPos();
+        if (rn2(2)) {
+            otmp = mk_tt_statue(x, y);
+        } else {
+            // Medusa statues don't contain books in this branch.
+            otmp = mkcorpstat(STATUE, -1, false);
+            if (otmp) placeObjectAt(otmp, x, y);
+        }
+    }
+    if (otmp) {
+        let tryct = 0;
+        while (++tryct < 100 && statueNeedsReroll(otmp)) {
+            set_corpsenm(otmp, rndmonnum(levelState.levelDepth || 1));
+        }
+    }
 }
 
 // C ref: mkmaze.c baalz_fixup()
@@ -1662,7 +1785,7 @@ export function level_flags(...flags) {
  * This matches C's flip_level_rnd() which is called at the end of level loading.
  * C ref: sp_lev.c flip_level_rnd() and flip_level()
  */
-function flipLevelRandom() {
+function flipLevelRandom(extras = false) {
     const allowFlips = levelState.coder.allow_flips;
     const DEBUG_FLIP = typeof process !== 'undefined' && process.env.DEBUG_FLIP === '1';
     const rngBefore = DEBUG_FLIP && typeof getRngCallCount === 'function' ? getRngCallCount() : null;
@@ -1886,6 +2009,11 @@ function flipLevelRandom() {
         if (Number.isInteger(mon.y)) mon.y = fy;
     }
 
+    // C ref: sp_lev.c flip_level(): when extras && flp, set_wall_state().
+    // In normal generation extras is false.
+    if (extras && flipBits) {
+        set_wall_state(map);
+    }
     return true;
 }
 
@@ -3488,6 +3616,7 @@ function objectClassToType(classChar) {
         case '(': return TOOL_CLASS;
         case '"': return AMULET_CLASS;
         case '*': return GEM_CLASS;
+        case '`': return ROCK_CLASS;
         default: return -1;
     }
 }
@@ -3565,11 +3694,18 @@ export function object(name_or_opts, x, y) {
         obj = mkobj(0, artif);  // RANDOM_CLASS = 0
     } else if (typeof name_or_opts === 'string') {
         // Single-character strings are object class codes (!, ?, +, etc.)
-        // C ref: sp_lev.c spo_object() handles single chars as class selection
+        // C ref: sp_lev.c spo_object() first attempts class-char mapping, then
+        // falls back to object-name lookup for non-class single-char ids.
         if (name_or_opts.length === 1) {
             const objClass = objectClassToType(name_or_opts);
             if (objClass >= 0) {
                 obj = mkobj(objClass, artif);  // Random object from class
+            } else {
+                const otyp = objectNameToType(name_or_opts);
+                if (otyp >= 0) {
+                    obj = mksobj(otyp, true, artif);
+                    if (obj) obj.id = name_or_opts;
+                }
             }
         } else {
             // Multi-character strings are object names
@@ -3668,7 +3804,7 @@ function trapNameToType(name) {
     switch (lowerName) {
         case 'arrow': return ARROW_TRAP;
         case 'dart': return DART_TRAP;
-        // Note: FALLING_ROCK_TRAP (type 3) not exported from config.js
+        case 'falling rock': case 'falling_rock': case 'rock': return ROCKTRAP;
         case 'squeaky board': case 'squeaky_board': case 'board': return SQKY_BOARD;
         case 'bear': return BEAR_TRAP;
         case 'land mine': case 'landmine': return LANDMINE;

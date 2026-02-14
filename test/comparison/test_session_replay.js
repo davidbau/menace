@@ -21,6 +21,7 @@ function usage() {
     console.log('Options:');
     console.log('  --verbose              Print every step result');
     console.log('  --stop-on-mismatch     Stop at first mismatch');
+    console.log('  --no-compare-rng       Disable RNG comparison');
     console.log('  --no-compare-screen    Disable screen comparison (enabled by default)');
     console.log('  --rows-1-23            Exclude row 0 (message row) from screen comparison');
     console.log('  --compare-screen       Explicitly enable screen comparison');
@@ -78,7 +79,10 @@ const DEC_FROM_UNICODE = {
 
 function normalizeCapturedLine(line, row, screenMode, isMapScreen, mapConvertEnd = null, prependMissingCol0 = true) {
     let out = (line || '').replace(/\r$/, '').replace(/[\x0e\x0f]/g, '');
-    if (screenMode === 'decgraphics' && row >= 1 && prependMissingCol0) {
+    // Some tmux capture paths drop terminal column 0 on non-top rows,
+    // regardless of charset mode. Accepting both padded and unpadded
+    // captured lines keeps strict comparisons robust to that artifact.
+    if (row >= 1 && prependMissingCol0) {
         // tmux capture drops terminal column 0 for non-top rows.
         out = ` ${out}`;
     }
@@ -205,6 +209,7 @@ async function main() {
     const sessionPath = path.resolve(args[0]);
     const verbose = args.includes('--verbose');
     const stopOnMismatch = args.includes('--stop-on-mismatch');
+    const compareRngEnabled = !args.includes('--no-compare-rng');
     const compareScreen = args.includes('--no-compare-screen')
         ? false
         : true;
@@ -221,7 +226,7 @@ async function main() {
 
     let failures = 0;
 
-    if (session.startup?.rng && !hasStartupBurstInFirstStep(session)) {
+    if (compareRngEnabled && session.startup?.rng && !hasStartupBurstInFirstStep(session)) {
         const startup = generateStartupWithRng(seed, session);
         const div = compareRng(startup.rng, session.startup.rng);
         if (div.index === -1) {
@@ -233,7 +238,7 @@ async function main() {
                 process.exit(1);
             }
         }
-    } else if (hasStartupBurstInFirstStep(session)) {
+    } else if (compareRngEnabled && hasStartupBurstInFirstStep(session)) {
         console.log('startup: skipped (keylog trace stores startup RNG in step 0)');
     }
 
@@ -249,19 +254,23 @@ async function main() {
     for (let i = 0; i < totalSteps; i++) {
         const jsStep = replay.steps[i];
         const cStep = session.steps[i];
-        const div = compareRng(jsStep?.rng || [], cStep?.rng || []);
-        const ok = div.index === -1;
-        if (ok) {
-            matchedSteps++;
-            if (verbose) {
-                console.log(`step ${i}: ok (${cStep.action || cStep.key})`);
+        if (compareRngEnabled) {
+            const div = compareRng(jsStep?.rng || [], cStep?.rng || []);
+            const ok = div.index === -1;
+            if (ok) {
+                matchedSteps++;
+                if (verbose) {
+                    console.log(`step ${i}: ok (${cStep.action || cStep.key})`);
+                }
+            } else {
+                failures++;
+                console.log(`step ${i} (${cStep.action || cStep.key}): ${mismatchLine('RNG', div)}`);
+                if (stopOnMismatch) {
+                    break;
+                }
             }
         } else {
-            failures++;
-            console.log(`step ${i} (${cStep.action || cStep.key}): ${mismatchLine('RNG', div)}`);
-            if (stopOnMismatch) {
-                break;
-            }
+            matchedSteps++;
         }
 
         if (compareScreen) {

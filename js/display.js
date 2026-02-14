@@ -475,6 +475,20 @@ export class Display {
                 }
                 loc.mem_trap = 0;
 
+                // C ref: display.c back_to_glyph() — wizard mode shows engravings
+                // as S_engroom ('`') or S_engrcorr ('#') when no higher-priority
+                // map symbol (player/monster/object/trap) occupies the square.
+                if (player?.wizard) {
+                    const engr = gameMap.engravingAt(x, y);
+                    if (engr) {
+                        const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
+                        loc.mem_obj = engrCh;
+                        this.setCell(col, row, engrCh, CLR_BRIGHT_BLUE);
+                        this.cellInfo[row][col] = { name: 'engraving', desc: '', color: CLR_BRIGHT_BLUE };
+                        continue;
+                    }
+                }
+
                 // Show terrain
                 const sym = this.terrainSymbol(loc, gameMap, x, y);
                 this.setCell(col, row, sym.ch, sym.color);
@@ -565,7 +579,10 @@ export class Display {
         // Status line 1: Name, attributes, etc.
         // C ref: botl.c bot1str()
         const line1Parts = [];
-        line1Parts.push(player.name);
+        const statusName = (player.name && player.name.length > 0)
+            ? (player.name[0].toUpperCase() + player.name.slice(1))
+            : 'Player';
+        line1Parts.push(statusName);
         // Use strDisplay for proper 18/xx exceptional strength formatting
         // C ref: attrib.c str_string()
         line1Parts.push(`St:${player.strDisplay}`);

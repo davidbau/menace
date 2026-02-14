@@ -5,11 +5,12 @@
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-    des, resetLevelState, getLevelState
+    des, resetLevelState, getLevelState, setFinalizeContext
 } from '../../js/sp_lev.js';
 import { place_lregion } from '../../js/dungeon.js';
 import {
     STONE, ROOM, CORR, DOOR, HWALL, VWALL, STAIRS, LAVAPOOL, PIT, MAGIC_PORTAL, CROSSWALL, GRAVE,
+    WATER, AIR,
     ALTAR, THRONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, ROOMOFFSET,
 } from '../../js/config.js';
 import { BOULDER, DAGGER, GOLD_PIECE } from '../../js/objects.js';
@@ -617,5 +618,85 @@ describe('sp_lev.js - des.* API', () => {
 
         assert.notEqual(map.trapAt(10, 10), null, 'undestroyable trap should remain');
         assert.notEqual(map.at(10, 10).typ, STAIRS, 'stairs should not overwrite undestroyable trap location');
+    });
+
+    it('place_lregion oneshot teleport relocates occupying monster', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: '.' });
+        const map = getLevelState().map;
+        map.monsters.push({ mx: 10, my: 10, mhp: 10 });
+
+        // LR_TELE in js/dungeon.js constants.
+        place_lregion(map, 10, 10, 10, 10, 0, 0, 0, 0, 0);
+
+        assert.equal(map.monsterAt(10, 10), null, 'occupying monster should be displaced from teleport location');
+        assert.equal(map.monsters.length, 1, 'monster should remain on level when relocation is possible');
+    });
+
+    it('place_lregion oneshot teleport limbos occupying monster when no relocation exists', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: ' ' });
+        const map = getLevelState().map;
+        map.at(10, 10).typ = ROOM;
+        map.monsters.push({ mx: 10, my: 10, mhp: 10 });
+
+        // LR_TELE in js/dungeon.js constants.
+        place_lregion(map, 10, 10, 10, 10, 0, 0, 0, 0, 0);
+
+        assert.equal(map.monsters.length, 0, 'monster should be removed when no legal relocation exists');
+    });
+
+    it('fixup_special LR_PORTAL resolves named destination level', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: '.' });
+        setFinalizeContext({ dnum: 0, dlevel: 1, specialName: 'portal-test' });
+        des.levregion({ region: [10, 10, 10, 10], region_islev: 1, type: 'portal', name: 'fire' });
+        getLevelState().coder.allow_flips = 0;
+
+        const map = des.finalize_level();
+        const portal = map.trapAt(10, 10);
+        assert.ok(portal, 'portal trap should be placed');
+        assert.equal(portal.ttyp, MAGIC_PORTAL, 'trap should be MAGIC_PORTAL');
+        assert.equal(portal.dst.dnum, 0, 'named destination should resolve destination dungeon');
+        assert.equal(portal.dst.dlevel, -3, 'named destination should resolve destination level');
+    });
+
+    it('fixup_special LR_PORTAL resolves numeric destination level in current dungeon', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: '.' });
+        setFinalizeContext({ dnum: 6, dlevel: 2, specialName: 'portal-test' });
+        des.levregion({ region: [12, 10, 12, 10], region_islev: 1, type: 'portal', name: '7' });
+        getLevelState().coder.allow_flips = 0;
+
+        const map = des.finalize_level();
+        const portal = map.trapAt(12, 10);
+        assert.ok(portal, 'portal trap should be placed');
+        assert.equal(portal.ttyp, MAGIC_PORTAL, 'trap should be MAGIC_PORTAL');
+        assert.equal(portal.dst.dnum, 6, 'numeric destination should keep current dungeon');
+        assert.equal(portal.dst.dlevel, 7, 'numeric destination should set destination level');
+    });
+
+    it('fixup_special water setup clears hero_memory and converts fallback stone to WATER', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: ' ' });
+        des.level_flags('premapped');
+        setFinalizeContext({ specialName: 'water' });
+        getLevelState().coder.allow_flips = 0;
+
+        const map = des.finalize_level();
+        assert.equal(map.flags.hero_memory, false, 'water setup should force hero_memory off');
+        assert.equal(map.at(40, 10).typ, WATER, 'water setup should convert default STONE to WATER');
+    });
+
+    it('fixup_special air setup clears hero_memory and converts fallback stone to AIR', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: ' ' });
+        des.level_flags('premapped');
+        setFinalizeContext({ specialName: 'air' });
+        getLevelState().coder.allow_flips = 0;
+
+        const map = des.finalize_level();
+        assert.equal(map.flags.hero_memory, false, 'air setup should force hero_memory off');
+        assert.equal(map.at(40, 10).typ, AIR, 'air setup should convert default STONE to AIR');
     });
 });
