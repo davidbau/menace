@@ -388,6 +388,10 @@ describe('Wizard mode', () => {
 });
 
 describe('doname', () => {
+    beforeEach(() => {
+        initDiscoveryState();
+    });
+
     it('blessed weapon with enchantment', () => {
         const obj = {
             otyp: 79, oclass: WEAPON_CLASS, name: 'quarterstaff',
@@ -545,6 +549,26 @@ describe('doname', () => {
             known: true, dknown: true, bknown: false,
         };
         assert.equal(doname(obj, null), '2 corpses');
+    });
+
+    it('plural pair-of armor keeps "pair of" wording like C', () => {
+        const obj = {
+            otyp: LOW_BOOTS, oclass: ARMOR_CLASS,
+            spe: 0, blessed: false, cursed: false,
+            quan: 2,
+            known: true, dknown: true, bknown: true,
+        };
+        assert.equal(doname(obj, null), '2 uncursed +0 pair of low boots');
+    });
+
+    it('plural unknown scroll pluralizes head noun in labeled form', () => {
+        const obj = {
+            otyp: SCR_EARTH, oclass: SCROLL_CLASS,
+            spe: 0, blessed: false, cursed: false,
+            quan: 2,
+            known: false, dknown: true, bknown: false,
+        };
+        assert.match(doname(obj, null), /^2 scrolls labeled /);
     });
 });
 
