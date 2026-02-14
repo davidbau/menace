@@ -18,7 +18,7 @@ import { rn2, rnd, rn1, getRngCallCount } from './rng.js';
 import { mksobj, mkobj, mkcorpstat, set_corpsenm, weight } from './mkobj.js';
 import { create_room, create_subroom, makecorridors, create_corridor, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize as dungeonMineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, wallify_region as dungeonWallifyRegion, fix_wall_spines, set_wall_state, place_lregion, mktrap, enexto, somexy, sp_create_door, floodFillAndRegister, resolveBranchPlacementForLevel, random_epitaph_text, induced_align, DUNGEON_ALIGN_BY_DNUM } from './dungeon.js';
 import { seedFromMT } from './xoshiro256.js';
-import { makemon, mkclass, def_char_to_monclass, NO_MM_FLAGS, MM_NOGRP, rndmonnum } from './makemon.js';
+import { makemon, mkclass, def_char_to_monclass, NO_MM_FLAGS, MM_NOGRP, rndmonnum, getMakemonRoleIndex } from './makemon.js';
 import {
     STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
     CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL, DBWALL, ROOM, CORR,
@@ -35,7 +35,8 @@ import {
     COLNO, ROWNO, IS_OBSTRUCTED, IS_WALL, IS_STWALL, IS_POOL, IS_LAVA,
     A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
     MKTRAP_SEEN, MKTRAP_MAZEFLAG, MKTRAP_NOSPIDERONWEB, MKTRAP_NOVICTIM,
-    MAXNROFROOMS, ROOMOFFSET
+    MAXNROFROOMS, ROOMOFFSET,
+    PM_PRIEST as ROLE_PRIEST
 } from './config.js';
 import {
     BOULDER, SCROLL_CLASS, FOOD_CLASS, WEAPON_CLASS, ARMOR_CLASS,
@@ -1229,6 +1230,13 @@ function fixupSpecialLevel() {
     }
     if (specialName.startsWith('medusa')) {
         medusa_fixup(levelState.map);
+    }
+    // C ref: mkmaze.c fixup_special():
+    // Role_if(PM_CLERIC) && In_quest(&u.uz) => level.flags.graveyard = 1
+    // In JS, role context is tracked via makemon role context; quest dnum is 3.
+    const roleIndex = Number.isInteger(ctx.roleIndex) ? ctx.roleIndex : getMakemonRoleIndex();
+    if (roleIndex === ROLE_PRIEST && ctx.dnum === 3) {
+        levelState.map.flags.graveyard = true;
     }
     // C ref: mkmaze.c fixup_special():
     // - Is_stronghold(&u.uz) => level.flags.graveyard = 1
