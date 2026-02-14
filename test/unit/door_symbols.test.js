@@ -25,7 +25,7 @@ test('door symbols: vertical open door uses - (walls N/S)', () => {
 
     const sym = display.terrainSymbol(map.at(x, y), map, x, y);
     assert.strictEqual(sym.ch, '-', 'Vertical open door should use "-" symbol');
-    assert.strictEqual(sym.color, 1, 'Open door should use CLR_BROWN (1)');
+    assert.strictEqual(sym.color, 3, 'Open door should use CLR_BROWN (3)');
 });
 
 test('door symbols: horizontal open door uses | (walls E/W)', () => {
@@ -42,7 +42,7 @@ test('door symbols: horizontal open door uses | (walls E/W)', () => {
 
     const sym = display.terrainSymbol(map.at(x, y), map, x, y);
     assert.strictEqual(sym.ch, '|', 'Horizontal open door should use "|" symbol');
-    assert.strictEqual(sym.color, 1, 'Open door should use CLR_BROWN (1)');
+    assert.strictEqual(sym.color, 3, 'Open door should use CLR_BROWN (3)');
 });
 
 test('door symbols: closed door always uses +', () => {
@@ -55,7 +55,7 @@ test('door symbols: closed door always uses +', () => {
 
     const sym = display.terrainSymbol(map.at(x, y), map, x, y);
     assert.strictEqual(sym.ch, '+', 'Closed door should use "+" symbol');
-    assert.strictEqual(sym.color, 1, 'Closed door should use CLR_BROWN (1)');
+    assert.strictEqual(sym.color, 3, 'Closed door should use CLR_BROWN (3)');
 });
 
 test('door symbols: locked door uses +', () => {
@@ -68,7 +68,7 @@ test('door symbols: locked door uses +', () => {
 
     const sym = display.terrainSymbol(map.at(x, y), map, x, y);
     assert.strictEqual(sym.ch, '+', 'Locked door should use "+" symbol');
-    assert.strictEqual(sym.color, 1, 'Locked door should use CLR_BROWN (1)');
+    assert.strictEqual(sym.color, 3, 'Locked door should use CLR_BROWN (3)');
 });
 
 test('door symbols: doorway (no door) uses .', () => {
@@ -97,5 +97,5 @@ test('door symbols: DECgraphics always uses middle dot for open doors', () => {
 
     const sym = display.terrainSymbol(map.at(x, y), map, x, y);
     assert.strictEqual(sym.ch, '\u00b7', 'DECgraphics open door should use middle dot');
-    assert.strictEqual(sym.color, 1, 'Open door should use CLR_BROWN (1)');
+    assert.strictEqual(sym.color, 3, 'Open door should use CLR_BROWN (3)');
 });

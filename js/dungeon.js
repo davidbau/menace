@@ -4471,7 +4471,8 @@ function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot) {
 
 function placeBranchFeature(map, x, y) {
     const hint = map?._branchPlacementHint;
-    if (hint === 'none') return;
+    // C ref: place_branch() with no branch on this level is a no-op.
+    if (!hint || hint === 'none') return;
     if (hint === 'portal') {
         maketrap(map, x, y, MAGIC_PORTAL);
         return;
@@ -4480,8 +4481,9 @@ function placeBranchFeature(map, x, y) {
         mkstairs(map, x, y, true);
         return;
     }
-    // Default to down stair for compatibility with existing behavior.
-    mkstairs(map, x, y, false);
+    if (hint === 'stair-down') {
+        mkstairs(map, x, y, false);
+    }
 }
 
 // C ref: mkmaze.c:356-410 — place_lregion
