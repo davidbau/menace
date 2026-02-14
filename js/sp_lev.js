@@ -18,7 +18,7 @@ import { rn2, rnd, rn1, getRngCallCount } from './rng.js';
 import { mksobj, mkobj, mkcorpstat, set_corpsenm, weight } from './mkobj.js';
 import { create_room, create_subroom, makecorridors, create_corridor, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize as dungeonMineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, wallify_region as dungeonWallifyRegion, fix_wall_spines, set_wall_state, place_lregion, mktrap, enexto, somexy, sp_create_door, floodFillAndRegister, resolveBranchPlacementForLevel, random_epitaph_text, induced_align, DUNGEON_ALIGN_BY_DNUM } from './dungeon.js';
 import { seedFromMT } from './xoshiro256.js';
-import { makemon, mkclass, def_char_to_monclass, NO_MM_FLAGS, MM_NOGRP } from './makemon.js';
+import { makemon, mkclass, def_char_to_monclass, NO_MM_FLAGS, MM_NOGRP, rndmonnum } from './makemon.js';
 import {
     STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
     CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL, DBWALL, ROOM, CORR,
@@ -41,9 +41,9 @@ import {
     BOULDER, SCROLL_CLASS, FOOD_CLASS, WEAPON_CLASS, ARMOR_CLASS,
     POTION_CLASS, RING_CLASS, WAND_CLASS, TOOL_CLASS, AMULET_CLASS,
     GEM_CLASS, SPBOOK_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS, VENOM_CLASS,
-    SCR_EARTH, objectData, GOLD_PIECE
+    SCR_EARTH, objectData, GOLD_PIECE, STATUE
 } from './objects.js';
-import { mons, M2_FEMALE, M2_MALE, G_NOGEN, PM_MINOTAUR } from './monsters.js';
+import { mons, M2_FEMALE, M2_MALE, G_NOGEN, PM_MINOTAUR, MR_STONE } from './monsters.js';
 
 // Aliases for compatibility with C naming
 const STAIRS_UP = STAIRS;
@@ -1227,6 +1227,9 @@ function fixupSpecialLevel() {
     if (specialName === 'baalz') {
         baalz_fixup(levelState.map);
     }
+    if (specialName.startsWith('medusa')) {
+        medusa_fixup(levelState.map);
+    }
     // C ref: mkmaze.c fixup_special():
     // - Is_stronghold(&u.uz) => level.flags.graveyard = 1
     // - Is_special(&u.uz)->flags.town (Mine Town variants) => has_town = 1
@@ -1238,6 +1241,65 @@ function fixupSpecialLevel() {
     }
 
     levelState.branchPlaced = true;
+}
+
+// C ref: mkmaze.c fixup_special() Medusa branch
+function medusa_fixup(map) {
+    if (!map || !Array.isArray(map.rooms) || map.rooms.length === 0) return;
+    const croom = map.rooms[0]; // first room defined on Medusa level
+    if (!croom) return;
+
+    const randRoomPos = () => ({
+        x: rn1(croom.hx - croom.lx + 1, croom.lx),
+        y: rn1(croom.hy - croom.ly + 1, croom.ly),
+    });
+    const medusaGoodpos = (x, y) => {
+        const loc = map.at(x, y);
+        return !!loc && loc.typ > DOOR && !map.monsterAt(x, y);
+    };
+    const polyWhenStoned = (_mnum) => false; // TODO: port full polymorph-on-stone table
+    const statueNeedsReroll = (obj) => {
+        if (!obj || !Number.isInteger(obj.corpsenm)) return false;
+        if (obj.corpsenm < 0 || obj.corpsenm >= mons.length) return false;
+        const m = mons[obj.corpsenm];
+        if (!m) return false;
+        return !!(m.mr1 & MR_STONE) || polyWhenStoned(obj.corpsenm);
+    };
+    const mk_tt_statue = (x, y) => {
+        const otmp = mksobj(STATUE, true, false);
+        if (!otmp) return null;
+        placeObjectAt(otmp, x, y);
+        return otmp;
+    };
+
+    // for (tryct = rnd(4); tryct; tryct--) { ... }
+    for (let tryct = rnd(4); tryct > 0; tryct--) {
+        const { x, y } = randRoomPos();
+        if (!medusaGoodpos(x, y)) continue;
+        let tryct2 = 0;
+        let otmp = mk_tt_statue(x, y);
+        while (++tryct2 < 100 && otmp && statueNeedsReroll(otmp)) {
+            set_corpsenm(otmp, rndmonnum(levelState.levelDepth || 1));
+        }
+    }
+
+    let otmp = null;
+    {
+        const { x, y } = randRoomPos();
+        if (rn2(2)) {
+            otmp = mk_tt_statue(x, y);
+        } else {
+            // Medusa statues don't contain books in this branch.
+            otmp = mkcorpstat(STATUE, -1, false);
+            if (otmp) placeObjectAt(otmp, x, y);
+        }
+    }
+    if (otmp) {
+        let tryct = 0;
+        while (++tryct < 100 && statueNeedsReroll(otmp)) {
+            set_corpsenm(otmp, rndmonnum(levelState.levelDepth || 1));
+        }
+    }
 }
 
 // C ref: mkmaze.c baalz_fixup()
