@@ -305,6 +305,16 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[11][6].lit, 1, 'lit region room should be lit');
     });
 
+    it('levregion and teleport_region enforce C-style option validation', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: ' ' });
+
+        assert.throws(() => des.levregion({ type: 'stair-up' }));
+        assert.throws(() => des.levregion({ region: [0, 0, 1, 1], type: 'bad-type' }));
+        assert.throws(() => des.teleport_region({ region: [0, 0, 1, 1], dir: 'sideways' }));
+        assert.throws(() => des.teleport_region({ dir: 'both' }));
+    });
+
     it('keeps ordinary rectangular des.region as light-only (no room)', () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.', lit: 0 });

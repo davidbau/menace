@@ -4022,7 +4022,9 @@ export function non_passwall(selection) {
  * @param {Object} opts - Region options
  */
 export function levregion(opts) {
-    if (!opts || typeof opts !== 'object') return;
+    if (!opts || typeof opts !== 'object') {
+        throw new Error('wrong parameters');
+    }
 
     // C ref: sp_lev.c lspo_levregion() + levregion_add().
     const LR_TELE = 0;
@@ -4033,7 +4035,9 @@ export function levregion(opts) {
     const LR_UPSTAIR = 5;
     const LR_DOWNSTAIR = 6;
 
-    if (!Array.isArray(opts.region) || opts.region.length < 4) return;
+    if (!Array.isArray(opts.region) || opts.region.length !== 4) {
+        throw new Error('wrong parameters');
+    }
     const inIslev = !!opts.region_islev;
 
     let delArea = opts.exclude;
@@ -4045,13 +4049,19 @@ export function levregion(opts) {
     }
 
     const type = String(opts.type || 'stair-down').toLowerCase();
-    let rtype = LR_DOWNSTAIR;
-    if (type === 'stair-up' || type === 'stair_up') rtype = LR_UPSTAIR;
-    else if (type === 'portal') rtype = LR_PORTAL;
-    else if (type === 'branch') rtype = LR_BRANCH;
-    else if (type === 'teleport') rtype = LR_TELE;
-    else if (type === 'teleport-up' || type === 'teleport_up') rtype = LR_UPTELE;
-    else if (type === 'teleport-down' || type === 'teleport_down') rtype = LR_DOWNTELE;
+    const typeMap = {
+        'stair-down': LR_DOWNSTAIR,
+        'stair-up': LR_UPSTAIR,
+        'portal': LR_PORTAL,
+        'branch': LR_BRANCH,
+        'teleport': LR_TELE,
+        'teleport-up': LR_UPTELE,
+        'teleport-down': LR_DOWNTELE
+    };
+    const rtype = typeMap[type];
+    if (rtype === undefined) {
+        throw new Error('wrong parameters');
+    }
 
     const in1 = inIslev
         ? { x: opts.region[0], y: opts.region[1] }
@@ -4955,12 +4965,24 @@ export function gas_cloud(opts = {}) {
  * @param {Object} opts - Region options (region, dir)
  */
 export function teleport_region(opts) {
-    if (!opts || typeof opts !== 'object') return;
+    if (!opts || typeof opts !== 'object') {
+        throw new Error('wrong parameters');
+    }
+
+    if (!Array.isArray(opts.region) || opts.region.length !== 4) {
+        throw new Error('wrong parameters');
+    }
 
     const dir = String(opts.dir || 'both').toLowerCase();
-    let type = 'teleport';
-    if (dir === 'up') type = 'teleport-up';
-    else if (dir === 'down') type = 'teleport-down';
+    const dirMap = {
+        both: 'teleport',
+        down: 'teleport-down',
+        up: 'teleport-up'
+    };
+    const type = dirMap[dir];
+    if (!type) {
+        throw new Error('wrong parameters');
+    }
 
     levregion({
         region: opts.region,
