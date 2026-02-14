@@ -3331,8 +3331,12 @@ export function fill_ordinary_room(map, croom, depth, bonusItems) {
 
 // C ref: mkmaze.c wall_cleanup() — remove walls totally surrounded by stone
 function wall_cleanup(map, x1, y1, x2, y2) {
+    const inarea = getWallifyProtectedArea(map);
     for (let x = x1; x <= x2; x++) {
         for (let y = y1; y <= y2; y++) {
+            if (within_bounded_area(x, y, inarea.x1, inarea.y1, inarea.x2, inarea.y2)) {
+                continue;
+            }
             const loc = map.at(x, y);
             if (loc && IS_WALL(loc.typ) && loc.typ !== DBWALL) {
                 if (is_solid(map, x-1, y-1) && is_solid(map, x-1, y)
@@ -3436,7 +3440,12 @@ function setWallType(map, x, y) {
 
     // Build 3x3 locale grid of iswall_or_stone values
     const locale = [[0,0,0],[0,0,0],[0,0,0]];
-    const loc_f = (cx, cy) => iswall_or_stone(map, cx, cy);
+    const inarea = getWallifyProtectedArea(map);
+    const inProtected = within_bounded_area(x, y, inarea.x1, inarea.y1, inarea.x2, inarea.y2);
+    // C ref: mkmaze.c fix_wall_spines() uses iswall() inside bughack.inarea.
+    const loc_f = inProtected
+        ? (cx, cy) => iswall_check(map, cx, cy)
+        : (cx, cy) => iswall_or_stone(map, cx, cy);
     locale[0][0] = loc_f(x - 1, y - 1);
     locale[1][0] = loc_f(x,     y - 1);
     locale[2][0] = loc_f(x + 1, y - 1);
@@ -3454,6 +3463,17 @@ function setWallType(map, x, y) {
 
     // Don't change typ if wall is free-standing
     if (bits) loc.typ = SPINE_ARRAY[bits];
+}
+
+// C ref: gb.bughack.inarea defaults to an invalid rectangle so bounded checks fail.
+function getWallifyProtectedArea(map) {
+    const area = map?._wallifyProtectedArea;
+    if (!area
+        || !Number.isInteger(area.x1) || !Number.isInteger(area.y1)
+        || !Number.isInteger(area.x2) || !Number.isInteger(area.y2)) {
+        return { x1: COLNO, y1: ROWNO, x2: 0, y2: 0 };
+    }
+    return area;
 }
 
 // C ref: mklev.c:1312-1322 — vault creation and fill
