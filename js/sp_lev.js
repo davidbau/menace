@@ -4121,16 +4121,10 @@ export function exclusion(opts) {
     let y1;
     let x2;
     let y2;
-    if (Array.isArray(opts.region)) {
-        [x1, y1, x2, y2] = opts.region;
-    } else if (opts.region && typeof opts.region === 'object') {
-        x1 = opts.region.x1;
-        y1 = opts.region.y1;
-        x2 = opts.region.x2;
-        y2 = opts.region.y2;
-    } else {
+    if (!Array.isArray(opts.region) || opts.region.length !== 4) {
         throw new Error('wrong parameters');
     }
+    [x1, y1, x2, y2] = opts.region;
 
     const p1 = getLocationCoord(x1, y1, GETLOC_ANY_LOC, levelState.currentRoom || null);
     const p2 = getLocationCoord(x2, y2, GETLOC_ANY_LOC, levelState.currentRoom || null);
@@ -4667,37 +4661,63 @@ export function altar(opts) {
 }
 
 /**
- * des.gold(opts)
+ * des.gold(...)
  * Place gold at a location.
- * C ref: sp_lev.c spgold()
- *
- * @param {Object} opts - Gold options (x, y, amount)
+ * C ref: sp_lev.c lspo_gold()
  */
-export function gold(opts) {
-    let gx;
-    let gy;
-    let amount = 1;
-
-    if (opts === undefined) {
-        gx = -1;
-        gy = -1;
-    } else if (Array.isArray(opts)) {
-        gx = opts[0];
-        gy = opts[1];
-    } else if (typeof opts === 'object') {
-        gx = opts.x ?? (Array.isArray(opts.coord) ? opts.coord[0] : -1);
-        gy = opts.y ?? (Array.isArray(opts.coord) ? opts.coord[1] : -1);
-        if (typeof opts.amount === 'number' && Number.isFinite(opts.amount)) {
-            amount = Math.max(1, Math.floor(opts.amount));
-        }
-    } else {
-        return;
+export function gold(amountOrOpts, x, y) {
+    if (!levelState.map) {
+        levelState.map = new GameMap();
     }
 
-    const pos = getLocationCoord(gx, gy, GETLOC_ANY_LOC, levelState.currentRoom || null);
+    const argc = arguments.length;
+    let gx = -1;
+    let gy = -1;
+    let amount = -1;
+
+    if (argc === 3) {
+        amount = Number.isFinite(amountOrOpts) ? Math.trunc(amountOrOpts) : -1;
+        gx = x;
+        gy = y;
+    } else if (argc === 2 && Number.isFinite(amountOrOpts)
+        && x && typeof x === 'object') {
+        amount = Math.trunc(amountOrOpts);
+        if (Array.isArray(x)) {
+            gx = x[0];
+            gy = x[1];
+        } else if (x.coord && Array.isArray(x.coord)) {
+            gx = x.coord[0];
+            gy = x.coord[1];
+        } else if (x.coord && typeof x.coord === 'object') {
+            gx = x.coord.x;
+            gy = x.coord.y;
+        } else {
+            gx = x.x;
+            gy = x.y;
+        }
+    } else if (argc === 0 || (argc === 1 && amountOrOpts && typeof amountOrOpts === 'object')) {
+        const opts = amountOrOpts || {};
+        if (Number.isFinite(opts.amount)) amount = Math.trunc(opts.amount);
+        if (Array.isArray(opts.coord)) {
+            gx = opts.coord[0];
+            gy = opts.coord[1];
+        } else if (opts.coord && typeof opts.coord === 'object') {
+            gx = opts.coord.x;
+            gy = opts.coord.y;
+        } else {
+            if (opts.x !== undefined) gx = opts.x;
+            if (opts.y !== undefined) gy = opts.y;
+        }
+    } else {
+        throw new Error('Wrong parameters');
+    }
+
+    const pos = getLocationCoord(gx, gy, GETLOC_DRY, levelState.currentRoom || null);
     if (pos.x < 0 || pos.x >= COLNO || pos.y < 0 || pos.y >= ROWNO) {
         return;
     }
+
+    if (amount < 0) amount = rnd(200);
 
     const gold = mksobj(GOLD_PIECE, true, false);
     if (!gold) return;

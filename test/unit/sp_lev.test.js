@@ -12,7 +12,7 @@ import {
     STONE, ROOM, CORR, DOOR, HWALL, VWALL, STAIRS, LAVAPOOL, PIT, MAGIC_PORTAL, CROSSWALL, GRAVE,
     ALTAR, THRONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
 } from '../../js/config.js';
-import { BOULDER, DAGGER } from '../../js/objects.js';
+import { BOULDER, DAGGER, GOLD_PIECE } from '../../js/objects.js';
 
 // Alias for stairs
 const STAIRS_UP = STAIRS;
@@ -240,6 +240,26 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[10][5].typ, STAIRS_UP);
     });
 
+    it('des.gold supports C call forms and default random amount', () => {
+        resetLevelState();
+        initRng(123);
+        des.level_init({ style: 'solidfill', fg: '.' });
+
+        des.gold(500, 10, 5);
+        let map = getLevelState().map;
+        assert.equal(map.objects.some(o => o.otyp === GOLD_PIECE && o.ox === 10 && o.oy === 5 && o.quan === 500), true);
+
+        des.gold(250, [11, 5]);
+        map = getLevelState().map;
+        assert.equal(map.objects.some(o => o.otyp === GOLD_PIECE && o.ox === 11 && o.oy === 5 && o.quan === 250), true);
+
+        des.gold();
+        map = getLevelState().map;
+        const randomGold = map.objects.find(o => o.otyp === GOLD_PIECE && !(o.ox === 10 && o.oy === 5) && !(o.ox === 11 && o.oy === 5));
+        assert.ok(randomGold, 'gold() should place random gold');
+        assert.ok(randomGold.quan >= 1 && randomGold.quan <= 200, 'gold() amount should be rnd(200)');
+    });
+
     it('should preserve leading and trailing blank map lines', () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
@@ -313,6 +333,7 @@ describe('sp_lev.js - des.* API', () => {
         assert.throws(() => des.levregion({ region: [0, 0, 1, 1], type: 'bad-type' }));
         assert.throws(() => des.teleport_region({ region: [0, 0, 1, 1], dir: 'sideways' }));
         assert.throws(() => des.teleport_region({ dir: 'both' }));
+        assert.throws(() => des.exclusion({ type: 'teleport', region: { x1: 0, y1: 0, x2: 1, y2: 1 } }));
     });
 
     it('keeps ordinary rectangular des.region as light-only (no room)', () => {
