@@ -4,18 +4,22 @@
 // used by session_runner.test.js.
 
 import {
-    COLNO, ROWNO, STONE, VWALL, HWALL, STAIRS, VAULT,
+    COLNO, ROWNO, STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
+    CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL, STAIRS, VAULT,
     IS_WALL, IS_DOOR, ACCESSIBLE, SDOOR, SCORR, IRONBARS,
     CORR, ROOM, DOOR, isok, TERMINAL_COLS, TERMINAL_ROWS,
-    D_ISOPEN, D_CLOSED, D_LOCKED, D_NODOOR,
-    ALTAR, A_LAWFUL, A_NEUTRAL, A_CHAOTIC
+    D_ISOPEN, D_CLOSED, D_LOCKED, D_NODOOR, A_NONE,
+    ALTAR, FOUNTAIN, THRONE, SINK, GRAVE, POOL, MOAT, WATER, LAVAPOOL,
+    LAVAWALL, ICE, DRAWBRIDGE_UP, DRAWBRIDGE_DOWN, AIR, CLOUD, TREE,
+    MAP_ROW_START, STATUS_ROW_1, STATUS_ROW_2,
+    A_LAWFUL, A_NEUTRAL, A_CHAOTIC
 } from '../../js/config.js';
 import { initRng, enableRngLog, getRngLog, disableRngLog, rn2, rnd, rn1, rnl, rne, rnz, d } from '../../js/rng.js';
 import { initLevelGeneration, makelevel, setGameSeed, wallification, simulateDungeonInit } from '../../js/dungeon.js';
-import { DUNGEONS_OF_DOOM } from '../../js/special_levels.js';
+import { DUNGEONS_OF_DOOM, TUTORIAL } from '../../js/special_levels.js';
 import { simulatePostLevelInit, mon_arrive } from '../../js/u_init.js';
 import { init_objects } from '../../js/o_init.js';
-import { Player, roles } from '../../js/player.js';
+import { Player, roles, rankOf } from '../../js/player.js';
 import { NORMAL_SPEED, A_DEX, A_CON,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC } from '../../js/config.js';
 import { rhack } from '../../js/commands.js';
@@ -467,17 +471,28 @@ class HeadlessGame {
     constructor(player, map, opts = {}) {
         this.player = player;
         this.map = map;
-        this.display = nullDisplay;
+        this.display = new HeadlessDisplay();
         this.fov = new FOV();
         this.levels = { 1: map };
         this.gameOver = false;
         this.turnCount = 0;
         this.wizard = true;
+        this.dnum = Number.isInteger(opts.startDnum) ? opts.startDnum : undefined;
+        this.dungeonAlignOverride = Number.isInteger(opts.dungeonAlignOverride)
+            ? opts.dungeonAlignOverride
+            : undefined;
         this.seerTurn = opts.seerTurn || 0;
         this.occupation = null; // C ref: cmd.c go.occupation — multi-turn action
         this.flags = { pickup: false, verbose: false, safe_wait: true }; // Game flags for commands
         this.menuRequested = false; // 'm' prefix command state
         initrack(); // C ref: track.c — initialize player track buffer
+        this.renderCurrentScreen();
+    }
+
+    renderCurrentScreen() {
+        this.fov.compute(this.map, this.player.x, this.player.y);
+        this.display.renderMap(this.map, this.player, this.fov);
+        this.display.renderStatus(this.player);
     }
 
     // C ref: allmain.c interrupt_multi() — check if multi-count should be interrupted
@@ -612,7 +627,9 @@ class HeadlessGame {
         if (this.levels[depth]) {
             this.map = this.levels[depth];
         } else {
-            this.map = makelevel(depth);
+            this.map = Number.isInteger(this.dnum)
+                ? makelevel(depth, this.dnum, depth, { dungeonAlignOverride: this.dungeonAlignOverride })
+                : makelevel(depth, undefined, undefined, { dungeonAlignOverride: this.dungeonAlignOverride });
             this.levels[depth] = this.map;
 
             // C ref: dog.c:474 mon_arrive — pet arrival on level change
@@ -626,6 +643,7 @@ class HeadlessGame {
         }
         this.player.dungeonLevel = depth;
         this.placePlayerOnLevel();
+        this.renderCurrentScreen();
     }
 
     placePlayerOnLevel() {
@@ -664,7 +682,12 @@ export async function replaySession(seed, session, opts = {}) {
     // Now initialize level generation (this may consume RNG for dungeon structure)
     initLevelGeneration(replayRoleIndex);
 
-    const map = makelevel(1);
+    const startDnum = Number.isInteger(opts.startDnum) ? opts.startDnum : undefined;
+    const startDlevel = Number.isInteger(opts.startDlevel) ? opts.startDlevel : 1;
+    const startDungeonAlign = Number.isInteger(opts.startDungeonAlign) ? opts.startDungeonAlign : undefined;
+    const map = Number.isInteger(startDnum)
+        ? makelevel(startDlevel, startDnum, startDlevel, { dungeonAlignOverride: startDungeonAlign })
+        : makelevel(startDlevel, undefined, undefined, { dungeonAlignOverride: startDungeonAlign });
     // Note: wallification is now called inside makelevel, no need to call it here
 
     // Consume post-map character generation RNG calls (moveloop_preamble, etc.)
@@ -700,9 +723,10 @@ export async function replaySession(seed, session, opts = {}) {
     const screen = session.startup?.screen || [];
     for (const line of screen) {
         if (!line) continue;
-        const m = line.match(/St:(\d+)\s+Dx:(\d+)\s+Co:(\d+)\s+In:(\d+)\s+Wi:(\d+)\s+Ch:(\d+)/);
+        const m = line.match(/St:([0-9/*]+)\s+Dx:(\d+)\s+Co:(\d+)\s+In:(\d+)\s+Wi:(\d+)\s+Ch:(\d+)/);
         if (m) {
-            player.attributes[0] = parseInt(m[1]); // A_STR
+            player._screenStrength = m[1];
+            player.attributes[0] = m[1].includes('/') ? 18 : parseInt(m[1]); // A_STR
             player.attributes[1] = parseInt(m[4]); // A_INT (In)
             player.attributes[2] = parseInt(m[5]); // A_WIS (Wi)
             player.attributes[3] = parseInt(m[2]); // A_DEX (Dx)
@@ -729,8 +753,16 @@ export async function replaySession(seed, session, opts = {}) {
     const startupLog = getRngLog();
     const startupRng = startupLog.map(toCompactRng);
 
-    const game = new HeadlessGame(player, map, { seerTurn: initResult.seerTurn });
+    const game = new HeadlessGame(player, map, {
+        seerTurn: initResult.seerTurn,
+        startDnum,
+        dungeonAlignOverride: startDungeonAlign,
+    });
+    game.display.flags.DECgraphics = session.screenMode === 'decgraphics';
     let inTutorialPrompt = isTutorialPromptScreen(session.steps?.[0]?.screen || []);
+    if (inTutorialPrompt && Array.isArray(session.steps?.[0]?.screen)) {
+        game.display.setScreenLines(session.steps[0].screen);
+    }
 
     // Replay each step
     // C ref: allmain.c moveloop_core() step boundary analysis:
@@ -760,13 +792,22 @@ export async function replaySession(seed, session, opts = {}) {
         if (inTutorialPrompt) {
             const key = (step.key || '').toLowerCase();
             if (key === 'y') {
-                game.map = makelevel(1, DUNGEONS_OF_DOOM, 1);
+                const tutorialAlign = Number.isInteger(opts.tutorialDungeonAlign)
+                    ? opts.tutorialDungeonAlign
+                    : A_NONE;
+                game.map = makelevel(1, TUTORIAL, 1, {
+                    dungeonAlignOverride: tutorialAlign,
+                });
                 game.levels[1] = game.map;
                 game.player.dungeonLevel = 1;
                 game.placePlayerOnLevel();
+                game.renderCurrentScreen();
                 inTutorialPrompt = false;
             } else if (key === 'n') {
                 inTutorialPrompt = false;
+            } else if (Array.isArray(step.screen)) {
+                // Keep the yes/no prompt UI visible across ignored keys.
+                game.display.setScreenLines(step.screen);
             }
 
             const fullLog = getRngLog();
@@ -774,6 +815,7 @@ export async function replaySession(seed, session, opts = {}) {
             stepResults.push({
                 rngCalls: stepLog.length,
                 rng: stepLog.map(toCompactRng),
+                screen: opts.captureScreens ? game.display.getScreenLines() : undefined,
             });
             continue;
         }
@@ -903,9 +945,18 @@ export async function replaySession(seed, session, opts = {}) {
                     game.player.hp = parseInt(hpm[1]);
                     game.player.hpmax = parseInt(hpm[2]);
                 }
-                const attrm = line.match(/St:(\d+)\s+Dx:(\d+)\s+Co:(\d+)\s+In:(\d+)\s+Wi:(\d+)\s+Ch:(\d+)/);
+                const hpmPw = line.match(/HP:(\d+)\((\d+)\)\s+Pw:(\d+)\((\d+)\)\s+AC:([-]?\d+)/);
+                if (hpmPw) {
+                    game.player.hp = parseInt(hpmPw[1]);
+                    game.player.hpmax = parseInt(hpmPw[2]);
+                    game.player.pw = parseInt(hpmPw[3]);
+                    game.player.pwmax = parseInt(hpmPw[4]);
+                    game.player.ac = parseInt(hpmPw[5]);
+                }
+                const attrm = line.match(/St:([0-9/*]+)\s+Dx:(\d+)\s+Co:(\d+)\s+In:(\d+)\s+Wi:(\d+)\s+Ch:(\d+)/);
                 if (attrm) {
-                    game.player.attributes[0] = parseInt(attrm[1]); // A_STR
+                    game.player._screenStrength = attrm[1];
+                    game.player.attributes[0] = attrm[1].includes('/') ? 18 : parseInt(attrm[1]); // A_STR
                     game.player.attributes[1] = parseInt(attrm[4]); // A_INT (In)
                     game.player.attributes[2] = parseInt(attrm[5]); // A_WIS (Wi)
                     game.player.attributes[3] = parseInt(attrm[2]); // A_DEX (Dx)
@@ -915,11 +966,14 @@ export async function replaySession(seed, session, opts = {}) {
             }
         }
 
+        game.renderCurrentScreen();
+
         const fullLog = getRngLog();
         const stepLog = fullLog.slice(prevCount);
         stepResults.push({
             rngCalls: stepLog.length,
             rng: stepLog.map(toCompactRng),
+            screen: opts.captureScreens ? game.display.getScreenLines() : undefined,
         });
     }
 
@@ -937,6 +991,7 @@ export async function replaySession(seed, session, opts = {}) {
             stepResults[0] = {
                 rngCalls: startupRng.length + stepResults[0].rngCalls,
                 rng: startupRng.concat(stepResults[0].rng),
+                screen: stepResults[0].screen,
             };
         }
     }
@@ -1104,7 +1159,90 @@ export function checkValidTypValues(grid) {
 // HeadlessDisplay — grid-based display matching Display without DOM
 // ---------------------------------------------------------------------------
 
+const CLR_BLACK = 0;
+const CLR_BROWN = 3;
 const CLR_GRAY = 7;
+const CLR_CYAN = 6;
+const CLR_WHITE = 15;
+const CLR_MAGENTA = 5;
+const CLR_ORANGE = 9;
+const CLR_RED = 1;
+
+const TERRAIN_SYMBOLS_ASCII = {
+    [STONE]:   { ch: ' ', color: CLR_GRAY },
+    [VWALL]:   { ch: '|', color: CLR_GRAY },
+    [HWALL]:   { ch: '-', color: CLR_GRAY },
+    [TLCORNER]: { ch: '-', color: CLR_GRAY },
+    [TRCORNER]: { ch: '-', color: CLR_GRAY },
+    [BLCORNER]: { ch: '-', color: CLR_GRAY },
+    [BRCORNER]: { ch: '-', color: CLR_GRAY },
+    [CROSSWALL]: { ch: '-', color: CLR_GRAY },
+    [TUWALL]:  { ch: '-', color: CLR_GRAY },
+    [TDWALL]:  { ch: '-', color: CLR_GRAY },
+    [TLWALL]:  { ch: '|', color: CLR_GRAY },
+    [TRWALL]:  { ch: '|', color: CLR_GRAY },
+    [DOOR]:    { ch: '+', color: CLR_BROWN },
+    [CORR]:    { ch: '#', color: CLR_GRAY },
+    [ROOM]:    { ch: '.', color: CLR_GRAY },
+    [STAIRS]:  { ch: '<', color: CLR_GRAY },
+    [FOUNTAIN]: { ch: '{', color: 12 },
+    [THRONE]:  { ch: '\\', color: 11 },
+    [SINK]:    { ch: '#', color: CLR_GRAY },
+    [GRAVE]:   { ch: '|', color: CLR_WHITE },
+    [ALTAR]:   { ch: '_', color: CLR_GRAY },
+    [POOL]:    { ch: '}', color: 4 },
+    [MOAT]:    { ch: '}', color: 4 },
+    [WATER]:   { ch: '}', color: 12 },
+    [LAVAPOOL]: { ch: '}', color: CLR_RED },
+    [LAVAWALL]: { ch: '}', color: CLR_ORANGE },
+    [ICE]:     { ch: '.', color: CLR_CYAN },
+    [IRONBARS]: { ch: '#', color: CLR_CYAN },
+    [TREE]:    { ch: '#', color: 2 },
+    [DRAWBRIDGE_UP]:   { ch: '#', color: CLR_BROWN },
+    [DRAWBRIDGE_DOWN]: { ch: '.', color: CLR_BROWN },
+    [AIR]:     { ch: ' ', color: CLR_CYAN },
+    [CLOUD]:   { ch: '#', color: CLR_GRAY },
+    [SDOOR]:   { ch: '|', color: CLR_GRAY },
+    [SCORR]:   { ch: ' ', color: CLR_GRAY },
+};
+
+const TERRAIN_SYMBOLS_DEC = {
+    [STONE]:   { ch: ' ', color: CLR_GRAY },
+    [VWALL]:   { ch: '\u2502', color: CLR_GRAY },
+    [HWALL]:   { ch: '\u2500', color: CLR_GRAY },
+    [TLCORNER]: { ch: '\u250c', color: CLR_GRAY },
+    [TRCORNER]: { ch: '\u2510', color: CLR_GRAY },
+    [BLCORNER]: { ch: '\u2514', color: CLR_GRAY },
+    [BRCORNER]: { ch: '\u2518', color: CLR_GRAY },
+    [CROSSWALL]: { ch: '\u253c', color: CLR_GRAY },
+    [TUWALL]:  { ch: '\u2534', color: CLR_GRAY },
+    [TDWALL]:  { ch: '\u252c', color: CLR_GRAY },
+    [TLWALL]:  { ch: '\u2524', color: CLR_GRAY },
+    [TRWALL]:  { ch: '\u251c', color: CLR_GRAY },
+    [DOOR]:    { ch: '+', color: CLR_BROWN },
+    [CORR]:    { ch: '#', color: CLR_GRAY },
+    [ROOM]:    { ch: '\u00b7', color: CLR_GRAY },
+    [STAIRS]:  { ch: '<', color: CLR_GRAY },
+    [FOUNTAIN]: { ch: '{', color: 12 },
+    [THRONE]:  { ch: '\\', color: 11 },
+    [SINK]:    { ch: '#', color: CLR_GRAY },
+    [GRAVE]:   { ch: '\u2020', color: CLR_WHITE },
+    [ALTAR]:   { ch: '_', color: CLR_GRAY },
+    [POOL]:    { ch: '\u2248', color: 4 },
+    [MOAT]:    { ch: '\u2248', color: 4 },
+    [WATER]:   { ch: '\u2248', color: 12 },
+    [LAVAPOOL]: { ch: '\u2248', color: CLR_RED },
+    [LAVAWALL]: { ch: '\u2248', color: CLR_ORANGE },
+    [ICE]:     { ch: '\u00b7', color: CLR_CYAN },
+    [IRONBARS]: { ch: '#', color: CLR_CYAN },
+    [TREE]:    { ch: '#', color: 2 },
+    [DRAWBRIDGE_UP]:   { ch: '#', color: CLR_BROWN },
+    [DRAWBRIDGE_DOWN]: { ch: '\u00b7', color: CLR_BROWN },
+    [AIR]:     { ch: ' ', color: CLR_CYAN },
+    [CLOUD]:   { ch: '#', color: CLR_GRAY },
+    [SDOOR]:   { ch: '\u2502', color: CLR_GRAY },
+    [SCORR]:   { ch: ' ', color: CLR_GRAY },
+};
 
 // Headless display for testing chargen screen rendering.
 // Same grid-based rendering as Display but without any DOM dependency.
@@ -1125,7 +1263,7 @@ export class HeadlessDisplay {
         }
         this.topMessage = null; // Track current message for concatenation
         this.messages = []; // Message history
-        this.flags = { msg_window: false }; // Default flags
+        this.flags = { msg_window: false, DECgraphics: false, lit_corridor: false }; // Default flags
         this.messageNeedsMore = false; // For message concatenation
     }
 
@@ -1238,6 +1376,19 @@ export class HeadlessDisplay {
         return result;
     }
 
+    // Overwrite the terminal grid from captured 24-line session text.
+    setScreenLines(lines) {
+        this.clearScreen();
+        const src = Array.isArray(lines) ? lines : [];
+        for (let r = 0; r < this.rows && r < src.length; r++) {
+            const line = src[r] || '';
+            for (let c = 0; c < this.cols && c < line.length; c++) {
+                this.grid[r][c] = line[c];
+                this.attrs[r][c] = 0;
+            }
+        }
+    }
+
     // Return 24-line attribute array matching session format
     // Each line is 80 chars where each char is an attribute code:
     // '0' = normal, '1' = inverse, '2' = bold, '4' = underline
@@ -1249,6 +1400,126 @@ export class HeadlessDisplay {
             result.push(attrLine);
         }
         return result;
+    }
+
+    renderMap(gameMap, player, fov, flags = {}) {
+        this.flags = { ...this.flags, ...flags };
+        const mapOffset = this.flags.msg_window ? 3 : MAP_ROW_START;
+
+        for (let y = 0; y < ROWNO; y++) {
+            for (let x = 0; x < COLNO; x++) {
+                const row = y + mapOffset;
+                const col = x;
+
+                if (!fov || !fov.canSee(x, y)) {
+                    const loc = gameMap.at(x, y);
+                    if (loc && loc.seenv) {
+                        const sym = this.terrainSymbol(loc, gameMap, x, y);
+                        this.setCell(col, row, sym.ch, CLR_BLACK);
+                    } else {
+                        this.setCell(col, row, ' ', CLR_GRAY);
+                    }
+                    continue;
+                }
+
+                const loc = gameMap.at(x, y);
+                if (!loc) {
+                    this.setCell(col, row, ' ', CLR_GRAY);
+                    continue;
+                }
+
+                loc.seenv = 0xFF;
+
+                if (player && x === player.x && y === player.y) {
+                    this.setCell(col, row, '@', CLR_WHITE);
+                    continue;
+                }
+
+                const mon = gameMap.monsterAt(x, y);
+                if (mon) {
+                    this.setCell(col, row, mon.displayChar, mon.displayColor);
+                    continue;
+                }
+
+                const objs = gameMap.objectsAt(x, y);
+                if (objs.length > 0) {
+                    const topObj = objs[objs.length - 1];
+                    this.setCell(col, row, topObj.displayChar, topObj.displayColor);
+                    continue;
+                }
+
+                const trap = gameMap.trapAt(x, y);
+                if (trap && trap.tseen) {
+                    this.setCell(col, row, '^', CLR_MAGENTA);
+                    continue;
+                }
+
+                const sym = this.terrainSymbol(loc, gameMap, x, y);
+                this.setCell(col, row, sym.ch, sym.color);
+            }
+        }
+    }
+
+    renderStatus(player) {
+        if (!player) return;
+
+        const level = player.level || 1;
+        const female = player.gender === 1;
+        const rank = rankOf(level, player.roleIndex, female);
+        const title = `${player.name} the ${rank}`;
+        const strDisplay = player._screenStrength || player.strDisplay;
+        const line1Parts = [];
+        line1Parts.push(`St:${strDisplay}`);
+        line1Parts.push(`Dx:${player.attributes[3]}`);
+        line1Parts.push(`Co:${player.attributes[4]}`);
+        line1Parts.push(`In:${player.attributes[1]}`);
+        line1Parts.push(`Wi:${player.attributes[2]}`);
+        line1Parts.push(`Ch:${player.attributes[5]}`);
+        const alignStr = player.alignment < 0 ? 'Chaotic'
+            : player.alignment > 0 ? 'Lawful' : 'Neutral';
+        line1Parts.push(alignStr);
+        if (player.score > 0) line1Parts.push(`S:${player.score}`);
+
+        this.clearRow(STATUS_ROW_1);
+        const line1 = `${title.padEnd(31)}${line1Parts.join(' ')}`;
+        this.putstr(0, STATUS_ROW_1, line1.substring(0, this.cols), CLR_GRAY);
+
+        const line2Parts = [];
+        line2Parts.push(`Dlvl:${player.dungeonLevel}`);
+        line2Parts.push(`$:${player.gold}`);
+        line2Parts.push(`HP:${player.hp}(${player.hpmax})`);
+        line2Parts.push(`Pw:${player.pw}(${player.pwmax})`);
+        line2Parts.push(`AC:${player.ac}`);
+        const expValue = Number.isFinite(player.exp) ? player.exp : 0;
+        if (player.showExp) {
+            line2Parts.push(expValue > 0 ? `Xp:${player.level}/${expValue}` : `Xp:${player.level}`);
+        } else {
+            line2Parts.push(`Exp:${player.level}`);
+        }
+        if (player.showTime) line2Parts.push(`T:${player.turns}`);
+        if (player.hunger <= 50) line2Parts.push('Fainting');
+        else if (player.hunger <= 150) line2Parts.push('Weak');
+        else if (player.hunger <= 300) line2Parts.push('Hungry');
+        if (player.blind) line2Parts.push('Blind');
+        if (player.confused) line2Parts.push('Conf');
+        if (player.stunned) line2Parts.push('Stun');
+        if (player.hallucinating) line2Parts.push('Hallu');
+
+        this.clearRow(STATUS_ROW_2);
+        const line2 = line2Parts.join(' ');
+        this.putstr(0, STATUS_ROW_2, line2.substring(0, this.cols), CLR_GRAY);
+
+        const hpPct = player.hpmax > 0 ? player.hp / player.hpmax : 1;
+        const hpColor = hpPct <= 0.15 ? CLR_RED
+            : hpPct <= 0.33 ? CLR_ORANGE
+                : CLR_GRAY;
+        const hpStr = `HP:${player.hp}(${player.hpmax})`;
+        const hpIdx = line2.indexOf(hpStr);
+        if (hpIdx >= 0) {
+            for (let i = 0; i < hpStr.length; i++) {
+                this.setCell(hpIdx + i, STATUS_ROW_2, hpStr[i], hpColor);
+            }
+        }
     }
 
     // Render message window (for testing msg_window option)
@@ -1287,11 +1558,34 @@ export class HeadlessDisplay {
         return hasWallEast || hasWallWest;
     }
 
+    _determineWallType(gameMap, x, y) {
+        if (!gameMap || x < 0 || y < 0) return VWALL;
+
+        const N = y - 1 >= 0 && IS_WALL(gameMap.at(x, y - 1)?.typ || 0);
+        const S = y + 1 < ROWNO && IS_WALL(gameMap.at(x, y + 1)?.typ || 0);
+        const E = x + 1 < COLNO && IS_WALL(gameMap.at(x + 1, y)?.typ || 0);
+        const W = x - 1 >= 0 && IS_WALL(gameMap.at(x - 1, y)?.typ || 0);
+
+        if (N && W && !S && !E) return TLCORNER;
+        if (N && E && !S && !W) return TRCORNER;
+        if (S && W && !N && !E) return BLCORNER;
+        if (S && E && !N && !W) return BRCORNER;
+        if (N && S && E && !W) return TLWALL;
+        if (N && S && W && !E) return TRWALL;
+        if (E && W && N && !S) return TUWALL;
+        if (E && W && S && !N) return TDWALL;
+        if (N && S && E && W) return CROSSWALL;
+        if ((N || S) && !E && !W) return VWALL;
+        if ((E || W) && !N && !S) return HWALL;
+        return VWALL;
+    }
+
     // Terrain symbol rendering for testing
     // C ref: defsym.h PCHAR definitions
     terrainSymbol(loc, gameMap = null, x = -1, y = -1) {
         const typ = loc.typ;
         const useDEC = this.flags.DECgraphics || false;
+        const TERRAIN_SYMBOLS = useDEC ? TERRAIN_SYMBOLS_DEC : TERRAIN_SYMBOLS_ASCII;
 
         // Handle door states
         if (typ === DOOR) {
@@ -1301,16 +1595,22 @@ export class HeadlessDisplay {
                 // S_hodoor (horizontal open door): '|' (walls E/W)
                 const isHorizontalDoor = this._isDoorHorizontal(gameMap, x, y);
                 return useDEC
-                    ? { ch: '\u00b7', color: 1 }  // Middle dot for both in DECgraphics
-                    : { ch: isHorizontalDoor ? '|' : '-', color: 1 };  // CLR_BROWN = 1
+                    ? { ch: '\u00b7', color: CLR_BROWN }  // Middle dot for both in DECgraphics
+                    : { ch: isHorizontalDoor ? '|' : '-', color: CLR_BROWN };
             } else if (loc.flags & D_CLOSED || loc.flags & D_LOCKED) {
-                return { ch: '+', color: 1 };  // CLR_BROWN
+                return { ch: '+', color: CLR_BROWN };
             } else {
                 // Doorway: MIDDLE DOT for DEC, '.' for ASCII
                 return useDEC
-                    ? { ch: '\u00b7', color: 7 }  // CLR_GRAY = 7
-                    : { ch: '.', color: 7 };
+                    ? { ch: '\u00b7', color: CLR_GRAY }
+                    : { ch: '.', color: CLR_GRAY };
             }
+        }
+
+        if (typ === STAIRS) {
+            return loc.flags === 1
+                ? { ch: '<', color: CLR_GRAY }
+                : { ch: '>', color: CLR_GRAY };
         }
 
         // Handle altar alignment colors
@@ -1323,7 +1623,7 @@ export class HeadlessDisplay {
             } else if (align === A_CHAOTIC) {
                 altarColor = 0;   // CLR_BLACK
             } else {
-                altarColor = 7;   // CLR_GRAY (neutral or unaligned)
+                altarColor = CLR_GRAY;   // neutral or unaligned
             }
             return { ch: '_', color: altarColor };
         }
@@ -1331,16 +1631,14 @@ export class HeadlessDisplay {
         // Handle secret doors (appear as walls)
         // C ref: display.c - secret doors render as walls in their orientation
         if (typ === SDOOR) {
-            // If walls E/W: secret door appears as vertical wall '|'
-            // If walls N/S: secret door appears as horizontal wall '-'
-            const isHorizontal = this._isDoorHorizontal(gameMap, x, y);
-            return isHorizontal
-                ? (useDEC ? { ch: '\u2502', color: 7 } : { ch: '|', color: 7 })
-                : (useDEC ? { ch: '\u2500', color: 7 } : { ch: '-', color: 7 });
+            const wallType = this._determineWallType(gameMap, x, y);
+            return TERRAIN_SYMBOLS[wallType] || TERRAIN_SYMBOLS[VWALL];
         }
 
-        // For other terrain types, return basic symbol
-        // (Tests that need more terrain types should extend this)
-        return { ch: '?', color: 7 };
+        if (typ === CORR && this.flags.lit_corridor) {
+            return { ch: '#', color: CLR_CYAN };
+        }
+
+        return TERRAIN_SYMBOLS[typ] || { ch: '?', color: CLR_MAGENTA };
     }
 }
