@@ -1025,7 +1025,11 @@ async function handleInventory(player, display) {
     }
     lines.push(' (end)');
 
-    display.renderChargenMenu(lines, false);
+    if (typeof display.renderOverlayMenu === 'function') {
+        display.renderOverlayMenu(lines);
+    } else {
+        display.renderChargenMenu(lines, false);
+    }
     await nhgetch(); // wait for dismissal
 
     return { moved: false, tookTime: false };

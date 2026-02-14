@@ -1427,6 +1427,28 @@ export class HeadlessDisplay {
         return offx;
     }
 
+    // Matches Display.renderOverlayMenu()
+    renderOverlayMenu(lines) {
+        let maxcol = 0;
+        for (const line of lines) {
+            if (line.length > maxcol) maxcol = line.length;
+        }
+        const offx = Math.max(10, Math.min(41, this.cols - maxcol - 2));
+
+        // Clear only the overlay area.
+        for (let r = 0; r < this.rows; r++) {
+            for (let c = offx; c < this.cols; c++) {
+                this.grid[r][c] = ' ';
+                this.attrs[r][c] = 0;
+            }
+        }
+
+        for (let i = 0; i < lines.length && i < this.rows; i++) {
+            this.putstr(offx, i, lines[i], CLR_GRAY, 0);
+        }
+        return offx;
+    }
+
     // Matches Display.renderLoreText()
     renderLoreText(lines, offx) {
         for (let i = 0; i < lines.length && i < this.rows; i++) {
