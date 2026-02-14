@@ -182,6 +182,10 @@ export let levelState = {
     spLevTouched: null,
 };
 
+const WALL_INFO_MASK = 0x07;
+let checkpointCaptureEnabled = false;
+let levelCheckpoints = [];
+
 // Special level flags
 let icedpools = false;
 let Sokoban = false;
@@ -212,6 +216,136 @@ function markSpLevMap(x, y) {
     if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return;
     initSpLevMap();
     levelState.spLevMap[x][y] = true;
+}
+
+function normalizeDestRect(rect) {
+    const fallback = { lx: 0, ly: 0, hx: 0, hy: 0, nlx: 0, nly: 0, nhx: 0, nhy: 0 };
+    if (!rect || typeof rect !== 'object') return fallback;
+    return {
+        lx: Number.isInteger(rect.lx) ? rect.lx : 0,
+        ly: Number.isInteger(rect.ly) ? rect.ly : 0,
+        hx: Number.isInteger(rect.hx) ? rect.hx : 0,
+        hy: Number.isInteger(rect.hy) ? rect.hy : 0,
+        nlx: Number.isInteger(rect.nlx) ? rect.nlx : 0,
+        nly: Number.isInteger(rect.nly) ? rect.nly : 0,
+        nhx: Number.isInteger(rect.nhx) ? rect.nhx : 0,
+        nhy: Number.isInteger(rect.nhy) ? rect.nhy : 0
+    };
+}
+
+function captureCheckpoint(phase) {
+    if (!checkpointCaptureEnabled || !levelState.map) return;
+    const map = levelState.map;
+    const typGrid = [];
+    const flagGrid = [];
+    const wallInfoGrid = [];
+
+    for (let y = 0; y < ROWNO; y++) {
+        const typRow = [];
+        const flagRow = [];
+        const wallInfoRow = [];
+        for (let x = 0; x < COLNO; x++) {
+            const loc = map.locations?.[x]?.[y];
+            typRow.push(loc ? loc.typ : 0);
+            flagRow.push(loc ? loc.flags : 0);
+            wallInfoRow.push(loc ? (loc.flags & WALL_INFO_MASK) : 0);
+        }
+        typGrid.push(typRow);
+        flagGrid.push(flagRow);
+        wallInfoGrid.push(wallInfoRow);
+    }
+
+    const traps = (Array.isArray(map.traps) ? map.traps : [])
+        .map((t) => ({
+            x: Number.isInteger(t?.tx) ? t.tx : (Number.isInteger(t?.x) ? t.x : -1),
+            y: Number.isInteger(t?.ty) ? t.ty : (Number.isInteger(t?.y) ? t.y : -1),
+            ttyp: Number.isInteger(t?.ttyp) ? t.ttyp : -1
+        }))
+        .filter((t) => t.x >= 0 && t.x < COLNO && t.y >= 0 && t.y < ROWNO)
+        .sort((a, b) => (a.y - b.y) || (a.x - b.x));
+
+    const monsters = (Array.isArray(map.monsters) ? map.monsters : [])
+        .filter((m) => Number.isInteger(m?.mx) && Number.isInteger(m?.my)
+            && (Number.isInteger(m?.mhp) ? m.mhp > 0 : true))
+        .map((m) => ({
+            x: m.mx,
+            y: m.my,
+            mnum: Number.isInteger(m?.mndx) ? m.mndx : -1,
+            mhp: Number.isInteger(m?.mhp) ? m.mhp : 0,
+            mpeaceful: m?.mpeaceful ? 1 : 0
+        }))
+        .sort((a, b) => (a.y - b.y) || (a.x - b.x));
+
+    const nroom = Number.isInteger(map.nroom)
+        ? Math.max(0, Math.min(map.nroom, (map.rooms || []).length))
+        : ((map.rooms || []).length || 0);
+    const rooms = (map.rooms || []).slice(0, nroom).map((room, idx) => ({
+        idx,
+        lx: Number.isInteger(room?.lx) ? room.lx : 0,
+        ly: Number.isInteger(room?.ly) ? room.ly : 0,
+        hx: Number.isInteger(room?.hx) ? room.hx : 0,
+        hy: Number.isInteger(room?.hy) ? room.hy : 0,
+        rtype: Number.isInteger(room?.rtype) ? room.rtype : 0,
+        orig_rtype: Number.isInteger(room?.orig_rtype) ? room.orig_rtype : 0,
+        rlit: room?.rlit ? 1 : 0,
+        doorct: Number.isInteger(room?.doorct) ? room.doorct : 0,
+        fdoor: Number.isInteger(room?.fdoor) ? room.fdoor : 0,
+        irregular: room?.irregular ? 1 : 0
+    }));
+
+    const doorindex = Number.isInteger(map.doorindex)
+        ? Math.max(0, Math.min(map.doorindex, (map.doors || []).length))
+        : 0;
+    const doors = (map.doors || []).slice(0, doorindex).map((d) => ({
+        x: Number.isInteger(d?.x) ? d.x : 0,
+        y: Number.isInteger(d?.y) ? d.y : 0
+    }));
+
+    const stairs = [];
+    if (Number.isInteger(map?.upstair?.x) && Number.isInteger(map?.upstair?.y)) {
+        const loc = map.at(map.upstair.x, map.upstair.y);
+        if (loc && (loc.typ === STAIRS || loc.typ === LADDER)) {
+            stairs.push({
+                x: map.upstair.x,
+                y: map.upstair.y,
+                up: 1,
+                isladder: loc.typ === LADDER ? 1 : 0,
+                to: { dnum: 0, dlevel: 0 }
+            });
+        }
+    }
+    if (Number.isInteger(map?.dnstair?.x) && Number.isInteger(map?.dnstair?.y)) {
+        const loc = map.at(map.dnstair.x, map.dnstair.y);
+        if (loc && (loc.typ === STAIRS || loc.typ === LADDER)) {
+            stairs.push({
+                x: map.dnstair.x,
+                y: map.dnstair.y,
+                up: 0,
+                isladder: loc.typ === LADDER ? 1 : 0,
+                to: { dnum: 0, dlevel: 0 }
+            });
+        }
+    }
+
+    const ctx = levelState.finalizeContext || {};
+    levelCheckpoints.push({
+        phase: (typeof phase === 'string' && phase.length > 0) ? phase : 'unspecified',
+        rngCallCount: getRngCallCount(),
+        dnum: Number.isInteger(ctx.dnum) ? ctx.dnum : null,
+        dlevel: Number.isInteger(ctx.dlevel) ? ctx.dlevel : null,
+        typGrid,
+        flagGrid,
+        wallInfoGrid,
+        traps,
+        monsters,
+        nroom,
+        rooms,
+        doorindex,
+        doors,
+        stairs,
+        updest: normalizeDestRect(map.updest),
+        dndest: normalizeDestRect(map.dndest)
+    });
 }
 
 function mkmapInitMap(map, bgTyp) {
@@ -1032,6 +1166,7 @@ export function resetLevelState() {
     icedpools = false;
     Sokoban = false;
     monsterExecSeq = 0;
+    levelCheckpoints = [];
 
     // Initialize BSP rectangle pool for random room placement
     // C ref: sp_lev.c special level generation requires rect pool initialization
@@ -1321,6 +1456,7 @@ function fixupSpecialLevel() {
         levelState.map.flags.has_town = true;
     }
 
+    captureCheckpoint('after_levregions_fixup');
     levelState.branchPlaced = true;
 }
 
@@ -1526,6 +1662,21 @@ export function getTypGrid() {
     return grid;
 }
 
+export function setCheckpointCaptureEnabled(enabled = true) {
+    checkpointCaptureEnabled = !!enabled;
+    if (!checkpointCaptureEnabled) {
+        levelCheckpoints = [];
+    }
+}
+
+export function clearLevelCheckpoints() {
+    levelCheckpoints = [];
+}
+
+export function getLevelCheckpoints() {
+    return JSON.parse(JSON.stringify(levelCheckpoints));
+}
+
 /**
  * des.level_init({ style = "solidfill", fg = " " })
  *
@@ -1706,6 +1857,7 @@ export function level_init(opts = {}) {
             }
         }
     }
+    captureCheckpoint('after_level_init');
 }
 
 /**
@@ -2349,6 +2501,8 @@ export function map(data) {
         };
         contents(mapRegion);
     }
+
+    captureCheckpoint('after_map');
 }
 
 /**
@@ -6198,6 +6352,7 @@ export function finalize_level() {
     if (levelState.map && !levelState.flags.corrmaze) {
         wallification(levelState.map);
     }
+    captureCheckpoint('after_wallification');
 
     // Apply random flipping
     const flipped = flipLevelRandom();
@@ -6243,6 +6398,7 @@ export function finalize_level() {
 
     // TODO: Add other finalization steps (solidify_map, premapping, etc.)
 
+    captureCheckpoint('after_finalize');
     // Return the generated map
     return levelState.map;
 }
