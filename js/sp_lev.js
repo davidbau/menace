@@ -3866,32 +3866,69 @@ export function region(opts_or_selection, type) {
  * @param {Object} selection - Selection object
  */
 export function non_diggable(selection) {
-    if (!levelState.map || !selection) {
+    if (!levelState.map) {
         return;
     }
+    const applyWallProp = (propKind) => {
+        const applyAt = (x, y) => {
+            if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return;
+            const loc = levelState.map.locations[x][y];
+            if (!loc) return;
+            // C ref: sel_set_wall_property() only applies to stone walls,
+            // trees, and iron bars.
+            if (!(IS_WALL(loc.typ) || loc.typ === TREE || loc.typ === IRONBARS)) return;
+            if (propKind === 'nondiggable') loc.nondiggable = true;
+            else if (propKind === 'nonpasswall') loc.nonpasswall = true;
+        };
 
-    let x1 = selection.x1;
-    let y1 = selection.y1;
-    let x2 = selection.x2;
-    let y2 = selection.y2;
+        if (!selection) {
+            // C ref: lspo_non_{diggable,passwall}() with no args creates a
+            // full-map selection and iterates it.
+            for (let x = 0; x < COLNO; x++) {
+                for (let y = 0; y < ROWNO; y++) {
+                    applyAt(x, y);
+                }
+            }
+            return;
+        }
 
-    // C ref: after des.map(), coordinates are map-relative.
-    if (levelState.mapCoordMode) {
-        const c1 = toAbsoluteCoords(x1, y1);
-        const c2 = toAbsoluteCoords(x2, y2);
-        x1 = c1.x;
-        y1 = c1.y;
-        x2 = c2.x;
-        y2 = c2.y;
-    }
+        if (Array.isArray(selection.coords)) {
+            for (const c of selection.coords) {
+                let x = c.x;
+                let y = c.y;
+                if (levelState.mapCoordMode) {
+                    const abs = toAbsoluteCoords(x, y);
+                    x = abs.x;
+                    y = abs.y;
+                }
+                applyAt(x, y);
+            }
+            return;
+        }
 
-    for (let x = x1; x <= x2; x++) {
-        for (let y = y1; y <= y2; y++) {
-            if (x >= 0 && x < 80 && y >= 0 && y < 21) {
-                levelState.map.locations[x][y].nondiggable = true;
+        let x1 = selection.x1;
+        let y1 = selection.y1;
+        let x2 = selection.x2;
+        let y2 = selection.y2;
+        if (!Number.isFinite(x1) || !Number.isFinite(y1)
+            || !Number.isFinite(x2) || !Number.isFinite(y2)) {
+            return;
+        }
+        if (levelState.mapCoordMode) {
+            const c1 = toAbsoluteCoords(x1, y1);
+            const c2 = toAbsoluteCoords(x2, y2);
+            x1 = c1.x;
+            y1 = c1.y;
+            x2 = c2.x;
+            y2 = c2.y;
+        }
+        for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+            for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+                applyAt(x, y);
             }
         }
-    }
+    };
+    applyWallProp('nondiggable');
 }
 
 /**
@@ -3921,8 +3958,60 @@ export function message(text) {
  * @param {Object} selection - Selection object
  */
 export function non_passwall(selection) {
-    // Stub - would set W_NONPASSWALL flag on walls
-    // For now, just ignore
+    if (!levelState.map) {
+        return;
+    }
+    // C ref: lspo_non_passwall() reuses set_wallprop_in_selection().
+    const applyWallProp = (sel) => {
+        const applyXY = (x, y) => {
+            if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return;
+            const loc = levelState.map.locations[x][y];
+            if (!loc) return;
+            if (!(IS_WALL(loc.typ) || loc.typ === TREE || loc.typ === IRONBARS)) return;
+            loc.nonpasswall = true;
+        };
+        if (!sel) {
+            for (let x = 0; x < COLNO; x++) {
+                for (let y = 0; y < ROWNO; y++) applyXY(x, y);
+            }
+            return;
+        }
+        if (Array.isArray(sel.coords)) {
+            for (const c of sel.coords) {
+                let x = c.x;
+                let y = c.y;
+                if (levelState.mapCoordMode) {
+                    const abs = toAbsoluteCoords(x, y);
+                    x = abs.x;
+                    y = abs.y;
+                }
+                applyXY(x, y);
+            }
+            return;
+        }
+        let x1 = sel.x1;
+        let y1 = sel.y1;
+        let x2 = sel.x2;
+        let y2 = sel.y2;
+        if (!Number.isFinite(x1) || !Number.isFinite(y1)
+            || !Number.isFinite(x2) || !Number.isFinite(y2)) {
+            return;
+        }
+        if (levelState.mapCoordMode) {
+            const c1 = toAbsoluteCoords(x1, y1);
+            const c2 = toAbsoluteCoords(x2, y2);
+            x1 = c1.x;
+            y1 = c1.y;
+            x2 = c2.x;
+            y2 = c2.y;
+        }
+        for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+            for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+                applyXY(x, y);
+            }
+        }
+    };
+    applyWallProp(selection);
 }
 
 /**
