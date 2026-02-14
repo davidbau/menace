@@ -52,6 +52,7 @@ _spec2.loader.exec_module(_session)
 parse_rng_lines = _session.parse_rng_lines
 compact_session_json = _session.compact_session_json
 read_rng_log = _session.read_rng_log
+fixed_datetime_env = _session.fixed_datetime_env
 
 # Label maps for character fields
 ROLE_LABELS = {
@@ -172,6 +173,7 @@ def generate_one(seed, role_key, race_key, gender_key, align_key, label):
 
     try:
         cmd = (
+            f'{fixed_datetime_env()}'
             f'NETHACKDIR={INSTALL_DIR} '
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '

@@ -51,6 +51,7 @@ quit_game = _dumpmap.quit_game
 tmux_send = _dumpmap.tmux_send
 tmux_send_special = _dumpmap.tmux_send_special
 tmux_capture = _dumpmap.tmux_capture
+fixed_datetime_env = _dumpmap.fixed_datetime_env
 
 
 # Level groups: each entry is (level_name_for_ctrl_v, metadata)
@@ -671,6 +672,7 @@ def generate_group(group_name, seeds, verbose=False):
                 setup_home()
 
             cmd = (
+                f'{fixed_datetime_env()}'
                 f'NETHACKDIR={INSTALL_DIR} '
                 f'NETHACK_SEED={seed} '
                 f'NETHACK_DUMPMAP={dumpmap_file} '

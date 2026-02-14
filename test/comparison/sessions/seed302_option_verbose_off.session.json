@@ -78,6 +78,8 @@
       "key": ".",
       "action": "wait",
       "rng": [
+        ">cmd_safety_prevention @ cmd_safety_prevention(do.c:2317)",
+        "<cmd_safety_prevention=0 #2371-2370 @ cmd_safety_prevention(do.c:2340)",
         "rn2(12)=3 @ mcalcmove(mon.c:1146)",
         "rn2(12)=6 @ mcalcmove(mon.c:1146)",
         "rn2(12)=5 @ mcalcmove(mon.c:1146)",

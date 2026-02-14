@@ -21,7 +21,7 @@
       "",
       "NetHack, Copyright 1985-2026",
       "         By Stichting Mathematisch Centrum and M. Stephenson.",
-      "         Version 3.7.0-132 Unix Work-in-progress, built Feb 13 2026 19:45:36.",
+      "         Version 3.7.0-132 Unix Work-in-progress, built Feb 13 2026 23:21:02.",
       "         See license for details.",
       "",
       "",
@@ -2636,43 +2636,12 @@
     {
       "key": " ",
       "action": "more",
-      "rng": [],
-      "screen": [
-        "Hello wizard, welcome to NetHack!  You are a lawful dwarven Caveman.--More--",
-        "",
-        "",
-        "                                              lqqqk",
-        "                                              x~$~~",
-        "                                              xd@xx",
-        "                                              mq~qj",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "Wizard the Troglodyte          St:18 Dx:14 Co:19 In:9 Wi:8 Ch:11 Lawful",
-        "Dlvl:1 $:0 HP:18(18) Pw:1(1) AC:8 Xp:1"
-      ]
-    },
-    {
-      "key": " ",
-      "action": "more",
       "rng": [
         "rnd(9000)=7475 @ moveloop_preamble(allmain.c:74)",
         "rnd(30)=14 @ moveloop_preamble(allmain.c:81)"
       ],
       "screen": [
-        "Watch out!  Bad things can happen on Friday the 13th.--More--",
+        "Hello wizard, welcome to NetHack!  You are a lawful dwarven Caveman.--More--",
         "",
         "",
         "                                              lqqqk",

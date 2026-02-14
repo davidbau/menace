@@ -2760,7 +2760,7 @@
       "depth": 1,
       "rng": [],
       "screen": [
-        "Map dumped to /tmp/webhack-session-38oql5ge/dumpmap.txt.",
+        "Map dumped to /tmp/webhack-session-v_4x0l79/dumpmap.txt.",
         "",
         "",
         "",
@@ -2793,7 +2793,7 @@
       "depth": 1,
       "rng": [],
       "screen": [
-        "Map dumped to /tmp/webhack-session-38oql5ge/dumpmap.txt.",
+        "Map dumped to /tmp/webhack-session-v_4x0l79/dumpmap.txt.",
         "",
         "",
         "",
@@ -2825,6 +2825,10 @@
       "turn": 3,
       "depth": 1,
       "rng": [
+        ">cmd_safety_prevention @ cmd_safety_prevention(do.c:2317)",
+        ">monster_nearby @ cmd_safety_prevention(do.c:2326)",
+        "<monster_nearby=0 #2673-2672 @ cmd_safety_prevention(do.c:2326)",
+        "<cmd_safety_prevention=0 #2673-2672 @ cmd_safety_prevention(do.c:2340)",
         "rn2(12)=1 @ mcalcmove(mon.c:1146)",
         "rn2(12)=6 @ mcalcmove(mon.c:1146)",
         "rn2(70)=6 @ moveloop_core(allmain.c:232)",

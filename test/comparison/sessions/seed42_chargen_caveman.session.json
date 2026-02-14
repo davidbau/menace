@@ -21,7 +21,7 @@
       "",
       "NetHack, Copyright 1985-2026",
       "         By Stichting Mathematisch Centrum and M. Stephenson.",
-      "         Version 3.7.0-132 Unix Work-in-progress, built Feb 13 2026 19:45:36.",
+      "         Version 3.7.0-132 Unix Work-in-progress, built Feb 13 2026 23:21:02.",
       "         See license for details.",
       "",
       "",
@@ -3132,43 +3132,12 @@
     {
       "key": " ",
       "action": "more",
-      "rng": [],
-      "screen": [
-        "Hello wizard, welcome to NetHack!  You are a neutral human Caveman.--More--",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "                                   lqqqqqqqqqqqqqk",
-        "                                   x~~~~~$~~~~~~~x",
-        "                                   ~~@+~~~~~~~~~~x",
-        "                                   x~d~~~~~~~~~~~x",
-        "                                   mqqqqqqq qqqq j",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "Wizard the Troglodyte          St:12 Dx:15 Co:18 In:12 Wi:7 Ch:10 Neutral",
-        "Dlvl:1 $:0 HP:16(16) Pw:2(2) AC:8 Xp:1"
-      ]
-    },
-    {
-      "key": " ",
-      "action": "more",
       "rng": [
         "rnd(9000)=8705 @ moveloop_preamble(allmain.c:74)",
         "rnd(30)=17 @ moveloop_preamble(allmain.c:81)"
       ],
       "screen": [
-        "Watch out!  Bad things can happen on Friday the 13th.--More--",
+        "Hello wizard, welcome to NetHack!  You are a neutral human Caveman.--More--",
         "",
         "",
         "",

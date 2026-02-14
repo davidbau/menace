@@ -54,6 +54,7 @@ execute_dumpmap = _session.execute_dumpmap
 clear_more_prompts = _session.clear_more_prompts
 quit_game = _session.quit_game
 detect_depth = _session.detect_depth
+fixed_datetime_env = _session.fixed_datetime_env
 
 # Character configuration
 ROLE_KEYS = {
@@ -214,6 +215,7 @@ def generate_trace(seed, max_turns=100, role='Valkyrie'):
 
     try:
         cmd = (
+            f'{fixed_datetime_env()}'
             f'NETHACKDIR={INSTALL_DIR} '
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '

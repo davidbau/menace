@@ -22,7 +22,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 from gen_special_sessions import (
     setup_home, wait_for_game_ready, execute_dumpmap, quit_game,
     tmux_send, tmux_send_special, tmux_capture,
-    NETHACK_BINARY, INSTALL_DIR, SESSIONS_DIR, RESULTS_DIR
+    NETHACK_BINARY, INSTALL_DIR, SESSIONS_DIR, RESULTS_DIR,
+    fixed_datetime_env
 )
 
 def wizard_wish_amulet(session, verbose=False):
@@ -259,6 +260,7 @@ def main():
 
         try:
             cmd = (
+                f'{fixed_datetime_env()}'
                 f'NETHACKDIR={INSTALL_DIR} '
                 f'NETHACK_SEED={seed} '
                 f'NETHACK_DUMPMAP={dumpmap_file} '

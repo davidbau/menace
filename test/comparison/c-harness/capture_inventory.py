@@ -54,6 +54,7 @@ capture_screen_lines = _session.capture_screen_lines
 clear_more_prompts = _session.clear_more_prompts
 detect_depth = _session.detect_depth
 quit_game = _session.quit_game
+fixed_datetime_env = _session.fixed_datetime_env
 
 RESULTS_DIR = os.path.join(SCRIPT_DIR, 'results')
 
@@ -187,6 +188,7 @@ def run_session(seed, output_json, move_str):
 
     try:
         cmd = (
+            f'{fixed_datetime_env()}'
             f'NETHACKDIR={INSTALL_DIR} '
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '

@@ -47,6 +47,7 @@ capture_screen_lines = _session.capture_screen_lines
 clear_more_prompts = _session.clear_more_prompts
 wait_for_game_ready = _session.wait_for_game_ready
 quit_game = _session.quit_game
+fixed_datetime_env = _session.fixed_datetime_env
 
 
 def setup_pickup_types_home(pickup_types_value):
@@ -112,6 +113,7 @@ def generate_pickup_types_session(session_name, seed, pickup_types_value, pickup
 
     # Build command with proper environment variables (same pattern as gen_option_sessions.py)
     cmd = (
+        f'{fixed_datetime_env()}'
         f'NETHACKDIR={INSTALL_DIR} '
         f'HOME={home_dir} '
         f'NETHACKOPTIONS=!legacy '

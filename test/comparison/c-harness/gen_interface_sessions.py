@@ -24,6 +24,14 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.normpath(os.path.join(SCRIPT_DIR, '..', '..', '..'))
 SESSIONS_DIR = os.path.join(PROJECT_ROOT, 'test', 'comparison', 'sessions')
 NETHACK_BINARY = os.path.join(PROJECT_ROOT, 'nethack-c', 'install', 'games', 'lib', 'nethackdir', 'nethack')
+DEFAULT_FIXED_DATETIME = '20000110090000'
+
+
+def fixed_datetime_env():
+    dt = os.environ.get('NETHACK_FIXED_DATETIME')
+    if dt is None:
+        dt = DEFAULT_FIXED_DATETIME
+    return f'NETHACK_FIXED_DATETIME={dt} ' if dt else ''
 
 def tmux_session_name():
     """Generate unique tmux session name."""
@@ -163,6 +171,7 @@ def capture_startup_sequence():
 
         # Start NetHack with proper environment
         cmd = (
+            f'{fixed_datetime_env()}'
             f'NETHACKDIR={nethack_dir} '
             f'TERM=xterm-256color '
             f'{NETHACK_BINARY}'
@@ -253,6 +262,7 @@ def capture_options_menu():
 
         # Start NetHack with wizard mode
         cmd = (
+            f'{fixed_datetime_env()}'
             f'NETHACKDIR={nethack_dir} '
             f'TERM=xterm-256color '
             f'{NETHACK_BINARY} -u wizard -D'
@@ -371,6 +381,7 @@ def capture_complete_chargen():
 
         # Start NetHack with proper environment
         cmd = (
+            f'{fixed_datetime_env()}'
             f'NETHACKDIR={nethack_dir} '
             f'TERM=xterm-256color '
             f'{NETHACK_BINARY}'

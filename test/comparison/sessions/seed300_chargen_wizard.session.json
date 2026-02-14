@@ -21,7 +21,7 @@
       "",
       "NetHack, Copyright 1985-2026",
       "         By Stichting Mathematisch Centrum and M. Stephenson.",
-      "         Version 3.7.0-132 Unix Work-in-progress, built Feb 13 2026 19:45:36.",
+      "         Version 3.7.0-132 Unix Work-in-progress, built Feb 13 2026 23:21:02.",
       "         See license for details.",
       "",
       "",
@@ -3249,43 +3249,12 @@
     {
       "key": " ",
       "action": "more",
-      "rng": [],
-      "screen": [
-        "Hello wizard, welcome to NetHack!  You are a neutral male human Wizard.--More--",
-        "",
-        "",
-        "",
-        " lqqqqqqqqqqk",
-        " x~f~~~~~~~~x",
-        " x~~@~~~~~o`x",
-        " x~~~~~~~~~~x",
-        " mq+qqqqqqqqj",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "Wizard the Evoker              St:9 Dx:17 Co:16 In:14 Wi:9 Ch:10 Neutral",
-        "Dlvl:1 $:0 HP:12(12) Pw:6(6) AC:9 Xp:1"
-      ]
-    },
-    {
-      "key": " ",
-      "action": "more",
       "rng": [
         "rnd(9000)=7434 @ moveloop_preamble(allmain.c:74)",
         "rnd(30)=21 @ moveloop_preamble(allmain.c:81)"
       ],
       "screen": [
-        "Watch out!  Bad things can happen on Friday the 13th.--More--",
+        "Hello wizard, welcome to NetHack!  You are a neutral male human Wizard.--More--",
         "",
         "",
         "",
