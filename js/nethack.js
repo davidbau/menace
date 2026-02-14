@@ -15,7 +15,7 @@ import { Player, roles, races, validRacesForRole, validAlignsForRoleRace,
          roleNameForGender, alignName, formatLoreText } from './player.js';
 import { GameMap } from './map.js';
 import { initLevelGeneration, makelevel, setGameSeed } from './dungeon.js';
-import { setMakemonPlayerContext } from './makemon.js';
+import { makemon, setMakemonPlayerContext } from './makemon.js';
 import { rhack } from './commands.js';
 import { movemon, settrack } from './monmove.js';
 import { simulatePostLevelInit, mon_arrive } from './u_init.js';
@@ -1205,7 +1205,7 @@ class NetHackGame {
                 // Occupation turn takes time: run full turn effects
                 settrack(this.player);
                 movemon(this.map, this.player, this.display, this.fov);
-                this.simulateTurnEnd();
+                this.processTurnEnd();
                 if (this.player.isDead) {
                     this.gameOver = true;
                     this.gameOverReason = 'killed';
@@ -1226,7 +1226,7 @@ class NetHackGame {
                     // Run turn effects
                     settrack(this.player);
                     movemon(this.map, this.player, this.display, this.fov);
-                    this.simulateTurnEnd();
+                    this.processTurnEnd();
                     if (this.player.isDead) {
                         this.gameOver = true;
                         this.gameOverReason = 'killed';
@@ -1329,7 +1329,7 @@ class NetHackGame {
                 movemon(this.map, this.player, this.display, this.fov);
 
                 // C ref: allmain.c — new turn setup (after both hero and monsters done)
-                this.simulateTurnEnd();
+                this.processTurnEnd();
 
                 // Check for death
                 if (this.player.isDead) {
@@ -1401,7 +1401,7 @@ class NetHackGame {
     // C ref: allmain.c moveloop_core() — per-turn effects after monster movement
     // Called once per turn after movemon() is done.
     // Order matches C: mcalcmove → rn2(70) → dosounds → gethungry → engrave wipe → seer_turn
-    simulateTurnEnd() {
+    processTurnEnd() {
         this.turnCount++;
         this.player.turns = this.turnCount;
 
@@ -1485,6 +1485,11 @@ class NetHackGame {
         }
 
         // Note: regen_hp() with rn2(100) is now handled above (before dosounds)
+    }
+
+    // Backward-compatible alias kept for older harness/test utilities.
+    simulateTurnEnd() {
+        return this.processTurnEnd();
     }
 
     // C ref: sounds.c:202-339 dosounds() — ambient level sounds
