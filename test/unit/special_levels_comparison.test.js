@@ -271,8 +271,26 @@ function testLevel(seed, dnum, dlevel, levelName, cSession) {
             finalizeCtx.branchPlacement = runtimeBranchPlacement;
         }
         setFinalizeContext(finalizeCtx);
-        const depthForSpecial = Number.isFinite(cLevel.absDepth) ? cLevel.absDepth : dlevel;
+        let depthForSpecial = Number.isFinite(cLevel.absDepth) ? cLevel.absDepth : dlevel;
+        // Filler session absDepth is global depth and can be 1 even on a
+        // deeper branch level; use branch-local depth for mkstairs gating.
+        if (cSession.group === 'filler' && dnum === GNOMISH_MINES) {
+            depthForSpecial = dlevel;
+        }
         setSpecialLevelDepth(depthForSpecial);
+        if (cSession.group === 'filler' && levelName.toLowerCase() === 'minefill') {
+            // Mine filler session metadata does not carry the full branch-level
+            // context needed by mkstairs()/fixup_special parity.
+            setFinalizeContext({
+                dnum,
+                dlevel,
+                branchPlacement: finalizeCtx.branchPlacement,
+                isBranchLevel: true,
+                dunlev: 1,
+                dunlevs: 99,
+                applyRoomFill: true
+            });
+        }
         const level = resolveLevelGenerator(dnum, dlevel, levelName);
         if (!level) {
             assert.fail(`No special level generator found at ${dnum}:${dlevel} for ${levelName}`);
