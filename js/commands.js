@@ -506,12 +506,20 @@ async function handleMovement(dir, player, map, display, game) {
         if (shouldDisplace) {
             // C ref: uhitm.c:473 foo = Punished || !rn2(7) || ...
             // Early-game parity: model the rn2(7) gate before displacement.
-            if (rn2(7) === 0) {
-                if (mon.tame) {
-                    // C ref: uhitm.c monflee(mtmp, rnd(6), FALSE, FALSE)
-                    mon.flee = true;
-                    mon.fleetim = rnd(6);
-                }
+                if (rn2(7) === 0) {
+                    if (mon.tame) {
+                        // C ref: monmove.c monflee(mtmp, rnd(6), FALSE, FALSE)
+                        // first=FALSE always refreshes timed flee and enforces
+                        // at least 2 turns of visible fleeing.
+                        let fleetime = rnd(6);
+                        const oldFleetim = mon.fleetim || 0;
+                        if (!mon.flee || oldFleetim > 0) {
+                            fleetime += oldFleetim;
+                            if (fleetime === 1) fleetime = 2;
+                            mon.fleetim = Math.min(fleetime, 127);
+                        }
+                        mon.flee = true;
+                    }
                 if (mon.tame) {
                     display.putstr_message(`You stop.  Your ${mon.name} is in the way!`);
                 } else {

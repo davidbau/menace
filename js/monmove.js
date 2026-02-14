@@ -16,7 +16,7 @@ import { dogfood, dog_eat, can_carry, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT
 import { couldsee, m_cansee, do_clear_area } from './vision.js';
 import { can_teleport } from './mondata.js';
 import { PM_GRID_BUG, PM_IRON_GOLEM, PM_SHOPKEEPER, mons,
-         PM_LEPRECHAUN,
+         PM_LEPRECHAUN, PM_XAN, PM_YELLOW_LIGHT, PM_BLACK_LIGHT,
          AT_CLAW, AT_BITE, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_WEAP,
          M1_FLY, M1_AMORPHOUS, M1_CLING, M1_SEE_INVIS, S_MIMIC,
          MZ_TINY, MZ_SMALL, MR_FIRE, MR_SLEEP, G_FREQ } from './monsters.js';
@@ -87,6 +87,17 @@ const ydir = [-1, -1, 0, 1, 1, 1, 0, -1];
 // Squared distance
 function dist2(x1, y1, x2, y2) {
     return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
+}
+
+// C ref: mon.c monnear() + NODIAG()
+function monnear(mon, x, y) {
+    const distance = dist2(mon.mx, mon.my, x, y);
+    const nodiag = mon.mndx === PM_GRID_BUG
+        || mon.mndx === PM_XAN
+        || mon.mndx === PM_YELLOW_LIGHT
+        || mon.mndx === PM_BLACK_LIGHT;
+    if (distance === 2 && nodiag) return false;
+    return distance < 3;
 }
 
 function hasGold(inv) {
@@ -483,8 +494,7 @@ function dochug(mon, map, player, display, fov) {
     // C ref: monmove.c:882-887 — short-circuit OR evaluation
     // This determines whether monster wanders/moves (condition TRUE)
     // or falls through to Phase 4 attack (condition FALSE)
-    const nearby = (Math.abs(mon.mx - player.x) <= 1
-                    && Math.abs(mon.my - player.y) <= 1);
+    const nearby = monnear(mon, player.x, player.y);
     const M2_WANDER = 0x800000;
     const isWanderer = !!(mon.type && mon.type.flags2 & M2_WANDER);
     const monCanSee = (mon.mcansee !== false) && !mon.blind;
@@ -534,8 +544,10 @@ function dochug(mon, map, player, display, fov) {
         rn2(5);
     } else {
         // Phase 4: Standard Attacks
-        // C ref: monmove.c:966-977 — mattacku for hostile monsters
-        if (!mon.peaceful) {
+        // C ref: monmove.c:966-973 — attack only when in range and not scared.
+        // We do not model full distfleeck scared state yet, but should still
+        // avoid off-range attacks.
+        if (!mon.peaceful && nearby && !mon.flee) {
             monsterAttackPlayer(mon, player, display);
         }
     }

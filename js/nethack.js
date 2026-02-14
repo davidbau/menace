@@ -1424,8 +1424,7 @@ class NetHackGame {
             }
         }
 
-        // C ref: allmain.c:221 mcalcdistress() — no RNG at startup for our subset.
-        // Keep temporary flee timers in sync with C mon.c m_calcdistress().
+        // C ref: allmain.c:221 mcalcdistress() / mon.c mcalcdistress().
         for (const mon of this.map.monsters) {
             if (mon.dead) continue;
             if (mon.fleetim && mon.fleetim > 0) {
