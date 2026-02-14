@@ -4664,7 +4664,7 @@ export function gas_cloud(opts = {}) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
-    if (!opts || typeof opts !== 'object' || Array.isArray(opts)) {
+    if (arguments.length !== 1 || !opts || typeof opts !== 'object' || Array.isArray(opts)) {
         throw new Error('wrong parameters');
     }
 
@@ -4683,6 +4683,11 @@ export function gas_cloud(opts = {}) {
     const damage = Number.isFinite(opts.damage) ? Math.trunc(opts.damage) : 0;
     const ttl = Number.isFinite(opts.ttl) ? Math.trunc(opts.ttl) : -2;
     const sel = opts.selection;
+    // C get_table_xy_or_coord() defaults to -1,-1 when x/y are omitted.
+    if (gx === undefined && gy === undefined) {
+        gx = -1;
+        gy = -1;
+    }
     const useSelection = (gx === -1 && gy === -1 && sel && Array.isArray(sel.coords));
 
     if (!Array.isArray(levelState.map.gasClouds)) {
