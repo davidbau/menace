@@ -122,6 +122,9 @@ export class GameMap {
 
         // Engraving list
         this.engravings = [];
+
+        // Gas cloud regions
+        this.gasClouds = [];
     }
 
     // Get location at (x,y) -- shorthand for the C's levl[x][y]
@@ -159,6 +162,7 @@ export class GameMap {
         this.objects = [];
         this.traps = [];
         this.engravings = [];
+        this.gasClouds = [];
     }
 
     // Add a room to the rooms array

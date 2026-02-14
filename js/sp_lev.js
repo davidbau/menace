@@ -4513,35 +4513,96 @@ export function gold(opts) {
  * @param {number} y - Y coordinate
  */
 export function feature(type, x, y) {
+    if (!levelState.map) {
+        levelState.map = new GameMap();
+    }
+
     const terrainMap = {
-        'fountain': FOUNTAIN,
-        'sink': SINK,
-        'throne': THRONE,
-        'altar': ALTAR,
-        'grave': GRAVE,
+        fountain: FOUNTAIN,
+        sink: SINK,
+        pool: POOL,
+        throne: THRONE,
+        tree: TREE,
+        // Non-C compatibility aliases currently used by some scripts.
+        altar: ALTAR,
+        grave: GRAVE
     };
 
-    const terrain = terrainMap[type];
+    const argc = arguments.length;
+    let typName;
+    let fx = -1;
+    let fy = -1;
+    let canHaveFlags = false;
+    let opts = null;
+
+    if (argc === 1 && typeof type === 'string') {
+        typName = type;
+    } else if (argc === 2 && typeof type === 'string'
+        && x && typeof x === 'object') {
+        typName = type;
+        if (Array.isArray(x)) {
+            fx = x[0];
+            fy = x[1];
+        } else {
+            fx = x.x;
+            fy = x.y;
+        }
+    } else if (argc === 3 && typeof type === 'string') {
+        typName = type;
+        fx = x;
+        fy = y;
+    } else if (argc === 1 && type && typeof type === 'object') {
+        opts = type;
+        canHaveFlags = true;
+        if (Array.isArray(opts.coord)) {
+            fx = opts.coord[0];
+            fy = opts.coord[1];
+        } else if (opts.coord && typeof opts.coord === 'object') {
+            fx = opts.coord.x;
+            fy = opts.coord.y;
+        } else {
+            fx = opts.x;
+            fy = opts.y;
+        }
+        typName = opts.type;
+    } else {
+        throw new Error('wrong parameters');
+    }
+
+    const terrain = terrainMap[String(typName || '').toLowerCase()];
     if (terrain === undefined) return;
 
-    let fx = x;
-    let fy = y;
-    if (Array.isArray(x)) {
-        fx = x[0];
-        fy = x[1];
-    } else if (x && typeof x === 'object' && y === undefined) {
-        fx = x.x;
-        fy = x.y;
-    }
+    const isRandom = (fx === undefined || fy === undefined || fx < 0 || fy < 0);
+    const pos = getLocationCoord(
+        fx,
+        fy,
+        isRandom ? GETLOC_DRY : GETLOC_ANY_LOC,
+        levelState.currentRoom || null
+    );
+    if (pos.x < 0 || pos.x >= COLNO || pos.y < 0 || pos.y >= ROWNO) return;
+    if (!setLevlTypAt(levelState.map, pos.x, pos.y, terrain)) return;
 
-    const pos = getLocationCoord(fx, fy, GETLOC_ANY_LOC, levelState.currentRoom || null);
-    if (pos.x >= 0 && pos.x < 80 && pos.y >= 0 && pos.y < 21) {
-        if (!setLevlTypAt(levelState.map, pos.x, pos.y, terrain)) return;
-        if (terrain === ALTAR) {
-            levelState.map.locations[pos.x][pos.y].altarAlign = A_NEUTRAL;
-        }
-        markSpLevTouched(pos.x, pos.y);
+    if (terrain === ALTAR) {
+        levelState.map.locations[pos.x][pos.y].altarAlign = A_NEUTRAL;
     }
+    if (canHaveFlags && opts) {
+        const loc = levelState.map.locations[pos.x][pos.y];
+        if (!loc.featureFlags) loc.featureFlags = {};
+        if (terrain === FOUNTAIN) {
+            if (opts.looted !== undefined) loc.featureFlags.looted = !!opts.looted;
+            if (opts.warned !== undefined) loc.featureFlags.warned = !!opts.warned;
+        } else if (terrain === SINK) {
+            if (opts.pudding !== undefined) loc.featureFlags.pudding = !!opts.pudding;
+            if (opts.dishwasher !== undefined) loc.featureFlags.dishwasher = !!opts.dishwasher;
+            if (opts.ring !== undefined) loc.featureFlags.ring = !!opts.ring;
+        } else if (terrain === THRONE) {
+            if (opts.looted !== undefined) loc.featureFlags.looted = !!opts.looted;
+        } else if (terrain === TREE) {
+            if (opts.looted !== undefined) loc.featureFlags.looted = !!opts.looted;
+            if (opts.swarm !== undefined) loc.featureFlags.swarm = !!opts.swarm;
+        }
+    }
+    markSpLevTouched(pos.x, pos.y);
 }
 
 /**
@@ -4552,36 +4613,61 @@ export function feature(type, x, y) {
  * @param {Object} opts - { selection } or { region:[x1,y1,x2,y2] }
  */
 export function gas_cloud(opts = {}) {
-    if (!levelState.map) return;
+    if (!levelState.map) {
+        levelState.map = new GameMap();
+    }
+    if (!opts || typeof opts !== 'object' || Array.isArray(opts)) {
+        throw new Error('wrong parameters');
+    }
 
-    const applyAt = (x, y) => {
-        if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return;
-        levelState.map.locations[x][y].typ = CLOUD;
-        markSpLevTouched(x, y);
-    };
+    let gx = opts.x;
+    let gy = opts.y;
+    if (opts.coord) {
+        if (Array.isArray(opts.coord)) {
+            gx = opts.coord[0];
+            gy = opts.coord[1];
+        } else if (opts.coord && typeof opts.coord === 'object') {
+            gx = opts.coord.x;
+            gy = opts.coord.y;
+        }
+    }
 
+    const damage = Number.isFinite(opts.damage) ? Math.trunc(opts.damage) : 0;
+    const ttl = Number.isFinite(opts.ttl) ? Math.trunc(opts.ttl) : -2;
     const sel = opts.selection;
-    if (sel && Array.isArray(sel.coords)) {
-        for (const c of sel.coords) applyAt(c.x, c.y);
+    const useSelection = (gx === -1 && gy === -1 && sel && Array.isArray(sel.coords));
+
+    if (!Array.isArray(levelState.map.gasClouds)) {
+        levelState.map.gasClouds = [];
+    }
+
+    if (useSelection) {
+        const coords = [];
+        for (const c of sel.coords) {
+            if (c.x < 0 || c.x >= COLNO || c.y < 0 || c.y >= ROWNO) continue;
+            coords.push({ x: c.x, y: c.y });
+            markSpLevTouched(c.x, c.y);
+        }
+        levelState.map.gasClouds.push({
+            kind: 'selection',
+            coords,
+            damage,
+            ttl
+        });
         return;
     }
-    if (sel && Number.isFinite(sel.x1) && Number.isFinite(sel.y1)
-        && Number.isFinite(sel.x2) && Number.isFinite(sel.y2)) {
-        for (let y = sel.y1; y <= sel.y2; y++) {
-            for (let x = sel.x1; x <= sel.x2; x++) {
-                applyAt(x, y);
-            }
-        }
-        return;
-    }
-    if (Array.isArray(opts.region) && opts.region.length >= 4) {
-        const [x1, y1, x2, y2] = opts.region;
-        for (let y = y1; y <= y2; y++) {
-            for (let x = x1; x <= x2; x++) {
-                applyAt(x, y);
-            }
-        }
-    }
+
+    const pos = getLocationCoord(gx, gy, GETLOC_ANY_LOC, levelState.currentRoom || null);
+    if (pos.x < 0 || pos.x >= COLNO || pos.y < 0 || pos.y >= ROWNO) return;
+    levelState.map.gasClouds.push({
+        kind: 'point',
+        x: pos.x,
+        y: pos.y,
+        radius: 1,
+        damage,
+        ttl
+    });
+    markSpLevTouched(pos.x, pos.y);
 }
 
 /**
