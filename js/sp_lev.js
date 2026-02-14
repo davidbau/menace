@@ -5760,6 +5760,15 @@ export function finalize_level() {
         levelState.map.monsters.push(...levelState.monsters);
     }
 
+    // C ref: lspo_finalize_level() calls link_doors_rooms() before cleanup.
+    if (levelState.map && Array.isArray(levelState.map.rooms)) {
+        for (let i = 0; i < levelState.map.rooms.length; i++) {
+            const room = levelState.map.rooms[i];
+            if (!room || room.hx < 0) continue;
+            add_doors_to_room(levelState.map, room);
+        }
+    }
+
     // C ref: sp_lev.c remove_boundary_syms() runs before map_cleanup.
     if (levelState.map) {
         remove_boundary_syms(levelState.map);

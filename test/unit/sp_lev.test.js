@@ -10,7 +10,7 @@ import {
 import { place_lregion } from '../../js/dungeon.js';
 import {
     STONE, ROOM, CORR, DOOR, HWALL, VWALL, STAIRS, LAVAPOOL, PIT, MAGIC_PORTAL, CROSSWALL, GRAVE,
-    ALTAR, THRONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
+    ALTAR, THRONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, ROOMOFFSET,
 } from '../../js/config.js';
 import { BOULDER, DAGGER, GOLD_PIECE } from '../../js/objects.js';
 
@@ -536,6 +536,28 @@ describe('sp_lev.js - des.* API', () => {
             'touched CROSSWALL should no longer remain CROSSWALL');
         assert.equal(map.locations[11][10].typ, CROSSWALL,
             'untouched CROSSWALL should remain CROSSWALL');
+    });
+
+    it('finalize_level links doors to rooms like C link_doors_rooms', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: ' ' });
+        const map = getLevelState().map;
+        map.rooms = [{ lx: 10, ly: 6, hx: 13, hy: 9, needjoining: true, doorct: 0, fdoor: 0, roomnoidx: 0, irregular: false, nsubrooms: 0, sbrooms: [] }];
+        map.nroom = 1;
+        const room = map.rooms[0];
+        for (let x = room.lx; x <= room.hx; x++) {
+            for (let y = room.ly; y <= room.hy; y++) {
+                map.locations[x][y].roomno = ROOMOFFSET;
+            }
+        }
+        const doorX = 14;
+        const doorY = 6;
+        map.locations[doorX][doorY].typ = DOOR;
+
+        des.finalize_level();
+
+        assert.ok(room.doorct > 0, 'finalize should attach adjacent doors to room metadata');
+        assert.equal(map.doors.some(d => d.x === doorX && d.y === doorY), true, 'door list should include linked door');
     });
 
     it('finalize_level keeps stair metadata aligned after vertical flip', () => {
