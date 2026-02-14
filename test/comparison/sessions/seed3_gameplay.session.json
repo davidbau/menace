@@ -2583,7 +2583,12 @@
       "action": "wait",
       "turn": 5,
       "depth": 1,
-      "rng": [],
+      "rng": [
+        ">cmd_safety_prevention @ cmd_safety_prevention(do.c:2317)",
+        ">monster_nearby @ cmd_safety_prevention(do.c:2326)",
+        "<monster_nearby=1 #2358-2357 @ cmd_safety_prevention(do.c:2326)",
+        "<cmd_safety_prevention=1 #2358-2357 @ cmd_safety_prevention(do.c:2329)"
+      ],
       "screen": [
         "Are you waiting to get hit?  Use 'm' prefix to force a no-op (to rest).",
         "",
@@ -2616,7 +2621,12 @@
       "action": "search",
       "turn": 6,
       "depth": 1,
-      "rng": [],
+      "rng": [
+        ">cmd_safety_prevention @ cmd_safety_prevention(do.c:2317)",
+        ">monster_nearby @ cmd_safety_prevention(do.c:2326)",
+        "<monster_nearby=1 #2358-2357 @ cmd_safety_prevention(do.c:2326)",
+        "<cmd_safety_prevention=1 #2358-2357 @ cmd_safety_prevention(do.c:2329)"
+      ],
       "screen": [
         "You already found a monster.  Use 'm' prefix to force another search.",
         "",

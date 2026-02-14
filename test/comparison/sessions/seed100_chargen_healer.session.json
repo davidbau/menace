@@ -21,7 +21,7 @@
       "",
       "NetHack, Copyright 1985-2026",
       "         By Stichting Mathematisch Centrum and M. Stephenson.",
-      "         Version 3.7.0-132 Unix Work-in-progress, built Feb 13 2026 19:45:36.",
+      "         Version 3.7.0-132 Unix Work-in-progress, built Feb 13 2026 23:21:02.",
       "         See license for details.",
       "",
       "",
@@ -2400,43 +2400,12 @@
     {
       "key": " ",
       "action": "more",
-      "rng": [],
-      "screen": [
-        "Hello wizard, welcome to NetHack!  You are a neutral male human Healer.--More--",
-        "",
-        "",
-        "",
-        "                        lqqqqqqqk",
-        "                        x~~~~~~~x",
-        "                        x~~~~~~~+",
-        "                        x~~@~~~%x",
-        "                        x~f~~~~~a",
-        "                        m~qqqqqqj",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "Wizard the Rhizotomist         St:8 Dx:10 Co:13 In:10 Wi:17 Ch:17 Neutral",
-        "Dlvl:1 $:1866 HP:13(13) Pw:5(5) AC:8 Xp:1"
-      ]
-    },
-    {
-      "key": " ",
-      "action": "more",
       "rng": [
         "rnd(9000)=715 @ moveloop_preamble(allmain.c:74)",
         "rnd(30)=7 @ moveloop_preamble(allmain.c:81)"
       ],
       "screen": [
-        "Watch out!  Bad things can happen on Friday the 13th.--More--",
+        "Hello wizard, welcome to NetHack!  You are a neutral male human Healer.--More--",
         "",
         "",
         "",

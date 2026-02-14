@@ -21,7 +21,7 @@
       "",
       "NetHack, Copyright 1985-2026",
       "         By Stichting Mathematisch Centrum and M. Stephenson.",
-      "         Version 3.7.0-132 Unix Work-in-progress, built Feb 13 2026 19:45:36.",
+      "         Version 3.7.0-132 Unix Work-in-progress, built Feb 13 2026 23:21:02.",
       "         See license for details.",
       "",
       "",
@@ -2095,43 +2095,12 @@
     {
       "key": " ",
       "action": "more",
-      "rng": [],
-      "screen": [
-        "Hello wizard, welcome to NetHack!  You are a chaotic male human Rogue.--More--",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "                            l+qqqq~k",
-        "                            x~d~~~~~",
-        "                            x~~@~~~x",
-        "                            ~~(~~~~x",
-        "                            x~~~~~~x",
-        "                            mqqqqqqj",
-        "",
-        "Wizard the Footpad             St:14 Dx:18 Co:11 In:13 Wi:11 Ch:8 Chaotic",
-        "Dlvl:1 $:0 HP:12(12) Pw:2(2) AC:7 Xp:1"
-      ]
-    },
-    {
-      "key": " ",
-      "action": "more",
       "rng": [
         "rnd(9000)=5324 @ moveloop_preamble(allmain.c:74)",
         "rnd(30)=9 @ moveloop_preamble(allmain.c:81)"
       ],
       "screen": [
-        "Watch out!  Bad things can happen on Friday the 13th.--More--",
+        "Hello wizard, welcome to NetHack!  You are a chaotic male human Rogue.--More--",
         "",
         "",
         "",

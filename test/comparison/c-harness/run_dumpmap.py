@@ -28,10 +28,30 @@ import subprocess
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..', '..'))
 RESULTS_DIR = os.path.join(SCRIPT_DIR, 'results')
+DEFAULT_FIXED_DATETIME = '20000110090000'
 
 # The installed nethack lives here (set by setup.sh, project-local)
 INSTALL_DIR = os.path.join(PROJECT_ROOT, 'nethack-c', 'install', 'games', 'lib', 'nethackdir')
 NETHACK_BINARY = os.path.join(INSTALL_DIR, 'nethack')
+
+
+def harness_fixed_datetime():
+    dt = os.environ.get('NETHACK_FIXED_DATETIME')
+    return DEFAULT_FIXED_DATETIME if dt is None else dt
+
+
+def fixed_datetime_env():
+    dt = harness_fixed_datetime()
+    return f'NETHACK_FIXED_DATETIME={dt} ' if dt else ''
+
+
+def has_calendar_luck_warning(content):
+    lowered = content.lower()
+    return (
+        'friday the 13th' in lowered
+        or 'watch out!  bad things can happen' in lowered
+        or 'full moon tonight' in lowered
+    )
 
 
 def tmux_send(session, keys, delay=0.1):
@@ -97,6 +117,12 @@ def wait_for_game_ready(session, verbose):
 
         first_line = content.split('\n')[0][:80] if content else ''
         if verbose: print(f'[{attempt}] {repr(first_line)}')
+
+        if has_calendar_luck_warning(content) and harness_fixed_datetime():
+            raise RuntimeError(
+                'Calendar luck warning appeared despite fixed datetime; '
+                'verify fixed datetime injection and C binary patch install.'
+            )
 
         if '--More--' in content:
             tmux_send_special(session, 'Space', 0.1)
@@ -286,6 +312,7 @@ def main():
         rnglog = os.environ.get('NETHACK_RNGLOG', '')
         rnglog_env = f'NETHACK_RNGLOG={rnglog} ' if rnglog else ''
         cmd = (
+            f'{fixed_datetime_env()}'
             f'NETHACKDIR={INSTALL_DIR} '
             f'NETHACK_SEED={seed} '
             f'NETHACK_DUMPMAP={output_file} '

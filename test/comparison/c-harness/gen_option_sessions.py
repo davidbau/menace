@@ -45,6 +45,7 @@ read_rng_log = _session.read_rng_log
 clear_more_prompts = _session.clear_more_prompts
 wait_for_game_ready = _session.wait_for_game_ready
 quit_game = _session.quit_game
+fixed_datetime_env = _session.fixed_datetime_env
 
 
 def setup_option_home(option_flags):
@@ -116,6 +117,7 @@ def generate_verbose_sessions():
         setup_option_home(option_flags)
 
         cmd = (
+            f'{fixed_datetime_env()}'
             f'NETHACKDIR={INSTALL_DIR} '
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -214,6 +216,7 @@ def generate_verbose_sessions():
         setup_option_home(option_flags)
 
         cmd = (
+            f'{fixed_datetime_env()}'
             f'NETHACKDIR={INSTALL_DIR} '
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -316,6 +319,7 @@ def generate_decgraphics_sessions():
         setup_option_home(option_flags)
 
         cmd = (
+            f'{fixed_datetime_env()}'
             f'NETHACKDIR={INSTALL_DIR} '
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -384,6 +388,7 @@ def generate_decgraphics_sessions():
         setup_option_home(option_flags)
 
         cmd = (
+            f'{fixed_datetime_env()}'
             f'NETHACKDIR={INSTALL_DIR} '
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -467,6 +472,7 @@ def generate_time_sessions():
             f.write('OPTIONS=time\n')  # Enable time option
 
         cmd = (
+            f'{fixed_datetime_env()}'
             f'NETHACKDIR={INSTALL_DIR} '
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -543,6 +549,7 @@ def generate_time_sessions():
             f.write('OPTIONS=!time\n')  # Disable time option
 
         cmd = (
+            f'{fixed_datetime_env()}'
             f'NETHACKDIR={INSTALL_DIR} '
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '

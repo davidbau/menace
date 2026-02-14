@@ -3392,6 +3392,10 @@
       "turn": 8,
       "depth": 1,
       "rng": [
+        ">cmd_safety_prevention @ cmd_safety_prevention(do.c:2317)",
+        ">monster_nearby @ cmd_safety_prevention(do.c:2326)",
+        "<monster_nearby=0 #2972-2971 @ cmd_safety_prevention(do.c:2326)",
+        "<cmd_safety_prevention=0 #2972-2971 @ cmd_safety_prevention(do.c:2340)",
         "rn2(5)=0 @ distfleeck(monmove.c:539)",
         ">dog_move @ m_move(monmove.c:1772)",
         "rn2(100)=22 @ obj_resists(zap.c:1467)",
@@ -3535,6 +3539,10 @@
       "turn": 11,
       "depth": 1,
       "rng": [
+        ">cmd_safety_prevention @ cmd_safety_prevention(do.c:2317)",
+        ">monster_nearby @ cmd_safety_prevention(do.c:2326)",
+        "<monster_nearby=0 #3003-3002 @ cmd_safety_prevention(do.c:2326)",
+        "<cmd_safety_prevention=0 #3003-3002 @ cmd_safety_prevention(do.c:2340)",
         "rn2(5)=3 @ distfleeck(monmove.c:539)",
         ">dog_move @ m_move(monmove.c:1772)",
         "rn2(100)=88 @ obj_resists(zap.c:1467)",

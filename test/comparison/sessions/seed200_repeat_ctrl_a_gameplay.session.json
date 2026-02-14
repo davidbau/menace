@@ -3140,6 +3140,10 @@
       "turn": 1,
       "depth": 1,
       "rng": [
+        ">cmd_safety_prevention @ cmd_safety_prevention(do.c:2317)",
+        ">monster_nearby @ cmd_safety_prevention(do.c:2326)",
+        "<monster_nearby=0 #3011-3010 @ cmd_safety_prevention(do.c:2326)",
+        "<cmd_safety_prevention=0 #3011-3010 @ cmd_safety_prevention(do.c:2340)",
         "rn2(12)=7 @ mcalcmove(mon.c:1146)",
         "rn2(12)=3 @ mcalcmove(mon.c:1146)",
         "rn2(12)=10 @ mcalcmove(mon.c:1146)",
@@ -3181,6 +3185,10 @@
       "turn": 2,
       "depth": 1,
       "rng": [
+        ">cmd_safety_prevention @ cmd_safety_prevention(do.c:2317)",
+        ">monster_nearby @ cmd_safety_prevention(do.c:2326)",
+        "<monster_nearby=0 #3018-3017 @ cmd_safety_prevention(do.c:2326)",
+        "<cmd_safety_prevention=0 #3018-3017 @ cmd_safety_prevention(do.c:2340)",
         "rn2(5)=3 @ distfleeck(monmove.c:539)",
         ">dog_move @ m_move(monmove.c:1772)",
         "rn2(100)=49 @ obj_resists(zap.c:1467)",
@@ -3342,7 +3350,7 @@
       "depth": 1,
       "rng": [],
       "screen": [
-        "Map dumped to /tmp/webhack-session-mwayushp/dumpmap.txt.",
+        "Map dumped to /tmp/webhack-session-630_raj7/dumpmap.txt.",
         "",
         "                 qqq",
         "                 ~~",
@@ -3375,7 +3383,7 @@
       "depth": 1,
       "rng": [],
       "screen": [
-        "Map dumped to /tmp/webhack-session-mwayushp/dumpmap.txt.",
+        "Map dumped to /tmp/webhack-session-630_raj7/dumpmap.txt.",
         "",
         "                 qqq",
         "                 ~~",
@@ -3504,7 +3512,7 @@
       "depth": 1,
       "rng": [],
       "screen": [
-        "Map dumped to /tmp/webhack-session-mwayushp/dumpmap.txt.",
+        "Map dumped to /tmp/webhack-session-630_raj7/dumpmap.txt.",
         "",
         "                 qqq",
         "                 ~~",
@@ -3537,7 +3545,7 @@
       "depth": 1,
       "rng": [],
       "screen": [
-        "Map dumped to /tmp/webhack-session-mwayushp/dumpmap.txt.",
+        "Map dumped to /tmp/webhack-session-630_raj7/dumpmap.txt.",
         "",
         "                 qqq",
         "                 ~~",

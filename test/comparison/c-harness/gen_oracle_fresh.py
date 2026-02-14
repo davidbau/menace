@@ -11,6 +11,14 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..', '..'))
 INSTALL_DIR = os.path.join(PROJECT_ROOT, 'nethack-c', 'install', 'games', 'lib', 'nethackdir')
 NETHACK_BINARY = os.path.join(INSTALL_DIR, 'nethack')
+DEFAULT_FIXED_DATETIME = '20000110090000'
+
+
+def fixed_datetime_env():
+    dt = os.environ.get('NETHACK_FIXED_DATETIME')
+    if dt is None:
+        dt = DEFAULT_FIXED_DATETIME
+    return f'NETHACK_FIXED_DATETIME={dt} ' if dt else ''
 
 def run_wizloaddes(seed):
     """Run NetHack with #wizloaddes to force oracle generation."""
@@ -24,6 +32,7 @@ def run_wizloaddes(seed):
 
     try:
         cmd = (
+            f'{fixed_datetime_env()}'
             f'NETHACKDIR={INSTALL_DIR} '
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rnglog_file} '

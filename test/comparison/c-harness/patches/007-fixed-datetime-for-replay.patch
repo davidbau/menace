@@ -1,5 +1,5 @@
 diff --git a/src/calendar.c b/src/calendar.c
-index 5a5287b2a..479d2df06 100644
+index 5a5287b2a..687f6ca77 100644
 --- a/src/calendar.c
 +++ b/src/calendar.c
 @@ -31,8 +31,14 @@ staticfn struct tm *getlt(void);
@@ -17,8 +17,22 @@ index 5a5287b2a..479d2df06 100644
      (void) time((TIME_type) &datetime);
      return datetime;
  }
-@@ -226,4 +232,3 @@ midnight(void)
- }
+@@ -122,6 +128,7 @@ time_from_yyyymmddhhmmss(char *buf)
+     int k;
+     time_t timeresult = (time_t) 0;
+     struct tm t, *lt;
++    time_t now;
+     char *d, *p, y[5], mo[3], md[3], h[3], mi[3], s[3];
  
- /* calendar.c */
--
+     if (buf && strlen(buf) == 14) {
+@@ -150,7 +157,9 @@ time_from_yyyymmddhhmmss(char *buf)
+         for (k = 0; k < 2; ++k)
+             *p++ = *d++;
+         *p = '\0';
+-        lt = getlt();
++        /* Avoid recursion when getnow() itself is using fixed datetime. */
++        (void) time((TIME_type) &now);
++        lt = localtime((LOCALTIME_type) &now);
+         if (lt) {
+             t = *lt;
+             t.tm_year = atoi(y) - 1900;

@@ -52,6 +52,7 @@ quit_game = _dumpmap.quit_game
 tmux_send = _dumpmap.tmux_send
 tmux_send_special = _dumpmap.tmux_send_special
 tmux_capture = _dumpmap.tmux_capture
+fixed_datetime_env = _dumpmap.fixed_datetime_env
 
 
 def read_rng_log(rng_log_file):
@@ -153,6 +154,7 @@ def generate_one(seed, max_depth, with_rng, output_filename=None, debug_themerm=
         cmd = (
             f'{themerm_cmd}'
             f'{env_check}'
+            f'{fixed_datetime_env()}'
             f'NETHACKDIR={INSTALL_DIR} '
             f'NETHACK_SEED={seed} '
             f'NETHACK_DUMPMAP={dumpmap_file} '

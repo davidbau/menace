@@ -37,6 +37,14 @@ PROJECT_ROOT = os.path.normpath(os.path.join(SCRIPT_DIR, '..', '..', '..'))
 RESULTS_DIR = os.path.join(SCRIPT_DIR, 'results')
 INSTALL_DIR = os.path.join(PROJECT_ROOT, 'nethack-c', 'install', 'games', 'lib', 'nethackdir')
 NETHACK_BINARY = os.path.join(INSTALL_DIR, 'nethack')
+DEFAULT_FIXED_DATETIME = '20000110090000'
+
+
+def fixed_datetime_env():
+    dt = os.environ.get('NETHACK_FIXED_DATETIME')
+    if dt is None:
+        dt = DEFAULT_FIXED_DATETIME
+    return f'NETHACK_FIXED_DATETIME={dt} ' if dt else ''
 
 
 def tmux_send(session, keys, delay=0.3):
@@ -284,6 +292,7 @@ def main():
 
     try:
         cmd = (
+            f'{fixed_datetime_env()}'
             f'NETHACKDIR={INSTALL_DIR} '
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '

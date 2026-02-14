@@ -41,6 +41,7 @@ PROJECT_ROOT = os.path.normpath(os.path.join(SCRIPT_DIR, '..', '..', '..'))
 RESULTS_DIR = os.path.join(SCRIPT_DIR, 'results')
 INSTALL_DIR = os.path.join(PROJECT_ROOT, 'nethack-c', 'install', 'games', 'lib', 'nethackdir')
 NETHACK_BINARY = os.path.join(INSTALL_DIR, 'nethack')
+DEFAULT_FIXED_DATETIME = '20000110090000'
 
 # Default character options (must match .nethackrc)
 CHARACTER = {
@@ -67,6 +68,25 @@ CHARACTER_PRESETS = {
     'caveman':   {'name': 'ugo', 'role': 'Caveman', 'race': 'human', 'gender': 'male', 'align': 'neutral'},
     'healer':    {'name': 'flora', 'role': 'Healer', 'race': 'human', 'gender': 'female', 'align': 'neutral'},
 }
+
+
+def harness_fixed_datetime():
+    dt = os.environ.get('NETHACK_FIXED_DATETIME')
+    return DEFAULT_FIXED_DATETIME if dt is None else dt
+
+
+def fixed_datetime_env():
+    dt = harness_fixed_datetime()
+    return f'NETHACK_FIXED_DATETIME={dt} ' if dt else ''
+
+
+def has_calendar_luck_warning(content):
+    lowered = content.lower()
+    return (
+        'friday the 13th' in lowered
+        or 'watch out!  bad things can happen' in lowered
+        or 'full moon tonight' in lowered
+    )
 
 
 def tmux_send(session, keys, delay=0.1):
@@ -230,6 +250,12 @@ def wait_for_game_ready(session, rng_log_file):
             break
 
         rng_count, _ = read_rng_log(rng_log_file)
+
+        if has_calendar_luck_warning(content) and harness_fixed_datetime():
+            raise RuntimeError(
+                'Calendar luck warning appeared despite fixed datetime; '
+                'verify fixed datetime injection and C binary patch install.'
+            )
 
         if '--More--' in content:
             print(f'  [startup-{attempt}] rng={rng_count} --More--')
@@ -505,6 +531,7 @@ def run_session(seed, output_json, move_str):
     try:
         cmd = (
             f'NETHACKDIR={INSTALL_DIR} '
+            f'{fixed_datetime_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'NETHACK_DUMPMAP={dumpmap_file} '
