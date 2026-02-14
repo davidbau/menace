@@ -4918,6 +4918,9 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
     // bound_digging marks boundary stone as non-diggable before mineralize
     bound_digging(map);
     mineralize(map, depth);
+    // C ref: mklev.c:1558 — level_finalize_topology() calls set_wall_state().
+    // This computes wall_info mode bits (stored in rm.flags low bits).
+    set_wall_state(map);
 
     // Branch stair placement must be gated by actual chosen branch depth.
     // Unconditional placement on depths 2..4 over-consumes RNG and is incorrect.
