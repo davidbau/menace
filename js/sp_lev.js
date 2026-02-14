@@ -1227,6 +1227,15 @@ function fixupSpecialLevel() {
     if (specialName === 'baalz') {
         baalz_fixup(levelState.map);
     }
+    // C ref: mkmaze.c fixup_special():
+    // - Is_stronghold(&u.uz) => level.flags.graveyard = 1
+    // - Is_special(&u.uz)->flags.town (Mine Town variants) => has_town = 1
+    if (specialName === 'castle') {
+        levelState.map.flags.graveyard = true;
+    }
+    if (specialName.startsWith('minetn')) {
+        levelState.map.flags.has_town = true;
+    }
 
     levelState.branchPlaced = true;
 }
