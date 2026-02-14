@@ -101,11 +101,14 @@ function testLevel(seed, dnum, dlevel, levelName, cSession) {
         console.log(`Warning: ${levelName} not found in C session`);
         return;
     }
-    // Quest sessions are captured via role-specific #wizloaddes flows.
-    // Their rngCallStart marks command-session state, not direct
-    // getSpecialLevel(seed, dnum, dlevel) generation start. Applying the
-    // offset here would over-skip and produce false mismatches.
-    const canUseRngStart = cSession.group !== 'quest';
+    // Quest sessions are captured via role-specific #wizloaddes flows and
+    // rngCallStart can be command-session aligned. For Arc locate/goal,
+    // rngRawCallStart captures the generation window more reliably.
+    const questRawStartUsable = cSession.group === 'quest'
+        && typeof cLevel.rngRawCallStart === 'number'
+        && typeof cLevel.rngCallStart === 'number'
+        && cLevel.rngRawCallStart > cLevel.rngCallStart;
+    const canUseRngStart = cSession.group !== 'quest' || questRawStartUsable;
     const rngCallStart = (
         (typeof cLevel.rngRawCallStart === 'number'
             && typeof cLevel.rngCallStart === 'number'
@@ -115,6 +118,7 @@ function testLevel(seed, dnum, dlevel, levelName, cSession) {
     );
 
     const replayPrelude = () => {
+        if (!canUseRngStart) return;
         if (!Array.isArray(cLevel.preRngCalls)) return;
         for (const call of cLevel.preRngCalls) {
             if (!call || call.fn !== 'rn2' || typeof call.arg !== 'number') continue;

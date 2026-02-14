@@ -1052,13 +1052,14 @@ export function setSpecialLevelDepth(depth) {
 
 function canPlaceStair(direction) {
     const ctx = levelState.finalizeContext;
-    if (!ctx) return true;
-    if (typeof ctx.dunlev !== 'number' || typeof ctx.dunlevs !== 'number') {
-        return true;
-    }
-    // C ref: mklev.c mkstairs() rejects up stairs on level 1 and down on bottom level.
-    if (direction === 'up' && ctx.dunlev === 1) return false;
-    if (direction !== 'up' && ctx.dunlev === ctx.dunlevs) return false;
+    const dunlev = (ctx && typeof ctx.dunlev === 'number')
+        ? ctx.dunlev
+        : (Number.isFinite(levelState.levelDepth) ? levelState.levelDepth : undefined);
+    const dunlevs = (ctx && typeof ctx.dunlevs === 'number') ? ctx.dunlevs : undefined;
+    // C ref: mklev.c mkstairs() rejects up stairs on level 1.
+    if (direction === 'up' && dunlev === 1) return false;
+    // C ref: mklev.c mkstairs() rejects down stairs on bottom level.
+    if (direction !== 'up' && typeof dunlevs === 'number' && dunlev === dunlevs) return false;
     return true;
 }
 
@@ -2951,6 +2952,12 @@ export function stair(direction, x, y) {
     if (stairX >= 0 && stairX < COLNO && stairY >= 0 && stairY < ROWNO) {
         if (!canPlaceStair(dir)) {
             return;
+        }
+        // C ref: sp_lev.c l_create_stairway() removes any trap first.
+        const trap = levelState.map.trapAt?.(stairX, stairY);
+        if (trap && Array.isArray(levelState.map.traps)) {
+            const idx = levelState.map.traps.indexOf(trap);
+            if (idx >= 0) levelState.map.traps.splice(idx, 1);
         }
         const loc = levelState.map.locations[stairX][stairY];
         loc.typ = stairType;
