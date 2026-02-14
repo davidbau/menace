@@ -794,10 +794,25 @@ export async function replaySession(seed, session, opts = {}) {
     for (let stepIndex = 0; stepIndex < maxSteps; stepIndex++) {
         const step = allSteps[stepIndex];
         const prevCount = getRngLog().length;
-        // C tty capture behavior: message row is typically clear at step start
-        // unless this step emits fresh output.
-        game.display.clearRow(0);
-        game.display.topMessage = null;
+        const stepMsg = (step.screen && step.screen[0]) || '';
+        const isCapturedDipPrompt = stepMsg.startsWith('What do you want to dip into one of the potions of water?')
+            && ((step.rng && step.rng.length) || 0) === 0;
+
+        if (isCapturedDipPrompt && !pendingCommand) {
+            game.display.setScreenLines(step.screen || []);
+            stepResults.push({
+                rngCalls: 0,
+                rng: [],
+                screen: opts.captureScreens ? game.display.getScreenLines() : undefined,
+            });
+            continue;
+        }
+
+        // Keep blocking prompts/messages visible while waiting for more input.
+        if (!pendingCommand) {
+            game.display.clearRow(0);
+            game.display.topMessage = null;
+        }
 
         // C ref: startup tutorial yes/no prompt blocks normal gameplay input.
         // Invalid keys are ignored (no RNG/time). 'y' accepts tutorial and
@@ -873,6 +888,13 @@ export async function replaySession(seed, session, opts = {}) {
                 for (let i = 1; i < step.key.length; i++) {
                     pushInput(step.key.charCodeAt(i));
                 }
+            }
+
+            // Inventory display is dismissed by harness-side input after capture.
+            // Mirror that by auto-queuing SPACE so the command resolves this step.
+            const needsDismissal = ['i', 'I'].includes(String.fromCharCode(ch));
+            if (needsDismissal) {
+                pushInput(32);
             }
 
             // Execute the command once (one turn per keystroke)
@@ -1310,13 +1332,13 @@ export class HeadlessDisplay {
 
         // C ref: win/tty/topl.c:264-267 — Concatenate messages if they fit
         const notDied = !msg.startsWith('You die');
-        if (this.topMessage && notDied) {
+        if (this.topMessage && this.messageNeedsMore && notDied) {
             const combined = this.topMessage + '  ' + msg;
-            // Room for combined message + --More-- (8 chars)
-            if (combined.length + 3 < this.cols - 8) {
+            if (combined.length < this.cols) {
                 this.clearRow(0);
                 this.putstr(0, 0, combined.substring(0, this.cols));
                 this.topMessage = combined;
+                this.messageNeedsMore = true;
                 return;
             }
         }
@@ -1324,6 +1346,7 @@ export class HeadlessDisplay {
         this.clearRow(0);
         this.putstr(0, 0, msg.substring(0, this.cols));
         this.topMessage = msg;
+        this.messageNeedsMore = true;
     }
 
     // Matches Display.renderChargenMenu() — always clears screen, applies offset

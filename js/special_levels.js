@@ -195,6 +195,7 @@ export const QUEST = 3;
 export const KNOX = 4;  // Fort Ludios
 export const GEHENNOM = 5;
 export const VLADS_TOWER = 6;
+export const TUTORIAL = 8;
 
 /**
  * Special level lookup table
@@ -322,8 +323,8 @@ registerSpecialLevel(SOKOBAN, 4, [generateSoko4a, generateSoko4b], ['soko4-1', '
 // Using specific depths for testing (actual depths determined at runtime)
 
 // Tutorial levels (optional early game levels)
-registerSpecialLevel(DUNGEONS_OF_DOOM, 1, generateTut1, 'tut-1');
-registerSpecialLevel(DUNGEONS_OF_DOOM, 2, generateTut2, 'tut-2');
+registerSpecialLevel(TUTORIAL, 1, generateTut1, 'tut-1');
+registerSpecialLevel(TUTORIAL, 2, generateTut2, 'tut-2');
 
 // Oracle level (typically depth 5-7 in Dungeons of Doom)
 registerSpecialLevel(DUNGEONS_OF_DOOM, 5, generateOracle, 'oracle');

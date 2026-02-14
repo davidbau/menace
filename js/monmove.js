@@ -16,6 +16,7 @@ import { couldsee, m_cansee, do_clear_area } from './vision.js';
 import { can_teleport } from './mondata.js';
 import { PM_GRID_BUG, PM_IRON_GOLEM, PM_SHOPKEEPER, mons,
          PM_LEPRECHAUN,
+         AT_CLAW, AT_BITE, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_WEAP,
          M1_FLY, M1_AMORPHOUS, M1_CLING, M1_SEE_INVIS, S_MIMIC,
          MZ_TINY, MZ_SMALL, MR_FIRE, MR_SLEEP, G_FREQ } from './monsters.js';
 import { STATUE_TRAP, MAGIC_TRAP, VIBRATING_SQUARE, RUST_TRAP, FIRE_TRAP,
@@ -25,6 +26,19 @@ import { STATUE_TRAP, MAGIC_TRAP, VIBRATING_SQUARE, RUST_TRAP, FIRE_TRAP,
 const MTSZ = 4;           // C ref: monst.h — track history size
 const SQSRCHRADIUS = 5;   // C ref: dogmove.c — object search radius
 const FARAWAY = 127;      // C ref: hack.h — large distance sentinel
+
+function attackVerb(type) {
+    switch (type) {
+        case AT_BITE: return 'bites';
+        case AT_CLAW: return 'claws';
+        case AT_KICK: return 'kicks';
+        case AT_BUTT: return 'butts';
+        case AT_TUCH: return 'touches';
+        case AT_STNG: return 'stings';
+        case AT_WEAP: return 'hits';
+        default: return 'hits';
+    }
+}
 
 // ========================================================================
 // Player track — C ref: track.c
@@ -373,6 +387,7 @@ export function movemon(map, player, display, fov) {
 
     // Remove dead monsters
     map.monsters = map.monsters.filter(m => !m.dead);
+    player.displacedPetThisTurn = false;
 }
 
 // ========================================================================
@@ -927,6 +942,11 @@ function dog_move(mon, map, player, display, fov) {
                 const hit = toHit > roll;
                 if (hit) {
                     const attk = mon.attacks && mon.attacks[0];
+                    const targetVisible = couldsee(map, player, target.mx, target.my);
+                    const suppressDetail = !!player.displacedPetThisTurn;
+                    if (display && mon.name && target.name && targetVisible && !suppressDetail) {
+                        display.putstr_message(`The ${mon.name} ${attackVerb(attk?.type)} the ${target.name}.`);
+                    }
                     const dice = (attk && attk.dice) ? attk.dice : 1;
                     const sides = (attk && attk.sides) ? attk.sides : 1;
                     const dmg = c_d(Math.max(1, dice), Math.max(1, sides));
@@ -941,6 +961,9 @@ function dog_move(mon, map, player, display, fov) {
                     if (target.mhp <= 0) {
                         target.dead = true;
                         map.removeMonster(target);
+                        if (display && target.name) {
+                            display.putstr_message(`The ${target.name} is killed!`);
+                        }
                         petCorpseChanceRoll(target);
                         rnd(1); // C ref: makemon.c grow_up()
                     } else {
@@ -951,7 +974,7 @@ function dog_move(mon, map, player, display, fov) {
                     // C ref: mhitm.c passivemm() on miss/non-kill interactions.
                     rn2(3);
                 }
-                if (roll === 20 && display && mon.name && target.name) {
+                if (!hit && display && mon.name && target.name) {
                     display.putstr_message(`The ${mon.name} misses the ${target.name}.`);
                 }
                 return 0; // MMOVE_DONE-equivalent for this simplified path

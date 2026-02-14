@@ -467,8 +467,12 @@ async function handleMovement(dir, player, map, display, game) {
                     mon.flee = true;
                     mon.fleetim = rnd(6);
                 }
-                const label = mon.name ? mon.name.charAt(0).toUpperCase() + mon.name.slice(1) : 'It';
-                display.putstr_message(`You stop. ${label} is in the way!`);
+                if (mon.tame) {
+                    display.putstr_message(`You stop.  Your ${mon.name} is in the way!`);
+                } else {
+                    const label = mon.name ? mon.name.charAt(0).toUpperCase() + mon.name.slice(1) : 'It';
+                    display.putstr_message(`You stop. ${label} is in the way!`);
+                }
                 game.forceFight = false;
                 return { moved: false, tookTime: true };
             }
@@ -482,7 +486,24 @@ async function handleMovement(dir, player, map, display, game) {
             player.x = nx;
             player.y = ny;
             player.moved = true;
-            display.putstr_message(`You swap places with your ${mon.name}.`);
+            player.displacedPetThisTurn = true;
+            const landedObjs = map.objectsAt(nx, ny);
+            if (landedObjs.length > 0) {
+                const seen = landedObjs[0];
+                if (seen.oclass === COIN_CLASS) {
+                    const count = seen.quan || 1;
+                    const plural = count === 1 ? '' : 's';
+                    display.putstr_message(`You see here ${count} gold piece${plural}.`);
+                } else {
+                    display.putstr_message(`You see here ${doname(seen, null)}.`);
+                }
+            } else {
+                display.putstr_message(`You swap places with your ${mon.name}.`);
+                // Keep later same-turn combat messages from concatenating with displacement text.
+                if (display && Object.prototype.hasOwnProperty.call(display, 'topMessage')) {
+                    display.topMessage = null;
+                }
+            }
             game.forceFight = false; // Clear prefix (shouldn't reach here but be safe)
             return { moved: true, tookTime: true };
         }
@@ -589,6 +610,9 @@ async function handleMovement(dir, player, map, display, game) {
         // Trap-specific effects (no RNG for SQKY_BOARD)
         if (trap.ttyp === SQKY_BOARD) {
             display.putstr_message('A board beneath you squeaks loudly.');
+            // Match tty topline behavior where later same-turn messages replace
+            // this trap notice rather than concatenating with it.
+            display.messageNeedsMore = false;
         }
         // C ref: trap.c trapeffect_slp_gas_trap() for hero path
         else if (trap.ttyp === SLP_GAS_TRAP) {

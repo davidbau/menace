@@ -26,13 +26,14 @@ import {
     is_pit, is_hole,
     MKTRAP_NOFLAGS, MKTRAP_MAZEFLAG, MKTRAP_NOSPIDERONWEB, MKTRAP_NOVICTIM,
     PM_ARCHEOLOGIST as ROLE_ARCHEOLOGIST, PM_WIZARD as ROLE_WIZARD,
-    PM_PRIEST as ROLE_PRIEST
+    PM_PRIEST as ROLE_PRIEST,
+    A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC
 } from './config.js';
 import { GameMap, makeRoom, FILL_NONE, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1, d, getRngCallCount } from './rng.js';
 import { getbones } from './bones.js';
 import { mkobj, mksobj, mkcorpstat, weight, setLevelDepth, TAINT_AGE } from './mkobj.js';
-import { makemon, mkclass, NO_MM_FLAGS, MM_NOGRP, setMakemonRoleContext } from './makemon.js';
+import { makemon, mkclass, NO_MM_FLAGS, MM_NOGRP, setMakemonRoleContext, setMakemonLevelContext } from './makemon.js';
 import { S_HUMAN, PM_ELF, PM_HUMAN, PM_GNOME, PM_DWARF, PM_ORC, PM_ARCHEOLOGIST, PM_WIZARD } from './monsters.js';
 import { init_objects } from './o_init.js';
 import { roles } from './player.js';
@@ -58,7 +59,8 @@ import {
     QUEST,
     KNOX,
     GEHENNOM,
-    VLADS_TOWER
+    VLADS_TOWER,
+    TUTORIAL
 } from './special_levels.js';
 import { setLevelContext, clearLevelContext, initLuaMT, setSpecialLevelDepth, setFinalizeContext } from './sp_lev.js';
 import { themerooms_generate as themermsGenerate, reset_state as resetThemermsState } from './levels/themerms.js';
@@ -4094,7 +4096,24 @@ export function initLevelGeneration(roleIndex) {
  * @param {number} [dlevel] - Level within branch (optional, 1-based)
  * @returns {GameMap} The generated level
  */
-export function makelevel(depth, dnum, dlevel) {
+export function makelevel(depth, dnum, dlevel, opts = {}) {
+    const dungeonAlignByDnum = {
+        [DUNGEONS_OF_DOOM]: A_NONE,
+        [GNOMISH_MINES]: A_LAWFUL,
+        [SOKOBAN]: A_NEUTRAL,
+        [QUEST]: A_NONE,
+        [KNOX]: A_NONE,
+        [GEHENNOM]: A_NONE,
+        [VLADS_TOWER]: A_CHAOTIC,
+        [TUTORIAL]: A_NONE,
+    };
+    const forcedAlign = Number.isInteger(opts?.dungeonAlignOverride)
+        ? opts.dungeonAlignOverride
+        : undefined;
+    setMakemonLevelContext({
+        dungeonAlign: forcedAlign ?? (dungeonAlignByDnum[dnum] ?? A_NONE),
+    });
+
     setLevelDepth(depth);
     resetThemermsState(); // Reset themed room state for new level
     setMtInitialized(false); // Reset MT RNG state - init happens per level, not per session
@@ -4109,6 +4128,14 @@ export function makelevel(depth, dnum, dlevel) {
     if (dnum !== undefined && dlevel !== undefined) {
         const special = getSpecialLevel(dnum, dlevel);
         if (special) {
+            // C ref: align_shift() uses current special-level alignment when present.
+            // For currently used special levels, mirror dungeon.lua/splev alignment.
+            const specialName = typeof special.name === 'string' ? special.name : '';
+            let specialAlign = forcedAlign ?? (dungeonAlignByDnum[dnum] ?? A_NONE);
+            if (specialName.startsWith('oracle')) specialAlign = A_NEUTRAL;
+            else if (specialName.startsWith('medusa')) specialAlign = A_CHAOTIC;
+            setMakemonLevelContext({ dungeonAlign: specialAlign });
+
             if (DEBUG) console.log(`Generating special level: ${special.name} at (${dnum}, ${dlevel})`);
             // C parity: special-level depth-sensitive logic should use absolute depth,
             // not branch-local dlevel.
@@ -4122,7 +4149,7 @@ export function makelevel(depth, dnum, dlevel) {
             // In C, loading oracle.lua triggers themerms.lua load, which does rn2(3), rn2(2).
             // Tutorial entry can hit this path after startup without prior themed-room
             // Lua load, so preserve that shuffle for tut-* special levels as well.
-            const isTutorialSpecial = dnum === DUNGEONS_OF_DOOM
+            const isTutorialSpecial = dnum === TUTORIAL
                 && (dlevel === 1 || dlevel === 2)
                 && typeof special.name === 'string'
                 && special.name.startsWith('tut-');
@@ -4148,9 +4175,9 @@ export function makelevel(depth, dnum, dlevel) {
     // C ref: mklev.c:1274-1287 — maze vs rooms decision (else-if chain)
     // The rn2(5) is part of the final condition in the chain
     // For procedural levels: check if In_hell or (rn2(5) && past Medusa)
-    const isGehennom = (dnum === 1);
+    const isGehennom = (dnum === GEHENNOM);
     const mazeRoll = rn2(5); // 0-4, maze if non-zero (80% chance) - C ref: mklev.c:1276
-    const isPastMedusa = (dnum === 0 || dnum === undefined) && depth > 25;
+    const isPastMedusa = (dnum === DUNGEONS_OF_DOOM || dnum === undefined) && depth > 25;
     const shouldMakeMaze = isGehennom || (mazeRoll !== 0 && isPastMedusa);
 
     if (shouldMakeMaze) {

@@ -166,6 +166,7 @@ export let levelState = {
     deferredMonsters: [],   // Queued monster placements
     deferredTraps: [],      // Queued trap placements
     deferredActions: [],    // Queued placements in original script order
+    containerStack: [],     // Active des.object contents callback container context
     // Optional context to emulate C topology/fixup behavior.
     finalizeContext: null,
     branchPlaced: false,
@@ -1006,6 +1007,7 @@ export function resetLevelState() {
         deferredMonsters: [],
         deferredTraps: [],
         deferredActions: [],
+        containerStack: [],
         finalizeContext: null,
         branchPlaced: false,
         levRegions: [],
@@ -3244,15 +3246,42 @@ function resolveNamedMonsterLikeC(monsterId) {
 }
 
 function objectNameToType(name) {
-    const lowerName = name.toLowerCase();
+    const lowerName = name.toLowerCase().trim();
 
     // Quick checks for common objects
     if (lowerName === 'boulder') return BOULDER;
     if (lowerName === 'scroll of earth') return SCR_EARTH;
 
+    const candidates = new Set([lowerName]);
+    const stripPrefixes = [
+        'ring of ',
+        'spellbook of ',
+        'book of ',
+        'potion of ',
+        'wand of ',
+        'scroll of ',
+    ];
+
+    // Allow Lua-style fully qualified names ("ring of levitation")
+    // to match canonical objectData names ("levitation").
+    for (const p of stripPrefixes) {
+        if (lowerName.startsWith(p) && lowerName.length > p.length) {
+            candidates.add(lowerName.slice(p.length));
+        }
+    }
+
+    // C scripts occasionally include articles in object names.
+    for (const a of ['a ', 'an ', 'the ']) {
+        if (lowerName.startsWith(a) && lowerName.length > a.length) {
+            candidates.add(lowerName.slice(a.length));
+        }
+    }
+
     // Search objectData for matching name
     for (let i = 0; i < objectData.length; i++) {
-        if (objectData[i].name && objectData[i].name.toLowerCase() === lowerName) {
+        const objName = objectData[i].name;
+        if (!objName) continue;
+        if (candidates.has(objName.toLowerCase())) {
             return i; // Object type index
         }
     }
@@ -3389,9 +3418,17 @@ export function object(name_or_opts, x, y) {
         }
     }
 
-    // DEFERRED PLACEMENT: Queue object + coordinates for map placement after corridors
-    // Object is already created (RNG consumed), we just need to place it on the map later
     if (obj) {
+        const activeContainer = levelState.containerStack[levelState.containerStack.length - 1];
+
+        // C ref: sp_lev.c create_object() with SP_OBJ_CONTENT creates object
+        // using normal RNG path, then moves it into container inventory.
+        if (activeContainer) {
+            if (!activeContainer.contents) activeContainer.contents = [];
+            activeContainer.contents.push(obj);
+            return;
+        }
+
         if (absX >= 0 && absX < COLNO && absY >= 0 && absY < ROWNO) {
             markSpLevTouched(absX, absY);
         }
@@ -3400,6 +3437,18 @@ export function object(name_or_opts, x, y) {
         // placements ordered by insertion so finalize_level() can replay
         // object/monster interleaving faithfully.
         levelState.deferredActions.push({ kind: 'object', idx: levelState.deferredObjects.length - 1 });
+
+        // C ref: lspo_object() executes contents callback with this object as
+        // active container, then pops container context.
+        if (typeof name_or_opts === 'object' && typeof name_or_opts.contents === 'function') {
+            obj.contents = [];
+            levelState.containerStack.push(obj);
+            try {
+                name_or_opts.contents(obj);
+            } finally {
+                levelState.containerStack.pop();
+            }
+        }
     }
 }
 

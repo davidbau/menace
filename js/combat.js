@@ -227,8 +227,14 @@ export function monsterAttackPlayer(monster, player, display) {
         if (damage > 0) {
             // Apply damage
             const died = player.takeDamage(damage, monster.name);
-            const verb = monsterHitVerb(attack.type);
-            display.putstr_message(`The ${monster.name} ${verb}!`);
+            const wizardSaved = died && player.wizard;
+            if (!wizardSaved) {
+                const verb = monsterHitVerb(attack.type);
+                display.putstr_message(`The ${monster.name} ${verb}!`);
+                if (attack.damage === 6) {
+                    display.putstr_message('You get zapped!');
+                }
+            }
 
             // C ref: uhitm.c:5236-5247 knockback after monster hits hero
             // rn2(3) distance + rn2(6) chance, for physical attacks

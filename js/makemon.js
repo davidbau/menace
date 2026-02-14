@@ -6,6 +6,7 @@ import { rn2, rnd, rn1, d, c_d, getRngLog } from './rng.js';
 import { mksobj, mkobj, next_ident } from './mkobj.js';
 import { def_monsyms } from './symbols.js';
 import { SHOPBASE, ROOMOFFSET } from './config.js';
+import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC } from './config.js';
 
 // Registration for get_shop_item to avoid circular dependency with shknam.js.
 // shknam.js calls registerGetShopItem() during initialization.
@@ -143,6 +144,9 @@ function normalizePlayerContext(ctx = {}) {
 }
 
 let _makemonPlayerCtx = normalizePlayerContext();
+let _makemonLevelCtx = {
+    dungeonAlign: A_NONE,
+};
 
 export function setMakemonPlayerContext(playerLike) {
     const inventory = Array.isArray(playerLike?.inventory) ? playerLike.inventory : [];
@@ -158,6 +162,14 @@ export function setMakemonPlayerContext(playerLike) {
 
 export function setMakemonRoleContext(roleIndex) {
     _makemonPlayerCtx = normalizePlayerContext({ roleIndex });
+}
+
+export function setMakemonLevelContext(levelCtx = {}) {
+    _makemonLevelCtx = {
+        dungeonAlign: Number.isInteger(levelCtx.dungeonAlign)
+            ? levelCtx.dungeonAlign
+            : A_NONE,
+    };
 }
 
 // C ref: makemon.c peace_minded(struct permonst *ptr)
@@ -226,9 +238,21 @@ function uncommon(mndx) {
     return !!(ptr.geno & G_HELL);
 }
 
-// C ref: makemon.c align_shift() — for standard dungeon (AM_NONE), always 0
+const ALIGNWEIGHT = 4; // C ref: global.h ALIGNWEIGHT
+
+// C ref: makemon.c align_shift()
 function align_shift(ptr) {
-    return 0; // AM_NONE alignment
+    switch (_makemonLevelCtx.dungeonAlign) {
+    default:
+    case A_NONE:
+        return 0;
+    case A_LAWFUL:
+        return Math.trunc(((ptr.align || 0) + 20) / (2 * ALIGNWEIGHT));
+    case A_NEUTRAL:
+        return Math.trunc((20 - Math.abs(ptr.align || 0)) / ALIGNWEIGHT);
+    case A_CHAOTIC:
+        return Math.trunc((20 - (ptr.align || 0)) / (2 * ALIGNWEIGHT));
+    }
 }
 
 // C ref: makemon.c temperature_shift() — no temperature at standard depths
@@ -311,7 +335,6 @@ export function rndmonnum(depth) {
 // C ref: makemon.c:1750-1967
 // ========================================================================
 
-const A_NONE = -128;
 const G_GENO = 0x0020;
 const G_GONE = 0x03; // G_GENOD | G_EXTINCT (mvflags)
 
