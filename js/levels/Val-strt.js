@@ -22,18 +22,26 @@ export function generate() {
     des.level_flags("mazelevel", "noteleport", "hardfloor", "icedpools");
     des.level_init({ style: "solidfill", fg: "I" });
 
-    let pools = selection.new()
+    let pools = selection.new();
+    const allTiles = selection.area(0,0,75,19);
+    const randomSeedSelection = () => {
+        const seed = selection.new();
+        const coord = allTiles.rndcoord(1);
+        if (coord) seed.set(coord.x, coord.y);
+        return seed;
+    };
     // random locations
     for (let i = 1; i <= 13; i++) {
-       pools.set();
+       const coord = allTiles.rndcoord(1);
+       if (coord) pools.set(coord.x, coord.y);
     }
     // some bigger ones
-    pools = pools.union(selection.grow(selection.set(selection.new)()), "west")
-    pools = pools.union(selection.grow(selection.set(selection.new)()), "north")
-    pools = pools.union(selection.grow(selection.set(selection.new)()), "random")
+    pools = pools.union(selection.grow(randomSeedSelection(), 1));
+    pools = pools.union(selection.grow(randomSeedSelection(), 1));
+    pools = pools.union(selection.grow(randomSeedSelection(), 1));
 
     // Lava pools surrounded by water
-    des.terrain(pools.clone().grow("all"), "P");
+    des.terrain(selection.grow(pools, 1), "P");
     des.terrain(pools, "L");
 
     des.map(`\

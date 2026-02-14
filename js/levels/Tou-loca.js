@@ -136,8 +136,9 @@ export function generate() {
     des.object("blank paper", 71, 12);
     des.object("blank paper", 71, 12);
     // Random traps - must avoid the 2 shops
-    let validtraps = selection.area(0,0,75,19).filter_mapchar('.')
-    validtraps = validtraps - (selection.area(15,3,20,5) + selection.area(62,3,71,4))
+    let validtraps = selection.area(0,0,75,19).filter_mapchar('.');
+    const excludedShops = selection.area(15,3,20,5).union(selection.area(62,3,71,4));
+    validtraps = validtraps.intersect(excludedShops.negate());
     for (let i = 1; i <= 9; i++) {
        des.trap(validtraps.rndcoord(1));
     }

@@ -117,8 +117,8 @@ export function generate() {
     des.object();
     des.object();
     // Random traps - must avoid the 2 shops
-    let validtraps = selection.area(0,0,75,19).filter_mapchar('.')
-    validtraps = validtraps - selection.area(60,14,71,18)
+    let validtraps = selection.area(0,0,75,19).filter_mapchar('.');
+    validtraps = validtraps.intersect(selection.area(60,14,71,18).negate());
     for (let i = 1; i <= 6; i++) {
        des.trap(validtraps.rndcoord(1));
     }
