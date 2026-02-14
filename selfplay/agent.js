@@ -805,7 +805,7 @@ export class Agent {
         // Filter out pets from combat consideration
         if (adjacentMonster) {
             const monPosKey = adjacentMonster.y * 80 + adjacentMonster.x;
-            const isPet = this.petPositions.has(monPosKey) || this.knownPetChars.has(adjacentMonster.ch);
+            const isPet = this.petPositions.has(monPosKey) || this.refusedAttackPositions.has(monPosKey);
             if (isPet) {
                 // Don't treat pets as hostile - ignore them for combat purposes
                 adjacentMonster = null;
@@ -2441,8 +2441,6 @@ export class Agent {
                     if (this.petPositions.has(posKey)) continue;
                     // Skip positions where we declined "Really attack?"
                     if (this.refusedAttackPositions.has(posKey)) continue;
-                    // Skip monsters whose character type was identified as pet via displacement
-                    if (this.knownPetChars.has(mon.ch)) continue;
                     this.lastAttemptedAttackPos = { x: mon.x, y: mon.y };
                     return mon;
                 }
