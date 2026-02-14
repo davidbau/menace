@@ -6788,9 +6788,12 @@ export function mazewalk(xOrOpts, y, direction) {
 
 // Export the des.* API
 export const des = {
+    message,
     level_init,
     level_flags,
     map,
+    replace_terrain,
+    room,
     terrain,
     stair,
     ladder,
@@ -6811,6 +6814,7 @@ export const des = {
     door,
     engraving,
     drawbridge,
+    random_corridors,
     wallify,
     mazewalk,
     finalize_level,

@@ -39,6 +39,14 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[79][20].typ, STONE);
     });
 
+    it('exposes C-registered des API surface for implemented functions', () => {
+        assert.equal(typeof des.message, 'function');
+        assert.equal(typeof des.room, 'function');
+        assert.equal(typeof des.replace_terrain, 'function');
+        assert.equal(typeof des.random_corridors, 'function');
+        assert.equal(typeof des.wallify, 'function');
+    });
+
     it('should set level flags correctly', () => {
         resetLevelState();
         des.level_flags('noteleport', 'hardfloor', 'mazelevel', 'sokoban');
