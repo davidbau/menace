@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetHack Test Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>🏰 Mazes of Menace - Test Dashboard</h1>
+        <p class="tagline">*You consult the Oracle. The test quality is revealed.*</p>
+    </header>
+
+    <main>
+        <!-- Time Series Chart with integrated scrubber -->
+        <section class="chart-section">
+            <h2>⚔️ Test History — *Click or drag to browse commits*</h2>
+            <div class="chart-container">
+                <canvas id="timeline-chart"></canvas>
+            </div>
+            <div class="scrubber-container">
+                <input type="range" id="commit-scrubber" min="0" max="0" value="0" step="1">
+                <div id="scrubber-info">Drag to navigate through commit history</div>
+            </div>
+        </section>
+
+        <!-- Summary Cards + Category Chart side by side -->
+        <section class="combined-section">
+            <div class="summary-cards">
+                <div class="card">
+                    <h3>Commit</h3>
+                    <div id="latest-commit" class="stat">Loading...</div>
+                    <div id="latest-message" class="detail"></div>
+                </div>
+                <div class="card">
+                    <h3>Total Tests</h3>
+                    <div id="total-tests" class="stat">-</div>
+                    <div id="new-tests" class="detail"></div>
+                </div>
+                <div class="card pass">
+                    <h3>Passing</h3>
+                    <div id="pass-count" class="stat">-</div>
+                    <div id="pass-percent" class="detail"></div>
+                </div>
+                <div class="card fail">
+                    <h3>Failing</h3>
+                    <div id="fail-count" class="stat">-</div>
+                    <div id="fail-percent" class="detail"></div>
+                </div>
+            </div>
+            
+            <div class="category-chart-container">
+                <h2>🎲 Test Categories</h2>
+                <div class="chart-container-small">
+                    <canvas id="category-chart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Commit Information -->
+        <section class="commit-details-section">
+            <h2>📋 Commit Details</h2>
+            <div class="commit-details">
+                <div class="detail-row">
+                    <span class="detail-label">Hash:</span>
+                    <span id="detail-hash" class="detail-value commit-hash">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Date:</span>
+                    <span id="detail-date" class="detail-value">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Author:</span>
+                    <span id="detail-author" class="detail-value">-</span>
+                </div>
+                <div class="detail-row full-width">
+                    <span class="detail-label">Message:</span>
+                    <pre id="detail-message" class="detail-value message-text">-</pre>
+                </div>
+                <div class="detail-row full-width">
+                    <span class="detail-label">Test Changes:</span>
+                    <div id="detail-changes" class="detail-value test-changes">-</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Commits Table -->
+        <section class="commits-section">
+            <h2>📜 Recent Commits</h2>
+            <div class="table-container">
+                <table id="commits-table">
+                    <thead>
+                        <tr>
+                            <th>Commit</th>
+                            <th>Date</th>
+                            <th>Author</th>
+                            <th>Message</th>
+                            <th>Total</th>
+                            <th>Pass</th>
+                            <th>Fail</th>
+                            <th>Pass %</th>
+                            <th>Δ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="commits-tbody">
+                        <tr><td colspan="9">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>*You hear the Oracle chuckle.* "The tests tell no lies."</p>
+        <p>Generated from <code>results.jsonl</code> | Last updated: <span id="last-updated"></span></p>
+        <p><a href="../TESTING.md">Testing Guide</a> | <a href="schema.json">Schema</a></p>
+    </footer>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

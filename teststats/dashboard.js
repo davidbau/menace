@@ -1,403 +1,585 @@
-// Test Dashboard Logic - NetHack Themed
-let testData = [];
-let timelineChart = null;
-let categoryChart = null;
-let currentIndex = -1;
+/**
+ * The Oracle's Test Chamber - Dashboard JavaScript
+ * Interactive visualization of project health across commits
+ */
 
-// Load test data
-async function loadTestData() {
-    try {
-        const response = await fetch('results.jsonl');
-        const text = await response.text();
+// GitHub repo URL for commit links
+const GITHUB_REPO = 'https://github.com/davidbau/mazesofmenace';
 
-        testData = text.trim().split('\n')
-            .filter(line => line.trim())
-            .map(line => JSON.parse(line))
-            .sort((a, b) => new Date(a.date) - new Date(b.date));
+// State
+let allData = [];
+let filteredData = [];
+let currentView = 'sessions';
+let currentRange = 'all';
+let selectedCommit = null;
+let chart = null;
 
-        console.log(`Loaded ${testData.length} test results`);
-        renderDashboard();
-    } catch (error) {
-        console.error('Error loading test data:', error);
-        document.getElementById('latest-commit').textContent = 'Error loading data';
+// Chart colors - parchment-friendly palette
+const COLORS = {
+  pass: 'rgba(42, 107, 42, 0.9)',      // Deep forest green
+  passFill: 'rgba(42, 107, 42, 0.25)',
+  fail: 'rgba(139, 44, 44, 0.9)',      // Deep burgundy
+  failFill: 'rgba(139, 44, 44, 0.25)',
+  rate: 'rgba(44, 74, 107, 0.9)',      // Deep navy
+  rateFill: 'rgba(44, 74, 107, 0.15)',
+  chargen: 'rgba(74, 122, 74, 0.85)',  // Sage green
+  special: 'rgba(90, 90, 138, 0.85)',  // Muted purple
+  gameplay: 'rgba(138, 90, 74, 0.85)', // Warm brown
+  map: 'rgba(74, 122, 138, 0.85)',     // Teal
+  unit: 'rgba(122, 90, 122, 0.85)',    // Dusty rose
+  options: 'rgba(122, 122, 74, 0.85)', // Olive
+  lines: 'rgba(42, 107, 42, 0.7)',     // Green for added lines
+  files: 'rgba(139, 44, 44, 0.7)',     // Red for removed lines
+};
+
+// Load data
+async function loadData() {
+  try {
+    // Try loading from JSONL file first
+    const response = await fetch('results.jsonl');
+    const text = await response.text();
+
+    allData = text.trim().split('\n')
+      .filter(line => line.trim())
+      .map(line => {
+        try {
+          return JSON.parse(line);
+        } catch (e) {
+          console.warn('Failed to parse line:', line);
+          return null;
+        }
+      })
+      .filter(d => d !== null)
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    if (allData.length === 0) {
+      showError('No data found in results.jsonl');
+      return;
     }
+
+    updateDisplay();
+  } catch (e) {
+    console.error('Error loading data:', e);
+    showError('Failed to load test data. Run the backfill script first.');
+  }
 }
 
-// Render dashboard
-function renderDashboard() {
-    if (testData.length === 0) {
-        document.getElementById('latest-commit').textContent = 'No data available';
-        return;
+function showError(message) {
+  document.querySelector('.chart-container').innerHTML =
+    `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#d55;">${message}</div>`;
+}
+
+// Apply range filter
+function applyRangeFilter() {
+  if (currentRange === 'all') {
+    filteredData = [...allData];
+  } else {
+    const n = parseInt(currentRange);
+    filteredData = allData.slice(-n);
+  }
+}
+
+// Update entire display
+function updateDisplay() {
+  applyRangeFilter();
+  updateStats();
+  updateChart();
+  updateTable();
+  updateCategoryBreakdown();
+  updateSessionBreakdown();
+}
+
+// Update summary stats
+function updateStats() {
+  const latest = filteredData[filteredData.length - 1];
+  if (!latest) return;
+
+  document.querySelector('#stat-commits .stat-value').textContent = filteredData.length.toLocaleString();
+  document.querySelector('#stat-pass .stat-value').textContent = (latest.stats?.pass || 0).toLocaleString();
+  document.querySelector('#stat-fail .stat-value').textContent = (latest.stats?.fail || 0).toLocaleString();
+
+  const total = (latest.stats?.total || 0);
+  const pass = (latest.stats?.pass || 0);
+  const rate = total > 0 ? Math.round(pass / total * 100) : 0;
+  document.querySelector('#stat-rate .stat-value').textContent = rate + '%';
+
+  // Total lines across all commits
+  const totalLines = filteredData.reduce((sum, d) => sum + (d.codeMetrics?.netLines || 0), 0);
+  document.querySelector('#stat-lines .stat-value').textContent = totalLines.toLocaleString();
+}
+
+// Update main chart
+function updateChart() {
+  const ctx = document.getElementById('timeline-chart').getContext('2d');
+
+  if (chart) {
+    chart.destroy();
+  }
+
+  const labels = filteredData.map(d => d.commit);
+  const datasets = [];
+
+  const showPass = document.getElementById('show-pass').checked;
+  const showFail = document.getElementById('show-fail').checked;
+  const showRate = document.getElementById('show-rate').checked;
+
+  if (currentView === 'tests') {
+    if (showPass) {
+      datasets.push({
+        label: 'Pass',
+        data: filteredData.map(d => d.stats?.pass || 0),
+        backgroundColor: COLORS.passFill,
+        borderColor: COLORS.pass,
+        borderWidth: 1,
+        fill: true,
+        tension: 0.1,
+        pointRadius: 2,
+        pointHoverRadius: 5,
+      });
     }
-
-    currentIndex = testData.length - 1;
-
-    // Setup scrubber
-    const scrubber = document.getElementById('commit-scrubber');
-    scrubber.max = testData.length - 1;
-    scrubber.value = currentIndex;
-    scrubber.addEventListener('input', (e) => {
-        updateForCommit(parseInt(e.target.value));
+    if (showFail) {
+      datasets.push({
+        label: 'Fail',
+        data: filteredData.map(d => d.stats?.fail || 0),
+        backgroundColor: COLORS.failFill,
+        borderColor: COLORS.fail,
+        borderWidth: 1,
+        fill: true,
+        tension: 0.1,
+        pointRadius: 2,
+        pointHoverRadius: 5,
+      });
+    }
+    if (showRate) {
+      datasets.push({
+        label: 'Pass Rate %',
+        data: filteredData.map(d => {
+          const total = d.stats?.total || 0;
+          const pass = d.stats?.pass || 0;
+          return total > 0 ? Math.round(pass / total * 100) : 0;
+        }),
+        backgroundColor: COLORS.rateFill,
+        borderColor: COLORS.rate,
+        borderWidth: 2,
+        fill: false,
+        tension: 0.1,
+        pointRadius: 2,
+        pointHoverRadius: 5,
+        yAxisID: 'y1',
+      });
+    }
+  } else if (currentView === 'categories') {
+    const categories = ['unit', 'chargen', 'special', 'map', 'gameplay', 'options'];
+    categories.forEach(cat => {
+      datasets.push({
+        label: cat,
+        data: filteredData.map(d => d.categories?.[cat]?.pass || 0),
+        borderColor: COLORS[cat],
+        backgroundColor: COLORS[cat].replace('0.8', '0.2'),
+        borderWidth: 1,
+        fill: false,
+        tension: 0.1,
+        pointRadius: 1,
+        pointHoverRadius: 4,
+      });
     });
-
-    // Render charts
-    renderTimelineChart();
-    renderCommitsTable();
-
-    // Update last updated timestamp
-    document.getElementById('last-updated').textContent = new Date().toLocaleString();
-
-    // Initial display
-    updateForCommit(currentIndex);
-}
-
-// Update display for specific commit
-function updateForCommit(index) {
-    const commit = testData[index];
-    if (!commit) return;
-
-    currentIndex = index;
-
-    // Update scrubber
-    const scrubber = document.getElementById('commit-scrubber');
-    if (scrubber) scrubber.value = index;
-
-    // Update scrubber info
-    const scrubberInfo = document.getElementById('scrubber-info');
-    if (scrubberInfo) {
-        const dateObj = new Date(commit.date);
-        const date = dateObj.toLocaleDateString();
-        const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        scrubberInfo.textContent = `Commit ${index + 1} of ${testData.length} • ${date} ${time}`;
-    }
-
-    // Update summary cards (instant, no animation)
-    document.getElementById('latest-commit').textContent = commit.commit;
-    document.getElementById('latest-message').textContent = commit.message;
-    document.getElementById('total-tests').textContent = commit.stats.total;
-    document.getElementById('pass-count').textContent = commit.stats.pass;
-    document.getElementById('fail-count').textContent = commit.stats.fail;
-
-    const passPercent = ((commit.stats.pass / commit.stats.total) * 100).toFixed(1);
-    const failPercent = ((commit.stats.fail / commit.stats.total) * 100).toFixed(1);
-
-    document.getElementById('pass-percent').textContent = `${passPercent}%`;
-    document.getElementById('fail-percent').textContent = `${failPercent}%`;
-
-    if (commit.newTests !== 0) {
-        const sign = commit.newTests > 0 ? '+' : '';
-        document.getElementById('new-tests').textContent = `${sign}${commit.newTests} new`;
-    } else {
-        document.getElementById('new-tests').textContent = '';
-    }
-
-    // Update detailed commit info
-    updateCommitDetails(commit, index);
-
-    // Update category chart (instant)
-    renderCategoryChart(commit);
-
-    // Update vertical line on timeline
-    if (timelineChart && timelineChart.options.plugins.annotation) {
-        timelineChart.options.plugins.annotation.annotations.selectedCommit.xMin = index;
-        timelineChart.options.plugins.annotation.annotations.selectedCommit.xMax = index;
-        timelineChart.update('none'); // No animation
-    }
-}
-
-// Update detailed commit information
-function updateCommitDetails(commit, index) {
-    document.getElementById('detail-hash').textContent = commit.commit;
-    document.getElementById('detail-date').textContent = new Date(commit.date).toLocaleString();
-    document.getElementById('detail-author').textContent = commit.author || 'Unknown';
-    document.getElementById('detail-message').textContent = commit.message;
-
-    // Calculate test changes from previous commit
-    const prev = index > 0 ? testData[index - 1] : null;
-    const changesDiv = document.getElementById('detail-changes');
-
-    if (!prev) {
-        changesDiv.innerHTML = '<span style="color: #888">First commit in history</span>';
-        return;
-    }
-
-    const changes = [];
-    const totalDelta = commit.stats.total - prev.stats.total;
-    const passDelta = commit.stats.pass - prev.stats.pass;
-    const failDelta = commit.stats.fail - prev.stats.fail;
-
-    if (totalDelta !== 0) {
-        const sign = totalDelta > 0 ? '+' : '';
-        changes.push(`<div class="change-item"><span class="change-category">Total:</span><span class="change-delta ${totalDelta > 0 ? 'delta-positive' : 'delta-negative'}">${sign}${totalDelta}</span></div>`);
-    }
-    if (passDelta !== 0) {
-        const sign = passDelta > 0 ? '+' : '';
-        changes.push(`<div class="change-item"><span class="change-category">Passing:</span><span class="change-delta ${passDelta > 0 ? 'delta-positive' : 'delta-negative'}">${sign}${passDelta}</span></div>`);
-    }
-    if (failDelta !== 0) {
-        const sign = failDelta > 0 ? '+' : '';
-        changes.push(`<div class="change-item"><span class="change-category">Failing:</span><span class="change-delta ${failDelta > 0 ? 'delta-negative' : 'delta-positive'}">${sign}${failDelta}</span></div>`);
-    }
-
-    // Category changes
-    if (commit.categories && prev.categories) {
-        const allCategories = new Set([...Object.keys(commit.categories), ...Object.keys(prev.categories)]);
-        allCategories.forEach(cat => {
-            const curr = commit.categories[cat] || { pass: 0, fail: 0, total: 0 };
-            const prevCat = prev.categories[cat] || { pass: 0, fail: 0, total: 0 };
-            const catPassDelta = curr.pass - prevCat.pass;
-            const catFailDelta = curr.fail - prevCat.fail;
-
-            if (catPassDelta !== 0 || catFailDelta !== 0) {
-                const passSign = catPassDelta > 0 ? '+' : '';
-                const failSign = catFailDelta > 0 ? '+' : '';
-                changes.push(`<div class="change-item"><span class="change-category">${cat}:</span><span class="change-delta">${passSign}${catPassDelta}p ${failSign}${catFailDelta}f</span></div>`);
-            }
+  } else if (currentView === 'sessions') {
+    // Show aggregate session metrics: total steps passing across all gameplay sessions
+    // Use null for commits without session data (Chart.js will skip them)
+    datasets.push({
+      label: 'Gameplay Steps Passing',
+      data: filteredData.map(d => {
+        if (!d.sessions || Object.keys(d.sessions).length === 0) return null;
+        let totalSteps = 0;
+        let passedSteps = 0;
+        Object.entries(d.sessions).forEach(([name, session]) => {
+          if (name.includes('gameplay')) {
+            totalSteps += session.totalSteps || 0;
+            passedSteps += session.passedSteps || 0;
+          }
         });
-    }
-
-    if (changes.length === 0) {
-        changesDiv.innerHTML = '<span style="color: #888">No test count changes</span>';
-    } else {
-        changesDiv.innerHTML = changes.join('');
-    }
-}
-
-// Render timeline with draggable vertical line
-function renderTimelineChart() {
-    const ctx = document.getElementById('timeline-chart').getContext('2d');
-
-    const labels = testData.map((d, i) => {
-        const date = new Date(d.date);
-        return `${d.commit.substring(0, 7)}`;
+        return passedSteps;
+      }),
+      borderColor: COLORS.pass,
+      backgroundColor: COLORS.passFill,
+      borderWidth: 2,
+      fill: true,
+      tension: 0.3,
+      pointRadius: 3,
+      pointHoverRadius: 6,
+      spanGaps: true,  // Connect points across missing data
     });
+    datasets.push({
+      label: 'Gameplay Steps Total',
+      data: filteredData.map(d => {
+        if (!d.sessions || Object.keys(d.sessions).length === 0) return null;
+        let totalSteps = 0;
+        Object.entries(d.sessions).forEach(([name, session]) => {
+          if (name.includes('gameplay')) {
+            totalSteps += session.totalSteps || 0;
+          }
+        });
+        return totalSteps;
+      }),
+      borderColor: COLORS.rate,
+      backgroundColor: 'transparent',
+      borderWidth: 1,
+      borderDash: [5, 5],
+      fill: false,
+      tension: 0.3,
+      pointRadius: 2,
+      pointHoverRadius: 5,
+      spanGaps: true,
+    });
+  } else if (currentView === 'code') {
+    datasets.push({
+      label: 'Lines Added',
+      data: filteredData.map(d => d.codeMetrics?.linesAdded || 0),
+      backgroundColor: COLORS.passFill,
+      borderColor: COLORS.pass,
+      borderWidth: 1,
+      type: 'bar',
+    });
+    datasets.push({
+      label: 'Lines Removed',
+      data: filteredData.map(d => -(d.codeMetrics?.linesRemoved || 0)),
+      backgroundColor: COLORS.failFill,
+      borderColor: COLORS.fail,
+      borderWidth: 1,
+      type: 'bar',
+    });
+  }
 
-    const passData = testData.map(d => d.stats.pass);
-    const failData = testData.map(d => d.stats.fail);
+  const scales = {
+    x: {
+      ticks: {
+        color: '#6b5b4b',
+        maxRotation: 0,
+        autoSkip: true,
+        maxTicksLimit: 20,
+        font: { size: 10, family: "'Source Code Pro', monospace" },
+      },
+      grid: { color: 'rgba(196, 168, 130, 0.2)' },
+    },
+    y: {
+      ticks: { color: '#6b5b4b', font: { size: 10 } },
+      grid: { color: 'rgba(196, 168, 130, 0.2)' },
+    },
+  };
 
-    if (timelineChart) {
-        timelineChart.destroy();
-    }
+  if (showRate && currentView === 'tests') {
+    scales.y1 = {
+      position: 'right',
+      min: 0,
+      max: 100,
+      ticks: { color: '#2c4a6b', font: { size: 10 } },
+      grid: { display: false },
+    };
+  }
 
-    timelineChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Passing',
-                    data: passData,
-                    borderColor: '#5a5',
-                    backgroundColor: 'rgba(85, 170, 85, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 2,
-                    pointHoverRadius: 4
-                },
-                {
-                    label: 'Failing',
-                    data: failData,
-                    borderColor: '#d55',
-                    backgroundColor: 'rgba(221, 85, 85, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 2,
-                    pointHoverRadius: 4
-                }
-            ]
+  chart = new Chart(ctx, {
+    type: currentView === 'code' ? 'bar' : 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            color: '#888',
+            font: { size: 10 },
+            boxWidth: 12,
+            padding: 8,
+          },
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: false, // No animation
-            interaction: {
-                mode: 'index',
-                intersect: false
+        tooltip: {
+          backgroundColor: '#222',
+          titleColor: '#eee',
+          bodyColor: '#ccc',
+          borderColor: '#444',
+          borderWidth: 1,
+          callbacks: {
+            title: (items) => {
+              if (items.length > 0) {
+                const idx = items[0].dataIndex;
+                const d = filteredData[idx];
+                return `${d.commit} - ${d.date?.slice(0, 10) || 'unknown'}`;
+              }
+              return '';
             },
-            onHover: (event, elements, chart) => {
-                // Update stats immediately on hover
-                const canvasPosition = Chart.helpers.getRelativePosition(event, chart);
-                const dataX = chart.scales.x.getValueForPixel(canvasPosition.x);
-                if (dataX >= 0 && dataX < testData.length) {
-                    const index = Math.round(dataX);
-                    if (index !== currentIndex) {
-                        updateForCommit(index);
-                    }
-                }
+            afterTitle: (items) => {
+              if (items.length > 0) {
+                const idx = items[0].dataIndex;
+                const d = filteredData[idx];
+                return d.message?.slice(0, 60) || '';
+              }
+              return '';
             },
-            onClick: (event, elements, chart) => {
-                const canvasPosition = Chart.helpers.getRelativePosition(event, chart);
-                const dataX = chart.scales.x.getValueForPixel(canvasPosition.x);
-                if (dataX >= 0 && dataX < testData.length) {
-                    updateForCommit(Math.round(dataX));
-                }
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: { color: '#aaa', font: { size: 11 } }
-                },
-                annotation: {
-                    annotations: {
-                        selectedCommit: {
-                            type: 'line',
-                            xMin: currentIndex,
-                            xMax: currentIndex,
-                            borderColor: '#da5',
-                            borderWidth: 2,
-                            label: {
-                                display: false
-                            }
-                        }
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        title: function(context) {
-                            const idx = context[0].dataIndex;
-                            const commit = testData[idx];
-                            const dateObj = new Date(commit.date);
-                            const date = dateObj.toLocaleDateString();
-                            const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                            return `${commit.commit} (${date} ${time})`;
-                        },
-                        afterTitle: function(context) {
-                            const idx = context[0].dataIndex;
-                            const commit = testData[idx];
-                            return commit.message;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: '#333' },
-                    ticks: { color: '#888', font: { size: 10 } }
-                },
-                x: {
-                    grid: { color: '#333' },
-                    ticks: { color: '#888', maxRotation: 45, font: { size: 9 } }
-                }
-            }
+          },
         },
-        plugins: [window.ChartAnnotation || {}]
-    });
+        zoom: {
+          pan: {
+            enabled: true,
+            mode: 'x',
+          },
+          zoom: {
+            wheel: { enabled: true },
+            drag: { enabled: true, backgroundColor: 'rgba(107, 136, 136, 0.2)' },
+            mode: 'x',
+          },
+        },
+      },
+      scales,
+      onClick: (event, elements) => {
+        if (elements.length > 0) {
+          const idx = elements[0].index;
+          selectCommit(filteredData[idx]);
+        }
+      },
+    },
+  });
 }
 
-// Render category chart
-function renderCategoryChart(commit) {
-    const ctx = document.getElementById('category-chart').getContext('2d');
+// Select a commit and show details
+function selectCommit(commit) {
+  selectedCommit = commit;
+  showDetailPanel(commit);
+  highlightTableRow(commit.commit);
+}
 
-    const categories = commit.categories || {};
-    const labels = Object.keys(categories);
-    const passData = labels.map(cat => categories[cat].pass);
-    const failData = labels.map(cat => categories[cat].fail);
+// Show detail panel
+function showDetailPanel(d) {
+  const panel = document.getElementById('detail-panel');
+  const content = document.getElementById('detail-content');
+  const title = document.getElementById('detail-title');
 
-    if (categoryChart) {
-        categoryChart.destroy();
+  title.innerHTML = `<a href="${GITHUB_REPO}/commit/${d.commit}" target="_blank" style="color: inherit; text-decoration: underline;">${d.commit}</a> - ${d.message?.slice(0, 80) || 'No message'}`;
+
+  let html = '';
+
+  // Commit info
+  html += `<div class="detail-group">
+    <h3>Commit Info</h3>
+    <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${d.date?.slice(0, 19) || 'unknown'}</span></div>
+    <div class="detail-row"><span class="detail-label">Author</span><span class="detail-value">${d.author || 'unknown'}</span></div>
+    <div class="detail-row"><span class="detail-label">GitHub</span><span class="detail-value"><a href="${GITHUB_REPO}/commit/${d.commit}" target="_blank" style="color:#6b8;">View on GitHub →</a></span></div>
+  </div>`;
+
+  // Test stats
+  html += `<div class="detail-group">
+    <h3>Test Results</h3>
+    <div class="detail-row"><span class="detail-label">Total</span><span class="detail-value">${(d.stats?.total || 0).toLocaleString()}</span></div>
+    <div class="detail-row"><span class="detail-label">Pass</span><span class="detail-value" style="color:#5a5;">${(d.stats?.pass || 0).toLocaleString()}</span></div>
+    <div class="detail-row"><span class="detail-label">Fail</span><span class="detail-value" style="color:#d55;">${(d.stats?.fail || 0).toLocaleString()}</span></div>
+    <div class="detail-row"><span class="detail-label">Duration</span><span class="detail-value">${d.stats?.duration || 0}s</span></div>
+  </div>`;
+
+  // Categories
+  if (d.categories && Object.keys(d.categories).length > 0) {
+    html += `<div class="detail-group">
+      <h3>Categories</h3>`;
+    for (const [cat, stats] of Object.entries(d.categories)) {
+      const pct = stats.total > 0 ? Math.round(stats.pass / stats.total * 100) : 0;
+      html += `<div class="detail-row">
+        <span class="detail-label">${cat}</span>
+        <span class="detail-value"><span style="color:#5a5;">${stats.pass}</span>/<span style="color:#d55;">${stats.fail}</span> (${pct}%)</span>
+      </div>`;
     }
+    html += `</div>`;
+  }
 
-    categoryChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Pass',
-                    data: passData,
-                    backgroundColor: '#5a5'
-                },
-                {
-                    label: 'Fail',
-                    data: failData,
-                    backgroundColor: '#d55'
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: false, // No animation
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: { color: '#aaa', font: { size: 10 } }
-                }
-            },
-            scales: {
-                x: {
-                    stacked: true,
-                    grid: { color: '#333' },
-                    ticks: { color: '#888', font: { size: 10 } }
-                },
-                y: {
-                    stacked: true,
-                    beginAtZero: true,
-                    grid: { color: '#333' },
-                    ticks: { color: '#888', font: { size: 10 } }
-                }
-            }
-        }
-    });
+  // Code metrics
+  if (d.codeMetrics) {
+    const cm = d.codeMetrics;
+    html += `<div class="detail-group">
+      <h3>Code Changes</h3>
+      <div class="detail-row"><span class="detail-label">Files</span><span class="detail-value">${cm.filesChanged || 0}</span></div>
+      <div class="detail-row"><span class="detail-label">Added</span><span class="detail-value" style="color:#5a5;">+${cm.linesAdded || 0}</span></div>
+      <div class="detail-row"><span class="detail-label">Removed</span><span class="detail-value" style="color:#d55;">-${cm.linesRemoved || 0}</span></div>
+      <div class="detail-row"><span class="detail-label">Net</span><span class="detail-value">${cm.netLines >= 0 ? '+' : ''}${cm.netLines || 0}</span></div>
+    </div>`;
+  }
+
+  // Sessions (if any)
+  if (d.sessions && Object.keys(d.sessions).length > 0) {
+    html += `<div class="detail-group">
+      <h3>Sessions</h3>`;
+    const sessions = Object.entries(d.sessions).slice(0, 8);
+    for (const [name, session] of sessions) {
+      const status = session.status === 'pass' ? '✓' : '✗';
+      const color = session.status === 'pass' ? '#5a5' : '#d55';
+      const coverage = session.coveragePercent?.toFixed(0) || '?';
+      html += `<div class="detail-row">
+        <span class="detail-label" style="color:${color};">${status} ${name.slice(0, 20)}</span>
+        <span class="detail-value">${coverage}%</span>
+      </div>`;
+    }
+    if (Object.keys(d.sessions).length > 8) {
+      html += `<div class="detail-row"><span class="detail-label" style="color:#777;">+${Object.keys(d.sessions).length - 8} more...</span></div>`;
+    }
+    html += `</div>`;
+  }
+
+  content.innerHTML = html;
+  panel.style.display = 'block';
 }
 
-// Render commits table
-function renderCommitsTable() {
-    const tbody = document.getElementById('commits-tbody');
-    tbody.innerHTML = '';
-
-    const recentData = testData.slice(-20).reverse();
-
-    recentData.forEach((commit, index) => {
-        const prevIndex = testData.length - index - 2;
-        const prev = prevIndex >= 0 ? testData[prevIndex] : null;
-
-        const row = document.createElement('tr');
-
-        if (commit.regression) {
-            row.classList.add('regression-row');
-        } else if (prev && commit.stats.pass > prev.stats.pass) {
-            row.classList.add('improvement-row');
-        }
-
-        const dateObj = new Date(commit.date);
-        const date = dateObj.toLocaleDateString();
-        const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const passPercent = ((commit.stats.pass / commit.stats.total) * 100).toFixed(1);
-
-        let delta = '';
-        let deltaClass = 'delta-neutral';
-        if (prev) {
-            const diff = commit.stats.pass - prev.stats.pass;
-            if (diff > 0) {
-                delta = `+${diff}`;
-                deltaClass = 'delta-positive';
-            } else if (diff < 0) {
-                delta = `${diff}`;
-                deltaClass = 'delta-negative';
-            } else {
-                delta = '–';
-            }
-        }
-
-        row.innerHTML = `
-            <td><span class="commit-hash">${commit.commit}</span></td>
-            <td>${date}<br><span style="font-size: 0.9em; color: #888;">${time}</span></td>
-            <td>${commit.author}</td>
-            <td>${commit.message}</td>
-            <td>${commit.stats.total}</td>
-            <td>${commit.stats.pass}</td>
-            <td>${commit.stats.fail}</td>
-            <td>${passPercent}%</td>
-            <td><span class="${deltaClass}">${delta || '–'}</span></td>
-        `;
-
-        tbody.appendChild(row);
-    });
+// Highlight table row
+function highlightTableRow(commit) {
+  document.querySelectorAll('#commit-tbody tr').forEach(tr => {
+    tr.classList.remove('selected');
+    if (tr.dataset.commit === commit) {
+      tr.classList.add('selected');
+      tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
 }
+
+// Update commit table
+function updateTable() {
+  const tbody = document.getElementById('commit-tbody');
+  let html = '';
+
+  // Show most recent first
+  const reversed = [...filteredData].reverse();
+
+  reversed.forEach((d, i) => {
+    const prev = reversed[i + 1];
+    const delta = prev ? (d.stats?.pass || 0) - (prev.stats?.pass || 0) : 0;
+    const isRegression = delta < 0;
+    const isImprovement = delta > 5;
+
+    const rowClass = isRegression ? 'regression' : (isImprovement ? 'improvement' : '');
+    const deltaClass = delta > 0 ? 'delta-positive' : (delta < 0 ? 'delta-negative' : 'delta-neutral');
+    const deltaText = delta > 0 ? `+${delta}` : (delta === 0 ? '–' : delta);
+
+    const linesClass = (d.codeMetrics?.netLines || 0) >= 0 ? 'lines-positive' : 'lines-negative';
+    const linesText = (d.codeMetrics?.netLines || 0) >= 0 ? `+${d.codeMetrics?.netLines || 0}` : d.codeMetrics?.netLines;
+
+    html += `<tr class="${rowClass}" data-commit="${d.commit}" onclick="selectCommit(filteredData[${filteredData.length - 1 - i}])">
+      <td><a class="commit-hash" href="${GITHUB_REPO}/commit/${d.commit}" target="_blank" onclick="event.stopPropagation();">${d.commit}</a></td>
+      <td>${d.date?.slice(0, 10) || ''}</td>
+      <td class="message-text" title="${d.message || ''}">${d.message?.slice(0, 50) || ''}</td>
+      <td style="color:#5a5;">${d.stats?.pass || 0}</td>
+      <td style="color:#d55;">${d.stats?.fail || 0}</td>
+      <td class="${deltaClass}">${deltaText}</td>
+      <td>${d.codeMetrics?.filesChanged || 0}</td>
+      <td class="${linesClass}">${linesText}</td>
+    </tr>`;
+  });
+
+  tbody.innerHTML = html;
+}
+
+// Update category breakdown
+function updateCategoryBreakdown() {
+  const latest = filteredData[filteredData.length - 1];
+  const grid = document.getElementById('category-grid');
+
+  if (!latest?.categories) {
+    grid.innerHTML = '<div style="color:#777;font-style:italic;">No category data available</div>';
+    return;
+  }
+
+  let html = '';
+  for (const [cat, stats] of Object.entries(latest.categories)) {
+    const pct = stats.total > 0 ? Math.round(stats.pass / stats.total * 100) : 0;
+    html += `<div class="category-card" data-category="${cat}">
+      <span class="category-name">${cat}</span>
+      <div class="category-bar"><div class="category-bar-fill" style="width:${pct}%;"></div></div>
+      <div class="category-stats">
+        <span class="pass">${stats.pass}</span>
+        <span>${pct}%</span>
+        <span class="fail">${stats.fail}</span>
+      </div>
+    </div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+// Update session breakdown
+function updateSessionBreakdown() {
+  const latest = filteredData[filteredData.length - 1];
+  const list = document.getElementById('session-list');
+
+  if (!latest?.sessions || Object.keys(latest.sessions).length === 0) {
+    list.innerHTML = '<div style="color:#777;font-style:italic;">No session data available</div>';
+    return;
+  }
+
+  let html = '';
+  const sessions = Object.entries(latest.sessions)
+    .sort((a, b) => (a[1].coveragePercent || 0) - (b[1].coveragePercent || 0));
+
+  for (const [name, session] of sessions) {
+    const status = session.status === 'pass' ? 'pass' : 'fail';
+    const coverage = session.coveragePercent?.toFixed(0) || '?';
+    html += `<div class="session-item ${status}">
+      <span class="session-name">${name}</span>
+      <span class="session-coverage">${coverage}%</span>
+    </div>`;
+  }
+
+  list.innerHTML = html;
+}
+
+// Event listeners
+document.querySelectorAll('.view-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentView = btn.dataset.view;
+
+    // Show/hide breakdown sections
+    document.getElementById('category-breakdown').style.display =
+      currentView === 'categories' ? 'block' : 'none';
+    document.getElementById('session-breakdown').style.display =
+      currentView === 'sessions' ? 'block' : 'none';
+
+    updateChart();
+  });
+});
+
+document.querySelectorAll('.range-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentRange = btn.dataset.range;
+    updateDisplay();
+  });
+});
+
+document.querySelectorAll('#show-pass, #show-fail, #show-rate').forEach(cb => {
+  cb.addEventListener('change', updateChart);
+});
+
+document.getElementById('zoom-reset').addEventListener('click', () => {
+  if (chart) {
+    chart.resetZoom();
+  }
+});
+
+document.getElementById('detail-close').addEventListener('click', () => {
+  document.getElementById('detail-panel').style.display = 'none';
+  document.querySelectorAll('#commit-tbody tr').forEach(tr => {
+    tr.classList.remove('selected');
+  });
+  selectedCommit = null;
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.getElementById('detail-panel').style.display = 'none';
+  }
+});
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    loadTestData();
-});
+loadData();

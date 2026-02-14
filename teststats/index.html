@@ -1,124 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NetHack Test Dashboard</title>
-    <link rel="stylesheet" href="dashboard.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Oracle's Test Chamber</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+  <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
-    <header>
-        <h1>🏰 Mazes of Menace - Test Dashboard</h1>
-        <p class="tagline">*You consult the Oracle. The test quality is revealed.*</p>
-    </header>
+  <header>
+    <h1>The Oracle's Test Chamber</h1>
+    <p class="tagline">"Many fall in the face of chaos, but not this one. Not today."</p>
+  </header>
 
-    <main>
-        <!-- Time Series Chart with integrated scrubber -->
-        <section class="chart-section">
-            <h2>⚔️ Test History — *Click or drag to browse commits*</h2>
-            <div class="chart-container">
-                <canvas id="timeline-chart"></canvas>
-            </div>
-            <div class="scrubber-container">
-                <input type="range" id="commit-scrubber" min="0" max="0" value="0" step="1">
-                <div id="scrubber-info">Drag to navigate through commit history</div>
-            </div>
-        </section>
+  <main>
+    <!-- Summary Stats Bar -->
+    <section class="stats-bar">
+      <div class="stat-item" id="stat-commits">
+        <span class="stat-value">--</span>
+        <span class="stat-label">commits tracked</span>
+      </div>
+      <div class="stat-item pass" id="stat-pass">
+        <span class="stat-value">--</span>
+        <span class="stat-label">passing</span>
+      </div>
+      <div class="stat-item fail" id="stat-fail">
+        <span class="stat-value">--</span>
+        <span class="stat-label">failing</span>
+      </div>
+      <div class="stat-item" id="stat-rate">
+        <span class="stat-value">--</span>
+        <span class="stat-label">pass rate</span>
+      </div>
+      <div class="stat-item" id="stat-lines">
+        <span class="stat-value">--</span>
+        <span class="stat-label">net lines</span>
+      </div>
+    </section>
 
-        <!-- Summary Cards + Category Chart side by side -->
-        <section class="combined-section">
-            <div class="summary-cards">
-                <div class="card">
-                    <h3>Commit</h3>
-                    <div id="latest-commit" class="stat">Loading...</div>
-                    <div id="latest-message" class="detail"></div>
-                </div>
-                <div class="card">
-                    <h3>Total Tests</h3>
-                    <div id="total-tests" class="stat">-</div>
-                    <div id="new-tests" class="detail"></div>
-                </div>
-                <div class="card pass">
-                    <h3>Passing</h3>
-                    <div id="pass-count" class="stat">-</div>
-                    <div id="pass-percent" class="detail"></div>
-                </div>
-                <div class="card fail">
-                    <h3>Failing</h3>
-                    <div id="fail-count" class="stat">-</div>
-                    <div id="fail-percent" class="detail"></div>
-                </div>
-            </div>
-            
-            <div class="category-chart-container">
-                <h2>🎲 Test Categories</h2>
-                <div class="chart-container-small">
-                    <canvas id="category-chart"></canvas>
-                </div>
-            </div>
-        </section>
+    <!-- Chart Controls -->
+    <section class="controls">
+      <div class="control-group">
+        <span class="control-label">View:</span>
+        <button class="view-btn active" data-view="tests">Tests</button>
+        <button class="view-btn" data-view="categories">Categories</button>
+        <button class="view-btn" data-view="sessions">Sessions</button>
+        <button class="view-btn" data-view="code">Code</button>
+      </div>
+      <div class="control-group">
+        <span class="control-label">Range:</span>
+        <button class="range-btn" data-range="50">50</button>
+        <button class="range-btn" data-range="100">100</button>
+        <button class="range-btn active" data-range="all">All</button>
+      </div>
+      <div class="control-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="show-pass" checked> Pass
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="show-fail" checked> Fail
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="show-rate"> Rate %
+        </label>
+      </div>
+      <div class="control-group zoom-controls">
+        <button id="zoom-reset" title="Reset zoom">⟲</button>
+        <span class="zoom-hint">Drag to zoom, scroll to pan</span>
+      </div>
+    </section>
 
-        <!-- Detailed Commit Information -->
-        <section class="commit-details-section">
-            <h2>📋 Commit Details</h2>
-            <div class="commit-details">
-                <div class="detail-row">
-                    <span class="detail-label">Hash:</span>
-                    <span id="detail-hash" class="detail-value commit-hash">-</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Date:</span>
-                    <span id="detail-date" class="detail-value">-</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Author:</span>
-                    <span id="detail-author" class="detail-value">-</span>
-                </div>
-                <div class="detail-row full-width">
-                    <span class="detail-label">Message:</span>
-                    <pre id="detail-message" class="detail-value message-text">-</pre>
-                </div>
-                <div class="detail-row full-width">
-                    <span class="detail-label">Test Changes:</span>
-                    <div id="detail-changes" class="detail-value test-changes">-</div>
-                </div>
-            </div>
-        </section>
+    <!-- Main Timeline Chart -->
+    <section class="chart-section">
+      <div class="chart-container">
+        <canvas id="timeline-chart"></canvas>
+      </div>
+    </section>
 
-        <!-- Recent Commits Table -->
-        <section class="commits-section">
-            <h2>📜 Recent Commits</h2>
-            <div class="table-container">
-                <table id="commits-table">
-                    <thead>
-                        <tr>
-                            <th>Commit</th>
-                            <th>Date</th>
-                            <th>Author</th>
-                            <th>Message</th>
-                            <th>Total</th>
-                            <th>Pass</th>
-                            <th>Fail</th>
-                            <th>Pass %</th>
-                            <th>Δ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="commits-tbody">
-                        <tr><td colspan="9">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </main>
+    <!-- Category Breakdown (shown when Categories view active) -->
+    <section class="breakdown-section" id="category-breakdown" style="display: none;">
+      <h2>Category Breakdown <span class="section-hint">(Each test finds its own peril)</span></h2>
+      <div class="category-grid" id="category-grid"></div>
+    </section>
 
-    <footer>
-        <p>*You hear the Oracle chuckle.* "The tests tell no lies."</p>
-        <p>Generated from <code>results.jsonl</code> | Last updated: <span id="last-updated"></span></p>
-        <p><a href="../TESTING.md">Testing Guide</a> | <a href="schema.json">Schema</a></p>
-    </footer>
+    <!-- Session Coverage (shown when Sessions view active) -->
+    <section class="breakdown-section" id="session-breakdown" style="display: none;">
+      <h2>Session Coverage <span class="section-hint">(The Oracle remembers every step)</span></h2>
+      <div class="session-list" id="session-list"></div>
+    </section>
 
-    <script src="dashboard.js"></script>
+    <!-- Commit Table -->
+    <section class="table-section">
+      <h2>Commit History <span class="section-hint">(A scroll of your deeds, good and ill)</span></h2>
+      <div class="table-container">
+        <table id="commit-table">
+          <thead>
+            <tr>
+              <th class="col-commit">Commit</th>
+              <th class="col-date">Date</th>
+              <th class="col-message">Message</th>
+              <th class="col-pass">Pass</th>
+              <th class="col-fail">Fail</th>
+              <th class="col-delta">Δ</th>
+              <th class="col-files">Files</th>
+              <th class="col-lines">Lines</th>
+            </tr>
+          </thead>
+          <tbody id="commit-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Detail Panel (shown on row click) -->
+    <section class="detail-panel" id="detail-panel" style="display: none;">
+      <div class="detail-header">
+        <span class="detail-title" id="detail-title">Commit Details</span>
+        <button class="detail-close" id="detail-close">×</button>
+      </div>
+      <div class="detail-content" id="detail-content"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>
+      <span class="footer-quote">"The Oracle intones: 'Your tests reveal your fate.'"</span>
+      <br>
+      <a href="https://github.com/davidbau/mazesofmenace">Mazes of Menace</a> ·
+      Data from <code>refs/notes/test-results</code>
+    </p>
+  </footer>
+
+  <script src="dashboard.js"></script>
 </body>
 </html>

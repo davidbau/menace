@@ -1,0 +1,389 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    background: #1a1a1a;
+    color: #d0d0d0;
+    line-height: 1.4;
+    font-size: 14px;
+}
+
+header {
+    background: #2d2d2d;
+    border-bottom: 2px solid #555;
+    color: #aaa;
+    padding: 1rem;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+    color: #fff;
+    font-weight: normal;
+}
+
+header p.tagline {
+    color: #888;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+main {
+    max-width: 1600px;
+    margin: 0.5rem auto;
+    padding: 0 0.5rem;
+}
+
+section {
+    background: #2d2d2d;
+    border: 1px solid #444;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+h2 {
+    margin-bottom: 0.5rem;
+    color: #aaa;
+    font-size: 1rem;
+    font-weight: normal;
+    border-bottom: 1px solid #444;
+    padding-bottom: 0.25rem;
+}
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.5rem;
+    padding: 0;
+}
+
+.card {
+    background: #1a1a1a;
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px solid #444;
+}
+
+.card h3 {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 0.25rem;
+    font-weight: normal;
+}
+
+.card .stat {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0.25rem 0;
+}
+
+.card .detail {
+    font-size: 0.7rem;
+    color: #666;
+}
+
+.card.pass {
+    border-color: #5a5;
+}
+
+.card.pass .stat {
+    color: #5a5;
+}
+
+.card.fail {
+    border-color: #d55;
+}
+
+.card.fail .stat {
+    color: #d55;
+}
+
+.card.regression {
+    border-color: #da5;
+    background: #332200;
+}
+
+.chart-container {
+    position: relative;
+    height: 250px;
+    margin: 0.5rem 0;
+}
+
+.scrubber-container {
+    margin-top: 0.5rem;
+}
+
+#commit-scrubber {
+    width: 100%;
+    height: 4px;
+    outline: none;
+    -webkit-appearance: none;
+    background: #444;
+}
+
+#commit-scrubber::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #888;
+    cursor: pointer;
+}
+
+#commit-scrubber::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    background: #888;
+    cursor: pointer;
+    border: none;
+}
+
+#scrubber-info {
+    margin-top: 0.25rem;
+    text-align: center;
+    color: #666;
+    font-size: 0.7rem;
+}
+
+.table-controls {
+    margin-bottom: 0.5rem;
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+}
+
+.table-controls label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    color: #888;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #1a1a1a;
+    padding: 0.4rem;
+    text-align: left;
+    font-weight: normal;
+    border-bottom: 1px solid #555;
+    position: sticky;
+    top: 0;
+    font-size: 0.75rem;
+    color: #aaa;
+}
+
+td {
+    padding: 0.4rem;
+    border-bottom: 1px solid #333;
+    font-size: 0.75rem;
+}
+
+tr:hover {
+    background: #252525;
+}
+
+tr.regression-row {
+    background: #332200;
+    border-left: 3px solid #da5;
+}
+
+tr.improvement-row {
+    background: #002200;
+    border-left: 3px solid #5a5;
+}
+
+.commit-hash {
+    font-family: 'Courier New', monospace;
+    background: #1a1a1a;
+    padding: 0.1rem 0.3rem;
+    border: 1px solid #444;
+    font-size: 0.75rem;
+    color: #888;
+}
+
+.delta-positive {
+    color: #5a5;
+    font-weight: bold;
+}
+
+.delta-negative {
+    color: #d55;
+    font-weight: bold;
+}
+
+.delta-neutral {
+    color: #666;
+}
+
+footer {
+    text-align: center;
+    padding: 1rem;
+    color: #666;
+    font-size: 0.75rem;
+    border-top: 1px solid #444;
+    background: #2d2d2d;
+}
+
+footer a {
+    color: #888;
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: #aaa;
+    text-decoration: underline;
+}
+
+code {
+    background: #1a1a1a;
+    padding: 0.1rem 0.3rem;
+    border: 1px solid #444;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    color: #aaa;
+}
+
+@media (max-width: 768px) {
+    .summary-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    header h1 {
+        font-size: 1.2rem;
+    }
+
+    .chart-container {
+        height: 200px;
+    }
+}
+/* Additions to dashboard.css for new layout */
+
+.scrubber-section {
+    padding: 0.5rem;
+}
+
+.combined-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    margin-bottom: 0.5rem;
+}
+
+.category-chart-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.category-chart-container h2 {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.chart-container-small {
+    position: relative;
+    height: 200px;
+    flex-grow: 1;
+}
+
+@media (max-width: 900px) {
+    .combined-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Warning message */
+.warning {
+    color: #da5;
+    font-size: 0.7rem;
+    margin: 0.25rem 0;
+    font-style: italic;
+}
+
+/* Commit details section */
+.commit-details-section {
+    padding: 0.75rem;
+}
+
+.commit-details {
+    background: #1a1a1a;
+    padding: 0.75rem;
+    border: 1px solid #444;
+}
+
+.detail-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 0.5rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #333;
+}
+
+.detail-row.full-width {
+    grid-template-columns: 120px 1fr;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    color: #888;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.detail-value {
+    color: #d0d0d0;
+    font-size: 0.75rem;
+}
+
+.message-text {
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0;
+    padding: 0.5rem;
+    background: #0d0d0d;
+    border: 1px solid #333;
+    border-radius: 2px;
+}
+
+.test-changes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.change-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem;
+}
+
+.change-category {
+    font-weight: bold;
+    min-width: 80px;
+}
+
+.change-delta {
+    font-family: 'Courier New', monospace;
+}
