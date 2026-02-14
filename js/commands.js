@@ -2193,6 +2193,10 @@ async function handleExtendedCommand(game) {
     }
     const cmd = input.trim().toLowerCase();
     switch (cmd) {
+        case 'o':
+        case 'options':
+        case 'optionsfull':
+            return await handleSet(game);
         case 'levelchange':
             return await wizLevelChange(game);
         case 'map':
@@ -2213,7 +2217,7 @@ async function handleExtendedCommand(game) {
         }
         default:
             display.putstr_message(
-                `Unknown extended command: ${cmd}. Try: levelchange, map, teleport, genesis, quit.`
+                `Unknown extended command: ${cmd}. Try: options, levelchange, map, teleport, genesis, quit.`
             );
             return { moved: false, tookTime: false };
     }

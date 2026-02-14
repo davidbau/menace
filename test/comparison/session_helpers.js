@@ -821,6 +821,7 @@ export async function replaySession(seed, session, opts = {}) {
         : allSteps.length;
     const stepResults = [];
     let pendingCommand = null;
+    let pendingKind = null;
     for (let stepIndex = 0; stepIndex < maxSteps; stepIndex++) {
         const step = allSteps[stepIndex];
         const prevCount = getRngLog().length;
@@ -901,6 +902,11 @@ export async function replaySession(seed, session, opts = {}) {
             for (let i = 0; i < step.key.length; i++) {
                 pushInput(step.key.charCodeAt(i));
             }
+            // C ref: doextcmd() accepts single-key shorthand after '#'.
+            // Trace captures '#', then one key (e.g. 'O') without explicit Enter.
+            if (pendingKind === 'extended-command' && step.key.length === 1) {
+                pushInput(13);
+            }
             const settled = await Promise.race([
                 pendingCommand.then(v => ({ done: true, value: v })),
                 new Promise(resolve => setTimeout(() => resolve({ done: false }), 0)),
@@ -910,6 +916,7 @@ export async function replaySession(seed, session, opts = {}) {
             } else {
                 result = settled.value;
                 pendingCommand = null;
+                pendingKind = null;
             }
         } else {
             // Feed the key to the game engine
@@ -939,6 +946,7 @@ export async function replaySession(seed, session, opts = {}) {
                 // Command is waiting for additional input (direction/item/etc.).
                 // Defer resolution to subsequent captured step(s).
                 pendingCommand = commandPromise;
+                pendingKind = (ch === 35) ? 'extended-command' : null;
                 result = { moved: false, tookTime: false };
             } else {
                 result = settled.value;
