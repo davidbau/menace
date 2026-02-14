@@ -112,6 +112,40 @@ function getProcessEnv(name) {
     return (typeof process !== 'undefined' && process.env) ? process.env[name] : undefined;
 }
 
+function installTypWatch(map) {
+    const spec = getProcessEnv('WEBHACK_WATCH_TYP');
+    if (!spec || !map || !map.locations) return;
+    const m = String(spec).match(/^\s*(\d+)\s*,\s*(\d+)\s*$/);
+    if (!m) return;
+    const wx = Number.parseInt(m[1], 10);
+    const wy = Number.parseInt(m[2], 10);
+    if (!Number.isInteger(wx) || !Number.isInteger(wy)
+        || wx < 0 || wx >= COLNO || wy < 0 || wy >= ROWNO) {
+        return;
+    }
+    const loc = map.locations?.[wx]?.[wy];
+    if (!loc || loc.__typWatchInstalled) return;
+    let _typ = loc.typ;
+    Object.defineProperty(loc, 'typ', {
+        configurable: true,
+        enumerable: true,
+        get() { return _typ; },
+        set(v) {
+            if (_typ !== v) {
+                const stack = new Error().stack?.split('\n').slice(2, 6).join(' | ') || '';
+                console.log(`[TYPWATCH] (${wx},${wy}) ${_typ} -> ${v} @ ${stack}`);
+            }
+            _typ = v;
+        }
+    });
+    Object.defineProperty(loc, '__typWatchInstalled', {
+        configurable: true,
+        enumerable: false,
+        writable: true,
+        value: true
+    });
+}
+
 // Level generation state (equivalent to C's sp_level sp)
 export let levelState = {
     map: null,              // GameMap instance being built
@@ -1716,6 +1750,7 @@ export function level_init(opts = {}) {
 
     // Apply the initialization - always create fresh map and clear entity arrays
     levelState.map = new GameMap();
+    installTypWatch(levelState.map);
     // Keep C-like level flags when Lua scripts call level_init multiple times.
     for (const [k, v] of Object.entries(levelState.flags)) {
         if (k in levelState.map.flags) {
@@ -3641,13 +3676,12 @@ export function stair(direction, x, y) {
             levelState.map.traps = (levelState.map.traps || []).filter(t => t !== trap);
         }
 
+        if (!canPlaceStair(dir)) {
+            return;
+        }
         // C ref: mkstairs(..., force=TRUE) for fixed coordinates coerces terrain.
         if (!isRandom) {
             levelState.map.locations[stairX][stairY].typ = ROOM;
-        }
-
-        if (!canPlaceStair(dir)) {
-            return;
         }
         const loc = levelState.map.locations[stairX][stairY];
         loc.typ = stairType;
@@ -4980,13 +5014,12 @@ export function ladder(direction, x, y) {
         levelState.map.traps = (levelState.map.traps || []).filter(t => t !== trap);
     }
 
+    if (!canPlaceStair(dir)) {
+        return;
+    }
     // C ref: fixed-coordinate placement uses force=TRUE and coerces terrain.
     if (!isRandom) {
         levelState.map.locations[xabs][yabs].typ = ROOM;
-    }
-
-    if (!canPlaceStair(dir)) {
-        return;
     }
 
     const up = (dir === 'up') ? 1 : 0;
@@ -6235,6 +6268,10 @@ function remove_boundary_syms(map) {
 }
 
 export function finalize_level() {
+    const extraPhaseTrace = (getProcessEnv('WEBHACK_EXTRA_PHASE_CHECKPOINTS') === '1');
+    if (extraPhaseTrace) {
+        captureCheckpoint('after_script');
+    }
     // CRITICAL: Execute deferred placements BEFORE wallification
     // This matches C's execution order: rooms → corridors → entities → wallify
     if (levelState.deferredActions.length > 0) {
@@ -6251,6 +6288,9 @@ export function finalize_level() {
         executeDeferredObjects();
         executeDeferredMonsters();
         executeDeferredTraps();
+    }
+    if (extraPhaseTrace) {
+        captureCheckpoint('after_deferred');
     }
 
     // Copy monster requests to map
@@ -6272,15 +6312,24 @@ export function finalize_level() {
             add_doors_to_room(levelState.map, room);
         }
     }
+    if (extraPhaseTrace) {
+        captureCheckpoint('after_link_doors');
+    }
 
     // C ref: sp_lev.c remove_boundary_syms() runs before map_cleanup.
     if (levelState.map) {
         remove_boundary_syms(levelState.map);
     }
+    if (extraPhaseTrace) {
+        captureCheckpoint('after_remove_boundary');
+    }
 
     // C ref: sp_lev.c map_cleanup() runs before wallification.
     if (levelState.map) {
         map_cleanup(levelState.map);
+    }
+    if (extraPhaseTrace) {
+        captureCheckpoint('after_map_cleanup');
     }
 
     // C ref: mklev.c:1388-1422 — Fill ordinary rooms with random content.
@@ -6316,6 +6365,10 @@ export function finalize_level() {
                                fillable && bonusCountdown === 0);
             if (fillable) bonusCountdown--;
         }
+    }
+
+    if (extraPhaseTrace) {
+        captureCheckpoint('before_wallification');
     }
 
     // Apply wallification first (before flipping).
@@ -7431,6 +7484,7 @@ export function mazewalk(xOrOpts, y, direction) {
     const mode = getProcessEnv('WEBHACK_MAZEWALK_MODE') || 'legacy';
     const useStateBounds = (typeof process !== 'undefined' && process.env.WEBHACK_MAZEWALK_BOUNDS === 'state');
     const trace = (typeof process !== 'undefined' && process.env.WEBHACK_MAZEWALK_TRACE === '1');
+    const traceStartRng = trace ? getRngCallCount() : 0;
     const dirs = [
         { name: 'north', dx: 0, dy: -1 },
         { name: 'south', dx: 0, dy: 1 },
@@ -7488,41 +7542,50 @@ export function mazewalk(xOrOpts, y, direction) {
     setFloorIfNotDoor(sx, sy, ftyp);
     const stats = trace ? { steps: 0, carves: 0, deadends: 0, q: [0, 0, 0, 0, 0] } : null;
     if (mode === 'c') {
-        // C-like walkfrom direction order for a=0..3: N, E, S, W.
+        // Direct recursive port of C mkmaze.c walkfrom() non-MICRO path.
+        // Direction indices mirror C's maze_dir enum: N,E,S,W => 0,1,2,3.
         const cDirs = [
             { dx: 0, dy: -1 },
             { dx: 1, dy: 0 },
             { dx: 0, dy: 1 },
             { dx: -1, dy: 0 }
         ];
-        while (stack.length > 0) {
+        const okayC = (xx, yy, d) => {
+            const dd = cDirs[d];
+            const nx = xx + dd.dx * 2;
+            const ny = yy + dd.dy * 2;
+            if (!inWalkBounds(nx, ny)) return false;
+            return isStone(nx, ny);
+        };
+        const walkfromC = (wx, wy) => {
             if (stats) stats.steps++;
-            const cur = stack[stack.length - 1];
-            setFloorIfNotDoor(cur.x, cur.y, ftyp);
-            const choices = [];
-            for (const d of cDirs) {
-                const nx = cur.x + d.dx * 2;
-                const ny = cur.y + d.dy * 2;
-                if (!inWalkBounds(nx, ny) || !isStone(nx, ny)) continue;
-                choices.push(d);
+            setFloorIfNotDoor(wx, wy, ftyp);
+            while (true) {
+                const dirsAvail = [];
+                for (let a = 0; a < 4; a++) {
+                    if (okayC(wx, wy, a)) dirsAvail.push(a);
+                }
+                if (stats) {
+                    const q = dirsAvail.length;
+                    if (q >= 0 && q < stats.q.length) stats.q[q]++;
+                }
+                if (!dirsAvail.length) {
+                    if (stats) stats.deadends++;
+                    return;
+                }
+                const dirIdx = dirsAvail[rn2(dirsAvail.length)];
+                const dd = cDirs[dirIdx];
+                const midx = wx + dd.dx;
+                const midy = wy + dd.dy;
+                const nx = wx + dd.dx * 2;
+                const ny = wy + dd.dy * 2;
+                // C walkfrom() writes the intermediate step unconditionally.
+                setFloorForced(midx, midy, ftyp);
+                if (stats) stats.carves++;
+                walkfromC(nx, ny);
             }
-            if (stats) {
-                const q = choices.length;
-                if (q >= 0 && q < stats.q.length) stats.q[q]++;
-            }
-            if (!choices.length) {
-                if (stats) stats.deadends++;
-                stack.pop();
-                continue;
-            }
-            const d = choices[rn2(choices.length)];
-            const nx = cur.x + d.dx * 2;
-            const ny = cur.y + d.dy * 2;
-            // C walkfrom() writes the intermediate step unconditionally.
-            setFloorForced(cur.x + d.dx, cur.y + d.dy, ftyp);
-            if (stats) stats.carves++;
-            stack.push({ x: nx, y: ny });
-        }
+        };
+        walkfromC(sx, sy);
     } else {
         while (stack.length > 0) {
             if (stats) stats.steps++;
@@ -7558,7 +7621,8 @@ export function mazewalk(xOrOpts, y, direction) {
         }
     }
     if (stats) {
-        console.log(`[MAZEWALK] mode=${mode} bounds=${useStateBounds ? 'state' : 'legacy'} max=(${maxX},${maxY}) start=(${sx},${sy}) dir=${dirName} steps=${stats.steps} carves=${stats.carves} dead=${stats.deadends} q=[${stats.q.join(',')}]`);
+        const traceEndRng = getRngCallCount();
+        console.log(`[MAZEWALK] mode=${mode} bounds=${useStateBounds ? 'state' : 'legacy'} max=(${maxX},${maxY}) start=(${sx},${sy}) dir=${dirName} steps=${stats.steps} carves=${stats.carves} dead=${stats.deadends} q=[${stats.q.join(',')}] rng=${traceStartRng + 1}-${traceEndRng} delta=${traceEndRng - traceStartRng}`);
     }
 
     const stockedFillEnabled = (typeof process !== 'undefined' && process.env.WEBHACK_MAZEWALK_STOCKED === '1');
