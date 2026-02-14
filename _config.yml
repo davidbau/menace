@@ -5,6 +5,6 @@ description: JavaScript port of NetHack 3.7
 
 # Ensure these directories are included in GitHub Pages
 include:
-  - teststats
+  - floatingeye
   - spoilers
   - guidebook

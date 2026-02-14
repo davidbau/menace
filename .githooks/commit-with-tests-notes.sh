@@ -75,8 +75,8 @@ echo ""
 
 # Step 4: Commit the updated JSONL
 echo "Step 4: Committing updated results.jsonl..."
-if ! git diff --quiet teststats/results.jsonl 2>/dev/null; then
-  git add teststats/results.jsonl
+if ! git diff --quiet floatingeye/results.jsonl 2>/dev/null; then
+  git add floatingeye/results.jsonl
   git commit -m "Update test dashboard for $CODE_COMMIT
 
 Synced from git notes (test-results ref)

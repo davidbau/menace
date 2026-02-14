@@ -6,7 +6,7 @@
 
 This directory contains the **Test Statistics Dashboard** - a visual interface for tracking test health over time.
 
-**Live Dashboard**: https://davidbau.github.io/mazesofmenace/teststats/
+**Live Dashboard**: https://davidbau.github.io/mazesofmenace/floatingeye/
 
 **Local**: Open `index.html` in your browser
 
@@ -112,22 +112,22 @@ Test run → append to results.jsonl → commit separately
 
 Once pushed to GitHub:
 ```
-https://davidbau.github.io/mazesofmenace/teststats/
+https://davidbau.github.io/mazesofmenace/floatingeye/
 ```
 
 **Requirements**:
 - GitHub Pages enabled in repository settings
-- `_config.yml` includes `teststats` directory
+- `_config.yml` includes `floatingeye` directory
 - At least one entry in `results.jsonl`
 
 ### Local (Before Push)
 
 ```bash
 # Option 1: Direct file
-open teststats/index.html
+open floatingeye/index.html
 
 # Option 2: Local server (avoids CORS issues)
-cd teststats
+cd floatingeye
 python3 -m http.server 8000
 # Open http://localhost:8000
 ```
@@ -158,7 +158,7 @@ Each line is independent. Load all lines, parse each as JSON, sort by date.
 .githooks/sync-notes-to-jsonl.sh
 
 # Commit the updated file
-git add teststats/results.jsonl
+git add floatingeye/results.jsonl
 git commit -m "Rebuild dashboard from git notes"
 ```
 
@@ -174,13 +174,13 @@ git notes --ref=test-results list
 git notes --ref=test-results show abc123
 
 # View last 5 test results
-tail -5 teststats/results.jsonl | jq '.'
+tail -5 floatingeye/results.jsonl | jq '.'
 
 # Check current pass rate
-jq -r '.stats.pass' teststats/results.jsonl | tail -1
+jq -r '.stats.pass' floatingeye/results.jsonl | tail -1
 
 # Count total entries
-wc -l teststats/results.jsonl
+wc -l floatingeye/results.jsonl
 ```
 
 ## Customizing the Dashboard
@@ -211,15 +211,15 @@ Edit `dashboard.css`:
 
 ```bash
 # Check if results.jsonl exists
-ls -la teststats/results.jsonl
+ls -la floatingeye/results.jsonl
 
 # Validate JSONL format
 while IFS= read -r line; do
   echo "$line" | jq empty || echo "Invalid line";
-done < teststats/results.jsonl
+done < floatingeye/results.jsonl
 
 # Check if file is empty
-wc -l teststats/results.jsonl
+wc -l floatingeye/results.jsonl
 ```
 
 ### Charts Not Rendering
@@ -239,7 +239,7 @@ wc -l teststats/results.jsonl
 ### GitHub Pages Not Updating
 
 ```bash
-# Verify _config.yml includes teststats
+# Verify _config.yml includes floatingeye
 grep -A 5 "include:" _config.yml
 
 # Force rebuild by pushing a change

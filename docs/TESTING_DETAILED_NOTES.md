@@ -222,8 +222,8 @@ Early commits may not have the test framework. The script handles:
 ### 1. Session Coverage Over Time
 
 ```bash
-jq -r '.sessions["seed1_gameplay"].coveragePercent' teststats/results.jsonl | \
-  paste - <(jq -r '.commit' teststats/results.jsonl) | \
+jq -r '.sessions["seed1_gameplay"].coveragePercent' floatingeye/results.jsonl | \
+  paste - <(jq -r '.commit' floatingeye/results.jsonl) | \
   sort -n
 ```
 
@@ -231,25 +231,25 @@ jq -r '.sessions["seed1_gameplay"].coveragePercent' teststats/results.jsonl | \
 
 ```bash
 jq -r 'select(.tests.fail | contains(["comparison/gameplay::seed1"]))' \
-  teststats/results.jsonl | head -1
+  floatingeye/results.jsonl | head -1
 ```
 
 ### 3. Regression History
 
 ```bash
 jq -r 'select(.regression == true) | "\(.commit): \(.regressedTests | join(", "))"' \
-  teststats/results.jsonl
+  floatingeye/results.jsonl
 ```
 
 ### 4. Code Churn by Category
 
 ```bash
-jq -r '[.codeMetrics.categories.js.added] | add' teststats/results.jsonl
+jq -r '[.codeMetrics.categories.js.added] | add' floatingeye/results.jsonl
 ```
 
 ## Dashboard Enhancements
 
-The dashboard at `teststats/index.html` will be extended to show:
+The dashboard at `floatingeye/index.html` will be extended to show:
 
 1. **Session coverage timeline** — Line chart of coverage % per session over time
 2. **Test status heatmap** — Grid showing pass/fail status per test per commit
@@ -307,6 +307,6 @@ A pilot run on 5 representative commits (#50, #300, #650, #1000, #1300) revealed
 | `scripts/collect-code-metrics.sh` | Git diff statistics |
 | `scripts/generate-detailed-note.sh` | Note generation |
 | `scripts/backfill-detailed-notes.sh` | Historical backfill |
-| `teststats/results.jsonl` | JSONL mirror of notes |
-| `teststats/schema-v2.json` | JSON Schema for v2 format |
+| `floatingeye/results.jsonl` | JSONL mirror of notes |
+| `floatingeye/schema-v2.json` | JSON Schema for v2 format |
 | `docs/TESTING_DETAILED_NOTES.md` | This document |

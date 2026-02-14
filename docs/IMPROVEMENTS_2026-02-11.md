@@ -177,11 +177,11 @@ Source of Truth: git notes refs/notes/test-results
        ↓
    (pre-commit hook)
        ↓
-Derived Artifact: teststats/results.jsonl
+Derived Artifact: floatingeye/results.jsonl
        ↓
    (dashboard.js)
        ↓
-Visual Dashboard: teststats/index.html
+Visual Dashboard: floatingeye/index.html
 ```
 
 ### Test Infrastructure

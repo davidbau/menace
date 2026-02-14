@@ -1,12 +1,12 @@
 #!/bin/bash
 # Post-commit hook: Promote pending test results to a git note
 #
-# If teststats/pending.jsonl exists with "commit":"HEAD", replace HEAD
+# If floatingeye/pending.jsonl exists with "commit":"HEAD", replace HEAD
 # with the real commit hash and attach as a git note. The next push
 # will carry the note automatically (via remote.origin.push refspec).
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-PENDING_FILE="$REPO_ROOT/teststats/pending.jsonl"
+PENDING_FILE="$REPO_ROOT/floatingeye/pending.jsonl"
 
 if [ ! -f "$PENDING_FILE" ]; then
   exit 0

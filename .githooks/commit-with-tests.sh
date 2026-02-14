@@ -69,7 +69,7 @@ echo ""
 
 # Step 3: Commit test results
 echo "Step 3: Committing test results..."
-git add teststats/results.jsonl
+git add floatingeye/results.jsonl
 git commit -m "Add test results for $CODE_COMMIT
 
 Test run for commit: $CODE_COMMIT
