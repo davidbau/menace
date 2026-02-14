@@ -1281,24 +1281,53 @@ function create_maze(map, corrwid, wallthick, rmdeadends) {
         stack.push({ x: nx, y: ny });
     }
 
-    // Coarse dead-end pruning to approximate C rmdeadends path.
     if (rmdeadends) {
-        let changed = true;
-        while (changed) {
-            changed = false;
-            for (let x = 3; x < smallMaxX; x++) {
-                for (let y = 3; y < smallMaxY; y++) {
-                    const loc = map.at(x, y);
-                    if (!loc || loc.typ !== carveType) continue;
-                    let n = 0;
-                    if (map.at(x - 1, y)?.typ === carveType) n++;
-                    if (map.at(x + 1, y)?.typ === carveType) n++;
-                    if (map.at(x, y - 1)?.typ === carveType) n++;
-                    if (map.at(x, y + 1)?.typ === carveType) n++;
-                    if (n <= 1) {
-                        loc.typ = wallType;
-                        changed = true;
+        // C ref: mkmaze.c maze_remove_deadends()
+        const mazeInbounds = (x, y) => (
+            x >= 2 && y >= 2 && x < smallMaxX && y < smallMaxY && isok(x, y)
+        );
+        const accessible = (x, y) => {
+            const loc = map.at(x, y);
+            return !!loc && loc.typ >= DOOR; // C ACCESSIBLE(typ)
+        };
+        const mzMove = (x, y, dir) => {
+            switch (dir) {
+            case 0: return { x, y: y - 1 };
+            case 1: return { x: x + 1, y };
+            case 2: return { x, y: y + 1 };
+            case 3: return { x: x - 1, y };
+            default: return { x, y };
+            }
+        };
+        for (let x = 2; x < smallMaxX; x++) {
+            for (let y = 2; y < smallMaxY; y++) {
+                if (!(x % 2) || !(y % 2)) continue;
+                if (!accessible(x, y)) continue;
+                const dirok = [];
+                let idx2 = 0;
+                for (let dir = 0; dir < 4; dir++) {
+                    let p1 = mzMove(x, y, dir);
+                    if (!mazeInbounds(p1.x, p1.y)) {
+                        idx2++;
+                        continue;
                     }
+                    let p2 = mzMove(x, y, dir);
+                    p2 = mzMove(p2.x, p2.y, dir);
+                    if (!mazeInbounds(p2.x, p2.y)) {
+                        idx2++;
+                        continue;
+                    }
+                    if (!accessible(p1.x, p1.y) && accessible(p2.x, p2.y)) {
+                        dirok.push(dir);
+                        idx2++;
+                    }
+                }
+                if (idx2 >= 3 && dirok.length > 0) {
+                    const dir = dirok[rn2(dirok.length)];
+                    let dest = mzMove(x, y, dir);
+                    dest = mzMove(dest.x, dest.y, dir);
+                    const loc = map.at(dest.x, dest.y);
+                    if (loc) loc.typ = carveType;
                 }
             }
         }
