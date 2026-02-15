@@ -20,6 +20,7 @@ const opts = {
     verbose: true,
     keyDelay: 60,
     moveDelay: 0,
+    role: 'Valkyrie',
     symset: 'ASCII', // 'ASCII' or 'DECgraphics'
 };
 
@@ -36,6 +37,7 @@ for (let i = 0; i < args.length; i++) {
             else if (key === '--turns') opts.maxTurns = parseInt(value);
             else if (key === '--delay') opts.moveDelay = parseInt(value);
             else if (key === '--key-delay') opts.keyDelay = parseInt(value);
+            else if (key === '--role') opts.role = value;
             else if (key === '--graphics') opts.symset = value === 'dec' ? 'DECgraphics' : 'ASCII';
             continue;
         }
@@ -46,6 +48,7 @@ for (let i = 0; i < args.length; i++) {
     else if (arg === '--turns' && args[i + 1]) opts.maxTurns = parseInt(args[++i]);
     else if (arg === '--delay' && args[i + 1]) opts.moveDelay = parseInt(args[++i]);
     else if (arg === '--key-delay' && args[i + 1]) opts.keyDelay = parseInt(args[++i]);
+    else if (arg === '--role' && args[i + 1]) opts.role = args[++i];
     else if (arg === '--graphics' && args[i + 1]) {
         const val = args[++i];
         opts.symset = val === 'dec' ? 'DECgraphics' : 'ASCII';
@@ -58,6 +61,7 @@ for (let i = 0; i < args.length; i++) {
         console.log('  --turns=N        Maximum turns to play (default: 200)');
         console.log('  --delay=MS       Delay between agent moves in ms (default: 0)');
         console.log('  --key-delay=MS   Delay after each tmux keystroke in ms (default: 60)');
+        console.log('  --role=ROLE      Character role/class (default: Valkyrie)');
         console.log('  --graphics=MODE  Symbol set: ascii or dec (DECgraphics) (default: ascii)');
         console.log('  --verbose/-v     Verbose output (default: on)');
         console.log('  --quiet/-q       Suppress verbose output');
@@ -68,6 +72,7 @@ for (let i = 0; i < args.length; i++) {
 console.log(`NetHack AI Agent vs C Binary`);
 console.log(`  Seed: ${opts.seed}`);
 console.log(`  Max turns: ${opts.maxTurns}`);
+console.log(`  Role: ${opts.role}`);
 console.log(`  Key delay: ${opts.keyDelay}ms`);
 console.log(`  Symbol set: ${opts.symset}`);
 console.log('');
@@ -81,7 +86,7 @@ try {
     console.log('Starting C NetHack in tmux...');
     await adapter.start({
         seed: opts.seed,
-        role: 'Valkyrie',
+        role: opts.role,
         race: 'human',
         name: 'Agent',
         gender: 'female',
