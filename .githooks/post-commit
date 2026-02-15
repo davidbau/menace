@@ -9,6 +9,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 PENDING_FILE="$REPO_ROOT/floatingeye/pending.jsonl"
 
 if [ ! -f "$PENDING_FILE" ]; then
+  echo "⚠️  No test results found. Run './scripts/run-session-tests.sh' before committing."
   exit 0
 fi
 
