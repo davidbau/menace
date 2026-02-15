@@ -115,7 +115,7 @@ cleanup() {
     echo "     .githooks/sync-notes-to-jsonl.sh"
     echo ""
     echo "  2. Commit the updated dashboard:"
-    echo "     git add floatingeye/results.jsonl"
+    echo "     git add oracle/results.jsonl"
     echo "     git commit -m 'Backfill test history ($SUCCESS_COUNT commits)'"
     echo ""
     echo "  3. Push notes to remote:"

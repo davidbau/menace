@@ -16,7 +16,7 @@ selfplay/.nethack-home/
 .beads/.nfs*
 
 # Transient test results (pre-push hook promotes to git note)
-floatingeye/pending.jsonl
+oracle/pending.jsonl
 
 # Debug scripts should go in scripts/debug/, not root
 /*.mjs

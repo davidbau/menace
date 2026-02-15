@@ -4,12 +4,12 @@
 # Usage: ./scripts/run-all-tests.sh
 #
 # Runs unit, e2e, and session tests, merges results, and writes to
-# floatingeye/pending.jsonl for the post-commit hook.
+# oracle/pending.jsonl for the post-commit hook.
 
 set -e
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-PENDING_FILE="$REPO_ROOT/floatingeye/pending.jsonl"
+PENDING_FILE="$REPO_ROOT/oracle/pending.jsonl"
 TEMP_DIR=$(mktemp -d)
 
 cleanup() {
@@ -97,7 +97,7 @@ EOF
 fi
 
 # Merge all results
-mkdir -p "$REPO_ROOT/floatingeye"
+mkdir -p "$REPO_ROOT/oracle"
 jq -n \
     --argjson unit "$UNIT_RESULTS" \
     --argjson e2e "$E2E_RESULTS" \
@@ -120,7 +120,7 @@ echo "E2E:      $E2E_PASSED/$E2E_TOTAL"
 echo "Sessions: $SESSION_PASSED/$SESSION_TOTAL"
 echo "Total:    $PASSED/$TOTAL"
 echo ""
-echo "Results written to floatingeye/pending.jsonl"
+echo "Results written to oracle/pending.jsonl"
 echo "Commit to attach results as git note."
 
 # Exit with failure if any tests failed

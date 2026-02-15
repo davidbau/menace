@@ -222,8 +222,8 @@ Early commits may not have the test framework. The script handles:
 ### 1. Session Coverage Over Time
 
 ```bash
-jq -r '.sessions["seed1_gameplay"].coveragePercent' floatingeye/results.jsonl | \
-  paste - <(jq -r '.commit' floatingeye/results.jsonl) | \
+jq -r '.sessions["seed1_gameplay"].coveragePercent' oracle/results.jsonl | \
+  paste - <(jq -r '.commit' oracle/results.jsonl) | \
   sort -n
 ```
 
@@ -231,25 +231,25 @@ jq -r '.sessions["seed1_gameplay"].coveragePercent' floatingeye/results.jsonl | 
 
 ```bash
 jq -r 'select(.tests.fail | contains(["comparison/gameplay::seed1"]))' \
-  floatingeye/results.jsonl | head -1
+  oracle/results.jsonl | head -1
 ```
 
 ### 3. Regression History
 
 ```bash
 jq -r 'select(.regression == true) | "\(.commit): \(.regressedTests | join(", "))"' \
-  floatingeye/results.jsonl
+  oracle/results.jsonl
 ```
 
 ### 4. Code Churn by Category
 
 ```bash
-jq -r '[.codeMetrics.categories.js.added] | add' floatingeye/results.jsonl
+jq -r '[.codeMetrics.categories.js.added] | add' oracle/results.jsonl
 ```
 
 ## Dashboard Enhancements
 
-The dashboard at `floatingeye/index.html` will be extended to show:
+The dashboard at `oracle/index.html` will be extended to show:
 
 1. **Session coverage timeline** — Line chart of coverage % per session over time
 2. **Test status heatmap** — Grid showing pass/fail status per test per commit
@@ -307,6 +307,6 @@ A pilot run on 5 representative commits (#50, #300, #650, #1000, #1300) revealed
 | `scripts/collect-code-metrics.sh` | Git diff statistics |
 | `scripts/generate-detailed-note.sh` | Note generation |
 | `scripts/backfill-detailed-notes.sh` | Historical backfill |
-| `floatingeye/results.jsonl` | JSONL mirror of notes |
-| `floatingeye/schema-v2.json` | JSON Schema for v2 format |
+| `oracle/results.jsonl` | JSONL mirror of notes |
+| `oracle/schema-v2.json` | JSON Schema for v2 format |
 | `docs/TESTING_DETAILED_NOTES.md` | This document |

@@ -2,7 +2,7 @@
 # Pre-push hook: Verify tests have been run for HEAD
 #
 # Workflow:
-#   1. Run .githooks/test-and-log.sh → writes floatingeye/pending.jsonl
+#   1. Run .githooks/test-and-log.sh → writes oracle/pending.jsonl
 #   2. git commit → post-commit hook promotes pending → git note
 #   3. git push → this hook verifies note exists; notes push automatically
 #

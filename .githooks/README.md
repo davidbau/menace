@@ -43,7 +43,7 @@ This repository supports two testing workflows:
 
 *"The old way - works, but creates two commits per change"*
 
-**All data**: In `floatingeye/results.jsonl`
+**All data**: In `oracle/results.jsonl`
 
 **Scripts**:
 - `test-and-log.sh` - Run tests, append to JSONL
@@ -100,7 +100,7 @@ Creates a note like:
 
 #### sync-notes-to-jsonl.sh
 
-Rebuilds `floatingeye/results.jsonl` from all git notes.
+Rebuilds `oracle/results.jsonl` from all git notes.
 
 ```bash
 ./sync-notes-to-jsonl.sh
@@ -194,7 +194,7 @@ git commit -m "Fix bug"
 .githooks/sync-notes-to-jsonl.sh
 
 # 4. Commit updated JSONL
-git add floatingeye/results.jsonl
+git add oracle/results.jsonl
 git commit -m "Update test dashboard"
 
 # 5. Push both commits and notes
@@ -213,7 +213,7 @@ git commit -m "Fix bug"
 .githooks/test-and-log.sh
 
 # 3. Commit test log
-git add floatingeye/results.jsonl
+git add oracle/results.jsonl
 git commit -m "Test results for $(git rev-parse --short HEAD^)"
 
 # 4. Push both commits
@@ -224,9 +224,9 @@ git push
 
 ### Dashboard (Recommended)
 
-**GitHub Pages**: https://davidbau.github.io/mazesofmenace/floatingeye/
+**GitHub Pages**: https://davidbau.github.io/mazesofmenace/oracle/
 
-**Local**: `open floatingeye/index.html`
+**Local**: `open oracle/index.html`
 
 ### Git Notes (Command Line)
 
@@ -245,10 +245,10 @@ git notes --ref=test-results list
 
 ```bash
 # View last 5 test results
-tail -5 floatingeye/results.jsonl | jq '.'
+tail -5 oracle/results.jsonl | jq '.'
 
 # Check current pass rate
-jq -r '.stats.pass' floatingeye/results.jsonl | tail -1
+jq -r '.stats.pass' oracle/results.jsonl | tail -1
 ```
 
 ## 🎯 Which Approach Should I Use?
@@ -269,7 +269,7 @@ jq -r '.stats.pass' floatingeye/results.jsonl | tail -1
 
 - **Main Guide**: [docs/TESTING.md](../docs/TESTING.md)
 - **Git Notes Deep Dive**: [docs/TESTING_GIT_NOTES.md](../docs/TESTING_GIT_NOTES.md)
-- **Dashboard Schema**: [floatingeye/schema.json](../floatingeye/schema.json)
+- **Dashboard Schema**: [oracle/schema.json](../oracle/schema.json)
 
 ---
 

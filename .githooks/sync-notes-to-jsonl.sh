@@ -1,11 +1,11 @@
 #!/bin/bash
-# Rebuild floatingeye/results.jsonl from git notes
+# Rebuild oracle/results.jsonl from git notes
 # This runs before each commit to keep the JSONL mirror up-to-date
 
 set -e
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-OUTPUT_FILE="$REPO_ROOT/floatingeye/results.jsonl"
+OUTPUT_FILE="$REPO_ROOT/oracle/results.jsonl"
 
 # Pull latest test notes from remote (if available)
 # Git notes don't auto-fetch like branches, so we need to explicitly pull them
@@ -59,7 +59,7 @@ if git fetch origin refs/notes/test-results:refs/notes/test-results-remote 2>/de
   fi
 fi
 
-echo "Rebuilding floatingeye/results.jsonl from git notes..."
+echo "Rebuilding oracle/results.jsonl from git notes..."
 
 # Create temporary file
 TEMP_FILE=$(mktemp)

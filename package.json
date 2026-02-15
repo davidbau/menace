@@ -4,9 +4,8 @@
   "description": "Faithful JavaScript port of NetHack",
   "type": "module",
   "scripts": {
-    "test": "npm run test:unit && npm run test:chargen && npm run test:e2e",
+    "test": "npm run test:unit && npm run test:sessions && npm run test:e2e",
     "test:unit": "node --test test/unit/*.test.js",
-    "test:chargen": "node --test test/comparison/chargen.test.js",
     "test:e2e": "node --test --test-concurrency=1 test/e2e/*.test.js",
     "test:sessions": "node test/comparison/backfill_runner.js",
     "test:sessions:golden": "node test/comparison/backfill_runner.js --golden",

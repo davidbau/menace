@@ -3,14 +3,14 @@
 #
 # Usage: ./scripts/run-session-tests.sh [--golden]
 #
-# Runs backfill_runner.js and writes results to floatingeye/pending.jsonl
+# Runs backfill_runner.js and writes results to oracle/pending.jsonl
 # with commit set to "HEAD". The post-commit hook will pick this up and
 # attach it as a git note with the actual commit hash.
 
 set -e
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-PENDING_FILE="$REPO_ROOT/floatingeye/pending.jsonl"
+PENDING_FILE="$REPO_ROOT/oracle/pending.jsonl"
 RUNNER="$REPO_ROOT/test/comparison/backfill_runner.js"
 
 # Pass through any arguments (e.g., --golden)
@@ -30,8 +30,8 @@ if [ -z "$JSON" ]; then
     exit 1
 fi
 
-# Ensure floatingeye directory exists
-mkdir -p "$REPO_ROOT/floatingeye"
+# Ensure oracle directory exists
+mkdir -p "$REPO_ROOT/oracle"
 
 # Write results with commit set to HEAD
 echo "$JSON" | jq '.commit = "HEAD"' > "$PENDING_FILE"
@@ -43,5 +43,5 @@ FAILED=$(echo "$JSON" | jq -r '.summary.failed')
 
 echo ""
 echo "Session tests complete: $PASSED/$TOTAL passed ($FAILED failed)"
-echo "Results written to floatingeye/pending.jsonl"
+echo "Results written to oracle/pending.jsonl"
 echo "Commit to attach results as git note."
