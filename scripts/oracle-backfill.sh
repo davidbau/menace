@@ -1,10 +1,13 @@
 #!/bin/bash
 # Oracle Backfill Script
-# Runs session_test_runner.js on all commits (shuffled order) and stores results in git notes
+# Runs session tests on all commits (shuffled order) and stores results in git notes
 #
 # Usage: scripts/oracle-backfill.sh [--dry-run] [--limit N]
 #
-# The session tests use the golden branch as reference, so they are consistent across all commits.
+# This script uses the CURRENT test infrastructure (from HEAD) to test each historical
+# commit's game code. The session tests compare against the golden branch, so results
+# show how well each commit's code matches the C reference implementation.
+#
 # Results are stored in refs/notes/oracle (one JSON per commit).
 
 set -e
@@ -12,7 +15,7 @@ set -e
 # Parse arguments
 DRY_RUN=false
 LIMIT=0
-PROGRESS_INTERVAL=10
+PROGRESS_INTERVAL=25
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -28,12 +31,6 @@ echo "Oracle Backfill"
 echo "========================================"
 echo ""
 
-# Verify clean state
-if ! git diff-index --quiet HEAD 2>/dev/null; then
-    echo "Error: You have uncommitted changes. Please commit or stash them first."
-    exit 1
-fi
-
 # Save current state
 ORIGINAL_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
 ORIGINAL_COMMIT=$(git rev-parse HEAD)
@@ -44,6 +41,37 @@ echo "  Branch: ${ORIGINAL_BRANCH:-detached HEAD}"
 echo "  Commit: ${ORIGINAL_COMMIT:0:8}"
 echo "  Notes ref: $NOTES_REF"
 echo ""
+
+# Create temp directory for test infrastructure
+TEST_INFRA_DIR=$(mktemp -d)
+GOLDEN_BRANCH="${GOLDEN_BRANCH:-golden}"
+echo "Test infrastructure source: $GOLDEN_BRANCH branch"
+echo "Test infrastructure backup: $TEST_INFRA_DIR"
+
+# Extract test infrastructure files from golden branch
+echo "Extracting test infrastructure from $GOLDEN_BRANCH..."
+mkdir -p "$TEST_INFRA_DIR/test/comparison"
+
+# Required files from golden branch
+for file in session_test_runner.js test_worker.js test_result_format.js session_helpers.js; do
+    if git show "$GOLDEN_BRANCH:test/comparison/$file" > "$TEST_INFRA_DIR/test/comparison/$file" 2>/dev/null; then
+        echo "  $file"
+    fi
+done
+
+# Verify we have the required files
+if [ ! -f "$TEST_INFRA_DIR/test/comparison/session_test_runner.js" ]; then
+    echo "Error: session_test_runner.js not found in $GOLDEN_BRANCH branch"
+    echo "Please ensure golden branch has the test infrastructure."
+    rm -rf "$TEST_INFRA_DIR"
+    exit 1
+fi
+if [ ! -f "$TEST_INFRA_DIR/test/comparison/test_worker.js" ]; then
+    echo "Error: test_worker.js not found in $GOLDEN_BRANCH branch"
+    echo "Please ensure golden branch has the test infrastructure."
+    rm -rf "$TEST_INFRA_DIR"
+    exit 1
+fi
 
 # Get all commits
 echo "Collecting commits..."
@@ -63,6 +91,7 @@ COMMITS_TO_PROCESS=$(echo "$COMMITS_TO_PROCESS" | grep -v '^$')
 
 if [ -z "$COMMITS_TO_PROCESS" ]; then
     echo "All commits already have oracle notes!"
+    rm -rf "$TEST_INFRA_DIR"
     exit 0
 fi
 
@@ -88,6 +117,7 @@ if [ "$DRY_RUN" = true ]; then
     if [ "$COUNT_TO_PROCESS" -gt 20 ]; then
         echo "  ... and $((COUNT_TO_PROCESS - 20)) more"
     fi
+    rm -rf "$TEST_INFRA_DIR"
     exit 0
 fi
 
@@ -108,11 +138,15 @@ cleanup() {
     echo "========================================"
     echo "Restoring original state..."
 
+    # Force checkout to discard any copied test infrastructure
     if [ -n "$ORIGINAL_BRANCH" ] && [ "$ORIGINAL_BRANCH" != "HEAD" ]; then
-        git checkout "$ORIGINAL_BRANCH" -q 2>/dev/null || git checkout "$ORIGINAL_COMMIT" -q
+        git checkout -f "$ORIGINAL_BRANCH" -q 2>/dev/null || git checkout -f "$ORIGINAL_COMMIT" -q
     else
-        git checkout "$ORIGINAL_COMMIT" -q 2>/dev/null
+        git checkout -f "$ORIGINAL_COMMIT" -q 2>/dev/null
     fi
+
+    # Clean up temp directory
+    rm -rf "$TEST_INFRA_DIR"
 
     END_TIME=$(date +%s)
     ELAPSED=$((END_TIME - START_TIME))
@@ -169,37 +203,46 @@ while IFS= read -r COMMIT; do
 
     echo "[$PROCESSED/$COUNT_TO_PROCESS] $SHORT: $COMMIT_MSG"
 
-    # Check out commit
-    if ! git checkout "$COMMIT" -q 2>/dev/null; then
+    # Check out commit (force to discard copied test infrastructure)
+    if ! git checkout -f "$COMMIT" -q 2>/dev/null; then
         echo "  SKIP: checkout failed"
         SKIPPED=$((SKIPPED + 1))
         continue
     fi
 
-    # Check if session_test_runner exists
-    if [ ! -f "test/comparison/session_test_runner.js" ]; then
-        echo "  SKIP: no session_test_runner.js"
+    # Copy test infrastructure from backup (overwrite whatever is there)
+    mkdir -p test/comparison
+    if ! cp "$TEST_INFRA_DIR/test/comparison/session_test_runner.js" test/comparison/session_test_runner.js; then
+        echo "  FAIL: could not copy test infrastructure"
+        FAILED=$((FAILED + 1))
+        continue
+    fi
+    cp "$TEST_INFRA_DIR/test/comparison/test_worker.js" test/comparison/test_worker.js 2>/dev/null || true
+    cp "$TEST_INFRA_DIR/test/comparison/test_result_format.js" test/comparison/test_result_format.js 2>/dev/null || true
+    cp "$TEST_INFRA_DIR/test/comparison/session_helpers.js" test/comparison/session_helpers.js 2>/dev/null || true
+
+    # Check if essential game files exist (js/ directory with game code)
+    if [ ! -d "js" ]; then
+        echo "  SKIP: no js/ directory"
         SKIPPED=$((SKIPPED + 1))
         continue
     fi
 
-    # Check if test_worker.js exists (required by session_test_runner)
-    if [ ! -f "test/comparison/test_worker.js" ]; then
-        echo "  SKIP: no test_worker.js"
-        SKIPPED=$((SKIPPED + 1))
-        continue
-    fi
-
-    # Run session tests with golden reference
-    OUTPUT=$(node test/comparison/session_test_runner.js --golden 2>&1) || true
+    # Run session tests with golden reference (with timeout)
+    # Use perl for portable timeout since macOS lacks 'timeout' command
+    TEST_TIMEOUT=${TEST_TIMEOUT:-60}
+    OUTPUT=$(perl -e 'alarm shift; exec @ARGV' "$TEST_TIMEOUT" node test/comparison/session_test_runner.js --golden 2>&1) || true
 
     # Extract JSON from output (after __RESULTS_JSON__ marker)
     JSON=$(echo "$OUTPUT" | sed -n '/__RESULTS_JSON__/,$ p' | tail -n +2 | head -1)
 
     if [ -z "$JSON" ]; then
-        echo "  FAIL: no JSON output"
-        FAILED=$((FAILED + 1))
-        continue
+        # Create synthetic error result
+        ERROR_LINE=$(echo "$OUTPUT" | grep -E "(Error|Cannot|TypeError|SyntaxError)" | head -1 | head -c 80 | tr '"' "'")
+        if [ -z "$ERROR_LINE" ]; then
+            ERROR_LINE="Test timed out or produced no output"
+        fi
+        JSON="{\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"commit\":\"$SHORT\",\"goldenBranch\":\"golden\",\"results\":[],\"summary\":{\"total\":0,\"passed\":0,\"failed\":0},\"error\":\"$ERROR_LINE\",\"status\":\"error\"}"
     fi
 
     # Validate JSON
@@ -222,10 +265,7 @@ while IFS= read -r COMMIT; do
         ENRICHED_JSON="$JSON"
     fi
 
-    # Store in git notes
-    # Need to checkout main to create note (notes require HEAD to exist)
-    git checkout "$ORIGINAL_COMMIT" -q 2>/dev/null
-
+    # Store in git notes (can add notes while on any commit)
     if echo "$ENRICHED_JSON" | git notes --ref=oracle add -f -F - "$COMMIT" 2>/dev/null; then
         # Extract pass/total from JSON for display
         PASS=$(echo "$ENRICHED_JSON" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); console.log(d.summary?.passed || '?')" 2>/dev/null)
