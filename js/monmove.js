@@ -8,7 +8,8 @@ import { COLNO, ROWNO, STONE, IS_WALL, IS_DOOR, IS_ROOM,
          NORMAL_SPEED, isok } from './config.js';
 import { rn2, rnd, c_d } from './rng.js';
 import { monsterAttackPlayer } from './combat.js';
-import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS } from './objects.js';
+import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS,
+         PICK_AXE, DWARVISH_MATTOCK } from './objects.js';
 import { doname } from './mkobj.js';
 import { observeObject } from './discovery.js';
 import { dogfood, dog_eat, can_carry, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT,
@@ -381,11 +382,16 @@ function mfndpos(mon, map, player) {
                 }
             }
 
+            const mux = Number.isInteger(mon.mux) ? mon.mux : player.x;
+            const muy = Number.isInteger(mon.muy) ? mon.muy : player.y;
+            const notOnLine = (nx === mux || ny === muy || (ny - muy) === (nx - mux) || (ny - muy) === -(nx - mux));
+
             positions.push({
                 x: nx,
                 y: ny,
                 allowTraps,
                 allowM: !!allowMAttack,
+                notOnLine,
             });
         }
     }
@@ -1370,6 +1376,16 @@ function move_special(mon, map, player, inHisShop, appr, uondoor, avoid, ggx, gg
     const positions = mfndpos(mon, map, player);
     const cnt = positions.length;
     let chcnt = 0;
+    if (mon.isshk && avoid && uondoor) {
+        let hasOffLine = false;
+        for (let i = 0; i < cnt; i++) {
+            if (!positions[i].notOnLine) {
+                hasOffLine = true;
+                break;
+            }
+        }
+        if (!hasOffLine) avoid = false;
+    }
 
     for (let i = 0; i < cnt; i++) {
         const nx = positions[i].x;
@@ -1378,7 +1394,7 @@ function move_special(mon, map, player, inHisShop, appr, uondoor, avoid, ggx, gg
         if (!loc) continue;
         if (!(IS_ROOM(loc.typ) || (mon.isshk && (!inHisShop || mon.following)))) continue;
 
-        if (avoid && positions[i].allowM) continue;
+        if (avoid && positions[i].notOnLine && !positions[i].allowM) continue;
 
         const better = dist2(nx, ny, ggx, ggy) < dist2(nix, niy, ggx, ggy);
         if ((!appr && !rn2(++chcnt))
@@ -1414,23 +1430,47 @@ function shk_move(mon, map, player) {
     let gty = home.y;
     let avoid = false;
     let uondoor = (player.x === door.x && player.y === door.y);
+    let badinv = false;
 
     if (!mon.peaceful) {
         gtx = player.x;
         gty = player.y;
         avoid = false;
     } else {
-        const gdist = dist2(omx, omy, gtx, gty);
-        if (((!mon.robbed && !mon.billct && !mon.debit) || avoid) && gdist < 3) {
-            if (!onlineu(mon, player)) return 0;
-            if (satdoor) {
-                appr = 0;
-                gtx = 0;
-                gty = 0;
+        // C ref: shk.c shk_move() peaceful branch order.
+        if (player.invis || player.usteed) {
+            avoid = false;
+        } else {
+            if (uondoor) {
+                const hasPickaxeInInventory = !!(player.inventory || []).find((o) =>
+                    o && (o.otyp === PICK_AXE || o.otyp === DWARVISH_MATTOCK));
+                const hasPickaxeOnGround = !!(map.objectsAt?.(player.x, player.y) || []).find((o) =>
+                    o && (o.otyp === PICK_AXE || o.otyp === DWARVISH_MATTOCK));
+                // C Fast gate is omitted in JS state; keep conservative parity:
+                // standing on a pickaxe/mattock counts as badinv.
+                badinv = hasPickaxeInInventory || hasPickaxeOnGround;
+                if (satdoor && badinv) return 0;
+                avoid = !badinv;
+            } else {
+                const playerLoc = map.at(player.x, player.y);
+                const inShop = !!(playerLoc
+                    && Number.isFinite(playerLoc.roomno)
+                    && map.rooms?.[playerLoc.roomno - ROOMOFFSET]
+                    && map.rooms[playerLoc.roomno - ROOMOFFSET].rtype >= SHOPBASE);
+                avoid = inShop && dist2(gtx, gty, player.x, player.y) > 8;
+                badinv = false;
+            }
+
+            const gdist = dist2(omx, omy, gtx, gty);
+            if (((!mon.robbed && !mon.billct && !mon.debit) || avoid) && gdist < 3) {
+                if (!badinv && !onlineu(mon, player)) return 0;
+                if (satdoor) {
+                    appr = 0;
+                    gtx = 0;
+                    gty = 0;
+                }
             }
         }
-        if (player.invis) avoid = false;
-        if (uondoor) avoid = true;
     }
 
     const inHisShop = !!(map.at(omx, omy) && IS_ROOM(map.at(omx, omy).typ));
