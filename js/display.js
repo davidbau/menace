@@ -443,6 +443,15 @@ export class Display {
                 // Check for monsters
                 const mon = gameMap.monsterAt(x, y);
                 if (mon) {
+                    // Keep remembered object glyph under visible monsters in sync
+                    // so when LOS drops, memory matches C back_to_glyph behavior.
+                    const underObjs = gameMap.objectsAt(x, y);
+                    if (underObjs.length > 0) {
+                        const underTop = underObjs[underObjs.length - 1];
+                        loc.mem_obj = underTop.displayChar || 0;
+                    } else {
+                        loc.mem_obj = 0;
+                    }
                     this.setCell(col, row, mon.displayChar, mon.displayColor);
                     const classInfo = this._monsterClassDesc(mon.displayChar);
                     const stats = `Level ${mon.mlevel}, AC ${mon.mac}, Speed ${mon.speed}`;

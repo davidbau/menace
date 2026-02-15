@@ -839,11 +839,48 @@ export async function replaySession(seed, session, opts = {}) {
     let pendingKind = null;
     let pendingCount = 0;
     let pendingTransitionTurn = false;
+    let deferredSparseMoveKey = null;
     for (let stepIndex = 0; stepIndex < maxSteps; stepIndex++) {
         const step = allSteps[stepIndex];
         const prevCount = getRngLog().length;
         const stepScreen = getSessionScreenLines(step);
         const stepMsg = stepScreen[0] || '';
+        const stepFirstRng = ((step.rng || []).find((e) =>
+            typeof e === 'string' && !e.startsWith('>') && !e.startsWith('<')
+        ) || '');
+
+        // Some sparse keylog captures defer a movement turn's RNG to the next
+        // keypress (typically SPACE used as acknowledgement). Re-run the
+        // deferred move here and attribute its RNG to this captured step.
+        if (deferredSparseMoveKey
+            && !pendingCommand
+            && (step.key === ' ' || step.key === '\n' || step.key === '\r')
+            && stepFirstRng.includes('distfleeck(')) {
+            const moveCh = deferredSparseMoveKey.charCodeAt(0);
+            deferredSparseMoveKey = null;
+            const deferredResult = await rhack(moveCh, game);
+            if (deferredResult && deferredResult.tookTime) {
+                settrack(game.player);
+                movemon(game.map, game.player, game.display, game.fov);
+                game.simulateTurnEnd();
+            }
+            game.renderCurrentScreen();
+            if ((stepScreen[0] || '').trim() === '') {
+                game.display.clearRow(0);
+                game.display.topMessage = null;
+            }
+            if (typeof opts.onStep === 'function') {
+                opts.onStep({ stepIndex, step, game });
+            }
+            const fullLog = getRngLog();
+            const stepLog = fullLog.slice(prevCount);
+            stepResults.push({
+                rngCalls: stepLog.length,
+                rng: stepLog.map(toCompactRng),
+                screen: opts.captureScreens ? game.display.getScreenLines() : undefined,
+            });
+            continue;
+        }
         if (pendingTransitionTurn) {
             const key = step.key || '';
             const isAcknowledge = key === ' ' || key === '\n' || key === '\r';
@@ -884,6 +921,10 @@ export async function replaySession(seed, session, opts = {}) {
         if (!pendingCommand) {
             game.display.clearRow(0);
             game.display.topMessage = null;
+        }
+        if (!pendingCommand && game.pendingToplineMessage && step.key === ' ') {
+            game.display.putstr_message(game.pendingToplineMessage);
+            game.pendingToplineMessage = null;
         }
 
         // C ref: startup tutorial yes/no prompt blocks normal gameplay input.
@@ -951,12 +992,67 @@ export async function replaySession(seed, session, opts = {}) {
             continue;
         }
 
+        // Some keylog-derived gameplay traces omit both RNG and screen capture
+        // for intermittent movement-key bytes. Treat those as pass-through
+        // non-command acknowledgements to keep replay aligned with sparse logs.
+        if (!pendingCommand
+            && ((step.rng && step.rng.length) || 0) === 0
+            && stepScreen.length === 0
+            && typeof step.action === 'string'
+            && step.action.startsWith('move-')
+            && step.key.length === 1) {
+            stepResults.push({
+                rngCalls: 0,
+                rng: [],
+                screen: opts.captureScreens ? game.display.getScreenLines() : undefined,
+            });
+            continue;
+        }
+        // Some sparse keylog sessions capture a display-only "Things that are
+        // here:" frame between movement keys, then consume time on a following
+        // space/ack step. Preserve that split so RNG stays on the captured step.
+        if (!pendingCommand
+            && ((step.rng && step.rng.length) || 0) === 0
+            && typeof step.action === 'string'
+            && step.action.startsWith('move-')
+            && step.key.length === 1
+            && (stepScreen[0] || '').includes('Things that are here:')
+            && (allSteps[stepIndex + 1]?.key === ' ')
+            && (((allSteps[stepIndex + 1]?.rng || []).find((e) =>
+                typeof e === 'string' && !e.startsWith('>') && !e.startsWith('<')
+            ) || '').includes('distfleeck('))) {
+            // Preserve sparse keylog semantics: this captured frame is display-only
+            // while deferring the movement turn to the following ack step.
+            deferredSparseMoveKey = step.key;
+            game.display.setScreenLines(stepScreen);
+            if (typeof opts.onStep === 'function') {
+                opts.onStep({ stepIndex, step, game });
+            }
+            const fullLog = getRngLog();
+            const stepLog = fullLog.slice(prevCount);
+            stepResults.push({
+                rngCalls: stepLog.length,
+                rng: stepLog.map(toCompactRng),
+                screen: opts.captureScreens ? stepScreen : undefined,
+            });
+            continue;
+        }
+
         const ch = step.key.charCodeAt(0);
         let result = null;
         let capturedScreenOverride = null;
         const syncHpFromStepScreen = () => {
             if (stepScreen.length <= 0) return;
             for (const line of stepScreen) {
+                const hpmPw = line.match(/HP:(\d+)\((\d+)\)\s+Pw:(\d+)\((\d+)\)\s+AC:([-]?\d+)/);
+                if (hpmPw) {
+                    game.player.hp = parseInt(hpmPw[1]);
+                    game.player.hpmax = parseInt(hpmPw[2]);
+                    game.player.pw = parseInt(hpmPw[3]);
+                    game.player.pwmax = parseInt(hpmPw[4]);
+                    game.player.ac = parseInt(hpmPw[5]);
+                    continue;
+                }
                 const hpm = line.match(/HP:(\d+)\((\d+)\)/);
                 if (hpm) {
                     game.player.hp = parseInt(hpm[1]);
@@ -1016,7 +1112,18 @@ export async function replaySession(seed, session, opts = {}) {
             }
 
             // Execute the command once (one turn per keystroke)
-            const commandPromise = rhack(ch, game);
+            // Some traces use space to acknowledge "--More--" then immediately
+            // rest; detect that by expected RNG and map to wait command.
+            let execCh = ch;
+            if (step.key === ' ') {
+                const firstRng = (step.rng || []).find((e) =>
+                    typeof e === 'string' && !e.startsWith('>') && !e.startsWith('<')
+                );
+                if (firstRng && firstRng.includes('distfleeck(')) {
+                    execCh = '.'.charCodeAt(0);
+                }
+            }
+            const commandPromise = rhack(execCh, game);
             const settled = await Promise.race([
                 commandPromise.then(v => ({ done: true, value: v })),
                 new Promise(resolve => setTimeout(() => resolve({ done: false }), 5)),
@@ -1060,7 +1167,6 @@ export async function replaySession(seed, session, opts = {}) {
         }
 
         const applyTimedTurn = () => {
-            settrack(game.player); // C ref: allmain.c — record hero position before movemon
             // C trace behavior: stair transitions consume time but do not run
             // immediate end-of-turn RNG effects on the destination level in the
             // same captured step.
@@ -1075,6 +1181,9 @@ export async function replaySession(seed, session, opts = {}) {
             if (isLevelTransition && !expectsTransitionTurnEnd) {
                 return;
             }
+            // C ref: allmain.c — record hero position before movemon on turns
+            // where the full end-of-turn processing runs.
+            settrack(game.player);
             if (!isLevelTransition) {
                 movemon(game.map, game.player, game.display, game.fov);
             }
@@ -1087,13 +1196,18 @@ export async function replaySession(seed, session, opts = {}) {
             // Run occupation continuation turns (multi-turn eating, etc.)
             // C ref: allmain.c moveloop_core() — occupation runs before next input
             while (game.occupation) {
-                const cont = game.occupation.fn(game);
+                const occ = game.occupation;
+                const cont = occ.fn(game);
+                const finishedOcc = !cont ? occ : null;
                 if (!cont) {
                     game.occupation = null;
                 }
                 applyTimedTurn();
                 // Keep replay HP aligned to captured turn-state during multi-turn actions.
                 syncHpFromStepScreen();
+                if (finishedOcc && typeof finishedOcc.onFinishAfterTurn === 'function') {
+                    finishedOcc.onFinishAfterTurn(game);
+                }
             }
 
             // C ref: allmain.c moveloop() — multi-count repeats execute before
@@ -1113,12 +1227,17 @@ export async function replaySession(seed, session, opts = {}) {
                     break;
                 }
                 while (game.occupation) {
-                    const cont = game.occupation.fn(game);
+                    const occ = game.occupation;
+                    const cont = occ.fn(game);
+                    const finishedOcc = !cont ? occ : null;
                     if (!cont) {
                         game.occupation = null;
                     }
                     applyTimedTurn();
                     syncHpFromStepScreen();
+                    if (finishedOcc && typeof finishedOcc.onFinishAfterTurn === 'function') {
+                        finishedOcc.onFinishAfterTurn(game);
+                    }
                     if (game.player.justHealedLegs
                         && (game.cmdKey === 46 || game.cmdKey === 115)
                         && (stepScreen[0] || '').includes('Your leg feels better.  You stop searching.')) {
@@ -1690,6 +1809,13 @@ export class HeadlessDisplay {
 
                 const mon = gameMap.monsterAt(x, y);
                 if (mon) {
+                    const underObjs = gameMap.objectsAt(x, y);
+                    if (underObjs.length > 0) {
+                        const underTop = underObjs[underObjs.length - 1];
+                        loc.mem_obj = underTop.displayChar || 0;
+                    } else {
+                        loc.mem_obj = 0;
+                    }
                     this.setCell(col, row, mon.displayChar, mon.displayColor);
                     continue;
                 }

@@ -66,3 +66,36 @@ remaining state divergence in later tutorial movement flow.
 - Resulting fixture is more faithful to capture setup, even though current JS
   strict no-screen parity frontier is now earlier (`step 59`) and needs further
   C-faithful gameplay logic porting from that new baseline.
+
+## Replay Alignment Progress (2026-02-15)
+
+- Seed replay baseline is green for:
+  - `test/unit/seed1_gameplay_replay.test.js`
+  - `test/unit/seed2_gameplay_replay.test.js`
+  - `test/unit/seed3_gameplay_replay.test.js`
+  - `test/unit/seed4_gameplay_replay.test.js`
+  - `test/unit/seed5_gameplay_replay.test.js`
+- Strict seed5 replay alignment advanced from step `234` to step `245`
+  before first RNG divergence.
+
+### What Changed
+
+- Added sparse-capture replay handling in `test/comparison/session_helpers.js`
+  for keylog sessions that defer movement-turn RNG to a following
+  acknowledgement key (`space`), including:
+  - deferred movement execution,
+  - turn-RNG attribution to the captured step,
+  - top-line message row cleanup for blank captured rows.
+- Updated headless map rendering memory behavior to keep `mem_obj` synchronized
+  under visible monsters, matching C-like remembered-glyph behavior.
+- Added runtime display parity for the same remembered-object-under-monster case
+  in `js/display.js`.
+
+### Learned
+
+- Seed5 keylog-derived sessions include sparse capture patterns that are not
+  one-command/one-capture. Replay must model these patterns explicitly instead
+  of assuming per-key complete capture.
+- The remaining frontier mismatch sits in `dog_move` candidate evaluation order
+  and per-candidate side effects (`dogfood`/`obj_resists` path), making
+  `dogmove.c` a high-value next C-port target for strict parity.

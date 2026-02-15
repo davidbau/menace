@@ -6,12 +6,13 @@ import { exercise } from './attrib_exercise.js';
 import { A_DEX } from './config.js';
 import { rndmonnum } from './makemon.js';
 import {
-    mons, G_FREQ, MZ_TINY, M2_NEUTER, M2_MALE, M2_FEMALE,
+    mons, G_FREQ, MZ_TINY, MZ_HUMAN, M2_NEUTER, M2_MALE, M2_FEMALE, M2_COLLECT,
     MZ_LARGE,
     AT_CLAW, AT_BITE, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_WEAP,
-    S_ZOMBIE, S_MUMMY, S_VAMPIRE, S_WRAITH, S_LICH, S_GHOST, S_DEMON,
+    S_ZOMBIE, S_MUMMY, S_VAMPIRE, S_WRAITH, S_LICH, S_GHOST, S_DEMON, S_KOP,
 } from './monsters.js';
 import { CORPSE, FOOD_CLASS, FLESH, objectData } from './objects.js';
+import { mkobj, RANDOM_CLASS } from './mkobj.js';
 
 function isUndeadOrDemon(monsterType) {
     if (!monsterType) return false;
@@ -117,11 +118,28 @@ export function playerAttackMonster(player, monster, display, map) {
         // Check for level-up
         checkLevelUp(player, display);
 
-        // C ref: mon.c:3581 xkilled() — "illogical but traditional" treasure drop
-        rn2(6); // 1 in 6 chance of random treasure (result not used for RNG alignment)
+        // C ref: mon.c:3581-3609 xkilled() — "illogical but traditional" treasure drop.
+        const treasureRoll = rn2(6);
+        const mdat = monster.type || {};
+        const canDropTreasure = treasureRoll === 0
+            && !monster.mcloned
+            && (monster.mx !== player.x || monster.my !== player.y)
+            && mdat.symbol !== S_KOP;
+        if (canDropTreasure && map) {
+            const otmp = mkobj(RANDOM_CLASS, true, false);
+            const flags2 = mdat.flags2 || 0;
+            const isSmallMonster = (mdat.size || 0) < MZ_HUMAN;
+            const isPermaFood = otmp && otmp.oclass === FOOD_CLASS && !otmp.oartifact;
+            const dropTooBig = isSmallMonster && !!otmp
+                && ((otmp.owt || 0) > 30 || !!objectData[otmp.otyp]?.oc_big);
+            if (!(isPermaFood && !(flags2 & M2_COLLECT)) && !dropTooBig) {
+                otmp.ox = monster.mx;
+                otmp.oy = monster.my;
+                map.objects.push(otmp);
+            }
+        }
 
         // C ref: mon.c:3243 corpse_chance() — decide whether to create corpse
-        const mdat = monster.type || {};
         const gfreq = (mdat.geno || 0) & G_FREQ;
         const verysmall = (mdat.size || 0) === MZ_TINY;
         const corpsetmp = 2 + (gfreq < 2 ? 1 : 0) + (verysmall ? 1 : 0);

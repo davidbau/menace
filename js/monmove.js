@@ -14,12 +14,12 @@ import { observeObject } from './discovery.js';
 import { dogfood, dog_eat, can_carry, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT,
          POISON, UNDEF, TABU } from './dog.js';
 import { couldsee, m_cansee, do_clear_area } from './vision.js';
-import { can_teleport } from './mondata.js';
+import { can_teleport, noeyes } from './mondata.js';
 import { PM_GRID_BUG, PM_IRON_GOLEM, PM_SHOPKEEPER, mons,
          PM_LEPRECHAUN, PM_XAN, PM_YELLOW_LIGHT, PM_BLACK_LIGHT,
          AT_CLAW, AT_BITE, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_WEAP,
-         M1_FLY, M1_AMORPHOUS, M1_CLING, M1_SEE_INVIS, S_MIMIC,
-         MZ_TINY, MZ_SMALL, MR_FIRE, MR_SLEEP, G_FREQ } from './monsters.js';
+         M1_FLY, M1_SWIM, M1_AMPHIBIOUS, M1_AMORPHOUS, M1_CLING, M1_SEE_INVIS, S_MIMIC,
+         MZ_TINY, MZ_SMALL, MR_FIRE, MR_SLEEP, G_FREQ, M3_INFRAVISION } from './monsters.js';
 import { STATUE_TRAP, MAGIC_TRAP, VIBRATING_SQUARE, RUST_TRAP, FIRE_TRAP,
          SLP_GAS_TRAP, BEAR_TRAP, PIT, SPIKED_PIT, HOLE, TRAPDOOR,
          WEB, ANTI_MAGIC, MAGIC_PORTAL } from './symbols.js';
@@ -150,6 +150,35 @@ function m_avoid_kicked_loc(mon, nx, ny, player) {
     return nx === kl.x && ny === kl.y && dist2(nx, ny, player.x, player.y) <= 2;
 }
 
+// C ref: monmove.c set_apparxy() + mon_can_see_you().
+// Track monster's apparent player coordinates (mux/muy), which can differ from
+// actual player position when monster cannot currently perceive the hero.
+function set_apparxy(mon, map, player) {
+    if (mon.tame) {
+        mon.mux = player.x;
+        mon.muy = player.y;
+        return;
+    }
+    const mdat = mons[mon.mndx] || {};
+    const hasSeeInvis = !!(mdat.flags1 & M1_SEE_INVIS);
+    const hasInfra = !!(mdat.flags3 & M3_INFRAVISION);
+    const playerLoc = map.at(player.x, player.y);
+    const playerLit = !!playerLoc?.lit;
+    const playerInfravisible = player.infravisible !== false;
+    const canSeePos = m_cansee(mon, map, player.x, player.y);
+    const canSeeInvisible = !player.invisible || hasSeeInvis;
+    const canPerceiveInDark = playerLit || (hasInfra && playerInfravisible);
+
+    if (canSeePos && canSeeInvisible && canPerceiveInDark) {
+        mon.mux = player.x;
+        mon.muy = player.y;
+    } else if (!Number.isInteger(mon.mux) || !Number.isInteger(mon.muy)) {
+        // Keep parity with C zeromonst initialization semantics.
+        mon.mux = 0;
+        mon.muy = 0;
+    }
+}
+
 // C ref: mon.c:3243 corpse_chance() RNG.
 function petCorpseChanceRoll(mon) {
     const mdat = mon?.type || {};
@@ -208,6 +237,9 @@ function m_harmless_trap(mon, trap) {
 function mfndpos(mon, map, player) {
     const omx = mon.mx, omy = mon.my;
     const nodiag = (mon.mndx === PM_GRID_BUG);
+    const mflags1 = mon.type?.flags1 || 0;
+    const poolok = !!(mflags1 & (M1_FLY | M1_SWIM | M1_AMPHIBIOUS));
+    const lavaok = !!(mflags1 & M1_FLY);
     // C ref: mon.c:2061-2062 — tame monsters get ALLOW_M | ALLOW_TRAPS
     const allowM = !!mon.tame;
     const positions = [];
@@ -223,6 +255,8 @@ function mfndpos(mon, map, player) {
 
             const loc = map.at(nx, ny);
             if (!loc || !ACCESSIBLE(loc.typ)) continue;
+            if (loc.typ === POOL && !poolok) continue;
+            if (loc.typ === LAVAPOOL && !lavaok) continue;
 
             // C ref: door checks
             if (IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED))) continue;
@@ -502,6 +536,8 @@ function dochug(mon, map, player, display, fov) {
         return;
     }
 
+    set_apparxy(mon, map, player);
+
     // C ref: monmove.c phase-1 timeout checks.
     // Confused monsters may recover with 1/50 chance each turn.
     if (mon.confused && !rn2(50)) mon.confused = false;
@@ -542,7 +578,13 @@ function dochug(mon, map, player, display, fov) {
     // C ref: monmove.c:882-887 — short-circuit OR evaluation
     // This determines whether monster wanders/moves (condition TRUE)
     // or falls through to Phase 4 attack (condition FALSE)
-    const nearby = monnear(mon, player.x, player.y);
+    // C ref: distfleeck(monmove.c) — nearby = inrange && monnear(mtmp,mux,muy).
+    // We approximate inrange with player's couldsee() visibility and use mux/muy
+    // when present (fallback to current player location for unmapped monsters).
+    const inrange = couldsee(map, player, mon.mx, mon.my);
+    const targetX = player.x;
+    const targetY = player.y;
+    const nearby = inrange && monnear(mon, targetX, targetY);
     const M2_WANDER = 0x800000;
     const isWanderer = !!(mon.type && mon.type.flags2 & M2_WANDER);
     const monCanSee = (mon.mcansee !== false) && !mon.blind;
@@ -569,14 +611,9 @@ function dochug(mon, map, player, display, fov) {
     if (!phase3Cond) phase3Cond = !!(mon.peaceful);
 
     if (phase3Cond) {
-        // C ref: monmove.c dochug() routes shopkeepers through shk_move(),
-        // not generic m_move; preserve RNG by skipping random position picking.
-        if (mon.mndx === PM_SHOPKEEPER) {
-            // No-op until full shk_move behavior is implemented.
-        }
         // C ref: monmove.c:1743-1748 — meating check (inside m_move)
         // If monster is still eating, decrement meating and skip movement
-        else if (mon.meating) {
+        if (mon.meating) {
             mon.meating--;
             // C ref: dogmove.c:1454 finish_meating — clear meating when done
             // (no RNG consumed)
@@ -1098,7 +1135,8 @@ function dog_move(mon, map, player, display, fov, after = false) {
         if (edog) {
             let foundFood = false;
             const canReachFood = could_reach_item(map, mon, nx, ny);
-            for (const obj of map.objects) {
+            for (let oi = map.objects.length - 1; oi >= 0; oi--) {
+                const obj = map.objects[oi];
                 if (obj.ox !== nx || obj.oy !== ny) continue;
                 if (obj.cursed) {
                     cursemsg[i] = true;
@@ -1184,6 +1222,9 @@ function dog_move(mon, map, player, display, fov, after = false) {
 
         // C ref: dogmove.c:1324-1327 — eat after moving
         if (do_eat && eatObj) {
+            if (display && couldsee(map, player, mon.mx, mon.my)) {
+                display.putstr_message(`Your ${mon.name} eats ${doname(eatObj, null)}.`);
+            }
             dog_eat(mon, eatObj, map, turnCount);
         }
     }
@@ -1195,14 +1236,117 @@ function dog_move(mon, map, player, display, fov, after = false) {
 // m_move — hostile/peaceful monster movement
 // ========================================================================
 
+function onlineu(mon, player) {
+    return mon.mx === player.x || mon.my === player.y;
+}
+
+// C ref: priest.c move_special() — shared special movement path for
+// shopkeepers and priests.
+function move_special(mon, map, player, inHisShop, appr, uondoor, avoid, ggx, ggy) {
+    const omx = mon.mx;
+    const omy = mon.my;
+    if (omx === ggx && omy === ggy) return 0;
+    if (mon.confused) {
+        avoid = false;
+        appr = 0;
+    }
+
+    let nix = omx;
+    let niy = omy;
+    const positions = mfndpos(mon, map, player);
+    const cnt = positions.length;
+    let chcnt = 0;
+
+    for (let i = 0; i < cnt; i++) {
+        const nx = positions[i].x;
+        const ny = positions[i].y;
+        const loc = map.at(nx, ny);
+        if (!loc) continue;
+        if (!(IS_ROOM(loc.typ) || (mon.isshk && (!inHisShop || mon.following)))) continue;
+
+        if (avoid && positions[i].allowM) continue;
+
+        const better = dist2(nx, ny, ggx, ggy) < dist2(nix, niy, ggx, ggy);
+        if ((!appr && !rn2(++chcnt))
+            || (appr && better)
+            || positions[i].allowM) {
+            nix = nx;
+            niy = ny;
+        }
+    }
+
+    if (mon.ispriest && avoid && nix === omx && niy === omy && onlineu(mon, player)) {
+        return move_special(mon, map, player, inHisShop, appr, uondoor, false, ggx, ggy);
+    }
+
+    if (nix !== omx || niy !== omy) {
+        if (map.monsterAt(nix, niy) || (nix === player.x && niy === player.y)) return 0;
+        mon.mx = nix;
+        mon.my = niy;
+        return 1;
+    }
+    return 0;
+}
+
+// C ref: shk.c shk_move() — minimal port for peaceful shopkeeper behavior.
+function shk_move(mon, map, player) {
+    const omx = mon.mx;
+    const omy = mon.my;
+    const home = mon.shk || { x: omx, y: omy };
+    const door = mon.shd || { x: home.x, y: home.y };
+    const satdoor = (home.x === omx && home.y === omy);
+    let appr = 1;
+    let gtx = home.x;
+    let gty = home.y;
+    let avoid = false;
+    let uondoor = (player.x === door.x && player.y === door.y);
+
+    if (!mon.peaceful) {
+        gtx = player.x;
+        gty = player.y;
+        avoid = false;
+    } else {
+        const gdist = dist2(omx, omy, gtx, gty);
+        if (((!mon.robbed && !mon.billct && !mon.debit) || avoid) && gdist < 3) {
+            if (!onlineu(mon, player)) return 0;
+            if (satdoor) {
+                appr = 0;
+                gtx = 0;
+                gty = 0;
+            }
+        }
+        if (player.invis) avoid = false;
+        if (uondoor) avoid = true;
+    }
+
+    const inHisShop = !!(map.at(omx, omy) && IS_ROOM(map.at(omx, omy).typ));
+    return move_special(mon, map, player, inHisShop, appr, uondoor, avoid, gtx, gty);
+}
+
 // C ref: monmove.c m_move() — uses mfndpos + C-faithful position evaluation
 // Key differences from dog_move:
 //   - Position eval: first valid pos accepted (mmoved), then only strictly nearer
 //   - No rn2(3)/rn2(12) fallback for worse positions (that's dog_move only)
 //   - mfndpos provides positions in column-major order with NODIAG filtering
 function m_move(mon, map, player) {
+    // C ref: monmove.c dispatch for shopkeeper/guard/priest before generic m_move().
+    if (mon.isshk) {
+        shk_move(mon, map, player);
+        return;
+    }
+    if (mon.ispriest) {
+        // Priests with no shrine metadata fall back to generic movement.
+        if (mon.epri && mon.epri.shrpos) {
+            const ggx = mon.epri.shrpos.x + (rn2(3) - 1);
+            const ggy = mon.epri.shrpos.y + (rn2(3) - 1);
+            move_special(mon, map, player, false, 1, false, true, ggx, ggy);
+            return;
+        }
+        // else fall through to generic m_move behavior
+    }
+
     const omx = mon.mx, omy = mon.my;
-    const ggx = player.x, ggy = player.y;
+    let ggx = player.x, ggy = player.y;
 
     // C ref: monmove.c — appr setup
     let appr = mon.flee ? -1 : 1;
@@ -1224,6 +1368,16 @@ function m_move(mon, map, player) {
     // C: peaceful monsters don't approach (unless shopkeeper)
     if (mon.peaceful) {
         appr = 0;
+    }
+
+    // C ref: monmove.c:1880-1886 — when monster can't currently see where it
+    // thinks the hero is, tracking monsters follow recent player trail.
+    if (!should_see && !noeyes(mon.type || {})) {
+        const cp = gettrack(omx, omy);
+        if (cp) {
+            ggx = cp.x;
+            ggy = cp.y;
+        }
     }
 
     // Collect valid positions via mfndpos (column-major, NODIAG, boulder filter)
@@ -1266,8 +1420,11 @@ function m_move(mon, map, player) {
                 if (nx === mon.mtrack[j].x && ny === mon.mtrack[j].y) {
                     if (rn2(4 * (cnt - j))) {
                         skipThis = true;
+                        break;
                     }
-                    break;
+                    // C ref: monmove.c:1960-1964 — when rn2(...) == 0,
+                    // continue checking later mtrack entries; duplicate
+                    // coordinates can consume additional rn2() calls.
                 }
             }
             if (skipThis) continue;

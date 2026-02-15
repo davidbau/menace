@@ -470,6 +470,13 @@ function shkinit(shp, sroom, map, depth, seed) {
     // C ref: shknam.c:666-681 — set shopkeeper flags
     shk.peaceful = true;
     shk.isshk = true;
+    // Minimal ESHK-like state used by shk_move/move_special parity.
+    shk.shk = { x: sx, y: sy }; // shopkeeper "home" square
+    shk.shd = { x: map.doors[sh].x, y: map.doors[sh].y }; // shop door square
+    shk.following = false;
+    shk.billct = 0;
+    shk.robbed = 0;
+    shk.debit = 0;
 
     // C ref: shknam.c:682 — mkmonmoney(shk, 1000 + 30 * rnd(100))
     const capital = 1000 + 30 * rnd(100);

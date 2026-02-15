@@ -297,6 +297,8 @@ function makedog(map, player, depth) {
         sleeping: false,  // pets don't start sleeping
         dead: false,
         passive: false,
+        mux: 0,
+        muy: 0,
         mtrack: [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }],
         mndx: pmIdx,     // C ref: monst.h — index into mons[] (also set mnum for compat)
         mnum: pmIdx,     // Alias for mndx - some code uses mnum, some uses mndx

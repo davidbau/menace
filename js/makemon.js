@@ -1420,6 +1420,8 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         dead: false,
         passive: false,
         minvent: [],
+        mux: 0,
+        muy: 0,
         mtrack: [{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}],
     };
     mon.mpeaceful = mon.peaceful;

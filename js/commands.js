@@ -15,7 +15,7 @@ import { objectData, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
 import { nhgetch, ynFunction, getlin } from './input.js';
 import { playerAttackMonster } from './combat.js';
 import { makemon, setMakemonPlayerContext } from './makemon.js';
-import { mons, PM_LIZARD, PM_LICHEN } from './monsters.js';
+import { mons, PM_LIZARD, PM_LICHEN, PM_NEWT } from './monsters.js';
 import { doname } from './mkobj.js';
 import { observeObject, getDiscoveriesMenuLines } from './discovery.js';
 import { showPager } from './pager.js';
@@ -51,9 +51,13 @@ const STATUS_CONDITION_DEFAULT_ON = new Set([
     'cond_ride', 'cond_slime', 'cond_stone', 'cond_strngl', 'cond_stun', 'cond_termIll'
 ]);
 
-function formatGoldPickupMessage(gold) {
+function formatGoldPickupMessage(gold, player) {
     const count = gold?.quan || 1;
     const plural = count === 1 ? '' : 's';
+    const total = player?.gold || count;
+    if (total !== count) {
+        return `$ - ${count} gold piece${plural} (${total} in total).`;
+    }
     return `$ - ${count} gold piece${plural}.`;
 }
 
@@ -757,7 +761,7 @@ async function handleMovement(dir, player, map, display, game) {
         if (gold) {
             player.addToInventory(gold);
             map.removeObject(gold);
-            display.putstr_message(formatGoldPickupMessage(gold));
+            display.putstr_message(formatGoldPickupMessage(gold, player));
             pickedUp = true;
         }
     }
@@ -938,7 +942,7 @@ function handlePickup(player, map, display) {
     if (gold) {
         player.addToInventory(gold);
         map.removeObject(gold);
-        display.putstr_message(formatGoldPickupMessage(gold));
+        display.putstr_message(formatGoldPickupMessage(gold, player));
         return { moved: false, tookTime: true };
     }
 
@@ -1268,6 +1272,7 @@ async function handleEat(player, display, game) {
 
     const item = food.find(f => f.invlet === c);
     if (item) {
+        let corpseTasteIdx = null;
         // C ref: eat.c eatcorpse() RNG used by taint/rotting checks.
         if (item.otyp === CORPSE) {
             const cnum = Number.isInteger(item.corpsenm) ? item.corpsenm : -1;
@@ -1277,11 +1282,18 @@ async function handleEat(player, display, game) {
                 rn2(7);  // rottenfood gate (when no prior taste effect triggered)
             }
             rn2(10); // palatable taste gate
-            rn2(5);  // palatable message choice index for non-vegetarian corpse
+            corpseTasteIdx = rn2(5);  // palatable message choice index
         }
         const od = objectData[item.otyp];
-        const reqtime = (od ? od.delay : 0) + 1; // C ref: eat.c reqtime = oc_delay + 1
-        const baseNutr = od ? od.nutrition : 200;
+        const cnum = Number.isInteger(item.corpsenm) ? item.corpsenm : -1;
+        const isCorpse = item.otyp === CORPSE && cnum >= 0 && cnum < mons.length;
+        // C ref: eat.c eatcorpse() overrides reqtime to 3 + (corpse weight >> 6).
+        const reqtime = isCorpse
+            ? (3 + ((mons[cnum].weight || 0) >> 6))
+            : ((od ? od.delay : 0) + 1);
+        const baseNutr = isCorpse
+            ? (mons[cnum].nutrition || (od ? od.nutrition : 200))
+            : (od ? od.nutrition : 200);
         // C ref: eat.c nmod calculation — nutrition distributed per bite
         // nmod < 0 means add -nmod each turn; nmod > 0 means add 1 some turns
         const nmod = (reqtime === 0 || baseNutr === 0) ? 0
@@ -1303,18 +1315,52 @@ async function handleEat(player, display, game) {
         // First bite (turn 1) — mirrors C start_eating() + bite()
         usedtime++;
         doBite();
-        display.putstr_message(`You begin eating the ${item.name}.`);
+        if (!isCorpse) {
+            display.putstr_message(`You begin eating the ${item.name}.`);
+        }
 
         if (reqtime > 1) {
+            const finishEatingAfterTurn = (gameCtx) => {
+                if (isCorpse && corpseTasteIdx !== null) {
+                    const tastes = ['okay', 'stringy', 'gamey', 'fatty', 'tough'];
+                    const idx = Math.max(0, Math.min(tastes.length - 1, corpseTasteIdx));
+                    const verb = idx === 0 ? 'tastes' : 'is';
+                    display.putstr_message(
+                        `This ${item.name} ${verb} ${tastes[idx]}.  `
+                        + `You finish eating the ${item.name}.--More--`
+                    );
+                } else {
+                    display.putstr_message(`You finish eating the ${item.name}.`);
+                }
+                player.removeFromInventory(item);
+                if (isCorpse && cnum === PM_NEWT) {
+                    // C ref: eat.c eye_of_newt_buzz() from cpostfx(PM_NEWT).
+                    if (rn2(3) || (3 * (player.pw || 0) <= 2 * (player.pwmax || 0))) {
+                        const oldPw = player.pw || 0;
+                        player.pw = (player.pw || 0) + rnd(3);
+                        if ((player.pw || 0) > (player.pwmax || 0)) {
+                            if (!rn2(3)) {
+                                player.pwmax = (player.pwmax || 0) + 1;
+                            }
+                            player.pw = player.pwmax || 0;
+                        }
+                        if ((player.pw || 0) !== oldPw) {
+                            if (gameCtx) {
+                                gameCtx.pendingToplineMessage = 'You feel a mild buzz.';
+                            } else {
+                                display.putstr_message('You feel a mild buzz.');
+                            }
+                        }
+                    }
+                }
+            };
             // Set occupation for remaining turns — C ref: set_occupation(eatfood, ...)
             game.occupation = {
                 fn: () => {
                     usedtime++;
                     if (usedtime >= reqtime) {
-                        // Done eating — mirrors C done_eating()
-                        // Apply remaining nutrition not yet distributed
-                        player.removeFromInventory(item);
-                        display.putstr_message(`You finish eating the ${item.name}.`);
+                        // Done eating. C completion side-effects occur after
+                        // the final turn's movement/time processing.
                         return 0; // done
                     }
                     doBite();
@@ -1322,6 +1368,7 @@ async function handleEat(player, display, game) {
                 },
                 txt: `eating ${item.name}`,
                 xtime: reqtime,
+                onFinishAfterTurn: finishEatingAfterTurn,
             };
         } else {
             // Single-turn food — eat instantly
