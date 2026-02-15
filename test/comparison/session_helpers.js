@@ -17,7 +17,18 @@ import {
 import { initRng, enableRngLog, getRngLog, disableRngLog, rn2, rnd, rn1, rnl, rne, rnz, d } from '../../js/rng.js';
 import { exercise, exerchk, initExerciseState } from '../../js/attrib_exercise.js';
 import { initLevelGeneration, makelevel, setGameSeed, wallification, simulateDungeonInit } from '../../js/dungeon.js';
-import { DUNGEONS_OF_DOOM, TUTORIAL, getGeneratorByLevelName, resetVariantCache } from '../../js/special_levels.js';
+import { DUNGEONS_OF_DOOM, TUTORIAL, resetVariantCache } from '../../js/special_levels.js';
+
+// Optional import - getGeneratorByLevelName may not exist in old commits
+let getGeneratorByLevelName = null;
+try {
+    const specialLevels = await import('../../js/special_levels.js');
+    if (typeof specialLevels.getGeneratorByLevelName === 'function') {
+        getGeneratorByLevelName = specialLevels.getGeneratorByLevelName;
+    }
+} catch (e) {
+    // getGeneratorByLevelName not available
+}
 import { resetLevelState, finalize_level, getLevelState } from '../../js/sp_lev.js';
 import { simulatePostLevelInit, mon_arrive } from '../../js/u_init.js';
 import { init_objects } from '../../js/o_init.js';
@@ -357,6 +368,9 @@ export function generateMapsSequential(seed, maxDepth) {
  * @returns {{ grid: number[][], variantUsed: string|null, error: string|null }}
  */
 export function generateSpecialLevelByName(levelName, seed, expectedGrid = null) {
+    if (!getGeneratorByLevelName) {
+        return { grid: null, variantUsed: null, error: `getGeneratorByLevelName not available` };
+    }
     const genInfo = getGeneratorByLevelName(levelName);
     if (!genInfo) {
         return { grid: null, variantUsed: null, error: `Unknown level name: ${levelName}` };
