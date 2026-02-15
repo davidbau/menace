@@ -112,6 +112,16 @@ let _branchTopology = [];
 // C ref: decl.h gi.in_mklev — true only while makelevel() runs.
 let inMklev = false;
 
+// C ref: gi.in_mklev is also TRUE while special-level Lua code runs.
+// Exposed for sp_lev.js to bracket des.* generation phases.
+export function enterMklevContext() {
+    inMklev = true;
+}
+
+export function leaveMklevContext() {
+    inMklev = false;
+}
+
 // C ref: dungeon.c init_dungeons() -> svd.dungeons[dnum].flags.align
 export const DUNGEON_ALIGN_BY_DNUM = {
     [DUNGEONS_OF_DOOM]: A_NONE,
