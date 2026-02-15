@@ -112,9 +112,8 @@ function playerHasGold(player) {
     return (player?.gold || 0) > 0 || hasGold(player?.inventory);
 }
 
-// C ref: in_rooms(x,y,SHOPBASE) check used by monmove.c m_search_items().
-function monsterInShop(mon, map) {
-    const loc = map.at(mon.mx, mon.my);
+function pointInShop(x, y, map) {
+    const loc = map.at(x, y);
     const roomno = loc?.roomno || 0;
 
     if (roomno >= ROOMOFFSET) {
@@ -133,7 +132,7 @@ function monsterInShop(mon, map) {
 
     for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
-            const nloc = map.at(mon.mx + dx, mon.my + dy);
+            const nloc = map.at(x + dx, y + dy);
             const nr = nloc?.roomno || 0;
             if (nr < ROOMOFFSET) continue;
             const room = map.rooms?.[nr - ROOMOFFSET];
@@ -141,6 +140,11 @@ function monsterInShop(mon, map) {
         }
     }
     return false;
+}
+
+// C ref: in_rooms(x,y,SHOPBASE) check used by monmove.c m_search_items().
+function monsterInShop(mon, map) {
+    return pointInShop(mon.mx, mon.my, map);
 }
 
 // C ref: mon.c mpickstuff() early gates.
@@ -1291,8 +1295,11 @@ function dog_move(mon, map, player, display, fov, after = false) {
                 if (nx === mon.mtrack[j].x && ny === mon.mtrack[j].y) {
                     if (rn2(MTSZ * (k - j))) {
                         skipThis = true;
+                        break;
                     }
-                    break;
+                    // C ref: dogmove.c:1242-1244
+                    // If rn2(...) == 0, keep scanning later mtrack entries.
+                    // Duplicate coordinates can consume additional rn2() calls.
                 }
             }
             if (skipThis) continue;
@@ -1452,11 +1459,7 @@ function shk_move(mon, map, player) {
                 if (satdoor && badinv) return 0;
                 avoid = !badinv;
             } else {
-                const playerLoc = map.at(player.x, player.y);
-                const inShop = !!(playerLoc
-                    && Number.isFinite(playerLoc.roomno)
-                    && map.rooms?.[playerLoc.roomno - ROOMOFFSET]
-                    && map.rooms[playerLoc.roomno - ROOMOFFSET].rtype >= SHOPBASE);
+                const inShop = pointInShop(player.x, player.y, map);
                 avoid = inShop && dist2(gtx, gty, player.x, player.y) > 8;
                 badinv = false;
             }
