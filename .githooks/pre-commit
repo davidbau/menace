@@ -8,9 +8,9 @@ if git notes --ref=test-results list | head -1 > /dev/null 2>&1; then
   "$SCRIPT_DIR/sync-notes-to-jsonl.sh"
 
   # Auto-stage the updated results.jsonl if it changed
-  if ! git diff --quiet teststats/results.jsonl 2>/dev/null; then
-    git add teststats/results.jsonl
-    echo "✅ Auto-staged updated teststats/results.jsonl"
+  if ! git diff --quiet floatingeye/results.jsonl 2>/dev/null; then
+    git add floatingeye/results.jsonl
+    echo "✅ Auto-staged updated floatingeye/results.jsonl"
   fi
 fi
 

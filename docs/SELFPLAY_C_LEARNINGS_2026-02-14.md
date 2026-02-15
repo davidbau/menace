@@ -20,6 +20,13 @@
     - Seeds `11..20`: depth decreased (`2.1` -> `1.9`) but survival improved (`5/10` -> `7/10`).
     - Seeds `21..30`: seed `21` timed out in both baseline and candidate (excluded); on `22..30`, depth improved (`1.89` -> `2.33`) with slight survival drop.
     - Aggregate over comparable seeds (`1..30`, excluding seed `21` timeout in both): depth improved (`1.86` -> `2.03`) with unchanged survival (`21/29`).
+- `selfplay/agent.js` (pending commit after this note): shorter descend-suppression cooldown
+  - Reduced descend guard cooldown windows from `120` to `60` turns after repeated blocked/failed descend patterns.
+  - Motivation: reduce long staircase suppression stalls that slow progression recovery.
+  - Validation summary:
+    - Seeds `1..10`: depth decreased slightly (`2.1` -> `2.0`) while survival improved (`7/10` -> `9/10`).
+    - Seeds `11..20`: depth and survival unchanged versus baseline.
+    - Aggregate (`1..20`): depth changed `2.00` -> `1.95`, survival improved `14/20` -> `16/20`.
 
 ## High-signal non-keepers
 - Broad hostile filtering rewrites in combat/retreat paths:

@@ -1,0 +1,323 @@
+--- a/include/extern.h
++++ b/include/extern.h
+@@ -473,6 +473,7 @@
+ extern boolean paranoid_query(boolean, const char *);
+ extern void makemap_prepost(boolean, boolean);
+ extern const char *ecname_from_fn(int (*)(void));
++extern void harness_dump_checkpoint(const char *);
+ 
+ /* ### date.c ### */
+ 
+@@ -2732,6 +2733,7 @@
+ /* PRNG call logging (003-prng-logging patch) */
+ extern void rng_log_init(void);
+ extern void rng_log_set_caller(const char *, int, const char *);
++extern int rng_log_get_call_count(void);
+ /* Mid-level function tracing (005-midlog-infrastructure patch) */
+ extern void midlog_enter(const char *, const char *, int, const char *);
+ extern void midlog_exit_int(const char *, int, const char *, int, const char *);
+--- a/src/rnd.c
++++ b/src/rnd.c
+@@ -52,6 +52,12 @@
+     rng_caller_func = func;
+ }
+ 
++int
++rng_log_get_call_count(void)
++{
++    return rng_call_count;
++}
++
+ static void
+ rng_log_write(const char *func, const char *args, int result)
+ {
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -98,6 +98,7 @@
+ staticfn int dosh_core(void);
+ staticfn int wiz_dumpmap(void);
+ staticfn int wiz_dumpobj(void);
++staticfn int wiz_dumpsnap(void);
+ staticfn int doherecmdmenu(void);
+ staticfn int dotherecmdmenu(void);
+ staticfn int doprev_message(void);
+@@ -150,6 +151,185 @@
+ 
+ static const char *readchar_queue = "";
+ 
++staticfn void
++json_write_escaped(FILE *fp, const char *s)
++{
++    int c;
++    if (!s) {
++        fputs("", fp);
++        return;
++    }
++    while ((c = (unsigned char) *s++) != '\0') {
++        if (c == '"' || c == '\\') {
++            fputc('\\', fp);
++            fputc(c, fp);
++        } else if (c >= 0x20 && c <= 0x7e) {
++            fputc(c, fp);
++        } else {
++            fprintf(fp, "\\u%04x", c & 0xff);
++        }
++    }
++}
++
++void
++harness_dump_checkpoint(const char *phase)
++{
++    const char *fname;
++    FILE *fp;
++    int x, y, i, first;
++    struct trap *ttmp;
++    struct monst *mtmp;
++    struct mkroom *croom;
++    stairway *stway;
++
++    fname = getenv("NETHACK_DUMPSNAP");
++    if (!fname || !*fname)
++        return;
++
++    fp = fopen(fname, "a");
++    if (!fp)
++        return;
++
++    if (!phase || !*phase)
++        phase = "unspecified";
++
++    fputc('{', fp);
++    fprintf(fp, "\"phase\":\"");
++    json_write_escaped(fp, phase);
++    fprintf(fp, "\",\"rngCallCount\":%d", rng_log_get_call_count());
++    fprintf(fp, ",\"dnum\":%d,\"dlevel\":%d", (int) u.uz.dnum, (int) u.uz.dlevel);
++
++    /* typGrid */
++    fputs(",\"typGrid\":[", fp);
++    for (y = 0; y < ROWNO; y++) {
++        if (y > 0)
++            fputc(',', fp);
++        fputc('[', fp);
++        for (x = 0; x < COLNO; x++) {
++            if (x > 0)
++                fputc(',', fp);
++            fprintf(fp, "%d", levl[x][y].typ);
++        }
++        fputc(']', fp);
++    }
++    fputc(']', fp);
++
++    /* flagGrid */
++    fputs(",\"flagGrid\":[", fp);
++    for (y = 0; y < ROWNO; y++) {
++        if (y > 0)
++            fputc(',', fp);
++        fputc('[', fp);
++        for (x = 0; x < COLNO; x++) {
++            if (x > 0)
++                fputc(',', fp);
++            fprintf(fp, "%d", levl[x][y].flags);
++        }
++        fputc(']', fp);
++    }
++    fputc(']', fp);
++
++    /* wallInfoGrid */
++    fputs(",\"wallInfoGrid\":[", fp);
++    for (y = 0; y < ROWNO; y++) {
++        if (y > 0)
++            fputc(',', fp);
++        fputc('[', fp);
++        for (x = 0; x < COLNO; x++) {
++            if (x > 0)
++                fputc(',', fp);
++            fprintf(fp, "%d", levl[x][y].wall_info);
++        }
++        fputc(']', fp);
++    }
++    fputc(']', fp);
++
++    /* traps, deterministic scan order by y/x */
++    fputs(",\"traps\":[", fp);
++    first = 1;
++    for (y = 0; y < ROWNO; y++)
++        for (x = 0; x < COLNO; x++)
++            if ((ttmp = t_at(x, y)) != 0) {
++                if (!first)
++                    fputc(',', fp);
++                first = 0;
++                fprintf(fp, "{\"x\":%d,\"y\":%d,\"ttyp\":%d}", x, y, ttmp->ttyp);
++            }
++    fputc(']', fp);
++
++    /* monsters, deterministic scan order by y/x */
++    fputs(",\"monsters\":[", fp);
++    first = 1;
++    for (y = 0; y < ROWNO; y++)
++        for (x = 0; x < COLNO; x++)
++            if ((mtmp = m_at(x, y)) != 0 && !DEADMONSTER(mtmp)) {
++                if (!first)
++                    fputc(',', fp);
++                first = 0;
++                fprintf(fp,
++                        "{\"x\":%d,\"y\":%d,\"mnum\":%d,\"mhp\":%d,\"mpeaceful\":%d}",
++                        x, y, monsndx(mtmp->data), mtmp->mhp, mtmp->mpeaceful ? 1 : 0);
++            }
++    fputc(']', fp);
++
++    /* rooms */
++    fprintf(fp, ",\"nroom\":%d", (int) svn.nroom);
++    fputs(",\"rooms\":[", fp);
++    for (i = 0; i < svn.nroom; i++) {
++        if (i > 0)
++            fputc(',', fp);
++        croom = &svr.rooms[i];
++        fprintf(fp,
++                "{\"idx\":%d,\"lx\":%d,\"ly\":%d,\"hx\":%d,\"hy\":%d,"
++                "\"rtype\":%d,\"orig_rtype\":%d,\"rlit\":%d,\"doorct\":%d,"
++                "\"fdoor\":%d,\"irregular\":%d}",
++                i, croom->lx, croom->ly, croom->hx, croom->hy, croom->rtype,
++                croom->orig_rtype, croom->rlit, croom->doorct, croom->fdoor,
++                croom->irregular ? 1 : 0);
++    }
++    fputc(']', fp);
++
++    /* doors */
++    fprintf(fp, ",\"doorindex\":%d", gd.doorindex);
++    fputs(",\"doors\":[", fp);
++    for (i = 0; i < gd.doorindex; i++) {
++        if (i > 0)
++            fputc(',', fp);
++        fprintf(fp, "{\"x\":%d,\"y\":%d}", svd.doors[i].x, svd.doors[i].y);
++    }
++    fputc(']', fp);
++
++    /* stairs list */
++    fputs(",\"stairs\":[", fp);
++    first = 1;
++    for (stway = gs.stairs; stway; stway = stway->next) {
++        if (!first)
++            fputc(',', fp);
++        first = 0;
++        fprintf(fp,
++                "{\"x\":%d,\"y\":%d,\"up\":%d,\"isladder\":%d,"
++                "\"to\":{\"dnum\":%d,\"dlevel\":%d}}",
++                stway->sx, stway->sy, stway->up ? 1 : 0, stway->isladder ? 1 : 0,
++                (int) stway->tolev.dnum, (int) stway->tolev.dlevel);
++    }
++    fputc(']', fp);
++
++    /* teleport destinations */
++    fprintf(fp,
++            ",\"updest\":{\"lx\":%d,\"ly\":%d,\"hx\":%d,\"hy\":%d,"
++            "\"nlx\":%d,\"nly\":%d,\"nhx\":%d,\"nhy\":%d}",
++            svu.updest.lx, svu.updest.ly, svu.updest.hx, svu.updest.hy,
++            svu.updest.nlx, svu.updest.nly, svu.updest.nhx, svu.updest.nhy);
++    fprintf(fp,
++            ",\"dndest\":{\"lx\":%d,\"ly\":%d,\"hx\":%d,\"hy\":%d,"
++            "\"nlx\":%d,\"nly\":%d,\"nhx\":%d,\"nhy\":%d}",
++            svd.dndest.lx, svd.dndest.ly, svd.dndest.hx, svd.dndest.hy,
++            svd.dndest.nlx, svd.dndest.nly, svd.dndest.nhx, svd.dndest.nhy);
++
++    fputs("}\n", fp);
++    fclose(fp);
++}
++
+ /* for rejecting attempts to use wizard mode commands
+  * Also used in wizcmds.c  */
+ const char unavailcmd[] = "Unavailable command '%s'.";
+@@ -1136,6 +1316,23 @@
+     return ECMD_OK;
+ }
+ 
++/* #dumpsnap -- append one JSON snapshot entry for the current level.
++ * Filename comes from NETHACK_DUMPSNAP env var, defaults to "dumpsnap.jsonl". */
++staticfn int
++wiz_dumpsnap(void)
++{
++    char phasebuf[BUFSZ];
++
++    Sprintf(phasebuf, "manual");
++    getlin("Checkpoint phase tag:", phasebuf);
++    mungspaces(phasebuf);
++    if (!*phasebuf)
++        Strcpy(phasebuf, "manual");
++    harness_dump_checkpoint(phasebuf);
++    pline("Snapshot appended (%s).", phasebuf);
++    return ECMD_OK;
++}
++
+ /* temporary? hack, since level type codes aren't the same as screen
+    symbols and only the latter have easily accessible descriptions.
+    Also used by wizcmds.c */
+@@ -1726,6 +1923,8 @@
+               wiz_dumpmap, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
+     { '\0',   "dumpobj", "dump floor objects in fobj iteration order",
+               wiz_dumpobj, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
++    { '\0',   "dumpsnap", "append JSON level checkpoint snapshot",
++              wiz_dumpsnap, IFBURIED | AUTOCOMPLETE | WIZMODECMD, NULL },
+     { M('?'), "?", "list all extended commands",
+               doextlist, IFBURIED | AUTOCOMPLETE | GENERALCMD | CMD_M_PREFIX,
+               NULL },
+--- a/src/mkmaze.c
++++ b/src/mkmaze.c
+@@ -701,6 +701,7 @@
+     if (gl.lregions)
+         free((genericptr_t) gl.lregions), gl.lregions = 0;
+     gn.num_lregions = 0;
++    harness_dump_checkpoint("after_levregions_fixup");
+ }
+ 
+ staticfn void
+--- a/src/sp_lev.c
++++ b/src/sp_lev.c
+@@ -3860,6 +3860,7 @@
+         init_lev.bg = (init_lev.init_style == LVLINIT_SWAMP) ? MOAT : STONE;
+ 
+     splev_initlev(&init_lev);
++    harness_dump_checkpoint("after_level_init");
+ 
+     return 0;
+ }
+@@ -6026,6 +6027,7 @@
+      */
+     if (!svl.level.flags.corrmaze)
+         wallification(1, 0, COLNO - 1, ROWNO - 1);
++    harness_dump_checkpoint("after_wallification");
+ 
+     if (L)
+         flip_level_rnd(gc.coder->allow_flips, FALSE);
+@@ -6049,6 +6051,7 @@
+     }
+ 
+     makemap_prepost(FALSE, wtower);
++    harness_dump_checkpoint("after_finalize");
+     iflags.lua_testing = FALSE;
+     return 0;
+ }
+@@ -6304,6 +6307,7 @@
+     /* return selection where map locations were put */
+     l_selection_push_copy(L, sel);
+     selection_free(sel, TRUE);
++    harness_dump_checkpoint("after_map");
+ 
+     return 1;
+ }
+@@ -6468,6 +6472,7 @@
+      */
+     if (!svl.level.flags.corrmaze)
+         wallification(1, 0, COLNO - 1, ROWNO - 1);
++    harness_dump_checkpoint("after_wallification");
+ 
+     flip_level_rnd(gc.coder->allow_flips, FALSE);
+ 
+@@ -6483,6 +6488,8 @@
+     if (gc.coder->premapped)
+         premap_detect();
+ 
++    harness_dump_checkpoint("after_finalize");
++
+     result = TRUE;
+  give_up:
+     Free(gc.coder);

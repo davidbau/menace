@@ -29,7 +29,7 @@ This project implements **mandatory test logging** with a visual dashboard to tr
 
 ### b) Two-Commit Approach (uncursed, but dusty)
 
-**All data**: In teststats/results.jsonl
+**All data**: In floatingeye/results.jsonl
 **Workflow**: Code commit + test log commit
 
 **Advantages**:
@@ -89,14 +89,14 @@ That's it! The scroll of commit-with-tests handles:
 
 **The Oracle's Chamber (GitHub Pages)**:
 ```
-https://davidbau.github.io/mazesofmenace/teststats/
+https://davidbau.github.io/mazesofmenace/floatingeye/
 ```
 
 *A mysterious force prevents you from accessing this until you push to GitHub.*
 
 **Local Divination**:
 ```bash
-open teststats/index.html
+open floatingeye/index.html
 ```
 
 *You gaze into the crystal ball and see the future of your test suite...*
@@ -129,7 +129,7 @@ open teststats/index.html
 *You are carrying:*
 
 ```
-teststats/
+floatingeye/
 ├── index.html          # a) blessed scroll of Dashboard UI
 ├── dashboard.js        # b) wand of Visualization (0:∞)
 ├── dashboard.css       # c) cloak of Styling [+0]
@@ -182,7 +182,7 @@ A commit can't contain its own hash in a file because the hash doesn't exist unt
 
 - Test results stored as **notes attached to commits** (like name tags on corpses)
 - Notes can reference the commit hash (because they're attached AFTER the commit exists!)
-- `teststats/results.jsonl` is rebuilt from notes (one commit behind for the dashboard)
+- `floatingeye/results.jsonl` is rebuilt from notes (one commit behind for the dashboard)
 
 *"A blessed solution indeed! The Wizard approves."*
 
@@ -201,7 +201,7 @@ A commit can't contain its own hash in a file because the hash doesn't exist unt
              │   (A stairway down...)
          Level 2: JSONL Mirror
 ┌────────────────────────────────────────────────┐
-│  teststats/results.jsonl                       │
+│  floatingeye/results.jsonl                       │
 │  "A magical mirror reflecting level 1"         │
 │                                                 │
 │  One entry per commit, chronologically sorted  │
@@ -210,7 +210,7 @@ A commit can't contain its own hash in a file because the hash doesn't exist unt
              │   (The astral plane...)
        The Oracle's Chamber
 ┌────────────────────────────────────────────────┐
-│  https://github.io/.../teststats/              │
+│  https://github.io/.../floatingeye/              │
 │  "Where mortals come to seek wisdom"           │
 │                                                 │
 │  📊 Timeline, Charts, Scrubber                 │
@@ -327,7 +327,7 @@ git config --add remote.origin.push '+refs/notes/test-results:refs/notes/test-re
 .githooks/sync-notes-to-jsonl.sh
 
 # Commit and push (present it to the Oracle)
-git add teststats/results.jsonl
+git add floatingeye/results.jsonl
 git commit -m "Rebuild dashboard from git notes"
 git push
 ```
@@ -354,8 +354,8 @@ git fetch origin refs/notes/test-results:refs/notes/test-results
 - **b)** [Git Notes Workflow](TESTING_GIT_NOTES.md) ⭐ *blessed*
 - **c)** [Two-Commit Workflow](TESTING.md) *uncursed (legacy)*
 - **d)** [Hook Details](../.githooks/README.md) *"Hooks, Runes, and Trigger Mechanisms"*
-- **e)** [Dashboard Info](../teststats/README.md) *"The Oracle's Crystal Ball Manual"*
-- **f)** [Schema](../teststats/schema.json) *"The Sacred Format of Test Logs"*
+- **e)** [Dashboard Info](../floatingeye/README.md) *"The Oracle's Crystal Ball Manual"*
+- **f)** [Schema](../floatingeye/schema.json) *"The Sacred Format of Test Logs"*
 
 *Which scroll would you like to read?*
 
@@ -416,7 +416,7 @@ git fetch origin refs/notes/test-results:refs/notes/test-results
 
 *You read the final line of the scroll...*
 
-**View live dashboard**: https://davidbau.github.io/mazesofmenace/teststats/
+**View live dashboard**: https://davidbau.github.io/mazesofmenace/floatingeye/
 
 *The scroll crumbles to dust. You feel enlightened about testing.*
 
@@ -466,7 +466,7 @@ scripts/backfill-test-history.sh 50
 
 # After backfilling, sync and commit
 .githooks/sync-notes-to-jsonl.sh
-git add teststats/results.jsonl
+git add floatingeye/results.jsonl
 git commit -m "Backfill test history"
 git push origin refs/notes/test-results
 ```

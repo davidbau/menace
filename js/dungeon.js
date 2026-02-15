@@ -1202,8 +1202,11 @@ function populate_maze(map, depth) {
 // Helper function to create the actual maze
 function create_maze(map, corrwid, wallthick, rmdeadends) {
     // C ref: mkmaze.c create_maze()
-    const defaultMaxX = (COLNO - 1) & ~1;
-    const defaultMaxY = (ROWNO - 1) & ~1;
+    const defaultMaxX = (COLNO - 1);
+    const defaultMaxY = (ROWNO - 1);
+    // C ref: save/restore gx.x_maze_max/gy.y_maze_max around temporary small-maze bounds.
+    const tmpMaxX = Number.isInteger(map?._mazeMaxX) ? map._mazeMaxX : defaultMaxX;
+    const tmpMaxY = Number.isInteger(map?._mazeMaxY) ? map._mazeMaxY : defaultMaxY;
 
     if (corrwid === -1) corrwid = rnd(4);
     if (wallthick === -1) wallthick = rnd(4) - corrwid;
@@ -1213,8 +1216,8 @@ function create_maze(map, corrwid, wallthick, rmdeadends) {
     else if (corrwid > 5) corrwid = 5;
 
     const scale = corrwid + wallthick;
-    const rdx = Math.trunc(defaultMaxX / scale);
-    const rdy = Math.trunc(defaultMaxY / scale);
+    const rdx = Math.trunc(tmpMaxX / scale);
+    const rdy = Math.trunc(tmpMaxY / scale);
     const smallMaxX = rdx * 2;
     const smallMaxY = rdy * 2;
     const carveType = map.flags?.corrmaze ? CORR : ROOM;
@@ -1326,8 +1329,9 @@ function create_maze(map, corrwid, wallthick, rmdeadends) {
                 }
                 if (idx2 >= 3 && dirok.length > 0) {
                     const dir = dirok[rn2(dirok.length)];
-                    let dest = mzMove(x, y, dir);
-                    dest = mzMove(dest.x, dest.y, dir);
+                    // C ref: mkmaze.c maze_remove_deadends():
+                    // carve the immediate neighboring wall, not the far room node.
+                    const dest = mzMove(x, y, dir);
                     const loc = map.at(dest.x, dest.y);
                     if (loc) loc.typ = carveType;
                 }
@@ -1337,25 +1341,30 @@ function create_maze(map, corrwid, wallthick, rmdeadends) {
 
     // C scales the reduced maze up when scale > 2.
     if (scale > 2) {
-        const tmp = Array.from({ length: COLNO }, () => Array(ROWNO).fill(STONE));
-        for (let x = 1; x < defaultMaxX; x++) {
-            for (let y = 1; y < defaultMaxY; y++) {
+        // Copy only the C-backed source rectangle. Any source outside this
+        // coverage must not influence writes during scaling.
+        const tmp = Array.from({ length: COLNO }, () => Array(ROWNO));
+        for (let x = 1; x < tmpMaxX; x++) {
+            for (let y = 1; y < tmpMaxY; y++) {
                 tmp[x][y] = map.at(x, y)?.typ ?? STONE;
             }
         }
         let rx = 2;
         let x = 2;
-        while (rx < defaultMaxX) {
+        while (rx < tmpMaxX) {
             const mx = (x % 2) ? corrwid : (x === 2 || x === rdx * 2) ? 1 : wallthick;
             let ry = 2;
             let y = 2;
-            while (ry < defaultMaxY) {
+            while (ry < tmpMaxY) {
                 const my = (y % 2) ? corrwid : (y === 2 || y === rdy * 2) ? 1 : wallthick;
                 for (let dx = 0; dx < mx; dx++) {
                     for (let dy = 0; dy < my; dy++) {
-                        if (rx + dx >= defaultMaxX || ry + dy >= defaultMaxY) break;
+                        if (rx + dx >= tmpMaxX || ry + dy >= tmpMaxY) break;
+                        if (!(x >= 1 && x < tmpMaxX && y >= 1 && y < tmpMaxY)) continue;
+                        const srcTyp = tmp[x][y];
+                        if (srcTyp === undefined) continue;
                         const loc = map.at(rx + dx, ry + dy);
-                        if (loc) loc.typ = tmp[x][y];
+                        if (loc) loc.typ = srcTyp;
                     }
                 }
                 ry += my;
@@ -1367,8 +1376,8 @@ function create_maze(map, corrwid, wallthick, rmdeadends) {
     }
 
     // C restores gx/gy bounds after create_maze().
-    map._mazeMaxX = defaultMaxX;
-    map._mazeMaxY = defaultMaxY;
+    map._mazeMaxX = tmpMaxX;
+    map._mazeMaxY = tmpMaxY;
 }
 
 // Helper function to find a random location in the maze
@@ -2604,6 +2613,11 @@ function occupied(map, x, y) {
     if (!loc) return true;
     if (IS_FURNITURE(loc.typ)) return true;
     if (IS_LAVA(loc.typ) || IS_POOL(loc.typ)) return true;
+    // C ref: hack.c invocation_pos() used by mklev.c occupied().
+    if (map._isInvocationLevel && map._invPos
+        && x === map._invPos.x && y === map._invPos.y) {
+        return true;
+    }
     return false;
 }
 
@@ -4990,10 +5004,51 @@ function within_bounded_area(x, y, lx, ly, hx, hy) {
 
 // C ref: mkmaze.c:317-332 — is_exclusion_zone
 // Check if position is in an exclusion zone for this region type
-// Stub implementation: no exclusion zones for now
-function is_exclusion_zone(rtype, x, y) {
-    // TODO: implement exclusion zones when needed
-    // For now, no exclusion zones
+function is_exclusion_zone(map, rtype, x, y) {
+    const zones = Array.isArray(map?.exclusionZones) ? map.exclusionZones : null;
+    if (!zones || zones.length === 0) return false;
+
+    const normalizeZoneType = (zoneType) => {
+        // JS des.exclusion() stores string tags.
+        if (typeof zoneType === 'string') {
+            switch (zoneType) {
+                case 'teleport':
+                    return LR_TELE;
+                case 'teleport-down':
+                    return LR_DOWNTELE;
+                case 'teleport-up':
+                    return LR_UPTELE;
+                case 'monster-generation':
+                    return 7; // LR_MONGEN equivalent
+                default:
+                    return undefined;
+            }
+        }
+        // Accept both JS-local constants and C enum values when numeric.
+        if (typeof zoneType === 'number') {
+            if (zoneType === LR_TELE || zoneType === 4) return LR_TELE;
+            if (zoneType === LR_UPTELE || zoneType === 5) return LR_UPTELE;
+            if (zoneType === LR_DOWNTELE || zoneType === 6) return LR_DOWNTELE;
+            if (zoneType === 7) return 7; // LR_MONGEN
+        }
+        return undefined;
+    };
+
+    for (const zone of zones) {
+        const zoneType = normalizeZoneType(zone?.type ?? zone?.zonetype);
+        if (zoneType === undefined) continue;
+
+        const typeMatches = (
+            (rtype === LR_DOWNTELE && (zoneType === LR_DOWNTELE || zoneType === LR_TELE))
+            || (rtype === LR_UPTELE && (zoneType === LR_UPTELE || zoneType === LR_TELE))
+            || (rtype === zoneType)
+        );
+        if (!typeMatches) continue;
+
+        if (within_bounded_area(x, y, zone.lx, zone.ly, zone.hx, zone.hy)) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -5030,7 +5085,7 @@ function bad_location(map, x, y, nlx, nly, nhx, nhy) {
 function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot) {
     // Check if location is bad.
     let invalid = bad_location(map, x, y, nlx, nly, nhx, nhy)
-        || is_exclusion_zone(rtype, x, y);
+        || is_exclusion_zone(map, rtype, x, y);
     if (invalid) {
         if (!oneshot) {
             return false; // Try again
@@ -5041,10 +5096,14 @@ function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot) {
         const undestroyable = (trap?.ttyp === MAGIC_PORTAL
             || trap?.ttyp === VIBRATING_SQUARE);
         if (trap && !undestroyable) {
+            const mon = map.monsterAt(x, y);
+            if (mon && mon.mtrapped) {
+                mon.mtrapped = 0;
+            }
             map.traps = map.traps.filter(t => t !== trap);
         }
         invalid = bad_location(map, x, y, nlx, nly, nhx, nhy)
-            || is_exclusion_zone(rtype, x, y);
+            || is_exclusion_zone(map, rtype, x, y);
         if (invalid) return false;
     }
 
@@ -5056,12 +5115,38 @@ function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot) {
         case LR_TELE:
         case LR_UPTELE:
         case LR_DOWNTELE:
-            // Teleport region - not needed for basic implementation
+            // C ref: mkmaze.c put_lregion_here():
+            // if monster occupies destination, retry unless oneshot;
+            // oneshot relocates monster, and if impossible removes it from level.
+            {
+                const mon = map.monsterAt(x, y);
+                if (mon) {
+                    if (!oneshot) {
+                        return false;
+                    }
+                    const pos = enexto(x, y, map);
+                    if (pos) {
+                        mon.mx = pos.x;
+                        mon.my = pos.y;
+                    } else {
+                        map.removeMonster(mon);
+                    }
+                }
+            }
+            // C's u_on_newpos(x,y) has no levelgen-side equivalent here.
             break;
 
         case LR_PORTAL:
             // C parity: branch portal does not alter terrain, it adds MAGIC_PORTAL.
-            maketrap(map, x, y, MAGIC_PORTAL);
+            {
+                const trap = maketrap(map, x, y, MAGIC_PORTAL);
+                if (trap && map?._portalDestOverride) {
+                    trap.dst = {
+                        dnum: map._portalDestOverride.dnum,
+                        dlevel: map._portalDestOverride.dlevel
+                    };
+                }
+            }
             break;
 
         case LR_DOWNSTAIR:

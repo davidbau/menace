@@ -30,7 +30,7 @@ git config --add remote.origin.push '+refs/notes/test-results:refs/notes/test-re
 ```
 
 ### How It Works
-1. `test-and-log.sh` runs tests → writes `teststats/pending.jsonl` with `"commit":"HEAD"`
+1. `test-and-log.sh` runs tests → writes `floatingeye/pending.jsonl` with `"commit":"HEAD"`
 2. `post-commit` hook replaces `"HEAD"` with real hash → attaches as git note
 3. `pre-push` hook verifies note exists (runs tests as fallback if not)
 4. `git push` carries the note automatically (via remote.origin.push refspec)
@@ -44,16 +44,16 @@ git notes --ref=test-results show HEAD  # View note after commit
 ### View Results
 ```bash
 # Dashboard
-open teststats/index.html
+open floatingeye/index.html
 
 # Last test note
 git notes --ref=test-results show HEAD
 
 # Last JSONL entry
-tail -1 teststats/results.jsonl | jq '.'
+tail -1 floatingeye/results.jsonl | jq '.'
 
 # Stats
-jq -r '.stats.pass' teststats/results.jsonl | tail -1
+jq -r '.stats.pass' floatingeye/results.jsonl | tail -1
 ```
 
 ### Allow Regression
@@ -68,7 +68,7 @@ jq -r '.stats.pass' teststats/results.jsonl | tail -1
 ### Rebuild Dashboard
 ```bash
 .githooks/sync-notes-to-jsonl.sh
-git add teststats/results.jsonl && git commit -m "Rebuild dashboard"
+git add floatingeye/results.jsonl && git commit -m "Rebuild dashboard"
 ```
 
 ### After Clone
@@ -98,12 +98,12 @@ git push origin refs/notes/test-results
 ### Dashboard not updating
 ```bash
 .githooks/sync-notes-to-jsonl.sh
-git add teststats/results.jsonl && git commit -m "Update dashboard"
+git add floatingeye/results.jsonl && git commit -m "Update dashboard"
 ```
 
 ### Invalid JSON
 ```bash
-cat teststats/results.jsonl | jq '.'  # Find the bad line
+cat floatingeye/results.jsonl | jq '.'  # Find the bad line
 ```
 
 ---
@@ -112,16 +112,16 @@ cat teststats/results.jsonl | jq '.'  # Find the bad line
 
 ```bash
 # Current pass rate
-jq -r '.stats.pass' teststats/results.jsonl | tail -1
+jq -r '.stats.pass' floatingeye/results.jsonl | tail -1
 
 # Last 5 commits
-tail -5 teststats/results.jsonl | jq -r '"\(.commit): \(.stats.pass)/\(.stats.total)"'
+tail -5 floatingeye/results.jsonl | jq -r '"\(.commit): \(.stats.pass)/\(.stats.total)"'
 
 # All notes
 git notes --ref=test-results list
 
 # Test count by category
-tail -1 teststats/results.jsonl | jq '.categories'
+tail -1 floatingeye/results.jsonl | jq '.categories'
 ```
 
 ---
@@ -131,7 +131,7 @@ tail -1 teststats/results.jsonl | jq '.categories'
 - **Main Guide**: ../docs/TESTING.md
 - **Git Notes**: ../docs/TESTING_GIT_NOTES.md
 - **Hooks**: README.md (this directory)
-- **Dashboard**: ../teststats/README.md
+- **Dashboard**: ../floatingeye/README.md
 
 ---
 

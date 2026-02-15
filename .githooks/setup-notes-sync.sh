@@ -5,7 +5,7 @@
 set -e
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-RESULTS_FILE="$REPO_ROOT/teststats/results.jsonl"
+RESULTS_FILE="$REPO_ROOT/floatingeye/results.jsonl"
 
 echo "Setting up git notes sync for test results..."
 echo ""

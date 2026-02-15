@@ -45,6 +45,7 @@ import {
     SCR_EARTH, objectData, GOLD_PIECE, STATUE
 } from './objects.js';
 import { mons, M2_FEMALE, M2_MALE, G_NOGEN, PM_MINOTAUR, MR_STONE } from './monsters.js';
+import { findSpecialLevelByName } from './special_levels.js';
 
 // Aliases for compatibility with C naming
 const STAIRS_UP = STAIRS;
@@ -109,6 +110,40 @@ function setLevlTypAt(map, x, y, newTyp) {
 
 function getProcessEnv(name) {
     return (typeof process !== 'undefined' && process.env) ? process.env[name] : undefined;
+}
+
+function installTypWatch(map) {
+    const spec = getProcessEnv('WEBHACK_WATCH_TYP');
+    if (!spec || !map || !map.locations) return;
+    const m = String(spec).match(/^\s*(\d+)\s*,\s*(\d+)\s*$/);
+    if (!m) return;
+    const wx = Number.parseInt(m[1], 10);
+    const wy = Number.parseInt(m[2], 10);
+    if (!Number.isInteger(wx) || !Number.isInteger(wy)
+        || wx < 0 || wx >= COLNO || wy < 0 || wy >= ROWNO) {
+        return;
+    }
+    const loc = map.locations?.[wx]?.[wy];
+    if (!loc || loc.__typWatchInstalled) return;
+    let _typ = loc.typ;
+    Object.defineProperty(loc, 'typ', {
+        configurable: true,
+        enumerable: true,
+        get() { return _typ; },
+        set(v) {
+            if (_typ !== v) {
+                const stack = new Error().stack?.split('\n').slice(2, 6).join(' | ') || '';
+                console.log(`[TYPWATCH] (${wx},${wy}) ${_typ} -> ${v} @ ${stack}`);
+            }
+            _typ = v;
+        }
+    });
+    Object.defineProperty(loc, '__typWatchInstalled', {
+        configurable: true,
+        enumerable: false,
+        writable: true,
+        value: true
+    });
 }
 
 // Level generation state (equivalent to C's sp_level sp)
@@ -181,6 +216,10 @@ export let levelState = {
     spLevTouched: null,
 };
 
+const WALL_INFO_MASK = 0x07;
+let checkpointCaptureEnabled = false;
+let levelCheckpoints = [];
+
 // Special level flags
 let icedpools = false;
 let Sokoban = false;
@@ -211,6 +250,136 @@ function markSpLevMap(x, y) {
     if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return;
     initSpLevMap();
     levelState.spLevMap[x][y] = true;
+}
+
+function normalizeDestRect(rect) {
+    const fallback = { lx: 0, ly: 0, hx: 0, hy: 0, nlx: 0, nly: 0, nhx: 0, nhy: 0 };
+    if (!rect || typeof rect !== 'object') return fallback;
+    return {
+        lx: Number.isInteger(rect.lx) ? rect.lx : 0,
+        ly: Number.isInteger(rect.ly) ? rect.ly : 0,
+        hx: Number.isInteger(rect.hx) ? rect.hx : 0,
+        hy: Number.isInteger(rect.hy) ? rect.hy : 0,
+        nlx: Number.isInteger(rect.nlx) ? rect.nlx : 0,
+        nly: Number.isInteger(rect.nly) ? rect.nly : 0,
+        nhx: Number.isInteger(rect.nhx) ? rect.nhx : 0,
+        nhy: Number.isInteger(rect.nhy) ? rect.nhy : 0
+    };
+}
+
+function captureCheckpoint(phase) {
+    if (!checkpointCaptureEnabled || !levelState.map) return;
+    const map = levelState.map;
+    const typGrid = [];
+    const flagGrid = [];
+    const wallInfoGrid = [];
+
+    for (let y = 0; y < ROWNO; y++) {
+        const typRow = [];
+        const flagRow = [];
+        const wallInfoRow = [];
+        for (let x = 0; x < COLNO; x++) {
+            const loc = map.locations?.[x]?.[y];
+            typRow.push(loc ? loc.typ : 0);
+            flagRow.push(loc ? loc.flags : 0);
+            wallInfoRow.push(loc ? (loc.flags & WALL_INFO_MASK) : 0);
+        }
+        typGrid.push(typRow);
+        flagGrid.push(flagRow);
+        wallInfoGrid.push(wallInfoRow);
+    }
+
+    const traps = (Array.isArray(map.traps) ? map.traps : [])
+        .map((t) => ({
+            x: Number.isInteger(t?.tx) ? t.tx : (Number.isInteger(t?.x) ? t.x : -1),
+            y: Number.isInteger(t?.ty) ? t.ty : (Number.isInteger(t?.y) ? t.y : -1),
+            ttyp: Number.isInteger(t?.ttyp) ? t.ttyp : -1
+        }))
+        .filter((t) => t.x >= 0 && t.x < COLNO && t.y >= 0 && t.y < ROWNO)
+        .sort((a, b) => (a.y - b.y) || (a.x - b.x));
+
+    const monsters = (Array.isArray(map.monsters) ? map.monsters : [])
+        .filter((m) => Number.isInteger(m?.mx) && Number.isInteger(m?.my)
+            && (Number.isInteger(m?.mhp) ? m.mhp > 0 : true))
+        .map((m) => ({
+            x: m.mx,
+            y: m.my,
+            mnum: Number.isInteger(m?.mndx) ? m.mndx : -1,
+            mhp: Number.isInteger(m?.mhp) ? m.mhp : 0,
+            mpeaceful: m?.mpeaceful ? 1 : 0
+        }))
+        .sort((a, b) => (a.y - b.y) || (a.x - b.x));
+
+    const nroom = Number.isInteger(map.nroom)
+        ? Math.max(0, Math.min(map.nroom, (map.rooms || []).length))
+        : ((map.rooms || []).length || 0);
+    const rooms = (map.rooms || []).slice(0, nroom).map((room, idx) => ({
+        idx,
+        lx: Number.isInteger(room?.lx) ? room.lx : 0,
+        ly: Number.isInteger(room?.ly) ? room.ly : 0,
+        hx: Number.isInteger(room?.hx) ? room.hx : 0,
+        hy: Number.isInteger(room?.hy) ? room.hy : 0,
+        rtype: Number.isInteger(room?.rtype) ? room.rtype : 0,
+        orig_rtype: Number.isInteger(room?.orig_rtype) ? room.orig_rtype : 0,
+        rlit: room?.rlit ? 1 : 0,
+        doorct: Number.isInteger(room?.doorct) ? room.doorct : 0,
+        fdoor: Number.isInteger(room?.fdoor) ? room.fdoor : 0,
+        irregular: room?.irregular ? 1 : 0
+    }));
+
+    const doorindex = Number.isInteger(map.doorindex)
+        ? Math.max(0, Math.min(map.doorindex, (map.doors || []).length))
+        : 0;
+    const doors = (map.doors || []).slice(0, doorindex).map((d) => ({
+        x: Number.isInteger(d?.x) ? d.x : 0,
+        y: Number.isInteger(d?.y) ? d.y : 0
+    }));
+
+    const stairs = [];
+    if (Number.isInteger(map?.upstair?.x) && Number.isInteger(map?.upstair?.y)) {
+        const loc = map.at(map.upstair.x, map.upstair.y);
+        if (loc && (loc.typ === STAIRS || loc.typ === LADDER)) {
+            stairs.push({
+                x: map.upstair.x,
+                y: map.upstair.y,
+                up: 1,
+                isladder: loc.typ === LADDER ? 1 : 0,
+                to: { dnum: 0, dlevel: 0 }
+            });
+        }
+    }
+    if (Number.isInteger(map?.dnstair?.x) && Number.isInteger(map?.dnstair?.y)) {
+        const loc = map.at(map.dnstair.x, map.dnstair.y);
+        if (loc && (loc.typ === STAIRS || loc.typ === LADDER)) {
+            stairs.push({
+                x: map.dnstair.x,
+                y: map.dnstair.y,
+                up: 0,
+                isladder: loc.typ === LADDER ? 1 : 0,
+                to: { dnum: 0, dlevel: 0 }
+            });
+        }
+    }
+
+    const ctx = levelState.finalizeContext || {};
+    levelCheckpoints.push({
+        phase: (typeof phase === 'string' && phase.length > 0) ? phase : 'unspecified',
+        rngCallCount: getRngCallCount(),
+        dnum: Number.isInteger(ctx.dnum) ? ctx.dnum : null,
+        dlevel: Number.isInteger(ctx.dlevel) ? ctx.dlevel : null,
+        typGrid,
+        flagGrid,
+        wallInfoGrid,
+        traps,
+        monsters,
+        nroom,
+        rooms,
+        doorindex,
+        doors,
+        stairs,
+        updest: normalizeDestRect(map.updest),
+        dndest: normalizeDestRect(map.dndest)
+    });
 }
 
 function mkmapInitMap(map, bgTyp) {
@@ -1031,6 +1200,7 @@ export function resetLevelState() {
     icedpools = false;
     Sokoban = false;
     monsterExecSeq = 0;
+    levelCheckpoints = [];
 
     // Initialize BSP rectangle pool for random room placement
     // C ref: sp_lev.c special level generation requires rect pool initialization
@@ -1102,6 +1272,44 @@ function canPlaceStair(direction) {
     return true;
 }
 
+// C ref: mkmaze.c setup_waterlevel()
+// We mirror base terrain conversion plus RNG-visible bubble seeding scaffold.
+function setup_waterlevel_parity(map, isWaterLevel) {
+    if (!map) return;
+    map.flags.hero_memory = false;
+
+    const baseTyp = isWaterLevel ? WATER : AIR;
+    for (let x = 1; x < COLNO; x++) {
+        for (let y = 0; y < ROWNO; y++) {
+            const loc = map.at(x, y);
+            if (loc && loc.typ === STONE) {
+                loc.typ = baseTyp;
+            }
+        }
+    }
+
+    // C hardcoded bounds from setup_waterlevel().
+    const xmin = 3;
+    const ymin = 1;
+    const xmax = Math.min(78, (COLNO - 1) - 1);
+    const ymax = Math.min(20, (ROWNO - 1));
+
+    const xskip = isWaterLevel ? (10 + rn2(10)) : (6 + rn2(4));
+    const yskip = isWaterLevel ? (4 + rn2(4)) : (3 + rn2(3));
+
+    // Keep seeded bubble descriptors for later movement parity work.
+    const bubbles = [];
+    for (let x = xmin; x <= xmax; x += xskip) {
+        for (let y = ymin; y <= ymax; y += yskip) {
+            const n = rn2(7); // C mk_bubble(..., rn2(7))
+            if (x < xmax && y < ymax) {
+                bubbles.push({ x, y, n });
+            }
+        }
+    }
+    map._waterLevelSetup = { xmin, ymin, xmax, ymax, xskip, yskip, bubbles, isWaterLevel };
+}
+
 function fixupSpecialLevel() {
     if (!levelState.map || levelState.branchPlaced) return;
     // C ref: mkmaze.c fixup_special()
@@ -1112,6 +1320,15 @@ function fixupSpecialLevel() {
     const LR_BRANCH = 4;
     const LR_UPSTAIR = 5;
     const LR_DOWNSTAIR = 6;
+    const ctx = levelState.finalizeContext || {};
+    const specialName = (typeof ctx.specialName === 'string') ? ctx.specialName.toLowerCase() : '';
+
+    // C ref: mkmaze.c fixup_special():
+    // Is_waterlevel/Is_airlevel forces hero_memory off and runs setup_waterlevel()
+    // before processing levregions.
+    if (specialName === 'water' || specialName === 'air') {
+        setup_waterlevel_parity(levelState.map, specialName === 'water');
+    }
 
     let addedBranch = false;
     const withBranchHint = (placement, fn) => {
@@ -1128,6 +1345,50 @@ function fixupSpecialLevel() {
             }
         }
     };
+    const withPortalDest = (dest, fn) => {
+        const map = levelState.map;
+        const prev = map._portalDestOverride;
+        if (dest) {
+            map._portalDestOverride = { dnum: dest.dnum, dlevel: dest.dlevel };
+        } else {
+            delete map._portalDestOverride;
+        }
+        try {
+            fn();
+        } finally {
+            if (prev === undefined) {
+                delete map._portalDestOverride;
+            } else {
+                map._portalDestOverride = prev;
+            }
+        }
+    };
+    const resolvePortalDest = (region, ctx) => {
+        if (region?.rtype !== LR_PORTAL) return null;
+        const rname = (typeof region.rname === 'string') ? region.rname.trim() : '';
+        if (!rname) return null;
+
+        // C ref: mkmaze.c fixup_special() LR_PORTAL:
+        // numeric rname keeps current dungeon and sets destination dlevel.
+        if (/^\d+$/.test(rname)) {
+            const dlevel = Number.parseInt(rname, 10);
+            if (Number.isFinite(ctx?.dnum) && Number.isFinite(dlevel)) {
+                return { dnum: ctx.dnum, dlevel };
+            }
+            return null;
+        }
+
+        // Named portal destination: resolve by registered special-level name.
+        return findSpecialLevelByName(rname);
+    };
+    const placeRegion = (region, explicitType = region.rtype) => {
+        const ctx = levelState.finalizeContext || {};
+        const portalDest = resolvePortalDest(region, ctx);
+        withPortalDest(portalDest, () => place_lregion(levelState.map,
+            region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
+            region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
+            explicitType));
+    };
     for (const region of levelState.levRegions || []) {
         switch (region.rtype) {
             case LR_BRANCH:
@@ -1139,44 +1400,28 @@ function fixupSpecialLevel() {
                     break;
                 }
                 if (explicit === 'portal') {
-                    withBranchHint('portal', () => place_lregion(levelState.map,
-                        region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
-                        region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
-                        LR_BRANCH));
+                    withBranchHint('portal', () => placeRegion(region, LR_BRANCH));
                     break;
                 }
                 if (explicit === 'stairs') {
-                    withBranchHint('stair-down', () => place_lregion(levelState.map,
-                        region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
-                        region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
-                        LR_BRANCH));
+                    withBranchHint('stair-down', () => placeRegion(region, LR_BRANCH));
                     break;
                 }
 
-                const ctx = levelState.finalizeContext || {};
                 const branch = resolveBranchPlacementForLevel(ctx.dnum, ctx.dlevel);
                 if (branch.placement === 'none') {
                     break;
                 }
                 if (branch.placement === 'portal') {
-                    withBranchHint('portal', () => place_lregion(levelState.map,
-                        region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
-                        region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
-                        LR_BRANCH));
+                    withBranchHint('portal', () => placeRegion(region, LR_BRANCH));
                     break;
                 }
                 if (branch.placement === 'stair-up') {
-                    withBranchHint('stair-up', () => place_lregion(levelState.map,
-                        region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
-                        region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
-                        LR_BRANCH));
+                    withBranchHint('stair-up', () => placeRegion(region, LR_BRANCH));
                     break;
                 }
                 if (branch.placement === 'stair-down') {
-                    withBranchHint('stair-down', () => place_lregion(levelState.map,
-                        region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
-                        region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
-                        LR_BRANCH));
+                    withBranchHint('stair-down', () => placeRegion(region, LR_BRANCH));
                     break;
                 }
                 // Fallback for unknown resolver states.
@@ -1184,10 +1429,7 @@ function fixupSpecialLevel() {
             case LR_PORTAL:
             case LR_UPSTAIR:
             case LR_DOWNSTAIR:
-                place_lregion(levelState.map,
-                    region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
-                    region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
-                    region.rtype);
+                placeRegion(region);
                 break;
             case LR_TELE:
             case LR_UPTELE:
@@ -1213,7 +1455,6 @@ function fixupSpecialLevel() {
         }
     }
 
-    const ctx = levelState.finalizeContext || {};
     if (!addedBranch && ctx.isBranchLevel) {
         // C fallback: fixup_special() places branch if Is_branchlev(&u.uz) true.
         const branch = resolveBranchPlacementForLevel(ctx.dnum, ctx.dlevel);
@@ -1226,7 +1467,6 @@ function fixupSpecialLevel() {
         }
     }
 
-    const specialName = (typeof ctx.specialName === 'string') ? ctx.specialName.toLowerCase() : '';
     if (specialName === 'baalz') {
         baalz_fixup(levelState.map);
     }
@@ -1250,6 +1490,7 @@ function fixupSpecialLevel() {
         levelState.map.flags.has_town = true;
     }
 
+    captureCheckpoint('after_levregions_fixup');
     levelState.branchPlaced = true;
 }
 
@@ -1455,6 +1696,21 @@ export function getTypGrid() {
     return grid;
 }
 
+export function setCheckpointCaptureEnabled(enabled = true) {
+    checkpointCaptureEnabled = !!enabled;
+    if (!checkpointCaptureEnabled) {
+        levelCheckpoints = [];
+    }
+}
+
+export function clearLevelCheckpoints() {
+    levelCheckpoints = [];
+}
+
+export function getLevelCheckpoints() {
+    return JSON.parse(JSON.stringify(levelCheckpoints));
+}
+
 /**
  * des.level_init({ style = "solidfill", fg = " " })
  *
@@ -1494,6 +1750,7 @@ export function level_init(opts = {}) {
 
     // Apply the initialization - always create fresh map and clear entity arrays
     levelState.map = new GameMap();
+    installTypWatch(levelState.map);
     // Keep C-like level flags when Lua scripts call level_init multiple times.
     for (const [k, v] of Object.entries(levelState.flags)) {
         if (k in levelState.map.flags) {
@@ -1635,6 +1892,7 @@ export function level_init(opts = {}) {
             }
         }
     }
+    captureCheckpoint('after_level_init');
 }
 
 /**
@@ -2278,6 +2536,8 @@ export function map(data) {
         };
         contents(mapRegion);
     }
+
+    captureCheckpoint('after_map');
 }
 
 /**
@@ -2464,6 +2724,18 @@ export function terrain(x_or_opts, y_or_type, type) {
                 markSpLevMap(pos.x, pos.y);
                 markSpLevTouched(pos.x, pos.y);
             }
+        } else if (Array.isArray(x_or_opts.coords)) {
+            // selection object format (selection.new()/area()/randline() result)
+            const terrainType = mapchrToTerrain(y_or_type);
+            if (terrainType === -1) return;
+            for (const coord of x_or_opts.coords) {
+                if (!coord) continue;
+                if (coord.x >= 0 && coord.x < COLNO && coord.y >= 0 && coord.y < ROWNO) {
+                    levelState.map.locations[coord.x][coord.y].typ = terrainType;
+                    markSpLevMap(coord.x, coord.y);
+                    markSpLevTouched(coord.x, coord.y);
+                }
+            }
         }
     } else if (typeof x_or_opts === 'number') {
         // (x, y, type) format
@@ -2504,38 +2776,53 @@ export function replace_terrain(opts) {
 
     const chance = opts.chance !== undefined ? opts.chance : 100;
 
-    // Determine region to replace in
-    let x1 = 0, y1 = 0, x2 = COLNO - 1, y2 = ROWNO - 1;
+    // C ref: spo_replace_terrain() iterates selection bounds in x-major order.
+    let minX = 0, minY = 0, maxX = COLNO - 1, maxY = ROWNO - 1;
+    let selSet = null;
 
-    if (opts.region) {
-        if (opts.region.x1 !== undefined) {
-            // Rectangle format
-            x1 = opts.region.x1;
-            y1 = opts.region.y1;
-            x2 = opts.region.x2;
-            y2 = opts.region.y2;
-        } else if (opts.region.coords) {
-            // Selection format - replace only those coords
-            for (const coord of opts.region.coords) {
-                if (coord.x >= 0 && coord.x < COLNO && coord.y >= 0 && coord.y < ROWNO) {
-                    const loc = levelState.map.locations[coord.x][coord.y];
-                    if (loc.typ === fromType && (chance >= 100 || rn2(100) < chance)) {
-                        loc.typ = toType;
-                    }
-                }
-            }
-            return;
+    if (opts.region && opts.region.coords) {
+        selSet = new Set();
+        minX = COLNO - 1;
+        minY = ROWNO - 1;
+        maxX = 0;
+        maxY = 0;
+        for (const coord of opts.region.coords) {
+            if (!coord) continue;
+            const x = Math.trunc(coord.x);
+            const y = Math.trunc(coord.y);
+            if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) continue;
+            selSet.add(`${x},${y}`);
+            if (x < minX) minX = x;
+            if (y < minY) minY = y;
+            if (x > maxX) maxX = x;
+            if (y > maxY) maxY = y;
         }
+        if (selSet.size === 0) return;
+    } else if (opts.region && Array.isArray(opts.region) && opts.region.length >= 4) {
+        // des.replace_terrain({ region: [x1,y1,x2,y2], ... })
+        const p1 = getLocation(opts.region[0], opts.region[1], GETLOC_ANY_LOC, levelState.currentRoom || null);
+        const p2 = getLocation(opts.region[2], opts.region[3], GETLOC_ANY_LOC, levelState.currentRoom || null);
+        minX = Math.max(0, Math.min(p1.x, p2.x));
+        minY = Math.max(0, Math.min(p1.y, p2.y));
+        maxX = Math.min(COLNO - 1, Math.max(p1.x, p2.x));
+        maxY = Math.min(ROWNO - 1, Math.max(p1.y, p2.y));
+    } else if (opts.region && opts.region.x1 !== undefined) {
+        // C ref: rectangle args are passed through get_location(..., ANY_LOC, croom).
+        const p1 = getLocation(opts.region.x1, opts.region.y1, GETLOC_ANY_LOC, levelState.currentRoom || null);
+        const p2 = getLocation(opts.region.x2, opts.region.y2, GETLOC_ANY_LOC, levelState.currentRoom || null);
+        minX = Math.max(0, Math.min(p1.x, p2.x));
+        minY = Math.max(0, Math.min(p1.y, p2.y));
+        maxX = Math.min(COLNO - 1, Math.max(p1.x, p2.x));
+        maxY = Math.min(ROWNO - 1, Math.max(p1.y, p2.y));
     }
 
-    // Replace in rectangular region
-    for (let y = y1; y <= y2; y++) {
-        for (let x = x1; x <= x2; x++) {
-            if (x >= 0 && x < COLNO && y >= 0 && y < ROWNO) {
-                const loc = levelState.map.locations[x][y];
-                if (loc.typ === fromType && (chance >= 100 || rn2(100) < chance)) {
-                    loc.typ = toType;
-                }
+    for (let x = Math.max(1, minX); x <= maxX; x++) {
+        for (let y = minY; y <= maxY; y++) {
+            if (selSet && !selSet.has(`${x},${y}`)) continue;
+            const loc = levelState.map.locations[x][y];
+            if (loc.typ !== fromType) continue;
+            if (rn2(100) < chance) {
+                loc.typ = toType;
             }
         }
     }
@@ -3416,13 +3703,12 @@ export function stair(direction, x, y) {
             levelState.map.traps = (levelState.map.traps || []).filter(t => t !== trap);
         }
 
+        if (!canPlaceStair(dir)) {
+            return;
+        }
         // C ref: mkstairs(..., force=TRUE) for fixed coordinates coerces terrain.
         if (!isRandom) {
             levelState.map.locations[stairX][stairY].typ = ROOM;
-        }
-
-        if (!canPlaceStair(dir)) {
-            return;
         }
         const loc = levelState.map.locations[stairX][stairY];
         loc.typ = stairType;
@@ -4755,13 +5041,12 @@ export function ladder(direction, x, y) {
         levelState.map.traps = (levelState.map.traps || []).filter(t => t !== trap);
     }
 
+    if (!canPlaceStair(dir)) {
+        return;
+    }
     // C ref: fixed-coordinate placement uses force=TRUE and coerces terrain.
     if (!isRandom) {
         levelState.map.locations[xabs][yabs].typ = ROOM;
-    }
-
-    if (!canPlaceStair(dir)) {
-        return;
     }
 
     const up = (dir === 'up') ? 1 : 0;
@@ -6010,6 +6295,10 @@ function remove_boundary_syms(map) {
 }
 
 export function finalize_level() {
+    const extraPhaseTrace = (getProcessEnv('WEBHACK_EXTRA_PHASE_CHECKPOINTS') === '1');
+    if (extraPhaseTrace) {
+        captureCheckpoint('after_script');
+    }
     // CRITICAL: Execute deferred placements BEFORE wallification
     // This matches C's execution order: rooms → corridors → entities → wallify
     if (levelState.deferredActions.length > 0) {
@@ -6026,6 +6315,9 @@ export function finalize_level() {
         executeDeferredObjects();
         executeDeferredMonsters();
         executeDeferredTraps();
+    }
+    if (extraPhaseTrace) {
+        captureCheckpoint('after_deferred');
     }
 
     // Copy monster requests to map
@@ -6047,15 +6339,24 @@ export function finalize_level() {
             add_doors_to_room(levelState.map, room);
         }
     }
+    if (extraPhaseTrace) {
+        captureCheckpoint('after_link_doors');
+    }
 
     // C ref: sp_lev.c remove_boundary_syms() runs before map_cleanup.
     if (levelState.map) {
         remove_boundary_syms(levelState.map);
     }
+    if (extraPhaseTrace) {
+        captureCheckpoint('after_remove_boundary');
+    }
 
     // C ref: sp_lev.c map_cleanup() runs before wallification.
     if (levelState.map) {
         map_cleanup(levelState.map);
+    }
+    if (extraPhaseTrace) {
+        captureCheckpoint('after_map_cleanup');
     }
 
     // C ref: mklev.c:1388-1422 — Fill ordinary rooms with random content.
@@ -6093,6 +6394,10 @@ export function finalize_level() {
         }
     }
 
+    if (extraPhaseTrace) {
+        captureCheckpoint('before_wallification');
+    }
+
     // Apply wallification first (before flipping).
     // C ref: sp_lev.c lspo_finalize_level()/load_special() wallify only when
     // !svl.level.flags.corrmaze (corrmaze is overloaded to suppress wallify
@@ -6100,6 +6405,7 @@ export function finalize_level() {
     if (levelState.map && !levelState.flags.corrmaze) {
         wallification(levelState.map);
     }
+    captureCheckpoint('after_wallification');
 
     // Apply random flipping
     const flipped = flipLevelRandom();
@@ -6145,6 +6451,7 @@ export function finalize_level() {
 
     // TODO: Add other finalization steps (solidify_map, premapping, etc.)
 
+    captureCheckpoint('after_finalize');
     // Return the generated map
     return levelState.map;
 }
@@ -6481,6 +6788,77 @@ export const selection = {
             }
         }
         return coords;
+    },
+
+    /**
+     * selection.randline(sel, x1, y1, x2, y2, roughness)
+     * selection.randline(x1, y1, x2, y2, roughness)
+     * C ref: nhlsel.c l_selection_randline(), selvar.c selection_do_randline()
+     */
+    randline: (...args) => {
+        let baseSel = selection.new();
+        let x1, y1, x2, y2, roughness;
+
+        if (args.length === 6 && args[0] && typeof args[0] === 'object') {
+            const src = args[0];
+            x1 = args[1];
+            y1 = args[2];
+            x2 = args[3];
+            y2 = args[4];
+            roughness = args[5];
+            if (Array.isArray(src.coords)) {
+                for (const c of src.coords) {
+                    if (Number.isFinite(c?.x) && Number.isFinite(c?.y)) {
+                        baseSel.set(c.x, c.y, true);
+                    }
+                }
+            }
+        } else if (args.length === 5) {
+            [x1, y1, x2, y2, roughness] = args;
+        } else {
+            return baseSel;
+        }
+
+        const p1 = selection._toAbsoluteCoord(x1, y1);
+        const p2 = selection._toAbsoluteCoord(x2, y2);
+        const out = selection.new();
+        for (const c of baseSel.coords) out.set(c.x, c.y, true);
+
+        const hasPoint = (x, y) => out.coords.some(c => c.x === x && c.y === y);
+        const setPoint = (x, y) => out.set(x, y, true);
+
+        const doRandLine = (ax1, ay1, ax2, ay2, rough, rec) => {
+            if (rec < 1 || (ax2 === ax1 && ay2 === ay1)) return;
+
+            const maxDist = Math.max(Math.abs(ax2 - ax1), Math.abs(ay2 - ay1));
+            if (rough > maxDist) rough = maxDist;
+
+            let mx, my;
+            if (rough < 2) {
+                mx = Math.trunc((ax1 + ax2) / 2);
+                my = Math.trunc((ay1 + ay2) / 2);
+            } else {
+                do {
+                    const dx = rn2(rough) - Math.trunc(rough / 2);
+                    const dy = rn2(rough) - Math.trunc(rough / 2);
+                    mx = Math.trunc((ax1 + ax2) / 2) + dx;
+                    my = Math.trunc((ay1 + ay2) / 2) + dy;
+                } while (mx > COLNO - 1 || mx < 0 || my < 0 || my > ROWNO - 1);
+            }
+
+            if (!hasPoint(mx, my)) setPoint(mx, my);
+
+            rough = Math.trunc((rough * 2) / 3);
+            rec--;
+
+            doRandLine(ax1, ay1, mx, my, rough, rec);
+            doRandLine(mx, my, ax2, ay2, rough, rec);
+
+            setPoint(ax2, ay2);
+        };
+
+        doRandLine(p1.x, p1.y, p2.x, p2.y, roughness, 12);
+        return out;
     },
 
     /**
@@ -7204,6 +7582,7 @@ export function mazewalk(xOrOpts, y, direction) {
     const mode = getProcessEnv('WEBHACK_MAZEWALK_MODE') || 'legacy';
     const useStateBounds = (typeof process !== 'undefined' && process.env.WEBHACK_MAZEWALK_BOUNDS === 'state');
     const trace = (typeof process !== 'undefined' && process.env.WEBHACK_MAZEWALK_TRACE === '1');
+    const traceStartRng = trace ? getRngCallCount() : 0;
     const dirs = [
         { name: 'north', dx: 0, dy: -1 },
         { name: 'south', dx: 0, dy: 1 },
@@ -7261,41 +7640,50 @@ export function mazewalk(xOrOpts, y, direction) {
     setFloorIfNotDoor(sx, sy, ftyp);
     const stats = trace ? { steps: 0, carves: 0, deadends: 0, q: [0, 0, 0, 0, 0] } : null;
     if (mode === 'c') {
-        // C-like walkfrom direction order for a=0..3: N, E, S, W.
+        // Direct recursive port of C mkmaze.c walkfrom() non-MICRO path.
+        // Direction indices mirror C's maze_dir enum: N,E,S,W => 0,1,2,3.
         const cDirs = [
             { dx: 0, dy: -1 },
             { dx: 1, dy: 0 },
             { dx: 0, dy: 1 },
             { dx: -1, dy: 0 }
         ];
-        while (stack.length > 0) {
+        const okayC = (xx, yy, d) => {
+            const dd = cDirs[d];
+            const nx = xx + dd.dx * 2;
+            const ny = yy + dd.dy * 2;
+            if (!inWalkBounds(nx, ny)) return false;
+            return isStone(nx, ny);
+        };
+        const walkfromC = (wx, wy) => {
             if (stats) stats.steps++;
-            const cur = stack[stack.length - 1];
-            setFloorIfNotDoor(cur.x, cur.y, ftyp);
-            const choices = [];
-            for (const d of cDirs) {
-                const nx = cur.x + d.dx * 2;
-                const ny = cur.y + d.dy * 2;
-                if (!inWalkBounds(nx, ny) || !isStone(nx, ny)) continue;
-                choices.push(d);
+            setFloorIfNotDoor(wx, wy, ftyp);
+            while (true) {
+                const dirsAvail = [];
+                for (let a = 0; a < 4; a++) {
+                    if (okayC(wx, wy, a)) dirsAvail.push(a);
+                }
+                if (stats) {
+                    const q = dirsAvail.length;
+                    if (q >= 0 && q < stats.q.length) stats.q[q]++;
+                }
+                if (!dirsAvail.length) {
+                    if (stats) stats.deadends++;
+                    return;
+                }
+                const dirIdx = dirsAvail[rn2(dirsAvail.length)];
+                const dd = cDirs[dirIdx];
+                const midx = wx + dd.dx;
+                const midy = wy + dd.dy;
+                const nx = wx + dd.dx * 2;
+                const ny = wy + dd.dy * 2;
+                // C walkfrom() writes the intermediate step unconditionally.
+                setFloorForced(midx, midy, ftyp);
+                if (stats) stats.carves++;
+                walkfromC(nx, ny);
             }
-            if (stats) {
-                const q = choices.length;
-                if (q >= 0 && q < stats.q.length) stats.q[q]++;
-            }
-            if (!choices.length) {
-                if (stats) stats.deadends++;
-                stack.pop();
-                continue;
-            }
-            const d = choices[rn2(choices.length)];
-            const nx = cur.x + d.dx * 2;
-            const ny = cur.y + d.dy * 2;
-            // C walkfrom() writes the intermediate step unconditionally.
-            setFloorForced(cur.x + d.dx, cur.y + d.dy, ftyp);
-            if (stats) stats.carves++;
-            stack.push({ x: nx, y: ny });
-        }
+        };
+        walkfromC(sx, sy);
     } else {
         while (stack.length > 0) {
             if (stats) stats.steps++;
@@ -7331,7 +7719,8 @@ export function mazewalk(xOrOpts, y, direction) {
         }
     }
     if (stats) {
-        console.log(`[MAZEWALK] mode=${mode} bounds=${useStateBounds ? 'state' : 'legacy'} max=(${maxX},${maxY}) start=(${sx},${sy}) dir=${dirName} steps=${stats.steps} carves=${stats.carves} dead=${stats.deadends} q=[${stats.q.join(',')}]`);
+        const traceEndRng = getRngCallCount();
+        console.log(`[MAZEWALK] mode=${mode} bounds=${useStateBounds ? 'state' : 'legacy'} max=(${maxX},${maxY}) start=(${sx},${sy}) dir=${dirName} steps=${stats.steps} carves=${stats.carves} dead=${stats.deadends} q=[${stats.q.join(',')}] rng=${traceStartRng + 1}-${traceEndRng} delta=${traceEndRng - traceStartRng}`);
     }
 
     const stockedFillEnabled = (typeof process !== 'undefined' && process.env.WEBHACK_MAZEWALK_STOCKED === '1');

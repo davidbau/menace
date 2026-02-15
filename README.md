@@ -178,7 +178,7 @@ Testing infrastructure:
 
 - **[docs/TESTING.md](docs/TESTING.md)** - Complete testing guide (setup, usage, backfilling)
 - **[.githooks/QUICK_REFERENCE.md](.githooks/QUICK_REFERENCE.md)** - Command cheat sheet
-- **[teststats/](teststats/)** - Dashboard (GitHub Pages)
+- **[floatingeye/](floatingeye/)** - Dashboard (GitHub Pages)
 
 Shell utility scripts are in `scripts/`. Debug and test scripts are in `scripts/debug/`.
 

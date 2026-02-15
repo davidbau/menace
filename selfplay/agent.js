@@ -624,7 +624,7 @@ export class Agent {
                 this.failedDescendCounts.set(attemptKey, failures);
 
                 if (failures >= 3) {
-                    const cooldown = this.turnNumber + 120;
+                    const cooldown = this.turnNumber + 60;
                     this.blockedDescendStairs.set(attemptKey, cooldown);
                     console.log(`[DESCEND-GUARD] Blocking stairs (${attempt.x},${attempt.y}) on Dlvl ${attempt.depth} for ${cooldown - this.turnNumber} turns after ${failures} failed descends`);
                 }
@@ -1220,7 +1220,7 @@ export class Agent {
                 this.descendDecisionStreaks.set(descendSig, { count: repeated, lastTurn: this.turnNumber });
 
                 if (repeated >= 3) {
-                    const cooldown = this.turnNumber + 120;
+                    const cooldown = this.turnNumber + 60;
                     this.blockedDescendStairs.set(descendSig, cooldown);
                     this.descendDecisionStreaks.delete(descendSig);
                     console.log(`[DESCEND-GUARD] Blocking stairs (${px},${py}) on Dlvl ${this.dungeon.currentDepth} for ${cooldown - this.turnNumber} turns after repeated descend decisions`);

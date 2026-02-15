@@ -1,5 +1,5 @@
 #!/bin/bash
-# Test runner: runs tests and writes results to teststats/pending.jsonl
+# Test runner: runs tests and writes results to floatingeye/pending.jsonl
 # The pending entry uses "commit": "HEAD" as a placeholder.
 # The pre-push hook replaces "HEAD" with the real hash when creating the git note.
 # Usage: ./test-and-log.sh [--allow-regression]
@@ -8,7 +8,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-TEST_HISTORY_DIR="$PROJECT_ROOT/teststats"
+TEST_HISTORY_DIR="$PROJECT_ROOT/floatingeye"
 RESULTS_FILE="$TEST_HISTORY_DIR/results.jsonl"
 PENDING_FILE="$TEST_HISTORY_DIR/pending.jsonl"
 ALLOW_REGRESSION=false
@@ -204,7 +204,7 @@ EOF
 
 # Write to pending.jsonl (single entry, overwritten each run)
 cp "$TEST_OUTPUT.json" "$PENDING_FILE"
-echo "✅ Test results written to teststats/pending.jsonl"
+echo "✅ Test results written to floatingeye/pending.jsonl"
 
 # Cleanup
 rm "$TEST_OUTPUT" "$TEST_OUTPUT.json"

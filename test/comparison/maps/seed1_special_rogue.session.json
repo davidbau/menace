@@ -4,6 +4,7 @@
   "type": "special",
   "source": "c",
   "group": "rogue",
+  "screenMode": "decgraphics",
   "levels": [
     {
       "levelName": "rogue",

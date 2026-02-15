@@ -50,7 +50,7 @@ CRITICAL_FILES=(
   ".githooks/sync-notes-to-jsonl.sh"
   "TESTING_DASHBOARD.md"
   "docs/TESTING_GIT_NOTES.md"
-  "teststats/index.html"
+  "floatingeye/index.html"
   ".github/workflows/test-enforcement.yml"
 )
 
@@ -105,18 +105,18 @@ else
 fi
 echo ""
 
-# Validate JSON in teststats
+# Validate JSON in floatingeye
 echo "Validating JSON files..."
 if command -v jq >/dev/null 2>&1; then
-  if [ -f teststats/results.jsonl ]; then
-    if cat teststats/results.jsonl | jq empty 2>/dev/null; then
+  if [ -f floatingeye/results.jsonl ]; then
+    if cat floatingeye/results.jsonl | jq empty 2>/dev/null; then
       echo "✅ results.jsonl is valid"
     else
       echo "⚠️  results.jsonl has invalid JSON"
     fi
   fi
-  if [ -f teststats/schema.json ]; then
-    if jq empty teststats/schema.json >/dev/null 2>&1; then
+  if [ -f floatingeye/schema.json ]; then
+    if jq empty floatingeye/schema.json >/dev/null 2>&1; then
       echo "✅ schema.json is valid"
     else
       echo "❌ schema.json has invalid JSON"
@@ -138,7 +138,7 @@ echo "Documentation:"
 git status --short | grep -E "\.md$" | grep -E "(TESTING|SETUP|AUTOMATION|INFRASTRUCTURE)" || true
 echo ""
 echo "Dashboard:"
-git status --short | grep "teststats/" || true
+git status --short | grep "floatingeye/" || true
 echo ""
 echo "GitHub Actions:"
 git status --short | grep "\.github/" || true
@@ -170,7 +170,7 @@ echo "Staging files..."
 
 # Stage testing infrastructure files
 git add .githooks/
-git add teststats/
+git add floatingeye/
 git add scripts/setup-testing.sh
 git add scripts/commit-testing-infrastructure.sh
 git add TESTING_DASHBOARD.md
@@ -229,10 +229,10 @@ multiple automation layers and NetHack-themed documentation.
 - .githooks/QUICK_REFERENCE.md - Command cheat sheet
 - AUTOMATION_LAYERS.md - Automation explanation
 - SETUP_AFTER_CLONE.md - Setup requirements
-- teststats/README.md - Dashboard guide
+- floatingeye/README.md - Dashboard guide
 
 **Dashboard**:
-- GitHub Pages ready (teststats/index.html)
+- GitHub Pages ready (floatingeye/index.html)
 - Timeline visualization
 - Category breakdowns
 - Regression highlighting
@@ -248,7 +248,7 @@ New files (15):
 - AUTOMATION_LAYERS.md
 - SETUP_AFTER_CLONE.md
 - docs/TESTING_GIT_NOTES.md
-- teststats/README.md
+- floatingeye/README.md
 - .githooks/*.sh (9 scripts)
 - .githooks/pre-commit
 - .githooks/pre-push-notes
@@ -313,7 +313,7 @@ echo "   - Go to repository settings"
 echo "   - Pages section"
 echo "   - Source: Deploy from main branch"
 echo "   - Dashboard will be at:"
-echo "     https://davidbau.github.io/mazesofmenace/teststats/"
+echo "     https://davidbau.github.io/mazesofmenace/floatingeye/"
 echo ""
 echo "5. Share with team:"
 echo "   - New clones: npm install (auto-setup)"
