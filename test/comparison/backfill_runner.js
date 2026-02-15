@@ -24,7 +24,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const VERBOSE = process.argv.includes('--verbose');
 const USE_GOLDEN = process.argv.includes('--golden');
-const GOLDEN_BRANCH = process.env.GOLDEN_BRANCH || 'golden/sessions';
+const GOLDEN_BRANCH = process.env.GOLDEN_BRANCH || 'golden';
 
 // ============================================================================
 // Pure comparison utilities (no external deps)
