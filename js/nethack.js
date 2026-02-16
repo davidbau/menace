@@ -50,6 +50,7 @@ export class NetHackGame {
         this.commandCount = 0; // C ref: cmd.c gc.command_count — user-entered count
         this.cmdKey = 0;      // C ref: cmd.c gc.cmd_key — command to repeat
         this.lastCommand = null; // C ref: cmd.c CQ_REPEAT — last command for Ctrl+A repeat
+        this._namePromptEcho = ''; // Preserve C-style startup name prompt line placement
         // Prefix command flags
         this.menuRequested = false; // C ref: iflags.menu_requested — 'm' prefix
         this.forceFight = false;    // C ref: context.forcefight — 'F' prefix
@@ -275,6 +276,7 @@ export class NetHackGame {
         if (this.flags.name && this.flags.name.trim() !== '') {
             // Use saved name (skip prompt)
             this.player.name = this.flags.name.trim().substring(0, MAX_NAME_LENGTH);
+            this._namePromptEcho = '';
             return;
         }
 
@@ -293,6 +295,7 @@ export class NetHackGame {
 
             // C NetHack accepts any non-empty name
             this.player.name = trimmedName;
+            this._namePromptEcho = `Who are you? ${trimmedName}`;
 
             // Save name to options for future games (like C NetHack config)
             this.flags.name = trimmedName;
@@ -317,6 +320,9 @@ export class NetHackGame {
         this.display.putstr(0, 5, "         By Stichting Mathematisch Centrum and M. Stephenson.", CLR_GRAY);
         this.display.putstr(0, 6, `         Version 3.7.0 JS Port, built ${new Date().toLocaleDateString()}.`, CLR_GRAY);
         this.display.putstr(0, 7, "         See license for details.", CLR_GRAY);
+        if (this._namePromptEcho) {
+            this.display.putstr(0, 12, this._namePromptEcho, CLR_GRAY);
+        }
 
         // Phase 1: "Shall I pick character's race, role, gender and alignment for you?"
         this.display.putstr_message(

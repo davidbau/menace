@@ -2392,8 +2392,8 @@ export function map(data) {
     }
 
     // Parse map string into lines.
-    // C ref: sp_lev.c mapfrag_fromstr() keeps leading blank lines from Lua
-    // [[...]] literals, so we preserve them here for parity.
+    // C ref: sp_lev.c mapfrag_fromstr() counts newline-separated rows from the
+    // normalized Lua string; intentional blank rows remain.
     // C preserves intentional trailing blank rows and only ignores the final
     // synthetic empty segment introduced by a terminal '\n'.
     let lines = mapStr.split('\n');

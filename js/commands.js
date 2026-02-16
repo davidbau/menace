@@ -149,7 +149,7 @@ export async function rhack(ch, game) {
         // C ref: cmd.c -- '.' is rest, 's' is search
         if (c === 's') {
             // C ref: detect.c dosearch0() -- check adjacent squares for hidden things
-            dosearch0(player, map, display);
+            dosearch0(player, map, display, game);
         } 
         return { moved: false, tookTime: true };
     }
@@ -2177,7 +2177,7 @@ async function showGuidebook(display) {
 
 // Search for hidden doors and traps adjacent to player
 // C ref: detect.c dosearch0()
-export function dosearch0(player, map, display) {
+export function dosearch0(player, map, display, game = null) {
     let found = false;
     for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
@@ -2196,6 +2196,11 @@ export function dosearch0(player, map, display) {
                     loc.flags = D_CLOSED;
                     display.putstr_message('You find a hidden door!');
                     found = true;
+                    // C ref: detect.c dosearch0() calls nomul(0) when a hidden
+                    // feature is found, interrupting counted search.
+                    if (game && Number.isInteger(game.multi) && game.multi > 0) {
+                        game.multi = 0;
+                    }
                 }
             }
             // Find secret corridors
@@ -2204,6 +2209,11 @@ export function dosearch0(player, map, display) {
                     loc.typ = 24; // CORR
                     display.putstr_message('You find a hidden passage!');
                     found = true;
+                    // C ref: detect.c dosearch0() calls nomul(0) when a hidden
+                    // feature is found, interrupting counted search.
+                    if (game && Number.isInteger(game.multi) && game.multi > 0) {
+                        game.multi = 0;
+                    }
                 }
             }
         }
@@ -2466,6 +2476,28 @@ async function handleSet(game) {
         }
     }
 
+    async function editNumberPadModeOption() {
+        const lines = [
+            'Select number_pad mode:',
+            '',
+            'a -  0 (off)',
+            'b -  1 (on)',
+            'c -  2 (on, MSDOS compatible)',
+            'd -  3 (on, phone-style digit layout)',
+            'e -  4 (on, phone-style layout, MSDOS compatible)',
+            "f - -1 (off, 'z' to move upper-left, 'y' to zap wands)",
+            '(end)',
+        ];
+        renderCenteredList(lines, 24);
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+        const modeByKey = { a: 0, b: 1, c: 2, d: 3, e: 4, f: -1 };
+        if (Object.prototype.hasOwnProperty.call(modeByKey, c)) {
+            flags.number_pad = modeByKey[c];
+            saveFlags(flags);
+        }
+    }
+
     // Interactive loop - C ref: options.c doset() menu loop
     while (true) {
         drawOptions();
@@ -2502,6 +2534,10 @@ async function handleSet(game) {
         // Check for option selection
         const selected = getOptionByKey(currentPage, showHelp, c);
         if (selected) {
+            if (selected.flag === 'number_pad') {
+                await editNumberPadModeOption();
+                continue;
+            }
             if (selected.type === 'bool') {
                 setOptionValue(currentPage, showHelp, c, null, flags);
                 applyOptionSideEffects();

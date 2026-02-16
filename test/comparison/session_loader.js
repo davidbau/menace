@@ -7,6 +7,9 @@ import { basename, join, resolve } from 'node:path';
 export function stripAnsiSequences(text) {
     if (!text) return '';
     return String(text)
+        // Preserve horizontal cursor-forward movement used in C captures
+        // (e.g., "\x1b[9CVersion ...") as literal leading spaces.
+        .replace(/\x1b\[(\d*)C/g, (_m, n) => ' '.repeat(Math.max(1, Number(n || '1'))))
         .replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, '')
         .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '')
         .replace(/\x1b[@-Z\\-_]/g, '')
@@ -14,10 +17,16 @@ export function stripAnsiSequences(text) {
 }
 
 export function getSessionScreenLines(screenHolder) {
-    const raw = Array.isArray(screenHolder?.screenAnsi)
-        ? screenHolder.screenAnsi
-        : (Array.isArray(screenHolder?.screen) ? screenHolder.screen : []);
-    return raw.map((line) => stripAnsiSequences(line));
+    if (Array.isArray(screenHolder?.screenAnsi)) {
+        return screenHolder.screenAnsi.map((line) => stripAnsiSequences(line));
+    }
+    if (Array.isArray(screenHolder?.screen)) {
+        return screenHolder.screen.map((line) => stripAnsiSequences(line));
+    }
+    if (typeof screenHolder?.screen === 'string') {
+        return screenHolder.screen.split('\n').map((line) => stripAnsiSequences(line));
+    }
+    return [];
 }
 
 function deriveType(raw, fileName) {
@@ -35,12 +44,14 @@ function deriveType(raw, fileName) {
 function normalizeStep(step, index) {
     const row = step || {};
     const rng = Array.isArray(row.rng) ? row.rng : [];
+    const hasExplicitRngCalls = Number.isInteger(row.rngCalls);
+    const hasExplicitRngTrace = Array.isArray(row.rng);
     return {
         index,
         key: row.key ?? null,
         action: row.action || null,
         rng,
-        rngCalls: Number.isInteger(row.rngCalls) ? row.rngCalls : rng.length,
+        rngCalls: hasExplicitRngCalls ? row.rngCalls : (hasExplicitRngTrace ? rng.length : null),
         screen: getSessionScreenLines(row),
         screenAnsi: Array.isArray(row.screenAnsi) ? row.screenAnsi : null,
         typGrid: Array.isArray(row.typGrid) ? row.typGrid : null,
@@ -83,7 +94,7 @@ export function normalizeSession(raw, meta = {}) {
             rng: Array.isArray(startupRaw.rng) ? startupRaw.rng : [],
             rngCalls: Number.isInteger(startupRaw.rngCalls)
                 ? startupRaw.rngCalls
-                : (Array.isArray(startupRaw.rng) ? startupRaw.rng.length : 0),
+                : (Array.isArray(startupRaw.rng) ? startupRaw.rng.length : null),
             screen: getSessionScreenLines(startupRaw),
             screenAnsi: Array.isArray(startupRaw.screenAnsi) ? startupRaw.screenAnsi : null,
             typGrid: Array.isArray(startupRaw.typGrid) ? startupRaw.typGrid : null,
