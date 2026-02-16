@@ -1,185 +1,114 @@
-# Test Infrastructure Unification Plan (Tutorial + Execution Guide)
+# Test Infrastructure Unification Plan (Best-of-Both)
 
-## How To Use This Document
+## Purpose
 
-This is both:
+This document merges:
 
-1. A design doc for maintainers making architectural changes.
-2. A tutorial for contributors who need to understand why these changes are needed and how to execute them safely.
+1. The architectural rigor and governance of the unification plan.
+2. The concrete API and migration details from `CLEANUP_PLAN.md`.
 
-If you are new to this codebase, read sections in order. If you are implementing, jump to the phased plan and file map sections.
+It is both a design doc and a practical implementation guide.
 
-## Motivation: Why This Cleanup Matters
+## Executive Decisions (Non-Negotiable)
 
-Right now, test infrastructure is carrying game behavior that should live in the game itself.
+1. There are only **three official ways of running tests**:
+   - `unit`
+   - `e2e`
+   - `session`
+2. Session tests may have multiple logical subtypes (chargen, gameplay, map, special, interface, option), but they must run through **one session runner path**.
+3. Session infrastructure must not re-implement game behavior.
+4. NetHack behavior must live in game code; test code should drive and compare.
 
-That creates three recurring problems:
+## Why This Cleanup Is Necessary
 
-1. **Paradoxical failures**: a session test can fail because replay code is wrong even when game code is right.
-2. **Slow iteration**: fixes require touching test internals and game internals together.
-3. **Drift risk**: multiple headless implementations diverge over time.
+Current testing has drifted into a dual-engine model:
 
-For C parity work, this is especially expensive. We need session tests to be a trustworthy probe of core behavior, not a second game engine.
+1. Users run `NetHackGame` in browser.
+2. Session tests run a separate `HeadlessGame` implementation in `test/comparison/session_helpers.js`.
 
-## Clarification: Test Categories vs Test Entry Points
+That causes:
 
-It is fine to keep many *logical* session categories (chargen, gameplay, map, special, interface, options).
+1. Split bug fixes (fixing one path can leave the other broken).
+2. Lower confidence (tests can pass while production behavior diverges).
+3. Increased maintenance cost.
 
-But there must be only **three official ways of running tests**:
+## Clarification: Categories vs Entry Points
 
-1. `unit`
-2. `e2e`
-3. `session`
+You can keep many logical session categories for organization and reporting.
 
-That means one shared session runner path, even if it reports multiple logical session groups.
+Examples:
 
-## Current State (Observed in Code)
+1. `chargen`
+2. `gameplay`
+3. `map`
+4. `special`
+5. `interface`
+6. `options`
 
-### Symptoms
+But operationally, those are all submodes of one `session` test entrypoint.
 
-1. `js/nethack.js` mixes core game lifecycle with browser wiring (`window`, URL params, DOM boot).
-2. `js/input.js` assumes browser globals and DOM listeners.
-3. `test/comparison/session_helpers.js` includes a large custom `HeadlessGame` with turn processing and level logic.
-4. `test/comparison/session_test_runner.js` rebuilds chargen/menu behavior that already exists in game code.
-5. Multiple headless implementations exist:
+## Observed Problem Areas (Current Repo)
+
+1. `js/nethack.js` mixes core game logic with browser boot and URL/lifecycle concerns.
+2. `js/input.js` is browser-global by default.
+3. `test/comparison/session_helpers.js` contains duplicated turn and level logic.
+4. `test/comparison/session_test_runner.js` duplicates chargen/menu rendering logic.
+5. Multiple headless/runtime variants exist:
    - `test/comparison/session_helpers.js`
-   - `selfplay/runner/headless_runner.js`
    - `test/comparison/headless_game.js`
-   - `selfplay/interface/js_adapter.js` (headless display path)
-6. Session execution currently fans out into pseudo-categories (`chargen`, `interface`, `map`, `gameplay`, `special`, `other`) with category-specific behavior.
-7. Legacy runner paths remain (`test/comparison/session_runner.test.js`, interface runners).
+   - `selfplay/runner/headless_runner.js`
+   - `selfplay/interface/js_adapter.js` (partial overlap)
+6. Legacy runner paths still exist and overlap.
 
-### Why This Is Unstable
+## Target Architecture
 
-When replay logic has to implement command semantics, turn scheduling, and level transitions, the runner is no longer neutral. It becomes another behavior surface that can diverge from `NetHackGame`.
+## Mental model
 
-## Target State (Mental Model)
+The game owns behavior; tests own orchestration and comparison.
 
-### One sentence model
+## Runtime layers
 
-**The game owns behavior; tests only drive and observe.**
+1. **Core game engine** (reusable, no hard browser assumptions).
+2. **Runtime adapters**:
+   - Browser adapter
+   - Headless adapter
+3. **Session runner**:
+   - Load/normalize session file
+   - Drive core through headless adapter
+   - Compare outputs
 
-### What changes
+## Data flow
 
-1. Core game engine is reusable and injectable.
-2. Browser concerns are adapter code.
-3. Headless execution uses the same core path as browser gameplay.
-4. Session runner becomes: load session -> feed keys -> collect hooks -> compare.
-5. Only three official test run commands exist.
+1. C harness captures canonical session artifacts.
+2. Session loader normalizes format to one internal schema.
+3. Unified runner replays via core APIs.
+4. Comparison utilities report divergence.
 
-### What does not change
+## Core API Direction (Concrete)
 
-1. Logical session purposes can remain varied.
-2. Session corpus can migrate incrementally.
-3. Existing C harness tooling can remain while runner internals are simplified.
+## Constructor with injected dependencies
 
-## Design Principles (With Rationale)
+```js
+class NetHackGame {
+  constructor(options = {}, deps = {}) {
+    // options: seed, wizard, role/race/gender/align/name, flags
+    // deps: display, input, storage, lifecycle, hooks
+  }
+}
+```
 
-1. **Single source of behavior truth**
-   - Rationale: prevents replay/game divergence.
-2. **Adapters at the edges**
-   - Rationale: browser and headless should be wrappers, not alternate engines.
-3. **Compatibility in loaders, not in gameplay**
-   - Rationale: v1/v2/v3 session differences should be normalized before replay.
-4. **Deterministic observability hooks**
-   - Rationale: parity debugging needs first-class snapshots (RNG, screen, typ/flag/wall grids).
-5. **One session runner path**
-   - Rationale: category fan-out should be reporting/filtering only.
-
-## Architecture Plan (Tutorial Walkthrough)
-
-## Step 1: Refactor the core so it can be constructed directly
-
-Today:
-
-1. `NetHackGame` is private to `js/nethack.js`.
-2. Startup is coupled to URL parsing and `DOMContentLoaded`.
-
-Target:
-
-1. Export a reusable core module/class.
-2. Construct core with explicit options object.
-3. Move browser-specific setup into a browser bootstrap adapter.
-
-Why: session and selfplay runners can instantiate real game core directly.
-
-### Step 2: Inject input/output/lifecycle dependencies
-
-Today:
-
-1. Input path depends on DOM listener and `window.gameFlags`.
-2. Core invokes browser-only operations (reload/history).
-
-Target:
-
-1. Core consumes injected I/O contract:
-   - input provider (`nhgetch`, `getlin`)
-   - display provider
-   - lifecycle callbacks (reload/reset)
-2. Browser adapter supplies DOM-backed implementations.
-3. Headless adapter supplies memory-backed implementations.
-
-Why: same game code runs in browser and headless tests.
-
-### Step 3: Build one shared headless runtime
-
-Today:
-
-1. At least three headless/game shims exist.
-
-Target:
-
-1. One shared headless runtime package used by:
-   - session runner
-   - selfplay runner
-   - any replay/debug tooling
-
-Why: eliminates drift and duplicate fixes.
-
-### Step 4: Simplify session runner to driver + comparator
-
-Today:
-
-1. Session replay has many heuristics to emulate behavior.
-
-Target replay contract:
-
-1. Normalize session file schema.
-2. Instantiate core + headless adapter with session options.
-3. Feed keys exactly in order.
-4. Capture per-step hooks from core.
-5. Compare captured outputs to expected outputs.
-
-Why: makes session failures attributable to core behavior, not replay implementation details.
-
-### Step 5: Expose capture hooks from core (not test scaffolding)
-
-Add optional hooks that are emitted by core:
-
-1. `onStartup(snapshot)`
-2. `onStep({ key, action, rng, screen, turn, depth })`
-3. `onLevelGenerated({ depth, typGrid, flagGrid, wallInfoGrid, checkpoints })`
-
-Rationale:
-
-1. Avoids reconstructing state from side effects.
-2. Makes C parity diffs immediate and stable.
-
-## API Direction
-
-### Initialization options (command-line equivalent)
-
-Use one canonical options object:
+### Recommended `options` shape
 
 ```js
 {
   seed: 42,
   wizard: true,
+  enableRngLog: false,
+  name: "Wizard",
   role: "Valkyrie",
   race: "human",
   gender: "female",
   align: "neutral",
-  playerName: "Wizard",
   flags: {
     DECgraphics: true,
     autopickup: false,
@@ -187,263 +116,469 @@ Use one canonical options object:
     verbose: true
   },
   startup: {
-    startDnum: 0,
     startDepth: 1,
+    startDnum: 0,
     startDlevel: 1,
     tutorialMode: false
   }
 }
 ```
 
-### Dependency contract
+### Recommended `deps` shape
 
 ```js
 {
-  input: { nhgetch, getlin },
-  display: { /* Display-compatible methods */ },
-  storage: { loadSave, saveGame, loadFlags, saveFlags },
-  lifecycle: { restart, replaceUrlParams },
-  hooks: { onStartup, onStep, onLevelGenerated }
+  display, // Display-compatible implementation
+  input: {
+    nhgetch,
+    getlin,
+    pushInput, // optional helper for replay
+  },
+  storage: {
+    loadSave,
+    saveGame,
+    deleteSave,
+    loadFlags,
+    saveFlags,
+  },
+  lifecycle: {
+    restart,           // browser reload equivalent
+    replaceUrlParams,  // browser history equivalent
+  },
+  hooks: {
+    onStartup,
+    onStep,
+    onLevelGenerated,
+  }
 }
 ```
 
-## Session Loader Strategy (Compatibility Layer)
+## Core methods to add or formalize
 
-Keep compatibility logic in one place:
+These preserve the useful concreteness from `CLEANUP_PLAN.md` while fitting the adapter architecture.
 
-1. Normalize v1/v2/v3 into one internal schema.
-2. Normalize fields (`startup` step shape, screens, rng arrays, typGrid/checkpoint placement).
-3. Emit explicit unsupported markers for impossible legacy cases.
+1. `async initInteractive()`
+   - Browser-first startup flow (current user-facing behavior).
+2. `async parityInit(sessionOptions)`
+   - Non-interactive startup for session replay.
+3. `async feedKey(key)`
+   - Inject a key and process one replay step.
+4. `getTypGrid()`
+   - Read current terrain grid from core map state.
+5. `getRngLog()`
+   - Return current RNG trace (or snapshot delta helper).
+6. `async wizardLevelTeleport(targetDepth)`
+   - Programmatic equivalent of wizard level teleport path.
+7. `snapshotScreen()`
+   - Canonical screen capture from active display adapter.
 
-Do not carry schema-specific branching into game step execution.
+### `parityInit(sessionOptions)` expected behavior
 
-## Three Official Test Run Paths
+1. Set seed and initialize RNG.
+2. Apply character options directly (skip interactive chargen UI).
+3. Apply wizard mode/flags.
+4. Initialize level generation in C-faithful order.
+5. Generate and place player on first level.
+6. Run post-level initialization.
+7. Emit startup hook snapshot.
 
-The repo should document these as canonical:
+### `feedKey(key)` expected behavior
+
+1. Inject key via input adapter (`pushInput` or equivalent).
+2. Process command through core command path.
+3. Run any resulting turn effects through core turn logic.
+4. Capture delta artifacts (RNG/screen/typGrid when relevant).
+5. Emit step hook snapshot.
+
+## Hook contract (from core)
+
+Hooks should be emitted by game code, not synthesized by tests.
+
+1. `onStartup(snapshot)`
+   - `{ rng, screen, typGrid, turn, depth, checkpoints? }`
+2. `onStep(snapshot)`
+   - `{ key, action, rng, screen, typGrid?, turn, depth }`
+3. `onLevelGenerated(snapshot)`
+   - `{ depth, dnum?, dlevel?, typGrid, flagGrid, wallInfoGrid, checkpoints }`
+
+## Headless Display Contract (Concrete)
+
+Create a shared `HeadlessDisplay` implementation in game/runtime code, not test-only duplication.
+
+Recommended location:
+
+1. `js/runtime/headless_display.js` (preferred)
+
+Alternative (acceptable transitional):
+
+1. `js/headless_display.js`
+
+Required methods:
+
+1. `putstr(col, row, text, color, attr?)`
+2. `putstr_message(msg)`
+3. `clearRow(row)`
+4. `clearScreen()`
+5. `setCell(col, row, ch, color, attr?)`
+6. `renderMap(map, player, fov, flags)`
+7. `renderStatus(player)`
+8. `renderChargenMenu(lines, isFirstMenu)`
+
+Test-support methods:
+
+1. `getScreenLines()`
+2. `getScreenAnsi()` (optional if needed for ANSI parity workflows)
+3. `setScreenLines(lines)` (optional for compatibility/testing only)
+
+## Session Format Strategy
+
+## Normalize first, replay second
+
+Create a normalization module that maps v1/v2/v3 session files into one canonical internal schema.
+
+Why:
+
+1. Keeps format complexity out of gameplay execution.
+2. Reduces runner conditionals.
+3. Makes unsupported edge cases explicit.
+
+### Canonical internal schema
+
+```js
+{
+  meta: {
+    version,
+    source,
+    seed,
+    type,
+    options,
+  },
+  startup: {
+    rng,
+    screen,
+    screenAnsi,
+    typGrid,
+    checkpoints,
+  },
+  steps: [
+    {
+      key,
+      action,
+      rng,
+      screen,
+      screenAnsi,
+      typGrid,
+      checkpoints,
+    }
+  ]
+}
+```
+
+## Session Runner Design
+
+## Runner responsibilities
+
+1. Load + normalize sessions.
+2. Build headless runtime.
+3. Construct and initialize `NetHackGame` via `parityInit`.
+4. Replay all steps via `feedKey`.
+5. Compare actual vs expected via pure comparator utilities.
+6. Produce summary and per-session divergence details.
+
+## Runner non-responsibilities
+
+1. No duplicated turn scheduling.
+2. No duplicated level transition logic.
+3. No duplicated chargen menu construction logic.
+
+## Logical grouping behavior
+
+Keep grouping for filtering/reporting only:
+
+1. `--group=chargen`
+2. `--group=map`
+3. `--group=gameplay`
+4. `--group=special`
+5. `--group=interface`
+6. `--group=options`
+
+But all groups run through one runner path.
+
+## Test Command Contract (Three Official Ways)
+
+Canonical commands:
 
 1. `npm run test:unit`
 2. `npm run test:e2e`
 3. `npm run test:session`
 
-Wrappers like `npm test` or `npm run test:all` are allowed only as aggregators over those three paths. They must not introduce separate session runners.
+Transitional compatibility:
 
-## Phased Execution Plan (Each Phase Includes Motivation)
+1. Keep `npm run test:sessions` as alias to `test:session` until migration completes.
+2. Keep `npm test` / `npm run test:all` only as wrappers around the three canonical commands.
 
-### Phase 0: Baseline and guardrails
+## Proposed script end-state
+
+```json
+{
+  "scripts": {
+    "test:unit": "node --test test/unit/*.test.js",
+    "test:e2e": "node --test --test-concurrency=1 test/e2e/*.test.js",
+    "test:session": "node --test test/comparison/sessions.test.js",
+    "test:sessions": "npm run test:session",
+    "test": "npm run test:unit && npm run test:session",
+    "test:all": "npm run test:unit && npm run test:session && npm run test:e2e"
+  }
+}
+```
+
+## Phased Plan
+
+### Phase 0: Baseline and safety rails
 
 Motivation:
 
-1. We need confidence that refactor failures are detected quickly.
+1. Protect parity while refactoring internals.
 
 Tasks:
 
-1. Capture baseline pass/fail and runtime for unit/e2e/session.
-2. Add temporary side-by-side old/new session runner diff in CI.
-3. Freeze session corpus during core migration.
+1. Capture baseline pass/fail/runtime for unit/e2e/session.
+2. Add temporary old-vs-new session runner diff checks.
+3. Freeze session corpus during core extraction.
 
 Exit criteria:
 
-1. Baseline metrics stored.
-2. Old/new runner diff report available.
+1. Baseline artifacts captured.
+2. Diff signal available for migration PRs.
 
 ### Phase 1: Extract reusable core from `js/nethack.js`
 
 Motivation:
 
-1. Session runner cannot be simple until game core is constructible without browser boot.
+1. Session replay should target actual game engine code.
 
 Tasks:
 
-1. Export core class/module from `js/nethack.js` split.
-2. Move `DOMContentLoaded` startup into browser bootstrap module.
-3. Move URL option parsing and reset URL handling into adapter layer.
-4. Replace direct reload/history calls with lifecycle callbacks.
+1. Split browser bootstrap from core game class.
+2. Export core class/module.
+3. Move browser URL and lifecycle behavior to adapter.
 
 Exit criteria:
 
-1. Browser behavior unchanged.
-2. Core can initialize in Node without DOM boot code.
+1. Browser gameplay unchanged.
+2. Core constructible in Node without DOM boot.
 
-### Phase 2: Introduce injectable I/O runtime
+### Phase 2: Introduce dependency injection runtime
 
 Motivation:
 
-1. Core should never depend directly on `document` or `window` for input flow.
+1. Eliminate hard browser assumptions from core command loop.
 
 Tasks:
 
-1. Refactor `js/input.js` into reusable queue/input provider + browser listener adapter.
-2. Ensure core consumes injected `nhgetch/getlin` path.
-3. Keep existing display API but formalize required methods.
+1. Refactor input path to support injected input provider.
+2. Formalize display dependency contract.
+3. Wire lifecycle callbacks instead of direct browser reload/history calls.
 
 Exit criteria:
 
-1. Core runs under in-memory input/display.
-2. Browser adapter still passes e2e.
+1. Core path works without direct `window`/`document` dependency.
+2. e2e tests remain green.
 
-### Phase 3: Build one shared headless runtime
+### Phase 3: Implement concrete parity APIs
 
 Motivation:
 
-1. Duplicated headless engines are current drift source.
+1. Session runner needs stable core entrypoints.
 
 Tasks:
 
-1. Create shared headless runtime package.
-2. Port session runner to it.
-3. Port selfplay runner to it.
-4. Remove local `HeadlessGame` duplicates.
+1. Add/complete `parityInit(sessionOptions)`.
+2. Add/complete `feedKey(key)`.
+3. Add `getTypGrid()` and `getRngLog()` helpers.
+4. Add `wizardLevelTeleport(targetDepth)` wrapper over core transition logic.
 
 Exit criteria:
 
-1. One headless game path in repository.
-2. Session and selfplay use same runtime.
+1. Runner can drive game entirely through these APIs.
 
-### Phase 4: Rewrite session runner around core hooks
+### Phase 4: Shared `HeadlessDisplay` + runtime package
 
 Motivation:
 
-1. Session infra should observe, not emulate.
+1. Replace duplicated display/runtime shims.
 
 Tasks:
 
-1. Build normalized session loader.
-2. Build single replay driver (feed keys, collect hook outputs).
-3. Split pure comparators into helper modules.
-4. Remove replay heuristics that implement gameplay logic.
+1. Create shared headless display/runtime module.
+2. Port session runner to shared runtime.
+3. Port selfplay runner to shared runtime.
 
 Exit criteria:
 
-1. One session replay path for all session files.
-2. No gameplay/turn logic in session helper modules.
+1. One shared headless runtime implementation in repo.
 
-### Phase 5: Wizard mode and wizard-only action fidelity
+### Phase 5: Session loader normalization layer
 
 Motivation:
 
-1. Fast C parity work depends on wizard workflows (especially level teleport).
+1. Prevent schema complexity from contaminating replay execution.
 
 Tasks:
 
-1. Ensure wizard mode is option-driven in core init.
-2. Verify wizard commands in unified session flow:
-   - level teleport
-   - teleport
-   - map reveal
-   - genesis (as applicable)
-3. Add targeted unit/session fixtures for wizard transitions.
+1. Build normalizer for v1/v2/v3 session files.
+2. Move compatibility quirks into normalizer.
+3. Keep replay loop schema-agnostic.
 
 Exit criteria:
 
-1. Wizard sessions run through unified runner without custom replay branches.
+1. One canonical internal session shape.
 
-### Phase 6: Standardize scripts and docs on 3 run paths
+### Phase 6: Rewrite session runner as orchestrator only
 
 Motivation:
 
-1. Tooling confusion remains unless scripts and docs are explicit.
+1. Remove game logic from test infrastructure.
 
 Tasks:
 
-1. Update `package.json` scripts to canonical three categories.
-2. Ensure session wrappers delegate to one session runner only.
-3. Update docs (`docs/TESTING.md`, `docs/DESIGN.md`).
+1. Replace category-specific game behavior branches.
+2. Keep only orchestration + comparison.
+3. Move comparators into pure utility modules.
 
 Exit criteria:
 
-1. Repo docs and CI only advertise `unit`, `e2e`, `session` as primary paths.
+1. Session runner has no duplicated turn/level behavior.
 
-### Phase 7: Remove legacy runners and duplicates
+### Phase 7: Wizard fidelity and map/depth workflows
 
 Motivation:
 
-1. Keeping old paths invites regression and confusion.
+1. C parity workflows depend heavily on wizard operations.
 
 Tasks:
 
-1. Remove deprecated runner files.
-2. Remove duplicated chargen/menu reconstruction in session runner.
-3. Remove stale interface runner variants.
+1. Verify wizard commands and level teleport flows in unified runner.
+2. Add session fixtures for wizard transitions.
+3. Ensure typGrid/flagGrid/wallInfo checkpoints are emitted consistently.
 
 Exit criteria:
 
-1. No dead alternate session runner paths remain.
+1. Wizard sessions pass through unified runner with no special harness path.
+
+### Phase 8: Canonicalize scripts/docs and remove legacy paths
+
+Motivation:
+
+1. Prevent future tool fragmentation.
+
+Tasks:
+
+1. Enforce three official run paths in scripts/docs.
+2. Remove deprecated runner files and duplicated helpers.
+3. Keep temporary aliases only where needed for transition.
+
+Exit criteria:
+
+1. No alternate session runner path remains.
+2. Docs match implemented command contract.
 
 ## File-Level Refactor Map
 
-### Core and runtime
+## Core/runtime
 
 1. `js/nethack.js`
-   - split into core + browser boot adapter
+   - extract core and adapter boundaries
+   - add/finish parity APIs
 2. `js/input.js`
-   - separate reusable queue/provider from browser listener wiring
-3. `js/storage.js`
-   - URL parsing and browser persistence treated as adapter concerns
-4. `js/commands.js`
-   - keep wizard commands core-compatible with injected I/O
+   - separate browser listener from injectable queue/provider
+3. `js/runtime/headless_display.js` (or `js/headless_display.js`)
+   - shared display implementation
+4. `js/runtime/browser_adapter.js` (new)
+   - browser boot/url/lifecycle wiring
+5. `js/runtime/headless_adapter.js` (new)
+   - replay/selfplay wiring
 
-### Session infrastructure
+## Session infra
 
-1. `test/comparison/session_helpers.js`
-   - keep parse/compare utilities
-   - remove embedded gameplay simulation
-2. `test/comparison/session_test_runner.js`
-   - replace with unified loader + driver + comparator orchestration
-3. `test/comparison/sessions.test.js`
-   - wrap unified session runner outputs
+1. `test/comparison/session_test_runner.js`
+   - orchestrator only
+2. `test/comparison/session_helpers.js`
+   - pure parse/compare utilities only
+3. `test/comparison/session_loader.js` (new)
+   - normalization layer
+4. `test/comparison/comparison_utils.js` (new or extracted)
+   - RNG/grid/screen comparators
+5. `test/comparison/sessions.test.js`
+   - wrapper around unified runner output
 
-### Selfplay
+## Selfplay
 
 1. `selfplay/runner/headless_runner.js`
-   - consume shared headless runtime
+   - consume shared runtime
 2. `selfplay/interface/js_adapter.js`
-   - keep adapter role, remove duplicated game-simulation concerns
+   - keep adapter responsibilities; remove overlapping engine logic
 
-### Likely legacy removals
+## Likely deletions
 
-1. `test/comparison/session_runner.test.js`
-2. `test/comparison/headless_game.js`
-3. `test/comparison/interface_test_runner.js`
-4. `test/comparison/interface_test_runner.test.js`
-
-## CI and Performance Targets
-
-1. Session runtime should be at or below baseline after migration.
-2. Re-runs must be deterministic.
-3. Add timing metrics for:
-   - total session runtime
-   - per-session runtime
-   - startup replay/generation time
+1. `test/comparison/headless_game.js`
+2. duplicated `HeadlessGame` logic in `test/comparison/session_helpers.js`
+3. `test/comparison/session_runner.test.js`
+4. `test/comparison/interface_test_runner.js`
+5. `test/comparison/interface_test_runner.test.js`
 
 ## Risks and Mitigations
 
-1. Risk: behavior regressions from core extraction.
-   - Mitigation: side-by-side old/new session runner checks during migration.
-2. Risk: hidden browser assumptions in core path.
-   - Mitigation: explicit lint/check policy for `window`/`document` usage in core modules.
-3. Risk: legacy sparse captures rely on current replay heuristics.
-   - Mitigation: move compatibility to schema normalizer and mark unsupported edge cases explicitly.
-4. Risk: contributor confusion during transition.
-   - Mitigation: docs and scripts updated in same PR series.
+1. Risk: parity regressions while extracting core.
+   - Mitigation: side-by-side runner diff checks through migration.
+2. Risk: hidden browser dependencies remain.
+   - Mitigation: explicit runtime boundary checks and targeted tests.
+3. Risk: legacy sparse sessions need quirks.
+   - Mitigation: put quirks in loader normalization only.
+4. Risk: migration churn for contributors.
+   - Mitigation: keep temporary command aliases and clear deprecation timeline.
+
+## Open Questions (Resolved Direction)
+
+1. Where should `HeadlessDisplay` live?
+   - Direction: `js/runtime/` (shared runtime code, not test-only).
+2. Should `feedKey` be async?
+   - Direction: yes, always async to support prompt-driven commands.
+3. Should `parityInit` consume startup RNG faithfully even when skipping UI?
+   - Direction: yes; parity mode must preserve RNG ordering semantics.
+4. One unified `sessions.test.js` or many suite files?
+   - Direction: one runner path; multiple suite wrappers optional for reporting only.
 
 ## Acceptance Criteria
 
-Cleanup is complete when all are true:
+Complete means all are true:
 
-1. Only three official run categories are documented: `unit`, `e2e`, `session`.
-2. Session tests have one execution path.
-3. Session infrastructure does not implement game turn mechanics.
-4. Core game initializes from explicit options (seed/wizard/role/race/gender/align/flags) without URL dependency.
-5. One shared headless runtime is used by session and selfplay.
-6. Wizard mode and level teleport are covered in unified session flow.
+1. Official command contract is exactly three run categories (`unit`, `e2e`, `session`).
+2. Session logical subtypes exist only as grouping/filtering, not separate execution paths.
+3. Session infrastructure does not duplicate game turn or level logic.
+4. Core game can run in both browser and headless via dependency injection.
+5. Shared headless runtime is used by session and selfplay.
+6. Wizard mode and level teleport workflows are covered in unified session replay.
 7. Legacy runner duplicates are removed.
+
+## Verification Checklist
+
+After each migration phase:
+
+1. `npm run test:unit` passes or expected diffs are explained.
+2. `npm run test:e2e` passes or expected diffs are explained.
+3. `npm run test:session` parity trend is stable or improved.
+4. Runtime is not regressing materially for session runs.
+5. Browser interactive gameplay still boots and accepts input.
 
 ## Recommended PR Sequence
 
-1. PR 1: Core extraction scaffolding + browser bootstrap split.
-2. PR 2: Injected input/display/lifecycle interfaces.
-3. PR 3: Shared headless runtime introduction.
-4. PR 4: Unified session loader + runner (behind switch).
-5. PR 5: Switch `test:session` to new runner; keep temporary comparison mode.
-6. PR 6: Migrate selfplay to shared runtime.
-7. PR 7: Remove old runner paths and finalize docs/scripts.
+1. PR 1: Runtime boundary extraction (core vs browser).
+2. PR 2: Injected input/display/lifecycle contracts.
+3. PR 3: Add concrete parity APIs (`parityInit`, `feedKey`, helpers).
+4. PR 4: Shared headless display/runtime modules.
+5. PR 5: Session normalization loader + pure comparators.
+6. PR 6: Replace session runner internals with unified orchestrator.
+7. PR 7: Migrate selfplay to shared runtime.
+8. PR 8: Script/docs canonicalization and legacy cleanup.
+
