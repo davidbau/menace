@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "phase": 0,
-  "generatedAt": "2026-02-16T07:44:49Z",
-  "commit": "0329485b54edd19eb970b93ee1d7a61a2137433d",
+  "generatedAt": "2026-02-16T07:48:16Z",
+  "commit": "783ce16ab77663e95fb3ec2046344a48be7e7cac",
   "branch": "codex",
   "nodeVersion": "v25.6.0",
   "platform": "linux/x86_64",
@@ -15,7 +15,7 @@
     "unit": {
       "status": "failed",
       "exitCode": 1,
-      "durationMs": 765,
+      "durationMs": 772,
       "counts": {
         "total": 75,
         "passed": 73,
@@ -28,7 +28,7 @@
     "e2e": {
       "status": "failed",
       "exitCode": 1,
-      "durationMs": 930,
+      "durationMs": 952,
       "counts": {
         "total": 3,
         "passed": 0,
@@ -41,7 +41,7 @@
     "session": {
       "status": "failed",
       "exitCode": 1,
-      "durationMs": 2219,
+      "durationMs": 2231,
       "counts": {
         "total": 168,
         "passed": 140,
@@ -204,9 +204,26 @@
     }
   },
   "overall": {
-    "durationMs": 4149,
+    "durationMs": 4197,
     "total": 246,
     "passed": 213,
     "failed": 33
+  },
+  "fileBaselines": {
+    "test/comparison/session_helpers.js": {
+      "lines": 2250,
+      "target": 500,
+      "note": "Remove HeadlessGame class and game logic"
+    },
+    "test/comparison/session_test_runner.js": {
+      "lines": 1133,
+      "target": 350,
+      "note": "Keep only orchestration, no game logic"
+    },
+    "test/comparison/headless_game.js": {
+      "lines": 615,
+      "target": 0,
+      "note": "Delete after shared runtime adoption"
+    }
   }
 }

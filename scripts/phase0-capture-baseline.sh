@@ -165,6 +165,19 @@ if [[ "$SKIP_E2E" -eq 1 ]]; then
   E2E_STATUS='skipped'
 fi
 
+count_lines() {
+  local file="$1"
+  if [[ -f "$file" ]]; then
+    wc -l < "$file" | tr -d ' '
+  else
+    echo 0
+  fi
+}
+
+SESSION_HELPERS_LINES="$(count_lines test/comparison/session_helpers.js)"
+SESSION_RUNNER_LINES="$(count_lines test/comparison/session_test_runner.js)"
+HEADLESS_GAME_LINES="$(count_lines test/comparison/headless_game.js)"
+
 OVERALL_END="$(ms_now)"
 OVERALL_DURATION=0
 if [[ "$OVERALL_START" != "0" && "$OVERALL_END" != "0" ]]; then
@@ -195,6 +208,9 @@ jq -n \
   --argjson e2eDuration "$E2E_DURATION" \
   --argjson sessionDuration "$SESSION_DURATION" \
   --argjson overallDuration "$OVERALL_DURATION" \
+  --argjson sessionHelpersLines "$SESSION_HELPERS_LINES" \
+  --argjson sessionRunnerLines "$SESSION_RUNNER_LINES" \
+  --argjson headlessGameLines "$HEADLESS_GAME_LINES" \
   --arg skipE2E "$SKIP_E2E" \
   '
   {
@@ -252,6 +268,23 @@ jq -n \
       total: ($unitCounts.total + $e2eCounts.total + $sessionCounts.total),
       passed: ($unitCounts.passed + $e2eCounts.passed + $sessionCounts.passed),
       failed: ($unitCounts.failed + $e2eCounts.failed + $sessionCounts.failed)
+    },
+    fileBaselines: {
+      "test/comparison/session_helpers.js": {
+        lines: $sessionHelpersLines,
+        target: 500,
+        note: "Remove HeadlessGame class and game logic"
+      },
+      "test/comparison/session_test_runner.js": {
+        lines: $sessionRunnerLines,
+        target: 350,
+        note: "Keep only orchestration, no game logic"
+      },
+      "test/comparison/headless_game.js": {
+        lines: $headlessGameLines,
+        target: 0,
+        note: "Delete after shared runtime adoption"
+      }
     }
   }
   ' > "$OUTPUT"

@@ -476,6 +476,8 @@ snapshotScreen() {
 - Commands are codified:
   - `bash scripts/phase0-capture-baseline.sh --output test/baseline.json`
   - `bash scripts/session-runner-diff.sh --old \"<old_cmd>\" --new \"<new_cmd>\"`
+  - `bash scripts/session-baseline-capture.sh --output test/comparison/baseline_results.json`
+  - `bash scripts/session-baseline-check.sh --strict`
 
 ---
 

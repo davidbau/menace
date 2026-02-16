@@ -11,6 +11,8 @@
     "test:session": "node --test test/comparison/sessions.test.js",
     "test:session:raw": "node test/comparison/session_test_runner.js",
     "test:session:golden": "node test/comparison/session_test_runner.js --golden",
+    "test:session:baseline:capture": "bash scripts/session-baseline-capture.sh",
+    "test:session:baseline:check": "bash scripts/session-baseline-check.sh --strict",
     "test:baseline": "bash scripts/phase0-capture-baseline.sh --output test/baseline.json",
     "test:session:diff": "bash scripts/session-runner-diff.sh",
     "serve": "python3 -m http.server 8080",
