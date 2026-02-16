@@ -1,14 +1,179 @@
 {
-  "timestamp": "2026-02-16T07:41:18.931Z",
-  "commit": "0329485b",
-  "goldenBranch": null,
+  "schemaVersion": 2,
+  "generatedAt": "2026-02-16T07:48:44.432Z",
+  "commit": "298cfbe6c4fa33b760f04607cc529d7877726a25",
+  "branch": "claude",
+  "nodeVersion": "v25.2.1",
+  "platform": "darwin/arm64",
+  "session": {
+    "durationMs": 1094,
+    "summary": {
+      "total": 168,
+      "passed": 140,
+      "failed": 28
+    },
+    "byType": {
+      "chargen": {
+        "total": 91,
+        "passed": 90,
+        "failed": 1
+      },
+      "gameplay": {
+        "total": 17,
+        "passed": 0,
+        "failed": 17
+      },
+      "special": {
+        "total": 50,
+        "passed": 49,
+        "failed": 1
+      },
+      "map": {
+        "total": 10,
+        "passed": 1,
+        "failed": 9
+      }
+    },
+    "failingSamples": [
+      {
+        "session": "seed300_chargen_tourist.session.json",
+        "type": "chargen",
+        "firstDivergence": null,
+        "error": "otmp.totable is not a function"
+      },
+      {
+        "session": "seed100_multidigit_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed1_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed200_repeat_ctrl_a_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed201_fight_prefix_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed203_run_prefix_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed204_multidigit_wait_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed2_wizard_fountains_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed3_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed3_selfplay_100turns_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed3_selfplay_20turns_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed3_selfplay_5turns_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed42_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed42_inventory_wizard_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed42_inventory_wizard_pickup_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed42_items_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed4_selfplay_150turns_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed5_gnomish_mines_gameplay.session.json",
+        "type": "gameplay",
+        "firstDivergence": null,
+        "error": "Cannot read properties of null (reading 'charCodeAt')"
+      },
+      {
+        "session": "seed119_map.session.json",
+        "type": "map",
+        "firstDivergence": {
+          "rngCall": 381,
+          "expected": "rn2(100)=22",
+          "actual": "rnd(5)=3",
+          "depth": 1
+        },
+        "error": null
+      },
+      {
+        "session": "seed119_maps_c.session.json",
+        "type": "map",
+        "firstDivergence": {
+          "rngCall": 381,
+          "expected": "rn2(100)=22",
+          "actual": "rnd(5)=3",
+          "depth": 1
+        },
+        "error": null
+      }
+    ]
+  },
   "results": [
     {
       "session": "interface_chargen.session.json",
       "type": "chargen",
       "seed": 0,
       "passed": true,
-      "duration": 9
+      "duration": 8
     },
     {
       "session": "seed100_chargen_archeologist.session.json",
@@ -16,7 +181,7 @@
       "seed": 100,
       "passed": true,
       "role": "archeologist",
-      "duration": 4
+      "duration": 5
     },
     {
       "session": "seed100_chargen_barbarian.session.json",
@@ -48,7 +213,7 @@
       "seed": 100,
       "passed": true,
       "role": "knight",
-      "duration": 4
+      "duration": 3
     },
     {
       "session": "seed100_chargen_monk.session.json",
@@ -56,7 +221,7 @@
       "seed": 100,
       "passed": true,
       "role": "monk",
-      "duration": 50
+      "duration": 52
     },
     {
       "session": "seed100_chargen_priest.session.json",
@@ -88,7 +253,7 @@
       "seed": 100,
       "passed": true,
       "role": "samurai",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed100_chargen_tourist.session.json",
@@ -136,7 +301,7 @@
       "seed": 1,
       "passed": true,
       "role": "caveman",
-      "duration": 26
+      "duration": 27
     },
     {
       "session": "seed1_chargen_healer.session.json",
@@ -152,7 +317,7 @@
       "seed": 1,
       "passed": true,
       "role": "knight",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed1_chargen_monk.session.json",
@@ -160,7 +325,7 @@
       "seed": 1,
       "passed": true,
       "role": "monk",
-      "duration": 3
+      "duration": 4
     },
     {
       "session": "seed1_chargen_priest.session.json",
@@ -168,7 +333,7 @@
       "seed": 1,
       "passed": true,
       "role": "priest",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed1_chargen_ranger.session.json",
@@ -176,7 +341,7 @@
       "seed": 1,
       "passed": true,
       "role": "ranger",
-      "duration": 16
+      "duration": 17
     },
     {
       "session": "seed1_chargen_rogue.session.json",
@@ -224,7 +389,7 @@
       "seed": 200,
       "passed": true,
       "role": "archeologist",
-      "duration": 2
+      "duration": 3
     },
     {
       "session": "seed200_chargen_barbarian.session.json",
@@ -248,7 +413,7 @@
       "seed": 200,
       "passed": true,
       "role": "healer",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed200_chargen_knight.session.json",
@@ -256,7 +421,7 @@
       "seed": 200,
       "passed": true,
       "role": "knight",
-      "duration": 2
+      "duration": 3
     },
     {
       "session": "seed200_chargen_monk.session.json",
@@ -264,7 +429,7 @@
       "seed": 200,
       "passed": true,
       "role": "monk",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed200_chargen_priest.session.json",
@@ -288,7 +453,7 @@
       "seed": 200,
       "passed": true,
       "role": "rogue",
-      "duration": 2
+      "duration": 3
     },
     {
       "session": "seed200_chargen_samurai.session.json",
@@ -312,7 +477,7 @@
       "seed": 200,
       "passed": true,
       "role": "valkyrie",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed200_chargen_wizard.session.json",
@@ -320,7 +485,7 @@
       "seed": 200,
       "passed": true,
       "role": "wizard",
-      "duration": 2
+      "duration": 3
     },
     {
       "session": "seed300_chargen_archeologist.session.json",
@@ -328,7 +493,7 @@
       "seed": 300,
       "passed": true,
       "role": "archeologist",
-      "duration": 4
+      "duration": 3
     },
     {
       "session": "seed300_chargen_barbarian.session.json",
@@ -344,7 +509,7 @@
       "seed": 300,
       "passed": true,
       "role": "caveman",
-      "duration": 2
+      "duration": 3
     },
     {
       "session": "seed300_chargen_healer.session.json",
@@ -368,7 +533,7 @@
       "seed": 300,
       "passed": true,
       "role": "monk",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed300_chargen_priest.session.json",
@@ -376,7 +541,7 @@
       "seed": 300,
       "passed": true,
       "role": "priest",
-      "duration": 3
+      "duration": 4
     },
     {
       "session": "seed300_chargen_ranger.session.json",
@@ -384,7 +549,7 @@
       "seed": 300,
       "passed": true,
       "role": "ranger",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed300_chargen_rogue.session.json",
@@ -392,7 +557,7 @@
       "seed": 300,
       "passed": true,
       "role": "rogue",
-      "duration": 2
+      "duration": 3
     },
     {
       "session": "seed300_chargen_samurai.session.json",
@@ -409,7 +574,7 @@
       "passed": false,
       "role": "tourist",
       "error": "otmp.totable is not a function",
-      "duration": 2
+      "duration": 1
     },
     {
       "session": "seed300_chargen_valkyrie.session.json",
@@ -417,7 +582,7 @@
       "seed": 300,
       "passed": true,
       "role": "valkyrie",
-      "duration": 2
+      "duration": 3
     },
     {
       "session": "seed300_chargen_wizard.session.json",
@@ -460,7 +625,7 @@
       "passed": true,
       "role": "archeologist_lawful",
       "variant": "lawful",
-      "duration": 2
+      "duration": 3
     },
     {
       "session": "seed42_chargen_barbarian.session.json",
@@ -477,7 +642,7 @@
       "passed": true,
       "role": "barbarian_chaotic",
       "variant": "chaotic",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed42_chargen_barbarian_orc.session.json",
@@ -486,7 +651,7 @@
       "passed": true,
       "role": "barbarian_orc",
       "variant": "orc",
-      "duration": 2
+      "duration": 3
     },
     {
       "session": "seed42_chargen_caveman.session.json",
@@ -512,7 +677,7 @@
       "passed": true,
       "role": "caveman_gnome",
       "variant": "gnome",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed42_chargen_caveman_lawful.session.json",
@@ -521,7 +686,7 @@
       "passed": true,
       "role": "caveman_lawful",
       "variant": "lawful",
-      "duration": 2
+      "duration": 3
     },
     {
       "session": "seed42_chargen_healer.session.json",
@@ -538,7 +703,7 @@
       "passed": true,
       "role": "healer_gnome",
       "variant": "gnome",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed42_chargen_knight.session.json",
@@ -546,7 +711,7 @@
       "seed": 42,
       "passed": true,
       "role": "knight",
-      "duration": 2
+      "duration": 3
     },
     {
       "session": "seed42_chargen_monk.session.json",
@@ -554,7 +719,7 @@
       "seed": 42,
       "passed": true,
       "role": "monk",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed42_chargen_monk_chaotic.session.json",
@@ -563,7 +728,7 @@
       "passed": true,
       "role": "monk_chaotic",
       "variant": "chaotic",
-      "duration": 2
+      "duration": 3
     },
     {
       "session": "seed42_chargen_monk_lawful.session.json",
@@ -589,7 +754,7 @@
       "passed": true,
       "role": "priest_chaotic",
       "variant": "chaotic",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed42_chargen_priest_elf.session.json",
@@ -598,7 +763,7 @@
       "passed": true,
       "role": "priest_elf",
       "variant": "elf",
-      "duration": 2
+      "duration": 3
     },
     {
       "session": "seed42_chargen_priest_lawful.session.json",
@@ -684,7 +849,7 @@
       "seed": 42,
       "passed": true,
       "role": "tourist",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed42_chargen_valkyrie.session.json",
@@ -692,7 +857,7 @@
       "seed": 42,
       "passed": true,
       "role": "valkyrie",
-      "duration": 3
+      "duration": 4
     },
     {
       "session": "seed42_chargen_valkyrie_dwarf.session.json",
@@ -727,7 +892,7 @@
       "passed": true,
       "role": "wizard_chaotic",
       "variant": "chaotic",
-      "duration": 2
+      "duration": 3
     },
     {
       "session": "seed42_chargen_wizard_elf.session.json",
@@ -736,7 +901,7 @@
       "passed": true,
       "role": "wizard_elf",
       "variant": "elf",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed42_chargen_wizard_gnome.session.json",
@@ -745,7 +910,7 @@
       "passed": true,
       "role": "wizard_gnome",
       "variant": "gnome",
-      "duration": 2
+      "duration": 3
     },
     {
       "session": "seed42_chargen_wizard_orc.session.json",
@@ -754,7 +919,7 @@
       "passed": true,
       "role": "wizard_orc",
       "variant": "orc",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed100_multidigit_gameplay.session.json",
@@ -762,7 +927,7 @@
       "seed": 100,
       "passed": false,
       "error": "Cannot read properties of null (reading 'charCodeAt')",
-      "duration": 3
+      "duration": 4
     },
     {
       "session": "seed1_gameplay.session.json",
@@ -770,7 +935,7 @@
       "seed": 1,
       "passed": false,
       "error": "Cannot read properties of null (reading 'charCodeAt')",
-      "duration": 2
+      "duration": 1
     },
     {
       "session": "seed200_repeat_ctrl_a_gameplay.session.json",
@@ -794,7 +959,7 @@
       "seed": 203,
       "passed": false,
       "error": "Cannot read properties of null (reading 'charCodeAt')",
-      "duration": 1
+      "duration": 2
     },
     {
       "session": "seed204_multidigit_wait_gameplay.session.json",
@@ -810,7 +975,7 @@
       "seed": 2,
       "passed": false,
       "error": "Cannot read properties of null (reading 'charCodeAt')",
-      "duration": 3
+      "duration": 2
     },
     {
       "session": "seed3_gameplay.session.json",
@@ -1167,7 +1332,7 @@
         "actual": "rnd(5)=5",
         "depth": 1
       },
-      "duration": 9
+      "duration": 10
     },
     {
       "session": "seed163_maps_c.session.json",
@@ -1190,7 +1355,7 @@
         "actual": "rnd(5)=5",
         "depth": 1
       },
-      "duration": 9
+      "duration": 8
     },
     {
       "session": "seed16_map.session.json",
@@ -1493,7 +1658,7 @@
         "actual": "rn2(6)=2",
         "depth": 2
       },
-      "duration": 8
+      "duration": 9
     },
     {
       "session": "seed306_maps_c.session.json",
@@ -1766,10 +1931,5 @@
       },
       "duration": 8
     }
-  ],
-  "summary": {
-    "total": 168,
-    "passed": 140,
-    "failed": 28
-  }
+  ]
 }

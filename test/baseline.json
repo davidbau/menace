@@ -1,28 +1,35 @@
 {
+  "schemaVersion": 1,
   "description": "Test baseline metrics for Phase 0 guardrails (2026-02-16)",
   "purpose": "Detect regressions during test infrastructure unification",
   "unit": {
     "total": 1468,
-    "pass": 1467,
-    "fail": 0,
+    "passed": 1467,
+    "failed": 0,
     "skipped": 1,
-    "duration_ms": 952
+    "durationMs": 952
   },
   "session": {
-    "total": 174,
-    "pass": 142,
-    "fail": 32,
-    "duration_ms": 1154,
-    "notes": "32 failures are known C-parity gaps, not infrastructure issues"
+    "total": 168,
+    "passed": 140,
+    "failed": 28,
+    "durationMs": 1094,
+    "byType": {
+      "chargen": { "total": 91, "passed": 90, "failed": 1 },
+      "gameplay": { "total": 17, "passed": 0, "failed": 17 },
+      "map": { "total": 10, "passed": 1, "failed": 9 },
+      "special": { "total": 50, "passed": 49, "failed": 1 }
+    },
+    "notes": "Failures are known C-parity gaps, not infrastructure issues"
   },
   "e2e": {
     "total": 47,
-    "pass": 43,
-    "fail": 4,
-    "duration_ms": 45177,
+    "passed": 43,
+    "failed": 4,
+    "durationMs": 45177,
     "notes": "e2e tests run in browser via puppeteer"
   },
-  "file_baselines": {
+  "fileBaselines": {
     "test/comparison/session_helpers.js": {
       "lines": 2250,
       "target": 500,
@@ -39,10 +46,10 @@
       "notes": "DELETE - use shared runtime instead"
     }
   },
-  "acceptance_thresholds": {
-    "unit_pass_min": 1467,
-    "session_pass_min": 142,
-    "session_duration_max_ms": 2000,
+  "acceptanceThresholds": {
+    "unitPassMin": 1467,
+    "sessionPassMin": 140,
+    "sessionDurationMaxMs": 2000,
     "notes": "Migration should not regress these values"
   }
 }

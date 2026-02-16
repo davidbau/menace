@@ -8,19 +8,41 @@
 //   node baseline_diff.js diff [old] [new]      # Compare two captured results
 //   node baseline_diff.js check                  # Compare against baseline
 //
-// The captured format is the JSON bundle from session_test_runner.js.
+// The captured format includes session runner results plus metadata.
 
-import { spawn } from 'node:child_process';
+import { spawn, execSync } from 'node:child_process';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import os from 'node:os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const BASELINE_FILE = join(__dirname, 'baseline_results.json');
+const SCHEMA_VERSION = 2;
+
+function getMetadata() {
+    let commit = 'unknown';
+    let branch = 'unknown';
+    try {
+        commit = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim();
+        branch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim();
+    } catch (e) {
+        // ignore git errors
+    }
+    return {
+        schemaVersion: SCHEMA_VERSION,
+        generatedAt: new Date().toISOString(),
+        commit,
+        branch,
+        nodeVersion: process.version,
+        platform: `${os.platform()}/${os.arch()}`,
+    };
+}
 
 async function runSessionRunner() {
+    const startTime = Date.now();
     return new Promise((resolve, reject) => {
         const child = spawn('node', [join(__dirname, 'session_test_runner.js')], {
             cwd: join(__dirname, '../..'),
@@ -33,6 +55,7 @@ async function runSessionRunner() {
         });
 
         child.on('close', (code) => {
+            const durationMs = Date.now() - startTime;
             // Extract JSON from output
             const marker = '__RESULTS_JSON__';
             const idx = output.indexOf(marker);
@@ -43,6 +66,7 @@ async function runSessionRunner() {
             const jsonStr = output.slice(idx + marker.length).trim();
             try {
                 const results = JSON.parse(jsonStr);
+                results.durationMs = durationMs;
                 resolve(results);
             } catch (e) {
                 reject(new Error(`Failed to parse JSON: ${e.message}`));
@@ -53,20 +77,54 @@ async function runSessionRunner() {
     });
 }
 
+function computeByType(results) {
+    const byType = {};
+    for (const r of results) {
+        const type = r.type || 'other';
+        if (!byType[type]) {
+            byType[type] = { total: 0, passed: 0, failed: 0 };
+        }
+        byType[type].total++;
+        if (r.passed) {
+            byType[type].passed++;
+        } else {
+            byType[type].failed++;
+        }
+    }
+    return byType;
+}
+
+function getFailingSamples(results, limit = 20) {
+    return results
+        .filter(r => !r.passed)
+        .slice(0, limit)
+        .map(r => ({
+            session: r.session,
+            type: r.type || 'other',
+            firstDivergence: r.firstDivergence || null,
+            error: r.error || null,
+        }));
+}
+
 function summarizeResults(bundle) {
     const bySession = {};
-    for (const r of bundle.results) {
+    const results = bundle.results || [];
+    for (const r of results) {
         bySession[r.session] = {
             passed: r.passed,
-            type: r.type,
+            type: r.type || 'other',
             seed: r.seed,
             duration: r.duration,
+            error: r.error || null,
         };
     }
+    // Handle both old format (bundle.summary) and new format (bundle.session.summary)
+    const summary = bundle.session?.summary || bundle.summary || { total: 0, passed: 0, failed: 0 };
     return {
-        timestamp: bundle.timestamp,
+        timestamp: bundle.generatedAt || bundle.timestamp,
         commit: bundle.commit,
-        summary: bundle.summary,
+        summary,
+        byType: bundle.session?.byType || computeByType(results),
         bySession,
     };
 }
@@ -161,11 +219,30 @@ function formatDiff(diffs) {
 async function captureCommand(filename) {
     const outFile = filename || BASELINE_FILE;
     console.log('Running session tests...');
-    const results = await runSessionRunner();
-    writeFileSync(outFile, JSON.stringify(results, null, 2));
-    console.log(`Captured ${results.summary.total} results to ${outFile}`);
-    console.log(`  Passed: ${results.summary.passed}`);
-    console.log(`  Failed: ${results.summary.failed}`);
+    const rawResults = await runSessionRunner();
+
+    // Build enhanced baseline format
+    const baseline = {
+        ...getMetadata(),
+        session: {
+            durationMs: rawResults.durationMs,
+            summary: rawResults.summary,
+            byType: computeByType(rawResults.results),
+            failingSamples: getFailingSamples(rawResults.results),
+        },
+        // Keep full results for detailed diffing
+        results: rawResults.results,
+    };
+
+    writeFileSync(outFile, JSON.stringify(baseline, null, 2));
+    console.log(`Captured ${baseline.session.summary.total} results to ${outFile}`);
+    console.log(`  Passed: ${baseline.session.summary.passed}`);
+    console.log(`  Failed: ${baseline.session.summary.failed}`);
+    console.log(`  Duration: ${baseline.session.durationMs}ms`);
+    console.log('\nBy type:');
+    for (const [type, counts] of Object.entries(baseline.session.byType)) {
+        console.log(`  ${type}: ${counts.passed}/${counts.total} passed`);
+    }
 }
 
 async function diffCommand(oldFile, newFile) {
@@ -204,12 +281,23 @@ async function checkCommand() {
     }
 
     console.log('Running session tests...');
-    const newResults = await runSessionRunner();
+    const rawResults = await runSessionRunner();
+    // Wrap raw results in new format for comparison
+    const newBundle = {
+        ...getMetadata(),
+        session: {
+            durationMs: rawResults.durationMs,
+            summary: rawResults.summary,
+            byType: computeByType(rawResults.results),
+        },
+        results: rawResults.results,
+    };
 
     const oldBundle = JSON.parse(readFileSync(BASELINE_FILE, 'utf-8'));
 
-    console.log(`\nComparing against baseline (${oldBundle.timestamp}):`);
-    const diffs = diffResults(oldBundle, newResults);
+    const timestamp = oldBundle.generatedAt || oldBundle.timestamp;
+    console.log(`\nComparing against baseline (${timestamp}):`);
+    const diffs = diffResults(oldBundle, newBundle);
     console.log(formatDiff(diffs));
 
     // Exit with error if regressions found
