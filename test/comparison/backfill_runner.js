@@ -317,30 +317,15 @@ async function runBackfillTests() {
                     continue;
                 }
 
-                // Compare startup RNG
-                const startup = getSessionStartup(session);
-                const startupRng = startup?.rng || [];
-                const jsStartupRng = jsResult.startup?.rng || [];
-                if (startupRng.length > 0 || jsStartupRng.length > 0) {
-                    const rngCmp = compareRngArrays(jsStartupRng, startupRng);
-                    recordRng(result, rngCmp.matched, rngCmp.total, rngCmp.firstDivergence);
-                }
-
-                // Compare startup grid
-                if (startup?.typGrid) {
-                    const gridCmp = compareGrids(jsResult.startup?.grid, startup.typGrid);
-                    recordGrids(result, gridCmp.matched, gridCmp.total);
-                }
-
-                // Compare gameplay steps
-                const goldenSteps = getGameplaySteps(session);
+                // Compare all steps (1:1 mapping - steps[0] is startup)
+                const allGoldenSteps = session.steps || [];
                 const jsSteps = jsResult.steps || [];
-                const stepCount = Math.min(goldenSteps.length, jsSteps.length);
+                const stepCount = Math.min(allGoldenSteps.length, jsSteps.length);
                 let stepRngMatched = 0, stepRngTotal = 0;
                 let screenMatched = 0, screenTotal = 0;
 
                 for (let i = 0; i < stepCount; i++) {
-                    const golden = goldenSteps[i];
+                    const golden = allGoldenSteps[i];
                     const js = jsSteps[i];
 
                     // Compare step RNG

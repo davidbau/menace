@@ -6,7 +6,7 @@ import { NORMAL_SPEED, A_DEX, A_CON,
          A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
          FEMALE, MALE, TERMINAL_COLS } from './config.js';
-import { initRng, rn2, rnd, rn1, getRngState, setRngState, getRngCallCount, setRngCallCount } from './rng.js';
+import { initRng, rn2, rnd, rn1, rnl, rne, rnz, d, getRngState, setRngState, getRngCallCount, setRngCallCount } from './rng.js';
 import { Display, CLR_GRAY } from './display.js';
 import { initInput, nhgetch, getCount, getlin } from './input.js';
 import { FOV } from './vision.js';
@@ -30,7 +30,7 @@ import { startRecording, getKeylog, saveKeylog, startReplay } from './keylog.js'
 
 // --- Game State ---
 // C ref: decl.h -- globals are accessed via NH object (see DECISIONS.md #7)
-class NetHackGame {
+export class NetHackGame {
     constructor() {
         this.player = new Player();
         this.map = null;
@@ -66,102 +66,200 @@ class NetHackGame {
         };
     }
 
-    // Initialize a new game
+    // Initialize a new game (browser entry point)
     // C ref: allmain.c early_init() + moveloop_preamble()
     async init() {
-        // Parse URL params
+        await this.initImplementation();
+    }
+
+    // Core initialization implementation
+    // testOpts can override URL params for testing:
+    //   - mode: undefined (default) | 'startup' | 'gameplay'
+    //   - seed, wizard, name, display, flags
+    //   - For gameplay mode: preStartupRng, roleIndex, race, align, gender
+    async initImplementation(testOpts = {}) {
+        // Parse URL params as defaults
         const urlOpts = getUrlParams();
-        this.wizard = urlOpts.wizard;
 
-        // Initialize display
-        this.display = new Display('game');
+        // Merge options: testOpts override urlOpts override defaults
+        const mode = testOpts.mode;  // undefined | 'startup' | 'gameplay'
+        const wizard = testOpts.wizard ?? urlOpts.wizard ?? false;
+        const seed = testOpts.seed ?? urlOpts.seed ?? Math.floor(Math.random() * 0xFFFFFFFF);
 
-        // Initialize input
+        this.wizard = wizard;
+        this.seed = seed;
+
+        // Set up display (provided, or create new)
+        if (testOpts.display) {
+            this.display = testOpts.display;
+        } else if (!this.display) {
+            this.display = new Display('game');
+        }
+
+        // Initialize input (browser only, safe to call in headless)
         initInput();
 
-        // Handle ?reset=1 — prompt to delete all saved data
-        if (urlOpts.reset) {
+        // Load and merge flags
+        if (testOpts.flags) {
+            this.flags = { pickup: false, verbose: false, safe_wait: true, ...testOpts.flags };
+        } else {
+            this.flags = loadFlags();
+        }
+
+        // Expose globals for input handler
+        window.gameFlags = this.flags;
+        window.gameDisplay = this.display;
+        window.gameInstance = this;
+
+        // Handle reset (default mode only)
+        if (!mode && urlOpts.reset) {
             await this.handleReset();
         }
 
-        // Load user flags (C ref: flags struct from flag.h)
-        // loadFlags() merges: C defaults < JS overrides < localStorage < URL params
-        this.flags = loadFlags();
-
-        // Expose flags and display globally for input handler
-        // (flags for number_pad mode, display for message acknowledgement)
-        window.gameFlags = this.flags;
-        window.gameDisplay = this.display;
-
-        // Check for saved game before RNG init
-        const saveData = loadSave();
-        if (saveData) {
-            const restored = await this.restoreFromSave(saveData, urlOpts);
-            if (restored) return;
-            // User declined restore -- delete save (NetHack tradition)
-            deleteSave();
+        // Check for saved game (default mode only)
+        if (!mode) {
+            const saveData = loadSave();
+            if (saveData) {
+                const restored = await this.restoreFromSave(saveData, urlOpts);
+                if (restored) return;
+                deleteSave();
+            }
         }
 
-        // Initialize RNG with seed from URL or random
-        const seed = urlOpts.seed !== null
-            ? urlOpts.seed
-            : Math.floor(Math.random() * 0xFFFFFFFF);
-        this.seed = seed;
+        // Initialize RNG
         initRng(seed);
         setGameSeed(seed);
 
-        // Start keystroke recording for reproducibility
-        startRecording(seed, this.flags);
-        window.gameInstance = this;
+        // === Mode-specific initialization ===
 
-        // Show welcome message
-        // C ref: allmain.c -- welcome messages
-        const wizStr = this.wizard ? ' [WIZARD MODE]' : '';
-        const seedStr = urlOpts.seed !== null ? ` (seed:${seed})` : '';
-        this.display.putstr_message(`NetHack JS -- Welcome to the Mazes of Menace!${wizStr}${seedStr}`);
+        if (mode === 'gameplay') {
+            // Gameplay mode: skip chargen, consume preStartupRng, jump to gameplay
+            const {
+                preStartupRng = [],
+                roleIndex = 11,     // Valkyrie
+                race = 0,           // human
+                align = 0,          // neutral
+                gender = 0,         // male (0) or female (1)
+                name = 'Wizard',
+            } = testOpts;
 
-        // Player selection
-        // C ref: In wizard mode, auto-selects Valkyrie/Human/Female/Neutral
-        // with NO RNG consumption. In normal mode, interactive selection.
-        if (this.wizard) {
-            // Wizard mode: auto-select Valkyrie (index 11)
-            this.player.initRole(11); // PM_VALKYRIE
-            this.player.name = 'Wizard';
-            this.player.race = RACE_HUMAN;
-            this.player.gender = FEMALE;
-            this.player.alignment = A_NEUTRAL;
-        } else {
+            // Consume pre-startup RNG entries (chargen menu RNG)
+            for (const entry of preStartupRng) {
+                this._consumeRngEntry(entry);
+            }
+
+            // Set up player
+            this.player.initRole(roleIndex);
+            this.player.name = name;
+            this.player.race = race;
+            this.player.gender = gender;
+            this.player.alignment = align;
+            this.player.wizard = wizard;
+            this.flags.name = name;
+
+            // Level generation and placement
+            this._initLevelAndPlayer(roleIndex);
+
+        } else if (mode === 'startup') {
+            // Startup mode: seed RNG, show startup screen, wait for input
+            // For chargen/interface testing
+            const name = testOpts.name;
+            if (name) {
+                this.player.name = name;
+                this.flags.name = name;
+            }
+
+            // Show startup screen and run chargen
             await this.playerSelection();
-        }
 
-        // One-time level generation init (init_objects + dungeon structure)
-        // Role-dependent RNG in C startup depends on selected role.
-        // C ref: allmain.c startup ordering around role selection and init_dungeons.
+            // After chargen completes, do level generation
+            this._initLevelAndPlayer(this.player.roleIndex);
+
+        } else {
+            // Default mode: full flow with "Who are you?", URL params, etc.
+            startRecording(seed, this.flags);
+
+            // Show welcome message
+            const wizStr = wizard ? ' [WIZARD MODE]' : '';
+            const seedStr = urlOpts.seed !== null ? ` (seed:${seed})` : '';
+            this.display.putstr_message(`NetHack JS -- Welcome to the Mazes of Menace!${wizStr}${seedStr}`);
+
+            // Player selection
+            if (wizard) {
+                // Wizard mode: auto-select Valkyrie
+                this.player.initRole(11);
+                this.player.name = 'Wizard';
+                this.player.race = RACE_HUMAN;
+                this.player.gender = FEMALE;
+                this.player.alignment = A_NEUTRAL;
+            } else {
+                await this.playerSelection();
+            }
+
+            // Level generation and placement
+            this._initLevelAndPlayer(this.player.roleIndex);
+        }
+    }
+
+    // Common level generation and player placement logic
+    _initLevelAndPlayer(roleIndex) {
+        // Level generation init (role-dependent)
         setMakemonPlayerContext(this.player);
-        initLevelGeneration(this.player.roleIndex);
+        initLevelGeneration(roleIndex);
 
         // Generate first level
         // C ref: mklev() — bones rn2(3) + makelevel
         this.changeLevel(1);
 
-        // Place player at upstair position
-        // C ref: u_on_upstairs() — no RNG
-        this.placePlayerOnLevel();
+        // Place player at upstair (matching C's u_on_upstairs)
+        if (this.map.upstair) {
+            this.player.x = this.map.upstair.x;
+            this.player.y = this.map.upstair.y;
+        } else {
+            this.placePlayerOnLevel();
+        }
 
         // Post-level initialization: pet, inventory, attributes, welcome
-        // C ref: allmain.c newgame() — makedog through welcome(TRUE)
         const initResult = simulatePostLevelInit(this.player, this.map, 1);
         this.player.wizard = this.wizard;
-        this.seerTurn = initResult.seerTurn;
+        this.seerTurn = initResult?.seerTurn ?? 0;
 
         // Apply flags
         this.player.showExp = this.flags.showexp;
         this.player.showTime = this.flags.time;
 
-        // Initial display
+        // Initial FOV and display
         this.fov.compute(this.map, this.player.x, this.player.y);
         this.display.renderMap(this.map, this.player, this.fov, this.flags);
         this.display.renderStatus(this.player);
+    }
+
+    // Consume a single RNG entry like "rn2(6)=3" to advance RNG state
+    // Used by parityTestInit to match C's chargen RNG consumption
+    _consumeRngEntry(entry) {
+        if (!entry) return;
+        // Extract function call part (before @ if present)
+        const call = typeof entry === 'string' ? entry.split('@')[0].trim() : '';
+        const match = call.match(/^([a-z0-9_]+)\(([^)]*)\)=/i);
+        if (!match) return;
+
+        const fn = match[1];
+        const args = match[2]
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean)
+            .map(s => parseInt(s, 10));
+
+        // Call the corresponding RNG function to advance state
+        switch (fn) {
+            case 'rn2': if (args.length >= 1) rn2(args[0]); break;
+            case 'rnd': if (args.length >= 1) rnd(args[0]); break;
+            case 'rn1': if (args.length >= 2) rn1(args[0], args[1]); break;
+            case 'rnl': if (args.length >= 1) rnl(args[0]); break;
+            case 'rne': if (args.length >= 1) rne(args[0]); break;
+            case 'rnz': if (args.length >= 1) rnz(args[0]); break;
+            case 'd':   if (args.length >= 2) d(args[0], args[1]); break;
+        }
     }
 
     // Restore game state from a save.
@@ -1502,9 +1600,11 @@ class NetHackGame {
 
         // C ref: allmain.c:408-414 — seer_turn (clairvoyance timer)
         // Checked after hero took time; initially seer_turn=0 so fires on turn 1
-        if (this.turnCount >= this.seerTurn) {
+        // C's svm.moves is +1 ahead of turnCount (same offset as exerchk)
+        const moves = this.turnCount + 1;
+        if (moves >= this.seerTurn) {
             // rn1(31, 15) = 15 + rn2(31), range 15..45
-            this.seerTurn = this.turnCount + rn1(31, 15);
+            this.seerTurn = moves + rn1(31, 15);
         }
 
         // Note: regen_hp() with rn2(100) is now handled above (before dosounds)

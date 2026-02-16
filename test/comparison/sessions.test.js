@@ -11,7 +11,7 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const runnerPath = join(__dirname, 'session_test_runner.js');
+const runnerPath = join(__dirname, 'oracle_session_runner.js');
 
 // Store results after async loading
 let results = null;
@@ -20,7 +20,7 @@ let loadError = null;
 // Run the session test runner and collect results
 async function runSessionTests() {
     return new Promise((resolve, reject) => {
-        const child = spawn('node', [runnerPath], {
+        const child = spawn('node', [runnerPath, '--json'], {
             stdio: ['pipe', 'pipe', 'pipe']
         });
 

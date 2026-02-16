@@ -239,42 +239,33 @@ function runGameplaySession(file, session) {
         }
     }
 
-    // Step-by-step replay: verify per-step RNG traces
-    const gameplaySteps = getSessionGameplaySteps(session);
-    if (gameplaySteps.length > 0 && sessionStartup?.rng) {
+    // Step-by-step replay: verify per-step RNG traces (1:1 mapping with session.steps)
+    const allSteps = session.steps || [];
+    if (allSteps.length > 0 && sessionStartup?.rng) {
         let replay;
         it('step replay completes', async () => {
             replay = await replaySession(session.seed, session);
         });
 
-        // Verify startup still matches in replay context
-        if (sessionStartup.rngCalls !== undefined) {
-            it('replay startup rngCalls matches', () => {
-                assert.ok(replay, 'Replay failed');
-                assert.equal(replay.startup.rngCalls, sessionStartup.rngCalls,
-                    `seed=${session.seed}: replay startup JS=${replay.startup.rngCalls} ` +
-                    `session=${sessionStartup.rngCalls}`);
-            });
-        }
-
-        // Verify each step's RNG trace
-        for (let i = 0; i < gameplaySteps.length; i++) {
-            const step = gameplaySteps[i];
+        // Verify each step's RNG trace (including startup in steps[0])
+        for (let i = 0; i < allSteps.length; i++) {
+            const step = allSteps[i];
+            const label = step.key === null ? 'startup' : `step ${i} (${step.action})`;
             if (step.rng && step.rng.length > 0) {
-                it(`step ${i} RNG matches (${step.action})`, () => {
+                it(`${label} RNG matches`, () => {
                     assert.ok(replay, 'Replay failed');
                     assert.ok(replay.steps[i], `Step ${i} not produced`);
                     const divergence = compareRng(replay.steps[i].rng, step.rng);
                     assert.equal(divergence.index, -1,
-                        `step ${i} (${step.action}): RNG diverges at call ${divergence.index}: ` +
+                        `${label}: RNG diverges at call ${divergence.index}: ` +
                         `JS="${divergence.js}" session="${divergence.session}"`);
                 });
             } else {
-                it(`step ${i} RNG matches (${step.action})`, () => {
+                it(`${label} RNG matches`, () => {
                     assert.ok(replay, 'Replay failed');
                     assert.ok(replay.steps[i], `Step ${i} not produced`);
                     assert.equal(replay.steps[i].rngCalls, (step.rng || []).length,
-                        `step ${i} (${step.action}): rngCalls JS=${replay.steps[i].rngCalls} ` +
+                        `${label}: rngCalls JS=${replay.steps[i].rngCalls} ` +
                         `session=${(step.rng || []).length}`);
                 });
             }

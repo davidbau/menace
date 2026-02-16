@@ -489,12 +489,9 @@ export function generateStartupWithRng(seed, session) {
     const preStartupEntries = getPreStartupRngEntries(session);
     consumeRngEntries(preStartupEntries);
 
-    console.log(`After preStartup: ${getRngLog().length} RNG calls`);
     initLevelGeneration(roleIndex);
-    console.log(`After initLevelGeneration: ${getRngLog().length} RNG calls`);
 
     const map = makelevel(1);
-    console.log(`After makelevel: ${getRngLog().length} RNG calls`);
     // Note: wallification is now called inside makelevel
 
     // NOTE: Wizard mode (-D flag) enables omniscience for the PLAYER,
@@ -994,6 +991,19 @@ export async function replaySession(seed, session, opts = {}) {
     };
     for (let stepIndex = 0; stepIndex < maxSteps; stepIndex++) {
         const step = allSteps[stepIndex];
+
+        // Skip startup step (null key) - already handled by simulatePostLevelInit
+        if (step.key === null) {
+            pushStepResult(
+                [], // no RNG for this frame
+                opts.captureScreens ? game.display.getScreenLines() : undefined,
+                step,
+                getSessionScreenLines(step),
+                stepIndex
+            );
+            continue;
+        }
+
         const prevCount = getRngLog().length;
         const stepScreen = getSessionScreenLines(step);
         const stepMsg = stepScreen[0] || '';
@@ -1522,23 +1532,18 @@ export async function replaySession(seed, session, opts = {}) {
         await pendingCommand;
     }
 
-    const startupBurstInStep0 = hasStartupBurstInFirstStep(session);
-    let normalizedStartup = { rngCalls: startupRng.length, rng: startupRng };
-    if (startupBurstInStep0) {
-        normalizedStartup = { rngCalls: 0, rng: [] };
-        if (stepResults.length > 0) {
-            stepResults[0] = {
-                rngCalls: startupRng.length + stepResults[0].rngCalls,
-                rng: startupRng.concat(stepResults[0].rng),
-                screen: stepResults[0].screen,
-            };
-        }
+    // Merge startup RNG into steps[0] to match session format (steps[0] is startup)
+    if (stepResults.length > 0) {
+        stepResults[0] = {
+            rngCalls: startupRng.length + stepResults[0].rngCalls,
+            rng: startupRng.concat(stepResults[0].rng),
+            screen: stepResults[0].screen,
+        };
     }
 
     disableRngLog();
 
     return {
-        startup: normalizedStartup,
         steps: stepResults,
     };
 }

@@ -229,34 +229,22 @@ async function main() {
 
     let failures = 0;
 
-    if (compareRngEnabled && sessionStartup?.rng && !hasStartupBurstInFirstStep(session)) {
-        const startup = generateStartupWithRng(seed, session);
-        const div = compareRng(startup.rng, sessionStartup.rng);
-        if (div.index === -1) {
-            console.log(`startup: ok (${startup.rngCalls} calls)`);
-        } else {
-            failures++;
-            console.log(mismatchLine('startup RNG', div));
-            if (stopOnMismatch) {
-                process.exit(1);
-            }
-        }
-    } else if (compareRngEnabled && hasStartupBurstInFirstStep(session)) {
-        console.log('startup: skipped (keylog trace stores startup RNG in step 0)');
-    }
-
     const replayOpts = inferReplayStart(sessionPath, session);
     const replay = await replaySession(seed, session, {
         ...replayOpts,
         captureScreens: compareScreen,
     });
-    const totalSteps = gameplaySteps.length;
+
+    // 1:1 mapping: replay.steps[i] corresponds to session.steps[i] (including startup in steps[0])
+    const allSteps = session.steps || [];
+    const totalSteps = allSteps.length;
     let matchedSteps = 0;
     let matchedScreenSteps = 0;
 
     for (let i = 0; i < totalSteps; i++) {
         const jsStep = replay.steps[i];
-        const cStep = gameplaySteps[i];
+        const cStep = allSteps[i];
+        const stepLabel = cStep.key === null ? 'startup' : `step ${i} (${cStep.action || cStep.key})`;
         if (compareRngEnabled) {
             const div = compareRng(jsStep?.rng || [], cStep?.rng || []);
             const ok = div.index === -1;

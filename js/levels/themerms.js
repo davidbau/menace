@@ -1129,7 +1129,7 @@ export function pre_themerooms_generate() {
    // NOT here in pre_themerooms_generate(). Removing MT init from here to match C timing.
    // Theme selection happens BEFORE MT init in C (calls 260-261 vs 263-292 in seed 4).
    _mtInitCount++;
-   console.log(`pre_themerooms_generate called (count=${_mtInitCount})`);
+   // Debug disabled - use DEBUG_LUA_RNG=1 for verbose output
 
    if (DEBUG) {
        console.log(`\n[pre_themerooms_generate] luaRngCounter: ${levelState ? levelState.luaRngCounter : 'no levelState'}`);
