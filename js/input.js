@@ -1,68 +1,86 @@
-// input.js -- Keyboard input handling (environment-agnostic core)
-// Implements an async input queue that replaces C's blocking nhgetch().
-// See DECISIONS.md #1 for the rationale.
-//
-// Phase 2 refactor: This module provides the core input queue and utilities.
-// Browser-specific DOM listeners are in browser_input.js.
+// input.js -- Runtime-agnostic input primitives.
+// Provides an async input queue plus module-level wrappers used by game code.
+// Phase 2 refactor: Core is environment-agnostic; browser-specific code is in browser_input.js.
 
 import { CLR_WHITE } from './display.js';
 import { recordKey, isReplayMode, getNextReplayKey } from './keylog.js';
 
-// --- Module-level input queue (used by legacy/browser path) ---
-const inputQueue = [];
-let inputResolver = null;
-
-// Flags and display references (set by browser adapter or injected)
-let _gameFlags = null;
-let _gameDisplay = null;
-
 /**
- * Set global flags reference (for number_pad mode, etc.)
- * Called by browser adapter after flags are loaded.
+ * Create an in-memory async input queue.
+ * Useful for both browser and headless test adapters.
+ * @returns {Object} Input runtime with pushInput, nhgetch, clearInputQueue, getDisplay
  */
-export function setInputFlags(flags) {
-    _gameFlags = flags;
+export function createInputQueue() {
+    const inputQueue = [];
+    let inputResolver = null;
+
+    return {
+        pushInput(ch) {
+            if (inputResolver) {
+                const resolve = inputResolver;
+                inputResolver = null;
+                resolve(ch);
+            } else {
+                inputQueue.push(ch);
+            }
+        },
+        nhgetch() {
+            if (inputQueue.length > 0) {
+                return Promise.resolve(inputQueue.shift());
+            }
+            return new Promise((resolve) => {
+                inputResolver = resolve;
+            });
+        },
+        clearInputQueue() {
+            inputQueue.length = 0;
+            inputResolver = null;
+        },
+        getDisplay() {
+            return null;
+        },
+        hasInput() {
+            return inputQueue.length > 0;
+        },
+        get length() {
+            return inputQueue.length;
+        },
+    };
 }
 
+// --- Active Input Runtime ---
+// The active runtime is set by the adapter (browser or headless)
+const defaultInputRuntime = createInputQueue();
+let activeInputRuntime = defaultInputRuntime;
+
 /**
- * Set global display reference (for message acknowledgement)
- * Called by browser adapter after display is created.
+ * Set the active input runtime.
+ * Called by browser_input.js or headless runtime.
  */
-export function setInputDisplay(display) {
-    _gameDisplay = display;
+export function setInputRuntime(runtime) {
+    activeInputRuntime = runtime || defaultInputRuntime;
 }
 
 /**
- * Get current flags (for browser_input.js keydown handler)
+ * Get the active input runtime.
  */
-export function getInputFlags() {
-    return _gameFlags;
-}
-
-// --- Legacy browser-specific initialization ---
-// This function is DEPRECATED - use browser_input.js createBrowserInput() instead
-// Kept for backwards compatibility during Phase 2 transition
-export function initInput() {
-    // Import browser input dynamically to avoid circular deps
-    // This will be removed after browser_bootstrap.js is updated
-    if (typeof document !== 'undefined') {
-        import('./browser_input.js').then(mod => {
-            mod.initBrowserInput();
-        });
-    }
+export function getInputRuntime() {
+    return activeInputRuntime;
 }
 
 /**
- * Push a key into the input queue.
- * Used by browser adapter and replay system.
+ * Push a key into the active input queue.
  */
 export function pushInput(ch) {
-    if (inputResolver) {
-        const resolve = inputResolver;
-        inputResolver = null;
-        resolve(ch);
-    } else {
-        inputQueue.push(ch);
+    activeInputRuntime.pushInput(ch);
+}
+
+/**
+ * Clear the active input queue.
+ */
+export function clearInputQueue() {
+    if (typeof activeInputRuntime.clearInputQueue === 'function') {
+        activeInputRuntime.clearInputQueue();
     }
 }
 
@@ -72,10 +90,14 @@ export function pushInput(ch) {
  * C ref: winprocs.h win_nhgetch
  */
 export function nhgetch() {
-    // Clear message acknowledgement flag when user presses a key
+    const display = (typeof activeInputRuntime.getDisplay === 'function')
+        ? activeInputRuntime.getDisplay()
+        : null;
+
+    // Clear message acknowledgement flag when user presses a key.
     // C ref: win/tty/topl.c - toplin gets set to TOPLINE_EMPTY after keypress
-    if (_gameDisplay) {
-        _gameDisplay.messageNeedsMore = false;
+    if (display) {
+        display.messageNeedsMore = false;
     }
 
     // Replay mode: pull from replay buffer
@@ -88,16 +110,9 @@ export function nhgetch() {
         // Replay exhausted — fall through to interactive input
     }
 
-    if (inputQueue.length > 0) {
-        const ch = inputQueue.shift();
+    return Promise.resolve(activeInputRuntime.nhgetch()).then((ch) => {
         recordKey(ch);
-        return Promise.resolve(ch);
-    }
-    return new Promise(resolve => {
-        inputResolver = (ch) => {
-            recordKey(ch);
-            resolve(ch);
-        };
+        return ch;
     });
 }
 
@@ -107,13 +122,13 @@ export function nhgetch() {
  */
 export async function getlin(prompt, display) {
     let line = '';
-    const disp = display || _gameDisplay;
+    const disp = display || (activeInputRuntime.getDisplay ? activeInputRuntime.getDisplay() : null);
 
     // Helper to update display
     const updateDisplay = () => {
         if (disp) {
-            // Clear the message row and display prompt + current input
-            // Don't use putstr_message as it concatenates short messages
+            // Clear the message row and display prompt + current input.
+            // Don't use putstr_message as it concatenates short messages.
             disp.clearRow(0);
             disp.putstr(0, 0, prompt + line, CLR_WHITE);
         }
@@ -158,7 +173,7 @@ export async function ynFunction(query, choices, def, display) {
     }
     prompt += ' ';
 
-    const disp = display || _gameDisplay;
+    const disp = display || (activeInputRuntime.getDisplay ? activeInputRuntime.getDisplay() : null);
     if (disp) disp.putstr_message(prompt);
 
     while (true) {
@@ -196,7 +211,7 @@ export async function getCount(firstKey, maxCount, display) {
     const MAX_COUNT = maxCount || LARGEST_INT;
     const ERASE_CHAR = 127; // DEL
 
-    const disp = display || _gameDisplay;
+    const disp = display || (activeInputRuntime.getDisplay ? activeInputRuntime.getDisplay() : null);
 
     // If first key is provided and it's a digit, use it
     if (key && isDigit(key)) {
@@ -259,73 +274,30 @@ function isDigit(ch) {
     return ch >= 48 && ch <= 57; // '0' = 48, '9' = 57
 }
 
-/**
- * Clear the input queue.
- */
-export function clearInputQueue() {
-    inputQueue.length = 0;
+// --- Legacy exports for backwards compatibility ---
+// These are deprecated and will be removed in Phase 3
+
+/** @deprecated Use setInputRuntime instead */
+export function setInputFlags(flags) {
+    // No-op - flags are now accessed via runtime.getFlags()
 }
 
-// --- Injectable Input Queue Factory ---
-// For headless/test environments that need their own isolated input queue
+/** @deprecated Use setInputRuntime instead */
+export function setInputDisplay(display) {
+    // No-op - display is now accessed via runtime.getDisplay()
+}
 
-/**
- * Create an isolated input queue for headless/test use.
- * Returns an input adapter with pushKey and nhgetch methods.
- */
-export function createInputQueue() {
-    const queue = [];
-    let resolver = null;
+/** @deprecated Use getInputRuntime().getFlags() instead */
+export function getInputFlags() {
+    return null;
+}
 
-    return {
-        /**
-         * Push a key into the queue.
-         */
-        pushKey(ch) {
-            if (resolver) {
-                const r = resolver;
-                resolver = null;
-                r(ch);
-            } else {
-                queue.push(ch);
-            }
-        },
-
-        /**
-         * Get next key from queue (async).
-         * Throws if queue is empty (for test environments that should have all keys pre-loaded).
-         */
-        async nhgetch() {
-            if (queue.length > 0) {
-                return queue.shift();
-            }
-            // For headless mode, we might want to wait or throw
-            // Default: wait for pushKey (useful for interactive headless)
-            return new Promise(resolve => {
-                resolver = resolve;
-            });
-        },
-
-        /**
-         * Check if queue has pending input.
-         */
-        hasInput() {
-            return queue.length > 0;
-        },
-
-        /**
-         * Clear the queue.
-         */
-        clear() {
-            queue.length = 0;
-            resolver = null;
-        },
-
-        /**
-         * Get queue length (for debugging).
-         */
-        get length() {
-            return queue.length;
-        }
-    };
+/** @deprecated Use initBrowserInput from browser_input.js instead */
+export function initInput() {
+    // Legacy function - dynamically imports browser input for backwards compatibility
+    if (typeof document !== 'undefined') {
+        import('./browser_input.js').then(mod => {
+            mod.initBrowserInput();
+        });
+    }
 }

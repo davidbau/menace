@@ -11,26 +11,42 @@
 
 import { NetHackGame, getKeylog, saveKeylog, startReplay } from './nethack.js';
 import { getUrlParams } from './storage.js';
-import { createBrowserInput } from './browser_input.js';
-import { setInputFlags, setInputDisplay } from './input.js';
+import { initBrowserInput } from './browser_input.js';
 
-// --- Browser Entry Point ---
-// Start the game when the page loads
-window.addEventListener('DOMContentLoaded', async () => {
-    // Register keylog console APIs for debugging/replay
+function createBrowserLifecycle() {
+    return {
+        restart: () => window.location.reload(),
+        replaceUrlParams: (params) => {
+            const url = new URL(window.location.href);
+            for (const [key, value] of Object.entries(params)) {
+                if (value === null) {
+                    url.searchParams.delete(key);
+                } else {
+                    url.searchParams.set(key, value);
+                }
+            }
+            window.history.replaceState({}, '', url.toString());
+        },
+    };
+}
+
+function registerKeylogApis() {
     window.get_keylog = () => {
         const kl = getKeylog();
         console.log(JSON.stringify(kl, null, 2));
         return kl;
     };
     window.run_keylog = async (src) => {
-        let data = typeof src === 'string' ? await (await fetch(src)).json() : src;
+        const data = typeof src === 'string' ? await (await fetch(src)).json() : src;
         startReplay(data);
     };
     window.save_keylog = saveKeylog;
+}
 
-    // Initialize browser input (DOM keyboard listeners)
-    const inputAdapter = createBrowserInput();
+// --- Browser Entry Point ---
+// Start the game when the page loads
+window.addEventListener('DOMContentLoaded', async () => {
+    registerKeylogApis();
 
     // Parse URL parameters into game options
     const urlOpts = getUrlParams();
@@ -39,6 +55,16 @@ window.addEventListener('DOMContentLoaded', async () => {
         wizard: urlOpts.wizard,
         reset: urlOpts.reset,
     };
+
+    // Mutable references for flags/display (set via hook after init)
+    let currentFlags = null;
+    let currentDisplay = null;
+
+    // Initialize browser input with getters for flags/display
+    const inputAdapter = initBrowserInput({
+        getFlags: () => currentFlags,
+        getDisplay: () => currentDisplay,
+    });
 
     // Create browser-specific dependencies
     const deps = {
@@ -49,30 +75,18 @@ window.addEventListener('DOMContentLoaded', async () => {
         input: inputAdapter,
 
         // Lifecycle callbacks for browser environment
-        lifecycle: {
-            restart: () => window.location.reload(),
-            replaceUrlParams: (params) => {
-                const url = new URL(window.location.href);
-                for (const [key, value] of Object.entries(params)) {
-                    if (value === null) {
-                        url.searchParams.delete(key);
-                    } else {
-                        url.searchParams.set(key, value);
-                    }
-                }
-                window.history.replaceState({}, '', url.toString());
-            },
-        },
+        lifecycle: createBrowserLifecycle(),
 
-        // Hooks for observability (can be extended for debugging)
+        // Hooks for observability
         hooks: {
             // Called after flags and display are initialized
-            onRuntimeBindings: ({ flags, display }) => {
-                // Set up input module references for keyboard handler
-                setInputFlags(flags);
-                setInputDisplay(display);
+            onRuntimeBindings: ({ game, flags, display }) => {
+                // Update references for input adapter
+                currentFlags = flags;
+                currentDisplay = display;
 
-                // Also expose globally for debugging
+                // Expose globally for debugging
+                window.gameInstance = game;
                 window.gameFlags = flags;
                 window.gameDisplay = display;
             },
@@ -81,10 +95,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // Create and run the game
     const game = new NetHackGame(options, deps);
-
-    // Expose game instance globally for debugging
-    window.gameInstance = game;
-
     await game.init();
     await game.gameLoop();
 });

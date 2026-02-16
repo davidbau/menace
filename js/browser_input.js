@@ -1,35 +1,24 @@
-// browser_input.js -- Browser-specific keyboard input handling
-// This module handles DOM keyboard events and integrates with the core input queue.
-// Phase 2 refactor: Separated from input.js to keep core environment-agnostic.
+// browser_input.js -- Browser adapter for keyboard input.
+// Wires DOM keydown events into the runtime-agnostic input queue.
 
-import { pushInput, getInputFlags } from './input.js';
-
-/**
- * Initialize browser keyboard listener.
- * Sets up DOM event handlers that push keys to the shared input queue.
- * C ref: replaces tty input initialization in win/tty/wintty.c
- */
-export function initBrowserInput() {
-    document.addEventListener('keydown', handleKeyDown);
-}
+import { createInputQueue, setInputRuntime } from './input.js';
 
 /**
- * Handle keyboard events and translate to NetHack key codes.
- * Supports: vi keys, arrow keys, numpad, Ctrl/Alt modifiers, etc.
+ * Convert a browser KeyboardEvent to NetHack char code.
+ * Returns null when the key should be ignored.
+ * Exported for unit testing.
  */
-function handleKeyDown(e) {
+export function mapBrowserKeyToNhCode(e, flags = {}) {
     // Ignore modifier-only keys
     if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta') {
-        return;
+        return null;
     }
-
-    let ch = null;
-    const flags = getInputFlags();
 
     // Handle numeric keypad in number_pad mode
     // C ref: cmd.c number_pad handling - digits 1-9,0 map to directions + inventory
     // Standard layout: 7=NW 8=N 9=NE 4=W 5=. 6=E 1=SW 2=S 3=SE 0=i
-    if (flags?.number_pad && e.location === KeyboardEvent.DOM_KEY_LOCATION_NUMPAD) {
+    const DOM_KEY_LOCATION_NUMPAD = 3;
+    if (flags?.number_pad && e.location === DOM_KEY_LOCATION_NUMPAD) {
         const numpadMap = {
             '0': 'i'.charCodeAt(0),  // inventory
             '1': 'b'.charCodeAt(0),  // southwest
@@ -43,10 +32,7 @@ function handleKeyDown(e) {
             '9': 'u'.charCodeAt(0),  // northeast
         };
         if (e.key in numpadMap) {
-            ch = numpadMap[e.key];
-            e.preventDefault();
-            pushInput(ch);
-            return;
+            return numpadMap[e.key];
         }
     }
 
@@ -55,75 +41,101 @@ function handleKeyDown(e) {
     if (e.ctrlKey && !e.altKey && !e.metaKey) {
         const code = e.key.toLowerCase().charCodeAt(0);
         if (code >= 97 && code <= 122) { // a-z
-            ch = code - 96; // Ctrl+A = 1, Ctrl+Z = 26
-            e.preventDefault();
+            return code - 96; // Ctrl+A = 1, Ctrl+Z = 26
         }
     }
     // Handle Meta (Alt) key combinations
     // C ref: cmd.c uses M('x') which is (x | 0x80)
     else if (e.altKey && !e.ctrlKey && !e.metaKey) {
         if (e.key.length === 1) {
-            ch = e.key.charCodeAt(0) | 0x80;
-            e.preventDefault();
+            return e.key.charCodeAt(0) | 0x80;
         }
     }
     // Handle Escape
     else if (e.key === 'Escape') {
-        ch = 27; // ESC
-        e.preventDefault();
+        return 27; // ESC
     }
     // Handle Enter
     else if (e.key === 'Enter') {
-        ch = 13; // CR
-        e.preventDefault();
+        return 13; // CR
     }
     // Handle Backspace
     else if (e.key === 'Backspace') {
-        ch = 8;
-        e.preventDefault();
+        return 8;
     }
     // Handle space bar with rest_on_space option
     // C ref: flag.h flags.rest_on_space - space triggers rest/wait command
     else if (e.key === ' ' && flags?.rest_on_space) {
-        ch = '.'.charCodeAt(0); // Convert space to period (rest)
-        e.preventDefault();
+        return '.'.charCodeAt(0); // Convert space to period (rest)
     }
     // Handle regular character keys
     else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
-        ch = e.key.charCodeAt(0);
+        return e.key.charCodeAt(0);
     }
     // Handle arrow keys -> vi movement keys
     else if (!e.ctrlKey && !e.altKey && !e.metaKey) {
         switch (e.key) {
-            case 'ArrowLeft':  ch = 'h'.charCodeAt(0); break;
-            case 'ArrowDown':  ch = 'j'.charCodeAt(0); break;
-            case 'ArrowUp':    ch = 'k'.charCodeAt(0); break;
-            case 'ArrowRight': ch = 'l'.charCodeAt(0); break;
-            case 'Home':       ch = 'y'.charCodeAt(0); break;
-            case 'End':        ch = 'b'.charCodeAt(0); break;
-            case 'PageUp':     ch = 'K'.charCodeAt(0); break; // run up
-            case 'PageDown':   ch = 'J'.charCodeAt(0); break; // run down
+            case 'ArrowLeft':  return 'h'.charCodeAt(0);
+            case 'ArrowDown':  return 'j'.charCodeAt(0);
+            case 'ArrowUp':    return 'k'.charCodeAt(0);
+            case 'ArrowRight': return 'l'.charCodeAt(0);
+            case 'Home':       return 'y'.charCodeAt(0);
+            case 'End':        return 'b'.charCodeAt(0);
+            case 'PageUp':     return 'K'.charCodeAt(0); // run up
+            case 'PageDown':   return 'J'.charCodeAt(0); // run down
         }
-        if (ch !== null) e.preventDefault();
     }
 
-    if (ch !== null) {
-        pushInput(ch);
-    }
+    return null;
 }
 
 /**
- * Create a browser input adapter that can be passed to deps.input.
- * This sets up DOM listeners and provides the standard input interface.
+ * Create a browser input adapter with install/uninstall methods.
+ * @param {Object} opts
+ * @param {Function} opts.getFlags - Returns current game flags
+ * @param {Function} opts.getDisplay - Returns current display
  */
-export function createBrowserInput() {
-    // Initialize DOM listeners
-    initBrowserInput();
+export function createBrowserInput({ getFlags, getDisplay } = {}) {
+    const runtime = createInputQueue();
+    runtime.getDisplay = () => (typeof getDisplay === 'function' ? getDisplay() : null);
 
-    // Return an adapter interface (for future use when we fully inject input)
-    return {
-        // Currently the browser uses the shared module-level queue in input.js
-        // This adapter interface is for future phases when input is fully injected
-        type: 'browser',
+    const flagsGetter = (typeof getFlags === 'function') ? getFlags : (() => null);
+    const keydownHandler = (e) => {
+        const ch = mapBrowserKeyToNhCode(e, flagsGetter() || {});
+        if (ch !== null) {
+            e.preventDefault();
+            runtime.pushInput(ch);
+        }
     };
+
+    return {
+        ...runtime,
+        type: 'browser',
+        install() {
+            document.addEventListener('keydown', keydownHandler);
+        },
+        uninstall() {
+            document.removeEventListener('keydown', keydownHandler);
+        },
+    };
+}
+
+// Singleton browser runtime
+let browserRuntime = null;
+let browserInstalled = false;
+
+/**
+ * Initialize browser input and set as active runtime.
+ * Called once during browser bootstrap.
+ */
+export function initBrowserInput(opts = {}) {
+    if (!browserRuntime) {
+        browserRuntime = createBrowserInput(opts);
+    }
+    if (!browserInstalled) {
+        browserRuntime.install();
+        browserInstalled = true;
+    }
+    setInputRuntime(browserRuntime);
+    return browserRuntime;
 }
