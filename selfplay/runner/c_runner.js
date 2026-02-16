@@ -20,6 +20,7 @@ const opts = {
     verbose: true,
     keyDelay: 60,
     moveDelay: 0,
+    role: 'Valkyrie',
     symset: 'ASCII', // 'ASCII' or 'DECgraphics'
 };
 
@@ -36,6 +37,7 @@ for (let i = 0; i < args.length; i++) {
             else if (key === '--turns') opts.maxTurns = parseInt(value);
             else if (key === '--delay') opts.moveDelay = parseInt(value);
             else if (key === '--key-delay') opts.keyDelay = parseInt(value);
+            else if (key === '--role') opts.role = value;
             else if (key === '--graphics') opts.symset = value === 'dec' ? 'DECgraphics' : 'ASCII';
             continue;
         }
@@ -46,6 +48,7 @@ for (let i = 0; i < args.length; i++) {
     else if (arg === '--turns' && args[i + 1]) opts.maxTurns = parseInt(args[++i]);
     else if (arg === '--delay' && args[i + 1]) opts.moveDelay = parseInt(args[++i]);
     else if (arg === '--key-delay' && args[i + 1]) opts.keyDelay = parseInt(args[++i]);
+    else if (arg === '--role' && args[i + 1]) opts.role = args[++i];
     else if (arg === '--graphics' && args[i + 1]) {
         const val = args[++i];
         opts.symset = val === 'dec' ? 'DECgraphics' : 'ASCII';
@@ -58,6 +61,7 @@ for (let i = 0; i < args.length; i++) {
         console.log('  --turns=N        Maximum turns to play (default: 200)');
         console.log('  --delay=MS       Delay between agent moves in ms (default: 0)');
         console.log('  --key-delay=MS   Delay after each tmux keystroke in ms (default: 60)');
+        console.log('  --role=ROLE      Character role/class (default: Valkyrie)');
         console.log('  --graphics=MODE  Symbol set: ascii or dec (DECgraphics) (default: ascii)');
         console.log('  --verbose/-v     Verbose output (default: on)');
         console.log('  --quiet/-q       Suppress verbose output');
@@ -68,6 +72,7 @@ for (let i = 0; i < args.length; i++) {
 console.log(`NetHack AI Agent vs C Binary`);
 console.log(`  Seed: ${opts.seed}`);
 console.log(`  Max turns: ${opts.maxTurns}`);
+console.log(`  Role: ${opts.role}`);
 console.log(`  Key delay: ${opts.keyDelay}ms`);
 console.log(`  Symbol set: ${opts.symset}`);
 console.log('');
@@ -81,7 +86,7 @@ try {
     console.log('Starting C NetHack in tmux...');
     await adapter.start({
         seed: opts.seed,
-        role: 'Valkyrie',
+        role: opts.role,
         race: 'human',
         name: 'Agent',
         gender: 'female',
@@ -91,28 +96,65 @@ try {
     console.log('Game started. Running agent...');
     console.log('');
 
+    const progression = {
+        maxXL: 0,
+        maxXP: 0,
+        firstXL2Turn: null,
+        firstXL3Turn: null,
+    };
+
     const agent = new Agent(adapter, {
         maxTurns: opts.maxTurns,
         moveDelay: opts.moveDelay,
-        onTurn: opts.verbose ? (info) => {
+        onTurn: (info) => {
+            const xl = info.xl || 0;
+            const xp = info.xp || 0;
+            if (xl > progression.maxXL) progression.maxXL = xl;
+            if (xp > progression.maxXP) progression.maxXP = xp;
+            if (xl >= 2 && progression.firstXL2Turn === null) progression.firstXL2Turn = info.turn;
+            if (xl >= 3 && progression.firstXL3Turn === null) progression.firstXL3Turn = info.turn;
+
+            if (!opts.verbose) return;
             if (info.turn % 20 === 0 || info.turn <= 10) {
                 const act = info.action;
                 const actionStr = act ? `${act.type}(${act.key}): ${act.reason}` : '?';
-                console.log(`  Turn ${info.turn}: HP=${info.hp}/${info.hpmax} Dlvl=${info.dlvl} pos=(${info.position?.x},${info.position?.y}) ${actionStr}`);
+                console.log(`  Turn ${info.turn}: HP=${info.hp}/${info.hpmax} Dlvl=${info.dlvl} XL=${info.xl ?? '?'} XP=${info.xp ?? '?'} pos=(${info.position?.x},${info.position?.y}) ${actionStr}`);
             }
             // Dump agent map at intervals for diagnostics
             if (info.turn === 50 || info.turn === 100 || info.turn === 200 || info.turn % 200 === 0) {
                 dumpAgentMap(agent, info.turn);
             }
-        } : null,
+        },
     });
 
     const stats = await agent.run();
+    const finalStatus = agent.status;
 
     console.log('');
     console.log(`Game ended after ${stats.turns} turns:`);
     console.log(`  Max depth reached: ${stats.maxDepth}`);
     console.log(`  Death cause: ${stats.deathCause || 'survived'}`);
+    console.log(`  XP progression: maxXL=${Math.max(stats.maxXpLevel || 0, progression.maxXL)} maxXP=${Math.max(stats.maxXpPoints || 0, progression.maxXP)} XL2_turn=${stats.firstXpLevel2Turn ?? progression.firstXL2Turn ?? 'never'} XL3_turn=${stats.firstXpLevel3Turn ?? progression.firstXL3Turn ?? 'never'}`);
+    if (finalStatus) {
+        const hunger = finalStatus.fainting ? 'fainting'
+            : finalStatus.weak ? 'weak'
+            : finalStatus.hungry ? 'hungry'
+            : finalStatus.satiated ? 'satiated'
+            : 'normal';
+        const debuffs = [
+            finalStatus.blind ? 'blind' : null,
+            finalStatus.confused ? 'confused' : null,
+            finalStatus.stunned ? 'stunned' : null,
+            finalStatus.hallucinating ? 'hallucinating' : null,
+            finalStatus.ill ? 'ill' : null,
+            finalStatus.foodPoisoned ? 'foodpoison' : null,
+            finalStatus.slimed ? 'slimed' : null,
+        ].filter(Boolean);
+        const debuffStr = debuffs.length > 0 ? debuffs.join(',') : 'none';
+        const strength = finalStatus.strExtra > 0 ? `${finalStatus.str}/${finalStatus.strExtra}` : `${finalStatus.str}`;
+        console.log(`  Final status: HP=${finalStatus.hp}/${finalStatus.hpmax} AC=${finalStatus.ac} Dlvl=${finalStatus.dungeonLevel} XL=${finalStatus.xpLevel} XP=${finalStatus.xpPoints} Gold=${finalStatus.gold} Hunger=${hunger} Turn=${finalStatus.turns || stats.turns}`);
+        console.log(`  Final attributes: St=${strength} Dx=${finalStatus.dex} Co=${finalStatus.con} In=${finalStatus.int} Wi=${finalStatus.wis} Ch=${finalStatus.cha} Align=${finalStatus.alignment || 'unknown'} Debuffs=${debuffStr}`);
+    }
 
 } catch (err) {
     console.error('Error:', err.message);

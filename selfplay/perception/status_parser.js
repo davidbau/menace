@@ -200,14 +200,21 @@ function parseLine2(line, status) {
     const acMatch = line.match(/AC:(-?\d+)/);
     if (acMatch) status.ac = parseInt(acMatch[1]);
 
-    // Experience (Xp:level/points or Exp:level)
-    const xpMatch = line.match(/Xp:(\d+)\/(\d+)/);
+    // Experience formats seen in C/ports:
+    //   Xp:1/20
+    //   Xp:1
+    //   Exp:1
+    //   Exp:1/20
+    const xpMatch = line.match(/Xp:(\d+)(?:\/(\d+))?/i);
     if (xpMatch) {
         status.xpLevel = parseInt(xpMatch[1]);
-        status.xpPoints = parseInt(xpMatch[2]);
+        status.xpPoints = xpMatch[2] ? parseInt(xpMatch[2]) : 0;
     } else {
-        const expMatch = line.match(/Exp:(\d+)/);
-        if (expMatch) status.xpLevel = parseInt(expMatch[1]);
+        const expMatch = line.match(/Exp:(\d+)(?:\/(\d+))?/i);
+        if (expMatch) {
+            status.xpLevel = parseInt(expMatch[1]);
+            status.xpPoints = expMatch[2] ? parseInt(expMatch[2]) : 0;
+        }
     }
 
     // Turns

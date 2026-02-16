@@ -115,6 +115,10 @@ export class Agent {
             kills: 0,
             levelsExplored: 0,
             maxDepth: 0,
+            maxXpLevel: 0,
+            maxXpPoints: 0,
+            firstXpLevel2Turn: null,
+            firstXpLevel3Turn: null,
             died: false,
             deathCause: '',
         };
@@ -207,6 +211,7 @@ export class Agent {
 
             this.screen = parseScreen(grid);
             this.status = parseStatus(this.screen.statusLine1, this.screen.statusLine2);
+            this._recordXpProgress();
             if (this.onPerceive) {
                 this.onPerceive({
                     turn: this.turnNumber + 1,
@@ -331,6 +336,8 @@ export class Agent {
                     hp: this.status?.hp,
                     hpmax: this.status?.hpmax,
                     dlvl: this.status?.dungeonLevel,
+                    xl: this.status?.xpLevel,
+                    xp: this.status?.xpPoints,
                     position: this.screen ? { x: this.screen.playerX, y: this.screen.playerY } : null,
                 });
             }
@@ -342,6 +349,17 @@ export class Agent {
         }
 
         return this.stats;
+    }
+
+    _recordXpProgress() {
+        if (!this.status) return;
+        const xl = this.status.xpLevel || 0;
+        const xp = this.status.xpPoints || 0;
+        if (xl > this.stats.maxXpLevel) this.stats.maxXpLevel = xl;
+        if (xp > this.stats.maxXpPoints) this.stats.maxXpPoints = xp;
+        const turn = this.status.turns || (this.turnNumber + 1);
+        if (xl >= 2 && this.stats.firstXpLevel2Turn === null) this.stats.firstXpLevel2Turn = turn;
+        if (xl >= 3 && this.stats.firstXpLevel3Turn === null) this.stats.firstXpLevel3Turn = turn;
     }
 
     /**
