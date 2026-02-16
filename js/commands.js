@@ -149,7 +149,7 @@ export async function rhack(ch, game) {
         // C ref: cmd.c -- '.' is rest, 's' is search
         if (c === 's') {
             // C ref: detect.c dosearch0() -- check adjacent squares for hidden things
-            dosearch0(player, map, display);
+            dosearch0(player, map, display, game);
         } 
         return { moved: false, tookTime: true };
     }
@@ -2177,7 +2177,7 @@ async function showGuidebook(display) {
 
 // Search for hidden doors and traps adjacent to player
 // C ref: detect.c dosearch0()
-export function dosearch0(player, map, display) {
+export function dosearch0(player, map, display, game = null) {
     let found = false;
     for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
@@ -2196,6 +2196,11 @@ export function dosearch0(player, map, display) {
                     loc.flags = D_CLOSED;
                     display.putstr_message('You find a hidden door!');
                     found = true;
+                    // C ref: detect.c dosearch0() calls nomul(0) when a hidden
+                    // feature is found, interrupting counted search.
+                    if (game && Number.isInteger(game.multi) && game.multi > 0) {
+                        game.multi = 0;
+                    }
                 }
             }
             // Find secret corridors
@@ -2204,6 +2209,11 @@ export function dosearch0(player, map, display) {
                     loc.typ = 24; // CORR
                     display.putstr_message('You find a hidden passage!');
                     found = true;
+                    // C ref: detect.c dosearch0() calls nomul(0) when a hidden
+                    // feature is found, interrupting counted search.
+                    if (game && Number.isInteger(game.multi) && game.multi > 0) {
+                        game.multi = 0;
+                    }
                 }
             }
         }

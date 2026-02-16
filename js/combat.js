@@ -3,7 +3,7 @@
 
 import { rn2, rnd, d, c_d, rne, rnz } from './rng.js';
 import { exercise } from './attrib_exercise.js';
-import { A_DEX } from './config.js';
+import { A_DEX, A_CON } from './config.js';
 import { rndmonnum } from './makemon.js';
 import {
     mons, G_FREQ, MZ_TINY, MZ_HUMAN, M2_NEUTER, M2_MALE, M2_FEMALE, M2_COLLECT,
@@ -278,7 +278,13 @@ export function monsterAttackPlayer(monster, player, display) {
 
             if (died) {
                 if (player.wizard) {
-                    player.hp = 1;
+                    // C ref: end.c savelife() for wizard/discover survival path.
+                    // givehp = 50 + 10 * (CON / 2), then clamp to hpmax.
+                    const con = Number.isInteger(player.attributes?.[A_CON])
+                        ? player.attributes[A_CON]
+                        : 10;
+                    const givehp = 50 + 10 * Math.floor(con / 2);
+                    player.hp = Math.min(player.hpmax || givehp, givehp);
                     display.putstr_message('You survived that attempt on your life.');
                 } else {
                     player.deathCause = `killed by a ${monster.name}`;

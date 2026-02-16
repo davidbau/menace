@@ -219,7 +219,10 @@ async function runGameplayResult(session) {
     const start = Date.now();
 
     try {
-        const replay = await replaySession(session.meta.seed, session.raw, { captureScreens: true });
+        const replay = await replaySession(session.meta.seed, session.raw, {
+            captureScreens: true,
+            startupBurstInFirstStep: false,
+        });
         if (!replay || replay.error) {
             markFailed(result, replay?.error || 'Replay failed');
             setDuration(result, Date.now() - start);
