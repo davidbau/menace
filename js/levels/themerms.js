@@ -757,8 +757,7 @@ xxx|......|
    {
       name: 'Z-shaped',
       contents: function() {
-         des.map({ map: `
-xxx-----
+         des.map({ map: `xxx-----
 xxx|...|
 xxx|...|
 ----...|
@@ -1129,7 +1128,6 @@ export function pre_themerooms_generate() {
    // NOT here in pre_themerooms_generate(). Removing MT init from here to match C timing.
    // Theme selection happens BEFORE MT init in C (calls 260-261 vs 263-292 in seed 4).
    _mtInitCount++;
-   console.log(`pre_themerooms_generate called (count=${_mtInitCount})`);
 
    if (DEBUG) {
        console.log(`\n[pre_themerooms_generate] luaRngCounter: ${levelState ? levelState.luaRngCounter : 'no levelState'}`);

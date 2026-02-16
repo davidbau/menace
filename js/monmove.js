@@ -315,6 +315,45 @@ function m_harmless_trap(mon, trap) {
     }
 }
 
+// ============================================================================
+// Monster trap resolution after movement
+// C ref: monmove.c postmov() -> mintrap()
+// ============================================================================
+const Trap_Effect_Finished = 0;
+const Trap_Caught_Mon = 1;
+const Trap_Killed_Mon = 2;
+
+function mintrap_postmove(mon, map) {
+    const trap = map.trapAt(mon.mx, mon.my);
+    if (!trap) {
+        mon.mtrapped = 0;
+        return Trap_Effect_Finished;
+    }
+
+    // Entering a harmless trap has no effect for this monster.
+    if (!mon.mtrapped && m_harmless_trap(mon, trap)) {
+        return Trap_Effect_Finished;
+    }
+
+    switch (trap.ttyp) {
+    case PIT:
+    case SPIKED_PIT: {
+        // C ref: trap.c trapeffect_pit(monster) — non-passwall monsters get trapped.
+        mon.mtrapped = 1;
+        const dmg = rnd(trap.ttyp === PIT ? 6 : 10);
+        mon.mhp -= Math.max(0, dmg);
+        if (mon.mhp <= 0) {
+            mon.dead = true;
+            map.removeMonster(mon);
+            return Trap_Killed_Mon;
+        }
+        return Trap_Caught_Mon;
+    }
+    default:
+        return Trap_Effect_Finished;
+    }
+}
+
 // ========================================================================
 // mfndpos — collect valid adjacent positions in column-major order
 // ========================================================================
@@ -727,9 +766,17 @@ function dochug(mon, map, player, display, fov) {
         } else if (mon.tame) {
             // Inside condition block: m_move (routes to dog_move for tame)
             // C ref: monmove.c:911 — m_move() for all monsters in this path
+            const omx = mon.mx, omy = mon.my;
             dog_move(mon, map, player, display, fov);
+            if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
+                mintrap_postmove(mon, map);
+            }
         } else {
+            const omx = mon.mx, omy = mon.my;
             m_move(mon, map, player);
+            if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
+                mintrap_postmove(mon, map);
+            }
             if (mon.mcanmove !== false
                 && !mon.tame
                 && monsterInShop(mon, map)

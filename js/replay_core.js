@@ -694,6 +694,7 @@ export async function replaySession(seed, session, opts = {}) {
     let pendingCommand = null;
     let pendingKind = null;
     let pendingCount = 0;
+    let lastCommand = null; // C ref: do_repeat() remembered command for Ctrl+A
     let pendingTransitionTurn = false;
     let deferredSparseMoveKey = null;
     let deferredMoreBoundaryRng = [];
@@ -1061,7 +1062,26 @@ export async function replaySession(seed, session, opts = {}) {
                 pendingKind = null;
             }
         } else {
-            if (pendingCount > 0) {
+            let effectiveCh = ch;
+            if (ch === 1) { // Ctrl+A
+                if (lastCommand) {
+                    effectiveCh = lastCommand.key;
+                    game.commandCount = lastCommand.count || 0;
+                    game.multi = game.commandCount;
+                    if (game.multi > 0) game.multi--;
+                    game.cmdKey = effectiveCh;
+                } else {
+                    // No command to repeat yet: no-op, matching tty behavior.
+                    pushStepResult(
+                        [],
+                        opts.captureScreens ? game.display.getScreenLines() : undefined,
+                        step,
+                        stepScreen,
+                        stepIndex
+                    );
+                    continue;
+                }
+            } else if (pendingCount > 0) {
                 game.commandCount = pendingCount;
                 game.multi = pendingCount;
                 if (game.multi > 0) game.multi--;
@@ -1083,7 +1103,7 @@ export async function replaySession(seed, session, opts = {}) {
             // Execute the command once (one turn per keystroke)
             // Some traces use space to acknowledge "--More--" then immediately
             // rest; detect that by expected RNG and map to wait command.
-            let execCh = ch;
+            let execCh = effectiveCh;
             if (step.key === ' ') {
                 const firstRng = (step.rng || []).find((e) =>
                     typeof e === 'string' && !e.startsWith('>') && !e.startsWith('<')
@@ -1091,6 +1111,10 @@ export async function replaySession(seed, session, opts = {}) {
                 if (firstRng && firstRng.includes('distfleeck(')) {
                     execCh = '.'.charCodeAt(0);
                 }
+            }
+            // Save replayable command (C: stores repeat command before execute).
+            if (ch !== 1 && game.multi === 0) {
+                lastCommand = { key: ch, count: game.commandCount || 0 };
             }
             const commandPromise = rhack(execCh, game);
             const settled = await Promise.race([
@@ -1284,9 +1308,13 @@ export async function replaySession(seed, session, opts = {}) {
         await pendingCommand;
     }
 
-    const startupBurstInStep0 = hasStartupBurstInFirstStep(session);
+    // Legacy keylog fixtures sometimes stored startup RNG in step 0. New v3
+    // session flow keeps startup as a distinct channel, so preserve it by
+    // default unless explicitly requested for backward compatibility.
+    const foldStartupIntoStep0 = opts.startupBurstInFirstStep === true
+        || (opts.startupBurstInFirstStep !== false && hasStartupBurstInFirstStep(session));
     let normalizedStartup = { rngCalls: startupRng.length, rng: startupRng };
-    if (startupBurstInStep0) {
+    if (foldStartupIntoStep0) {
         normalizedStartup = { rngCalls: 0, rng: [] };
         if (stepResults.length > 0) {
             stepResults[0] = {
