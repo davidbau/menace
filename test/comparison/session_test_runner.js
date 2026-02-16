@@ -1,7 +1,5 @@
 // test/comparison/session_test_runner.js -- Unified session runner orchestrator.
 
-import assert from 'node:assert/strict';
-import { it } from 'node:test';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -9,9 +7,9 @@ import {
     generateMapsWithRng,
     generateStartupWithRng,
     replaySession,
-} from './session_helpers.js';
+} from './session_runtime.js';
 import { compareRng, compareGrids, compareScreenLines } from './comparators.js';
-import { loadAllSessions, normalizeSession } from './session_loader.js';
+import { loadAllSessions } from './session_loader.js';
 import {
     createSessionResult,
     recordRng,
@@ -304,34 +302,5 @@ if (process.argv[1] && process.argv[1].endsWith('session_test_runner.js')) {
     runSessionCli().catch((error) => {
         console.error('Fatal error:', error);
         process.exit(1);
-    });
-}
-
-// Legacy compatibility exports for per-category test files.
-export function runMapSession(file, rawSession) {
-    it(`${file} map session runs`, async () => {
-        const result = await runMapResult(normalizeSession(rawSession, { file }));
-        assert.ok(result);
-    });
-}
-
-export function runGameplaySession(file, rawSession) {
-    it(`${file} gameplay session runs`, async () => {
-        const result = await runGameplayResult(normalizeSession(rawSession, { file }));
-        assert.ok(result);
-    });
-}
-
-export function runChargenSession(file, rawSession) {
-    it(`${file} chargen session runs`, async () => {
-        const result = await runChargenResult(normalizeSession(rawSession, { file }));
-        assert.ok(result);
-    });
-}
-
-export function runSpecialLevelSession(file, rawSession) {
-    it(`${file} special session runs`, async () => {
-        const result = await runSpecialResult(normalizeSession(rawSession, { file }));
-        assert.ok(result);
     });
 }
