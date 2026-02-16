@@ -143,104 +143,26 @@ def capture_startup_sequence():
 
 
 def capture_options_menu():
-    """Capture the options menu interface."""
-    session = tmux_session_name()
-    start_tmux_session(session)
-    steps = []
-
+    """Capture in-game options menu with strict RNG+screen trace."""
+    import tempfile
+    with tempfile.NamedTemporaryFile(prefix='interface-options-', suffix='.json', delete=False) as tmp:
+        tmp_path = tmp.name
     try:
-        nethack_dir = os.path.dirname(NETHACK_BINARY)
-
-        # Clear screen
-        subprocess.run(['tmux', 'send-keys', '-t', session, 'clear', 'Enter'], check=True)
-        time.sleep(0.2)
-
-        # Start NetHack with wizard mode
-        cmd = (
-            f'{fixed_datetime_env()}'
-            f'NETHACKDIR={nethack_dir} '
-            f'TERM=xterm-256color '
-            f'{NETHACK_BINARY} -u wizard -D'
-        )
-        subprocess.run(['tmux', 'send-keys', '-t', session, cmd, 'Enter'], check=True)
-        time.sleep(2.5)
-
-        # Navigate through character creation quickly
-        for key in 'nwhmcy':  # decline auto, wizard, human, male, chaotic, yes
-            subprocess.run(['tmux', 'send-keys', '-t', session, key], check=True)
-            time.sleep(0.5)
-
-        # Clear any --More-- prompts
-        for _ in range(3):
-            subprocess.run(['tmux', 'send-keys', '-t', session, 'Space'], check=True)
-            time.sleep(0.3)
-
-        # Capture initial game screen as startup step
-        screen = capture_screen(session)
-        steps.append({
-            'key': None,
-            'action': 'startup',
-            'rng': [],
-            'screen': screen        })
-
-        # Open options menu
-        subprocess.run(['tmux', 'send-keys', '-t', session, 'O'], check=True)
-        time.sleep(0.5)
-
-        screen = capture_screen(session)
-        steps.append({
-            'key': 'O',
-            'action': 'options-menu',
-            'rng': [],
-            'screen': screen        })
-
-        # Page 2
-        subprocess.run(['tmux', 'send-keys', '-t', session, '>'], check=True)
-        time.sleep(0.3)
-        screen = capture_screen(session)
-        steps.append({
-            'key': '>',
-            'action': 'options-page2',
-            'rng': [],
-            'screen': screen        })
-
-        # Back to page 1
-        subprocess.run(['tmux', 'send-keys', '-t', session, '<'], check=True)
-        time.sleep(0.3)
-        screen = capture_screen(session)
-        steps.append({
-            'key': '<',
-            'action': 'options-page1',
-            'rng': [],
-            'screen': screen        })
-
-        # Help view
-        subprocess.run(['tmux', 'send-keys', '-t', session, '?'], check=True)
-        time.sleep(0.3)
-        screen = capture_screen(session)
-        steps.append({
-            'key': '?',
-            'action': 'options-help',
-            'rng': [],
-            'screen': screen        })
-
+        # Deep in-game options flow: edit fruit, set number_pad mode, navigate pages.
+        _session.run_interface_session(0, tmp_path, 'Oakiwi\nbc><', verbose=False)
+        with open(tmp_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        data.setdefault('regen', {})
+        data['regen']['mode'] = 'interface'
+        data['regen']['subtype'] = 'options'
+        data.setdefault('options', {})
+        data['options']['description'] = 'In-game options flow: edit fruit + set number_pad mode + page navigation'
+        return data
     finally:
-        kill_tmux_session(session)
-
-    return {
-        'version': 3,
-        'seed': 0,
-        'source': 'c',
-        'type': 'interface',
-        'regen': {
-            'mode': 'interface',
-            'subtype': 'options',
-        },
-        'options': {
-            'description': 'Options menu interface with all views'
-        },
-        'steps': steps
-    }
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
 
 
 def capture_complete_chargen():

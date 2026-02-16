@@ -19,7 +19,11 @@ export function mapBrowserKeyToNhCode(e, flags = {}) {
     const DOM_KEY_LOCATION_NUMPAD = (typeof KeyboardEvent !== 'undefined')
         ? KeyboardEvent.DOM_KEY_LOCATION_NUMPAD
         : 3;
-    if (flags?.number_pad && e.location === DOM_KEY_LOCATION_NUMPAD) {
+    const numberPadMode = (typeof flags?.number_pad === 'number')
+        ? flags.number_pad
+        : (flags?.number_pad ? 1 : 0);
+    const numberPadEnabled = numberPadMode > 0;
+    if (numberPadEnabled && e.location === DOM_KEY_LOCATION_NUMPAD) {
         const numpadMap = {
             '0': 'i'.charCodeAt(0),  // inventory
             '1': 'b'.charCodeAt(0),  // southwest

@@ -2476,6 +2476,28 @@ async function handleSet(game) {
         }
     }
 
+    async function editNumberPadModeOption() {
+        const lines = [
+            'Select number_pad mode:',
+            '',
+            'a -  0 (off)',
+            'b -  1 (on)',
+            'c -  2 (on, MSDOS compatible)',
+            'd -  3 (on, phone-style digit layout)',
+            'e -  4 (on, phone-style layout, MSDOS compatible)',
+            "f - -1 (off, 'z' to move upper-left, 'y' to zap wands)",
+            '(end)',
+        ];
+        renderCenteredList(lines, 24);
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+        const modeByKey = { a: 0, b: 1, c: 2, d: 3, e: 4, f: -1 };
+        if (Object.prototype.hasOwnProperty.call(modeByKey, c)) {
+            flags.number_pad = modeByKey[c];
+            saveFlags(flags);
+        }
+    }
+
     // Interactive loop - C ref: options.c doset() menu loop
     while (true) {
         drawOptions();
@@ -2512,6 +2534,10 @@ async function handleSet(game) {
         // Check for option selection
         const selected = getOptionByKey(currentPage, showHelp, c);
         if (selected) {
+            if (selected.flag === 'number_pad') {
+                await editNumberPadModeOption();
+                continue;
+            }
             if (selected.type === 'bool') {
                 setOptionValue(currentPage, showHelp, c, null, flags);
                 applyOptionSideEffects();

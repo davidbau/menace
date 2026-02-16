@@ -669,6 +669,7 @@ export async function replaySession(seed, session, opts = {}) {
         seerTurn: initResult.seerTurn,
         startDnum,
         dungeonAlignOverride: startDungeonAlign,
+        flags: (opts.flags && typeof opts.flags === 'object') ? opts.flags : undefined,
     });
     game.display.flags.DECgraphics = session.screenMode === 'decgraphics';
     const firstStepScreen = getSessionScreenLines(session.steps?.[0] || {});
@@ -1055,6 +1056,9 @@ export async function replaySession(seed, session, opts = {}) {
                 ]);
             }
             if (!settled.done) {
+                if (opts.captureScreens) {
+                    capturedScreenOverride = game.display.getScreenLines();
+                }
                 result = { moved: false, tookTime: false };
             } else {
                 result = settled.value;
@@ -1136,6 +1140,10 @@ export async function replaySession(seed, session, opts = {}) {
                 } else {
                     // Command is waiting for additional input (direction/item/etc.).
                     // Defer resolution to subsequent captured step(s).
+                    // Preserve the prompt/menu frame shown before we redraw map.
+                    if (opts.captureScreens) {
+                        capturedScreenOverride = game.display.getScreenLines();
+                    }
                     pendingCommand = commandPromise;
                     pendingKind = (ch === 35) ? 'extended-command' : null;
                     result = { moved: false, tookTime: false };

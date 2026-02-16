@@ -295,12 +295,28 @@ function getOptionValue(opt, flags) {
             // [X] or [ ]
             // Special case: number_pad shows "0=off" or "1=on" instead of X/
             if (opt.name === 'number_pad') {
-                return flagValue ? '1=on' : '0=off';
+                const mode = (typeof flagValue === 'number')
+                    ? flagValue
+                    : (flagValue ? 1 : 0);
+                if (mode === -1) return "-1=off, 'z' to move upper-left, 'y' to zap wands";
+                if (mode === 0) return '0=off';
+                if (mode === 2) return '2=on, MSDOS compatible';
+                if (mode === 3) return '3=on, phone-style digit layout';
+                if (mode === 4) return '4=on, phone-style layout, MSDOS compatible';
+                return '1=on';
             }
             return flagValue ? 'X' : ' ';
 
         case 'text':
             // [value]
+            if (opt.flag === 'autounlock') {
+                const v = flagValue ?? DEFAULT_FLAGS[opt.flag];
+                return (v === '' || v === undefined || v === null) ? 'apply-key' : String(v);
+            }
+            if (opt.flag === 'pickup_types') {
+                const v = flagValue ?? DEFAULT_FLAGS[opt.flag];
+                return (v === '' || v === undefined || v === null) ? 'all' : String(v);
+            }
             return flagValue || DEFAULT_FLAGS[opt.flag] || '';
 
         case 'number':
