@@ -247,3 +247,66 @@ describe('HeadlessDisplay', () => {
         assert.ok(allEmpty, 'All lines should be empty after clearScreen');
     });
 });
+
+describe('HeadlessGame.generateMapsWithRng (Phase 2)', () => {
+    it('generates grids for each depth', () => {
+        const result = HeadlessGame.generateMapsWithRng(12345, 3);
+
+        assert.ok(result.grids[1], 'Should have grid for depth 1');
+        assert.ok(result.grids[2], 'Should have grid for depth 2');
+        assert.ok(result.grids[3], 'Should have grid for depth 3');
+    });
+
+    it('grids have correct dimensions (21x80)', () => {
+        const result = HeadlessGame.generateMapsWithRng(12345, 1);
+        const grid = result.grids[1];
+
+        assert.strictEqual(grid.length, ROWNO);
+        for (let y = 0; y < ROWNO; y++) {
+            assert.strictEqual(grid[y].length, COLNO, `Row ${y} should have ${COLNO} columns`);
+        }
+    });
+
+    it('captures RNG logs for each depth', () => {
+        const result = HeadlessGame.generateMapsWithRng(12345, 2);
+
+        assert.ok(result.rngLogs[1], 'Should have RNG log for depth 1');
+        assert.ok(result.rngLogs[2], 'Should have RNG log for depth 2');
+        assert.ok(result.rngLogs[1].rngCalls > 0, 'Depth 1 should have RNG calls');
+        assert.ok(Array.isArray(result.rngLogs[1].rng), 'RNG log should be array');
+    });
+
+    it('is deterministic for same seed', () => {
+        const result1 = HeadlessGame.generateMapsWithRng(99999, 2);
+        const result2 = HeadlessGame.generateMapsWithRng(99999, 2);
+
+        // Compare grids
+        for (let depth = 1; depth <= 2; depth++) {
+            for (let y = 0; y < ROWNO; y++) {
+                for (let x = 0; x < COLNO; x++) {
+                    assert.strictEqual(
+                        result1.grids[depth][y][x],
+                        result2.grids[depth][y][x],
+                        `Depth ${depth} grid[${y}][${x}] should match`
+                    );
+                }
+            }
+        }
+    });
+
+    it('different seeds produce different maps', () => {
+        const result1 = HeadlessGame.generateMapsWithRng(11111, 1);
+        const result2 = HeadlessGame.generateMapsWithRng(22222, 1);
+
+        let differences = 0;
+        for (let y = 0; y < ROWNO; y++) {
+            for (let x = 0; x < COLNO; x++) {
+                if (result1.grids[1][y][x] !== result2.grids[1][y][x]) {
+                    differences++;
+                }
+            }
+        }
+
+        assert.ok(differences > 0, 'Different seeds should produce different maps');
+    });
+});

@@ -537,6 +537,150 @@ HeadlessGame.prototype.checkpoint = function checkpoint(phase = 'unknown') {
     };
 };
 
+// Generate multiple levels (1 to maxDepth) using wizard mode teleport.
+// Returns { grids, rngLogs } where grids[depth] and rngLogs[depth] contain level data.
+// This is the core path for map session testing, replacing generateMapsWithRng.
+HeadlessGame.prototype.generateLevels = function generateLevels(maxDepth) {
+    if (!this.wizard) {
+        throw new Error('generateLevels requires wizard mode');
+    }
+
+    this.enableRngLogging();
+    const grids = {};
+    const rngLogs = {};
+    let prevRngCount = this.getRngLog().length;
+
+    for (let depth = 1; depth <= maxDepth; depth++) {
+        // Use teleportToLevel which generates the level if needed
+        this.teleportToLevel(depth);
+
+        // Capture the typGrid for this level
+        grids[depth] = this.getTypGrid();
+
+        // Capture RNG log for this level
+        const fullLog = this.getRngLog();
+        const depthLog = fullLog.slice(prevRngCount);
+        rngLogs[depth] = {
+            rngCalls: depthLog.length,
+            rng: depthLog.map((entry) => {
+                // Strip count prefix: "1 rn2(...)=result" → "rn2(...)=result"
+                if (typeof entry === 'string') {
+                    return entry.replace(/^\d+\s+/, '');
+                }
+                return entry;
+            }),
+        };
+        prevRngCount = fullLog.length;
+    }
+
+    return { grids, rngLogs };
+};
+
+// Factory for creating a game specifically for map generation testing.
+// Initializes game in wizard mode with RNG logging enabled.
+HeadlessGame.forMapGeneration = async function forMapGeneration(seed, roleIndex = 11) {
+    const game = await HeadlessGame.start(seed, {
+        roleIndex,
+        wizard: true,
+        name: 'MapTest',
+    });
+    return game;
+};
+
+// ---------------------------------------------------------------------------
+// Map Generation API (Phase 2)
+// ---------------------------------------------------------------------------
+
+// Generate levels 1→maxDepth with RNG trace capture.
+// This is the canonical core path for map session testing.
+// Matches the C map test harness behavior: initRng → initLevelGeneration →
+// makelevel sequence with pet arrival on depth > 1.
+// Returns { grids, maps, rngLogs } where rngLogs[depth] = { rngCalls, rng }.
+HeadlessGame.generateMapsWithRng = function generateMapsWithRng(seed, maxDepth, roleIndex = 11) {
+    initrack(); // reset player track buffer between tests
+    initRng(seed);
+    setGameSeed(seed);
+    enableRngLog();
+
+    initLevelGeneration(roleIndex);
+    const grids = {};
+    const maps = {};
+    const rngLogs = {};
+    let harnessPlayer = null;
+    let prevCount = 0;
+
+    for (let depth = 1; depth <= maxDepth; depth++) {
+        const previousMap = depth > 1 ? maps[depth - 1] : null;
+        const map = makelevel(depth);
+
+        grids[depth] = extractTypGridFromMap(map);
+        maps[depth] = map;
+
+        // C map harness runs a full game as Valkyrie. Depth 1 includes
+        // post-level init (pet creation, hero inventory, attributes, welcome).
+        // Depth 2+ includes pet arrival via wizard_level_teleport.
+        if (depth === 1) {
+            harnessPlayer = new Player();
+            harnessPlayer.initRole(roleIndex);
+            if (map.upstair) {
+                harnessPlayer.x = map.upstair.x;
+                harnessPlayer.y = map.upstair.y;
+            }
+            simulatePostLevelInit(harnessPlayer, map, 1);
+        } else {
+            // C ref: dog.c:474 mon_arrive — use real migration path.
+            if (harnessPlayer && previousMap) {
+                mon_arrive(previousMap, map, harnessPlayer, {
+                    heroX: map.upstair.x,
+                    heroY: map.upstair.y,
+                });
+            }
+        }
+
+        // Keep player position synchronized for adjacency checks.
+        if (harnessPlayer) {
+            if (map.upstair) {
+                harnessPlayer.x = map.upstair.x;
+                harnessPlayer.y = map.upstair.y;
+            }
+            harnessPlayer.dungeonLevel = depth;
+        }
+
+        const fullLog = getRngLog();
+        const depthLog = fullLog.slice(prevCount);
+        // Strip count prefix: "1 rn2(...)=result" → "rn2(...)=result"
+        const compactRng = depthLog.map((entry) =>
+            typeof entry === 'string' ? entry.replace(/^\d+\s+/, '') : entry
+        );
+        rngLogs[depth] = {
+            rngCalls: compactRng.length,
+            rng: compactRng,
+        };
+        prevCount = fullLog.length;
+    }
+
+    disableRngLog();
+    return { grids, maps, rngLogs };
+};
+
+// Extract a typ grid from a map object: 21 rows of 80 integers.
+// This is a static helper that can be used without a game instance.
+function extractTypGridFromMap(map) {
+    const grid = [];
+    for (let y = 0; y < ROWNO; y++) {
+        const row = [];
+        for (let x = 0; x < COLNO; x++) {
+            const loc = map.at(x, y);
+            row.push(loc ? loc.typ : 0);
+        }
+        grid.push(row);
+    }
+    return grid;
+}
+
+// Export the helper for external use
+export { extractTypGridFromMap };
+
 export function createHeadlessGame(seed, roleIndex = 11, opts = {}) {
     return HeadlessGame.fromSeed(seed, roleIndex, opts);
 }
