@@ -7,7 +7,7 @@ import { NORMAL_SPEED, A_DEX, A_CON,
          FEMALE, MALE, TERMINAL_COLS } from './config.js';
 import { initRng, rn2, rnd, rn1, getRngState, setRngState, getRngCallCount, setRngCallCount } from './rng.js';
 import { CLR_GRAY } from './display.js';
-import { nhgetch, getCount, getlin } from './input.js';
+import { nhgetch, getCount, getlin, setInputRuntime } from './input.js';
 import { FOV } from './vision.js';
 import { Player, roles, races, validRacesForRole, validAlignsForRoleRace,
          needsGenderMenu, rankOf, godForRoleAlign, isGoddess, greetingForRole,
@@ -101,8 +101,13 @@ export class NetHackGame {
             throw new Error('NetHackGame requires deps.display');
         }
 
-        if (typeof this.deps.initInput === 'function') {
-            this.deps.initInput();
+        if (this.deps.input) {
+            setInputRuntime(this.deps.input);
+        } else if (typeof this.deps.initInput === 'function') {
+            const maybeRuntime = this.deps.initInput();
+            if (maybeRuntime && typeof maybeRuntime.nhgetch === 'function') {
+                setInputRuntime(maybeRuntime);
+            }
         }
 
         // Handle ?reset=1 — prompt to delete all saved data

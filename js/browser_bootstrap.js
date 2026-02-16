@@ -2,7 +2,7 @@
 // Keeps DOM, URL, and window lifecycle logic out of the NetHackGame core.
 
 import { Display } from './display.js';
-import { initInput } from './input.js';
+import { initBrowserInput } from './browser_input.js';
 import { getUrlParams } from './storage.js';
 import { NetHackGame } from './nethack.js';
 import { getKeylog, saveKeylog, startReplay } from './keylog.js';
@@ -40,13 +40,21 @@ function registerKeylogApis() {
 window.addEventListener('DOMContentLoaded', async () => {
     registerKeylogApis();
     const opts = getUrlParams();
+    let currentFlags = null;
+    let currentDisplay = null;
+    const input = initBrowserInput({
+        getFlags: () => currentFlags,
+        getDisplay: () => currentDisplay,
+    });
 
     const game = new NetHackGame({
         display: new Display('game'),
-        initInput,
+        input,
         lifecycle: createBrowserLifecycle(),
         hooks: {
             onRuntimeBindings: ({ game: runningGame, flags, display }) => {
+                currentFlags = flags;
+                currentDisplay = display;
                 window.gameInstance = runningGame;
                 window.gameFlags = flags;
                 window.gameDisplay = display;
