@@ -1,22 +1,58 @@
 # Session Harness Simplification Plan
 
-> *"The less the test harness knows about the game, the more faithful the test."*
+> *"The harness should drive and compare; the game should behave."*
 
-## Goal
+## Purpose
 
-Eliminate game-awareness from the session test harness by pushing behavior into
-the core game. The harness should become a **dumb replay engine** that:
+Eliminate game-awareness from the session test harness by pushing behavior
+into the core game. The harness becomes a **dumb replay engine** that:
 
-1. Sends keys to the game
-2. Captures output (screen, typGrid, RNG trace)
-3. Compares against expected values
+1. Loads session data
+2. Sends keys to the game
+3. Captures output (screen, typGrid, RNG trace)
+4. Compares against expected values
+5. Reports divergences
 
 All game-specific logic—startup, level generation, character creation,
-wizard mode—should live in the core game, not the test harness.
+command semantics, turn boundaries—lives in the core game, not the harness.
 
-## Current State (Codex Branch)
+## Motivation
 
-The codex branch has begun this separation:
+The current session stack contains game-aware behavior in test infrastructure
+(`test/comparison/session_runtime.js`). This creates three problems:
+
+1. **Duplication risk**: Behavior can diverge between gameplay code and replay code.
+2. **Trust risk**: A failing session can come from harness emulation, not game behavior.
+3. **Maintenance drag**: Parity fixes require touching test runtime AND core game paths.
+
+For faithful C parity work, we need one source of behavior truth: core game runtime.
+
+---
+
+## Hard Goals
+
+The end state must satisfy all of these:
+
+1. One official session run path: `npm run test:session`
+2. Session execution for all types driven by one core stepping API
+3. Harness modules do not implement turn logic, prompt logic, or command semantics
+4. PRNG, typGrid, and screen comparisons stay granular and deterministic
+5. Replay debugging remains rich enough to pinpoint first divergence with context
+6. No transitional replay modes or feature-flag split paths in final state
+
+## Simplicity and Transparency Constraints
+
+Design guardrails, not optional:
+
+1. One headless replay module as execution entrypoint for session tests
+2. Harness code easy to audit: load session, call core step API, compare, report
+3. Do not hide behavior behind caching that changes replay semantics
+4. Do not skip PRNG/typGrid/screen work to improve runtime
+5. Favor clear data flow over clever indirection
+
+---
+
+## Current State
 
 | File | Lines | Role |
 |------|-------|------|
@@ -26,27 +62,21 @@ The codex branch has begun this separation:
 | `test/comparison/comparators.js` | ~150 | Pure comparison functions (game-unaware) |
 | `test/comparison/session_loader.js` | ~200 | Session file loading (game-unaware) |
 
-**Target**: Delete `session_runtime.js` entirely by pushing its functionality
-into either `js/headless_runtime.js` (game behavior) or keeping only pure
-comparison logic in test utilities.
+**Target**: Delete `session_runtime.js` by pushing functionality into
+`js/headless_runtime.js` (game behavior) or keeping only pure comparison
+logic in test utilities.
 
-## Game-Aware Code Categories
+## Game-Aware Code in session_runtime.js
 
-Analysis of `session_runtime.js` reveals these categories:
-
-### 1. Map Generation Functions (lines ~195-440)
+### 1. Map Generation (lines ~195-440)
 
 ```javascript
 generateMapsSequential(seed, maxDepth)
 generateMapsWithRng(seed, maxDepth)
 ```
 
-**Current behavior**: Custom map generation loop that manually calls
-`initLevelGeneration()`, `makelevel()`, etc.
-
-**Target behavior**: Use `HeadlessGame.teleportToLevel(depth)` (wizard mode
-Ctrl+V equivalent) to generate levels on demand. The game already has level
-generation—don't duplicate it in tests.
+Custom map generation loop that manually calls `initLevelGeneration()`,
+`makelevel()`, etc. Should use wizard mode teleport instead.
 
 ### 2. Startup Generation (lines ~480-565)
 
@@ -54,11 +84,7 @@ generation—don't duplicate it in tests.
 generateStartupWithRng(seed, session)
 ```
 
-**Current behavior**: Manually constructs Player, Map, HeadlessGame with
-specific options, handles chargen RNG, tutorial prompts.
-
-**Target behavior**: `HeadlessGame.start(seed, options)` should handle all
-startup logic. The test just passes seed + options and gets a ready game.
+Manually constructs Player, Map, HeadlessGame. Should be `HeadlessGame.start()`.
 
 ### 3. Session Replay (lines ~566-1312)
 
@@ -66,22 +92,8 @@ startup logic. The test just passes seed + options and gets a ready game.
 async replaySession(seed, session, opts = {})
 ```
 
-**Current behavior**: 750+ lines of code that:
-- Parses session options
-- Creates game with correct character
-- Handles pre-startup RNG (chargen menus)
-- Sends keys via `rhack()`
-- Captures RNG per step
-- Handles turn simulation, monster movement, FOV
-
-**Target behavior**: `HeadlessGame.replay(session)` or simply:
-```javascript
-for (const step of session.steps) {
-    await game.sendKey(step.key);
-    const result = game.captureState();
-    compare(result, step);
-}
-```
+750+ lines implementing turn logic, prompt handling, monster movement, FOV.
+Should become a simple key-send loop calling core API.
 
 ### 4. Structural Validators (lines ~1313-1457)
 
@@ -89,175 +101,67 @@ for (const step of session.steps) {
 checkWallCompleteness(map)
 checkConnectivity(map)
 checkStairs(map, depth)
-checkDimensions(grid)
-checkValidTypValues(grid)
 ```
 
-**These are appropriate for the test harness**—they validate invariants about
-generated maps. Keep them in test utilities but ensure they operate on
-game-provided data, not manually extracted data.
+**These are appropriate for harness**—keep in test utilities, but operate
+on game-provided data.
 
-### 5. Grid/Screen Extraction
+---
 
-```javascript
-extractTypGrid(map)
-parseTypGrid(text)
-parseSessionTypGrid(grid)
-```
+## Target Architecture
 
-**Target behavior**: `game.getTypGrid()` returns the current level's typGrid.
-The test harness shouldn't know about `map.at(x,y).typ`.
+### 1. Core Owns Replay Semantics
 
-## Maintaining Fidelity Checking
-
-### PRNG Alignment
-
-**Current**: Test harness enables RNG logging, captures traces, compares.
-
-**Target**: Core game provides RNG instrumentation:
-```javascript
-game.enableRngLogging();
-const trace = game.getRngLog();
-game.clearRngLog();
-```
-
-The test harness remains responsible for comparison (`compareRng()`), but
-the game handles instrumentation.
-
-### typGrid Comparison
-
-**Current**: Test harness manually extracts `map.at(x,y).typ` into a grid.
-
-**Target**: Core game provides accessor:
-```javascript
-const grid = game.getTypGrid();  // Returns 21x80 array of typ values
-```
-
-The test harness compares grids (`compareGrids()`), but the game provides them.
-
-### Screen Comparison
-
-**Current**: `HeadlessDisplay` captures screen as 24x80 grid.
-
-**Target**: Same—this is already in the core game. Ensure:
-```javascript
-const screen = game.getScreen();  // Returns 24x80 array of cells
-const ansiScreen = game.getAnsiScreen();  // Returns ANSI-encoded string
-```
-
-## Debuggability
-
-The current harness provides good debugging via:
-1. Per-step RNG traces with source locations
-2. Midlog markers (function entry/exit)
-3. typGrid snapshots at checkpoints
-4. Detailed diff output
-
-**Preserve these capabilities** by:
-
-1. **RNG logging in core**: Move `enableRngLog()`, `getRngLog()` into `rng.js`
-   exports accessible to HeadlessGame
-
-2. **Checkpoint API**: `game.checkpoint(phase)` captures current state
-   (typGrid, monsters, objects) for debugging
-
-3. **Step-by-step replay**: `game.step(key)` returns `{ rng, screen, typGrid }`
-   after processing one key
-
-4. **Divergence context**: When RNG diverges, provide surrounding context:
-   ```javascript
-   {
-     divergenceIndex: 2808,
-     jsCall: "rn2(10)=3 @ sp_lev.js:382",
-     expectedCall: "rn2(10)=7 @ sp_lev.c:450",
-     recentCalls: [...last 10 calls...],
-     midlogContext: ">wallify_map >set_wall_type"
-   }
-   ```
-
-## Implementation Phases
-
-### Phase 1: HeadlessGame API Consolidation
-
-Ensure `js/headless_runtime.js` exposes a clean API:
+`js/headless_runtime.js` exposes replay-safe APIs:
 
 ```javascript
 class HeadlessGame {
-    static async start(seed, options);  // Full startup
+    // Initialization
+    static async start(seed, options);  // Full startup with all options
 
-    async sendKey(key);        // Process one keystroke
-    async sendKeys(keys);      // Process multiple keystrokes
+    // Replay stepping
+    async sendKey(key);                 // Execute one command/turn
+    async sendKeys(keys);               // Execute multiple keys
 
-    getTypGrid();              // Current level typGrid
-    getScreen();               // Current terminal screen
-    getAnsiScreen();           // ANSI-encoded screen
+    // State capture
+    getTypGrid();                       // Current level typGrid (21x80)
+    getScreen();                        // Current terminal screen (24x80)
+    getAnsiScreen();                    // ANSI-encoded screen string
 
+    // RNG instrumentation
     enableRngLogging();
     getRngLog();
     clearRngLog();
 
-    teleportToLevel(depth);    // Wizard mode level teleport
-    revealMap();               // Wizard mode map reveal
+    // Wizard mode (for map sessions)
+    teleportToLevel(depth);             // Ctrl+V equivalent
+    revealMap();                        // Ctrl+F equivalent
 
-    checkpoint(phase);         // Capture full state snapshot
+    // Debugging
+    checkpoint(phase);                  // Capture full state snapshot
 }
 ```
 
-**Acceptance**: HeadlessGame can be used without importing `session_runtime.js`.
+### 2. Harness Becomes Thin
 
-### Phase 2: Migrate Map Generation
+`test/comparison/session_test_runner.js` only:
 
-Replace:
-```javascript
-// session_runtime.js
-const result = generateMapsWithRng(seed, maxDepth);
-```
+1. Loads and normalizes session data
+2. Constructs game with requested options
+3. Feeds keys through core replay API
+4. Compares expected vs actual
+5. Emits diagnostics and results
 
-With:
-```javascript
-// test code
-const game = await HeadlessGame.start(seed, { wizard: true });
-for (let depth = 1; depth <= maxDepth; depth++) {
-    game.teleportToLevel(depth);
-    grids[depth] = game.getTypGrid();
-    rngLogs[depth] = game.getRngLog();
-    game.clearRngLog();
-}
-```
+**No gameplay simulation in harness.**
 
-**Acceptance**: Map session tests pass using wizard teleport instead of
-custom generation functions.
+Target harness code:
 
-### Phase 3: Migrate Startup Generation
-
-Replace:
-```javascript
-// session_runtime.js
-const startup = generateStartupWithRng(seed, session);
-```
-
-With:
-```javascript
-// test code
-const game = await HeadlessGame.start(seed, session.options);
-const startup = {
-    typGrid: game.getTypGrid(),
-    rng: game.getRngLog(),
-    screen: game.getScreen(),
-};
-```
-
-**Acceptance**: Gameplay session startup tests pass using HeadlessGame.start().
-
-### Phase 4: Simplify Session Replay
-
-Replace 750+ lines of `replaySession()` with:
 ```javascript
 async function replaySession(session) {
     const game = await HeadlessGame.start(session.seed, session.options);
     const results = { startup: captureState(game), steps: [] };
 
-    for (const step of session.steps.slice(1)) {  // Skip startup step
+    for (const step of session.steps.slice(1)) {
         game.clearRngLog();
         await game.sendKey(step.key);
         results.steps.push(captureState(game));
@@ -275,56 +179,115 @@ function captureState(game) {
 }
 ```
 
-**Acceptance**: All gameplay session tests pass with simplified replay.
+### 3. Comparators Stay Focused
 
-### Phase 5: Delete session_runtime.js
+`test/comparison/comparators.js` remains pure comparison logic.
+May format diffs, but does not interpret gameplay behavior.
 
-After phases 1-4, `session_runtime.js` should contain only:
-- Re-exports from `js/headless_runtime.js`
-- Possibly structural validators (`checkWallCompleteness`, etc.)
+---
 
-Either:
-- Delete file entirely, moving validators to `test/comparison/validators.js`
-- Or keep as thin re-export layer
+## Fidelity Model
 
-**Acceptance**: No game-specific imports in test comparison code except
-from `js/` directory.
+Fidelity checked in three channels, all preserved:
 
-## Migration Strategy
+### PRNG
 
-### Parallel Testing
+Per startup and per step:
+- Compare RNG calls (source tags normalized)
+- Preserve first divergence: step index, RNG index, expected call, actual call
 
-During migration, run both old and new implementations:
-```javascript
-it('startup matches (legacy)', () => {
-    const legacy = generateStartupWithRng(seed, session);
-    assert.equal(legacy.rngCalls, expected);
-});
+### typGrid
 
-it('startup matches (new)', () => {
-    const game = await HeadlessGame.start(seed, session.options);
-    assert.equal(game.getRngLog().length, expected);
-});
-```
+For map/special sessions:
+- Compare per-level grid with exact cell diffs
+- Keep deterministic regeneration check
 
-Remove legacy tests once new implementation is verified.
+### Screen
 
-### Incremental Commits
+Per step:
+- Compare normalized screen rows
+- Keep row-level first mismatch reporting
+- Preserve ANSI normalization support
 
-1. Add HeadlessGame API methods (non-breaking)
-2. Add parallel tests using new API
-3. Verify RNG alignment with legacy
-4. Remove legacy tests
-5. Delete legacy functions
-6. Final cleanup
+---
 
-## Success Criteria
+## Debuggability Requirements
 
-1. **session_runtime.js deleted** or reduced to <100 lines of pure utilities
-2. **All session tests pass** with same RNG precision
-3. **HeadlessGame is self-contained** for session replay
-4. **Debuggability preserved**: RNG traces, midlog markers, checkpoints
-5. **Test harness is game-unaware**: Only sends keys, compares outputs
+When a session fails, output must answer:
+
+1. Where did divergence start?
+2. Is it startup or gameplay?
+3. Is it RNG, grid, screen, or multiple channels?
+4. What was the last matching step/key?
+
+Required outputs:
+- Machine-readable JSON results bundle
+- Human summary with first divergence
+- Optional verbose trace mode by session/type filter
+- No-loss evidence: failed runs retain same fidelity as passing runs
+
+---
+
+## Implementation Phases
+
+### Phase 0: Baseline Snapshot
+
+1. Capture current session failure signatures and runtime timings
+2. Freeze sentinel sessions (chargen, gameplay, map, special)
+3. Capture baseline insight-speed metrics
+
+**Exit**: Baseline artifact exists for regression comparison.
+
+### Phase 1: Define Core Replay Contract
+
+1. Specify structured replay-step return schema
+2. Add unit tests for replay-step invariants
+3. Document API contract
+
+**Exit**: Core exposes stable replay API.
+
+### Phase 2: Move Step Semantics into Core
+
+Move behavior currently in harness into core:
+- Pending input/prompt continuation
+- Count-prefix handling
+- Staircase transition timing
+- Message boundary behavior
+
+**Exit**: Harness no longer contains these semantics.
+
+### Phase 3: Unify Session Types on Core Path
+
+1. Chargen, gameplay, map, special all use one execution primitive
+2. Wizard navigation (teleport, reveal) stays in core
+
+**Exit**: Type branching in harness is only comparison policy, not behavior.
+
+### Phase 4: Delete session_runtime.js
+
+1. Remove gameplay logic from `session_runtime.js`
+2. Keep only adapters to call core replay APIs
+3. Move structural validators to `test/comparison/validators.js`
+
+**Exit**: `session_runtime.js` removed or reduced to thin wiring (<100 lines).
+
+### Phase 5: Harden Comparators and Diagnostics
+
+1. Keep strict PRNG/typGrid/screen checks
+2. Improve first-divergence diagnostics
+3. Add single-session debug mode for rapid iteration
+
+**Exit**: Failure reports at least as actionable as before.
+
+### Phase 6: Cleanup and Docs
+
+1. Delete obsolete harness compatibility paths
+2. Update docs to describe core replay architecture
+3. Remove any temporary migration toggles
+
+**Exit**: No harness game-awareness detritus remains.
+
+---
 
 ## Performance
 
@@ -333,17 +296,63 @@ Keep it simple:
 1. **Parallel execution**: Run sessions concurrently via worker threads
 2. **Report failures immediately**: Don't wait for entire suite to finish
 
-That's it. Avoid clever optimizations that obscure what the harness is doing.
+Avoid clever optimizations that obscure what the harness is doing.
+
+---
+
+## Risks and Mitigations
+
+### Risk: Refactor reduces diagnostic quality
+
+Mitigation:
+- Keep existing result bundle schema stable
+- Add parity checks for diagnostic fields before deleting old paths
+
+### Risk: Hidden coupling in current replay heuristics
+
+Mitigation:
+- Port behavior incrementally with sentinel sessions
+- Land small steps that keep one replay path live at all times
+
+### Risk: Core API churn breaks selfplay
+
+Mitigation:
+- Move selfplay onto shared replay-safe runtime in parallel
+- Add adapter contract tests in `test/unit`
+
+---
+
+## Acceptance Criteria (Final)
+
+All must be true:
+
+1. `npm run test:session` runs all session types through one core replay path
+2. Harness does not implement game turn logic or command semantics
+3. PRNG, typGrid, and screen diffs retain per-step granularity
+4. Determinism checks remain for map generation replay
+5. Debug output identifies first divergence with step-level context
+6. No feature-flagged replay split remains in final code
+7. `session_runtime.js` deleted or <100 lines of pure wiring
+
+---
+
+## Immediate Next Tasks
+
+1. Add replay-step contract test file under `test/unit`
+2. Move one harness heuristic (count-prefix or pending prompt) into core
+3. Verify no regression in sentinel sessions
+
+---
 
 ## Non-Goals
 
 - Changing session file format (v3 is stable)
-- Removing structural validators
-- Changing the comparison algorithms
+- Requiring full green parity before refactor completion
+- Rewriting all historical diagnostic scripts immediately
 
 ## References
 
-- Codex branch: `origin/codex`
-- `js/headless_runtime.js` (977 lines) - Current core game headless support
+- `js/headless_runtime.js` (977 lines) - Core game headless support
 - `test/comparison/session_runtime.js` (1457 lines) - Target for elimination
 - `docs/SESSION_FORMAT_V3.md` - Session file format specification
+- `CORE_REPLAY_PLAN.md` - Original design document (to be deleted after merge)
