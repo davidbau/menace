@@ -822,8 +822,9 @@ for (const { file, dir } of sessionFiles) {
             // Special level sessions (oracle, bigroom, castle, sokoban, etc.)
             runSpecialLevelSession(file, session);
         } else if (type === 'interface') {
-            // Interface sessions test UI rendering; skip in unified runner
-            it('interface session (tested in interface_test_runner.test.js)', () => {
+            // Interface sessions are retained for fixture completeness but are
+            // not executed by the unified session runner.
+            it('interface session fixture is present', () => {
                 assert.ok(session.steps && session.steps.length > 0,
                     'Interface session should have steps');
             });
