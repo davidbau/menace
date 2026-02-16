@@ -60,7 +60,7 @@ echo ""
 
 # Run session tests
 echo "Running session tests..."
-SESSION_OUTPUT=$(node test/comparison/backfill_runner.js 2>&1)
+SESSION_OUTPUT=$(node test/comparison/session_test_runner.js 2>&1)
 SESSION_JSON=$(echo "$SESSION_OUTPUT" | sed -n '/__RESULTS_JSON__/{n;p;}')
 
 if [ -z "$SESSION_JSON" ]; then

@@ -3,7 +3,7 @@
 #
 # Usage: ./scripts/run-session-tests.sh [--golden]
 #
-# Runs backfill_runner.js and writes results to oracle/pending.jsonl
+# Runs session_test_runner.js and writes results to oracle/pending.jsonl
 # with commit set to "HEAD". The post-commit hook will pick this up and
 # attach it as a git note with the actual commit hash.
 
@@ -11,14 +11,14 @@ set -e
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 PENDING_FILE="$REPO_ROOT/oracle/pending.jsonl"
-RUNNER="$REPO_ROOT/test/comparison/backfill_runner.js"
+RUNNER="$REPO_ROOT/test/comparison/session_test_runner.js"
 
 # Pass through any arguments (e.g., --golden)
 ARGS="$@"
 
 echo "Running session tests..."
 
-# Run the backfill runner and capture output
+# Run the session runner and capture output
 OUTPUT=$(node "$RUNNER" $ARGS 2>&1)
 
 # Extract the JSON from the output (after __RESULTS_JSON__ marker)
