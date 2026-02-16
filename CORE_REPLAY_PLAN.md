@@ -9,6 +9,7 @@ The project goal now is specific:
 1. Move session replay behavior out of the test harness and into core game/runtime code.
 2. Keep fidelity checking strict: PRNG, typgrid, and screen parity must stay first-class.
 3. Keep debugging quality high: when parity fails, we must still get fast, precise divergence reports.
+4. Improve speed for faster insight, not by skipping checks or reducing captured evidence.
 
 In short: the harness should drive and compare; the game should behave.
 
@@ -37,6 +38,19 @@ The end state should satisfy all of these:
 3. Harness modules do not implement turn logic, prompt logic, or command semantics.
 4. PRNG, typgrid, and screen comparisons stay granular and deterministic.
 5. Replay debugging remains rich enough to pinpoint first divergence with context.
+6. End state is clean: no transitional replay modes, no explicit feature-flag split paths.
+
+---
+
+## Simplicity and Transparency Constraints
+
+These constraints are design guardrails, not optional optimizations:
+
+1. Keep one headless replay module as the execution entrypoint for session tests.
+2. Harness code should be easy to audit: load session, run core step API, compare, report.
+3. Do not hide behavior behind caching/sampling that changes replay semantics.
+4. Do not skip PRNG/typgrid/screen work to improve runtime numbers.
+5. Favor clear data flow and direct diagnostics over clever indirection.
 
 ---
 
@@ -80,6 +94,24 @@ No gameplay simulation in harness.
 `test/comparison/comparators.js` should remain pure comparison logic.
 
 It may format diffs, but it should not interpret gameplay behavior.
+
+## 4) Performance Model: Lossless, Insight-Oriented
+
+Session harness performance should improve by reducing overhead around comparisons, not
+by reducing what is compared.
+
+Allowed acceleration directions:
+
+1. cheaper data plumbing (fewer redundant conversions/copies),
+2. faster comparator internals with identical outputs,
+3. better failure slicing/filtering that shortens time-to-diagnosis,
+4. tight single-session debug runs that still preserve full-fidelity evidence.
+
+Disallowed acceleration directions:
+
+1. skipping channels (PRNG/typgrid/screen),
+2. heuristic sampling of steps,
+3. semantic-changing caches that hide divergence evidence.
 
 ---
 
@@ -146,6 +178,7 @@ Required tooling outputs:
 1. machine-readable JSON results bundle,
 2. human summary with first divergence,
 3. optional verbose trace mode by session/type filter.
+4. no-loss evidence: if a run fails, logs retain the same fidelity channels used for pass/fail.
 
 ---
 
@@ -155,6 +188,7 @@ Required tooling outputs:
 
 1. Capture current session failure signatures and runtime timings.
 2. Freeze a few sentinel sessions (chargen, gameplay, map, special, interface).
+3. Capture baseline insight-speed metrics (time to first divergence report, artifact readability).
 
 Exit criteria:
 
@@ -206,6 +240,7 @@ Exit criteria:
 1. Keep strict PRNG/typgrid/screen fidelity checks.
 2. Improve first-divergence diagnostics where currently vague.
 3. Add a single-session debug mode for rapid iteration.
+4. Optimize comparator/runtime overhead only where outputs remain bit-for-bit equivalent.
 
 Exit criteria:
 
@@ -216,6 +251,7 @@ Exit criteria:
 1. Delete obsolete harness-only compatibility paths.
 2. Update docs to describe core replay architecture.
 3. Keep only three run categories (`unit`, `e2e`, `session`) in docs/scripts.
+4. Remove any temporary migration toggles or split replay paths.
 
 Exit criteria:
 
@@ -232,6 +268,8 @@ All must be true:
 3. PRNG, typgrid, and screen diffs retain per-step granularity.
 4. Determinism checks remain for map generation replay.
 5. Debug output can identify first divergence with step-level context.
+6. Session runtime improvements do not reduce captured evidence quality.
+7. No explicit feature-flagged replay split remains in final code.
 
 ---
 
@@ -249,7 +287,7 @@ Mitigation:
 Mitigation:
 
 1. Port behavior incrementally with sentinel sessions.
-2. Keep temporary A/B mode behind internal test flags until parity signatures match.
+2. Land small, reviewable steps that keep one replay path live at all times.
 
 ## Risk: Core API churn breaks selfplay
 
