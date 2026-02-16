@@ -1,11 +1,19 @@
 // headless_runtime.js -- Shared headless runtime for session tests and selfplay.
 
 import { setInputRuntime } from './input.js';
-import { initRng, rn2, rnd, rn1 } from './rng.js';
+import {
+    initRng,
+    rn2,
+    rnd,
+    rn1,
+    enableRngLog,
+    getRngLog as readRngLog,
+    setRngCallCount,
+} from './rng.js';
 import { exercise, exerchk, initExerciseState } from './attrib_exercise.js';
 import { initLevelGeneration, makelevel, setGameSeed } from './dungeon.js';
 import { simulatePostLevelInit, mon_arrive } from './u_init.js';
-import { Player, rankOf } from './player.js';
+import { Player, rankOf, roles } from './player.js';
 import { rhack } from './commands.js';
 import { makemon } from './makemon.js';
 import { movemon, initrack, settrack } from './monmove.js';
@@ -16,6 +24,7 @@ import {
     COLNO, ROWNO, NORMAL_SPEED,
     A_STR, A_DEX, A_CON,
     A_LAWFUL, A_CHAOTIC,
+    RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
     ROOMOFFSET, SHOPBASE,
     TERMINAL_COLS, TERMINAL_ROWS,
     MAP_ROW_START, STATUS_ROW_1, STATUS_ROW_2,
@@ -56,6 +65,58 @@ const INVENTORY_CLASS_NAMES = {
 };
 
 const INVENTORY_ORDER = [11, 4, 1, 2, 6, 8, 9, 7, 3, 10, 5, 12, 13, 14, 15];
+
+const ROLE_INDEX = {};
+for (let i = 0; i < roles.length; i++) ROLE_INDEX[roles[i].name] = i;
+
+const ALIGN_INDEX = {
+    lawful: 1,
+    neutral: 0,
+    chaotic: -1,
+};
+
+const RACE_INDEX = {
+    human: RACE_HUMAN,
+    elf: RACE_ELF,
+    dwarf: RACE_DWARF,
+    gnome: RACE_GNOME,
+    orc: RACE_ORC,
+};
+
+function normalizeRoleIndex(role, fallback = 11) {
+    if (Number.isInteger(role)) return role;
+    if (typeof role === 'string' && Object.hasOwn(ROLE_INDEX, role)) {
+        return ROLE_INDEX[role];
+    }
+    return fallback;
+}
+
+function normalizeGender(gender, fallback = 0) {
+    if (Number.isInteger(gender)) return gender;
+    if (typeof gender === 'string') {
+        if (gender.toLowerCase() === 'female') return 1;
+        if (gender.toLowerCase() === 'male') return 0;
+    }
+    return fallback;
+}
+
+function normalizeAlignment(align) {
+    if (Number.isInteger(align)) return align;
+    if (typeof align === 'string') {
+        const key = align.toLowerCase();
+        if (Object.hasOwn(ALIGN_INDEX, key)) return ALIGN_INDEX[key];
+    }
+    return undefined;
+}
+
+function normalizeRace(race, fallback = RACE_HUMAN) {
+    if (Number.isInteger(race)) return race;
+    if (typeof race === 'string') {
+        const key = race.toLowerCase();
+        if (Object.hasOwn(RACE_INDEX, key)) return RACE_INDEX[key];
+    }
+    return fallback;
+}
 
 export function buildInventoryLines(player) {
     if (!player || player.inventory.length === 0) {
@@ -120,12 +181,14 @@ export class HeadlessGame {
     constructor(player, map, opts = {}) {
         this.input = opts.input || createHeadlessInput();
         setInputRuntime(this.input);
+        this.hooks = opts.hooks || {};
         this.player = player;
         initExerciseState(this.player);
         this.map = map;
         this.display = new HeadlessDisplay();
         this.fov = new FOV();
-        this.levels = { 1: map };
+        const depth = this.player?.dungeonLevel || 1;
+        this.levels = { [depth]: map };
         this.gameOver = false;
         this.turnCount = 0;
         this.wizard = true;
@@ -141,6 +204,31 @@ export class HeadlessGame {
         this.renderCurrentScreen();
     }
 
+    static start(seed, options = {}) {
+        const character = options.character || {};
+        const roleValue = character.role ?? options.role ?? options.roleIndex;
+        const roleIndex = normalizeRoleIndex(roleValue, 11);
+        const gender = normalizeGender(character.gender ?? options.gender, 0);
+        const alignment = normalizeAlignment(character.align ?? options.align ?? options.alignment);
+        const race = normalizeRace(character.race ?? options.race, RACE_HUMAN);
+        const name = character.name ?? options.name ?? (options.wizard ? 'Wizard' : 'Agent');
+        return HeadlessGame.fromSeed(seed, roleIndex, {
+            ...options,
+            name,
+            gender,
+            alignment,
+            race,
+            wizard: !!options.wizard,
+            startDnum: Number.isInteger(options.startDnum) ? options.startDnum : undefined,
+            startDlevel: Number.isInteger(options.startDlevel) ? options.startDlevel : 1,
+            dungeonAlignOverride: Number.isInteger(options.startDungeonAlign)
+                ? options.startDungeonAlign
+                : options.dungeonAlignOverride,
+            DECgraphics: options.symbolMode !== 'ascii' && options.DECgraphics !== false,
+            hooks: options.hooks || {},
+        });
+    }
+
     renderCurrentScreen() {
         this.fov.compute(this.map, this.player.x, this.player.y);
         this.display.renderMap(this.map, this.player, this.fov, this.flags);
@@ -148,6 +236,137 @@ export class HeadlessGame {
     }
 
     _renderAll() {
+        this.renderCurrentScreen();
+    }
+
+    getTypGrid() {
+        const grid = [];
+        for (let y = 0; y < ROWNO; y++) {
+            const row = [];
+            for (let x = 0; x < COLNO; x++) {
+                const loc = this.map?.at?.(x, y);
+                row.push(loc ? loc.typ : 0);
+            }
+            grid.push(row);
+        }
+        return grid;
+    }
+
+    getScreen() {
+        return this.display.getScreenLines();
+    }
+
+    getAnsiScreen() {
+        // The headless runtime stores plain terminal cells today.
+        // Keep this method as a stable contract for session tooling.
+        return this.getScreen().join('\n');
+    }
+
+    enableRngLogging(withTags = false) {
+        enableRngLog(withTags);
+    }
+
+    getRngLog() {
+        return [...(readRngLog() || [])];
+    }
+
+    clearRngLog() {
+        const log = readRngLog();
+        if (!log) return;
+        log.length = 0;
+        setRngCallCount(0);
+    }
+
+    checkpoint(phase = 'checkpoint') {
+        return {
+            phase,
+            level: this.player?.dungeonLevel || 0,
+            turn: this.turnCount,
+            player: {
+                x: this.player?.x ?? 0,
+                y: this.player?.y ?? 0,
+                hp: this.player?.hp ?? 0,
+                hpmax: this.player?.hpmax ?? 0,
+            },
+            rng: this.getRngLog(),
+            typGrid: this.getTypGrid(),
+            screen: this.getScreen(),
+        };
+    }
+
+    async sendKey(key, replayContext = {}) {
+        const raw = typeof key === 'string' ? key : String.fromCharCode(key);
+        if (!raw) {
+            throw new Error('sendKey requires a non-empty key');
+        }
+        for (let i = 1; i < raw.length; i++) {
+            this.input.pushInput(raw.charCodeAt(i));
+        }
+        return this.executeReplayStep(raw[0], replayContext);
+    }
+
+    async sendKeys(keys, replayContext = {}) {
+        const out = [];
+        const seq = Array.isArray(keys) ? keys : String(keys || '').split('');
+        for (const key of seq) {
+            out.push(await this.sendKey(key, replayContext));
+        }
+        return out;
+    }
+
+    async executeReplayStep(key, replayContext = {}) {
+        const raw = typeof key === 'string' ? key : String.fromCharCode(key);
+        if (!raw) {
+            throw new Error('executeReplayStep requires a key');
+        }
+        const keyCode = raw.charCodeAt(0);
+        const beforeCount = readRngLog()?.length || 0;
+        if (typeof this.hooks.onStepStart === 'function') {
+            this.hooks.onStepStart({ game: this, key: raw, context: replayContext });
+        }
+        const result = await this.executeCommand(keyCode);
+        const fullLog = readRngLog() || [];
+        const stepRng = fullLog.slice(beforeCount);
+        if (typeof this.hooks.onReplayPrompt === 'function' && this.occupation) {
+            this.hooks.onReplayPrompt({ game: this, key: raw, context: replayContext });
+        }
+        return {
+            key: raw,
+            result,
+            rng: stepRng,
+            typGrid: this.getTypGrid(),
+            screen: this.getScreen(),
+            level: this.player?.dungeonLevel || 0,
+            turn: this.turnCount,
+        };
+    }
+
+    async teleportToLevel(depth) {
+        if (!this.player?.wizard) {
+            return { ok: false, reason: 'wizard-disabled' };
+        }
+        if (!Number.isInteger(depth) || depth <= 0) {
+            return { ok: false, reason: 'invalid-depth' };
+        }
+        this.changeLevel(depth);
+        this.renderCurrentScreen();
+        if (typeof this.hooks.onLevelChange === 'function') {
+            this.hooks.onLevelChange({ game: this, depth });
+        }
+        return { ok: true, depth };
+    }
+
+    revealMap() {
+        if (!this.map) return;
+        for (let y = 0; y < ROWNO; y++) {
+            for (let x = 0; x < COLNO; x++) {
+                const loc = this.map.at(x, y);
+                if (loc) {
+                    loc.seenv = 0xFF;
+                    loc.lit = true;
+                }
+            }
+        }
         this.renderCurrentScreen();
     }
 
@@ -337,6 +556,9 @@ export class HeadlessGame {
         this.player.dungeonLevel = depth;
         this.placePlayerOnLevel();
         this.renderCurrentScreen();
+        if (typeof this.hooks.onLevelChange === 'function') {
+            this.hooks.onLevelChange({ game: this, depth });
+        }
     }
 
     placePlayerOnLevel(transitionDir = null) {
@@ -358,12 +580,16 @@ HeadlessGame.fromSeed = function fromSeed(seed, roleIndex = 11, opts = {}) {
     setGameSeed(seed);
     initLevelGeneration(roleIndex);
 
-    const map = makelevel(1);
+    const startDlevel = Number.isInteger(opts.startDlevel) ? opts.startDlevel : 1;
+    const map = Number.isInteger(opts.startDnum)
+        ? makelevel(startDlevel, opts.startDnum, startDlevel, { dungeonAlignOverride: opts.dungeonAlignOverride })
+        : makelevel(startDlevel, undefined, undefined, { dungeonAlignOverride: opts.dungeonAlignOverride });
 
     const player = new Player();
     player.initRole(roleIndex);
     player.name = opts.name || 'Agent';
     player.gender = Number.isInteger(opts.gender) ? opts.gender : 0;
+    player.race = normalizeRace(opts.race, player.race);
     if (Number.isInteger(opts.alignment)) {
         player.alignment = opts.alignment;
     }
@@ -372,14 +598,16 @@ HeadlessGame.fromSeed = function fromSeed(seed, roleIndex = 11, opts = {}) {
         player.x = map.upstair.x;
         player.y = map.upstair.y;
     }
+    player.dungeonLevel = startDlevel;
 
-    const initResult = simulatePostLevelInit(player, map, 1);
+    const initResult = simulatePostLevelInit(player, map, startDlevel);
 
     const game = new HeadlessGame(player, map, {
         input,
         seerTurn: initResult?.seerTurn || 0,
         startDnum: opts.startDnum,
         dungeonAlignOverride: opts.dungeonAlignOverride,
+        hooks: opts.hooks,
     });
     game.seed = seed;
     game.roleIndex = roleIndex;
@@ -394,15 +622,24 @@ HeadlessGame.fromSeed = function fromSeed(seed, roleIndex = 11, opts = {}) {
 HeadlessGame.prototype.executeCommand = async function executeCommand(ch) {
     const code = typeof ch === 'string' ? ch.charCodeAt(0) : ch;
     const result = await rhack(code, this);
+    if (typeof this.hooks.onCommandResult === 'function') {
+        this.hooks.onCommandResult({ game: this, keyCode: code, result });
+    }
 
     if (result && result.tookTime) {
         movemon(this.map, this.player, this.display, this.fov);
         this.simulateTurnEnd();
+        if (typeof this.hooks.onTurnAdvanced === 'function') {
+            this.hooks.onTurnAdvanced({ game: this, keyCode: code, result });
+        }
     }
 
     this.fov.compute(this.map, this.player.x, this.player.y);
     this.display.renderMap(this.map, this.player, this.fov, this.flags);
     this.display.renderStatus(this.player);
+    if (typeof this.hooks.onScreenRendered === 'function') {
+        this.hooks.onScreenRendered({ game: this, keyCode: code });
+    }
 
     if (this.player.hp <= 0) {
         this.gameOver = true;
