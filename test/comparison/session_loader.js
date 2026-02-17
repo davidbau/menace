@@ -6,7 +6,37 @@ import { basename, join, resolve } from 'node:path';
 
 export function stripAnsiSequences(text) {
     if (!text) return '';
-    return String(text)
+    const decNormalized = (() => {
+        const map = {
+            q: '-',
+            x: '|',
+            l: '+',
+            k: '+',
+            m: '+',
+            j: '+',
+            n: '+',
+            t: '+',
+            u: '+',
+            v: '+',
+            w: '+',
+        };
+        let out = '';
+        let alt = false;
+        for (const ch of String(text)) {
+            if (ch === '\x0e') {
+                alt = true;
+                continue;
+            }
+            if (ch === '\x0f') {
+                alt = false;
+                continue;
+            }
+            out += alt ? (map[ch] || ch) : ch;
+        }
+        return out;
+    })();
+
+    return decNormalized
         // Preserve horizontal cursor-forward movement used in C captures
         // (e.g., "\x1b[9CVersion ...") as literal leading spaces.
         .replace(/\x1b\[(\d*)C/g, (_m, n) => ' '.repeat(Math.max(1, Number(n || '1'))))
@@ -16,12 +46,31 @@ export function stripAnsiSequences(text) {
         .replace(/\x9b[0-?]*[ -/]*[@-~]/g, '');
 }
 
+function looksLikeCharStream(screenArray) {
+    if (!Array.isArray(screenArray) || screenArray.length < 40) return false;
+    let shortCount = 0;
+    let newlineCount = 0;
+    for (const cell of screenArray) {
+        const s = String(cell ?? '');
+        if (s.length <= 1) shortCount++;
+        if (s === '\n' || s === '\r') newlineCount++;
+    }
+    return shortCount >= Math.floor(screenArray.length * 0.9) && newlineCount > 0;
+}
+
+function normalizeScreenArray(rawArray) {
+    const stripped = rawArray.map((line) => stripAnsiSequences(line));
+    if (!looksLikeCharStream(stripped)) return stripped;
+    const joined = stripped.join('').replace(/\r/g, '');
+    return joined.split('\n');
+}
+
 export function getSessionScreenLines(screenHolder) {
     if (Array.isArray(screenHolder?.screenAnsi)) {
-        return screenHolder.screenAnsi.map((line) => stripAnsiSequences(line));
+        return normalizeScreenArray(screenHolder.screenAnsi);
     }
     if (Array.isArray(screenHolder?.screen)) {
-        return screenHolder.screen.map((line) => stripAnsiSequences(line));
+        return normalizeScreenArray(screenHolder.screen);
     }
     if (typeof screenHolder?.screen === 'string') {
         return screenHolder.screen.split('\n').map((line) => stripAnsiSequences(line));

@@ -333,8 +333,8 @@ async function runGameplayResult(session) {
 
     try {
         const replayInput = buildReplayInput(session);
-        const sessionStartup = getSessionStartup(session.raw) || session.raw?.startup || {};
-        const gameplaySteps = getSessionGameplaySteps(session.raw) || [];
+        const sessionStartup = session.startup || getSessionStartup(session.raw) || session.raw?.startup || {};
+        const gameplaySteps = Array.isArray(session.steps) ? session.steps : (getSessionGameplaySteps(session.raw) || []);
         const startupBurst = hasStartupBurstInFirstStep(session.raw);
 
         const replayFlags = { ...DEFAULT_FLAGS };

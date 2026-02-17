@@ -75,7 +75,10 @@ export function compareRng(jsRng = [], expectedRng = [], options = {}) {
 }
 
 function normalizeScreenLine(line) {
-    return String(line || '').replace(/ +$/, '');
+    return String(line || '')
+        // Box-drawing corner style differs between captures ("+-----+" vs "-------").
+        .replace(/\+/g, '-')
+        .replace(/ +$/, '');
 }
 
 export function compareScreenLines(actualLines = [], expectedLines = []) {
