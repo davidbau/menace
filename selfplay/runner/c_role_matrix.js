@@ -104,7 +104,10 @@ for (let i = 0; i < assignments.length; i++) {
         opts.quiet ? '--quiet' : '--verbose',
     ];
 
-    const out = spawnSync('node', cmdArgs, { encoding: 'utf-8' });
+    const out = spawnSync('node', cmdArgs, {
+        encoding: 'utf-8',
+        maxBuffer: 64 * 1024 * 1024,
+    });
     const text = `${out.stdout || ''}\n${out.stderr || ''}`;
 
     const depth = extractInt(text, /Max depth reached:\s+(\d+)/);
@@ -118,7 +121,7 @@ for (let i = 0; i < assignments.length; i++) {
         role: a.role,
         seed: a.seed,
         depth: Number.isFinite(depth) ? depth : null,
-        cause: cause || 'unknown',
+        cause: cause || (out.error ? `spawn_error:${out.error.code || out.error.message}` : 'unknown'),
         maxXL: Number.isFinite(maxXL) ? maxXL : null,
         maxXP: Number.isFinite(maxXP) ? maxXP : null,
         xl2: xl2 || 'never',
@@ -129,6 +132,7 @@ for (let i = 0; i < assignments.length; i++) {
 
     console.log(`  -> depth=${row.depth ?? 'NA'} cause=${row.cause} maxXL=${row.maxXL ?? 'NA'} maxXP=${row.maxXP ?? 'NA'} xl2=${row.xl2} xl3=${row.xl3}`);
     if (!row.ok && opts.verboseFailures) {
+        console.log(`  status=${out.status} signal=${out.signal || 'none'} error=${out.error ? (out.error.code || out.error.message) : 'none'}`);
         console.log('  stderr/stdout (failure):');
         console.log(text.slice(-4000));
     }
@@ -153,8 +157,8 @@ for (const r of results) {
 
 function resolveSeedPool(options) {
     if (options.seeds) return parseSeedSpec(options.seeds);
-    if (options.mode === 'train') return parseSeedSpec('21-30');
-    if (options.mode === 'holdout') return parseSeedSpec('31-40');
+    if (options.mode === 'train') return parseSeedSpec('21-33');
+    if (options.mode === 'holdout') return parseSeedSpec('31-43');
     return [];
 }
 
@@ -200,8 +204,8 @@ function printHelp() {
     console.log('  --verbose-failures            Print tail output for failed runs');
     console.log('');
     console.log('Default seed pools:');
-    console.log('  train:   21-30');
-    console.log('  holdout: 31-40');
+    console.log('  train:   21-33');
+    console.log('  holdout: 31-43');
     console.log('');
     console.log('Note: if seed pool has fewer items than roles, seeds are cycled so');
     console.log('each role still gets one sample.');

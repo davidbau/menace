@@ -29,3 +29,21 @@
 - Baseline (current main): average depth `2.000`, survived `8/10`.
 - Candidate: average depth `2.100`, survived `8/10`.
 - Net: +0.1 average depth with unchanged survival.
+
+## 2026-02-17 - Rejected: Late Dlvl1 Safe-Fight Budget (C Role Matrix Holdout)
+
+- Attempted change: in `selfplay/agent.js`, added a bounded late-stall override to take selected "safe" solo fights on Dlvl 1 when XL1 and healthy, to force early XP gain.
+- Validation gate: C role matrix, held-out seeds `31..40` (13-role sweep with seed cycling), `1200` turns, `key-delay=0`.
+- Baseline: survived `8/13`, avg depth `1.385`, depth>=3 `1/13`, XL2+ `1/13`.
+- Candidate: survived `7/13`, avg depth `1.308`, depth>=3 `0/13`, XL2+ `1/13`.
+- Net: regression on survival and depth; strategy was reverted.
+
+## 2026-02-17 - Harness Reliability Improvements (Kept)
+
+- `selfplay/runner/c_runner.js`:
+  - `--quiet` now suppresses high-volume internal agent logs during runs while preserving startup/summary output.
+  - Impact: faster, parseable long-run evaluation output with unchanged game behavior.
+- `selfplay/runner/c_role_matrix.js`:
+  - increased subprocess `maxBuffer` to avoid output-buffer failures during long C runs.
+  - improved failure diagnostics (`status`/`signal`/`error`) for subprocess failures.
+  - default seed pools updated to unique 13-seed ranges (`train=21..33`, `holdout=31..43`) for class-balanced evaluations without seed cycling.

@@ -69,13 +69,31 @@ for (let i = 0; i < args.length; i++) {
     }
 }
 
-console.log(`NetHack AI Agent vs C Binary`);
-console.log(`  Seed: ${opts.seed}`);
-console.log(`  Max turns: ${opts.maxTurns}`);
-console.log(`  Role: ${opts.role}`);
-console.log(`  Key delay: ${opts.keyDelay}ms`);
-console.log(`  Symbol set: ${opts.symset}`);
-console.log('');
+const runnerLog = console.log.bind(console);
+const originalConsoleLog = console.log;
+let logsSilenced = false;
+
+function silenceAgentLogs() {
+    if (!logsSilenced) {
+        console.log = () => {};
+        logsSilenced = true;
+    }
+}
+
+function restoreLogs() {
+    if (logsSilenced) {
+        console.log = originalConsoleLog;
+        logsSilenced = false;
+    }
+}
+
+runnerLog(`NetHack AI Agent vs C Binary`);
+runnerLog(`  Seed: ${opts.seed}`);
+runnerLog(`  Max turns: ${opts.maxTurns}`);
+runnerLog(`  Role: ${opts.role}`);
+runnerLog(`  Key delay: ${opts.keyDelay}ms`);
+runnerLog(`  Symbol set: ${opts.symset}`);
+runnerLog('');
 
 const adapter = new TmuxAdapter({
     keyDelay: opts.keyDelay,
@@ -83,7 +101,7 @@ const adapter = new TmuxAdapter({
 });
 
 try {
-    console.log('Starting C NetHack in tmux...');
+    runnerLog('Starting C NetHack in tmux...');
     await adapter.start({
         seed: opts.seed,
         role: opts.role,
@@ -93,8 +111,8 @@ try {
         align: 'neutral',
     });
 
-    console.log('Game started. Running agent...');
-    console.log('');
+    runnerLog('Game started. Running agent...');
+    runnerLog('');
 
     const progression = {
         maxXL: 0,
@@ -127,14 +145,16 @@ try {
         },
     });
 
+    if (!opts.verbose) silenceAgentLogs();
     const stats = await agent.run();
+    restoreLogs();
     const finalStatus = agent.status;
 
-    console.log('');
-    console.log(`Game ended after ${stats.turns} turns:`);
-    console.log(`  Max depth reached: ${stats.maxDepth}`);
-    console.log(`  Death cause: ${stats.deathCause || 'survived'}`);
-    console.log(`  XP progression: maxXL=${Math.max(stats.maxXpLevel || 0, progression.maxXL)} maxXP=${Math.max(stats.maxXpPoints || 0, progression.maxXP)} XL2_turn=${stats.firstXpLevel2Turn ?? progression.firstXL2Turn ?? 'never'} XL3_turn=${stats.firstXpLevel3Turn ?? progression.firstXL3Turn ?? 'never'}`);
+    runnerLog('');
+    runnerLog(`Game ended after ${stats.turns} turns:`);
+    runnerLog(`  Max depth reached: ${stats.maxDepth}`);
+    runnerLog(`  Death cause: ${stats.deathCause || 'survived'}`);
+    runnerLog(`  XP progression: maxXL=${Math.max(stats.maxXpLevel || 0, progression.maxXL)} maxXP=${Math.max(stats.maxXpPoints || 0, progression.maxXP)} XL2_turn=${stats.firstXpLevel2Turn ?? progression.firstXL2Turn ?? 'never'} XL3_turn=${stats.firstXpLevel3Turn ?? progression.firstXL3Turn ?? 'never'}`);
     if (finalStatus) {
         const hunger = finalStatus.fainting ? 'fainting'
             : finalStatus.weak ? 'weak'
@@ -152,18 +172,20 @@ try {
         ].filter(Boolean);
         const debuffStr = debuffs.length > 0 ? debuffs.join(',') : 'none';
         const strength = finalStatus.strExtra > 0 ? `${finalStatus.str}/${finalStatus.strExtra}` : `${finalStatus.str}`;
-        console.log(`  Final status: HP=${finalStatus.hp}/${finalStatus.hpmax} AC=${finalStatus.ac} Dlvl=${finalStatus.dungeonLevel} XL=${finalStatus.xpLevel} XP=${finalStatus.xpPoints} Gold=${finalStatus.gold} Hunger=${hunger} Turn=${finalStatus.turns || stats.turns}`);
-        console.log(`  Final attributes: St=${strength} Dx=${finalStatus.dex} Co=${finalStatus.con} In=${finalStatus.int} Wi=${finalStatus.wis} Ch=${finalStatus.cha} Align=${finalStatus.alignment || 'unknown'} Debuffs=${debuffStr}`);
+        runnerLog(`  Final status: HP=${finalStatus.hp}/${finalStatus.hpmax} AC=${finalStatus.ac} Dlvl=${finalStatus.dungeonLevel} XL=${finalStatus.xpLevel} XP=${finalStatus.xpPoints} Gold=${finalStatus.gold} Hunger=${hunger} Turn=${finalStatus.turns || stats.turns}`);
+        runnerLog(`  Final attributes: St=${strength} Dx=${finalStatus.dex} Co=${finalStatus.con} In=${finalStatus.int} Wi=${finalStatus.wis} Ch=${finalStatus.cha} Align=${finalStatus.alignment || 'unknown'} Debuffs=${debuffStr}`);
     }
 
 } catch (err) {
+    restoreLogs();
     console.error('Error:', err.message);
     console.error('Stack:', err.stack);
     process.exit(1);
 } finally {
-    console.log('\nCleaning up tmux session...');
+    restoreLogs();
+    runnerLog('\nCleaning up tmux session...');
     await adapter.stop();
-    console.log('Done.');
+    runnerLog('Done.');
 }
 
 function dumpAgentMap(agent, turn) {
