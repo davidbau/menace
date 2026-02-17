@@ -3245,7 +3245,7 @@ export class Agent {
      * positions with the target, that was a pet displacement.
      */
     _detectPetDisplacement() {
-        if (this.lastAction !== 'attack' || !this.lastAttemptedAttackPos || !this.lastPosition) return;
+        if (!this.lastAction || this.lastAction.type !== 'attack' || !this.lastAttemptedAttackPos || !this.lastPosition) return;
 
         const px = this.screen.playerX;
         const py = this.screen.playerY;

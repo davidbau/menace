@@ -56,3 +56,16 @@
   - Train `21..30`: unchanged vs baseline (`survived 7/13`, `avg depth 1.846`, `depth>=3 5/13`, `XL2+ 2/13`).
   - Holdout `31..40`: improved depth/progression with no survival regression (`survived 8/13` unchanged, `avg depth 1.462` vs `1.385`, `XL2+ 2/13` vs `1/13`).
 - Net: keep.
+
+## 2026-02-17 - Keep: Pet Displacement Detection Bug Fix
+
+- Change: in `selfplay/agent.js` `_detectPetDisplacement()`, fixed action-type check from string comparison against `this.lastAction` to object field check `this.lastAction.type === 'attack'`.
+- Why: `lastAction` is an action object; the old check always failed, so pet displacement was never detected, causing repeated false-hostile dog loops and exploration stalls.
+- Validation gates (C role matrix, 1200 turns, key-delay=20):
+  - Train A/B (`21..30`):
+    - Baseline: `survived 7/13`, avg depth `~1.692`.
+    - Candidate: `survived 10/13`, avg depth `~1.538`.
+  - Holdout A/B (`31..40`):
+    - Baseline: `survived 9/13`, avg depth `~1.231`.
+    - Candidate: `survived 9/13`, avg depth `~1.385`.
+- Net: significant train survival gain and holdout depth gain with no holdout survival regression; keep.
