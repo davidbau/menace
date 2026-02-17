@@ -139,6 +139,11 @@ JS output against C-captured reference data:
 | `"gameplay"` | Startup typGrid + per-step RNG traces + screen rendering | `seed42.session.json` |
 | `"chargen"` | Character creation reference data (screens, RNG, inventory) | `seed42_chargen_valkyrie.session.json` |
 
+Session JSON `options` can override runtime flags for replay-sensitive cases.
+For tutorial coverage, set:
+- `"tutorial": true` to explicitly enable tutorial-mode prompt behavior
+- omit it (or set `false`) to use JS default (`tutorial` off)
+
 Map sessions generate levels 1→5 sequentially on one RNG stream (matching
 C's behavior). Each level is checked for:
 - Cell-by-cell typGrid match against C
