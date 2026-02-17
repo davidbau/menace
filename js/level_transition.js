@@ -1,7 +1,7 @@
 // level_transition.js -- Level entry placement rules
 // C ref: movement between levels places hero on corresponding stairs.
 
-import { COLNO, ROWNO } from './config.js';
+import { ACCESSIBLE, COLNO, ROWNO } from './config.js';
 import { rn1 } from './rng.js';
 import {
     CORR, ROOM, AIR,

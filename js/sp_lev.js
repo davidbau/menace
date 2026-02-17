@@ -16,7 +16,7 @@
 import { GameMap, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1, getRngCallCount } from './rng.js';
 import { mksobj, mkobj, mkcorpstat, set_corpsenm, setLevelDepth, weight } from './mkobj.js';
-import { create_room, create_subroom, makecorridors, create_corridor, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize as dungeonMineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, wallify_region as dungeonWallifyRegion, fix_wall_spines, set_wall_state, place_lregion, mktrap, enexto, somexy, sp_create_door, floodFillAndRegister, resolveBranchPlacementForLevel, random_epitaph_text, induced_align, DUNGEON_ALIGN_BY_DNUM, enterMklevContext, leaveMklevContext } from './dungeon.js';
+import { create_room, create_subroom, makecorridors, create_corridor, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize as dungeonMineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, wallify_region as dungeonWallifyRegion, fix_wall_spines, set_wall_state, place_lregion, mktrap, enexto, somexy, sp_create_door, floodFillAndRegister, repair_irregular_room_boundaries, resolveBranchPlacementForLevel, random_epitaph_text, induced_align, DUNGEON_ALIGN_BY_DNUM, enterMklevContext, leaveMklevContext } from './dungeon.js';
 import { seedFromMT } from './xoshiro256.js';
 import {
     makemon, mkclass, def_char_to_monclass, NO_MM_FLAGS,
@@ -2387,14 +2387,21 @@ export function map(data) {
     // C ref: sp_lev.c mapfrag_fromstr() calls stripdigits() before computing
     // dimensions or applying map cells.
     mapStr = String(mapStr).replace(/[0-9]/g, '');
+    const preserveExactBlankLines = !!(data && typeof data === 'object'
+        && (data.coord !== undefined || data.x !== undefined || data.y !== undefined));
+    // Lua long bracket strings drop one initial newline after [[.
+    // Keep that behavior for regular map placement, but preserve exact explicit
+    // coordinate map fragments (used by tests and direct C-style call forms).
+    if (!preserveExactBlankLines) {
+        if (mapStr.startsWith('\r\n')) mapStr = mapStr.slice(2);
+        else if (mapStr.startsWith('\n')) mapStr = mapStr.slice(1);
+    }
     // Parse map string into lines.
     // C ref: sp_lev.c mapfrag_fromstr() counts newline-separated rows from the
     // normalized Lua string; intentional blank rows remain.
     // C preserves intentional trailing blank rows and only ignores the final
     // synthetic empty segment introduced by a terminal '\n'.
     let lines = mapStr.split('\n');
-    const preserveExactBlankLines = !!(data && typeof data === 'object'
-        && (data.coord !== undefined || data.x !== undefined || data.y !== undefined));
     if (!preserveExactBlankLines) {
         if (lines.length > 0 && lines[lines.length - 1] === '' && mapStr.endsWith('\n')) {
             lines.pop();
@@ -2619,14 +2626,10 @@ const GETLOC_SPACELOC = 1 << 5;
 const GETLOC_NO_LOC_WARN = 1 << 6;
 
 function hasBoulderAt(x, y) {
+    // C ref: is_ok_location() uses sobj_at(BOULDER, x, y), which only checks
+    // currently placed floor objects. Deferred objects are not considered here.
     for (const obj of levelState.map.objects || []) {
         if (obj?.otyp === BOULDER && obj.ox === x && obj.oy === y) return true;
-    }
-    for (const deferred of levelState.deferredObjects) {
-        if (deferred?.obj?.otyp === BOULDER
-            && deferred.x === x && deferred.y === y) {
-            return true;
-        }
     }
     return false;
 }
@@ -3116,6 +3119,10 @@ export function room(opts = {}) {
     const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_ROOMS === '1';
     const DEBUG_BUILD = typeof process !== 'undefined' && process.env.DEBUG_BUILD_ROOM === '1';
     const inThemerooms = !!levelState.inThemerooms;
+    const roomGenDepth = (levelState.finalizeContext && Number.isFinite(levelState.finalizeContext.dunlev))
+        ? levelState.finalizeContext.dunlev
+        : (Number.isFinite(levelState.levelDepth) ? levelState.levelDepth
+            : (Number.isFinite(levelState.depth) ? levelState.depth : 1));
 
     // C ref: sp_lev.c — build_room() RNG ordering differs based on room type:
     // Fixed-position rooms: build_room rn2(100) → litstate_rnd → create_room
@@ -3161,68 +3168,30 @@ export function room(opts = {}) {
         // If rlit >= 0, litstate_rnd returns immediately without calling RNG
         // If rlit < 0, litstate_rnd calls rnd() and rn2(77) to determine lighting
         if (DEBUG_BUILD) {
-            console.log(`  [RNG ${getRngCallCount()}] Calling litstate_rnd(${lit}, ${levelState.depth || 1})`);
+            console.log(`  [RNG ${getRngCallCount()}] Calling litstate_rnd(${lit}, ${roomGenDepth})`);
         }
-        lit = litstate_rnd(lit, levelState.depth || 1);
+        lit = litstate_rnd(lit, roomGenDepth);
         if (DEBUG_BUILD) {
             console.log(`  [RNG ${getRngCallCount()}] litstate_rnd -> ${lit}`);
         }
 
-        // C ref: sp_lev.c:1598-1619 — Convert grid coordinates to absolute map coordinates
-        // Top-level rooms use grid coordinates (1-5) that get converted to map positions
-        // Nested rooms use relative coordinates within parent (no conversion)
-        if (levelState.roomDepth === 0) {
-            const cdiv = (num, den) => Math.trunc(num / den);
-            // Grid to absolute conversion (C: xabs = (((xtmp - 1) * COLNO) / 5) + 1)
-            roomX = cdiv(((x - 1) * COLNO), 5) + 1;
-            roomY = cdiv(((y - 1) * ROWNO), 5) + 1;
-
-            // Apply alignment offset (C ref: sp_lev.c:1605-1619)
-            const COLNO_DIV5 = cdiv(COLNO, 5);  // 16
-            const ROWNO_DIV5 = cdiv(ROWNO, 5);  // 4
-
-            // xalign/yalign already converted by alignMap: 1=LEFT/TOP, 3=CENTER, 5=RIGHT/BOTTOM
-            // Apply horizontal alignment
-            if (xalign === 5) { // RIGHT
-                roomX += COLNO_DIV5 - w;
-            } else if (xalign === 3) { // CENTER
-                roomX += cdiv((COLNO_DIV5 - w), 2);
+        // C ref: build_room() -> create_room() for fixed top-level rooms.
+        // Use create_room_splev so split_rects/get_rect parity matches C.
+        const roomCalc = create_room_splev(
+            x, y, w, h, xalign, yalign, rtype, lit, roomGenDepth, true
+        );
+        if (!roomCalc) {
+            if (levelState.roomFailureCallback) {
+                levelState.roomFailureCallback();
             }
-            // LEFT (1) needs no offset
-
-            // Apply vertical alignment
-            if (yalign === 5) { // BOTTOM
-                roomY += ROWNO_DIV5 - h;
-            } else if (yalign === 3) { // CENTER
-                roomY += cdiv((ROWNO_DIV5 - h), 2);
-            }
-            // TOP (1) needs no offset
-
-            roomW = w;
-            roomH = h;
-
-            if (DEBUG) {
-                console.log(`  Grid conversion: (${x},${y}) -> absolute (${roomX},${roomY}), align=${xalign},${yalign}`);
-            }
-        } else {
-            // Nested room uses relative coordinates within parent
-            // C ref: sp_lev.c create_subroom() - x,y are relative to parent room
-            const parentRoom = levelState.currentRoom;
-            if (parentRoom) {
-                roomX = parentRoom.lx + x;
-                roomY = parentRoom.ly + y;
-            } else {
-                // Fallback if no parent (shouldn't happen for nested rooms)
-                roomX = x;
-                roomY = y;
-            }
-            roomW = w;
-            roomH = h;
-
-            if (DEBUG) {
-                console.log(`  Nested room: relative (${x},${y}) -> absolute (${roomX},${roomY}) within parent`);
-            }
+            return false;
         }
+        roomX = roomCalc.lx;
+        roomY = roomCalc.ly;
+        roomW = roomCalc.hx - roomCalc.lx + 1;
+        roomH = roomCalc.hy - roomCalc.ly + 1;
+        lit = roomCalc.rlit;
+        splitDone = !!roomCalc._splitDone;
     } else if (levelState.roomDepth > 0) {
         // Nested room creation always uses create_subroom().
         // C ref: sp_lev.c build_room() calls create_subroom() whenever parent room exists.
@@ -3242,7 +3211,7 @@ export function room(opts = {}) {
         // C ref: create_subroom (sp_lev.c:1668-1707) — handles dimension randomization,
         // parent size check, litstate_rnd, and add_subroom all in one call
         const subroom = create_subroom(levelState.map, parentRoom,
-            x, y, w, h, rtype, lit, levelState.depth || 1);
+            x, y, w, h, rtype, lit, roomGenDepth);
 
         if (!subroom) {
             // Parent room too small or other failure
@@ -3307,7 +3276,7 @@ export function room(opts = {}) {
             rtype = (!chance || rn2(100) < chance) ? requestedRtype : 0; // 0 = OROOM
             // C ref: create_room sp_lev.c:1512 — litstate_rnd called inside create_room
             // We call it here so create_room's internal call is a no-op
-            lit = litstate_rnd(lit, levelState.depth || 1);
+            lit = litstate_rnd(lit, roomGenDepth);
 
             if (!levelState.map) {
                 console.error('des.room(): no map available for partially-random create_room');
@@ -3315,7 +3284,7 @@ export function room(opts = {}) {
             }
 
             const success = create_room(levelState.map, x, y, w, h, xalign, yalign,
-                                        rtype, lit, levelState.depth || 1, inThemerooms);
+                                        rtype, lit, roomGenDepth, inThemerooms);
 
             if (!success) {
                 if (DEBUG) {
@@ -3368,7 +3337,7 @@ export function room(opts = {}) {
 
         // Fully-random rooms: defer create_room call so we can do rn2(100)+litstate_rnd first
         const roomCalc = create_room_splev(x, y, w, h, xalign, yalign,
-                                           rtype, lit, levelState.depth || 1, true, false, true); // skipLitstate=true, deferCreateRoom=true
+                                           rtype, lit, roomGenDepth, true, false, true); // skipLitstate=true, deferCreateRoom=true
 
         if (!roomCalc) {
             if (DEBUG) {
@@ -3403,9 +3372,9 @@ export function room(opts = {}) {
             // 2. litstate_rnd()
             if (DEBUG_BUILD) {
                 const before = getRngCallCount();
-                console.log(`  [RNG ${before}] des.room() calling litstate_rnd(${lit}, ${levelState.depth || 1})`);
+                console.log(`  [RNG ${before}] des.room() calling litstate_rnd(${lit}, ${roomGenDepth})`);
             }
-            lit = litstate_rnd(lit, levelState.depth || 1);
+            lit = litstate_rnd(lit, roomGenDepth);
             if (DEBUG_BUILD) {
                 console.log(`  [RNG ${getRngCallCount()}] litstate_rnd returned ${lit}`);
             }
@@ -3515,9 +3484,9 @@ export function room(opts = {}) {
                 // Now call litstate_rnd (after build_room's rn2(100))
                 if (DEBUG_BUILD) {
                     const before = getRngCallCount();
-                    console.log(`  [RNG ${before}] des.room() calling litstate_rnd(${lit}, ${levelState.depth || 1}) after build_room`);
+                    console.log(`  [RNG ${before}] des.room() calling litstate_rnd(${lit}, ${roomGenDepth}) after build_room`);
                 }
-                lit = litstate_rnd(lit, levelState.depth || 1);
+                lit = litstate_rnd(lit, roomGenDepth);
                 roomCalc.rlit = lit; // Update room's lighting
                 if (DEBUG_BUILD) {
                     console.log(`  [RNG ${getRngCallCount()}] litstate_rnd returned ${lit}`);
@@ -3600,13 +3569,14 @@ export function room(opts = {}) {
     // Even if lit was already determined, C calls litstate_rnd again
     // This is because litstate_rnd returns immediately (without RNG) if litstate >= 0
     if (DEBUG_BUILD) {
-        console.log(`  [RNG ${typeof getRngCallCount === 'function' ? getRngCallCount() : '?'}] Room finalization: calling litstate_rnd(${lit}, ${levelState.depth || 1})`);
+        console.log(`  [RNG ${typeof getRngCallCount === 'function' ? getRngCallCount() : '?'}] Room finalization: calling litstate_rnd(${lit}, ${roomGenDepth})`);
     }
-    const finalLit = litstate_rnd(lit, levelState.depth || 1);
+    const finalLit = litstate_rnd(lit, roomGenDepth);
     if (DEBUG_BUILD) {
         console.log(`  [RNG ${typeof getRngCallCount === 'function' ? getRngCallCount() : '?'}] Room finalization: litstate_rnd returned ${finalLit}`);
     }
 
+    const roomIdx = levelState.map.nroom || 0;
     const room = {
         lx: roomX,
         ly: roomY,
@@ -3617,6 +3587,10 @@ export function room(opts = {}) {
         irregular: false,
         nsubrooms: 0,
         sbrooms: [],
+        roomnoidx: roomIdx,
+        doorct: 0,
+        fdoor: levelState.map.doorindex || 0,
+        needjoining: true,
         // C ref: sp_lev.c lspo_room() — needfill defaults depend on context:
         // During themed room generation (in_mk_themerooms): default 0 (FILL_NONE)
         // Otherwise: default 1 (FILL_NORMAL)
@@ -3630,18 +3604,20 @@ export function room(opts = {}) {
     if (DEBUG || typeof process !== 'undefined' && process.env.DEBUG_ROOM_TILES === '1') {
         console.log(`Marking room tiles: (${roomX},${roomY})-(${roomX+roomW-1},${roomY+roomH-1})`);
     }
+    const roomno = roomIdx + ROOMOFFSET;
     for (let ry = roomY; ry < roomY + roomH; ry++) {
         for (let rx = roomX; rx < roomX + roomW; rx++) {
             if (rx >= 0 && rx < COLNO && ry >= 0 && ry < ROWNO) {
                 levelState.map.locations[rx][ry].typ = ROOM;
                 levelState.map.locations[rx][ry].lit = room.rlit;
+                levelState.map.locations[rx][ry].roomno = roomno;
             }
         }
     }
 
     // Add room to map's room list
-    levelState.map.rooms.push(room);
-    levelState.map.nroom = levelState.map.rooms.length;
+    levelState.map.rooms[roomIdx] = room;
+    levelState.map.nroom = roomIdx + 1;
 
     // C ref: rect.c split_rects() — Split BSP rectangle pool around this room
     // This is needed for randomly-placed rooms (procedural and themed)
@@ -3649,12 +3625,12 @@ export function room(opts = {}) {
     // Fixed-position rooms (like oracle's x=3,y=3) do NOT split - they bypass BSP entirely
     // Nested rooms (subrooms) also do NOT split - C ref: create_subroom() has no split_rects call
     // If create_room_splev already called split_rects (with correct rndpos), skip this
-    if (levelState.roomDepth === 0 && isRandomPlacement && !splitDone) {
+    if (levelState.roomDepth === 0 && !splitDone) {
         if (DEBUG_BUILD) {
             console.log(`  des.room(): calling update_rect_pool_for_room (splitDone=${splitDone})`);
         }
         update_rect_pool_for_room(room);
-    } else if (DEBUG_BUILD && levelState.roomDepth === 0 && isRandomPlacement) {
+    } else if (DEBUG_BUILD && levelState.roomDepth === 0) {
         console.log(`  des.room(): SKIPPING update_rect_pool_for_room (splitDone=${splitDone})`);
     }
 
@@ -5710,6 +5686,7 @@ export function random_corridors() {
     // C ref: lspo_random_corridors() -> create_corridor() -> makecorridors(),
     // which uses current level depth in downstream door/trap choices.
     const depth = levelState.levelDepth || 1;
+    repair_irregular_room_boundaries(levelState.map);
     makecorridors(levelState.map, depth);
 }
 
@@ -5915,10 +5892,21 @@ function executeDeferredMonster(deferred) {
             // (AM_SPLEV_RANDOM -> induced_align()) before coordinate selection.
             consumeInducedAlignRng();
         }
-        const coordX = (x !== undefined) ? x : rn2(60) + 10;
-        const coordY = (y !== undefined) ? y : rn2(15) + 3;
+        let coordX;
+        let coordY;
+        if (deferred.deferCoord) {
+            const pos = getLocationCoord(deferred.rawX, deferred.rawY, GETLOC_DRY, deferred.room || null);
+            coordX = pos.x;
+            coordY = pos.y;
+        } else {
+            coordX = (x !== undefined) ? x : rn2(60) + 10;
+            coordY = (y !== undefined) ? y : rn2(15) + 3;
+        }
         if (immediateParity) {
             // C ref: create_monster() with no class/id -> makemon(NULL, ...).
+            if (traceMon) {
+                console.log(`[MONTRACE] immediate-random pos=(${coordX},${coordY}) room=${deferred.room ? `${deferred.room.lx},${deferred.room.ly}-${deferred.room.hx},${deferred.room.hy}` : 'none'}`);
+            }
             createMonster(null, coordX, coordY);
             return;
         }
@@ -6004,9 +5992,18 @@ function executeDeferredMonster(deferred) {
         }
 
         if (deferred.deferCoord) {
+            if (traceMon && deferred.room) {
+                console.log(`[MONTRACE] room lx=${deferred.room.lx} hx=${deferred.room.hx} ly=${deferred.room.ly} hy=${deferred.room.hy} nsub=${deferred.room.nsubrooms} sbrooms=${(deferred.room.sbrooms || []).length}`);
+            }
             const pos = getLocationCoord(deferred.rawX, deferred.rawY, GETLOC_DRY, deferred.room || null);
             coordX = pos.x;
             coordY = pos.y;
+            if (traceMon) {
+                const t = (coordX >= 0 && coordY >= 0 && coordX < COLNO && coordY < ROWNO)
+                    ? levelState.map.locations[coordX][coordY].typ
+                    : -1;
+                console.log(`[MONTRACE] deferCoord pos=(${coordX},${coordY}) typ=${t} id=${String(opts_or_class)}`);
+            }
         }
         if (coordX === undefined || coordY === undefined ||
             coordX < 0 || coordX >= 80 || coordY < 0 || coordY >= 21) {

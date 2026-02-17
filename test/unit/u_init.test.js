@@ -81,8 +81,9 @@ describe('Post-level initialization (u_init)', () => {
         assert.ok(sum >= 70 && sum <= 80,
             `Attribute sum should be ~75, got ${sum}`);
 
-        // All attributes should be >= role base and <= 18
-        const bases = [10, 7, 7, 7, 10, 7]; // Valkyrie bases
+        // All non-STR attributes should be in 3..18.
+        // STR uses NetHack's exceptional encoding where values can exceed 18
+        // (e.g. 25 means 18/07, max 118 means 18/100).
         for (let i = 0; i < NUM_ATTRS; i++) {
             const max = (i === A_STR) ? 118 : 18; // C: STR can use 18/xx encoding.
             assert.ok(player.attributes[i] >= 3 && player.attributes[i] <= max,

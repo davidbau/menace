@@ -1,132 +1,84 @@
 /**
  * Session Tests - Node.js test runner wrapper
  *
- * Runs session_test_runner.js (CLI mode) and reports
- * results in node:test format with grouping by session type.
+ * Runs session_test_runner.js via runSessionBundle and reports
+ * one subtest per session with detailed divergence output.
  */
 
-import { describe, test, before } from 'node:test';
+import { describe, test } from 'node:test';
 import { runSessionBundle } from './session_test_runner.js';
 
-// Store results after async loading
-let results = null;
-let loadError = null;
+const TYPE_GROUPS = [
+    'chargen',
+    'interface',
+    'map',
+    'gameplay',
+    'special',
+    'other',
+];
 
-// Run the session test runner and collect results
-async function runSessionTests() {
-    const bundle = await runSessionBundle({ verbose: false, useGolden: false });
-    return bundle.results;
-}
+const resultsByType = new Map();
+const errorsByType = new Map();
 
-// Group results by type
-function groupResults(results) {
-    const groups = {
-        chargen: [],
-        interface: [],
-        map: [],
-        gameplay: [],
-        special: [],
-        other: []
-    };
-
-    for (const r of results) {
-        const type = r.type || 'other';
-        if (groups[type]) {
-            groups[type].push(r);
-        } else {
-            groups.other.push(r);
-        }
+async function loadTypeResults(type) {
+    if (resultsByType.has(type) || errorsByType.has(type)) return;
+    try {
+        const bundle = await runSessionBundle({
+            verbose: false,
+            useGolden: false,
+            typeFilter: type,
+        });
+        const rows = (bundle?.results || []).filter((r) => (r.type || 'other') === type);
+        resultsByType.set(type, rows);
+    } catch (e) {
+        errorsByType.set(type, e);
     }
-    return groups;
 }
 
-// Generate error message for failed test
+function stringifyFirstDivergence(first) {
+    if (!first) return null;
+    if (first.channel === 'rng') {
+        return `rng divergence: step=${first.step ?? 'n/a'} index=${first.index ?? 'n/a'} js=${first.js ?? first.actual ?? ''} session=${first.session ?? first.expected ?? ''}`;
+    }
+    if (first.channel === 'screen') {
+        return `screen divergence: step=${first.step ?? 'n/a'} row=${first.row ?? 'n/a'} js=${JSON.stringify(first.js ?? '')} session=${JSON.stringify(first.session ?? '')}`;
+    }
+    if (first.channel === 'grid') {
+        return `grid divergence: depth=${first.depth ?? 'n/a'} x=${first.x ?? 'n/a'} y=${first.y ?? 'n/a'} js=${first.js ?? ''} session=${first.session ?? ''}`;
+    }
+    return JSON.stringify(first);
+}
+
 function getErrorMessage(r) {
-    if (r.error) return r.error;
-    if (r.firstDivergence) {
-        return `Diverged at step ${r.firstDivergence.step}, RNG call ${r.firstDivergence.rngCall}`;
+    const parts = [];
+    if (r.error) parts.push(`error: ${r.error}`);
+    if (r.firstDivergence) parts.push(stringifyFirstDivergence(r.firstDivergence));
+    if (r.firstDivergences) {
+        for (const [channel, value] of Object.entries(r.firstDivergences)) {
+            if (channel === r.firstDivergence?.channel) continue;
+            parts.push(stringifyFirstDivergence({ channel, ...value }));
+        }
     }
-    if (r.failedLevels) {
-        return `Failed levels: ${r.failedLevels.join(', ')}`;
-    }
-    return `Failed: ${JSON.stringify(r.metrics || {})}`;
+    if (r.failedLevels) parts.push(`failed levels: ${r.failedLevels.join(', ')}`);
+    parts.push(`metrics: ${JSON.stringify(r.metrics || {})}`);
+    return parts.filter(Boolean).join('\n');
 }
 
-describe('Session Tests', async () => {
-    before(async () => {
-        try {
-            results = await runSessionTests();
-        } catch (e) {
-            loadError = e;
-        }
-    });
+describe('Session Tests', () => {
+    for (const type of TYPE_GROUPS) {
+        describe(`${type} sessions`, () => {
+            test(`${type} tests`, async (t) => {
+                await loadTypeResults(type);
+                if (errorsByType.has(type)) throw errorsByType.get(type);
+                const rows = resultsByType.get(type) || [];
+                if (rows.length === 0) return t.skip(`No ${type} sessions`);
 
-    test('session runner completed', () => {
-        if (loadError) throw loadError;
-        if (!results) throw new Error('No results loaded');
-    });
-
-    describe('Chargen Sessions', () => {
-        before(() => {
-            if (!results) return;
+                for (const r of rows) {
+                    await t.test(r.session, () => {
+                        if (!r.passed) throw new Error(getErrorMessage(r));
+                    });
+                }
+            });
         });
-
-        test('chargen tests', async (t) => {
-            if (!results) return t.skip('No results');
-            const groups = groupResults(results);
-            for (const r of groups.chargen) {
-                await t.test(r.session, () => {
-                    if (!r.passed) throw new Error(getErrorMessage(r));
-                });
-            }
-        });
-    });
-
-    describe('Interface Sessions', () => {
-        test('interface tests', async (t) => {
-            if (!results) return t.skip('No results');
-            const groups = groupResults(results);
-            for (const r of groups.interface) {
-                await t.test(r.session, () => {
-                    if (!r.passed) throw new Error(getErrorMessage(r));
-                });
-            }
-        });
-    });
-
-    describe('Map Sessions', () => {
-        test('map tests', async (t) => {
-            if (!results) return t.skip('No results');
-            const groups = groupResults(results);
-            for (const r of groups.map) {
-                await t.test(r.session, () => {
-                    if (!r.passed) throw new Error(getErrorMessage(r));
-                });
-            }
-        });
-    });
-
-    describe('Gameplay Sessions', () => {
-        test('gameplay tests', async (t) => {
-            if (!results) return t.skip('No results');
-            const groups = groupResults(results);
-            for (const r of groups.gameplay) {
-                await t.test(r.session, () => {
-                    if (!r.passed) throw new Error(getErrorMessage(r));
-                });
-            }
-        });
-    });
-
-    describe('Special Sessions', () => {
-        test('special tests', async (t) => {
-            if (!results) return t.skip('No results');
-            const groups = groupResults(results);
-            for (const r of groups.special) {
-                await t.test(r.session, () => {
-                    if (!r.passed) throw new Error(getErrorMessage(r));
-                });
-            }
-        });
-    });
+    }
 });

@@ -54,21 +54,75 @@ function normalizeStep(step, index) {
         rngCalls: hasExplicitRngCalls ? row.rngCalls : (hasExplicitRngTrace ? rng.length : null),
         screen: getSessionScreenLines(row),
         screenAnsi: Array.isArray(row.screenAnsi) ? row.screenAnsi : null,
-        typGrid: Array.isArray(row.typGrid) ? row.typGrid : null,
-        checkpoints: row.checkpoints || null,
+        typGrid: normalizeGrid(row.typGrid),
+        checkpoints: normalizeCheckpoints(row.checkpoints),
     };
+}
+
+function decodeCell(cell) {
+    if (typeof cell !== 'string' || cell.length === 0) return 0;
+    if (/^\d+$/.test(cell)) return Number(cell);
+    const ch = cell.toLowerCase();
+    const code = ch.charCodeAt(0);
+    if (code >= 48 && code <= 57) return code - 48;
+    if (code >= 97 && code <= 122) return 10 + (code - 97);
+    return 0;
+}
+
+function decodeRleGridRow(row, rowWidth = 80) {
+    if (!row) return new Array(rowWidth).fill(0);
+    const out = [];
+    const tokens = String(row).split(',').filter((token) => token.length > 0);
+    for (const token of tokens) {
+        const sep = token.indexOf(':');
+        let count = 1;
+        let cell = token;
+        if (sep !== -1) {
+            count = Number.parseInt(token.slice(0, sep), 10);
+            cell = token.slice(sep + 1);
+        }
+        const value = decodeCell(cell);
+        if (!Number.isInteger(count) || count < 1) continue;
+        for (let i = 0; i < count; i++) out.push(value);
+    }
+    if (out.length < rowWidth) out.push(...new Array(rowWidth - out.length).fill(0));
+    return out.slice(0, rowWidth);
+}
+
+function decodeRleGrid(grid, rowCount = 21, rowWidth = 80) {
+    if (typeof grid !== 'string') return null;
+    const rows = String(grid).split('|');
+    const out = rows.map((row) => decodeRleGridRow(row, rowWidth));
+    while (out.length < rowCount) out.push(new Array(rowWidth).fill(0));
+    return out.slice(0, rowCount);
+}
+
+function normalizeGrid(grid) {
+    if (Array.isArray(grid)) return grid;
+    if (typeof grid === 'string') return decodeRleGrid(grid);
+    return null;
+}
+
+function normalizeCheckpoints(checkpoints) {
+    if (!Array.isArray(checkpoints)) return null;
+    return checkpoints.map((cp) => ({
+        ...cp,
+        typGrid: normalizeGrid(cp?.typGrid),
+        flagGrid: normalizeGrid(cp?.flagGrid),
+        wallInfoGrid: normalizeGrid(cp?.wallInfoGrid),
+    }));
 }
 
 function normalizeLevels(levels) {
     const list = Array.isArray(levels) ? levels : [];
     return list.map((level) => ({
         depth: Number.isInteger(level?.depth) ? level.depth : 1,
-        typGrid: Array.isArray(level?.typGrid) ? level.typGrid : null,
+        typGrid: normalizeGrid(level?.typGrid),
         rng: Array.isArray(level?.rng) ? level.rng : [],
         rngCalls: Number.isInteger(level?.rngCalls) ? level.rngCalls : null,
         screen: getSessionScreenLines(level),
         screenAnsi: Array.isArray(level?.screenAnsi) ? level.screenAnsi : null,
-        checkpoints: level?.checkpoints || null,
+        checkpoints: normalizeCheckpoints(level?.checkpoints),
         levelName: level?.levelName || null,
     }));
 }
@@ -97,8 +151,8 @@ export function normalizeSession(raw, meta = {}) {
                 : (Array.isArray(startupRaw.rng) ? startupRaw.rng.length : null),
             screen: getSessionScreenLines(startupRaw),
             screenAnsi: Array.isArray(startupRaw.screenAnsi) ? startupRaw.screenAnsi : null,
-            typGrid: Array.isArray(startupRaw.typGrid) ? startupRaw.typGrid : null,
-            checkpoints: startupRaw.checkpoints || null,
+            typGrid: normalizeGrid(startupRaw.typGrid),
+            checkpoints: normalizeCheckpoints(startupRaw.checkpoints),
         }
         : null;
 

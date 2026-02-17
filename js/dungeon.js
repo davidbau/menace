@@ -915,6 +915,65 @@ function sort_rooms(map) {
     }
 }
 
+// C-parity repair: irregular rooms in JS can leave boundary STONE where C map
+// data has explicit wall tiles. This affects finddpos()/dig_corridor routing.
+export function repair_irregular_room_boundaries(map) {
+    if (!map || !Array.isArray(map.rooms)) return;
+    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_IRREG_REPAIR === '1';
+    const roomByNo = new Map();
+    for (let i = 0; i < (map.nroom || 0); i++) {
+        const r = map.rooms[i];
+        if (!r) continue;
+        roomByNo.set(i + ROOMOFFSET, r);
+    }
+
+    for (let x = 1; x < COLNO - 1; x++) {
+        for (let y = 1; y < ROWNO - 1; y++) {
+            const loc = map.at(x, y);
+            if (!loc || loc.typ !== STONE || loc.roomno !== 0) continue;
+
+            let hasH = false;
+            let hasV = false;
+            let anyIrregularAdj = false;
+            const neigh = [
+                [x - 1, y, 'W'],
+                [x + 1, y, 'E'],
+                [x, y - 1, 'N'],
+                [x, y + 1, 'S'],
+            ];
+            for (const [nx, ny, dir] of neigh) {
+                const nloc = map.at(nx, ny);
+                if (!nloc || nloc.edge || nloc.roomno < ROOMOFFSET) continue;
+                const rr = roomByNo.get(nloc.roomno);
+                if (!rr || !rr.irregular) continue;
+                anyIrregularAdj = true;
+                if (dir === 'W' || dir === 'E') hasV = true;
+                if (dir === 'N' || dir === 'S') hasH = true;
+            }
+            if (!anyIrregularAdj) {
+                // Fill missing irregular-room corner stones (diagonal touch only).
+                const diag = [[-1,-1],[-1,1],[1,-1],[1,1]];
+                for (const [dx, dy] of diag) {
+                    const nloc = map.at(x + dx, y + dy);
+                    if (!nloc || nloc.edge || nloc.roomno < ROOMOFFSET) continue;
+                    const rr = roomByNo.get(nloc.roomno);
+                    if (!rr || !rr.irregular) continue;
+                    anyIrregularAdj = true;
+                    break;
+                }
+                if (!anyIrregularAdj) continue;
+            }
+
+            loc.typ = hasV ? VWALL : HWALL;
+            loc.horizontal = !hasV;
+            loc.edge = true;
+            if (DEBUG) {
+                console.log(`[IRREG_REPAIR] set (${x},${y}) typ=${loc.typ} roomno=${loc.roomno}`);
+            }
+        }
+    }
+}
+
 
 // Flood fill from (sx, sy) through connected cells of the same typ,
 // assign roomno, compute bounding box, and register as a room.
@@ -922,6 +981,7 @@ function sort_rooms(map) {
 export function floodFillAndRegister(map, sx, sy, rtype, lit) {
     const startTyp = map.at(sx, sy).typ;
     const rno = map.nroom + ROOMOFFSET;
+    const SHARED = 1; // C ref: rm.h NO_ROOM=0, SHARED=1
 
     // BFS flood fill
     let minX = sx, maxX = sx, minY = sy, maxY = sy;
@@ -955,17 +1015,24 @@ export function floodFillAndRegister(map, sx, sy, rtype, lit) {
         }
     }
 
-    // Mark surrounding walls as edge
-    // C ref: sp_lev.c flood_fill_rm anyroom case
+    // C ref: mkmap.c flood_fill_rm(anyroom):
+    // mark bordering walls/doors as edge and assign roomno/SHARED.
     for (const k of visited) {
         const cy = Math.floor(k / COLNO);
         const cx = k % COLNO;
-        for (const [dx, dy] of [[0,-1],[0,1],[-1,0],[1,0]]) {
-            const nx = cx + dx, ny = cy + dy;
-            if (!isok(nx, ny)) continue;
-            const nloc = map.at(nx, ny);
-            if (IS_WALL(nloc.typ) || nloc.typ === SDOOR) {
+        for (let nx = cx - 1; nx <= cx + 1; nx++) {
+            for (let ny = cy - 1; ny <= cy + 1; ny++) {
+                if (!isok(nx, ny)) continue;
+                const nloc = map.at(nx, ny);
+                if (!(IS_WALL(nloc.typ) || IS_DOOR(nloc.typ) || nloc.typ === SDOOR))
+                    continue;
                 nloc.edge = true;
+                if (lit) nloc.lit = lit;
+                if (nloc.roomno === 0) {
+                    nloc.roomno = rno;
+                } else if (nloc.roomno !== rno) {
+                    nloc.roomno = SHARED;
+                }
             }
         }
     }
@@ -989,19 +1056,7 @@ export function floodFillAndRegister(map, sx, sy, rtype, lit) {
     croom.irregular = true;
     croom.needjoining = true;
 
-    // Set lit on wall/edge cells within bounding box
-    if (lit) {
-        for (let x = minX - 1; x <= maxX + 1; x++) {
-            for (let y = minY - 1; y <= maxY + 1; y++) {
-                if (isok(x, y)) {
-                    const loc = map.at(x, y);
-                    if (loc.edge || loc.roomno === rno) {
-                        loc.lit = true;
-                    }
-                }
-            }
-        }
-    }
+    // C sets lit on interior/edge during flood fill edge marking.
 }
 
 // C ref: mklev.c:363 — gl.luathemes[] tracks whether Lua theme state is loaded
@@ -1588,10 +1643,15 @@ function okdoor(map, x, y) {
 function good_rm_wall_doorpos(map, x, y, dir, room) {
     if (!isok(x, y) || !room.needjoining) return false;
     const loc = map.at(x, y);
-    if (!(IS_WALL(loc.typ)
-          || IS_DOOR(loc.typ) || loc.typ === SDOOR
-          || loc.typ === ROOM || loc.typ === CORR || loc.typ === SCORR))
-        return false;
+    const strictWallLike = (loc.typ === HWALL || loc.typ === VWALL
+        || IS_DOOR(loc.typ) || loc.typ === SDOOR);
+    // C-parity fallback for irregular-room edge cases where JS wallification can
+    // leave corridor/floor on the sampled boundary; keep strict behavior for
+    // regular rooms to avoid over-placing doors.
+    if (!strictWallLike) {
+        if (!room.irregular || !(loc.typ === STONE || loc.typ === CORR))
+            return false;
+    }
     if (bydoor(map, x, y)) return false;
 
     const tx = x + xdir[dir];
@@ -1837,6 +1897,7 @@ function dig_corridor(map, org, dest, nxcor, depth) {
     const btyp = STONE;
 
     const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_CORRIDORS === '1';
+    const TRACE_STEPS = typeof process !== 'undefined' && process.env.DEBUG_CORRIDOR_STEPS === '1';
     if (DEBUG) {
         console.log(`dig_corridor: (${org.x},${org.y}) -> (${dest.x},${dest.y}) nxcor=${nxcor}`);
     }
@@ -1897,20 +1958,31 @@ function dig_corridor(map, org, dest, nxcor, depth) {
         // Find next corridor position
         let dix = Math.abs(xx - tx);
         let diy = Math.abs(yy - ty);
-
-        const specialDig = (map._genDnum === undefined);
-        if (specialDig) {
-            const xgap = dix - diy;
-            const ygap = diy - dix;
-            if ((dix > diy) && diy && xgap > 1 && !rn2(xgap)) {
+        let rndBound = 0;
+        let rndResult = null;
+        if (TRACE_STEPS) {
+            console.log(`[CORSTEP] call=${getRngCallCount()} pos=(${xx},${yy}) dir=(${dx},${dy}) target=(${tx},${ty}) typ=${crm.typ} dix=${dix} diy=${diy}`);
+        }
+        if ((dix > diy) && diy) {
+            rndBound = dix - diy + 1;
+            rndResult = rn2(rndBound);
+            if (TRACE_STEPS) {
+                console.log(`[CORSTEP] call=${getRngCallCount()} rnd_bound=${rndBound} rnd=${rndResult}`);
+            }
+            if (!rndResult) {
                 dix = 0;
-            } else if ((diy > dix) && dix && ygap > 1 && !rn2(ygap)) {
+            }
+        } else if ((diy > dix) && dix) {
+            rndBound = diy - dix + 1;
+            rndResult = rn2(rndBound);
+            if (TRACE_STEPS) {
+                console.log(`[CORSTEP] call=${getRngCallCount()} rnd_bound=${rndBound} rnd=${rndResult}`);
+            }
+            if (!rndResult) {
                 diy = 0;
             }
-        } else if ((dix > diy) && diy && !rn2(dix - diy + 1)) {
-            dix = 0;
-        } else if ((diy > dix) && dix && !rn2(diy - dix + 1)) {
-            diy = 0;
+        } else if (TRACE_STEPS) {
+            console.log('[CORSTEP] no_rnd');
         }
 
         // Do we need to change direction?
@@ -1921,6 +1993,7 @@ function dig_corridor(map, org, dest, nxcor, depth) {
                           || adjloc.typ === SCORR)) {
                 dx = ddx;
                 dy = 0;
+                if (TRACE_STEPS) console.log(`[CORSTEP] turn=horizontal newdir=(${dx},${dy})`);
                 continue;
             }
         } else if (dx && diy > dix) {
@@ -1930,6 +2003,7 @@ function dig_corridor(map, org, dest, nxcor, depth) {
                           || adjloc.typ === SCORR)) {
                 dy = ddy;
                 dx = 0;
+                if (TRACE_STEPS) console.log(`[CORSTEP] turn=vertical newdir=(${dx},${dy})`);
                 continue;
             }
         }
@@ -1937,8 +2011,10 @@ function dig_corridor(map, org, dest, nxcor, depth) {
         // Continue straight?
         const ahead = map.at(xx + dx, yy + dy);
         if (ahead && (ahead.typ === btyp || ahead.typ === ftyp
-                      || ahead.typ === SCORR))
+                      || ahead.typ === SCORR)) {
+            if (TRACE_STEPS) console.log('[CORSTEP] continue=straight');
             continue;
+        }
 
         // Must change direction
         if (dx) {
@@ -1950,10 +2026,13 @@ function dig_corridor(map, org, dest, nxcor, depth) {
         }
         const adj2 = map.at(xx + dx, yy + dy);
         if (adj2 && (adj2.typ === btyp || adj2.typ === ftyp
-                     || adj2.typ === SCORR))
+                     || adj2.typ === SCORR)) {
+            if (TRACE_STEPS) console.log(`[CORSTEP] turn=fallback newdir=(${dx},${dy})`);
             continue;
+        }
         dy = -dy;
         dx = -dx;
+        if (TRACE_STEPS) console.log(`[CORSTEP] turn=reverse newdir=(${dx},${dy})`);
     }
     if (DEBUG) {
         console.log(`  -> success: true, npoints: ${npoints}`);
@@ -1995,7 +2074,7 @@ function join(map, a, b, nxcor, depth) {
     if (!cc || !tt) return;
 
     if (typeof process !== 'undefined' && process.env.DEBUG_FINDDPOS === '1') {
-        console.log(`[JOIN] call=${getRngCallCount()} a=${a} b=${b} nxcor=${nxcor ? 1 : 0} cc=(${cc.x},${cc.y}) tt=(${tt.x},${tt.y}) croom=(${croom.lx},${croom.ly})-(${croom.hx},${croom.hy}) troom=(${troom.lx},${troom.ly})-(${troom.hx},${troom.hy})`);
+        console.log(`[JOIN] call=${getRngCallCount()} a=${a} b=${b} nxcor=${nxcor ? 1 : 0} cc=(${cc.x},${cc.y}) tt=(${tt.x},${tt.y}) croom=(${croom.lx},${croom.ly})-(${croom.hx},${croom.hy}) ir=${croom.irregular ? 1 : 0} troom=(${troom.lx},${troom.ly})-(${troom.hx},${troom.hy}) ir=${troom.irregular ? 1 : 0}`);
     }
 
     const xx = cc.x, yy = cc.y;
@@ -4974,6 +5053,7 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
     // Sort rooms left-to-right
     // C ref: mklev.c:1290 sort_rooms()
     sort_rooms(map);
+    repair_irregular_room_boundaries(map);
 
     // Place stairs
     // C ref: mklev.c:1292 generate_stairs()
