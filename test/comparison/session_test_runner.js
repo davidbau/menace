@@ -306,7 +306,7 @@ async function runGameplayResult(session) {
     const start = Date.now();
 
     try {
-        const sessionStartup = getSessionStartup(session.raw) || {};
+        const sessionStartup = getSessionStartup(session.raw) || session.raw?.startup || {};
         const gameplaySteps = getSessionGameplaySteps(session.raw) || [];
         const startupBurst = hasStartupBurstInFirstStep(session.raw);
 
@@ -570,11 +570,20 @@ async function runSpecialResult(session) {
 
     try {
         const levels = Array.isArray(session.levels) ? session.levels : [];
-        const valid = levels.filter((level) =>
-            Array.isArray(level.typGrid)
-            && level.typGrid.length === 21
-            && Array.isArray(level.typGrid[0])
-            && level.typGrid[0].length === 80).length;
+        const isValidSpecialGrid = (typGrid) => {
+            if (Array.isArray(typGrid)) {
+                return typGrid.length === 21
+                    && Array.isArray(typGrid[0])
+                    && typGrid[0].length === 80;
+            }
+            if (typeof typGrid === 'string' && typGrid.length > 0) {
+                // Legacy compressed typGrid format used by some C special fixtures.
+                // Rows are pipe-delimited and include empty leading rows.
+                return typGrid.split('|').length === 21;
+            }
+            return false;
+        };
+        const valid = levels.filter((level) => isValidSpecialGrid(level.typGrid)).length;
         recordGrids(result, valid, levels.length);
     } catch (error) {
         markFailed(result, error);

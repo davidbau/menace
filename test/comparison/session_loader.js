@@ -54,7 +54,9 @@ function normalizeStep(step, index) {
         rngCalls: hasExplicitRngCalls ? row.rngCalls : (hasExplicitRngTrace ? rng.length : null),
         screen: getSessionScreenLines(row),
         screenAnsi: Array.isArray(row.screenAnsi) ? row.screenAnsi : null,
-        typGrid: Array.isArray(row.typGrid) ? row.typGrid : null,
+        typGrid: (Array.isArray(row.typGrid) || typeof row.typGrid === 'string')
+            ? row.typGrid
+            : null,
         checkpoints: row.checkpoints || null,
     };
 }
@@ -63,7 +65,9 @@ function normalizeLevels(levels) {
     const list = Array.isArray(levels) ? levels : [];
     return list.map((level) => ({
         depth: Number.isInteger(level?.depth) ? level.depth : 1,
-        typGrid: Array.isArray(level?.typGrid) ? level.typGrid : null,
+        typGrid: (Array.isArray(level?.typGrid) || typeof level?.typGrid === 'string')
+            ? level.typGrid
+            : null,
         rng: Array.isArray(level?.rng) ? level.rng : [],
         rngCalls: Number.isInteger(level?.rngCalls) ? level.rngCalls : null,
         screen: getSessionScreenLines(level),
@@ -97,7 +101,9 @@ export function normalizeSession(raw, meta = {}) {
                 : (Array.isArray(startupRaw.rng) ? startupRaw.rng.length : null),
             screen: getSessionScreenLines(startupRaw),
             screenAnsi: Array.isArray(startupRaw.screenAnsi) ? startupRaw.screenAnsi : null,
-            typGrid: Array.isArray(startupRaw.typGrid) ? startupRaw.typGrid : null,
+            typGrid: (Array.isArray(startupRaw.typGrid) || typeof startupRaw.typGrid === 'string')
+                ? startupRaw.typGrid
+                : null,
             checkpoints: startupRaw.checkpoints || null,
         }
         : null;
