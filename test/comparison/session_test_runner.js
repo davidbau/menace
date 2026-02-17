@@ -5,6 +5,9 @@ import { fileURLToPath } from 'node:url';
 
 import {
     replaySession,
+    getSessionStartup,
+    getSessionGameplaySteps,
+    hasStartupBurstInFirstStep,
 } from '../../js/replay_core.js';
 import { NetHackGame } from '../../js/nethack.js';
 import {
@@ -239,8 +242,13 @@ async function runGameplayResult(session) {
     const start = Date.now();
 
     try {
+        const sessionStartup = getSessionStartup(session.raw) || {};
+        const gameplaySteps = getSessionGameplaySteps(session.raw) || [];
+        const startupBurst = hasStartupBurstInFirstStep(session.raw);
+
         const replay = await replaySession(session.meta.seed, session.raw, {
             captureScreens: true,
+            // Keep startup as a distinct channel so gameplay step indexing is stable.
             startupBurstInFirstStep: false,
         });
         if (!replay || replay.error) {
@@ -249,27 +257,31 @@ async function runGameplayResult(session) {
             return result;
         }
 
-        if (session.startup?.rng?.length > 0) {
-            recordRngComparison(result, replay.startup?.rng || [], session.startup.rng);
-        } else if (Number.isInteger(session.startup?.rngCalls)) {
+        if (startupBurst && Array.isArray(session.raw?.steps) && session.raw.steps[0]?.action === 'startup') {
+            recordRngComparison(result, replay.startup?.rng || [], session.raw.steps[0].rng || [], { stage: 'startup-step0' });
+        } else if (sessionStartup?.rng?.length > 0 && !startupBurst) {
+            recordRngComparison(result, replay.startup?.rng || [], sessionStartup.rng);
+        } else if (Number.isInteger(sessionStartup?.rngCalls) && !startupBurst) {
             const actualCalls = (replay.startup?.rng || []).length;
-            recordRng(result, actualCalls === session.startup.rngCalls ? 1 : 0, 1, {
-                expected: String(session.startup.rngCalls),
+            recordRng(result, actualCalls === sessionStartup.rngCalls ? 1 : 0, 1, {
+                expected: String(sessionStartup.rngCalls),
                 actual: String(actualCalls),
                 stage: 'startup',
             });
         } else if ((replay.startup?.rng || []).length > 0) {
-            recordRngComparison(result, replay.startup?.rng || [], []);
+            if (!startupBurst) {
+                recordRngComparison(result, replay.startup?.rng || [], []);
+            }
         }
 
-        const count = Math.min(session.steps.length, (replay.steps || []).length);
+        const count = Math.min(gameplaySteps.length, (replay.steps || []).length);
         let rngMatched = 0;
         let rngTotal = 0;
         let screensMatched = 0;
         let screensTotal = 0;
 
         for (let i = 0; i < count; i++) {
-            const expected = session.steps[i];
+            const expected = gameplaySteps[i];
             const actual = replay.steps[i] || {};
 
             if (expected.rng.length > 0) {
