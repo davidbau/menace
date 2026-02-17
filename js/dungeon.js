@@ -40,7 +40,7 @@ import { roles } from './player.js';
 import {
     ARROW, DART, ROCK, BOULDER, LARGE_BOX, CHEST, GOLD_PIECE, CORPSE,
     STATUE, TALLOW_CANDLE, WAX_CANDLE, BELL, KELP_FROND,
-    MACE, TWO_HANDED_SWORD, BOW, FOOD_RATION, RING_MAIL, PLATE_MAIL, FAKE_AMULET_OF_YENDOR,
+    MACE, TWO_HANDED_SWORD, BOW, FOOD_RATION, CRAM_RATION, LEMBAS_WAFER, RING_MAIL, PLATE_MAIL, FAKE_AMULET_OF_YENDOR,
     POT_WATER, EXPENSIVE_CAMERA, EGG, CREAM_PIE, MELON, ACID_VENOM, BLINDING_VENOM,
     WEAPON_CLASS, TOOL_CLASS, FOOD_CLASS, GEM_CLASS, WAND_CLASS,
     ARMOR_CLASS, SCROLL_CLASS, POTION_CLASS, RING_CLASS, SPBOOK_CLASS,
@@ -63,7 +63,11 @@ import {
     TUTORIAL
 } from './special_levels.js';
 import { setLevelContext, clearLevelContext, initLuaMT, setSpecialLevelDepth, setFinalizeContext } from './sp_lev.js';
-import { themerooms_generate as themermsGenerate, reset_state as resetThemermsState } from './levels/themerms.js';
+import {
+    themerooms_generate as themermsGenerate,
+    post_level_generate as themeroomsPostLevelGenerate,
+    reset_state as resetThemermsState
+} from './levels/themerms.js';
 
 /**
  * Bridge function: Call themed room generation with des.* API bridge
@@ -109,6 +113,9 @@ const BR_PORTAL = 3;
 // Snapshot of branch topology chosen during simulateDungeonInit().
 // Each entry: { type, end1:{dnum,dlevel}, end2:{dnum,dlevel}, end1_up }.
 let _branchTopology = [];
+// C ref: dungeon.c global oracle_level; populated during init_dungeons().
+// Used by mklev.c fill_ordinary_room() bonus supply chest gating.
+let _oracleLevel = { dnum: DUNGEONS_OF_DOOM, dlevel: 5 };
 // C ref: decl.h gi.in_mklev — true only while makelevel() runs.
 let inMklev = false;
 
@@ -144,6 +151,7 @@ export function induced_align(pct, specialAlign = A_NONE, dungeonAlign = A_NONE)
 
 export function clearBranchTopology() {
     _branchTopology = [];
+    _oracleLevel = { dnum: DUNGEONS_OF_DOOM, dlevel: 5 };
 }
 import { EPITAPH_FILE_TEXT } from './epitaph_data.js';
 import { ENGRAVE_FILE_TEXT } from './engrave_data.js';
@@ -323,7 +331,7 @@ export function update_rect_pool_for_room(room) {
     for (let i = rect_cnt - 1; i >= 0; i--) {
         const r = intersect(rects[i], r2);
         if (r) {
-            split_rects(rects[i], r2);
+            split_rects(rects[i], r);
         }
     }
 
@@ -673,9 +681,12 @@ function do_room_or_subroom(map, croom, lowx, lowy, hix, hiy,
 function add_room_to_map(map, lowx, lowy, hix, hiy, lit, rtype, special) {
     const croom = makeRoom();
     // needfill defaults to FILL_NONE; caller sets FILL_NORMAL as needed
-    map.rooms.push(croom);
+    const roomIdx = map.nroom || 0;
+    // C stores main rooms at rooms[nroom], independent of any subroom slots
+    // that may exist at higher indices.
+    map.rooms[roomIdx] = croom;
     // Track nroom separately (don't use rooms.length once subrooms are added)
-    map.nroom = (map.nroom || 0) + 1;
+    map.nroom = roomIdx + 1;
     do_room_or_subroom(map, croom, lowx, lowy, hix, hiy, lit, rtype,
                        special, true);
 }
@@ -871,8 +882,15 @@ function bsdQsort(arr, cmpFn) {
 function sort_rooms(map) {
     const n = map.nroom;
 
-    // Sort rooms using BSD-compatible qsort to match C's behavior
-    bsdQsort(map.rooms, mkroom_cmp);
+    // C ref: qsort(svr.rooms, svn.nroom, ...) sorts only main rooms.
+    // Subrooms live beyond nroom and must not participate.
+    const mainRooms = map.rooms.slice(0, n);
+    // C uses libc qsort(); Array.sort() is currently the closest practical
+    // runtime match for equal-key ordering behavior in this environment.
+    mainRooms.sort(mkroom_cmp);
+    for (let i = 0; i < n; i++) {
+        map.rooms[i] = mainRooms[i];
+    }
 
     // Build reverse index: ri[old_roomnoidx] = new_index
     const ri = new Array(MAXNROFROOMS + 1).fill(0);
@@ -1007,6 +1025,28 @@ function branchPlacementForEnd(branch, onEnd1) {
     return { placement: goesUp ? 'stair-up' : 'stair-down' };
 }
 
+function getBranchAtLevel(dnum, dlevel) {
+    const cdnum = Number.isInteger(dnum) ? dnum : DUNGEONS_OF_DOOM;
+    if (!Number.isInteger(dlevel)) return null;
+    for (const br of _branchTopology) {
+        if (br.end1.dnum === cdnum && br.end1.dlevel === dlevel) {
+            return { branch: br, onEnd1: true };
+        }
+        if (br.end2.dnum === cdnum && br.end2.dlevel === dlevel) {
+            return { branch: br, onEnd1: false };
+        }
+    }
+    return null;
+}
+
+function isBranchLevel(dnum, dlevel) {
+    return !!getBranchAtLevel(dnum, dlevel);
+}
+
+function getOracleLevel() {
+    return _oracleLevel || { dnum: DUNGEONS_OF_DOOM, dlevel: 5 };
+}
+
 // C-faithful branch placement resolution for special-level LR_BRANCH handling.
 // Mirrors place_branch(Is_branchlev(&u.uz), x, y):
 // - no branch on this level => none
@@ -1014,7 +1054,8 @@ function branchPlacementForEnd(branch, onEnd1) {
 // - BR_NO_END* => one-way stair (or none on blocked side)
 // - BR_STAIR => stair, direction based on end1_up and which end we're on
 export function resolveBranchPlacementForLevel(dnum, dlevel) {
-    if (!Number.isFinite(dnum) || !Number.isFinite(dlevel)) {
+    const cdnum = Number.isFinite(dnum) ? dnum : DUNGEONS_OF_DOOM;
+    if (!Number.isFinite(dlevel)) {
         return { placement: 'none' };
     }
 
@@ -1025,13 +1066,9 @@ export function resolveBranchPlacementForLevel(dnum, dlevel) {
     }
 
     // Exact topology if available (normal gameplay path).
-    for (const br of _branchTopology) {
-        if (br.end1.dnum === dnum && br.end1.dlevel === dlevel) {
-            return branchPlacementForEnd(br, true);
-        }
-        if (br.end2.dnum === dnum && br.end2.dlevel === dlevel) {
-            return branchPlacementForEnd(br, false);
-        }
+    const info = getBranchAtLevel(cdnum, dlevel);
+    if (info) {
+        return branchPlacementForEnd(info.branch, info.onEnd1);
     }
 
     return { placement: 'none' };
@@ -1485,16 +1522,15 @@ function makerooms(map, depth) {
             if (!result) {
                 // themeroom_failed
                 if (DEBUG) {
-                    console.log(`themeroom failed, tries=${themeroom_tries + 1}, nroom=${map.nroom}, breaking=${(themeroom_tries + 1) > 10 || map.nroom >= Math.floor(MAXNROFROOMS / 6)}`);
+                    console.log(`themeroom failed, tries=${themeroom_tries + 1}, nroom=${map.nroom}, breaking=${themeroom_tries > 10 || map.nroom >= Math.floor(MAXNROFROOMS / 6)}`);
                 }
-                if (++themeroom_tries > 10
+                // C ref: mklev.c uses post-increment and does not reset this
+                // counter on success.
+                if (themeroom_tries++ > 10
                     || map.nroom >= Math.floor(MAXNROFROOMS / 6))
                     break;
-            } else {
-                if (DEBUG) {
-                    console.log(`themeroom succeeded, resetting tries, nroom=${map.nroom}`);
-                }
-                themeroom_tries = 0;
+            } else if (DEBUG) {
+                console.log(`themeroom succeeded, cumulative tries stays=${themeroom_tries}, nroom=${map.nroom}`);
             }
         }
     }
@@ -1625,6 +1661,9 @@ function finddpos(map, dir, aroom) {
     }
 
     // Try random points (up to 20 attempts)
+    if (typeof process !== 'undefined' && process.env.DEBUG_FINDDPOS === '1') {
+        console.log(`[FDP] call=${getRngCallCount()} dir=${dir} room=(${aroom.lx},${aroom.ly})-(${aroom.hx},${aroom.hy}) rangeX=${x2 - x1 + 1} rangeY=${y2 - y1 + 1}`);
+    }
     let tryct = 0;
     do {
         const x = (x2 - x1) ? rn1(x2 - x1 + 1, x1) : x1;
@@ -1641,8 +1680,8 @@ function finddpos(map, dir, aroom) {
         }
     }
 
-    // Cannot find a valid position
-    return { x: x1, y: y1 };
+    // C ref: mklev.c finddpos() returns FALSE when no valid door position.
+    return null;
 }
 
 // C ref: mklev.c maybe_sdoor()
@@ -1944,6 +1983,10 @@ function join(map, a, b, nxcor, depth) {
     }
 
     if (!cc || !tt) return;
+
+    if (typeof process !== 'undefined' && process.env.DEBUG_FINDDPOS === '1') {
+        console.log(`[JOIN] call=${getRngCallCount()} a=${a} b=${b} nxcor=${nxcor ? 1 : 0} cc=(${cc.x},${cc.y}) tt=(${tt.x},${tt.y}) croom=(${croom.lx},${croom.ly})-(${croom.hx},${croom.hy}) troom=(${troom.lx},${troom.ly})-(${troom.hx},${troom.hy})`);
+    }
 
     const xx = cc.x, yy = cc.y;
     const tx = tt.x - dx, ty = tt.y - dy;
@@ -3300,10 +3343,26 @@ export function fill_ordinary_room(map, croom, depth, bonusItems) {
     if (bonusItems) {
         const pos = somexyspace(map, croom);
         if (pos) {
-            // At depth 1: branch to surface exists but doesn't connect to mines,
-            // so mines food check (Is_branchlev) fails. Falls to Oracle check.
-            // C ref: u.uz.dnum == oracle_level.dnum && u.uz.dlevel < oracle_level.dlevel
-            if (rn2(3)) {
+            const curDnum = Number.isInteger(map?._genDnum) ? map._genDnum : DUNGEONS_OF_DOOM;
+            const curDlevel = Number.isInteger(map?._genDlevel) ? map._genDlevel : depth;
+            const uzBranch = getBranchAtLevel(curDnum, curDlevel)?.branch || null;
+            const branchTouchesMines = !!uzBranch
+                && curDnum !== GNOMISH_MINES
+                && (uzBranch.end1.dnum === GNOMISH_MINES || uzBranch.end2.dnum === GNOMISH_MINES);
+            if (branchTouchesMines) {
+                const otyp = (rn2(5) < 3)
+                    ? FOOD_RATION
+                    : (rn2(2) ? CRAM_RATION : LEMBAS_WAFER);
+                const food = mksobj(otyp, true, false);
+                if (food) {
+                    food.ox = pos.x; food.oy = pos.y;
+                    map.objects.push(food);
+                }
+            } else {
+                const oracleLevel = getOracleLevel();
+                if (curDnum === oracleLevel.dnum
+                    && curDlevel < oracleLevel.dlevel
+                    && rn2(3)) {
                 // Create supply chest (2/3 chance)
                 // C ref: mklev.c:1033-1034
                 const chest = mksobj(rn2(3) ? CHEST : LARGE_BOX, false, false);
@@ -3350,7 +3409,8 @@ export function fill_ordinary_room(map, croom, depth, bonusItems) {
                     }
                 }
 
-                skip_chests = true;
+                    skip_chests = true;
+                }
             }
         }
     }
@@ -3748,8 +3808,12 @@ function do_fill_vault(map, vaultCheck, depth) {
     // At depths 2-10 that aren't branch levels: rn2(3) consumed, then
     //   u_depth > 10 check fails, returns.
     if (depth > 1) {
-        // Simplified: at depth > 1, not a branch level, consume rn2(3)
-        rn2(3);
+        const dnum = Number.isInteger(map?._genDnum) ? map._genDnum : DUNGEONS_OF_DOOM;
+        const dlevel = Number.isInteger(map?._genDlevel) ? map._genDlevel : depth;
+        // C parity: mk_knox_portal() does not consume rn2(3) on branch levels.
+        if (!isBranchLevel(dnum, dlevel)) {
+            rn2(3);
+        }
     }
 
     // C ref: mklev.c:1321-1322 — !rn2(3) → makevtele() → makeniche(TELEP_TRAP)
@@ -4326,6 +4390,10 @@ export function simulateDungeonInit(roleIndex) {
         if (jsDnum >= 0) {
             parentRolls.set(jsDnum, parentRoll);
             dungeonLayouts.set(jsDnum, { numLevels, parentRoll, placed });
+            if (jsDnum === DUNGEONS_OF_DOOM) {
+                const oracleDlevel = Number.isInteger(placed[1]) && placed[1] > 0 ? placed[1] : 5;
+                _oracleLevel = { dnum: DUNGEONS_OF_DOOM, dlevel: oracleDlevel };
+            }
         }
     }
 
@@ -4784,40 +4852,58 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
     inMklev = true;
     try {
 
-    // Check for special level if branch coordinates provided
+    // Check for special level.
+    // Normal path uses explicit branch coordinates.
+    // Fallback path (depth-only callers) supports dynamic Oracle depth parity
+    // based on simulated init_dungeons placement.
     const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_MAKELEVEL === '1';
+    let special = null;
+    let specialDnum = dnum;
+    let specialDlevel = dlevel;
+    const depthOnlyOracleSpecial = (dnum === undefined || dlevel === undefined);
     if (dnum !== undefined && dlevel !== undefined) {
-        const special = getSpecialLevel(dnum, dlevel);
-        if (special) {
+        special = getSpecialLevel(dnum, dlevel);
+    } else {
+        const oracleLevel = getOracleLevel();
+        if (oracleLevel?.dnum === DUNGEONS_OF_DOOM
+            && Number.isInteger(oracleLevel?.dlevel)
+            && depth === oracleLevel.dlevel) {
+            special = getSpecialLevel(DUNGEONS_OF_DOOM, 5); // oracle descriptor
+            specialDnum = DUNGEONS_OF_DOOM;
+            specialDlevel = oracleLevel.dlevel;
+        }
+    }
+    if (special) {
+            const useDnum = Number.isInteger(specialDnum) ? specialDnum : dnum;
+            const useDlevel = Number.isInteger(specialDlevel) ? specialDlevel : dlevel;
             // C ref: align_shift() uses current special-level alignment when present.
             // For currently used special levels, mirror dungeon.lua/splev alignment.
             const specialName = typeof special.name === 'string' ? special.name : '';
-            let specialAlign = forcedAlign ?? (DUNGEON_ALIGN_BY_DNUM[dnum] ?? A_NONE);
-            if (specialName.startsWith('oracle')) specialAlign = A_NEUTRAL;
-            else if (specialName.startsWith('medusa')) specialAlign = A_CHAOTIC;
+            let specialAlign = forcedAlign ?? (DUNGEON_ALIGN_BY_DNUM[useDnum] ?? A_NONE);
+            if (specialName.startsWith('medusa')) specialAlign = A_CHAOTIC;
             else if (specialName.startsWith('tut-')) specialAlign = A_LAWFUL;
             setMakemonLevelContext({ dungeonAlign: specialAlign });
 
-            if (DEBUG) console.log(`Generating special level: ${special.name} at (${dnum}, ${dlevel})`);
+            if (DEBUG) console.log(`Generating special level: ${special.name} at (${useDnum}, ${useDlevel})`);
             // C parity: special-level depth-sensitive logic should use absolute depth,
             // not branch-local dlevel.
             setSpecialLevelDepth(depth);
             setFinalizeContext({
-                dnum,
-                dlevel,
+                dnum: useDnum,
+                dlevel: useDlevel,
                 specialName,
-                isBranchLevel: resolveBranchPlacementForLevel(dnum, dlevel).placement !== 'none',
+                isBranchLevel: resolveBranchPlacementForLevel(useDnum, useDlevel).placement !== 'none',
             });
 
             // C ref: mklev.c:365-380 — Lua theme shuffle when loading special level
             // In C, loading oracle.lua triggers themerms.lua load, which does rn2(3), rn2(2).
             // Tutorial entry can hit this path after startup without prior themed-room
             // Lua load, so preserve that shuffle for tut-* special levels as well.
-            const isTutorialSpecial = dnum === TUTORIAL
-                && (dlevel === 1 || dlevel === 2)
+            const isTutorialSpecial = useDnum === TUTORIAL
+                && (useDlevel === 1 || useDlevel === 2)
                 && typeof special.name === 'string'
                 && special.name.startsWith('tut-');
-            if (!_themesLoaded) {
+            if (!_themesLoaded || depthOnlyOracleSpecial) {
                 _themesLoaded = true;
                 rn2(3); rn2(2);
             } else if (isTutorialSpecial) {
@@ -4827,16 +4913,17 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
             const specialMap = special.generator();
             if (specialMap) {
                 if (!specialMap.flags) specialMap.flags = {};
-                specialMap.flags.is_tutorial = (dnum === TUTORIAL);
+                specialMap.flags.is_tutorial = (useDnum === TUTORIAL);
                 return specialMap;
             }
             // If special level generation fails, fall through to procedural
             if (DEBUG) console.warn(`Special level ${special.name} generation failed, using procedural`);
-        }
     }
 
     const map = new GameMap();
     map.clear();
+    map._genDnum = Number.isInteger(dnum) ? dnum : DUNGEONS_OF_DOOM;
+    map._genDlevel = Number.isInteger(dlevel) ? dlevel : depth;
     map._isInvocationLevel = !!opts.invocationLevel
         || (dnum === GEHENNOM && dlevel === 9);
 
@@ -4915,7 +5002,8 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
     // At depth 1: u_depth > 1 fails, so entire chain is skipped (no RNG consumed).
     // For deeper depths, the chain consumes rn2() calls for each check.
     if (depth > 1) {
-        const room_threshold = 3; // simplified: no branch check
+        // C ref: mklev.c room_threshold = branchp ? 4 : 3
+        const room_threshold = isBranchLevel(dnum, dlevel) ? 4 : 3;
         // C ref: each check consumes one rn2() if it reaches that point
         if (depth > 1 && map.nroom >= room_threshold && rn2(depth) < 3) {
             mkshop(map);
@@ -4965,6 +5053,30 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
         }
     }
 
+    // C ref: mklev.c:1367-1376 — place_branch(Is_branchlev(&u.uz), 0, 0)
+    // For non-first levels, only execute when this level is an actual branch endpoint.
+    if (depth > 1) {
+        const branchDnum = Number.isInteger(dnum) ? dnum : DUNGEONS_OF_DOOM;
+        const branchDlevel = Number.isInteger(dlevel) ? dlevel : depth;
+        const branchPlacement = resolveBranchPlacementForLevel(branchDnum, branchDlevel).placement;
+        if (_branchTopology.length && branchPlacement && branchPlacement !== 'none') {
+            const candidateRoom = generate_stairs_find_room(map);
+            if (candidateRoom) {
+                const pos = somexyspace(map, candidateRoom);
+                if (pos) {
+                    const prev = map._branchPlacementHint;
+                    map._branchPlacementHint = branchPlacement;
+                    try {
+                        placeBranchFeature(map, pos.x, pos.y);
+                    } finally {
+                        if (prev === undefined) delete map._branchPlacementHint;
+                        else map._branchPlacementHint = prev;
+                    }
+                }
+            }
+        }
+    }
+
     // C ref: sp_lev.c lspo_room() sets needfill during room creation.
     // During themed room generation (in_mk_themerooms), default is FILL_NONE (0).
     // Only rooms with explicit filled=1 get FILL_NORMAL.
@@ -4978,12 +5090,14 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
     // Only iterate over main rooms (nroom), not subrooms
     for (let i = 0; i < map.nroom; i++) {
         const croom = map.rooms[i];
+        if (!croom || croom.hx <= 0) continue;
         if (isFillable(croom)) fillableCount++;
     }
     let bonusCountdown = fillableCount > 0 ? rn2(fillableCount) : -1;
 
     for (let i = 0; i < map.nroom; i++) {
         const croom = map.rooms[i];
+        if (!croom || croom.hx <= 0) continue;
         const fillable = isFillable(croom);
         fill_ordinary_room(map, croom, depth,
                            fillable && bonusCountdown === 0);
@@ -4996,6 +5110,7 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
     // Only iterate over main rooms (nroom), not subrooms
     for (let i = 0; i < map.nroom; i++) {
         const croom = map.rooms[i];
+        if (!croom || croom.hx <= 0) continue;
         if (croom.rtype >= SHOPBASE && croom.needfill === FILL_NORMAL) {
             stock_room(croom.rtype - SHOPBASE, croom, map, depth, _gameSeed);
         }
@@ -5005,6 +5120,7 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
     // g_at(x,y) finds the existing gold object and skips mksobj_at/newobj.
     for (let i = 0; i < map.nroom; i++) {
         const croom = map.rooms[i];
+        if (!croom || croom.hx <= 0) continue;
         if (croom.rtype === VAULT && croom.needfill === FILL_NORMAL) {
             for (let vx = croom.lx; vx <= croom.hx; vx++) {
                 for (let vy = croom.ly; vy <= croom.hy; vy++) {
@@ -5012,6 +5128,15 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
                 }
             }
         }
+    }
+
+    // C ref: mklev.c:1409 — run themed-room post-level callbacks (e.g. garden wall->tree).
+    // These callbacks operate on the active level map through sp_lev levelState.
+    setLevelContext(map, depth);
+    try {
+        themeroomsPostLevelGenerate();
+    } finally {
+        clearLevelContext();
     }
 
     // C ref: mklev.c:1533-1539 — level_finalize_topology()

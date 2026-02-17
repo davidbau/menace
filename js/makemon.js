@@ -114,6 +114,10 @@ function mindless(ptr) { return !!(ptr.flags1 & 0x00010000); } // M1_MINDLESS
 function is_ndemon(ptr) { return ptr.symbol === S_DEMON; }
 function always_hostile(ptr) { return !!(ptr.flags2 & M2_HOSTILE); }
 function always_peaceful(ptr) { return !!(ptr.flags2 & M2_PEACEFUL); }
+function playerHasAmulet(map) {
+    const inv = map?.player?.inventory;
+    return Array.isArray(inv) && inv.some((o) => o?.otyp === AMULET_OF_YENDOR);
+}
 
 function sgn(x) {
     return x > 0 ? 1 : (x < 0 ? -1 : 0);
@@ -325,7 +329,7 @@ export function rndmonst_adj(minadj, maxadj, depth) {
         const ptr = mons[mndx];
 
         // Difficulty filter
-        if (ptr.difficulty < minmlev || ptr.difficulty > maxmlev)
+        if (ptr.difficulty < minmlev || montoostrong(mndx, maxmlev))
             continue;
         // upper/elemlevel: not applicable at standard depths
         if (uncommon(mndx))
@@ -936,7 +940,9 @@ function rnd_defensive_item(mndx) {
 // C ref: muse.c:2619-2657
 // ========================================================================
 
-function rnd_misc_item(mndx) {
+function rnd_misc_item(mon) {
+    const mndx = mon?.mndx;
+    if (!Number.isInteger(mndx) || mndx < 0 || mndx >= mons.length) return 0;
     const ptr = mons[mndx];
     const difficulty = ptr.difficulty || 0;
 
@@ -960,10 +966,14 @@ function rnd_misc_item(mndx) {
 
     switch (rn2(3)) {
     case 0:
-        // Note: mtmp->isgd (vault guard) check omitted (not set during creation)
+        // C ref: muse.c rnd_misc_item() — vault guard gets no speed item.
+        if (mon?.isgd) return 0;
         return rn2(6) ? POT_SPEED : WAN_SPEED_MONSTER;
     case 1:
-        // Note: mtmp->mpeaceful and See_invisible checks omitted (not relevant at creation)
+        // C ref: muse.c rnd_misc_item() — peaceful monsters avoid invis item
+        // when hero lacks See_invisible. For levelgen parity we treat
+        // See_invisible as false.
+        if (mon?.mpeaceful) return 0;
         return rn2(6) ? POT_INVISIBILITY : WAN_MAKE_INVISIBLE;
     case 2:
         return POT_GAIN_LEVEL;
@@ -977,7 +987,7 @@ function rnd_misc_item(mndx) {
 // Simplified: only port branches that consume RNG
 // ========================================================================
 
-function m_initinv(mndx, depth, m_lev) {
+function m_initinv(mon, mndx, depth, m_lev) {
     const ptr = mons[mndx];
     const mm = ptr.symbol;
 
@@ -1143,7 +1153,7 @@ function m_initinv(mndx, depth, m_lev) {
         if (otyp) mksobj(otyp, true, false);
     }
     if (m_lev > rn2(100)) {
-        const otyp = rnd_misc_item(mndx);
+        const otyp = rnd_misc_item(mon);
         if (otyp) mksobj(otyp, true, false);
     }
     if ((ptr.flags2 & M2_GREEDY) && !rn2(5)) {
@@ -1505,11 +1515,19 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         // hideunder() — no RNG
     }
 
-    // C ref: makemon.c:1382-1386
+    // C ref: makemon.c:1299-1340 switch(ptr->mlet), nymph/jabberwock case.
+    // This check happens regardless of in_mklev; preserve RNG side effects.
+    const hasAmulet = playerHasAmulet(map);
+    if ((ptr.symbol === S_JABBERWOCK || ptr.symbol === S_NYMPH)
+        && !hasAmulet && rn2(5)) {
+        // mtmp->msleeping = TRUE; RNG side effect only.
+    }
+
+    // C ref: makemon.c:1382-1386 -- in_mklev only.
     // During mklev and without Amulet, selected monsters may start asleep.
     if ((is_ndemon(ptr) || mndx === PM_WUMPUS
         || mndx === PM_LONG_WORM || mndx === PM_GIANT_EEL)
-        && rn2(5)) {
+        && !hasAmulet && rn2(5)) {
         // mtmp->msleeping = TRUE; RNG side effect only.
     }
 
@@ -1609,7 +1627,7 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     // C ref: makemon.c:1438-1440
     if (is_armed(ptr))
         m_initweap(mon, mndx, depth || 1);
-    m_initinv(mndx, depth || 1, m_lev);
+    m_initinv(mon, mndx, depth || 1, m_lev);
 
     // C ref: makemon.c:1443-1448 — saddle for domestic monsters
     // C evaluates !rn2(100) first (always consumed), then is_domestic

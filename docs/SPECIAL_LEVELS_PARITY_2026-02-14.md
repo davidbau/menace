@@ -69,3 +69,28 @@ In `test/unit/special_levels_comparison.test.js`:
 ### Key finding from C trace review
 - Minefill mismatch is not primarily a stair API issue; it is upstream map-state divergence at the time random stair coordinates are validated.
 - C and JS consume the same early `get_location()` RNG candidates for minefill, but acceptance differs, which points to terrain-state parity differences at candidate cells.
+
+## Update (2026-02-16)
+
+### Map/session parity progress
+- `node test/comparison/session_test_runner.js --type map --verbose` now passes `9/10` map sessions.
+- Biggest gain in this pass: `seed72_maps_c` moved from partial mismatch to full pass (`rng 21472/21472`, `grids 5/5`).
+
+### Faithful ports/alignments added
+- `js/mkobj.js`
+  - Ported egg-hatch timeout RNG behavior from C `attach_egg_hatch_timeout()` into JS object init flow via `set_corpsenm()` for eggs.
+  - Egg creation now consumes the same `rnd(151..200)` style hatch-window loop used by C.
+- `js/level_transition.js`
+  - Tightened teleport-arrival placement to follow C `u_on_rndspot()` / `place_lregion()` semantics:
+    - uses destination region and exclusion bounds,
+    - uses C-like retry/fallback scanning behavior.
+- `js/makemon.js`
+  - Ported missing `rnd_misc_item()` peaceful-monster guard branch (C `muse.c` semantics), removing a deterministic extra RNG call in JS on shopkeeper paths.
+- `js/sp_lev.js`
+  - Improved object option coordinate handling (`{ x, y }` object form when `coord` is absent), matching C table-option behavior.
+  - Added C-faithful `montype` single-class-character handling for object creation (`mkclass(..., G_NOGEN | G_IGNORE)` path).
+
+### What we learned
+- The remaining map failure (`seed16_maps_c`) is now isolated and does not appear to be a broad RNG framework issue.
+- Attempts to force depth-only special-level detection globally introduced multi-map regressions; that approach was reverted.
+- Current strategy is to continue targeted, trace-driven fixes for the single remaining failing map while preserving the `9/10` baseline.

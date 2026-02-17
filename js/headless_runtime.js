@@ -24,6 +24,7 @@ import { movemon, initrack, settrack } from './monmove.js';
 import { FOV } from './vision.js';
 import { getArrivalPosition } from './level_transition.js';
 import { doname } from './mkobj.js';
+import { enexto } from './dungeon.js';
 import {
     COLNO, ROWNO, NORMAL_SPEED,
     A_STR, A_DEX, A_CON,
@@ -371,6 +372,7 @@ export class HeadlessGame {
         this.occupation = null; // C ref: cmd.c go.occupation — multi-turn action
         this.flags = { ...DEFAULT_GAME_FLAGS, ...(opts.flags || {}) }; // Game flags for commands
         this.menuRequested = false; // 'm' prefix command state
+        this.lastHP = this.player?.hp;
         initrack(); // C ref: track.c — initialize player track buffer
         this.renderCurrentScreen();
     }
@@ -523,18 +525,28 @@ export class HeadlessGame {
         if (result && result.tookTime && !options.skipTurnEnd) {
             if (!options.skipMonsterMove) {
                 settrack(this.player);
-                movemon(this.map, this.player, this.display, this.fov);
+                movemon(this.map, this.player, this.display, this.fov, this);
             }
             this.simulateTurnEnd();
 
             while (this.occupation) {
                 const occ = this.occupation;
+                let interruptedOcc = false;
                 const cont = occ.fn(this);
                 const finishedOcc = !cont ? occ : null;
+                if (this.shouldInterruptMulti()) {
+                    this.multi = 0;
+                    if (this.flags?.verbose !== false && occ?.occtxt) {
+                        this.display.putstr_message(`You stop ${occ.occtxt}.`);
+                    }
+                    this.occupation = null;
+                    interruptedOcc = true;
+                } else
                 if (!cont) this.occupation = null;
+                if (interruptedOcc) continue;
                 if (!options.skipMonsterMove) {
                     settrack(this.player);
-                    movemon(this.map, this.player, this.display, this.fov);
+                    movemon(this.map, this.player, this.display, this.fov, this);
                 }
                 this.simulateTurnEnd();
                 if (finishedOcc && typeof finishedOcc.onFinishAfterTurn === 'function') {
@@ -543,22 +555,39 @@ export class HeadlessGame {
             }
 
             while (this.multi > 0) {
+                // C ref: allmain.c lookaround() before each repeated command:
+                // interrupting here should stop repetition without consuming time.
+                if (typeof this.shouldInterruptMulti === 'function'
+                    && this.shouldInterruptMulti()) {
+                    this.multi = 0;
+                    break;
+                }
                 this.multi--;
                 const repeated = await rhack(this.cmdKey, this);
                 if (!repeated || !repeated.tookTime) break;
                 if (!options.skipMonsterMove) {
                     settrack(this.player);
-                    movemon(this.map, this.player, this.display, this.fov);
+                    movemon(this.map, this.player, this.display, this.fov, this);
                 }
                 this.simulateTurnEnd();
                 while (this.occupation) {
                     const occ = this.occupation;
+                    let interruptedOcc = false;
                     const cont = occ.fn(this);
                     const finishedOcc = !cont ? occ : null;
+                    if (this.shouldInterruptMulti()) {
+                        this.multi = 0;
+                        if (this.flags?.verbose !== false && occ?.occtxt) {
+                            this.display.putstr_message(`You stop ${occ.occtxt}.`);
+                        }
+                        this.occupation = null;
+                        interruptedOcc = true;
+                    } else
                     if (!cont) this.occupation = null;
+                    if (interruptedOcc) continue;
                     if (!options.skipMonsterMove) {
                         settrack(this.player);
-                        movemon(this.map, this.player, this.display, this.fov);
+                        movemon(this.map, this.player, this.display, this.fov, this);
                     }
                     this.simulateTurnEnd();
                     if (finishedOcc && typeof finishedOcc.onFinishAfterTurn === 'function') {
@@ -625,7 +654,7 @@ export class HeadlessGame {
         if (!Number.isInteger(depth) || depth <= 0) {
             return { ok: false, reason: 'invalid-depth' };
         }
-        this.changeLevel(depth);
+        this.changeLevel(depth, 'teleport');
         this.renderCurrentScreen();
         if (typeof this.hooks.onLevelChange === 'function') {
             this.hooks.onLevelChange({ game: this, depth });
@@ -650,16 +679,24 @@ export class HeadlessGame {
     // C ref: allmain.c interrupt_multi() — check if multi-count should be interrupted
     // Interrupts search/wait/etc count when hostile monster appears adjacent.
     shouldInterruptMulti() {
+        if ((this.runMode || 0) > 0) return false;
+
         const { x, y } = this.player;
         for (let dx = -1; dx <= 1; dx++) {
             for (let dy = -1; dy <= 1; dy++) {
                 if (dx === 0 && dy === 0) continue;
                 const mon = this.map.monsterAt(x + dx, y + dy);
                 if (mon && !mon.dead && !mon.tame && !mon.peaceful) {
-                    return true; // Hostile monster nearby
+                    return true;
                 }
             }
         }
+
+        if (this.lastHP !== undefined && this.player.hp !== this.lastHP) {
+            this.lastHP = this.player.hp;
+            return true;
+        }
+        this.lastHP = this.player.hp;
         return false;
     }
 
@@ -715,11 +752,23 @@ export class HeadlessGame {
         }
 
         // C ref: allmain.c:289-295 regen_hp()
+        let reachedFullHealth = false;
         if (this.player.hp < this.player.hpmax) {
             const con = this.player.attributes ? this.player.attributes[A_CON] : 10;
             const heal = (this.player.level + con) > rn2(100) ? 1 : 0;
             if (heal) {
                 this.player.hp = Math.min(this.player.hp + heal, this.player.hpmax);
+                reachedFullHealth = (this.player.hp === this.player.hpmax);
+            }
+        }
+        // C ref: allmain.c regen_hp() -> interrupt_multi("You are in full health.")
+        if (reachedFullHealth
+            && this.multi > 0
+            && !this.travelPath?.length
+            && !this.runMode) {
+            this.multi = 0;
+            if (this.flags?.verbose !== false) {
+                this.display.putstr_message('You are in full health.');
             }
         }
 
@@ -808,11 +857,50 @@ export class HeadlessGame {
     }
 
     // Generate or retrieve a level (for stair traversal)
-    changeLevel(depth) {
+    resolveArrivalCollision() {
+        const mtmp = this.map?.monsterAt?.(this.player.x, this.player.y);
+        if (!mtmp || mtmp === this.player?.usteed) return;
+
+        const moveMonsterNearby = () => {
+            const pos = enexto(this.player.x, this.player.y, this.map);
+            if (pos) {
+                mtmp.mx = pos.x;
+                mtmp.my = pos.y;
+            }
+        };
+
+        // C ref: do.c u_collide_m() -- randomize whether hero or monster moves.
+        if (!rn2(2)) {
+            const cc = enexto(this.player.x, this.player.y, this.map);
+            if (cc && Math.abs(cc.x - this.player.x) <= 1 && Math.abs(cc.y - this.player.y) <= 1) {
+                this.player.x = cc.x;
+                this.player.y = cc.y;
+            } else {
+                moveMonsterNearby();
+            }
+        } else {
+            moveMonsterNearby();
+        }
+
+        const still = this.map?.monsterAt?.(this.player.x, this.player.y);
+        if (!still) return;
+        const fallback = enexto(this.player.x, this.player.y, this.map);
+        if (fallback) {
+            still.mx = fallback.x;
+            still.my = fallback.y;
+        } else {
+            this.map.removeMonster(still);
+        }
+    }
+
+    changeLevel(depth, transitionDir = null) {
+        const fromX = this.player?.x;
+        const fromY = this.player?.y;
         if (this.map) {
             this.levels[this.player.dungeonLevel] = this.map;
         }
         const previousMap = this.levels[this.player.dungeonLevel];
+        let created = false;
         if (this.levels[depth]) {
             this.map = this.levels[depth];
         } else {
@@ -820,18 +908,22 @@ export class HeadlessGame {
                 ? makelevel(depth, this.dnum, depth, { dungeonAlignOverride: this.dungeonAlignOverride })
                 : makelevel(depth, undefined, undefined, { dungeonAlignOverride: this.dungeonAlignOverride });
             this.levels[depth] = this.map;
-
-            // C ref: dog.c:474 mon_arrive — pet arrival on level change
-            // Use real migration logic to preserve startup/replay fidelity.
-            if (depth > 1) {
-                mon_arrive(previousMap, this.map, this.player, {
-                    heroX: this.map.upstair.x,
-                    heroY: this.map.upstair.y,
-                });
-            }
+            created = true;
         }
         this.player.dungeonLevel = depth;
-        this.placePlayerOnLevel();
+        this.placePlayerOnLevel(transitionDir);
+        // C ref: do.c goto_level(): u_on_rndspot()/u_on_newpos happens
+        // before losedogs()->mon_arrive(), so follower arrival sees the
+        // final hero position on the destination level.
+        if (created && depth > 1) {
+            mon_arrive(previousMap, this.map, this.player, {
+                sourceHeroX: fromX,
+                sourceHeroY: fromY,
+                heroX: this.player.x,
+                heroY: this.player.y,
+            });
+            this.resolveArrivalCollision();
+        }
         this.renderCurrentScreen();
         if (typeof this.hooks.onLevelChange === 'function') {
             this.hooks.onLevelChange({ game: this, depth });
@@ -892,7 +984,7 @@ HeadlessGame.fromSeed = function fromSeed(seed, roleIndex = 11, opts = {}) {
     game.roleIndex = roleIndex;
     game.wizard = !!opts.wizard;
     player.wizard = game.wizard;
-    game.flags = { ...SELFPLAY_GAME_FLAGS, ...(opts.flags || {}) };
+    game.flags = { ...DEFAULT_GAME_FLAGS, ...SELFPLAY_GAME_FLAGS, ...(opts.flags || {}) };
     game.display.flags.DECgraphics = opts.DECgraphics !== false;
     game.renderCurrentScreen();
     return game;
@@ -906,7 +998,7 @@ HeadlessGame.prototype.executeCommand = async function executeCommand(ch) {
     }
 
     if (result && result.tookTime) {
-        movemon(this.map, this.player, this.display, this.fov);
+        movemon(this.map, this.player, this.display, this.fov, this);
         this.simulateTurnEnd();
         if (typeof this.hooks.onTurnAdvanced === 'function') {
             this.hooks.onTurnAdvanced({ game: this, keyCode: code, result });

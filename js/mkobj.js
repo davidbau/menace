@@ -15,7 +15,7 @@ import {
     GOLD_PIECE, DILITHIUM_CRYSTAL, LOADSTONE,
     WAN_CANCELLATION, WAN_LIGHT, WAN_LIGHTNING,
     BAG_OF_HOLDING, OILSKIN_SACK, BAG_OF_TRICKS, SACK,
-    LARGE_BOX, CHEST, ICE_BOX, CORPSE, STATUE,
+    LARGE_BOX, CHEST, ICE_BOX, CORPSE, STATUE, FIGURINE, EGG,
     GRAY_DRAGON_SCALES, YELLOW_DRAGON_SCALES, LENSES,
     ELVEN_SHIELD, ORCISH_SHIELD, SHIELD_OF_REFLECTION,
     WORM_TOOTH, UNICORN_HORN, POT_WATER,
@@ -24,8 +24,14 @@ import {
     CLASS_SYMBOLS,
     initObjectData,
 } from './objects.js';
-import { rndmonnum } from './makemon.js';
-import { mons, G_NOCORPSE, M2_NEUTER, M2_FEMALE, M2_MALE, MZ_SMALL, PM_LIZARD, PM_LICHEN, S_TROLL, MS_RIDER } from './monsters.js';
+import { rndmonnum, rndmonnum_adj } from './makemon.js';
+import {
+    mons, G_NOCORPSE, M2_NEUTER, M2_FEMALE, M2_MALE, MZ_SMALL,
+    PM_LIZARD, PM_LICHEN, S_TROLL, MS_RIDER,
+    PM_SCORPIUS, PM_SCORPION, PM_KILLER_BEE, PM_QUEEN_BEE,
+    PM_GARGOYLE, PM_WINGED_GARGOYLE
+} from './monsters.js';
+import { lays_eggs } from './mondata.js';
 
 // Named object indices we need (exported from objects.js)
 // Check: CORPSE, EGG, TIN, SLIME_MOLD, KELP_FROND, CANDY_BAR,
@@ -59,8 +65,47 @@ function mkobjTrace(msg) {
         let ctx = c1 || '?';
         if (c2) ctx += ` <= ${c2}`;
         if (c3) ctx += ` <= ${c3}`;
-        console.log(`[MKOBJ] ${msg} ctx=${ctx}`);
+        console.log(`[MKOBJ][d=${_levelDepth}] ${msg} ctx=${ctx}`);
     }
+}
+
+const _monsterNameIndex = new Map();
+function monsterIndexByName(name) {
+    if (!name) return -1;
+    if (_monsterNameIndex.has(name)) return _monsterNameIndex.get(name);
+    const idx = mons.findIndex(m => m?.name === name);
+    _monsterNameIndex.set(name, idx);
+    return idx;
+}
+
+// C ref: mon.c little_to_big() subset needed by can_be_hatched().
+function little_to_big_maybe(mnum) {
+    const nm = mons[mnum]?.name;
+    if (!nm) return mnum;
+    if (nm.startsWith('baby ')) {
+        const adult = monsterIndexByName(nm.slice(5));
+        if (adult >= 0) return adult;
+    }
+    if (nm.endsWith(' hatchling')) {
+        const adult = monsterIndexByName(nm.slice(0, -10));
+        if (adult >= 0) return adult;
+    }
+    return mnum;
+}
+
+// C ref: mon.c can_be_hatched().
+function can_be_hatched(mnum) {
+    if (mnum === PM_SCORPIUS) mnum = PM_SCORPION;
+    mnum = little_to_big_maybe(mnum);
+    if (mnum < 0 || mnum >= mons.length) return -1;
+    if (mnum === PM_KILLER_BEE || mnum === PM_GARGOYLE) return mnum;
+    if (lays_eggs(mons[mnum])) {
+        // BREEDER_EGG: !rn2(77)
+        if (!rn2(77) || (mnum !== PM_QUEEN_BEE && mnum !== PM_WINGED_GARGOYLE)) {
+            return mnum;
+        }
+    }
+    return -1;
 }
 
 // C ref: mkobj.c svc.context.ident — monotonic ID counter for objects and monsters.
@@ -348,6 +393,7 @@ function mksobj_init(obj, artif, skipErosion) {
         break;
 
     case FOOD_CLASS:
+        mkobjTrace(`food init call=${getRngCallCount()} otyp=${obj.otyp} name=${od.name}`);
         // Check specific food types by name since we may not have all constants
         if (od.name === 'corpse') {
             // C ref: mkobj.c:900-910 — retry if G_NOCORPSE
@@ -361,12 +407,15 @@ function mksobj_init(obj, artif, skipErosion) {
             if (tryct === 0) obj.corpsenm = mons.findIndex(m => m.name === 'human');
         } else if (od.name === 'egg') {
             obj.corpsenm = -1;
-            if (!rn2(3)) {
+            const eggRoll = rn2(3);
+            mkobjTrace(`egg roll call=${getRngCallCount()} rn2(3)=${eggRoll}`);
+            if (!eggRoll) {
                 for (let tryct = 200; tryct > 0; --tryct) {
-                    const base = rndmonnum(_levelDepth); // can_be_hatched(rndmonnum())
-                    obj.corpsenm = base;
-                    mkobjTrace(`egg try=${201 - tryct} call=${getRngCallCount()} base=${base}`);
-                    break; // simplified: first attempt succeeds
+                    const base = rndmonnum(_levelDepth);
+                    const mndx = can_be_hatched(base);
+                    obj.corpsenm = mndx;
+                    mkobjTrace(`egg try=${201 - tryct} call=${getRngCallCount()} base=${base} hatched=${mndx}`);
+                    if (mndx >= 0) break;
                 }
             }
         } else if (od.name === 'tin') {
@@ -448,7 +497,7 @@ function mksobj_init(obj, artif, skipErosion) {
         } else if (od.name === 'figurine') {
             let tryct = 0;
             do {
-                obj.corpsenm = rndmonnum(_levelDepth); // rndmonnum_adj(5, 10)
+                obj.corpsenm = rndmonnum_adj(5, 10, _levelDepth);
                 mkobjTrace(`figurine try=${tryct + 1} call=${getRngCallCount()} corpsenm=${obj.corpsenm}`);
             } while (tryct++ < 30 && false); // simplified: first attempt ok
             blessorcurse(obj, 4);
@@ -664,12 +713,11 @@ function mksobj_postinit(obj) {
             rn2(2); // random gender
         }
     }
-    // C ref: mkobj.c:1224 set_corpsenm → start_corpse_timeout for CORPSE
-    // start_corpse_timeout calls rnz(rot_adjust) where rot_adjust=25 at depth 1
-    // C ref: mkobj.c:1400 — lizard and lichen corpses skip start_corpse_timeout
-    if (od.name === 'corpse' && obj.corpsenm >= 0
-        && obj.corpsenm !== PM_LIZARD && obj.corpsenm !== PM_LICHEN) {
-        rnz(25); // start_corpse_timeout
+    // C ref: mkobj.c:1221-1225 — set_corpsenm() is called for
+    // CORPSE/STATUE/FIGURINE/EGG (and TIN, but corpsenm is NON_PM there).
+    if (obj.otyp === CORPSE || obj.otyp === STATUE
+        || obj.otyp === FIGURINE || obj.otyp === EGG) {
+        set_corpsenm(obj, obj.corpsenm);
     }
 }
 
@@ -720,14 +768,39 @@ function start_corpse_timeout_rng(corpsenm) {
     }
 }
 
+const MAX_EGG_HATCH_TIME = 200;
+
+// C ref: timeout.c attach_egg_hatch_timeout() — RNG-only parity for hatch timing.
+function attach_egg_hatch_timeout_rng(when) {
+    let hatchWhen = Number.isFinite(when) ? Math.trunc(when) : 0;
+    if (!hatchWhen) {
+        for (let i = (MAX_EGG_HATCH_TIME - 50) + 1; i <= MAX_EGG_HATCH_TIME; i++) {
+            if (rnd(i) > 150) {
+                hatchWhen = i;
+                break;
+            }
+        }
+    }
+    return hatchWhen;
+}
+
 // C ref: mkobj.c set_corpsenm() — set corpsenm and restart timers
 // Used by create_object (sp_lev) when overriding corpsenm after mksobj
 // Unlike mkcorpstat's conditional check, this ALWAYS restarts start_corpse_timeout
 // for corpses, matching C's set_corpsenm which unconditionally calls it.
 export function set_corpsenm(obj, id) {
+    const when = obj.otyp === EGG && Number.isInteger(obj._egg_hatch_when)
+        ? obj._egg_hatch_when
+        : 0;
     obj.corpsenm = id;
-    if (objectData[obj.otyp]?.name === 'corpse') {
+    if (obj.otyp === CORPSE) {
         start_corpse_timeout_rng(id);
+    } else if (obj.otyp === EGG) {
+        if (id >= 0) {
+            obj._egg_hatch_when = attach_egg_hatch_timeout_rng(when);
+        } else {
+            delete obj._egg_hatch_when;
+        }
     }
     obj.owt = weight(obj);
 }
