@@ -53,6 +53,9 @@ export function typName(t) {
 export function stripAnsiSequences(text) {
     if (!text) return '';
     return String(text)
+        // Preserve horizontal cursor-forward movement used in C captures
+        // as literal leading spaces for stable screen comparisons.
+        .replace(/\x1b\[(\d*)C/g, (_m, n) => ' '.repeat(Math.max(1, Number(n || '1'))))
         // CSI sequences (e.g. ESC[31m, ESC[0K)
         .replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, '')
         // OSC sequences (e.g. ESC]...BEL or ESC]...ESC\)
@@ -66,10 +69,16 @@ export function stripAnsiSequences(text) {
 // Session screens may provide plain `screen`, richer `screenAnsi`, or both.
 // Prefer ANSI when present, but normalize to plain text for existing comparisons.
 export function getSessionScreenLines(screenHolder) {
-    const raw = Array.isArray(screenHolder?.screenAnsi)
-        ? screenHolder.screenAnsi
-        : (Array.isArray(screenHolder?.screen) ? screenHolder.screen : []);
-    return raw.map((line) => stripAnsiSequences(line));
+    if (Array.isArray(screenHolder?.screenAnsi)) {
+        return screenHolder.screenAnsi.map((line) => stripAnsiSequences(line));
+    }
+    if (Array.isArray(screenHolder?.screen)) {
+        return screenHolder.screen.map((line) => stripAnsiSequences(line));
+    }
+    if (typeof screenHolder?.screen === 'string') {
+        return screenHolder.screen.split('\n').map((line) => stripAnsiSequences(line));
+    }
+    return [];
 }
 
 // ---------------------------------------------------------------------------
@@ -674,6 +683,7 @@ export async function replaySession(seed, session, opts = {}) {
     game.display.flags.DECgraphics = session.screenMode === 'decgraphics';
     const firstStepScreen = getSessionScreenLines(session.steps?.[0] || {});
     let inTutorialPrompt = isTutorialPromptScreen(firstStepScreen);
+    let pendingTutorialStart = false;
     if (inTutorialPrompt && firstStepScreen.length > 0) {
         game.display.setScreenLines(firstStepScreen);
     }
@@ -700,6 +710,21 @@ export async function replaySession(seed, session, opts = {}) {
     let deferredSparseMoveKey = null;
     let deferredMoreBoundaryRng = [];
     let deferredMoreBoundaryTarget = null;
+    const startTutorialLevel = () => {
+        const tutorialAlign = Number.isInteger(opts.tutorialDungeonAlign)
+            ? opts.tutorialDungeonAlign
+            : A_NONE;
+        // C tutorial branch uses a separate gamestate and starts without
+        // carried comestibles; tutorial teaches eating via placed ration.
+        game.player.inventory = game.player.inventory.filter(o => o.oclass !== FOOD_CLASS);
+        game.map = makelevel(1, TUTORIAL, 1, {
+            dungeonAlignOverride: tutorialAlign,
+        });
+        game.levels[1] = game.map;
+        game.player.dungeonLevel = 1;
+        game.placePlayerOnLevel('down');
+        game.renderCurrentScreen();
+    };
 
     const pushStepResult = (stepLogRaw, screen, step, stepScreen, stepIndex) => {
         let raw = stepLogRaw;
@@ -760,6 +785,9 @@ export async function replaySession(seed, session, opts = {}) {
         const step = allSteps[stepIndex];
         const prevCount = getRngLog().length;
         const stepScreen = getSessionScreenLines(step);
+        if (isTutorialPromptScreen(stepScreen)) {
+            inTutorialPrompt = true;
+        }
         const stepMsg = stepScreen[0] || '';
         const stepFirstRng = ((step.rng || []).find((e) =>
             typeof e === 'string' && !e.startsWith('>') && !e.startsWith('<')
@@ -894,27 +922,64 @@ export async function replaySession(seed, session, opts = {}) {
         if (inTutorialPrompt) {
             const key = (step.key || '').toLowerCase();
             if (key === 'y') {
-                const tutorialAlign = Number.isInteger(opts.tutorialDungeonAlign)
-                    ? opts.tutorialDungeonAlign
-                    : A_NONE;
-                // C tutorial branch uses a separate gamestate and starts without
-                // carried comestibles; tutorial teaches eating via placed ration.
-                game.player.inventory = game.player.inventory.filter(o => o.oclass !== FOOD_CLASS);
-                game.map = makelevel(1, TUTORIAL, 1, {
-                    dungeonAlignOverride: tutorialAlign,
-                });
-                game.levels[1] = game.map;
-                game.player.dungeonLevel = 1;
-                game.placePlayerOnLevel('down');
-                game.renderCurrentScreen();
+                // C traces can materialize tutorial either on 'y' step
+                // or on following prompt-advance depending on capture path.
+                if (((step.rng && step.rng.length) || 0) > 0) {
+                    startTutorialLevel();
+                    pendingTutorialStart = false;
+                } else {
+                    pendingTutorialStart = true;
+                }
                 inTutorialPrompt = false;
+                if (stepScreen.length > 0) {
+                    game.display.setScreenLines(stepScreen);
+                }
             } else if (key === 'n') {
+                pendingTutorialStart = false;
                 inTutorialPrompt = false;
+                if (stepScreen.length > 0) {
+                    game.display.setScreenLines(stepScreen);
+                }
             } else if (stepScreen.length > 0) {
                 // Keep the yes/no prompt UI visible across ignored keys.
                 game.display.setScreenLines(stepScreen);
             }
 
+            const fullLog = getRngLog();
+            const stepLog = fullLog.slice(prevCount);
+            pushStepResult(
+                stepLog,
+                opts.captureScreens ? game.display.getScreenLines() : undefined,
+                step,
+                stepScreen,
+                stepIndex
+            );
+            continue;
+        }
+
+        if (pendingTutorialStart && step.key === ' ') {
+            startTutorialLevel();
+            pendingTutorialStart = false;
+
+            const fullLog = getRngLog();
+            const stepLog = fullLog.slice(prevCount);
+            pushStepResult(
+                stepLog,
+                opts.captureScreens ? (stepScreen.length > 0 ? stepScreen : game.display.getScreenLines()) : undefined,
+                step,
+                stepScreen,
+                stepIndex
+            );
+            continue;
+        }
+
+        if (!pendingCommand
+            && step.key === ' '
+            && (step.action === 'more-prompt'
+                || ((stepScreen[0] || '').includes('--More--')))) {
+            if (stepScreen.length > 0) {
+                game.display.setScreenLines(stepScreen);
+            }
             const fullLog = getRngLog();
             const stepLog = fullLog.slice(prevCount);
             pushStepResult(

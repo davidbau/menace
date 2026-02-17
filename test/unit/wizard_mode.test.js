@@ -23,6 +23,7 @@ describe('wizard mode init and commands', () => {
             hooks: {},
         });
 
+        input.pushInput('n'.charCodeAt(0));
         await game.init({ seed: 123, wizard: true });
 
         assert.equal(game.wizard, true);

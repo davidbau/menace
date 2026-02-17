@@ -2,7 +2,7 @@
 // Mirrors allmain.c from the C source.
 
 import { NORMAL_SPEED, A_DEX, A_CON,
-         A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
+         A_LAWFUL, A_NEUTRAL, A_CHAOTIC, A_NONE,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
          FEMALE, MALE, TERMINAL_COLS } from './config.js';
 import { initRng, rn2, rnd, rn1, getRngState, setRngState, getRngCallCount, setRngCallCount } from './rng.js';
@@ -14,7 +14,9 @@ import { Player, roles, races, validRacesForRole, validAlignsForRoleRace,
          roleNameForGender, alignName, formatLoreText } from './player.js';
 import { GameMap } from './map.js';
 import { initLevelGeneration, makelevel, setGameSeed } from './dungeon.js';
+import { TUTORIAL } from './special_levels.js';
 import { makemon, setMakemonPlayerContext } from './makemon.js';
+import { FOOD_CLASS } from './objects.js';
 import { rhack } from './commands.js';
 import { movemon, settrack } from './monmove.js';
 import { simulatePostLevelInit, mon_arrive } from './u_init.js';
@@ -187,6 +189,62 @@ export class NetHackGame {
         this.player.showTime = this.flags.time;
 
         // Initial display
+        this.fov.compute(this.map, this.player.x, this.player.y);
+        this.display.renderMap(this.map, this.player, this.fov, this.flags);
+        this.display.renderStatus(this.player);
+
+        if (this.flags.tutorial) {
+            await this._maybeDoTutorial();
+        }
+    }
+
+    async _maybeDoTutorial() {
+        const baseLines = [
+            ' Do you want a tutorial?',
+            '',
+            ' y - Yes, do a tutorial',
+            ' n - No, just start play',
+            '',
+            '(end)',
+        ];
+        let lines = baseLines;
+        while (true) {
+            this.display.renderChargenMenu(lines, false);
+            const ch = await nhgetch();
+            const c = String.fromCharCode(ch).toLowerCase();
+            if (c === 'y') {
+                await this._enterTutorial();
+                return;
+            }
+            if (c === 'n' || c === 'q' || ch === 27) {
+                this.fov.compute(this.map, this.player.x, this.player.y);
+                this.display.renderMap(this.map, this.player, this.fov, this.flags);
+                this.display.renderStatus(this.player);
+                return;
+            }
+            lines = [
+                ...baseLines.slice(0, 5),
+                "(Please choose 'y' or 'n'.)",
+                '',
+                '(end)',
+            ];
+        }
+    }
+
+    async _enterTutorial() {
+        this.display.putstr_message('Entering the tutorial.');
+        await this.display.morePrompt(nhgetch);
+
+        // C tutorial startup uses a dedicated branch and starts without
+        // carried comestibles; tutorial places food explicitly in-map.
+        this.player.inventory = this.player.inventory.filter((obj) => obj.oclass !== FOOD_CLASS);
+
+        setMakemonPlayerContext(this.player);
+        this.map = makelevel(1, TUTORIAL, 1, { dungeonAlignOverride: A_NONE });
+        this.levels[1] = this.map;
+        this.player.dungeonLevel = 1;
+        this.placePlayerOnLevel('down');
+
         this.fov.compute(this.map, this.player.x, this.player.y);
         this.display.renderMap(this.map, this.player, this.fov, this.flags);
         this.display.renderStatus(this.player);

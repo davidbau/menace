@@ -613,7 +613,7 @@ def wait_for_game_ready(session, rng_log_file):
             tmux_send(session, 'y', 0.1)
             continue
 
-        if 'tutorial' in content.lower():
+        if 'Do you want a tutorial?' in content:
             tmux_send(session, 'n', 0.1)
             continue
 
@@ -990,7 +990,7 @@ def run_wizload_session(seed, output_json, level_name, verbose=False):
         shutil.rmtree(tmpdir, ignore_errors=True)
 
 
-def run_chargen_session(seed, output_json, selections, verbose=False):
+def run_chargen_session(seed, output_json, selections, tutorial_response='n', verbose=False):
     """Capture a character generation session with manual selections.
 
     selections is a string like "vhfn" meaning:
@@ -998,6 +998,7 @@ def run_chargen_session(seed, output_json, selections, verbose=False):
     - h = human (race)
     - f = female (gender)
     - n = neutral (alignment)
+    tutorial_response controls the tutorial prompt answer ('y' or 'n').
     """
     output_json = os.path.abspath(output_json)
 
@@ -1074,6 +1075,7 @@ def run_chargen_session(seed, output_json, selections, verbose=False):
 
         # Process character generation prompts
         selection_idx = 0
+        tutorial_prompt_handled = False
         for attempt in range(100):
             time.sleep(0.02)
             try:
@@ -1175,15 +1177,17 @@ def run_chargen_session(seed, output_json, selections, verbose=False):
                 prev_rng_count = rng_count
                 continue
 
-            if 'tutorial' in content.lower():
+            if (not tutorial_prompt_handled) and ('Do you want a tutorial?' in content):
+                tkey = tutorial_response if tutorial_response in ('y', 'n') else 'n'
                 steps.append({
-                    'key': 'n',
-                    'action': 'decline-tutorial',
+                    'key': tkey,
+                    'action': 'accept-tutorial' if tkey == 'y' else 'decline-tutorial',
                     'rng': rng_entries,
                     'screen': screen,
                 })
-                tmux_send(session_name, 'n', 0.1)
+                tmux_send(session_name, tkey, 0.1)
                 prev_rng_count = rng_count
+                tutorial_prompt_handled = True
                 continue
 
             # Game ready - capture final state
@@ -1251,6 +1255,7 @@ def run_chargen_session(seed, output_json, selections, verbose=False):
             'regen': {
                 'mode': 'chargen',
                 'selections': selections,
+                'tutorial': tutorial_response,
             },
             'options': options,
             'steps': steps,
@@ -1504,6 +1509,19 @@ def main():
         chargen_selections = args[idx + 1]
         args = args[:idx] + args[idx+2:]
 
+    # Parse --tutorial <y|n> flag (used with --chargen)
+    tutorial_response = 'n'
+    if '--tutorial' in args:
+        idx = args.index('--tutorial')
+        if idx + 1 >= len(args):
+            print("Error: --tutorial requires y or n")
+            sys.exit(1)
+        tutorial_response = str(args[idx + 1]).strip().lower()
+        if tutorial_response not in ('y', 'n'):
+            print("Error: --tutorial must be 'y' or 'n'")
+            sys.exit(1)
+        args = args[:idx] + args[idx+2:]
+
     # Parse --interface <keys> flag
     interface_keys = None
     if '--interface' in args:
@@ -1537,7 +1555,7 @@ def main():
     if len(args) < 2:
         print(f"Usage: {sys.argv[0]} <seed> <output_json> [move_sequence] [--character <preset>]")
         print(f"       {sys.argv[0]} <seed> <output_json> --wizload <level_name>")
-        print(f"       {sys.argv[0]} <seed> <output_json> --chargen <selections>")
+        print(f"       {sys.argv[0]} <seed> <output_json> --chargen <selections> [--tutorial y|n]")
         print(f"       {sys.argv[0]} <seed> <output_json> --interface <keys>")
         print(f"       {sys.argv[0]} --from-config")
         print(f"Options:")
@@ -1546,6 +1564,7 @@ def main():
         print(f"Example: {sys.argv[0]} 42 sessions/seed42.session.json ':hhlhhhh.hhs'")
         print(f"Example: {sys.argv[0]} 42 sessions/seed42_castle.session.json --wizload castle")
         print(f"Example: {sys.argv[0]} 42 sessions/seed42_chargen.session.json --chargen vhfn")
+        print(f"Example: {sys.argv[0]} 42 sessions/seed42_chargen_tut.session.json --chargen vhfn --tutorial y")
         print(f"Example: {sys.argv[0]} 42 sessions/seed42_options.session.json --interface 'O><q'")
         sys.exit(1)
 
@@ -1555,7 +1574,7 @@ def main():
     if wizload_level:
         run_wizload_session(seed, output_json, wizload_level, verbose)
     elif chargen_selections:
-        run_chargen_session(seed, output_json, chargen_selections, verbose)
+        run_chargen_session(seed, output_json, chargen_selections, tutorial_response, verbose)
     elif interface_keys:
         run_interface_session(seed, output_json, interface_keys, verbose)
     else:

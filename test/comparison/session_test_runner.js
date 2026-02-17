@@ -139,8 +139,9 @@ async function replayInterfaceSession(session) {
     const input = createHeadlessInput();
     const game = new NetHackGame({ display, input });
     const subtype = session.meta.regen?.subtype;
+    const replaySessionInterface = subtype === 'options' || subtype === 'tutorial';
     const inGameInterface = subtype === 'options' || session.meta.options?.wizard === true;
-    if (inGameInterface) {
+    if (replaySessionInterface) {
         const replayFlags = { ...DEFAULT_FLAGS };
         if (session.meta.options?.autopickup === false) replayFlags.pickup = false;
         if (session.meta.options?.symset === 'DECgraphics') replayFlags.DECgraphics = true;
@@ -154,7 +155,7 @@ async function replayInterfaceSession(session) {
             flags: replayFlags,
         });
     }
-    if (subtype === 'startup') {
+    if (subtype === 'startup' || subtype === 'tutorial') {
         // C startup interface captures are recorded after login-derived name selection.
         // Mirror that state so replay starts at autopick prompt rather than name prompt.
         globalThis.localStorage.setItem('webhack-options', JSON.stringify({ name: 'wizard' }));
@@ -181,7 +182,10 @@ async function replayInterfaceSession(session) {
         for (let j = 0; j < key.length; j++) {
             input.pushKey(key.charCodeAt(j));
         }
-        const screen = await waitForStableScreen(display);
+        const screen = await waitForStableScreen(display, {
+            requireNonEmpty: subtype === 'tutorial',
+            timeoutMs: subtype === 'tutorial' ? 1500 : 600,
+        });
         const fullLog = getRngLog() || [];
         const stepRng = fullLog.slice(prevRngCount);
         prevRngCount = fullLog.length;
@@ -333,15 +337,17 @@ async function runInterfaceResult(session) {
             return result;
         }
 
-        if (session.startup?.rng?.length > 0) {
-            recordRngComparison(result, replay.startup?.rng || [], session.startup.rng, { stage: 'startup' });
-        } else if (Number.isInteger(session.startup?.rngCalls)) {
-            const actualCalls = (replay.startup?.rng || []).length;
-            recordRng(result, actualCalls === session.startup.rngCalls ? 1 : 0, 1, {
-                expected: String(session.startup.rngCalls),
-                actual: String(actualCalls),
-                stage: 'startup',
-            });
+        if (session.meta.regen?.subtype !== 'tutorial') {
+            if (session.startup?.rng?.length > 0) {
+                recordRngComparison(result, replay.startup?.rng || [], session.startup.rng, { stage: 'startup' });
+            } else if (Number.isInteger(session.startup?.rngCalls)) {
+                const actualCalls = (replay.startup?.rng || []).length;
+                recordRng(result, actualCalls === session.startup.rngCalls ? 1 : 0, 1, {
+                    expected: String(session.startup.rngCalls),
+                    actual: String(actualCalls),
+                    stage: 'startup',
+                });
+            }
         }
 
         // Interface captures include a startup frame (key=null) that replaySession

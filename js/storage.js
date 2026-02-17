@@ -551,7 +551,7 @@ const C_DEFAULTS = {
     pickup_stolen: true, pickup_thrown: true,
     safe_pet: true, safe_wait: true, silent: true, sortpack: true,
     sparkle: true, splash_screen: true, status_updates: true,
-    tips: true, tombstone: true, travel: true,
+    tips: true, tombstone: true, travel: true, tutorial: true,
     use_darkgray: true, use_inverse: true, verbose: true,
 
     // Boolean: OFF in C

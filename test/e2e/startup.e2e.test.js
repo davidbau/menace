@@ -75,6 +75,12 @@ describe('E2E: Critical startup checks', () => {
             await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
             await page.keyboard.press('Space'); // Dismiss welcome
             await page.evaluate(() => new Promise(r => setTimeout(r, 200)));
+            const tutorialPrompt1 = await page.evaluate(() =>
+                (document.getElementById('terminal')?.textContent || '').includes('Do you want a tutorial?'));
+            if (tutorialPrompt1) {
+                await page.keyboard.type('n');
+                await page.evaluate(() => new Promise(r => setTimeout(r, 150)));
+            }
 
             // Wait for player @ to appear on the map (proves game started and rendered)
             await page.waitForFunction(
@@ -139,6 +145,12 @@ describe('E2E: Critical startup checks', () => {
             await page.evaluate(() => new Promise(r => setTimeout(r, 100)));
             await page.keyboard.press('Space'); // Dismiss welcome
             await page.evaluate(() => new Promise(r => setTimeout(r, 200)));
+            const tutorialPrompt2 = await page.evaluate(() =>
+                (document.getElementById('terminal')?.textContent || '').includes('Do you want a tutorial?'));
+            if (tutorialPrompt2) {
+                await page.keyboard.type('n');
+                await page.evaluate(() => new Promise(r => setTimeout(r, 150)));
+            }
 
             // Wait for game to start and render map with dungeon features
             // DECgraphics is on by default: @ (player), . (floor), box-drawing walls
