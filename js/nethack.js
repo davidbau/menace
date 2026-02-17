@@ -568,7 +568,6 @@ export class NetHackGame {
                     roleIdx = result.value;
                     // Validate role index
                     if (roleIdx < 0 || roleIdx >= roles.length) {
-                        console.error(`Invalid roleIdx: ${roleIdx}, roles.length: ${roles.length}`);
                         roleIdx = -1;
                         continue;
                     }
@@ -599,7 +598,6 @@ export class NetHackGame {
                         raceIdx = result.value;
                         // Validate race index
                         if (raceIdx < 0 || raceIdx >= races.length) {
-                            console.error(`Invalid raceIdx: ${raceIdx}, races.length: ${races.length}`);
                             raceIdx = -1;
                             continue;
                         }
