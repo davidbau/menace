@@ -4,18 +4,19 @@
 
 import { COLNO, ROWNO, STONE, IS_WALL, IS_DOOR, IS_ROOM,
          ACCESSIBLE, IS_OBSTRUCTED, CORR, DOOR, D_CLOSED, D_LOCKED, D_BROKEN,
-         POOL, LAVAPOOL, SHOPBASE, ROOMOFFSET,
+         POOL, LAVAPOOL, SHOPBASE, ROOMOFFSET, IS_POOL, IS_LAVA,
          NORMAL_SPEED, isok } from './config.js';
 import { rn2, rnd, c_d, getRngLog } from './rng.js';
 import { monsterAttackPlayer } from './combat.js';
 import { CORPSE, FOOD_CLASS, COIN_CLASS, BOULDER, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS,
-         PICK_AXE, DWARVISH_MATTOCK } from './objects.js';
+         PICK_AXE, DWARVISH_MATTOCK, SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
+         UNICORN_HORN, SCR_SCARE_MONSTER } from './objects.js';
 import { doname, mkcorpstat } from './mkobj.js';
 import { observeObject } from './discovery.js';
 import { dogfood, dog_eat, can_carry, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT,
          POISON, UNDEF, TABU } from './dog.js';
 import { couldsee, m_cansee, do_clear_area } from './vision.js';
-import { can_teleport, noeyes, perceives } from './mondata.js';
+import { can_teleport, noeyes, perceives, is_animal, is_mindless, nohands } from './mondata.js';
 import { PM_GRID_BUG, PM_IRON_GOLEM, PM_SHOPKEEPER, mons,
          PM_LEPRECHAUN, PM_XAN, PM_YELLOW_LIGHT, PM_BLACK_LIGHT,
          PM_PURPLE_WORM, PM_BABY_PURPLE_WORM, PM_SHRIEKER,
@@ -24,7 +25,7 @@ import { PM_GRID_BUG, PM_IRON_GOLEM, PM_SHOPKEEPER, mons,
          AD_ACID, AD_ENCH,
          M1_FLY, M1_SWIM, M1_AMPHIBIOUS, M1_AMORPHOUS, M1_CLING, M1_SEE_INVIS, S_MIMIC,
          M1_WALLWALK, M1_TUNNEL, M1_NEEDPICK, M1_SLITHY, M1_UNSOLID,
-         MZ_TINY, MZ_SMALL, MZ_MEDIUM, MR_FIRE, MR_SLEEP, G_FREQ } from './monsters.js';
+         MZ_TINY, MZ_SMALL, MZ_MEDIUM, MR_FIRE, MR_SLEEP, G_FREQ, G_NOCORPSE } from './monsters.js';
 import { STATUE_TRAP, MAGIC_TRAP, VIBRATING_SQUARE, RUST_TRAP, FIRE_TRAP,
          SLP_GAS_TRAP, BEAR_TRAP, PIT, SPIKED_PIT, HOLE, TRAPDOOR,
          WEB, ANTI_MAGIC, MAGIC_PORTAL } from './symbols.js';
@@ -274,6 +275,7 @@ function set_apparxy(mon, map, player) {
 // C ref: mon.c:3243 corpse_chance() RNG.
 function petCorpseChanceRoll(mon) {
     const mdat = mon?.type || {};
+    if (((mdat.geno || 0) & G_NOCORPSE) !== 0) return 1;
     const gfreq = (mdat.geno || 0) & G_FREQ;
     const verysmall = (mdat.size || 0) === MZ_TINY;
     const corpsetmp = 2 + (gfreq < 2 ? 1 : 0) + (verysmall ? 1 : 0);
@@ -400,6 +402,7 @@ function mfndpos(mon, map, player) {
     const lavaok = !!(mflags1 & M1_FLY);
     // C ref: mon.c:2061-2062 — tame monsters get ALLOW_M | ALLOW_TRAPS
     const allowM = !!mon.tame;
+    const allowSSM = !!(mon.tame || mon.peaceful || mon.isshk || mon.ispriest);
     const positions = [];
     const maxx = Math.min(omx + 1, COLNO - 1);
     const maxy = Math.min(omy + 1, ROWNO - 1);
@@ -413,8 +416,8 @@ function mfndpos(mon, map, player) {
 
             const loc = map.at(nx, ny);
             if (!loc || !ACCESSIBLE(loc.typ)) continue;
-            if (loc.typ === POOL && !poolok) continue;
-            if (loc.typ === LAVAPOOL && !lavaok) continue;
+            if (IS_POOL(loc.typ) && !poolok) continue;
+            if (IS_LAVA(loc.typ) && !lavaok) continue;
 
             // C ref: door checks
             if (IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED))) continue;
@@ -451,6 +454,7 @@ function mfndpos(mon, map, player) {
 
             // C ref: u_at — skip player position
             if (nx === player.x && ny === player.y) continue;
+            if (onscary(map, nx, ny) && !allowSSM) continue;
 
             // C ref: sobj_at(BOULDER) — skip positions with boulders
             // (simplified: no monster can move boulders for now)
@@ -544,6 +548,22 @@ function cant_squeeze_thru_mon(mon) {
     return load > 600;
 }
 
+// C ref: mon.c onscary() subset used by mfndpos().
+function onscary(map, x, y) {
+    for (const obj of map.objects) {
+        if (obj.ox === x && obj.oy === y
+            && obj.otyp === SCR_SCARE_MONSTER
+            && !obj.cursed) {
+            return true;
+        }
+    }
+    for (const engr of map.engravings || []) {
+        if (!engr || engr.x !== x || engr.y !== y) continue;
+        if (/elbereth/i.test(String(engr.text || ''))) return true;
+    }
+    return false;
+}
+
 // ========================================================================
 // dog_goal helper functions — C-faithful checks
 // ========================================================================
@@ -608,6 +628,104 @@ function can_reach_location(map, mon, mx, my, fx, fy) {
     return false;
 }
 
+// C ref: dogmove.c droppables(mon)
+// Pick next inventory item a tame monster is willing to drop.
+function droppables(mon) {
+    const inv = mon.minvent || [];
+    const mdat = mon.type || {};
+    const wep = mon.weapon || null;
+    const dummy = { dummy: true, oartifact: 1 };
+    let pickaxe = null;
+    let unihorn = null;
+    let key = null;
+    const verysmall = (mdat.size || 0) === MZ_TINY;
+
+    if (is_animal(mdat) || is_mindless(mdat)) {
+        pickaxe = unihorn = key = dummy;
+    } else {
+        if (!(mdat.flags1 & M1_TUNNEL) || !(mdat.flags1 & M1_NEEDPICK)) pickaxe = dummy;
+        if (nohands(mdat) || verysmall) key = dummy;
+    }
+    if (wep) {
+        if (wep.otyp === PICK_AXE || wep.otyp === DWARVISH_MATTOCK) pickaxe = wep;
+        if (wep.otyp === UNICORN_HORN) unihorn = wep;
+    }
+
+    for (const obj of inv) {
+        switch (obj.otyp) {
+        case DWARVISH_MATTOCK:
+            if (pickaxe && pickaxe !== dummy
+                && pickaxe.otyp === PICK_AXE
+                && pickaxe !== wep
+                && (!pickaxe.oartifact || obj.oartifact)) {
+                return pickaxe;
+            }
+            // fall through
+        case PICK_AXE:
+            if (!pickaxe || (obj.oartifact && !pickaxe.oartifact)) {
+                if (pickaxe && pickaxe !== dummy) return pickaxe;
+                pickaxe = obj;
+                continue;
+            }
+            break;
+        case UNICORN_HORN:
+            if (obj.cursed) break;
+            if (!unihorn || (obj.oartifact && !unihorn.oartifact)) {
+                if (unihorn && unihorn !== dummy) return unihorn;
+                unihorn = obj;
+                continue;
+            }
+            break;
+        case SKELETON_KEY:
+            if (key && key !== dummy
+                && key.otyp === LOCK_PICK
+                && (!key.oartifact || obj.oartifact)) {
+                return key;
+            }
+            // fall through
+        case LOCK_PICK:
+            if (key && key !== dummy
+                && key.otyp === CREDIT_CARD
+                && (!key.oartifact || obj.oartifact)) {
+                return key;
+            }
+            // fall through
+        case CREDIT_CARD:
+            if (!key || (obj.oartifact && !key.oartifact)) {
+                if (key && key !== dummy) return key;
+                key = obj;
+                continue;
+            }
+            break;
+        default:
+            break;
+        }
+        if (!obj.owornmask && obj !== wep) return obj;
+    }
+    return null;
+}
+
+function canStackFloorObject(a, b) {
+    if (!a || !b) return false;
+    if (a.otyp !== b.otyp) return false;
+    if (a.otyp !== CORPSE) return false;
+    return (a.corpsenm === b.corpsenm)
+        && (a.age === b.age)
+        && (!!a.cursed === !!b.cursed)
+        && (!!a.blessed === !!b.blessed);
+}
+
+function placeFloorObject(map, obj) {
+    for (const existing of map.objects) {
+        if (existing.ox !== obj.ox || existing.oy !== obj.oy) continue;
+        if (!canStackFloorObject(existing, obj)) continue;
+        existing.quan = (existing.quan || 1) + (obj.quan || 1);
+        return existing;
+    }
+    map.objects.push(obj);
+    return obj;
+}
+
 // ========================================================================
 // dog_invent — pet inventory management (pickup/drop at current position)
 // C ref: dogmove.c:392-471
@@ -617,37 +735,24 @@ function dog_invent(mon, edog, udist, map, turnCount, display, player) {
     if (mon.meating) return 0;
     const omx = mon.mx, omy = mon.my;
 
-    // C ref: dogmove.c droppables(mtmp) — worn/wielded items are not droppable.
-    const hasDrop = mon.minvent && mon.minvent.some((o) => {
-        if (!o || o.cursed) return false;
-        if (o.owornmask) return false;
-        if (mon.weapon && o === mon.weapon) return false;
-        return true;
-    });
+    const hasDrop = !!droppables(mon);
 
     if (hasDrop) {
         // C ref: dogmove.c:411-421 — drop path
         if (!rn2(udist + 1) || !rn2(edog.apport)) {
             if (rn2(10) < edog.apport) {
-                // relobj: drop all non-cursed inventory items
-                const keep = [];
-                for (const o of mon.minvent) {
-                    const droppable = !!o
-                        && !o.cursed
-                        && !o.owornmask
-                        && !(mon.weapon && o === mon.weapon);
-                    if (droppable) {
-                        o.ox = omx; o.oy = omy;
-                        map.objects.push(o);
-                        if (display && player && couldsee(map, player, mon.mx, mon.my)) {
-                            observeObject(o);
-                            display.putstr_message(`The ${mon.name} drops ${doname(o, null)}.`);
-                        }
-                    } else {
-                        keep.push(o);
+                let dropObj;
+                while ((dropObj = droppables(mon)) != null) {
+                    const idx = mon.minvent.indexOf(dropObj);
+                    if (idx >= 0) mon.minvent.splice(idx, 1);
+                    dropObj.ox = omx;
+                    dropObj.oy = omy;
+                    placeFloorObject(map, dropObj);
+                    if (display && player && couldsee(map, player, mon.mx, mon.my)) {
+                        observeObject(dropObj);
+                        display.putstr_message(`The ${mon.name} drops ${doname(dropObj, null)}.`);
                     }
                 }
-                mon.minvent = keep;
                 if (edog.apport > 1) edog.apport--;
                 edog.dropdist = udist;
                 edog.droptime = turnCount;
@@ -663,7 +768,10 @@ function dog_invent(mon, edog, udist, map, turnCount, display, player) {
             }
         }
 
-        if (obj) {
+        if (obj
+            && obj.oclass !== BALL_CLASS
+            && obj.oclass !== CHAIN_CLASS
+            && obj.oclass !== ROCK_CLASS) {
             const edible = dogfood(mon, obj, turnCount);
 
             // C ref: dogmove.c:436-438 — eat if edible enough
@@ -1375,12 +1483,15 @@ function dog_move(mon, map, player, display, fov, after = false) {
                 const attacks = (Array.isArray(mon.attacks) && mon.attacks.length > 0)
                     ? mon.attacks.filter((a) => a && a.type !== AT_NONE)
                     : [{ type: AT_CLAW, dice: 1, sides: 1 }];
+                let anyHit = false;
+                let defenderDied = false;
                 for (let ai = 0; ai < attacks.length; ai++) {
                     const attk = attacks[ai];
                     const roll = rnd(20 + ai); // C ref: mhitm.c mattackm to-hit roll
                     const toHit = (target.mac ?? 10) + (mon.mlevel || 1);
                     const hit = toHit > roll;
                     if (hit) {
+                        anyHit = true;
                         const targetVisible = couldsee(map, player, target.mx, target.my);
                         const suppressDetail = !!player.displacedPetThisTurn;
                         if (display && mon.name && target.name && targetVisible && !suppressDetail) {
@@ -1410,19 +1521,17 @@ function dog_move(mon, map, player, display, fov, after = false) {
                                 const corpse = mkcorpstat(CORPSE, target.mndx || 0, true);
                                 corpse.ox = target.mx;
                                 corpse.oy = target.my;
-                                map.objects.push(corpse);
+                                placeFloorObject(map, corpse);
                             }
                             const victimLevel = Number.isInteger(target.m_lev) ? target.m_lev
                                 : (Number.isInteger(target.mlevel) ? target.mlevel
                                     : (Number.isInteger(target.type?.level) ? target.type.level : 0));
                             rnd(Math.max(1, victimLevel + 1)); // C ref: makemon.c grow_up(victim)
                             consumePassivemmRng(mon, target, true, true);
+                            defenderDied = true;
                             break;
                         } else {
                             consumePassivemmRng(mon, target, true, false);
-                            // C ref: dogmove.c retaliatory attack gate after
-                            // a successful non-lethal pet hit.
-                            rn2(4);
                         }
                     } else {
                         consumePassivemmRng(mon, target, false, false);
@@ -1430,6 +1539,17 @@ function dog_move(mon, map, player, display, fov, after = false) {
                             display.putstr_message(`The ${mon.name} misses the ${target.name}.`);
                         }
                     }
+                }
+                // C ref: dogmove.c:1151-1160 — retaliation check happens once
+                // after mattackm returns for the whole pet-vs-monster exchange.
+                if (anyHit && !defenderDied && rn2(4)
+                    && target.mlstmv !== turnCount
+                    && monnear(target, mon.mx, mon.my)) {
+                    // C ref: dogmove.c retaliation uses mattackm(target, mon).
+                    // Keep a compact parity model: to-hit + optional damage path,
+                    // then passive-effect RNG on the defender.
+                    rnd(20);
+                    consumePassivemmRng(target, mon, false, false);
                 }
                 return 0; // MMOVE_DONE-equivalent for this simplified path
             }

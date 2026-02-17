@@ -2387,12 +2387,6 @@ export function map(data) {
     // C ref: sp_lev.c mapfrag_fromstr() calls stripdigits() before computing
     // dimensions or applying map cells.
     mapStr = String(mapStr).replace(/[0-9]/g, '');
-    // C/Lua parity: long-bracket strings [[...]] discard one initial newline
-    // when it appears immediately after the opening delimiter.
-    if (mapStr.startsWith('\n')) {
-        mapStr = mapStr.slice(1);
-    }
-
     // Parse map string into lines.
     // C ref: sp_lev.c mapfrag_fromstr() counts newline-separated rows from the
     // normalized Lua string; intentional blank rows remain.

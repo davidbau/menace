@@ -84,8 +84,9 @@ describe('Post-level initialization (u_init)', () => {
         // All attributes should be >= role base and <= 18
         const bases = [10, 7, 7, 7, 10, 7]; // Valkyrie bases
         for (let i = 0; i < NUM_ATTRS; i++) {
-            assert.ok(player.attributes[i] >= 3 && player.attributes[i] <= 18,
-                `Attribute ${i} should be 3-18, got ${player.attributes[i]}`);
+            const max = (i === A_STR) ? 118 : 18; // C: STR can use 18/xx encoding.
+            assert.ok(player.attributes[i] >= 3 && player.attributes[i] <= max,
+                `Attribute ${i} should be 3-${max}, got ${player.attributes[i]}`);
         }
     });
 
