@@ -6,7 +6,7 @@ import { COLNO, ROWNO, DOOR, CORR, SCORR, STAIRS, LADDER, FOUNTAIN, SINK, THRONE
          POOL, LAVAPOOL, IRONBARS, TREE, ROOM, IS_DOOR, D_CLOSED, D_LOCKED,
          D_ISOPEN, D_NODOOR, D_BROKEN, ACCESSIBLE, IS_WALL, MAXLEVEL, VERSION_STRING, ICE,
          isok, A_STR, A_DEX, A_CON, A_WIS } from './config.js';
-import { SQKY_BOARD, SLP_GAS_TRAP, FIRE_TRAP, PIT, SPIKED_PIT } from './symbols.js';
+import { SQKY_BOARD, SLP_GAS_TRAP, FIRE_TRAP, PIT, SPIKED_PIT, ANTI_MAGIC } from './symbols.js';
 import { rn2, rnd, rnl, d, c_d } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
@@ -593,10 +593,14 @@ async function handleMovement(dir, player, map, display, game) {
             const namedPet = !!(mon.tame
                 && mon.name
                 && !/(dog|cat|kitten|pony|horse)/i.test(mon.name));
+            // C ref: x_monnam includes "saddled" when the monster
+            // has a saddle worn (owornmask W_SADDLE = 0x100000).
+            const hasSaddle = (mon.minvent || []).some(o => o && (o.owornmask & 0x100000));
+            const adjName = hasSaddle ? `saddled ${mon.name}` : mon.name;
             display.putstr_message(
                 namedPet
-                    ? `You swap places with ${mon.name}.`
-                    : `You swap places with your ${mon.name}.`
+                    ? `You swap places with ${adjName}.`
+                    : `You swap places with your ${adjName}.`
             );
             const landedObjs = map.objectsAt(nx, ny);
             if (landedObjs.length > 0) {
@@ -699,6 +703,19 @@ async function handleMovement(dir, player, map, display, game) {
         display.putstr_message("You can't move there.");
         return { moved: false, tookTime: false };
     }
+    const steppingTrap = map.trapAt(nx, ny);
+    // C-style confirmation prompt for known anti-magic fields.
+    if (steppingTrap && steppingTrap.ttyp === ANTI_MAGIC && steppingTrap.tseen) {
+        const ans = await ynFunction(
+            'Really step onto that anti-magic field?',
+            'yn',
+            'n'.charCodeAt(0),
+            display
+        );
+        if (ans !== 'y'.charCodeAt(0)) {
+            return { moved: false, tookTime: false };
+        }
+    }
 
     // Move the player
     player.x = nx;
@@ -762,6 +779,38 @@ async function handleMovement(dir, player, map, display, game) {
             display.putstr_message(trap.ttyp === SPIKED_PIT
                 ? 'You land on a set of sharp iron spikes!'
                 : 'You fall into a pit!');
+        }
+        // C ref: trap.c trapeffect_anti_magic()
+        else if (trap.ttyp === ANTI_MAGIC) {
+            // C ref: trap.c trapeffect_anti_magic() + drain_en()
+            let drain = c_d(2, 6); // 2..12
+            const halfd = rnd(Math.max(1, Math.floor(drain / 2)));
+            let exclaim = false;
+            if (player.pwmax > drain) {
+                player.pwmax = Math.max(0, player.pwmax - halfd);
+                drain -= halfd;
+                exclaim = true;
+            }
+            if (player.pwmax < 1) {
+                player.pw = 0;
+                player.pwmax = 0;
+                display.putstr_message('You feel momentarily lethargic.');
+            } else {
+                let n = drain;
+                if (n > Math.floor((player.pw + player.pwmax) / 3)) {
+                    n = rnd(n);
+                }
+                let punct = exclaim ? '!' : '.';
+                if (n > player.pw) punct = '!';
+                player.pw -= n;
+                if (player.pw < 0) {
+                    player.pwmax = Math.max(0, player.pwmax - rnd(-player.pw));
+                    player.pw = 0;
+                } else if (player.pw > player.pwmax) {
+                    player.pw = player.pwmax;
+                }
+                display.putstr_message(`You feel your magical energy drain away${punct}`);
+            }
         }
     }
 
@@ -2306,16 +2355,8 @@ export function dosearch0(player, map, display, game = null) {
                     }
                 }
             }
-            // C ref: detect.c mfind0() in dosearch0() can interrupt explicit
-            // counted searches when an adjacent monster is discovered.
-            // Keep this minimal (no extra messaging/RNG) to preserve replay
-            // parity where visible adjacent monsters should halt count search.
-            const mon = map.monsterAt(nx, ny);
-            if (mon && !mon.dead && !mon.tame && !mon.peaceful) {
-                if (game && Number.isInteger(game.multi) && game.multi > 0) {
-                    game.multi = 0;
-                }
-            }
+            // C ref: detect.c mfind0() concerns hidden monsters; do not stop
+            // counted searches merely for adjacent visible hostiles.
         }
     }
     if (!found) {

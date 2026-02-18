@@ -10,7 +10,7 @@ import { rn2, rnd, c_d, getRngLog } from './rng.js';
 import { monsterAttackPlayer } from './combat.js';
 import { CORPSE, FOOD_CLASS, COIN_CLASS, BOULDER, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS,
          PICK_AXE, DWARVISH_MATTOCK, SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
-         UNICORN_HORN, SCR_SCARE_MONSTER } from './objects.js';
+         UNICORN_HORN, SCR_SCARE_MONSTER, CLOAK_OF_DISPLACEMENT } from './objects.js';
 import { doname, mkcorpstat, next_ident } from './mkobj.js';
 import { observeObject } from './discovery.js';
 import { dogfood, dog_eat, can_carry, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT,
@@ -25,7 +25,8 @@ import { PM_GRID_BUG, PM_IRON_GOLEM, PM_SHOPKEEPER, mons,
          AD_ACID, AD_ENCH,
          M1_FLY, M1_SWIM, M1_AMPHIBIOUS, M1_AMORPHOUS, M1_CLING, M1_SEE_INVIS, S_MIMIC,
          M1_WALLWALK, M1_TUNNEL, M1_NEEDPICK, M1_SLITHY, M1_UNSOLID,
-         MZ_TINY, MZ_SMALL, MZ_MEDIUM, MR_FIRE, MR_SLEEP, G_FREQ, G_NOCORPSE } from './monsters.js';
+         MZ_TINY, MZ_SMALL, MZ_MEDIUM, MR_FIRE, MR_SLEEP, G_FREQ, G_NOCORPSE,
+         PM_DISPLACER_BEAST } from './monsters.js';
 import { STATUE_TRAP, MAGIC_TRAP, VIBRATING_SQUARE, RUST_TRAP, FIRE_TRAP,
          SLP_GAS_TRAP, BEAR_TRAP, PIT, SPIKED_PIT, HOLE, TRAPDOOR,
          WEB, ANTI_MAGIC, MAGIC_PORTAL } from './symbols.js';
@@ -231,9 +232,17 @@ function set_apparxy(mon, map, player) {
     const mdat = mons[mon.mndx] || mon.type || {};
     const monCanSee = mon.mcansee !== false;
     const notseen = (!monCanSee || (player.invisible && !perceives(mdat)));
-    // We currently do not model displacement at runtime.
-    const notthere = false;
-    let displ = notseen ? 1 : 0;
+    // C ref: Displaced && mtmp->data != &mons[PM_DISPLACER_BEAST]
+    const playerDisplaced = !!(player.cloak && player.cloak.otyp === CLOAK_OF_DISPLACEMENT);
+    const notthere = playerDisplaced && mon.mndx !== PM_DISPLACER_BEAST;
+    let displ;
+    if (notseen) {
+        displ = 1;
+    } else if (notthere) {
+        displ = couldsee(map, player, mx, my) ? 2 : 1;
+    } else {
+        displ = 0;
+    }
 
     if (!displ) {
         mon.mux = player.x;
@@ -260,7 +269,7 @@ function set_apparxy(mon, map, player) {
             if (!isok(mx, my)) continue;
             if (displ !== 2 && mx === mon.mx && my === mon.my) continue;
             if ((mx !== player.x || my !== player.y) && blocked) continue;
-            if (!couldsee(mx, my)) continue;
+            if (!couldsee(map, player, mx, my)) continue;
             break;
         } while (true);
     } else {
@@ -273,9 +282,9 @@ function set_apparxy(mon, map, player) {
 }
 
 // C ref: mon.c:3243 corpse_chance() RNG.
+// Always consumes rn2() to match C; caller checks G_NOCORPSE separately.
 function petCorpseChanceRoll(mon) {
     const mdat = mon?.type || {};
-    if (((mdat.geno || 0) & G_NOCORPSE) !== 0) return 1;
     const gfreq = (mdat.geno || 0) & G_FREQ;
     const verysmall = (mdat.size || 0) === MZ_TINY;
     const corpsetmp = 2 + (gfreq < 2 ? 1 : 0) + (verysmall ? 1 : 0);
@@ -700,7 +709,8 @@ function droppables(mon) {
         default:
             break;
         }
-        if (!obj.owornmask && obj !== wep) return obj;
+        // C ref: dogmove.c droppables() — skip worn, wielded, and cursed items
+        if (!obj.owornmask && obj !== wep && !obj.cursed) return obj;
     }
     return null;
 }
@@ -831,6 +841,8 @@ function dog_invent(mon, edog, udist, map, turnCount, display, player) {
 // C ref: mon.c movemon() — multi-pass loop until no monster can move
 // Called from gameLoop after hero action, BEFORE mcalcmove.
 export function movemon(map, player, display, fov, game = null) {
+    if (game) game._suppressMonsterHitMessagesThisTurn = false;
+    const turnCount = (player.turns || 0) + 1;
     let anyMoved;
     do {
         anyMoved = false;
@@ -841,6 +853,7 @@ export function movemon(map, player, display, fov, game = null) {
                 const oldy = mon.my;
                 const alreadySawMon = !!(game && game.occupation && couldsee(map, player, oldx, oldy));
                 mon.movement -= NORMAL_SPEED;
+                mon.mlstmv = turnCount;
                 anyMoved = true;
                 dochug(mon, map, player, display, fov, game);
                 // C ref: monmove.c dochugw() threat-notice interruption gate.
@@ -1014,7 +1027,7 @@ function dochug(mon, map, player, display, fov, game = null) {
             // Inside condition block: m_move (routes to dog_move for tame)
             // C ref: monmove.c:911 — m_move() for all monsters in this path
             const omx = mon.mx, omy = mon.my;
-            dog_move(mon, map, player, display, fov);
+            dog_move(mon, map, player, display, fov, false, game);
             if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
                 mintrap_postmove(mon, map);
             }
@@ -1245,7 +1258,7 @@ function pet_ranged_attk(mon, map, player, display, game = null) {
 
 // C ref: dogmove.c dog_move() — full pet movement logic
 // Returns: -2 (skip), 0 (stay), 1 (moved), 2 (moved+ate)
-function dog_move(mon, map, player, display, fov, after = false) {
+function dog_move(mon, map, player, display, fov, after = false, game = null) {
     const omx = mon.mx, omy = mon.my;
     // C ref: hack.h #define distu(xx,yy) dist2(xx,yy,u.ux,u.uy)
     const udist = dist2(omx, omy, player.x, player.y);
@@ -1508,11 +1521,14 @@ function dog_move(mon, map, player, display, fov, after = false) {
                     const roll = rnd(20 + ai); // C ref: mhitm.c mattackm to-hit roll
                     const toHit = (target.mac ?? 10) + (mon.mlevel || 1);
                     const hit = toHit > roll;
+                    const monVisible = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
+                    const targetVisible = fov?.canSee ? fov.canSee(target.mx, target.my) : couldsee(map, player, target.mx, target.my);
+                    const mmVisible = monVisible && targetVisible;
                     if (hit) {
                         anyHit = true;
-                        const targetVisible = couldsee(map, player, target.mx, target.my);
-                        const suppressDetail = !!player.displacedPetThisTurn;
-                        if (display && mon.name && target.name && targetVisible && !suppressDetail) {
+                        const suppressDetail = !!player.displacedPetThisTurn
+                            || game?.occupation?.occtxt === 'searching';
+                        if (display && mon.name && target.name && mmVisible && !suppressDetail) {
                             display.putstr_message(`The ${mon.name} ${attackVerb(attk?.type)} the ${target.name}.`);
                         }
                         const dice = (attk && attk.dice) ? attk.dice : 1;
@@ -1532,10 +1548,11 @@ function dog_move(mon, map, player, display, fov, after = false) {
                                 target.minvent = [];
                             }
                             target.dead = true;
-                            if (display && target.name) {
+                            if (display && target.name && mmVisible) {
                                 display.putstr_message(`The ${target.name} is killed!`);
                             }
-                            if (petCorpseChanceRoll(target) === 0) {
+                            if (petCorpseChanceRoll(target) === 0
+                                && !(((target?.type?.geno || 0) & G_NOCORPSE) !== 0)) {
                                 const corpse = mkcorpstat(CORPSE, target.mndx || 0, true);
                                 corpse.ox = target.mx;
                                 corpse.oy = target.my;
@@ -1553,7 +1570,7 @@ function dog_move(mon, map, player, display, fov, after = false) {
                         }
                     } else {
                         consumePassivemmRng(mon, target, false, false);
-                        if (display && mon.name && target.name) {
+                        if (display && mon.name && target.name && mmVisible) {
                             display.putstr_message(`The ${mon.name} misses the ${target.name}.`);
                         }
                     }
@@ -1564,10 +1581,27 @@ function dog_move(mon, map, player, display, fov, after = false) {
                     && target.mlstmv !== turnCount
                     && monnear(target, mon.mx, mon.my)) {
                     // C ref: dogmove.c retaliation uses mattackm(target, mon).
-                    // Keep a compact parity model: to-hit + optional damage path,
-                    // then passive-effect RNG on the defender.
-                    rnd(20);
-                    consumePassivemmRng(target, mon, false, false);
+                    const retaliateAttk = (Array.isArray(target.attacks) && target.attacks.length > 0)
+                        ? target.attacks.find((a) => a && a.type !== AT_NONE)
+                        : null;
+                    const dice = (retaliateAttk && retaliateAttk.dice) ? retaliateAttk.dice : 1;
+                    const sides = (retaliateAttk && retaliateAttk.sides) ? retaliateAttk.sides : 1;
+                    const roll = rnd(20);
+                    const toHit = (mon.mac ?? 10) + (target.mlevel || 1);
+                    const hit = toHit > roll;
+                    if (hit) {
+                        const dmg = c_d(Math.max(1, dice), Math.max(1, sides));
+                        rn2(3); // mhitm_knockback distance probe
+                        rn2(6); // mhitm_knockback chance probe
+                        mon.mhp -= Math.max(1, dmg);
+                        const monDied = mon.mhp <= 0;
+                        if (monDied) {
+                            mon.dead = true;
+                        }
+                        consumePassivemmRng(target, mon, true, monDied);
+                    } else {
+                        consumePassivemmRng(target, mon, false, false);
+                    }
                 }
                 return 0; // MMOVE_DONE-equivalent for this simplified path
             }
@@ -1857,7 +1891,11 @@ function m_move(mon, map, player) {
     }
 
     const omx = mon.mx, omy = mon.my;
-    let ggx = player.x, ggy = player.y;
+
+    // C ref: monmove.c:1763 — set_apparxy(mtmp) before main movement logic.
+    set_apparxy(mon, map, player);
+
+    let ggx = mon.mux ?? player.x, ggy = mon.muy ?? player.y;
 
     // C ref: monmove.c — appr setup
     let appr = mon.flee ? -1 : 1;
