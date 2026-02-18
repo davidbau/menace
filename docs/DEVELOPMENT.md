@@ -236,6 +236,28 @@ python3 test/comparison/c-harness/gen_map_sessions.py --from-config
 
 Two specialized tools help isolate RNG divergence at specific game turns:
 
+**`test/comparison/rng_step_diff.js`** — Step-level C-vs-JS RNG caller diff
+
+Replays a session in JS and compares one step's RNG stream against the captured
+C session step. It prints the first comparable divergence with nearby context
+and includes raw caller tags to show the exact JS call-site.
+
+```bash
+# Inspect first divergence on tutorial accept step
+node test/comparison/rng_step_diff.js \
+  test/comparison/sessions/manual/interface_tutorial.session.json \
+  --step 1 --window 3
+
+# Example output:
+# first divergence index=5
+# >> [5] JS=rn2(100)=27 | C=rn2(100)=97
+#      JS raw: rn2(100)=27 @ percent(sp_lev.js:6607)
+#      C  raw: rn2(100)=97 @ nhl_random(nhlua.c:948)
+```
+
+**Use when**: `session_test_runner` reports a mismatch and you need exact
+call-site context at the first divergent RNG call within a specific step.
+
 **`selfplay/runner/pet_rng_probe.js`** — Per-turn RNG delta comparison
 
 Compares RNG call counts between C and JS implementations on a per-turn basis,
