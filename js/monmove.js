@@ -7,7 +7,7 @@ import { COLNO, ROWNO, STONE, IS_WALL, IS_DOOR, IS_ROOM,
          POOL, LAVAPOOL, WATER, LAVAWALL, IRONBARS,
          SHOPBASE, ROOMOFFSET, IS_POOL, IS_LAVA,
          NORMAL_SPEED, isok } from './config.js';
-import { rn2, rnd, c_d, getRngLog } from './rng.js';
+import { rn2, rnd, c_d } from './rng.js';
 import { monsterAttackPlayer, checkLevelUp } from './combat.js';
 import { CORPSE, FOOD_CLASS, COIN_CLASS, BOULDER, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS,
          WEAPON_CLASS,
@@ -20,10 +20,11 @@ import { dogfood, dog_eat, can_carry, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT
          POISON, UNDEF, TABU } from './dog.js';
 import { couldsee, m_cansee, do_clear_area } from './vision.js';
 import { can_teleport, noeyes, perceives, is_animal, is_mindless, nohands, nonliving,
-         monDisplayName, hasGivenName, monNam } from './mondata.js';
+         is_displacer, monDisplayName, hasGivenName, monNam } from './mondata.js';
 import { PM_GRID_BUG, PM_IRON_GOLEM, PM_SHOPKEEPER, mons,
          PM_LEPRECHAUN, PM_XAN, PM_YELLOW_LIGHT, PM_BLACK_LIGHT,
          PM_PURPLE_WORM, PM_BABY_PURPLE_WORM, PM_SHRIEKER,
+         PM_DEATH, PM_PESTILENCE, PM_FAMINE,
          AT_NONE, AT_CLAW, AT_BITE, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_WEAP,
          AD_PHYS,
          AD_ACID, AD_ENCH,
@@ -707,6 +708,10 @@ function mintrap_postmove(mon, map) {
 // Iterates (x-1..x+1) × (y-1..y+1) in column-major order, skipping current pos.
 // Handles NODIAG (grid bugs), terrain, doors, monsters, player, boulders.
 function mfndpos(mon, map, player, opts = {}) {
+    const isRider = (m) => m?.mndx === PM_DEATH || m?.mndx === PM_PESTILENCE || m?.mndx === PM_FAMINE;
+    const monLevel = (m) => Number.isInteger(m?.m_lev) ? m.m_lev
+        : (Number.isInteger(m?.mlevel) ? m.mlevel
+            : (Number.isInteger(m?.type?.level) ? m.type.level : 0));
     const allowDoorOpen = !!opts.allowDoorOpen;
     const allowDoorUnlock = !!opts.allowDoorUnlock;
     const omx = mon.mx, omy = mon.my;
@@ -791,6 +796,7 @@ function mfndpos(mon, map, player, opts = {}) {
             // interaction is allowed for this pair.
             // Important: C mm_aggression is narrow (not generic hostile-vs-tame).
             let allowMAttack = false;
+            let allowMDisp = false;
             if (monAtPos && !monAtPos.dead) {
                 if (allowM) {
                     allowMAttack = !monAtPos.tame && !monAtPos.peaceful;
@@ -803,8 +809,25 @@ function mfndpos(mon, map, player, opts = {}) {
                     const isShrieker = defenderIdx === PM_SHRIEKER;
                     allowMAttack = isPurpleWorm && isShrieker;
                 }
+                // C ref: mon.c mm_displacement()
+                // Only displacers can barge through, with additional guards.
+                if (!allowMAttack && is_displacer(mon.type || {})) {
+                    const defenderIsDisplacer = is_displacer(monAtPos.type || {});
+                    const attackerHigherLevel = monLevel(mon) > monLevel(monAtPos);
+                    const defenderIsGridBugDiag = (monAtPos.mndx === PM_GRID_BUG)
+                        && (mon.mx !== monAtPos.mx && mon.my !== monAtPos.my);
+                    const defenderMultiworm = !!monAtPos.wormno;
+                    const attackerSize = Number.isInteger(mon.type?.size) ? mon.type.size : 0;
+                    const defenderSize = Number.isInteger(monAtPos.type?.size) ? monAtPos.type.size : 0;
+                    const sizeOk = isRider(mon) || attackerSize >= defenderSize;
+                    allowMDisp = (!defenderIsDisplacer || attackerHigherLevel)
+                        && !defenderIsGridBugDiag
+                        && !monAtPos.mtrapped
+                        && !defenderMultiworm
+                        && sizeOk;
+                }
             }
-            if (monAtPos && !allowMAttack) continue;
+            if (monAtPos && !allowMAttack && !allowMDisp) continue;
 
             // C ref: u_at — skip player position
             if (nx === player.x && ny === player.y) continue;
@@ -863,6 +886,7 @@ function mfndpos(mon, map, player, opts = {}) {
                 y: ny,
                 allowTraps,
                 allowM: !!allowMAttack,
+                allowMDisp: !!allowMDisp,
                 notOnLine,
             });
         }
@@ -2437,6 +2461,9 @@ function m_move(mon, map, player, display = null, fov = null) {
     let chcnt = 0;
     let mmoved = false; // C: mmoved = MMOVE_NOTHING
     const jcnt = Math.min(MTSZ, cnt - 1);
+    // C ref: monmove.c should_displace() gate; JS mdisplacement behavior is
+    // not yet implemented, so keep this false but preserve skip ordering.
+    const betterWithDisplacing = false;
 
     for (let i = 0; i < cnt; i++) {
         const nx = positions[i].x;
@@ -2444,6 +2471,10 @@ function m_move(mon, map, player, display = null, fov = null) {
 
         // C ref: monmove.c:1953
         if (m_avoid_kicked_loc(mon, nx, ny, player)) continue;
+
+        // C ref: monmove.c:1959-1961 — ALLOW_MDISP squares may be skipped
+        // before mtrack checks, but they still contribute to cnt.
+        if (positions[i].allowMDisp && !positions[i].allowM && !betterWithDisplacing) continue;
 
         // C ref: monmove.c undesirable_disp()/trap avoidance —
         // monsters usually avoid harmful known traps (39/40 chance).
