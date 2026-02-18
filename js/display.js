@@ -641,7 +641,9 @@ export class Display {
         }
 
         // Hunger status
-        if (player.hunger <= 50) {
+        if (player.hunger > 1000) {
+            line2Parts.push('Satiated');
+        } else if (player.hunger <= 50) {
             line2Parts.push('Fainting');
         } else if (player.hunger <= 150) {
             line2Parts.push('Weak');

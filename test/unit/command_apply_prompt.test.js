@@ -69,4 +69,14 @@ describe('apply prompt behavior', () => {
         assert.equal(result.tookTime, false);
         assert.equal(game.display.topMessage, 'Never mind.');
     });
+
+    it('prompts for chop direction when applying a battle-axe', async () => {
+        const game = makeBaseGame();
+        game.player.inventory = [{ invlet: 'a', oclass: 1, otyp: BATTLE_AXE, name: 'battle-axe' }];
+        pushInput('a'.charCodeAt(0));
+        pushInput('q'.charCodeAt(0)); // direction input consumed by chop prompt
+        const result = await rhack('a'.charCodeAt(0), game);
+        assert.equal(result.tookTime, false);
+        assert.equal(game.display.topMessage, null);
+    });
 });

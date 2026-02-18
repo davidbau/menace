@@ -60,4 +60,22 @@ describe('throw prompt behavior', () => {
         assert.equal(game.display.messages[1], 'In what direction?');
         assert.equal(game.display.topMessage, 'Never mind.');
     });
+
+    it('treats "-" selection as mime-throw cancel', async () => {
+        const game = makeGame();
+        pushInput('-'.charCodeAt(0));
+
+        const result = await rhack('t'.charCodeAt(0), game);
+        assert.equal(result.tookTime, false);
+        assert.equal(game.display.topMessage, 'You mime throwing something.');
+    });
+
+    it('does not suggest currently wielded weapon as default throw choice', async () => {
+        const game = makeGame();
+        game.player.weapon = game.player.inventory[0];
+        pushInput(27);
+        const result = await rhack('t'.charCodeAt(0), game);
+        assert.equal(result.tookTime, false);
+        assert.equal(game.display.messages[0], 'What do you want to throw? [*]');
+    });
 });

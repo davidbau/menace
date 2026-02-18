@@ -1706,7 +1706,8 @@ export class HeadlessDisplay {
             line2Parts.push(`Exp:${player.level}`);
         }
         if (player.showTime) line2Parts.push(`T:${player.turns}`);
-        if (player.hunger <= 50) line2Parts.push('Fainting');
+        if (player.hunger > 1000) line2Parts.push('Satiated');
+        else if (player.hunger <= 50) line2Parts.push('Fainting');
         else if (player.hunger <= 150) line2Parts.push('Weak');
         else if (player.hunger <= 300) line2Parts.push('Hungry');
         if (player.blind) line2Parts.push('Blind');

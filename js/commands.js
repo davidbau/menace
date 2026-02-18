@@ -286,10 +286,22 @@ export async function rhack(ch, game) {
         return await handleWield(player, display);
     }
 
+    // Swap primary/secondary weapon
+    // C ref: wield.c doswapweapon()
+    if (c === 'x') {
+        return await handleSwapWeapon(player, display);
+    }
+
     // Throw item
     // C ref: dothrow()
     if (c === 't') {
         return await handleThrow(player, map, display);
+    }
+
+    // Fire from quiver/launcher
+    // C ref: dothrow() fire command path
+    if (c === 'f') {
+        return await handleFire(player, display);
     }
 
     // Wear armor
@@ -332,11 +344,7 @@ export async function rhack(ch, game) {
     // Read scroll/spellbook
     // C ref: read.c doread()
     if (c === 'r') {
-        if (game.menuRequested) {
-            game.menuRequested = false;
-            display.putstr_message("The read command does not accept 'm' prefix.");
-            return { moved: false, tookTime: false };
-        }
+        if (game.menuRequested) game.menuRequested = false;
         return await handleRead(player, display);
     }
 
@@ -1391,26 +1399,41 @@ async function handleWield(player, display) {
     // C ref: wield.c getobj() prompt format for wield command.
     // Keep wording/options aligned for session screen parity.
     const letters = weapons.map(w => w.invlet).join('');
-    display.putstr_message(`What do you want to wield? [- ${letters} or ?*]`);
-    const ch = await nhgetch();
-    const c = String.fromCharCode(ch);
-
-    if (c === '-') {
-        player.weapon = null;
+    const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
-        display.putstr_message('You are bare handed.');
-        // C ref: wield.c:dowield returns ECMD_TIME (wielding takes a turn)
-        return { moved: false, tookTime: true };
-    }
+        display.messageNeedsMore = false;
+    };
 
-    const weapon = weapons.find(w => w.invlet === c);
-    if (weapon) {
+    while (true) {
+        display.putstr_message(`What do you want to wield? [- ${letters} or ?*]`);
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+
+        if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
+            replacePromptMessage();
+            display.putstr_message('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+        if (c === '?' || c === '*') continue;
+
+        if (c === '-') {
+            player.weapon = null;
+            replacePromptMessage();
+            display.putstr_message('You are bare handed.');
+            // C ref: wield.c:dowield returns ECMD_TIME (wielding takes a turn)
+            return { moved: false, tookTime: true };
+        }
+
+        const weapon = weapons.find(w => w.invlet === c);
+        if (!weapon) continue;
+
         // C ref: wield.c dowield() — selecting uswapwep triggers doswapweapon().
         if (player.swapWeapon && weapon === player.swapWeapon) {
             const oldwep = player.weapon || null;
             player.weapon = player.swapWeapon;
             player.swapWeapon = oldwep;
+            replacePromptMessage();
             if (player.swapWeapon) {
                 display.putstr_message(`${player.swapWeapon.invlet} - ${doname(player.swapWeapon, player)}.`);
             } else {
@@ -1422,21 +1445,23 @@ async function handleWield(player, display) {
         if (player.swapWeapon === weapon) {
             player.swapWeapon = null;
         }
+        replacePromptMessage();
         display.putstr_message(`${weapon.invlet} - ${weapon.name} (weapon in hand).`);
         // C ref: wield.c:dowield returns ECMD_TIME (wielding takes a turn)
         return { moved: false, tookTime: true };
     }
-
-    display.putstr_message("Never mind.");
-    return { moved: false, tookTime: false };
 }
 
 // Handle wearing armor
 // C ref: do_wear.c dowear()
 async function handleWear(player, display) {
-    const armor = player.inventory.filter(o => o.oclass === 2); // ARMOR_CLASS
+    const armor = player.inventory.filter((o) => o.oclass === 2 && o !== player.armor); // ARMOR_CLASS
     if (armor.length === 0) {
-        display.putstr_message('You have no armor to wear.');
+        if (player.armor) {
+            display.putstr_message("You don't have anything else to wear.");
+        } else {
+            display.putstr_message('You have no armor to wear.');
+        }
         return { moved: false, tookTime: false };
     }
 
@@ -1479,17 +1504,33 @@ async function handleDrop(player, map, display) {
     }
 
     const dropChoices = compactInvletPromptChars(player.inventory.map((o) => o.invlet).join(''));
-    while (true) {
+    let countMode = false;
+    let countDigits = '';
+    const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
         display.messageNeedsMore = false;
-        display.putstr_message(`What do you want to drop? [${dropChoices} or ?*]`);
+    };
+    while (true) {
+        replacePromptMessage();
+        if (countMode && countDigits.length > 1) {
+            display.putstr_message(`Count: ${countDigits}`);
+        } else {
+            display.putstr_message(`What do you want to drop? [${dropChoices} or ?*]`);
+        }
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
+        if (ch === 22) { // Ctrl+V
+            countMode = true;
+            countDigits = '';
+            continue;
+        }
+        if (countMode && c >= '0' && c <= '9') {
+            countDigits += c;
+            continue;
+        }
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
-            if (typeof display.clearRow === 'function') display.clearRow(0);
-            display.topMessage = null;
-            display.messageNeedsMore = false;
+            replacePromptMessage();
             display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
@@ -1794,7 +1835,8 @@ async function handleThrow(player, map, display) {
         display.messageNeedsMore = false;
     };
     const launcherTypes = new Set([BOW, ELVEN_BOW, ORCISH_BOW, YUMI, SLING, CROSSBOW]);
-    const weaponItems = (player.inventory || []).filter((o) => o && o.oclass === WEAPON_CLASS);
+    const weaponItems = (player.inventory || [])
+        .filter((o) => o && o.oclass === WEAPON_CLASS && o !== player.weapon);
     let throwChoices = '';
     const preferredThrowItem = weaponItems.find((o) => launcherTypes.has(o.otyp))
         || ((player.quiver && player.inventory.includes(player.quiver)) ? player.quiver : null)
@@ -1820,6 +1862,12 @@ async function handleThrow(player, map, display) {
         }
         if (c === '?' || c === '*') {
             continue;
+        }
+        if (c === '-') {
+            replacePromptMessage();
+            // C ref: dothrow() with '-' selected and no launcher context.
+            display.putstr_message('You mime throwing something.');
+            return { moved: false, tookTime: false };
         }
         const item = player.inventory.find(o => o.invlet === c);
         if (!item) continue;
@@ -1870,15 +1918,41 @@ async function handleThrow(player, map, display) {
     }
 }
 
+async function handleFire(player, display) {
+    const replacePromptMessage = () => {
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        display.topMessage = null;
+        display.messageNeedsMore = false;
+    };
+    display.putstr_message('What do you want to fire? [*]');
+    while (true) {
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+        if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
+            replacePromptMessage();
+            display.putstr_message('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+        if (c === '?' || c === '*') continue;
+        // Keep prompt active for unsupported letters (fixture parity).
+    }
+}
+
 // Handle reading
 // C ref: read.c doread()
 async function handleRead(player, display) {
     // Keep prompt active until explicit cancel, matching tty flow.
+    const replacePromptMessage = () => {
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        display.topMessage = null;
+        display.messageNeedsMore = false;
+    };
     while (true) {
         display.putstr_message('What do you want to read? [*]');
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
+            replacePromptMessage();
             display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
@@ -1888,6 +1962,23 @@ async function handleRead(player, display) {
         }
         // Keep waiting for a supported selection.
     }
+}
+
+async function handleSwapWeapon(player, display) {
+    const oldwep = player.weapon || null;
+    if (!player.swapWeapon) {
+        display.putstr_message('You have no secondary weapon readied.');
+        // C ref: doswapweapon() consumes a turn even when swap slot is empty.
+        return { moved: false, tookTime: true };
+    }
+    player.weapon = player.swapWeapon;
+    player.swapWeapon = oldwep;
+    if (player.swapWeapon) {
+        display.putstr_message(`${player.swapWeapon.invlet} - ${doname(player.swapWeapon, player)}.`);
+    } else {
+        display.putstr_message('You have no secondary weapon readied.');
+    }
+    return { moved: false, tookTime: true };
 }
 
 // Handle quaffing a potion
@@ -1980,6 +2071,12 @@ function isApplyCandidate(obj) {
     return false;
 }
 
+function isApplyChopWeapon(obj) {
+    if (!obj || obj.oclass !== WEAPON_CLASS) return false;
+    const skill = objectData[obj.otyp]?.sub;
+    return skill === 3 /* P_AXE */ || skill === 4 /* P_PICK_AXE */;
+}
+
 // Handle apply/use command
 // C ref: apply.c doapply()
 async function handleApply(player, display) {
@@ -2010,6 +2107,16 @@ async function handleApply(player, display) {
 
         const selected = (player.inventory || []).find((obj) => obj.invlet === c);
         if (!selected) continue;
+
+        if (isApplyChopWeapon(selected)) {
+            replacePromptMessage();
+            // C ref: apply.c use_axe() direction prompt text.
+            display.putstr_message('In what direction do you want to chop? [>]');
+            await nhgetch();
+            // For unsupported chop targets, preserve no-op flow fidelity.
+            replacePromptMessage();
+            return { moved: false, tookTime: false };
+        }
 
         replacePromptMessage();
         display.putstr_message("Sorry, I don't know how to use that.");
