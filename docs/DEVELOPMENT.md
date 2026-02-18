@@ -40,79 +40,9 @@ npm run test:all
 
 ## Project Structure
 
-```
-js/                    32 ES6 modules — the game engine
-│
-│  Core
-├── nethack.js         Entry point, game loop           ← allmain.c
-├── config.js          Constants (terrain types, etc.)  ← rm.h, hack.h
-├── player.js          Player state                     ← you.h, decl.h
-├── commands.js        Command dispatch                 ← cmd.c
-│
-│  Display & I/O
-├── display.js         Browser terminal rendering       ← win/tty/*.c
-├── input.js           Async keyboard queue
-├── symbols.js         Display symbols & colors         ← defsym.h, drawing.c
-├── pager.js           In-terminal text pager           ← pager.c
-│
-│  RNG
-├── isaac64.js         ISAAC64 core (BigInt)            ← isaac64.c
-├── rng.js             PRNG interface: rn2, rnd, d      ← rnd.c
-│
-│  World Generation
-├── dungeon.js         Level generation                 ← mklev.c, mkroom.c, sp_lev.c
-├── map.js             Map data structures              ← rm.h, mkmap.c
-├── themerms.js        Theme room generation            ← dat/themerms.lua
-├── vision.js          Field of view (Algorithm C)      ← vision.c
-│
-│  Creatures
-├── monsters.js        Monster data table (generated)
-├── mondata.js         Monster predicate functions      ← mondata.h
-├── makemon.js         Monster creation                 ← makemon.c
-├── monmove.js         Monster AI                       ← monmove.c
-├── dog.js             Pet AI helpers                   ← dog.c
-│
-│  Objects
-├── objects.js         Object data table (generated)
-├── objdata.js         Object predicate functions       ← objclass.h
-├── mkobj.js           Object creation                  ← mkobj.c
-├── o_init.js          Object init & desc shuffle       ← o_init.c
-│
-│  Character Creation
-├── u_init.js          Post-level init: pet, inv, attrs ← u_init.c
-│
-│  Combat
-├── combat.js          Hit/damage/death                 ← uhitm.c, mhitu.c
-│
-│  Persistence
-├── storage.js         Save/restore via localStorage    ← save.c, restore.c
-├── bones.js           Bones file management            ← bones.c
-├── topten.js          High score list                  ← topten.c
-│
-│  Data Files
-├── hacklib.js         xcrypt cipher & data parsing     ← hacklib.c
-├── epitaph_data.js    Encrypted epitaphs               ← dat/epitaph
-├── engrave_data.js    Encrypted engravings             ← dat/engrave
-└── rumor_data.js      Encrypted rumors                 ← dat/rumors
+See [DESIGN.md](DESIGN.md) for the complete module architecture and C-to-JS correspondence mapping. This guide focuses on workflows and commands.
 
-test/
-├── unit/              26 unit test files (node --test)
-├── e2e/               2 Puppeteer browser tests
-└── comparison/        C-vs-JS comparison testing
-    ├── seeds.json     Central config: which seeds to test, with RNG traces
-    ├── sessions/      96 gameplay + chargen session JSON files (C-captured)
-    ├── maps/          C map sessions with RNG traces (for divergence debugging)
-    ├── golden/        ISAAC64 reference values (4 seeds)
-    ├── sessions.test.js         Unified node:test wrapper
-    ├── session_helpers.js       Grid compare, RNG compare, structural tests
-    ├── gen_typ_grid.js          JS map generation (for comparison)
-    ├── gen_rng_log.js           Generate JS RNG logs
-    └── c-harness/               C build + capture infrastructure
-
-dat/                   Help text files (help.txt, hh.txt, etc.)
-docs/                  You are here
-spoilers/              The guide content (guide.md → HTML/PDF)
-```
+For a quick reference: the `js/` directory contains 32 ES6 modules organized by subsystem (Core, Display & I/O, RNG, World Generation, Creatures, Objects, etc.), each with comments linking to C source files. The `test/` directory contains unit tests, E2E browser tests, and C-comparison session tests.
 
 ## Running Tests
 

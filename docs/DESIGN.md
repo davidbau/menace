@@ -15,26 +15,18 @@ ASCII/DEC-symbol display in a web browser. The goal is **readable, traceable
 JavaScript** that mirrors the C implementation's logic, with comments referencing
 the original C source files and line numbers.
 
-## Design Principles
+## Design Philosophy
 
 > *"The strident call of fidelity echoes through the corridors."*
 
-1. **Fidelity over convenience** -- The JS code mirrors the C logic so a reader
-   can follow along with the original source. Variable names, function names,
-   and control flow match the C where practical.
+This port prioritizes **fidelity, readability, and traceable implementation**:
 
-2. **Classic TTY display** -- No tilesets, no graphical enhancements. The browser
-   shows the same 80×24 character grid with 16 ANSI colors that terminal
-   NetHack shows. DEC line-drawing characters are used for walls.
+- Every function is hand-ported readable JavaScript that can be followed alongside the C source (not compiled/WASM)
+- Comments link each JS function to its C counterpart (e.g., `// C ref: uhitm.c find_roll_to_hit()`)
+- Display matches terminal NetHack exactly: 80×24 grid, 16 ANSI colors, DEC line-drawing characters
+- We port the core game loop first, then layer on subsystems in priority order
 
-3. **Readable, not compiled** -- This is a hand-ported readable JS codebase, not
-   an Emscripten/WASM compilation. Every function can be read and understood.
-   You could print it out and read it on the bus, though your fellow passengers
-   might edge away.
-
-4. **Incremental faithfulness** -- We port the core game loop first, then layer
-   on subsystems. Each layer adds more faithful behavior. Like descending
-   through the dungeon, each level reveals more.
+For the design trade-offs that created this architecture (async game loop, ES6 modules without bundling, `<pre>`/`<span>` rendering), see [DECISIONS.md](DECISIONS.md).
 
 ## Architecture
 
