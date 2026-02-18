@@ -1,0 +1,44 @@
+{
+  "commit": "4613ba8",
+  "parent": "5e14e2e",
+  "date": "2026-02-18T11:19:53-05:00",
+  "author": "David Bau",
+  "message": "Improve throw/drop prompt parity and spell menu formatting",
+  "stats": {
+    "total": 351,
+    "pass": 314,
+    "fail": 37,
+    "skip": 0,
+    "duration": 30
+  },
+  "categories": {
+    "chargen": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    },
+    "gameplay": {
+      "total": 2,
+      "pass": 00,
+      "fail": 2
+    },
+    "map": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    },
+    "special": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    },
+    "unit": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    }
+  },
+  "regression": false,
+  "newTests": 0,
+  "backfilled": true
+}
