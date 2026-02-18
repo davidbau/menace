@@ -240,6 +240,7 @@ Milestones use a hybrid model: phase completion + parity gates + release-timing 
 
 ## Immediate Next Steps
 
-1. Confirm and publish the canonical parity test matrix: one authoritative table of parity suites that defines required session categories, exact run commands/artifacts, deterministic controls, and pass/fail gates for PR checks and release checks.
-2. Maintain a prioritized unified project backlog: begin by analyzing current failing tests/sessions to identify highest-impact systematic divergences, file and prioritize an initial set of `parity` GitHub issues, then continue intake from tests/audits/bugs with label classification, unowned-until-claimed ownership, and evidence-first issue bodies for `parity` entries.
-3. Start and maintain the C-to-JS correspondence ledger in `docs/C_PARITY_WORKLIST.md`, beginning with core gameplay files/functions so coverage-phase closure work has a validated mapping baseline.
+1. Maintain a prioritized unified project backlog: begin by analyzing current failing tests/sessions to identify highest-impact systematic divergences, file and prioritize an initial set of `parity` GitHub issues, then continue intake from tests/audits/bugs with label classification, unowned-until-claimed ownership, and evidence-first issue bodies for `parity` entries.
+2. Start and maintain the C-to-JS correspondence ledger in `docs/C_PARITY_WORKLIST.md`, beginning with core gameplay files/functions so coverage-phase closure work has a validated mapping baseline.
+
+The canonical parity test matrix is published at [docs/PARITY_TEST_MATRIX.md](docs/PARITY_TEST_MATRIX.md) — it defines session categories, test commands, comparison channels, deterministic controls, and quality gates.

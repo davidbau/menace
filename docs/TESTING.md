@@ -8,6 +8,10 @@ This project implements **mandatory test logging** with a visual dashboard to tr
 
 > **The Oracle says**: *"A test not logged is a bug waiting to happen. Choose your commits wisely, for they shall be measured."*
 
+> **See also**: [docs/PARITY_TEST_MATRIX.md](PARITY_TEST_MATRIX.md) — the canonical
+> reference for what parity means operationally: test commands, session categories
+> and counts, comparison channels, deterministic controls, and quality gates.
+
 ## ✅ Official Test Run Paths
 
 Use these as the canonical commands:
