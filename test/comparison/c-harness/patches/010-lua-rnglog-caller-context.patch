@@ -1,5 +1,5 @@
 diff --git a/src/nhlua.c b/src/nhlua.c
-index 96970f73c..41b284943 100644
+index 96970f73c..55a75f71d 100644
 --- a/src/nhlua.c
 +++ b/src/nhlua.c
 @@ -67,6 +67,8 @@ staticfn int nhl_ing_suffix(lua_State *);
@@ -11,7 +11,7 @@ index 96970f73c..41b284943 100644
  staticfn int nhl_level_difficulty(lua_State *);
  staticfn int nhl_is_genocided(lua_State *);
  staticfn int nhl_get_debug_themerm_name(lua_State *);
-@@ -920,14 +922,90 @@ nhl_an(lua_State *L)
+@@ -920,14 +922,158 @@ nhl_an(lua_State *L)
      return 1;
  }
  
@@ -43,13 +43,25 @@ index 96970f73c..41b284943 100644
 +{
 +    static char rnglog_srcbuf[BUFSZ];
 +    static char rnglog_namebuf[BUFSZ];
++    static char rnglog_name1buf[BUFSZ];
++    static char rnglog_src1buf[BUFSZ];
++    static char rnglog_src2buf[BUFSZ];
++    static char rnglog_parentbuf[BUFSZ];
 +    lua_Debug ar;
-+    const char *src = "lua";
-+    int line = 0;
++    lua_Debug ar2;
++    const char *src = rnglog_srcbuf;
++    int line = 0, line1 = 0, line2 = 0;
 +    const char *name = fallback;
++    const char *name1 = fallback;
++    const char *name2 = "lua";
++    boolean have1 = FALSE, have2 = FALSE;
 +
 +    if (!nhl_lua_rnglog_ctx_enabled())
 +        return;
++
++    Snprintf(rnglog_srcbuf, sizeof rnglog_srcbuf, "%s", "lua");
++    Snprintf(rnglog_src1buf, sizeof rnglog_src1buf, "%s", "lua");
++    Snprintf(rnglog_src2buf, sizeof rnglog_src2buf, "%s", "lua");
 +
 +    if (lua_getstack(L, 1, &ar) && lua_getinfo(L, "nSl", &ar)) {
 +        if (ar.short_src && *ar.short_src) {
@@ -75,15 +87,71 @@ index 96970f73c..41b284943 100644
 +                src_start++;
 +                src_len -= 2;
 +            }
-+            Snprintf(rnglog_srcbuf, sizeof rnglog_srcbuf,
++            Snprintf(rnglog_src1buf, sizeof rnglog_src1buf,
 +                     "%.*s", (int) src_len, src_start);
-+            src = rnglog_srcbuf;
 +        }
-+        line = ar.currentline;
-+        if (ar.name && *ar.name) {
-+            Snprintf(rnglog_namebuf, sizeof rnglog_namebuf, "%s", ar.name);
++        line1 = ar.currentline;
++        if (ar.name && *ar.name
++            && ((ar.name[0] >= 'A' && ar.name[0] <= 'Z')
++                || (ar.name[0] >= 'a' && ar.name[0] <= 'z')
++                || ar.name[0] == '_')) {
++            Snprintf(rnglog_name1buf, sizeof rnglog_name1buf, "%s", ar.name);
++            name1 = rnglog_name1buf;
++        }
++        have1 = TRUE;
++    }
++
++    if (lua_getstack(L, 2, &ar2) && lua_getinfo(L, "nSl", &ar2)) {
++        if (ar2.short_src && *ar2.short_src) {
++            const char *src_start = ar2.short_src;
++            size_t src_len = strlen(ar2.short_src);
++
++            if (src_len >= 11
++                && !strncmp(src_start, "[string \"", 9)
++                && src_start[src_len - 2] == '"'
++                && src_start[src_len - 1] == ']') {
++                src_start += 9;
++                src_len -= 11;
++            }
++            if (src_len >= 1 && src_start[0] == '@') {
++                src_start++;
++                src_len--;
++            }
++            if (src_len >= 2
++                && src_start[0] == '('
++                && src_start[src_len - 1] == ')') {
++                src_start++;
++                src_len -= 2;
++            }
++            Snprintf(rnglog_src2buf, sizeof rnglog_src2buf,
++                     "%.*s", (int) src_len, src_start);
++        }
++        line2 = ar2.currentline;
++        if (ar2.name && *ar2.name
++            && ((ar2.name[0] >= 'A' && ar2.name[0] <= 'Z')
++                || (ar2.name[0] >= 'a' && ar2.name[0] <= 'z')
++                || ar2.name[0] == '_')) {
++            Snprintf(rnglog_parentbuf, sizeof rnglog_parentbuf, "%s", ar2.name);
++            name2 = rnglog_parentbuf;
++        }
++        have2 = TRUE;
++    }
++
++    if (have2) {
++        src = rnglog_src2buf;
++        line = line2;
++        if (have1) {
++            Snprintf(rnglog_namebuf, sizeof rnglog_namebuf,
++                     "%s src=%s:%d parent=%s",
++                     name1, rnglog_src1buf, line1, name2);
 +            name = rnglog_namebuf;
++        } else {
++            name = name2;
 +        }
++    } else if (have1) {
++        src = rnglog_src1buf;
++        line = line1;
++        name = name1;
 +    }
 +    rng_log_set_caller(src, line, name);
 +}
@@ -104,7 +172,7 @@ index 96970f73c..41b284943 100644
      else
          nhl_error(L, "Wrong args");
  
-@@ -941,11 +1019,16 @@ nhl_random(lua_State *L)
+@@ -941,11 +1087,16 @@ nhl_random(lua_State *L)
  {
      int argc = lua_gettop(L);
  
