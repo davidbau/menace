@@ -1246,10 +1246,13 @@ export class HeadlessDisplay {
         }
 
         // C ref: win/tty/topl.c:264-267 — Concatenate messages if they fit
+        // C reserves space for " --More--" (9 chars) when checking if messages
+        // can be concatenated.  When the combined message plus --More-- would
+        // exceed the line width, C shows --More-- and starts a new line instead.
         const notDied = !msg.startsWith('You die');
         if (this.topMessage && this.messageNeedsMore && notDied) {
             const combined = this.topMessage + '  ' + msg;
-            if (combined.length < this.cols) {
+            if (combined.length + 9 <= this.cols) {
                 this.clearRow(0);
                 this.putstr(0, 0, combined.substring(0, this.cols));
                 this.topMessage = combined;
