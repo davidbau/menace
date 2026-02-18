@@ -153,6 +153,42 @@ export async function rhack(ch, game) {
         return handleRun(RUN_KEYS[c], player, map, display, fov, game);
     }
 
+    function clearTopline() {
+        if (!display) return;
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        if ('topMessage' in display) display.topMessage = '';
+        if ('messageNeedsMore' in display) display.messageNeedsMore = false;
+    }
+
+    function safetyWarning(cmd) {
+        const search = cmd === 's';
+        const counterKey = search ? 'alreadyFoundFlag' : 'didNothingFlag';
+        const cmddesc = search ? 'another search' : 'a no-op (to rest)';
+        const act = search ? 'You already found a monster.' : 'Are you waiting to get hit?';
+
+        if (!Number.isInteger(game[counterKey])) game[counterKey] = 0;
+        const includeHint = !!(game.flags?.cmdassist || game[counterKey] === 0);
+        if (!game.flags?.cmdassist) game[counterKey] += 1;
+
+        const msg = includeHint ? `${act}  Use 'm' prefix to force ${cmddesc}.` : act;
+        // C ref: Norep() suppresses identical consecutive warnings.
+        if (game.lastSafetyWarningMessage === msg) {
+            clearTopline();
+            return;
+        }
+        display.putstr_message(msg);
+        game.lastSafetyWarningMessage = msg;
+    }
+
+    function resetSafetyWarningCounter(cmd) {
+        if (cmd === 's') {
+            game.alreadyFoundFlag = 0;
+        } else {
+            game.didNothingFlag = 0;
+        }
+        game.lastSafetyWarningMessage = '';
+    }
+
     function performWaitSearch(cmd) {
         // C ref: do.c cmd_safety_prevention() — prevent wait/search when hostile adjacent
         // only when not in counted-repeat mode.
@@ -168,14 +204,11 @@ export async function rhack(ch, game) {
                 }
             }
             if (monNearby) {
-                if (cmd === 's') {
-                    display.putstr_message("You already found a monster.  Use 'm' prefix to force another search.");
-                } else {
-                    display.putstr_message("Are you waiting to get hit?  Use 'm' prefix to force a no-op (to rest).");
-                }
+                safetyWarning(cmd);
                 return { moved: false, tookTime: false };
             }
         }
+        resetSafetyWarningCounter(cmd);
         if (cmd === 's') {
             dosearch0(player, map, display, game);
         }
@@ -200,6 +233,10 @@ export async function rhack(ch, game) {
             };
         } 
         return result;
+    }
+
+    if (game && game.lastSafetyWarningMessage) {
+        game.lastSafetyWarningMessage = '';
     }
 
     // Pick up
@@ -1161,9 +1198,7 @@ async function handleOpen(player, map, display, game) {
     const c = String.fromCharCode(dirCh);
     const dir = DIRECTION_KEYS[c];
     if (!dir) {
-        if (game.flags.verbose) {
-            display.putstr_message("Never mind.");
-        }
+        display.putstr_message("Never mind.");
         return { moved: false, tookTime: false };
     }
 
@@ -1218,9 +1253,7 @@ async function handleClose(player, map, display, game) {
     const c = String.fromCharCode(dirCh);
     const dir = DIRECTION_KEYS[c];
     if (!dir) {
-        if (game.flags.verbose) {
-            display.putstr_message("Never mind.");
-        }
+        display.putstr_message("Never mind.");
         return { moved: false, tookTime: false };
     }
 

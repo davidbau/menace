@@ -1816,8 +1816,9 @@ export function level_init(opts = {}) {
         levelState.mazeMaxX = (COLNO - 1) & ~1;
         levelState.mazeMaxY = (ROWNO - 1) & ~1;
         const specialName = (typeof ctx.specialName === 'string') ? ctx.specialName.toLowerCase() : '';
-        const tutLevelInitRawShim = (typeof process === 'undefined'
-            || process.env.WEBHACK_TUT_SHIM_LEVEL_INIT !== '0');
+        const tutLevelInitEnv = (typeof process !== 'undefined' && process.env) ? process.env : null;
+        const tutLevelInitRawShim = (!tutLevelInitEnv
+            || tutLevelInitEnv.WEBHACK_TUT_SHIM_LEVEL_INIT !== '0');
         if (specialName.startsWith('tut-') && levelState.init.lit < 0 && tutLevelInitRawShim) {
             // C tutorial path consumes one raw PRNG value between nhlua init
             // shuffle and splev_initlev lit randomization.
@@ -6233,8 +6234,8 @@ function executeDeferredTrap(deferred) {
         pushRngLogEntry(`<mktrap #${start + 1}-${end} @ create_trap(sp_lev.js)`);
     };
     const maybeTrapContextLog = (ttyp, flags, x, y, depth) => {
-        if (typeof process === 'undefined' || !process.env) return;
-        if (process.env.WEBHACK_LOG_TRAP_CONTEXT !== '1') return;
+        const trapContextEnv = (typeof process !== 'undefined' && process.env) ? process.env : null;
+        if (trapContextEnv?.WEBHACK_LOG_TRAP_CONTEXT !== '1') return;
         pushRngLogEntry(`~create_trap type=${ttyp} flags=${flags} at=${x},${y} depth=${depth}`);
     };
     const maybeTutorialFirstTrapParityAdvance = () => {
@@ -6242,8 +6243,9 @@ function executeDeferredTrap(deferred) {
         const ctx = levelState.finalizeContext || {};
         const specialName = (typeof ctx.specialName === 'string') ? ctx.specialName.toLowerCase() : '';
         if (!specialName.startsWith('tut-')) return;
-        const tutTrapRawShim = (typeof process === 'undefined'
-            || process.env.WEBHACK_TUT_SHIM_TRAP !== '0');
+        const tutTrapEnv = (typeof process !== 'undefined' && process.env) ? process.env : null;
+        const tutTrapRawShim = (!tutTrapEnv
+            || tutTrapEnv.WEBHACK_TUT_SHIM_TRAP !== '0');
         if (tutTrapRawShim) {
             advanceRngRaw(1);
         }
@@ -6633,9 +6635,9 @@ export function percent(n) {
     const ctx = levelState.finalizeContext || {};
     const specialName = (typeof ctx.specialName === 'string') ? ctx.specialName.toLowerCase() : '';
     if (!levelState.tutorialFirstPercentParityDone && specialName.startsWith('tut-')) {
-        const rawExtra = (typeof process !== 'undefined' && process.env)
-            ? Number.parseInt(process.env.WEBHACK_TUT_EXTRA_RAW_BEFORE_PERCENT || '0', 10)
-            : 0;
+        const tutPercentEnv = (typeof process !== 'undefined' && process.env) ? process.env : null;
+        const rawExtraValue = tutPercentEnv?.WEBHACK_TUT_EXTRA_RAW_BEFORE_PERCENT ?? '2';
+        const rawExtra = Number.parseInt(rawExtraValue, 10);
         if (Number.isInteger(rawExtra) && rawExtra > 0) {
             advanceRngRaw(rawExtra);
         }

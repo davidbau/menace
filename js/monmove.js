@@ -1201,7 +1201,8 @@ export function movemon(map, player, display, fov, game = null) {
             if (mon.movement >= NORMAL_SPEED) {
                 const oldx = mon.mx;
                 const oldy = mon.my;
-                const alreadySawMon = !!(game && game.occupation && couldsee(map, player, oldx, oldy));
+                const alreadySawMon = !!(game && game.occupation
+                    && ((fov?.canSee ? fov.canSee(oldx, oldy) : couldsee(map, player, oldx, oldy))));
                 mon.movement -= NORMAL_SPEED;
                 mon.mlstmv = turnCount;
                 anyMoved = true;
@@ -1210,22 +1211,28 @@ export function movemon(map, player, display, fov, game = null) {
                 // If an occupied hero newly notices a hostile, attack-capable
                 // monster close enough to threaten, stop the occupation now.
                 if (game && game.occupation && !mon.dead) {
+                    // Waiting/searching are interrupted by explicit combat/safety
+                    // paths; applying this threat gate there causes replay drift.
+                    if (game.occupation.occtxt === 'waiting' || game.occupation.occtxt === 'searching') {
+                        continue;
+                    }
                     const attacks = mon.type?.attacks || [];
                     const noAttacks = !attacks.some((a) => a && a.type !== AT_NONE);
                     const threatRangeSq = (BOLT_LIM + 1) * (BOLT_LIM + 1);
                     const oldDist = dist2(oldx, oldy, player.x, player.y);
                     const newDist = dist2(mon.mx, mon.my, player.x, player.y);
-                    const canSeeNow = couldsee(map, player, mon.mx, mon.my);
-                    const couldSeeOld = couldsee(map, player, oldx, oldy);
+                    const canSeeNow = fov?.canSee ? fov.canSee(mon.mx, mon.my)
+                        : couldsee(map, player, mon.mx, mon.my);
+                    const couldSeeOld = fov?.canSee ? fov.canSee(oldx, oldy)
+                        : couldsee(map, player, oldx, oldy);
                     if (!mon.peaceful
                         && !noAttacks
                         && newDist <= threatRangeSq
                         && (!alreadySawMon || !couldSeeOld || oldDist > threatRangeSq)
                         && canSeeNow
-                        && mon.mcanmove !== false) {
-                        if (game.occupation.occtxt === 'waiting') {
-                            game.display.putstr_message(`You stop ${game.occupation.occtxt}.`);
-                        }
+                        && mon.mcanmove !== false
+                        && !onscary(map, player.x, player.y)) {
+                        game.display.putstr_message(`You stop ${game.occupation.occtxt}.`);
                         game.occupation = null;
                         game.multi = 0;
                     }

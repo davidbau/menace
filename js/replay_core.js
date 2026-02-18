@@ -1297,6 +1297,16 @@ export async function replaySession(seed, session, opts = {}) {
         let result = null;
         let capturedScreenOverride = null;
         let capturedScreenAnsiOverride = null;
+        const isFinalRecordedStep = stepIndex === (allSteps.length - 1);
+        const finalStepComparableTarget = isFinalRecordedStep
+            ? comparableCallParts(step.rng || []).length
+            : 0;
+        const reachedFinalRecordedStepTarget = () => {
+            if (!isFinalRecordedStep) return false;
+            const raw = getRngLog().slice(prevCount).map(toCompactRng);
+            const comparable = comparableCallParts(raw).length;
+            return comparable >= finalStepComparableTarget;
+        };
         const syncHpFromStepScreen = () => {
             if (stepScreen.length <= 0) return;
             for (const line of stepScreen) {
@@ -1576,6 +1586,7 @@ export async function replaySession(seed, session, opts = {}) {
                     game.display.messageNeedsMore = false;
                 }
                 applyTimedTurn();
+                if (reachedFinalRecordedStepTarget()) break;
             }
             if (game.multi > 0 && typeof game.shouldInterruptMulti === 'function'
                 && game.shouldInterruptMulti()) {
@@ -1584,6 +1595,7 @@ export async function replaySession(seed, session, opts = {}) {
             // Run occupation continuation turns (multi-turn eating, etc.)
             // C ref: allmain.c moveloop_core() — occupation runs before next input
             while (game.occupation) {
+                if (reachedFinalRecordedStepTarget()) break;
                 const occ = game.occupation;
                 game.display.clearRow(0);
                 game.display.topMessage = null;
@@ -1596,6 +1608,7 @@ export async function replaySession(seed, session, opts = {}) {
                     game.occupation = null;
                 }
                 applyTimedTurn();
+                if (reachedFinalRecordedStepTarget()) break;
                 // Keep replay HP aligned to captured turn-state during multi-turn actions.
                 syncHpFromStepScreen();
                 if (finishedOcc && typeof finishedOcc.onFinishAfterTurn === 'function') {
@@ -1606,6 +1619,7 @@ export async function replaySession(seed, session, opts = {}) {
             // C ref: allmain.c moveloop() — multi-count repeats execute before
             // accepting the next keyboard input.
             while (game.multi > 0) {
+                if (reachedFinalRecordedStepTarget()) break;
                 // C ref: allmain.c:519-526 lookaround() can clear multi before
                 // the next repeated command executes; this should not consume
                 // an additional turn when it interrupts.
@@ -1618,6 +1632,7 @@ export async function replaySession(seed, session, opts = {}) {
                 const repeated = await rhack(game.cmdKey, game);
                 if (!repeated || !repeated.tookTime) break;
                 applyTimedTurn();
+                if (reachedFinalRecordedStepTarget()) break;
                 syncHpFromStepScreen();
                 if (game.player.justHealedLegs
                     && (game.cmdKey === 46 || game.cmdKey === 115)

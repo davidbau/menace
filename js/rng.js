@@ -176,9 +176,9 @@ export function rn2(x) {
 export function rn2_on_display_rng(x) {
     if (x <= 0) return 0;
     const result = DRND(x);
-    if (rngLog
-        && typeof process !== 'undefined'
-        && process.env.RNG_LOG_DISP === '1') {
+    const processEnv = (typeof process !== 'undefined' && process?.env) ? process.env : null;
+    const dispLogEnabled = processEnv?.RNG_LOG_DISP === '1';
+    if (rngLog && dispLogEnabled) {
         const tag = rngCallerTag ? ` @ ${rngCallerTag}` : '';
         rngLog.push(`~drn2(${x})=${result}${tag}`);
     }
@@ -271,9 +271,9 @@ export function c_d(n, x) {
 export function advanceRngRaw(count = 1) {
     if (!coreCtx) return;
     const n = Math.max(0, Number.isInteger(count) ? count : 0);
-    if (rngLog
-        && typeof process !== 'undefined'
-        && process.env.WEBHACK_LOG_RAW_ADVANCES === '1') {
+    const processEnv = (typeof process !== 'undefined' && process?.env) ? process.env : null;
+    const rawAdvanceLogEnabled = processEnv?.WEBHACK_LOG_RAW_ADVANCES === '1';
+    if (rngLog && rawAdvanceLogEnabled) {
         let tag = '';
         if (rngLogWithTags) {
             const stack = new Error().stack;

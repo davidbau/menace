@@ -327,8 +327,8 @@ node test/comparison/rng_step_diff.js \
   test/comparison/sessions/manual/interface_tutorial.session.json \
   --step 1 --window 8
 
-# Probe whether adding N raw draws before first tutorial percent() changes
-# alignment (diagnostic only; default behavior unchanged at N=0).
+# Override raw draws before first tutorial percent() call.
+# Default is N=2; set this env var to compare other values.
 WEBHACK_TUT_EXTRA_RAW_BEFORE_PERCENT=0 \
 node test/comparison/rng_step_diff.js \
   test/comparison/sessions/manual/interface_tutorial.session.json \

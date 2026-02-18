@@ -1,4 +1,4 @@
-# C Parity Worklist
+# C-to-JS Correspondence Ledger (Core Gameplay)
 
 **See also:**
 [DESIGN.md](DESIGN.md) (architecture) |
@@ -6,46 +6,112 @@
 [PARITY_TEST_MATRIX.md](PARITY_TEST_MATRIX.md) (test reference) |
 [DECISIONS.md](DECISIONS.md) (design choices)
 
-Scope: replace simulation/stub behavior with faithful C NetHack logic while keeping replay/unit tests green after each batch.
+Last updated: 2026-02-18
 
-## Phase 1: Gameplay RNG and Turn Logic
+This document is the authoritative C-to-JS correspondence ledger for gameplay
+parity closure work (PROJECT_PLAN Phase 3). It tracks file-level ownership,
+function-level mapping, and current status for high-priority runtime paths.
 
-- [~] Replace simplified `dochug` condition flow in `js/monmove.js` with full C checks/order.
-- [x] Added C leprechaun movement clause and effective blind-monster vision gate.
-- [x] 2026-02-17 checkpoint: wired monster-hit `stop_occupation` semantics through combat/monmove paths (`monsterAttackPlayer(..., game)`), and tightened replay count-prefix + timed-occupation handling.
-  - Result: gameplay suite remained stable at `6/19` passing while `seed100_multidigit_gameplay` improved (`rng 2709/2777 -> 2716/2745`, `screens 4/9 -> 6/9`), with no regressions in other passing gameplay seeds.
-- [ ] Replace partial pet melee path with fuller `mattackm`/`passivemm` semantics in `js/monmove.js`.
-- [~] Complete trap-trigger effects in movement path (`js/commands.js`) for common traps with C-like RNG side effects.
-- [x] Added concrete effects + RNG calls for `SLP_GAS_TRAP`, `FIRE_TRAP`, `PIT`, `SPIKED_PIT`.
-- [ ] Reduce replay harness-only simulation in `test/comparison/session_helpers.js` by reusing real game logic where possible.
-- [ ] Keep strict seed replay parity green for seeds 1-5 after each sub-change.
+## Status Legend
 
-## Phase 2: Special-Level Generation Fidelity
+- `ported`: JS function path exists and no active known parity issue is scoped to it.
+- `partial`: JS function path exists, but active parity gaps are tracked in open issues.
+- `unstarted`: No direct JS counterpart is mapped yet.
 
-- [ ] Replace `makemaz` fallback/procedural stubs in `js/dungeon.js` with C-faithful special-level loading paths.
-- [ ] Complete deferred/finalization stubs in `js/sp_lev.js` (room finalization, random placement, solidify/premap parity paths).
-- [ ] Remove simplified branch/special selection behavior in `js/special_levels.js`.
-- [ ] Drive this phase with `test/unit/special_levels_comparison.test.js` and targeted per-level diffs.
-- [x] 2026-02-14 checkpoint: fixed `des.object("`")` class handling (`ROCK_CLASS`) and Lua loop-bound RNG evaluation in `hellfill`; `special_levels_comparison` moved 19 -> 20 passing (Gehennom filler seed 100 now green).
+## Maintenance Rules
 
-## Phase 3: Object and Monster Generation Fidelity
+1. Add/modify rows when parity work lands; do not defer ledger updates.
+2. Keep statuses evidence-based (link open issue numbers or passing test commands).
+3. Prefer function-level mapping for first-divergence call paths.
+4. When a `partial` path reaches parity and has no active tracker, promote to `ported`.
 
-- [ ] Replace simplified retries/shortcuts in `js/mkobj.js` with C loop/termination behavior.
-- [ ] Continue porting omitted `makemon` generation constraints/checks in `js/makemon.js` (mvitals/quest/hell/nohell/etc).
-- [x] Replaced rider corpse stub in `js/objdata.js` (`PM_DEATH/PESTILENCE/FAMINE` detection).
-- [ ] Validate with startup/chargen/special-level replay tests.
+## File-Level Correspondence (Core Domains)
 
-## Phase 4: Combat and Status Fidelity
+| Domain | C Source Files | JS Counterparts | Status | Active Signals |
+| --- | --- | --- | --- | --- |
+| RNG core | `rnd.c`, `isaac64.c` | `js/rng.js`, `js/isaac64.js` | `ported` | No open RNG-engine issue; divergence is in gameplay call ordering. |
+| Dungeon + special generation | `mklev.c`, `mkroom.c`, `mkmaze.c`, `sp_lev.c`, `dungeon.c`, trap-gen portions of `trap.c` | `js/dungeon.js`, `js/sp_lev.js`, `js/special_levels.js`, `js/levels/themerms.js` | `partial` | #9, #13 |
+| Monster movement + pet AI | `monmove.c`, `dogmove.c`, movement portions of `mon.c`, targeting portions of `mhitm.c` | `js/monmove.js` | `partial` | #8, #11 |
+| Monster generation + startup entities | `makemon.c`, `u_init.c` | `js/makemon.js`, `js/u_init.js` | `partial` | #10 |
+| Object generation + naming | `mkobj.c`, `objnam.c`, `o_init.c`, `objects.c` | `js/mkobj.js`, `js/o_init.js`, `js/objects.js` | `partial` | #10 |
+| Combat + XP progression | `uhitm.c`, `mhitu.c`, `exper.c`, parts of `weapon.c`, `mon.c` kill paths | `js/combat.js`, `js/commands.js`, `js/monmove.js` | `partial` | #8, #11 |
+| Command flow + turn loop | `allmain.c`, `cmd.c`, `hack.c`, `do.c`, `pickup.c`, `invent.c`, `read.c` | `js/nethack.js`, `js/headless_runtime.js`, `js/commands.js`, `js/player.js` | `partial` | #6, #7, #11 |
 
-- [ ] Replace approximate XP/leveling in `js/combat.js` with C `exper.c` behavior.
-- [ ] Fill remaining AD_* and passive combat side effects in `js/combat.js`.
-- [ ] Replace simplified pet status/food edge cases in `js/dog.js`.
+## Function-Level Correspondence (High Priority)
 
-## Working Rules
+### A) Dungeon + Special-Level Generation
 
-- Make small, reviewable commits.
-- Keep replay tests and unit tests green after each batch.
-- Prefer direct C behavior over synthetic RNG consumption.
-- Use tests to prioritize, not to define behavior.
-- For visible behavior changes, port from `nethack-c/src` first; avoid trace-only heuristics.
-- For each completed item: record what changed and which tests verified it.
+| C Function(s) | JS Function(s) | Status | Notes |
+| --- | --- | --- | --- |
+| `makelevel` (`mklev.c`) | `makelevel` (`js/dungeon.js`) | `partial` | Core generator exists; early RNG ordering still diverges (#9, #13). |
+| `makerooms`, `sort_rooms`, `makecorridors`, `fill_ordinary_room` (`mklev.c`) | `makecorridors`, `fill_ordinary_room` and related room builders (`js/dungeon.js`) | `partial` | Implemented with C refs, but special/wizard sessions still drift (#9). |
+| `mktrap`, `traptype_rnd`, `mktrap_victim` (`mklev.c`) | `mktrap`, `traptype_rnd`, `mktrap_victim` (`js/dungeon.js`) | `partial` | Implemented; tutorial/special parity not yet exact (#13). |
+| `mineralize` (`mklev.c`) | `mineralize` (`js/dungeon.js`) | `partial` | Implemented; ordering interacts with broader makelevel drift. |
+| `create_room`, `create_subroom`, `dig_corridor` (`sp_lev.c`) | `create_room`, `create_subroom` (`js/dungeon.js`), `corridor` (`js/sp_lev.js`) | `partial` | Corridor candidate-space sizing mismatch still open (#9). |
+| `splev_initlev` (`sp_lev.c`) | `level_init` (`js/sp_lev.js`) | `partial` | Implemented with tutorial shims; strict tutorial replay still divergent (#13). |
+| `lspo_room`, `lspo_door`, `lspo_trap`, `lspo_monster`, `lspo_object`, `lspo_levregion` (`sp_lev.c`) | `room`, `door`, `trap`, `monster`, `object`, `levregion` (`js/sp_lev.js`) | `partial` | Lua special-level bridge present; parity closure still in progress (#9, #13). |
+| `percent` macro + `shuffle` usage (`sp_lev.c`) | `percent`, `shuffle` (`js/sp_lev.js`) | `partial` | Tutorial default shim improved replay but not complete (#13). |
+
+### B) Monster Movement + Pet AI
+
+| C Function(s) | JS Function(s) | Status | Notes |
+| --- | --- | --- | --- |
+| `movemon` (`monmove.c`) | `movemon` (`js/monmove.js`) | `partial` | Main movement loop exists; gameplay drift remains (#11). |
+| `dochug` (`monmove.c`) | `dochug` (`js/monmove.js`) | `partial` | Conditional flow ported incrementally; still not fully aligned in affected sessions (#11). |
+| `m_move`, `mfndpos`, `m_search_items` (`monmove.c`) | `m_move`, `mfndpos` and item-search path (`js/monmove.js`) | `partial` | Position/glyph side effects still diverge (#11). |
+| `dog_move` (`dogmove.c`) | `dog_move` (`js/monmove.js`) | `partial` | Primary open parity hotspot for RNG + messaging (#8, #11). |
+| `dog_invent`, goal selection, ranged-attack path (`dogmove.c`) | `dog_invent`, `best_target`, `pet_ranged_attk` (`js/monmove.js`) | `partial` | Ordering and side-effect parity gaps tracked in #8. |
+
+### C) Monster Generation + Startup
+
+| C Function(s) | JS Function(s) | Status | Notes |
+| --- | --- | --- | --- |
+| `makemon`, position selection (`makemon.c`) | `makemon`, `makemon_rnd_goodpos` (`js/makemon.js`) | `partial` | Core path present; startup/equipment ordering still diverges (#10). |
+| `mkclass`, `rndmonst`, `rndmonst_adj` (`makemon.c`) | `mkclass`, `rndmonst_adj` (`js/makemon.js`) | `partial` | Implemented with C refs; affected by broader generation ordering issues (#10). |
+| `newmonhp`, `m_initweap`, `m_initinv`, `peace_minded` (`makemon.c`) | `newmonhp`, `m_initweap`, `m_initinv`, `peace_minded` (`js/makemon.js`) | `partial` | `m_initweap` ordering mismatch explicitly tracked (#10). |
+| `makedog`, `u_init` startup logic (`u_init.c`) | `makedog` path + `simulatePostLevelInit` (`js/u_init.js`) | `partial` | Startup parity still coupled to object-generation drift (#10). |
+
+### D) Object Generation + Naming
+
+| C Function(s) | JS Function(s) | Status | Notes |
+| --- | --- | --- | --- |
+| `mkobj`, `mksobj`, `mksobj_init` (`mkobj.c`) | `mkobj`, `mksobj`, `mksobj_init` path (`js/mkobj.js`) | `partial` | Active RNG-order divergence in startup/wizard sessions (#10). |
+| `set_corpsenm`, `mkcorpstat`, corpse timeout paths (`mkobj.c`) | `set_corpsenm`, `mkcorpstat`, `start_corpse_timeout_rng` (`js/mkobj.js`) | `partial` | Implemented; still part of object-order audit (#10). |
+| `doname`/`xname` naming paths (`objnam.c`) | `doname` naming stack (`js/mkobj.js`) | `partial` | Naming generally implemented; parity work focuses on generation order first. |
+| `init_objects` and object shuffle (`o_init.c`) | `init_objects` (`js/o_init.js`) | `partial` | Used in startup parity; monitor with object-generation tracker (#10). |
+
+### E) Combat + Experience
+
+| C Function(s) | JS Function(s) | Status | Notes |
+| --- | --- | --- | --- |
+| Hero attack path (`uhitm.c`) | `playerAttackMonster` (`js/combat.js`) | `partial` | Hit/miss, passive probes, and kill side effects still under parity work (#8, #11). |
+| Monster attack path (`mhitu.c`) | `monsterAttackPlayer` (`js/combat.js`) | `partial` | Message sequencing and side effects still divergent in mixed combat traces (#8). |
+| XP + level-up (`exper.c`) | `checkLevelUp` and XP updates (`js/combat.js`) | `partial` | Functional but still coupled to combat parity closure. |
+
+### F) Command Flow + Turn Loop
+
+| C Function(s) | JS Function(s) | Status | Notes |
+| --- | --- | --- | --- |
+| `rhack` (`cmd.c`) | `rhack` (`js/commands.js`) | `partial` | Direction prompt/modal cancellation mismatch tracked in #6. |
+| Core movement/action dispatch (`hack.c`, `do.c`) | `handleMovement`, `handleDownstairs`, `handleUpstairs`, `handleOpen`, `handleClose` (`js/commands.js`) | `partial` | Counted no-op and prompt interactions still diverge (#6, #7). |
+| Pickup/search/read command paths (`pickup.c`, `invent.c`, `read.c`, `do.c`) | `handlePickup`, `dosearch0`, `handleRead` (`js/commands.js`) | `partial` | Wait/search safety timing mismatch tracked in #7. |
+| `moveloop_core` turn sequencing (`allmain.c`) | `processTurnEnd` / `simulateTurnEnd` (`js/nethack.js`, `js/headless_runtime.js`) | `partial` | Turn loop exists; downstream divergence depends on command/AI parity gaps. |
+
+## Active Priority Queue (Issue-Driven)
+
+1. #13 tutorial strict replay after first `nhl_random` divergence.
+2. #9 special-level generation parity (`dig_corridor`/`somex`/`makelevel`).
+3. #8 pet combat + dog movement sequencing/messaging.
+4. #10 object-generation RNG ordering (`mkobj`/`mksobj`/`rnd_attr`/`m_initweap`).
+5. #11 gameplay glyph/map drift tied to movement interaction state.
+6. #6 command-flow modal/direction cancellation parity.
+7. #7 wait/search safety timing parity.
+
+## Update Template
+
+When adding a new correspondence row, include:
+
+- C file + function name
+- JS file + function name
+- Status (`ported`/`partial`/`unstarted`)
+- Evidence: issue number and/or exact test command used
