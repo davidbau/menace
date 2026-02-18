@@ -1,0 +1,44 @@
+{
+  "commit": "b98b1ba",
+  "parent": "f7b3e5f",
+  "date": "2026-02-18T06:37:54-05:00",
+  "author": "David Bau",
+  "message": "Improve combat system parity with C NetHack 3.7",
+  "stats": {
+    "total": 331,
+    "pass": 296,
+    "fail": 35,
+    "skip": 0,
+    "duration": 30
+  },
+  "categories": {
+    "chargen": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    },
+    "gameplay": {
+      "total": 2,
+      "pass": 00,
+      "fail": 2
+    },
+    "map": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    },
+    "special": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    },
+    "unit": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    }
+  },
+  "regression": false,
+  "newTests": 0,
+  "backfilled": true
+}
