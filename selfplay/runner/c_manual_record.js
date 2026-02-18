@@ -17,6 +17,7 @@ function parseArgs(argv) {
         gender: 'female',
         align: 'neutral',
         name: 'Recorder',
+        wizard: true,
         symset: 'ASCII',
         tmuxSocket: process.env.SELFPLAY_TMUX_SOCKET || 'default',
         session: `nethack-manual-${Date.now()}`,
@@ -30,6 +31,8 @@ function parseArgs(argv) {
         const a = argv[i];
         if (a === '--keep-session') opts.keepSession = true;
         else if (a === '--no-keep-session') opts.keepSession = false;
+        else if (a === '--wizard') opts.wizard = true;
+        else if (a === '--no-wizard') opts.wizard = false;
         else if (a === '--real-time') opts.fixedDatetime = '';
         else if (a.startsWith('--seed=')) opts.seed = Number(a.slice(7));
         else if (a.startsWith('--datetime=')) opts.fixedDatetime = a.slice(11);
@@ -62,6 +65,8 @@ function printUsage() {
     console.log('  --gender=GENDER     default: female');
     console.log('  --align=ALIGN       default: neutral');
     console.log('  --name=NAME         player name (default: Recorder)');
+    console.log('  --wizard            enable debug/wizard mode (default)');
+    console.log('  --no-wizard         disable debug/wizard mode');
     console.log('  --symset=ASCII|DECgraphics');
     console.log('  --tmux-socket=selfplay|default|NAME');
     console.log('  --datetime=YYYYMMDDhhmmss   fixed in-game datetime (default: 20000110090000)');
@@ -92,6 +97,7 @@ async function main() {
         gender: opts.gender,
         align: opts.align,
         name: opts.name,
+        wizard: opts.wizard,
         symset: opts.symset,
         datetime: opts.fixedDatetime || null,
         keylogDelayMs: opts.keylogDelayMs,
@@ -120,6 +126,7 @@ async function main() {
         gender: opts.gender,
         align: opts.align,
         name: opts.name,
+        wizard: opts.wizard,
     });
 
     // Lock capture session geometry regardless of attaching client size.

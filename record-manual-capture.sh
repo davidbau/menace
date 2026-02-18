@@ -28,6 +28,8 @@ Common options:
   --gender=GENDER          Character gender (default: female)
   --align=ALIGN            Character alignment (default: neutral)
   --name=NAME              Character name (default: Recorder)
+  --wizard                 Enable debug/wizard mode (default)
+  --no-wizard              Disable debug/wizard mode
   --symset=ASCII|DECgraphics
   --help, -h               Show this help
 

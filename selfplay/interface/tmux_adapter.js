@@ -144,6 +144,7 @@ export class TmuxAdapter extends GameAdapter {
         const gender = options.gender || 'female';
         const align = options.align || 'neutral';
         const rngLogPath = options.rngLogPath || null;
+        const wizard = options.wizard !== undefined ? options.wizard : true;
 
         // Set up a temporary home directory with .nethackrc
         this._homeDir = join(PROJECT_ROOT, 'selfplay', '.nethack-home');
@@ -193,7 +194,8 @@ export class TmuxAdapter extends GameAdapter {
         }
 
         const envStr = Object.entries(env).map(([k, v]) => `${k}=${v}`).join(' ');
-        execSync(`${this.tmuxBaseCmd} new-session -d -s ${this.sessionName} -x ${TERMINAL_COLS} -y ${TERMINAL_ROWS} "env ${envStr} ${NETHACK_BINARY} -u ${name} -D"`);
+        const wizardFlag = wizard ? ' -D' : '';
+        execSync(`${this.tmuxBaseCmd} new-session -d -s ${this.sessionName} -x ${TERMINAL_COLS} -y ${TERMINAL_ROWS} "env ${envStr} ${NETHACK_BINARY} -u ${name}${wizardFlag}"`);
 
         // Wait for game to start
         await sleep(STARTUP_DELAY);
