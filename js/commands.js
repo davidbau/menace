@@ -2315,7 +2315,6 @@ async function showGuidebook(display) {
 // Search for hidden doors and traps adjacent to player
 // C ref: detect.c dosearch0()
 export function dosearch0(player, map, display, game = null) {
-    let found = false;
     for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
             if (dx === 0 && dy === 0) continue;
@@ -2325,44 +2324,41 @@ export function dosearch0(player, map, display, game = null) {
             const loc = map.at(nx, ny);
             if (!loc) continue;
 
-            // Find secret doors
-            // C ref: detect.c -- secret doors become regular doors
-            if (loc.typ === 14) { // SDOOR
+            // C ref: detect.c dosearch0() — if-else structure matches C:
+            // SDOOR, SCORR, or else (monsters/traps).
+            if (loc.typ === SDOOR) {
                 if (rnl(7) === 0) {
                     loc.typ = DOOR;
                     loc.flags = D_CLOSED;
+                    exercise(player, A_WIS, true);
+                    if (game && Number.isInteger(game.multi) && game.multi > 0) {
+                        game.multi = 0;
+                    }
                     display.putstr_message('You find a hidden door.');
-                    found = true;
-                    // C ref: detect.c dosearch0() calls nomul(0) when a hidden
-                    // feature is found, interrupting counted search.
-                    if (game && Number.isInteger(game.multi) && game.multi > 0) {
-                        game.multi = 0;
-                    }
                 }
-            }
-            // Find secret corridors
-            if (loc.typ === 15) { // SCORR
+            } else if (loc.typ === SCORR) {
                 if (rnl(7) === 0) {
-                    loc.typ = 24; // CORR
-                    display.putstr_message('You find a hidden passage!');
-                    found = true;
-                    // C ref: detect.c dosearch0() calls nomul(0) when a hidden
-                    // feature is found, interrupting counted search.
+                    loc.typ = CORR;
+                    exercise(player, A_WIS, true);
+                    if (game && Number.isInteger(game.multi) && game.multi > 0) {
+                        game.multi = 0;
+                    }
+                    display.putstr_message('You find a hidden passage.');
+                }
+            } else {
+                // C ref: detect.c:2080 — trap detection with rnl(8)
+                const trap = map.trapAt?.(nx, ny);
+                if (trap && !trap.tseen && !rnl(8)) {
+                    trap.tseen = true;
+                    exercise(player, A_WIS, true);
                     if (game && Number.isInteger(game.multi) && game.multi > 0) {
                         game.multi = 0;
                     }
                 }
             }
-            // C ref: detect.c mfind0() concerns hidden monsters; do not stop
-            // counted searches merely for adjacent visible hostiles.
         }
     }
-    if (!found) {
-        // No message on search failure (matches C behavior)
-    } else {
-        // C ref: detect.c successful search exercises wisdom positively.
-        exercise(player, A_WIS, true);
-    }
+    // exercise(A_WIS, TRUE) is called per-discovery above, matching C.
 }
 
 // Handle save game (S)

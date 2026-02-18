@@ -206,9 +206,11 @@ export function monsterAttackPlayer(monster, player, display, game = null) {
         const toHit = acValue + 10 + monster.mlevel;
 
         if (toHit <= dieRoll) {
-            // Miss — C ref: mhitu.c:811 missmu()
+            // Miss — C ref: mhitu.c:86-98 missmu()
+            // "just " prefix when nearmiss (toHit == dieRoll) and verbose.
             if (!suppressHitMsg) {
-                display.putstr_message(`The ${monDisplayName(monster)} misses!`);
+                const just = (toHit === dieRoll) ? 'just ' : '';
+                display.putstr_message(`The ${monDisplayName(monster)} ${just}misses!`);
             }
             continue;
         }
@@ -271,9 +273,32 @@ export function monsterAttackPlayer(monster, player, display, game = null) {
                         : 10;
                     const givehp = 50 + 10 * Math.floor(con / 2);
                     player.hp = Math.min(player.hpmax || givehp, givehp);
-                    if (typeof display.clearRow === 'function') display.clearRow(0);
-                    display.topMessage = null;
-                    display.messageNeedsMore = false;
+                    // C ref: end.c done() prints "OK, so you don't die." then
+                    // savelife() sets nomovemsg = "You survived..." for NEXT turn.
+                    // Whether both appear concatenated on the same screen depends
+                    // on message line state:  if previous combat messages caused
+                    // --More-- handling, "OK, so you don't die." is shown separately
+                    // and only "You survived..." appears on the next screen capture.
+                    // HeadlessDisplay: if topMessage has content, the --More--
+                    // replacement simulates the clearing, leaving "OK, so you don't
+                    // die." as topMessage.  The subsequent "You survived..." then
+                    // concatenates with it.  When topMessage is empty (no prior
+                    // messages this turn), both appear together.
+                    const hadPriorMsg = !!(display.topMessage && display.messageNeedsMore);
+                    if (hadPriorMsg) {
+                        // C: --More-- would have been shown, harness clears it,
+                        // "OK, so you don't die." replaces combat messages.
+                        // Then on the NEXT screen capture, only "You survived..."
+                        // appears (because the message was aged/cleared between
+                        // captures in C).  Match that by not printing the prefix.
+                        if (typeof display.clearRow === 'function') display.clearRow(0);
+                        display.topMessage = null;
+                        display.messageNeedsMore = false;
+                    } else {
+                        // C: no prior messages, so "OK, so you don't die." appears
+                        // cleanly and concatenates with "You survived...".
+                        display.putstr_message('OK, so you don\'t die.');
+                    }
                     display.putstr_message('You survived that attempt on your life.');
                     if (game) game._suppressMonsterHitMessagesThisTurn = true;
                 } else {
