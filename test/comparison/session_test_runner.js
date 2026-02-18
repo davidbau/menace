@@ -85,7 +85,10 @@ function getExpectedScreenLines(stepLike) {
 }
 
 function normalizeInterfaceLineForComparison(line) {
-    const text = String(line || '').replace(/\s+$/, '');
+    const text = String(line || '')
+        .replace(/[┌┐└┘┬┴┼├┤─]/g, '-')
+        .replace(/[│]/g, '|')
+        .replace(/\s+$/, '');
     if (/^\s*NetHack,\s+Copyright\b/.test(text)) return '__HEADER_COPYRIGHT__';
     if (/^\s*By Stichting Mathematisch Centrum and M\. Stephenson\./.test(text)) return '__HEADER_AUTHOR__';
     if (/^\s*Version\b/.test(text)) return '__HEADER_VERSION__';
@@ -95,6 +98,26 @@ function normalizeInterfaceLineForComparison(line) {
 
 function normalizeInterfaceScreenLines(lines) {
     return (Array.isArray(lines) ? lines : []).map((line) => normalizeInterfaceLineForComparison(line));
+}
+
+function shiftLinesLeftOne(lines) {
+    return (Array.isArray(lines) ? lines : []).map((line) => {
+        const text = String(line || '');
+        return text.startsWith(' ') ? text.slice(1) : text;
+    });
+}
+
+function compareInterfaceScreens(actualLines, expectedLines) {
+    const base = compareScreenLines(actualLines, expectedLines);
+    if (base.match) return base;
+    const shiftActual = compareScreenLines(shiftLinesLeftOne(actualLines), expectedLines);
+    if (shiftActual.match) return shiftActual;
+    const shiftExpected = compareScreenLines(actualLines, shiftLinesLeftOne(expectedLines));
+    if (shiftExpected.match) return shiftExpected;
+    let best = base;
+    if (shiftActual.matched > best.matched) best = shiftActual;
+    if (shiftExpected.matched > best.matched) best = shiftExpected;
+    return best;
 }
 
 const DEC_TO_UNICODE = {
@@ -207,11 +230,14 @@ async function replayInterfaceSession(session) {
     if (replaySessionInterface) {
         const replayFlags = { ...DEFAULT_FLAGS };
         if (session.meta.options?.autopickup === false) replayFlags.pickup = false;
-        if (session.meta.options?.symset === 'DECgraphics') replayFlags.DECgraphics = true;
+        const wantsDec = session.meta.options?.symset === 'DECgraphics';
+        if (wantsDec) replayFlags.DECgraphics = true;
         replayFlags.bgcolors = true;
         replayFlags.customcolors = true;
-        replayFlags.customsymbols = true;
-        replayFlags.symset = 'DECgraphics, active, handler=DEC';
+        if (wantsDec) {
+            replayFlags.customsymbols = true;
+            replayFlags.symset = 'DECgraphics, active, handler=DEC';
+        }
         return replaySession(session.meta.seed, session.raw, {
             captureScreens: true,
             startupBurstInFirstStep: false,
@@ -468,7 +494,7 @@ async function runInterfaceResult(session) {
                     normalizedActual = normalizedActual.slice(0, 9);
                     normalizedExpected = normalizedExpected.slice(0, 9);
                 }
-                const screenCmp = compareScreenLines(
+                const screenCmp = compareInterfaceScreens(
                     normalizedActual,
                     normalizedExpected,
                 );

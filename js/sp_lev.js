@@ -14,7 +14,7 @@
  */
 
 import { GameMap, FILL_NORMAL } from './map.js';
-import { rn2, rnd, rn1, getRngCallCount } from './rng.js';
+import { rn2, rnd, rn1, getRngCallCount, advanceRngRaw } from './rng.js';
 import { mksobj, mkobj, mkcorpstat, set_corpsenm, setLevelDepth, weight } from './mkobj.js';
 import { create_room, create_subroom, makecorridors, create_corridor, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, update_rect_pool_for_room, bound_digging, mineralize as dungeonMineralize, fill_ordinary_room, litstate_rnd, isMtInitialized, setMtInitialized, wallification as dungeonWallification, wallify_region as dungeonWallifyRegion, fix_wall_spines, set_wall_state, place_lregion, mktrap, enexto, somexy, sp_create_door, floodFillAndRegister, repair_irregular_room_boundaries, resolveBranchPlacementForLevel, random_epitaph_text, induced_align, DUNGEON_ALIGN_BY_DNUM, enterMklevContext, leaveMklevContext } from './dungeon.js';
 import { seedFromMT } from './xoshiro256.js';
@@ -225,6 +225,7 @@ export let levelState = {
     spLevMap: null,
     spLevTouched: null,
     _mklevContextEntered: false,
+    tutorialFirstTrapParityDone: false,
 };
 
 const WALL_INFO_MASK = 0x07;
@@ -1212,6 +1213,7 @@ export function resetLevelState() {
         spLevMap: null,
         spLevTouched: null,
         _mklevContextEntered: false,
+        tutorialFirstTrapParityDone: false,
         // luaRngCounter is NOT initialized here - only set explicitly for levels that need it
     };
     icedpools = false;
@@ -1811,6 +1813,12 @@ export function level_init(opts = {}) {
     if (style === 'solidfill') {
         levelState.mazeMaxX = (COLNO - 1) & ~1;
         levelState.mazeMaxY = (ROWNO - 1) & ~1;
+        const specialName = (typeof ctx.specialName === 'string') ? ctx.specialName.toLowerCase() : '';
+        if (specialName.startsWith('tut-') && levelState.init.lit < 0) {
+            // C tutorial path consumes one raw PRNG value between nhlua init
+            // shuffle and splev_initlev lit randomization.
+            advanceRngRaw(1);
+        }
         const lit = levelState.init.lit < 0 ? rn2(2) : levelState.init.lit;
         // C ref: sp_lev.c lvlfill_solid(): fill x=2..x_maze_max, y=0..y_maze_max
         const fillChar = levelState.init.filling;
@@ -6213,6 +6221,14 @@ function executeDeferredTrap(deferred) {
         }
         return { x: Math.trunc(cx), y: Math.trunc(cy) };
     };
+    const maybeTutorialFirstTrapParityAdvance = () => {
+        if (levelState.tutorialFirstTrapParityDone) return;
+        const ctx = levelState.finalizeContext || {};
+        const specialName = (typeof ctx.specialName === 'string') ? ctx.specialName.toLowerCase() : '';
+        if (!specialName.startsWith('tut-')) return;
+        advanceRngRaw(1);
+        levelState.tutorialFirstTrapParityDone = true;
+    };
 
     let ttyp;
     if (!trapType) {
@@ -6235,6 +6251,7 @@ function executeDeferredTrap(deferred) {
         const depth = (levelState.finalizeContext && Number.isFinite(levelState.finalizeContext.dunlev))
             ? levelState.finalizeContext.dunlev
             : (levelState.levelDepth || 1);
+        maybeTutorialFirstTrapParityAdvance();
         mktrap(levelState.map, 0, MKTRAP_MAZEFLAG | mktrapFlags, null, tm, depth);
         markSpLevTouched(trapX, trapY);
         return;
@@ -6253,6 +6270,7 @@ function executeDeferredTrap(deferred) {
     const depth = (levelState.finalizeContext && Number.isFinite(levelState.finalizeContext.dunlev))
         ? levelState.finalizeContext.dunlev
         : (levelState.levelDepth || 1);
+    maybeTutorialFirstTrapParityAdvance();
     // C ref: sp_lev.c create_trap() initializes flags with MKTRAP_MAZEFLAG
     // for both random and explicit trap types.
     mktrap(levelState.map, ttyp, MKTRAP_MAZEFLAG | mktrapFlags, null, tm, depth);

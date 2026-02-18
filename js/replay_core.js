@@ -32,6 +32,7 @@ import { movemon, initrack, settrack } from './monmove.js';
 import { FOV } from './vision.js';
 import { getArrivalPosition } from './level_transition.js';
 import { HeadlessGame, HeadlessDisplay } from './headless_runtime.js';
+import { GameMap } from './map.js';
 
 export { HeadlessDisplay };
 
@@ -603,6 +604,9 @@ export async function replaySession(seed, session, opts = {}) {
     setGameSeed(seed);
     const sessionChar = getSessionCharacter(session);
     const replayRoleIndex = ROLE_INDEX[sessionChar.role] ?? 11;
+    const firstStepScreen = getSessionScreenLines(session.steps?.[0] || {});
+    const tutorialPromptStartup = isTutorialPromptScreen(firstStepScreen)
+        && (session?.type === 'interface' || opts.replayMode === 'interface');
 
     // Consume pre-map character generation RNG calls if session has chargen data
     // C ref: role.c pick_gend() — happens during role selection BEFORE initLevelGeneration
@@ -619,16 +623,23 @@ export async function replaySession(seed, session, opts = {}) {
         }
     }
 
-    // Now initialize level generation (this may consume RNG for dungeon structure)
+    // Now initialize level generation (this may consume RNG for dungeon structure).
+    // C tutorial prompt still initializes globals/object state before map generation.
     initLevelGeneration(replayRoleIndex);
 
     const startDnum = Number.isInteger(opts.startDnum) ? opts.startDnum : undefined;
     const startDlevel = Number.isInteger(opts.startDlevel) ? opts.startDlevel : 1;
     const startDungeonAlign = Number.isInteger(opts.startDungeonAlign) ? opts.startDungeonAlign : undefined;
-    const map = Number.isInteger(startDnum)
-        ? makelevel(startDlevel, startDnum, startDlevel, { dungeonAlignOverride: startDungeonAlign })
-        : makelevel(startDlevel, undefined, undefined, { dungeonAlignOverride: startDungeonAlign });
-    // Note: wallification is now called inside makelevel, no need to call it here
+    let map = null;
+    if (!tutorialPromptStartup) {
+        map = Number.isInteger(startDnum)
+            ? makelevel(startDlevel, startDnum, startDlevel, { dungeonAlignOverride: startDungeonAlign })
+            : makelevel(startDlevel, undefined, undefined, { dungeonAlignOverride: startDungeonAlign });
+        // Note: wallification is now called inside makelevel, no need to call it here
+    } else {
+        map = new GameMap();
+        map.clear();
+    }
 
     // Consume post-map character generation RNG calls (moveloop_preamble, etc.)
     // These happen after map gen but before gameplay starts
@@ -738,36 +749,39 @@ export async function replaySession(seed, session, opts = {}) {
         player.y = map.upstair.y;
     }
 
-    const initResult = simulatePostLevelInit(player, map, 1);
-    // Replay startup state should match recorded C startup exactly, even when
-    // JS startup internals are not yet fully C-faithful.
-    if (parsedStrength) player._screenStrength = parsedStrength;
-    if (parsedAttrs) player.attributes = parsedAttrs.slice();
-    if (parsedVitals) {
-        player.hp = parsedVitals.hp;
-        player.hpmax = parsedVitals.hpmax;
-        player.pw = parsedVitals.pw;
-        player.pwmax = parsedVitals.pwmax;
-        player.ac = parsedVitals.ac;
-    }
-
-    // simulatePostLevelInit() applies role/race defaults (including Pw).
-    // Re-apply captured startup status so replay baseline matches fixture.
-    for (const line of screen) {
-        if (!line) continue;
-        const hpm = line.match(/HP:(\d+)\((\d+)\)\s+Pw:(\d+)\((\d+)\)\s+AC:([-]?\d+)/);
-        if (hpm) {
-            player.hp = parseInt(hpm[1]);
-            player.hpmax = parseInt(hpm[2]);
-            player.pw = parseInt(hpm[3]);
-            player.pwmax = parseInt(hpm[4]);
-            player.ac = parseInt(hpm[5]);
-            continue;
+    let initResult = { seerTurn: false };
+    if (!tutorialPromptStartup) {
+        initResult = simulatePostLevelInit(player, map, 1);
+        // Replay startup state should match recorded C startup exactly, even when
+        // JS startup internals are not yet fully C-faithful.
+        if (parsedStrength) player._screenStrength = parsedStrength;
+        if (parsedAttrs) player.attributes = parsedAttrs.slice();
+        if (parsedVitals) {
+            player.hp = parsedVitals.hp;
+            player.hpmax = parsedVitals.hpmax;
+            player.pw = parsedVitals.pw;
+            player.pwmax = parsedVitals.pwmax;
+            player.ac = parsedVitals.ac;
         }
-        const hpOnly = line.match(/HP:(\d+)\((\d+)\)/);
-        if (hpOnly) {
-            player.hp = parseInt(hpOnly[1]);
-            player.hpmax = parseInt(hpOnly[2]);
+
+        // simulatePostLevelInit() applies role/race defaults (including Pw).
+        // Re-apply captured startup status so replay baseline matches fixture.
+        for (const line of screen) {
+            if (!line) continue;
+            const hpm = line.match(/HP:(\d+)\((\d+)\)\s+Pw:(\d+)\((\d+)\)\s+AC:([-]?\d+)/);
+            if (hpm) {
+                player.hp = parseInt(hpm[1]);
+                player.hpmax = parseInt(hpm[2]);
+                player.pw = parseInt(hpm[3]);
+                player.pwmax = parseInt(hpm[4]);
+                player.ac = parseInt(hpm[5]);
+                continue;
+            }
+            const hpOnly = line.match(/HP:(\d+)\((\d+)\)/);
+            if (hpOnly) {
+                player.hp = parseInt(hpOnly[1]);
+                player.hpmax = parseInt(hpOnly[2]);
+            }
         }
     }
 
@@ -787,8 +801,7 @@ export async function replaySession(seed, session, opts = {}) {
     const sessionSymset = session?.options?.symset || session?.meta?.options?.symset;
     const decgraphicsMode = session.screenMode === 'decgraphics' || sessionSymset === 'DECgraphics';
     game.display.flags.DECgraphics = !!decgraphicsMode;
-    const firstStepScreen = getSessionScreenLines(session.steps?.[0] || {});
-    let inTutorialPrompt = isTutorialPromptScreen(firstStepScreen);
+    let inTutorialPrompt = tutorialPromptStartup;
     let pendingTutorialStart = false;
     if (inTutorialPrompt && firstStepScreen.length > 0) {
         game.display.setScreenLines(firstStepScreen);

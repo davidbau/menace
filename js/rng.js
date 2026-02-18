@@ -219,6 +219,17 @@ export function c_d(n, x) {
     return tmp;
 }
 
+// Advance ISAAC state without emitting a logged RNG entry.
+// Used only for narrow parity fixes when C consumes raw PRNG output
+// through non-logged paths between logged rn2/rnd calls.
+export function advanceRngRaw(count = 1) {
+    if (!ctx) return;
+    const n = Math.max(0, Number.isInteger(count) ? count : 0);
+    for (let i = 0; i < n; i++) {
+        isaac64_next_uint64(ctx);
+    }
+}
+
 // C ref: rnd.c rnz() -- randomized scaling
 // C logs rnz summary via explicit rng_log_write; internal rn2 calls are
 // suppressed by RNGLOG_IN_RND_C. Internal rne(4) IS logged (explicit log).

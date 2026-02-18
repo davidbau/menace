@@ -30,7 +30,7 @@ import {
     A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC
 } from './config.js';
 import { GameMap, makeRoom, FILL_NONE, FILL_NORMAL } from './map.js';
-import { rn2, rnd, rn1, d, getRngCallCount } from './rng.js';
+import { rn2, rnd, rn1, d, getRngCallCount, advanceRngRaw } from './rng.js';
 import { getbones } from './bones.js';
 import { mkobj, mksobj, mkcorpstat, weight, setLevelDepth, TAINT_AGE, RANDOM_CLASS } from './mkobj.js';
 import { makemon, mkclass, rndmonnum_adj, NO_MM_FLAGS, MM_NOGRP, setMakemonRoleContext, setMakemonLevelContext, getMakemonRoleIndex } from './makemon.js';
@@ -5009,9 +5009,11 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
                 && special.name.startsWith('tut-');
             if (!_themesLoaded || depthOnlyOracleSpecial) {
                 _themesLoaded = true;
-                rn2(3); rn2(2);
-            } else if (isTutorialSpecial) {
-                rn2(3); rn2(2);
+                rn2(3);
+                // Tutorial level entry has one non-logged PRNG draw between
+                // nhlua shuffle calls in C startup path.
+                if (isTutorialSpecial) advanceRngRaw(1);
+                rn2(2);
             }
 
             const specialMap = special.generator();
