@@ -1,0 +1,44 @@
+{
+  "commit": "e4fb451",
+  "parent": "194861b",
+  "date": "2026-02-15T15:27:43-05:00",
+  "author": "David Bau",
+  "message": "runner: report full final stats and XP progression",
+  "stats": {
+    "total": 9905,
+    "pass": 564,
+    "fail": 9341,
+    "skip": 0,
+    "duration": 5
+  },
+  "categories": {
+    "chargen": {
+      "total": 180,
+      "pass": 178,
+      "fail": 2
+    },
+    "gameplay": {
+      "total": 42,
+      "pass": 00,
+      "fail": 42
+    },
+    "map": {
+      "total": 15,
+      "pass": 00,
+      "fail": 15
+    },
+    "special": {
+      "total": 100,
+      "pass": 98,
+      "fail": 2
+    },
+    "unit": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    }
+  },
+  "regression": false,
+  "newTests": 0,
+  "backfilled": true
+}
