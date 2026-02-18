@@ -183,5 +183,7 @@ Milestones use a hybrid model: phase completion + parity gates + release-timing 
    - If starting new work not covered by an issue, create/update an issue before or at start.
    - Agent identity is directory-based (directory name defines agent name for assignment purposes).
    - Agents may work any issue regardless of directory specialization hints.
-   - Assign issues to self on start; unassign when intentionally abandoning.
+   - Track active agent ownership with optional `agent:<name>` labels in repo issues (agent name = working directory basename).
+   - Agent label cardinality is 0 or 1 in normal flow; temporary overlap is allowed only during explicit handoff and should be cleaned up quickly.
+   - Add `agent:<name>` when starting; remove it when intentionally abandoning.
    - If one agent resolves work claimed by another, that is acceptable; close/update the issue with complete context so the original assignee can see what changed.

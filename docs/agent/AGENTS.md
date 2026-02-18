@@ -7,7 +7,8 @@ This project uses **GitHub Issues** for issue tracking.
 ```bash
 gh issue list --state open                    # Find available work
 gh issue view <number>                        # View issue details
-gh issue edit <number> --add-assignee @me     # Claim work
+gh issue edit <number> --add-label "agent:<name>"      # Claim work for this agent
+gh issue edit <number> --remove-label "agent:<name>"   # Unclaim for this agent
 gh issue close <number> --comment "Done"      # Complete work
 gh issue comment <number> --body "Status..."  # Post progress updates
 ```
@@ -42,10 +43,11 @@ Recommended parent/child pattern:
 - Directory/topic affinity is only suggestive; any agent may take any issue.
 - If you have no pending task, pull another actionable open issue.
 - If starting new work not already tracked, create/update a GitHub issue immediately.
-- Assign issue to yourself when starting:
-  - `gh issue edit <number> --add-assignee @me`
-- If you intentionally stop/abandon an issue, unassign yourself:
-  - `gh issue edit <number> --remove-assignee @me`
+- Track issue ownership by agent label, where `<name>` is the working-directory basename.
+- Use at most one `agent:*` label in normal flow; 0 labels is allowed for unowned issues.
+- Temporary overlap (2 `agent:*` labels) is allowed only during explicit handoff and should be cleaned up promptly.
+- When starting work, add your label: `gh issue edit <number> --add-label "agent:<name>"`
+- If intentionally abandoning, remove your label: `gh issue edit <number> --remove-label "agent:<name>"`
 - If you complete work on an issue assigned to another agent, proceed and resolve it; leave a detailed closing/update comment so the original assignee has full context.
 
 ## Landing the Plane (Session Completion)
