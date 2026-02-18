@@ -173,7 +173,6 @@ import { generate as generateWizFilb } from './levels/Wiz-filb.js';
 import { generate as generateWizGoal } from './levels/Wiz-goal.js';
 
 // Additional special levels
-import { generate as generateDungeon } from './levels/dungeon.js';
 import { generate as generateHellfill } from './levels/hellfill.js';
 import { generate as generateFakewiz1 } from './levels/fakewiz1.js';
 import { generate as generateFakewiz2 } from './levels/fakewiz2.js';
@@ -552,7 +551,6 @@ export const otherSpecialLevels = {
     oracle: generateOracle,
     rogue: generateRogue,
     castle: generateCastle,
-    dungeon: generateDungeon,
     hellfill: generateHellfill,
     minefill: generateMinefill,
     fakewiz1: generateFakewiz1,

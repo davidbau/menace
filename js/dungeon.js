@@ -61,15 +61,7 @@ import {
 } from './objects.js';
 import { RUMORS_FILE_TEXT } from './rumor_data.js';
 import {
-    getSpecialLevel,
-    DUNGEONS_OF_DOOM,
-    GNOMISH_MINES,
-    SOKOBAN,
-    QUEST,
-    KNOX,
-    GEHENNOM,
-    VLADS_TOWER,
-    TUTORIAL
+    getSpecialLevel
 } from './special_levels.js';
 import { setLevelContext, clearLevelContext, initLuaMT, setSpecialLevelDepth, setFinalizeContext, resetLevelState } from './sp_lev.js';
 import {
@@ -119,12 +111,23 @@ const BR_NO_END1 = 1;
 const BR_NO_END2 = 2;
 const BR_PORTAL = 3;
 
+// Dungeon branch numbers (mirrors special_levels.js; local to avoid circular-init TDZ).
+const DUNGEONS_OF_DOOM = 0;
+const GNOMISH_MINES = 1;
+const SOKOBAN = 2;
+const QUEST = 3;
+const KNOX = 4;
+const GEHENNOM = 5;
+const VLADS_TOWER = 6;
+const TUTORIAL = 8;
+
 // Snapshot of branch topology chosen during simulateDungeonInit().
 // Each entry: { type, end1:{dnum,dlevel}, end2:{dnum,dlevel}, end1_up }.
 let _branchTopology = [];
 // C ref: dungeon.c global oracle_level; populated during init_dungeons().
 // Used by mklev.c fill_ordinary_room() bonus supply chest gating.
-let _oracleLevel = { dnum: DUNGEONS_OF_DOOM, dlevel: 5 };
+// Keep default dnum literal (0 = DUNGEONS_OF_DOOM) to avoid circular-import TDZ.
+let _oracleLevel = { dnum: 0, dlevel: 5 };
 // C ref: decl.h gi.in_mklev — true only while makelevel() runs.
 let inMklev = false;
 
