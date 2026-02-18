@@ -40,7 +40,7 @@ import {
     // Scrolls
     SCR_MAGIC_MAPPING,
     // Spellbooks
-    SPE_HEALING, SPE_EXTRA_HEALING, SPE_STONE_TO_FLESH,
+    SPE_HEALING, SPE_EXTRA_HEALING, SPE_STONE_TO_FLESH, SPE_LIGHT,
     SPE_FORCE_BOLT, SPE_PROTECTION, SPE_CONFUSE_MONSTER,
     // Wands
     WAN_SLEEP,
@@ -74,7 +74,7 @@ import {
     ARM_SUIT, ARM_SHIELD, ARM_HELM, ARM_GLOVES, ARM_BOOTS, ARM_CLOAK, ARM_SHIRT,
     // Filter exclusions
     WAN_WISHING, WAN_NOTHING, RIN_LEVITATION, RIN_AGGRAVATE_MONSTER,
-    RIN_HUNGER, POT_HALLUCINATION, POT_ACID, SCR_AMNESIA, SCR_FIRE,
+    RIN_HUNGER, RIN_POISON_RESISTANCE, POT_HALLUCINATION, POT_ACID, SCR_AMNESIA, SCR_FIRE,
     SCR_BLANK_PAPER, SPE_BLANK_PAPER, SPE_NOVEL, SCR_ENCHANT_WEAPON,
     // Polymorph nocreate tracking
     WAN_POLYMORPH, RIN_POLYMORPH, RIN_POLYMORPH_CONTROL,
@@ -752,9 +752,154 @@ const Confuse_monster_book = [
 ];
 const M_spell = [Healing_book, Protection_book, Confuse_monster_book];
 
+// Spell discipline mapping for restricted startup spellbook filtering.
+// C refs: spell.c spell_skilltype(), u_init.c restricted_spell_discipline().
+const SPELL_DISCIPLINE = {
+    ATTACK: 'attack',
+    HEALING: 'healing',
+    DIVINATION: 'divination',
+    ENCHANTMENT: 'enchantment',
+    CLERIC: 'cleric',
+    ESCAPE: 'escape',
+    MATTER: 'matter',
+};
+
+const SPELL_DISCIPLINE_BY_NAME = {
+    dig: SPELL_DISCIPLINE.MATTER,
+    'magic missile': SPELL_DISCIPLINE.ATTACK,
+    fireball: SPELL_DISCIPLINE.ATTACK,
+    'cone of cold': SPELL_DISCIPLINE.ATTACK,
+    sleep: SPELL_DISCIPLINE.ENCHANTMENT,
+    'finger of death': SPELL_DISCIPLINE.ATTACK,
+    light: SPELL_DISCIPLINE.DIVINATION,
+    'detect monsters': SPELL_DISCIPLINE.DIVINATION,
+    healing: SPELL_DISCIPLINE.HEALING,
+    knock: SPELL_DISCIPLINE.MATTER,
+    'force bolt': SPELL_DISCIPLINE.ATTACK,
+    'confuse monster': SPELL_DISCIPLINE.ENCHANTMENT,
+    'cure blindness': SPELL_DISCIPLINE.HEALING,
+    'drain life': SPELL_DISCIPLINE.ATTACK,
+    'slow monster': SPELL_DISCIPLINE.ENCHANTMENT,
+    'wizard lock': SPELL_DISCIPLINE.MATTER,
+    'create monster': SPELL_DISCIPLINE.CLERIC,
+    'detect food': SPELL_DISCIPLINE.DIVINATION,
+    'cause fear': SPELL_DISCIPLINE.ENCHANTMENT,
+    clairvoyance: SPELL_DISCIPLINE.DIVINATION,
+    'cure sickness': SPELL_DISCIPLINE.HEALING,
+    'charm monster': SPELL_DISCIPLINE.ENCHANTMENT,
+    'haste self': SPELL_DISCIPLINE.ESCAPE,
+    'detect unseen': SPELL_DISCIPLINE.DIVINATION,
+    levitation: SPELL_DISCIPLINE.ESCAPE,
+    'extra healing': SPELL_DISCIPLINE.HEALING,
+    'restore ability': SPELL_DISCIPLINE.HEALING,
+    invisibility: SPELL_DISCIPLINE.ESCAPE,
+    'detect treasure': SPELL_DISCIPLINE.DIVINATION,
+    'remove curse': SPELL_DISCIPLINE.CLERIC,
+    'magic mapping': SPELL_DISCIPLINE.DIVINATION,
+    identify: SPELL_DISCIPLINE.DIVINATION,
+    'turn undead': SPELL_DISCIPLINE.CLERIC,
+    polymorph: SPELL_DISCIPLINE.MATTER,
+    'teleport away': SPELL_DISCIPLINE.ESCAPE,
+    'create familiar': SPELL_DISCIPLINE.CLERIC,
+    cancellation: SPELL_DISCIPLINE.ESCAPE,
+    protection: SPELL_DISCIPLINE.HEALING,
+    jumping: SPELL_DISCIPLINE.ATTACK,
+    'stone to flesh': SPELL_DISCIPLINE.MATTER,
+    'chain lightning': SPELL_DISCIPLINE.MATTER,
+};
+
+const ROLE_ALLOWED_SPELL_DISCIPLINES = {
+    [PM_ARCHEOLOGIST]: new Set([
+        SPELL_DISCIPLINE.ATTACK,
+        SPELL_DISCIPLINE.HEALING,
+        SPELL_DISCIPLINE.DIVINATION,
+        SPELL_DISCIPLINE.MATTER,
+    ]),
+    [PM_BARBARIAN]: new Set([
+        SPELL_DISCIPLINE.ATTACK,
+        SPELL_DISCIPLINE.ESCAPE,
+    ]),
+    [PM_CAVEMAN]: new Set([
+        SPELL_DISCIPLINE.ATTACK,
+        SPELL_DISCIPLINE.MATTER,
+    ]),
+    [PM_HEALER]: new Set([
+        SPELL_DISCIPLINE.HEALING,
+    ]),
+    [PM_KNIGHT]: new Set([
+        SPELL_DISCIPLINE.ATTACK,
+        SPELL_DISCIPLINE.HEALING,
+        SPELL_DISCIPLINE.CLERIC,
+    ]),
+    [PM_MONK]: new Set([
+        SPELL_DISCIPLINE.ATTACK,
+        SPELL_DISCIPLINE.HEALING,
+        SPELL_DISCIPLINE.DIVINATION,
+        SPELL_DISCIPLINE.ENCHANTMENT,
+        SPELL_DISCIPLINE.CLERIC,
+        SPELL_DISCIPLINE.ESCAPE,
+        SPELL_DISCIPLINE.MATTER,
+    ]),
+    [PM_PRIEST]: new Set([
+        SPELL_DISCIPLINE.HEALING,
+        SPELL_DISCIPLINE.DIVINATION,
+        SPELL_DISCIPLINE.CLERIC,
+    ]),
+    [PM_ROGUE]: new Set([
+        SPELL_DISCIPLINE.DIVINATION,
+        SPELL_DISCIPLINE.ESCAPE,
+        SPELL_DISCIPLINE.MATTER,
+    ]),
+    [PM_RANGER]: new Set([
+        SPELL_DISCIPLINE.HEALING,
+        SPELL_DISCIPLINE.DIVINATION,
+        SPELL_DISCIPLINE.ESCAPE,
+    ]),
+    [PM_SAMURAI]: new Set([
+        SPELL_DISCIPLINE.ATTACK,
+        SPELL_DISCIPLINE.DIVINATION,
+        SPELL_DISCIPLINE.CLERIC,
+    ]),
+    [PM_TOURIST]: new Set([
+        SPELL_DISCIPLINE.DIVINATION,
+        SPELL_DISCIPLINE.ENCHANTMENT,
+        SPELL_DISCIPLINE.ESCAPE,
+    ]),
+    [PM_VALKYRIE]: new Set([
+        SPELL_DISCIPLINE.ATTACK,
+        SPELL_DISCIPLINE.ESCAPE,
+    ]),
+    [PM_WIZARD]: new Set([
+        SPELL_DISCIPLINE.ATTACK,
+        SPELL_DISCIPLINE.HEALING,
+        SPELL_DISCIPLINE.DIVINATION,
+        SPELL_DISCIPLINE.ENCHANTMENT,
+        SPELL_DISCIPLINE.CLERIC,
+        SPELL_DISCIPLINE.ESCAPE,
+        SPELL_DISCIPLINE.MATTER,
+    ]),
+};
+
+function spellDisciplineForRole(otyp, roleIndex) {
+    if (roleIndex === PM_PRIEST && otyp === SPE_LIGHT) {
+        // C ref: role.c role_init() remaps light to cleric skill for priests.
+        return SPELL_DISCIPLINE.CLERIC;
+    }
+    const name = objectData[otyp]?.name;
+    return SPELL_DISCIPLINE_BY_NAME[name] || null;
+}
+
+function restrictedSpellDiscipline(otyp, roleIndex) {
+    const discipline = spellDisciplineForRole(otyp, roleIndex);
+    if (!discipline) return false;
+    const allowed = ROLE_ALLOWED_SPELL_DISCIPLINES[roleIndex];
+    if (!allowed) return false;
+    return !allowed.has(discipline);
+}
+
 // ---- UNDEF_TYP Item Filter ----
 // C ref: u_init.c ini_inv_mkobj_filter() — create random object, reject dangerous items
-function iniInvMkobjFilter(oclass, gotSp1, roleIndex) {
+function iniInvMkobjFilter(oclass, gotSp1, roleIndex, race) {
     let trycnt = 0;
     while (true) {
         if (++trycnt > 1000) break; // fallback (shouldn't happen)
@@ -764,6 +909,7 @@ function iniInvMkobjFilter(oclass, gotSp1, roleIndex) {
         if (otyp === WAN_WISHING || otyp === nocreate
             || otyp === nocreate2 || otyp === nocreate3
             || otyp === nocreate4 || otyp === RIN_LEVITATION
+            || (otyp === RIN_POISON_RESISTANCE && race === RACE_ORC)
             || otyp === POT_HALLUCINATION || otyp === POT_ACID
             || otyp === SCR_AMNESIA || otyp === SCR_FIRE
             || otyp === SCR_BLANK_PAPER || otyp === SPE_BLANK_PAPER
@@ -772,7 +918,8 @@ function iniInvMkobjFilter(oclass, gotSp1, roleIndex) {
             || (otyp === SCR_ENCHANT_WEAPON && roleIndex === PM_MONK)
             || (otyp === SPE_FORCE_BOLT && roleIndex === PM_WIZARD)
             || (oclass === SPBOOK_CLASS
-                && ((objectData[otyp].oc2 || 0) > (gotSp1 ? 3 : 1)))
+                && ((objectData[otyp].oc2 || 0) > (gotSp1 ? 3 : 1)
+                    || restrictedSpellDiscipline(otyp, roleIndex)))
             || otyp === SPE_NOVEL) {
             continue; // reject, try again
         }
@@ -801,7 +948,7 @@ function iniInv(player, table) {
             otyp = trop.otyp;
         } else {
             // Random item: mkobj with filter
-            obj = iniInvMkobjFilter(trop.oclass, gotSp1, player.roleIndex);
+            obj = iniInvMkobjFilter(trop.oclass, gotSp1, player.roleIndex, player.race);
             otyp = obj.otyp;
             // C ref: u_init.c:1318-1337 — nocreate tracking
             switch (otyp) {
@@ -1026,8 +1173,8 @@ const ROLE_ATTRDIST = {
     4:  [30, 15, 15, 10, 20, 10],  // Knight
     5:  [25, 10, 20, 20, 15, 10],  // Monk
     6:  [15, 10, 30, 15, 20, 10],  // Priest
-    7:  [30, 10, 10, 20, 20, 10],  // Ranger
-    8:  [20, 10, 10, 30, 20, 10],  // Rogue
+    7:  [20, 10, 10, 30, 20, 10],  // Rogue
+    8:  [30, 10, 10, 20, 20, 10],  // Ranger
     9:  [30, 10, 8, 30, 14, 8],    // Samurai
     10: [15, 10, 10, 15, 30, 20],  // Tourist
     11: [30, 6, 7, 20, 30, 7],    // Valkyrie

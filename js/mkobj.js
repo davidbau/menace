@@ -51,6 +51,10 @@ let _levelDepth = 1;
 export function setLevelDepth(d) { _levelDepth = d; }
 let _inMklevContext = false;
 export function setMklevObjectContext(enabled) { _inMklevContext = !!enabled; }
+let _objectMoves = 1;
+export function setObjectMoves(moves) {
+    if (Number.isInteger(moves) && moves > 0) _objectMoves = moves;
+}
 let _startupInventoryMode = false;
 export function setStartupInventoryMode(enabled) {
     _startupInventoryMode = !!enabled;
@@ -258,6 +262,9 @@ function is_damageable(obj) {
 
 // C ref: mkobj.c may_generate_eroded(otmp)
 function may_generate_eroded(obj) {
+    // C ref: mkobj.c may_generate_eroded() -- suppress erosion generation
+    // for early startup objects while moves <= 1 unless in mklev context.
+    if (_objectMoves <= 1 && !_inMklevContext) return false;
     if (obj.oerodeproof) return false;
     if (!erosion_matters(obj) || !is_damageable(obj)) return false;
     if (obj.otyp === WORM_TOOTH || obj.otyp === UNICORN_HORN) return false;

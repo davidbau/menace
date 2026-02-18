@@ -23,7 +23,7 @@ import { makemon, setMakemonPlayerContext } from './makemon.js';
 import { movemon, initrack, settrack } from './monmove.js';
 import { FOV } from './vision.js';
 import { getArrivalPosition } from './level_transition.js';
-import { doname } from './mkobj.js';
+import { doname, setObjectMoves } from './mkobj.js';
 import { enexto } from './dungeon.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
 import {
@@ -364,6 +364,7 @@ export class HeadlessGame {
         this.levels = { [depth]: map };
         this.gameOver = false;
         this.turnCount = 0;
+        setObjectMoves(1); // C ref: svm.moves starts at 1
         this.wizard = true;
         this.dnum = Number.isInteger(opts.startDnum) ? opts.startDnum : undefined;
         this.dungeonAlignOverride = Number.isInteger(opts.dungeonAlignOverride)
@@ -744,6 +745,10 @@ export class HeadlessGame {
         settrack(this.player);
         this.turnCount++;
         this.player.turns = this.turnCount;
+        // C ref: allmain.c -- random spawn happens before svm.moves++.
+        // During this turn-end frame, mkobj-side erosion checks should
+        // still observe the pre-increment move count.
+        setObjectMoves(this.turnCount);
 
         // Minimal C-faithful wounded-legs timer (set_wounded_legs): while active,
         // DEX stays penalized; recover when timeout expires.
@@ -860,6 +865,9 @@ export class HeadlessGame {
         if (moves >= this.seerTurn) {
             this.seerTurn = moves + rn1(31, 15);
         }
+        // After turn-end completes, subsequent command processing observes
+        // the incremented move counter.
+        setObjectMoves(this.turnCount + 1);
     }
 
     // C ref: sounds.c:202-339 dosounds() — ambient level sounds

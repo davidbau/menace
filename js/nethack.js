@@ -17,6 +17,7 @@ import { initLevelGeneration, makelevel, setGameSeed } from './dungeon.js';
 import { TUTORIAL } from './special_levels.js';
 import { makemon, setMakemonPlayerContext } from './makemon.js';
 import { FOOD_CLASS } from './objects.js';
+import { setObjectMoves } from './mkobj.js';
 import { rhack } from './commands.js';
 import { movemon, settrack } from './monmove.js';
 import { simulatePostLevelInit, mon_arrive } from './u_init.js';
@@ -44,6 +45,7 @@ export class NetHackGame {
         this.gameOver = false;
         this.gameOverReason = '';
         this.turnCount = 0;
+        setObjectMoves(1); // C ref: svm.moves starts at 1
         this.wizard = false;  // C ref: flags.debug (wizard mode)
         this.seerTurn = 0;    // C ref: context.seer_turn — clairvoyance timer
         this.occupation = null; // C ref: cmd.c go.occupation — multi-turn action
@@ -301,6 +303,7 @@ export class NetHackGame {
         setMakemonPlayerContext(this.player);
         this.wizard = restored.wizard;
         this.turnCount = restored.turnCount;
+        setObjectMoves(this.turnCount + 1);
         this.seerTurn = restored.seerTurn;
 
         // Restore current level (saved first in v2 format)
@@ -1575,6 +1578,9 @@ export class NetHackGame {
 
         this.turnCount++;
         this.player.turns = this.turnCount;
+        // C ref: allmain.c -- random spawn happens before svm.moves++.
+        // Preserve pre-increment move count during this turn-end frame.
+        setObjectMoves(this.turnCount);
 
         // Minimal C-faithful wounded-legs timer (set_wounded_legs): while active,
         // DEX stays penalized; recover when timeout expires.
@@ -1692,6 +1698,7 @@ export class NetHackGame {
         }
 
         // Note: regen_hp() with rn2(100) is now handled above (before dosounds)
+        setObjectMoves(this.turnCount + 1);
     }
 
     // Backward-compatible alias kept for older harness/test utilities.
