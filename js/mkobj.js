@@ -982,6 +982,13 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
         else if (od.desc) base = `${od.desc} wand`;
         else base = `wand of ${od.name}`;
         break;
+    case WEAPON_CLASS:
+        // C ref: objnam.c xname() WEAPON_CLASS falls through to TOOL_CLASS.
+        // Unidentified weapons show appearance (desc) instead of actual name.
+        if (!dknown) base = od.desc || od.name;
+        else if (nameKnown) base = od.name;
+        else base = od.desc || od.name;
+        break;
     case TOOL_CLASS:
         // C ref: objnam.c xname() — lenses get "pair of ".
         if (obj.otyp === LENSES) {

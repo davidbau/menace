@@ -16,6 +16,7 @@ import { mons, G_FREQ, MZ_TINY, M2_NEUTER, M2_MALE, M2_FEMALE,
 import { rndmonnum } from './makemon.js';
 import { checkLevelUp } from './combat.js';
 import { nhgetch } from './input.js';
+import { nonliving, monDisplayName } from './mondata.js';
 
 // Direction vectors matching commands.js DIRECTION_KEYS
 const DIRECTION_KEYS = {
@@ -265,7 +266,10 @@ function dobuzz(player, map, display, type, nd, dx, dy, sx, sy) {
             mon.mhp -= damage;
             if (mon.mhp <= 0) {
                 mon.dead = true;
-                display.putstr_message(`You kill the ${mon.name}!`);
+                // C ref: nonliving monsters (undead, golems) are "destroyed" not "killed"
+                const mdat = mon.type || {};
+                const killVerb = nonliving(mdat) ? 'destroy' : 'kill';
+                display.putstr_message(`You ${killVerb} the ${monDisplayName(mon)}!`);
                 map.removeMonster(mon);
                 xkilled(mon, map, player, display);
             }

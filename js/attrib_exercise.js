@@ -2,7 +2,7 @@
 // Mirrors relevant parts of attrib.c (exercise(), exerper(), exerchk()).
 
 import { rn2, rn1 } from './rng.js';
-import { A_STR } from './config.js';
+import { A_STR, A_INT, A_CHA } from './config.js';
 
 const EXERCISE_LIMIT = 50;
 const DEFAULT_NEXT_CHECK = 600;
@@ -20,16 +20,22 @@ function ensureExerciseState(player) {
 
 // C ref: attrib.c exercise()
 export function exercise(player, attr, increase) {
-    const roll = increase ? rn2(19) : rn2(2);
-    if (!player || roll !== 0) return roll;
+    // C ref: attrib.c:489-490 — A_INT and A_CHA can't be exercised; no RNG consumed.
+    if (attr === A_INT || attr === A_CHA) return;
+    if (!player) return;
     ensureExerciseState(player);
     const cur = player.aexercise[attr] || 0;
+    // C ref: attrib.c:496 — if (abs(AEXE(i)) < AVAL) — skip when at exercise cap
+    if (Math.abs(cur) >= EXERCISE_LIMIT) return;
+    // C ref: attrib.c:506 — AEXE(i) += (inc) ? (rn2(19) > ACURR(i)) : -rn2(2);
     if (increase) {
-        player.aexercise[attr] = Math.min(EXERCISE_LIMIT, cur + 1);
+        const acurr = (player.attributes && player.attributes[attr]) || 10;
+        if (rn2(19) > acurr) {
+            player.aexercise[attr] = cur + 1;
+        }
     } else {
-        player.aexercise[attr] = Math.max(-EXERCISE_LIMIT, cur - 1);
+        player.aexercise[attr] = cur - rn2(2);
     }
-    return roll;
 }
 
 // C ref: attrib.c exerchk()
