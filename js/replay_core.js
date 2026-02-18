@@ -917,6 +917,7 @@ export async function replaySession(seed, session, opts = {}) {
         }
         let compact = raw.map(toCompactRng);
 
+        let forceCapturedMoreScreen = false;
         // C replay captures can split a single turn at "--More--".
         // Normalize by carrying unmatched trailing RNG to the next
         // space-acknowledgement step when current step has a known-matching prefix.
@@ -951,19 +952,30 @@ export async function replaySession(seed, session, opts = {}) {
                     deferredMoreBoundaryTarget = targetIdx;
                     raw = raw.slice(0, splitAt);
                     compact = compact.slice(0, splitAt);
+                } else if (firstRemainder && !firstNextExpected) {
+                    // Some sparse captures never record post-"--More--" turn continuation
+                    // RNG on subsequent steps. Keep the matching prefix and preserve the
+                    // captured prompt frame as authoritative for this boundary step.
+                    raw = raw.slice(0, splitAt);
+                    compact = compact.slice(0, splitAt);
+                    forceCapturedMoreScreen = true;
                 }
             }
         }
 
-        const normalizedScreen = Array.isArray(screen)
-            ? screen.map((line) => stripAnsiSequences(line))
+        const effectiveScreen = forceCapturedMoreScreen ? stepScreen : screen;
+        const normalizedScreen = Array.isArray(effectiveScreen)
+            ? effectiveScreen.map((line) => stripAnsiSequences(line))
             : [];
+        const capturedMoreAnsi = forceCapturedMoreScreen ? getSessionScreenAnsiLines(step || {}) : null;
         const normalizedScreenAnsi = opts.captureScreens
-            ? (Array.isArray(screenAnsiOverride)
+            ? (Array.isArray(capturedMoreAnsi) && capturedMoreAnsi.length > 0
+                ? capturedMoreAnsi
+                : (Array.isArray(screenAnsiOverride)
                 ? screenAnsiOverride
                 : ((typeof game.display?.getScreenAnsiLines === 'function')
                     ? game.display.getScreenAnsiLines()
-                    : null))
+                    : null)))
             : null;
         // Counted-search boundary normalization:
         // Some keylog gameplay captures place the final timed-occupation RNG
@@ -1107,6 +1119,7 @@ export async function replaySession(seed, session, opts = {}) {
             pushStepResult(
                 [],
                 opts.captureScreens ? game.display.getScreenLines() : undefined,
+                stepScreenAnsi,
                 step,
                 stepScreen,
                 stepIndex
@@ -1214,6 +1227,7 @@ export async function replaySession(seed, session, opts = {}) {
             pushStepResult(
                 stepLog,
                 opts.captureScreens ? game.display.getScreenLines() : undefined,
+                stepScreenAnsi,
                 step,
                 stepScreen,
                 stepIndex
