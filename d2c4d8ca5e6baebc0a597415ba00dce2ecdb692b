@@ -1,0 +1,44 @@
+{
+  "commit": "d2c4d8c",
+  "parent": "2e8f482",
+  "date": "2026-02-16T02:57:42-05:00",
+  "author": "David Bau",
+  "message": "Phase 1: extract browser bootstrap from NetHackGame core",
+  "stats": {
+    "total": 9933,
+    "pass": 565,
+    "fail": 9368,
+    "skip": 0,
+    "duration": 6
+  },
+  "categories": {
+    "chargen": {
+      "total": 181,
+      "pass": 178,
+      "fail": 3
+    },
+    "gameplay": {
+      "total": 59,
+      "pass": 00,
+      "fail": 59
+    },
+    "map": {
+      "total": 24,
+      "pass": 00,
+      "fail": 24
+    },
+    "special": {
+      "total": 101,
+      "pass": 98,
+      "fail": 3
+    },
+    "unit": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    }
+  },
+  "regression": false,
+  "newTests": 0,
+  "backfilled": true
+}
