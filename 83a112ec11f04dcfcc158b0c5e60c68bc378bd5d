@@ -1,0 +1,44 @@
+{
+  "commit": "83a112e",
+  "parent": "f223d5e",
+  "date": "2026-02-16T03:33:36-05:00",
+  "author": "David Bau",
+  "message": "Phase 3: unify headless runtime across session and selfplay",
+  "stats": {
+    "total": 3541,
+    "pass": 517,
+    "fail": 3024,
+    "skip": 0,
+    "duration": 31
+  },
+  "categories": {
+    "chargen": {
+      "total": 181,
+      "pass": 178,
+      "fail": 3
+    },
+    "gameplay": {
+      "total": 59,
+      "pass": 00,
+      "fail": 59
+    },
+    "map": {
+      "total": 14,
+      "pass": 00,
+      "fail": 14
+    },
+    "special": {
+      "total": 51,
+      "pass": 49,
+      "fail": 2
+    },
+    "unit": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    }
+  },
+  "regression": false,
+  "newTests": 0,
+  "backfilled": true
+}
