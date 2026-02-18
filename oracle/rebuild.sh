@@ -6,12 +6,23 @@ set -e
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 OUTPUT_FILE="$REPO_ROOT/oracle/results.jsonl"
+NO_FETCH=false
 
-# Pull latest test notes from remote
-echo "Fetching test notes from remote..."
-git fetch origin 2>/dev/null || echo "ℹ️  Could not fetch from remote"
+for arg in "$@"; do
+  case "$arg" in
+    --no-fetch) NO_FETCH=true ;;
+  esac
+done
 
-if git fetch origin refs/notes/test-results:refs/notes/test-results-remote 2>/dev/null; then
+if ! $NO_FETCH; then
+  # Pull latest test notes from remote
+  echo "Fetching test notes from remote..."
+  git fetch origin 2>/dev/null || echo "ℹ️  Could not fetch from remote"
+fi
+
+if $NO_FETCH; then
+  echo "Skipping fetch (--no-fetch)"
+elif git fetch origin refs/notes/test-results:refs/notes/test-results-remote 2>/dev/null; then
   echo "✅ Fetched test-results notes from remote"
 
   if git show-ref refs/notes/test-results >/dev/null 2>&1; then
@@ -47,6 +58,8 @@ if git fetch origin refs/notes/test-results:refs/notes/test-results-remote 2>/de
     git update-ref -d refs/notes/test-results-remote 2>/dev/null || true
     echo "✅ Initialized local notes from remote"
   fi
+else
+  echo "ℹ️  No remote test-results notes found"
 fi
 
 # Rebuild results.jsonl from notes

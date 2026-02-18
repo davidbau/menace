@@ -127,6 +127,13 @@ rm -rf "$WORK_DIR" "$INFRA_DIR" /tmp/rebackfill_commits.txt
 
 echo ""
 echo "Done: $((DONE - FAILED)) succeeded, $FAILED failed out of $TOTAL"
-echo ""
-echo "To sync: git push origin +refs/notes/test-results:refs/notes/test-results"
-echo "Then:    oracle/rebuild.sh"
+
+if [ "$((DONE - FAILED))" -gt 0 ]; then
+  echo ""
+  echo "Pushing notes to remote..."
+  git push --no-verify origin +refs/notes/test-results:refs/notes/test-results && echo "✅ Pushed notes" || echo "⚠️  Could not push notes"
+
+  echo ""
+  echo "Rebuilding results.jsonl..."
+  bash "$REPO_ROOT/oracle/rebuild.sh" --no-fetch
+fi
