@@ -127,3 +127,41 @@
   - Baseline (current main): survived `13/13`, avg depth `1.462`, depth>=3 `1/13`, XL2+ `1/13`, noProg `2.31`, failedAdd `43.85`.
   - Candidate: survived `13/13`, avg depth `1.462`, depth>=3 `1/13`, XL2+ `1/13`, noProg `2.08`, failedAdd `36.92`.
 - Net: no survival/progression regression with substantial failed-target churn reduction on holdout; keep.
+
+## 2026-02-18 - Keep: XP Checkpoint Telemetry for 600-Turn Tuning
+
+- Change:
+  - `selfplay/runner/c_runner.js`: emit `XP checkpoints: t100=... t200=... t400=... t600=...`.
+  - `selfplay/runner/c_role_matrix.js`: parse and summarize checkpoint XP (`avg t100/t200/t400/t600` and counts for `XP>=10`/`XP>=20` by turn 600).
+- Why: survival at 600 turns was strong, but progression remained shallow; we needed explicit "XP by 600" telemetry to tune for throughput instead of only survival/depth/churn.
+- Baseline evidence (holdout `31..43`, `turns=600`, `key-delay=0`):
+  - Survived `13/13`, avg depth `1.462`, XL2+ `1/13`.
+  - XP avg: `maxXP=8.23`, `t100=0.92`, `t200=1.77`, `t400=4.15`, `t600=8.23`.
+  - XP by turn 600: `>=10` in `4/13`, `>=20` in `1/13`.
+- Learning:
+  - Current policy is better at shallow survival than XP throughput.
+  - This creates a real long-run starvation risk if XP/kill pace does not improve.
+
+## 2026-02-18 - Rejected: XL1 Favorable-Fight XP Push Variants
+
+- Goal: increase XP accumulation by turn 600 (especially `XP>=10` and XL2+) by taking more early favorable fights.
+
+- Variant A (broad, in `danger.js`): engage at XL1 on Dlvl1-2 for isolated (`nearby=0`) fights up to `MEDIUM` danger when HP >= 80%.
+  - Holdout (`31..43`, 600 turns):
+    - Survived `12/13` (regression vs `13/13` baseline),
+    - XP avg `t600=6.92` (regression vs baseline `8.23`),
+    - XP>=10 by 600: `3/13` (regression vs `4/13`),
+    - XL2+ `0/13` (regression vs `1/13`).
+  - Net: rejected.
+
+- Variant B (narrow, in `agent.js`): force attack only for isolated `LOW`-danger adjacent monsters at XL1 with `XP<=2`, `HP>=90%`, Dlvl1.
+  - Holdout (`31..43`, 600 turns):
+    - Survived `12/13` (regression),
+    - XP avg `t600=7.38` (regression),
+    - XP>=10 by 600: `3/13` (regression),
+    - XL2+ `1/13` (flat), depth avg `1.462` (flat).
+  - Net: rejected.
+
+- Combined learning:
+  - Naive "fight more at XL1" rules reduced robustness and did not improve XP throughput in aggregate.
+  - Next XP-focused attempts should be more context-aware (weapon readiness, monster class, path safety, and escape routes), not simple HP + adjacency gating.
