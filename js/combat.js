@@ -8,10 +8,14 @@ import {
     mons, G_FREQ, G_NOCORPSE, MZ_TINY, MZ_HUMAN, M2_NEUTER, M2_MALE, M2_FEMALE, M2_COLLECT,
     MZ_LARGE,
     AT_CLAW, AT_BITE, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_WEAP,
-    S_ZOMBIE, S_MUMMY, S_VAMPIRE, S_WRAITH, S_LICH, S_GHOST, S_DEMON, S_KOP,
+    S_ZOMBIE, S_MUMMY, S_VAMPIRE, S_WRAITH, S_LICH, S_GHOST, S_DEMON, S_KOP, PM_SHADE,
 } from './monsters.js';
-import { CORPSE, FIGURINE, FOOD_CLASS, objectData } from './objects.js';
-import { mkobj, mkcorpstat, RANDOM_CLASS } from './mkobj.js';
+import {
+    CORPSE, FIGURINE, FOOD_CLASS, objectData,
+    POTION_CLASS, POT_HEALING, POT_EXTRA_HEALING, POT_FULL_HEALING,
+    POT_RESTORE_ABILITY, POT_GAIN_ABILITY,
+} from './objects.js';
+import { mkobj, mkcorpstat, RANDOM_CLASS, next_ident } from './mkobj.js';
 import { nonliving, monDisplayName } from './mondata.js';
 import { obj_resists } from './objdata.js';
 
@@ -69,6 +73,109 @@ function monsterHitVerb(attackType) {
     }
 }
 
+function consumeMeleePotion(player, weapon) {
+    const potion = { ...weapon, quan: 1 };
+    if ((weapon.quan || 1) > 1) {
+        weapon.quan = (weapon.quan || 1) - 1;
+        potion.o_id = next_ident();
+    } else {
+        player.removeFromInventory(weapon);
+        if (player.weapon === weapon) player.weapon = null;
+        if (player.swapWeapon === weapon) player.swapWeapon = null;
+        if (player.quiver === weapon) player.quiver = null;
+    }
+    return potion;
+}
+
+function potionHealsMonster(potion) {
+    if (!potion) return false;
+    return potion.otyp === POT_HEALING
+        || potion.otyp === POT_EXTRA_HEALING
+        || potion.otyp === POT_FULL_HEALING
+        || potion.otyp === POT_RESTORE_ABILITY
+        || potion.otyp === POT_GAIN_ABILITY;
+}
+
+// C ref: uhitm.c hmon_hitmon_potion() -> potion.c potionhit()
+function hitMonsterWithPotion(player, monster, display, weapon) {
+    const potion = consumeMeleePotion(player, weapon);
+    const bottleChoices = player?.hallucinating ? 24 : 7;
+    rn2(bottleChoices); // bottlename()
+
+    // C ref: potion.c:1671
+    if (rn2(5) && monster.mhp > 1) {
+        monster.mhp--;
+    }
+
+    if (potionHealsMonster(potion) && monster.mhp < (monster.mhpmax || monster.mhp)) {
+        monster.mhp = monster.mhpmax || monster.mhp;
+        display.putstr_message(`The ${monDisplayName(monster)} looks sound and hale again.`);
+    }
+
+    // C ref: potion.c:1893 — distance<3 && !rn2((1+DEX)/2) gate for potionbreathe()
+    const dex = player.attributes?.[A_DEX] ?? 10;
+    const breatheDenom = Math.max(1, Math.floor((1 + dex) / 2));
+    rn2(breatheDenom);
+}
+
+function handleMonsterKilled(player, monster, display, map) {
+    // C ref: uhitm.c -> mon.c mondead() -> killed() -> xkilled()
+    const mdat = monster.type || {};
+    const killVerb = nonliving(mdat) ? 'destroy' : 'kill';
+    display.putstr_message(`You ${killVerb} the ${monDisplayName(monster)}!`);
+    monster.dead = true;
+
+    // C ref: exper.c experience() -- roughly monster level * level
+    const exp = (monster.mlevel + 1) * (monster.mlevel + 1);
+    player.exp += exp;
+    player.score += exp;
+    checkLevelUp(player, display);
+
+    // C ref: mon.c:3581-3609 xkilled() — "illogical but traditional" treasure drop.
+    const treasureRoll = rn2(6);
+    const canDropTreasure = treasureRoll === 0
+        && !((mdat.geno || 0) & G_NOCORPSE)
+        && !monster.mcloned
+        && (monster.mx !== player.x || monster.my !== player.y)
+        && mdat.symbol !== S_KOP;
+    if (canDropTreasure && map) {
+        const otmp = mkobj(RANDOM_CLASS, true, false);
+        const flags2 = mdat.flags2 || 0;
+        const isSmallMonster = (mdat.size || 0) < MZ_HUMAN;
+        const isPermaFood = otmp && otmp.oclass === FOOD_CLASS && !otmp.oartifact;
+        const dropTooBig = isSmallMonster && !!otmp
+            && otmp.otyp !== FIGURINE
+            && ((otmp.owt || 0) > 30 || !!objectData[otmp.otyp]?.oc_big);
+        if (isPermaFood && !(flags2 & M2_COLLECT)) {
+            obj_resists(otmp, 0, 0);
+        } else if (dropTooBig) {
+            obj_resists(otmp, 0, 0);
+        } else {
+            otmp.ox = monster.mx;
+            otmp.oy = monster.my;
+            map.objects.push(otmp);
+        }
+    }
+
+    // C ref: mon.c:3243 corpse_chance()
+    const gfreq = (mdat.geno || 0) & G_FREQ;
+    const verysmall = (mdat.size || 0) === MZ_TINY;
+    const corpsetmp = 2 + (gfreq < 2 ? 1 : 0) + (verysmall ? 1 : 0);
+    const createCorpse = !rn2(corpsetmp);
+
+    if (createCorpse) {
+        const corpse = mkcorpstat(CORPSE, monster.mndx || 0, true);
+        corpse.age = Math.max((player?.turns || 0) + 1, 1);
+        if (map) {
+            corpse.ox = monster.mx;
+            corpse.oy = monster.my;
+            map.objects.push(corpse);
+        }
+    }
+
+    return true;
+}
+
 // Attack a monster (hero attacking)
 // C ref: uhitm.c attack() -> hmon_hitmon() -> hmon_hitmon_core()
 export function playerAttackMonster(player, monster, display, map) {
@@ -102,6 +209,26 @@ export function playerAttackMonster(player, monster, display, map) {
     // C ref: uhitm.c:742 exercise(A_DEX, TRUE) on successful hit
     exercise(player, A_DEX, true);
 
+    if (player.weapon && player.weapon.oclass === POTION_CLASS) {
+        hitMonsterWithPotion(player, monster, display, player.weapon);
+        // C ref: uhitm.c hmon_hitmon_potion() sets base damage to 1 (or 0 vs shade)
+        // after potionhit(), then proceeds through normal kill/flee/passive handling.
+        if ((monster.mndx ?? -1) !== PM_SHADE) {
+            monster.mhp -= 1;
+        }
+        if (monster.mhp <= 0) {
+            return handleMonsterKilled(player, monster, display, map);
+        }
+        // C ref: uhitm.c:624-628 known_hitum() — 1/25 morale/flee check on surviving hit
+        if (!rn2(25) && monster.mhp < Math.floor((monster.mhpmax || 1) / 2)) {
+            // C ref: monflee(mon, !rn2(3) ? rnd(100) : 0, ...) — flee timer
+            if (!rn2(3)) rnd(100);
+        }
+        // C ref: uhitm.c:5997 passive() — rn2(3) when monster alive after attack
+        rn2(3);
+        return false;
+    }
+
     // Hit! Calculate damage
     // C ref: weapon.c:265 dmgval() -- rnd(oc_wsdam) for small monsters
     let damage = 0;
@@ -133,77 +260,8 @@ export function playerAttackMonster(player, monster, display, map) {
     monster.mhp -= damage;
 
     if (monster.mhp <= 0) {
-        // Monster killed
-        // C ref: uhitm.c -> mon.c mondead() -> killed() -> xkilled()
-        // C ref: nonliving monsters (undead, golems) are "destroyed" not "killed"
-        const mdat = monster.type || {};
-        const killVerb = nonliving(mdat) ? 'destroy' : 'kill';
-        display.putstr_message(`You ${killVerb} the ${monDisplayName(monster)}!`);
-        monster.dead = true;
-
-        // Award experience
-        // C ref: exper.c experience() -- roughly monster level * level
-        const exp = (monster.mlevel + 1) * (monster.mlevel + 1);
-        player.exp += exp;
-        player.score += exp;
-
-        // Check for level-up
-        checkLevelUp(player, display);
-
-        // C ref: mon.c:3581-3609 xkilled() — "illogical but traditional" treasure drop.
-        const treasureRoll = rn2(6);
-        // C ref: mon.c:3582 — mvitals[mndx].mvflags & G_NOCORPSE (init'd from geno)
-        const canDropTreasure = treasureRoll === 0
-            && !((mdat.geno || 0) & G_NOCORPSE)
-            && !monster.mcloned
-            && (monster.mx !== player.x || monster.my !== player.y)
-            && mdat.symbol !== S_KOP;
-        if (canDropTreasure && map) {
-            const otmp = mkobj(RANDOM_CLASS, true, false);
-            const flags2 = mdat.flags2 || 0;
-            const isSmallMonster = (mdat.size || 0) < MZ_HUMAN;
-            const isPermaFood = otmp && otmp.oclass === FOOD_CLASS && !otmp.oartifact;
-            // C ref: mon.c:3600 — FIGURINE exempted from size check
-            const dropTooBig = isSmallMonster && !!otmp
-                && otmp.otyp !== FIGURINE
-                && ((otmp.owt || 0) > 30 || !!objectData[otmp.otyp]?.oc_big);
-            if (isPermaFood && !(flags2 & M2_COLLECT)) {
-                // C ref: mon.c:3599 delobj(otmp) — consumes rn2(100) via obj_resists
-                obj_resists(otmp, 0, 0);
-            } else if (dropTooBig) {
-                // C ref: mon.c:3606 delobj(otmp) — consumes rn2(100) via obj_resists
-                obj_resists(otmp, 0, 0);
-            } else {
-                otmp.ox = monster.mx;
-                otmp.oy = monster.my;
-                map.objects.push(otmp);
-            }
-        }
-
-        // C ref: mon.c:3243 corpse_chance() — decide whether to create corpse
-        const gfreq = (mdat.geno || 0) & G_FREQ;
-        const verysmall = (mdat.size || 0) === MZ_TINY;
-        const corpsetmp = 2 + (gfreq < 2 ? 1 : 0) + (verysmall ? 1 : 0);
-        const createCorpse = !rn2(corpsetmp);
-
-        if (createCorpse) {
-            // C ref: mon.c make_corpse() default path:
-            // mkcorpstat(CORPSE, mtmp/mdat, CORPSTAT_INIT).
-            const corpse = mkcorpstat(CORPSE, monster.mndx || 0, true);
-            // C ref: mkobj.c mksobj_init() — otmp->age = max(svm.moves, 1L).
-            // During gameplay replay, svm.moves aligns to completed turns + 1.
-            corpse.age = Math.max((player?.turns || 0) + 1, 1);
-
-            // Place corpse on the map so pets can find it.
-            if (map) {
-                corpse.ox = monster.mx;
-                corpse.oy = monster.my;
-                map.objects.push(corpse);
-            }
-        }
-
-        // C ref: uhitm.c:5997 passive() — SKIPPED when monster is killed
-        return true; // monster is dead
+        // C ref: uhitm.c:5997 passive() — skipped when monster is killed
+        return handleMonsterKilled(player, monster, display, map);
     } else {
         // C ref: uhitm.c -- various hit messages
         if (dieRoll >= 18) {

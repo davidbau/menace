@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { initRng } from '../../js/rng.js';
 import { Player, roles } from '../../js/player.js';
 import { playerAttackMonster, monsterAttackPlayer, checkLevelUp } from '../../js/combat.js';
+import { POTION_CLASS, POT_HEALING } from '../../js/objects.js';
 
 // Mock display object
 const mockDisplay = {
@@ -118,5 +119,56 @@ describe('Combat system', () => {
 
         assert.ok(hitsEasy >= hitsHard,
             `Should hit AC 10 (${hitsEasy}) more often than AC 0 (${hitsHard})`);
+    });
+
+    it('melee with a wielded healing potion uses potion-hit behavior', () => {
+        initRng(42);
+        const p = new Player();
+        p.initRole(0);
+        p.level = 30; // ensure hit in this test
+        const potion = {
+            otyp: POT_HEALING,
+            oclass: POTION_CLASS,
+            quan: 2,
+            invlet: 'a',
+            name: 'potion of healing',
+        };
+        p.inventory = [potion];
+        p.weapon = potion;
+
+        const mon = makeMonster({ name: 'kobold zombie', mhp: 3, mhpmax: 10, ac: 10 });
+        const messages = [];
+        const display = {
+            putstr_message: (msg) => messages.push(msg),
+            putstr() {},
+        };
+        playerAttackMonster(p, mon, display);
+
+        assert.equal(potion.quan, 1, 'wielded potion stack should decrement by one');
+        assert.equal(p.weapon, potion, 'remaining potion stack should stay wielded');
+        assert.equal(mon.mhp, 9, 'healing potion melee-hit should still apply base melee damage');
+        assert.equal(messages.at(-1), 'The kobold zombie looks sound and hale again.');
+    });
+
+    it('single wielded potion is consumed on melee hit', () => {
+        initRng(42);
+        const p = new Player();
+        p.initRole(0);
+        p.level = 30; // ensure hit in this test
+        const potion = {
+            otyp: POT_HEALING,
+            oclass: POTION_CLASS,
+            quan: 1,
+            invlet: 'a',
+            name: 'potion of healing',
+        };
+        p.inventory = [potion];
+        p.weapon = potion;
+
+        const mon = makeMonster({ mhp: 3, mhpmax: 10, ac: 10 });
+        playerAttackMonster(p, mon, mockDisplay);
+
+        assert.equal(p.inventory.length, 0, 'single potion should be removed from inventory');
+        assert.equal(p.weapon, null, 'wielded potion should be cleared when consumed');
     });
 });
