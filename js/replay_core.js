@@ -1449,7 +1449,9 @@ export async function replaySession(seed, session, opts = {}) {
                 // the next command. Replay this for menu-driven traces.
                 if (priorPendingKind === 'inventory-menu'
                     && step.key.length === 1
-                    && step.key !== ' ') {
+                    && step.key !== ' '
+                    && step.key !== '\n'
+                    && step.key !== '\r') {
                     if (step.key === ':') {
                         if (Array.isArray(stepScreen) && stepScreen.length > 0 && game.display?.setScreenLines) {
                             game.display.setScreenLines(stepScreen);
@@ -1612,7 +1614,7 @@ export async function replaySession(seed, session, opts = {}) {
         if (result && result.tookTime) {
             const timedSteps = Math.max(1, Number.isInteger(result.runSteps) ? result.runSteps : 1);
             for (let i = 0; i < timedSteps; i++) {
-                if ((game.multi > 0 || game.occupation) && game?.display) {
+                if (i > 0 && (game.multi > 0 || game.occupation) && game?.display) {
                     game.display.clearRow(0);
                     game.display.topMessage = null;
                     game.display.messageNeedsMore = false;
@@ -1650,6 +1652,13 @@ export async function replaySession(seed, session, opts = {}) {
 
             // C ref: allmain.c moveloop() — multi-count repeats execute before
             // accepting the next keyboard input.
+            const cmdKeyChar = String.fromCharCode(game.cmdKey || 0);
+            const repeatedMoveCmd = game.cmdKey === 10
+                || game.cmdKey === 13
+                || 'hjklyubn'.includes(cmdKeyChar);
+            if (repeatedMoveCmd && result.moved === false) {
+                game.multi = 0;
+            }
             while (game.multi > 0) {
                 if (reachedFinalRecordedStepTarget()) break;
                 // C ref: allmain.c:519-526 lookaround() can clear multi before
@@ -1666,6 +1675,10 @@ export async function replaySession(seed, session, opts = {}) {
                 applyTimedTurn();
                 if (reachedFinalRecordedStepTarget()) break;
                 syncHpFromStepScreen();
+                if (repeatedMoveCmd && repeated.moved === false) {
+                    game.multi = 0;
+                    break;
+                }
                 if (game.player.justHealedLegs
                     && (game.cmdKey === 46 || game.cmdKey === 115)
                     && (stepScreen[0] || '').includes('Your leg feels better.  You stop searching.')) {

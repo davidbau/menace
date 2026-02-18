@@ -80,6 +80,21 @@ describe('throw prompt behavior', () => {
         assert.equal(game.display.messages[0], 'What do you want to throw? [*]');
     });
 
+    it('falls back to coin letter when only wielded weapon plus coins remain', async () => {
+        const game = makeGame();
+        game.player.inventory = [
+            { invlet: 'a', oclass: 1, name: 'scalpel' },
+            { invlet: '$', oclass: 11, name: 'gold piece', quan: 50 },
+            { invlet: 'e', oclass: 7, name: 'potion of extra healing', quan: 4 },
+        ];
+        game.player.weapon = game.player.inventory[0];
+        game.player.quiver = game.player.inventory[2];
+        pushInput(27);
+        const result = await rhack('t'.charCodeAt(0), game);
+        assert.equal(result.tookTime, false);
+        assert.equal(game.display.messages[0], 'What do you want to throw? [$ or ?*]');
+    });
+
     it('single throw clears direction prompt without synthetic throw topline', async () => {
         const game = makeGame();
         pushInput('b'.charCodeAt(0));
@@ -91,6 +106,21 @@ describe('throw prompt behavior', () => {
         assert.equal(game.display.messages[1], 'In what direction?');
         assert.equal(game.display.messages.length, 2);
         assert.equal(game.display.topMessage, null);
+    });
+
+    it('throw at adjacent monster emits miss message and lands at target square', async () => {
+        const game = makeGame();
+        game.map.monsters.push({ mx: 11, my: 10, mhp: 5, name: 'kitten' });
+        pushInput('b'.charCodeAt(0));
+        pushInput('l'.charCodeAt(0));
+
+        const result = await rhack('t'.charCodeAt(0), game);
+        assert.equal(result.tookTime, true);
+        assert.equal(game.display.messages.at(-1), 'The dagger misses the kitten.');
+        const thrown = game.map.objects.find((o) => o.name === 'dagger');
+        assert.ok(thrown);
+        assert.equal(thrown.ox, 11);
+        assert.equal(thrown.oy, 10);
     });
 
     it('asks direction before rejecting worn item throw', async () => {

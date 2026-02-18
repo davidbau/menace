@@ -65,3 +65,18 @@ test('read prompt includes readable inventory letters in C format', async () => 
     assert.equal(game.display.messages[0], 'What do you want to read? [ghi or ?*]');
     assert.equal(game.display.topMessage, 'Never mind.');
 });
+
+test('reading a spellbook prompts for memory refresh', async () => {
+    const game = makeGame();
+    game.player.inventory = [
+        { invlet: 'i', oclass: 9, name: 'stone to flesh' },
+    ];
+    clearInputQueue();
+    pushInput('i'.charCodeAt(0));
+    pushInput('n'.charCodeAt(0));
+
+    const result = await rhack('r'.charCodeAt(0), game);
+    assert.equal(result.tookTime, false);
+    assert.equal(game.display.messages[0], 'What do you want to read? [i or ?*]');
+    assert.equal(game.display.topMessage, 'Refresh your memory anyway? [yn] (n)');
+});

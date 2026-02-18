@@ -56,4 +56,16 @@ describe('run/rush prefix validation', () => {
         assert.equal(game.runMode, 0);
         assert.equal(game.display.topMessage, "Unknown command ' '.");
     });
+
+    it('shows double-rush cancellation message even when verbose is off', async () => {
+        const game = makeGame();
+        const first = await rhack('g'.charCodeAt(0), game);
+        assert.equal(first.tookTime, false);
+        assert.equal(game.runMode, 2);
+
+        const second = await rhack('g'.charCodeAt(0), game);
+        assert.equal(second.tookTime, false);
+        assert.equal(game.runMode, 0);
+        assert.equal(game.display.topMessage, 'Double rush prefix, canceled.');
+    });
 });

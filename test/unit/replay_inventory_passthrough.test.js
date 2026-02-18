@@ -32,4 +32,32 @@ describe('replay inventory modal handling', () => {
         assert.match((replay.steps[1].screen || [])[0] || '', /Weapons/);
         assert.equal(replay.steps[1].rngCalls || 0, 0);
     });
+
+    it('does not passthrough Enter after dismissing inventory', async () => {
+        const session = {
+            version: 3,
+            seed: 1,
+            options: {
+                name: 'Wizard',
+                role: 'Valkyrie',
+                race: 'human',
+                gender: 'female',
+                align: 'neutral',
+            },
+            steps: [
+                { key: null, action: 'startup', rng: [], screen: [] },
+                { key: 'i', action: 'inventory', rng: [], screen: [] },
+                { key: '\n', action: 'key-', rng: [], screen: [] },
+            ],
+        };
+
+        const replay = await replaySession(1, session, {
+            captureScreens: true,
+            startupBurstInFirstStep: false,
+        });
+
+        assert.equal(replay.steps.length, 2);
+        assert.equal(replay.steps[1].rngCalls || 0, 0);
+        assert.doesNotMatch((replay.steps[1].screen || [])[0] || '', /Unknown command|You see no|Do what|Weapons/);
+    });
 });

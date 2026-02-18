@@ -326,6 +326,7 @@ function newobj(otyp) {
         dknown: false,
         bknown: false,
         name: objectData[otyp].name,
+        oname: '',
     };
 }
 
@@ -1106,6 +1107,10 @@ export function doname(obj, player) {
     let result = `${prefix}${baseName}`.trimStart();
     if (quan === 1 && !result.startsWith('the ')) {
         result = `${just_an(result)} ${result}`;
+    }
+    const objGivenName = typeof obj.oname === 'string' ? obj.oname : '';
+    if (objGivenName.length > 0) {
+        result += ` named ${objGivenName}`;
     }
 
     // Suffix: worn/wielded/charges

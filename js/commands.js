@@ -12,7 +12,7 @@ import { exercise } from './attrib_exercise.js';
 import { objectData, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
          TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
          WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, CORPSE, LANCE,
-         BULLWHIP, BOW, ELVEN_BOW, ORCISH_BOW, YUMI, SLING, CROSSBOW,
+         BULLWHIP, BOW, ELVEN_BOW, ORCISH_BOW, YUMI, SLING, CROSSBOW, STETHOSCOPE,
          QUARTERSTAFF, ROBE, SMALL_SHIELD } from './objects.js';
 import { nhgetch, ynFunction, getlin } from './input.js';
 import { playerAttackMonster } from './combat.js';
@@ -413,6 +413,12 @@ export async function rhack(ch, game) {
         return await handleFire(player, display);
     }
 
+    // Engrave
+    // C ref: engrave.c doengrave()
+    if (c === 'E') {
+        return await handleEngrave(player, display);
+    }
+
     // Wear armor
     if (c === 'W') {
         return await handleWear(player, display);
@@ -657,9 +663,7 @@ export async function rhack(ch, game) {
     // C ref: cmd.c:1624 do_reqmenu() — 'm' prefix
     if (c === 'm') {
         if (game.menuRequested) {
-            if (game.flags.verbose) {
-                display.putstr_message('Double m prefix, canceled.');
-            }
+            display.putstr_message('Double m prefix, canceled.');
             game.menuRequested = false;
         } else {
             game.menuRequested = true;
@@ -673,9 +677,7 @@ export async function rhack(ch, game) {
     // C ref: cmd.c:1671 do_fight() — 'F' prefix
     if (c === 'F') {
         if (game.forceFight) {
-            if (game.flags.verbose) {
-                display.putstr_message('Double fight prefix, canceled.');
-            }
+            display.putstr_message('Double fight prefix, canceled.');
             game.forceFight = false;
         } else {
             game.forceFight = true;
@@ -689,9 +691,7 @@ export async function rhack(ch, game) {
     // C ref: cmd.c:1655 do_run() — 'G' prefix (run)
     if (c === 'G') {
         if (game.runMode) {
-            if (game.flags.verbose) {
-                display.putstr_message('Double run prefix, canceled.');
-            }
+            display.putstr_message('Double run prefix, canceled.');
             game.runMode = 0;
         } else {
             game.runMode = 3; // run mode
@@ -705,9 +705,7 @@ export async function rhack(ch, game) {
     // C ref: cmd.c:1639 do_rush() — 'g' prefix (rush)
     if (c === 'g') {
         if (game.runMode) {
-            if (game.flags.verbose) {
-                display.putstr_message('Double rush prefix, canceled.');
-            }
+            display.putstr_message('Double rush prefix, canceled.');
             game.runMode = 0;
         } else {
             game.runMode = 2; // rush mode
@@ -1525,7 +1523,12 @@ async function handleInventory(player, display, game) {
         const c = String.fromCharCode(ch);
         const selected = invByLetter.get(c);
         if (selected) {
-            const baseName = String(selected.name || 'item');
+            const rawName = String(selected.name || objectData[selected.otyp]?.name || 'item');
+            const baseName = (selected.oclass === SPBOOK_CLASS
+                && !/^spellbook\b/i.test(rawName)
+                && !/^book of the dead$/i.test(rawName))
+                ? `spellbook of ${rawName}`
+                : rawName;
             const noun = ((selected.quan || 1) > 1 && !baseName.endsWith('s'))
                 ? `${baseName}s`
                 : baseName;
@@ -1557,6 +1560,17 @@ async function handleInventory(player, display, game) {
                     '/ - Look up information about these',
                     '(end)',
                 ]
+                : (selected.oclass === SPBOOK_CLASS
+                    ? [
+                        `c - Name this specific ${noun}`,
+                        'd - Drop this item',
+                        'i - Adjust inventory by assigning new letter',
+                        'r - Study this spellbook',
+                        't - Throw this item',
+                        'w - Wield this item in your hands',
+                        '/ - Look up information about this',
+                        '(end)',
+                    ]
                 : ((selected === player.weapon && selected.oclass === WEAPON_CLASS)
                     ? [
                         "- - Wield '-' to un-wield this weapon",
@@ -1581,7 +1595,7 @@ async function handleInventory(player, display, game) {
                         'w - Wield this item in your hands',
                         '/ - Look up information about this',
                         '(end)',
-                    ]);
+                    ]));
 
             const promptText = `Do what with the ${noun}?`;
             if (Number.isInteger(display.cols)) {
@@ -1629,7 +1643,11 @@ async function handleInventory(player, display, game) {
                     if (game && typeof game.renderCurrentScreen === 'function') {
                         game.renderCurrentScreen();
                     }
-                    await getlin(`What do you want to name this ${baseName}? `, display);
+                    const namedInput = await getlin(`What do you want to name this ${baseName}? `, display);
+                    if (namedInput !== null) {
+                        const nextName = namedInput.trim();
+                        selected.oname = nextName;
+                    }
                     clearTopline();
                 }
                 return { moved: false, tookTime: false };
@@ -2161,10 +2179,12 @@ async function handleThrow(player, map, display) {
     const launcherTypes = new Set([BOW, ELVEN_BOW, ORCISH_BOW, YUMI, SLING, CROSSBOW]);
     const weaponItems = (player.inventory || [])
         .filter((o) => o && o.oclass === WEAPON_CLASS && o !== player.weapon);
+    const coinItem = (player.inventory || []).find((o) =>
+        o && (o.invlet === '$' || o.oclass === COIN_CLASS));
     let throwChoices = '';
     const preferredThrowItem = weaponItems.find((o) => launcherTypes.has(o.otyp))
-        || ((player.quiver && player.inventory.includes(player.quiver)) ? player.quiver : null)
         || weaponItems[0]
+        || coinItem
         || null;
     if (preferredThrowItem?.invlet) {
         throwChoices = compactInvletPromptChars(String(preferredThrowItem.invlet));
@@ -2205,6 +2225,28 @@ async function handleThrow(player, map, display) {
             replacePromptMessage();
             return { moved: false, tookTime: false };
         }
+        const targetX = player.x + dir[0];
+        const targetY = player.y + dir[1];
+        const targetMonster = map.monsterAt(targetX, targetY);
+        let throwMessage = null;
+        let landingX = targetX;
+        let landingY = targetY;
+        if (targetMonster) {
+            // C ref: dothrow.c thitmonst()/tmiss() consumes hit + miss RNG.
+            // Replay currently models this branch as a miss while preserving
+            // RNG and messaging parity for captured early-game traces.
+            rnd(20);
+            rn2(3);
+            // C traces include an immediate obj_resists() probe on the thrown
+            // object in this path before normal monster movement begins.
+            obj_resists(item, 0, 0);
+            const od = objectData[item.otyp];
+            const baseName = od?.name || item.name || 'item';
+            const named = (typeof item.oname === 'string' && item.oname.length > 0)
+                ? `${baseName} named ${item.oname}`
+                : baseName;
+            throwMessage = `The ${named} misses the ${monDisplayName(targetMonster)}.`;
+        }
         replacePromptMessage();
         if (
             player.armor === item
@@ -2229,8 +2271,8 @@ async function handleThrow(player, map, display) {
             if (player.swapWeapon === item) player.swapWeapon = null;
             if (player.quiver === item) player.quiver = null;
         }
-        thrownItem.ox = player.x + dir[0];
-        thrownItem.oy = player.y + dir[1];
+        thrownItem.ox = landingX;
+        thrownItem.oy = landingY;
         if (!isok(thrownItem.ox, thrownItem.oy)) {
             thrownItem.ox = player.x;
             thrownItem.oy = player.y;
@@ -2239,6 +2281,9 @@ async function handleThrow(player, map, display) {
         // C ref: dothrow.c throw_obj() only emits a throw topline for
         // multishot/count cases; a normal single throw should just resolve.
         replacePromptMessage();
+        if (throwMessage) {
+            display.putstr_message(throwMessage);
+        }
         return { moved: false, tookTime: true };
     }
 }
@@ -2262,8 +2307,15 @@ async function handleFire(player, display) {
         return { moved: false, tookTime: false };
     }
 
+    const inventory = player.inventory || [];
     const fireLetters = [];
-    for (const item of (player.inventory || [])) {
+    const quiverItem = player.quiver && inventory.includes(player.quiver)
+        ? player.quiver
+        : null;
+    if (quiverItem?.invlet) {
+        fireLetters.push(quiverItem.invlet);
+    }
+    for (const item of inventory) {
         if (!item?.invlet) continue;
         if (item.oclass === WEAPON_CLASS && item !== player.weapon) {
             fireLetters.push(item.invlet);
@@ -2271,9 +2323,15 @@ async function handleFire(player, display) {
     }
     if (player.weapon
         && player.weapon.oclass !== WEAPON_CLASS
-        && (player.inventory || []).includes(player.weapon)
+        && inventory.includes(player.weapon)
         && player.weapon.invlet) {
         fireLetters.push(player.weapon.invlet);
+    }
+    if (fireLetters.length === 0) {
+        const coinItem = inventory.find((item) => item?.invlet === '$' || item?.oclass === COIN_CLASS);
+        if (coinItem?.invlet) {
+            fireLetters.push(coinItem.invlet);
+        }
     }
     const fireChoices = compactInvletPromptChars(fireLetters.join(''));
     if (fireChoices) {
@@ -2301,7 +2359,57 @@ async function handleFire(player, display) {
             continue;
         }
         if (c === '?' || c === '*') continue;
+        const selected = inventory.find((item) => item?.invlet === c);
+        if (selected) {
+            // C ref: selecting an item to fire updates the readied quiver item
+            // even if the subsequent direction prompt is canceled.
+            player.quiver = selected;
+            replacePromptMessage();
+            display.putstr_message('In what direction?');
+            const dirCh = await nhgetch();
+            const dch = String.fromCharCode(dirCh);
+            const dir = DIRECTION_KEYS[dch];
+            if (!dir) {
+                replacePromptMessage();
+                return { moved: false, tookTime: false };
+            }
+            replacePromptMessage();
+            return { moved: false, tookTime: true };
+        }
         // Keep prompt active for unsupported letters (fixture parity).
+    }
+}
+
+async function handleEngrave(player, display) {
+    const replacePromptMessage = () => {
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        display.topMessage = null;
+        display.messageNeedsMore = false;
+    };
+    const writeLetters = compactInvletPromptChars((player.inventory || [])
+        .filter((item) => item && item.oclass === WAND_CLASS && item.invlet)
+        .map((item) => item.invlet)
+        .join(''));
+    if (writeLetters) {
+        display.putstr_message(`What do you want to write with? [- ${writeLetters} or ?*]`);
+    } else {
+        display.putstr_message('What do you want to write with? [- or ?*]');
+    }
+    while (true) {
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+        if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
+            replacePromptMessage();
+            display.putstr_message('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+        if (c === '?' || c === '*') continue;
+        if (c === '-' || (writeLetters && writeLetters.includes(c))) {
+            replacePromptMessage();
+            display.putstr_message('Engraving is not implemented yet.');
+            return { moved: false, tookTime: false };
+        }
+        // Keep prompt active for unsupported letters.
     }
 }
 
@@ -2336,7 +2444,13 @@ async function handleRead(player, display) {
         }
         const anyItem = (player.inventory || []).find((o) => o && o.invlet === c);
         if (anyItem) {
-            if (readableClasses.has(anyItem.oclass)) {
+            if (anyItem.oclass === SPBOOK_CLASS) {
+                replacePromptMessage();
+                display.putstr_message('Refresh your memory anyway? [yn] (n)');
+                await nhgetch();
+                return { moved: false, tookTime: false };
+            }
+            if (anyItem.oclass === SCROLL_CLASS) {
                 replacePromptMessage();
                 display.putstr_message("Sorry, I don't know how to read that yet.");
                 return { moved: false, tookTime: false };
@@ -2499,6 +2613,20 @@ async function handleApply(player, display) {
             display.putstr_message('In what direction do you want to chop? [>]');
             await nhgetch();
             // For unsupported chop targets, preserve no-op flow fidelity.
+            replacePromptMessage();
+            return { moved: false, tookTime: false };
+        }
+
+        if (selected.otyp === STETHOSCOPE) {
+            replacePromptMessage();
+            display.putstr_message('In what direction?');
+            const dirCh = await nhgetch();
+            const dch = String.fromCharCode(dirCh);
+            const dir = DIRECTION_KEYS[dch];
+            if (!dir) {
+                replacePromptMessage();
+                return { moved: false, tookTime: false };
+            }
             replacePromptMessage();
             return { moved: false, tookTime: false };
         }

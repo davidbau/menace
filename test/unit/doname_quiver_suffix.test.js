@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { doname, mksobj } from '../../js/mkobj.js';
 import {
-    ARROW, DART, FLINT,
+    ARROW, DART, FLINT, SCALPEL,
 } from '../../js/objects.js';
 
 function markKnown(obj) {
@@ -55,5 +55,12 @@ describe('doname quiver suffixes', () => {
         const dart = markKnown(mksobj(DART, true, false));
         const out = doname(dart, makePlayer(dart));
         assert.match(out, /\(at the ready\)$/);
+    });
+
+    it('shows player-assigned object name as named suffix', () => {
+        const scalpel = markKnown(mksobj(SCALPEL, true, false));
+        scalpel.oname = 'e';
+        const out = doname(scalpel, null);
+        assert.match(out, / named e$/);
     });
 });

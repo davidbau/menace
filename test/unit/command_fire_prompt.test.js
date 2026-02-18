@@ -5,7 +5,7 @@ import { rhack } from '../../js/commands.js';
 import { GameMap } from '../../js/map.js';
 import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput } from '../../js/input.js';
-import { WEAPON_CLASS, FOOD_CLASS, LANCE, LONG_SWORD } from '../../js/objects.js';
+import { WEAPON_CLASS, FOOD_CLASS, COIN_CLASS, GOLD_PIECE, LANCE, LONG_SWORD } from '../../js/objects.js';
 
 function makeGame() {
     const map = new GameMap();
@@ -79,4 +79,36 @@ test('fire prompt shows count after second digit prefix', async () => {
     assert.equal(result.tookTime, false);
     assert.equal(game.display.messages[1], 'Count: 14');
     assert.equal(game.display.topMessage, 'Never mind.');
+});
+
+test('fire prompt falls back to coin letter when no launcher candidates exist', async () => {
+    const game = makeGame();
+    game.player.inventory = [
+        { oclass: COIN_CLASS, otyp: GOLD_PIECE, invlet: '$', name: 'gold piece', quan: 10 },
+    ];
+    clearInputQueue();
+    pushInput(27);
+
+    const result = await rhack('f'.charCodeAt(0), game);
+    assert.equal(result.tookTime, false);
+    assert.equal(game.display.messages[0], 'What do you want to fire? [$ or ?*]');
+    assert.equal(game.display.topMessage, 'Never mind.');
+});
+
+test('fire accepts manual inventory letters then asks direction', async () => {
+    const game = makeGame();
+    const readied = { oclass: FOOD_CLASS, otyp: 0, invlet: 'e', name: 'carrot', quan: 1 };
+    game.player.inventory = [
+        { oclass: COIN_CLASS, otyp: GOLD_PIECE, invlet: '$', name: 'gold piece', quan: 10 },
+        readied,
+    ];
+    clearInputQueue();
+    pushInput('e'.charCodeAt(0));
+    pushInput('e'.charCodeAt(0)); // invalid direction key => cancel without extra message
+
+    const result = await rhack('f'.charCodeAt(0), game);
+    assert.equal(result.tookTime, false);
+    assert.equal(game.display.messages[1], 'In what direction?');
+    assert.equal(game.display.topMessage, null);
+    assert.equal(game.player.quiver, readied);
 });

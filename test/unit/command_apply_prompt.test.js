@@ -5,7 +5,7 @@ import { rhack } from '../../js/commands.js';
 import { GameMap } from '../../js/map.js';
 import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput } from '../../js/input.js';
-import { BATTLE_AXE, LANCE, SPE_HEALING } from '../../js/objects.js';
+import { BATTLE_AXE, LANCE, SPE_HEALING, STETHOSCOPE } from '../../js/objects.js';
 
 function makeBaseGame() {
     const map = new GameMap();
@@ -87,5 +87,15 @@ describe('apply prompt behavior', () => {
         const result = await rhack('a'.charCodeAt(0), game);
         assert.equal(result.tookTime, true);
         assert.equal(game.display.topMessage, 'The magical ink in this spellbook is fresh.');
+    });
+
+    it('stethoscope apply path asks direction and cancels on invalid direction', async () => {
+        const game = makeBaseGame();
+        game.player.inventory = [{ invlet: 'c', oclass: 5, otyp: STETHOSCOPE, name: 'stethoscope' }];
+        pushInput('c'.charCodeAt(0));
+        pushInput('t'.charCodeAt(0)); // invalid direction key
+        const result = await rhack('a'.charCodeAt(0), game);
+        assert.equal(result.tookTime, false);
+        assert.equal(game.display.topMessage, null);
     });
 });
