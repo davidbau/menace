@@ -197,6 +197,36 @@ When working on C-vs-JS parity, follow this rule:
 - If a test reveals missing behavior, port the corresponding C logic path.
 - Keep changes incremental and keep tests green after each port batch.
 
+### Parity Backlog Intake Loop
+
+Use this workflow whenever session tests are failing and backlog intake needs
+to be refreshed:
+
+1. Run the parity suites and capture failures:
+   ```bash
+   npm run test:session
+   ```
+2. Group failures by shared first-divergence signature (same subsystem/caller).
+3. File one `parity` GitHub issue per systematic cluster with evidence-first body:
+   - session filename(s)
+   - first mismatch point (step/index/row)
+   - JS vs C expected behavior
+4. Prioritize issues by:
+   - blast radius (how many sessions share it)
+   - earliness (how soon divergence starts)
+   - leverage (whether one fix likely collapses multiple failures)
+5. Repeat after each landed fix; close stale/superseded issues immediately.
+
+Evidence template for each issue:
+
+```text
+Session: seedXYZ_*.session.json
+First mismatch: rng step=<...> index=<...> OR screen step=<...> row=<...>
+JS: <actual>
+C:  <expected>
+Caller (if present): <function(file:line)>
+```
+
 ### Tutorial Parity Notes
 
 Recent parity work on tutorial sessions established a few stable rules:
@@ -561,19 +591,19 @@ symbols mapped to Unicode box-drawing characters. No canvas, no WebGL.
 - **Constants match C**: `STONE`, `VWALL`, `ROOM`, etc. are identical values.
   See `js/config.js`.
 
-## Current Parity Findings (2026-02-17)
+## Current Parity Findings (2026-02-18)
 
-- Map-session status is currently **9/10 passing** in `session_test_runner --type map`.
-- The remaining map failure is `seed16_maps_c.session.json` at depth 5.
-- A meaningful improvement landed in special-level corridor parity:
-  `seed16_maps_c` now matches farther before first divergence
-  (**12420/13100** RNG calls matched, up from **12276/13154** before this pass).
-- Key confirmed C reference:
-  `nethack-c/src/sp_lev.c:2611-2614` uses `rn2(dix - diy + 1)` /
-  `rn2(diy - dix + 1)` in corridor tie-break logic.
-- Remaining drift is now narrowed to a later `dig_corridor`/`maybe_sdoor` transition
-  in the same seed/depth trace; use the first divergence context from
-  `session_test_runner` to continue.
+- `npm run test:session` currently reports a concentrated gameplay/wizard
+  failure set (26 gameplay-session failures in the latest intake pass).
+- Initial backlog intake from that pass is tracked in parity issues:
+  - #6 wizard command-flow prompt cancellation/modal consumption
+  - #7 wait/search safety counted no-op timing and messaging
+  - #8 pet combat sequencing/messages/RNG (dog_move/mattackm)
+  - #9 special-level generation RNG drift (dig_corridor/somex/makelevel)
+  - #10 object generation RNG ordering (rnd_attr/mksobj/mkobj/m_initweap)
+  - #11 gameplay map/glyph drift tied to pet/interactions
+- Working rule: treat each issue above as a cluster root; avoid ad-hoc
+  one-session fixes unless evidence shows it is truly isolated.
 
 ## Further Reading
 
