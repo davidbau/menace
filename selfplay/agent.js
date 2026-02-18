@@ -976,6 +976,23 @@ export class Agent {
             }
         }
 
+        // Dlvl 2 survival guard: if we are still effectively untrained (very low XP)
+        // and have taken damage, retreat upstairs to stabilize before deeper risk.
+        if (this.status) {
+            const dungeonLevel = this.status.dungeonLevel || 1;
+            const xpPoints = this.status.xpPoints || 0;
+            if (dungeonLevel === 2 && xpPoints <= 1 && hpPercent < 1.0 && level.stairsUp.length > 0) {
+                const stairs = level.stairsUp[0];
+                if (px === stairs.x && py === stairs.y) {
+                    return { type: 'ascend', key: '<', reason: `ascending to recover early on Dlvl 2 (HP ${this.status.hp}/${this.status.hpmax}, XP ${xpPoints})` };
+                }
+                const path = findPath(level, px, py, stairs.x, stairs.y, { allowUnexplored: true });
+                if (path.found) {
+                    return this._followPath(path, 'flee', `retreating to upstairs early on Dlvl 2 (HP ${this.status.hp}/${this.status.hpmax}, XP ${xpPoints})`);
+                }
+            }
+        }
+
         if (this.status && hpPercent <= retreatThreshold && hasHostileMonsters) {
                 // Try to flee to upstairs if available and not too far
                 const currentDepth = this.status?.dungeonLevel || this.dungeon.currentDepth || 1;

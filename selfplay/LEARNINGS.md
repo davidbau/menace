@@ -82,3 +82,17 @@
   - Baseline: survived `11/13`, avg depth `1.385`, XL2+ `0/13`.
   - Candidate: survived `12/13`, avg depth `1.385`, XL2+ `1/13`.
 - Net: +1 holdout survival with no train regression and no depth loss; keep.
+
+## 2026-02-18 - Keep: Early Dlvl2 Recovery Retreat for Low-XP Runs
+
+- Change: in `selfplay/agent.js`, added an early Dlvl2 stabilization guard:
+  - if on Dlvl2, `XP <= 1`, and HP is below max, path back to upstairs (allowing unexplored tiles on that retreat path) and ascend to recover before resuming riskier exploration.
+- Why: one persistent holdout death pattern was early Dlvl2 collapse in low-XP states (notably seed 36) where small damage spikes converted to deterministic deaths before recovery.
+- Validation gate: C role matrix, `turns=600`, `key-delay=0`, `train=21..33`, `holdout=31..43`.
+- Train:
+  - Baseline: survived `11/13`, avg depth `2.000`.
+  - Candidate: survived `11/13`, avg depth `2.000`.
+- Holdout:
+  - Baseline (after locked-door improvement): survived `12/13`, avg depth `1.385`, XL2+ `1/13`.
+  - Candidate: survived `13/13`, avg depth `1.385`, XL2+ `1/13`.
+- Net: +1 holdout survival with no train regression and no depth regression; keep.
