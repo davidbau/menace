@@ -29,6 +29,11 @@ has_note() {
   git notes --ref=test-results show "$commit" >/dev/null 2>&1
 }
 
+has_local_commit() {
+  local commit="$1"
+  git cat-file -e "${commit}^{commit}" >/dev/null 2>&1
+}
+
 promote_pending_note_if_head() {
   local pending_commit
   if [ ! -f "$PENDING_FILE" ]; then
@@ -112,8 +117,12 @@ collect_commits_for_update() {
 
   if [ "$remote_sha" = "$ZERO_OID" ]; then
     git rev-list --reverse "$local_sha" --not "--remotes=$REMOTE_NAME"
-  else
+  elif has_local_commit "$remote_sha"; then
     git rev-list --reverse "$remote_sha..$local_sha"
+  else
+    # Remote tip can be unknown locally when another developer pushed first.
+    # Fall back to local-vs-remote refs we do have to avoid invalid ranges.
+    git rev-list --reverse "$local_sha" --not "--remotes=$REMOTE_NAME"
   fi
 }
 
