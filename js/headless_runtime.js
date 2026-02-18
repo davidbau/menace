@@ -724,6 +724,15 @@ export class HeadlessGame {
 
     // C ref: allmain.c moveloop_core() — per-turn effects
     simulateTurnEnd() {
+        // C ref: allmain.c moveloop_core() — the turn-end block (mcalcmove,
+        // spawn, u_calc_moveamt, once-per-turn effects) only runs when both
+        // hero and monsters are out of movement.  When Fast/Very Fast grants
+        // extra movement, the hero acts again WITHOUT a new turn-end.
+        if (this._bonusMovement > 0) {
+            this._bonusMovement--;
+            return; // bonus action: skip turn-end processing
+        }
+
         // C ref: allmain.c:239 — settrack() called after movemon, before moves++
         settrack(this.player);
         this.turnCount++;
@@ -769,9 +778,13 @@ export class HeadlessGame {
         // Fast intrinsic (monks, samurai): gain extra turn 1/3 of the time via rn2(3).
         // Very Fast (speed boots + intrinsic): gain extra turn 2/3 of the time.
         if (this.player.veryFast) {
-            if (rn2(3) !== 0) { /* 2/3 chance */ }
+            if (rn2(3) !== 0) {
+                this._bonusMovement = (this._bonusMovement || 0) + 1;
+            }
         } else if (this.player.fast) {
-            if (rn2(3) === 0) { /* 1/3 chance */ }
+            if (rn2(3) === 0) {
+                this._bonusMovement = (this._bonusMovement || 0) + 1;
+            }
         }
 
         // C ref: allmain.c:289-295 regen_hp()

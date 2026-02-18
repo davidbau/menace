@@ -953,6 +953,11 @@ export function movemon(map, player, display, fov, game = null) {
                 }
             }
         }
+        // C ref: allmain.c:206-207 — when the hero has bonus movement
+        // (u.umovement >= NORMAL_SPEED, i.e. Fast/Very Fast triggered),
+        // the outer movemon loop breaks after one pass so the hero acts
+        // before monsters spend their remaining movement budget.
+        if (game && game._bonusMovement > 0) break;
     } while (anyMoved);
 
     // Remove dead monsters
