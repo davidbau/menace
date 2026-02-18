@@ -178,3 +178,10 @@ Milestones use a hybrid model: phase completion + parity gates + release-timing 
    - Perform periodic triage reviews of open issues.
    - Close obsolete/canceled issues explicitly with a short rationale.
    - Update issue descriptions/comments promptly when new evidence changes scope, root cause, or priority.
+8. Keep agents issue-driven and autonomous.
+   - If no work is pending, pull the next actionable GitHub issue.
+   - If starting new work not covered by an issue, create/update an issue before or at start.
+   - Agent identity is directory-based (directory name defines agent name for assignment purposes).
+   - Agents may work any issue regardless of directory specialization hints.
+   - Assign issues to self on start; unassign when intentionally abandoning.
+   - If one agent resolves work claimed by another, that is acceptable; close/update the issue with complete context so the original assignee can see what changed.

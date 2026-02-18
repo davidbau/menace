@@ -36,6 +36,18 @@ Recommended parent/child pattern:
 - Close obsolete or superseded issues with a clear reason in the closing comment.
 - When new information is discovered, update the relevant issue immediately (body, labels, and status comment).
 
+## Agent Ownership and Intake
+
+- Agent name is the current working directory name; use it as the identity for issue ownership.
+- Directory/topic affinity is only suggestive; any agent may take any issue.
+- If you have no pending task, pull another actionable open issue.
+- If starting new work not already tracked, create/update a GitHub issue immediately.
+- Assign issue to yourself when starting:
+  - `gh issue edit <number> --add-assignee @me`
+- If you intentionally stop/abandon an issue, unassign yourself:
+  - `gh issue edit <number> --remove-assignee @me`
+- If you complete work on an issue assigned to another agent, proceed and resolve it; leave a detailed closing/update comment so the original assignee has full context.
+
 ## Landing the Plane (Session Completion)
 
 **When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
