@@ -5,7 +5,7 @@ import { rhack } from '../../js/commands.js';
 import { GameMap } from '../../js/map.js';
 import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput } from '../../js/input.js';
-import { LANCE } from '../../js/objects.js';
+import { BATTLE_AXE, LANCE } from '../../js/objects.js';
 
 function makeBaseGame() {
     const map = new GameMap();
@@ -58,5 +58,15 @@ describe('apply prompt behavior', () => {
         const result = await rhack('a'.charCodeAt(0), game);
         assert.equal(result.tookTime, false);
         assert.equal(game.display.topMessage, "You don't have anything to use or apply.");
+    });
+
+    it('keeps apply prompt open for invalid letters when a battle-axe is applicable', async () => {
+        const game = makeBaseGame();
+        game.player.inventory = [{ invlet: 'a', oclass: 1, otyp: BATTLE_AXE, name: 'battle-axe' }];
+        pushInput('y'.charCodeAt(0)); // invalid item letter for this prompt
+        pushInput(' '.charCodeAt(0)); // cancel
+        const result = await rhack('a'.charCodeAt(0), game);
+        assert.equal(result.tookTime, false);
+        assert.equal(game.display.topMessage, 'Never mind.');
     });
 });

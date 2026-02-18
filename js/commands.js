@@ -12,7 +12,7 @@ import { exercise } from './attrib_exercise.js';
 import { objectData, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
          TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
          WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, CORPSE, LANCE,
-         BOW, ELVEN_BOW, ORCISH_BOW, YUMI, SLING, CROSSBOW } from './objects.js';
+         BULLWHIP, BOW, ELVEN_BOW, ORCISH_BOW, YUMI, SLING, CROSSBOW } from './objects.js';
 import { nhgetch, ynFunction, getlin } from './input.js';
 import { playerAttackMonster } from './combat.js';
 import { makemon, setMakemonPlayerContext } from './makemon.js';
@@ -1955,9 +1955,23 @@ async function handleQuaff(player, map, display) {
 
 function isApplyCandidate(obj) {
     if (!obj) return false;
-    // Lances are offered by C's apply prompt for one-handed use actions.
-    if (obj.otyp === LANCE) return true;
-    return obj.oclass === TOOL_CLASS;
+    // C ref: apply.c apply_ok() — suggest all tools, wands, spellbooks.
+    if (obj.oclass === TOOL_CLASS || obj.oclass === WAND_CLASS || obj.oclass === SPBOOK_CLASS) {
+        return true;
+    }
+    // C ref: apply.c apply_ok() — suggest weapons that satisfy
+    // is_pick/is_axe/is_pole plus bullwhip.
+    if (obj.oclass === WEAPON_CLASS) {
+        const skill = objectData[obj.otyp]?.sub;
+        if (obj.otyp === BULLWHIP || obj.otyp === LANCE
+            || skill === 3 /* P_AXE */
+            || skill === 4 /* P_PICK_AXE */
+            || skill === 18 /* P_POLEARMS */
+            || skill === 19 /* P_LANCE */) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // Handle apply/use command
