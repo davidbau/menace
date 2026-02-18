@@ -1,27 +1,120 @@
 #!/bin/bash
-# Pre-push hook: Verify tests have been run for HEAD
+# Pre-push hook: verify and create test notes for commits being pushed.
 #
 # Workflow:
-#   1. Run .githooks/test-and-log.sh → writes oracle/pending.jsonl
-#   2. git commit → post-commit hook promotes pending → git note
-#   3. git push → this hook verifies note exists; notes push automatically
+#   1. Run scripts/run-session-tests.sh -> writes oracle/pending.jsonl.
+#   2. post-commit hook promotes pending results to git note.
+#   3. git push -> this hook verifies all pushed commits have notes.
+#      Missing notes are generated before push (HEAD in-place; older commits
+#      via temporary detached worktrees).
 #
 # Install: git config core.hooksPath .githooks
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 PENDING_FILE="$REPO_ROOT/oracle/pending.jsonl"
+REMOTE_NAME="${1:-origin}"
+ZERO_OID="0000000000000000000000000000000000000000"
+
+declare -a PUSH_UPDATES=()
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [ -z "${local_ref:-}" ]; then
+    continue
+  fi
+  PUSH_UPDATES+=("${local_ref}|${local_sha}|${remote_ref}|${remote_sha}")
+done
+
+has_note() {
+  local commit="$1"
+  git notes --ref=test-results show "$commit" >/dev/null 2>&1
+}
 
 promote_pending_note_if_head() {
+  local pending_commit
   if [ ! -f "$PENDING_FILE" ]; then
     return 1
   fi
-  PENDING_COMMIT=$(jq -r '.commit' "$PENDING_FILE" 2>/dev/null || echo "")
-  if [ "$PENDING_COMMIT" != "HEAD" ]; then
+  pending_commit=$(jq -r '.commit' "$PENDING_FILE" 2>/dev/null || echo "")
+  if [ "$pending_commit" != "HEAD" ]; then
     return 1
   fi
   "$SCRIPT_DIR/post-commit" >/dev/null
   return 0
+}
+
+ensure_head_note() {
+  local current_commit="$1"
+  local current_short="$2"
+  if has_note "$current_commit"; then
+    echo "  ✅ Test note exists for $current_short"
+    return 0
+  fi
+
+  echo "  ℹ️  No test note for $current_short"
+  if promote_pending_note_if_head && has_note "$current_commit"; then
+    echo "  ✅ Promoted existing oracle/pending.jsonl to git note"
+    return 0
+  fi
+
+  echo "  Running session tests to create note..."
+  "$REPO_ROOT/scripts/run-session-tests.sh" --session-timeout-ms=10000
+  promote_pending_note_if_head || true
+
+  if has_note "$current_commit"; then
+    echo "  ✅ Test note created for $current_short"
+    return 0
+  fi
+
+  echo "  ❌ Unable to create test note for $current_short"
+  return 1
+}
+
+generate_note_for_commit() {
+  local commit="$1"
+  local short
+  local temp_worktree
+  short=$(git rev-parse --short "$commit")
+  temp_worktree=$(mktemp -d "/tmp/pre-push-note-${short}-XXXXXX") || return 1
+
+  if ! git worktree add --detach "$temp_worktree" "$commit" >/dev/null 2>&1; then
+    rm -rf "$temp_worktree" >/dev/null 2>&1 || true
+    return 1
+  fi
+
+  local status=0
+  if ! (
+    cd "$temp_worktree" &&
+    ./scripts/run-session-tests.sh --session-timeout-ms=10000
+  ); then
+    status=1
+  fi
+
+  if [ "$status" -eq 0 ]; then
+    if ! (
+      cd "$temp_worktree" &&
+      ./.githooks/post-commit >/dev/null
+    ); then
+      status=1
+    fi
+  fi
+
+  git worktree remove --force "$temp_worktree" >/dev/null 2>&1 || true
+  rm -rf "$temp_worktree" >/dev/null 2>&1 || true
+  return "$status"
+}
+
+collect_commits_for_update() {
+  local local_sha="$1"
+  local remote_sha="$2"
+  if [ "$local_sha" = "$ZERO_OID" ]; then
+    return 0
+  fi
+
+  if [ "$remote_sha" = "$ZERO_OID" ]; then
+    git rev-list --reverse "$local_sha" --not "--remotes=$REMOTE_NAME"
+  else
+    git rev-list --reverse "$remote_sha..$local_sha"
+  fi
 }
 
 # Check if setup has been run
@@ -38,30 +131,61 @@ echo "========================================"
 CURRENT_COMMIT=$(git rev-parse HEAD)
 CURRENT_SHORT=$(git rev-parse --short HEAD)
 
-if git notes --ref=test-results show "$CURRENT_COMMIT" >/dev/null 2>&1; then
-  echo "✅ Test note exists for commit $CURRENT_SHORT"
-else
-  echo "ℹ️  No test note for commit $CURRENT_SHORT"
-  if promote_pending_note_if_head && git notes --ref=test-results show "$CURRENT_COMMIT" >/dev/null 2>&1; then
-    echo "✅ Promoted existing oracle/pending.jsonl to git note"
-  else
-    echo "Running session tests to create note..."
-    "$REPO_ROOT/scripts/run-session-tests.sh" --session-timeout-ms=10000
-    promote_pending_note_if_head || true
-  fi
+declare -A SEEN_COMMITS=()
+declare -a COMMITS_TO_CHECK=()
 
-  if git notes --ref=test-results show "$CURRENT_COMMIT" >/dev/null 2>&1; then
-    echo "✅ Test note created for commit $CURRENT_SHORT"
-  else
-    echo "❌ Unable to create test note for commit $CURRENT_SHORT"
-    exit 1
-  fi
+for update in "${PUSH_UPDATES[@]}"; do
+  IFS='|' read -r local_ref local_sha remote_ref remote_sha <<<"$update"
+  while read -r commit; do
+    if [ -n "${commit:-}" ] && [ -z "${SEEN_COMMITS[$commit]+x}" ]; then
+      SEEN_COMMITS["$commit"]=1
+      COMMITS_TO_CHECK+=("$commit")
+    fi
+  done < <(collect_commits_for_update "$local_sha" "$remote_sha")
+done
+
+if [ "${#COMMITS_TO_CHECK[@]}" -eq 0 ]; then
+  COMMITS_TO_CHECK=("$CURRENT_COMMIT")
 fi
 
-# Push notes alongside branches (force-push: local note is always for a fresh commit)
-# Use --no-verify to avoid recursion (this push triggers pre-push again otherwise)
+echo "Checking ${#COMMITS_TO_CHECK[@]} commit(s) in this push..."
+
+FAILURES=0
+INDEX=0
+for commit in "${COMMITS_TO_CHECK[@]}"; do
+  INDEX=$((INDEX + 1))
+  short=$(git rev-parse --short "$commit")
+  echo "[$INDEX/${#COMMITS_TO_CHECK[@]}] Commit $short"
+
+  if has_note "$commit"; then
+    echo "  ✅ Test note exists for $short"
+    continue
+  fi
+
+  if [ "$commit" = "$CURRENT_COMMIT" ]; then
+    ensure_head_note "$commit" "$short" || FAILURES=$((FAILURES + 1))
+    continue
+  fi
+
+  echo "  ℹ️  No test note for $short"
+  echo "  Running session tests in temporary worktree..."
+  if generate_note_for_commit "$commit" && has_note "$commit"; then
+    echo "  ✅ Test note created for $short"
+  else
+    echo "  ❌ Unable to create test note for $short"
+    FAILURES=$((FAILURES + 1))
+  fi
+done
+
+if [ "$FAILURES" -gt 0 ]; then
+  echo "❌ Push blocked: failed to create $FAILURES missing test note(s)."
+  exit 1
+fi
+
+# Push notes alongside branches.
+# Use --no-verify to avoid recursion (this push triggers pre-push again otherwise).
 echo "Syncing test-results notes..."
-git push --no-verify origin +refs/notes/test-results:refs/notes/test-results 2>/dev/null && \
+git push --no-verify "$REMOTE_NAME" +refs/notes/test-results:refs/notes/test-results 2>/dev/null && \
   echo "✅ Notes pushed" || \
   echo "ℹ️  No notes to push"
 

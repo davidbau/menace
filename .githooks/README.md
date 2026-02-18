@@ -129,10 +129,11 @@ This will:
 #### pre-push-notes
 
 Runs automatically before `git push`:
-1. Checks if current commit has a test note
-2. If not, auto-runs session tests and creates note
-3. Blocks push only if note creation fails (for example, runner crash/no JSON)
-4. Pushes notes alongside the branch
+1. Enumerates commits being pushed and checks each for a test note
+2. If a note is missing on `HEAD`, promotes `oracle/pending.jsonl` or auto-runs session tests
+3. If a note is missing on an older pushed commit, auto-runs session tests for that commit in a temporary detached worktree
+4. Blocks push if any missing note cannot be created (for example, runner crash/no JSON)
+5. Pushes notes alongside the branch
 
 #### pre-commit
 
