@@ -615,7 +615,8 @@ export class Display {
         // Status line 2: Dungeon level, HP, Pw, AC, etc.
         // C ref: botl.c bot2str()
         const line2Parts = [];
-        line2Parts.push(`Dlvl:${player.dungeonLevel}`);
+        const levelLabel = player.inTutorial ? 'Tutorial' : 'Dlvl';
+        line2Parts.push(`${levelLabel}:${player.dungeonLevel}`);
         line2Parts.push(`$:${player.gold}`);
         line2Parts.push(`HP:${player.hp}(${player.hpmax})`);
         line2Parts.push(`Pw:${player.pw}(${player.pwmax})`);

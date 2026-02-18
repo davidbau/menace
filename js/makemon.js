@@ -10,6 +10,7 @@ import {
     D_LOCKED, D_CLOSED, isok
 } from './config.js';
 import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC } from './config.js';
+import { couldsee } from './vision.js';
 
 // Registration for get_shop_item to avoid circular dependency with shknam.js.
 // shknam.js calls registerGetShopItem() during initialization.
@@ -147,6 +148,8 @@ function normalizePlayerContext(ctx = {}) {
         alignmentAbuse: Number.isInteger(ctx.alignmentAbuse) ? ctx.alignmentAbuse : 0,
         race: Number.isInteger(ctx.race) ? ctx.race : 0,
         hasAmulet: !!ctx.hasAmulet,
+        x: Number.isInteger(ctx.x) ? ctx.x : null,
+        y: Number.isInteger(ctx.y) ? ctx.y : null,
     };
 }
 
@@ -154,6 +157,7 @@ let _makemonPlayerCtx = normalizePlayerContext();
 let _makemonLevelCtx = {
     dungeonAlign: A_NONE,
 };
+let _makemonInMklev = false;
 
 let _rndmonTraceInvocation = 0;
 
@@ -188,6 +192,8 @@ export function setMakemonPlayerContext(playerLike) {
         alignmentAbuse: playerLike?.alignmentAbuse,
         race: playerLike?.race,
         hasAmulet: inventory.some(o => o?.otyp === AMULET_OF_YENDOR),
+        x: playerLike?.x,
+        y: playerLike?.y,
     });
 }
 
@@ -205,6 +211,10 @@ export function setMakemonLevelContext(levelCtx = {}) {
             ? levelCtx.dungeonAlign
             : A_NONE,
     };
+}
+
+export function setMakemonInMklevContext(active) {
+    _makemonInMklev = !!active;
 }
 
 // C ref: makemon.c peace_minded(struct permonst *ptr)
@@ -1318,6 +1328,13 @@ function makemonGoodpos(map, x, y, ptr, mmflags = NO_MM_FLAGS, avoidMonpos = tru
     const ignoreWater = !!(mmflags & MM_IGNOREWATER);
     const ignoreLava = !!(mmflags & MM_IGNORELAVA);
 
+    // C ref: teleport.c goodpos() rejects hero location unless GP_ALLOW_U.
+    // makemon_rnd_goodpos() doesn't set GP_ALLOW_U, so keep hero tile invalid.
+    if (Number.isInteger(_makemonPlayerCtx?.x) && Number.isInteger(_makemonPlayerCtx?.y)
+        && x === _makemonPlayerCtx.x && y === _makemonPlayerCtx.y) {
+        return false;
+    }
+
     if (avoidMonpos) {
         for (const m of map.monsters || []) {
             if (m.mx === x && m.my === y) return false;
@@ -1356,6 +1373,13 @@ function makemon_rnd_goodpos(map, ptr, mmflags = NO_MM_FLAGS) {
         const ny = rn2(ROWNO);
         lastNx = nx;
         lastNy = ny;
+        // C ref: makemon.c makemon_rnd_goodpos()
+        // good = (!in_mklev && cansee(nx,ny)) ? FALSE : goodpos(...)
+        if (!_makemonInMklev
+            && Number.isInteger(_makemonPlayerCtx?.x) && Number.isInteger(_makemonPlayerCtx?.y)
+            && couldsee(map, { x: _makemonPlayerCtx.x, y: _makemonPlayerCtx.y }, nx, ny)) {
+            continue;
+        }
         if (makemonGoodpos(map, nx, ny, ptr, mmflags, true)) return { x: nx, y: ny };
     }
     // C ref: makemon.c makemon_rnd_goodpos() fallback scan order.

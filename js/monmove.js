@@ -3,7 +3,7 @@
 // Focus: exact RNG consumption alignment with C NetHack
 
 import { COLNO, ROWNO, STONE, IS_WALL, IS_DOOR, IS_ROOM,
-         ACCESSIBLE, IS_OBSTRUCTED, CORR, DOOR, D_CLOSED, D_LOCKED, D_BROKEN,
+         ACCESSIBLE, IS_OBSTRUCTED, CORR, DOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN,
          POOL, LAVAPOOL, SHOPBASE, ROOMOFFSET, IS_POOL, IS_LAVA,
          NORMAL_SPEED, isok } from './config.js';
 import { rn2, rnd, c_d, getRngLog } from './rng.js';
@@ -47,6 +47,12 @@ function attackVerb(type) {
         case AT_WEAP: return 'hits';
         default: return 'hits';
     }
+}
+
+function monAttackName(mon) {
+    const name = String(mon?.name || 'monster');
+    const namedPet = !!(mon?.tame && !/(dog|cat|kitten|pony|horse)/i.test(name));
+    return namedPet ? name : `The ${name}`;
 }
 
 // ========================================================================
@@ -403,7 +409,9 @@ function mintrap_postmove(mon, map) {
 // C ref: mon.c mfndpos() — returns positions a monster can move to
 // Iterates (x-1..x+1) × (y-1..y+1) in column-major order, skipping current pos.
 // Handles NODIAG (grid bugs), terrain, doors, monsters, player, boulders.
-function mfndpos(mon, map, player) {
+function mfndpos(mon, map, player, opts = {}) {
+    const allowDoorOpen = !!opts.allowDoorOpen;
+    const allowDoorUnlock = !!opts.allowDoorUnlock;
     const omx = mon.mx, omy = mon.my;
     const nodiag = (mon.mndx === PM_GRID_BUG);
     const mflags1 = mon.type?.flags1 || 0;
@@ -424,12 +432,24 @@ function mfndpos(mon, map, player) {
             if (nx !== omx && ny !== omy && nodiag) continue;
 
             const loc = map.at(nx, ny);
-            if (!loc || !ACCESSIBLE(loc.typ)) continue;
+            if (!loc) continue;
+            const doorBlocked = IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED));
+            if (!ACCESSIBLE(loc.typ)) {
+                // C ref: mon.c mfndpos() OPENDOOR/UNLOCKDOOR handling.
+                // Closed or locked doors can still be selected when caller
+                // indicates this monster can open/unlock doors.
+                const canPassDoor = doorBlocked
+                    && ((loc.flags & D_CLOSED && allowDoorOpen)
+                        || (loc.flags & D_LOCKED && allowDoorUnlock));
+                if (!canPassDoor) continue;
+            }
             if (IS_POOL(loc.typ) && !poolok) continue;
             if (IS_LAVA(loc.typ) && !lavaok) continue;
 
             // C ref: door checks
-            if (IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED))) continue;
+            if (doorBlocked
+                && !((loc.flags & D_CLOSED && allowDoorOpen)
+                    || (loc.flags & D_LOCKED && allowDoorUnlock))) continue;
 
             // C ref: mon.c:2228-2238 — no diagonal moves through doorways
             // If either current pos or target is a non-broken door, diagonal blocked
@@ -709,8 +729,9 @@ function droppables(mon) {
         default:
             break;
         }
-        // C ref: dogmove.c droppables() — skip worn, wielded, and cursed items
-        if (!obj.owornmask && obj !== wep && !obj.cursed) return obj;
+        // C ref: dogmove.c droppables() — generic drop candidates skip worn/wielded.
+        // Cursed filtering is handled only for specific tool classes above.
+        if (!obj.owornmask && obj !== wep) return obj;
     }
     return null;
 }
@@ -1038,7 +1059,7 @@ function dochug(mon, map, player, display, fov, game = null) {
             }
         } else {
             const omx = mon.mx, omy = mon.my;
-            m_move(mon, map, player);
+            m_move(mon, map, player, display, fov);
             if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
                 mintrap_postmove(mon, map);
             }
@@ -1301,13 +1322,7 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
         : couldsee(map, player, omx, omy);
 
     // C ref: dogmove.c:498 — dog_has_minvent = (droppables(mtmp) != 0)
-    // Worn/wielded items (like a worn saddle on pony) do not count.
-    const dogHasMinvent = !!(mon.minvent && mon.minvent.some((o) => {
-        if (!o) return false;
-        if (o.owornmask) return false;
-        if (mon.weapon && o === mon.weapon) return false;
-        return true;
-    }));
+    const dogHasMinvent = !!droppables(mon);
 
     // C ref: dogmove.c:545 — lighting check for apport branch
     const dogLoc = map.at(omx, omy);
@@ -1331,7 +1346,6 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
             if (ox < minX || ox > maxX || oy < minY || oy > maxY) continue;
 
             const otyp = dogfood(mon, obj, turnCount);
-
             // C ref: dogmove.c:526 — skip inferior goals
             if (otyp > gtyp || otyp === UNDEF) continue;
 
@@ -1531,14 +1545,15 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
                     const mmVisible = monVisible && targetVisible;
                     if (hit) {
                         anyHit = true;
-                        const suppressDetail = !!player.displacedPetThisTurn
-                            || game?.occupation?.occtxt === 'searching';
-                        if (display && mon.name && target.name && mmVisible && !suppressDetail) {
-                            display.putstr_message(`The ${mon.name} ${attackVerb(attk?.type)} the ${target.name}.`);
-                        }
                         const dice = (attk && attk.dice) ? attk.dice : 1;
                         const sides = (attk && attk.sides) ? attk.sides : 1;
                         const dmg = c_d(Math.max(1, dice), Math.max(1, sides));
+                        const willKill = (target.mhp - Math.max(1, dmg)) <= 0;
+                        const suppressDetail = (!!player.displacedPetThisTurn && !willKill)
+                            || (game?.occupation?.occtxt === 'searching' && !willKill);
+                        if (display && mon.name && target.name && mmVisible && !suppressDetail) {
+                            display.putstr_message(`${monAttackName(mon)} ${attackVerb(attk?.type)} the ${target.name}.`);
+                        }
                         // C ref: mhitm.c mdamagem() rolls damage before knockback RNG.
                         rn2(3);
                         rn2(6);
@@ -1559,6 +1574,8 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
                             if (petCorpseChanceRoll(target) === 0
                                 && !(((target?.type?.geno || 0) & G_NOCORPSE) !== 0)) {
                                 const corpse = mkcorpstat(CORPSE, target.mndx || 0, true);
+                                // C ref: corpse age should reflect current move count.
+                                corpse.age = turnCount;
                                 corpse.ox = target.mx;
                                 corpse.oy = target.my;
                                 placeFloorObject(map, corpse);
@@ -1576,7 +1593,7 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
                     } else {
                         consumePassivemmRng(mon, target, false, false);
                         if (display && mon.name && target.name && mmVisible) {
-                            display.putstr_message(`The ${mon.name} misses the ${target.name}.`);
+                            display.putstr_message(`${monAttackName(mon)} misses the ${target.name}.`);
                         }
                     }
                 }
@@ -1727,8 +1744,10 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
 
         // C ref: dogmove.c:1324-1327 — eat after moving
         if (do_eat && eatObj) {
-            if (display && couldsee(map, player, mon.mx, mon.my)) {
-                display.putstr_message(`Your ${mon.name} eats ${doname(eatObj, null)}.`);
+            const sawPet = fov?.canSee ? fov.canSee(omx, omy) : couldsee(map, player, omx, omy);
+            const seeObj = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
+            if (display && (sawPet || seeObj)) {
+                display.putstr_message(`${monAttackName(mon)} eats ${doname(eatObj, null)}.`);
             }
             dog_eat(mon, eatObj, map, turnCount);
         }
@@ -1876,7 +1895,7 @@ function shk_move(mon, map, player) {
 //   - Position eval: first valid pos accepted (mmoved), then only strictly nearer
 //   - No rn2(3)/rn2(12) fallback for worse positions (that's dog_move only)
 //   - mfndpos provides positions in column-major order with NODIAG filtering
-function m_move(mon, map, player) {
+function m_move(mon, map, player, display = null, fov = null) {
     // C ref: monmove.c dispatch for shopkeeper/guard/priest before generic m_move().
     if (mon.isshk) {
         const omx = mon.mx, omy = mon.my;
@@ -1896,6 +1915,10 @@ function m_move(mon, map, player) {
     }
 
     const omx = mon.mx, omy = mon.my;
+    const ptr = mon.type || {};
+    const verysmall = (ptr.size || 0) === MZ_TINY;
+    const can_open = !(nohands(ptr) || verysmall);
+    const can_unlock = !!mon.iswiz; // inventory-based unlock path is not modeled yet
 
     // C ref: monmove.c:1763 — set_apparxy(mtmp) before main movement logic.
     set_apparxy(mon, map, player);
@@ -1942,7 +1965,7 @@ function m_move(mon, map, player) {
     }
 
     // Collect valid positions via mfndpos (column-major, NODIAG, boulder filter)
-    const positions = mfndpos(mon, map, player);
+    const positions = mfndpos(mon, map, player, { allowDoorOpen: can_open, allowDoorUnlock: can_unlock });
     const cnt = positions.length;
     if (cnt === 0) return false; // no valid positions
 
@@ -2023,6 +2046,25 @@ function m_move(mon, map, player) {
         }
         mon.mx = nix;
         mon.my = niy;
+
+        // C ref: monmove.c postmov door-opening feedback.
+        const here = map.at(mon.mx, mon.my);
+        if (here && IS_DOOR(here.typ)) {
+            const wasLocked = !!(here.flags & D_LOCKED);
+            const wasClosed = !!(here.flags & D_CLOSED);
+            if ((wasLocked && can_unlock) || (wasClosed && can_open)) {
+                here.flags &= ~(D_LOCKED | D_CLOSED);
+                here.flags |= D_ISOPEN;
+                if (display) {
+                    const canSeeDoor = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
+                    if (canSeeDoor && mon.name) {
+                        display.putstr_message(`The ${mon.name} opens a door.`);
+                    } else {
+                        display.putstr_message('You hear a door open.');
+                    }
+                }
+            }
+        }
         return true;
     }
     return false;

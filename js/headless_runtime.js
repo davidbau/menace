@@ -19,7 +19,7 @@ import { initLevelGeneration, makelevel, setGameSeed } from './dungeon.js';
 import { simulatePostLevelInit, mon_arrive } from './u_init.js';
 import { Player, rankOf, roles } from './player.js';
 import { rhack } from './commands.js';
-import { makemon } from './makemon.js';
+import { makemon, setMakemonPlayerContext } from './makemon.js';
 import { movemon, initrack, settrack } from './monmove.js';
 import { FOV } from './vision.js';
 import { getArrivalPosition } from './level_transition.js';
@@ -770,6 +770,7 @@ export class HeadlessGame {
         if (!rn2(70) && !(this.map?.flags?.nomongen) && !(this.map?.flags?.is_tutorial)) {
             // Spawn at random valid location; new monster misses its first turn
             // because movement allocation already happened above.
+            setMakemonPlayerContext(this.player);
             makemon(null, 0, 0, 0, this.player.dungeonLevel, this.map);
         }
 
@@ -856,6 +857,8 @@ export class HeadlessGame {
 
     // C ref: sounds.c:202-339 dosounds() — ambient level sounds
     dosounds() {
+        if (this.flags && this.flags.acoustics === false) return;
+        const hallu = this.player?.hallucinating ? 1 : 0;
         const playerInShop = (() => {
             const loc = this.map?.at?.(this.player.x, this.player.y);
             if (!loc || !Number.isFinite(loc.roomno)) return false;
@@ -864,27 +867,59 @@ export class HeadlessGame {
             return !!(room && Number.isFinite(room.rtype) && room.rtype >= SHOPBASE);
         })();
         const tendedShop = (this.map?.monsters || []).some((m) => m && !m.dead && m.isshk);
-        const f = this.map.flags;
-        if (f.nfountains && !rn2(400)) { rn2(3); }
-        if (f.nsinks && !rn2(300)) { rn2(2); }
+        const f = this.map.flags || {};
+        if (f.nfountains && !rn2(400)) {
+            const fountainMsg = [
+                'You hear bubbling water.',
+                'You hear water falling on coins.',
+                'You hear the splashing of a naiad.',
+                'You hear a soda fountain!',
+            ];
+            this.display.putstr_message(fountainMsg[rn2(3) + hallu]);
+        }
+        if (f.nsinks && !rn2(300)) {
+            const sinkMsg = [
+                'You hear a slow drip.',
+                'You hear a gurgling noise.',
+                'You hear dishes being washed!',
+            ];
+            this.display.putstr_message(sinkMsg[rn2(2) + hallu]);
+        }
         if (f.has_court && !rn2(200)) { return; }
-        if (f.has_swamp && !rn2(200)) { rn2(2); return; }
+        if (f.has_swamp && !rn2(200)) {
+            const swampMsg = [
+                'You hear mosquitoes!',
+                'You smell marsh gas!',
+                'You hear Donald Duck!',
+            ];
+            this.display.putstr_message(swampMsg[rn2(2) + hallu]);
+            return;
+        }
         if (f.has_vault && !rn2(200)) { rn2(2); return; }
         if (f.has_beehive && !rn2(200)) { return; }
         if (f.has_morgue && !rn2(200)) { return; }
-        if (f.has_barracks && !rn2(200)) { rn2(3); return; }
+        if (f.has_barracks && !rn2(200)) {
+            const barracksMsg = [
+                'You hear blades being honed.',
+                'You hear loud snoring.',
+                'You hear dice being thrown.',
+                'You hear General MacArthur!',
+            ];
+            this.display.putstr_message(barracksMsg[rn2(3) + hallu]);
+            return;
+        }
         if (f.has_zoo && !rn2(200)) { return; }
         if (f.has_shop && !rn2(200)) {
             // C ref: sounds.c has_shop branch:
             // only choose a message (rn2(2)) when in a tended shop and
             // hero isn't currently inside any shop room.
             if (tendedShop && !playerInShop) {
-                const which = rn2(2);
-                if (which === 0) {
-                    this.display.putstr_message('You hear someone cursing shoplifters.');
-                } else {
-                    this.display.putstr_message('You hear the chime of a cash register.');
-                }
+                const shopMsg = [
+                    'You hear someone cursing shoplifters.',
+                    'You hear the chime of a cash register.',
+                    'You hear Neiman and Marcus arguing!',
+                ];
+                this.display.putstr_message(shopMsg[rn2(2) + hallu]);
             }
             return;
         }
@@ -946,6 +981,7 @@ export class HeadlessGame {
             created = true;
         }
         this.player.dungeonLevel = depth;
+        this.player.inTutorial = !!this.map?.flags?.is_tutorial;
         this.placePlayerOnLevel(transitionDir);
         // C ref: do.c goto_level(): u_on_rndspot()/u_on_newpos happens
         // before losedogs()->mon_arrive(), so follower arrival sees the
@@ -1005,6 +1041,7 @@ HeadlessGame.fromSeed = function fromSeed(seed, roleIndex = 11, opts = {}) {
         player.y = map.upstair.y;
     }
     player.dungeonLevel = startDlevel;
+    player.inTutorial = !!map?.flags?.is_tutorial;
 
     const initResult = simulatePostLevelInit(player, map, startDlevel);
 
@@ -1459,7 +1496,8 @@ export class HeadlessDisplay {
         this.putstr(0, STATUS_ROW_1, line1.substring(0, this.cols), CLR_GRAY);
 
         const line2Parts = [];
-        line2Parts.push(`Dlvl:${player.dungeonLevel}`);
+        const levelLabel = player.inTutorial ? 'Tutorial' : 'Dlvl';
+        line2Parts.push(`${levelLabel}:${player.dungeonLevel}`);
         line2Parts.push(`$:${player.gold}`);
         line2Parts.push(`HP:${player.hp}(${player.hpmax})`);
         line2Parts.push(`Pw:${player.pw}(${player.pwmax})`);
