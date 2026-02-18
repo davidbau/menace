@@ -818,6 +818,11 @@ async function handleMovement(dir, player, map, display, game) {
                             mon.fleetim = Math.min(fleetime, 127);
                         }
                         mon.flee = true;
+                        if (Array.isArray(mon.mtrack)) {
+                            for (let i = 0; i < mon.mtrack.length; i++) {
+                                mon.mtrack[i] = { x: 0, y: 0 };
+                            }
+                        }
                     }
                 if (mon.tame) {
                     display.putstr_message(

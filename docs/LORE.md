@@ -192,6 +192,13 @@ Flyers ignore floor traps. Fire-resistant monsters ignore fire traps.
 Small or amorphous monsters ignore bear traps. Getting any of these checks
 wrong changes the pet's movement candidate set and shifts all subsequent RNG.
 
+### Flee state resets movement memory
+
+C `monflee()` always clears monster `mtrack` history (`mon_track_clear`),
+even when flee timing doesn't change. Missing this creates hidden-state drift:
+later `m_move` backtrack checks (`rn2(4 * (cnt - j))`) consume a different
+number of RNG calls even while visible screens still match.
+
 ---
 
 ## C-to-JS Translation Patterns

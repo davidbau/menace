@@ -993,14 +993,8 @@ function onscary(map, x, y) {
 }
 
 // C ref: monmove.c m_search_items() subset.
-// Determine whether a monster should temporarily retarget movement toward
-// nearby pickup-able objects. This subset is intentionally deterministic:
-// it performs no RNG calls and only adjusts ggx/ggy.
-function m_search_items_goal(mon, map, ggx, ggy) {
-    const mflags2 = Number(mon?.type?.flags2 || 0);
-    const canCollect = !!(mflags2 & M2_COLLECT) || mon?.mndx === PM_LEPRECHAUN;
-    if (!canCollect) return null;
-
+// Search nearby objects and update movement intent fields used by m_move().
+function m_search_items_goal(mon, map, ggx, ggy, appr) {
     const omx = mon.mx;
     const omy = mon.my;
     let minr = SQSRCHRADIUS;
@@ -1011,18 +1005,20 @@ function m_search_items_goal(mon, map, ggx, ggy) {
         minr--;
     }
 
+    const mflags2 = Number(mon?.type?.flags2 || 0);
+    const canCollect = !!(mflags2 & M2_COLLECT) || mon?.mndx === PM_LEPRECHAUN;
+    if (!canCollect) {
+        return { ggx, ggy, appr };
+    }
+
     const hmx = Math.min(COLNO - 1, omx + minr);
     const hmy = Math.min(ROWNO - 1, omy + minr);
     const lmx = Math.max(1, omx - minr);
     const lmy = Math.max(0, omy - minr);
 
-    let targetX = ggx;
-    let targetY = ggy;
-    let found = false;
-
     for (let xx = lmx; xx <= hmx; xx++) {
         for (let yy = lmy; yy <= hmy; yy++) {
-            if (distmin(omx, omy, xx, yy) > minr) continue;
+            if (minr < distmin(omx, omy, xx, yy)) continue;
             if (!could_reach_item(map, mon, xx, yy)) continue;
             if (onscary(map, xx, yy)) continue;
             if (!m_cansee(mon, map, xx, yy)) continue;
@@ -1038,15 +1034,24 @@ function m_search_items_goal(mon, map, ggx, ggy) {
                 if (can_carry(mon, obj) <= 0) continue;
 
                 minr = distmin(omx, omy, xx, yy);
-                targetX = xx;
-                targetY = yy;
-                found = true;
+                ggx = xx;
+                ggy = yy;
                 break;
             }
         }
     }
 
-    return found ? { x: targetX, y: targetY } : null;
+    // C ref: m_search_items() finish_search block can change flee behavior.
+    if (minr < SQSRCHRADIUS && appr === -1) {
+        if (distmin(omx, omy, mux, muy) <= 3) {
+            ggx = mux;
+            ggy = muy;
+        } else {
+            appr = 1;
+        }
+    }
+
+    return { ggx, ggy, appr };
 }
 
 // ========================================================================
@@ -2539,11 +2544,10 @@ function m_move(mon, map, player, display = null, fov = null) {
         if (appr !== 1 || !inLine) getitems = true;
     }
     if (getitems) {
-        const itemGoal = m_search_items_goal(mon, map, ggx, ggy);
-        if (itemGoal) {
-            ggx = itemGoal.x;
-            ggy = itemGoal.y;
-        }
+        const searchState = m_search_items_goal(mon, map, ggx, ggy, appr);
+        ggx = searchState.ggx;
+        ggy = searchState.ggy;
+        appr = searchState.appr;
     }
 
     // C ref: monmove.c m_search_items() shop short-circuit:

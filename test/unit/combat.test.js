@@ -93,6 +93,38 @@ describe('Combat system', () => {
         assert.ok(p.level >= 2, `Player should be level 2+ with 30 XP, got ${p.level}`);
     });
 
+    it('morale flee clears monster movement track', () => {
+        initRng(42);
+        const p = new Player();
+        p.initRole(0);
+
+        const mon = makeMonster({ mhp: 1000, mhpmax: 2000, ac: 10 });
+        mon.mtrack = [
+            { x: 1, y: 2 },
+            { x: 3, y: 4 },
+            { x: 5, y: 6 },
+            { x: 7, y: 8 },
+        ];
+
+        let fled = false;
+        for (let i = 0; i < 1000; i++) {
+            playerAttackMonster(p, mon, mockDisplay);
+            if (mon.flee) {
+                fled = true;
+                break;
+            }
+            if (mon.dead) break;
+        }
+
+        assert.ok(fled, 'Monster should eventually flee during repeated hits');
+        assert.deepEqual(mon.mtrack, [
+            { x: 0, y: 0 },
+            { x: 0, y: 0 },
+            { x: 0, y: 0 },
+            { x: 0, y: 0 },
+        ]);
+    });
+
     it('higher AC makes monster harder to hit', () => {
         initRng(42);
         const p = new Player();

@@ -176,6 +176,30 @@ function handleMonsterKilled(player, monster, display, map) {
     return true;
 }
 
+// C ref: monmove.c mon_track_clear().
+function clearMonsterTrack(monster) {
+    if (!Array.isArray(monster?.mtrack)) return;
+    for (let i = 0; i < monster.mtrack.length; i++) {
+        monster.mtrack[i] = { x: 0, y: 0 };
+    }
+}
+
+// C ref: monmove.c monflee() subset used by melee morale checks.
+function applyMonflee(monster, fleetime, first = false) {
+    const oldFleetim = Number(monster?.fleetim || 0);
+    if (!first || !monster.flee) {
+        if (!fleetime) {
+            monster.fleetim = 0;
+        } else if (!monster.flee || oldFleetim > 0) {
+            let nextFleetim = fleetime + oldFleetim;
+            if (nextFleetim === 1) nextFleetim = 2;
+            monster.fleetim = Math.min(nextFleetim, 127);
+        }
+        monster.flee = true;
+    }
+    clearMonsterTrack(monster);
+}
+
 // Attack a monster (hero attacking)
 // C ref: uhitm.c attack() -> hmon_hitmon() -> hmon_hitmon_core()
 export function playerAttackMonster(player, monster, display, map) {
@@ -222,7 +246,8 @@ export function playerAttackMonster(player, monster, display, map) {
         // C ref: uhitm.c:624-628 known_hitum() — 1/25 morale/flee check on surviving hit
         if (!rn2(25) && monster.mhp < Math.floor((monster.mhpmax || 1) / 2)) {
             // C ref: monflee(mon, !rn2(3) ? rnd(100) : 0, ...) — flee timer
-            if (!rn2(3)) rnd(100);
+            const fleetime = !rn2(3) ? rnd(100) : 0;
+            applyMonflee(monster, fleetime, false);
         }
         // C ref: uhitm.c:5997 passive() — rn2(3) when monster alive after attack
         rn2(3);
@@ -282,7 +307,8 @@ export function playerAttackMonster(player, monster, display, map) {
         // C ref: uhitm.c:624-628 known_hitum() — 1/25 morale/flee check on surviving hit
         if (!rn2(25) && monster.mhp < Math.floor((monster.mhpmax || 1) / 2)) {
             // C ref: monflee(mon, !rn2(3) ? rnd(100) : 0, ...) — flee timer
-            if (!rn2(3)) rnd(100);
+            const fleetime = !rn2(3) ? rnd(100) : 0;
+            applyMonflee(monster, fleetime, false);
         }
         // C ref: uhitm.c:5997 passive() — rn2(3) when monster alive after hit
         rn2(3);

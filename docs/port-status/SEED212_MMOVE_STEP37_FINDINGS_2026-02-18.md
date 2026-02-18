@@ -125,3 +125,23 @@ Observed effect on `seed212_valkyrie_wizard`:
 
 This is a correctness fix for displacement-aware occupancy checks in pet
 path evaluation.
+
+## New Correction (late pass, same day)
+
+Implemented C-faithful `monflee()` side effects in JS combat paths:
+
+- `js/combat.js`: surviving-hit morale flee now sets flee state/timer and
+  clears `mtrack` history (C `mon_track_clear` behavior).
+- `js/commands.js`: pet-blocking flee trigger now also clears `mtrack`.
+
+Validation snapshot:
+
+- `seed212_valkyrie_wizard` remains at current baseline:
+  - RNG: `2475/10886`
+  - screens: `150/407`
+  - first RNG divergence: step `90` (`rn2(24)` vs C `distfleeck rn2(5)`)
+- `seed42_gameplay` still fully passing.
+- `seed5_gnomish_mines_gameplay` unchanged current profile.
+
+So this was a correctness-hardening change for hidden flee state, but it does
+not by itself resolve the current step-90 blocker.
