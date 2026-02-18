@@ -5026,7 +5026,9 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
                 rn2(3);
                 // Tutorial level entry has one non-logged PRNG draw between
                 // nhlua shuffle calls in C startup path.
-                if (isTutorialSpecial) advanceRngRaw(1);
+                const tutShuffleRawShim = (typeof process === 'undefined'
+                    || process.env.WEBHACK_TUT_SHIM_MAKELEVEL !== '0');
+                if (isTutorialSpecial && tutShuffleRawShim) advanceRngRaw(1);
                 rn2(2);
             }
 

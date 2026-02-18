@@ -645,11 +645,11 @@ export class NetHackGame {
                 if (result.action === 'pick-gender') { gender = -1; roleIdx = -1; continue; }
                 if (result.action === 'pick-align') { align = -128; roleIdx = -1; continue; }
                 if (result.action === 'filter') { await this._showFilterMenu(); isFirstMenu = true; continue; }
+                if (result.action === 'invalid') { continue; }
                 if (result.action === 'selected') {
                     roleIdx = result.value;
                     // Validate role index
                     if (roleIdx < 0 || roleIdx >= roles.length) {
-                        console.error(`Invalid roleIdx: ${roleIdx}, roles.length: ${roles.length}`);
                         roleIdx = -1;
                         continue;
                     }
@@ -676,11 +676,11 @@ export class NetHackGame {
                     if (result.action === 'pick-gender') { gender = -1; continue; }
                     if (result.action === 'pick-align') { align = -128; continue; }
                     if (result.action === 'filter') { await this._showFilterMenu(); roleIdx = -1; raceIdx = -1; gender = -1; align = -128; isFirstMenu = true; continue; }
+                    if (result.action === 'invalid') { continue; }
                     if (result.action === 'selected') {
                         raceIdx = result.value;
                         // Validate race index
                         if (raceIdx < 0 || raceIdx >= races.length) {
-                            console.error(`Invalid raceIdx: ${raceIdx}, races.length: ${races.length}`);
                             raceIdx = -1;
                             continue;
                         }
@@ -700,11 +700,11 @@ export class NetHackGame {
                     if (result.action === 'pick-race') { raceIdx = -1; gender = -1; continue; }
                     if (result.action === 'pick-align') { align = -128; continue; }
                     if (result.action === 'filter') { await this._showFilterMenu(); roleIdx = -1; raceIdx = -1; gender = -1; align = -128; isFirstMenu = true; continue; }
+                    if (result.action === 'invalid') { continue; }
                     if (result.action === 'selected') {
                         gender = result.value;
                         // Validate gender (0=MALE, 1=FEMALE)
                         if (gender < 0 || gender > 1) {
-                            console.error(`Invalid gender: ${gender}`);
                             gender = -1;
                             continue;
                         }
@@ -725,11 +725,11 @@ export class NetHackGame {
                     if (result.action === 'pick-race') { raceIdx = -1; align = -128; continue; }
                     if (result.action === 'pick-gender') { gender = -1; align = -128; continue; }
                     if (result.action === 'filter') { await this._showFilterMenu(); roleIdx = -1; raceIdx = -1; gender = -1; align = -128; isFirstMenu = true; continue; }
+                    if (result.action === 'invalid') { continue; }
                     if (result.action === 'selected') {
                         align = result.value;
                         // Validate alignment (0=LAWFUL, 1=NEUTRAL, 2=CHAOTIC)
                         if (align < 0 || align > 2) {
-                            console.error(`Invalid alignment: ${align}`);
                             align = -128;
                             continue;
                         }
@@ -853,8 +853,8 @@ export class NetHackGame {
         if (roleLetters[c] !== undefined) {
             return { action: 'selected', value: roleLetters[c] };
         }
-        // Invalid key: re-show
-        return { action: 'selected', value: -1 };
+        // Invalid key: re-show menu without mutating current selection.
+        return { action: 'invalid' };
     }
 
     // Show race menu and wait for selection
@@ -938,7 +938,7 @@ export class NetHackGame {
         if (raceLetters[c] !== undefined) {
             return { action: 'selected', value: raceLetters[c] };
         }
-        return { action: 'selected', value: -1 };
+        return { action: 'invalid' };
     }
 
     // Show gender menu
@@ -1005,7 +1005,7 @@ export class NetHackGame {
             if (genderOptions.length > 0) return { action: 'selected', value: genderOptions[rn2(genderOptions.length)] };
             return { action: 'selected', value: rn2(2) };
         }
-        return { action: 'selected', value: -1 };
+        return { action: 'invalid' };
     }
 
     // Show alignment menu
@@ -1073,7 +1073,7 @@ export class NetHackGame {
         if (alignLetters[c] !== undefined) {
             return { action: 'selected', value: alignLetters[c] };
         }
-        return { action: 'selected', value: -128 };
+        return { action: 'invalid' };
     }
 
     // Show confirmation screen

@@ -45,11 +45,31 @@ function firstDivergence(actualRaw, expectedRaw) {
     return { index: -1, actual: a, expected: e };
 }
 
+function printRawWindow(label, rawEntries, centerRawIndex, window) {
+    const entries = Array.isArray(rawEntries) ? rawEntries : [];
+    if (!entries.length) return;
+    const center = Number.isInteger(centerRawIndex) ? centerRawIndex : 0;
+    const lo = Math.max(0, center - window);
+    const hi = Math.min(entries.length - 1, center + window);
+    console.log(`${label} raw window [${lo}..${hi}] (center=${center})`);
+    for (let i = lo; i <= hi; i++) {
+        const mark = (i === center) ? '>>' : '  ';
+        console.log(`${mark} [${i}] ${entries[i]}`);
+    }
+}
+
 function parseArg(name, fallback) {
     const idx = process.argv.indexOf(name);
     if (idx < 0 || idx + 1 >= process.argv.length) return fallback;
     const n = Number.parseInt(process.argv[idx + 1], 10);
     return Number.isInteger(n) ? n : fallback;
+}
+
+function parsePhaseArg() {
+    const idx = process.argv.indexOf('--phase');
+    if (idx < 0 || idx + 1 >= process.argv.length) return 'step';
+    const v = String(process.argv[idx + 1] || '').toLowerCase();
+    return (v === 'startup') ? 'startup' : 'step';
 }
 
 async function main() {
@@ -59,6 +79,7 @@ async function main() {
         process.exit(2);
     }
     const step = parseArg('--step', 1);
+    const phase = parsePhaseArg();
     const window = parseArg('--window', 4);
     const abs = resolve(input);
 
@@ -75,14 +96,25 @@ async function main() {
         replayMode: session.meta.type === 'interface' ? 'interface' : undefined,
     });
 
-    const expectedSteps = session.meta.type === 'interface'
-        ? (Array.isArray(session.raw?.steps) ? session.raw.steps.slice(1) : [])
-        : session.steps;
-    const expectedRng = Array.isArray(expectedSteps[step - 1]?.rng) ? expectedSteps[step - 1].rng : [];
-    const actualRng = Array.isArray(replay.steps?.[step - 1]?.rng) ? replay.steps[step - 1].rng : [];
+    let expectedRng;
+    let actualRng;
+    if (phase === 'startup') {
+        expectedRng = Array.isArray(session.raw?.startup?.rng) ? session.raw.startup.rng : [];
+        actualRng = Array.isArray(replay.startup?.rng) ? replay.startup.rng : [];
+    } else {
+        const expectedSteps = session.meta.type === 'interface'
+            ? (Array.isArray(session.raw?.steps) ? session.raw.steps.slice(1) : [])
+            : session.steps;
+        expectedRng = Array.isArray(expectedSteps[step - 1]?.rng) ? expectedSteps[step - 1].rng : [];
+        actualRng = Array.isArray(replay.steps?.[step - 1]?.rng) ? replay.steps[step - 1].rng : [];
+    }
 
     const diff = firstDivergence(actualRng, expectedRng);
-    console.log(`session=${basename(abs)} step=${step}`);
+    if (phase === 'startup') {
+        console.log(`session=${basename(abs)} phase=startup`);
+    } else {
+        console.log(`session=${basename(abs)} step=${step}`);
+    }
     if (diff.index < 0) {
         console.log('RNG comparable entries match.');
         return;
@@ -101,6 +133,8 @@ async function main() {
         if (i === diff.index) {
             if (a) console.log(`     JS raw: ${a.raw}`);
             if (e) console.log(`     C  raw: ${e.raw}`);
+            printRawWindow('JS', actualRng, a?.rawIndex, window);
+            printRawWindow('C ', expectedRng, e?.rawIndex, window);
         }
     }
 }
@@ -109,4 +143,3 @@ main().catch((err) => {
     console.error(err?.stack || String(err));
     process.exit(1);
 });
-

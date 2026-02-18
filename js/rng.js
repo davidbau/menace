@@ -38,6 +38,12 @@ export function getRngLog() {
     return rngLog;
 }
 
+export function pushRngLogEntry(entry) {
+    if (!rngLog) return;
+    if (typeof entry !== 'string' || entry.length === 0) return;
+    rngLog.push(entry);
+}
+
 export function disableRngLog() {
     rngLog = null;
     rngCallerTag = null;
@@ -225,6 +231,21 @@ export function c_d(n, x) {
 export function advanceRngRaw(count = 1) {
     if (!ctx) return;
     const n = Math.max(0, Number.isInteger(count) ? count : 0);
+    if (rngLog
+        && typeof process !== 'undefined'
+        && process.env.WEBHACK_LOG_RAW_ADVANCES === '1') {
+        let tag = '';
+        if (rngLogWithTags) {
+            const stack = new Error().stack;
+            const lines = stack.split('\n');
+            const callerLine = lines[2] || '';
+            const m = callerLine.match(/at (?:(\S+) \()?.*?([^/\s]+\.js):(\d+)/);
+            if (m) {
+                tag = ` @ ${m[1] ? `${m[1]}(${m[2]}:${m[3]})` : `${m[2]}:${m[3]}`}`;
+            }
+        }
+        rngLog.push(`~advanceRngRaw(${n})${tag}`);
+    }
     for (let i = 0; i < n; i++) {
         isaac64_next_uint64(ctx);
     }

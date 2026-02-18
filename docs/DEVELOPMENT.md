@@ -238,15 +238,20 @@ Two specialized tools help isolate RNG divergence at specific game turns:
 
 **`test/comparison/rng_step_diff.js`** — Step-level C-vs-JS RNG caller diff
 
-Replays a session in JS and compares one step's RNG stream against the captured
-C session step. It prints the first comparable divergence with nearby context
-and includes raw caller tags to show the exact JS call-site.
+Replays a session in JS and compares RNG stream against captured C data. By
+default it compares a specific step; use `--phase startup` to compare startup
+RNG (useful when the first step already starts divergent).
 
 ```bash
 # Inspect first divergence on tutorial accept step
 node test/comparison/rng_step_diff.js \
   test/comparison/sessions/manual/interface_tutorial.session.json \
   --step 1 --window 3
+
+# Inspect startup-phase divergence (pre-step RNG drift)
+node test/comparison/rng_step_diff.js \
+  test/comparison/sessions/manual/interface_tutorial.session.json \
+  --phase startup --window 5
 
 # Example output:
 # first divergence index=5
