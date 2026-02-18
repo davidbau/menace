@@ -2296,7 +2296,12 @@ function somex(croom) { return rn1(croom.hx - croom.lx + 1, croom.lx); }
 function somey(croom) { return rn1(croom.hy - croom.ly + 1, croom.ly); }
 
 // C ref: mkroom.c inside_room() -- check if (x,y) is inside room bounds (including walls)
-function inside_room(croom, x, y) {
+function inside_room(croom, x, y, map) {
+    if (croom.irregular) {
+        const loc = map?.at?.(x, y);
+        const i = croom.roomnoidx + ROOMOFFSET;
+        return !!loc && !loc.edge && loc.roomno === i;
+    }
     return x >= croom.lx - 1 && x <= croom.hx + 1
         && y >= croom.ly - 1 && y <= croom.hy + 1;
 }
@@ -2339,7 +2344,7 @@ export function somexy(croom, map) {
             continue;
         let inSubroom = false;
         for (let i = 0; i < croom.nsubrooms; i++) {
-            if (inside_room(croom.sbrooms[i], x, y)) {
+            if (inside_room(croom.sbrooms[i], x, y, map)) {
                 inSubroom = true;
                 break;
             }
@@ -2441,10 +2446,12 @@ export function enexto(cx, cy, map) {
 
 // C ref: mklev.c generate_stairs_room_good()
 function generate_stairs_room_good(map, croom, phase) {
-    const has_upstairs = (map.upstair.x >= croom.lx && map.upstair.x <= croom.hx
-                       && map.upstair.y >= croom.ly && map.upstair.y <= croom.hy);
-    const has_dnstairs = (map.dnstair.x >= croom.lx && map.dnstair.x <= croom.hx
-                       && map.dnstair.y >= croom.ly && map.dnstair.y <= croom.hy);
+    const has_upstairs = Number.isInteger(map.upstair?.x)
+        && Number.isInteger(map.upstair?.y)
+        && inside_room(croom, map.upstair.x, map.upstair.y, map);
+    const has_dnstairs = Number.isInteger(map.dnstair?.x)
+        && Number.isInteger(map.dnstair?.y)
+        && inside_room(croom, map.dnstair.x, map.dnstair.y, map);
     // C ref: mklev.c:2199-2203
     return (croom.needjoining || phase < 0)
         && ((!has_dnstairs && !has_upstairs) || phase < 1)
