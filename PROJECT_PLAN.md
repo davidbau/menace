@@ -172,4 +172,5 @@ Milestones use a hybrid model: phase completion + parity gates + release-timing 
    - Move to `Ready` when all blockers close.
    - Close via merged PR references (for example `Fixes #<issue>`).
 6. Enforce execution discipline.
-   - Do not move an issue to `In Progress` while any declared blocker is still open.
+   - Default rule: do not move an issue to `In Progress` while declared blockers are open.
+   - Exception: if a blocker link is stale/incorrect, opportunistic work is allowed; update the dependency links/labels as part of that work.

@@ -22,7 +22,8 @@ Operational rules:
 - Apply `blocked` label when prerequisites are open.
 - Apply `has-dependents` label when the issue gates others.
 - Keep workflow status in sync (`Ready`, `Blocked`, `In Progress`, `Done`).
-- Never start `In Progress` while any declared blocker remains open.
+- Default: do not start `In Progress` while declared blockers are open.
+- Exception: if a blocker advisory is stale/incorrect, proceed opportunistically and fix dependency links/labels in the same work cycle.
 
 Recommended parent/child pattern:
 - Parent issue tracks outcome and acceptance criteria.
