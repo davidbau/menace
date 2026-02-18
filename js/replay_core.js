@@ -996,6 +996,7 @@ export async function replaySession(seed, session, opts = {}) {
             deferredSparseMoveKey = null;
             const deferredResult = await rhack(moveCh, game);
             if (deferredResult && deferredResult.tookTime) {
+                game.fov.compute(game.map, game.player.x, game.player.y);
                 settrack(game.player);
                 movemon(game.map, game.player, game.display, game.fov, game);
                 game.simulateTurnEnd();
@@ -1023,6 +1024,7 @@ export async function replaySession(seed, session, opts = {}) {
             const key = step.key || '';
             const isAcknowledge = key === ' ' || key === '\n' || key === '\r';
             if (isAcknowledge) {
+                game.fov.compute(game.map, game.player.x, game.player.y);
                 settrack(game.player);
                 movemon(game.map, game.player, game.display, game.fov, game);
                 game.simulateTurnEnd();
@@ -1348,6 +1350,8 @@ export async function replaySession(seed, session, opts = {}) {
             // C ref: allmain.c moveloop_core():
             // monster movement occurs before once-per-turn bookkeeping;
             // settrack() happens during turn setup before moves++ work.
+            // C ref: vision_recalc() runs during domove(), update FOV before monsters act
+            game.fov.compute(game.map, game.player.x, game.player.y);
             movemon(game.map, game.player, game.display, game.fov, game);
             game.simulateTurnEnd();
             if (restorePutstr) restorePutstr();
