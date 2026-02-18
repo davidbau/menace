@@ -106,6 +106,11 @@ function dist2(x1, y1, x2, y2) {
     return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
 }
 
+// C ref: hack.h distmin()
+function distmin(x1, y1, x2, y2) {
+    return Math.max(Math.abs(x1 - x2), Math.abs(y1 - y2));
+}
+
 // C ref: mon.c monnear() + NODIAG()
 function monnear(mon, x, y) {
     const distance = dist2(mon.mx, mon.my, x, y);
@@ -120,6 +125,52 @@ function monnear(mon, x, y) {
 function hasGold(inv) {
     return Array.isArray(inv)
         && inv.some(o => o && o.oclass === COIN_CLASS && (o.quan ?? 1) > 0);
+}
+
+// C ref: mthrowu.c blocking_terrain() subset used by lined_up().
+function blockingTerrainForLinedup(map, x, y) {
+    if (!isok(x, y)) return true;
+    const loc = map.at(x, y);
+    if (!loc) return true;
+    if (IS_OBSTRUCTED(loc.typ)) return true;
+    if (IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED))) return true;
+    return false;
+}
+
+// C ref: mthrowu.c linedup()/lined_up() for monster vs hero.
+function linedUpToPlayer(mon, map, player) {
+    const ax = Number.isInteger(mon.mux) ? mon.mux : player.x;
+    const ay = Number.isInteger(mon.muy) ? mon.muy : player.y;
+    const bx = mon.mx;
+    const by = mon.my;
+    const tbx = ax - bx;
+    const tby = ay - by;
+    if (!tbx && !tby) return false;
+
+    if (!(!tbx || !tby || Math.abs(tbx) === Math.abs(tby))) return false;
+    if (distmin(tbx, tby, 0, 0) >= BOLT_LIM) return false;
+
+    // C ref: if target is hero square, use couldsee(mon_pos), otherwise clear_path().
+    const inSight = (ax === player.x && ay === player.y)
+        ? couldsee(map, player, bx, by)
+        : m_cansee({ mx: bx, my: by }, map, ax, ay);
+    if (inSight) return true;
+
+    // C ref: hero target uses boulderhandling=2.
+    const dx = Math.sign(ax - bx);
+    const dy = Math.sign(ay - by);
+    let cx = bx;
+    let cy = by;
+    let boulderspots = 0;
+    do {
+        cx += dx;
+        cy += dy;
+        if (blockingTerrainForLinedup(map, cx, cy)) return false;
+        const objs = map.objectsAt?.(cx, cy) || [];
+        if (objs.some((o) => o && o.otyp === BOULDER)) boulderspots++;
+    } while (cx !== ax || cy !== ay);
+    const denom = 2 + boulderspots;
+    return rn2(denom) < 2;
 }
 
 function playerHasGold(player) {
@@ -2007,6 +2058,18 @@ function m_move(mon, map, player, display = null, fov = null) {
             ggy = cp.y;
         }
     }
+
+    // C ref: monmove.c:1890-1907 — getitems gate consumes lined_up() RNG.
+    let getitems = false;
+    const isRogueLevel = !!(map?.flags?.is_rogue || map?.flags?.roguelike || map?.flags?.is_rogue_lev);
+    if ((!mon.peaceful || !rn2(10)) && !isRogueLevel) {
+        const heroStr = Number(player?.str) || Number(player?.acurrstr) || 10;
+        const inLine = linedUpToPlayer(mon, map, player)
+            && (distmin(mon.mx, mon.my, mon.mux ?? player.x, mon.muy ?? player.y)
+                <= (Math.floor(heroStr / 2) + 1));
+        if (appr !== 1 || !inLine) getitems = true;
+    }
+    void getitems;
 
     // C ref: monmove.c m_search_items() shop short-circuit:
     // "in shop, usually skip" -> rn2(25) consumed for non-peaceful movers.
