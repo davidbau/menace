@@ -328,6 +328,9 @@ function makedog(map, player, depth) {
         mtrack: [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }],
         mndx: pmIdx,     // C ref: monst.h — index into mons[] (also set mnum for compat)
         mnum: pmIdx,     // Alias for mndx - some code uses mnum, some uses mndx
+        // C ref: monst.c struct monst misc_worn_check; used by x_monnam()
+        // to prepend "saddled" when W_SADDLE is set.
+        misc_worn_check: saddleObj ? 0x100000 : 0,
         minvent: saddleObj ? [saddleObj] : [],
         // C ref: mextra.h struct edog — pet-specific data
         // C ref: dog.c initedog(mtmp, TRUE) — full initialization

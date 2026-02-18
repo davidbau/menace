@@ -292,7 +292,8 @@ const W_SADDLE = 0x100000;
 // the W_SADDLE worn-mask bit set (same check C does via
 // misc_worn_check & W_SADDLE).
 export function hasSaddle(mon) {
-    return (mon.minvent || []).some(o => o && (o.owornmask & W_SADDLE));
+    if ((mon?.misc_worn_check || 0) & W_SADDLE) return true;
+    return (mon?.minvent || []).some(o => o && (o.owornmask & W_SADDLE));
 }
 
 // C ref: do_name.c x_monnam() — returns the base display name for a
