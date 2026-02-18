@@ -1,5 +1,5 @@
 diff --git a/src/nhlua.c b/src/nhlua.c
-index 96970f73c..211f2f965 100644
+index 96970f73c..41b284943 100644
 --- a/src/nhlua.c
 +++ b/src/nhlua.c
 @@ -67,6 +67,8 @@ staticfn int nhl_ing_suffix(lua_State *);
@@ -11,7 +11,7 @@ index 96970f73c..211f2f965 100644
  staticfn int nhl_level_difficulty(lua_State *);
  staticfn int nhl_is_genocided(lua_State *);
  staticfn int nhl_get_debug_themerm_name(lua_State *);
-@@ -920,14 +922,59 @@ nhl_an(lua_State *L)
+@@ -920,14 +922,90 @@ nhl_an(lua_State *L)
      return 1;
  }
  
@@ -21,12 +21,20 @@ index 96970f73c..211f2f965 100644
 +{
 +    static int enabled = -1;
 +    const char *env;
++    const char *rnglog;
 +
 +    if (enabled >= 0)
 +        return enabled ? TRUE : FALSE;
 +
 +    env = getenv("NETHACK_LUA_RNGLOG_CTX");
-+    enabled = (env && *env && strcmp(env, "0")) ? 1 : 0;
++    if (env) {
++        enabled = (*env && strcmp(env, "0")) ? 1 : 0;
++        return enabled ? TRUE : FALSE;
++    }
++
++    /* Harness default: when RNG logging is active, include Lua callsites. */
++    rnglog = getenv("NETHACK_RNGLOG");
++    enabled = (rnglog && *rnglog) ? 1 : 0;
 +    return enabled ? TRUE : FALSE;
 +}
 +
@@ -45,7 +53,30 @@ index 96970f73c..211f2f965 100644
 +
 +    if (lua_getstack(L, 1, &ar) && lua_getinfo(L, "nSl", &ar)) {
 +        if (ar.short_src && *ar.short_src) {
-+            Snprintf(rnglog_srcbuf, sizeof rnglog_srcbuf, "%s", ar.short_src);
++            const char *src_start = ar.short_src;
++            size_t src_len = strlen(ar.short_src);
++
++            /* Lua string chunks render as [string "(name.lua)"].
++               Normalize to plain "name.lua" for readable RNG logs. */
++            if (src_len >= 11
++                && !strncmp(src_start, "[string \"", 9)
++                && src_start[src_len - 2] == '"'
++                && src_start[src_len - 1] == ']') {
++                src_start += 9;
++                src_len -= 11;
++            }
++            if (src_len >= 1 && src_start[0] == '@') {
++                src_start++;
++                src_len--;
++            }
++            if (src_len >= 2
++                && src_start[0] == '('
++                && src_start[src_len - 1] == ')') {
++                src_start++;
++                src_len -= 2;
++            }
++            Snprintf(rnglog_srcbuf, sizeof rnglog_srcbuf,
++                     "%.*s", (int) src_len, src_start);
 +            src = rnglog_srcbuf;
 +        }
 +        line = ar.currentline;
@@ -73,7 +104,7 @@ index 96970f73c..211f2f965 100644
      else
          nhl_error(L, "Wrong args");
  
-@@ -941,11 +988,16 @@ nhl_random(lua_State *L)
+@@ -941,11 +1019,16 @@ nhl_random(lua_State *L)
  {
      int argc = lua_gettop(L);
  
