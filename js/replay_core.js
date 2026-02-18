@@ -1424,21 +1424,6 @@ export async function replaySession(seed, session, opts = {}) {
                     new Promise(resolve => setTimeout(() => resolve({ done: false }), 5)),
                 ]);
             }
-            if (!settled.done
-                && priorPendingKind === 'inventory-menu'
-                && step.key.length === 1
-                && step.key !== ' '
-                && step.key !== '\u001b') {
-                // C tty parity: a non-space key can dismiss inventory and also
-                // become the next command in the same captured step.
-                pushInput(32);
-                for (let attempt = 0; attempt < 6 && !settled.done; attempt++) {
-                    settled = await Promise.race([
-                        pendingCommand.then(v => ({ done: true, value: v })),
-                        new Promise(resolve => setTimeout(() => resolve({ done: false }), 5)),
-                    ]);
-                }
-            }
                 if (!settled.done) {
                     if (opts.captureScreens) {
                         capturedScreenOverride = game.display.getScreenLines();

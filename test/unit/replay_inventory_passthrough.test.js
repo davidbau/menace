@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 
 import { replaySession } from '../../js/replay_core.js';
 
-describe('replay inventory passthrough', () => {
-    it('lets a non-space key dismiss inventory and execute as a command', async () => {
+describe('replay inventory modal handling', () => {
+    it('keeps inventory open on non-space keys in replay', async () => {
         const session = {
             version: 3,
             seed: 1,
@@ -29,7 +29,7 @@ describe('replay inventory passthrough', () => {
 
         assert.equal(replay.steps.length, 2);
         assert.match((replay.steps[0].screen || [])[0] || '', /Weapons/);
-        assert.doesNotMatch((replay.steps[1].screen || [])[0] || '', /Weapons/);
-        assert.ok((replay.steps[1].rngCalls || 0) > 0);
+        assert.match((replay.steps[1].screen || [])[0] || '', /Weapons/);
+        assert.equal(replay.steps[1].rngCalls || 0, 0);
     });
 });

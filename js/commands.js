@@ -1368,8 +1368,8 @@ async function handleInventory(player, display) {
     while (true) {
         const ch = await nhgetch();
         // C tty parity: inventory stays open through regular command keys;
-        // explicit dismissal is space or escape.
-        if (ch === 32 || ch === 27) break;
+        // explicit dismissal keys include space, escape, and enter.
+        if (ch === 32 || ch === 27 || ch === 10 || ch === 13) break;
     }
     if (typeof display.clearRow === 'function') display.clearRow(0);
     if (display && Object.hasOwn(display, 'topMessage')) display.topMessage = null;

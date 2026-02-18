@@ -60,7 +60,6 @@ describe('inventory modal dismissal', () => {
     it('keeps inventory open on non-dismiss keys and closes on space', async () => {
         const { game } = makeGame();
         pushInput('o'.charCodeAt(0));
-        pushInput('\n'.charCodeAt(0));
 
         const pending = rhack('i'.charCodeAt(0), game);
         const early = await Promise.race([
@@ -72,6 +71,14 @@ describe('inventory modal dismissal', () => {
         pushInput(' '.charCodeAt(0));
 
         const result = await pending;
+        assert.equal(result.tookTime, false);
+        assert.ok(Array.isArray(game.display.lastOverlay));
+    });
+
+    it('closes inventory on enter', async () => {
+        const { game } = makeGame();
+        pushInput('\n'.charCodeAt(0));
+        const result = await rhack('i'.charCodeAt(0), game);
         assert.equal(result.tookTime, false);
         assert.ok(Array.isArray(game.display.lastOverlay));
     });

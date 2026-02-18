@@ -67,13 +67,15 @@ function normalizeStep(step, index) {
     const row = step || {};
     const rng = Array.isArray(row.rng) ? row.rng : [];
     const hasExplicitRngCalls = Number.isInteger(row.rngCalls);
-    const hasExplicitRngTrace = Array.isArray(row.rng);
     return {
         index,
         key: row.key ?? null,
         action: row.action || null,
         rng,
-        rngCalls: hasExplicitRngCalls ? row.rngCalls : (hasExplicitRngTrace ? rng.length : null),
+        // Prefer explicit traces over count-only comparison. For captured
+        // `rng: []`, leave rngCalls null so downstream uses compareRng()
+        // semantics (ignoring midlog/composite entries) instead of raw length.
+        rngCalls: hasExplicitRngCalls ? row.rngCalls : null,
         screen: getSessionScreenLines(row),
         screenAnsi: getSessionScreenAnsiLines(row),
         typGrid: normalizeGrid(row.typGrid),
@@ -168,9 +170,7 @@ export function normalizeSession(raw, meta = {}) {
     const startup = startupRaw
         ? {
             rng: Array.isArray(startupRaw.rng) ? startupRaw.rng : [],
-            rngCalls: Number.isInteger(startupRaw.rngCalls)
-                ? startupRaw.rngCalls
-                : (Array.isArray(startupRaw.rng) ? startupRaw.rng.length : null),
+            rngCalls: Number.isInteger(startupRaw.rngCalls) ? startupRaw.rngCalls : null,
             screen: getSessionScreenLines(startupRaw),
             screenAnsi: getSessionScreenAnsiLines(startupRaw),
             typGrid: normalizeGrid(startupRaw.typGrid),
