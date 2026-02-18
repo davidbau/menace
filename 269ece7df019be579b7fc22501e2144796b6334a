@@ -1,0 +1,44 @@
+{
+  "commit": "269ece7",
+  "parent": "9e15521",
+  "date": "2026-02-16T07:34:23-05:00",
+  "author": "David Bau",
+  "message": "Docs: align MEMORY test commands with canonical test paths",
+  "stats": {
+    "total": 2005,
+    "pass": 548,
+    "fail": 1457,
+    "skip": 0,
+    "duration": 30
+  },
+  "categories": {
+    "chargen": {
+      "total": 181,
+      "pass": 179,
+      "fail": 2
+    },
+    "gameplay": {
+      "total": 61,
+      "pass": 23,
+      "fail": 38
+    },
+    "map": {
+      "total": 14,
+      "pass": 5,
+      "fail": 9
+    },
+    "special": {
+      "total": 51,
+      "pass": 50,
+      "fail": 1
+    },
+    "unit": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    }
+  },
+  "regression": false,
+  "newTests": 0,
+  "backfilled": true
+}
