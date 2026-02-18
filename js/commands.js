@@ -1696,6 +1696,12 @@ async function handleEat(player, display, game) {
         if (!isCorpse) {
             display.putstr_message(`You begin eating the ${eatenItem.name}.`);
         }
+        let consumedInventoryItem = false;
+        const consumeInventoryItem = () => {
+            if (consumedInventoryItem) return;
+            consumedInventoryItem = true;
+            if (!eatingFromStack) player.removeFromInventory(item);
+        };
 
         if (reqtime > 1) {
             const finishEatingAfterTurn = (gameCtx) => {
@@ -1711,7 +1717,6 @@ async function handleEat(player, display, game) {
                     // C ref: eat.c done_eating() generic multi-turn completion line.
                     display.putstr_message("You're finally finished.");
                 }
-                if (!eatingFromStack) player.removeFromInventory(item);
                 if (isCorpse && cnum === PM_NEWT) {
                     // C ref: eat.c eye_of_newt_buzz() from cpostfx(PM_NEWT).
                     if (rn2(3) || (3 * (player.pw || 0) <= 2 * (player.pwmax || 0))) {
@@ -1738,8 +1743,9 @@ async function handleEat(player, display, game) {
                 fn: () => {
                     usedtime++;
                     if (usedtime >= reqtime) {
-                        // Done eating. C completion side-effects occur after
-                        // the final turn's movement/time processing.
+                        // Consume inventory food before movement on the final turn;
+                        // C done_eating()/useup() runs during eatfood() before movemon.
+                        consumeInventoryItem();
                         return 0; // done
                     }
                     doBite();
@@ -1751,7 +1757,7 @@ async function handleEat(player, display, game) {
             };
         } else {
             // Single-turn food — eat instantly
-            if (!eatingFromStack) player.removeFromInventory(item);
+            consumeInventoryItem();
             display.putstr_message(`This ${eatenItem.name} is delicious!`);
         }
         return { moved: false, tookTime: true };
