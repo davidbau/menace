@@ -11,8 +11,8 @@ describe('mkobj SPE_NOVEL parity', () => {
         enableRngLog();
         try {
             const obj = mksobj(SPE_NOVEL, false, false);
-            const log = getRngLog().map(line => line.replace(/^\d+\s+/, ''));
-            const hasNovelRoll = log.some(line => /^rn2\(41\)=\d+$/.test(line));
+            const log = getRngLog().map((line) => String(line).replace(/^\d+\s+/, ''));
+            const hasNovelRoll = log.some((line) => /^rn2\(41\)=\d+(\s+@.*)?$/.test(line));
             assert.equal(hasNovelRoll, true, 'SPE_NOVEL should consume rn2(41) for noveltitle');
             assert.equal(Number.isInteger(obj.novelidx), true, 'SPE_NOVEL should set novelidx');
             assert.equal(obj.novelidx >= 0 && obj.novelidx < 41, true, 'novelidx should be in [0, 40]');

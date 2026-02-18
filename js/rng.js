@@ -25,9 +25,10 @@ let rngLogWithParent = false; // when true, include parent/grandparent in tag
 let rngCallerTag = null;     // current caller annotation (propagated through wrappers)
 let rngDepth = 0;            // nesting depth for context propagation
 
-export function enableRngLog(withTags = false) {
-    if (!withTags && typeof process !== 'undefined' && process.env.RNG_LOG_TAGS === '1') {
-        withTags = true;
+export function enableRngLog(withTags = true) {
+    if (typeof process !== 'undefined' && process?.env) {
+        if (process.env.RNG_LOG_TAGS === '0') withTags = false;
+        else if (process.env.RNG_LOG_TAGS === '1') withTags = true;
     }
     const parentPref = (typeof process !== 'undefined' && process?.env)
         ? process.env.RNG_LOG_PARENT

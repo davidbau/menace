@@ -217,7 +217,8 @@ export function generateMapsWithCoreReplay(seed, maxDepth, options = {}) {
     const rngLogs = {};
     if (targetDepth <= 0) return { grids, maps, rngLogs };
 
-    enableRngLog(!!options.rngWithTags);
+    const withTags = (typeof options.rngWithTags === 'boolean') ? options.rngWithTags : undefined;
+    enableRngLog(withTags);
     const game = HeadlessGame.start(seed, {
         wizard: true,
         roleIndex: Number.isInteger(options.roleIndex) ? options.roleIndex : 11,
@@ -322,7 +323,8 @@ export function generateStartupWithCoreReplay(seed, session, options = {}) {
     const char = extractCharacterFromSession(rawSession);
     const preStartupEntries = getPreStartupRngEntries(rawSession);
 
-    enableRngLog(!!options.rngWithTags);
+    const withTags = (typeof options.rngWithTags === 'boolean') ? options.rngWithTags : undefined;
+    enableRngLog(withTags);
     initRng(seed);
     setGameSeed(seed);
     consumeRngEntries(preStartupEntries);
@@ -447,7 +449,7 @@ export class HeadlessGame {
         return this.getScreen().join('\n');
     }
 
-    enableRngLogging(withTags = false) {
+    enableRngLogging(withTags = true) {
         enableRngLog(withTags);
     }
 
