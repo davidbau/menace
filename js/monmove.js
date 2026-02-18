@@ -114,10 +114,8 @@ function distmin(x1, y1, x2, y2) {
 // C ref: mon.c monnear() + NODIAG()
 function monnear(mon, x, y) {
     const distance = dist2(mon.mx, mon.my, x, y);
-    const nodiag = mon.mndx === PM_GRID_BUG
-        || mon.mndx === PM_XAN
-        || mon.mndx === PM_YELLOW_LIGHT
-        || mon.mndx === PM_BLACK_LIGHT;
+    // C ref: hack.h NODIAG(monnum) is only PM_GRID_BUG.
+    const nodiag = mon.mndx === PM_GRID_BUG;
     if (distance === 2 && nodiag) return false;
     return distance < 3;
 }
@@ -138,7 +136,7 @@ function blockingTerrainForLinedup(map, x, y) {
 }
 
 // C ref: mthrowu.c linedup()/lined_up() for monster vs hero.
-function linedUpToPlayer(mon, map, player) {
+function linedUpToPlayer(mon, map, player, fov = null) {
     const ax = Number.isInteger(mon.mux) ? mon.mux : player.x;
     const ay = Number.isInteger(mon.muy) ? mon.muy : player.y;
     const bx = mon.mx;
@@ -152,7 +150,11 @@ function linedUpToPlayer(mon, map, player) {
 
     // C ref: if target is hero square, use couldsee(mon_pos), otherwise clear_path().
     const inSight = (ax === player.x && ay === player.y)
-        ? couldsee(map, player, bx, by)
+        // C ref: linedup() uses couldsee(bx, by) for hero target.
+        // Use current FOV COULD_SEE bitmap when available.
+        ? ((fov && typeof fov.couldSee === 'function')
+            ? fov.couldSee(bx, by)
+            : couldsee(map, player, bx, by))
         // C ref: linedup() uses clear_path(ax, ay, bx, by) for non-hero target.
         : m_cansee({ mx: ax, my: ay }, map, bx, by);
     if (inSight) return true;
@@ -2065,7 +2067,7 @@ function m_move(mon, map, player, display = null, fov = null) {
     const isRogueLevel = !!(map?.flags?.is_rogue || map?.flags?.roguelike || map?.flags?.is_rogue_lev);
     if ((!mon.peaceful || !rn2(10)) && !isRogueLevel) {
         const heroStr = Number(player?.str) || Number(player?.acurrstr) || 10;
-        const inLine = linedUpToPlayer(mon, map, player)
+        const inLine = linedUpToPlayer(mon, map, player, fov)
             && (distmin(mon.mx, mon.my, mon.mux ?? player.x, mon.muy ?? player.y)
                 <= (Math.floor(heroStr / 2) + 1));
         if (appr !== 1 || !inLine) getitems = true;
