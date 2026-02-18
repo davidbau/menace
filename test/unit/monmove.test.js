@@ -87,6 +87,31 @@ describe('Monster movement', () => {
         assert.equal(mon.my, startY);
     });
 
+    it('movemon does not stamp mlstmv for non-combat movement processing', () => {
+        initRng(42);
+        const map = makeSimpleMap();
+        const player = new Player();
+        player.x = 20; player.y = 10;
+        player.initRole(0);
+
+        const mon = {
+            name: 'sleepy witness',
+            mx: 12, my: 10,
+            mhp: 10, mhpmax: 10,
+            ac: 8, level: 1,
+            speed: 12, movement: 12,
+            attacks: [],
+            dead: false, sleeping: true,
+            confused: false, peaceful: false,
+            tame: false, flee: false,
+            mlstmv: 7,
+        };
+        map.monsters.push(mon);
+
+        movemon(map, player, mockDisplay);
+        assert.equal(mon.mlstmv, 7, 'mlstmv should only be updated by attack paths (mattackm parity)');
+    });
+
     it('dead monsters are removed', () => {
         const map = makeSimpleMap();
         const player = new Player();

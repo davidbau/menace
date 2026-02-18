@@ -47,7 +47,8 @@ function attackVerb(type) {
     switch (type) {
         case AT_BITE: return 'bites';
         case AT_CLAW: return 'claws';
-        case AT_KICK: return 'kicks';
+        // C ref: mhitm.c hitmm() uses generic "hits" for AT_KICK.
+        case AT_KICK: return 'hits';
         case AT_BUTT: return 'butts';
         case AT_TUCH: return 'touches';
         case AT_STNG: return 'stings';
@@ -1339,7 +1340,6 @@ export function movemon(map, player, display, fov, game = null) {
                 const alreadySawMon = !!(game && game.occupation
                     && ((fov?.canSee ? fov.canSee(oldx, oldy) : couldsee(map, player, oldx, oldy))));
                 mon.movement -= NORMAL_SPEED;
-                mon.mlstmv = turnCount;
                 anyMoved = true;
                 dochug(mon, map, player, display, fov, game);
                 // C ref: monmove.c dochugw() threat-notice interruption gate.
@@ -2046,6 +2046,16 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
                 const attacks = (Array.isArray(mon.attacks) && mon.attacks.length > 0)
                     ? mon.attacks.filter((a) => a && a.type !== AT_NONE)
                     : [{ type: AT_CLAW, dice: 1, sides: 1 }];
+                // C ref: mhitm.c mattackm() marks the attacker as having moved
+                // this turn; movemon() does not stamp mlstmv for ordinary moves.
+                mon.mlstmv = turnCount;
+                const monVisible = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
+                const targetVisible = fov?.canSee ? fov.canSee(target.mx, target.my) : couldsee(map, player, target.mx, target.my);
+                // C ref: mhitm.c mattackm() sets visibility when either
+                // participant is visible to the hero, not only when both are.
+                const mmVisible = monVisible || targetVisible;
+                const suppressTurnDetail = !!player.displacedPetThisTurn
+                    || (game?.occupation?.occtxt === 'searching');
                 let anyHit = false;
                 let defenderDied = false;
                 for (let ai = 0; ai < attacks.length; ai++) {
@@ -2053,13 +2063,6 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
                     const roll = rnd(20 + ai); // C ref: mhitm.c mattackm to-hit roll
                     const toHit = (target.mac ?? 10) + (mon.mlevel || 1);
                     const hit = toHit > roll;
-                    const monVisible = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
-                    const targetVisible = fov?.canSee ? fov.canSee(target.mx, target.my) : couldsee(map, player, target.mx, target.my);
-                    // C ref: mhitm.c mattackm() sets visibility when either
-                    // participant is visible to the hero, not only when both are.
-                    const mmVisible = monVisible || targetVisible;
-                    const suppressTurnDetail = !!player.displacedPetThisTurn
-                        || (game?.occupation?.occtxt === 'searching');
                     if (hit) {
                         anyHit = true;
                         const dice = (attk && attk.dice) ? attk.dice : 1;
@@ -2125,6 +2128,7 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
                     && target.mlstmv !== turnCount
                     && monnear(target, mon.mx, mon.my)) {
                     // C ref: dogmove.c retaliation uses mattackm(target, mon).
+                    target.mlstmv = turnCount;
                     const retaliateAttk = (Array.isArray(target.attacks) && target.attacks.length > 0)
                         ? target.attacks.find((a) => a && a.type !== AT_NONE)
                         : null;
@@ -2135,15 +2139,25 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
                     const hit = toHit > roll;
                     if (hit) {
                         const dmg = c_d(Math.max(1, dice), Math.max(1, sides));
+                        const monDied = (mon.mhp - Math.max(1, dmg)) <= 0;
+                        const suppressDetail = suppressTurnDetail && !monDied;
+                        if (display && mmVisible && !suppressDetail) {
+                            // C ref: mhitm.c — retaliation is mattackm(target, mon).
+                            display.putstr_message(`${monAttackName(target)} ${attackVerb(retaliateAttk?.type)} ${monNam(mon, { article: 'the' })}.`);
+                        }
                         rn2(3); // mhitm_knockback distance probe
                         rn2(6); // mhitm_knockback chance probe
                         mon.mhp -= Math.max(1, dmg);
-                        const monDied = mon.mhp <= 0;
-                        if (monDied) {
+                        const monDiedNow = mon.mhp <= 0;
+                        if (monDiedNow) {
                             mon.dead = true;
                         }
-                        consumePassivemmRng(target, mon, true, monDied);
+                        consumePassivemmRng(target, mon, true, monDiedNow);
                     } else {
+                        if (display && mmVisible && !suppressTurnDetail) {
+                            // C ref: mhitm.c missmm — mon_nam(mdef) uses ARTICLE_THE
+                            display.putstr_message(`${monAttackName(target)} misses ${monNam(mon, { article: 'the' })}.`);
+                        }
                         consumePassivemmRng(target, mon, false, false);
                     }
                 }
