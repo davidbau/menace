@@ -43,13 +43,10 @@ async function loadData() {
       .filter(d => d !== null)
       .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // Filter out entries with too few categorized tests (incomplete runs).
-    allData = parsed.filter(d => {
-      const cats = d.categories;
-      if (!cats) return false;
-      const sum = Object.values(cats).reduce((s, c) => s + (c.total || 0), 0);
-      return sum >= 10;
-    });
+    // Start from when the current test format stabilized (d532b72, 2026-02-16).
+    // Earlier entries used different counting schemes that distort the charts.
+    const START_DATE = '2026-02-16';
+    allData = parsed.filter(d => d.date >= START_DATE && d.categories);
 
     if (allData.length === 0) {
       showError('No data found in results.jsonl');
