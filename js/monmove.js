@@ -275,11 +275,6 @@ function m_throw(mon, startX, startY, dx, dy, range, weapon, map, player, displa
                 mtmp.mhp -= damage;
                 if (mtmp.mhp <= 0) {
                     mtmp.dead = true;
-                    const mdat = mtmp.type || {};
-                    const killVerb = nonliving(mdat) ? 'destroy' : 'kill';
-                    if (display) {
-                        display.putstr_message(`You ${killVerb} the ${monDisplayName(mtmp)}!`);
-                    }
                     map.removeMonster(mtmp);
                     // C ref: ohitmon → mondied (context.mon_moving is true
                     // during monster throws, so mondied not xkilled).

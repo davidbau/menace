@@ -307,6 +307,23 @@ node selfplay/runner/pet_rng_probe.js --seed 13296 --turns 20 --show-turn 7 --sh
 **Use when**: RNG traces show divergence but you need to pinpoint exactly which
 turn and which subsystem (monster movement, item generation, etc.) is responsible.
 
+#### Throw-Replay Lore (Pet/Throw Parity)
+
+For monster thrown-weapon parity, do not assume one `thrwmu()` is fully
+resolved inside one captured input step.
+
+- In C sessions, a throw often appears as a multi-step sequence:
+  - an initial step with top line `"The <monster> throws ..."` and one
+    `rn2(5)` at `m_throw(mthrowu.c:772)`,
+  - later key steps that continue the projectile (`rn2(5)` again, and
+    sometimes `thitu()`/`dmgval()` rolls).
+- This pattern is easy to see in
+  `seed110_samurai_selfplay200.session.json` and
+  `seed206_monk_wizard.session.json`.
+- Practical implication: if JS resolves full projectile flight/hit/drop in a
+  single turn, it can create false-looking RNG and map glyph drift even when
+  the message text seems close.
+
 **`selfplay/runner/trace_compare.js`** — C trace vs JS behavior comparison
 
 Replays a captured C selfplay trace in JS headless mode and compares turn-by-turn
