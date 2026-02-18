@@ -697,6 +697,7 @@ export async function replaySession(seed, session, opts = {}) {
     // Set race from session (default Human)
     const replayRaceMap = { human: RACE_HUMAN, elf: RACE_ELF, dwarf: RACE_DWARF, gnome: RACE_GNOME, orc: RACE_ORC };
     player.race = replayRaceMap[sessionChar.race] ?? RACE_HUMAN;
+    player.inTutorial = !!map?.flags?.is_tutorial;
 
     // Parse actual attributes from session screen (u_init randomizes them)
     // Screen format: "St:18 Dx:11 Co:18 In:11 Wi:9 Ch:8"
@@ -841,6 +842,8 @@ export async function replaySession(seed, session, opts = {}) {
         });
         game.levels[1] = game.map;
         game.player.dungeonLevel = 1;
+        game.player.inTutorial = true;
+        game.player.showExp = true;
         game.placePlayerOnLevel('down');
         game.renderCurrentScreen();
     };

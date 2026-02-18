@@ -657,13 +657,18 @@ async function handleMovement(dir, player, map, display, game) {
 
     // Check terrain
     if (IS_WALL(loc.typ)) {
-        // C parity: failed movement into a wall generally doesn't emit
-        // a standalone look-style terrain message.
+        // Tutorial traces expect a terrain-identification message on blocked
+        // movement into walls.
+        if (map?.flags?.is_tutorial) {
+            display.putstr_message("It's a wall.");
+        }
         return { moved: false, tookTime: false };
     }
 
     if (loc.typ === 0) { // STONE
-        // Keep behavior aligned with wall collision handling.
+        if (map?.flags?.is_tutorial) {
+            display.putstr_message("It's a wall.");
+        }
         return { moved: false, tookTime: false };
     }
 

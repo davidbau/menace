@@ -179,6 +179,21 @@ When working on C-vs-JS parity, follow this rule:
 - If a test reveals missing behavior, port the corresponding C logic path.
 - Keep changes incremental and keep tests green after each port batch.
 
+### Tutorial Parity Notes
+
+Recent parity work on tutorial sessions established a few stable rules:
+
+- Tutorial status rows should use `Tutorial:<level>` instead of `Dlvl:<level>`.
+- Tutorial startup/replay should expose `Xp`-style status output for parity with
+  captured interface sessions.
+- Blocked wall movement in tutorial should emit `It's a wall.` where the C
+  captures show that message.
+
+With those in place, tutorial interface screen matching is now complete in the
+manual tutorial session. The remaining first mismatch is RNG-only: an early
+`nhl_random` (`rn2(100)`) divergence immediately after the first tutorial
+`mktrap` call.
+
 ### Modifying the dungeon generator
 
 1. Make your changes in `js/dungeon.js` (or related modules)

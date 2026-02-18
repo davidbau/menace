@@ -247,6 +247,8 @@ export class NetHackGame {
         this.map = makelevel(1, TUTORIAL, 1, { dungeonAlignOverride: A_NONE });
         this.levels[1] = this.map;
         this.player.dungeonLevel = 1;
+        this.player.inTutorial = true;
+        this.player.showExp = true;
         this.placePlayerOnLevel('down');
 
         this.fov.compute(this.map, this.player.x, this.player.y);
@@ -1251,6 +1253,7 @@ export class NetHackGame {
         }
 
         this.player.dungeonLevel = depth;
+        this.player.inTutorial = !!this.map?.flags?.is_tutorial;
         this.placePlayerOnLevel(transitionDir);
 
         // Bones level message

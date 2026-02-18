@@ -924,6 +924,7 @@ export class HeadlessGame {
             created = true;
         }
         this.player.dungeonLevel = depth;
+        this.player.inTutorial = !!this.map?.flags?.is_tutorial;
         this.placePlayerOnLevel(transitionDir);
         // C ref: do.c goto_level(): u_on_rndspot()/u_on_newpos happens
         // before losedogs()->mon_arrive(), so follower arrival sees the
@@ -983,6 +984,7 @@ HeadlessGame.fromSeed = function fromSeed(seed, roleIndex = 11, opts = {}) {
         player.y = map.upstair.y;
     }
     player.dungeonLevel = startDlevel;
+    player.inTutorial = !!map?.flags?.is_tutorial;
 
     const initResult = simulatePostLevelInit(player, map, startDlevel);
 
@@ -1437,7 +1439,8 @@ export class HeadlessDisplay {
         this.putstr(0, STATUS_ROW_1, line1.substring(0, this.cols), CLR_GRAY);
 
         const line2Parts = [];
-        line2Parts.push(`Dlvl:${player.dungeonLevel}`);
+        const levelLabel = player.inTutorial ? 'Tutorial' : 'Dlvl';
+        line2Parts.push(`${levelLabel}:${player.dungeonLevel}`);
         line2Parts.push(`$:${player.gold}`);
         line2Parts.push(`HP:${player.hp}(${player.hpmax})`);
         line2Parts.push(`Pw:${player.pw}(${player.pwmax})`);

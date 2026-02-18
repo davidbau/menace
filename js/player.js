@@ -417,6 +417,7 @@ export class Player {
         // Dungeon position
         this.dungeonLevel = 1;
         this.maxDungeonLevel = 1;
+        this.inTutorial = false;
 
         // Resources
         this.gold = 0;
