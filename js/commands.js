@@ -608,14 +608,14 @@ async function handleMovement(dir, player, map, display, game) {
 
         // Safety checks before attacking
         // C ref: flag.h flags.safe_pet - prevent attacking pets
-        if (mon.tame && flags.safe_pet) {
+        if (mon.tame && game.flags?.safe_pet) {
             display.putstr_message("You cannot attack your pet!");
             game.forceFight = false;
             return { moved: false, tookTime: false };
         }
 
         // C ref: flag.h flags.confirm - confirm attacking peacefuls
-        if (mon.peaceful && !mon.tame && flags.confirm) {
+        if (mon.peaceful && !mon.tame && game.flags?.confirm) {
             const answer = await ynFunction(
                 `Really attack ${mon.name}?`,
                 'yn',
@@ -1753,6 +1753,7 @@ function handleLook(player, map, display) {
     return { moved: false, tookTime: false };
 }
 
+
 // Handle kicking
 // C ref: dokick.c dokick()
 async function handleKick(player, map, display, game) {
@@ -2716,9 +2717,7 @@ async function handleExtendedCommand(game) {
             return { moved: false, tookTime: false };
         }
         default:
-            display.putstr_message(
-                `Unknown extended command: ${cmd}. Try: options, levelchange, map, teleport, genesis, quit.`
-            );
+            display.putstr_message(`#${cmd}: unknown extended command.`);
             return { moved: false, tookTime: false };
     }
 }

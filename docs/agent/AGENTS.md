@@ -37,4 +37,4 @@ bd sync               # Sync with git
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
-
+- When multiple developers are active, commit and push meaningful incremental improvements as they are validated (do not batch too long locally).
