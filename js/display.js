@@ -303,12 +303,12 @@ export class Display {
         // C ref: win/tty/topl.c:262-267 — Concatenate messages if they fit
         // ONLY if no keypress happened between messages (toplin == TOPLINE_NEED_MORE)
         // If there's a current message and both messages fit on one line, combine them
+        // C reserves space for " --More--" (9 chars) when deciding whether to concatenate.
         const notDied = !msg.startsWith('You die');
         // Only concatenate if messageNeedsMore is true (no keypress since last message)
         if (this.topMessage && this.messageNeedsMore && notDied) {
             const combined = this.topMessage + '  ' + msg;
-            // Room for combined message + --More-- (8 chars)
-            if (combined.length + 3 < this.cols - 8) {
+            if (combined.length + 9 <= this.cols) {
                 this.clearRow(MESSAGE_ROW);
                 this.putstr(0, MESSAGE_ROW, combined, CLR_WHITE);
                 this.topMessage = combined;

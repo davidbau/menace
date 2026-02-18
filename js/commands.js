@@ -889,7 +889,10 @@ async function handleMovement(dir, player, map, display, game) {
                 display.putstr_message(`You see here ${doname(seen, null)}.`);
             }
         } else {
-            display.putstr_message(`You see here several objects.`);
+            // C ref: invent.c look_here() — for 2+ objects, C uses a NHW_MENU
+            // popup window ("Things that are here:") that the player dismisses,
+            // leaving the message line blank.  We skip the message line here to
+            // match C's screen behaviour for session comparison.
         }
     }
 

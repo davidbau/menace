@@ -8,10 +8,12 @@ import { COLNO, ROWNO, STONE, IS_WALL, IS_DOOR, IS_ROOM,
          SHOPBASE, ROOMOFFSET, IS_POOL, IS_LAVA,
          NORMAL_SPEED, isok } from './config.js';
 import { rn2, rnd, c_d, getRngLog } from './rng.js';
-import { monsterAttackPlayer } from './combat.js';
+import { monsterAttackPlayer, checkLevelUp } from './combat.js';
 import { CORPSE, FOOD_CLASS, COIN_CLASS, BOULDER, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS,
+         WEAPON_CLASS,
          PICK_AXE, DWARVISH_MATTOCK, SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
-         UNICORN_HORN, SCR_SCARE_MONSTER, CLOAK_OF_DISPLACEMENT } from './objects.js';
+         UNICORN_HORN, SCR_SCARE_MONSTER, CLOAK_OF_DISPLACEMENT,
+         objectData } from './objects.js';
 import { doname, mkcorpstat, next_ident } from './mkobj.js';
 import { observeObject } from './discovery.js';
 import { dogfood, dog_eat, can_carry, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT,
@@ -174,6 +176,223 @@ function linedUpToPlayer(mon, map, player, fov = null) {
     } while (cx !== ax || cy !== ay);
     const denom = 2 + boulderspots;
     return rn2(denom) < 2;
+}
+
+// ========================================================================
+// Monster ranged attacks (throwing)
+// C ref: mthrowu.c thrwmu(), monshoot(), monmulti(), m_throw()
+// ========================================================================
+
+// C ref: weapon.c select_rwep() — select best ranged weapon from monster inventory.
+// Deterministic (no RNG). Returns the weapon object or null.
+function select_rwep(mon) {
+    const inv = mon.minvent || [];
+    if (inv.length === 0) return null;
+    // Simple heuristic matching C priority: find first weapon-class item.
+    // C scans for: cockatrice eggs, pies (kops), boulders (giants),
+    // polearms, throw-and-return weapons, ammo+launcher, stackable weapons.
+    // For early-game monsters (goblins, orcs), the typical case is a
+    // stackable weapon (daggers, arrows) that they carry.
+    for (const obj of inv) {
+        if (!obj) continue;
+        const od = objectData[obj.otyp];
+        if (!od) continue;
+        if (od.oc_class === WEAPON_CLASS) return obj;
+    }
+    return null;
+}
+
+// C ref: mthrowu.c monmulti() — compute multishot count.
+// Consumes rnd(multishot) when multishot > 0 and quan > 1.
+function monmulti(mon, otmp) {
+    let multishot = 1;
+    const quan = otmp.quan ?? 1;
+    // C ref: mthrowu.c:207 — only enter multishot block when quan > 1
+    // and the weapon is a stackable weapon (not ammo needing launcher,
+    // which we simplify since we don't track launchers).
+    const od = objectData[otmp.otyp];
+    if (quan > 1 && od && od.oc_class === WEAPON_CLASS && !mon.confused) {
+        // C ref: prince/lord/mplayer bonuses (deterministic)
+        // Simplified: most early-game monsters are none of these.
+        // rnd(multishot) is the randomizer.
+        multishot = rnd(multishot);
+    }
+    if (multishot > quan) multishot = quan;
+    if (multishot < 1) multishot = 1;
+    return multishot;
+}
+
+// C ref: mthrowu.c m_throw() — simulate projectile flight.
+// Consumes rn2(5) at each step, plus hit/damage rolls on collision.
+function m_throw(mon, startX, startY, dx, dy, range, weapon, map, player, display, game) {
+    let x = startX;
+    let y = startY;
+
+    // C ref: mthrowu.c:601 — misfire check for cursed/greased weapons
+    if ((weapon.cursed || weapon.greased) && (dx || dy) && !rn2(7)) {
+        dx = rn2(3) - 1;
+        dy = rn2(3) - 1;
+        if (!dx && !dy) return; // missile drops at monster's feet
+    }
+
+    const od = objectData[weapon.otyp];
+
+    // C ref: mthrowu.c:652 — main flight loop
+    while (range-- > 0) {
+        x += dx;
+        y += dy;
+        if (!isok(x, y)) break;
+        const loc = map.at(x, y);
+        if (!loc) break;
+
+        // Check for monster at this position
+        const mtmp = map.monsterAt(x, y);
+        if (mtmp && !mtmp.dead) {
+            // C ref: mthrowu.c:664 ohitmon() — hit roll and damage
+            const mac = mtmp.mac ?? 10;
+            const hitThreshold = 5 + mac;
+            const dieRoll = rnd(20);
+            if (hitThreshold < dieRoll) {
+                // Miss — projectile continues if range > 0, stops otherwise
+                if (!range) break; // last step, missile drops
+                // Missile continues past the miss
+            } else {
+                // Hit! Calculate damage
+                // C ref: weapon.c dmgval() — rnd(oc_wsdam) for small monsters
+                const sdam = od ? (od.sdam || 0) : 0;
+                let damage = sdam > 0 ? rnd(sdam) : 0;
+                damage += (weapon.spe || 0);
+                if (damage < 1) damage = 1;
+
+                mtmp.mhp -= damage;
+                if (mtmp.mhp <= 0) {
+                    mtmp.dead = true;
+                    const mdat = mtmp.type || {};
+                    const killVerb = nonliving(mdat) ? 'destroy' : 'kill';
+                    if (display) {
+                        display.putstr_message(`You ${killVerb} the ${monDisplayName(mtmp)}!`);
+                    }
+                    map.removeMonster(mtmp);
+                    // C ref: mon.c xkilled() — award XP and create corpse
+                    const exp = (mtmp.mlevel + 1) * (mtmp.mlevel + 1);
+                    player.exp += exp;
+                    player.score += exp;
+                    checkLevelUp(player, display);
+                    // C ref: mon.c:3581 — treasure drop rn2(6)
+                    rn2(6);
+                    // C ref: mon.c corpse_chance()
+                    const mdat2 = mons[mtmp.mndx] || {};
+                    const gfreq = (mdat2.geno || 0) & G_FREQ;
+                    const verysmall = (mdat2.size || 0) === MZ_TINY;
+                    const corpsetmp = 2 + (gfreq < 2 ? 1 : 0) + (verysmall ? 1 : 0);
+                    if (!rn2(corpsetmp)) {
+                        // Corpse creation stub — consume the same RNG as mkcorpstat path
+                        // TODO: full corpse creation
+                    }
+                }
+                break; // projectile stops after hitting
+            }
+        }
+
+        // Check for player at this position
+        if (x === player.x && y === player.y) {
+            // C ref: mthrowu.c:694-716 thitu() — hit roll against player AC
+            const sdam = od ? (od.sdam || 0) : 0;
+            let dam = sdam > 0 ? rnd(sdam) : 0;
+            dam += (weapon.spe || 0);
+            if (dam < 1) dam = 1;
+            const hitv = 3 - distmin(player.x, player.y, mon.mx, mon.my) + 8 + (weapon.spe || 0);
+            const dieRoll = rnd(20);
+            if (player.ac + hitv <= dieRoll) {
+                // Miss
+                if (display) {
+                    display.putstr_message('It misses.');
+                }
+            } else {
+                // Hit
+                const weapName = od ? od.name : 'weapon';
+                if (display) {
+                    display.putstr_message(`You are hit by an ${weapName}!`);
+                }
+                if (player.takeDamage) {
+                    player.takeDamage(dam, monDisplayName(mon));
+                } else {
+                    player.hp -= dam;
+                }
+                // C ref: allmain.c stop_occupation()
+                if (game && game.occupation) {
+                    if (game.occupation.occtxt === 'waiting' || game.occupation.occtxt === 'searching') {
+                        display.putstr_message(`You stop ${game.occupation.occtxt}.`);
+                    }
+                    game.occupation = null;
+                    game.multi = 0;
+                }
+            }
+            break; // projectile stops at player position
+        }
+
+        // Check for wall/blocked terrain
+        if (IS_WALL(loc.typ) || IS_OBSTRUCTED(loc.typ)
+            || (IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED)))) {
+            break;
+        }
+
+        // C ref: mthrowu.c:772 — forcehit = !rn2(5); iron bars check
+        // This rn2(5) is consumed every step that doesn't hit a creature.
+        const forcehit = !rn2(5);
+        // C ref: MT_FLIGHTCHECK — if end of range or iron bars + forcehit
+        if (!range) break; // end of path
+        if (loc.typ === IRONBARS && forcehit) break; // iron bars with forcehit
+    }
+}
+
+// C ref: mthrowu.c thrwmu() — monster throws at player.
+// Returns true if the monster acted (threw something).
+function thrwmu(mon, map, player, display, game) {
+    // C ref: mthrowu.c:1157-1161 — mon_wield_item check (simplified: skip)
+    // C ref: mthrowu.c:1165 — select_rwep (deterministic)
+    const otmp = select_rwep(mon);
+    if (!otmp) return false;
+
+    // C ref: mthrowu.c:1169 — polearm check (simplified: skip for now)
+
+    // C ref: mthrowu.c:1228 — lined_up check
+    if (!linedUpToPlayer(mon, map, player)) return false;
+
+    // C ref: mthrowu.c:1229-1231 — URETREATING distance-based skip
+    // TODO: implement URETREATING check (rn2(BOLT_LIM - dist))
+
+    // C ref: mthrowu.c:1235 — monshoot(mtmp, otmp, mwep)
+    const targetX = Number.isInteger(mon.mux) ? mon.mux : player.x;
+    const targetY = Number.isInteger(mon.muy) ? mon.muy : player.y;
+    const dm = distmin(mon.mx, mon.my, targetX, targetY);
+    const multishot = monmulti(mon, otmp);
+
+    // Show throw message
+    const od = objectData[otmp.otyp];
+    const weapName = od ? od.name : 'weapon';
+    if (display) {
+        const article = /^[aeiou]/i.test(weapName) ? 'an' : 'a';
+        display.putstr_message(`The ${monDisplayName(mon)} throws ${article} ${weapName}!`);
+    }
+
+    // Direction from monster to target (set by linedUpToPlayer via tbx/tby)
+    const ddx = Math.sign(targetX - mon.mx);
+    const ddy = Math.sign(targetY - mon.my);
+
+    // Fire each missile
+    for (let i = 0; i < multishot; i++) {
+        m_throw(mon, mon.mx, mon.my, ddx, ddy, dm, otmp, map, player, display, game);
+        if (mon.dead) break;
+    }
+
+    return true;
+}
+
+// Check if a monster has any AT_WEAP attacks (can throw weapons).
+function hasWeaponAttack(mon) {
+    const attacks = mon.attacks || (mon.type && mon.type.attacks) || [];
+    return attacks.some(a => a && a.type === AT_WEAP);
 }
 
 function playerHasGold(player) {
@@ -1139,6 +1358,12 @@ function dochug(mon, map, player, display, fov, game = null) {
     if (!phase3Cond && !monCanSee) phase3Cond = !rn2(4);
     if (!phase3Cond) phase3Cond = !!(mon.peaceful);
 
+    // C ref: monmove.c:911-962 — Phase 3 movement + optional Phase 4 ranged.
+    // After m_move, C recalculates distfleeck. If the monster MOVED
+    // (MMOVE_MOVED) and is still not nearby but has ranged attacks (AT_WEAP),
+    // it falls through to Phase 4 for a ranged attack on the same turn.
+    let mmoved = false; // track if the monster actually moved
+    let phase4Allowed = !phase3Cond; // Phase 4 is always allowed if Phase 3 was skipped
     if (phase3Cond) {
         // C ref: monmove.c:1743-1748 — meating check (inside m_move)
         // If monster is still eating, decrement meating and skip movement
@@ -1153,12 +1378,14 @@ function dochug(mon, map, player, display, fov, game = null) {
             dog_move(mon, map, player, display, fov, false, game);
             if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
                 mintrap_postmove(mon, map);
+                mmoved = true;
             }
         } else {
             const omx = mon.mx, omy = mon.my;
             m_move(mon, map, player, display, fov);
             if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
                 mintrap_postmove(mon, map);
+                mmoved = true;
             }
             if (mon.mcanmove !== false
                 && !mon.tame
@@ -1168,15 +1395,43 @@ function dochug(mon, map, player, display, fov, game = null) {
             }
         }
         // distfleeck recalc after m_move
-        // C ref: monmove.c:915
+        // C ref: monmove.c:919 — distfleeck(mtmp, &inrange, &nearby, &scared);
         rn2(5);
-    } else {
-        // Phase 4: Standard Attacks
-        // C ref: monmove.c:966-973 — attack only when in range and not scared.
-        // We do not model full distfleeck scared state yet, but should still
-        // avoid off-range attacks.
-        if (!mon.peaceful && nearby && !mon.flee) {
-            monsterAttackPlayer(mon, player, display, game);
+
+        // C ref: monmove.c:949-953 — MMOVE_MOVED case:
+        // "Monsters can move and then shoot on same turn"
+        // If monster moved and still not nearby but has ranged attacks, allow Phase 4.
+        if (mmoved && !mon.dead) {
+            const targetX2 = Number.isInteger(mon.mux) ? mon.mux : player.x;
+            const targetY2 = Number.isInteger(mon.muy) ? mon.muy : player.y;
+            const nearby2 = monnear(mon, targetX2, targetY2);
+            if (!nearby2 && hasWeaponAttack(mon)) {
+                phase4Allowed = true;
+            }
+        }
+    }
+
+    // Phase 4: Standard Attacks
+    // C ref: monmove.c:966-975 — attack when in range and not scared.
+    // C calls mattacku(mtmp) which computes range2 = !monnear(mtmp, mux, muy).
+    // For AT_WEAP with range2=TRUE, C dispatches to thrwmu() (ranged throw).
+    // For melee attacks (range2=FALSE), C uses normal hit/miss rolls.
+    if (phase4Allowed && !mon.peaceful && !mon.flee && !mon.dead) {
+        const targetX2 = Number.isInteger(mon.mux) ? mon.mux : player.x;
+        const targetY2 = Number.isInteger(mon.muy) ? mon.muy : player.y;
+        const inrange2 = dist2(mon.mx, mon.my, targetX2, targetY2) <= (BOLT_LIM * BOLT_LIM);
+        const nearby2 = inrange2 && monnear(mon, targetX2, targetY2);
+        if (inrange2) {
+            if (nearby2) {
+                // Adjacent: melee attack (only if not already handled by Phase 3)
+                if (!phase3Cond) {
+                    monsterAttackPlayer(mon, player, display, game);
+                }
+            } else if (hasWeaponAttack(mon)) {
+                // At range with AT_WEAP: ranged throw
+                // C ref: mhitu.c:882-885 — AT_WEAP + range2 -> thrwmu(mtmp)
+                thrwmu(mon, map, player, display, game);
+            }
         }
     }
 }
