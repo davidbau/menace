@@ -2,7 +2,7 @@
 // Mirrors cmd.c from the C source.
 // Maps keyboard input to game actions.
 
-import { COLNO, ROWNO, DOOR, CORR, SCORR, STAIRS, LADDER, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE,
+import { COLNO, ROWNO, DOOR, CORR, SDOOR, SCORR, STAIRS, LADDER, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE,
          POOL, LAVAPOOL, IRONBARS, TREE, ROOM, IS_DOOR, D_CLOSED, D_LOCKED,
          D_ISOPEN, D_NODOOR, D_BROKEN, ACCESSIBLE, IS_WALL, MAXLEVEL, VERSION_STRING, ICE,
          isok, A_STR, A_DEX, A_CON, A_WIS } from './config.js';
@@ -16,6 +16,7 @@ import { nhgetch, ynFunction, getlin } from './input.js';
 import { playerAttackMonster } from './combat.js';
 import { makemon, setMakemonPlayerContext } from './makemon.js';
 import { mons, PM_LIZARD, PM_LICHEN, PM_NEWT } from './monsters.js';
+import { monDisplayName, hasGivenName, monNam } from './mondata.js';
 import { doname, next_ident } from './mkobj.js';
 import { observeObject, getDiscoveriesMenuLines } from './discovery.js';
 import { showPager } from './pager.js';
@@ -564,14 +565,11 @@ async function handleMovement(dir, player, map, display, game) {
                         mon.flee = true;
                     }
                 if (mon.tame) {
-                    const namedPet = !!(mon.name && !/(dog|cat|kitten|pony|horse)/i.test(mon.name));
                     display.putstr_message(
-                        namedPet
-                            ? `You stop.  ${mon.name} is in the way!`
-                            : `You stop.  Your ${mon.name} is in the way!`
+                        `You stop.  ${monNam(mon, { capitalize: true })} is in the way!`
                     );
                 } else {
-                    const label = mon.name ? mon.name.charAt(0).toUpperCase() + mon.name.slice(1) : 'It';
+                    const label = mon.name ? monNam(mon, { capitalize: true }) : 'It';
                     display.putstr_message(`You stop. ${label} is in the way!`);
                 }
                 game.forceFight = false;
@@ -590,18 +588,9 @@ async function handleMovement(dir, player, map, display, game) {
             game.lastMoveDir = dir;
             maybeSmudgeEngraving(map, oldPlayerX, oldPlayerY, player.x, player.y);
             player.displacedPetThisTurn = true;
-            const namedPet = !!(mon.tame
-                && mon.name
-                && !/(dog|cat|kitten|pony|horse)/i.test(mon.name));
-            // C ref: x_monnam includes "saddled" when the monster
-            // has a saddle worn (owornmask W_SADDLE = 0x100000).
-            const hasSaddle = (mon.minvent || []).some(o => o && (o.owornmask & 0x100000));
-            const adjName = hasSaddle ? `saddled ${mon.name}` : mon.name;
-            display.putstr_message(
-                namedPet
-                    ? `You swap places with ${adjName}.`
-                    : `You swap places with your ${adjName}.`
-            );
+            // C ref: hack.c:2150 — x_monnam with ARTICLE_YOUR for tame
+            // includes "saddled" when the monster has a saddle worn.
+            display.putstr_message(`You swap places with ${monNam(mon)}.`);
             const landedObjs = map.objectsAt(nx, ny);
             if (landedObjs.length > 0) {
                 const seen = landedObjs[0];
@@ -632,7 +621,7 @@ async function handleMovement(dir, player, map, display, game) {
         // C ref: flag.h flags.confirm - confirm attacking peacefuls
         if (mon.peaceful && !mon.tame && game.flags?.confirm) {
             const answer = await ynFunction(
-                `Really attack ${mon.name}?`,
+                `Really attack ${monDisplayName(mon)}?`,
                 'yn',
                 'n'.charCodeAt(0),
                 display
@@ -668,6 +657,14 @@ async function handleMovement(dir, player, map, display, game) {
     }
 
     if (loc.typ === 0) { // STONE
+        if (map?.flags?.mention_walls || map?.flags?.is_tutorial) {
+            display.putstr_message("It's a wall.");
+        }
+        return { moved: false, tookTime: false };
+    }
+
+    // C ref: secret doors/corridors behave like walls until discovered.
+    if (loc.typ === SDOOR || loc.typ === SCORR) {
         if (map?.flags?.mention_walls || map?.flags?.is_tutorial) {
             display.putstr_message("It's a wall.");
         }
@@ -1846,12 +1843,12 @@ async function handleKick(player, map, display, game) {
     // Kick a monster
     const mon = map.monsterAt(nx, ny);
     if (mon) {
-        display.putstr_message(`You kick the ${mon.name}!`);
+        display.putstr_message(`You kick the ${monDisplayName(mon)}!`);
         const damage = rnd(4) + player.strDamage;
         mon.mhp -= Math.max(1, damage);
         if (mon.mhp <= 0) {
             mon.dead = true;
-            display.putstr_message(`The ${mon.name} dies!`);
+            display.putstr_message(`The ${monDisplayName(mon)} dies!`);
             map.removeMonster(mon);
         }
         return { moved: false, tookTime: true };

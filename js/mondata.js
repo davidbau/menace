@@ -24,7 +24,7 @@ import {
     M3_WANTSARTI, M3_WANTSALL, M3_WAITFORU, M3_CLOSE,
     M3_COVETOUS, M3_WAITMASK,
     M3_INFRAVISION, M3_INFRAVISIBLE, M3_DISPLACES,
-    S_DOG, S_FELINE,
+    S_DOG, S_FELINE, S_GOLEM,
     AT_BREA,
 } from './monsters.js';
 
@@ -181,6 +181,14 @@ export function is_giant(ptr) { return !!(ptr.flags2 & M2_GIANT); }
 // C ref: #define is_shapeshifter(ptr) ((ptr)->mflags2 & M2_SHAPESHIFTER)
 export function is_shapeshifter(ptr) { return !!(ptr.flags2 & M2_SHAPESHIFTER); }
 
+// C ref: #define is_golem(ptr)      ((ptr)->mlet == S_GOLEM)
+export function is_golem(ptr) { return ptr.symbol === S_GOLEM; }
+
+// C ref: #define nonliving(ptr)     (is_golem(ptr) || is_undead(ptr))
+// In C NetHack, nonliving() also checks MH_NONLIVING race flag for vortexes/elementals,
+// but is_golem + is_undead covers the primary cases (golems, zombies, mummies, etc.)
+export function nonliving(ptr) { return is_golem(ptr) || is_undead(ptr); }
+
 // ========================================================================
 // Behavior predicates — C ref: mondata.h (flags2)
 // ========================================================================
@@ -270,4 +278,71 @@ export function monsdat(mon) {
     if (mon.mnum !== undefined) return mons[mon.mnum];
     // Fallback for old-style monster instances without mnum
     return null;
+}
+
+// ========================================================================
+// Monster naming — C ref: do_name.c x_monnam()
+// ========================================================================
+
+// C ref: include/worn.h — W_SADDLE = 0x100000
+const W_SADDLE = 0x100000;
+
+// C ref: do_name.c x_monnam() — check for worn saddle
+// Returns true when the monster has a saddle in its inventory with
+// the W_SADDLE worn-mask bit set (same check C does via
+// misc_worn_check & W_SADDLE).
+export function hasSaddle(mon) {
+    return (mon.minvent || []).some(o => o && (o.owornmask & W_SADDLE));
+}
+
+// C ref: do_name.c x_monnam() — returns the base display name for a
+// monster, prepending "saddled " when the monster is wearing a saddle.
+// This mirrors the adjective logic in x_monnam() without articles.
+export function monDisplayName(mon) {
+    const name = String(mon?.name || 'monster');
+    if (hasSaddle(mon)) return `saddled ${name}`;
+    return name;
+}
+
+// C ref: do_name.c — has_mgivenname(mtmp)
+// Returns true when the monster has a user-given name (e.g. "Idefix")
+// that differs from the species name (e.g. "little dog").
+// In C, MGIVENNAME is a separate field; in JS, compare mon.name to
+// mon.type.name — if they differ, the monster was named by the player.
+export function hasGivenName(mon) {
+    if (!mon?.name) return false;
+    const speciesName = mon.type?.name;
+    if (!speciesName) return false;
+    return mon.name !== speciesName;
+}
+
+// C ref: do_name.c y_monnam / mon_nam / Monnam
+// Returns the monster's display name with an article prefix.
+//   article: 'your' -> "your <name>" for generic, name for given-name
+//            'the'  -> "the <name>"  for generic, name for given-name
+//            'a'    -> "a <name>"
+//            null   -> auto: 'your' if tame, 'the' otherwise
+//   capitalize: true -> capitalise the first letter (Monnam / YMonnam)
+//
+// By default, articles are lowercase ("the", "your", "a") matching
+// C's mon_nam() / y_monnam().  Use capitalize=true to get Monnam()
+// / YMonnam() behaviour.
+export function monNam(mon, { capitalize = false, article = null } = {}) {
+    const dname = monDisplayName(mon);
+    const effectiveArticle = article !== null ? article
+        : (mon?.tame ? 'your' : 'the');
+    let result;
+    if (effectiveArticle === 'your') {
+        result = hasGivenName(mon) ? dname : `your ${dname}`;
+    } else if (effectiveArticle === 'the') {
+        result = hasGivenName(mon) ? dname : `the ${dname}`;
+    } else if (effectiveArticle === 'a') {
+        result = `a ${dname}`;
+    } else {
+        result = dname;
+    }
+    if (capitalize && result.length > 0) {
+        result = result.charAt(0).toUpperCase() + result.slice(1);
+    }
+    return result;
 }

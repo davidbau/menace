@@ -49,6 +49,8 @@ import { lays_eggs } from './mondata.js';
 // Module-level depth for level_difficulty() during mklev
 let _levelDepth = 1;
 export function setLevelDepth(d) { _levelDepth = d; }
+let _inMklevContext = false;
+export function setMklevObjectContext(enabled) { _inMklevContext = !!enabled; }
 let _startupInventoryMode = false;
 export function setStartupInventoryMode(enabled) {
     _startupInventoryMode = !!enabled;
@@ -760,8 +762,9 @@ const TROLL_REVIVE_CHANCE = 37;
 function start_corpse_timeout_rng(corpsenm) {
     // Lizards and lichen don't rot or revive
     if (corpsenm === PM_LIZARD || corpsenm === PM_LICHEN) return;
-    // rot_adjust=25 during mklev; consume rnz(25)
-    rnz(25);
+    // C ref: mkobj.c start_corpse_timeout() — rot_adjust depends on gi.in_mklev.
+    const rotAdjust = _inMklevContext ? 25 : 10;
+    rnz(rotAdjust);
     // Rider: rn2(3) loop for revival time
     if (mons[corpsenm].sound === MS_RIDER) {
         const minturn = 12; // non-Death rider default
@@ -979,6 +982,13 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
         else if (od.desc) base = `${od.desc} wand`;
         else base = `wand of ${od.name}`;
         break;
+    case WEAPON_CLASS:
+        // C ref: objnam.c xname() WEAPON_CLASS falls through to TOOL_CLASS.
+        // Unidentified weapons show appearance (desc) instead of actual name.
+        if (!dknown) base = od.desc || od.name;
+        else if (nameKnown) base = od.name;
+        else base = od.desc || od.name;
+        break;
     case TOOL_CLASS:
         // C ref: objnam.c xname() — lenses get "pair of ".
         if (obj.otyp === LENSES) {
@@ -1004,6 +1014,14 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
             }
         } else {
             base = dknown ? od.name : (od.desc || od.name);
+        }
+        break;
+    case WEAPON_CLASS:
+        // C ref: objnam.c xname() uses oc_descr for dknown-but-undiscovered weapons.
+        if (dknown && !nameKnown && od.desc) {
+            base = od.desc;
+        } else {
+            base = od.name;
         }
         break;
     case FOOD_CLASS:

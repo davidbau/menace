@@ -12,6 +12,7 @@ import {
 } from './monsters.js';
 import { CORPSE, FOOD_CLASS, objectData } from './objects.js';
 import { mkobj, mkcorpstat, RANDOM_CLASS } from './mkobj.js';
+import { nonliving, monDisplayName } from './mondata.js';
 
 function isUndeadOrDemon(monsterType) {
     if (!monsterType) return false;
@@ -63,7 +64,7 @@ export function playerAttackMonster(player, monster, display, map) {
     if (toHit <= dieRoll || dieRoll === 20) {
         // Miss
         // C ref: uhitm.c -- "You miss the <monster>"
-        display.putstr_message(`You miss the ${monster.name}.`);
+        display.putstr_message(`You miss the ${monDisplayName(monster)}.`);
         // C ref: uhitm.c:5997 passive() — rn2(3) when monster alive after attack
         rn2(3);
         return false;
@@ -105,7 +106,10 @@ export function playerAttackMonster(player, monster, display, map) {
     if (monster.mhp <= 0) {
         // Monster killed
         // C ref: uhitm.c -> mon.c mondead() -> killed() -> xkilled()
-        display.putstr_message(`You kill the ${monster.name}!`);
+        // C ref: nonliving monsters (undead, golems) are "destroyed" not "killed"
+        const mdat = monster.type || {};
+        const killVerb = nonliving(mdat) ? 'destroy' : 'kill';
+        display.putstr_message(`You ${killVerb} the ${monDisplayName(monster)}!`);
         monster.dead = true;
 
         // Award experience
@@ -119,7 +123,6 @@ export function playerAttackMonster(player, monster, display, map) {
 
         // C ref: mon.c:3581-3609 xkilled() — "illogical but traditional" treasure drop.
         const treasureRoll = rn2(6);
-        const mdat = monster.type || {};
         const canDropTreasure = treasureRoll === 0
             && !monster.mcloned
             && (monster.mx !== player.x || monster.my !== player.y)
@@ -148,6 +151,9 @@ export function playerAttackMonster(player, monster, display, map) {
             // C ref: mon.c make_corpse() default path:
             // mkcorpstat(CORPSE, mtmp/mdat, CORPSTAT_INIT).
             const corpse = mkcorpstat(CORPSE, monster.mndx || 0, true);
+            // C ref: mkobj.c mksobj_init() — otmp->age = max(svm.moves, 1L).
+            // During gameplay replay, svm.moves aligns to completed turns + 1.
+            corpse.age = Math.max((player?.turns || 0) + 1, 1);
 
             // Place corpse on the map so pets can find it.
             if (map) {
@@ -162,9 +168,9 @@ export function playerAttackMonster(player, monster, display, map) {
     } else {
         // C ref: uhitm.c -- various hit messages
         if (dieRoll >= 18) {
-            display.putstr_message(`You smite the ${monster.name}!`);
+            display.putstr_message(`You smite the ${monDisplayName(monster)}!`);
         } else {
-            display.putstr_message(`You hit the ${monster.name}.`);
+            display.putstr_message(`You hit the ${monDisplayName(monster)}.`);
         }
         // C ref: uhitm.c hmon_hitmon() -> mhitm_knockback():
         // for non-unarmed melee weapon hits with damage > 1 against a
@@ -202,7 +208,7 @@ export function monsterAttackPlayer(monster, player, display, game = null) {
         if (toHit <= dieRoll) {
             // Miss — C ref: mhitu.c:811 missmu()
             if (!suppressHitMsg) {
-                display.putstr_message(`The ${monster.name} misses!`);
+                display.putstr_message(`The ${monDisplayName(monster)} misses!`);
             }
             continue;
         }
@@ -231,11 +237,11 @@ export function monsterAttackPlayer(monster, player, display, game = null) {
 
         if (damage > 0) {
             // Apply damage
-            const died = player.takeDamage(damage, monster.name);
+            const died = player.takeDamage(damage, monDisplayName(monster));
             const wizardSaved = died && player.wizard;
             if (!wizardSaved && !suppressHitMsg) {
                 const verb = monsterHitVerb(attack.type);
-                display.putstr_message(`The ${monster.name} ${verb}!`);
+                display.putstr_message(`The ${monDisplayName(monster)} ${verb}!`);
                 if (attack.damage === 6) {
                     display.putstr_message('You get zapped!');
                 }
@@ -271,7 +277,7 @@ export function monsterAttackPlayer(monster, player, display, game = null) {
                     display.putstr_message('You survived that attempt on your life.');
                     if (game) game._suppressMonsterHitMessagesThisTurn = true;
                 } else {
-                    player.deathCause = `killed by a ${monster.name}`;
+                    player.deathCause = `killed by a ${monDisplayName(monster)}`;
                     display.putstr_message('You die...');
                 }
                 break;
@@ -294,21 +300,21 @@ function handleSpecialAttack(special, monster, player, display) {
 
         case 'paralyze':
             // C ref: mhitu.c AD_PLYS -- floating eye paralysis
-            display.putstr_message(`You are frozen by the ${monster.name}'s gaze!`);
+            display.putstr_message(`You are frozen by the ${monDisplayName(monster)}'s gaze!`);
             // In full implementation, this would set multi = -rnd(5)
             break;
 
         case 'blind':
             // C ref: mhitu.c AD_BLND -- blinding attack
             if (!player.blind) {
-                display.putstr_message(`You are blinded by the ${monster.name}!`);
+                display.putstr_message(`You are blinded by the ${monDisplayName(monster)}!`);
                 player.blind = true;
             }
             break;
 
         case 'stick':
             // C ref: mhitu.c -- lichen sticking (holds you in place)
-            display.putstr_message(`The ${monster.name} grabs you!`);
+            display.putstr_message(`The ${monDisplayName(monster)} grabs you!`);
             break;
     }
 }

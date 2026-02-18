@@ -4,7 +4,8 @@
 
 import { COLNO, ROWNO, STONE, IS_WALL, IS_DOOR, IS_ROOM,
          ACCESSIBLE, IS_OBSTRUCTED, CORR, DOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN,
-         POOL, LAVAPOOL, SHOPBASE, ROOMOFFSET, IS_POOL, IS_LAVA,
+         POOL, LAVAPOOL, WATER, LAVAWALL, IRONBARS,
+         SHOPBASE, ROOMOFFSET, IS_POOL, IS_LAVA,
          NORMAL_SPEED, isok } from './config.js';
 import { rn2, rnd, c_d, getRngLog } from './rng.js';
 import { monsterAttackPlayer } from './combat.js';
@@ -16,7 +17,8 @@ import { observeObject } from './discovery.js';
 import { dogfood, dog_eat, can_carry, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT,
          POISON, UNDEF, TABU } from './dog.js';
 import { couldsee, m_cansee, do_clear_area } from './vision.js';
-import { can_teleport, noeyes, perceives, is_animal, is_mindless, nohands } from './mondata.js';
+import { can_teleport, noeyes, perceives, is_animal, is_mindless, nohands, nonliving,
+         monDisplayName, hasGivenName, monNam } from './mondata.js';
 import { PM_GRID_BUG, PM_IRON_GOLEM, PM_SHOPKEEPER, mons,
          PM_LEPRECHAUN, PM_XAN, PM_YELLOW_LIGHT, PM_BLACK_LIGHT,
          PM_PURPLE_WORM, PM_BABY_PURPLE_WORM, PM_SHRIEKER,
@@ -26,7 +28,8 @@ import { PM_GRID_BUG, PM_IRON_GOLEM, PM_SHOPKEEPER, mons,
          M1_FLY, M1_SWIM, M1_AMPHIBIOUS, M1_AMORPHOUS, M1_CLING, M1_SEE_INVIS, S_MIMIC,
          M1_WALLWALK, M1_TUNNEL, M1_NEEDPICK, M1_SLITHY, M1_UNSOLID,
          MZ_TINY, MZ_SMALL, MZ_MEDIUM, MR_FIRE, MR_SLEEP, G_FREQ, G_NOCORPSE,
-         PM_DISPLACER_BEAST } from './monsters.js';
+         PM_DISPLACER_BEAST, PM_FIRE_ELEMENTAL, PM_SALAMANDER,
+         S_EYE, S_LIGHT, S_EEL, S_VORTEX, S_ELEMENTAL } from './monsters.js';
 import { STATUE_TRAP, MAGIC_TRAP, VIBRATING_SQUARE, RUST_TRAP, FIRE_TRAP,
          SLP_GAS_TRAP, BEAR_TRAP, PIT, SPIKED_PIT, HOLE, TRAPDOOR,
          WEB, ANTI_MAGIC, MAGIC_PORTAL } from './symbols.js';
@@ -47,6 +50,12 @@ function attackVerb(type) {
         case AT_WEAP: return 'hits';
         default: return 'hits';
     }
+}
+
+function monAttackName(mon) {
+    // C ref: do_name.c Monnam() — uses ARTICLE_THE regardless of tame status,
+    // and "saddled" is prepended when a saddle is worn.
+    return monNam(mon, { article: 'the', capitalize: true });
 }
 
 // ========================================================================
@@ -97,6 +106,11 @@ function dist2(x1, y1, x2, y2) {
     return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
 }
 
+// C ref: hack.h distmin()
+function distmin(x1, y1, x2, y2) {
+    return Math.max(Math.abs(x1 - x2), Math.abs(y1 - y2));
+}
+
 // C ref: mon.c monnear() + NODIAG()
 function monnear(mon, x, y) {
     const distance = dist2(mon.mx, mon.my, x, y);
@@ -111,6 +125,53 @@ function monnear(mon, x, y) {
 function hasGold(inv) {
     return Array.isArray(inv)
         && inv.some(o => o && o.oclass === COIN_CLASS && (o.quan ?? 1) > 0);
+}
+
+// C ref: mthrowu.c blocking_terrain() subset used by lined_up().
+function blockingTerrainForLinedup(map, x, y) {
+    if (!isok(x, y)) return true;
+    const loc = map.at(x, y);
+    if (!loc) return true;
+    if (IS_OBSTRUCTED(loc.typ)) return true;
+    if (IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED))) return true;
+    return false;
+}
+
+// C ref: mthrowu.c linedup()/lined_up() for monster vs hero.
+function linedUpToPlayer(mon, map, player) {
+    const ax = Number.isInteger(mon.mux) ? mon.mux : player.x;
+    const ay = Number.isInteger(mon.muy) ? mon.muy : player.y;
+    const bx = mon.mx;
+    const by = mon.my;
+    const tbx = ax - bx;
+    const tby = ay - by;
+    if (!tbx && !tby) return false;
+
+    if (!(!tbx || !tby || Math.abs(tbx) === Math.abs(tby))) return false;
+    if (distmin(tbx, tby, 0, 0) >= BOLT_LIM) return false;
+
+    // C ref: if target is hero square, use couldsee(mon_pos), otherwise clear_path().
+    const inSight = (ax === player.x && ay === player.y)
+        ? couldsee(map, player, bx, by)
+        // C ref: linedup() uses clear_path(ax, ay, bx, by) for non-hero target.
+        : m_cansee({ mx: ax, my: ay }, map, bx, by);
+    if (inSight) return true;
+
+    // C ref: hero target uses boulderhandling=2.
+    const dx = Math.sign(ax - bx);
+    const dy = Math.sign(ay - by);
+    let cx = bx;
+    let cy = by;
+    let boulderspots = 0;
+    do {
+        cx += dx;
+        cy += dy;
+        if (blockingTerrainForLinedup(map, cx, cy)) return false;
+        const objs = map.objectsAt?.(cx, cy) || [];
+        if (objs.some((o) => o && o.otyp === BOULDER)) boulderspots++;
+    } while (cx !== ax || cy !== ay);
+    const denom = 2 + boulderspots;
+    return rn2(denom) < 2;
 }
 
 function playerHasGold(player) {
@@ -409,8 +470,27 @@ function mfndpos(mon, map, player, opts = {}) {
     const omx = mon.mx, omy = mon.my;
     const nodiag = (mon.mndx === PM_GRID_BUG);
     const mflags1 = mon.type?.flags1 || 0;
-    const poolok = !!(mflags1 & (M1_FLY | M1_SWIM | M1_AMPHIBIOUS));
-    const lavaok = !!(mflags1 & M1_FLY);
+    const mdat = mon.type || {};
+    const mlet = mdat.symbol ?? -1;
+    // C ref: mon.c:2112-2118 m_in_air — flyers, floaters, ceiling clingers
+    const isFlyer = !!(mflags1 & M1_FLY);
+    const isFloater = (mlet === S_EYE || mlet === S_LIGHT);
+    const m_in_air = isFlyer || isFloater;
+    // C ref: mon.c:2147-2148 — eels want water, swimmers can handle pools
+    const wantpool = (mlet === S_EEL);
+    const isSwimmer = !!(mflags1 & (M1_SWIM | M1_AMPHIBIOUS));
+    const poolok = (m_in_air || (isSwimmer && !wantpool));
+    // C ref: mon.c:2152-2154 — lavaok includes likes_lava but not floating eye
+    // C ref: mondata.h:190 — likes_lava(ptr) = fire elemental or salamander
+    const likesLava = (mon.mndx === PM_FIRE_ELEMENTAL || mon.mndx === PM_SALAMANDER);
+    const lavaok = (m_in_air && !isFloater) || likesLava;
+    // C ref: mon.c:2155 — thrudoor if ALLOW_WALL or BUSTDOOR
+    const canPassWall = !!(mflags1 & M1_WALLWALK);
+    const thrudoor = canPassWall; // simplified: ALLOW_WALL implies passes_walls
+    // C ref: mon.c:2086-2091 — ALLOW_BARS for passes_bars monsters
+    const allowBars = passes_bars(mdat);
+    // C ref: mon.c:2218 — amorphous/can_fog can move under/through closed doors
+    const isAmorphous = !!(mflags1 & M1_AMORPHOUS);
     // C ref: mon.c:2061-2062 — tame monsters get ALLOW_M | ALLOW_TRAPS
     const allowM = !!mon.tame;
     const allowSSM = !!(mon.tame || mon.peaceful || mon.isshk || mon.ispriest);
@@ -427,29 +507,40 @@ function mfndpos(mon, map, player, opts = {}) {
 
             const loc = map.at(nx, ny);
             if (!loc) continue;
-            const doorBlocked = IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED));
-            if (!ACCESSIBLE(loc.typ)) {
-                // C ref: mon.c mfndpos() OPENDOOR/UNLOCKDOOR handling.
-                // Closed or locked doors can still be selected when caller
-                // indicates this monster can open/unlock doors.
-                const canPassDoor = doorBlocked
-                    && ((loc.flags & D_CLOSED && allowDoorOpen)
-                        || (loc.flags & D_LOCKED && allowDoorUnlock));
-                if (!canPassDoor) continue;
-            }
-            if (IS_POOL(loc.typ) && !poolok) continue;
-            if (IS_LAVA(loc.typ) && !lavaok) continue;
+            const ntyp = loc.typ;
 
-            // C ref: door checks
-            if (doorBlocked
-                && !((loc.flags & D_CLOSED && allowDoorOpen)
-                    || (loc.flags & D_LOCKED && allowDoorUnlock))) continue;
+            // ---- C-faithful terrain gate (mon.c:2196-2243) ----
+            // 1. IS_OBSTRUCTED: stone, walls, tree, sdoor, scorr (typ < POOL)
+            // C ref: mon.c:2196-2199 — ALLOW_WALL/may_passwall or ALLOW_DIG/may_dig
+            // Simplified: passes_walls bypasses, otherwise obstructed means skip.
+            if (ntyp < POOL) {
+                if (!canPassWall) continue;
+            }
+            // 2. WATER terrain — only swimmers pass (C ref: mon.c:2206-2207)
+            if (ntyp === WATER && !isSwimmer) continue;
+            // 3. IRONBARS — only monsters that pass bars (C ref: mon.c:2209-2214)
+            if (ntyp === IRONBARS && !allowBars) continue;
+            // 4. Doors — closed/locked need OPENDOOR/UNLOCKDOOR or amorphous
+            // C ref: mon.c:2215-2222
+            if (IS_DOOR(ntyp)
+                && !(isAmorphous && !mon.engulfing)
+                && (((loc.flags & D_CLOSED) && !allowDoorOpen)
+                    || ((loc.flags & D_LOCKED) && !allowDoorUnlock))
+                && !thrudoor) {
+                continue;
+            }
+            // 5. LAVAWALL — requires lavaok and ALLOW_WALL equivalent
+            // C ref: mon.c:2240 — (!lavaok || !(flag & ALLOW_WALL)) && LAVAWALL
+            if (ntyp === LAVAWALL && !lavaok) continue;
+            // 6. Pool/lava positive gate (C ref: mon.c:2242-2243)
+            if (!poolok && IS_POOL(ntyp) !== wantpool) continue;
+            if (!lavaok && IS_LAVA(ntyp)) continue;
 
             // C ref: mon.c:2228-2238 — no diagonal moves through doorways
             // If either current pos or target is a non-broken door, diagonal blocked
             if (nx !== omx && ny !== omy) {
                 const monLoc = map.at(omx, omy);
-                if ((IS_DOOR(loc.typ) && (loc.flags & ~D_BROKEN))
+                if ((IS_DOOR(ntyp) && (loc.flags & ~D_BROKEN))
                     || (monLoc && IS_DOOR(monLoc.typ) && (monLoc.flags & ~D_BROKEN)))
                     continue;
             }
@@ -569,6 +660,20 @@ function cant_squeeze_thru_mon(mon) {
         ? mon.minvent.reduce((a, o) => a + (o?.owt || 0), 0)
         : 0;
     return load > 600;
+}
+
+// C ref: mondata.c passes_bars() — can this monster pass through iron bars?
+// passes_walls || amorphous || is_whirly || verysmall || (slithy && !bigmonst)
+function passes_bars(mdat) {
+    const f1 = mdat?.flags1 || 0;
+    if (f1 & M1_WALLWALK) return true;  // passes_walls
+    if (f1 & M1_AMORPHOUS) return true; // amorphous
+    const mlet = mdat?.symbol ?? -1;
+    if (mlet === S_VORTEX || mlet === S_ELEMENTAL) return true; // is_whirly
+    const size = mdat?.size || 0;
+    if (size === MZ_TINY) return true;  // verysmall
+    if ((f1 & M1_SLITHY) && size <= MZ_MEDIUM) return true; // slithy && !bigmonst
+    return false;
 }
 
 // C ref: mon.c onscary() subset used by mfndpos().
@@ -723,8 +828,9 @@ function droppables(mon) {
         default:
             break;
         }
-        // C ref: dogmove.c droppables() — skip worn, wielded, and cursed items
-        if (!obj.owornmask && obj !== wep && !obj.cursed) return obj;
+        // C ref: dogmove.c droppables() — generic drop candidates skip worn/wielded.
+        // Cursed filtering is handled only for specific tool classes above.
+        if (!obj.owornmask && obj !== wep) return obj;
     }
     return null;
 }
@@ -774,10 +880,8 @@ function dog_invent(mon, edog, udist, map, turnCount, display, player) {
                     placeFloorObject(map, dropObj);
                     if (display && player && couldsee(map, player, mon.mx, mon.my)) {
                         observeObject(dropObj);
-                        const namedPet = !!(mon.tame
-                            && mon.name
-                            && !/(dog|cat|kitten|pony|horse)/i.test(mon.name));
-                        const monLabel = namedPet ? mon.name : `The ${mon.name}`;
+                        // C ref: weapon.c:766 — Monnam(mon) uses ARTICLE_THE
+                        const monLabel = monNam(mon, { article: 'the', capitalize: true });
                         display.putstr_message(`${monLabel} drops ${doname(dropObj, null)}.`);
                     }
                 }
@@ -833,10 +937,8 @@ function dog_invent(mon, edog, udist, map, turnCount, display, player) {
                         // C ref: dogmove.c "The <pet> picks up <obj>." when observed.
                         if (display && player && couldsee(map, player, mon.mx, mon.my)) {
                             observeObject(picked);
-                            const namedPet = !!(mon.tame
-                                && mon.name
-                                && !/(dog|cat|kitten|pony|horse)/i.test(mon.name));
-                            const monLabel = namedPet ? mon.name : `The ${mon.name}`;
+                            // C ref: dogmove.c:454 — Monnam(mtmp) uses ARTICLE_THE
+                            const monLabel = monNam(mon, { article: 'the', capitalize: true });
                             display.putstr_message(`${monLabel} picks up ${doname(picked, null)}.`);
                         }
                     }
@@ -896,6 +998,11 @@ export function movemon(map, player, display, fov, game = null) {
                 }
             }
         }
+        // C ref: allmain.c:206-207 — when the hero has bonus movement
+        // (u.umovement >= NORMAL_SPEED, i.e. Fast/Very Fast triggered),
+        // the outer movemon loop breaks after one pass so the hero acts
+        // before monsters spend their remaining movement budget.
+        if (game && game._bonusMovement > 0) break;
     } while (anyMoved);
 
     // Remove dead monsters
@@ -1310,13 +1417,7 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
         : couldsee(map, player, omx, omy);
 
     // C ref: dogmove.c:498 — dog_has_minvent = (droppables(mtmp) != 0)
-    // Worn/wielded items (like a worn saddle on pony) do not count.
-    const dogHasMinvent = !!(mon.minvent && mon.minvent.some((o) => {
-        if (!o) return false;
-        if (o.owornmask) return false;
-        if (mon.weapon && o === mon.weapon) return false;
-        return true;
-    }));
+    const dogHasMinvent = !!droppables(mon);
 
     // C ref: dogmove.c:545 — lighting check for apport branch
     const dogLoc = map.at(omx, omy);
@@ -1340,7 +1441,6 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
             if (ox < minX || ox > maxX || oy < minY || oy > maxY) continue;
 
             const otyp = dogfood(mon, obj, turnCount);
-
             // C ref: dogmove.c:526 — skip inferior goals
             if (otyp > gtyp || otyp === UNDEF) continue;
 
@@ -1540,14 +1640,16 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
                     const mmVisible = monVisible && targetVisible;
                     if (hit) {
                         anyHit = true;
-                        const suppressDetail = !!player.displacedPetThisTurn
-                            || game?.occupation?.occtxt === 'searching';
-                        if (display && mon.name && target.name && mmVisible && !suppressDetail) {
-                            display.putstr_message(`The ${mon.name} ${attackVerb(attk?.type)} the ${target.name}.`);
-                        }
                         const dice = (attk && attk.dice) ? attk.dice : 1;
                         const sides = (attk && attk.sides) ? attk.sides : 1;
                         const dmg = c_d(Math.max(1, dice), Math.max(1, sides));
+                        const willKill = (target.mhp - Math.max(1, dmg)) <= 0;
+                        const suppressDetail = (!!player.displacedPetThisTurn && !willKill)
+                            || (game?.occupation?.occtxt === 'searching' && !willKill);
+                        if (display && mon.name && target.name && mmVisible && !suppressDetail) {
+                            // C ref: mhitm.c — mon_nam(mdef) uses ARTICLE_THE
+                            display.putstr_message(`${monAttackName(mon)} ${attackVerb(attk?.type)} ${monNam(target, { article: 'the' })}.`);
+                        }
                         // C ref: mhitm.c mdamagem() rolls damage before knockback RNG.
                         rn2(3);
                         rn2(6);
@@ -1563,11 +1665,17 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
                             }
                             target.dead = true;
                             if (display && target.name && mmVisible) {
-                                display.putstr_message(`The ${target.name} is killed!`);
+                                // C ref: mon.c:3382 — Monnam(mdef) uses ARTICLE_THE
+                                // C ref: nonliving monsters (undead, golems) are "destroyed" not "killed"
+                                const tdat = target.type || {};
+                                const deathVerb = nonliving(tdat) ? 'destroyed' : 'killed';
+                                display.putstr_message(`${monNam(target, { article: 'the', capitalize: true })} is ${deathVerb}!`);
                             }
                             if (petCorpseChanceRoll(target) === 0
                                 && !(((target?.type?.geno || 0) & G_NOCORPSE) !== 0)) {
                                 const corpse = mkcorpstat(CORPSE, target.mndx || 0, true);
+                                // C ref: corpse age should reflect current move count.
+                                corpse.age = turnCount;
                                 corpse.ox = target.mx;
                                 corpse.oy = target.my;
                                 placeFloorObject(map, corpse);
@@ -1585,7 +1693,8 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
                     } else {
                         consumePassivemmRng(mon, target, false, false);
                         if (display && mon.name && target.name && mmVisible) {
-                            display.putstr_message(`The ${mon.name} misses the ${target.name}.`);
+                            // C ref: mhitm.c missmm — mon_nam(mdef) uses ARTICLE_THE
+                            display.putstr_message(`${monAttackName(mon)} misses ${monNam(target, { article: 'the' })}.`);
                         }
                     }
                 }
@@ -1736,8 +1845,12 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
 
         // C ref: dogmove.c:1324-1327 — eat after moving
         if (do_eat && eatObj) {
-            if (display && couldsee(map, player, mon.mx, mon.my)) {
-                display.putstr_message(`Your ${mon.name} eats ${doname(eatObj, null)}.`);
+            const sawPet = fov?.canSee ? fov.canSee(omx, omy) : couldsee(map, player, omx, omy);
+            const seeObj = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
+            if (display && (sawPet || seeObj)) {
+                // C ref: dogmove.c:290 uses noit_Monnam() which gives "Your" for tame,
+                // unlike the Monnam() used elsewhere which always gives "The".
+                display.putstr_message(`${monNam(mon, { capitalize: true })} eats ${doname(eatObj, null)}.`);
             }
             dog_eat(mon, eatObj, map, turnCount);
         }
@@ -1947,6 +2060,18 @@ function m_move(mon, map, player, display = null, fov = null) {
         }
     }
 
+    // C ref: monmove.c:1890-1907 — getitems gate consumes lined_up() RNG.
+    let getitems = false;
+    const isRogueLevel = !!(map?.flags?.is_rogue || map?.flags?.roguelike || map?.flags?.is_rogue_lev);
+    if ((!mon.peaceful || !rn2(10)) && !isRogueLevel) {
+        const heroStr = Number(player?.str) || Number(player?.acurrstr) || 10;
+        const inLine = linedUpToPlayer(mon, map, player)
+            && (distmin(mon.mx, mon.my, mon.mux ?? player.x, mon.muy ?? player.y)
+                <= (Math.floor(heroStr / 2) + 1));
+        if (appr !== 1 || !inLine) getitems = true;
+    }
+    void getitems;
+
     // C ref: monmove.c m_search_items() shop short-circuit:
     // "in shop, usually skip" -> rn2(25) consumed for non-peaceful movers.
     // Full item-search port is pending; keep this RNG-visible gate aligned.
@@ -2048,7 +2173,8 @@ function m_move(mon, map, player, display = null, fov = null) {
                 if (display) {
                     const canSeeDoor = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
                     if (canSeeDoor && mon.name) {
-                        display.putstr_message(`The ${mon.name} opens a door.`);
+                        // C ref: monmove.c:1587 — Monnam(mtmp) uses ARTICLE_THE
+                        display.putstr_message(`${monNam(mon, { article: 'the', capitalize: true })} opens a door.`);
                     } else {
                         display.putstr_message('You hear a door open.');
                     }

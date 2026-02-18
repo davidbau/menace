@@ -20,6 +20,7 @@ import {
 } from './config.js';
 
 import { def_monsyms, def_oc_syms } from './symbols.js';
+import { monDisplayName } from './mondata.js';
 
 // Color constants (color.h)
 // C ref: include/color.h
@@ -455,7 +456,7 @@ export class Display {
                     this.setCell(col, row, mon.displayChar, mon.displayColor);
                     const classInfo = this._monsterClassDesc(mon.displayChar);
                     const stats = `Level ${mon.mlevel}, AC ${mon.mac}, Speed ${mon.speed}`;
-                    this.cellInfo[row][col] = { name: mon.name, desc: classInfo, stats: stats, color: mon.displayColor };
+                    this.cellInfo[row][col] = { name: monDisplayName(mon), desc: classInfo, stats: stats, color: mon.displayColor };
                     continue;
                 }
 
