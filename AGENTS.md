@@ -1,4 +1,4 @@
-# AGENTS.md
+# Agent Instructions
 
 ## Purpose
 This file defines how coding agents should work in this repository.
@@ -93,6 +93,7 @@ Issue hygiene:
 7. Use at most one `agent:*` label in normal flow; temporary overlap is allowed only during explicit handoff.
 8. When starting work: `gh issue edit <number> --add-label "agent:<name>"`
 9. If intentionally abandoning: `gh issue edit <number> --remove-label "agent:<name>"`
+10. If you complete work on an issue assigned to another agent, proceed and resolve it; leave a detailed closing/update comment so the original assignee has full context.
 
 ## Practical Commands
 - Install/run basics: see `docs/DEVELOPMENT.md`.
@@ -142,7 +143,9 @@ When a task is complete:
 6. Report what changed, what was validated, and remaining risks.
 
 Critical rules:
-- Work is not complete until `git push` succeeds.
+- Work is NOT complete until `git push` succeeds.
+- NEVER stop before pushing — that leaves work stranded locally.
+- NEVER say "ready to push when you are" — YOU must push.
 - If push fails, resolve and retry until it succeeds.
 - When multiple developers are active, push meaningful validated increments rather than batching too long locally.
 
