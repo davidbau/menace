@@ -71,7 +71,7 @@ function getErrorMessage(r) {
         }
     }
     if (r.failedLevels) parts.push(`failed levels: ${r.failedLevels.join(', ')}`);
-    parts.push(`metrics: ${JSON.stringify(r.metrics || {})}`);
+    if (parts.length === 0) parts.push(`metrics: ${JSON.stringify(r.metrics || {})}`);
     return parts.filter(Boolean).join('\n');
 }
 
