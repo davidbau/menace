@@ -1,0 +1,44 @@
+{
+  "commit": "5e674a3",
+  "parent": "83a112e",
+  "date": "2026-02-16T03:36:41-05:00",
+  "author": "David Bau",
+  "message": "Remove legacy interface comparison harness files",
+  "stats": {
+    "total": 3534,
+    "pass": 517,
+    "fail": 3017,
+    "skip": 0,
+    "duration": 31
+  },
+  "categories": {
+    "chargen": {
+      "total": 181,
+      "pass": 178,
+      "fail": 3
+    },
+    "gameplay": {
+      "total": 59,
+      "pass": 00,
+      "fail": 59
+    },
+    "map": {
+      "total": 14,
+      "pass": 00,
+      "fail": 14
+    },
+    "special": {
+      "total": 51,
+      "pass": 49,
+      "fail": 2
+    },
+    "unit": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    }
+  },
+  "regression": false,
+  "newTests": 0,
+  "backfilled": true
+}
