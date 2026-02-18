@@ -222,6 +222,14 @@ function monmulti(mon, otmp) {
     return multishot;
 }
 
+function thrownObjectName(obj, player) {
+    if (!obj) return 'a weapon';
+    // C ref: mthrowu.c uses xname() for visible throw messages; when a
+    // thrown item is being explicitly named, appearance is known (dknown).
+    const oneShot = { ...obj, quan: 1, dknown: true };
+    return doname(oneShot, player);
+}
+
 // C ref: mthrowu.c m_throw() — simulate projectile flight.
 // Consumes rn2(5) at each step, plus hit/damage rolls on collision.
 function m_throw(mon, startX, startY, dx, dy, range, weapon, map, player, display, game) {
@@ -308,8 +316,7 @@ function m_throw(mon, startX, startY, dx, dy, range, weapon, map, player, displa
             } else {
                 // Hit
                 if (display) {
-                    const weapName = od ? od.name : 'weapon';
-                    display.putstr_message(`You are hit by an ${weapName}!`);
+                    display.putstr_message(`You are hit by ${thrownObjectName(weapon, player)}!`);
                 }
                 if (player.takeDamage) {
                     player.takeDamage(dam, monDisplayName(mon));
@@ -366,11 +373,8 @@ function thrwmu(mon, map, player, display, game) {
     const multishot = monmulti(mon, otmp);
 
     // Show throw message
-    const od = objectData[otmp.otyp];
-    const weapName = od ? od.name : 'weapon';
     if (display) {
-        const article = /^[aeiou]/i.test(weapName) ? 'an' : 'a';
-        display.putstr_message(`The ${monDisplayName(mon)} throws ${article} ${weapName}!`);
+        display.putstr_message(`The ${monDisplayName(mon)} throws ${thrownObjectName(otmp, player)}!`);
     }
 
     // Direction from monster to target (set by linedUpToPlayer via tbx/tby)

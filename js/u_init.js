@@ -1452,6 +1452,19 @@ function applyStartupDiscoveries(player) {
     }
 }
 
+// C ref: u_init.c knows_class()/knows_object() role pre-knowledge.
+// Parity-critical subset: Samurai knows all non-magic weapons and armor.
+function applyRolePreknowledge(player) {
+    if (player.roleIndex !== PM_SAMURAI) return;
+    for (let otyp = 1; otyp < objectData.length; otyp++) {
+        const od = objectData[otyp];
+        if (!od || od.magic) continue;
+        if (od.oc_class === WEAPON_CLASS || od.oc_class === ARMOR_CLASS) {
+            discoverObject(otyp, true, false);
+        }
+    }
+}
+
 // C ref: shk.c contained_gold() / vault.c hidden_gold(TRUE)
 function containedGold(obj, evenIfUnknown) {
     const children = obj?.cobj || obj?.contents || [];
@@ -1520,6 +1533,7 @@ export function simulatePostLevelInit(player, map, depth) {
     player.umoney0 += hiddenGold(player, true);
     player.gold = moneyCount(player) + hiddenGold(player, true);
     equipInitialGear(player);
+    applyRolePreknowledge(player);
     applyStartupDiscoveries(player);
     //    c+d. init_attr(75) + vary_init_attr()
     initAttributes(player);
