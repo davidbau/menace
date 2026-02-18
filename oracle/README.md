@@ -43,6 +43,11 @@ CSS for:
 - Chart styling
 - Regression highlighting (red blinks!)
 
+### `rebuild.sh` - Sync Script
+*"A scroll of Rebuild"*
+
+Standalone script that fetches git notes from remote, rebuilds `results.jsonl`, and commits+pushes if there are changes. Run periodically or manually.
+
 ### `results.jsonl` - Test History
 *"The Book of Testing (one entry per commit)"*
 
@@ -51,9 +56,7 @@ CSS for:
 - Each line is a complete JSON object
 - Sorted chronologically
 
-**Data Source**:
-- **Git Notes approach** (recommended): Rebuilt from `refs/notes/test-results` by `sync-notes-to-jsonl.sh`
-- **Two-commit approach** (legacy): Appended directly by `test-and-log.sh`
+**Data Source**: Rebuilt from `refs/notes/test-results` by `oracle/rebuild.sh`
 
 Example line:
 ```json
@@ -73,13 +76,11 @@ Use this to understand or validate the log format.
 
 ## How It Works
 
-### Git Notes Approach (Recommended) ⭐
-
 ```
 Git Notes (authoritative)
     refs/notes/test-results
             ↓
-    sync-notes-to-jsonl.sh
+    oracle/rebuild.sh
             ↓
     results.jsonl (mirror)
             ↓
@@ -87,24 +88,11 @@ Git Notes (authoritative)
 ```
 
 **Process**:
-1. Tests run → saved to git note attached to commit
-2. Pre-commit hook syncs all notes → `results.jsonl`
+1. Tests run → results saved as git note attached to the commit
+2. `oracle/rebuild.sh` fetches notes, rebuilds `results.jsonl`, commits and pushes if changed
 3. Dashboard loads `results.jsonl` and visualizes
 
-**Why one commit behind?**
-The pre-commit hook syncs BEFORE the commit completes, so the current commit's note isn't synced yet. This is fine - the dashboard shows historical data.
-
-### Two-Commit Approach (Legacy)
-
-```
-Test run → append to results.jsonl → commit separately
-```
-
-**Process**:
-1. Code commit (commit A)
-2. Tests run → append to `results.jsonl`
-3. Test log commit (commit B)
-4. Dashboard reads `results.jsonl`
+Run `oracle/rebuild.sh` periodically or manually to keep the dashboard up-to-date.
 
 ## Viewing the Dashboard
 
@@ -151,18 +139,12 @@ Each line is independent. Load all lines, parse each as JSON, sort by date.
 
 ## Regenerating Dashboard Data
 
-### From Git Notes (Recommended)
-
 ```bash
-# Rebuild results.jsonl from all git notes
-.githooks/sync-notes-to-jsonl.sh
-
-# Commit the updated file
-git add oracle/results.jsonl
-git commit -m "Rebuild dashboard from git notes"
+# Rebuild results.jsonl from all git notes, commit and push if changed
+oracle/rebuild.sh
 ```
 
-This walks through all commits with test notes and rebuilds the JSONL file from scratch.
+This fetches notes from remote, merges with local notes, rebuilds the JSONL file, and commits/pushes if anything changed.
 
 ### Manual Inspection
 

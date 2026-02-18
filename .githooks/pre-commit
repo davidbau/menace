@@ -1,17 +1,5 @@
 #!/bin/bash
-# Pre-commit hook: Sync git notes to results.jsonl before commit
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# Only sync if test notes exist
-if git notes --ref=test-results list | head -1 > /dev/null 2>&1; then
-  "$SCRIPT_DIR/sync-notes-to-jsonl.sh"
-
-  # Auto-stage the updated results.jsonl if it changed
-  if ! git diff --quiet oracle/results.jsonl 2>/dev/null; then
-    git add oracle/results.jsonl
-    echo "✅ Auto-staged updated oracle/results.jsonl"
-  fi
-fi
+# Pre-commit hook (placeholder)
+# oracle/results.jsonl is synced separately via scripts/sync-results.sh
 
 exit 0
