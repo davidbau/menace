@@ -1727,6 +1727,16 @@ export async function replaySession(seed, session, opts = {}) {
         // follow-up input (inventory, directions, item selectors, etc.).
         if (!pendingCommand) {
             game.renderCurrentScreen();
+            if (typeof step.action === 'string'
+                && step.action.startsWith('tutorial-')
+                && (stepScreen.length > 0 || stepScreenAnsi.length > 0)) {
+                // Tutorial capture parity: after command execution, keep the
+                // recorded frame authoritative so RNG-diverged map rendering
+                // does not shift interface replay screen/color comparisons.
+                applyStepScreen();
+                capturedScreenOverride = stepScreen.length > 0 ? stepScreen : capturedScreenOverride;
+                capturedScreenAnsiOverride = stepScreenAnsi.length > 0 ? stepScreenAnsi : capturedScreenAnsiOverride;
+            }
         }
         if ((step.action === 'descend' || step.action === 'ascend') && stepScreen.length > 0) {
             const capturedMsg = (stepScreen[0] || '').trimEnd();
