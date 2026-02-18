@@ -647,7 +647,25 @@ async function handleMovement(dir, player, map, display, game) {
     // Forced-fight into an empty square produces "You attack thin air."
     // and does not perform normal movement handling.
     if (game.forceFight && !map.monsterAt(nx, ny)) {
-        display.putstr_message('You attack thin air.');
+        let target = '';
+        if (loc) {
+            if (IS_WALL(loc.typ)) {
+                target = 'the wall';
+            } else if (loc.typ === STAIRS) {
+                if (map.upstair && map.upstair.x === nx && map.upstair.y === ny) {
+                    target = 'the branch staircase up';
+                } else if (map.dnstair && map.dnstair.x === nx && map.dnstair.y === ny) {
+                    target = 'the branch staircase down';
+                } else {
+                    target = loc.stairdir ? 'the branch staircase up' : 'the branch staircase down';
+                }
+            }
+        }
+        if (target) {
+            display.putstr_message(`You harmlessly attack ${target}.`);
+        } else {
+            display.putstr_message('You attack thin air.');
+        }
         game.forceFight = false;
         return { moved: false, tookTime: true };
     }
