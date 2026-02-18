@@ -96,3 +96,16 @@
   - Baseline (after locked-door improvement): survived `12/13`, avg depth `1.385`, XL2+ `1/13`.
   - Candidate: survived `13/13`, avg depth `1.385`, XL2+ `1/13`.
 - Net: +1 holdout survival with no train regression and no depth regression; keep.
+
+## 2026-02-18 - Keep: Low-XP Dlvl2 Upstairs Recovery Uses Unexplored-Aware Pathing
+
+- Change: in `selfplay/agent.js`, for the Dlvl2 recovery rule (`Dlvl==2`, `XP<=1`, HP below max), allow retreat pathfinding to upstairs with `allowUnexplored: true` and ascend when reached.
+- Why: the first recovery version only used explored-only retreat paths and still missed a deterministic Dlvl2 death line (seed 36) because viable return routes crossed partially unknown tiles.
+- Validation gate: C role matrix, `turns=600`, `key-delay=0`, `train=21..33`, `holdout=31..43`.
+- Train:
+  - Baseline (with previous kept changes): survived `11/13`, avg depth `2.000`.
+  - Candidate: survived `11/13`, avg depth `2.000`.
+- Holdout:
+  - Baseline (with previous kept changes): survived `12/13`, avg depth `1.385`.
+  - Candidate: survived `13/13`, avg depth `1.385`.
+- Net: +1 holdout survival, no train regression, no depth regression; keep.
