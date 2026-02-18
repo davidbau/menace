@@ -114,10 +114,8 @@ function distmin(x1, y1, x2, y2) {
 // C ref: mon.c monnear() + NODIAG()
 function monnear(mon, x, y) {
     const distance = dist2(mon.mx, mon.my, x, y);
-    const nodiag = mon.mndx === PM_GRID_BUG
-        || mon.mndx === PM_XAN
-        || mon.mndx === PM_YELLOW_LIGHT
-        || mon.mndx === PM_BLACK_LIGHT;
+    // C ref: hack.h NODIAG(monnum) is only PM_GRID_BUG.
+    const nodiag = mon.mndx === PM_GRID_BUG;
     if (distance === 2 && nodiag) return false;
     return distance < 3;
 }
