@@ -1,0 +1,44 @@
+{
+  "commit": "685b471",
+  "parent": "fada76d",
+  "date": "2026-02-17T05:32:11-05:00",
+  "author": "David Bau",
+  "message": "Improve gameplay parity baseline after merge sync",
+  "stats": {
+    "total": 343,
+    "pass": 296,
+    "fail": 47,
+    "skip": 0,
+    "duration": 12
+  },
+  "categories": {
+    "chargen": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    },
+    "gameplay": {
+      "total": 12,
+      "pass": 00,
+      "fail": 12
+    },
+    "map": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    },
+    "special": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    },
+    "unit": {
+      "total": 0,
+      "pass": 00,
+      "fail": 00
+    }
+  },
+  "regression": false,
+  "newTests": 0,
+  "backfilled": true
+}
