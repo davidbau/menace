@@ -96,3 +96,16 @@
   - Baseline (after locked-door improvement): survived `12/13`, avg depth `1.385`, XL2+ `1/13`.
   - Candidate: survived `13/13`, avg depth `1.385`, XL2+ `1/13`.
 - Net: +1 holdout survival with no train regression and no depth regression; keep.
+
+## 2026-02-18 - Keep: Low-XP Dlvl2 Retreat Triggers on Meaningful Damage (not Chip Damage)
+
+- Change: in `selfplay/agent.js`, relaxed the low-XP Dlvl2 retreat trigger from `hpPercent < 1.0` to `hpPercent < 0.85` for `XP <= 1`.
+- Why: the previous rule retreated upstairs after any chip damage, which protected survival but often over-constrained early Dlvl2 progression.
+- Validation gate: C role matrix, `turns=600`, `key-delay=0`, `train=21..33`, `holdout=31..43`.
+- Train:
+  - Baseline: survived `11/13`, avg depth `2.000`, depth>=3 `4/13`, XL2+ `0/13`.
+  - Candidate: survived `11/13`, avg depth `2.000`, depth>=3 `4/13`, XL2+ `0/13`.
+- Holdout:
+  - Baseline: survived `13/13`, avg depth `1.385`, depth>=3 `0/13`, XL2+ `1/13`, failedAdd `43.69`.
+  - Candidate: survived `13/13`, avg depth `1.462`, depth>=3 `1/13`, XL2+ `1/13`, failedAdd `43.85`.
+- Net: holdout progression improved with unchanged survival and no train regression; keep.
