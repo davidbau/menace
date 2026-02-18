@@ -17,16 +17,87 @@ import tempfile
 import subprocess
 import re
 
-# Import from parent directory
+# Import shared harness helpers
 sys.path.insert(0, os.path.dirname(__file__))
-from gen_special_sessions import (
+from run_dumpmap import (
     setup_home, wait_for_game_ready, execute_dumpmap, quit_game,
     tmux_send, tmux_send_special, tmux_capture,
-    NETHACK_BINARY, INSTALL_DIR, SESSIONS_DIR, RESULTS_DIR,
+    NETHACK_BINARY, INSTALL_DIR, RESULTS_DIR,
     fixed_datetime_env,
-    get_rng_call_count, get_rng_raw_draw_count,
-    extract_rng_prelude_calls, extract_full_rng_log
 )
+from run_session import parse_rng_lines, get_rng_call_count
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..', '..'))
+MAPS_DIR = os.path.join(PROJECT_ROOT, 'test', 'comparison', 'maps')
+
+
+def get_rng_raw_draw_count(rng_log_file, rng_call_start):
+    """Approximate raw draw count at rng_call_start for metadata continuity."""
+    if not rng_log_file or not os.path.exists(rng_log_file):
+        return None
+    raw = 0
+    with open(rng_log_file, 'r', encoding='utf-8', errors='ignore') as f:
+        for line in f:
+            m = re.match(r'^\s*(\d+)\s+([a-z0-9_]+)\(', line)
+            if not m:
+                continue
+            call_num = int(m.group(1))
+            if call_num > int(rng_call_start):
+                break
+            fn = m.group(2)
+            if fn in ('rn2', 'rnd', 'rn1', 'd'):
+                raw += 1
+    return raw
+
+
+def extract_rng_prelude_calls(rng_log_file, rng_call_start, max_calls=32):
+    """Capture a short call prelude after rng_call_start before main generation."""
+    if not rng_log_file or not os.path.exists(rng_log_file):
+        return []
+    collected = []
+    with open(rng_log_file, 'r', encoding='utf-8', errors='ignore') as f:
+        for line in f:
+            line = line.rstrip('\n')
+            if not line:
+                continue
+            if line[0] in ('>', '<'):
+                if collected:
+                    break
+                continue
+            m = re.match(r'^\s*(\d+)\s+', line)
+            if not m:
+                continue
+            if int(m.group(1)) <= int(rng_call_start):
+                continue
+            collected.append(line)
+            if len(collected) >= max_calls:
+                break
+    return parse_rng_lines(collected)
+
+
+def extract_full_rng_log(rng_log_file, rng_call_start):
+    """Capture full RNG log after rng_call_start using standard parser."""
+    if not rng_log_file or not os.path.exists(rng_log_file):
+        return []
+    selected = []
+    started = False
+    with open(rng_log_file, 'r', encoding='utf-8', errors='ignore') as f:
+        for line in f:
+            line = line.rstrip('\n')
+            if not line:
+                continue
+            if not started:
+                if line[0] in ('>', '<'):
+                    continue
+                m = re.match(r'^\s*(\d+)\s+', line)
+                if not m:
+                    continue
+                if int(m.group(1)) <= int(rng_call_start):
+                    continue
+                started = True
+            selected.append(line)
+    return parse_rng_lines(selected)
 
 def wizard_wish_amulet(session, verbose=False):
     """Use wizard mode to wish for the Amulet of Yendor."""
@@ -247,7 +318,7 @@ def main():
         sys.exit(1)
 
     setup_home()
-    os.makedirs(SESSIONS_DIR, exist_ok=True)
+    os.makedirs(MAPS_DIR, exist_ok=True)
 
     planes = ['astral', 'water', 'fire', 'air', 'earth']
 
@@ -381,7 +452,7 @@ def main():
 
         # Write with compact typGrid rows
         filename = f'seed{seed}_special_planes.session.json'
-        filepath = os.path.join(SESSIONS_DIR, filename)
+        filepath = os.path.join(MAPS_DIR, filename)
 
         raw = json.dumps(session, indent=2)
         lines_out = raw.split('\n')
