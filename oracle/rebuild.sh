@@ -23,10 +23,20 @@ if git fetch origin refs/notes/test-results:refs/notes/test-results-remote 2>/de
       if [ -z "$LOCAL_NOTE" ]; then
         echo "$REMOTE_NOTE" | git notes --ref=test-results add -f -F - "$commit_hash" 2>/dev/null || true
       elif [ -n "$REMOTE_NOTE" ]; then
-        REMOTE_DATE=$(echo "$REMOTE_NOTE" | jq -r '.date' 2>/dev/null || echo "")
-        LOCAL_DATE=$(echo "$LOCAL_NOTE" | jq -r '.date' 2>/dev/null || echo "")
-        if [ -n "$REMOTE_DATE" ] && [ -n "$LOCAL_DATE" ] && [[ "$REMOTE_DATE" > "$LOCAL_DATE" ]]; then
+        # Prefer raw (has results array) over backfilled
+        LOCAL_RAW=$(echo "$LOCAL_NOTE" | jq -e '.results' >/dev/null 2>&1 && echo "1" || echo "0")
+        REMOTE_RAW=$(echo "$REMOTE_NOTE" | jq -e '.results' >/dev/null 2>&1 && echo "1" || echo "0")
+        if [ "$LOCAL_RAW" = "0" ] && [ "$REMOTE_RAW" = "1" ]; then
           echo "$REMOTE_NOTE" | git notes --ref=test-results add -f -F - "$commit_hash" 2>/dev/null || true
+        elif [ "$LOCAL_RAW" = "1" ]; then
+          : # keep local raw note
+        else
+          # Both backfilled — keep newer
+          REMOTE_DATE=$(echo "$REMOTE_NOTE" | jq -r '.date' 2>/dev/null || echo "")
+          LOCAL_DATE=$(echo "$LOCAL_NOTE" | jq -r '.date' 2>/dev/null || echo "")
+          if [ -n "$REMOTE_DATE" ] && [ -n "$LOCAL_DATE" ] && [[ "$REMOTE_DATE" > "$LOCAL_DATE" ]]; then
+            echo "$REMOTE_NOTE" | git notes --ref=test-results add -f -F - "$commit_hash" 2>/dev/null || true
+          fi
         fi
       fi
     done
@@ -53,7 +63,46 @@ if git show-ref refs/notes/test-results >/dev/null 2>&1; then
 fi
 
 if [ -s "$TEMP_FILE" ]; then
-  jq -s -c 'sort_by(.date) | .[]' "$TEMP_FILE" > "$OUTPUT_FILE"
+  # Sort by date and compute aggregate metrics from raw results
+  jq -s -c 'sort_by(.date) | .[] |
+    if .results then
+      # Raw format: aggregate per-session metrics
+      (.results | length) as $nsessions |
+      ([.results[].metrics | select(.rngCalls) | .rngCalls.matched] | add) as $rngM |
+      ([.results[].metrics | select(.rngCalls) | .rngCalls.total]   | add) as $rngT |
+      ([.results[].metrics | select(.screens)  | .screens.matched]  | add) as $scrM |
+      ([.results[].metrics | select(.screens)  | .screens.total]    | add) as $scrT |
+      ([.results[].metrics | select(.grids)    | .grids.matched]    | add) as $grdM |
+      ([.results[].metrics | select(.grids)    | .grids.total]      | add) as $grdT |
+      {
+        commit, parent,
+        date: (.date // .timestamp),
+        author: (.author // null),
+        message: (.message // null),
+        stats: .summary,
+        sessions: $nsessions,
+        metrics: {
+          rng:     { matched: ($rngM // 0), total: ($rngT // 0) },
+          screens: { matched: ($scrM // 0), total: ($scrT // 0) },
+          grids:   { matched: ($grdM // 0), total: ($grdT // 0) }
+        },
+        categories: (
+          [.results[] | {type, passed}] | group_by(.type) |
+          map({
+            key: .[0].type,
+            value: {
+              total: length,
+              pass: [.[] | select(.passed)] | length,
+              fail: [.[] | select(.passed | not)] | length
+            }
+          }) | from_entries
+        )
+      }
+    else
+      # Already summarized (backfilled) — pass through
+      .
+    end
+  ' "$TEMP_FILE" > "$OUTPUT_FILE"
   LINE_COUNT=$(wc -l < "$OUTPUT_FILE")
   echo "✅ Rebuilt results.jsonl with $LINE_COUNT entries"
 else
