@@ -1561,6 +1561,14 @@ export class NetHackGame {
     // Called once per turn after movemon() is done.
     // Order matches C: mcalcmove → rn2(70) → dosounds → gethungry → engrave wipe → seer_turn
     processTurnEnd() {
+        // C ref: allmain.c moveloop_core() — the turn-end block only runs when
+        // both hero and monsters are out of movement.  When Fast/Very Fast
+        // grants extra movement, the hero acts again WITHOUT a new turn-end.
+        if (this._bonusMovement > 0) {
+            this._bonusMovement--;
+            return;
+        }
+
         this.turnCount++;
         this.player.turns = this.turnCount;
 
@@ -1603,9 +1611,13 @@ export class NetHackGame {
         // Fast intrinsic (monks, samurai): gain extra turn 1/3 of the time via rn2(3).
         // Very Fast (speed boots + intrinsic): gain extra turn 2/3 of the time.
         if (this.player.veryFast) {
-            if (rn2(3) !== 0) { /* 2/3 chance */ }
+            if (rn2(3) !== 0) {
+                this._bonusMovement = (this._bonusMovement || 0) + 1;
+            }
         } else if (this.player.fast) {
-            if (rn2(3) === 0) { /* 1/3 chance */ }
+            if (rn2(3) === 0) {
+                this._bonusMovement = (this._bonusMovement || 0) + 1;
+            }
         }
 
         // C ref: allmain.c:241 — svm.moves++ (already done via this.turnCount++)
