@@ -69,6 +69,16 @@ Timeout policy (hang detection):
 - Single-session replay runs (`node test/comparison/session_test_runner.js <session>`) enforce a `10000ms` timeout per session by default.
 - `session_test_runner` runs the full selected set by default; add `--fail-fast` only when you explicitly want to stop on first failure.
 
+### Replay Boundary (Core vs Harness)
+
+Keep gameplay and UI semantics in core runtime modules (`js/`), not in
+comparison orchestration.
+
+- Core runtime owns command behavior, modal flows, rendering, and state transitions.
+- Replay/comparison harness owns input driving, capture, normalization, and diff reporting.
+- If replay needs a special case, prefer a generic capture policy (for example,
+  display-only acknowledgement frames) over per-command behavior forks.
+
 ### Session Tests In Detail
 
 The session runner auto-discovers all `*.session.json` files in
