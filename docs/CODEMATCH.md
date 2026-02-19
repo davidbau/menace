@@ -145,7 +145,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[N/A]` | sys.c | — | System-level interface |
 | `[ ]` | teleport.c | — | Teleportation |
 | `[ ]` | timeout.c | — | Timer-based effects |
-| `[~]` | topten.c | topten.js | High score table |
+| `[a]` | topten.c | topten.js | High score table. observable_depth implemented; I/O funcs N/A; encode/format funcs TODO |
 | `[p]` | track.c | track.js | Player tracking for pets. save/rest not yet implemented |
 | `[a]` | trap.c | trap.js | Trap mechanics: m_harmless_trap, floor_trigger, mintrap_postmove, mon_check_in_air |
 | `[~]` | u_init.c | u_init.js | Player initialization |
@@ -171,9 +171,9 @@ don't follow the same 1:1 C→JS mapping pattern.
 - **N/A (system/platform)**: 18
 - **Game logic files**: 111
 - **Complete (`[x]`)**: 4
-- **Aligned (`[a]`)**: 11
+- **Aligned (`[a]`)**: 12
 - **Present (`[p]`)**: 1
-- **Needs alignment (`[~]`)**: 19
+- **Needs alignment (`[~]`)**: 18
 - **No JS file yet (`[ ]`)**: 76
 
 ### JS Files Without C Counterparts
@@ -385,3 +385,37 @@ Discovery/identification functions split into `discovery.js` (camelCase, noted b
 | `savebones` | 403 | `savebones` | 207 | Match (exported) |
 | `getbones` | 629 | `getbones` | 278 | Match (exported) |
 | `set_ghostly_objlist` | 751 | `set_ghostly_objlist` | 157 | Match (exported — renamed from `setGhostlyObjlist`) |
+
+### topten.c → topten.js
+
+Notes:
+- File I/O functions (readentry, writeentry, writexlentry, discardexcess) are N/A — JS uses localStorage.
+- Terminal output functions (topten_print, topten_print_bold, outheader, outentry) are renamed in JS.
+- CLI-mode functions (score_wanted, prscore, classmon) are N/A — browser port has no argv mode.
+- `topten()` is split across buildEntry + saveScore + loadScores in JS.
+- JS-only functions: `loadScores`, `saveScore`, `getPlayerRank`, `capitalize` (localStorage abstraction).
+
+| C Function | C Line | JS Function | JS Line | Status |
+|------------|--------|-------------|---------|--------|
+| `formatkiller` | 90 | — | — | TODO (needs killer format constants, an(), and game state svk.killer/gm.multi) |
+| `topten_print` | 165 | — | — | N/A (terminal output — no terminal in JS port) |
+| `topten_print_bold` | 174 | — | — | N/A (terminal output — no terminal in JS port) |
+| `observable_depth` | 183 | `observable_depth` | 129 | Match (exported — endgame depth negative encoding deferred) |
+| `discardexcess` | 208 | — | — | N/A (file I/O — JS uses JSON localStorage) |
+| `readentry` | 220 | — | — | N/A (file I/O — JS uses `loadScores`) |
+| `writeentry` | 301 | — | — | N/A (file I/O — JS uses `saveScore`) |
+| `writexlentry` | 340 | — | — | N/A (xlogfile I/O — no xlogfile in browser) |
+| `encodexlogflags` | 394 | — | — | TODO (needs wizard/discover/roleplay flags on player object) |
+| `encodeconduct` | 411 | — | — | TODO (needs u.uconduct, num_genocides(), sokoban_in_play()) |
+| `encodeachieve` | 455 | — | — | TODO (needs u.uachieved achievements array) |
+| `add_achieveX` | 480 | — | — | TODO (static helper for encode_extended_achievements) |
+| `encode_extended_achievements` | 491 | — | — | TODO (needs u.uachieved) |
+| `encode_extended_conducts` | 584 | — | — | TODO (needs u.uconduct) |
+| `free_ttlist` | 615 | — | — | N/A (GC handles memory in JS) |
+| `topten` | 628 | `buildEntry` + `saveScore` + `loadScores` | 78,44,28 | Split — entry building + localStorage persistence |
+| `outheader` | 929 | `formatTopTenHeader` | 115 | Renamed (JS returns string; no terminal I/O) |
+| `outentry` | 946 | `formatTopTenEntry` | 105 | Renamed (JS returns lines array; no terminal I/O) |
+| `score_wanted` | 1112 | — | — | N/A (CLI score query mode not in browser) |
+| `prscore` | 1194 | — | — | N/A (CLI argc/argv scoring mode) |
+| `classmon` | 1356 | — | — | N/A (CLI helper for prscore) |
+
