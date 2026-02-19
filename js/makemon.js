@@ -1397,7 +1397,7 @@ function set_mimic_sym(mndx, x, y, map, depth) {
             } else if (rt === SHOPBASE + 10 && s_sym > MAXOCLASSES) {
                 // FODDERSHOP: health food store with VEGETARIAN_CLASS
                 rn2(2); // C: rn2(2) ? LUMP_OF_ROYAL_JELLY : SLIME_MOLD
-                return; // no post-fixup RNG for these items
+                return 'object'; // M_AP_OBJECT; no post-fixup RNG for these items
             } else {
                 if (s_sym === 0 || s_sym >= MAXOCLASSES) // RANDOM_CLASS or VEGETARIAN
                     s_sym = mimic_syms[rn2(15) + 2]; // syms[rn2(SIZE(syms)-2)+2]
@@ -1415,7 +1415,7 @@ function set_mimic_sym(mndx, x, y, map, depth) {
             // Furniture appearance: rn2(8) from furnsyms
             rn2(8);
             // No further RNG — furniture doesn't trigger corpsenm fixup
-            return;
+            return 'furniture'; // M_AP_FURNITURE
         } else if (s_sym === S_MIMIC_DEF) {
             appear = STRANGE_OBJECT;
         } else if (s_sym === COIN_CLASS) {
@@ -1442,6 +1442,7 @@ function set_mimic_sym(mndx, x, y, map, depth) {
         }
         // For EGG with non-hatchable or TIN with nocorpse: mndx = NON_PM (no extra RNG)
     }
+    return 'object'; // M_AP_OBJECT (default for non-furniture appearances)
 }
 
 // makemon -- main monster creation
@@ -1703,8 +1704,9 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     }
 
     // C ref: makemon.c:1299-1310 — post-placement switch on mlet
+    let mimicApType = null;
     if (ptr.symbol === S_MIMIC) {
-        set_mimic_sym(mndx, x, y, map, depth);
+        mimicApType = set_mimic_sym(mndx, x, y, map, depth);
     } else if ((ptr.symbol === S_SPIDER || ptr.symbol === S_SNAKE) && map) {
         // C ref: in_mklev && x && y → mkobj_at(RANDOM_CLASS, x, y, TRUE)
         // mkobj_at creates a random object (consumes RNG), then hideunder (no RNG)
@@ -1784,6 +1786,10 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         mtrack: [{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}],
     };
     mon.mpeaceful = mon.peaceful;
+    // C ref: makemon.c:2506 — mimics get appearance type from set_mimic_sym()
+    if (mimicApType) {
+        mon.m_ap_type = mimicApType;
+    }
 
     // Add to map if provided
     if (map && x !== undefined && y !== undefined) {
