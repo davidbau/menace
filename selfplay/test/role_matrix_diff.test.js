@@ -17,6 +17,12 @@ function makeData(overrides = {}) {
             avgFailedAdds: 30,
             avgAttackTurns: 100,
             avgFleeTurns: 20,
+            avgFleeHpEmergencyTurns: 8,
+            avgFleeDlvl2RetreatTurns: 2,
+            avgFleeToUpstairsTurns: 3,
+            avgFleeOscillationTurns: 1,
+            avgFleeDangerTurns: 6,
+            avgFleeOtherTurns: 0,
             avgPetSwaps: 25,
             ...overrides.summary,
         },
@@ -196,5 +202,34 @@ describe('compareRoleMatrix', () => {
         const fleeGuard = out.guardrails.find(g => g.key === 'avgFleeTurns');
         assert.ok(fleeGuard);
         assert.equal(fleeGuard.pass, false);
+    });
+
+    it('optionally fails on flee-cause regression guardrails', () => {
+        const baseline = makeData({
+            summary: {
+                avgFleeHpEmergencyTurns: 8,
+                avgFleeDlvl2RetreatTurns: 2,
+                avgFleeToUpstairsTurns: 3,
+                avgFleeOscillationTurns: 1,
+                avgFleeDangerTurns: 6,
+                avgFleeOtherTurns: 0,
+            },
+        });
+        const candidate = makeData({
+            summary: {
+                avgFleeHpEmergencyTurns: 11, // regression
+                avgFleeDlvl2RetreatTurns: 2,
+                avgFleeToUpstairsTurns: 3,
+                avgFleeOscillationTurns: 1,
+                avgFleeDangerTurns: 6,
+                avgFleeOtherTurns: 0,
+            },
+        });
+
+        const out = compareRoleMatrix(baseline, candidate, { includeFleeCauseGuardrails: true });
+        assert.equal(out.passed, false);
+        const hpGuard = out.guardrails.find(g => g.key === 'avgFleeHpEmergencyTurns');
+        assert.ok(hpGuard);
+        assert.equal(hpGuard.pass, false);
     });
 });

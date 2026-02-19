@@ -45,11 +45,21 @@ const ACTION_GUARDRAILS = [
     { key: 'avgFleeTurns', direction: 'lower', label: 'avgFlee must not increase' },
 ];
 
+const FLEE_CAUSE_GUARDRAILS = [
+    { key: 'avgFleeHpEmergencyTurns', direction: 'lower', label: 'avgFleeHpEmergency must not increase' },
+    { key: 'avgFleeDlvl2RetreatTurns', direction: 'lower', label: 'avgFleeDlvl2Retreat must not increase' },
+    { key: 'avgFleeToUpstairsTurns', direction: 'lower', label: 'avgFleeToUpstairs must not increase' },
+    { key: 'avgFleeOscillationTurns', direction: 'lower', label: 'avgFleeOscillation must not increase' },
+    { key: 'avgFleeDangerTurns', direction: 'lower', label: 'avgFleeDanger must not increase' },
+    { key: 'avgFleeOtherTurns', direction: 'lower', label: 'avgFleeOther must not increase' },
+];
+
 export function compareRoleMatrix(baselineData, candidateData, options = {}) {
     const eps = Number.isFinite(options.epsilon) ? options.epsilon : 1e-9;
     const top = Number.isFinite(options.top) ? Math.max(1, options.top) : 8;
     const overlapOnly = options.overlapOnly === true;
     const includeActionGuardrails = options.includeActionGuardrails === true;
+    const includeFleeCauseGuardrails = options.includeFleeCauseGuardrails === true;
 
     const fullBaselineRows = baselineData?.results || [];
     const fullCandidateRows = candidateData?.results || [];
@@ -115,9 +125,11 @@ export function compareRoleMatrix(baselineData, candidateData, options = {}) {
         pass: comparable,
     });
 
-    const selectedGuardrails = includeActionGuardrails
-        ? [...DEFAULT_GUARDRAILS, ...ACTION_GUARDRAILS]
-        : DEFAULT_GUARDRAILS;
+    const selectedGuardrails = [
+        ...DEFAULT_GUARDRAILS,
+        ...(includeActionGuardrails ? ACTION_GUARDRAILS : []),
+        ...(includeFleeCauseGuardrails ? FLEE_CAUSE_GUARDRAILS : []),
+    ];
     for (const g of selectedGuardrails) {
         const baseline = toNumberOrNaN(baselineSummary[g.key]);
         const candidate = toNumberOrNaN(candidateSummary[g.key]);
@@ -185,6 +197,7 @@ export function compareRoleMatrix(baselineData, candidateData, options = {}) {
         comparability: {
             overlapOnly,
             includeActionGuardrails,
+            includeFleeCauseGuardrails,
             assignmentsComparable,
             runCountsComparable,
             baselineAssignmentCount: baselineAssignments.size,
@@ -346,6 +359,7 @@ function parseArgs(argv) {
         jsonOut: null,
         overlapOnly: false,
         includeActionGuardrails: false,
+        includeFleeCauseGuardrails: false,
     };
     const args = argv.slice(2);
     for (let i = 0; i < args.length; i++) {
@@ -356,12 +370,14 @@ function parseArgs(argv) {
         else if (arg === '--json-out' && args[i + 1]) opts.jsonOut = args[++i];
         else if (arg === '--overlap-only') opts.overlapOnly = true;
         else if (arg === '--include-action-guardrails') opts.includeActionGuardrails = true;
+        else if (arg === '--include-flee-cause-guardrails') opts.includeFleeCauseGuardrails = true;
         else if (arg.startsWith('--baseline=')) opts.baseline = arg.slice('--baseline='.length);
         else if (arg.startsWith('--candidate=')) opts.candidate = arg.slice('--candidate='.length);
         else if (arg.startsWith('--top=')) opts.top = parseInt(arg.slice('--top='.length), 10);
         else if (arg.startsWith('--json-out=')) opts.jsonOut = arg.slice('--json-out='.length);
         else if (arg === '--no-overlap-only') opts.overlapOnly = false;
         else if (arg === '--no-include-action-guardrails') opts.includeActionGuardrails = false;
+        else if (arg === '--no-include-flee-cause-guardrails') opts.includeFleeCauseGuardrails = false;
         else if (arg === '--help' || arg === '-h') {
             printHelp();
             process.exit(0);
@@ -397,6 +413,7 @@ export function runCli(argv = process.argv) {
             top: opts.top,
             overlapOnly: opts.overlapOnly,
             includeActionGuardrails: opts.includeActionGuardrails,
+            includeFleeCauseGuardrails: opts.includeFleeCauseGuardrails,
         }
     );
 
@@ -405,6 +422,7 @@ export function runCli(argv = process.argv) {
     console.log(`  candidate: ${path.resolve(opts.candidate)}`);
     console.log(`  overlap-only: ${opts.overlapOnly ? 'on' : 'off'}`);
     console.log(`  action-guardrails: ${opts.includeActionGuardrails ? 'on' : 'off'}`);
+    console.log(`  flee-cause-guardrails: ${opts.includeFleeCauseGuardrails ? 'on' : 'off'}`);
     console.log('');
 
     console.log('Summary deltas (candidate - baseline)');
@@ -471,6 +489,7 @@ function printHelp() {
     console.log('  --json-out=FILE      Optional path to write machine-readable diff output');
     console.log('  --overlap-only       Compare only assignment overlap (useful for triage subsets)');
     console.log('  --include-action-guardrails  Also gate on avgAttack/avgFlee non-regression');
+    console.log('  --include-flee-cause-guardrails  Also gate on flee-cause non-regression metrics');
     console.log('Exit codes:');
     console.log('  0 = guardrails pass');
     console.log('  2 = guardrails fail');

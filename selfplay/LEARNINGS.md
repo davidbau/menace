@@ -802,3 +802,31 @@
 
 - Net:
   - Keep as behavior-neutral observability infrastructure for #15 triage.
+
+## 2026-02-19 - Keep: Optional Flee-Cause Guardrails in Matrix Diff
+
+- Change:
+  - Extended `selfplay/runner/c_role_matrix_diff.js` with optional `--include-flee-cause-guardrails`.
+  - New optional guardrails gate non-increase of:
+    - `avgFleeHpEmergency`
+    - `avgFleeDlvl2Retreat`
+    - `avgFleeToUpstairs`
+    - `avgFleeOscillation`
+    - `avgFleeDanger`
+    - `avgFleeOther`
+  - Kept default behavior unchanged (these guardrails are opt-in).
+
+- Why:
+  - After adding flee-cause telemetry, we needed a fast acceptance gate for candidates
+    that preserve total outcomes but regress into higher-risk flee compositions.
+  - This lets triage fail quickly when regression shifts are hidden inside flat `avgFlee`.
+
+- Validation:
+  - `node --check selfplay/runner/c_role_matrix_diff.js`
+  - `node --check selfplay/test/role_matrix_diff.test.js`
+  - `node --test selfplay/test/role_matrix_diff.test.js`
+  - Smoke:
+    - `node selfplay/runner/c_role_matrix_diff.js --baseline=/tmp/role_matrix_smoke_flee_20260219.json --candidate=/tmp/role_matrix_smoke_flee_20260219.json --include-flee-cause-guardrails --top=2`
+
+- Net:
+  - Keep as behavior-neutral triage hardening for selfplay candidate evaluation.
