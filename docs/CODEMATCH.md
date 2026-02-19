@@ -132,7 +132,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[N/A]` | sfbase.c | — | Save file base I/O routines |
 | `[N/A]` | sfstruct.c | — | Save file structure definitions |
 | `[~]` | shk.c | — | Shopkeeper behavior. JS: partially in `shknam.js` |
-| `[~]` | shknam.c | shknam.js | Shop naming and stocking |
+| `[a]` | shknam.c | shknam.js | Shop naming and stocking. Core stock/init/nameshk aligned; Shknam/shkname/is_izchak/saleable TODO |
 | `[ ]` | sit.c | — | Sitting on things |
 | `[ ]` | sounds.c | — | Monster sounds |
 | `[~]` | sp_lev.c | sp_lev.js | Special level interpreter |
@@ -171,9 +171,9 @@ don't follow the same 1:1 C→JS mapping pattern.
 - **N/A (system/platform)**: 19
 - **Game logic files**: 110
 - **Complete (`[x]`)**: 4
-- **Aligned (`[a]`)**: 14
+- **Aligned (`[a]`)**: 15
 - **Present (`[p]`)**: 1
-- **Needs alignment (`[~]`)**: 16
+- **Needs alignment (`[~]`)**: 15
 - **No JS file yet (`[ ]`)**: 75
 
 ### JS Files Without C Counterparts
@@ -466,6 +466,36 @@ uses static symbol data in symbols.js with no mode switching at runtime.
 | `parsesymbols` | 773 | N/A — no config file option parsing |
 | `match_sym` | 852 | N/A — no config file option parsing |
 | `do_symset` | 909 | N/A — no interactive options menu in JS |
+
+### shknam.c → shknam.js
+
+Notes:
+- The JS port stores shopkeeper name as `shk.shknam` field (set by `nameshk`).
+- `veggy_item(obj, otyp)` simplified to `veggy_item(otyp)` — obj parameter dropped (TIN/CORPSE species not tracked).
+- `neweshk`/`free_eshk` are N/A (JS has no struct allocation/deallocation).
+- `Shknam`/`shkname`/`shkname_is_pname`/`is_izchak` are TODO (need monster shk.shknam field access + hallucination).
+- JS-only functions: `mkmonmoney` (gold helper), `mon_at` (position lookup), `pointInShop`/`monsterInShop` (display helpers).
+
+| C Function | C Line | JS Function | JS Line | Status |
+|------------|--------|-------------|---------|--------|
+| `init_shop_selection` | 360 | — | — | TODO (not yet needed — no interactive shop selection in JS) |
+| `veggy_item` | 380 | `veggy_item` | 305 | Partial (private — obj param dropped; TIN/CORPSE species not checked) |
+| `shkveg` | 408 | `shkveg` | 311 | Match (private) |
+| `mkveggy_at` | 443 | `mkveggy_at` | 332 | Match (private) |
+| `mkshobj_at` | 454 | `mkshobj_at` | 540 | Match (private — extra shpIndex/map/depth params in JS) |
+| `nameshk` | 487 | `nameshk` | 431 | Match (private — extra ubirthday/ledgerNo params replace C globals) |
+| `neweshk` | 557 | — | — | N/A (no struct allocation in JS — eshk fields set inline on monster object) |
+| `free_eshk` | 569 | — | — | N/A (GC handles memory) |
+| `good_shopdoor` | 582 | `good_shopdoor` | 345 | Match (private — returns {di,sx,sy} instead of output pointers) |
+| `shkinit` | 628 | `shkinit` | 489 | Match (private — extra map/depth/ubirthday/ledgerNo params) |
+| `stock_room_goodpos` | 695 | `stock_room_goodpos` | 389 | Match (private — rmno param dropped, map added) |
+| `stock_room` | 718 | `stock_room` | 595 | Match (exported — extra map/depth/ubirthday/ledgerNo params) |
+| `saleable` | 805 | — | — | TODO (needed for shop pricing and selling; requires shopkeeper inventory logic) |
+| `get_shop_item` | 829 | `get_shop_item` | 288 | Match (exported) |
+| `Shknam` | 843 | — | — | TODO (capitalize shk.shknam — trivial, blocked on shkname) |
+| `shkname` | 856 | — | — | TODO (get shopkeeper name from shk.shknam, handle hallucination) |
+| `shkname_is_pname` | 900 | — | — | TODO (check shk.shknam prefix chars '-', '+', '=') |
+| `is_izchak` | 908 | — | — | TODO (check if shopkeeper is Izchak in town; needs in_town()) |
 
 ### vision.c → vision.js
 
