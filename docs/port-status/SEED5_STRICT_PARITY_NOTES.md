@@ -258,6 +258,40 @@ Date: 2026-02-19
   - `seed112_valkyrie_selfplay200` pass
   - `seed42_items_gameplay` pass
 
+---
+
+Date: 2026-02-19 (shop-entry/message pass)
+
+## Additional Progress
+
+- Added C-style shop-entry dialog triggering on doorway transitions where roomno
+  is unresolved (`NO_ROOM`) but adjacent shop topology is present.
+- Added C-style shop price suffix rendering for floor look-here messages:
+  `"(for sale, <n> zorkmids)"`, including charisma and unidentified-item
+  multipliers from `shk.c get_cost()`.
+- Added unit coverage for:
+  - initial shop greeting,
+  - re-entry `"Welcome again"` behavior,
+  - floor spellbook for-sale suffix format.
+
+## Validation Snapshot
+
+- `test/unit/command_shop_entry_messages.test.js` pass.
+- Guard suites unchanged:
+  - `seed103_caveman_selfplay200` pass,
+  - `seed112_valkyrie_selfplay200` pass,
+  - `seed42_items_gameplay` pass,
+  - `startup.e2e` + `game.e2e` pass.
+
+## Current Remaining Gap
+
+- `seed5_gnomish_mines_gameplay` step `361` now emits the expected greeting
+  structure but still differs on shopkeeper name token:
+  - JS: `Kittamagh`
+  - C session: `Dunfanaghy`
+- This indicates the next parity target is shopkeeper naming identity
+  alignment (`nameshk` inputs / monster-id parity), not shop-entry trigger flow.
+
 ## Additional C-Faithful Fixes
 
 1. Inventory letter assignment now follows C `assigninvlet()` cursor behavior.
