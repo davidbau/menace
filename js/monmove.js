@@ -1250,9 +1250,11 @@ function could_reach_item(map, mon, nx, ny) {
     const loc = map.at(nx, ny);
     if (!loc) return false;
     const typ = loc.typ;
-    // C: is_pool checks typ >= POOL && typ <= DRAWBRIDGE_UP (simplified)
-    const isPool = (typ === POOL);
-    const isLava = (typ === LAVAPOOL);
+    // C ref: is_pool/is_lava terrain checks (rm.h macros).
+    // Use shared terrain helpers so WATER/MOAT squares stay blocked for
+    // non-swimmers when pets consider picking up floor items.
+    const isPool = IS_POOL(typ);
+    const isLava = IS_LAVA(typ);
     // C: sobj_at(BOULDER, nx, ny) — is there a boulder at this position?
     let hasBoulder = false;
     for (const obj of map.objects) {
@@ -2127,7 +2129,6 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
             }
         }
     }
-
     // Follow player logic
     // C ref: dogmove.c:567-609
     let appr = 0;

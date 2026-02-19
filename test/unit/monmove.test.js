@@ -4,12 +4,12 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { initRng } from '../../js/rng.js';
-import { COLNO, ROWNO, ROOM, STONE, HWALL } from '../../js/config.js';
+import { COLNO, ROWNO, ROOM, STONE, HWALL, WATER } from '../../js/config.js';
 import { GameMap } from '../../js/map.js';
 import { movemon } from '../../js/monmove.js';
 import { Player } from '../../js/player.js';
 import { GOLD_PIECE, COIN_CLASS, WEAPON_CLASS, ORCISH_DAGGER } from '../../js/objects.js';
-import { mons, PM_GOBLIN, AT_WEAP } from '../../js/monsters.js';
+import { mons, PM_GOBLIN, PM_LITTLE_DOG, AT_WEAP } from '../../js/monsters.js';
 
 // Mock display
 const mockDisplay = { putstr_message() {} };
@@ -51,6 +51,39 @@ describe('Monster movement', () => {
             isshk: false, ispriest: false,
             mux: player.x, muy: player.y,
             minvent: [],
+            mtrack: [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }],
+        };
+    }
+
+    function makeLittleDog(mx, my, player) {
+        const type = mons[PM_LITTLE_DOG];
+        return {
+            name: 'little dog',
+            mnum: PM_LITTLE_DOG,
+            mndx: PM_LITTLE_DOG,
+            type,
+            mx, my,
+            mhp: 5, mhpmax: 5,
+            ac: 5, mac: 5,
+            mlevel: 2,
+            speed: 12, movement: 12,
+            attacks: type.attacks || [],
+            dead: false, sleeping: false,
+            confused: false, peaceful: true,
+            tame: true, flee: false,
+            mcanmove: true, mcansee: true,
+            blind: false,
+            mfrozen: 0, mfleetim: 0, mtrapped: 0,
+            isshk: false, ispriest: false,
+            mux: player.x, muy: player.y,
+            minvent: [],
+            edog: {
+                apport: 3,
+                hungrytime: 1000,
+                whistletime: 0,
+                ogoal: { x: 0, y: 0 },
+                mhpmax_penalty: 0,
+            },
             mtrack: [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }],
         };
     }
@@ -308,5 +341,54 @@ describe('Monster movement', () => {
         movemon(map, player, mockDisplay);
         assert.equal(goblin.mx, 16);
         assert.equal(goblin.my, 11);
+    });
+
+    it('pets cannot pick up items while standing in WATER tiles', () => {
+        initRng(1);
+        const map = makeSimpleMap();
+        const player = new Player();
+        player.x = 15;
+        player.y = 10;
+        player.initRole(0);
+
+        const dog = makeLittleDog(12, 10, player);
+        map.monsters.push(dog);
+        map.objects.push({
+            otyp: ORCISH_DAGGER,
+            oclass: WEAPON_CLASS,
+            quan: 1,
+            owt: 10,
+            ox: 12,
+            oy: 10,
+            buried: false,
+        });
+
+        // Control check: same seed/position on ROOM allows pickup.
+        movemon(map, player, mockDisplay);
+        assert.equal(dog.minvent.length, 1, 'dog should pick up on ROOM for this deterministic seed');
+        assert.equal(map.objects.length, 0);
+
+        initRng(1);
+        const waterMap = makeSimpleMap();
+        const waterPlayer = new Player();
+        waterPlayer.x = 15;
+        waterPlayer.y = 10;
+        waterPlayer.initRole(0);
+        waterMap.at(12, 10).typ = WATER;
+        const waterDog = makeLittleDog(12, 10, waterPlayer);
+        waterMap.monsters.push(waterDog);
+        waterMap.objects.push({
+            otyp: ORCISH_DAGGER,
+            oclass: WEAPON_CLASS,
+            quan: 1,
+            owt: 10,
+            ox: 12,
+            oy: 10,
+            buried: false,
+        });
+
+        movemon(waterMap, waterPlayer, mockDisplay);
+        assert.equal(waterDog.minvent.length, 0, 'dog should not pick up while in WATER');
+        assert.equal(waterMap.objects.length, 1, 'floor item should remain in WATER square');
     });
 });
