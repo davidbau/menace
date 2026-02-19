@@ -353,3 +353,35 @@ Date: 2026-02-19 (pet m_id parity pass)
   and improves RNG alignment depth.
 - Remaining naming mismatch now appears tied to broader `next_ident`/shop-name
   input parity (`nameshk` context), not the shop-entry message trigger itself.
+
+---
+
+Date: 2026-02-19 (runmode-delay sparse-boundary deferral)
+
+## Additional Progress
+
+- Replay boundary normalization now skips midlog-only frames when deferring
+  trailing RNG remainder in sparse keylog captures.
+- Concretely, `<runmode_delay_output ...>` intermediary frames are now treated
+  as non-comparable boundary-only frames for carry-forward targeting.
+
+## Validation Snapshot
+
+- `node --test test/unit/replay_sparse_boundary_seed110.test.js` pass.
+  - Includes new seed5 regression case for the step-462 boundary.
+- Guard sessions pass:
+  - `seed103_caveman_selfplay200`,
+  - `seed112_valkyrie_selfplay200`,
+  - `seed42_items_gameplay`,
+  - `seed110_samurai_selfplay200`.
+- `seed5_gnomish_mines_gameplay` strict profile:
+  - first comparable RNG drift moved from step `463` (index `15`) to step
+    `465` (index `1`),
+  - step `462` comparable RNG attribution now matches expected (`15` vs `15`).
+
+## Current Read
+
+- This is a faithful replay-layer attribution fix: no gameplay command-path
+  conditionals were added.
+- The remaining frontier is now the dog-goal sequencing mismatch at step `465`
+  (`rn2(4)` value path), downstream of the corrected sparse boundary.

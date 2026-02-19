@@ -425,6 +425,16 @@ function comparableCallParts(entries) {
     return out;
 }
 
+function hasNoComparableRngEntries(entries) {
+    for (const e of entries || []) {
+        if (isMidlogEntry(e)) continue;
+        const call = rngCallPart(e);
+        if (isCompositeEntry(call)) continue;
+        return false;
+    }
+    return true;
+}
+
 // Generate levels 1→maxDepth with RNG trace capture.
 // Returns { grids, maps, rngLogs } where rngLogs[depth] = { rngCalls, rng }.
 export function generateMapsWithRng(seed, maxDepth) {
@@ -1023,14 +1033,15 @@ export async function replaySession(seed, session, opts = {}) {
                     compact = compact.slice(0, splitAt);
                 } else if (remCalls.length > 0) {
                     // Sparse keylog captures can place the remainder on a
-                    // later step after one or more display-only frames.
+                    // later step after one or more display-only frames, including
+                    // frames which carry only midlog wrappers.
                     let targetIdx = stepIndex + 1;
                     let firstNextExpected = null;
                     while (targetIdx < allSteps.length) {
                         const targetStep = allSteps[targetIdx];
                         firstNextExpected = firstComparableEntry(targetStep?.rng || []);
                         if (firstNextExpected) break;
-                        if (((targetStep?.rng || []).length === 0)) {
+                        if (hasNoComparableRngEntries(targetStep?.rng || [])) {
                             targetIdx++;
                             continue;
                         }

@@ -48,3 +48,32 @@ test('replay defers sparse boundary RNG tail across zero-RNG frames (seed110 ste
         else process.env.RNG_LOG_TAGS = prevTags;
     }
 });
+
+test('replay skips midlog-only sparse frames when deferring RNG remainder (seed5 step 462)', async () => {
+    const raw = JSON.parse(readFileSync('test/comparison/sessions/seed5_gnomish_mines_gameplay.session.json', 'utf8'));
+    const session = normalizeSession(raw, {
+        file: 'seed5_gnomish_mines_gameplay.session.json',
+        dir: 'test/comparison/sessions',
+    });
+
+    const prevTags = process.env.RNG_LOG_TAGS;
+    process.env.RNG_LOG_TAGS = '1';
+    try {
+        const replay = await replaySession(session.meta.seed, session.raw, {
+            captureScreens: true,
+            startupBurstInFirstStep: false,
+            flags: { ...DEFAULT_FLAGS, bgcolors: true, customcolors: true },
+        });
+
+        const expected462 = comparable(session.steps[462]?.rng || []);
+        const actual462 = comparable(replay.steps[462]?.rng || []);
+        assert.deepEqual(actual462, expected462);
+
+        const expected463 = comparable(session.steps[463]?.rng || []);
+        const actual463 = comparable(replay.steps[463]?.rng || []);
+        assert.deepEqual(actual463, expected463);
+    } finally {
+        if (prevTags === undefined) delete process.env.RNG_LOG_TAGS;
+        else process.env.RNG_LOG_TAGS = prevTags;
+    }
+});
