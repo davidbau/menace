@@ -12,7 +12,7 @@ import { rn2, rn1, rnd, rnl, d, c_d } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
          TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
-         WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, CORPSE, LANCE,
+         WAND_CLASS, COIN_CLASS, GEM_CLASS, VENOM_CLASS, ROCK_CLASS, CORPSE, LANCE,
          BULLWHIP, BOW, ELVEN_BOW, ORCISH_BOW, YUMI, SLING, CROSSBOW, STETHOSCOPE,
          QUARTERSTAFF, ROBE, SMALL_SHIELD, DUNCE_CAP, POT_WATER,
          TALLOW_CANDLE, WAX_CANDLE, FLINT, ROCK,
@@ -3312,14 +3312,18 @@ function isApplyPolearm(obj) {
 // Handle apply/use command
 // C ref: apply.c doapply()
 async function handleApply(player, display) {
-    const candidates = (player.inventory || []).filter(isApplyCandidate);
-    if (candidates.length === 0) {
+    const inventory = player.inventory || [];
+    if (inventory.length === 0) {
         display.putstr_message("You don't have anything to use or apply.");
         return { moved: false, tookTime: false };
     }
 
+    const candidates = inventory.filter(isApplyCandidate);
     const letters = candidates.map((item) => item.invlet).join('');
-    display.putstr_message(`What do you want to use or apply? [${letters} or ?*]`);
+    const prompt = letters.length > 0
+        ? `What do you want to use or apply? [${letters} or ?*]`
+        : 'What do you want to use or apply? [*]';
+    display.putstr_message(prompt);
     const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
@@ -3337,7 +3341,7 @@ async function handleApply(player, display) {
         }
         if (c === '?' || c === '*') continue;
 
-        const selected = (player.inventory || []).find((obj) => obj.invlet === c);
+        const selected = inventory.find((obj) => obj.invlet === c);
         if (!selected) continue;
 
         if (isApplyChopWeapon(selected)) {
@@ -4798,6 +4802,74 @@ async function handleSet(game) {
 
 // Handle extended command (#)
 // C ref: cmd.c doextcmd()
+function isObjectTypeCallable(obj) {
+    if (!obj) return false;
+    // C ref: do_name.c objtyp_is_callable() requires OBJ_DESCR for most classes.
+    const meta = objectData[obj.otyp] || null;
+    const hasDesc = !!(meta && typeof meta.desc === 'string' && meta.desc.length > 0);
+    if (!hasDesc) return false;
+
+    if (obj.oclass === AMULET_CLASS) {
+        // C excludes real/fake amulet of Yendor from type-calling.
+        const name = String(meta?.name || '').toLowerCase();
+        return !name.includes('amulet of yendor');
+    }
+    return obj.oclass === SCROLL_CLASS
+        || obj.oclass === POTION_CLASS
+        || obj.oclass === WAND_CLASS
+        || obj.oclass === RING_CLASS
+        || obj.oclass === GEM_CLASS
+        || obj.oclass === SPBOOK_CLASS
+        || obj.oclass === ARMOR_CLASS
+        || obj.oclass === TOOL_CLASS
+        || obj.oclass === VENOM_CLASS;
+}
+
+async function handleCallObjectTypePrompt(player, display) {
+    const inventory = Array.isArray(player.inventory) ? player.inventory : [];
+    const callChoices = inventory
+        .filter((obj) => isObjectTypeCallable(obj) && obj.invlet)
+        .map((obj) => obj.invlet)
+        .join('');
+    const prompt = callChoices
+        ? `What do you want to call? [${callChoices} or ?*]`
+        : 'What do you want to call? [*]';
+    const replacePromptMessage = () => {
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        display.topMessage = null;
+        display.messageNeedsMore = false;
+    };
+    const isDismissKey = (code) => code === 27 || code === 32;
+
+    while (true) {
+        display.putstr_message(prompt);
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+        if (isDismissKey(ch)) {
+            replacePromptMessage();
+            display.putstr_message('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+        if (c === '?' || c === '*') {
+            continue;
+        }
+
+        const selected = inventory.find((obj) => obj && obj.invlet === c);
+        if (!selected) {
+            continue;
+        }
+        if (!isObjectTypeCallable(selected)) {
+            replacePromptMessage();
+            display.putstr_message('That is a silly thing to call.');
+            return { moved: false, tookTime: false };
+        }
+
+        // C ref: do_name.c docall() uses getlin("Call ...:") for valid type-calls.
+        await getlin(`Call ${doname(selected, player)}:`, display);
+        return { moved: false, tookTime: false };
+    }
+}
+
 async function handleExtendedCommand(game) {
     const { player, display } = game;
     const input = await getlin('# ', display);
@@ -4813,9 +4885,7 @@ async function handleExtendedCommand(game) {
             return await handleSet(game);
         case 'n':
         case 'name': {
-            // C ref: do_name.c docallcmd() / do_mname()
-            // Minimal faithful flow for replay traces:
-            // ask what to name, allow dungeon-level naming, then getlin text.
+            // C ref: do_name.c docallcmd() menu routes.
             while (true) {
                 display.putstr_message('                                What do you want to name?');
                 const sel = await nhgetch();
@@ -4827,6 +4897,9 @@ async function handleExtendedCommand(game) {
                 if (c === 'a') {
                     await getlin('What do you want to call this dungeon level?', display);
                     return { moved: false, tookTime: false };
+                }
+                if (c === 'o' || c === 'n') {
+                    return await handleCallObjectTypePrompt(player, display);
                 }
                 // Keep waiting for a supported selection.
             }

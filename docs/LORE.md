@@ -847,6 +847,30 @@ Shopkeeper greeting/name tokens are sensitive to C initialization details:
 Practical rule: preserve all three inputs in JS; partial fixes can hide one
 token mismatch but still leave deterministic drift downstream.
 
+### `#name` must route through `docallcmd`-style object-type selection
+
+A narrow `#name` implementation which only handles level annotation (`a`) can
+silently leave a pending `getlin()` and swallow later gameplay keys. In C,
+`docallcmd()` routes `o` to object-type calling via `getobj("call", call_ok, ...)`,
+and invalid non-callable inventory letters yield `That is a silly thing to call.`
+instead of opening level-annotation text entry.
+
+Practical rule: treat `#name` as a selector flow, not a direct getlin branch.
+Support the `o` object-type path with callable-class filtering and keep invalid
+selections on the C wording path.
+
+### `doapply` shows `[*]` when inventory exists but no items are applicable
+
+For `a` (apply), C `getobj("use or apply", apply_ok, ...)` still presents a prompt
+when inventory is non-empty even if no letters are suggested, rendering
+`What do you want to use or apply? [*]`. Early-returning with
+`You don't have anything to use or apply.` in that case shifts prompt-driven input
+and causes downstream drift.
+
+Practical rule: only emit `You don't have anything to use or apply.` when
+inventory is truly empty; otherwise show `[*]` and continue `getobj`-style
+selection handling.
+
 ---
 
 ## Phase Chronicles
