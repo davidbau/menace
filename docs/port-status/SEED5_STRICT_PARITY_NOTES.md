@@ -455,3 +455,35 @@ Date: 2026-02-19 (apply prompt parity: no-candidate flow)
   not a replay-only boundary workaround.
 - Remaining mismatch at step `539` appears downstream of this now-correct
   prompt lifecycle and still requires monster-phase/state parity work.
+
+---
+
+Date: 2026-02-19 (run timing parity: blocked run steps)
+
+## Additional Progress
+
+- Corrected `handleRun()` timing semantics in `js/commands.js`:
+  - timed run turns are now counted independently from successful movement
+    steps,
+  - blocked run steps which still consume time (for example, force-fight
+    swings that do not move the hero) now advance turn timing through the
+    run hook path, matching C moveloop expectations.
+
+## Validation Snapshot
+
+- Added targeted unit coverage:
+  - `node --test test/unit/command_run_timing.test.js` pass.
+- Guard sessions remain stable:
+  - `seed103_caveman_selfplay200` pass,
+  - `seed112_valkyrie_selfplay200` pass,
+  - `seed42_items_gameplay` pass.
+- `seed5_gnomish_mines_gameplay` frontier is unchanged:
+  - RNG matched remains `17626 / 57591`,
+  - first RNG drift remains step `539` index `18`.
+
+## Current Read
+
+- This is a C-faithful run-loop timing correction rather than a comparator
+  exception.
+- It closes a known timing gap for blocked run iterations and adds a regression
+  guard while broader step-539 runmode/state parity work continues.

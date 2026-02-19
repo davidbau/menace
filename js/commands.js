@@ -1517,18 +1517,20 @@ function maybeSmudgeEngraving(map, x1, y1, x2, y2) {
 // C ref: cmd.c do_run() -> hack.c domove() with context.run
 async function handleRun(dir, player, map, display, fov, game) {
     let steps = 0;
-    let tookTimeAny = false;
+    let timedTurns = 0;
     const hasRunTurnHook = typeof game?.advanceRunTurn === 'function';
     while (steps < 80) { // safety limit
         const result = await handleMovement(dir, player, map, display, game);
-        if (result.tookTime) tookTimeAny = true;
-        if (!result.moved) break;
-        steps++;
+        if (result.tookTime) timedTurns++;
 
         // C-faithful run timing: each successful run step advances time once.
+        // Important: blocked run steps that still consume time (pet in way,
+        // forced-fight air swings, etc.) also advance a turn before run stops.
         if (hasRunTurnHook && result.tookTime) {
             await game.advanceRunTurn();
         }
+        if (!result.moved) break;
+        steps++;
 
         // Stop if we see a monster, item, or interesting feature
         fov.compute(map, player.x, player.y);
@@ -1542,8 +1544,8 @@ async function handleRun(dir, player, map, display, fov, game) {
     }
     return {
         moved: steps > 0,
-        tookTime: hasRunTurnHook ? false : tookTimeAny,
-        runSteps: hasRunTurnHook ? 0 : steps,
+        tookTime: hasRunTurnHook ? false : timedTurns > 0,
+        runSteps: hasRunTurnHook ? 0 : timedTurns,
     };
 }
 
