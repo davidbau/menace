@@ -562,3 +562,30 @@
   - Keep.
   - Meets the #16 churn target (`failedAdd` below `39.08 * 0.8`) with no survival regression.
   - Depth/XL progression guardrails remained non-regressive, and holdout XP-by-600 throughput improved.
+
+## 2026-02-19 - Rejected: Sparse Non-Blocking Reposition Escape
+
+- Candidate policy:
+  - In low-XP Dlvl1 lone-dog loop context, when not path-blocked and no nearby door/stairs signal, occasionally force `random_move` reposition (`turn % 4 === 0`) after non-blocking attack-loop evidence accumulates.
+
+- Holdout A/B (`31..43`, 600 turns, clean single-process runs):
+  - Baseline: survived `13/13`, avg depth `1.462`, XP t600 avg `8.23`.
+  - Candidate: survived `13/13`, avg depth `1.538`, XP t600 avg `8.38`.
+  - Candidate reduced loop pressure:
+    - `lowXpDogLoop` `41.62 -> 33.23`,
+    - `attackNonBlocking` `20.46 -> 13.77`.
+  - Seed-level mix:
+    - improvements: Samurai 40 (`maxXP 2 -> 7`), Tourist 41 loop reduction (`272 -> 168`);
+    - regression: Valkyrie 42 (`maxXP 5 -> 2`).
+
+- Train A/B (`21..33`, 600 turns, same gate):
+  - Baseline: survived `11/13`, avg depth `2.000`, XP t600 avg `7.38`.
+  - Candidate: survived `11/13`, avg depth `1.769`, XP t600 avg `6.62`.
+  - Major regressions:
+    - Barbarian 22 (`maxXP 6 -> 1`),
+    - Ranger 28 (`maxXP 6 -> 1`),
+    - both with increased dog-loop counters.
+
+- Net:
+  - Rejected. Holdout gained slightly, but train progression regressed materially.
+  - Keep as a documented negative result; do not ship policy.

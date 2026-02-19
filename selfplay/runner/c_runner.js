@@ -18,6 +18,7 @@ const opts = {
     seed: 42,
     maxTurns: 200,
     verbose: true,
+    traceDogLoop: false,
     keyDelay: 60,
     moveDelay: 0,
     role: 'Valkyrie',
@@ -39,6 +40,7 @@ for (let i = 0; i < args.length; i++) {
             else if (key === '--key-delay') opts.keyDelay = parseInt(value);
             else if (key === '--role') opts.role = value;
             else if (key === '--graphics') opts.symset = value === 'dec' ? 'DECgraphics' : 'ASCII';
+            else if (key === '--trace-dog-loop') opts.traceDogLoop = value !== 'false';
             continue;
         }
     }
@@ -53,6 +55,8 @@ for (let i = 0; i < args.length; i++) {
         const val = args[++i];
         opts.symset = val === 'dec' ? 'DECgraphics' : 'ASCII';
     }
+    else if (arg === '--trace-dog-loop') opts.traceDogLoop = true;
+    else if (arg === '--no-trace-dog-loop') opts.traceDogLoop = false;
     else if (arg === '--verbose' || arg === '-v') opts.verbose = true;
     else if (arg === '--quiet' || arg === '-q') opts.verbose = false;
     else if (arg === '--help' || arg === '-h') {
@@ -63,6 +67,7 @@ for (let i = 0; i < args.length; i++) {
         console.log('  --key-delay=MS   Delay after each tmux keystroke in ms (default: 60)');
         console.log('  --role=ROLE      Character role/class (default: Valkyrie)');
         console.log('  --graphics=MODE  Symbol set: ascii or dec (DECgraphics) (default: ascii)');
+        console.log('  --trace-dog-loop Emit per-turn dog-loop counter deltas');
         console.log('  --verbose/-v     Verbose output (default: on)');
         console.log('  --quiet/-q       Suppress verbose output');
         process.exit(0);
@@ -127,6 +132,15 @@ try {
         actionCounts: new Map(),
         xl1AttackTurns: 0,
     };
+    const dogLoopTraceState = {
+        low: 0,
+        door: 0,
+        atkDoor: 0,
+        block: 0,
+        nonBlock: 0,
+        atkBlock: 0,
+        atkNonBlock: 0,
+    };
 
     const agent = new Agent(adapter, {
         maxTurns: opts.maxTurns,
@@ -146,6 +160,42 @@ try {
             const actionType = info.action?.type || 'unknown';
             progression.actionCounts.set(actionType, (progression.actionCounts.get(actionType) || 0) + 1);
             if (actionType === 'attack' && xl <= 1) progression.xl1AttackTurns++;
+
+            if (opts.traceDogLoop && agent?.stats) {
+                const s = agent.stats;
+                const current = {
+                    low: s.lowXpDogLoopTurns || 0,
+                    door: s.lowXpDogLoopDoorAdjTurns || 0,
+                    atkDoor: s.attackLowXpDogLoopDoorAdjTurns || 0,
+                    block: s.lowXpDogLoopBlockingTurns || 0,
+                    nonBlock: s.lowXpDogLoopNonBlockingTurns || 0,
+                    atkBlock: s.attackLowXpDogLoopBlockingTurns || 0,
+                    atkNonBlock: s.attackLowXpDogLoopNonBlockingTurns || 0,
+                };
+                const delta = {
+                    low: current.low - dogLoopTraceState.low,
+                    door: current.door - dogLoopTraceState.door,
+                    atkDoor: current.atkDoor - dogLoopTraceState.atkDoor,
+                    block: current.block - dogLoopTraceState.block,
+                    nonBlock: current.nonBlock - dogLoopTraceState.nonBlock,
+                    atkBlock: current.atkBlock - dogLoopTraceState.atkBlock,
+                    atkNonBlock: current.atkNonBlock - dogLoopTraceState.atkNonBlock,
+                };
+                const changed = Object.values(delta).some(v => v !== 0);
+                if (changed) {
+                    const act = info.action;
+                    const actionStr = act ? `${act.type}(${act.key})` : '?';
+                    runnerLog(
+                        `  [DOG-LOOP] t=${info.turn} dlvl=${info.dlvl} xp=${info.xp ?? '?'} hp=${info.hp}/${info.hpmax} ` +
+                        `pos=(${info.position?.x},${info.position?.y}) action=${actionStr} ` +
+                        `dLow=${delta.low} dDoor=${delta.door} dAtkDoor=${delta.atkDoor} dBlock=${delta.block} dNonBlock=${delta.nonBlock} ` +
+                        `dAtkBlock=${delta.atkBlock} dAtkNonBlock=${delta.atkNonBlock} ` +
+                        `totLow=${current.low} totAtkNB=${current.atkNonBlock}` +
+                        (act?.reason ? ` reason=${act.reason}` : '')
+                    );
+                }
+                Object.assign(dogLoopTraceState, current);
+            }
 
             if (!opts.verbose) return;
             if (info.turn % 20 === 0 || info.turn <= 10) {
