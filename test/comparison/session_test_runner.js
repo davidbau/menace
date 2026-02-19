@@ -403,6 +403,7 @@ async function runGameplayResult(session) {
         // verbose is explicitly set in session options.
         replayFlags.verbose = (session.meta.options?.verbose === true);
         if (session.meta.options?.autopickup === false) replayFlags.pickup = false;
+        if (session.meta.options?.rest_on_space) replayFlags.rest_on_space = true;
         if (session.meta.options?.symset === 'DECgraphics') replayFlags.DECgraphics = true;
         replayFlags.bgcolors = true;
         replayFlags.customcolors = true;

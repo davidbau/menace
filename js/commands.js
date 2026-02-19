@@ -356,8 +356,9 @@ export async function rhack(ch, game) {
         return { moved: false, tookTime: true };
     }
 
-    // Period = wait/search
-    if (c === '.' || c === 's') {
+    // Period/space = wait/search
+    // C ref: cmd.c — space maps to donull only when rest_on_space is enabled.
+    if (c === '.' || c === 's' || (c === ' ' && game?.flags?.rest_on_space)) {
         const result = performWaitSearch(c);
         // C ref: cmd.c set_occupation(..., "waiting"/"searching", gm.multi)
         // for counted repeats of rest/search. timed_occupation executes the
