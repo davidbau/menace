@@ -144,17 +144,17 @@ export function buildInventoryLines(player) {
         if (cls === 11 && !groups[cls] && (player.gold || 0) > 0) {
             const gold = player.gold || 0;
             const goldLabel = gold === 1 ? 'gold piece' : 'gold pieces';
-            lines.push(' Coins');
-            lines.push(` $ - ${gold} ${goldLabel}`);
+            lines.push('Coins');
+            lines.push(`$ - ${gold} ${goldLabel}`);
             continue;
         }
         if (!groups[cls]) continue;
-        lines.push(` ${INVENTORY_CLASS_NAMES[cls] || 'Other'}`);
+        lines.push(INVENTORY_CLASS_NAMES[cls] || 'Other');
         for (const item of groups[cls]) {
-            lines.push(` ${item.invlet} - ${doname(item, player)}`);
+            lines.push(`${item.invlet} - ${doname(item, player)}`);
         }
     }
-    lines.push(' (end)');
+    lines.push('(end)');
     return lines;
 }
 
@@ -1427,7 +1427,10 @@ export class HeadlessDisplay {
         for (const line of lines) {
             if (line.length > maxcol) maxcol = line.length;
         }
-        const offx = Math.max(10, Math.min(41, this.cols - maxcol - 2));
+        // C ref: wintty.c cw->offx = ttyDisplay->cols - cw->maxcol - 1
+        // C's maxcol includes +1 padding beyond the longest line, so for
+        // JS (where maxcol is the raw longest line length) we use -2.
+        const offx = Math.max(0, this.cols - maxcol - 2);
 
         const menuRows = Math.min(lines.length, STATUS_ROW_1);
         // C tty parity: clear only rows occupied by the menu itself.
@@ -1442,13 +1445,7 @@ export class HeadlessDisplay {
         for (let i = 0; i < menuRows; i++) {
             const line = lines[i];
             const isHeader = isCategoryHeader(line);
-            const keepLeadingPad = isHeader
-                && line.startsWith(' ')
-                && !/^Name\s+Level\s+Category\s+Fail\s+Retention/.test(String(line || '').trimStart());
-            if (keepLeadingPad) {
-                this.setCell(offx, i, ' ', CLR_GRAY, 0);
-                this.putstr(offx + 1, i, line.slice(1), CLR_GRAY, 1);
-            } else if (isHeader) {
+            if (isHeader) {
                 this.putstr(offx, i, line, CLR_GRAY, 1);
             } else {
                 this.putstr(offx, i, line, CLR_GRAY, 0);

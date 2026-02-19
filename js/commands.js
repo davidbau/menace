@@ -1457,13 +1457,10 @@ async function handleOpen(player, map, display, game) {
         dir = [0, 0];
     }
     if (!dir) {
-        // C getdir parity: non-direction keys report a strange direction before
-        // aborting; cancel keys return plain "Never mind."
-        if (dirCh === 27 || dirCh === 10 || dirCh === 13 || dirCh === 32) {
-            display.putstr_message('Never mind.');
-        } else {
-            display.putstr_message('What a strange direction!  Never mind.');
-        }
+        // C ref: cmd.c getdir() — when iflags.cmdassist is true (default),
+        // help_dir() is shown instead of "What a strange direction!".
+        // The caller then prints "Never mind."
+        display.putstr_message('Never mind.');
         return { moved: false, tookTime: false };
     }
 
@@ -1575,21 +1572,21 @@ function buildInventoryOverlayLines(player) {
         if (cls === 11 && !groups[cls] && (player.gold || 0) > 0) {
             const gold = player.gold || 0;
             const goldLabel = gold === 1 ? 'gold piece' : 'gold pieces';
-            lines.push(' Coins');
-            lines.push(` $ - ${gold} ${goldLabel}`);
+            lines.push('Coins');
+            lines.push(`$ - ${gold} ${goldLabel}`);
             continue;
         }
         if (!groups[cls]) continue;
-        lines.push(` ${CLASS_NAMES[cls] || 'Other'}`);
+        lines.push(CLASS_NAMES[cls] || 'Other');
         for (const item of groups[cls]) {
             const named = doname(item, player);
             const invName = (item.oclass === WEAPON_CLASS)
                 ? named.replace('(wielded)', '(weapon in right hand)')
                 : named;
-            lines.push(` ${item.invlet} - ${invName}`);
+            lines.push(`${item.invlet} - ${invName}`);
         }
     }
-    lines.push(' (end)');
+    lines.push('(end)');
     return lines;
 }
 
@@ -2194,13 +2191,8 @@ async function handleEat(player, display, game) {
                 display.putstr_message('You cannot eat that!');
                 return { moved: false, tookTime: false };
             }
-            // C tty captures can render this as a sticky --More-- frame before
-            // returning to the eat prompt; consume explicit acknowledgement.
-            display.putstr_message("You don't have that object.--More--");
-            while (true) {
-                const moreCh = await nhgetch();
-                if (moreCh === 32 || moreCh === 10 || moreCh === 13 || moreCh === 27) break;
-            }
+            // C ref: getobj() prints "You don't have that object." and
+            // immediately re-prompts without --More--.
             continue;
         }
         // C ref: eat.c doesplit() path for stacked comestibles:
