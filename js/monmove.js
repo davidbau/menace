@@ -6,8 +6,9 @@ import { COLNO, ROWNO, STONE, IS_WALL, IS_DOOR, IS_ROOM,
          ACCESSIBLE, IS_OBSTRUCTED, CORR, DOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN,
          POOL, LAVAPOOL, WATER, LAVAWALL, IRONBARS,
          SHOPBASE, ROOM, ROOMOFFSET, IS_POOL, IS_LAVA,
-         NORMAL_SPEED, isok } from './config.js';
+         NORMAL_SPEED, isok, A_STR } from './config.js';
 import { rn2, rnd, c_d } from './rng.js';
+import { exercise } from './attrib_exercise.js';
 import { monsterAttackPlayer, checkLevelUp } from './combat.js';
 import { CORPSE, FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS,
          WEAPON_CLASS, ARMOR_CLASS, GEM_CLASS,
@@ -377,6 +378,8 @@ function m_throw(mon, startX, startY, dx, dy, range, weapon, map, player, displa
                 } else {
                     player.hp -= dam;
                 }
+                // C ref: mthrowu.c:151 — exercise(A_STR, FALSE) on projectile hit
+                exercise(player, A_STR, false);
                 break; // C ref: mthrowu.c — only a hit stops the projectile
             }
         }
