@@ -328,3 +328,49 @@
   - `maxXP=0`.
   - Interpretation:
     - In this known failure case, early attacks are fully concentrated on low-XP Dlvl1 dog targets.
+- Evidence (holdout `31..43`, 600 turns):
+  - Attack target avg:
+    - `petClass=88.08`,
+    - `petClassLowXpDlvl1=68.08`,
+    - `dog=88.08`,
+    - `dogLowXpDlvl1=68.08`.
+  - High low-XP Dlvl1 dog concentration examples:
+    - Tourist 41: `dogAtkLow=272/272`, `maxXP=0`.
+    - Valkyrie 42: `dogAtkLow=186/187`, `maxXP=5`.
+    - Samurai 40: `dogAtkLow=142/145`, `maxXP=2`.
+    - Caveman 33: `dogAtkLow=177/199`, `maxXP=2`.
+  - Counterexample:
+    - Priest 37: high dog attacks (`dogAtk=140`) but `dogAtkLow=0` with `maxXP=8`.
+  - Interpretation:
+    - The main pathology is specifically low-XP Dlvl1 dog-target attack concentration, not all dog combat.
+
+## 2026-02-19 - Rejected: Dog-Loop Escape Policy Variants
+
+- Variant A (hard dog-loop escape to flee):
+  - Policy:
+    - On Dlvl1 with `XP=0`, no nearby crowding, high stuck counter, and high `dogAtkLowXpDlvl1`, force disengage/flee from adjacent dog.
+  - Focus check (`Tourist 41`, 600 turns):
+    - Progression improved (`maxXP=6`, depth reached `2`) but survival regressed (died on Dlvl2 at turn 556).
+  - Net:
+    - Rejected (survival regression).
+
+- Variant B (late-only hard escape thresholds):
+  - Policy:
+    - Same idea with much stricter late trigger (`turn>=350`, high HP, much higher counters).
+  - Focus check (`Tourist 41`, 600 turns):
+    - No progression gain (`maxXP=0`), increased churn (`flee=124`, `petSwap=80`).
+  - Net:
+    - Rejected (no gain, churn worse).
+
+- Variant C (post-pet-swap short wait cooldown):
+  - Policy:
+    - After pet displacement, wait briefly before re-engaging adjacent lone pet-class monsters on Dlvl1.
+  - Quick triage (`Caveman 33`, `Healer 34`, `Tourist 41`, 600 turns):
+    - Survived `3/3` (flat),
+    - Avg depth `1.000` (flat),
+    - XL2+ `0/3` (regression vs baseline `1/3`),
+    - XP avg `t600=5.33` (regression),
+    - Tourist still near-stalled (`maxXP=1`),
+    - Healer regressed (`XL2` lost; `maxXP=10` vs baseline `21`).
+  - Net:
+    - Rejected (progression regression).
