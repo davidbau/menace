@@ -1221,7 +1221,6 @@ export async function replaySession(seed, session, opts = {}) {
             && !stepKeyIsDigit
             && ((step.rng && step.rng.length) || 0) === 0
             && stepMsg.trimStart().startsWith('#')
-            && step.key !== '#'
             && !(typeof step.key === 'string'
                 && step.key.length === 1
                 && step.key >= '0'
@@ -1236,29 +1235,6 @@ export async function replaySession(seed, session, opts = {}) {
                 stepIndex
             );
             continue;
-        }
-        // Captures often include an Enter keypress used only to clear the
-        // previous topline message. If the non-topline frame is unchanged and
-        // no RNG is attributed, treat this as display-only (no movement).
-        if (!pendingCommand
-            && (step.key === '\n' || step.key === '\r')
-            && ((step.rng && step.rng.length) || 0) === 0
-            && stepMsg.trim() === '') {
-            const prevStep = stepIndex > 0 ? allSteps[stepIndex - 1] : null;
-            const prevScreen = getSessionScreenLines(prevStep || {});
-            const prevMsg = String(prevScreen[0] || '').trim();
-            if (prevMsg.length > 0) {
-                applyStepScreen();
-                pushStepResult(
-                    [],
-                    opts.captureScreens ? game.display.getScreenLines() : undefined,
-                    stepScreenAnsi,
-                    step,
-                    stepScreen,
-                    stepIndex
-                );
-                continue;
-            }
         }
         // Sparse keylog captures can insert display-only intermediary frames
         // between a source step and deferred boundary target.
