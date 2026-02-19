@@ -108,9 +108,11 @@ import {
     PM_KILLER_BEE, PM_QUEEN_BEE,
     PM_DEATH, PM_FAMINE, PM_PESTILENCE,
     PM_KOBOLD_ZOMBIE, PM_KOBOLD_MUMMY,
+    PM_MONKEY, PM_APE, PM_LICHEN,
 } from './monsters.js';
 
-import { AMULET_OF_YENDOR } from './objects.js';
+import { AMULET_OF_YENDOR, FOOD_CLASS, VEGGY, CORPSE, BANANA,
+         objectData } from './objects.js';
 
 // ========================================================================
 // Diet predicates — C ref: mondata.h
@@ -1167,4 +1169,20 @@ export function vegetarian(ptr) {
 export function corpse_eater(ptr) {
     return ptr === mons[PM_PURPLE_WORM] || ptr === mons[PM_BABY_PURPLE_WORM]
         || ptr === mons[PM_GHOUL] || ptr === mons[PM_PIRANHA];
+}
+
+// ========================================================================
+// befriend_with_obj — C ref: include/mondata.h:255
+// ========================================================================
+
+// C ref: mondata.h:255 — #define befriend_with_obj(ptr, obj)
+// obj is an inventory item (obj.otyp, obj.oclass); ptr is the permonst type.
+// Returns true if offering obj will befriend monster type ptr.
+export function befriend_with_obj(ptr, obj) {
+    if (ptr === mons[PM_MONKEY] || ptr === mons[PM_APE])
+        return obj.otyp === BANANA;
+    return is_domestic(ptr) && obj.oclass === FOOD_CLASS
+        && (ptr.symbol !== S_UNICORN
+            || (objectData[obj.otyp]?.material === VEGGY)
+            || (obj.otyp === CORPSE && obj.corpsenm === PM_LICHEN));
 }

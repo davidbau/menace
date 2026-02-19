@@ -6,11 +6,12 @@ import assert from 'node:assert/strict';
 import { initRng } from '../../js/rng.js';
 import { COLNO, ROWNO, ROOM, STONE, HWALL, WATER } from '../../js/config.js';
 import { GameMap } from '../../js/map.js';
-import { movemon, mon_track_add, mon_track_clear, monhaskey, MTSZ } from '../../js/monmove.js';
+import { movemon, mon_track_add, mon_track_clear, monhaskey, m_can_break_boulder, MTSZ } from '../../js/monmove.js';
 import { Player } from '../../js/player.js';
 import { GOLD_PIECE, COIN_CLASS, WEAPON_CLASS, ARMOR_CLASS, ORCISH_DAGGER, ORCISH_HELM,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD } from '../../js/objects.js';
-import { mons, PM_GOBLIN, PM_LITTLE_DOG, AT_WEAP, G_NOCORPSE } from '../../js/monsters.js';
+import { mons, PM_GOBLIN, PM_LITTLE_DOG, PM_DEATH, PM_PELIAS, AT_WEAP, G_NOCORPSE,
+         MS_LEADER } from '../../js/monsters.js';
 
 // Mock display
 const mockDisplay = { putstr_message() {} };
@@ -527,5 +528,46 @@ describe('monhaskey', () => {
     it('is a no-op when mon is null', () => {
         assert.doesNotThrow(() => monhaskey(null, true));
         assert.equal(monhaskey(null, true), false);
+    });
+});
+
+// ========================================================================
+// m_can_break_boulder — C ref: monmove.c:134
+// ========================================================================
+
+describe('m_can_break_boulder', () => {
+    it('Rider (Death) can always break boulder', () => {
+        const mon = { type: mons[PM_DEATH], mspec_used: 0, isshk: false, ispriest: false };
+        assert.equal(m_can_break_boulder(mon), true);
+    });
+
+    it('Rider (Death) can break boulder even when mspec_used is set', () => {
+        const mon = { type: mons[PM_DEATH], mspec_used: 5, isshk: false, ispriest: false };
+        assert.equal(m_can_break_boulder(mon), true);
+    });
+
+    it('quest leader (MS_LEADER sound) can break boulder when mspec_used=0', () => {
+        const mon = { type: mons[PM_PELIAS], mspec_used: 0, isshk: false, ispriest: false };
+        assert.equal(m_can_break_boulder(mon), true);
+    });
+
+    it('quest leader cannot break boulder when mspec_used is set', () => {
+        const mon = { type: mons[PM_PELIAS], mspec_used: 3, isshk: false, ispriest: false };
+        assert.equal(m_can_break_boulder(mon), false);
+    });
+
+    it('shopkeeper can break boulder when mspec_used=0', () => {
+        const mon = { type: mons[PM_GOBLIN], mspec_used: 0, isshk: true, ispriest: false };
+        assert.equal(m_can_break_boulder(mon), true);
+    });
+
+    it('priest can break boulder when mspec_used=0', () => {
+        const mon = { type: mons[PM_GOBLIN], mspec_used: 0, isshk: false, ispriest: true };
+        assert.equal(m_can_break_boulder(mon), true);
+    });
+
+    it('ordinary monster cannot break boulder', () => {
+        const mon = { type: mons[PM_GOBLIN], mspec_used: 0, isshk: false, ispriest: false };
+        assert.equal(m_can_break_boulder(mon), false);
     });
 });

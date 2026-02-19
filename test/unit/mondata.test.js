@@ -17,7 +17,8 @@
 //        is_mplayer, is_watch, is_placeholder, is_reviver, unique_corpstat, emits_light,
 //        likes_lava, pm_invisible, likes_fire, touch_petrifies, flesh_petrifies,
 //        weirdnonliving, nonliving, completelyburns, completelyrots, completelyrusts,
-//        is_bat, is_bird, vegan, vegetarian, corpse_eater, likes_objs (fixed)
+//        is_bat, is_bird, vegan, vegetarian, corpse_eater, likes_objs (fixed),
+//        befriend_with_obj
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
@@ -49,6 +50,7 @@ import {
     likes_lava, pm_invisible, likes_fire, touch_petrifies, flesh_petrifies,
     weirdnonliving, nonliving, completelyburns, completelyrots, completelyrusts,
     is_bat, is_bird, vegan, vegetarian, corpse_eater, likes_objs,
+    befriend_with_obj,
 } from '../../js/mondata.js';
 import {
     mons,
@@ -83,12 +85,14 @@ import {
     PM_BAT, PM_GIANT_BAT, PM_VAMPIRE_BAT,
     PM_BABY_GOLD_DRAGON, PM_GOLD_DRAGON,
     PM_VAMPIRE_LEADER,
+    PM_MONKEY, PM_APE, PM_LICHEN, PM_GOBLIN,
     MR_FIRE, MR_COLD, MR_POISON, MR_STONE,
     AT_CLAW, AT_BITE, AT_WEAP, AT_ENGL,
     AD_STCK, AD_FIRE, AD_DGST, AD_WRAP,
     G_UNIQ,
 } from '../../js/monsters.js';
-import { AMULET_OF_YENDOR } from '../../js/objects.js';
+import { AMULET_OF_YENDOR, FOOD_CLASS, BANANA, CORPSE, TRIPE_RATION,
+         CARROT } from '../../js/objects.js';
 
 // ========================================================================
 // noattacks
@@ -1334,5 +1338,54 @@ describe('likes_objs (fixed: includes is_armed)', () => {
     });
     it('likes_objs: little dog (no M2_COLLECT, no weapon attacks) is false', () => {
         assert.equal(likes_objs(mons[PM_LITTLE_DOG]), false);
+    });
+});
+
+// ========================================================================
+// befriend_with_obj — C ref: mondata.h:255
+// ========================================================================
+
+describe('befriend_with_obj', () => {
+    it('monkey is befriended by banana', () => {
+        const obj = { otyp: BANANA, oclass: FOOD_CLASS };
+        assert.equal(befriend_with_obj(mons[PM_MONKEY], obj), true);
+    });
+
+    it('monkey is NOT befriended by non-banana food', () => {
+        const obj = { otyp: TRIPE_RATION, oclass: FOOD_CLASS };
+        assert.equal(befriend_with_obj(mons[PM_MONKEY], obj), false);
+    });
+
+    it('ape is befriended by banana', () => {
+        const obj = { otyp: BANANA, oclass: FOOD_CLASS };
+        assert.equal(befriend_with_obj(mons[PM_APE], obj), true);
+    });
+
+    it('little dog (domestic) is befriended by food', () => {
+        const obj = { otyp: TRIPE_RATION, oclass: FOOD_CLASS };
+        assert.equal(befriend_with_obj(mons[PM_LITTLE_DOG], obj), true);
+    });
+
+    it('little dog is NOT befriended by non-food', () => {
+        const obj = { otyp: AMULET_OF_YENDOR, oclass: 0 };
+        assert.equal(befriend_with_obj(mons[PM_LITTLE_DOG], obj), false);
+    });
+
+    // Unicorns have M2_JEWELS but NOT M2_DOMESTIC (C monsters.h:1017 confirmed).
+    // befriend_with_obj requires is_domestic(ptr) first, so the unicorn-specific
+    // veggy/lichen-corpse clause in the macro is dead code for standard unicorns.
+    it('unicorn NOT befriended by veggy food (not domestic)', () => {
+        const obj = { otyp: CARROT, oclass: FOOD_CLASS };
+        assert.equal(befriend_with_obj(mons[PM_WHITE_UNICORN], obj), false);
+    });
+
+    it('unicorn NOT befriended by lichen corpse (not domestic)', () => {
+        const obj = { otyp: CORPSE, oclass: FOOD_CLASS, corpsenm: PM_LICHEN };
+        assert.equal(befriend_with_obj(mons[PM_WHITE_UNICORN], obj), false);
+    });
+
+    it('goblin (not domestic) is not befriended by food', () => {
+        const obj = { otyp: TRIPE_RATION, oclass: FOOD_CLASS };
+        assert.equal(befriend_with_obj(mons[PM_GOBLIN], obj), false);
     });
 });

@@ -718,7 +718,7 @@ Notes:
 | `vegetarian(ptr)` | `vegetarian` | Match |
 | `corpse_eater(ptr)` | `corpse_eater` | Match |
 | `grounded(ptr)` | `grounded` | Match (hasCeiling param replaces `has_ceiling(&u.uz)` global) |
-| `befriend_with_obj(ptr, obj)` | — | TODO (needs FOOD_CLASS/object type checks) |
+| `befriend_with_obj(ptr, obj)` | `befriend_with_obj` | Match (exported; note unicorns lack M2_DOMESTIC so unicorn clause is dead code in practice) |
 | `immune_poisongas(ptr)` | `immune_poisongas` | Match |
 
 ### makemon.c → makemon.js
@@ -1045,7 +1045,7 @@ Notes:
 | `mon_track_clear` | 90 | `mon_track_clear` | Match (exported) |
 | `monhaskey` | 97 | `monhaskey` | Match (exported; now used in can_unlock) |
 | `mon_yells` | 107 | — | TODO (needs message system) |
-| `m_can_break_boulder` | 134 | — | TODO (needs mspec_used field) |
+| `m_can_break_boulder` | 134 | `m_can_break_boulder` | Match (exported) |
 | `m_break_boulder` | 144 | — | TODO (needs boulder fracture) |
 | `watch_on_duty` | 177 | — | TODO (needs in_town check, message system) |
 | `dochugw` | 205 | (inlined) | Subsumed into movemon loop |

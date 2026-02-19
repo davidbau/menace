@@ -45,7 +45,8 @@ import { PM_GRID_BUG, PM_SHOPKEEPER, mons,
          S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN,
          M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC,
          MZ_TINY, MZ_HUMAN, WT_HUMAN,
-         M2_WANDER } from './monsters.js';
+         M2_WANDER,
+         MS_LEADER } from './monsters.js';
 import { dog_move, could_reach_item } from './dogmove.js';
 import { initrack, settrack, gettrack } from './track.js';
 import { pointInShop, monsterInShop } from './shknam.js';
@@ -152,6 +153,21 @@ export function monhaskey(mon, forUnlocking) {
     const inv = mon?.minvent || [];
     if (forUnlocking && inv.some(o => o?.otyp === CREDIT_CARD)) return true;
     return inv.some(o => o?.otyp === SKELETON_KEY || o?.otyp === LOCK_PICK);
+}
+
+// ========================================================================
+// m_can_break_boulder — C ref: monmove.c:134
+// ========================================================================
+
+// C ref: monmove.c:134 — can monster break a boulder?
+// Riders (Death/Famine/Pestilence) always can; shopkeepers, priests, and
+// quest leaders (MS_LEADER sound) can when their special-ability cooldown
+// is zero (mspec_used == 0).
+export function m_can_break_boulder(mon) {
+    const ptr = mon?.type || {};
+    return is_rider(ptr)
+        || (!mon.mspec_used
+            && (mon.isshk || mon.ispriest || ptr.sound === MS_LEADER));
 }
 
 // ========================================================================
