@@ -503,3 +503,30 @@
 
 - Net:
   - Rejected due train-set regression despite some holdout-side churn improvements.
+
+## 2026-02-19 - Rejected: Stricter Late-Loop Non-Blocking Suppression
+
+- Candidate policy:
+  - More conservative non-blocking suppression:
+    - only in low-XP Dlvl1 lone-dog context,
+    - non-blocking only,
+    - no adjacent blocked door,
+    - no downstairs found,
+    - late + stuck + healthy + severe loop evidence
+      (`turn>=140`, `levelStuckCounter>=50`, `HP>=90%`, high displacement/dog-loop counters).
+
+- Subset triage (`Caveman 33`, `Samurai 40`, `Tourist 41`, `Healer 34`, 600 turns):
+  - Survival/control stayed flat (`4/4`, XL2+ `1/4`),
+  - churn reduced (`attack 137.25` vs baseline subset `162.25`, `petSwap 38.00` vs `47.50`),
+  - but progression stayed flat and exploration churn worsened in target case
+    (Tourist `failedAdd 71` vs baseline `54`).
+
+- Holdout gate (`31..43`, 600 turns):
+  - Survival unchanged (`13/13`), but progression regressed:
+    - avg depth `1.462` (vs baseline `1.538`),
+    - XP t600 avg `7.92` (vs baseline `8.92`),
+    - XP>=10 by 600 `4/13` (vs baseline `5/13`).
+  - Churn improved (`attack 82.77` vs `89.54`, `petSwap 22.92` vs `25.85`) but not enough to offset progression loss.
+
+- Net:
+  - Rejected at holdout gate (progression regression despite lower churn).
