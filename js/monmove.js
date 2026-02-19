@@ -1672,9 +1672,10 @@ function dochug(mon, map, player, display, fov, game = null) {
     if (mon.flee && !rn2(40) && can_teleport(mon.type || {})
         && !mon.iswiz && !(map.flags && map.flags.noteleport)) {
             // Simplified rloc() equivalent: random accessible unoccupied square.
-            for (let tries = 0; tries < 200; tries++) {
-                const nx = 1 + rn2(COLNO - 1);
-                const ny = rn2(ROWNO);
+            // C ref: teleport.c:1844-1849 — 50 random attempts
+            for (let tries = 0; tries < 50; tries++) {
+                const nx = rnd(COLNO - 1); // C: rnd(COLNO-1) = 1..79
+                const ny = rn2(ROWNO);     // C: rn2(ROWNO) = 0..20
                 const loc = map.at(nx, ny);
                 if (!loc || !ACCESSIBLE(loc.typ)) continue;
                 if (map.monsterAt(nx, ny)) continue;
