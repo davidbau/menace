@@ -27,10 +27,11 @@ import {
     compareGrids,
     compareScreenLines,
     compareScreenAnsi,
+    ansiLineToCells,
     findFirstGridDiff,
 } from './comparators.js';
 import { loadAllSessions, stripAnsiSequences, getSessionScreenAnsiLines } from './session_loader.js';
-import { normalizeSymsetLine } from './symset_normalization.js';
+import { decodeDecSpecialChar, normalizeSymsetLine } from './symset_normalization.js';
 import {
     createSessionResult,
     recordRng,
@@ -150,9 +151,10 @@ function detectOverlayTextColumn(line) {
     const text = stripAnsiSequences(String(line || ''))
         .replace(/[\x0e\x0f]/g, '');
     for (let col = 30; col < text.length; col++) {
-        const ch = text[col];
-        if (!/[A-Za-z(]/.test(ch)) continue;
         const right = text.slice(col);
+        // Menu item/key rows can use non-letter selectors (e.g. "/" in adjust menus).
+        if (text[col] !== ' ' && text.slice(col + 1, col + 4) === ' - ') return col;
+        if (!/[A-Za-z(]/.test(text[col])) continue;
         if (right.includes(' - ')
             || right.startsWith('(end)')
             || /^(Weapons|Armor|Rings|Amulets|Tools|Comestibles|Potions|Scrolls|Spellbooks|Wands|Coins|Gems\/Stones|Other)\b/.test(right)) {
@@ -241,10 +243,48 @@ function compareGameplayColors(actualAnsi, expectedAnsi) {
     let matched = 0;
     const diffs = [];
 
+    const compareAnsiCellRow = (aCells, eCells) => {
+        for (let col = 0; col < 80; col++) {
+            const a = aCells[col] || { ch: ' ', fg: 7, bg: 0, attr: 0 };
+            const e = eCells[col] || { ch: ' ', fg: 7, bg: 0, attr: 0 };
+            if (a.ch !== e.ch || a.fg !== e.fg || a.bg !== e.bg || a.attr !== e.attr) {
+                return {
+                    match: false,
+                    firstDiff: {
+                        col,
+                        js: { ch: a.ch, fg: a.fg, bg: a.bg, attr: a.attr },
+                        session: { ch: e.ch, fg: e.fg, bg: e.bg, attr: e.attr },
+                    },
+                };
+            }
+        }
+        return { match: true, firstDiff: null };
+    };
+
+    const alignActualDecGraphicsCells = (cells, expectedCells, row) => {
+        if (row < 1 || row > 21) return cells;
+        return cells.map((cell, col) => {
+            const ch = String(cell?.ch || ' ');
+            const decoded = decodeDecSpecialChar(ch);
+            if (decoded === ch) return cell;
+            const expectedCh = String(expectedCells[col]?.ch || ' ');
+            if (expectedCh === decoded) return { ...cell, ch: decoded };
+            return cell;
+        });
+    };
+
     for (let row = 0; row < total; row++) {
-        const a = [actual[row] || ''];
-        const withPad = compareScreenAnsi(a, [expectedWithPad[row] || '']);
-        const noPad = compareScreenAnsi(a, [expected[row] || '']);
+        const actualCellsRaw = ansiLineToCells(actual[row] || '');
+        const expectedWithPadCells = ansiLineToCells(expectedWithPad[row] || '');
+        const expectedNoPadCells = ansiLineToCells(expected[row] || '');
+        const withPad = compareAnsiCellRow(
+            alignActualDecGraphicsCells(actualCellsRaw, expectedWithPadCells, row),
+            expectedWithPadCells
+        );
+        const noPad = compareAnsiCellRow(
+            alignActualDecGraphicsCells(actualCellsRaw, expectedNoPadCells, row),
+            expectedNoPadCells
+        );
         let chosen = withPad;
         if (noPad.match && !withPad.match) {
             chosen = noPad;

@@ -1402,7 +1402,7 @@ async function handleOpen(player, map, display, game) {
         dir = [0, 0];
     }
     if (!dir) {
-        display.putstr_message('What a strange direction!  Never mind.');
+        display.putstr_message('Never mind.');
         return { moved: false, tookTime: false };
     }
 

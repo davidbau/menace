@@ -1214,7 +1214,11 @@ export async function replaySession(seed, session, opts = {}) {
         }
         if (!pendingCommand
             && ((step.rng && step.rng.length) || 0) === 0
-            && stepMsg.trimStart().startsWith('#')) {
+            && stepMsg.trimStart().startsWith('#')
+            && !(typeof step.key === 'string'
+                && step.key.length === 1
+                && step.key >= '0'
+                && step.key <= '9')) {
             applyStepScreen();
             pushStepResult(
                 [],
