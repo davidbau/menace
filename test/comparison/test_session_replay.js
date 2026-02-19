@@ -62,15 +62,8 @@ const DEC_FROM_UNICODE = {
     '\u00b7': 'a',
 };
 
-function normalizeCapturedLine(line, row, screenMode, isMapScreen, mapConvertEnd = null, prependMissingCol0 = true) {
+function normalizeCapturedLine(line, row, screenMode, isMapScreen, mapConvertEnd = null) {
     let out = (line || '').replace(/\r$/, '').replace(/[\x0e\x0f]/g, '');
-    // Some tmux capture paths drop terminal column 0 on non-top rows,
-    // regardless of charset mode. Accepting both padded and unpadded
-    // captured lines keeps strict comparisons robust to that artifact.
-    if (row >= 1 && prependMissingCol0) {
-        // tmux capture drops terminal column 0 for non-top rows.
-        out = ` ${out}`;
-    }
     if (screenMode === 'decgraphics' && !isMapScreen) {
         // Some tmux captures materialize DEC alternate charset glyphs directly
         // in non-map text screens (inventory/menu/messages). Convert those back
@@ -144,41 +137,16 @@ function compareStepScreen(jsScreen, capturedScreen, screenMode, strictMessageRo
             }
             return null;
         })();
-        const cLineWithPad = normalizeStatusLine(
+        const cLine = normalizeStatusLine(
             normalizeCapturedLine(capturedScreen[row], row, screenMode, isMapScreen, detectedTextCol),
-            row
-        );
-        const cLineNoPad = normalizeStatusLine(
-            normalizeCapturedLine(capturedScreen[row], row, screenMode, isMapScreen, detectedTextCol, false),
             row
         );
         const jLine = normalizeStatusLine(
             normalizeJsLine(jsScreen?.[row], row, screenMode, isMapScreen, detectedTextCol),
             row
         );
-        // Some captured sessions already include terminal column 0 while others
-        // reflect tmux's dropped column for non-top rows. Accept either.
-        if (cLineWithPad !== jLine && cLineNoPad !== jLine) {
-            // Some mixed map+menu rows in captured sessions (notably inventory
-            // overlays) can have map cells aligned like padded rows while the
-            // right-side text block aligns like unpadded rows. Handle only this
-            // narrow artifact by trying a split at the first right-side word.
-            const textCol = detectedTextCol;
-            if (Number.isInteger(textCol) && textCol >= 30) {
-                const hybridPadLeft = cLineWithPad.slice(0, textCol) + cLineNoPad.slice(textCol);
-                const hybridNoPadLeft = cLineNoPad.slice(0, textCol) + cLineWithPad.slice(textCol);
-                const hybridPadLeftShift = cLineWithPad.slice(0, textCol + 1) + cLineNoPad.slice(textCol + 1);
-                const hybridNoPadLeftShift = cLineNoPad.slice(0, textCol + 1) + cLineWithPad.slice(textCol + 1);
-                if (
-                    hybridPadLeft === jLine
-                    || hybridNoPadLeft === jLine
-                    || hybridPadLeftShift === jLine
-                    || hybridNoPadLeftShift === jLine
-                ) {
-                    continue;
-                }
-            }
-            return { ok: false, row, js: jLine, c: cLineWithPad };
+        if (cLine !== jLine) {
+            return { ok: false, row, js: jLine, c: cLine };
         }
     }
     return { ok: true, row: -1, js: '', c: '' };
