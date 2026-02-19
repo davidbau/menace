@@ -594,6 +594,7 @@
 
 - Change:
   - Added `--repeats=N` to `selfplay/runner/c_role_matrix.js`.
+  - Added `--exclusive/--no-exclusive` lock control to prevent accidental overlapping matrix runs.
   - The runner now executes each role/seed assignment `N` times, prints:
     - overall summary over all runs,
     - per-assignment aggregate summary (when `N > 1`),
@@ -611,5 +612,20 @@
   - Confirmed new aggregate + per-run outputs render correctly.
 
 - Usage guidance:
+  - Keep default `--exclusive` to avoid contaminated concurrent runs.
   - Keep default `--repeats=1` for fast iteration.
   - Use `--repeats=2` or `3` before commit decisions when candidate deltas are small.
+  - Use `--no-exclusive` only when intentionally running multiple matrices in parallel.
+
+## 2026-02-19 - Rejected: Secret-Search Cooldown Clock Fix
+
+- Candidate:
+  - In `selfplay/agent.js`, switched secret-search cooldown checks from `turnCount` to `turnNumber`.
+
+- Holdout A/B (`31..43`, 600 turns, fresh current baseline):
+  - Baseline: survived `13/13`, avg depth `1.462`, XP t600 `8.54`, failedAdd `30.85`.
+  - Candidate: survived `13/13`, avg depth `1.462`, XP t600 `7.77`, failedAdd `31.62`.
+
+- Net:
+  - Rejected for now (progression regression without churn benefit).
+  - Keep current behavior until a follow-up fix can improve this path without hurting holdout throughput.

@@ -11,6 +11,7 @@
 //   node selfplay/runner/c_role_matrix.js --mode=holdout --repeats=3
 //   node selfplay/runner/c_role_matrix.js --seeds=31-40 --roles=Wizard,Tourist,Valkyrie
 
+import fs from 'fs';
 import { spawnSync } from 'child_process';
 
 const ALL_ROLES = [
@@ -35,6 +36,7 @@ const opts = {
     turns: 1200,
     keyDelay: 0,
     quiet: true,
+    exclusive: true,    // prevent concurrent matrix runs
     repeats: 1,         // runs per role/seed assignment
     seeds: null,        // comma list and/or ranges, e.g. 21-33 or 21,22,30-35
     roles: null,        // comma-separated list
@@ -51,6 +53,7 @@ for (let i = 0; i < args.length; i++) {
             if (k === '--mode') opts.mode = v;
             else if (k === '--turns') opts.turns = parseInt(v, 10);
             else if (k === '--key-delay') opts.keyDelay = parseInt(v, 10);
+            else if (k === '--exclusive') opts.exclusive = (v !== 'false');
             else if (k === '--repeats') opts.repeats = parseInt(v, 10);
             else if (k === '--seeds') opts.seeds = v;
             else if (k === '--roles') opts.roles = v;
@@ -61,6 +64,8 @@ for (let i = 0; i < args.length; i++) {
     if (arg === '--mode' && args[i + 1]) opts.mode = args[++i];
     else if (arg === '--turns' && args[i + 1]) opts.turns = parseInt(args[++i], 10);
     else if (arg === '--key-delay' && args[i + 1]) opts.keyDelay = parseInt(args[++i], 10);
+    else if (arg === '--exclusive') opts.exclusive = true;
+    else if (arg === '--no-exclusive') opts.exclusive = false;
     else if (arg === '--repeats' && args[i + 1]) opts.repeats = parseInt(args[++i], 10);
     else if (arg === '--seeds' && args[i + 1]) opts.seeds = args[++i];
     else if (arg === '--roles' && args[i + 1]) opts.roles = args[++i];
@@ -83,11 +88,13 @@ if (!Number.isFinite(opts.repeats) || opts.repeats < 1) {
     console.error(`Invalid --repeats value: ${opts.repeats}`);
     process.exit(1);
 }
+const lockState = acquireExclusiveLock(opts.exclusive);
 
 console.log('C NetHack Role Matrix Benchmark');
 console.log(`  Mode: ${opts.mode}`);
 console.log(`  Turns: ${opts.turns}`);
 console.log(`  Key delay: ${opts.keyDelay}`);
+console.log(`  Exclusive lock: ${opts.exclusive ? `on (${lockState.lockPath})` : 'off'}`);
 console.log(`  Repeats: ${opts.repeats}`);
 console.log(`  Roles (${roles.length}): ${roles.join(', ')}`);
 console.log(`  Seed pool (${seedPool.length}): ${seedPool.join(', ')}`);
@@ -350,6 +357,85 @@ function maxOf(values) {
     return Math.max(...nums);
 }
 
+function acquireExclusiveLock(enabled) {
+    const lockPath = '/tmp/c_role_matrix.lock';
+    if (!enabled) return { lockPath, release: () => {} };
+
+    const staleInfo = tryAcquireLock(lockPath);
+    if (!staleInfo.ok) {
+        const stalePid = staleInfo.stalePid;
+        const lockError = staleInfo.error;
+        if (stalePid && !isPidAlive(stalePid)) {
+            try {
+                fs.unlinkSync(lockPath);
+            } catch {}
+            const retry = tryAcquireLock(lockPath);
+            if (!retry.ok) {
+                console.error(`[LOCK] Unable to acquire matrix lock at ${lockPath}: ${retry.error || 'unknown error'}`);
+                process.exit(1);
+            }
+            return registerLockRelease(lockPath, retry.fd);
+        }
+        const ownerStr = stalePid ? ` (held by pid ${stalePid})` : '';
+        console.error(`[LOCK] Another matrix run appears active${ownerStr}.`);
+        console.error(`       Retry with --no-exclusive to bypass (not recommended for accuracy).`);
+        if (lockError) console.error(`       lock detail: ${lockError}`);
+        process.exit(1);
+    }
+    return registerLockRelease(lockPath, staleInfo.fd);
+}
+
+function tryAcquireLock(lockPath) {
+    try {
+        const fd = fs.openSync(lockPath, 'wx');
+        const payload = `${process.pid}\t${Date.now()}\t${process.cwd()}\n`;
+        fs.writeFileSync(fd, payload, { encoding: 'utf8' });
+        return { ok: true, fd };
+    } catch (err) {
+        if (!err || err.code !== 'EEXIST') {
+            return { ok: false, error: err ? (err.message || err.code) : 'unknown' };
+        }
+        const stalePid = readLockPid(lockPath);
+        return { ok: false, stalePid, error: 'lock already exists' };
+    }
+}
+
+function registerLockRelease(lockPath, fd) {
+    let released = false;
+    const release = () => {
+        if (released) return;
+        released = true;
+        try { fs.closeSync(fd); } catch {}
+        try { fs.unlinkSync(lockPath); } catch {}
+    };
+    process.once('exit', release);
+    process.once('SIGINT', () => { release(); process.exit(130); });
+    process.once('SIGTERM', () => { release(); process.exit(143); });
+    return { lockPath, release };
+}
+
+function readLockPid(lockPath) {
+    try {
+        const text = fs.readFileSync(lockPath, 'utf8').trim();
+        const token = text.split(/\s+/)[0];
+        const pid = parseInt(token, 10);
+        return Number.isFinite(pid) ? pid : null;
+    } catch {
+        return null;
+    }
+}
+
+function isPidAlive(pid) {
+    if (!Number.isFinite(pid) || pid <= 0) return false;
+    try {
+        process.kill(pid, 0);
+        return true;
+    } catch (err) {
+        if (err && err.code === 'ESRCH') return false;
+        return true; // EPERM and other errors treated as "alive/unknown"
+    }
+}
+
 function resolveSeedPool(options) {
     if (options.seeds) return parseSeedSpec(options.seeds);
     if (options.mode === 'train') return parseSeedSpec('21-33');
@@ -395,6 +481,7 @@ function printHelp() {
     console.log('  --roles=R1,R2,...             Override role list (default: all 13 roles)');
     console.log('  --turns=N                     Max turns per run (default: 1200)');
     console.log('  --key-delay=MS                Key delay (default: 0)');
+    console.log('  --exclusive/--no-exclusive    Enable lock to prevent overlapping matrix runs (default: on)');
     console.log('  --repeats=N                   Repeat each role/seed assignment N times (default: 1)');
     console.log('  --quiet / --no-quiet          Pass quiet/verbose through to c_runner');
     console.log('  --verbose-failures            Print tail output for failed runs');
