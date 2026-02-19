@@ -237,7 +237,7 @@ Note: C functions that modify strings in-place return new strings in JS (immutab
 
 | C Function | C Line | JS Function | JS Line | Status |
 |------------|--------|-------------|---------|--------|
-| `nh_deterministic_qsort` | 36 | `nh_deterministic_qsort` | 309 | Match (exported; JS array API instead of void*) |
+| `nh_deterministic_qsort` | 36 | `nh_deterministic_qsort` | 504 | Match (exported; JS array API instead of void*) |
 | `digit` | 126 | `digit` | 14 | Match (exported) |
 | `letter` | 133 | `letter` | 19 | Match (exported) |
 | `highc` | 140 | `highc` | 24 | Match (exported) |
@@ -264,6 +264,27 @@ Note: C functions that modify strings in-place return new strings in JS (immutab
 | `onlyspace` | 483 | `onlyspace` | 255 | Match (exported) |
 | `tabexpand` | 493 | `tabexpand` | 264 | Match (exported; returns new string) |
 | `visctrl` | 533 | `visctrl` | 281 | Match (exported; no rotating static buffers needed) |
+| `stripchars` | 560 | `stripchars` | 308 | Match (exported; no bp arg, (orig, stuff_to_strip) → new string) |
+| `stripdigits` | 584 | `stripdigits` | 317 | Match (exported; returns new string) |
+| `strsubst` | 599 | `strsubst` | 329 | Match (exported; returns new string) |
+| `strNsubst` | 619 | `strNsubst` | 338 | Match (exported; returns new string; C return count not preserved) |
+| `findword` | 663 | `findword` | 369 | Match (exported; returns slice of list from match, or null) |
+| `ordin` | 689 | `ordin` | 439 | Match (exported) |
+| `sitoa` | 701 | `sitoa` | 446 | Match (exported) |
+| `sgn` | 714 | `sgn` | 451 | Match (exported) |
+| `distmin` | 720 | `distmin` | 461 | Match (exported) |
+| `dist2` | 737 | `dist2` | 467 | Match (exported) |
+| `isqrt` | 746 | `isqrt` | 473 | Match (exported; uses Math.sqrt) |
+| `online2` | 768 | `online2` | 478 | Match (exported) |
+| `strncmpi` | 781 | `strncmpi` | 397 | Match (exported) |
+| `strstri` | 803 | `strstri` | 412 | Match (exported; returns slice from match, or null) |
+| `fuzzymatch` | 848 | `fuzzymatch` | 419 | Match (exported) |
+| `swapbits` | 894 | `swapbits` | 489 | Match (exported) |
+| `nh_snprintf` | 917 | — | — | N/A — JS has native string formatting |
+| `unicodeval_to_utf8str` | 944 | — | — | N/A — JS handles Unicode natively |
+| `case_insensitive_comp` | 986 | — | — | N/A — use strncmpi or toLowerCase() |
+| `copy_bytes` | 1004 | — | — | N/A — file I/O not applicable to browser port |
+| `datamodel` | 1037 | — | — | N/A — platform data model detection not needed |
 
 ### o_init.c → o_init.js (and discovery.js)
 

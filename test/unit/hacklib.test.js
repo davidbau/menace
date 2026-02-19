@@ -14,6 +14,11 @@ import {
     strkitten, copynchars, chrcasecpy, strcasecpy,
     s_suffix, ing_suffix, onlyspace, tabexpand, visctrl,
     nh_deterministic_qsort,
+    stripchars, stripdigits, strsubst, strNsubst, findword,
+    strncmpi, strstri, fuzzymatch,
+    ordin, sitoa, sgn,
+    distmin, dist2, isqrt, online2,
+    swapbits,
 } from '../../js/hacklib.js';
 import { EPITAPH_FILE_TEXT } from '../../js/epitaph_data.js';
 import { ENGRAVE_FILE_TEXT } from '../../js/engrave_data.js';
@@ -559,5 +564,266 @@ describe('nh_deterministic_qsort', () => {
         const b = [42];
         nh_deterministic_qsort(b, (x, y) => x - y);
         assert.deepEqual(b, [42]);
+    });
+});
+
+// ============================================================================
+// Tests for remaining hacklib.c functions added in codematch pass
+// ============================================================================
+
+describe('stripchars', () => {
+    it('removes specified characters from string', () => {
+        assert.equal(stripchars('hello world', ' '), 'helloworld');
+    });
+    it('removes multiple different chars', () => {
+        assert.equal(stripchars('abc123def', '0123456789'), 'abcdef');
+    });
+    it('returns string unchanged if no chars to strip are present', () => {
+        assert.equal(stripchars('hello', 'xyz'), 'hello');
+    });
+    it('handles empty string', () => {
+        assert.equal(stripchars('', 'abc'), '');
+    });
+});
+
+describe('stripdigits', () => {
+    it('removes digits from string', () => {
+        assert.equal(stripdigits('abc123def456'), 'abcdef');
+    });
+    it('leaves non-digit string unchanged', () => {
+        assert.equal(stripdigits('hello'), 'hello');
+    });
+    it('returns empty string for all-digit input', () => {
+        assert.equal(stripdigits('12345'), '');
+    });
+});
+
+describe('strsubst', () => {
+    it('substitutes first occurrence', () => {
+        assert.equal(strsubst('hello world', 'world', 'there'), 'hello there');
+    });
+    it('only substitutes first occurrence', () => {
+        assert.equal(strsubst('aaa', 'a', 'b'), 'baa');
+    });
+    it('returns string unchanged if orig not found', () => {
+        assert.equal(strsubst('hello', 'xyz', 'abc'), 'hello');
+    });
+    it('handles empty replacement (deletion)', () => {
+        assert.equal(strsubst('hello world', ' world', ''), 'hello');
+    });
+});
+
+describe('strNsubst', () => {
+    it('replaces first occurrence when n=1', () => {
+        assert.equal(strNsubst('hello hello', 'hello', 'world', 1), 'world hello');
+    });
+    it('replaces second occurrence when n=2', () => {
+        assert.equal(strNsubst('hello hello', 'hello', 'world', 2), 'hello world');
+    });
+    it('replaces all occurrences when n=0', () => {
+        assert.equal(strNsubst('hello hello', 'hello', 'world', 0), 'world world');
+    });
+    it('inserts before Nth char when orig is empty (n>0)', () => {
+        assert.equal(strNsubst('abc', '', '-', 2), 'a-bc');
+    });
+    it('appends when n=strlen+1 and orig is empty', () => {
+        assert.equal(strNsubst('abc', '', '-', 4), 'abc-');
+    });
+    it('returns unchanged if n exceeds occurrence count', () => {
+        assert.equal(strNsubst('hello', 'hello', 'world', 2), 'hello');
+    });
+});
+
+describe('findword', () => {
+    it('finds a word in a space-separated list', () => {
+        assert.equal(findword('foo bar baz', 'bar', 3, false), 'bar baz');
+    });
+    it('finds the first word', () => {
+        assert.equal(findword('foo bar baz', 'foo', 3, false), 'foo bar baz');
+    });
+    it('finds the last word', () => {
+        assert.equal(findword('foo bar baz', 'baz', 3, false), 'baz');
+    });
+    it('returns null if word not found', () => {
+        assert.equal(findword('foo bar baz', 'xyz', 3, false), null);
+    });
+    it('does not match partial words', () => {
+        assert.equal(findword('foobar baz', 'foo', 3, false), null);
+    });
+    it('case-insensitive match when ignorecase=true', () => {
+        assert.equal(findword('foo bar baz', 'BAR', 3, true), 'bar baz');
+    });
+    it('case-sensitive by default', () => {
+        assert.equal(findword('foo bar baz', 'BAR', 3, false), null);
+    });
+});
+
+describe('strncmpi', () => {
+    it('returns 0 for case-insensitive equal strings', () => {
+        assert.equal(strncmpi('hello', 'HELLO', 5), 0);
+    });
+    it('returns 0 when first n chars are equal (case-insensitive)', () => {
+        assert.equal(strncmpi('hello world', 'HELLO there', 5), 0);
+    });
+    it('returns negative when s1 < s2', () => {
+        assert.ok(strncmpi('abc', 'abd', 3) < 0);
+    });
+    it('returns positive when s1 > s2', () => {
+        assert.ok(strncmpi('abd', 'abc', 3) > 0);
+    });
+    it('returns positive when s1 is longer prefix of s2', () => {
+        assert.ok(strncmpi('hello', 'hell', 5) > 0);
+    });
+    it('returns negative when s1 is shorter prefix of s2', () => {
+        assert.ok(strncmpi('hell', 'hello', 5) < 0);
+    });
+    it('handles n=0 (compare 0 chars, always equal)', () => {
+        assert.equal(strncmpi('abc', 'xyz', 0), 0);
+    });
+});
+
+describe('strstri', () => {
+    it('finds substring case-insensitively', () => {
+        assert.equal(strstri('Hello World', 'world'), 'World');
+    });
+    it('returns null if not found', () => {
+        assert.equal(strstri('hello', 'xyz'), null);
+    });
+    it('returns whole string for empty substring', () => {
+        assert.equal(strstri('hello', ''), 'hello');
+    });
+    it('handles exact case match', () => {
+        assert.equal(strstri('hello world', 'world'), 'world');
+    });
+    it('returns substring starting at match position', () => {
+        assert.equal(strstri('abcXYZdef', 'xyz'), 'XYZdef');
+    });
+});
+
+describe('fuzzymatch', () => {
+    it('matches strings ignoring specified chars', () => {
+        assert.ok(fuzzymatch('hello world', 'helloworld', ' ', false));
+    });
+    it('matches case-insensitively when caseblind=true', () => {
+        assert.ok(fuzzymatch('HELLO', 'hello', '', true));
+    });
+    it('returns false for different strings', () => {
+        assert.ok(!fuzzymatch('hello', 'world', ' ', false));
+    });
+    it('ignores multiple chars in ignore_chars', () => {
+        assert.ok(fuzzymatch('a-b.c', 'abc', '-. ', false));
+    });
+    it('returns true for identical strings with empty ignore_chars', () => {
+        assert.ok(fuzzymatch('hello', 'hello', '', false));
+    });
+    it('returns false when one string has extra non-ignored chars', () => {
+        assert.ok(!fuzzymatch('hello', 'hellox', '', false));
+    });
+});
+
+describe('ordin', () => {
+    it('returns st for 1, 21, 31', () => {
+        assert.equal(ordin(1), 'st');
+        assert.equal(ordin(21), 'st');
+        assert.equal(ordin(31), 'st');
+    });
+    it('returns nd for 2, 22', () => {
+        assert.equal(ordin(2), 'nd');
+        assert.equal(ordin(22), 'nd');
+    });
+    it('returns rd for 3, 23', () => {
+        assert.equal(ordin(3), 'rd');
+        assert.equal(ordin(23), 'rd');
+    });
+    it('returns th for 4-20', () => {
+        for (let n = 4; n <= 20; n++) assert.equal(ordin(n), 'th', n);
+    });
+    it('returns th for teens (11th, 12th, 13th)', () => {
+        assert.equal(ordin(11), 'th');
+        assert.equal(ordin(12), 'th');
+        assert.equal(ordin(13), 'th');
+    });
+    it('returns th for multiples of 10', () => {
+        assert.equal(ordin(10), 'th');
+        assert.equal(ordin(20), 'th');
+        assert.equal(ordin(100), 'th');
+    });
+});
+
+describe('sitoa', () => {
+    it('prepends + for positive numbers', () => {
+        assert.equal(sitoa(5), '+5');
+        assert.equal(sitoa(0), '+0');
+    });
+    it('uses - for negative numbers', () => {
+        assert.equal(sitoa(-3), '-3');
+    });
+});
+
+describe('sgn', () => {
+    it('returns 1 for positive', () => { assert.equal(sgn(5), 1); });
+    it('returns -1 for negative', () => { assert.equal(sgn(-3), -1); });
+    it('returns 0 for zero', () => { assert.equal(sgn(0), 0); });
+});
+
+describe('distmin', () => {
+    it('returns max of absolute deltas (Chebyshev distance)', () => {
+        assert.equal(distmin(0, 0, 3, 4), 4);
+        assert.equal(distmin(0, 0, 4, 3), 4);
+        assert.equal(distmin(0, 0, 3, 3), 3); // diagonal
+    });
+    it('returns 0 for same point', () => {
+        assert.equal(distmin(2, 2, 2, 2), 0);
+    });
+    it('handles negative coordinates', () => {
+        assert.equal(distmin(0, 0, -3, -4), 4);
+    });
+});
+
+describe('dist2', () => {
+    it('returns squared Euclidean distance', () => {
+        assert.equal(dist2(0, 0, 3, 4), 25);
+    });
+    it('returns 0 for same point', () => {
+        assert.equal(dist2(1, 1, 1, 1), 0);
+    });
+});
+
+describe('isqrt', () => {
+    it('returns floor of square root', () => {
+        assert.equal(isqrt(25), 5);
+        assert.equal(isqrt(16), 4);
+        assert.equal(isqrt(26), 5);
+        assert.equal(isqrt(0), 0);
+    });
+});
+
+describe('online2', () => {
+    it('returns true for orthogonal alignment (same row)', () => {
+        assert.ok(online2(0, 0, 5, 0));
+    });
+    it('returns true for orthogonal alignment (same column)', () => {
+        assert.ok(online2(0, 0, 0, 5));
+    });
+    it('returns true for diagonal alignment', () => {
+        assert.ok(online2(0, 0, 3, 3));
+        assert.ok(online2(0, 0, 3, -3));
+    });
+    it('returns false for non-aligned points', () => {
+        assert.ok(!online2(0, 0, 3, 4));
+    });
+});
+
+describe('swapbits', () => {
+    it('swaps two different bits', () => {
+        // 0b1010: bit0=0, bit1=1 → after swap: bit0=1, bit1=0 → 0b1001=9
+        assert.equal(swapbits(0b1010, 0, 1), 0b1001);
+    });
+    it('leaves value unchanged when swapping equal bits', () => {
+        // 0b1010: bit1=1, bit3=1 → same → unchanged
+        assert.equal(swapbits(0b1010, 1, 3), 0b1010);
+    });
+    it('handles swapping bit 0 with bit 0 (no-op)', () => {
+        assert.equal(swapbits(0b1111, 0, 0), 0b1111);
     });
 });

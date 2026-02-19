@@ -297,6 +297,201 @@ export function visctrl(c) {
 }
 
 // ============================================================================
+// String strip utilities
+// C ref: hacklib.c:560-595
+// Note: C functions modify strings in-place; JS versions return new strings.
+// ============================================================================
+
+// hacklib.c:560 — strip all chars in stuff_to_strip from orig
+// C signature: stripchars(char *bp, const char *stuff_to_strip, const char *orig)
+// JS: bp output buffer dropped; takes (orig, stuff_to_strip), returns new string.
+export function stripchars(orig, stuff_to_strip) {
+    let result = '';
+    for (let i = 0; i < orig.length; i++) {
+        if (!stuff_to_strip.includes(orig[i])) result += orig[i];
+    }
+    return result;
+}
+
+// hacklib.c:584 — remove digits from string
+export function stripdigits(s) {
+    return s.replace(/[0-9]/g, '');
+}
+
+// ============================================================================
+// String substitution utilities
+// C ref: hacklib.c:599-684
+// Note: C functions modify strings in-place; JS versions return new strings.
+// Note: strNsubst C return value is substitution count; JS returns new string.
+// ============================================================================
+
+// hacklib.c:599 — substitute first occurrence of orig with replacement in bp
+export function strsubst(bp, orig, replacement) {
+    const idx = bp.indexOf(orig);
+    if (idx < 0) return bp;
+    return bp.slice(0, idx) + replacement + bp.slice(idx + orig.length);
+}
+
+// hacklib.c:619 — substitute Nth occurrence of orig with replacement (n=0: all)
+// C: modifies inoutbuf in place, returns substitution count.
+// JS: returns the modified string.
+export function strNsubst(inoutbuf, orig, replacement, n) {
+    const len = orig.length;
+    if (len === 0) {
+        // Special case: empty orig — insert replacement before Nth char (n>0)
+        // or before every char (n=0), or append if n==strlen+1.
+        let result = '';
+        let ocount = 0;
+        for (let i = 0; i < inoutbuf.length; i++) {
+            if (++ocount === n || n === 0) result += replacement;
+            result += inoutbuf[i];
+        }
+        if (inoutbuf.length + 1 === n) result += replacement;
+        return result;
+    }
+    let result = '';
+    let ocount = 0;
+    let bp = 0;
+    while (bp < inoutbuf.length) {
+        if (inoutbuf.startsWith(orig, bp) && (++ocount === n || n === 0)) {
+            result += replacement;
+            bp += len;
+        } else {
+            result += inoutbuf[bp++];
+        }
+    }
+    return result;
+}
+
+// hacklib.c:663 — search for word in space-separated list
+// C: returns pointer into list at start of found word, or NULL.
+// JS: returns the slice of list starting at the found word, or null.
+export function findword(list, word, wordlen, ignorecase) {
+    const w = word.slice(0, wordlen);
+    let p = 0;
+    while (p < list.length) {
+        while (p < list.length && list[p] === ' ') p++;
+        if (p >= list.length) break;
+        const candidate = list.slice(p, p + wordlen);
+        const afterWord = p + wordlen;
+        const atWordEnd = afterWord >= list.length || list[afterWord] === ' ';
+        const matches = ignorecase
+            ? candidate.toLowerCase() === w.toLowerCase()
+            : candidate === w;
+        if (matches && atWordEnd) return list.slice(p);
+        // advance to next space (C: strchr(p + 1, ' '))
+        const spaceIdx = list.indexOf(' ', p + 1);
+        if (spaceIdx < 0) break;
+        p = spaceIdx;
+    }
+    return null;
+}
+
+// ============================================================================
+// Case-insensitive string comparison
+// C ref: hacklib.c:781-843
+// ============================================================================
+
+// hacklib.c:781 — case-insensitive counted string comparison
+// Returns negative if s1 < s2, 0 if equal, positive if s1 > s2.
+export function strncmpi(s1, s2, n) {
+    for (let i = 0; i < n; i++) {
+        if (i >= s2.length) return s1.length > i ? 1 : 0;
+        if (i >= s1.length) return -1;
+        const t1 = s1[i].toLowerCase();
+        const t2 = s2[i].toLowerCase();
+        if (t1 < t2) return -1;
+        if (t1 > t2) return 1;
+    }
+    return 0;
+}
+
+// hacklib.c:803 — case-insensitive substring search
+// C: returns pointer to match in str, or NULL.
+// JS: returns the slice of str starting at the match, or null.
+export function strstri(str, sub) {
+    if (sub === '') return str;
+    const idx = str.toLowerCase().indexOf(sub.toLowerCase());
+    return idx < 0 ? null : str.slice(idx);
+}
+
+// hacklib.c:848 — compare two strings ignoring specified chars, optionally case-blind
+export function fuzzymatch(s1, s2, ignore_chars, caseblind) {
+    let i1 = 0, i2 = 0;
+    for (;;) {
+        while (i1 < s1.length && ignore_chars.includes(s1[i1])) i1++;
+        while (i2 < s2.length && ignore_chars.includes(s2[i2])) i2++;
+        const c1 = i1 < s1.length ? s1[i1++] : null;
+        const c2 = i2 < s2.length ? s2[i2++] : null;
+        if (!c1 || !c2) return c1 === c2;
+        const cmp1 = caseblind ? c1.toLowerCase() : c1;
+        const cmp2 = caseblind ? c2.toLowerCase() : c2;
+        if (cmp1 !== cmp2) return false;
+    }
+}
+
+// ============================================================================
+// Number formatting utilities
+// C ref: hacklib.c:689-717
+// ============================================================================
+
+// hacklib.c:689 — return the ordinal suffix of a number (1st, 2nd, 3rd, 4th...)
+export function ordin(n) {
+    const dd = n % 10;
+    return (dd === 0 || dd > 3 || Math.floor((n % 100) / 10) === 1)
+        ? 'th' : (dd === 1) ? 'st' : (dd === 2) ? 'nd' : 'rd';
+}
+
+// hacklib.c:701 — make a signed digit string from a number ("+3" or "-2")
+export function sitoa(n) {
+    return n < 0 ? String(n) : '+' + String(n);
+}
+
+// hacklib.c:714 — return the sign of a number: -1, 0, or 1
+export function sgn(n) {
+    return n < 0 ? -1 : (n !== 0 ? 1 : 0);
+}
+
+// ============================================================================
+// Geometry utilities
+// C ref: hacklib.c:720-774
+// ============================================================================
+
+// hacklib.c:720 — distance between two points in moves (Chebyshev distance)
+export function distmin(x0, y0, x1, y1) {
+    const dx = Math.abs(x0 - x1), dy = Math.abs(y0 - y1);
+    return dx < dy ? dy : dx;
+}
+
+// hacklib.c:737 — square of Euclidean distance between pair of points
+export function dist2(x0, y0, x1, y1) {
+    const dx = x0 - x1, dy = y0 - y1;
+    return dx * dx + dy * dy;
+}
+
+// hacklib.c:746 — integer square root (floor(sqrt(val))); not in C comment block
+export function isqrt(val) {
+    return Math.floor(Math.sqrt(val));
+}
+
+// hacklib.c:768 — are two points lined up (orthogonal or diagonal)?
+export function online2(x0, y0, x1, y1) {
+    const dx = x0 - x1, dy = y0 - y1;
+    return !dy || !dx || dy === dx || dy === -dx;
+}
+
+// ============================================================================
+// Bit manipulation
+// C ref: hacklib.c:894-900
+// ============================================================================
+
+// hacklib.c:894 — swap bit at position bita with bit at position bitb in val
+export function swapbits(val, bita, bitb) {
+    const tmp = ((val >> bita) & 1) ^ ((val >> bitb) & 1);
+    return val ^ ((tmp << bita) | (tmp << bitb));
+}
+
+// ============================================================================
 // Deterministic sort (stable, index-tiebreaking)
 // C ref: hacklib.c:36-122 nh_deterministic_qsort()
 //
