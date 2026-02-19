@@ -38,6 +38,8 @@ import {
     PM_HORNED_DEVIL, PM_MINOTAUR, PM_ASMODEUS, PM_BALROG,
     PM_MARILITH, PM_WINGED_GARGOYLE, PM_AIR_ELEMENTAL,
     PM_GREMLIN, PM_STONE_GOLEM,
+    MS_SILENT, MS_BUZZ, MS_BURBLE,
+    S_EEL,
 } from './monsters.js';
 
 // ========================================================================
@@ -571,4 +573,38 @@ export function poly_when_stoned(ptr) {
 export function can_track(ptr, wieldsExcalibur = false) {
     if (wieldsExcalibur) return true;
     return haseyes(ptr);
+}
+
+// C ref: mondata.c:567 — can_blow(mtmp)
+// Returns true if monster can blow a horn.
+// Note: C also checks Strangled for the hero; pass isStrangled=true for that case.
+// C ref: is_silent(ptr) = msound == MS_SILENT; has_head(ptr) = !(M1_NOHEAD)
+// C ref: verysmall(ptr) = msize < MZ_SMALL
+export function can_blow(ptr, isStrangled = false) {
+    if ((ptr.sound === MS_SILENT || ptr.sound === MS_BUZZ)
+        && (breathless(ptr) || ptr.size < MZ_SMALL || nohead(ptr) || ptr.symbol === S_EEL))
+        return false;
+    if (isStrangled) return false;
+    return true;
+}
+
+// C ref: mondata.c:580 — can_chant(mtmp)
+// Returns true if monster can chant (cast spells verbally or read scrolls).
+// Note: C also checks Strangled for the hero; pass isStrangled=true for that case.
+export function can_chant(ptr, isStrangled = false) {
+    if (isStrangled || ptr.sound === MS_SILENT || nohead(ptr)
+        || ptr.sound === MS_BUZZ || ptr.sound === MS_BURBLE)
+        return false;
+    return true;
+}
+
+// C ref: mondata.c:591 — can_be_strangled(mon)
+// Returns true if monster is vulnerable to strangulation.
+// Note: C checks worn amulet of magical breathing for monsters; JS omits (no worn item tracking).
+// nobrainer = mindless(ptr); nonbreathing = breathless(ptr)
+export function can_be_strangled(ptr) {
+    if (nohead(ptr)) return false;
+    const nobrainer = is_mindless(ptr);
+    const nonbreathing = breathless(ptr);
+    return !nobrainer || !nonbreathing;
 }

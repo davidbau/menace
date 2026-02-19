@@ -2,7 +2,8 @@
 // Tests: dmgtype_fromattack, dmgtype, noattacks, ranged_attk,
 //        hates_silver, hates_blessings, mon_hates_silver, mon_hates_blessings,
 //        sticks, cantvomit, num_horns, sliparm, breakarm,
-//        haseyes, hates_light, mon_hates_light, poly_when_stoned, can_track
+//        haseyes, hates_light, mon_hates_light, poly_when_stoned, can_track,
+//        can_blow, can_chant, can_be_strangled
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
@@ -15,6 +16,7 @@ import {
     sliparm, breakarm,
     haseyes, hates_light, mon_hates_light,
     poly_when_stoned, can_track,
+    can_blow, can_chant, can_be_strangled,
 } from '../../js/mondata.js';
 import {
     mons,
@@ -23,6 +25,7 @@ import {
     PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_KI_RIN,
     PM_HORNED_DEVIL, PM_MINOTAUR, PM_ASMODEUS, PM_BALROG,
     PM_GAS_SPORE, PM_GREMLIN, PM_STONE_GOLEM, PM_IRON_GOLEM,
+    PM_KILLER_BEE,
     AT_CLAW, AT_BITE,
     AD_STCK, AD_FIRE,
 } from '../../js/monsters.js';
@@ -400,5 +403,84 @@ describe('can_track', () => {
 
     it('returns true for gremlin (has eyes)', () => {
         assert.equal(can_track(mons[PM_GREMLIN]), true);
+    });
+});
+
+// ========================================================================
+// can_blow
+// ========================================================================
+
+describe('can_blow', () => {
+    it('returns true for little dog (has sound, has head, not breathless)', () => {
+        assert.equal(can_blow(mons[PM_LITTLE_DOG]), true);
+    });
+
+    it('returns false for acid blob (MS_SILENT + M1_BREATHLESS)', () => {
+        // acid blob is silent and breathless — can_blow returns false
+        assert.equal(can_blow(mons[6]), false); // PM_ACID_BLOB = 6
+    });
+
+    it('returns false for killer bee (MS_BUZZ + MZ_TINY)', () => {
+        // killer bee: MS_BUZZ and verysmall (MZ_TINY) — can_blow returns false
+        assert.equal(can_blow(mons[PM_KILLER_BEE]), false);
+    });
+
+    it('returns false when isStrangled=true even for little dog', () => {
+        assert.equal(can_blow(mons[PM_LITTLE_DOG], true), false);
+    });
+});
+
+// ========================================================================
+// can_chant
+// ========================================================================
+
+describe('can_chant', () => {
+    it('returns true for little dog (has sound, has head, not silent)', () => {
+        assert.equal(can_chant(mons[PM_LITTLE_DOG]), true);
+    });
+
+    it('returns false for acid blob (MS_SILENT)', () => {
+        assert.equal(can_chant(mons[6]), false); // PM_ACID_BLOB = 6
+    });
+
+    it('returns false for killer bee (MS_BUZZ)', () => {
+        assert.equal(can_chant(mons[PM_KILLER_BEE]), false);
+    });
+
+    it('returns false when isStrangled=true even for little dog', () => {
+        assert.equal(can_chant(mons[PM_LITTLE_DOG], true), false);
+    });
+
+    it('returns false for quivering blob (MS_SILENT, M1_NOHEAD)', () => {
+        assert.equal(can_chant(mons[7]), false); // PM_QUIVERING_BLOB = 7
+    });
+});
+
+// ========================================================================
+// can_be_strangled
+// ========================================================================
+
+describe('can_be_strangled', () => {
+    it('returns true for little dog (has head, not mindless, not breathless)', () => {
+        assert.equal(can_be_strangled(mons[PM_LITTLE_DOG]), true);
+    });
+
+    it('returns false for acid blob (M1_NOHEAD)', () => {
+        // acid blob has M1_NOHEAD — no head means no strangulation
+        assert.equal(can_be_strangled(mons[6]), false); // PM_ACID_BLOB = 6
+    });
+
+    it('returns false for quivering blob (M1_NOHEAD)', () => {
+        assert.equal(can_be_strangled(mons[7]), false); // PM_QUIVERING_BLOB = 7
+    });
+
+    it('returns true for killer bee (has head, not mindless, not breathless)', () => {
+        // killer bee has no M1_NOHEAD, no M1_MINDLESS, no M1_BREATHLESS
+        assert.equal(can_be_strangled(mons[PM_KILLER_BEE]), true);
+    });
+
+    it('returns true for werewolf (mindless=false, breathless=false, has head)', () => {
+        // werewolf is not mindless nor breathless — can be strangled
+        assert.equal(can_be_strangled(mons[PM_WEREWOLF]), true);
     });
 });

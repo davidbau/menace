@@ -568,9 +568,9 @@ Notes:
 | `hates_blessings` | 540 | `hates_blessings` | 489 | Match (exported) |
 | `mon_hates_light` | 547 | `mon_hates_light` | — | Match (exported) |
 | `passes_bars` | 554 | `passes_bars` | 399 | Match (exported; predates this section) |
-| `can_blow` | 566 | — | — | TODO (needs player Strangled state) |
-| `can_chant` | 579 | — | — | TODO (needs player Strangled state) |
-| `can_be_strangled` | 590 | — | — | TODO (needs player state) |
+| `can_blow` | 566 | `can_blow` | — | Match (exported; isStrangled=false default for player case) |
+| `can_chant` | 579 | `can_chant` | — | Match (exported; isStrangled=false default for player case) |
+| `can_be_strangled` | 590 | `can_be_strangled` | — | Match (exported; worn amulet check omitted — no worn item tracking) |
 | `can_track` | 622 | `can_track` | — | Match (Excalibur check via optional wieldsExcalibur param) |
 | `sliparm` | 632 | `sliparm` | 528 | Match (exported) |
 | `breakarm` | 640 | `breakarm` | 538 | Match (exported) |
