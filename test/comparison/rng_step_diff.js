@@ -74,6 +74,10 @@ function parsePhaseArg() {
 }
 
 async function main() {
+    console.warn('\n⚠️  WARNING: This tool replays a single step in isolation. For finding');
+    console.warn('   divergence points, use the session test runner instead:');
+    console.warn('   node -e "import(\'./test/comparison/session_test_runner.js\').then(m => m.runSessionBundle({ sessionPath: \'test/comparison/sessions/FILENAME\', verbose: true, sessionTimeoutMs: 30000 }))"');
+    console.warn('   The session runner gives full RNG logs and the exact first divergence.\n');
     const input = process.argv[2];
     if (!input) {
         console.error('Usage: node test/comparison/rng_step_diff.js <session.json> [--step N] [--window N]');
