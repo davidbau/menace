@@ -5310,7 +5310,7 @@ async function handleExtendedCommand(game) {
             return await handleEat(player, display, game);
         case 'r':
         case 'read':
-            return await handleRead(player, display);
+            return await handleRead(player, display, game);
         default:
             // C-style unknown extended command feedback
             display.putstr_message(`#${rawCmd}: unknown extended command.`);

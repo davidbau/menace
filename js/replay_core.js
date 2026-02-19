@@ -1700,16 +1700,12 @@ export async function replaySession(seed, session, opts = {}) {
         // Some keylog-derived gameplay traces omit both RNG and screen capture
         // for intermittent movement-key bytes. Treat those as pass-through
         // non-command acknowledgements to keep replay aligned with sparse logs.
-        if (_debugStepTrace && stepIndex >= 20 && stepIndex <= 26) {
-            console.log('[STEP_TRACE] stepIndex=' + stepIndex + ' at_pass_through_check stepScreen.len=' + stepScreen.length + ' rng=' + (step?.rng||[]).length + ' action=' + step?.action);
-        }
         if (!pendingCommand
             && ((step.rng && step.rng.length) || 0) === 0
             && stepScreen.length === 0
             && typeof step.action === 'string'
             && step.action.startsWith('move-')
             && step.key.length === 1) {
-            if (_debugStepTrace && stepIndex >= 20 && stepIndex <= 26) console.log('[STEP_TRACE] stepIndex=' + stepIndex + ' HIT pass_through_continue');
             pushStepResult(
                 [],
                 opts.captureScreens ? game.display.getScreenLines() : undefined,
@@ -2007,7 +2003,14 @@ export async function replaySession(seed, session, opts = {}) {
                 pendingCommand = null;
                 pendingKind = null;
                 const isAckStep = step.key === ' ' || step.key === '\n' || step.key === '\r';
-                if (isAckStep
+                // C tty: single-char answers to [yn] prompts (like 'n' declining
+                // "Refresh your memory?") are recorded while the prompt is still
+                // visible on screen. Apply the captured session frame so JS screen
+                // matches C's pre-keypress display state.
+                const isPromptAnswerStep = !isAckStep
+                    && step.key.length === 1
+                    && priorPendingKind === null;
+                if ((isAckStep || isPromptAnswerStep)
                     && stepScreen.length > 0
                     && ((step.rng || []).length === 0)
                     && result
@@ -2428,9 +2431,6 @@ export async function replaySession(seed, session, opts = {}) {
             }
         }
 
-        if (_debugStepTrace && stepIndex >= 20 && stepIndex <= 26) {
-            console.log('[STEP_TRACE] stepIndex=' + stepIndex + ' REACHED_ONSTEP player=(' + game.player?.x + ',' + game.player?.y + ')');
-        }
         if (typeof opts.onStep === 'function') {
             opts.onStep({ stepIndex, step, game });
         }
