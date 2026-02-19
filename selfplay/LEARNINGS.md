@@ -530,3 +530,35 @@
 
 - Net:
   - Rejected at holdout gate (progression regression despite lower churn).
+
+## 2026-02-19 - Keep: Dlvl1-Scoped Tighter Bulk Blacklist Limits
+
+- Change:
+  - In `selfplay/agent.js`, reduced bulk failed-target blacklisting counts in the two stuck handlers only while on `Dlvl1`:
+    - same-position stuck (`turnsAtSamePosition >= 20`):
+      - frontier slice `8 -> 5`
+      - search-candidate slice `6 -> 3`
+    - high-stuck small-frontier (`levelStuckCounter > 100` and `frontier <= 30`):
+      - frontier slice `10 -> 6`
+      - search-candidate slice `6 -> 3`
+  - On deeper levels, existing limits remain unchanged (`8/6` and `10/6`).
+
+- Why:
+  - `#16` churn hotspots are dominated by Dlvl1 loops.
+  - Broadly tightening limits at all depths reduced churn but regressed depth-3 XP runs.
+  - Scoping the tighter caps to Dlvl1 keeps the churn win where needed while preserving deeper-level behavior.
+
+- Validation gate: C role matrix, `turns=600`, `key-delay=0`.
+
+- Holdout (`31..43`) vs current baseline:
+  - Baseline: survived `13/13`, avg depth `1.462`, depth>=3 `1/13`, XL2+ `1/13`, XP t600 `8.23`, XP>=10 `4/13`, failedAdd `36.92`.
+  - Candidate: survived `13/13`, avg depth `1.462`, depth>=3 `1/13`, XL2+ `1/13`, XP t600 `8.54`, XP>=10 `5/13`, failedAdd `30.85`.
+
+- Train (`21..33`) vs current baseline:
+  - Baseline: survived `11/13`, avg depth `2.000`, depth>=3 `4/13`, XL2+ `0/13`, failedAdd `23.69`.
+  - Candidate: survived `11/13`, avg depth `2.077`, depth>=3 `4/13`, XL2+ `0/13`, failedAdd `21.77`.
+
+- Net:
+  - Keep.
+  - Meets the #16 churn target (`failedAdd` below `39.08 * 0.8`) with no survival regression.
+  - Depth/XL progression guardrails remained non-regressive, and holdout XP-by-600 throughput improved.

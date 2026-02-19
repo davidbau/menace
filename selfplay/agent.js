@@ -201,7 +201,7 @@ export class Agent {
         return false;
     }
 
-    _clearFailedTargets() {
+    _clearFailedTargets(force = false) {
         if (this.failedTargets.size > 0) {
             this.failedTargets.clear();
             this.stats.failedTargetClears++;
@@ -389,7 +389,7 @@ export class Agent {
                     this.visitedFrontierCells.clear();
                     this.committedTarget = null;
                     this.committedPath = null;
-                    this._clearFailedTargets();
+                    this._clearFailedTargets(true);
                     this.consecutiveFailedMoves = 0;
                     // Reset search tracking
                     this.searchSessionTurn = null;
@@ -788,6 +788,9 @@ export class Agent {
             else this.turnsAtSamePosition++;
 
             if (this.turnsAtSamePosition >= 20) {
+                const depth = this.status?.dungeonLevel || this.dungeon.currentDepth || 1;
+                const closeFrontierLimit = depth <= 1 ? 5 : 8;
+                const closeSearchLimit = depth <= 1 ? 3 : 6;
                 // Blacklist only the CLOSEST frontier/search targets (within 3 cells)
                 // Being more conservative to avoid breaking normal exploration
                 if (!this.failedTargets) this.failedTargets = new Set();
@@ -801,7 +804,7 @@ export class Agent {
                     }))
                     .filter(entry => entry.dist <= 3)
                     .sort((a, b) => a.dist - b.dist)
-                    .slice(0, 8);
+                    .slice(0, closeFrontierLimit);
                 for (const entry of closeFrontier) {
                     const tKey = entry.target.y * 80 + entry.target.x;
                     if (this._addFailedTarget(tKey)) blacklisted++;
@@ -815,7 +818,7 @@ export class Agent {
                     }))
                     .filter(entry => entry.dist <= 3)
                     .sort((a, b) => a.dist - b.dist)
-                    .slice(0, 6);
+                    .slice(0, closeSearchLimit);
                 for (const entry of closeSearch) {
                     const cKey = entry.cand.y * 80 + entry.cand.x;
                     if (this._addFailedTarget(cKey)) blacklisted++;
@@ -1929,6 +1932,9 @@ export class Agent {
 
                     // Blacklist nearby frontier cells only if frontier is small (they're probably unreachable)
                     if (frontier.length <= 30) {
+                        const depth = this.status?.dungeonLevel || this.dungeon.currentDepth || 1;
+                        const nearbyFrontierLimit = depth <= 1 ? 6 : 10;
+                        const nearbySearchLimit = depth <= 1 ? 3 : 6;
                         let blacklistedCount = 0;
                         const nearbyFrontier = frontier
                             .map(target => ({
@@ -1937,7 +1943,7 @@ export class Agent {
                             }))
                             .filter(entry => entry.dist <= 5)
                             .sort((a, b) => a.dist - b.dist)
-                            .slice(0, 10);
+                            .slice(0, nearbyFrontierLimit);
                         for (const entry of nearbyFrontier) {
                             const tKey = entry.target.y * 80 + entry.target.x;
                             if (this._addFailedTarget(tKey)) blacklistedCount++;
@@ -1951,7 +1957,7 @@ export class Agent {
                             }))
                             .filter(entry => entry.dist <= 3)
                             .sort((a, b) => a.dist - b.dist)
-                            .slice(0, 6);
+                            .slice(0, nearbySearchLimit);
                         for (const entry of nearbySearch) {
                             const cKey = entry.cand.y * 80 + entry.cand.x;
                             if (this._addFailedTarget(cKey)) blacklistedCount++;
