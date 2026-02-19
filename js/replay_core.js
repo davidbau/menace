@@ -1575,7 +1575,20 @@ export async function replaySession(seed, session, opts = {}) {
                 ]);
             }
             if (!settled.done) {
-                if (priorPendingKind === 'extended-command'
+                const isCapturedSearchPrompt = ((stepScreen[0] || '').startsWith('Search for:'));
+                if (isCapturedSearchPrompt
+                    && (stepScreen.length > 0 || stepScreenAnsi.length > 0)) {
+                    // Keylog-derived look prompts can stay pending across
+                    // multiple keys while still capturing the evolving prompt
+                    // buffer ("Search for: k", "Search for: ky", ...).
+                    applyStepScreen();
+                    if (opts.captureScreens) capturedScreenOverride = stepScreen;
+                    capturedScreenAnsiOverride = stepScreenAnsi.length > 0
+                        ? stepScreenAnsi
+                        : (Array.isArray(capturedScreenOverride)
+                            ? capturedScreenOverride.map((line) => String(line || ''))
+                            : null);
+                } else if (priorPendingKind === 'extended-command'
                     && (stepScreen.length > 0 || stepScreenAnsi.length > 0)) {
                     applyStepScreen();
                     if (opts.captureScreens) capturedScreenOverride = stepScreen;
