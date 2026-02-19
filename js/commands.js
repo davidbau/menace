@@ -3192,6 +3192,18 @@ async function handleSwapWeapon(player, display) {
 // Handle quaffing a potion
 // C ref: potion.c dodrink()
 async function handleQuaff(player, map, display) {
+    const bcsign = (obj) => (obj?.blessed ? 1 : (obj?.cursed ? -1 : 0));
+    // C ref: potion.c healup() -- overflow healing can increase max HP.
+    const healup = (nhp, nxtra = 0) => {
+        if (!Number.isFinite(nhp) || nhp <= 0) return;
+        player.hp += nhp;
+        if (player.hp > player.hpmax) {
+            const extra = Math.max(0, Number(nxtra) || 0);
+            player.hpmax += extra;
+            player.hp = player.hpmax;
+        }
+    };
+
     // C ref: potion.c:540-550 — check for fountain first
     const loc = map.at(player.x, player.y);
     if (loc && loc.typ === FOUNTAIN) {
@@ -3237,17 +3249,24 @@ async function handleQuaff(player, map, display) {
         player.removeFromInventory(item);
         const potionName = String(item.name || '').toLowerCase();
         // Simple potion effects
-        if (potionName.includes('extra healing')) {
+        if (potionName.includes('full healing')) {
             replacePromptMessage();
-            const heal = c_d(4, 8);
-            player.heal(heal);
+            healup(400, 4 + 4 * bcsign(item));
+            exercise(player, A_CON, true);
+            exercise(player, A_STR, true);
+            display.putstr_message('You feel completely healed.');
+        } else if (potionName.includes('extra healing')) {
+            replacePromptMessage();
+            const heal = 16 + c_d(4 + (2 * bcsign(item)), 8);
+            const nxtra = item.blessed ? 5 : (!item.cursed ? 2 : 0);
+            healup(heal, nxtra);
             exercise(player, A_CON, true);
             exercise(player, A_STR, true);
             display.putstr_message('You feel much better.');
         } else if (potionName.includes('healing')) {
             replacePromptMessage();
-            const heal = c_d(4, 4) + 2;
-            player.heal(heal);
+            const heal = 8 + c_d(4 + (2 * bcsign(item)), 4);
+            healup(heal, !item.cursed ? 1 : 0);
             exercise(player, A_CON, true);
             display.putstr_message('You feel better.');
         } else {

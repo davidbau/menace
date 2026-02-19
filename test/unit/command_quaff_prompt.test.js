@@ -46,4 +46,18 @@ describe('quaff prompt', () => {
         assert.equal(result.tookTime, false);
         assert.equal(game.display.topMessage, 'That is a silly thing to drink.');
     });
+
+    it('extra healing at full HP increases max HP like C healup overflow', async () => {
+        const game = makeGame();
+        game.player.hp = 10;
+        game.player.hpmax = 10;
+        game.player.inventory.push({ invlet: 'k', oclass: 7, name: 'potion of extra healing' });
+        pushInput('k'.charCodeAt(0));
+
+        const result = await rhack('q'.charCodeAt(0), game);
+        assert.equal(result.tookTime, true);
+        assert.equal(game.display.topMessage, 'You feel much better.');
+        assert.equal(game.player.hp, 12);
+        assert.equal(game.player.hpmax, 12);
+    });
 });

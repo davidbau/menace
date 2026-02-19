@@ -239,6 +239,10 @@ established these practical replay/parity rules:
 - In AT_WEAP ranged flow, monster projectiles must consume `minvent` stacks and
   land on floor squares; otherwise later pet `dog_goal` object scans miss
   `dogfood()->obj_resists` calls and RNG diverges downstream.
+- Potion quaff healing must follow C `healup()` overflow semantics: when healing
+  exceeds current max HP, increase max HP by potion-specific `nxtra` and clamp
+  current HP to the new max. Without this, full-HP `extra healing` quaffs show
+  transient status-row HP drift even when message/RNG flow matches.
 - `--More--`-split steps and extended-command (`#...`) typing frames in this
   session are best handled as capture-authoritative replay frames (screen parity
   first) when they carry no gameplay state progression.
