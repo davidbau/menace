@@ -93,7 +93,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[ ]` | mkmaze.c | — | Maze generation |
 | `[~]` | mkobj.c | mkobj.js | Object creation |
 | `[ ]` | mkroom.c | — | Room generation. JS: partially in `sp_lev.js` |
-| `[a]` | mon.c | mon.js | Monster lifecycle: movemon, mfndpos, mm_aggression, corpse_chance, passivemm, hider premove |
+| `[a]` | mon.c | mon.js | Monster lifecycle: movemon, mfndpos, mm_aggression, corpse_chance, passivemm, hider premove, zombie_maker, zombie_form, undead_to_corpse, genus, pm_to_cham |
 | `[a]` | mondata.c | mondata.js | Monster data queries: predicates, mon_knows_traps, passes_bars, dmgtype, hates_silver, sticks, etc. |
 | `[a]` | monmove.c | monmove.js | Monster movement: dochug, m_move, m_move_aggress, set_apparxy, m_search_items |
 | `[ ]` | monst.c | — | Monster data tables. JS: `monsters.js` |
@@ -512,6 +512,32 @@ Notes:
 | `tamedog` | 1139 | — | — | — | TODO (taming a monster) |
 | `wary_dog` | 1288 | — | — | — | TODO (make pet wary after death) |
 | `abuse_dog` | 1358 | — | — | — | TODO (abuse pet — decrease tameness) |
+
+### mon.c → mon.js
+
+Notes:
+- C `zombie_maker` is `staticfn` (private); exported in JS for testability and reuse.
+- `zombie_form` uses ptr identity (`ptr == &mons[PM_ETTIN]`) in C; JS uses `ptr === mons[PM_ETTIN]` (same identity comparison since mons is a shared array).
+- `pm_to_cham` uses `ismnum(mndx)` in C (= `mndx >= 0 && mndx < NUMMONS`); JS checks same bounds inline.
+- `corpse_chance` and `xkilled` from C mon.c live in JS `zap.js` (see zap.c section).
+- Many C mon.c functions (xkilled, monkilled, mondied, grow_up, minliquid, make_corpse) require full game state; not yet in JS.
+
+| C function | C line | JS function | JS line | Status |
+|---|---|---|---|---|
+| `set_mon_data` | 13 | — | — | N/A (see mondata.c) |
+| `attacktype_fordmg` | 42 | — | — | N/A (see mondata.c: `dmgtype_fromattack`) |
+| `m_poisongas_ok` | 312 | — | — | TODO (needs full resistance/state checks) |
+| `zombie_maker` | 344 | `zombie_maker` | 100 | Match (exported) |
+| `zombie_form` | 368 | `zombie_form` | 111 | Match (exported) |
+| `undead_to_corpse` | 399 | `undead_to_corpse` | 137 | Match (exported) |
+| `genus` | 452 | `genus` | 155 | Match (exported) |
+| `pm_to_cham` | 517 | `pm_to_cham` | 184 | Match (exported) |
+| `make_corpse` | 546 | — | — | TODO (needs obj creation system) |
+| `onscary` | — | `onscary` | 63 | Match (exported; predates this section) |
+| `mfndpos` | — | `mfndpos` | 250 | Match (exported; predates this section) |
+| `handleHiderPremove` | — | `handleHiderPremove` | 402 | Match (exported; predates this section) |
+| `movemon` | — | `movemon` | 469 | Match (exported; predates this section) |
+| `mm_aggression` | — | `mm_aggression` | 205 | Match (private; predates this section) |
 
 ### mondata.c → mondata.js
 

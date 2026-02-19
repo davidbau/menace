@@ -20,13 +20,27 @@ import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, ACCESSIBLE,
 import { rn2, rnd } from './rng.js';
 import { BOULDER, SCR_SCARE_MONSTER } from './objects.js';
 import { couldsee, m_cansee } from './vision.js';
-import { is_hider, hides_under, is_mindless, is_displacer, perceives, is_dwarf,
+import { is_hider, hides_under, is_mindless, is_displacer, perceives,
+         is_human, is_elf, is_dwarf, is_gnome, is_orc, is_shapeshifter,
          mon_knows_traps, passes_bars } from './mondata.js';
 import { PM_GRID_BUG, PM_FIRE_ELEMENTAL, PM_SALAMANDER,
          PM_PURPLE_WORM, PM_BABY_PURPLE_WORM, PM_SHRIEKER,
          PM_GHOUL, PM_SKELETON,
          PM_DEATH, PM_PESTILENCE, PM_FAMINE,
          PM_DISPLACER_BEAST,
+         PM_KOBOLD, PM_DWARF, PM_GNOME, PM_ORC, PM_ELF, PM_HUMAN,
+         PM_GIANT, PM_ETTIN, PM_VAMPIRE, PM_VAMPIRE_LEADER,
+         PM_KOBOLD_ZOMBIE, PM_DWARF_ZOMBIE, PM_GNOME_ZOMBIE, PM_ORC_ZOMBIE,
+         PM_ELF_ZOMBIE, PM_HUMAN_ZOMBIE, PM_GIANT_ZOMBIE, PM_ETTIN_ZOMBIE,
+         PM_KOBOLD_MUMMY, PM_DWARF_MUMMY, PM_GNOME_MUMMY, PM_ORC_MUMMY,
+         PM_ELF_MUMMY, PM_HUMAN_MUMMY, PM_GIANT_MUMMY, PM_ETTIN_MUMMY,
+         PM_STUDENT, PM_CHIEFTAIN, PM_NEANDERTHAL, PM_ATTENDANT,
+         PM_PAGE, PM_ABBOT, PM_ACOLYTE, PM_HUNTER, PM_THUG,
+         PM_ROSHI, PM_GUIDE, PM_WARRIOR, PM_APPRENTICE,
+         PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVE_DWELLER, PM_HEALER,
+         PM_KNIGHT, PM_MONK, PM_CLERIC, PM_RANGER, PM_ROGUE,
+         PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD,
+         NON_PM, NUMMONS,
          mons,
          AT_NONE, AD_PHYS, AD_ACID, AD_ENCH,
          M1_FLY, M1_SWIM, M1_AMPHIBIOUS, M1_AMORPHOUS, M1_WALLWALK,
@@ -82,13 +96,95 @@ function zombie_form_exists(mdat) {
     }
 }
 
-function zombie_maker(mon) {
+// C ref: mon.c zombie_maker(mon) — returns true if mon can create zombies
+export function zombie_maker(mon) {
     if (!mon || mon.mcan) return false;
     const mlet = mon.type?.symbol ?? -1;
     if (mlet === S_ZOMBIE) {
         return mon.mndx !== PM_GHOUL && mon.mndx !== PM_SKELETON;
     }
     return mlet === S_LICH;
+}
+
+// C ref: mon.c zombie_form(pm) — return PM index of zombie form, or NON_PM
+// Note: C uses ptr comparison; JS uses symbol and flag predicates.
+export function zombie_form(pm) {
+    if (!pm) return NON_PM;
+    switch (pm.symbol) {
+    case S_ZOMBIE:
+        return NON_PM; // already a zombie/ghoul/skeleton
+    case S_KOBOLD:
+        return PM_KOBOLD_ZOMBIE;
+    case S_ORC:
+        return PM_ORC_ZOMBIE;
+    case S_GIANT:
+        if (pm === mons[PM_ETTIN]) return PM_ETTIN_ZOMBIE;
+        return PM_GIANT_ZOMBIE;
+    case S_HUMAN:
+    case S_KOP:
+        if (is_elf(pm)) return PM_ELF_ZOMBIE;
+        return PM_HUMAN_ZOMBIE;
+    case S_HUMANOID:
+        if (is_dwarf(pm)) return PM_DWARF_ZOMBIE;
+        break;
+    case S_GNOME:
+        return PM_GNOME_ZOMBIE;
+    }
+    return NON_PM;
+}
+
+// C ref: mon.c undead_to_corpse(mndx) — convert undead PM index to living counterpart
+export function undead_to_corpse(mndx) {
+    switch (mndx) {
+    case PM_KOBOLD_ZOMBIE: case PM_KOBOLD_MUMMY: return PM_KOBOLD;
+    case PM_DWARF_ZOMBIE:  case PM_DWARF_MUMMY:  return PM_DWARF;
+    case PM_GNOME_ZOMBIE:  case PM_GNOME_MUMMY:  return PM_GNOME;
+    case PM_ORC_ZOMBIE:    case PM_ORC_MUMMY:    return PM_ORC;
+    case PM_ELF_ZOMBIE:    case PM_ELF_MUMMY:    return PM_ELF;
+    case PM_VAMPIRE: case PM_VAMPIRE_LEADER:
+    case PM_HUMAN_ZOMBIE:  case PM_HUMAN_MUMMY:  return PM_HUMAN;
+    case PM_GIANT_ZOMBIE:  case PM_GIANT_MUMMY:  return PM_GIANT;
+    case PM_ETTIN_ZOMBIE:  case PM_ETTIN_MUMMY:  return PM_ETTIN;
+    default: return mndx;
+    }
+}
+
+// C ref: mon.c genus(mndx, mode) — return generic species index for a monster.
+// mode=0: return base species (PM_HUMAN, PM_ELF, etc.)
+// mode=1: return character-class monster (PM_ARCHEOLOGIST, etc.) for quest guardians
+export function genus(mndx, mode) {
+    switch (mndx) {
+    case PM_STUDENT:     return mode ? PM_ARCHEOLOGIST : PM_HUMAN;
+    case PM_CHIEFTAIN:   return mode ? PM_BARBARIAN   : PM_HUMAN;
+    case PM_NEANDERTHAL: return mode ? PM_CAVE_DWELLER: PM_HUMAN;
+    case PM_ATTENDANT:   return mode ? PM_HEALER      : PM_HUMAN;
+    case PM_PAGE:        return mode ? PM_KNIGHT       : PM_HUMAN;
+    case PM_ABBOT:       return mode ? PM_MONK         : PM_HUMAN;
+    case PM_ACOLYTE:     return mode ? PM_CLERIC       : PM_HUMAN;
+    case PM_HUNTER:      return mode ? PM_RANGER       : PM_HUMAN;
+    case PM_THUG:        return mode ? PM_ROGUE        : PM_HUMAN;
+    case PM_ROSHI:       return mode ? PM_SAMURAI      : PM_HUMAN;
+    case PM_GUIDE:       return mode ? PM_TOURIST      : PM_HUMAN;
+    case PM_APPRENTICE:  return mode ? PM_WIZARD       : PM_HUMAN;
+    case PM_WARRIOR:     return mode ? PM_VALKYRIE     : PM_HUMAN;
+    default:
+        if (mndx >= 0 && mndx < NUMMONS) {
+            const ptr = mons[mndx];
+            if (is_human(ptr)) return PM_HUMAN;
+            if (is_elf(ptr))   return PM_ELF;
+            if (is_dwarf(ptr)) return PM_DWARF;
+            if (is_gnome(ptr)) return PM_GNOME;
+            if (is_orc(ptr))   return PM_ORC;
+        }
+        return mndx;
+    }
+}
+
+// C ref: mon.c pm_to_cham(mndx) — return mndx if shapeshifter, else NON_PM
+export function pm_to_cham(mndx) {
+    if (mndx >= 0 && mndx < NUMMONS && is_shapeshifter(mons[mndx]))
+        return mndx;
+    return NON_PM;
 }
 
 function unique_corpstat(mdat) {
