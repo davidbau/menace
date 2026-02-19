@@ -116,8 +116,11 @@ for commit in "${COMMITS[@]}"; do
     RNG=$(jq '[.results[].metrics.rngCalls // empty | .matched] | add // 0' "$PENDING")
     echo "✅ ${RESULTS_COUNT} sessions, rng=${RNG} (${ELAPSED}s)"
   else
+    # Mark as attempted so we don't retry next time
+    echo "{\"results\":[], \"commit\":\"$short\", \"date\":\"$(date -u +%Y-%m-%dT%H:%M:%S)\", \"skipped\":true}" \
+      | git notes --ref=test-results add -f -F - "$commit"
     ELAPSED=$(( $(date +%s) - START_TIME ))
-    echo "✗ no results (${ELAPSED}s)"
+    echo "✗ no results, marked skipped (${ELAPSED}s)"
     FAILED=$((FAILED + 1))
   fi
 done
