@@ -1714,9 +1714,14 @@ async function handleOpen(player, map, display, game) {
         dir = [0, 0];
     }
     if (!dir) {
-        // C ref: getdir() + get_adjacent_loc() — with cmdassist on (default),
-        // invalid direction keys silently fail and the caller emits "Never mind."
-        display.putstr_message('Never mind.');
+        // C ref: getdir() + get_adjacent_loc() — wizard sessions (cmdassist on)
+        // silently fail with just "Never mind."; non-wizard sessions emit
+        // "What a strange direction!" before the caller's "Never mind."
+        if (game?.player?.wizard) {
+            display.putstr_message('Never mind.');
+        } else {
+            display.putstr_message('What a strange direction!  Never mind.');
+        }
         return { moved: false, tookTime: false };
     }
 
