@@ -123,7 +123,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[ ]` | region.c | — | Region effects (gas clouds, etc.) |
 | `[N/A]` | report.c | — | Bug reporting, panic trace |
 | `[ ]` | restore.c | — | Game restore. JS: `storage.js` |
-| `[~]` | rip.c | display.js | RIP screen. `genl_outrip` in display.js:1131, should extract to rip.js |
+| `[a]` | rip.c | display.js | RIP screen. genl_outrip as Display.renderTombstone (method); center() inlined |
 | `[x]` | rnd.c | rng.js | Random number generation |
 | `[ ]` | role.c | — | Role/race/gender selection. JS: `player.js` |
 | `[ ]` | rumors.c | — | Rumor system. JS: `rumor_data.js` (data only) |
@@ -171,9 +171,9 @@ don't follow the same 1:1 C→JS mapping pattern.
 - **N/A (system/platform)**: 19
 - **Game logic files**: 110
 - **Complete (`[x]`)**: 4
-- **Aligned (`[a]`)**: 17
+- **Aligned (`[a]`)**: 18
 - **Present (`[p]`)**: 1
-- **Needs alignment (`[~]`)**: 13
+- **Needs alignment (`[~]`)**: 12
 - **No JS file yet (`[ ]`)**: 75
 
 ### JS Files Without C Counterparts
@@ -466,6 +466,18 @@ uses static symbol data in symbols.js with no mode switching at runtime.
 | `parsesymbols` | 773 | N/A — no config file option parsing |
 | `match_sym` | 852 | N/A — no config file option parsing |
 | `do_symset` | 909 | N/A — no interactive options menu in JS |
+
+### rip.c → display.js
+
+Notes:
+- rip.c has only 2 functions. `genl_outrip` is implemented as `Display.renderTombstone` (a class method).
+- `center()` is a static helper that centers text — inlined in `renderTombstone`.
+- The JS implementation correctly renders the tombstone ASCII art (C ref: rip.c rip[] template).
+
+| C Function | C Line | JS Location | JS Line | Status |
+|------------|--------|-------------|---------|--------|
+| `center` | 75 | — (inlined) | — | Inlined into `Display.renderTombstone` |
+| `genl_outrip` | 85 | `Display.renderTombstone` | 1135 | Match (class method; winid/how/when replaced by name/gold/deathLines/year params) |
 
 ### dog.c → dog.js (and u_init.js)
 
