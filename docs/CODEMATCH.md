@@ -123,7 +123,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[ ]` | region.c | — | Region effects (gas clouds, etc.) |
 | `[N/A]` | report.c | — | Bug reporting, panic trace |
 | `[ ]` | restore.c | — | Game restore. JS: `storage.js` |
-| `[ ]` | rip.c | — | RIP screen |
+| `[~]` | rip.c | display.js | RIP screen. `genl_outrip` in display.js:1131 |
 | `[x]` | rnd.c | rng.js | Random number generation |
 | `[ ]` | role.c | — | Role/race/gender selection. JS: `player.js` |
 | `[ ]` | rumors.c | — | Rumor system. JS: `rumor_data.js` (data only) |
