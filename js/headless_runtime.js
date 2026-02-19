@@ -598,7 +598,6 @@ export class HeadlessGame {
             // is up-to-date before movemon().  Recompute here to match.
             this.fov.compute(this.map, this.player.x, this.player.y);
             if (!options.skipMonsterMove) {
-                settrack(this.player);
                 movemon(this.map, this.player, this.display, this.fov, this);
             }
             this.simulateTurnEnd();
@@ -625,7 +624,6 @@ export class HeadlessGame {
                 if (interruptedOcc) continue;
                 this.fov.compute(this.map, this.player.x, this.player.y);
                 if (!options.skipMonsterMove) {
-                    settrack(this.player);
                     movemon(this.map, this.player, this.display, this.fov, this);
                 }
                 this.simulateTurnEnd();
@@ -647,7 +645,6 @@ export class HeadlessGame {
                 if (!repeated || !repeated.tookTime) break;
                 this.fov.compute(this.map, this.player.x, this.player.y);
                 if (!options.skipMonsterMove) {
-                    settrack(this.player);
                     movemon(this.map, this.player, this.display, this.fov, this);
                 }
                 this.simulateTurnEnd();
@@ -673,7 +670,6 @@ export class HeadlessGame {
                     if (interruptedOcc) continue;
                     this.fov.compute(this.map, this.player.x, this.player.y);
                     if (!options.skipMonsterMove) {
-                        settrack(this.player);
                         movemon(this.map, this.player, this.display, this.fov, this);
                     }
                     this.simulateTurnEnd();
