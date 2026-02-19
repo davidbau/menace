@@ -174,3 +174,25 @@
 - Why:
   - XP checkpoint telemetry alone shows *outcome* (low XP throughput), but action-mix telemetry helps attribute *cause* (e.g., too little productive combat vs too much fleeing/navigation churn).
   - This supports evidence-driven XP-by-600 tuning without changing gameplay policy.
+
+## 2026-02-19 - Keep: Non-Productive Combat Diagnostics (`reallyAttack`, `petSwap`)
+
+- Change:
+  - `selfplay/agent.js` now tracks:
+    - `reallyAttackPrompts` (count of declined "Really attack?" prompts),
+    - `petDisplacements` (count of detected pet swap displacements after attempted attack).
+  - `selfplay/runner/c_runner.js` includes these in `Action telemetry` as:
+    - `reallyAttack=<count>`,
+    - `petSwap=<count>`.
+  - `selfplay/runner/c_role_matrix.js` parses and summarizes both fields.
+- Why:
+  - High `attack` turns with low XP can come from non-productive pet/peaceful interactions rather than useful combat.
+  - These counters provide direct evidence to distinguish true combat-pressure from prompt-loop waste before attempting policy changes.
+- Evidence (held-out `31..43`, 600 turns):
+  - Aggregate: `reallyAttack=0.00`, `petSwap=26.31` (avg per run), `attack=91.46`, `XP t600=8.23`.
+  - Concentrated high-churn examples:
+    - Tourist seed 41: `attack=272`, `petSwap=98`, `maxXP=0`.
+    - Caveman seed 33: `attack=199`, `petSwap=57`, `maxXP=2`.
+    - Valkyrie seed 42: `attack=187`, `petSwap=54`, `maxXP=5`.
+  - Interpretation:
+    - Current low-XP behavior in many runs is driven more by pet displacement churn than by `"Really attack?"` prompt loops.

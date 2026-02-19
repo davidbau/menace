@@ -121,6 +121,8 @@ export class Agent {
             maxXpPoints: 0,
             firstXpLevel2Turn: null,
             firstXpLevel3Turn: null,
+            reallyAttackPrompts: 0,
+            petDisplacements: 0,
             died: false,
             deathCause: '',
             targetAssignments: 0,
@@ -575,6 +577,7 @@ export class Agent {
 
         // "Really attack X?" -- no! The game only asks this for peacefuls/pets
         if (lower.includes('really attack')) {
+            this.stats.reallyAttackPrompts++;
             // Mark last attempted attack position as a pet/peaceful
             if (this.lastAttemptedAttackPos) {
                 this.refusedAttackPositions.add(
@@ -3370,6 +3373,7 @@ export class Agent {
             for (const mon of monsters) {
                 if (mon.x === oldPos.x && mon.y === oldPos.y) {
                     // This monster is a pet (we displaced it)
+                    this.stats.petDisplacements++;
                     this.knownPetChars.add(mon.ch);
                     this.refusedAttackPositions.add(mon.y * 80 + mon.x);
                     break;

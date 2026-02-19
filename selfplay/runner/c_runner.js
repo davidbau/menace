@@ -179,6 +179,8 @@ try {
     const waitTurns = actionCount('wait');
     const pickupTurns = actionCount('pickup');
     const unknownTurns = actionCount('unknown');
+    const reallyAttackPrompts = stats.reallyAttackPrompts ?? 0;
+    const petDisplacements = stats.petDisplacements ?? 0;
 
     runnerLog('');
     runnerLog(`Game ended after ${stats.turns} turns:`);
@@ -186,7 +188,7 @@ try {
     runnerLog(`  Death cause: ${stats.deathCause || 'survived'}`);
     runnerLog(`  XP progression: maxXL=${Math.max(stats.maxXpLevel || 0, progression.maxXL)} maxXP=${Math.max(stats.maxXpPoints || 0, progression.maxXP)} XL2_turn=${stats.firstXpLevel2Turn ?? progression.firstXL2Turn ?? 'never'} XL3_turn=${stats.firstXpLevel3Turn ?? progression.firstXL3Turn ?? 'never'}`);
     runnerLog(`  XP checkpoints: t100=${xpAt100} t200=${xpAt200} t400=${xpAt400} t600=${xpAt600}`);
-    runnerLog(`  Action telemetry: attack=${attackTurns} flee=${fleeTurns} explore=${exploreTurns} navigate=${navigateTurns} search=${searchTurns} rest=${restTurnsTaken} wait=${waitTurns} pickup=${pickupTurns} xl1Attack=${progression.xl1AttackTurns} unknown=${unknownTurns}`);
+    runnerLog(`  Action telemetry: attack=${attackTurns} flee=${fleeTurns} explore=${exploreTurns} navigate=${navigateTurns} search=${searchTurns} rest=${restTurnsTaken} wait=${waitTurns} pickup=${pickupTurns} xl1Attack=${progression.xl1AttackTurns} reallyAttack=${reallyAttackPrompts} petSwap=${petDisplacements} unknown=${unknownTurns}`);
     runnerLog(`  Explore telemetry: assign=${stats.targetAssignments ?? 0} reassign=${stats.targetReassignments ?? 0} complete=${stats.targetCompletions ?? 0} abandonInvalid=${stats.targetAbandonsInvalid ?? 0} abandonNoPath=${stats.targetAbandonsNoPath ?? 0} abandonNoProgress=${stats.targetAbandonsNoProgress ?? 0} failedAdd=${stats.failedTargetAdds ?? 0} failedClear=${stats.failedTargetClears ?? 0} frontierResets=${stats.systematicFrontierResets ?? 0} doorOpen=${stats.doorOpenAttempts ?? 0} doorKick=${stats.doorKickAttempts ?? 0}`);
     if (finalStatus) {
         const hunger = finalStatus.fainting ? 'fainting'
