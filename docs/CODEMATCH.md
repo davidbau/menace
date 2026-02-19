@@ -109,7 +109,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[ ]` | objects.c | — | Object data tables. JS: `objects.js` (data), `objdata.js` (queries) |
 | `[ ]` | objnam.c | — | Object naming (xname, doname). JS: partially in `mkobj.js` |
 | `[ ]` | options.c | — | Game options. JS: `options_menu.js`, `storage.js` |
-| `[~]` | pager.c | pager.js | Help and look commands |
+| `[~]` | pager.c | pager.js | Text pager and look/describe commands. pager.js has text pager only; help commands in commands.js; game look functions (do_look, lookat, waterbody_name) not yet in JS |
 | `[ ]` | pickup.c | — | Picking up items |
 | `[ ]` | pline.c | — | Message output (pline, You, etc.) |
 | `[ ]` | polyself.c | — | Polymorphing |
@@ -784,4 +784,38 @@ Notes:
 | `poly_obj` | zap.c | 1700 | N/A | — | TODO (object polymorph) |
 | `learnwand` | zap.c | 121 | N/A | — | TODO (identify wand after zapping) |
 | `cancel_item` | zap.c | 1237 | N/A | — | TODO (cancellation beam) |
+
+### pager.c → pager.js + commands.js
+
+Notes:
+- pager.c in C serves two roles: (1) text file pager infrastructure, (2) game look/describe commands.
+- JS splits these: pager.js = text pager, commands.js = help commands, game look = mostly TODO.
+- The ~49 game look functions (do_look, lookat, waterbody_name, etc.) are not yet in JS.
+
+| C Function | C Line | JS Location | JS Function | Notes |
+|---|---|---|---|---|
+| `checkfile` / `page_file` | 830 | pager.js | `showPager` | Architectural match (pager infrastructure); JS renamed |
+| `dowhatis` | 2318 | commands.js | (inline, ~4503) | Partially implemented: shows glyph name |
+| `doquickwhatis` | 2325 | commands.js | (inline, ~588) | Basic whatis on map position |
+| `dowhatdoes` | ~2340 | commands.js | (~4530) | Key description |
+| `dohistory` | ~2350 | commands.js | (~4577) | Game version history |
+| `doversion` | ~2360 | commands.js | (~618) | Version string |
+| `dohelp` | ~2380 | commands.js | (~4355) | Help menu |
+| `self_lookat` | 108 | N/A | — | TODO (player stats description) |
+| `monhealthdescr` | 138 | N/A | — | TODO (monster health bar) |
+| `trap_description` | 167 | N/A | — | TODO (trap name/description) |
+| `mhidden_description` | 186 | N/A | — | TODO (hidden monster description) |
+| `object_from_map` | 284 | N/A | — | TODO (top object at position) |
+| `look_at_object` | 380 | N/A | — | TODO (object look description) |
+| `look_at_monster` | 422 | N/A | — | TODO (monster look description) |
+| `waterbody_name` | 561 | N/A | — | TODO (lake/ocean/moat naming) |
+| `ice_descr` | 614 | N/A | — | TODO (ice description) |
+| `lookat` | 657 | N/A | — | TODO (look at map location) |
+| `do_screen_description` | 1246 | N/A | — | TODO (describe map tile) |
+| `do_look` | 1669 | N/A | — | TODO (main ; command) |
+| `look_all` | 1975 | N/A | — | TODO (extended look mode) |
+| `look_traps` | 2074 | N/A | — | TODO (nearby trap descriptions) |
+| `look_engrs` | 2140 | N/A | — | TODO (nearby engraving descriptions) |
+| `do_supplemental_info` | 2249 | N/A | — | TODO (supplemental descriptions) |
+| `doidtrap` | 2332 | N/A | — | TODO (identify trap) |
 
