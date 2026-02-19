@@ -6,6 +6,7 @@ import { GameMap } from '../../js/map.js';
 import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput } from '../../js/input.js';
 import { ROOM } from '../../js/config.js';
+import { FLINT, GEM_CLASS } from '../../js/objects.js';
 
 function makeGame() {
     const map = new GameMap();
@@ -157,6 +158,19 @@ describe('throw prompt behavior', () => {
         assert.equal(game.display.topMessage, null);
     });
 
+    it('enter uses keypad-down direction in throw prompt', async () => {
+        const game = makeGame();
+        pushInput('b'.charCodeAt(0));
+        pushInput('\n'.charCodeAt(0));
+
+        const result = await rhack('t'.charCodeAt(0), game);
+        assert.equal(result.tookTime, true);
+        const thrown = game.map.objects.find((o) => o.name === 'dagger');
+        assert.ok(thrown);
+        assert.equal(thrown.ox, 10);
+        assert.equal(thrown.oy, 11);
+    });
+
     it('keeps throw prompt stable on invalid letters', async () => {
         const game = makeGame();
         pushInput('i'.charCodeAt(0));
@@ -169,5 +183,26 @@ describe('throw prompt behavior', () => {
             'What do you want to throw? [b or ?*]',
             'Never mind.',
         ]);
+    });
+
+    it('stacks repeated throws onto existing floor object', async () => {
+        const game = makeGame();
+        game.player.inventory = [
+            { invlet: 'f', oclass: GEM_CLASS, otyp: FLINT, name: 'flint stone', quan: 2 },
+        ];
+
+        pushInput('f'.charCodeAt(0));
+        pushInput('l'.charCodeAt(0));
+        let result = await rhack('t'.charCodeAt(0), game);
+        assert.equal(result.tookTime, true);
+
+        pushInput('f'.charCodeAt(0));
+        pushInput('l'.charCodeAt(0));
+        result = await rhack('t'.charCodeAt(0), game);
+        assert.equal(result.tookTime, true);
+
+        const landed = game.map.objects.filter((o) => o.ox === 11 && o.oy === 10 && o.otyp === FLINT);
+        assert.equal(landed.length, 1);
+        assert.equal(landed[0].quan, 2);
     });
 });

@@ -30,6 +30,7 @@ import { showPager } from './pager.js';
 import { handleZap } from './zap.js';
 import { saveGame, saveFlags } from './storage.js';
 import { obj_resists, is_metallic } from './objdata.js';
+import { placeFloorObject } from './floor_objects.js';
 import { greetingForRole } from './player.js';
 import { shtypes } from './shknam.js';
 import {
@@ -218,6 +219,10 @@ function compactInvletPromptChars(chars) {
 // C ref: dothrow.c ammo_and_launcher() for dofire fireassist behavior.
 function ammoAndLauncher(ammo, launcher) {
     if (!ammo || !launcher) return false;
+    // C ref: flint/rock are sling ammo even when gem metadata is sparse.
+    if ((ammo.otyp === FLINT || ammo.otyp === ROCK) && launcher.otyp === SLING) {
+        return true;
+    }
     const ammoSub = objectData[ammo.otyp]?.sub;
     const launcherSub = objectData[launcher.otyp]?.sub;
     return Number.isInteger(ammoSub)
@@ -1922,6 +1927,7 @@ async function handleInventory(player, display, game) {
                 || selected === player.boots
                 || selected === player.cloak
             );
+            const stackCanShoot = ammoAndLauncher(selected, player.weapon);
             let menuOffx = 34;
             const displayCols = Number.isInteger(display.cols) ? display.cols : COLNO;
             if (typeof display.setCell === 'function'
@@ -1946,13 +1952,17 @@ async function handleInventory(player, display, game) {
                         actions.push(`c - Name this stack of ${noun}`);
                         actions.push('d - Drop this stack');
                         actions.push('E - Write on the ground with one of these items');
-                        actions.push('f - Throw one of these');
+                        actions.push(stackCanShoot
+                            ? `f - Shoot one of these with your wielded ${xname({ ...player.weapon, quan: 1 })}`
+                            : 'f - Throw one of these');
                         actions.push('i - Adjust inventory by assigning new letter');
                         actions.push('I - Adjust inventory by splitting this stack');
                         if (selected.otyp === FLINT || selected.otyp === ROCK) {
                             actions.push('R - Rub something on this stone');
                         }
-                        actions.push("t - Throw one of these (same as 'f')");
+                        actions.push(stackCanShoot
+                            ? "t - Shoot one of these (same as 'f')"
+                            : "t - Throw one of these (same as 'f')");
                         actions.push('w - Wield this stack in your hands');
                         actions.push('/ - Look up information about these');
                         actions.push('(end)');
@@ -2097,6 +2107,15 @@ async function handleInventory(player, display, game) {
                     }
                 }
                 clearTopline();
+                if ((actionKey === 'f' || actionKey === 't') && game?.map) {
+                    return await promptDirectionAndThrowItem(
+                        player,
+                        game.map,
+                        display,
+                        selected,
+                        { fromFire: stackCanShoot }
+                    );
+                }
                 if (actionKey === 'c') {
                     if (game && typeof game.renderCurrentScreen === 'function') {
                         game.renderCurrentScreen();
@@ -2348,7 +2367,7 @@ async function handleDrop(player, map, display) {
         player.removeFromInventory(item);
         item.ox = player.x;
         item.oy = player.y;
-        map.objects.push(item);
+        placeFloorObject(map, item);
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
         display.messageNeedsMore = false;
@@ -2655,7 +2674,11 @@ async function promptDirectionAndThrowItem(player, map, display, item, { fromFir
     display.putstr_message('In what direction?');
     const dirCh = await nhgetch();
     const dch = String.fromCharCode(dirCh);
-    const dir = DIRECTION_KEYS[dch];
+    let dir = DIRECTION_KEYS[dch];
+    // C tty/keypad parity: Enter maps to keypad-down ('j') in getdir flows.
+    if (!dir && (dirCh === 10 || dirCh === 13)) {
+        dir = DIRECTION_KEYS.j;
+    }
     if (!dir) {
         replacePromptMessage();
         return { moved: false, tookTime: false };
@@ -2695,11 +2718,14 @@ async function promptDirectionAndThrowItem(player, map, display, item, { fromFir
         return { moved: false, tookTime: false };
     }
     // Minimal throw behavior for replay flow fidelity.
-    // C ref: dothrow.c throw_obj() multishot calculation —
-    // rnd(multishot) is called only for stacked weapon-class items.
-    // For basic throws multishot=1, so rnd(1) consumes one RNG call.
-    if ((item.quan || 1) > 1 && item.oclass === WEAPON_CLASS) {
-        rnd(1);
+    // C ref: dothrow.c throw_obj() multishot calculation — for stack throws,
+    // rnd(multishot) is consumed when ammo is paired with a launcher or for
+    // stacked thrown weapons.
+    if ((item.quan || 1) > 1) {
+        const matchedLauncher = ammoAndLauncher(item, player.weapon);
+        if (item.oclass === WEAPON_CLASS || matchedLauncher) {
+            rnd(matchedLauncher ? 2 : 1);
+        }
     }
     let thrownItem = item;
     if ((item.quan || 1) > 1) {
@@ -2720,10 +2746,7 @@ async function promptDirectionAndThrowItem(player, map, display, item, { fromFir
         : ((typeof map.getCell === 'function')
             ? map.getCell(landingX, landingY)
             : (map?.cells?.[landingY]?.[landingX] || null));
-    if (fromFire) {
-        landingX = player.x;
-        landingY = player.y;
-    } else if (landingLoc && !ACCESSIBLE(landingLoc.typ)) {
+    if (landingLoc && !ACCESSIBLE(landingLoc.typ)) {
         landingX = player.x;
         landingY = player.y;
     }
@@ -2744,7 +2767,7 @@ async function promptDirectionAndThrowItem(player, map, display, item, { fromFir
         obj_resists(thrownItem, 1, 99);
     }
     thrownItem._thrownByPlayer = true;
-    map.objects.push(thrownItem);
+    placeFloorObject(map, thrownItem);
     // C ref: dothrow.c throw_obj() only emits a throw topline for
     // multishot/count cases; a normal single throw should just resolve.
     replacePromptMessage();

@@ -7,7 +7,7 @@ import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput } from '../../js/input.js';
 import {
     COIN_CLASS, GOLD_PIECE, TOOL_CLASS, STETHOSCOPE, WEAPON_CLASS, SCALPEL,
-    SPBOOK_CLASS, OIL_LAMP, ARMOR_CLASS, SMALL_SHIELD, SPE_HEALING, FLINT,
+    SPBOOK_CLASS, OIL_LAMP, ARMOR_CLASS, SMALL_SHIELD, SPE_HEALING, FLINT, SLING,
 } from '../../js/objects.js';
 
 function makeGame() {
@@ -192,6 +192,41 @@ describe('inventory modal dismissal', () => {
         assert.equal(result.tookTime, false);
         assert.ok(writes.some((w) => w.row === 0 && w.attr === 1 && w.str.includes('Do what with the flint stones?')));
         assert.ok(writes.some((w) => w.str.includes('c - Name this stack of flint stones')));
+    });
+
+    it('uses sling-specific shoot wording for flint stack actions', async () => {
+        const { game } = makeGame();
+        const sling = {
+            oclass: WEAPON_CLASS,
+            otyp: SLING,
+            invlet: 's',
+            quan: 1,
+            known: true,
+            dknown: true,
+        };
+        game.player.inventory = [
+            sling,
+            {
+                oclass: WEAPON_CLASS,
+                otyp: FLINT,
+                invlet: 'f',
+                quan: 2,
+                known: true,
+                dknown: true,
+            },
+        ];
+        game.player.weapon = sling;
+        const writes = [];
+        game.display.putstr = function putstr(col, row, str, color, attr) {
+            writes.push({ col, row, str, color, attr });
+        };
+        game.display.clearRow = function clearRow() {};
+
+        pushInput('f'.charCodeAt(0));
+        pushInput(' '.charCodeAt(0));
+        const result = await rhack('i'.charCodeAt(0), game);
+        assert.equal(result.tookTime, false);
+        assert.ok(writes.some((w) => w.str.includes('f - Shoot one of these with your wielded sling')));
     });
 
     it('shows light and rub actions for oil lamps', async () => {

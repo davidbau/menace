@@ -7,7 +7,7 @@ import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput } from '../../js/input.js';
 import {
     WEAPON_CLASS, FOOD_CLASS, COIN_CLASS, GOLD_PIECE, LANCE, LONG_SWORD,
-    ARROW, BOW,
+    ARROW, BOW, FLINT, ROCK, SLING, GEM_CLASS,
 } from '../../js/objects.js';
 
 function makeGame() {
@@ -151,6 +151,28 @@ test('fireassist swap preserves timed turn without run hook when direction is ca
     assert.equal(result.tookTime, true);
     assert.equal(game.player.weapon, bow);
     assert.equal(game.player.swapWeapon, sword);
+});
+
+test('fireassist treats flint/rock as sling ammo for launcher swap', async () => {
+    const game = makeGame();
+    const flints = { oclass: GEM_CLASS, otyp: FLINT, invlet: 'f', name: 'flint stone', quan: 5 };
+    const sling = { oclass: WEAPON_CLASS, otyp: SLING, invlet: 's', name: 'sling', quan: 1 };
+    const rocks = { oclass: GEM_CLASS, otyp: ROCK, invlet: 'r', name: 'rock', quan: 10 };
+    game.player.inventory = [flints, sling, rocks];
+    game.player.quiver = flints;
+    game.player.weapon = rocks;
+    game.player.swapWeapon = sling;
+    let runTurns = 0;
+    game.advanceRunTurn = async () => { runTurns++; };
+    clearInputQueue();
+    pushInput('e'.charCodeAt(0)); // invalid direction => cancel prompt
+
+    const result = await rhack('f'.charCodeAt(0), game);
+    assert.equal(result.tookTime, false);
+    assert.equal(runTurns, 1);
+    assert.equal(game.player.weapon, sling);
+    assert.equal(game.player.swapWeapon, rocks);
+    assert.ok(game.display.messages.includes('In what direction?'));
 });
 
 test('fire accepts manual inventory letters then asks direction', async () => {

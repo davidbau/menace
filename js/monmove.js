@@ -21,6 +21,7 @@ import { observeObject } from './discovery.js';
 import { dogfood, dog_eat, can_carry, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT,
          POISON, UNDEF, TABU } from './dog.js';
 import { couldsee, m_cansee, do_clear_area } from './vision.js';
+import { placeFloorObject } from './floor_objects.js';
 import { can_teleport, noeyes, perceives, is_animal, is_mindless, nohands, nonliving,
          is_displacer, is_hider, monDisplayName, hasGivenName, monNam,
          } from './mondata.js';
@@ -1332,52 +1333,6 @@ function droppables(mon) {
     return null;
 }
 
-function canStackFloorObject(a, b) {
-    if (!a || !b) return false;
-    if (a.otyp !== b.otyp) return false;
-    if (a.oclass === COIN_CLASS) return true;
-    if (!objectData[a.otyp]?.merge) return false;
-    if (!!a.cursed !== !!b.cursed) return false;
-    if (!!a.blessed !== !!b.blessed) return false;
-    if ((a.spe || 0) !== (b.spe || 0)) return false;
-    if ((a.known || 0) !== (b.known || 0)) return false;
-    if ((a.oeroded || 0) !== (b.oeroded || 0)) return false;
-    if ((a.oeroded2 || 0) !== (b.oeroded2 || 0)) return false;
-    if (!!a.oerodeproof !== !!b.oerodeproof) return false;
-    if ((a.odiluted || 0) !== (b.odiluted || 0)) return false;
-    if ((a.recharged || 0) !== (b.recharged || 0)) return false;
-    if ((a.corpsenm || 0) !== (b.corpsenm || 0)) return false;
-    if ((a.oeaten || 0) !== (b.oeaten || 0)) return false;
-    if ((a.ovar1 || 0) !== (b.ovar1 || 0)) return false;
-    if ((a.ovar2 || 0) !== (b.ovar2 || 0)) return false;
-    if ((a.ovar3 || 0) !== (b.ovar3 || 0)) return false;
-    if ((a.age || 0) !== (b.age || 0)) return false;
-    if (!!a.olocked !== !!b.olocked) return false;
-    if (!!a.obroken !== !!b.obroken) return false;
-    if (!!a.otrapped !== !!b.otrapped) return false;
-    if ((a.no_charge || 0) !== (b.no_charge || 0)) return false;
-    if (!!a.lamplit !== !!b.lamplit) return false;
-    if ((a.poisoned || 0) !== (b.poisoned || 0)) return false;
-    if ((a.material || 0) !== (b.material || 0)) return false;
-    if ((a.wt || a.owt || 0) !== (b.wt || b.owt || 0)) return false;
-    if ((a.unpaid || 0) !== (b.unpaid || 0)) return false;
-    if ((a.shopOwned || 0) !== (b.shopOwned || 0)) return false;
-    if ((a.noDrop || 0) !== (b.noDrop || 0)) return false;
-    return (a.corpsenm === b.corpsenm)
-        && (a.age === b.age);
-}
-
-function placeFloorObject(map, obj) {
-    for (const existing of map.objects) {
-        if (existing.ox !== obj.ox || existing.oy !== obj.oy) continue;
-        if (!canStackFloorObject(existing, obj)) continue;
-        existing.quan = (existing.quan || 1) + (obj.quan || 1);
-        return existing;
-    }
-    map.objects.push(obj);
-    return obj;
-}
-
 function canSeeForRestrap(mon, map, player, fov) {
     if (!mon || !map || !player) return false;
     const canSeeSquare = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
@@ -1428,7 +1383,7 @@ function handleHiderPremove(mon, map, player, fov) {
 // C ref: dogmove.c:392-471
 // Returns: 0 (no action), 1 (ate something), 2 (died)
 // ========================================================================
-function dog_invent(mon, edog, udist, map, turnCount, display, player) {
+function dog_invent(mon, edog, udist, map, turnCount, display, player, fov = null) {
     if (mon.meating) return 0;
     const omx = mon.mx, omy = mon.my;
 
@@ -1445,7 +1400,10 @@ function dog_invent(mon, edog, udist, map, turnCount, display, player) {
                     dropObj.ox = omx;
                     dropObj.oy = omy;
                     placeFloorObject(map, dropObj);
-                    if (display && player && couldsee(map, player, mon.mx, mon.my)) {
+                    const canSeePet = display && player && (
+                        fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my)
+                    );
+                    if (canSeePet) {
                         observeObject(dropObj);
                         // C ref: weapon.c:766 — Monnam(mon) uses ARTICLE_THE
                         const monLabel = monNam(mon, { article: 'the', capitalize: true });
@@ -1478,7 +1436,10 @@ function dog_invent(mon, edog, udist, map, turnCount, display, player) {
             if ((edible <= CADAVER
                 || (edog.mhpmax_penalty && edible === ACCFOOD))
                 && could_reach_item(map, mon, obj.ox, obj.oy)) {
-                if (display && player && couldsee(map, player, mon.mx, mon.my)) {
+                const canSeePet = display && player && (
+                    fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my)
+                );
+                if (canSeePet) {
                     display.putstr_message(`${monNam(mon, { capitalize: true })} eats ${doname(obj, null)}.`);
                 }
                 dog_eat(mon, obj, map, turnCount);
@@ -1506,7 +1467,10 @@ function dog_invent(mon, edog, udist, map, turnCount, display, player) {
                         if (!mon.minvent) mon.minvent = [];
                         mon.minvent.push(picked);
                         // C ref: dogmove.c "The <pet> picks up <obj>." when observed.
-                        if (display && player && couldsee(map, player, mon.mx, mon.my)) {
+                        const canSeePet = display && player && (
+                            fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my)
+                        );
+                        if (canSeePet) {
                             observeObject(picked);
                             // C ref: dogmove.c:454 — Monnam(mtmp) uses ARTICLE_THE
                             const monLabel = monNam(mon, { article: 'the', capitalize: true });
@@ -2042,7 +2006,7 @@ function dog_move(mon, map, player, display, fov, after = false, game = null) {
 
     // C ref: dogmove.c:1024-1029 — dog_invent before dog_goal
     if (edog) {
-        const invResult = dog_invent(mon, edog, udist, map, turnCount, display, player);
+        const invResult = dog_invent(mon, edog, udist, map, turnCount, display, player, fov);
         if (invResult === 1) return 1; // ate something — done
         if (invResult === 2) return 0; // died
     }
