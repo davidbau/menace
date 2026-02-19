@@ -21,7 +21,7 @@ import { FOOD_CLASS } from './objects.js';
 import { setObjectMoves } from './mkobj.js';
 import { runWereTurnEnd } from './were.js';
 import { rhack } from './commands.js';
-import { movemon, settrack } from './monmove.js';
+import { movemon, initrack, settrack } from './monmove.js';
 import { simulatePostLevelInit, mon_arrive } from './u_init.js';
 import { getArrivalPosition } from './level_transition.js';
 import { loadSave, deleteSave, hasSave, saveGame,
@@ -1245,6 +1245,7 @@ export class NetHackGame {
     // Generate or retrieve a level
     // C ref: dungeon.c -- level management
     changeLevel(depth, transitionDir = null) {
+        const previousDepth = this.player?.dungeonLevel;
         setMakemonPlayerContext(this.player);
         const previousMap = this.map || this.levels[this.player.dungeonLevel] || null;
 
@@ -1277,6 +1278,10 @@ export class NetHackGame {
         this.player.dungeonLevel = depth;
         this.player.inTutorial = !!this.map?.flags?.is_tutorial;
         this.placePlayerOnLevel(transitionDir);
+        // C ref: cmd.c goto_level() clears hero track history on level change.
+        if (Number.isInteger(previousDepth) && depth !== previousDepth) {
+            initrack();
+        }
 
         // Bones level message
         if (this.map.isBones) {

@@ -1018,6 +1018,7 @@ export class HeadlessGame {
     }
 
     changeLevel(depth, transitionDir = null) {
+        const previousDepth = this.player?.dungeonLevel;
         const fromX = this.player?.x;
         const fromY = this.player?.y;
         if (this.map) {
@@ -1037,6 +1038,10 @@ export class HeadlessGame {
         this.player.dungeonLevel = depth;
         this.player.inTutorial = !!this.map?.flags?.is_tutorial;
         this.placePlayerOnLevel(transitionDir);
+        // C ref: cmd.c goto_level() clears hero track history on level change.
+        if (Number.isInteger(previousDepth) && depth !== previousDepth) {
+            initrack();
+        }
         // C ref: do.c goto_level(): u_on_rndspot()/u_on_newpos happens
         // before losedogs()->mon_arrive(), so follower arrival sees the
         // final hero position on the destination level.
