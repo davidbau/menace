@@ -788,7 +788,7 @@ Selection geometry functions are implemented as methods of the `selection` objec
 | `set_selection_floodfillchk` | 372 | N/A | — | JS closures capture matchFn directly |
 | `sel_flood_havepoint` | 379 | N/A | — | Internal staticfn helper |
 | `selection_floodfill` | 395 | `selection.floodfill(x, y, matchFn)` | 7415 | Match |
-| `selection_do_ellipse` | 456 | N/A | — | TODO (not yet in JS) |
+| `selection_do_ellipse` | 456 | `selection.ellipse(xc, yc, a, b, filled)` | — | Match (static factory) |
 | `line_dist_coord` | 542 | N/A | — | Internal helper for gradient |
 | `selection_do_gradient` | 570 | N/A | — | TODO (not yet in JS) |
 | `selection_do_line` | 626 | `selection.line(x1, y1, x2, y2)` | 6980 | Match (Bresenham) |

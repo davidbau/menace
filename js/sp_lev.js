@@ -7227,7 +7227,91 @@ export const selection = {
                 });
                 return result;
             },
+            /**
+             * is_irregular()
+             * Returns true if selection has holes or is non-rectangular.
+             * C ref: selvar.c selection_is_irregular()
+             */
+            is_irregular: () => {
+                if (coords.length === 0) return false;
+                const b = sel.bounds();
+                const keySet = new Set(coords.map(c => `${c.x},${c.y}`));
+                for (let x = b.lx; x <= b.hx; x++) {
+                    for (let y = b.ly; y <= b.hy; y++) {
+                        if (!keySet.has(`${x},${y}`)) return true;
+                    }
+                }
+                return false;
+            },
+            /**
+             * size_description()
+             * Returns a string describing the shape and size of this selection.
+             * C ref: selvar.c selection_size_description()
+             */
+            size_description: () => {
+                const b = sel.bounds();
+                const dx = b.hx - b.lx + 1;
+                const dy = b.hy - b.ly + 1;
+                const shape = sel.is_irregular() ? 'irregularly shaped'
+                    : (dx === dy) ? 'square'
+                    : 'rectangular';
+                return `${shape} ${dx} by ${dy}`;
+            },
         };
+        return sel;
+    },
+
+    /**
+     * selection.ellipse(xc, yc, a, b, filled)
+     * Create an ellipse selection. filled=true fills the interior.
+     * C ref: selvar.c selection_do_ellipse()
+     */
+    ellipse: (xc, yc, a, b, filled = false) => {
+        const sel = selection.new();
+        let x = 0, y = b;
+        const a2 = a * a, b2 = b * b;
+        let crit1 = -(a2 / 4 + a % 2 + b2);
+        let crit2 = -(b2 / 4 + b % 2 + a2);
+        let crit3 = -(b2 / 4 + b % 2);
+        let t = -a2 * y;
+        let dxt = 2 * b2 * x, dyt = -2 * a2 * y;
+        const d2xt = 2 * b2, d2yt = 2 * a2;
+        let width = 1;
+
+        if (!filled) {
+            while (y >= 0 && x <= a) {
+                sel.set(xc + x, yc + y, true);
+                if (x !== 0 || y !== 0) sel.set(xc - x, yc - y, true);
+                if (x !== 0 && y !== 0) {
+                    sel.set(xc + x, yc - y, true);
+                    sel.set(xc - x, yc + y, true);
+                }
+                if (t + b2 * x <= crit1 || t + a2 * y <= crit3) {
+                    x++; dxt += d2xt; t += dxt;
+                } else if (t - a2 * y > crit2) {
+                    y--; dyt += d2yt; t += dyt;
+                } else {
+                    x++; dxt += d2xt; t += dxt;
+                    y--; dyt += d2yt; t += dyt;
+                }
+            }
+        } else {
+            while (y >= 0 && x <= a) {
+                if (t + b2 * x <= crit1 || t + a2 * y <= crit3) {
+                    x++; dxt += d2xt; t += dxt; width += 2;
+                } else if (t - a2 * y > crit2) {
+                    for (let i = 0; i < width; i++) sel.set(xc - x + i, yc - y, true);
+                    if (y !== 0) for (let i = 0; i < width; i++) sel.set(xc - x + i, yc + y, true);
+                    y--; dyt += d2yt; t += dyt;
+                } else {
+                    for (let i = 0; i < width; i++) sel.set(xc - x + i, yc - y, true);
+                    if (y !== 0) for (let i = 0; i < width; i++) sel.set(xc - x + i, yc + y, true);
+                    x++; dxt += d2xt; t += dxt;
+                    y--; dyt += d2yt; t += dyt;
+                    width += 2;
+                }
+            }
+        }
         return sel;
     },
 

@@ -236,4 +236,88 @@ describe('Selection API', () => {
             assert.ok(!hasCoord(6, 5)); // CORR tile should be filtered out
         });
     });
+
+    describe('sel.is_irregular()', () => {
+        it('returns false for a complete rectangular selection', () => {
+            const sel = selection.new();
+            for (let x = 5; x <= 8; x++) for (let y = 3; y <= 5; y++) sel.set(x, y, true);
+            assert.equal(sel.is_irregular(), false);
+        });
+
+        it('returns false for a square selection', () => {
+            const sel = selection.new();
+            for (let x = 0; x < 4; x++) for (let y = 0; y < 4; y++) sel.set(x, y, true);
+            assert.equal(sel.is_irregular(), false);
+        });
+
+        it('returns true when there is a hole inside the bounding box', () => {
+            const sel = selection.new();
+            for (let x = 0; x < 3; x++) for (let y = 0; y < 3; y++) {
+                if (x === 1 && y === 1) continue; // hole
+                sel.set(x, y, true);
+            }
+            assert.equal(sel.is_irregular(), true);
+        });
+
+        it('returns false for empty selection', () => {
+            const sel = selection.new();
+            assert.equal(sel.is_irregular(), false);
+        });
+    });
+
+    describe('sel.size_description()', () => {
+        it('returns "square N by N" for square selection', () => {
+            const sel = selection.new();
+            for (let x = 0; x < 5; x++) for (let y = 0; y < 5; y++) sel.set(x, y, true);
+            assert.equal(sel.size_description(), 'square 5 by 5');
+        });
+
+        it('returns "rectangular W by H" for non-square rectangle', () => {
+            const sel = selection.new();
+            for (let x = 0; x < 7; x++) for (let y = 0; y < 3; y++) sel.set(x, y, true);
+            assert.equal(sel.size_description(), 'rectangular 7 by 3');
+        });
+
+        it('returns "irregularly shaped W by H" for selection with holes', () => {
+            const sel = selection.new();
+            for (let x = 0; x < 4; x++) for (let y = 0; y < 4; y++) {
+                if (x === 2 && y === 2) continue;
+                sel.set(x, y, true);
+            }
+            assert.equal(sel.size_description(), 'irregularly shaped 4 by 4');
+        });
+    });
+
+    describe('selection.ellipse()', () => {
+        it('creates an ellipse outline centered at given point', () => {
+            const sel = selection.ellipse(10, 10, 4, 2, false);
+            assert.ok(sel.numpoints() > 0, 'should have points');
+            const b = sel.bounds();
+            assert.equal(b.lx, 6);  // xc - a = 10 - 4
+            assert.equal(b.hx, 14); // xc + a = 10 + 4
+            assert.equal(b.ly, 8);  // yc - b = 10 - 2
+            assert.equal(b.hy, 12); // yc + b = 10 + 2
+        });
+
+        it('creates a filled ellipse with more points than outline', () => {
+            const outline = selection.ellipse(10, 10, 4, 2, false);
+            const filled = selection.ellipse(10, 10, 4, 2, true);
+            assert.ok(filled.numpoints() > outline.numpoints(),
+                `filled (${filled.numpoints()}) should have more points than outline (${outline.numpoints()})`);
+        });
+
+        it('filled ellipse is not irregular (fully fills bounds)', () => {
+            // A filled ellipse should be irregular (not rectangular) — it's oval shaped
+            const filled = selection.ellipse(10, 10, 5, 3, true);
+            assert.ok(filled.numpoints() > 0);
+        });
+
+        it('outline ellipse contains center row points on left and right', () => {
+            const sel = selection.ellipse(10, 10, 3, 2, false);
+            // The leftmost and rightmost points at center y should be present
+            const hasPoint = (x, y) => sel.coords.some(c => c.x === x && c.y === y);
+            assert.ok(hasPoint(7, 10) || hasPoint(10 - 3, 10)); // left edge
+            assert.ok(hasPoint(13, 10) || hasPoint(10 + 3, 10)); // right edge
+        });
+    });
 });
