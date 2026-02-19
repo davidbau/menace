@@ -1402,6 +1402,9 @@ async function handleOpen(player, map, display, game) {
         dir = [0, 0];
     }
     if (!dir) {
+        // C ref: cmd.c getdir() — when iflags.cmdassist is true (default),
+        // help_dir() is shown instead of "What a strange direction!".
+        // The caller (get_adjacent_loc) then prints "Never mind."
         display.putstr_message('Never mind.');
         return { moved: false, tookTime: false };
     }
