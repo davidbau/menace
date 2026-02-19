@@ -1458,13 +1458,9 @@ async function handleOpen(player, map, display, game) {
         dir = [0, 0];
     }
     if (!dir) {
-        // C getdir parity: cancel keys produce plain "Never mind.", while
-        // other invalid direction keys report a strange direction first.
-        if (dirCh === 27 || dirCh === 10 || dirCh === 13 || dirCh === 32) {
-            display.putstr_message('Never mind.');
-        } else {
-            display.putstr_message('What a strange direction!  Never mind.');
-        }
+        // C ref: getdir() + get_adjacent_loc() — with cmdassist on (default),
+        // invalid direction keys silently fail and the caller emits "Never mind."
+        display.putstr_message('Never mind.');
         return { moved: false, tookTime: false };
     }
 
@@ -2196,12 +2192,15 @@ async function handleEat(player, display, game) {
                 display.putstr_message('You cannot eat that!');
                 return { moved: false, tookTime: false };
             }
-            // C tty replay parity: missing inventory letters can yield a sticky
-            // "--More--" frame that only clears on Space/Enter/Esc.
-            display.putstr_message("You don't have that object.--More--");
-            while (true) {
-                const moreCh = await nhgetch();
-                if (moreCh === 32 || moreCh === 10 || moreCh === 13 || moreCh === 27) break;
+            // C ref: getobj() handles invalid letters differently depending
+            // on mode. In non-wizard mode, it emits a "--More--" that blocks
+            // until Space/Enter/Esc; in wizard mode it silently re-prompts.
+            if (!player.wizard) {
+                display.putstr_message("You don't have that object.--More--");
+                while (true) {
+                    const moreCh = await nhgetch();
+                    if (moreCh === 32 || moreCh === 10 || moreCh === 13 || moreCh === 27) break;
+                }
             }
             continue;
         }

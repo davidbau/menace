@@ -1352,6 +1352,10 @@ export class HeadlessDisplay {
         }
     }
 
+    // No-op for headless mode; the browser display refreshes the DOM here.
+    render() {}
+
+
     putstr(col, row, str, color = CLR_GRAY, attr = 0) {
         for (let i = 0; i < str.length; i++) {
             this.setCell(col + i, row, str[i], color, attr);
@@ -1470,11 +1474,15 @@ export class HeadlessDisplay {
         for (let i = 0; i < menuRows; i++) {
             const line = lines[i];
             const isHeader = isCategoryHeader(line);
-            if (isHeader && line.startsWith(' ')) {
-                this.setCell(offx, i, ' ', CLR_GRAY, 0);
-                this.putstr(offx + 1, i, line.slice(1), CLR_GRAY, 1);
-            } else if (isHeader) {
-                this.putstr(offx, i, line, CLR_GRAY, 1);
+            if (isHeader) {
+                // C ref: wintty.c — category headers have a single leading
+                // space that is part of the clear region, not inverse video.
+                // Column headers (spell list "    Name...") have structural
+                // whitespace that IS rendered in inverse.
+                const isSingleSpacePrefix = line.startsWith(' ') && (line.length < 2 || line[1] !== ' ');
+                const trimmed = isSingleSpacePrefix ? line.slice(1) : line;
+                const pad = line.length - trimmed.length;
+                this.putstr(offx + pad, i, trimmed, CLR_GRAY, 1);
             } else {
                 this.putstr(offx, i, line, CLR_GRAY, 0);
             }

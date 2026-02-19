@@ -827,6 +827,7 @@ export async function replaySession(seed, session, opts = {}) {
     });
     const sessionSymset = session?.options?.symset || session?.meta?.options?.symset;
     const decgraphicsMode = session.screenMode === 'decgraphics' || sessionSymset === 'DECgraphics';
+    game.wizard = player.wizard;
     game.display.flags.DECgraphics = !!decgraphicsMode;
     game.flags.DECgraphics = !!decgraphicsMode;
     let inTutorialPrompt = tutorialPromptStartup;
