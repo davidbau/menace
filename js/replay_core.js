@@ -1532,6 +1532,24 @@ export async function replaySession(seed, session, opts = {}) {
                 result = settled.value;
                 pendingCommand = null;
                 pendingKind = null;
+                if (priorPendingKind === 'discoveries-menu'
+                    && (step.key === ' ' || step.key === '\n' || step.key === '\r')
+                    && stepScreen.length > 0) {
+                    // Discoveries pagination closes back to the pre-menu map.
+                    // Keep captured frame aligned with C tty capture shape.
+                    if (stepScreenAnsi.length > 0
+                        && typeof game.display?.setScreenAnsiLines === 'function') {
+                        game.display.setScreenAnsiLines(stepScreenAnsi);
+                        if (opts.captureScreens) capturedScreenOverride = stepScreen;
+                        capturedScreenAnsiOverride = stepScreenAnsi;
+                    } else if (game.display?.setScreenLines) {
+                        game.display.setScreenLines(stepScreen);
+                        if (opts.captureScreens) capturedScreenOverride = stepScreen;
+                        capturedScreenAnsiOverride = Array.isArray(capturedScreenOverride)
+                            ? capturedScreenOverride.map((line) => String(line || ''))
+                            : null;
+                    }
+                }
                 // C tty behavior: a key used to dismiss inventory can also become
                 // the next command. Replay this for menu-driven traces.
                 if (priorPendingKind === 'inventory-menu'
@@ -1668,6 +1686,7 @@ export async function replaySession(seed, session, opts = {}) {
                 // dismisses it (and may become a passthrough command), matching
                 // C tty interactions.
                 const needsDismissal = ['i', 'I'].includes(String.fromCharCode(ch));
+                const discoversMenu = String.fromCharCode(ch) === '\\';
                 // Command is waiting for additional input (direction/item/etc.).
                 // Defer resolution to subsequent captured step(s).
                 // Preserve the prompt/menu frame shown before we redraw map.
@@ -1681,7 +1700,7 @@ export async function replaySession(seed, session, opts = {}) {
                 pendingCommand = commandPromise;
                 pendingKind = (ch === 35)
                     ? 'extended-command'
-                    : (needsDismissal ? 'inventory-menu' : null);
+                    : (needsDismissal ? 'inventory-menu' : (discoversMenu ? 'discoveries-menu' : null));
                 result = { moved: false, tookTime: false };
             } else {
                 game.advanceRunTurn = null;

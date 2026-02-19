@@ -6,6 +6,7 @@ import {
     WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
     FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS, WAND_CLASS,
     COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS, VENOM_CLASS,
+    ARM_GLOVES, ARM_BOOTS,
 } from './objects.js';
 
 // Generic placeholder object indices occupy [0..17] in this port.
@@ -90,30 +91,42 @@ function discoveryTypeName(otyp) {
     const nn = ocNameKnown[otyp];
     const dn = od.desc || od.name;
     const an = od.name;
+    const withDesc = (base) => od.desc ? `${base} (${od.desc})` : base;
+
     switch (od.oc_class) {
-    case RING_CLASS:
-        return nn ? `ring of ${an}` : `${dn} ring`;
-    case AMULET_CLASS:
-        return nn ? an : `${dn} amulet`;
-    case POTION_CLASS:
-        return nn ? `potion of ${an}` : `${dn} potion`;
-    case SCROLL_CLASS:
-        return nn ? `scroll of ${an}` : `scroll labeled ${dn}`;
-    case SPBOOK_CLASS:
-        return nn ? `spellbook of ${an}` : `${dn} spellbook`;
-    case WAND_CLASS:
-        return nn ? `wand of ${an}` : `${dn} wand`;
-    default:
+    case COIN_CLASS:
         return an;
+    case POTION_CLASS:
+        return withDesc(nn ? `potion of ${an}` : 'potion');
+    case SCROLL_CLASS:
+        return withDesc(nn ? `scroll of ${an}` : 'scroll');
+    case WAND_CLASS:
+        return withDesc(nn ? `wand of ${an}` : 'wand');
+    case SPBOOK_CLASS:
+        return withDesc(nn ? `spellbook of ${an}` : 'spellbook');
+    case RING_CLASS:
+        return withDesc(nn ? `ring of ${an}` : 'ring');
+    case AMULET_CLASS:
+        return withDesc(nn ? an : 'amulet');
+    default:
+        if (nn) {
+            const pairPrefix = (od.oc_class === ARMOR_CLASS
+                && (od.sub === ARM_GLOVES || od.sub === ARM_BOOTS))
+                ? 'pair of '
+                : '';
+            return withDesc(`${pairPrefix}${an}`);
+        }
+        return dn;
     }
 }
 
 export function getDiscoveriesMenuLines() {
     const lines = [];
+    // C ref: src/options.c def_inv_order (plus VENOM_CLASS appended in dodiscovered()).
     const classOrder = [
-        AMULET_CLASS, WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS, TOOL_CLASS,
-        RING_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS, WAND_CLASS,
-        COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS, VENOM_CLASS,
+        COIN_CLASS, AMULET_CLASS, WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS,
+        SCROLL_CLASS, SPBOOK_CLASS, POTION_CLASS, RING_CLASS, WAND_CLASS,
+        TOOL_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS, VENOM_CLASS,
     ];
     const classLabel = {
         [AMULET_CLASS]: 'Amulets',

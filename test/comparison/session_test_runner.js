@@ -98,6 +98,7 @@ function getExpectedScreenAnsiLines(stepLike) {
 
 function normalizeInterfaceLineForComparison(line) {
     const text = String(line || '')
+        .replace(/[\x0e\x0f]/g, '')
         .replace(/[┌┐└┘┬┴┼├┤─]/g, '-')
         .replace(/[│]/g, '|')
         .replace(/[·]/g, '.')

@@ -27,7 +27,7 @@ import {
     // Weapons
     LONG_SWORD, LANCE, SPEAR, DAGGER, SHORT_SWORD, AXE, BULLWHIP,
     TWO_HANDED_SWORD, BATTLE_AXE, CLUB, SLING, KATANA, YUMI, YA,
-    BOW, ARROW, DART, MACE, QUARTERSTAFF, SCALPEL,
+    BOW, ARROW, DART, MACE, QUARTERSTAFF, SCALPEL, SHURIKEN,
     // Armor
     RING_MAIL, HELMET, SMALL_SHIELD, LEATHER_GLOVES, LEATHER_JACKET,
     FEDORA, LEATHER_ARMOR, ROBE, CLOAK_OF_DISPLACEMENT,
@@ -36,7 +36,7 @@ import {
     APPLE, CARROT, FOOD_RATION, CRAM_RATION, ORANGE, FORTUNE_COOKIE,
     CLOVE_OF_GARLIC, SPRIG_OF_WOLFSBANE,
     // Potions
-    POT_HEALING, POT_EXTRA_HEALING, POT_SICKNESS, POT_WATER, POT_OIL,
+    POT_HEALING, POT_EXTRA_HEALING, POT_SICKNESS, POT_WATER, POT_OIL, POT_FULL_HEALING,
     // Scrolls
     SCR_MAGIC_MAPPING,
     // Spellbooks
@@ -75,7 +75,7 @@ import {
     // Filter exclusions
     WAN_WISHING, WAN_NOTHING, RIN_LEVITATION, RIN_AGGRAVATE_MONSTER,
     RIN_HUNGER, RIN_POISON_RESISTANCE, POT_HALLUCINATION, POT_ACID, SCR_AMNESIA, SCR_FIRE,
-    SCR_BLANK_PAPER, SPE_BLANK_PAPER, SPE_NOVEL, SCR_ENCHANT_WEAPON,
+    SCR_BLANK_PAPER, SPE_BLANK_PAPER, SPE_NOVEL, SCR_ENCHANT_WEAPON, CORNUTHAUM, DUNCE_CAP,
     // Polymorph nocreate tracking
     WAN_POLYMORPH, RIN_POLYMORPH, RIN_POLYMORPH_CONTROL,
     POT_POLYMORPH, SPE_POLYMORPH,
@@ -1453,15 +1453,82 @@ function applyStartupDiscoveries(player) {
 }
 
 // C ref: u_init.c knows_class()/knows_object() role pre-knowledge.
-// Parity-critical subset: Samurai knows all non-magic weapons and armor.
-function applyRolePreknowledge(player) {
-    if (player.roleIndex !== PM_SAMURAI) return;
+// Mirrors C role-specific startup recognition of object classes/types.
+const WEAPON_SKILL_DAGGER = 1;
+const WEAPON_SKILL_POLEARM = 16;
+const WEAPON_SKILL_SPEAR = 17;
+const WEAPON_SKILL_BOW = 20;
+const WEAPON_SKILL_CROSSBOW = 22;
+
+function isLauncherSkill(skill) {
+    return skill >= WEAPON_SKILL_BOW && skill <= WEAPON_SKILL_CROSSBOW;
+}
+
+function isAmmoSkill(skill) {
+    return skill <= -WEAPON_SKILL_BOW && skill >= -WEAPON_SKILL_CROSSBOW;
+}
+
+function discoverClassByRule(oclass, shouldKnow) {
     for (let otyp = 1; otyp < objectData.length; otyp++) {
         const od = objectData[otyp];
-        if (!od || od.magic) continue;
-        if (od.oc_class === WEAPON_CLASS || od.oc_class === ARMOR_CLASS) {
-            discoverObject(otyp, true, false);
+        if (!od || od.oc_class !== oclass || od.magic) continue;
+        if (otyp === CORNUTHAUM || otyp === DUNCE_CAP) continue;
+        if (shouldKnow && !shouldKnow(od)) continue;
+        discoverObject(otyp, true, false);
+    }
+}
+
+function discoverWeaponClassForRole(roleIndex) {
+    discoverClassByRule(WEAPON_CLASS, (od) => {
+        const skill = Number(od.sub || 0);
+        if (roleIndex !== PM_KNIGHT && roleIndex !== PM_SAMURAI
+            && skill === WEAPON_SKILL_POLEARM) {
+            return false; // C: knows_class(WEAPON_CLASS) excludes polearms
         }
+        if (roleIndex === PM_RANGER) {
+            return isLauncherSkill(skill)
+                || isAmmoSkill(skill)
+                || skill === WEAPON_SKILL_SPEAR;
+        }
+        if (roleIndex === PM_ROGUE) {
+            return skill === WEAPON_SKILL_DAGGER;
+        }
+        return true;
+    });
+}
+
+function applyRolePreknowledge(player) {
+    switch (player.roleIndex) {
+        case PM_ARCHEOLOGIST:
+            discoverObject(SACK, true, false);
+            discoverObject(TOUCHSTONE, true, false);
+            break;
+        case PM_BARBARIAN:
+        case PM_KNIGHT:
+        case PM_SAMURAI:
+        case PM_VALKYRIE:
+            discoverWeaponClassForRole(player.roleIndex);
+            discoverClassByRule(ARMOR_CLASS);
+            break;
+        case PM_MONK:
+            discoverClassByRule(ARMOR_CLASS);
+            discoverObject(SHURIKEN, true, false);
+            break;
+        case PM_HEALER:
+            discoverObject(POT_FULL_HEALING, true, false);
+            break;
+        case PM_PRIEST:
+            discoverObject(POT_WATER, true, false);
+            break;
+        case PM_RANGER:
+            discoverWeaponClassForRole(player.roleIndex);
+            break;
+        case PM_ROGUE:
+            discoverObject(SACK, true, false);
+            discoverWeaponClassForRole(player.roleIndex);
+            break;
+        default:
+            break;
     }
 }
 
