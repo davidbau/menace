@@ -5,7 +5,7 @@
 import { COLNO, ROWNO, DOOR, CORR, SDOOR, SCORR, STAIRS, LADDER, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE,
          POOL, LAVAPOOL, IRONBARS, TREE, ROOM, IS_DOOR, D_CLOSED, D_LOCKED,
          D_ISOPEN, D_NODOOR, D_BROKEN, ACCESSIBLE, IS_WALL, MAXLEVEL, VERSION_STRING, ICE,
-         isok, A_STR, A_INT, A_DEX, A_CON, A_WIS, A_CHA, STATUS_ROW_1,
+         isok, A_STR, A_INT, A_DEX, A_CON, A_WIS, A_CHA, STATUS_ROW_1, MAP_ROW_START,
          SHOPBASE, ROOMOFFSET } from './config.js';
 import { SQKY_BOARD, SLP_GAS_TRAP, FIRE_TRAP, PIT, SPIKED_PIT, ANTI_MAGIC, IS_SOFT } from './symbols.js';
 import { rn2, rnd, rnl, d, c_d } from './rng.js';
@@ -5043,9 +5043,10 @@ async function handleTravel(game) {
         // Render map with cursor
         display.renderMap(map, player, game.fov, game.flags);
         // Show cursor at target location (we'll just use a simple marker)
-        const row = cursorY + (game.flags.msg_window ? 3 : 1);
+        const mapOffset = game.flags.msg_window ? 3 : MAP_ROW_START;
+        const row = cursorY + mapOffset;
         const cursorCol = cursorX - 1;
-        const oldCell = display.grid[row][cursorCol];
+        const oldCell = display.grid[row]?.[cursorCol] || { ch: ' ', color: 7 };
         display.setCell(cursorCol, row, 'X', 14); // White X for cursor
         display.render();
 

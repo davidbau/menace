@@ -111,16 +111,29 @@ export function getSessionScreenAnsiLines(screenHolder) {
 // V3 format: startup is the first step with key === null and action === 'startup'
 // Returns the startup object or null if not found.
 export function getSessionStartup(session) {
-    if (!session?.steps?.length) return null;
+    if (session?.steps?.length) {
+        const firstStep = session.steps[0];
+        if (firstStep.key === null && firstStep.action === 'startup') {
+            return {
+                rng: firstStep.rng || [],
+                rngCalls: (firstStep.rng || []).length,
+                typGrid: firstStep.typGrid,
+                screen: firstStep.screen,
+                screenAnsi: firstStep.screenAnsi,
+            };
+        }
+    }
 
-    const firstStep = session.steps[0];
-    if (firstStep.key === null && firstStep.action === 'startup') {
+    // Legacy v1 sessions keep startup data in a top-level `startup` field.
+    if (session?.startup && typeof session.startup === 'object') {
         return {
-            rng: firstStep.rng || [],
-            rngCalls: (firstStep.rng || []).length,
-            typGrid: firstStep.typGrid,
-            screen: firstStep.screen,
-            screenAnsi: firstStep.screenAnsi,
+            rng: session.startup.rng || [],
+            rngCalls: Number.isInteger(session.startup.rngCalls)
+                ? session.startup.rngCalls
+                : (session.startup.rng || []).length,
+            typGrid: session.startup.typGrid,
+            screen: session.startup.screen,
+            screenAnsi: session.startup.screenAnsi,
         };
     }
 
@@ -652,6 +665,11 @@ export async function replaySession(seed, session, opts = {}) {
     // C tutorial prompt still initializes globals/object state before map generation.
     initLevelGeneration(replayRoleIndex, session.options?.wizard ?? true);
 
+    const sessionStartup = getSessionStartup(session);
+    const startupScreen = getSessionScreenLines(sessionStartup || {});
+    const startupScreenAnsi = getSessionScreenAnsiLines(sessionStartup || {});
+    const hasLegacyStartupScreen = !!session?.startup
+        && !hasStartupBurstInFirstStep(session);
     const startDnum = Number.isInteger(opts.startDnum) ? opts.startDnum : undefined;
     const startDlevel = Number.isInteger(opts.startDlevel) ? opts.startDlevel : 1;
     const startDungeonAlign = Number.isInteger(opts.startDungeonAlign) ? opts.startDungeonAlign : undefined;
@@ -679,8 +697,6 @@ export async function replaySession(seed, session, opts = {}) {
     // Traps are only seen when discovered during gameplay.
     // Removed automatic trap revelation here.
 
-    const sessionStartup = getSessionStartup(session);
-    const startupScreen = getSessionScreenLines(sessionStartup || {});
     let screen = startupScreen;
     // Some gameplay fixtures omit startup status rows; use the earliest step
     // that includes status lines so replayed baseline attrs/Pw match C capture.
@@ -840,12 +856,23 @@ export async function replaySession(seed, session, opts = {}) {
             game.display.setScreenLines(firstStepScreen);
         }
     } else if (startupScreen.length > 0) {
-        // Preserve startup topline so first-step count-prefix digits keep the
-        // same C-visible message state without forcing startup map rows.
-        const startupTopline = startupScreen[0] || '';
-        if (startupTopline.trim() !== ''
-            && typeof game.display?.putstr_message === 'function') {
-            game.display.putstr_message(startupTopline);
+        if (hasLegacyStartupScreen) {
+            // Legacy keylog sessions expect startup map rows to persist into the
+            // first post-startup command (including no-op/unknown-key steps).
+            if (startupScreenAnsi.length > 0
+                && typeof game.display?.setScreenAnsiLines === 'function') {
+                game.display.setScreenAnsiLines(startupScreenAnsi);
+            } else {
+                game.display.setScreenLines(startupScreen);
+            }
+        } else {
+            // Preserve startup topline so first-step count-prefix digits keep the
+            // same C-visible message state without forcing startup map rows.
+            const startupTopline = startupScreen[0] || '';
+            if (startupTopline.trim() !== ''
+                && typeof game.display?.putstr_message === 'function') {
+                game.display.putstr_message(startupTopline);
+            }
         }
     }
 
