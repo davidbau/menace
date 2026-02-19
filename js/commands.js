@@ -4565,24 +4565,25 @@ async function handleTravel(game) {
         display.renderMap(map, player, game.fov, game.flags);
         // Show cursor at target location (we'll just use a simple marker)
         const row = cursorY + (game.flags.msg_window ? 3 : 1);
-        const oldCell = display.grid[row][cursorX];
-        display.setCell(cursorX, row, 'X', 14); // White X for cursor
+        const cursorCol = cursorX - 1;
+        const oldCell = display.grid[row][cursorCol];
+        display.setCell(cursorCol, row, 'X', 14); // White X for cursor
         display.render();
 
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
 
         // Restore cell
-        display.setCell(cursorX, row, oldCell.ch, oldCell.color);
+        display.setCell(cursorCol, row, oldCell.ch, oldCell.color);
 
         // Handle cursor movement
-        if (c === 'h' && cursorX > 0) cursorX--;
+        if (c === 'h' && cursorX > 1) cursorX--;
         else if (c === 'l' && cursorX < COLNO - 1) cursorX++;
         else if (c === 'k' && cursorY > 0) cursorY--;
         else if (c === 'j' && cursorY < ROWNO - 1) cursorY++;
-        else if (c === 'y' && cursorX > 0 && cursorY > 0) { cursorX--; cursorY--; }
+        else if (c === 'y' && cursorX > 1 && cursorY > 0) { cursorX--; cursorY--; }
         else if (c === 'u' && cursorX < COLNO - 1 && cursorY > 0) { cursorX++; cursorY--; }
-        else if (c === 'b' && cursorX > 0 && cursorY < ROWNO - 1) { cursorX--; cursorY++; }
+        else if (c === 'b' && cursorX > 1 && cursorY < ROWNO - 1) { cursorX--; cursorY++; }
         else if (c === 'n' && cursorX < COLNO - 1 && cursorY < ROWNO - 1) { cursorX++; cursorY++; }
         else if (c === '.' || ch === 13) { // period or enter
             // Confirm destination

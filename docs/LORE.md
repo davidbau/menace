@@ -480,6 +480,17 @@ one column and creates fake diffs.
 Practical rule: for mixed rows, apply col-0 compensation only to the left map
 segment and preserve right-side overlay text alignment.
 
+### TTY map x-coordinates are 1-based and render at terminal column x-1
+
+In C tty, map redraw loops emit glyphs for `x` in `[1, COLNO-1]` and call
+`tty_curs(window, x, y)`. `tty_curs()` then decrements `x` before terminal
+cursor positioning (`cw->curx = --x`), so map cell `x` is displayed at terminal
+column `x-1`.
+
+Practical rule: JS map rendering should mirror this mapping (`col = x - 1`)
+for both browser and headless displays to match C screen coordinates directly
+instead of relying on comparison-layer column compensation.
+
 ### `doeat` invalid object selection can stay in a sticky `--More--` loop
 
 In tourist non-wizard traces, invalid eat-object selection can present repeated

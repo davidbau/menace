@@ -11,6 +11,7 @@ test('headless renderMap keeps remembered terrain color', () => {
     const x = 5;
     const y = 5;
     const row = y + 1; // map rows start at 1 when msg_window is disabled
+    const col = x - 1; // tty map columns are x-1
 
     const loc = map.at(x, y);
     loc.typ = DOOR;
@@ -20,8 +21,8 @@ test('headless renderMap keeps remembered terrain color', () => {
     const fov = { canSee: () => false };
     display.renderMap(map, null, fov, { msg_window: false, DECgraphics: false, color: true });
 
-    assert.equal(display.grid[row][x], '+');
-    assert.equal(display.colors[row][x], 3);
+    assert.equal(display.grid[row][col], '+');
+    assert.equal(display.colors[row][col], 3);
 });
 
 test('headless remembered room floors use NO_COLOR tone', () => {
@@ -30,6 +31,7 @@ test('headless remembered room floors use NO_COLOR tone', () => {
     const x = 6;
     const y = 6;
     const row = y + 1;
+    const col = x - 1;
 
     const loc = map.at(x, y);
     loc.typ = ROOM;
@@ -38,8 +40,8 @@ test('headless remembered room floors use NO_COLOR tone', () => {
     const fov = { canSee: () => false };
     display.renderMap(map, null, fov, { msg_window: false, DECgraphics: true, color: true });
 
-    assert.equal(display.grid[row][x], '·');
-    assert.equal(display.colors[row][x], 8);
+    assert.equal(display.grid[row][col], '·');
+    assert.equal(display.colors[row][col], 8);
     assert.match(display.getScreenAnsiLines()[row], /\u001b\[0;90;40m/);
 });
 
@@ -49,6 +51,7 @@ test('headless remembered objects keep remembered object color', () => {
     const x = 7;
     const y = 7;
     const row = y + 1;
+    const col = x - 1;
 
     const loc = map.at(x, y);
     loc.seenv = 0xff;
@@ -58,8 +61,8 @@ test('headless remembered objects keep remembered object color', () => {
     const fov = { canSee: () => false };
     display.renderMap(map, null, fov, { msg_window: false, DECgraphics: false, color: true });
 
-    assert.equal(display.grid[row][x], '$');
-    assert.equal(display.colors[row][x], 11);
+    assert.equal(display.grid[row][col], '$');
+    assert.equal(display.colors[row][col], 11);
 });
 
 test('headless remembered invisible marker overrides remembered objects', () => {
@@ -68,6 +71,7 @@ test('headless remembered invisible marker overrides remembered objects', () => 
     const x = 8;
     const y = 8;
     const row = y + 1;
+    const col = x - 1;
 
     const loc = map.at(x, y);
     loc.seenv = 0xff;
@@ -78,7 +82,7 @@ test('headless remembered invisible marker overrides remembered objects', () => 
     const fov = { canSee: () => false };
     display.renderMap(map, null, fov, { msg_window: false, DECgraphics: false, color: true });
 
-    assert.equal(display.grid[row][x], 'I');
+    assert.equal(display.grid[row][col], 'I');
 });
 
 test('headless visible monsters clear remembered invisible marker', () => {
@@ -87,6 +91,7 @@ test('headless visible monsters clear remembered invisible marker', () => {
     const x = 9;
     const y = 9;
     const row = y + 1;
+    const col = x - 1;
 
     const loc = map.at(x, y);
     loc.typ = ROOM;
@@ -105,6 +110,6 @@ test('headless visible monsters clear remembered invisible marker', () => {
     const fov = { canSee: (cx, cy) => cx === x && cy === y };
     display.renderMap(map, null, fov, { msg_window: false, DECgraphics: false, color: true });
 
-    assert.notEqual(display.grid[row][x], 'I');
+    assert.notEqual(display.grid[row][col], 'I');
     assert.equal(loc.mem_invis, false);
 });

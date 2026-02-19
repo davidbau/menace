@@ -1667,9 +1667,12 @@ export class HeadlessDisplay {
         const mapOffset = this.flags.msg_window ? 3 : MAP_ROW_START;
 
         for (let y = 0; y < ROWNO; y++) {
-            for (let x = 0; x < COLNO; x++) {
-                const row = y + mapOffset;
-                const col = x;
+            const row = y + mapOffset;
+            // C tty map rendering uses game x in [1..COLNO-1] at terminal cols [0..COLNO-2].
+            // Keep the last terminal column blank for map rows.
+            this.setCell(COLNO - 1, row, ' ', CLR_GRAY);
+            for (let x = 1; x < COLNO; x++) {
+                const col = x - 1;
 
                 if (!fov || !fov.canSee(x, y)) {
                     const loc = gameMap.at(x, y);

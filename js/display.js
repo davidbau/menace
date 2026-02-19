@@ -391,9 +391,13 @@ export class Display {
         const mapOffset = flags.msg_window ? 3 : MAP_ROW_START;
 
         for (let y = 0; y < ROWNO; y++) {
-            for (let x = 0; x < COLNO; x++) {
-                const row = y + mapOffset;
-                const col = x;
+            const row = y + mapOffset;
+            // C tty map rendering uses game x in [1..COLNO-1] at terminal cols [0..COLNO-2].
+            // Keep the last terminal column blank for map rows.
+            this.setCell(COLNO - 1, row, ' ', CLR_GRAY);
+            this.cellInfo[row][COLNO - 1] = null;
+            for (let x = 1; x < COLNO; x++) {
+                const col = x - 1;
 
                 if (!fov || !fov.canSee(x, y)) {
                     // Show remembered terrain or nothing
@@ -895,7 +899,7 @@ export class Display {
         // In a browser, we could blink or highlight the player cell
         // For now, just ensure the player @ is bright
         if (player) {
-            this.setCell(player.x, player.y + MAP_ROW_START, '@', CLR_WHITE);
+            this.setCell(player.x - 1, player.y + MAP_ROW_START, '@', CLR_WHITE);
         }
     }
 
