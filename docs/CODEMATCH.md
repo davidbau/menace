@@ -580,7 +580,11 @@ Notes:
 | `dmgtype_fromattack` | 700 | `dmgtype_fromattack` | 418 | Match (see attacktype_fordmg above) |
 | `dmgtype` | 712 | `dmgtype` | 429 | Match (exported) |
 | `max_passive_dmg` | 720 | — | — | TODO (needs resistance checks) |
-| `same_race` | 771 | — | — | TODO (complex species matching; dog.js has simplified version) |
+| `same_race` | 771 | `same_race` | — | Match (exported; full species matching including grow-up chains) |
+| `little_to_big` | 1303 | `little_to_big` | — | Match (exported; uses grownups table) |
+| `big_to_little` | 1316 | `big_to_little` | — | Match (exported; uses grownups table) |
+| `big_little_match` | 1331 | `big_little_match` | — | Match (exported; checks grow-up chain membership) |
+| `levl_follower` | 1211 | — | — | TODO (needs player steed/tame/wiz state) |
 | `mon_knows_traps` | — | `mon_knows_traps` | 367 | Match (exported; predates this section) |
 | `mon_learns_traps` | — | `mon_learns_traps` | 377 | Match (exported; predates this section) |
 
