@@ -16,6 +16,7 @@ import { GameMap } from './map.js';
 import { initLevelGeneration, makelevel, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
 import { TUTORIAL } from './special_levels.js';
 import { makemon, setMakemonPlayerContext } from './makemon.js';
+import { M2_WERE } from './monsters.js';
 import { FOOD_CLASS } from './objects.js';
 import { setObjectMoves } from './mkobj.js';
 import { rhack } from './commands.js';
@@ -262,8 +263,15 @@ export class NetHackGame {
 
     maybeShowQuestLocateHint(depth) {
         if (!this.display || !this.player || this.player.questLocateHintShown) return;
+        if (!Number.isInteger(depth)) return;
         const questLocateDepth = (depth === 14);
         if (!questLocateDepth && !isBranchLevelToDnum(0, depth, 3)) return;
+        // C ref: do.c goto_level() -> com_pager("quest_portal") calls
+        // questpgr.c com_pager_core(), which creates a temporary Lua state.
+        // nhlua init loads nhlib.lua, whose top-level shuffle(align) consumes:
+        // rn2(3), rn2(2).
+        rn2(3);
+        rn2(2);
         this.display.putstr_message("You couldn't quite make out that last message.");
         this.player.questLocateHintShown = true;
     }
@@ -1611,6 +1619,17 @@ export class NetHackGame {
                     mon.fleetim = 0;
                     mon.flee = false;
                 }
+            }
+        }
+
+        // C ref: mon.c decide_to_shapeshift() + were.c were_change().
+        // Lycanthropes consume these RNG calls during turn-end bookkeeping
+        // before movement reallocation.
+        for (const mon of this.map.monsters) {
+            if (mon.dead) continue;
+            if (mon.type && (mon.type.flags2 & M2_WERE)) {
+                rn2(6);
+                rn2(50);
             }
         }
 

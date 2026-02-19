@@ -251,17 +251,6 @@ export async function rhack(ch, game) {
         player.kickedloc = null;
     }
 
-    // C tty --More-- behavior during getobj() retries for eat command:
-    // non-space keys keep re-showing the message; space/enter re-open prompt.
-    if (game.pendingEatObjectMore) {
-        if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
-            game.pendingEatObjectMore = false;
-            return await handleEat(player, display, game);
-        }
-        display.putstr_message("You don't have that object.--More--");
-        return { moved: false, tookTime: false };
-    }
-
     // C tty/keypad behavior in recorded traces: Enter maps to keypad-down.
     // For pet displacement flows, Enter can continue as run-style movement;
     // otherwise keep single-step south movement semantics.
@@ -2139,9 +2128,8 @@ async function handleEat(player, display, game) {
             if (typeof display.clearRow === 'function') display.clearRow(0);
             display.topMessage = null;
             display.messageNeedsMore = false;
-            display.putstr_message("You don't have that object.--More--");
-            if (game) game.pendingEatObjectMore = true;
-            return { moved: false, tookTime: false };
+            display.putstr_message("You don't have that object.");
+            continue;
         }
         // C ref: eat.c doesplit() path for stacked comestibles:
         // splitobj() creates a single-item object and consumes next_ident() (rnd(2)).
@@ -4346,7 +4334,8 @@ async function wizLevelChange(game) {
         return { moved: false, tookTime: false };
     }
     game.changeLevel(level, 'teleport');
-    return { moved: false, tookTime: true };
+    // C ref: wizcmds.c wiz_level_tele() returns ECMD_OK (no turn consumed).
+    return { moved: false, tookTime: false };
 }
 
 // Wizard mode: reveal entire map (magic mapping)

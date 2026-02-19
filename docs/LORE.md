@@ -317,6 +317,27 @@ Practical rule: use step snapshots to verify state alignment at the first
 visual or behavior drift, then apply narrow C-faithful movement-target fixes
 before chasing deeper RNG stacks.
 
+### Wizard level-teleport parity has two separate RNG hooks
+
+In `seed212_valkyrie_wizard`, the `^V` level-teleport flow matched C better
+only after handling both:
+
+1. `wiz_level_tele` as a no-time command (`ECMD_OK` semantics), and
+2. quest-locate pager side effects in `goto_level` (`com_pager("quest_portal")`
+   bootstraps Lua and consumes `rn2(3)`, `rn2(2)` via `nhlib.lua` shuffle).
+
+Practical rule: for transition commands, separate "does this consume a turn?"
+from "does this command path still consume RNG for messaging/script setup?"
+
+### Lycanthrope RNG happens before movement reallocation
+
+C consumes lycanthrope shift checks in turn-end bookkeeping before
+`mcalcmove()`: `decide_to_shapeshift` (`rn2(6)`) then `were_change`
+(`rn2(50)`).
+
+Practical rule: when `mcalcmove` aligns but pre-`mcalcmove` RNG is missing,
+audit turn-end monster status hooks (not just `movemon`/`dog_move` paths).
+
 ### Monster item-search parity needs full intent gates, not broad carry checks
 
 `m_search_items` is not "move toward any carryable floor object." In C it

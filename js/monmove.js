@@ -31,6 +31,7 @@ import { PM_GRID_BUG, PM_IRON_GOLEM, PM_SHOPKEEPER, mons,
          AD_PHYS,
          AD_ACID, AD_ENCH,
          M1_FLY, M1_SWIM, M1_AMPHIBIOUS, M1_AMORPHOUS, M1_CLING, M1_SEE_INVIS, S_MIMIC,
+         S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN,
          M1_WALLWALK, M1_TUNNEL, M1_NEEDPICK, M1_SLITHY, M1_UNSOLID,
          M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC,
          MZ_TINY, MZ_SMALL, MZ_MEDIUM, MZ_HUMAN, WT_HUMAN, MR_FIRE, MR_SLEEP, G_FREQ, G_NOCORPSE,
@@ -1540,13 +1541,15 @@ function dochug(mon, map, player, display, fov, game = null) {
 
         // C ref: nymph/jabberwock/leprechaun: only wake 1/50.
         const sym = monster.type?.symbol;
-        const isHardSleeper = sym === 'n' || monster.type?.name === 'jabberwock' || sym === 'l';
+        const isHardSleeper = sym === S_NYMPH
+            || monster.type?.name === 'jabberwock'
+            || sym === S_LEPRECHAUN;
         if (isHardSleeper && rn2(50)) return false;
 
         // C ref: Aggravate_monster || dog/human || !rn2(7) (non-mimics).
         // We do not model mimic furniture/object disguise state here.
         const aggravate = !!player.aggravateMonster;
-        const isDogOrHuman = sym === 'd' || sym === '@';
+        const isDogOrHuman = sym === S_DOG || sym === S_HUMAN;
         if (!(aggravate || isDogOrHuman || !rn2(7))) return false;
 
         return true;
