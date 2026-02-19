@@ -3,7 +3,11 @@
 
 import { rn2_on_display_rng } from './rng.js';
 import { mons } from './monsters.js';
-import { objectData } from './objects.js';
+import {
+    objectData, CORPSE,
+    POTION_CLASS, FIRST_REAL_GEM, LAST_GLASS_GEM, FIRST_SPELL, LAST_SPELL,
+} from './objects.js';
+import { observeObject } from './discovery.js';
 import { def_monsyms } from './symbols.js';
 
 function randomMonsterGlyph() {
@@ -38,11 +42,65 @@ export function monsterMapGlyph(mon, hallucinating = false) {
     };
 }
 
-export function objectMapGlyph(obj, hallucinating = false) {
-    if (hallucinating) return randomObjectGlyph();
+function isGenericObject(obj) {
+    if (!obj || obj.dknown) return false;
+    if (obj.oclass === POTION_CLASS) return true;
+    if (Number.isInteger(obj.otyp)
+        && obj.otyp >= FIRST_REAL_GEM
+        && obj.otyp <= LAST_GLASS_GEM) {
+        return true;
+    }
+    if (Number.isInteger(obj.otyp)
+        && obj.otyp >= FIRST_SPELL
+        && obj.otyp <= LAST_SPELL) {
+        return true;
+    }
+    return false;
+}
+
+function genericObjectGlyph(obj) {
+    const classIdx = Number.isInteger(obj?.oclass) ? obj.oclass : 0;
+    // This port keeps ILLOBJ_CLASS at 0, but generic slots start at index 1.
+    const generic = objectData[classIdx + 1] || objectData[classIdx] || {};
     return {
-        ch: obj?.displayChar || '?',
-        color: Number.isInteger(obj?.displayColor) ? obj.displayColor : 7,
+        ch: generic.symbol || obj?.displayChar || '?',
+        color: Number.isInteger(generic.color) ? generic.color : 7,
     };
 }
 
+function maybeObserveObjectForMap(obj, player, x, y) {
+    if (!isGenericObject(obj) || !player || !Number.isInteger(x) || !Number.isInteger(y)) {
+        return;
+    }
+    if (!Number.isInteger(player.x) || !Number.isInteger(player.y)) return;
+    const r = 2; // C ref: display.c map_object() uses max(u.xray_range, 2)
+    const neardist = (r * r) * 2 - r;
+    const dx = player.x - x;
+    const dy = player.y - y;
+    if ((dx * dx) + (dy * dy) <= neardist) {
+        observeObject(obj);
+    }
+}
+
+export function objectMapGlyph(obj, hallucinating = false, options = {}) {
+    if (hallucinating) return randomObjectGlyph();
+    const { player = null, x = null, y = null, observe = true } = options;
+    if (observe) {
+        maybeObserveObjectForMap(obj, player, x, y);
+    }
+    if (isGenericObject(obj)) {
+        return genericObjectGlyph(obj);
+    }
+    const corpseColor = (obj?.otyp === CORPSE
+        && Number.isInteger(obj?.corpsenm)
+        && obj.corpsenm >= 0
+        && Number.isInteger(mons[obj.corpsenm]?.color))
+        ? mons[obj.corpsenm].color
+        : null;
+    return {
+        ch: obj?.displayChar || '?',
+        color: Number.isInteger(corpseColor)
+            ? corpseColor
+            : (Number.isInteger(obj?.displayColor) ? obj.displayColor : 7),
+    };
+}

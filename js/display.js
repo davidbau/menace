@@ -461,9 +461,10 @@ export class Display {
                     const underObjs = gameMap.objectsAt(x, y);
                     if (underObjs.length > 0) {
                         const underTop = underObjs[underObjs.length - 1];
-                        loc.mem_obj = underTop.displayChar || 0;
-                        loc.mem_obj_color = Number.isInteger(underTop.displayColor)
-                            ? underTop.displayColor
+                        const underGlyph = objectMapGlyph(underTop, false, { player, x, y });
+                        loc.mem_obj = underGlyph.ch || 0;
+                        loc.mem_obj_color = Number.isInteger(underGlyph.color)
+                            ? underGlyph.color
                             : CLR_GRAY;
                     } else {
                         loc.mem_obj = 0;
@@ -487,12 +488,15 @@ export class Display {
                 const objs = gameMap.objectsAt(x, y);
                 if (objs.length > 0) {
                     const topObj = objs[objs.length - 1];
-                    loc.mem_obj = topObj.displayChar || 0;
-                    loc.mem_obj_color = Number.isInteger(topObj.displayColor)
-                        ? topObj.displayColor
-                        : CLR_GRAY;
                     const hallu = !!player?.hallucinating;
-                    const glyph = objectMapGlyph(topObj, hallu);
+                    const glyph = objectMapGlyph(topObj, hallu, { player, x, y });
+                    const memGlyph = hallu
+                        ? objectMapGlyph(topObj, false, { player, x, y, observe: false })
+                        : glyph;
+                    loc.mem_obj = memGlyph.ch || 0;
+                    loc.mem_obj_color = Number.isInteger(memGlyph.color)
+                        ? memGlyph.color
+                        : CLR_GRAY;
                     this.setCell(col, row, glyph.ch, glyph.color);
                     const classInfo = this._objectClassDesc(topObj.oc_class);
                     const extra = objs.length > 1 ? ` (+${objs.length - 1} more)` : '';
@@ -702,17 +706,19 @@ export class Display {
         this.clearRow(STATUS_ROW_2);
         this.putstr(0, STATUS_ROW_2, line2.substring(0, this.cols), CLR_GRAY);
 
-        // Color HP based on percentage
-        const hpPct = player.hpmax > 0 ? player.hp / player.hpmax : 1;
-        const hpColor = hpPct <= 0.15 ? CLR_RED
-                      : hpPct <= 0.33 ? CLR_ORANGE
-                      : CLR_GRAY;
-        // Find and recolor the HP portion
-        const hpStr = `HP:${player.hp}(${player.hpmax})`;
-        const hpIdx = line2.indexOf(hpStr);
-        if (hpIdx >= 0) {
-            for (let i = 0; i < hpStr.length; i++) {
-                this.setCell(hpIdx + i, STATUS_ROW_2, hpStr[i], hpColor);
+        // C parity: status-line HP text is not force-highlighted unless an
+        // explicit hitpoint highlight option is enabled.
+        if (this.flags.hitpointbar) {
+            const hpPct = player.hpmax > 0 ? player.hp / player.hpmax : 1;
+            const hpColor = hpPct <= 0.15 ? CLR_RED
+                : hpPct <= 0.33 ? CLR_ORANGE
+                    : CLR_GRAY;
+            const hpStr = `HP:${player.hp}(${player.hpmax})`;
+            const hpIdx = line2.indexOf(hpStr);
+            if (hpIdx >= 0) {
+                for (let i = 0; i < hpStr.length; i++) {
+                    this.setCell(hpIdx + i, STATUS_ROW_2, hpStr[i], hpColor);
+                }
             }
         }
     }
