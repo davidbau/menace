@@ -1431,6 +1431,7 @@ def run_session_entry(entry, sessions_dir):
     import copy
     seed = entry['seed']
     moves = entry['moves']
+    wizard_mode = entry.get('wizard', True)
     label = entry.get('label', '')
     suffix = f'_{label}_gameplay' if label else '_gameplay'
     output = os.path.join(sessions_dir, f'seed{seed}{suffix}.session.json')
@@ -1450,7 +1451,7 @@ def run_session_entry(entry, sessions_dir):
     CHARACTER.clear()
     CHARACTER.update(char)
     print(f'\n=== Regenerating session seed={seed}{suffix} ===')
-    run_session(seed, output, moves)
+    run_session(seed, output, moves, wizard_mode=wizard_mode)
     return f'seed{seed}{suffix}'
 
 
@@ -1547,6 +1548,15 @@ def main():
     if raw_moves:
         args.remove('--raw-moves')
 
+    # Parse wizard mode flags for gameplay capture.
+    wizard_mode = True
+    if '--no-wizard' in args:
+        wizard_mode = False
+        args.remove('--no-wizard')
+    if '--wizard' in args:
+        wizard_mode = True
+        args.remove('--wizard')
+
     # Parse character override flags
     char_override = None
     if '--role' in args:
@@ -1570,6 +1580,7 @@ def main():
         print(f"       {sys.argv[0]} --from-config")
         print(f"Options:")
         print(f"  --raw-moves: Moves include --More-- responses (from keylog)")
+        print(f"  --no-wizard: Run gameplay capture without -D (non-wizard mode)")
         print(f"Character presets: {', '.join(CHARACTER_PRESETS.keys())} (default: valkyrie)")
         print(f"Example: {sys.argv[0]} 42 sessions/seed42.session.json ':hhlhhhh.hhs'")
         print(f"Example: {sys.argv[0]} 42 sessions/seed42_castle.session.json --wizload castle")
@@ -1589,10 +1600,17 @@ def main():
         run_interface_session(seed, output_json, interface_keys, verbose)
     else:
         move_str = args[2] if len(args) >= 3 else '...........'
-        run_session(seed, output_json, move_str, raw_moves=raw_moves, character=char_override)
+        run_session(
+            seed,
+            output_json,
+            move_str,
+            raw_moves=raw_moves,
+            character=char_override,
+            wizard_mode=wizard_mode,
+        )
 
 
-def run_session(seed, output_json, move_str, raw_moves=False, character=None):
+def run_session(seed, output_json, move_str, raw_moves=False, character=None, wizard_mode=True):
     """Run a session replaying the given move string.
 
     Args:
@@ -1603,6 +1621,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None):
                    If False, clear_more_prompts is called after each move.
         character: Character config dict (name, role, race, gender, align).
                    Uses default CHARACTER if None.
+        wizard_mode: If True, launch C NetHack with -D and capture typGrid via #dumpmap.
     """
     char = character or CHARACTER
     output_json = os.path.abspath(output_json)
@@ -1622,6 +1641,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None):
     session_name = f'webhack-session-{seed}-{os.getpid()}'
 
     try:
+        wiz_flag = ' -D' if wizard_mode else ''
         cmd = (
             f'NETHACKDIR={INSTALL_DIR} '
             f'{fixed_datetime_env()}'
@@ -1630,7 +1650,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None):
             f'NETHACK_DUMPMAP={dumpmap_file} '
             f'HOME={RESULTS_DIR} '
             f'TERM=xterm-256color '
-            f'{NETHACK_BINARY} -u {char["name"]} -D; '
+            f'{NETHACK_BINARY} -u {char["name"]}{wiz_flag}; '
             f'sleep 999'
         )
         subprocess.run(
@@ -1651,15 +1671,16 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None):
         startup_rng_count, startup_rng_lines = read_rng_log(rng_log_file)
         print(f'Startup: {startup_rng_count} RNG calls')
 
-        # Capture startup typ grid via #dumpmap
-        startup_typ_grid = execute_dumpmap(session_name, dumpmap_file)
-        if startup_typ_grid:
-            print(f'Startup typGrid: {len(startup_typ_grid)}x{len(startup_typ_grid[0])} captured')
-        else:
-            print('WARNING: Failed to capture startup typGrid')
-
-        # Clear any --More-- from dumpmap
-        clear_more_prompts(session_name)
+        startup_typ_grid = None
+        if wizard_mode:
+            # Capture startup typ grid via #dumpmap (wizard-mode only).
+            startup_typ_grid = execute_dumpmap(session_name, dumpmap_file)
+            if startup_typ_grid:
+                print(f'Startup typGrid: {len(startup_typ_grid)}x{len(startup_typ_grid[0])} captured')
+            else:
+                print('WARNING: Failed to capture startup typGrid')
+            # Clear any --More-- from dumpmap.
+            clear_more_prompts(session_name)
 
         # Capture compressed ANSI screen for startup
         startup_screen_compressed = capture_screen_compressed(session_name)
@@ -1692,7 +1713,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None):
                 'race': char['race'],
                 'gender': char['gender'],
                 'align': char['align'],
-                'wizard': True,
+                'wizard': bool(wizard_mode),
                 'symset': 'DECgraphics',
                 'autopickup': False,
                 'pickup_types': '',
@@ -1703,7 +1724,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None):
         # Execute moves - send each character individually (no grouping)
         prev_rng_count = startup_rng_count
         prev_typ_grid = startup_typ_grid
-        captured_levels = {'Dlvl:1'}  # Track levels we've captured typGrids for
+        captured_levels = {'Dlvl:1'} if wizard_mode else set()  # Track levels with typGrid snapshots
 
         # Helper to send a single character with proper control char handling
         def send_char(ch):
@@ -1750,18 +1771,19 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None):
                 'screen': screen_compressed,
             }
 
-            # Capture typGrid when we're on a level we haven't captured yet
-            # Trigger on: new depth detected OR high RNG delta (level generation)
-            level_gen_likely = delta > 1000
-            if depth not in captured_levels or (level_gen_likely and 'typGrid' not in step):
-                current_grid = execute_dumpmap(session_name, dumpmap_file)
-                clear_more_prompts(session_name)
-                if current_grid:
-                    step['typGrid'] = encode_typgrid_rle(current_grid)
-                    captured_levels.add(depth)
-                    reason = f'depth={depth}' if depth not in captured_levels else f'RNG spike ({delta} calls)'
-                    print(f'  New level detected ({reason}), typGrid captured')
-                    prev_typ_grid = current_grid
+            # Capture typGrid snapshots only in wizard-mode, where #dumpmap exists.
+            if wizard_mode:
+                level_gen_likely = delta > 1000
+                new_depth = depth not in captured_levels
+                if new_depth or (level_gen_likely and 'typGrid' not in step):
+                    current_grid = execute_dumpmap(session_name, dumpmap_file)
+                    clear_more_prompts(session_name)
+                    if current_grid:
+                        step['typGrid'] = encode_typgrid_rle(current_grid)
+                        captured_levels.add(depth)
+                        reason = f'depth={depth}' if new_depth else f'RNG spike ({delta} calls)'
+                        print(f'  New level detected ({reason}), typGrid captured')
+                        prev_typ_grid = current_grid
 
             session_data['steps'].append(step)
             print(f'  [{idx+1:03d}] {key!r:5s} ({description:20s}) +{delta:4d} RNG calls (total {rng_count})')

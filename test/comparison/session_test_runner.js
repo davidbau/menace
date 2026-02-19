@@ -48,7 +48,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const SESSIONS_DIR = join(__dirname, 'sessions');
 const MAPS_DIR = join(__dirname, 'maps');
-const SKIP_SESSIONS = new Set(['seed6_tourist_gameplay.session.json']);
+const SKIP_SESSIONS = new Set();
 
 function createReplayResult(session) {
     const result = createSessionResult({

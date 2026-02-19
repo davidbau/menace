@@ -237,6 +237,17 @@ export async function rhack(ch, game) {
         player.kickedloc = null;
     }
 
+    // C tty --More-- behavior during getobj() retries for eat command:
+    // non-space keys keep re-showing the message; space/enter re-open prompt.
+    if (game.pendingEatObjectMore) {
+        if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
+            game.pendingEatObjectMore = false;
+            return await handleEat(player, display, game);
+        }
+        display.putstr_message("You don't have that object.--More--");
+        return { moved: false, tookTime: false };
+    }
+
     // C tty/keypad behavior in recorded traces: Enter maps to keypad-down.
     // For pet displacement flows, Enter can continue as run-style movement;
     // otherwise keep single-step south movement semantics.
@@ -420,7 +431,7 @@ export async function rhack(ch, game) {
     // Fire from quiver/launcher
     // C ref: dothrow() fire command path
     if (c === 'f') {
-        return await handleFire(player, display);
+        return await handleFire(player, map, display);
     }
 
     // Engrave
@@ -2094,7 +2105,12 @@ async function handleEat(player, display, game) {
                 display.putstr_message('You cannot eat that!');
                 return { moved: false, tookTime: false };
             }
-            continue;
+            if (typeof display.clearRow === 'function') display.clearRow(0);
+            display.topMessage = null;
+            display.messageNeedsMore = false;
+            display.putstr_message("You don't have that object.--More--");
+            if (game) game.pendingEatObjectMore = true;
+            return { moved: false, tookTime: false };
         }
         // C ref: eat.c doesplit() path for stacked comestibles:
         // splitobj() creates a single-item object and consumes next_ident() (rnd(2)).
@@ -2238,6 +2254,101 @@ async function handlePay(player, map, display) {
     return { moved: false, tookTime: false };
 }
 
+async function promptDirectionAndThrowItem(player, map, display, item, { fromFire = false } = {}) {
+    const replacePromptMessage = () => {
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        display.topMessage = null;
+        display.messageNeedsMore = false;
+    };
+    // C ref: dothrow.c throw_obj() prompts for direction before checks
+    // like canletgo()/wearing-state rejection.
+    replacePromptMessage();
+    display.putstr_message('In what direction?');
+    const dirCh = await nhgetch();
+    const dch = String.fromCharCode(dirCh);
+    const dir = DIRECTION_KEYS[dch];
+    if (!dir) {
+        replacePromptMessage();
+        return { moved: false, tookTime: false };
+    }
+    const targetX = player.x + dir[0];
+    const targetY = player.y + dir[1];
+    const targetMonster = map.monsterAt(targetX, targetY);
+    let throwMessage = null;
+    let landingX = targetX;
+    let landingY = targetY;
+    if (targetMonster) {
+        // C ref: dothrow.c thitmonst()/tmiss() consumes hit + miss RNG.
+        // Replay currently models this branch as a miss while preserving
+        // RNG and messaging parity for captured early-game traces.
+        rnd(20);
+        rn2(3);
+        // C traces include an immediate obj_resists() probe on the thrown
+        // object in this path before normal monster movement begins.
+        obj_resists(item, 0, 0);
+        const od = objectData[item.otyp];
+        const baseName = od?.name || item.name || 'item';
+        const named = (typeof item.oname === 'string' && item.oname.length > 0)
+            ? `${baseName} named ${item.oname}`
+            : baseName;
+        throwMessage = `The ${named} misses the ${monDisplayName(targetMonster)}.`;
+    }
+    replacePromptMessage();
+    if (
+        player.armor === item
+        || player.shield === item
+        || player.helmet === item
+        || player.gloves === item
+        || player.boots === item
+        || player.cloak === item
+    ) {
+        display.putstr_message('You cannot throw something you are wearing.');
+        return { moved: false, tookTime: false };
+    }
+    // C ref: throw_obj() consumes a one-point rnd() probe before stack split.
+    rnd(1);
+
+    // Minimal throw behavior for replay flow fidelity.
+    let thrownItem = item;
+    if ((item.quan || 1) > 1) {
+        item.quan = (item.quan || 1) - 1;
+        thrownItem = { ...item, quan: 1, o_id: next_ident() };
+    } else {
+        player.removeFromInventory(item);
+        if (player.weapon === item) player.weapon = null;
+        if (player.swapWeapon === item) player.swapWeapon = null;
+        if (player.quiver === item) player.quiver = null;
+    }
+    if (!targetMonster && fromFire) {
+        // C fire traces probe obj_resists() after stack split/ID assignment.
+        obj_resists(thrownItem, 0, 0);
+    }
+    const landingLoc = (typeof map.getCell === 'function')
+        ? map.getCell(landingX, landingY)
+        : (map?.cells?.[landingY]?.[landingX] || null);
+    if (fromFire) {
+        landingX = player.x;
+        landingY = player.y;
+    } else if (landingLoc && !ACCESSIBLE(landingLoc.typ)) {
+        landingX = player.x;
+        landingY = player.y;
+    }
+    thrownItem.ox = landingX;
+    thrownItem.oy = landingY;
+    if (!isok(thrownItem.ox, thrownItem.oy)) {
+        thrownItem.ox = player.x;
+        thrownItem.oy = player.y;
+    }
+    map.objects.push(thrownItem);
+    // C ref: dothrow.c throw_obj() only emits a throw topline for
+    // multishot/count cases; a normal single throw should just resolve.
+    replacePromptMessage();
+    if (throwMessage) {
+        display.putstr_message(throwMessage);
+    }
+    return { moved: false, tookTime: true };
+}
+
 // Handle throwing
 // C ref: dothrow()
 async function handleThrow(player, map, display) {
@@ -2288,81 +2399,11 @@ async function handleThrow(player, map, display) {
         }
         const item = player.inventory.find(o => o.invlet === c);
         if (!item) continue;
-        // C ref: dothrow.c throw_obj() prompts for direction before checks
-        // like canletgo()/wearing-state rejection.
-        replacePromptMessage();
-        display.putstr_message('In what direction?');
-        const dirCh = await nhgetch();
-        const dch = String.fromCharCode(dirCh);
-        const dir = DIRECTION_KEYS[dch];
-        if (!dir) {
-            replacePromptMessage();
-            return { moved: false, tookTime: false };
-        }
-        const targetX = player.x + dir[0];
-        const targetY = player.y + dir[1];
-        const targetMonster = map.monsterAt(targetX, targetY);
-        let throwMessage = null;
-        let landingX = targetX;
-        let landingY = targetY;
-        if (targetMonster) {
-            // C ref: dothrow.c thitmonst()/tmiss() consumes hit + miss RNG.
-            // Replay currently models this branch as a miss while preserving
-            // RNG and messaging parity for captured early-game traces.
-            rnd(20);
-            rn2(3);
-            // C traces include an immediate obj_resists() probe on the thrown
-            // object in this path before normal monster movement begins.
-            obj_resists(item, 0, 0);
-            const od = objectData[item.otyp];
-            const baseName = od?.name || item.name || 'item';
-            const named = (typeof item.oname === 'string' && item.oname.length > 0)
-                ? `${baseName} named ${item.oname}`
-                : baseName;
-            throwMessage = `The ${named} misses the ${monDisplayName(targetMonster)}.`;
-        }
-        replacePromptMessage();
-        if (
-            player.armor === item
-            || player.shield === item
-            || player.helmet === item
-            || player.gloves === item
-            || player.boots === item
-            || player.cloak === item
-        ) {
-            display.putstr_message('You cannot throw something you are wearing.');
-            return { moved: false, tookTime: false };
-        }
-
-        // Minimal throw behavior for replay flow fidelity.
-        let thrownItem = item;
-        if ((item.quan || 1) > 1) {
-            item.quan = (item.quan || 1) - 1;
-            thrownItem = { ...item, quan: 1, o_id: next_ident() };
-        } else {
-            player.removeFromInventory(item);
-            if (player.weapon === item) player.weapon = null;
-            if (player.swapWeapon === item) player.swapWeapon = null;
-            if (player.quiver === item) player.quiver = null;
-        }
-        thrownItem.ox = landingX;
-        thrownItem.oy = landingY;
-        if (!isok(thrownItem.ox, thrownItem.oy)) {
-            thrownItem.ox = player.x;
-            thrownItem.oy = player.y;
-        }
-        map.objects.push(thrownItem);
-        // C ref: dothrow.c throw_obj() only emits a throw topline for
-        // multishot/count cases; a normal single throw should just resolve.
-        replacePromptMessage();
-        if (throwMessage) {
-            display.putstr_message(throwMessage);
-        }
-        return { moved: false, tookTime: true };
+        return await promptDirectionAndThrowItem(player, map, display, item);
     }
 }
 
-async function handleFire(player, display) {
+async function handleFire(player, map, display) {
     const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
@@ -2386,6 +2427,9 @@ async function handleFire(player, display) {
     const quiverItem = player.quiver && inventory.includes(player.quiver)
         ? player.quiver
         : null;
+    if (quiverItem) {
+        return await promptDirectionAndThrowItem(player, map, display, quiverItem, { fromFire: true });
+    }
     if (quiverItem?.invlet) {
         fireLetters.push(quiverItem.invlet);
     }
@@ -2448,17 +2492,7 @@ async function handleFire(player, display) {
             // C ref: selecting an item to fire updates the readied quiver item
             // even if the subsequent direction prompt is canceled.
             player.quiver = selected;
-            replacePromptMessage();
-            display.putstr_message('In what direction?');
-            const dirCh = await nhgetch();
-            const dch = String.fromCharCode(dirCh);
-            const dir = DIRECTION_KEYS[dch];
-            if (!dir) {
-                replacePromptMessage();
-                return { moved: false, tookTime: false };
-            }
-            replacePromptMessage();
-            return { moved: false, tookTime: true };
+            return await promptDirectionAndThrowItem(player, map, display, selected, { fromFire: true });
         }
         // Keep prompt active for unsupported letters (fixture parity).
     }
@@ -2550,6 +2584,10 @@ async function handleRead(player, display) {
 async function handleSwapWeapon(player, display) {
     const oldwep = player.weapon || null;
     if (!player.swapWeapon) {
+        if (!player.weapon) {
+            display.putstr_message('You are already bare handed.');
+            return { moved: false, tookTime: false };
+        }
         display.putstr_message('You have no secondary weapon readied.');
         // C ref: doswapweapon() consumes a turn even when swap slot is empty.
         return { moved: false, tookTime: true };
@@ -3770,6 +3808,68 @@ async function handleSet(game) {
         }
     }
 
+    async function editPickupTypesOption() {
+        const choices = [
+            { key: 'a', glyph: '$', symbol: '$', label: 'pile of coins' },
+            { key: 'b', glyph: '"', symbol: '"', label: 'amulet' },
+            { key: 'c', glyph: ')', symbol: ')', label: 'weapon' },
+            { key: 'd', glyph: '[', symbol: '[', label: 'suit or piece of armor' },
+            { key: 'e', glyph: '%', symbol: '%', label: 'piece of food' },
+            { key: 'f', glyph: '?', symbol: '?', label: 'scroll' },
+            { key: 'g', glyph: '+', symbol: '+', label: 'spellbook' },
+            { key: 'h', glyph: '!', symbol: '!', label: 'potion' },
+            { key: 'i', glyph: '=', symbol: '=', label: 'ring' },
+            { key: 'j', glyph: '/', symbol: '/', label: 'wand' },
+            { key: 'k', glyph: '(', symbol: '(', label: 'useful item (pick-axe, key, lamp...)' },
+            { key: 'l', glyph: '*', symbol: '*', label: 'gem or rock' },
+            { key: 'm', glyph: '`', symbol: '`', label: 'boulder or statue' },
+            { key: 'n', glyph: '0', symbol: '0', label: 'iron ball' },
+            { key: 'o', glyph: '_', symbol: '_', label: 'iron chain' },
+        ];
+
+        const parseTypes = () => {
+            const raw = String(flags.pickup_types || '');
+            if (!raw) return new Set();
+            return new Set(raw.split(''));
+        };
+
+        const saveTypes = (set) => {
+            flags.pickup_types = Array.from(set).join('');
+            saveFlags(flags);
+        };
+
+        while (true) {
+            const selected = parseTypes();
+            const lines = ['Autopickup what?', ''];
+            for (const choice of choices) {
+                const mark = selected.has(choice.symbol) ? '+' : '-';
+                lines.push(`${choice.key} ${mark} ${choice.glyph}  ${choice.label}`);
+            }
+            lines.push('');
+            lines.push('A -    All classes of objects');
+            lines.push('Note: when no choices are selected, "all" is implied.');
+            lines.push("Toggle off 'autopickup' to not pick up anything.");
+            lines.push('(end)');
+            renderCenteredList(lines, 25, true);
+
+            const ch = await nhgetch();
+            const c = String.fromCharCode(ch);
+            if (ch === 27 || ch === 10 || ch === 13 || c === ' ' || c === 'q' || c === 'x') {
+                return;
+            }
+            if (c === 'A') {
+                selected.clear();
+                saveTypes(selected);
+                continue;
+            }
+            const choice = choices.find((entry) => entry.key === c);
+            if (!choice) continue;
+            if (selected.has(choice.symbol)) selected.delete(choice.symbol);
+            else selected.add(choice.symbol);
+            saveTypes(selected);
+        }
+    }
+
     // Interactive loop - C ref: options.c doset() menu loop
     while (true) {
         drawOptions();
@@ -3808,6 +3908,12 @@ async function handleSet(game) {
         if (selected) {
             if (selected.flag === 'number_pad') {
                 await editNumberPadModeOption();
+                continue;
+            }
+            if (selected.flag === 'pickup_types') {
+                await editPickupTypesOption();
+                currentPage = 1;
+                showHelp = false;
                 continue;
             }
             if (selected.type === 'bool') {
@@ -3863,7 +3969,8 @@ async function handleExtendedCommand(game) {
     if (input === null || input.trim() === '') {
         return { moved: false, tookTime: false };
     }
-    const cmd = input.trim().toLowerCase();
+    const rawCmd = input.trim();
+    const cmd = rawCmd.toLowerCase();
     switch (cmd) {
         case 'o':
         case 'options':
@@ -3909,7 +4016,7 @@ async function handleExtendedCommand(game) {
         }
         default:
             // C-style unknown extended command feedback
-            display.putstr_message(`#${cmd}: unknown extended command.`);
+            display.putstr_message(`#${rawCmd}: unknown extended command.`);
             return { moved: false, tookTime: false };
     }
 }

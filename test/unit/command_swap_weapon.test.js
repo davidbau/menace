@@ -34,8 +34,28 @@ describe('swap weapon command', () => {
         clearInputQueue();
     });
 
-    it('consumes a turn and reports missing secondary weapon', async () => {
+    it('reports already bare handed without consuming a turn', async () => {
         const game = makeGame();
+        const result = await rhack('x'.charCodeAt(0), game);
+        assert.equal(result.tookTime, false);
+        assert.equal(game.display.topMessage, 'You are already bare handed.');
+    });
+
+    it('consumes a turn and reports missing secondary weapon when a primary is wielded', async () => {
+        const game = makeGame();
+        game.player.weapon = {
+            invlet: 'a',
+            oclass: WEAPON_CLASS,
+            otyp: DAGGER,
+            quan: 1,
+            known: true,
+            dknown: true,
+            bknown: true,
+            blessed: false,
+            cursed: false,
+            spe: 0,
+            name: 'dagger',
+        };
         const result = await rhack('x'.charCodeAt(0), game);
         assert.equal(result.tookTime, true);
         assert.equal(game.display.topMessage, 'You have no secondary weapon readied.');

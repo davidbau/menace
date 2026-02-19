@@ -95,6 +95,21 @@ test('fire prompt falls back to coin letter when no launcher candidates exist', 
     assert.equal(game.display.topMessage, 'Never mind.');
 });
 
+test('fire with readied quiver skips item prompt and asks for direction', async () => {
+    const game = makeGame();
+    const readied = { oclass: WEAPON_CLASS, otyp: LONG_SWORD, invlet: 'a', name: 'dart', quan: 2 };
+    game.player.inventory = [readied];
+    game.player.quiver = readied;
+    clearInputQueue();
+    pushInput('j'.charCodeAt(0));
+
+    const result = await rhack('f'.charCodeAt(0), game);
+    assert.equal(result.tookTime, true);
+    assert.equal(game.display.messages[0], 'In what direction?');
+    assert.equal(game.display.messages.includes('What do you want to fire? [a or ?*]'), false);
+    assert.equal(readied.quan, 1);
+});
+
 test('fire accepts manual inventory letters then asks direction', async () => {
     const game = makeGame();
     const readied = { oclass: FOOD_CLASS, otyp: 0, invlet: 'e', name: 'carrot', quan: 1 };
