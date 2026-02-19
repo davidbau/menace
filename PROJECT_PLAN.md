@@ -47,11 +47,12 @@ The intended outcome is a superior but historically accurate NetHack gameplay an
 ## Parity Definition of Done (Operational Gate)
 
 Parity is considered achieved when all are true:
-1. Deterministic replay/session suites pass against C reference traces for maintained session categories.
-2. No known systematic RNG drift remains in validated scenarios.
-3. Core gameplay regression suites are green (`npm test` plus comparison harness suites).
-4. Codebase passes agreed lint/style/test gates.
-5. Non-gameplay UI extension interfaces are documented and validated as behavior-neutral.
+1. Every interaction and playable feature of the game is implemented: all commands, items, monsters, spells, dungeon branches, special levels, and game mechanics present in C NetHack 3.7.0 are functional in the JS port. The [C↔JS correspondence ledger](docs/CODEMATCH.md) tracks structural coverage file-by-file and function-by-function.
+2. Deterministic replay/session suites pass against C reference traces for maintained session categories.
+3. No known systematic RNG drift remains in validated scenarios.
+4. Core gameplay regression suites are green (`npm test` plus comparison harness suites).
+5. Codebase passes agreed lint/style/test gates.
+6. Non-gameplay UI extension interfaces are documented and validated as behavior-neutral.
 
 ## Secondary Goals
 
