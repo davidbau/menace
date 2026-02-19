@@ -320,4 +320,79 @@ describe('Selection API', () => {
             assert.ok(hasPoint(13, 10) || hasPoint(10 + 3, 10)); // right edge
         });
     });
+
+    describe('selection.gradient()', () => {
+        const SEL_GRADIENT_RADIAL = 0;
+        const SEL_GRADIENT_SQUARE = 1;
+
+        it('radial gradient: point at axis endpoint always included (mind=5)', () => {
+            // With mind=5, all points within radius 5 of the axis are always included.
+            // The axis is a single point (x=10,y=10,x2=10,y2=10), so the center
+            // is within radius 0 of the axis — definitely inside mind=5.
+            initRng(1);
+            const sel = selection.gradient(10, 10, 10, 10, SEL_GRADIENT_RADIAL, 5, 10);
+            const hasPoint = (x, y) => sel.coords.some(c => c.x === x && c.y === y);
+            assert.ok(hasPoint(10, 10), 'center point should be included');
+        });
+
+        it('radial gradient: returns a selection object with coords', () => {
+            initRng(42);
+            const sel = selection.gradient(10, 10, 20, 10, SEL_GRADIENT_RADIAL, 0, 3);
+            assert.ok(Array.isArray(sel.coords), 'should return selection with coords');
+            assert.ok(sel.coords.length > 0, 'should have at least some points');
+        });
+
+        it('radial gradient: no points outside maxd of axis (deterministic)', () => {
+            // With mind=maxd=0: only points ON the axis are included (d0 <= 0).
+            // All points with d0 > 0 would need d0 - 0 < rn2(1) which is always false.
+            initRng(1);
+            const sel = selection.gradient(10, 10, 10, 10, SEL_GRADIENT_RADIAL, 0, 0);
+            // Only the exact center should be in the selection
+            assert.ok(sel.coords.every(c => c.x === 10 && c.y === 10),
+                'with mind=maxd=0 (point axis), only center should be included');
+        });
+
+        it('square gradient: includes points near axis', () => {
+            initRng(7);
+            const sel = selection.gradient(10, 5, 10, 15, SEL_GRADIENT_SQUARE, 2, 5);
+            const hasPoint = (x, y) => sel.coords.some(c => c.x === x && c.y === y);
+            // Points on the axis itself are within mind=2 squared=4; d0 of (10,10) from segment = 0 <= 4
+            assert.ok(hasPoint(10, 10), 'axis point should be included');
+        });
+
+        it('gradient is deterministic for same seed', () => {
+            initRng(99);
+            const sel1 = selection.gradient(5, 5, 15, 15, SEL_GRADIENT_RADIAL, 2, 6);
+
+            initRng(99);
+            const sel2 = selection.gradient(5, 5, 15, 15, SEL_GRADIENT_RADIAL, 2, 6);
+
+            assert.equal(sel1.coords.length, sel2.coords.length,
+                'same seed should produce same number of points');
+        });
+
+        it('gradient with swapped mind/maxd gives same result as ordered', () => {
+            // C swaps mind/maxd if mind > maxd; our JS does the same
+            initRng(5);
+            const sel1 = selection.gradient(10, 10, 20, 10, SEL_GRADIENT_RADIAL, 3, 6);
+
+            initRng(5);
+            const sel2 = selection.gradient(10, 10, 20, 10, SEL_GRADIENT_RADIAL, 6, 3);
+
+            assert.equal(sel1.coords.length, sel2.coords.length,
+                'swapped mind/maxd should give same result');
+        });
+
+        it('larger maxd includes more points than smaller maxd (probabilistically)', () => {
+            // With the same seed, larger maxd means more points can be included
+            initRng(12);
+            const small = selection.gradient(10, 10, 10, 10, SEL_GRADIENT_RADIAL, 0, 2);
+
+            initRng(12);
+            const large = selection.gradient(10, 10, 10, 10, SEL_GRADIENT_RADIAL, 0, 8);
+
+            assert.ok(large.coords.length >= small.coords.length,
+                `larger maxd (${large.coords.length}) should have >= points than small (${small.coords.length})`);
+        });
+    });
 });

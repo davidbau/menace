@@ -82,7 +82,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[ ]` | light.c | — | Light source management |
 | `[ ]` | lock.c | — | Lock picking and door opening |
 | `[N/A]` | mail.c | — | In-game mail system (uses real mail on Unix) |
-| `[a]` | makemon.c | makemon.js | Monster creation. Core functions aligned; clone_mon/propagate/mbirth_limit TODO |
+| `[a]` | makemon.c | makemon.js | Monster creation. Core functions aligned; clone_mon/propagate TODO |
 | `[ ]` | mcastu.c | — | Monster spellcasting |
 | `[N/A]` | mdlib.c | — | Metadata library utilities |
 | `[ ]` | mhitm.c | — | Monster-vs-monster combat |
@@ -128,7 +128,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[ ]` | role.c | — | Role/race/gender selection. JS: `player.js` |
 | `[ ]` | rumors.c | — | Rumor system. JS: `rumor_data.js` (data only) |
 | `[ ]` | save.c | — | Game save. JS: `storage.js` |
-| `[a]` | selvar.c | — | Selection geometry. JS: `selection` object in `sp_lev.js`. Most geometry functions aligned; ellipse/gradient/is_irregular/size_description not yet implemented |
+| `[a]` | selvar.c | — | Selection geometry. JS: `selection` object in `sp_lev.js`. All major geometry functions aligned including ellipse/gradient/is_irregular/size_description |
 | `[N/A]` | sfbase.c | — | Save file base I/O routines |
 | `[N/A]` | sfstruct.c | — | Save file structure definitions |
 | `[~]` | shk.c | — | Shopkeeper behavior. JS: partially in `shknam.js` |
@@ -611,7 +611,7 @@ Notes:
 | `makemon_rnd_goodpos` | 1078 | `makemon_rnd_goodpos` | 1548 | Match (private) |
 | `makemon` | 1149 | `makemon` | 1648 | Match (exported) |
 | `unmakemon` | 1511 | — | — | TODO (remove monster from map; not yet needed) |
-| `mbirth_limit` | 1539 | — | — | TODO (birth limit not yet tracked) |
+| `mbirth_limit` | 1539 | `mbirth_limit` | 561 | Match (exported) |
 | `create_critters` | 1553 | — | — | TODO (special level monster creation) |
 | `uncommon` | 1590 | `uncommon` | 286 | Match (private) |
 | `align_shift` | 1608 | `align_shift` | 297 | Match (private) |
@@ -789,13 +789,13 @@ Selection geometry functions are implemented as methods of the `selection` objec
 | `sel_flood_havepoint` | 379 | N/A | — | Internal staticfn helper |
 | `selection_floodfill` | 395 | `selection.floodfill(x, y, matchFn)` | 7415 | Match |
 | `selection_do_ellipse` | 456 | `selection.ellipse(xc, yc, a, b, filled)` | — | Match (static factory) |
-| `line_dist_coord` | 542 | N/A | — | Internal helper for gradient |
-| `selection_do_gradient` | 570 | N/A | — | TODO (not yet in JS) |
+| `line_dist_coord` | 542 | N/A | — | Inlined in `selection.gradient()` |
+| `selection_do_gradient` | 570 | `selection.gradient(x,y,x2,y2,gtyp,mind,maxd)` | 7318 | Match (static factory) |
 | `selection_do_line` | 626 | `selection.line(x1, y1, x2, y2)` | 6980 | Match (Bresenham) |
 | `selection_do_randline` | 683 | `selection.randline(...)` | 7011 | Match |
 | `selection_iterate` | 726 | `sel.iterate(func)` | 7149 | Match |
-| `selection_is_irregular` | 747 | N/A | — | Not yet in JS |
-| `selection_size_description` | 764 | N/A | — | Not yet in JS |
+| `selection_is_irregular` | 747 | `sel.is_irregular()` | 7231 | Match (method on sel object) |
+| `selection_size_description` | 764 | `sel.size_description()` | 7249 | Match (method on sel object) |
 | `selection_from_mkroom` | 781 | `selection.room()` | 6824 | Match (C ref comment present in JS) |
 | `selection_force_newsyms` | 802 | N/A | — | Display concern — not needed in JS |
 

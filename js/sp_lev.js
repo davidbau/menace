@@ -7316,6 +7316,71 @@ export const selection = {
     },
 
     /**
+     * selection.gradient(x, y, x2, y2, gtyp, mind, maxd)
+     * Generate a gradient-shaped selection (radial or square).
+     * Points within mind of the line segment (x,y)-(x2,y2) are always included;
+     * points between mind and maxd are included with decreasing probability.
+     * C ref: selvar.c:570 selection_do_gradient()
+     *
+     * @param {number} gtyp - 0=SEL_GRADIENT_RADIAL, 1=SEL_GRADIENT_SQUARE
+     * @param {number} mind - inner radius (always included)
+     * @param {number} maxd - outer radius (fade limit)
+     * @returns {Object} Selection with coords array
+     */
+    gradient: (x, y, x2, y2, gtyp, mind, maxd) => {
+        const SEL_GRADIENT_SQUARE = 1;
+        const sel = selection.new();
+
+        // Swap so mind <= maxd (C: selvar.c:579-583)
+        if (mind > maxd) { const tmp = mind; mind = maxd; maxd = tmp; }
+        const dofs = Math.max(1, maxd * maxd - mind * mind);
+        const mind2 = mind * mind, maxd2 = maxd * maxd;
+
+        // Square of distance from line segment (x1,y1)-(x2,y2) to point (px,py)
+        // C ref: selvar.c:542 line_dist_coord()
+        function line_dist_coord(lx1, ly1, lx2, ly2, px, py) {
+            const pvx = lx2 - lx1, pvy = ly2 - ly1;
+            const s = pvx * pvx + pvy * pvy;
+            if (s === 0) {
+                const dx = lx1 - px, dy = ly1 - py;
+                return dx * dx + dy * dy;
+            }
+            let lu = ((px - lx1) * pvx + (py - ly1) * pvy) / s;
+            if (lu > 1) lu = 1;
+            else if (lu < 0) lu = 0;
+            const cx = lx1 + lu * pvx - px;
+            const cy = ly1 + lu * pvy - py;
+            return Math.trunc(cx * cx + cy * cy);
+        }
+
+        if (gtyp === SEL_GRADIENT_SQUARE) {
+            for (let dx = 0; dx < COLNO; dx++) {
+                for (let dy = 0; dy < ROWNO; dy++) {
+                    // C: min(d5, min(max(d1,d2), max(d3,d4)))
+                    const d1 = line_dist_coord(x, y, x2, y2, x,  dy);
+                    const d2 = line_dist_coord(x, y, x2, y2, dx, y);
+                    const d3 = line_dist_coord(x, y, x2, y2, x2, dy);
+                    const d4 = line_dist_coord(x, y, x2, y2, dx, y2);
+                    const d5 = line_dist_coord(x, y, x2, y2, dx, dy);
+                    const d0 = Math.min(d5, Math.min(Math.max(d1, d2), Math.max(d3, d4)));
+                    if (d0 <= mind2 || (d0 <= maxd2 && d0 - mind2 < rn2(dofs)))
+                        sel.set(dx, dy, true);
+                }
+            }
+        } else {
+            // SEL_GRADIENT_RADIAL (default)
+            for (let dx = 0; dx < COLNO; dx++) {
+                for (let dy = 0; dy < ROWNO; dy++) {
+                    const d0 = line_dist_coord(x, y, x2, y2, dx, dy);
+                    if (d0 <= mind2 || (d0 <= maxd2 && d0 - mind2 < rn2(dofs)))
+                        sel.set(dx, dy, true);
+                }
+            }
+        }
+        return sel;
+    },
+
+    /**
      * selection.rndcoord(sel)
      * Get a random coordinate from a selection.
      *
