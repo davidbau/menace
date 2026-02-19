@@ -2140,6 +2140,7 @@ async function handleEat(player, display, game) {
                 return { moved: false, tookTime: false };
             }
             // C tty parity: invalid selector stays in modal getobj flow with a
+            // "You don't have that object.--More--" message, then re-prompts.
             const moreStr = '--More--';
             const renderNoObjectMore = () => {
                 if (typeof display.clearRow === 'function') display.clearRow(0);
