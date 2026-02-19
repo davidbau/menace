@@ -830,3 +830,47 @@
 
 - Net:
   - Keep as behavior-neutral triage hardening for selfplay candidate evaluation.
+
+## 2026-02-19 - Keep: Attack-Decision Telemetry Through Runner/Matrix/Diff
+
+- Change:
+  - Added `Attack decision telemetry` in `selfplay/runner/c_runner.js`:
+    - `fleeLoopBreak`
+    - `forced`
+    - `blocking`
+    - `loneDog`
+    - `other`
+  - Extended `selfplay/runner/c_role_matrix.js` parsing/output/JSON with:
+    - per-run attack-decision counters,
+    - matrix averages for each attack-decision class.
+  - Extended `selfplay/runner/c_role_matrix_diff.js` summary deltas to include attack-decision averages.
+
+- Why:
+  - We already track attack volume, but not attack quality/cause.
+  - For #15 tuning, we need to distinguish:
+    - productive engagement,
+    - forced/cornered attacks,
+    - loop-break attacks,
+    - lone-dog concentration.
+  - This improves triage precision without changing policy behavior.
+
+- Validation:
+  - `node --check selfplay/runner/c_runner.js`
+  - `node --check selfplay/runner/c_role_matrix.js`
+  - `node --check selfplay/runner/c_role_matrix_diff.js`
+  - `node --test selfplay/test/role_matrix_diff.test.js`
+  - Smoke:
+    - `node selfplay/runner/c_runner.js --seed=41 --turns=120 --role=Tourist --key-delay=0 --quiet`
+    - `node selfplay/runner/c_role_matrix.js --mode=custom --roles=Tourist --seeds=41 --turns=120 --key-delay=0 --quiet --json-out=/tmp/role_matrix_smoke_attacktele_20260219.json`
+    - `node selfplay/runner/c_role_matrix_diff.js --baseline=/tmp/role_matrix_smoke_attacktele_20260219.json --candidate=/tmp/role_matrix_smoke_attacktele_20260219.json --top=2`
+
+- Example (smoke output):
+  - `attack=36` decomposed to:
+    - `fleeLoopBreak=0`
+    - `forced=0`
+    - `blocking=0`
+    - `loneDog=36`
+    - `other=0`
+
+- Net:
+  - Keep as behavior-neutral observability infrastructure for candidate triage.

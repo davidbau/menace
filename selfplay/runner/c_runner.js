@@ -131,6 +131,11 @@ try {
         lastObservedXP: 0,
         actionCounts: new Map(),
         xl1AttackTurns: 0,
+        attackFleeLoopBreakTurns: 0,
+        attackForcedCorneredTurns: 0,
+        attackBlockingTurns: 0,
+        attackLoneDogTurns: 0,
+        attackOtherTurns: 0,
         fleeHpEmergencyTurns: 0,
         fleeDlvl2RetreatTurns: 0,
         fleeToUpstairsTurns: 0,
@@ -165,7 +170,21 @@ try {
             if (progression.xpAt600 === null && info.turn >= 600) progression.xpAt600 = xp;
             const actionType = info.action?.type || 'unknown';
             progression.actionCounts.set(actionType, (progression.actionCounts.get(actionType) || 0) + 1);
-            if (actionType === 'attack' && xl <= 1) progression.xl1AttackTurns++;
+            if (actionType === 'attack') {
+                if (xl <= 1) progression.xl1AttackTurns++;
+                const reason = info.action?.reason || '';
+                if (reason.includes('breaking flee loop')) {
+                    progression.attackFleeLoopBreakTurns++;
+                } else if (reason.includes('forced to fight')) {
+                    progression.attackForcedCorneredTurns++;
+                } else if (reason.includes('lone dog')) {
+                    progression.attackLoneDogTurns++;
+                } else if (reason.includes('blocking')) {
+                    progression.attackBlockingTurns++;
+                } else {
+                    progression.attackOtherTurns++;
+                }
+            }
             if (actionType === 'flee') {
                 const reason = info.action?.reason || '';
                 if (reason.includes('retreating to upstairs early on Dlvl 2')) {
@@ -251,6 +270,11 @@ try {
     const waitTurns = actionCount('wait');
     const pickupTurns = actionCount('pickup');
     const unknownTurns = actionCount('unknown');
+    const attackFleeLoopBreakTurns = progression.attackFleeLoopBreakTurns;
+    const attackForcedCorneredTurns = progression.attackForcedCorneredTurns;
+    const attackBlockingTurns = progression.attackBlockingTurns;
+    const attackLoneDogTurns = progression.attackLoneDogTurns;
+    const attackOtherTurns = progression.attackOtherTurns;
     const fleeHpEmergencyTurns = progression.fleeHpEmergencyTurns;
     const fleeDlvl2RetreatTurns = progression.fleeDlvl2RetreatTurns;
     const fleeToUpstairsTurns = progression.fleeToUpstairsTurns;
@@ -278,6 +302,7 @@ try {
     runnerLog(`  XP progression: maxXL=${Math.max(stats.maxXpLevel || 0, progression.maxXL)} maxXP=${Math.max(stats.maxXpPoints || 0, progression.maxXP)} XL2_turn=${stats.firstXpLevel2Turn ?? progression.firstXL2Turn ?? 'never'} XL3_turn=${stats.firstXpLevel3Turn ?? progression.firstXL3Turn ?? 'never'}`);
     runnerLog(`  XP checkpoints: t100=${xpAt100} t200=${xpAt200} t400=${xpAt400} t600=${xpAt600}`);
     runnerLog(`  Action telemetry: attack=${attackTurns} flee=${fleeTurns} explore=${exploreTurns} navigate=${navigateTurns} search=${searchTurns} rest=${restTurnsTaken} wait=${waitTurns} pickup=${pickupTurns} xl1Attack=${progression.xl1AttackTurns} reallyAttack=${reallyAttackPrompts} petSwap=${petDisplacements} unknown=${unknownTurns}`);
+    runnerLog(`  Attack decision telemetry: fleeLoopBreak=${attackFleeLoopBreakTurns} forced=${attackForcedCorneredTurns} blocking=${attackBlockingTurns} loneDog=${attackLoneDogTurns} other=${attackOtherTurns}`);
     runnerLog(`  Flee telemetry: hpEmergency=${fleeHpEmergencyTurns} dlvl2Retreat=${fleeDlvl2RetreatTurns} toUpstairs=${fleeToUpstairsTurns} oscillation=${fleeOscillationTurns} danger=${fleeDangerTurns} other=${fleeOtherTurns}`);
     runnerLog(`  Attack target telemetry: petClass=${attackPetClassTurns} petClassLowXpDlvl1=${attackPetClassLowXpDlvl1Turns} dog=${attackDogTurns} dogLowXpDlvl1=${attackDogLowXpDlvl1Turns}`);
     runnerLog(`  Dog loop telemetry: lowXpDogLoop=${lowXpDogLoopTurns} doorAdj=${lowXpDogLoopDoorAdjTurns} attackDoorAdj=${attackLowXpDogLoopDoorAdjTurns} blocking=${lowXpDogLoopBlockingTurns} nonBlocking=${lowXpDogLoopNonBlockingTurns} attackBlocking=${attackLowXpDogLoopBlockingTurns} attackNonBlocking=${attackLowXpDogLoopNonBlockingTurns}`);
