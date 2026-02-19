@@ -360,6 +360,8 @@ RNG resumes.
 Practical rule: if a step has an exact expected RNG prefix plus extra tail, and
 the first extra comparable call matches a later step's first comparable call
 after zero-RNG frames, defer the tail to that later step for comparison.
+Treat zero-RNG frames between source and deferred target as display-only
+acknowledgement frames (do not execute a new command turn there).
 
 ---
 

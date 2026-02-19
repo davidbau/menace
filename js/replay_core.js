@@ -869,6 +869,7 @@ export async function replaySession(seed, session, opts = {}) {
     let deferredSparseMoveKey = null;
     let deferredMoreBoundaryRng = [];
     let deferredMoreBoundaryTarget = null;
+    let deferredMoreBoundarySource = null;
     const startTutorialLevel = () => {
         const tutorialAlign = Number.isInteger(opts.tutorialDungeonAlign)
             ? opts.tutorialDungeonAlign
@@ -914,6 +915,7 @@ export async function replaySession(seed, session, opts = {}) {
             raw = deferredMoreBoundaryRng.concat(stepLogRaw);
             deferredMoreBoundaryRng = [];
             deferredMoreBoundaryTarget = null;
+            deferredMoreBoundarySource = null;
         }
         let compact = raw.map(toCompactRng);
 
@@ -950,6 +952,7 @@ export async function replaySession(seed, session, opts = {}) {
                     && rngCallPart(firstRemainder) === rngCallPart(firstNextExpected)) {
                     deferredMoreBoundaryRng = remainderRaw;
                     deferredMoreBoundaryTarget = targetIdx;
+                    deferredMoreBoundarySource = stepIndex;
                     raw = raw.slice(0, splitAt);
                     compact = compact.slice(0, splitAt);
                 } else if (firstRemainder && !firstNextExpected) {
@@ -1000,6 +1003,7 @@ export async function replaySession(seed, session, opts = {}) {
                 if (remCalls.length > 0 && prefixLen === remCalls.length) {
                     deferredMoreBoundaryRng = remainderRaw;
                     deferredMoreBoundaryTarget = stepIndex + 1;
+                    deferredMoreBoundarySource = stepIndex;
                     raw = raw.slice(0, splitAt);
                     compact = compact.slice(0, splitAt);
                 } else if (remCalls.length > 0) {
@@ -1021,11 +1025,15 @@ export async function replaySession(seed, session, opts = {}) {
                         && remCalls[0] === rngCallPart(firstNextExpected)) {
                         deferredMoreBoundaryRng = remainderRaw;
                         deferredMoreBoundaryTarget = targetIdx;
+                        deferredMoreBoundarySource = stepIndex;
                         raw = raw.slice(0, splitAt);
                         compact = compact.slice(0, splitAt);
                     }
                 }
             }
+        }
+        if (deferredMoreBoundarySource === stepIndex) {
+            forceCapturedMoreScreen = true;
         }
         stepResults.push({
             rngCalls: raw.length,
@@ -1157,6 +1165,24 @@ export async function replaySession(seed, session, opts = {}) {
             && deferredMoreBoundaryTarget === stepIndex
             && step.action === 'key-'
             && step.key === ' ') {
+            applyStepScreen();
+            pushStepResult(
+                [],
+                opts.captureScreens ? game.display.getScreenLines() : undefined,
+                step,
+                stepScreen,
+                stepIndex
+            );
+            continue;
+        }
+        // Sparse keylog captures can insert display-only intermediary frames
+        // between a source step and deferred boundary target.
+        if (!pendingCommand
+            && deferredMoreBoundaryRng.length > 0
+            && deferredMoreBoundaryTarget != null
+            && stepIndex > (deferredMoreBoundarySource ?? -1)
+            && stepIndex < deferredMoreBoundaryTarget
+            && ((step.rng && step.rng.length) || 0) === 0) {
             applyStepScreen();
             pushStepResult(
                 [],
