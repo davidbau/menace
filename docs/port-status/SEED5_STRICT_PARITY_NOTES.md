@@ -418,3 +418,40 @@ Date: 2026-02-19 (stacked sparse-boundary carry fix)
   behavioral branch exceptions.
 - Remaining drift is now later and appears to be a distinct gameplay-state
   mismatch beyond sparse boundary attribution.
+
+---
+
+Date: 2026-02-19 (apply prompt parity: no-candidate flow)
+
+## Additional Progress
+
+- `doapply` parity improved in `js/commands.js`:
+  - `handleApply()` no longer exits early with
+    `"You don't have anything to use or apply."` when inventory is non-empty
+    but has no explicit JS apply-candidates.
+  - It now matches C prompt flow by still opening:
+    - `What do you want to use or apply? [*]`
+    - then handling selected inventory letters (typically
+      `"Sorry, I don't know how to use that."` for unsupported items).
+
+## Validation Snapshot
+
+- Updated unit coverage:
+  - `node --test test/unit/command_apply_prompt.test.js` pass.
+- Guard sessions remain stable:
+  - `seed103_caveman_selfplay200` pass,
+  - `seed112_valkyrie_selfplay200` pass,
+  - `seed42_items_gameplay` pass,
+  - `seed110_samurai_selfplay200` pass.
+- `seed6_tourist_gameplay` profile unchanged from baseline.
+- `seed5_gnomish_mines_gameplay` strict RNG frontier improved within step `539`:
+  - first RNG divergence stayed at step `539` but moved from index `0` to
+    index `18`,
+  - matched comparable RNG calls increased: `17622 -> 17629`.
+
+## Current Read
+
+- This addresses a concrete command-prompt parity bug (C apply input flow),
+  not a replay-only boundary workaround.
+- Remaining mismatch at step `539` appears downstream of this now-correct
+  prompt lifecycle and still requires monster-phase/state parity work.
