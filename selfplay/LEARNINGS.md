@@ -631,3 +631,32 @@
 - Net:
   - Rejected for now (progression regression without churn benefit).
   - Keep current behavior until a follow-up fix can improve this path without hurting holdout throughput.
+
+## 2026-02-19 - Keep: Message-Aware Pet-Swap Telemetry
+
+- Change:
+  - In `selfplay/agent.js`, extended `_detectPetDisplacement()` to treat message text containing `"swap places with"` as a first-class pet-swap signal.
+  - Kept geometric displacement detection as a fallback and deduplicated counting when both signals fire on the same turn.
+  - On message-detected swaps, now record refused-attack position at the previous player tile immediately.
+
+- Why:
+  - Geometry-only detection undercounted repeated pet swaps in churn-heavy seeds when visibility/order timing obscured the displaced pet position.
+  - We need `petSwap` telemetry to be reliable before using it as a tuning signal.
+
+- Validation:
+  - `node --check selfplay/agent.js`
+  - `node --test selfplay/test/danger.test.js`
+  - Baseline vs candidate A/B with JSON artifacts:
+    - Holdout baseline: `/tmp/holdout_baseline_20260219b.json`
+    - Holdout candidate: `/tmp/holdout_candidate_swapmsg_20260219.json`
+    - Train baseline: `/tmp/train_baseline_20260219b.json`
+    - Train candidate: `/tmp/train_candidate_swapmsg_20260219.json`
+  - Core gameplay outcomes were unchanged on both sets:
+    - Holdout: survived `13/13`, avg depth `1.462`, XL2+ `1/13`, XP t600 `8.54`, failedAdd `30.85`.
+    - Train: survived `11/13`, avg depth `2.077`, XL2+ `0/13`, XP t600 `6.85`, failedAdd `21.77`.
+  - Telemetry correction observed as expected:
+    - Holdout `avg petSwap`: `26.62 -> 78.00`
+    - Train `avg petSwap`: `19.00 -> 61.54`
+
+- Net:
+  - Keep as an observability accuracy improvement (no policy-behavior change, no train/holdout regression).

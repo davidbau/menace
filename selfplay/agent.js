@@ -3452,15 +3452,36 @@ export class Agent {
 
         const target = this.lastAttemptedAttackPos;
         const oldPos = this.lastPosition;
+        const monsters = findMonsters(this.screen);
+        let countedSwap = false;
+
+        // Primary signal: explicit swap message from NetHack.
+        // This catches cases where geometry-only detection misses due to visibility/order timing.
+        const lowerMsg = (this.screen.message || '').toLowerCase();
+        if (lowerMsg.includes('swap places with')) {
+            countedSwap = true;
+            this.stats.petDisplacements++;
+            this.refusedAttackPositions.add(oldPos.y * 80 + oldPos.x);
+
+            // Preserve the geometric fallback marker as well.
+            if (target.x >= 0 && target.y >= 0) {
+                this.refusedAttackPositions.add(target.y * 80 + target.x);
+            }
+
+            const swapped = monsters.find(mon => mon.x === oldPos.x && mon.y === oldPos.y);
+            if (swapped) {
+                this.knownPetChars.add(swapped.ch);
+            }
+        }
 
         // If we're now at the target's old position...
         if (px === target.x && py === target.y) {
             // ...and there's a monster at our old position, it was a swap
-            const monsters = findMonsters(this.screen);
             for (const mon of monsters) {
                 if (mon.x === oldPos.x && mon.y === oldPos.y) {
-                    // This monster is a pet (we displaced it)
-                    this.stats.petDisplacements++;
+                    // This monster is a pet (we displaced it). Avoid double-counting when
+                    // the message-based detector already recorded the same event.
+                    if (!countedSwap) this.stats.petDisplacements++;
                     this.knownPetChars.add(mon.ch);
                     this.refusedAttackPositions.add(mon.y * 80 + mon.x);
                     break;
