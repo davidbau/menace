@@ -3,7 +3,7 @@
 > *"Never build a dungeon you wouldn't be happy to spend the night in yourself."*
 > — Terry Pratchett, quoted in the NetHack 3.6.0 release notes
 
-**Current phase:** Phase 2 (testing burndown) + Phase 3 (full-coverage closure) running in parallel, with Phase 5 (self-play) as a concurrent track. Progress is tracked on the [Oracle dashboard](https://davidbau.github.io/mazesofmenace/oracle/) with per-commit parity metrics sourced from [oracle/results.jsonl](oracle/results.jsonl).
+**Current phase:** Phase 2 (testing burndown) with Phase 5 (self-play) as a concurrent track. Phase 3 groundwork is underway (C↔JS correspondence ledger and issue tracking). Progress is tracked on the [Oracle dashboard](https://davidbau.github.io/mazesofmenace/oracle/) with per-commit parity metrics sourced from [oracle/results.jsonl](oracle/results.jsonl).
 
 **Context:** [README.md](README.md) explains what Royal Jelly is, why NetHack matters, and the intersection of the 3.7.0 release moment with AI-assisted software development. This document describes **how** we build it—the strategy, phases, gates, and working discipline that will transform an audacious goal into a real, shipped product.
 
@@ -100,7 +100,7 @@ Milestones use a hybrid model: phase completion + parity gates + release-timing 
    - Fast strict session tests exist and intentionally expose many fidelity failures.
 3. **Phase 2: Testing burndown** *(active)*
    - Port C logic into JS to drive session tests toward green across semantics, PRNG, typgrid, and screen parity.
-4. **Phase 3: Full-coverage closure** *(active)*
+4. **Phase 3: Full-coverage closure** *(groundwork)*
    - Maintain the [C-to-JS code correspondence ledger](docs/CODEMATCH.md) (file-by-file and function-by-function mapping).
    - Refactor JS files to match C file/function naming (one GitHub issue per C file, labeled `codematch`; [issues #32–#138](https://github.com/davidbau/menace/issues?q=label%3Acodematch)).
    - Run and maintain JS code-coverage tooling to identify unexercised codepaths.
