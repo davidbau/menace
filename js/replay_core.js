@@ -1463,6 +1463,63 @@ export async function replaySession(seed, session, opts = {}) {
             && stepIndex > (deferredMoreBoundarySource ?? -1)
             && stepIndex < deferredMoreBoundaryTarget
             && ((step.rng && step.rng.length) || 0) === 0) {
+            // C ref: when a sparse boundary defers RNG across multiple 0-RNG
+            // move steps, the player still physically moved on those steps.
+            // Execute the movement (but not the monster turn) so the player
+            // position stays aligned with C even though the monster-turn RNG
+            // is deferred to the target step.
+            const isSparseMove = typeof step.action === 'string'
+                && step.action.startsWith('move-')
+                && typeof step.key === 'string'
+                && step.key.length === 1;
+            if (isSparseMove) {
+                const moveCh = step.key.charCodeAt(0);
+                game.cmdKey = moveCh;
+                game.commandCount = 0;
+                game.multi = 0;
+                // C ref: JS skips applyTimedTurn for intermediary steps, so
+                // monsters may be in positions that differ from C (which ran
+                // full monster turns). If a non-tame monster is blocking the
+                // player's target cell, relocate it to an adjacent free cell
+                // before calling rhack. In C the monster would have moved away
+                // during the skipped monster turns; combat here is never
+                // expected and would generate unexpected RNG.
+                if (game.player && game.map) {
+                    const dirCh = String.fromCharCode(moveCh);
+                    const dx = ({h:-1,l:1,k:0,j:0,y:-1,u:1,b:-1,n:1}[dirCh]||0);
+                    const dy = ({h:0,l:0,k:-1,j:1,y:-1,u:-1,b:1,n:1}[dirCh]||0);
+                    const tx = game.player.x + dx;
+                    const ty = game.player.y + dy;
+                    const blockingMon = game.map.monsterAt(tx, ty);
+                    if (blockingMon && !blockingMon.tame) {
+                        const adjDirs = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]];
+                        for (const [adx, ady] of adjDirs) {
+                            const mx = blockingMon.mx + adx;
+                            const my = blockingMon.my + ady;
+                            if (mx === tx && my === ty) continue;
+                            if (mx === game.player.x && my === game.player.y) continue;
+                            const loc = game.map.at(mx, my);
+                            if (loc && ACCESSIBLE(loc.typ) && !game.map.monsterAt(mx, my)) {
+                                blockingMon.mx = mx;
+                                blockingMon.my = my;
+                                break;
+                            }
+                        }
+                    }
+                }
+                const movePromise = rhack(moveCh, game);
+                const moveSettled = await Promise.race([
+                    movePromise.then(v => ({ done: true, value: v })),
+                    new Promise(resolve => setTimeout(() => resolve({ done: false }), 1)),
+                ]);
+                if (!moveSettled.done) {
+                    // Movement didn't settle — treat this as a display-only step.
+                    pendingCommand = movePromise;
+                    pendingKind = null;
+                }
+                // Do NOT call applyTimedTurn — C shows 0 monster-turn RNG for
+                // these intermediate move steps.
+            }
             applyStepScreen();
             pushStepResult(
                 [],
@@ -1643,12 +1700,16 @@ export async function replaySession(seed, session, opts = {}) {
         // Some keylog-derived gameplay traces omit both RNG and screen capture
         // for intermittent movement-key bytes. Treat those as pass-through
         // non-command acknowledgements to keep replay aligned with sparse logs.
+        if (_debugStepTrace && stepIndex >= 20 && stepIndex <= 26) {
+            console.log('[STEP_TRACE] stepIndex=' + stepIndex + ' at_pass_through_check stepScreen.len=' + stepScreen.length + ' rng=' + (step?.rng||[]).length + ' action=' + step?.action);
+        }
         if (!pendingCommand
             && ((step.rng && step.rng.length) || 0) === 0
             && stepScreen.length === 0
             && typeof step.action === 'string'
             && step.action.startsWith('move-')
             && step.key.length === 1) {
+            if (_debugStepTrace && stepIndex >= 20 && stepIndex <= 26) console.log('[STEP_TRACE] stepIndex=' + stepIndex + ' HIT pass_through_continue');
             pushStepResult(
                 [],
                 opts.captureScreens ? game.display.getScreenLines() : undefined,
@@ -2367,6 +2428,9 @@ export async function replaySession(seed, session, opts = {}) {
             }
         }
 
+        if (_debugStepTrace && stepIndex >= 20 && stepIndex <= 26) {
+            console.log('[STEP_TRACE] stepIndex=' + stepIndex + ' REACHED_ONSTEP player=(' + game.player?.x + ',' + game.player?.y + ')');
+        }
         if (typeof opts.onStep === 'function') {
             opts.onStep({ stepIndex, step, game });
         }
