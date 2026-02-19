@@ -155,7 +155,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[N/A]` | version.c | — | Version info |
 | `[~]` | vision.c | vision.js | Field of view / line of sight |
 | `[ ]` | weapon.c | — | Weapon skills |
-| `[a]` | were.c | were.js | Lycanthropy. 3 of 8 functions aligned, 5 TODO |
+| `[a]` | were.c | were.js | Lycanthropy. 5 of 8 functions aligned, 3 TODO |
 | `[ ]` | wield.c | — | Wielding weapons |
 | `[N/A]` | windows.c | — | Windowing system interface. JS: `display.js`, `browser_input.js` |
 | `[ ]` | wizard.c | — | Wizard of Yendor AI |
@@ -234,9 +234,9 @@ These JS files don't directly correspond to a single C file:
 |------------|--------|-------------|---------|--------|
 | `were_change` | 9 | `were_change` | 95 | Match (exported, renamed from `runWereTurnEnd`) |
 | `counter_were` | 48 | `counter_were` | 17 | Match (exported, renamed from `counterWere`) |
-| `were_beastie` | 70 | — | — | TODO |
+| `were_beastie` | 70 | `were_beastie` | 36 | Match |
 | `new_were` | 96 | `new_were` | 72 | Match (exported, renamed from `applyWereFormChange`) |
-| `were_summon` | 142 | — | — | TODO |
-| `you_were` | 192 | — | — | TODO |
-| `you_unwere` | 213 | — | — | TODO |
-| `set_ulycn` | 232 | — | — | TODO |
+| `were_summon` | 142 | — | — | TODO (needs makemon) |
+| `you_were` | 192 | — | — | TODO (needs polymon) |
+| `you_unwere` | 213 | — | — | TODO (needs rehumanize) |
+| `set_ulycn` | 232 | `set_ulycn` | 134 | Match (partial — needs set_uasmon) |
