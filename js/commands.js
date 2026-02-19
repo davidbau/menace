@@ -1402,10 +1402,13 @@ async function handleOpen(player, map, display, game) {
         dir = [0, 0];
     }
     if (!dir) {
-        // C ref: cmd.c getdir() — when iflags.cmdassist is true (default),
-        // help_dir() is shown instead of "What a strange direction!".
-        // The caller (get_adjacent_loc) then prints "Never mind."
-        display.putstr_message('Never mind.');
+        // C getdir parity: non-direction keys report a strange direction before
+        // aborting; cancel keys return plain "Never mind."
+        if (dirCh === 27 || dirCh === 10 || dirCh === 13 || dirCh === 32) {
+            display.putstr_message('Never mind.');
+        } else {
+            display.putstr_message('What a strange direction!  Never mind.');
+        }
         return { moved: false, tookTime: false };
     }
 
@@ -4322,6 +4325,10 @@ async function handleExtendedCommand(game) {
                 // Keep waiting for a supported selection.
             }
         }
+        case 'loot':
+            // C ref: do.c doloot() with no lootable target on current square.
+            display.putstr_message("You don't find anything here to loot.");
+            return { moved: false, tookTime: false };
         case 'levelchange':
             return await wizLevelChange(game);
         case 'map':

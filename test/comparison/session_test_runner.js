@@ -140,6 +140,7 @@ function looksLikeOverlayTextLine(line) {
         .replace(/[\x0e\x0f]/g, '')
         .trimStart();
     if (!text) return false;
+    if (/^\S\s+[*-]\s+/.test(text)) return true;
     if (text.includes(' - ') || text.startsWith('(end)')) return true;
     if (/^(Weapons|Armor|Rings|Amulets|Tools|Comestibles|Potions|Scrolls|Spellbooks|Wands|Coins|Gems\/Stones|Other)\b/.test(text)) {
         return true;
@@ -150,6 +151,10 @@ function looksLikeOverlayTextLine(line) {
 function detectOverlayTextColumn(line) {
     const text = stripAnsiSequences(String(line || ''))
         .replace(/[\x0e\x0f]/g, '');
+    const selectorAtRight = text.slice(30).match(/\S\s+[*-]\s+/);
+    if (selectorAtRight && Number.isInteger(selectorAtRight.index)) {
+        return 30 + selectorAtRight.index;
+    }
     for (let col = 30; col < text.length; col++) {
         const right = text.slice(col);
         // Menu item/key rows can use non-letter selectors (e.g. "/" in adjust menus).
