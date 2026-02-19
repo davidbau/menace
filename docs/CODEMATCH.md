@@ -155,7 +155,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[N/A]` | version.c | — | Version info |
 | `[a]` | vision.c | vision.js | FOV / LOS. Core algorithm (view_from, right_side, left_side, clear_path, do_clear_area) matches C. block_point/dig_point/rogue_vision TODO |
 | `[ ]` | weapon.c | — | Weapon skills |
-| `[a]` | were.c | were.js | Lycanthropy. 5 of 8 functions aligned, 3 TODO |
+| `[a]` | were.c | were.js | Lycanthropy. 6 of 8 functions aligned; you_were/you_unwere TODO (need polymon/rehumanize) |
 | `[ ]` | wield.c | — | Wielding weapons |
 | `[N/A]` | windows.c | — | Windowing system interface. JS: `display.js`, `browser_input.js` |
 | `[ ]` | wizard.c | — | Wizard of Yendor AI |
@@ -328,7 +328,7 @@ Discovery/identification functions split into `discovery.js` (camelCase, noted b
 | `counter_were` | 48 | `counter_were` | 17 | Match (exported, renamed from `counterWere`) |
 | `were_beastie` | 70 | `were_beastie` | 36 | Match |
 | `new_were` | 96 | `new_were` | 72 | Match (exported, renamed from `applyWereFormChange`) |
-| `were_summon` | 142 | — | — | TODO (needs makemon) |
+| `were_summon` | 142 | `were_summon` | 163 | Match (tamedog path TODO) |
 | `you_were` | 192 | — | — | TODO (needs polymon) |
 | `you_unwere` | 213 | — | — | TODO (needs rehumanize) |
 | `set_ulycn` | 232 | `set_ulycn` | 134 | Match (partial — needs set_uasmon) |

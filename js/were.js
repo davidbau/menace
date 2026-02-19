@@ -1,7 +1,8 @@
 // were.js -- Lycanthropy mechanics
 // cf. were.c — lycanthrope form changes, summoning, and player lycanthropy
 
-import { rn2 } from './rng.js';
+import { rn2, rnd } from './rng.js';
+import { makemon, NO_MM_FLAGS } from './makemon.js';
 import {
     mons,
     PM_WERERAT,
@@ -158,7 +159,51 @@ export function were_change(mon, ctx) {
     }
 }
 
-// TODO: were.c:142 — were_summon(): summon a horde of were-associated creatures (needs makemon)
+// cf. were.c:142 — summon a horde of were-associated creatures (1-5)
+// ptr:   permonst of the summoning lycanthrope
+// x, y:  spawn location (player position in C)
+// yours: if true, summoned creatures should be tamed (tamedog TODO)
+// ctx:   game context with optional player.protectionFromShapeChangers + fov
+// map:   GameMap for makemon placement
+// depth: dungeon depth for makemon
+// Returns { total, visible, genbuf } where genbuf is 'rat'|'jackal'|'wolf'|null
+export function were_summon(ptr, x, y, yours, ctx, map, depth) {
+    const pm = mons.indexOf(ptr);
+    let total = 0, visible = 0, genbuf = null;
+
+    if (ctx?.player?.protectionFromShapeChangers && !yours) return { total, visible, genbuf };
+
+    for (let i = rnd(5); i > 0; i--) {
+        let typ;
+        switch (pm) {
+        case PM_WERERAT:
+        case PM_HUMAN_WERERAT:
+            typ = rn2(3) ? PM_SEWER_RAT : rn2(3) ? PM_GIANT_RAT : PM_RABID_RAT;
+            genbuf = 'rat';
+            break;
+        case PM_WEREJACKAL:
+        case PM_HUMAN_WEREJACKAL:
+            typ = rn2(7) ? PM_JACKAL : rn2(3) ? PM_COYOTE : PM_FOX;
+            genbuf = 'jackal';
+            break;
+        case PM_WEREWOLF:
+        case PM_HUMAN_WEREWOLF:
+            typ = rn2(5) ? PM_WOLF : rn2(2) ? PM_WARG : PM_WINTER_WOLF;
+            genbuf = 'wolf';
+            break;
+        default:
+            continue;
+        }
+        const mtmp = makemon(mons[typ], x, y, NO_MM_FLAGS, depth || 1, map);
+        if (mtmp) {
+            total++;
+            if (canSeeMonster(mtmp, ctx?.player, ctx?.fov)) visible++;
+        }
+        // TODO: were.c:183 — if (yours && mtmp) tamedog(mtmp) — tamedog not yet in JS
+    }
+    return { total, visible, genbuf };
+}
+
 // TODO: were.c:192 — you_were(): player changes to lycanthrope beast form (needs polymon)
 // TODO: were.c:213 — you_unwere(): player reverts from beast form or gets cured (needs rehumanize)
 
