@@ -11,7 +11,7 @@ import { mons, PM_LIZARD, PM_LICHEN, PM_NEWT,
 import { PM_CAVEMAN, RACE_ORC } from './config.js';
 import { applyMonflee } from './mhitu.js';
 import { obj_resists } from './objdata.js';
-import { compactInvletPromptChars } from './commands.js';
+import { compactInvletPromptChars } from './invent.js';
 
 
 // ============================================================

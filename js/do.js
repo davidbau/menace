@@ -7,7 +7,7 @@ import { COIN_CLASS } from './objects.js';
 import { doname } from './mkobj.js';
 import { placeFloorObject } from './floor_objects.js';
 import { observeObject } from './discovery.js';
-import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './commands.js';
+import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 
 
 // ============================================================

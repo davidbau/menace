@@ -77,7 +77,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | hacklib.c | hacklib.js | String/char utilities. All C functions implemented; in-place string ops return new strings in JS |
 | `[ ]` | iactions.c | — | Implicit actions |
 | `[ ]` | insight.c | — | Player knowledge/enlightenment |
-| `[ ]` | invent.c | — | Inventory management |
+| `[a]` | invent.c | invent.js | Inventory management. handleInventory/buildInventoryOverlayLines/compactInvletPromptChars (ddoinv/display_inventory/compactify); ~80 functions TODO |
 | `[x]` | isaac64.c | isaac64.js | ISAAC64 PRNG. All 8 functions matched |
 | `[ ]` | light.c | — | Light source management |
 | `[ ]` | lock.c | — | Lock picking and door opening |
@@ -1072,4 +1072,700 @@ Notes:
 | `set_apparxy` | 2201 | `set_apparxy` | Match (private; displacement simplification noted) |
 | `movemon` | (in mon.c) | `movemon` | Match (exported; delegates to mon.js movemon with dochug callback) |
 
+### invent.c → invent.js
+
+Notes:
+- `invletter_value` renamed to `invletSortValue` (camelCase; private).
+- `compactify` renamed to `compactInvletPromptChars` (camelCase; exported).
+- `currency` matches C name (exported).
+- `display_inventory`/`display_pickinv` combined into `buildInventoryOverlayLines` + `renderOverlayMenuUntilDismiss` (exported).
+- `ddoinv` renamed to `handleInventory` (camelCase; exported).
+- `isMenuDismissKey` is a JS-only private helper (consolidates dismiss-key checks).
+- `unsortloot`/`free_invbuf`/`free_pickinv_cache` are N/A (GC handles memory).
+
+| C Function | C Line | JS Function | JS Line | Status |
+|------------|--------|-------------|---------|--------|
+| `invletter_value` | ~90 | `invletSortValue` | 18 | Renamed (private) |
+| `compactify` | ~120 | `compactInvletPromptChars` | 27 | Renamed (exported) |
+| `currency` | ~180 | `currency` | 51 | Match (exported) |
+| `display_inventory` | ~4750 | `buildInventoryOverlayLines` | 56 | Renamed (exported; builds menu lines) |
+| `display_pickinv` | ~4680 | `renderOverlayMenuUntilDismiss` | 99 | Renamed (exported; overlay menu with selection) |
+| `ddoinv` | ~4830 | `handleInventory` | 139 | Renamed (exported; full inventory command with submenu) |
+| `inuse_classify` | ~65 | — | — | TODO (worn/wielded classification for loot sorting) |
+| `loot_classify` | ~80 | — | — | TODO (loot menu grouping) |
+| `loot_xname` | ~100 | — | — | TODO (extended name for loot display) |
+| `sortloot_cmp` | ~140 | — | — | TODO (comparison function for sortloot) |
+| `sortloot` | ~260 | — | — | TODO (sort object chain for display) |
+| `unsortloot` | ~330 | — | — | N/A (GC handles memory) |
+| `reorder_invent` | ~350 | — | — | TODO (reorder hero inventory by class) |
+| `assigninvlet` | ~400 | — | — | TODO (assign inventory letter to object) |
+| `merge_choice` | ~480 | — | — | TODO (ask player about merging stacks) |
+| `merged` | ~520 | — | — | TODO (check and perform object merging) |
+| `addinv_core0` | ~600 | — | — | TODO (core add-to-inventory phase 0) |
+| `addinv_core1` | ~650 | — | — | TODO (core add-to-inventory phase 1) |
+| `addinv_core2` | ~750 | — | — | TODO (core add-to-inventory phase 2) |
+| `addinv` | ~830 | — | — | TODO (add object to hero inventory) |
+| `addinv_before` | ~850 | — | — | TODO (add object before specific item) |
+| `addinv_nomerge` | ~870 | — | — | TODO (add object without merge) |
+| `carry_obj_effects` | ~900 | — | — | TODO (side effects of carrying object) |
+| `hold_another_object` | ~950 | — | — | TODO (check if hero can hold more) |
+| `useupall` | ~1000 | — | — | TODO (consume entire stack) |
+| `useup` | ~1030 | — | — | TODO (consume one from stack) |
+| `consume_obj_charge` | ~1060 | — | — | TODO (consume wand/tool charge) |
+| `useupf` | ~1090 | — | — | TODO (consume one from floor stack) |
+| `freeinv_core` | ~1120 | — | — | TODO (core free-from-inventory) |
+| `freeinv` | ~1150 | — | — | TODO (remove object from inventory chain) |
+| `delallobj` | ~1180 | — | — | TODO (delete all objects at location) |
+| `delobj` | ~1210 | — | — | TODO (delete single object) |
+| `delobj_core` | ~1240 | — | — | TODO (core object deletion) |
+| `sobj_at` | ~1280 | — | — | TODO (find object type at location) |
+| `nxtobj` | ~1310 | — | — | TODO (find next object of type in chain) |
+| `carrying` | ~1340 | — | — | TODO (check if hero carries object type) |
+| `carrying_stoning_corpse` | ~1370 | — | — | TODO (check for cockatrice corpse) |
+| `u_carried_gloves` | ~1400 | — | — | TODO (check if hero carries gloves) |
+| `u_have_novel` | ~1420 | — | — | TODO (check if hero has novel) |
+| `o_on` | ~1440 | — | — | TODO (find object by id in chain) |
+| `obj_here` | ~1470 | — | — | TODO (check if object is at location) |
+| `g_at` | ~1500 | — | — | TODO (find gold at location) |
+| `splittable` | ~1530 | — | — | TODO (check if stack can be split) |
+| `taking_off` | ~1560 | — | — | TODO (check if action is take-off) |
+| `mime_action` | ~1590 | — | — | TODO (mime gesture for empty-handed action) |
+| `any_obj_ok` | ~1620 | — | — | TODO (check if any object acceptable) |
+| `getobj_hands_txt` | ~1650 | — | — | TODO (empty-hand prompt text) |
+| `getobj` | ~1700 | — | — | TODO (prompt to select inventory object) |
+| `silly_thing` | ~2000 | — | — | TODO (message for silly object use) |
+| `ckvalidcat` | ~2050 | — | — | TODO (check valid object category) |
+| `ckunpaid` | ~2080 | — | — | TODO (check if object is unpaid) |
+| `wearing_armor` | ~2100 | — | — | TODO (check if hero wears armor) |
+| `is_worn` | ~2130 | — | — | TODO (check if object is worn) |
+| `is_inuse` | ~2160 | — | — | TODO (check if object is in use) |
+| `safeq_xprname` | ~2190 | — | — | TODO (safe extended name for quit prompts) |
+| `safeq_shortxprname` | ~2230 | — | — | TODO (safe short name for quit prompts) |
+| `ggetobj` | ~2270 | — | — | TODO (get object with class filter) |
+| `askchain` | ~2350 | — | — | TODO (ask about each object in chain) |
+| `reroll_menu` | ~2500 | — | — | TODO (reroll identification menu) |
+| `set_cknown_lknown` | ~2530 | — | — | TODO (set container/lock known flags) |
+| `fully_identify_obj` | ~2560 | — | — | TODO (fully identify an object) |
+| `identify` | ~2600 | — | — | TODO (scroll of identify) |
+| `menu_identify` | ~2700 | — | — | TODO (menu-driven identification) |
+| `count_unidentified` | ~2750 | — | — | TODO (count unidentified objects) |
+| `identify_pack` | ~2800 | — | — | TODO (identify entire pack) |
+| `learn_unseen_invent` | ~2850 | — | — | TODO (learn about unseen inventory) |
+| `update_inventory` | ~2900 | — | — | TODO (update permanent inventory window) |
+| `doperminv` | ~2930 | — | — | TODO (display permanent inventory) |
+| `obj_to_let` | ~2960 | — | — | TODO (object to inventory letter) |
+| `prinv` | ~3000 | — | — | TODO (print inventory item) |
+| `xprname` | ~3050 | — | — | TODO (extended name for inventory display) |
+| `dispinv_with_action` | ~3100 | — | — | TODO (display inventory with action prompt) |
+| `find_unpaid` | ~3200 | — | — | TODO (find unpaid items) |
+| `free_pickinv_cache` | ~3250 | — | — | N/A (GC handles memory) |
+| `repopulate_perminvent` | ~3300 | — | — | TODO (repopulate permanent inventory window) |
+| `display_used_invlets` | ~3350 | — | — | TODO (show used inventory letters) |
+| `count_unpaid` | ~3400 | — | — | TODO (count unpaid items) |
+| `count_buc` | ~3450 | — | — | TODO (count blessed/uncursed/cursed) |
+| `tally_BUCX` | ~3500 | — | — | TODO (tally BUC status) |
+| `count_contents` | ~3550 | — | — | TODO (count container items) |
+| `dounpaid` | ~3600 | — | — | TODO (list unpaid items) |
+| `this_type_only` | ~3650 | — | — | TODO (filter for specific object type) |
+| `dotypeinv` | ~3700 | — | — | TODO (type-filtered inventory display) |
+| `dfeature_at` | ~3800 | — | — | TODO (describe dungeon feature at location) |
+| `look_here` | ~3900 | — | — | TODO (look at objects at hero location) |
+| `dolook` | ~4000 | — | — | TODO (look command) |
+| `will_feel_cockatrice` | ~4100 | — | — | TODO (check if touching will petrify) |
+| `feel_cockatrice` | ~4150 | — | — | TODO (handle touching cockatrice corpse) |
+| `stackobj` | ~4200 | — | — | TODO (merge object into existing stack) |
+| `mergable` | ~4250 | — | — | TODO (check if two objects can merge) |
+| `doprgold` | ~4300 | — | — | TODO (print gold amount) |
+| `doprwep` | ~4330 | — | — | TODO (print wielded weapon) |
+| `noarmor` | ~4360 | — | — | TODO (check if hero wears no armor) |
+| `doprarm` | ~4380 | — | — | TODO (print worn armor) |
+| `doprring` | ~4410 | — | — | TODO (print worn rings) |
+| `dopramulet` | ~4440 | — | — | TODO (print worn amulet) |
+| `tool_being_used` | ~4470 | — | — | TODO (check if tool is in active use) |
+| `doprtool` | ~4500 | — | — | TODO (print tools in use) |
+| `doprinuse` | ~4530 | — | — | TODO (print all items in use) |
+| `let_to_name` | ~4560 | — | — | TODO (inventory letter to class name) |
+| `free_invbuf` | ~4600 | — | — | N/A (GC handles memory) |
+| `reassign` | ~4630 | — | — | TODO (reassign inventory letters) |
+| `check_invent_gold` | ~4660 | — | — | TODO (check inventory gold consistency) |
+| `adjust_ok` | ~4700 | — | — | TODO (check if adjustment is ok) |
+| `adjust_gold_ok` | ~4730 | — | — | TODO (check if gold adjustment is ok) |
+| `doorganize` | ~4900 | — | — | TODO (organize inventory / adjust command) |
+| `adjust_split` | ~4950 | — | — | TODO (adjust by splitting stack) |
+| `doorganize_core` | ~5000 | — | — | TODO (core inventory organization) |
+| `invdisp_nothing` | ~5100 | — | — | TODO (display "nothing" for empty inventory) |
+| `worn_wield_only` | ~5130 | — | — | TODO (filter to worn/wielded items) |
+| `display_minventory` | ~5160 | — | — | TODO (display monster inventory) |
+| `cinv_doname` | ~5250 | — | — | TODO (container inventory doname) |
+| `cinv_ansimpleoname` | ~5300 | — | — | TODO (container inventory simple name) |
+| `display_cinventory` | ~5350 | — | — | TODO (display container inventory) |
+| `only_here` | ~5400 | — | — | TODO (filter objects at current location) |
+| `display_binventory` | ~5450 | — | — | TODO (display buried inventory) |
+| `prepare_perminvent` | ~5500 | — | — | TODO (prepare permanent inventory display) |
+| `sync_perminvent` | ~5550 | — | — | TODO (sync permanent inventory) |
+| `perm_invent_toggled` | ~5600 | — | — | TODO (handle permanent inventory toggle) |
+
+### do.c → do.js
+
+Notes:
+- `dodrop` renamed to `handleDrop` (camelCase; exported).
+- `dodown`/`doup` renamed to `handleDownstairs`/`handleUpstairs` (camelCase; exported).
+- JS-only helpers: `formatGoldPickupMessage`, `formatInventoryPickupMessage` (used by handlePickup in commands.js).
+- Level transition logic (goto_level, schedule_goto, etc.) not yet implemented.
+
+| C Function | C Line | JS Function | JS Line | Status |
+|------------|--------|-------------|---------|--------|
+| `dodrop` | ~100 | `handleDrop` | 59 | Renamed (exported; simplified single-item drop) |
+| `dodown` | ~700 | `handleDownstairs` | 165 | Renamed (exported) |
+| `doup` | ~800 | `handleUpstairs` | 184 | Renamed (exported) |
+| `drop` | ~150 | — | — | TODO (drop a single object) |
+| `dropx` | ~200 | — | — | TODO (drop helper with floor effects) |
+| `dropy` | ~250 | — | — | TODO (place object on floor at hero location) |
+| `dropz` | ~300 | — | — | TODO (drop into water/lava) |
+| `canletgo` | ~350 | — | — | TODO (check if object can be released) |
+| `doddrop` | ~400 | — | — | TODO (drop from inventory prompt) |
+| `menu_drop` | ~450 | — | — | TODO (menu-driven multi-drop) |
+| `menudrop_split` | ~500 | — | — | TODO (split stack for partial drop) |
+| `better_not_try_to_drop_that` | ~550 | — | — | TODO (warn about dropping quest artifact) |
+| `boulder_hits_pool` | ~600 | — | — | TODO (boulder falls into pool/lava) |
+| `flooreffects` | ~650 | — | — | TODO (effects of object landing on floor) |
+| `obj_no_longer_held` | ~660 | — | — | TODO (cleanup when object leaves inventory) |
+| `doaltarobj` | ~900 | — | — | TODO (drop object on altar for BUC identification) |
+| `trycall` | ~950 | — | — | TODO (prompt to name object class) |
+| `polymorph_sink` | ~1000 | — | — | TODO (polymorph at kitchen sink) |
+| `teleport_sink` | ~1050 | — | — | TODO (teleport at kitchen sink) |
+| `dosinkring` | ~1100 | — | — | TODO (drop ring into kitchen sink) |
+| `u_stuck_cannot_go` | ~1150 | — | — | TODO (check if engulfed/grabbed) |
+| `goto_level` | ~1200 | — | — | TODO (change dungeon level) |
+| `schedule_goto` | ~1400 | — | — | TODO (schedule deferred level change) |
+| `deferred_goto` | ~1450 | — | — | TODO (execute scheduled level change) |
+| `save_currentstate` | ~1500 | — | — | TODO (save current level state) |
+| `currentlevel_rewrite` | ~1550 | — | — | TODO (rewrite current level) |
+| `badspot` | ~1600 | — | — | TODO (check unsuitable landing spot) |
+| `u_collide_m` | ~1650 | — | — | TODO (hero collides with monster on arrival) |
+| `familiar_level_msg` | ~1700 | — | — | TODO (déjà vu message) |
+| `final_level` | ~1750 | — | — | TODO (arrival on Astral Plane) |
+| `hellish_smoke_mesg` | ~1800 | — | — | TODO (Gehennom smoke messages) |
+| `temperature_change_msg` | ~1850 | — | — | TODO (temperature change message) |
+| `maybe_lvltport_feedback` | ~1900 | — | — | TODO (level teleport feedback) |
+| `revive_corpse` | ~1950 | — | — | TODO (revive a corpse) |
+| `revive_mon` | ~2000 | — | — | TODO (internal revive helper) |
+| `zombify_mon` | ~2050 | — | — | TODO (turn corpse into zombie) |
+| `donull` | ~2100 | — | — | TODO (do nothing / wait command) |
+| `wipeoff` | ~2150 | — | — | TODO (wipe face continuation) |
+| `dowipe` | ~2200 | — | — | TODO (start wiping face) |
+| `cmd_safety_prevention` | ~2250 | — | — | TODO (prevent dangerous commands) |
+| `danger_uprops` | ~2300 | — | — | TODO (check dangerous hero properties) |
+| `engulfer_digests_food` | ~2350 | — | — | TODO (engulfer digests food) |
+| `legs_in_no_shape` | ~2400 | — | — | TODO (wounded legs check) |
+| `set_wounded_legs` | ~2450 | — | — | TODO (set wounded legs condition) |
+| `heal_legs` | ~2500 | — | — | TODO (heal wounded legs) |
+
+### do_wear.c → do_wear.js
+
+Notes:
+- `dowear`/`doputon`/`dotakeoff` renamed to `handleWear`/`handlePutOn`/`handleTakeOff` (camelCase; exported).
+- Current implementations are simplified: no slot system, no equipment effect callbacks.
+- Equipment on/off effect functions (Boots_on, Cloak_on, etc.) are all TODO.
+
+| C Function | C Line | JS Function | JS Line | Status |
+|------------|--------|-------------|---------|--------|
+| `dowear` | ~1800 | `handleWear` | 207 | Renamed (exported; simplified — no slot system) |
+| `doputon` | ~1850 | `handlePutOn` | 243 | Renamed (exported; simplified — rings only) |
+| `dotakeoff` | ~1500 | `handleTakeOff` | 267 | Renamed (exported; simplified — body armor only) |
+| `fingers_or_gloves` | ~20 | — | — | TODO |
+| `off_msg` | ~40 | — | — | TODO (message when taking off item) |
+| `on_msg` | ~60 | — | — | TODO (message when putting on item) |
+| `toggle_stealth` | ~80 | — | — | TODO (stealth intrinsic for boots/cloak) |
+| `toggle_displacement` | ~100 | — | — | TODO (displacement intrinsic for cloak) |
+| `Boots_on` | ~120 | — | — | TODO (effects of wearing boots) |
+| `Boots_off` | ~180 | — | — | TODO (effects of removing boots) |
+| `Cloak_on` | ~240 | — | — | TODO (effects of wearing cloak) |
+| `Cloak_off` | ~300 | — | — | TODO (effects of removing cloak) |
+| `Helmet_on` | ~360 | — | — | TODO (effects of wearing helmet) |
+| `Helmet_off` | ~420 | — | — | TODO (effects of removing helmet) |
+| `hard_helmet` | ~440 | — | — | TODO (check if helmet is hard) |
+| `Gloves_on` | ~460 | — | — | TODO (effects of wearing gloves) |
+| `wielding_corpse` | ~480 | — | — | TODO (corpse wielding interaction) |
+| `Gloves_off` | ~520 | — | — | TODO (effects of removing gloves) |
+| `Shield_on` | ~580 | — | — | TODO (effects of wearing shield) |
+| `Shield_off` | ~620 | — | — | TODO (effects of removing shield) |
+| `Shirt_on` | ~660 | — | — | TODO (effects of wearing shirt) |
+| `Shirt_off` | ~700 | — | — | TODO (effects of removing shirt) |
+| `dragon_armor_handling` | ~740 | — | — | TODO (dragon scale mail transformation) |
+| `Armor_on` | ~800 | — | — | TODO (effects of wearing body armor) |
+| `Armor_off` | ~860 | — | — | TODO (effects of removing body armor) |
+| `Armor_gone` | ~900 | — | — | TODO (armor destroyed while worn) |
+| `Amulet_on` | ~940 | — | — | TODO (effects of wearing amulet) |
+| `Amulet_off` | ~1000 | — | — | TODO (effects of removing amulet) |
+| `learnring` | ~1050 | — | — | TODO (learn ring type from effects) |
+| `adjust_attrib` | ~1080 | — | — | TODO (attribute adjustment from ring) |
+| `Ring_on` | ~1120 | — | — | TODO (effects of putting on ring) |
+| `Ring_off_or_gone` | ~1200 | — | — | TODO (shared ring removal logic) |
+| `Ring_off` | ~1260 | — | — | TODO (effects of removing ring) |
+| `Ring_gone` | ~1300 | — | — | TODO (ring destroyed while worn) |
+| `Blindf_on` | ~1340 | — | — | TODO (effects of wearing blindfold) |
+| `Blindf_off` | ~1380 | — | — | TODO (effects of removing blindfold) |
+| `set_wear` | ~1420 | — | — | TODO (set wear-state flags) |
+| `donning` | ~1440 | — | — | TODO (check if donning in progress) |
+| `doffing` | ~1460 | — | — | TODO (check if doffing in progress) |
+| `cancel_doff` | ~1470 | — | — | TODO (cancel in-progress doffing) |
+| `cancel_don` | ~1480 | — | — | TODO (cancel in-progress donning) |
+| `stop_donning` | ~1490 | — | — | TODO (stop donning if item taken) |
+| `count_worn_stuff` | ~1510 | — | — | TODO (count worn items) |
+| `armor_or_accessory_off` | ~1530 | — | — | TODO (take off armor or accessory) |
+| `ia_dotakeoff` | ~1560 | — | — | TODO (take off by invlet) |
+| `doremring` | ~1580 | — | — | TODO (R command: remove ring/amulet) |
+| `cursed` | ~1620 | — | — | TODO (check cursed and print message) |
+| `armoroff` | ~1660 | — | — | TODO (remove a piece of armor) |
+| `already_wearing` | ~1700 | — | — | TODO (already wearing check) |
+| `already_wearing2` | ~1720 | — | — | TODO (body armor variant) |
+| `canwearobj` | ~1740 | — | — | TODO (validate wearing object) |
+| `accessory_or_armor_on` | ~1780 | — | — | TODO (dispatch wearing) |
+| `find_ac` | ~1900 | — | — | TODO (recalculate AC) |
+| `glibr` | ~1950 | — | — | TODO (slippery fingers) |
+| `some_armor` | ~2000 | — | — | TODO (return armor in slot) |
+| `stuck_ring` | ~2030 | — | — | TODO (ring stuck check) |
+| `unchanger` | ~2060 | — | — | TODO (unchanging item check) |
+| `select_off` | ~2090 | — | — | TODO (mark item for takeoff) |
+| `do_takeoff` | ~2120 | — | — | TODO (execute one takeoff step) |
+| `take_off` | ~2160 | — | — | TODO (take off specific item) |
+| `better_not_take_that_off` | ~2200 | — | — | TODO (warn about load-bearing) |
+| `reset_remarm` | ~2240 | — | — | TODO (reset multi-remove state) |
+| `doddoremarm` | ~2280 | — | — | TODO (A command: multi-remove) |
+| `remarm_swapwep` | ~2320 | — | — | TODO (swapweapon during removal) |
+| `menu_remarm` | ~2360 | — | — | TODO (menu-driven multi-remove) |
+| `wornarm_destroyed` | ~2400 | — | — | TODO (check if armor should be destroyed) |
+| `maybe_destroy_armor` | ~2440 | — | — | TODO (maybe destroy by erosion) |
+| `destroy_arm` | ~2480 | — | — | TODO (destroy worn armor) |
+| `adj_abon` | ~2520 | — | — | TODO (adjust ability bonuses) |
+| `inaccessible_equipment` | ~2560 | — | — | TODO (equipment inaccessible check) |
+| `equip_ok` | ~2600 | — | — | TODO (equipment validation callback) |
+| `puton_ok` | ~2620 | — | — | TODO (P command validation) |
+| `remove_ok` | ~2640 | — | — | TODO (R command validation) |
+| `wear_ok` | ~2660 | — | — | TODO (W command validation) |
+| `takeoff_ok` | ~2680 | — | — | TODO (T command validation) |
+| `any_worn_armor_ok` | ~2700 | — | — | TODO (any worn armor ok check) |
+| `count_worn_armor` | ~2720 | — | — | TODO (count worn armor pieces) |
+
+### eat.c → eat.js
+
+Notes:
+- `doeat` renamed to `handleEat` (camelCase; exported).
+- Current implementation covers basic eating with simplified corpse intrinsics.
+- Most individual effect handlers (cprefx, cpostfx, tin handling, hunger system) are TODO.
+
+| C Function | C Line | JS Function | JS Line | Status |
+|------------|--------|-------------|---------|--------|
+| `doeat` | ~1200 | `handleEat` | 141 | Renamed (exported; partial — basic eating with simplified intrinsics) |
+| `hu_stat` | ~20 | — | — | TODO (hunger state name table) |
+| `is_edible` | ~30 | — | — | TODO (check if edible by hero) |
+| `init_uhunger` | ~50 | — | — | TODO (initialize hunger state) |
+| `eatmdone` | ~70 | — | — | TODO (eating-mode cleanup) |
+| `eatmupdate` | ~90 | — | — | TODO (eating-mode display update) |
+| `food_xname` | ~110 | — | — | TODO (food-specific naming) |
+| `choke` | ~130 | — | — | TODO (choking occupation callback) |
+| `recalc_wt` | ~160 | — | — | TODO (recalculate weight after partial eat) |
+| `adj_victual_nutrition` | ~190 | — | — | TODO (adjust nutrition for partly-eaten) |
+| `touchfood` | ~220 | — | — | TODO (mark food as touched) |
+| `reset_eat` | ~250 | — | — | TODO (reset eating state) |
+| `do_reset_eat` | ~270 | — | — | TODO (external reset wrapper) |
+| `obj_nutrition` | ~290 | — | — | TODO (get nutrition value) |
+| `food_disappears` | ~310 | — | — | TODO (food vanishes on level change) |
+| `food_substitution` | ~330 | — | — | TODO (substitute food type) |
+| `eating_dangerous_corpse` | ~350 | — | — | TODO (warn about dangerous corpses) |
+| `eatfood` | ~380 | — | — | TODO (eating occupation callback) |
+| `done_eating` | ~420 | — | — | TODO (finish eating) |
+| `eating_conducts` | ~460 | — | — | TODO (track dietary conducts) |
+| `eat_brains` | ~500 | — | — | TODO (brain eating effects) |
+| `fix_petrification` | ~540 | — | — | TODO (cure petrification) |
+| `maybe_cannibal` | ~570 | — | — | TODO (cannibalism effects) |
+| `cprefx` | ~600 | — | — | TODO (corpse prefix effects) |
+| `intrinsic_possible` | ~650 | — | — | TODO (intrinsic gain possible) |
+| `should_givit` | ~680 | — | — | TODO (decide whether to grant intrinsic) |
+| `temp_givit` | ~710 | — | — | TODO (grant temporary intrinsic) |
+| `givit` | ~740 | — | — | TODO (grant intrinsic from corpse) |
+| `eye_of_newt_buzz` | ~780 | — | — | TODO (energy boost from newt) |
+| `cpostfx` | ~810 | — | — | TODO (corpse postfix effects) |
+| `corpse_intrinsic` | ~860 | — | — | TODO (umbrella corpse intrinsic handler) |
+| `violated_vegetarian` | ~900 | — | — | TODO (vegetarian conduct violation) |
+| `costly_tin` | ~930 | — | — | TODO (tin from shop cost) |
+| `tin_variety_txt` | ~960 | — | — | TODO (tin variety text) |
+| `tin_details` | ~990 | — | — | TODO (tin contents and variety) |
+| `set_tin_variety` | ~1020 | — | — | TODO (set variety on tin) |
+| `tin_variety` | ~1040 | — | — | TODO (get tin variety) |
+| `use_up_tin` | ~1060 | — | — | TODO (consume tin after opening) |
+| `consume_tin` | ~1090 | — | — | TODO (eat opened tin contents) |
+| `start_tin` | ~1120 | — | — | TODO (begin opening tin) |
+| `opentin` | ~1150 | — | — | Partial (inlined in handleEat) |
+| `bite` | ~1180 | — | — | Partial (incremental nutrition inlined in handleEat) |
+| `Hear_again` | ~1250 | — | — | TODO (restore hearing) |
+| `rottenfood` | ~1280 | — | — | TODO (rotten food effects) |
+| `eatcorpse` | ~1320 | — | — | TODO (eat corpse with rot checks) |
+| `start_eating` | ~1370 | — | — | TODO (begin eating) |
+| `garlic_breath` | ~1420 | — | — | TODO (scare nearby monsters) |
+| `fprefx` | ~1450 | — | — | TODO (non-corpse food prefix effects) |
+| `bounded_increase` | ~1500 | — | — | TODO (bounded stat increase) |
+| `accessory_has_effect` | ~1530 | — | — | TODO (accessory eating effect) |
+| `eataccessory` | ~1560 | — | — | TODO (eat ring or amulet) |
+| `eatspecial` | ~1600 | — | — | TODO (eat special non-food) |
+| `fpostfx` | ~1650 | — | — | TODO (non-corpse food postfix) |
+| `foodword` | ~1700 | — | — | TODO (word for eating action) |
+| `edibility_prompts` | ~1730 | — | — | TODO (food edibility prompts) |
+| `doeat_nonfood` | ~1770 | — | — | TODO (eat non-food item) |
+| `gethungry` | ~1800 | — | — | TODO (process hunger each turn) |
+| `morehungry` | ~1850 | — | — | TODO (increase hunger) |
+| `lesshungry` | ~1880 | — | — | TODO (decrease hunger) |
+| `unfaint` | ~1910 | — | — | TODO (recover from fainting) |
+| `is_fainted` | ~1940 | — | — | TODO (check if fainted) |
+| `reset_faint` | ~1960 | — | — | TODO (reset faint counter) |
+| `newuhs` | ~1980 | — | — | TODO (update hunger state and messages) |
+| `eat_ok` | ~2030 | — | — | TODO (getobj callback for edible items) |
+| `offer_ok` | ~2060 | — | — | TODO (getobj callback for sacrifice items) |
+| `tin_ok` | ~2080 | — | — | TODO (getobj callback for tins) |
+| `tinopen_ok` | ~2100 | — | — | TODO (getobj callback for tin opener) |
+| `floorfood` | ~2130 | — | — | TODO (check/prompt for food on floor) |
+| `vomit` | ~2170 | — | — | TODO (vomiting effects) |
+| `eaten_stat` | ~2200 | — | — | TODO (how much food eaten) |
+| `consume_oeaten` | ~2230 | — | — | TODO (reduce oeaten field) |
+| `maybe_finished_meal` | ~2260 | — | — | TODO (check if meal done) |
+| `cant_finish_meal` | ~2280 | — | — | TODO (interrupt meal) |
+| `Popeye` | ~2310 | — | — | TODO (spinach strength boost) |
+| `Finish_digestion` | ~2340 | — | — | TODO (complete digestion) |
+
+### exper.c → exper.js
+
+Notes:
+- All implemented functions match C names (exported).
+- `pluslvl` uses placeholder HP/PW gain (rnd(8)/rn2(3)) pending role-dependent newhp/newpw.
+
+| C Function | C Line | JS Function | JS Line | Status |
+|------------|--------|-------------|---------|--------|
+| `newuexp` | 14 | `newuexp` | 7 | Match (exported) |
+| `enermod` | 25 | — | — | TODO (needs Role_switch data) |
+| `newpw` | 44 | — | — | TODO (needs enadv struct) |
+| `experience` | 84 | — | — | TODO (needs find_mac, attack data) |
+| `more_experienced` | 168 | — | — | TODO (needs u.urexp, flags.showexp) |
+| `losexp` | 206 | — | — | TODO (needs adjabil, uhpinc/ueninc) |
+| `newexplevel` | 299 | `newexplevel` | 34 | Match (exported) |
+| `pluslvl` | 306 | `pluslvl` | 42 | Match (exported; placeholder HP/PW gain) |
+| `rndexp` | 377 | — | — | TODO (random XP for potions/polyself) |
+
+### mhitu.c → mhitu.js
+
+Notes:
+- `mattacku`/`hitmu` combined into `monsterAttackPlayer` (camelCase; exported).
+- `hitmsg` partially implemented as `monsterHitVerb` (private).
+- `mswings_verb`/`mswings` partially implemented as `monsterWeaponSwingVerb`/`maybeMonsterWeaponSwingMessage` (private).
+- `monflee` subset exported as `applyMonflee`.
+- Most AD_* damage-type handlers and advanced attack logic are TODO.
+
+| C Function | C Line | JS Function | JS Line | Status |
+|------------|--------|-------------|---------|--------|
+| `mattacku` | ~188 | `monsterAttackPlayer` | 100 | Renamed (exported; partial — basic melee attacks) |
+| `hitmsg` | ~30 | `monsterHitVerb` | 19 | Renamed (private; partial) |
+| `mswings_verb` | ~50 | `monsterWeaponSwingVerb` | 33 | Renamed (private; partial) |
+| `mswings` | ~60 | `maybeMonsterWeaponSwingMessage` | 62 | Renamed (private; partial) |
+| `monflee` | (monmove.c) | `applyMonflee` | 84 | Partial (exported; subset for melee morale) |
+| `missmu` | ~280 | — | — | TODO (monster miss message) |
+| `mpoisons_subj` | ~310 | — | — | TODO (poison subject message) |
+| `u_slow_down` | ~340 | — | — | TODO (hero slowdown) |
+| `wildmiss` | ~370 | — | — | TODO (invisible/displaced miss) |
+| `expels` | ~400 | — | — | TODO (expel hero from engulfer) |
+| `getmattk` | ~430 | — | — | TODO (get monster attack for index) |
+| `calc_mattacku_vars` | ~460 | — | — | TODO (calculate attack variables) |
+| `mtrapped_in_pit` | ~490 | — | — | TODO (monster trapped in pit) |
+| `summonmu` | ~520 | — | — | TODO (summon minions) |
+| `diseasemu` | ~550 | — | — | TODO (disease attack) |
+| `u_slip_free` | ~580 | — | — | TODO (hero slips free) |
+| `magic_negation` | ~610 | — | — | TODO (magic cancellation) |
+| `hitmu` | ~640 | — | — | TODO (process single attack hit) |
+| `gulp_blnd_check` | ~700 | — | — | TODO (blindness check during engulf) |
+| `gulpmu` | ~730 | — | — | TODO (engulf attack) |
+| `explmu` | ~760 | — | — | TODO (exploding monster attack) |
+| `gazemu` | ~790 | — | — | TODO (gaze attack) |
+| `mdamageu` | ~820 | — | — | TODO (apply damage to hero) |
+| `could_seduce` | ~850 | — | — | TODO (seduction possible) |
+| `doseduce` | ~880 | — | — | TODO (seduction attack) |
+| `mayberem` | ~920 | — | — | TODO (maybe remove armor in seduction) |
+| `assess_dmg` | ~960 | — | — | TODO (assess damage for fleeing) |
+| `ranged_attk_assessed` | ~990 | — | — | TODO (ranged attack assessed) |
+| `mon_avoiding_this_attack` | ~1020 | — | — | TODO (monster avoidance) |
+| `ranged_attk_available` | ~1050 | — | — | TODO (available ranged attack) |
+| `passiveum` | ~1080 | — | — | TODO (passive counterattack) |
+| `cloneu` | ~1120 | — | — | TODO (clone hero attack) |
+
+### potion.c → potion.js
+
+Notes:
+- `dodrink` renamed to `handleQuaff` (camelCase; exported).
+- Current implementation handles basic healing potions only.
+- Individual `peffect_*` handlers, dipping, potion throwing, and status effect functions are TODO.
+
+| C Function | C Line | JS Function | JS Line | Status |
+|------------|--------|-------------|---------|--------|
+| `dodrink` | ~250 | `handleQuaff` | 48 | Renamed (exported; partial — healing potions only) |
+| `itimeout` | ~20 | — | — | TODO (return intrinsic timeout) |
+| `itimeout_incr` | ~30 | — | — | TODO (increment intrinsic timeout) |
+| `set_itimeout` | ~40 | — | — | TODO (set intrinsic timeout) |
+| `incr_itimeout` | ~50 | — | — | TODO (increment with overflow protection) |
+| `make_confused` | ~70 | — | — | TODO (set/extend confusion) |
+| `make_stunned` | ~90 | — | — | TODO (set/extend stun) |
+| `make_sick` | ~110 | — | — | TODO (apply sickness) |
+| `make_slimed` | ~140 | — | — | TODO (begin sliming countdown) |
+| `make_stoned` | ~160 | — | — | TODO (begin stoning countdown) |
+| `make_vomiting` | ~180 | — | — | TODO (set/extend vomiting) |
+| `make_blinded` | ~200 | — | — | TODO (set/extend blindness) |
+| `toggle_blindness` | ~220 | — | — | TODO (toggle blind state) |
+| `make_hallucinated` | ~240 | — | — | TODO (set/extend hallucination) |
+| `make_deaf` | ~260 | — | — | TODO (set/extend deafness) |
+| `make_glib` | ~280 | — | — | TODO (set/extend slippery fingers) |
+| `self_invis_message` | ~300 | — | — | TODO (can't see yourself) |
+| `ghost_from_bottle` | ~320 | — | — | TODO (ghost from smoky potion) |
+| `drink_ok` | ~340 | — | — | TODO (validate drinkable) |
+| `peffects` | ~400 | — | — | TODO (dispatch potion effects) |
+| `peffect_restore_ability` | ~450 | — | — | TODO |
+| `peffect_hallucination` | ~480 | — | — | TODO |
+| `peffect_water` | ~510 | — | — | TODO (holy/unholy water) |
+| `peffect_booze` | ~540 | — | — | TODO |
+| `peffect_enlightenment` | ~560 | — | — | TODO |
+| `peffect_invisibility` | ~580 | — | — | TODO |
+| `peffect_see_invisible` | ~600 | — | — | TODO |
+| `peffect_paralysis` | ~620 | — | — | TODO |
+| `peffect_sleeping` | ~640 | — | — | TODO |
+| `peffect_monster_detection` | ~660 | — | — | TODO |
+| `peffect_object_detection` | ~680 | — | — | TODO |
+| `peffect_sickness` | ~700 | — | — | TODO |
+| `peffect_confusion` | ~720 | — | — | TODO |
+| `peffect_gain_ability` | ~740 | — | — | TODO |
+| `peffect_speed` | ~760 | — | — | TODO |
+| `peffect_blindness` | ~780 | — | — | TODO |
+| `peffect_gain_level` | ~800 | — | — | TODO |
+| `peffect_healing` | ~820 | — | — | TODO |
+| `peffect_extra_healing` | ~840 | — | — | TODO |
+| `peffect_full_healing` | ~860 | — | — | TODO |
+| `peffect_levitation` | ~880 | — | — | TODO |
+| `peffect_gain_energy` | ~900 | — | — | TODO |
+| `peffect_oil` | ~920 | — | — | TODO |
+| `peffect_acid` | ~940 | — | — | TODO |
+| `peffect_polymorph` | ~960 | — | — | TODO |
+| `healup` | ~1000 | — | — | TODO (full healup) |
+| `strange_feeling` | ~1030 | — | — | TODO (strange feeling message) |
+| `bottlename` | ~1050 | — | — | TODO (potion container name) |
+| `H2Opotion_dip` | ~1080 | — | — | TODO (dip into water) |
+| `impact_arti_light` | ~1120 | — | — | TODO (artifact light on impact) |
+| `potionhit` | ~1150 | — | — | TODO (potion hits target) |
+| `potionbreathe` | ~1200 | — | — | TODO (breathe potion vapors) |
+| `mixtype` | ~1250 | — | — | TODO (mixing two potions) |
+| `dip_ok` | ~1300 | — | — | TODO (validate dip target) |
+| `dip_hands_ok` | ~1320 | — | — | TODO (hands free for dipping) |
+| `hold_potion` | ~1340 | — | — | TODO (hold potion during dip) |
+| `dodip` | ~1360 | — | — | TODO (dip command) |
+| `dip_into` | ~1400 | — | — | TODO (dip object into potion) |
+| `poof` | ~1440 | — | — | TODO (potion poof) |
+| `dip_potion_explosion` | ~1470 | — | — | TODO (potion explodes on dip) |
+| `potion_dip` | ~1500 | — | — | TODO (dip potion into potion) |
+| `mongrantswish` | ~1550 | — | — | TODO (monster grants wish) |
+| `djinni_from_bottle` | ~1580 | — | — | TODO (djinni from smoky potion) |
+| `split_mon` | ~1620 | — | — | TODO (split monster) |
+| `speed_up` | ~1660 | — | — | TODO (increase hero speed) |
+
+### read.c → read.js
+
+Notes:
+- `doread` renamed to `handleRead` (camelCase; exported).
+- Current implementation covers spellbook study and basic scroll reading flow.
+- Individual `seffect_*` scroll effect handlers are all TODO.
+
+| C Function | C Line | JS Function | JS Line | Status |
+|------------|--------|-------------|---------|--------|
+| `doread` | ~300 | `handleRead` | 63 | Renamed (exported; partial — spellbook study + basic scroll flow) |
+| `learnscrolltyp` | ~20 | — | — | TODO (learn scroll type) |
+| `learnscroll` | ~40 | — | — | TODO (wrapper for scroll learning) |
+| `cap_spe` | ~60 | — | — | TODO (cap enchantment at +127) |
+| `stripspe` | ~80 | — | — | TODO (strip enchantment) |
+| `read_ok` | ~100 | — | — | TODO (validate readable) |
+| `p_glow1` | ~120 | — | — | TODO (item glows message) |
+| `p_glow2` | ~140 | — | — | TODO (item glows moment message) |
+| `p_glow3` | ~160 | — | — | TODO (item briefly glows message) |
+| `erode_obj_text` | ~180 | — | — | TODO (eroded text check) |
+| `tshirt_text` | ~200 | — | — | TODO (T-shirt text) |
+| `hawaiian_motif` | ~220 | — | — | TODO (Hawaiian shirt motif) |
+| `hawaiian_design` | ~240 | — | — | TODO (Hawaiian shirt design) |
+| `apron_text` | ~260 | — | — | TODO (apron text) |
+| `candy_wrapper_text` | ~280 | — | — | TODO (candy wrapper text) |
+| `assign_candy_wrapper` | ~290 | — | — | TODO (assign wrapper) |
+| `seffects` | ~400 | — | — | TODO (dispatch scroll effects) |
+| `seffect_enchant_armor` | ~450 | — | — | TODO |
+| `seffect_destroy_armor` | ~500 | — | — | TODO |
+| `seffect_confuse_monster` | ~550 | — | — | TODO |
+| `seffect_scare_monster` | ~600 | — | — | TODO |
+| `seffect_remove_curse` | ~650 | — | — | TODO |
+| `seffect_create_monster` | ~700 | — | — | TODO |
+| `seffect_enchant_weapon` | ~750 | — | — | TODO |
+| `seffect_taming` | ~800 | — | — | TODO |
+| `seffect_genocide` | ~850 | — | — | TODO |
+| `seffect_light` | ~900 | — | — | TODO |
+| `seffect_charging` | ~950 | — | — | TODO |
+| `seffect_amnesia` | ~1000 | — | — | TODO |
+| `seffect_fire` | ~1050 | — | — | TODO |
+| `seffect_earth` | ~1100 | — | — | TODO |
+| `seffect_punishment` | ~1150 | — | — | TODO |
+| `seffect_stinking_cloud` | ~1200 | — | — | TODO |
+| `seffect_blank_paper` | ~1250 | — | — | TODO |
+| `seffect_teleportation` | ~1300 | — | — | TODO |
+| `seffect_gold_detection` | ~1350 | — | — | TODO |
+| `seffect_food_detection` | ~1400 | — | — | TODO |
+| `seffect_identify` | ~1450 | — | — | TODO |
+| `seffect_magic_mapping` | ~1500 | — | — | TODO |
+| `forget` | ~1550 | — | — | TODO (cause amnesia) |
+| `maybe_tame` | ~1600 | — | — | TODO (attempt to tame) |
+| `valid_cloud_pos` | ~1650 | — | — | TODO (valid cloud position) |
+| `can_center_cloud` | ~1670 | — | — | TODO (can center cloud) |
+| `display_stinking_cloud_positions` | ~1690 | — | — | TODO |
+| `do_stinking_cloud` | ~1720 | — | — | TODO |
+| `drop_boulder_on_player` | ~1760 | — | — | TODO (scroll of earth) |
+| `drop_boulder_on_monster` | ~1800 | — | — | TODO |
+| `charge_ok` | ~1840 | — | — | TODO (can be recharged) |
+| `recharge` | ~1870 | — | — | TODO (recharge wand/tool) |
+| `wand_explode` | ~1910 | — | — | TODO (overcharged wand explodes) |
+| `set_lit` | ~1950 | — | — | TODO (set room lit state) |
+| `litroom` | ~1980 | — | — | TODO (light/darken room) |
+| `do_class_genocide` | ~2020 | — | — | TODO (genocide monster class) |
+| `do_genocide` | ~2070 | — | — | TODO (genocide monster type) |
+| `punish` | ~2120 | — | — | TODO (apply punishment) |
+| `unpunish` | ~2160 | — | — | TODO (remove punishment) |
+| `cant_revive` | ~2200 | — | — | TODO (check if can't revive) |
+| `create_particular_parse` | ~2230 | — | — | TODO (parse monster name) |
+| `create_particular_creation` | ~2260 | — | — | TODO (create specific monster) |
+| `create_particular` | ~2300 | — | — | TODO (blessed create monster scroll) |
+
+### trap.c → trap.js
+
+Notes:
+- Four functions implemented matching C names.
+- `mintrap` partially covered by `mintrap_postmove` (PIT/SPIKED_PIT, TELEP_TRAP, MAGIC_TRAP only).
+- `mon_check_in_air` is private (not exported).
+- Most trap types (ARROW_TRAP, DART_TRAP, ROCKTRAP, LANDMINE, etc.) not yet handled.
+- No player trap handling (dotrap) or launched object mechanics.
+
+| C Function | C Line | JS Function | JS Line | Status |
+|------------|--------|-------------|---------|--------|
+| `m_harmless_trap` | ~200 | `m_harmless_trap` | 34 | Match (exported) |
+| `floor_trigger` | ~250 | `floor_trigger` | 69 | Match (exported) |
+| `mon_check_in_air` | ~280 | `mon_check_in_air` | 74 | Match (private) |
+| `mintrap` | ~300 | `mintrap_postmove` | 83 | Renamed (exported; partial — PIT/TELEP/MAGIC only) |
+
+### uhitm.c → uhitm.js
+
+Notes:
+- `do_attack`/`hmon_hitmon` combined into `playerAttackMonster` (camelCase; exported).
+- Several internal helpers implemented: `weaponEnchantment`, `weaponDamageSides`, `luckBonus`, `dexToHit`, etc.
+- `xkilled` from mon.c implemented as `handleMonsterKilled` (private).
+- All 93 individual C functions (AD_* handlers, hmon_hitmon_* decomposition, etc.) are TODO stubs.
+
+| C Function | C Line | JS Function | JS Line | Status |
+|------------|--------|-------------|---------|--------|
+| `do_attack` | 447 | `playerAttackMonster` | 656 | Renamed (exported; partial — basic melee) |
+| `hmon_hitmon` | 1732 | (inlined in playerAttackMonster) | — | Inlined |
+| `find_roll_to_hit` | 364 | `luckBonus` + `dexToHit` | 534, 540 | Split (private helpers) |
+| `xkilled` | (mon.c) | `handleMonsterKilled` | 597 | Renamed (private; simplified) |
+| `mhitm_mgc_atk_negated` | 74 | — | — | TODO |
+| `dynamic_multi_reason` | 103 | — | — | TODO |
+| `erode_armor` | 125 | — | — | TODO |
+| `attack_checks` | 188 | — | — | TODO |
+| `check_caitiff` | 330 | — | — | TODO |
+| `mon_maybe_unparalyze` | 350 | — | — | TODO |
+| `force_attack` | 431 | — | — | TODO |
+| `known_hitum` | 586 | — | — | TODO |
+| `hitum_cleave` | 650 | — | — | TODO |
+| `double_punch` | 735 | — | — | TODO |
+| `hitum` | 757 | — | — | TODO |
+| `hmon` | 818 | — | — | TODO |
+| `hmon_hitmon_barehands` | 837 | — | — | TODO |
+| `hmon_hitmon_weapon_ranged` | 884 | — | — | TODO |
+| `hmon_hitmon_weapon_melee` | 919 | — | — | TODO |
+| `hmon_hitmon_weapon` | 1048 | — | — | TODO |
+| `hmon_hitmon_potion` | 1073 | `hitMonsterWithPotion` | 573 | Partial (private) |
+| `hmon_hitmon_misc_obj` | 1097 | — | — | TODO |
+| `hmon_hitmon_do_hit` | 1365 | — | — | TODO |
+| `hmon_hitmon_dmg_recalc` | 1414 | — | — | TODO |
+| `hmon_hitmon_poison` | 1488 | — | — | TODO |
+| `hmon_hitmon_jousting` | 1519 | — | — | TODO |
+| `hmon_hitmon_stagger` | 1548 | — | — | TODO |
+| `hmon_hitmon_pet` | 1566 | — | — | TODO |
+| `hmon_hitmon_splitmon` | 1582 | — | — | TODO |
+| `hmon_hitmon_msg_hit` | 1615 | — | — | TODO |
+| `hmon_hitmon_msg_silver` | 1641 | — | — | TODO |
+| `hmon_hitmon_msg_lightobj` | 1680 | — | — | TODO |
+| `mhurtle_to_doom` | 1920 | — | — | TODO |
+| `first_weapon_hit` | 1941 | — | — | TODO |
+| `shade_aware` | 1970 | — | — | TODO |
+| `shade_miss` | 1994 | — | — | TODO |
+| `m_slips_free` | 2034 | — | — | TODO |
+| `joust` | 2076 | — | — | TODO |
+| `demonpet` | 2111 | — | — | TODO |
+| `theft_petrifies` | 2126 | — | — | TODO |
+| `steal_it` | 2152 | — | — | TODO |
+| `mhitm_ad_rust` | 2259 | — | — | TODO |
+| `mhitm_ad_corr` | 2316 | — | — | TODO |
+| `mhitm_ad_dcay` | 2341 | — | — | TODO |
+| `mhitm_ad_dren` | 2396 | — | — | TODO |
+| `mhitm_ad_drli` | 2423 | — | — | TODO |
+| `mhitm_ad_fire` | 2499 | — | — | TODO |
+| `mhitm_ad_cold` | 2604 | — | — | TODO |
+| `mhitm_ad_elec` | 2662 | — | — | TODO |
+| `mhitm_ad_acid` | 2720 | — | — | TODO |
+| `mhitm_ad_sgld` | 2768 | — | — | TODO |
+| `mhitm_ad_tlpt` | 2837 | — | — | TODO |
+| `mhitm_ad_blnd` | 2936 | — | — | TODO |
+| `mhitm_ad_curs` | 2993 | — | — | TODO |
+| `mhitm_really_poison` | 3082 | — | — | TODO |
+| `mhitm_ad_drst` | 3100 | — | — | TODO |
+| `mhitm_ad_drin` | 3146 | — | — | TODO |
+| `mhitm_ad_stck` | 3284 | — | — | TODO |
+| `mhitm_ad_wrap` | 3315 | — | — | TODO |
+| `mhitm_ad_plys` | 3409 | — | — | TODO |
+| `mhitm_ad_slee` | 3457 | — | — | TODO |
+| `mhitm_ad_slim` | 3504 | — | — | TODO |
+| `mhitm_ad_ench` | 3581 | — | — | TODO |
+| `mhitm_ad_slow` | 3630 | — | — | TODO |
+| `mhitm_ad_conf` | 3668 | — | — | TODO |
+| `mhitm_ad_poly` | 3707 | — | — | TODO |
+| `mhitm_ad_famn` | 3755 | — | — | TODO |
+| `mhitm_ad_pest` | 3786 | — | — | TODO |
+| `mhitm_ad_deth` | 3815 | — | — | TODO |
+| `mhitm_ad_halu` | 3875 | — | — | TODO |
+| `do_stone_u` | 3902 | — | — | TODO |
+| `do_stone_mon` | 3923 | — | — | TODO |
+| `mhitm_ad_phys` | 3959 | — | — | TODO |
+| `mhitm_ad_ston` | 4181 | — | — | TODO |
+| `mhitm_ad_were` | 4243 | — | — | TODO |
+| `mhitm_ad_heal` | 4274 | — | — | TODO |
+| `mhitm_ad_stun` | 4366 | — | — | TODO |
+| `mhitm_ad_legs` | 4403 | — | — | TODO |
+| `mhitm_ad_dgst` | 4470 | — | — | TODO |
+| `mhitm_ad_samu` | 4548 | — | — | TODO |
+| `mhitm_ad_dise` | 4571 | — | — | TODO |
+| `mhitm_ad_sedu` | 4601 | — | — | TODO |
+| `mhitm_ad_ssex` | 4729 | — | — | TODO |
+| `mhitm_adtyping` | 4760 | — | — | TODO (dispatch AD_* by type) |
+| `damageum` | 4813 | — | — | TODO |
+| `explum` | 4869 | — | — | TODO |
+| `start_engulf` | 4909 | — | — | TODO |
+| `end_engulf` | 4927 | — | — | TODO |
+| `gulpum` | 4936 | — | — | TODO |
+| `missum` | 5176 | — | — | TODO |
+| `m_is_steadfast` | 5196 | — | — | TODO |
+| `mhitm_knockback` | 5225 | — | — | TODO |
+| `hmonas` | 5402 | — | — | TODO (attack as monster form) |
+| `passive` | 5843 | — | — | TODO (passive counterattack) |
+| `passive_obj` | 6105 | — | — | TODO (passive damage to objects) |
+| `that_is_a_mimic` | 6179 | — | — | TODO |
+| `stumble_onto_mimic` | 6260 | — | — | TODO |
+| `disguised_as_non_mon` | 6278 | — | — | TODO |
+| `disguised_as_mon` | 6286 | — | — | TODO |
+| `nohandglow` | 6293 | — | — | TODO |
+| `flash_hits_mon` | 6319 | — | — | TODO |
+| `light_hits_gremlin` | 6403 | — | — | TODO |
 
