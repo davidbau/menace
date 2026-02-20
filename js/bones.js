@@ -252,7 +252,7 @@ export function savebones(game) {
         mtrack: [{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}],
         minvent: [],
     };
-    map.monsters.push(ghost);
+    map.addMonster(ghost);
 
     // C ref: bones.c:503 — cemetery metadata
     map.cemetery = {

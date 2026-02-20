@@ -69,7 +69,7 @@ describe('Monster creation (C-faithful)', () => {
         assert.ok(gremlin >= 0, 'gremlin should exist in mons[]');
 
         // Use a simple accessible tile map so only monster-creation logic is exercised.
-        const map = { monsters: [], at: () => ({ typ: 100 }) };
+        const map = { monsters: [], at: () => ({ typ: 100 }), addMonster(m) { this.monsters.unshift(m); } };
 
         initRng(1234);
         setMakemonPlayerContext({

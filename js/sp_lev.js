@@ -6503,7 +6503,13 @@ export function finalize_level() {
         if (!levelState.map.monsters) {
             levelState.map.monsters = [];
         }
-        levelState.map.monsters.push(...levelState.monsters);
+        // C ref: each makemon() prepends to fmon (LIFO), so if sp_lev
+        // creates monsters A,B,C in order, fmon becomes C→B→A.
+        // Add in forward order — addMonster prepends each one, producing
+        // the same LIFO ordering as C.
+        for (const mon of levelState.monsters) {
+            levelState.map.addMonster(mon);
+        }
     }
 
     // C ref: lspo_finalize_level() calls link_doors_rooms() before cleanup.

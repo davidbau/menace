@@ -212,6 +212,12 @@ export class GameMap {
         return this.engravings.find(e => e.x === x && e.y === y) || null;
     }
 
+    // C ref: makemon.c — mtmp->nmon = fmon; fmon = mtmp; (linked list prepend)
+    // All monster additions should go through this to maintain C-compatible ordering.
+    addMonster(mon) {
+        this.monsters.unshift(mon);
+    }
+
     // Remove a dead monster
     removeMonster(mon) {
         const idx = this.monsters.indexOf(mon);

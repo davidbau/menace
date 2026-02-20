@@ -355,7 +355,7 @@ function makedog(map, player, depth) {
     };
 
     // C ref: makemon.c — mtmp->nmon = fmon; fmon = mtmp; (LIFO prepend)
-    map.monsters.unshift(pet);
+    map.addMonster(pet);
     return pet;
 }
 
@@ -551,7 +551,7 @@ export function mon_arrive(oldMap, newMap, player, opts = {}) {
         if (Number.isInteger(currentMoves)) pet.mlstmv = currentMoves;
         if ('migrating' in pet) pet.migrating = false;
         if ('limbo' in pet) pet.limbo = false;
-        newMap.monsters.unshift(pet);
+        newMap.addMonster(pet);
         migratedCount++;
     }
 

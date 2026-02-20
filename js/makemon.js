@@ -1812,7 +1812,7 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
 
     // Add to map if provided
     if (map && x !== undefined && y !== undefined) {
-        map.monsters.unshift(mon); // C ref: fmon prepend (LIFO order)
+        map.addMonster(mon);
     }
 
     // C ref: makemon.c shapechanger path (pm_to_cham/newcham).
