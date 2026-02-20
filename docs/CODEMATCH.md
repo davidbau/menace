@@ -151,7 +151,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | u_init.c | u_init.js | Player initialization. u_init_role, u_init_race, u_init_carry_attr_boost, trquan, ini_inv, ini_inv_mkobj_filter, restricted_spell_discipline aligned. JS-only wrappers: simulatePostLevelInit, initAttributes |
 | `[ ]` | uhitm.c | — | Player-vs-monster combat. JS: partially in `combat.js` |
 | `[N/A]` | utf8map.c | — | UTF-8 glyph mapping for terminal |
-| `[ ]` | vault.c | — | Vault guard behavior |
+| `[~]` | vault.c | `vault.js` | Vault guard behavior |
 | `[N/A]` | version.c | — | Version info |
 | `[a]` | vision.c | vision.js | FOV / LOS. Core algorithm (view_from, right_side, left_side, clear_path, do_clear_area) matches C. block_point/dig_point/rogue_vision TODO |
 | `[ ]` | weapon.c | — | Weapon skills |
