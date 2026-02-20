@@ -156,7 +156,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | vision.c | vision.js | FOV / LOS. Core algorithm (view_from, right_side, left_side, clear_path, do_clear_area) matches C. block_point/dig_point/rogue_vision TODO |
 | `[ ]` | weapon.c | — | Weapon skills |
 | `[a]` | were.c | were.js | Lycanthropy. 6 of 8 functions aligned; you_were/you_unwere TODO (need polymon/rehumanize) |
-| `[ ]` | wield.c | — | Wielding weapons |
+| `[~]` | wield.c | `wield.js` | Wielding weapons. dowield→handleWield(commands.js:2371), doswapweapon→handleSwapWeapon(commands.js:3477) partial. |
 | `[N/A]` | windows.c | — | Windowing system interface. JS: `display.js`, `browser_input.js` |
 | `[ ]` | wizard.c | — | Wizard of Yendor AI |
 | `[ ]` | wizcmds.c | — | Wizard-mode debug commands |
