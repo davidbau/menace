@@ -649,9 +649,12 @@ def wait_for_game_ready(session, rng_log_file):
 
 
 def describe_key(key):
+    # Note: vi-direction keys (hjklyubn) are intentionally NOT labeled here.
+    # They label as 'key-h' etc. because the same keys are used as direction
+    # arguments in multi-key commands (throw, zap, kick …) where a label like
+    # 'move-west' would be misleading.  replay_core.js uses the key character
+    # directly (MOVE_KEY_CHARS set) to detect navigation steps.
     names = {
-        'h': 'move-west', 'j': 'move-south', 'k': 'move-north', 'l': 'move-east',
-        'y': 'move-nw', 'u': 'move-ne', 'b': 'move-sw', 'n': 'move-se',
         '.': 'wait', 's': 'search', ',': 'pickup', 'i': 'inventory',
         ':': 'look', '@': 'autopickup-toggle', '>': 'descend', '<': 'ascend',
     }
