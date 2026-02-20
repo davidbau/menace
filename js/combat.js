@@ -19,6 +19,7 @@ import {
 import { mkobj, mkcorpstat, RANDOM_CLASS, next_ident, xname } from './mkobj.js';
 import { nonliving, monDisplayName, is_humanoid } from './mondata.js';
 import { obj_resists } from './objdata.js';
+import { newexplevel } from './exper.js';
 
 const PIERCE = 1;
 
@@ -187,7 +188,7 @@ function handleMonsterKilled(player, monster, display, map) {
     const exp = (monster.mlevel + 1) * (monster.mlevel + 1);
     player.exp += exp;
     player.score += exp;
-    checkLevelUp(player, display);
+    newexplevel(player, display);
 
     // C ref: mon.c:3581-3609 xkilled() — "illogical but traditional" treasure drop.
     const treasureRoll = rn2(6);
@@ -551,26 +552,3 @@ function handleSpecialAttack(special, monster, player, display) {
     }
 }
 
-// Check if player should level up
-// C ref: exper.c newuexp() and pluslvl()
-export function checkLevelUp(player, display) {
-    // Experience table (approximate, from exper.c)
-    // C ref: exper.c newuexp()
-    const expTable = [0, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120,
-                      10000, 20000, 40000, 80000, 160000, 320000, 640000,
-                      1280000, 2560000, 5120000, 10000000, 20000000];
-
-    while (player.level < 30 && player.exp >= (expTable[player.level] || Infinity)) {
-        player.level++;
-        // Gain HP and Pw
-        // C ref: exper.c pluslvl() -- role-dependent gains
-        const hpGain = rnd(8);
-        player.hpmax += hpGain;
-        player.hp += hpGain;
-        const pwGain = rn2(3);
-        player.pwmax += pwGain;
-        player.pw += pwGain;
-
-        display.putstr_message(`Welcome to experience level ${player.level}!`);
-    }
-}

@@ -15,7 +15,7 @@ import { mons, G_FREQ, MZ_TINY, M2_NEUTER, M2_MALE, M2_FEMALE,
          PM_LIZARD, PM_LICHEN, S_TROLL } from './monsters.js';
 import { rndmonnum } from './makemon.js';
 import { next_ident } from './mkobj.js';
-import { checkLevelUp } from './combat.js';
+import { newexplevel } from './exper.js';
 import { nhgetch } from './input.js';
 import { nonliving, monDisplayName } from './mondata.js';
 
@@ -180,7 +180,7 @@ function xkilled(mon, map, player, display) {
     const exp = (mon.mlevel + 1) * (mon.mlevel + 1);
     player.exp += exp;
     player.score += exp;
-    checkLevelUp(player, display);
+    newexplevel(player, display);
 
     // C ref: mon.c:3581 — "illogical but traditional" treasure drop
     rn2(6);

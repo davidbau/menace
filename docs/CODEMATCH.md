@@ -66,7 +66,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[ ]` | eat.c | — | Eating mechanics |
 | `[ ]` | end.c | — | Game over, death, scoring |
 | `[ ]` | engrave.c | — | Engraving mechanics. JS: `engrave_data.js` is data only |
-| `[ ]` | exper.c | — | Experience and leveling |
+| `[a]` | exper.c | exper.js | Experience and leveling. newuexp, newexplevel, pluslvl implemented; experience, more_experienced, losexp, newpw, enermod, rndexp TODO |
 | `[ ]` | explode.c | — | Explosion effects |
 | `[ ]` | extralev.c | — | Special level generation helpers |
 | `[N/A]` | files.c | — | File I/O operations. JS: `storage.js` |
