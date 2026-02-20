@@ -26,6 +26,7 @@ import { handleEat } from './eat.js';
 import { handleQuaff } from './potion.js';
 import { handleRead } from './read.js';
 import { handleWear, handlePutOn, handleTakeOff } from './do_wear.js';
+import { handleDownstairs, handleUpstairs, handleDrop, formatGoldPickupMessage, formatInventoryPickupMessage } from './do.js';
 import { makemon, setMakemonPlayerContext } from './makemon.js';
 import { mons } from './monsters.js';
 import { monDisplayName, hasGivenName, monNam } from './mondata.js';
@@ -167,29 +168,6 @@ const HEALING_BONUS_SPELLS = new Set([
     'remove curse',
 ]);
 
-function formatGoldPickupMessage(gold, player) {
-    const count = gold?.quan || 1;
-    const plural = count === 1 ? '' : 's';
-    const total = player?.gold || count;
-    if (total !== count) {
-        return `$ - ${count} gold piece${plural} (${total} in total).`;
-    }
-    return `$ - ${count} gold piece${plural}.`;
-}
-
-function formatInventoryPickupMessage(pickedObj, inventoryObj, player) {
-    const pickedCount = Number(pickedObj?.quan || 1);
-    const total = Number(inventoryObj?.quan || pickedCount);
-    const slot = String(inventoryObj?.invlet || pickedObj?.invlet || '?');
-    let detail = doname(pickedObj, null);
-    if (player?.quiver === inventoryObj) {
-        detail += ' (at the ready)';
-    }
-    if (total > pickedCount) {
-        detail += ` (${total} in total)`;
-    }
-    return `${slot} - ${detail}.`;
-}
 
 function invletSortValue(ch) {
     if (ch === '$') return 0;
@@ -1860,52 +1838,8 @@ async function handleLoot(game) {
     return { moved: false, tookTime: true };
 }
 
-// Handle going downstairs
-// C ref: do.c dodown()
-async function handleDownstairs(player, map, display, game) {
-    const loc = map.at(player.x, player.y);
-    if (!loc || loc.typ !== STAIRS || loc.flags !== 0) {
-        display.putstr_message("You can't go down here.");
-        return { moved: false, tookTime: false };
-    }
-
-    // Go to next level
-    const newDepth = player.dungeonLevel + 1;
-    if (newDepth > player.maxDungeonLevel) {
-        player.maxDungeonLevel = newDepth;
-    }
-    // Generate new level (changeLevel sets player.dungeonLevel)
-    game.changeLevel(newDepth, 'down');
-    return { moved: false, tookTime: true };
-}
-
-// Handle going upstairs
-// C ref: do.c doup()
-async function handleUpstairs(player, map, display, game) {
-    const loc = map.at(player.x, player.y);
-    if (!loc || loc.typ !== STAIRS || loc.flags !== 1) {
-        display.putstr_message("You can't go up here.");
-        return { moved: false, tookTime: false };
-    }
-
-    if (player.dungeonLevel <= 1) {
-        const ans = await ynFunction('Escape the dungeon?', 'yn', 'n'.charCodeAt(0), display);
-        if (String.fromCharCode(ans) === 'y') {
-            game.gameOver = true;
-            game.gameOverReason = 'escaped';
-            player.deathCause = 'escaped';
-            display.putstr_message('You escape the dungeon...');
-        }
-        return { moved: false, tookTime: false };
-    }
-
-    const newDepth = player.dungeonLevel - 1;
-    game.changeLevel(newDepth, 'up');
-    return { moved: false, tookTime: true };
-}
-
 // Handle opening a door
-// C ref: do.c doopen()
+// C ref: lock.c doopen()
 async function handleOpen(player, map, display, game) {
     display.putstr_message('In what direction?');
     const dirCh = await nhgetch();
@@ -1978,7 +1912,7 @@ async function handleOpen(player, map, display, game) {
 }
 
 // Handle closing a door
-// C ref: do.c doclose()
+// C ref: lock.c doclose()
 async function handleClose(player, map, display, game) {
     display.putstr_message('In what direction?');
     const dirCh = await nhgetch();
@@ -2015,7 +1949,7 @@ async function handleClose(player, map, display, game) {
     return { moved: false, tookTime: false };
 }
 
-function buildInventoryOverlayLines(player) {
+export function buildInventoryOverlayLines(player) {
     // C ref: invent.c display_inventory() / display_pickinv()
     const CLASS_NAMES = {
         1: 'Weapons', 2: 'Armor', 3: 'Rings', 4: 'Amulets',
@@ -2059,7 +1993,7 @@ function isMenuDismissKey(ch) {
     return ch === 32 || ch === 27 || ch === 10 || ch === 13;
 }
 
-async function renderOverlayMenuUntilDismiss(display, lines, allowedSelectionChars = '') {
+export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelectionChars = '') {
     const allowedSelections = new Set((allowedSelectionChars || '').split(''));
     let menuOffx = null;
     if (typeof display.renderOverlayMenu === 'function') {
@@ -2450,85 +2384,6 @@ async function handleWield(player, display) {
         replacePromptMessage();
         display.putstr_message(`${weapon.invlet} - ${doname(weapon, player)}.`);
         // C ref: wield.c:dowield returns ECMD_TIME (wielding takes a turn)
-        return { moved: false, tookTime: true };
-    }
-}
-
-// Handle dropping an item
-// C ref: do.c dodrop()
-async function handleDrop(player, map, display) {
-    if (player.inventory.length === 0) {
-        display.putstr_message("You don't have anything to drop.");
-        return { moved: false, tookTime: false };
-    }
-
-    const dropChoices = compactInvletPromptChars(player.inventory.map((o) => o.invlet).join(''));
-    let countMode = false;
-    let countDigits = '';
-    const replacePromptMessage = () => {
-        if (typeof display.clearRow === 'function') display.clearRow(0);
-        display.topMessage = null;
-        display.messageNeedsMore = false;
-    };
-    while (true) {
-        replacePromptMessage();
-        if (countMode && countDigits.length > 1) {
-            display.putstr_message(`Count: ${countDigits}`);
-        } else {
-            display.putstr_message(`What do you want to drop? [${dropChoices} or ?*]`);
-        }
-        const ch = await nhgetch();
-        let c = String.fromCharCode(ch);
-        if (ch === 22) { // Ctrl+V
-            countMode = true;
-            countDigits = '';
-            continue;
-        }
-        if (countMode && c >= '0' && c <= '9') {
-            countDigits += c;
-            continue;
-        }
-        if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
-            replacePromptMessage();
-            display.putstr_message('Never mind.');
-            return { moved: false, tookTime: false };
-        }
-        if (c === '?' || c === '*') {
-            replacePromptMessage();
-            const invLines = buildInventoryOverlayLines(player);
-            const selection = await renderOverlayMenuUntilDismiss(display, invLines, dropChoices);
-            if (!selection) continue;
-            c = selection;
-        }
-
-        const item = player.inventory.find(o => o.invlet === c);
-        if (!item) continue;
-
-        const isWornArmor =
-            player.armor === item
-            || player.shield === item
-            || player.helmet === item
-            || player.gloves === item
-            || player.boots === item
-            || player.cloak === item
-            || player.amulet === item;
-        if (isWornArmor) {
-            replacePromptMessage();
-            display.putstr_message('You cannot drop something you are wearing.');
-            return { moved: false, tookTime: false };
-        }
-
-        // Unequip wielded weapon if dropping it.
-        if (player.weapon === item) player.weapon = null;
-
-        player.removeFromInventory(item);
-        item.ox = player.x;
-        item.oy = player.y;
-        placeFloorObject(map, item);
-        if (typeof display.clearRow === 'function') display.clearRow(0);
-        display.topMessage = null;
-        display.messageNeedsMore = false;
-        display.putstr_message(`You drop ${doname(item, null)}.`);
         return { moved: false, tookTime: true };
     }
 }

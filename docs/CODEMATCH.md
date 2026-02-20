@@ -54,7 +54,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[ ]` | dig.c | — | Digging mechanics |
 | `[~]` | display.c | display.js | Display/rendering. JS file exists but may diverge |
 | `[N/A]` | dlb.c | — | Data librarian (file bundling). Not needed in JS |
-| `[ ]` | do.c | — | Miscellaneous actions (drop, down, up) |
+| `[a]` | do.c | do.js | Miscellaneous actions. handleDrop/handleDownstairs/handleUpstairs (dodrop/dodown/doup); ~45 functions TODO |
 | `[ ]` | do_name.c | — | Naming things (docallcmd, do_mgivenname) |
 | `[a]` | do_wear.c | do_wear.js | Wearing/removing armor and accessories. handleWear/handlePutOn/handleTakeOff (dowear/doputon/dotakeoff); ~68 functions TODO |
 | `[a]` | dog.c | dog.js | Pet behavior. dogfood in dog.js; makedog/mon_arrive in u_init.js; losedogs/keepdogs/migrate TODO |
