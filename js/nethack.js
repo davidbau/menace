@@ -24,6 +24,7 @@ import { rhack, ageSpells } from './commands.js';
 import { movemon, initrack, settrack } from './monmove.js';
 import { simulatePostLevelInit, mon_arrive, initFirstLevel } from './u_init.js';
 import { getArrivalPosition } from './level_transition.js';
+import { nh_timeout, setCurrentTurn } from './timeout.js';
 import { loadSave, deleteSave, hasSave, saveGame,
          loadFlags, saveFlags, deserializeRng,
          restGameState, restLev,
@@ -31,6 +32,7 @@ import { loadSave, deleteSave, hasSave, saveGame,
 import { savebones } from './bones.js';
 import { buildEntry, saveScore, loadScores, formatTopTenEntry, formatTopTenHeader } from './topten.js';
 import { startRecording } from './keylog.js';
+import { setOutputContext } from './pline.js';
 
 // --- Game State ---
 // C ref: decl.h -- globals are accessed via NH object (see DECISIONS.md #7)
@@ -42,6 +44,7 @@ export class NetHackGame {
         this.player = new Player();
         this.map = null;
         this.display = deps.display || null;
+        setOutputContext(this.display);
         this.fov = new FOV();
         this.levels = {};     // cached levels by depth
         this.gameOver = false;
@@ -1607,6 +1610,13 @@ export class NetHackGame {
         settrack(this.player);
         this.turnCount++;
         this.player.turns = this.turnCount;
+        setCurrentTurn(this.turnCount);
+        setOutputContext(this.display);
+        nh_timeout({
+            player: this.player,
+            map: this.map,
+            display: this.display,
+        });
         // C ref: allmain.c -- random spawn happens before svm.moves++.
         // Preserve pre-increment move count during this turn-end frame.
         setObjectMoves(this.turnCount);

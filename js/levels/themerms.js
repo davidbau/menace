@@ -16,6 +16,8 @@ import * as des from '../sp_lev.js';
 import { selection, percent, shuffle, levelState, nh as nhGlobal, initLuaMT } from '../sp_lev.js';
 import { rn2, rnd, d, getRngLog, getRngCallCount } from '../rng.js';
 import { setMtInitialized } from '../dungeon.js';
+import { start_timer_at } from '../timeout.js';
+import { impossible, pline } from '../pline.js';
 
 // Module-level state for postprocessing callbacks
 let postprocess = [];
@@ -30,13 +32,12 @@ const nh = {
     get debug_themerm() { return nhGlobal.debug_themerm; },
     level_difficulty: () => _levelDepth,
     rn2: (n) => rn2(n),
-    start_timer_at: (x, y, type, time) => { /* TODO: implement timer system */ },
-    impossible: (msg) => { console.warn('[themerms impossible]:', msg); },
+    start_timer_at: (x, y, type, time) => start_timer_at(x, y, type, time),
+    impossible: (msg) => impossible(msg),
 };
 
 // Stub other globals
-const align = ["lawful", "neutral", "chaotic"]; // Will be shuffled by caller
-const pline = (msg) => { console.log('[themerms]:', msg); };
+const align = ['lawful', 'neutral', 'chaotic']; // Will be shuffled by caller
 const obj = {
     new: (id) => { return { class: () => ({ material: "unknown" }) }; } // Stub
 };

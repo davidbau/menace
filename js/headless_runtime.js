@@ -25,10 +25,12 @@ import { movemon, initrack, settrack } from './monmove.js';
 import { were_change } from './were.js';
 import { FOV } from './vision.js';
 import { getArrivalPosition } from './level_transition.js';
+import { nh_timeout, setCurrentTurn } from './timeout.js';
 import { doname, setObjectMoves } from './mkobj.js';
 import { enexto } from './dungeon.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
+import { setOutputContext } from './pline.js';
 import {
     COLNO, ROWNO, NORMAL_SPEED,
     A_STR, A_DEX, A_CON,
@@ -422,6 +424,7 @@ export class HeadlessGame {
         initExerciseState(this.player);
         this.map = map;
         this.display = new HeadlessDisplay();
+        setOutputContext(this.display);
         if (typeof this.input.setDisplay === 'function') {
             this.input.setDisplay(this.display);
         }
@@ -825,6 +828,13 @@ export class HeadlessGame {
         settrack(this.player);
         this.turnCount++;
         this.player.turns = this.turnCount;
+        setCurrentTurn(this.turnCount);
+        setOutputContext(this.display);
+        nh_timeout({
+            player: this.player,
+            map: this.map,
+            display: this.display,
+        });
         // C ref: allmain.c -- random spawn happens before svm.moves++.
         // During this turn-end frame, mkobj-side erosion checks should
         // still observe the pre-increment move count.

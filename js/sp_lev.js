@@ -52,6 +52,7 @@ import {
 import { mons, M2_FEMALE, M2_MALE, G_NOGEN, G_IGNORE, PM_MINOTAUR, MR_STONE } from './monsters.js';
 import { findSpecialLevelByName, GEHENNOM } from './special_levels.js';
 import { placeFloorObject } from './floor_objects.js';
+import { start_timer, stop_timer, obj_move_timers as moveObjectTimers, obj_split_timers as splitObjectTimers, obj_has_timer as hasObjectTimer } from './timeout.js';
 
 // Aliases for compatibility with C naming
 const STAIRS_UP = STAIRS;
@@ -3913,8 +3914,19 @@ function objectClassToType(classChar) {
         case '"': return AMULET_CLASS;
         case '*': return GEM_CLASS;
         case '`': return ROCK_CLASS;
-        default: return -1;
+    default: return -1;
     }
+}
+
+function installObjectTimerShims(obj) {
+    if (!obj || typeof obj !== 'object') return;
+    obj.start_timer = (timerType, when = 0, kind) => {
+        return start_timer(when, kind, timerType, obj);
+    };
+    obj.stop_timer = (timerType) => stop_timer(timerType, obj);
+    obj.move_timers = (dest) => moveObjectTimers(obj, dest);
+    obj.split_timers = (dest) => splitObjectTimers(obj, dest);
+    obj.has_timer = (timerType) => hasObjectTimer(obj, timerType);
 }
 
 /**
@@ -4092,8 +4104,7 @@ export function object(name_or_opts, x, y) {
     if (obj) {
         // C/Lua object userdata compatibility needs to be available before
         // contents callbacks execute.
-        obj.stop_timer = obj.stop_timer || function() {};
-        obj.start_timer = obj.start_timer || function() {};
+        installObjectTimerShims(obj);
         obj.totable = obj.totable || function() {
             return {
                 ox: this.ox,
@@ -4145,8 +4156,7 @@ export function object(name_or_opts, x, y) {
     // C ref: lspo_object returns the object userdata to Lua.
     // Keep timer methods available for script compatibility.
     if (obj) {
-        obj.stop_timer = obj.stop_timer || function() {};
-        obj.start_timer = obj.start_timer || function() {};
+        installObjectTimerShims(obj);
     }
     return obj;
 }
@@ -5826,7 +5836,6 @@ function executeDeferredMonster(deferred) {
                 // C ref: sp_lev.c create_monster() uses mkclass(class, G_NOGEN)
                 return mkclass(mclass, G_NOGEN, depth);
             }
-            return -1;
         }
         return monsterNameToIndex(monsterId || '');
     };
