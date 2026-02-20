@@ -1,0 +1,12 @@
+diff --git a/src/end.c b/src/end.c
+--- a/src/end.c
++++ b/src/end.c
+@@ -1030,7 +1030,8 @@ done(int how)
+         }
+         if (wizard) {
+-            You("are a very tricky wizard, it seems.");
++            /* Suppress message for deterministic replay (013 patch) */
++            /* You("are a very tricky wizard, it seems."); */
+             svk.killer.format = KILLED_BY_AN; /* reset to 0 */
+             return;
+         }
