@@ -120,7 +120,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[ ]` | questpgr.c | — | Quest text/pager |
 | `[ ]` | read.c | — | Reading scrolls/spellbooks |
 | `[x]` | rect.c | rect.js | Rectangle allocation for room placement |
-| `[ ]` | region.c | — | Region effects (gas clouds, etc.) |
+| `[~]` | region.c | region.js | Region effects (gas clouds, etc.). No runtime regions in JS; all functions TODO |
 | `[N/A]` | report.c | — | Bug reporting, panic trace |
 | `[ ]` | restore.c | — | Game restore. JS: `storage.js` |
 | `[a]` | rip.c | display.js | RIP screen. genl_outrip as Display.renderTombstone (method); center() inlined |
