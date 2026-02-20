@@ -117,7 +117,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[ ]` | pray.c | — | Prayer mechanics |
 | `[ ]` | priest.c | — | Priest behavior |
 | `[~]` | quest.c | quest.js | Quest mechanics. All 22 functions are runtime gameplay (NPC dialog, eligibility, expulsion); none in JS |
-| `[ ]` | questpgr.c | — | Quest text/pager |
+| `[~]` | questpgr.c | questpgr.js | Quest text pager. com_pager_core N/A (Lua interpreter); is_quest_artifact PARTIAL in objdata.js:54; all other functions TODO |
 | `[a]` | read.c | read.js | Reading scrolls/spellbooks. handleRead (doread) with spellbook study; ~50 functions TODO |
 | `[x]` | rect.c | rect.js | Rectangle allocation for room placement |
 | `[~]` | region.c | region.js | Region effects (gas clouds, etc.). No runtime regions in JS; all functions TODO |
