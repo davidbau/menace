@@ -324,13 +324,16 @@ function chooseMonsterWieldWeapon(mon) {
     return null;
 }
 
-export function maybeMonsterWieldBeforeAttack(mon, player, display) {
+export function maybeMonsterWieldBeforeAttack(mon, player, display, fov) {
     if (!hasWeaponAttack(mon)) return false;
     if (mon.weapon) return false;
     const wieldObj = chooseMonsterWieldWeapon(mon);
     if (!wieldObj) return false;
     mon.weapon = wieldObj;
-    if (display) {
+    // C ref: weapon.c:888 — wield message gated by canseemon(mon)
+    const visible = !fov?.canSee || (fov.canSee(mon.mx, mon.my)
+        && !player?.blind && !mon.minvis);
+    if (display && visible) {
         display.putstr_message(`The ${monDisplayName(mon)} wields ${thrownObjectName(wieldObj, player)}!`);
     }
     return true;

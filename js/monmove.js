@@ -555,7 +555,7 @@ function dochug(mon, map, player, display, fov, game = null) {
         && dist2(mon.mx, mon.my, targetX, targetY) <= 8
         && hasWeaponAttack(mon)
         && !scaredNow) {
-        if (maybeMonsterWieldBeforeAttack(mon, player, display)) {
+        if (maybeMonsterWieldBeforeAttack(mon, player, display, fov)) {
             return;
         }
     }
@@ -629,7 +629,7 @@ function dochug(mon, map, player, display, fov, game = null) {
         if (inrange2) {
             if (nearby2) {
                 if (!phase3Cond) {
-                    if (maybeMonsterWieldBeforeAttack(mon, player, display)) {
+                    if (maybeMonsterWieldBeforeAttack(mon, player, display, fov)) {
                         return;
                     }
                     monsterAttackPlayer(mon, player, display, game);
