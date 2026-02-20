@@ -35,52 +35,52 @@ don't follow the same 1:1 C→JS mapping pattern.
 
 | Status | C File | JS File | Notes |
 |--------|--------|---------|-------|
-| `[ ]` | allmain.c | — | Main game loop, newgame, moveloop. JS: split across `nethack.js`, `menace.js` |
+| `[~]` | allmain.c | allmain.js | Main game loop, newgame, moveloop. JS: split across `nethack.js`, `menace.js` |
 | `[N/A]` | alloc.c | — | Memory allocation (nhalloc, nhfree). JS uses GC |
-| `[ ]` | apply.c | — | Applying items (doapply, dojump, dorub). JS: partially in `commands.js` |
-| `[ ]` | artifact.c | — | Artifact creation and effects |
-| `[ ]` | attrib.c | — | Attribute system. JS: partially in `attrib_exercise.js` |
-| `[ ]` | ball.c | — | Ball & chain handling |
+| `[~]` | apply.c | apply.js | Applying items (doapply, dojump, dorub). JS: partially in `commands.js` |
+| `[~]` | artifact.c | artifact.js | Artifact creation and effects |
+| `[~]` | attrib.c | attrib.js | Attribute system. JS: partially in `attrib_exercise.js` |
+| `[~]` | ball.c | ball.js | Ball & chain handling |
 | `[a]` | bones.c | bones.js | Bones file save/load. All 9 functions aligned; 3 static TODO (no_bones_level, goodfruit, fixuporacle) |
-| `[ ]` | botl.c | — | Bottom status line |
+| `[~]` | botl.c | botl.js | Bottom status line |
 | `[x]` | calendar.c | calendar.js | Time, moon phase, Friday 13th, night/midnight. Affects gameplay |
 | `[N/A]` | cfgfiles.c | — | Config file parsing. JS: `storage.js` handles config differently |
-| `[ ]` | cmd.c | — | Command dispatch. JS: `commands.js`, `input.js` |
+| `[~]` | cmd.c | cmd.js | Command dispatch. JS: `commands.js`, `input.js` |
 | `[N/A]` | coloratt.c | — | Terminal color attribute mapping |
 | `[N/A]` | date.c | — | Build date/version stamps |
-| `[ ]` | dbridge.c | — | Drawbridge mechanics |
-| `[ ]` | decl.c | — | Global variable declarations. JS: spread across modules |
-| `[ ]` | detect.c | — | Detection spells and scrolls |
-| `[ ]` | dig.c | — | Digging mechanics |
+| `[~]` | dbridge.c | dbridge.js | Drawbridge mechanics |
+| `[~]` | decl.c | decl.js | Global variable declarations. JS: spread across modules |
+| `[~]` | detect.c | detect.js | Detection spells and scrolls |
+| `[~]` | dig.c | dig.js | Digging mechanics |
 | `[~]` | display.c | display.js | Display/rendering. JS file exists but may diverge |
 | `[N/A]` | dlb.c | — | Data librarian (file bundling). Not needed in JS |
 | `[a]` | do.c | do.js | Miscellaneous actions. handleDrop/handleDownstairs/handleUpstairs (dodrop/dodown/doup); ~45 functions TODO |
-| `[ ]` | do_name.c | — | Naming things (docallcmd, do_mgivenname) |
+| `[~]` | do_name.c | do_name.js | Naming things (docallcmd, do_mgivenname) |
 | `[a]` | do_wear.c | do_wear.js | Wearing/removing armor and accessories. handleWear/handlePutOn/handleTakeOff (dowear/doputon/dotakeoff); ~68 functions TODO |
 | `[a]` | dog.c | dog.js | Pet behavior. dogfood in dog.js; makedog/mon_arrive in u_init.js; losedogs/keepdogs/migrate TODO |
 | `[a]` | dogmove.c | dogmove.js | Pet movement AI. All functions except `quickmimic` |
-| `[ ]` | dokick.c | — | Kicking mechanics |
-| `[ ]` | dothrow.c | — | Throwing mechanics |
+| `[~]` | dokick.c | dokick.js | Kicking mechanics |
+| `[~]` | dothrow.c | dothrow.js | Throwing mechanics |
 | `[a]` | drawing.c | symbols.js | Symbol/glyph drawing tables and lookup functions. Data tables in symbols.js; 3 lookup functions implemented |
 | `[~]` | dungeon.c | dungeon.js | Dungeon structure and level management |
 | `[a]` | eat.c | eat.js | Eating mechanics. handleEat (doeat) implemented; ~50 functions TODO |
-| `[ ]` | end.c | — | Game over, death, scoring |
-| `[ ]` | engrave.c | — | Engraving mechanics. JS: `engrave_data.js` is data only |
+| `[~]` | end.c | end.js | Game over, death, scoring |
+| `[~]` | engrave.c | engrave.js | Engraving mechanics. JS: `engrave_data.js` is data only |
 | `[a]` | exper.c | exper.js | Experience and leveling. newuexp, newexplevel, pluslvl implemented; experience, more_experienced, losexp, newpw, enermod, rndexp TODO |
-| `[ ]` | explode.c | — | Explosion effects |
-| `[ ]` | extralev.c | — | Special level generation helpers |
+| `[~]` | explode.c | explode.js | Explosion effects |
+| `[~]` | extralev.c | extralev.js | Special level generation helpers |
 | `[N/A]` | files.c | — | File I/O operations. JS: `storage.js` |
-| `[ ]` | fountain.c | — | Fountain effects |
-| `[ ]` | getpos.c | — | Position selection UI |
-| `[ ]` | glyphs.c | — | Glyph system. JS: partially in `display.js`, `symbols.js` |
+| `[~]` | fountain.c | fountain.js | Fountain effects |
+| `[~]` | getpos.c | getpos.js | Position selection UI |
+| `[~]` | glyphs.c | glyphs.js | Glyph system. JS: partially in `display.js`, `symbols.js` |
 | `[~]` | hack.c | — | Core movement and actions. JS: split across multiple files |
 | `[a]` | hacklib.c | hacklib.js | String/char utilities. All C functions implemented; in-place string ops return new strings in JS |
-| `[ ]` | iactions.c | — | Implicit actions |
-| `[ ]` | insight.c | — | Player knowledge/enlightenment |
+| `[~]` | iactions.c | iactions.js | Item actions context menu |
+| `[~]` | insight.c | insight.js | Player knowledge/enlightenment |
 | `[a]` | invent.c | invent.js | Inventory management. handleInventory/buildInventoryOverlayLines/compactInvletPromptChars (ddoinv/display_inventory/compactify); ~80 functions TODO |
 | `[x]` | isaac64.c | isaac64.js | ISAAC64 PRNG. All 8 functions matched |
-| `[ ]` | light.c | — | Light source management |
-| `[ ]` | lock.c | — | Lock picking and door opening |
+| `[~]` | light.c | light.js | Light source management |
+| `[~]` | lock.c | lock.js | Lock picking and door opening |
 | `[N/A]` | mail.c | — | In-game mail system (uses real mail on Unix) |
 | `[a]` | makemon.c | makemon.js | Monster creation. Core functions aligned; clone_mon/propagate TODO |
 | `[~]` | mcastu.c | mcastu.js | Monster spellcasting. castmu/buzzmu and all 11 spell functions TODO (runtime gameplay) |
@@ -89,7 +89,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | mhitu.c | mhitu.js | Monster-vs-hero combat. monsterAttackPlayer implemented; 22 functions TODO |
 | `[~]` | minion.c | minion.js | Minion summoning: msummon, summon_minion, demon_talk, bribe, guardian angels. All 14 functions TODO (runtime gameplay) |
 | `[~]` | mklev.c | mklev.js | Level generation. makelevel/makerooms/makecorridors/mineralize PARTIAL in dungeon.js; topologize/mkinvokearea/place_branch TODO |
-| `[ ]` | mkmap.c | — | Map generation algorithms. JS: in `sp_lev.js` |
+| `[~]` | mkmap.c | mkmap.js | Map generation algorithms. JS: in `sp_lev.js` |
 | `[~]` | mkmaze.c | mkmaze.js | Maze generation. wallification/create_maze/makemaz PARTIAL in dungeon.js; water plane (movebubbles etc.) TODO; save/restore N/A |
 | `[~]` | mkobj.c | mkobj.js | Object creation |
 | `[~]` | mkroom.c | mkroom.js | Room generation. somex/somey/inside_room/somexy/somexyspace ALIGNED in dungeon.js; mkshop/mktemple/fill_zoo PARTIAL; save/restore N/A |
@@ -99,8 +99,8 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[~]` | monst.c | monst.js | Monster data tables. mons[] array PARTIAL in monsters.js (JS-native structure); monst_globals_init implicit in module load |
 | `[~]` | mplayer.c | mplayer.js | Player-character rival monsters (endgame + ghost-level). is_mplayer() in mondata.js; rnd_offensive/defensive/misc_item in makemon.js; mk_mplayer/create_mplayers/mplayer_talk TODO (endgame not yet modeled) |
 | `[a]` | mthrowu.c | mthrowu.js | Monster ranged attacks: m_throw, thrwmu, lined_up, select_rwep, monmulti |
-| `[ ]` | muse.c | — | Monster item usage AI |
-| `[ ]` | music.c | — | Musical instruments |
+| `[~]` | muse.c | muse.js | Monster item usage AI |
+| `[~]` | music.c | music.js | Musical instruments |
 | `[N/A]` | nhlobj.c | — | Lua object bindings (l_obj_*). All 21 functions are Lua C API wrappers; JS port uses direct function calls (object(), monster() in sp_lev.js) with no Lua interpreter |
 | `[N/A]` | nhlsel.c | — | Lua selection bindings (l_selection_*). All ~40 functions wrap selvar.c for Lua; JS port uses the `selection` object exported from sp_lev.js directly |
 | `[N/A]` | nhlua.c | — | Lua interpreter integration |
@@ -108,11 +108,11 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | o_init.c | o_init.js | Object class initialization. Core shuffle functions aligned; setgemprobs, obj_shuffle_range, objdescr_is added; discovery functions in `discovery.js` |
 | `[a]` | objects.c | objects.js | Object data tables. objects.js is auto-generated from objects.h (same source as C); objects_globals_init implicit in module load |
 | `[~]` | objnam.c | objnam.js | Object naming (xname, doname, makeplural, readobjnam/wishing). All functions TODO; no JS object naming yet |
-| `[ ]` | options.c | — | Game options. JS: `options_menu.js`, `storage.js` |
+| `[~]` | options.c | options.js | Game options. JS: `options_menu.js`, `storage.js` |
 | `[~]` | pager.c | pager.js | Text pager and look/describe commands. pager.js has text pager only; help commands in commands.js; game look functions (do_look, lookat, waterbody_name) not yet in JS |
-| `[ ]` | pickup.c | — | Picking up items |
+| `[~]` | pickup.c | pickup.js | Picking up items |
 | `[~]` | pline.c | pline.js | Message output. pline/putmesg PARTIAL via display.putstr_message(); impossible PARTIAL via console.error; livelog/gamelog TODO |
-| `[ ]` | polyself.c | — | Polymorphing |
+| `[~]` | polyself.c | polyself.js | Polymorphing |
 | `[a]` | potion.c | potion.js | Potion effects. handleQuaff (dodrink) with healing; ~60 functions TODO |
 | `[~]` | pray.c | pray.js | Prayer mechanics, sacrifice, turning undead, deity interaction. All 45 functions TODO (runtime gameplay) |
 | `[~]` | priest.c | priest.js | Priest behavior, temple management, shrine, minion roamers. move_special() PARTIAL in monmove.js:679; all other functions TODO |
@@ -168,13 +168,13 @@ don't follow the same 1:1 C→JS mapping pattern.
 ### Summary
 
 - **Total C files**: 129
-- **N/A (system/platform)**: 21
-- **Game logic files**: 108
+- **N/A (system/platform)**: 22
+- **Game logic files**: 107
 - **Complete (`[x]`)**: 4
-- **Aligned (`[a]`)**: 21
+- **Aligned (`[a]`)**: 30
 - **Present (`[p]`)**: 1
-- **Needs alignment (`[~]`)**: 7
-- **No JS file yet (`[ ]`)**: 75
+- **Needs alignment (`[~]`)**: 71
+- **No JS file yet (`[ ]`)**: 1 (spell.c)
 
 ### JS Files Without C Counterparts
 
