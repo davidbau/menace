@@ -137,7 +137,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[~]` | sounds.c | sounds.js | Monster sounds, ambient room sounds, chat. dosounds() partial in nethack.js/headless_runtime.js; domonnoise/growl/yelp/whimper/beg/dotalk TODO; sound library N/A |
 | `[~]` | sp_lev.c | sp_lev.js | Special level interpreter |
 | `[ ]` | spell.c | — | Spell casting |
-| `[ ]` | stairs.c | — | Stairway management. JS: partially in `level_transition.js` |
+| `[~]` | stairs.c | stairs.js | Stairway linked-list management and hero placement. JS uses map.upstair/dnstair objects (no linked list); u_on_upstairs/dnstairs → getArrivalPosition in level_transition.js; stairway_find_*, On_stairs_*, stairs_description TODO |
 | `[~]` | steal.c | steal.js | Monster stealing. `findgold` in makemon.js; drop logic partially inline in monmove.js; all steal/mpickobj/relobj/mdrop_obj unimplemented |
 | `[~]` | steed.c | steed.js | Riding steeds. put_saddle_on_mon partially inline in u_init.js; all 15 functions are TODO stubs |
 | `[N/A]` | strutil.c | — | String utilities (strbuf, pmatch). JS: native string ops |
