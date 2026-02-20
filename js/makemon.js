@@ -7,7 +7,7 @@ import { mksobj, mkobj, next_ident, weight } from './mkobj.js';
 import { def_monsyms } from './symbols.js';
 import {
     SHOPBASE, ROOMOFFSET, IS_POOL, IS_LAVA, IS_STWALL, IS_DOOR, ACCESSIBLE,
-    D_LOCKED, D_CLOSED, isok
+    D_LOCKED, D_CLOSED, isok, COLNO, ROWNO
 } from './config.js';
 import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC } from './config.js';
 import { couldsee } from './vision.js';
@@ -1463,12 +1463,15 @@ function set_mimic_sym(mndx, x, y, map, depth) {
 // Simplified for level generation PRNG alignment
 // ========================================================================
 
-// MM flags
+// MM flags — C ref: hack.h
 export const NO_MM_FLAGS = 0;
-export const MM_IGNOREWATER = 0x00000008;
-export const MM_ADJACENTOK = 0x00000010;
-export const MM_NOGRP = 0x00002000;
-export const MM_IGNORELAVA = 0x00080000;
+export const NO_MINVENT      = 0x00000001; // suppress minvent when creating mon
+export const MM_IGNOREWATER  = 0x00000008;
+export const MM_ADJACENTOK   = 0x00000010;
+export const MM_NONAME       = 0x00000040; // monster is not christened
+export const MM_EDOG         = 0x00000800; // add edog structure
+export const MM_NOGRP        = 0x00002000;
+export const MM_IGNORELAVA   = 0x00080000;
 
 // C ref: makemon.c makemon_rnd_goodpos() — find random valid position
 // Tries up to 50 random positions using rn2(COLNO-3)+2, rn2(ROWNO).
@@ -1551,6 +1554,47 @@ function makemonGoodpos(map, x, y, ptr, mmflags = NO_MM_FLAGS, avoidMonpos = tru
     }
     if (boulderBlocks(ptr, map, x, y)) return false;
     return true;
+}
+
+// C ref: teleport.c enexto_core() — find nearby valid position
+// Uses collect_coords() + Fisher-Yates shuffle per ring (radii 1-3),
+// then scans for first position passing goodpos().
+// Called by makemon for "byyou" placement (e.g., pet creation at hero pos).
+function enexto_core(cx, cy, ptr, map, mmflags) {
+    const allPositions = [];
+    for (let radius = 1; radius <= 3; radius++) {
+        const ringStart = allPositions.length;
+        // C ref: teleport.c:671-690 — row-major: y outer loop, x inner loop
+        const loy = cy - radius, hiy = cy + radius;
+        const lox = cx - radius, hix = cx + radius;
+        for (let y = Math.max(loy, 0); y <= Math.min(hiy, ROWNO - 1); y++) {
+            for (let x = Math.max(lox, 1); x <= Math.min(hix, COLNO - 1); x++) {
+                // Only ring boundary positions
+                if (x !== lox && x !== hix && y !== loy && y !== hiy) continue;
+                if (isok(x, y)) allPositions.push({ x, y });
+            }
+        }
+        // C ref: teleport.c:694-702 — Fisher-Yates from front
+        let n = allPositions.length - ringStart;
+        let passIdx = ringStart;
+        while (n > 1) {
+            const swap = rn2(n);
+            if (swap) {
+                const tmp = allPositions[passIdx];
+                allPositions[passIdx] = allPositions[passIdx + swap];
+                allPositions[passIdx + swap] = tmp;
+            }
+            passIdx++;
+            n--;
+        }
+    }
+    // Scan for first valid position
+    for (const pos of allPositions) {
+        if (makemonGoodpos(map, pos.x, pos.y, ptr, mmflags, true)) {
+            return pos;
+        }
+    }
+    return null;
 }
 
 function makemon_rnd_goodpos(map, ptr, mmflags = NO_MM_FLAGS) {
@@ -1668,12 +1712,26 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         else specifiedPtr = ptr_or_null;
     }
 
+    // C ref: makemon.c:1161 — allow_minvent flag
+    const allow_minvent = !(mmflags & NO_MINVENT);
+
+    // C ref: makemon.c:1160 — byyou: creating monster at hero position
+    const byyou = map && !_makemonInMklev
+        && Number.isInteger(_makemonPlayerCtx?.x) && Number.isInteger(_makemonPlayerCtx?.y)
+        && x === _makemonPlayerCtx.x && y === _makemonPlayerCtx.y;
+
     // C ref: makemon.c:1173-1178 — random position finding for (0,0)
     // Happens before random monster selection when ptr is null.
     if (x === 0 && y === 0 && map) {
         const pos = makemon_rnd_goodpos(map, specifiedPtr, mmflags || NO_MM_FLAGS);
         if (pos) { x = pos.x; y = pos.y; }
         else return null;
+    } else if (byyou && map) {
+        // C ref: makemon.c:1181-1186 — enexto_core for byyou placement
+        const pos = enexto_core(x, y, specifiedPtr, map, mmflags);
+        if (!pos) return null;
+        x = pos.x;
+        y = pos.y;
     }
 
     let ptr;
@@ -1752,7 +1810,8 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
 
     // C ref: makemon.c:1370-1371 — ghost naming via rndghostname()
     // rndghostname: rn2(7), and if nonzero, rn2(34) to pick from ghostnames
-    if (mndx === PM_GHOST) {
+    // MM_NONAME suppresses naming (used by bones ghost creation).
+    if (mndx === PM_GHOST && !(mmflags & MM_NONAME)) {
         if (rn2(7)) {
             rn2(34); // ROLL_FROM(ghostnames)
         }
@@ -1805,6 +1864,12 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         mtrack: [{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}],
     };
     mon.mpeaceful = mon.peaceful;
+
+    // C ref: makemon.c:1396 — MM_EDOG: allocate edog structure
+    if (mmflags & MM_EDOG) {
+        mon.edog = {};
+    }
+
     // C ref: makemon.c:2506 — mimics get appearance type from set_mimic_sym()
     if (mimicApType) {
         mon.m_ap_type = mimicApType;
@@ -1816,7 +1881,7 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     }
 
     // C ref: makemon.c shapechanger path (pm_to_cham/newcham).
-    const allowMinvent = !maybe_apply_newcham(mon, mndx, depth || 1);
+    const allowMinvent = allow_minvent && !maybe_apply_newcham(mon, mndx, depth || 1);
 
     // Group formation
     // C ref: makemon.c:1427-1435 — only for anymon (random monster)

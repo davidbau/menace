@@ -24,9 +24,9 @@
 import { rn2 } from './rng.js';
 import { ACCESSIBLE } from './config.js';
 import { CLASS_SYMBOLS } from './objects.js';
-import { mons, PM_GHOST, S_GHOST } from './monsters.js';
+import { mons, PM_GHOST } from './monsters.js';
 import { placeFloorObject } from './floor_objects.js';
-import { def_monsyms } from './symbols.js';
+import { makemon, MM_NONAME } from './makemon.js';
 import {
     saveLev, restLev, saveObjChn,
     saveBones, loadBones, deleteBones,
@@ -228,31 +228,16 @@ export function savebones(game) {
     // C ref: bones.c:464 — remove_mon_from_bones
     remove_mon_from_bones(map);
 
-    // C ref: bones.c:480 — create ghost at player position
-    const ghostType = mons[PM_GHOST];
-    const symEntry = def_monsyms[ghostType.symbol];
-    const ghost = {
-        mndx: PM_GHOST,
-        type: ghostType,
-        name: 'Ghost of ' + sanitize_name(player.name),
-        displayChar: symEntry ? symEntry.sym : ' ',
-        displayColor: ghostType.color,
-        mx: player.x, my: player.y,
-        mhp: player.level * 10,
-        mhpmax: player.level * 10,
-        mlevel: player.level,
-        mac: ghostType.ac,
-        speed: ghostType.speed,
-        movement: 0,
-        attacks: ghostType.attacks,
-        peaceful: false, tame: false,
-        flee: false, confused: false, stunned: false,
-        blind: false, sleeping: false, dead: false,
-        passive: false,
-        mtrack: [{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}],
-        minvent: [],
-    };
-    map.addMonster(ghost);
+    // C ref: bones.c:497 — makemon(&mons[PM_GHOST], u.ux, u.uy, MM_NONAME)
+    const ghost = makemon(PM_GHOST, player.x, player.y, MM_NONAME, depth, map);
+    if (ghost) {
+        // C ref: bones.c:499-504 — override ghost stats with player-based values
+        ghost.name = 'Ghost of ' + sanitize_name(player.name);
+        ghost.mhp = player.level * 10;
+        ghost.mhpmax = player.level * 10;
+        ghost.mlevel = player.level;
+        ghost.peaceful = false;
+    }
 
     // C ref: bones.c:503 — cemetery metadata
     map.cemetery = {

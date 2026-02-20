@@ -13,12 +13,12 @@
 //   3. com_pager("legacy")     — NHCORE_START_NEW_GAME lua shuffle
 //   4. welcome(TRUE)           — rndencode + seer_turn
 
-import { rn2, rnd, rn1, rne, d, c_d, getRngLog } from './rng.js';
+import { rn2, rnd, rn1, rne, d, getRngLog } from './rng.js';
 import { initrack } from './monmove.js';
-import { setMakemonPlayerContext } from './makemon.js';
+import { setMakemonPlayerContext, makemon, NO_MINVENT, MM_EDOG } from './makemon.js';
 import { initLevelGeneration, makelevel } from './dungeon.js';
 import { getArrivalPosition } from './level_transition.js';
-import { mksobj, mkobj, weight, setStartupInventoryMode, Is_container, next_ident } from './mkobj.js';
+import { mksobj, mkobj, weight, setStartupInventoryMode, Is_container } from './mkobj.js';
 import { isok, NUM_ATTRS,
          A_STR, A_CON,
          PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVEMAN, PM_HEALER,
@@ -73,7 +73,6 @@ import {
     RING_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
     WAND_CLASS, COIN_CLASS, GEM_CLASS,
     GOLD_PIECE,
-    AMULET_OF_YENDOR,
     // Armor categories
     ARM_SUIT, ARM_SHIELD, ARM_HELM, ARM_GLOVES, ARM_BOOTS, ARM_CLOAK, ARM_SHIRT,
     // Filter exclusions
@@ -87,13 +86,11 @@ import {
     objectData,
     STATUE,
 } from './objects.js';
-import { roles, races, initialAlignmentRecordForRole } from './player.js';
-import { always_hostile, always_peaceful } from './mondata.js';
+import { roles, races } from './player.js';
 import { discoverObject } from './discovery.js';
 import {
-    mons, PM_LITTLE_DOG, PM_KITTEN, PM_PONY, PM_ERINYS,
-    MS_LEADER, MS_NEMESIS, MS_GUARDIAN,
-    M2_MINION, M1_FLY, M1_SWIM, M1_AMPHIBIOUS,
+    mons, PM_LITTLE_DOG, PM_KITTEN, PM_PONY,
+    M2_DOMESTIC, M1_FLY, M1_SWIM, M1_AMPHIBIOUS,
 } from './monsters.js';
 
 // ========================================================================
@@ -153,29 +150,6 @@ function arrivalGoodPos(map, mon, x, y) {
     return true;
 }
 
-// C ref: makemon.c adj_lev() — adjust monster level for difficulty
-function adj_lev(mlevel, levelDifficulty, ulevel) {
-    if (mlevel > 49) return 50;
-    let tmp = mlevel;
-    let tmp2 = levelDifficulty - tmp;
-    if (tmp2 < 0) tmp--;
-    else tmp += Math.floor(tmp2 / 5);
-
-    tmp2 = ulevel - mlevel;
-    if (tmp2 > 0) tmp += Math.floor(tmp2 / 4);
-
-    const upper = Math.min(Math.floor(3 * mlevel / 2), 49);
-    return Math.max(Math.min(tmp, upper), 0);
-}
-
-// Display character for monster symbol enum values
-// C ref: sym.h MONSYMS_S_ENUM → display characters
-const MONSYM_CHARS = {
-    4: 'd',   // S_DOG
-    6: 'f',   // S_FELINE
-    21: 'u',  // S_UNICORN (includes ponies/horses)
-};
-
 // C ref: dog.c:90-101 pet_type() — determine starting pet monster index
 function pet_type(roleIndex) {
     const role = roles[roleIndex];
@@ -188,58 +162,14 @@ function pet_type(roleIndex) {
     return rn2(2) ? PM_KITTEN : PM_LITTLE_DOG;
 }
 
-function sgn(x) {
-    return x > 0 ? 1 : (x < 0 ? -1 : 0);
-}
+function is_domestic(ptr) { return !!(ptr.flags2 & M2_DOMESTIC); }
 
-function race_peaceful(ptr, player) {
-    const flags2 = ptr.flags2 || 0;
-    const lovemask = races[player.race]?.lovemask || 0;
-    return !!(flags2 & lovemask);
-}
-
-function race_hostile(ptr, player) {
-    const flags2 = ptr.flags2 || 0;
-    const hatemask = races[player.race]?.hatemask || 0;
-    return !!(flags2 & hatemask);
-}
-
-// C ref: makemon.c peace_minded(struct permonst *ptr)
-function peace_minded(ptr, player) {
-    const mal = ptr.align || 0;
-    const ual = player.alignment || 0;
-    const alignRecord = Number.isInteger(player.alignmentRecord)
-        ? player.alignmentRecord
-        : initialAlignmentRecordForRole(player.roleIndex);
-    const alignAbuse = Number.isInteger(player.alignmentAbuse)
-        ? player.alignmentAbuse
-        : 0;
-    const hasAmulet = Array.isArray(player.inventory)
-        && player.inventory.some(o => o?.otyp === AMULET_OF_YENDOR);
-
-    if (always_peaceful(ptr)) return true;
-    if (always_hostile(ptr)) return false;
-    if (ptr.sound === MS_LEADER || ptr.sound === MS_GUARDIAN) return true;
-    if (ptr.sound === MS_NEMESIS) return false;
-    if (ptr === mons[PM_ERINYS]) return !alignAbuse;
-
-    if (race_peaceful(ptr, player)) return true;
-    if (race_hostile(ptr, player)) return false;
-
-    if (sgn(mal) !== sgn(ual)) return false;
-    if (mal < 0 && hasAmulet) return false;
-    if ((ptr.flags2 || 0) & M2_MINION) return alignRecord >= 0;
-
-    const firstBound = 16 + (alignRecord < -15 ? -15 : alignRecord);
-    return !!rn2(firstBound) && !!rn2(2 + Math.abs(mal));
-}
-
-// C ref: dog.c makedog() → makemon.c makemon()
+// C ref: dog.c makedog() — calls makemon() then post-processes.
+// C ref: dog.c:219 — mtmp = makemon(&mons[pettype], u.ux, u.uy, MM_EDOG | NO_MINVENT);
 // Creates the starting pet and places it on the map.
 // Returns the pet monster object. RNG consumption matches C exactly.
 function makedog(map, player, depth) {
     const pmIdx = pet_type(player.roleIndex);
-    const petData = mons[pmIdx];
     let petName = '';
     // C ref: dog.c makedog() default starting pet names.
     if (pmIdx === PM_LITTLE_DOG) {
@@ -249,113 +179,40 @@ function makedog(map, player, depth) {
         else if (player.roleIndex === PM_RANGER) petName = 'Sirius';
     }
 
-    // C ref: makemon.c:1180-1186 — enexto_core for byyou placement
-    // NEW_ENEXTO calls collect_coords(candy, ux, uy, 3, CC_NO_FLAGS, NULL)
-    const positions = collectCoordsShuffle(player.x, player.y, 3);
-
-    // Find first valid position (accessible terrain, no existing monster)
-    let petX = 0, petY = 0;
-    let foundPos = false;
-    for (const pos of positions) {
-        const loc = map.at(pos.x, pos.y);
-        if (loc && ACCESSIBLE(loc.typ) && !map.monsterAt(pos.x, pos.y)
-            && !(pos.x === player.x && pos.y === player.y)) {
-            petX = pos.x;
-            petY = pos.y;
-            foundPos = true;
-            break;
-        }
-    }
-    // C ref: makemon.c byyou path returns NULL if enexto_core fails.
-    // No synthetic fallback placement.
-    if (!foundPos) return null;
-
-    // C ref: makemon.c:1252 — mtmp->m_id = next_ident()
-    const m_id = next_ident();
-
-    // C ref: makemon.c:1018+1043 — newmonhp
-    // Uses c_d() (C-style d()) which logs composite d(n,x) entry,
-    // matching C's rnd.c d() that calls RND() directly (not rn2).
-    const m_lev = adj_lev(petData.level, depth, 1);
-    let mhp;
-    if (m_lev === 0) {
-        mhp = rnd(4);
-    } else {
-        mhp = c_d(m_lev, 8);
-    }
-
-    // C ref: makemon.c:1280 — gender
-    rn2(2);
-
-    // C ref: makemon.c:1295 — mtmp->mpeaceful = peace_minded(ptr)
-    peace_minded(petData, player);
+    // C ref: dog.c:238 — makemon at hero position with MM_EDOG | NO_MINVENT.
+    // makemon handles byyou enexto_core placement (finds adjacent tile).
+    const pet = makemon(pmIdx, player.x, player.y, MM_EDOG | NO_MINVENT, depth, map);
+    if (!pet) return null;
 
     // C ref: dog.c:264-267 — put_saddle_on_mon(NULL, mtmp) for pony
-    // Creates a saddle and adds to pony's minvent with owornmask set.
-    // C ref: steed.c put_saddle_on_mon() sets owornmask = W_SADDLE (0x100000).
-    let saddleObj = null;
     if (pmIdx === PM_PONY) {
-        saddleObj = mksobj(SADDLE, true, false);
-        if (saddleObj) saddleObj.owornmask = 0x100000; // W_SADDLE
+        const saddleObj = mksobj(SADDLE, true, false);
+        if (saddleObj) {
+            saddleObj.owornmask = 0x100000; // W_SADDLE
+            pet.minvent.push(saddleObj);
+            pet.misc_worn_check = 0x100000;
+        }
     }
 
-    // Create the pet monster object (matches makemon structure)
-    const pet = {
-        type: petData,
-        name: petName || petData.name,
-        displayChar: MONSYM_CHARS[petData.symbol] || '?',
-        displayColor: petData.color,
-        mx: petX,
-        my: petY,
-        mhp: mhp,
-        mhpmax: mhp,
-        // C ref: makemon.c newmonhp() adjusted level (m_lev), not base species level.
-        // This affects pet aggressiveness checks (dogmove balk logic) and combat parity.
-        mlevel: m_lev,
-        m_lev: m_lev,
-        mac: petData.ac,
-        speed: petData.speed,
-        movement: 0, // C ref: *mtmp = cg.zeromonst (zero-init)
-        attacks: petData.attacks,
-        peaceful: true, // pet is peaceful
-        tame: true,      // pet is tame
-        mpeaceful: true, // C-style alias used by mon_arrive logic
-        mtame: 10,       // C initedog baseline tameness for domestic pets
-        flee: false,
-        confused: false,
-        stunned: false,
-        blind: false,
-        sleeping: false,  // pets don't start sleeping
-        dead: false,
-        passive: false,
-        mux: 0,
-        muy: 0,
-        mtrack: [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }],
-        mndx: pmIdx,     // C ref: monst.h — index into mons[] (also set mnum for compat)
-        mnum: pmIdx,     // Alias for mndx - some code uses mnum, some uses mndx
-        m_id: m_id,
-        // C ref: monst.c struct monst misc_worn_check; used by x_monnam()
-        // to prepend "saddled" when W_SADDLE is set.
-        misc_worn_check: saddleObj ? 0x100000 : 0,
-        minvent: saddleObj ? [saddleObj] : [],
-        // C ref: mextra.h struct edog — pet-specific data
-        // C ref: dog.c initedog(mtmp, TRUE) — full initialization
-        edog: {
-            apport: 0,          // ACURR(A_CHA) — set after attribute init
-            hungrytime: 1000,   // svm.moves + 1000 (moves=0 at start)
-            droptime: 0,
-            dropdist: 10000,
-            whistletime: 0,
-            ogoal: { x: 0, y: 0 },
-            abuse: 0,
-            revivals: 0,
-            mhpmax_penalty: 0,
-            killed_by_u: false,
-        },
-    };
+    // C ref: dog.c:270 — christen_monst(mtmp, petname)
+    if (petName) pet.name = petName;
 
-    // C ref: makemon.c — mtmp->nmon = fmon; fmon = mtmp; (LIFO prepend)
-    map.addMonster(pet);
+    // C ref: dog.c:271 — initedog(mtmp, TRUE)
+    pet.tame = true;
+    pet.mtame = is_domestic(mons[pmIdx]) ? 10 : 5;
+    pet.peaceful = true;
+    pet.mpeaceful = true;
+    pet.edog.apport = 0;          // ACURR(A_CHA) — set after attribute init
+    pet.edog.hungrytime = 1000;   // svm.moves + 1000 (moves=0 at start)
+    pet.edog.droptime = 0;
+    pet.edog.dropdist = 10000;
+    pet.edog.whistletime = 0;
+    pet.edog.ogoal = { x: 0, y: 0 };
+    pet.edog.abuse = 0;
+    pet.edog.revivals = 0;
+    pet.edog.mhpmax_penalty = 0;
+    pet.edog.killed_by_u = false;
+
     return pet;
 }
 
@@ -1599,6 +1456,10 @@ function moneyCount(player) {
 // C ref: allmain.c newgame() — makedog through welcome
 export function simulatePostLevelInit(player, map, depth) {
     const role = roles[player.roleIndex];
+
+    // Update makemon context with player's placed position (x/y).
+    // The earlier setMakemonPlayerContext call (before makelevel) didn't have x/y.
+    setMakemonPlayerContext(player);
 
     // 1. makedog() — pet creation (actually places pet on map)
     const pet = makedog(map, player, depth || 1);
