@@ -54,6 +54,7 @@ export class NetHackGame {
         this.wizard = false;  // C ref: flags.debug (wizard mode)
         this.seerTurn = 0;    // C ref: context.seer_turn — clairvoyance timer
         this.occupation = null; // C ref: cmd.c go.occupation — multi-turn action
+        this.pendingDeferredTimedTurn = false; // set by replay when stop_occupation defers the timed turn
         this.seed = 0;        // original game seed (for save/restore)
         this.multi = 0;       // C ref: allmain.c gm.multi — remaining command repeats
         this.commandCount = 0; // C ref: cmd.c gc.command_count — user-entered count
@@ -1494,6 +1495,10 @@ export class NetHackGame {
                 this.display.putstr_message('Your leg feels better.  You stop searching.');
             }
 
+            // Run any monster turn deferred from a preceding stop_occupation frame.
+            // Must run after the player's command so hero position is updated.
+            this.runPendingDeferredTimedTurn();
+
             // If time passed, process turn effects
             // C ref: allmain.c moveloop_core() -- context.move handling
             if (result.tookTime) {
@@ -1755,6 +1760,20 @@ export class NetHackGame {
 
         // Note: regen_hp() with rn2(100) is now handled above (before dosounds)
         setObjectMoves(this.turnCount + 1);
+    }
+
+    // Run the deferred timed turn (monster cycle + turn end) that was
+    // postponed from a stop_occupation frame.  Called by the replay after
+    // the player's command so monster decisions (e.g. dog_goal On_stairs)
+    // see the hero's post-move position, and also wired into the gameLoop
+    // so real gameplay honours the same ordering.
+    // C ref: dogmove.c:583 — On_stairs(u.ux,u.uy) requires hero's current pos.
+    runPendingDeferredTimedTurn() {
+        if (!this.pendingDeferredTimedTurn) return;
+        this.pendingDeferredTimedTurn = false;
+        this.fov.compute(this.map, this.player.x, this.player.y);
+        movemon(this.map, this.player, this.display, this.fov, this);
+        this.processTurnEnd();
     }
 
     // Backward-compatible alias kept for older harness/test utilities.

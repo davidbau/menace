@@ -290,7 +290,7 @@ export function generateMapsSequential(seed, maxDepth) {
 
 // Check if a log entry is a mid-level function trace (>entry or <exit).
 function isMidlogEntry(entry) {
-    return entry.length > 0 && (entry[0] === '>' || entry[0] === '<' || entry[0] === '~');
+    return entry.length > 0 && (entry[0] === '>' || entry[0] === '<' || entry[0] === '~' || entry[0] === '^');
 }
 
 // Check if a log entry is a composite RNG function whose individual
@@ -998,7 +998,7 @@ export async function replaySession(seed, session, opts = {}) {
     let pendingCount = 0;
     let lastCommand = null; // C ref: do_repeat() remembered command for Ctrl+A
     let pendingTransitionTurn = false;
-    let pendingDeferredTimedTurn = false;
+    // game.pendingDeferredTimedTurn is used instead (game-level flag)
     let deferredSparseMoveKey = null;
     let deferredMoreBoundaryRng = [];
     let deferredMoreBoundaryTarget = null;
@@ -1333,15 +1333,9 @@ export async function replaySession(seed, session, opts = {}) {
             }
             pendingTransitionTurn = false;
         }
-        // Some sparse captures place stop_occupation bookkeeping on one key
-        // and defer the actual timed-turn monster cycle to the next key frame.
-        // Keep that boundary by running the deferred timed turn here.
-        if (pendingDeferredTimedTurn) {
-            game.fov.compute(game.map, game.player.x, game.player.y);
-            movemon(game.map, game.player, game.display, game.fov, game);
-            game.simulateTurnEnd();
-            pendingDeferredTimedTurn = false;
-        }
+        // pendingDeferredTimedTurn is consumed later (after the player's command)
+        // so that the player's post-move position is in effect for monster
+        // decisions like dog_goal's On_stairs check. See below.
         const isCapturedDipPrompt = stepMsg.startsWith('What do you want to dip into one of the potions of water?')
             && ((step.rng && step.rng.length) || 0) === 0;
 
@@ -1392,6 +1386,22 @@ export async function replaySession(seed, session, opts = {}) {
             const deferredCoversStep = step.key === ' '
                 || (stepExpectedCount > 0 && deferredCount >= stepExpectedCount);
             if (deferredCoversStep) {
+                // If the step key is a movement key, execute the physical move
+                // without a new monster turn. The deferred RNG covers the monster
+                // turn for this step; the player's positional move (which generates
+                // no RNG in normal corridors) must still happen so the player's
+                // position matches C's reference state. This occurs when JS runs
+                // extra monster behaviour in one movemon call (e.g. a ranged attack
+                // after pets move) and the overflow entries are deferred here,
+                // covering the step's expected comparable count while leaving the
+                // player's movement un-executed.
+                if (stepIsNavKey(step) && step.key.length === 1) {
+                    const moveCh = step.key.charCodeAt(0);
+                    game.cmdKey = moveCh;
+                    game.commandCount = 0;
+                    game.multi = 0;
+                    await rhack(moveCh, game);
+                }
                 applyStepScreen();
                 pushStepResult(
                     [],
@@ -2445,6 +2455,11 @@ export async function replaySession(seed, session, opts = {}) {
             result = await rhack(nextCh, game);
         }
 
+        // Run any monster turn deferred from a preceding stop_occupation frame,
+        // now that the player's command has updated hero position.
+        // C ref: dogmove.c:583 — On_stairs(u.ux, u.uy) needs hero's post-move pos.
+        game.runPendingDeferredTimedTurn();
+
         const stepExpectedRng = step.rng || [];
         const nextExpectedRng = allSteps[stepIndex + 1]?.rng || [];
         const deferPendingTurnBoundary = result
@@ -2453,7 +2468,7 @@ export async function replaySession(seed, session, opts = {}) {
             && !hasTurnBoundaryRng(stepExpectedRng)
             && hasTurnBoundaryRng(nextExpectedRng);
         if (deferPendingTurnBoundary) {
-            pendingDeferredTimedTurn = true;
+            game.pendingDeferredTimedTurn = true;
             result = { ...result, tookTime: false };
         }
 

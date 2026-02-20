@@ -441,6 +441,7 @@ export class HeadlessGame {
             : undefined;
         this.seerTurn = opts.seerTurn || 0;
         this.occupation = null; // C ref: cmd.c go.occupation — multi-turn action
+        this.pendingDeferredTimedTurn = false; // set by replay when stop_occupation defers the timed turn
         this.flags = { ...DEFAULT_GAME_FLAGS, ...(opts.flags || {}) }; // Game flags for commands
         this.player.showExp = !!this.flags.showexp;
         this.player.showScore = !!this.flags.showscore;
@@ -811,6 +812,16 @@ export class HeadlessGame {
         mmove -= mmoveAdj;
         if (rn2(NORMAL_SPEED) < mmoveAdj) mmove += NORMAL_SPEED;
         return mmove;
+    }
+
+    // Run the deferred timed turn postponed from a stop_occupation frame.
+    // See NetHackGame.runPendingDeferredTimedTurn() for full commentary.
+    runPendingDeferredTimedTurn() {
+        if (!this.pendingDeferredTimedTurn) return;
+        this.pendingDeferredTimedTurn = false;
+        this.fov.compute(this.map, this.player.x, this.player.y);
+        movemon(this.map, this.player, this.display, this.fov, this);
+        this.simulateTurnEnd();
     }
 
     // C ref: allmain.c moveloop_core() — per-turn effects
