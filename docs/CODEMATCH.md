@@ -114,20 +114,20 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[ ]` | pline.c | — | Message output (pline, You, etc.) |
 | `[ ]` | polyself.c | — | Polymorphing |
 | `[a]` | potion.c | potion.js | Potion effects. handleQuaff (dodrink) with healing; ~60 functions TODO |
-| `[ ]` | pray.c | — | Prayer mechanics |
-| `[ ]` | priest.c | — | Priest behavior |
+| `[~]` | pray.c | pray.js | Prayer mechanics, sacrifice, turning undead, deity interaction. All 45 functions TODO (runtime gameplay) |
+| `[~]` | priest.c | priest.js | Priest behavior, temple management, shrine, minion roamers. move_special() PARTIAL in monmove.js:679; all other functions TODO |
 | `[~]` | quest.c | quest.js | Quest mechanics. All 22 functions are runtime gameplay (NPC dialog, eligibility, expulsion); none in JS |
 | `[~]` | questpgr.c | questpgr.js | Quest text pager. com_pager_core N/A (Lua interpreter); is_quest_artifact PARTIAL in objdata.js:54; all other functions TODO |
 | `[a]` | read.c | read.js | Reading scrolls/spellbooks. handleRead (doread) with spellbook study; ~50 functions TODO |
 | `[x]` | rect.c | rect.js | Rectangle allocation for room placement |
 | `[~]` | region.c | region.js | Region effects (gas clouds, etc.). No runtime regions in JS; all functions TODO |
 | `[N/A]` | report.c | — | Bug reporting, panic trace |
-| `[ ]` | restore.c | — | Game restore. JS: `storage.js` |
+| `[~]` | restore.c | restore.js | Game state restoration. All functions N/A (JS uses storage.js/IndexedDB with different format) |
 | `[a]` | rip.c | display.js | RIP screen. genl_outrip as Display.renderTombstone (method); center() inlined |
 | `[x]` | rnd.c | rng.js | Random number generation |
-| `[ ]` | role.c | — | Role/race/gender selection. JS: `player.js` |
+| `[~]` | role.c | role.js | Role/race/gender/alignment selection. roles[] data in player.js; ok_role/ok_race/ok_align PARTIAL in nethack.js; role_init PARTIAL in nethack.js+u_init.js; Hello() in player.js; all others TODO |
 | `[~]` | rumors.c | rumors.js | Rumor/oracle/CapitalMon system. JS: `rumor_data.js` (data); unpadline/init_rumors/get_rnd_line in `hacklib.js`; getrumor inlined in `dungeon.js`; outoracle/doconsult/CapitalMon TODO |
-| `[ ]` | save.c | — | Game save. JS: `storage.js` |
+| `[~]` | save.c | save.js | Game state serialization. All functions N/A (JS uses storage.js/IndexedDB with different format; GC replaces freedynamicdata) |
 | `[a]` | selvar.c | — | Selection geometry. JS: `selection` object in `sp_lev.js`. All major geometry functions aligned including ellipse/gradient/is_irregular/size_description |
 | `[N/A]` | sfbase.c | — | Save file base I/O routines |
 | `[N/A]` | sfstruct.c | — | Save file structure definitions |
