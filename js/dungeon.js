@@ -61,7 +61,6 @@ import {
     WAN_DIGGING, SPE_HEALING, SPE_BLANK_PAPER, SPE_NOVEL,
     objectData, bases, GLASS,
 } from './objects.js';
-import { RUMORS_FILE_TEXT } from './rumor_data.js';
 import {
     getSpecialLevel
 } from './special_levels.js';
@@ -105,7 +104,8 @@ function themerooms_generate(map, depth) {
     }
 }
 
-import { parseEncryptedDataFile, parseRumorsFile } from './hacklib.js';
+import { parseEncryptedDataFile } from './hacklib.js';
+import { get_rnd_line_index, getrumor, RUMOR_PAD_LENGTH } from './rumors.js';
 
 // Branch type constants (C ref: include/dungeon.h)
 const BR_STAIR = 0;
@@ -2485,15 +2485,6 @@ function wipeout_text(text, cnt) {
 const { texts: ENGRAVE_TEXTS, lineBytes: ENGRAVE_LINE_BYTES, chunksize: ENGRAVE_FILE_CHUNKSIZE } =
     parseEncryptedDataFile(ENGRAVE_FILE_TEXT);
 
-// Rumor data — parsed at module load from encrypted string constant.
-// C ref: rumors file has two sections (true + false) with sizes in header.
-const { trueTexts: RUMOR_TRUE_TEXTS, trueLineBytes: RUMOR_TRUE_LINE_BYTES, trueSize: RUMOR_TRUE_SIZE,
-        falseTexts: RUMOR_FALSE_TEXTS, falseLineBytes: RUMOR_FALSE_LINE_BYTES, falseSize: RUMOR_FALSE_SIZE } =
-    parseRumorsFile(RUMORS_FILE_TEXT);
-
-// Padded line size for rumor/engrave files (MD_PAD_RUMORS)
-const RUMOR_PAD_LENGTH = 60;
-
 // Epitaph data — parsed at module load from encrypted string constant.
 // C ref: engrave.c make_grave() → get_rnd_text(EPITAPHFILE, ...)
 const { texts: epitaphTexts, lineBytes: epitaphLineBytes, chunksize: epitaphChunksize } =
@@ -2502,32 +2493,6 @@ const { texts: epitaphTexts, lineBytes: epitaphLineBytes, chunksize: epitaphChun
 export function random_epitaph_text() {
     const idx = get_rnd_line_index(epitaphLineBytes, epitaphChunksize, RUMOR_PAD_LENGTH);
     return epitaphTexts[idx] || epitaphTexts[0] || '';
-}
-
-// C ref: rumors.c get_rnd_line — simulate the random line selection from a
-// padded file section. Returns the index of the selected line.
-function get_rnd_line_index(lineBytes, chunksize, padlength) {
-    for (let trylimit = 10; trylimit > 0; trylimit--) {
-        const chunkoffset = rn2(chunksize);
-        let pos = 0;
-        let lineIdx = 0;
-        while (lineIdx < lineBytes.length && pos + lineBytes[lineIdx] <= chunkoffset) {
-            pos += lineBytes[lineIdx];
-            lineIdx++;
-        }
-        if (lineIdx < lineBytes.length) {
-            // C: strlen(buf) after fgets = remaining bytes including \n
-            // C rejects if strlen(buf) > padlength + 1
-            const remaining = lineBytes[lineIdx] - (chunkoffset - pos);
-            if (padlength === 0 || remaining <= padlength + 1) {
-                const nextIdx = (lineIdx + 1) % lineBytes.length;
-                return nextIdx;
-            }
-        } else {
-            return 0;
-        }
-    }
-    return 0;
 }
 
 // C ref: engrave.c random_engraving() — simulate full RNG consumption.
@@ -2542,24 +2507,10 @@ function random_engraving_rng() {
             ENGRAVE_LINE_BYTES, ENGRAVE_FILE_CHUNKSIZE, RUMOR_PAD_LENGTH);
         text = ENGRAVE_TEXTS[idx] || ENGRAVE_TEXTS[0];
     } else {
-        // Path B: getrumor(0, buf, TRUE) with cookie exclusion loop
-        let count = 0;
-        do {
-            // C: adjtruth = truth + rn2(2) where truth=0
-            const adjtruth = 0 + rn2(2);
-            if (adjtruth > 0) {
-                const idx = get_rnd_line_index(
-                    RUMOR_TRUE_LINE_BYTES, RUMOR_TRUE_SIZE, RUMOR_PAD_LENGTH);
-                text = RUMOR_TRUE_TEXTS[idx];
-            } else {
-                const idx = get_rnd_line_index(
-                    RUMOR_FALSE_LINE_BYTES, RUMOR_FALSE_SIZE, RUMOR_PAD_LENGTH);
-                text = RUMOR_FALSE_TEXTS[idx];
-            }
-        } while (count++ < 50 && text && text.startsWith('[cookie] '));
-
+        // Path B: getrumor(0, buf, TRUE)
+        text = getrumor(0, true);
         if (!text || !text.length) {
-            // Fallback to engrave file (C short-circuit: getrumor returned empty)
+            // Fallback to engrave file (C: getrumor returned empty)
             const idx = get_rnd_line_index(
                 ENGRAVE_LINE_BYTES, ENGRAVE_FILE_CHUNKSIZE, RUMOR_PAD_LENGTH);
             text = ENGRAVE_TEXTS[idx] || ENGRAVE_TEXTS[0];

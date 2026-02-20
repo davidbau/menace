@@ -3,8 +3,8 @@
 //                CapitalMon, save/restore_oracles
 //
 // Three subsystems:
-// 1. Rumor file access: getrumor(), get_rnd_text(), get_rnd_line() [static],
-//    init_rumors() [static], outrumor() (BY_ORACLE/BY_COOKIE/BY_PAPER display).
+// 1. Rumor file access: getrumor(), get_rnd_text(), get_rnd_line_index() [static],
+//    parseRumorsFile() [init], outrumor() (BY_ORACLE/BY_COOKIE/BY_PAPER display).
 //    File format: header + index line ("%d,%ld,%lx;...") + xcrypt()-encrypted lines
 //    padded to MD_PAD_RUMORS (60) chars by makedefs.
 // 2. Oracle system: init_oracles(), outoracle(), doconsult(), save_oracles(),
@@ -14,26 +14,19 @@
 //    Builds a list of non-unique monsters with capitalized names (Green-elf,
 //    Archon, etc.) plus hallucinatory names from BOGUSMONFILE; used by the()
 //    to decide whether to prepend "the".
-//
-// JS implementations:
-//   unpadline()     → hacklib.unpadline() at hacklib.js:535 (exported, implemented)
-//   init_rumors()   → hacklib.parseRumorsFile() at hacklib.js:564 (implemented;
-//                     returns { trueTexts, trueLineBytes, trueSize, falseTexts,
-//                     falseLineBytes, falseSize })
-//   get_rnd_line()  → get_rnd_line_index() local fn in dungeon.js:2509 (implemented;
-//                     returns array index instead of reading from file directly)
-//   getrumor()      → logic inlined in random_engraving_rng() dungeon.js:2545
-//                     (path B handles getrumor(0,buf,TRUE) with cookie exclusion)
-//   get_rnd_text()  → partially: parseEncryptedDataFile for EPITAPHFILE (dungeon.js:2499)
-//                     and direct get_rnd_line_index for ENGRAVEFILE (dungeon.js:2541);
-//                     no general-purpose get_rnd_text() function in JS
-//   save_oracles()  → N/A (JS has no save-file system)
-//   restore_oracles() → N/A
-//   outoracle()     → not implemented in JS
-//   doconsult()     → not implemented in JS
-//   CapitalMon()    → not implemented in JS
-//   init_CapMons()  → N/A (no memory management; would use mons[] and rumor_data)
-//   free_CapMons()  → N/A
+
+import { rn2 } from './rng.js';
+import { parseRumorsFile } from './hacklib.js';
+import { RUMORS_FILE_TEXT } from './rumor_data.js';
+
+// Padded line size for rumor/engrave/epitaph files (makedefs MD_PAD_RUMORS = 60).
+// Exported so dungeon.js can use it for engrave/epitaph get_rnd_line_index calls.
+export const RUMOR_PAD_LENGTH = 60;
+
+// Rumor data — parsed at module load from the compiled-in encrypted constant.
+// cf. rumors.c init_rumors() + global gt/gf structs (true_rumor_size etc.)
+const { trueTexts, trueLineBytes, trueSize,
+        falseTexts, falseLineBytes, falseSize } = parseRumorsFile(RUMORS_FILE_TEXT);
 
 // cf. rumors.c:67 [static] — unpadline(line): strip trailing underscore padding
 // makedefs pads short rumors, epitaphs, engravings, and hallucinatory monster
@@ -57,22 +50,61 @@
 // When padlength>0: retries up to 10× if strlen(buf) > padlength+1 (avoids uneven
 //   selection probability from landing near a long line).
 // Decrypts line via xcrypt(), then strips padding via unpadline().
-// JS equivalent: get_rnd_line_index() local function in dungeon.js:2509.
-//   JS version returns array index rather than reading from a file;
-//   works on pre-parsed text arrays from parseRumorsFile/parseEncryptedDataFile.
-// ALIGNED: rumors.c:420 — get_rnd_line() ↔ get_rnd_line_index() (dungeon.js:2509)
+// JS implementation works on pre-parsed text/lineBytes arrays instead of file handles;
+//   returns array index of the selected line rather than reading from file directly.
+// ALIGNED: rumors.c:420 — get_rnd_line() ↔ get_rnd_line_index() (here)
+export function get_rnd_line_index(lineBytes, chunksize, padlength) {
+    for (let trylimit = 10; trylimit > 0; trylimit--) {
+        const chunkoffset = rn2(chunksize);
+        let pos = 0;
+        let lineIdx = 0;
+        while (lineIdx < lineBytes.length && pos + lineBytes[lineIdx] <= chunkoffset) {
+            pos += lineBytes[lineIdx];
+            lineIdx++;
+        }
+        if (lineIdx < lineBytes.length) {
+            // C: strlen(buf) after fgets = remaining bytes including \n
+            // C rejects if strlen(buf) > padlength + 1
+            const remaining = lineBytes[lineIdx] - (chunkoffset - pos);
+            if (padlength === 0 || remaining <= padlength + 1) {
+                const nextIdx = (lineIdx + 1) % lineBytes.length;
+                return nextIdx;
+            }
+        } else {
+            return 0;
+        }
+    }
+    return 0;
+}
 
 // cf. rumors.c:117 — getrumor(truth, rumor_buf, exclude_cookie): get random rumor
 // truth: 1=true only, -1=false only, 0=either (adjusted by rn2(2): 0→false, 1→true).
-// Opens RUMORFILE; calls init_rumors() on first use. Loops up to 50× discarding
-//   lines starting with "[cookie] " marker when exclude_cookie=TRUE.
-// After selection, strips "[cookie] " prefix when NOT excluding cookies
-//   (fortune cookie context where the message text is read aloud).
-// Non-cookie call also exercises A_WIS based on truth of the rumor.
-// JS equivalent: logic inlined in dungeon.js:2545 inside random_engraving_rng().
-//   Uses pre-parsed RUMOR_TRUE_TEXTS/RUMOR_FALSE_TEXTS arrays;
-//   cookie exclusion loop matches C behavior (count<50, startsWith('[cookie] ')).
-// TODO: rumors.c:117 — getrumor(): standalone JS function (currently inline only)
+// exclude_cookie=true: skips lines starting with "[cookie] " (used for graffiti context
+//   where fortune-cookie references would be nonsensical).
+// When not excluding: strips the "[cookie] " prefix before returning (fortune-cookie context
+//   where the message text is read aloud).
+// Loops up to 50× discarding cookie lines when exclude_cookie=TRUE.
+// Returns rumor text string ('' if lookup failed).
+// ALIGNED: rumors.c:117 — getrumor() ↔ getrumor() (here)
+export function getrumor(truth, exclude_cookie) {
+    const COOKIE_MARKER = '[cookie] ';
+    let text = '';
+    let count = 0;
+    do {
+        const adjtruth = truth + rn2(2);
+        if (adjtruth > 0) {
+            const idx = get_rnd_line_index(trueLineBytes, trueSize, RUMOR_PAD_LENGTH);
+            text = trueTexts[idx] || '';
+        } else {
+            const idx = get_rnd_line_index(falseLineBytes, falseSize, RUMOR_PAD_LENGTH);
+            text = falseTexts[idx] || '';
+        }
+    } while (count++ < 50 && exclude_cookie && text && text.startsWith(COOKIE_MARKER));
+    if (!exclude_cookie && text.startsWith(COOKIE_MARKER)) {
+        text = text.slice(COOKIE_MARKER.length);
+    }
+    return text;
+}
 
 // cf. rumors.c:196 — rumor_check(): wizard-mode validation of rumors file
 // Opens RUMORFILE; displays true/false section start+end byte offsets;
@@ -91,8 +123,8 @@
 //   from the entire file (startpos after header, endpos=0 for EOF).
 // Used by: outrumor() for ENGRAVEFILE fallback, engrave.c for graffiti/epitaphs.
 // JS equivalent: partially; dungeon.js uses parseEncryptedDataFile + get_rnd_line_index
-//   for EPITAPHFILE (dungeon.js:2499) and ENGRAVEFILE (dungeon.js:2541-2543).
-//   random_epitaph_text() at dungeon.js:2502 is the closest single-file analogue.
+//   for EPITAPHFILE (dungeon.js) and ENGRAVEFILE (dungeon.js).
+//   random_epitaph_text() at dungeon.js is the closest single-file analogue.
 // TODO: rumors.c:499 — get_rnd_text(): general-purpose random text line reader
 
 // cf. rumors.c:529 — outrumor(truth, mechanism): display a rumor to the player
@@ -112,13 +144,10 @@
 // TODO: rumors.c:577 — init_oracles(): oracle file offset table initialization
 
 // cf. rumors.c:598 — save_oracles(nhfp): save oracle state to save file
-// Writes oracle_cnt + oracle_loc[] array to save file.
-// On release_data: zeroes oracle_cnt/oracle_flg, frees oracle_loc.
 // N/A: JS has no save file system.
 // N/A: rumors.c:598 — save_oracles()
 
 // cf. rumors.c:623 — restore_oracles(nhfp): restore oracle state from save file
-// Reads oracle_cnt; allocates oracle_loc[] and fills it; sets oracle_flg=1.
 // N/A: JS has no save file system.
 // N/A: rumors.c:623 — restore_oracles()
 
@@ -140,8 +169,6 @@
 // TODO: rumors.c:696 — doconsult(): Oracle monster #chat handler
 
 // cf. rumors.c:770 [static] — couldnt_open_file(filename): error for missing data file
-// Calls impossible("Can't open '%s' file.", filename) with something_worth_saving=0
-//   temporarily (to suppress irrelevant save-restore suggestion in error message).
 // N/A: JS has no file I/O; data loaded from compiled-in JS constants.
 // N/A: rumors.c:770 — couldnt_open_file()
 
@@ -154,17 +181,12 @@
 // TODO: rumors.c:791 — CapitalMon(): capitalized monster name check for the()
 
 // cf. rumors.c:829 [static] — init_CapMons(): build capitalized monster name list
-// Two-pass: pass 1 counts applicable monsters; pass 2 fills CapMons[].
-// Collects: non-unique monsters and unique-titles from mons[].pmnames[]
-//   whose name starts uppercase (non-unique class name like Green-elf).
-// Also collects from BOGUSMONFILE (hallucinatory names): uppercase names not
-//   marked as personal names (bogon_is_pname); those are dupstr'd.
-// CapMons[CapMonSiz-1] = NULL terminator.
-// N/A: JS has no malloc; mons[] is a JS array; BOGUSMONFILE is compiled-in.
+// Two-pass: pass 1 counts; pass 2 fills CapMons[].
+// Collects non-unique monsters and unique-titles from mons[].pmnames[] whose name
+//   starts uppercase, plus BOGUSMONFILE hallucinatory names not marked as personal names.
+// N/A: JS has no malloc; would use mons[] array and compiled-in bogusmon data.
 // TODO: rumors.c:829 — init_CapMons(): capitalized monster name list initialization
 
 // cf. rumors.c:939 — free_CapMons(): release CapMons[] memory
-// Frees dynamically allocated bogon entries (CapMonstCnt..CapMonSiz-2).
-// Frees CapMons array itself; zeroes CapMonSiz.
-// N/A: JS has garbage collection; no manual memory release needed.
+// N/A: JS has garbage collection.
 // N/A: rumors.c:939 — free_CapMons()
