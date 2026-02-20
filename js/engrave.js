@@ -84,6 +84,10 @@ function wipeoutEngravingText(text, cnt) {
 // Centralized engraving wiping/erosion.
 export function wipe_engr_at(map, x, y, cnt, magical = false) {
     if (!map || !Array.isArray(map.engravings)) return;
+    // C ref: event_log("wipe[%d,%d]") is unconditional — logged even when
+    // no engraving exists at (x,y). This matches C's wipe_engr_at which
+    // calls event_log() before checking if ep is non-NULL.
+    pushRngLogEntry(`^wipe[${x},${y}]`);
     const idx = map.engravings.findIndex((e) => e && e.x === x && e.y === y);
     if (idx < 0) return;
     const engr = map.engravings[idx];
@@ -95,7 +99,6 @@ export function wipe_engr_at(map, x, y, cnt, magical = false) {
         if (engr.type !== 'dust' && engr.type !== 'blood') {
             erase = rn2(1 + Math.floor(50 / (cnt + 1))) ? 0 : 1;
         }
-        pushRngLogEntry(`^wipe[${x},${y}]`);
         if (erase > 0) {
             engr.text = wipeoutEngravingText(engr.text || '', erase).replace(/^ +/, '');
             if (!engr.text) {

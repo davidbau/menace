@@ -384,8 +384,6 @@ function dochug(mon, map, player, display, fov, game = null) {
         return;
     }
 
-    wipe_engr_at(map, mon.mx, mon.my, 1);
-
     // Phase 2: Sleep check — C ref: monmove.c disturb()
     function disturb(monster) {
         const canSee = fov && fov.canSee(monster.mx, monster.my);
@@ -414,6 +412,10 @@ function dochug(mon, map, player, display, fov, game = null) {
         if (disturb(mon)) mon.sleeping = false;
         return;
     }
+
+    // C ref: monmove.c:735 — wipe engravings AFTER sleep check.
+    // Sleeping monsters don't wipe dust engravings.
+    wipe_engr_at(map, mon.mx, mon.my, 1);
 
     // INCOMPLETE: C:745 m_respond() — monster spell/gaze/breath attacks not implemented
     // INCOMPLETE: C:759 special monster actions (covetous, quest nemesis) not implemented
