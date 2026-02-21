@@ -14,7 +14,7 @@ import { Player } from '../../js/player.js';
 import { simulatePostLevelInit } from '../../js/u_init.js';
 import { movemon } from '../../js/monmove.js';
 import { FOV } from '../../js/vision.js';
-import { dosearch0 } from '../../js/commands.js';
+import { dosearch0 } from '../../js/cmd.js';
 import {
     COLNO, ROWNO, NORMAL_SPEED, A_DEX, A_CON,
     STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,

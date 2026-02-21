@@ -18,7 +18,7 @@ import { exercise, exerchk, initExerciseState } from './attrib_exercise.js';
 import { makelevel, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
 import { simulatePostLevelInit, initFirstLevel } from './u_init.js';
 import { Player, rankOf, roles } from './player.js';
-import { rhack } from './commands.js';
+import { rhack } from './cmd.js';
 import { dosearch0 } from './detect.js';
 import { ageSpells } from './spell.js';
 import { makemon, setMakemonPlayerContext, runtimeDecideToShapeshift } from './makemon.js';

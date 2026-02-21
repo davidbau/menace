@@ -1,7 +1,7 @@
 import { beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { rhack } from '../../js/commands.js';
+import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/map.js';
 import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput } from '../../js/input.js';

@@ -1,7 +1,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { rhack } from '../../js/commands.js';
+import { rhack } from '../../js/cmd.js';
 
 describe('wait search safety', () => {
 

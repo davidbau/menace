@@ -3,7 +3,7 @@ import { initRng, enableRngLog, getRngLog, rn2, rnd, rn1 } from '../../js/rng.js
 import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 import { simulatePostLevelInit } from '../../js/u_init.js';
 import { Player } from '../../js/player.js';
-import { rhack } from '../../js/commands.js';
+import { rhack } from '../../js/cmd.js';
 import { movemon } from '../../js/monmove.js';
 import { FOV } from '../../js/vision.js';
 import { NORMAL_SPEED, A_DEX, A_CON } from '../../js/config.js';

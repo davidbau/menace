@@ -25,7 +25,7 @@ import { Player, roles, rankOf } from './player.js';
 import { NORMAL_SPEED, A_STR, A_DEX, A_CON, A_WIS,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC } from './config.js';
 import { SHOPBASE, ROOMOFFSET } from './config.js';
-import { rhack } from './commands.js';
+import { rhack } from './cmd.js';
 import { makemon } from './makemon.js';
 import { FOOD_CLASS } from './objects.js';
 import { pushInput } from './input.js';

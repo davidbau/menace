@@ -37,7 +37,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 |--------|--------|---------|-------|
 | `[~]` | allmain.c | allmain.js | Main game loop, newgame, moveloop. JS: split across `nethack.js`, `menace.js` |
 | `[N/A]` | alloc.c | — | Memory allocation (nhalloc, nhfree). JS uses GC |
-| `[~]` | apply.c | apply.js | Applying items (doapply, dojump, dorub). JS: partially in `commands.js` |
+| `[a]` | apply.c | apply.js | Applying items. handleApply (doapply) with isApplyCandidate/isApplyChopWeapon/isApplyPolearm/isApplyDownplay helpers; ~70 functions TODO |
 | `[~]` | artifact.c | artifact.js | Artifact creation and effects |
 | `[~]` | attrib.c | attrib.js | Attribute system. JS: partially in `attrib_exercise.js` |
 | `[~]` | ball.c | ball.js | Ball & chain handling |
@@ -45,42 +45,42 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[~]` | botl.c | botl.js | Bottom status line |
 | `[x]` | calendar.c | calendar.js | Time, moon phase, Friday 13th, night/midnight. Affects gameplay |
 | `[N/A]` | cfgfiles.c | — | Config file parsing. JS: `storage.js` handles config differently |
-| `[~]` | cmd.c | cmd.js | Command dispatch. JS: `commands.js`, `input.js` |
+| `[a]` | cmd.c | cmd.js | Command dispatch. rhack() dispatches all key/command input; handleExtendedCommand (doextcmd); prefix commands (m/F/G/g). input.js handles low-level input. ~140 C functions are N/A (key binding, mouse, cmdq infrastructure) |
 | `[N/A]` | coloratt.c | — | Terminal color attribute mapping |
 | `[N/A]` | date.c | — | Build date/version stamps |
 | `[~]` | dbridge.c | dbridge.js | Drawbridge mechanics |
 | `[~]` | decl.c | decl.js | Global variable declarations. JS: spread across modules |
-| `[~]` | detect.c | detect.js | Detection spells and scrolls |
+| `[a]` | detect.c | detect.js | Detection spells and scrolls. dosearch0 implemented (RNG-parity); ~40 functions TODO |
 | `[~]` | dig.c | dig.js | Digging mechanics |
 | `[~]` | display.c | display.js | Display/rendering. JS file exists but may diverge |
 | `[N/A]` | dlb.c | — | Data librarian (file bundling). Not needed in JS |
 | `[a]` | do.c | do.js | Miscellaneous actions. handleDrop/handleDownstairs/handleUpstairs (dodrop/dodown/doup); ~45 functions TODO |
 | `[~]` | do_name.c | do_name.js | Naming things (docallcmd, do_mgivenname) |
 | `[~]` | do_wear.c | do_wear.js | Wearing/removing armor and accessories. Multi-slot handleWear/handlePutOn/handleTakeOff/handleRemove; canwearobj, cursed_check, find_ac; on/off stubs for all slots. Intrinsic effects, multi-takeoff(A), armor destruction TODO. |
-| `[a]` | dog.c | dog.js | Pet behavior. dogfood in dog.js; makedog/mon_arrive in u_init.js; losedogs/keepdogs/migrate TODO |
+| `[a]` | dog.c | dog.js | Pet behavior. dogfood/makedog/mon_arrive in dog.js; losedogs/keepdogs/migrate TODO |
 | `[a]` | dogmove.c | dogmove.js | Pet movement AI. All functions except `quickmimic` |
-| `[~]` | dokick.c | dokick.js | Kicking mechanics |
-| `[~]` | dothrow.c | dothrow.js | Throwing mechanics |
+| `[a]` | dokick.c | kick.js | Kicking mechanics. handleKick (dokick) approximation; full kick effects TODO |
+| `[a]` | dothrow.c | dothrow.js | Throwing mechanics. handleThrow/handleFire (dothrow/dofire), promptDirectionAndThrowItem (throwit), ammoAndLauncher, DIRECTION_KEYS; ~30 functions TODO |
 | `[a]` | drawing.c | symbols.js | Symbol/glyph drawing tables and lookup functions. Data tables in symbols.js; 3 lookup functions implemented |
 | `[~]` | dungeon.c | dungeon.js | Dungeon structure and level management |
 | `[a]` | eat.c | eat.js | Eating mechanics. handleEat (doeat) implemented; ~50 functions TODO |
 | `[~]` | end.c | end.js | Game over, death, scoring |
-| `[~]` | engrave.c | engrave.js | Engraving mechanics. JS: `engrave_data.js` is data only |
+| `[a]` | engrave.c | engrave.js | Engraving mechanics. handleEngrave (doengrave) approximation, maybeSmudgeEngraving (wipe_engr_at); engrave_data.js has text data; ~30 functions TODO |
 | `[a]` | exper.c | exper.js | Experience and leveling. newuexp, newexplevel, pluslvl implemented; experience, more_experienced, losexp, newpw, enermod, rndexp TODO |
 | `[~]` | explode.c | explode.js | Explosion effects |
 | `[~]` | extralev.c | extralev.js | Special level generation helpers |
 | `[N/A]` | files.c | — | File I/O operations. JS: `storage.js` |
-| `[~]` | fountain.c | fountain.js | Fountain effects |
+| `[a]` | fountain.c | fountain.js | Fountain effects. drinkfountain/dryup implemented (RNG-parity); ~12 functions TODO |
 | `[~]` | getpos.c | getpos.js | Position selection UI |
 | `[~]` | glyphs.c | glyphs.js | Glyph system. JS: partially in `display.js`, `symbols.js` |
-| `[~]` | hack.c | — | Core movement and actions. JS: split across multiple files |
+| `[a]` | hack.c | hack.js | Core movement and actions. handleMovement (domove_core) with door/trap/autopickup handling, handleRun (lookaround/context.run), checkRunStop, pickRunContinuationDir, findPath (findtravelpath), handleTravel (dotravel), executeTravelStep, performWaitSearch. All are approximations with partial RNG parity; ~70 C functions TODO |
 | `[a]` | hacklib.c | hacklib.js | String/char utilities. All C functions implemented; in-place string ops return new strings in JS |
 | `[~]` | iactions.c | iactions.js | Item actions context menu |
 | `[~]` | insight.c | insight.js | Player knowledge/enlightenment |
 | `[a]` | invent.c | invent.js | Inventory management. handleInventory/buildInventoryOverlayLines/compactInvletPromptChars (ddoinv/display_inventory/compactify); ~80 functions TODO |
 | `[x]` | isaac64.c | isaac64.js | ISAAC64 PRNG. All 8 functions matched |
 | `[~]` | light.c | light.js | Light source management |
-| `[~]` | lock.c | lock.js | Lock picking and door opening |
+| `[a]` | lock.c | lock.js | Lock picking and door opening. handleForce/handleOpen/handleClose (doforce/doopen/doclose) approximations; ~15 functions TODO |
 | `[N/A]` | mail.c | — | In-game mail system (uses real mail on Unix) |
 | `[a]` | makemon.c | makemon.js | Monster creation. Core functions aligned; clone_mon/propagate TODO |
 | `[~]` | mcastu.c | mcastu.js | Monster spellcasting. castmu/buzzmu and all 11 spell functions TODO (runtime gameplay) |
@@ -108,9 +108,9 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | o_init.c | o_init.js | Object class initialization. Core shuffle functions aligned; setgemprobs, obj_shuffle_range, objdescr_is added; discovery functions in `discovery.js` |
 | `[a]` | objects.c | objects.js | Object data tables. objects.js is auto-generated from objects.h (same source as C); objects_globals_init implicit in module load |
 | `[~]` | objnam.c | objnam.js | Object naming (xname, doname, makeplural, readobjnam/wishing). All functions TODO; no JS object naming yet |
-| `[~]` | options.c | options.js | Game options. JS: `options_menu.js`, `storage.js` |
-| `[~]` | pager.c | pager.js | Text pager and look/describe commands. pager.js has text pager only; help commands in commands.js; game look functions (do_look, lookat, waterbody_name) not yet in JS |
-| `[~]` | pickup.c | pickup.js | Picking up items |
+| `[~]` | options.c | options.js | Game options. JS: options.js (data), options_menu.js (handleSet UI) |
+| `[a]` | pager.c | pager.js | Text pager and look/describe commands. handleHelp/handleWhatis/handleWhatdoes/handleHistory/handlePrevMessages/handleViewMapPrompt/handleLook (dohelp/dowhatis/dowhatdoes/dohistory/doprev_message/doterrain). Game look functions (do_look, lookat, waterbody_name) TODO |
+| `[a]` | pickup.c | pickup.js | Picking up items. handlePickup/handleLoot/handlePay/handleTogglePickup (dopickup/doloot/dopay/dotogglepickup); pay is a stub; ~50 functions TODO |
 | `[a]` | pline.c | pline.js | Message output. pline, custompline, vpline, Norep, urgent_pline, raw_printf, vraw_printf, impossible, livelog_printf, gamelog_add, verbalize, You/Your/You_feel/You_cant/You_hear/You_see/pline_The/There, pline_dir/pline_xy/pline_mon, set_msg_dir/set_msg_xy, dumplogmsg/dumplogfreemessages, execplinehandler, nhassert_failed, You_buf/free_youbuf all implemented. putmesg semantics handled via setOutputContext |
 | `[~]` | polyself.c | polyself.js | Polymorphing |
 | `[a]` | potion.c | potion.js | Potion effects. handleQuaff (dodrink) with healing; ~60 functions TODO |
@@ -127,17 +127,17 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[x]` | rnd.c | rng.js | Random number generation |
 | `[~]` | role.c | role.js | Role/race/gender/alignment selection. roles[] data in player.js; ok_role/ok_race/ok_align PARTIAL in nethack.js; role_init PARTIAL in nethack.js+u_init.js; Hello() in player.js; all others TODO |
 | `[~]` | rumors.c | rumors.js | Rumor/oracle/CapitalMon system. JS: `rumor_data.js` (data); unpadline/init_rumors/get_rnd_line in `hacklib.js`; getrumor inlined in `dungeon.js`; outoracle/doconsult/CapitalMon TODO |
-| `[~]` | save.c | save.js | Game state serialization. All functions N/A (JS uses storage.js/IndexedDB with different format; GC replaces freedynamicdata) |
+| `[~]` | save.c | save.js | Game state serialization. N/A (JS uses storage.js/IndexedDB); handleSave in storage.js |
 | `[a]` | selvar.c | — | Selection geometry. JS: `selection` object in `sp_lev.js`. All major geometry functions aligned including ellipse/gradient/is_irregular/size_description |
 | `[N/A]` | sfbase.c | — | Save file base I/O routines |
 | `[N/A]` | sfstruct.c | — | Save file structure definitions |
-| `[~]` | shk.c | — | Shopkeeper behavior. JS: partially in `shknam.js` |
+| `[a]` | shk.c | shk.js | Shopkeeper behavior. describeGroundObjectForPlayer (xname-based), maybeHandleShopEntryMessage, getprice/getCost/getShopQuoteForFloorObject (pricing approximations); shknam.js has naming. ~90 functions TODO |
 | `[a]` | shknam.c | shknam.js | Shop naming and stocking. All C functions aligned; hallucination in shkname/is_izchak and in_town() in is_izchak deferred |
 | `[~]` | sit.c | sit.js | Sitting effects. All 7 functions (dosit, rndcurse, attrcurse, take_gold, throne_sit_effect, special_throne_effect, lay_an_egg) are TODO stubs |
 | `[~]` | sounds.c | sounds.js | Monster sounds, ambient room sounds, chat. dosounds() partial in nethack.js/headless_runtime.js; domonnoise/growl/yelp/whimper/beg/dotalk TODO; sound library N/A |
 | `[~]` | sp_lev.c | sp_lev.js | Special level interpreter |
-| `[ ]` | spell.c | — | Spell casting |
-| `[~]` | stairs.c | stairs.js | Stairway linked-list management and hero placement. JS uses map.upstair/dnstair objects (no linked list); u_on_upstairs/dnstairs → getArrivalPosition in level_transition.js; stairway_find_*, On_stairs_*, stairs_description TODO |
+| `[a]` | spell.c | spell.js | Spell casting. ageSpells (age_spells), handleKnownSpells (dovspell/dospellmenu), estimateSpellFailPercent (percent_success approximation), spellRetentionText (spellretention). Spell category/skill tables from C. ~40 functions TODO |
+| `[~]` | stairs.c | stairs.js | Stairway management. JS uses map.upstair/dnstair objects; u_on_upstairs/dnstairs → getArrivalPosition in do.js; stairway_find_*, On_stairs_*, stairs_description TODO |
 | `[~]` | steal.c | steal.js | Monster stealing. `findgold` in makemon.js; drop logic partially inline in monmove.js; all steal/mpickobj/relobj/mdrop_obj unimplemented |
 | `[~]` | steed.c | steed.js | Riding steeds. put_saddle_on_mon partially inline in u_init.js; all 15 functions are TODO stubs |
 | `[N/A]` | strutil.c | — | String utilities (strbuf, pmatch). JS: native string ops |
@@ -159,7 +159,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[~]` | wield.c | `wield.js` | Wielding weapons. setuwep/setuswapwep/setuqwep, uwepgone/uswapwepgone/uqwepgone, welded/weldmsg, ready_weapon, can_twoweapon(stub). handleWield/handleSwapWeapon/handleQuiver. Two-weapon combat, chwepon, corpse petrify, wield_tool TODO. |
 | `[N/A]` | windows.c | — | Windowing system interface. JS: `display.js`, `browser_input.js` |
 | `[~]` | wizard.c | wizard.js | Wizard of Yendor AI. All 21 functions are runtime gameplay AI; none implemented in JS |
-| `[~]` | wizcmds.c | wizcmds.js | Wizard-mode debug commands. wiz_level_tele/wiz_map/wiz_genesis/wiz_wish/wiz_identify PARTIAL in commands.js; Lua commands N/A; sanity checks and advanced debug TODO |
+| `[a]` | wizcmds.c | wizcmds.js | Wizard-mode debug commands. handleWizLoadDes (wiz_load_splua), wizLevelChange (wiz_level_change), wizMap (wiz_map), wizTeleport (wiz_level_tele), wizGenesis (wiz_genesis); Lua commands N/A; sanity checks and advanced debug TODO |
 | `[~]` | worm.c | worm.js | Long worm mechanics. save/rest_worm are N/A (no save file). All 24 other functions are TODO stubs |
 | `[~]` | worn.c | `worn.js` | Equipment slot management |
 | `[a]` | write.c | write.js | Writing on scrolls. cost, write_ok, new_book_description implemented; dowrite TODO |
@@ -171,10 +171,10 @@ don't follow the same 1:1 C→JS mapping pattern.
 - **N/A (system/platform)**: 22
 - **Game logic files**: 107
 - **Complete (`[x]`)**: 4
-- **Aligned (`[a]`)**: 30
+- **Aligned (`[a]`)**: 46
 - **Present (`[p]`)**: 1
-- **Needs alignment (`[~]`)**: 71
-- **No JS file yet (`[ ]`)**: 1 (spell.c)
+- **Needs alignment (`[~]`)**: 57
+- **No JS file yet (`[ ]`)**: 0
 
 ### JS Files Without C Counterparts
 
@@ -186,10 +186,10 @@ These JS files don't directly correspond to a single C file:
 | animations.js | Visual animations | None (JS-only) |
 | attrib_exercise.js | Attribute exercise tracking | attrib.c |
 | browser_input.js | Browser keyboard/mouse input | None (JS-only) |
-| commands.js | Command dispatch | cmd.c, apply.c, do.c, etc. |
+| cmd.js | Command dispatch | cmd.c |
 | config.js | Game configuration | decl.c, options.c |
 | delay.js | Delay/animation timing | None (JS-only) |
-| discovery.js | Object identification | o_init.c, invent.c |
+| discovery.js | Object identification, handleDiscoveries, handleCallObjectTypePrompt | o_init.c, invent.c |
 | display_rng.js | Display-layer RNG | rnd.c |
 | engrave_data.js | Engraving text data | engrave.c |
 | epitaph_data.js | Epitaph text data | engrave.c |
@@ -197,18 +197,21 @@ These JS files don't directly correspond to a single C file:
 | headless_runtime.js | Headless test runtime | None (JS-only) |
 | input.js | Input handling/replay | None (JS-only) |
 | keylog.js | Keystroke logging | None (JS-only) |
-| level_transition.js | Level change logic | do.c, stairs.c |
+| hack.js | Core movement/running/travel | hack.c |
+| kick.js | Kick command | dokick.c |
 | map.js | Map data structure | hack.c, mklev.c |
 | menace.js | Main game entry point | allmain.c |
 | monsters.js | Monster data tables | monst.c |
 | nethack.js | Game orchestration | allmain.c |
 | objdata.js | Object property queries | objnam.c, mkobj.c |
-| options_menu.js | Options UI | options.c |
+| options_menu.js | Options UI and handleSet | options.c |
 | player.js | Player state and roles | role.c, decl.c |
 | replay_core.js | Session replay/comparison | None (JS-only, test infra) |
 | rumor_data.js | Rumor text data | rumors.c |
 | special_levels.js | Special level registry | sp_lev.c, extralev.c |
-| storage.js | Save/load/config | save.c, restore.c, files.c |
+| shk.js | Shopkeeper pricing/messages | shk.c |
+| spell.js | Spell system | spell.c |
+| storage.js | Save/load/config, handleSave | save.c, restore.c, files.c |
 | xoshiro256.js | Xoshiro256 PRNG | None (JS-only, display RNG) |
 
 ---
@@ -715,7 +718,7 @@ This section is generated from source symbol tables and includes function rows f
 | 3360 | `count_autocompletions` | - | Missing |
 | 2360 | `count_bind_keys` | - | Missing |
 | 4359 | `directionname` | - | Missing |
-| 1874 | `do_fight` | - | Missing |
+| 1874 | `do_fight` | cmd.js:rhack (F prefix) | Aligned |
 | 1684 | `do_move_east` | - | Missing |
 | 1670 | `do_move_north` | - | Missing |
 | 1677 | `do_move_northeast` | - | Missing |
@@ -725,8 +728,8 @@ This section is generated from source symbol tables and includes function rows f
 | 1705 | `do_move_southwest` | - | Missing |
 | 1656 | `do_move_west` | - | Missing |
 | 1890 | `do_repeat` | - | Missing |
-| 1827 | `do_reqmenu` | - | Missing |
-| 1858 | `do_run` | - | Missing |
+| 1827 | `do_reqmenu` | cmd.js:rhack (m prefix) | Aligned |
+| 1858 | `do_run` | hack.js:handleRun | APPROX |
 | 1798 | `do_run_east` | - | Missing |
 | 1784 | `do_run_north` | - | Missing |
 | 1791 | `do_run_northeast` | - | Missing |
@@ -735,7 +738,7 @@ This section is generated from source symbol tables and includes function rows f
 | 1805 | `do_run_southeast` | - | Missing |
 | 1819 | `do_run_southwest` | - | Missing |
 | 1770 | `do_run_west` | - | Missing |
-| 1842 | `do_rush` | - | Missing |
+| 1842 | `do_rush` | hack.js:handleRun (rush) | APPROX |
 | 1741 | `do_rush_east` | - | Missing |
 | 1727 | `do_rush_north` | - | Missing |
 | 1734 | `do_rush_northeast` | - | Missing |
@@ -746,7 +749,7 @@ This section is generated from source symbol tables and includes function rows f
 | 1713 | `do_rush_west` | - | Missing |
 | 708 | `doc_extcmd_flagstr` | - | Missing |
 | 5425 | `doclicklook` | - | Missing |
-| 677 | `doextcmd` | - | Missing |
+| 677 | `doextcmd` | cmd.js:handleExtendedCommand | APPROX — handles #commands subset |
 | 746 | `doextlist` | - | Missing |
 | 4380 | `doherecmdmenu` | - | Missing |
 | 2917 | `dokeylist` | - | Missing |
@@ -754,13 +757,13 @@ This section is generated from source symbol tables and includes function rows f
 | 1530 | `dolookaround_floodfill_findroom` | - | Missing |
 | 1074 | `domonability` | - | Missing |
 | 4962 | `domouseaction` | - | Missing |
-| 342 | `doprev_message` | - | Missing |
+| 342 | `doprev_message` | pager.js:handlePrevMessages | Aligned |
 | 5726 | `dosh_core` | - | Missing |
 | 5706 | `dosuspend_core` | - | Missing |
 | 1365 | `doterrain` | - | Missing |
 | 4389 | `dotherecmdmenu` | - | Missing |
-| 5343 | `dotravel` | - | Missing |
-| 5392 | `dotravel_target` | - | Missing |
+| 5343 | `dotravel` | hack.js:handleTravel | APPROX — cursor-based travel |
+| 5392 | `dotravel_target` | cmd.js:rhack (ch=31) | APPROX — retravel via stored destination |
 | 3907 | `dtoxy` | - | Missing |
 | 5743 | `dummyfunction` | - | Missing |
 | 3949 | `dxdy_moveok` | - | Missing |
@@ -809,7 +812,7 @@ This section is generated from source symbol tables and includes function rows f
 | 3658 | `reset_cmd_vars` | - | Missing |
 | 3392 | `reset_commands` | - | Missing |
 | 377 | `reset_occupations` | - | Missing |
-| 3678 | `rhack` | - | Missing |
+| 3678 | `rhack` | cmd.js:rhack | APPROX — dispatches all commands, missing many C bindings |
 | 3652 | `rnd_extcmd_idx` | - | Missing |
 | 1639 | `set_move_cmd` | - | Missing |
 | 388 | `set_occupation` | - | Missing |
@@ -923,7 +926,7 @@ This section is generated from source symbol tables and includes function rows f
 | 1423 | `do_mapping` | - | Missing |
 | 1449 | `do_vicinity_map` | - | Missing |
 | 2098 | `dosearch` | - | Missing |
-| 2017 | `dosearch0` | - | Missing |
+| 2017 | `dosearch0` | detect.js:dosearch0 | RNG-PARITY — search for hidden doors/traps |
 | 2295 | `dump_map` | - | Missing |
 | 1936 | `find_trap` | - | Missing |
 | 1793 | `findit` | - | Missing |
@@ -1339,12 +1342,12 @@ This section is generated from source symbol tables and includes function rows f
 | 753 | `score_targ` | - | Missing |
 | 1433 | `wantdoor` | - | Missing |
 
-### dokick.c -> dokick.js
+### dokick.c -> kick.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 412 | `container_impact_dmg` | - | Missing |
 | 1854 | `deliver_obj_to_mon` | - | Missing |
-| 1257 | `dokick` | - | Missing |
+| 1257 | `dokick` | kick.js:handleKick | APPROX — kick command |
 | 1943 | `down_gate` | - | Missing |
 | 1473 | `drop_to` | - | Missing |
 | 295 | `ghitm` | - | Missing |
@@ -1373,8 +1376,8 @@ This section is generated from source symbol tables and includes function rows f
 | 2444 | `breaks` | - | Missing |
 | 2582 | `breaktest` | - | Missing |
 | 1181 | `check_shop_obj` | - | Missing |
-| 469 | `dofire` | - | Missing |
-| 352 | `dothrow` | - | Missing |
+| 469 | `dofire` | dothrow.js:handleFire | APPROX — fire command |
+| 352 | `dothrow` | dothrow.js:handleThrow | APPROX — throw command |
 | 590 | `endmultishot` | - | Missing |
 | 447 | `find_launcher` | - | Missing |
 | 2309 | `gem_accept` | - | Missing |
@@ -1656,7 +1659,7 @@ This section is generated from source symbol tables and includes function rows f
 | 1644 | `del_engr` | - | Missing |
 | 461 | `del_engr_at` | - | Missing |
 | 1706 | `disturb_grave` | - | Missing |
-| 955 | `doengrave` | - | Missing |
+| 955 | `doengrave` | engrave.js:handleEngrave | APPROX — engraving command |
 | 545 | `doengrave_ctx_init` | - | Missing |
 | 895 | `doengrave_ctx_verb` | - | Missing |
 | 741 | `doengrave_sfx_item` | - | Missing |
@@ -1682,7 +1685,7 @@ This section is generated from source symbol tables and includes function rows f
 | 481 | `stylus_ok` | - | Missing |
 | 503 | `u_can_engrave` | - | Missing |
 | 264 | `u_wipe_engr` | - | Missing |
-| 271 | `wipe_engr_at` | - | Missing |
+| 271 | `wipe_engr_at` | engrave.js:maybeSmudgeEngraving | APPROX — movement engraving smudge |
 | 120 | `wipeout_text` | - | Missing |
 
 ### exper.c -> exper.js
@@ -1805,9 +1808,9 @@ This section is generated from source symbol tables and includes function rows f
 | 64 | `dowaterdemon` | - | Missing |
 | 94 | `dowaternymph` | - | Missing |
 | 38 | `dowatersnakes` | - | Missing |
-| 243 | `drinkfountain` | - | Missing |
+| 243 | `drinkfountain` | fountain.js:drinkfountain | RNG-PARITY — fountain drinking effects |
 | 595 | `drinksink` | - | Missing |
-| 201 | `dryup` | - | Missing |
+| 201 | `dryup` | fountain.js:dryup | RNG-PARITY — fountain drying up |
 | 134 | `gush` | - | Missing |
 | 805 | `sink_backs_up` | - | Missing |
 | 558 | `wash_hands` | - | Missing |
@@ -1875,7 +1878,7 @@ This section is generated from source symbol tables and includes function rows f
 | 1278 | `to_unicode_callback` | - | Missing |
 | 806 | `wizcustom_glyphids` | - | Missing |
 
-### hack.c -> —
+### hack.c -> hack.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 2323 | `air_turbulence` | - | Missing |
@@ -1898,19 +1901,19 @@ This section is generated from source symbol tables and includes function rows f
 | 2676 | `domove` | - | Missing |
 | 1936 | `domove_attackmon_at` | - | Missing |
 | 1906 | `domove_bump_mon` | - | Missing |
-| 2693 | `domove_core` | - | Missing |
+| 2693 | `domove_core` | hack.js:handleMovement | APPROX — movement, door auto-open, traps, autopickup |
 | 2210 | `domove_fight_empty` | - | Missing |
 | 1977 | `domove_fight_ironbars` | - | Missing |
 | 2002 | `domove_fight_web` | - | Missing |
-| 2079 | `domove_swap_with_pet` | - | Missing |
-| 3948 | `doorless_door` | - | Missing |
-| 3761 | `dopickup` | - | Missing |
+| 2079 | `domove_swap_with_pet` | hack.js:handleMovement | APPROX — pet displacement within handleMovement |
+| 3948 | `doorless_door` | hack.js:handleMovement | APPROX — inline in handleMovement |
+| 3761 | `dopickup` | hack.js:handleMovement | APPROX — autopickup inline in handleMovement |
 | 167 | `dopush` | - | Missing |
 | 817 | `dosinkfall` | - | Missing |
 | 4351 | `dump_weights` | - | Missing |
 | 4015 | `end_running` | - | Missing |
 | 2620 | `escape_from_sticky_mon` | - | Missing |
-| 1247 | `findtravelpath` | - | Missing |
+| 1247 | `findtravelpath` | hack.js:findPath | APPROX — BFS pathfinding |
 | 3367 | `furniture_present` | - | Missing |
 | 1833 | `handle_tip` | - | Missing |
 | 1768 | `impact_disturbs_zombies` | - | Missing |
@@ -1923,16 +1926,16 @@ This section is generated from source symbol tables and includes function rows f
 | 963 | `invocation_pos` | - | Missing |
 | 1507 | `is_valid_travelpt` | - | Missing |
 | 82 | `long_to_any` | - | Missing |
-| 3783 | `lookaround` | - | Missing |
+| 3783 | `lookaround` | hack.js:checkRunStop | APPROX — run stop conditions |
 | 4185 | `losehp` | - | Missing |
 | 4321 | `max_capacity` | - | Missing |
 | 904 | `may_dig` | - | Missing |
 | 913 | `may_passwall` | - | Missing |
-| 3001 | `maybe_smudge_engr` | - | Missing |
+| 3001 | `maybe_smudge_engr` | engrave.js:maybeSmudgeEngraving | APPROX |
 | 4086 | `maybe_wail` | - | Missing |
 | 4444 | `money_cnt` | - | Missing |
 | 90 | `monst_to_any` | - | Missing |
-| 3991 | `monster_nearby` | - | Missing |
+| 3991 | `monster_nearby` | monutil.js:monsterNearby | Aligned |
 | 3351 | `monstinroom` | - | Missing |
 | 2567 | `move_out_of_bounds` | - | Missing |
 | 3473 | `move_update` | - | Missing |
@@ -2251,9 +2254,9 @@ No function symbols parsed from isaac64.c.
 | 1056 | `boxlock` | - | Missing |
 | 162 | `breakchestlock` | - | Missing |
 | 1276 | `chest_shatter_msg` | - | Missing |
-| 957 | `doclose` | - | Missing |
-| 676 | `doforce` | - | Missing |
-| 773 | `doopen` | - | Missing |
+| 957 | `doclose` | lock.js:handleClose | APPROX — close door command |
+| 676 | `doforce` | lock.js:handleForce | APPROX — force lock command |
+| 773 | `doopen` | lock.js:handleOpen | APPROX — open door command |
 | 780 | `doopen_indir` | - | Missing |
 | 1103 | `doorlock` | - | Missing |
 | 216 | `forcelock` | - | Missing |
@@ -3393,11 +3396,11 @@ No function symbols parsed from isaac64.c.
 | 9221 | `count_apes` | - | Missing |
 | 9209 | `count_cond` | - | Missing |
 | 6688 | `determine_ambiguities` | - | Missing |
-| 8800 | `doset` | - | Missing |
+| 8800 | `doset` | options_menu.js:handleSet | APPROX — options menu |
 | 9048 | `doset_add_menu` | - | Missing |
 | 8722 | `doset_simple` | - | Missing |
 | 8551 | `doset_simple_menu` | - | Missing |
-| 9286 | `dotogglepickup` | - | Missing |
+| 9286 | `dotogglepickup` | pickup.js:handleTogglePickup | Aligned |
 | 6767 | `duplicate_opt_detection` | - | Missing |
 | 10159 | `enhance_menu_text` | - | Missing |
 | 6881 | `escapes` | - | Missing |
@@ -3623,18 +3626,18 @@ No function symbols parsed from isaac64.c.
 | 2762 | `dispfile_optmenu` | - | Missing |
 | 2750 | `dispfile_shelp` | - | Missing |
 | 2780 | `dispfile_usagehelp` | - | Missing |
-| 1669 | `do_look` | - | Missing |
+| 1669 | `do_look` | pager.js:handleLook | APPROX — look at ground |
 | 1246 | `do_screen_description` | - | Missing |
 | 2249 | `do_supplemental_info` | - | Missing |
 | 2714 | `docontact` | - | Missing |
-| 2856 | `dohelp` | - | Missing |
-| 2957 | `dohistory` | - | Missing |
+| 2856 | `dohelp` | pager.js:handleHelp | APPROX — help command |
+| 2957 | `dohistory` | pager.js:handleHistory | APPROX — message history |
 | 2332 | `doidtrap` | - | Missing |
 | 2816 | `domenucontrols` | - | Missing |
 | 2325 | `doquickwhatis` | - | Missing |
-| 2655 | `dowhatdoes` | - | Missing |
+| 2655 | `dowhatdoes` | pager.js:handleWhatdoes | APPROX — key help |
 | 2573 | `dowhatdoes_core` | - | Missing |
-| 2318 | `dowhatis` | - | Missing |
+| 2318 | `dowhatis` | pager.js:handleWhatis | APPROX — identify symbol |
 | 2810 | `hmenu_doextlist` | - | Missing |
 | 2786 | `hmenu_doextversion` | - | Missing |
 | 2792 | `hmenu_dohistory` | - | Missing |
@@ -3688,7 +3691,7 @@ No function symbols parsed from isaac64.c.
 | 353 | `describe_decor` | - | Missing |
 | 2512 | `do_boh_explosion` | - | Missing |
 | 2082 | `do_loot_cont` | - | Missing |
-| 2160 | `doloot` | - | Missing |
+| 2160 | `doloot` | pickup.js:handleLoot | APPROX — loot command |
 | 2172 | `doloot_core` | - | Missing |
 | 3542 | `dotip` | - | Missing |
 | 1972 | `encumber_msg` | - | Missing |
@@ -3711,7 +3714,7 @@ No function symbols parsed from isaac64.c.
 | 2820 | `observe_quantum_cat` | - | Missing |
 | 2721 | `out_container` | - | Missing |
 | 1897 | `pick_obj` | - | Missing |
-| 672 | `pickup` | - | Missing |
+| 672 | `pickup` | pickup.js:handlePickup | APPROX — pickup command |
 | 1803 | `pickup_object` | - | Missing |
 | 1942 | `pickup_prinv` | - | Missing |
 | 1226 | `query_category` | - | Missing |
@@ -4449,7 +4452,7 @@ No function symbols parsed from isaac64.c.
 | 549 | `mread` | - | Missing |
 | 596 | `sfstruct_read_error` | - | Missing |
 
-### shk.c -> —
+### shk.c -> shk.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 5812 | `Shk_Your` | - | Missing |
@@ -4493,7 +4496,7 @@ No function symbols parsed from isaac64.c.
 | 4444 | `discard_damage_struct` | - | Missing |
 | 4132 | `doinvbill` | - | Missing |
 | 3814 | `donate_gold` | - | Missing |
-| 1684 | `dopay` | - | Missing |
+| 1684 | `dopay` | pickup.js:handlePay | STUB — pay command placeholder |
 | 2161 | `dopayobj` | - | Missing |
 | 3005 | `dropped_container` | - | Missing |
 | 4426 | `find_damage` | - | Missing |
@@ -4502,17 +4505,17 @@ No function symbols parsed from isaac64.c.
 | 2664 | `finish_paybill` | - | Missing |
 | 4785 | `fix_shop_damage` | - | Missing |
 | 3139 | `gem_learned` | - | Missing |
-| 2818 | `get_cost` | - | Missing |
+| 2818 | `get_cost` | shk.js:getCost | APPROX — item cost calculation |
 | 2750 | `get_cost_of_shop_item` | - | Missing |
 | 2787 | `get_pricing_units` | - | Missing |
 | 5073 | `getcad` | - | Missing |
-| 4254 | `getprice` | - | Missing |
+| 4254 | `getprice` | shk.js:getprice | APPROX — base price lookup |
 | 5911 | `globby_bill_fixup` | - | Missing |
 | 1258 | `home_shk` | - | Missing |
 | 1390 | `hot_pursuit` | - | Missing |
 | 2518 | `inherits` | - | Missing |
 | 980 | `inhishop` | - | Missing |
-| 509 | `inside_shop` | - | Missing |
+| 509 | `inside_shop` | shk.js:insideShop | APPROX — shop boundary check |
 | 2396 | `insufficient_funds` | - | Missing |
 | 4947 | `is_fshk` | - | Missing |
 | 1108 | `is_unpaid` | - | Missing |
@@ -4817,10 +4820,10 @@ No function symbols parsed from isaac64.c.
 | 6324 | `update_croom` | - | Missing |
 | 2863 | `wallify_map` | - | Missing |
 
-### spell.c -> —
+### spell.c -> spell.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 669 | `age_spells` | - | Missing |
+| 669 | `age_spells` | spell.js:ageSpells | Aligned — decrement spell retention |
 | 343 | `book_cursed` | - | Missing |
 | 646 | `book_disappears` | - | Missing |
 | 658 | `book_substitution` | - | Missing |
@@ -4833,8 +4836,8 @@ No function symbols parsed from isaac64.c.
 | 211 | `deadbook_pacify_undead` | - | Missing |
 | 1627 | `display_spell_target_positions` | - | Missing |
 | 820 | `docast` | - | Missing |
-| 2075 | `dospellmenu` | - | Missing |
-| 2021 | `dovspell` | - | Missing |
+| 2075 | `dospellmenu` | spell.js:handleKnownSpells | APPROX — spell list display |
+| 2021 | `dovspell` | spell.js:handleKnownSpells | APPROX — known spells command |
 | 787 | `dowizcast` | - | Missing |
 | 2391 | `force_learn_spell` | - | Missing |
 | 715 | `getspell` | - | Missing |
@@ -4843,7 +4846,7 @@ No function symbols parsed from isaac64.c.
 | 356 | `learn` | - | Missing |
 | 1763 | `losespells` | - | Missing |
 | 2417 | `num_spells` | - | Missing |
-| 2173 | `percent_success` | - | Missing |
+| 2173 | `percent_success` | spell.js:estimateSpellFailPercent | APPROX — spell failure calculation |
 | 952 | `propagate_chain_lightning` | - | Missing |
 | 687 | `rejectcasting` | - | Missing |
 | 2059 | `show_spells` | - | Missing |
@@ -4854,12 +4857,12 @@ No function symbols parsed from isaac64.c.
 | 1870 | `spell_cmp` | - | Missing |
 | 2379 | `spell_idx` | - | Missing |
 | 115 | `spell_let_to_idx` | - | Missing |
-| 856 | `spell_skilltype` | - | Missing |
+| 856 | `spell_skilltype` | spell.js:spellCategoryForName | APPROX — spell category lookup |
 | 1385 | `spelleffects` | - | Missing |
 | 1220 | `spelleffects_check` | - | Missing |
-| 2295 | `spellretention` | - | Missing |
+| 2295 | `spellretention` | spell.js:spellRetentionText | APPROX — retention display |
 | 1976 | `spellsortmenu` | - | Missing |
-| 832 | `spelltypemnemonic` | - | Missing |
+| 832 | `spelltypemnemonic` | spell.js:spellCategoryForName | APPROX — category for display |
 | 468 | `study_book` | - | Missing |
 | 1655 | `throwspell` | - | Missing |
 | 1707 | `tport_spell` | - | Missing |
@@ -5673,17 +5676,17 @@ No function symbols parsed from isaac64.c.
 | 1705 | `wiz_display_macros` | - | Missing |
 | 412 | `wiz_flip_level` | - | Missing |
 | 549 | `wiz_fuzzer` | - | Missing |
-| 203 | `wiz_genesis` | - | Missing |
+| 203 | `wiz_genesis` | wizcmds.js:wizGenesis | APPROX — create monster |
 | 50 | `wiz_identify` | - | Missing |
 | 949 | `wiz_intrinsic` | - | Missing |
 | 243 | `wiz_kill` | - | Missing |
-| 446 | `wiz_level_change` | - | Missing |
-| 399 | `wiz_level_tele` | - | Missing |
+| 446 | `wiz_level_change` | wizcmds.js:wizLevelChange | APPROX — wizard level teleport |
+| 399 | `wiz_level_tele` | wizcmds.js:wizTeleport | APPROX — coordinate teleport |
 | 841 | `wiz_levltyp_legend` | - | Missing |
 | 353 | `wiz_load_lua` | - | Missing |
-| 376 | `wiz_load_splua` | - | Missing |
+| 376 | `wiz_load_splua` | wizcmds.js:handleWizLoadDes | APPROX — load special level |
 | 156 | `wiz_makemap` | - | Missing |
-| 176 | `wiz_map` | - | Missing |
+| 176 | `wiz_map` | wizcmds.js:wizMap | APPROX — reveal map |
 | 693 | `wiz_map_levltyp` | - | Missing |
 | 1827 | `wiz_migrate_mons` | - | Missing |
 | 1784 | `wiz_mon_diff` | - | Missing |

@@ -20,7 +20,7 @@ import { M2_WERE } from './monsters.js';
 import { FOOD_CLASS } from './objects.js';
 import { setObjectMoves } from './mkobj.js';
 import { were_change } from './were.js';
-import { rhack } from './commands.js';
+import { rhack } from './cmd.js';
 import { ageSpells } from './spell.js';
 import { movemon, settrack } from './monmove.js';
 import { monsterNearby } from './monutil.js';
