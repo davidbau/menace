@@ -17,6 +17,7 @@
 //      ├─ saveYou (Sfo_you)                 ├─ restYou (Sfi_you)
 //      └─ saveObjChn (inventory)            └─ restObjChn (inventory)
 
+import { ynFunction } from './input.js';
 import { mons } from './monsters.js';
 import { def_monsyms } from './symbols.js';
 import { CLASS_SYMBOLS } from './objects.js';
@@ -830,6 +831,27 @@ export function setFlag(key, value) {
     const flags = loadFlags();
     flags[key] = value;
     saveFlags(flags);
+}
+
+// Handle save game (S)
+// C ref: cmd.c dosave()
+export async function handleSave(game) {
+    const { display } = game;
+    const ans = await ynFunction('Save and quit?', 'yn', 'n'.charCodeAt(0), display);
+    if (String.fromCharCode(ans) !== 'y') {
+        display.putstr_message('Never mind.');
+        return { moved: false, tookTime: false };
+    }
+    const ok = saveGame(game);
+    if (ok) {
+        display.putstr_message('Game saved.');
+        // Brief delay so the user sees the message, then reload
+        await new Promise(r => setTimeout(r, 500));
+        window.location.reload();
+    } else {
+        display.putstr_message('Save failed (storage full or unavailable).');
+    }
+    return { moved: false, tookTime: false };
 }
 
 // Backward-compatible aliases

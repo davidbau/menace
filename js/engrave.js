@@ -258,3 +258,10 @@ export async function handleEngrave(player, display) {
 // cf. engrave.c:1731 — feel_engraving(ep): feel engraving (blind)
 // Marks engraving as read/revealed for engravings detectable by touch.
 // TODO: engrave.c:1731 — feel_engraving(): tactile engraving detection
+
+// C ref: hack.c maybe_smudge_engr()
+// On successful movement, attempt to smudge engravings at origin/destination.
+export function maybeSmudgeEngraving(map, x1, y1, x2, y2) {
+    // C ref: u_wipe_engr(1) on movement: only current hero square is wiped.
+    wipe_engr_at(map, x2, y2, 1, false);
+}

@@ -424,4 +424,29 @@ async function handlePay(player, map, display) {
     return { moved: false, tookTime: false };
 }
 
-export { handlePickup, handleLoot, handlePay };
+// Toggle autopickup (@)
+// C ref: options.c dotogglepickup()
+async function handleTogglePickup(game) {
+    const { display } = game;
+
+    // Toggle pickup flag
+    game.flags.pickup = !game.flags.pickup;
+
+    // Build message matching C NetHack format
+    let msg;
+    if (game.flags.pickup) {
+        const pickupTypes = String(game.flags.pickup_types || '');
+        if (pickupTypes.length > 0) {
+            msg = `Autopickup: ON, for ${pickupTypes} objects.`;
+        } else {
+            msg = 'Autopickup: ON, for all objects.';
+        }
+    } else {
+        msg = 'Autopickup: OFF.';
+    }
+
+    display.putstr_message(msg);
+    return { moved: false, tookTime: false };
+}
+
+export { handlePickup, handleLoot, handlePay, handleTogglePickup };

@@ -8,7 +8,8 @@ import {
     COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS, VENOM_CLASS,
     ARM_GLOVES, ARM_BOOTS,
 } from './objects.js';
-import { nhgetch } from './input.js';
+import { nhgetch, getlin } from './input.js';
+import { doname } from './mkobj.js';
 
 // Generic placeholder object indices occupy [0..17] in this port.
 const FIRST_OBJECT = 18;
@@ -296,4 +297,74 @@ export async function handleDiscoveries(game) {
     display.topMessage = null;
     display.messageNeedsMore = false;
     return { moved: false, tookTime: false };
+}
+
+// C ref: do_name.c objtyp_is_callable()
+export function isObjectTypeCallable(obj) {
+    if (!obj) return false;
+    // C ref: do_name.c objtyp_is_callable() requires OBJ_DESCR for most classes.
+    const meta = objectData[obj.otyp] || null;
+    const hasDesc = !!(meta && typeof meta.desc === 'string' && meta.desc.length > 0);
+    if (!hasDesc) return false;
+
+    if (obj.oclass === AMULET_CLASS) {
+        // C excludes real/fake amulet of Yendor from type-calling.
+        const name = String(meta?.name || '').toLowerCase();
+        return !name.includes('amulet of yendor');
+    }
+    return obj.oclass === SCROLL_CLASS
+        || obj.oclass === POTION_CLASS
+        || obj.oclass === WAND_CLASS
+        || obj.oclass === RING_CLASS
+        || obj.oclass === GEM_CLASS
+        || obj.oclass === SPBOOK_CLASS
+        || obj.oclass === ARMOR_CLASS
+        || obj.oclass === TOOL_CLASS
+        || obj.oclass === VENOM_CLASS;
+}
+
+// C ref: do_name.c docallcmd() — #call/#name command prompt
+export async function handleCallObjectTypePrompt(player, display) {
+    const inventory = Array.isArray(player.inventory) ? player.inventory : [];
+    const callChoices = inventory
+        .filter((obj) => isObjectTypeCallable(obj) && obj.invlet)
+        .map((obj) => obj.invlet)
+        .join('');
+    const prompt = callChoices
+        ? `What do you want to call? [${callChoices} or ?*]`
+        : 'What do you want to call? [*]';
+    const replacePromptMessage = () => {
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        display.topMessage = null;
+        display.messageNeedsMore = false;
+    };
+    const isDismissKey = (code) => code === 27 || code === 32;
+
+    while (true) {
+        display.putstr_message(prompt);
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+        if (isDismissKey(ch)) {
+            replacePromptMessage();
+            display.putstr_message('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+        if (c === '?' || c === '*') {
+            continue;
+        }
+
+        const selected = inventory.find((obj) => obj && obj.invlet === c);
+        if (!selected) {
+            continue;
+        }
+        if (!isObjectTypeCallable(selected)) {
+            replacePromptMessage();
+            display.putstr_message('That is a silly thing to call.');
+            return { moved: false, tookTime: false };
+        }
+
+        // C ref: do_name.c docall() uses getlin("Call ...:") for valid type-calls.
+        await getlin(`Call ${doname(selected, player)}:`, display);
+        return { moved: false, tookTime: false };
+    }
 }
