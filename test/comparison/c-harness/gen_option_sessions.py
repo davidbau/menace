@@ -76,7 +76,7 @@ def setup_option_home(option_lines):
             f.write(f'OPTIONS={line}\n')
 
 
-def generate_option_session(seed, option_name, option_value, option_lines, keys, description):
+def generate_option_session(seed, option_name, option_value, option_lines, keys, description, output_override=None):
     """Generate a single option test session.
 
     Args:
@@ -86,6 +86,7 @@ def generate_option_session(seed, option_name, option_value, option_lines, keys,
         option_lines: List of OPTIONS= lines for .nethackrc
         keys: List of (key, action) tuples to send
         description: Human-readable description
+        output_override: If set, write to this path instead of the default
     """
     session_name = f'webhack-option-{seed}-{os.getpid()}'
     tmpdir = tempfile.mkdtemp(prefix='webhack-option-')
@@ -181,7 +182,7 @@ def generate_option_session(seed, option_name, option_value, option_lines, keys,
 
         quit_game(session_name)
 
-        output_path = os.path.join(SESSIONS_DIR, f'seed{seed}_{option_name}_{value_str}.session.json')
+        output_path = output_override or os.path.join(SESSIONS_DIR, f'seed{seed}_{option_name}_{value_str}.session.json')
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         with open(output_path, 'w') as f:
             f.write(compact_session_json(session_data))
@@ -268,22 +269,70 @@ def generate_time_sessions():
     )
 
 
+# Lookup table for individual option_test sessions by (option, value)
+OPTION_SESSION_SPECS = {
+    ('verbose', True):       dict(seed=301, option_lines=['verbose', '!autopickup'],
+                                  keys=[('m', 'menu-prefix'), ('.', 'wait')],
+                                  description='Test verbose option - should show "Next command will..." message'),
+    ('verbose', False):      dict(seed=302, option_lines=['!verbose', '!autopickup'],
+                                  keys=[('m', 'menu-prefix'), ('.', 'wait')],
+                                  description='Test verbose=off - should NOT show "Next command will..." message'),
+    ('DECgraphics', False):  dict(seed=303, option_lines=['!autopickup', 'symset:default'],
+                                  keys=[],
+                                  description='Test DECgraphics=off - should show ASCII walls (| - )'),
+    ('DECgraphics', True):   dict(seed=304, option_lines=['!autopickup', 'symset:DECgraphics'],
+                                  keys=[],
+                                  description='Test DECgraphics=on - should show box-drawing walls'),
+    ('time', True):          dict(seed=305, option_lines=['time', '!autopickup'],
+                                  keys=[],
+                                  description='Test time=on - should show turn counter T:N in status line'),
+    ('time', False):         dict(seed=306, option_lines=['!time', '!autopickup'],
+                                  keys=[],
+                                  description='Test time=off - should NOT show turn counter in status line'),
+}
+
+
 def main():
     if not os.path.isfile(NETHACK_BINARY):
         print(f"Error: nethack binary not found at {NETHACK_BINARY}")
         print(f"Run setup.sh first: bash {os.path.join(SCRIPT_DIR, 'setup.sh')}")
         sys.exit(1)
 
-    if '--all' in sys.argv or '--option' not in sys.argv:
+    # Parse --out and --value flags
+    args = list(sys.argv[1:])
+    out_override = None
+    value_filter = None
+    if '--out' in args:
+        idx = args.index('--out')
+        out_override = args[idx + 1]
+        args = args[:idx] + args[idx+2:]
+    if '--value' in args:
+        idx = args.index('--value')
+        val_str = args[idx + 1].lower()
+        value_filter = val_str in ('true', 'on', '1')
+        args = args[:idx] + args[idx+2:]
+
+    if '--all' in args or '--option' not in args:
         generate_verbose_sessions()
         generate_decgraphics_sessions()
         generate_time_sessions()
         print("\nAll option sessions generated successfully")
-    elif '--option' in sys.argv:
-        idx = sys.argv.index('--option')
-        option = sys.argv[idx + 1] if idx + 1 < len(sys.argv) else None
+    elif '--option' in args:
+        idx = args.index('--option')
+        option = args[idx + 1] if idx + 1 < len(args) else None
 
-        if option == 'verbose':
+        # If --value and --out specified, generate a single targeted session
+        if value_filter is not None and out_override:
+            spec = OPTION_SESSION_SPECS.get((option, value_filter))
+            if not spec:
+                print(f"Unknown option/value: {option}={value_filter}")
+                sys.exit(1)
+            generate_option_session(
+                seed=spec['seed'], option_name=option, option_value=value_filter,
+                option_lines=spec['option_lines'], keys=spec['keys'],
+                description=spec['description'], output_override=out_override,
+            )
+        elif option == 'verbose':
             generate_verbose_sessions()
         elif option == 'DECgraphics':
             generate_decgraphics_sessions()

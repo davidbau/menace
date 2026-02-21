@@ -5,7 +5,7 @@ Uses seed 2 where Valkyrie gets an oil lamp, making discoveries
 interesting (weapons + armor classes are known).
 
 Usage:
-    python3 gen_discoveries_session.py [seed]
+    python3 gen_discoveries_session.py [seed] [--out <path>]
 
 Output: test/comparison/sessions/interface_discoveries.session.json
 """
@@ -28,8 +28,15 @@ compact_session_json = _mod.compact_session_json
 
 
 def main():
-    seed = int(sys.argv[1]) if len(sys.argv) > 1 else 2
-    output = os.path.join(SESSIONS_DIR, 'interface_discoveries.session.json')
+    args = list(sys.argv[1:])
+    out_override = None
+    if '--out' in args:
+        idx = args.index('--out')
+        out_override = args[idx + 1]
+        args = args[:idx] + args[idx+2:]
+
+    seed = int(args[0]) if args else 2
+    output = out_override or os.path.join(SESSIONS_DIR, 'interface_discoveries.session.json')
 
     # Keys: \ (discoveries), then spaces to page through, then final space exits pager
     # run_interface_session with auto_clear_more=False preserves pager pages

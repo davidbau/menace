@@ -401,35 +401,48 @@ def capture_tutorial_prompt_flow(seed=1):
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: gen_interface_sessions.py [--startup|--options|--chargen|--tutorial|--all]")
+        print("Usage: gen_interface_sessions.py [--startup|--options|--chargen|--tutorial|--all] [--out <path>]")
         sys.exit(1)
+
+    # Parse optional --out <path> flag
+    out_override = None
+    args = list(sys.argv[1:])
+    if '--out' in args:
+        idx = args.index('--out')
+        if idx + 1 < len(args):
+            out_override = args[idx + 1]
+            args = args[:idx] + args[idx+2:]
 
     os.makedirs(SESSIONS_DIR, exist_ok=True)
 
-    if sys.argv[1] == '--all':
-        for mode in ['--startup', '--options', '--chargen']:
-            sys.argv[1] = mode
+    mode = args[0] if args else ''
+
+    if mode == '--all':
+        for m in ['--startup', '--options', '--chargen']:
+            sys.argv = [sys.argv[0], m]
             main()
         return
 
-    if sys.argv[1] == '--startup':
+    if mode == '--startup':
         data = capture_startup_sequence()
-        outfile = os.path.join(SESSIONS_DIR, 'interface_startup.session.json')
-    elif sys.argv[1] == '--options':
+        outfile = out_override or os.path.join(SESSIONS_DIR, 'interface_startup.session.json')
+    elif mode == '--options':
         data = capture_options_menu()
-        outfile = os.path.join(SESSIONS_DIR, 'interface_options.session.json')
-    elif sys.argv[1] == '--chargen':
+        outfile = out_override or os.path.join(SESSIONS_DIR, 'interface_options.session.json')
+    elif mode == '--chargen':
         data = capture_complete_chargen()
-        outfile = os.path.join(SESSIONS_DIR, 'interface_chargen.session.json')
-    elif sys.argv[1] == '--tutorial':
+        outfile = out_override or os.path.join(SESSIONS_DIR, 'interface_chargen.session.json')
+    elif mode == '--tutorial':
         data = capture_tutorial_prompt_flow(seed=1)
-        manual_dir = os.path.join(SESSIONS_DIR, 'manual')
-        os.makedirs(manual_dir, exist_ok=True)
-        outfile = os.path.join(manual_dir, 'interface_tutorial.session.json')
+        if not out_override:
+            manual_dir = os.path.join(SESSIONS_DIR, 'manual')
+            os.makedirs(manual_dir, exist_ok=True)
+        outfile = out_override or os.path.join(SESSIONS_DIR, 'manual', 'interface_tutorial.session.json')
     else:
-        print(f"Unknown option: {sys.argv[1]}")
+        print(f"Unknown option: {mode}")
         sys.exit(1)
 
+    os.makedirs(os.path.dirname(outfile), exist_ok=True)
     with open(outfile, 'w') as f:
         f.write(compact_session_json(data))
 
