@@ -1734,6 +1734,15 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         y = pos.y;
     }
 
+    // C ref: makemon.c:1196-1202 — if monster already at position, bail or find adjacent
+    if (map && map.monsterAt(x, y)) {
+        if (!(mmflags & MM_ADJACENTOK)) return null;
+        const pos = enexto_core(x, y, specifiedPtr, map, mmflags);
+        if (!pos) return null;
+        x = pos.x;
+        y = pos.y;
+    }
+
     let ptr;
     if (ptr_or_null === null || ptr_or_null === undefined) {
         // C ref: makemon.c random monster path retries up to 50 times for
