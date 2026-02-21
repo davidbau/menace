@@ -1327,6 +1327,11 @@ export class NetHackGame {
                 if (finishedOcc && typeof finishedOcc.onFinishAfterTurn === 'function') {
                     finishedOcc.onFinishAfterTurn(this);
                 }
+                // Yield to browser event loop so display can paint and input
+                // events can be processed between occupation turns.
+                // C ref: In C NetHack, each occupation turn is a full iteration
+                // of moveloop_core() which includes display refresh.
+                await new Promise(r => setTimeout(r, 0));
                 continue;
             }
 
