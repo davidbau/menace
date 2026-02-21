@@ -8,7 +8,7 @@
 import {
     COLNO, ROWNO, STONE, VWALL, HWALL, TLCORNER, TRCORNER,
     BLCORNER, BRCORNER, CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL,
-    DOOR, CORR, ROOM, STAIRS, LADDER, FOUNTAIN, ALTAR, GRAVE, SINK,
+    DOOR, CORR, ROOM, STAIRS, LADDER, FOUNTAIN, ALTAR, GRAVE, SINK, THRONE,
     SDOOR, SCORR, AIR,
     POOL, WATER, MOAT, IRONBARS, ICE, LAVAWALL,
     D_NODOOR, D_CLOSED, D_ISOPEN, D_LOCKED, D_TRAPPED,
@@ -46,12 +46,22 @@ import {
     RANDOM_CLASS,
 } from './mkobj.js';
 import { makemon, mkclass, rndmonnum_adj, NO_MM_FLAGS, MM_NOGRP, setMakemonRoleContext, setMakemonLevelContext, getMakemonRoleIndex, setMakemonInMklevContext } from './makemon.js';
-import { mons, S_HUMAN, S_UNICORN, PM_ELF, PM_HUMAN, PM_GNOME, PM_DWARF, PM_ORC, PM_ARCHEOLOGIST, PM_WIZARD, PM_MINOTAUR, PM_GIANT_SPIDER } from './monsters.js';
+import {
+    mons, S_HUMAN, S_UNICORN, S_DRAGON, S_GIANT, S_TROLL, S_CENTAUR, S_ORC, S_GNOME, S_KOBOLD,
+    S_VAMPIRE, S_ZOMBIE, S_DEMON,
+    PM_ELF, PM_HUMAN, PM_GNOME, PM_DWARF, PM_ORC, PM_ARCHEOLOGIST, PM_WIZARD, PM_MINOTAUR, PM_GIANT_SPIDER,
+    PM_SOLDIER, PM_SERGEANT, PM_LIEUTENANT, PM_CAPTAIN,
+    PM_BUGBEAR, PM_HOBGOBLIN,
+    PM_QUEEN_BEE, PM_KILLER_BEE, PM_LEPRECHAUN, PM_COCKATRICE,
+    PM_SOLDIER_ANT, PM_FIRE_ANT, PM_GIANT_ANT,
+    PM_GHOST, PM_WRAITH,
+    PM_OGRE_TYRANT, PM_ELVEN_MONARCH, PM_DWARF_RULER, PM_GNOME_RULER,
+} from './monsters.js';
 import { init_objects } from './o_init.js';
 import { roles } from './player.js';
 import {
     ARROW, DART, ROCK, BOULDER, LARGE_BOX, CHEST, GOLD_PIECE, CORPSE,
-    STATUE, TALLOW_CANDLE, WAX_CANDLE, BELL, KELP_FROND,
+    STATUE, TALLOW_CANDLE, WAX_CANDLE, BELL, KELP_FROND, LUMP_OF_ROYAL_JELLY,
     MACE, TWO_HANDED_SWORD, BOW, FOOD_RATION, CRAM_RATION, LEMBAS_WAFER, RING_MAIL, PLATE_MAIL, FAKE_AMULET_OF_YENDOR,
     POT_WATER, EXPENSIVE_CAMERA, EGG, CREAM_PIE, MELON, ACID_VENOM, BLINDING_VENOM,
     WEAPON_CLASS, TOOL_CLASS, FOOD_CLASS, GEM_CLASS, WAND_CLASS,
@@ -183,6 +193,8 @@ import { ENGRAVE_FILE_TEXT } from './engrave_data.js';
 import { shtypes, stock_room } from './shknam.js';
 import { obj_resists } from './objdata.js';
 import { placeFloorObject } from './floor_objects.js';
+import { mpickobj } from './monutil.js';
+import { set_corpsenm } from './mkobj.js';
 import { getnow } from './calendar.js';
 
 // Module-level ubirthday surrogate for nameshk() — set by setGameSeed() before level gen.
@@ -3809,17 +3821,203 @@ function place_gold_stack(map, x, y, amount) {
     placeFloorObject(map, gold);
 }
 
-// C ref: mkroom.c fill_zoo() — currently implements ZOO branch.
+// C ref: mkroom.c squadmon() — return soldier type for BARRACKS.
+function squadmon(depth) {
+    const difficulty = Math.max(Math.trunc(depth), 1);
+    const squadprob = [
+        { pm: PM_SOLDIER, prob: 80 },
+        { pm: PM_SERGEANT, prob: 15 },
+        { pm: PM_LIEUTENANT, prob: 4 },
+        { pm: PM_CAPTAIN, prob: 1 },
+    ];
+    const sel_prob = rnd(80 + difficulty);
+    let cpro = 0;
+    for (let i = 0; i < squadprob.length; i++) {
+        cpro += squadprob[i].prob;
+        if (cpro > sel_prob) {
+            return mons[squadprob[i].pm];
+        }
+    }
+    // Fallback: last entry (C: ROLL_FROM)
+    return mons[squadprob[squadprob.length - 1].pm];
+}
+
+// C ref: mkroom.c courtmon() — return monster for COURT rooms.
+function courtmon(depth) {
+    const difficulty = Math.max(Math.trunc(depth), 1);
+    const i = rn2(60) + rn2(3 * difficulty);
+    if (i > 100) return mkclass(S_DRAGON, 0, depth);
+    else if (i > 95) return mkclass(S_GIANT, 0, depth);
+    else if (i > 85) return mkclass(S_TROLL, 0, depth);
+    else if (i > 75) return mkclass(S_CENTAUR, 0, depth);
+    else if (i > 60) return mkclass(S_ORC, 0, depth);
+    else if (i > 45) return mons[PM_BUGBEAR];
+    else if (i > 30) return mons[PM_HOBGOBLIN];
+    else if (i > 15) return mkclass(S_GNOME, 0, depth);
+    else return mkclass(S_KOBOLD, 0, depth);
+}
+
+// C ref: mkroom.c morguemon() — return undead for MORGUE rooms.
+function morguemon(depth) {
+    const difficulty = Math.max(Math.trunc(depth), 1);
+    const i = rn2(100);
+    const hd = rn2(difficulty);
+    // Note: Inhell/In_endgame checks skipped — we don't generate morgues there in session tests.
+    // If hd > 10 && i < 10, C would call ndemon(A_NONE) or mkclass(S_DEMON) for Gehennom.
+    // For normal dungeon, fall through to ghost/wraith/zombie.
+    if (hd > 8 && i > 85) return mkclass(S_VAMPIRE, 0, depth);
+    if (i < 20) return mons[PM_GHOST];
+    else if (i < 40) return mons[PM_WRAITH];
+    else return mkclass(S_ZOMBIE, 0, depth);
+}
+
+// C ref: mkroom.c antholemon() — return ant type for ANTHOLE rooms.
+// Deterministic (no RNG).
+function antholemon(depth) {
+    const difficulty = Math.max(Math.trunc(depth), 1);
+    const indx = Math.trunc(_gameUbirthday % 3) + difficulty;
+    // C tries up to 3 times if monster is genocided; we skip genocide checks.
+    switch (indx % 3) {
+    case 0: return mons[PM_SOLDIER_ANT];
+    case 1: return mons[PM_FIRE_ANT];
+    default: return mons[PM_GIANT_ANT];
+    }
+}
+
+// C ref: mkroom.c mk_zoo_thronemon() — place throne ruler for COURT rooms.
+function mk_zoo_thronemon(map, x, y, depth) {
+    const difficulty = Math.max(Math.trunc(depth), 1);
+    const i = rnd(difficulty);
+    const pm = (i > 9) ? PM_OGRE_TYRANT
+        : (i > 5) ? PM_ELVEN_MONARCH
+        : (i > 2) ? PM_DWARF_RULER
+        : PM_GNOME_RULER;
+    const mon = makemon(mons[pm], x, y, NO_MM_FLAGS, depth, map);
+    if (mon) {
+        mon.sleeping = true;
+        mon.mpeaceful = false;
+        // C: set_malign(mon) — adjusts alignment; no RNG calls.
+        // C: mongets(mon, MACE) — give sceptre
+        mongets_zoo(mon, MACE);
+    }
+}
+
+// C ref: makemon.c mongets() — simplified for zoo context (gives monster an item).
+// The key RNG consumption is from mksobj(otyp, TRUE, FALSE).
+function mongets_zoo(mon, otyp) {
+    if (!otyp) return null;
+    const otmp = mksobj(otyp, true, false);
+    if (otmp) {
+        mpickobj(mon, otmp);
+    }
+    return otmp;
+}
+
+// C ref: mkobj.c mksobj_at() — make specific object at location.
+function mksobj_at(map, otyp, x, y, init, artif) {
+    const otmp = mksobj(otyp, init, artif);
+    if (otmp) {
+        otmp.ox = x;
+        otmp.oy = y;
+        placeFloorObject(map, otmp);
+    }
+    return otmp;
+}
+
+// C ref: mkobj.c mkobj_at() — make random class object at location.
+function mkobj_at(map, oclass, x, y, artif) {
+    const otmp = mkobj(oclass, artif);
+    if (otmp) {
+        otmp.ox = x;
+        otmp.oy = y;
+        placeFloorObject(map, otmp);
+    }
+    return otmp;
+}
+
+// C ref: mkobj.c mk_tt_object() — make CORPSE or STATUE with scoreboard name.
+// Since we have no scoreboard, always falls through to random player class.
+function mk_tt_object(map, objtype, x, y) {
+    const initialize_it = (objtype !== STATUE);
+    const otmp = mksobj_at(map, objtype, x, y, initialize_it, false);
+    if (otmp) {
+        // C: tt_oname() returns null if no scoreboard → random player class
+        const pm = rn1(PM_WIZARD - PM_ARCHEOLOGIST + 1, PM_ARCHEOLOGIST);
+        set_corpsenm(otmp, pm);
+    }
+    return otmp;
+}
+
+// C ref: engrave.c make_grave() — create a grave tile with random epitaph.
+function make_grave(map, x, y) {
+    const loc = map.at(x, y);
+    if (!loc) return;
+    if (loc.typ !== ROOM && loc.typ !== GRAVE) return;
+    if (map.trapAt && map.trapAt(x, y)) return;
+    loc.typ = GRAVE;
+    // C: get_rnd_text(EPITAPHFILE, buf, rn2, MD_PAD_RUMORS)
+    const text = random_epitaph_text();
+    make_engr_at(map, x, y, text, 0, 0); // HEADSTONE type
+}
+
+// C ref: mkroom.c fill_zoo() — fill a zoo-type room with appropriate monsters/objects.
 function fill_zoo_room(map, sroom, depth) {
-    if (sroom.rtype !== ZOO) return;
+    const type = sroom.rtype;
     const door = Array.isArray(map.doors) ? map.doors[sroom.fdoor] : null;
     const difficulty = Math.max(Math.trunc(depth), 1);
-    let goldlim = 500 * difficulty;
+    let goldlim = 0;
+    let tx = 0, ty = 0;
 
+    // Pre-loop setup per room type (C ref: mkroom.c:289-322)
+    switch (type) {
+    case COURT:
+        // For maze levels, look for existing throne tile
+        if (map.flags && map.flags.is_maze_lev) {
+            let found = false;
+            for (let sx = sroom.lx; sx <= sroom.hx && !found; sx++) {
+                for (let sy = sroom.ly; sy <= sroom.hy && !found; sy++) {
+                    const loc = map.at(sx, sy);
+                    if (loc && loc.typ === THRONE) {
+                        tx = sx; ty = sy; found = true;
+                    }
+                }
+            }
+            if (!found) {
+                // Fallback: somexyspace loop
+                let i = 100;
+                do {
+                    const pos = somexyspace(map, sroom);
+                    if (pos) { tx = pos.x; ty = pos.y; }
+                } while (occupied(map, tx, ty) && --i > 0);
+            }
+        } else {
+            let i = 100;
+            do {
+                const pos = somexyspace(map, sroom);
+                if (pos) { tx = pos.x; ty = pos.y; }
+            } while (occupied(map, tx, ty) && --i > 0);
+        }
+        mk_zoo_thronemon(map, tx, ty, depth);
+        break;
+    case BEEHIVE:
+        tx = sroom.lx + Math.trunc((sroom.hx - sroom.lx + 1) / 2);
+        ty = sroom.ly + Math.trunc((sroom.hy - sroom.ly + 1) / 2);
+        // C: irregular room center check — skip for now (rare)
+        break;
+    case ZOO:
+    case LEPREHALL:
+        goldlim = 500 * difficulty;
+        break;
+    }
+
+    // Main cell loop (C ref: mkroom.c:324-419)
     for (let sx = sroom.lx; sx <= sroom.hx; sx++) {
         for (let sy = sroom.ly; sy <= sroom.hy; sy++) {
             const loc = map.at(sx, sy);
-            if (!loc || loc.typ <= DOOR) continue; // SPACE_POS
+            if (!loc) continue;
+
+            // SPACE_POS check + door adjacency skip
+            if (loc.typ <= DOOR) continue;
             if (sroom.doorct && door
                 && ((sx === sroom.lx && door.x === sx - 1)
                     || (sx === sroom.hx && door.x === sx + 1)
@@ -3828,27 +4026,110 @@ function fill_zoo_room(map, sroom, depth) {
                 continue;
             }
 
-            const mon = makemon(null, sx, sy, MM_NOGRP, depth, map);
-            if (mon) mon.sleeping = true;
+            // Don't place monster on explicitly placed throne
+            if (type === COURT && loc.typ === THRONE) continue;
 
-            let amountScale;
-            if (sroom.doorct && door) {
-                const dx = sx - door.x;
-                const dy = sy - door.y;
-                const distval = (dx * dx) + (dy * dy);
-                amountScale = distval * distval;
-            } else {
-                amountScale = goldlim;
+            // Select monster type per room type (C ref: mkroom.c:345-361)
+            let monType;
+            if (type === COURT) monType = courtmon(depth);
+            else if (type === BARRACKS) monType = squadmon(depth);
+            else if (type === MORGUE) monType = morguemon(depth);
+            else if (type === BEEHIVE) monType = (sx === tx && sy === ty) ? mons[PM_QUEEN_BEE] : mons[PM_KILLER_BEE];
+            else if (type === LEPREHALL) monType = mons[PM_LEPRECHAUN];
+            else if (type === COCKNEST) monType = mons[PM_COCKATRICE];
+            else if (type === ANTHOLE) monType = antholemon(depth);
+            else monType = null; // ZOO: random
+
+            // C: MM_ASLEEP | MM_NOGRP — MM_ASLEEP isn't defined in JS, use MM_NOGRP + set sleeping
+            const mon = makemon(monType, sx, sy, MM_NOGRP, depth, map);
+            if (mon) {
+                mon.sleeping = true;
+                if (type === COURT && mon.mpeaceful) {
+                    mon.mpeaceful = false;
+                    // C: set_malign(mon) — no RNG
+                }
             }
-            if (amountScale >= goldlim) amountScale = 5 * difficulty;
-            goldlim -= amountScale;
-            place_gold_stack(map, sx, sy, rn1(Math.max(amountScale, 1), 10));
+
+            // Per-cell object placement (C ref: mkroom.c:370-419)
+            switch (type) {
+            case ZOO:
+            case LEPREHALL: {
+                let i;
+                if (sroom.doorct && door) {
+                    const dx = sx - door.x;
+                    const dy = sy - door.y;
+                    const distval = (dx * dx) + (dy * dy);
+                    i = distval * distval;
+                } else {
+                    i = goldlim;
+                }
+                if (i >= goldlim) i = 5 * difficulty;
+                goldlim -= i;
+                place_gold_stack(map, sx, sy, rn1(Math.max(i, 1), 10));
+                break;
+            }
+            case MORGUE:
+                if (!rn2(5)) mk_tt_object(map, CORPSE, sx, sy);
+                if (!rn2(10)) mksobj_at(map, rn2(3) ? LARGE_BOX : CHEST, sx, sy, true, false);
+                if (!rn2(5)) make_grave(map, sx, sy);
+                break;
+            case BEEHIVE:
+                if (!rn2(3)) mksobj_at(map, LUMP_OF_ROYAL_JELLY, sx, sy, true, false);
+                break;
+            case BARRACKS:
+                if (!rn2(20)) mksobj_at(map, rn2(3) ? LARGE_BOX : CHEST, sx, sy, true, false);
+                break;
+            case COCKNEST:
+                if (!rn2(3)) {
+                    const sobj = mk_tt_object(map, STATUE, sx, sy);
+                    if (sobj) {
+                        // C: add items to statue container
+                        for (let ci = rn2(5); ci; ci--) {
+                            const cobj = mkobj(RANDOM_CLASS, false);
+                            if (cobj) {
+                                if (!sobj.cobj) sobj.cobj = [];
+                                sobj.cobj.push(cobj);
+                            }
+                        }
+                        sobj.owt = weight(sobj);
+                    }
+                }
+                break;
+            case ANTHOLE:
+                if (!rn2(3)) mkobj_at(map, FOOD_CLASS, sx, sy, false);
+                break;
+            }
         }
+    }
+
+    // Post-loop actions (C ref: mkroom.c:421-452)
+    switch (type) {
+    case COURT: {
+        const loc = map.at(tx, ty);
+        if (loc) loc.typ = THRONE;
+        const chestPos = somexyspace(map, sroom);
+        const gold = mksobj(GOLD_PIECE, true, false);
+        if (gold) {
+            gold.quan = rn1(50 * difficulty, 10);
+            gold.owt = weight(gold);
+            // Royal coffers: chest with gold
+            if (chestPos) {
+                const chest = mksobj_at(map, CHEST, chestPos.x, chestPos.y, true, false);
+                if (chest) {
+                    if (!chest.cobj) chest.cobj = [];
+                    chest.cobj.push(gold);
+                    chest.owt = weight(chest);
+                    chest.spe = 2; // findable later
+                }
+            }
+        }
+        break;
+    }
     }
 }
 
 // C ref: sp_lev.c fill_special_room()
-function fill_special_room(map, croom, depth) {
+export function fill_special_room(map, croom, depth) {
     if (!croom) return;
     for (let i = 0; i < croom.nsubrooms; i++) {
         fill_special_room(map, croom.sbrooms[i], depth);
@@ -3879,7 +4160,14 @@ function fill_special_room(map, croom, depth) {
                 }
             }
             break;
+        case COURT:
         case ZOO:
+        case BEEHIVE:
+        case ANTHOLE:
+        case COCKNEST:
+        case LEPREHALL:
+        case MORGUE:
+        case BARRACKS:
             fill_zoo_room(map, croom, depth);
             break;
         default:
