@@ -665,75 +665,76 @@ export const PM_DEMOGORGON = 310;
 export const PM_DEATH = 311;
 export const PM_PESTILENCE = 312;
 export const PM_FAMINE = 313;
-export const PM_DJINNI = 314;
-export const PM_JELLYFISH = 315;
-export const PM_PIRANHA = 316;
-export const PM_SHARK = 317;
-export const PM_GIANT_EEL = 318;
-export const PM_ELECTRIC_EEL = 319;
-export const PM_KRAKEN = 320;
-export const PM_NEWT = 321;
-export const PM_GECKO = 322;
-export const PM_IGUANA = 323;
-export const PM_BABY_CROCODILE = 324;
-export const PM_LIZARD = 325;
-export const PM_CHAMELEON = 326;
-export const PM_CROCODILE = 327;
-export const PM_SALAMANDER = 328;
-export const PM_LONG_WORM_TAIL = 329;
-export const PM_ARCHEOLOGIST = 330;
-export const PM_BARBARIAN = 331;
-export const PM_CAVE_DWELLER = 332;
-export const PM_HEALER = 333;
-export const PM_KNIGHT = 334;
-export const PM_MONK = 335;
-export const PM_CLERIC = 336;
-export const PM_RANGER = 337;
-export const PM_ROGUE = 338;
-export const PM_SAMURAI = 339;
-export const PM_TOURIST = 340;
-export const PM_VALKYRIE = 341;
-export const PM_WIZARD = 342;
-export const PM_LORD_CARNARVON = 343;
-export const PM_PELIAS = 344;
-export const PM_SHAMAN_KARNOV = 345;
-export const PM_HIPPOCRATES = 346;
-export const PM_KING_ARTHUR = 347;
-export const PM_GRAND_MASTER = 348;
-export const PM_ARCH_PRIEST = 349;
-export const PM_ORION = 350;
-export const PM_MASTER_OF_THIEVES = 351;
-export const PM_LORD_SATO = 352;
-export const PM_TWOFLOWER = 353;
-export const PM_NORN = 354;
-export const PM_NEFERET_THE_GREEN = 355;
-export const PM_MINION_OF_HUHETOTL = 356;
-export const PM_THOTH_AMON = 357;
-export const PM_CHROMATIC_DRAGON = 358;
-export const PM_CYCLOPS = 359;
-export const PM_IXOTH = 360;
-export const PM_MASTER_KAEN = 361;
-export const PM_NALZOK = 362;
-export const PM_SCORPIUS = 363;
-export const PM_MASTER_ASSASSIN = 364;
-export const PM_ASHIKAGA_TAKAUJI = 365;
-export const PM_LORD_SURTUR = 366;
-export const PM_DARK_ONE = 367;
-export const PM_STUDENT = 368;
-export const PM_CHIEFTAIN = 369;
-export const PM_NEANDERTHAL = 370;
-export const PM_ATTENDANT = 371;
-export const PM_PAGE = 372;
-export const PM_ABBOT = 373;
-export const PM_ACOLYTE = 374;
-export const PM_HUNTER = 375;
-export const PM_THUG = 376;
-export const PM_NINJA = 377;
-export const PM_ROSHI = 378;
-export const PM_GUIDE = 379;
-export const PM_WARRIOR = 380;
-export const PM_APPRENTICE = 381;
-export const NUMMONS = 382;
+export const PM_MAIL_DAEMON = 314;
+export const PM_DJINNI = 315;
+export const PM_JELLYFISH = 316;
+export const PM_PIRANHA = 317;
+export const PM_SHARK = 318;
+export const PM_GIANT_EEL = 319;
+export const PM_ELECTRIC_EEL = 320;
+export const PM_KRAKEN = 321;
+export const PM_NEWT = 322;
+export const PM_GECKO = 323;
+export const PM_IGUANA = 324;
+export const PM_BABY_CROCODILE = 325;
+export const PM_LIZARD = 326;
+export const PM_CHAMELEON = 327;
+export const PM_CROCODILE = 328;
+export const PM_SALAMANDER = 329;
+export const PM_LONG_WORM_TAIL = 330;
+export const PM_ARCHEOLOGIST = 331;
+export const PM_BARBARIAN = 332;
+export const PM_CAVE_DWELLER = 333;
+export const PM_HEALER = 334;
+export const PM_KNIGHT = 335;
+export const PM_MONK = 336;
+export const PM_CLERIC = 337;
+export const PM_RANGER = 338;
+export const PM_ROGUE = 339;
+export const PM_SAMURAI = 340;
+export const PM_TOURIST = 341;
+export const PM_VALKYRIE = 342;
+export const PM_WIZARD = 343;
+export const PM_LORD_CARNARVON = 344;
+export const PM_PELIAS = 345;
+export const PM_SHAMAN_KARNOV = 346;
+export const PM_HIPPOCRATES = 347;
+export const PM_KING_ARTHUR = 348;
+export const PM_GRAND_MASTER = 349;
+export const PM_ARCH_PRIEST = 350;
+export const PM_ORION = 351;
+export const PM_MASTER_OF_THIEVES = 352;
+export const PM_LORD_SATO = 353;
+export const PM_TWOFLOWER = 354;
+export const PM_NORN = 355;
+export const PM_NEFERET_THE_GREEN = 356;
+export const PM_MINION_OF_HUHETOTL = 357;
+export const PM_THOTH_AMON = 358;
+export const PM_CHROMATIC_DRAGON = 359;
+export const PM_CYCLOPS = 360;
+export const PM_IXOTH = 361;
+export const PM_MASTER_KAEN = 362;
+export const PM_NALZOK = 363;
+export const PM_SCORPIUS = 364;
+export const PM_MASTER_ASSASSIN = 365;
+export const PM_ASHIKAGA_TAKAUJI = 366;
+export const PM_LORD_SURTUR = 367;
+export const PM_DARK_ONE = 368;
+export const PM_STUDENT = 369;
+export const PM_CHIEFTAIN = 370;
+export const PM_NEANDERTHAL = 371;
+export const PM_ATTENDANT = 372;
+export const PM_PAGE = 373;
+export const PM_ABBOT = 374;
+export const PM_ACOLYTE = 375;
+export const PM_HUNTER = 376;
+export const PM_THUG = 377;
+export const PM_NINJA = 378;
+export const PM_ROSHI = 379;
+export const PM_GUIDE = 380;
+export const PM_WARRIOR = 381;
+export const PM_APPRENTICE = 382;
+export const NUMMONS = 383;
 export const NON_PM = -1;
 export const LOW_PM = 0;
 export const HIGH_PM = 381;
@@ -5567,7 +5568,21 @@ export const mons = [
     flags3: M3_INFRAVISIBLE | M3_INFRAVISION | M3_DISPLACES,
     difficulty: 34, color: HI_OVERLORD
   },
-  { // PM_DJINNI (314) - monsters.h line 3194
+  { // PM_MAIL_DAEMON (314) - monsters.h line 3177 (MAIL_STRUCTURES)
+    name: 'mail daemon',
+    symbol: S_DEMON,
+    level: 56, speed: 24, ac: 10, mr: 127, align: 0,
+    geno: G_NOGEN | G_NOCORPSE,
+    attacks: [],
+    weight: 600, nutrition: 300,
+    sound: MS_SILENT, size: MZ_HUMAN,
+    mr1: MR_FIRE | MR_COLD | MR_ELEC | MR_SLEEP | MR_POISON | MR_STONE, mr2: 0,
+    flags1: M1_FLY | M1_SWIM | M1_BREATHLESS | M1_SEE_INVIS | M1_HUMANOID | M1_POIS,
+    flags2: M2_NOPOLY | M2_STALK | M2_PEACEFUL,
+    flags3: M3_INFRAVISIBLE | M3_INFRAVISION,
+    difficulty: 26, color: CLR_BRIGHT_BLUE
+  },
+  { // PM_DJINNI (315) - monsters.h line 3194
     name: 'djinni',
     symbol: S_DEMON,
     level: 7, speed: 12, ac: 4, mr: 30, align: 0,
