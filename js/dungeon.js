@@ -2719,12 +2719,7 @@ function mk_trap_statue(map, x, y, depth = 1) {
 
     if (statueMndx < 0 || !mons[statueMndx]) return;
 
-    const statue = mkcorpstat(STATUE, statueMndx, false);
-    if (statue) {
-        statue.ox = x;
-        statue.oy = y;
-        placeFloorObject(map, statue);
-    }
+    const statue = mkcorpstat(STATUE, statueMndx, false, x, y, map);
 
     const mtmp = makemon(statueMndx, 0, 0, NO_MM_FLAGS, depth, map);
     if (!mtmp) return;
@@ -3090,11 +3085,10 @@ function mktrap_victim(map, trap, depth) {
 
     // C ref: mklev.c:1921 — mkcorpstat(CORPSE, NULL, &mons[victim_mnum], ...)
     // Uses mkcorpstat which handles special_corpse restart logic for start_corpse_timeout
-    otmp = mkcorpstat(CORPSE, victim_mnum, true);
+    otmp = mkcorpstat(CORPSE, victim_mnum, true, x, y, map);
     // C ref: mklev.c:1922 — age corpse so it's too old to safely eat
     // TAINT_AGE=50; subtracting 51 makes (age + 50 <= moves) true at game start
     otmp.age -= (TAINT_AGE + 1);
-    placeObj(otmp);
 }
 
 // C ref: mkroom.c find_okay_roompos() -- find non-occupied, non-bydoor pos

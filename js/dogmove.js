@@ -20,7 +20,6 @@ import { observeObject } from './discovery.js';
 import { dogfood, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT,
          UNDEF } from './dog.js';
 import { couldsee, m_cansee, do_clear_area } from './vision.js';
-import { placeFloorObject } from './floor_objects.js';
 import { is_animal, is_mindless, nohands, nonliving, nolimbs, unsolid,
          carnivorous, herbivorous, is_metallivore,
          monNam } from './mondata.js';
@@ -1247,12 +1246,9 @@ export function dog_move(mon, map, player, display, fov, after = false, game = n
                             }
                             if (petCorpseChanceRoll(target) === 0
                                 && !(((target?.type?.geno || 0) & G_NOCORPSE) !== 0)) {
-                                const corpse = mkcorpstat(CORPSE, target.mndx || 0, true);
+                                const corpse = mkcorpstat(CORPSE, target.mndx || 0, true, target.mx, target.my, map);
                                 // C ref: corpse age should reflect current move count.
                                 corpse.age = turnCount;
-                                corpse.ox = target.mx;
-                                corpse.oy = target.my;
-                                placeFloorObject(map, corpse);
                             }
                             const victimLevel = Number.isInteger(target.m_lev) ? target.m_lev
                                 : (Number.isInteger(target.mlevel) ? target.mlevel

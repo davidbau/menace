@@ -1584,8 +1584,7 @@ function medusa_fixup(map) {
             otmp = mk_tt_statue(x, y);
         } else {
             // Medusa statues don't contain books in this branch.
-            otmp = mkcorpstat(STATUE, -1, false);
-            if (otmp) placeObjectAt(otmp, x, y);
+            otmp = mkcorpstat(STATUE, -1, false, x, y, levelState.map);
         }
     }
     if (otmp) {

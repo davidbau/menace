@@ -643,13 +643,9 @@ function handleMonsterKilled(player, monster, display, map) {
     const createCorpse = !rn2(corpsetmp);
 
     if (createCorpse) {
-        const corpse = mkcorpstat(CORPSE, monster.mndx || 0, true);
+        const corpse = mkcorpstat(CORPSE, monster.mndx || 0, true,
+            map ? monster.mx : 0, map ? monster.my : 0, map);
         corpse.age = Math.max((player?.turns || 0) + 1, 1);
-        if (map) {
-            corpse.ox = monster.mx;
-            corpse.oy = monster.my;
-            placeFloorObject(map, corpse);
-        }
     }
 
     return true;

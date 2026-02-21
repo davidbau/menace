@@ -3,6 +3,7 @@
 // C ref: mkobj.c — object creation, class initialization, containers
 
 import { rn2, rnd, rn1, rne, rnz, d, getRngCallCount, pushRngLogEntry } from './rng.js';
+import { placeFloorObject } from './floor_objects.js';
 import { isObjectNameKnown } from './discovery.js';
 import {
     objectData, bases, oclass_prob_totals, mkobjprobs, NUM_OBJECTS,
@@ -834,8 +835,17 @@ export function set_corpsenm(obj, id) {
 // C ref: mkobj.c mkcorpstat() — create a corpse or statue with specific monster type
 // ptr_mndx: monster index to override corpsenm (-1 for random/no override)
 // init: whether to call mksobj_init (CORPSTAT_INIT flag)
-export function mkcorpstat(objtype, ptr_mndx, init) {
+// x, y, map: when provided with non-zero x,y, places object at (x,y) via
+//   mksobj_at equivalent (matching C where mkcorpstat calls mksobj_at internally).
+//   This ensures ^place event is logged before ^corpse, matching C event order.
+export function mkcorpstat(objtype, ptr_mndx, init, x = 0, y = 0, map = null) {
     const otmp = mksobj(objtype, init, false);
+    // C: when x,y are non-zero, mkcorpstat calls mksobj_at which places via place_object
+    if (x && y && map) {
+        otmp.ox = x;
+        otmp.oy = y;
+        placeFloorObject(map, otmp);
+    }
     if (ptr_mndx >= 0) {
         const old_corpsenm = otmp.corpsenm;
         otmp.corpsenm = ptr_mndx;
