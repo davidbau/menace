@@ -6622,6 +6622,15 @@ export function finalize_level() {
         // internal mineralize checks decide which deposits actually apply.
         dungeonMineralize(levelState.map, depth);
 
+        // C ref: mklev.c:1547 — level_finalize_topology() sets gi.in_mklev = FALSE
+        // after mineralize but before fill_special_room. This affects
+        // may_generate_eroded: at moves<=1 with in_mklev=FALSE, erosion is
+        // suppressed for objects created during fill_zoo/fill_special_room.
+        if (levelState._mklevContextEntered) {
+            leaveMklevContext();
+            levelState._mklevContextEntered = false;
+        }
+
         // C ref: sp_lev.c:6055-6057 — lspo_finalize_level() fills special rooms
         // after level_finalize_topology() (which includes bound_digging + mineralize).
         if (levelState.map.nroom > 0) {
