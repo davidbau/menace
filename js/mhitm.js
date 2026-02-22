@@ -13,28 +13,27 @@
 //     gulpmm (engulf), explmm (explosion).
 //   mdamagem(): apply actual damage and special effects (AT_CLNC, AT_STNG, etc.)
 //
-// JS implementations (partial — RNG parity in dogmove.js):
-//   dogmove.js:829 — to-hit roll RNG parity (mhitm.c mattackm to-hit roll)
-//   dogmove.js:1192-1344 — pet combat vs monsters (partial mattackm paths)
-//   mon.js:450 — passivemm() RNG-only probe for pet melee path
-//   monutil.js:78 — hitmm() generic "hits" for AT_KICK
-// Full mattackm/mdamagem/all special effects → implemented below.
+// Shared mattackm/mdamagem used by all m-vs-m combat paths including
+// pet combat (dogmove.js) and conflict (fightm).
 
-import { rn2, rnd, d } from './rng.js';
+import { rn2, rnd, d, c_d } from './rng.js';
 import { distmin } from './hacklib.js';
 import { monnear, mondead, monAttackName } from './monutil.js';
 import {
-    monNam, touch_petrifies, unsolid, resists_fire, resists_cold,
+    monNam, monDisplayName, touch_petrifies, unsolid, resists_fire, resists_cold,
     resists_elec, resists_acid, resists_sleep, resists_ston,
     nonliving,
 } from './mondata.js';
 import {
     AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG,
     AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA,
-    AT_SPIT, AT_BOOM,
+    AT_SPIT, AT_BOOM, G_NOCORPSE,
     AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE,
     AD_ELEC, AD_WRAP, AD_STCK, AD_DGST,
 } from './monsters.js';
+import { corpse_chance } from './mon.js';
+import { mkcorpstat } from './mkobj.js';
+import { CORPSE } from './objects.js';
 import {
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED,
     M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
@@ -199,6 +198,10 @@ export function passivemm(magr, mdef, mhitb, mdead, mwep, map) {
     let mhit = mhitb ? M_ATTK_HIT : M_ATTK_MISS;
 
     // Find the AT_NONE (passive) attack
+    // C ref: in C, unused attack slots are NO_ATTK = {AT_NONE, AD_NONE, 0, 0}.
+    // JS attacks arrays are compact (no NO_ATTK padding), so if no explicit
+    // AT_NONE passive is found but attacks.length < NATTK, synthesize a NO_ATTK
+    // entry to match C's behavior (which still consumes rn2(3) for the no-op).
     let passiveAttk = null;
     for (let i = 0; i < attacks.length; i++) {
         if (attacks[i].type === AT_NONE) {
@@ -207,7 +210,11 @@ export function passivemm(magr, mdef, mhitb, mdead, mwep, map) {
         }
         if (i >= NATTK) return (mdead | mhit);
     }
-    if (!passiveAttk) return (mdead | mhit);
+    if (!passiveAttk) {
+        if (attacks.length >= NATTK) return (mdead | mhit);
+        // Synthesize NO_ATTK: C would find AT_NONE/AD_PHYS(=AD_NONE)/0/0
+        passiveAttk = { type: AT_NONE, damage: AD_PHYS, dice: 0, sides: 0 };
+    }
 
     // Roll damage
     let tmp;
@@ -305,7 +312,7 @@ export function passivemm(magr, mdef, mhitb, mdead, mwep, map) {
 // ============================================================================
 
 // cf. mhitm.c:643 — hitmm(magr, mdef, mattk, mwep, dieroll)
-function hitmm(magr, mdef, mattk, mwep, dieroll, display, vis, map) {
+function hitmm(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx) {
     pre_mm_attack(magr, mdef);
 
     // Display hit message
@@ -325,7 +332,7 @@ function hitmm(magr, mdef, mattk, mwep, dieroll, display, vis, map) {
         );
     }
 
-    return mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map);
+    return mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx);
 }
 
 
@@ -334,13 +341,13 @@ function hitmm(magr, mdef, mattk, mwep, dieroll, display, vis, map) {
 // ============================================================================
 
 // cf. mhitm.c:735 — gazemm(magr, mdef, mattk)
-function gazemm(magr, mdef, mattk, display, vis, map) {
+function gazemm(magr, mdef, mattk, display, vis, map, ctx) {
     // Simplified: gaze attacks between monsters
     if (magr.mcan || !mdef.mcansee) {
         return M_ATTK_MISS;
     }
     // For blinding gaze (Archon), delegate to adtyping
-    return mdamagem(magr, mdef, mattk, null, 0, display, vis, map);
+    return mdamagem(magr, mdef, mattk, null, 0, display, vis, map, ctx);
 }
 
 
@@ -349,10 +356,10 @@ function gazemm(magr, mdef, mattk, display, vis, map) {
 // ============================================================================
 
 // cf. mhitm.c:969 — explmm(magr, mdef, mattk)
-function explmm(magr, mdef, mattk, display, vis, map) {
+function explmm(magr, mdef, mattk, display, vis, map, ctx) {
     if (magr.mcan) return M_ATTK_MISS;
 
-    let result = mdamagem(magr, mdef, mattk, null, 0, display, vis, map);
+    let result = mdamagem(magr, mdef, mattk, null, 0, display, vis, map, ctx);
 
     // Kill off aggressor (self-destruct)
     if (!(result & M_ATTK_AGR_DIED)) {
@@ -371,9 +378,10 @@ function explmm(magr, mdef, mattk, display, vis, map) {
 // ============================================================================
 
 // cf. mhitm.c:1015 — mdamagem(magr, mdef, mattk, mwep, dieroll)
-function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map) {
+// ctx: optional { player, turnCount } for corpse creation and XP
+function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx) {
     const mhm = {
-        damage: d(mattk.dice || 0, mattk.sides || 0),
+        damage: c_d(mattk.dice || 0, mattk.sides || 0),
         hitflags: M_ATTK_MISS,
         permdmg: 0,
         specialdmg: 0,
@@ -403,17 +411,31 @@ function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map) {
     // Apply damage
     mdef.mhp -= mhm.damage;
     if (mdef.mhp <= 0) {
-        // Monster dies
+        // C ref: mhitm.c:1100 → monkilled(mdef) → mondead + corpse + kill msg
+        if (vis && display) {
+            const killVerb = nonliving(pd) ? 'destroyed' : 'killed';
+            display.putstr_message(
+                `${monNam(mdef, { article: 'the', capitalize: true })} is ${killVerb}!`
+            );
+        }
         mondead(mdef, map);
         if (!DEADMONSTER(mdef)) {
             return mhm.hitflags; // lifesaved
         }
+
+        // C ref: mon.c xkilled() → corpse_chance + mkcorpstat
+        if (corpse_chance(mdef)
+            && !(((pd.geno || 0) & G_NOCORPSE) !== 0)) {
+            const corpse = mkcorpstat(CORPSE, mdef.mndx || 0, true,
+                mdef.mx, mdef.my, map);
+            corpse.age = ctx?.turnCount || 1;
+        }
+
         if (mhm.hitflags === M_ATTK_AGR_DIED) {
             return (M_ATTK_DEF_DIED | M_ATTK_AGR_DIED);
         }
 
         // cf. mhitm.c:1115 — grow_up(magr, mdef)
-        // Simplified: give attacker some HP on kill
         const victimLevel = mdef.m_lev ?? mdef.mlevel ?? (pd.level || 0);
         const agrLevel = magr.m_lev ?? magr.mlevel ?? ((magr.type || {}).level || 0);
         const hp_threshold = agrLevel > 0 ? agrLevel * 8 : 4;
@@ -436,15 +458,16 @@ function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map) {
 // ============================================================================
 
 // cf. mhitm.c:292 — mattackm(magr, mdef)
-// NOTE: The pet combat path in dogmove.js has its own RNG-parity implementation.
-// This function is for non-pet m-vs-m combat (e.g., conflict, fightm).
-export function mattackm(magr, mdef, display, vis, map) {
+// Shared m-vs-m attack used by pet combat (dogmove.js) and conflict (fightm).
+// ctx: optional { player, turnCount } for corpse creation.
+export function mattackm(magr, mdef, display, vis, map, ctx) {
     if (!magr || !mdef) return M_ATTK_MISS;
     if (helpless(magr)) return M_ATTK_MISS;
 
     const pa = magr.type || {};
     const pd = mdef.type || {};
     const attacks = pa.attacks || [];
+
 
     // C ref: mhitm.c:316 — grid bugs can't attack diagonally
     // (Skipped for simplicity — rare edge case)
@@ -460,7 +483,7 @@ export function mattackm(magr, mdef, display, vis, map) {
     // TODO: implement elf/orc racial bonus
 
     // C ref: mhitm.c:366 — set mlstmv
-    // magr.mlstmv = currentTurn; // Would need turn count
+    if (ctx?.turnCount) magr.mlstmv = ctx.turnCount;
 
     const res = new Array(NATTK).fill(M_ATTK_MISS);
     let struck = 0;
@@ -515,7 +538,7 @@ export function mattackm(magr, mdef, display, vis, map) {
                     strike = 0;
                     break;
                 }
-                res[i] = hitmm(magr, mdef, mattk, mwep, dieroll, display, vis, map);
+                res[i] = hitmm(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx);
             } else {
                 missmm(magr, mdef, mattk, display, vis);
             }
@@ -529,19 +552,19 @@ export function mattackm(magr, mdef, display, vis, map) {
                 if (failed_grab(magr, mdef, mattk)) {
                     strike = 0;
                 } else {
-                    res[i] = hitmm(magr, mdef, mattk, null, 0, display, vis, map);
+                    res[i] = hitmm(magr, mdef, mattk, null, 0, display, vis, map, ctx);
                 }
             }
             break;
 
         case AT_GAZE:
             strike = 0;
-            res[i] = gazemm(magr, mdef, mattk, display, vis, map);
+            res[i] = gazemm(magr, mdef, mattk, display, vis, map, ctx);
             break;
 
         case AT_EXPL:
             if (distmin(magr.mx, magr.my, mdef.mx, mdef.my) > 1) continue;
-            res[i] = explmm(magr, mdef, mattk, display, vis, map);
+            res[i] = explmm(magr, mdef, mattk, display, vis, map, ctx);
             if (res[i] === M_ATTK_MISS) {
                 strike = 0;
                 attk = 0;
@@ -560,7 +583,7 @@ export function mattackm(magr, mdef, display, vis, map) {
                     strike = 0;
                 } else {
                     // Simplified: just do damage, no actual engulfing
-                    res[i] = mdamagem(magr, mdef, mattk, null, 0, display, vis, map);
+                    res[i] = mdamagem(magr, mdef, mattk, null, 0, display, vis, map, ctx);
                 }
             } else {
                 missmm(magr, mdef, mattk, display, vis);

@@ -5,7 +5,7 @@
 import { COLNO, ROWNO, IS_ROOM, IS_DOOR, IS_POOL, IS_LAVA,
          D_CLOSED, D_LOCKED,
          POOL, STAIRS, LADDER, isok } from './config.js';
-import { rn2, rnd, c_d, pushRngLogEntry } from './rng.js';
+import { rn2, rnd, pushRngLogEntry } from './rng.js';
 import { monsterAttackPlayer } from './mhitu.js';
 import { CORPSE, BALL_CLASS, CHAIN_CLASS, ROCK_CLASS, FOOD_CLASS,
          COIN_CLASS, GEM_CLASS,
@@ -14,13 +14,14 @@ import { CORPSE, BALL_CLASS, CHAIN_CLASS, ROCK_CLASS, FOOD_CLASS,
          BOULDER, TIN, EGG,
          SILVER,
          objectData } from './objects.js';
-import { doname, mkcorpstat, next_ident, weight } from './mkobj.js';
+import { doname, next_ident, weight } from './mkobj.js';
 import { obj_resists, is_organic, is_metallic, is_rustprone } from './objdata.js';
 import { observeObject } from './discovery.js';
 import { dogfood, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT,
          UNDEF } from './dog.js';
 import { couldsee, m_cansee, do_clear_area } from './vision.js';
-import { is_animal, is_mindless, nohands, nonliving, nolimbs, unsolid,
+import { mattackm, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED } from './mhitm.js';
+import { is_animal, is_mindless, nohands, nolimbs, unsolid,
          carnivorous, herbivorous, is_metallivore,
          monNam } from './mondata.js';
 import { PM_FIRE_ELEMENTAL, PM_SALAMANDER, PM_FLOATING_EYE, PM_GELATINOUS_CUBE,
@@ -29,7 +30,6 @@ import { PM_FIRE_ELEMENTAL, PM_SALAMANDER, PM_FLOATING_EYE, PM_GELATINOUS_CUBE,
          mons,
          AT_NONE, AT_CLAW, AT_BITE, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_WEAP,
          AT_ENGL,
-         AD_PHYS, AD_ACID, AD_ENCH,
          MR_POISON, MR_ACID, MR_STONE, MR_FIRE,
          M1_SWIM, M1_NEEDPICK, M1_TUNNEL, M1_SEE_INVIS,
          M1_NOTAKE, M1_NOHANDS, M1_UNSOLID, M1_NOHEAD, M1_NOLIMBS,
@@ -37,7 +37,7 @@ import { PM_FIRE_ELEMENTAL, PM_SALAMANDER, PM_FLOATING_EYE, PM_GELATINOUS_CUBE,
          S_MIMIC, S_DRAGON, S_NYMPH,
          WT_HUMAN, MZ_HUMAN,
          MZ_TINY, MZ_SMALL, MZ_MEDIUM, MZ_LARGE, MZ_HUGE, MZ_GIGANTIC,
-         G_FREQ, G_NOCORPSE } from './monsters.js';
+         G_FREQ } from './monsters.js';
 import { MAGIC_PORTAL } from './symbols.js';
 import { gettrack } from './track.js';
 
@@ -47,9 +47,7 @@ import { dist2, distmin, monnear, mfndpos,
          m_harmless_trap,
          monmoveTrace, monmoveStepLabel,
          canSpotMonsterForMap, rememberInvisibleAt,
-         attackVerb, monAttackName,
          mondead, mpickobj, mdrop_obj,
-         petCorpseChanceRoll, consumePassivemmRng,
          MTSZ, SQSRCHRADIUS, FARAWAY,
          mon_track_add } from './monmove.js';
 
@@ -810,7 +808,7 @@ function best_target(mon, forced, map, player) {
 // For early game pets (dogs/cats), they have no ranged attacks,
 // but best_target still evaluates targets (consuming RNG via score_targ).
 // The actual attack path (mattackm) is not reached for melee-only pets.
-export function pet_ranged_attk(mon, map, player, display, game = null, hungry = false) {
+export function pet_ranged_attk(mon, map, player, display, fov = null, game = null, hungry = false) {
     const mtarg = best_target(mon, false, map, player);
     // C ref: dogmove.c:912-970 — if target exists, pet may attempt attack.
     if (!mtarg) return 0;
@@ -820,12 +818,24 @@ export function pet_ranged_attk(mon, map, player, display, game = null, hungry =
         monsterAttackPlayer(mon, player, display, game);
         return 1; // acted (MMOVE_DONE)
     }
-    // For melee-only pets, mattackm is relevant only when target is adjacent.
-    const dm = Math.max(Math.abs(mon.mx - mtarg.mx), Math.abs(mon.my - mtarg.my));
-    if (dm <= 1) {
-        rnd(20); // C ref: mhitm.c mattackm() to-hit roll
+    // C ref: dogmove.c:918 — mattackm(mtmp, mtarg)
+    const monVisible = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
+    const targVisible = fov?.canSee ? fov.canSee(mtarg.mx, mtarg.my) : couldsee(map, player, mtarg.mx, mtarg.my);
+    const vis = monVisible || targVisible;
+    const turnCount = (player.turns || 0) + 1;
+    const ctx = { player, turnCount };
+    const mstatus = mattackm(mon, mtarg, display, vis, map, ctx);
+    if (mstatus & M_ATTK_AGR_DIED) return 1;
+    // C ref: dogmove.c:928-944 — retaliation for ranged attack
+    if ((mstatus & M_ATTK_HIT) && !(mstatus & M_ATTK_DEF_DIED)
+        && rn2(4)) {
+        if (mtarg.mcansee !== false) {
+            const rstatus = mattackm(mtarg, mon, display, vis, map, ctx);
+            if (rstatus & M_ATTK_DEF_DIED) return 1;
+        }
     }
-    return 0; // miss/no-ranged-action in early-game pet traces
+    if (mstatus !== 0) return 1; // MMOVE_DONE — pet acted
+    return 0; // M_ATTK_MISS — no action taken
 }
 
 // ========================================================================
@@ -1183,18 +1193,13 @@ export function dog_move(mon, map, player, display, fov, after = false, game = n
                     if (skipTarget) continue;
                 }
 
-                const attacks = (Array.isArray(mon.attacks) && mon.attacks.length > 0)
-                    ? mon.attacks.filter((a) => a && a.type !== AT_NONE)
-                    : [{ type: AT_CLAW, dice: 1, sides: 1 }];
-                // C ref: mhitm.c mattackm() marks the attacker as having moved
-                // this turn; movemon() does not stamp mlstmv for ordinary moves.
-                mon.mlstmv = turnCount;
+                // C ref: dogmove.c:1141 — only attack once per move
+                if (after) return 0;
+
+                // C ref: dogmove.c:1144-1146 — visibility for combat messages
                 const monVisible = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
                 const targetVisible = fov?.canSee ? fov.canSee(target.mx, target.my) : couldsee(map, player, target.mx, target.my);
-                // C ref: mhitm.c mattackm() sets visibility when either
-                // participant is visible to the hero, not only when both are.
                 const mmVisible = monVisible || targetVisible;
-                // C ref: mhitm.c pre_mm_attack() map_invisible() for unseen participants.
                 if (mmVisible) {
                     if (!canSpotMonsterForMap(mon, map, player, fov)) {
                         rememberInvisibleAt(map, mon.mx, mon.my, player);
@@ -1203,131 +1208,23 @@ export function dog_move(mon, map, player, display, fov, after = false, game = n
                         rememberInvisibleAt(map, target.mx, target.my, player);
                     }
                 }
-                const suppressTurnDetail = !!player.displacedPetThisTurn
-                    || (game?.occupation?.occtxt === 'searching');
-                let anyHit = false;
-                let defenderDied = false;
-                for (let ai = 0; ai < attacks.length; ai++) {
-                    const attk = attacks[ai];
-                    const roll = rnd(20 + ai); // C ref: mhitm.c mattackm to-hit roll
-                    const toHit = (target.mac ?? 10) + (mon.mlevel || 1);
-                    const hit = toHit > roll;
-                    if (hit) {
-                        anyHit = true;
-                        // C ref: mhitm.c mattackchoice — mdamagemm is called BEFORE mhitm_ad_stck.
-                        // Allow d(0,0)=0 for attacks with 0 damage dice (e.g. lichen AD_STCK 0d0).
-                        const dice = attk?.dice ?? 0;
-                        const sides = attk?.sides ?? 0;
-                        const dmg = c_d(dice, sides);
-                        // C ref: mhitm.c mhitm_mgc_atk_negated — called after damage roll,
-                        // for non-physical attacks. armpro=0 for unarmored monsters so never
-                        // negated, but rn2(10) is always consumed.
-                        if (attk && attk.damage !== AD_PHYS && !mon.mcan) {
-                            rn2(10);
-                        }
-                        const willKill = (target.mhp - dmg) <= 0;
-                        const suppressDetail = suppressTurnDetail && !willKill;
-                        if (display && mmVisible && !suppressDetail) {
-                            // C ref: mhitm.c — mon_nam(mdef) uses ARTICLE_THE
-                            display.putstr_message(`${monAttackName(mon)} ${attackVerb(attk?.type)} ${monNam(target, { article: 'the' })}.`);
-                        }
-                        // C ref: mhitm.c mdamagem() rolls damage before knockback RNG.
-                        rn2(3);
-                        rn2(6);
-                        target.mhp -= dmg;
-                        if (target.mhp <= 0) {
-                            mondead(target, map);
-                            if (display && mmVisible) {
-                                // C ref: mon.c:3382 — Monnam(mdef) uses ARTICLE_THE
-                                // C ref: nonliving monsters (undead, golems) are "destroyed" not "killed"
-                                const tdat = target.type || {};
-                                const deathVerb = nonliving(tdat) ? 'destroyed' : 'killed';
-                                display.putstr_message(`${monNam(target, { article: 'the', capitalize: true })} is ${deathVerb}!`);
-                            }
-                            if (petCorpseChanceRoll(target) === 0
-                                && !(((target?.type?.geno || 0) & G_NOCORPSE) !== 0)) {
-                                const corpse = mkcorpstat(CORPSE, target.mndx || 0, true, target.mx, target.my, map);
-                                // C ref: corpse age should reflect current move count.
-                                corpse.age = turnCount;
-                            }
-                            const victimLevel = Number.isInteger(target.m_lev) ? target.m_lev
-                                : (Number.isInteger(target.mlevel) ? target.mlevel
-                                    : (Number.isInteger(target.type?.level) ? target.type.level : 0));
-                            // C ref: makemon.c grow_up() — attacker gains HP when killing a monster.
-                            // max_increase = rnd(victim->m_lev + 1), clamped to hp_threshold.
-                            // cur_increase = rn2(max_increase) only if max_increase > 1.
-                            // mhpmax and mhp are always updated.
-                            const growAttackerLevel = Number.isInteger(mon.m_lev) ? mon.m_lev
-                                : (Number.isInteger(mon.mlevel) ? mon.mlevel
-                                    : (Number.isInteger(mon.type?.level) ? mon.type.level : 0));
-                            const hp_threshold = growAttackerLevel > 0 ? growAttackerLevel * 8 : 4;
-                            let max_increase = rnd(Math.max(1, victimLevel + 1));
-                            if ((mon.mhpmax ?? 0) + max_increase > hp_threshold + 1)
-                                max_increase = Math.max(0, (hp_threshold + 1) - (mon.mhpmax ?? 0));
-                            const cur_increase = (max_increase > 1) ? rn2(max_increase) : 0;
-                            mon.mhpmax = (mon.mhpmax ?? 0) + max_increase;
-                            mon.mhp = (mon.mhp ?? 0) + cur_increase;
-                            consumePassivemmRng(mon, target, true, true);
-                            defenderDied = true;
-                            break;
-                        } else {
-                            consumePassivemmRng(mon, target, true, false);
-                        }
-                    } else {
-                        consumePassivemmRng(mon, target, false, false);
-                        if (display && mmVisible && !suppressTurnDetail) {
-                            // C ref: mhitm.c missmm — mon_nam(mdef) uses ARTICLE_THE
-                            display.putstr_message(`${monAttackName(mon)} misses ${monNam(target, { article: 'the' })}.`);
-                        }
-                    }
-                }
-                // C ref: dogmove.c:1151-1160 — retaliation check happens once
-                // after mattackm returns for the whole pet-vs-monster exchange.
-                if (anyHit && !defenderDied && rn2(4)
+
+                // C ref: dogmove.c:1146 — mattackm(mtmp, mtmp2)
+                const ctx = { player, turnCount };
+                const mstatus = mattackm(mon, target, display, mmVisible, map, ctx);
+
+                // C ref: dogmove.c:1148-1150 — pet died
+                if (mstatus & M_ATTK_AGR_DIED) return 0;
+
+                // C ref: dogmove.c:1152-1163 — retaliation
+                if ((mstatus & (M_ATTK_HIT | M_ATTK_DEF_DIED)) === M_ATTK_HIT
+                    && rn2(4)
                     && target.mlstmv !== turnCount
                     && monnear(target, mon.mx, mon.my)) {
-                    // C ref: dogmove.c retaliation uses mattackm(target, mon).
-                    target.mlstmv = turnCount;
-                    const retaliateAttk = (Array.isArray(target.attacks) && target.attacks.length > 0)
-                        ? target.attacks.find((a) => a && a.type !== AT_NONE)
-                        : null;
-                    // C ref: mhitm.c mattackchoice — mdamagemm called BEFORE mhitm_ad_stck.
-                    // Allow d(0,0)=0 for attacks with 0 damage dice (e.g. lichen AD_STCK 0d0).
-                    const retDice = retaliateAttk?.dice ?? 0;
-                    const retSides = retaliateAttk?.sides ?? 0;
-                    const roll = rnd(20);
-                    const toHit = (mon.mac ?? 10) + (target.mlevel || 1);
-                    const hit = toHit > roll;
-                    if (hit) {
-                        const dmg = c_d(retDice, retSides);
-                        // C ref: mhitm.c mhitm_mgc_atk_negated — called after damage roll,
-                        // for non-physical attacks.
-                        if (retaliateAttk && retaliateAttk.damage !== AD_PHYS && !target.mcan) {
-                            rn2(10);
-                        }
-                        const monDied = (mon.mhp - dmg) <= 0;
-                        const suppressDetail = suppressTurnDetail && !monDied;
-                        if (display && mmVisible && !suppressDetail) {
-                            // C ref: mhitm.c — retaliation is mattackm(target, mon).
-                            display.putstr_message(`${monAttackName(target)} ${attackVerb(retaliateAttk?.type)} ${monNam(mon, { article: 'the' })}.`);
-                        }
-                        rn2(3); // mhitm_knockback distance probe
-                        rn2(6); // mhitm_knockback chance probe
-                        mon.mhp -= dmg;
-                        const monDiedNow = mon.mhp <= 0;
-                        if (monDiedNow) {
-                            mondead(mon, map);
-                        }
-                        consumePassivemmRng(target, mon, true, monDiedNow);
-                    } else {
-                        if (display && mmVisible && !suppressTurnDetail) {
-                            // C ref: mhitm.c missmm — mon_nam(mdef) uses ARTICLE_THE
-                            display.putstr_message(`${monAttackName(target)} misses ${monNam(mon, { article: 'the' })}.`);
-                        }
-                        consumePassivemmRng(target, mon, false, false);
-                    }
+                    const rstatus = mattackm(target, mon, display, mmVisible, map, ctx);
+                    if (rstatus & M_ATTK_DEF_DIED) return 0;
                 }
-                return 0; // MMOVE_DONE-equivalent for this simplified path
+                return 0; // MMOVE_DONE
             }
         }
 
@@ -1437,7 +1334,7 @@ export function dog_move(mon, map, player, display, fov, after = false, game = n
     if (!do_eat) {
         // C ref: dogmove.c:897-901 — hungry flag for pet_ranged_attk
         const hungry = edogRaw && (turnCount > edog.hungrytime + DOG_HUNGRY);
-        const ranged = pet_ranged_attk(mon, map, player, display, null, hungry);
+        const ranged = pet_ranged_attk(mon, map, player, display, fov, null, hungry);
         if (ranged) return 0;
     }
 

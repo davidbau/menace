@@ -16,6 +16,7 @@ import { mons, G_FREQ, MZ_TINY, M2_NEUTER, M2_MALE, M2_FEMALE,
 import { rndmonnum } from './makemon.js';
 import { next_ident } from './mkobj.js';
 import { newexplevel } from './exper.js';
+import { corpse_chance } from './mon.js';
 import { nhgetch } from './input.js';
 import { nonliving, monDisplayName } from './mondata.js';
 import { mondead } from './monutil.js';
@@ -166,14 +167,8 @@ function zhitm(mon, type, nd, map) {
     return tmp;
 }
 
-// C ref: mon.c:3243 corpse_chance() — probability of leaving a corpse
-function corpse_chance(mon) {
-    const mdat = mons[mon.mndx] || {};
-    const gfreq = (mdat.geno || 0) & G_FREQ;
-    const verysmall = (mdat.size || 0) === MZ_TINY;
-    const corpsetmp = 2 + (gfreq < 2 ? 1 : 0) + (verysmall ? 1 : 0);
-    return !rn2(corpsetmp);
-}
+// C ref: mon.c:3178-3252 corpse_chance() — use shared implementation from mon.js
+// (imported at top of file)
 
 // C ref: mon.c:3581 xkilled() — handle monster death
 // Creates corpse, awards XP

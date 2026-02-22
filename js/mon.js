@@ -22,11 +22,13 @@ import { BOULDER, SCR_SCARE_MONSTER } from './objects.js';
 import { couldsee, m_cansee } from './vision.js';
 import { is_hider, hides_under, is_mindless, is_displacer, perceives,
          is_human, is_elf, is_dwarf, is_gnome, is_orc, is_shapeshifter,
-         mon_knows_traps, passes_bars } from './mondata.js';
+         mon_knows_traps, passes_bars,
+         is_golem, is_rider, is_mplayer } from './mondata.js';
 import { PM_GRID_BUG, PM_FIRE_ELEMENTAL, PM_SALAMANDER,
          PM_PURPLE_WORM, PM_BABY_PURPLE_WORM, PM_SHRIEKER,
          PM_GHOUL, PM_SKELETON,
          PM_DEATH, PM_PESTILENCE, PM_FAMINE,
+         PM_LIZARD, PM_VLAD_THE_IMPALER,
          PM_DISPLACER_BEAST,
          PM_KOBOLD, PM_DWARF, PM_GNOME, PM_ORC, PM_ELF, PM_HUMAN,
          PM_GIANT, PM_ETTIN, PM_VAMPIRE, PM_VAMPIRE_LEADER,
@@ -42,11 +44,11 @@ import { PM_GRID_BUG, PM_FIRE_ELEMENTAL, PM_SALAMANDER,
          PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD,
          NON_PM, NUMMONS,
          mons,
-         AT_NONE, AD_PHYS, AD_ACID, AD_ENCH,
+         AT_NONE, AT_BOOM, AD_PHYS, AD_ACID, AD_ENCH,
          M1_FLY, M1_SWIM, M1_AMPHIBIOUS, M1_AMORPHOUS, M1_WALLWALK,
          M1_TUNNEL, M1_NEEDPICK,
          M1_SLITHY, M1_UNSOLID,
-         MZ_TINY, MZ_MEDIUM,
+         MZ_TINY, MZ_MEDIUM, MZ_LARGE,
          MR_FIRE, MR_SLEEP, G_FREQ, G_NOCORPSE, G_UNIQ,
          S_EYE, S_LIGHT, S_EEL, S_PIERCER, S_MIMIC,
          S_ZOMBIE, S_LICH, S_KOBOLD, S_ORC, S_GIANT, S_HUMANOID, S_GNOME, S_KOP,
@@ -435,33 +437,46 @@ export function handleHiderPremove(mon, map, player, fov) {
 }
 
 // ========================================================================
-// petCorpseChanceRoll / consumePassivemmRng — C ref: mon.c / mhitm.c
+// corpse_chance — C ref: mon.c:3178-3252
 // ========================================================================
 
-// C ref: mon.c:3243 corpse_chance() RNG.
-export function petCorpseChanceRoll(mon) {
-    const mdat = mon?.type || {};
+// C ref: mon.c:3178-3252 corpse_chance() — determines if monster leaves a corpse.
+// Returns true if corpse should be created. CRITICAL: several early-return paths
+// do NOT consume rn2(), so callers must use this instead of rolling directly.
+export function corpse_chance(mon) {
+    const mdat = mon?.type || (Number.isInteger(mon?.mndx) ? mons[mon.mndx] : {});
+    if (!mdat) return false;
+
+    // C ref: mon.c:3190-3194 — Vlad and liches crumble to dust (no corpse, no RNG)
+    if (mon.mndx === PM_VLAD_THE_IMPALER || mdat.symbol === S_LICH)
+        return false;
+
+    // C ref: mon.c:3197-3229 — gas spores explode (no corpse, no RNG)
+    if (mdat.attacks) {
+        for (const atk of mdat.attacks) {
+            if (atk && atk.type === AT_BOOM) return false;
+        }
+    }
+
+    // C ref: mon.c:3233 — LEVEL_SPECIFIC_NOCORPSE
+    // (Not relevant in early game — skip)
+
+    // C ref: mon.c:3235-3238 — big monsters, lizards, golems, players, riders,
+    // shopkeepers ALWAYS leave corpses (no RNG consumed)
+    const bigmonst = (mdat.size || 0) >= MZ_LARGE;
+    if (((bigmonst || mon.mndx === PM_LIZARD) && !mon.mcloned)
+        || is_golem(mdat) || is_mplayer(mdat) || is_rider(mdat) || mon.isshk)
+        return true;
+
+    // C ref: mon.c:3239-3240 — probabilistic: rn2(tmp) where tmp = 2 + rare + tiny
     const gfreq = (mdat.geno || 0) & G_FREQ;
     const verysmall = (mdat.size || 0) === MZ_TINY;
     const corpsetmp = 2 + (gfreq < 2 ? 1 : 0) + (verysmall ? 1 : 0);
-    return rn2(corpsetmp);
+    return !rn2(corpsetmp);
 }
 
-// C ref: mhitm.c passivemm() RNG-only probe for pet melee path.
-export function consumePassivemmRng(attacker, defender, strike, defenderDied) {
-    const ddef = defender?.type || (Number.isInteger(defender?.mndx) ? mons[defender.mndx] : null);
-    const passive = ddef?.attacks?.find((a) => a && a.type === AT_NONE) || null;
-    const adtyp = passive ? passive.damage : AD_PHYS;
-    if (adtyp === AD_ACID) {
-        if (strike) rn2(2);
-        rn2(30);
-        rn2(6);
-        return;
-    }
-    if (adtyp === AD_ENCH) return;
-    if (defenderDied || defender?.mcan) return;
-    rn2(3);
-}
+
+
 
 // ========================================================================
 // movemon — C ref: mon.c movemon()

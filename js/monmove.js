@@ -21,7 +21,7 @@ import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          ACCESSIBLE, CORR, DOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN,
          SHOPBASE, ROOM, ROOMOFFSET,
          NORMAL_SPEED, isok } from './config.js';
-import { rn2, rnd, c_d } from './rng.js';
+import { rn2, rnd } from './rng.js';
 import { wipe_engr_at } from './engrave.js';
 import { monsterAttackPlayer, applyMonflee } from './mhitu.js';
 import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
@@ -41,7 +41,7 @@ import { PM_GRID_BUG, PM_SHOPKEEPER, mons,
          PM_LEPRECHAUN,
          PM_DISPLACER_BEAST,
          PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN,
-         AT_NONE, AT_CLAW, AT_WEAP,
+         AT_WEAP,
          S_MIMIC,
          S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN,
          M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC,
@@ -74,8 +74,9 @@ export { initrack, settrack };
 // Re-export mon.c functions
 import { movemon as _movemon, mfndpos, handleHiderPremove,
          onscary,
-         petCorpseChanceRoll, consumePassivemmRng } from './mon.js';
-export { mfndpos, onscary, petCorpseChanceRoll, consumePassivemmRng };
+         corpse_chance } from './mon.js';
+import { mattackm, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED } from './mhitm.js';
+export { mfndpos, onscary, corpse_chance };
 
 // Re-export trap.c functions
 import { m_harmless_trap, floor_trigger, mintrap_postmove } from './trap.js';
@@ -1042,107 +1043,39 @@ function m_move(mon, map, player, display = null, fov = null) {
 // ========================================================================
 // m_move_aggress — C ref: monmove.c:2090
 // ========================================================================
-// INCOMPLETE vs C m_move_aggress():
-// - Only first attack type used (C uses full mattackm multi-attack loop)
-// - No special attack handling (engulf, gaze, breath, etc.)
-// - No experience/corpse drop for killed defenders
-// - Retaliation simplified (single attack, no multi-round)
+// C-faithful: calls shared mattackm for full multi-attack resolution.
 function m_move_aggress(mon, map, player, nx, ny, display = null, fov = null) {
     const target = map.monsterAt(nx, ny);
     if (!target || target === mon || target.dead) return false;
 
-    if (target.sleeping) {
-        target.sleeping = false;
-        target.msleeping = false;
-    }
-
     const attackerVisible = canSpotMonsterForMap(mon, map, player, fov);
     const defenderVisible = canSpotMonsterForMap(target, map, player, fov);
+    const vis = attackerVisible || defenderVisible;
     const replayStep = Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?';
     monmoveTrace('m_move_aggress',
         `step=${replayStep}`,
         `attacker=${mon.m_id ?? '?'}(${mon.type?.name || mon.name || '?'})`,
         `defender=${target.m_id ?? '?'}(${target.type?.name || target.name || '?'})`,
         `at=(${mon.mx},${mon.my})->(${target.mx},${target.my})`,
-        `vis=${attackerVisible || defenderVisible ? 1 : 0}`);
-    if (!attackerVisible && !defenderVisible && !player?.deaf) {
-        if (display?.putstr_message && !map?._heardDistantNoiseThisTurn) {
-            display.putstr_message('You hear some noises in the distance.');
-        }
-        if (map) map._heardDistantNoiseThisTurn = true;
-    }
+        `vis=${vis ? 1 : 0}`);
 
-    const turnCount = (player.turns || 0) + 1;
+    // C ref: monmove.c:2100 — mattackm(mtmp, mtmp2)
+    const ctx = { player, turnCount: (player.turns || 0) + 1 };
+    const mstatus = mattackm(mon, target, display, vis, map, ctx);
 
-    const attk = (Array.isArray(mon.attacks) && mon.attacks.length > 0)
-        ? (mon.attacks.find((a) => a && a.type !== AT_NONE) || { type: AT_CLAW, dice: 1, sides: 1 })
-        : { type: AT_CLAW, dice: 1, sides: 1 };
+    // C ref: monmove.c:2104 — aggressor died
+    if ((mstatus & M_ATTK_AGR_DIED) || mon.dead || (mon.mhp != null && mon.mhp <= 0))
+        return true;
 
-    const roll = rnd(20);
-    const toHit = (target.mac ?? 10) + (mon.mlevel || 1);
-    const hit = toHit > roll;
-    let defenderDied = false;
-    if (hit) {
-        const dice = (attk && attk.dice) ? attk.dice : 1;
-        const sides = (attk && attk.sides) ? attk.sides : 1;
-        const dmg = c_d(Math.max(1, dice), Math.max(1, sides));
-        rn2(3);
-        rn2(6);
-        target.mhp -= Math.max(1, dmg);
-        if (target.mhp <= 0) {
-            mondead(target, map);
-            if (typeof map.removeMonster === 'function') map.removeMonster(target);
-            defenderDied = true;
-        }
-        consumePassivemmRng(mon, target, true, defenderDied);
-    } else {
-        consumePassivemmRng(mon, target, false, false);
-    }
-
-    const retaliationRoll = (hit && !defenderDied) ? rn2(4) : 0;
-    const targetMove = Number(target.movement || 0);
-    const retaliationSpeedRoll = (hit && !defenderDied && retaliationRoll)
-        ? rn2(NORMAL_SPEED)
-        : 0;
-    monmoveTrace('m_move_aggress-retal-gate',
-        `step=${replayStep}`,
-        `attacker=${mon.m_id ?? '?'}`,
-        `defender=${target.m_id ?? '?'}`,
-        `hit=${hit ? 1 : 0}`,
-        `defenderDied=${defenderDied ? 1 : 0}`,
-        `retRoll=${retaliationRoll}`,
-        `targetMove=${targetMove}`,
-        `speedRoll=${retaliationSpeedRoll}`);
-    if (hit && !defenderDied
-        && retaliationRoll
-        && targetMove > retaliationSpeedRoll) {
-        monmoveTrace('m_move_aggress-retal',
-            `step=${replayStep}`,
-            `attacker=${mon.m_id ?? '?'}`,
-            `defender=${target.m_id ?? '?'}`,
-            `targetMove=${targetMove}`,
-            `turnCount=${turnCount}`);
-        if (targetMove > NORMAL_SPEED) target.movement = targetMove - NORMAL_SPEED;
-        else target.movement = 0;
-        const rattk = (Array.isArray(target.attacks) && target.attacks.length > 0)
-            ? (target.attacks.find((a) => a && a.type !== AT_NONE) || { type: AT_CLAW, dice: 1, sides: 1 })
-            : { type: AT_CLAW, dice: 1, sides: 1 };
-        const rroll = rnd(20);
-        const rtoHit = (mon.mac ?? 10) + (target.mlevel || 1);
-        const rhit = rtoHit > rroll;
-        if (rhit) {
-            const rdice = (rattk && rattk.dice) ? rattk.dice : 1;
-            const rsides = (rattk && rattk.sides) ? rattk.sides : 1;
-            const rdmg = c_d(Math.max(1, rdice), Math.max(1, rsides));
-            rn2(3);
-            rn2(6);
-            mon.mhp -= Math.max(1, rdmg);
-            const attackerDied = mon.mhp <= 0;
-            if (attackerDied) mondead(mon, map);
-            consumePassivemmRng(target, mon, true, attackerDied);
-        } else {
-            consumePassivemmRng(target, mon, false, false);
-        }
+    // C ref: monmove.c:2107-2119 — retaliation
+    if ((mstatus & (M_ATTK_HIT | M_ATTK_DEF_DIED)) === M_ATTK_HIT
+        && rn2(4) && target.movement > rn2(NORMAL_SPEED)) {
+        if (target.movement > NORMAL_SPEED)
+            target.movement -= NORMAL_SPEED;
+        else
+            target.movement = 0;
+        const rstatus = mattackm(target, mon, display, vis, map, ctx);
+        if (rstatus & M_ATTK_DEF_DIED) return true;
     }
 
     return true;

@@ -4,6 +4,7 @@
 
 import { rn2, rnd, d, c_d } from './rng.js';
 import { exercise } from './attrib_exercise.js';
+import { corpse_chance } from './mon.js';
 import { A_DEX } from './config.js';
 import {
     G_FREQ, G_NOCORPSE, MZ_TINY, MZ_HUMAN, MZ_LARGE, M2_COLLECT,
@@ -857,11 +858,8 @@ function handleMonsterKilled(player, monster, display, map) {
         }
     }
 
-    // cf. mon.c:3243 corpse_chance()
-    const gfreq = (mdat.geno || 0) & G_FREQ;
-    const verysmall = (mdat.size || 0) === MZ_TINY;
-    const corpsetmp = 2 + (gfreq < 2 ? 1 : 0) + (verysmall ? 1 : 0);
-    const createCorpse = !rn2(corpsetmp);
+    // C ref: mon.c:3178-3252 corpse_chance()
+    const createCorpse = corpse_chance(monster);
 
     if (createCorpse) {
         const corpse = mkcorpstat(CORPSE, monster.mndx || 0, true,
