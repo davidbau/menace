@@ -33,6 +33,7 @@ import { doname, setObjectMoves } from './mkobj.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
 import { setOutputContext } from './pline.js';
+import { wipe_engr_at } from './engrave.js';
 import {
     COLNO, ROWNO, NORMAL_SPEED,
     A_STR, A_DEX, A_CON,
@@ -964,7 +965,10 @@ export class HeadlessGame {
 
         const dex = this.player.attributes ? this.player.attributes[A_DEX] : 14;
         if (!rn2(40 + dex * 3)) {
-            rnd(3); // C ref: allmain.c u_wipe_engr(rnd(3))
+            // C ref: allmain.c:359-360 u_wipe_engr(rnd(3))
+            // u_wipe_engr calls wipe_engr_at(u.ux, u.uy, cnt, FALSE)
+            // (skipping can_reach_floor check for now)
+            wipe_engr_at(this.map, this.player.x, this.player.y, rnd(3), false);
         }
 
         // C ref: allmain.c:414 seer_turn check

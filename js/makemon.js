@@ -1364,11 +1364,9 @@ function select_newcham_form(chamMndx) {
     default:
         break;
     }
-    // C ref: select_newcham_form() random fallback (non-rogue path).
+    // C ref: select_newcham_form() random fallback: rn1(SPECIAL_PM - LOW_PM, LOW_PM)
     if (mndx === -1) {
-        // C uses LOW_PM=1; JS monster indices are 0-based, so +1 preserves
-        // the same rn2() denominator used by C for this fallback.
-        mndx = rn1((SPECIAL_PM - LOW_PM) + 1, LOW_PM);
+        mndx = rn1(SPECIAL_PM - LOW_PM, LOW_PM);
     }
     return mndx;
 }

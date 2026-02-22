@@ -22,6 +22,7 @@ import { setObjectMoves } from './mkobj.js';
 import { were_change } from './were.js';
 import { rhack } from './cmd.js';
 import { ageSpells } from './spell.js';
+import { wipe_engr_at } from './engrave.js';
 import { movemon, settrack } from './monmove.js';
 import { monsterNearby } from './monutil.js';
 import { simulatePostLevelInit, initFirstLevel } from './u_init.js';
@@ -1690,7 +1691,8 @@ export class NetHackGame {
         // rn2(40 + ACURR(A_DEX) * 3) — for Valkyrie with DEX ~14, this is rn2(82)
         const dex = this.player.attributes ? this.player.attributes[A_DEX] : 14;
         if (!rn2(40 + dex * 3)) {
-            rnd(3); // C ref: u_wipe_engr(rnd(3))
+            // C ref: allmain.c:359-360 u_wipe_engr(rnd(3))
+            wipe_engr_at(this.map, this.player.x, this.player.y, rnd(3), false);
         }
 
         // --- Once-per-hero-took-time effects ---

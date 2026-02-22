@@ -18,7 +18,7 @@
 //   make_grave/disturb_grave: grave creation and disturbance.
 //   save/rest_engravings: persistence across level changes.
 
-import { pushRngLogEntry, rn2 } from './rng.js';
+import { pushRngLogEntry, rn2, rnd } from './rng.js';
 import { nhgetch } from './input.js';
 import { WAND_CLASS } from './objects.js';
 import { compactInvletPromptChars } from './invent.js';
@@ -63,22 +63,44 @@ export function del_engr(map, x, y) {
     }
 }
 
-// cf. engrave.c:120 — wipeout_text(engr, cnt, seed)
+// C ref: engrave.c:120 — wipeout_text(engr, cnt, seed=0)
 // Degrades cnt characters in engraving string via character rubout.
+// Each iteration consumes rn2(lth) + rn2(4), plus rn2(ln) if rubout match found.
+const RUBOUTS = {
+    'A': "V", 'B': "Pb", 'C': "(", 'D': "|)", 'E': "FL",
+    'F': "|-", 'G': "C", 'H': "|-", 'I': "|", 'K': "|<",
+    'L': "|_", 'M': "|", 'N': "|\\", 'O': "C(", 'P': "F",
+    'Q': "C(", 'R': "PF", 'T': "|", 'U': "J", 'V': "/\\",
+    'W': "V/\\", 'Z': "/",
+    'b': "|", 'd': "c|", 'e': "c", 'g': "c", 'h': "n",
+    'j': "i", 'k': "|", 'l': "|", 'm': "nr", 'n': "r",
+    'o': "c", 'q': "c", 'w': "v", 'y': "v",
+    ':': ".", ';': ",:", ',': ".", '=': "-", '+': "-|",
+    '*': "+", '@': "0", '0': "C(", '1': "|", '6': "o",
+    '7': "/", '8': "3o",
+};
+
 function wipeoutEngravingText(text, cnt) {
     if (!text || cnt <= 0) return text || '';
     const chars = text.split('');
     const lth = chars.length;
-    // Avoid infinite loop if all spaces
-    let nonSpace = chars.some(c => c !== ' ');
-    if (!nonSpace) return text;
+    if (!lth) return text;
     while (cnt-- > 0) {
-        let nxt;
-        do {
-            // Note: this consumes RNG via rn2 in the caller's context
-            nxt = Math.floor(Math.random() * lth);
-        } while (chars[nxt] === ' ');
-        chars[nxt] = ' ';
+        const nxt = rn2(lth);
+        const use_rubout = rn2(4);
+        const ch = chars[nxt];
+        if (ch === ' ') continue;
+        if ("?.,'`-|_".includes(ch)) {
+            chars[nxt] = ' ';
+            continue;
+        }
+        if (use_rubout && RUBOUTS[ch]) {
+            const wipeto = RUBOUTS[ch];
+            const j = rn2(wipeto.length);
+            chars[nxt] = wipeto[j];
+        } else {
+            chars[nxt] = '?';
+        }
     }
     return chars.join('');
 }
@@ -125,7 +147,10 @@ export function wipe_engr_at(map, x, y, cnt, magical = false) {
 
 // cf. engrave.c:231 — engr_at(x, y): engraving at location
 // Returns engraving struct at given coordinates, or null if none.
-// TODO: engrave.c:231 — engr_at(): engraving lookup
+export function engr_at(map, x, y) {
+    if (!map || !Array.isArray(map.engravings)) return null;
+    return map.engravings.find((e) => e && e.x === x && e.y === y) || null;
+}
 
 // cf. engrave.c:251 — sengr_at(s, x, y, strict): find engraving with string
 // Finds engraving at location containing string s (substring or exact match).
@@ -259,9 +284,22 @@ export async function handleEngrave(player, display) {
 // Marks engraving as read/revealed for engravings detectable by touch.
 // TODO: engrave.c:1731 — feel_engraving(): tactile engraving detection
 
-// C ref: hack.c maybe_smudge_engr()
+// C ref: hack.c:3001-3012 maybe_smudge_engr()
 // On successful movement, attempt to smudge engravings at origin/destination.
+// C: checks can_reach_floor(TRUE), then wipes at old pos and new pos if engravings exist.
 export function maybeSmudgeEngraving(map, x1, y1, x2, y2) {
-    // C ref: u_wipe_engr(1) on movement: only current hero square is wiped.
-    wipe_engr_at(map, x2, y2, 1, false);
+    // C ref: if ((ep = engr_at(x1,y1)) && ep->engr_type != HEADSTONE)
+    //            wipe_engr_at(x1, y1, rnd(5), FALSE);
+    const ep1 = engr_at(map, x1, y1);
+    if (ep1 && ep1.type !== 'headstone') {
+        wipe_engr_at(map, x1, y1, rnd(5), false);
+    }
+    // C ref: if ((x2!=x1 || y2!=y1) && (ep = engr_at(x2,y2)) && ep->engr_type != HEADSTONE)
+    //            wipe_engr_at(x2, y2, rnd(5), FALSE);
+    if ((x2 !== x1 || y2 !== y1)) {
+        const ep2 = engr_at(map, x2, y2);
+        if (ep2 && ep2.type !== 'headstone') {
+            wipe_engr_at(map, x2, y2, rnd(5), false);
+        }
+    }
 }

@@ -1664,7 +1664,7 @@ This section is generated from source symbol tables and includes function rows f
 | 895 | `doengrave_ctx_verb` | - | Missing |
 | 741 | `doengrave_sfx_item` | - | Missing |
 | 583 | `doengrave_sfx_item_WAN` | - | Missing |
-| 231 | `engr_at` | - | Missing |
+| 231 | `engr_at` | engrave.js:engr_at | Aligned |
 | 297 | `engr_can_be_felt` | - | Missing |
 | 1625 | `engr_stats` | - | Missing |
 | 1266 | `engrave` | - | Missing |
@@ -1672,7 +1672,7 @@ This section is generated from source symbol tables and includes function rows f
 | 1731 | `feel_engraving` | - | Missing |
 | 1508 | `forget_engravings` | - | Missing |
 | 473 | `freehand` | - | Missing |
-| 408 | `make_engr_at` | - | Missing |
+| 408 | `make_engr_at` | engrave.js:make_engr_at | Aligned |
 | 1686 | `make_grave` | - | Missing |
 | 51 | `random_engraving` | - | Missing |
 | 318 | `read_engr_at` | - | Missing |
@@ -1684,9 +1684,9 @@ This section is generated from source symbol tables and includes function rows f
 | 251 | `sengr_at` | - | Missing |
 | 481 | `stylus_ok` | - | Missing |
 | 503 | `u_can_engrave` | - | Missing |
-| 264 | `u_wipe_engr` | - | Missing |
-| 271 | `wipe_engr_at` | engrave.js:maybeSmudgeEngraving | APPROX — movement engraving smudge |
-| 120 | `wipeout_text` | - | Missing |
+| 264 | `u_wipe_engr` | headless_runtime.js, nethack.js | Aligned — calls wipe_engr_at at player pos |
+| 271 | `wipe_engr_at` | engrave.js:wipe_engr_at | Aligned — RNG-faithful wipe with rubout table |
+| 120 | `wipeout_text` | engrave.js:wipeoutEngravingText | Aligned — C-faithful rubout with rn2(4) per char |
 
 ### exper.c -> exper.js
 | C Line | C Function | JS Line | Alignment |
@@ -1931,7 +1931,7 @@ This section is generated from source symbol tables and includes function rows f
 | 4321 | `max_capacity` | - | Missing |
 | 904 | `may_dig` | - | Missing |
 | 913 | `may_passwall` | - | Missing |
-| 3001 | `maybe_smudge_engr` | engrave.js:maybeSmudgeEngraving | APPROX |
+| 3001 | `maybe_smudge_engr` | engrave.js:maybeSmudgeEngraving | Aligned — wipes both old and new pos, rnd(5), checks engr_at |
 | 4086 | `maybe_wail` | - | Missing |
 | 4444 | `money_cnt` | - | Missing |
 | 90 | `monst_to_any` | - | Missing |
@@ -2546,7 +2546,7 @@ No function symbols parsed from isaac64.c.
 | 309 | `maze0xy` | - | Missing |
 | 895 | `maze_inbounds` | - | Missing |
 | 905 | `maze_remove_deadends` | - | Missing |
-| 1317 | `mazexy` | - | Missing |
+| 1317 | `mazexy` | dungeon.js:mazexy | Aligned — rnd(xMax/yMax), corrmaze flag, exhaustive fallback |
 | 781 | `migr_booty_item` | - | Missing |
 | 718 | `migrate_orc` | - | Missing |
 | 1868 | `mk_bubble` | - | Missing |
@@ -2819,7 +2819,7 @@ No function symbols parsed from isaac64.c.
 | 5964 | `see_monster_closeup` | - | Missing |
 | 6018 | `see_nearby_monsters` | - | Missing |
 | 4404 | `seemimic` | - | Missing |
-| 5150 | `select_newcham_form` | - | Missing |
+| 5150 | `select_newcham_form` | makemon.js:select_newcham_form | APPROX — random fallback only, missing sandestin/doppelganger/werecreature |
 | 2804 | `set_mon_min_mhpmax` | - | Missing |
 | 3417 | `set_ustuck` | - | Missing |
 | 4260 | `setmangry` | - | Missing |

@@ -33,7 +33,7 @@ import {
 import { GameMap, makeRoom, FILL_NONE, FILL_NORMAL } from './map.js';
 import { rn2, rnd, rn1, d, getRngCallCount, advanceRngRaw, pushRngLogEntry } from './rng.js';
 import { getbones } from './bones.js';
-import { make_engr_at } from './engrave.js';
+import { make_engr_at, wipe_engr_at } from './engrave.js';
 import {
     mkobj,
     mksobj,
@@ -1409,25 +1409,32 @@ function create_maze(map, corrwid, wallthick, rmdeadends) {
 
 // Helper function to find a random location in the maze
 function mazexy(map) {
-    // C ref: mkmaze.c:1059-1076 mazexy()
+    // C ref: mkmaze.c:1317-1348 mazexy()
     // Find a random CORR/ROOM location in the maze
-    let x, y;
-    let attempts = 0;
-    const maxAttempts = 1000;
+    const xMax = Number.isInteger(map._mazeMaxX) ? map._mazeMaxX : (COLNO - 1);
+    const yMax = Number.isInteger(map._mazeMaxY) ? map._mazeMaxY : (ROWNO - 1);
+    const allowedtyp = map.flags.corrmaze ? CORR : ROOM;
+    let cpt = 0;
 
     do {
-        x = rn2(COLNO);
-        y = rn2(ROWNO);
-        attempts++;
-        if (attempts > maxAttempts) {
-            // Fallback to center
-            return { x: Math.floor(COLNO / 2), y: Math.floor(ROWNO / 2) };
-        }
+        // C ref: rnd(x_maze_max) is 1+rn2(x_maze_max), i.e., range [1..x_maze_max]
+        const x = rnd(xMax);
+        const y = rnd(yMax);
         const loc = map.at(x, y);
-        if (loc && (loc.typ === CORR || loc.typ === ROOM)) {
+        if (loc && loc.typ === allowedtyp) {
             return { x, y };
         }
-    } while (true);
+    } while (++cpt < 100);
+    // C ref: 100 random attempts failed; systematically try every possibility
+    for (let x = 1; x <= xMax; x++) {
+        for (let y = 1; y <= yMax; y++) {
+            const loc = map.at(x, y);
+            if (loc && loc.typ === allowedtyp) {
+                return { x, y };
+            }
+        }
+    }
+    return null;
 }
 
 // Helper function to place stairs
@@ -2556,12 +2563,13 @@ function makeniche(map, depth, trap_type) {
                 }
                 // C ref: mklev.c makeniche() places trap in niche cell (xx, yy + dy).
                 maketrap(map, xx, yy + dy, actual_trap, depth);
-                // C ref: mklev.c:757-763 — trap engraving + wipe
-                const engr = TRAP_ENGRAVINGS[actual_trap];
-                if (engr) {
-                    // C ref: wipe_engr_at(xx, yy-dy, 5, FALSE)
-                    // For DUST type, cnt stays at 5 (no reduction)
-                    wipeout_text(engr, 5);
+                // C ref: mklev.c:764-769 — trap engraving + wipe
+                const engrText = TRAP_ENGRAVINGS[actual_trap];
+                if (engrText) {
+                    // C ref: make_engr_at(xx, yy-dy, trap_engravings[trap_type], ..., DUST)
+                    make_engr_at(map, xx, yy - dy, engrText, 'dust');
+                    // C ref: wipe_engr_at(xx, yy-dy, 5, FALSE) — age it
+                    wipe_engr_at(map, xx, yy - dy, 5, false);
                 }
             }
             dosdoor(map, xx, yy, aroom, SDOOR, depth);

@@ -832,9 +832,11 @@ export class Player {
     set fast(val) {
         const entry = this.ensureUProp(FAST);
         if (val === true) {
-            entry.intrinsic = (entry.intrinsic & ~TIMEOUT) | 1;
+            // C ref: role ability tables set HFast |= FROMEXPER for permanent speed.
+            // Use INTRINSIC bit so it doesn't expire via timeout decrement.
+            entry.intrinsic = entry.intrinsic | INTRINSIC;
         } else if (val === false || val === 0) {
-            entry.intrinsic = entry.intrinsic & ~TIMEOUT;
+            entry.intrinsic = entry.intrinsic & ~INTRINSIC & ~TIMEOUT;
         } else if (typeof val === 'number') {
             entry.intrinsic = (entry.intrinsic & ~TIMEOUT) | (val & TIMEOUT);
         }
