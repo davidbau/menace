@@ -972,11 +972,26 @@ export function playerAttackMonster(player, monster, display, map) {
             display.putstr_message(`You hit the ${monDisplayName(monster)}.`);
         }
         // cf. uhitm.c hmon_hitmon_core():
-        // For armed melee hits with damage > 1: mhitm_knockback() → rn2(3), rn2(6).
+        // For armed melee hits with damage > 1: mhitm_knockback().
         // For unarmed hits with damage > 1: hmon_hitmon_stagger() → rnd(100).
         if (player.weapon && damage > 1 && !player.twoweap) {
-            rn2(3);
-            rn2(6);
+            // cf. uhitm.c:5225 mhitm_knockback — hero attacks monster
+            // RNG: rn2(3) always, rn2(6) always, then eligibility + rn2(2)*2 if qualifies
+            const knockdist = rn2(3); // 67% 1-step, 33% 2-step
+            if (!rn2(6)) {
+                // Passed 1/6 chance gate. Check eligibility:
+                // AD_PHYS + AT_WEAP: passes for armed hero (mattk is hero's attack)
+                // Size: hero (MZ_HUMAN) must be > mdef.msize + 1
+                const msize = monster.type?.size ?? MZ_HUMAN;
+                if (msize + 1 < MZ_HUMAN) {
+                    // cf. uhitm.c:5350-5352 — knockback message
+                    const adj = rn2(2) ? 'forceful' : 'powerful';
+                    const noun = rn2(2) ? 'blow' : 'strike';
+                    display.putstr_message(
+                        `You knock the ${monDisplayName(monster)} back with a ${adj} ${noun}!`
+                    );
+                }
+            }
         } else if (!player.weapon && damage > 1) {
             // cf. uhitm.c:1554 hmon_hitmon_stagger — rnd(100) stun chance check
             rnd(100);

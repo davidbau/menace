@@ -238,6 +238,45 @@ Missing a single truncation can shift coordinates by one cell, which shifts
 room geometry, which shifts corridor layout, which shifts the entire RNG
 sequence.
 
+### Match C exactly — no "close enough" stubs
+
+When porting a C function, match it completely: same name, same RNG calls,
+same eligibility checks, same messages. Do not leave partial stubs that
+"burn RNG without effects" or consume the right random numbers but skip
+the output they drive.
+
+The temptation is to say "this rarely fires" or "probably doesn't affect
+tests" and move on. But:
+
+1. **It costs nothing to get it right.** If you've already read the C code
+   and written the RNG calls, wiring up the message or effect is minutes
+   of work, not hours.
+
+2. **"Rarely fires" still fires.** Knockback requires attacker much larger
+   than defender — but a hill giant attacking a gnome qualifies. A 1/6
+   chance triggers in ~5 attacks. Leaving the message as a silent `rn2(2)`
+   means the first time it fires in a real session, you'll debug a missing
+   message instead of seeing it work.
+
+3. **Stubs accumulate.** Each "close enough" stub is a future debugging
+   session where you re-read the same C function, re-trace the same logic,
+   and wonder why you didn't just finish it the first time.
+
+4. **Name functions after their C counterparts.** `mhitm_knockback`, not
+   `mhitm_knockback_rng`. The `_rng` suffix signals "this is a stub that
+   only burns RNG" — which is exactly what we're trying to eliminate. When
+   the JS function does what the C function does, it deserves the same name.
+
+This was learned porting `mhitm_knockback()` (uhitm.c:5225). The initial
+port consumed `rn2(3)` + `rn2(6)` faithfully, ran the eligibility checks,
+then silently discarded the `rn2(2)` + `rn2(2)` message-text rolls instead
+of printing "You knock the gnome back with a forceful blow!" It took three
+review passes to finish what should have been done in the first pass.
+
+Practical rule: if you're reading C code and writing RNG calls, finish the
+job. Write the message, apply the effect, use the C function name. "Close
+enough" is technical debt with interest.
+
 ### Incremental changes outperform rewrites
 
 When porting complex subsystems (pet AI, combat, special levels), small

@@ -28,7 +28,31 @@ export function newuexp(lev) {
 // TODO: exper.c:168 — more_experienced(exper, rexp): needs u.urexp, flags.showexp, disp.botl
 
 // cf. exper.c:206 — losexp(): level drain (e.g., hit by drain life attack)
-// TODO: exper.c:206 — losexp(drainer): needs adjabil, uhpinc/ueninc arrays, rehumanize
+// Partial: drains level and HP but does not implement adjabil/uhpinc/ueninc.
+// RNG: consumes rnd(10) for HP loss, rn2(5) for PW loss (matching C's newhp/newpw calls).
+export function losexp(player, display, drainer) {
+    if (player.level <= 1) {
+        // Can't lose a level below 1; C would kill the hero
+        return;
+    }
+    // cf. exper.c:230 — lose HP: normally role-dependent via uhpinc array;
+    // simplified: rnd(10) as placeholder (matches C's newhp typical range).
+    const hpLoss = rnd(10);
+    player.hpmax = Math.max(1, player.hpmax - hpLoss);
+    player.hp = Math.min(player.hp, player.hpmax);
+
+    // cf. exper.c:250 — lose PW: normally role-dependent via ueninc array;
+    // simplified: rn2(5) placeholder (matches C's newpw typical range).
+    const pwLoss = rn2(5);
+    player.pwmax = Math.max(0, player.pwmax - pwLoss);
+    player.pw = Math.min(player.pw, player.pwmax);
+
+    player.level--;
+    player.exp = newuexp(player.level);
+    if (display) {
+        display.putstr_message(`You feel your life force draining away.`);
+    }
+}
 
 // cf. exper.c:299 — newexplevel(): check if player should gain a level
 export function newexplevel(player, display) {
