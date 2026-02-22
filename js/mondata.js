@@ -33,7 +33,9 @@ import {
     MZ_TINY, MZ_SMALL, MZ_MEDIUM, MZ_LARGE,
     AT_ANY, AT_NONE, AT_BOOM, AT_SPIT, AT_GAZE, AT_MAGC,
     AT_ENGL, AT_HUGS, AT_BREA, AT_WEAP,
-    AD_ANY, AD_STCK, AD_WRAP, AD_DGST,
+    AD_ANY, AD_PHYS, AD_FIRE, AD_COLD, AD_ELEC, AD_ACID,
+    AD_STCK, AD_WRAP, AD_DGST,
+    MR_FIRE, MR_COLD, MR_SLEEP, MR_DISINT, MR_ELEC, MR_POISON, MR_ACID, MR_STONE,
     G_UNIQ,
     PM_SHADE, PM_TENGU,
     PM_ROCK_MOLE, PM_WOODCHUCK,
@@ -898,6 +900,57 @@ export function levl_follower(mon, player) {
 // C ref: #define pm_resistance(ptr, typ) (((ptr)->mresists & (typ)) != 0)
 // JS: C's mresists maps to ptr.mr1 in the JS monster struct.
 export function pm_resistance(ptr, typ) { return !!(ptr.mr1 & typ); }
+
+// ========================================================================
+// Resistance check helpers — C ref: include/mondata.h resists_* macros
+// These take a monster instance (has .type/.data) and check intrinsic
+// resistance from the permonst entry. Equipment-based resistance is omitted
+// since JS doesn't yet track monster worn items with oc_oprop.
+// ========================================================================
+
+// Helper to get permonst from either a monster instance or a permonst pointer
+function _mdat(mon) { return mon?.type || mon?.data || mon; }
+
+// C ref: #define resists_fire(mon) (mon->data->mresists & MR_FIRE || defended(mon, AD_FIRE))
+export function resists_fire(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_FIRE); }
+
+// C ref: #define resists_cold(mon)
+export function resists_cold(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_COLD); }
+
+// C ref: #define resists_sleep(mon)
+export function resists_sleep(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_SLEEP); }
+
+// C ref: #define resists_disint(mon)
+export function resists_disint(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_DISINT); }
+
+// C ref: #define resists_elec(mon)
+export function resists_elec(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_ELEC); }
+
+// C ref: #define resists_poison(mon)
+export function resists_poison(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_POISON); }
+
+// C ref: #define resists_acid(mon)
+export function resists_acid(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_ACID); }
+
+// C ref: #define resists_ston(mon) — stoning resistance
+export function resists_ston(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_STONE); }
+
+// ========================================================================
+// Magic negation — C ref: mhitu.c:1085 magic_negation()
+// Computes armor-based magic cancellation level (0-3).
+// Simplified: JS doesn't track a_can on armor objects yet, so this returns
+// 0 for most monsters. Special cases for high priests and minions preserved.
+// ========================================================================
+export function magic_negation(mon) {
+    // Most monsters have mc=0 without worn armor with a_can
+    let mc = 0;
+    const ptr = _mdat(mon);
+    // C ref: gotprot for PM_HIGH_CLERIC and is_minion
+    if (ptr === mons[PM_HIGH_CLERIC] || is_minion(ptr)) {
+        mc = Math.max(mc, 1);
+    }
+    return mc;
+}
 
 // C ref: #define immune_poisongas(ptr) ((ptr)==&mons[PM_HEZROU] || (ptr)==&mons[PM_VROCK])
 export function immune_poisongas(ptr) {

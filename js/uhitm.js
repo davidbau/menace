@@ -9,6 +9,15 @@ import {
     G_FREQ, G_NOCORPSE, MZ_TINY, MZ_HUMAN, MZ_LARGE, M2_COLLECT,
     S_ZOMBIE, S_MUMMY, S_VAMPIRE, S_WRAITH, S_LICH, S_GHOST, S_DEMON, S_KOP,
     PM_SHADE,
+    AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_SLEE, AD_DISN, AD_ELEC,
+    AD_DRST, AD_ACID, AD_BLND, AD_STUN, AD_SLOW, AD_PLYS, AD_DRLI,
+    AD_DREN, AD_LEGS, AD_STON, AD_STCK, AD_SGLD, AD_SITM, AD_SEDU,
+    AD_TLPT, AD_RUST, AD_CONF, AD_DGST, AD_HEAL, AD_WRAP, AD_WERE,
+    AD_DRDX, AD_DRCO, AD_DRIN, AD_DISE, AD_DCAY, AD_SSEX, AD_HALU,
+    AD_DETH, AD_PEST, AD_FAMN, AD_SLIM, AD_ENCH, AD_CORR, AD_POLY,
+    AD_SAMU, AD_CURS,
+    AT_WEAP, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG,
+    AT_HUGS, AT_TENT,
 } from './monsters.js';
 import {
     CORPSE, FIGURINE, FOOD_CLASS, objectData,
@@ -16,7 +25,13 @@ import {
     POT_RESTORE_ABILITY, POT_GAIN_ABILITY,
 } from './objects.js';
 import { mkobj, mkcorpstat, RANDOM_CLASS, next_ident, xname } from './mkobj.js';
-import { nonliving, monDisplayName } from './mondata.js';
+import {
+    nonliving, monDisplayName, is_undead, is_demon,
+    magic_negation,
+    resists_fire, resists_cold, resists_elec, resists_acid,
+    resists_poison, resists_sleep, resists_ston,
+    thick_skinned,
+} from './mondata.js';
 import { obj_resists } from './objdata.js';
 import { newexplevel } from './exper.js';
 import { applyMonflee } from './mhitu.js';
@@ -26,13 +41,26 @@ import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
 
 
 // ============================================================================
-// 1. Magic negation
+// 1. Magic negation and attack result constants
 // ============================================================================
 
-// cf. uhitm.c:74 — mhitm_mgc_atk_negated(magr, mattk, mdef, mhm):
-//   Check if a magical attack is negated by target's magic resistance/cancellation.
-//   Returns negation level (0 = not negated).
-// TODO: uhitm.c:74 — mhitm_mgc_atk_negated()
+// C ref: monattk.h — monster-to-monster attack result bitmask
+export const M_ATTK_MISS = 0x0;
+export const M_ATTK_HIT = 0x1;
+export const M_ATTK_DEF_DIED = 0x2;
+export const M_ATTK_AGR_DIED = 0x4;
+export const M_ATTK_AGR_DONE = 0x8;
+
+// cf. uhitm.c:74 — mhitm_mgc_atk_negated(magr, mdef, verbosely):
+//   Check if a magical attack is negated by target's magic cancellation.
+//   Consumes rn2(10) — RNG-critical.
+//   Returns true if attack is negated.
+export function mhitm_mgc_atk_negated(magr, mdef) {
+    if (magr.mcan) return true;
+    const armpro = magic_negation(mdef);
+    const negated = !(rn2(10) >= 3 * armpro);
+    return negated;
+}
 
 
 // ============================================================================
@@ -215,178 +243,371 @@ import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
 // ============================================================================
 // 5. Damage-type handlers (mhitm_ad_*)
 // ============================================================================
+// These handlers implement the m-vs-m (monster-vs-monster) combat path.
+// Each takes (magr, mattk, mdef, mhm) where mhm is:
+//   { damage, hitflags, done, permdmg, specialdmg, dieroll }
+// The uhitm (u-vs-m) and mhitu (m-vs-u) paths remain in playerAttackMonster()
+// and monsterAttackPlayer() respectively.
 
-// cf. uhitm.c:2259 — mhitm_ad_rust(magr, mattk, mdef, mhm):
-//   Rust damage type handler.
-// TODO: uhitm.c:2259 — mhitm_ad_rust()
+// cf. uhitm.c:3959 — physical damage handler
+// m-vs-m branch: uhitm.c:4106-4177
+export function mhitm_ad_phys(magr, mattk, mdef, mhm) {
+    const pd = mdef.type || {};
+    if (mattk.type === AT_KICK && thick_skinned(pd)) {
+        mhm.damage = 0;
+    }
+}
 
-// cf. uhitm.c:2316 — mhitm_ad_corr(magr, mattk, mdef, mhm):
-//   Corrosion damage type handler.
-// TODO: uhitm.c:2316 — mhitm_ad_corr()
+// cf. uhitm.c:2499 — fire damage handler
+// m-vs-m branch: uhitm.c:2565-2600
+export function mhitm_ad_fire(magr, mattk, mdef, mhm) {
+    if (mhitm_mgc_atk_negated(magr, mdef)) {
+        mhm.damage = 0;
+        return;
+    }
+    if (resists_fire(mdef)) {
+        mhm.damage = 0;
+    }
+}
 
-// cf. uhitm.c:2341 — mhitm_ad_dcay(magr, mattk, mdef, mhm):
-//   Decay damage type handler.
-// TODO: uhitm.c:2341 — mhitm_ad_dcay()
+// cf. uhitm.c:2604 — cold damage handler
+// m-vs-m branch: uhitm.c:2642-2658
+export function mhitm_ad_cold(magr, mattk, mdef, mhm) {
+    if (mhitm_mgc_atk_negated(magr, mdef)) {
+        mhm.damage = 0;
+        return;
+    }
+    if (resists_cold(mdef)) {
+        mhm.damage = 0;
+    }
+}
 
-// cf. uhitm.c:2396 — mhitm_ad_dren(magr, mattk, mdef, mhm):
-//   Energy drain damage type handler.
-// TODO: uhitm.c:2396 — mhitm_ad_dren()
+// cf. uhitm.c:2662 — electric damage handler
+// m-vs-m branch: uhitm.c:2698-2716
+export function mhitm_ad_elec(magr, mattk, mdef, mhm) {
+    if (mhitm_mgc_atk_negated(magr, mdef)) {
+        mhm.damage = 0;
+        return;
+    }
+    if (resists_elec(mdef)) {
+        mhm.damage = 0;
+    }
+}
 
-// cf. uhitm.c:2423 — mhitm_ad_drli(magr, mattk, mdef, mhm):
-//   Level drain damage type handler.
-// TODO: uhitm.c:2423 — mhitm_ad_drli()
+// cf. uhitm.c:2720 — acid damage handler
+// m-vs-m branch: uhitm.c:2744-2763
+export function mhitm_ad_acid(magr, mattk, mdef, mhm) {
+    if (magr.mcan) {
+        mhm.damage = 0;
+        return;
+    }
+    if (resists_acid(mdef)) {
+        mhm.damage = 0;
+    }
+    // C ref: !rn2(30) erode_armor, !rn2(6) acid_damage — omitted (no armor system)
+    rn2(30);
+    rn2(6);
+}
 
-// cf. uhitm.c:2499 — mhitm_ad_fire(magr, mattk, mdef, mhm):
-//   Fire damage type handler.
-// TODO: uhitm.c:2499 — mhitm_ad_fire()
+// cf. uhitm.c:3082 — apply actual poison effects (m-vs-m)
+function mhitm_really_poison(magr, mattk, mdef, mhm) {
+    if (resists_poison(mdef)) {
+        // C ref: if resists, "unaffected" — no damage
+        mhm.damage = 0;
+        return;
+    }
+    // C ref: mhitm.c:3094 — m_lev > 0 ? lose a level : take 2d6 damage
+    if ((mdef.m_lev ?? mdef.mlevel ?? 0) > 0) {
+        const mlev = mdef.m_lev ?? mdef.mlevel ?? 0;
+        mhm.damage = d(2, 6);
+        if (mdef.mhpmax > (mlev + 1)) {
+            mdef.mhpmax -= mhm.damage;
+            if (mdef.mhpmax < (mlev + 1)) mdef.mhpmax = mlev + 1;
+        }
+    } else {
+        mhm.damage = mdef.mhp;
+    }
+}
 
-// cf. uhitm.c:2604 — mhitm_ad_cold(magr, mattk, mdef, mhm):
-//   Cold damage type handler.
-// TODO: uhitm.c:2604 — mhitm_ad_cold()
+// cf. uhitm.c:3100 — poison (AD_DRST/AD_DRDX/AD_DRCO) handler
+// m-vs-m branch: uhitm.c:3137-3142
+export function mhitm_ad_drst(magr, mattk, mdef, mhm) {
+    const negated = mhitm_mgc_atk_negated(magr, mdef);
+    if (!negated && !rn2(8)) {
+        mhitm_really_poison(magr, mattk, mdef, mhm);
+    }
+}
 
-// cf. uhitm.c:2662 — mhitm_ad_elec(magr, mattk, mdef, mhm):
-//   Electric damage type handler.
-// TODO: uhitm.c:2662 — mhitm_ad_elec()
+// cf. uhitm.c:4366 — stun handler
+// m-vs-m branch: uhitm.c:4388-4399
+export function mhitm_ad_stun(magr, mattk, mdef, mhm) {
+    if (magr.mcan) return;
+    mdef.mstun = 1;
+    mhitm_ad_phys(magr, mattk, mdef, mhm);
+}
 
-// cf. uhitm.c:2720 — mhitm_ad_acid(magr, mattk, mdef, mhm):
-//   Acid damage type handler.
-// TODO: uhitm.c:2720 — mhitm_ad_acid()
+// cf. uhitm.c:3668 — confusion handler
+// m-vs-m branch: uhitm.c:3691-3703
+export function mhitm_ad_conf(magr, mattk, mdef, mhm) {
+    if (!magr.mcan && !mdef.mconf && !magr.mspec_used) {
+        mdef.mconf = 1;
+    }
+}
 
-// cf. uhitm.c:2768 — mhitm_ad_sgld(magr, mattk, mdef, mhm):
-//   Steal gold damage type handler.
-// TODO: uhitm.c:2768 — mhitm_ad_sgld()
+// cf. uhitm.c:2936 — blinding handler
+// m-vs-m branch: uhitm.c:2964-2989
+export function mhitm_ad_blnd(magr, mattk, mdef, mhm) {
+    // C ref: can_blnd check omitted for simplicity; uses damage dice for duration
+    let rnd_tmp = d(mattk.dice || 0, mattk.sides || 0);
+    rnd_tmp += (mdef.mblinded || 0);
+    if (rnd_tmp > 127) rnd_tmp = 127;
+    mdef.mblinded = rnd_tmp;
+    mdef.mcansee = 0;
+    if (mhm) mhm.damage = 0;
+}
 
-// cf. uhitm.c:2837 — mhitm_ad_tlpt(magr, mattk, mdef, mhm):
-//   Teleport damage type handler.
-// TODO: uhitm.c:2837 — mhitm_ad_tlpt()
+// cf. uhitm.c:3457 — sleep handler
+// m-vs-m branch: uhitm.c:3486-3500
+export function mhitm_ad_slee(magr, mattk, mdef, mhm) {
+    if (!mdef.msleeping && !resists_sleep(mdef)) {
+        const amt = rnd(10);
+        if (mdef.mcanmove !== false) {
+            mdef.mcanmove = false;
+            mdef.mfrozen = Math.min((mdef.mfrozen || 0) + amt, 127);
+        }
+    }
+}
 
-// cf. uhitm.c:2936 — mhitm_ad_blnd(magr, mattk, mdef, mhm):
-//   Blinding damage type handler.
-// TODO: uhitm.c:2936 — mhitm_ad_blnd()
+// cf. uhitm.c:3409 — paralysis handler
+// m-vs-m branch: uhitm.c:3441-3453
+export function mhitm_ad_plys(magr, mattk, mdef, mhm) {
+    if (mdef.mcanmove !== false && !rn2(3)
+        && !mhitm_mgc_atk_negated(magr, mdef)) {
+        const amt = rnd(10);
+        mdef.mcanmove = false;
+        mdef.mfrozen = Math.min(amt, 127);
+    }
+}
 
-// cf. uhitm.c:2993 — mhitm_ad_curs(magr, mattk, mdef, mhm):
-//   Curse items damage type handler.
-// TODO: uhitm.c:2993 — mhitm_ad_curs()
+// cf. uhitm.c:3284 — sticking handler
+// m-vs-m branch: uhitm.c:3307-3311
+export function mhitm_ad_stck(magr, mattk, mdef, mhm) {
+    const negated = mhitm_mgc_atk_negated(magr, mdef);
+    if (negated) mhm.damage = 0;
+}
 
-// cf. uhitm.c:3082 — mhitm_really_poison(magr, mattk, mdef, mhm):
-//   Helper: apply actual poison effects (strength loss, instadeath check).
-// TODO: uhitm.c:3082 — mhitm_really_poison()
+// cf. uhitm.c:3315 — wrap handler
+// m-vs-m branch: uhitm.c:3396-3406
+export function mhitm_ad_wrap(magr, mattk, mdef, mhm) {
+    if (magr.mcan) mhm.damage = 0;
+}
 
-// cf. uhitm.c:3100 — mhitm_ad_drst(magr, mattk, mdef, mhm):
-//   Poison damage type handler (strength drain).
-// TODO: uhitm.c:3100 — mhitm_ad_drst()
+// cf. uhitm.c:2423 — level drain handler
+// m-vs-m branch: uhitm.c:2467-2495
+export function mhitm_ad_drli(magr, mattk, mdef, mhm) {
+    if (!rn2(3) && !resists_ston(mdef) /* resists_drli in C, using ston as proxy */
+        && !mhitm_mgc_atk_negated(magr, mdef)) {
+        mhm.damage = d(2, 6);
+        const mlev = mdef.m_lev ?? mdef.mlevel ?? 0;
+        if (mdef.mhpmax - mhm.damage > mlev) {
+            mdef.mhpmax -= mhm.damage;
+        } else if (mdef.mhpmax > mlev) {
+            mdef.mhpmax = mlev + 1;
+        }
+        if (mlev === 0) {
+            mhm.damage = mdef.mhp;
+        } else {
+            if (mdef.m_lev !== undefined) mdef.m_lev--;
+            else if (mdef.mlevel !== undefined) mdef.mlevel--;
+        }
+    }
+}
 
-// cf. uhitm.c:3146 — mhitm_ad_drin(magr, mattk, mdef, mhm):
-//   Brain drain damage type handler (intelligence drain).
-// TODO: uhitm.c:3146 — mhitm_ad_drin()
+// cf. uhitm.c:3630 — slow handler
+// m-vs-m branch: uhitm.c:3654-3664
+export function mhitm_ad_slow(magr, mattk, mdef, mhm) {
+    const negated = mhitm_mgc_atk_negated(magr, mdef);
+    if (!negated) {
+        mdef.mslow = 1;
+    }
+}
 
-// cf. uhitm.c:3284 — mhitm_ad_stck(magr, mattk, mdef, mhm):
-//   Sticking damage type handler (grab/hold).
-// TODO: uhitm.c:3284 — mhitm_ad_stck()
+// cf. uhitm.c:2396 — energy drain handler
+// m-vs-m branch: simplified
+export function mhitm_ad_dren(magr, mattk, mdef, mhm) {
+    const negated = mhitm_mgc_atk_negated(magr, mdef);
+    if (negated) mhm.damage = 0;
+    // C ref: xdrainenergym — increases mspec_used
+    if (!negated && (mdef.mspec_used || 0) < 20) {
+        mdef.mspec_used = (mdef.mspec_used || 0) + d(2, 2);
+    }
+}
 
-// cf. uhitm.c:3315 — mhitm_ad_wrap(magr, mattk, mdef, mhm):
-//   Wrap/constriction damage type handler.
-// TODO: uhitm.c:3315 — mhitm_ad_wrap()
+// cf. uhitm.c:3146 — brain drain (mind flayer)
+// m-vs-m: uhitm.c:3241-3280
+export function mhitm_ad_drin(magr, mattk, mdef, mhm) {
+    const pd = mdef.type || {};
+    if (!pd.flags1 || (pd.flags1 & 0x00040000 /* M1_NOHEAD */)) {
+        // Can't drain brain from headless monster
+        mhm.damage = 0;
+        return;
+    }
+    // C ref: intelligence drain — reduces m_lev and mhpmax
+    const mlev = mdef.m_lev ?? mdef.mlevel ?? 0;
+    if (mlev > 0) {
+        if (mdef.m_lev !== undefined) mdef.m_lev--;
+        else if (mdef.mlevel !== undefined) mdef.mlevel--;
+        mhm.damage = d(2, 6);
+        if (mdef.mhpmax > (mlev + 1)) {
+            mdef.mhpmax -= mhm.damage;
+            if (mdef.mhpmax < (mlev)) mdef.mhpmax = mlev;
+        }
+    } else {
+        mhm.damage = mdef.mhp;
+    }
+}
 
-// cf. uhitm.c:3409 — mhitm_ad_plys(magr, mattk, mdef, mhm):
-//   Paralysis damage type handler.
-// TODO: uhitm.c:3409 — mhitm_ad_plys()
+// --- Remaining AD_* handlers: simplified stubs for rare/complex effects ---
 
-// cf. uhitm.c:3457 — mhitm_ad_slee(magr, mattk, mdef, mhm):
-//   Sleep damage type handler.
-// TODO: uhitm.c:3457 — mhitm_ad_slee()
+// cf. uhitm.c:2259 — rust handler (m-vs-m: damages equipment)
+export function mhitm_ad_rust(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:3504 — mhitm_ad_slim(magr, mattk, mdef, mhm):
-//   Slime damage type handler (green slime transformation).
-// TODO: uhitm.c:3504 — mhitm_ad_slim()
+// cf. uhitm.c:2316 — corrosion handler
+export function mhitm_ad_corr(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:3581 — mhitm_ad_ench(magr, mattk, mdef, mhm):
-//   Enchantment drain damage type handler.
-// TODO: uhitm.c:3581 — mhitm_ad_ench()
+// cf. uhitm.c:2341 — decay handler
+export function mhitm_ad_dcay(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:3630 — mhitm_ad_slow(magr, mattk, mdef, mhm):
-//   Slow damage type handler.
-// TODO: uhitm.c:3630 — mhitm_ad_slow()
+// cf. uhitm.c:2768 — steal gold (m-vs-m: no effect)
+export function mhitm_ad_sgld(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:3668 — mhitm_ad_conf(magr, mattk, mdef, mhm):
-//   Confusion damage type handler.
-// TODO: uhitm.c:3668 — mhitm_ad_conf()
+// cf. uhitm.c:2837 — teleport (m-vs-m: TODO)
+export function mhitm_ad_tlpt(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:3707 — mhitm_ad_poly(magr, mattk, mdef, mhm):
-//   Polymorph damage type handler.
-// TODO: uhitm.c:3707 — mhitm_ad_poly()
+// cf. uhitm.c:2993 — curse items (m-vs-m: no effect)
+export function mhitm_ad_curs(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:3755 — mhitm_ad_famn(magr, mattk, mdef, mhm):
-//   Famine (hunger) damage type handler.
-// TODO: uhitm.c:3755 — mhitm_ad_famn()
+// cf. uhitm.c:3504 — slime (TODO: needs newcham)
+export function mhitm_ad_slim(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:3786 — mhitm_ad_pest(magr, mattk, mdef, mhm):
-//   Pestilence damage type handler.
-// TODO: uhitm.c:3786 — mhitm_ad_pest()
+// cf. uhitm.c:3581 — enchantment drain (TODO)
+export function mhitm_ad_ench(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:3815 — mhitm_ad_deth(magr, mattk, mdef, mhm):
-//   Death touch damage type handler.
-// TODO: uhitm.c:3815 — mhitm_ad_deth()
+// cf. uhitm.c:3707 — polymorph (TODO: needs newcham)
+export function mhitm_ad_poly(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:3875 — mhitm_ad_halu(magr, mattk, mdef, mhm):
-//   Hallucination damage type handler.
-// TODO: uhitm.c:3875 — mhitm_ad_halu()
+// cf. uhitm.c:4181 — stoning (TODO: needs petrification system)
+export function mhitm_ad_ston(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:3902 — do_stone_u(mtmp):
-//   Hero turned to stone by monster touch.
-// TODO: uhitm.c:3902 — do_stone_u()
+// cf. uhitm.c:4243 — lycanthropy (m-vs-m: no effect)
+export function mhitm_ad_were(magr, mattk, mdef, mhm) { /* no effect m-vs-m */ }
 
-// cf. uhitm.c:3923 — do_stone_mon(magr, mdef, mattk, mhm):
-//   Monster turned to stone by hero touch.
-// TODO: uhitm.c:3923 — do_stone_mon()
+// cf. uhitm.c:4274 — nurse healing (m-vs-m: heals defender)
+export function mhitm_ad_heal(magr, mattk, mdef, mhm) {
+    mdef.mhp = Math.min((mdef.mhp || 0) + mhm.damage, mdef.mhpmax || mdef.mhp);
+    mhm.damage = 0;
+}
 
-// cf. uhitm.c:3959 — mhitm_ad_phys(magr, mattk, mdef, mhm):
-//   Physical damage type handler (base melee damage).
-// TODO: uhitm.c:3959 — mhitm_ad_phys()
+// cf. uhitm.c:4403 — leg wound (m-vs-m: physical damage)
+export function mhitm_ad_legs(magr, mattk, mdef, mhm) {
+    mhitm_ad_phys(magr, mattk, mdef, mhm);
+}
 
-// cf. uhitm.c:4181 — mhitm_ad_ston(magr, mattk, mdef, mhm):
-//   Stoning damage type handler (cockatrice, etc).
-// TODO: uhitm.c:4181 — mhitm_ad_ston()
+// cf. uhitm.c:4470 — digestion (engulf)
+export function mhitm_ad_dgst(magr, mattk, mdef, mhm) {
+    // C ref: full digestion damage = d(6,6) if mhm.damage == 0
+    // Simplified: just use the rolled damage
+}
 
-// cf. uhitm.c:4243 — mhitm_ad_were(magr, mattk, mdef, mhm):
-//   Lycanthropy damage type handler.
-// TODO: uhitm.c:4243 — mhitm_ad_were()
+// cf. uhitm.c:4548 — steal amulet (m-vs-m: no effect)
+export function mhitm_ad_samu(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:4274 — mhitm_ad_heal(magr, mattk, mdef, mhm):
-//   Healing damage type handler (nurse healing touch).
-// TODO: uhitm.c:4274 — mhitm_ad_heal()
+// cf. uhitm.c:4571 — disease (m-vs-m: no effect)
+export function mhitm_ad_dise(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:4366 — mhitm_ad_stun(magr, mattk, mdef, mhm):
-//   Stun damage type handler.
-// TODO: uhitm.c:4366 — mhitm_ad_stun()
+// cf. uhitm.c:4601 — seduction (m-vs-m: no effect)
+export function mhitm_ad_sedu(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:4403 — mhitm_ad_legs(magr, mattk, mdef, mhm):
-//   Leg wound damage type handler.
-// TODO: uhitm.c:4403 — mhitm_ad_legs()
+// cf. uhitm.c:4729 — succubus seduction (m-vs-m: no effect)
+export function mhitm_ad_ssex(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:4470 — mhitm_ad_dgst(magr, mattk, mdef, mhm):
-//   Digestion damage type handler (engulfing digest).
-// TODO: uhitm.c:4470 — mhitm_ad_dgst()
+// cf. uhitm.c:3815 — death touch (Rider attack)
+export function mhitm_ad_deth(magr, mattk, mdef, mhm) {
+    // C ref: redirects to mhitm_ad_drli for m-vs-m
+    mhitm_ad_drli(magr, mattk, mdef, mhm);
+}
 
-// cf. uhitm.c:4548 — mhitm_ad_samu(magr, mattk, mdef, mhm):
-//   Steal amulet damage type handler (quest nemesis).
-// TODO: uhitm.c:4548 — mhitm_ad_samu()
+// cf. uhitm.c:3786 — pestilence (Rider attack)
+export function mhitm_ad_pest(magr, mattk, mdef, mhm) {
+    /* m-vs-m: just physical damage */
+}
 
-// cf. uhitm.c:4571 — mhitm_ad_dise(magr, mattk, mdef, mhm):
-//   Disease damage type handler.
-// TODO: uhitm.c:4571 — mhitm_ad_dise()
+// cf. uhitm.c:3755 — famine (Rider attack)
+export function mhitm_ad_famn(magr, mattk, mdef, mhm) {
+    /* m-vs-m: just physical damage */
+}
 
-// cf. uhitm.c:4601 — mhitm_ad_sedu(magr, mattk, mdef, mhm):
-//   Seduction damage type handler (item theft).
-// TODO: uhitm.c:4601 — mhitm_ad_sedu()
+// cf. uhitm.c:3875 — hallucination (m-vs-m: no effect)
+export function mhitm_ad_halu(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:4729 — mhitm_ad_ssex(magr, mattk, mdef, mhm):
-//   Succubus/incubus seduction damage type handler.
-// TODO: uhitm.c:4729 — mhitm_ad_ssex()
+// cf. uhitm.c:3902 — do_stone_u (TODO: needs petrification system)
+// cf. uhitm.c:3923 — do_stone_mon (TODO: needs petrification system)
+
+// ============================================================================
+// 5b. Central AD_* dispatcher
+// ============================================================================
 
 // cf. uhitm.c:4760 — mhitm_adtyping(magr, mattk, mdef, mhm):
 //   Dispatch to specific mhitm_ad_* handler based on attack damage type.
-// TODO: uhitm.c:4760 — mhitm_adtyping()
+//   mattk.damage is the JS equivalent of mattk->adtyp.
+export function mhitm_adtyping(magr, mattk, mdef, mhm) {
+    switch (mattk.damage) {
+    case AD_PHYS: mhitm_ad_phys(magr, mattk, mdef, mhm); break;
+    case AD_FIRE: mhitm_ad_fire(magr, mattk, mdef, mhm); break;
+    case AD_COLD: mhitm_ad_cold(magr, mattk, mdef, mhm); break;
+    case AD_ELEC: mhitm_ad_elec(magr, mattk, mdef, mhm); break;
+    case AD_ACID: mhitm_ad_acid(magr, mattk, mdef, mhm); break;
+    case AD_STUN: mhitm_ad_stun(magr, mattk, mdef, mhm); break;
+    case AD_LEGS: mhitm_ad_legs(magr, mattk, mdef, mhm); break;
+    case AD_WERE: mhitm_ad_were(magr, mattk, mdef, mhm); break;
+    case AD_HEAL: mhitm_ad_heal(magr, mattk, mdef, mhm); break;
+    case AD_SGLD: mhitm_ad_sgld(magr, mattk, mdef, mhm); break;
+    case AD_TLPT: mhitm_ad_tlpt(magr, mattk, mdef, mhm); break;
+    case AD_BLND: mhitm_ad_blnd(magr, mattk, mdef, mhm); break;
+    case AD_CURS: mhitm_ad_curs(magr, mattk, mdef, mhm); break;
+    case AD_DRLI: mhitm_ad_drli(magr, mattk, mdef, mhm); break;
+    case AD_RUST: mhitm_ad_rust(magr, mattk, mdef, mhm); break;
+    case AD_CORR: mhitm_ad_corr(magr, mattk, mdef, mhm); break;
+    case AD_DCAY: mhitm_ad_dcay(magr, mattk, mdef, mhm); break;
+    case AD_DREN: mhitm_ad_dren(magr, mattk, mdef, mhm); break;
+    case AD_DRST:
+    case AD_DRDX:
+    case AD_DRCO: mhitm_ad_drst(magr, mattk, mdef, mhm); break;
+    case AD_DRIN: mhitm_ad_drin(magr, mattk, mdef, mhm); break;
+    case AD_STCK: mhitm_ad_stck(magr, mattk, mdef, mhm); break;
+    case AD_WRAP: mhitm_ad_wrap(magr, mattk, mdef, mhm); break;
+    case AD_PLYS: mhitm_ad_plys(magr, mattk, mdef, mhm); break;
+    case AD_SLEE: mhitm_ad_slee(magr, mattk, mdef, mhm); break;
+    case AD_SLIM: mhitm_ad_slim(magr, mattk, mdef, mhm); break;
+    case AD_ENCH: mhitm_ad_ench(magr, mattk, mdef, mhm); break;
+    case AD_SLOW: mhitm_ad_slow(magr, mattk, mdef, mhm); break;
+    case AD_CONF: mhitm_ad_conf(magr, mattk, mdef, mhm); break;
+    case AD_POLY: mhitm_ad_poly(magr, mattk, mdef, mhm); break;
+    case AD_DISE: mhitm_ad_dise(magr, mattk, mdef, mhm); break;
+    case AD_SAMU: mhitm_ad_samu(magr, mattk, mdef, mhm); break;
+    case AD_DETH: mhitm_ad_deth(magr, mattk, mdef, mhm); break;
+    case AD_PEST: mhitm_ad_pest(magr, mattk, mdef, mhm); break;
+    case AD_FAMN: mhitm_ad_famn(magr, mattk, mdef, mhm); break;
+    case AD_DGST: mhitm_ad_dgst(magr, mattk, mdef, mhm); break;
+    case AD_HALU: mhitm_ad_halu(magr, mattk, mdef, mhm); break;
+    case AD_SSEX: mhitm_ad_ssex(magr, mattk, mdef, mhm); break;
+    case AD_SEDU:
+    case AD_SITM: mhitm_ad_sedu(magr, mattk, mdef, mhm); break;
+    default:
+        mhm.damage = 0;
+        break;
+    }
+}
 
 
 // ============================================================================

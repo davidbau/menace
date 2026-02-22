@@ -85,7 +85,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | makemon.c | makemon.js | Monster creation. Core functions aligned; clone_mon/propagate TODO |
 | `[~]` | mcastu.c | mcastu.js | Monster spellcasting. castmu/buzzmu and all 11 spell functions TODO (runtime gameplay) |
 | `[N/A]` | mdlib.c | — | Metadata library utilities |
-| `[~]` | mhitm.c | mhitm.js | Monster-vs-monster combat. mattackm/mdamagem RNG parity PARTIAL in dogmove.js; full implementation TODO |
+| `[a]` | mhitm.c | mhitm.js | Monster-vs-monster combat. mattackm/hitmm/mdamagem/passivemm/fightm implemented (m-vs-m path); RNG parity for pets in dogmove.js; 5 functions TODO |
 | `[a]` | mhitu.c | mhitu.js | Monster-vs-hero combat. monsterAttackPlayer implemented; 22 functions TODO |
 | `[~]` | minion.c | minion.js | Minion summoning: msummon, summon_minion, demon_talk, bribe, guardian angels. All 14 functions TODO (runtime gameplay) |
 | `[~]` | mklev.c | mklev.js | Level generation. makelevel/makerooms/makecorridors/mineralize PARTIAL in dungeon.js; topologize/mkinvokearea/place_branch TODO |
@@ -149,7 +149,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[p]` | track.c | track.js | Player tracking for pets. save/rest not yet implemented |
 | `[a]` | trap.c | trap.js | Trap mechanics: m_harmless_trap, floor_trigger, mintrap_postmove, mon_check_in_air |
 | `[a]` | u_init.c | u_init.js | Player initialization. u_init_role, u_init_race, u_init_carry_attr_boost, trquan, ini_inv, ini_inv_mkobj_filter, restricted_spell_discipline aligned. JS-only wrappers: simulatePostLevelInit, initAttributes |
-| `[a]` | uhitm.c | uhitm.js | Hero-vs-monster combat. playerAttackMonster implemented; 93 functions TODO |
+| `[a]` | uhitm.c | uhitm.js | Hero-vs-monster combat. playerAttackMonster, all mhitm_ad_* handlers (40+), mhitm_adtyping dispatcher, mhitm_mgc_atk_negated implemented; 50 functions TODO |
 | `[N/A]` | utf8map.c | — | UTF-8 glyph mapping for terminal |
 | `[~]` | vault.c | `vault.js` | Vault guard behavior |
 | `[N/A]` | version.c | — | Version info |
@@ -2372,28 +2372,28 @@ No function symbols parsed from isaac64.c.
 ### mhitm.c -> mhitm.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 1475 | `attk_protection` | - | Missing |
+| 1475 | `attk_protection` | mhitm.js | Implemented |
 | 807 | `engulf_target` | - | Missing |
-| 970 | `explmm` | - | Missing |
-| 597 | `failed_grab` | - | Missing |
-| 106 | `fightm` | - | Missing |
-| 736 | `gazemm` | - | Missing |
-| 849 | `gulpmm` | - | Missing |
-| 644 | `hitmm` | - | Missing |
-| 293 | `mattackm` | - | Missing |
-| 1016 | `mdamagem` | - | Missing |
+| 970 | `explmm` | mhitm.js | Implemented (simplified) |
+| 597 | `failed_grab` | mhitm.js | Implemented |
+| 106 | `fightm` | mhitm.js | Implemented |
+| 736 | `gazemm` | mhitm.js | Implemented (simplified) |
+| 849 | `gulpmm` | - | Missing (engulf handled inline) |
+| 644 | `hitmm` | mhitm.js | Implemented |
+| 293 | `mattackm` | mhitm.js | Implemented |
+| 1016 | `mdamagem` | mhitm.js | Implemented |
 | 179 | `mdisplacem` | - | Missing |
-| 76 | `missmm` | - | Missing |
+| 76 | `missmm` | mhitm.js | Implemented |
 | 1122 | `mon_poly` | - | Missing |
 | 1283 | `mswingsm` | - | Missing |
-| 27 | `noises` | - | Missing |
-| 1210 | `paralyze_monst` | - | Missing |
-| 1304 | `passivemm` | - | Missing |
-| 41 | `pre_mm_attack` | - | Missing |
-| 1260 | `rustm` | - | Missing |
-| 1223 | `sleep_monst` | - | Missing |
-| 1250 | `slept_monst` | - | Missing |
-| 1461 | `xdrainenergym` | - | Missing |
+| 27 | `noises` | mhitm.js | Stub |
+| 1210 | `paralyze_monst` | mhitm.js | Implemented |
+| 1304 | `passivemm` | mhitm.js | Implemented |
+| 41 | `pre_mm_attack` | mhitm.js | Implemented (simplified) |
+| 1260 | `rustm` | mhitm.js | Stub |
+| 1223 | `sleep_monst` | mhitm.js | Implemented |
+| 1250 | `slept_monst` | mhitm.js | Stub |
+| 1461 | `xdrainenergym` | mhitm.js | Implemented |
 
 ### mhitu.c -> mhitu.js
 | C Line | C Function | JS Line | Alignment |
@@ -2412,7 +2412,7 @@ No function symbols parsed from isaac64.c.
 | 1285 | `gulpmu` | - | Missing |
 | 30 | `hitmsg` | - | Missing |
 | 1140 | `hitmu` | - | Missing |
-| 1085 | `magic_negation` | - | Missing |
+| 1085 | `magic_negation` | mondata.js | Implemented (simplified) |
 | 490 | `mattacku` | - | Missing |
 | 2303 | `mayberem` | - | Missing |
 | 1895 | `mdamageu` | - | Missing |
@@ -5270,6 +5270,7 @@ No function symbols parsed from isaac64.c.
 ### uhitm.c -> uhitm.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
+| 74 | `mhitm_mgc_atk_negated` | uhitm.js | Implemented |
 | 188 | `attack_checks` | - | Missing |
 | 330 | `check_caitiff` | - | Missing |
 | 4813 | `damageum` | - | Missing |
@@ -5315,48 +5316,48 @@ No function symbols parsed from isaac64.c.
 | 6403 | `light_hits_gremlin` | - | Missing |
 | 5196 | `m_is_steadfast` | - | Missing |
 | 2034 | `m_slips_free` | - | Missing |
-| 2720 | `mhitm_ad_acid` | - | Missing |
-| 2936 | `mhitm_ad_blnd` | - | Missing |
-| 2604 | `mhitm_ad_cold` | - | Missing |
-| 3668 | `mhitm_ad_conf` | - | Missing |
-| 2316 | `mhitm_ad_corr` | - | Missing |
-| 2993 | `mhitm_ad_curs` | - | Missing |
-| 2341 | `mhitm_ad_dcay` | - | Missing |
-| 3815 | `mhitm_ad_deth` | - | Missing |
-| 4470 | `mhitm_ad_dgst` | - | Missing |
-| 4571 | `mhitm_ad_dise` | - | Missing |
-| 2396 | `mhitm_ad_dren` | - | Missing |
-| 3146 | `mhitm_ad_drin` | - | Missing |
-| 2423 | `mhitm_ad_drli` | - | Missing |
-| 3100 | `mhitm_ad_drst` | - | Missing |
-| 2662 | `mhitm_ad_elec` | - | Missing |
-| 3581 | `mhitm_ad_ench` | - | Missing |
-| 3755 | `mhitm_ad_famn` | - | Missing |
-| 2499 | `mhitm_ad_fire` | - | Missing |
-| 3875 | `mhitm_ad_halu` | - | Missing |
-| 4274 | `mhitm_ad_heal` | - | Missing |
-| 4403 | `mhitm_ad_legs` | - | Missing |
-| 3786 | `mhitm_ad_pest` | - | Missing |
-| 3959 | `mhitm_ad_phys` | - | Missing |
-| 3409 | `mhitm_ad_plys` | - | Missing |
-| 3707 | `mhitm_ad_poly` | - | Missing |
-| 2259 | `mhitm_ad_rust` | - | Missing |
-| 4548 | `mhitm_ad_samu` | - | Missing |
-| 4601 | `mhitm_ad_sedu` | - | Missing |
-| 2768 | `mhitm_ad_sgld` | - | Missing |
-| 3457 | `mhitm_ad_slee` | - | Missing |
-| 3504 | `mhitm_ad_slim` | - | Missing |
-| 3630 | `mhitm_ad_slow` | - | Missing |
-| 4729 | `mhitm_ad_ssex` | - | Missing |
-| 3284 | `mhitm_ad_stck` | - | Missing |
-| 4181 | `mhitm_ad_ston` | - | Missing |
-| 4366 | `mhitm_ad_stun` | - | Missing |
-| 2837 | `mhitm_ad_tlpt` | - | Missing |
-| 4243 | `mhitm_ad_were` | - | Missing |
-| 3315 | `mhitm_ad_wrap` | - | Missing |
-| 4760 | `mhitm_adtyping` | - | Missing |
-| 5225 | `mhitm_knockback` | - | Missing |
-| 3082 | `mhitm_really_poison` | - | Missing |
+| 2720 | `mhitm_ad_acid` | uhitm.js | Implemented (m-vs-m path) |
+| 2936 | `mhitm_ad_blnd` | uhitm.js | Implemented (m-vs-m path) |
+| 2604 | `mhitm_ad_cold` | uhitm.js | Implemented (m-vs-m path) |
+| 3668 | `mhitm_ad_conf` | uhitm.js | Implemented (m-vs-m path) |
+| 2316 | `mhitm_ad_corr` | uhitm.js | Stub (no armor system) |
+| 2993 | `mhitm_ad_curs` | uhitm.js | Stub (no m-vs-m effect) |
+| 2341 | `mhitm_ad_dcay` | uhitm.js | Stub (no armor system) |
+| 3815 | `mhitm_ad_deth` | uhitm.js | Implemented (redirects to drli) |
+| 4470 | `mhitm_ad_dgst` | uhitm.js | Stub |
+| 4571 | `mhitm_ad_dise` | uhitm.js | Stub (no m-vs-m effect) |
+| 2396 | `mhitm_ad_dren` | uhitm.js | Implemented (m-vs-m path) |
+| 3146 | `mhitm_ad_drin` | uhitm.js | Implemented (m-vs-m path) |
+| 2423 | `mhitm_ad_drli` | uhitm.js | Implemented (m-vs-m path) |
+| 3100 | `mhitm_ad_drst` | uhitm.js | Implemented (m-vs-m path) |
+| 2662 | `mhitm_ad_elec` | uhitm.js | Implemented (m-vs-m path) |
+| 3581 | `mhitm_ad_ench` | uhitm.js | Stub (no m-vs-m effect) |
+| 3755 | `mhitm_ad_famn` | uhitm.js | Stub (physical only m-vs-m) |
+| 2499 | `mhitm_ad_fire` | uhitm.js | Implemented (m-vs-m path) |
+| 3875 | `mhitm_ad_halu` | uhitm.js | Stub (no m-vs-m effect) |
+| 4274 | `mhitm_ad_heal` | uhitm.js | Implemented (m-vs-m path) |
+| 4403 | `mhitm_ad_legs` | uhitm.js | Implemented (delegates to phys) |
+| 3786 | `mhitm_ad_pest` | uhitm.js | Stub (physical only m-vs-m) |
+| 3959 | `mhitm_ad_phys` | uhitm.js | Implemented (m-vs-m path) |
+| 3409 | `mhitm_ad_plys` | uhitm.js | Implemented (m-vs-m path) |
+| 3707 | `mhitm_ad_poly` | uhitm.js | Stub (needs newcham) |
+| 2259 | `mhitm_ad_rust` | uhitm.js | Stub (no armor system) |
+| 4548 | `mhitm_ad_samu` | uhitm.js | Stub (no m-vs-m effect) |
+| 4601 | `mhitm_ad_sedu` | uhitm.js | Stub (no m-vs-m effect) |
+| 2768 | `mhitm_ad_sgld` | uhitm.js | Stub (no m-vs-m effect) |
+| 3457 | `mhitm_ad_slee` | uhitm.js | Implemented (m-vs-m path) |
+| 3504 | `mhitm_ad_slim` | uhitm.js | Stub (needs newcham) |
+| 3630 | `mhitm_ad_slow` | uhitm.js | Implemented (m-vs-m path) |
+| 4729 | `mhitm_ad_ssex` | uhitm.js | Stub (no m-vs-m effect) |
+| 3284 | `mhitm_ad_stck` | uhitm.js | Implemented (m-vs-m path) |
+| 4181 | `mhitm_ad_ston` | uhitm.js | Stub (needs petrification) |
+| 4366 | `mhitm_ad_stun` | uhitm.js | Implemented (m-vs-m path) |
+| 2837 | `mhitm_ad_tlpt` | uhitm.js | Stub |
+| 4243 | `mhitm_ad_were` | uhitm.js | Stub (no m-vs-m effect) |
+| 3315 | `mhitm_ad_wrap` | uhitm.js | Implemented (m-vs-m path) |
+| 4760 | `mhitm_adtyping` | uhitm.js | Implemented |
+| 5225 | `mhitm_knockback` | - | Missing (RNG consumed in mdamagem) |
+| 3082 | `mhitm_really_poison` | uhitm.js | Implemented |
 | 1920 | `mhurtle_to_doom` | - | Missing |
 | 5176 | `missum` | - | Missing |
 | 350 | `mon_maybe_unparalyze` | - | Missing |
