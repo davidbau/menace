@@ -1407,10 +1407,12 @@ function m_move(mon, map, player, display = null, fov = null) {
         const ndist = dist2(nx, ny, ggx, ggy);
         const nearer = ndist < nidist;
 
-        if ((appr === 1 && nearer)
+        // Preserve C short-circuit order: first candidate is accepted without
+        // consuming rn2() when no prior move was selected.
+        if (!mmoved
+            || (appr === 1 && nearer)
             || (appr === -1 && !nearer)
-            || (appr === 0 && !rn2(++chcnt))
-            || !mmoved) {
+            || (appr === 0 && !rn2(++chcnt))) {
             nix = nx;
             niy = ny;
             nidist = ndist;
