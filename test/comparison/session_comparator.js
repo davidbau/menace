@@ -24,6 +24,16 @@ export function compareRecordedGameplaySession(session, replay, options = {}) {
     let colorsMatched = 0;
     let colorsTotal = 0;
     let firstColorDivergence = null;
+    let screenWindowMatched = 0;
+    let screenWindowTotal = 0;
+    let firstScreenWindowDivergence = null;
+    let screenEarlyOnlyCount = 0;
+    let firstScreenEarlyOnly = null;
+    let colorWindowMatched = 0;
+    let colorWindowTotal = 0;
+    let firstColorWindowDivergence = null;
+    let colorEarlyOnlyCount = 0;
+    let firstColorEarlyOnly = null;
     let animationBoundariesMatched = 0;
     let animationBoundariesTotal = 0;
     let firstAnimationBoundaryDivergence = null;
@@ -40,6 +50,24 @@ export function compareRecordedGameplaySession(session, replay, options = {}) {
             } else if (!firstScreenDivergence && screenCmp.firstDiff) {
                 firstScreenDivergence = { step: i + 1, ...screenCmp.firstDiff };
             }
+            const screenWindowCmp = policy.compareScreenWindowStep(actual, expected, i);
+            if (screenWindowCmp && screenWindowCmp.total > 0) {
+                screenWindowMatched += screenWindowCmp.matched;
+                screenWindowTotal += screenWindowCmp.total;
+                if (!screenWindowCmp.match && !firstScreenWindowDivergence && screenWindowCmp.firstDiff) {
+                    firstScreenWindowDivergence = { step: i + 1, ...screenWindowCmp.firstDiff };
+                }
+                const earlyOnly = (!screenCmp.match && screenWindowCmp.match && !!screenWindowCmp.early);
+                if (earlyOnly) {
+                    screenEarlyOnlyCount++;
+                    if (!firstScreenEarlyOnly) {
+                        firstScreenEarlyOnly = {
+                            step: i + 1,
+                            frame: screenWindowCmp.matchedFrame || null,
+                        };
+                    }
+                }
+            }
         }
 
         const colorCmp = policy.compareColorStep(actual, expected, i);
@@ -48,6 +76,24 @@ export function compareRecordedGameplaySession(session, replay, options = {}) {
             colorsTotal += colorCmp.total;
             if (!firstColorDivergence && !colorCmp.match && colorCmp.firstDiff) {
                 firstColorDivergence = { step: i + 1, ...colorCmp.firstDiff };
+            }
+            const colorWindowCmp = policy.compareColorWindowStep(actual, expected, i);
+            if (colorWindowCmp && colorWindowCmp.total > 0) {
+                colorWindowMatched += colorWindowCmp.matched;
+                colorWindowTotal += colorWindowCmp.total;
+                if (!colorWindowCmp.match && !firstColorWindowDivergence && colorWindowCmp.firstDiff) {
+                    firstColorWindowDivergence = { step: i + 1, ...colorWindowCmp.firstDiff };
+                }
+                const earlyOnly = (!colorCmp.match && colorWindowCmp.match && !!colorWindowCmp.early);
+                if (earlyOnly) {
+                    colorEarlyOnlyCount++;
+                    if (!firstColorEarlyOnly) {
+                        firstColorEarlyOnly = {
+                            step: i + 1,
+                            frame: colorWindowCmp.matchedFrame || null,
+                        };
+                    }
+                }
             }
         }
 
@@ -78,6 +124,22 @@ export function compareRecordedGameplaySession(session, replay, options = {}) {
             matched: colorsMatched,
             total: colorsTotal,
             firstDivergence: firstColorDivergence,
+        },
+        screenWindow: {
+            matched: screenWindowMatched,
+            total: screenWindowTotal,
+            firstDivergence: firstScreenWindowDivergence,
+            earlyOnlyCount: screenEarlyOnlyCount,
+            firstEarlyOnly: firstScreenEarlyOnly,
+            rerecordCandidate: screenEarlyOnlyCount > 0,
+        },
+        colorWindow: {
+            matched: colorWindowMatched,
+            total: colorWindowTotal,
+            firstDivergence: firstColorWindowDivergence,
+            earlyOnlyCount: colorEarlyOnlyCount,
+            firstEarlyOnly: firstColorEarlyOnly,
+            rerecordCandidate: colorEarlyOnlyCount > 0,
         },
         event: {
             matched: eventCmp.matched,

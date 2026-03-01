@@ -286,6 +286,20 @@ Notes:
 - `comparison-window` supports `--session` and `--file`. When `--dir` is not supplied, it searches recent runs for the requested target if it is not present in the latest run.
 - Use these artifacts to localize real gameplay bugs in core `js/` modules; do not patch comparator/harness behavior to hide mismatches.
 
+Timing-window triage:
+- Strict parity (`screens`, `colors`) remains authoritative for pass/fail.
+- Non-gating timing-window metrics (`screenWindow`, `colorWindow`) additionally check JS animation boundary frames for a match within the same step.
+- If strict mismatch + window match occurs, the result includes `rerecordHint` with candidate steps. Treat this as a capture-timing signal, not as gameplay parity success.
+- Re-record those sessions after adding per-turn delay overrides to the session (for C capture):
+```json
+{ "regen": { "key_delays_s": { "106": 0.25 } } }
+```
+- Then run:
+```bash
+python3 test/comparison/c-harness/rerecord.py \
+  test/comparison/sessions/seed110_samurai_selfplay200_gameplay.session.json
+```
+
 ### Replay Boundary (Core vs Harness)
 
 Keep gameplay and UI semantics in core runtime modules (`js/`), not in
