@@ -241,6 +241,21 @@ python3 test/comparison/c-harness/keylog_to_session.py \
   --wizard auto
 ```
 
+When conversion replay itself is under investigation, capture a v3 session
+directly during manual play (no second replay pass):
+
+```bash
+python3 test/comparison/c-harness/record_manual_session_v3.py \
+  --seed=8 \
+  --name=Tutes \
+  --role=Wizard \
+  --race=human \
+  --gender=male \
+  --align=neutral \
+  --symset=DECgraphics \
+  --tutorial-option=unset
+```
+
 ## Project Structure
 
 See [DESIGN.md](DESIGN.md) for the complete module architecture and C-to-JS correspondence mapping. This guide focuses on workflows and commands.

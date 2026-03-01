@@ -86,3 +86,24 @@ To regenerate all keylog-backed fixtures configured in `seeds.json`:
 ```bash
 python3 test/comparison/c-harness/keylog_to_session.py --from-config
 ```
+
+## Direct Manual-to-v3 Capture (no conversion replay)
+
+For debugging where conversion replay timing may drift, capture v3 session data
+directly while manually playing:
+
+```bash
+python3 test/comparison/c-harness/record_manual_session_v3.py \
+  --seed=8 \
+  --name=Tutes \
+  --role=Wizard \
+  --race=human \
+  --gender=male \
+  --align=neutral \
+  --symset=DECgraphics \
+  --tutorial-option=unset
+```
+
+Then attach to the printed tmux session and play manually. The watcher writes
+keys + RNG deltas + ANSI screen frames directly into the output `.session.json`
+while the game runs.
