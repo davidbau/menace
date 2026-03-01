@@ -345,7 +345,6 @@ def validate_session(session_path, verbose=False):
                     result['divergences'].append({
                         'step': step_idx,
                         'key': key,
-                        'action': step.get('action', ''),
                         'expected': expected_msg,
                         'actual': actual_msg,
                     })

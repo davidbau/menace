@@ -71,7 +71,6 @@ function normalizeStep(step, index) {
     return {
         index,
         key: row.key ?? null,
-        action: row.action || null,
         rng,
         // Prefer explicit traces over count-only comparison. For captured
         // `rng: []`, leave rngCalls null so downstream uses compareRng()
@@ -163,7 +162,7 @@ export function normalizeSession(raw, meta = {}) {
 
     const sourceSteps = Array.isArray(raw?.steps) ? raw.steps : [];
     const startupFromStep = sourceSteps.length > 0
-        && (sourceSteps[0]?.key === null || sourceSteps[0]?.action === 'startup')
+        && sourceSteps[0]?.key === null
         ? sourceSteps[0]
         : null;
     const startupRaw = raw?.startup || startupFromStep;

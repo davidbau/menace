@@ -210,6 +210,37 @@ npm test
 npm run test:all
 ```
 
+## Manual Keylog Recording (Canonical)
+
+For manual C keylog recordings used by parity fixtures, use the recorder wrapper
+instead of launching `nethack` directly. The wrapper sets deterministic env,
+creates a controlled `.nethackrc`, and cleans stale save/lock/bones state.
+
+```bash
+# Tutorial manual recording example
+./record-manual-capture.sh \
+  --seed=9 \
+  --role=Archeologist \
+  --race=human \
+  --gender=female \
+  --align=neutral \
+  --no-wizard \
+  --tutorial \
+  --tmux-socket=default \
+  --keylog=test/comparison/keylogs/seed9_tutorial_manual.jsonl
+```
+
+Then convert to a v3 comparison session:
+
+```bash
+python3 test/comparison/c-harness/keylog_to_session.py \
+  --in test/comparison/keylogs/seed9_tutorial_manual.jsonl \
+  --out test/comparison/sessions/seed9_tutorial_manual_gameplay.session.json \
+  --startup-mode auto \
+  --tutorial on \
+  --wizard auto
+```
+
 ## Project Structure
 
 See [DESIGN.md](DESIGN.md) for the complete module architecture and C-to-JS correspondence mapping. This guide focuses on workflows and commands.

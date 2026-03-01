@@ -206,6 +206,12 @@ async function main() {
     const totalSteps = gameplaySteps.length;
     let matchedSteps = 0;
     let matchedScreenSteps = 0;
+    const stepLabel = (step) => {
+        if (!step) return '?';
+        if (step.key === null) return 'startup';
+        if (step.key === '') return 'game-ready';
+        return String(step.key ?? '?');
+    };
 
     for (let i = 0; i < totalSteps; i++) {
         const jsStep = replay.steps[i];
@@ -216,11 +222,11 @@ async function main() {
             if (ok) {
                 matchedSteps++;
                 if (verbose) {
-                    console.log(`step ${i}: ok (${cStep.action || cStep.key})`);
+                    console.log(`step ${i}: ok (${stepLabel(cStep)})`);
                 }
             } else {
                 failures++;
-                console.log(`step ${i} (${cStep.action || cStep.key}): ${mismatchLine('RNG', div)}`);
+                console.log(`step ${i} (${stepLabel(cStep)}): ${mismatchLine('RNG', div)}`);
                 if (stopOnMismatch) {
                     break;
                 }
@@ -240,7 +246,7 @@ async function main() {
                 matchedScreenSteps++;
             } else {
                 failures++;
-                console.log(`step ${i} (${cStep.action || cStep.key}): screen diverges at row ${screenCmp.row}`);
+                console.log(`step ${i} (${stepLabel(cStep)}): screen diverges at row ${screenCmp.row}`);
                 if (verbose) {
                     console.log(`  C : "${screenCmp.c}"`);
                     console.log(`  JS: "${screenCmp.js}"`);

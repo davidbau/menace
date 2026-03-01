@@ -107,7 +107,6 @@ divergence moment):
 ```json
 {
   "key": "h",
-  "action": "move-west",
   "capture": { "key_delay_s": 0.25 },
   "rng": ["..."],
   "screen": "..."
@@ -161,7 +160,6 @@ captures the game state after initialization, before any player commands:
   "steps": [
     {
       "key": null,
-      "action": "startup",
       "rng": [
         "rn2(2)=1 @ o_init.c:88",
         "rn2(2)=0 @ o_init.c:91",
@@ -173,7 +171,7 @@ captures the game state after initialization, before any player commands:
       "screen": "\u001b[0m\n\u001b[32Clqqqqqqk\u001b[0m\n...",
       "typGrid": "||2:0,3,3:2,9|..."
     },
-    { "key": "h", "action": "move-west", ... },
+    { "key": "h", ... },
     ...
   ]
 }
@@ -200,19 +198,16 @@ and is the startup step. Subsequent steps have string keys:
   "steps": [
     {
       "key": null,
-      "action": "startup",
       "rng": [...14000 calls...],
       "screen": "...",
       "typGrid": "..."
     },
     {
       "key": ":",
-      "action": "look",
       "rng": []
     },
     {
       "key": "h",
-      "action": "move-west",
       "rng": [
         "rn2(12)=2 @ mon.c:1145",
         ">movemon",
@@ -224,7 +219,6 @@ and is the startup step. Subsequent steps have string keys:
     },
     {
       "key": ">",
-      "action": "descend",
       "rng": [...],
       "typGrid": "...",
       "checkpoints": [...]
@@ -236,19 +230,15 @@ and is the startup step. Subsequent steps have string keys:
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `key` | string\|null | yes | Key sent to NetHack (null for startup) |
-| `action` | string | yes | **Unreliable heuristic label** — assigned by `describe_key()` from the key character alone, with no knowledge of actual game state. Do not use for debugging or replay logic (see below). |
 | `rng` | string[] | yes | RNG calls during this step (may be empty) |
 | `capture` | object | no | Optional capture metadata; supports `key_delay_s` for per-step C capture settle timing |
 | `screen` | string | no | ANSI-compressed screen after this step (v3 canonical) |
 | `typGrid` | string | no | RLE terrain grid (on level changes) |
 | `checkpoints` | array | no | State snapshots (during level generation) |
 
-> **Warning: `action` labels are unreliable.** The `action` field is generated
-> by `describe_key()` in `run_session.py` purely from the key character — `'n'`
-> always becomes `"move-se"` even if it's a throw direction, spell direction, or
-> text input like "no". Labels are frequently wrong and **must not be used** for
-> debugging or replay decisions. See [issue #144](https://github.com/davidbau/menace/issues/144)
-> for planned removal.
+> **`action` removed:** v3 readers/writers must ignore and omit `steps[].action`.
+> Replay/debug tooling should use `key` (and actual RNG/screen/state evidence),
+> never heuristic action labels.
 
 ### Screen Semantics (Important)
 

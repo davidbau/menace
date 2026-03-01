@@ -55,6 +55,10 @@ Replay JSON contains:
 
 Use `keys` for deterministic input replay and `events` for state-aligned diffing.
 
+Important: `events[*].x/y/dnum/dlevel` are sampled when the key is read
+(pre-command), not after command execution. So a level transition caused by key
+`K` appears as a changed `dlevel` on the following event.
+
 ## 3) Convert JSONL trace to C-comparison session fixture
 
 ```bash

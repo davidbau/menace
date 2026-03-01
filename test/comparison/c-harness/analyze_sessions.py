@@ -129,7 +129,7 @@ def analyze_session(session_path):
             if re.search(pattern, msg, re.IGNORECASE):
                 stats['descents'] += 1
                 stats['descent_details'].append({
-                    'step': step.get('action', ''),
+                    'step': step.get('key', ''),
                     'msg': msg[:60],
                 })
                 break
@@ -145,7 +145,7 @@ def analyze_session(session_path):
             if re.search(pattern, msg, re.IGNORECASE):
                 stats['combat_hits'] += 1
                 stats['combat_details'].append({
-                    'step': step.get('action', ''),
+                    'step': step.get('key', ''),
                     'msg': msg[:60],
                 })
                 break

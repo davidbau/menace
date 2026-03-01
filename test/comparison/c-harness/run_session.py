@@ -912,6 +912,19 @@ def compact_session_json(session_data):
 
     Uses ensure_ascii=True for portability (escapes all non-ASCII as \\uXXXX).
     """
+    def strip_action_fields(value):
+        if isinstance(value, dict):
+            return {
+                k: strip_action_fields(v)
+                for k, v in value.items()
+                if k != 'action'
+            }
+        if isinstance(value, list):
+            return [strip_action_fields(v) for v in value]
+        return value
+
+    session_data = strip_action_fields(session_data)
+
     lines = ['{']
 
     keys = list(session_data.keys())

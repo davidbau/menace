@@ -326,7 +326,9 @@ function getChargenKeysFromSession(session = {}) {
     if (session.type !== 'chargen') return [];
     const keys = [];
     for (const step of (session.steps || [])) {
-        if (step.action === 'game-ready') break; // end of init phase
+        // Legacy sessions used an empty-string key as a game-ready marker.
+        // Action labels are deprecated and ignored.
+        if (step.key === '') break;
         if (typeof step.key === 'string' && step.key.length > 0) {
             keys.push(step.key);
         }

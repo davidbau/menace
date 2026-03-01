@@ -35,7 +35,7 @@ _spec.loader.exec_module(_session)
 tmux_send = _session.tmux_send
 tmux_send_special = _session.tmux_send_special
 capture_screen_lines = _session.capture_screen_lines
-capture_screen_ansi_lines = _session.capture_screen_ansi_lines
+capture_screen_compressed = _session.capture_screen_compressed
 clear_more_prompts = _session.clear_more_prompts
 wait_for_game_ready = _session.wait_for_game_ready
 read_rng_log = _session.read_rng_log
@@ -44,7 +44,6 @@ execute_dumpmap = _session.execute_dumpmap
 quit_game = _session.quit_game
 compact_session_json = _session.compact_session_json
 fixed_datetime_env = _session.fixed_datetime_env
-detect_depth = _session.detect_depth
 
 
 def parse_args():
@@ -59,6 +58,12 @@ def parse_args():
     p.add_argument('--gender', default='female')
     p.add_argument('--align', default='neutral')
     p.add_argument('--symset', default='ASCII', choices=['ASCII', 'DECgraphics'])
+    p.add_argument(
+        '--wizard',
+        default='auto',
+        choices=['auto', 'on', 'off'],
+        help='Launch C in wizard mode: auto=from keylog metadata, on=force -D, off=no -D'
+    )
     p.add_argument(
         '--tutorial',
         default='auto',
@@ -80,8 +85,14 @@ def parse_args():
     p.add_argument(
         '--startup-mode',
         default='auto',
-        choices=['auto', 'ready', 'from-keylog'],
-        help='Startup handling: ready=auto-advance to map before replay, from-keylog=replay startup keys exactly, auto=detect from keylog in_moveloop'
+        choices=['auto', 'ready', 'from-keylog', 'tutorial-ready'],
+        help='Startup handling: ready=auto-advance to map before replay, from-keylog=replay startup keys exactly, tutorial-ready=enter tutorial via OPTIONS then replay keys, auto=detect from keylog in_moveloop'
+    )
+    p.add_argument(
+        '--key-delay-ms',
+        type=int,
+        default=None,
+        help='Replay delay per key in milliseconds (default: 50)'
     )
     args = p.parse_args()
     if not args.from_config and (not args.input_jsonl or not args.output_json):
@@ -177,20 +188,20 @@ def describe_key(code):
     return f'keycode-{code}'
 
 
-def send_keycode(session_name, code):
+def send_keycode(session_name, code, delay_s):
     if code == 10 or code == 13:
-        tmux_send_special(session_name, 'Enter', 0.05)
+        tmux_send_special(session_name, 'Enter', delay_s)
         return
     if code == 27:
-        tmux_send_special(session_name, 'Escape', 0.05)
+        tmux_send_special(session_name, 'Escape', delay_s)
         return
     if code == 127:
-        tmux_send_special(session_name, 'BSpace', 0.05)
+        tmux_send_special(session_name, 'BSpace', delay_s)
         return
     if 1 <= code <= 26:
-        tmux_send_special(session_name, f'C-{chr(code + 96)}', 0.05)
+        tmux_send_special(session_name, f'C-{chr(code + 96)}', delay_s)
         return
-    tmux_send(session_name, chr(code), 0.05)
+    tmux_send(session_name, chr(code), delay_s)
 
 
 def resolve_screen_capture_mode(screen_capture, symset):
@@ -210,6 +221,34 @@ def resolve_tutorial_mode(mode, metadata):
     return False
 
 
+def resolve_wizard_mode(mode, metadata):
+    if mode == 'on':
+        return True
+    if mode == 'off':
+        return False
+    if metadata and 'wizard' in metadata:
+        v = metadata['wizard']
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, (int, float)):
+            return bool(v)
+        if isinstance(v, str):
+            return v.strip().lower() in ('1', 'true', 'yes', 'on')
+    return True
+
+
+def parse_bool(value, default=False):
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return default
+    if isinstance(value, (int, float)):
+        return bool(value)
+    if isinstance(value, str):
+        return value.strip().lower() in ('1', 'true', 'yes', 'on')
+    return default
+
+
 def drop_leading_space_events(events, drop_count):
     remaining = max(0, int(drop_count or 0))
     if remaining == 0:
@@ -225,14 +264,32 @@ def drop_leading_space_events(events, drop_count):
     return out, dropped
 
 
-def capture_screens(session_name, mode):
-    """Capture screen fields according to mode and return dict."""
-    out = {}
-    if mode in ('plain', 'both'):
-        out['screen'] = capture_screen_lines(session_name)
-    if mode in ('ansi', 'both'):
-        out['screenAnsi'] = capture_screen_ansi_lines(session_name)
-    return out
+def capture_screen_v3(session_name):
+    """Capture canonical v3 screen payload (single ANSI string)."""
+    return capture_screen_compressed(session_name)
+
+
+def detect_screen_depth(screen_lines):
+    """Detect depth/branch from rendered status lines only (not keylog metadata)."""
+    import re
+    for line in screen_lines[22:24]:
+        m = re.search(r'(Tutorial|Dlvl|Mines|Sokoban|Quest|Astral|Fort Ludios|Vlad\'s Tower|Air|Earth|Fire|Water):\s*(\d+)', line)
+        if m:
+            return f'{m.group(1)}:{m.group(2)}'
+        if 'End Game' in line:
+            return 'End Game'
+    return 'Dlvl:1'
+
+
+def looks_like_tutorial_autostart(events, tutorial_enabled):
+    """Heuristic: keylog already begins inside tutorial gameplay state."""
+    if not tutorial_enabled or not events:
+        return False
+    window = events[:8]
+    return (
+        any(int(e.get('in_moveloop', 1)) == 1 and int(e.get('dnum', -1)) == 8 for e in window)
+        and int(events[0].get('moves', 0)) >= 1
+    )
 
 
 def run_from_keylog(
@@ -244,6 +301,8 @@ def run_from_keylog(
     screen_capture_mode,
     startup_mode,
     tutorial_enabled,
+    wizard_enabled,
+    key_delay_ms,
     regen=None
 ):
     setup_home(character, symset, tutorial_enabled)
@@ -255,6 +314,8 @@ def run_from_keylog(
     session_name = f'webhack-keylog-{seed}-{os.getpid()}'
     keylog_moves_base = int(events[0].get('moves', 0))
 
+    key_delay_s = max(0.0, float(key_delay_ms) / 1000.0)
+
     try:
         cmd = (
             f'NETHACKDIR={INSTALL_DIR} '
@@ -264,7 +325,7 @@ def run_from_keylog(
             f'NETHACK_DUMPMAP={dumpmap_file} '
             f'HOME={RESULTS_DIR} '
             f'TERM=xterm-256color '
-            f'{NETHACK_BINARY} -u {character["name"]} -D; '
+            f'{NETHACK_BINARY} -u {character["name"]} {"-D" if wizard_enabled else ""}; '
             f'sleep 999'
         )
         subprocess.run(
@@ -274,10 +335,15 @@ def run_from_keylog(
         time.sleep(1.0)
 
         keylog_has_startup = any(int(e.get('in_moveloop', 1)) == 0 for e in events[:64])
-        replay_startup_from_keylog = (
-            startup_mode == 'from-keylog'
-            or (startup_mode == 'auto' and keylog_has_startup)
-        )
+        tutorial_autostart = looks_like_tutorial_autostart(events, tutorial_enabled)
+        replay_startup_from_keylog = False
+        if startup_mode == 'from-keylog':
+            replay_startup_from_keylog = True
+        elif startup_mode in ('ready', 'tutorial-ready'):
+            replay_startup_from_keylog = False
+        elif startup_mode == 'auto':
+            replay_startup_from_keylog = keylog_has_startup and not tutorial_autostart
+
         if replay_startup_from_keylog:
             # Keylog traces captured via c_manual_record already include startup/chargen keys.
             # Do not auto-advance prompts here or we will double-apply startup.
@@ -288,7 +354,8 @@ def run_from_keylog(
             clear_more_prompts(session_name)
             time.sleep(0.1)
 
-        startup_screens = capture_screens(session_name, screen_capture_mode)
+        startup_screen = capture_screen_v3(session_name)
+        startup_screen_lines = capture_screen_lines(session_name)
         startup_rng_count, startup_rng_lines = read_rng_log(rng_log_file)
         startup_rng_entries = parse_rng_lines(startup_rng_lines)
         startup_actual_rng = sum(1 for e in startup_rng_entries if e[0] not in ('>', '<'))
@@ -297,7 +364,7 @@ def run_from_keylog(
             clear_more_prompts(session_name)
 
         session_data = {
-            'version': 1,
+            'version': 3,
             'seed': seed,
             'source': 'c',
             'type': 'gameplay',
@@ -307,60 +374,50 @@ def run_from_keylog(
                 'race': character['race'],
                 'gender': character['gender'],
                 'align': character['align'],
-                'wizard': True,
+                'wizard': bool(wizard_enabled),
                 'symset': symset,
                 'tutorial': bool(tutorial_enabled),
             },
-            'wizard': True,
-            'character': character,
-            'symset': symset,
-            'screenMode': 'decgraphics' if symset.lower() == 'decgraphics' else 'ascii',
-            'startup': {
+            'steps': [{
+                'key': None,
                 'rngCalls': startup_actual_rng,
                 'rng': startup_rng_entries,
                 'typGrid': startup_typ_grid,
-                **startup_screens,
-            },
-            'steps': [],
+                'screen': startup_screen,
+            }],
         }
         if regen:
             session_data['regen'] = regen
 
         prev_rng_count = startup_rng_count
-        startup_depth_lines = startup_screens.get('screen') or startup_screens.get('screenAnsi') or []
-        prev_depth = detect_depth(startup_depth_lines)
-        prev_typ_grid = startup_typ_grid
+        prev_depth = detect_screen_depth(startup_screen_lines)
         warned_tutorial_dnum_lag = False
 
         print(
             f'=== Replaying {len(events)} keylog events '
-            f'(seed={seed}, screenCapture={screen_capture_mode}, tutorial={tutorial_enabled}) ==='
+            f'(seed={seed}, screenCapture={screen_capture_mode}, tutorial={tutorial_enabled}, keyDelayMs={key_delay_ms}) ==='
         )
         for i, e in enumerate(events):
             code = int(e['key'])
-            send_keycode(session_name, code)
-            time.sleep(0.05)
-            if not replay_startup_from_keylog:
-                clear_more_prompts(session_name)
-                time.sleep(0.05)
+            send_keycode(session_name, code, key_delay_s)
 
-            screens = capture_screens(session_name, screen_capture_mode)
+            screen = capture_screen_v3(session_name)
+            screen_lines = capture_screen_lines(session_name)
             rng_count, rng_lines = read_rng_log(rng_log_file)
             delta_lines = rng_lines[prev_rng_count:rng_count]
             rng_entries = parse_rng_lines(delta_lines)
 
-            depth_lines = screens.get('screen') or screens.get('screenAnsi') or []
-            depth = int(e.get('dlevel', detect_depth(depth_lines)))
+            depth = detect_screen_depth(screen_lines)
             turn = max(0, int(e.get('moves', 0)) - keylog_moves_base)
 
             # Guard against startup-state mismatch: if status says Tutorial while
             # keylog dnum says otherwise, abort instead of producing a bad fixture.
-            if depth_lines:
-                status_line = depth_lines[23] if len(depth_lines) > 23 else ''
+            if screen_lines:
+                status_line = screen_lines[23] if len(screen_lines) > 23 else ''
                 ev_dnum = e.get('dnum')
                 if isinstance(ev_dnum, int) and 'Tutorial:' in status_line and ev_dnum != 8:
                     seq = int(e.get('seq', 0) or 0)
-                    if seq <= 32:
+                    if seq <= 32 and not replay_startup_from_keylog and not tutorial_autostart:
                         raise RuntimeError(
                             f'Keylog/session mismatch at seq={e.get("seq")}: '
                             f'status shows Tutorial but keylog dnum={ev_dnum}'
@@ -374,11 +431,10 @@ def run_from_keylog(
 
             step = {
                 'key': key_repr(code),
-                'action': describe_key(code),
                 'turn': turn,
                 'depth': depth,
                 'rng': rng_entries,
-                **screens,
+                'screen': screen,
             }
 
             # For long manual traces, #dumpmap on every key is too expensive.
@@ -388,7 +444,6 @@ def run_from_keylog(
                 clear_more_prompts(session_name)
                 if current_grid:
                     step['typGrid'] = current_grid
-                    prev_typ_grid = current_grid
                 prev_depth = depth
 
             session_data['steps'].append(step)
@@ -477,6 +532,8 @@ def run_from_config():
         screen_capture_mode = resolve_screen_capture_mode(str(entry.get('screenCapture', 'auto')), symset)
         startup_mode = str(entry.get('startupMode', 'auto'))
         tutorial_enabled = resolve_tutorial_mode(tutorial_mode_from_entry(entry), metadata)
+        wizard_enabled = parse_bool(entry_value(entry, metadata, 'wizard', True), default=True)
+        key_delay_ms = int(entry.get('keyDelayMs', 50))
         replay_events, dropped = drop_leading_space_events(events, int(entry.get('dropLeadingSpaces', 0) or 0))
 
         if metadata:
@@ -495,7 +552,9 @@ def run_from_config():
             'startupMode': startup_mode,
             'screenCapture': screen_capture_mode,
             'tutorial': tutorial_enabled,
+            'wizard': wizard_enabled,
             'dropLeadingSpaces': dropped,
+            'keyDelayMs': key_delay_ms,
         }
         run_from_keylog(
             replay_events,
@@ -506,6 +565,8 @@ def run_from_config():
             screen_capture_mode,
             startup_mode,
             tutorial_enabled,
+            wizard_enabled,
+            key_delay_ms,
             regen=regen,
         )
 
@@ -556,6 +617,8 @@ def main():
 
     screen_capture_mode = resolve_screen_capture_mode(args.screen_capture, symset)
     tutorial_enabled = resolve_tutorial_mode(args.tutorial, metadata)
+    wizard_enabled = resolve_wizard_mode(args.wizard, metadata)
+    key_delay_ms = int(args.key_delay_ms if args.key_delay_ms is not None else 50)
     replay_events, dropped = drop_leading_space_events(events, args.drop_leading_spaces)
     if dropped:
         print(f'Dropped leading space key events: {dropped}')
@@ -566,7 +629,9 @@ def main():
         'startupMode': args.startup_mode,
         'screenCapture': screen_capture_mode,
         'tutorial': tutorial_enabled,
+        'wizard': wizard_enabled,
         'dropLeadingSpaces': dropped,
+        'keyDelayMs': key_delay_ms,
     }
     run_from_keylog(
         replay_events,
@@ -577,6 +642,8 @@ def main():
         screen_capture_mode,
         args.startup_mode,
         tutorial_enabled,
+        wizard_enabled,
+        key_delay_ms,
         regen=regen,
     )
 
