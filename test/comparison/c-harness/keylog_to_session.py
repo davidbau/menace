@@ -92,7 +92,7 @@ def parse_args():
         '--key-delay-ms',
         type=int,
         default=None,
-        help='Replay delay per key in milliseconds (default: keylog metadata keylogDelayMs, else 50)'
+        help='Replay delay per key in milliseconds (default: 50)'
     )
     args = p.parse_args()
     if not args.from_config and (not args.input_jsonl or not args.output_json):
@@ -417,7 +417,7 @@ def run_from_keylog(
                 ev_dnum = e.get('dnum')
                 if isinstance(ev_dnum, int) and 'Tutorial:' in status_line and ev_dnum != 8:
                     seq = int(e.get('seq', 0) or 0)
-                    if seq <= 32 and not replay_startup_from_keylog:
+                    if seq <= 32 and not replay_startup_from_keylog and not tutorial_autostart:
                         raise RuntimeError(
                             f'Keylog/session mismatch at seq={e.get("seq")}: '
                             f'status shows Tutorial but keylog dnum={ev_dnum}'
@@ -533,7 +533,7 @@ def run_from_config():
         startup_mode = str(entry.get('startupMode', 'auto'))
         tutorial_enabled = resolve_tutorial_mode(tutorial_mode_from_entry(entry), metadata)
         wizard_enabled = parse_bool(entry_value(entry, metadata, 'wizard', True), default=True)
-        key_delay_ms = int(entry_value(entry, metadata, 'keylogDelayMs', 50))
+        key_delay_ms = int(entry.get('keyDelayMs', 50))
         replay_events, dropped = drop_leading_space_events(events, int(entry.get('dropLeadingSpaces', 0) or 0))
 
         if metadata:
@@ -618,7 +618,7 @@ def main():
     screen_capture_mode = resolve_screen_capture_mode(args.screen_capture, symset)
     tutorial_enabled = resolve_tutorial_mode(args.tutorial, metadata)
     wizard_enabled = resolve_wizard_mode(args.wizard, metadata)
-    key_delay_ms = int(args.key_delay_ms if args.key_delay_ms is not None else (metadata.get('keylogDelayMs', 50) if metadata else 50))
+    key_delay_ms = int(args.key_delay_ms if args.key_delay_ms is not None else 50)
     replay_events, dropped = drop_leading_space_events(events, args.drop_leading_spaces)
     if dropped:
         print(f'Dropped leading space key events: {dropped}')
