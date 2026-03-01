@@ -148,29 +148,65 @@ function getCached(cache, result) {
     return entry;
 }
 
-// Short inline note: cached cat, or raw "jsFn vs sessFn" fallback
+// Extract bare event type from a raw event string like "^dog_goal_start @ dog_move <= ..."
+function eventType(s) {
+    return (s || '').split(' @ ')[0].split('[')[0] || '?';
+}
+
+// Find the first character difference between two screen lines
+function screenCharDiff(js, session) {
+    const a = js || '', b = session || '';
+    for (let i = 0; i < Math.max(a.length, b.length); i++) {
+        if (a[i] !== b[i]) {
+            const got  = a[i] ? `'${a[i]}'` : '(end)';
+            const want = b[i] ? `'${b[i]}'` : '(end)';
+            return `${got} instead of ${want}`;
+        }
+    }
+    return 'differs';
+}
+
+// Short inline note: cached cat, or per-channel fallback
 function shortNote(result, cache) {
     const entry = getCached(cache, result);
     if (entry) return entry.cat;
-    const fd = result.firstDivergence;
-    if (!fd) return 'unknown divergence';
-    const jsFn   = (fd.jsRaw  || '').split(' @ ')[1]?.split('(')[0] || '?';
-    const sessFn = (fd.sessionRaw || '').split(' @ ')[1]?.split('(')[0] || '?';
-    return `${jsFn} vs ${sessFn}`;
+    const fds = result.firstDivergences || {};
+    if (fds.rng) {
+        const jsFn   = (fds.rng.jsRaw      || '').split(' @ ')[1]?.split('(')[0] || '?';
+        const sessFn = (fds.rng.sessionRaw  || '').split(' @ ')[1]?.split('(')[0] || '?';
+        return `${jsFn} vs ${sessFn}`;
+    }
+    if (fds.event) {
+        return `event: ${eventType(fds.event.js)} vs ${eventType(fds.event.session)}`;
+    }
+    if (fds.screen) {
+        return `screen row ${fds.screen.row ?? '?'}, ${screenCharDiff(fds.screen.js, fds.screen.session)}`;
+    }
+    return 'unknown divergence';
 }
 
-// Full paragraph: cached tldr, or raw fallback
+// Full paragraph: cached tldr, or per-channel fallback
 function fullDiagnose(result, cache) {
     const entry = getCached(cache, result);
     if (entry) return entry.tldr;
-    const fd = result.firstDivergence;
-    if (!fd) return 'No divergence data recorded.';
-    const jsFn   = (fd.jsRaw  || '').split(' @ ')[1]?.split('(')[0] || '?';
-    const sessFn = (fd.sessionRaw || '').split(' @ ')[1]?.split('(')[0] || '?';
-    const stack  = Array.isArray(fd.sessionStack) && fd.sessionStack.length > 0
-        ? ` (C stack: ${fd.sessionStack.map(s => s.split(' @ ')[1]?.split('(')[0]).join('→')})`
-        : '';
-    return `JS calls ${jsFn} while C calls ${sessFn}${stack}. (Run scripts/gen-pes-diagnoses.mjs to generate AI analysis.)`;
+    const fds = result.firstDivergences || {};
+    if (fds.rng) {
+        const fd     = fds.rng;
+        const jsFn   = (fd.jsRaw      || '').split(' @ ')[1]?.split('(')[0] || '?';
+        const sessFn = (fd.sessionRaw  || '').split(' @ ')[1]?.split('(')[0] || '?';
+        const stack  = Array.isArray(fd.sessionStack) && fd.sessionStack.length > 0
+            ? ` (C stack: ${fd.sessionStack.map(s => s.split(' @ ')[1]?.split('(')[0]).join('→')})`
+            : '';
+        return `JS calls ${jsFn} while C calls ${sessFn}${stack}. (Run scripts/gen-pes-diagnoses.mjs to generate AI analysis.)`;
+    }
+    if (fds.event) {
+        return `Events diverge at step ${fds.event.step ?? '?'}: JS emits ${eventType(fds.event.js)} while C emits ${eventType(fds.event.session)}. (Run scripts/gen-pes-diagnoses.mjs to generate AI analysis.)`;
+    }
+    if (fds.screen) {
+        const diff = screenCharDiff(fds.screen.js, fds.screen.session);
+        return `Screen diverges at step ${fds.screen.step ?? '?'}, row ${fds.screen.row ?? '?'}: ${diff}. (Run scripts/gen-pes-diagnoses.mjs to generate AI analysis.)`;
+    }
+    return 'No divergence data recorded.';
 }
 
 // ──────────────────────────────────────────────────────────────────────
@@ -204,10 +240,11 @@ function main() {
     }
 
     const cache = loadCache();
-    const allResults = Array.isArray(bundle.results) ? bundle.results : [];
-    const gameplay = allResults.filter(r => r.type === 'gameplay' && (!failuresOnly || !r.passed));
+    const allResults  = Array.isArray(bundle.results) ? bundle.results : [];
+    const allGameplay = allResults.filter(r => r.type === 'gameplay');
+    const gameplay    = failuresOnly ? allGameplay.filter(r => !r.passed) : allGameplay;
 
-    if (gameplay.length === 0) {
+    if (allGameplay.length === 0) {
         console.log('No gameplay sessions found in results.');
         process.exit(0);
     }
@@ -234,7 +271,6 @@ function main() {
     }
 
     // ── Per-session rows ──────────────────────────────────────────────
-    let passing = 0, failing = 0;
     const failingResults = [];
 
     for (const r of gameplay) {
@@ -281,34 +317,32 @@ function main() {
             );
         }
 
-        if (r.passed) {
-            passing++;
-        } else {
-            failing++;
-            failingResults.push(r);
-        }
+        if (!r.passed) failingResults.push(r);
     }
 
     // ── Summary ───────────────────────────────────────────────────────
     if (!diagnoseOnly) {
         console.log('═'.repeat(LINE_W));
 
+        // Always report against the full session set, even with --failures
+        const passing = allGameplay.filter(r => r.passed).length;
+        const failing = allGameplay.length - passing;
         const passingStr = cGreen(String(passing));
         const failingStr = failing > 0 ? cRed(String(failing)) : String(failing);
         console.log(
-            cBold('Gameplay: ') + `${passingStr}/${gameplay.length} passing, ${failingStr} failing`
+            cBold('Gameplay: ') + `${passingStr}/${allGameplay.length} passing, ${failingStr} failing`
         );
 
-        // Aggregate per-channel counts
-        const rngFull  = gameplay.filter(r => (r.metrics?.rngCalls?.total > 0)
+        // Aggregate per-channel counts from full set
+        const rngFull  = allGameplay.filter(r => (r.metrics?.rngCalls?.total > 0)
             && r.metrics.rngCalls.matched === r.metrics.rngCalls.total).length;
-        const evFull   = gameplay.filter(r => (r.metrics?.events?.total > 0)
+        const evFull   = allGameplay.filter(r => (r.metrics?.events?.total > 0)
             && r.metrics.events.matched === r.metrics.events.total).length;
-        const scFull   = gameplay.filter(r => (r.metrics?.screens?.total > 0)
+        const scFull   = allGameplay.filter(r => (r.metrics?.screens?.total > 0)
             && r.metrics.screens.matched === r.metrics.screens.total).length;
-        const rngComp  = gameplay.filter(r => r.metrics?.rngCalls?.total > 0).length;
-        const evComp   = gameplay.filter(r => r.metrics?.events?.total > 0).length;
-        const scComp   = gameplay.filter(r => r.metrics?.screens?.total > 0).length;
+        const rngComp  = allGameplay.filter(r => r.metrics?.rngCalls?.total > 0).length;
+        const evComp   = allGameplay.filter(r => r.metrics?.events?.total > 0).length;
+        const scComp   = allGameplay.filter(r => r.metrics?.screens?.total > 0).length;
 
         console.log(
             cDim('  100% channels: ')
