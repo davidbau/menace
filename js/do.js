@@ -838,10 +838,13 @@ export function deferred_goto(player, game) {
     if (dest !== player.dungeonLevel) {
         if (player.dfr_pre_msg)
             pline(player.dfr_pre_msg);
-        // In C this calls goto_level(); in JS we use changeLevel()
-        game.changeLevel(dest, 'teleport');
+        // C ref: do.c — maybe_lvltport_feedback() prints "materialize" BEFORE quest hint check.
+        // In JS, changeLevel() calls maybeShowQuestLocateHint() internally, so dfr_post_msg
+        // must be printed BEFORE changeLevel() to match C's message ordering.
         if (player.dfr_post_msg)
             pline(player.dfr_post_msg);
+        // In C this calls goto_level(); in JS we use changeLevel()
+        game.changeLevel(dest, 'teleport');
     }
     player.utotype = 0;
     player.dfr_pre_msg = null;

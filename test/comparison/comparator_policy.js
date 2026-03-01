@@ -88,6 +88,17 @@ function approximateStepForRngIndex(session, normalizedIndex) {
     return 'n/a';
 }
 
+function stepForEventIndex(session, eventIndex) {
+    const isEvent = (e) => typeof e === 'string' && e.startsWith('^') && !e.startsWith('^trick[');
+    let cumulative = 0;
+    cumulative += (session.startup?.rng || []).filter(isEvent).length;
+    for (let i = 0; i < session.steps.length; i++) {
+        cumulative += (session.steps[i].rng || []).filter(isEvent).length;
+        if (eventIndex < cumulative) return i + 1;
+    }
+    return 'n/a';
+}
+
 function expectedDelayBoundaryCount(step) {
     const entries = Array.isArray(step?.rng) ? step.rng : [];
     let comparable = false;
@@ -166,7 +177,13 @@ export function createGameplayComparatorPolicy(session, options = {}) {
             return compareScreenAnsi(actualAnsi, expectedMasked);
         },
         compareEvents(allJsRng, allSessionRng) {
-            return compareEvents(allJsRng, allSessionRng);
+            const cmp = compareEvents(allJsRng, allSessionRng);
+            if (cmp.firstDivergence) {
+                cmp.firstDivergence.step = stepForEventIndex(
+                    session, cmp.firstDivergence.index
+                );
+            }
+            return cmp;
         },
         compareAnimationBoundariesStep(actualStep, expectedStep) {
             const expected = expectedDelayBoundaryCount(expectedStep);

@@ -548,15 +548,19 @@ function dog_invent(mon, edog, udist, map, turnCount, display, player, fov = nul
             if (rn2(10) < edog.apport) {
                 let dropObj;
                 while ((dropObj = droppables(mon)) != null) {
-                    mdrop_obj(mon, dropObj, map);
                     const canSeePet = display && player && (
                         fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my)
                     );
+                    // C ref: steal.c:824 — name captured BEFORE extract_from_minvent/stackobj,
+                    // so quantity reflects the pre-merge state of the dropped item.
+                    // observeObject is called first so dknown is set for correct identification.
+                    if (canSeePet) observeObject(dropObj);
+                    const dropName = canSeePet ? doname(dropObj, null) : null;
+                    mdrop_obj(mon, dropObj, map);
                     if (canSeePet) {
-                        observeObject(dropObj);
                         // C ref: weapon.c:766 — Monnam(mon) uses ARTICLE_THE
                         const monLabel = Monnam(mon);
-                        display.putstr_message(`${monLabel} drops ${doname(dropObj, null)}.`);
+                        display.putstr_message(`${monLabel} drops ${dropName}.`);
                     }
                 }
                 if (edog.apport > 1) edog.apport--;
