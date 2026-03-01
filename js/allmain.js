@@ -441,6 +441,12 @@ export async function run_command(game, ch, opts = {}) {
 
     const chCode = typeof ch === 'number' ? ch
         : (typeof ch === 'string' && ch.length > 0) ? ch.charCodeAt(0) : 0;
+    if (game?._tempNoConcatMessages
+        && game.display
+        && Object.hasOwn(game.display, 'noConcatenateMessages')) {
+        game.display.noConcatenateMessages = false;
+        game._tempNoConcatMessages = false;
+    }
     const isPrefixKey = chCode === 'm'.charCodeAt(0)
         || chCode === 'F'.charCodeAt(0)
         || chCode === 'G'.charCodeAt(0)

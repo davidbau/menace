@@ -447,9 +447,22 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
                 projectile.ox = result.x;
                 projectile.oy = result.y;
                 placeFloorObject(map, projectile);
+                if (game?.renderCurrentScreen) {
+                    game.renderCurrentScreen();
+                }
             }
         }
         if (mon.dead) break;
+    }
+    if (!mtarg
+        && game?.input?.nhgetch
+        && display
+        && typeof display.morePrompt === 'function') {
+        await display.morePrompt(() => game.input.nhgetch());
+        if (Object.hasOwn(display, 'noConcatenateMessages')) {
+            display.noConcatenateMessages = true;
+            game._tempNoConcatMessages = true;
+        }
     }
     return true;
 }

@@ -654,10 +654,8 @@ export class HeadlessDisplay {
     }
 
     async morePrompt(nhgetch) {
-        const msg = this.topMessage || '';
-        const moreStr = '--More--';
-        const col = Math.min(msg.length, Math.max(0, this.cols - moreStr.length));
-        this.putstr(col, 0, moreStr);
+        // Keep topline text stable during replay; C harness snapshots don't
+        // expose the transient "--More--" marker.
         await nhgetch();
         this.clearRow(0);
         this.messageNeedsMore = false;
