@@ -342,7 +342,10 @@ def run_from_keylog(
         elif startup_mode in ('ready', 'tutorial-ready'):
             replay_startup_from_keylog = False
         elif startup_mode == 'auto':
-            replay_startup_from_keylog = keylog_has_startup and not tutorial_autostart
+            # Prefer explicit startup keys whenever present; tutorial_autostart
+            # is only a fallback signal for logs that intentionally skipped
+            # startup key capture.
+            replay_startup_from_keylog = keylog_has_startup
 
         if replay_startup_from_keylog:
             # Keylog traces captured via c_manual_record already include startup/chargen keys.
