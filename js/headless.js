@@ -653,15 +653,21 @@ export class HeadlessDisplay {
         this.messageNeedsMore = true;
     }
 
-    async morePrompt(nhgetch) {
-        // C tty appends "--More--" immediately after the top-line message
-        // and the captured screen includes this marker.  Render it so that
-        // replay screen comparisons match C-captured screens.
-        // C ref: win/tty/topl.c tmore()
+    // Render the "--More--" marker that C tty appends to the topline before
+    // blocking on input.  C ref: win/tty/topl.c tmore().
+    // Callers who need the visual marker (e.g. dolook engraving display) call
+    // this before morePrompt so that screen comparisons match C captures.
+    renderMoreMarker() {
         const moreStr = '--More--';
         const msgLen = (this.topMessage || '').length;
         const col = Math.min(msgLen, this.cols - moreStr.length);
         this.putstr(col, 0, moreStr, CLR_WHITE);
+    }
+
+    async morePrompt(nhgetch) {
+        // Keep topline text stable during replay; C harness snapshots don't
+        // expose the transient "--More--" marker for most callers.
+        // Use renderMoreMarker() before this call when C does show the marker.
         await nhgetch();
         this.clearRow(0);
         this.messageNeedsMore = false;

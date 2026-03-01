@@ -312,8 +312,11 @@ export async function dolook(game) {
             }
 
             if (sensed) {
-                // C: tty --More-- occurs here because a second pline follows immediately
+                // C tty appends "--More--" to the topline before blocking on the
+                // next keypress; render the marker so captured screen comparisons match.
+                // C ref: win/tty/topl.c tmore(), pager.c dolook() flow.
                 display.putstr_message(typeMsg);
+                if (typeof display.renderMoreMarker === 'function') display.renderMoreMarker();
                 await display.morePrompt(nhgetch);
                 const et = ep.text;
                 const endpunct = (et.length >= 2 && '.!?'.includes(et[et.length - 1])) ? '' : '.';
