@@ -30,7 +30,11 @@ Optional flags:
 Tutorial example:
 
 ```bash
-node selfplay/runner/c_manual_record.js --seed=5 --tutorial --keylog=/tmp/seed5_tutorial_manual.jsonl
+node selfplay/runner/c_manual_record.js \
+  --seed=5 \
+  --tutorial \
+  --keylog-delay=0 \
+  --keylog=/tmp/seed5_tutorial_manual.jsonl
 ```
 
 To run in your normal (default) tmux server:
@@ -72,6 +76,8 @@ python3 test/comparison/c-harness/keylog_to_session.py \
 - `--startup-mode=auto` is the safe default for manual keylogs.
 - It detects startup keys in the keylog (`in_moveloop=0`) and replays startup
   exactly from the log instead of auto-advancing prompts.
+- For tutorial recordings, keep startup logging enabled (`--keylog-delay=0`)
+  so any recorder-fed chargen/tutorial prompt keys become part of the session.
 - Tutorial prompt mode defaults to keylog metadata (`tutorial: true/false`).
   Override with `--tutorial=on|off` if needed.
 

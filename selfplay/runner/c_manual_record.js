@@ -25,7 +25,9 @@ function parseArgs(argv) {
         keylog: null,
         keepSession: true,
         fixedDatetime: '20000110090000',
-        keylogDelayMs: 200,  // Skip startup keypresses (character selection)
+        // Record all startup keys (including adapter-driven chargen/tutorial keys)
+        // so replay can faithfully reproduce the same entry path.
+        keylogDelayMs: 0,
     };
 
     for (let i = 2; i < argv.length; i++) {
@@ -62,7 +64,7 @@ function printUsage() {
     console.log('Usage: node selfplay/runner/c_manual_record.js [options]');
     console.log('  --seed=N            RNG seed (default: 1)');
     console.log('  --keylog=PATH       JSONL output path (default: /tmp/...)');
-    console.log('  --keylog-delay=MS   skip initial keypresses (default: 200ms)');
+    console.log('  --keylog-delay=MS   skip initial keypresses (default: 0ms)');
     console.log('  --role=ROLE         default: Valkyrie');
     console.log('  --race=RACE         default: human');
     console.log('  --gender=GENDER     default: female');
