@@ -171,8 +171,8 @@ export class TmuxAdapter extends GameAdapter {
 
         writeFileSync(nethackrc, rcOptions.join('\n') + '\n');
 
-        // Clean up stale game state
-        this._cleanGameState();
+        // Clean up stale game state for this specific player name.
+        this._cleanGameState(name);
 
         // Kill any existing tmux session with the same name
         try { execSync(`${this.tmuxBaseCmd} kill-session -t ${this.sessionName} 2>/dev/null`); } catch {}
@@ -367,7 +367,7 @@ export class TmuxAdapter extends GameAdapter {
     /**
      * Clean up stale game state files.
      */
-    _cleanGameState() {
+    _cleanGameState(playerName = '') {
         try {
             const saveDir = join(INSTALL_DIR, 'save');
             if (existsSync(saveDir)) {
@@ -377,11 +377,15 @@ export class TmuxAdapter extends GameAdapter {
             }
             // Remove lock files and level files
             if (existsSync(INSTALL_DIR)) {
+                const lowerName = String(playerName || '').toLowerCase();
                 for (const f of readdirSync(INSTALL_DIR)) {
-                    if (f.includes('Agent') || f.includes('agent') || f.includes('Wizard')) {
-                        if (!f.endsWith('.lua')) {
-                            try { unlinkSync(join(INSTALL_DIR, f)); } catch {}
-                        }
+                    if (f.endsWith('.lua')) continue;
+                    const lower = f.toLowerCase();
+                    const matchesKnown = lower.includes('agent') || lower.includes('wizard');
+                    const matchesPlayer = lowerName && lower.includes(lowerName);
+                    const matchesBones = lower.startsWith('bon');
+                    if (matchesKnown || matchesPlayer || matchesBones) {
+                        try { unlinkSync(join(INSTALL_DIR, f)); } catch {}
                     }
                 }
             }
