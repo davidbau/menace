@@ -1178,6 +1178,13 @@ export class HeadlessDisplay {
             }
         }
         this._tempOverlay.delete(key);
+        // C ref: tmp_at() erases via newsym() from current map state, not from
+        // a stale snapshot taken when the temp overlay started.
+        const last = this._lastMapState;
+        if (last?.gameMap) {
+            this.renderMap(last.gameMap, last.player, last.fov, last.flags || this.flags || {});
+            return;
+        }
         this._restoreBaseCell(col, row);
     }
 

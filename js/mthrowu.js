@@ -518,87 +518,82 @@ export async function m_throw_timed(
         observe: false,
     });
     tmp_at(tethered_weapon ? DISP_TETHER : DISP_FLASH, projGlyph);
-    try {
-        while (range-- > 0) {
-            x += dx;
-            y += dy;
-            if (!isok(x, y)) break;
-            const loc = map.at(x, y);
-            if (!loc) break;
-            if (ACCESSIBLE(loc.typ)) {
-                dropX = x;
-                dropY = y;
-            }
-            tmp_at(x, y);
-            await nh_delay_output();
+    while (range-- > 0) {
+        x += dx;
+        y += dy;
+        if (!isok(x, y)) break;
+        const loc = map.at(x, y);
+        if (!loc) break;
+        if (ACCESSIBLE(loc.typ)) {
+            dropX = x;
+            dropY = y;
+        }
 
-            const mtmp = map.monsterAt(x, y);
-            if (mtmp && !mtmp.dead) {
-                if (ohitmon(mtmp, weapon, range, true, map, player, display, game)) {
-                    // ohitmon() already performs drop_throw() when projectile stops.
-                    dropHandledInImpact = true;
-                    break;
-                }
-            }
-
-            if (x === player.x && y === player.y) {
-                if (weapon?.oclass === GEM_CLASS && ucatchgem(weapon, mon, player, map, display)) {
-                    break;
-                }
-                let hitv;
-                let dam;
-                switch (weapon?.otyp) {
-                case EGG:
-                case CREAM_PIE:
-                case BLINDING_VENOM:
-                    hitv = 8;
-                    dam = 0;
-                    break;
-                default: {
-                    dam = dmgval(weapon, { type: player?.data || {} });
-                    hitv = 3 - distmin(player.x, player.y, mon.mx, mon.my);
-                    if (hitv < -4) hitv = -4;
-                    if (is_elf(mon?.type || {})
-                        && (objectData[weapon.otyp]?.sub === -P_BOW)) {
-                        hitv += 1;
-                        if (mon.weapon?.otyp === ELVEN_BOW) hitv += 1;
-                        if (weapon.otyp === ELVEN_ARROW) dam += 1;
-                    }
-                    const heroSize = player?.data?.msize ?? MZ_HUMAN;
-                    if (heroSize >= MZ_LARGE) hitv += 1;
-                    hitv += 8 + (weapon.spe || 0);
-                    if (dam < 1) dam = 1;
-                    break;
-                }
-                }
-                const hitu = thitu(hitv, dam, weapon, null, player, display, game, mon);
-                if (game) {
-                    if (typeof game.stop_occupation === 'function') game.stop_occupation();
-                    else if (typeof game.stopOccupation === 'function') game.stopOccupation();
-                    else if (game.occupation || Number.isInteger(game.multi)) {
-                        game.occupation = null;
-                        game.multi = 0;
-                    }
-                }
-                if (hitu) {
-                    hitPlayer = true;
-                    break;
-                }
-            }
-
-            const forcehit = !rn2(5);
-            const nx = x + dx;
-            const ny = y + dy;
-            const nextLoc = isok(nx, ny) ? map.at(nx, ny) : null;
-            if (nextLoc && nextLoc.typ === IRONBARS && hits_bars(weapon, x, y, nx, ny, forcehit ? 1 : 0, 0, map)) {
+        const mtmp = map.monsterAt(x, y);
+        if (mtmp && !mtmp.dead) {
+            if (ohitmon(mtmp, weapon, range, true, map, player, display, game)) {
+                // ohitmon() already performs drop_throw() when projectile stops.
+                dropHandledInImpact = true;
                 break;
             }
-            if (!range || flightBlocked(x, y, false, forcehit)) break;
         }
-    } finally {
-        if (!tethered_weapon) {
-            tmp_at(DISP_END, 0);
+
+        if (x === player.x && y === player.y) {
+            if (weapon?.oclass === GEM_CLASS && ucatchgem(weapon, mon, player, map, display)) {
+                break;
+            }
+            let hitv;
+            let dam;
+            switch (weapon?.otyp) {
+            case EGG:
+            case CREAM_PIE:
+            case BLINDING_VENOM:
+                hitv = 8;
+                dam = 0;
+                break;
+            default: {
+                dam = dmgval(weapon, { type: player?.data || {} });
+                hitv = 3 - distmin(player.x, player.y, mon.mx, mon.my);
+                if (hitv < -4) hitv = -4;
+                if (is_elf(mon?.type || {})
+                    && (objectData[weapon.otyp]?.sub === -P_BOW)) {
+                    hitv += 1;
+                    if (mon.weapon?.otyp === ELVEN_BOW) hitv += 1;
+                    if (weapon.otyp === ELVEN_ARROW) dam += 1;
+                }
+                const heroSize = player?.data?.msize ?? MZ_HUMAN;
+                if (heroSize >= MZ_LARGE) hitv += 1;
+                hitv += 8 + (weapon.spe || 0);
+                if (dam < 1) dam = 1;
+                break;
+            }
+            }
+            const hitu = thitu(hitv, dam, weapon, null, player, display, game, mon);
+            if (game) {
+                if (typeof game.stop_occupation === 'function') game.stop_occupation();
+                else if (typeof game.stopOccupation === 'function') game.stopOccupation();
+                else if (game.occupation || Number.isInteger(game.multi)) {
+                    game.occupation = null;
+                    game.multi = 0;
+                }
+            }
+            if (hitu) {
+                hitPlayer = true;
+                break;
+            }
         }
+
+        const forcehit = !rn2(5);
+        const nx = x + dx;
+        const ny = y + dy;
+        const nextLoc = isok(nx, ny) ? map.at(nx, ny) : null;
+        if (nextLoc && nextLoc.typ === IRONBARS && hits_bars(weapon, x, y, nx, ny, forcehit ? 1 : 0, 0, map)) {
+            break;
+        }
+        if (!range || flightBlocked(x, y, false, forcehit)) break;
+
+        tmp_at(x, y);
+        await nh_delay_output();
     }
     tmp_at(x, y);
     await nh_delay_output();
@@ -606,6 +601,7 @@ export async function m_throw_timed(
         await tmp_at_end_async(BACKTRACK);
         return { drop: false, returnFlight: true, x: mon.mx, y: mon.my, hitPlayer };
     }
+    tmp_at(DISP_END, 0);
     return { drop: !dropHandledInImpact, x: dropX, y: dropY, hitPlayer };
 }
 
