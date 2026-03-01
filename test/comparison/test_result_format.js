@@ -146,12 +146,14 @@ export function recordColors(result, matched, total) {
 
 /**
  * Record event log comparison.
- * This is tracked as a parallel parity metric and does not
- * currently change overall session pass/fail.
+ * Event parity is required for a session to pass.
  */
 export function recordEvents(result, matched, total) {
     result.metrics.events.matched += matched;
     result.metrics.events.total += total;
+    if (matched < total) {
+        result.passed = false;
+    }
 }
 
 /**

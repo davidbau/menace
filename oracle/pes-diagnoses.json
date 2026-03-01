@@ -1,0 +1,87 @@
+{
+  "seed103_caveman_selfplay200": {
+    "hash": "3342d2a6",
+    "cat": "combat-order / kill before dog-turn RNG",
+    "tldr": "At step 55 JS records a monster death at (26,9) via ^die[88@26,9] while C only records a glyph wipe at (25,9), indicating JS is killing a monster during combat resolution that C leaves alive (or handles via a different code path). As a result, at step 56 JS is exercising combat attributes (rn2(19) @ exercise inside do_attack_core) while C is processing the dog's movement turn (rn2(3) @ passive inside mfndpos/dog_move). The root cause is an ordering mismatch: JS resolves the player's attack — including killing the monster and triggering mondead/handleMonsterKilled — before the dog's turn runs, whereas C processes the dog's movement (consuming its own RNG via mfndpos and passive) before the same monster is treated as dead, causing the two RNG streams to permanently diverge from this step onward."
+  },
+  "seed108_ranger_selfplay200": {
+    "hash": "683a906e",
+    "cat": "monster-move / mcalcmove mv-point allocation mismatch",
+    "tldr": "At step 183, JS allocates 12 movement points to monster 158 (mv=0->12) via mcalcmove, causing it to actually move and call set_apparxy (rn2(5)), while C allocates 0 movement points (mv=0->0) and skips that monster's turn entirely. Because C skips monster 158's movement, C's next RNG call is rn2(28) inside m_move for a different monster further along the monster list, whereas JS has already consumed an extra rn2(5) for monster 158's apparent-position update. The root cause is a discrepancy in movement-point accumulation for monster 158: JS gives it a full NORMAL_SPEED (12) tick while C suppresses it, likely due to a differing combat-flag, mspec_used, or movement-debt state that should be zeroing or blocking that monster's turn in JS."
+  },
+  "seed110_samurai_selfplay200": {
+    "hash": "9e1454a0",
+    "cat": "monster-throw / rn2(5) vs rn2(6) parameter mismatch",
+    "tldr": "JS calls rn2(5) in m_throw_timed (mthrowu.js:566) while C calls rn2(6) in thrwmu (mthrowu.c:1267), indicating the missile scatter/direction calculation uses a wrong modulus in the JS port. The event divergence at step 107 shows JS doing a place_object call where C does an mcalcmove, suggesting JS is resolving a thrown projectile landing immediately while C defers monster movement calculations. This ordering difference causes JS to enter the throw code path with a different game state, leading to the rn2(5) vs rn2(6) parameter mismatch in the throw scatter logic."
+  },
+  "seed201_archeologist_wizard": {
+    "hash": "01f7167e",
+    "cat": "tunneling monster / mdig_tunnel path not taken",
+    "tldr": "In C, a tunneling monster calls mdig_tunnel (via mfndpos inside m_move/dochug) to dig through a wall, consuming an rnd(12) RNG call. In JS, this tunnel-digging branch is either absent or not triggered, so the monster takes a different code path — landing in distfleeck with rn2(5) instead. The event channel confirms the mismatch: JS allocates 12 movement points to monster 71 (mv=0->12) and proceeds to move it, while C records mv=0->0 for monster 71, indicating C has not yet reached monster 71's movement turn because it is still mid-dig on a tunneling monster. The root cause is JS not implementing or correctly gating the mdig_tunnel call in m_move, which shifts the RNG sequence and monster-processing order for all subsequent turns."
+  },
+  "seed203_caveman_wizard": {
+    "hash": "bee77c33",
+    "cat": "dog-move / appr value from mon.flee divergence",
+    "tldr": "JS computes appr=-1 for the dog because mon.flee is truthy (set after a previous combat or flee event), while C computes appr=0 because the pet's flee flag has expired or was never set. With appr=-1, JS dog_move treats the pet as fleeing from the player and evaluates positions accordingly, skipping the distfleeck rn2(5) call that C makes in dochug at this step. This causes the JS RNG stream to be ahead by one slot, so when C calls rn2(5) at distfleeck, JS is instead already at the player-attack rn2(7) in domove_attackmon_at, producing the observed divergence."
+  },
+  "seed204_healer_wizard": {
+    "hash": "c0cc3ac0",
+    "cat": "dog-goal / level-gen trap divergence",
+    "tldr": "At step 212 the event channel shows JS creating a trap via mk_knox_portal while C places a different object (^place[473,20,4]), indicating the level was generated differently. By step 213 JS is evaluating food for the dog (obj_resists inside dogfood→dog_move) while C calls distfleeck for monster fleeing, meaning the dog found a different food target due to the diverged map state. The root divergence is in level-generation: JS produces a Knox portal trap where C places a regular floor item, leading to a different dog goal and completely different RNG call at the next monster-move step."
+  },
+  "seed205_knight_wizard": {
+    "hash": "81c8f0ba",
+    "cat": "dog-goal / different approach target cell",
+    "tldr": "The event log directly captures the divergence: both JS and C enter dog_move for pet 100 at (21,14), but JS computes goal=(22,15) while C computes goal=(21,15). JS then advances past dog_move into u_calc_moveamt (movement-amount calculation) while C is still inside mfndpos evaluating positions, and C calls dosounds before resuming mfndpos. The dog targets a different adjacent cell as the best approach square, causing the subsequent mfndpos RNG calls to be consumed in a different order and the move-amount RNG to fire before C's dosounds call."
+  },
+  "seed206_monk_wizard": {
+    "hash": "c76abd20",
+    "cat": "level-gen sp_lev / trap type and position mismatch",
+    "tldr": "Both JS and C are running create_trap during level generation at step 209, but JS produces trap type 5 at (8,43) while C produces trap type 6 at (14,25). The sp_lev get_location logic chooses a different position (rn2(74) vs rn2(4) at divergence), meaning trap placement RNG has gone out of sync earlier in level generation. C also calls hole_destination inside mktrap (trap.c:450) which implies a pit/hole trap type, while JS selected a different trap type entirely, so the two sp_lev passes consumed the shared RNG stream in incompatible orders."
+  },
+  "seed207_priest_wizard": {
+    "hash": "39aa5a92",
+    "cat": "fill-zoo byyou / monster spawn at player cell",
+    "tldr": "At step 227 JS emits ^makemon[96@25,11] via fill_ordinary_room→mktrap while C emits ^place[87,25,11], placing an object at the same cell instead of a monster. This is the known fill_zoo/byyou pattern: JS calls enexto_core to relocate a monster spawned at the player's position, consuming extra makemon RNG that C never generates. By step 229 JS is in mcalcmove while C is still inside fill_zoo→makemon→mineralize, with the RNG streams separated by the spurious JS monster spawn."
+  },
+  "seed208_ranger_wizard": {
+    "hash": "43f6b0d3",
+    "cat": "mcalcmove / monster move-points wrongly nonzero",
+    "tldr": "Monster 245 at (74,4) with speed=8 receives mv=0→12 in JS but mv=0→0 in C at step 197, as shown by the diverging ^mcalcmove events. JS grants the monster enough movement points to act this turn, so it proceeds through dochug→distfleeck (consuming rn2(5)), while C leaves mv=0 and skips the monster's action entirely. The mcalcmove formula in JS assigns nonzero movement to a monster that C determines should not move this turn, causing JS to run extra monster-move RNG that C never calls."
+  },
+  "seed209_rogue_wizard": {
+    "hash": "01358ad4",
+    "cat": "dog-goal / approach-vs-flee goal inversion",
+    "tldr": "The event log shows JS computing goal=(61,10) with appr=1 (approach) for dog 16 while C computes goal=(60,10) with appr=0 (flee), a complete inversion of the dog's behavior mode. JS then enters dog_move and calls rn2(4) for goal selection while C is inside obj_resists (during generate_stairs level-gen), indicating the game state has already diverged substantially. The dog sees a different food or threat situation, causing it to approach rather than flee, which routes it through a different mfndpos code path consuming different RNG."
+  },
+  "seed210_samurai_wizard": {
+    "hash": "23ca6d7c",
+    "cat": "dog-goal / stackobj drop divergence cascading to mfndpos",
+    "tldr": "At step 230 JS emits ^remove[463,17,16] via stackobj→placeFloorObject while C emits ^place[435,26,1], showing the dog dropped or stacked an item differently, producing a different floor object. By step 237 JS calls rn2(20) inside m_move while C calls rn2(32) inside mfndpos (dog_move path), meaning mfndpos is evaluating positions for a dog that is in a different location or has a different goal due to the earlier inventory-drop divergence. The dog's food goal was altered by the different stacking outcome, driving it to a different mfndpos branch."
+  },
+  "seed211_tourist_wizard": {
+    "hash": "2504b954",
+    "cat": "fill-zoo byyou / monster at player cell in ordinary room",
+    "tldr": "At step 281 JS spawns monster 217 at (61,18) via fill_ordinary_room while C places object 125 at the same cell, the byyou enexto pattern where JS calls enexto_core to handle a monster generated at the player's position but C skips that relocation. JS consumes extra makemon RNG that C never generates, so by step 281 JS has advanced to the player's attack (domove_attackmon_at, rn2(7)) while C is still inside level-gen mineralize→mksobj→newhp, completely out of phase."
+  },
+  "seed212_valkyrie_wizard": {
+    "hash": "541d5772",
+    "cat": "mcalcmove / monster move-points wrongly nonzero",
+    "tldr": "Identical pattern to seed208: monster 324 at (20,17) with speed=6 gets mv=0→12 in JS but mv=0→0 in C. JS grants the monster movement points and processes its turn through dochug→distfleeck (rn2(5)), while C sees mv=0 and skips the monster entirely. C then proceeds deeper into the dog_move→mfndpos path (rn2(10) at monmove.c:1906), which JS never reaches because it already consumed RNG in the spurious monster move. The mcalcmove formula assigns movement to a monster that should remain stationary."
+  },
+  "seed5_gnomish_mines": {
+    "hash": "b40fb1ee",
+    "cat": "early movemon / engraving-vs-movement event mismatch cascading",
+    "tldr": "The first event divergence occurs at step 62, far before the RNG divergence at step 357: JS records ^movemon_turn[32@18,10 mv=24->12] (monster 32 getting partial movement) while C records ^wipe[18,7] (an engraving being wiped). These are completely different operations at the same turn, meaning monster processing order and engraving logic diverge very early. Over the next 295 steps this accumulates into a completely different game state, so at step 357 JS is calling use_defensive for a monster using a defensive item while C is calling distfleeck for a dog's flee calculation."
+  },
+  "seed6_tourist": {
+    "hash": "a294ab63",
+    "cat": "early place-vs-wipe / dog-goal cascading divergence",
+    "tldr": "The event channel diverges at step 24: JS places object 24 at (30,6) via place_object while C wipes an engraving at (30,6). These are mutually exclusive outcomes for the same cell — JS treats it as an object placement site while C treats it as an engraved floor being cleared. This early state difference (object on floor vs cleared engraving) persists and accumulates over 176 steps until step 200, where JS calls rn2(4) in dochug while C is deep inside obj_resists evaluating dog food, indicating the dog's goal assessment has completely diverged due to the different floor contents."
+  },
+  "seed8_tutorial_manual": {
+    "hash": "44dcb92d",
+    "cat": "engrave smudge / player move triggers unneeded wipe",
+    "tldr": "At step 11 JS calls maybeSmudgeEngraving when the player moves, emitting ^wipe[8,5] and consuming rnd(5), while C emits ^movemon_turn[20@32,5 mv=12->0] and calls rn2(12) in mcalcmove. C does not smudge the engraving at (8,5) on this player move (either can_reach_floor returns false or the cell type is not smudgeable in C), but JS incorrectly smudges it, consuming an extra rnd(5) call and shifting all subsequent RNG. C is also running monster movement (movemon_turn) at the same step, suggesting the turn-ordering between player-move side effects and monster movement allocation differs."
+  }
+}
