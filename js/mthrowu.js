@@ -478,6 +478,7 @@ export async function m_throw_timed(
 ) {
     const tethered_weapon = !!options.tethered_weapon;
     let hitPlayer = false;
+    let dropHandledInImpact = false;
     let x = startX;
     let y = startY;
     let dropX = startX;
@@ -534,6 +535,8 @@ export async function m_throw_timed(
             const mtmp = map.monsterAt(x, y);
             if (mtmp && !mtmp.dead) {
                 if (ohitmon(mtmp, weapon, range, true, map, player, display, game)) {
+                    // ohitmon() already performs drop_throw() when projectile stops.
+                    dropHandledInImpact = true;
                     break;
                 }
             }
@@ -603,7 +606,7 @@ export async function m_throw_timed(
         await tmp_at_end_async(BACKTRACK);
         return { drop: false, returnFlight: true, x: mon.mx, y: mon.my, hitPlayer };
     }
-    return { drop: true, x: dropX, y: dropY, hitPlayer };
+    return { drop: !dropHandledInImpact, x: dropX, y: dropY, hitPlayer };
 }
 
 // C ref: mthrowu.c return_from_mtoss().
