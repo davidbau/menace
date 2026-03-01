@@ -292,11 +292,29 @@ async function replayInterfaceSession(session) {
             replayFlags.customsymbols = true;
             replayFlags.symset = 'DECgraphics, active, handler=DEC';
         }
+        const replayTutorialStartupPrompts = Array.isArray(session.meta?.replayTutorialStartupPrompts)
+            ? session.meta.replayTutorialStartupPrompts
+            : (Array.isArray(session.raw?.replayTutorialStartupPrompts)
+                ? session.raw.replayTutorialStartupPrompts
+                : (Array.isArray(session.raw?.options?.replayTutorialStartupPrompts)
+                    ? session.raw.options.replayTutorialStartupPrompts
+                    : []));
+        const tutorialStartupEnterAfterPromptCount = Number.isInteger(session.meta?.tutorialStartupEnterAfterPromptCount)
+            ? session.meta.tutorialStartupEnterAfterPromptCount
+            : (Number.isInteger(session.raw?.tutorialStartupEnterAfterPromptCount)
+                ? session.raw.tutorialStartupEnterAfterPromptCount
+                : (Number.isInteger(session.raw?.options?.tutorialStartupEnterAfterPromptCount)
+                    ? session.raw.options.tutorialStartupEnterAfterPromptCount
+                    : undefined));
         return replaySession(session.meta.seed, session.raw, {
             captureScreens: true,
             startupBurstInFirstStep: false,
             flags: replayFlags,
-            tutorial: subtype === 'tutorial' || session.meta.regen?.tutorial === true,
+            tutorial: subtype === 'tutorial'
+                || session.meta.regen?.tutorial === true
+                || session.meta.options?.tutorial === true,
+            replayTutorialStartupPrompts,
+            tutorialStartupEnterAfterPromptCount,
             inferStatusFlagsFromStartup: false,
         });
     }

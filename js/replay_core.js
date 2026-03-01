@@ -650,6 +650,12 @@ export async function replaySession(seed, session, opts = {}) {
 
     const sessionChar = getSessionCharacter(session);
     const tutorialEnabled = (opts.tutorial === true);
+    const replayTutorialStartupPrompts = Array.isArray(opts.replayTutorialStartupPrompts)
+        ? opts.replayTutorialStartupPrompts.map((s) => String(s || '')).filter(Boolean)
+        : [];
+    const tutorialStartupEnterAfterPromptCount = Number.isInteger(opts.tutorialStartupEnterAfterPromptCount)
+        ? opts.tutorialStartupEnterAfterPromptCount
+        : undefined;
     const startDnum = Number.isInteger(opts.startDnum) ? opts.startDnum : undefined;
     const startDlevel = Number.isInteger(opts.startDlevel) ? opts.startDlevel : 1;
     const startDungeonAlign = Number.isInteger(opts.startDungeonAlign) ? opts.startDungeonAlign : undefined;
@@ -670,6 +676,9 @@ export async function replaySession(seed, session, opts = {}) {
             startDlevel,
             dungeonAlignOverride: startDungeonAlign,
             flags: { tutorial: tutorialEnabled },
+            replayTutorialStartupPrompts,
+            tutorialStartupEnterAfterPromptCount,
+            tutorialDirectStart: tutorialEnabled && replayTutorialStartupPrompts.length === 0,
         };
 
     await game.init(initOpts);

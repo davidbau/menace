@@ -219,23 +219,23 @@ creates a controlled `.nethackrc`, and cleans stale save/lock/bones state.
 ```bash
 # Tutorial manual recording example
 ./record-manual-capture.sh \
-  --seed=9 \
-  --role=Archeologist \
+  --seed=7 \
+  --role=Wizard \
   --race=human \
-  --gender=female \
+  --gender=male \
   --align=neutral \
   --no-wizard \
   --tutorial \
   --tmux-socket=default \
-  --keylog=test/comparison/keylogs/seed9_tutorial_manual.jsonl
+  --keylog=test/comparison/keylogs/seed7_tutorial_manual_wizard.jsonl
 ```
 
 Then convert to a v3 comparison session:
 
 ```bash
 python3 test/comparison/c-harness/keylog_to_session.py \
-  --in test/comparison/keylogs/seed9_tutorial_manual.jsonl \
-  --out test/comparison/sessions/seed9_tutorial_manual_gameplay.session.json \
+  --in test/comparison/keylogs/seed7_tutorial_manual_wizard.jsonl \
+  --out test/comparison/sessions/seed7_tutorial_manual_wizard_gameplay.session.json \
   --startup-mode auto \
   --tutorial on \
   --wizard auto
