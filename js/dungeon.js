@@ -266,7 +266,7 @@ export function clearBranchTopology() {
 import { ENGRAVE_FILE_TEXT } from './engrave_data.js';
 import { stock_room } from './shknam.js';
 import { obj_resists } from './objdata.js';
-import { placeFloorObject } from './stackobj.js';
+import { placeFloorObject, place_object } from './stackobj.js';
 import { mpickobj } from './monutil.js';
 import { set_corpsenm } from './mkobj.js';
 import { getnow } from './calendar.js';
@@ -4202,8 +4202,9 @@ export function mineralize(map, depth, opts = null) {
                     otmp.quan = 1 + rnd(goldprob * 3);
                     otmp.owt = weight(otmp);
                     // C ref: !rn2(3) → add_to_buried, else place_object
+                    // C uses place_object directly (no stackobj) — use same here
                     if (rn2(3) !== 0) {
-                        placeFloorObject(map, otmp);
+                        place_object(otmp, otmp.ox, otmp.oy, map);
                     }
                     // else: buried — don't add to map.objects
                 }
@@ -4221,8 +4222,9 @@ export function mineralize(map, depth, opts = null) {
                             otmp.ox = x;
                             otmp.oy = y;
                             // C ref: !rn2(3) → add_to_buried, else place_object
+                            // C uses place_object directly (no stackobj) — use same here
                             if (rn2(3) !== 0) {
-                                placeFloorObject(map, otmp);
+                                place_object(otmp, otmp.ox, otmp.oy, map);
                             }
                             // else: buried — don't add to map.objects
                         }

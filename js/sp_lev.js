@@ -70,7 +70,7 @@ import {
 import { mons, M2_FEMALE, M2_MALE, G_NOGEN, G_IGNORE, PM_MINOTAUR, MR_STONE, S_EEL } from './monsters.js';
 import { poly_when_stoned } from './mondata.js';
 import { getSpecialLevel, findSpecialLevelByName, GEHENNOM } from './special_levels.js';
-import { placeFloorObject } from './stackobj.js';
+import { placeFloorObject, place_object } from './stackobj.js';
 import { premap_detect } from './detect.js';
 import { start_timer, stop_timer, obj_move_timers as moveObjectTimers, obj_split_timers as splitObjectTimers, obj_has_timer as hasObjectTimer } from './timeout.js';
 import {
@@ -3910,6 +3910,13 @@ export function object(name_or_opts, x, y) {
     // C ref: Object creation AND placement happens immediately in script order
     // (calls next_ident, rndmonst_adj, etc. then place_object)
 
+    // For buried objects: C's create_object() calls mkobj_at (place_object, emitting
+    // ^place) BEFORE any explicit set_corpsenm call, then bury_an_obj (removes from
+    // floor, emitting ^remove). We track early placement to match this ordering.
+    const peekBuried = !!(name_or_opts && typeof name_or_opts === 'object'
+        && name_or_opts.buried);
+    let alreadyPlaced = false;
+
     let obj = null;
     // C ref: sp_lev.c create_object() -> mkobj_at/mksobj_at(..., !named)
     // If a custom object name is provided, disable artifact-init side effects.
@@ -3986,6 +3993,19 @@ export function object(name_or_opts, x, y) {
                     mndx = monsterNameToIndex(montype);
                 }
                 obj = mksobj(otyp, true, artif);
+                // C ref: sp_lev.c create_object() uses mkobj_at which calls
+                // place_object (^place) BEFORE the explicit set_corpsenm call.
+                // For buried objects, perform early placement now so ^place
+                // precedes set_corpsenm #2 in the RNG log (matching C order).
+                if (peekBuried && obj && levelState.map
+                    && absX >= 0 && absX < COLNO && absY >= 0 && absY < ROWNO
+                    && !levelState.containerStack.length
+                    && !levelState.monsterInventoryStack.length) {
+                    obj.ox = absX;
+                    obj.oy = absY;
+                    place_object(obj, absX, absY, levelState.map);
+                    alreadyPlaced = true;
+                }
                 if (mndx >= 0) {
                     set_corpsenm(obj, mndx);
                 }
@@ -4018,8 +4038,23 @@ export function object(name_or_opts, x, y) {
     if (obj && isBuried) {
         // C ref: sp_lev.c lspo_object() -> create_object() -> bury_an_obj() ->
         // obj_resists(otmp, 0, 0). For ordinary objects this consumes rn2(100).
-        // We consume it at creation-time so deferred placement keeps RNG order.
+        // For non-montype buried objects, emit ^place now (matching C's mkobj_at
+        // placement that precedes bury_an_obj in create_object).
+        if (!alreadyPlaced && levelState.map
+            && absX >= 0 && absX < COLNO && absY >= 0 && absY < ROWNO
+            && !levelState.containerStack.length
+            && !levelState.monsterInventoryStack.length) {
+            obj.ox = absX;
+            obj.oy = absY;
+            place_object(obj, absX, absY, levelState.map);
+            alreadyPlaced = true;
+        }
         rn2(100);
+        // C ref: bury_an_obj() removes object from floor after obj_resists check,
+        // emitting ^remove. Match by removing from map.objects here.
+        if (alreadyPlaced && levelState.map) {
+            levelState.map.removeObject(obj);
+        }
     }
 
     if (obj) {
@@ -4071,7 +4106,10 @@ export function object(name_or_opts, x, y) {
         obj.oy = absY;
         if (isBuried) {
             obj.buried = true;
-        } else if (absX >= 0 && absX < COLNO && absY >= 0 && absY < ROWNO) {
+            // ^place and ^remove already emitted in the isBuried section above
+            // (alreadyPlaced=true). For container/monster cases where early
+            // placement was skipped, just mark buried without floor events.
+        } else if (!alreadyPlaced && absX >= 0 && absX < COLNO && absY >= 0 && absY < ROWNO) {
             placeFloorObject(levelState.map, obj);
         }
 
