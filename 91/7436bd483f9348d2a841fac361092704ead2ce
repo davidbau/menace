@@ -1,0 +1,5344 @@
+{
+  "timestamp": "2026-03-01T19:47:43.177Z",
+  "commit": "917436bd",
+  "goldenBranch": null,
+  "results": [
+    {
+      "session": "interface_chargen.session.json",
+      "type": "chargen",
+      "seed": 0,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 6,
+          "total": 6
+        }
+      },
+      "duration": 86
+    },
+    {
+      "session": "interface_discoveries.session.json",
+      "type": "interface",
+      "seed": 2,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2547,
+          "total": 2547
+        },
+        "screens": {
+          "matched": 4,
+          "total": 4
+        },
+        "colors": {
+          "matched": 96,
+          "total": 96
+        }
+      },
+      "duration": 132
+    },
+    {
+      "session": "interface_nameprompt.session.json",
+      "type": "interface",
+      "seed": 0,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 1,
+          "total": 1
+        },
+        "colors": {
+          "matched": 24,
+          "total": 24
+        }
+      },
+      "duration": 37
+    },
+    {
+      "session": "interface_options.session.json",
+      "type": "interface",
+      "seed": 0,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2802,
+          "total": 2802
+        },
+        "screens": {
+          "matched": 11,
+          "total": 11
+        },
+        "colors": {
+          "matched": 134,
+          "total": 134
+        }
+      },
+      "duration": 176
+    },
+    {
+      "session": "interface_startup.session.json",
+      "type": "interface",
+      "seed": 0,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 3,
+          "total": 3
+        },
+        "colors": {
+          "matched": 72,
+          "total": 72
+        }
+      },
+      "duration": 60
+    },
+    {
+      "session": "seed1_chargen_archeologist.session.json",
+      "type": "chargen",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "archeologist",
+      "duration": 857
+    },
+    {
+      "session": "seed1_chargen_barbarian.session.json",
+      "type": "chargen",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "barbarian",
+      "duration": 150
+    },
+    {
+      "session": "seed1_chargen_caveman.session.json",
+      "type": "chargen",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "caveman",
+      "duration": 141
+    },
+    {
+      "session": "seed1_chargen_healer.session.json",
+      "type": "chargen",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "healer",
+      "duration": 102
+    },
+    {
+      "session": "seed1_chargen_knight.session.json",
+      "type": "chargen",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "knight",
+      "duration": 134
+    },
+    {
+      "session": "seed1_chargen_monk.session.json",
+      "type": "chargen",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "monk",
+      "duration": 241
+    },
+    {
+      "session": "seed1_chargen_priest.session.json",
+      "type": "chargen",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "priest",
+      "duration": 104
+    },
+    {
+      "session": "seed1_chargen_ranger.session.json",
+      "type": "chargen",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "ranger",
+      "duration": 139
+    },
+    {
+      "session": "seed1_chargen_rogue.session.json",
+      "type": "chargen",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "rogue",
+      "duration": 223
+    },
+    {
+      "session": "seed1_chargen_samurai.session.json",
+      "type": "chargen",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "samurai",
+      "duration": 749
+    },
+    {
+      "session": "seed1_chargen_tourist.session.json",
+      "type": "chargen",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "tourist",
+      "duration": 188
+    },
+    {
+      "session": "seed1_chargen_valkyrie.session.json",
+      "type": "chargen",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "valkyrie",
+      "duration": 199
+    },
+    {
+      "session": "seed1_chargen_wizard.session.json",
+      "type": "chargen",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "wizard",
+      "duration": 133
+    },
+    {
+      "session": "seed1_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 5980,
+          "total": 5980
+        },
+        "screens": {
+          "matched": 80,
+          "total": 80
+        },
+        "colors": {
+          "matched": 1920,
+          "total": 1920
+        },
+        "screenWindow": {
+          "matched": 80,
+          "total": 80,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 1920,
+          "total": 1920,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 663,
+          "total": 663
+        }
+      },
+      "events": {
+        "matched": 663,
+        "total": 663
+      },
+      "duration": 2998
+    },
+    {
+      "session": "seed1_special_bigroom.session.json",
+      "type": "special",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed1_special_castle.session.json",
+      "type": "special",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed1_special_filler.session.json",
+      "type": "special",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 2,
+          "total": 2
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed1_special_gehennom.session.json",
+      "type": "special",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 7,
+          "total": 7
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed1_special_knox.session.json",
+      "type": "special",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed1_special_medusa.session.json",
+      "type": "special",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed1_special_mines.session.json",
+      "type": "special",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 2,
+          "total": 2
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed1_special_oracle.session.json",
+      "type": "special",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed1_special_planes.session.json",
+      "type": "special",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 5,
+          "total": 5
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed1_special_quest.session.json",
+      "type": "special",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 39,
+          "total": 39
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed1_special_rogue.session.json",
+      "type": "special",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed1_special_sokoban.session.json",
+      "type": "special",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 4,
+          "total": 4
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed1_special_tutorial.session.json",
+      "type": "special",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 2,
+          "total": 2
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed1_special_valley.session.json",
+      "type": "special",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed1_special_vlad.session.json",
+      "type": "special",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 3,
+          "total": 3
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed1_special_wizard.session.json",
+      "type": "special",
+      "seed": 1,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 3,
+          "total": 3
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed100_chargen_archeologist.session.json",
+      "type": "chargen",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "archeologist",
+      "duration": 102
+    },
+    {
+      "session": "seed100_chargen_barbarian.session.json",
+      "type": "chargen",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "barbarian",
+      "duration": 417
+    },
+    {
+      "session": "seed100_chargen_caveman.session.json",
+      "type": "chargen",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "caveman",
+      "duration": 154
+    },
+    {
+      "session": "seed100_chargen_healer.session.json",
+      "type": "chargen",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "healer",
+      "duration": 136
+    },
+    {
+      "session": "seed100_chargen_knight.session.json",
+      "type": "chargen",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "knight",
+      "duration": 293
+    },
+    {
+      "session": "seed100_chargen_monk.session.json",
+      "type": "chargen",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "monk",
+      "duration": 152
+    },
+    {
+      "session": "seed100_chargen_priest.session.json",
+      "type": "chargen",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "priest",
+      "duration": 162
+    },
+    {
+      "session": "seed100_chargen_ranger.session.json",
+      "type": "chargen",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "ranger",
+      "duration": 144
+    },
+    {
+      "session": "seed100_chargen_rogue.session.json",
+      "type": "chargen",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "rogue",
+      "duration": 148
+    },
+    {
+      "session": "seed100_chargen_samurai.session.json",
+      "type": "chargen",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "samurai",
+      "duration": 142
+    },
+    {
+      "session": "seed100_chargen_tourist.session.json",
+      "type": "chargen",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "tourist",
+      "duration": 208
+    },
+    {
+      "session": "seed100_chargen_valkyrie.session.json",
+      "type": "chargen",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "valkyrie",
+      "duration": 86
+    },
+    {
+      "session": "seed100_chargen_wizard.session.json",
+      "type": "chargen",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "wizard",
+      "duration": 149
+    },
+    {
+      "session": "seed100_multidigit_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2739,
+          "total": 2739
+        },
+        "screens": {
+          "matched": 13,
+          "total": 13
+        },
+        "colors": {
+          "matched": 312,
+          "total": 312
+        },
+        "screenWindow": {
+          "matched": 13,
+          "total": 13,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 312,
+          "total": 312,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 82,
+          "total": 82
+        }
+      },
+      "events": {
+        "matched": 82,
+        "total": 82
+      },
+      "duration": 1030
+    },
+    {
+      "session": "seed100_special_bigroom.session.json",
+      "type": "special",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed100_special_castle.session.json",
+      "type": "special",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed100_special_filler.session.json",
+      "type": "special",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 2,
+          "total": 2
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed100_special_gehennom.session.json",
+      "type": "special",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 7,
+          "total": 7
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed100_special_knox.session.json",
+      "type": "special",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed100_special_medusa.session.json",
+      "type": "special",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed100_special_mines.session.json",
+      "type": "special",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 2,
+          "total": 2
+        }
+      },
+      "duration": 1
+    },
+    {
+      "session": "seed100_special_oracle.session.json",
+      "type": "special",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed100_special_planes.session.json",
+      "type": "special",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 5,
+          "total": 5
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed100_special_quest.session.json",
+      "type": "special",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 39,
+          "total": 39
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed100_special_rogue.session.json",
+      "type": "special",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed100_special_sokoban.session.json",
+      "type": "special",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 4,
+          "total": 4
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed100_special_tutorial.session.json",
+      "type": "special",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 2,
+          "total": 2
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed100_special_valley.session.json",
+      "type": "special",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed100_special_vlad.session.json",
+      "type": "special",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 3,
+          "total": 3
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed100_special_wizard.session.json",
+      "type": "special",
+      "seed": 100,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 3,
+          "total": 3
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed101_archeologist_selfplay200_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 101,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 8254,
+          "total": 8254
+        },
+        "screens": {
+          "matched": 200,
+          "total": 200
+        },
+        "colors": {
+          "matched": 4800,
+          "total": 4800
+        },
+        "screenWindow": {
+          "matched": 200,
+          "total": 200,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 4800,
+          "total": 4800,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 2684,
+          "total": 2684
+        }
+      },
+      "events": {
+        "matched": 2684,
+        "total": 2684
+      },
+      "duration": 4978
+    },
+    {
+      "session": "seed102_barbarian_selfplay200_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 102,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 7640,
+          "total": 7640
+        },
+        "screens": {
+          "matched": 200,
+          "total": 200
+        },
+        "colors": {
+          "matched": 4800,
+          "total": 4800
+        },
+        "screenWindow": {
+          "matched": 200,
+          "total": 200,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 4800,
+          "total": 4800,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 2292,
+          "total": 2292
+        }
+      },
+      "events": {
+        "matched": 2292,
+        "total": 2292
+      },
+      "duration": 2612
+    },
+    {
+      "session": "seed103_caveman_selfplay200_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 103,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 5164,
+          "total": 10792
+        },
+        "screens": {
+          "matched": 55,
+          "total": 200
+        },
+        "colors": {
+          "matched": 4189,
+          "total": 4800
+        },
+        "screenWindow": {
+          "matched": 55,
+          "total": 200,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 1320,
+          "total": 4800,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 802,
+          "total": 2710
+        }
+      },
+      "firstDivergence": {
+        "index": 5096,
+        "js": "rn2(19)=9",
+        "session": "rn2(3)=2",
+        "jsRaw": "rn2(19)=9 @ exercise(attrib_exercise.js:34) <= do_attack_core(uhitm.js:1835) <= do_attack(uhitm.js:260)",
+        "sessionRaw": "rn2(3)=2 @ passive(uhitm.c:5997)",
+        "jsStack": [],
+        "sessionStack": [
+          ">m_move @ dochug(monmove.c:924)",
+          ">dog_move @ m_move(monmove.c:1787)",
+          ">mfndpos @ dog_move(dogmove.c:1112)"
+        ],
+        "step": 56
+      },
+      "firstDivergences": {
+        "rng": {
+          "channel": "rng",
+          "index": 5096,
+          "js": "rn2(19)=9",
+          "session": "rn2(3)=2",
+          "jsRaw": "rn2(19)=9 @ exercise(attrib_exercise.js:34) <= do_attack_core(uhitm.js:1835) <= do_attack(uhitm.js:260)",
+          "sessionRaw": "rn2(3)=2 @ passive(uhitm.c:5997)",
+          "jsStack": [],
+          "sessionStack": [
+            ">m_move @ dochug(monmove.c:924)",
+            ">dog_move @ m_move(monmove.c:1787)",
+            ">mfndpos @ dog_move(dogmove.c:1112)"
+          ],
+          "step": 56
+        },
+        "screen": {
+          "channel": "screen",
+          "step": 56,
+          "row": 0,
+          "js": "You kill the sewer rat!  Slasher eats a sewer rat corpse.",
+          "session": "Slasher misses the sewer rat."
+        },
+        "color": {
+          "channel": "color",
+          "step": 56,
+          "row": 0,
+          "col": 0,
+          "js": {
+            "ch": "Y",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "S",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "screenWindow": {
+          "channel": "screenWindow",
+          "step": 56,
+          "row": 0,
+          "js": "You kill the sewer rat!  Slasher eats a sewer rat corpse.",
+          "session": "Slasher misses the sewer rat."
+        },
+        "colorWindow": {
+          "channel": "colorWindow",
+          "step": 56,
+          "row": 0,
+          "col": 0,
+          "js": {
+            "ch": "Y",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "S",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "event": {
+          "channel": "event",
+          "index": 792,
+          "js": "^die[88@26,9] @ mondead <= handleMonsterKilled",
+          "session": "^movemon_turn[116@20,17 mv=12->0]",
+          "step": 56
+        }
+      },
+      "events": {
+        "matched": 802,
+        "total": 2710
+      },
+      "duration": 4553
+    },
+    {
+      "session": "seed104_healer_selfplay200_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 104,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 3694,
+          "total": 3694
+        },
+        "screens": {
+          "matched": 200,
+          "total": 200
+        },
+        "colors": {
+          "matched": 4800,
+          "total": 4800
+        },
+        "screenWindow": {
+          "matched": 200,
+          "total": 200,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 4800,
+          "total": 4800,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 269,
+          "total": 269
+        }
+      },
+      "events": {
+        "matched": 269,
+        "total": 269
+      },
+      "duration": 3977
+    },
+    {
+      "session": "seed105_knight_selfplay200_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 105,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 9086,
+          "total": 9086
+        },
+        "screens": {
+          "matched": 200,
+          "total": 200
+        },
+        "colors": {
+          "matched": 4800,
+          "total": 4800
+        },
+        "screenWindow": {
+          "matched": 200,
+          "total": 200,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 4800,
+          "total": 4800,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 3034,
+          "total": 3034
+        }
+      },
+      "events": {
+        "matched": 3034,
+        "total": 3034
+      },
+      "duration": 3444
+    },
+    {
+      "session": "seed106_monk_selfplay200_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 106,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 8704,
+          "total": 8704
+        },
+        "screens": {
+          "matched": 200,
+          "total": 200
+        },
+        "colors": {
+          "matched": 4800,
+          "total": 4800
+        },
+        "screenWindow": {
+          "matched": 200,
+          "total": 200,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 4800,
+          "total": 4800,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 2797,
+          "total": 2797
+        }
+      },
+      "events": {
+        "matched": 2797,
+        "total": 2797
+      },
+      "duration": 5415
+    },
+    {
+      "session": "seed107_priest_selfplay200_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 107,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 8656,
+          "total": 8656
+        },
+        "screens": {
+          "matched": 200,
+          "total": 200
+        },
+        "colors": {
+          "matched": 4800,
+          "total": 4800
+        },
+        "screenWindow": {
+          "matched": 200,
+          "total": 200,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 4800,
+          "total": 4800,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 2184,
+          "total": 2184
+        }
+      },
+      "events": {
+        "matched": 2184,
+        "total": 2184
+      },
+      "duration": 6881
+    },
+    {
+      "session": "seed108_ranger_selfplay200_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 108,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 13196,
+          "total": 13196
+        },
+        "screens": {
+          "matched": 200,
+          "total": 200
+        },
+        "colors": {
+          "matched": 4800,
+          "total": 4800
+        },
+        "screenWindow": {
+          "matched": 200,
+          "total": 200,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 4800,
+          "total": 4800,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 2795,
+          "total": 2795
+        }
+      },
+      "events": {
+        "matched": 2795,
+        "total": 2795
+      },
+      "duration": 6838
+    },
+    {
+      "session": "seed109_rogue_selfplay200_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 109,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 11684,
+          "total": 11684
+        },
+        "screens": {
+          "matched": 200,
+          "total": 200
+        },
+        "colors": {
+          "matched": 4800,
+          "total": 4800
+        },
+        "screenWindow": {
+          "matched": 200,
+          "total": 200,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 4800,
+          "total": 4800,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 3343,
+          "total": 3343
+        }
+      },
+      "events": {
+        "matched": 3343,
+        "total": 3343
+      },
+      "duration": 4194
+    },
+    {
+      "session": "seed110_samurai_selfplay200_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 110,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 5863,
+          "total": 5863
+        },
+        "screens": {
+          "matched": 197,
+          "total": 201
+        },
+        "colors": {
+          "matched": 4819,
+          "total": 4824
+        },
+        "screenWindow": {
+          "matched": 197,
+          "total": 201,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 4728,
+          "total": 4824,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 1385,
+          "total": 1385
+        }
+      },
+      "firstDivergences": {
+        "screen": {
+          "channel": "screen",
+          "step": 106,
+          "row": 0,
+          "js": "The goblin throws an orcish dagger!",
+          "session": "The goblin throws an orcish dagger!  The orcish dagger hits Hachi.--More--"
+        },
+        "color": {
+          "channel": "color",
+          "step": 106,
+          "row": 0,
+          "col": 37,
+          "js": {
+            "ch": " ",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "T",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "screenWindow": {
+          "channel": "screenWindow",
+          "step": 106,
+          "row": 0,
+          "js": "The goblin throws an orcish dagger!",
+          "session": "The goblin throws an orcish dagger!  The orcish dagger hits Hachi.--More--"
+        },
+        "colorWindow": {
+          "channel": "colorWindow",
+          "step": 106,
+          "row": 0,
+          "col": 37,
+          "js": {
+            "ch": " ",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "T",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        }
+      },
+      "firstDivergence": {
+        "channel": "screen",
+        "step": 106,
+        "row": 0,
+        "js": "The goblin throws an orcish dagger!",
+        "session": "The goblin throws an orcish dagger!  The orcish dagger hits Hachi.--More--"
+      },
+      "events": {
+        "matched": 1385,
+        "total": 1385
+      },
+      "duration": 3260
+    },
+    {
+      "session": "seed111_tourist_selfplay200_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 111,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 11652,
+          "total": 11652
+        },
+        "screens": {
+          "matched": 200,
+          "total": 200
+        },
+        "colors": {
+          "matched": 4800,
+          "total": 4800
+        },
+        "screenWindow": {
+          "matched": 200,
+          "total": 200,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 4800,
+          "total": 4800,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 4970,
+          "total": 4970
+        }
+      },
+      "events": {
+        "matched": 4970,
+        "total": 4970
+      },
+      "duration": 4880
+    },
+    {
+      "session": "seed112_valkyrie_selfplay200_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 112,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 9815,
+          "total": 9815
+        },
+        "screens": {
+          "matched": 200,
+          "total": 200
+        },
+        "colors": {
+          "matched": 4800,
+          "total": 4800
+        },
+        "screenWindow": {
+          "matched": 200,
+          "total": 200,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 4800,
+          "total": 4800,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 3470,
+          "total": 3470
+        }
+      },
+      "events": {
+        "matched": 3470,
+        "total": 3470
+      },
+      "duration": 4390
+    },
+    {
+      "session": "seed113_wizard_selfplay200_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 113,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 13421,
+          "total": 13421
+        },
+        "screens": {
+          "matched": 200,
+          "total": 200
+        },
+        "colors": {
+          "matched": 4800,
+          "total": 4800
+        },
+        "screenWindow": {
+          "matched": 200,
+          "total": 200,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 4800,
+          "total": 4800,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 3321,
+          "total": 3321
+        }
+      },
+      "events": {
+        "matched": 3321,
+        "total": 3321
+      },
+      "duration": 6940
+    },
+    {
+      "session": "seed119_map.session.json",
+      "type": "map",
+      "seed": 119,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2685,
+          "total": 2685
+        },
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 117
+    },
+    {
+      "session": "seed119_maps_c.session.json",
+      "type": "map",
+      "seed": 119,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 16528,
+          "total": 16528
+        },
+        "grids": {
+          "matched": 5,
+          "total": 5
+        }
+      },
+      "duration": 2226
+    },
+    {
+      "session": "seed16_map.session.json",
+      "type": "map",
+      "seed": 16,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 3639,
+          "total": 3639
+        },
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 144
+    },
+    {
+      "session": "seed16_maps_c.session.json",
+      "type": "map",
+      "seed": 16,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 12908,
+          "total": 12908
+        },
+        "grids": {
+          "matched": 5,
+          "total": 5
+        }
+      },
+      "duration": 1721
+    },
+    {
+      "session": "seed163_map.session.json",
+      "type": "map",
+      "seed": 163,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2565,
+          "total": 2565
+        },
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 135
+    },
+    {
+      "session": "seed163_maps_c.session.json",
+      "type": "map",
+      "seed": 163,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 13310,
+          "total": 13310
+        },
+        "grids": {
+          "matched": 5,
+          "total": 5
+        }
+      },
+      "duration": 1732
+    },
+    {
+      "session": "seed200_chargen_archeologist.session.json",
+      "type": "chargen",
+      "seed": 200,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "archeologist",
+      "duration": 145
+    },
+    {
+      "session": "seed200_chargen_barbarian.session.json",
+      "type": "chargen",
+      "seed": 200,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "barbarian",
+      "duration": 115
+    },
+    {
+      "session": "seed200_chargen_caveman.session.json",
+      "type": "chargen",
+      "seed": 200,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "caveman",
+      "duration": 121
+    },
+    {
+      "session": "seed200_chargen_healer.session.json",
+      "type": "chargen",
+      "seed": 200,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "healer",
+      "duration": 188
+    },
+    {
+      "session": "seed200_chargen_knight.session.json",
+      "type": "chargen",
+      "seed": 200,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "knight",
+      "duration": 611
+    },
+    {
+      "session": "seed200_chargen_monk.session.json",
+      "type": "chargen",
+      "seed": 200,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "monk",
+      "duration": 192
+    },
+    {
+      "session": "seed200_chargen_priest.session.json",
+      "type": "chargen",
+      "seed": 200,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "priest",
+      "duration": 126
+    },
+    {
+      "session": "seed200_chargen_ranger.session.json",
+      "type": "chargen",
+      "seed": 200,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "ranger",
+      "duration": 138
+    },
+    {
+      "session": "seed200_chargen_rogue.session.json",
+      "type": "chargen",
+      "seed": 200,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "rogue",
+      "duration": 143
+    },
+    {
+      "session": "seed200_chargen_samurai.session.json",
+      "type": "chargen",
+      "seed": 200,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "samurai",
+      "duration": 119
+    },
+    {
+      "session": "seed200_chargen_tourist.session.json",
+      "type": "chargen",
+      "seed": 200,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "tourist",
+      "duration": 114
+    },
+    {
+      "session": "seed200_chargen_valkyrie.session.json",
+      "type": "chargen",
+      "seed": 200,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "valkyrie",
+      "duration": 135
+    },
+    {
+      "session": "seed200_chargen_wizard.session.json",
+      "type": "chargen",
+      "seed": 200,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "wizard",
+      "duration": 185
+    },
+    {
+      "session": "seed200_repeat_ctrl_a_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 200,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 3077,
+          "total": 3077
+        },
+        "screens": {
+          "matched": 5,
+          "total": 5
+        },
+        "colors": {
+          "matched": 120,
+          "total": 120
+        },
+        "screenWindow": {
+          "matched": 5,
+          "total": 5,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 120,
+          "total": 120,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 76,
+          "total": 76
+        }
+      },
+      "events": {
+        "matched": 76,
+        "total": 76
+      },
+      "duration": 235
+    },
+    {
+      "session": "seed200_special_sokoban.session.json",
+      "type": "special",
+      "seed": 200,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 4,
+          "total": 4
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed201_archeologist_wizard_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 201,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 9415,
+          "total": 20122
+        },
+        "screens": {
+          "matched": 227,
+          "total": 335
+        },
+        "colors": {
+          "matched": 7601,
+          "total": 8040
+        },
+        "screenWindow": {
+          "matched": 227,
+          "total": 335,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 5448,
+          "total": 8040,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 55,
+          "total": 10589
+        }
+      },
+      "firstDivergence": {
+        "index": 7997,
+        "js": "rn2(5)=3",
+        "session": "rnd(12)=10",
+        "jsRaw": "rn2(5)=3 @ distfleeck(monmove.js:249) <= dochug(monmove.js:1025) <= mon.js:1515",
+        "sessionRaw": "rnd(12)=10 @ mdig_tunnel(dig.c:1418)",
+        "jsStack": [],
+        "sessionStack": [
+          ">mfndpos @ m_move(monmove.c:1940)",
+          ">m_move @ dochug(monmove.c:924)",
+          ">mfndpos @ m_move(monmove.c:1940)"
+        ],
+        "step": 227
+      },
+      "firstDivergences": {
+        "rng": {
+          "channel": "rng",
+          "index": 7997,
+          "js": "rn2(5)=3",
+          "session": "rnd(12)=10",
+          "jsRaw": "rn2(5)=3 @ distfleeck(monmove.js:249) <= dochug(monmove.js:1025) <= mon.js:1515",
+          "sessionRaw": "rnd(12)=10 @ mdig_tunnel(dig.c:1418)",
+          "jsStack": [],
+          "sessionStack": [
+            ">mfndpos @ m_move(monmove.c:1940)",
+            ">m_move @ dochug(monmove.c:924)",
+            ">mfndpos @ m_move(monmove.c:1940)"
+          ],
+          "step": 227
+        },
+        "screen": {
+          "channel": "screen",
+          "step": 228,
+          "row": 0,
+          "js": "You swap places with your little dog.",
+          "session": "You stop.  Your little dog is in the way!"
+        },
+        "color": {
+          "channel": "color",
+          "step": 228,
+          "row": 0,
+          "col": 5,
+          "js": {
+            "ch": "w",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "t",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "screenWindow": {
+          "channel": "screenWindow",
+          "step": 228,
+          "row": 0,
+          "js": "You swap places with your little dog.",
+          "session": "You stop.  Your little dog is in the way!"
+        },
+        "colorWindow": {
+          "channel": "colorWindow",
+          "step": 228,
+          "row": 0,
+          "col": 5,
+          "js": {
+            "ch": "w",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "t",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "event": {
+          "channel": "event",
+          "index": 40,
+          "js": "^place[473,18,9] @ place_object <= mkcorpstat",
+          "session": "^trap[17,5,15]",
+          "step": 212
+        }
+      },
+      "events": {
+        "matched": 55,
+        "total": 10589
+      },
+      "duration": 7635
+    },
+    {
+      "session": "seed201_fight_prefix_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 201,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2182,
+          "total": 2182
+        },
+        "screens": {
+          "matched": 3,
+          "total": 3
+        },
+        "colors": {
+          "matched": 72,
+          "total": 72
+        },
+        "screenWindow": {
+          "matched": 3,
+          "total": 3,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 72,
+          "total": 72,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 24,
+          "total": 24
+        }
+      },
+      "events": {
+        "matched": 24,
+        "total": 24
+      },
+      "duration": 128
+    },
+    {
+      "session": "seed202_barbarian_wizard_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 202,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 9765,
+          "total": 9765
+        },
+        "screens": {
+          "matched": 391,
+          "total": 391
+        },
+        "colors": {
+          "matched": 9384,
+          "total": 9384
+        },
+        "screenWindow": {
+          "matched": 391,
+          "total": 391,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 9384,
+          "total": 9384,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 3088,
+          "total": 3088
+        }
+      },
+      "events": {
+        "matched": 3088,
+        "total": 3088
+      },
+      "duration": 5804
+    },
+    {
+      "session": "seed203_caveman_wizard_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 203,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 7518,
+          "total": 16072
+        },
+        "screens": {
+          "matched": 201,
+          "total": 336
+        },
+        "colors": {
+          "matched": 7431,
+          "total": 8064
+        },
+        "screenWindow": {
+          "matched": 201,
+          "total": 336,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 4824,
+          "total": 8064,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 352,
+          "total": 8566
+        }
+      },
+      "firstDivergence": {
+        "index": 7309,
+        "js": "rn2(7)=0",
+        "session": "rn2(5)=2",
+        "jsRaw": "rn2(7)=0 @ domove_attackmon_at(hack.js:399) <= domove_core(hack.js:639) <= domove(hack.js:917)",
+        "sessionRaw": "rn2(5)=2 @ distfleeck(monmove.c:551)",
+        "jsStack": [],
+        "sessionStack": [
+          ">m_move @ dochug(monmove.c:924)",
+          ">dog_move @ m_move(monmove.c:1787)",
+          ">mfndpos @ dog_move(dogmove.c:1112)"
+        ],
+        "step": 215
+      },
+      "firstDivergences": {
+        "rng": {
+          "channel": "rng",
+          "index": 7309,
+          "js": "rn2(7)=0",
+          "session": "rn2(5)=2",
+          "jsRaw": "rn2(7)=0 @ domove_attackmon_at(hack.js:399) <= domove_core(hack.js:639) <= domove(hack.js:917)",
+          "sessionRaw": "rn2(5)=2 @ distfleeck(monmove.c:551)",
+          "jsStack": [],
+          "sessionStack": [
+            ">m_move @ dochug(monmove.c:924)",
+            ">dog_move @ m_move(monmove.c:1787)",
+            ">mfndpos @ dog_move(dogmove.c:1112)"
+          ],
+          "step": 215
+        },
+        "screen": {
+          "channel": "screen",
+          "step": 141,
+          "row": 0,
+          "js": "i - an unicorn horn.",
+          "session": "i - a unicorn horn."
+        },
+        "color": {
+          "channel": "color",
+          "step": 141,
+          "row": 0,
+          "col": 5,
+          "js": {
+            "ch": "n",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": " ",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "screenWindow": {
+          "channel": "screenWindow",
+          "step": 141,
+          "row": 0,
+          "js": "i - an unicorn horn.",
+          "session": "i - a unicorn horn."
+        },
+        "colorWindow": {
+          "channel": "colorWindow",
+          "step": 141,
+          "row": 0,
+          "col": 5,
+          "js": {
+            "ch": "n",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": " ",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "event": {
+          "channel": "event",
+          "index": 268,
+          "js": "^dog_move_entry[16@9,4 goal=9,3 appr=-1] @ dog_move <= dochug",
+          "session": "^dog_move_entry[16@9,4 goal=9,3 appr=0]",
+          "step": 215
+        }
+      },
+      "events": {
+        "matched": 352,
+        "total": 8566
+      },
+      "duration": 7477
+    },
+    {
+      "session": "seed203_run_prefix_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 203,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 3872,
+          "total": 3872
+        },
+        "screens": {
+          "matched": 5,
+          "total": 5
+        },
+        "colors": {
+          "matched": 120,
+          "total": 120
+        },
+        "screenWindow": {
+          "matched": 5,
+          "total": 5,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 120,
+          "total": 120,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 77,
+          "total": 77
+        }
+      },
+      "events": {
+        "matched": 77,
+        "total": 77
+      },
+      "duration": 247
+    },
+    {
+      "session": "seed204_healer_wizard_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 204,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 5736,
+          "total": 8099
+        },
+        "screens": {
+          "matched": 201,
+          "total": 358
+        },
+        "colors": {
+          "matched": 6756,
+          "total": 8592
+        },
+        "screenWindow": {
+          "matched": 201,
+          "total": 358,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 4824,
+          "total": 8592,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 88,
+          "total": 852
+        }
+      },
+      "firstDivergence": {
+        "index": 5566,
+        "js": "rn2(100)=97",
+        "session": "rn2(5)=2",
+        "jsRaw": "rn2(100)=97 @ obj_resists(objdata.js:74) <= dogfood(dog.js:134) <= dog_move(dogmove.js:1079)",
+        "sessionRaw": "rn2(5)=2 @ distfleeck(monmove.c:551)",
+        "jsStack": [],
+        "sessionStack": [
+          ">m_move @ dochug(monmove.c:924)",
+          ">dog_move @ m_move(monmove.c:1787)",
+          ">mfndpos @ dog_move(dogmove.c:1112)"
+        ],
+        "step": 213
+      },
+      "firstDivergences": {
+        "rng": {
+          "channel": "rng",
+          "index": 5566,
+          "js": "rn2(100)=97",
+          "session": "rn2(5)=2",
+          "jsRaw": "rn2(100)=97 @ obj_resists(objdata.js:74) <= dogfood(dog.js:134) <= dog_move(dogmove.js:1079)",
+          "sessionRaw": "rn2(5)=2 @ distfleeck(monmove.c:551)",
+          "jsStack": [],
+          "sessionStack": [
+            ">m_move @ dochug(monmove.c:924)",
+            ">dog_move @ m_move(monmove.c:1787)",
+            ">mfndpos @ dog_move(dogmove.c:1112)"
+          ],
+          "step": 213
+        },
+        "screen": {
+          "channel": "screen",
+          "step": 202,
+          "row": 0,
+          "js": "q - a concave amulet.",
+          "session": "Your movements are slowed slightly because of your load."
+        },
+        "color": {
+          "channel": "color",
+          "step": 202,
+          "row": 0,
+          "col": 0,
+          "js": {
+            "ch": "q",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "Y",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "screenWindow": {
+          "channel": "screenWindow",
+          "step": 202,
+          "row": 0,
+          "js": "q - a concave amulet.",
+          "session": "Your movements are slowed slightly because of your load."
+        },
+        "colorWindow": {
+          "channel": "colorWindow",
+          "step": 202,
+          "row": 0,
+          "col": 0,
+          "js": {
+            "ch": "q",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "Y",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "event": {
+          "channel": "event",
+          "index": 69,
+          "js": "^dog_move_entry[32@5,12 goal=4,12 appr=0] @ dog_move <= dochug",
+          "session": "^dog_move_entry[32@5,12 goal=3,12 appr=1]",
+          "step": 213
+        }
+      },
+      "events": {
+        "matched": 88,
+        "total": 852
+      },
+      "duration": 5853
+    },
+    {
+      "session": "seed204_multidigit_wait_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 204,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2916,
+          "total": 2916
+        },
+        "screens": {
+          "matched": 3,
+          "total": 3
+        },
+        "colors": {
+          "matched": 72,
+          "total": 72
+        },
+        "screenWindow": {
+          "matched": 3,
+          "total": 3,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 72,
+          "total": 72,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 147,
+          "total": 147
+        }
+      },
+      "events": {
+        "matched": 147,
+        "total": 147
+      },
+      "duration": 224
+    },
+    {
+      "session": "seed205_knight_wizard_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 205,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2939,
+          "total": 17313
+        },
+        "screens": {
+          "matched": 90,
+          "total": 190
+        },
+        "colors": {
+          "matched": 3577,
+          "total": 4560
+        },
+        "screenWindow": {
+          "matched": 90,
+          "total": 190,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 2160,
+          "total": 4560,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 87,
+          "total": 3258
+        }
+      },
+      "firstDivergence": {
+        "index": 2870,
+        "js": "rn2(3)=2",
+        "session": "rn2(300)=83",
+        "jsRaw": "rn2(3)=2 @ u_calc_moveamt(allmain.js:321) <= moveloop_turnend(allmain.js:190) <= moveloop_core(allmain.js:94)",
+        "sessionRaw": "rn2(300)=83 @ dosounds(sounds.c:220)",
+        "jsStack": [],
+        "sessionStack": [
+          ">mfndpos @ dog_move(dogmove.c:1112)",
+          ">m_move @ dochug(monmove.c:924)",
+          ">mfndpos @ m_move(monmove.c:1940)"
+        ],
+        "step": 89
+      },
+      "firstDivergences": {
+        "rng": {
+          "channel": "rng",
+          "index": 2870,
+          "js": "rn2(3)=2",
+          "session": "rn2(300)=83",
+          "jsRaw": "rn2(3)=2 @ u_calc_moveamt(allmain.js:321) <= moveloop_turnend(allmain.js:190) <= moveloop_core(allmain.js:94)",
+          "sessionRaw": "rn2(300)=83 @ dosounds(sounds.c:220)",
+          "jsStack": [],
+          "sessionStack": [
+            ">mfndpos @ dog_move(dogmove.c:1112)",
+            ">m_move @ dochug(monmove.c:924)",
+            ">mfndpos @ m_move(monmove.c:1940)"
+          ],
+          "step": 89
+        },
+        "screen": {
+          "channel": "screen",
+          "step": 88,
+          "row": 0,
+          "js": "What do you want to take off? [cedf or ?*]",
+          "session": "What do you want to take off? [cdef or ?*]"
+        },
+        "color": {
+          "channel": "color",
+          "step": 88,
+          "row": 0,
+          "col": 32,
+          "js": {
+            "ch": "e",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "d",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "screenWindow": {
+          "channel": "screenWindow",
+          "step": 88,
+          "row": 0,
+          "js": "What do you want to take off? [cedf or ?*]",
+          "session": "What do you want to take off? [cdef or ?*]"
+        },
+        "colorWindow": {
+          "channel": "colorWindow",
+          "step": 88,
+          "row": 0,
+          "col": 32,
+          "js": {
+            "ch": "e",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "d",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "event": {
+          "channel": "event",
+          "index": 74,
+          "js": "^dog_move_entry[100@21,14 goal=22,15 appr=1] @ dog_move <= dochug",
+          "session": "^dog_move_entry[100@21,14 goal=21,15 appr=1]",
+          "step": 89
+        }
+      },
+      "events": {
+        "matched": 87,
+        "total": 3258
+      },
+      "duration": 3395
+    },
+    {
+      "session": "seed206_monk_wizard_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 206,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 3217,
+          "total": 19829
+        },
+        "screens": {
+          "matched": 208,
+          "total": 338
+        },
+        "colors": {
+          "matched": 5470,
+          "total": 8112
+        },
+        "screenWindow": {
+          "matched": 208,
+          "total": 338,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 4992,
+          "total": 8112,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 57,
+          "total": 6156
+        }
+      },
+      "firstDivergence": {
+        "index": 3140,
+        "js": "rn2(74)=40",
+        "session": "rn2(4)=0",
+        "jsRaw": "rn2(74)=40 @ get_location(sp_lev.js:2474) <= get_location_coord(sp_lev.js:2508) <= create_trap(sp_lev.js:4343)",
+        "sessionRaw": "rn2(4)=0 @ hole_destination(trap.c:450)",
+        "jsStack": [
+          ">mktrap @ create_trap(sp_lev.js)",
+          ">mktrap @ create_trap(sp_lev.js)",
+          ">mktrap @ create_trap(sp_lev.js)"
+        ],
+        "sessionStack": [
+          ">mktrap @ create_trap(sp_lev.c:1846)",
+          ">makemon @ mk_trap_statue(trap.c:403)",
+          ">mktrap @ create_trap(sp_lev.c:1846)"
+        ],
+        "step": 209
+      },
+      "firstDivergences": {
+        "rng": {
+          "channel": "rng",
+          "index": 3140,
+          "js": "rn2(74)=40",
+          "session": "rn2(4)=0",
+          "jsRaw": "rn2(74)=40 @ get_location(sp_lev.js:2474) <= get_location_coord(sp_lev.js:2508) <= create_trap(sp_lev.js:4343)",
+          "sessionRaw": "rn2(4)=0 @ hole_destination(trap.c:450)",
+          "jsStack": [
+            ">mktrap @ create_trap(sp_lev.js)",
+            ">mktrap @ create_trap(sp_lev.js)",
+            ">mktrap @ create_trap(sp_lev.js)"
+          ],
+          "sessionStack": [
+            ">mktrap @ create_trap(sp_lev.c:1846)",
+            ">makemon @ mk_trap_statue(trap.c:403)",
+            ">mktrap @ create_trap(sp_lev.c:1846)"
+          ],
+          "step": 209
+        },
+        "screen": {
+          "channel": "screen",
+          "step": 209,
+          "row": 5,
+          "js": "                           ···········s············",
+          "session": "                           ···········s········:···"
+        },
+        "color": {
+          "channel": "color",
+          "step": 209,
+          "row": 5,
+          "col": 47,
+          "js": {
+            "ch": "·",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": ":",
+            "fg": 2,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "screenWindow": {
+          "channel": "screenWindow",
+          "step": 209,
+          "row": 5,
+          "js": "                           ···········s············",
+          "session": "                           ···········s········:···"
+        },
+        "colorWindow": {
+          "channel": "colorWindow",
+          "step": 209,
+          "row": 5,
+          "col": 47,
+          "js": {
+            "ch": "·",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": ":",
+            "fg": 2,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "event": {
+          "channel": "event",
+          "index": 55,
+          "js": "^trap[8,43,5] @ maketrap <= mktrap",
+          "session": "^trap[14,25,6]",
+          "step": 209
+        }
+      },
+      "events": {
+        "matched": 57,
+        "total": 6156
+      },
+      "duration": 7332
+    },
+    {
+      "session": "seed207_priest_wizard_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 207,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 7779,
+          "total": 15092
+        },
+        "screens": {
+          "matched": 236,
+          "total": 371
+        },
+        "colors": {
+          "matched": 8514,
+          "total": 8904
+        },
+        "screenWindow": {
+          "matched": 236,
+          "total": 371,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 5664,
+          "total": 8904,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 80,
+          "total": 6788
+        }
+      },
+      "firstDivergence": {
+        "index": 7533,
+        "js": "rn2(12)=5",
+        "session": "rn2(3)=2",
+        "jsRaw": "rn2(12)=5 @ mcalcmove(mon.js:131) <= allocateMonsterMovement(mon.js:145) <= moveloop_turnend(allmain.js:180)",
+        "sessionRaw": "rn2(3)=2 @ create_gas_cloud(region.c:1303)",
+        "jsStack": [],
+        "sessionStack": [
+          ">makemon @ fill_zoo(mkroom.c:345)",
+          ">mksobj @ mineralize(mklev.c:1512)",
+          ">mksobj @ mineralize(mklev.c:1512)"
+        ],
+        "step": 229
+      },
+      "firstDivergences": {
+        "rng": {
+          "channel": "rng",
+          "index": 7533,
+          "js": "rn2(12)=5",
+          "session": "rn2(3)=2",
+          "jsRaw": "rn2(12)=5 @ mcalcmove(mon.js:131) <= allocateMonsterMovement(mon.js:145) <= moveloop_turnend(allmain.js:180)",
+          "sessionRaw": "rn2(3)=2 @ create_gas_cloud(region.c:1303)",
+          "jsStack": [],
+          "sessionStack": [
+            ">makemon @ fill_zoo(mkroom.c:345)",
+            ">mksobj @ mineralize(mklev.c:1512)",
+            ">mksobj @ mineralize(mklev.c:1512)"
+          ],
+          "step": 229
+        },
+        "screen": {
+          "channel": "screen",
+          "step": 230,
+          "row": 17,
+          "js": "  │$···f····│",
+          "session": "  │$····f···│"
+        },
+        "color": {
+          "channel": "color",
+          "step": 230,
+          "row": 17,
+          "col": 7,
+          "js": {
+            "ch": "f",
+            "fg": 15,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "·",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "screenWindow": {
+          "channel": "screenWindow",
+          "step": 230,
+          "row": 17,
+          "js": "  │$···f····│",
+          "session": "  │$····f···│"
+        },
+        "colorWindow": {
+          "channel": "colorWindow",
+          "step": 230,
+          "row": 17,
+          "col": 7,
+          "js": {
+            "ch": "f",
+            "fg": 15,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "·",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "event": {
+          "channel": "event",
+          "index": 35,
+          "js": "^makemon[96@25,11] @ makemon <= mktrap",
+          "session": "^place[87,25,11]",
+          "step": 227
+        }
+      },
+      "events": {
+        "matched": 80,
+        "total": 6788
+      },
+      "duration": 6622
+    },
+    {
+      "session": "seed208_ranger_wizard_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 208,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 8900,
+          "total": 13445
+        },
+        "screens": {
+          "matched": 306,
+          "total": 324
+        },
+        "colors": {
+          "matched": 7724,
+          "total": 7776
+        },
+        "screenWindow": {
+          "matched": 306,
+          "total": 324,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 6528,
+          "total": 7776,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 745,
+          "total": 6204
+        }
+      },
+      "firstDivergence": {
+        "index": 7744,
+        "js": "rnl(8)=4",
+        "session": "rn2(400)=108",
+        "jsRaw": "rnl(8)=4 @ dosearch0(detect.js:1004) <= moveloop_turnend(allmain.js:198) <= moveloop_core(allmain.js:94)",
+        "sessionRaw": "rn2(400)=108 @ dosounds(sounds.c:213)",
+        "jsStack": [],
+        "sessionStack": [
+          ">m_move @ dochug(monmove.c:924)",
+          ">mfndpos @ m_move(monmove.c:1940)",
+          ">dosearch0 @ moveloop_core(allmain.c:349)"
+        ],
+        "step": 204
+      },
+      "firstDivergences": {
+        "rng": {
+          "channel": "rng",
+          "index": 7744,
+          "js": "rnl(8)=4",
+          "session": "rn2(400)=108",
+          "jsRaw": "rnl(8)=4 @ dosearch0(detect.js:1004) <= moveloop_turnend(allmain.js:198) <= moveloop_core(allmain.js:94)",
+          "sessionRaw": "rn2(400)=108 @ dosounds(sounds.c:213)",
+          "jsStack": [],
+          "sessionStack": [
+            ">m_move @ dochug(monmove.c:924)",
+            ">mfndpos @ m_move(monmove.c:1940)",
+            ">dosearch0 @ moveloop_core(allmain.c:349)"
+          ],
+          "step": 204
+        },
+        "screen": {
+          "channel": "screen",
+          "step": 204,
+          "row": 3,
+          "js": "                              ····",
+          "session": "                              ···^"
+        },
+        "color": {
+          "channel": "color",
+          "step": 204,
+          "row": 3,
+          "col": 33,
+          "js": {
+            "ch": "·",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "^",
+            "fg": 13,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "screenWindow": {
+          "channel": "screenWindow",
+          "step": 204,
+          "row": 3,
+          "js": "                              ····",
+          "session": "                              ···^"
+        },
+        "colorWindow": {
+          "channel": "colorWindow",
+          "step": 204,
+          "row": 3,
+          "col": 33,
+          "js": {
+            "ch": "·",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "^",
+            "fg": 13,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "event": {
+          "channel": "event",
+          "index": 690,
+          "js": "^movemon_turn[126@53,18 mv=12->0] @ movemon <= async",
+          "session": "^movemon_turn[126@54,17 mv=12->0]",
+          "step": 206
+        }
+      },
+      "events": {
+        "matched": 745,
+        "total": 6204
+      },
+      "duration": 7203
+    },
+    {
+      "session": "seed209_rogue_wizard_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 209,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2894,
+          "total": 5695
+        },
+        "screens": {
+          "matched": 212,
+          "total": 348
+        },
+        "colors": {
+          "matched": 7719,
+          "total": 8352
+        },
+        "screenWindow": {
+          "matched": 212,
+          "total": 348,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 5088,
+          "total": 8352,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 39,
+          "total": 1157
+        }
+      },
+      "firstDivergence": {
+        "index": 2423,
+        "js": "rn2(4)=1",
+        "session": "rn2(100)=29",
+        "jsRaw": "rn2(4)=1 @ dog_move(dogmove.js:1044) <= dochug(monmove.js:984) <= movemon(mon.js:1515)",
+        "sessionRaw": "rn2(100)=29 @ obj_resists(zap.c:1467)",
+        "jsStack": [],
+        "sessionStack": [
+          ">somexyspace @ generate_stairs(mklev.c:2272)",
+          ">m_move @ dochug(monmove.c:924)",
+          ">dog_move @ m_move(monmove.c:1787)"
+        ],
+        "step": 232
+      },
+      "firstDivergences": {
+        "rng": {
+          "channel": "rng",
+          "index": 2423,
+          "js": "rn2(4)=1",
+          "session": "rn2(100)=29",
+          "jsRaw": "rn2(4)=1 @ dog_move(dogmove.js:1044) <= dochug(monmove.js:984) <= movemon(mon.js:1515)",
+          "sessionRaw": "rn2(100)=29 @ obj_resists(zap.c:1467)",
+          "jsStack": [],
+          "sessionStack": [
+            ">somexyspace @ generate_stairs(mklev.c:2272)",
+            ">m_move @ dochug(monmove.c:924)",
+            ">dog_move @ m_move(monmove.c:1787)"
+          ],
+          "step": 232
+        },
+        "screen": {
+          "channel": "screen",
+          "step": 213,
+          "row": 0,
+          "js": "m - an octagonal amulet.",
+          "session": "Your movements are slowed slightly because of your load."
+        },
+        "color": {
+          "channel": "color",
+          "step": 213,
+          "row": 0,
+          "col": 0,
+          "js": {
+            "ch": "m",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "Y",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "screenWindow": {
+          "channel": "screenWindow",
+          "step": 213,
+          "row": 0,
+          "js": "m - an octagonal amulet.",
+          "session": "Your movements are slowed slightly because of your load."
+        },
+        "colorWindow": {
+          "channel": "colorWindow",
+          "step": 213,
+          "row": 0,
+          "col": 0,
+          "js": {
+            "ch": "m",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "Y",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "event": {
+          "channel": "event",
+          "index": 35,
+          "js": "^dog_move_entry[16@60,9 goal=61,10 appr=1] @ dog_move <= dochug",
+          "session": "^dog_move_entry[16@60,9 goal=60,10 appr=0]",
+          "step": 232
+        }
+      },
+      "events": {
+        "matched": 39,
+        "total": 1157
+      },
+      "duration": 3622
+    },
+    {
+      "session": "seed210_samurai_wizard_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 210,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 6969,
+          "total": 11207
+        },
+        "screens": {
+          "matched": 247,
+          "total": 380
+        },
+        "colors": {
+          "matched": 8846,
+          "total": 9120
+        },
+        "screenWindow": {
+          "matched": 247,
+          "total": 380,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 5928,
+          "total": 9120,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 274,
+          "total": 4088
+        }
+      },
+      "firstDivergence": {
+        "index": 5807,
+        "js": "rn2(20)=3",
+        "session": "rn2(32)=7",
+        "jsRaw": "rn2(20)=3 @ m_move(monmove.js:1403) <= dochug(monmove.js:998) <= movemon(mon.js:1515)",
+        "sessionRaw": "rn2(32)=7 @ m_move(monmove.c:1988)",
+        "jsStack": [],
+        "sessionStack": [
+          ">mfndpos @ dog_move(dogmove.c:1112)",
+          ">m_move @ dochug(monmove.c:924)",
+          ">mfndpos @ m_move(monmove.c:1940)"
+        ],
+        "step": 237
+      },
+      "firstDivergences": {
+        "rng": {
+          "channel": "rng",
+          "index": 5807,
+          "js": "rn2(20)=3",
+          "session": "rn2(32)=7",
+          "jsRaw": "rn2(20)=3 @ m_move(monmove.js:1403) <= dochug(monmove.js:998) <= movemon(mon.js:1515)",
+          "sessionRaw": "rn2(32)=7 @ m_move(monmove.c:1988)",
+          "jsStack": [],
+          "sessionStack": [
+            ">mfndpos @ dog_move(dogmove.c:1112)",
+            ">m_move @ dochug(monmove.c:924)",
+            ">mfndpos @ m_move(monmove.c:1940)"
+          ],
+          "step": 237
+        },
+        "screen": {
+          "channel": "screen",
+          "step": 222,
+          "row": 0,
+          "js": "c - a +0 yumi (wielded).  The newt just misses!",
+          "session": "c - a +0 yumi (weapon in left hand).  The newt just misses!"
+        },
+        "color": {
+          "channel": "color",
+          "step": 222,
+          "row": 0,
+          "col": 16,
+          "js": {
+            "ch": "i",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "e",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "screenWindow": {
+          "channel": "screenWindow",
+          "step": 222,
+          "row": 0,
+          "js": "c - a +0 yumi (wielded).  The newt just misses!",
+          "session": "c - a +0 yumi (weapon in left hand).  The newt just misses!"
+        },
+        "colorWindow": {
+          "channel": "colorWindow",
+          "step": 222,
+          "row": 0,
+          "col": 16,
+          "js": {
+            "ch": "i",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "e",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "event": {
+          "channel": "event",
+          "index": 72,
+          "js": "^trap[2,25,6] @ maketrap <= mktrap",
+          "session": "^trap[17,67,16]",
+          "step": 230
+        }
+      },
+      "events": {
+        "matched": 274,
+        "total": 4088
+      },
+      "duration": 7302
+    },
+    {
+      "session": "seed211_tourist_wizard_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 211,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 7549,
+          "total": 13211
+        },
+        "screens": {
+          "matched": 194,
+          "total": 404
+        },
+        "colors": {
+          "matched": 9074,
+          "total": 9696
+        },
+        "screenWindow": {
+          "matched": 194,
+          "total": 404,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 4656,
+          "total": 9696,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 76,
+          "total": 4352
+        }
+      },
+      "firstDivergence": {
+        "index": 6919,
+        "js": "rn2(7)=1",
+        "session": "rnd(8)=3",
+        "jsRaw": "rn2(7)=1 @ domove_attackmon_at(hack.js:399) <= domove_core(hack.js:639) <= domove(hack.js:917)",
+        "sessionRaw": "rnd(8)=3 @ newhp(attrib.c:1098)",
+        "jsStack": [],
+        "sessionStack": [
+          ">mksobj @ mineralize(mklev.c:1512)",
+          ">mksobj @ mineralize(mklev.c:1512)",
+          ">mksobj @ mineralize(mklev.c:1512)"
+        ],
+        "step": 281
+      },
+      "firstDivergences": {
+        "rng": {
+          "channel": "rng",
+          "index": 6919,
+          "js": "rn2(7)=1",
+          "session": "rnd(8)=3",
+          "jsRaw": "rn2(7)=1 @ domove_attackmon_at(hack.js:399) <= domove_core(hack.js:639) <= domove(hack.js:917)",
+          "sessionRaw": "rnd(8)=3 @ newhp(attrib.c:1098)",
+          "jsStack": [],
+          "sessionStack": [
+            ">mksobj @ mineralize(mklev.c:1512)",
+            ">mksobj @ mineralize(mklev.c:1512)",
+            ">mksobj @ mineralize(mklev.c:1512)"
+          ],
+          "step": 281
+        },
+        "screen": {
+          "channel": "screen",
+          "step": 195,
+          "row": 0,
+          "js": "o - a pair of old gloves.",
+          "session": "Your movements are slowed slightly because of your load."
+        },
+        "color": {
+          "channel": "color",
+          "step": 195,
+          "row": 0,
+          "col": 0,
+          "js": {
+            "ch": "o",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "Y",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "screenWindow": {
+          "channel": "screenWindow",
+          "step": 195,
+          "row": 0,
+          "js": "o - a pair of old gloves.",
+          "session": "Your movements are slowed slightly because of your load."
+        },
+        "colorWindow": {
+          "channel": "colorWindow",
+          "step": 195,
+          "row": 0,
+          "col": 0,
+          "js": {
+            "ch": "o",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "Y",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "event": {
+          "channel": "event",
+          "index": 38,
+          "js": "^makemon[217@61,18] @ makemon <= fill_ordinary_room",
+          "session": "^place[125,61,18]",
+          "step": 281
+        }
+      },
+      "events": {
+        "matched": 76,
+        "total": 4352
+      },
+      "duration": 5837
+    },
+    {
+      "session": "seed212_valkyrie_wizard_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 212,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 6666,
+          "total": 6666
+        },
+        "screens": {
+          "matched": 372,
+          "total": 372
+        },
+        "colors": {
+          "matched": 8928,
+          "total": 8928
+        },
+        "screenWindow": {
+          "matched": 372,
+          "total": 372,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 8928,
+          "total": 8928,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 293,
+          "total": 293
+        }
+      },
+      "events": {
+        "matched": 293,
+        "total": 293
+      },
+      "duration": 3661
+    },
+    {
+      "session": "seed213_wizard_wizard_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 213,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 10438,
+          "total": 10438
+        },
+        "screens": {
+          "matched": 355,
+          "total": 355
+        },
+        "colors": {
+          "matched": 8520,
+          "total": 8520
+        },
+        "screenWindow": {
+          "matched": 355,
+          "total": 355,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 8520,
+          "total": 8520,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 1560,
+          "total": 1560
+        }
+      },
+      "events": {
+        "matched": 1560,
+        "total": 1560
+      },
+      "duration": 5816
+    },
+    {
+      "session": "seed3_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 3,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2354,
+          "total": 2354
+        },
+        "screens": {
+          "matched": 36,
+          "total": 36
+        },
+        "colors": {
+          "matched": 864,
+          "total": 864
+        },
+        "screenWindow": {
+          "matched": 36,
+          "total": 36,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 864,
+          "total": 864,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 26,
+          "total": 26
+        }
+      },
+      "events": {
+        "matched": 26,
+        "total": 26
+      },
+      "duration": 1873
+    },
+    {
+      "session": "seed3_selfplay_100turns_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 3,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 7537,
+          "total": 7537
+        },
+        "screens": {
+          "matched": 102,
+          "total": 102
+        },
+        "colors": {
+          "matched": 2448,
+          "total": 2448
+        },
+        "screenWindow": {
+          "matched": 102,
+          "total": 102,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 2448,
+          "total": 2448,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 1331,
+          "total": 1331
+        }
+      },
+      "events": {
+        "matched": 1331,
+        "total": 1331
+      },
+      "duration": 3503
+    },
+    {
+      "session": "seed3_selfplay_5turns_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 3,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 5079,
+          "total": 5079
+        },
+        "screens": {
+          "matched": 5,
+          "total": 5
+        },
+        "colors": {
+          "matched": 120,
+          "total": 120
+        },
+        "screenWindow": {
+          "matched": 5,
+          "total": 5,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 120,
+          "total": 120,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 53,
+          "total": 53
+        }
+      },
+      "events": {
+        "matched": 53,
+        "total": 53
+      },
+      "duration": 356
+    },
+    {
+      "session": "seed300_chargen_archeologist.session.json",
+      "type": "chargen",
+      "seed": 300,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "archeologist",
+      "duration": 141
+    },
+    {
+      "session": "seed300_chargen_barbarian.session.json",
+      "type": "chargen",
+      "seed": 300,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "barbarian",
+      "duration": 755
+    },
+    {
+      "session": "seed300_chargen_caveman.session.json",
+      "type": "chargen",
+      "seed": 300,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "caveman",
+      "duration": 168
+    },
+    {
+      "session": "seed300_chargen_healer.session.json",
+      "type": "chargen",
+      "seed": 300,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "healer",
+      "duration": 312
+    },
+    {
+      "session": "seed300_chargen_knight.session.json",
+      "type": "chargen",
+      "seed": 300,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "knight",
+      "duration": 143
+    },
+    {
+      "session": "seed300_chargen_monk.session.json",
+      "type": "chargen",
+      "seed": 300,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "monk",
+      "duration": 151
+    },
+    {
+      "session": "seed300_chargen_priest.session.json",
+      "type": "chargen",
+      "seed": 300,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "priest",
+      "duration": 249
+    },
+    {
+      "session": "seed300_chargen_ranger.session.json",
+      "type": "chargen",
+      "seed": 300,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "ranger",
+      "duration": 161
+    },
+    {
+      "session": "seed300_chargen_rogue.session.json",
+      "type": "chargen",
+      "seed": 300,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "rogue",
+      "duration": 171
+    },
+    {
+      "session": "seed300_chargen_samurai.session.json",
+      "type": "chargen",
+      "seed": 300,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "samurai",
+      "duration": 174
+    },
+    {
+      "session": "seed300_chargen_tourist.session.json",
+      "type": "chargen",
+      "seed": 300,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "tourist",
+      "duration": 294
+    },
+    {
+      "session": "seed300_chargen_valkyrie.session.json",
+      "type": "chargen",
+      "seed": 300,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "valkyrie",
+      "duration": 143
+    },
+    {
+      "session": "seed300_chargen_wizard.session.json",
+      "type": "chargen",
+      "seed": 300,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "wizard",
+      "duration": 246
+    },
+    {
+      "session": "seed300_special_sokoban.session.json",
+      "type": "special",
+      "seed": 300,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 4,
+          "total": 4
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed301_verbose_on.session.json",
+      "type": "option_test",
+      "seed": 301,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2972,
+          "total": 2972
+        },
+        "screens": {
+          "matched": 2,
+          "total": 2
+        },
+        "colors": {
+          "matched": 48,
+          "total": 48
+        },
+        "screenWindow": {
+          "matched": 2,
+          "total": 2,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 48,
+          "total": 48,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 0,
+          "total": 29
+        }
+      },
+      "events": {
+        "matched": 0,
+        "total": 29
+      },
+      "firstDivergences": {
+        "event": {
+          "channel": "event",
+          "index": 0,
+          "js": "^makemon[287@7,2] @ makemon <= createMonster",
+          "session": "(missing)",
+          "step": "n/a"
+        }
+      },
+      "firstDivergence": {
+        "channel": "event",
+        "index": 0,
+        "js": "^makemon[287@7,2] @ makemon <= createMonster",
+        "session": "(missing)",
+        "step": "n/a"
+      },
+      "duration": 184
+    },
+    {
+      "session": "seed302_verbose_off.session.json",
+      "type": "option_test",
+      "seed": 302,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2372,
+          "total": 2372
+        },
+        "screens": {
+          "matched": 2,
+          "total": 2
+        },
+        "colors": {
+          "matched": 48,
+          "total": 48
+        },
+        "screenWindow": {
+          "matched": 2,
+          "total": 2,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 48,
+          "total": 48,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 0,
+          "total": 41
+        }
+      },
+      "events": {
+        "matched": 0,
+        "total": 41
+      },
+      "firstDivergences": {
+        "event": {
+          "channel": "event",
+          "index": 0,
+          "js": "^place[472,23,16] @ place_object <= placeFloorObject",
+          "session": "(missing)",
+          "step": "n/a"
+        }
+      },
+      "firstDivergence": {
+        "channel": "event",
+        "index": 0,
+        "js": "^place[472,23,16] @ place_object <= placeFloorObject",
+        "session": "(missing)",
+        "step": "n/a"
+      },
+      "duration": 146
+    },
+    {
+      "session": "seed303_DECgraphics_off.session.json",
+      "type": "option_test",
+      "seed": 303,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2006,
+          "total": 2006
+        },
+        "events": {
+          "matched": 0,
+          "total": 24
+        }
+      },
+      "events": {
+        "matched": 0,
+        "total": 24
+      },
+      "firstDivergences": {
+        "event": {
+          "channel": "event",
+          "index": 0,
+          "js": "^place[435,76,13] @ place_object <= placeFloorObject",
+          "session": "(missing)",
+          "step": "n/a"
+        }
+      },
+      "firstDivergence": {
+        "channel": "event",
+        "index": 0,
+        "js": "^place[435,76,13] @ place_object <= placeFloorObject",
+        "session": "(missing)",
+        "step": "n/a"
+      },
+      "duration": 101
+    },
+    {
+      "session": "seed304_DECgraphics_on.session.json",
+      "type": "option_test",
+      "seed": 304,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2325,
+          "total": 2325
+        },
+        "events": {
+          "matched": 0,
+          "total": 34
+        }
+      },
+      "events": {
+        "matched": 0,
+        "total": 34
+      },
+      "firstDivergences": {
+        "event": {
+          "channel": "event",
+          "index": 0,
+          "js": "^place[331,51,12] @ place_object <= placeFloorObject",
+          "session": "(missing)",
+          "step": "n/a"
+        }
+      },
+      "firstDivergence": {
+        "channel": "event",
+        "index": 0,
+        "js": "^place[331,51,12] @ place_object <= placeFloorObject",
+        "session": "(missing)",
+        "step": "n/a"
+      },
+      "duration": 256
+    },
+    {
+      "session": "seed305_time_on.session.json",
+      "type": "option_test",
+      "seed": 305,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 3808,
+          "total": 3808
+        },
+        "events": {
+          "matched": 0,
+          "total": 36
+        }
+      },
+      "events": {
+        "matched": 0,
+        "total": 36
+      },
+      "firstDivergences": {
+        "event": {
+          "channel": "event",
+          "index": 0,
+          "js": "^place[473,5,13] @ place_object <= placeFloorObject",
+          "session": "(missing)",
+          "step": "n/a"
+        }
+      },
+      "firstDivergence": {
+        "channel": "event",
+        "index": 0,
+        "js": "^place[473,5,13] @ place_object <= placeFloorObject",
+        "session": "(missing)",
+        "step": "n/a"
+      },
+      "duration": 237
+    },
+    {
+      "session": "seed306_map.session.json",
+      "type": "map",
+      "seed": 306,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2744,
+          "total": 2744
+        },
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 95
+    },
+    {
+      "session": "seed306_maps_c.session.json",
+      "type": "map",
+      "seed": 306,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 12936,
+          "total": 12936
+        },
+        "grids": {
+          "matched": 5,
+          "total": 5
+        }
+      },
+      "duration": 1221
+    },
+    {
+      "session": "seed306_time_off.session.json",
+      "type": "option_test",
+      "seed": 306,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2675,
+          "total": 2675
+        },
+        "events": {
+          "matched": 0,
+          "total": 26
+        }
+      },
+      "events": {
+        "matched": 0,
+        "total": 26
+      },
+      "firstDivergences": {
+        "event": {
+          "channel": "event",
+          "index": 0,
+          "js": "^place[212,5,15] @ place_object <= placeFloorObject",
+          "session": "(missing)",
+          "step": "n/a"
+        }
+      },
+      "firstDivergence": {
+        "channel": "event",
+        "index": 0,
+        "js": "^place[212,5,15] @ place_object <= placeFloorObject",
+        "session": "(missing)",
+        "step": "n/a"
+      },
+      "duration": 159
+    },
+    {
+      "session": "seed4_selfplay_150turns_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 4,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 7299,
+          "total": 7299
+        },
+        "screens": {
+          "matched": 164,
+          "total": 164
+        },
+        "colors": {
+          "matched": 3936,
+          "total": 3936
+        },
+        "screenWindow": {
+          "matched": 164,
+          "total": 164,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 3936,
+          "total": 3936,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 1910,
+          "total": 1910
+        }
+      },
+      "events": {
+        "matched": 1910,
+        "total": 1910
+      },
+      "duration": 4082
+    },
+    {
+      "session": "seed42_castle.session.json",
+      "type": "gameplay",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 10567,
+          "total": 10567
+        },
+        "screens": {
+          "matched": 5,
+          "total": 5
+        },
+        "colors": {
+          "matched": 120,
+          "total": 120
+        },
+        "screenWindow": {
+          "matched": 5,
+          "total": 5,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 120,
+          "total": 120,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 592,
+          "total": 592
+        }
+      },
+      "events": {
+        "matched": 592,
+        "total": 592
+      },
+      "duration": 2005
+    },
+    {
+      "session": "seed42_chargen_archeologist_dwarf.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "archeologist_dwarf",
+      "variant": "dwarf",
+      "duration": 139
+    },
+    {
+      "session": "seed42_chargen_archeologist_gnome.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "archeologist_gnome",
+      "variant": "gnome",
+      "duration": 166
+    },
+    {
+      "session": "seed42_chargen_archeologist_lawful.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "archeologist_lawful",
+      "variant": "lawful",
+      "duration": 131
+    },
+    {
+      "session": "seed42_chargen_archeologist.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "archeologist",
+      "duration": 150
+    },
+    {
+      "session": "seed42_chargen_barbarian_chaotic.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "barbarian_chaotic",
+      "variant": "chaotic",
+      "duration": 129
+    },
+    {
+      "session": "seed42_chargen_barbarian_orc.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "barbarian_orc",
+      "variant": "orc",
+      "duration": 91
+    },
+    {
+      "session": "seed42_chargen_barbarian.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "barbarian",
+      "duration": 71
+    },
+    {
+      "session": "seed42_chargen_caveman_dwarf.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "caveman_dwarf",
+      "variant": "dwarf",
+      "duration": 106
+    },
+    {
+      "session": "seed42_chargen_caveman_gnome.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "caveman_gnome",
+      "variant": "gnome",
+      "duration": 89
+    },
+    {
+      "session": "seed42_chargen_caveman_lawful.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "caveman_lawful",
+      "variant": "lawful",
+      "duration": 113
+    },
+    {
+      "session": "seed42_chargen_caveman.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "caveman",
+      "duration": 105
+    },
+    {
+      "session": "seed42_chargen_healer_gnome.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "healer_gnome",
+      "variant": "gnome",
+      "duration": 804
+    },
+    {
+      "session": "seed42_chargen_healer.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "healer",
+      "duration": 174
+    },
+    {
+      "session": "seed42_chargen_knight.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "knight",
+      "duration": 620
+    },
+    {
+      "session": "seed42_chargen_monk_chaotic.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "monk_chaotic",
+      "variant": "chaotic",
+      "duration": 175
+    },
+    {
+      "session": "seed42_chargen_monk_lawful.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "monk_lawful",
+      "variant": "lawful",
+      "duration": 185
+    },
+    {
+      "session": "seed42_chargen_monk.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "monk",
+      "duration": 166
+    },
+    {
+      "session": "seed42_chargen_priest_chaotic.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "priest_chaotic",
+      "variant": "chaotic",
+      "duration": 891
+    },
+    {
+      "session": "seed42_chargen_priest_elf.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "priest_elf",
+      "variant": "elf",
+      "duration": 137
+    },
+    {
+      "session": "seed42_chargen_priest_lawful.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "priest_lawful",
+      "variant": "lawful",
+      "duration": 178
+    },
+    {
+      "session": "seed42_chargen_priest.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "priest",
+      "duration": 471
+    },
+    {
+      "session": "seed42_chargen_ranger_chaotic.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "ranger_chaotic",
+      "variant": "chaotic",
+      "duration": 127
+    },
+    {
+      "session": "seed42_chargen_ranger_elf.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "ranger_elf",
+      "variant": "elf",
+      "duration": 93
+    },
+    {
+      "session": "seed42_chargen_ranger_gnome.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "ranger_gnome",
+      "variant": "gnome",
+      "duration": 93
+    },
+    {
+      "session": "seed42_chargen_ranger_orc.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "ranger_orc",
+      "variant": "orc",
+      "duration": 102
+    },
+    {
+      "session": "seed42_chargen_ranger.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "ranger",
+      "duration": 68
+    },
+    {
+      "session": "seed42_chargen_rogue_orc.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "rogue_orc",
+      "variant": "orc",
+      "duration": 413
+    },
+    {
+      "session": "seed42_chargen_rogue.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "rogue",
+      "duration": 383
+    },
+    {
+      "session": "seed42_chargen_samurai.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "samurai",
+      "duration": 99
+    },
+    {
+      "session": "seed42_chargen_tourist.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "tourist",
+      "duration": 86
+    },
+    {
+      "session": "seed42_chargen_valkyrie_dwarf.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 9,
+          "total": 9
+        }
+      },
+      "role": "valkyrie_dwarf",
+      "variant": "dwarf",
+      "duration": 132
+    },
+    {
+      "session": "seed42_chargen_valkyrie_lawful.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "valkyrie_lawful",
+      "variant": "lawful",
+      "duration": 138
+    },
+    {
+      "session": "seed42_chargen_valkyrie.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "valkyrie",
+      "duration": 111
+    },
+    {
+      "session": "seed42_chargen_wizard_chaotic.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "wizard_chaotic",
+      "variant": "chaotic",
+      "duration": 130
+    },
+    {
+      "session": "seed42_chargen_wizard_elf.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "wizard_elf",
+      "variant": "elf",
+      "duration": 142
+    },
+    {
+      "session": "seed42_chargen_wizard_gnome.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "wizard_gnome",
+      "variant": "gnome",
+      "duration": 848
+    },
+    {
+      "session": "seed42_chargen_wizard_orc.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 10,
+          "total": 10
+        }
+      },
+      "role": "wizard_orc",
+      "variant": "orc",
+      "duration": 147
+    },
+    {
+      "session": "seed42_chargen_wizard.session.json",
+      "type": "chargen",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "screens": {
+          "matched": 11,
+          "total": 11
+        }
+      },
+      "role": "wizard",
+      "duration": 154
+    },
+    {
+      "session": "seed42_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 3017,
+          "total": 3017
+        },
+        "screens": {
+          "matched": 12,
+          "total": 12
+        },
+        "colors": {
+          "matched": 288,
+          "total": 288
+        },
+        "screenWindow": {
+          "matched": 12,
+          "total": 12,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 288,
+          "total": 288,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 133,
+          "total": 133
+        }
+      },
+      "events": {
+        "matched": 133,
+        "total": 133
+      },
+      "duration": 225
+    },
+    {
+      "session": "seed42_inventory_wizard_pickup_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2894,
+          "total": 2894
+        },
+        "screens": {
+          "matched": 2,
+          "total": 2
+        },
+        "colors": {
+          "matched": 48,
+          "total": 48
+        },
+        "screenWindow": {
+          "matched": 2,
+          "total": 2,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 48,
+          "total": 48,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 31,
+          "total": 31
+        }
+      },
+      "events": {
+        "matched": 31,
+        "total": 31
+      },
+      "duration": 269
+    },
+    {
+      "session": "seed42_items_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 3186,
+          "total": 3186
+        },
+        "screens": {
+          "matched": 23,
+          "total": 23
+        },
+        "colors": {
+          "matched": 552,
+          "total": 552
+        },
+        "screenWindow": {
+          "matched": 23,
+          "total": 23,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 552,
+          "total": 552,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 219,
+          "total": 219
+        }
+      },
+      "events": {
+        "matched": 219,
+        "total": 219
+      },
+      "duration": 434
+    },
+    {
+      "session": "seed42_special_bigroom.session.json",
+      "type": "special",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed42_special_castle.session.json",
+      "type": "special",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed42_special_filler.session.json",
+      "type": "special",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 2,
+          "total": 2
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed42_special_gehennom.session.json",
+      "type": "special",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 7,
+          "total": 7
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed42_special_knox.session.json",
+      "type": "special",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed42_special_medusa.session.json",
+      "type": "special",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed42_special_mines.session.json",
+      "type": "special",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 2,
+          "total": 2
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed42_special_oracle.session.json",
+      "type": "special",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed42_special_planes.session.json",
+      "type": "special",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 5,
+          "total": 5
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed42_special_quest.session.json",
+      "type": "special",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 39,
+          "total": 39
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed42_special_rogue.session.json",
+      "type": "special",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed42_special_sokoban.session.json",
+      "type": "special",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 4,
+          "total": 4
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed42_special_tutorial.session.json",
+      "type": "special",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 2,
+          "total": 2
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed42_special_valley.session.json",
+      "type": "special",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed42_special_vlad.session.json",
+      "type": "special",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 3,
+          "total": 3
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed42_special_wizard.session.json",
+      "type": "special",
+      "seed": 42,
+      "passed": true,
+      "metrics": {
+        "grids": {
+          "matched": 3,
+          "total": 3
+        }
+      },
+      "duration": 0
+    },
+    {
+      "session": "seed5_gnomish_mines_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 5,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 17271,
+          "total": 38041
+        },
+        "screens": {
+          "matched": 358,
+          "total": 2727
+        },
+        "colors": {
+          "matched": 37754,
+          "total": 65448
+        },
+        "screenWindow": {
+          "matched": 358,
+          "total": 2727,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 8592,
+          "total": 65448,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 2148,
+          "total": 16466
+        }
+      },
+      "firstDivergence": {
+        "index": 14116,
+        "js": "rn2(4)=2",
+        "session": "rn2(5)=0",
+        "jsRaw": "rn2(4)=2 @ d(rng.js:268) <= use_defensive(muse.js:1274) <= dochug(monmove.js:867)",
+        "sessionRaw": "rn2(5)=0 @ distfleeck(monmove.c:551)",
+        "jsStack": [],
+        "sessionStack": [
+          ">dog_move @ m_move(monmove.c:1787)",
+          ">mfndpos @ dog_move(dogmove.c:1112)",
+          ">m_move @ dochug(monmove.c:924)"
+        ],
+        "step": 357
+      },
+      "firstDivergences": {
+        "rng": {
+          "channel": "rng",
+          "index": 14116,
+          "js": "rn2(4)=2",
+          "session": "rn2(5)=0",
+          "jsRaw": "rn2(4)=2 @ d(rng.js:268) <= use_defensive(muse.js:1274) <= dochug(monmove.js:867)",
+          "sessionRaw": "rn2(5)=0 @ distfleeck(monmove.c:551)",
+          "jsStack": [],
+          "sessionStack": [
+            ">dog_move @ m_move(monmove.c:1787)",
+            ">mfndpos @ dog_move(dogmove.c:1112)",
+            ">m_move @ dochug(monmove.c:924)"
+          ],
+          "step": 357
+        },
+        "screen": {
+          "channel": "screen",
+          "step": 58,
+          "row": 0,
+          "js": "",
+          "session": "This door is locked."
+        },
+        "color": {
+          "channel": "color",
+          "step": 58,
+          "row": 0,
+          "col": 0,
+          "js": {
+            "ch": " ",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "T",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "screenWindow": {
+          "channel": "screenWindow",
+          "step": 58,
+          "row": 0,
+          "js": "",
+          "session": "This door is locked."
+        },
+        "colorWindow": {
+          "channel": "colorWindow",
+          "step": 58,
+          "row": 0,
+          "col": 0,
+          "js": {
+            "ch": " ",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "T",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "event": {
+          "channel": "event",
+          "index": 2092,
+          "js": "^trap[17,77,3] @ maketrap <= mk_knox_portal",
+          "session": "^pickup[70@6,4,90]",
+          "step": 181
+        }
+      },
+      "events": {
+        "matched": 2148,
+        "total": 16466
+      },
+      "duration": 14183
+    },
+    {
+      "session": "seed6_tourist_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 6,
+      "passed": false,
+      "error": "dist2 is not defined",
+      "duration": 5517
+    },
+    {
+      "session": "seed72_map.session.json",
+      "type": "map",
+      "seed": 72,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2591,
+          "total": 2591
+        },
+        "grids": {
+          "matched": 1,
+          "total": 1
+        }
+      },
+      "duration": 130
+    },
+    {
+      "session": "seed72_maps_c.session.json",
+      "type": "map",
+      "seed": 72,
+      "passed": true,
+      "metrics": {
+        "rngCalls": {
+          "matched": 21472,
+          "total": 21472
+        },
+        "grids": {
+          "matched": 5,
+          "total": 5
+        }
+      },
+      "duration": 2112
+    },
+    {
+      "session": "seed8_tutorial_manual_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 8,
+      "passed": false,
+      "metrics": {
+        "rngCalls": {
+          "matched": 2919,
+          "total": 4999
+        },
+        "screens": {
+          "matched": 2,
+          "total": 1026
+        },
+        "colors": {
+          "matched": 11924,
+          "total": 24624
+        },
+        "screenWindow": {
+          "matched": 2,
+          "total": 1026,
+          "earlyOnlyCount": 0
+        },
+        "colorWindow": {
+          "matched": 48,
+          "total": 24624,
+          "earlyOnlyCount": 0
+        },
+        "events": {
+          "matched": 338,
+          "total": 1768
+        }
+      },
+      "firstDivergence": {
+        "index": 2640,
+        "js": "rn2(25)=16",
+        "session": "rnd(5)=2",
+        "jsRaw": "rn2(25)=16 @ handleClose(lock.js:1091) <= cmd.js:254 <= allmain.js:514",
+        "sessionRaw": "rnd(5)=2 @ maybe_smudge_engr(hack.c:3007)",
+        "jsStack": [
+          ">mktrap @ create_trap(sp_lev.js)",
+          ">mktrap @ create_trap(sp_lev.js)",
+          ">mktrap @ create_trap(sp_lev.js)"
+        ],
+        "sessionStack": [
+          ">mktrap @ create_trap(sp_lev.c:1846)",
+          ">mktrap @ create_trap(sp_lev.c:1846)",
+          ">mktrap @ create_trap(sp_lev.c:1846)"
+        ],
+        "step": 50
+      },
+      "firstDivergences": {
+        "rng": {
+          "channel": "rng",
+          "index": 2640,
+          "js": "rn2(25)=16",
+          "session": "rnd(5)=2",
+          "jsRaw": "rn2(25)=16 @ handleClose(lock.js:1091) <= cmd.js:254 <= allmain.js:514",
+          "sessionRaw": "rnd(5)=2 @ maybe_smudge_engr(hack.c:3007)",
+          "jsStack": [
+            ">mktrap @ create_trap(sp_lev.js)",
+            ">mktrap @ create_trap(sp_lev.js)",
+            ">mktrap @ create_trap(sp_lev.js)"
+          ],
+          "sessionStack": [
+            ">mktrap @ create_trap(sp_lev.c:1846)",
+            ">mktrap @ create_trap(sp_lev.c:1846)",
+            ">mktrap @ create_trap(sp_lev.c:1846)"
+          ],
+          "step": 50
+        },
+        "screen": {
+          "channel": "screen",
+          "step": 1,
+          "row": 23,
+          "js": "Tutorial:1 $:0 HP:16(16) Pw:2(2) AC:6 Xp:1/0",
+          "session": "Tutorial:1 $:0 HP:16(16) Pw:2(2) AC:10 Xp:1"
+        },
+        "color": {
+          "channel": "color",
+          "step": 1,
+          "row": 0,
+          "col": 40,
+          "js": {
+            "ch": "-",
+            "fg": 15,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "-",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "screenWindow": {
+          "channel": "screenWindow",
+          "step": 1,
+          "row": 23,
+          "js": "Tutorial:1 $:0 HP:16(16) Pw:2(2) AC:6 Xp:1/0",
+          "session": "Tutorial:1 $:0 HP:16(16) Pw:2(2) AC:10 Xp:1"
+        },
+        "colorWindow": {
+          "channel": "colorWindow",
+          "step": 1,
+          "row": 0,
+          "col": 40,
+          "js": {
+            "ch": "-",
+            "fg": 15,
+            "bg": 0,
+            "attr": 0
+          },
+          "session": {
+            "ch": "-",
+            "fg": 7,
+            "bg": 0,
+            "attr": 0
+          }
+        },
+        "event": {
+          "channel": "event",
+          "index": 173,
+          "js": "^movemon_turn[20@32,5 mv=12->0] @ movemon <= movemon",
+          "session": "^wipe[5,10]",
+          "step": 50
+        }
+      },
+      "events": {
+        "matched": 338,
+        "total": 1768
+      },
+      "duration": 9411
+    }
+  ],
+  "summary": {
+    "total": 204,
+    "passed": 183,
+    "failed": 21,
+    "gameplayParity": {
+      "sessions": 43,
+      "rngComparable": 42,
+      "eventsComparable": 42,
+      "animationComparable": 0,
+      "screenWindowComparable": 42,
+      "colorWindowComparable": 42,
+      "rngFull": 29,
+      "eventsFull": 29,
+      "animationFull": 0,
+      "rngFullButEventsNot": 0,
+      "eventsFullButRngNot": 0,
+      "rerecordCandidates": 0
+    }
+  },
+  "parent": "efbc0971"
+}
