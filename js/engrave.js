@@ -223,9 +223,8 @@ export function sengr_at(map, s, x, y, strict) {
 
 // cf. engrave.c:264 — u_wipe_engr(cnt): wipe engraving at hero's location
 // Wipes cnt characters from engraving at hero's position if reachable.
-// Autotranslated from engrave.c:263
-export function u_wipe_engr(cnt, player) {
-  if (can_reach_floor(true)) wipe_engr_at(player.x, player.y, cnt, false);
+export function u_wipe_engr(player, map, cnt) {
+    if (can_reach_floor(player, map)) wipe_engr_at(map, player.x, player.y, cnt, false);
 }
 
 // cf. engrave.c:297 — engr_can_be_felt(ep): engraving can be felt?
