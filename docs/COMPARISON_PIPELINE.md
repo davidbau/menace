@@ -61,6 +61,18 @@ If sparse-boundary allowances are needed, implement them in policy methods.
   1. recorder (`recordGameplaySessionFromInputs`)
   2. comparator (`compareRecordedGameplaySession`)
 
+By default, session runs now also emit merged `.comparison.json` artifacts under:
+
+- `tmp/session-comparisons/<run-id>/`
+- latest run pointer: `tmp/session-comparisons/LATEST`
+
+Each artifact contains:
+- C session + JS replay merged channel data
+- normalized RNG/event streams + raw index maps
+- first-divergence metadata
+
+This makes repeated divergence inspection cheap without regenerating traces.
+
 ### Single-session debug replay
 
 - [`test/comparison/test_session_replay.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/test_session_replay.js)
@@ -86,6 +98,22 @@ npm run session:compare -- test/comparison/sessions/seed208_ranger_wizard_gamepl
 
 # Compare against previously dumped replay
 npm run session:compare -- test/comparison/sessions/seed208_ranger_wizard_gameplay.session.json --js /tmp/seed208.js-replay.json --json
+```
+
+### Comparison window CLI
+
+- [`scripts/comparison-window.mjs`](/share/u/davidbau/git/mazesofmenace/game/scripts/comparison-window.mjs)
+- Inspect windows from `.comparison.json` in the latest artifacts directory.
+
+```bash
+# list latest run artifacts
+node scripts/comparison-window.mjs --list
+
+# show default (first-divergence) RNG window for a specific session
+node scripts/comparison-window.mjs seed208_ranger_wizard_gameplay.session.json --channel rng --window 6
+
+# inspect event channel at explicit normalized index
+node scripts/comparison-window.mjs seed208_ranger_wizard_gameplay.session.json --channel event --index 623 --window 4
 ```
 
 ## Implementation Rule

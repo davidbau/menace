@@ -11,6 +11,7 @@
     "test:session": "node test/comparison/sessions.test.js",
     "replay:dump": "node scripts/dump-js-replay.mjs",
     "session:compare": "node scripts/compare-sessions.mjs",
+    "comparison:window": "node scripts/comparison-window.mjs",
     "translator:check-policy": "node scripts/check-translator-file-policy.mjs",
     "translator:check-annotations": "node scripts/check-translator-annotations.mjs",
     "serve": "python3 -m http.server 8080",

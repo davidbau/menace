@@ -1550,3 +1550,16 @@ hard-won wisdom:
 - Root cause: `mthrowu.monshoot()` always forced `display.morePrompt(nhgetch)` for non-target throws, which can shift replay command timing by treating the next gameplay key as prompt acknowledgement.
 - C parity behavior is subtler: this handoff is not unconditional and should not always steal the next command key.
 - Fix: keep throw-message handoff only for non-target throws that did **not** already resolve with a direct hit on the hero, preserving known-good behavior on control seeds while removing the step-22 key-steal in seed113.
+
+### tmp_at overlay erase must redraw current map state, not cached cells (2026-03-01)
+
+- During `seed110_samurai_selfplay200_gameplay`, a screen-only mismatch showed stale monster/object glyphs after throw animations even when RNG/events were fully matched.
+- Root cause: JS temp-glyph erase (`display.redraw()` / `headless.redraw()`) restored from `_mapBaseCells` captured at the start of map render, but C `tmp_at` erase semantics are `newsym()`-like (recompute from current state).
+- Fix: when temp overlay stack empties for a cell, redraw from the current `_lastMapState` map render instead of restoring cached base cells.
+- Impact: removed stale-map ghosting artifacts in the seed110 throw window and improved color parity there (`4795/4800` -> `4796/4800`) without regressing seed108/seed113.
+
+### m_throw timing parity: resolve impact before per-step animation frame (2026-03-01)
+
+- In C `m_throw()` ordering is: advance projectile -> resolve hit/block logic -> `tmp_at(x,y)` + `nh_delay_output()` per traversed step -> final `tmp_at(x,y)` + delay -> `tmp_at(DISP_END, ...)`.
+- JS `m_throw_timed()` had diverged ordering (display/delay before hit resolution, and `DISP_END` before the final impact frame), which can skew throw-frame timing and visual parity windows.
+- Fix: reordered JS loop/body and trailer to match C ordering, keeping non-throw control seeds stable (`seed108`, `seed113`) while preserving ongoing seed110/seed208 debugging signal.

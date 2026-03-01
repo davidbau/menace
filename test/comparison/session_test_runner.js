@@ -35,6 +35,12 @@ import { decodeDecSpecialChar } from './symset_normalization.js';
 import { recordGameplaySessionFromInputs } from './session_recorder.js';
 import { compareRecordedGameplaySession } from './session_comparator.js';
 import {
+    buildComparisonArtifact,
+    initComparisonArtifactsRunDir,
+    isComparisonArtifactsEnabled,
+    writeComparisonArtifact,
+} from './comparison_artifacts.js';
+import {
     createSessionResult,
     recordRng,
     recordGrids,
@@ -433,6 +439,11 @@ async function runGameplayResult(session) {
                 'animationBoundaries',
                 cmp.animationBoundaries.firstDivergence
             );
+        }
+        const comparisonDir = process.env.WEBHACK_COMPARISON_DIR || '';
+        if (comparisonDir) {
+            const artifact = buildComparisonArtifact(session, replay, cmp, result);
+            writeComparisonArtifact(comparisonDir, session.file, artifact);
         }
     } catch (error) {
         markFailed(result, error);
@@ -896,6 +907,10 @@ export async function runSessionBundle({
         ? sessions.filter((session) => requested.has(session.file))
         : sessions;
 
+    if (isComparisonArtifactsEnabled() && !process.env.WEBHACK_COMPARISON_DIR) {
+        process.env.WEBHACK_COMPARISON_DIR = initComparisonArtifactsRunDir();
+    }
+
     if (verbose) {
         console.log('=== Session Test Runner ===');
         if (typeFilter) console.log(`Type filter: ${String(typeFilter)}`);
@@ -907,6 +922,9 @@ export async function runSessionBundle({
         if (parallel > 0) console.log(`Parallel workers: ${parallel}`);
         if (Number.isInteger(sessionTimeoutMs) && sessionTimeoutMs > 0) {
             console.log(`Per-session timeout: ${sessionTimeoutMs}ms`);
+        }
+        if (process.env.WEBHACK_COMPARISON_DIR) {
+            console.log(`Comparison artifacts: ${process.env.WEBHACK_COMPARISON_DIR}`);
         }
         console.log(`Loaded sessions: ${filteredSessions.length}`);
     }

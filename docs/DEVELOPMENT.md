@@ -247,6 +247,45 @@ Timeout policy (hang detection):
 - Single-session replay runs (`node test/comparison/session_test_runner.js <session>`) enforce a `10000ms` timeout per session by default.
 - `session_test_runner` runs the full selected set by default; add `--fail-fast` only when you explicitly want to stop on first failure.
 
+### Fast Parity Triage Loop (Comparison Artifacts)
+
+Use this loop when chasing a specific seed/session divergence.
+
+1. Reproduce one session and emit comparison artifacts:
+```bash
+node test/comparison/session_test_runner.js --verbose \
+  test/comparison/sessions/seed110_samurai_selfplay200_gameplay.session.json
+```
+
+2. List artifacts in the latest run:
+```bash
+node scripts/comparison-window.mjs --list
+```
+
+3. Inspect first divergence windows (RNG/event):
+```bash
+node scripts/comparison-window.mjs --session seed110_samurai_selfplay200_gameplay --channel rng --window 12
+node scripts/comparison-window.mjs --session seed110_samurai_selfplay200_gameplay --channel event --window 12
+```
+
+4. Inspect an explicit index:
+```bash
+node scripts/comparison-window.mjs --session seed110_samurai_selfplay200_gameplay \
+  --channel event --index 1076 --window 10
+```
+
+5. Inspect per-step turn-accounting drift (RNG/event counts):
+```bash
+node scripts/comparison-window.mjs --session seed110_samurai_selfplay200_gameplay \
+  --step-summary --step-from 186 --step-to 200
+```
+
+Notes:
+- Artifacts are written under `tmp/session-comparisons/<run-id>/`.
+- `tmp/session-comparisons/LATEST` points to the most recent run.
+- `comparison-window` supports `--session` and `--file`. When `--dir` is not supplied, it searches recent runs for the requested target if it is not present in the latest run.
+- Use these artifacts to localize real gameplay bugs in core `js/` modules; do not patch comparator/harness behavior to hide mismatches.
+
 ### Replay Boundary (Core vs Harness)
 
 Keep gameplay and UI semantics in core runtime modules (`js/`), not in

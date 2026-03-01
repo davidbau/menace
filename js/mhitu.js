@@ -1045,6 +1045,10 @@ export async function mattacku(monster, player, display, game = null, opts = {})
                     if (game) {
                         game.nomovemsg = 'You survived that attempt on your life.';
                         game.multi = -1;
+                        // C savelife intent: hero can't move again this turn.
+                        // If movement points remain, we can drift turn-end
+                        // processing by one replay step.
+                        player.umovement = 0;
                         game.multi_reason = 'attempting to cheat Death';
                         game._suppressMonsterHitMessagesThisTurn = true;
                     }

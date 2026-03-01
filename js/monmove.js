@@ -981,7 +981,11 @@ async function dochug(mon, map, player, display, fov, game = null) {
             moveDone = true; // eating uses up the action (MMOVE_DONE)
         } else if (mon.tame) {
             const omx = mon.mx, omy = mon.my;
-            await dog_move(mon, map, player, display, fov, false, game);
+            const petMoveStatus = await dog_move(mon, map, player, display, fov, false, game);
+            // C ref: MMOVE_DIED == 2. dog_move can kill or remove the pet before post-move.
+            if (petMoveStatus === 2 || mon.dead) {
+                return;
+            }
             if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
                 const trapResult = await mintrap_postmove(mon, map, player);
                 if (trapResult === 2 || trapResult === 3) {
@@ -1007,6 +1011,9 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 && (mmoved || moveDone)
                 && map.objectsAt(mon.mx, mon.my).length > 0
                 && maybeMonsterPickStuff(mon, map)) {
+                // C ref: postmov() sets mmoved = MMOVE_DONE when mpickstuff()
+                // succeeds, which suppresses Phase 4 attacks in dochug().
+                moveDone = true;
                 mmoved = false;
             } else if (moveDone) {
                 mmoved = false;
@@ -1014,7 +1021,9 @@ async function dochug(mon, map, player, display, fov, game = null) {
             if (trapDied) return;
         }
         // C ref: monmove.c:919 — recalculate distfleeck after m_move
-        ({ inrange, nearby, scared } = distfleeck(mon, map, player, display, fov));
+        if (!mon.dead) {
+            ({ inrange, nearby, scared } = distfleeck(mon, map, player, display, fov));
+        }
 
         // C ref: monmove.c:949-953 — after movement, ranged attack check
         if (mmoved && !mon.dead) {
