@@ -45,6 +45,29 @@ def tmux_has_session(session_name):
     return proc.returncode == 0
 
 
+def read_key_codes(path):
+    keys = []
+    with open(path, "r", encoding="utf-8", errors="ignore") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = json.loads(line)
+            except Exception:
+                continue
+            if isinstance(obj.get("key"), int):
+                keys.append(int(obj["key"]))
+    return keys
+
+
+def tmux_send_hex_key(session_name, code):
+    subprocess.run(
+        ["tmux", "send-keys", "-t", session_name, "-H", format(int(code) & 0xFF, "x")],
+        check=True,
+    )
+
+
 def clean_game_state(player_name):
     save_dir = os.path.join(INSTALL_DIR, "save")
     if os.path.isdir(save_dir):
@@ -150,6 +173,8 @@ def run_watcher(args):
         "steps": [],
     }
 
+    print(f"[watcher] start session={session_name} keylog={keylog} rnglog={rnglog}", flush=True)
+
     # Wait until game session is alive and keylog exists.
     for _ in range(300):
         if tmux_has_session(session_name) and os.path.exists(keylog):
@@ -196,7 +221,6 @@ def run_watcher(args):
 
         new_events.sort(key=lambda e: int(e["seq"]))
         for e in new_events:
-            seen.add(e["seq"])
             if keylog_moves_base is None:
                 keylog_moves_base = int(e.get("moves", 0))
             time.sleep(0.03)
@@ -216,8 +240,10 @@ def run_watcher(args):
                         "screen": screen,
                     }
                 )
-            except Exception:
-                pass
+                seen.add(e["seq"])
+            except Exception as ex:
+                # Do not mark seen on failure; retry capture for this key.
+                print(f"[watcher] capture error seq={e.get('seq')} key={e.get('key')}: {ex}", flush=True)
 
         now = time.time()
         if now - last_flush > 1.0:
@@ -229,6 +255,41 @@ def run_watcher(args):
     # Final flush
     with open(out_json, "w", encoding="utf-8") as f:
         f.write(compact_session_json(session_data))
+
+
+def build_watch_cmd(args):
+    watch_cmd = [
+        sys.executable,
+        __file__,
+        "--watch",
+        "--session",
+        args.session,
+        "--seed",
+        str(args.seed),
+        "--name",
+        args.name,
+        "--role",
+        args.role,
+        "--race",
+        args.race,
+        "--gender",
+        args.gender,
+        "--align",
+        args.align,
+        "--symset",
+        args.symset,
+        "--tutorial-option",
+        args.tutorial_option,
+        "--keylog",
+        args.keylog,
+        "--rnglog",
+        args.rnglog,
+        "--output-session",
+        args.output_session,
+    ]
+    if args.wizard:
+        watch_cmd.append("--wizard")
+    return watch_cmd
 
 
 def launch_manual_capture(args):
@@ -270,47 +331,110 @@ def launch_manual_capture(args):
     subprocess.run(["tmux", "set-window-option", "-t", args.session, "window-size", "manual"], check=True)
     subprocess.run(["tmux", "resize-window", "-t", args.session, "-x", "80", "-y", "24"], check=True)
 
-    watch_cmd = [
-        sys.executable,
-        __file__,
-        "--watch",
-        "--session",
-        args.session,
-        "--seed",
-        str(args.seed),
-        "--name",
-        args.name,
-        "--role",
-        args.role,
-        "--race",
-        args.race,
-        "--gender",
-        args.gender,
-        "--align",
-        args.align,
-        "--symset",
-        args.symset,
-        "--tutorial-option",
-        args.tutorial_option,
-        "--keylog",
-        args.keylog,
-        "--rnglog",
-        args.rnglog,
-        "--output-session",
-        args.output_session,
-    ]
-    if args.wizard:
-        watch_cmd.append("--wizard")
+    watch_cmd = build_watch_cmd(args)
 
     with open(args.watch_log, "w", encoding="utf-8") as log_f:
-        subprocess.Popen(watch_cmd, stdout=log_f, stderr=log_f)
+        watch_proc = subprocess.Popen(watch_cmd, stdout=log_f, stderr=log_f)
 
     print(f"SESSION={args.session}")
     print(f"KEYLOG={args.keylog}")
     print(f"RNGLOG={args.rnglog}")
     print(f"OUT_SESSION={args.output_session}")
     print(f"WATCH_LOG={args.watch_log}")
+    print(f"WATCHER_PID={watch_proc.pid}")
     print(f"ATTACH=tmux attach -d -t {args.session}")
+
+
+def run_autofeed_capture(args):
+    if not args.autofeed_keylog:
+        raise SystemExit("--autofeed requires --autofeed-keylog")
+    source_keylog = os.path.abspath(args.autofeed_keylog)
+    if not os.path.exists(source_keylog):
+        raise SystemExit(f"autofeed keylog not found: {source_keylog}")
+
+    clean_game_state(args.name)
+    write_nethackrc(args.home, args)
+    write_keylog_header(args.keylog, args)
+    os.makedirs(os.path.dirname(args.output_session), exist_ok=True)
+    os.makedirs(os.path.dirname(args.watch_log), exist_ok=True)
+    for path in (args.rnglog, args.output_session, args.watch_log):
+        try:
+            os.unlink(path)
+        except FileNotFoundError:
+            pass
+
+    if tmux_has_session(args.session):
+        subprocess.run(["tmux", "kill-session", "-t", args.session], check=True)
+
+    wizard_flag = "-D" if args.wizard else ""
+    datetime_env = f"NETHACK_FIXED_DATETIME={args.datetime} " if args.datetime else ""
+    cmd = (
+        f"NETHACKDIR={INSTALL_DIR} "
+        f"NETHACK_SEED={args.seed} "
+        f"{datetime_env}"
+        f"NETHACK_KEYLOG={args.keylog} "
+        f"NETHACK_KEYLOG_DELAY_MS={args.keylog_delay_ms} "
+        f"NETHACK_RNGLOG={args.rnglog} "
+        f"HOME={args.home} "
+        f"TERM=xterm-256color "
+        f"{NETHACK_BINARY} -u {args.name} {wizard_flag}; "
+        f"sleep 999"
+    )
+    subprocess.run(
+        ["tmux", "new-session", "-d", "-s", args.session, "-x", "80", "-y", "24", cmd],
+        check=True,
+    )
+    subprocess.run(["tmux", "set-window-option", "-t", args.session, "window-size", "manual"], check=True)
+    subprocess.run(["tmux", "resize-window", "-t", args.session, "-x", "80", "-y", "24"], check=True)
+
+    source_keys = read_key_codes(source_keylog)
+    delay_s = max(0, int(args.autofeed_delay_ms)) / 1000.0
+    watch_cmd = build_watch_cmd(args)
+    with open(args.watch_log, "w", encoding="utf-8") as log_f:
+        watch_proc = subprocess.Popen(watch_cmd, stdout=log_f, stderr=log_f)
+        for i, code in enumerate(source_keys, start=1):
+            tmux_send_hex_key(args.session, code)
+            if i % 200 == 0:
+                print(f"AUTOFEED={i}/{len(source_keys)}", flush=True)
+            if delay_s > 0:
+                time.sleep(delay_s)
+        print(f"AUTOFEED_DONE={len(source_keys)}")
+        time.sleep(0.5)
+        if tmux_has_session(args.session):
+            subprocess.run(["tmux", "kill-session", "-t", args.session], check=True)
+        deadline = time.time() + (max(1, int(args.autofeed_finalize_ms)) / 1000.0)
+        while time.time() < deadline:
+            if watch_proc.poll() is not None:
+                break
+            time.sleep(0.1)
+        if watch_proc.poll() is None:
+            watch_proc.terminate()
+            watch_proc.wait(timeout=2)
+
+    captured_keys = read_key_codes(args.keylog) if os.path.exists(args.keylog) else []
+    mismatch = None
+    for idx, (a, b) in enumerate(zip(source_keys, captured_keys), start=1):
+        if a != b:
+            mismatch = (idx, a, b)
+            break
+    print(f"SESSION={args.session}")
+    print(f"KEYLOG={args.keylog}")
+    print(f"RNGLOG={args.rnglog}")
+    print(f"OUT_SESSION={args.output_session}")
+    print(f"WATCH_LOG={args.watch_log}")
+    print(f"AUTOFEED_SOURCE_KEYS={len(source_keys)}")
+    print(f"AUTOFEED_CAPTURED_KEYS={len(captured_keys)}")
+    if mismatch is None:
+        print("AUTOFEED_KEY_MISMATCH_AT=none")
+    else:
+        print(f"AUTOFEED_KEY_MISMATCH_AT={mismatch[0]} src={mismatch[1]} cap={mismatch[2]}")
+    if os.path.exists(args.output_session):
+        try:
+            with open(args.output_session, "r", encoding="utf-8") as f:
+                session = json.load(f)
+            print(f"AUTOFEED_SESSION_STEPS={len(session.get('steps', []))}")
+        except Exception as ex:
+            print(f"AUTOFEED_SESSION_PARSE_ERROR={ex}")
 
 
 def default_paths(seed, name):
@@ -343,6 +467,14 @@ def parse_args():
     p.add_argument("--output-session", default=None)
     p.add_argument("--home", default=None)
     p.add_argument("--watch-log", default=None)
+    p.add_argument("--autofeed", action="store_true",
+                   help="Run launch+watch+exact key feed+finalize in one process")
+    p.add_argument("--autofeed-keylog", default=None,
+                   help="Source keylog JSONL to feed during --autofeed")
+    p.add_argument("--autofeed-delay-ms", type=int, default=120,
+                   help="Inter-key delay in ms for --autofeed")
+    p.add_argument("--autofeed-finalize-ms", type=int, default=10000,
+                   help="Watcher flush wait in ms after killing tmux session")
     args = p.parse_args()
 
     d_keylog, d_out, d_home, d_watch_log, d_rnglog, d_session = default_paths(args.seed, args.name)
@@ -369,6 +501,8 @@ def main():
     args = parse_args()
     if args.watch:
         run_watcher(args)
+    elif args.autofeed:
+        run_autofeed_capture(args)
     else:
         launch_manual_capture(args)
 
