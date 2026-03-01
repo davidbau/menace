@@ -48,13 +48,13 @@ import { can_teleport, noeyes, perceives, nohands,
          passes_walls, corpse_eater,
          passes_bars, is_human, canseemon, monsdat } from './mondata.js';
 import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons,
-         PM_LEPRECHAUN, PM_GREMLIN,
+         PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER,
          PM_XORN,
          PM_DISPLACER_BEAST,
          PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN,
          PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS,
          AT_WEAP,
-         S_MIMIC, S_GHOST,
+         S_MIMIC, S_GHOST, S_BAT, S_LIGHT,
          S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN,
          M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID,
          M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC,
@@ -1264,6 +1264,13 @@ function m_move(mon, map, player, display = null, fov = null) {
     if (mon.peaceful) {
         appr = 0;
     }
+    // C ref: monmove.c m_move() random hesitation for stalkers, bats, lights.
+    // This consumes rn2(3) only when prior short-circuit gates didn't force appr=0.
+    if (appr !== 0
+        && (mon.mndx === PM_STALKER || ptr.mlet === S_BAT || ptr.mlet === S_LIGHT)
+        && !rn2(3)) {
+        appr = 0;
+    }
     if (appr === 1 && leppie_avoidance(mon, player)) {
         appr = -1;
     }
@@ -1407,12 +1414,14 @@ function m_move(mon, map, player, display = null, fov = null) {
         const ndist = dist2(nx, ny, ggx, ggy);
         const nearer = ndist < nidist;
 
-        // Preserve C short-circuit order: first candidate is accepted without
-        // consuming rn2() when no prior move was selected.
-        if (!mmoved
-            || (appr === 1 && nearer)
+        // C ref: monmove.c m_move() candidate pick order.
+        // Important: for appr==0, rn2(++chcnt) is evaluated even when this is
+        // the first candidate; the fallback "mmoved==MMOVE_NOTHING" check is
+        // the final OR term in C.
+        if ((appr === 1 && nearer)
             || (appr === -1 && !nearer)
-            || (appr === 0 && !rn2(++chcnt))) {
+            || (appr === 0 && !rn2(++chcnt))
+            || !mmoved) {
             nix = nx;
             niy = ny;
             nidist = ndist;
