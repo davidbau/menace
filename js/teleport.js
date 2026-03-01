@@ -13,6 +13,7 @@ import {
     IS_POOL, IS_LAVA, IS_DRAWBRIDGE,
     D_CLOSED, D_LOCKED,
     NO_TRAP, TELEP_TRAP, LEVEL_TELEP, VIBRATING_SQUARE,
+    MAGIC_PORTAL,
     is_pit, is_hole,
 } from './config.js';
 import { BOULDER } from './objects.js';
@@ -485,8 +486,28 @@ export function mtele_trap(mtmp, trap, in_sight, map, player, display, fov) {
 // ============================================================================
 
 export function mlevel_tele_trap(mtmp, trap, force_it, in_sight, map, player) {
-    // Simplified: monsters don't actually leave the level in JS yet
-    // Just return 0 (still on level)
+    const tt = trap ? trap.ttyp : NO_TRAP;
+    if (!mtmp) return 0;
+    if (mtmp === player?.ustuck) return 0;
+    if (!teleport_pet(mtmp, force_it)) return 0;
+
+    // Minimal C-faithful monster migration behavior:
+    // magic portals can remove monsters from the current level.
+    // (C ref: teleport.c mlevel_tele_trap() -> migrate_to_level() -> Trap_Moved_Mon)
+    if (tt === MAGIC_PORTAL) {
+        if (in_sight) {
+            const mname = (typeof mtmp?.name === 'string' && mtmp.name.length > 0)
+                ? mtmp.name
+                : 'it';
+            pline(`Suddenly, ${mname} disappears out of sight.`);
+        }
+        if (map?.removeMonster) map.removeMonster(mtmp);
+        mtmp.mx = 0;
+        mtmp.my = 0;
+        return 3; // Trap_Moved_Mon
+    }
+
+    // Remaining level-teleport cases are still simplified.
     return 0;
 }
 

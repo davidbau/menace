@@ -88,7 +88,7 @@ def build_command(session_path, data):
     output = os.path.abspath(session_path)
 
     if mode == 'gameplay':
-        return _build_gameplay(seed, output, regen, options)
+        return _build_gameplay(seed, output, regen, options, data.get('steps'))
     elif mode == 'chargen':
         return _build_chargen(seed, output, regen)
     elif mode == 'wizload':
@@ -103,7 +103,67 @@ def build_command(session_path, data):
         return None, f'unknown regen.mode: {mode}'
 
 
-def _build_gameplay(seed, output, regen, options):
+def _normalize_key_delay_overrides(raw_value):
+    """Normalize delay overrides into {step:int -> delay:float}."""
+    out = {}
+    if raw_value is None:
+        return out
+    if isinstance(raw_value, list):
+        for idx, value in enumerate(raw_value, start=1):
+            try:
+                delay = float(value)
+            except Exception:
+                continue
+            if delay >= 0.0:
+                out[idx] = delay
+        return out
+    if isinstance(raw_value, dict):
+        for key, value in raw_value.items():
+            try:
+                step = int(key)
+                delay = float(value)
+            except Exception:
+                continue
+            if step >= 1 and delay >= 0.0:
+                out[step] = delay
+    return out
+
+
+def _extract_step_key_delay_overrides(steps):
+    """Read optional per-step capture delays from step metadata.
+
+    Session v3 format:
+      steps[i].capture.key_delay_s
+    Steps are mapped to 1-based gameplay step index (startup excluded).
+    """
+    out = {}
+    if not isinstance(steps, list):
+        return out
+    step_num = 0
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        if step.get('key') is None:
+            continue
+        step_num += 1
+        capture = step.get('capture')
+        if not isinstance(capture, dict):
+            continue
+        value = capture.get('key_delay_s')
+        if value is None:
+            value = capture.get('keyDelayS')
+        if value is None:
+            continue
+        try:
+            delay = float(value)
+        except Exception:
+            continue
+        if delay >= 0.0:
+            out[step_num] = delay
+    return out
+
+
+def _build_gameplay(seed, output, regen, options, steps):
     moves = regen.get('moves', '...........')
     cmd = ['python3', RUN_SESSION, str(seed), output, moves]
 
@@ -124,6 +184,11 @@ def _build_gameplay(seed, output, regen, options):
 
     if regen.get('raw_moves') or regen.get('rawMoves'):
         cmd.append('--raw-moves')
+    record_more_spaces = regen.get('record_more_spaces')
+    if record_more_spaces is None:
+        record_more_spaces = regen.get('recordMoreSpaces')
+    if bool(record_more_spaces):
+        cmd.append('--record-more-spaces')
     if options.get('wizard') is False:
         cmd.append('--no-wizard')
 
@@ -133,6 +198,10 @@ def _build_gameplay(seed, output, regen, options):
     key_delays_s = regen.get('key_delays_s')
     if key_delays_s is None:
         key_delays_s = regen.get('keyDelaysS')
+    normalized_regen_overrides = _normalize_key_delay_overrides(key_delays_s)
+    step_overrides = _extract_step_key_delay_overrides(steps)
+    merged_overrides = dict(normalized_regen_overrides)
+    merged_overrides.update(step_overrides)
     final_capture_delay_s = regen.get('final_capture_delay_s')
     if final_capture_delay_s is None:
         final_capture_delay_s = regen.get('finalCaptureDelayS')
@@ -140,10 +209,9 @@ def _build_gameplay(seed, output, regen, options):
     if key_delay_s is not None:
         # run_session.py consumes this env var to tune per-key send timing.
         env_prefix.append(f'NETHACK_KEY_DELAY_S={key_delay_s}')
-    if key_delays_s is not None:
-        # Optional per-step key delay overrides (1-based step index mapping
-        # or full delay array).
-        env_prefix.append(f'NETHACK_KEY_DELAYS_S={json.dumps(key_delays_s, separators=(",", ":"))}')
+    if merged_overrides:
+        # Per-step key delay overrides (1-based step index mapping).
+        env_prefix.append(f'NETHACK_KEY_DELAYS_S={json.dumps(merged_overrides, separators=(",", ":"))}')
     if final_capture_delay_s is not None:
         # Optional final-step settle before capturing the last screen.
         env_prefix.append(f'NETHACK_FINAL_CAPTURE_DELAY_S={final_capture_delay_s}')

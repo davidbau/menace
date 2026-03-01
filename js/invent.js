@@ -336,6 +336,21 @@ export async function handleInventory(player, display, game) {
                         actions.push('(end)');
                         return actions;
                     }
+                    if (selected.oclass === POTION_CLASS) {
+                        return [
+                            'a - Dip something into one of these potions',
+                            `c - Name this stack of ${noun}`,
+                            `C - Call the type for ${noun}`,
+                            'd - Drop this stack',
+                            'i - Adjust inventory by assigning new letter',
+                            'I - Adjust inventory by splitting this stack',
+                            'q - Quaff (drink) one of these potions',
+                            't - Throw one of these',
+                            'w - Wield this stack in your hands',
+                            '/ - Look up information about these',
+                            '(end)',
+                        ];
+                    }
                     const actions = [
                         `c - Name this stack of ${noun}`,
                         'd - Drop this stack',
@@ -403,16 +418,24 @@ export async function handleInventory(player, display, game) {
                             ? [selected.lamplit
                                 ? 'a - Snuff out this light source'
                                 : 'a - Light this light source']
+                            : selected.oclass === POTION_CLASS
+                            ? ['a - Dip something into this potion']
                             : baseName.toLowerCase() === 'stethoscope'
                             ? ['a - Listen through the stethoscope']
                             : []),
                         `c - Name this specific ${noun}`,
+                        ...(selected.oclass === POTION_CLASS
+                            ? [`C - Call the type for ${noun}s`]
+                            : []),
                         'd - Drop this item',
                         ...(selected.otyp === MAGIC_MARKER
                             ? ['E - Scribble graffiti on the floor']
                             : []),
                         'i - Adjust inventory by assigning new letter',
                         ...(isRubbableLamp ? [`R - Rub this ${noun}`] : []),
+                        ...(selected.oclass === POTION_CLASS
+                            ? ['q - Quaff (drink) this potion']
+                            : []),
                         't - Throw this item',
                         'w - Wield this item in your hands',
                         '/ - Look up information about this',

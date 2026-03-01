@@ -186,6 +186,13 @@ function screenCharDiff(js, session) {
 
 // Short inline note: cached cat, or per-channel fallback
 function shortNote(result, cache) {
+    const screenEarlyOnly = result?.metrics?.screenWindow?.earlyOnlyCount || 0;
+    const colorEarlyOnly = result?.metrics?.colorWindow?.earlyOnlyCount || 0;
+    if (screenEarlyOnly > 0 || colorEarlyOnly > 0) {
+        const steps = Array.isArray(result?.rerecordHint?.steps) ? result.rerecordHint.steps : [];
+        const stepHint = steps.length ? ` @ step${steps.length > 1 ? 's' : ''} ${steps.join(',')}` : '';
+        return `timing window match${stepHint}`;
+    }
     const entry = getCached(cache, result);
     if (entry) return entry.cat;
     const fds = result.firstDivergences || {};
@@ -205,6 +212,15 @@ function shortNote(result, cache) {
 
 // Full paragraph: cached tldr, or per-channel fallback
 function fullDiagnose(result, cache) {
+    const screenEarlyOnly = result?.metrics?.screenWindow?.earlyOnlyCount || 0;
+    const colorEarlyOnly = result?.metrics?.colorWindow?.earlyOnlyCount || 0;
+    if (screenEarlyOnly > 0 || colorEarlyOnly > 0) {
+        const steps = Array.isArray(result?.rerecordHint?.steps) ? result.rerecordHint.steps : [];
+        const stepHint = steps.length
+            ? ` Focus re-record delay around steps ${steps.join(', ')}.`
+            : '';
+        return `Strict screen/color mismatches have an early animation-boundary match in JS, indicating likely capture timing misalignment rather than core RNG/event drift.${stepHint}`;
+    }
     const entry = getCached(cache, result);
     if (entry) return entry.tldr;
     const fds = result.firstDivergences || {};

@@ -72,6 +72,12 @@ The `regen` object contains mode-specific parameters for regenerating the sessio
   "key_delays_s": { "3": 0.15, "4": 0.15 }
 }
 
+// Gameplay session with per-step capture metadata (inside steps[])
+{
+  "mode": "gameplay",
+  "moves": ":hhlh."
+}
+
 // Wizload session (special level)
 { "mode": "wizload", "level": "castle" }
 
@@ -92,6 +98,26 @@ Gameplay regen timing fields:
 | `key_delay_s` | number | Default delay after each sent key during C capture (seconds) |
 | `key_delays_s` | object\|array | Optional per-turn overrides for `key_delay_s`; object keys are 1-based step indices, array index `0` is step 1 |
 | `final_capture_delay_s` | number | Optional extra settle delay before capturing the final step screen |
+| `record_more_spaces` | boolean | Optional migration helper: if true, re-record can insert missing `Space` keys when `--More--` appears and persist them into `regen.moves` |
+
+Per-step capture delay metadata can also be stored directly on individual step
+records (recommended for persistent, local annotations tied to a specific
+divergence moment):
+
+```json
+{
+  "key": "h",
+  "action": "move-west",
+  "capture": { "key_delay_s": 0.25 },
+  "rng": ["..."],
+  "screen": "..."
+}
+```
+
+When re-recording via `test/comparison/c-harness/rerecord.py`, step-level
+`capture.key_delay_s` annotations are merged into `NETHACK_KEY_DELAYS_S`.
+If both `regen.key_delays_s` and `steps[].capture.key_delay_s` specify the same
+step, the step-level annotation takes precedence.
 
 ## Options Object
 
@@ -212,6 +238,7 @@ and is the startup step. Subsequent steps have string keys:
 | `key` | string\|null | yes | Key sent to NetHack (null for startup) |
 | `action` | string | yes | **Unreliable heuristic label** — assigned by `describe_key()` from the key character alone, with no knowledge of actual game state. Do not use for debugging or replay logic (see below). |
 | `rng` | string[] | yes | RNG calls during this step (may be empty) |
+| `capture` | object | no | Optional capture metadata; supports `key_delay_s` for per-step C capture settle timing |
 | `screen` | string | no | ANSI-compressed screen after this step (v3 canonical) |
 | `typGrid` | string | no | RLE terrain grid (on level changes) |
 | `checkpoints` | array | no | State snapshots (during level generation) |

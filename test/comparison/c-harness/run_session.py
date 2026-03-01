@@ -1661,6 +1661,11 @@ def main():
     if raw_moves:
         args.remove('--raw-moves')
 
+    # Parse --record-more-spaces flag (migration helper).
+    record_more_spaces = '--record-more-spaces' in args
+    if record_more_spaces:
+        args.remove('--record-more-spaces')
+
     # Parse wizard mode flags for gameplay capture.
     wizard_mode = True
     if '--no-wizard' in args:
@@ -1693,6 +1698,7 @@ def main():
         print(f"       {sys.argv[0]} --from-config")
         print(f"Options:")
         print(f"  --raw-moves: Moves include --More-- responses (from keylog)")
+        print(f"  --record-more-spaces: Auto-insert missing space keys when '--More--' appears")
         print(f"  --no-wizard: Run gameplay capture without -D (non-wizard mode)")
         print(f"Character presets: {', '.join(CHARACTER_PRESETS.keys())} (default: valkyrie)")
         print(f"Example: {sys.argv[0]} 42 sessions/seed42.session.json ':hhlhhhh.hhs'")
@@ -1718,20 +1724,24 @@ def main():
             output_json,
             move_str,
             raw_moves=raw_moves,
+            record_more_spaces=record_more_spaces,
             character=char_override,
             wizard_mode=wizard_mode,
         )
 
 
-def run_session(seed, output_json, move_str, raw_moves=False, character=None, wizard_mode=True):
+def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces=False, character=None, wizard_mode=True):
     """Run a session replaying the given move string.
 
     Args:
         seed: Game seed
         output_json: Output file path
         move_str: String of moves to replay
-        raw_moves: If True, moves include --More-- responses (from keylog).
-                   If False, clear_more_prompts is called after each move.
+        raw_moves: If True, move_str is treated as raw keylog input (for example,
+                   including explicit spaces used to dismiss --More-- prompts).
+        record_more_spaces: If True, when a step captures '--More--' and the next
+                   queued key is not space, inject a space key into the recorded
+                   move stream (migration helper for older sessions).
         character: Character config dict (name, role, race, gender, align).
                    Uses default CHARACTER if None.
         wizard_mode: If True, launch C NetHack with -D and capture typGrid via #dumpmap.
@@ -1778,8 +1788,8 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
         print(f'=== STARTUP ===')
         wait_for_game_ready(session_name, rng_log_file)
         time.sleep(0.02)
-        clear_more_prompts(session_name)
-        time.sleep(0.02)
+        # Do not inject synthetic key input here; gameplay replay should
+        # only send recorded session keys.
 
         # Capture startup state
         startup_rng_count, startup_rng_lines = read_rng_log(rng_log_file)
@@ -1793,8 +1803,6 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
                 print(f'Startup typGrid: {len(startup_typ_grid)}x{len(startup_typ_grid[0])} captured')
             else:
                 print('WARNING: Failed to capture startup typGrid')
-            # Clear any --More-- from dumpmap.
-            clear_more_prompts(session_name)
 
         # Capture compressed ANSI screen for startup
         startup_screen_compressed = capture_screen_compressed(session_name)
@@ -1843,11 +1851,14 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
             session_data['regen']['key_delays_s'] = key_delay_overrides
         if final_capture_delay_s > 0.0:
             session_data['regen']['final_capture_delay_s'] = final_capture_delay_s
+        if record_more_spaces:
+            session_data['regen']['record_more_spaces'] = True
 
         # Execute moves - send each character individually (no grouping)
         prev_rng_count = startup_rng_count
         prev_typ_grid = startup_typ_grid
         captured_levels = {'Dlvl:1'} if wizard_mode else set()  # Track levels with typGrid snapshots
+        replay_keys = list(move_str)
 
         # Helper to send a single character with proper control char handling
         def send_char(ch):
@@ -1863,10 +1874,13 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
             else:
                 tmux_send(session_name, ch)
 
-        print(f'\n=== MOVES ({len(move_str)} steps, key_delay={key_delay_s:.3f}s) ===')
+        print(f'\n=== MOVES ({len(replay_keys)} steps, key_delay={key_delay_s:.3f}s) ===')
         if key_delay_overrides:
             print(f'Per-turn key delay overrides: {len(key_delay_overrides)} steps')
-        for idx, ch in enumerate(move_str):
+        idx = 0
+        auto_inserted_spaces = 0
+        while idx < len(replay_keys):
+            ch = replay_keys[idx]
             key = ch
             description = describe_key(ch)
 
@@ -1877,12 +1891,8 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
             step_delay = key_delay_overrides.get(step_num, key_delay_s)
             time.sleep(max(0.0, step_delay))
 
-            # Only clear --More-- if not raw_moves (raw moves include space keys)
-            if not raw_moves:
-                clear_more_prompts(session_name)
-
             # Optional final-frame settle for the very last captured step.
-            if idx == len(move_str) - 1 and final_capture_delay_s > 0.0:
+            if idx == len(replay_keys) - 1 and final_capture_delay_s > 0.0:
                 time.sleep(final_capture_delay_s)
 
             # Capture state after this step
@@ -1902,6 +1912,11 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
                 'rng': rng_entries,
                 'screen': screen_compressed,
             }
+            if step_num in key_delay_overrides:
+                # Optional per-step capture metadata (session v3).
+                step['capture'] = {
+                    'key_delay_s': step_delay,
+                }
 
             # Capture typGrid snapshots only in wizard-mode, where #dumpmap exists.
             if wizard_mode:
@@ -1909,7 +1924,6 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
                 new_depth = depth not in captured_levels
                 if new_depth or (level_gen_likely and 'typGrid' not in step):
                     current_grid = execute_dumpmap(session_name, dumpmap_file)
-                    clear_more_prompts(session_name)
                     if current_grid:
                         step['typGrid'] = encode_typgrid_rle(current_grid)
                         captured_levels.add(depth)
@@ -1920,6 +1934,20 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
             session_data['steps'].append(step)
             print(f'  [{idx+1:03d}] {key!r:5s} ({description:20s}) +{delta:4d} RNG calls (total {rng_count})')
             prev_rng_count = rng_count
+
+            if (record_more_spaces and '--More--' in ''.join(screen_lines)):
+                next_key = replay_keys[idx + 1] if (idx + 1) < len(replay_keys) else None
+                if next_key != ' ':
+                    replay_keys.insert(idx + 1, ' ')
+                    auto_inserted_spaces += 1
+                    print(f"        [auto-more] inserted ' ' as step {idx + 2}")
+
+            idx += 1
+
+        final_moves = ''.join(replay_keys)
+        if final_moves != move_str:
+            session_data['regen']['moves'] = final_moves
+            print(f"Auto-inserted {auto_inserted_spaces} space key(s) for '--More-- prompts.")
 
         # Quit the game cleanly
         quit_game(session_name)
@@ -1932,12 +1960,9 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
         # Summary
         total_rng = prev_rng_count
         total_steps = len(session_data['steps'])
-        stats = get_clear_more_stats()
         print(f'\n=== DONE ===')
         print(f'Session: {output_json}')
         print(f'Steps: {total_steps}, Total RNG calls: {total_rng}')
-        if not raw_moves:
-            print(f'clear_more_prompts: {stats["calls"]} calls, {stats["cleared"]} --More-- cleared')
 
     finally:
         subprocess.run(['tmux', 'kill-session', '-t', session_name], capture_output=True)

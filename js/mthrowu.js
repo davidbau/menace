@@ -46,6 +46,7 @@ import { ammo_and_launcher, multishot_class_bonus } from './dothrow.js';
 import { breaks, harmless_missile } from './dothrow.js';
 import { should_mulch_missile } from './dothrow.js';
 import { find_mac } from './worn.js';
+import { nhgetch } from './input.js';
 import {
     buzz, ZT_BREATH, ZT_MAGIC_MISSILE, ZT_FIRE, ZT_COLD, ZT_SLEEP,
     ZT_DEATH, ZT_LIGHTNING, ZT_POISON_GAS, ZT_ACID,
@@ -460,10 +461,9 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
     // command key when the throw already resolved with a direct hit on hero.
     if (!hitPlayer
         && !mtarg
-        && game?.input?.nhgetch
         && display
         && typeof display.morePrompt === 'function') {
-        await display.morePrompt(() => game.input.nhgetch());
+        await display.morePrompt(nhgetch);
         if (Object.hasOwn(display, 'noConcatenateMessages')) {
             display.noConcatenateMessages = true;
             game._tempNoConcatMessages = true;

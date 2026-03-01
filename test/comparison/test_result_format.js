@@ -51,6 +51,8 @@ export function createSessionResult(session) {
             grids: { matched: 0, total: 0 },
             screens: { matched: 0, total: 0 },
             colors: { matched: 0, total: 0 },
+            screenWindow: { matched: 0, total: 0, earlyOnlyCount: 0 },
+            colorWindow: { matched: 0, total: 0, earlyOnlyCount: 0 },
             events: { matched: 0, total: 0 },
             animationBoundaries: { matched: 0, total: 0 },
         },
@@ -145,6 +147,24 @@ export function recordColors(result, matched, total) {
 }
 
 /**
+ * Record screen-window comparison (non-gating).
+ */
+export function recordScreenWindow(result, matched, total, earlyOnlyCount = 0) {
+    result.metrics.screenWindow.matched += matched;
+    result.metrics.screenWindow.total += total;
+    result.metrics.screenWindow.earlyOnlyCount += Math.max(0, Number(earlyOnlyCount) || 0);
+}
+
+/**
+ * Record color-window comparison (non-gating).
+ */
+export function recordColorWindow(result, matched, total, earlyOnlyCount = 0) {
+    result.metrics.colorWindow.matched += matched;
+    result.metrics.colorWindow.total += total;
+    result.metrics.colorWindow.earlyOnlyCount += Math.max(0, Number(earlyOnlyCount) || 0);
+}
+
+/**
  * Record event log comparison.
  * Event parity is required for a session to pass.
  */
@@ -187,6 +207,8 @@ export function finalizeResult(result) {
         if (m.grids?.total === 0) delete m.grids;
         if (m.screens?.total === 0) delete m.screens;
         if (m.colors?.total === 0) delete m.colors;
+        if (m.screenWindow?.total === 0) delete m.screenWindow;
+        if (m.colorWindow?.total === 0) delete m.colorWindow;
         if (m.events?.total === 0) delete m.events;
         if (m.animationBoundaries?.total === 0) delete m.animationBoundaries;
 
@@ -226,6 +248,8 @@ export function createResultsBundle(results, options = {}) {
         const rngComparable = gameplayResults.filter((r) => r.metrics?.rngCalls?.total > 0);
         const eventsComparable = gameplayResults.filter((r) => r.metrics?.events?.total > 0);
         const animationComparable = gameplayResults.filter((r) => r.metrics?.animationBoundaries?.total > 0);
+        const screenWindowComparable = gameplayResults.filter((r) => r.metrics?.screenWindow?.total > 0);
+        const colorWindowComparable = gameplayResults.filter((r) => r.metrics?.colorWindow?.total > 0);
         const rngFull = gameplayResults.filter((r) =>
             r.metrics?.rngCalls?.total > 0
             && r.metrics.rngCalls.matched === r.metrics.rngCalls.total
@@ -250,16 +274,23 @@ export function createResultsBundle(results, options = {}) {
             && r.metrics?.rngCalls?.total > 0
             && r.metrics.rngCalls.matched !== r.metrics.rngCalls.total
         );
+        const rerecordCandidates = gameplayResults.filter((r) =>
+            (r.metrics?.screenWindow?.earlyOnlyCount || 0) > 0
+            || (r.metrics?.colorWindow?.earlyOnlyCount || 0) > 0
+        );
         bundle.summary.gameplayParity = {
             sessions: gameplayResults.length,
             rngComparable: rngComparable.length,
             eventsComparable: eventsComparable.length,
             animationComparable: animationComparable.length,
+            screenWindowComparable: screenWindowComparable.length,
+            colorWindowComparable: colorWindowComparable.length,
             rngFull: rngFull.length,
             eventsFull: eventsFull.length,
             animationFull: animationFull.length,
             rngFullButEventsNot: rngFullButEventsNot.length,
             eventsFullButRngNot: eventsFullButRngNot.length,
+            rerecordCandidates: rerecordCandidates.length,
         };
     }
 
@@ -289,6 +320,11 @@ export function formatResult(result) {
     if (m.grids) parts.push(`grids=${m.grids.matched}/${m.grids.total}`);
     if (m.screens) parts.push(`screens=${m.screens.matched}/${m.screens.total}`);
     if (m.colors) parts.push(`colors=${m.colors.matched}/${m.colors.total}`);
+    if (m.screenWindow) parts.push(`screenWindow=${m.screenWindow.matched}/${m.screenWindow.total}`);
+    if (m.colorWindow) parts.push(`colorWindow=${m.colorWindow.matched}/${m.colorWindow.total}`);
+    if ((m.screenWindow?.earlyOnlyCount || 0) > 0 || (m.colorWindow?.earlyOnlyCount || 0) > 0) {
+        parts.push(`earlyOnly=${(m.screenWindow?.earlyOnlyCount || 0) + (m.colorWindow?.earlyOnlyCount || 0)}`);
+    }
     if (m.events) parts.push(`events=${m.events.matched}/${m.events.total}`);
     if (m.animationBoundaries) parts.push(`anim=${m.animationBoundaries.matched}/${m.animationBoundaries.total}`);
     if (result.error) parts.push(`error: ${result.error}`);
@@ -315,7 +351,8 @@ export function formatBundleSummary(bundle) {
             + `eventsFull=${g.eventsFull}/${g.eventsComparable}, `
             + `animFull=${g.animationFull}/${g.animationComparable}, `
             + `rngFull&&eventsNot=${g.rngFullButEventsNot}, `
-            + `eventsFull&&rngNot=${g.eventsFullButRngNot}`
+            + `eventsFull&&rngNot=${g.eventsFullButRngNot}, `
+            + `rerecordCandidates=${g.rerecordCandidates || 0}`
         );
     }
     return lines.join('\n');

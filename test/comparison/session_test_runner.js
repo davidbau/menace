@@ -46,6 +46,8 @@ import {
     recordGrids,
     recordScreens,
     recordColors,
+    recordScreenWindow,
+    recordColorWindow,
     recordEvents,
     recordAnimationBoundaries,
     markFailed,
@@ -420,6 +422,30 @@ async function runGameplayResult(session) {
             recordColors(result, cmp.color.matched, cmp.color.total);
             setFirstDivergence(result, 'color', cmp.color.firstDivergence);
         }
+        if (cmp.screenWindow?.total > 0) {
+            recordScreenWindow(
+                result,
+                cmp.screenWindow.matched,
+                cmp.screenWindow.total,
+                cmp.screenWindow.earlyOnlyCount || 0
+            );
+            setFirstDivergence(result, 'screenWindow', cmp.screenWindow.firstDivergence);
+            if (cmp.screenWindow.firstEarlyOnly) {
+                setFirstDivergence(result, 'screenWindowEarlyOnly', cmp.screenWindow.firstEarlyOnly);
+            }
+        }
+        if (cmp.colorWindow?.total > 0) {
+            recordColorWindow(
+                result,
+                cmp.colorWindow.matched,
+                cmp.colorWindow.total,
+                cmp.colorWindow.earlyOnlyCount || 0
+            );
+            setFirstDivergence(result, 'colorWindow', cmp.colorWindow.firstDivergence);
+            if (cmp.colorWindow.firstEarlyOnly) {
+                setFirstDivergence(result, 'colorWindowEarlyOnly', cmp.colorWindow.firstEarlyOnly);
+            }
+        }
         if (cmp.event.total > 0) {
             recordEvents(result, cmp.event.matched, cmp.event.total);
             result.events = {
@@ -439,6 +465,17 @@ async function runGameplayResult(session) {
                 'animationBoundaries',
                 cmp.animationBoundaries.firstDivergence
             );
+        }
+        if ((cmp.screenWindow?.rerecordCandidate || cmp.colorWindow?.rerecordCandidate) && !result.rerecordHint) {
+            const steps = [];
+            if (cmp.screenWindow?.firstEarlyOnly?.step != null) steps.push(cmp.screenWindow.firstEarlyOnly.step);
+            if (cmp.colorWindow?.firstEarlyOnly?.step != null) steps.push(cmp.colorWindow.firstEarlyOnly.step);
+            const uniqueSteps = [...new Set(steps)].sort((a, b) => a - b);
+            result.rerecordHint = {
+                reason: 'strict screen/color mismatch but animation-boundary frame matches',
+                suggested: 'rerecord with higher key delay around indicated steps',
+                steps: uniqueSteps,
+            };
         }
         const comparisonDir = process.env.WEBHACK_COMPARISON_DIR || '';
         if (comparisonDir) {

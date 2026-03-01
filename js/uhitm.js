@@ -62,6 +62,12 @@ import { canonicalizeAttackFields } from './attack_fields.js';
 import { pline, pline_The, You, impossible } from './pline.js';
 import { mon_nam, Monnam } from './do_name.js';
 
+function exclam(force) {
+    if (force < 0) return '?';
+    if (force <= 4) return '.';
+    return '!';
+}
+
 
 // ============================================================================
 // 1. Magic negation and attack result constants
@@ -562,7 +568,7 @@ export function hmon_hitmon_splitmon(hmd, mon, obj) {
 export function hmon_hitmon_msg_hit(hmd, mon, obj, display) {
     if (!hmd.hittxt && !hmd.destroyed) {
         const name = x_monnam(mon);
-        display.putstr_message(`You hit the ${name}.`);
+        display.putstr_message(`You hit the ${name}${exclam(hmd.dmg)}`);
     }
 }
 
@@ -1916,7 +1922,7 @@ export function do_attack_core(player, monster, display, map, game = null) {
         if (dieRoll >= 18) {
             display.putstr_message(`You smite the ${x_monnam(monster)}!`);
         } else {
-            display.putstr_message(`You hit the ${x_monnam(monster)}.`);
+            display.putstr_message(`You hit the ${x_monnam(monster)}${exclam(damage)}`);
         }
         // cf. uhitm.c hmon_hitmon_core():
         // For armed melee hits with damage > 1: mhitm_knockback().

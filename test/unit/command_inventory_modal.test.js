@@ -8,6 +8,7 @@ import { clearInputQueue, pushInput } from '../../js/input.js';
 import {
     COIN_CLASS, GOLD_PIECE, TOOL_CLASS, STETHOSCOPE, WEAPON_CLASS, SCALPEL,
     SPBOOK_CLASS, OIL_LAMP, ARMOR_CLASS, SMALL_SHIELD, SPE_HEALING, FLINT, SLING,
+    POTION_CLASS, POT_HEALING,
 } from '../../js/objects.js';
 
 function makeGame() {
@@ -440,6 +441,32 @@ describe('inventory modal dismissal', () => {
         const result = await rhack('i'.charCodeAt(0), game);
         assert.equal(result.tookTime, false);
         assert.ok(writes.some((w) => w.str.includes('f - Shoot one of these with your wielded sling')));
+    });
+
+    it('shows potion stack actions with dip/call/quaff entries', async () => {
+        const { game } = makeGame();
+        game.player.inventory = [{
+            oclass: POTION_CLASS,
+            otyp: POT_HEALING,
+            invlet: 'f',
+            quan: 10,
+            known: true,
+            dknown: true,
+        }];
+        const writes = [];
+        game.display.putstr = function putstr(col, row, str, color, attr) {
+            writes.push({ col, row, str, color, attr });
+        };
+        game.display.clearRow = function clearRow() {};
+
+        pushInput('f'.charCodeAt(0));
+        pushInput(' '.charCodeAt(0));
+        const result = await rhack('i'.charCodeAt(0), game);
+        assert.equal(result.tookTime, false);
+        assert.ok(writes.some((w) => w.str.includes('Do what with the ')));
+        assert.ok(writes.some((w) => w.str.includes('a - Dip something into one of these potions')));
+        assert.ok(writes.some((w) => w.str.includes('C - Call the type for')));
+        assert.ok(writes.some((w) => w.str.includes('q - Quaff (drink) one of these potions')));
     });
 
     it('shows light and rub actions for oil lamps', async () => {

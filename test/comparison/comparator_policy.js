@@ -66,6 +66,40 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
     return compareScreenLines(normalizedActual, normalizedExpected);
 }
 
+function compareGameplayColors(actualAnsiInput, expectedAnsiInput) {
+    const expectedMasked = (Array.isArray(expectedAnsiInput) ? expectedAnsiInput : []).slice();
+    const actualAnsi = (Array.isArray(actualAnsiInput) ? actualAnsiInput : []).slice();
+    const actualPlain = actualAnsi.map((line) => ansiCellsToPlainLine(line));
+    const expectedPlain = expectedMasked.map((line) => ansiCellsToPlainLine(line));
+    for (let row = 0; row < Math.min(actualPlain.length, expectedPlain.length); row++) {
+        if (isMapLoadPromptAlias(actualPlain[row]) && isMapLoadPromptAlias(expectedPlain[row])) {
+            actualAnsi[row] = '';
+            expectedMasked[row] = '';
+        } else if (isStartupToplineAlias(actualPlain[row], expectedPlain[row])) {
+            actualAnsi[row] = '';
+            expectedMasked[row] = '';
+        }
+    }
+    return compareScreenAnsi(actualAnsi, expectedMasked);
+}
+
+function getStepFrames(actualStep) {
+    const boundaries = Array.isArray(actualStep?.animationBoundaries) ? actualStep.animationBoundaries : [];
+    const frames = boundaries.map((boundary, idx) => ({
+        kind: 'boundary',
+        index: idx,
+        screen: Array.isArray(boundary?.screen) ? boundary.screen : [],
+        screenAnsi: Array.isArray(boundary?.screenAnsi) ? boundary.screenAnsi : null,
+    }));
+    frames.push({
+        kind: 'final',
+        index: boundaries.length,
+        screen: Array.isArray(actualStep?.screen) ? actualStep.screen : [],
+        screenAnsi: Array.isArray(actualStep?.screenAnsi) ? actualStep.screenAnsi : null,
+    });
+    return frames;
+}
+
 function approximateStepForRngIndex(session, normalizedIndex) {
     let cumulative = 0;
     const count = (entries) => {
@@ -161,20 +195,70 @@ export function createGameplayComparatorPolicy(session, options = {}) {
             if (!expectedAnsi.length || !Array.isArray(actualStep?.screenAnsi)) {
                 return null;
             }
-            const actualAnsi = actualStep.screenAnsi.slice();
-            const expectedMasked = expectedAnsi.slice();
-            const actualPlain = actualAnsi.map((line) => ansiCellsToPlainLine(line));
-            const expectedPlain = expectedMasked.map((line) => ansiCellsToPlainLine(line));
-            for (let row = 0; row < Math.min(actualPlain.length, expectedPlain.length); row++) {
-                if (isMapLoadPromptAlias(actualPlain[row]) && isMapLoadPromptAlias(expectedPlain[row])) {
-                    actualAnsi[row] = '';
-                    expectedMasked[row] = '';
-                } else if (isStartupToplineAlias(actualPlain[row], expectedPlain[row])) {
-                    actualAnsi[row] = '';
-                    expectedMasked[row] = '';
-                }
+            return compareGameplayColors(actualStep.screenAnsi, expectedAnsi);
+        },
+        compareScreenWindowStep(actualStep, expectedStep) {
+            if (!Array.isArray(expectedStep?.screen) || expectedStep.screen.length === 0) {
+                return null;
             }
-            return compareScreenAnsi(actualAnsi, expectedMasked);
+            const expectedAnsi = getSessionScreenAnsiLines(expectedStep);
+            const frames = getStepFrames(actualStep);
+            let finalDiff = null;
+            for (const frame of frames) {
+                const cmp = compareGameplayScreens(frame.screen, expectedStep.screen, session, {
+                    actualAnsi: frame.screenAnsi,
+                    expectedAnsi,
+                });
+                if (cmp.match) {
+                    return {
+                        matched: 1,
+                        total: 1,
+                        match: true,
+                        early: frame.kind !== 'final',
+                        matchedFrame: { kind: frame.kind, index: frame.index },
+                        firstDiff: null,
+                    };
+                }
+                if (frame.kind === 'final') finalDiff = cmp.firstDiff || null;
+            }
+            return {
+                matched: 0,
+                total: 1,
+                match: false,
+                early: false,
+                matchedFrame: null,
+                firstDiff: finalDiff,
+            };
+        },
+        compareColorWindowStep(actualStep, expectedStep) {
+            const expectedAnsi = getSessionScreenAnsiLines(expectedStep);
+            if (!expectedAnsi.length) return null;
+            const frames = getStepFrames(actualStep);
+            let finalDiff = null;
+            for (const frame of frames) {
+                const cmp = compareGameplayColors(frame.screenAnsi, expectedAnsi);
+                if (cmp.match) {
+                    return {
+                        matched: cmp.matched,
+                        total: cmp.total,
+                        match: true,
+                        early: frame.kind !== 'final',
+                        matchedFrame: { kind: frame.kind, index: frame.index },
+                        firstDiff: null,
+                    };
+                }
+                if (frame.kind === 'final') finalDiff = cmp.firstDiff || null;
+            }
+            // Keep denominator aligned to strict color denominator for this step.
+            const finalCmp = compareGameplayColors(actualStep?.screenAnsi, expectedAnsi);
+            return {
+                matched: 0,
+                total: finalCmp.total,
+                match: false,
+                early: false,
+                matchedFrame: null,
+                firstDiff: finalDiff,
+            };
         },
         compareEvents(allJsRng, allSessionRng) {
             const cmp = compareEvents(allJsRng, allSessionRng);
