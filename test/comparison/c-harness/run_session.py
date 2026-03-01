@@ -93,6 +93,43 @@ CHARACTER_PRESETS = {
     'healer':    {'name': 'flora', 'role': 'Healer', 'race': 'human', 'gender': 'female', 'align': 'neutral'},
 }
 
+
+def parse_key_delay_overrides(raw_value):
+    """Parse NETHACK_KEY_DELAYS_S into a 1-based step->delay map.
+
+    Supported formats:
+      - JSON object: {"106": 0.15, "107": 0.15}
+      - JSON array:  [0.05, 0.05, 0.10, ...]  # step 1 at index 0
+    """
+    if not raw_value:
+        return {}
+    try:
+        parsed = json.loads(raw_value)
+    except Exception:
+        return {}
+
+    out = {}
+    if isinstance(parsed, list):
+        for idx, value in enumerate(parsed, start=1):
+            try:
+                delay = float(value)
+            except Exception:
+                continue
+            if delay >= 0.0:
+                out[idx] = delay
+        return out
+
+    if isinstance(parsed, dict):
+        for key, value in parsed.items():
+            try:
+                step = int(key)
+                delay = float(value)
+            except Exception:
+                continue
+            if step >= 1 and delay >= 0.0:
+                out[step] = delay
+    return out
+
 # Chargen selection key mappings
 CHARGEN_ROLE_KEYS = {
     'a': 'Archeologist', 'b': 'Barbarian', 'c': 'Caveman',
@@ -1798,9 +1835,12 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
             'steps': [startup_step],
         }
         key_delay_s = float(os.environ.get('NETHACK_KEY_DELAY_S', '0.02'))
+        key_delay_overrides = parse_key_delay_overrides(os.environ.get('NETHACK_KEY_DELAYS_S'))
         final_capture_delay_s = float(os.environ.get('NETHACK_FINAL_CAPTURE_DELAY_S', '0.0'))
         if abs(key_delay_s - 0.02) > 1e-9:
             session_data['regen']['key_delay_s'] = key_delay_s
+        if key_delay_overrides:
+            session_data['regen']['key_delays_s'] = key_delay_overrides
         if final_capture_delay_s > 0.0:
             session_data['regen']['final_capture_delay_s'] = final_capture_delay_s
 
@@ -1824,6 +1864,8 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
                 tmux_send(session_name, ch)
 
         print(f'\n=== MOVES ({len(move_str)} steps, key_delay={key_delay_s:.3f}s) ===')
+        if key_delay_overrides:
+            print(f'Per-turn key delay overrides: {len(key_delay_overrides)} steps')
         for idx, ch in enumerate(move_str):
             key = ch
             description = describe_key(ch)
@@ -1831,7 +1873,9 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
             # Send the character
             send_char(ch)
             # Tunable for capture-timing experiments.
-            time.sleep(max(0.0, key_delay_s))
+            step_num = idx + 1
+            step_delay = key_delay_overrides.get(step_num, key_delay_s)
+            time.sleep(max(0.0, step_delay))
 
             # Only clear --More-- if not raw_moves (raw moves include space keys)
             if not raw_moves:

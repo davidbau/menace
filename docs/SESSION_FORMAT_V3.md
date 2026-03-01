@@ -64,6 +64,14 @@ The `regen` object contains mode-specific parameters for regenerating the sessio
 // Gameplay session
 { "mode": "gameplay", "moves": ":hhlh." }
 
+// Gameplay session with per-turn capture delay overrides (1-based step index)
+{
+  "mode": "gameplay",
+  "moves": ":hhlh.",
+  "key_delay_s": 0.05,
+  "key_delays_s": { "3": 0.15, "4": 0.15 }
+}
+
 // Wizload session (special level)
 { "mode": "wizload", "level": "castle" }
 
@@ -76,6 +84,14 @@ The `regen` object contains mode-specific parameters for regenerating the sessio
 // Option test
 { "mode": "option_test", "option": "verbose", "value": true }
 ```
+
+Gameplay regen timing fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `key_delay_s` | number | Default delay after each sent key during C capture (seconds) |
+| `key_delays_s` | object\|array | Optional per-turn overrides for `key_delay_s`; object keys are 1-based step indices, array index `0` is step 1 |
+| `final_capture_delay_s` | number | Optional extra settle delay before capturing the final step screen |
 
 ## Options Object
 
