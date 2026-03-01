@@ -26,8 +26,8 @@
   },
   "seed204_healer_wizard": {
     "hash": "c0cc3ac0",
-    "cat": "dog-goal / level-gen trap divergence",
-    "tldr": "At step 212 the event channel shows JS creating a trap via mk_knox_portal while C places a different object (^place[473,20,4]), indicating the level was generated differently. By step 213 JS is evaluating food for the dog (obj_resists inside dogfood→dog_move) while C calls distfleeck for monster fleeing, meaning the dog found a different food target due to the diverged map state. The root divergence is in level-generation: JS produces a Knox portal trap where C places a regular floor item, leading to a different dog goal and completely different RNG call at the next monster-move step."
+    "cat": "dog-goal / different approach target cell",
+    "tldr": "At step 213 the dog finds a different food goal: JS targets (4,12) with appr=0 while C targets (3,12) with appr=1. This is the same pre-existing dog_goal divergence seen in other seeds where JS and C disagree on which cell is the best approach to a food item. The two previously-fixed bugs (mk_knox_portal wizard-mode exception causing wrong trap creation at step 212, and healer Pw:4 vs Pw:5 from missing SPELL_LEV_PW minimum) have been resolved and no longer appear."
   },
   "seed205_knight_wizard": {
     "hash": "81c8f0ba",

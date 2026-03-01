@@ -1190,6 +1190,11 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
     player.uhpmax = player.uhp;
     player.pw = role.startingPW + racePW + (opts.enadv_roll || 0);
     player.pwmax = player.pw;
+    // C ref: u_init.c:1404-1407 — if hero knows any spells, force pw >= SPELL_LEV_PW(1)=5,
+    // so they can always cast the level-1 spell they start with.
+    if (player.spells && player.spells.length > 0 && player.pwmax < 5) {
+        player.pw = player.pwmax = 5;
+    }
 
     // Set AC from worn equipment.
     // C ref: do_wear.c find_ac() uses ac for worn items only.

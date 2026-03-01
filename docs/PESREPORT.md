@@ -122,21 +122,19 @@ node scripts/pes-report.mjs          # now reads the freshly-attached note
 
 ## Known failure categories (as of 2026-03)
 
-| Category                         | Sessions |
-|----------------------------------|----------|
-| pet-move / post-combat ordering  | seed103 |
-| pet-move / dog_goal ordering     | seed203, seed204, seed208, seed212 |
-| pet-move / use_defensive vs flee | seed5 |
-| monster-move / apparent-position | seed108 |
-| monster-throw / animation-timing | seed110 |
-| monster-action / flee vs dig     | seed201 |
-| monster-move / state-diverged    | seed210 |
-| turn-end / dosounds ordering     | seed205 |
-| zap / pet-move ordering          | seed209, seed6 |
-| level-gen / sp_lev trap          | seed206 |
-| level-gen / fill_zoo gas_cloud   | seed207 |
-| level-gen / mineralize           | seed211 |
-| tutorial / engrave + mcalcmove   | seed8 |
+| Category                             | Sessions |
+|--------------------------------------|----------|
+| dog-move / appr from flee divergence | seed103, seed203 |
+| dog-goal / approach target cell      | seed204, seed205, seed209 |
+| dog-goal / stackobj cascade          | seed210 |
+| dog-goal / early cascading           | seed6 |
+| monster-move / mcalcmove mv-points   | seed108, seed208, seed212 |
+| monster-throw / rn2 mismatch         | seed110 |
+| monster-action / mdig_tunnel path    | seed201 |
+| level-gen / sp_lev trap              | seed206 |
+| level-gen / fill_zoo byyou           | seed207, seed211 |
+| early movemon / engraving cascade    | seed5 |
+| tutorial / engrave + mcalcmove       | seed8 |
 
 ## Related documents
 
