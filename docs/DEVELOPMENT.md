@@ -303,6 +303,11 @@ Timing-window triage:
 python3 test/comparison/c-harness/rerecord.py \
   test/comparison/sessions/seed110_samurai_selfplay200_gameplay.session.json
 ```
+- For legacy sessions that omitted explicit `--More--` dismiss keys, enable
+  migration mode to record them into the session transcript:
+```bash
+python3 test/comparison/c-harness/run_session.py <seed> <out.json> <moves> --record-more-spaces
+```
 
 ### Replay Boundary (Core vs Harness)
 

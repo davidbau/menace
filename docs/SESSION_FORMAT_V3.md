@@ -98,6 +98,7 @@ Gameplay regen timing fields:
 | `key_delay_s` | number | Default delay after each sent key during C capture (seconds) |
 | `key_delays_s` | object\|array | Optional per-turn overrides for `key_delay_s`; object keys are 1-based step indices, array index `0` is step 1 |
 | `final_capture_delay_s` | number | Optional extra settle delay before capturing the final step screen |
+| `record_more_spaces` | boolean | Optional migration helper: if true, re-record can insert missing `Space` keys when `--More--` appears and persist them into `regen.moves` |
 
 Per-step capture delay metadata can also be stored directly on individual step
 records (recommended for persistent, local annotations tied to a specific

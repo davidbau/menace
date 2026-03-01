@@ -184,6 +184,11 @@ def _build_gameplay(seed, output, regen, options, steps):
 
     if regen.get('raw_moves') or regen.get('rawMoves'):
         cmd.append('--raw-moves')
+    record_more_spaces = regen.get('record_more_spaces')
+    if record_more_spaces is None:
+        record_more_spaces = regen.get('recordMoreSpaces')
+    if bool(record_more_spaces):
+        cmd.append('--record-more-spaces')
     if options.get('wizard') is False:
         cmd.append('--no-wizard')
 
