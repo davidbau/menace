@@ -818,6 +818,9 @@ export function little_to_big(montype) {
 // C ref: mondata.c:1316 — big_to_little(montype)
 // Returns the juvenile form of a monster index, or the index itself if none.
 // Autotranslated from mondata.c:1315
+// TRANSLATOR: MANUAL big_to_little-grownups-shape
+// Reason: JS runtime uses grownups tuple iteration; C-style grownups[i][k]
+// emits are shape-incompatible and have caused restitch regressions.
 export function big_to_little(montype) {
     for (const [little, big] of grownups)
         if (montype === big) return little;

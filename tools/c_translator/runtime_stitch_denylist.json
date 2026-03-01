@@ -38,5 +38,10 @@
     "js_module": "js/monmove.js",
     "function": "mon_track_add",
     "reason": "Current emitted translation can drift from canonical JS mtrack ring shape assumptions and has caused runtime regressions; keep manual/canonical implementation until translator shape lowering is upgraded."
+  },
+  {
+    "js_module": "js/mondata.js",
+    "function": "big_to_little",
+    "reason": "Manual-required JS grownups-table shape: translator can emit C-style grownups[i][k] indexing which is incompatible with runtime tuple iteration semantics."
   }
 ]

@@ -356,6 +356,14 @@ def candidate_semantic_hazards(emitted_js):
         emitted_js,
     ):
         hazards.append("WHOLE_STRING_HIGHC_LOWC")
+    # C struct field mattk often maps to JS attacks array in runtime data;
+    # direct mattk dereference can crash or drift unless explicitly bridged.
+    if re.search(r"\.[ \t]*mattk\b", emitted_js):
+        hazards.append("MATTK_SHAPE_ALIAS")
+    # C 2D array indexing on grownups table does not match JS tuple iteration
+    # style in mondata.js; keep these out of auto-stitch.
+    if re.search(r"\bgrownups\s*\[\s*[^\]]+\s*\]\s*\[\s*[01]\s*\]", emitted_js):
+        hazards.append("GROWNUPS_INDEX_SHAPE")
     return hazards
 
 
