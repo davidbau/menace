@@ -1730,8 +1730,8 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
         seed: Game seed
         output_json: Output file path
         move_str: String of moves to replay
-        raw_moves: If True, moves include --More-- responses (from keylog).
-                   If False, clear_more_prompts is called after each move.
+        raw_moves: If True, move_str is treated as raw keylog input (for example,
+                   including explicit spaces used to dismiss --More-- prompts).
         character: Character config dict (name, role, race, gender, align).
                    Uses default CHARACTER if None.
         wizard_mode: If True, launch C NetHack with -D and capture typGrid via #dumpmap.
@@ -1778,8 +1778,8 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
         print(f'=== STARTUP ===')
         wait_for_game_ready(session_name, rng_log_file)
         time.sleep(0.02)
-        clear_more_prompts(session_name)
-        time.sleep(0.02)
+        # Do not inject synthetic key input here; gameplay replay should
+        # only send recorded session keys.
 
         # Capture startup state
         startup_rng_count, startup_rng_lines = read_rng_log(rng_log_file)
@@ -1793,8 +1793,6 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
                 print(f'Startup typGrid: {len(startup_typ_grid)}x{len(startup_typ_grid[0])} captured')
             else:
                 print('WARNING: Failed to capture startup typGrid')
-            # Clear any --More-- from dumpmap.
-            clear_more_prompts(session_name)
 
         # Capture compressed ANSI screen for startup
         startup_screen_compressed = capture_screen_compressed(session_name)
@@ -1877,10 +1875,6 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
             step_delay = key_delay_overrides.get(step_num, key_delay_s)
             time.sleep(max(0.0, step_delay))
 
-            # Only clear --More-- if not raw_moves (raw moves include space keys)
-            if not raw_moves:
-                clear_more_prompts(session_name)
-
             # Optional final-frame settle for the very last captured step.
             if idx == len(move_str) - 1 and final_capture_delay_s > 0.0:
                 time.sleep(final_capture_delay_s)
@@ -1914,7 +1908,6 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
                 new_depth = depth not in captured_levels
                 if new_depth or (level_gen_likely and 'typGrid' not in step):
                     current_grid = execute_dumpmap(session_name, dumpmap_file)
-                    clear_more_prompts(session_name)
                     if current_grid:
                         step['typGrid'] = encode_typgrid_rle(current_grid)
                         captured_levels.add(depth)
@@ -1937,12 +1930,9 @@ def run_session(seed, output_json, move_str, raw_moves=False, character=None, wi
         # Summary
         total_rng = prev_rng_count
         total_steps = len(session_data['steps'])
-        stats = get_clear_more_stats()
         print(f'\n=== DONE ===')
         print(f'Session: {output_json}')
         print(f'Steps: {total_steps}, Total RNG calls: {total_rng}')
-        if not raw_moves:
-            print(f'clear_more_prompts: {stats["calls"]} calls, {stats["cleared"]} --More-- cleared')
 
     finally:
         subprocess.run(['tmux', 'kill-session', '-t', session_name], capture_output=True)
