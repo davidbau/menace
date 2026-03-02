@@ -1485,7 +1485,12 @@ export function level_init(opts = {}) {
     const ctx = levelState.finalizeContext || {};
     if (Number.isFinite(ctx.dnum)) {
         levelState.map._dnum = ctx.dnum;
+        levelState.map._genDnum = ctx.dnum;
         levelState.map.flags.inhell = (ctx.dnum === GEHENNOM);
+    }
+    if (Number.isFinite(ctx.dlevel)) {
+        levelState.map._dlevel = ctx.dlevel;
+        levelState.map._genDlevel = ctx.dlevel;
     }
     levelState.monsters = [];
     levelState.objects = [];

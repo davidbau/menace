@@ -61,6 +61,9 @@ export async function recordGameplaySessionFromInputs(session, opts = {}) {
     const tutorialStartupEnterAfterPromptCount = Number.isInteger(session?.raw?.tutorialStartupEnterAfterPromptCount)
         ? session.raw.tutorialStartupEnterAfterPromptCount
         : undefined;
+    const emitProgress = (typeof globalThis.__SESSION_PROGRESS_EMIT === 'function')
+        ? globalThis.__SESSION_PROGRESS_EMIT
+        : null;
     return replaySession(session.meta.seed, session.raw, {
         captureScreens: true,
         startupBurstInFirstStep: false,
@@ -68,5 +71,20 @@ export async function recordGameplaySessionFromInputs(session, opts = {}) {
         tutorial,
         replayTutorialStartupPrompts,
         tutorialStartupEnterAfterPromptCount,
+        onStep: ({ stepIndex, step, game }) => {
+            if (!emitProgress) return;
+            let topline = '';
+            if (typeof game?.display?.getScreenLines === 'function') {
+                const lines = game.display.getScreenLines() || [];
+                topline = String(lines[0] || '');
+            }
+            emitProgress({
+                step: stepIndex + 1,
+                key: (typeof step?.key === 'string') ? step.key : null,
+                topline: topline.slice(0, 160),
+                pendingPrompt: !!game?.pendingPrompt,
+                multi: Number.isInteger(game?.multi) ? game.multi : 0,
+            });
+        },
     });
 }

@@ -25,6 +25,9 @@ parentPort.on('message', async (msg) => {
                 file: basename(msg.filePath),
                 dir: dirname(msg.filePath),
             });
+            globalThis.__SESSION_PROGRESS_EMIT = (progress) => {
+                parentPort.postMessage({ type: 'progress', id: msg.id, progress });
+            };
             const result = await runner(session);
             parentPort.postMessage({ type: 'result', id: msg.id, result });
         } catch (error) {
@@ -37,6 +40,8 @@ parentPort.on('message', async (msg) => {
                     error: error.message,
                 },
             });
+        } finally {
+            delete globalThis.__SESSION_PROGRESS_EMIT;
         }
     } else if (msg.type === 'exit') {
         process.exit(0);

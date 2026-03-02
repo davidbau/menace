@@ -1585,3 +1585,11 @@ hard-won wisdom:
   - Added C-like visible pickup messages in `monmove` pickup path (`js/monmove.js`), using seen-known object naming.
   - Aligned monster weapon-swing visible naming in `mhitu` to seen-known names (`orcish dagger` vs unidentified appearance names like `crude dagger`).
 - Result: `seed110` is now fully green (`201/201` screens, `4824/4824` colors, RNG/events 100%) and overall failing gameplay sessions dropped from 14 to 13 in `run-and-report --failures`.
+
+### Seed7 tutorial regression root cause: lost special-level generation context (2026-03-02)
+
+- `seed7_tutorial_manual_wizard_gameplay` regressed from deeper parity back to immediate early divergence after `b6637fd6`.
+- Root cause was in JS core special-level setup (`sp_lev`), not harness: new `GameMap` instances created in `level_init()` no longer copied finalize context to `_genDnum/_genDlevel`.
+- `mktrap()`/`hole_destination()` in `dungeon.js` relies on `_genDnum/_genDlevel` for C-faithful trap depth RNG during level generation.
+- Without that context, hole/trapdoor destination depth consumed a different RNG path (`rn2(4)` loop against wrong dungeon/depth), shifting RNG from step 2.
+- Restoring `_genDnum/_genDlevel` (and `_dnum/_dlevel`) on special-level map init moved seed7 first RNG divergence back out to step 165.

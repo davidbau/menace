@@ -730,10 +730,39 @@ export async function runSessionResult(session) {
     return runGameplayResult(session);
 }
 
-function createSessionTimeoutResult(session, timeoutMs) {
+function summarizeTimeoutProgress(progress) {
+    if (!progress || typeof progress !== 'object') return null;
+    const step = Number.isInteger(progress.step) ? progress.step : null;
+    const key = (typeof progress.key === 'string' && progress.key.length > 0)
+        ? progress.key
+        : null;
+    const topline = (typeof progress.topline === 'string')
+        ? progress.topline
+        : '';
+    return {
+        step,
+        key,
+        topline,
+        pendingPrompt: !!progress.pendingPrompt,
+        multi: Number.isInteger(progress.multi) ? progress.multi : 0,
+    };
+}
+
+function createSessionTimeoutResult(session, timeoutMs, progress = null) {
     const result = createReplayResult(session);
     result.passed = false;
-    result.error = `Session timed out after ${timeoutMs}ms`;
+    const snapshot = summarizeTimeoutProgress(progress);
+    if (snapshot) {
+        const keyPart = snapshot.key ? ` key=${JSON.stringify(snapshot.key)}` : '';
+        const toplinePart = snapshot.topline ? ` topline=${JSON.stringify(snapshot.topline)}` : '';
+        result.error =
+            `Session timed out after ${timeoutMs}ms` +
+            ` (last step=${snapshot.step ?? 'unknown'}${keyPart}` +
+            ` pendingPrompt=${snapshot.pendingPrompt} multi=${snapshot.multi}${toplinePart})`;
+        result.timeoutDiagnostics = snapshot;
+    } else {
+        result.error = `Session timed out after ${timeoutMs}ms`;
+    }
     setDuration(result, timeoutMs);
     return result;
 }
@@ -743,6 +772,7 @@ async function runSingleSessionWithTimeout(session, timeoutMs) {
     const filePath = join(session.dir, session.file);
     return new Promise((resolve, reject) => {
         const worker = new Worker(workerPath);
+        let lastProgress = null;
         let done = false;
         const finish = (result) => {
             if (done) return;
@@ -759,9 +789,13 @@ async function runSingleSessionWithTimeout(session, timeoutMs) {
             if (done) return;
             done = true;
             worker.terminate().catch(() => {});
-            resolve(createSessionTimeoutResult(session, timeoutMs));
+            resolve(createSessionTimeoutResult(session, timeoutMs, lastProgress));
         }, timeoutMs);
         worker.on('message', (msg) => {
+            if (msg.type === 'progress' && msg.id === 0) {
+                lastProgress = msg.progress;
+                return;
+            }
             if (msg.type !== 'result' || msg.id !== 0) return;
             finish(msg.result);
         });
@@ -828,6 +862,7 @@ async function runSessionsParallel(sessions, { numWorkers, verbose, onProgress, 
             }
             const task = indexed[nextTask++];
             state.task = task;
+            state.lastProgress = null;
             if (Number.isInteger(sessionTimeoutMs) && sessionTimeoutMs > 0) {
                 clearTimeout(state.timer);
                 state.timer = setTimeout(() => {
@@ -839,7 +874,7 @@ async function runSessionsParallel(sessions, { numWorkers, verbose, onProgress, 
                     state.task = null;
                     deliverResult(
                         timedOutTask.index,
-                        createSessionTimeoutResult(timedOutTask.session, sessionTimeoutMs)
+                        createSessionTimeoutResult(timedOutTask.session, sessionTimeoutMs, state.lastProgress)
                     );
                     state.worker.terminate().catch(() => {});
                     if (!settled && nextTask < indexed.length) spawnWorker();
@@ -860,14 +895,23 @@ async function runSessionsParallel(sessions, { numWorkers, verbose, onProgress, 
                 task: null,
                 timer: null,
                 terminatedForTimeout: false,
+                lastProgress: null,
             };
             workerStates.add(state);
 
             state.worker.on('message', (msg) => {
-                if (settled || msg.type !== 'result') return;
+                if (settled) return;
+                if (msg.type === 'progress') {
+                    if (state.task && msg.id === state.task.index) {
+                        state.lastProgress = msg.progress;
+                    }
+                    return;
+                }
+                if (msg.type !== 'result') return;
                 clearTimeout(state.timer);
                 state.timer = null;
                 state.task = null;
+                state.lastProgress = null;
                 deliverResult(msg.id, msg.result);
                 assignNextTask(state);
             });
