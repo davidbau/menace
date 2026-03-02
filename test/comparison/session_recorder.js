@@ -50,11 +50,23 @@ export async function recordGameplaySessionFromInputs(session, opts = {}) {
     const flags = opts.flags || buildGameplayReplayFlags(session);
     const tutorial = typeof opts.tutorial === 'boolean'
         ? opts.tutorial
-        : (session?.meta?.regen?.tutorial === true);
+        : (
+            session?.meta?.regen?.tutorial === true
+            || session?.meta?.options?.tutorial === true
+            || session?.raw?.options?.tutorial === true
+        );
+    const replayTutorialStartupPrompts = Array.isArray(session?.raw?.replayTutorialStartupPrompts)
+        ? session.raw.replayTutorialStartupPrompts
+        : [];
+    const tutorialStartupEnterAfterPromptCount = Number.isInteger(session?.raw?.tutorialStartupEnterAfterPromptCount)
+        ? session.raw.tutorialStartupEnterAfterPromptCount
+        : undefined;
     return replaySession(session.meta.seed, session.raw, {
         captureScreens: true,
         startupBurstInFirstStep: false,
         flags,
         tutorial,
+        replayTutorialStartupPrompts,
+        tutorialStartupEnterAfterPromptCount,
     });
 }
