@@ -4,7 +4,7 @@
 
 import { rn2, rnd, d, c_d } from './rng.js';
 import { exercise } from './attrib_exercise.js';
-import { corpse_chance, level_specific_nocorpse } from './mon.js';
+import { corpse_chance } from './mon.js';
 import {
     A_STR, A_DEX, PM_MONK,
     FIRE_RES, COLD_RES, SHOCK_RES, ACID_RES, FREE_ACTION,
@@ -1638,35 +1638,34 @@ function handleMonsterKilled(player, monster, display, map) {
     player.score += exp;
     newexplevel(player, display);
 
-    const noCorpseLevel = level_specific_nocorpse(mdat, map);
-    if (!noCorpseLevel) {
-        // cf. mon.c:3581-3609 xkilled() — "illogical but traditional" treasure drop.
-        const canDropTreasure = !((mdat.geno || 0) & G_NOCORPSE)
-            && !monster.mcloned
-            && (monster.mx !== player.x || monster.my !== player.y)
-            && mdat.mlet !== S_KOP;
-        if (canDropTreasure && !rn2(6) && map) {
-            const otmp = mkobj(RANDOM_CLASS, true, false);
-            const flags2 = mdat.flags2 || 0;
-            const isSmallMonster = (mdat.msize || 0) < MZ_HUMAN;
-            const isPermaFood = otmp && otmp.oclass === FOOD_CLASS && !otmp.oartifact;
-            const dropTooBig = isSmallMonster && !!otmp
-                && otmp.otyp !== FIGURINE
-                && ((otmp.owt || 0) > 30 || !!objectData[otmp.otyp]?.oc_big);
-            if (isPermaFood && !(flags2 & M2_COLLECT)) {
-                obj_resists(otmp, 0, 0);
-            } else if (dropTooBig) {
-                obj_resists(otmp, 0, 0);
-            } else {
-                otmp.ox = monster.mx;
-                otmp.oy = monster.my;
-                placeFloorObject(map, otmp);
-            }
+    // cf. mon.c:3581-3609 xkilled() — "illogical but traditional" treasure drop.
+    const treasureRoll = rn2(6);
+    const canDropTreasure = treasureRoll === 0
+        && !((mdat.geno || 0) & G_NOCORPSE)
+        && !monster.mcloned
+        && (monster.mx !== player.x || monster.my !== player.y)
+        && mdat.mlet !== S_KOP;
+    if (canDropTreasure && map) {
+        const otmp = mkobj(RANDOM_CLASS, true, false);
+        const flags2 = mdat.flags2 || 0;
+        const isSmallMonster = (mdat.msize || 0) < MZ_HUMAN;
+        const isPermaFood = otmp && otmp.oclass === FOOD_CLASS && !otmp.oartifact;
+        const dropTooBig = isSmallMonster && !!otmp
+            && otmp.otyp !== FIGURINE
+            && ((otmp.owt || 0) > 30 || !!objectData[otmp.otyp]?.oc_big);
+        if (isPermaFood && !(flags2 & M2_COLLECT)) {
+            obj_resists(otmp, 0, 0);
+        } else if (dropTooBig) {
+            obj_resists(otmp, 0, 0);
+        } else {
+            otmp.ox = monster.mx;
+            otmp.oy = monster.my;
+            placeFloorObject(map, otmp);
         }
     }
 
     // C ref: mon.c:3178-3252 corpse_chance()
-    const createCorpse = corpse_chance(monster, map);
+    const createCorpse = corpse_chance(monster);
 
     if (createCorpse) {
         const corpse = mkcorpstat(CORPSE, monster.mndx || 0, true,
