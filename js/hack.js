@@ -26,7 +26,7 @@ import { nhgetch } from './input.js';
 import { do_attack } from './uhitm.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage } from './do.js';
 import { x_monnam, y_monnam, YMonnam, Monnam, mon_nam, canseemon } from './mondata.js';
-import { maybeSmudgeEngraving, u_wipe_engr } from './engrave.js';
+import { engr_at, read_engr_at, maybeSmudgeEngraving, u_wipe_engr } from './engrave.js';
 import { gethungry } from './eat.js';
 import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage } from './shk.js';
 import { observeObject } from './discovery.js';
@@ -68,6 +68,16 @@ function runTraceEnabled() {
 function runTrace(...args) {
     if (!runTraceEnabled()) return;
     console.log('[RUN_TRACE]', ...args);
+}
+
+function engrTraceEnabled() {
+    const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
+    return env.WEBHACK_ENGR_TRACE === '1';
+}
+
+function engrTrace(...args) {
+    if (!engrTraceEnabled()) return;
+    console.log('[ENGR_TRACE]', ...args);
 }
 
 function replayStepLabel(map) {
@@ -199,6 +209,19 @@ export function obj_to_any(obj) {
 
 // C ref: hack.c maybe_smudge_engr()
 export function maybe_smudge_engr(map, oldX, oldY, newX, newY, player) {
+    const fmt = (ep) => {
+        if (!ep) return 'none';
+        const txt = String(ep.text || '');
+        return `${ep.type || '?'}@${ep.x},${ep.y} len=${txt.length} nowipeout=${ep.nowipeout ? 1 : 0} eread=${ep.eread ? 1 : 0} erevealed=${ep.erevealed ? 1 : 0}`;
+    };
+    const ctx = player?.game?.svc?.context || player?.svc?.context || null;
+    engrTrace(
+        `step=${replayStepLabel(map)}`,
+        `run=${Number(ctx?.run || 0)}`,
+        `move=(${oldX},${oldY})->(${newX},${newY})`,
+        `old=${fmt(engr_at(map, oldX, oldY))}`,
+        `new=${fmt(engr_at(map, newX, newY))}`
+    );
     maybeSmudgeEngraving(map, oldX, oldY, newX, newY, player);
 }
 
@@ -711,7 +734,11 @@ export async function domove_core(dir, player, map, display, game) {
     player.moved = true;
     ctx.move = 1;
     game.lastMoveDir = moveDir;
-    maybe_smudge_engr(map, oldX, oldY, player.x, player.y, player);
+    // C parity: maybe_smudge_engr() is tied to command-attempt context
+    // and should not fire on continued multi-run movement turns.
+    if (!ctx.skip_smudge_engr) {
+        maybe_smudge_engr(map, oldX, oldY, player.x, player.y, player);
+    }
 
     // Clear force-fight prefix after successful movement.
     clear_forcefight_prefix(game, ctx);
@@ -888,6 +915,13 @@ export async function domove_core(dir, player, map, display, game) {
         }
     }
 
+    // C ref: invent.c look_here() called via pickup() in spoteffects():
+    // read engravings on the current square when not submerged.
+    if (!is_lava(player.x, player.y, map)
+        && !(is_pool(player.x, player.y, map) && !player.underwater)) {
+        await read_engr_at(map, player.x, player.y, player, game);
+    }
+
     // Check for stairs
     // C ref: do.c:738 flags.verbose gates "There is a staircase..."
     // Messages will be concatenated if both fit (see display.putstr_message)
@@ -924,6 +958,7 @@ export async function do_run(dir, player, map, display, fov, game, runStyle = 'r
     let steps = 0;
     let timedTurns = 0;
     const hasRunTurnHook = typeof game?.advanceRunTurn === 'function';
+    const runModeValue = (runStyle === 'rush') ? 2 : (runStyle === 'shiftRun' ? 1 : 3);
     runTrace(
         `step=${replayStepLabel(map)}`,
         `start=(${player.x},${player.y})`,
@@ -931,12 +966,14 @@ export async function do_run(dir, player, map, display, fov, game, runStyle = 'r
         `style=${runStyle}`,
         `hook=${hasRunTurnHook ? 1 : 0}`,
     );
-    ctx.run = (runStyle === 'rush') ? 2 : 3;
+    ctx.run = runModeValue;
     game.running = true;
     while (steps < 80) { // safety limit
+        ctx.skip_smudge_engr = steps > 0 ? 1 : 0;
         const beforeX = player.x;
         const beforeY = player.y;
         const result = await domove(runDir, player, map, display, game);
+        ctx.skip_smudge_engr = 0;
         if (result.tookTime) timedTurns++;
         runTrace(
             `step=${replayStepLabel(map)}`,
@@ -954,26 +991,35 @@ export async function do_run(dir, player, map, display, fov, game, runStyle = 'r
         if (hasRunTurnHook && result.tookTime) {
             await game.advanceRunTurn();
         }
+        // C ref: read_engr_at() may stop running via nomul(0).
+        if (Number(ctx.run || 0) === 0) break;
         if (!result.moved) break;
         steps++;
 
-        // C ref: hack.c lookaround() — scan nearby squares to decide
-        // run/rush continuation and corner following.
+        const curLoc = map?.at?.(player.x, player.y);
+        if (curLoc && IS_DOOR(curLoc.typ)) {
+            break;
+        }
+        if (engr_at(map, player.x, player.y)) {
+            break;
+        }
+
+        // C ref: allmain.c moveloop_core() invokes lookaround() while
+        // multi-turn running continues. Mirror by checking continuation after
+        // each completed movement step.
         fov.compute(map, player.x, player.y);
         const look = lookaround(map, player, fov, runDir, runStyle, display, game);
-        const stopReason = look?.stopReason || null;
-        const shouldStop = !!stopReason;
-        if (shouldStop) {
+        if (Array.isArray(look?.nextDir)) {
+            runDir = look.nextDir;
+        }
+        if (look?.stopReason) {
             runTrace(
                 `step=${replayStepLabel(map)}`,
                 `iter=${steps}`,
-                `stop=${stopReason}`,
+                `stop=${look.stopReason}`,
                 `at=(${player.x},${player.y})`,
             );
-        }
-        if (shouldStop) break;
-        if (Array.isArray(look?.nextDir)) {
-            runDir = look.nextDir;
+            break;
         }
 
         // Update display during run

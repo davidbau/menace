@@ -444,7 +444,6 @@ export class Display {
                     this.cellInfo[row][col] = null;
                     continue;
                 }
-
                 // seenv is now tracked by the vision code (vision.js compute())
                 // which sets the correct angle bits per direction.
 
@@ -469,13 +468,16 @@ export class Display {
                         loc.mem_obj_color = Number.isInteger(underGlyph.color)
                             ? underGlyph.color
                             : CLR_GRAY;
-                    } else if (player?.wizard && gameMap.engravingAt(x, y)) {
-                        const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
-                        loc.mem_obj = engrCh;
-                        loc.mem_obj_color = CLR_BRIGHT_BLUE;
                     } else {
-                        loc.mem_obj = 0;
-                        loc.mem_obj_color = 0;
+                        const engr = gameMap.engravingAt(x, y);
+                        if (engr && (player?.wizard || engr.erevealed)) {
+                            const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
+                            loc.mem_obj = engrCh;
+                            loc.mem_obj_color = CLR_BRIGHT_BLUE;
+                        } else {
+                            loc.mem_obj = 0;
+                            loc.mem_obj_color = 0;
+                        }
                     }
                     const hallu = !!player?.hallucinating;
                     const glyph = monsterMapGlyph(mon, hallu);
@@ -545,16 +547,14 @@ export class Display {
                 // C ref: display.c back_to_glyph() — wizard mode shows engravings
                 // as S_engroom ('`') or S_engrcorr ('#') when no higher-priority
                 // map symbol (player/monster/object/trap) occupies the square.
-                if (player?.wizard) {
-                    const engr = gameMap.engravingAt(x, y);
-                    if (engr) {
-                        const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
-                        loc.mem_obj = engrCh;
-                        loc.mem_obj_color = CLR_BRIGHT_BLUE;
-                        this.setCell(col, row, engrCh, CLR_BRIGHT_BLUE);
-                        this.cellInfo[row][col] = { name: 'engraving', desc: '', color: CLR_BRIGHT_BLUE };
-                        continue;
-                    }
+                const engr = gameMap.engravingAt(x, y);
+                if (engr && (player?.wizard || engr.erevealed)) {
+                    const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
+                    loc.mem_obj = engrCh;
+                    loc.mem_obj_color = CLR_BRIGHT_BLUE;
+                    this.setCell(col, row, engrCh, CLR_BRIGHT_BLUE);
+                    this.cellInfo[row][col] = { name: 'engraving', desc: '', color: CLR_BRIGHT_BLUE };
+                    continue;
                 }
 
                 // Show terrain — check wall_angle visibility first

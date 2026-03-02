@@ -25,7 +25,7 @@ import { SHOPBASE, ROOMOFFSET } from './config.js';
 import { makemon } from './makemon.js';
 import { pushInput } from './input.js';
 import { initrack } from './monmove.js';
-import { NetHackGame, maybe_deferred_goto_after_rhack, run_command } from './allmain.js';
+import { NetHackGame, maybe_deferred_goto_after_rhack, run_command, execute_repeat_command } from './allmain.js';
 import { HeadlessDisplay, createHeadlessInput } from './headless.js';
 
 export { HeadlessDisplay };
@@ -705,7 +705,6 @@ export async function replaySession(seed, session, opts = {}) {
     const byteResults = [];
     let pendingCommand = null;
     let pendingCount = 0;
-    let lastCommand = null; // C ref: do_repeat() remembered command for Ctrl+A
     // game.pendingDeferredTimedTurn is used instead (game-level flag)
 
     const captureSnapshot = (rawLog, screen, screenAnsiOverride, stepIndex, byteIndex, key) => {
@@ -844,35 +843,13 @@ export async function replaySession(seed, session, opts = {}) {
                         : null;
                 }
             } else {
-                let effectiveCh = ch;
-                let countPrefixForRun = pendingCount > 0 ? pendingCount : 0;
-                if (ch === 1) { // Ctrl+A
-                    if (lastCommand) {
-                        effectiveCh = lastCommand.key;
-                        countPrefixForRun = lastCommand.count || 0;
-                    } else {
-                        const raw = getRngLog().slice(prevByteCount);
-                        const frame = captureSnapshot(
-                            raw,
-                            opts.captureScreens ? game.display.getScreenLines() : undefined,
-                            (typeof game.display?.getScreenAnsiLines === 'function')
-                                ? game.display.getScreenAnsiLines()
-                                : null,
-                            stepIndex,
-                            byteIndex,
-                            keyText[byteIndex]
-                        );
-                        stepFrames.push(frame);
-                        continue;
-                    }
-                }
+                const countPrefixForRun = pendingCount > 0 ? pendingCount : 0;
                 pendingCount = 0;
-
-                // Execute the command once (one turn per keystroke).
-                if (ch !== 1 && countPrefixForRun === 0) {
-                    lastCommand = { key: ch, count: countPrefixForRun };
-                }
-                const commandPromise = beginTimedCommand(effectiveCh, countPrefixForRun);
+                const commandPromise = (ch === 1)
+                    // C ref: cmd.c do_repeat() -- Ctrl+A replays CQ_REPEAT,
+                    // including count prefixes and multi-turn commands.
+                    ? execute_repeat_command(game, { computeFov: true })
+                    : beginTimedCommand(ch, countPrefixForRun);
                 const settled = await settleCommandOrInputWait(commandPromise, game.input);
                 if (!settled.done) {
                     pendingCommand = commandPromise;

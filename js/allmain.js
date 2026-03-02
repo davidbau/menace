@@ -458,6 +458,11 @@ export async function run_command(game, ch, opts = {}) {
     if (game.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
         const promptResult = game.pendingPrompt.onKey(chCode, game);
         if (promptResult && promptResult.handled) {
+            if (!game.pendingPrompt && game._pendingTutorialStrip
+                && typeof game._applyTutorialStrip === 'function') {
+                game._applyTutorialStrip();
+                game._pendingTutorialStrip = false;
+            }
             return {
                 tookTime: false,
                 moved: false,
@@ -472,9 +477,6 @@ export async function run_command(game, ch, opts = {}) {
         && chCode !== '#'.charCodeAt(0)) {
         if (!game._repeatPrefixChainActive) {
             cmdq_clear(CQ_REPEAT);
-        }
-        if (countPrefix > 0) {
-            cmdq_add_int(CQ_REPEAT, countPrefix);
         }
         cmdq_add_key(CQ_REPEAT, chCode);
     }

@@ -1563,3 +1563,12 @@ hard-won wisdom:
 - In C `m_throw()` ordering is: advance projectile -> resolve hit/block logic -> `tmp_at(x,y)` + `nh_delay_output()` per traversed step -> final `tmp_at(x,y)` + delay -> `tmp_at(DISP_END, ...)`.
 - JS `m_throw_timed()` had diverged ordering (display/delay before hit resolution, and `DISP_END` before the final impact frame), which can skew throw-frame timing and visual parity windows.
 - Fix: reordered JS loop/body and trailer to match C ordering, keeping non-throw control seeds stable (`seed108`, `seed113`) while preserving ongoing seed110/seed208 debugging signal.
+
+### Ctrl+A repeat semantics with count prefixes (2026-03-02)
+
+- Session evidence from `seed7_tutorial_manual_wizard_gameplay` shows that after entering `5s`, pressing `Ctrl+A` replays plain `s` search turns rather than replaying the `5` count prefix each time.
+- Practical parity implication: `CQ_REPEAT` replay payload for this path should preserve the repeatable command key stream, but not force stored count prefixes back into every `Ctrl+A` replay cycle.
+- We updated JS repeat behavior and unit expectations accordingly:
+  - `Ctrl+A` now follows observed session semantics for counted search replay.
+  - `command_repeat_queue` unit checks now assert key-only replay snapshot behavior for counted commands.
+- Result: repeat-queue unit coverage is green, and tutorial seed divergence is now late (`step 110`) rather than at startup.

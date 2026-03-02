@@ -34,6 +34,16 @@ import { goodpos } from './teleport.js';
 import { makemon } from './makemon.js';
 import { exercise } from './attrib_exercise.js';
 
+function engrTraceEnabled() {
+    const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
+    return env.WEBHACK_ENGR_TRACE === '1';
+}
+
+function engrTrace(...args) {
+    if (!engrTraceEnabled()) return;
+    console.log('[ENGR_TRACE]', ...args);
+}
+
 // C engraving type constants (engrave.h):
 // DUST=1, ENGRAVE=2, BURN=3, MARK=4, ENGR_BLOOD=5, HEADSTONE=6
 const ENGR_TYPE_MAP = {
@@ -246,12 +256,13 @@ export function engr_can_be_felt(ep) {
 
 // cf. engrave.c:318 — read_engr_at(x, y): display engraving text
 // Shows engraving text at location with appropriate sense message.
-export function read_engr_at(map, x, y, player) {
+function describe_readable_engraving(map, x, y, player) {
     const ep = engr_at(map, x, y);
-    if (!ep || !ep.text) return;
+    if (!ep || !ep.text) return null;
 
     const blind = !!(player && player.blind);
     let sensed = false;
+    let typeMsg = null;
 
     const loc = map.at ? map.at(x, y) : null;
     const onIce = loc && loc.typ === ICE;
@@ -260,50 +271,86 @@ export function read_engr_at(map, x, y, player) {
     case 'dust':
         if (!blind) {
             sensed = true;
-            pline("Something is written here in the %s.",
-                  onIce ? "frost" : "dust");
+            typeMsg = `Something is written here in the ${onIce ? 'frost' : 'dust'}.`;
         }
         break;
     case 'engrave':
     case 'headstone':
         if (!blind || can_reach_floor(player, map)) {
             sensed = true;
-            pline("Something is engraved here on the floor.");
+            typeMsg = 'Something is engraved here on the floor.';
         }
         break;
     case 'burn':
         if (!blind || can_reach_floor(player, map)) {
             sensed = true;
-            pline("Some text has been %s into the floor here.",
-                  onIce ? "melted" : "burned");
+            typeMsg = `Some text has been ${onIce ? 'melted' : 'burned'} into the floor here.`;
         }
         break;
     case 'mark':
         if (!blind) {
             sensed = true;
-            pline("There's some graffiti on the floor here.");
+            typeMsg = "There's some graffiti on the floor here.";
         }
         break;
     case 'blood':
         if (!blind) {
             sensed = true;
-            You_see("a message scrawled in blood here.");
+            typeMsg = 'You see a message scrawled in blood here.';
         }
         break;
     default:
-        impossible("Something is written in a very strange way.");
+        impossible('Something is written in a very strange way.');
         sensed = true;
+        typeMsg = 'Something is written in a very strange way.';
     }
 
-    if (sensed) {
-        const et = ep.text;
-        // C: check if last char is original punctuation
-        const endpunct = (et.length >= 2 && ".!?".includes(et[et.length - 1]))
-            ? "" : ".";
-        You("%s: \"%s\"%s", blind ? "feel the words" : "read", et, endpunct);
-        ep.eread = true;
-        ep.erevealed = true;
-        // C: if (svc.context.run > 0) nomul(0) — stop running
+    if (!sensed) return null;
+    const et = ep.text;
+    // C: check if last char is original punctuation
+    const endpunct = (et.length >= 2 && ".!?".includes(et[et.length - 1]))
+        ? "" : ".";
+    const readMsg = `You ${blind ? 'feel the words' : 'read'}: "${et}"${endpunct}`;
+    return { ep, typeMsg, readMsg };
+}
+
+export async function read_engr_at(map, x, y, player, game = null) {
+    const info = describe_readable_engraving(map, x, y, player);
+    if (!info) return;
+    const { ep, typeMsg, readMsg } = info;
+    pline(typeMsg);
+    // Match C topline flow for engraving reads: split into two prompts only
+    // when both messages can't fit on one topline.
+    const needsMoreBetweenMessages = (String(typeMsg || '').length + 2 + String(readMsg || '').length) > 79;
+    if (needsMoreBetweenMessages && game?.display && typeof game.display.morePrompt === 'function') {
+        if (typeof game.display.renderMoreMarker === 'function') {
+            game.display.renderMoreMarker();
+        }
+        while (true) {
+            const ch = await nhgetch();
+            if (ch === 32 || ch === 13 || ch === 10 || ch === 27) break;
+        }
+        if (typeof game.display.clearRow === 'function') {
+            game.display.clearRow(0);
+        }
+        if ('messageNeedsMore' in game.display) {
+            game.display.messageNeedsMore = false;
+        }
+    }
+    pline(readMsg);
+    ep.eread = true;
+    ep.erevealed = true;
+    // C ref: engrave.c read_engr_at() -> if (context.run > 0) nomul(0)
+    // Stop run/rush traversal after stepping onto a readable engraving.
+    const ctx = game?.svc?.context;
+    if (ctx && Number(ctx.run || 0) > 0) {
+        engrTrace(
+            `step=${Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?'}`,
+            `read_engr_at stop-run at (${x},${y})`,
+            `text=${JSON.stringify(String(ep.text || '').slice(0, 80))}`
+        );
+        ctx.run = 0;
+        if (game) game.running = false;
     }
 }
 
@@ -677,20 +724,36 @@ export function feel_engraving(map, ep) {
 // On successful movement, attempt to smudge engravings at origin/destination.
 // C: checks can_reach_floor(TRUE), then wipes at old pos and new pos if engravings exist.
 export function maybeSmudgeEngraving(map, x1, y1, x2, y2, player) {
+    const step = Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?';
+    const fmt = (ep) => {
+        if (!ep) return 'none';
+        const txt = String(ep.text || '');
+        return `${ep.type || '?'} len=${txt.length} nowipeout=${ep.nowipeout ? 1 : 0}`;
+    };
     // C ref: if (can_reach_floor(TRUE)) { ... }
-    if (!can_reach_floor(player, map)) return;
+    const reach = can_reach_floor(player, map);
+    engrTrace(`step=${step}`, `maybeSmudgeEngraving reach=${reach ? 1 : 0}`, `from=(${x1},${y1})`, `to=(${x2},${y2})`);
+    if (!reach) return;
     // C ref: if ((ep = engr_at(x1,y1)) && ep->engr_type != HEADSTONE)
     //            wipe_engr_at(x1, y1, rnd(5), FALSE);
     const ep1 = engr_at(map, x1, y1);
+    engrTrace(`step=${step}`, `old-candidate=${fmt(ep1)}`);
     if (ep1 && ep1.type !== 'headstone') {
-        wipe_engr_at(map, x1, y1, rnd(5), false);
+        const roll = rnd(5);
+        engrTrace(`step=${step}`, `old-roll=${roll}`, `pos=(${x1},${y1})`);
+        wipe_engr_at(map, x1, y1, roll, false);
+        engrTrace(`step=${step}`, `old-after=${fmt(engr_at(map, x1, y1))}`);
     }
     // C ref: if ((x2!=x1 || y2!=y1) && (ep = engr_at(x2,y2)) && ep->engr_type != HEADSTONE)
     //            wipe_engr_at(x2, y2, rnd(5), FALSE);
     if ((x2 !== x1 || y2 !== y1)) {
         const ep2 = engr_at(map, x2, y2);
+        engrTrace(`step=${step}`, `new-candidate=${fmt(ep2)}`);
         if (ep2 && ep2.type !== 'headstone') {
-            wipe_engr_at(map, x2, y2, rnd(5), false);
+            const roll = rnd(5);
+            engrTrace(`step=${step}`, `new-roll=${roll}`, `pos=(${x2},${y2})`);
+            wipe_engr_at(map, x2, y2, roll, false);
+            engrTrace(`step=${step}`, `new-after=${fmt(engr_at(map, x2, y2))}`);
         }
     }
 }

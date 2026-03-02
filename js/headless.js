@@ -897,7 +897,6 @@ export class HeadlessDisplay {
                     this.setCell(col, row, ' ', CLR_GRAY);
                     continue;
                 }
-
                 // seenv is now tracked by vision.js compute()
 
                 if (player && x === player.x && y === player.y) {
@@ -916,13 +915,16 @@ export class HeadlessDisplay {
                         loc.mem_obj_color = Number.isInteger(underGlyph.color)
                             ? underGlyph.color
                             : CLR_GRAY;
-                    } else if (player?.wizard && gameMap.engravingAt(x, y)) {
-                        const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
-                        loc.mem_obj = engrCh;
-                        loc.mem_obj_color = CLR_BRIGHT_BLUE;
                     } else {
-                        loc.mem_obj = 0;
-                        loc.mem_obj_color = 0;
+                        const engr = gameMap.engravingAt(x, y);
+                        if (engr && (player?.wizard || engr.erevealed)) {
+                            const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
+                            loc.mem_obj = engrCh;
+                            loc.mem_obj_color = CLR_BRIGHT_BLUE;
+                        } else {
+                            loc.mem_obj = 0;
+                            loc.mem_obj_color = 0;
+                        }
                     }
                     const hallu = !!player?.hallucinating;
                     const glyph = monsterMapGlyph(mon, hallu);
@@ -964,15 +966,13 @@ export class HeadlessDisplay {
 
                 // C ref: display.c back_to_glyph() — wizard mode shows
                 // engravings with S_engroom ('`') / S_engrcorr ('#').
-                if (player?.wizard) {
-                    const engr = gameMap.engravingAt(x, y);
-                    if (engr) {
-                        const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
-                        loc.mem_obj = engrCh;
-                        loc.mem_obj_color = CLR_BRIGHT_BLUE;
-                        this.setCell(col, row, engrCh, CLR_BRIGHT_BLUE);
-                        continue;
-                    }
+                const engr = gameMap.engravingAt(x, y);
+                if (engr && (player?.wizard || engr.erevealed)) {
+                    const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
+                    loc.mem_obj = engrCh;
+                    loc.mem_obj_color = CLR_BRIGHT_BLUE;
+                    this.setCell(col, row, engrCh, CLR_BRIGHT_BLUE);
+                    continue;
                 }
 
                 if (IS_WALL(loc.typ) && !wallIsVisible(loc.typ, loc.seenv, loc.flags)) {

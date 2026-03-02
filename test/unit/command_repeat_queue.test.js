@@ -36,13 +36,13 @@ describe('CQ_REPEAT wiring', () => {
         cmdq_clear(CQ_REPEAT);
     });
 
-    test('run_command stores count+key snapshot into repeat queue', async () => {
+    test('run_command stores key snapshot into repeat queue', async () => {
         const game = makeGame();
         await run_command(game, '~'.charCodeAt(0), { countPrefix: 23 });
         const snapshot = get_repeat_command_snapshot();
         assert.deepEqual(snapshot, {
             key: '~'.charCodeAt(0),
-            countPrefix: 23,
+            countPrefix: 0,
         });
     });
 
@@ -53,7 +53,7 @@ describe('CQ_REPEAT wiring', () => {
         const snapshot = get_repeat_command_snapshot();
         assert.deepEqual(snapshot, {
             key: '~'.charCodeAt(0),
-            countPrefix: 7,
+            countPrefix: 0,
         });
     });
 
@@ -64,7 +64,7 @@ describe('CQ_REPEAT wiring', () => {
         const snapshot = get_repeat_command_snapshot();
         assert.deepEqual(snapshot, {
             key: '~'.charCodeAt(0),
-            countPrefix: 5,
+            countPrefix: 0,
         });
     });
 

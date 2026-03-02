@@ -18,6 +18,7 @@ selfplay/.nethack-home/
 # Transient test results (pre-push hook promotes to git note)
 oracle/pending.jsonl
 oracle/pes-diagnoses.json
+tmp/
 tmp/session-comparisons/
 
 # Debug scripts should go in scripts/debug/, not root

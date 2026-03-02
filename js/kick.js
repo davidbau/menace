@@ -51,8 +51,8 @@ export async function handleKick(player, map, display, game) {
         return { moved: false, tookTime: true };
     }
 
-    // Kick a locked door
-    if (IS_DOOR(loc.typ) && (loc.flags & D_LOCKED)) {
+    // Kick a closed or locked door (C kick_door handles both the same way).
+    if (IS_DOOR(loc.typ) && (loc.flags & (D_LOCKED | D_CLOSED))) {
         exercise(player, A_DEX, true);
         const str = player.attributes ? player.attributes[A_STR] : 18;
         const dex = player.attributes ? player.attributes[A_DEX] : 11;
@@ -73,14 +73,6 @@ export async function handleKick(player, map, display, game) {
             exercise(player, A_STR, true);
             display.putstr_message(rn2(3) ? "Whammm!!" : "Thwack!!");
         }
-        return { moved: false, tookTime: true };
-    }
-
-    // Kick a closed door
-    if (IS_DOOR(loc.typ) && (loc.flags & D_CLOSED)) {
-        exercise(player, A_STR, true);
-        loc.flags = D_ISOPEN;
-        display.putstr_message("The door crashes open!");
         return { moved: false, tookTime: true };
     }
 

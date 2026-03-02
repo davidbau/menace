@@ -31,6 +31,7 @@ import { setOutputContext } from './pline.js';
 import { init_nhwindows, create_nhwindow, destroy_nhwindow,
          start_menu, add_menu, end_menu, select_menu,
          NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE } from './windows.js';
+import { find_ac } from './do_wear.js';
 
 // --- Game State ---
 // C ref: decl.h -- globals are accessed via NH object (see DECISIONS.md #7)
@@ -231,23 +232,53 @@ export async function enterTutorial(game, opts = {}) {
         await game.display.morePrompt(nhgetch);
     }
 
-    // C ref: nhlib.lua tutorial_enter() calls nh.gamestate() which saves and
-    // removes ALL inventory items, clearing equipment slots. The tutorial
-    // places food/items explicitly in-map; the character enters unequipped.
     const player = game.u || game.player;
-    player.inventory = [];
-    player.weapon = null;
-    player.swapWeapon = null;
-    player.armor = null;
-    player.shield = null;
-    player.helmet = null;
-    player.gloves = null;
-    player.boots = null;
-    player.cloak = null;
-    player.shirt = null;
-    player.quiver = null;
-    player.gold = 0;
-    player.ac = 10;
+    const applyTutorialStrip = () => {
+        if (!game._tutorialStoredState) {
+            game._tutorialStoredState = {
+                inventory: Array.isArray(player.inventory) ? player.inventory.slice() : [],
+                weapon: player.weapon || null,
+                swapWeapon: player.swapWeapon || null,
+                quiver: player.quiver || null,
+                armor: player.armor || null,
+                shield: player.shield || null,
+                helmet: player.helmet || null,
+                gloves: player.gloves || null,
+                boots: player.boots || null,
+                cloak: player.cloak || null,
+                shirt: player.shirt || null,
+                amulet: player.amulet || null,
+                leftRing: player.leftRing || null,
+                rightRing: player.rightRing || null,
+                blindfold: player.blindfold || null,
+                twoweap: !!player.twoweap,
+            };
+        }
+
+        player.inventory = [];
+        player.weapon = null;
+        player.swapWeapon = null;
+        player.quiver = null;
+        player.armor = null;
+        player.shield = null;
+        player.helmet = null;
+        player.gloves = null;
+        player.boots = null;
+        player.cloak = null;
+        player.shirt = null;
+        player.amulet = null;
+        player.leftRing = null;
+        player.rightRing = null;
+        player.blindfold = null;
+        player.twoweap = false;
+        find_ac(player);
+    };
+    game._applyTutorialStrip = applyTutorialStrip;
+    if (game.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
+        game._pendingTutorialStrip = true;
+    } else {
+        applyTutorialStrip();
+    }
 
     setMakemonPlayerContext((game.u || game.player));
     setSplevPlayerContext((game.u || game.player));
@@ -256,14 +287,19 @@ export async function enterTutorial(game, opts = {}) {
     game.levels[1] = (game.lev || game.map);
     (game.u || game.player).dungeonLevel = 1;
     (game.u || game.player).inTutorial = true;
-    (game.u || game.player).showExp = true;
+    (game.u || game.player).showExp = !!game.flags.showexp;
+    if (Array.isArray((game.lev || game.map)?.engravings)) {
+        for (const engr of (game.lev || game.map).engravings) {
+            if (engr) engr.erevealed = true;
+        }
+    }
     if ((game.lev || game.map)?.flags?.lit_corridor) game.flags.lit_corridor = true;
     game.placePlayerOnLevel('teleport');
 
     game.fov.compute((game.lev || game.map), (game.u || game.player).x, (game.u || game.player).y);
     game.display.renderMap((game.lev || game.map), (game.u || game.player), game.fov, game.flags);
-    game.display.renderStatus((game.u || game.player));
     game.maybeShowQuestLocateHint((game.u || game.player).dungeonLevel);
+
 }
 
 // Handle ?reset=1 — list saved data and prompt for deletion
