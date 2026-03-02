@@ -38,7 +38,7 @@ const c = useColor ? {
 
 function progressBar(done, total, width = 30) {
     const frac = total > 0 ? done / total : 0;
-    const filled = Math.round(frac * width);
+    const filled = Math.min(Math.round(frac * width), width);
     const bar = `${c.green}\u2588`.repeat(filled) + `${c.gray}\u2591`.repeat(width - filled) + c.reset;
     const pct = Math.round(frac * 100);
     return `[${bar}] ${c.bold}${done}/${total}${c.reset} ${c.dim}(${pct}%)${c.reset}`;
