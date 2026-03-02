@@ -569,16 +569,35 @@ function m_search_items_goal(mon, map, player, fov, ggx, ggy, appr) {
     const lmx = Math.max(1, omx - minr);
     const lmy = Math.max(0, omy - minr);
 
+    // Hot path optimization: preserve scan order while avoiding repeated
+    // O(n) filters/finds for each searched tile in object-heavy levels.
+    const keyOf = (x, y) => `${x},${y}`;
+    const objectsByCoord = new Map();
+    for (const obj of map.objects || []) {
+        const key = keyOf(obj.ox, obj.oy);
+        const pile = objectsByCoord.get(key);
+        if (pile) pile.push(obj);
+        else objectsByCoord.set(key, [obj]);
+    }
+    const monsterByCoord = new Map();
+    for (const occ of map.monsters || []) {
+        if (!occ || occ.mhp <= 0) continue;
+        const key = keyOf(occ.mx, occ.my);
+        if (!monsterByCoord.has(key)) monsterByCoord.set(key, occ);
+    }
+    const trapByCoord = new Map();
+    for (const tr of map.traps || []) {
+        trapByCoord.set(keyOf(tr.tx, tr.ty), tr);
+    }
+
     for (let xx = lmx; xx <= hmx; xx++) {
         for (let yy = lmy; yy <= hmy; yy++) {
-            const pile = map.objectsAt
-                ? map.objectsAt(xx, yy)
-                : map.objects.filter((o) => !o.buried && o.ox === xx && o.oy === yy);
+            const pile = objectsByCoord.get(keyOf(xx, yy)) || [];
             if (!pile || pile.length === 0) continue;
             if (minr < distmin(omx, omy, xx, yy)) continue;
             if (!could_reach_item(map, mon, xx, yy)) continue;
             if (hides_under(mon.type || {}) && cansee_for_hider_avoidance(map, player, fov, xx, yy)) continue;
-            const occ = map.monsterAt(xx, yy);
+            const occ = monsterByCoord.get(keyOf(xx, yy)) || null;
             if (occ && occ !== mon) {
                 const occHelpless = !!occ.sleeping
                     || (Number(occ.mfrozen || 0) > 0)
@@ -589,7 +608,7 @@ function m_search_items_goal(mon, map, player, fov, ggx, ggy, appr) {
                 if (occHelpless || occHidden || occMimicDisguise || occImmobile) continue;
             }
             if (onscary(map, xx, yy)) continue;
-            const trap = map.trapAt(xx, yy);
+            const trap = trapByCoord.get(keyOf(xx, yy)) || null;
             if (trap && mon_knows_traps(mon, trap.ttyp)) {
                 if (ggx === xx && ggy === yy) {
                     ggx = mux;
