@@ -650,6 +650,13 @@ export async function replaySession(seed, session, opts = {}) {
 
     const sessionChar = getSessionCharacter(session);
     const tutorialEnabled = (opts.tutorial === true);
+    const replayTutorialStartupPrompts = Array.isArray(opts.replayTutorialStartupPrompts)
+        ? opts.replayTutorialStartupPrompts
+        : [];
+    const tutorialStartupEnterAfterPromptCount = Number.isInteger(opts.tutorialStartupEnterAfterPromptCount)
+        ? opts.tutorialStartupEnterAfterPromptCount
+        : undefined;
+    const tutorialDirectStart = (opts.tutorialDirectStart === true);
     const startDnum = Number.isInteger(opts.startDnum) ? opts.startDnum : undefined;
     const startDlevel = Number.isInteger(opts.startDlevel) ? opts.startDlevel : 1;
     const startDungeonAlign = Number.isInteger(opts.startDungeonAlign) ? opts.startDungeonAlign : undefined;
@@ -670,6 +677,9 @@ export async function replaySession(seed, session, opts = {}) {
             startDlevel,
             dungeonAlignOverride: startDungeonAlign,
             flags: { tutorial: tutorialEnabled },
+            replayTutorialStartupPrompts,
+            tutorialStartupEnterAfterPromptCount,
+            tutorialDirectStart,
         };
 
     await game.init(initOpts);
@@ -762,6 +772,7 @@ export async function replaySession(seed, session, opts = {}) {
             const ch = keyText.charCodeAt(byteIndex);
             let capturedScreenOverride = null;
             let capturedScreenAnsiOverride = null;
+            let commandResult = null;
 
             const isCountPrefixDigit = !!(
                 !pendingCommand
@@ -834,7 +845,8 @@ export async function replaySession(seed, session, opts = {}) {
                     `settled=${settled.done ? 1 : 0}`
                 );
                 if (settled.done) {
-                    applyPostRhack(settled.value);
+                    commandResult = settled.value;
+                    applyPostRhack(commandResult);
                     pendingCommand = null;
                 } else if (opts.captureScreens) {
                     capturedScreenOverride = game.display.getScreenLines();
@@ -865,11 +877,15 @@ export async function replaySession(seed, session, opts = {}) {
                             : null;
                     }
                 } else {
-                    applyPostRhack(settled.value);
+                    commandResult = settled.value;
+                    applyPostRhack(commandResult);
                 }
             }
 
-            if (!pendingCommand) {
+            const shouldRender = (typeof game.shouldRenderAfterCommand === 'function')
+                ? game.shouldRenderAfterCommand(commandResult)
+                : !(commandResult?.prompt || game.pendingPrompt);
+            if (!pendingCommand && shouldRender) {
                 game.renderCurrentScreen();
             }
 

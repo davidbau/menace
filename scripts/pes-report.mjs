@@ -173,15 +173,32 @@ function eventType(s) {
 
 // Find the first character difference between two screen lines
 function screenCharDiff(js, session) {
-    const a = js || '', b = session || '';
-    for (let i = 0; i < Math.max(a.length, b.length); i++) {
-        if (a[i] !== b[i]) {
-            const got  = a[i] ? `'${a[i]}'` : '(end)';
-            const want = b[i] ? `'${b[i]}'` : '(end)';
+    const a = String(js || '');
+    const b = String(session || '');
+    const maxLen = Math.max(a.length, b.length);
+    const quote = (s) => `'${String(s).replace(/'/g, "\\'")}'`;
+    const clip = (s, n = 24) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
+    for (let i = 0; i < maxLen; i++) {
+        const aCh = i < a.length ? a[i] : ' ';
+        const bCh = i < b.length ? b[i] : ' ';
+        // Reporting-only normalization: treat line-end and trailing spaces
+        // as equivalent right-padding, but keep all non-space diffs visible.
+        if (aCh !== bCh) {
+            let j = i + 1;
+            while (j < maxLen) {
+                const aj = j < a.length ? a[j] : ' ';
+                const bj = j < b.length ? b[j] : ' ';
+                if (aj === bj) break;
+                j++;
+            }
+            const gotSeg = clip(a.slice(i, Math.min(j, a.length)).padEnd(j - i, ' '));
+            const wantSeg = clip(b.slice(i, Math.min(j, b.length)).padEnd(j - i, ' '));
+            const got = quote(gotSeg);
+            const want = quote(wantSeg);
             return `${got} instead of ${want}`;
         }
     }
-    return 'differs';
+    return 'trailing spaces only';
 }
 
 // Short inline note: cached cat, or per-channel fallback

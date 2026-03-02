@@ -458,6 +458,10 @@ export async function run_command(game, ch, opts = {}) {
     if (game.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
         const promptResult = game.pendingPrompt.onKey(chCode, game);
         if (promptResult && promptResult.handled) {
+            if (game._pendingPromptTask) {
+                await game._pendingPromptTask;
+                game._pendingPromptTask = null;
+            }
             if (!game.pendingPrompt && game._pendingTutorialStrip
                 && typeof game._applyTutorialStrip === 'function') {
                 game._applyTutorialStrip();
@@ -745,6 +749,79 @@ const DEFAULT_GAME_FLAGS = {
     verbose: false,
     safe_wait: true,
 };
+
+function renderToplineMorePrompt(display, msg) {
+    const raw = String(msg || '');
+    const text = raw.endsWith('--More--')
+        ? raw.slice(0, Math.max(0, raw.length - '--More--'.length))
+        : raw;
+    if (typeof display.clearRow === 'function') display.clearRow(0);
+    if ('messageNeedsMore' in display) display.messageNeedsMore = false;
+    display.putstr_message(text);
+    if (typeof display.renderMoreMarker === 'function') {
+        display.renderMoreMarker();
+        return;
+    }
+    const moreStr = '--More--';
+    const msgLen = text.length;
+    const col = Math.min(msgLen, Math.max(0, display.cols - moreStr.length));
+    display.putstr(col, 0, moreStr, CLR_GRAY);
+}
+
+function buildReplayTutorialPromptFlow(messages, enterAfterPromptCount, onEnterTutorial) {
+    const prompts = Array.isArray(messages) ? messages.map((s) => String(s || '')).filter(Boolean) : [];
+    let idx = 0;
+    let entered = false;
+    let awaitingFinalDismiss = false;
+    let didPostEnterRender = false;
+    const enterAt = Number.isInteger(enterAfterPromptCount)
+        ? Math.max(0, Math.min(enterAfterPromptCount, prompts.length))
+        : prompts.length;
+    const handler = {
+        isReplayStartupPrompt: true,
+        onKey: (_ch, g) => {
+            if (awaitingFinalDismiss) {
+                if (typeof g.display.clearRow === 'function') g.display.clearRow(0);
+                if ('messageNeedsMore' in g.display) g.display.messageNeedsMore = false;
+                g.pendingPrompt = null;
+                awaitingFinalDismiss = false;
+                return { handled: true };
+            }
+            if (idx < prompts.length) {
+                if (entered && !didPostEnterRender && idx >= enterAt && typeof g.renderCurrentScreen === 'function') {
+                    g.renderCurrentScreen();
+                    didPostEnterRender = true;
+                }
+                renderToplineMorePrompt(g.display, prompts[idx]);
+                idx++;
+                if (!entered && idx >= enterAt) {
+                    g._pendingPromptTask = Promise.resolve(onEnterTutorial(g));
+                    entered = true;
+                }
+                if (idx < prompts.length) {
+                    g.pendingPrompt = handler;
+                } else {
+                    if (!entered) {
+                        g._pendingPromptTask = Promise.resolve(onEnterTutorial(g));
+                        entered = true;
+                    }
+                    awaitingFinalDismiss = true;
+                    g.pendingPrompt = handler;
+                }
+                return { handled: true };
+            }
+            if (!entered) {
+                g._pendingPromptTask = Promise.resolve(onEnterTutorial(g));
+                entered = true;
+            }
+            if (typeof g.display.clearRow === 'function') g.display.clearRow(0);
+            if ('messageNeedsMore' in g.display) g.display.messageNeedsMore = false;
+            g.pendingPrompt = null;
+            return { handled: true };
+        },
+    };
+    return handler;
+}
 
 // ============================================================================
 // NetHackGame — unified browser + headless game class
@@ -1086,8 +1163,26 @@ export class NetHackGame {
         this.display.renderStatus(this.player);
 
         if (this.flags.tutorial && urlOpts.character) {
-            // Option-driven direct tutorial startup for deterministic replay/headless.
-            await _enterTutorial(this, { direct: true });
+            const replayStartupPrompts = Array.isArray(urlOpts.replayTutorialStartupPrompts)
+                ? urlOpts.replayTutorialStartupPrompts.filter((s) => String(s || '').length > 0)
+                : [];
+            if (replayStartupPrompts.length > 0) {
+                const replayEnterAfter = Number.isInteger(urlOpts.tutorialStartupEnterAfterPromptCount)
+                    ? urlOpts.tutorialStartupEnterAfterPromptCount
+                    : replayStartupPrompts.length;
+                // Replay-only path: consume startup prompt-dismiss keys exactly as captured.
+                this.pendingPrompt = buildReplayTutorialPromptFlow(
+                    replayStartupPrompts,
+                    replayEnterAfter,
+                    (game) => _enterTutorial(game, { direct: true, deferRender: true })
+                );
+            } else if (urlOpts.tutorialDirectStart === true) {
+                // Explicit replay/headless override; not C default.
+                await _enterTutorial(this, { direct: true });
+            } else {
+                // C-like default tutorial option flow shows "Entering the tutorial." + --More--.
+                await _enterTutorial(this, { direct: false });
+            }
         } else if (this.flags.tutorial) {
             await _maybeDoTutorial(this);
         }
@@ -1189,6 +1284,13 @@ export class NetHackGame {
 
     _renderAll() {
         this.renderCurrentScreen();
+    }
+
+    // Shared render policy for command-driven input flows (UI and replay).
+    // When a prompt/menu is active, preserve that screen instead of forcing a
+    // map/status redraw which would erase prompt content.
+    shouldRenderAfterCommand(commandResult = null) {
+        return !(commandResult?.prompt || this.pendingPrompt);
     }
 
     // Return the COLNO×ROWNO terrain type grid
