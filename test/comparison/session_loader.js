@@ -142,17 +142,19 @@ function decodeCompactCell(ch) {
     return 0;
 }
 
-/** Decode a compact RLE row: literal cell chars, with ~{count}{char} for runs of 3+. */
+/** Decode a compact RLE row: literal cell chars, with ~{count},{char} for runs of 3+. */
 function decodeCompactRleRow(rowStr, rowWidth = 80) {
     const out = [];
     let i = 0;
     while (i < rowStr.length) {
         if (rowStr[i] === '~') {
-            // RLE run: ~{count}{char}
+            // RLE run: ~{count},{char}
             i++; // skip '~'
             let j = i;
             while (j < rowStr.length && rowStr[j] >= '0' && rowStr[j] <= '9') j++;
             const count = parseInt(rowStr.slice(i, j), 10);
+            // Skip the comma separator between count and cell char
+            if (j < rowStr.length && rowStr[j] === ',') j++;
             if (j < rowStr.length && count >= 1) {
                 const val = decodeCompactCell(rowStr[j]);
                 for (let k = 0; k < count; k++) out.push(val);

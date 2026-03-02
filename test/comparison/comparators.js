@@ -550,7 +550,8 @@ function isIgnorableEventEntry(entry) {
         entry.startsWith('^trick[') ||
         entry.startsWith('^distfleeck[') ||
         entry.startsWith('^dog_invent_decision[') ||
-        entry.startsWith('^dog_move_choice[')
+        entry.startsWith('^dog_move_choice[') ||
+        entry.startsWith('^mapdump[')
     );
 }
 

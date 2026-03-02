@@ -2040,6 +2040,8 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
 
         # Collect auto-mapdump checkpoints from NETHACK_MAPDUMP_DIR
         all_rng = []
+        if 'startup' in session_data and 'rng' in session_data['startup']:
+            all_rng.extend(session_data['startup']['rng'])
         for step in session_data.get('steps', []):
             all_rng.extend(step.get('rng', []))
         checkpoints = collect_mapdump_checkpoints(mapdump_dir, all_rng)

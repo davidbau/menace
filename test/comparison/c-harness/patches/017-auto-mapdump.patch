@@ -38,6 +38,6 @@ Compact file format:
   M<x>,<y>,<mndx>,<mhp>;...   monsters
   K<x>,<y>,<ttyp>;...          traps
 
-Grid encoding: each row is chars, runs of 3+ compressed as ~<count><char>
-(tilde prefix prevents ambiguity with digit cell values),
+Grid encoding: each row is chars, runs of 3+ compressed as ~<count>,<char>
+(tilde prefix + comma separator prevents ambiguity with digit cell values),
 rows separated by '|'. Cell encoding: 0-9->'0'-'9', 10-35->'a'-'z', 36-61->'A'-'Z'.
