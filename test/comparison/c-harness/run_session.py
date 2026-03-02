@@ -1027,6 +1027,7 @@ def run_wizload_session(seed, output_json, level_name, verbose=False):
             f'NETHACK_DUMPMAP={dumpmap_file} '
             f'NETHACK_DUMPSNAP={checkpoint_file} '
             f'NETHACK_MAPDUMP_DIR={mapdump_dir} '
+
             f'HOME={RESULTS_DIR} '
             f'TERM=xterm-256color '
             f'{NETHACK_BINARY} -u {CHARACTER["name"]} -D; '
@@ -1211,6 +1212,7 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
             f'NETHACKDIR={INSTALL_DIR} '
             f'{fixed_datetime_env()}'
             f'{diag_events_env()}'
+
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'HOME={RESULTS_DIR} '
@@ -1491,6 +1493,7 @@ def run_interface_session(seed, output_json, keys, verbose=False, auto_clear_mor
             f'NETHACKDIR={INSTALL_DIR} '
             f'{fixed_datetime_env()}'
             f'{diag_events_env()}'
+
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'HOME={RESULTS_DIR} '
@@ -1854,6 +1857,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             f'NETHACK_RNGLOG={rng_log_file} '
             f'NETHACK_DUMPMAP={dumpmap_file} '
             f'NETHACK_MAPDUMP_DIR={mapdump_dir} '
+
             f'HOME={RESULTS_DIR} '
             f'TERM=xterm-256color '
             f'{NETHACK_BINARY} -u {char["name"]}{wiz_flag}; '
