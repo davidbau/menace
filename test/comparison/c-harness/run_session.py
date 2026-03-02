@@ -458,7 +458,7 @@ def capture_cursor(session):
     """Return [col, row] cursor position of the pane (0-indexed)."""
     out = subprocess.run(
         ['tmux', 'display-message', '-p', '-t', session,
-         '#{pane_cursor_x},#{pane_cursor_y}'],
+         '#{cursor_x},#{cursor_y}'],
         capture_output=True, text=True, check=True
     ).stdout.strip()
     col, row = (int(v) for v in out.split(','))
@@ -1203,8 +1203,8 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
 
         # Capture initial startup state (first step with no key)
         startup_screen = capture_screen_compressed(session_name)
-        startup_cursor = capture_cursor(session_name)
         startup_rng_count, startup_rng_lines = read_rng_log(rng_log_file)
+        startup_cursor = capture_cursor(session_name)
         startup_rng_entries = parse_rng_lines(startup_rng_lines)
 
         steps = [{
@@ -1230,8 +1230,8 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
                 break
 
             screen = capture_screen_compressed(session_name)
-            cursor = capture_cursor(session_name)
             rng_count, rng_lines = read_rng_log(rng_log_file)
+            cursor = capture_cursor(session_name)
             delta_lines = rng_lines[prev_rng_count:rng_count]
             rng_entries = parse_rng_lines(delta_lines)
 
@@ -1363,8 +1363,8 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
         tmux_send(session_name, 'i', 0.2)
         time.sleep(0.02)
         screen = capture_screen_compressed(session_name)
-        cursor = capture_cursor(session_name)
         rng_count, rng_lines = read_rng_log(rng_log_file)
+        cursor = capture_cursor(session_name)
         delta_lines = rng_lines[prev_rng_count:rng_count]
         rng_entries = parse_rng_lines(delta_lines)
         steps.append({
@@ -1555,8 +1555,8 @@ def run_interface_session(seed, output_json, keys, verbose=False, auto_clear_mor
                 clear_more_prompts(session_name)
 
             screen = capture_screen_compressed(session_name)
-            cursor = capture_cursor(session_name)
             rng_count, rng_lines = read_rng_log(rng_log_file)
+            cursor = capture_cursor(session_name)
             delta_lines = rng_lines[prev_rng_count:rng_count]
             rng_entries = parse_rng_lines(delta_lines)
 
@@ -1950,8 +1950,8 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             # Capture state after this step
             screen_lines = capture_screen_lines(session_name)
             screen_compressed = capture_screen_compressed(session_name)
-            step_cursor = capture_cursor(session_name)
             rng_count, rng_lines = read_rng_log(rng_log_file)
+            step_cursor = capture_cursor(session_name)
             delta_lines = rng_lines[prev_rng_count:rng_count]
             rng_entries = parse_rng_lines(delta_lines)
 

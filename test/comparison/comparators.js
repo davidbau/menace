@@ -545,7 +545,13 @@ function isEventEntry(entry) {
 }
 
 function isIgnorableEventEntry(entry) {
-    return typeof entry === 'string' && entry.startsWith('^trick[');
+    // TODO: remove dog diagnostic event filters after re-recording sessions
+    return typeof entry === 'string' && (
+        entry.startsWith('^trick[') ||
+        entry.startsWith('^distfleeck[') ||
+        entry.startsWith('^dog_invent_decision[') ||
+        entry.startsWith('^dog_move_choice[')
+    );
 }
 
 // Strip JS caller context (` @ caller <= parent`) appended by pushRngLogEntry.
