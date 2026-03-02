@@ -53,7 +53,7 @@ export const ALLOW_BARS   = 0x10000000;
 export const ALLOW_SANCT  = 0x20000000;
 export const ALLOW_SSM    = 0x40000000;
 export const NOGARLIC     = 0x80000000 | 0; // force signed 32-bit
-import { rn2, rnd, d, pushRngLogEntry, withRngTag } from './rng.js';
+import { rn2, rnd, d, pushRngLogEntry } from './rng.js';
 import { BOULDER, SCR_SCARE_MONSTER, CLOVE_OF_GARLIC } from './objects.js';
 import { couldsee, m_cansee } from './vision.js';
 import { is_hider, hides_under, is_mindless, is_displacer, perceives,
@@ -142,7 +142,7 @@ export function allocateMonsterMovement(map) {
     for (const mon of map.monsters) {
         if (mon.dead) continue;
         const oldMv = mon.movement;
-        mon.movement += withRngTag('allocateMonsterMovement(mon.js:145)', () => mcalcmove(mon));
+        mon.movement += mcalcmove(mon);
         pushRngLogEntry(`^mcalcmove[${mon.mndx}@${mon.mx},${mon.my} speed=${mon.speed} mv=${oldMv}->${mon.movement}]`);
     }
 }
