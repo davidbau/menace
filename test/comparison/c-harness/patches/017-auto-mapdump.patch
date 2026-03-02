@@ -1,0 +1,43 @@
+Auto-mapdump at end of level generation (017-auto-mapdump patch).
+
+When NETHACK_MAPDUMP_DIR env var is set, writes a compact dump file for each
+generated level after level_finalize_topology(), and emits ^mapdump[id] to the
+RNG log via event_log().
+
+Changes:
+  include/extern.h: declare harness_auto_mapdump()
+  src/mklev.c:      call harness_auto_mapdump() in mklev() after level_finalize_topology()
+  src/mklev.c:      add harness_auto_mapdump() function at end of file
+
+--- a/include/extern.h
++++ b/include/extern.h
+@@ -1571,6 +1571,7 @@ extern void level_finalize_topology(void);
+ extern void mklev(void);
++extern void harness_auto_mapdump(void);
+ #ifdef SPECIALIZATION
+
+--- a/src/mklev.c
++++ b/src/mklev.c
+@@ -1585,6 +1585,8 @@ mklev(void)
+
+     level_finalize_topology();
+
++    harness_auto_mapdump();
++
+     reseed_random(rn2);
+
+(harness_auto_mapdump function appended at end of mklev.c)
+
+Compact file format:
+  T<rle-grid>   terrain types (levl[x][y].typ)
+  F<rle-grid>   5-bit flags
+  H<rle-grid>   horizontal bit
+  L<rle-grid>   lit bit
+  R<rle-grid>   6-bit roomno
+  O<x>,<y>,<otyp>,<quan>;...   objects
+  M<x>,<y>,<mndx>,<mhp>;...   monsters
+  K<x>,<y>,<ttyp>;...          traps
+
+Grid encoding: each row is chars, runs of 3+ compressed as ~<count><char>
+(tilde prefix prevents ambiguity with digit cell values),
+rows separated by '|'. Cell encoding: 0-9->'0'-'9', 10-35->'a'-'z', 36-61->'A'-'Z'.

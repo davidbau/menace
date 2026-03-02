@@ -80,6 +80,8 @@ function normalizeStep(step, index) {
         screenAnsi: getSessionScreenAnsiLines(row),
         typGrid: normalizeGrid(row.typGrid),
         checkpoints: normalizeCheckpoints(row.checkpoints),
+        // Cursor: [col, row] or [col, row, visible] — null if absent.
+        cursor: Array.isArray(row.cursor) ? row.cursor : null,
     };
 }
 
@@ -125,6 +127,89 @@ function normalizeGrid(grid) {
     if (Array.isArray(grid)) return grid;
     if (typeof grid === 'string') return decodeRleGrid(grid);
     return null;
+}
+
+// ---------------------------------------------------------------------------
+// Compact mapdump format decoder (017-auto-mapdump)
+// ---------------------------------------------------------------------------
+
+/** Decode a single cell char from compact encoding: '0'-'9'->0-9, 'a'-'z'->10-35, 'A'-'Z'->36-61 */
+function decodeCompactCell(ch) {
+    const c = ch.charCodeAt(0);
+    if (c >= 48 && c <= 57) return c - 48;        // '0'-'9'
+    if (c >= 97 && c <= 122) return c - 97 + 10;  // 'a'-'z'
+    if (c >= 65 && c <= 90) return c - 65 + 36;   // 'A'-'Z'
+    return 0;
+}
+
+/** Decode a compact RLE row: literal cell chars, with ~{count}{char} for runs of 3+. */
+function decodeCompactRleRow(rowStr, rowWidth = 80) {
+    const out = [];
+    let i = 0;
+    while (i < rowStr.length) {
+        if (rowStr[i] === '~') {
+            // RLE run: ~{count}{char}
+            i++; // skip '~'
+            let j = i;
+            while (j < rowStr.length && rowStr[j] >= '0' && rowStr[j] <= '9') j++;
+            const count = parseInt(rowStr.slice(i, j), 10);
+            if (j < rowStr.length && count >= 1) {
+                const val = decodeCompactCell(rowStr[j]);
+                for (let k = 0; k < count; k++) out.push(val);
+                i = j + 1;
+            } else {
+                i = j;
+            }
+        } else {
+            // Literal cell character
+            out.push(decodeCompactCell(rowStr[i]));
+            i++;
+        }
+    }
+    while (out.length < rowWidth) out.push(0);
+    return out.slice(0, rowWidth);
+}
+
+/** Decode a compact RLE grid (rows separated by '|'). */
+function decodeCompactRleGrid(gridStr, rowCount = 21, rowWidth = 80) {
+    const rows = gridStr.split('|');
+    const out = rows.map((row) => decodeCompactRleRow(row, rowWidth));
+    while (out.length < rowCount) out.push(new Array(rowWidth).fill(0));
+    return out.slice(0, rowCount);
+}
+
+/** Parse a sparse list like "x,y,otyp,quan;x,y,otyp,quan;..." */
+function parseCompactSparseList(str, fieldCount) {
+    if (!str || !str.trim()) return [];
+    return str.split(';').filter(Boolean).map((item) => {
+        const parts = item.split(',').map(Number);
+        return parts.slice(0, fieldCount);
+    });
+}
+
+/**
+ * Parse a compact mapdump file content string into a structured checkpoint.
+ * Returns { typGrid, flagsGrid, horizontalGrid, litGrid, roomnoGrid, objects, monsters, traps }.
+ */
+export function parseCompactMapdump(content) {
+    if (!content) return null;
+    const result = {};
+    const lines = content.split('\n').filter(Boolean);
+    for (const line of lines) {
+        const prefix = line[0];
+        const data = line.slice(1);
+        switch (prefix) {
+            case 'T': result.typGrid = decodeCompactRleGrid(data); break;
+            case 'F': result.flagsGrid = decodeCompactRleGrid(data); break;
+            case 'H': result.horizontalGrid = decodeCompactRleGrid(data); break;
+            case 'L': result.litGrid = decodeCompactRleGrid(data); break;
+            case 'R': result.roomnoGrid = decodeCompactRleGrid(data); break;
+            case 'O': result.objects = parseCompactSparseList(data, 4); break;  // x,y,otyp,quan
+            case 'M': result.monsters = parseCompactSparseList(data, 4); break; // x,y,mndx,mhp
+            case 'K': result.traps = parseCompactSparseList(data, 3); break;    // x,y,ttyp
+        }
+    }
+    return result;
 }
 
 function normalizeCheckpoints(checkpoints) {
@@ -181,6 +266,13 @@ export function normalizeSession(raw, meta = {}) {
     const replaySteps = startupFromStep ? sourceSteps.slice(1) : sourceSteps;
     const steps = replaySteps.map((step, index) => normalizeStep(step, index));
 
+    // Compact mapdump checkpoints: { id: "file contents", ... }
+    // Stored at session top level by run_session.py when NETHACK_MAPDUMP_DIR is set.
+    const mapdumpCheckpoints = (raw?.checkpoints && typeof raw.checkpoints === 'object'
+        && !Array.isArray(raw.checkpoints))
+        ? raw.checkpoints
+        : null;
+
     return {
         file,
         dir,
@@ -197,6 +289,7 @@ export function normalizeSession(raw, meta = {}) {
         startup,
         steps,
         levels: normalizeLevels(raw?.levels),
+        mapdumpCheckpoints,
         raw,
     };
 }

@@ -158,6 +158,27 @@ def diag_events_env():
     return f'WEBHACK_DIAG_EVENTS={v} ' if v else ''
 
 
+def collect_mapdump_checkpoints(mapdump_dir, all_rng_entries):
+    """Scan RNG entries for ^mapdump[id] markers and read corresponding dump files.
+
+    Returns a dict {id: file_contents_string} for all found mapdump markers.
+    """
+    import re
+    checkpoints = {}
+    pattern = re.compile(r'^\^mapdump\[(.+)\]$')
+    for entry in all_rng_entries:
+        # RNG entries are lists like ['^mapdump[d0l1_001]'] or strings
+        text = entry[0] if isinstance(entry, (list, tuple)) and entry else str(entry)
+        m = pattern.match(text)
+        if m:
+            dump_id = m.group(1)
+            dump_path = os.path.join(mapdump_dir, dump_id)
+            if os.path.isfile(dump_path):
+                with open(dump_path, 'r', encoding='utf-8') as f:
+                    checkpoints[dump_id] = f.read()
+    return checkpoints
+
+
 def has_calendar_luck_warning(content):
     lowered = content.lower()
     return (
@@ -455,14 +476,19 @@ def capture_screen_compressed(session):
 
 
 def capture_cursor(session):
-    """Return [col, row] cursor position of the pane (0-indexed)."""
+    """Return [col, row, visible] cursor position and visibility (0-indexed).
+
+    visible is 1 when the cursor is shown (curs_set >=1), 0 when hidden
+    (curs_set(0)).  Uses tmux's #{cursor_flag} which tracks the terminal's
+    cursor-visible state set by curses curs_set() calls.
+    """
     out = subprocess.run(
         ['tmux', 'display-message', '-p', '-t', session,
-         '#{cursor_x},#{cursor_y}'],
+         '#{cursor_x},#{cursor_y},#{cursor_flag}'],
         capture_output=True, text=True, check=True
     ).stdout.strip()
-    col, row = (int(v) for v in out.split(','))
-    return [col, row]
+    col, row, visible = (int(v) for v in out.split(','))
+    return [col, row, visible]
 
 
 def capture_screen_payload(session, include_ansi=False):
@@ -986,6 +1012,8 @@ def run_wizload_session(seed, output_json, level_name, verbose=False):
     rng_log_file = os.path.join(tmpdir, 'rnglog.txt')
     dumpmap_file = os.path.join(tmpdir, 'dumpmap.txt')
     checkpoint_file = os.path.join(tmpdir, 'checkpoints.jsonl')
+    mapdump_dir = os.path.join(tmpdir, 'mapdumps')
+    os.makedirs(mapdump_dir, exist_ok=True)
 
     session_name = f'webhack-wizload-{seed}-{os.getpid()}'
 
@@ -998,6 +1026,7 @@ def run_wizload_session(seed, output_json, level_name, verbose=False):
             f'NETHACK_RNGLOG={rng_log_file} '
             f'NETHACK_DUMPMAP={dumpmap_file} '
             f'NETHACK_DUMPSNAP={checkpoint_file} '
+            f'NETHACK_MAPDUMP_DIR={mapdump_dir} '
             f'HOME={RESULTS_DIR} '
             f'TERM=xterm-256color '
             f'{NETHACK_BINARY} -u {CHARACTER["name"]} -D; '
@@ -1810,6 +1839,8 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
     tmpdir = tempfile.mkdtemp(prefix='webhack-session-')
     rng_log_file = os.path.join(tmpdir, 'rnglog.txt')
     dumpmap_file = os.path.join(tmpdir, 'dumpmap.txt')
+    mapdump_dir = os.path.join(tmpdir, 'mapdumps')
+    os.makedirs(mapdump_dir, exist_ok=True)
 
     session_name = f'webhack-session-{seed}-{os.getpid()}'
 
@@ -1822,6 +1853,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'NETHACK_DUMPMAP={dumpmap_file} '
+            f'NETHACK_MAPDUMP_DIR={mapdump_dir} '
             f'HOME={RESULTS_DIR} '
             f'TERM=xterm-256color '
             f'{NETHACK_BINARY} -u {char["name"]}{wiz_flag}; '
@@ -2005,6 +2037,15 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
 
         # Quit the game cleanly
         quit_game(session_name)
+
+        # Collect auto-mapdump checkpoints from NETHACK_MAPDUMP_DIR
+        all_rng = []
+        for step in session_data.get('steps', []):
+            all_rng.extend(step.get('rng', []))
+        checkpoints = collect_mapdump_checkpoints(mapdump_dir, all_rng)
+        if checkpoints:
+            session_data['checkpoints'] = checkpoints
+            print(f'  Collected {len(checkpoints)} map checkpoint(s): {", ".join(sorted(checkpoints.keys()))}')
 
         # Write JSON with compact typGrid rows
         os.makedirs(os.path.dirname(output_json), exist_ok=True)

@@ -36,6 +36,7 @@ _spec.loader.exec_module(_session)
 tmux_send = _session.tmux_send
 tmux_send_special = _session.tmux_send_special
 capture_screen_compressed = _session.capture_screen_compressed
+capture_cursor = _session.capture_cursor
 parse_rng_lines = _session.parse_rng_lines
 compact_session_json = _session.compact_session_json
 read_rng_log = _session.read_rng_log
@@ -43,6 +44,7 @@ clear_more_prompts = _session.clear_more_prompts
 wait_for_game_ready = _session.wait_for_game_ready
 quit_game = _session.quit_game
 fixed_datetime_env = _session.fixed_datetime_env
+diag_events_env = _session.diag_events_env
 
 
 def setup_option_home(option_lines):
@@ -97,6 +99,7 @@ def generate_option_session(seed, option_name, option_value, option_lines, keys,
 
         cmd = (
             f'{fixed_datetime_env()}'
+            f'{diag_events_env()}'
             f'NETHACKDIR={INSTALL_DIR} '
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -118,6 +121,7 @@ def generate_option_session(seed, option_name, option_value, option_lines, keys,
 
         # Capture startup
         startup_screen = capture_screen_compressed(session_name)
+        startup_cursor = capture_cursor(session_name)
         startup_rng_count, startup_rng_lines = read_rng_log(rng_log_file)
         startup_rng_entries = parse_rng_lines(startup_rng_lines)
         startup_actual_rng = sum(1 for e in startup_rng_entries if e[0] not in ('>', '<'))
@@ -134,6 +138,7 @@ def generate_option_session(seed, option_name, option_value, option_lines, keys,
             clear_more_prompts(session_name)
 
             screen = capture_screen_compressed(session_name)
+            cursor = capture_cursor(session_name)
             rng_count, rng_lines = read_rng_log(rng_log_file)
             rng_entries = parse_rng_lines(rng_lines[prev_rng_count:rng_count])
 
@@ -142,6 +147,7 @@ def generate_option_session(seed, option_name, option_value, option_lines, keys,
                 'action': action,
                 'rng': rng_entries,
                 'screen': screen,
+                'cursor': cursor,
             })
             prev_rng_count = rng_count
 
@@ -151,6 +157,7 @@ def generate_option_session(seed, option_name, option_value, option_lines, keys,
             'action': 'startup',
             'rng': startup_rng_entries,
             'screen': startup_screen,
+            'cursor': startup_cursor,
         }
 
         # Build session data

@@ -36,7 +36,9 @@ _spec.loader.exec_module(_session)
 
 compact_session_json = _session.compact_session_json
 capture_screen_compressed = _session.capture_screen_compressed
+capture_cursor = _session.capture_cursor
 fixed_datetime_env = _session.fixed_datetime_env
+diag_events_env = _session.diag_events_env
 tmux_send = _session.tmux_send
 tmux_send_special = _session.tmux_send_special
 read_rng_log = _session.read_rng_log
@@ -92,29 +94,38 @@ def capture_startup_sequence():
 
         # Capture initial screen (startup step with key: null)
         screen = capture_screen(session)
+        cursor = capture_cursor(session)
         steps.append({
             'key': None,
             'action': 'startup',
             'rng': [],
-            'screen': screen        })
+            'screen': screen,
+            'cursor': cursor,
+        })
 
         # Decline random character
         tmux_send(session, 'n', delay=0.5)
         screen = capture_screen(session)
+        cursor = capture_cursor(session)
         steps.append({
             'key': 'n',
             'action': 'decline-autopick',
             'rng': [],
-            'screen': screen        })
+            'screen': screen,
+            'cursor': cursor,
+        })
 
         # Role selection - press '?' for help
         tmux_send(session, '?', delay=0.5)
         screen = capture_screen(session)
+        cursor = capture_cursor(session)
         steps.append({
             'key': '?',
             'action': 'role-help',
             'rng': [],
-            'screen': screen        })
+            'screen': screen,
+            'cursor': cursor,
+        })
 
         # Press '?' again to return
         tmux_send(session, '?', delay=0.5)
@@ -122,11 +133,14 @@ def capture_startup_sequence():
         # Select archeologist
         tmux_send(session, 'a', delay=0.5)
         screen = capture_screen(session)
+        cursor = capture_cursor(session)
         steps.append({
             'key': 'a',
             'action': 'select-role',
             'rng': [],
-            'screen': screen        })
+            'screen': screen,
+            'cursor': cursor,
+        })
 
     finally:
         kill_tmux_session(session)
@@ -193,65 +207,86 @@ def capture_complete_chargen():
 
         # Initial screen (startup step with key: null)
         screen = capture_screen(session)
+        cursor = capture_cursor(session)
         steps.append({
             'key': None,
             'action': 'startup',
             'rng': [],
-            'screen': screen        })
+            'screen': screen,
+            'cursor': cursor,
+        })
 
         # Decline random character
         tmux_send(session, 'n', delay=0.5)
         screen = capture_screen(session)
+        cursor = capture_cursor(session)
         steps.append({
             'key': 'n',
             'action': 'decline-autopick',
             'rng': [],
-            'screen': screen        })
+            'screen': screen,
+            'cursor': cursor,
+        })
 
         # Select archeologist
         tmux_send(session, 'a', delay=0.5)
         screen = capture_screen(session)
+        cursor = capture_cursor(session)
         steps.append({
             'key': 'a',
             'action': 'select-role',
             'rng': [],
-            'screen': screen        })
+            'screen': screen,
+            'cursor': cursor,
+        })
 
         # Select human
         tmux_send(session, 'h', delay=0.5)
         screen = capture_screen(session)
+        cursor = capture_cursor(session)
         steps.append({
             'key': 'h',
             'action': 'select-race',
             'rng': [],
-            'screen': screen        })
+            'screen': screen,
+            'cursor': cursor,
+        })
 
         # Select male
         tmux_send(session, 'm', delay=0.5)
         screen = capture_screen(session)
+        cursor = capture_cursor(session)
         steps.append({
             'key': 'm',
             'action': 'select-gender',
             'rng': [],
-            'screen': screen        })
+            'screen': screen,
+            'cursor': cursor,
+        })
 
         # Select neutral
         tmux_send(session, 'n', delay=0.5)
         screen = capture_screen(session)
+        cursor = capture_cursor(session)
         steps.append({
             'key': 'n',
             'action': 'select-align',
             'rng': [],
-            'screen': screen        })
+            'screen': screen,
+            'cursor': cursor,
+        })
 
         # Confirm if needed
         tmux_send(session, 'y', delay=0.5)
         screen = capture_screen(session)
+        cursor = capture_cursor(session)
         steps.append({
             'key': 'y',
             'action': 'confirm',
             'rng': [],
-            'screen': screen        })
+            'screen': screen,
+            'cursor': cursor,
+        })
 
     finally:
         kill_tmux_session(session)
@@ -302,6 +337,7 @@ def capture_tutorial_prompt_flow(seed=1):
         cmd = (
             f'NETHACKDIR={nethack_dir} '
             f'{fixed_datetime_env()}'
+            f'{diag_events_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'HOME={tmpdir} '
@@ -318,6 +354,7 @@ def capture_tutorial_prompt_flow(seed=1):
             'action': 'startup',
             'rng': parse_rng_lines(startup_rng_lines),
             'screen': capture_screen(session),
+            'cursor': capture_cursor(session),
         })
 
         key_plan = [
@@ -352,6 +389,7 @@ def capture_tutorial_prompt_flow(seed=1):
                 'action': action,
                 'rng': parse_rng_lines(delta_lines),
                 'screen': screen,
+                'cursor': capture_cursor(session),
             })
             prev_rng_count = rng_count
     finally:
@@ -374,6 +412,7 @@ def capture_tutorial_prompt_flow(seed=1):
         'action': 'startup',
         'rng': steps[prompt_idx].get('rng', []),
         'screen': steps[prompt_idx].get('screen', []),
+        'cursor': steps[prompt_idx].get('cursor'),
     }
     tutorial_steps = [startup_step] + steps[prompt_idx + 1:]
 

@@ -449,6 +449,7 @@ export class HeadlessDisplay {
         this._tempOverlay = new Map();
         this.cursorCol = 0;
         this.cursorRow = 0;
+        this.cursorVisible = 1;
     }
 
     setCell(col, row, ch, color = CLR_GRAY, attr = 0) {
@@ -484,7 +485,9 @@ export class HeadlessDisplay {
         this.cursorRow = row;
     }
 
-    getCursor() { return [this.cursorCol, this.cursorRow]; }
+    getCursor() { return [this.cursorCol, this.cursorRow, this.cursorVisible]; }
+
+    cursSet(visibility) { this.cursorVisible = visibility ? 1 : 0; }
 
     cursorOnPlayer(player) {
         if (player) {

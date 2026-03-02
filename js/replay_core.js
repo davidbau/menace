@@ -259,6 +259,32 @@ export function extractTypGrid(map) {
     return grid;
 }
 
+/**
+ * Compare a JS-generated map against a compact mapdump checkpoint.
+ * Returns { match, divergences[] } where each divergence has { grid, x, y, js, session }.
+ */
+export function compareMapdumpCheckpoint(map, parsedCheckpoint) {
+    const divergences = [];
+    if (!parsedCheckpoint?.typGrid) return { match: true, divergences };
+
+    const jsGrid = extractTypGrid(map);
+    const cGrid = parsedCheckpoint.typGrid;
+    for (let y = 0; y < ROWNO; y++) {
+        for (let x = 0; x < COLNO; x++) {
+            const jsVal = jsGrid[y]?.[x] ?? 0;
+            const cVal = cGrid[y]?.[x] ?? 0;
+            if (jsVal !== cVal) {
+                divergences.push({
+                    grid: 'typ', x, y,
+                    js: jsVal, jsName: typName(jsVal),
+                    session: cVal, sessionName: typName(cVal),
+                });
+            }
+        }
+    }
+    return { match: divergences.length === 0, divergences };
+}
+
 // Generate levels 1→maxDepth sequentially on one continuous RNG stream.
 // Returns { grids: { depth: number[][] }, maps: { depth: GameMap } }
 export function generateMapsSequential(seed, maxDepth) {
@@ -926,6 +952,7 @@ export async function replaySession(seed, session, opts = {}) {
             rng: stepRaw.map(toCompactRng),
             screen: lastFrame ? lastFrame.screen : [],
             screenAnsi: lastFrame ? lastFrame.screenAnsi : null,
+            cursor: lastFrame ? lastFrame.cursor : null,
             byteFrames: stepFrames,
             animationBoundaries: stepAnimationBoundaries.slice(),
         });

@@ -161,6 +161,7 @@ export class Display {
         this._tempOverlay = new Map();
         this.cursorCol = 0;
         this.cursorRow = 0;
+        this.cursorVisible = 1;
         this._cursorSpan = null; // currently highlighted <span>
 
         this._createDOM();
@@ -689,7 +690,9 @@ span.nh-cursor {
         }
     }
 
-    getCursor() { return [this.cursorCol, this.cursorRow]; }
+    getCursor() { return [this.cursorCol, this.cursorRow, this.cursorVisible]; }
+
+    cursSet(visibility) { this.cursorVisible = visibility ? 1 : 0; }
 
     // Get the display symbol for a terrain type
     // C ref: defsym.h PCHAR definitions, display.c back_to_glyph()

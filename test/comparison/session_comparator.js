@@ -110,13 +110,17 @@ export function compareRecordedGameplaySession(session, replay, options = {}) {
         }
 
         // Cursor comparison — optional (old sessions lack cursor field)
+        // Supports both [col, row] (legacy) and [col, row, visible] formats.
         const expectedCursor = expected.cursor || null;
         const actualCursor = actual.cursor || null;
         if (expectedCursor) {
             cursorTotal++;
-            const [ec, er] = expectedCursor;
-            const [ac, ar] = actualCursor || [null, null];
-            if (ac === ec && ar === er) {
+            const [ec, er, ev] = expectedCursor;
+            const [ac, ar, av] = actualCursor || [null, null, null];
+            // Position must match; visibility compared only when both sides have it
+            const posMatch = (ac === ec && ar === er);
+            const visMatch = (ev == null || av == null || av === ev);
+            if (posMatch && visMatch) {
                 cursorMatched++;
             } else if (!firstCursorDivergence) {
                 firstCursorDivergence = {
