@@ -236,6 +236,16 @@ function timeoutDetailText(timeout, maxWidth = 999) {
     return truncateText(text, maxWidth);
 }
 
+function trimMiddleWords(s, max = 96) {
+    const src = String(s || '').replace(/\s+/g, ' ').trim();
+    if (src.length <= max) return src;
+    if (max <= 7) return src.slice(0, max);
+    const keep = max - 3;
+    const left = Math.ceil(keep * 0.6);
+    const right = Math.floor(keep * 0.4);
+    return `${src.slice(0, left)}...${src.slice(src.length - right)}`;
+}
+
 // Short inline note: cached cat, or per-channel fallback
 function shortNote(result, cache) {
     const screenEarlyOnly = result?.metrics?.screenWindow?.earlyOnlyCount || 0;
@@ -442,7 +452,7 @@ function main() {
                     ? String(timeout.topline).replace(/\s+/g, ' ').trim()
                     : '';
                 const toplineNote = timeout.topline
-                    ? cDim(`  topline=${JSON.stringify(safeTopline)}`)
+                    ? cDim(`  topline=${JSON.stringify(trimMiddleWords(safeTopline, 96))}`)
                     : '';
                 console.log(passIndicator + ' ' + namePad + '  ' + payload + toplineNote);
                 if (!r.passed) failingResults.push(r);
