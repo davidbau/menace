@@ -452,7 +452,7 @@ function main() {
                     ? String(timeout.topline).replace(/\s+/g, ' ').trim()
                     : '';
                 const toplineNote = timeout.topline
-                    ? cDim(`  topline=${JSON.stringify(trimMiddleWords(safeTopline, 96))}`)
+                    ? cDim(` ${trimMiddleWords(safeTopline, 96)}`)
                     : '';
                 console.log(passIndicator + ' ' + namePad + '  ' + payload + toplineNote);
                 if (!r.passed) failingResults.push(r);
