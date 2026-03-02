@@ -27,7 +27,7 @@ import { makemon, NO_MM_FLAGS, NO_MINVENT, MM_ADJACENTOK } from './makemon.js';
 import { christen_monst, Monnam, mon_nam, x_monnam, ARTICLE_THE,
          SUPPRESS_SADDLE } from './do_name.js';
 import { revive as revive_corpse } from './zap.js';
-import { near_capacity, max_capacity } from './hack.js';
+import { near_capacity, max_capacity, calc_capacity } from './hack.js';
 
 // pickup.js -- Autopickup, floor object pickup, container looting
 // Ported from NetHack pickup.c
@@ -1166,7 +1166,36 @@ function count_buc(list) {
 
 // Handle picking up items
 // C ref: pickup.c pickup()
-function handlePickup(player, map, display) {
+function parse_pickup_burden_level(flags) {
+    const raw = flags?.pickup_burden;
+    if (Number.isInteger(raw)) return raw;
+    if (typeof raw === 'string') {
+        const key = raw.trim().toLowerCase();
+        const table = {
+            unencumbered: 0,
+            burdened: 1,
+            slight: 1,
+            stressed: 2,
+            moderate: 2,
+            strained: 3,
+            heavy: 3,
+            overtaxed: 4,
+            severe: 4,
+            overloaded: 5,
+        };
+        if (key in table) return table[key];
+    }
+    return MOD_ENCUMBER;
+}
+
+function burden_prefix(enc) {
+    if (enc >= EXT_ENCUMBER) return 'You have extreme difficulty';
+    if (enc >= HVY_ENCUMBER) return 'You have much trouble';
+    if (enc >= MOD_ENCUMBER) return 'You have trouble';
+    return 'You have a little trouble';
+}
+
+function handlePickup(player, map, display, game = null) {
     const objs = map.objectsAt(player.x, player.y);
     if (objs.length === 0) {
         const loc = map.at(player.x, player.y);
@@ -1221,25 +1250,69 @@ function handlePickup(player, map, display) {
     const cnt_p = { value: obj.quan || 1 };
     const liftResult = lift_object(obj, null, cnt_p, false, player);
     if (liftResult <= 0 || cnt_p.value < 1) {
-        return { moved: false, tookTime: false };
+        return { moved: false, tookTime: liftResult < 0 };
     }
 
-    let pickedObj = obj;
-    if ((obj.quan || 1) !== cnt_p.value && obj.otyp !== LOADSTONE) {
-        pickedObj = splitobj(obj, cnt_p.value);
-        if (!pickedObj) {
-            return { moved: false, tookTime: false };
+    const completePickup = () => {
+        let pickedObj = obj;
+        if ((obj.quan || 1) !== cnt_p.value && obj.otyp !== LOADSTONE) {
+            pickedObj = splitobj(obj, cnt_p.value);
+            if (!pickedObj) {
+                return { moved: false, tookTime: false };
+            }
         }
+
+        const inventoryObj = player.addToInventory(pickedObj);
+        if (pickedObj === obj) {
+            map.removeObject(obj);
+        }
+        observeObject(pickedObj);
+        display.putstr_message(formatInventoryPickupMessage(pickedObj, inventoryObj, player));
+        encumber_msg(player);
+        return { moved: false, tookTime: true };
+    };
+
+    const saveQuan = obj.quan;
+    const saveOwt = obj.owt;
+    obj.quan = cnt_p.value;
+    obj.owt = weight(obj);
+    const addWt = obj.owt;
+    const promptObjName = xname(obj);
+    obj.quan = saveQuan;
+    obj.owt = saveOwt;
+
+    const prevEnc = near_capacity(player);
+    const pickupBurden = parse_pickup_burden_level(game?.flags || player?.flags || {});
+    const nextEnc = calc_capacity(player, addWt);
+    if (game && nextEnc > Math.max(prevEnc, pickupBurden)) {
+        display.putstr_message(
+            `${burden_prefix(nextEnc)} lifting ${promptObjName}.  Continue? [ynq] (q)`
+        );
+        game.pendingPrompt = {
+            type: 'pickup_continue',
+            onKey: (chCode, gameCtx) => {
+                if (chCode === 121 || chCode === 89) { // y/Y
+                    gameCtx.pendingPrompt = null;
+                    const pickupResult = completePickup();
+                    return { handled: true, ...pickupResult };
+                }
+                if (chCode === 110 || chCode === 78 // n/N
+                    || chCode === 113 || chCode === 81 // q/Q
+                    || chCode === 13 || chCode === 10
+                    || chCode === 27) {
+                    gameCtx.pendingPrompt = null;
+                    return { handled: true, moved: false, tookTime: false };
+                }
+                if (chCode === 32) { // space: ack wrapped message; keep prompt active
+                    return { handled: true, moved: false, tookTime: false };
+                }
+                return { handled: true, moved: false, tookTime: false };
+            },
+        };
+        return { moved: false, tookTime: false, prompt: true };
     }
 
-    const inventoryObj = player.addToInventory(pickedObj);
-    if (pickedObj === obj) {
-        map.removeObject(obj);
-    }
-    observeObject(pickedObj);
-    display.putstr_message(formatInventoryPickupMessage(pickedObj, inventoryObj, player));
-    encumber_msg(player);
-    return { moved: false, tookTime: true };
+    return completePickup();
 }
 
 function getContainerContents(container) {
