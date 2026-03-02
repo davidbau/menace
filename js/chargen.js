@@ -226,7 +226,7 @@ export async function maybeDoTutorial(game) {
 }
 
 export async function enterTutorial(game, opts = {}) {
-    const { direct = false } = opts;
+    const { direct = false, deferRender = false } = opts;
     if (!direct) {
         game.display.putstr_message('Entering the tutorial.');
         await game.display.morePrompt(nhgetch);
@@ -252,6 +252,7 @@ export async function enterTutorial(game, opts = {}) {
                 rightRing: player.rightRing || null,
                 blindfold: player.blindfold || null,
                 twoweap: !!player.twoweap,
+                lastInvlet: Number.isInteger(player.lastInvlet) ? player.lastInvlet : null,
             };
         }
 
@@ -271,6 +272,9 @@ export async function enterTutorial(game, opts = {}) {
         player.rightRing = null;
         player.blindfold = null;
         player.twoweap = false;
+        // C tutorial flow effectively starts with a fresh, empty inventory.
+        // Reset letter allocation so first tutorial pickup is 'a'.
+        player.lastInvlet = null;
         find_ac(player);
     };
     game._applyTutorialStrip = applyTutorialStrip;
@@ -288,17 +292,16 @@ export async function enterTutorial(game, opts = {}) {
     (game.u || game.player).dungeonLevel = 1;
     (game.u || game.player).inTutorial = true;
     (game.u || game.player).showExp = !!game.flags.showexp;
-    if (Array.isArray((game.lev || game.map)?.engravings)) {
-        for (const engr of (game.lev || game.map).engravings) {
-            if (engr) engr.erevealed = true;
-        }
-    }
     if ((game.lev || game.map)?.flags?.lit_corridor) game.flags.lit_corridor = true;
     game.placePlayerOnLevel('teleport');
+    const entryEngr = (game.lev || game.map)?.engravingAt?.((game.u || game.player).x, (game.u || game.player).y);
+    if (entryEngr) entryEngr.erevealed = true;
 
-    game.fov.compute((game.lev || game.map), (game.u || game.player).x, (game.u || game.player).y);
-    game.display.renderMap((game.lev || game.map), (game.u || game.player), game.fov, game.flags);
-    game.maybeShowQuestLocateHint((game.u || game.player).dungeonLevel);
+    if (!deferRender) {
+        game.fov.compute((game.lev || game.map), (game.u || game.player).x, (game.u || game.player).y);
+        game.display.renderMap((game.lev || game.map), (game.u || game.player), game.fov, game.flags);
+        game.maybeShowQuestLocateHint((game.u || game.player).dungeonLevel);
+    }
 
 }
 

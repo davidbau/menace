@@ -4022,6 +4022,34 @@ export function object(name_or_opts, x, y) {
         }
     }
     if (obj) {
+        const objOpts = (name_or_opts && typeof name_or_opts === 'object') ? name_or_opts : null;
+        if (objOpts && Number.isFinite(objOpts.spe)) {
+            obj.spe = Math.trunc(objOpts.spe);
+        }
+        if (objOpts && Number.isFinite(objOpts.quantity)) {
+            obj.quan = Math.max(1, Math.trunc(objOpts.quantity));
+        }
+        if (objOpts && Number.isFinite(objOpts.quan)) {
+            obj.quan = Math.max(1, Math.trunc(objOpts.quan));
+        }
+        if (objOpts && Object.prototype.hasOwnProperty.call(objOpts, 'buc')) {
+            const buc = get_table_buc(objOpts);
+            // C ref: sp_lev.c create_object() bless/curse controls.
+            if (buc === 1) { // blessed
+                obj.blessed = true;
+                obj.cursed = false;
+            } else if (buc === 2) { // uncursed
+                obj.blessed = false;
+                obj.cursed = false;
+            } else if (buc === 3) { // cursed
+                obj.blessed = false;
+                obj.cursed = true;
+            } else if (buc === 4) { // not-cursed
+                obj.cursed = false;
+            } else if (buc === 6) { // not-blessed
+                obj.blessed = false;
+            }
+        }
         spObjTrace(`[SPLEV_OBJ_JS] ev=${ev} phase=created call=${getRngCallCount()} otyp=${obj.otyp ?? -1} oclass=${obj.oclass ?? -1} spe=${obj.spe ?? -999} quan=${obj.quan ?? -1}`);
         if (obj.corpsenm !== undefined && obj.corpsenm !== null && obj.corpsenm !== -1) {
             spObjTrace(`[SPLEV_OBJ_JS] ev=${ev} phase=corpsenm call=${getRngCallCount()} got=${obj.corpsenm} otyp=${obj.otyp ?? -1}`);

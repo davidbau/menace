@@ -395,7 +395,7 @@ export function pick_obj(otmp, player) {
     Strcpy(player.ushops, saveushops);
     robshop = otmp.unpaid && !strchr(player.ushops, fakeshop);
   }
-  result = addinv(otmp);
+  result = addinv(otmp, player);
   if (robshop) remote_burglary(ox, oy);
   return result;
 }
@@ -490,7 +490,10 @@ function encumber_msg(player) {
             break;
         }
     }
-    if (player) player._oldcap = newcap;
+    if (player) {
+        player._oldcap = newcap;
+        player.encumbrance = newcap;
+    }
     oldcap = newcap;
 }
 

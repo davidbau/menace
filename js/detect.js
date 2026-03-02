@@ -1,7 +1,7 @@
 import { isok, COLNO, ROWNO, SDOOR, SCORR, DOOR, CORR, STONE,
          D_CLOSED, D_LOCKED, D_TRAPPED, D_NODOOR, D_BROKEN, D_ISOPEN,
          IS_DOOR, A_WIS, A_INT, TRAPPED_CHEST, TRAPPED_DOOR,
-         BEAR_TRAP, STATUE_TRAP } from './config.js';
+         BEAR_TRAP, STATUE_TRAP, SQKY_BOARD, SLP_GAS_TRAP } from './config.js';
 import { rn2, rnd, rnl } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, FOOD_CLASS, POTION_CLASS, COIN_CLASS, ROCK_CLASS,
@@ -99,6 +99,22 @@ function sensemon() { return false; }
 function warning_of() { return false; }
 function seemimic_local(mtmp) {
     if (mtmp && mtmp.m_ap_type) mtmp.m_ap_type = 0;
+}
+function addArticle(noun) {
+    if (!noun) return 'a trap';
+    const first = String(noun).trim().charAt(0).toLowerCase();
+    const article = 'aeiou'.includes(first) ? 'an' : 'a';
+    return `${article} ${noun}`;
+}
+function trapDiscoveryName(ttyp) {
+    switch (ttyp) {
+    case SQKY_BOARD:
+        return 'squeaky board';
+    case SLP_GAS_TRAP:
+        return 'sleeping gas trap';
+    default:
+        return 'trap';
+    }
 }
 
 // ========================================================================
@@ -921,8 +937,7 @@ export function find_trap(trap, player, map, display) {
     trap.tseen = 1;
     exercise(player, A_WIS, true);
     feel_newsym(map, trap.tx, trap.ty);
-    set_msg_xy(trap.tx, trap.ty);
-    You("find a trap.");
+    You("find %s.", addArticle(trapDiscoveryName(trap.ttyp)));
 }
 
 // ========================================================================
@@ -1002,8 +1017,7 @@ export function dosearch0(player, map, display, game = null) {
                 // C ref: detect.c:2080 -- trap detection with rnl(8)
                 const trap = map.trapAt?.(nx, ny);
                 if (trap && !trap.tseen && !rnl(8)) {
-                    trap.tseen = true;
-                    exercise(player, A_WIS, true);
+                    find_trap(trap, player, map, display);
                     if (game && Number.isInteger(game.multi) && game.multi > 0) {
                         game.multi = 0;
                     }

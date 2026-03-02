@@ -651,7 +651,17 @@ export function handleHiderPremove(mon, map, player, fov) {
 // C ref: mon.c:3178-3252 corpse_chance() — determines if monster leaves a corpse.
 // Returns true if corpse should be created. CRITICAL: several early-return paths
 // do NOT consume rn2(), so callers must use this instead of rolling directly.
-export function corpse_chance(mon) {
+export function level_specific_nocorpse(mdat, map) {
+    if (!map) return false;
+
+    const flags = map.flags || {};
+    if (flags.is_rogue || flags.roguelike || flags.is_rogue_lev) return true;
+    if (flags.deathdrops === false) return true;
+    if (flags.graveyard && is_undead(mdat)) return rn2(3) !== 0;
+    return false;
+}
+
+export function corpse_chance(mon, map = null) {
     const mdat = mon?.type || (Number.isInteger(mon?.mndx) ? mons[mon.mndx] : {});
     if (!mdat) return false;
 
@@ -667,7 +677,12 @@ export function corpse_chance(mon) {
     }
 
     // C ref: mon.c:3233 — LEVEL_SPECIFIC_NOCORPSE
-    // (Not relevant in early game — skip)
+    if (level_specific_nocorpse(mdat, map))
+        return false;
+
+    // C ref: mon.c corpse_chance() early no-corpse exits.
+    if ((mdat.geno || 0) & G_NOCORPSE)
+        return false;
 
     // C ref: mon.c:3235-3238 — big monsters, lizards, golems, players, riders,
     // shopkeepers ALWAYS leave corpses (no RNG consumed)
@@ -758,7 +773,7 @@ export function mondied(mon, map, player) {
     mondead_full(mon, map, player);
     if (mon.mhp > 0) return; // life-saved
 
-    if (corpse_chance(mon) && map) {
+    if (corpse_chance(mon, map) && map) {
         const loc = map.at(mon.mx, mon.my);
         if (loc && (ACCESSIBLE(loc.typ) || IS_POOL(loc.typ))) {
             make_corpse(mon, 0, map);
@@ -802,16 +817,21 @@ export function xkilled(mon, xkill_flags, map, player) {
     mondead_full(mon, map, player);
     if (mon.mhp > 0) return; // life-saved
 
-    if (nocorpse) return;
+    const mdat = mon?.type || (Number.isInteger(mon?.mndx) ? mons[mon.mndx] : {});
+    if (nocorpse || level_specific_nocorpse(mdat, map)) return;
 
     // C ref: treasure drop — rn2(6)
-    if (map && !rn2(6) && (x !== (player?.x || 0) || y !== (player?.y || 0))) {
+    if (map && !rn2(6)
+        && !((mdat.geno || 0) & G_NOCORPSE)
+        && (x !== (player?.x || 0) || y !== (player?.y || 0))
+        && mdat.mlet !== S_KOP
+        && !mon.mcloned) {
         // Simplified: skip treasure drop (would need mkobj with RANDOM_CLASS)
         // RNG consumed for parity
     }
 
     // Corpse
-    if (map && !nocorpse && corpse_chance(mon)) {
+    if (map && !nocorpse && corpse_chance(mon, map)) {
         const loc = map.at(x, y);
         if (loc && (ACCESSIBLE(loc.typ) || IS_POOL(loc.typ))) {
             make_corpse(mon, 0, map);

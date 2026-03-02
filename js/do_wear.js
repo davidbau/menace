@@ -1509,7 +1509,7 @@ function getWornArmorItems(player) {
 }
 
 // cf. do_wear.c dowear() — W command: wear a piece of armor
-async function handleWear(player, display) {
+async function handleWear(player, display, game = null) {
     const wornSet = new Set(getWornArmorItems(player));
     const armor = (player.inventory || []).filter((o) => o.oclass === ARMOR_CLASS && !wornSet.has(o));
     if (armor.length === 0) {
@@ -1560,10 +1560,32 @@ async function handleWear(player, display) {
 
     const sub = objectData[item.otyp]?.sub;
     const slot = ARMOR_SLOTS[sub];
-    player[slot.prop] = item;
-    const onFn = SLOT_ON[sub];
-    if (onFn) onFn(player);
-    find_ac(player);
+    const delay = Number(objectData[item.otyp]?.delay || 0);
+    const wearNow = () => {
+        player[slot.prop] = item;
+        const onFn = SLOT_ON[sub];
+        if (onFn) onFn(player);
+        find_ac(player);
+    };
+
+    // C parity: armor donning can be a multi-turn occupation.
+    if (game && delay > 1) {
+        let remaining = Math.max(0, delay - 1);
+        game.occupation = {
+            occtxt: 'dressing',
+            fn: () => {
+                remaining -= 1;
+                return remaining > 0;
+            },
+            onFinishAfterTurn: () => {
+                wearNow();
+                display.putstr_message('You finish your dressing maneuver.');
+            },
+        };
+        return { moved: false, tookTime: true };
+    }
+
+    wearNow();
     display.putstr_message(`You are now wearing ${doname(item, player)}.`);
     return { moved: false, tookTime: true };
 }

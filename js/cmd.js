@@ -3,7 +3,7 @@
 // Maps keyboard input to game actions.
 
 import { A_STR, A_DEX, A_CON, A_WIS, STATUS_ROW_1,
-         PM_CAVEMAN, PM_ROGUE, RACE_ORC } from './config.js';
+         PM_CAVEMAN, PM_ROGUE, RACE_ORC, SQKY_BOARD } from './config.js';
 import { rn2 } from './rng.js';
 import { handleWizLoadDes, wizLevelChange, wizMap, wizTeleport, wizGenesis, wizWish } from './wizcmds.js';
 import { DIRECTION_KEYS, handleThrow, handleFire } from './dothrow.js';
@@ -311,7 +311,7 @@ export async function rhack(ch, game) {
 
     // Wear armor
     if (c === 'W') {
-        return await handleWear(player, display);
+        return await handleWear(player, display, game);
     }
 
     // Put on ring/accessory
@@ -676,8 +676,8 @@ async function handleExtendedCommand(game) {
             queueRepeatExtcmd((g) => handleWield(g.player, g.display));
             return await handleWield(player, display);
         case 'wear':
-            queueRepeatExtcmd((g) => handleWear(g.player, g.display));
-            return await handleWear(player, display);
+            queueRepeatExtcmd((g) => handleWear(g.player, g.display, g));
+            return await handleWear(player, display, game);
         case 'e':
         case 'eat':
             queueRepeatExtcmd((g) => handleEat(g.player, g.display, g));
@@ -703,28 +703,40 @@ async function handleExtendedCommand(game) {
 
 async function handleExtendedCommandUntrap(game) {
     const { player, map, display } = game;
-    display.putstr_message('In what direction?');
-    const dirCh = await nhgetch();
-    display.topMessage = null;
-    display.messageNeedsMore = false;
+    let dir = null;
+    while (!dir) {
+        display.putstr_message('In what direction?');
+        const dirCh = await nhgetch();
+        display.topMessage = null;
+        display.messageNeedsMore = false;
 
-    const c = String.fromCharCode(dirCh).toLowerCase();
-    let dir = DIRECTION_KEYS[c];
-    if (!dir && (dirCh === 10 || dirCh === 13)) {
-        dir = DIRECTION_KEYS.j;
-    }
-    if (!dir) {
-        display.putstr_message('Never mind.');
-        return { moved: false, tookTime: false };
+        if (dirCh === 27 || dirCh === 32) {
+            display.putstr_message('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+        const c = String.fromCharCode(dirCh).toLowerCase();
+        dir = DIRECTION_KEYS[c] || null;
     }
 
     // Until full trap.c untrap mechanics are ported, consume the command flow
     // without allowing the direction key to turn into accidental movement.
     const tx = player.x + dir[0];
     const ty = player.y + dir[1];
-    if (!map?.trapAt?.(tx, ty)) {
+    const trap = map?.trapAt?.(tx, ty);
+    if (!trap) {
         display.putstr_message('You cannot disable that trap.');
         return { moved: false, tookTime: false };
+    }
+
+    if (trap.ttyp === SQKY_BOARD) {
+        while (true) {
+            display.putstr_message('What do you want to untrap with? [*]');
+            const toolCh = await nhgetch();
+            if (toolCh === 27 || toolCh === 32) {
+                display.putstr_message('Never mind.');
+                return { moved: false, tookTime: false };
+            }
+        }
     }
 
     display.putstr_message('You cannot disable that trap.');

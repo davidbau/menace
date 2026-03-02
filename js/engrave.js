@@ -321,7 +321,10 @@ export async function read_engr_at(map, x, y, player, game = null) {
     pline(typeMsg);
     // Match C topline flow for engraving reads: split into two prompts only
     // when both messages can't fit on one topline.
-    const needsMoreBetweenMessages = (String(typeMsg || '').length + 2 + String(readMsg || '').length) > 79;
+    // C tty message wrapping leaves less than a full 80 columns for
+    // concatenated engraving readouts in practice; use a conservative threshold
+    // so mid-length tutorial engravings split with --More-- like C captures.
+    const needsMoreBetweenMessages = (String(typeMsg || '').length + 2 + String(readMsg || '').length) > 74;
     if (needsMoreBetweenMessages && game?.display && typeof game.display.morePrompt === 'function') {
         // C-parity for in-command engraving prompts: movement side effects have
         // already happened; refresh map/status before waiting for dismissal.

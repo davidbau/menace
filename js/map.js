@@ -112,7 +112,9 @@ export class GameMap {
             shortsighted: false,
             graveyard: false,
             is_maze_lev: false,
+            is_rogue: false,
             is_cavernous_lev: false,
+            deathdrops: true,
             noautosearch: false,
             fumaroles: false,
         };
