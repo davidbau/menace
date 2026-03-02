@@ -33,9 +33,21 @@ function makeGame() {
     const display = {
         topMessage: null,
         lastOverlay: null,
+        rows: 24,
+        cols: 80,
         renderOverlayMenuCalls: [],
+        putstrWrites: [],
+        screenClears: 0,
         putstr_message(msg) {
             this.topMessage = msg;
+        },
+        putstr(col, row, str, color, attr) {
+            this.putstrWrites.push({ col, row, str, color, attr });
+        },
+        setCell(col, row, ch, fg, bg) {},
+        clearRow(row) {},
+        clearScreen() {
+            this.screenClears++;
         },
         renderOverlayMenu(lines) {
             this.renderOverlayMenuCalls.push(lines);
@@ -115,19 +127,16 @@ describe('inventory modal dismissal', () => {
         const result = await rhack('i'.charCodeAt(0), game);
 
         assert.equal(result.tookTime, false);
-        assert.equal(game.display.renderOverlayMenuCalls.length >= 4, true);
-        const firstPage = game.display.renderOverlayMenuCalls[0];
-        const secondPage = game.display.renderOverlayMenuCalls[1];
-        const thirdPage = game.display.renderOverlayMenuCalls[2];
-        const fourthPage = game.display.renderOverlayMenuCalls[3];
-        assert.ok(firstPage.includes('--More--'));
-        assert.ok(!secondPage.includes('--More--'));
-        assert.ok(thirdPage.includes('--More--'));
-        assert.ok(!firstPage.some((line) => String(line || '').startsWith('u - ')));
-        assert.ok(secondPage.some((line) => String(line || '').startsWith('u - ')));
-        assert.ok(fourthPage.some((line) => String(line || '').startsWith('u - ')));
-        assert.ok(!fourthPage.some((line) => line.includes('Weapons')));
-        assert.ok(secondPage.some((line) => String(line || '').startsWith('v - ')));
+        // Multi-page uses fullScreen putstr path (4 page draws = 4 clearScreens)
+        assert.equal(game.display.screenClears >= 4, true);
+        const strs = game.display.putstrWrites.map((w) => w.str);
+        // Page 1 has items a-v (not w); page 2 has items w-y
+        assert.ok(strs.some((s) => String(s || '').startsWith('v - ')));
+        assert.ok(strs.some((s) => String(s || '').startsWith('w - ')));
+        assert.ok(!strs.some((s) => String(s || '').includes('--More--')));
+        // Page counter format: "(N of M)"
+        assert.ok(strs.some((s) => String(s || '').includes('1 of 2')));
+        assert.ok(strs.some((s) => String(s || '').includes('2 of 2')));
     });
 
     it('advances to next page with space and still shows next page items', async () => {
@@ -140,11 +149,12 @@ describe('inventory modal dismissal', () => {
         const result = await rhack('i'.charCodeAt(0), game);
 
         assert.equal(result.tookTime, false);
-        assert.equal(game.display.renderOverlayMenuCalls.length >= 2, true);
-        const finalPage = game.display.renderOverlayMenuCalls[1];
-        assert.ok(finalPage.some((line) => String(line || '').startsWith('u - ')));
-        assert.ok(finalPage.some((line) => String(line || '').startsWith('y - ')));
-        assert.ok(!finalPage.includes('--More--'));
+        // Multi-page uses fullScreen putstr path (2 page draws)
+        assert.equal(game.display.screenClears >= 2, true);
+        const strs = game.display.putstrWrites.map((w) => w.str);
+        // Page 2 contains items w-y (rows=24 means 23 content rows per page)
+        assert.ok(strs.some((s) => String(s || '').startsWith('w - ')));
+        assert.ok(strs.some((s) => String(s || '').startsWith('y - ')));
     });
 
     it('ignores back-page on first page and keeps current page visible', async () => {
@@ -156,17 +166,16 @@ describe('inventory modal dismissal', () => {
         };
         game.display.clearRow = function clearRow() {};
 
-        pushInput('b'.charCodeAt(0)); // already at first page
+        pushInput('b'.charCodeAt(0)); // already at first page — ignored
         pushInput('a'.charCodeAt(0)); // select first page item
         pushInput(' '.charCodeAt(0)); // dismiss action menu
 
         const result = await rhack('i'.charCodeAt(0), game);
 
         assert.equal(result.tookTime, false);
-        assert.equal(game.display.renderOverlayMenuCalls.length >= 1, true);
-        const firstPage = game.display.renderOverlayMenuCalls[0];
-        assert.ok(firstPage.includes('--More--'));
-        assert.ok(firstPage.some((line) => String(line || '').startsWith('a - ')));
+        // Multi-page uses fullScreen putstr — page 1 items drawn via putstr
+        assert.ok(writes.some((w) => String(w.str || '').startsWith('a - ')));
+        assert.ok(writes.some((w) => String(w.str || '').includes('1 of 2')));
         assert.ok(writes.some((w) => w.row === 0 && String(w.str || '').includes('Do what with the scalpel?')));
     });
 
@@ -196,20 +205,19 @@ describe('inventory modal dismissal', () => {
         const result = await rhack('i'.charCodeAt(0), game);
 
         assert.equal(result.tookTime, false);
-        assert.equal(game.display.renderOverlayMenuCalls.length, 2);
-        const firstPage = game.display.renderOverlayMenuCalls[0];
-        const secondPage = game.display.renderOverlayMenuCalls[1];
-        assert.ok(firstPage.includes('--More--'));
-        assert.ok(!secondPage.includes('--More--'));
-        assert.ok(secondPage.some((line) => String(line || '').startsWith('u - ')));
+        // 2 page draws (initial + one > advance; second > is no-op on last page)
+        assert.equal(game.display.screenClears >= 2, true);
+        const strs = game.display.putstrWrites.map((w) => w.str);
+        // Page 2 has items w-y
+        assert.ok(strs.some((s) => String(s || '').startsWith('w - ')));
     });
 
     it('supports first/last page jump controls', async () => {
         const { game } = makeGame();
         const writes = [];
         addInventoryItems(game.player, 40, WEAPON_CLASS);
-        game.display.putstr = function putstr(col, row, str) {
-            if (row === 0) writes.push(String(str || ''));
+        game.display.putstr = function putstr(col, row, str, color, attr) {
+            writes.push({ col, row, str: String(str || ''), color, attr });
         };
         game.display.clearRow = function clearRow() {};
 
@@ -221,33 +229,30 @@ describe('inventory modal dismissal', () => {
         const result = await rhack('i'.charCodeAt(0), game);
 
         assert.equal(result.tookTime, false);
-        assert.equal(game.display.renderOverlayMenuCalls.length >= 3, true);
-        const finalPage = game.display.renderOverlayMenuCalls[2];
-        assert.ok(finalPage.some((line) => String(line || '').startsWith('a - ')));
-        assert.ok(writes.some((w) => w.includes('Do what with the ')));
+        // After ^ (back to first), 'a' is on page 1 → selectable
+        assert.ok(writes.some((w) => w.str.startsWith('a - ')));
+        assert.ok(writes.some((w) => w.row === 0 && w.str.includes('Do what with the ')));
     });
 
     it('jumps directly to last page with \'|\' and allows second-page item selection', async () => {
         const { game } = makeGame();
         const writes = [];
         addInventoryItems(game.player, 40, WEAPON_CLASS);
-        game.display.putstr = function putstr(col, row, str) {
-            if (row === 0) writes.push(String(str || ''));
+        game.display.putstr = function putstr(col, row, str, color, attr) {
+            writes.push({ col, row, str: String(str || ''), color, attr });
         };
         game.display.clearRow = function clearRow() {};
 
-        pushInput('|'.charCodeAt(0));
-        pushInput('u'.charCodeAt(0));
-        pushInput(' '.charCodeAt(0));
+        pushInput('|'.charCodeAt(0));  // jump to last page
+        pushInput('w'.charCodeAt(0));  // select item on last page (w is first item on page 2)
+        pushInput(' '.charCodeAt(0));  // dismiss action menu
 
         const result = await rhack('i'.charCodeAt(0), game);
 
         assert.equal(result.tookTime, false);
-        assert.equal(game.display.renderOverlayMenuCalls.length >= 2, true);
-        const lastPage = game.display.renderOverlayMenuCalls[1];
-        assert.ok(!lastPage.includes('--More--'));
-        assert.ok(lastPage.some((line) => String(line || '').startsWith('u - ')));
-        assert.ok(writes.some((w) => w.includes('Do what with the ')));
+        // Last page has items starting from w
+        assert.ok(writes.some((w) => w.str.startsWith('w - ')));
+        assert.ok(writes.some((w) => w.row === 0 && w.str.includes('Do what with the ')));
     });
 
     it('keeps exact full single page in one redraw and supports last item selection', async () => {
@@ -281,8 +286,8 @@ describe('inventory modal dismissal', () => {
         };
         game.display.clearRow = function clearRow() {};
 
-        pushInput(' '.charCodeAt(0)); // next page
-        pushInput('u'.charCodeAt(0)); // select item from second page
+        pushInput(' '.charCodeAt(0)); // next page (page 2 has w-y with rows=24)
+        pushInput('w'.charCodeAt(0)); // select item visible on second page
         pushInput(' '.charCodeAt(0)); // dismiss action menu
 
         const result = await rhack('i'.charCodeAt(0), game);

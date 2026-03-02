@@ -30,6 +30,7 @@ import {
     wallIsVisible,
     trapGlyph, isDoorHorizontal, determineWallType,
     terrainSymbol as renderTerrainSymbol,
+    formatStatusLine1, formatStatusLine2,
     CLR_BLACK, CLR_GRAY, NO_COLOR, CLR_WHITE,
     CLR_RED, CLR_ORANGE, CLR_BRIGHT_BLUE,
 } from './render.js';
@@ -446,6 +447,8 @@ export class HeadlessDisplay {
         this._lastMapState = null;
         this._mapBaseCells = new Map();
         this._tempOverlay = new Map();
+        this.cursorCol = 0;
+        this.cursorRow = 0;
     }
 
     setCell(col, row, ch, color = CLR_GRAY, attr = 0) {
@@ -476,9 +479,22 @@ export class HeadlessDisplay {
     // No-op for headless mode; the browser display refreshes the DOM here.
     render() {}
 
+    setCursor(col, row) {
+        this.cursorCol = col;
+        this.cursorRow = row;
+    }
+
+    getCursor() { return [this.cursorCol, this.cursorRow]; }
+
+    cursorOnPlayer(player) {
+        if (player) {
+            const mapOffset = this.flags?.msg_window ? 3 : MAP_ROW_START;
+            this.setCursor(player.x - 1, player.y + mapOffset);
+        }
+    }
 
     putstr(col, row, str, color = CLR_GRAY, attr = 0) {
-        for (let i = 0; i < str.length; i++) {
+        for (let i = 0; i < str.length && col + i < this.cols; i++) {
             this.setCell(col + i, row, str[i], color, attr);
         }
     }
@@ -509,6 +525,7 @@ export class HeadlessDisplay {
                 this.putstr(0, 0, combined.substring(0, this.cols));
                 this.topMessage = combined;
                 this.messageNeedsMore = true;
+                this.setCursor(Math.min(combined.length, this.cols - 1), 0);
                 return;
             }
         }
@@ -517,6 +534,7 @@ export class HeadlessDisplay {
         this.putstr(0, 0, msg.substring(0, this.cols));
         this.topMessage = msg;
         this.messageNeedsMore = true;
+        this.setCursor(Math.min(msg.length, this.cols - 1), 0);
     }
 
     // Render the "--More--" marker that C tty appends to the topline before
@@ -528,6 +546,7 @@ export class HeadlessDisplay {
         const msgLen = (this.topMessage || '').length;
         const col = Math.min(msgLen, this.cols - moreStr.length);
         this.putstr(col, 0, moreStr, CLR_GRAY);
+        this.setCursor(Math.min(col + moreStr.length, this.cols - 1), 0);
     }
 
     async morePrompt(nhgetch) {
@@ -884,7 +903,7 @@ export class HeadlessDisplay {
                             continue;
                         }
                         const sym = this.terrainSymbol(loc, gameMap, x, y);
-                        const rememberedColor = (loc.typ === ROOM) ? 8 : sym.color;
+                        const rememberedColor = (loc.typ === ROOM) ? NO_COLOR : sym.color;
                         this.setCell(col, row, sym.ch, rememberedColor);
                     } else {
                         this.setCell(col, row, ' ', CLR_GRAY);
@@ -1078,63 +1097,19 @@ export class HeadlessDisplay {
     renderStatus(player) {
         if (!player) return;
 
-        const level = Number.isFinite(player?.ulevel) ? player.ulevel : (player?.level || 1);
-        const heroHp = Number.isFinite(player?.uhp) ? player.uhp : (player?.hp || 0);
-        const heroHpMax = Number.isFinite(player?.uhpmax) ? player.uhpmax : (player?.hpmax || 0);
-        const female = player.gender === 1;
-        const rank = rankOf(level, player.roleIndex, female);
-        const title = `${player.name} the ${rank}`;
-        const strDisplay = player._screenStrength || player.strDisplay;
-        const line1Parts = [];
-        line1Parts.push(`St:${strDisplay}`);
-        line1Parts.push(`Dx:${player.attributes[3]}`);
-        line1Parts.push(`Co:${player.attributes[4]}`);
-        line1Parts.push(`In:${player.attributes[1]}`);
-        line1Parts.push(`Wi:${player.attributes[2]}`);
-        line1Parts.push(`Ch:${player.attributes[5]}`);
-        const alignStr = player.alignment < 0 ? 'Chaotic'
-            : player.alignment > 0 ? 'Lawful' : 'Neutral';
-        line1Parts.push(alignStr);
-        if (player.showScore && player.score > 0) line1Parts.push(`S:${player.score}`);
-
         this.clearRow(STATUS_ROW_1);
-        const line1 = `${title.padEnd(31)}${line1Parts.join(' ')}`;
+        const line1 = formatStatusLine1(player, rankOf);
         this.putstr(0, STATUS_ROW_1, line1.substring(0, this.cols), CLR_GRAY);
 
-        const line2Parts = [];
-        const levelLabel = player.inTutorial ? 'Tutorial' : 'Dlvl';
-        line2Parts.push(`${levelLabel}:${player.dungeonLevel}`);
-        line2Parts.push(`$:${player.gold}`);
-        line2Parts.push(`HP:${heroHp}(${heroHpMax})`);
-        line2Parts.push(`Pw:${player.pw}(${player.pwmax})`);
-        line2Parts.push(`AC:${player.ac}`);
-        if (player.showExp) {
-            line2Parts.push(`Xp:${level}/${player.exp}`);
-        } else {
-            line2Parts.push(`Xp:${level}`);
-        }
-        if (player.showTime) line2Parts.push(`T:${player.turns}`);
-        if (player.hunger > 1000) line2Parts.push('Satiated');
-        else if (player.hunger <= 50) line2Parts.push('Fainting');
-        else if (player.hunger <= 150) line2Parts.push('Weak');
-        else if (player.hunger <= 300) line2Parts.push('Hungry');
-        if ((player.encumbrance || 0) > 0) {
-            const encNames = ['Burdened', 'Stressed', 'Strained', 'Overtaxed', 'Overloaded'];
-            const idx = Math.max(0, Math.min(encNames.length - 1, (player.encumbrance || 1) - 1));
-            line2Parts.push(encNames[idx]);
-        }
-        if (player.blind) line2Parts.push('Blind');
-        if (player.confused) line2Parts.push('Conf');
-        if (player.stunned) line2Parts.push('Stun');
-        if (player.hallucinating) line2Parts.push('Hallu');
-
         this.clearRow(STATUS_ROW_2);
-        const line2 = line2Parts.join(' ');
+        const line2 = formatStatusLine2(player);
         this.putstr(0, STATUS_ROW_2, line2.substring(0, this.cols), CLR_GRAY);
 
         // C parity: status-line HP text remains default color unless
         // hitpointbar/status highlight settings explicitly request emphasis.
         if (this.flags.hitpointbar) {
+            const heroHp = Number.isFinite(player?.uhp) ? player.uhp : (player?.hp || 0);
+            const heroHpMax = Number.isFinite(player?.uhpmax) ? player.uhpmax : (player?.hpmax || 0);
             const hpPct = heroHpMax > 0 ? heroHp / heroHpMax : 1;
             const hpColor = hpPct <= 0.15 ? CLR_RED
                 : hpPct <= 0.33 ? CLR_ORANGE

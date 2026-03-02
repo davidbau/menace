@@ -403,3 +403,72 @@ export function wallAngleTWall(typ, seenv, wallInfo) {
 
     return row[col];
 }
+
+// ---------------------------------------------------------------------------
+// Status line formatting — shared between HeadlessDisplay and Display.
+// C ref: botl.c bot1str(), bot2str()
+// ---------------------------------------------------------------------------
+
+/**
+ * Format status line 1 text.
+ * @param {Object} player - Player state object
+ * @param {Function} rankOfFn - rankOf(level, roleIndex, female) → rank string
+ * @returns {string} Complete line 1 string, ready for putstr
+ */
+export function formatStatusLine1(player, rankOfFn) {
+    const level = Number.isFinite(player?.ulevel) ? player.ulevel : (player?.level || 1);
+    const female = player.gender === 1;
+    const rank = rankOfFn(level, player.roleIndex, female);
+    const title = `${player.name} the ${rank}`;
+    const strDisplay = player._screenStrength || player.strDisplay;
+    const parts = [];
+    parts.push(`St:${strDisplay}`);
+    parts.push(`Dx:${player.attributes[3]}`);
+    parts.push(`Co:${player.attributes[4]}`);
+    parts.push(`In:${player.attributes[1]}`);
+    parts.push(`Wi:${player.attributes[2]}`);
+    parts.push(`Ch:${player.attributes[5]}`);
+    const alignStr = player.alignment < 0 ? 'Chaotic'
+        : player.alignment > 0 ? 'Lawful' : 'Neutral';
+    parts.push(alignStr);
+    if (player.showScore && player.score > 0) parts.push(`S:${player.score}`);
+    return `${title.padEnd(31)}${parts.join(' ')}`;
+}
+
+/**
+ * Format status line 2 text.
+ * @param {Object} player - Player state object
+ * @returns {string} Complete line 2 string, ready for putstr
+ */
+export function formatStatusLine2(player) {
+    const heroHp = Number.isFinite(player?.uhp) ? player.uhp : (player?.hp || 0);
+    const heroHpMax = Number.isFinite(player?.uhpmax) ? player.uhpmax : (player?.hpmax || 0);
+    const level = Number.isFinite(player?.ulevel) ? player.ulevel : (player?.level || 1);
+    const parts = [];
+    const levelLabel = player.inTutorial ? 'Tutorial' : 'Dlvl';
+    parts.push(`${levelLabel}:${player.dungeonLevel}`);
+    parts.push(`$:${player.gold}`);
+    parts.push(`HP:${heroHp}(${heroHpMax})`);
+    parts.push(`Pw:${player.pw}(${player.pwmax})`);
+    parts.push(`AC:${player.ac}`);
+    if (player.showExp) {
+        parts.push(`Xp:${level}/${player.exp}`);
+    } else {
+        parts.push(`Xp:${level}`);
+    }
+    if (player.showTime) parts.push(`T:${player.turns}`);
+    if (player.hunger > 1000) parts.push('Satiated');
+    else if (player.hunger <= 50) parts.push('Fainting');
+    else if (player.hunger <= 150) parts.push('Weak');
+    else if (player.hunger <= 300) parts.push('Hungry');
+    if ((player.encumbrance || 0) > 0) {
+        const encNames = ['Burdened', 'Stressed', 'Strained', 'Overtaxed', 'Overloaded'];
+        const idx = Math.max(0, Math.min(encNames.length - 1, (player.encumbrance || 1) - 1));
+        parts.push(encNames[idx]);
+    }
+    if (player.blind) parts.push('Blind');
+    if (player.confused) parts.push('Conf');
+    if (player.stunned) parts.push('Stun');
+    if (player.hallucinating) parts.push('Hallu');
+    return parts.join(' ');
+}

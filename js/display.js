@@ -22,31 +22,22 @@ import {
     wallIsVisible,
     trapGlyph,
     terrainSymbol as renderTerrainSymbol,
+    formatStatusLine1, formatStatusLine2,
+    CLR_BLACK, CLR_RED, CLR_GREEN, CLR_BROWN, CLR_BLUE, CLR_MAGENTA,
+    CLR_CYAN, CLR_GRAY, NO_COLOR, CLR_ORANGE, CLR_BRIGHT_GREEN,
+    CLR_YELLOW, CLR_BRIGHT_BLUE, CLR_BRIGHT_MAGENTA, CLR_BRIGHT_CYAN,
+    CLR_WHITE, HI_METAL, HI_WOOD, HI_GOLD, HI_ZAP,
 } from './render.js';
+import { rankOf } from './player.js';
 import { do_lookat, format_do_look_html } from './look.js';
 
-// Color constants (color.h)
-// C ref: include/color.h
-export const CLR_BLACK = 0;
-export const CLR_RED = 1;
-export const CLR_GREEN = 2;
-export const CLR_BROWN = 3;
-export const CLR_BLUE = 4;
-export const CLR_MAGENTA = 5;
-export const CLR_CYAN = 6;
-export const CLR_GRAY = 7;
-export const NO_COLOR = 8;
-export const CLR_ORANGE = 9;
-export const CLR_BRIGHT_GREEN = 10;
-export const CLR_YELLOW = 11;
-export const CLR_BRIGHT_BLUE = 12;
-export const CLR_BRIGHT_MAGENTA = 13;
-export const CLR_BRIGHT_CYAN = 14;
-export const CLR_WHITE = 15;
-export const HI_METAL = CLR_CYAN;
-export const HI_WOOD = CLR_BROWN;
-export const HI_GOLD = CLR_YELLOW;
-export const HI_ZAP = CLR_BRIGHT_BLUE;
+// Re-export color constants from the canonical source (render.js)
+export {
+    CLR_BLACK, CLR_RED, CLR_GREEN, CLR_BROWN, CLR_BLUE, CLR_MAGENTA,
+    CLR_CYAN, CLR_GRAY, NO_COLOR, CLR_ORANGE, CLR_BRIGHT_GREEN,
+    CLR_YELLOW, CLR_BRIGHT_BLUE, CLR_BRIGHT_MAGENTA, CLR_BRIGHT_CYAN,
+    CLR_WHITE, HI_METAL, HI_WOOD, HI_GOLD, HI_ZAP,
+};
 
 // CSS color strings for each NetHack color
 // See DECISIONS.md #2 for color choices
@@ -159,7 +150,7 @@ export class Display {
 
         // Message history
         this.messages = [];
-        this.topMessage = '';
+        this.topMessage = null;
         this.messageNeedsMore = false; // C ref: TOPLINE_NEED_MORE - true if message not acknowledged by keypress
 
         // Game flags (updated by game, used for display options)
@@ -168,6 +159,9 @@ export class Display {
         this._mapBaseCells = new Map();
         // key => stack of transient cells (top is active overlay)
         this._tempOverlay = new Map();
+        this.cursorCol = 0;
+        this.cursorRow = 0;
+        this._cursorSpan = null; // currently highlighted <span>
 
         this._createDOM();
     }
@@ -210,7 +204,20 @@ export class Display {
             }
         }
 
+        // CSS animation for blinking cursor
+        const style = document.createElement('style');
+        style.textContent = `
+@keyframes nh-cursor-blink {
+  0%, 49% { outline: 2px solid rgba(255,255,255,0.85);
+            outline-offset: -2px; }
+  50%, 100% { outline: none; }
+}
+span.nh-cursor {
+  animation: nh-cursor-blink 0.8s step-end infinite;
+}
+`;
         this.container.innerHTML = '';
+        this.container.appendChild(style);
         this.container.appendChild(pre);
 
         // Set up hover info panel
@@ -303,6 +310,7 @@ export class Display {
                 this.putstr(0, MESSAGE_ROW, combined, CLR_WHITE);
                 this.topMessage = combined;
                 // Keep messageNeedsMore true for potential further concatenation
+                this.setCursor(Math.min(combined.length, this.cols - 1), 0);
                 return;
             }
         }
@@ -335,6 +343,7 @@ export class Display {
         // Mark message as needing acknowledgement (for concatenation logic)
         // C ref: toplin = TOPLINE_NEED_MORE after displaying message
         this.messageNeedsMore = true;
+        this.setCursor(Math.min(msg.length, this.cols - 1), 0);
     }
 
     // Render message window (last 3 messages)
@@ -363,10 +372,11 @@ export class Display {
     // Display "--More--" and wait for input
     // C ref: tty_display_nhwindow for message window
     async morePrompt(nhgetch) {
-        const msg = this.topMessage;
         const moreStr = '--More--';
-        const col = Math.min(msg.length + 1, this.cols - moreStr.length);
+        const msgLen = (this.topMessage || '').length;
+        const col = Math.min(msgLen, this.cols - moreStr.length);
         this.putstr(col, MESSAGE_ROW, moreStr, CLR_GREEN);
+        this.setCursor(Math.min(col + moreStr.length, this.cols - 1), 0);
         await nhgetch();
         this.clearRow(MESSAGE_ROW);
     }
@@ -374,13 +384,13 @@ export class Display {
     // Render the map from game state
     // C ref: display.c newsym() and print_glyph()
     renderMap(gameMap, player, fov, flags = {}) {
-        // Store flags for use by other methods (e.g., putstr_message, terrainSymbol)
-        this.flags = flags;
-        this._lastMapState = { gameMap, player, fov, flags };
+        // Merge flags to preserve directly-set properties (e.g., DECgraphics).
+        this.flags = { ...this.flags, ...flags };
+        this._lastMapState = { gameMap, player, fov, flags: { ...this.flags } };
 
         // When msg_window is enabled, map starts at row 3 (after 3-line message window)
         // Otherwise map starts at row 1 (after single message line)
-        const mapOffset = flags.msg_window ? 3 : MAP_ROW_START;
+        const mapOffset = this.flags.msg_window ? 3 : MAP_ROW_START;
 
         for (let y = 0; y < ROWNO; y++) {
             const row = y + mapOffset;
@@ -665,6 +675,22 @@ export class Display {
         // Browser display is immediate through setCell/DOM writes.
     }
 
+    setCursor(col, row) {
+        if (this._cursorSpan) {
+            this._cursorSpan.classList.remove('nh-cursor');
+            this._cursorSpan = null;
+        }
+        this.cursorCol = col;
+        this.cursorRow = row;
+        if (row >= 0 && row < this.rows && col >= 0 && col < this.cols
+            && this.spans[row] && this.spans[row][col]) {
+            this._cursorSpan = this.spans[row][col];
+            this._cursorSpan.classList.add('nh-cursor');
+        }
+    }
+
+    getCursor() { return [this.cursorCol, this.cursorRow]; }
+
     // Get the display symbol for a terrain type
     // C ref: defsym.h PCHAR definitions, display.c back_to_glyph()
     terrainSymbol(loc, gameMap = null, x = -1, y = -1) {
@@ -676,89 +702,19 @@ export class Display {
     renderStatus(player) {
         if (!player) return;
 
-        // Status line 1: Name, attributes, etc.
-        // C ref: botl.c bot1str()
-        const line1Parts = [];
-        const statusName = (player.name && player.name.length > 0)
-            ? (player.name[0].toUpperCase() + player.name.slice(1))
-            : 'Player';
-        line1Parts.push(statusName);
-        // Use strDisplay for proper 18/xx exceptional strength formatting
-        // C ref: attrib.c str_string()
-        line1Parts.push(`St:${player.strDisplay}`);
-        line1Parts.push(`Dx:${player.attributes[3]}`);
-        line1Parts.push(`Co:${player.attributes[4]}`);
-        line1Parts.push(`In:${player.attributes[1]}`);
-        line1Parts.push(`Wi:${player.attributes[2]}`);
-        line1Parts.push(`Ch:${player.attributes[5]}`);
-        const alignStr = player.alignment < 0 ? 'Chaotic'
-                       : player.alignment > 0 ? 'Lawful' : 'Neutral';
-        line1Parts.push(alignStr);
-        // Score
-        if (player.score > 0) {
-            line1Parts.push(`S:${player.score}`);
-        }
-
-        const line1 = line1Parts.join('  ');
         this.clearRow(STATUS_ROW_1);
+        const line1 = formatStatusLine1(player, rankOf);
         this.putstr(0, STATUS_ROW_1, line1.substring(0, this.cols), CLR_GRAY);
 
-        // Status line 2: Dungeon level, HP, Pw, AC, etc.
-        // C ref: botl.c bot2str()
-        const line2Parts = [];
-        const heroHp = Number.isFinite(player?.uhp) ? player.uhp : (player?.hp || 0);
-        const heroHpMax = Number.isFinite(player?.uhpmax) ? player.uhpmax : (player?.hpmax || 0);
-        const heroLevel = Number.isFinite(player?.ulevel) ? player.ulevel : (player?.level || 1);
-        const levelLabel = player.inTutorial ? 'Tutorial' : 'Dlvl';
-        line2Parts.push(`${levelLabel}:${player.dungeonLevel}`);
-        line2Parts.push(`$:${player.gold}`);
-        line2Parts.push(`HP:${heroHp}(${heroHpMax})`);
-        line2Parts.push(`Pw:${player.pw}(${player.pwmax})`);
-        line2Parts.push(`AC:${player.ac}`);
-
-        // Experience
-        if (player.showExp) {
-            line2Parts.push(`Xp:${heroLevel}/${player.exp}`);
-        } else {
-            line2Parts.push(`Xp:${heroLevel}`);
-        }
-
-        // Turn counter (time option)
-        if (player.showTime) {
-            line2Parts.push(`T:${player.turns}`);
-        }
-
-        // Hunger status
-        if (player.hunger > 1000) {
-            line2Parts.push('Satiated');
-        } else if (player.hunger <= 50) {
-            line2Parts.push('Fainting');
-        } else if (player.hunger <= 150) {
-            line2Parts.push('Weak');
-        } else if (player.hunger <= 300) {
-            line2Parts.push('Hungry');
-        }
-
-        // Encumbrance
-        if ((player.encumbrance || 0) > 0) {
-            const encNames = ['Burdened', 'Stressed', 'Strained', 'Overtaxed', 'Overloaded'];
-            const idx = Math.max(0, Math.min(encNames.length - 1, (player.encumbrance || 1) - 1));
-            line2Parts.push(encNames[idx]);
-        }
-
-        // Conditions
-        if (player.blind) line2Parts.push('Blind');
-        if (player.confused) line2Parts.push('Conf');
-        if (player.stunned) line2Parts.push('Stun');
-        if (player.hallucinating) line2Parts.push('Hallu');
-
-        const line2 = line2Parts.join('  ');
         this.clearRow(STATUS_ROW_2);
+        const line2 = formatStatusLine2(player);
         this.putstr(0, STATUS_ROW_2, line2.substring(0, this.cols), CLR_GRAY);
 
         // C parity: status-line HP text is not force-highlighted unless an
         // explicit hitpoint highlight option is enabled.
         if (this.flags.hitpointbar) {
+            const heroHp = Number.isFinite(player?.uhp) ? player.uhp : (player?.hp || 0);
+            const heroHpMax = Number.isFinite(player?.uhpmax) ? player.uhpmax : (player?.hpmax || 0);
             const hpPct = heroHpMax > 0 ? heroHp / heroHpMax : 1;
             const hpColor = hpPct <= 0.15 ? CLR_RED
                 : hpPct <= 0.33 ? CLR_ORANGE
@@ -940,10 +896,10 @@ export class Display {
     // Place cursor on the player
     // C ref: display.c curs_on_u()
     cursorOnPlayer(player) {
-        // In a browser, we could blink or highlight the player cell
-        // For now, just ensure the player @ is bright
         if (player) {
-            this.setCell(player.x - 1, player.y + MAP_ROW_START, '@', CLR_WHITE);
+            const mapOffset = this.flags?.msg_window ? 3 : MAP_ROW_START;
+            this.setCell(player.x - 1, player.y + mapOffset, '@', CLR_WHITE);
+            this.setCursor(player.x - 1, player.y + mapOffset);
         }
     }
 
