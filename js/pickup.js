@@ -27,7 +27,7 @@ import { makemon, NO_MM_FLAGS, NO_MINVENT, MM_ADJACENTOK } from './makemon.js';
 import { christen_monst, Monnam, mon_nam, x_monnam, ARTICLE_THE,
          SUPPRESS_SADDLE } from './do_name.js';
 import { revive as revive_corpse } from './zap.js';
-import { near_capacity } from './hack.js';
+import { near_capacity, max_capacity } from './hack.js';
 
 // pickup.js -- Autopickup, floor object pickup, container looting
 // Ported from NetHack pickup.c
@@ -353,8 +353,53 @@ export function delta_cwt(container, obj) {
 // cf. pickup.c:1574 — carry_count(obj, container, count, telekinesis)
 // Simplified: returns how many of obj we can carry
 function carry_count(obj, container, count, telekinesis, player) {
-    // Simplified stub: allow picking up everything (weight system partial)
-    return count;
+    const savequan = obj.quan || 0;
+    const saveowt = obj.owt || 0;
+    const targetCount = Math.max(0, Math.min(count || savequan, savequan));
+    let wt;
+    let qq = targetCount;
+    const iw = max_capacity(player);
+
+    obj.quan = targetCount;
+    obj.owt = weight(obj);
+    wt = iw + obj.owt;
+    obj.quan = savequan;
+    obj.owt = saveowt;
+
+    if (wt < 0) {
+        return targetCount;
+    }
+
+    if (targetCount > 1 || targetCount < savequan) {
+        for (qq = 1; qq <= targetCount; qq++) {
+            obj.quan = qq;
+            obj.owt = weight(obj);
+            if (iw + obj.owt >= 0) break;
+        }
+        qq--;
+    } else {
+        qq = 0;
+    }
+
+    obj.quan = savequan;
+    obj.owt = saveowt;
+
+    if (qq > 0 && qq < targetCount) {
+        const objName = doname(obj, player);
+        const verb = container ? 'carry' : (telekinesis ? 'acquire' : 'lift');
+        You("can only %s %s of the %s %s.", verb,
+            qq === 1 ? 'one' : 'some',
+            objName,
+            container ? `in ${xname(container)}` : 'lying here');
+    } else if (qq === 0 && targetCount > 0) {
+        const objName = doname(obj, player);
+        const verb = container ? 'carry' : (telekinesis ? 'acquire' : 'lift');
+        There("are %s %s, but you cannot %s any more.",
+            objName,
+            container ? `in ${xname(container)}` : 'here',
+            verb);
+    }
+    return qq;
 }
 
 // cf. pickup.c:1709 — lift_object(obj, container, cnt_p, telekinesis)
@@ -1173,11 +1218,26 @@ function handlePickup(player, map, display) {
         display.putstr_message('There is nothing here to pick up.');
         return { moved: false, tookTime: false };
     }
+    const cnt_p = { value: obj.quan || 1 };
+    const liftResult = lift_object(obj, null, cnt_p, false, player);
+    if (liftResult <= 0 || cnt_p.value < 1) {
+        return { moved: false, tookTime: false };
+    }
 
-    const inventoryObj = player.addToInventory(obj);
-    map.removeObject(obj);
-    observeObject(obj);
-    display.putstr_message(formatInventoryPickupMessage(obj, inventoryObj, player));
+    let pickedObj = obj;
+    if ((obj.quan || 1) !== cnt_p.value && obj.otyp !== LOADSTONE) {
+        pickedObj = splitobj(obj, cnt_p.value);
+        if (!pickedObj) {
+            return { moved: false, tookTime: false };
+        }
+    }
+
+    const inventoryObj = player.addToInventory(pickedObj);
+    if (pickedObj === obj) {
+        map.removeObject(obj);
+    }
+    observeObject(pickedObj);
+    display.putstr_message(formatInventoryPickupMessage(pickedObj, inventoryObj, player));
     encumber_msg(player);
     return { moved: false, tookTime: true };
 }

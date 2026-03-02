@@ -9,6 +9,7 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          TIMEOUT, INTRINSIC, SICK_VOMITABLE, SICK_NONVOMITABLE } from './config.js';
 import { M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC } from './monsters.js';
 import { objectData, COIN_CLASS, FOOD_CLASS } from './objects.js';
+import { weight } from './mkobj.js';
 
 const INVENTORY_LETTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -670,6 +671,7 @@ export class Player {
         const existing = this.inventory.find(it => canMerge(it, obj));
         if (existing) {
             existing.quan = (existing.quan || 1) + (obj.quan || 1);
+            existing.owt = weight(existing);
             return existing;
         }
 
