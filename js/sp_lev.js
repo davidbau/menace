@@ -197,22 +197,6 @@ function getProcessEnv(name) {
     return (typeof process !== 'undefined' && process.env) ? process.env[name] : undefined;
 }
 
-function applyFinalizeContextToMap(map) {
-    if (!map || typeof map !== 'object') return;
-    const ctx = levelState.finalizeContext || {};
-    if (Number.isInteger(ctx.dnum)) {
-        map._dnum = ctx.dnum;
-        map._genDnum = ctx.dnum;
-        if (map.flags && typeof map.flags === 'object') {
-            map.flags.inhell = (ctx.dnum === GEHENNOM);
-        }
-    }
-    if (Number.isInteger(ctx.dlevel)) {
-        map._dlevel = ctx.dlevel;
-        map._genDlevel = ctx.dlevel;
-    }
-}
-
 let spObjTraceEvent = 0;
 function spObjTrace(message) {
     const spec = getProcessEnv('WEBHACK_MKOBJ_TRACE');
@@ -1491,13 +1475,17 @@ export function level_init(opts = {}) {
 
     // Apply the initialization - always create fresh map and clear entity arrays
     levelState.map = new GameMap();
-    applyFinalizeContextToMap(levelState.map);
     installTypWatch(levelState.map);
     // Keep C-like level flags when Lua scripts call level_init multiple times.
     for (const [k, v] of Object.entries(levelState.flags)) {
         if (k in levelState.map.flags) {
             levelState.map.flags[k] = !!v;
         }
+    }
+    const ctx = levelState.finalizeContext || {};
+    if (Number.isFinite(ctx.dnum)) {
+        levelState.map._dnum = ctx.dnum;
+        levelState.map.flags.inhell = (ctx.dnum === GEHENNOM);
     }
     levelState.monsters = [];
     levelState.objects = [];
@@ -2191,7 +2179,6 @@ function mapfrag_match_scan(map, mapfrag) {
 export function map(data) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
 
     let mapStr, halign = 'center', valign = 'center', x, y, lit = false, contents;
@@ -2592,7 +2579,6 @@ const getFreeRoomLoc = get_free_room_loc;
 export function terrain(x_or_opts, y_or_type, type) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
 
     // Handle different formats:
@@ -2679,7 +2665,6 @@ export function terrain(x_or_opts, y_or_type, type) {
 export function replace_terrain(opts) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
 
     const fromToken = (typeof opts.fromterrain === 'string' && opts.fromterrain.length > 0)
@@ -3002,7 +2987,6 @@ function wallification(map) {
 export function build_room(opts = {}) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
 
     // Parse alignment strings - C ref: sp_lev.c defines LEFT=1, CENTER=2, RIGHT=3, TOP=1, BOTTOM=3
@@ -3610,7 +3594,6 @@ export function room(opts = {}) {
 function l_create_stairway(directionOrOpts, x, y, is_ladder = false) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
 
     let dir = directionOrOpts;
@@ -3896,7 +3879,6 @@ function installObjectTimerShims(obj) {
 export function object(name_or_opts, x, y) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
 
     // Handle Lua-style coordinate arrays: des.object("chest", [3,1])
@@ -4356,7 +4338,6 @@ function get_table_xy_or_coord(opts = {}) {
 export function create_trap(type_or_opts, x, y) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
 
     const unpackCoordArg = (coord) => {
@@ -4949,7 +4930,6 @@ export function levregion(opts) {
 export function exclusion(opts) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
     if (!opts || typeof opts !== 'object') {
         throw new Error('wrong parameters');
@@ -5029,7 +5009,6 @@ export function exclusion(opts) {
 export function create_monster(opts_or_class, x, y) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
 
     // NOTE: Lua RNG simulation removed - all themed rooms converted to JS
@@ -5106,7 +5085,6 @@ export function monster(opts_or_class, x, y) {
 export function create_door(state_or_opts, x, y) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
 
     let state;
@@ -5248,7 +5226,6 @@ export function door(state_or_opts, x, y) {
 export function engraving(opts) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
 
     // C ref: lspo_engraving supports:
@@ -5338,7 +5315,6 @@ export function ladder(direction, x, y) {
 export function grave(x_or_opts, y, text) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
 
     const argc = arguments.length;
@@ -5396,7 +5372,6 @@ export function grave(x_or_opts, y, text) {
 export function create_altar(opts) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
 
     let ax;
@@ -5485,7 +5460,6 @@ export function altar(opts) {
 export function gold(amountOrOpts, x, y) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
 
     const argc = arguments.length;
@@ -5561,7 +5535,6 @@ export function gold(amountOrOpts, x, y) {
 export function feature(type, x, y) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
 
     const terrainMap = {
@@ -5657,7 +5630,6 @@ export function feature(type, x, y) {
 export function gas_cloud(opts = {}) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
     if (arguments.length !== 1 || !opts || typeof opts !== 'object' || Array.isArray(opts)) {
         throw new Error('wrong parameters');
@@ -8117,7 +8089,6 @@ export function l_selection_sub(a, b) { return sel_clone(a).sub(b); }
 export function drawbridge(opts) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
 
     const { dir, state, x, y } = opts || {};
@@ -8358,7 +8329,6 @@ export function fill_empty_maze() {
 export function mazewalk(xOrOpts, y, direction) {
     if (!levelState.map) {
         levelState.map = new GameMap();
-        applyFinalizeContextToMap(levelState.map);
     }
 
     let x = xOrOpts;

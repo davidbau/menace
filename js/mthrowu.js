@@ -29,7 +29,7 @@ import {
 import { doname, xname, mkcorpstat, mksobj } from './mkobj.js';
 import { couldsee, m_cansee } from './vision.js';
 import {
-    x_monnam, nonliving, is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
+    x_monnam, is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
     throws_rocks, is_unicorn,
 } from './mondata.js';
 import {
@@ -371,38 +371,8 @@ export function hits_bars(objp, x, y, barsx, barsy, always_hit = 0, whodidit = -
     return hits;
 }
 
-// C ref: mthrowu.c ohitmon() death processing — called either immediately inside
-// ohitmon (default) or deferred by monshoot() to after --More-- prompt (deferDeath=true).
-// In C, monkilled is called after the --More-- prompt fires between throw messages.
-function finishOhitmonDeath(mtmp, map, player, display) {
-    // C ref: mon.c monkilled() → killed_message() — print "X is killed!" if visible.
-    // In C this happens inside monkilled before mondead; replicate here.
-    if (display && couldsee(map, player, mtmp.mx, mtmp.my)) {
-        const mdat = mtmp.type || {};
-        const killVerb = nonliving(mdat) ? 'destroyed' : 'killed';
-        display.putstr_message(
-            `${x_monnam(mtmp, { article: 'the', capitalize: true })} is ${killVerb}!`
-        );
-    }
-    // Ensure mhp=0 in case it was restored to 1 by deferDeath in ohitmon.
-    mtmp.mhp = 0;
-    mondead(mtmp, map);
-    map.removeMonster?.(mtmp);
-    if (player) {
-        const exp = ((mtmp.mlevel || 0) + 1) * ((mtmp.mlevel || 0) + 1);
-        player.exp = (player.exp || 0) + exp;
-        player.score = (player.score || 0) + exp;
-        newexplevel(player, display);
-    }
-    const mdat2 = mons[mtmp.mndx || 0] || {};
-    if (corpse_chance(mtmp) && !(((mdat2.geno || 0) & G_NOCORPSE) !== 0)) {
-        const corpse = mkcorpstat(CORPSE, mtmp.mndx || 0, true, mtmp.mx, mtmp.my, map);
-        if (corpse) corpse.age = (player?.turns || 0) + 1;
-    }
-}
-
 // C ref: mthrowu.c ohitmon().
-export function ohitmon(mtmp, otmp, range, verbose, map, player, display, game, options = {}) {
+export function ohitmon(mtmp, otmp, range, verbose, map, player, display, game) {
     if (!mtmp || !otmp) return 1;
     const od = objectData[otmp.otyp] || {};
     const hitThreshold = 5 + find_mac(mtmp);
@@ -424,23 +394,19 @@ export function ohitmon(mtmp, otmp, range, verbose, map, player, display, game, 
         }
         mtmp.mhp -= damage;
         if (mtmp.mhp <= 0) {
-            if (options.deferDeath) {
-                // C ref: mthrowu.c ohitmon() — in C, monkilled() runs after the --More--
-                // prompt that fires between "throws" and "hits" messages. When deferDeath is
-                // set, skip death processing here; monshoot() will call finishOhitmonDeath()
-                // after the morePrompt so the monster remains visible on the map during the
-                // --More-- pause (matching C's screen capture behavior).
-                // Do NOT call drop_throw here: in C the dagger is placed AFTER monkilled
-                // (^die before ^place[dagger] in the session events). Both death and
-                // projectile placement are deferred to monshoot() post-morePrompt.
-                //
-                // Restore mhp to 1 so monsterAt() (mhp > 0 check) keeps the monster
-                // visible in the display during the --More-- pause, matching C's screen
-                // where the monster is still shown alive until monkilled() fires.
-                mtmp.mhp = 1;
-                return { hit: 1, pendingKill: mtmp, pendingProjectile: otmp };
+            mondead(mtmp, map);
+            map.removeMonster?.(mtmp);
+            if (player) {
+                const exp = ((mtmp.mlevel || 0) + 1) * ((mtmp.mlevel || 0) + 1);
+                player.exp = (player.exp || 0) + exp;
+                player.score = (player.score || 0) + exp;
+                newexplevel(player, display);
             }
-            finishOhitmonDeath(mtmp, map, player, display);
+            const mdat2 = mons[mtmp.mndx || 0] || {};
+            if (corpse_chance(mtmp) && !(((mdat2.geno || 0) & G_NOCORPSE) !== 0)) {
+                const corpse = mkcorpstat(CORPSE, mtmp.mndx || 0, true, mtmp.mx, mtmp.my, map);
+                if (corpse) corpse.age = (player?.turns || 0) + 1;
+            }
         }
         drop_throw(otmp, true, mtmp.mx, mtmp.my, map);
         return 1;
@@ -464,11 +430,6 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
     const tethered_weapon = !!(mwep && otmp?.otyp === AKLYS && mwep.otyp === AKLYS);
     let hitPlayer = false;
 
-    // C ref: mthrowu.c monshoot() — if the player sees the throw, the weapon is
-    // identified visually (dknown set on the item, like dknown in C's obj_is_seen).
-    if (display && player && !player.blind && couldsee(map, player, mon.mx, mon.my)) {
-        otmp.dknown = true;
-    }
     if (display) {
         const targetName = mtarg ? ` at the ${x_monnam(mtarg)}` : '';
         display.putstr_message(`The ${x_monnam(mon)} throws ${thrownObjectName(otmp, player)}${targetName}!`);
@@ -476,23 +437,14 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
 
     const ddx = Math.sign(tx - mon.mx);
     const ddy = Math.sign(ty - mon.my);
-    let pendingKill = null; // monster killed but death deferred until after --More--
-    let pendingProjectile = null; // projectile associated with pendingKill, placed after ^die
     for (let i = 0; i < shots; i++) {
         const projectile = { ...otmp, quan: 1, ox: mon.mx, oy: mon.my, invlet: null };
         m_useup(mon, otmp);
-        // C ref: mthrowu.c ohitmon()/monkilled() — in C, monkilled fires after the
-        // --More-- that appears between the "throws" and "hits" messages. Pass
-        // deferDeath so ohitmon delays removing the killed monster from the map until
-        // after the morePrompt below, matching C's screen-capture state.
-        const deferDeath = !mtarg && display && typeof display.morePrompt === 'function';
         const result = await m_throw_timed(
             mon, mon.mx, mon.my, ddx, ddy, dm, projectile, map, player, display, game,
-            { tethered_weapon, deferDeath }
+            { tethered_weapon }
         );
         if (result?.hitPlayer) hitPlayer = true;
-        if (result?.pendingKill) pendingKill = result.pendingKill;
-        if (result?.pendingProjectile) pendingProjectile = result.pendingProjectile;
         if (tethered_weapon && result?.returnFlight) {
             return_from_mtoss(mon, projectile, true, map);
             if (mon.dead) break;
@@ -525,45 +477,10 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
             display.renderMoreMarker();
         }
         await display.morePrompt(nhgetch);
-        // C ref: mthrowu.c ohitmon() / monkilled() — death processing deferred until after
-        // --More-- so that the monster remains visible in C's screen capture at the
-        // --More-- pause. Apply the death now that the prompt has been dismissed.
-        if (pendingKill) {
-            const killMx = pendingKill.mx;
-            const killMy = pendingKill.my;
-            finishOhitmonDeath(pendingKill, map, player, display);
-            pendingKill = null;
-            // C ref: mthrowu.c — in C, drop_throw places the projectile after monkilled.
-            // This generates ^place[dagger] after ^die in the session event log.
-            if (pendingProjectile) {
-                drop_throw(pendingProjectile, true,
-                    killMx ?? pendingProjectile.ox,
-                    killMy ?? pendingProjectile.oy,
-                    map);
-                pendingProjectile = null;
-            }
-            // C ref: display.c tmp_at(DISP_END) — end animation after monkilled, clearing
-            // the animation artifact from the previous flight position.
-            tmp_at(DISP_END, 0);
-        }
         if (Object.hasOwn(display, 'noConcatenateMessages')) {
             display.noConcatenateMessages = true;
             game._tempNoConcatMessages = true;
         }
-    } else if (pendingKill) {
-        // morePrompt not shown (e.g. single message or mtarg path): apply deferred death now.
-        const killMx = pendingKill.mx;
-        const killMy = pendingKill.my;
-        finishOhitmonDeath(pendingKill, map, player, display);
-        pendingKill = null;
-        if (pendingProjectile) {
-            drop_throw(pendingProjectile, true,
-                killMx ?? pendingProjectile.ox,
-                killMy ?? pendingProjectile.oy,
-                map);
-            pendingProjectile = null;
-        }
-        tmp_at(DISP_END, 0);
     }
     return true;
 }
@@ -627,22 +544,9 @@ export async function m_throw_timed(
 
         const mtmp = map.monsterAt(x, y);
         if (mtmp && !mtmp.dead) {
-            const ohitResult = ohitmon(mtmp, weapon, range, true, map, player, display, game,
-                options.deferDeath ? { deferDeath: true } : {});
-            if (ohitResult) {
+            if (ohitmon(mtmp, weapon, range, true, map, player, display, game)) {
                 // ohitmon() already performs drop_throw() when projectile stops.
                 dropHandledInImpact = true;
-                if (ohitResult !== 1 && ohitResult?.pendingKill) {
-                    // Death deferred until after --More-- prompt; pass back to monshoot().
-                    // Do NOT call tmp_at(DISP_END) here: the animation artifact at the
-                    // previous position (x-1) must remain visible during the --More-- prompt,
-                    // matching C's screen capture where the tty leaves the prior frame on
-                    // screen until after the prompt is dismissed. monshoot() will call
-                    // tmp_at(DISP_END) after finishOhitmonDeath.
-                    return { drop: false, x, y, hitPlayer,
-                        pendingKill: ohitResult.pendingKill,
-                        pendingProjectile: ohitResult.pendingProjectile };
-                }
                 break;
             }
         }

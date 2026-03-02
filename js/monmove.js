@@ -36,7 +36,7 @@ import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          CLOAK_OF_DISPLACEMENT, MINERAL, GOLD_PIECE,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
          objectData } from './objects.js';
-import { next_ident, weight, doname } from './mkobj.js';
+import { next_ident, weight } from './mkobj.js';
 import { can_carry } from './dogmove.js';
 import { couldsee, m_cansee } from './vision.js';
 import { pline_mon, verbalize } from './pline.js';
@@ -987,7 +987,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 return;
             }
             if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
-                const trapResult = await mintrap_postmove(mon, map, player);
+                const trapResult = await mintrap_postmove(mon, map, player, display, fov);
                 if (trapResult === 2 || trapResult === 3) {
                     return;
                 }
@@ -999,7 +999,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
             moveDone = !!mon._mMoveDone;
             let trapDied = false;
             if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
-                const trapResult = await mintrap_postmove(mon, map, player);
+                const trapResult = await mintrap_postmove(mon, map, player, display, fov);
                 if (trapResult === 2 || trapResult === 3) {
                     trapDied = true;
                 } else {
@@ -1010,7 +1010,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 && mon.mcanmove !== false
                 && (mmoved || moveDone)
                 && map.objectsAt(mon.mx, mon.my).length > 0
-                && maybeMonsterPickStuff(mon, map, player, display)) {
+                && maybeMonsterPickStuff(mon, map)) {
                 // C ref: postmov() sets mmoved = MMOVE_DONE when mpickstuff()
                 // succeeds, which suppresses Phase 4 attacks in dochug().
                 moveDone = true;
@@ -1196,7 +1196,7 @@ function shk_move(mon, map, player) {
 }
 
 // C ref: mon.c mpickstuff() early gates.
-function maybeMonsterPickStuff(mon, map, player = null, display = null) {
+function maybeMonsterPickStuff(mon, map) {
     if (mon.isshk && monsterInShop(mon, map)) return false;
     if (!mon.tame && monsterInShop(mon, map) && rn2(25)) return false;
 
@@ -1219,14 +1219,6 @@ function maybeMonsterPickStuff(mon, map, player = null, display = null) {
             map.removeObject(obj);
         }
         mpickobj(mon, picked);
-        // C ref: mon.c mpickstuff() — pline("%s picks up %s.", Monnam, doname)
-        // gated on cansee(mx,my) && !Blind.
-        if (display && player && !player.blind
-            && couldsee(map, player, mon.mx, mon.my)) {
-            // C ref: doname() uses player's object knowledge. Force dknown:true so
-            // the item shows its identified name (player saw it on the floor).
-            display.putstr_message(`${Monnam(mon)} picks up ${doname({ ...picked, dknown: true }, player)}.`);
-        }
         return true;
     }
     return false;

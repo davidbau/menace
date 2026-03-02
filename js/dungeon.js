@@ -4366,10 +4366,6 @@ export function makelevel(depth, dnum, dlevel, opts = {}) {
             if (specialMap) {
                 if (!specialMap.flags) specialMap.flags = {};
                 specialMap._heroHasAmulet = heroHasAmulet;
-                // Preserve generation context for trap/dungeon helpers that
-                // mirror C's current-level queries during special-level build.
-                specialMap._genDnum = Number.isInteger(useDnum) ? useDnum : DUNGEONS_OF_DOOM;
-                specialMap._genDlevel = Number.isInteger(useDlevel) ? useDlevel : depth;
                 specialMap.flags.is_tutorial = (useDnum === TUTORIAL);
                 if (specialName === 'rogue') {
                     // C parity anchor: Is_rogue_level(&u.uz) checks topology's

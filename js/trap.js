@@ -14,7 +14,8 @@ import { is_mindless, touch_petrifies, resists_ston,
          amorphous, is_whirly, unsolid, is_clinger, passes_walls,
          webmaker, grounded, is_flyer, is_floater, breathless,
          resists_fire, resists_sleep, attacktype, strongmonst,
-         extra_nasty, flaming, acidic, completelyrusts
+         extra_nasty, flaming, acidic, completelyrusts,
+         canseemon
        } from './mondata.js';
 import { mon_knows_traps, mon_learns_traps } from './mondata.js';
 import { mondead, newsym, helpless as monHelpless } from './monutil.js';
@@ -402,11 +403,14 @@ function trapeffect_bear_trap_mon(mon, trap, map, player) {
         : mon.mtrapped ? Trap_Caught_Mon : Trap_Effect_Finished;
 }
 
-function trapeffect_slp_gas_trap_mon(mon, trap) {
+function trapeffect_slp_gas_trap_mon(mon, trap, player, fov) {
     const mdat = mons[mon.mndx] || {};
     if (!resists_sleep(mon) && !breathless(mdat) && !helpless(mon)) {
-        sleep_monst(mon, rnd(25), -1);
-        seetrap(trap);
+        // C ref: trap.c:1568-1574 — seetrap only if sleep_monst() returns true AND in_sight
+        const in_sight = canseemon(mon, player, fov);
+        if (sleep_monst(mon, rnd(25), -1) && in_sight) {
+            seetrap(trap);
+        }
     }
     return Trap_Effect_Finished;
 }
@@ -898,7 +902,7 @@ async function trapeffect_selector_mon(mon, trap, trflags, map, player, display,
     case BEAR_TRAP:
         return trapeffect_bear_trap_mon(mon, trap, map, player);
     case SLP_GAS_TRAP:
-        return trapeffect_slp_gas_trap_mon(mon, trap);
+        return trapeffect_slp_gas_trap_mon(mon, trap, player, fov);
     case RUST_TRAP:
         return trapeffect_rust_trap_mon(mon, trap, map, player);
     case FIRE_TRAP:
@@ -1004,13 +1008,6 @@ export async function mintrap_postmove(mon, map, player, display, fov) {
 
         trap_result = await trapeffect_selector_mon(
             mon, trap, 0, map, player, display, fov);
-
-        // C ref: mintrap() calls seetrap() after the switch block when
-        // !already_seen, including when the monster is moved (e.g. magic portal).
-        // Only skip when the trap itself is gone (Trap_Killed_Mon may delete it).
-        if (!already_seen && trap_result !== Trap_Killed_Mon) {
-            seetrap(trap);
-        }
     }
     return trap_result;
 }

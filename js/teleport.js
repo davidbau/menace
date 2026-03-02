@@ -500,6 +500,8 @@ export function mlevel_tele_trap(mtmp, trap, force_it, in_sight, map, player) {
                 ? mtmp.name
                 : 'it';
             pline(`Suddenly, ${mname} disappears out of sight.`);
+            // C ref: teleport.c:2082 — seetrap(trap) when in_sight
+            if (trap && !trap.tseen) { trap.tseen = 1; newsym(trap.tx, trap.ty); }
         }
         if (map?.removeMonster) map.removeMonster(mtmp);
         mtmp.mx = 0;
