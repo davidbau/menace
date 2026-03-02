@@ -156,7 +156,8 @@ async function runUnitTests() {
 
     const { globSync } = await import('node:fs');
     const unitFiles = globSync('test/unit/*.test.js', { cwd: projectRoot });
-    globalTotal += unitFiles.length * 15; // rough estimate: ~15 tests per file
+    const unitEstimate = unitFiles.length * 20; // rough estimate: ~20 tests per file
+    globalTotal += unitEstimate;
 
     return new Promise((resolve) => {
         const child = spawn(
@@ -177,7 +178,11 @@ async function runUnitTests() {
             parseTapLine(line, state);
         });
 
-        child.on('close', () => resolve(state));
+        child.on('close', () => {
+            // Correct the rough estimate with actual count
+            globalTotal += (state.passed + state.failed) - unitEstimate;
+            resolve(state);
+        });
     });
 }
 
