@@ -990,7 +990,7 @@ Patches live in `test/comparison/c-harness/patches/` and are applied by
 The C harness builds a patched NetHack 3.7 binary for ground-truth comparison.
 The C source is **frozen at commit `79c688cc6`** and never modified directly —
 only numbered patches in `test/comparison/c-harness/patches/` are applied on top
-(`001` through `012` as of 2026-02-20).
+(`001` through `016` as of 2026-03-02).
 
 Core harness capabilities come from:
 

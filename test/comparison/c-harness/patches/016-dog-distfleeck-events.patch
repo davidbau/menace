@@ -1,0 +1,104 @@
+diff --git a/src/dogmove.c b/src/dogmove.c
+--- a/src/dogmove.c
++++ b/src/dogmove.c
+@@ -395,11 +395,14 @@
+ dog_invent(struct monst *mtmp, struct edog *edog, int udist)
+ {
+     coordxy omx, omy;
+-    int carryamt = 0;
++    int carryamt = 0, diag_act = 0, diag_otyp = -1, diag_carry = 0;
+     struct obj *obj, *otmp;
+ 
+-    if (helpless(mtmp) || mtmp->meating)
++    if (helpless(mtmp) || mtmp->meating) {
++        event_log("dog_invent_decision[%d@%d,%d ud=%d act=%d otyp=%d carry=%d rv=%d]",
++                  monsndx(mtmp->data), mtmp->mx, mtmp->my, udist, -1, -1, 0, 0);
+         return 0;
++    }
+ 
+     omx = mtmp->mx;
+     omy = mtmp->my;
+@@ -413,6 +416,7 @@
+         if (!rn2(udist + 1) || !rn2(edog->apport))
+             if (rn2(10) < edog->apport) {
+                 relobj(mtmp, (int) mtmp->minvis, TRUE);
++                diag_act = 1;
+                 if (edog->apport > 1)
+                     edog->apport--;
+                 edog->dropdist = udist; /* hpscdi!jon */
+@@ -432,8 +436,13 @@
+             if ((edible <= CADAVER
+                  /* starving pet is more aggressive about eating */
+                  || (edog->mhpmax_penalty && edible == ACCFOOD))
+-                && could_reach_item(mtmp, obj->ox, obj->oy))
+-                return dog_eat(mtmp, obj, omx, omy, FALSE);
++                && could_reach_item(mtmp, obj->ox, obj->oy)) {
++                int rv;
++                rv = dog_eat(mtmp, obj, omx, omy, FALSE);
++                event_log("dog_invent_decision[%d@%d,%d ud=%d act=%d otyp=%d carry=%d rv=%d]",
++                          monsndx(mtmp->data), omx, omy, udist, 2, obj->otyp, 0, rv);
++                return rv;
++            }
+ 
+             carryamt = can_carry(mtmp, obj);
+             if (carryamt > 0 && !obj->cursed
+@@ -458,6 +467,9 @@
+                         obj_extract_self(otmp);
+                         newsym(omx, omy);
+                         (void) mpickobj(mtmp, otmp);
++                        diag_act = 3;
++                        diag_otyp = otmp->otyp;
++                        diag_carry = carryamt;
+                         if (attacktype(mtmp->data, AT_WEAP)
+                             && mtmp->weapon_check == NEED_WEAPON) {
+                             mtmp->weapon_check = NEED_HTH_WEAPON;
+@@ -469,6 +481,8 @@
+             }
+         }
+     }
++    event_log("dog_invent_decision[%d@%d,%d ud=%d act=%d otyp=%d carry=%d rv=%d]",
++              monsndx(mtmp->data), omx, omy, udist, diag_act, diag_otyp, diag_carry, 0);
+     return 0;
+ }
+@@ -1274,6 +1288,8 @@
+         return i;
+ 
+  newdogpos:
++    event_log("dog_move_choice[%d@%d,%d pick=%d,%d chi=%d do_eat=%d cnt=%d appr=%d]",
++              monsndx(mtmp->data), omx, omy, nix, niy, chi, do_eat ? 1 : 0, cnt, appr);
+     if (nix != omx || niy != omy) {
+         event_log("dog_move_exit[%d@%d,%d->%d,%d chi=%d do_eat=%d]",
+                   monsndx(mtmp->data), omx, omy, nix, niy, chi, do_eat);
+diff --git a/src/monmove.c b/src/monmove.c
+--- a/src/monmove.c
++++ b/src/monmove.c
+@@ -537,6 +537,7 @@
+ {
+     int seescaryx, seescaryy;
+     boolean sawscary = FALSE, bravegremlin = (rn2(5) == 0);
++    boolean fleelight = FALSE, sanctuary = FALSE;
+ 
+     *inrange = (dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy)
+                 <= (BOLT_LIM * BOLT_LIM));
+@@ -558,13 +559,18 @@
+     }
+ 
+     sawscary = onscary(seescaryx, seescaryy, mtmp);
+-    if (*nearby && (sawscary
+-                    || (flees_light(mtmp) && !bravegremlin)
+-                    || (!mtmp->mpeaceful && in_your_sanctuary(mtmp, 0, 0)))) {
++    fleelight = flees_light(mtmp) && !bravegremlin;
++    sanctuary = !mtmp->mpeaceful && in_your_sanctuary(mtmp, 0, 0);
++    if (*nearby && (sawscary || fleelight || sanctuary)) {
+         *scared = 1;
+         monflee(mtmp, rnd(rn2(7) ? 10 : 100), TRUE, TRUE);
+     } else
+         *scared = 0;
++
++    event_log("distfleeck[%d@%d,%d in=%d near=%d scare=%d brave=%d saw=%d light=%d sanct=%d]",
++              monsndx(mtmp->data), mtmp->mx, mtmp->my, *inrange, *nearby, *scared,
++              bravegremlin ? 1 : 0, sawscary ? 1 : 0, fleelight ? 1 : 0,
++              sanctuary ? 1 : 0);
+ }
+ 
+ #undef flees_light
