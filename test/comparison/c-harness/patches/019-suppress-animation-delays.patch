@@ -1,0 +1,23 @@
+diff --git a/win/tty/termcap.c b/win/tty/termcap.c
+--- a/win/tty/termcap.c
++++ b/win/tty/termcap.c
+@@ -786,14 +786,17 @@ static const short tmspc10[] = { /* from termcap */
+ #endif
+ #endif
+
+-/* delay 50 ms */
++/* delay 50 ms (or skip if NETHACK_NO_DELAY is set) */
+ void
+ tty_delay_output(void)
+ {
++    static int no_delay = -1;
+ #if defined(MICRO)
+     int i;
+ #endif
+-    if (iflags.debug_fuzzer)
++    if (no_delay < 0)
++        no_delay = (getenv("NETHACK_NO_DELAY") != NULL);
++    if (no_delay || iflags.debug_fuzzer)
+         return;
+ #ifdef TIMED_DELAY
+     if (flags.nap) {
