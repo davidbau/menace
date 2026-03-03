@@ -196,7 +196,7 @@ async function gush(x, y, poolcnt, player, map, display, fov) {
     if (mtmp)
         minliquid(mtmp, map, player);
     else
-        newsym(map, x, y);
+        newsym(x, y);
 }
 
 // cf. fountain.c:165 [static] -- dofindgem(): gem in fountain
@@ -215,7 +215,7 @@ export async function dofindgem(player, map, display) {
     }
     const loc = map.at(player.x, player.y);
     if (loc) SET_FOUNTAIN_LOOTED(loc);
-    newsym(map, player.x, player.y);
+    newsym(player.x, player.y);
     await exercise(player, A_WIS, true); // a discovery!
 }
 
@@ -270,7 +270,7 @@ export async function dryup(x, y, isyou, player, map, display, fov) {
         loc.typ = ROOM;
         loc.flags = 0;
         loc.blessedftn = 0;
-        newsym(map, x, y);
+        newsym(x, y);
         if (isyou && map.inTown && map.inTown(x, y)) {
             // angry_guards(FALSE) -- not yet ported
         }
@@ -373,7 +373,7 @@ export async function drinkfountain(player, map, display, fov) {
             }
             // HSee_invisible |= FROMOUTSIDE
             player.see_invisible_intrinsic = true;
-            newsym(map, player.x, player.y);
+            newsym(player.x, player.y);
             await exercise(player, A_WIS, true);
             break;
         case 26: // See Monsters
@@ -462,7 +462,7 @@ export async function dipfountain(obj, player, map, display, fov) {
             loc.typ = ROOM;
             loc.flags = 0;
         }
-        newsym(map, player.x, player.y);
+        newsym(player.x, player.y);
         if (map.inTown && map.inTown(player.x, player.y)) {
             // angry_guards(FALSE) -- not yet ported
         }
@@ -571,7 +571,7 @@ export async function dipfountain(obj, player, map, display, fov) {
             await pline("Far below you, you see coins glistening in the %s.",
                   hliquid("water"));
         await exercise(player, A_WIS, true);
-        newsym(map, player.x, player.y);
+        newsym(player.x, player.y);
         break;
     }
     default:
@@ -617,7 +617,7 @@ export async function breaksink(x, y, player, map, display, fov) {
         loc.blessedftn = 0;
         SET_FOUNTAIN_LOOTED(loc);
     }
-    newsym(map, x, y);
+    newsym(x, y);
 }
 
 // cf. fountain.c:595 -- drinksink(): drink from sink
@@ -685,7 +685,7 @@ export async function drinksink(player, map, display, fov) {
             }
             loc.looted = (loc.looted || 0) | S_LRING;
             await exercise(player, A_WIS, true);
-            newsym(map, player.x, player.y);
+            newsym(player.x, player.y);
         } else {
             await pline("Some dirty %s backs up in the drain.", hliquid("water"));
         }
@@ -849,7 +849,7 @@ export async function sink_backs_up(x, y, player, map, display) {
             ring.oy = y;
             map.addObject(ring);
         }
-        newsym(map, x, y);
+        newsym(x, y);
         await exercise(player, A_DEX, true);
         await exercise(player, A_WIS, true); // a discovery!
         if (loc) loc.looted = (loc.looted || 0) | S_LRING;

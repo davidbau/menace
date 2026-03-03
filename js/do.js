@@ -292,7 +292,7 @@ export async function dropz(obj, with_impact, player, map) {
         obj.ox = player.x;
         obj.oy = player.y;
         placeFloorObject(map, obj);
-        newsym(map, player.x, player.y);
+        newsym(player.x, player.y);
     }
 }
 
@@ -343,7 +343,7 @@ export async function boulder_hits_pool(otmp, rx, ry, pushing, player, map) {
     if (fills_up) {
         loc.typ = ROOM;
         loc.flags = 0;
-        newsym(map, rx, ry);
+        newsym(rx, ry);
         if (pushing) {
             await pline("You push %s into the %s.", xname(otmp),
                   lava ? "lava" : "water");
@@ -475,7 +475,7 @@ export async function polymorph_sink(player, map) {
         await pline_The("sink vanishes.");
         break;
     }
-    newsym(map, player.x, player.y);
+    newsym(player.x, player.y);
 }
 
 // cf. do.c teleport_sink() — teleport the sink at the player's position
@@ -495,11 +495,11 @@ function teleport_sink(player, map) {
                 // Remove old sink
                 oldloc.typ = ROOM;
                 oldloc.looted = 0;
-                newsym(map, player.x, player.y);
+                newsym(player.x, player.y);
                 // Create sink at new position
                 loc.typ = SINK;
                 loc.looted = alreadylooted ? 1 : 0;
-                newsym(map, cx, cy);
+                newsym(cx, cy);
                 return true;
             }
         }
@@ -1120,8 +1120,8 @@ export function resolveArrivalCollision(game) {
         if (pos) {
             const _omx = mtmp.mx, _omy = mtmp.my;
             mtmp.mx = pos.x; mtmp.my = pos.y;
-            newsym((game.lev || game.map), _omx, _omy);
-            newsym((game.lev || game.map), pos.x, pos.y);
+            newsym(_omx, _omy);
+            newsym(pos.x, pos.y);
         }
     };
 

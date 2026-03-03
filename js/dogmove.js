@@ -1460,8 +1460,8 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
         // C ref: remove_monster/place_monster → newsym at old+new positions
         mon.mx = nix;
         mon.my = niy;
-        newsym(map, omx, omy);
-        newsym(map, nix, niy);
+        newsym(omx, omy);
+        newsym(nix, niy);
 
         // C ref: dogmove.c:1324-1327 — eat after moving
         if (do_eat && eatObj) {
@@ -1489,8 +1489,8 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                 const _omx = mon.mx, _omy = mon.my;
                 mon.mx = ccx;
                 mon.my = ccy;
-                newsym(map, _omx, _omy);
-                newsym(map, ccx, ccy);
+                newsym(_omx, _omy);
+                newsym(ccx, ccy);
             }
         }
     }

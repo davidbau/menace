@@ -109,7 +109,7 @@ export function toss_wsegs(curr, display_update, map) {
             remove_monster_seg(curr.wx, curr.wy);
 
             if (display_update)
-                newsym(map, curr.wx, curr.wy);
+                newsym(curr.wx, curr.wy);
         }
 
         // In JS, garbage collection handles deallocation
@@ -141,7 +141,7 @@ export function worm_move(worm, map, game) {
     // Place a segment at the old worm head position
     var seg = wheads[wnum];
     place_worm_seg_on_map(worm, seg.wx, seg.wy);
-    newsym(map, seg.wx, seg.wy);
+    newsym(seg.wx, seg.wy);
 
     // Create a new dummy segment head at current worm position
     var new_seg = newseg();
@@ -368,7 +368,7 @@ export function detect_wsegs(worm, use_detection_glyph, map) {
         // In a full implementation, this would use show_glyph with
         // detected_monnum_to_glyph/petnum_to_glyph/monnum_to_glyph.
         // For now, just make segments visible via newsym.
-        newsym(map, curr.wx, curr.wy);
+        newsym(curr.wx, curr.wy);
         curr = curr.nseg;
     }
 }
@@ -442,7 +442,7 @@ export function remove_worm(worm, map) {
     while (curr) {
         if (curr.wx) {
             remove_monster_seg(curr.wx, curr.wy);
-            newsym(map, curr.wx, curr.wy);
+            newsym(curr.wx, curr.wy);
             curr.wx = 0;
         }
         curr = curr.nseg;
@@ -498,7 +498,7 @@ export function place_worm_tail_randomly(worm, x, y, map, player) {
             curr = curr.nseg;
             wtails[wnum].nseg = new_tail;
             new_tail = wtails[wnum];
-            newsym(map, nx, ny);
+            newsym(nx, ny);
         } else {
             // Truncate -- no place for rest of it
             toss_wsegs(curr, false, map);

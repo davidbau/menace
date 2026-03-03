@@ -659,7 +659,7 @@ export function clonewiz(map, player, display) {
         mtmp2.m_ap_type = 'monster'; // M_AP_MONSTER
         mtmp2.mappearance = ROLL_FROM(wizapp);
 
-        if (map) newsym(map, mtmp2.mx, mtmp2.my);
+        if (map) newsym(mtmp2.mx, mtmp2.my);
     }
 }
 

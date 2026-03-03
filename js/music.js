@@ -180,7 +180,7 @@ export async function charm_snakes(distance, map, player, fov) {
             mtmp.mstrategy = (mtmp.mstrategy || 0) & ~STRAT_WAITMASK;
             const could_see_mon = canseemon(mtmp, player, fov);
             mtmp.mundetected = 0;
-            newsym(map, mtmp.mx, mtmp.my);
+            newsym(mtmp.mx, mtmp.my);
             if (canseemon(mtmp, player, fov)) {
                 if (!could_see_mon)
                     await You(`notice ${a_monnam(mtmp)}, swaying with the music.`);
@@ -384,7 +384,7 @@ async function do_pit(x, y, tu_pit, map, player, fov) {
             }
         }
     } else {
-        newsym(map, x, y);
+        newsym(x, y);
     }
 }
 
@@ -417,7 +417,7 @@ async function do_earthquake(force, map, player, fov) {
                 wakeup(mtmp, true, map, player); // peaceful monster will become hostile
                 if (mtmp.mundetected) {
                     mtmp.mundetected = 0;
-                    newsym(map, x, y);
+                    newsym(x, y);
                     const ptr = mtmp.data || mtmp.type;
                     if (ceiling_hider(ptr)) {
                         if (cansee(map, player, fov, x, y)) {
@@ -498,7 +498,7 @@ async function do_earthquake(force, map, player, fov) {
                 if (loc.doormask !== undefined) loc.doormask = D_NODOOR;
                 if (loc.flags !== undefined) loc.flags = D_NODOOR;
                 recalc_block_point(x, y);
-                newsym(map, x, y); // before pline
+                newsym(x, y); // before pline
                 if (cansee(map, player, fov, x, y))
                     await pline_The('door collapses.');
                 if (in_rooms(x, y, SHOPBASE, map).length > 0)

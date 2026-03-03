@@ -286,7 +286,7 @@ async function clear_fcorr(grd, forceshow, map, player, fov) {
                     const _omx = mtmp.mx, _omy = mtmp.my;
                     mtmp.mx = 0;
                     mtmp.my = 0;
-                    newsym(map, _omx, _omy);
+                    newsym(_omx, _omy);
                 }
             }
         }
@@ -306,7 +306,7 @@ async function clear_fcorr(grd, forceshow, map, player, fov) {
             }
             del_engr_at(fcx, fcy, map);
             // C: map_location(fcx, fcy, 1) — bypass vision
-            newsym(map, fcx, fcy);
+            newsym(fcx, fcy);
             recalc_block_point(fcx, fcy);
         }
         egrd.fcbeg++;
@@ -349,7 +349,7 @@ export function parkguard(grd, map) {
         if (map && map.removeMonster) {
             // Only remove from spatial index, not from monster list
         }
-        newsym(map, grd.mx, grd.my);
+        newsym(grd.mx, grd.my);
     }
     if (!(map && map.monsterAt && map.monsterAt(0, 0) === grd)) {
         place_monster(grd, 0, 0, map);
@@ -501,13 +501,13 @@ function move_gold(gold, vroom, map) {
 
     // Remove from current position
     if (map.removeObject) map.removeObject(gold);
-    newsym(map, gold.ox, gold.oy);
+    newsym(gold.ox, gold.oy);
     const nx = room.lx + rn2(2);
     const ny = room.ly + rn2(2);
     gold.ox = nx;
     gold.oy = ny;
     placeFloorObject(map, gold);
-    newsym(map, nx, ny);
+    newsym(nx, ny);
 }
 
 // ========================================================================
@@ -552,7 +552,7 @@ async function wallify_vault(grd, map, player, fov) {
                         const _omx = mon.mx, _omy = mon.my;
                         mon.mx = 0;
                         mon.my = 0;
-                        newsym(map, _omx, _omy);
+                        newsym(_omx, _omy);
                     }
                 }
 
@@ -594,7 +594,7 @@ async function wallify_vault(grd, map, player, fov) {
                 // C: xy_set_wall_state(x, y) — set WA_MASK bits
                 del_engr_at(x, y, map);
                 // Hack: show wall restoration to player
-                newsym(map, x, y);
+                newsym(x, y);
                 block_point(x, y);
                 fixed = true;
             }
@@ -631,7 +631,7 @@ export async function gd_mv_monaway(grd, nx, ny, map, player, fov) {
             const _omx = mtmp.mx, _omy = mtmp.my;
             mtmp.mx = 0;
             mtmp.my = 0;
-            newsym(map, _omx, _omy);
+            newsym(_omx, _omy);
         }
         recalc_block_point(nx, ny);
     }
@@ -661,7 +661,7 @@ async function gd_pick_corridor_gold(grd, goldx, goldy, map, player, fov) {
         // Pick up gold
         if (map.removeObject) map.removeObject(gold);
         add_to_minv(grd, gold);
-        newsym(map, goldx, goldy);
+        newsym(goldx, goldy);
 
     } else if (goldx === grd.mx && goldy === grd.my) {
         mpickgold(grd, map);
@@ -670,7 +670,7 @@ async function gd_pick_corridor_gold(grd, goldx, goldy, map, player, fov) {
         // Gold at third spot
         await gd_mv_monaway(grd, goldx, goldy, map, player, fov);
         if (see_it) {
-            newsym(map, grd.mx, grd.my);
+            newsym(grd.mx, grd.my);
             place_monster(grd, goldx, goldy, map);
         }
         mpickgold(grd, map);
@@ -686,9 +686,9 @@ async function gd_pick_corridor_gold(grd, goldx, goldy, map, player, fov) {
     // If guard was moved, move back
     const guardx = grd.mx, guardy = grd.my;
     if (grd.mx !== guardx || grd.my !== guardy) {
-        newsym(map, grd.mx, grd.my);
+        newsym(grd.mx, grd.my);
         place_monster(grd, guardx, guardy, map);
-        newsym(map, guardx, guardy);
+        newsym(guardx, guardy);
     }
 }
 
@@ -837,7 +837,7 @@ export async function invault(map, player, fov) {
     if (spotted) {
         await pline("Suddenly one of the Vault's %s enters!",
             pmname(guard.type || guard.data, Mgender(guard)) + 's');
-        newsym(map, guard.mx, guard.my);
+        newsym(guard.mx, guard.my);
     } else {
         await pline("Someone else has entered the Vault.");
         map_invisible(map, guard.mx, guard.my, player);
@@ -1061,7 +1061,7 @@ export async function gd_move(grd, map, player, fov) {
                 }
                 recalc_block_point(m, n);
                 del_engr_at(m, n, map);
-                newsym(map, m, n);
+                newsym(m, n);
                 return -1;
             }
             // Not fair to get mad when (s)he's fainted or paralyzed
@@ -1082,7 +1082,7 @@ export async function gd_move(grd, map, player, fov) {
                 }
                 recalc_block_point(m, n);
                 del_engr_at(m, n, map);
-                newsym(map, m, n);
+                newsym(m, n);
                 grd.mpeaceful = 0;
                 await gd_letknow(grd, map, player, fov);
                 return -1;
@@ -1199,9 +1199,9 @@ export async function gd_move(grd, map, player, fov) {
                                 return await gd_move_cleanup(grd, semi_dead, false, map, player, fov);
                             egrd.ogx = grd.mx;
                             egrd.ogy = grd.my;
-                            newsym(map, grd.mx, grd.my);
+                            newsym(grd.mx, grd.my);
                             place_monster(grd, nx, ny, map);
-                            newsym(map, grd.mx, grd.my);
+                            newsym(grd.mx, grd.my);
                             await restfakecorr(grd, map, player, fov);
                             return 1;
                         }
@@ -1215,7 +1215,7 @@ export async function gd_move(grd, map, player, fov) {
                         // We handle this inline:
                         unblock_point(nx, ny);
                         if (cansee(map, player, fov, nx, ny))
-                            newsym(map, nx, ny);
+                            newsym(nx, ny);
 
                         // Add to fakecorr
                         if ((nx !== egrd.gdx || ny !== egrd.gdy)
@@ -1235,14 +1235,14 @@ export async function gd_move(grd, map, player, fov) {
                             return await gd_move_cleanup(grd, semi_dead, false, map, player, fov);
                         egrd.ogx = grd.mx;
                         egrd.ogy = grd.my;
-                        newsym(map, grd.mx, grd.my);
+                        newsym(grd.mx, grd.my);
                         place_monster(grd, nx, ny, map);
                         if (g_at(nx, ny, map)) {
                             mpickgold(grd, map);
                             if (canspotmon(grd, map, player, fov))
                                 await pline("%s picks up some gold.", Monnam(grd));
                         } else {
-                            newsym(map, grd.mx, grd.my);
+                            newsym(grd.mx, grd.my);
                         }
                         await restfakecorr(grd, map, player, fov);
                         return 1;
@@ -1321,7 +1321,7 @@ export async function gd_move(grd, map, player, fov) {
     newspot = true;
     unblock_point(nx, ny);
     if (cansee(map, player, fov, nx, ny))
-        newsym(map, nx, ny);
+        newsym(nx, ny);
 
     if ((nx !== ggx || ny !== ggy) || (grd.mx !== ggx || grd.my !== ggy)) {
         const fcp = egrd.fakecorr[egrd.fcend];
@@ -1352,7 +1352,7 @@ export async function gd_move(grd, map, player, fov) {
         return await gd_move_cleanup(grd, semi_dead, false, map, player, fov);
     egrd.ogx = grd.mx;
     egrd.ogy = grd.my;
-    newsym(map, grd.mx, grd.my);
+    newsym(grd.mx, grd.my);
     place_monster(grd, nx, ny, map);
     if (newspot && g_at(nx, ny, map)) {
         // Pick up pre-existing gold so guard doesn't blame hero later
@@ -1360,7 +1360,7 @@ export async function gd_move(grd, map, player, fov) {
         if (canspotmon(grd, map, player, fov))
             await pline("%s picks up some gold.", Monnam(grd));
     } else {
-        newsym(map, grd.mx, grd.my);
+        newsym(grd.mx, grd.my);
     }
     await restfakecorr(grd, map, player, fov);
     return 1;

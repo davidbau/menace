@@ -254,6 +254,6 @@ export function relobj(mon, map, show, _is_pet) {
     }
 
     if (show) {
-        newsym(map, mon.mx, mon.my);
+        newsym(mon.mx, mon.my);
     }
 }

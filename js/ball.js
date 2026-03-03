@@ -206,7 +206,7 @@ export async function placebc_core(player, map) {
     const loc = map.at(player.x, player.y);
     player.bglyph = player.cglyph = loc ? loc.glyph : -1; // pick up glyph
 
-    newsym(map, player.x, player.y);
+    newsym(player.x, player.y);
     bcrestriction = 0;
 }
 
@@ -233,7 +233,7 @@ export function unplacebc_core(player, map) {
             if (loc) loc.glyph = player.bglyph;
         }
         maybe_unhide_at(uball.ox, uball.oy, map);
-        newsym(map, uball.ox, uball.oy);
+        newsym(uball.ox, uball.oy);
     }
     obj_extract_self(uchain, map);
     if (player.blind && (player.bc_felt & BC_CHAIN)) { // drop glyph
@@ -242,7 +242,7 @@ export function unplacebc_core(player, map) {
     }
     maybe_unhide_at(uchain.ox, uchain.oy, map);
 
-    newsym(map, uchain.ox, uchain.oy);
+    newsym(uchain.ox, uchain.oy);
     player.bc_felt = 0; // feel nothing
 }
 
@@ -346,19 +346,19 @@ export function set_bc(already_blind, player, map) {
     if (ball_on_floor)
         remove_object(uball, map);
 
-    newsym(map, uchain.ox, uchain.oy);
+    newsym(uchain.ox, uchain.oy);
     const chainLoc = map.at(uchain.ox, uchain.oy);
     player.cglyph = chainLoc ? chainLoc.glyph : -1;
 
     if (player.bc_order === BCPOS_DIFFER) { // different locations
         place_object(uchain, uchain.ox, uchain.oy, map);
-        newsym(map, uchain.ox, uchain.oy);
+        newsym(uchain.ox, uchain.oy);
         if (ball_on_floor) {
-            newsym(map, uball.ox, uball.oy); // see under ball
+            newsym(uball.ox, uball.oy); // see under ball
             const ballLoc = map.at(uball.ox, uball.oy);
             player.bglyph = ballLoc ? ballLoc.glyph : -1;
             place_object(uball, uball.ox, uball.oy, map);
-            newsym(map, uball.ox, uball.oy); // restore ball
+            newsym(uball.ox, uball.oy); // restore ball
         }
     } else {
         player.bglyph = player.cglyph;
@@ -369,7 +369,7 @@ export function set_bc(already_blind, player, map) {
             place_object(uchain, uchain.ox, uchain.oy, map);
             place_object(uball, uball.ox, uball.oy, map);
         }
-        newsym(map, uball.ox, uball.oy);
+        newsym(uball.ox, uball.oy);
     }
 }
 
@@ -465,11 +465,11 @@ export function move_bc(before, control, ballx, bally, chainx, chainy, player, m
 
             remove_object(uchain, map);
             maybe_unhide_at(uchain.ox, uchain.oy, map);
-            newsym(map, uchain.ox, uchain.oy);
+            newsym(uchain.ox, uchain.oy);
             if (!carried(uball)) {
                 remove_object(uball, map);
                 maybe_unhide_at(uball.ox, uball.oy, map);
-                newsym(map, uball.ox, uball.oy);
+                newsym(uball.ox, uball.oy);
             }
         } else {
             const on_floor = !carried(uball);
@@ -486,9 +486,9 @@ export function move_bc(before, control, ballx, bally, chainx, chainy, player, m
                     place_object(uball, ballx, bally, map);
                 // ball on top
             }
-            newsym(map, chainx, chainy);
+            newsym(chainx, chainy);
             if (on_floor)
-                newsym(map, ballx, bally);
+                newsym(ballx, bally);
         }
     }
 }
@@ -709,7 +709,7 @@ export async function drag_ball(x, y, allow_drag, player, map, game) {
                 player.y0 = player.y;
                 player.x = uchain.ox;
                 player.y = uchain.oy;
-                newsym(map, player.x0, player.y0);
+                newsym(player.x0, player.y0);
             }
             nomul(0, game);
 
@@ -855,7 +855,7 @@ export async function drop_ball(x, y, player, map, game) {
         if (player.blind) {
             player.bc_order = bc_order_fn(player, map);
         }
-        newsym(map, player.x0, player.y0); // clean up old position
+        newsym(player.x0, player.y0); // clean up old position
         if (player.x0 !== player.x || player.y0 !== player.y) {
             await spoteffects(true, player, map, null, game);
         }

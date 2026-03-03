@@ -420,7 +420,7 @@ function migrate_to_level(mtmp, _ledger, _migr, _coord, map) {
     // Remove monster from level
     mtmp.mhp = 0;
     mtmp.dead = true;
-    if (map) newsym(map, mtmp.mx, mtmp.my);
+    if (map) newsym(mtmp.mx, mtmp.my);
 }
 
 // C ref: ledger_no(&u.uz) — ledger number of current level

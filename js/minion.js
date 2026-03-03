@@ -360,7 +360,7 @@ export async function demon_talk(mtmp, map, player, display) {
         }
         mtmp.peaceful = false;
         mtmp.tame = false;
-        if (map && display) newsym(map, mtmp.mx, mtmp.my);
+        if (map && display) newsym(mtmp.mx, mtmp.my);
         return 0;
     }
 
@@ -368,7 +368,7 @@ export async function demon_talk(mtmp, map, player, display) {
     if (is_dprince(mtmp.type || mtmp.data || {}) && mtmp.invisible) {
         mtmp.invisible = false;
         mtmp.perminvis = false;
-        if (map && display) newsym(map, mtmp.mx, mtmp.my);
+        if (map && display) newsym(mtmp.mx, mtmp.my);
     }
 
     const ptr = mtmp.type || mtmp.data || {};

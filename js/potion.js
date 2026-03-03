@@ -1500,7 +1500,7 @@ export async function peffect_monster_detection(otmp, map, player) {
     incr_itimeout( HDetect_monsters, i);
     for (x = 1; x < COLNO; x++) {
       for (y = 0; y < ROWNO; y++) {
-        if (map.locations[x][y].glyph === GLYPH_INVISIBLE) { unmap_object(x, y); newsym(map, x, y); }
+        if (map.locations[x][y].glyph === GLYPH_INVISIBLE) { unmap_object(x, y); newsym(x, y); }
         if (MON_AT(x, y)) gp.potion_unkn = 0;
       }
     }

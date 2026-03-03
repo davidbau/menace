@@ -681,7 +681,7 @@ export function reset_hostility(roamer, map, player) {
         roamer.mtame = 0;
         set_malign(roamer);
     }
-    newsym(map, roamer.mx, roamer.my);
+    newsym(roamer.mx, roamer.my);
 }
 
 // ============================================================================

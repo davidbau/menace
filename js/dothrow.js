@@ -784,8 +784,8 @@ async function mhurtle_step(mon, x, y, map, player) {
         if (typeof map.removeMonster === 'function') map.removeMonster(mon.mx, mon.my);
         mon.mx = x; mon.my = y;
         if (typeof map.placeMonster === 'function') map.placeMonster(mon, x, y);
-        newsym(map, _omx, _omy);
-        newsym(map, x, y);
+        newsym(_omx, _omy);
+        newsym(x, y);
         return true;
     }
     const mtmp = map.monsterAt ? map.monsterAt(x, y) : null;

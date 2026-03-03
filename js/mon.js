@@ -762,7 +762,7 @@ export function mondied(mon, map, player) {
         const loc = map.at(mon.mx, mon.my);
         if (loc && (ACCESSIBLE(loc.typ) || IS_POOL(loc.typ))) {
             make_corpse(mon, 0, map);
-            newsym(map, mon.mx, mon.my);
+            newsym(mon.mx, mon.my);
         }
     }
 }
@@ -775,7 +775,7 @@ export function mongone(mon, map, player) {
     if (Array.isArray(mon.minvent)) mon.minvent = [];
     mon.weapon = null;
     mon.dead = true;
-    if (map) newsym(map, mon.mx, mon.my);
+    if (map) newsym(mon.mx, mon.my);
 }
 
 // C ref: mon.c monkilled() — killed by non-hero
@@ -816,7 +816,7 @@ export function xkilled(mon, xkill_flags, map, player) {
         const loc = map.at(x, y);
         if (loc && (ACCESSIBLE(loc.typ) || IS_POOL(loc.typ))) {
             make_corpse(mon, 0, map);
-            newsym(map, x, y);
+            newsym(x, y);
         }
     }
 }
@@ -864,7 +864,7 @@ export function wakeup(mon, via_attack, map, player) {
 export function seemimic(mon, map) {
     mon.m_ap_type = null;
     mon.appear_as_type = null;
-    if (map) newsym(map, mon.mx, mon.my);
+    if (map) newsym(mon.mx, mon.my);
 }
 
 // C ref: mon.c wake_nearto_core() — wake all within distance
@@ -987,7 +987,7 @@ export function hideunder(mon, map) {
     const old = !!mon.mundetected;
     mon.mundetected = undetected;
     if (undetected !== old) {
-        newsym(map, x, y);
+        newsym(x, y);
     }
     return undetected;
 }
@@ -1112,7 +1112,7 @@ export function meatmetal(mon, map) {
             // C ref: mksobj_at(ROCK, ...) — simplified
             // Rock creation not yet wired
         }
-        newsym(map, mon.mx, mon.my);
+        newsym(mon.mx, mon.my);
         return 1;
     }
     return 0;
@@ -1161,7 +1161,7 @@ export function meatobj(mon, map) {
             mpickobj(mon, otmp);
         }
 
-        if (mon.minvis) newsym(map, mon.mx, mon.my);
+        if (mon.minvis) newsym(mon.mx, mon.my);
     }
     return (count > 0 || ecount > 0) ? 1 : 0;
 }
@@ -1193,7 +1193,7 @@ export function meatcorpse(mon, map) {
         m_consume_obj(mon, otmp, map);
         if (mon.dead || (mon.mhp || 0) <= 0) return 2;
 
-        if (mon.minvis) newsym(map, mon.mx, mon.my);
+        if (mon.minvis) newsym(mon.mx, mon.my);
         return 1;
     }
     return 0;
@@ -1299,7 +1299,7 @@ export function mpickgold(mon, map) {
             map.removeObject(gold);
         }
         mpickobj(mon, gold);
-        newsym(map, mon.mx, mon.my);
+        newsym(mon.mx, mon.my);
         return;
     }
 }

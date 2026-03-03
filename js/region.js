@@ -214,7 +214,7 @@ export function add_region(reg, map, player) {
                 if (is_inside) block_point(i, j);
                 // newsym for visible regions — cansee check omitted for simplicity
                 // as we don't always have fov available here
-                newsym(map, i, j);
+                newsym(i, j);
             }
         }
     }
@@ -254,7 +254,7 @@ export function remove_region(reg, map, player) {
         for (let x = reg.bounding_box.lx; x <= reg.bounding_box.hx; x++) {
             for (let y = reg.bounding_box.ly; y <= reg.bounding_box.hy; y++) {
                 if (isok(x, y) && inside_region(reg, x, y)) {
-                    newsym(map, x, y);
+                    newsym(x, y);
                 }
             }
         }
@@ -503,7 +503,7 @@ export function show_region(reg, x, y, map) {
     // In JS, newsym handles glyph display; gas cloud visibility is managed
     // via the vision system's getMapCloudVisibility and block_point.
     // This is a simplified version.
-    newsym(map, x, y);
+    newsym(x, y);
 }
 
 // ========================================================================

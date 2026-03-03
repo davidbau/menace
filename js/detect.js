@@ -334,7 +334,7 @@ async function _gold_detect_outgoldmap(sobj, player, map, display) {
         }
         if (temp && u_at(player, temp.ox, temp.oy)) ugold = true;
     }
-    if (!ugold) newsym(map, player.x, player.y);
+    if (!ugold) newsym(player.x, player.y);
     await You_feel("very greedy, and sense gold!");
     await exercise(player, A_WIS, true);
     browse_map(); map_redisplay_stub(); reconstrain_map(player);
@@ -400,7 +400,7 @@ export async function food_detect(sobj, player, map, display, game) {
                 if (temp) { temp.ox = mtmp.mx; temp.oy = mtmp.my; map_object(temp, 1); break; }
             }
         }
-        if (!ctu) newsym(map, player.x, player.y);
+        if (!ctu) newsym(player.x, player.y);
         if (sobj) {
             if (sobj.blessed) {
                 await Your("%s %s to tingle and you smell %s.", body_part(NOSE, player),
@@ -483,7 +483,7 @@ export async function object_detect(detector, oclass, player, map, display, game
             map_object({ otyp: GOLD_PIECE, quan: gq, ox: mtmp.mx, oy: mtmp.my }, 1);
         }
     }
-    newsym(map, player.x, player.y);
+    newsym(player.x, player.y);
     await You("detect the %s of %s.", ct ? 'presence' : 'absence', stuff);
     browse_map(); map_redisplay_stub(); reconstrain_map(player);
     return 0;
@@ -593,7 +593,7 @@ async function display_trap_map(cursed_src, player, map, display) {
                        cc.x, cc.y, cursed_src, player, map, display);
         }
     }
-    newsym(map, player.x, player.y);
+    newsym(player.x, player.y);
     await You_feel("%s.", cursed_src ? 'very greedy' : 'entrapped');
     browse_map(); map_redisplay_stub(); reconstrain_map(player);
 }
@@ -726,7 +726,7 @@ export function show_map_spot(x, y, cnf, map) {
     lev.seenv = 0xFF;
     if (lev.typ === SCORR) { lev.typ = CORR; unblock_point(x, y); }
     map_background(map, x, y, 0);
-    newsym(map, x, y);
+    newsym(x, y);
 }
 
 // ========================================================================
@@ -782,7 +782,7 @@ export function cvt_sdoor_to_door(lev, map) {
 function foundone(zx, zy, glyph, map) {
     const lev = map.at(zx, zy);
     if (lev) lev.seenv = 0xFF;
-    newsym(map, zx, zy);
+    newsym(zx, zy);
 }
 
 // ========================================================================
@@ -823,7 +823,7 @@ function findone_fn(zx, zy, found_p, player, map, display) {
         else if (mtmp.mundetected) {
             const mdat = mtmp.type || mtmp.data || {};
             if (is_hider(mdat) || hides_under(mdat) || mdat.mlet === S_EEL) {
-                mtmp.mundetected = 0; newsym(map, zx, zy); found_p.num_mons++;
+                mtmp.mundetected = 0; newsym(zx, zy); found_p.num_mons++;
             }
         }
         if (!canspotmon(mtmp, map, player)) {
@@ -847,13 +847,13 @@ async function openone(zx, zy, numRef, player, map, display) {
             else await Norep("You %s an explosion!", "hear");
             lev.flags = D_NODOOR;
         } else lev.flags = D_ISOPEN;
-        unblock_point(zx, zy); newsym(map, zx, zy); numRef.value++;
+        unblock_point(zx, zy); newsym(zx, zy); numRef.value++;
     } else if (lev.typ === SCORR) {
-        lev.typ = CORR; unblock_point(zx, zy); newsym(map, zx, zy); numRef.value++;
+        lev.typ = CORR; unblock_point(zx, zy); newsym(zx, zy); numRef.value++;
     } else {
         const ttmp = map.trapAt ? map.trapAt(zx, zy) : null;
         if (ttmp && !ttmp.tseen && ttmp.ttyp !== STATUE_TRAP) {
-            ttmp.tseen = 1; newsym(map, zx, zy); numRef.value++;
+            ttmp.tseen = 1; newsym(zx, zy); numRef.value++;
         }
     }
 }
@@ -936,7 +936,7 @@ export async function find_trap(trap, player, map, display) {
     if (!trap) return;
     trap.tseen = 1;
     await exercise(player, A_WIS, true);
-    feel_newsym(map, trap.tx, trap.ty);
+    feel_newsym(trap.tx, trap.ty);
     await You("find %s.", addArticle(trapDiscoveryName(trap.ttyp)));
 }
 
@@ -961,7 +961,7 @@ export async function mfind0(mtmp, via_warning, player, map, display) {
             }
             mtmp.mundetected = 0; found_something = true;
         }
-        newsym(map, x, y);
+        newsym(x, y);
     }
     if (found_something) {
         if (!canspotmon(mtmp, map, player)) {

@@ -892,8 +892,8 @@ export function home_shk(shkp, killkops, map) {
             shkp.mx = x;
             shkp.my = y;
             map.placeMonster?.(shkp, x, y);
-            newsym(map, _omx, _omy);
-            newsym(map, x, y);
+            newsym(_omx, _omy);
+            newsym(x, y);
         }
     }
     after_shk_move(shkp, map);

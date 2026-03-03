@@ -402,7 +402,7 @@ async function makePicklockOccupation(game) {
                 const dx = xlock._targetX;
                 const dy = xlock._targetY;
                 unblock_point(dx, dy);
-                newsym(map, dx, dy);
+                newsym(dx, dy);
             } else if (xlock.door.flags & D_LOCKED) {
                 xlock.door.flags = D_CLOSED;
             } else {
@@ -757,7 +757,7 @@ export async function doorlock(game, otmp, x, y) {
         case SPE_FORCE_BOLT:
             door.typ = DOOR;
             door.flags = D_CLOSED | (door.flags & D_TRAPPED);
-            newsym(map, x, y);
+            newsym(x, y);
             if (cansee(map, player, player.fov, x, y)) {
                 await pline("A door appears in the wall!");
             }
@@ -797,7 +797,7 @@ export async function doorlock(game, otmp, x, y) {
         }
         block_point(x, y);
         door.flags = D_LOCKED | (door.flags & D_TRAPPED);
-        newsym(map, x, y);
+        newsym(x, y);
         break;
 
     case WAN_OPENING:
@@ -816,7 +816,7 @@ export async function doorlock(game, otmp, x, y) {
             if (door.flags & D_TRAPPED) {
                 door.flags = D_NODOOR;
                 unblock_point(x, y);
-                newsym(map, x, y);
+                newsym(x, y);
                 // C: mb_trapped or kaboom
                 loudness = 40;
                 if (cansee(map, player, player.fov, x, y)) {
@@ -828,7 +828,7 @@ export async function doorlock(game, otmp, x, y) {
             }
             door.flags = D_BROKEN;
             recalc_block_point(x, y);
-            newsym(map, x, y);
+            newsym(x, y);
             if (cansee(map, player, player.fov, x, y)) {
                 await pline_The("door crashes open!");
             } else {
@@ -1017,12 +1017,12 @@ export async function handleOpen(player, map, display, game) {
             await display.putstr_message("You set off a trap!");
             loc.flags = D_NODOOR;
             unblock_point(nx, ny);
-            newsym(map, nx, ny);
+            newsym(nx, ny);
         } else {
             loc.flags = D_ISOPEN;
         }
         recalc_block_point(nx, ny);
-        newsym(map, nx, ny);
+        newsym(nx, ny);
     } else {
         await exercise(player, A_STR, true);
         await display.putstr_message("The door resists!");
@@ -1095,7 +1095,7 @@ export async function handleClose(player, map, display, game) {
             await display.putstr_message("The door closes.");
             loc.flags = D_CLOSED;
             block_point(nx, ny);
-            newsym(map, nx, ny);
+            newsym(nx, ny);
         } else {
             await exercise(player, A_STR, true);
             await display.putstr_message("The door resists!");

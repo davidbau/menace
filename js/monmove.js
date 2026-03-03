@@ -906,8 +906,8 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 const _omx = mon.mx, _omy = mon.my;
                 mon.mx = nx;
                 mon.my = ny;
-                newsym(map, _omx, _omy);
-                newsym(map, nx, ny);
+                newsym(_omx, _omy);
+                newsym(nx, ny);
                 return;
             }
             return;
@@ -1209,8 +1209,8 @@ export function move_special(mon, map, player, inHisShop, appr, uondoor, avoid, 
         // C ref: remove_monster/place_monster → newsym at old+new positions
         mon.mx = nix;
         mon.my = niy;
-        newsym(map, omx, omy);
-        newsym(map, nix, niy);
+        newsym(omx, omy);
+        newsym(nix, niy);
         return 1;
     }
     return 0;
@@ -1480,8 +1480,8 @@ async function m_move(mon, map, player, display = null, fov = null) {
             const _omx = mon.mx, _omy = mon.my;
             mon.mx = nx;
             mon.my = ny;
-            newsym(map, _omx, _omy);
-            newsym(map, nx, ny);
+            newsym(_omx, _omy);
+            newsym(nx, ny);
             return true;
         }
         return false;
@@ -1582,8 +1582,8 @@ async function m_move(mon, map, player, display = null, fov = null) {
         // C ref: remove_monster/place_monster → newsym at old+new positions
         mon.mx = nix;
         mon.my = niy;
-        newsym(map, omx, omy);
-        newsym(map, nix, niy);
+        newsym(omx, omy);
+        newsym(nix, niy);
 
         // C ref: monmove.c:1704 (postmov) — maybe_spin_web called AFTER position update (at new cell).
         if (!mon.dead) await maybe_spin_web(mon, map);
@@ -2081,6 +2081,6 @@ export function can_fog(mtmp, game) {
 export async function dissolve_bars(x, y, map) {
   map.locations[x][y].typ = (map.locations[x][y].edge === 1) ? DOOR : (Is_special(map.uz) || in_rooms(x, y, 0)) ? ROOM : CORR;
   map.locations[x][y].flags = 0;
-  newsym(map, x, y);
+  newsym(x, y);
   if (u_at(x, y)) await switch_terrain();
 }

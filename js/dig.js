@@ -197,12 +197,12 @@ export function mdig_tunnel(mtmp, map, player) {
         const trapped = !!(here.flags & D_TRAPPED);
         here.flags = trapped ? D_NODOOR : D_BROKEN;
         recalc_block_point(mtmp.mx, mtmp.my);
-        newsym(map, mtmp.mx, mtmp.my);
+        newsym(mtmp.mx, mtmp.my);
 
         if (trapped) {
             const seeit = canseemon(mtmp, player);
             if (mb_trapped(mtmp, map, player)) { // mtmp is killed
-                newsym(map, mtmp.mx, mtmp.my);
+                newsym(mtmp.mx, mtmp.my);
                 return true;
             }
         } else {
@@ -217,7 +217,7 @@ export function mdig_tunnel(mtmp, map, player) {
         here.typ = CORR;
         here.flags = 0;
         unblock_point(mtmp.mx, mtmp.my);
-        newsym(map, mtmp.mx, mtmp.my);
+        newsym(mtmp.mx, mtmp.my);
         // draft_message(false) — "You feel a draft."
         // C: draft_message consumes rn1(2, ...) + possibly rn1(3, ...) if hallucinating
         // Since we can't detect hallucination state here, and this is a message-only
@@ -269,7 +269,7 @@ export function mdig_tunnel(mtmp, map, player) {
         }
     }
 
-    newsym(map, mtmp.mx, mtmp.my);
+    newsym(mtmp.mx, mtmp.my);
     if (!sobj_at(BOULDER, mtmp.mx, mtmp.my, map)) {
         unblock_point(mtmp.mx, mtmp.my); // vision
     }
@@ -330,12 +330,12 @@ export function furniture_handled(x, y, madeby_u, map) {
         // Fountain effects not yet wired
         lev.typ = ROOM;
         lev.flags = 0;
-        newsym(map, x, y);
+        newsym(x, y);
     } else if (IS_SINK(lev.typ)) {
         // C: breaksink(x, y);
         lev.typ = ROOM;
         lev.flags = 0;
-        newsym(map, x, y);
+        newsym(x, y);
     } else if (lev.typ === DRAWBRIDGE_DOWN
                || (is_drawbridge_wall(x, y, map) >= 0)) {
         let bx = x, by = y;
@@ -382,7 +382,7 @@ export function digactualhole(x, y, madeby, ttyp, map, player) {
     if (existingIdx >= 0) map.traps.splice(existingIdx, 1);
     map.traps.push(ttmp);
 
-    newsym(map, x, y);
+    newsym(x, y);
 
     // C: PIT handling — if at_u and !wont_fall, set_utrap
     if (ttyp === PIT || ttyp === SPIKED_PIT) {
@@ -409,7 +409,7 @@ export function liquid_flow(x, y, typ, ttmp, fillmsg, map) {
     // C: unearth_objs(x, y) — unearthing not yet wired
     // C: obj_ice_effects(x, y, TRUE) — not yet wired
     // C: fillmsg display — message only
-    newsym(map, x, y);
+    newsym(x, y);
 }
 
 
@@ -523,7 +523,7 @@ export function dighole(pit_only, by_magic, cc, map, player) {
         }
     }
 
-    newsym(map, dig_x, dig_y);
+    newsym(dig_x, dig_y);
     return retval;
 }
 
@@ -593,7 +593,7 @@ export function dig_up_grave(cc, map, player) {
     lev.flags = 0;
     lev.horizontal = false; // C: levl[dig_x][dig_y].disturbed = 0 (alias for horizontal)
     // C: del_engr_at(dig_x, dig_y) — remove engravings
-    newsym(map, dig_x, dig_y);
+    newsym(dig_x, dig_y);
 }
 
 
@@ -648,7 +648,7 @@ export async function zap_dig(map, player) {
             const dmg = rnd(6); // simplified: assume no hard helmet
             // C: mksobj_at(ROCK, u.ux, u.uy, FALSE, FALSE)
             mksobj_at(map, ROCK, u.x, u.y, false, false);
-            newsym(map, u.x, u.y);
+            newsym(u.x, u.y);
         } else {
             // Dig downward
             watch_dig(null, u.x, u.y, true, map);
@@ -736,7 +736,7 @@ export async function zap_dig(map, player) {
                 unblock_point(zx, zy);
             }
 
-            newsym(map, zx, zy);
+            newsym(zx, zy);
             zx += (u.dx || 0);
             zy += (u.dy || 0);
         }
@@ -1139,7 +1139,7 @@ export function dig(map, player) {
         if (!IS_OBSTRUCTED(lev.typ)) {
             unblock_point(dpx, dpy);
         }
-        newsym(map, dpx, dpy);
+        newsym(dpx, dpy);
 
         // Earth level: rn2(3), rn2(2) for earth elemental
         if (map.flags && map.flags.is_earthlevel && !rn2(3)) {
@@ -1151,7 +1151,7 @@ export function dig(map, player) {
             lev.flags = D_NODOOR;
             // b_trapped("door", NO_PART)
             recalc_block_point(dpx, dpy);
-            newsym(map, dpx, dpy);
+            newsym(dpx, dpy);
         }
 
         // cleanup
@@ -1379,7 +1379,7 @@ export function buried_ball_to_punishment(map, player) {
             player.utraptype = 0;
         }
         // del_engr_at(cc.x, cc.y) — remove engravings
-        newsym(map, cc.x, cc.y);
+        newsym(cc.x, cc.y);
     }
 }
 
@@ -1402,7 +1402,7 @@ export function buried_ball_to_freedom(map, player) {
             player.utraptype = 0;
         }
         // del_engr_at(cc.x, cc.y) — remove engravings
-        newsym(map, cc.x, cc.y);
+        newsym(cc.x, cc.y);
     }
 }
 
@@ -1482,7 +1482,7 @@ export function bury_objs(x, y, map, player) {
     }
 
     // del_engr_at(x, y) — remove engravings
-    newsym(map, x, y);
+    newsym(x, y);
 }
 
 // cf. dig.c:2085-2112 — unearth_objs(x, y)
@@ -1512,7 +1512,7 @@ export function unearth_objs(x, y, map, player) {
     }
 
     // del_engr_at(x, y)
-    newsym(map, x, y);
+    newsym(x, y);
 }
 
 // cf. dig.c:2124-2140 — rot_organic(arg, timeout)
@@ -1571,7 +1571,7 @@ export function rot_corpse(arg, timeout, map, player) {
 
     if (on_floor && map) {
         // A hiding monster may be exposed
-        newsym(map, x, y);
+        newsym(x, y);
     }
     // C: if (in_invent) update_inventory()
 }
@@ -1593,7 +1593,7 @@ export function bury_monst(mtmp, map, player) {
 
     mtmp.mburied = true;
     // wakeup(mtmp, FALSE)
-    if (map) newsym(map, mtmp.mx, mtmp.my);
+    if (map) newsym(mtmp.mx, mtmp.my);
 }
 
 // cf. dig.c:2211-2227 — bury_you() [#if 0 in C]

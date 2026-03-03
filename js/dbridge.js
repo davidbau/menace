@@ -406,8 +406,8 @@ function do_entity(etmp, occupants, map, player) {
             if (mon) {
                 const _omx = mon.mx, _omy = mon.my;
                 mon.mx = newx; mon.my = newy;
-                newsym(map, _omx, _omy);
-                newsym(map, newx, newy);
+                newsym(_omx, _omy);
+                newsym(newx, newy);
             }
         } else {
             player.x = newx;
@@ -469,8 +469,8 @@ export function close_drawbridge(x, y, map, player) {
     if (t1) { const idx = map.traps.indexOf(t1); if (idx >= 0) map.traps.splice(idx, 1); }
     if (t2) { const idx = map.traps.indexOf(t2); if (idx >= 0) map.traps.splice(idx, 1); }
 
-    newsym(map, x, y);
-    newsym(map, wall.x, wall.y);
+    newsym(x, y);
+    newsym(wall.x, wall.y);
     block_point(wall.x, wall.y);
     nokiller(occupants);
 }
@@ -502,8 +502,8 @@ export function open_drawbridge(x, y, map, player) {
     if (t1) { const idx = map.traps.indexOf(t1); if (idx >= 0) map.traps.splice(idx, 1); }
     if (t2) { const idx = map.traps.indexOf(t2); if (idx >= 0) map.traps.splice(idx, 1); }
 
-    newsym(map, x, y);
-    newsym(map, wall.x, wall.y);
+    newsym(x, y);
+    newsym(wall.x, wall.y);
     unblock_point(wall.x, wall.y);
     nokiller(occupants);
 }
@@ -543,9 +543,9 @@ export function destroy_drawbridge(x, y, map, player) {
         // scatter() would consume more RNG but we skip the physical object creation
     }
 
-    newsym(map, x, y);
+    newsym(x, y);
     if (wallLoc) {
-        newsym(map, wall.x, wall.y);
+        newsym(wall.x, wall.y);
         unblock_point(wall.x, wall.y);
     }
 

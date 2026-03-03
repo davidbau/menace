@@ -148,20 +148,10 @@ export function setDisplayContext(ctx) {
 // When _displayContext is wired, this performs per-cell rendering matching
 // C's incremental newsym behavior.  When _displayContext is null (during
 // level generation or tests), just updates memory state.
-//
-// Supports both newsym(map, x, y) and newsym(x, y) calling conventions.
-// The 2-arg form gets map from the display context (matching C's implicit
-// global level pointer).
-export function newsym(mapOrX, xOrY, maybeY) {
-    let map, x, y;
-    if (maybeY !== undefined) {
-        // 3-arg: newsym(map, x, y)
-        map = mapOrX; x = xOrY; y = maybeY;
-    } else {
-        // 2-arg: newsym(x, y) — get map from display context
-        x = mapOrX; y = xOrY;
-        map = _displayContext?.map;
-    }
+// Map is obtained from the display context (matching C's implicit global
+// level pointer — C's newsym() takes no map argument).
+export function newsym(x, y) {
+    const map = _displayContext?.map;
     if (!map || !isok(x, y)) return;
     const loc = map.at(x, y);
     if (!loc) return;
@@ -310,12 +300,12 @@ export function see_monsters(map) {
 
     for (const mon of map.monsters) {
         if (!mon || mon.mhp <= 0) continue;  // DEADMONSTER
-        newsym(map, mon.mx, mon.my);
+        newsym(mon.mx, mon.my);
     }
     // When not riding, also update hero's cell
     const player = ctx.player;
     if (player && !player.usteed) {
-        newsym(map, player.x, player.y);
+        newsym(player.x, player.y);
     }
 }
 
@@ -486,7 +476,7 @@ export function mondead(mon, map, player) {
     mon.dead = true;
     pushRngLogEntry(`^die[${mon.mndx || 0}@${mon.mx},${mon.my}]`);
     // C ref: mon.c mondead → m_detach → newsym clears invisible marker
-    newsym(map, mon.mx, mon.my);
+    newsym(mon.mx, mon.my);
     // C ref: mon.c:2685 mon_leaving_level → unstuck
     if (player) unstuck(mon, player);
     // C ref: m_detach -> relobj: drop all inventory to floor via mdrop_obj

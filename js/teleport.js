@@ -328,7 +328,7 @@ function rloc_to_core(mtmp, x, y, rlocflags, map, player, display, fov) {
     // "pick up" monster from old location
     if (oldx) {
         // Remove from old position (update grid)
-        newsym(map, oldx, oldy);
+        newsym(oldx, oldy);
     }
 
     // Clear track
@@ -339,7 +339,7 @@ function rloc_to_core(mtmp, x, y, rlocflags, map, player, display, fov) {
     mtmp.my = y;
 
     // Update display
-    newsym(map, x, y);
+    newsym(x, y);
 
     // Orient monster toward player
     if (player) {
@@ -501,13 +501,13 @@ export async function mlevel_tele_trap(mtmp, trap, force_it, in_sight, map, play
                 : 'it';
             await pline(`Suddenly, ${mname} disappears out of sight.`);
             // C ref: teleport.c:2082 — seetrap(trap) when in_sight
-            if (trap && !trap.tseen) { trap.tseen = 1; newsym(map, trap.tx, trap.ty); }
+            if (trap && !trap.tseen) { trap.tseen = 1; newsym(trap.tx, trap.ty); }
         }
         const _omx = mtmp.mx, _omy = mtmp.my;
         if (map?.removeMonster) map.removeMonster(mtmp);
         mtmp.mx = 0;
         mtmp.my = 0;
-        newsym(map, _omx, _omy);
+        newsym(_omx, _omy);
         return 3; // Trap_Moved_Mon
     }
 
@@ -538,8 +538,8 @@ export function rloco(obj, map, player) {
     // Move object
     obj.ox = tx;
     obj.oy = ty;
-    newsym(map, otx, oty);
-    newsym(map, tx, ty);
+    newsym(otx, oty);
+    newsym(tx, ty);
     return true;
 }
 
@@ -637,8 +637,8 @@ export async function teleds(nx, ny, flags, game) {
     if (player.ux0 !== undefined) { player.ux0 = ux0; player.uy0 = uy0; }
 
     // Update display
-    newsym(map, ux0, uy0);
-    newsym(map, nx, ny);
+    newsym(ux0, uy0);
+    newsym(nx, ny);
 
     if (is_teleport) {
         const same = (nx === ux0 && ny === uy0);
@@ -752,7 +752,7 @@ export async function dotele(break_the_rules, game) {
         } else if (trap.ttyp === TELEP_TRAP) {
             if (trap.once) {
                 deltrap(map, trap);
-                newsym(map, player.x, player.y);
+                newsym(player.x, player.y);
             }
         } else {
             trap = null;
@@ -840,7 +840,7 @@ export async function tele_trap(trap, game) {
         // cf. teleport.c:1503 — vault teleport (one-use trap)
         if (trap.once) {
             deltrap(map, trap);
-            newsym(map, player.x, player.y);
+            newsym(player.x, player.y);
             // vault_tele — falls through to tele()
             tele(game);
             return;
@@ -887,7 +887,7 @@ export async function level_tele_trap(trap, trflags, game) {
 
     // cf. teleport.c:1552 — remove trap and perform level teleport
     deltrap(map, trap);
-    newsym(map, player.x, player.y);
+    newsym(player.x, player.y);
     await level_tele(game);
 }
 

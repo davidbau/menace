@@ -328,7 +328,7 @@ function trapeffect_arrow_trap_mon(mon, trap, map, player) {
 
     if (trap.once && trap.tseen && !rn2(15)) {
         deltrap(map, trap);
-        newsym(map, mon.mx, mon.my);
+        newsym(mon.mx, mon.my);
         return Trap_Effect_Finished; // trap is gone, nothing happens
     }
     trap.once = 1;
@@ -346,7 +346,7 @@ function trapeffect_dart_trap_mon(mon, trap, map, player) {
 
     if (trap.once && trap.tseen && !rn2(15)) {
         deltrap(map, trap);
-        newsym(map, mon.mx, mon.my);
+        newsym(mon.mx, mon.my);
         return Trap_Effect_Finished;
     }
     trap.once = 1;
@@ -366,7 +366,7 @@ function trapeffect_rocktrap_mon(mon, trap, map, player) {
 
     if (trap.once && trap.tseen && !rn2(15)) {
         deltrap(map, trap);
-        newsym(map, mon.mx, mon.my);
+        newsym(mon.mx, mon.my);
         return Trap_Effect_Finished;
     }
     trap.once = 1;
@@ -585,7 +585,7 @@ function trapeffect_web_mon(mon, trap, map) {
     // C ref: mu_maybe_destroy_web — flaming/acidic monsters destroy webs
     if (flaming(mptr) || acidic(mptr)) {
         deltrap(map, trap);
-        newsym(map, mon.mx, mon.my);
+        newsym(mon.mx, mon.my);
         return Trap_Effect_Finished;
     }
 
@@ -624,7 +624,7 @@ function trapeffect_web_mon(mon, trap, map) {
 
     if (tear_web) {
         deltrap(map, trap);
-        newsym(map, mon.mx, mon.my);
+        newsym(mon.mx, mon.my);
     }
 
     return mon.mtrapped ? Trap_Caught_Mon : Trap_Effect_Finished;
@@ -776,7 +776,7 @@ async function trapeffect_rolling_boulder_trap_mon(mon, trap, map, player) {
             y = launch2.y;
         } else {
             deltrap(trap, map);
-            if (typeof newsym === 'function') newsym(map, trap.tx, trap.ty);
+            if (typeof newsym === 'function') newsym(trap.tx, trap.ty);
             return Trap_Effect_Finished;
         }
     }
@@ -838,14 +838,14 @@ async function trapeffect_rolling_boulder_trap_mon(mon, trap, map, player) {
                     // C ref: fill_pit() consumes boulder and neutralizes pit-family trap.
                     deltrap(hitTrap, map);
                     removeBoulder(boulder);
-                    if (typeof newsym === 'function') newsym(map, x, y);
+                    if (typeof newsym === 'function') newsym(x, y);
                     return Trap_Effect_Finished;
                 case HOLE:
                 case TRAPDOOR:
                     // C ref: boulder falls into hole/trapdoor and is removed.
                     deltrap(hitTrap, map);
                     removeBoulder(boulder);
-                    if (typeof newsym === 'function') newsym(map, x, y);
+                    if (typeof newsym === 'function') newsym(x, y);
                     return Trap_Effect_Finished;
                 default:
                     break;
@@ -853,7 +853,7 @@ async function trapeffect_rolling_boulder_trap_mon(mon, trap, map, player) {
             }
             if (doorIsClosed(loc)) {
                 breakDoor(loc);
-                if (typeof newsym === 'function') newsym(map, x, y);
+                if (typeof newsym === 'function') newsym(x, y);
             }
             const otherBoulder = findBoulderAt(x, y, boulder);
             if (otherBoulder) {

@@ -726,7 +726,7 @@ export function feel_engraving(map, ep) {
         ep.eread = true;
         ep.erevealed = true;
         // C: map_engraving(ep, 1) — not yet ported
-        newsym(map, ep.x, ep.y);
+        newsym(ep.x, ep.y);
     }
 }
 

@@ -1198,7 +1198,7 @@ export function delobj_core(obj, map, force) {
         if (idx >= 0) {
             map.objects.splice(idx, 1);
             if (typeof newsym === 'function') {
-                newsym(map, obj.ox, obj.oy);
+                newsym(obj.ox, obj.oy);
             }
         }
     }

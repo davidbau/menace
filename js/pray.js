@@ -1539,7 +1539,7 @@ async function give_spell(player, map) {
         bless_obj(otmp);
         await at_your_feet(upstart(ansimpleoname(otmp)), player);
         place_object(otmp, player.x, player.y, map);
-        newsym(map, player.x, player.y);
+        newsym(player.x, player.y);
     }
 }
 
@@ -1986,7 +1986,7 @@ export async function offer_different_alignment_altar(otmp, altaralign, player, 
             const shrine = on_shrine(player, map);
             loc.flags = Align2amask(player.alignment);
             if (shrine) loc.flags |= AM_SHRINE;
-            newsym(map, player.x, player.y);
+            newsym(player.x, player.y);
             if (!player.blind) {
                 const color = (player.alignment === A_LAWFUL) ? "white"
                              : player.alignment ? "black" : "gray";
@@ -2026,7 +2026,7 @@ async function sacrifice_your_race(otmp, highaltar, altaralign, player, map) {
         await pline_The("altar is stained with %s blood.", "your");
         const loc = map.at(player.x, player.y);
         loc.flags = AM_CHAOTIC;
-        newsym(map, player.x, player.y);
+        newsym(player.x, player.y);
         angry_priest();
     } else {
         let demonless_msg;
@@ -2036,7 +2036,7 @@ async function sacrifice_your_race(otmp, highaltar, altaralign, player, map) {
             const loc = map.at(player.x, player.y);
             loc.typ = ROOM;
             loc.flags = 0;
-            newsym(map, player.x, player.y);
+            newsym(player.x, player.y);
             angry_priest();
             demonless_msg = "cloud dissipates";
         } else {

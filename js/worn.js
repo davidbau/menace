@@ -317,7 +317,7 @@ export function mon_set_minvis(mon, map) {
     mon.perminvis = true;
     if (!mon.invis_blkd) {
         mon.minvis = true;
-        if (map) newsym(map, mon.mx, mon.my);
+        if (map) newsym(mon.mx, mon.my);
     }
 }
 
@@ -688,7 +688,7 @@ export function m_lose_armor(mon, obj, polyspot, map) {
     placeFloorObject(map, obj);
     pushRngLogEntry(`^drop[${mon.mndx}@${mon.mx},${mon.my},${obj.otyp}]`);
     if (polyspot) bypass_obj(obj);
-    if (map) newsym(map, mon.mx, mon.my);
+    if (map) newsym(mon.mx, mon.my);
 }
 
 // ============================================================================

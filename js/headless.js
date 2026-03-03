@@ -960,7 +960,7 @@ export class HeadlessDisplay {
             // Keep the last terminal column blank for map rows.
             this.setCell(COLNO - 1, row, ' ', CLR_GRAY);
             for (let x = 1; x < COLNO; x++) {
-                newsym(gameMap, x, y);
+                newsym(x, y);
             }
         }
         this._captureMapBase();
