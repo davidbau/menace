@@ -1536,7 +1536,7 @@ export async function drop_boulder_on_monster(x, y, confused, byu, player) {
     }
     mtmp.mhp -= mdmg;
     if (DEADMONSTER(mtmp)) {
-      if (byu) { killed(mtmp); }
+      if (byu) { await killed(mtmp); }
       else { await pline("%s is killed.", Monnam(mtmp)); mondied(mtmp); }
     }
     else { wakeup(mtmp, byu); }

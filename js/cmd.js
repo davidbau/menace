@@ -1084,7 +1084,7 @@ export async function handler_change_autocompletions() {
     add_menu(win, nul_glyphinfo, any, '\0', 0, ATR_NONE, clr, buf, (ec.flags & AUTOCOMPLETE) ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
   }
   end_menu(win, "Which commands autocomplete?");
-  n = select_menu(win, PICK_ANY, picks);
+  n = await select_menu(win, PICK_ANY, picks);
   if (n >= 0) {
     let j;
     for (i = 0; i < extcmdlist_length; i++) {
@@ -1176,7 +1176,7 @@ export function dxdy_moveok(player) {
 // Autotranslated from cmd.c:4042
 export async function get_adjacent_loc(prompt, emsg, x, y, cc, player) {
   let new_x, new_y;
-  if (!getdir(prompt)) { pline1(Never_mind); return 0; }
+  if (!await getdir(prompt)) { pline1(Never_mind); return 0; }
   new_x = x + player.dx;
   new_y = y + player.dy;
   if (cc && isok(new_x, new_y)) { cc.x = new_x; cc.y = new_y; }

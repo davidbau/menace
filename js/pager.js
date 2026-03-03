@@ -617,7 +617,7 @@ export async function doquickwhatis() {
 // Autotranslated from pager.c:2331
 export async function doidtrap(player) {
   let trap, tt, glyph, x, y;
-  if (!getdir("^")) return ECMD_CANCEL;
+  if (!await getdir("^")) return ECMD_CANCEL;
   x = player.x + player.dx;
   y = player.y + player.dy;
   glyph = glyph_at(x, y);

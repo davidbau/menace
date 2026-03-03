@@ -191,7 +191,7 @@ async function lesshungry(player, num) {
     player.hunger += num;
     if (player.hunger >= 2000) {
         // choking territory - simplified
-        choke(player, null);
+        await choke(player, null);
     } else if (player.hunger >= 1500) {
         await pline("You're having a hard time getting all of it down.");
     }
@@ -1619,7 +1619,7 @@ export async function eatfood(game, player) {
   if (food && !carried(food) && !obj_here(food, player.x, player.y)) food = 0;
   if (!food) { await do_reset_eat(); return 0; }
   if (!game.svc.context.victual.eating) return 0;
-  if (++game.svc.context.victual.usedtime <= game.svc.context.victual.reqtime) { if (bite()) return 0; return 1; }
+  if (++game.svc.context.victual.usedtime <= game.svc.context.victual.reqtime) { if (await bite()) return 0; return 1; }
   else { await done_eating(true); return 0; }
 }
 
@@ -1653,7 +1653,7 @@ export async function use_tin_opener(obj) {
 // Autotranslated from eat.c:3127
 export async function bite(game, player) {
   sa_victual( game.svc.context.victual);
-  if (game.svc.context.victual.canchoke && player.uhunger >= 2000) { choke(game.svc.context.victual.piece); return 1; }
+  if (game.svc.context.victual.canchoke && player.uhunger >= 2000) { await choke(game.svc.context.victual.piece); return 1; }
   if (game.svc.context.victual.doreset) { await do_reset_eat(); return 0; }
   gf.force_save_hs = true;
   if (game.svc.context.victual.nmod < 0) {

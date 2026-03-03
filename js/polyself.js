@@ -1932,7 +1932,7 @@ export async function dogaze(player, map) {
                     mtmp.mhp = (mtmp.mhp || 0) - dmg;
                 }
                 if ((mtmp.mhp || 0) <= 0) {
-                    killed(mtmp, map, player);
+                    await killed(mtmp, map, player);
                 }
             }
 
@@ -2141,7 +2141,7 @@ export async function domindblast(player, map) {
 
             mtmp.mhp = (mtmp.mhp || 0) - dmg;
             if ((mtmp.mhp || 0) <= 0) {
-                killed(mtmp, map, player);
+                await killed(mtmp, map, player);
             }
         }
     }

@@ -301,7 +301,7 @@ export async function query_arrayvalue(querystr, arr, arrmin, arrmax) {
     add_menu(tmpwin, nul_glyphinfo, any, 0, 0, ATR_NONE, clr, arr, MENU_ITEMFLAGS_NONE);
   }
   end_menu(tmpwin, querystr);
-  res = select_menu(tmpwin, PICK_ONE, picks);
+  res = await select_menu(tmpwin, PICK_ONE, picks);
   destroy_nhwindow(tmpwin);
   if (res > 0) { ret = picks.item.a_int - adj; (picks, 0); }
   return ret;
@@ -337,7 +337,7 @@ export async function query_conditions() {
     add_menu(tmpwin, nul_glyphinfo, any, 0, 0, ATR_NONE, clr, conditions[i].text, MENU_ITEMFLAGS_NONE);
   }
   end_menu(tmpwin, "Choose status conditions");
-  res = select_menu(tmpwin, PICK_ANY, picks);
+  res = await select_menu(tmpwin, PICK_ANY, picks);
   destroy_nhwindow(tmpwin);
   if (res > 0) {
     for (i = 0; i < res; i++) {
@@ -489,7 +489,7 @@ export async function status_hilite_menu_choose_field(game) {
     add_menu(tmpwin, nul_glyphinfo, any, 0, 0, ATR_NONE, clr, initblstats[i].fldname, MENU_ITEMFLAGS_NONE);
   }
   end_menu(tmpwin, "Select a hilite field:");
-  res = select_menu(tmpwin, PICK_ONE, picks);
+  res = await select_menu(tmpwin, PICK_ONE, picks);
   destroy_nhwindow(tmpwin);
   if (res > 0) { fld = picks.item.a_int - 1; (picks, 0); }
   return fld;
@@ -552,7 +552,7 @@ export async function status_hilite_menu_choose_behavior(fld) {
   Sprintf(buf, "Select %s field hilite behavior:", initblstats[fld].fldname);
   end_menu(tmpwin, buf);
   if (nopts > 1) {
-    res = select_menu(tmpwin, PICK_ONE, picks);
+    res = await select_menu(tmpwin, PICK_ONE, picks);
     if (res === 0) beh = BL_TH_NONE;
     else if (res === -1) beh = (BL_TH_NONE - 1);
   }
@@ -612,7 +612,7 @@ export async function status_hilite_menu_choose_updownboth(fld, str, ltok, gtok)
   }
   Sprintf(buf, "Select field %s value:", initblstats[fld].fldname);
   end_menu(tmpwin, buf);
-  res = select_menu(tmpwin, PICK_ONE, picks);
+  res = await select_menu(tmpwin, PICK_ONE, picks);
   destroy_nhwindow(tmpwin);
   if (res > 0) { ret = picks.item.a_int - 10; (picks, 0); }
   return ret;

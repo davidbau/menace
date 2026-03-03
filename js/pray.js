@@ -1203,7 +1203,7 @@ export async function god_zaps_you(resp_god, player, map) {
         await pline("It strikes %s!", mon_nam(player.ustuck));
         if (!resists_elec(player.ustuck)) {
             await pline("%s fries to a crisp!", Monnam(player.ustuck));
-            killed(player.ustuck, map, player);
+            await killed(player.ustuck, map, player);
         } else {
             await pline("%s seems unaffected.", Monnam(player.ustuck));
         }
@@ -1229,7 +1229,7 @@ export async function god_zaps_you(resp_god, player, map) {
               mon_nam(player.ustuck));
         if (!resists_disint(player.ustuck)) {
             await pline("%s disintegrates into a pile of dust!", Monnam(player.ustuck));
-            killed(player.ustuck, map, player);
+            await killed(player.ustuck, map, player);
         } else {
             await pline("%s seems unaffected.", Monnam(player.ustuck));
         }
@@ -2538,7 +2538,7 @@ async function maybe_turn_mon_iter(mtmp, player, map) {
                         mtmp.mpeaceful = true;
                         set_malign(mtmp);
                     } else {
-                        killed(mtmp, map, player);
+                        await killed(mtmp, map, player);
                     }
                     break;
                 }

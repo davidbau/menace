@@ -1482,7 +1482,7 @@ export async function peffect_enlightenment(otmp) {
   }
   else {
     if (otmp.blessed) { await adjattrib(A_INT, 1, false); await adjattrib(A_WIS, 1, false); }
-    do_enlightenment_effect();
+    await do_enlightenment_effect();
   }
 }
 

@@ -1450,7 +1450,7 @@ export async function dowizcast() {
     add_menu(win, nul_glyphinfo, any, 0, 0, ATR_NONE, NO_COLOR, OBJ_NAME(objectData[n]), MENU_ITEMFLAGS_NONE);
   }
   end_menu(win, "Cast which spell?");
-  n = select_menu(win, PICK_ONE, selected);
+  n = await select_menu(win, PICK_ONE, selected);
   destroy_nhwindow(win);
   if (n > 0) {
     i = selected[0].item.a_int;
@@ -1583,7 +1583,7 @@ export async function spellsortmenu() {
     add_menu(tmpwin, nul_glyphinfo, any, let_, 0, ATR_NONE, clr, spl_sortchoices[i], (i === gs.spl_sortmode) ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
   }
   end_menu(tmpwin, "View known spells list sorted");
-  n = select_menu(tmpwin, PICK_ONE, selected);
+  n = await select_menu(tmpwin, PICK_ONE, selected);
   destroy_nhwindow(tmpwin);
   if (n > 0) {
     choice = selected[0].item.a_int - 1;

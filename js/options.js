@@ -873,7 +873,7 @@ export async function handler_pickup_burden(game) {
     add_menu(tmpwin, nul_glyphinfo, any, burden_letters, 0, ATR_NONE, clr, burden_name, MENU_ITEMFLAGS_NONE);
   }
   end_menu(tmpwin, "Select encumbrance level:");
-  if (select_menu(tmpwin, PICK_ONE, burden_pick) > 0) {
+  if (await select_menu(tmpwin, PICK_ONE, burden_pick) > 0) {
     game.flags.pickup_burden = burden_pick.item.a_int - 1;
     (burden_pick, 0);
   }
@@ -981,7 +981,7 @@ export async function query_msgtype() {
     }
   }
   end_menu(tmpwin, "How to show the message");
-  pick_cnt = select_menu(tmpwin, PICK_ONE, picks);
+  pick_cnt = await select_menu(tmpwin, PICK_ONE, picks);
   destroy_nhwindow(tmpwin);
   if (pick_cnt > 0) {
     i = picks.item.a_int - 1;
@@ -1410,7 +1410,7 @@ export async function handler_disclose(game) {
     disc_cat[i] = 0;
   }
   end_menu(tmpwin, "Change which disclosure options categories:");
-  pick_cnt = select_menu(tmpwin, PICK_ANY, disclosure_pick);
+  pick_cnt = await select_menu(tmpwin, PICK_ANY, disclosure_pick);
   if (pick_cnt > 0) {
     for (pick_idx = 0; pick_idx < pick_cnt; ++pick_idx) {
       opt_idx = disclosure_pick[pick_idx].item.a_int - 1;
@@ -1444,7 +1444,7 @@ export async function handler_disclose(game) {
         add_menu(tmpwin, nul_glyphinfo, any, 0, any.a_char, ATR_NONE, clr, "Prompt, with default answer of \"Ask\" to request sort menu", (c === any.a_char) ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
       }
       end_menu(tmpwin, buf);
-      n = select_menu(tmpwin, PICK_ONE, disclosure_pick);
+      n = await select_menu(tmpwin, PICK_ONE, disclosure_pick);
       if (n > 0) {
         game.flags.end_disclose[i] = disclosure_pick[0].item.a_char;
         if (n > 1 && game.flags.end_disclose[i] === c) game.flags.end_disclose[i] = disclosure_pick[1].item.a_char;

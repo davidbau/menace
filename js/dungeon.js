@@ -4926,7 +4926,7 @@ export async function show_overview(why, reason, map) {
   if (In_endgame(map.uz)) traverse_mapseenchn(1, win, why, reason, lastdun);
   if (why > 0 || !In_endgame(map.uz)) traverse_mapseenchn(0, win, why, reason, lastdun);
   end_menu(win,  0);
-  n = select_menu(win, (why !== -1) ? PICK_NONE : PICK_ONE, selected);
+  n = await select_menu(win, (why !== -1) ? PICK_NONE : PICK_ONE, selected);
   if (n > 0) {
     let ledger, lev;
     ledger = selected[0].item.a_int - 1;

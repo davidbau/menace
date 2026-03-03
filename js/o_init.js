@@ -343,7 +343,7 @@ export async function choose_disco_sort(mode, game) {
     add_menu_str(tmpwin, " will matter for future use of total discoveries.");
   }
   end_menu(tmpwin, "Ordering of discoveries");
-  n = select_menu(tmpwin, PICK_ONE, selected);
+  n = await select_menu(tmpwin, PICK_ONE, selected);
   destroy_nhwindow(tmpwin);
   if (n > 0) {
     choice = selected[0].item.a_int;

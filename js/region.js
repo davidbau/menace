@@ -633,7 +633,7 @@ export async function inside_gas_cloud(reg, mtmp, map, player, game) {
             mtmp.mhp -= rnd(dam) + 5;
             if (mtmp.mhp <= 0 || mtmp.dead) {
                 if (heros_fault(reg))
-                    killed(mtmp, map, player);
+                    await killed(mtmp, map, player);
                 else
                     monkilled(mtmp, "gas cloud", AD_DRST, map, player);
                 if (mtmp.mhp <= 0 || mtmp.dead) {
