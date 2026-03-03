@@ -39,10 +39,8 @@ index d77454878..843e21f50 100644
 +json_write_escaped(FILE *fp, const char *s)
 +{
 +    int c;
-+    if (!s) {
-+        fputs("null", fp);
++    if (!s)
 +        return;
-+    }
 +    while ((c = (unsigned char) *s++) != '\0') {
 +        if (c == '"' || c == '\\') {
 +            fputc('\\', fp);
