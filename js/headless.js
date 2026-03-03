@@ -540,7 +540,11 @@ export class HeadlessDisplay {
                 return;
             }
             // Overflow: show --More-- and block until a key is pressed.
-            // C ref: topl.c more() → xwaitforspace() blocks here.
+            // C ref: topl.c more() → flush_screen(1) → bot() before xwaitforspace().
+            // Update status line so HP/Pw reflect current state at the --More-- prompt.
+            if (this._lastMapState?.player) {
+                this.renderStatus(this._lastMapState.player);
+            }
             this.renderMoreMarker();
             if (this._moreBlockingEnabled && this._nhgetch) {
                 // True blocking: await a keypress to dismiss --More--,
