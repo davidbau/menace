@@ -19,10 +19,10 @@ const GOLDEN_DIR = join(__dirname, 'golden');
 
 // Generate a raw typ grid for (seed, depth): array of 21 strings,
 // each containing 80 space-separated integers.
-export function generateTypGrid(seed, depth) {
+export async function generateTypGrid(seed, depth) {
     initRng(seed);
     initLevelGeneration();
-    const map = makelevel(depth);
+    const map = await makelevel(depth);
     wallification(map);
 
     const rows = [];
@@ -40,12 +40,12 @@ export function generateTypGrid(seed, depth) {
 // Generate typ grids for multiple depths sequentially (one continuous RNG stream).
 // Used for Phase 2+ multi-level C-vs-JS comparison where the C side generates
 // levels 1→2→...→N in sequence via wizard mode level teleport.
-export function generateTypGridSequential(seed, maxDepth) {
+export async function generateTypGridSequential(seed, maxDepth) {
     initRng(seed);
     initLevelGeneration();
     const grids = {};
     for (let depth = 1; depth <= maxDepth; depth++) {
-        const map = makelevel(depth);
+        const map = await makelevel(depth);
         wallification(map);
         const rows = [];
         for (let y = 0; y < ROWNO; y++) {
@@ -128,7 +128,7 @@ function loadSeedsConfig() {
 // Each session covers depths 1→maxDepth for one seed.
 // Seeds listed in seeds.json map_seeds.with_rng.js get full RNG traces;
 // when globalWithRng is true, all seeds get RNG traces.
-function generateSessions(maxDepth = 5, globalWithRng = false) {
+async function generateSessions(maxDepth = 5, globalWithRng = false) {
     const sessionsDir = join(__dirname, 'maps');
     mkdirSync(sessionsDir, { recursive: true });
 
@@ -144,7 +144,7 @@ function generateSessions(maxDepth = 5, globalWithRng = false) {
         const levels = [];
         let prevCount = 0;
         for (let depth = 1; depth <= maxDepth; depth++) {
-            const map = makelevel(depth);
+            const map = await makelevel(depth);
             wallification(map);
             const grid = [];
             for (let y = 0; y < ROWNO; y++) {
@@ -213,20 +213,20 @@ function generateSessions(maxDepth = 5, globalWithRng = false) {
 }
 
 // When executed directly, write golden typ grid files or session files
-function main() {
+async function main() {
     const mode = process.argv[2];
 
     if (mode === '--sessions') {
         const args = process.argv.slice(3);
         const withRng = args.includes('--with-rng');
         const maxDepth = parseInt(args.find(a => !a.startsWith('--')) || '5', 10);
-        generateSessions(maxDepth, withRng);
+        await generateSessions(maxDepth, withRng);
         return;
     }
 
     mkdirSync(GOLDEN_DIR, { recursive: true });
     for (const { seed, depth } of CONFIGS) {
-        const rows = generateTypGrid(seed, depth);
+        const rows = await generateTypGrid(seed, depth);
         const filename = `typ_seed${seed}_depth${depth}.txt`;
         const filepath = join(GOLDEN_DIR, filename);
         writeFileSync(filepath, rows.join('\n') + '\n', 'utf-8');

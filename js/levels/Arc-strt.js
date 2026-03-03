@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Archeologist Arc-strt.lua	$NHDT-Date: 1652195999 2022/5/10 15:19:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991 by M. Stephenson
@@ -104,12 +104,12 @@ export function generate() {
     // Non diggable walls
     des.non_diggable(selection.area(0,0,75,19));
     // Random traps
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // Monsters on siege duty.
     des.monster("S", 60, 9);
     des.monster("M", 60, 10);
@@ -125,5 +125,5 @@ export function generate() {
     des.monster("S", 10, 19);
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

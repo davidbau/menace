@@ -5,7 +5,7 @@
 
 import * as des from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Knight Kni-fila.lua	$NHDT-Date: 1652196004 2022/5/10 15:20:4 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991,92 by M. Stephenson
@@ -37,11 +37,11 @@ export function generate() {
     des.monster({ class: "i", peaceful: 0 });
     des.monster({ id: "ochre jelly", peaceful: 0 });
     // 
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

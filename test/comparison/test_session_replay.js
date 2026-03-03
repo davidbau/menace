@@ -183,7 +183,7 @@ async function main() {
     let failures = 0;
 
     if (compareRngEnabled && sessionStartup?.rng && !hasStartupBurstInFirstStep(session)) {
-        const startup = generateStartupWithRng(seed, session);
+        const startup = await generateStartupWithRng(seed, session);
         const div = compareRng(startup.rng, sessionStartup.rng);
         if (div.index === -1) {
             console.log(`startup: ok (${startup.rngCalls} calls)`);

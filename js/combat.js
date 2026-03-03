@@ -11,6 +11,6 @@ import { newexplevel } from './exper.js';
 export { do_attack, mattacku };
 
 // C helper: new level on sufficient XP.
-export function checkLevelUp(player, display) {
-    newexplevel(player, display);
+export async function checkLevelUp(player, display) {
+    await newexplevel(player, display);
 }

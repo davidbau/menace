@@ -409,13 +409,13 @@ export function acurrstr(player) {
 // cf. attrib.c:116 — adjattrib(ndx, incr, msgflg): adjust an attribute
 // Returns true if change was made, false otherwise.
 // msgflg: positive => no message, zero => message, negative => conditional
-export function adjattrib(player, ndx, incr, msgflg) {
+export async function adjattrib(player, ndx, incr, msgflg) {
     if (Fixed_abil(player) || !incr)
         return false;
 
     if ((ndx === A_INT || ndx === A_WIS) && player.helmet && player.helmet.otyp === DUNCE_CAP) {
         if (msgflg === 0)
-            Your("cap constricts briefly, then relaxes again.");
+            await Your("cap constricts briefly, then relaxes again.");
         return false;
     }
 
@@ -453,10 +453,10 @@ export function adjattrib(player, ndx, incr, msgflg) {
     if (acurr(player, ndx) === old_acurr) {
         if (msgflg === 0) {
             if (ABASE(player, ndx) === old_abase && AMAX(player, ndx) === old_amax) {
-                pline("You're %s as %s as you can get.",
+                await pline("You're %s as %s as you can get.",
                       abonflg ? "currently" : "already", attrstr);
             } else {
-                Your("innate %s has %s.", attrname[ndx],
+                await Your("innate %s has %s.", attrname[ndx],
                      (incr > 0) ? "improved" : "declined");
             }
         }
@@ -464,15 +464,15 @@ export function adjattrib(player, ndx, incr, msgflg) {
     }
 
     if (msgflg <= 0)
-        You_feel("%s%s!", (incr > 1 || incr < -1) ? "very " : "", attrstr);
+        await You_feel("%s%s!", (incr > 1 || incr < -1) ? "very " : "", attrstr);
     if (ndx === A_STR || ndx === A_CON)
-        encumber_msg(player);
+        await encumber_msg(player);
     return true;
 }
 
 // cf. attrib.c:199 — gainstr(otmp, incr, givemsg)
 // Autotranslated from attrib.c:199
-export function gainstr(otmp, incr, givemsg) {
+export async function gainstr(otmp, incr, givemsg) {
   let num = incr;
   if (!num) {
     if (ABASE(A_STR) < 18) num = (rn2(4) ? 1 : rnd(6));
@@ -481,11 +481,11 @@ export function gainstr(otmp, incr, givemsg) {
       num = 1;
     }
   }
-  adjattrib(A_STR, (otmp && otmp.cursed) ? -num : num, givemsg ? -1 : 1);
+  await adjattrib(A_STR, (otmp && otmp.cursed) ? -num : num, givemsg ? -1 : 1);
 }
 
 // cf. attrib.c:218 — losestr(num, knam, k_format)
-export function losestr(player, num, knam, k_format) {
+export async function losestr(player, num, knam, k_format) {
     const uhpmin = minuhpmax(player, 1);
     let ustr = ABASE(player, A_STR) - num;
     const waspolyd = Upolyd(player);
@@ -506,7 +506,7 @@ export function losestr(player, num, knam, k_format) {
             knam = "terminal frailty";
             k_format = 1; // KILLED_BY
         }
-        losehp(player, dmg, knam, k_format);
+        await losehp(player, dmg, knam, k_format);
 
         if (Upolyd(player)) {
             setuhpmax(player, Math.max((player.mhmax || 1) - dmg, 1), false);
@@ -517,18 +517,18 @@ export function losestr(player, num, knam, k_format) {
     }
 
     if (num > 0 && (Upolyd(player) || !waspolyd))
-        adjattrib(player, A_STR, -num, 1);
+        await adjattrib(player, A_STR, -num, 1);
 }
 
 // cf. attrib.c:271 — poison_strdmg(strloss, dmg, knam, k_format)
 // Autotranslated from attrib.c:270
-export function poison_strdmg(strloss, dmg, knam, k_format) {
-  losestr(strloss, knam, k_format);
-  losehp(dmg, knam, k_format);
+export async function poison_strdmg(strloss, dmg, knam, k_format) {
+  await losestr(strloss, knam, k_format);
+  await losehp(dmg, knam, k_format);
 }
 
 // cf. attrib.c:291 — poisontell(typ, exclaim)
-export function poisontell(player, typ, exclaim) {
+export async function poisontell(player, typ, exclaim) {
     const entry = poiseff[typ];
     let msg = entry.msg;
 
@@ -537,17 +537,17 @@ export function poisontell(player, typ, exclaim) {
     else if (typ === A_CON && acurr(player, A_CON) === 25)
         msg = "sick inside";
 
-    entry.func("%s%s", msg, exclaim ? '!' : '.');
+    await entry.func("%s%s", msg, exclaim ? '!' : '.');
 }
 
 // cf. attrib.c:314 — poisoned(reason, typ, pkiller, fatal, thrown_weapon)
-export function poisoned(player, reason, typ, pkiller, fatal, thrown_weapon) {
+export async function poisoned(player, reason, typ, pkiller, fatal, thrown_weapon) {
     let kprefix = 0; // KILLED_BY_AN
     const blast = (reason === "blast");
 
     if (!blast && !strstri(reason, "poison")) {
         const plural = reason[reason.length - 1] === 's';
-        pline("%s%s %s poisoned!",
+        await pline("%s%s %s poisoned!",
               (reason[0] >= 'A' && reason[0] <= 'Z') ? "" : "The ",
               reason,
               plural ? "were" : "was");
@@ -555,7 +555,7 @@ export function poisoned(player, reason, typ, pkiller, fatal, thrown_weapon) {
     if (hasPoisonRes(player)) {
         if (blast)
             shieldeff(player.x, player.y);
-        pline_The("poison doesn't seem to affect you.");
+        await pline_The("poison doesn't seem to affect you.");
         return;
     }
 
@@ -572,36 +572,36 @@ export function poisoned(player, reason, typ, pkiller, fatal, thrown_weapon) {
         const loss0 = 6 + d(4, 6); // 10..34
         if (player.uhp <= loss0) {
             player.uhp = -1;
-            pline_The("poison was deadly...");
+            await pline_The("poison was deadly...");
         } else {
             const olduhp = player.uhp;
             const newuhpmax = (player.uhpmax || 1) - Math.floor(loss0 / 2);
             setuhpmax(player, Math.max(newuhpmax, minuhpmax(player, 3)), true);
             const loss1 = adjuhploss(player, loss0, olduhp);
 
-            losehp(player, loss1, pkiller, kprefix);
-            if (adjattrib(player, A_CON, (typ !== A_CON) ? -1 : -3, true))
-                poisontell(player, A_CON, true);
-            if (typ !== A_CON && adjattrib(player, typ, -3, 1))
-                poisontell(player, typ, true);
+            await losehp(player, loss1, pkiller, kprefix);
+            if (await adjattrib(player, A_CON, (typ !== A_CON) ? -1 : -3, true))
+                await poisontell(player, A_CON, true);
+            if (typ !== A_CON && await adjattrib(player, typ, -3, 1))
+                await poisontell(player, typ, true);
         }
     } else if (i > 5) {
         const cloud = (reason === "gas cloud");
         let loss = thrown_weapon ? rnd(6) : rn1(10, 6);
         if ((blast || cloud) && player.halfGasDamage)
             loss = Math.floor((loss + 1) / 2);
-        losehp(player, loss, pkiller, kprefix);
+        await losehp(player, loss, pkiller, kprefix);
     } else {
         const loss = (thrown_weapon || !fatal) ? 1 : d(2, 2);
-        if (adjattrib(player, typ, -loss, 1))
-            poisontell(player, typ, true);
+        if (await adjattrib(player, typ, -loss, 1))
+            await poisontell(player, typ, true);
     }
 
     if (player.uhp < 1) {
         player.deathCause = pkiller || "poison";
-        done(strstri(pkiller || "", "poison") ? 0 /* DIED */ : 2 /* POISONING */, player);
+        await done(strstri(pkiller || "", "poison") ? 0 /* DIED */ : 2 /* POISONING */, player);
     }
-    encumber_msg(player);
+    await encumber_msg(player);
 }
 
 // cf. attrib.c:408 — change_luck(n)
@@ -643,7 +643,7 @@ export function set_moreluck(player) {
 }
 
 // cf. attrib.c:452 — restore_attrib()
-export function restore_attrib(player) {
+export async function restore_attrib(player) {
     ensureAttrArrays(player);
     let botl = false;
 
@@ -661,13 +661,13 @@ export function restore_attrib(player) {
         }
     }
     if (botl)
-        encumber_msg(player);
+        await encumber_msg(player);
 }
 
 // cf. attrib.c:486 — exercise(i, inc_or_dec)
 // Note: The full exercise() is in attrib_exercise.js for RNG parity.
 // This version is the faithful C port for use when full attribute mutation is needed.
-export function exercise(player, i, inc_or_dec) {
+export async function exercise(player, i, inc_or_dec) {
     if (i === A_INT || i === A_CHA) return;
     if (Upolyd(player) && i !== A_WIS) return;
 
@@ -679,11 +679,11 @@ export function exercise(player, i, inc_or_dec) {
         }
     }
     if (i === A_STR || i === A_CON)
-        encumber_msg(player);
+        await encumber_msg(player);
 }
 
 // cf. attrib.c:518 — exerper() [static]
-function exerper(player) {
+async function exerper(player) {
     const moves = player.turns || 0;
 
     if (!(moves % 10)) {
@@ -697,20 +697,20 @@ function exerper(player) {
 
         switch (hs) {
         case 0: // SATIATED
-            exercise(player, A_DEX, false);
+            await exercise(player, A_DEX, false);
             if (player.roleIndex === PM_MONK)
-                exercise(player, A_WIS, false);
+                await exercise(player, A_WIS, false);
             break;
         case 1: // NOT_HUNGRY
-            exercise(player, A_CON, true);
+            await exercise(player, A_CON, true);
             break;
         case 3: // WEAK
-            exercise(player, A_STR, false);
+            await exercise(player, A_STR, false);
             if (player.roleIndex === PM_MONK)
-                exercise(player, A_WIS, true);
+                await exercise(player, A_WIS, true);
             break;
         case 4: // FAINTING
-            exercise(player, A_CON, false);
+            await exercise(player, A_CON, false);
             break;
         }
 
@@ -718,15 +718,15 @@ function exerper(player) {
         const cap = player.near_capacity ? player.near_capacity() : 0;
         switch (cap) {
         case 2: // MOD_ENCUMBER
-            exercise(player, A_STR, true);
+            await exercise(player, A_STR, true);
             break;
         case 3: // HVY_ENCUMBER
-            exercise(player, A_STR, true);
-            exercise(player, A_DEX, false);
+            await exercise(player, A_STR, true);
+            await exercise(player, A_DEX, false);
             break;
         case 4: // EXT_ENCUMBER
-            exercise(player, A_DEX, false);
-            exercise(player, A_CON, false);
+            await exercise(player, A_DEX, false);
+            await exercise(player, A_CON, false);
             break;
         }
     }
@@ -737,36 +737,36 @@ function exerper(player) {
         const clairIntr = getIntrinsic(player, 51 /* CLAIRVOYANT */);
         const clairBlocked = player.uprops && player.uprops[51] && player.uprops[51].blocked;
         if ((clairIntr & (INTRINSIC | TIMEOUT)) && !clairBlocked)
-            exercise(player, A_WIS, true);
+            await exercise(player, A_WIS, true);
         // Regeneration
         if (getIntrinsic(player, 48 /* REGENERATION */))
-            exercise(player, A_STR, true);
+            await exercise(player, A_STR, true);
 
         // Sick or Vomiting
         const sick = getIntrinsic(player, 7 /* SICK */);
         const vomiting = getIntrinsic(player, 12 /* VOMITING */);
         if (sick || vomiting)
-            exercise(player, A_CON, false);
+            await exercise(player, A_CON, false);
         // Confusion or Hallucination
         const confused = getIntrinsic(player, 13 /* CONFUSION */);
         const hallu = getIntrinsic(player, 16 /* HALLUC */);
         if (confused || hallu)
-            exercise(player, A_WIS, false);
+            await exercise(player, A_WIS, false);
         // Wounded legs / Fumbling / Stun
         const wlegs = player.woundedLegs;
         const fumbling = getIntrinsic(player, 37 /* FUMBLING */);
         const stun = getIntrinsic(player, 15 /* STUNNED */);
         if ((wlegs && !player.usteed) || fumbling || stun)
-            exercise(player, A_DEX, false);
+            await exercise(player, A_DEX, false);
     }
 }
 
 // cf. attrib.c:595 — exerchk()
-export function exerchk(player) {
+export async function exerchk(player) {
     const moves = player.turns || 0;
 
     // Check periodic accumulations
-    exerper(player);
+    await exerper(player);
 
     // Are we ready for a test?
     if (!player.nextAttrCheck) player.nextAttrCheck = 600;
@@ -795,10 +795,10 @@ export function exerchk(player) {
                 continue;
             }
 
-            if (adjattrib(player, i, mod_val, -1)) {
+            if (await adjattrib(player, i, mod_val, -1)) {
                 setAEXE(player, i, 0);
                 ax = 0;
-                You("%s %s.",
+                await You("%s %s.",
                     (mod_val > 0) ? "must have been" : "haven't been",
                     exertext[i][(mod_val > 0) ? 0 : 1]);
             }
@@ -883,12 +883,12 @@ export function redist_attr() {
 
 // cf. attrib.c:761 — vary_init_attr()
 // Autotranslated from attrib.c:760
-export function vary_init_attr() {
+export async function vary_init_attr() {
   let i;
   for (i = 0; i < A_MAX; i++) {
     if (!rn2(20)) {
       let xd = rn2(7) - 2;
-      adjattrib(i, xd, true);
+      await adjattrib(i, xd, true);
       if (ABASE(i) < AMAX(i)) AMAX(i) = ABASE(i);
     }
   }
@@ -1000,7 +1000,7 @@ export function from_what(player, propidx) {
 }
 
 // cf. attrib.c:1003 — adjabil(oldlevel, newlevel)
-export function adjabil(player, oldlevel, newlevel) {
+export async function adjabil(player, oldlevel, newlevel) {
     let abil = role_abil(player.roleIndex);
     let rabil = null;
 
@@ -1049,16 +1049,16 @@ export function adjabil(player, oldlevel, newlevel) {
 
             if (!(propEntry.intrinsic & INTRINSIC & ~mask)) {
                 if (entry.gainstr)
-                    You_feel("%s!", entry.gainstr);
+                    await You_feel("%s!", entry.gainstr);
             }
         } else if (oldlevel >= entry.ulevel && newlevel < entry.ulevel) {
             // Lost this ability
             propEntry.intrinsic &= ~mask;
             if (!(propEntry.intrinsic & INTRINSIC)) {
                 if (entry.losestr)
-                    You_feel("%s!", entry.losestr);
+                    await You_feel("%s!", entry.losestr);
                 else if (entry.gainstr)
-                    You_feel("less %s!", entry.gainstr);
+                    await You_feel("less %s!", entry.gainstr);
             }
         }
 
@@ -1211,7 +1211,7 @@ export function adjalign(player, n) {
 }
 
 // cf. attrib.c:1317 — uchangealign(newalign, reason)
-export function uchangealign(player, newalign, reason) {
+export async function uchangealign(player, newalign, reason) {
     const oldalign = player.alignment;
 
     player.ublessed = 0;
@@ -1222,21 +1222,21 @@ export function uchangealign(player, newalign, reason) {
         player.alignmentBase = newalign;
         if (!player.helmet || player.helmet.otyp !== HELM_OF_OPPOSITE_ALIGNMENT)
             player.alignment = player.alignmentBase;
-        You("have a %ssense of a new direction.",
+        await You("have a %ssense of a new direction.",
             (player.alignment !== oldalign) ? "sudden " : "");
     } else {
         player.alignment = newalign;
         if (reason === A_CG_HELM_ON) {
             adjalign(player, -7);
             const hallu = getIntrinsic(player, 16 /* HALLUC */);
-            Your("mind oscillates %s.", hallu ? "wildly" : "briefly");
-            make_confused(player, rn1(2, 3), false);
+            await Your("mind oscillates %s.", hallu ? "wildly" : "briefly");
+            await make_confused(player, rn1(2, 3), false);
             // summon_furies check simplified
             livelog_printf(0, "used a helm to turn %s",
                            newalign === -1 ? "chaotic" : newalign === 0 ? "neutral" : "lawful");
         } else if (reason === A_CG_HELM_OFF) {
             const hallu = getIntrinsic(player, 16 /* HALLUC */);
-            Your("mind is %s.", hallu
+            await Your("mind is %s.", hallu
                                     ? "much of a muchness"
                                     : "back in sync with your body");
         }

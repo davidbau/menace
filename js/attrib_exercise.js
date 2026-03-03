@@ -63,29 +63,29 @@ export function exerchk(player, moves) {
 }
 
 // C ref: attrib.c exerper() — periodic exercise accumulation
-export function exerper(player, moves) {
+export async function exerper(player, moves) {
     if (!player || !Number.isInteger(moves)) return;
 
     if (moves % 10 === 0) {
         // Hunger state switch
         if (player.hunger > 1000) {
-            exercise(player, A_DEX, false);
+            await exercise(player, A_DEX, false);
             // C ref: attrib.c exerper() — monks meditate poorly when satiated.
             if (player.roleIndex === PM_MONK) {
-                exercise(player, A_WIS, false);
+                await exercise(player, A_WIS, false);
             }
         } else if (player.hunger > 150) {
-            exercise(player, A_CON, true);
+            await exercise(player, A_CON, true);
         } else if (player.hunger > 50) {
             // HUNGRY: no exercise
         } else if (player.hunger > 0) {
-            exercise(player, A_STR, false);
+            await exercise(player, A_STR, false);
             // C ref: attrib.c exerper() — hungry monks gain wisdom discipline.
             if (player.roleIndex === PM_MONK) {
-                exercise(player, A_WIS, true);
+                await exercise(player, A_WIS, true);
             }
         } else {
-            exercise(player, A_CON, false);
+            await exercise(player, A_CON, false);
         }
 
         // Encumbrance checks
@@ -93,30 +93,30 @@ export function exerper(player, moves) {
             ? player.near_capacity()
             : (player.encumbrance || 0);
         if (wtcap === MOD_ENCUMBER) {
-            exercise(player, A_STR, true);
+            await exercise(player, A_STR, true);
         } else if (wtcap === HVY_ENCUMBER) {
-            exercise(player, A_STR, true);
-            exercise(player, A_DEX, false);
+            await exercise(player, A_STR, true);
+            await exercise(player, A_DEX, false);
         } else if (wtcap === EXT_ENCUMBER) {
-            exercise(player, A_DEX, false);
-            exercise(player, A_CON, false);
+            await exercise(player, A_DEX, false);
+            await exercise(player, A_CON, false);
         }
     }
 
     if (moves % 5 === 0) {
         if (player.regeneration) {
-            exercise(player, A_STR, true);
+            await exercise(player, A_STR, true);
         }
         if (player.sick || player.vomiting) {
-            exercise(player, A_CON, false);
+            await exercise(player, A_CON, false);
         }
         if (player.confused || player.hallucinating) {
-            exercise(player, A_WIS, false);
+            await exercise(player, A_WIS, false);
         }
         const woundedLegs = !!player.woundedLegs
             || (player.woundedLegsTimeout || 0) > 0;
         if (woundedLegs || player.fumbling || player.stunned) {
-            exercise(player, A_DEX, false);
+            await exercise(player, A_DEX, false);
         }
     }
 }

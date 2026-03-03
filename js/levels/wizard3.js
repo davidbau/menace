@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection, percent } from '../sp_lev.js';
 import { hell_tweaks } from './hellfill.js';
 
-export function generate() {
+export async function generate() {
     // NetHack yendor wizard3.lua	$NHDT-Date: 1652196040 2022/5/10 15:20:40 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1992 by M. Stephenson && Izchak Miller
@@ -35,7 +35,7 @@ export function generate() {
 |.....S.}}}}}}}.|..|.......|x
 |.....|.........|..|.......|x
 ----------------------------x
-`, contents: function(rm) {
+`, contents: async function(rm) {
        des.levregion({ type: "stair-up", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
        des.levregion({ type: "stair-down", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
        des.levregion({ type: "branch", region: [1,0,79,20], region_islev: 1, exclude: [0,0,28,12] });
@@ -81,10 +81,10 @@ export function generate() {
        des.monster("&");
        des.monster("&");
        // And to make things a little harder.
-       des.trap("board",10,7);
-       des.trap("board",12,7);
-       des.trap("board",11,6);
-       des.trap("board",11,8);
+       await des.trap("board",10,7);
+       await des.trap("board",12,7);
+       await des.trap("board",11,6);
+       await des.trap("board",11,8);
        // Some loot
        des.object(")");
        des.object("!");
@@ -100,5 +100,5 @@ export function generate() {
     hell_tweaks(protected_region);
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

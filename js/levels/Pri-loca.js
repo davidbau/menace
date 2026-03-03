@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Priest Pri-loca.lua	$NHDT-Date: 1652196009 2022/5/10 15:20:9 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991-2 by M. Stephenson
@@ -73,14 +73,14 @@ export function generate() {
     des.object({ coord: [ 26, 10 ] });
     des.object({ coord: [ 27, 10 ] });
     // Random traps
-    des.trap({ coord: [ 15,4 ] });
-    des.trap({ coord: [ 25,4 ] });
-    des.trap({ coord: [ 15,9 ] });
-    des.trap({ coord: [ 25,9 ] });
-    des.trap();
-    des.trap();
+    await des.trap({ coord: [ 15,4 ] });
+    await des.trap({ coord: [ 25,4 ] });
+    await des.trap({ coord: [ 15,9 ] });
+    await des.trap({ coord: [ 25,9 ] });
+    await des.trap();
+    await des.trap();
     // No random monsters - the morgue generation will put them in.
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

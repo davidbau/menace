@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Archeologist Arc-goal.lua	$NHDT-Date: 1652195998 2022/5/10 15:19:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991 by M. Stephenson
@@ -86,13 +86,13 @@ export function generate() {
     des.object();
     des.object();
     // Random traps
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap("rolling boulder",46,14);
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap("rolling boulder",46,14);
     // Random monsters.
     des.monster("Minion of Huhetotl", 50, 14);
     des.monster("S");
@@ -124,5 +124,5 @@ export function generate() {
     des.monster("M");
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

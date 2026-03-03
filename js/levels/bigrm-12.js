@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection, percent } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack bigroom bigrm-12.lua	$NHDT-Date: $  $NHDT-Branch: NetHack-3.7 $
     // Copyright (c) 2024 by Pasi Kallinen
     // NetHack may be freely redistributed.  See license for details.
@@ -87,11 +87,11 @@ export function generate() {
        des.object();
     }
     for (let i = 1; i <= 6; i++) {
-       des.trap();
+       await des.trap();
     }
     for (let i = 1; i <= 28; i++) {
       des.monster();
     
     }
-    return des.finalize_level();
+    return await des.finalize_level();
 }

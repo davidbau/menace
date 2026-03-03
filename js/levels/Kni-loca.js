@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Knight Kni-loca.lua	$NHDT-Date: 1652196005 2022/5/10 15:20:5 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991,92 by M. Stephenson
@@ -61,61 +61,61 @@ xxxxxxxxx.......xxxxxx.....xxxxxxxxxxxxx
     // Random traps
     // All of the avenues are guarded by magic except for the East.
     // South
-    des.trap("magic",8,11);
-    des.trap("magic",9,11);
-    des.trap("magic",10,11);
-    des.trap("magic",11,11);
-    des.trap("magic",12,11);
-    des.trap("magic",13,11);
-    des.trap("magic",14,11);
-    des.trap("magic",15,11);
-    des.trap("magic",16,11);
-    des.trap("magic",20,11);
-    des.trap("magic",21,11);
-    des.trap("magic",22,11);
-    des.trap("magic",23,11);
-    des.trap("magic",24,11);
-    des.trap("magic",25,11);
-    des.trap("magic",26,11);
-    des.trap("magic",27,11);
-    des.trap("magic",28,11);
+    await des.trap("magic",8,11);
+    await des.trap("magic",9,11);
+    await des.trap("magic",10,11);
+    await des.trap("magic",11,11);
+    await des.trap("magic",12,11);
+    await des.trap("magic",13,11);
+    await des.trap("magic",14,11);
+    await des.trap("magic",15,11);
+    await des.trap("magic",16,11);
+    await des.trap("magic",20,11);
+    await des.trap("magic",21,11);
+    await des.trap("magic",22,11);
+    await des.trap("magic",23,11);
+    await des.trap("magic",24,11);
+    await des.trap("magic",25,11);
+    await des.trap("magic",26,11);
+    await des.trap("magic",27,11);
+    await des.trap("magic",28,11);
     // West
-    des.trap("magic",0,3);
-    des.trap("magic",0,4);
-    des.trap("magic",0,5);
-    des.trap("magic",0,6);
+    await des.trap("magic",0,3);
+    await des.trap("magic",0,4);
+    await des.trap("magic",0,5);
+    await des.trap("magic",0,6);
     // North
-    des.trap("magic",6,0);
-    des.trap("magic",7,0);
-    des.trap("magic",8,0);
-    des.trap("magic",9,0);
-    des.trap("magic",10,0);
-    des.trap("magic",11,0);
-    des.trap("magic",12,0);
-    des.trap("magic",13,0);
-    des.trap("magic",14,0);
-    des.trap("magic",19,0);
-    des.trap("magic",20,0);
-    des.trap("magic",21,0);
-    des.trap("magic",22,0);
-    des.trap("magic",23,0);
-    des.trap("magic",24,0);
-    des.trap("magic",25,0);
-    des.trap("magic",26,0);
-    des.trap("magic",27,0);
-    des.trap("magic",28,0);
-    des.trap("magic",29,0);
-    des.trap("magic",30,0);
-    des.trap("magic",31,0);
-    des.trap("magic",32,0);
+    await des.trap("magic",6,0);
+    await des.trap("magic",7,0);
+    await des.trap("magic",8,0);
+    await des.trap("magic",9,0);
+    await des.trap("magic",10,0);
+    await des.trap("magic",11,0);
+    await des.trap("magic",12,0);
+    await des.trap("magic",13,0);
+    await des.trap("magic",14,0);
+    await des.trap("magic",19,0);
+    await des.trap("magic",20,0);
+    await des.trap("magic",21,0);
+    await des.trap("magic",22,0);
+    await des.trap("magic",23,0);
+    await des.trap("magic",24,0);
+    await des.trap("magic",25,0);
+    await des.trap("magic",26,0);
+    await des.trap("magic",27,0);
+    await des.trap("magic",28,0);
+    await des.trap("magic",29,0);
+    await des.trap("magic",30,0);
+    await des.trap("magic",31,0);
+    await des.trap("magic",32,0);
     // Even so, there are magic "sinkholes" around.
-    des.trap("anti magic");
-    des.trap("anti magic");
-    des.trap("anti magic");
-    des.trap("anti magic");
-    des.trap("anti magic");
-    des.trap("anti magic");
-    des.trap("anti magic");
+    await des.trap("anti magic");
+    await des.trap("anti magic");
+    await des.trap("anti magic");
+    await des.trap("anti magic");
+    await des.trap("anti magic");
+    await des.trap("anti magic");
+    await des.trap("anti magic");
     // Random monsters.
     des.monster({ id: "quasit", peaceful: 0 });
     des.monster({ id: "quasit", peaceful: 0 });
@@ -146,5 +146,5 @@ xxxxxxxxx.......xxxxxx.....xxxxxxxxxxxxx
     des.monster({ class: "j", peaceful: 0 });
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

@@ -15,10 +15,10 @@ function firstRoomCenter(map) {
 }
 
 describe('mktrap C parity', () => {
-    it('places a pit in a single-cell room candidate when unoccupied', () => {
+    it('places a pit in a single-cell room candidate when unoccupied', async () => {
         initRng(101);
         initLevelGeneration();
-        const map = makelevel(3);
+        const map = await makelevel(3);
         const { x, y } = firstRoomCenter(map);
         const croom = { lx: x, hx: x, ly: y, hy: y };
         const before = map.traps.length;
@@ -30,10 +30,10 @@ describe('mktrap C parity', () => {
         assert.ok(t && t.ttyp === PIT, 'pit should be placed at forced single candidate square');
     });
 
-    it('does not place pit/hole traps onto boulder squares', () => {
+    it('does not place pit/hole traps onto boulder squares', async () => {
         initRng(202);
         initLevelGeneration();
-        const map = makelevel(3);
+        const map = await makelevel(3);
         const { x, y } = firstRoomCenter(map);
         const croom = { lx: x, hx: x, ly: y, hy: y };
         const before = map.traps.length;
@@ -48,10 +48,10 @@ describe('mktrap C parity', () => {
         );
     });
 
-    it('does not place trap at explicit pool/lava target coordinates', () => {
+    it('does not place trap at explicit pool/lava target coordinates', async () => {
         initRng(303);
         initLevelGeneration();
-        const map = makelevel(3);
+        const map = await makelevel(3);
         const { x, y } = firstRoomCenter(map);
         const before = map.traps.length;
 

@@ -138,11 +138,11 @@ export function mcalcmove(mon) {
 // allocateMonsterMovement — C ref: allmain.c:226-227 moveloop_core
 // Reallocate movement rations to all living monsters via mcalcmove.
 // ========================================================================
-export function allocateMonsterMovement(map) {
+export async function allocateMonsterMovement(map) {
     for (const mon of map.monsters) {
         if (mon.dead) continue;
         const oldMv = mon.movement;
-        mon.movement += withRngTag('allocateMonsterMovement(mon.js:145)', () => mcalcmove(mon));
+        mon.movement += await withRngTag('allocateMonsterMovement(mon.js:145)', () => mcalcmove(mon));
         pushRngLogEntry(`^mcalcmove[${mon.mndx}@${mon.mx},${mon.my} speed=${mon.speed} mv=${oldMv}->${mon.movement}]`);
     }
 }
@@ -1533,7 +1533,7 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                     && canSeeNow
                     && mon.mcanmove !== false
                     && !onscary(map, player.x, player.y)) {
-                    if (typeof game.stopOccupation === 'function') game.stopOccupation();
+                    if (typeof game.stopOccupation === 'function') await game.stopOccupation();
                     else {
                         game.occupation = null;
                         game.multi = 0;
@@ -1705,12 +1705,12 @@ export function anger_quest_guardians(mtmp, player) {
 // Autotranslated from mon.c:3746
 export async function mon_to_stone(mtmp) {
   if (mtmp.data.mlet === S_GOLEM) {
-    if (canseemon(mtmp)) pline_mon(mtmp, "%s solidifies...", Monnam(mtmp));
+    if (canseemon(mtmp)) await pline_mon(mtmp, "%s solidifies...", Monnam(mtmp));
     if (newcham(mtmp, mons, NO_NC_FLAGS)) {
-      if (canseemon(mtmp)) pline("Now it's %s.", an(pmname(mtmp.data, Mgender(mtmp))));
+      if (canseemon(mtmp)) await pline("Now it's %s.", an(pmname(mtmp.data, Mgender(mtmp))));
     }
     else {
-      if (canseemon(mtmp)) pline("... and returns to normal.");
+      if (canseemon(mtmp)) await pline("... and returns to normal.");
     }
   }
   else {
@@ -1724,24 +1724,24 @@ export async function vamp_stone(mtmp, game) {
     let mndx = mtmp.cham, x = mtmp.mx, y = mtmp.my;
     if (mndx >= LOW_PM && mndx !== monsndx(mtmp.data) && !(game.mvitals[mndx].mvflags & G_GENOD)) {
       let buf;
-      Sprintf(buf, "The lapidifying %s %s %s", x_monnam(mtmp, ARTICLE_NONE,  0, (SUPPRESS_SADDLE | SUPPRESS_HALLUCINATION | SUPPRESS_INVISIBLE | SUPPRESS_IT), false), amorphous(mtmp.data) ? "coalesces on the" : is_flyer(mtmp.data) ? "drops to the" : "writhes on the", surface(x, y));
+      Sprintf(buf, "The lapidifying %s %s %s", x_monnam(mtmp, ARTICLE_NONE,  0, (SUPPRESS_SADDLE | SUPPRESS_HALLUCINATION | SUPPRESS_INVISIBLE | SUPPRESS_IT), false), amorphous(mtmp.data) ? "coalesces on the" : is_flyer(mtmp.data) ? "drops to the" : "writhes on the", await surface(x, y));
       mtmp.mcanmove = 1;
       mtmp.mfrozen = 0;
       set_mon_min_mhpmax(mtmp, 10);
       mtmp.mhp = mtmp.mhpmax;
-      if (engulfing_u(mtmp)) expels(mtmp, mtmp.data, false);
+      if (engulfing_u(mtmp)) await expels(mtmp, mtmp.data, false);
       if (amorphous(mtmp.data) && closed_door(mtmp.mx, mtmp.my)) {
         let new_xy;
         if (enexto( new_xy, mtmp.mx, mtmp.my, mons[mndx])) { rloc_to(mtmp, new_xy.x, new_xy.y); }
       }
-      if (canspotmon(mtmp)) { pline_mon(mtmp, "%s!", buf); await display_nhwindow(WIN_MESSAGE, false); }
+      if (canspotmon(mtmp)) { await pline_mon(mtmp, "%s!", buf); await display_nhwindow(WIN_MESSAGE, false); }
       newcham(mtmp, mons, NO_NC_FLAGS);
       if (mtmp.data === mons) mtmp.cham = NON_PM;
       else {
         mtmp.cham = mndx;
       }
       if (canspotmon(mtmp)) {
-        pline_mon(mtmp, "%s rises from the %s with renewed agility!", Amonnam(mtmp), surface(mtmp.mx, mtmp.my));
+        await pline_mon(mtmp, "%s rises from the %s with renewed agility!", Amonnam(mtmp), await surface(mtmp.mx, mtmp.my));
       }
       newsym(mtmp.mx, mtmp.my);
       return false;
@@ -1760,9 +1760,9 @@ export async function vamp_stone(mtmp, game) {
 }
 
 // Autotranslated from mon.c:3841
-export function migrate_mon(mtmp, target_lev, xyloc) {
+export async function migrate_mon(mtmp, target_lev, xyloc) {
   if (mtmp.mx) { unstuck(mtmp); mdrop_special_objs(mtmp); }
-  migrate_to_level(mtmp, target_lev, xyloc, null);
+  await migrate_to_level(mtmp, target_lev, xyloc, null);
 }
 
 // Autotranslated from mon.c:3862
@@ -1781,29 +1781,29 @@ export function maybe_mnexto(mtmp, player) {
 }
 
 // Autotranslated from mon.c:4087
-export function m_respond_shrieker(mtmp, player) {
-  if (!(player?.Deaf || player?.deaf || false)) { pline("%s shrieks.", Monnam(mtmp)); stop_occupation(); }
+export async function m_respond_shrieker(mtmp, player) {
+  if (!(player?.Deaf || player?.deaf || false)) { await pline("%s shrieks.", Monnam(mtmp)); await stop_occupation(); }
   if (!rn2(10)) { makemon(rn2(13) ?  0 : mons, 0, 0, NO_MM_FLAGS); }
   aggravate();
 }
 
 // Autotranslated from mon.c:4107
-export function m_respond_medusa(mtmp) {
+export async function m_respond_medusa(mtmp) {
   let i;
   for (i = 0; i < NATTK; i++) {
-    if (mtmp.data.mattk[i].aatyp === AT_GAZE) { gazemu(mtmp, mtmp.data.mattk[i]); break; }
+    if (mtmp.data.mattk[i].aatyp === AT_GAZE) { await gazemu(mtmp, mtmp.data.mattk[i]); break; }
   }
 }
 
 // Autotranslated from mon.c:4120
-export function m_respond(mtmp) {
-  if (mtmp.data.msound === MS_SHRIEK && !um_dist(mtmp.mx, mtmp.my, 1)) m_respond_shrieker(mtmp);
-  if (mtmp.data === mons[PM_MEDUSA] && couldsee(mtmp.mx, mtmp.my)) m_respond_medusa(mtmp);
+export async function m_respond(mtmp) {
+  if (mtmp.data.msound === MS_SHRIEK && !um_dist(mtmp.mx, mtmp.my, 1)) await m_respond_shrieker(mtmp);
+  if (mtmp.data === mons[PM_MEDUSA] && couldsee(mtmp.mx, mtmp.my)) await m_respond_medusa(mtmp);
   if (mtmp.data === mons[PM_ERINYS] && !mtmp.mpeaceful && m_canseeu(mtmp)) aggravate();
 }
 
 // Autotranslated from mon.c:4133
-export function qst_guardians_respond(map, player) {
+export async function qst_guardians_respond(map, player) {
   let mon, q_guardian =  mons, got_mad = 0;
   for (mon = (map?.fmon || null); mon; mon = mon.nmon) {
     if (DEADMONSTER(mon)) {
@@ -1814,7 +1814,7 @@ export function qst_guardians_respond(map, player) {
   if (got_mad && !(player?.Hallucination || player?.hallucinating || false)) {
     let who = q_guardian.pmnames;
     if (got_mad > 1) who = makeplural(who);
-    pline_The("%s %s to be angry too...", who, vtense(who, "appear"));
+    await pline_The("%s %s to be angry too...", who, vtense(who, "appear"));
   }
 }
 
@@ -1911,7 +1911,7 @@ export function kill_eggs(obj_list) {
 }
 
 // Autotranslated from mon.c:5676
-export function golemeffects(mon, damtype, dam) {
+export async function golemeffects(mon, damtype, dam) {
   let heal = 0, slow = 0;
   if (mon.data === mons) {
     if (damtype === AD_ELEC) heal = (dam + 5) / 6;
@@ -1927,13 +1927,13 @@ export function golemeffects(mon, damtype, dam) {
   }
   if (heal) {
     if (healmon(mon, heal, 0)) {
-      if (cansee(mon.mx, mon.my)) pline_mon(mon, "%s seems healthier.", Monnam(mon));
+      if (cansee(mon.mx, mon.my)) await pline_mon(mon, "%s seems healthier.", Monnam(mon));
     }
   }
 }
 
 // Autotranslated from mon.c:5707
-export function angry_guards(silent, map) {
+export async function angry_guards(silent, map) {
   let mtmp, ct = 0, nct = 0, sct = 0, slct = 0;
   for (mtmp = (map?.fmon || null); mtmp; mtmp = mtmp.nmon) {
     if (DEADMONSTER(mtmp)) {
@@ -1956,19 +1956,19 @@ export function angry_guards(silent, map) {
       let buf;
       if (slct) {
         Sprintf(buf, "guard%s", plur(slct));
-        pline_The("%s %s up.", buf, vtense(buf, "wake"));
+        await pline_The("%s %s up.", buf, vtense(buf, "wake"));
       }
       if (nct) {
         Sprintf(buf, "guard%s", plur(nct));
-        pline_The("%s %s angry!", buf, vtense(buf, "get"));
+        await pline_The("%s %s angry!", buf, vtense(buf, "get"));
       }
       else if (sct) {
         Sprintf(buf, "guard%s", plur(sct));
-        pline("%s %s %s approaching!", (sct === 1) ? "An angry" : "Angry", buf, vtense(buf, "are"));
+        await pline("%s %s %s approaching!", (sct === 1) ? "An angry" : "Angry", buf, vtense(buf, "are"));
       }
       else {
         Strcpy(buf, (ct === 1) ? "a guard's" : "guards'");
-        You_hear("the shrill sound of %s whistle%s.", buf, plur(ct));
+        await You_hear("the shrill sound of %s whistle%s.", buf, plur(ct));
       }
     }
     return true;
@@ -1987,7 +1987,7 @@ export function pacify_guards() {
 }
 
 // Autotranslated from mon.c:5772
-export function mimic_hit_msg(mtmp, otyp) {
+export async function mimic_hit_msg(mtmp, otyp) {
   let ap = mtmp.mappearance;
   switch (M_AP_TYPE(mtmp)) {
     case M_AP_NOTHING:
@@ -1996,7 +1996,7 @@ export function mimic_hit_msg(mtmp, otyp) {
           break;
     case M_AP_OBJECT:
       if (otyp === SPE_HEALING || otyp === SPE_EXTRA_HEALING) {
-        pline_mon(mtmp, "%s seems a more vivid %s than before.", The(simple_typename(ap)), c_obj_colors[objectData[ap].oc_color]);
+        await pline_mon(mtmp, "%s seems a more vivid %s than before.", The(simple_typename(ap)), c_obj_colors[objectData[ap].oc_color]);
       }
     break;
   }

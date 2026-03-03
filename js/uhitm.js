@@ -126,7 +126,7 @@ export function erode_armor(mdef, hurt) {
 //   Returns true if the attack should be aborted.
 //   In JS, attack validation is handled upstream in the move system.
 //   This stub always returns false (OK to attack).
-export function attack_checks(mtmp, wep, opts = {}) {
+export async function attack_checks(mtmp, wep, opts = {}) {
     const player = opts.player || null;
     const display = opts.display || null;
     const context = opts.context || null;
@@ -140,11 +140,11 @@ export function attack_checks(mtmp, wep, opts = {}) {
     // C-style safety gates: don't auto-attack tame/peaceful unless forced.
     if (!forcefight) {
         if (mtmp.tame && !pets_too) {
-            if (display) display.putstr_message('You stop. Your pet is in the way!');
+            if (display) await display.putstr_message('You stop. Your pet is in the way!');
             return true;
         }
         if (mtmp.peaceful && !pets_too) {
-            if (display) display.putstr_message(`Really attack ${x_monnam(mtmp)}?`);
+            if (display) await display.putstr_message(`Really attack ${x_monnam(mtmp)}?`);
             return true;
         }
     }
@@ -231,12 +231,12 @@ function find_roll_to_hit(player, mtmp, aatyp, weapon) {
 // cf. uhitm.c:431 — force_attack(mtmp, pets_too):
 //   Force attack on a monster in the way (e.g. 'F' prefix).
 //   Temporarily sets forcefight flag, calls do_attack, restores flag.
-export function force_attack(mtmp, pets_too, player = null, display = null, map = null, context = null) {
+export async function force_attack(mtmp, pets_too, player = null, display = null, map = null, context = null) {
     if (!mtmp || !player) return false;
     const ctx = context || {};
     const save = !!ctx.forcefight;
     ctx.forcefight = true;
-    const attacked = !!do_attack(player, mtmp, display, map, { context: ctx, pets_too });
+    const attacked = !!await do_attack(player, mtmp, display, map, { context: ctx, pets_too });
     ctx.forcefight = save;
     return attacked;
 }
@@ -246,18 +246,18 @@ export function force_attack(mtmp, pets_too, player = null, display = null, map 
 //   Partially implemented via hmon() below.
 //   Full implementation would handle: attack_checks, capacity, poly attacks,
 //   leprechaun dodge, hitum/hmonas dispatch, invisible monster mapping.
-export function do_attack(player, mtmp, display, map, opts = {}) {
+export async function do_attack(player, mtmp, display, map, opts = {}) {
     if (!player || !mtmp) return false;
     const context = opts.context || null;
     const pets_too = !!opts.pets_too;
     const game = opts.game || null;
-    if (attack_checks(mtmp, player.weapon || null, {
+    if (await attack_checks(mtmp, player.weapon || null, {
         player, display, map, context, pets_too,
     })) {
         return false;
     }
     // Delegate to hmon for the normal case
-    return do_attack_core(player, mtmp, display, map, game);
+    return await do_attack_core(player, mtmp, display, map, game);
 }
 
 
@@ -274,16 +274,16 @@ const HMON_APPLIED = 3;
 // cf. uhitm.c:586 — known_hitum(mon, weapon, mhit, rollneeded, armorpenalty, uattk, dieroll):
 //   Handle known-hit path: exercise, cleave, flee check after hit.
 //   Returns true if monster survives, false if dead.
-function known_hitum(player, mon, weapon, mhit, rollneeded, armorpenalty, uattk, dieroll, display, map) {
+async function known_hitum(player, mon, weapon, mhit, rollneeded, armorpenalty, uattk, dieroll, display, map) {
     let malive = true;
 
     if (!mhit) {
         // Miss path
-        missum_internal(player, mon, uattk, (rollneeded + armorpenalty > dieroll), display);
+        await missum_internal(player, mon, uattk, (rollneeded + armorpenalty > dieroll), display);
     } else {
         const oldhp = mon.mhp;
         // Hit: call hmon
-        malive = hmon(player, mon, weapon, HMON_MELEE, dieroll, display, map);
+        malive = await hmon(player, mon, weapon, HMON_MELEE, dieroll, display, map);
         if (malive) {
             // cf. uhitm.c:624-628 — 1/25 flee check
             if (!rn2(25) && mon.mhp < Math.floor((mon.mhpmax || 1) / 2)) {
@@ -320,7 +320,7 @@ function double_punch() {
 // cf. uhitm.c:757 — hitum(mon, uattk):
 //   Main melee hit routine: roll to-hit, call known_hitum or miss.
 //   Returns true if monster survives.
-function hitum(player, mon, uattk, display, map, game = null) {
+async function hitum(player, mon, uattk, display, map, game = null) {
     const weapon = player.weapon;
     // cf. uhitm.c:775 — twohits: double punch or two-weapon
     // const twohits = (weapon ? !!player.twoweap : double_punch()) ? 1 : 0;
@@ -329,10 +329,10 @@ function hitum(player, mon, uattk, display, map, game = null) {
     mon_maybe_unparalyze(mon);
     const dieroll = rnd(20);
     const mhit = (tmp > dieroll);
-    if (tmp > dieroll) exercise(player, A_DEX, true);
+    if (tmp > dieroll) await exercise(player, A_DEX, true);
 
-    const malive = known_hitum(player, mon, weapon, mhit, tmp, 0, uattk, dieroll, display, map);
-    passive(mon, weapon, mhit, malive, uattk?.type ?? AT_WEAP, false, {
+    const malive = await known_hitum(player, mon, weapon, mhit, tmp, 0, uattk, dieroll, display, map);
+    await passive(mon, weapon, mhit, malive, uattk?.type ?? AT_WEAP, false, {
         player, display, map, game,
     });
 
@@ -343,8 +343,8 @@ function hitum(player, mon, uattk, display, map, game = null) {
 // cf. uhitm.c:818 — hmon(mon, obj, thrown, dieroll):
 //   Wrapper for hmon_hitmon: applies object damage to monster.
 //   Returns true if monster survives.
-export function hmon(player, mon, obj, thrown, dieroll, display, map) {
-    return hmon_hitmon(player, mon, obj, thrown, dieroll, display, map);
+export async function hmon(player, mon, obj, thrown, dieroll, display, map) {
+    return await hmon_hitmon(player, mon, obj, thrown, dieroll, display, map);
 }
 
 // cf. uhitm.c:837 — hmon_hitmon_barehands(hmd, mon):
@@ -415,9 +415,9 @@ export function hmon_hitmon_weapon(hmd, mon, obj) {
 
 // cf. uhitm.c:1073 — hmon_hitmon_potion(hmd, mon, obj):
 //   Potion used as melee weapon: potionhit() then 1 damage (0 vs shade).
-export function hmon_hitmon_potion(hmd, mon, obj, player, display) {
+export async function hmon_hitmon_potion(hmd, mon, obj, player, display) {
     // Use existing hitMonsterWithPotion for the potion effect
-    hitMonsterWithPotion(player, mon, display, obj);
+    await hitMonsterWithPotion(player, mon, display, obj);
     hmd.hittxt = true;
     hmd.dmg = (mon.mndx ?? -1) === PM_SHADE ? 0 : 1;
 }
@@ -470,7 +470,7 @@ function hmon_hitmon_misc_obj(hmd, mon, obj) {
 
 // cf. uhitm.c:1365 — hmon_hitmon_do_hit(hmd, mon, obj):
 //   Top-level dispatch: bare hands or object (weapon/potion/misc).
-export function hmon_hitmon_do_hit(hmd, mon, obj, player, display) {
+export async function hmon_hitmon_do_hit(hmd, mon, obj, player, display) {
     if (!obj) {
         hmon_hitmon_barehands(hmd, mon);
     } else {
@@ -478,7 +478,7 @@ export function hmon_hitmon_do_hit(hmd, mon, obj, player, display) {
         if (oclass === WEAPON_CLASS || oclass === GEM_CLASS) {
             hmon_hitmon_weapon(hmd, mon, obj);
         } else if (oclass === POTION_CLASS) {
-            hmon_hitmon_potion(hmd, mon, obj, player, display);
+            await hmon_hitmon_potion(hmd, mon, obj, player, display);
         } else {
             if ((mon.mndx ?? -1) === PM_SHADE && !shade_aware(obj)) {
                 hmd.dmg = 0;
@@ -565,16 +565,16 @@ export function hmon_hitmon_splitmon(hmd, mon, obj) {
 
 // cf. uhitm.c:1615 — hmon_hitmon_msg_hit(hmd, mon, obj):
 //   Generate "You hit the <monster>" message.
-export function hmon_hitmon_msg_hit(hmd, mon, obj, display) {
+export async function hmon_hitmon_msg_hit(hmd, mon, obj, display) {
     if (!hmd.hittxt && !hmd.destroyed) {
         const name = x_monnam(mon);
-        display.putstr_message(`You hit the ${name}${exclam(hmd.dmg)}`);
+        await display.putstr_message(`You hit the ${name}${exclam(hmd.dmg)}`);
     }
 }
 
 // cf. uhitm.c:1641 — hmon_hitmon_msg_silver(hmd, mon, obj):
 //   "The silver sears <monster>!" message.
-function hmon_hitmon_msg_silver(hmd, mon, obj, display) {
+async function hmon_hitmon_msg_silver(hmd, mon, obj, display) {
     const name = x_monnam(mon);
     const ptr = mon.type || {};
     let whom = name;
@@ -583,30 +583,30 @@ function hmon_hitmon_msg_silver(hmd, mon, obj, display) {
     }
     if (hmd.silverobj && obj) {
         const oname = xname(obj);
-        display.putstr_message(`Your ${oname} sears ${whom}!`);
+        await display.putstr_message(`Your ${oname} sears ${whom}!`);
     } else if (hmd.barehand_silver_rings > 0) {
-        display.putstr_message(`Your silver ring sears ${whom}!`);
+        await display.putstr_message(`Your silver ring sears ${whom}!`);
     } else {
-        display.putstr_message(`The silver sears ${whom}!`);
+        await display.putstr_message(`The silver sears ${whom}!`);
     }
 }
 
 // cf. uhitm.c:1680 — hmon_hitmon_msg_lightobj(hmd, mon, obj):
 //   Light-source weapon message (burning undead, etc).
-function hmon_hitmon_msg_lightobj(hmd, mon, obj, display) {
+async function hmon_hitmon_msg_lightobj(hmd, mon, obj, display) {
     const name = x_monnam(mon);
     const ptr = mon.type || {};
     let whom = name;
     if (!noncorporeal(ptr) && !amorphous(ptr)) {
         whom = `${name}'s flesh`;
     }
-    display.putstr_message(`The light sears ${whom}!`);
+    await display.putstr_message(`The light sears ${whom}!`);
 }
 
 // cf. uhitm.c:1732 — hmon_hitmon(mon, obj, thrown, dieroll):
 //   Core hit-monster dispatcher.
 //   Returns true if monster survives, false if dead.
-function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
+async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
     const hmd = {
         dmg: 0,
         thrown: thrown,
@@ -638,7 +638,7 @@ function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
     };
 
     // Phase 1: compute base damage
-    hmon_hitmon_do_hit(hmd, mon, obj, player, display);
+    await hmon_hitmon_do_hit(hmd, mon, obj, player, display);
     if (hmd.doreturn) return hmd.retval;
 
     // Phase 2: add bonuses
@@ -687,9 +687,9 @@ function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
 
     // Phase 9: messages
     if (display) {
-        hmon_hitmon_msg_hit(hmd, mon, obj, display);
-        if (hmd.silvermsg) hmon_hitmon_msg_silver(hmd, mon, obj, display);
-        if (hmd.lightobj) hmon_hitmon_msg_lightobj(hmd, mon, obj, display);
+        await hmon_hitmon_msg_hit(hmd, mon, obj, display);
+        if (hmd.silvermsg) await hmon_hitmon_msg_silver(hmd, mon, obj, display);
+        if (hmd.lightobj) await hmon_hitmon_msg_lightobj(hmd, mon, obj, display);
     }
 
     // Phase 10: poison kill / normal kill
@@ -1264,18 +1264,18 @@ export async function gulpum(mdef, mattk) {
 // cf. uhitm.c:5176 — missum(mdef, uattk, wouldhavehit):
 //   Hero misses monster: print miss message.
 //   'wouldhavehit' is true if monk missed only due to armor penalty.
-export function missum(mdef, uattk, wouldhavehit) {
+export async function missum(mdef, uattk, wouldhavehit) {
     const display = arguments[3] || null;
     if (!display) return;
     if (wouldhavehit) {
-        display.putstr_message('Your armor is rather cumbersome...');
+        await display.putstr_message('Your armor is rather cumbersome...');
     }
-    display.putstr_message(`You miss ${y_monnam(mdef)}.`);
+    await display.putstr_message(`You miss ${y_monnam(mdef)}.`);
 }
 
 // Internal version of missum used by known_hitum
-function missum_internal(player, mon, uattk, wouldhavehit, display) {
-    missum(mon, uattk, wouldhavehit, display);
+async function missum_internal(player, mon, uattk, wouldhavehit, display) {
+    await missum(mon, uattk, wouldhavehit, display);
 }
 
 // cf. uhitm.c:5196 — m_is_steadfast(mtmp):
@@ -1601,7 +1601,7 @@ function potionHealsMonster(potion) {
 }
 
 // cf. uhitm.c hmon_hitmon_potion() -> potion.c potionhit()
-function hitMonsterWithPotion(player, monster, display, weapon) {
+async function hitMonsterWithPotion(player, monster, display, weapon) {
     const potion = consumeMeleePotion(player, weapon);
     const bottleChoices = player?.hallucinating ? 24 : 7;
     rn2(bottleChoices); // bottlename()
@@ -1613,7 +1613,7 @@ function hitMonsterWithPotion(player, monster, display, weapon) {
 
     if (potionHealsMonster(potion) && monster.mhp < (monster.mhpmax || monster.mhp)) {
         monster.mhp = monster.mhpmax || monster.mhp;
-        display.putstr_message(`The ${x_monnam(monster)} looks sound and hale again.`);
+        await display.putstr_message(`The ${x_monnam(monster)} looks sound and hale again.`);
     }
 
     // cf. potion.c:1893 — distance<3 && !rn2((1+DEX)/2) gate for potionbreathe()
@@ -1625,18 +1625,18 @@ function hitMonsterWithPotion(player, monster, display, weapon) {
 // cf. mon.c xkilled() — monster death handling.
 // Co-located here with its primary caller hmon().
 // TODO: future mon.js codematch should migrate this to mon.js.
-function handleMonsterKilled(player, monster, display, map) {
+async function handleMonsterKilled(player, monster, display, map) {
     // cf. uhitm.c -> mon.c mondead() -> killed() -> xkilled()
     const mdat = monster.type || {};
     const killVerb = nonliving(mdat) ? 'destroy' : 'kill';
-    display.putstr_message(`You ${killVerb} the ${x_monnam(monster)}!`);
+    await display.putstr_message(`You ${killVerb} the ${x_monnam(monster)}!`);
     mondead(monster, map, player);
 
     // cf. exper.c experience() -- roughly monster level * level
     const exp = ((monster.m_lev || 0) + 1) * ((monster.m_lev || 0) + 1);
     player.exp += exp;
     player.score += exp;
-    newexplevel(player, display);
+    await newexplevel(player, display);
 
     // cf. mon.c:3581-3609 xkilled() — "illogical but traditional" treasure drop.
     const treasureRoll = rn2(6);
@@ -1685,7 +1685,7 @@ function playerHasProp(player, prop) {
     return !!(player && typeof player.hasProp === 'function' && player.hasProp(prop));
 }
 
-function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destroyed = false, ctx = {}) {
+async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destroyed = false, ctx = {}) {
     const player = ctx.player || null;
     const display = ctx.display || null;
     const game = ctx.game || null;
@@ -1732,7 +1732,7 @@ function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destroyed =
             }
             rn2(30); // erosion check path
             rn2(6);  // acid item-damage check path
-            if (player) exercise(player, A_STR, false);
+            if (player) await exercise(player, A_STR, false);
         } else {
             tmp = 0;
         }
@@ -1773,7 +1773,7 @@ function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destroyed =
             if (!rn2(4)) tmp = 127;
             if (!playerHasProp(player, FREE_ACTION) && tmp > 0) {
                 if (game) game.multi = Math.max(game.multi || 0, tmp);
-                if (display) display.putstr_message(`You are frozen by ${y_monnam(mon)}!`);
+                if (display) await display.putstr_message(`You are frozen by ${y_monnam(mon)}!`);
             }
         } else {
             tmp = 0;
@@ -1791,7 +1791,7 @@ function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destroyed =
     case AD_STUN:
         if (player) {
             const oldTimeout = player.getPropTimeout ? (player.getPropTimeout('stunned') || 0) : 0;
-            make_stunned(player, oldTimeout + Math.max(1, tmp), true);
+            await make_stunned(player, oldTimeout + Math.max(1, tmp), true);
         }
         tmp = 0;
         break;
@@ -1807,7 +1807,7 @@ function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destroyed =
 
 
 // cf. uhitm.c do_attack() / hitum() / known_hitum() — hero attacks monster
-export function do_attack_core(player, monster, display, map, game = null) {
+export async function do_attack_core(player, monster, display, map, game = null) {
     // C ref: uhitm.c:538-549 — first attack while wielding a non-weapon
     // emits "You begin bashing monsters with <item>."
     const wielded = player.weapon;
@@ -1832,35 +1832,35 @@ export function do_attack_core(player, monster, display, map, game = null) {
     const mhit = (toHit > dieRoll);
 
     // cf. uhitm.c:781-782 — exercise A_DEX before known_hitum if hit
-    if (mhit) exercise(player, A_DEX, true);
+    if (mhit) await exercise(player, A_DEX, true);
 
     if (!mhit) {
         // cf. uhitm.c:608 — known_hitum miss path → missum()
         if (bashPrefix) {
-            display.putstr_message(`${bashPrefix}  You miss ${y_monnam(monster)}.`);
+            await display.putstr_message(`${bashPrefix}  You miss ${y_monnam(monster)}.`);
         } else {
-            display.putstr_message(`You miss ${y_monnam(monster)}.`);
+            await display.putstr_message(`You miss ${y_monnam(monster)}.`);
         }
         // cf. uhitm.c:788 passive() after miss
-        passive(monster, player.weapon || null, false, true, AT_WEAP, false, {
+        await passive(monster, player.weapon || null, false, true, AT_WEAP, false, {
             player, display, map, game,
         });
         return false;
     }
 
     if (bashPrefix) {
-        display.putstr_message(bashPrefix);
+        await display.putstr_message(bashPrefix);
     }
 
     if (player.weapon && player.weapon.oclass === POTION_CLASS) {
-        hitMonsterWithPotion(player, monster, display, player.weapon);
+        await hitMonsterWithPotion(player, monster, display, player.weapon);
         // cf. uhitm.c hmon_hitmon_potion() sets base damage to 1 (or 0 vs shade)
         // after potionhit(), then proceeds through normal kill/flee/passive handling.
         if ((monster.mndx ?? -1) !== PM_SHADE) {
             monster.mhp -= 1;
         }
         if (monster.mhp <= 0) {
-            return handleMonsterKilled(player, monster, display, map);
+            return await handleMonsterKilled(player, monster, display, map);
         }
         // cf. uhitm.c:624-628 known_hitum() — 1/25 morale/flee check on surviving hit
         if (!rn2(25) && monster.mhp < Math.floor((monster.mhpmax || 1) / 2)) {
@@ -1869,7 +1869,7 @@ export function do_attack_core(player, monster, display, map, game = null) {
             applyMonflee(monster, fleetime, false);
         }
         // cf. uhitm.c:788 passive() after potion hit
-        passive(monster, player.weapon || null, true, true, AT_WEAP, false, {
+        await passive(monster, player.weapon || null, true, true, AT_WEAP, false, {
             player, display, map, game,
         });
         return false;
@@ -1912,17 +1912,17 @@ export function do_attack_core(player, monster, display, map, game = null) {
     if (monster.mhp <= 0) {
         // cf. uhitm.c:788 passive() called even when monster dies (malive=false)
         // The "alive-only" effects (rn2(3) gate) are skipped.
-        const killed = handleMonsterKilled(player, monster, display, map);
-        passive(monster, player.weapon || null, true, false, AT_WEAP, false, {
+        const killed = await handleMonsterKilled(player, monster, display, map);
+        await passive(monster, player.weapon || null, true, false, AT_WEAP, false, {
             player, display, map, game,
         });
         return killed;
     } else {
         // cf. uhitm.c -- various hit messages
         if (dieRoll >= 18) {
-            display.putstr_message(`You smite the ${x_monnam(monster)}!`);
+            await display.putstr_message(`You smite the ${x_monnam(monster)}!`);
         } else {
-            display.putstr_message(`You hit the ${x_monnam(monster)}${exclam(damage)}`);
+            await display.putstr_message(`You hit the ${x_monnam(monster)}${exclam(damage)}`);
         }
         // cf. uhitm.c hmon_hitmon_core():
         // For armed melee hits with damage > 1: mhitm_knockback().
@@ -1940,7 +1940,7 @@ export function do_attack_core(player, monster, display, map, game = null) {
                     // cf. uhitm.c:5350-5352 — knockback message
                     const adj = rn2(2) ? 'forceful' : 'powerful';
                     const noun = rn2(2) ? 'blow' : 'strike';
-                    display.putstr_message(
+                    await display.putstr_message(
                         `You knock the ${x_monnam(monster)} back with a ${adj} ${noun}!`
                     );
                 }
@@ -1956,7 +1956,7 @@ export function do_attack_core(player, monster, display, map, game = null) {
             applyMonflee(monster, fleetime, false);
         }
         // cf. uhitm.c:788 passive() after surviving hit
-        passive(monster, player.weapon || null, true, true, AT_WEAP, false, {
+        await passive(monster, player.weapon || null, true, true, AT_WEAP, false, {
             player, display, map, game,
         });
         return false;

@@ -208,7 +208,7 @@ export function obj_to_any(obj) {
 }
 
 // C ref: hack.c maybe_smudge_engr()
-export function maybe_smudge_engr(map, oldX, oldY, newX, newY, player) {
+export async function maybe_smudge_engr(map, oldX, oldY, newX, newY, player) {
     const fmt = (ep) => {
         if (!ep) return 'none';
         const txt = String(ep.text || '');
@@ -222,7 +222,7 @@ export function maybe_smudge_engr(map, oldX, oldY, newX, newY, player) {
         `old=${fmt(engr_at(map, oldX, oldY))}`,
         `new=${fmt(engr_at(map, newX, newY))}`
     );
-    maybeSmudgeEngraving(map, oldX, oldY, newX, newY, player);
+    await maybeSmudgeEngraving(map, oldX, oldY, newX, newY, player);
 }
 
 // C ref: hack.c could_move_onto_boulder()
@@ -235,53 +235,53 @@ export function could_move_onto_boulder(_sx, _sy, player) {
 }
 
 // C ref: hack.c cannot_push_msg()
-export function cannot_push_msg(otmp, rx, ry, map, display) {
+export async function cannot_push_msg(otmp, rx, ry, map, display) {
     const name = (otmp?.otyp === BOULDER) ? 'the boulder' : 'that object';
     const mon = map?.monsterAt ? map.monsterAt(rx, ry) : null;
     if (mon) {
-        display?.putstr_message(`You hear a monster behind ${name}.`);
+        await display?.putstr_message(`You hear a monster behind ${name}.`);
         return;
     }
     const loc = map?.at ? map.at(rx, ry) : null;
     if (loc && IS_OBSTRUCTED(loc.typ)) {
-        display?.putstr_message(`${name} won't roll any further.`);
+        await display?.putstr_message(`${name} won't roll any further.`);
     } else {
-        display?.putstr_message(`You cannot push ${name} there.`);
+        await display?.putstr_message(`You cannot push ${name} there.`);
     }
 }
 
 // C ref: hack.c cannot_push()
-export function cannot_push(otmp, rx, ry, map, display) {
+export async function cannot_push(otmp, rx, ry, map, display) {
     if (!isok(rx, ry)) {
-        cannot_push_msg(otmp, rx, ry, map, display);
+        await cannot_push_msg(otmp, rx, ry, map, display);
         return true;
     }
     const loc = map.at(rx, ry);
     if (!loc || IS_OBSTRUCTED(loc.typ) || closed_door(rx, ry, map)) {
-        cannot_push_msg(otmp, rx, ry, map, display);
+        await cannot_push_msg(otmp, rx, ry, map, display);
         return true;
     }
     if (map.monsterAt(rx, ry)) {
-        cannot_push_msg(otmp, rx, ry, map, display);
+        await cannot_push_msg(otmp, rx, ry, map, display);
         return true;
     }
     if (sobj_at(BOULDER, rx, ry, map)) {
-        cannot_push_msg(otmp, rx, ry, map, display);
+        await cannot_push_msg(otmp, rx, ry, map, display);
         return true;
     }
     return false;
 }
 
 // C ref: hack.c rock_disappear_msg()
-export function rock_disappear_msg(otmp, display) {
+export async function rock_disappear_msg(otmp, display) {
     const name = (otmp?.otyp === BOULDER) ? 'The boulder' : 'It';
-    display?.putstr_message(`${name} disappears.`);
+    await display?.putstr_message(`${name} disappears.`);
 }
 
 // C ref: hack.c dopush()
-export function dopush(sx, sy, rx, ry, otmp, _costly, map, display) {
+export async function dopush(sx, sy, rx, ry, otmp, _costly, map, display) {
     const name = (otmp?.otyp === BOULDER) ? 'the boulder' : 'that object';
-    display?.putstr_message(`With great effort you move ${name}.`);
+    await display?.putstr_message(`With great effort you move ${name}.`);
     movobj(otmp, rx, ry, map);
     return { sx, sy, rx, ry };
 }
@@ -293,29 +293,29 @@ export function moverock_done(_sx, _sy, _map) {
 }
 
 // C ref: hack.c moverock_core()
-export function moverock_core(sx, sy, dx, dy, player, map, display, game) {
+export async function moverock_core(sx, sy, dx, dy, player, map, display, game) {
     const otmp = sobj_at(BOULDER, sx, sy, map);
     if (!otmp) return 0;
     const rx = sx + dx;
     const ry = sy + dy;
-    if (cannot_push(otmp, rx, ry, map, display)) {
+    if (await cannot_push(otmp, rx, ry, map, display)) {
         return -1;
     }
-    dopush(sx, sy, rx, ry, otmp, false, map, display);
+    await dopush(sx, sy, rx, ry, otmp, false, map, display);
     if (game) game.lastMoveDir = [dx, dy];
-    if (player) exercise(player, A_STR, true);
+    if (player) await exercise(player, A_STR, true);
     return 1;
 }
 
 // C ref: hack.c moverock()
 // Autotranslated from hack.c:336
-export function moverock(a0, a1, a2, a3, a4, a5, a6, a7) {
+export async function moverock(a0, a1, a2, a3, a4, a5, a6, a7) {
     // Runtime call path uses explicit coords/dir:
     // moverock(sx, sy, dx, dy, player, map, display, game)
     if (typeof a0 === 'number') {
         const sx = a0, sy = a1, dx = a2, dy = a3;
         const player = a4, map = a5, display = a6, game = a7;
-        const ret = moverock_core(sx, sy, dx, dy, player, map, display, game);
+        const ret = await moverock_core(sx, sy, dx, dy, player, map, display, game);
         moverock_done(sx, sy, map);
         return ret;
     }
@@ -323,7 +323,7 @@ export function moverock(a0, a1, a2, a3, a4, a5, a6, a7) {
     // moverock(player, map, display, game) uses player.dx/player.dy.
     const player = a0, map = a1, display = a2, game = a3;
     const sx = player.x + player.dx, sy = player.y + player.dy;
-    const ret = moverock_core(sx, sy, player.dx, player.dy, player, map, display, game);
+    const ret = await moverock_core(sx, sy, player.dx, player.dy, player, map, display, game);
     moverock_done(sx, sy, map);
     return ret;
 }
@@ -366,16 +366,16 @@ export function notice_mons_cmp(a, b) {
 }
 
 // C ref: hack.c domove_bump_mon()
-export function domove_bump_mon(mon, _glyph, _nopick, game, display) {
+export async function domove_bump_mon(mon, _glyph, _nopick, game, display) {
     const ctx = ensure_context(game);
     if (!mon || mon.dead) return { handled: false, tookTime: false };
     const visibleEnough = (!mon.mundetected) || !!mon.tame || !!mon.peaceful;
     // C: m-prefix bump into known/visible monster consumes a turn and stops.
     if (_nopick && !ctx.travel && visibleEnough) {
         if (mon.peaceful && !game?.flags?.hallucination) {
-            display?.putstr_message(`Pardon me, ${y_monnam(mon)}.`);
+            await display?.putstr_message(`Pardon me, ${y_monnam(mon)}.`);
         } else {
-            display?.putstr_message(`You move right into ${y_monnam(mon)}.`);
+            await display?.putstr_message(`You move right into ${y_monnam(mon)}.`);
         }
         return { handled: true, tookTime: true };
     }
@@ -383,7 +383,7 @@ export function domove_bump_mon(mon, _glyph, _nopick, game, display) {
 }
 
 // C ref: hack.c domove_swap_with_pet()
-export function domove_swap_with_pet(mon, nx, ny, dir, player, map, display, game) {
+export async function domove_swap_with_pet(mon, nx, ny, dir, player, map, display, game) {
     const oldPlayerX = player.x;
     const oldPlayerY = player.y;
     mon.mx = oldPlayerX;
@@ -392,10 +392,10 @@ export function domove_swap_with_pet(mon, nx, ny, dir, player, map, display, gam
     player.y = ny;
     player.moved = true;
     game.lastMoveDir = dir;
-    maybe_smudge_engr(map, oldPlayerX, oldPlayerY, player.x, player.y, player);
+    await maybe_smudge_engr(map, oldPlayerX, oldPlayerY, player.x, player.y, player);
     player.displacedPetThisTurn = true;
-    maybeHandleShopEntryMessage(game, oldPlayerX, oldPlayerY);
-    display.putstr_message(`You swap places with ${y_monnam(mon)}.`);
+    await maybeHandleShopEntryMessage(game, oldPlayerX, oldPlayerY);
+    await display.putstr_message(`You swap places with ${y_monnam(mon)}.`);
     const landedObjs = map.objectsAt(nx, ny);
     if (landedObjs.length > 1) {
         clearTopline(display);
@@ -403,10 +403,10 @@ export function domove_swap_with_pet(mon, nx, ny, dir, player, map, display, gam
         const seen = landedObjs[0];
         if (seen.oclass === COIN_CLASS) {
             const count = seen.quan || 1;
-            display.putstr_message(count === 1 ? 'You see here a gold piece.' : `You see here ${count} gold pieces.`);
+            await display.putstr_message(count === 1 ? 'You see here a gold piece.' : `You see here ${count} gold pieces.`);
         } else {
             observeObject(seen);
-            display.putstr_message(`You see here ${describeGroundObjectForPlayer(seen, player, map)}.`);
+            await display.putstr_message(`You see here ${describeGroundObjectForPlayer(seen, player, map)}.`);
         }
     }
 }
@@ -422,27 +422,27 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
         const blocked = (!rn2(7));
         if (blocked) {
             if (mon.tame) {
-                monflee(mon, rnd(6), false, false, player, display, null);
+                await monflee(mon, rnd(6), false, false, player, display, null);
             }
             const label = YMonnam(mon);
-            display.putstr_message(`You stop.  ${label} is in the way!`);
+            await display.putstr_message(`You stop.  ${label} is in the way!`);
             clear_forcefight_prefix(game, ctx);
             return { handled: true, moved: false, tookTime: true };
         }
         if (mon.mfrozen || mon.mcanmove === false || mon.msleeping
             || ((mon.type?.speed ?? 0) === 0 && rn2(6))) {
             const label = YMonnam(mon);
-            display.putstr_message(`${label} doesn't seem to move!`);
+            await display.putstr_message(`${label} doesn't seem to move!`);
             clear_forcefight_prefix(game, ctx);
             return { handled: true, moved: false, tookTime: true };
         }
-        domove_swap_with_pet(mon, nx, ny, dir, player, map, display, game);
+        await domove_swap_with_pet(mon, nx, ny, dir, player, map, display, game);
         clear_forcefight_prefix(game, ctx);
         return { handled: true, moved: true, tookTime: true };
     }
 
     if (mon.tame && game.flags?.safe_pet && !forcefight) {
-        display.putstr_message("You cannot attack your pet!");
+        await display.putstr_message("You cannot attack your pet!");
         clear_forcefight_prefix(game, ctx);
         return { handled: true, moved: false, tookTime: false };
     }
@@ -454,15 +454,15 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
             display
         );
         if (answer !== 'y'.charCodeAt(0)) {
-            display.putstr_message('Cancelled.');
+            await display.putstr_message('Cancelled.');
             clear_forcefight_prefix(game, ctx);
             return { handled: true, moved: false, tookTime: false };
         }
     }
     rn2(20);
-    exercise(player, A_STR, true);
-    u_wipe_engr(player, map, 3);
-    const killed = do_attack(player, mon, display, map, { game, context: ctx });
+    await exercise(player, A_STR, true);
+    await u_wipe_engr(player, map, 3);
+    const killed = await do_attack(player, mon, display, map, { game, context: ctx });
     clear_forcefight_prefix(game, ctx);
     if (killed) map.removeMonster(mon);
     player.moved = true;
@@ -470,22 +470,22 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
 }
 
 // C ref: hack.c domove_fight_ironbars()
-export function domove_fight_ironbars(x, y, map, display, game, player) {
+export async function domove_fight_ironbars(x, y, map, display, game, player) {
     const ctx = ensure_context(game);
     const loc = map?.at ? map.at(x, y) : null;
     const hasWeapon = !!(player?.weapon || player?.uwielded || player?.uwep);
     if (!has_forcefight_prefix(game, ctx) || !loc || loc.typ !== IRONBARS || !hasWeapon) return false;
-    if (display) display.putstr_message('You attack the iron bars.');
+    if (display) await display.putstr_message('You attack the iron bars.');
     clear_forcefight_prefix(game, ctx);
     return true; // action handled, consumes a turn
 }
 
 // C ref: hack.c domove_fight_web()
-export function domove_fight_web(x, y, map, display, game) {
+export async function domove_fight_web(x, y, map, display, game) {
     const ctx = ensure_context(game);
     const trap = map?.trapAt ? map.trapAt(x, y) : null;
     if (!has_forcefight_prefix(game, ctx) || !trap || trap.ttyp !== WEB || !trap.tseen) return false;
-    if (display) display.putstr_message('You cut through the web.');
+    if (display) await display.putstr_message('You cut through the web.');
     const idx = map.traps.indexOf(trap);
     if (idx >= 0) map.traps.splice(idx, 1);
     clear_forcefight_prefix(game, ctx);
@@ -493,7 +493,7 @@ export function domove_fight_web(x, y, map, display, game) {
 }
 
 // C ref: hack.c domove_fight_empty()
-export function domove_fight_empty(x, y, map, display, game) {
+export async function domove_fight_empty(x, y, map, display, game) {
     const ctx = ensure_context(game);
     if (!has_forcefight_prefix(game, ctx) || map?.monsterAt?.(x, y)) return false;
     const loc = map?.at ? map.at(x, y) : null;
@@ -511,7 +511,7 @@ export function domove_fight_empty(x, y, map, display, game) {
             }
         }
     }
-    display?.putstr_message(target ? `You harmlessly attack ${target}.` : 'You attack thin air.');
+    await display?.putstr_message(target ? `You harmlessly attack ${target}.` : 'You attack thin air.');
     clear_forcefight_prefix(game, ctx);
     return true;
 }
@@ -528,8 +528,8 @@ export async function domove_core(dir, player, map, display, game) {
     game.uy0 = oldY;
     let moveDir = dir;
     if (ctx.travel) {
-        if (!findtravelpath(TRAVP_TRAVEL, game)) {
-            findtravelpath(TRAVP_GUESS, game);
+        if (!await findtravelpath(TRAVP_TRAVEL, game)) {
+            await findtravelpath(TRAVP_GUESS, game);
         }
         ctx.travel1 = 0;
         if (Array.isArray(game.travelPath) && game.travelPath.length > 0) {
@@ -547,10 +547,10 @@ export async function domove_core(dir, player, map, display, game) {
     ctx.door_opened = 0;
     ctx.move = 0;
 
-    if (carrying_too_much(player, map, display)) {
+    if (await carrying_too_much(player, map, display)) {
         return { moved: false, tookTime: false };
     }
-    if (air_turbulence(player, map, display)) {
+    if (await air_turbulence(player, map, display)) {
         return { moved: false, tookTime: false };
     }
     slippery_ice_fumbling(player, map);
@@ -559,26 +559,26 @@ export async function domove_core(dir, player, map, display, game) {
     }
 
     const tDest = { x: nx, y: ny };
-    if (water_turbulence(player, map, display, tDest)) {
+    if (await water_turbulence(player, map, display, tDest)) {
         return { moved: false, tookTime: false };
     }
     nx = tDest.x;
     ny = tDest.y;
 
     if (!isok(nx, ny) && has_forcefight_prefix(game, ctx)) {
-        if (domove_fight_empty(nx, ny, map, display, game)) {
+        if (await domove_fight_empty(nx, ny, map, display, game)) {
             return { moved: false, tookTime: true };
         }
     }
-    if (move_out_of_bounds(nx, ny, display, flags)) {
+    if (await move_out_of_bounds(nx, ny, display, flags)) {
         return { moved: false, tookTime: false };
     }
-    if (avoid_running_into_trap_or_liquid(nx, ny, player, map, display, ctx.run)) {
+    if (await avoid_running_into_trap_or_liquid(nx, ny, player, map, display, ctx.run)) {
         return { moved: false, tookTime: false };
     }
 
     if (!isok(nx, ny)) {
-        display.putstr_message("You can't move there.");
+        await display.putstr_message("You can't move there.");
         return { moved: false, tookTime: false };
     }
 
@@ -592,7 +592,7 @@ export async function domove_core(dir, player, map, display, game) {
         const doorlessDoor = (doorFlags & ~(D_NODOOR | D_BROKEN)) === 0;
         if (!doorlessDoor) {
             if (map?.flags?.mention_walls || map?.flags?.is_tutorial) {
-                display.putstr_message("You can't move diagonally into an intact doorway.");
+                await display.putstr_message("You can't move diagonally into an intact doorway.");
             }
             return { moved: false, tookTime: false };
         }
@@ -606,7 +606,7 @@ export async function domove_core(dir, player, map, display, game) {
             const fromDoorless = (fromDoorFlags & ~(D_NODOOR | D_BROKEN)) === 0;
             if (!fromDoorless) {
                 if (map?.flags?.mention_walls || map?.flags?.is_tutorial) {
-                    display.putstr_message("You can't move diagonally out of an intact doorway.");
+                    await display.putstr_message("You can't move diagonally out of an intact doorway.");
                 }
                 return { moved: false, tookTime: false };
             }
@@ -626,26 +626,26 @@ export async function domove_core(dir, player, map, display, game) {
             const escapeRoll = rn2(canMove ? 40 : 8);
             if (escapeRoll <= 2) {
                 // Escape successful (cases 0, 1, 2)
-                display.putstr_message(`You pull free from the ${x_monnam(stuckMon)}.`);
+                await display.putstr_message(`You pull free from the ${x_monnam(stuckMon)}.`);
                 player.ustuck = null;
             } else if (escapeRoll === 3 && !canMove) {
                 // Wake/release frozen monster, then check tame
                 stuckMon.mfrozen = 1;
                 stuckMon.sleeping = false;
                 if (stuckMon.tame && !game?.flags?.conflict) {
-                    display.putstr_message(`You pull free from the ${x_monnam(stuckMon)}.`);
+                    await display.putstr_message(`You pull free from the ${x_monnam(stuckMon)}.`);
                     player.ustuck = null;
                 } else {
-                    display.putstr_message(`You cannot escape from the ${x_monnam(stuckMon)}!`);
+                    await display.putstr_message(`You cannot escape from the ${x_monnam(stuckMon)}!`);
                     return { moved: false, tookTime: true };
                 }
             } else {
                 // Failed to escape
                 if (stuckMon.tame && !game?.flags?.conflict) {
-                    display.putstr_message(`You pull free from the ${x_monnam(stuckMon)}.`);
+                    await display.putstr_message(`You pull free from the ${x_monnam(stuckMon)}.`);
                     player.ustuck = null;
                 } else {
-                    display.putstr_message(`You cannot escape from the ${x_monnam(stuckMon)}!`);
+                    await display.putstr_message(`You cannot escape from the ${x_monnam(stuckMon)}!`);
                     return { moved: false, tookTime: true };
                 }
             }
@@ -655,7 +655,7 @@ export async function domove_core(dir, player, map, display, game) {
     // Check for monster at target position
     const mon = map.monsterAt(nx, ny);
     if (mon) {
-        const bump = domove_bump_mon(mon, null, nopick, game, display);
+        const bump = await domove_bump_mon(mon, null, nopick, game, display);
         if (bump.handled) {
             return { moved: false, tookTime: !!bump.tookTime };
         }
@@ -665,23 +665,23 @@ export async function domove_core(dir, player, map, display, game) {
         }
     }
 
-    if (domove_fight_ironbars(nx, ny, map, display, game, player)) {
+    if (await domove_fight_ironbars(nx, ny, map, display, game, player)) {
         return { moved: false, tookTime: true };
     }
-    if (domove_fight_web(nx, ny, map, display, game)) {
+    if (await domove_fight_web(nx, ny, map, display, game)) {
         return { moved: false, tookTime: true };
     }
 
     const sokoban = !!(map?.flags?.is_sokoban || map?.flags?.in_sokoban || game?.flags?.sokoban);
     if (sobj_at(BOULDER, nx, ny, map) && (sokoban || !player?.passesWalls)) {
-        const moved = moverock(nx, ny, moveDir[0], moveDir[1], player, map, display, game);
+        const moved = await moverock(nx, ny, moveDir[0], moveDir[1], player, map, display, game);
         if (moved < 0) {
             return { moved: false, tookTime: false };
         }
     }
 
     loc = map.at(nx, ny);
-    if (domove_fight_empty(nx, ny, map, display, game)) {
+    if (await domove_fight_empty(nx, ny, map, display, game)) {
         return { moved: false, tookTime: true };
     }
 
@@ -693,24 +693,24 @@ export async function domove_core(dir, player, map, display, game) {
         const threshold = Math.floor((str + dex + con) / 3);
         if (rnl(20) < threshold) {
             loc.flags = (loc.flags & ~D_CLOSED) | D_ISOPEN;
-            display.putstr_message("The door opens.");
+            await display.putstr_message("The door opens.");
         } else {
-            exercise(player, A_STR, true);
-            display.putstr_message("The door resists!");
+            await exercise(player, A_STR, true);
+            await display.putstr_message("The door resists!");
         }
         return { moved: false, tookTime: false };
     }
-    if (!test_move(player.x, player.y, moveDir[0], moveDir[1], DO_MOVE, player, map, display, game)) {
+    if (!await test_move(player.x, player.y, moveDir[0], moveDir[1], DO_MOVE, player, map, display, game)) {
         return { moved: false, tookTime: false };
     }
-    if (swim_move_danger(nx, ny, player, map, display)) {
+    if (await swim_move_danger(nx, ny, player, map, display)) {
         return { moved: false, tookTime: false };
     }
-    if (u_rooted(player, display)) {
+    if (await u_rooted(player, display)) {
         return { moved: false, tookTime: false };
     }
     if (player.utrap) {
-        const moved = trapmove(player, nx, ny, display, map);
+        const moved = await trapmove(player, nx, ny, display, map);
         if (!moved) return { moved: false, tookTime: false };
     }
     loc = map.at(nx, ny);
@@ -737,12 +737,12 @@ export async function domove_core(dir, player, map, display, game) {
     // C parity: maybe_smudge_engr() is tied to command-attempt context
     // and should not fire on continued multi-run movement turns.
     if (!ctx.skip_smudge_engr) {
-        maybe_smudge_engr(map, oldX, oldY, player.x, player.y, player);
+        await maybe_smudge_engr(map, oldX, oldY, player.x, player.y, player);
     }
 
     // Clear force-fight prefix after successful movement.
     clear_forcefight_prefix(game, ctx);
-    maybeHandleShopEntryMessage(game, oldX, oldY);
+    await maybeHandleShopEntryMessage(game, oldX, oldY);
 
     // Check for traps — C ref: hack.c spoteffects() → dotrap()
     // C ref: trap.c trapeffect_*() — trap-specific effects
@@ -754,7 +754,7 @@ export async function domove_core(dir, player, map, display, game) {
         }
         // Trap-specific effects (no RNG for SQKY_BOARD)
         if (trap.ttyp === SQKY_BOARD) {
-            display.putstr_message('A board beneath you squeaks loudly.');
+            await display.putstr_message('A board beneath you squeaks loudly.');
             // Match tty topline behavior where later same-turn messages replace
             // this trap notice rather than concatenating with it.
             display.messageNeedsMore = false;
@@ -763,7 +763,7 @@ export async function domove_core(dir, player, map, display, game) {
         else if (trap.ttyp === SLP_GAS_TRAP) {
             const duration = rnd(25);
             player.stunned = true;
-            display.putstr_message('A cloud of gas puts you to sleep!');
+            await display.putstr_message('A cloud of gas puts you to sleep!');
             // Keep duration for future full sleep handling without changing turn loop yet.
             player.sleepTrapTurns = Math.max(player.sleepTrapTurns || 0, duration);
         }
@@ -771,7 +771,7 @@ export async function domove_core(dir, player, map, display, game) {
         else if (trap.ttyp === FIRE_TRAP) {
             const origDmg = d(2, 4);
             const fireDmg = d(2, 4);
-            display.putstr_message('A tower of flame erupts from the floor!');
+            await display.putstr_message('A tower of flame erupts from the floor!');
             player.takeDamage(Math.max(0, fireDmg), 'a fire trap');
             // C ref: burnarmor() || rn2(3)
             rn2(3);
@@ -788,7 +788,7 @@ export async function domove_core(dir, player, map, display, game) {
             if (trap.ttyp === SPIKED_PIT) {
                 rn2(6); // C ref: 1-in-6 poison-spike branch gate.
             }
-            display.putstr_message(trap.ttyp === SPIKED_PIT
+            await display.putstr_message(trap.ttyp === SPIKED_PIT
                 ? 'You land on a set of sharp iron spikes!'
                 : 'You fall into a pit!');
         }
@@ -806,7 +806,7 @@ export async function domove_core(dir, player, map, display, game) {
             if (player.pwmax < 1) {
                 player.pw = 0;
                 player.pwmax = 0;
-                display.putstr_message('You feel momentarily lethargic.');
+                await display.putstr_message('You feel momentarily lethargic.');
             } else {
                 let n = drain;
                 if (n > Math.floor((player.pw + player.pwmax) / 3)) {
@@ -821,7 +821,7 @@ export async function domove_core(dir, player, map, display, game) {
                 } else if (player.pw > player.pwmax) {
                     player.pw = player.pwmax;
                 }
-                display.putstr_message(`You feel your magical energy drain away${punct}`);
+                await display.putstr_message(`You feel your magical energy drain away${punct}`);
             }
         }
     }
@@ -870,7 +870,7 @@ export async function domove_core(dir, player, map, display, game) {
         if (gold) {
             player.addToInventory(gold);
             map.removeObject(gold);
-            display.putstr_message(formatGoldPickupMessage(gold, player));
+            await display.putstr_message(formatGoldPickupMessage(gold, player));
             pickedUp = true;
         }
     }
@@ -884,7 +884,7 @@ export async function domove_core(dir, player, map, display, game) {
             observeObject(obj);
             const inventoryObj = player.addToInventory(obj);
             map.removeObject(obj);
-            display.putstr_message(formatInventoryPickupMessage(obj, inventoryObj, player));
+            await display.putstr_message(formatInventoryPickupMessage(obj, inventoryObj, player));
             pickedUp = true;
         }
     }
@@ -893,20 +893,20 @@ export async function domove_core(dir, player, map, display, game) {
     // C ref: hack.c prints "You see here" only if nothing was picked up
     if (!pickedUp && objs.length > 0) {
         if (IS_DOOR(loc.typ) && !(loc.flags & (D_CLOSED | D_LOCKED))) {
-            display.putstr_message('There is a doorway here.');
+            await display.putstr_message('There is a doorway here.');
         }
         if (objs.length === 1) {
             const seen = objs[0];
             if (seen.oclass === COIN_CLASS) {
                 const count = seen.quan || 1;
                 if (count === 1) {
-                    display.putstr_message('You see here a gold piece.');
+                    await display.putstr_message('You see here a gold piece.');
                 } else {
-                    display.putstr_message(`You see here ${count} gold pieces.`);
+                    await display.putstr_message(`You see here ${count} gold pieces.`);
                 }
             } else {
                 observeObject(seen);
-                display.putstr_message(`You see here ${describeGroundObjectForPlayer(seen, player, map)}.`);
+                await display.putstr_message(`You see here ${describeGroundObjectForPlayer(seen, player, map)}.`);
             }
         } else {
             // C ref: invent.c look_here() — for 2+ objects, C uses a NHW_MENU
@@ -927,15 +927,15 @@ export async function domove_core(dir, player, map, display, game) {
     // Messages will be concatenated if both fit (see display.putstr_message)
     if (game.flags.verbose && loc.typ === STAIRS) {
         if (loc.flags === 1) {
-            display.putstr_message('There is a staircase up out of the dungeon here.');
+            await display.putstr_message('There is a staircase up out of the dungeon here.');
         } else {
-            display.putstr_message('There is a staircase down here.');
+            await display.putstr_message('There is a staircase down here.');
         }
     }
 
     // C ref: do.c:774 flags.verbose gates terrain feature descriptions
     if (game.flags.verbose && loc.typ === FOUNTAIN) {
-        display.putstr_message('There is a fountain here.');
+        await display.putstr_message('There is a fountain here.');
     }
 
     await runmode_delay_output(game, display);
@@ -1008,7 +1008,7 @@ export async function do_run(dir, player, map, display, fov, game, runStyle = 'r
         // multi-turn running continues. Mirror by checking continuation after
         // each completed movement step.
         fov.compute(map, player.x, player.y);
-        const look = lookaround(map, player, fov, runDir, runStyle, display, game);
+        const look = await lookaround(map, player, fov, runDir, runStyle, display, game);
         if (Array.isArray(look?.nextDir)) {
             runDir = look.nextDir;
         }
@@ -1064,7 +1064,7 @@ function pickRunContinuationDir(map, player, dir) {
 
 // Check if running should stop
 // C ref: hack.c lookaround() -- checks for interesting things while running
-export function lookaround(map, player, fov, dir, runStyle = 'run', display = null, game = null) {
+export async function lookaround(map, player, fov, dir, runStyle = 'run', display = null, game = null) {
     const ctx = game ? ensure_context(game) : { run: (runStyle === 'rush') ? 2 : 3, travel: 0 };
     const runMode = Number(ctx.run ?? ((runStyle === 'rush') ? 2 : 3));
     const travel = !!ctx.travel;
@@ -1077,7 +1077,7 @@ export function lookaround(map, player, fov, dir, runStyle = 'run', display = nu
     }
     // C: grid bugs can't continue diagonal run.
     if (player?.noDiag && dx && dy) {
-        if (display) display.putstr_message('You cannot move diagonally.');
+        if (display) await display.putstr_message('You cannot move diagonally.');
         return { stopReason: 'no-diag', nextDir: null };
     }
     let corrct = 0;
@@ -1111,7 +1111,7 @@ export function lookaround(map, player, fov, dir, runStyle = 'run', display = nu
             const doorMappear = !!(mon && mon.appear_as_type && IS_DOOR(mon.appear_as_type));
             let bcorr = false;
 
-            if (avoid_moving_on_trap(x, y, (infront && runMode > 1), map, display, flags)) {
+            if (await avoid_moving_on_trap(x, y, (infront && runMode > 1), map, display, flags)) {
                 if (runMode === 1) {
                     bcorr = true;
                 } else if (infront) {
@@ -1133,7 +1133,7 @@ export function lookaround(map, player, fov, dir, runStyle = 'run', display = nu
             } else if (loc.typ === CORR) {
                 bcorr = true;
             } else if (is_pool_or_lava(x, y, map)) {
-                if (infront && avoid_moving_on_liquid(x, y, true, player, map, display, flags)) {
+                if (infront && await avoid_moving_on_liquid(x, y, true, player, map, display, flags)) {
                     return { stopReason: 'liquid-ahead' };
                 }
                 continue;
@@ -1245,7 +1245,7 @@ export function findPath(map, startX, startY, endX, endY) {
 // C ref: hack.c findtravelpath(mode).
 // JS keeps the same role but uses existing BFS pathing in findPath().
 // Returns true when a path (or travel viability for TRAVP_VALID) exists.
-export function findtravelpath(mode, game) {
+export async function findtravelpath(mode, game) {
     if (!game || !(game.u || game.player) || !(game.lev || game.map)) return false;
     const ctx = ensure_context(game);
     const { player, map } = game;
@@ -1263,7 +1263,7 @@ export function findtravelpath(mode, game) {
         && ctx.travel1
         && Math.max(Math.abs(tx - player.x), Math.abs(ty - player.y)) === 1
         && crawl_destination(tx, ty, player, map)) {
-        const ok = test_move(player.x, player.y, tx - player.x, ty - player.y, TEST_MOVE, player, map, null, game);
+        const ok = await test_move(player.x, player.y, tx - player.x, ty - player.y, TEST_MOVE, player, map, null, game);
         if (ok && mode === TRAVP_TRAVEL) {
             game.travelPath = [[tx - player.x, ty - player.y]];
             game.travelStep = 0;
@@ -1271,7 +1271,7 @@ export function findtravelpath(mode, game) {
         return ok;
     }
 
-    function reverseWave(goalX, goalY) {
+    async function reverseWave(goalX, goalY) {
         const dist = new Map();
         const q = [[goalX, goalY]];
         dist.set(`${goalX},${goalY}`, 1);
@@ -1284,7 +1284,7 @@ export function findtravelpath(mode, game) {
                 if (!isok(nx, ny)) continue;
                 const key = `${nx},${ny}`;
                 if (dist.has(key)) continue;
-                if (!test_move(x, y, nx - x, ny - y, TEST_TRAV, player, map, null, game)) continue;
+                if (!await test_move(x, y, nx - x, ny - y, TEST_TRAV, player, map, null, game)) continue;
                 const seen = !!(map.at(nx, ny)?.seenv);
                 if (!seen) continue;
                 dist.set(key, r + 1);
@@ -1294,7 +1294,7 @@ export function findtravelpath(mode, game) {
         return dist;
     }
 
-    const travel = reverseWave(tx, ty);
+    const travel = await reverseWave(tx, ty);
     const heroKey = `${player.x},${player.y}`;
     const ctrav = travel.get(heroKey) || 0;
     if (ctrav > 0) {
@@ -1307,7 +1307,7 @@ export function findtravelpath(mode, game) {
             if (!isok(nx, ny)) continue;
             const r = travel.get(`${nx},${ny}`) || 0;
             if (!r) continue;
-            if (!test_move(player.x, player.y, dx, dy, TEST_MOVE, player, map, null, game)) continue;
+            if (!await test_move(player.x, player.y, dx, dy, TEST_MOVE, player, map, null, game)) continue;
             if (r < bestR) {
                 bestR = r;
                 best = [dx, dy];
@@ -1332,7 +1332,7 @@ export function findtravelpath(mode, game) {
             if (!seen) continue;
             const d0 = Math.abs(tx - x) + Math.abs(ty - y);
             if (d0 > bestDist) continue;
-            const tw = reverseWave(x, y);
+            const tw = await reverseWave(x, y);
             if (!tw.get(heroKey)) continue;
             if (d0 < bestDist) {
                 bestDist = d0;
@@ -1342,7 +1342,7 @@ export function findtravelpath(mode, game) {
     }
     if (!bestGoal) return false;
 
-    const fallback = reverseWave(bestGoal[0], bestGoal[1]);
+    const fallback = await reverseWave(bestGoal[0], bestGoal[1]);
     let best = null;
     let bestR = Number.POSITIVE_INFINITY;
     for (const [dx, dy] of dirs) {
@@ -1351,7 +1351,7 @@ export function findtravelpath(mode, game) {
         if (!isok(nx, ny)) continue;
         const r = fallback.get(`${nx},${ny}`) || 0;
         if (!r) continue;
-        if (!test_move(player.x, player.y, dx, dy, TEST_MOVE, player, map, null, game)) continue;
+        if (!await test_move(player.x, player.y, dx, dy, TEST_MOVE, player, map, null, game)) continue;
         if (r < bestR) {
             bestR = r;
             best = [dx, dy];
@@ -1369,12 +1369,12 @@ export async function dotravel(game) {
     const { player, map, display } = game;
     const ctx = ensure_context(game);
 
-    display.putstr_message('Where do you want to travel to?');
+    await display.putstr_message('Where do you want to travel to?');
     set_getpos_context({ map, display, flags: game.flags, goalPrompt: 'travel to', player });
     const cc = { x: player.x, y: player.y };
     const result = await getpos_async(cc, true, 'travel to');
     if (result < 0) {
-        display.putstr_message('Travel cancelled.');
+        await display.putstr_message('Travel cancelled.');
         return { moved: false, tookTime: false };
     }
     const cursorX = cc.x;
@@ -1387,19 +1387,19 @@ export async function dotravel(game) {
     ctx.travel1 = 1;
 
     // C-style travel setup: first strict travel mode, then guess mode.
-    if (!findtravelpath(TRAVP_TRAVEL, game) && !findtravelpath(TRAVP_GUESS, game)) {
-        display.putstr_message('No path to that location.');
+    if (!await findtravelpath(TRAVP_TRAVEL, game) && !await findtravelpath(TRAVP_GUESS, game)) {
+        await display.putstr_message('No path to that location.');
         ctx.travel = 0;
         ctx.travel1 = 0;
         return { moved: false, tookTime: false };
     }
     if (!Array.isArray(game.travelPath) || game.travelPath.length === 0) {
-        display.putstr_message('You are already there.');
+        await display.putstr_message('You are already there.');
         ctx.travel = 0;
         ctx.travel1 = 0;
         return { moved: false, tookTime: false };
     }
-    display.putstr_message(`Traveling... (${game.travelPath.length} steps)`);
+    await display.putstr_message(`Traveling... (${game.travelPath.length} steps)`);
 
     // Execute first step
     return dotravel_target(game);
@@ -1416,7 +1416,7 @@ export async function dotravel_target(game) {
         game.travelStep = 0;
         ctx.travel = 0;
         ctx.travel1 = 0;
-        display.putstr_message('You arrive at your destination.');
+        await display.putstr_message('You arrive at your destination.');
         return { moved: false, tookTime: false };
     }
 
@@ -1433,7 +1433,7 @@ export async function dotravel_target(game) {
         game.travelStep = 0;
         ctx.travel = 0;
         ctx.travel1 = 0;
-        display.putstr_message('Travel interrupted.');
+        await display.putstr_message('Travel interrupted.');
     }
 
     return result;
@@ -1441,22 +1441,22 @@ export async function dotravel_target(game) {
 
 // Wait/search safety warning and execution helpers for rhack()
 // C ref: do.c cmd_safety_prevention()
-export function performWaitSearch(cmd, game, map, player, fov, display) {
+export async function performWaitSearch(cmd, game, map, player, fov, display) {
     if (game && game.flags && game.flags.safe_wait
         && !ensure_context(game).nopick && !(game.multi > 0) && !game.occupation) {
         if (monsterNearby(map, player, fov)) {
-            safetyWarning(cmd, game, display);
+            await safetyWarning(cmd, game, display);
             return { moved: false, tookTime: false };
         }
     }
     resetSafetyWarningCounter(cmd, game);
     if (cmd === 's') {
-        dosearch0(player, map, display, game);
+        await dosearch0(player, map, display, game);
     }
     return { moved: false, tookTime: true };
 }
 
-function safetyWarning(cmd, game, display) {
+async function safetyWarning(cmd, game, display) {
     const search = cmd === 's';
     const counterKey = search ? 'alreadyFoundFlag' : 'didNothingFlag';
     const cmddesc = search ? 'another search' : 'a no-op (to rest)';
@@ -1471,7 +1471,7 @@ function safetyWarning(cmd, game, display) {
         clearTopline(display);
         return;
     }
-    display.putstr_message(msg);
+    await display.putstr_message(msg);
     game.lastSafetyWarningMessage = msg;
 }
 
@@ -1710,13 +1710,13 @@ export function max_capacity(player) {
 }
 
 // C ref: hack.c check_capacity() — too encumbered to act?
-export function check_capacity(player, str, display) {
+export async function check_capacity(player, str, display) {
     if (near_capacity(player) >= EXT_ENCUMBER) {
         if (display) {
             if (str) {
-                display.putstr_message(str);
+                await display.putstr_message(str);
             } else {
-                display.putstr_message("You can't do that while carrying so much stuff.");
+                await display.putstr_message("You can't do that while carrying so much stuff.");
             }
         }
         return true;
@@ -1753,12 +1753,12 @@ export function cmp_weights(i1, i2) {
 }
 
 // C ref: hack.c dump_weights()
-export function dump_weights(player, display) {
+export async function dump_weights(player, display) {
     const inv = [...(player?.inventory || [])];
     inv.sort(cmp_weights);
     if (!display) return inv.map(o => `${o?.owt || 0}:${o?.otyp || '?'}`);
     for (const obj of inv) {
-        display.putstr_message(`wt=${obj?.owt || 0} otyp=${obj?.otyp || '?'}`);
+        await display.putstr_message(`wt=${obj?.owt || 0} otyp=${obj?.otyp || '?'}`);
     }
     return inv;
 }
@@ -1779,7 +1779,7 @@ export const TRAVP_GUESS = 1;
 export const TRAVP_VALID = 2;
 
 // C ref: hack.c test_move() — validate a move from (ux,uy) by (dx,dy)
-export function test_move(ux, uy, dx, dy, mode, player, map, display, game = null) {
+export async function test_move(ux, uy, dx, dy, mode, player, map, display, game = null) {
     const x = ux + dx;
     const y = uy + dy;
     const flags = map.flags || {};
@@ -1794,14 +1794,14 @@ export function test_move(ux, uy, dx, dy, mode, player, map, display, game = nul
         if (loc.typ === IRONBARS) {
             // Iron bars: currently no passes_bars or chewing support
             if (mode === DO_MOVE && flags.mention_walls) {
-                if (display) display.putstr_message('You cannot pass through the bars.');
+                if (display) await display.putstr_message('You cannot pass through the bars.');
             }
             return false;
         }
         // Wall/rock
         if (mode === DO_MOVE) {
             if (flags.mention_walls) {
-                if (display) display.putstr_message("It's a wall.");
+                if (display) await display.putstr_message("It's a wall.");
             }
         }
         return false;
@@ -1811,7 +1811,7 @@ export function test_move(ux, uy, dx, dy, mode, player, map, display, game = nul
             if (mode === DO_MOVE) {
                 // Auto-open handled elsewhere in domove
                 if (flags.mention_walls) {
-                    if (display) display.putstr_message('That door is closed.');
+                    if (display) await display.putstr_message('That door is closed.');
                 }
             } else if (mode === TEST_TRAV || mode === TEST_TRAP) {
                 // Fall through to diagonal check
@@ -1824,7 +1824,7 @@ export function test_move(ux, uy, dx, dy, mode, player, map, display, game = nul
         if (dx && dy && !doorless_door(x, y, map)) {
             if (mode === DO_MOVE) {
                 if (flags.mention_walls) {
-                    if (display) display.putstr_message("You can't move diagonally into an intact doorway.");
+                    if (display) await display.putstr_message("You can't move diagonally into an intact doorway.");
                 }
             }
             return false;
@@ -1839,11 +1839,11 @@ export function test_move(ux, uy, dx, dy, mode, player, map, display, game = nul
         if (squeezeReason) {
             if (mode === DO_MOVE) {
                 if (squeezeReason === 1) {
-                    if (display) display.putstr_message('Your body is too large to fit through.');
+                    if (display) await display.putstr_message('Your body is too large to fit through.');
                 } else if (squeezeReason === 2) {
-                    if (display) display.putstr_message('You are carrying too much to get through.');
+                    if (display) await display.putstr_message('You are carrying too much to get through.');
                 } else if (squeezeReason === 3) {
-                    if (display) display.putstr_message('You cannot pass that way.');
+                    if (display) await display.putstr_message('You cannot pass that way.');
                 }
             }
             return false;
@@ -1871,7 +1871,7 @@ export function test_move(ux, uy, dx, dy, mode, player, map, display, game = nul
     if (dx && dy && fromLoc && IS_DOOR(fromLoc.typ)
         && !doorless_door(ux, uy, map)) {
         if (mode === DO_MOVE && flags.mention_walls) {
-            if (display) display.putstr_message("You can't move diagonally out of an intact doorway.");
+            if (display) await display.putstr_message("You can't move diagonally out of an intact doorway.");
         }
         return false;
     }
@@ -1885,7 +1885,7 @@ export function test_move(ux, uy, dx, dy, mode, player, map, display, game = nul
             && !player?.blind && !player?.hallucinating
             && !could_move_onto_boulder(x, y, player, map)) {
             if (mode === DO_MOVE && flags.mention_walls) {
-                if (display) display.putstr_message('A boulder blocks your path.');
+                if (display) await display.putstr_message('A boulder blocks your path.');
             }
             return false;
         }
@@ -1902,7 +1902,7 @@ export function test_move(ux, uy, dx, dy, mode, player, map, display, game = nul
 }
 
 // C ref: hack.c carrying_too_much() — can hero move?
-export function carrying_too_much(player, map, display) {
+export async function carrying_too_much(player, map, display) {
     const heroHp = Number.isFinite(player?.uhp) ? player.uhp : (player?.hp || 0);
     const heroHpMax = Number.isFinite(player?.uhpmax) ? player.uhpmax : (player?.hpmax || 0);
     const wtcap = near_capacity(player);
@@ -1910,10 +1910,10 @@ export function carrying_too_much(player, map, display) {
         || (wtcap > SLT_ENCUMBER && (heroHp < 10 && heroHp !== heroHpMax))) {
         if (map?.flags?.is_airlevel) return false;
         if (wtcap < OVERLOADED) {
-            if (display) display.putstr_message("You don't have enough stamina to move.");
-            exercise(player, A_CON, false);
+            if (display) await display.putstr_message("You don't have enough stamina to move.");
+            await exercise(player, A_CON, false);
         } else {
-            if (display) display.putstr_message('You collapse under your load.');
+            if (display) await display.putstr_message('You collapse under your load.');
         }
         return true;
     }
@@ -1921,20 +1921,20 @@ export function carrying_too_much(player, map, display) {
 }
 
 // C ref: hack.c u_rooted() — is hero rooted in place?
-export function u_rooted(player, display) {
+export async function u_rooted(player, display) {
     // Only applies when polymorphed into an immobile form
     if (player.polyData && player.polyData.mmove === 0) {
-        if (display) display.putstr_message('You are rooted to the ground.');
+        if (display) await display.putstr_message('You are rooted to the ground.');
         return true;
     }
     return false;
 }
 
 // C ref: hack.c move_out_of_bounds() — is (x,y) off the map?
-export function move_out_of_bounds(x, y, display, flags) {
+export async function move_out_of_bounds(x, y, display, flags) {
     if (!isok(x, y)) {
         if (flags && flags.mention_walls) {
-            if (display) display.putstr_message('You have already gone as far as possible.');
+            if (display) await display.putstr_message('You have already gone as far as possible.');
         }
         return true;
     }
@@ -1942,20 +1942,20 @@ export function move_out_of_bounds(x, y, display, flags) {
 }
 
 // C ref: hack.c air_turbulence() — plane of air movement disruption
-export function air_turbulence(player, map, display) {
+export async function air_turbulence(player, map, display) {
     if (map.flags && map.flags.is_airlevel && rn2(4)
         && !player.levitating && !player.flying) {
         switch (rn2(3)) {
         case 0:
-            if (display) display.putstr_message('You tumble in place.');
-            exercise(player, A_DEX, false);
+            if (display) await display.putstr_message('You tumble in place.');
+            await exercise(player, A_DEX, false);
             break;
         case 1:
-            if (display) display.putstr_message("You can't control your movements very well.");
+            if (display) await display.putstr_message("You can't control your movements very well.");
             break;
         case 2:
-            if (display) display.putstr_message("It's hard to walk in thin air.");
-            exercise(player, A_DEX, true);
+            if (display) await display.putstr_message("It's hard to walk in thin air.");
+            await exercise(player, A_DEX, true);
             break;
         }
         return true;
@@ -1964,7 +1964,7 @@ export function air_turbulence(player, map, display) {
 }
 
 // C ref: hack.c water_turbulence() — underwater movement disruption
-export function water_turbulence(player, map, display, target = null) {
+export async function water_turbulence(player, map, display, target = null) {
     if (!player?.uinwater) return false;
 
     if (map?.flags?.is_waterlevel) {
@@ -1975,7 +1975,7 @@ export function water_turbulence(player, map, display, target = null) {
             dy: player.dy,
         });
     }
-    water_friction(map, player, display);
+    await water_friction(map, player, display);
     if (!player.dx && !player.dy) {
         return true;
     }
@@ -1989,7 +1989,7 @@ export function water_turbulence(player, map, display, target = null) {
 
     if (isok(x, y) && !IS_POOL(map?.at(x, y)?.typ)
         && !(map?.flags?.is_waterlevel) && near_capacity(player) > (player.swimming ? MOD_ENCUMBER : SLT_ENCUMBER)) {
-        if (display) display.putstr_message('You are carrying too much to climb out of the water.');
+        if (display) await display.putstr_message('You are carrying too much to climb out of the water.');
         player.dx = 0;
         player.dy = 0;
         return true;
@@ -2026,7 +2026,7 @@ export function impaired_movement(player, _map) {
 }
 
 // C ref: hack.c swim_move_danger() — is it dangerous to move into water/lava?
-export function swim_move_danger(x, y, player, map, display) {
+export async function swim_move_danger(x, y, player, map, display) {
     const loc = map.at(x, y);
     if (!loc) return false;
     const isLiquid = IS_POOL(loc.typ) || IS_LAVA(loc.typ);
@@ -2038,7 +2038,7 @@ export function swim_move_danger(x, y, player, map, display) {
     if (!player.stunned && !player.confused) {
         if (display) {
             const what = IS_POOL(loc.typ) ? 'water' : 'lava';
-            display.putstr_message(`You avoid stepping into the ${what}.`);
+            await display.putstr_message(`You avoid stepping into the ${what}.`);
         }
         return true;
     }
@@ -2046,11 +2046,11 @@ export function swim_move_danger(x, y, player, map, display) {
 }
 
 // C ref: hack.c avoid_moving_on_trap() — stop for known trap during run
-export function avoid_moving_on_trap(x, y, msg, map, display, flags) {
+export async function avoid_moving_on_trap(x, y, msg, map, display, flags) {
     const trap = map.trapAt ? map.trapAt(x, y) : null;
     if (trap && trap.tseen && trap.ttyp !== VIBRATING_SQUARE) {
         if (msg && flags && flags.mention_walls) {
-            if (display) display.putstr_message('You stop in front of a trap.');
+            if (display) await display.putstr_message('You stop in front of a trap.');
         }
         return true;
     }
@@ -2058,34 +2058,34 @@ export function avoid_moving_on_trap(x, y, msg, map, display, flags) {
 }
 
 // C ref: hack.c avoid_moving_on_liquid() — stop at edge of pool/lava
-export function avoid_moving_on_liquid(x, y, msg, player, map, display, flags) {
+export async function avoid_moving_on_liquid(x, y, msg, player, map, display, flags) {
     if (!is_pool_or_lava(x, y, map)) return false;
     if (player.levitating || player.flying) return false;
     const loc = map.at(x, y);
     if (!loc || !loc.seenv) return false;
     if (msg && flags && flags.mention_walls) {
         const what = IS_POOL(loc.typ) ? 'water' : 'lava';
-        if (display) display.putstr_message(`You stop at the edge of the ${what}.`);
+        if (display) await display.putstr_message(`You stop at the edge of the ${what}.`);
     }
     return true;
 }
 
 // C ref: hack.c avoid_running_into_trap_or_liquid()
-export function avoid_running_into_trap_or_liquid(x, y, player, map, display, run) {
+export async function avoid_running_into_trap_or_liquid(x, y, player, map, display, run) {
     if (!run) return false;
     const wouldStop = run >= 2;
     const flags = map.flags || {};
-    if (avoid_moving_on_trap(x, y, wouldStop, map, display, flags)
-        || (player.blind && avoid_moving_on_liquid(x, y, wouldStop, player, map, display, flags))) {
+    if (await avoid_moving_on_trap(x, y, wouldStop, map, display, flags)
+        || (player.blind && await avoid_moving_on_liquid(x, y, wouldStop, player, map, display, flags))) {
         if (wouldStop) return true;
     }
     return false;
 }
 
 // C ref: hack.c avoid_trap_andor_region()
-export function avoid_trap_andor_region(x, y, player, map, display, flags) {
-    if (avoid_moving_on_trap(x, y, true, map, display, flags)) return true;
-    if (avoid_moving_on_liquid(x, y, true, player, map, display, flags)) return true;
+export async function avoid_trap_andor_region(x, y, player, map, display, flags) {
+    if (await avoid_moving_on_trap(x, y, true, map, display, flags)) return true;
+    if (await avoid_moving_on_liquid(x, y, true, player, map, display, flags)) return true;
     // region.c integration is still partial in JS; this only covers trap/liquid.
     return false;
 }
@@ -2142,7 +2142,7 @@ export function nomul(nval, game) {
 }
 
 // C ref: hack.c unmul() — end a multi-turn action
-export function unmul(msg_override, player, display, game) {
+export async function unmul(msg_override, player, display, game) {
     if (!game) return;
     game.multi = 0;
     if (msg_override !== undefined && msg_override !== null) {
@@ -2152,7 +2152,7 @@ export function unmul(msg_override, player, display, game) {
     }
     const msg = game.nomovemsg || '';
     if (msg && display) {
-        display.putstr_message(msg);
+        await display.putstr_message(msg);
     }
     game.nomovemsg = null;
     if (player) player.usleep = 0;
@@ -2301,7 +2301,7 @@ export function move_update(newlev, player, map) {
 }
 
 // C ref: hack.c check_special_room() — room entry messages
-export function check_special_room(newlev, player, map, display) {
+export async function check_special_room(newlev, player, map, display) {
     move_update(newlev, player, map);
 
     if (!player.uentered && !player.ushops_entered) return;
@@ -2318,34 +2318,34 @@ export function check_special_room(newlev, player, map, display) {
 
         switch (rt) {
         case ZOO:
-            if (display) display.putstr_message("Welcome to David's treasure zoo!");
+            if (display) await display.putstr_message("Welcome to David's treasure zoo!");
             break;
         case SWAMP:
-            if (display) display.putstr_message('It looks rather muddy down here.');
+            if (display) await display.putstr_message('It looks rather muddy down here.');
             break;
         case COURT:
             if (display) {
                 const hasThrone = furniture_present(THRONE, roomno, map);
-                display.putstr_message(`You enter an opulent${hasThrone ? ' throne' : ''} room!`);
+                await display.putstr_message(`You enter an opulent${hasThrone ? ' throne' : ''} room!`);
             }
             break;
         case LEPREHALL:
-            if (display) display.putstr_message('You enter a leprechaun hall!');
+            if (display) await display.putstr_message('You enter a leprechaun hall!');
             break;
         case MORGUE:
-            if (display) display.putstr_message('You have an uncanny feeling...');
+            if (display) await display.putstr_message('You have an uncanny feeling...');
             break;
         case BEEHIVE:
-            if (display) display.putstr_message('You enter a giant beehive!');
+            if (display) await display.putstr_message('You enter a giant beehive!');
             break;
         case COCKNEST:
-            if (display) display.putstr_message('You enter a disgusting nest!');
+            if (display) await display.putstr_message('You enter a disgusting nest!');
             break;
         case ANTHOLE:
-            if (display) display.putstr_message('You enter an anthole!');
+            if (display) await display.putstr_message('You enter an anthole!');
             break;
         case BARRACKS:
-            if (display) display.putstr_message('You enter a military barracks!');
+            if (display) await display.putstr_message('You enter a military barracks!');
             break;
         case DELPHI:
             // Oracle greeting handled separately
@@ -2385,28 +2385,28 @@ export function set_uinwater(in_out, player) {
 
 // C ref: hack.c switch_terrain() — toggle levitation/flight when entering
 //   solid terrain
-export function switch_terrain(player, map, display) {
+export async function switch_terrain(player, map, display) {
     const loc = map.at(player.x, player.y);
     if (!loc) return;
     const blocklev = IS_OBSTRUCTED(loc.typ) || closed_door(player.x, player.y, map)
                      || IS_WATERWALL(loc.typ) || loc.typ === LAVAWALL;
     if (blocklev) {
         if (player.levitating && display) {
-            display.putstr_message("You can't levitate in here.");
+            await display.putstr_message("You can't levitate in here.");
         }
         if (player.flying && display) {
-            display.putstr_message("You can't fly in here.");
+            await display.putstr_message("You can't fly in here.");
         }
     }
 }
 
 // C ref: hack.c pooleffects() — check for entering/leaving water/lava
 // Returns true to skip rest of spoteffects.
-export function pooleffects(newspot, player, map, display) {
+export async function pooleffects(newspot, player, map, display) {
     // Check for leaving water
     if (player.uinwater) {
         if (!is_pool(player.x, player.y, map)) {
-            if (display) display.putstr_message('You are back on solid ground.');
+            if (display) await display.putstr_message('You are back on solid ground.');
             set_uinwater(player, 0);
         }
         // Still in water: no further pool effects
@@ -2417,13 +2417,13 @@ export function pooleffects(newspot, player, map, display) {
         && is_pool_or_lava(player.x, player.y, map)) {
         if (is_lava(player.x, player.y, map)) {
             // lava_effects() would be called here
-            if (display) display.putstr_message('The lava burns you!');
+            if (display) await display.putstr_message('The lava burns you!');
             // Simplified: don't kill outright
             return true;
         } else {
             // drown() would be called here for non-water-walkers
             if (!player.waterWalking) {
-                if (display) display.putstr_message('You fall into the water!');
+                if (display) await display.putstr_message('You fall into the water!');
                 return true;
             }
         }
@@ -2432,7 +2432,7 @@ export function pooleffects(newspot, player, map, display) {
 }
 
 // C ref: hack.c spoteffects() — effects of stepping on current square
-export function spoteffects(pick, player, map, display, game) {
+export async function spoteffects(pick, player, map, display, game) {
     // Prevent recursion
     if (player._inSpoteffects) return;
     player._inSpoteffects = true;
@@ -2442,16 +2442,16 @@ export function spoteffects(pick, player, map, display, game) {
         const oldLoc = map.at(game.ux0 || player.x, game.uy0 || player.y);
         const curLoc = map.at(player.x, player.y);
         if (curLoc && oldLoc && curLoc.typ !== oldLoc.typ) {
-            switch_terrain(player, map, display);
+            await switch_terrain(player, map, display);
         }
 
         // Pool/lava effects
-        if (pooleffects(true, player, map, display)) {
+        if (await pooleffects(true, player, map, display)) {
             return;
         }
 
         // Room entry messages
-        check_special_room(false, player, map, display);
+        await check_special_room(false, player, map, display);
 
         // Sink + levitation
         if (curLoc && curLoc.typ === SINK && player.levitating) {
@@ -2480,7 +2480,7 @@ export function spoteffects(pick, player, map, display, game) {
 }
 
 // C ref: hack.c invocation_message() — vibration at invocation pos
-export function invocation_message(player, map, display) {
+export async function invocation_message(player, map, display) {
     if (!invocation_pos(player.x, player.y, map)) return;
     // Check not on stairs
     const loc = map.at(player.x, player.y);
@@ -2488,9 +2488,9 @@ export function invocation_message(player, map, display) {
 
     if (display) {
         if (player.levitating || player.flying) {
-            display.putstr_message('You feel a strange vibration beneath you.');
+            await display.putstr_message('You feel a strange vibration beneath you.');
         } else {
-            display.putstr_message('You feel a strange vibration under your feet.');
+            await display.putstr_message('You feel a strange vibration under your feet.');
         }
     }
     player.uvibrated = true;
@@ -2509,25 +2509,25 @@ export function spot_checks(_x, _y, _old_typ, _map) {
 // C ref: hack.c pickup_checks() — validate pickup attempt
 // Returns: 1 = cannot pickup (time taken), 0 = cannot pickup (no time),
 //          -1 = do normal pickup, -2 = loot monster inventory
-export function pickup_checks(player, map, display) {
+export async function pickup_checks(player, map, display) {
     // Swallowed
     if (player.uswallow) {
         if (display) {
-            display.putstr_message("You don't see anything in here to pick up.");
+            await display.putstr_message("You don't see anything in here to pick up.");
         }
         return 1;
     }
     // Pool
     if (is_pool(player.x, player.y, map)) {
         if (player.levitating || player.flying) {
-            if (display) display.putstr_message('You cannot dive into the water to pick things up.');
+            if (display) await display.putstr_message('You cannot dive into the water to pick things up.');
             return 0;
         }
     }
     // Lava
     if (is_lava(player.x, player.y, map)) {
         if (player.levitating || player.flying) {
-            if (display) display.putstr_message("You can't reach the bottom to pick things up.");
+            if (display) await display.putstr_message("You can't reach the bottom to pick things up.");
             return 0;
         }
     }
@@ -2537,24 +2537,24 @@ export function pickup_checks(player, map, display) {
         const loc = map.at(player.x, player.y);
         if (loc) {
             if (loc.typ === THRONE) {
-                if (display) display.putstr_message('It must weigh a ton!');
+                if (display) await display.putstr_message('It must weigh a ton!');
             } else if (loc.typ === SINK) {
-                if (display) display.putstr_message('The plumbing connects it to the floor.');
+                if (display) await display.putstr_message('The plumbing connects it to the floor.');
             } else if (loc.typ === GRAVE) {
-                if (display) display.putstr_message("You don't need a gravestone.  Yet.");
+                if (display) await display.putstr_message("You don't need a gravestone.  Yet.");
             } else if (loc.typ === FOUNTAIN) {
-                if (display) display.putstr_message('You could drink the water...');
+                if (display) await display.putstr_message('You could drink the water...');
             } else if (IS_DOOR(loc.typ) && ((loc.flags || 0) & D_ISOPEN)) {
-                if (display) display.putstr_message("It won't come off the hinges.");
+                if (display) await display.putstr_message("It won't come off the hinges.");
             } else if (loc.typ === ALTAR) {
-                if (display) display.putstr_message('Moving the altar would be a very bad idea.');
+                if (display) await display.putstr_message('Moving the altar would be a very bad idea.');
             } else if (loc.typ === STAIRS) {
-                if (display) display.putstr_message('The stairs are solidly affixed.');
+                if (display) await display.putstr_message('The stairs are solidly affixed.');
             } else {
-                if (display) display.putstr_message('There is nothing here to pick up.');
+                if (display) await display.putstr_message('There is nothing here to pick up.');
             }
         } else {
-            if (display) display.putstr_message('There is nothing here to pick up.');
+            if (display) await display.putstr_message('There is nothing here to pick up.');
         }
         return 0;
     }
@@ -2564,8 +2564,8 @@ export function pickup_checks(player, map, display) {
 }
 
 // C ref: hack.c dopickup() — the #pickup command
-export function dopickup(player, map, display) {
-    const ret = pickup_checks(player, map, display);
+export async function dopickup(player, map, display) {
+    const ret = await pickup_checks(player, map, display);
     if (ret >= 0) {
         return ret ? { tookTime: true } : { tookTime: false };
     }
@@ -2578,22 +2578,22 @@ export function dopickup(player, map, display) {
 // --------------------------------------------------------------------
 
 // C ref: hack.c overexert_hp() — lose 1 HP or pass out from overexertion
-export function overexert_hp(player, display) {
+export async function overexert_hp(player, display) {
     const usingPolyHp = !!player?.upolyd;
     const hpKey = usingPolyHp ? 'mh' : 'hp';
     const curHp = Number(player?.[hpKey] || 0);
     if (curHp > 1) {
         player[hpKey] = curHp - 1;
     } else {
-        if (display) display.putstr_message('You pass out from exertion!');
-        exercise(player, A_CON, false);
+        if (display) await display.putstr_message('You pass out from exertion!');
+        await exercise(player, A_CON, false);
         // fall_asleep(-10, false) would be called
     }
 }
 
 // C ref: hack.c overexertion() — combat metabolism check
 // Returns true if hero fainted (multi < 0).
-export function overexertion(game) {
+export async function overexertion(game) {
     // Backward compatibility: older JS call sites pass (player, game, display).
     let player = game?.player;
     let display = game?.display;
@@ -2605,16 +2605,16 @@ export function overexertion(game) {
         display = arguments[2];
     }
     if (!game || !player) return false;
-    gethungry(player);
+    await gethungry(player);
     const moves = game.moves || 0;
     if ((moves % 3) !== 0 && near_capacity(player) >= HVY_ENCUMBER) {
-        overexert_hp(player, display);
+        await overexert_hp(player, display);
     }
     return (game.multi || 0) < 0;
 }
 
 // C ref: hack.c maybe_wail() — low HP warning for certain roles
-export function maybe_wail(player, game, display) {
+export async function maybe_wail(player, game, display) {
     const moves = game.moves || 0;
     if (moves <= (game.wailmsg || 0) + 50) return;
     game.wailmsg = moves;
@@ -2629,7 +2629,7 @@ export function maybe_wail(player, game, display) {
     if (isWizard || isElf || isValkyrie) {
         const who = (isWizard || isValkyrie) ? (player.roleName || player.role || 'Adventurer') : 'Elf';
         if (heroHp === 1) {
-            if (display) display.putstr_message(`${who} is about to die.`);
+            if (display) await display.putstr_message(`${who} is about to die.`);
         } else {
             const powers = [TELEPORT, SEE_INVIS, POISON_RES, COLD_RES, SHOCK_RES,
                 FIRE_RES, SLEEP_RES, DISINT_RES, TELEPORT_CONTROL, STEALTH, FAST, INVIS];
@@ -2638,16 +2638,16 @@ export function maybe_wail(player, game, display) {
                 if ((player?.uprops?.[prop]?.intrinsic & INTRINSIC) !== 0) powercnt++;
             }
             if (display) {
-                display.putstr_message(powercnt >= 4
+                await display.putstr_message(powercnt >= 4
                     ? `${who}, all your powers will be lost...`
                     : `${who}, your life force is running out.`);
             }
         }
     } else {
         if (heroHp === 1) {
-            if (display) display.putstr_message('You hear the wailing of the Banshee...');
+            if (display) await display.putstr_message('You hear the wailing of the Banshee...');
         } else {
-            if (display) display.putstr_message('You hear the howling of the CwnAnnwn...');
+            if (display) await display.putstr_message('You hear the howling of the CwnAnnwn...');
         }
     }
 }
@@ -2679,26 +2679,26 @@ export function saving_grace(dmg, player, game) {
 }
 
 // C ref: hack.c showdamage() — display HP loss
-export function showdamage(dmg, player, display, game) {
+export async function showdamage(dmg, player, display, game) {
     if (!game?.iflags?.showdamage || !dmg) return;
     const hp = player.upolyd
         ? (player.mh || 0)
         : (Number.isFinite(player?.uhp) ? player.uhp : (player?.hp || 0));
-    if (display) display.putstr_message(`[HP ${-dmg}, ${hp} left]`);
+    if (display) await display.putstr_message(`[HP ${-dmg}, ${hp} left]`);
 }
 
 // C ref: hack.c losehp() — hero loses hit points
-export function losehp(n, knam, k_format, player, display, game) {
+export async function losehp(n, knam, k_format, player, display, game) {
     end_running(true, game);
 
     if (player.upolyd) {
         player.mh = (player.mh || 0) - n;
-        showdamage(n, player, display, game);
+        await showdamage(n, player, display, game);
         if ((player.mhmax || 0) < player.mh) player.mhmax = player.mh;
         if (player.mh < 1) {
             // rehumanize() would be called in full implementation
         } else if (n > 0 && player.mh * 10 < (player.mhmax || 0) && player.unchanging) {
-            maybe_wail(player, game, display);
+            await maybe_wail(player, game, display);
         }
         return;
     }
@@ -2711,13 +2711,13 @@ export function losehp(n, knam, k_format, player, display, game) {
     const nextHp = heroHp - n;
     player.uhp = nextHp;
     if (hadLegacyHp) player.hp = nextHp;
-    showdamage(n, player, display, game);
+    await showdamage(n, player, display, game);
     if (heroHpMax < nextHp) {
         player.uhpmax = nextHp;
         if (hadLegacyHpMax) player.hpmax = nextHp;
     }
     if (player.uhp < 1) {
-        if (display) display.putstr_message('You die...');
+        if (display) await display.putstr_message('You die...');
         // done(DIED) would be called in full implementation
         // For now, set hp to 0
         player.uhp = 0;
@@ -2727,7 +2727,7 @@ export function losehp(n, knam, k_format, player, display, game) {
             game.playerDied = true;
         }
     } else if (n > 0 && player.uhp * 10 < player.uhpmax) {
-        maybe_wail(player, game, display);
+        await maybe_wail(player, game, display);
     }
 }
 
@@ -2777,7 +2777,7 @@ export function handle_tip(_tip, _player, _display) {
 
 // C ref: hack.c trapmove() — try to escape from a trap
 // Returns true if hero can continue moving to intended destination.
-export function trapmove(player, x, y, display, map = null) {
+export async function trapmove(player, x, y, display, map = null) {
     if (!player.utrap) return true;
     const ttyp = player.utraptype;
     const isBear = (ttyp === 'beartrap' || ttyp === 0 || ttyp === 2);
@@ -2787,10 +2787,10 @@ export function trapmove(player, x, y, display, map = null) {
     const desttrap = map?.trapAt ? map.trapAt(x, y) : null;
 
     if (isBear) {
-        if (display) display.putstr_message('You are caught in a bear trap.');
+        if (display) await display.putstr_message('You are caught in a bear trap.');
         if ((player.dx && player.dy) || rn2(5) === 0) player.utrap--;
         if (!player.utrap) {
-            if (display) display.putstr_message('You finally wriggle free.');
+            if (display) await display.putstr_message('You finally wriggle free.');
         }
         return false;
     }
@@ -2798,20 +2798,20 @@ export function trapmove(player, x, y, display, map = null) {
         if (desttrap && desttrap.tseen && is_pit(desttrap.ttyp)) {
             return true; // move into adjacent known pit
         }
-        if (display) display.putstr_message('You are in a pit.');
+        if (display) await display.putstr_message('You are in a pit.');
         return false;
     }
     if (isWebTrap) {
         player.utrap--;
         if (!player.utrap) {
-            if (display) display.putstr_message('You disentangle yourself.');
+            if (display) await display.putstr_message('You disentangle yourself.');
         } else {
-            if (display) display.putstr_message('You are stuck to the web.');
+            if (display) await display.putstr_message('You are stuck to the web.');
         }
         return false;
     }
     if (isLavaTrap) {
-        if (display) display.putstr_message('You are stuck in the lava.');
+        if (display) await display.putstr_message('You are stuck in the lava.');
         const steppingOffLava = map ? !is_lava(x, y, map) : true;
         if (steppingOffLava) {
             player.utrap--;
@@ -2824,7 +2824,7 @@ export function trapmove(player, x, y, display, map = null) {
 }
 
 // C ref: hack.c is_valid_travelpt() — can hero travel to (x,y)?
-export function is_valid_travelpt(x, y, player, map) {
+export async function is_valid_travelpt(x, y, player, map) {
     if (player.x === x && player.y === y) return true;
     if (!isok(x, y)) return false;
     const loc = map.at(x, y);
@@ -2833,7 +2833,7 @@ export function is_valid_travelpt(x, y, player, map) {
     if (loc.typ === STONE && !loc.seenv) return false;
     // Check if we can path there via C-style findtravelpath validation mode.
     const game = { player, map, travelX: x, travelY: y };
-    return findtravelpath(TRAVP_VALID, game);
+    return await findtravelpath(TRAVP_VALID, game);
 }
 
 // C ref: hack.c revive_nasty() — revive rider corpses at (x,y)
@@ -2851,22 +2851,22 @@ export function movobj(obj, ox, oy, map) {
 }
 
 // C ref: hack.c dosinkfall() — fall into a sink while levitating
-export function dosinkfall(player, map, display) {
+export async function dosinkfall(player, map, display) {
     if (!player.levitating) return;
     const loc = map.at(player.x, player.y);
     if (!loc || loc.typ !== SINK) return;
     // Innate levitation just wobbles
     if (player.inherentLevitation) {
-        if (display) display.putstr_message('You wobble unsteadily for a moment.');
+        if (display) await display.putstr_message('You wobble unsteadily for a moment.');
         return;
     }
-    if (display) display.putstr_message('You crash to the floor!');
+    if (display) await display.putstr_message('You crash to the floor!');
     const con = player.attributes ? player.attributes[A_CON] : 10;
     const dmg = rn2(8) + Math.max(1, 25 - con); // rn1(8, 25-CON)
     if (typeof player.takeDamage === 'function') {
         player.takeDamage(dmg, 'fell onto a sink');
     }
-    exercise(player, A_DEX, false);
+    await exercise(player, A_DEX, false);
 }
 
 // C ref: hack.c impact_disturbs_zombies()
@@ -2905,15 +2905,15 @@ export function feel_newsym(_map, _x, _y) {
 
 // C ref: hack.c lava_effects() — effects of stepping on lava
 // Returns true if hero moved while surviving.
-export function lava_effects(player, map, display) {
+export async function lava_effects(player, map, display) {
     if (!is_lava(player.x, player.y, map)) return false;
     if (player.fireResistant) {
-        if (display) display.putstr_message('The lava feels warm.');
+        if (display) await display.putstr_message('The lava feels warm.');
         return false;
     }
     // Damage from lava
     const dmg = d(6, 6);
-    if (display) display.putstr_message("The lava burns you!");
+    if (display) await display.putstr_message("The lava burns you!");
     if (typeof player.takeDamage === 'function') {
         player.takeDamage(dmg, 'molten lava');
     }
@@ -2937,7 +2937,7 @@ export { dosearch0 as search_demand };
 // Note: getdir() is actually in cmd.c in C; included here as it was
 // mentioned in the task. Uses DIRECTION_KEYS from dothrow.js.
 export async function getdir(prompt, display) {
-    if (display && prompt) display.putstr_message(prompt);
+    if (display && prompt) await display.putstr_message(prompt);
     const ch = await nhgetch();
     const c = String.fromCharCode(ch);
     const dir = DIRECTION_KEYS[c.toLowerCase()];

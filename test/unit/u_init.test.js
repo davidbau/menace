@@ -12,14 +12,14 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS, STONE, ROOM, ACCES
 import { GOLD_PIECE } from '../../js/objects.js';
 
 // Helper: create a level-1 wizard-mode Valkyrie game state
-function setupSeed42Game() {
+async function setupSeed42Game() {
     initRng(42);
     initLevelGeneration();
     const player = new Player();
     player.initRole(11); // PM_VALKYRIE
     player.name = 'Wizard';
     player.gender = 1; // female
-    const map = makelevel(1);
+    const map = await makelevel(1);
     wallification(map);
     player.x = map.upstair.x;
     player.y = map.upstair.y;
@@ -27,7 +27,7 @@ function setupSeed42Game() {
     return { player, map };
 }
 
-function setupRoleGame(seed, roleName) {
+async function setupRoleGame(seed, roleName) {
     initRng(seed);
     const roleIndex = roles.findIndex(r => r.name === roleName);
     if (roleIndex < 0) throw new Error(`Unknown role: ${roleName}`);
@@ -35,7 +35,7 @@ function setupRoleGame(seed, roleName) {
     const player = new Player();
     player.initRole(roleIndex);
     player.name = roleName;
-    const map = makelevel(1);
+    const map = await makelevel(1);
     wallification(map);
     player.x = map.upstair.x;
     player.y = map.upstair.y;
@@ -44,14 +44,14 @@ function setupRoleGame(seed, roleName) {
 }
 
 describe('Post-level initialization (u_init)', () => {
-    it('simulatePostLevelInit consumes correct number of RNG calls', () => {
+    it('simulatePostLevelInit consumes correct number of RNG calls', async () => {
         // The C trace shows 116 calls for post-mklev (makedog through welcome).
         // The exact count varies with RNG state because:
         // - peace_minded: 1 or 2 calls depending on rn2(16) result
         // - init_attr_role_redist: variable misses when attr hits max
         // Once JS level gen fully matches C, we'll get exactly 116.
         // For now, verify the count is in a plausible range (105-125).
-        const { player, map } = setupSeed42Game();
+        const { player, map } = await setupSeed42Game();
 
         enableRngLog();
         const logBefore = getRngLog();
@@ -69,11 +69,11 @@ describe('Post-level initialization (u_init)', () => {
             `Last 5 calls:\n${logAfter.slice(-5).join('\n')}`);
     });
 
-    it('attribute rolling algorithm produces correct results for known input', () => {
+    it('attribute rolling algorithm produces correct results for known input', async () => {
         // Test the attribute rolling with a fresh seed that we can control.
         // We test indirectly: the algorithm should distribute 27 points
         // (75 - 48 Valkyrie base) across 6 attributes weighted by attrdist.
-        const { player, map } = setupSeed42Game();
+        const { player, map } = await setupSeed42Game();
         simulatePostLevelInit(player, map, 1);
 
         // Verify attributes are reasonable (sum should be ~75 for Valkyrie)
@@ -91,8 +91,8 @@ describe('Post-level initialization (u_init)', () => {
         }
     });
 
-    it('Valkyrie gets correct HP/PW/AC', () => {
-        const { player, map } = setupSeed42Game();
+    it('Valkyrie gets correct HP/PW/AC', async () => {
+        const { player, map } = await setupSeed42Game();
         simulatePostLevelInit(player, map, 1);
 
         // HP = Valkyrie(14) + Human(2) = 16
@@ -105,8 +105,8 @@ describe('Post-level initialization (u_init)', () => {
         assert.equal(player.ac, 6, 'AC should be 6');
     });
 
-    it('Valkyrie gets 4 inventory items with correct types', () => {
-        const { player, map } = setupSeed42Game();
+    it('Valkyrie gets 4 inventory items with correct types', async () => {
+        const { player, map } = await setupSeed42Game();
         simulatePostLevelInit(player, map, 1);
 
         // Valkyrie: SPEAR, DAGGER, SMALL_SHIELD, FOOD_RATION (no lamp for seed 42)
@@ -138,8 +138,8 @@ describe('Post-level initialization (u_init)', () => {
         disableRngLog();
     });
 
-    it('post-level init RNG pattern matches C trace structure', () => {
-        const { player, map } = setupSeed42Game();
+    it('post-level init RNG pattern matches C trace structure', async () => {
+        const { player, map } = await setupSeed42Game();
 
         enableRngLog();
         simulatePostLevelInit(player, map, 1);
@@ -158,8 +158,8 @@ describe('Post-level initialization (u_init)', () => {
         assert.ok(log[n-1].includes('rnd(30)'), `Last should be rnd(30), got: ${log[n-1]}`);
     });
 
-    it('does not force pet placement when no valid adjacent tiles exist', () => {
-        const { player, map } = setupSeed42Game();
+    it('does not force pet placement when no valid adjacent tiles exist', async () => {
+        const { player, map } = await setupSeed42Game();
         const monsterCountBefore = map.monsters.length;
 
         for (let dx = -3; dx <= 3; dx++) {
@@ -177,11 +177,11 @@ describe('Post-level initialization (u_init)', () => {
             'Pet should not be force-placed when no valid enexto position exists');
     });
 
-    it('mon_arrive does not force placement when arrival has no valid tiles', () => {
-        const { player, map: oldMap } = setupSeed42Game();
+    it('mon_arrive does not force placement when arrival has no valid tiles', async () => {
+        const { player, map: oldMap } = await setupSeed42Game();
         simulatePostLevelInit(player, oldMap, 1);
 
-        const { player: newPlayer, map: newMap } = setupSeed42Game();
+        const { player: newPlayer, map: newMap } = await setupSeed42Game();
         for (let dx = -3; dx <= 3; dx++) {
             for (let dy = -3; dy <= 3; dy++) {
                 const x = newPlayer.x + dx;
@@ -204,8 +204,8 @@ describe('Post-level initialization (u_init)', () => {
         assert.equal(failedArrivals.length, 1, 'failed pet arrival should be tracked');
     });
 
-    it('mon_arrive leaves trapped pets behind', () => {
-        const { player, map: oldMap } = setupSeed42Game();
+    it('mon_arrive leaves trapped pets behind', async () => {
+        const { player, map: oldMap } = await setupSeed42Game();
         oldMap.monsters.push({
             mx: player.x + 1,
             my: player.y,
@@ -218,7 +218,7 @@ describe('Post-level initialization (u_init)', () => {
             meating: 0,
         });
 
-        const { player: newPlayer, map: newMap } = setupSeed42Game();
+        const { player: newPlayer, map: newMap } = await setupSeed42Game();
         const oldCount = oldMap.monsters.length;
         const newCount = newMap.monsters.length;
 
@@ -228,8 +228,8 @@ describe('Post-level initialization (u_init)', () => {
         assert.equal(newMap.monsters.length, newCount, 'no trapped pet should arrive on new map');
     });
 
-    it('mon_arrive uses explicit destination hero coordinates when provided', () => {
-        const { player, map: oldMap } = setupSeed42Game();
+    it('mon_arrive uses explicit destination hero coordinates when provided', async () => {
+        const { player, map: oldMap } = await setupSeed42Game();
         oldMap.monsters.push({
             mx: player.x + 1,
             my: player.y,
@@ -242,7 +242,7 @@ describe('Post-level initialization (u_init)', () => {
             meating: 0,
         });
 
-        const { map: newMap } = setupSeed42Game();
+        const { map: newMap } = await setupSeed42Game();
         const oldCount = oldMap.monsters.length;
         const moved = mon_arrive(oldMap, newMap, player, { heroX: 10, heroY: 10 });
         assert.equal(moved, true, 'pet should migrate with explicit destination hero coordinates');
@@ -254,8 +254,8 @@ describe('Post-level initialization (u_init)', () => {
         assert.ok(dx <= 3 && dy <= 3, 'arrived pet should be placed near explicit destination');
     });
 
-    it('mon_arrive retries pets from failedArrivals queue', () => {
-        const { player, map: oldMap } = setupSeed42Game();
+    it('mon_arrive retries pets from failedArrivals queue', async () => {
+        const { player, map: oldMap } = await setupSeed42Game();
         const queuedPet = {
             mx: player.x + 10,
             my: player.y + 10,
@@ -269,7 +269,7 @@ describe('Post-level initialization (u_init)', () => {
         };
         oldMap.failedArrivals = [queuedPet];
 
-        const { player: newPlayer, map: newMap } = setupSeed42Game();
+        const { player: newPlayer, map: newMap } = await setupSeed42Game();
         const moved = mon_arrive(oldMap, newMap, newPlayer);
         assert.equal(moved, true, 'queued failed arrival should be retried');
         assert.equal((oldMap.failedArrivals || []).length, 0, 'source failed queue should be drained for retry');
@@ -315,8 +315,8 @@ describe('Post-level initialization (u_init)', () => {
         assert.equal(newMap.failedArrivals.length, 1, 'second failed retry should still keep one queue entry');
     });
 
-    it('mon_arrive supports non-With_you exact locale placement', () => {
-        const { player, map: oldMap } = setupSeed42Game();
+    it('mon_arrive supports non-With_you exact locale placement', async () => {
+        const { player, map: oldMap } = await setupSeed42Game();
         const queuedPet = {
             mx: player.x + 10,
             my: player.y + 10,
@@ -329,7 +329,7 @@ describe('Post-level initialization (u_init)', () => {
             meating: 0,
         };
         oldMap.failedArrivals = [queuedPet];
-        const { map: newMap } = setupSeed42Game();
+        const { map: newMap } = await setupSeed42Game();
         const localeX = 12;
         const localeY = 10;
         const locale = newMap.at(localeX, localeY);
@@ -349,8 +349,8 @@ describe('Post-level initialization (u_init)', () => {
         assert.equal(arrived.my, localeY);
     });
 
-    it('mon_arrive keeps With_you default behavior', () => {
-        const { player, map: oldMap } = setupSeed42Game();
+    it('mon_arrive keeps With_you default behavior', async () => {
+        const { player, map: oldMap } = await setupSeed42Game();
         oldMap.monsters.push({
             mx: player.x + 1,
             my: player.y,
@@ -362,7 +362,7 @@ describe('Post-level initialization (u_init)', () => {
             mtrapped: false,
             meating: 0,
         });
-        const { map: newMap } = setupSeed42Game();
+        const { map: newMap } = await setupSeed42Game();
         const moved = mon_arrive(oldMap, newMap, player, {
             when: MON_ARRIVE_WITH_YOU,
             heroX: 15,
@@ -371,8 +371,8 @@ describe('Post-level initialization (u_init)', () => {
         assert.equal(moved, true, 'With_you mode should continue to migrate nearby pets');
     });
 
-    it('mon_arrive applies wander radius for non-With_you locale arrivals', () => {
-        const { player, map: oldMap } = setupSeed42Game();
+    it('mon_arrive applies wander radius for non-With_you locale arrivals', async () => {
+        const { player, map: oldMap } = await setupSeed42Game();
         const queuedPet = {
             mx: player.x + 10,
             my: player.y + 10,
@@ -385,7 +385,7 @@ describe('Post-level initialization (u_init)', () => {
             meating: 0,
         };
         oldMap.failedArrivals = [queuedPet];
-        const { map: newMap } = setupSeed42Game();
+        const { map: newMap } = await setupSeed42Game();
         const baseX = 20;
         const baseY = 8;
 
@@ -403,8 +403,8 @@ describe('Post-level initialization (u_init)', () => {
         assert.ok(Math.abs(arrived.my - baseY) <= 7, 'arrived y should stay within wander+mnexto neighborhood');
     });
 
-    it('mon_arrive supports random-placement mode for non-With_you arrivals', () => {
-        const { player, map: oldMap } = setupSeed42Game();
+    it('mon_arrive supports random-placement mode for non-With_you arrivals', async () => {
+        const { player, map: oldMap } = await setupSeed42Game();
         const queuedPet = {
             mx: player.x + 10,
             my: player.y + 10,
@@ -417,7 +417,7 @@ describe('Post-level initialization (u_init)', () => {
             meating: 0,
         };
         oldMap.failedArrivals = [queuedPet];
-        const { map: newMap } = setupSeed42Game();
+        const { map: newMap } = await setupSeed42Game();
 
         const moved = mon_arrive(oldMap, newMap, player, {
             when: 'After_you',
@@ -430,8 +430,8 @@ describe('Post-level initialization (u_init)', () => {
         assert.ok(loc && ACCESSIBLE(loc.typ), 'random placement should land on an accessible tile');
     });
 
-    it('mon_arrive catches up queued pet elapsed time in non-With_you mode', () => {
-        const { player, map: oldMap } = setupSeed42Game();
+    it('mon_arrive catches up queued pet elapsed time in non-With_you mode', async () => {
+        const { player, map: oldMap } = await setupSeed42Game();
         const queuedPet = {
             mx: player.x + 10,
             my: player.y + 10,
@@ -445,7 +445,7 @@ describe('Post-level initialization (u_init)', () => {
             mlstmv: 1,
         };
         oldMap.failedArrivals = [queuedPet];
-        const { map: newMap } = setupSeed42Game();
+        const { map: newMap } = await setupSeed42Game();
 
         const moved = mon_arrive(oldMap, newMap, player, {
             when: 'After_you',
@@ -461,8 +461,8 @@ describe('Post-level initialization (u_init)', () => {
         assert.equal(queuedPet.mlstmv, 10, 'arrival bookkeeping should refresh mlstmv');
     });
 
-    it('Healer gets startup money as gold inventory object', () => {
-        const { player, map } = setupRoleGame(1, 'Healer');
+    it('Healer gets startup money as gold inventory object', async () => {
+        const { player, map } = await setupRoleGame(1, 'Healer');
         simulatePostLevelInit(player, map, 1);
 
         assert.ok(player.umoney0 >= 1001 && player.umoney0 <= 2000,
@@ -476,8 +476,8 @@ describe('Post-level initialization (u_init)', () => {
             'Gold object quantity should equal umoney0');
     });
 
-    it('Tourist gets startup money as gold inventory object', () => {
-        const { player, map } = setupRoleGame(1, 'Tourist');
+    it('Tourist gets startup money as gold inventory object', async () => {
+        const { player, map } = await setupRoleGame(1, 'Tourist');
         simulatePostLevelInit(player, map, 1);
 
         assert.ok(player.umoney0 >= 1 && player.umoney0 <= 1000,

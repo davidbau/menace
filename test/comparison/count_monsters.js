@@ -5,7 +5,7 @@ import { Player } from '../../js/player.js';
 
 initRng(1);
 initLevelGeneration();
-const map = makelevel(1);
+const map = await makelevel(1);
 wallification(map);
 const player = new Player();
 player.initRole(11);

@@ -400,7 +400,7 @@ export function ageSpells(player) {
 export async function handleKnownSpells(player, display) {
     const knownSpells = (player.spells || []).filter(s => s.sp_know > 0);
     if (knownSpells.length === 0) {
-        display.putstr_message("You don't know any spells right now.");
+        await display.putstr_message("You don't know any spells right now.");
         return { moved: false, tookTime: false };
     }
 
@@ -519,7 +519,7 @@ export function energy_cost(spellLevel) {
 // C ref: spell.c study_book() — read spellbook to learn spell
 // NOTE: The main spellbook reading flow is implemented inline in read.js.
 // This function provides the C-faithful interface for direct callers.
-export function study_book(spellbook, player) {
+export async function study_book(spellbook, player) {
     if (!spellbook || !player) return 0;
 
     const booktype = spellbook.otyp;
@@ -528,13 +528,13 @@ export function study_book(spellbook, player) {
 
     // Blank paper
     if (booktype === SPE_BLANK_PAPER) {
-        pline("This spellbook is all blank.");
+        await pline("This spellbook is all blank.");
         return 1;
     }
 
     // Novel
     if (booktype === SPE_NOVEL) {
-        pline("You read the novel for a while.");
+        await pline("You read the novel for a while.");
         return 1;
     }
 
@@ -560,7 +560,7 @@ export function study_book(spellbook, player) {
     // Check if already known with good retention
     const idx = spell_idx(booktype, player);
     if (idx !== UNKNOWN_SPELL && spellknow(player, idx) > KEEN / 10) {
-        You("know \"%s\" quite well already.", od.name || 'this spell');
+        await You("know \"%s\" quite well already.", od.name || 'this spell');
         return 0;
     }
 
@@ -585,52 +585,52 @@ export function study_book(spellbook, player) {
 
     if (too_hard) {
         // C ref: cursed_book effects
-        cursed_book(spellbook, player);
+        await cursed_book(spellbook, player);
         return 1;
     } else if (confused) {
-        confused_book(spellbook, player);
+        await confused_book(spellbook, player);
         return 1;
     }
 
-    You("begin to %s the runes.",
+    await You("begin to %s the runes.",
         booktype === SPE_BOOK_OF_THE_DEAD ? "recite" : "memorize");
     return 1;
 }
 
 // C ref: spell.c cursed_book() — TRUE if book should be destroyed
-export function cursed_book(spellbook, player) {
+export async function cursed_book(spellbook, player) {
     const od = objectData[spellbook.otyp] || {};
     const lev = od.oc2 || 1;
 
     switch (rn2(lev)) {
     case 0:
-        You_feel("a wrenching sensation.");
+        await You_feel("a wrenching sensation.");
         // tele() would go here
         break;
     case 1:
-        You_feel("threatened.");
+        await You_feel("threatened.");
         // aggravate() would go here
         break;
     case 2:
         // make_blinded
-        pline("You can't see!");
+        await pline("You can't see!");
         break;
     case 3:
         // take_gold
-        pline("Your purse feels lighter.");
+        await pline("Your purse feels lighter.");
         break;
     case 4:
-        pline("These runes were just too much to comprehend.");
+        await pline("These runes were just too much to comprehend.");
         // make_confused
         break;
     case 5:
-        pline_The("book was coated with contact poison!");
+        await pline_The("book was coated with contact poison!");
         break;
     case 6:
         if (player.magicResistance) {
-            pline_The("book radiates explosive energy, but you are unharmed!");
+            await pline_The("book radiates explosive energy, but you are unharmed!");
         } else {
-            pline("As you read the book, it radiates explosive energy in your face!");
+            await pline("As you read the book, it radiates explosive energy in your face!");
             const dmg = 2 * rnd(10) + 5;
             // losehp(dmg) would go here
         }
@@ -643,24 +643,24 @@ export function cursed_book(spellbook, player) {
 }
 
 // C ref: spell.c confused_book() — TRUE if book is destroyed
-export function confused_book(spellbook, player) {
+export async function confused_book(spellbook, player) {
     if (!rn2(3) && spellbook.otyp !== SPE_BOOK_OF_THE_DEAD) {
-        pline("Being confused you have difficulties in controlling your actions.");
-        You("accidentally tear the spellbook to pieces.");
+        await pline("Being confused you have difficulties in controlling your actions.");
+        await You("accidentally tear the spellbook to pieces.");
         // useup(spellbook) would go here
         return true;
     } else {
-        You("find yourself reading the first line over and over again.");
+        await You("find yourself reading the first line over and over again.");
     }
     return false;
 }
 
 // C ref: spell.c book_cursed() — book has just become cursed; interrupt reading
-export function book_cursed(book, player) {
+export async function book_cursed(book, player) {
     // If we're currently reading this book and it just became cursed,
     // interrupt the study occupation
     if (book.cursed && player.occupation?.book === book) {
-        pline("%s slams shut!", book.known ? "The book" : "A book");
+        await pline("%s slams shut!", book.known ? "The book" : "A book");
         book.bknown = true;
         player.occupation = null; // stop_occupation
     }
@@ -683,7 +683,7 @@ export function book_substitution(old_obj, new_obj, player) {
 // C ref: spell.c learn() — occupation callback for studying a spellbook
 // NOTE: The actual learn occupation is handled inline in read.js.
 // This provides the C-faithful standalone version.
-export function learn(player) {
+export async function learn(player) {
     if (!player || !player.spells) return 0;
 
     const book = player.occupation?.book;
@@ -693,11 +693,11 @@ export function learn(player) {
     const od = objectData[booktype] || {};
     const spellName = String(od.name || 'unknown spell').toLowerCase();
 
-    exercise(player, A_WIS, true);
+    await exercise(player, A_WIS, true);
 
     // Book of the Dead special handling
     if (booktype === SPE_BOOK_OF_THE_DEAD) {
-        You("turn the pages of the Book of the Dead...");
+        await You("turn the pages of the Book of the Dead...");
         return 0;
     }
 
@@ -712,21 +712,21 @@ export function learn(player) {
         // Already known — refresh
         const studyCount = book.spestudied || 0;
         if (studyCount > MAX_SPELL_STUDY) {
-            pline("This spellbook is too faint to be read any more.");
+            await pline("This spellbook is too faint to be read any more.");
             book.otyp = SPE_BLANK_PAPER;
             book.spestudied = rn2(studyCount);
         } else {
-            Your("knowledge of \"%s\" is %s.", spellName,
+            await Your("knowledge of \"%s\" is %s.", spellName,
                  spellknow(player, i) ? "keener" : "restored");
             incrnknow(player, i, 1);
             book.spestudied = studyCount + 1;
-            exercise(player, A_WIS, true); // extra study
+            await exercise(player, A_WIS, true); // extra study
         }
     } else {
         // New spell
         const studyCount = book.spestudied || 0;
         if (studyCount >= MAX_SPELL_STUDY) {
-            pline("This spellbook is too faint to read even once.");
+            await pline("This spellbook is too faint to read even once.");
             book.otyp = SPE_BLANK_PAPER;
             book.spestudied = rn2(studyCount);
         } else {
@@ -738,9 +738,9 @@ export function learn(player) {
             });
             book.spestudied = studyCount + 1;
             if (newIdx === 0) {
-                You("learn \"%s\".", spellName);
+                await You("learn \"%s\".", spellName);
             } else {
-                You("add \"%s\" to your repertoire, as '%s'.",
+                await You("add \"%s\" to your repertoire, as '%s'.",
                     spellName, spellet(newIdx));
             }
         }
@@ -748,16 +748,16 @@ export function learn(player) {
 
     // If book is cursed, apply cursed_book effects
     if (book.cursed) {
-        cursed_book(book, player);
+        await cursed_book(book, player);
     }
 
     return 0;
 }
 
 // cf. spell.c rejectcasting() — check if casting is inhibited
-export function rejectcasting(player) {
+export async function rejectcasting(player) {
     if (player.stunned) {
-        You("are too impaired to cast a spell.");
+        await You("are too impaired to cast a spell.");
         return true;
     }
     // C: !can_chant(&gy.youmonst)
@@ -765,14 +765,14 @@ export function rejectcasting(player) {
     if (player.strangled || pdata.vnum === undefined) {
         // Simplified: if strangled or no vocal ability
         if (player.strangled) {
-            You("are unable to chant the incantation.");
+            await You("are unable to chant the incantation.");
             return true;
         }
     }
     // C: !freehand() — welded weapon+shield
     if (player.weapon?.welded && player.shield &&
         player.weapon.otyp !== QUARTERSTAFF) {
-        Your("arms are not free to cast!");
+        await Your("arms are not free to cast!");
         return true;
     }
     return false;
@@ -807,7 +807,7 @@ export function spell_backfire(player, spellIdx) {
 }
 
 // C ref: spell.c cast_protection() — SPE_PROTECTION effect
-export function cast_protection(player) {
+export async function cast_protection(player) {
     let l = player.ulevel || 1;
     let loglev = 0;
     const uspellprot = player.uspellprot || 0;
@@ -827,9 +827,9 @@ export function cast_protection(player) {
     if (gain > 0) {
         if (!player.blind) {
             if (uspellprot) {
-                pline_The("golden haze around you becomes more dense.");
+                await pline_The("golden haze around you becomes more dense.");
             } else {
-                pline_The("air around you begins to shimmer with a golden haze.");
+                await pline_The("air around you begins to shimmer with a golden haze.");
             }
         }
         player.uspellprot = uspellprot + gain;
@@ -838,7 +838,7 @@ export function cast_protection(player) {
         if (!player.usptime) player.usptime = player.uspmtime;
         // find_ac() would be called here to recalculate AC
     } else {
-        Your("skin feels warm for a moment.");
+        await Your("skin feels warm for a moment.");
     }
 }
 
@@ -972,12 +972,12 @@ export async function docast(player, display, map) {
     if (!player) return { moved: false, tookTime: false };
     const nspells = num_spells(player);
     if (nspells === 0) {
-        if (display) display.putstr_message("You don't know any spells right now.");
+        if (display) await display.putstr_message("You don't know any spells right now.");
         return { moved: false, tookTime: false };
     }
 
     // Check basic casting rejection
-    if (rejectcasting(player)) {
+    if (await rejectcasting(player)) {
         return { moved: false, tookTime: false };
     }
 
@@ -997,11 +997,11 @@ export async function docast(player, display, map) {
 export async function getspell(prompt, player, display) {
     const nspells = num_spells(player);
     if (nspells === 0) {
-        if (display) display.putstr_message("You don't know any spells right now.");
+        if (display) await display.putstr_message("You don't know any spells right now.");
         return -1;
     }
 
-    if (rejectcasting(player)) {
+    if (await rejectcasting(player)) {
         return -1;
     }
 
@@ -1076,8 +1076,8 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
 
     // Check if spell is forgotten
     if (sp.sp_know <= 0) {
-        Your("knowledge of this spell is twisted.");
-        pline("It invokes nightmarish images in your mind...");
+        await Your("knowledge of this spell is twisted.");
+        await pline("It invokes nightmarish images in your mind...");
         spell_backfire(player, idx);
         const drain = rnd(energy);
         if (player.power !== undefined) {
@@ -1088,32 +1088,32 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
 
     // Retention warnings
     if (sp.sp_know <= KEEN / 200) {
-        You("strain to recall the spell.");
+        await You("strain to recall the spell.");
     } else if (sp.sp_know <= KEEN / 40) {
-        You("have difficulty remembering the spell.");
+        await You("have difficulty remembering the spell.");
     } else if (sp.sp_know <= KEEN / 20) {
-        Your("knowledge of this spell is growing faint.");
+        await Your("knowledge of this spell is growing faint.");
     } else if (sp.sp_know <= KEEN / 10) {
-        Your("recall of this spell is gradually fading.");
+        await Your("recall of this spell is gradually fading.");
     }
 
     // Hunger check
     if ((player.nutrition || 900) <= 10 && spell_otyp !== SPE_DETECT_FOOD) {
-        You("are too hungry to cast that spell.");
+        await You("are too hungry to cast that spell.");
         return 0;
     }
 
     // Strength check
     const str = player.attributes ? player.attributes[A_STR] : 10;
     if ((str || 10) < 4 && spell_otyp !== SPE_RESTORE_ABILITY) {
-        You("lack the strength to cast spells.");
+        await You("lack the strength to cast spells.");
         return 0;
     }
 
     // Energy check
     const currentPower = player.power || 0;
     if (energy > currentPower) {
-        You("don't have enough energy to cast that spell.");
+        await You("don't have enough energy to cast that spell.");
         return 0;
     }
 
@@ -1123,13 +1123,13 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
     }
 
     // Exercise wisdom for casting
-    exercise(player, A_WIS, true);
+    await exercise(player, A_WIS, true);
 
     // Roll for success
     const confused = !!(player.confused);
     const chance = percent_success(player, idx);
     if (confused || (rnd(100) > chance)) {
-        You("fail to cast the spell correctly.");
+        await You("fail to cast the spell correctly.");
         // Partial energy refund on failure
         if (player.power !== undefined) {
             player.power = Math.min(player.powermax || 100,
@@ -1197,7 +1197,7 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
     case SPE_CURE_BLINDNESS:
         // healup(0, 0, FALSE, TRUE) — cure blindness only
         if (player.blind) {
-            pline("Your vision clears.");
+            await pline("Your vision clears.");
             player.blind = false;
         }
         break;
@@ -1205,44 +1205,44 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
     case SPE_CURE_SICKNESS:
         if (player.sick || player.slimed) {
             if (player.sick) {
-                You("are no longer ill.");
+                await You("are no longer ill.");
                 player.sick = false;
             }
             if (player.slimed) {
-                pline("The slime disappears!");
+                await pline("The slime disappears!");
                 player.slimed = false;
             }
         } else {
-            You("are not ill.");
+            await You("are not ill.");
         }
         break;
 
     case SPE_CREATE_FAMILIAR:
         // make_familiar would go here
-        pline("You summon a familiar!");
+        await pline("You summon a familiar!");
         break;
 
     case SPE_CLAIRVOYANCE:
         // do_vicinity_map would go here
-        pline("You sense your surroundings.");
+        await pline("You sense your surroundings.");
         break;
 
     case SPE_PROTECTION:
-        cast_protection(player);
+        await cast_protection(player);
         break;
 
     case SPE_JUMPING:
         // jump() would go here
-        pline("You jump!");
+        await pline("You jump!");
         break;
 
     case SPE_CHAIN_LIGHTNING:
         await cast_chain_lightning(player, map);
-        pline("Chain lightning arcs from your fingertips!");
+        await pline("Chain lightning arcs from your fingertips!");
         break;
 
     default:
-        pline("Nothing happens.");
+        await pline("Nothing happens.");
         break;
     }
 
@@ -1254,11 +1254,11 @@ export async function throwspell(player, map, display = null, flags = null) {
     if (!player || !map) return 0;
 
     if (player.underwater) {
-        pline("You're joking!  In this weather?");
+        await pline("You're joking!  In this weather?");
         return 0;
     }
 
-    pline("Where do you want to cast the spell?");
+    await pline("Where do you want to cast the spell?");
     const cc = { x: player.x, y: player.y };
     set_getpos_context({ map, display, flags, goalPrompt: 'the desired position', player });
     getpos_sethilite(
@@ -1271,7 +1271,7 @@ export async function throwspell(player, map, display = null, flags = null) {
 }
 
 // C ref: spell.c losespells() — forget spells due to amnesia
-export function losespells(player) {
+export async function losespells(player) {
     if (!player.spells) return;
 
     const spells = player.spells;
@@ -1294,7 +1294,7 @@ export function losespells(player) {
         if (i >= n) break;
         if (rn2(n - i) < nzap) {
             spells[i].sp_know = 0;
-            exercise(player, A_WIS, false);
+            await exercise(player, A_WIS, false);
             nzap--;
         }
     }
@@ -1411,7 +1411,7 @@ export const dovspell = handleKnownSpells;
 export { KEEN, NO_SPELL, UNKNOWN_SPELL, MAX_SPELL_STUDY, MAXSPELL, SPELL_LEV_PW, NODIR, SPELL_CATEGORY_ATTACK, SPELL_CATEGORY_HEALING, SPELL_CATEGORY_DIVINATION, SPELL_CATEGORY_ENCHANTMENT, SPELL_CATEGORY_CLERICAL, SPELL_CATEGORY_ESCAPE, SPELL_CATEGORY_MATTER, spellCategoryForName, spellSkillRank, spellet, spellRetentionText, estimateSpellFailPercent, percent_success };
 
 // Autotranslated from spell.c:210
-export function deadbook_pacify_undead(mtmp, game, player) {
+export async function deadbook_pacify_undead(mtmp, game, player) {
   if ((is_undead(mtmp.data) || is_vampshifter(mtmp)) && cansee(mtmp.mx, mtmp.my)) {
     mtmp.mpeaceful = true;
     if (sgn(mtmp.data.maligntyp) === sgn(player.ualigame.gn.type) && mdistu(mtmp) < 4) {
@@ -1421,7 +1421,7 @@ export function deadbook_pacify_undead(mtmp, game, player) {
       }
     }
     else {
-      monflee(mtmp, 0, false, true);
+      await monflee(mtmp, 0, false, true);
     }
   }
 }
@@ -1465,11 +1465,11 @@ export async function spelleffects_check(spell, res, energy, game, player) {
   let chance;
   let confused = ((player?.Confusion || player?.confused || false) !== 0);
    energy = 0;
-  if ((spell === UNKNOWN_SPELL) || rejectcasting()) { res = ECMD_OK; return true; }
+  if ((spell === UNKNOWN_SPELL) || await rejectcasting()) { res = ECMD_OK; return true; }
    energy = SPELL_LEV_PW(spellev(spell));
   if (spellknow(spell) <= 0) {
-    Your("knowledge of this spell is twisted.");
-    pline("It invokes nightmarish images in your mind...");
+    await Your("knowledge of this spell is twisted.");
+    await pline("It invokes nightmarish images in your mind...");
     spell_backfire(spell);
     player.uen -= rnd( energy);
     if (player.uen < 0) player.uen = 0;
@@ -1477,34 +1477,34 @@ export async function spelleffects_check(spell, res, energy, game, player) {
      res = ECMD_TIME;
     return true;
   }
-  else if (spellknow(spell) <= KEEN / 200) { You("strain to recall the spell."); }
-  else if (spellknow(spell) <= KEEN / 40) { You("have difficulty remembering the spell."); }
+  else if (spellknow(spell) <= KEEN / 200) { await You("strain to recall the spell."); }
+  else if (spellknow(spell) <= KEEN / 40) { await You("have difficulty remembering the spell."); }
   else if (spellknow(spell) <= KEEN / 20) {
-    Your("knowledge of this spell is growing faint.");
+    await Your("knowledge of this spell is growing faint.");
   }
   else if (spellknow(spell) <= KEEN / 10) {
-    Your("recall of this spell is gradually fading.");
+    await Your("recall of this spell is gradually fading.");
   }
   if (player.uhunger <= 10 && spellid(spell) !== SPE_DETECT_FOOD) {
-    You("are too hungry to cast that spell.");
+    await You("are too hungry to cast that spell.");
      res = ECMD_OK;
     return true;
   }
   else if (acurr(player,A_STR) < 4 && spellid(spell) !== SPE_RESTORE_ABILITY) {
-    You("lack the strength to cast spells.");
+    await You("lack the strength to cast spells.");
      res = ECMD_OK;
     return true;
   }
-  else if (check_capacity( "Your concentration falters while carrying so much stuff.")) { res = ECMD_TIME; return true; }
+  else if (await check_capacity( "Your concentration falters while carrying so much stuff.")) { res = ECMD_TIME; return true; }
   if (player.uhave.amulet && player.uen >= energy) {
-    You_feel("the amulet draining your energy away.");
+    await You_feel("the amulet draining your energy away.");
     player.uen -= rnd(2 * energy.value);
     if (player.uen < 0) player.uen = 0;
     game.disp.botl = true;
      res = ECMD_TIME;
   }
   if ( energy > player.uen) {
-    You("don't have enough energy to cast that spell%s.", (player.uen < player.uenmax) ? ""   : ( energy > player.uenpeak) ? " yet"   : " anymore");
+    await You("don't have enough energy to cast that spell%s.", (player.uen < player.uenmax) ? ""   : ( energy > player.uenpeak) ? " yet"   : " anymore");
     return true;
   }
   else {
@@ -1531,12 +1531,12 @@ export async function spelleffects_check(spell, res, energy, game, player) {
         break;
       }
       if (hungr > player.uhunger - 3) hungr = player.uhunger - 3;
-      morehungry(hungr);
+      await morehungry(hungr);
     }
   }
   chance = percent_success(spell);
   if (confused || (rnd(100) > chance)) {
-    You("fail to cast the spell correctly.");
+    await You("fail to cast the spell correctly.");
     player.uen -= energy / 2;
     game.disp.botl = true;
      res = ECMD_TIME;

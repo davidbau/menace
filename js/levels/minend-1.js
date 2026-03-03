@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection, shuffle } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack mines minend-1.lua	$NHDT-Date: 1652196029 2022/5/10 15:20:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $
     // Copyright (c) 1989-95 by Jean-Christophe Collet
     // Copyright (c) 1991-95 by M. Stephenson
@@ -98,12 +98,12 @@ export function generate() {
     des.object();
     des.object();
     // Random traps
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // Random monsters
     des.monster("gnome king");
     des.monster("gnome lord");
@@ -128,5 +128,5 @@ export function generate() {
     des.monster("h");
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

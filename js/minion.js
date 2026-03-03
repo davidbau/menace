@@ -167,7 +167,7 @@ export function ndemon(atyp, depth) {
 // cf. minion.c:58
 // ============================================================================
 
-export function msummon(mon, map, player, display) {
+export async function msummon(mon, map, player, display) {
     let dtype = NON_PM, cnt = 0, result = 0;
     let atyp;
     const depth = player?.dungeonLevel || 1;
@@ -263,9 +263,9 @@ export function msummon(mon, map, player, display) {
             // C: appearance message for last in batch
             if (cnt === 1 && canseemon(mtmp, player)) {
                 if (display) {
-                    display.putstr_message(`${Amonnam(mtmp)} appears!`);
+                    await display.putstr_message(`${Amonnam(mtmp)} appears!`);
                 } else {
-                    pline("%s appears!", Amonnam(mtmp));
+                    await pline("%s appears!", Amonnam(mtmp));
                 }
             }
         }
@@ -282,7 +282,7 @@ export function msummon(mon, map, player, display) {
 // cf. minion.c:197
 // ============================================================================
 
-export function summon_minion(alignment, talk, map, player, display) {
+export async function summon_minion(alignment, talk, map, player, display) {
     const depth = player?.dungeonLevel || 1;
     let mnum;
 
@@ -331,10 +331,10 @@ export function summon_minion(alignment, talk, map, player, display) {
         if (talk) {
             // C: pline_The("voice of %s booms:", align_gname(alignment))
             // align_gname not readily available here; use generic message
-            pline("A divine voice booms!");
-            verbalize("Thou shalt pay for thine indiscretion!");
+            await pline("A divine voice booms!");
+            await verbalize("Thou shalt pay for thine indiscretion!");
             if (canseemon(mon, player)) {
-                pline("%s appears before you.", Amonnam(mon));
+                await pline("%s appears before you.", Amonnam(mon));
             }
         }
         mon.peaceful = false;
@@ -348,15 +348,15 @@ export function summon_minion(alignment, talk, map, player, display) {
 // Returns 1 if demon accepts bribe and won't attack, 0 otherwise.
 // ============================================================================
 
-export function demon_talk(mtmp, map, player, display) {
+export async function demon_talk(mtmp, map, player, display) {
     // C: if (u_wield_art(ART_EXCALIBUR) || u_wield_art(ART_DEMONBANE))
     // TODO: artifact wielding check — approximate with weapon name check
     const weapon = player?.weapon;
     if (weapon && (weapon.artifactName === 'Excalibur' || weapon.artifactName === 'Demonbane')) {
         if (canseemon(mtmp, player)) {
-            pline("%s looks very angry.", Amonnam(mtmp));
+            await pline("%s looks very angry.", Amonnam(mtmp));
         } else {
-            You_feel("tension building.");
+            await You_feel("tension building.");
         }
         mtmp.peaceful = false;
         mtmp.tame = false;
@@ -396,12 +396,12 @@ export function demon_talk(mtmp, map, player, display) {
         demand = cash + rn1(1000, 125);
     }
 
-    pline("%s demands %d zorkmids for safe passage.", Amonnam(mtmp), demand);
+    await pline("%s demands %d zorkmids for safe passage.", Amonnam(mtmp), demand);
 
     // C: offer = bribe(mtmp) — prompts player for gold
     // TODO: bribe() requires getlin() which needs UI integration
     // For now, stub: demon always gets angry
-    pline("%s gets angry...", Amonnam(mtmp));
+    await pline("%s gets angry...", Amonnam(mtmp));
     mtmp.peaceful = false;
     return 0;
 }
@@ -422,13 +422,13 @@ export function bribe(mtmp, map, player, display) {
 // cf. minion.c:466
 // ============================================================================
 
-export function lose_guardian_angel(mon, map, player, display) {
+export async function lose_guardian_angel(mon, map, player, display) {
     const depth = player?.dungeonLevel || 1;
 
     if (mon) {
         if (canseemon(mon, player)) {
-            pline("%s rebukes you, saying:", Monnam(mon));
-            verbalize("Since you desire conflict, have some more!");
+            await pline("%s rebukes you, saying:", Monnam(mon));
+            await verbalize("Since you desire conflict, have some more!");
         }
         // C: mongone(mon) — remove from play
         if (mon.dead !== undefined) mon.dead = true;

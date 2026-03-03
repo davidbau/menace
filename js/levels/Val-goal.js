@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection, percent } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Valkyrie Val-goal.lua	$NHDT-Date: 1652196017 2022/5/10 15:20:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991-2 by M. Stephenson
@@ -71,16 +71,16 @@ xxxxxxxxx..................xxxxxxxx
     des.object();
     des.object();
     // Traps
-    des.trap("board",13,8);
-    des.trap("board",21,8);
+    await des.trap("board",13,8);
+    await des.trap("board",21,8);
     // Random traps
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("board");
-    des.trap();
-    des.trap();
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("board");
+    await des.trap();
+    await des.trap();
     // Random monsters.
     des.monster("Lord Surtur", 17, 8);
     des.monster("fire ant");
@@ -113,5 +113,5 @@ xxxxxxxxx..................xxxxxxxx
     // 
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

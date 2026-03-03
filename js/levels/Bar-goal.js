@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Barbarian Bar-goal.lua	$NHDT-Date: 1652196000 2022/5/10 15:20:0 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991 by M. Stephenson
@@ -65,12 +65,12 @@ export function generate() {
     des.object();
     des.object();
     // Random traps
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // Random monsters.
     des.monster({ id: "Thoth Amon", x: 63, y: 4, peaceful: 0 });
     des.monster({ id: "ogre", peaceful: 0 });
@@ -104,5 +104,5 @@ export function generate() {
 
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

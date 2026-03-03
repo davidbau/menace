@@ -154,12 +154,12 @@ export function save_gamelog(nhfp) {
 }
 
 // Autotranslated from save.c:328
-export function tricked_fileremoved(nhfp, whynot) {
+export async function tricked_fileremoved(nhfp, whynot) {
   if (!nhfp) {
     pline1(whynot);
-    pline("Probably someone removed it.");
+    await pline("Probably someone removed it.");
     Strcpy(svk.killer.name, whynot);
-    done(TRICKED);
+    await done(TRICKED);
     return true;
   }
   return false;

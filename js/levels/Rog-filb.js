@@ -5,7 +5,7 @@
 
 import * as des from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Rogue Rog-filb.lua	$NHDT-Date: 1652196011 2022/5/10 15:20:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1992 by Dean Luick
     // NetHack may be freely redistributed.  See license for details.
@@ -29,41 +29,41 @@ export function generate() {
     })
 
     des.room({ type: "ordinary",
-               contents: function() {
+               contents: async function() {
                   des.object();
-                  des.trap();
-                  des.trap();
+                  await des.trap();
+                  await des.trap();
                   des.object();
                   des.monster({ id: "water nymph", peaceful: 0 });
                }
     })
 
     des.room({ type: "ordinary",
-               contents: function() {
+               contents: async function() {
                   des.stair("down");
                   des.object();
-                  des.trap();
-                  des.trap();
+                  await des.trap();
+                  await des.trap();
                   des.monster({ class: "l", peaceful: 0 });
                   des.monster({ id: "guardian naga", peaceful: 0 });
                }
     })
 
     des.room({ type: "ordinary",
-               contents: function() {
+               contents: async function() {
                   des.object();
                   des.object();
-                  des.trap();
-                  des.trap();
+                  await des.trap();
+                  await des.trap();
                   des.monster({ id: "leprechaun", peaceful: 0 });
                }
     })
 
     des.room({ type: "ordinary",
-               contents: function() {
+               contents: async function() {
                   des.object();
-                  des.trap();
-                  des.trap();
+                  await des.trap();
+                  await des.trap();
                   des.monster({ id: "leprechaun", peaceful: 0 });
                   des.monster({ id: "water nymph", peaceful: 0 });
                }
@@ -72,5 +72,5 @@ export function generate() {
     des.random_corridors();
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

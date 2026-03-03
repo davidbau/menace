@@ -551,7 +551,7 @@ export function get_warn_obj_cnt() { return warn_obj_cnt; }
 export function set_warn_obj_cnt(n) { warn_obj_cnt = n; }
 
 // cf. artifact.c:2466 — Sting_effects(orc_count, player)
-export function Sting_effects(orc_count, player) {
+export async function Sting_effects(orc_count, player) {
   if (!player || !player.weapon) return;
   const uwep = player.weapon;
   if (!(is_art(uwep, ART_STING)
@@ -564,18 +564,18 @@ export function Sting_effects(orc_count, player) {
 
   if (orc_count === -1 && warn_obj_cnt > 0) {
     // Blindness toggled
-    pline("%s is %s.", uwep.oname || artiname(uwep.oartifact),
+    await pline("%s is %s.", uwep.oname || artiname(uwep.oartifact),
           glow_verb(0, true)); // blind case: "quivering"
   } else if (newstr > 0 && newstr !== oldstr) {
     // Start or intensify glow
-    pline("%s %s %s%s",
+    await pline("%s %s %s%s",
       uwep.oname || artiname(uwep.oartifact),
       glow_verb(orc_count, false) + 's',
       glow_color(uwep.oartifact),
       (newstr > oldstr) ? '!' : '.');
   } else if (orc_count === 0 && warn_obj_cnt > 0) {
     // Stop glow
-    pline("%s stops %s.",
+    await pline("%s stops %s.",
       uwep.oname || artiname(uwep.oartifact),
       glow_verb(warn_obj_cnt, true));
   }
@@ -604,7 +604,7 @@ export function touch_artifact(obj, mon) {
 
 // cf. artifact.c:2508 — retouch_object(obj, loseit, player)
 // Returns 1 if hero can still handle the object, 0 if not.
-export function retouch_object(obj, loseit, player) {
+export async function retouch_object(obj, loseit, player) {
   if (!obj) return 1;
 
   // Allow hero to use the Bell of Opening at the invocation spot
@@ -617,7 +617,7 @@ export function retouch_object(obj, loseit, player) {
     const ag = objectData[obj.otyp] && objectData[obj.otyp].material === SILVER;
     if (!ag && !bane) return 1;
     // Hero can't handle it
-    You_cant("handle %s%s!", obj.oname || 'the object',
+    await You_cant("handle %s%s!", obj.oname || 'the object',
              obj.owornmask ? ' anymore' : '');
     if (ag) {
       const tmp = rnd(10);
@@ -665,7 +665,7 @@ const W_ART  = 0x01000000;
 const W_ARTI = 0x02000000;
 export { W_ART, W_ARTI };
 
-export function set_artifact_intrinsic(otmp, on, wp_mask, player) {
+export async function set_artifact_intrinsic(otmp, on, wp_mask, player) {
   const oart = get_artifact(otmp);
   if (oart === artilist[ART_NONARTIFACT]) return;
 
@@ -803,7 +803,7 @@ export function set_artifact_intrinsic(otmp, on, wp_mask, player) {
     if (oart.inv_prop <= LAST_PROP && player && player.uprops) {
       const ip = player.uprops[oart.inv_prop];
       if (ip && (ip.extrinsic & W_ARTI)) {
-        arti_invoke(otmp, player);
+        await arti_invoke(otmp, player);
       }
     }
   }
@@ -885,7 +885,7 @@ const mb_verb = [
 // cf. artifact.c:1249 — Mb_hit(magr, mdef, mb, dmgptr, dieroll, vis, hittee)
 // dmgptr is { value: N }; caller reads dmgptr.value after call.
 // spec_dbon_applies_flag is the second return value from spec_dbon.
-export function Mb_hit(magr, mdef, mb, dmgptr, dieroll, vis, hittee, spec_dbon_applies_flag) {
+export async function Mb_hit(magr, mdef, mb, dmgptr, dieroll, vis, hittee, spec_dbon_applies_flag) {
   const youattack = !!(magr && magr.isPlayer);
   const youdefend = !!(mdef && mdef.isPlayer);
   let resisted = false, do_stun, do_confuse, result;
@@ -919,7 +919,7 @@ export function Mb_hit(magr, mdef, mb, dmgptr, dieroll, vis, hittee, spec_dbon_a
   const verb = mb_verb[0][attack_indx]; // no Hallucination check for simplicity
   if (youattack || youdefend || vis) {
     result = true;
-    pline_The("magic-absorbing blade %ss %s!", verb, hittee);
+    await pline_The("magic-absorbing blade %ss %s!", verb, hittee);
   }
 
   // Perform special effects
@@ -990,14 +990,14 @@ export function Mb_hit(magr, mdef, mb, dmgptr, dieroll, vis, hittee, spec_dbon_a
   // Side-effect messages
   if (youattack || youdefend || vis) {
     if (resisted) {
-      pline("%s resists!", hittee.charAt(0).toUpperCase() + hittee.slice(1));
+      await pline("%s resists!", hittee.charAt(0).toUpperCase() + hittee.slice(1));
     }
     if (do_stun || do_confuse) {
       let buf = '';
       if (do_stun) buf += 'stunned';
       if (do_stun && do_confuse) buf += ' and ';
       if (do_confuse) buf += 'confused';
-      pline("%s is %s%s",
+      await pline("%s is %s%s",
         hittee.charAt(0).toUpperCase() + hittee.slice(1),
         buf,
         (do_stun && do_confuse) ? '!' : '.');
@@ -1010,7 +1010,7 @@ export function Mb_hit(magr, mdef, mb, dmgptr, dieroll, vis, hittee, spec_dbon_a
 // cf. artifact.c:1446 — artifact_hit(magr, mdef, otmp, dmgptr, dieroll)
 // dmgptr is { value: N }; caller reads dmgptr.value after call.
 // Returns true if a special message was given.
-export function artifact_hit(magr, mdef, otmp, dmgptr, dieroll) {
+export async function artifact_hit(magr, mdef, otmp, dmgptr, dieroll) {
   const youattack = !!(magr && magr.isPlayer);
   const youdefend = !!(mdef && mdef.isPlayer);
   const vis = (!youattack && magr && magr.mx !== undefined)
@@ -1035,7 +1035,7 @@ export function artifact_hit(magr, mdef, otmp, dmgptr, dieroll) {
       const action = !spec_dbon_applies_val ? 'hits'
         : (mdat && mdat.mnum === PM_WATER_ELEMENTAL) ? 'vaporizes part of'
         : 'burns';
-      pline_The("fiery blade %s %s%s", action, hittee, !spec_dbon_applies_val ? '.' : '!');
+      await pline_The("fiery blade %s %s%s", action, hittee, !spec_dbon_applies_val ? '.' : '!');
     }
     if (!rn2(4)) {
       // destroy_items / ignite_items not yet ported; consume RNG
@@ -1045,7 +1045,7 @@ export function artifact_hit(magr, mdef, otmp, dmgptr, dieroll) {
   // Cold
   if (attacks(AD_COLD, otmp)) {
     if (realizes_damage) {
-      pline_The("ice-cold blade %s %s%s",
+      await pline_The("ice-cold blade %s %s%s",
         !spec_dbon_applies_val ? 'hits' : 'freezes', hittee,
         !spec_dbon_applies_val ? '.' : '!');
     }
@@ -1057,7 +1057,7 @@ export function artifact_hit(magr, mdef, otmp, dmgptr, dieroll) {
   // Elec
   if (attacks(AD_ELEC, otmp)) {
     if (realizes_damage) {
-      pline_The("massive hammer hits%s %s%s",
+      await pline_The("massive hammer hits%s %s%s",
         !spec_dbon_applies_val ? '' : '!  Lightning strikes', hittee,
         !spec_dbon_applies_val ? '.' : '!');
     }
@@ -1069,7 +1069,7 @@ export function artifact_hit(magr, mdef, otmp, dmgptr, dieroll) {
   // Magic missiles
   if (attacks(AD_MAGM, otmp)) {
     if (realizes_damage) {
-      pline_The("imaginary widget hits%s %s%s",
+      await pline_The("imaginary widget hits%s %s%s",
         !spec_dbon_applies_val ? '' : '!  A hail of magic missiles strikes',
         hittee, !spec_dbon_applies_val ? '.' : '!');
     }
@@ -1078,7 +1078,7 @@ export function artifact_hit(magr, mdef, otmp, dmgptr, dieroll) {
 
   // Magicbane special
   if (attacks(AD_STUN, otmp) && dieroll <= MB_MAX_DIEROLL) {
-    return Mb_hit(magr, mdef, otmp, dmgptr, dieroll, vis, hittee, spec_dbon_applies_val);
+    return await Mb_hit(magr, mdef, otmp, dmgptr, dieroll, vis, hittee, spec_dbon_applies_val);
   }
 
   if (!spec_dbon_applies_val) return false;
@@ -1090,18 +1090,18 @@ export function artifact_hit(magr, mdef, otmp, dmgptr, dieroll) {
       if (!youdefend) {
         const mdat = mdef.data || (mdef.mnum != null ? mons[mdef.mnum] : null);
         if (mdat && (mdat.msize || 0) >= MZ_LARGE) {
-          if (youattack) You("slice deeply into %s!", hittee);
-          else if (vis) pline("%s cuts deeply into %s!", magr.name || 'It', hittee);
+          if (youattack) await You("slice deeply into %s!", hittee);
+          else if (vis) await pline("%s cuts deeply into %s!", magr.name || 'It', hittee);
           dmgptr.value *= 2;
           return true;
         }
         dmgptr.value = 2 * mdef.mhp + FATAL_DAMAGE_MODIFIER;
-        pline("%s cuts %s in half!", wepdesc, hittee);
+        await pline("%s cuts %s in half!", wepdesc, hittee);
         return true;
       } else {
         // player is defender
         dmgptr.value *= 2;
-        pline("%s cuts deeply into you!", magr ? (magr.name || wepdesc) : wepdesc);
+        await pline("%s cuts deeply into you!", magr ? (magr.name || wepdesc) : wepdesc);
         return true;
       }
     } else if (is_art(otmp, ART_VORPAL_BLADE)
@@ -1111,22 +1111,22 @@ export function artifact_hit(magr, mdef, otmp, dmgptr, dieroll) {
       if (!youdefend) {
         const mdat = mdef.data || (mdef.mnum != null ? mons[mdef.mnum] : null);
         if (!mdat || !has_head_simple(mdat)) {
-          if (youattack) pline("Somehow, you miss %s wildly.", hittee);
-          else if (vis) pline("Somehow, %s misses wildly.", magr.name || 'it');
+          if (youattack) await pline("Somehow, you miss %s wildly.", hittee);
+          else if (vis) await pline("Somehow, %s misses wildly.", magr.name || 'it');
           dmgptr.value = 0;
           return !!(youattack || vis);
         }
         if (noncorporeal_simple(mdat) || amorphous_simple(mdat)) {
-          pline("%s slices through %s's neck.", wepdesc, hittee);
+          await pline("%s slices through %s's neck.", wepdesc, hittee);
           return true;
         }
         dmgptr.value = 2 * mdef.mhp + FATAL_DAMAGE_MODIFIER;
-        pline("%s beheads %s!", wepdesc, hittee);
+        await pline("%s beheads %s!", wepdesc, hittee);
         return true;
       } else {
         // player is defender — very lethal
         dmgptr.value = 2 * (mdef.mhp || mdef.hp || 0) + FATAL_DAMAGE_MODIFIER;
-        pline("%s beheads you!", wepdesc);
+        await pline("%s beheads you!", wepdesc);
         return true;
       }
     }
@@ -1144,9 +1144,9 @@ export function artifact_hit(magr, mdef, otmp, dmgptr, dieroll) {
 
       if (vis) {
         if (is_art(otmp, ART_STORMBRINGER))
-          pline_The("black blade draws the %s from %s!", life, hittee);
+          await pline_The("black blade draws the %s from %s!", life, hittee);
         else
-          pline("%s draws the %s from %s!", otmp.oname || 'The weapon', life, hittee);
+          await pline("%s draws the %s from %s!", otmp.oname || 'The weapon', life, hittee);
       }
       if (m_lev === 0) {
         dmgptr.value = 2 * mdef.mhp + FATAL_DAMAGE_MODIFIER;
@@ -1171,9 +1171,9 @@ export function artifact_hit(magr, mdef, otmp, dmgptr, dieroll) {
       // Player is the defender
       if (vis || youdefend) {
         if (is_art(otmp, ART_STORMBRINGER))
-          pline_The("black blade drains your %s!", life);
+          await pline_The("black blade drains your %s!", life);
         else
-          pline("%s drains your %s!", otmp.oname || 'The weapon', life);
+          await pline("%s drains your %s!", otmp.oname || 'The weapon', life);
       }
       // losexp would go here for full implementation
       return true;
@@ -1205,98 +1205,98 @@ export function doinvoke(player) {
 }
 
 // cf. artifact.c:1762 — nothing_special(obj)
-export function nothing_special(obj) {
-  You_feel("a surge of power, but nothing seems to happen.");
+export async function nothing_special(obj) {
+  await You_feel("a surge of power, but nothing seems to happen.");
 }
 
 // cf. artifact.c:1769 — invoke_taming(obj)
-export function invoke_taming(obj) {
+export async function invoke_taming(obj) {
   // seffects(SCR_TAMING) — not yet ported; stub returns time
-  pline("A wave of calm sweeps over you."); // placeholder
+  await pline("A wave of calm sweeps over you."); // placeholder
   return 1;
 }
 
 // cf. artifact.c:1780 — invoke_healing(obj, player)
-export function invoke_healing(obj, player) {
-  if (!player) { nothing_special(obj); return 1; }
+export async function invoke_healing(obj, player) {
+  if (!player) { await nothing_special(obj); return 1; }
   let healamt = ((player.uhpmax + 1 - player.uhp) / 2) | 0;
   if (healamt > 0) {
-    You_feel("better.");
+    await You_feel("better.");
     player.uhp += healamt;
   } else {
-    nothing_special(obj);
+    await nothing_special(obj);
   }
   return 1;
 }
 
 // cf. artifact.c:1818 — invoke_energy_boost(obj, player)
 // Autotranslated from artifact.c:1817
-export function invoke_energy_boost(obj, game, player) {
+export async function invoke_energy_boost(obj, game, player) {
   let epboost = (player.uenmax + 1 - player.uen) / 2;
   if (epboost > 120) epboost = 120;
   else if (epboost < 12) epboost = player.uenmax - player.uen;
   if (epboost) {
     player.uen += epboost;
     game.disp.botl = true;
-    You_feel("re-energized.");
+    await You_feel("re-energized.");
   }
-  else { nothing_special(obj); return ECMD_TIME; }
+  else { await nothing_special(obj); return ECMD_TIME; }
   return ECMD_TIME;
 }
 
 // cf. artifact.c:1838 — invoke_untrap(obj)
-export function invoke_untrap(obj) {
+export async function invoke_untrap(obj) {
   // untrap() not yet ported; stub
-  nothing_special(obj);
+  await nothing_special(obj);
   return 1;
 }
 
 // cf. artifact.c:1848 — invoke_charge_obj(obj)
-export function invoke_charge_obj(obj) {
+export async function invoke_charge_obj(obj) {
   // recharge() not yet ported; stub
-  nothing_special(obj);
+  await nothing_special(obj);
   return 1;
 }
 
 // cf. artifact.c:1867 — invoke_create_portal(obj)
-export function invoke_create_portal(obj) {
+export async function invoke_create_portal(obj) {
   // Portal creation requires dungeon/level system; stub
-  You_feel("very disoriented for a moment.");
+  await You_feel("very disoriented for a moment.");
   return 1;
 }
 
 // cf. artifact.c:1934 — invoke_create_ammo(obj)
-export function invoke_create_ammo(obj) {
+export async function invoke_create_ammo(obj) {
   // mksobj(ARROW) not wired to invocation; stub
-  nothing_special(obj);
+  await nothing_special(obj);
   return 1;
 }
 
 // cf. artifact.c:1963 — invoke_banish(obj)
-export function invoke_banish(obj) {
+export async function invoke_banish(obj) {
   // Demon banishment requires monster iteration; stub
-  nothing_special(obj);
+  await nothing_special(obj);
   return 1;
 }
 
 // cf. artifact.c:2022 — invoke_fling_poison(obj)
-export function invoke_fling_poison(obj) {
+export async function invoke_fling_poison(obj) {
   // Requires getdir/throwit; stub
-  nothing_special(obj);
+  await nothing_special(obj);
   return 1;
 }
 
 // cf. artifact.c:2040 — invoke_storm_spell(obj)
-export function invoke_storm_spell(obj) {
+export async function invoke_storm_spell(obj) {
   // Requires spelleffects; stub
-  nothing_special(obj);
+  await nothing_special(obj);
   return 1;
 }
 
 // cf. artifact.c:2054 — invoke_blinding_ray(obj)
-export function invoke_blinding_ray(obj) {
+export async function invoke_blinding_ray(obj) {
   // Requires getdir; stub
-  nothing_special(obj);
+  await nothing_special(obj);
   return 1;
 }
 
@@ -1311,16 +1311,16 @@ export function arti_invoke_cost_pw(obj) {
 }
 
 // cf. artifact.c:2105 — arti_invoke_cost(obj, player, game)
-export function arti_invoke_cost(obj, player, game) {
+export async function arti_invoke_cost(obj, player, game) {
   const moves = (game && game.moves) || 0;
   if (obj.age > moves) {
     const pw_cost = arti_invoke_cost_pw(obj);
     if (pw_cost < 0 || (player && (player.en || 0) < pw_cost)) {
-      You_feel("that %s is ignoring you.", obj.oname || 'the artifact');
+      await You_feel("that %s is ignoring you.", obj.oname || 'the artifact');
       obj.age += d(3, 10);
       return false;
     } else if (player) {
-      You_feel("drained...");
+      await You_feel("drained...");
       player.en -= pw_cost;
     }
   } else {
@@ -1330,33 +1330,33 @@ export function arti_invoke_cost(obj, player, game) {
 }
 
 // cf. artifact.c:2131 — arti_invoke(obj, player, game)
-export function arti_invoke(obj, player, game) {
+export async function arti_invoke(obj, player, game) {
   if (!obj) return 0;
   const oart = get_artifact(obj);
   if (oart === artilist[ART_NONARTIFACT] || !oart.inv_prop) {
-    pline("Nothing happens.");
+    await pline("Nothing happens.");
     return 1;
   }
 
   // Special powers (inv_prop > LAST_PROP)
   if (oart.inv_prop > LAST_PROP) {
-    if (!arti_invoke_cost(obj, player, game)) return 1;
+    if (!await arti_invoke_cost(obj, player, game)) return 1;
 
     switch (oart.inv_prop) {
-      case TAMING: return invoke_taming(obj);
-      case HEALING: return invoke_healing(obj, player);
-      case ENERGY_BOOST: return invoke_energy_boost(obj, player);
-      case UNTRAP: return invoke_untrap(obj);
-      case CHARGE_OBJ: return invoke_charge_obj(obj);
-      case LEV_TELE: /* level_tele(); */ return 1;
-      case CREATE_PORTAL: return invoke_create_portal(obj);
+      case TAMING: return await invoke_taming(obj);
+      case HEALING: return await invoke_healing(obj, player);
+      case ENERGY_BOOST: return await invoke_energy_boost(obj, player);
+      case UNTRAP: return await invoke_untrap(obj);
+      case CHARGE_OBJ: return await invoke_charge_obj(obj);
+      case LEV_TELE: /* await level_tele(); */ return 1;
+      case CREATE_PORTAL: return await invoke_create_portal(obj);
       case ENLIGHTENING: /* enlightenment(); */ return 1;
-      case CREATE_AMMO: return invoke_create_ammo(obj);
-      case BANISH: return invoke_banish(obj);
-      case FLING_POISON: return invoke_fling_poison(obj);
+      case CREATE_AMMO: return await invoke_create_ammo(obj);
+      case BANISH: return await invoke_banish(obj);
+      case FLING_POISON: return await invoke_fling_poison(obj);
       case SNOWSTORM: /* FALLTHRU */
-      case FIRESTORM: return invoke_storm_spell(obj);
-      case BLINDING_RAY: return invoke_blinding_ray(obj);
+      case FIRESTORM: return await invoke_storm_spell(obj);
+      case BLINDING_RAY: return await invoke_blinding_ray(obj);
       default: break;
     }
     return 0;
@@ -1373,7 +1373,7 @@ export function arti_invoke(obj, player, game) {
 
     if (on && obj.age > moves) {
       prop.extrinsic ^= W_ARTI; // undo
-      You_feel("that %s is ignoring you.", obj.oname || 'the artifact');
+      await You_feel("that %s is ignoring you.", obj.oname || 'the artifact');
       obj.age += d(3, 10);
       return 1;
     } else if (!on) {
@@ -1381,21 +1381,21 @@ export function arti_invoke(obj, player, game) {
     }
 
     if ((prop.extrinsic & ~W_ARTI) || prop.intrinsic) {
-      nothing_special(obj);
+      await nothing_special(obj);
       return 1;
     }
 
     switch (oart.inv_prop) {
       case CONFLICT:
-        You_feel(on ? "like a rabble-rouser." : "the tension decrease around you.");
+        await You_feel(on ? "like a rabble-rouser." : "the tension decrease around you.");
         break;
       case LEVITATION:
-        if (on) pline("You float up!");
-        else pline("You float gently to the ground.");
+        if (on) await pline("You float up!");
+        else await pline("You float gently to the ground.");
         break;
       case INVIS:
-        if (on) pline("Your body takes on a strange transparency...");
-        else pline("Your body seems to unfade...");
+        if (on) await pline("Your body takes on a strange transparency...");
+        else await pline("Your body seems to unfade...");
         break;
     }
   }
@@ -1421,14 +1421,14 @@ export function finesse_ahriman(obj, player) {
 }
 
 // cf. artifact.c:2279 — arti_speak(obj)
-export function arti_speak(obj) {
+export async function arti_speak(obj) {
   const oart = get_artifact(obj);
   if (oart === artilist[ART_NONARTIFACT] || !(oart.spfx & SPFX_SPEAK))
     return 0;
   // getrumor() not ported; use a placeholder line
   const line = "NetHack rumors file closed for renovation.";
-  pline("%s whispers:", obj.oname || 'The artifact');
-  pline('"%s"', line);
+  await pline("%s whispers:", obj.oname || 'The artifact');
+  await pline('"%s"', line);
   return 1;
 }
 
@@ -1523,7 +1523,7 @@ const heat_descriptions = [
 ];
 
 // cf. artifact.c:2753 — mkot_trap_warn(player, map)
-export function mkot_trap_warn(player, map) {
+export async function mkot_trap_warn(player, map) {
   if (!player) return;
   const uwep = player.weapon;
   const uarmg = player.gloves;
@@ -1531,7 +1531,7 @@ export function mkot_trap_warn(player, map) {
     const ntraps = count_surround_traps(player.x, player.y, map);
     if (ntraps !== mkot_trap_warn_count) {
       const idx = Math.min(ntraps, heat_descriptions.length - 1);
-      pline_The("Key feels %s%s", heat_descriptions[idx], ntraps > 3 ? '!' : '.');
+      await pline_The("Key feels %s%s", heat_descriptions[idx], ntraps > 3 ? '!' : '.');
     }
     mkot_trap_warn_count = ntraps;
   } else {

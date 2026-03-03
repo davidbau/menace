@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Tourist Tou-goal.lua	$NHDT-Date: 1652196015 2022/5/10 15:20:15 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991,92 by M. Stephenson, P. Winner
@@ -120,7 +120,7 @@ export function generate() {
     let validtraps = selection.area(0,0,75,19).filter_mapchar('.');
     validtraps = validtraps.intersect(selection.area(60,14,71,18).negate());
     for (let i = 1; i <= 6; i++) {
-       des.trap(validtraps.rndcoord(1));
+       await des.trap(validtraps.rndcoord(1));
     }
     // Random monsters.
     des.monster({ id: "Master of Thieves", x: 4, y: 1, peaceful: 0 });
@@ -168,5 +168,5 @@ export function generate() {
     des.wallify();
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

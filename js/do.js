@@ -105,12 +105,12 @@ export function formatInventoryPickupMessage(pickedObj, inventoryObj, player) {
 // cf. do.c canletgo() — check if object can be released (cursed ball etc)
 // Returns true if object can be let go, false otherwise.
 // word: the action verb ("drop", "throw", etc.); if empty, suppresses messages.
-export function canletgo(obj, word, player) {
+export async function canletgo(obj, word, player) {
     if (!obj) return false;
     const owornmask = obj.owornmask || 0;
     if (owornmask & (W_ARMOR | W_ACCESSORY)) {
         if (word)
-            Norep("You cannot %s %s you are wearing.", word, "something");
+            await Norep("You cannot %s %s you are wearing.", word, "something");
         return false;
     }
     if (obj === player.weapon && obj.welded) {
@@ -118,13 +118,13 @@ export function canletgo(obj, word, player) {
             let hand = body_part(HAND, player);
             if (obj.bimanual)
                 hand = makeplural(hand);
-            Norep("You cannot %s %s welded to your %s.", word, "something", hand);
+            await Norep("You cannot %s %s welded to your %s.", word, "something", hand);
         }
         return false;
     }
     if (obj.otyp === LOADSTONE && obj.cursed) {
         if (word) {
-            pline("For some reason, you cannot %s the stone%s!",
+            await pline("For some reason, you cannot %s the stone%s!",
                   word, (obj.quan || 1) > 1 ? "s" : "");
         }
         set_bknown(obj, 1);
@@ -132,12 +132,12 @@ export function canletgo(obj, word, player) {
     }
     if (obj.otyp === LEASH && obj.leashmon) {
         if (word)
-            pline_The("leash is tied around your %s.", body_part(HAND, player));
+            await pline_The("leash is tied around your %s.", body_part(HAND, player));
         return false;
     }
     if (owornmask & W_SADDLE) {
         if (word)
-            You("cannot %s %s you are sitting on.", word, "something");
+            await You("cannot %s %s you are sitting on.", word, "something");
         return false;
     }
     return true;
@@ -201,7 +201,7 @@ export function better_not_try_to_drop_that(otmp, player) {
 }
 
 // cf. do.c menudrop_split() — handle splitting a stack for partial drop
-export function menudrop_split(otmp, cnt, player, map) {
+export async function menudrop_split(otmp, cnt, player, map) {
     if (cnt && cnt < (otmp.quan || 1)) {
         if (otmp.welded) {
             // don't split
@@ -211,14 +211,14 @@ export function menudrop_split(otmp, cnt, player, map) {
             otmp = splitobj(otmp, cnt);
         }
     }
-    return drop_single(otmp, player, map);
+    return await drop_single(otmp, player, map);
 }
 
 // cf. do.c drop() — drop a single object from inventory.
 // Returns true if time was consumed.
-function drop_single(obj, player, map) {
+async function drop_single(obj, player, map) {
     if (!obj) return false;
-    if (!canletgo(obj, "drop", player)) return false;
+    if (!await canletgo(obj, "drop", player)) return false;
     if (obj.otyp === CORPSE && better_not_try_to_drop_that(obj, player))
         return false;
 
@@ -231,47 +231,47 @@ function drop_single(obj, player, map) {
 
     if (player.uswallow) {
         // Barrier between you and the floor
-        You("drop %s into %s.", doname(obj, null),
+        await You("drop %s into %s.", doname(obj, null),
             player.ustuck ? "the monster" : "the void");
     } else {
         const loc = map.at(player.x, player.y);
         if ((obj.oclass === RING_CLASS || obj.otyp === MEAT_RING)
             && loc && IS_SINK(loc.typ)) {
             player.removeFromInventory(obj);
-            dosinkring(obj, player, map);
+            await dosinkring(obj, player, map);
             return true;
         }
         if (loc && IS_ALTAR(loc.typ)) {
             // Altar drop: don't print "You drop" — altar message instead
         } else {
-            You("drop %s.", doname(obj, null));
+            await You("drop %s.", doname(obj, null));
         }
     }
     // Remove from inventory and place
     player.removeFromInventory(obj);
-    dropx(obj, player, map);
+    await dropx(obj, player, map);
     return true;
 }
 
 // cf. do.c dropx() — take dropped item out of inventory;
 // may produce output (eg altar identification).
-export function dropx(obj, player, map) {
+export async function dropx(obj, player, map) {
     if (!player.uswallow) {
         const loc = map.at(player.x, player.y);
         if (loc && IS_ALTAR(loc.typ))
-            doaltarobj(obj, player, map); // set bknown
+            await doaltarobj(obj, player, map); // set bknown
     }
-    dropy(obj, player, map);
+    await dropy(obj, player, map);
 }
 
 // cf. do.c dropy() — put dropped object at destination
 // Autotranslated from do.c:800
-export function dropy(obj, player, map) {
-    dropz(obj, false, player, map);
+export async function dropy(obj, player, map) {
+    await dropz(obj, false, player, map);
 }
 
 // cf. do.c dropz() — really put dropped object at its destination
-export function dropz(obj, with_impact, player, map) {
+export async function dropz(obj, with_impact, player, map) {
     if (obj === player.weapon) uwepgone(player);
     if (obj === player.quiver) uqwepgone(player);
     if (obj === player.swapWeapon) uswapwepgone(player);
@@ -280,13 +280,13 @@ export function dropz(obj, with_impact, player, map) {
         // Hero has dropped an item while inside an engulfer.
         // In C, this adds to the engulfer's inventory or digests food.
         if (player.ustuck) {
-            if (!engulfer_digests_food(obj, player)) {
+            if (!await engulfer_digests_food(obj, player)) {
                 // Would add to engulfer's inventory via mpickobj
                 // For now, the object is consumed
             }
         }
     } else {
-        if (flooreffects(obj, player.x, player.y, "drop", player, map))
+        if (await flooreffects(obj, player.x, player.y, "drop", player, map))
             return;
         // Place on floor
         obj.ox = player.x;
@@ -298,7 +298,7 @@ export function dropz(obj, with_impact, player, map) {
 
 // cf. do.c engulfer_digests_food() — when swallowed, engulfer may
 // eat dropped food items. Returns true if object is consumed.
-export function engulfer_digests_food(obj, player) {
+export async function engulfer_digests_food(obj, player) {
     if (!player.ustuck) return false;
     const mptr = player.ustuck.type || player.ustuck.data;
     if (!mptr) return false;
@@ -313,7 +313,7 @@ export function engulfer_digests_food(obj, player) {
             could_grow = (obj.corpsenm === PM_WRAITH);
             could_heal = (obj.corpsenm === PM_NURSE);
         }
-        pline("%s instantly digested!",
+        await pline("%s instantly digested!",
               (obj.quan || 1) > 1 ? `${doname(obj, null)} are` : `${doname(obj, null)} is`);
         // Effects on the engulfer would go here (petrify, polymorph, etc.)
         // Object is consumed
@@ -329,7 +329,7 @@ export function engulfer_digests_food(obj, player) {
 
 // cf. do.c boulder_hits_pool() — boulder falls into pool/lava.
 // Returns true if the boulder is consumed.
-export function boulder_hits_pool(otmp, rx, ry, pushing, player, map) {
+export async function boulder_hits_pool(otmp, rx, ry, pushing, player, map) {
     if (!otmp || otmp.otyp !== BOULDER) return false;
     const loc = map?.at?.(rx, ry);
     if (!loc) return false;
@@ -345,21 +345,21 @@ export function boulder_hits_pool(otmp, rx, ry, pushing, player, map) {
         loc.flags = 0;
         newsym(map, rx, ry);
         if (pushing) {
-            pline("You push %s into the %s.", xname(otmp),
+            await pline("You push %s into the %s.", xname(otmp),
                   lava ? "lava" : "water");
             if (!player.blind)
-                pline("Now you can cross it!");
+                await pline("Now you can cross it!");
         }
     }
     if (!fills_up || !pushing) {
         // Splashing
         if (pushing ? !player.blind : true) {
-            There("is a large splash as %s %s the %s.",
+            await There("is a large splash as %s %s the %s.",
                   xname(otmp),
                   fills_up ? "fills" : "falls into",
                   lava ? "lava" : "water");
         } else if (!player.deaf) {
-            You_hear("a%s splash.", lava ? " sizzling" : "");
+            await You_hear("a%s splash.", lava ? " sizzling" : "");
         }
     }
     // Boulder is now gone — remove from map objects if present
@@ -370,10 +370,10 @@ export function boulder_hits_pool(otmp, rx, ry, pushing, player, map) {
 
 // cf. do.c flooreffects() — effects of object landing on floor.
 // Returns true if the object goes away.
-export function flooreffects(obj, x, y, verb, player, map) {
+export async function flooreffects(obj, x, y, verb, player, map) {
     if (!obj) return false;
 
-    if (obj.otyp === BOULDER && boulder_hits_pool(obj, x, y, false, player, map)) {
+    if (obj.otyp === BOULDER && await boulder_hits_pool(obj, x, y, false, player, map)) {
         return true;
     }
     // Boulder into pit/hole — simplified: skip trap interactions for now
@@ -392,7 +392,7 @@ export function flooreffects(obj, x, y, verb, player, map) {
     // Altar interaction when monster drops object
     const loc = map?.at?.(x, y);
     if (loc && IS_ALTAR(loc.typ)) {
-        doaltarobj(obj, player, map);
+        await doaltarobj(obj, player, map);
     }
     return false;
 }
@@ -403,7 +403,7 @@ export function flooreffects(obj, x, y, verb, player, map) {
 // ============================================================
 
 // cf. do.c doaltarobj() — drop object on altar (BUC identification)
-export function doaltarobj(obj, player, map) {
+export async function doaltarobj(obj, player, map) {
     if (player.blind) return;
 
     if (obj.oclass !== COIN_CLASS) {
@@ -415,14 +415,14 @@ export function doaltarobj(obj, player, map) {
     }
 
     if (obj.blessed || obj.cursed) {
-        There("is %s flash as %s hit%s the altar.",
+        await There("is %s flash as %s hit%s the altar.",
               obj.blessed ? "an amber" : "a black",
               doname(obj, null),
               (obj.quan || 1) > 1 ? "" : "s");
         if (!player.hallucinating)
             obj.bknown = 1;
     } else {
-        pline("%s land%s on the altar.",
+        await pline("%s land%s on the altar.",
               doname(obj, null),
               (obj.quan || 1) > 1 ? "" : "s");
         if (obj.oclass !== COIN_CLASS)
@@ -442,7 +442,7 @@ export function trycall(obj) {
 
 // cf. do.c polymorph_sink() — transforms the sink at the player's position
 // into a fountain, throne, altar or grave.
-export function polymorph_sink(player, map) {
+export async function polymorph_sink(player, map) {
     const loc = map.at(player.x, player.y);
     if (!loc || !IS_SINK(loc.typ)) return;
 
@@ -455,24 +455,24 @@ export function polymorph_sink(player, map) {
         loc.typ = FOUNTAIN;
         loc.blessedftn = 0;
         if (sinklooted) loc.looted = 1;
-        pline_The("sink transforms into a fountain!");
+        await pline_The("sink transforms into a fountain!");
         break;
     case 1:
         loc.typ = THRONE;
         if (sinklooted) loc.looted = 1;
-        pline_The("sink transforms into a throne!");
+        await pline_The("sink transforms into a throne!");
         break;
     case 2: {
         loc.typ = ALTAR;
         const algn = rn2(3) - 1; // -1, 0, or +1
         loc.altarmask = algn + 1; // simplified alignment mask
-        pline_The("sink transforms into an altar!");
+        await pline_The("sink transforms into an altar!");
         break;
     }
     case 3:
         loc.typ = ROOM;
         // Would call make_grave() here
-        pline_The("sink vanishes.");
+        await pline_The("sink vanishes.");
         break;
     }
     newsym(map, player.x, player.y);
@@ -508,17 +508,17 @@ function teleport_sink(player, map) {
 }
 
 // cf. do.c dosinkring() — drop ring into kitchen sink effects
-export function dosinkring(obj, player, map) {
+export async function dosinkring(obj, player, map) {
     let ideed = true;
     let nosink = false;
 
-    You("drop %s down the drain.", doname(obj, null));
+    await You("drop %s down the drain.", doname(obj, null));
     obj.in_use = true; // block free identification via interrupt
 
     switch (obj.otyp) {
     // Effects that can be noticed without eyes
     case RIN_SEARCHING:
-        You("thought %s got lost in the sink, but there it is!", doname(obj, null));
+        await You("thought %s got lost in the sink, but there it is!", doname(obj, null));
         // Give back the ring
         obj.in_use = false;
         obj.ox = player.x;
@@ -527,7 +527,7 @@ export function dosinkring(obj, player, map) {
         trycall(obj);
         return;
     case RIN_SLOW_DIGESTION:
-        pline_The("ring is regurgitated!");
+        await pline_The("ring is regurgitated!");
         obj.in_use = false;
         obj.ox = player.x;
         obj.oy = player.y;
@@ -535,41 +535,41 @@ export function dosinkring(obj, player, map) {
         trycall(obj);
         return;
     case RIN_LEVITATION:
-        pline_The("sink quivers upward for a moment.");
+        await pline_The("sink quivers upward for a moment.");
         break;
     case RIN_POISON_RESISTANCE:
-        You("smell rotten fruit.");
+        await You("smell rotten fruit.");
         break;
     case RIN_AGGRAVATE_MONSTER:
-        pline("Several %s buzz angrily around the sink.",
+        await pline("Several %s buzz angrily around the sink.",
               player.hallucinating ? rndmonnam() + "s" : "flies");
         break;
     case RIN_SHOCK_RESISTANCE:
-        pline("Static electricity surrounds the sink.");
+        await pline("Static electricity surrounds the sink.");
         break;
     case RIN_CONFLICT:
-        You_hear("loud noises coming from the drain.");
+        await You_hear("loud noises coming from the drain.");
         break;
     case RIN_SUSTAIN_ABILITY:
-        pline_The("%s flow seems fixed.", hliquid("water"));
+        await pline_The("%s flow seems fixed.", hliquid("water"));
         break;
     case RIN_GAIN_STRENGTH:
-        pline_The("%s flow seems %ser now.",
+        await pline_The("%s flow seems %ser now.",
                   hliquid("water"),
                   (obj.spe < 0) ? "weak" : "strong");
         break;
     case RIN_GAIN_CONSTITUTION:
-        pline_The("%s flow seems %ser now.",
+        await pline_The("%s flow seems %ser now.",
                   hliquid("water"),
                   (obj.spe < 0) ? "less" : "great");
         break;
     case RIN_INCREASE_ACCURACY:
-        pline_The("%s flow %s the drain.",
+        await pline_The("%s flow %s the drain.",
                   hliquid("water"),
                   (obj.spe < 0) ? "misses" : "hits");
         break;
     case RIN_INCREASE_DAMAGE:
-        pline("The water's force seems %ser now.",
+        await pline("The water's force seems %ser now.",
               (obj.spe < 0) ? "small" : "great");
         break;
     case RIN_HUNGER:
@@ -577,15 +577,15 @@ export function dosinkring(obj, player, map) {
         // Would eat floor objects at the sink location
         break;
     case MEAT_RING:
-        pline("Several flies buzz around the sink.");
+        await pline("Several flies buzz around the sink.");
         break;
     case RIN_TELEPORTATION:
         nosink = teleport_sink(player, map);
-        pline_The("sink %svanishes.", nosink ? "" : "momentarily ");
+        await pline_The("sink %svanishes.", nosink ? "" : "momentarily ");
         ideed = false;
         break;
     case RIN_POLYMORPH:
-        polymorph_sink(player, map);
+        await polymorph_sink(player, map);
         nosink = true;
         ideed = (map.at(player.x, player.y)?.typ !== ROOM);
         break;
@@ -597,47 +597,47 @@ export function dosinkring(obj, player, map) {
         ideed = true;
         switch (obj.otyp) {
         case RIN_ADORNMENT:
-            pline_The("faucets flash brightly for a moment.");
+            await pline_The("faucets flash brightly for a moment.");
             break;
         case RIN_REGENERATION:
-            pline_The("sink looks as good as new.");
+            await pline_The("sink looks as good as new.");
             break;
         case RIN_INVISIBILITY:
-            You("don't see anything happen to the sink.");
+            await You("don't see anything happen to the sink.");
             break;
         case RIN_FREE_ACTION:
-            You_see("the ring slide right down the drain!");
+            await You_see("the ring slide right down the drain!");
             break;
         case RIN_SEE_INVISIBLE:
-            You_see("some %s in the sink.",
+            await You_see("some %s in the sink.",
                     player.hallucinating ? "oxygen molecules" : "air");
             break;
         case RIN_STEALTH:
-            pline_The("sink seems to blend into the floor for a moment.");
+            await pline_The("sink seems to blend into the floor for a moment.");
             break;
         case RIN_FIRE_RESISTANCE:
-            pline_The("hot %s faucet flashes brightly for a moment.",
+            await pline_The("hot %s faucet flashes brightly for a moment.",
                       hliquid("water"));
             break;
         case RIN_COLD_RESISTANCE:
-            pline_The("cold %s faucet flashes brightly for a moment.",
+            await pline_The("cold %s faucet flashes brightly for a moment.",
                       hliquid("water"));
             break;
         case RIN_PROTECTION_FROM_SHAPE_CHAN:
-            pline_The("sink looks nothing like a fountain.");
+            await pline_The("sink looks nothing like a fountain.");
             break;
         case RIN_PROTECTION:
-            pline_The("sink glows %s for a moment.",
+            await pline_The("sink glows %s for a moment.",
                       hcolor((obj.spe < 0) ? "black" : "silver"));
             break;
         case RIN_WARNING:
-            pline_The("sink glows %s for a moment.", hcolor("white"));
+            await pline_The("sink glows %s for a moment.", hcolor("white"));
             break;
         case RIN_TELEPORT_CONTROL:
-            pline_The("sink looks like it is being beamed aboard somewhere.");
+            await pline_The("sink looks like it is being beamed aboard somewhere.");
             break;
         case RIN_POLYMORPH_CONTROL:
-            pline_The("sink momentarily looks like a regularly erupting geyser.");
+            await pline_The("sink momentarily looks like a regularly erupting geyser.");
             break;
         default:
             break;
@@ -646,10 +646,10 @@ export function dosinkring(obj, player, map) {
     if (ideed) {
         trycall(obj);
     } else if (!nosink) {
-        You_hear("the ring bouncing down the drainpipe.");
+        await You_hear("the ring bouncing down the drainpipe.");
     }
     if (!rn2(20) && !nosink) {
-        pline_The("sink backs up, leaving %s.", doname(obj, null));
+        await pline_The("sink backs up, leaving %s.", doname(obj, null));
         obj.in_use = false;
         obj.ox = player.x;
         obj.oy = player.y;
@@ -672,7 +672,7 @@ export function dosinkring(obj, player, map) {
 // C ref: do.c dodrop()
 export async function handleDrop(player, map, display) {
     if (player.inventory.length === 0) {
-        display.putstr_message("You don't have anything to drop.");
+        await display.putstr_message("You don't have anything to drop.");
         return { moved: false, tookTime: false };
     }
 
@@ -687,9 +687,9 @@ export async function handleDrop(player, map, display) {
     while (true) {
         replacePromptMessage();
         if (countMode && countDigits.length > 1) {
-            display.putstr_message(`Count: ${countDigits}`);
+            await display.putstr_message(`Count: ${countDigits}`);
         } else {
-            display.putstr_message(`What do you want to drop? [${dropChoices} or ?*]`);
+            await display.putstr_message(`What do you want to drop? [${dropChoices} or ?*]`);
         }
         const ch = await nhgetch();
         let c = String.fromCharCode(ch);
@@ -704,7 +704,7 @@ export async function handleDrop(player, map, display) {
         }
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
-            display.putstr_message('Never mind.');
+            await display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
         if (c === '?' || c === '*') {
@@ -728,7 +728,7 @@ export async function handleDrop(player, map, display) {
             || player.amulet === item;
         if (isWornArmor) {
             replacePromptMessage();
-            display.putstr_message('You cannot drop something you are wearing.');
+            await display.putstr_message('You cannot drop something you are wearing.');
             return { moved: false, tookTime: false };
         }
 
@@ -744,7 +744,7 @@ export async function handleDrop(player, map, display) {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
         display.messageNeedsMore = false;
-        display.putstr_message(`You drop ${doname(item, null)}.`);
+        await display.putstr_message(`You drop ${doname(item, null)}.`);
         return { moved: false, tookTime: true };
     }
 }
@@ -755,11 +755,11 @@ export async function handleDrop(player, map, display) {
 // ============================================================
 
 // cf. do.c u_stuck_cannot_go() — check if engulfed/grabbed preventing movement
-export function u_stuck_cannot_go(updn, player) {
+export async function u_stuck_cannot_go(updn, player) {
     if (player.ustuck) {
         if (player.uswallow || !player.sticksToMonsters) {
             const mptr = player.ustuck.type || player.ustuck.data;
-            You("are %s, and cannot go %s.",
+            await You("are %s, and cannot go %s.",
                 !player.uswallow ? "being held"
                 : (mptr && digests(mptr)) ? "swallowed"
                 : "engulfed", updn);
@@ -768,7 +768,7 @@ export function u_stuck_cannot_go(updn, player) {
             // Release the monster
             const mtmp = player.ustuck;
             player.ustuck = null;
-            You("release %s.", mtmp.name || "it");
+            await You("release %s.", mtmp.name || "it");
         }
     }
     return false;
@@ -779,7 +779,7 @@ export function u_stuck_cannot_go(updn, player) {
 export async function handleDownstairs(player, map, display, game) {
     const loc = map.at(player.x, player.y);
     if (!loc || loc.typ !== STAIRS || loc.flags !== 0) {
-        display.putstr_message("You can't go down here.");
+        await display.putstr_message("You can't go down here.");
         return { moved: false, tookTime: false };
     }
 
@@ -789,7 +789,7 @@ export async function handleDownstairs(player, map, display, game) {
         player.maxDungeonLevel = newDepth;
     }
     // Generate new level (changeLevel sets player.dungeonLevel)
-    game.changeLevel(newDepth, 'down');
+    await game.changeLevel(newDepth, 'down');
     return { moved: false, tookTime: true };
 }
 
@@ -798,7 +798,7 @@ export async function handleDownstairs(player, map, display, game) {
 export async function handleUpstairs(player, map, display, game) {
     const loc = map.at(player.x, player.y);
     if (!loc || loc.typ !== STAIRS || loc.flags !== 1) {
-        display.putstr_message("You can't go up here.");
+        await display.putstr_message("You can't go up here.");
         return { moved: false, tookTime: false };
     }
 
@@ -808,13 +808,13 @@ export async function handleUpstairs(player, map, display, game) {
             game.gameOver = true;
             game.gameOverReason = 'escaped';
             player.deathCause = 'escaped';
-            display.putstr_message('You escape the dungeon...');
+            await display.putstr_message('You escape the dungeon...');
         }
         return { moved: false, tookTime: false };
     }
 
     const newDepth = player.dungeonLevel - 1;
-    game.changeLevel(newDepth, 'up');
+    await game.changeLevel(newDepth, 'up');
     return { moved: false, tookTime: true };
 }
 
@@ -836,19 +836,19 @@ export function schedule_goto(player, tolev, utotype_flags, pre_msg, post_msg) {
 
 // cf. do.c deferred_goto() — execute a scheduled level change.
 // Called at end of turn if player.utotype is set.
-export function deferred_goto(player, game) {
+export async function deferred_goto(player, game) {
     if (!player.utolev || !player.utotype) return;
     const dest = player.utolev;
     if (dest !== player.dungeonLevel) {
         if (player.dfr_pre_msg)
-            pline(player.dfr_pre_msg);
+            await pline(player.dfr_pre_msg);
         // C ref: do.c — maybe_lvltport_feedback() prints "materialize" BEFORE quest hint check.
         // In JS, changeLevel() calls maybeShowQuestLocateHint() internally, so dfr_post_msg
         // must be printed BEFORE changeLevel() to match C's message ordering.
         if (player.dfr_post_msg)
-            pline(player.dfr_post_msg);
+            await pline(player.dfr_post_msg);
         // In C this calls goto_level(); in JS we use changeLevel()
-        game.changeLevel(dest, 'teleport');
+        await game.changeLevel(dest, 'teleport');
     }
     player.utotype = 0;
     player.dfr_pre_msg = null;
@@ -856,16 +856,16 @@ export function deferred_goto(player, game) {
 }
 
 // cf. do.c maybe_lvltport_feedback() — print level teleport arrival message
-export function maybe_lvltport_feedback(player) {
+export async function maybe_lvltport_feedback(player) {
     if (player.dfr_post_msg
         && player.dfr_post_msg.startsWith("You materialize")) {
-        pline(player.dfr_post_msg);
+        await pline(player.dfr_post_msg);
         player.dfr_post_msg = null;
     }
 }
 
 // cf. do.c familiar_level_msg() — "You have a sense of deja vu" etc.
-export function familiar_level_msg(player) {
+export async function familiar_level_msg(player) {
     const fam_msgs = [
         "You have a sense of deja vu.",
         "You feel like you've been here before.",
@@ -884,29 +884,29 @@ export function familiar_level_msg(player) {
         mesg = mesg.replace('%s', !player.blind ? "looks" : "seems");
     }
     if (mesg)
-        pline(mesg);
+        await pline(mesg);
 }
 
 // cf. do.c hellish_smoke_mesg() — Gehennom smoke flavor messages.
 // Also given if restoring a game in Gehennom.
-export function hellish_smoke_mesg(map, player) {
+export async function hellish_smoke_mesg(map, player) {
     const temperature = map?.flags?.temperature || 0;
     if (temperature)
-        pline("It is %s here.", temperature > 0 ? "hot" : "cold");
+        await pline("It is %s here.", temperature > 0 ? "hot" : "cold");
     if (temperature > 0)
-        You("%s smoke...", "sense");
+        await You("%s smoke...", "sense");
 }
 
 // cf. do.c temperature_change_msg() — temperature change on level transition
-export function temperature_change_msg(prev_temperature, map, player) {
+export async function temperature_change_msg(prev_temperature, map, player) {
     const cur_temperature = map?.flags?.temperature || 0;
     if (prev_temperature !== cur_temperature) {
         if (cur_temperature)
-            hellish_smoke_mesg(map, player);
+            await hellish_smoke_mesg(map, player);
         else if (prev_temperature > 0)
-            pline_The("heat is gone.");
+            await pline_The("heat is gone.");
         else if (prev_temperature < 0)
-            You("are out of the cold.");
+            await You("are out of the cold.");
     }
 }
 
@@ -1147,7 +1147,7 @@ export function resolveArrivalCollision(game) {
 // game must provide: .map, .player, .levels
 // opts.map: pre-generated map (e.g., wizloaddes)
 // opts.makeLevel(depth): custom level generator (default: makelevel(depth))
-export function changeLevel(game, depth, transitionDir = null, opts = {}) {
+export async function changeLevel(game, depth, transitionDir = null, opts = {}) {
     const currentDnum = Number.isInteger(game.dnum)
         ? game.dnum
         : (Number.isInteger((game.lev || game.map)?._genDnum) ? (game.lev || game.map)._genDnum : 0);
@@ -1177,7 +1177,7 @@ export function changeLevel(game, depth, transitionDir = null, opts = {}) {
     } else if (game.levels[depth]) {
         game.lev = game.levels[depth];
     } else {
-        game.lev = opts.makeLevel ? opts.makeLevel(depth) : makelevel(depth);
+        game.lev = opts.makeLevel ? await opts.makeLevel(depth) : await makelevel(depth);
         game.levels[depth] = (game.lev || game.map);
         game.levelsByBranch[branchCacheKey] = (game.lev || game.map);
     }
@@ -1234,7 +1234,7 @@ export function changeLevel(game, depth, transitionDir = null, opts = {}) {
                 }
             };
         }
-        movebubbles((game.lev || game.map));
+        await movebubbles((game.lev || game.map));
     }
 
     // C ref: do.c goto_level() — tourists gain depth-based XP on each
@@ -1254,7 +1254,7 @@ export function changeLevel(game, depth, transitionDir = null, opts = {}) {
             }
             if ((Number(player.ulevel) || 0) < 30
                 && (Number(player.uexp) || 0) >= newuexp(Number(player.ulevel) || 0)) {
-                pluslvl(player, game?.display, true);
+                await pluslvl(player, game?.display, true);
             }
         }
     }
@@ -1269,7 +1269,7 @@ export function changeLevel(game, depth, transitionDir = null, opts = {}) {
 // cf. do.c revive_corpse() — revive a corpse into a monster.
 // Returns true if we created a monster for the corpse. If successful,
 // the corpse is gone.
-export function revive_corpse(corpse, player, map) {
+export async function revive_corpse(corpse, player, map) {
     if (!corpse || corpse.otyp !== CORPSE) return false;
 
     const montype = corpse.corpsenm;
@@ -1279,12 +1279,12 @@ export function revive_corpse(corpse, player, map) {
     const where = corpse.where || 'floor';
 
     // Attempt to revive via zap.js revive()
-    const mtmp = revive(corpse, false, map);
+    const mtmp = await revive(corpse, false, map);
     if (!mtmp) return false;
 
     // Give appropriate messages based on location
     if (where === 'invent') {
-        You_feel("squirming in your backpack!");
+        await You_feel("squirming in your backpack!");
     } else if (where === 'floor' || !where) {
         const ptr = mtmp.type || mtmp.data;
         let effect = "";
@@ -1295,14 +1295,14 @@ export function revive_corpse(corpse, player, map) {
         if (!player.blind) {
             const name = chewed ? `A bite-covered ${ptr?.name || "monster"}`
                                 : (ptr?.name || "Something");
-            pline("%s rises from the dead%s!", name, effect);
+            await pline("%s rises from the dead%s!", name, effect);
         }
     }
     return true;
 }
 
 // cf. do.c revive_mon() — timeout callback to revive a corpse.
-export function revive_mon(body, player, map) {
+export async function revive_mon(body, player, map) {
     if (!body || body.otyp !== CORPSE) return;
     const mptr = mons[body.corpsenm];
 
@@ -1311,7 +1311,7 @@ export function revive_mon(body, player, map) {
     // try to move the monster away
     // (Full implementation would need get_obj_location, rloc, etc.)
 
-    if (!revive_corpse(body, player, map)) {
+    if (!await revive_corpse(body, player, map)) {
         // Revival failed; in C this would schedule ROT_CORPSE or retry for Riders
         if (is_rider(mptr) && rn2(99)) {
             // Rider usually tries again — would reschedule timer
@@ -1322,12 +1322,12 @@ export function revive_mon(body, player, map) {
 }
 
 // cf. do.c zombify_mon() — timeout callback to revive corpse as zombie.
-export function zombify_mon(body, player, map) {
+export async function zombify_mon(body, player, map) {
     if (!body || body.otyp !== CORPSE) return;
     const zmon = zombie_form(mons[body.corpsenm]);
     if (zmon !== NON_PM && zmon !== undefined) {
         body.corpsenm = zmon;
-        revive_mon(body, player, map);
+        await revive_mon(body, player, map);
     } else {
         // rot_corpse — would start rot timer
     }
@@ -1347,13 +1347,13 @@ export function danger_uprops(player) {
 // cf. do.c cmd_safety_prevention() — prevent dangerous commands when
 // monsters are nearby or hero has dangerous properties.
 // Returns true if the command should be prevented.
-export function cmd_safety_prevention(ucverb, cmddesc, act, player) {
+export async function cmd_safety_prevention(ucverb, cmddesc, act, player) {
     if (player.safe_wait && !player.menu_requested) {
         if (player.monsterNearby) {
-            Norep("%s", act);
+            await Norep("%s", act);
             return true;
         } else if (danger_uprops(player)) {
-            Norep("%s doesn't feel like a good idea right now.", ucverb);
+            await Norep("%s doesn't feel like a good idea right now.", ucverb);
             return true;
         }
     }
@@ -1370,7 +1370,7 @@ export function donull(player) {
 
 // cf. do.c wipeoff() — continuation function for wiping face while blinded.
 // Returns 1 if still busy, 0 if done.
-export function wipeoff(player) {
+export async function wipeoff(player) {
     let udelta = player.ucreamed || 0;
     let ldelta = player.blindedTimeout || 0;
 
@@ -1382,11 +1382,11 @@ export function wipeoff(player) {
         player.blindedTimeout = Math.max(0, player.blindedTimeout - ldelta);
 
     if (!player.blindedTimeout) {
-        pline("You've got the glop off.");
+        await pline("You've got the glop off.");
         player.ucreamed = 0;
         return 0; // done
     } else if (!player.ucreamed) {
-        Your("%s feels clean now.", body_part(FACE, player));
+        await Your("%s feels clean now.", body_part(FACE, player));
         return 0; // done
     }
     return 1; // still busy
@@ -1394,15 +1394,15 @@ export function wipeoff(player) {
 
 // cf. do.c dowipe() — the #wipe command: start wiping face.
 // Returns true if time was consumed.
-export function dowipe(player) {
+export async function dowipe(player) {
     if (player.ucreamed) {
         // Set occupation to wipeoff
         // In C, set_occupation(wipeoff, "wiping off your face", 0)
         // Simplified: do one wipe step
-        wipeoff(player);
+        await wipeoff(player);
         return true;
     }
-    Your("%s is already clean.", body_part(FACE, player));
+    await Your("%s is already clean.", body_part(FACE, player));
     return true;
 }
 
@@ -1415,14 +1415,14 @@ export function dowipe(player) {
 // for_what: "jumping", "kicking", "riding", etc.
 // by_steed: true if the steed's legs are the issue.
 // Autotranslated from do.c:2403
-export function legs_in_no_shape(for_what, by_steed, player) {
+export async function legs_in_no_shape(for_what, by_steed, player) {
   if (by_steed && player.usteed) {
-    pline("%s is in_ no shape for %s.", Monnam(player.usteed), for_what);
+    await pline("%s is in_ no shape for %s.", Monnam(player.usteed), for_what);
   }
   else {
     let wl = (EWounded_legs & BOTH_SIDES), bp = body_part(LEG);
     if (wl === BOTH_SIDES) bp = makeplural(bp);
-    Your("%s%s %s in_ no shape for %s.", (wl === LEFT_SIDE) ? "left " : (wl === RIGHT_SIDE) ? "right " : "", bp, (wl === BOTH_SIDES) ? "are" : "is", for_what);
+    await Your("%s%s %s in_ no shape for %s.", (wl === LEFT_SIDE) ? "left " : (wl === RIGHT_SIDE) ? "right " : "", bp, (wl === BOTH_SIDES) ? "are" : "is", for_what);
   }
 }
 
@@ -1448,7 +1448,7 @@ export function set_wounded_legs(side, timex, player) {
 
 // cf. do.c heal_legs() — heal wounded legs.
 // how: 0 = ordinary, 1 = dismounting steed, 2 = limbs turn to stone
-export function heal_legs(how, player) {
+export async function heal_legs(how, player) {
     const BOTH_SIDES = 0x30;
 
     if (player.woundedLegs) {
@@ -1464,7 +1464,7 @@ export function heal_legs(how, player) {
             let legs = body_part(LEG, player);
             if (wl === BOTH_SIDES)
                 legs = makeplural(legs);
-            Your("%s %s better.", legs, (wl === BOTH_SIDES) ? "feel" : "feels");
+            await Your("%s %s better.", legs, (wl === BOTH_SIDES) ? "feel" : "feels");
         }
 
         player.hWoundedLegs = 0;
@@ -1474,22 +1474,22 @@ export function heal_legs(how, player) {
 }
 
 // Autotranslated from do.c:28
-export function dodrop(player) {
+export async function dodrop(player) {
   let result;
   if ( player.ushops) sellobj_state(SELL_DELIBERATE);
-  result = drop(getobj("drop", any_obj_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT));
+  result = await drop(getobj("drop", any_obj_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT));
   if ( player.ushops) sellobj_state(SELL_NORMAL);
   if (result) reset_occupations();
   return result;
 }
 
 // Autotranslated from do.c:713
-export function drop(obj, game, map, player) {
+export async function drop(obj, game, map, player) {
   if (!obj) return ECMD_FAIL;
-  if (!canletgo(obj, "drop")) return ECMD_FAIL;
+  if (!await canletgo(obj, "drop")) return ECMD_FAIL;
   if (obj.otyp === CORPSE && better_not_try_to_drop_that(obj)) return ECMD_FAIL;
   if (obj === player.weapon) {
-    if (welded(player.weapon)) { weldmsg(obj); return ECMD_FAIL; }
+    if (welded(player.weapon)) { await weldmsg(obj); return ECMD_FAIL; }
     setuwep( 0);
   }
   if (obj === player.quiver) { setuqwep( 0); }
@@ -1503,23 +1503,23 @@ export function drop(obj, game, map, player) {
         mnam_p = monbuf;
       }
       onam_p = is_unpaid(obj) ? yobjnam(obj,  0) : doname(obj);
-      You("drop %s into %s.", onam_p, mnam_p);
+      await You("drop %s into %s.", onam_p, mnam_p);
     }
   }
   else {
-    if ((obj.oclass === RING_CLASS || obj.otyp === MEAT_RING) && IS_SINK(map.locations[player.x][player.y].typ)) { dosinkring(obj); return ECMD_TIME; }
+    if ((obj.oclass === RING_CLASS || obj.otyp === MEAT_RING) && IS_SINK(map.locations[player.x][player.y].typ)) { await dosinkring(obj); return ECMD_TIME; }
     if (!can_reach_floor(true)) {
       let levhack = finesse_ahriman(obj);
       if (levhack) E(player?.Levitation || player?.levitating || false) = W_ART;
-      if (game.flags.verbose) You("drop %s.", doname(obj));
+      if (game.flags.verbose) await You("drop %s.", doname(obj));
       freeinv(obj);
-      hitfloor(obj, true);
+      await hitfloor(obj, true);
       if (levhack) float_down(I_SPECIAL | TIMEOUT, W_ARTI | W_ART);
       return ECMD_TIME;
     }
-    if (!IS_ALTAR(map.locations[player.x][player.y].typ) && game.flags.verbose) You("drop %s.", doname(obj));
+    if (!IS_ALTAR(map.locations[player.x][player.y].typ) && game.flags.verbose) await You("drop %s.", doname(obj));
   }
   obj.how_lost = LOST_DROPPED;
-  dropx(obj);
+  await dropx(obj);
   return ECMD_TIME;
 }

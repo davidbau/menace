@@ -507,17 +507,17 @@ export function shop_debt(eshkp) {
 
 // C ref: shk.c check_credit() -- deduct cost from credit
 // Autotranslated from shk.c:1218
-export function check_credit(tmp, shkp) {
+export async function check_credit(tmp, shkp) {
   let credit = ESHK(shkp).credit;
   if (credit === 0) {
   }
   else if (credit >= tmp) {
-    pline_The("price is deducted from your credit.");
+    await pline_The("price is deducted from your credit.");
     ESHK(shkp).credit -= tmp;
     tmp = 0;
   }
   else {
-    pline_The("price is partially covered by your credit.");
+    await pline_The("price is partially covered by your credit.");
     ESHK(shkp).credit = 0;
     tmp -= credit;
   }
@@ -526,9 +526,9 @@ export function check_credit(tmp, shkp) {
 
 // C ref: shk.c pay() -- make payment to shopkeeper
 // Autotranslated from shk.c:1237
-export function pay(tmp, shkp, game) {
+export async function pay(tmp, shkp, game) {
   let robbed = ESHK(shkp).robbed;
-  let balance = ((tmp <= 0) ? tmp : check_credit(tmp, shkp));
+  let balance = ((tmp <= 0) ? tmp : await check_credit(tmp, shkp));
   if (balance > 0) money2mon(shkp, balance);
   else if (balance < 0) money2u(shkp, -balance);
   game.disp.botl = true;
@@ -580,12 +580,12 @@ function ensureBill(shkp) {
 
 // C ref: shk.c add_one_tobill()
 // Autotranslated from shk.c:3249
-export function add_one_tobill(obj, dummy, shkp, player) {
+export async function add_one_tobill(obj, dummy, shkp, player) {
   let eshkp, bp, bct, unbilled = false;
   eshkp = ESHK(shkp);
   if (!eshkp.bill_p) eshkp.bill_p = eshkp.bill[0];
   if (!billable( shkp, obj, player.ushops, true)) { unbilled = true; }
-  else if (eshkp.billct === BILLSZ) { You("got that for free!"); unbilled = true; }
+  else if (eshkp.billct === BILLSZ) { await You("got that for free!"); unbilled = true; }
   if (unbilled) { if (obj.where === OBJ_FREE) dealloc_obj(obj); return; }
   bct = eshkp.billct;
   bp = eshkp.bill_p[bct];
@@ -817,9 +817,9 @@ export function pacify_shk(shkp, clear_surcharge) {
 
 // C ref: shk.c rouse_shk() -- wake up shopkeeper
 // Autotranslated from shk.c:1321
-export function rouse_shk(shkp, verbosely) {
+export async function rouse_shk(shkp, verbosely) {
   if (helpless(shkp)) {
-    if (verbosely && canspotmon(shkp)) pline("%s %s.", Shknam(shkp), shkp.msleeping ? "wakes up" : "can move again");
+    if (verbosely && canspotmon(shkp)) await pline("%s %s.", Shknam(shkp), shkp.msleeping ? "wakes up" : "can move again");
     shkp.msleeping = 0;
     shkp.mfrozen = 0;
     shkp.mcanmove = 1;
@@ -827,7 +827,7 @@ export function rouse_shk(shkp, verbosely) {
 }
 
 // C ref: shk.c make_happy_shk()
-export function make_happy_shk(shkp, silentkops, map) {
+export async function make_happy_shk(shkp, silentkops, map) {
     const wasmad = !shkp.mpeaceful;
     pacify_shk(shkp, false);
     shkp.following = 0;
@@ -837,9 +837,9 @@ export function make_happy_shk(shkp, silentkops, map) {
         // Try to send shk home
         home_shk(shkp, false, map);
         if (canspotmon(shkp))
-            pline("%s returns to %s shop.", Shknam(shkp), mhis(shkp));
+            await pline("%s returns to %s shop.", Shknam(shkp), mhis(shkp));
     } else if (wasmad) {
-        pline("%s calms down.", Shknam(shkp));
+        await pline("%s calms down.", Shknam(shkp));
     }
 
     make_happy_shoppers(silentkops, map);
@@ -854,7 +854,7 @@ export function make_happy_shoppers(silentkops, map) {
 }
 
 // C ref: shk.c make_angry_shk()
-export function make_angry_shk(shkp, ox, oy) {
+export async function make_angry_shk(shkp, ox, oy) {
     // All pending shop transactions become "past due"
     if ((shkp.billct || 0) > 0 || (shkp.debit || 0) > 0
         || (shkp.loan || 0) > 0 || (shkp.credit || 0) > 0) {
@@ -865,7 +865,7 @@ export function make_angry_shk(shkp, ox, oy) {
         setpaid(shkp);
     }
 
-    pline("%s %s!", Shknam(shkp),
+    await pline("%s %s!", Shknam(shkp),
           shkp.mpeaceful ? "gets angry" : "is furious");
     hot_pursuit(shkp);
 }
@@ -1063,7 +1063,7 @@ export function is_fshk(mtmp) {
 // ============================================================
 
 // C ref: shk.c stolen_value()
-export function stolen_value(obj, x, y, peaceful, silent, map) {
+export async function stolen_value(obj, x, y, peaceful, silent, map) {
     if (!map) return 0;
 
     // Find shopkeeper
@@ -1099,7 +1099,7 @@ export function stolen_value(obj, x, y, peaceful, silent, map) {
 
     if (peaceful) {
         const credit_use = !!(shkp.credit);
-        value = check_credit(value, shkp);
+        value = await check_credit(value, shkp);
         if (!shkp.mpeaceful) {
             shkp.robbed = (shkp.robbed || 0) + value;
         } else {
@@ -1109,16 +1109,16 @@ export function stolen_value(obj, x, y, peaceful, silent, map) {
         if (!silent) {
             if (credit_use) {
                 if (shkp.credit) {
-                    You("have %d %s credit remaining.",
+                    await You("have %d %s credit remaining.",
                         shkp.credit, currency(shkp.credit));
                     return value;
                 } else if (!value) {
-                    You("have no credit remaining.");
+                    await You("have no credit remaining.");
                     return 0;
                 }
             }
             if (value) {
-                You("owe %s %d %s for %s!",
+                await You("owe %s %d %s for %s!",
                     shkname(shkp), value, currency(value),
                     Number(obj.quan || 1) > 1 ? "them" : "it");
             }
@@ -1127,10 +1127,10 @@ export function stolen_value(obj, x, y, peaceful, silent, map) {
         shkp.robbed = (shkp.robbed || 0) + value;
         if (!silent) {
             if (canspotmon(shkp)) {
-                Norep("%s booms: \"%s, you are a thief!\"",
+                await Norep("%s booms: \"%s, you are a thief!\"",
                       Shknam(shkp), "");
             } else {
-                You_hear("a scream, \"Thief!\"");
+                await You_hear("a scream, \"Thief!\"");
             }
         }
         hot_pursuit(shkp);
@@ -1143,7 +1143,7 @@ export function stolen_value(obj, x, y, peaceful, silent, map) {
 // ============================================================
 
 // C ref: shk.c costly_gold()
-export function costly_gold(x, y, amount, silent, map) {
+export async function costly_gold(x, y, amount, silent, map) {
     if (!costly_spot(x, y, map)) return;
 
     const rooms = in_rooms(map, x, y, SHOPBASE);
@@ -1154,19 +1154,19 @@ export function costly_gold(x, y, amount, silent, map) {
     if (credit >= amount) {
         if (!silent) {
             if (credit > amount)
-                Your("credit is reduced by %d %s.", amount, currency(amount));
+                await Your("credit is reduced by %d %s.", amount, currency(amount));
             else
-                Your("credit is erased.");
+                await Your("credit is erased.");
         }
         shkp.credit = credit - amount;
     } else {
         const delta = amount - credit;
         if (!silent) {
-            if (credit) Your("credit is erased.");
+            if (credit) await Your("credit is erased.");
             if (shkp.debit)
-                Your("debt increases by %d %s.", delta, currency(delta));
+                await Your("debt increases by %d %s.", delta, currency(delta));
             else
-                You("owe %s %d %s.", shkname(shkp), delta, currency(delta));
+                await You("owe %s %d %s.", shkname(shkp), delta, currency(delta));
         }
         shkp.debit = (shkp.debit || 0) + delta;
         shkp.loan = (shkp.loan || 0) + delta;
@@ -1175,27 +1175,27 @@ export function costly_gold(x, y, amount, silent, map) {
 }
 
 // C ref: shk.c donate_gold()
-export function donate_gold(gltmp, shkp, selling) {
+export async function donate_gold(gltmp, shkp, selling) {
     const debit = Number(shkp.debit || 0);
     if (debit >= gltmp) {
         if (shkp.loan) {
             shkp.loan = (shkp.loan > gltmp) ? shkp.loan - gltmp : 0;
         }
         shkp.debit = debit - gltmp;
-        Your("debt is %spaid off.", shkp.debit ? "partially " : "");
+        await Your("debt is %spaid off.", shkp.debit ? "partially " : "");
     } else {
         const delta = gltmp - debit;
         shkp.credit = (shkp.credit || 0) + delta;
         if (debit) {
             shkp.debit = 0;
             shkp.loan = 0;
-            Your("debt is paid off.");
+            await Your("debt is paid off.");
         }
         if (shkp.credit === delta) {
-            You("have %sestablished %d %s credit.",
+            await You("have %sestablished %d %s credit.",
                 !selling ? "re-" : "", delta, currency(delta));
         } else {
-            pline("%d %s added%s to your credit; total is now %d %s.",
+            await pline("%d %s added%s to your credit; total is now %d %s.",
                   delta, currency(delta), !selling ? " back" : "",
                   shkp.credit, currency(shkp.credit));
         }
@@ -1283,7 +1283,7 @@ function shk_embellish(itm, cost) {
 }
 
 // C ref: shk.c price_quote()
-export function price_quote(first_obj, map) {
+export async function price_quote(first_obj, map) {
     if (!map) return;
     const shoproom = insideShop(map, first_obj?.ox || 0, first_obj?.oy || 0);
     if (!shoproom) return;
@@ -1314,10 +1314,10 @@ export function price_quote(first_obj, map) {
         const otmp = first_obj;
         let cost = (otmp.no_charge) ? 0 : get_cost(otmp, shkp);
         if (!cost) {
-            verbalize("%s!", capitalizeWord(doname(otmp, null) + ", no charge"));
+            await verbalize("%s!", capitalizeWord(doname(otmp, null) + ", no charge"));
         } else {
             const emb = shk_embellish(otmp, cost);
-            verbalize("%s, price %d %s%s%s",
+            await verbalize("%s, price %d %s%s%s",
                       capitalizeWord(doname(otmp, null)),
                       cost, currency(cost),
                       Number(otmp.quan || 1) > 1 ? " each" : "",
@@ -1327,7 +1327,7 @@ export function price_quote(first_obj, map) {
         // Multiple items: would show in a menu window
         // Simplified: just print each line
         for (const line of lines) {
-            pline(line);
+            await pline(line);
         }
     }
 }
@@ -1346,63 +1346,63 @@ const Izchak_speaks = [
 ];
 
 // C ref: shk.c shk_chat()
-export function shk_chat(shkp, map) {
+export async function shk_chat(shkp, map) {
     if (!shkp.isshk) {
-        pline("%s asks whether you've seen any untended shops recently.",
+        await pline("%s asks whether you've seen any untended shops recently.",
               Shknam(shkp));
         return;
     }
 
     if (!shkp.mpeaceful) {
-        pline("%s %s how much %s dislikes %s customers.",
+        await pline("%s %s how much %s dislikes %s customers.",
               Shknam(shkp),
               (!muteshk(shkp)) ? "mentions" : "indicates",
               mhe(shkp), shkp.robbed ? "non-paying" : "rude");
     } else if (shkp.following) {
         if (!muteshk(shkp)) {
-            verbalize("Didn't you forget to pay?");
+            await verbalize("Didn't you forget to pay?");
         } else {
-            pline("%s taps you.", Shknam(shkp));
+            await pline("%s taps you.", Shknam(shkp));
         }
     } else if ((shkp.billct || 0) > 0) {
         const total = addupbill(shkp) + (shkp.debit || 0);
-        pline("%s %s that your bill comes to %d %s.",
+        await pline("%s %s that your bill comes to %d %s.",
               Shknam(shkp),
               (!muteshk(shkp)) ? "says" : "indicates",
               total, currency(total));
     } else if (shkp.debit) {
-        pline("%s %s that you owe %s %d %s.",
+        await pline("%s %s that you owe %s %d %s.",
               Shknam(shkp),
               (!muteshk(shkp)) ? "reminds you" : "indicates",
               mhim(shkp), shkp.debit, currency(shkp.debit));
     } else if (shkp.credit) {
-        pline("%s encourages you to use your %d %s of credit.",
+        await pline("%s encourages you to use your %d %s of credit.",
               Shknam(shkp), shkp.credit, currency(shkp.credit));
     } else if (shkp.robbed) {
-        pline("%s %s about a recent robbery.",
+        await pline("%s %s about a recent robbery.",
               Shknam(shkp),
               (!muteshk(shkp)) ? "complains" : "indicates concern");
     } else if (shkp.surcharge) {
-        pline("%s %s that %s is watching you carefully.",
+        await pline("%s %s that %s is watching you carefully.",
               Shknam(shkp),
               (!muteshk(shkp)) ? "warns you" : "indicates",
               mhe(shkp));
     } else if ((shkp.mgold || 0) < 50) {
-        pline("%s %s that business is bad.",
+        await pline("%s %s that business is bad.",
               Shknam(shkp),
               (!muteshk(shkp)) ? "complains" : "indicates");
     } else if ((shkp.mgold || 0) > 4000) {
-        pline("%s %s that business is good.",
+        await pline("%s %s that business is good.",
               Shknam(shkp),
               (!muteshk(shkp)) ? "says" : "indicates");
     } else if (is_izchak(shkp)) {
         if (!muteshk(shkp)) {
             const msg = Izchak_speaks[rn2(Izchak_speaks.length)];
-            pline(msg, shkname(shkp));
+            await pline(msg, shkname(shkp));
         }
     } else {
         if (!muteshk(shkp))
-            pline("%s talks about the problem of shoplifters.", Shknam(shkp));
+            await pline("%s talks about the problem of shoplifters.", Shknam(shkp));
     }
 }
 
@@ -1411,10 +1411,10 @@ export function shk_chat(shkp, map) {
 // ============================================================
 
 // C ref: shk.c shk_names_obj() -- shopkeeper names/describes object after transaction
-export function shk_names_obj(shkp, obj, fmt, amt, arg) {
+export async function shk_names_obj(shkp, obj, fmt, amt, arg) {
     // Simplified: just use doname for the object description
     const obj_name = doname(obj, null);
-    You(fmt, obj_name, amt, plur(amt), arg || "");
+    await You(fmt, obj_name, amt, plur(amt), arg || "");
 }
 
 // ============================================================
@@ -1458,7 +1458,7 @@ export function describeGroundObjectForPlayer(obj, player, map) {
     return base;
 }
 
-export function maybeHandleShopEntryMessage(game, oldX, oldY) {
+export async function maybeHandleShopEntryMessage(game, oldX, oldY) {
     const { map, player, display } = game;
     const oldShops = in_rooms(map, oldX, oldY, SHOPBASE);
     const newShops = in_rooms(map, player.x, player.y, SHOPBASE);
@@ -1477,21 +1477,21 @@ export function maybeHandleShopEntryMessage(game, oldX, oldY) {
     const shkName = shopkeeperName(shkp);
 
     if (shkp.peaceful === false || shkp.mpeaceful === false) {
-        display.putstr_message(`"So, ${plname}, you dare return to ${sSuffix(shkName)} ${shopTypeName}?!"`);
+        await display.putstr_message(`"So, ${plname}, you dare return to ${sSuffix(shkName)} ${shopTypeName}?!"`);
         return;
     }
     if (shkp.surcharge) {
-        display.putstr_message(`"Back again, ${plname}?  I've got my eye on you."`);
+        await display.putstr_message(`"Back again, ${plname}?  I've got my eye on you."`);
         return;
     }
     if (shkp.robbed) {
-        display.putstr_message(`${capitalizeWord(shkName)} mutters imprecations against shoplifters.`);
+        await display.putstr_message(`${capitalizeWord(shkName)} mutters imprecations against shoplifters.`);
         return;
     }
 
     const visitct = Number(shkp.visitct || 0);
     const greeting = greetingForRole(player.roleIndex);
-    display.putstr_message(`"${greeting}, ${plname}!  Welcome${visitct ? ' again' : ''} to ${sSuffix(shkName)} ${shopTypeName}!"`);
+    await display.putstr_message(`"${greeting}, ${plname}!  Welcome${visitct ? ' again' : ''} to ${sSuffix(shkName)} ${shopTypeName}!"`);
     shkp.visitct = visitct + 1;
 }
 
@@ -1501,7 +1501,7 @@ export function maybeHandleShopEntryMessage(game, oldX, oldY) {
 // ============================================================
 
 // C ref: shk.c dopay() -- the #pay command
-export function dopay(game) {
+export async function dopay(game) {
     const { map, player } = game;
     if (!map) return 0;
 
@@ -1521,7 +1521,7 @@ export function dopay(game) {
     }
 
     if (!sk) {
-        There("appears to be no shopkeeper here to receive your payment.");
+        await There("appears to be no shopkeeper here to receive your payment.");
         return 0;
     }
 
@@ -1530,10 +1530,10 @@ export function dopay(game) {
         const eshkp = resident;
         if (!eshkp.billct && !eshkp.debit) {
             if (!eshkp.robbed && eshkp.mpeaceful !== false) {
-                You("do not owe %s anything.", shkname(resident));
+                await You("do not owe %s anything.", shkname(resident));
             }
         } else {
-            pline("You owe %s %d %s.", shkname(resident),
+            await pline("You owe %s %d %s.", shkname(resident),
                   shop_debt(resident), currency(shop_debt(resident)));
         }
     }
@@ -1593,14 +1593,14 @@ export function doinvbill(mode, map) {
 // ============================================================
 
 // C ref: shk.c shopper_financial_report()
-export function shopper_financial_report(player, map) {
+export async function shopper_financial_report(player, map) {
     if (!map || !player) return;
 
     const playerShopRoom = insideShop(map, player.x, player.y);
     let this_shkp = playerShopRoom ? shop_keeper(map, playerShopRoom) : null;
 
     if (this_shkp && !(this_shkp.credit || shop_debt(this_shkp))) {
-        You("have no credit or debt in here.");
+        await You("have no credit or debt in here.");
         this_shkp = null;
     }
 
@@ -1611,17 +1611,17 @@ export function shopper_financial_report(player, map) {
         const amt_debt = shop_debt(shkp);
 
         if (amt_credit) {
-            You("have %d %s credit at %s %s.",
+            await You("have %d %s credit at %s %s.",
                 amt_credit, currency(amt_credit),
                 sSuffix(shkname(shkp)),
                 shtypes[(shkp.shoptype || SHOPBASE) - SHOPBASE]?.name || 'shop');
         } else if (shkp === this_shkp) {
-            You("have no credit in here.");
+            await You("have no credit in here.");
         }
         if (amt_debt) {
-            You("owe %s %d %s.", shkname(shkp), amt_debt, currency(amt_debt));
+            await You("owe %s %d %s.", shkname(shkp), amt_debt, currency(amt_debt));
         } else if (shkp === this_shkp) {
-            You("don't owe any gold here.");
+            await You("don't owe any gold here.");
         }
     }
 }
@@ -1631,22 +1631,22 @@ export function shopper_financial_report(player, map) {
 // ============================================================
 
 // C ref: shk.c rob_shop()
-function rob_shop(shkp) {
-    rouse_shk(shkp, true);
+async function rob_shop(shkp) {
+    await rouse_shk(shkp, true);
     let total = addupbill(shkp) + (shkp.debit || 0);
     if ((shkp.credit || 0) >= total) {
-        Your("credit of %d %s is used to cover your shopping bill.",
+        await Your("credit of %d %s is used to cover your shopping bill.",
              shkp.credit, currency(shkp.credit));
         total = 0;
     } else {
-        You("escaped the shop without paying!");
+        await You("escaped the shop without paying!");
         total -= (shkp.credit || 0);
     }
     setpaid(shkp);
     if (!total) return false;
 
     shkp.robbed = (shkp.robbed || 0) + total;
-    You("stole %d %s worth of merchandise.", total, currency(total));
+    await You("stole %d %s worth of merchandise.", total, currency(total));
     hot_pursuit(shkp);
     return true;
 }
@@ -1713,7 +1713,7 @@ export function pay_for_damage(dmgstr, cant_mollify, map, player, moves) {
 }
 
 // C ref: shk.c shopdig()
-export function shopdig(fall, map, player) {
+export async function shopdig(fall, map, player) {
     if (!map || !player) return;
     const rooms = in_rooms(map, player.x, player.y, SHOPBASE);
     if (rooms.length === 0) return;
@@ -1724,7 +1724,7 @@ export function shopdig(fall, map, player) {
     if (!fall) {
         // Digging in shop floor
         if (!muteshk(shkp)) {
-            verbalize("Do not damage the floor here!");
+            await verbalize("Do not damage the floor here!");
         }
     }
     // When falling through, shopkeeper may grab inventory
@@ -1736,7 +1736,7 @@ export function shopdig(fall, map, player) {
 // ============================================================
 
 // C ref: shk.c block_door()
-export function block_door(x, y, map, player) {
+export async function block_door(x, y, map, player) {
     if (!map || !player) return false;
     const rooms = in_rooms(map, x, y, SHOPBASE);
     if (rooms.length === 0) return false;
@@ -1747,14 +1747,14 @@ export function block_door(x, y, map, player) {
         && shkp.shd && shkp.shd.x === x && shkp.shd.y === y
         && !helpless(shkp)
         && ((shkp.debit || 0) > 0 || (shkp.billct || 0) > 0 || (shkp.robbed || 0) > 0)) {
-        pline("%s blocks your way!", Shknam(shkp));
+        await pline("%s blocks your way!", Shknam(shkp));
         return true;
     }
     return false;
 }
 
 // C ref: shk.c block_entry()
-export function block_entry(x, y, map, player) {
+export async function block_entry(x, y, map, player) {
     if (!map || !player) return false;
     const rooms = in_rooms(map, x, y, SHOPBASE);
     if (rooms.length === 0) return false;
@@ -1764,7 +1764,7 @@ export function block_entry(x, y, map, player) {
     if (shkp.shd && shkp.shd.x === player.x && shkp.shd.y === player.y
         && shkp.shk && shkp.mx === shkp.shk.x && shkp.my === shkp.shk.y
         && !helpless(shkp)) {
-        pline("%s blocks your way!", Shknam(shkp));
+        await pline("%s blocks your way!", Shknam(shkp));
         return true;
     }
     return false;
@@ -1918,14 +1918,14 @@ export function credit_report(shkp, idx, silent) {
 // ============================================================
 
 // C ref: shk.c remote_burglary()
-export function remote_burglary(x, y, map) {
+export async function remote_burglary(x, y, map) {
     if (!map) return;
     const rooms = in_rooms(map, x, y, SHOPBASE);
     if (rooms.length === 0) return;
     const shkp = shop_keeper(map, rooms[0]);
     if (!shkp || !inhishop(shkp, map)) return;
     if (!(shkp.billct || 0) && !(shkp.debit || 0)) return;
-    rob_shop(shkp);
+    await rob_shop(shkp);
 }
 
 // ============================================================
@@ -1939,7 +1939,7 @@ export function u_entered_shop(enterroom, map, player) {
 }
 
 // C ref: shk.c u_left_shop()
-export function u_left_shop(leaveroom, newlev, map, player) {
+export async function u_left_shop(leaveroom, newlev, map, player) {
     if (!map || !player) return;
     const shkp = shop_keeper(map, leaveroom);
     if (!shkp || !inhishop(shkp, map)) return;
@@ -1948,7 +1948,7 @@ export function u_left_shop(leaveroom, newlev, map, player) {
 
     // Player is leaving with unpaid goods
     if (!muteshk(shkp)) {
-        verbalize("Please pay before leaving!");
+        await verbalize("Please pay before leaving!");
     }
 }
 
@@ -2115,34 +2115,34 @@ export function delete_contents(obj) {
 // Deserted shop message (C: deserted_shop)
 // ============================================================
 
-function deserted_shop(enterroom, map) {
-    pline("This shop %s deserted.", "seems to be");
+async function deserted_shop(enterroom, map) {
+    await pline("This shop %s deserted.", "seems to be");
 }
 
 // ============================================================
 // Special stock (C: special_stock)
 // ============================================================
 // Autotranslated from shk.c:3043
-export function special_stock(obj, shkp, quietly, player) {
+export async function special_stock(obj, shkp, quietly, player) {
   if (ESHK(shkp).shoptype === CANDLESHOP && obj.otyp === CANDELABRUM_OF_INVOCATION) {
     if (!quietly) {
       if (is_izchak(shkp, true) && !player.uevent.invoked) {
         if (Deaf || muteshk(shkp)) {
-          pline("%s seems %s that you want to sell that.", Shknam(shkp), (obj.spe < 7) ? "horrified" : "concerned");
+          await pline("%s seems %s that you want to sell that.", Shknam(shkp), (obj.spe < 7) ? "horrified" : "concerned");
         }
         else {
-          verbalize("No thanks, I'd hang onto that if I were yoplayer.");
+          await verbalize("No thanks, I'd hang onto that if I were yoplayer.");
           if (obj.spe < 7) {
-            verbalize( "You'll need %d%s candle%s to go along with it.", (7 - obj.spe), (obj.spe > 0) ? " more" : "", plur(7 - obj.spe));
+            await verbalize( "You'll need %d%s candle%s to go along with it.", (7 - obj.spe), (obj.spe > 0) ? " more" : "", plur(7 - obj.spe));
           }
         }
       }
       else {
         if (!Deaf && !muteshk(shkp)) {
-          verbalize("I won't stock that. Take it out of here!");
+          await verbalize("I won't stock that. Take it out of here!");
         }
         else {
-          pline("%s shakes %s %s in refusal.", Shknam(shkp), noit_mhis(shkp), mbodypart(shkp, HEAD));
+          await pline("%s shakes %s %s in refusal.", Shknam(shkp), noit_mhis(shkp), mbodypart(shkp, HEAD));
         }
       }
     }
@@ -2167,26 +2167,26 @@ function cad(altusage) {
 // Stubs -- kop system not fully ported
 // ============================================================
 // Autotranslated from shk.c:450
-export function call_kops(shkp, nearshop, game, player) {
+export async function call_kops(shkp, nearshop, game, player) {
   let nokops;
   if (!shkp) return;
-  if (!Deaf) pline("An alarm sounds!");
+  if (!Deaf) await pline("An alarm sounds!");
   nokops = ((game.mvitals[PM_KEYSTONE_KOP].mvflags & G_GONE) && (game.mvitals[PM_KOP_SERGEANT].mvflags & G_GONE) && (game.mvitals[PM_KOP_LIEUTENANT].mvflags & G_GONE) && (game.mvitals[PM_KOP_KAPTAIN].mvflags & G_GONE));
-  if (!angry_guards(!!Deaf) && nokops) {
-    if (game.flags.verbose && !Deaf) pline("But no one seems to respond to it.");
+  if (!await angry_guards(!!Deaf) && nokops) {
+    if (game.flags.verbose && !Deaf) await pline("But no one seems to respond to it.");
     return;
   }
   if (nokops) return;
   let mm, sx = 0, sy = 0;
   choose_stairs( sx, sy, true);
   if (nearshop) {
-    if (game.flags.verbose) pline_The("Keystone Kops appear!");
+    if (game.flags.verbose) await pline_The("Keystone Kops appear!");
     mm.x = player.x;
     mm.y = player.y;
     makekops( mm);
     return;
   }
-  if (game.flags.verbose) pline_The("Keystone Kops are after you!");
+  if (game.flags.verbose) await pline_The("Keystone Kops are after you!");
   if (isok(sx, sy)) {
     mm.x = sx;
     mm.y = sy;
@@ -2388,15 +2388,15 @@ export function add_to_billobjs(obj) {
 }
 
 // Autotranslated from shk.c:3326
-export function bill_box_content(obj, ininv, dummy, shkp) {
+export async function bill_box_content(obj, ininv, dummy, shkp) {
   let otmp;
   if (SchroedingersBox(obj)) return;
   for (otmp = obj.cobj; otmp; otmp = otmp.nobj) {
     if (otmp.oclass === COIN_CLASS) {
       continue;
     }
-    if (!otmp.no_charge) add_one_tobill(otmp, dummy, shkp);
-    if (Has_contents(otmp)) bill_box_content(otmp, ininv, dummy, shkp);
+    if (!otmp.no_charge) await add_one_tobill(otmp, dummy, shkp);
+    if (Has_contents(otmp)) await bill_box_content(otmp, ininv, dummy, shkp);
   }
 }
 
@@ -2485,14 +2485,14 @@ export function repairable_damage(dam, shkp, game) {
 }
 
 // Autotranslated from shk.c:4490
-export function shk_fixes_damage(shkp) {
+export async function shk_fixes_damage(shkp) {
   let dam = find_damage(shkp), shk_closeby;
   if (!dam) return;
   shk_closeby = (mdistu(shkp) <= (BOLT_LIM / 2) * (BOLT_LIM / 2));
   if (canseemon(shkp)) {
-    pline("%s whispers %s.", Shknam(shkp), shk_closeby ? "an incantation" : "something");
+    await pline("%s whispers %s.", Shknam(shkp), shk_closeby ? "an incantation" : "something");
   }
-  else if (!Deaf && shk_closeby) { You_hear("someone muttering an incantation."); }
+  else if (!Deaf && shk_closeby) { await You_hear("someone muttering an incantation."); }
   repair_damage(shkp, dam, false);
   discard_damage_struct(dam);
 }
@@ -2530,11 +2530,11 @@ export function makekops(mm, game, map) {
 }
 
 // Autotranslated from shk.c:6035
-export function use_unpaid_trapobj(otmp, x, y) {
+export async function use_unpaid_trapobj(otmp, x, y) {
   if (otmp.unpaid) {
     if (!Deaf) {
       let shkp = find_objowner(otmp, x, y);
-      if (shkp && !muteshk(shkp)) { verbalize("You set it, you buy it!"); }
+      if (shkp && !muteshk(shkp)) { await verbalize("You set it, you buy it!"); }
     }
     bill_dummy_object(otmp);
   }

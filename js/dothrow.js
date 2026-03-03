@@ -196,7 +196,7 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         display.messageNeedsMore = false;
     };
     replacePromptMessage();
-    display.putstr_message('In what direction?');
+    await display.putstr_message('In what direction?');
     const dirCh = await nhgetch();
     const dch = String.fromCharCode(dirCh);
     let dir = DIRECTION_KEYS[dch];
@@ -208,7 +208,7 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         return { moved: false, tookTime: false };
     }
     // C ref: throw/firing direction commands smudge floor engravings before resolve.
-    u_wipe_engr(player, map, 2);
+    await u_wipe_engr(player, map, 2);
     const targetX = player.x + dir[0];
     const targetY = player.y + dir[1];
     const targetMonster = map.monsterAt(targetX, targetY);
@@ -235,7 +235,7 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         || player.boots === item
         || player.cloak === item
     ) {
-        display.putstr_message('You cannot throw something you are wearing.');
+        await display.putstr_message('You cannot throw something you are wearing.');
         return { moved: false, tookTime: false };
     }
     if ((item.quan || 1) > 1) {
@@ -300,7 +300,7 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
     placeFloorObject(map, thrownItem);
     replacePromptMessage();
     if (throwMessage) {
-        display.putstr_message(throwMessage);
+        await display.putstr_message(throwMessage);
     }
     return { moved: false, tookTime: true };
 }
@@ -309,7 +309,7 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
 // C ref: dothrow()
 export async function handleThrow(player, map, display) {
     if (!player.inventory || player.inventory.length === 0) {
-        display.putstr_message("You don't have anything to throw.");
+        await display.putstr_message("You don't have anything to throw.");
         return { moved: false, tookTime: false };
     }
     const replacePromptMessage = () => {
@@ -338,13 +338,13 @@ export async function handleThrow(player, map, display) {
     const throwPrompt = throwChoices
         ? `What do you want to throw? [${throwChoices} or ?*]`
         : 'What do you want to throw? [*]';
-    display.putstr_message(throwPrompt);
+    await display.putstr_message(throwPrompt);
     while (true) {
         const ch = await nhgetch();
         let c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
-            display.putstr_message('Never mind.');
+            await display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
         if (c === '?' || c === '*') {
@@ -373,13 +373,13 @@ export async function handleThrow(player, map, display) {
             invLines.push('(end)');
             const selection = await renderOverlayMenuUntilDismiss(display, invLines, throwLetters);
             replacePromptMessage();
-            display.putstr_message(throwPrompt);
+            await display.putstr_message(throwPrompt);
             if (!selection) continue;
             c = selection;
         }
         if (c === '-') {
             replacePromptMessage();
-            display.putstr_message('You mime throwing something.');
+            await display.putstr_message('You mime throwing something.');
             return { moved: false, tookTime: false };
         }
         const selItem = player.inventory.find(o => o.invlet === c);
@@ -401,19 +401,19 @@ export async function handleFire(player, map, display, game) {
         && (weaponSkill === 18 || weaponSkill === 19);
 
     if (!player.quiver && wieldingPolearm) {
-        display.putstr_message("Don't know what to hit.");
+        await display.putstr_message("Don't know what to hit.");
         return { moved: false, tookTime: false };
     }
 
     if (!player.quiver && weapon && weapon.otyp === BULLWHIP) {
-        display.putstr_message('In what direction?');
+        await display.putstr_message('In what direction?');
         const dirCh = await nhgetch();
         const dch = String.fromCharCode(dirCh);
         const dir = DIRECTION_KEYS[dch];
         if (!dir) {
             replacePromptMessage();
             if (!game?.wizard) {
-                display.putstr_message('What a strange direction!  Never mind.');
+                await display.putstr_message('What a strange direction!  Never mind.');
             }
             return { moved: false, tookTime: false };
         }
@@ -485,9 +485,9 @@ export async function handleFire(player, map, display, game) {
     }
     const fireChoices = compactInvletPromptChars(fireLetters.join(''));
     if (fireChoices) {
-        display.putstr_message(`What do you want to fire? [${fireChoices} or ?*]`);
+        await display.putstr_message(`What do you want to fire? [${fireChoices} or ?*]`);
     } else {
-        display.putstr_message('What do you want to fire? [*]');
+        await display.putstr_message('What do you want to fire? [*]');
     }
     let pendingCount = '';
     while (true) {
@@ -495,7 +495,7 @@ export async function handleFire(player, map, display, game) {
         const c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
-            display.putstr_message('Never mind.');
+            await display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
         if (c >= '0' && c <= '9') {
@@ -504,7 +504,7 @@ export async function handleFire(player, map, display, game) {
             } else {
                 pendingCount += c;
                 replacePromptMessage();
-                display.putstr_message(`Count: ${pendingCount}`);
+                await display.putstr_message(`Count: ${pendingCount}`);
             }
             continue;
         }
@@ -513,13 +513,13 @@ export async function handleFire(player, map, display, game) {
         if (selected) {
             if (selected === player.weapon) {
                 replacePromptMessage();
-                display.putstr_message('You are wielding that.  Ready it instead? [ynq] (q)');
+                await display.putstr_message('You are wielding that.  Ready it instead? [ynq] (q)');
                 while (true) {
                     const ans = await nhgetch();
                     const a = String.fromCharCode(ans).toLowerCase();
                     if (ans === 27 || ans === 10 || ans === 13 || a === ' ' || a === 'q' || a === 'n') {
                         replacePromptMessage();
-                        display.putstr_message(`Your ${selected.name} remains wielded.`);
+                        await display.putstr_message(`Your ${selected.name} remains wielded.`);
                         return { moved: false, tookTime: false };
                     }
                     if (a === 'y') break;
@@ -593,14 +593,14 @@ export function throw_obj(player, obj, shotlimit) {
 }
 
 // cf. dothrow.c:296 [static] -- ok_to_throw(shotlimit_p)
-export function ok_to_throw(player, command_count) {
+export async function ok_to_throw(player, command_count) {
     const shotlimit = Math.max(0, command_count || 0);
     if (player.polyData && notake(player.polyData)) {
-        pline("You are physically incapable of throwing or shooting anything.");
+        await pline("You are physically incapable of throwing or shooting anything.");
         return { ok: false, shotlimit };
     }
     if (player.polyData && nohands(player.polyData)) {
-        pline("You can't throw or shoot without hands.");
+        await pline("You can't throw or shoot without hands.");
         return { ok: false, shotlimit };
     }
     return { ok: true, shotlimit };
@@ -672,20 +672,20 @@ export function find_launcher(ammo, player) {
 }
 
 // cf. dothrow.c:589 -- endmultishot(verbose, m_shot)
-export function endmultishot(verbose, m_shot) {
+export async function endmultishot(verbose, m_shot) {
     if (!m_shot) return;
     if (m_shot.i < m_shot.n) {
         if (verbose) {
             const ord = m_shot.i === 1 ? '1st' : m_shot.i === 2 ? '2nd'
                 : m_shot.i === 3 ? '3rd' : `${m_shot.i}th`;
-            pline(`You stop ${m_shot.s ? 'firing' : 'throwing'} after the ${ord} ${m_shot.s ? 'shot' : 'toss'}.`);
+            await pline(`You stop ${m_shot.s ? 'firing' : 'throwing'} after the ${ord} ${m_shot.s ? 'shot' : 'toss'}.`);
         }
         m_shot.n = m_shot.i;
     }
 }
 
 // cf. dothrow.c:605 -- hitfloor(obj, verbosely, player, map)
-export function hitfloor(obj, verbosely, player, map) {
+export async function hitfloor(obj, verbosely, player, map) {
     const ux = player.x, uy = player.y;
     const loc = typeof map.at === 'function' ? map.at(ux, uy) : null;
     if (loc && (IS_SOFT(loc.typ) || player.uinwater || player.uswallow)) {
@@ -695,9 +695,9 @@ export function hitfloor(obj, verbosely, player, map) {
     }
     if (verbosely && loc) {
         const verb = (obj.otyp === WAN_STRIKING) ? 'strikes' : 'hits';
-        pline(`The ${xname(obj)} ${verb} the floor.`);
+        await pline(`The ${xname(obj)} ${verb} the floor.`);
     }
-    if (hero_breaks(obj, ux, uy, BRK_FROM_INV, player, map)) return;
+    if (await hero_breaks(obj, ux, uy, BRK_FROM_INV, player, map)) return;
     obj.ox = ux; obj.oy = uy;
     placeFloorObject(map, obj);
 }
@@ -736,29 +736,29 @@ export function walk_path(src_cc, dest_cc, check_proc, arg) {
 }
 
 // cf. dothrow.c:741 -- hurtle_jump(arg, x, y)
-export function hurtle_jump(arg, x, y) {
+export async function hurtle_jump(arg, x, y) {
     const save = arg._ewwalking_special || false;
     arg._ewwalking_special = true;
-    const res = hurtle_step(arg, x, y);
+    const res = await hurtle_step(arg, x, y);
     arg._ewwalking_special = save;
     return res;
 }
 
 // cf. dothrow.c:772 -- hurtle_step(arg, x, y)
-export function hurtle_step(arg, x, y) {
+export async function hurtle_step(arg, x, y) {
     const { player, map } = arg;
-    if (!isok(x, y)) { pline("You feel the spirits holding you back."); return false; }
+    if (!isok(x, y)) { await pline("You feel the spirits holding you back."); return false; }
     if (arg.range <= 0) return false;
     const loc = typeof map.at === 'function' ? map.at(x, y) : null;
     if (!loc) return false;
     if (loc.typ !== undefined && !ACCESSIBLE(loc.typ)) {
-        pline("Ouch!");
+        await pline("Ouch!");
         rnd(2 + arg.range); // consume RNG for damage
         return false;
     }
     const mon = map.monsterAt ? map.monsterAt(x, y) : null;
     if (mon) {
-        pline(`You bump into ${a_monnam(mon)}.`);
+        await pline(`You bump into ${a_monnam(mon)}.`);
         wakeup(mon, false, map, player);
         setmangry(mon, false, map, player);
         return false;
@@ -777,7 +777,7 @@ export function will_hurtle(mon, x, y, map, player) {
 }
 
 // cf. dothrow.c:991 [static] -- mhurtle_step(mon, x, y, map, player)
-function mhurtle_step(mon, x, y, map, player) {
+async function mhurtle_step(mon, x, y, map, player) {
     if (!isok(x, y)) return false;
     if (will_hurtle(mon, x, y, map, player)) {
         if (typeof map.removeMonster === 'function') map.removeMonster(mon.mx, mon.my);
@@ -787,34 +787,34 @@ function mhurtle_step(mon, x, y, map, player) {
     }
     const mtmp = map.monsterAt ? map.monsterAt(x, y) : null;
     if (mtmp && mtmp !== mon) {
-        pline(`${Monnam(mon)} bumps into ${a_monnam(mtmp)}.`);
+        await pline(`${Monnam(mon)} bumps into ${a_monnam(mtmp)}.`);
         wakeup(mtmp, true, map, player);
     } else if (player && x === player.x && y === player.y) {
-        pline(`${Monnam(mon)} bumps into you.`);
+        await pline(`${Monnam(mon)} bumps into you.`);
     }
     return false;
 }
 
 // cf. dothrow.c:1077 -- hurtle(dx, dy, range, verbose, player, map)
-export function hurtle(dx, dy, range, verbose, player, map) {
-    if (player.utrap) { pline("You are anchored by the trap."); return; }
+export async function hurtle(dx, dy, range, verbose, player, map) {
+    if (player.utrap) { await pline("You are anchored by the trap."); return; }
     dx = sgn(dx); dy = sgn(dy);
     if (!range || (!dx && !dy)) return;
-    if (verbose) pline(`You ${range > 1 ? 'hurtle' : 'float'} in the opposite direction.`);
-    endmultishot(true, player._m_shot);
+    if (verbose) await pline(`You ${range > 1 ? 'hurtle' : 'float'} in the opposite direction.`);
+    await endmultishot(true, player._m_shot);
     const uc = { x: player.x, y: player.y };
     const cc = { x: player.x + dx * range, y: player.y + dy * range };
     const arg = { range, player, map };
-    walk_path(uc, cc, (a, hx, hy) => hurtle_step(a, hx, hy), arg);
+    walk_path(uc, cc, async (a, hx, hy) => await hurtle_step(a, hx, hy), arg);
 }
 
 // cf. dothrow.c:1129 -- mhurtle(mon, dx, dy, range, map, player)
-export function mhurtle(mon, dx, dy, range, map, player) {
+export async function mhurtle(mon, dx, dy, range, map, player) {
     wakeup(mon, true, map, player);
     mon.movement = 0; mon.mstun = 1;
     const data = mon.data || (mons ? mons[mon.mndx] : null) || {};
     if ((data.msize || 0) >= MZ_HUGE || mon.mtrapped) {
-        pline(`${Monnam(mon)} doesn't budge!`);
+        await pline(`${Monnam(mon)} doesn't budge!`);
         return;
     }
     dx = sgn(dx); dy = sgn(dy);
@@ -822,18 +822,18 @@ export function mhurtle(mon, dx, dy, range, map, player) {
     if (mon.mundetected) mon.mundetected = 0;
     const mc = { x: mon.mx, y: mon.my };
     const cc = { x: mon.mx + dx * range, y: mon.my + dy * range };
-    walk_path(mc, cc, (_a, hx, hy) => mhurtle_step(mon, hx, hy, map, player), mon);
+    walk_path(mc, cc, async (_a, hx, hy) => await mhurtle_step(mon, hx, hy, map, player), mon);
 }
 
 // cf. dothrow.c:1180 [static] -- check_shop_obj(obj, x, y, broken)
 // Autotranslated from dothrow.c:1180
-export function check_shop_obj(obj, x, y, broken, player) {
+export async function check_shop_obj(obj, x, y, broken, player) {
   let costly_xy, shkp = shop_keeper( player.ushops);
   if (!shkp) return;
   costly_xy = costly_spot(x, y);
   if (broken || !costly_xy || in_rooms(x, y, SHOPBASE) !== player.ushops) {
     if (is_unpaid(obj)) {
-      stolen_value(obj, player.x, player.y,  shkp.mpeaceful, false);
+      await stolen_value(obj, player.x, player.y,  shkp.mpeaceful, false);
     }
     if (broken) obj.no_charge = 1;
   }
@@ -843,7 +843,7 @@ export function check_shop_obj(obj, x, y, broken, player) {
       if (is_unpaid(obj)) {
         let gtg = Has_contents(obj) ? contained_gold(obj, true) : 0;
         subfrombill(obj, shkp);
-        if (gtg > 0) donate_gold(gtg, shkp, true);
+        if (gtg > 0) await donate_gold(gtg, shkp, true);
       }
       else if (x !== shkp.mx || y !== shkp.my) { sellobj(obj, x, y); }
     }
@@ -869,27 +869,27 @@ export function harmless_missile(obj) {
 }
 
 // cf. dothrow.c:1255 [static] -- toss_up(obj, hitsroof, player, map)
-export function toss_up(obj, hitsroof, player, map) {
+export async function toss_up(obj, hitsroof, player, map) {
     if (hitsroof) {
         if (breaktest(obj)) {
-            pline(`The ${xname(obj)} hits the ceiling.`);
-            breakmsg(obj, !player.blind);
-            if (breakobj(obj, player.x, player.y, true, true, player, map)) return false;
-            hitfloor(obj, false, player, map);
+            await pline(`The ${xname(obj)} hits the ceiling.`);
+            await breakmsg(obj, !player.blind);
+            if (await breakobj(obj, player.x, player.y, true, true, player, map)) return false;
+            await hitfloor(obj, false, player, map);
             return true;
         }
     }
-    pline(`The ${xname(obj)} hits the ceiling, then falls back on top of your head.`);
+    await pline(`The ${xname(obj)} hits the ceiling, then falls back on top of your head.`);
     if (obj.oclass === POTION_CLASS) {
         // potionhit stub
         return false;
     } else if (breaktest(obj)) {
-        breakmsg(obj, !player.blind);
-        if (breakobj(obj, player.x, player.y, true, true, player, map)) return false;
-        hitfloor(obj, false, player, map);
+        await breakmsg(obj, !player.blind);
+        if (await breakobj(obj, player.x, player.y, true, true, player, map)) return false;
+        await hitfloor(obj, false, player, map);
     } else if (harmless_missile(obj)) {
-        pline("It doesn't hurt.");
-        hitfloor(obj, false, player, map);
+        await pline("It doesn't hurt.");
+        await hitfloor(obj, false, player, map);
     } else {
         let dmg = dmgval(obj, player);
         if (!dmg) {
@@ -897,7 +897,7 @@ export function toss_up(obj, hitsroof, player, map) {
             dmg = dmg <= 1 ? 1 : rnd(dmg);
             if (dmg > 6) dmg = 6;
         }
-        hitfloor(obj, true, player, map);
+        await hitfloor(obj, true, player, map);
     }
     return true;
 }
@@ -1001,10 +1001,10 @@ export function swallowit(obj, player, game) {
 }
 
 // cf. dothrow.c:1481 -- throwit_mon_hit(obj, mon, player, map, game)
-export function throwit_mon_hit(obj, mon, player, map, game) {
+export async function throwit_mon_hit(obj, mon, player, map, game) {
     if (mon) {
         if (mon.isshk && obj.where === 'minvent' && obj.ocarry === mon) return true;
-        const obj_gone = thitmonst(mon, obj, player, map, game);
+        const obj_gone = await thitmonst(mon, obj, player, map, game);
         if (obj_gone && game) game.thrownobj = null;
     }
     return false;
@@ -1019,10 +1019,10 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
     if ((obj.cursed || obj.greased) && (player.dx || player.dy) && !rn2(7)) {
         let slipok = true;
         if (ammo_and_launcher(obj, uwep)) {
-            pline(`The ${xname(obj)} misfires!`);
+            await pline(`The ${xname(obj)} misfires!`);
         } else {
             if (obj.greased || throwing_weapon(obj))
-                pline(`The ${xname(obj)} slips as you throw it!`);
+                await pline(`The ${xname(obj)} slips as you throw it!`);
             else slipok = false;
         }
         if (slipok) {
@@ -1034,8 +1034,8 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
     if (game) { game.thrownobj = obj; obj.how_lost = 'thrown'; }
 
     if (player.dz) {
-        if (player.dz < 0) toss_up(obj, rn2(5), player, map);
-        else hitfloor(obj, true, player, map);
+        if (player.dz < 0) await toss_up(obj, rn2(5), player, map);
+        else await hitfloor(obj, true, player, map);
         throwit_return(true, game);
         return;
     }
@@ -1083,7 +1083,7 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
     }
     if (game) game.bhitpos = { x: bx, y: by };
 
-    if (throwit_mon_hit(obj, hitMon, player, map, game)) { throwit_return(true, game); return; }
+    if (await throwit_mon_hit(obj, hitMon, player, map, game)) { throwit_return(true, game); return; }
     if (game && !game.thrownobj) { throwit_return(false, game); return; }
 
     if (tethered_weapon) {
@@ -1110,8 +1110,8 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
 
     const landLoc = typeof map.at === 'function' ? map.at(bx, by) : null;
     if (landLoc && !IS_SOFT(landLoc.typ) && breaktest(obj)) {
-        breakmsg(obj, true);
-        if (breakobj(obj, bx, by, true, true, player, map)) { throwit_return(true, game); return; }
+        await breakmsg(obj, true);
+        if (await breakobj(obj, bx, by, true, true, player, map)) { throwit_return(true, game); return; }
     }
     obj.ox = bx; obj.oy = by;
     placeFloorObject(map, obj);
@@ -1156,8 +1156,8 @@ export function omon_adj(mon, obj, mon_notices) {
 }
 
 // cf. dothrow.c:1950 [static] -- tmiss(obj, mon, maybe_wakeup, player, map)
-export function tmiss(obj, mon, maybe_wakeup, player, map) {
-    pline(`The ${xname(obj)} misses ${mon_nam(mon)}.`);
+export async function tmiss(obj, mon, maybe_wakeup, player, map) {
+    await pline(`The ${xname(obj)} misses ${mon_nam(mon)}.`);
     if (maybe_wakeup && !rn2(3)) wakeup(mon, true, map, player);
 }
 
@@ -1177,7 +1177,7 @@ export function should_mulch_missile(obj) {
 }
 
 // cf. dothrow.c:2010 -- thitmonst(mon, obj, player, map, game)
-export function thitmonst(mon, obj, player, map, game) {
+export async function thitmonst(mon, obj, player, map, game) {
     const uwep = player.weapon;
     const otyp = obj.otyp;
     const data = mon.data || (mons ? mons[mon.mndx] : null) || {};
@@ -1199,9 +1199,9 @@ export function thitmonst(mon, obj, player, map, game) {
     // Unicorn gem acceptance
     if (obj.oclass === GEM_CLASS && is_unicorn(data)
         && (objectData[obj.otyp]?.material ?? 0) !== MINERAL && !uslinging_check(player)) {
-        if (mon.msleeping || !mon.mcanmove) { tmiss(obj, mon, false, player, map); return 0; }
-        else if (mon.mtame) { pline(`${Monnam(mon)} catches and drops the ${xname(obj)}.`); return 0; }
-        else { pline(`${Monnam(mon)} catches the ${xname(obj)}.`); return gem_accept(mon, obj, player, map); }
+        if (mon.msleeping || !mon.mcanmove) { await tmiss(obj, mon, false, player, map); return 0; }
+        else if (mon.mtame) { await pline(`${Monnam(mon)} catches and drops the ${xname(obj)}.`); return 0; }
+        else { await pline(`${Monnam(mon)} catches the ${xname(obj)}.`); return await gem_accept(mon, obj, player, map); }
     }
 
     const dieroll = rnd(20);
@@ -1222,25 +1222,25 @@ export function thitmonst(mon, obj, player, map, game) {
         if (tmp >= dieroll) {
             const dmg = dmgval(obj, mon);
             if (mon.mhp !== undefined) mon.mhp -= dmg;
-            exercise(player, 3, true);
+            await exercise(player, 3, true);
             if (should_mulch_missile(obj)) return 1;
         } else {
-            tmiss(obj, mon, true, player, map);
+            await tmiss(obj, mon, true, player, map);
         }
     } else if (otyp === HEAVY_IRON_BALL) {
-        exercise(player, 0, true);
+        await exercise(player, 0, true);
         if (tmp >= dieroll) {
-            exercise(player, 3, true);
+            await exercise(player, 3, true);
             const dmg = dmgval(obj, mon);
             if (mon.mhp !== undefined) mon.mhp -= dmg;
-        } else { tmiss(obj, mon, true, player, map); }
+        } else { await tmiss(obj, mon, true, player, map); }
     } else if (otyp === BOULDER) {
-        exercise(player, 0, true);
+        await exercise(player, 0, true);
         if (tmp >= dieroll) {
-            exercise(player, 3, true);
+            await exercise(player, 3, true);
             const dmg = dmgval(obj, mon);
             if (mon.mhp !== undefined) mon.mhp -= dmg;
-        } else { tmiss(obj, mon, true, player, map); }
+        } else { await tmiss(obj, mon, true, player, map); }
     } else if ((otyp === EGG || otyp === CREAM_PIE || otyp === BLINDING_VENOM || otyp === ACID_VENOM)
                && (dex > rnd(25))) {
         const dmg = dmgval(obj, mon);
@@ -1250,13 +1250,13 @@ export function thitmonst(mon, obj, player, map, game) {
         // potionhit stub
         return 1;
     } else {
-        tmiss(obj, mon, true, player, map);
+        await tmiss(obj, mon, true, player, map);
     }
     return 0;
 }
 
 // cf. dothrow.c:2308 [static] -- gem_accept(mon, obj, player, map)
-function gem_accept(mon, obj, player, _map) {
+async function gem_accept(mon, obj, player, _map) {
     const data = mon.data || (mons ? mons[mon.mndx] : null) || {};
     const is_buddy = sgn(data.maligntyp || 0) === sgn(player.alignment || 0);
     const is_gem = (objectData[obj.otyp]?.material ?? 0) === GEMSTONE;
@@ -1268,12 +1268,12 @@ function gem_accept(mon, obj, player, _map) {
         if (is_gem) {
             if (is_buddy) { buf += ' gratefully'; change_luck(player, 5); }
             else { buf += ' hesitatingly'; change_luck(player, rn2(7) - 3); }
-        } else { pline(`${buf} is not interested in your junk.`); return 0; }
+        } else { await pline(`${buf} is not interested in your junk.`); return 0; }
     } else if (obj.oname || objectData[obj.otyp]?.uname) {
         if (is_gem) {
             if (is_buddy) { buf += ' gratefully'; change_luck(player, 2); }
             else { buf += ' hesitatingly'; change_luck(player, rn2(3) - 1); }
-        } else { pline(`${buf} is not interested in your junk.`); return 0; }
+        } else { await pline(`${buf} is not interested in your junk.`); return 0; }
     } else {
         if (is_gem) {
             if (is_buddy) { buf += ' gratefully'; change_luck(player, 1); }
@@ -1283,43 +1283,43 @@ function gem_accept(mon, obj, player, _map) {
     buf += ' accepts your gift.';
     mpickobj(mon, obj);
     ret = 1;
-    pline(buf);
+    await pline(buf);
     return ret;
 }
 
 // cf. dothrow.c:2416 -- hero_breaks(obj, x, y, breakflags, player, map)
-export function hero_breaks(obj, x, y, breakflags, player, map) {
+export async function hero_breaks(obj, x, y, breakflags, player, map) {
     const from_invent = (breakflags & BRK_FROM_INV) !== 0;
     const in_view = player.blind ? false : from_invent;
     let brk = breakflags & BRK_KNOWN_OUTCOME;
     if (!brk) brk = breaktest(obj) ? BRK_KNOWN2BREAK : BRK_KNOWN2NOTBREAK;
     if (brk === BRK_KNOWN2NOTBREAK) return 0;
-    breakmsg(obj, in_view);
-    return breakobj(obj, x, y, true, from_invent, player, map);
+    await breakmsg(obj, in_view);
+    return await breakobj(obj, x, y, true, from_invent, player, map);
 }
 
 // cf. dothrow.c:2443 -- breaks(obj, x, y, player, map)
-export function breaks(obj, x, y, player, map) {
+export async function breaks(obj, x, y, player, map) {
     const in_view = player && !player.blind;
     if (!breaktest(obj)) return 0;
-    breakmsg(obj, in_view);
-    return breakobj(obj, x, y, false, false, player, map);
+    await breakmsg(obj, in_view);
+    return await breakobj(obj, x, y, false, false, player, map);
 }
 
 // cf. dothrow.c:2456 -- release_camera_demon(obj, x, y, map)
-export function release_camera_demon(obj, x, y, map) {
+export async function release_camera_demon(obj, x, y, map) {
     if (!rn2(3)) {
         const pm = rn2(3) ? PM_HOMUNCULUS : PM_IMP;
         const mtmp = makemon(mons[pm], x, y, 0x08, 0, map);
         if (mtmp) {
-            pline("The picture-painting demon is released!");
+            await pline("The picture-painting demon is released!");
             mtmp.mpeaceful = !obj.cursed ? 1 : 0;
         }
     }
 }
 
 // cf. dothrow.c:2479 -- breakobj(obj, x, y, hero_caused, from_invent, player, map)
-export function breakobj(obj, x, y, hero_caused, from_invent, player, map) {
+export async function breakobj(obj, x, y, hero_caused, from_invent, player, map) {
     let fracture = false;
     if (is_crackable(obj)) {
         const result = erode_obj(obj, null, ERODE_CRACK, EF_DESTROY | EF_VERBOSE);
@@ -1329,7 +1329,7 @@ export function breakobj(obj, x, y, hero_caused, from_invent, player, map) {
     switch (etype) {
     case MIRROR: if (hero_caused) change_luck(player, -2); break;
     case POT_WATER: break; // potion effects stub
-    case EXPENSIVE_CAMERA: release_camera_demon(obj, x, y, map); break;
+    case EXPENSIVE_CAMERA: await release_camera_demon(obj, x, y, map); break;
     case EGG:
         if (hero_caused && obj.spe && obj.corpsenm !== undefined && obj.corpsenm >= 0)
             change_luck(player, -Math.min(obj.quan || 1, 5));
@@ -1337,7 +1337,7 @@ export function breakobj(obj, x, y, hero_caused, from_invent, player, map) {
     case BOULDER: fracture = true; break;
     default: break;
     }
-    if (hero_caused && (from_invent || obj.unpaid)) check_shop_obj(obj, x, y, true);
+    if (hero_caused && (from_invent || obj.unpaid)) await check_shop_obj(obj, x, y, true);
     if (!fracture) {
         if (typeof map.removeFloorObject === 'function') map.removeFloorObject(obj);
         obj._deleted = true;
@@ -1363,7 +1363,7 @@ export function breaktest(obj) {
 }
 
 // cf. dothrow.c:2611 [static] -- breakmsg(obj, in_view)
-export function breakmsg(obj, in_view) {
+export async function breakmsg(obj, in_view) {
     if (is_crackable(obj)) return;
     let to_pieces = '';
     const etype = obj.oclass === POTION_CLASS ? POT_WATER : obj.otyp;
@@ -1372,32 +1372,32 @@ export function breakmsg(obj, in_view) {
         to_pieces = ' into a thousand pieces';
         // fall through
     case POT_WATER: // eslint-disable-line no-fallthrough
-        if (!in_view) pline('You hear something shatter!');
-        else pline(`The ${xname(obj)} shatters${to_pieces}!`);
+        if (!in_view) await pline('You hear something shatter!');
+        else await pline(`The ${xname(obj)} shatters${to_pieces}!`);
         break;
-    case EGG: case MELON: pline("Splat!"); break;
-    case CREAM_PIE: if (in_view) pline("What a mess!"); break;
-    case ACID_VENOM: case BLINDING_VENOM: pline("Splash!"); break;
+    case EGG: case MELON: await pline("Splat!"); break;
+    case CREAM_PIE: if (in_view) await pline("What a mess!"); break;
+    case ACID_VENOM: case BLINDING_VENOM: await pline("Splash!"); break;
     default:
-        if (!in_view) pline('You hear something shatter!');
-        else pline(`The ${xname(obj)} shatters${to_pieces}!`);
+        if (!in_view) await pline('You hear something shatter!');
+        else await pline(`The ${xname(obj)} shatters${to_pieces}!`);
         break;
     }
 }
 
 // cf. dothrow.c:2655 [static] -- throw_gold(obj, player, map, game)
-export function throw_gold(obj, player, map, _game) {
+export async function throw_gold(obj, player, map, _game) {
     const dx = player.dx || 0, dy = player.dy || 0, dz = player.dz || 0;
-    if (!dx && !dy && !dz) { pline("You cannot throw gold at yourself."); return 0; }
+    if (!dx && !dy && !dz) { await pline("You cannot throw gold at yourself."); return 0; }
     if (typeof player.removeFromInventory === 'function') player.removeFromInventory(obj);
     if (player.uswallow && player.ustuck) {
-        pline(`The gold disappears into ${mon_nam(player.ustuck)}.`);
+        await pline(`The gold disappears into ${mon_nam(player.ustuck)}.`);
         mpickobj(player.ustuck, obj);
         return 1;
     }
     let bx = player.x, by = player.y;
     if (dz) {
-        if (dz < 0) pline("The gold hits the ceiling, then falls back on top of your head.");
+        if (dz < 0) await pline("The gold hits the ceiling, then falls back on top of your head.");
     } else {
         const range = Math.max(1, Math.floor((player.str || 10) / 2 - (obj.owt || 0) / 40));
         const odx = player.x + dx, ody = player.y + dy;
@@ -1413,7 +1413,7 @@ export function throw_gold(obj, player, map, _game) {
             }
         }
     }
-    if (dz > 0) pline("The gold hits the floor.");
+    if (dz > 0) await pline("The gold hits the floor.");
     obj.ox = bx; obj.oy = by;
     placeFloorObject(map, obj);
     return 1;

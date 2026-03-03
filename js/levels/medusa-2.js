@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection, percent } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack medusa medusa-2.lua	$NHDT-Date: 1652196027 2022/5/10 15:20:27 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1990, 1991 by M. Stephenson
@@ -96,11 +96,11 @@ export function generate() {
     des.object();
     des.object();
     // Traps
-    des.trap("magic",3,12);
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap("magic",3,12);
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // Monsters.
     des.monster({ id: "Medusa",x: 68,y: 10,asleep: 1 });
     des.monster("gremlin",2,14);
@@ -138,5 +138,5 @@ export function generate() {
 
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

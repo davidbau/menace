@@ -16,14 +16,14 @@ function makePlayer() {
     };
 }
 
-test('overexertion uses gethungry path and consumes hunger RNG', () => {
+test('overexertion uses gethungry path and consumes hunger RNG', async () => {
     const player = makePlayer();
     const game = { moves: 1, multi: 0 };
     const display = { putstr_message() {} };
 
     initRng(12345);
     enableRngLog();
-    const fainted = overexertion(player, game, display);
+    const fainted = await overexertion(player, game, display);
     const log = getRngLog() || [];
     disableRngLog();
 
@@ -33,7 +33,7 @@ test('overexertion uses gethungry path and consumes hunger RNG', () => {
     assert.ok(log.some((entry) => entry.includes('rn2(20)='))); // gethungry()
 });
 
-test('overexertion still applies hunger when encumbrance damage gate is off', () => {
+test('overexertion still applies hunger when encumbrance damage gate is off', async () => {
     const player = makePlayer();
     player.inventory = [];
     const game = { moves: 3, multi: 0 };
@@ -41,7 +41,7 @@ test('overexertion still applies hunger when encumbrance damage gate is off', ()
 
     initRng(7);
     enableRngLog();
-    overexertion(player, game, display);
+    await overexertion(player, game, display);
     const log = getRngLog() || [];
     disableRngLog();
 
@@ -50,7 +50,7 @@ test('overexertion still applies hunger when encumbrance damage gate is off', ()
     assert.ok(log.some((entry) => entry.includes('rn2(20)=')));
 });
 
-test('overexertion uses polymorph HP pool when upolyd is active', () => {
+test('overexertion uses polymorph HP pool when upolyd is active', async () => {
     const player = makePlayer();
     player.upolyd = true;
     player.mh = 6;
@@ -58,7 +58,7 @@ test('overexertion uses polymorph HP pool when upolyd is active', () => {
     const display = { putstr_message() {} };
 
     initRng(77);
-    overexertion(player, game, display);
+    await overexertion(player, game, display);
 
     assert.equal(player.mh, 5);
     assert.equal(player.hp, 10); // unchanged when using poly hp pool

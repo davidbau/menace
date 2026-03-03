@@ -91,10 +91,10 @@ describe('Object save/restore (saveObj/restObj)', () => {
 // saveMon / restMon -- C ref: savemon / restmon
 // ========================================================================
 describe('Monster save/restore (saveMon/restMon)', () => {
-    it('round-trips a monster created by makemon()', () => {
+    it('round-trips a monster created by makemon()', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         // Find an unoccupied tile to place a monster
@@ -142,10 +142,10 @@ describe('Monster save/restore (saveMon/restMon)', () => {
         assert.equal(restored.dead, mon.dead);
     });
 
-    it('round-trips through JSON.stringify/parse', () => {
+    it('round-trips through JSON.stringify/parse', async () => {
         initRng(99);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         const room = map.rooms[0];
@@ -379,10 +379,10 @@ describe('Player save/restore (saveYou/restYou)', () => {
 // saveLev / restLev -- C ref: savelev / getlev
 // ========================================================================
 describe('Level save/restore (saveLev/restLev)', () => {
-    it('round-trips a generated level', () => {
+    it('round-trips a generated level', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         const data = saveLev(map);
@@ -406,10 +406,10 @@ describe('Level save/restore (saveLev/restLev)', () => {
         }
     });
 
-    it('round-trips rooms', () => {
+    it('round-trips rooms', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         const data = saveLev(map);
@@ -427,10 +427,10 @@ describe('Level save/restore (saveLev/restLev)', () => {
         }
     });
 
-    it('round-trips stairs', () => {
+    it('round-trips stairs', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(3);
+        const map = await makelevel(3);
         wallification(map);
 
         const restored = restLev(JSON.parse(JSON.stringify(saveLev(map))));
@@ -440,10 +440,10 @@ describe('Level save/restore (saveLev/restLev)', () => {
         assert.equal(restored.dnstair.y, map.dnstair.y);
     });
 
-    it('round-trips monsters with full fidelity', () => {
+    it('round-trips monsters with full fidelity', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
         const origCount = map.monsters.length;
         assert.ok(origCount > 0, 'Level should have monsters');
@@ -465,10 +465,10 @@ describe('Level save/restore (saveLev/restLev)', () => {
         }
     });
 
-    it('round-trips objects', () => {
+    it('round-trips objects', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
         const origCount = map.objects.length;
 
@@ -482,10 +482,10 @@ describe('Level save/restore (saveLev/restLev)', () => {
         }
     });
 
-    it('round-trips traps', () => {
+    it('round-trips traps', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(3); // deeper levels more likely to have traps
+        const map = await makelevel(3); // deeper levels more likely to have traps
         wallification(map);
 
         const restored = restLev(JSON.parse(JSON.stringify(saveLev(map))));
@@ -496,10 +496,10 @@ describe('Level save/restore (saveLev/restLev)', () => {
         }
     });
 
-    it('round-trips level flags', () => {
+    it('round-trips level flags', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         // Set some flags for testing
         map.flags.has_shop = true;
         map.flags.nfountains = 2;
@@ -516,10 +516,10 @@ describe('Level save/restore (saveLev/restLev)', () => {
         assert.equal(restored.isBones, true);
     });
 
-    it('round-trips smeq array', () => {
+    it('round-trips smeq array', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         const restored = restLev(JSON.parse(JSON.stringify(saveLev(map))));
@@ -542,10 +542,10 @@ describe('Save/load game (localStorage, v2 format)', () => {
         store.clear();
     });
 
-    it('saveGame + loadSave round-trips game state', () => {
+    it('saveGame + loadSave round-trips game state', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         const player = new Player();
@@ -619,10 +619,10 @@ describe('Save/load game (localStorage, v2 format)', () => {
         assert.equal(loadSave(), null);
     });
 
-    it('full Player round-trip through save/load', () => {
+    it('full Player round-trip through save/load', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         const player = new Player();
@@ -654,10 +654,10 @@ describe('Save/load game (localStorage, v2 format)', () => {
         assert.equal(restored.player.roleName, 'Knight');
     });
 
-    it('full RNG round-trip: restore produces identical future values', () => {
+    it('full RNG round-trip: restore produces identical future values', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         // Snapshot RNG state
@@ -727,10 +727,10 @@ describe('Bones files (localStorage)', () => {
         assert.equal(loadBones(99), null);
     });
 
-    it('bones map can be deserialized with restLev', () => {
+    it('bones map can be deserialized with restLev', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
         const mapData = saveLev(map);
         mapData.isBones = true;
@@ -928,13 +928,13 @@ describe('Multi-level save (v2 format)', () => {
         store.clear();
     });
 
-    it('saves and restores multiple dungeon levels', () => {
+    it('saves and restores multiple dungeon levels', async () => {
         initRng(42);
         initLevelGeneration();
 
-        const map1 = makelevel(1);
+        const map1 = await makelevel(1);
         wallification(map1);
-        const map3 = makelevel(3);
+        const map3 = await makelevel(3);
         wallification(map3);
 
         const player = new Player();

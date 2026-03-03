@@ -65,8 +65,8 @@ if (goldenFiles.length === 0) {
             describe(`seed ${seed} (depths 1-${maxDepth})`, () => {
                 let result;
 
-                it('generates levels sequentially', () => {
-                    result = generateMapsSequential(seed, maxDepth);
+                it('generates levels sequentially', async () => {
+                    result = await generateMapsSequential(seed, maxDepth);
                 });
 
                 for (const level of session.levels) {

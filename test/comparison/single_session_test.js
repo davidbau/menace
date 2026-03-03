@@ -23,11 +23,11 @@ describe(sessionFile, () => {
     const needsRng = session.levels.some(l => l.rng || l.rngCalls !== undefined);
 
     let result;
-    before(() => {
+    before(async () => {
         console.log(`Generating levels for seed ${session.seed}, maxDepth=${maxDepth}, needsRng=${needsRng}`);
         result = needsRng
-            ? generateMapsWithRng(session.seed, maxDepth)
-            : generateMapsSequential(session.seed, maxDepth);
+            ? await generateMapsWithRng(session.seed, maxDepth)
+            : await generateMapsSequential(session.seed, maxDepth);
         console.log(`Generation complete: ${Object.keys(result.grids).length} levels generated`);
     });
 

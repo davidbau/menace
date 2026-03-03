@@ -1052,7 +1052,7 @@ const CIRCLE_START = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 105, 1
 // C ref: vision.c:2095-2137 — do_clear_area
 // Compute LOS from (scol, srow) and call func(x, y, arg) for each visible
 // position within range. Used by dog_goal's wantdoor search.
-export function do_clear_area(fov, map, scol, srow, range, func, arg) {
+export async function do_clear_area(fov, map, scol, srow, range, func, arg) {
     const fovObj = fov || activeFov;
     if (!map || !isok(scol, srow) || typeof func !== 'function') return;
     const r = range | 0;
@@ -1097,7 +1097,7 @@ export function do_clear_area(fov, map, scol, srow, range, func, arg) {
         const xmax = Math.min(COLNO - 1, px + offset);
         for (let x = xmin; x <= xmax; x++) {
             if (override_vision || canSee(x, y))
-                func(x, y, arg);
+                await func(x, y, arg);
         }
     }
 }

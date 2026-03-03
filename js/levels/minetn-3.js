@@ -13,7 +13,7 @@ function monkfoodshop() {
 }
 
 
-export function generate() {
+export async function generate() {
     const align = [A_CHAOTIC, A_NEUTRAL, A_LAWFUL];
     shuffle(align);
 
@@ -147,9 +147,9 @@ export function generate() {
                                              }
     })
 
-    des.room({ type: "ordinary", contents: function() {
+    des.room({ type: "ordinary", contents: async function() {
                   des.stair("down");
-                  des.trap();
+                  await des.trap();
                   des.monster("gnome");
                   des.monster("gnome");
                                              }
@@ -160,8 +160,8 @@ export function generate() {
                                               }
     })
 
-    des.room({ type: "ordinary", contents: function() {
-                  des.trap();
+    des.room({ type: "ordinary", contents: async function() {
+                  await des.trap();
                   des.monster("gnome");
                                              }
     })
@@ -169,5 +169,5 @@ export function generate() {
     des.random_corridors();
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

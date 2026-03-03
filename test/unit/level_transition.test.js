@@ -5,13 +5,13 @@ import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.
 import { getArrivalPosition } from '../../js/do.js';
 
 describe('Level transition arrival placement', () => {
-    it('returns to downstairs when going back up after descending', () => {
+    it('returns to downstairs when going back up after descending', async () => {
         initRng(42);
         initLevelGeneration();
 
-        const level1 = makelevel(1);
+        const level1 = await makelevel(1);
         wallification(level1);
-        const level2 = makelevel(2);
+        const level2 = await makelevel(2);
         wallification(level2);
 
         const descendArrival = getArrivalPosition(level2, 2, 'down');

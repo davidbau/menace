@@ -485,7 +485,7 @@ export function mtele_trap(mtmp, trap, in_sight, map, player, display, fov) {
 // Monster level teleport trap. Returns 0 if still on level, 1 if moved.
 // ============================================================================
 
-export function mlevel_tele_trap(mtmp, trap, force_it, in_sight, map, player) {
+export async function mlevel_tele_trap(mtmp, trap, force_it, in_sight, map, player) {
     const tt = trap ? trap.ttyp : NO_TRAP;
     if (!mtmp) return 0;
     if (mtmp === player?.ustuck) return 0;
@@ -499,7 +499,7 @@ export function mlevel_tele_trap(mtmp, trap, force_it, in_sight, map, player) {
             const mname = (typeof mtmp?.name === 'string' && mtmp.name.length > 0)
                 ? mtmp.name
                 : 'it';
-            pline(`Suddenly, ${mname} disappears out of sight.`);
+            await pline(`Suddenly, ${mname} disappears out of sight.`);
             // C ref: teleport.c:2082 — seetrap(trap) when in_sight
             if (trap && !trap.tseen) { trap.tseen = 1; newsym(trap.tx, trap.ty); }
         }
@@ -618,7 +618,7 @@ function teleok(x, y, trapok, game) {
 // cf. teleport.c:442 — teleds(nx, ny, flags): move hero to new position
 // ============================================================================
 
-export function teleds(nx, ny, flags, game) {
+export async function teleds(nx, ny, flags, game) {
     const player = (game.u || game.player);
     const map = (game.lev || game.map);
     const is_teleport = (flags & TELEDS_TELEPORT) !== 0;
@@ -640,7 +640,7 @@ export function teleds(nx, ny, flags, game) {
 
     if (is_teleport) {
         const same = (nx === ux0 && ny === uy0);
-        pline(`You materialize in ${same ? "the same" : "a different"} location!`);
+        await pline(`You materialize in ${same ? "the same" : "a different"} location!`);
     }
 }
 
@@ -648,7 +648,7 @@ export function teleds(nx, ny, flags, game) {
 // cf. teleport.c:712 — safe_teleds(flags): find safe spot and teleport hero
 // ============================================================================
 
-export function safe_teleds(flags, game) {
+export async function safe_teleds(flags, game) {
     const map = (game.lev || game.map);
     const player = (game.u || game.player);
 
@@ -657,7 +657,7 @@ export function safe_teleds(flags, game) {
         const nux = rnd(COLNO - 1);
         const nuy = rn2(ROWNO);
         if (teleok(nux, nuy, false, game)) {
-            teleds(nux, nuy, flags, game);
+            await teleds(nux, nuy, flags, game);
             return true;
         }
     }
@@ -673,7 +673,7 @@ export function safe_teleds(flags, game) {
         const nux = candy[tcnt].x;
         const nuy = candy[tcnt].y;
         if (teleok(nux, nuy, false, game)) {
-            teleds(nux, nuy, flags, game);
+            await teleds(nux, nuy, flags, game);
             return true;
         }
         if (!backupX) {
@@ -687,7 +687,7 @@ export function safe_teleds(flags, game) {
 
     // Fall back to trap spot
     if (backupX) {
-        teleds(backupX, backupY, flags, game);
+        await teleds(backupX, backupY, flags, game);
         return true;
     }
     return false;
@@ -706,19 +706,19 @@ export async function tele() {
 // cf. teleport.c:844 — scrolltele(scroll): hero teleport, possibly controlled
 // ============================================================================
 
-export function scrolltele(scroll, game) {
+export async function scrolltele(scroll, game) {
     const player = (game.u || game.player);
     const map = (game.lev || game.map);
 
     // cf. teleport.c:849 — check no-teleport level
     if (noteleport_level(player, map)) {
-        pline("A mysterious force prevents you from teleporting!");
+        await pline("A mysterious force prevents you from teleporting!");
         return;
     }
 
     // cf. teleport.c:860 — Amulet of Yendor interference
     if (player.hasAmulet && !rn2(3)) {
-        pline("You feel disoriented for a moment.");
+        await pline("You feel disoriented for a moment.");
         return;
     }
 
@@ -727,14 +727,14 @@ export function scrolltele(scroll, game) {
     // TODO: implement controlled teleport with UI
 
     // cf. teleport.c:909 — random teleport
-    safe_teleds(TELEDS_TELEPORT, game);
+    await safe_teleds(TELEDS_TELEPORT, game);
 }
 
 // ============================================================================
 // cf. teleport.c:1029 — dotele(break_the_rules): #teleport command
 // ============================================================================
 
-export function dotele(break_the_rules, game) {
+export async function dotele(break_the_rules, game) {
     const player = (game.u || game.player);
     const map = (game.lev || game.map);
 
@@ -745,7 +745,7 @@ export function dotele(break_the_rules, game) {
     if (trap) {
         if (trap.ttyp === LEVEL_TELEP && trap.tseen) {
             // level teleport trap — trigger it
-            level_tele_trap(trap, 0x02 /* FORCETRAP */, game);
+            await level_tele_trap(trap, 0x02 /* FORCETRAP */, game);
             return 1;
         } else if (trap.ttyp === TELEP_TRAP) {
             if (trap.once) {
@@ -760,7 +760,7 @@ export function dotele(break_the_rules, game) {
     if (!trap && !break_the_rules) {
         // cf. teleport.c:1069 — check Teleportation intrinsic
         if (!player.teleportation) {
-            pline("You don't know that spell.");
+            await pline("You don't know that spell.");
             return 0;
         }
     }
@@ -774,12 +774,12 @@ export function dotele(break_the_rules, game) {
 // cf. teleport.c:1160 — level_tele(): level teleportation
 // ============================================================================
 
-export function level_tele(game) {
+export async function level_tele(game) {
     const player = (game.u || game.player);
 
     // cf. teleport.c:1180 — Amulet/endgame prevention
     if (player.hasAmulet) {
-        pline("You feel very disoriented for a moment.");
+        await pline("You feel very disoriented for a moment.");
         return;
     }
 
@@ -788,26 +788,26 @@ export function level_tele(game) {
     const nlev = random_teleport_level(cur_depth, game);
 
     if (nlev === cur_depth) {
-        pline("You shudder for a moment.");
+        await pline("You shudder for a moment.");
         return;
     }
 
     // Schedule level change
     // TODO: implement schedule_goto for actual level changes
-    pline(`You are teleported to level ${nlev}!`);
+    await pline(`You are teleported to level ${nlev}!`);
 }
 
 // ============================================================================
 // cf. teleport.c:1439 — domagicportal(trap): magic portal handler
 // ============================================================================
 
-export function domagicportal(trap, game) {
+export async function domagicportal(trap, game) {
     // cf. teleport.c:1458
-    pline("You activated a magic portal!");
+    await pline("You activated a magic portal!");
 
     // cf. teleport.c:1464 — endgame without amulet
     if (game && (game.u || game.player) && (game.u || game.player).inEndgame && !(game.u || game.player).hasAmulet) {
-        pline("You feel dizzy for a moment, but nothing happens...");
+        await pline("You feel dizzy for a moment, but nothing happens...");
         return;
     }
 
@@ -820,7 +820,7 @@ export function domagicportal(trap, game) {
 
 let in_tele_trap = false;
 
-export function tele_trap(trap, game) {
+export async function tele_trap(trap, game) {
     const player = (game.u || game.player);
     const map = (game.lev || game.map);
 
@@ -831,7 +831,7 @@ export function tele_trap(trap, game) {
     try {
         // cf. teleport.c:1497 — endgame or antimagic resistance
         if (player.antimagic) {
-            pline("You feel a wrenching sensation.");
+            await pline("You feel a wrenching sensation.");
             return;
         }
 
@@ -854,7 +854,7 @@ export function tele_trap(trap, game) {
                 }
             }
             if (!map.monsterAt(trap.teledest_x, trap.teledest_y)) {
-                teleds(trap.teledest_x, trap.teledest_y, TELEDS_TELEPORT, game);
+                await teleds(trap.teledest_x, trap.teledest_y, TELEDS_TELEPORT, game);
             }
             return;
         }
@@ -870,31 +870,31 @@ export function tele_trap(trap, game) {
 // cf. teleport.c:1533 — level_tele_trap(trap, trflags): level teleport trap
 // ============================================================================
 
-export function level_tele_trap(trap, trflags, game) {
+export async function level_tele_trap(trap, trflags, game) {
     const player = (game.u || game.player);
     const map = (game.lev || game.map);
     const intentional = (trflags & 0x02) !== 0; // FORCETRAP or VIASITTING
 
-    pline("You step onto a level teleport trap!");
+    await pline("You step onto a level teleport trap!");
 
     // cf. teleport.c:1545 — antimagic resistance
     if (player.antimagic && !intentional) {
-        pline("You feel a wrenching sensation.");
+        await pline("You feel a wrenching sensation.");
         return;
     }
 
     // cf. teleport.c:1552 — remove trap and perform level teleport
     deltrap(map, trap);
     newsym(map, player.x, player.y);
-    level_tele(game);
+    await level_tele(game);
 }
 
 // ============================================================================
 // cf. teleport.c:914 — dotelecmd(): the #teleport command (wizard mode)
 // ============================================================================
 
-export function dotelecmd(game) {
-    return dotele(false, game) ? 1 : 0;
+export async function dotelecmd(game) {
+    return await dotele(false, game) ? 1 : 0;
 }
 
 // ============================================================================
@@ -928,7 +928,7 @@ export function enexto_gpflags(cc, xx, yy, mdat, entflags) {
 // Autotranslated from teleport.c:767
 export async function vault_tele() {
   let croom = search_special(VAULT), c;
-  if (croom && somexyspace(croom, c) && teleok(c.x, c.y, false)) { teleds(c.x, c.y, TELEDS_TELEPORT); return; }
+  if (croom && somexyspace(croom, c) && teleok(c.x, c.y, false)) { await teleds(c.x, c.y, TELEDS_TELEPORT); return; }
   await tele();
 }
 

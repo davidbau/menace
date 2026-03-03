@@ -145,13 +145,13 @@ export function find_qarti(ochain) {
 }
 
 // Autotranslated from questpgr.c:422
-export function deliver_by_pline(str) {
+export async function deliver_by_pline(str) {
   let in_line, out_line, msgp = str, msgend = eos( str);
   while (msgp < msgend) {
     copynchars(in_line, msgp,  in_line.length - 1);
     msgp += strlen(in_line) + 1;
     convert_line(in_line, out_line);
-    pline("%s", out_line);
+    await pline("%s", out_line);
   }
 }
 

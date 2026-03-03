@@ -49,13 +49,13 @@ export function findgold(argchain) {
 // ============================================================================
 // Leprechaun steals gold coins from hero. Simplified: no floor gold pickup,
 // no steed, no teleportation (rloc). Handles hero inventory gold only.
-export function stealgold(mon, player, display) {
+export async function stealgold(mon, player, display) {
     if (!mon || !player) return;
     const inv = Array.isArray(player.inventory) ? player.inventory : [];
 
     const ygold = findgold(inv);
     if (!ygold) {
-        if (display) display.putstr_message('Your purse feels lighter.');
+        if (display) await display.putstr_message('Your purse feels lighter.');
         return;
     }
 
@@ -89,7 +89,7 @@ export function stealgold(mon, player, display) {
         });
     }
 
-    if (display) display.putstr_message('Your purse feels lighter.');
+    if (display) await display.putstr_message('Your purse feels lighter.');
 
     // C ref: steal.c:111-113 — leprechaun flees after theft
     mon.flee = true;
@@ -148,7 +148,7 @@ export function remove_worn_item(player, obj) {
 // Full C version has armor layering, seduction, multi-turn delays.
 // Returns 1 if stolen (monster should flee), 0 if nothing stolen,
 // -1 if monster died in attempt.
-export function steal(mon, player, display) {
+export async function steal(mon, player, display) {
     if (!mon || !player) return 0;
     const inv = Array.isArray(player.inventory) ? player.inventory : [];
 
@@ -156,7 +156,7 @@ export function steal(mon, player, display) {
     const eligible = inv.filter((obj) => obj && obj.oclass !== COIN_CLASS);
     if (eligible.length === 0) {
         if (display) {
-            display.putstr_message(
+            await display.putstr_message(
                 `${mon.type?.name || 'Something'} tries to rob you, but there is nothing to steal!`);
         }
         return 1; // let her flee
@@ -197,7 +197,7 @@ export function steal(mon, player, display) {
     if (display) {
         const monName = mon.type?.name || 'Something';
         const objName = objectData[otmp.otyp]?.name || 'something';
-        display.putstr_message(`${monName} stole ${objName}!`);
+        await display.putstr_message(`${monName} stole ${objName}!`);
     }
 
     // Set mavenge flag

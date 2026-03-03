@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection, shuffle } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack tower tower2.lua	$NHDT-Date: 1652196037 2022/5/10 15:20:37 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // NetHack may be freely redistributed.  See license for details.
@@ -71,5 +71,5 @@ export function generate() {
 
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

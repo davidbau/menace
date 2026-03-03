@@ -36,10 +36,10 @@ globalThis.localStorage = {
 };
 
 // Helper: make a minimal game object for testing
-function makeTestGame(depth) {
+async function makeTestGame(depth) {
     initRng(42);
     initLevelGeneration();
-    const map = makelevel(depth);
+    const map = await makelevel(depth);
     wallification(map);
     const player = new Player();
     player.initRole(11); // Valkyrie
@@ -340,8 +340,8 @@ describe('savebones (full pipeline)', () => {
         store.clear();
     });
 
-    it('saves bones on death at depth > 1', () => {
-        const game = makeTestGame(3);
+    it('saves bones on death at depth > 1', async () => {
+        const game = await makeTestGame(3);
         const sword = { name: 'sword', oclass: 0 };
         game.player.addToInventory(sword);
         game.player.weapon = sword;
@@ -353,8 +353,8 @@ describe('savebones (full pipeline)', () => {
         assert.equal(game.player.weapon, null);
     });
 
-    it('never saves bones on level 1 (canMakeBones returns false)', () => {
-        const game = makeTestGame(1);
+    it('never saves bones on level 1 (canMakeBones returns false)', async () => {
+        const game = await makeTestGame(1);
         // Override depth to 1
         game.player.dungeonLevel = 1;
         savebones(game);
@@ -362,11 +362,11 @@ describe('savebones (full pipeline)', () => {
         assert.equal(loadBones(1), null);
     });
 
-    it('creates ghost monster in bones data when saved', () => {
+    it('creates ghost monster in bones data when saved', async () => {
         // Use depth 2: rn2(1) always 0, so bones always saves
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(2);
+        const map = await makelevel(2);
         wallification(map);
         const player = new Player();
         player.initRole(11);
@@ -390,8 +390,8 @@ describe('savebones (full pipeline)', () => {
         // (bones may not save due to RNG state — that's OK, canMakeBones is probabilistic)
     });
 
-    it('does not crash with empty inventory', () => {
-        const game = makeTestGame(3);
+    it('does not crash with empty inventory', async () => {
+        const game = await makeTestGame(3);
         // Ensure empty inventory
         game.player.inventory = [];
         savebones(game);
@@ -431,7 +431,7 @@ describe('getbones (full pipeline)', () => {
         assert.ok(result === null || result instanceof GameMap);
     });
 
-    it('loads and deletes bones when rn2(3) == 0', () => {
+    it('loads and deletes bones when rn2(3) == 0', async () => {
         // Brute force: try seeds until we find one where rn2(3) == 0
         // after initLevelGeneration
         let foundSeed = null;
@@ -450,7 +450,7 @@ describe('getbones (full pipeline)', () => {
         initRng(foundSeed);
         initLevelGeneration();
 
-        const origMap = makelevel(3);
+        const origMap = await makelevel(3);
         wallification(origMap);
         const mapData = saveLev(origMap);
         mapData.isBones = true;
@@ -469,7 +469,7 @@ describe('getbones (full pipeline)', () => {
         assert.equal(loadBones(3), null, 'Bones should be deleted after getbones');
     });
 
-    it('marks loaded objects as ghostly', () => {
+    it('marks loaded objects as ghostly', async () => {
         // Find seed where rn2(3) == 0
         let foundSeed = null;
         for (let seed = 0; seed < 100; seed++) {
@@ -482,7 +482,7 @@ describe('getbones (full pipeline)', () => {
         initRng(foundSeed);
         initLevelGeneration();
 
-        const origMap = makelevel(3);
+        const origMap = await makelevel(3);
         wallification(origMap);
         // Add an object to the map
         origMap.objects.push({ name: 'dagger', oclass: 0, ox: 10, oy: 5, displayChar: ')' });

@@ -70,7 +70,7 @@ function mon_in_room(mon, rmtyp, map) {
 // ============================================================================
 
 // cf. sounds.c:29 — throne_mon_sound(mtmp): throne room ambient sound
-export function throne_mon_sound(mtmp, hallu, game) {
+export async function throne_mon_sound(mtmp, hallu, game) {
     const ptr = mtmp.type;
     if ((mtmp.sleeping || is_lord(ptr) || is_prince(ptr))
         && !is_animal(ptr)
@@ -83,11 +83,11 @@ export function throne_mon_sound(mtmp, hallu, game) {
         ];
         const which = rn2(3) + hallu;
         if (which !== 2) {
-            game.display.putstr_message(`You hear ${throne_msg[which]}`);
+            await game.display.putstr_message(`You hear ${throne_msg[which]}`);
         } else {
             // "Someone shouts 'Off with his/her head!'"
             const pron = (game.u || game.player)?.female ? 'her' : 'his';
-            game.display.putstr_message(throne_msg[2].replace('%s', pron));
+            await game.display.putstr_message(throne_msg[2].replace('%s', pron));
         }
         return true;
     }
@@ -95,20 +95,20 @@ export function throne_mon_sound(mtmp, hallu, game) {
 }
 
 // cf. sounds.c:61 — beehive_mon_sound(mtmp): beehive ambient sound
-export function beehive_mon_sound(mtmp, hallu, game) {
+export async function beehive_mon_sound(mtmp, hallu, game) {
     const ptr = mtmp.type;
     if ((ptr.mlet === S_ANT && is_flyer(ptr))
         && mon_in_room(mtmp, BEEHIVE, (game.lev || game.map))) {
         switch (rn2(2) + hallu) {
         case 0:
-            game.display.putstr_message('You hear a low buzzing.');
+            await game.display.putstr_message('You hear a low buzzing.');
             break;
         case 1:
-            game.display.putstr_message('You hear an angry drone.');
+            await game.display.putstr_message('You hear an angry drone.');
             break;
         case 2: {
             const helmet = (game.u || game.player)?.helmet ? '' : '(nonexistent) ';
-            game.display.putstr_message(`You hear bees in your ${helmet}bonnet!`);
+            await game.display.putstr_message(`You hear bees in your ${helmet}bonnet!`);
             break;
         }
         }
@@ -118,18 +118,18 @@ export function beehive_mon_sound(mtmp, hallu, game) {
 }
 
 // cf. sounds.c:88 — morgue_mon_sound(mtmp): morgue ambient sound
-export function morgue_mon_sound(mtmp, hallu, game) {
+export async function morgue_mon_sound(mtmp, hallu, game) {
     const ptr = mtmp.type;
     if (is_undead(ptr) && mon_in_room(mtmp, MORGUE, (game.lev || game.map))) {
         switch (rn2(2) + hallu) {
         case 0:
-            game.display.putstr_message('You suddenly realize it is unnaturally quiet.');
+            await game.display.putstr_message('You suddenly realize it is unnaturally quiet.');
             break;
         case 1:
-            game.display.putstr_message('The hair on the back of your neck stands up.');
+            await game.display.putstr_message('The hair on the back of your neck stands up.');
             break;
         case 2:
-            game.display.putstr_message('The hair on your head seems to stand up.');
+            await game.display.putstr_message('The hair on your head seems to stand up.');
             break;
         }
         return true;
@@ -138,7 +138,7 @@ export function morgue_mon_sound(mtmp, hallu, game) {
 }
 
 // cf. sounds.c:114 — zoo_mon_sound(mtmp): zoo ambient sound
-export function zoo_mon_sound(mtmp, hallu, game) {
+export async function zoo_mon_sound(mtmp, hallu, game) {
     const ptr = mtmp.type;
     if ((mtmp.sleeping || is_animal(ptr))
         && mon_in_room(mtmp, ZOO, (game.lev || game.map))) {
@@ -148,7 +148,7 @@ export function zoo_mon_sound(mtmp, hallu, game) {
             'Doctor Dolittle!',
         ];
         const selection = rn2(2) + hallu;
-        game.display.putstr_message(`You hear ${zoo_msg[selection]}`);
+        await game.display.putstr_message(`You hear ${zoo_msg[selection]}`);
         return true;
     }
     return false;
@@ -158,7 +158,7 @@ export function zoo_mon_sound(mtmp, hallu, game) {
 // Fires for awake priests in their temple, hero not in that temple.
 // Full implementation requires inhistemple, temple_occupied, EPRI which
 // are not yet ported. We consume RNG to match C, then emit a generic message.
-export function temple_priest_sound(mtmp, hallu, game) {
+export async function temple_priest_sound(mtmp, hallu, game) {
     if (mtmp.ispriest && !mtmp.sleeping) {
         // Simplified check: priest must be in a TEMPLE room
         if (!mon_in_room(mtmp, TEMPLE, (game.lev || game.map))) return false;
@@ -179,14 +179,14 @@ export function temple_priest_sound(mtmp, hallu, game) {
         } while (++trycount < 50
                  && ((msgIdx === 0 || msgIdx === 1 || msgIdx === 3)
                      && mtmp.type.sound <= MS_ANIMAL));
-        game.display.putstr_message(`You hear ${temple_msg[msgIdx]}`);
+        await game.display.putstr_message(`You hear ${temple_msg[msgIdx]}`);
         return true;
     }
     return false;
 }
 
 // cf. sounds.c:180 — oracle_sound(mtmp): oracle ambient sound
-export function oracle_sound(mtmp, hallu, game) {
+export async function oracle_sound(mtmp, hallu, game) {
     if (mtmp.type !== mons[PM_ORACLE]) return false;
 
     if (hallu || !canseemon(mtmp, (game.u || game.player), game.fov)) {
@@ -197,7 +197,7 @@ export function oracle_sound(mtmp, hallu, game) {
             'someone say "No more woodchucks!"',
             'a loud ZOT!',
         ];
-        game.display.putstr_message(`You hear ${ora_msg[rn2(3) + hallu * 2]}`);
+        await game.display.putstr_message(`You hear ${ora_msg[rn2(3) + hallu * 2]}`);
     }
     return true;
 }
@@ -213,7 +213,7 @@ export function oracle_sound(mtmp, hallu, game) {
 // Order: fountains(400) → sinks(300) → court(200) → swamp(200) → vault(200) →
 //   beehive(200) → morgue(200) → barracks(200) → zoo(200) → shop(200) →
 //   leprehall(200) → temple(200) → oracle(200).
-export function dosounds(game) {
+export async function dosounds(game) {
     // C ref: if (Deaf || !flags.acoustics || u.uswallow || Underwater) return;
     if ((game.u || game.player)?.deaf) return;
     if (game.flags && game.flags.acoustics === false) return;
@@ -232,7 +232,7 @@ export function dosounds(game) {
             'the splashing of a naiad.',
             'a soda fountain!',
         ];
-        game.display.putstr_message(`You hear ${fountain_msg[rn2(3) + hallu]}`);
+        await game.display.putstr_message(`You hear ${fountain_msg[rn2(3) + hallu]}`);
     }
 
     // --- Sinks (rn2(300)) — does NOT return early ---
@@ -242,7 +242,7 @@ export function dosounds(game) {
             'a gurgling noise.',
             'dishes being washed!',
         ];
-        game.display.putstr_message(`You hear ${sink_msg[rn2(2) + hallu]}`);
+        await game.display.putstr_message(`You hear ${sink_msg[rn2(2) + hallu]}`);
     }
 
     // --- Court / throne room (rn2(200)) ---
@@ -250,7 +250,7 @@ export function dosounds(game) {
         // C: get_iter_mons(throne_mon_sound) — iterate all monsters
         for (const mtmp of map.monsters) {
             if (mtmp.dead) continue;
-            if (throne_mon_sound(mtmp, hallu, game)) return;
+            if (await throne_mon_sound(mtmp, hallu, game)) return;
         }
     }
 
@@ -261,7 +261,7 @@ export function dosounds(game) {
             'You smell marsh gas!',
             'You hear Donald Duck!',
         ];
-        game.display.putstr_message(swamp_msg[rn2(2) + hallu]);
+        await game.display.putstr_message(swamp_msg[rn2(2) + hallu]);
         return;
     }
 
@@ -273,13 +273,13 @@ export function dosounds(game) {
         switch (rn2(2) + hallu) {
         case 1:
             // C: checks gold_in_vault and vault_occupied; simplified here
-            game.display.putstr_message('You hear someone counting gold coins.');
+            await game.display.putstr_message('You hear someone counting gold coins.');
             break;
         case 0:
-            game.display.putstr_message('You hear the footsteps of a guard on patrol.');
+            await game.display.putstr_message('You hear the footsteps of a guard on patrol.');
             break;
         case 2:
-            game.display.putstr_message('You hear Ebenezer Scrooge!');
+            await game.display.putstr_message('You hear Ebenezer Scrooge!');
             break;
         }
         return;
@@ -289,7 +289,7 @@ export function dosounds(game) {
     if (f.has_beehive && !rn2(200)) {
         for (const mtmp of map.monsters) {
             if (mtmp.dead) continue;
-            if (beehive_mon_sound(mtmp, hallu, game)) return;
+            if (await beehive_mon_sound(mtmp, hallu, game)) return;
         }
     }
 
@@ -297,7 +297,7 @@ export function dosounds(game) {
     if (f.has_morgue && !rn2(200)) {
         for (const mtmp of map.monsters) {
             if (mtmp.dead) continue;
-            if (morgue_mon_sound(mtmp, hallu, game)) return;
+            if (await morgue_mon_sound(mtmp, hallu, game)) return;
         }
     }
 
@@ -315,7 +315,7 @@ export function dosounds(game) {
             if (is_mercenary(mtmp.type)
                 && mon_in_room(mtmp, BARRACKS, map)
                 && (mtmp.sleeping || ++count > 5)) {
-                game.display.putstr_message(`You hear ${barracks_msg[rn2(3) + hallu]}`);
+                await game.display.putstr_message(`You hear ${barracks_msg[rn2(3) + hallu]}`);
                 return;
             }
         }
@@ -325,7 +325,7 @@ export function dosounds(game) {
     if (f.has_zoo && !rn2(200)) {
         for (const mtmp of map.monsters) {
             if (mtmp.dead) continue;
-            if (zoo_mon_sound(mtmp, hallu, game)) return;
+            if (await zoo_mon_sound(mtmp, hallu, game)) return;
         }
     }
 
@@ -350,7 +350,7 @@ export function dosounds(game) {
                 'the chime of a cash register.',
                 'Neiman and Marcus arguing!',
             ];
-            game.display.putstr_message(`You hear ${shop_msg[rn2(2) + hallu]}`);
+            await game.display.putstr_message(`You hear ${shop_msg[rn2(2) + hallu]}`);
             // C: noisy_shop(sroom) — not ported, skip
         }
         return;
@@ -370,7 +370,7 @@ export function dosounds(game) {
     if (f.has_temple && !rn2(200)) {
         for (const mtmp of map.monsters) {
             if (mtmp.dead) continue;
-            if (temple_priest_sound(mtmp, hallu, game)) return;
+            if (await temple_priest_sound(mtmp, hallu, game)) return;
         }
     }
 
@@ -379,7 +379,7 @@ export function dosounds(game) {
     if (f.is_oracle_level && !rn2(400)) {
         for (const mtmp of map.monsters) {
             if (mtmp.dead) continue;
-            if (oracle_sound(mtmp, hallu, game)) return;
+            if (await oracle_sound(mtmp, hallu, game)) return;
         }
     }
 }
@@ -428,7 +428,7 @@ export function growl_sound(mtmp) {
 // ============================================================================
 
 // cf. sounds.c:401 — growl(mtmp): seriously abused pet growls at hero
-export function growl(mtmp, game) {
+export async function growl(mtmp, game) {
     if ((mtmp.sleeping || mtmp.paralyzed || mtmp.stunned)
         || mtmp.type.sound === MS_SILENT)
         return;
@@ -443,7 +443,7 @@ export function growl(mtmp, game) {
         const name = x_monnam(mtmp);
         // C: vtense — add "s" for 3rd person singular
         const verbed = verb.endsWith('s') ? `${verb}es` : `${verb}s`;
-        game.display.putstr_message(`${name} ${verbed}!`);
+        await game.display.putstr_message(`${name} ${verbed}!`);
         wake_nearto(mtmp.x, mtmp.y, (mtmp.type.mlevel || 0) * 18, (game.lev || game.map));
     }
 }
@@ -453,7 +453,7 @@ export function growl(mtmp, game) {
 // ============================================================================
 
 // cf. sounds.c:426 — yelp(mtmp): mistreated pet yelps
-export function yelp(mtmp, game) {
+export async function yelp(mtmp, game) {
     if ((mtmp.sleeping || mtmp.paralyzed) || !mtmp.type.sound)
         return;
 
@@ -486,7 +486,7 @@ export function yelp(mtmp, game) {
     if (verb) {
         const name = x_monnam(mtmp);
         const verbed = verb.endsWith('s') ? `${verb}es` : `${verb}s`;
-        game.display.putstr_message(`${name} ${verbed}!`);
+        await game.display.putstr_message(`${name} ${verbed}!`);
         wake_nearto(mtmp.x, mtmp.y, (mtmp.type.mlevel || 0) * 12, (game.lev || game.map));
     }
 }
@@ -496,7 +496,7 @@ export function yelp(mtmp, game) {
 // ============================================================================
 
 // cf. sounds.c:478 — whimper(mtmp): distressed pet whimpers
-export function whimper(mtmp, game) {
+export async function whimper(mtmp, game) {
     if ((mtmp.sleeping || mtmp.paralyzed) || !mtmp.type.sound)
         return;
 
@@ -520,7 +520,7 @@ export function whimper(mtmp, game) {
     if (verb) {
         const name = x_monnam(mtmp);
         const verbed = verb.endsWith('s') ? `${verb}es` : `${verb}s`;
-        game.display.putstr_message(`${name} ${verbed}.`);
+        await game.display.putstr_message(`${name} ${verbed}.`);
         wake_nearto(mtmp.x, mtmp.y, (mtmp.type.mlevel || 0) * 6, (game.lev || game.map));
     }
 }
@@ -530,18 +530,18 @@ export function whimper(mtmp, game) {
 // ============================================================================
 
 // cf. sounds.c:518 — beg(mtmp): hungry pet begs for food
-export function beg(mtmp, game) {
+export async function beg(mtmp, game) {
     if ((mtmp.sleeping || mtmp.paralyzed)
         || !(carnivorous(mtmp.type) || herbivorous(mtmp.type)))
         return;
 
     if (!is_silent(mtmp.type) && mtmp.type.sound <= MS_ANIMAL) {
-        domonnoise(mtmp, game);
+        await domonnoise(mtmp, game);
     } else if (mtmp.type.sound >= MS_HUMANOID) {
-        game.display.putstr_message(`"I'm hungry."`);
+        await game.display.putstr_message(`"I'm hungry."`);
     } else {
         const name = x_monnam(mtmp);
-        game.display.putstr_message(`${name} seems famished.`);
+        await game.display.putstr_message(`${name} seems famished.`);
     }
 }
 
@@ -651,7 +651,7 @@ export function mon_is_gecko(mon) {
 // Large dispatch on msound. Many sub-functions (doconsult, priest_talk,
 // quest_chat, shk_chat, demon_talk) are not yet ported. We still consume
 // RNG in the correct order for all cases that use it.
-export function domonnoise(mtmp, game) {
+export async function domonnoise(mtmp, game) {
     const ptr = mtmp.type;
     let msound = ptr.sound;
     let pline_msg = null;
@@ -688,19 +688,19 @@ export function domonnoise(mtmp, game) {
     switch (msound) {
     case MS_ORACLE:
         // C: return doconsult(mtmp) — not yet ported
-        game.display.putstr_message(`${x_monnam(mtmp)} speaks mysteriously.`);
+        await game.display.putstr_message(`${x_monnam(mtmp)} speaks mysteriously.`);
         return 1;
 
     case MS_PRIEST:
         // C: priest_talk(mtmp) — not yet ported
-        game.display.putstr_message(`${x_monnam(mtmp)} mutters a prayer.`);
+        await game.display.putstr_message(`${x_monnam(mtmp)} mutters a prayer.`);
         break;
 
     case MS_LEADER:
     case MS_NEMESIS:
     case MS_GUARDIAN:
         // C: quest_chat(mtmp) — not yet ported
-        game.display.putstr_message(`${x_monnam(mtmp)} speaks to you.`);
+        await game.display.putstr_message(`${x_monnam(mtmp)} speaks to you.`);
         break;
 
     case MS_SELL:
@@ -709,9 +709,9 @@ export function domonnoise(mtmp, game) {
             || (mtmp.isshk && !rn2(2))) {
             // C: shk_chat(mtmp) — not yet ported
             if (mtmp.isshk) {
-                game.display.putstr_message(`${x_monnam(mtmp)} talks shop.`);
+                await game.display.putstr_message(`${x_monnam(mtmp)} talks shop.`);
             } else {
-                game.display.putstr_message(`${x_monnam(mtmp)} talks to you.`);
+                await game.display.putstr_message(`${x_monnam(mtmp)} talks to you.`);
             }
         } else {
             verbl_msg = '15 minutes could save you 15 zorkmids.';
@@ -751,7 +751,7 @@ export function domonnoise(mtmp, game) {
             && (night() ^ !rn2(13))) {
             const howl = (ptr === mons[PM_HUMAN_WERERAT])
                 ? 'shriek' : 'howl';
-            game.display.putstr_message(
+            await game.display.putstr_message(
                 `${x_monnam(mtmp)} throws back its head`
                 + ` and lets out a blood curdling ${howl}!`
             );
@@ -884,8 +884,8 @@ export function domonnoise(mtmp, game) {
         break;
 
     case MS_BONES:
-        game.display.putstr_message(`${x_monnam(mtmp)} rattles noisily.`);
-        game.display.putstr_message('You freeze for a moment.');
+        await game.display.putstr_message(`${x_monnam(mtmp)} rattles noisily.`);
+        await game.display.putstr_message('You freeze for a moment.');
         // C: nomul(-2) — movement penalty, simplified
         break;
 
@@ -922,7 +922,7 @@ export function domonnoise(mtmp, game) {
         if (!mtmp.peaceful) {
             switch (rn2(4)) {
             case 0:
-                game.display.putstr_message(
+                await game.display.putstr_message(
                     `${x_monnam(mtmp)} boasts about its gem collection.`
                 );
                 break;
@@ -1022,7 +1022,7 @@ export function domonnoise(mtmp, game) {
     case MS_ARREST:
         if (mtmp.peaceful) {
             const title = (game.u || game.player)?.female ? "Ma'am" : 'Sir';
-            game.display.putstr_message(`"Just the facts, ${title}."`);
+            await game.display.putstr_message(`"Just the facts, ${title}."`);
         } else {
             const arrest_msg = [
                 'Anything you say can be used against you.',
@@ -1036,14 +1036,14 @@ export function domonnoise(mtmp, game) {
     case MS_BRIBE:
         if (mtmp.peaceful && !mtmp.tame) {
             // C: demon_talk(mtmp) — not ported
-            game.display.putstr_message(`${x_monnam(mtmp)} makes a deal.`);
+            await game.display.putstr_message(`${x_monnam(mtmp)} makes a deal.`);
             break;
         }
         // FALLTHRU
     case MS_CUSS: // eslint-disable-line no-fallthrough
         if (!mtmp.peaceful) {
             // C: cuss(mtmp) — not ported
-            game.display.putstr_message(`${x_monnam(mtmp)} curses at you!`);
+            await game.display.putstr_message(`${x_monnam(mtmp)} curses at you!`);
         } else {
             verbl_msg = "We're all doomed.";
         }
@@ -1097,12 +1097,12 @@ export function domonnoise(mtmp, game) {
     } // switch
 
     if (pline_msg) {
-        game.display.putstr_message(`${x_monnam(mtmp)} ${pline_msg}`);
+        await game.display.putstr_message(`${x_monnam(mtmp)} ${pline_msg}`);
     } else if (verbl_msg) {
         if (ptr === mons[PM_DEATH]) {
-            game.display.putstr_message(verbl_msg.toUpperCase());
+            await game.display.putstr_message(verbl_msg.toUpperCase());
         } else {
-            game.display.putstr_message(`"${verbl_msg}"`);
+            await game.display.putstr_message(`"${verbl_msg}"`);
         }
     }
     return 1;
@@ -1114,8 +1114,8 @@ export function domonnoise(mtmp, game) {
 
 // cf. sounds.c:1247 — dotalk(): #chat command handler
 // Stub: the #chat command is not yet fully ported.
-export function dotalk(game) {
-    game.display.putstr_message('Talking to yourself is a bad habit for a dungeoneer.');
+export async function dotalk(game) {
+    await game.display.putstr_message('Talking to yourself is a bad habit for a dungeoneer.');
     return 0;
 }
 

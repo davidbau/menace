@@ -11,14 +11,14 @@ import { simulatePostLevelInit } from '../../js/u_init.js';
 import { NORMAL_SPEED, A_DEX } from '../../js/config.js';
 
 // Minimal game-like object for testing simulateTurnEnd
-function setupTestGame() {
+async function setupTestGame() {
     initRng(42);
     initLevelGeneration();
     const player = new Player();
     player.initRole(11); // PM_VALKYRIE
     player.name = 'Wizard';
     player.gender = 1; // female
-    const map = makelevel(1);
+    const map = await makelevel(1);
     wallification(map);
     player.x = map.upstair.x;
     player.y = map.upstair.y;
@@ -106,8 +106,8 @@ describe('Per-turn game loop RNG (gameloop)', () => {
         disableRngLog();
     });
 
-    it('first turn tail includes seer_turn rn2(31)', () => {
-        const game = setupTestGame();
+    it('first turn tail includes seer_turn rn2(31)', async () => {
+        const game = await setupTestGame();
 
         enableRngLog();
         simulateTurnEnd(game);
@@ -128,8 +128,8 @@ describe('Per-turn game loop RNG (gameloop)', () => {
             `seerTurn should be set to future turn, got ${game.seerTurn}`);
     });
 
-    it('second turn tail does NOT include seer_turn rn2(31)', () => {
-        const game = setupTestGame();
+    it('second turn tail does NOT include seer_turn rn2(31)', async () => {
+        const game = await setupTestGame();
 
         // Run first turn (consumes seer_turn)
         simulateTurnEnd(game);
@@ -146,8 +146,8 @@ describe('Per-turn game loop RNG (gameloop)', () => {
             `Second turn should not have rn2(31), seerTurn=${game.seerTurn}`);
     });
 
-    it('turn tail has correct RNG call order', () => {
-        const game = setupTestGame();
+    it('turn tail has correct RNG call order', async () => {
+        const game = await setupTestGame();
 
         enableRngLog();
         simulateTurnEnd(game);
@@ -181,8 +181,8 @@ describe('Per-turn game loop RNG (gameloop)', () => {
             `Tail[4] should be rn2(31), got: ${log[tailStart + 4]}`);
     });
 
-    it('monsters start with NORMAL_SPEED (12) movement', () => {
-        const game = setupTestGame();
+    it('monsters start with NORMAL_SPEED (12) movement', async () => {
+        const game = await setupTestGame();
 
         // All monsters should start with movement = 12 (from makemon)
         // After simulatePostLevelInit, the dog might have been added

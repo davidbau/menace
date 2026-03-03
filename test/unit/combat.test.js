@@ -41,7 +41,7 @@ function makeMonster(opts = {}) {
 }
 
 describe('Combat system', () => {
-    it('hmon deals damage', () => {
+    it('hmon deals damage', async () => {
         initRng(42);
         const p = new Player();
         p.initRole(0);
@@ -51,20 +51,20 @@ describe('Combat system', () => {
         let totalDamage = 0;
         for (let i = 0; i < 50; i++) {
             const startHp = mon.mhp;
-            do_attack(p, mon, mockDisplay);
+            await do_attack(p, mon, mockDisplay);
             totalDamage += startHp - mon.mhp;
         }
         assert.ok(totalDamage > 0, 'Player should deal damage over 50 attacks');
     });
 
-    it('hmon can kill monster', () => {
+    it('hmon can kill monster', async () => {
         initRng(42);
         const p = new Player();
         p.initRole(0);
         const mon = makeMonster({ mhp: 1, ac: 10, mx: 6, my: 5 });
         // Attack until dead (should happen quickly with 1 HP)
         for (let i = 0; i < 100 && !mon.dead; i++) {
-            do_attack(p, mon, mockDisplay);
+            await do_attack(p, mon, mockDisplay);
         }
         assert.ok(mon.dead, 'Monster with 1 HP should die after several attacks');
     });
@@ -165,7 +165,7 @@ describe('Combat system', () => {
     });
 
 
-    it('morale flee clears monster movement track', () => {
+    it('morale flee clears monster movement track', async () => {
         initRng(42);
         const p = new Player();
         p.initRole(0);
@@ -180,7 +180,7 @@ describe('Combat system', () => {
 
         let fled = false;
         for (let i = 0; i < 1000; i++) {
-            do_attack(p, mon, mockDisplay);
+            await do_attack(p, mon, mockDisplay);
             if (mon.flee) {
                 fled = true;
                 break;
@@ -197,7 +197,7 @@ describe('Combat system', () => {
         ]);
     });
 
-    it('higher AC makes monster harder to hit', () => {
+    it('higher AC makes monster harder to hit', async () => {
         initRng(42);
         const p = new Player();
         p.initRole(0);
@@ -207,7 +207,7 @@ describe('Combat system', () => {
         for (let i = 0; i < 200; i++) {
             const mon = makeMonster({ mhp: 100, ac: 10 });
             const before = mon.mhp;
-            do_attack(p, mon, mockDisplay);
+            await do_attack(p, mon, mockDisplay);
             if (mon.mhp < before) hitsEasy++;
         }
 
@@ -217,7 +217,7 @@ describe('Combat system', () => {
         for (let i = 0; i < 200; i++) {
             const mon = makeMonster({ mhp: 100, ac: 0 });
             const before = mon.mhp;
-            do_attack(p, mon, mockDisplay);
+            await do_attack(p, mon, mockDisplay);
             if (mon.mhp < before) hitsHard++;
         }
 
@@ -225,7 +225,7 @@ describe('Combat system', () => {
             `Should hit AC 10 (${hitsEasy}) more often than AC 0 (${hitsHard})`);
     });
 
-    it('melee with a wielded healing potion uses potion-hit behavior', () => {
+    it('melee with a wielded healing potion uses potion-hit behavior', async () => {
         initRng(42);
         const p = new Player();
         p.initRole(0);
@@ -246,7 +246,7 @@ describe('Combat system', () => {
             putstr_message: (msg) => messages.push(msg),
             putstr() {},
         };
-        do_attack(p, mon, display);
+        await do_attack(p, mon, display);
 
         assert.equal(potion.quan, 1, 'wielded potion stack should decrement by one');
         assert.equal(p.weapon, potion, 'remaining potion stack should stay wielded');
@@ -254,7 +254,7 @@ describe('Combat system', () => {
         assert.equal(messages.at(-1), 'The kobold zombie looks sound and hale again.');
     });
 
-    it('single wielded potion is consumed on melee hit', () => {
+    it('single wielded potion is consumed on melee hit', async () => {
         initRng(42);
         const p = new Player();
         p.initRole(0);
@@ -270,7 +270,7 @@ describe('Combat system', () => {
         p.weapon = potion;
 
         const mon = makeMonster({ mhp: 3, mhpmax: 10, ac: 10 });
-        do_attack(p, mon, mockDisplay);
+        await do_attack(p, mon, mockDisplay);
 
         assert.equal(p.inventory.length, 0, 'single potion should be removed from inventory');
         assert.equal(p.weapon, null, 'wielded potion should be cleared when consumed');

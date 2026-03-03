@@ -48,16 +48,16 @@ export async function playerSelection(game) {
     // Display copyright notice
     // C ref: allmain.c -- copyright screen displayed with autopick prompt
     game.display.clearScreen();
-    game.display.putstr(0, 4, "NetHack, Copyright 1985-2026", CLR_GRAY);
-    game.display.putstr(0, 5, "         By Stichting Mathematisch Centrum and M. Stephenson.", CLR_GRAY);
-    game.display.putstr(0, 6, "         Version 3.7.0 Royal Jelly — vibe-coded by The Hive.", CLR_GRAY);
-    game.display.putstr(0, 7, "         See license for details.", CLR_GRAY);
+    await game.display.putstr(0, 4, "NetHack, Copyright 1985-2026", CLR_GRAY);
+    await game.display.putstr(0, 5, "         By Stichting Mathematisch Centrum and M. Stephenson.", CLR_GRAY);
+    await game.display.putstr(0, 6, "         Version 3.7.0 Royal Jelly — vibe-coded by The Hive.", CLR_GRAY);
+    await game.display.putstr(0, 7, "         See license for details.", CLR_GRAY);
     if (game._namePromptEcho) {
-        game.display.putstr(0, 12, game._namePromptEcho, CLR_GRAY);
+        await game.display.putstr(0, 12, game._namePromptEcho, CLR_GRAY);
     }
 
     // Phase 1: "Shall I pick character's race, role, gender and alignment for you?"
-    game.display.putstr_message(
+    await game.display.putstr_message(
         "Shall I pick character's race, role, gender and alignment for you? [ynaq]"
     );
     const pickCh = await nhgetch();
@@ -152,7 +152,7 @@ export async function showGameOver(game) {
         const year = String(new Date().getFullYear());
         game.display.renderTombstone(p.name, p.gold, deathLines, year);
         // Press any key prompt below tombstone
-        game.display.putstr(0, 20, '(Press any key)', 7);
+        await game.display.putstr(0, 20, '(Press any key)', 7);
         await nhgetch();
     }
 
@@ -166,7 +166,7 @@ export async function showGameOver(game) {
 
     const header = formatTopTenHeader();
     let row = 0;
-    game.display.putstr(0, row++, header, 14); // CLR_WHITE
+    await game.display.putstr(0, row++, header, 14); // CLR_WHITE
 
     // Show entries around the player's rank
     // Find the player's entry index in scores (0-based)
@@ -175,7 +175,7 @@ export async function showGameOver(game) {
     const showEnd = Math.min(scores.length, playerIdx + 6);
 
     if (showStart > 0) {
-        game.display.putstr(0, row++, '  ...', 7);
+        await game.display.putstr(0, row++, '  ...', 7);
     }
 
     for (let i = showStart; i < showEnd; i++) {
@@ -184,13 +184,13 @@ export async function showGameOver(game) {
         const color = isPlayer ? 10 : 7; // CLR_YELLOW : CLR_GRAY
         for (const line of lines) {
             if (row < game.display.rows - 2) {
-                game.display.putstr(0, row++, line.substring(0, game.display.cols), color);
+                await game.display.putstr(0, row++, line.substring(0, game.display.cols), color);
             }
         }
     }
 
     if (showEnd < scores.length) {
-        game.display.putstr(0, row++, '  ...', 7);
+        await game.display.putstr(0, row++, '  ...', 7);
     }
 
     // Farewell message
@@ -198,14 +198,14 @@ export async function showGameOver(game) {
     const female = p.gender === FEMALE;
     const roleName = roleNameForGender(p.roleIndex, female);
     const farewell = `Goodbye ${p.name} the ${roleName}...`;
-    game.display.putstr(0, row++, farewell, 14);
+    await game.display.putstr(0, row++, farewell, 14);
 
     // Play again prompt
     row = Math.min(row + 1, game.display.rows - 1);
-    game.display.putstr(0, row, 'Play again? [yn] ', 14);
+    await game.display.putstr(0, row, 'Play again? [yn] ', 14);
     const ch = await nhgetch();
     if (String.fromCharCode(ch) === 'y') {
-        game._runLifecycle('restart');
+        await game._runLifecycle('restart');
     } else {
         await game._runLifecycle('promo');
     }
@@ -228,7 +228,7 @@ export async function maybeDoTutorial(game) {
 export async function enterTutorial(game, opts = {}) {
     const { direct = false, deferRender = false } = opts;
     if (!direct) {
-        game.display.putstr_message('Entering the tutorial.');
+        await game.display.putstr_message('Entering the tutorial.');
         await game.display.morePrompt(nhgetch);
     }
 
@@ -286,7 +286,7 @@ export async function enterTutorial(game, opts = {}) {
 
     setMakemonPlayerContext((game.u || game.player));
     setSplevPlayerContext((game.u || game.player));
-    game.lev = makelevel(1, TUTORIAL, 1, { dungeonAlignOverride: A_NONE });
+    game.lev = await makelevel(1, TUTORIAL, 1, { dungeonAlignOverride: A_NONE });
     clearSplevPlayerContext();
     game.levels[1] = (game.lev || game.map);
     (game.u || game.player).dungeonLevel = 1;
@@ -300,7 +300,7 @@ export async function enterTutorial(game, opts = {}) {
     if (!deferRender) {
         game.fov.compute((game.lev || game.map), (game.u || game.player).x, (game.u || game.player).y);
         game.display.renderMap((game.lev || game.map), (game.u || game.player), game.fov, game.flags);
-        game.maybeShowQuestLocateHint((game.u || game.player).dungeonLevel);
+        await game.maybeShowQuestLocateHint((game.u || game.player).dungeonLevel);
     }
 
 }
@@ -309,22 +309,22 @@ export async function enterTutorial(game, opts = {}) {
 export async function handleReset(game) {
     const items = listSavedData();
     if (items.length === 0) {
-        game.display.putstr_message('No saved data found.');
+        await game.display.putstr_message('No saved data found.');
         await nhgetch();
     } else {
-        game.display.putstr_message('Saved data found:');
+        await game.display.putstr_message('Saved data found:');
         // Show each item on rows 2+
         for (let i = 0; i < items.length && i < 18; i++) {
-            game.display.putstr(2, 2 + i, `- ${items[i].label}`, 7);
+            await game.display.putstr(2, 2 + i, `- ${items[i].label}`, 7);
         }
-        game.display.putstr(0, 2 + Math.min(items.length, 18),
+        await game.display.putstr(0, 2 + Math.min(items.length, 18),
             'Delete all saved data? [yn]', 15);
         const ch = await nhgetch();
         if (String.fromCharCode(ch) === 'y') {
             clearAllData();
-            game.display.putstr_message('All saved data deleted.');
+            await game.display.putstr_message('All saved data deleted.');
         } else {
-            game.display.putstr_message('Cancelled.');
+            await game.display.putstr_message('Cancelled.');
         }
         // Clear the listing rows
         for (let i = 0; i < 20; i++) {
@@ -332,16 +332,16 @@ export async function handleReset(game) {
         }
     }
     // Remove ?reset from URL and reload clean.
-    game._runLifecycle('replaceUrlParams', { reset: null });
+    await game._runLifecycle('replaceUrlParams', { reset: null });
 }
 
 // Restore game state from a save.
 // Returns true if restored, false if user declined.
 export async function restoreFromSave(game, saveData, urlOpts) {
-    game.display.putstr_message('Saved game found. Restore? [yn]');
+    await game.display.putstr_message('Saved game found. Restore? [yn]');
     const ans = await nhgetch();
     if (String.fromCharCode(ans) !== 'y') {
-        game.display.putstr_message('Save deleted.');
+        await game.display.putstr_message('Save deleted.');
         return false;
     }
 
@@ -407,7 +407,7 @@ export async function restoreFromSave(game, saveData, urlOpts) {
     game.fov.compute((game.lev || game.map), (game.u || game.player).x, (game.u || game.player).y);
     game.display.renderMap((game.lev || game.map), (game.u || game.player), game.fov, game.flags);
     game.display.renderStatus((game.u || game.player));
-    game.display.putstr_message('Game restored.');
+    await game.display.putstr_message('Game restored.');
 
     // Notify that gameplay is starting (restored game)
     game._emitGameplayStart();
@@ -793,7 +793,7 @@ export async function showLoreAndWelcome(game, roleIdx, raceIdx, gender, align) 
     }
 
     const welcomeMsg = `${greeting} ${(game.u || game.player).name}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
-    game.display.putstr_message(welcomeMsg);
+    await game.display.putstr_message(welcomeMsg);
 
     // Show --More-- after welcome
     // Need to determine where the message ended (may have wrapped to 2 lines)
@@ -830,7 +830,7 @@ export async function showLoreAndWelcome(game, roleIdx, raceIdx, gender, align) 
         }
     }
 
-    game.display.putstr(moreCol, moreRow, moreStr, 2); // CLR_GREEN
+    await game.display.putstr(moreCol, moreRow, moreStr, 2); // CLR_GREEN
     await nhgetch();
     game.display.clearRow(0);
     if (moreRow > 0) game.display.clearRow(1);

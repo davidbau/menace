@@ -72,7 +72,7 @@ async function main() {
             // Test startup RNG
             if (sessionStartup?.rng && sessionStartup.rng.length > 0) {
                 try {
-                    const startup = generateStartupWithRng(session.seed, session);
+                    const startup = await generateStartupWithRng(session.seed, session);
                     const div = compareRng(startup.rng, sessionStartup.rng);
                     const matched = div.index === -1;
                     recordRngResult(result, matched,
@@ -97,7 +97,7 @@ async function main() {
             // Test startup grid
             if (sessionStartup?.typGrid) {
                 try {
-                    const startup = generateStartupWithRng(session.seed, session);
+                    const startup = await generateStartupWithRng(session.seed, session);
                     const diffs = compareGrids(startup.grid, sessionStartup.typGrid);
                     recordGridResult(result, diffs.length === 0, 0, diffs.length);
                 } catch (e) {

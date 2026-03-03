@@ -392,17 +392,17 @@ export async function getlin(prompt, display) {
     let line = '';
 
     // Helper to update display
-    const updateDisplay = () => {
+    const updateDisplay = async () => {
         if (disp) {
             // Clear the message row and display prompt + current input.
             // Don't use putstr_message as it concatenates short messages.
             disp.clearRow(0);
-            disp.putstr(0, 0, prompt + line, CLR_GRAY);
+            await disp.putstr(0, 0, prompt + line, CLR_GRAY);
         }
     };
 
     // Initial display
-    updateDisplay();
+    await updateDisplay();
 
     while (true) {
         const ch = await nhgetch();
@@ -426,11 +426,11 @@ export async function getlin(prompt, display) {
         } else if (ch === 8 || ch === 127) { // Backspace
             if (line.length > 0) {
                 line = line.slice(0, -1);
-                updateDisplay();
+                await updateDisplay();
             }
         } else if (ch >= 32 && ch < 127) {
             line += String.fromCharCode(ch);
-            updateDisplay();
+            await updateDisplay();
         }
     }
 }
@@ -449,7 +449,7 @@ export async function ynFunction(query, choices, def, display) {
     }
     prompt += ' ';
 
-    if (disp) disp.putstr_message(prompt);
+    if (disp) await disp.putstr_message(prompt);
 
     while (true) {
         const ch = await nhgetch();
@@ -530,9 +530,9 @@ export async function getCount(firstKey, maxCount, display) {
         if (cnt > 9 || backspaced) {
             if (disp) {
                 if (backspaced && !cnt && !showzero) {
-                    disp.putstr_message('Count: ');
+                    await disp.putstr_message('Count: ');
                 } else {
-                    disp.putstr_message(`Count: ${cnt}`);
+                    await disp.putstr_message(`Count: ${cnt}`);
                 }
             }
             backspaced = false;

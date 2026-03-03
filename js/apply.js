@@ -145,13 +145,13 @@ function _ignitable(obj) {
 // cf. apply.c:61 -- STUB: depends on bhit, flash_hits_mon
 export async function do_blinding_ray(_obj, player = null, map = null) {
     if (!player || !map) {
-        pline(_nothing_happens());
+        await pline(_nothing_happens());
         return;
     }
     const dx = Number.isInteger(player.dx) ? player.dx : 0;
     const dy = Number.isInteger(player.dy) ? player.dy : 0;
     if (!dx && !dy) {
-        pline(_nothing_happens());
+        await pline(_nothing_happens());
         return;
     }
     tmp_at(DISP_BEAM, { ch: '*', color: 14 });
@@ -173,45 +173,45 @@ export async function do_blinding_ray(_obj, player = null, map = null) {
 }
 
 // cf. apply.c:79 -- STUB: depends on getdir, bhit, zapyourself
-export function use_camera(obj) {
-    if (obj.spe <= 0) { pline(_nothing_happens()); return; }
+export async function use_camera(obj) {
+    if (obj.spe <= 0) { await pline(_nothing_happens()); return; }
     obj.spe--;
-    pline("You take a picture.");
+    await pline("You take a picture.");
 }
 
 // cf. apply.c:112 -- STUB: depends on freehand, Glib, makeplural
 // Autotranslated from apply.c:111
-export function use_towel(obj, player) {
+export async function use_towel(obj, player) {
   let drying_feedback = (obj === player.weapon);
-  if (!freehand()) { You("have no free %s!", body_part(HAND)); return ECMD_OK; }
-  else if (obj === player.blindfold) { You("cannot use it while you're wearing it!"); return ECMD_OK; }
+  if (!freehand()) { await You("have no free %s!", body_part(HAND)); return ECMD_OK; }
+  else if (obj === player.blindfold) { await You("cannot use it while you're wearing it!"); return ECMD_OK; }
   else if (obj.cursed) {
     let old;
     switch (rn2(3)) {
       case 2:
         old = (Glib & TIMEOUT);
       make_glib( old + rn1(10, 3));
-      Your("%s %s!", makeplural(body_part(HAND)), (old ? "are filthier than ever" : "get slimy"));
+      await Your("%s %s!", makeplural(body_part(HAND)), (old ? "are filthier than ever" : "get slimy"));
       if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);
       return ECMD_TIME;
       case 1:
         if (!player.blindfold) {
           old = player.ucreamed;
           player.ucreamed += rn1(10, 3);
-          pline("Yecch! Your %s %s gunk on it!", body_part(FACE), (old ? "has more" : "now has"));
-          make_blinded(BlindedTimeout +  player.ucreamed - old, true);
+          await pline("Yecch! Your %s %s gunk on it!", body_part(FACE), (old ? "has more" : "now has"));
+          await make_blinded(BlindedTimeout +  player.ucreamed - old, true);
         }
         else {
           let what;
           what = (player.blindfold.otyp === LENSES) ? "lenses" : (obj.otyp === player.blindfold.otyp) ? "other towel" : "blindfold";
           if (player.blindfold.cursed) {
-            You("push your %s %s.", what, rn2(2) ? "cock-eyed" : "crooked");
+            await You("push your %s %s.", what, rn2(2) ? "cock-eyed" : "crooked");
           }
           else {
             let saved_ublindf = player.blindfold;
-            You("push your %s off.", what);
-            Blindf_off(player.blindfold);
-            dropx(saved_ublindf);
+            await You("push your %s off.", what);
+            await Blindf_off(player.blindfold);
+            await dropx(saved_ublindf);
           }
         }
       if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);
@@ -222,7 +222,7 @@ export function use_towel(obj, player) {
   }
   if (Glib) {
     make_glib(0);
-    You("wipe off your %s.", !player.gloves ? makeplural(body_part(HAND)) : gloves_simple_name(player.gloves));
+    await You("wipe off your %s.", !player.gloves ? makeplural(body_part(HAND)) : gloves_simple_name(player.gloves));
     if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);
     return ECMD_TIME;
   }
@@ -230,14 +230,14 @@ export function use_towel(obj, player) {
     incr_itimeout( HBlinded, (-1 *  player.ucreamed));
     player.ucreamed = 0;
     if (!Blinded) {
-      pline("You've got the glop off.");
-      if (!gulp_blnd_check()) { set_itimeout( HBlinded, 1); make_blinded(0, true); }
+      await pline("You've got the glop off.");
+      if (!gulp_blnd_check()) { set_itimeout( HBlinded, 1); await make_blinded(0, true); }
     }
-    else { Your("%s feels clean now.", body_part(FACE)); }
+    else { await Your("%s feels clean now.", body_part(FACE)); }
     if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);
     return ECMD_TIME;
   }
-  Your("%s and %s are already clean.", body_part(FACE), makeplural(body_part(HAND)));
+  await Your("%s and %s are already clean.", body_part(FACE), makeplural(body_part(HAND)));
   return ECMD_OK;
 }
 
@@ -245,19 +245,19 @@ export function use_towel(obj, player) {
 export function its_dead() { return false; }
 
 // cf. apply.c:318 -- STUB: depends on getdir, mstatusline
-function use_stethoscope() { You("hear nothing special."); }
+async function use_stethoscope() { await You("hear nothing special."); }
 
 // cf. apply.c:476 -- STUB: depends on wake_nearby
-function use_whistle(obj) {
-    You("produce a %s whistling sound.", obj.cursed ? "shrill" : "high");
+async function use_whistle(obj) {
+    await You("produce a %s whistling sound.", obj.cursed ? "shrill" : "high");
 }
 
 // cf. apply.c:495 -- STUB: depends on magic_whistled, tele_to_rnd_pet
-function use_magic_whistle(obj) {
+async function use_magic_whistle(obj) {
     if (obj.cursed && !rn2(2)) {
-        You("produce a high-pitched humming noise.");
+        await You("produce a high-pitched humming noise.");
     } else {
-        You("produce a strange whistling sound.");
+        await You("produce a strange whistling sound.");
     }
 }
 
@@ -289,8 +289,8 @@ export function o_unleash(otmp, map) {
 }
 
 // cf. apply.c:722 -- m_unleash: unleash from monster side
-export function m_unleash(mtmp, feedback, player) {
-    if (feedback) Your("leash falls slack.");
+export async function m_unleash(mtmp, feedback, player) {
+    if (feedback) await Your("leash falls slack.");
     for (const otmp of (player ? player.inventory || [] : [])) {
         if (otmp.otyp === LEASH && otmp.leashmon === mtmp.m_id) {
             otmp.leashmon = 0; break;
@@ -314,7 +314,7 @@ export function leashable(mtmp) {
 }
 
 // cf. apply.c:765 -- STUB: use_leash
-export function use_leash() { pline("You need to get closer to use a leash."); }
+export async function use_leash() { await pline("You need to get closer to use a leash."); }
 
 // cf. apply.c:817 -- STUB: use_leash_core
 export function use_leash_core() {}
@@ -326,7 +326,7 @@ export function mleashed_next2u() { return false; }
 export function next_to_u() { return true; }
 
 // cf. apply.c:927 -- check_leash: leash range enforcement
-export function check_leash(player, x, y, map) {
+export async function check_leash(player, x, y, map) {
     for (const otmp of (player.inventory || [])) {
         if (otmp.otyp !== LEASH || !otmp.leashmon) continue;
         let mtmp = null;
@@ -345,18 +345,18 @@ export function check_leash(player, x, y, map) {
             } else if (otmp.cursed && !breathless(mtmp.data || mons[mtmp.mnum])) {
                 if (um_dist(player, mtmp.mx, mtmp.my, 5)
                     || (mtmp.mhp -= rnd(2)) <= 0) {
-                    Your("leash chokes %s to death!", mon_nam(mtmp));
+                    await Your("leash chokes %s to death!", mon_nam(mtmp));
                     mtmp.mhp = 0;
                 } else {
-                    pline_mon(mtmp, "%s is choked by the leash!", Monnam(mtmp));
+                    await pline_mon(mtmp, "%s is choked by the leash!", Monnam(mtmp));
                     if (mtmp.mtame && rn2(mtmp.mtame)) mtmp.mtame--;
                 }
             } else {
                 if (um_dist(player, mtmp.mx, mtmp.my, 5)) {
-                    pline("%s leash snaps loose!", s_suffix(Monnam(mtmp)));
-                    m_unleash(mtmp, false, player);
+                    await pline("%s leash snaps loose!", s_suffix(Monnam(mtmp)));
+                    await m_unleash(mtmp, false, player);
                 } else {
-                    You("pull on the leash.");
+                    await You("pull on the leash.");
                     const data = mtmp.data || mons[mtmp.mnum];
                     if (data.sound !== MS_SILENT) rn2(3);
                 }
@@ -380,46 +380,46 @@ export function beautiful(player) {
 }
 
 // cf. apply.c:1014 -- STUB: use_mirror (depends on bhit, Medusa, etc.)
-function use_mirror(obj) {
+async function use_mirror(obj) {
     if (obj.cursed && !rn2(2)) {
-        pline("The mirror fogs up and doesn't reflect!");
+        await pline("The mirror fogs up and doesn't reflect!");
         return;
     }
-    pline("You look as ugly as ever.");
+    await pline("You look as ugly as ever.");
 }
 
 // cf. apply.c:1198 -- STUB: use_bell (depends on invocation_pos, makemon)
-function use_bell(obj) {
-    You("ring %s.", xname(obj));
+async function use_bell(obj) {
+    await You("ring %s.", xname(obj));
     if (obj.cursed && !rn2(4)) { /* would summon nymphs */ }
 }
 
 // cf. apply.c:1315 -- use_candelabrum
-function use_candelabrum(obj) {
+async function use_candelabrum(obj) {
     const s = (obj.spe !== 1) ? "candles" : "candle";
     if (obj.lamplit) {
-        You("snuff the %s.", s);
+        await You("snuff the %s.", s);
         end_burn(obj, true);
         return;
     }
-    if (obj.spe <= 0) { pline("This %s has no %s.", xname(obj), s); return; }
+    if (obj.spe <= 0) { await pline("This %s has no %s.", xname(obj), s); return; }
     if (obj.spe < 7) {
-        There("are only %d %s in %s.", obj.spe, s, xname(obj));
+        await There("are only %d %s in %s.", obj.spe, s, xname(obj));
     } else {
-        pline("%s's %s burn brightly!", xname(obj), s);
+        await pline("%s's %s burn brightly!", xname(obj), s);
     }
     begin_burn(obj, false);
 }
 
 // cf. apply.c:1383 -- use_candle (simplified: just lights it)
-function use_candle(obj) { use_lamp(obj); }
+async function use_candle(obj) { await use_lamp(obj); }
 
 // cf. apply.c:1468 -- snuff_candle
-export function snuff_candle(otmp) {
+export async function snuff_candle(otmp) {
     const candle = (otmp.otyp === WAX_CANDLE || otmp.otyp === TALLOW_CANDLE);
     if ((candle || otmp.otyp === CANDELABRUM_OF_INVOCATION) && otmp.lamplit) {
         const many = candle ? (otmp.quan > 1) : (otmp.spe > 1);
-        pline("Your %scandle%s flame%s extinguished.",
+        await pline("Your %scandle%s flame%s extinguished.",
               candle ? "" : "candelabrum's ",
               many ? "s'" : "'s", many ? "s are" : " is");
         end_burn(otmp, true);
@@ -429,30 +429,30 @@ export function snuff_candle(otmp) {
 }
 
 // cf. apply.c:1493 -- snuff_lit
-export function snuff_lit(obj) {
+export async function snuff_lit(obj) {
     if (obj.lamplit) {
         if (obj.otyp === OIL_LAMP || obj.otyp === MAGIC_LAMP
             || obj.otyp === BRASS_LANTERN || obj.otyp === POT_OIL) {
-            pline("%s goes out!", xname(obj));
+            await pline("%s goes out!", xname(obj));
             end_burn(obj, true);
             return true;
         }
-        if (snuff_candle(obj)) return true;
+        if (await snuff_candle(obj)) return true;
     }
     return false;
 }
 
 // cf. apply.c:1514 -- splash_lit
-export function splash_lit(obj) {
+export async function splash_lit(obj) {
     if (obj.lamplit && obj.otyp === BRASS_LANTERN) {
-        pline("%s crackles and flickers.", xname(obj));
+        await pline("%s crackles and flickers.", xname(obj));
         return false;
     }
-    return snuff_lit(obj);
+    return await snuff_lit(obj);
 }
 
 // cf. apply.c:1573 -- catch_lit
-export function catch_lit(obj) {
+export async function catch_lit(obj) {
     if (!obj.lamplit && _ignitable(obj)) {
         if ((obj.otyp === MAGIC_LAMP || obj.otyp === CANDELABRUM_OF_INVOCATION)
             && obj.spe === 0)
@@ -464,7 +464,7 @@ export function catch_lit(obj) {
         if ((obj.otyp === OIL_LAMP || obj.otyp === MAGIC_LAMP)
             && obj.cursed && !rn2(2))
             return false;
-        pline("%s catches light!", xname(obj));
+        await pline("%s catches light!", xname(obj));
         begin_burn(obj, false);
         return true;
     }
@@ -472,41 +472,41 @@ export function catch_lit(obj) {
 }
 
 // cf. apply.c:1624 -- use_lamp
-export function use_lamp(obj) {
+export async function use_lamp(obj) {
     if (obj.lamplit) {
         const lamp = (obj.otyp === OIL_LAMP || obj.otyp === MAGIC_LAMP) ? "lamp"
                    : (obj.otyp === BRASS_LANTERN) ? "lantern" : null;
-        if (lamp) pline("Your %s is now off.", lamp);
-        else You("snuff out %s.", xname(obj));
+        if (lamp) await pline("Your %s is now off.", lamp);
+        else await You("snuff out %s.", xname(obj));
         end_burn(obj, true);
         return;
     }
     const isCandle = (obj.otyp === WAX_CANDLE || obj.otyp === TALLOW_CANDLE);
     if ((!isCandle && obj.age === 0) || (obj.otyp === MAGIC_LAMP && obj.spe === 0)) {
-        if (obj.otyp === BRASS_LANTERN) Your("lantern is out of power.");
-        else pline("This %s has no oil.", xname(obj));
+        if (obj.otyp === BRASS_LANTERN) await Your("lantern is out of power.");
+        else await pline("This %s has no oil.", xname(obj));
         return;
     }
     if (obj.cursed && !rn2(2)) {
         if ((obj.otyp === OIL_LAMP || obj.otyp === MAGIC_LAMP) && !rn2(3)) {
-            pline("The lamp spills and covers your fingers with oil.");
+            await pline("The lamp spills and covers your fingers with oil.");
             d(2, 10); // consume RNG for make_glib
         } else {
-            pline("%s flickers for a moment, then dies.", xname(obj));
+            await pline("%s flickers for a moment, then dies.", xname(obj));
         }
     } else {
         const lamp = (obj.otyp === OIL_LAMP || obj.otyp === MAGIC_LAMP) ? "lamp"
                    : (obj.otyp === BRASS_LANTERN) ? "lantern" : null;
-        if (lamp) pline("Your %s is now on.", lamp);
-        else pline("%s's flame burns brightly!", xname(obj));
+        if (lamp) await pline("Your %s is now on.", lamp);
+        else await pline("%s's flame burns brightly!", xname(obj));
         begin_burn(obj, false);
     }
 }
 
 // cf. apply.c:1699 -- STUB: light_cocktail
-export function light_cocktail(obj) {
-    if (obj.lamplit) { You("snuff the lit potion."); end_burn(obj, true); return; }
-    You("light a potion. It gives off a dim light.");
+export async function light_cocktail(obj) {
+    if (obj.lamplit) { await You("snuff the lit potion."); end_burn(obj, true); return; }
+    await You("light a potion. It gives off a dim light.");
     begin_burn(obj, false);
 }
 
@@ -520,10 +520,10 @@ function rub_ok(obj) {
 }
 
 // cf. apply.c:1781 -- STUB: dorub
-function dorub() { pline("You rub... but nothing special happens."); }
+async function dorub() { await pline("You rub... but nothing special happens."); }
 
 // cf. apply.c:1843 -- STUB: dojump
-export function dojump() { You_cant("jump very far."); }
+export async function dojump() { await You_cant("jump very far."); }
 
 // cf. apply.c:2163 -- tinnable
 // Autotranslated from apply.c:2162
@@ -534,13 +534,13 @@ export function tinnable(corpse) {
 }
 
 // cf. apply.c:2173 -- STUB: use_tinning_kit
-function use_tinning_kit(obj) {
-    if (obj.spe <= 0) { You("seem to be out of tins."); return; }
-    pline("You need a corpse to tin.");
+async function use_tinning_kit(obj) {
+    if (obj.spe <= 0) { await You("seem to be out of tins."); return; }
+    await pline("You need a corpse to tin.");
 }
 
 // cf. apply.c:2255 -- use_unicorn_horn (partial: RNG parity for cursed)
-export function use_unicorn_horn(obj, player) {
+export async function use_unicorn_horn(obj, player) {
     if (!obj) return;
     if (obj.cursed) {
         rn1(90, 10); // lcount
@@ -552,26 +552,26 @@ export function use_unicorn_horn(obj, player) {
         return;
     }
     // Uncursed/blessed: would cure timed troubles; no property system yet
-    pline(_nothing_happens());
+    await pline(_nothing_happens());
 }
 
 // cf. apply.c:2394 -- STUB: fig_transform timer callback
 export function fig_transform() {}
 
 // cf. apply.c:2507 -- figurine_location_checks
-export function figurine_location_checks(obj, cc, quietly) {
+export async function figurine_location_checks(obj, cc, quietly) {
     if (!obj) return false;
     const x = cc ? cc.x : 0;
     const y = cc ? cc.y : 0;
     if (!isok(x, y)) {
-        if (!quietly) You("cannot put the figurine there.");
+        if (!quietly) await You("cannot put the figurine there.");
         return false;
     }
     return true;
 }
 
 // cf. apply.c:2540 -- STUB: use_figurine
-export function use_figurine() { pline("The figurine wriggles but nothing happens."); }
+export async function use_figurine() { await pline("The figurine wriggles but nothing happens."); }
 
 // cf. apply.c:2581 -- grease_ok
 export function grease_ok(obj) {
@@ -581,17 +581,17 @@ export function grease_ok(obj) {
 }
 
 // cf. apply.c:2600 -- STUB: use_grease
-function use_grease(obj) {
+async function use_grease(obj) {
     if (obj.spe > 0) {
         if (obj.cursed && !rn2(2)) {
             obj.spe--;
-            pline("%s slips from your fingers.", xname(obj));
+            await pline("%s slips from your fingers.", xname(obj));
             return;
         }
-        pline("You need to select something to grease.");
+        await pline("You need to select something to grease.");
     } else {
-        if (obj.known) pline("%s is empty.", xname(obj));
-        else pline("%s seems to be empty.", xname(obj));
+        if (obj.known) await pline("%s is empty.", xname(obj));
+        else await pline("%s seems to be empty.", xname(obj));
     }
 }
 
@@ -602,7 +602,7 @@ export function touchstone_ok(obj) {
 }
 
 // cf. apply.c:2676 -- STUB: use_stone
-function use_stone() { pline("\"scritch, scritch\""); }
+async function use_stone() { await pline("\"scritch, scritch\""); }
 
 // cf. apply.c:2809 -- reset_trapset
 export function reset_trapset(game) {
@@ -613,22 +613,22 @@ export function reset_trapset(game) {
 }
 
 // cf. apply.c:2817 -- use_trap
-function use_trap(obj, player, map, display, game) {
+async function use_trap(obj, player, map, display, game) {
     if (!obj || !player || !map || !game) {
-        You_cant("set a trap here!");
+        await You_cant("set a trap here!");
         return { moved: false, tookTime: false };
     }
     if (map.trapAt?.(player.x, player.y)) {
-        You_cant("set a trap here!");
+        await You_cant("set a trap here!");
         return { moved: false, tookTime: false };
     }
     const loc = map.at?.(player.x, player.y);
     if (!loc || loc.typ === STAIRS || loc.typ === LADDER) {
-        You_cant("set a trap here!");
+        await You_cant("set a trap here!");
         return { moved: false, tookTime: false };
     }
     if (IS_DOOR(loc.typ) || IS_FURNITURE(loc.typ)) {
-        You_cant("set a trap here!");
+        await You_cant("set a trap here!");
         return { moved: false, tookTime: false };
     }
 
@@ -683,7 +683,7 @@ function set_trap(game, player, map, display) {
 }
 
 // cf. apply.c:2951 -- STUB: use_whip
-function use_whip() { pline("Snap!"); }
+async function use_whip() { await pline("Snap!"); }
 
 // cf. apply.c:3279 -- STUB: find_poleable_mon
 function find_poleable_mon() { return false; }
@@ -717,12 +717,12 @@ export function could_pole_mon(_player, _x, _y, _map) { return false; }
 export function snickersnee_used_dist_attk() { return false; }
 
 // cf. apply.c:3422 -- STUB: use_pole
-export function use_pole() { pline("You miss; there is no one there to hit."); }
+export async function use_pole() { await pline("You miss; there is no one there to hit."); }
 
 // cf. apply.c:3564 -- use_cream_pie (partial)
-function use_cream_pie(obj, player) {
+async function use_cream_pie(obj, player) {
     if (obj.quan > 1) obj.quan--;
-    You("immerse your face in %s.", xname(obj));
+    await You("immerse your face in %s.", xname(obj));
     rnd(25); // blindinc RNG consumption
     if (obj.quan <= 0) setnotworn(player, obj);
 }
@@ -731,7 +731,7 @@ function use_cream_pie(obj, player) {
 export function jelly_ok(obj) { return (obj && obj.otyp === EGG); }
 
 // cf. apply.c:3612 -- STUB: use_royal_jelly
-function use_royal_jelly() { pline("You need an egg to use royal jelly on."); }
+async function use_royal_jelly() { await pline("You need an egg to use royal jelly on."); }
 
 // cf. apply.c:3682 -- grapple_range
 export function grapple_range() { return 4; }
@@ -756,7 +756,7 @@ export function display_grapple_positions(player, map) {
 }
 
 // cf. apply.c:3725 -- STUB: use_grapple
-function use_grapple() { pline(_nothing_happens()); }
+async function use_grapple() { await pline(_nothing_happens()); }
 
 // cf. apply.c:3872 -- STUB: discard_broken_wand
 function discard_broken_wand() {}
@@ -769,7 +769,7 @@ export function maybe_dunk_boulders() {}
 
 // cf. apply.c:3905 -- STUB: do_break_wand
 async function do_break_wand(obj, player, map) {
-    pline("Raising %s high above your head, you break it in two!", xname(obj));
+    await pline("Raising %s high above your head, you break it in two!", xname(obj));
     if (!obj.spe) obj.spe = rnd(3);
     await break_wand(obj, player, map);
     useupall(obj, player);
@@ -827,14 +827,14 @@ export function isApplyDownplay(obj) {
 export async function handleApply(player, map, display, game) {
     const inventory = player.inventory || [];
     if (inventory.length === 0) {
-        display.putstr_message("You don't have anything to use or apply.");
+        await display.putstr_message("You don't have anything to use or apply.");
         return { moved: false, tookTime: false };
     }
 
     const candidates = inventory.filter(isApplyCandidate);
     const hasDownplay = inventory.some(isApplyDownplay);
     if (candidates.length === 0 && !hasDownplay) {
-        display.putstr_message("You don't have anything to use or apply.");
+        await display.putstr_message("You don't have anything to use or apply.");
         return { moved: false, tookTime: false };
     }
 
@@ -847,7 +847,7 @@ export async function handleApply(player, map, display, game) {
     const prompt = letters.length > 0
         ? `What do you want to use or apply? [${letters} or ?*]`
         : 'What do you want to use or apply? [*]';
-    display.putstr_message(prompt);
+    await display.putstr_message(prompt);
     const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
@@ -856,7 +856,7 @@ export async function handleApply(player, map, display, game) {
     const resolveApplySelection = async (selected) => {
         replacePromptMessage();
         if (isApplyChopWeapon(selected)) {
-            display.putstr_message('In what direction do you want to chop? [>]');
+            await display.putstr_message('In what direction do you want to chop? [>]');
             await nhgetch();
             replacePromptMessage();
             return { moved: false, tookTime: false };
@@ -864,14 +864,14 @@ export async function handleApply(player, map, display, game) {
 
         if (selected.otyp === CREDIT_CARD || selected.otyp === LOCK_PICK
             || selected.otyp === SKELETON_KEY) {
-            display.putstr_message('In what direction?');
+            await display.putstr_message('In what direction?');
             const dirCh = await nhgetch();
             const dch = String.fromCharCode(dirCh);
             const dir = DIRECTION_KEYS[dch];
             if (!dir) {
                 replacePromptMessage();
                 if (!player?.wizard)
-                    display.putstr_message('What a strange direction!  Never mind.');
+                    await display.putstr_message('What a strange direction!  Never mind.');
                 return { moved: false, tookTime: false };
             }
             replacePromptMessage();
@@ -879,23 +879,23 @@ export async function handleApply(player, map, display, game) {
             const ny = player.y + dir[1];
             const loc = map.at(nx, ny);
             if (!loc || !IS_DOOR(loc.typ)) {
-                display.putstr_message('You see no door there.');
+                await display.putstr_message('You see no door there.');
                 return { moved: false, tookTime: true };
             }
             if (loc.flags === D_NODOOR) {
-                display.putstr_message('This doorway has no door.');
+                await display.putstr_message('This doorway has no door.');
                 return { moved: false, tookTime: true };
             }
             if (loc.flags & D_ISOPEN) {
-                display.putstr_message('You cannot lock an open door.');
+                await display.putstr_message('You cannot lock an open door.');
                 return { moved: false, tookTime: true };
             }
             if (loc.flags & D_BROKEN) {
-                display.putstr_message('This door is broken.');
+                await display.putstr_message('This door is broken.');
                 return { moved: false, tookTime: true };
             }
             if (selected.otyp === CREDIT_CARD && !(loc.flags & D_LOCKED)) {
-                display.putstr_message("You can't lock a door with a credit card.");
+                await display.putstr_message("You can't lock a door with a credit card.");
                 return { moved: false, tookTime: true };
             }
             const isLocked = !!(loc.flags & D_LOCKED);
@@ -912,16 +912,16 @@ export async function handleApply(player, map, display, game) {
             let usedtime = 0;
             game.occupation = {
                 occtxt: isLocked ? 'unlocking the door' : 'locking the door',
-                fn() {
+                async fn() {
                     if (usedtime++ >= 50) {
-                        display.putstr_message(`You give up your attempt at ${isLocked ? 'unlocking' : 'locking'} the door.`);
-                        exercise(player, A_DEX, true);
+                        await display.putstr_message(`You give up your attempt at ${isLocked ? 'unlocking' : 'locking'} the door.`);
+                        await exercise(player, A_DEX, true);
                         return false;
                     }
                     if (rn2(100) >= chance) return true;
-                    display.putstr_message(`You succeed in ${isLocked ? 'unlocking' : 'locking'} the door.`);
+                    await display.putstr_message(`You succeed in ${isLocked ? 'unlocking' : 'locking'} the door.`);
                     loc.flags = isLocked ? D_CLOSED : D_LOCKED;
-                    exercise(player, A_DEX, true);
+                    await exercise(player, A_DEX, true);
                     return false;
                 },
             };
@@ -932,14 +932,14 @@ export async function handleApply(player, map, display, game) {
             || selected.otyp === BULLWHIP || selected.otyp === STETHOSCOPE
             || selected.otyp === EXPENSIVE_CAMERA || selected.otyp === MIRROR
             || selected.otyp === FIGURINE || isApplyPolearm(selected)) {
-            display.putstr_message('In what direction?');
+            await display.putstr_message('In what direction?');
             const dirCh = await nhgetch();
             const dch = String.fromCharCode(dirCh);
             const dir = DIRECTION_KEYS[dch];
             if (!dir) {
                 replacePromptMessage();
                 if (!player?.wizard)
-                    display.putstr_message('What a strange direction!  Never mind.');
+                    await display.putstr_message('What a strange direction!  Never mind.');
                 return { moved: false, tookTime: false };
             }
             replacePromptMessage();
@@ -952,13 +952,13 @@ export async function handleApply(player, map, display, game) {
             const studied = Math.max(0, Math.min(4,
                 Number(selected.spestudied || 0)));
             const magical = !!objectData[selected.otyp]?.magic;
-            display.putstr_message(
+            await display.putstr_message(
                 `The${magical ? ' magical' : ''} ink in this spellbook is ${fades[studied]}.`);
             return { moved: false, tookTime: true };
         }
 
         if (selected.otyp === LAND_MINE || selected.otyp === BEARTRAP) {
-            return use_trap(selected, player, map, display, game);
+            return await use_trap(selected, player, map, display, game);
         }
 
         if (selected.oclass === WAND_CLASS) {
@@ -966,7 +966,7 @@ export async function handleApply(player, map, display, game) {
             return { moved: false, tookTime: true };
         }
 
-        display.putstr_message("Sorry, I don't know how to use that.");
+        await display.putstr_message("Sorry, I don't know how to use that.");
         return { moved: false, tookTime: false };
     };
 
@@ -976,7 +976,7 @@ export async function handleApply(player, map, display, game) {
 
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
-            display.putstr_message('Never mind.');
+            await display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
         if (c === '?' || c === '*') {
@@ -986,7 +986,7 @@ export async function handleApply(player, map, display, game) {
             let picked = null;
             for (const item of showList) {
                 replacePromptMessage();
-                display.putstr_message(
+                await display.putstr_message(
                     `${item.invlet} - ${doname(item, player)}  --More--`);
                 const ack = await nhgetch();
                 const ackC = String.fromCharCode(ack);
@@ -1018,29 +1018,29 @@ export function unfixable_trouble_count(/* is_horn, player */) {
 }
 
 // cf. apply.c:4468 -- flip_through_book
-export function flip_through_book(obj) {
-    You("flip through the pages of %s.", xname(obj));
+export async function flip_through_book(obj) {
+    await You("flip through the pages of %s.", xname(obj));
     if (obj.otyp === SPE_BOOK_OF_THE_DEAD) {
-        You_hear("the pages make an unpleasant rustling sound.");
+        await You_hear("the pages make an unpleasant rustling sound.");
     } else if (obj.otyp === SPE_BLANK_PAPER) {
-        pline("This spellbook has nothing written in it.");
+        await pline("This spellbook has nothing written in it.");
     } else if (obj.otyp === SPE_NOVEL) {
-        pline("This looks like it might be interesting to read.");
+        await pline("This looks like it might be interesting to read.");
     } else {
         const fadeness = ["fresh", "slightly faded", "very faded",
                           "extremely faded", "barely visible"];
         const findx = Math.min(obj.spestudied || 0, 4);
-        pline("The%s ink in this spellbook is %s.",
+        await pline("The%s ink in this spellbook is %s.",
               objectData[obj.otyp]?.magic ? " magical" : "",
               fadeness[findx]);
     }
 }
 
 // cf. apply.c:4522 -- flip_coin
-export function flip_coin() {
-    You("flip a coin.");
-    if (rn2(2)) pline("It comes up heads.");
-    else pline("It comes up tails.");
+export async function flip_coin() {
+    await You("flip a coin.");
+    if (rn2(2)) await pline("It comes up heads.");
+    else await pline("It comes up tails.");
 }
 
 // Autotranslated from apply.c:1954

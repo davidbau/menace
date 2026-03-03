@@ -124,7 +124,7 @@ export function newhp(player) {
 // cf. exper.c:206 — losexp(): level drain (e.g., hit by drain life attack)
 // Partial: drains level and HP but does not implement adjabil/uhpinc/ueninc.
 // RNG: consumes rnd(10) for HP loss, rn2(5) for PW loss (matching C's newhp/newpw calls).
-export function losexp(player, display, drainer) {
+export async function losexp(player, display, drainer) {
     if (player.ulevel <= 1) {
         // Can't lose a level below 1; C would kill the hero
         return;
@@ -144,20 +144,20 @@ export function losexp(player, display, drainer) {
     player.ulevel--;
     player.exp = newuexp(player.ulevel);
     if (display) {
-        display.putstr_message(`You feel your life force draining away.`);
+        await display.putstr_message(`You feel your life force draining away.`);
     }
 }
 
 // cf. exper.c:299 — newexplevel(): check if player should gain a level
 // Autotranslated from exper.c:299
-export function newexplevel(player) {
-  if (player.ulevel < MAXULEV && player.uexp >= newuexp(player.ulevel)) pluslvl(true);
+export async function newexplevel(player) {
+  if (player.ulevel < MAXULEV && player.uexp >= newuexp(player.ulevel)) await pluslvl(true);
 }
 
 // cf. exper.c:306 — pluslvl(): gain an experience level
-export function pluslvl(player, display, incr) {
+export async function pluslvl(player, display, incr) {
     if (!incr) {
-        display.putstr_message('You feel more experienced.');
+        await display.putstr_message('You feel more experienced.');
     }
 
     // cf. exper.c:324 newhp() — role-dependent HP gain
@@ -181,7 +181,7 @@ export function pluslvl(player, display, incr) {
         }
         player.ulevel++;
         const back = (player.ulevelmax != null && player.ulevelmax >= player.ulevel) ? 'back ' : '';
-        display.putstr_message(`Welcome ${back}to experience level ${player.ulevel}.`);
+        await display.putstr_message(`Welcome ${back}to experience level ${player.ulevel}.`);
         if (player.ulevelmax == null || player.ulevelmax < player.ulevel) {
             player.ulevelmax = player.ulevel;
         }

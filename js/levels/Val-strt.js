@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Valkyrie Val-strt.lua	$NHDT-Date: 1652196017 2022/5/10 15:20:17 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991-2 by M. Stephenson
@@ -95,12 +95,12 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     // Non diggable walls
     des.non_diggable(selection.area(26,7,43,13));
     // Random traps
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
     // Monsters on siege duty.
     des.monster("fire ant", 4, 12);
     des.monster("fire ant", 8, 8);
@@ -114,5 +114,5 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     des.monster("fire ant", 63, 17);
     des.monster({ id: "fire giant", x: 18, y: 1, peaceful: 0 });
     des.monster({ id: "fire giant", x: 10, y: 16, peaceful: 0 });
-    return des.finalize_level();
+    return await des.finalize_level();
 }

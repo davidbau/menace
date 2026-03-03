@@ -16,7 +16,7 @@ describe('Wall junction computation (wallification)', () => {
         initRng(42);
     });
 
-    it('should compute corner types correctly', () => {
+    it('should compute corner types correctly', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
         des.level_flags('noflip'); // Disable flipping for predictable placement
@@ -27,8 +27,8 @@ describe('Wall junction computation (wallification)', () => {
 |...|
 -----`;
 
-        des.map(simpleBox);
-        finalize_level();
+        await des.map(simpleBox);
+        await finalize_level();
 
         const state = getLevelState();
         const map = state.map;
@@ -53,7 +53,7 @@ describe('Wall junction computation (wallification)', () => {
         assert.equal(map.locations[offsetX][offsetY + 2].typ, VWALL, 'Left middle should be VWALL');
     });
 
-    it('should compute T-junction types correctly', () => {
+    it('should compute T-junction types correctly', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
         des.level_flags('noflip');
@@ -66,8 +66,8 @@ describe('Wall junction computation (wallification)', () => {
 |.....|
 -------`;
 
-        des.map(tJunction);
-        finalize_level();
+        await des.map(tJunction);
+        await finalize_level();
 
         const state = getLevelState();
         const map = state.map;
@@ -86,7 +86,7 @@ describe('Wall junction computation (wallification)', () => {
         assert.equal(map.locations[offsetX + 3][offsetY + 2].typ, VWALL, 'Vertical wall above junction should be VWALL');
     });
 
-    it('should iterate until convergence', () => {
+    it('should iterate until convergence', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
         des.level_flags('noflip');
@@ -100,8 +100,8 @@ describe('Wall junction computation (wallification)', () => {
 |......|
 --------`;
 
-        des.map(complexMap);
-        finalize_level();
+        await des.map(complexMap);
+        await finalize_level();
 
         const state = getLevelState();
         const map = state.map;
@@ -126,7 +126,7 @@ describe('Wall junction computation (wallification)', () => {
         // Note: junctionCount might be 0 if the pattern doesn't create junctions after proper computation
     });
 
-    it('should handle walls without neighbors', () => {
+    it('should handle walls without neighbors', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
         des.level_flags('noflip');
@@ -135,7 +135,7 @@ describe('Wall junction computation (wallification)', () => {
         des.terrain(40, 10, '-');
         des.terrain(42, 10, '|');
 
-        finalize_level();
+        await finalize_level();
 
         const state = getLevelState();
         const map = state.map;

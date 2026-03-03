@@ -110,7 +110,7 @@ export async function display_nhwindow(win, blocking) {
     const w = wins[win];
     if (!w) return;
     if (w.type === NHW_MESSAGE && blocking && ttyDisplay.toplin === TOPLINE_NON_EMPTY) {
-        if (_display?.putstr_message) _display.putstr_message('--More--');
+        if (_display?.putstr_message) await _display.putstr_message('--More--');
         await _nhgetch();
         ttyDisplay.toplin = TOPLINE_EMPTY;
     }
@@ -129,7 +129,7 @@ export function destroy_nhwindow(win) {
 }
 
 // putstr(win, attr, str) — C ref: tty_putstr()
-export function putstr(win, attr, str) {
+export async function putstr(win, attr, str) {
     const w = wins[win];
     if (!w) return;
     if (w.type === NHW_MESSAGE) {
@@ -138,7 +138,7 @@ export function putstr(win, attr, str) {
             if (w.data.length > 20) w.data.shift();
         }
         ttyDisplay.toplin = TOPLINE_NON_EMPTY;
-        if (_display?.putstr_message) _display.putstr_message(str);
+        if (_display?.putstr_message) await _display.putstr_message(str);
     } else {
         w.data.push({ attr, str });
     }
@@ -293,8 +293,8 @@ export function genl_getmsghistory(init) {
 }
 
 // Autotranslated from windows.c:488
-export function genl_putmsghistory(msg, is_restoring) {
-  if (!is_restoring) pline("%s", msg);
+export async function genl_putmsghistory(msg, is_restoring) {
+  if (!is_restoring) await pline("%s", msg);
   return;
 }
 
@@ -419,9 +419,9 @@ export function dump_close_log() {
 }
 
 // Autotranslated from windows.c:1275
-export function dump_forward_putstr(win, attr, str, no_forward) {
+export async function dump_forward_putstr(win, attr, str, no_forward) {
   if (dumplog_file) fprintf(dumplog_file, "%s\n", str);
-  if (!no_forward) putstr(win, attr, str);
+  if (!no_forward) await putstr(win, attr, str);
 }
 
 // Autotranslated from windows.c:1285
@@ -530,9 +530,9 @@ export function decode_glyph(str, glyph_ptr, game) {
 }
 
 // Autotranslated from windows.c:1527
-export function genl_putmixed(window, attr, str) {
+export async function genl_putmixed(window, attr, str) {
   let buf;
-  putstr(window, attr, decode_mixed(buf, str));
+  await putstr(window, attr, decode_mixed(buf, str));
 }
 
 // Autotranslated from windows.c:252
@@ -561,8 +561,8 @@ export function hup_nh_poskey(x, y, mod) {
 }
 
 // Autotranslated from windows.c:450
-export function genl_message_menu(let_, how, mesg) {
-  pline("%s", mesg);
+export async function genl_message_menu(let_, how, mesg) {
+  await pline("%s", mesg);
   return 0;
 }
 

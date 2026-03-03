@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 import { hell_tweaks } from './hellfill.js';
 
-export function generate() {
+export async function generate() {
     // NetHack gehennom asmodeus.lua	$NHDT-Date: 1652196020 2022/5/10 15:20:20 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1992 by M. Stephenson && Izchak Miller
@@ -35,7 +35,7 @@ export function generate() {
 |..|..-----------...|
 |..S..........|.....|
 ---------------------
-`, contents: function(rm) {
+`, contents: async function(rm) {
        // Doors
        des.door("closed",4,3);
        des.door("locked",18,4);
@@ -60,13 +60,13 @@ export function generate() {
        des.object("?");
        des.object("?");
        // Some traps.
-       des.trap("spiked pit", 5,2);
-       des.trap("fire", 8,6);
-       des.trap("sleep gas");
-       des.trap("anti magic");
-       des.trap("fire");
-       des.trap("magic");
-       des.trap("magic");
+       await des.trap("spiked pit", 5,2);
+       await des.trap("fire", 8,6);
+       await des.trap("sleep gas");
+       await des.trap("anti magic");
+       await des.trap("fire");
+       await des.trap("magic");
+       await des.trap("magic");
        // Random monsters.
        des.monster("ghost",11,7);
        des.monster("horned devil",10,5);
@@ -89,7 +89,7 @@ export function generate() {
 ................................+
 ................................|
 ---------------------------------
-`, contents: function(rm) {
+`, contents: async function(rm) {
        des.mazewalk(32,2,"east");
        // Non diggable walls
        des.non_diggable(selection.area(0,0,32,4));
@@ -97,14 +97,14 @@ export function generate() {
        des.monster("&");
        des.monster("&");
        des.monster("&");
-       des.trap("anti magic");
-       des.trap("fire");
-       des.trap("magic");
+       await des.trap("anti magic");
+       await des.trap("fire");
+       await des.trap("magic");
     } });
 
     let protected_region = bounds2.negate().union(asmo1).union(asmo2);
     hell_tweaks(protected_region);
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

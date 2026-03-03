@@ -295,7 +295,7 @@ export async function thitu(tlev, dam, objp, name, player, display, game, mon = 
                 msg = `You are almost hit by ${name || thrownObjectName(obj, player)}.`;
             }
             await maybeFlushToplineBeforeMessage(display, msg, game);
-            display.putstr_message(msg);
+            await display.putstr_message(msg);
         }
         return 0;
     }
@@ -305,11 +305,11 @@ export async function thitu(tlev, dam, objp, name, player, display, game, mon = 
         const punct = exclam(Number.isFinite(dam) ? dam : 0);
         const msg = `You are hit by ${text}${punct}`;
         await maybeFlushToplineBeforeMessage(display, msg, game);
-        display.putstr_message(msg);
+        await display.putstr_message(msg);
     }
     if (player.takeDamage) player.takeDamage(dam, mon ? x_monnam(mon) : 'an object');
     else player.uhp -= dam;
-    exercise(player, A_STR, false);
+    await exercise(player, A_STR, false);
     return 1;
 }
 
@@ -334,11 +334,11 @@ export function drop_throw(obj, ohit, x, y, map) {
 }
 
 // C ref: mthrowu.c hit_bars().
-export function hit_bars(objp, objx, objy, barsx, barsy, breakflags = 0, map) {
+export async function hit_bars(objp, objx, objy, barsx, barsy, breakflags = 0, map) {
     const obj = objp || null;
     if (!obj) return;
     // C-style: breakable items may shatter on bars.
-    const broken = breaks(obj, objx, objy, null, map);
+    const broken = await breaks(obj, objx, objy, null, map);
     if (broken) return;
     // Survived impact: drop at the impact cell.
     if (map && isok(objx, objy)) {
@@ -349,7 +349,7 @@ export function hit_bars(objp, objx, objy, barsx, barsy, breakflags = 0, map) {
 }
 
 // C ref: mthrowu.c hits_bars().
-export function hits_bars(objp, x, y, barsx, barsy, always_hit = 0, whodidit = -1, map = null) {
+export async function hits_bars(objp, x, y, barsx, barsy, always_hit = 0, whodidit = -1, map = null) {
     const obj = objp || null;
     if (!obj) return true;
     let hits = !!always_hit;
@@ -392,7 +392,7 @@ export function hits_bars(objp, x, y, barsx, barsy, always_hit = 0, whodidit = -
         }
     }
     if (hits && whodidit !== -1) {
-        hit_bars(obj, x, y, barsx, barsy, 0, map);
+        await hit_bars(obj, x, y, barsx, barsy, 0, map);
     }
     return hits;
 }
@@ -417,7 +417,7 @@ export async function ohitmon(mtmp, otmp, range, verbose, map, player, display, 
         if (verbose && display && !player?.blind && couldsee(map, player, mtmp.mx, mtmp.my)) {
             const msg = `The ${xname({ ...otmp, dknown: true })} hits ${x_monnam(mtmp, { article: 'none' })}${exclam(damage)}`;
             await maybeFlushToplineBeforeMessage(display, msg, game);
-            display.putstr_message(msg);
+            await display.putstr_message(msg);
         }
         mtmp.mhp -= damage;
         if (mtmp.mhp <= 0) {
@@ -430,7 +430,7 @@ export async function ohitmon(mtmp, otmp, range, verbose, map, player, display, 
                 const exp = ((mtmp.mlevel || 0) + 1) * ((mtmp.mlevel || 0) + 1);
                 player.exp = (player.exp || 0) + exp;
                 player.score = (player.score || 0) + exp;
-                newexplevel(player, display);
+                await newexplevel(player, display);
             }
             const mdat2 = mons[mtmp.mndx || 0] || {};
             if (corpse_chance(mtmp) && !(((mdat2.geno || 0) & G_NOCORPSE) !== 0)) {
@@ -463,7 +463,7 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
 
     if (display) {
         const targetName = mtarg ? ` at the ${x_monnam(mtarg)}` : '';
-        display.putstr_message(`The ${x_monnam(mon)} throws ${thrownObjectName(otmp, player)}${targetName}!`);
+        await display.putstr_message(`The ${x_monnam(mon)} throws ${thrownObjectName(otmp, player)}${targetName}!`);
     }
 
     const ddx = Math.sign(tx - mon.mx);
@@ -593,7 +593,7 @@ export async function m_throw_timed(
                     promptedForTopline = true;
                 }
                 if (impact.deathMessage && display) {
-                    display.putstr_message(impact.deathMessage);
+                    await display.putstr_message(impact.deathMessage);
                 }
                 // ohitmon() already performs drop_throw() when projectile stops.
                 dropHandledInImpact = true;
@@ -602,7 +602,7 @@ export async function m_throw_timed(
         }
 
         if (x === player.x && y === player.y) {
-            if (weapon?.oclass === GEM_CLASS && ucatchgem(weapon, mon, player, map, display)) {
+            if (weapon?.oclass === GEM_CLASS && await ucatchgem(weapon, mon, player, map, display)) {
                 break;
             }
             let hitv;
@@ -633,8 +633,8 @@ export async function m_throw_timed(
             }
             const hitu = await thitu(hitv, dam, weapon, null, player, display, game, mon);
             if (game) {
-                if (typeof game.stop_occupation === 'function') game.stop_occupation();
-                else if (typeof game.stopOccupation === 'function') game.stopOccupation();
+                if (typeof game.stop_occupation === 'function') await game.stop_occupation();
+                else if (typeof game.stopOccupation === 'function') await game.stopOccupation();
                 else if (game.occupation || Number.isInteger(game.multi)) {
                     game.occupation = null;
                     game.multi = 0;
@@ -650,7 +650,7 @@ export async function m_throw_timed(
         const nx = x + dx;
         const ny = y + dy;
         const nextLoc = isok(nx, ny) ? map.at(nx, ny) : null;
-        if (nextLoc && nextLoc.typ === IRONBARS && hits_bars(weapon, x, y, nx, ny, forcehit ? 1 : 0, 0, map)) {
+        if (nextLoc && nextLoc.typ === IRONBARS && await hits_bars(weapon, x, y, nx, ny, forcehit ? 1 : 0, 0, map)) {
             break;
         }
         if (!range || flightBlocked(x, y, false, forcehit)) break;
@@ -705,7 +705,7 @@ export async function thrwmu(mon, map, player, display, game) {
         const range2 = dist2(mon.mx, mon.my, targetX, targetY);
         if (range2 <= 5 && couldsee(map, player, mon.mx, mon.my)) {
             if (display) {
-                display.putstr_message(`The ${x_monnam(mon)} thrusts ${thrownObjectName(otmp, player)}.`);
+                await display.putstr_message(`The ${x_monnam(mon)} thrusts ${thrownObjectName(otmp, player)}.`);
             }
             const od = objectData[otmp.otyp] || {};
             let dam = (od.sdam || 0) > 0 ? rnd(od.sdam || 0) : 1;
@@ -717,8 +717,8 @@ export async function thrwmu(mon, map, player, display, game) {
             await thitu(hitv, dam, otmp, null, player, display, game, mon);
             // C ref: mthrowu.c m_throw() stop_occupation() ordering.
             if (game) {
-                if (typeof game.stop_occupation === 'function') game.stop_occupation();
-                else if (typeof game.stopOccupation === 'function') game.stopOccupation();
+                if (typeof game.stop_occupation === 'function') await game.stop_occupation();
+                else if (typeof game.stopOccupation === 'function') await game.stopOccupation();
                 else if (game.occupation || Number.isInteger(game.multi)) {
                     game.occupation = null;
                     game.multi = 0;
@@ -761,7 +761,7 @@ export async function thrwmm(mtmp, mtarg, map, player, display, game) {
 export async function spitmm(mtmp, mattk, mtarg, map, player, display, game) {
     if (!mtmp || !mattk || !mtarg) return 0;
     if (mtmp.mcan) {
-        if (display) display.putstr_message(`A dry rattle comes from the ${x_monnam(mtmp)}'s throat.`);
+        if (display) await display.putstr_message(`A dry rattle comes from the ${x_monnam(mtmp)}'s throat.`);
         return 0;
     }
     if (!m_lined_up(mtarg, mtmp, map, player)) return 0;
@@ -775,7 +775,7 @@ export async function spitmm(mtmp, mattk, mtarg, map, player, display, game) {
     const denom = Math.max(1, BOLT_LIM - distmin(mtmp.mx, mtmp.my, tx, ty));
     if (rn2(denom)) return 0;
     if (display) {
-        display.putstr_message(`The ${x_monnam(mtmp)} spits venom!`);
+        await display.putstr_message(`The ${x_monnam(mtmp)} spits venom!`);
     }
     return (await monshoot(mtmp, otmp, null, map, player, display, game, mtarg)) ? 1 : 0;
 }
@@ -788,18 +788,18 @@ export async function spitmu(mtmp, mattk, map, player, display, game) {
 
 // hero catches gem thrown by mon iff unicorn.
 // C ref: mthrowu.c ucatchgem().
-export function ucatchgem(gem, mon, player, map, display) {
+export async function ucatchgem(gem, mon, player, map, display) {
     if (!gem || !player) return false;
     if (gem.oclass !== GEM_CLASS) return false;
     if (!is_unicorn(player?.data || {})) return false;
     const name = thrownObjectName(gem, player);
     const isGlass = gem.otyp >= FIRST_GLASS_GEM && gem.otyp <= LAST_GLASS_GEM;
     if (display) {
-        display.putstr_message(`You catch the ${name}.`);
+        await display.putstr_message(`You catch the ${name}.`);
         if (isGlass) {
-            display.putstr_message(`You are not interested in ${x_monnam(mon)}'s junk.`);
+            await display.putstr_message(`You are not interested in ${x_monnam(mon)}'s junk.`);
         } else {
-            display.putstr_message(`You accept ${x_monnam(mon)}'s gift.`);
+            await display.putstr_message(`You accept ${x_monnam(mon)}'s gift.`);
         }
     }
     if (isGlass) {
@@ -854,14 +854,14 @@ export async function breamm(mtmp, mattk, mtarg, map, player, display, game) {
     if (!m_lined_up(mtarg, mtmp, map, player)) return 0;
     canonicalizeAttackFields(mattk);
     if (mtmp.mcan) {
-        if (display) display.putstr_message(`The ${x_monnam(mtmp)} coughs.`);
+        if (display) await display.putstr_message(`The ${x_monnam(mtmp)} coughs.`);
         return 0;
     }
     if (mtmp.mspec_used) return 0;
     if (rn2(3)) return 0;
     const adtyp = mattk?.adtyp ?? AD_FIRE;
     if (display) {
-        display.putstr_message(`The ${x_monnam(mtmp)} breathes ${breathwep_name(adtyp, !!player?.hallucinating)}!`);
+        await display.putstr_message(`The ${x_monnam(mtmp)} breathes ${breathwep_name(adtyp, !!player?.hallucinating)}!`);
     }
     const nd = Math.max(1, mattk?.damn || 6);
     const dx = Math.sign((mtarg?.x ?? mtarg?.mx ?? 0) - (mtmp.mx ?? 0));
@@ -888,7 +888,7 @@ export function hasWeaponAttack(mon) {
 // C ref: monmove.c:853-860 — dochug weapon wielding gate
 // Called from monmove.js before melee attacks. Uses mon_wield_item for
 // proper weapon AI (select_hwep priority list) instead of first-item scan.
-export function maybeMonsterWieldBeforeAttack(mon, player, display, fov, nearby = true) {
+export async function maybeMonsterWieldBeforeAttack(mon, player, display, fov, nearby = true) {
     if (!hasWeaponAttack(mon)) return false;
     // Keep legacy behavior for monsters that start unarmed in JS fixtures.
     // C equivalent checks weapon_check state; JS tests also rely on
@@ -905,7 +905,7 @@ export function maybeMonsterWieldBeforeAttack(mon, player, display, fov, nearby 
             const visible = !fov?.canSee || (fov.canSee(mon.mx, mon.my)
                 && !player?.blind && !mon.minvis);
             if (display && visible) {
-                display.putstr_message(`The ${x_monnam(mon)} wields ${thrownObjectName(mon.weapon, player)}!`);
+                await display.putstr_message(`The ${x_monnam(mon)} wields ${thrownObjectName(mon.weapon, player)}!`);
             }
         }
         return true;

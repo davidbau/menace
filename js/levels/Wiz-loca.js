@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 import { rn2 } from '../rng.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Wizard Wiz-loca.lua	$NHDT-Date: 1652196019 2022/5/10 15:20:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1992 by David Cohrs
     // NetHack may be freely redistributed.  See license for details.
@@ -110,27 +110,27 @@ export function generate() {
     des.object();
     des.object();
     // Random traps
-    des.trap("spiked pit",24,2);
-    des.trap("spiked pit",7,10);
-    des.trap("spiked pit",23,5);
-    des.trap("spiked pit",26,19);
-    des.trap("spiked pit",72,2);
-    des.trap("spiked pit",72,12);
-    des.trap("falling rock",45,16);
-    des.trap("falling rock",65,13);
-    des.trap("falling rock",55,6);
-    des.trap("falling rock",39,11);
-    des.trap("falling rock",57,9);
-    des.trap("magic");
-    des.trap("statue");
-    des.trap("statue");
-    des.trap("polymorph");
-    des.trap("anti magic",53,10);
-    des.trap("sleep gas");
-    des.trap("sleep gas");
-    des.trap("dart");
-    des.trap("dart");
-    des.trap("dart");
+    await des.trap("spiked pit",24,2);
+    await des.trap("spiked pit",7,10);
+    await des.trap("spiked pit",23,5);
+    await des.trap("spiked pit",26,19);
+    await des.trap("spiked pit",72,2);
+    await des.trap("spiked pit",72,12);
+    await des.trap("falling rock",45,16);
+    await des.trap("falling rock",65,13);
+    await des.trap("falling rock",55,6);
+    await des.trap("falling rock",39,11);
+    await des.trap("falling rock",57,9);
+    await des.trap("magic");
+    await des.trap("statue");
+    await des.trap("statue");
+    await des.trap("polymorph");
+    await des.trap("anti magic",53,10);
+    await des.trap("sleep gas");
+    await des.trap("sleep gas");
+    await des.trap("dart");
+    await des.trap("dart");
+    await des.trap("dart");
     // Random monsters.
     des.monster({ class: "B", peaceful: 0 });
     des.monster({ class: "B", peaceful: 0 });
@@ -161,5 +161,5 @@ export function generate() {
     des.monster({ class: "i", peaceful: 0 });
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

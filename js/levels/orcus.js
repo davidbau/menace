@@ -8,7 +8,7 @@ import { selection } from '../sp_lev.js';
 import { rn2 } from '../rng.js';
 import { hell_tweaks } from './hellfill.js';
 
-export function generate() {
+export async function generate() {
     // NetHack gehennom orcus.lua	$NHDT-Date: 1652196033 2022/5/10 15:20:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1992 by M. Stephenson && Izchak Miller
@@ -41,7 +41,7 @@ export function generate() {
 .|....|..............|....+....|.............
 .|....+.......|......|....|....|.............
 .|....|.......|......|....|....|.............
-`, contents: function(rm) {
+`, contents: async function(rm) {
        des.mazewalk(0,6,"west");
        // Entire main area
        des.region(selection.area(1,0,44,16),"unlit");
@@ -94,14 +94,14 @@ export function generate() {
        des.region({ region: [32,9,37,12],lit: 1,type: "shop",filled: 1 });
        des.region({ region: [12,0,15,4],lit: 1,type: "shop",filled: 1 });
        // Some traps.
-       des.trap("spiked pit");
-       des.trap("sleep gas");
-       des.trap("anti magic");
-       des.trap("fire");
-       des.trap("fire");
-       des.trap("fire");
-       des.trap("magic");
-       des.trap("magic");
+       await des.trap("spiked pit");
+       await des.trap("sleep gas");
+       await des.trap("anti magic");
+       await des.trap("fire");
+       await des.trap("fire");
+       await des.trap("fire");
+       await des.trap("magic");
+       await des.trap("magic");
        // Some random objects
        des.object();
        des.object();
@@ -168,5 +168,5 @@ export function generate() {
 
     let protected_region = bounds2.negate().union(orcus1);
     hell_tweaks(protected_region);
-    return des.finalize_level();
+    return await des.finalize_level();
 }

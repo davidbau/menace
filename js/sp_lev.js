@@ -1069,7 +1069,7 @@ function canPlaceStair(direction) {
     return true;
 }
 
-function fixupSpecialLevel() {
+async function fixupSpecialLevel() {
     if (!levelState.map || levelState.branchPlaced) return;
     // C ref: mkmaze.c fixup_special()
     const LR_TELE = 0;
@@ -1086,7 +1086,7 @@ function fixupSpecialLevel() {
     // Is_waterlevel/Is_airlevel forces hero_memory off and runs setup_waterlevel()
     // before processing levregions.
     if (specialName === 'water' || specialName === 'air') {
-        setup_waterlevel(levelState.map, { isWaterLevel: specialName === 'water' });
+        await setup_waterlevel(levelState.map, { isWaterLevel: specialName === 'water' });
     }
 
     let addedBranch = false;
@@ -2181,7 +2181,7 @@ function mapfrag_match_scan(map, mapfrag) {
  * @param {number} data.y - Explicit Y coordinate
  * @param {boolean} data.lit - Whether to light the map (default: false)
  */
-export function map(data) {
+export async function map(data) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
@@ -2365,7 +2365,7 @@ export function map(data) {
             hx: x + width - 1,
             hy: y + height - 1,
         };
-        contents(mapRegion);
+        await contents(mapRegion);
     }
 
     captureCheckpoint('after_map');
@@ -2989,7 +2989,7 @@ function wallification(map) {
  * @param {Object} opts - Room options
  * @returns {boolean} - True if room was created successfully
  */
-export function build_room(opts = {}) {
+export async function build_room(opts = {}) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
@@ -3175,7 +3175,7 @@ export function build_room(opts = {}) {
             levelState.currentRoom = subroom;
 
             try {
-                contents(subroom);
+                await contents(subroom);
             } finally {
                 spo_endroom();
             }
@@ -3257,7 +3257,7 @@ export function build_room(opts = {}) {
                 levelState.currentRoom = room;
 
                 try {
-                    contents(room);
+                    await contents(room);
                 } finally {
                     spo_endroom();
                 }
@@ -3374,7 +3374,7 @@ export function build_room(opts = {}) {
                 }
 
                 try {
-                    contents(room);
+                    await contents(room);
                 } finally {
                     spo_endroom();
                 }
@@ -3445,7 +3445,7 @@ export function build_room(opts = {}) {
                 levelState.currentRoom = roomCalc;
 
                 try {
-                    contents(roomCalc);
+                    await contents(roomCalc);
                 } finally {
                     spo_endroom();
                 }
@@ -3574,7 +3574,7 @@ export function build_room(opts = {}) {
 
         try {
             // Execute contents callback
-            contents(room);  // Pass room as parameter for Lua compatibility
+            await contents(room);  // Pass room as parameter for Lua compatibility
             if (DEBUG) {
                 console.log(`des.room(): FINISHED contents callback for room at (${roomX},${roomY})`);
             }
@@ -3592,8 +3592,8 @@ export function build_room(opts = {}) {
     return true;
 }
 
-export function room(opts = {}) {
-    return build_room(opts);
+export async function room(opts = {}) {
+    return await build_room(opts);
 }
 
 function l_create_stairway(directionOrOpts, x, y, is_ladder = false) {
@@ -3881,7 +3881,7 @@ function installObjectTimerShims(obj) {
  * @param {number} [x] - X coordinate (if name_or_opts is string)
  * @param {number} [y] - Y coordinate (if name_or_opts is string)
  */
-export function object(name_or_opts, x, y) {
+export async function object(name_or_opts, x, y) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
@@ -4152,7 +4152,7 @@ export function object(name_or_opts, x, y) {
             obj.contents = [];
             levelState.containerStack.push(obj);
             try {
-                name_or_opts.contents(obj);
+                await name_or_opts.contents(obj);
             } finally {
                 spo_pop_container();
             }
@@ -4368,7 +4368,7 @@ function get_table_xy_or_coord(opts = {}) {
  * @param {number} [x] - X coordinate (if type_or_opts is string)
  * @param {number} [y] - Y coordinate (if type_or_opts is string)
  */
-export function create_trap(type_or_opts, x, y) {
+export async function create_trap(type_or_opts, x, y) {
     if (!levelState.map) {
         levelState.map = new GameMap();
     }
@@ -4426,7 +4426,7 @@ export function create_trap(type_or_opts, x, y) {
                 absY = randomPos.y;
             }
         }
-        createScriptTrap({ type_or_opts, x: absX, y: absY });
+        await createScriptTrap({ type_or_opts, x: absX, y: absY });
         return;
     }
 
@@ -4454,11 +4454,11 @@ export function create_trap(type_or_opts, x, y) {
 
     // C ref: sp_lev.c lspo_trap()/create_trap() applies trap RNG side effects
     // inline in script order. Execute immediately for parity.
-    createScriptTrap({ type_or_opts, x: absX, y: absY });
+    await createScriptTrap({ type_or_opts, x: absX, y: absY });
 }
 
-export function trap(type_or_opts, x, y) {
-    return create_trap(type_or_opts, x, y);
+export async function trap(type_or_opts, x, y) {
+    return await create_trap(type_or_opts, x, y);
 }
 export 
 function light_region(x1, y1, x2, y2, litVal) {
@@ -4505,7 +4505,7 @@ function light_region(x1, y1, x2, y2, litVal) {
  * @param {number} [opts.filled] - Fill density for monsters/objects
  * @param {boolean} [opts.irregular] - Whether region has irregular shape
  */
-export function region(opts_or_selection, type) {
+export async function region(opts_or_selection, type) {
     if (!levelState.map) {
         return;
     }
@@ -4662,16 +4662,22 @@ export function region(opts_or_selection, type) {
     else createdRoom = addRegionRectRoom(norm.x1, norm.y1, norm.x2, norm.y2);
 
     if (!createdRoom) return;
+    const mapBeforeContents = levelState.map;
     if (typeof opts.contents === 'function') {
         const prevRoom = levelState.currentRoom;
         levelState.roomStack.push(prevRoom);
         levelState.roomDepth++;
         levelState.currentRoom = createdRoom;
         try {
-            opts.contents(createdRoom);
+            await opts.contents(createdRoom);
         } finally {
             spo_endroom();
         }
+    }
+    if (!levelState.map && mapBeforeContents) {
+        // The contents callback cleared levelState.map — this is a bug.
+        // Restore it for add_doors_to_room to work correctly.
+        levelState.map = mapBeforeContents;
     }
     add_doors_to_room(levelState.map, createdRoom);
 }
@@ -6251,7 +6257,7 @@ function createScriptMonster(deferred) {
  * Create a trap from script options, resolving coordinates and type.
  * C ref: sp_lev.c create_trap()
  */
-function createScriptTrap(deferred) {
+async function createScriptTrap(deferred) {
     const { type_or_opts, x, y, deferCoord, rawX, rawY, room } = deferred;
 
     // Execute the original trap() logic
@@ -6343,10 +6349,10 @@ function createScriptTrap(deferred) {
         }
         return { x: Math.trunc(cx), y: Math.trunc(cy) };
     };
-    const withTrapMidlog = (fn) => {
+    const withTrapMidlog = async (fn) => {
         pushRngLogEntry('>mktrap @ create_trap(sp_lev.js)');
         const start = getRngCallCount();
-        fn();
+        await fn();
         const end = getRngCallCount();
         pushRngLogEntry(`<mktrap #${start + 1}-${end} @ create_trap(sp_lev.js)`);
     };
@@ -6377,7 +6383,7 @@ function createScriptTrap(deferred) {
             ? levelState.finalizeContext.dunlev
             : (levelState.levelDepth || 1);
         maybeTrapContextLog(0, MKTRAP_MAZEFLAG | mktrapFlags, tm.x, tm.y, depth);
-        withTrapMidlog(() => {
+        await withTrapMidlog(() => {
             mktrap(levelState.map, 0, MKTRAP_MAZEFLAG | mktrapFlags, null, tm, depth);
         });
         markSpLevTouched(trapX, trapY);
@@ -6400,7 +6406,7 @@ function createScriptTrap(deferred) {
     maybeTrapContextLog(ttyp, MKTRAP_MAZEFLAG | mktrapFlags, tm.x, tm.y, depth);
     // C ref: sp_lev.c create_trap() initializes flags with MKTRAP_MAZEFLAG
     // for both random and explicit trap types.
-    withTrapMidlog(() => {
+    await withTrapMidlog(() => {
         mktrap(levelState.map, ttyp, MKTRAP_MAZEFLAG | mktrapFlags, null, tm, depth);
     });
     const createdTrap = levelState.map.trapAt(trapX, trapY);
@@ -6597,7 +6603,7 @@ export function remove_boundary_syms(map) {
     }
 }
 
-export function finalize_level() {
+export async function finalize_level() {
     const extraPhaseTrace = (getProcessEnv('WEBHACK_EXTRA_PHASE_CHECKPOINTS') === '1');
     if (extraPhaseTrace) {
         captureCheckpoint('after_script');
@@ -6701,7 +6707,7 @@ export function finalize_level() {
     }
 
     // C ref: sp_lev.c fixup_special() (branch stair placement, etc.)
-    fixupSpecialLevel();
+    await fixupSpecialLevel();
 
     // C ref: mklev.c:1533-1539 — level_finalize_topology()
     // bound_digging marks boundary stone as non-diggable before mineralize
@@ -6761,7 +6767,7 @@ export function finalize_level() {
     return levelState.map;
 }
 
-export function load_special(name) {
+export async function load_special(name) {
     create_des_coder();
     if (typeof name !== 'string' || !name.length) return false;
     const where = findSpecialLevelByName(name);
@@ -6777,7 +6783,7 @@ export function load_special(name) {
         specialName: typeof special.name === 'string' ? special.name : name,
         isBranchLevel: false,
     });
-    const map = special.generator();
+    const map = await special.generator();
     if (!map) return false;
     levelState.map = map;
     return true;
@@ -6785,7 +6791,7 @@ export function load_special(name) {
 
 export function lspo_message(...args) { return message(...args); }
 export function lspo_monster(...args) { return monster(...args); }
-export function lspo_object(...args) { return object(...args); }
+export async function lspo_object(...args) { return await object(...args); }
 export function lspo_level_flags(...args) { return level_flags(...args); }
 export function lspo_level_init(...args) { return level_init(...args); }
 export function lspo_engraving(...args) { return engraving(...args); }
@@ -6795,18 +6801,18 @@ export function lspo_stair(...args) { return stair(...args); }
 export function lspo_ladder(...args) { return ladder(...args); }
 export function lspo_grave(...args) { return grave(...args); }
 export function lspo_altar(...args) { return altar(...args); }
-export function lspo_map(...args) { return map(...args); }
+export async function lspo_map(...args) { return await map(...args); }
 export function lspo_feature(...args) { return feature(...args); }
 export function lspo_terrain(...args) { return terrain(...args); }
 export function lspo_replace_terrain(...args) { return replace_terrain(...args); }
-export function lspo_room(...args) { return room(...args); }
+export async function lspo_room(...args) { return await room(...args); }
 export function lspo_corridor(...args) { return corridor(...args); }
 export function lspo_random_corridors(...args) { return random_corridors(...args); }
 export function lspo_gold(...args) { return gold(...args); }
-export function lspo_trap(...args) { return trap(...args); }
+export async function lspo_trap(...args) { return await trap(...args); }
 export function lspo_mazewalk(...args) { return mazewalk(...args); }
 export function lspo_drawbridge(...args) { return drawbridge(...args); }
-export function lspo_region(...args) { return region(...args); }
+export async function lspo_region(...args) { return await region(...args); }
 export function lspo_levregion(...args) { return levregion(...args); }
 export function lspo_exclusion(...args) { return exclusion(...args); }
 export function lspo_wallify(...args) { return wallify(...args); }
@@ -6819,7 +6825,7 @@ export function lspo_non_passwall(L) {
 }
 export function lspo_teleport_region(...args) { return teleport_region(...args); }
 export function lspo_reset_level(...args) { return reset_level(...args); }
-export function lspo_finalize_level(...args) { return finalize_level(...args); }
+export async function lspo_finalize_level(...args) { return await finalize_level(...args); }
 export function lspo_gas_cloud(...args) { return gas_cloud(...args); }
 
 /**
@@ -7153,7 +7159,7 @@ export const selection = {
                 }
                 return { x: rx, y: ry };
             },
-            iterate: (func) => {
+            iterate: async (func) => {
                 // C ref: nhlsel.c l_selection_iterate() loops y-major, then x.
                 for (const coord of orderedCoordsForIterate()) {
                     // C ref: nhlsel.c l_selection_iterate() calls cvt_to_relcoord()
@@ -7165,7 +7171,7 @@ export const selection = {
                         rx -= levelState.xstart;
                         ry -= levelState.ystart;
                     }
-                    func(rx, ry);
+                    await func(rx, ry);
                 }
             },
             filter_mapchar: (ch) => {
@@ -7382,11 +7388,11 @@ export const selection = {
              * Coordinates are converted to room-relative via cvt_to_relcoord.
              * C ref: nhlsel.c l_selection_iterate() calls cvt_to_relcoord()
              */
-            iterate: (func) => {
+            iterate: async (func) => {
                 // C ref: nhlsel.c l_selection_iterate() loops y-major, then x.
                 for (const coord of orderedCoordsForIterate()) {
                     const { x: rx, y: ry } = toRelative(coord);
-                    func(rx, ry);
+                    await func(rx, ry);
                 }
             },
             /**
@@ -8085,7 +8091,7 @@ export function l_selection_setpoint(sel, x, y, val = true) {
 }
 export function l_selection_getbounds(sel) { return sel?.bounds ? sel.bounds() : { lx: 0, ly: 0, hx: 0, hy: 0 }; }
 export function l_selection_size_description(sel) { return sel?.size_description ? sel.size_description() : 'empty'; }
-export function l_selection_iterate(sel, fn) { if (sel?.iterate) sel.iterate(fn); return sel; }
+export async function l_selection_iterate(sel, fn) { if (sel?.iterate) await sel.iterate(fn); return sel; }
 export function l_selection_rndcoord(sel, rm = false) { return selection.rndcoord(sel, rm); }
 export function l_selection_room() { return selection.room(); }
 export function l_selection_area(x1, y1, x2, y2) { return selection.area(x1, y1, x2, y2); }

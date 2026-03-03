@@ -1228,7 +1228,7 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
 // Performs the full first-level init sequence: initrack, makemon context,
 // level generation init, makelevel, player placement, and post-level init.
 // C ref: allmain.c newgame() — from init_dungeons through welcome(TRUE)
-export function initFirstLevel(player, roleIndex, wizard, opts = {}) {
+export async function initFirstLevel(player, roleIndex, wizard, opts = {}) {
     const startDlevel = opts.startDlevel ?? 1;
     initrack();
     setMakemonPlayerContext(player);
@@ -1237,12 +1237,12 @@ export function initFirstLevel(player, roleIndex, wizard, opts = {}) {
         race: player.race,
     });
     const map = (opts.startDnum != null)
-        ? makelevel(startDlevel, opts.startDnum, startDlevel,
+        ? await makelevel(startDlevel, opts.startDnum, startDlevel,
             {
                 dungeonAlignOverride: opts.dungeonAlignOverride,
                 heroHasAmulet: !!player?.uhave?.amulet,
             })
-        : makelevel(startDlevel, undefined, undefined,
+        : await makelevel(startDlevel, undefined, undefined,
             {
                 dungeonAlignOverride: opts.dungeonAlignOverride,
                 heroHasAmulet: !!player?.uhave?.amulet,

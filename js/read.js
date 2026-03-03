@@ -63,11 +63,11 @@ function m_at(x, y, map) {
 // ============================================================
 
 // cf. read.c stripspe() — strip enchantment from charged item
-function stripspe(obj, player, display) {
+async function stripspe(obj, player, display) {
     if (obj.blessed || (obj.spe || 0) <= 0) {
-        display.putstr_message('Nothing happens.');
+        await display.putstr_message('Nothing happens.');
     } else {
-        display.putstr_message(`${Yobjnam2(obj, player.blind ? 'vibrate' : 'glow')} briefly.`);
+        await display.putstr_message(`${Yobjnam2(obj, player.blind ? 'vibrate' : 'glow')} briefly.`);
         obj.spe = 0;
     }
 }
@@ -88,20 +88,20 @@ export function read_ok(obj) {
 // ============================================================
 
 // cf. read.c p_glow1() — "Your <item> glows briefly" / "vibrates briefly"
-export function p_glow1(otmp, player, display) {
-    display.putstr_message(
+export async function p_glow1(otmp, player, display) {
+    await display.putstr_message(
         `${Yobjnam2(otmp, player.blind ? 'vibrate' : 'glow')} briefly.`);
 }
 
 // cf. read.c p_glow2() — "Your <item> glows <color> for a moment"
-export function p_glow2(otmp, color, player, display) {
-    display.putstr_message(
+export async function p_glow2(otmp, color, player, display) {
+    await display.putstr_message(
         `${Yobjnam2(otmp, player.blind ? 'vibrate' : 'glow')}${player.blind ? '' : ' '}${player.blind ? '' : hcolor(color)} for a moment.`);
 }
 
 // cf. read.c p_glow3() — "Your <item> glows feebly <color> for a moment"
-export function p_glow3(otmp, color, player, display) {
-    display.putstr_message(
+export async function p_glow3(otmp, color, player, display) {
+    await display.putstr_message(
         `${Yobjnam2(otmp, player.blind ? 'vibrate' : 'glow')} feebly${player.blind ? '' : ' '}${player.blind ? '' : hcolor(color)} for a moment.`);
 }
 
@@ -304,19 +304,19 @@ async function handleRead(player, display, game) {
             const entry = `${item.invlet} - ${doname(item, player)}.--More--`;
             while (true) {
                 replacePromptMessage();
-                display.putstr_message(entry);
+                await display.putstr_message(entry);
                 const ack = await nhgetch();
                 if (isDismissKey(ack)) break;
             }
         }
     };
     while (true) {
-        display.putstr_message(prompt);
+        await display.putstr_message(prompt);
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
         if (isDismissKey(ch)) {
             replacePromptMessage();
-            display.putstr_message('Never mind.');
+            await display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
         if (c === '?' || c === '*') {
@@ -333,12 +333,12 @@ async function handleRead(player, display, game) {
                 const od = objectData[anyItem.otyp] || {};
                 // cf. read.c doread() — blank paper check
                 if (anyItem.otyp === SPE_BLANK_PAPER) {
-                    display.putstr_message('This spellbook is all blank.');
+                    await display.putstr_message('This spellbook is all blank.');
                     return { moved: false, tookTime: true };
                 }
                 // cf. read.c doread() — novel check (not implemented further)
                 if (anyItem.otyp === SPE_NOVEL) {
-                    display.putstr_message('You read the novel for a while.');
+                    await display.putstr_message('You read the novel for a while.');
                     return { moved: false, tookTime: true };
                 }
                 // cf. spell.c study_book():537-558 — calculate study delay
@@ -357,7 +357,7 @@ async function handleRead(player, display, game) {
                     const spellName = String(od.name || 'this spell').toLowerCase();
                     // cf. spell.c study_book() — show both messages on one line to match
                     // C TTY behavior where pline() + yn() appear together.
-                    display.putstr_message(`You know "${spellName}" quite well already.  Refresh your memory anyway? [yn] (n)`);
+                    await display.putstr_message(`You know "${spellName}" quite well already.  Refresh your memory anyway? [yn] (n)`);
                     const ans = await nhgetch();
                     if (String.fromCharCode(ans) !== 'y') {
                         return { moved: false, tookTime: false };
@@ -369,27 +369,27 @@ async function handleRead(player, display, game) {
                 if (!anyItem.blessed && anyItem.otyp !== SPE_BOOK_OF_THE_DEAD) {
                     if (anyItem.cursed) {
                         // Cursed: too hard (C: cursed_book() + nomul for delay)
-                        display.putstr_message("This book is beyond your comprehension.");
+                        await display.putstr_message("This book is beyond your comprehension.");
                         return { moved: false, tookTime: true };
                     }
                     // Uncursed: roll difficulty
                     const intel = (player.attributes ? player.attributes[A_INT] : 12) || 12;
                     const readAbility = intel + 4 + Math.floor((player.ulevel || 1) / 2) - 2 * ocLevel;
                     if (rnd(20) > readAbility) {
-                        display.putstr_message("You can't make heads or tails of this.");
+                        await display.putstr_message("You can't make heads or tails of this.");
                         return { moved: false, tookTime: true };
                     }
                 }
 
                 // cf. spell.c study_book() — start studying
-                display.putstr_message('You begin to memorize the runes.');
+                await display.putstr_message('You begin to memorize the runes.');
                 const bookRef = anyItem;
                 const bookOd = od;
                 const bookOcLevel = ocLevel;
                 game.occupation = {
                     occtxt: 'studying',
                     delayLeft: delayTurns,
-                    fn(g) {
+                    async fn(g) {
                         if (this.delayLeft > 0) {
                             this.delayLeft--;
                             return true; // still studying
@@ -403,10 +403,10 @@ async function handleRead(player, display, game) {
                         if (ent) {
                             // Already known — refresh
                             if (studyCount >= MAX_SPELL_STUDY) {
-                                g.display.putstr_message('This spellbook is too faint to be read any more.');
+                                await g.display.putstr_message('This spellbook is too faint to be read any more.');
                                 bookRef.otyp = SPE_BLANK_PAPER;
                             } else {
-                                g.display.putstr_message(
+                                await g.display.putstr_message(
                                     `Your knowledge of "${spellName}" is ${ent.sp_know ? 'keener' : 'restored'}.`);
                                 ent.sp_know = SPELL_KEEN + 1; // incrnknow(i, 1)
                                 bookRef.spestudied = studyCount + 1;
@@ -414,19 +414,19 @@ async function handleRead(player, display, game) {
                         } else {
                             // New spell
                             if (studyCount >= MAX_SPELL_STUDY) {
-                                g.display.putstr_message('This spellbook is too faint to read even once.');
+                                await g.display.putstr_message('This spellbook is too faint to read even once.');
                                 bookRef.otyp = SPE_BLANK_PAPER;
                             } else {
                                 const spellIdx = spellsArr.length;
                                 spellsArr.push({ otyp: bookRef.otyp, sp_lev: bookOcLevel, sp_know: SPELL_KEEN + 1 });
                                 bookRef.spestudied = studyCount + 1;
                                 if (spellIdx === 0) {
-                                    g.display.putstr_message(`You learn "${spellName}".`);
+                                    await g.display.putstr_message(`You learn "${spellName}".`);
                                 } else {
                                     const spellet = spellIdx < 26
                                         ? String.fromCharCode('a'.charCodeAt(0) + spellIdx)
                                         : String.fromCharCode('A'.charCodeAt(0) + spellIdx - 26);
-                                    g.display.putstr_message(
+                                    await g.display.putstr_message(
                                         `You add "${spellName}" to your repertoire, as '${spellet}'.`);
                                 }
                             }
@@ -453,7 +453,7 @@ async function handleRead(player, display, game) {
                 return { moved: false, tookTime: true };
             }
             replacePromptMessage();
-            display.putstr_message('That is a silly thing to read.');
+            await display.putstr_message('That is a silly thing to read.');
             return { moved: false, tookTime: false };
         }
         // Keep waiting for a supported selection.
@@ -521,16 +521,16 @@ function uncurse(obj) {
 // ============================================================
 
 // cf. read.c seffect_blank_paper()
-export function seffect_blank_paper(sobj, player, display) {
+export async function seffect_blank_paper(sobj, player, display) {
     if (player.blind) {
-        display.putstr_message("You don't remember there being any magic words on this scroll.");
+        await display.putstr_message("You don't remember there being any magic words on this scroll.");
     } else {
-        display.putstr_message('This scroll seems to be blank.');
+        await display.putstr_message('This scroll seems to be blank.');
     }
 }
 
 // cf. read.c seffect_identify()
-function seffect_identify(sobj, player, display) {
+async function seffect_identify(sobj, player, display) {
     const already_known = isObjectNameKnown(sobj.otyp);
     const sblessed = sobj.blessed;
     const scursed = sobj.cursed;
@@ -540,9 +540,9 @@ function seffect_identify(sobj, player, display) {
     useup_scroll(sobj, player);
 
     if (confused || (scursed && !already_known)) {
-        display.putstr_message('You identify this as an identify scroll.');
+        await display.putstr_message('You identify this as an identify scroll.');
     } else if (!already_known) {
-        display.putstr_message('This is an identify scroll.');
+        await display.putstr_message('This is an identify scroll.');
     }
     if (!already_known) {
         learnscrolltyp(SCR_IDENTIFY);
@@ -586,13 +586,13 @@ function seffect_identify(sobj, player, display) {
             }
         }
     } else {
-        display.putstr_message("You're not carrying anything else to be identified.");
+        await display.putstr_message("You're not carrying anything else to be identified.");
     }
     return true; // consumed (useup already called)
 }
 
 // cf. read.c seffect_charging()
-export function seffect_charging(sobj, player, display, game) {
+export async function seffect_charging(sobj, player, display, game) {
     const sblessed = sobj.blessed;
     const scursed = sobj.cursed;
     const confused = !!player.confused;
@@ -600,10 +600,10 @@ export function seffect_charging(sobj, player, display, game) {
 
     if (confused) {
         if (scursed) {
-            display.putstr_message('You feel discharged.');
+            await display.putstr_message('You feel discharged.');
             player.pw = 0;
         } else {
-            display.putstr_message('You feel charged up!');
+            await display.putstr_message('You feel charged up!');
             player.pw += d(sblessed ? 6 : 4, 4);
             if (player.pw > player.pwmax) {
                 player.pwmax = player.pw;
@@ -616,7 +616,7 @@ export function seffect_charging(sobj, player, display, game) {
 
     // Non-confused: identify, then prompt for item to charge
     if (!already_known) {
-        display.putstr_message('This is a charging scroll.');
+        await display.putstr_message('This is a charging scroll.');
         learnscrolltyp(SCR_CHARGING);
     }
     // Use up scroll before prompting
@@ -626,12 +626,12 @@ export function seffect_charging(sobj, player, display, game) {
     // cf. getobj("charge", charge_ok, ...) + recharge(otmp, curse_bless)
     // In automated play, no item prompt is possible; the scroll is consumed
     // but no item is charged. A full UI implementation would prompt here.
-    display.putstr_message('You have a feeling of loss.');
+    await display.putstr_message('You have a feeling of loss.');
     return true; // consumed
 }
 
 // cf. read.c seffect_light()
-export function seffect_light(sobj, player, display, game) {
+export async function seffect_light(sobj, player, display, game) {
     const sblessed = sobj.blessed;
     const scursed = sobj.cursed;
     const confused = !!player.confused;
@@ -641,9 +641,9 @@ export function seffect_light(sobj, player, display, game) {
         // cf. litroom(!scursed, sobj) — light or darken current room
         if (!player.blind) {
             if (!scursed) {
-                display.putstr_message('A lit field surrounds you!');
+                await display.putstr_message('A lit field surrounds you!');
             } else {
-                display.putstr_message('Darkness surrounds you.');
+                await display.putstr_message('Darkness surrounds you.');
             }
         }
         // cf. litroom() — map lighting changes not yet ported
@@ -669,13 +669,13 @@ export function seffect_light(sobj, player, display, game) {
         }
     }
     if (sawlights) {
-        display.putstr_message('Lights appear all around you!');
+        await display.putstr_message('Lights appear all around you!');
     }
     return false;
 }
 
 // cf. read.c seffect_confuse_monster()
-function seffect_confuse_monster(sobj, player, display) {
+async function seffect_confuse_monster(sobj, player, display) {
     const sblessed = sobj.blessed;
     const scursed = sobj.cursed;
     const confused = !!player.confused;
@@ -683,34 +683,34 @@ function seffect_confuse_monster(sobj, player, display) {
 
     if (!isHuman || scursed) {
         if (!player.confused) {
-            display.putstr_message('You feel confused.');
+            await display.putstr_message('You feel confused.');
         }
-        make_confused(player, (player.getPropTimeout
+        await make_confused(player, (player.getPropTimeout
             ? (player.getPropTimeout(13 /*CONFUSION*/) || 0) : 0) + rnd(100), false);
         return false;
     }
 
     if (confused) {
         if (!sblessed) {
-            display.putstr_message('Your hands begin to glow purple.');
-            make_confused(player, (player.getPropTimeout
+            await display.putstr_message('Your hands begin to glow purple.');
+            await make_confused(player, (player.getPropTimeout
                 ? (player.getPropTimeout(13) || 0) : 0) + rnd(100), false);
         } else {
-            display.putstr_message('A red glow surrounds your head.');
-            make_confused(player, 0, true);
+            await display.putstr_message('A red glow surrounds your head.');
+            await make_confused(player, 0, true);
         }
     } else {
         // Touch-of-confusion effect
         let incr = 3; // scroll class incr
         if (!sblessed) {
             if (!(player.umconf || 0)) {
-                display.putstr_message('Your hands begin to glow red.');
+                await display.putstr_message('Your hands begin to glow red.');
             } else {
-                display.putstr_message('The red glow of your hands intensifies.');
+                await display.putstr_message('The red glow of your hands intensifies.');
             }
             incr += rnd(2);
         } else {
-            display.putstr_message(
+            await display.putstr_message(
                 `Your hands glow ${(player.umconf || 0) ? 'an even more' : 'a'} brilliant red.`);
             incr += rn1(8, 2);
         }
@@ -721,7 +721,7 @@ function seffect_confuse_monster(sobj, player, display) {
 }
 
 // cf. read.c seffect_scare_monster()
-export function seffect_scare_monster(sobj, player, display, game) {
+export async function seffect_scare_monster(sobj, player, display, game) {
     const scursed = sobj.cursed;
     const confused = !!player.confused;
     const map = game?.map;
@@ -744,40 +744,40 @@ export function seffect_scare_monster(sobj, player, display, game) {
                 mtmp.mcanmove = true;
             } else if (!resist(mtmp, SCROLL_CLASS)) {
                 // cf. read.c:1420 monflee(mtmp, 0, FALSE, FALSE)
-                monflee(mtmp, 0, false, false);
+                await monflee(mtmp, 0, false, false);
             }
             if (!mtmp.tame) ct++;
         }
     }
 
     if (confused || scursed) {
-        display.putstr_message(
+        await display.putstr_message(
             `You hear sad wailing ${!ct ? 'in the distance' : 'close by'}.`);
     } else {
-        display.putstr_message(
+        await display.putstr_message(
             `You hear maniacal laughter ${!ct ? 'in the distance' : 'close by'}.`);
     }
     return false;
 }
 
 // cf. read.c seffect_remove_curse()
-function seffect_remove_curse(sobj, player, display) {
+async function seffect_remove_curse(sobj, player, display) {
     const sblessed = sobj.blessed;
     const scursed = sobj.cursed;
     const confused = !!player.confused;
 
     if (!player.hallucinating) {
-        display.putstr_message(
+        await display.putstr_message(
             !confused ? 'You feel like someone is helping you.'
                       : 'You feel like you need some help.');
     } else {
-        display.putstr_message(
+        await display.putstr_message(
             !confused ? 'You feel in touch with the Universal Oneness.'
                       : 'You feel the power of the Force against you!');
     }
 
     if (scursed) {
-        display.putstr_message('The scroll disintegrates.');
+        await display.putstr_message('The scroll disintegrates.');
         return false;
     }
 
@@ -811,7 +811,7 @@ function seffect_remove_curse(sobj, player, display) {
 }
 
 // cf. read.c seffect_enchant_weapon()
-export function seffect_enchant_weapon(sobj, player, display) {
+export async function seffect_enchant_weapon(sobj, player, display) {
     const sblessed = sobj.blessed;
     const scursed = sobj.cursed;
     const confused = !!player.confused;
@@ -823,15 +823,15 @@ export function seffect_enchant_weapon(sobj, player, display) {
         const new_erodeproof = !scursed;
         uwep.oerodeproof = false; // for messages
         if (player.blind) {
-            display.putstr_message('Your weapon feels warm for a moment.');
+            await display.putstr_message('Your weapon feels warm for a moment.');
         } else {
-            display.putstr_message(
+            await display.putstr_message(
                 `${doname(uwep, player)} ${scursed ? 'is' : 'is'} covered by a ${scursed ? 'mottled purple' : 'shimmering golden'} ${scursed ? 'glow' : 'shield'}!`);
         }
         if (new_erodeproof && (uwep.oeroded || uwep.oeroded2)) {
             uwep.oeroded = 0;
             uwep.oeroded2 = 0;
-            display.putstr_message(
+            await display.putstr_message(
                 `${doname(uwep, player)} ${player.blind ? 'feels' : 'looks'} as good as new!`);
         }
         uwep.oerodeproof = new_erodeproof;
@@ -855,13 +855,13 @@ export function seffect_enchant_weapon(sobj, player, display) {
 
     if (!uwep) {
         // No weapon wielded
-        display.putstr_message("You feel a strange vibration.");
+        await display.putstr_message("You feel a strange vibration.");
         return false;
     }
 
     if (amount === 0 && uwep.spe >= 9) {
         // Evaporate — weapon too highly enchanted
-        display.putstr_message(`${doname(uwep, player)} violently glows then evaporates!`);
+        await display.putstr_message(`${doname(uwep, player)} violently glows then evaporates!`);
         // C: remove and destroy weapon — simplified
         player.weapon = null;
         player.removeFromInventory(uwep);
@@ -873,15 +873,15 @@ export function seffect_enchant_weapon(sobj, player, display) {
 
     if (amount > 0) {
         if (player.blind) {
-            display.putstr_message('Your weapon feels warm for a moment.');
+            await display.putstr_message('Your weapon feels warm for a moment.');
         } else {
-            display.putstr_message(`${doname(uwep, player)} glows silver for a moment.`);
+            await display.putstr_message(`${doname(uwep, player)} glows silver for a moment.`);
         }
     } else if (amount < 0) {
         if (player.blind) {
-            display.putstr_message('Your weapon feels cold for a moment.');
+            await display.putstr_message('Your weapon feels cold for a moment.');
         } else {
-            display.putstr_message(`${doname(uwep, player)} glows black for a moment.`);
+            await display.putstr_message(`${doname(uwep, player)} glows black for a moment.`);
         }
         if (!uwep.cursed) {
             uwep.cursed = true;
@@ -891,7 +891,7 @@ export function seffect_enchant_weapon(sobj, player, display) {
 }
 
 // cf. read.c seffect_enchant_armor()
-function seffect_enchant_armor(sobj, player, display) {
+async function seffect_enchant_armor(sobj, player, display) {
     const sblessed = sobj.blessed;
     const scursed = sobj.cursed;
     const confused = !!player.confused;
@@ -900,14 +900,14 @@ function seffect_enchant_armor(sobj, player, display) {
     if (!otmp) {
         // No armor worn
         if (!player.blind) {
-            display.putstr_message('Your skin glows then fades.');
+            await display.putstr_message('Your skin glows then fades.');
         } else {
-            display.putstr_message('Your skin feels warm for a moment.');
+            await display.putstr_message('Your skin feels warm for a moment.');
         }
         // cf. strange_feeling -> useup
         useup_scroll(sobj, player);
-        exercise(player, A_CON, !scursed);
-        exercise(player, A_STR, !scursed);
+        await exercise(player, A_CON, !scursed);
+        await exercise(player, A_STR, !scursed);
         return true; // consumed
     }
 
@@ -917,15 +917,15 @@ function seffect_enchant_armor(sobj, player, display) {
         const new_erodeproof = !scursed;
         otmp.oerodeproof = false;
         if (player.blind) {
-            display.putstr_message(`${doname(otmp, player)} feels warm for a moment.`);
+            await display.putstr_message(`${doname(otmp, player)} feels warm for a moment.`);
         } else {
-            display.putstr_message(
+            await display.putstr_message(
                 `${doname(otmp, player)} is covered by a ${scursed ? 'mottled black' : 'shimmering golden'} ${scursed ? 'glow' : 'shield'}!`);
         }
         if (new_erodeproof && (otmp.oeroded || otmp.oeroded2)) {
             otmp.oeroded = 0;
             otmp.oeroded2 = 0;
-            display.putstr_message(
+            await display.putstr_message(
                 `${doname(otmp, player)} ${player.blind ? 'feels' : 'looks'} as good as new!`);
         }
         otmp.oerodeproof = new_erodeproof;
@@ -939,7 +939,7 @@ function seffect_enchant_armor(sobj, player, display) {
 
     // Evaporation check for high enchantment
     if (s > (special_armor ? 5 : 3) && rn2(s)) {
-        display.putstr_message(
+        await display.putstr_message(
             `${doname(otmp, player)} violently ${player.blind ? 'vibrates' : 'glows'} for a while, then evaporates.`);
         // Remove worn armor
         const slots = ['armor', 'cloak', 'shield', 'helmet', 'gloves', 'boots', 'shirt'];
@@ -968,7 +968,7 @@ function seffect_enchant_armor(sobj, player, display) {
     if (scursed) s = -s;
 
     // Apply enchantment
-    display.putstr_message(
+    await display.putstr_message(
         `${doname(otmp, player)} ${s === 0 ? 'violently ' : ''}${player.blind ? 'vibrates' : 'glows'}${(!player.blind) ? (scursed ? ' black' : ' silver') : ''} for a ${(s * s > 1) ? 'while' : 'moment'}.`);
 
     if (scursed && !otmp.cursed) {
@@ -987,29 +987,29 @@ function seffect_enchant_armor(sobj, player, display) {
     // Vibration warning
     if ((otmp.spe || 0) > (special_armor ? 5 : 3)
         && (special_armor || !rn2(7))) {
-        display.putstr_message(
+        await display.putstr_message(
             `${doname(otmp, player)} suddenly vibrates ${player.blind ? 'again' : 'unexpectedly'}.`);
     }
     return false;
 }
 
 // cf. read.c seffect_destroy_armor()
-function seffect_destroy_armor(sobj, player, display) {
+async function seffect_destroy_armor(sobj, player, display) {
     const scursed = sobj.cursed;
     const confused = !!player.confused;
     const otmp = some_armor(player);
 
     if (confused) {
         if (!otmp) {
-            display.putstr_message('Your bones itch.');
+            await display.putstr_message('Your bones itch.');
             useup_scroll(sobj, player);
-            exercise(player, A_STR, false);
-            exercise(player, A_CON, false);
+            await exercise(player, A_STR, false);
+            await exercise(player, A_CON, false);
             return true; // consumed
         }
         // Confused: erodeproofing
         const new_erodeproof = !!scursed;
-        display.putstr_message(`${doname(otmp, player)} glows purple for a moment.`);
+        await display.putstr_message(`${doname(otmp, player)} glows purple for a moment.`);
         otmp.oerodeproof = new_erodeproof;
         return false;
     }
@@ -1017,14 +1017,14 @@ function seffect_destroy_armor(sobj, player, display) {
     if (!scursed || !otmp || !otmp.cursed) {
         // Destroy a piece of armor
         if (!otmp) {
-            display.putstr_message('Your skin itches.');
+            await display.putstr_message('Your skin itches.');
             useup_scroll(sobj, player);
-            exercise(player, A_STR, false);
-            exercise(player, A_CON, false);
+            await exercise(player, A_STR, false);
+            await exercise(player, A_CON, false);
             return true; // consumed
         }
         // cf. destroy_arm(otmp)
-        display.putstr_message(`${doname(otmp, player)} crumbles and turns to dust!`);
+        await display.putstr_message(`${doname(otmp, player)} crumbles and turns to dust!`);
         const slots = ['armor', 'cloak', 'shield', 'helmet', 'gloves', 'boots', 'shirt'];
         for (const slot of slots) {
             if (player[slot] === otmp) player[slot] = null;
@@ -1032,11 +1032,11 @@ function seffect_destroy_armor(sobj, player, display) {
         player.removeFromInventory(otmp);
     } else {
         // Both armor and scroll cursed: degrade
-        display.putstr_message(`${doname(otmp, player)} vibrates.`);
+        await display.putstr_message(`${doname(otmp, player)} vibrates.`);
         if ((otmp.spe || 0) >= -6) {
             otmp.spe = (otmp.spe || 0) - 1;
         }
-        make_stunned(player,
+        await make_stunned(player,
             (player.getPropTimeout ? (player.getPropTimeout(14 /*STUNNED*/) || 0) : 0)
             + rn1(10, 10), true);
     }
@@ -1044,7 +1044,7 @@ function seffect_destroy_armor(sobj, player, display) {
 }
 
 // cf. read.c seffect_create_monster()
-export function seffect_create_monster(sobj, player, display, game) {
+export async function seffect_create_monster(sobj, player, display, game) {
     const sblessed = sobj.blessed;
     const scursed = sobj.cursed;
     const confused = !!player.confused;
@@ -1066,42 +1066,42 @@ export function seffect_create_monster(sobj, player, display, game) {
         }
     }
     if (!created) {
-        display.putstr_message('You feel as if nothing combative is near.');
+        await display.putstr_message('You feel as if nothing combative is near.');
     }
     return false;
 }
 
 // cf. read.c seffect_teleportation()
-export function seffect_teleportation(sobj, player, display, game) {
+export async function seffect_teleportation(sobj, player, display, game) {
     const scursed = sobj.cursed;
     const confused = !!player.confused;
 
     if (confused || scursed) {
         // cf. level_tele() — level teleport
-        level_tele(game);
+        await level_tele(game);
     } else {
         // cf. scrolltele(sobj) — normal teleport
-        scrolltele(sobj, game);
+        await scrolltele(sobj, game);
     }
     return false;
 }
 
 // cf. read.c seffect_gold_detection()
-export function seffect_gold_detection(sobj, player, display, game) {
+export async function seffect_gold_detection(sobj, player, display, game) {
     const scursed = sobj.cursed;
     const confused = !!player.confused;
     const map = game?.map;
 
     if (confused || scursed) {
         // cf. trap_detect(sobj)
-        if (trap_detect(sobj, player, map, display, game)) {
+        if (await trap_detect(sobj, player, map, display, game)) {
             // failure: strange_feeling -> useup
             useup_scroll(sobj, player);
             return true;
         }
     } else {
         // cf. gold_detect(sobj)
-        if (gold_detect(sobj, player, map, display, game)) {
+        if (await gold_detect(sobj, player, map, display, game)) {
             // failure: strange_feeling -> useup
             useup_scroll(sobj, player);
             return true;
@@ -1111,10 +1111,10 @@ export function seffect_gold_detection(sobj, player, display, game) {
 }
 
 // cf. read.c seffect_food_detection()
-export function seffect_food_detection(sobj, player, display, game) {
+export async function seffect_food_detection(sobj, player, display, game) {
     const map = game?.map;
     // cf. food_detect(sobj)
-    if (food_detect(sobj, player, map, display, game)) {
+    if (await food_detect(sobj, player, map, display, game)) {
         // nothing detected: strange_feeling -> useup
         useup_scroll(sobj, player);
         return true;
@@ -1123,7 +1123,7 @@ export function seffect_food_detection(sobj, player, display, game) {
 }
 
 // cf. read.c seffect_magic_mapping()
-function seffect_magic_mapping(sobj, player, display, game) {
+async function seffect_magic_mapping(sobj, player, display, game) {
     const sblessed = sobj.blessed;
     const scursed = sobj.cursed;
     const confused = !!player.confused;
@@ -1144,7 +1144,7 @@ function seffect_magic_mapping(sobj, player, display, game) {
         }
     }
 
-    display.putstr_message('A map coalesces in your mind!');
+    await display.putstr_message('A map coalesces in your mind!');
     const cval = scursed && !confused;
     if (cval) {
         // Temporarily confuse to screw up map
@@ -1152,18 +1152,18 @@ function seffect_magic_mapping(sobj, player, display, game) {
     }
     // cf. do_mapping()
     if (map) {
-        do_mapping(player, map, display);
+        await do_mapping(player, map, display);
     }
     if (cval) {
         // Restore confusion
         if (player.confused === 1) player.confused = 0;
-        display.putstr_message("Unfortunately, you can't grasp the details.");
+        await display.putstr_message("Unfortunately, you can't grasp the details.");
     }
     return false;
 }
 
 // cf. read.c seffect_amnesia()
-function seffect_amnesia(sobj, player, display) {
+async function seffect_amnesia(sobj, player, display) {
     const sblessed = sobj.blessed;
 
     // cf. forget(!sblessed ? ALL_SPELLS : 0)
@@ -1176,13 +1176,13 @@ function seffect_amnesia(sobj, player, display) {
     }
 
     if (player.hallucinating) {
-        display.putstr_message('Your mind releases itself from mundane concerns.');
+        await display.putstr_message('Your mind releases itself from mundane concerns.');
     } else if (rn2(2)) {
-        display.putstr_message('Who was that Maud person anyway?');
+        await display.putstr_message('Who was that Maud person anyway?');
     } else {
-        display.putstr_message('Thinking of Maud you forget everything else.');
+        await display.putstr_message('Thinking of Maud you forget everything else.');
     }
-    exercise(player, A_WIS, false);
+    await exercise(player, A_WIS, false);
     return false;
 }
 
@@ -1215,7 +1215,7 @@ function maybe_tame(mtmp, sobj) {
 }
 
 // cf. read.c seffect_taming()
-export function seffect_taming(sobj, player, display, game) {
+export async function seffect_taming(sobj, player, display, game) {
     const confused = !!player.confused;
     const map = game?.map;
     const bd = confused ? 5 : 1;
@@ -1236,29 +1236,29 @@ export function seffect_taming(sobj, player, display, game) {
         }
     }
     if (!results) {
-        display.putstr_message(
+        await display.putstr_message(
             `Nothing interesting ${!candidates ? 'happens' : 'seems to happen'}.`);
     } else {
-        display.putstr_message(
+        await display.putstr_message(
             `The neighborhood ${vis_results ? 'is' : 'seems'} ${results < 0 ? 'un' : ''}friendlier.`);
     }
     return false;
 }
 
 // cf. read.c seffect_genocide()
-export function seffect_genocide(sobj, player, display) {
+export async function seffect_genocide(sobj, player, display) {
     const sblessed = sobj.blessed;
     const scursed = sobj.cursed;
     const confused = !!player.confused;
     const already_known = isObjectNameKnown(sobj.otyp);
 
     if (!already_known) {
-        display.putstr_message('You have found a scroll of genocide!');
+        await display.putstr_message('You have found a scroll of genocide!');
     }
     // cf. C: if (sblessed) do_class_genocide(); else do_genocide((!scursed) | (2 * !!Confusion))
     // do_genocide and do_class_genocide require interactive prompts (monster class/type selection)
     // which are not yet available in automated play. The scroll is identified but has no effect.
-    display.putstr_message('A sad feeling comes over you.');
+    await display.putstr_message('A sad feeling comes over you.');
     return false;
 }
 
@@ -1281,7 +1281,7 @@ async function seffect_fire(sobj, player, display, game) {
 
     if (confused) {
         // Confused: minor self-burn
-        display.putstr_message('The scroll catches fire and you burn your hands.');
+        await display.putstr_message('The scroll catches fire and you burn your hands.');
         // cf. losehp(1, ...) simplified: take 1 damage
         player.uhp = Math.max(0, (player.uhp || 0) - 1);
         return true; // consumed
@@ -1293,7 +1293,7 @@ async function seffect_fire(sobj, player, display, game) {
         // but in automated play, center on self
         dam *= 5;
     }
-    display.putstr_message('The scroll erupts in a tower of flame!');
+    await display.putstr_message('The scroll erupts in a tower of flame!');
 
     // cf. explode(cc.x, cc.y, ZT_SPELL_O_FIRE, dam, SCROLL_CLASS, EXPL_FIERY)
     const ZT_SPELL_O_FIRE = 11;
@@ -1307,13 +1307,13 @@ async function seffect_fire(sobj, player, display, game) {
 }
 
 // cf. read.c seffect_earth()
-export function seffect_earth(sobj, player, display, game) {
+export async function seffect_earth(sobj, player, display, game) {
     const sblessed = sobj.blessed;
     const scursed = sobj.cursed;
     const confused = !!player.confused;
 
     // cf. C: check has_ceiling, not rogue level, not endgame
-    display.putstr_message(
+    await display.putstr_message(
         `The ${sblessed ? 'ceiling rumbles around' : 'ceiling rumbles above'} you!`);
 
     // cf. drop_boulder_on_player / drop_boulder_on_monster
@@ -1323,10 +1323,10 @@ export function seffect_earth(sobj, player, display, game) {
         // dam = dmgval of boulder/rock
         const dam = confused ? rnd(6) : rnd(20);
         if (player.helmet) {
-            display.putstr_message('Fortunately, you are wearing a hard helmet.');
+            await display.putstr_message('Fortunately, you are wearing a hard helmet.');
             player.uhp = Math.max(0, (player.uhp || 0) - Math.min(dam, 2));
         } else {
-            display.putstr_message(`You are hit by ${confused ? 'rocks' : 'a boulder'}!`);
+            await display.putstr_message(`You are hit by ${confused ? 'rocks' : 'a boulder'}!`);
             player.uhp = Math.max(0, (player.uhp || 0) - dam);
         }
     }
@@ -1334,17 +1334,17 @@ export function seffect_earth(sobj, player, display, game) {
 }
 
 // cf. read.c seffect_punishment()
-export function seffect_punishment(sobj, player, display) {
+export async function seffect_punishment(sobj, player, display) {
     const sblessed = sobj.blessed;
     const confused = !!player.confused;
 
     if (confused || sblessed) {
-        display.putstr_message('You feel guilty.');
+        await display.putstr_message('You feel guilty.');
         return false;
     }
     // cf. punish(sobj) — apply iron ball + chain
     // punish() creates iron ball and chain objects; not yet fully ported
-    display.putstr_message('You are being punished for your misbehavior!');
+    await display.putstr_message('You are being punished for your misbehavior!');
     // Mark player as punished (simplified — no ball/chain objects)
     player.punished = true;
     return false;
@@ -1355,7 +1355,7 @@ export async function seffect_stinking_cloud(sobj, player, display, game) {
     const already_known = isObjectNameKnown(sobj.otyp);
 
     if (!already_known) {
-        display.putstr_message('You have found a scroll of stinking cloud!');
+        await display.putstr_message('You have found a scroll of stinking cloud!');
     }
     // cf. do_stinking_cloud(sobj, already_known) + display_stinking_cloud_positions()
     const map = game?.map;
@@ -1392,7 +1392,7 @@ export async function seffect_stinking_cloud(sobj, player, display, game) {
     }
     // The C version prompts for a target position; automated play still self-targets.
     // cf. create_gas_cloud(cc.x, cc.y, ...) — gas cloud creation not yet ported
-    display.putstr_message('A cloud of toxic gas billows from the scroll.');
+    await display.putstr_message('A cloud of toxic gas billows from the scroll.');
     return false;
 }
 
@@ -1409,56 +1409,56 @@ async function seffects(sobj, player, display, game) {
 
     // cf. read.c:2147 — exercise wisdom for reading any magical scroll
     if (od.magic) {
-        exercise(player, A_WIS, true);
+        await exercise(player, A_WIS, true);
     }
 
     switch (otyp) {
     case SCR_ENCHANT_ARMOR:
-        return seffect_enchant_armor(sobj, player, display);
+        return await seffect_enchant_armor(sobj, player, display);
     case SCR_DESTROY_ARMOR:
-        return seffect_destroy_armor(sobj, player, display);
+        return await seffect_destroy_armor(sobj, player, display);
     case SCR_CONFUSE_MONSTER:
-        return seffect_confuse_monster(sobj, player, display);
+        return await seffect_confuse_monster(sobj, player, display);
     case SCR_SCARE_MONSTER:
-        return seffect_scare_monster(sobj, player, display, game);
+        return await seffect_scare_monster(sobj, player, display, game);
     case SCR_BLANK_PAPER:
-        return seffect_blank_paper(sobj, player, display);
+        return await seffect_blank_paper(sobj, player, display);
     case SCR_REMOVE_CURSE:
-        return seffect_remove_curse(sobj, player, display);
+        return await seffect_remove_curse(sobj, player, display);
     case SCR_CREATE_MONSTER:
-        return seffect_create_monster(sobj, player, display, game);
+        return await seffect_create_monster(sobj, player, display, game);
     case SCR_ENCHANT_WEAPON:
-        return seffect_enchant_weapon(sobj, player, display);
+        return await seffect_enchant_weapon(sobj, player, display);
     case SCR_TAMING:
-        return seffect_taming(sobj, player, display, game);
+        return await seffect_taming(sobj, player, display, game);
     case SCR_GENOCIDE:
-        return seffect_genocide(sobj, player, display);
+        return await seffect_genocide(sobj, player, display);
     case SCR_LIGHT:
-        return seffect_light(sobj, player, display, game);
+        return await seffect_light(sobj, player, display, game);
     case SCR_TELEPORTATION:
-        return seffect_teleportation(sobj, player, display, game);
+        return await seffect_teleportation(sobj, player, display, game);
     case SCR_GOLD_DETECTION:
-        return seffect_gold_detection(sobj, player, display, game);
+        return await seffect_gold_detection(sobj, player, display, game);
     case SCR_FOOD_DETECTION:
-        return seffect_food_detection(sobj, player, display, game);
+        return await seffect_food_detection(sobj, player, display, game);
     case SCR_IDENTIFY:
-        return seffect_identify(sobj, player, display);
+        return await seffect_identify(sobj, player, display);
     case SCR_CHARGING:
-        return seffect_charging(sobj, player, display, game);
+        return await seffect_charging(sobj, player, display, game);
     case SCR_MAGIC_MAPPING:
-        return seffect_magic_mapping(sobj, player, display, game);
+        return await seffect_magic_mapping(sobj, player, display, game);
     case SCR_AMNESIA:
-        return seffect_amnesia(sobj, player, display);
+        return await seffect_amnesia(sobj, player, display);
     case SCR_FIRE:
         return await seffect_fire(sobj, player, display, game);
     case SCR_EARTH:
-        return seffect_earth(sobj, player, display, game);
+        return await seffect_earth(sobj, player, display, game);
     case SCR_PUNISHMENT:
-        return seffect_punishment(sobj, player, display);
+        return await seffect_punishment(sobj, player, display);
     case SCR_STINKING_CLOUD:
         return await seffect_stinking_cloud(sobj, player, display, game);
     default:
-        display.putstr_message(`What weird effect is this? (${otyp})`);
+        await display.putstr_message(`What weird effect is this? (${otyp})`);
         return false;
     }
 }
@@ -1489,10 +1489,10 @@ export function charge_ok(obj) {
 }
 
 // Autotranslated from read.c:1018
-export function forget(howmuch, game, map, player) {
+export async function forget(howmuch, game, map, player) {
   let mtmp;
   if (Punished) player.bc_felt = 0;
-  if (howmuch & ALL_SPELLS) losespells();
+  if (howmuch & ALL_SPELLS) await losespells();
   drain_weapon_skill(rnd(howmuch ? 5 : 3));
   for (mtmp = (map?.fmon || null); mtmp; mtmp = mtmp.nmon) {
     if (mtmp !== player.usteed && mtmp !== player.ustuck) mtmp.meverseen = 0;
@@ -1509,7 +1509,7 @@ export function valid_cloud_pos(x, y, map) {
 }
 
 // Autotranslated from read.c:2287
-export function drop_boulder_on_monster(x, y, confused, byu, player) {
+export async function drop_boulder_on_monster(x, y, confused, byu, player) {
   let otmp2, mtmp;
   otmp2 = mksobj(confused ? ROCK : BOULDER, false, false);
   if (!otmp2) return false;
@@ -1519,25 +1519,25 @@ export function drop_boulder_on_monster(x, y, confused, byu, player) {
   if (mtmp && !amorphous(mtmp.data) && !passes_walls(mtmp.data) && !noncorporeal(mtmp.data) && !unsolid(mtmp.data)) {
     let helmet = which_armor(mtmp, W_ARMH), mdmg;
     if (cansee(mtmp.mx, mtmp.my)) {
-      pline("%s is hit by %s!", Monnam(mtmp), doname(otmp2));
+      await pline("%s is hit by %s!", Monnam(mtmp), doname(otmp2));
       if (mtmp.minvis && !canspotmon(mtmp)) map_invisible(mtmp.mx, mtmp.my);
     }
-    else if (engulfing_u(mtmp)) You_hear("something hit %s %s over your %s!", s_suffix(mon_nam(mtmp)), mbodypart(mtmp, STOMACH), body_part(HEAD));
+    else if (engulfing_u(mtmp)) await You_hear("something hit %s %s over your %s!", s_suffix(mon_nam(mtmp)), mbodypart(mtmp, STOMACH), body_part(HEAD));
     mdmg = dmgval(otmp2, mtmp) * otmp2.quan;
     if (helmet) {
       if (hard_helmet(helmet)) {
-        if (canspotmon(mtmp)) pline("Fortunately, %s is wearing a hard helmet.", mon_nam(mtmp));
-        else if (!(player?.Deaf || player?.deaf || false)) You_hear("a clanging sound.");
+        if (canspotmon(mtmp)) await pline("Fortunately, %s is wearing a hard helmet.", mon_nam(mtmp));
+        else if (!(player?.Deaf || player?.deaf || false)) await You_hear("a clanging sound.");
         if (mdmg > 2) mdmg = 2;
       }
       else {
-        if (canspotmon(mtmp)) pline("%s's %s does not protect %s.", Monnam(mtmp), xname(helmet), mhim(mtmp));
+        if (canspotmon(mtmp)) await pline("%s's %s does not protect %s.", Monnam(mtmp), xname(helmet), mhim(mtmp));
       }
     }
     mtmp.mhp -= mdmg;
     if (DEADMONSTER(mtmp)) {
       if (byu) { killed(mtmp); }
-      else { pline("%s is killed.", Monnam(mtmp)); mondied(mtmp); }
+      else { await pline("%s is killed.", Monnam(mtmp)); mondied(mtmp); }
     }
     else { wakeup(mtmp, byu); }
     wake_nearto(x, y, 4 * 4);
@@ -1547,7 +1547,7 @@ export function drop_boulder_on_monster(x, y, confused, byu, player) {
     drop_boulder_on_player(confused, true, false, true);
     return 1;
   }
-  if (!flooreffects(otmp2, x, y, "fall")) {
+  if (!await flooreffects(otmp2, x, y, "fall")) {
     place_object(otmp2, x, y);
     stackobj(otmp2);
     newsym(x, y);
@@ -1615,9 +1615,9 @@ export async function create_particular() {
     if (create_particular_parse(bufp, d)) {
       break;
     }
-    if ( bufp || altmsg || tryct < 2) { pline("I've never heard of such monsters."); }
+    if ( bufp || altmsg || tryct < 2) { await pline("I've never heard of such monsters."); }
     else {
-      pline("Try again (type * for random, ESC to cancel).");
+      await pline("Try again (type * for random, ESC to cancel).");
       ++altmsg;
     }
     if (tryct === CP_TRYLIM) {

@@ -246,21 +246,21 @@ export function rest_levl(nhfp, map) {
 }
 
 // Autotranslated from restore.c:1026
-export function trickery(reason) {
+export async function trickery(reason) {
   event_log("trick[%s]", reason ? reason : "");
-  pline("Strange, this map is not as I remember it.");
-  pline("Somebody is trying some trickery here...");
-  pline("This game is void.");
+  await pline("Strange, this map is not as I remember it.");
+  await pline("Somebody is trying some trickery here...");
+  await pline("This game is void.");
   Strcpy(svk.killer.name, reason ? reason : "");
-  done(TRICKED);
+  await done(TRICKED);
 }
 
 // Autotranslated from restore.c:1339
-export function rest_bubbles(nhfp) {
+export async function rest_bubbles(nhfp) {
   let bbubbly;
   bbubbly = 0;
   Sfi_xint8(nhfp, bbubbly, "bubbles-bbubbly");
-  if (bbubbly) restore_waterlevel(nhfp);
+  if (bbubbly) await restore_waterlevel(nhfp);
 }
 
 // Autotranslated from restore.c:1480

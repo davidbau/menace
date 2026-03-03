@@ -118,7 +118,7 @@ function plur(n) { return n === 1 ? '' : 's'; }
 // cf. music.c:44 — awaken_scare(mtmp, scary)
 // Wake up monster, possibly scare it.
 // ============================================================================
-export function awaken_scare(mtmp, scary) {
+export async function awaken_scare(mtmp, scary) {
     mtmp.msleeping = 0;
     mtmp.mcanmove = 1;
     mtmp.mfrozen = 0;
@@ -131,7 +131,7 @@ export function awaken_scare(mtmp, scary) {
                && !resist(mtmp, TOOL_CLASS, 0)
                // some monsters are immune
                && onscary(null, 0, 0, mtmp)) {
-        monflee(mtmp, 0, false, true);
+        await monflee(mtmp, 0, false, true);
     }
 }
 
@@ -139,12 +139,12 @@ export function awaken_scare(mtmp, scary) {
 // cf. music.c:66 — awaken_monsters(distance)
 // Wake every monster in range.
 // ============================================================================
-export function awaken_monsters(distance, map, player) {
+export async function awaken_monsters(distance, map, player) {
     for (const mtmp of (map.monsters || [])) {
         if (DEADMONSTER(mtmp)) continue;
         const distm = mdistu(mtmp, player);
         if (distm < distance) {
-            awaken_scare(mtmp, (distm < Math.floor(distance / 3)));
+            await awaken_scare(mtmp, (distm < Math.floor(distance / 3)));
         }
     }
 }
@@ -168,7 +168,7 @@ export function put_monsters_to_sleep(distance, map, player) {
 // cf. music.c:104 — charm_snakes(distance)
 // Charm snakes in range. Note that the snakes are NOT tamed.
 // ============================================================================
-export function charm_snakes(distance, map, player, fov) {
+export async function charm_snakes(distance, map, player, fov) {
     for (const mtmp of (map.monsters || [])) {
         if (DEADMONSTER(mtmp)) continue;
         const ptr = mtmp.data || mtmp.type;
@@ -183,9 +183,9 @@ export function charm_snakes(distance, map, player, fov) {
             newsym(map, mtmp.mx, mtmp.my);
             if (canseemon(mtmp, player, fov)) {
                 if (!could_see_mon)
-                    You(`notice ${a_monnam(mtmp)}, swaying with the music.`);
+                    await You(`notice ${a_monnam(mtmp)}, swaying with the music.`);
                 else
-                    pline(`${Monnam(mtmp)} freezes, then sways with the music${was_peaceful ? '' : ', and now seems quieter'}.`);
+                    await pline(`${Monnam(mtmp)} freezes, then sways with the music${was_peaceful ? '' : ', and now seems quieter'}.`);
             }
         }
     }
@@ -195,7 +195,7 @@ export function charm_snakes(distance, map, player, fov) {
 // cf. music.c:138 — calm_nymphs(distance)
 // Calm nymphs in range.
 // ============================================================================
-export function calm_nymphs(distance, map, player, fov) {
+export async function calm_nymphs(distance, map, player, fov) {
     for (const mtmp of (map.monsters || [])) {
         if (DEADMONSTER(mtmp)) continue;
         const ptr = mtmp.data || mtmp.type;
@@ -206,7 +206,7 @@ export function calm_nymphs(distance, map, player, fov) {
             mtmp.mavenge = 0;
             mtmp.mstrategy = (mtmp.mstrategy || 0) & ~STRAT_WAITMASK;
             if (canseemon(mtmp, player, fov))
-                pline(`${Monnam(mtmp)} listens cheerfully to the music, then seems quieter.`);
+                await pline(`${Monnam(mtmp)} listens cheerfully to the music, then seems quieter.`);
         }
     }
 }
@@ -216,7 +216,7 @@ export function calm_nymphs(distance, map, player, fov) {
 // Awake soldiers anywhere the level (and any nearby monster).
 // ============================================================================
 
-export function awaken_soldiers(bugler, map, player, fov) {
+export async function awaken_soldiers(bugler, map, player, fov) {
     const isHero = (bugler === player || bugler === 'player');
     // distance of affected non-soldier monsters to bugler
     const distance = (isHero
@@ -234,15 +234,15 @@ export function awaken_soldiers(bugler, map, player, fov) {
             mtmp.mcanmove = 1;
             mtmp.mstrategy = (mtmp.mstrategy || 0) & ~STRAT_WAITMASK;
             if (canseemon(mtmp, player, fov))
-                pline(`${Monnam(mtmp)} is now ready for battle!`);
+                await pline(`${Monnam(mtmp)} is now ready for battle!`);
             else if (!player.Deaf)
-                Norep('%s the rattle of battle gear being readied.', 'You hear');
+                await Norep('%s the rattle of battle gear being readied.', 'You hear');
         } else {
             const distm = isHero
                 ? mdistu(mtmp, player)
                 : dist2(bugler.mx, bugler.my, mtmp.mx, mtmp.my);
             if (distm < distance) {
-                awaken_scare(mtmp, (distm < Math.floor(distance / 3)));
+                await awaken_scare(mtmp, (distm < Math.floor(distance / 3)));
             }
         }
     }
@@ -281,7 +281,7 @@ export function charm_monsters(distance, map, player) {
 // Try to make a pit.
 // ============================================================================
 
-function do_pit(x, y, tu_pit, map, player, fov) {
+async function do_pit(x, y, tu_pit, map, player, fov) {
     const chasm = maketrap(map, x, y, PIT);
     if (!chasm) return; // no pit if portal at that location
     chasm.tseen = 1;
@@ -290,12 +290,12 @@ function do_pit(x, y, tu_pit, map, player, fov) {
     const otmp = sobj_at(BOULDER, x, y, map);
     if (otmp) {
         if (cansee(map, player, fov, x, y))
-            pline(`KADOOM!  The boulder falls into a chasm${u_at(x, y, player) ? ' below you' : ''}!`);
+            await pline(`KADOOM!  The boulder falls into a chasm${u_at(x, y, player) ? ' below you' : ''}!`);
         if (mtmp)
             mtmp.mtrapped = 0;
         // obj_extract_self(otmp) — remove from floor
         if (map.removeObject) map.removeObject(otmp);
-        flooreffects(otmp, x, y, '', player, map);
+        await flooreffects(otmp, x, y, '', player, map);
         return;
     }
 
@@ -318,9 +318,9 @@ function do_pit(x, y, tu_pit, map, player, fov) {
             mtmp.mtrapped = 1;
             if (!m_already_trapped) { // suppress messages
                 if (cansee(map, player, fov, x, y)) {
-                    pline(`${Monnam(mtmp)} falls into a chasm!`);
+                    await pline(`${Monnam(mtmp)} falls into a chasm!`);
                 } else if (is_humanoid(ptr)) {
-                    You_hear('a scream!');
+                    await You_hear('a scream!');
                 }
             }
             // Falling is okay for falling down within a pit from jostling too
@@ -329,9 +329,9 @@ function do_pit(x, y, tu_pit, map, player, fov) {
                 mtmp.mhp -= rnd(m_already_trapped ? 4 : 6);
                 if (DEADMONSTER(mtmp)) {
                     if (!cansee(map, player, fov, x, y)) {
-                        pline('It is destroyed!');
+                        await pline('It is destroyed!');
                     } else {
-                        You(`destroy ${
+                        await You(`destroy ${
                             mtmp.mtame
                             ? x_monnam(mtmp, 2/*ARTICLE_THE*/, 'poor',
                                        has_mgivenname(mtmp) ? SUPPRESS_SADDLE : 0,
@@ -344,23 +344,23 @@ function do_pit(x, y, tu_pit, map, player, fov) {
         }
     } else if (u_at(x, y, player)) {
         if (player.utrap && player.utraptype === 5/*TT_BURIEDBALL*/) {
-            Your('chain breaks!');
+            await Your('chain breaks!');
             // reset_utrap(TRUE)
             player.utrap = 0;
             player.utraptype = 0;
         }
         if (player.levitating || player.flying || is_clinger(player.data || player.monsterType || {})) {
             if (!tu_pit) { // no pit here previously
-                pline('A chasm opens up under you!');
-                You("don't fall in!");
+                await pline('A chasm opens up under you!');
+                await You("don't fall in!");
             }
         } else if (!tu_pit || !player.utrap || player.utraptype !== 1/*TT_PIT*/) {
             // no pit here previously, or you were not in it even if there was
-            You('fall into a chasm!');
+            await You('fall into a chasm!');
             // set_utrap(rn1(6, 2), TT_PIT)
             player.utrap = rn1(6, 2);
             player.utraptype = 1; // TT_PIT
-            losehp(Maybe_Half_Phys(rnd(6), player),
+            await losehp(Maybe_Half_Phys(rnd(6), player),
                    'fell into a chasm', 2/*NO_KILLER_PREFIX*/, player);
             selftouch('Falling, you', player);
         } else if (player.utrap && player.utraptype === 1/*TT_PIT*/) {
@@ -368,14 +368,14 @@ function do_pit(x, y, tu_pit, map, player, fov) {
                 (!(player.fumbling && rn2(5))
                  && (!(rnl(Role_if(player, PM_ARCHEOLOGIST) ? 3 : 9))
                      || ((ACURR(player, A_DEX) > 7) && rn2(5))));
-            You('are jostled around violently!');
+            await You('are jostled around violently!');
             // set_utrap(rn1(6, 2), TT_PIT)
             player.utrap = rn1(6, 2);
             player.utraptype = 1; // TT_PIT
-            losehp(Maybe_Half_Phys(rnd(keepfooting ? 2 : 4), player),
+            await losehp(Maybe_Half_Phys(rnd(keepfooting ? 2 : 4), player),
                    'hurt in a chasm', 2/*NO_KILLER_PREFIX*/, player);
             if (keepfooting)
-                exercise(player, A_DEX, true);
+                await exercise(player, A_DEX, true);
             else {
                 const udata = player.data || player.monsterType || {};
                 selftouch((player.Upolyd && (slithy(udata) || nolimbs(udata)))
@@ -393,7 +393,7 @@ function do_pit(x, y, tu_pit, map, player, fov) {
 // Generate earthquake of desired force. Create random chasms (pits).
 // ============================================================================
 
-function do_earthquake(force, map, player, fov) {
+async function do_earthquake(force, map, player, fov) {
     const into_a_chasm = ' into a chasm';
     const trap_at_u = t_at(player.x, player.y, map);
     let tu_pit = 0;
@@ -421,9 +421,9 @@ function do_earthquake(force, map, player, fov) {
                     const ptr = mtmp.data || mtmp.type;
                     if (ceiling_hider(ptr)) {
                         if (cansee(map, player, fov, x, y)) {
-                            pline(`${Amonnam(mtmp)} is shaken loose from the ceiling!`);
+                            await pline(`${Amonnam(mtmp)} is shaken loose from the ceiling!`);
                         } else if (!is_flyer(ptr)) {
-                            You_hear('a thump.');
+                            await You_hear('a thump.');
                         }
                     }
                 }
@@ -440,13 +440,13 @@ function do_earthquake(force, map, player, fov) {
             switch (loc.typ) {
             case FOUNTAIN: // make the fountain disappear
                 if (cansee(map, player, fov, x, y))
-                    pline_The(`fountain falls${into_a_chasm}.`);
-                do_pit(x, y, tu_pit, map, player, fov);
+                    await pline_The(`fountain falls${into_a_chasm}.`);
+                await do_pit(x, y, tu_pit, map, player, fov);
                 break;
             case SINK:
                 if (cansee(map, player, fov, x, y))
-                    pline_The(`kitchen sink falls${into_a_chasm}.`);
-                do_pit(x, y, tu_pit, map, player, fov);
+                    await pline_The(`kitchen sink falls${into_a_chasm}.`);
+                await do_pit(x, y, tu_pit, map, player, fov);
                 break;
             case ALTAR: {
                 const amsk = altarmask_at(x, y, map);
@@ -455,43 +455,43 @@ function do_earthquake(force, map, player, fov) {
                     break;
                 const algn = Amask2align(amsk & AM_MASK);
                 if (cansee(map, player, fov, x, y))
-                    pline_The(`${align_str(algn)} altar falls${into_a_chasm}.`);
-                desecrate_altar(false, algn, player, map);
-                do_pit(x, y, tu_pit, map, player, fov);
+                    await pline_The(`${align_str(algn)} altar falls${into_a_chasm}.`);
+                await desecrate_altar(false, algn, player, map);
+                await do_pit(x, y, tu_pit, map, player, fov);
                 break;
             }
             case GRAVE:
                 if (cansee(map, player, fov, x, y))
-                    pline_The(`headstone topples${into_a_chasm}.`);
-                do_pit(x, y, tu_pit, map, player, fov);
+                    await pline_The(`headstone topples${into_a_chasm}.`);
+                await do_pit(x, y, tu_pit, map, player, fov);
                 break;
             case THRONE:
                 if (cansee(map, player, fov, x, y))
-                    pline_The(`throne falls${into_a_chasm}.`);
-                do_pit(x, y, tu_pit, map, player, fov);
+                    await pline_The(`throne falls${into_a_chasm}.`);
+                await do_pit(x, y, tu_pit, map, player, fov);
                 break;
             case SCORR:
                 loc.typ = CORR;
                 unblock_point(x, y);
                 if (cansee(map, player, fov, x, y))
-                    pline('A secret corridor is revealed.');
+                    await pline('A secret corridor is revealed.');
                 // FALLTHROUGH
-                do_pit(x, y, tu_pit, map, player, fov);
+                await do_pit(x, y, tu_pit, map, player, fov);
                 break;
             case CORR:
             case ROOM:
-                do_pit(x, y, tu_pit, map, player, fov);
+                await do_pit(x, y, tu_pit, map, player, fov);
                 break;
             case SDOOR:
                 cvt_sdoor_to_door(loc); // .typ = DOOR
                 if (cansee(map, player, fov, x, y))
-                    pline('A secret door is revealed.');
+                    await pline('A secret door is revealed.');
                 // FALLTHROUGH
                 // falls through to DOOR case
             case DOOR: // make the door collapse
                 // if already doorless, treat like room or corridor
                 if ((loc.doormask || loc.flags || 0) === D_NODOOR) {
-                    do_pit(x, y, tu_pit, map, player, fov);
+                    await do_pit(x, y, tu_pit, map, player, fov);
                     break;
                 }
                 // wasn't doorless, now it will be
@@ -500,7 +500,7 @@ function do_earthquake(force, map, player, fov) {
                 recalc_block_point(x, y);
                 newsym(map, x, y); // before pline
                 if (cansee(map, player, fov, x, y))
-                    pline_The('door collapses.');
+                    await pline_The('door collapses.');
                 if (in_rooms(x, y, SHOPBASE, map).length > 0)
                     add_damage(x, y, 0, map);
                 break;
@@ -559,7 +559,7 @@ export function improvised_notes(player) {
 // The player is trying to extract something from his/her instrument.
 // ============================================================================
 
-function do_improvisation(instr, player, map, display, fov) {
+async function do_improvisation(instr, player, map, display, fov) {
     const do_spec_base = !(player.Stunned || player.Confusion);
     let do_spec = do_spec_base;
 
@@ -595,29 +595,29 @@ function do_improvisation(instr, player, map, display, fov) {
 
     switch (mode) {
     case PLAY_NORMAL:
-        You(`start playing ${yname(instr)}.`);
+        await You(`start playing ${yname(instr)}.`);
         break;
     case PLAY_STUNNED:
         if (!player.Deaf)
-            You('radiate an obnoxious droning sound.');
+            await You('radiate an obnoxious droning sound.');
         else
-            You_feel('a monotonous vibration.');
+            await You_feel('a monotonous vibration.');
         break;
     case PLAY_CONFUSED:
         if (!player.Deaf)
-            You('generate a raucous noise.');
+            await You('generate a raucous noise.');
         else
-            You_feel('a jarring vibration.');
+            await You_feel('a jarring vibration.');
         break;
     case PLAY_HALLU:
-        You('disseminate a kaleidoscopic display of floating butterflies.');
+        await You('disseminate a kaleidoscopic display of floating butterflies.');
         break;
     case PLAY_STUNNED | PLAY_CONFUSED:
     case PLAY_STUNNED | PLAY_HALLU:
     case PLAY_CONFUSED | PLAY_HALLU:
     case PLAY_STUNNED | PLAY_CONFUSED | PLAY_HALLU:
     default:
-        pline('What you perform is quite far from music...');
+        await pline('What you perform is quite far from music...');
         break;
     }
 
@@ -628,57 +628,57 @@ function do_improvisation(instr, player, map, display, fov) {
     switch (itmp_otyp) { // note: itmp_otyp might differ from instr.otyp
     case MAGIC_FLUTE: // Make monster fall asleep
         consume_obj_charge(instr, true, player);
-        You(`${!player.Deaf ? '' : 'seem to '}produce ${player.Hallucination ? 'piped' : 'soft'}${same_old_song ? ', familiar' : ''} music.`);
+        await You(`${!player.Deaf ? '' : 'seem to '}produce ${player.Hallucination ? 'piped' : 'soft'}${same_old_song ? ', familiar' : ''} music.`);
         // Hero_playnotes — sound library, no-op in JS
         put_monsters_to_sleep(ulevel * 5, map, player);
-        exercise(player, A_DEX, true);
+        await exercise(player, A_DEX, true);
         break;
     case WOODEN_FLUTE: // May charm snakes
         do_spec = do_spec && (rn2(ACURR(player, A_DEX)) + ulevel > 25);
         if (!player.Deaf)
-            pline(`${Tobjnam(instr, do_spec ? 'trill' : 'toot')}${same_old_song ? ' a familiar tune' : ''}.`);
+            await pline(`${Tobjnam(instr, do_spec ? 'trill' : 'toot')}${same_old_song ? ' a familiar tune' : ''}.`);
         else
-            You_feel(`${yname(instr)} ${do_spec ? 'trill' : 'toot'}.`);
+            await You_feel(`${yname(instr)} ${do_spec ? 'trill' : 'toot'}.`);
         // Hero_playnotes — sound library, no-op in JS
         if (do_spec)
-            charm_snakes(ulevel * 3, map, player, fov);
-        exercise(player, A_DEX, true);
+            await charm_snakes(ulevel * 3, map, player, fov);
+        await exercise(player, A_DEX, true);
         break;
     case FIRE_HORN:  // Idem wand of fire
     case FROST_HORN: // Idem wand of cold
         consume_obj_charge(instr, true, player);
         // Fire/frost horn zapping requires getdir, zapyourself, ubuzz — not yet ported
         // Simplified: just consume the charge and message
-        pline(`${Tobjnam(instr, 'vibrate')}.`);
+        await pline(`${Tobjnam(instr, 'vibrate')}.`);
         // TODO: music.c:611-638 — fire/frost horn direction, zapyourself, ubuzz
         break;
     case TOOLED_HORN: // Awaken or scare monsters
         if (!player.Deaf)
-            You(`produce a frightful, grave${same_old_song ? ', yet familiar,' : ''} sound.`);
+            await You(`produce a frightful, grave${same_old_song ? ', yet familiar,' : ''} sound.`);
         else
-            You('blow into the horn.');
+            await You('blow into the horn.');
         // Hero_playnotes — sound library, no-op in JS
-        awaken_monsters(ulevel * 30, map, player);
-        exercise(player, A_WIS, false);
+        await awaken_monsters(ulevel * 30, map, player);
+        await exercise(player, A_WIS, false);
         break;
     case BUGLE: // Awaken & attract soldiers
         if (!player.Deaf)
-            You(`extract a loud${same_old_song ? ', familiar' : ''} noise from ${yname(instr)}.`);
+            await You(`extract a loud${same_old_song ? ', familiar' : ''} noise from ${yname(instr)}.`);
         else
-            You('blow into the bugle.');
+            await You('blow into the bugle.');
         // Hero_playnotes — sound library, no-op in JS
-        awaken_soldiers('player', map, player, fov);
-        exercise(player, A_WIS, false);
+        await awaken_soldiers('player', map, player, fov);
+        await exercise(player, A_WIS, false);
         break;
     case MAGIC_HARP: // Charm monsters
         consume_obj_charge(instr, true, player);
         if (!player.Deaf)
-            pline(`${Tobjnam(instr, 'produce')} very attractive${same_old_song ? ' and familiar' : ''} music.`);
+            await pline(`${Tobjnam(instr, 'produce')} very attractive${same_old_song ? ' and familiar' : ''} music.`);
         else
-            You_feel('very soothing vibrations.');
+            await You_feel('very soothing vibrations.');
         // Hero_playnotes — sound library, no-op in JS
         charm_monsters(Math.floor((ulevel - 1) / 3) + 1, map, player);
-        exercise(player, A_DEX, true);
+        await exercise(player, A_DEX, true);
         break;
     case WOODEN_HARP: // May calm Nymph
         do_spec = do_spec && (rn2(ACURR(player, A_DEX)) + ulevel > 25);
@@ -688,40 +688,40 @@ function do_improvisation(instr, player, map, display, fov) {
                 : do_spec ? 'produces a lilting melody'
                 : same_old_song ? 'twangs a familiar tune'
                 : 'twangs';
-            pline(`${Yname2(instr)} ${msg}.`);
+            await pline(`${Yname2(instr)} ${msg}.`);
         } else
-            You_feel('soothing vibrations.');
+            await You_feel('soothing vibrations.');
         // Hero_playnotes — sound library, no-op in JS
         if (do_spec)
-            calm_nymphs(ulevel * 3, map, player, fov);
-        exercise(player, A_DEX, true);
+            await calm_nymphs(ulevel * 3, map, player, fov);
+        await exercise(player, A_DEX, true);
         break;
     case DRUM_OF_EARTHQUAKE: // create several pits
         consume_obj_charge(instr, true, player);
-        You('produce a heavy, thunderous rolling!');
+        await You('produce a heavy, thunderous rolling!');
         // Hero_playnotes — sound library, no-op in JS
-        pline_The(`entire ${generic_lvl_desc()} is shaking around you!`);
-        do_earthquake(Math.floor((ulevel - 1) / 3) + 1, map, player, fov);
+        await pline_The(`entire ${generic_lvl_desc()} is shaking around you!`);
+        await do_earthquake(Math.floor((ulevel - 1) / 3) + 1, map, player, fov);
         // shake up monsters in a much larger radius...
-        awaken_monsters(ROWNO * COLNO, map, player);
+        await awaken_monsters(ROWNO * COLNO, map, player);
         // makeknown(DRUM_OF_EARTHQUAKE) — discovery not fully tracked
         break;
     case LEATHER_DRUM: // Awaken monsters
         if (!mundane) {
             if (!player.Deaf) {
-                You(`beat a ${same_old_song ? 'familiar ' : ''}deafening row!`);
+                await You(`beat a ${same_old_song ? 'familiar ' : ''}deafening row!`);
                 // Hero_playnotes — sound library, no-op in JS
                 // incr_itimeout(&HDeaf, rn1(20, 30)) — deafness timeout
                 rn1(20, 30); // consume RNG for deafness duration
             } else {
-                You('pound on the drum.');
+                await You('pound on the drum.');
             }
-            exercise(player, A_WIS, false);
+            await exercise(player, A_WIS, false);
         } else {
-            You(`${rn2(2) ? 'butcher' : rn2(2) ? 'manage' : 'pull off'} ${an(ROLL_FROM(beats))}.`);
+            await You(`${rn2(2) ? 'butcher' : rn2(2) ? 'manage' : 'pull off'} ${an(ROLL_FROM(beats))}.`);
             // Hero_playnotes — sound library, no-op in JS
         }
-        awaken_monsters(ulevel * (mundane ? 5 : 40), map, player);
+        await awaken_monsters(ulevel * (mundane ? 5 : 40), map, player);
         break;
     default:
         impossible(`What a weird instrument (${instr.otyp})!`);
@@ -737,7 +737,7 @@ function do_improvisation(instr, player, map, display, fov) {
 
 export async function do_play_instrument(instr, player, map, display, fov) {
     if (player.Underwater) {
-        You_cant('play music underwater!');
+        await You_cant('play music underwater!');
         return 0; // ECMD_OK
     }
     const ptr = player.data || player.monsterType || {};
@@ -745,7 +745,7 @@ export async function do_play_instrument(instr, player, map, display, fov) {
          || instr.otyp === TOOLED_HORN || instr.otyp === FROST_HORN
          || instr.otyp === FIRE_HORN || instr.otyp === BUGLE)
         && !can_blow(ptr)) {
-        You(`are incapable of playing ${thesimpleoname(instr)}.`);
+        await You(`are incapable of playing ${thesimpleoname(instr)}.`);
         return 0; // ECMD_OK
     }
 
@@ -756,13 +756,13 @@ export async function do_play_instrument(instr, player, map, display, fov) {
         const ans = await ynFunction('Improvise?', 'ynq', 'y'.charCodeAt(0), display);
         c = String.fromCharCode(ans);
         if (c === 'q') {
-            pline('Never mind.');
+            await pline('Never mind.');
             return 0; // ECMD_OK
         }
     }
 
     if (c !== 'n') {
-        return do_improvisation(instr, player, map, display, fov) ? 1 : 0;
+        return await do_improvisation(instr, player, map, display, fov) ? 1 : 0;
     }
 
     // Playing a specific tune
@@ -772,7 +772,7 @@ export async function do_play_instrument(instr, player, map, display, fov) {
         c = String.fromCharCode(ans2);
     }
     if (c === 'q') {
-        pline('Never mind.');
+        await pline('Never mind.');
         return 0; // ECMD_OK
     } else if (c === 'y') {
         buf = player.tune || '';
@@ -780,7 +780,7 @@ export async function do_play_instrument(instr, player, map, display, fov) {
         buf = await getlin('What tune are you playing? [5 notes, A-G]', display);
         buf = mungspaces(buf);
         if (buf.startsWith('\x1b') || buf === '')  {
-            pline('Never mind.');
+            await pline('Never mind.');
             return 0; // ECMD_OK
         }
         // convert to uppercase and change any "H" to "B"
@@ -791,7 +791,7 @@ export async function do_play_instrument(instr, player, map, display, fov) {
         }).join('');
     }
 
-    You(!player.Deaf
+    await You(!player.Deaf
         ? `extract a strange sound from ${xname(instr)}!`
         : `can feel ${xname(instr)} emitting vibrations.`);
     // Hero_playnotes — sound library, no-op in JS
@@ -800,7 +800,7 @@ export async function do_play_instrument(instr, player, map, display, fov) {
     // and if the tune conforms to what we're waiting for.
     // Is_stronghold check — simplified, check if player has a tune set
     if (player.tune && player.tune.length > 0) {
-        exercise(player, A_WIS, true); // just for trying
+        await exercise(player, A_WIS, true); // just for trying
         if (buf === player.tune) {
             // Search for the drawbridge
             for (let y = player.y - 1; y <= player.y + 1; y++) {
@@ -858,11 +858,11 @@ export async function do_play_instrument(instr, player, map, display, fov) {
                 }
                 if (tumblers) {
                     if (gears)
-                        You_hear(`${tumblers} tumbler${plur(tumblers)} click and ${gears} gear${plur(gears)} turn.`);
+                        await You_hear(`${tumblers} tumbler${plur(tumblers)} click and ${gears} gear${plur(gears)} turn.`);
                     else
-                        You_hear(`${tumblers} tumbler${plur(tumblers)} click.`);
+                        await You_hear(`${tumblers} tumbler${plur(tumblers)} click.`);
                 } else if (gears) {
-                    You_hear(`${gears} gear${plur(gears)} turn.`);
+                    await You_hear(`${gears} gear${plur(gears)} turn.`);
                     if (gears === 5) {
                         if (player.uevent) player.uevent.uheard_tune = 2;
                         // record_achievement(ACH_TUNE) — stub

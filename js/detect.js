@@ -147,8 +147,8 @@ function feel_location() {}
 function feel_newsym() {}
 function docrt() {}
 function flush_screen() {}
-function strange_feeling(sobj, msg, player, display) {
-    if (display && msg) display.putstr_message(msg);
+async function strange_feeling(sobj, msg, player, display) {
+    if (display && msg) await display.putstr_message(msg);
 }
 
 // ========================================================================
@@ -257,7 +257,7 @@ export function trapped_door_at(ttyp, x, y, map, player) {
 // ========================================================================
 // cf. detect.c:335 -- gold_detect
 // ========================================================================
-export function gold_detect(sobj, player, map, display, game) {
+export async function gold_detect(sobj, player, map, display, game) {
     let known = false;
     const stale = clear_stale_map(COIN_CLASS, sobj.blessed ? GOLD : 0, map);
     known = stale;
@@ -267,12 +267,12 @@ export function gold_detect(sobj, player, map, display, game) {
         const mndx = (mtmp.type || mtmp.data || {}).mndx || mtmp.mndx;
         if (findgold(mtmp.minvent || []) || mndx === PM_GOLD_GOLEM) {
             if (mtmp === player.usteed) { steedgold = true; }
-            else { known = true; return _gold_detect_outgoldmap(sobj, player, map, display); }
+            else { known = true; return await _gold_detect_outgoldmap(sobj, player, map, display); }
         } else {
             for (const obj of (mtmp.minvent || [])) {
                 if ((sobj.blessed && o_material(obj, GOLD)) || o_in(obj, COIN_CLASS)) {
                     if (mtmp === player.usteed) { steedgold = true; }
-                    else { known = true; return _gold_detect_outgoldmap(sobj, player, map, display); }
+                    else { known = true; return await _gold_detect_outgoldmap(sobj, player, map, display); }
                 }
             }
         }
@@ -281,11 +281,11 @@ export function gold_detect(sobj, player, map, display, game) {
         if (sobj.blessed && o_material(obj, GOLD)) {
             known = true;
             if (obj.ox !== player.x || obj.oy !== player.y)
-                return _gold_detect_outgoldmap(sobj, player, map, display);
+                return await _gold_detect_outgoldmap(sobj, player, map, display);
         } else if (o_in(obj, COIN_CLASS)) {
             known = true;
             if (obj.ox !== player.x || obj.oy !== player.y)
-                return _gold_detect_outgoldmap(sobj, player, map, display);
+                return await _gold_detect_outgoldmap(sobj, player, map, display);
         }
     }
     if (!known) {
@@ -294,14 +294,14 @@ export function gold_detect(sobj, player, map, display, game) {
             buf = 'You feel worried about your future financial situation.';
         else if (steedgold) buf = "You feel interested in your steed's financial situation.";
         else buf = 'You feel materially poor.';
-        strange_feeling(sobj, buf, player, display);
+        await strange_feeling(sobj, buf, player, display);
         return 1;
     }
     if (stale) docrt();
-    You("notice some gold between your %s.", body_part(FOOT, player));
+    await You("notice some gold between your %s.", body_part(FOOT, player));
     return 0;
 }
-function _gold_detect_outgoldmap(sobj, player, map, display) {
+async function _gold_detect_outgoldmap(sobj, player, map, display) {
     cls(); unconstrain_map(player);
     let ugold = false;
     for (const obj of (map.objects || [])) {
@@ -335,8 +335,8 @@ function _gold_detect_outgoldmap(sobj, player, map, display) {
         if (temp && u_at(player, temp.ox, temp.oy)) ugold = true;
     }
     if (!ugold) newsym(map, player.x, player.y);
-    You_feel("very greedy, and sense gold!");
-    exercise(player, A_WIS, true);
+    await You_feel("very greedy, and sense gold!");
+    await exercise(player, A_WIS, true);
     browse_map(); map_redisplay_stub(); reconstrain_map(player);
     return 0;
 }
@@ -344,7 +344,7 @@ function _gold_detect_outgoldmap(sobj, player, map, display) {
 // ========================================================================
 // cf. detect.c:479 -- food_detect
 // ========================================================================
-export function food_detect(sobj, player, map, display, game) {
+export async function food_detect(sobj, player, map, display, game) {
     let ct = 0, ctu = 0;
     const confused = !!(player.confused || (sobj && sobj.cursed));
     const oclass = confused ? POTION_CLASS : FOOD_CLASS;
@@ -364,27 +364,27 @@ export function food_detect(sobj, player, map, display, game) {
     if (!ct && !ctu) {
         if (stale) {
             docrt();
-            You("sense a lack of %s nearby.", what);
+            await You("sense a lack of %s nearby.", what);
             if (sobj && sobj.blessed) {
-                if (!player.uedibility) Your("%s starts to tingle.", body_part(NOSE, player));
+                if (!player.uedibility) await Your("%s starts to tingle.", body_part(NOSE, player));
                 player.uedibility = 1;
             }
         } else if (sobj) {
             let buf = `Your ${body_part(NOSE, player)} twitches`;
             if (sobj.blessed && !player.uedibility) {
                 buf += ' then starts to tingle.';
-                strange_feeling(sobj, buf, player, display);
+                await strange_feeling(sobj, buf, player, display);
                 player.uedibility = 1;
             } else {
                 buf += '.';
-                strange_feeling(sobj, buf, player, display);
+                await strange_feeling(sobj, buf, player, display);
             }
         }
         return !stale ? 1 : 0;
     } else if (!ct) {
-        You("%s %s nearby.", sobj ? 'smell' : 'sense', what);
+        await You("%s %s nearby.", sobj ? 'smell' : 'sense', what);
         if (sobj && sobj.blessed) {
-            if (!player.uedibility) Your("%s starts to tingle.", body_part(NOSE, player));
+            if (!player.uedibility) await Your("%s starts to tingle.", body_part(NOSE, player));
             player.uedibility = 1;
         }
     } else {
@@ -403,12 +403,12 @@ export function food_detect(sobj, player, map, display, game) {
         if (!ctu) newsym(map, player.x, player.y);
         if (sobj) {
             if (sobj.blessed) {
-                Your("%s %s to tingle and you smell %s.", body_part(NOSE, player),
+                await Your("%s %s to tingle and you smell %s.", body_part(NOSE, player),
                      player.uedibility ? 'continues' : 'starts', what);
                 player.uedibility = 1;
-            } else Your("%s tingles and you smell %s.", body_part(NOSE, player), what);
-        } else You("sense %s.", what);
-        exercise(player, A_WIS, true);
+            } else await Your("%s tingles and you smell %s.", body_part(NOSE, player), what);
+        } else await You("sense %s.", what);
+        await exercise(player, A_WIS, true);
         browse_map(); map_redisplay_stub(); reconstrain_map(player);
     }
     return 0;
@@ -417,7 +417,7 @@ export function food_detect(sobj, player, map, display, game) {
 // ========================================================================
 // cf. detect.c:603 -- object_detect
 // ========================================================================
-export function object_detect(detector, oclass, player, map, display, game) {
+export async function object_detect(detector, oclass, player, map, display, game) {
     if (oclass < 0 || oclass >= 18) oclass = 0;
     const is_cursed = detector && detector.cursed;
     const do_dknown = detector && objectData[detector.otyp]
@@ -450,10 +450,10 @@ export function object_detect(detector, oclass, player, map, display, game) {
     }
     if (!clear_stale_map(!oclass ? ALL_CLASSES : oclass, 0, map) && !ct) {
         if (!ctu) {
-            if (detector) strange_feeling(detector, 'You feel a lack of something.', player, display);
+            if (detector) await strange_feeling(detector, 'You feel a lack of something.', player, display);
             return 1;
         }
-        You("sense %s nearby.", stuff); return 0;
+        await You("sense %s nearby.", stuff); return 0;
     }
     cls(); unconstrain_map(player);
     for (const obj of (map.objects || [])) {
@@ -484,7 +484,7 @@ export function object_detect(detector, oclass, player, map, display, game) {
         }
     }
     newsym(map, player.x, player.y);
-    You("detect the %s of %s.", ct ? 'presence' : 'absence', stuff);
+    await You("detect the %s of %s.", ct ? 'presence' : 'absence', stuff);
     browse_map(); map_redisplay_stub(); reconstrain_map(player);
     return 0;
 }
@@ -492,7 +492,7 @@ export function object_detect(detector, oclass, player, map, display, game) {
 // ========================================================================
 // cf. detect.c:798 -- monster_detect
 // ========================================================================
-export function monster_detect(otmp, mclass, player, map, display, game) {
+export async function monster_detect(otmp, mclass, player, map, display, game) {
     let mcnt = 0;
     for (const mtmp of (map.monsters || [])) {
         if (DEADMONSTER(mtmp) || (mtmp.isgd && !mtmp.mx)) continue;
@@ -500,7 +500,7 @@ export function monster_detect(otmp, mclass, player, map, display, game) {
     }
     if (!mcnt) {
         if (otmp) {
-            strange_feeling(otmp, player.hallucinating
+            await strange_feeling(otmp, player.hallucinating
                 ? 'You get the heebie jeebies.' : 'You feel threatened.', player, display);
         }
         return 1;
@@ -519,8 +519,8 @@ export function monster_detect(otmp, mclass, player, map, display, game) {
             }
         }
         if (!swallowed) display_self();
-        You("sense the presence of monsters.");
-        if (woken) pline("Monsters sense the presence of you.");
+        await You("sense the presence of monsters.");
+        if (woken) await pline("Monsters sense the presence of you.");
         browse_map(); map_redisplay_stub(); reconstrain_map(player);
     }
     return 0;
@@ -573,7 +573,7 @@ function detect_obj_traps(objlist, show_them, how, ft, player, map, display) {
 // ========================================================================
 // cf. detect.c:956 -- display_trap_map
 // ========================================================================
-function display_trap_map(cursed_src, player, map, display) {
+async function display_trap_map(cursed_src, player, map, display) {
     cls(); unconstrain_map(player);
     detect_obj_traps(map.objects || [], true, cursed_src, null, player, map, display);
     for (const mon of (map.monsters || [])) {
@@ -594,33 +594,33 @@ function display_trap_map(cursed_src, player, map, display) {
         }
     }
     newsym(map, player.x, player.y);
-    You_feel("%s.", cursed_src ? 'very greedy' : 'entrapped');
+    await You_feel("%s.", cursed_src ? 'very greedy' : 'entrapped');
     browse_map(); map_redisplay_stub(); reconstrain_map(player);
 }
 
 // ========================================================================
 // cf. detect.c:1011 -- trap_detect
 // ========================================================================
-export function trap_detect(sobj, player, map, display, game) {
+export async function trap_detect(sobj, player, map, display, game) {
     const cursed_src = sobj && sobj.cursed ? 1 : 0;
     let found = false;
     if (player.usteed) { player.usteed.mx = player.x; player.usteed.my = player.y; }
     for (const ttmp of (map.traps || [])) {
         if (ttmp.tx !== player.x || ttmp.ty !== player.y) {
-            display_trap_map(cursed_src, player, map, display); return 0;
+            await display_trap_map(cursed_src, player, map, display); return 0;
         }
         found = true;
     }
     let tr = detect_obj_traps(map.objects || [], false, 0, null, player, map, display);
     if (tr !== OTRAP_NONE) {
-        if (tr & OTRAP_THERE) { display_trap_map(cursed_src, player, map, display); return 0; }
+        if (tr & OTRAP_THERE) { await display_trap_map(cursed_src, player, map, display); return 0; }
         found = true;
     }
     for (const mon of (map.monsters || [])) {
         if (DEADMONSTER(mon) || (mon.isgd && !mon.mx)) continue;
         tr = detect_obj_traps(mon.minvent || [], false, 0, null, player, map, display);
         if (tr !== OTRAP_NONE) {
-            if (tr & OTRAP_THERE) { display_trap_map(cursed_src, player, map, display); return 0; }
+            if (tr & OTRAP_THERE) { await display_trap_map(cursed_src, player, map, display); return 0; }
             found = true;
         }
     }
@@ -632,24 +632,24 @@ export function trap_detect(sobj, player, map, display, game) {
         const lev = map.at(cc.x, cc.y); if (!lev || lev.typ === SDOOR) continue;
         if ((lev.flags || 0) & D_TRAPPED) {
             if (cc.x !== player.x || cc.y !== player.y) {
-                display_trap_map(cursed_src, player, map, display); return 0;
+                await display_trap_map(cursed_src, player, map, display); return 0;
             }
             found = true;
         }
     }
     if (!found) {
-        strange_feeling(sobj, `Your ${body_part(TOE, player)}s stop itching.`, player, display);
+        await strange_feeling(sobj, `Your ${body_part(TOE, player)}s stop itching.`, player, display);
         return 1;
     }
-    Your("%ss itch.", body_part(TOE, player));
+    await Your("%ss itch.", body_part(TOE, player));
     return 0;
 }
 
 // ========================================================================
 // cf. detect.c:1091 -- furniture_detect (stub)
 // ========================================================================
-export function furniture_detect() {
-    There("seems to be nothing of interest on this level."); return 0;
+export async function furniture_detect() {
+    await There("seems to be nothing of interest on this level."); return 0;
 }
 
 // ========================================================================
@@ -675,46 +675,46 @@ export function level_distance(where, player) {
 // ========================================================================
 // cf. detect.c:1206 -- use_crystal_ball
 // ========================================================================
-export function use_crystal_ball(obj, player, map, display, game) {
+export async function use_crystal_ball(obj, player, map, display, game) {
     if (!obj) return;
-    if (player.blind) { pline("Too bad you can't see the crystal ball."); return; }
+    if (player.blind) { await pline("Too bad you can't see the crystal ball."); return; }
     const charged = (obj.spe || 0) > 0;
     const oops = obj.blessed ? 16 : 20;
     const acurrInt = player.acurr_int || player.attributes?.[A_INT] || 10;
     if (charged && (obj.cursed || rnd(oops) > acurrInt)) {
         const impair = rnd(100 - 3 * acurrInt);
         switch (rnd(obj.blessed ? 4 : 5)) {
-        case 1: pline("The crystal ball is too much to comprehend!"); break;
-        case 2: pline("The crystal ball confuses you!"); break;
-        case 3: pline("The crystal ball damages your vision!"); break;
-        case 4: pline("The crystal ball zaps your mind!"); break;
-        case 5: pline("The crystal ball explodes!"); break;
+        case 1: await pline("The crystal ball is too much to comprehend!"); break;
+        case 2: await pline("The crystal ball confuses you!"); break;
+        case 3: await pline("The crystal ball damages your vision!"); break;
+        case 4: await pline("The crystal ball zaps your mind!"); break;
+        case 5: await pline("The crystal ball explodes!"); break;
         }
         if (obj && obj.spe > 0) obj.spe--;
         return;
     }
     if (player.hallucinating) {
         nomul(game, -rnd(charged ? 4 : 2));
-        if (!charged) { pline("All you see is funky colored haze."); }
+        if (!charged) { await pline("All you see is funky colored haze."); }
         else {
             switch (rnd(6)) {
-            case 1: You("grok some groovy globs of incandescent lava."); break;
-            case 2: pline("Whoa!  Psychedelic colors, dude!"); break;
-            case 3: pline_The("crystal pulses with sinister light!"); break;
-            case 4: You_see("goldfish swimming above fluorescent rocks."); break;
-            case 5: You_see("tiny snowflakes spinning around a miniature farmhouse."); break;
-            default: pline("Oh wow... like a kaleidoscope!"); break;
+            case 1: await You("grok some groovy globs of incandescent lava."); break;
+            case 2: await pline("Whoa!  Psychedelic colors, dude!"); break;
+            case 3: await pline_The("crystal pulses with sinister light!"); break;
+            case 4: await You_see("goldfish swimming above fluorescent rocks."); break;
+            case 5: await You_see("tiny snowflakes spinning around a miniature farmhouse."); break;
+            default: await pline("Oh wow... like a kaleidoscope!"); break;
             }
             if (obj.spe > 0) obj.spe--;
         }
         return;
     }
-    You("peer into the crystal ball...");
+    await You("peer into the crystal ball...");
     nomul(game, -rnd(charged ? 10 : 2));
-    if (!charged) { pline_The("vision is unclear."); return; }
+    if (!charged) { await pline_The("vision is unclear."); return; }
     if (obj.spe > 0) obj.spe--;
-    if (!rn2(100)) You_see("the Wizard of Yendor gazing out at you.");
-    else pline_The("vision is unclear.");
+    if (!rn2(100)) await You_see("the Wizard of Yendor gazing out at you.");
+    else await pline_The("vision is unclear.");
 }
 
 // ========================================================================
@@ -732,20 +732,20 @@ export function show_map_spot(x, y, cnf, map) {
 // ========================================================================
 // cf. detect.c:1422 -- do_mapping
 // ========================================================================
-export function do_mapping(player, map, display) {
+export async function do_mapping(player, map, display) {
     unconstrain_map(player);
     const cnf = !!player.confused;
     for (let zx = 1; zx < COLNO; zx++)
         for (let zy = 0; zy < ROWNO; zy++)
             show_map_spot(zx, zy, cnf, map);
     reconstrain_map(player);
-    exercise(player, A_WIS, true);
+    await exercise(player, A_WIS, true);
 }
 
 // ========================================================================
 // cf. detect.c:1448 -- do_vicinity_map
 // ========================================================================
-export function do_vicinity_map(sobj, player, map, display) {
+export async function do_vicinity_map(sobj, player, map, display) {
     const cnf = !!player.confused;
     const lo_y = ((player.y - 5 < 0) ? 0 : player.y - 5);
     const hi_y = ((player.y + 6 >= ROWNO) ? ROWNO - 1 : player.y + 6);
@@ -755,7 +755,7 @@ export function do_vicinity_map(sobj, player, map, display) {
     for (let zx = lo_x; zx <= hi_x; zx++)
         for (let zy = lo_y; zy <= hi_y; zy++)
             show_map_spot(zx, zy, cnf, map);
-    You("sense your surroundings.");
+    await You("sense your surroundings.");
     reconstrain_map(player);
 }
 
@@ -835,7 +835,7 @@ function findone_fn(zx, zy, found_p, player, map, display) {
 // ========================================================================
 // cf. detect.c:1729 -- openone
 // ========================================================================
-function openone(zx, zy, numRef, player, map, display) {
+async function openone(zx, zy, numRef, player, map, display) {
     const lev = map.at(zx, zy); if (!lev) return;
     const floorObjs = map.objectsAt ? map.objectsAt(zx, zy) : [];
     for (const otmp of floorObjs)
@@ -843,8 +843,8 @@ function openone(zx, zy, numRef, player, map, display) {
     if (lev.typ === SDOOR || (lev.typ === DOOR && ((lev.flags || 0) & (D_CLOSED | D_LOCKED)))) {
         if (lev.typ === SDOOR) cvt_sdoor_to_door(lev);
         if ((lev.flags || 0) & D_TRAPPED) {
-            if (distu(player, zx, zy) < 3) pline("KABOOM!  You triggered a door trap!");
-            else Norep("You %s an explosion!", "hear");
+            if (distu(player, zx, zy) < 3) await pline("KABOOM!  You triggered a door trap!");
+            else await Norep("You %s an explosion!", "hear");
             lev.flags = D_NODOOR;
         } else lev.flags = D_ISOPEN;
         unblock_point(zx, zy); newsym(map, zx, zy); numRef.value++;
@@ -861,7 +861,7 @@ function openone(zx, zy, numRef, player, map, display) {
 // ========================================================================
 // cf. detect.c:1792 -- findit
 // ========================================================================
-export function findit(player, map, display, game) {
+export async function findit(player, map, display, game) {
     if (player.uswallow) return 0;
     const found = {
         num_sdoors: 0, num_scorrs: 0, num_traps: 0, num_mons: 0,
@@ -869,7 +869,7 @@ export function findit(player, map, display, game) {
         ft_cc_x: 0, ft_cc_y: 0,
     };
     const fov = game && game.fov ? game.fov : null;
-    do_clear_area(fov, map, player.x, player.y, BOLT_LIM,
+    await do_clear_area(fov, map, player.x, player.y, BOLT_LIM,
         (zx, zy, arg) => findone_fn(zx, zy, arg, player, map, display), found);
     let num = 0;
     const k = (found.num_sdoors ? 1 : 0) + (found.num_scorrs ? 1 : 0)
@@ -894,31 +894,31 @@ export function findit(player, map, display, game) {
         buf += found.num_mons > 1 ? `${found.num_mons} hidden monsters` : 'a hidden monster';
         num += found.num_mons;
     }
-    if (buf) You("reveal %s!", buf);
+    if (buf) await You("reveal %s!", buf);
     if (found.num_invis) {
         let ibuf;
         if (found.num_invis > 1)
             ibuf = `${found.num_invis}${found.num_kept_invis ? ' other' : ''} unseen monsters`;
         else ibuf = `${found.num_kept_invis ? 'another' : 'an'} unseen monster`;
-        You("detect %s!", ibuf); num += found.num_invis;
+        await You("detect %s!", ibuf); num += found.num_invis;
     }
     if (found.num_cleared_invis) {
-        if (!num) You_feel("%sless paranoid.", found.num_kept_invis ? 'somewhat ' : '');
+        if (!num) await You_feel("%sless paranoid.", found.num_kept_invis ? 'somewhat ' : '');
         num += found.num_cleared_invis;
     }
-    if (!num) You("don't find anything.");
+    if (!num) await You("don't find anything.");
     return num;
 }
 
 // ========================================================================
 // cf. detect.c:1902 -- openit
 // ========================================================================
-export function openit(player, map, display, game) {
+export async function openit(player, map, display, game) {
     const numRef = { value: 0 };
-    if (player.uswallow) { pline("Something opens!"); return -1; }
+    if (player.uswallow) { await pline("Something opens!"); return -1; }
     const fov = game && game.fov ? game.fov : null;
-    do_clear_area(fov, map, player.x, player.y, BOLT_LIM,
-        (zx, zy, arg) => openone(zx, zy, arg, player, map, display), numRef);
+    await do_clear_area(fov, map, player.x, player.y, BOLT_LIM,
+        async (zx, zy, arg) => await openone(zx, zy, arg, player, map, display), numRef);
     return numRef.value;
 }
 
@@ -932,18 +932,18 @@ export function detecting(func) {
 // ========================================================================
 // cf. detect.c:1935 -- find_trap
 // ========================================================================
-export function find_trap(trap, player, map, display) {
+export async function find_trap(trap, player, map, display) {
     if (!trap) return;
     trap.tseen = 1;
-    exercise(player, A_WIS, true);
+    await exercise(player, A_WIS, true);
     feel_newsym(map, trap.tx, trap.ty);
-    You("find %s.", addArticle(trapDiscoveryName(trap.ttyp)));
+    await You("find %s.", addArticle(trapDiscoveryName(trap.ttyp)));
 }
 
 // ========================================================================
 // cf. detect.c:1965 -- mfind0
 // ========================================================================
-export function mfind0(mtmp, via_warning, player, map, display) {
+export async function mfind0(mtmp, via_warning, player, map, display) {
     if (!mtmp) return 0;
     const x = mtmp.mx, y = mtmp.my;
     let found_something = false;
@@ -956,7 +956,7 @@ export function mfind0(mtmp, via_warning, player, map, display) {
         if (mtmp.mundetected && (is_hider(mdat) || hides_under(mdat) || mdat.mlet === S_EEL)) {
             if (via_warning && found_something) {
                 set_msg_xy(x, y);
-                Your("danger sense causes you to take a second %s.",
+                await Your("danger sense causes you to take a second %s.",
                      player.blind ? 'to check nearby' : 'look close by');
             }
             mtmp.mundetected = 0; found_something = true;
@@ -968,12 +968,12 @@ export function mfind0(mtmp, via_warning, player, map, display) {
             const loc = map.at(x, y);
             if (loc && loc.mem_invis) return -1;
         }
-        exercise(player, A_WIS, true);
+        await exercise(player, A_WIS, true);
         if (!canspotmon(mtmp, map, player)) {
             map_invisible(map, x, y, player); set_msg_xy(x, y);
-            You_feel("an unseen monster!");
+            await You_feel("an unseen monster!");
         } else if (!sensemon(mtmp, player)) {
-            set_msg_xy(x, y); You("find a monster.");
+            set_msg_xy(x, y); await You("find a monster.");
         }
         return 1;
     }
@@ -983,7 +983,7 @@ export function mfind0(mtmp, via_warning, player, map, display) {
 // ========================================================================
 // cf. detect.c:2016 -- dosearch0
 // ========================================================================
-export function dosearch0(player, map, display, game = null) {
+export async function dosearch0(player, map, display, game = null) {
     if (player.uswallow) return 1;
     for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
@@ -998,26 +998,26 @@ export function dosearch0(player, map, display, game = null) {
                 if (rnl(7) === 0) {
                     loc.typ = DOOR;
                     loc.flags = D_CLOSED;
-                    exercise(player, A_WIS, true);
+                    await exercise(player, A_WIS, true);
                     if (game && Number.isInteger(game.multi) && game.multi > 0) {
                         game.multi = 0;
                     }
-                    display.putstr_message('You find a hidden door.');
+                    await display.putstr_message('You find a hidden door.');
                 }
             } else if (loc.typ === SCORR) {
                 if (rnl(7) === 0) {
                     loc.typ = CORR;
-                    exercise(player, A_WIS, true);
+                    await exercise(player, A_WIS, true);
                     if (game && Number.isInteger(game.multi) && game.multi > 0) {
                         game.multi = 0;
                     }
-                    display.putstr_message('You find a hidden passage.');
+                    await display.putstr_message('You find a hidden passage.');
                 }
             } else {
                 // C ref: detect.c:2080 -- trap detection with rnl(8)
                 const trap = map.trapAt?.(nx, ny);
                 if (trap && !trap.tseen && !rnl(8)) {
-                    find_trap(trap, player, map, display);
+                    await find_trap(trap, player, map, display);
                     if (game && Number.isInteger(game.multi) && game.multi > 0) {
                         game.multi = 0;
                     }
@@ -1030,20 +1030,20 @@ export function dosearch0(player, map, display, game = null) {
 // ========================================================================
 // cf. detect.c:2097 -- dosearch
 // ========================================================================
-export function dosearch(player, map, display, game) {
-    return dosearch0(player, map, display, game);
+export async function dosearch(player, map, display, game) {
+    return await dosearch0(player, map, display, game);
 }
 
 // ========================================================================
 // cf. detect.c:2107 -- warnreveal
 // ========================================================================
-export function warnreveal(player, map, display) {
+export async function warnreveal(player, map, display) {
     for (let x = player.x - 1; x <= player.x + 1; x++)
         for (let y = player.y - 1; y <= player.y + 1; y++) {
             if (!isok(x, y) || u_at(player, x, y)) continue;
             const mtmp = map.monsterAt ? map.monsterAt(x, y) : null;
             if (mtmp && warning_of(mtmp, player) && mtmp.mundetected)
-                mfind0(mtmp, true, player, map, display);
+                await mfind0(mtmp, true, player, map, display);
         }
 }
 
@@ -1078,17 +1078,17 @@ export function dump_map() { /* dumplog not applicable in JS */ }
 // ========================================================================
 // cf. detect.c:2356 -- reveal_terrain
 // ========================================================================
-export function reveal_terrain(which_subset, player, map, display) {
+export async function reveal_terrain(which_subset, player, map, display) {
     const full = !!(which_subset & 0x80);
     if ((player.hallucinating || player.stunned || player.confused) && !full) {
-        You("are too disoriented for this."); return;
+        await You("are too disoriented for this."); return;
     }
     unconstrain_map(player);
     for (let x = 1; x < COLNO; x++)
         for (let y = 0; y < ROWNO; y++)
             show_map_spot(x, y, false, map);
     flush_screen(1);
-    pline("Showing terrain only...");
+    await pline("Showing terrain only...");
     browse_map(); map_redisplay_stub(); reconstrain_map(player);
 }
 

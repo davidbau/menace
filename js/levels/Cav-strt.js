@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Caveman Cav-strt.lua	$NHDT-Date: 1652196002 2022/5/10 15:20:2 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991 by M. Stephenson
@@ -81,12 +81,12 @@ export function generate() {
     // Non diggable walls
     des.non_diggable(selection.area(0,0,75,19));
     // Random traps
-    des.trap("pit",47,11);
-    des.trap("pit",57,10);
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap("pit",47,11);
+    await des.trap("pit",57,10);
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // Monsters on siege duty (in the outer caves).
     des.monster({ id: "bugbear", x: 47, y: 2, peaceful: 0 });
     des.monster({ id: "bugbear", x: 48, y: 3, peaceful: 0 });
@@ -103,5 +103,5 @@ export function generate() {
     des.wallify();
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

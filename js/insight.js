@@ -192,7 +192,7 @@ const MFAST = 2;
 const MSLOW = 1;
 
 // cf. insight.c:3295 — mstatusline(mtmp): monster probe/stethoscope status
-export function mstatusline(mtmp, game) {
+export async function mstatusline(mtmp, game) {
     const player = game ? (game.u || game.player) : null;
     const mptr = mtmp.data || mons[mtmp.mndx] || {};
     const alignment = mptr.maligntyp != null ? Math.sign(mptr.maligntyp) : A_NONE;
@@ -266,7 +266,7 @@ export function mstatusline(mtmp, game) {
     const monnm = x_monnam(mtmp);
     const mac = find_mac(mtmp);
 
-    pline("Status of %s (%s, %s):  Level %s  HP %s(%s)  AC %s%s.",
+    await pline("Status of %s (%s, %s):  Level %s  HP %s(%s)  AC %s%s.",
           monnm, align_str(alignment), size_str(mptr.msize || MZ_MEDIUM),
           String(mtmp.m_lev || 0),
           String(mtmp.mhp || 0), String(mtmp.mhpmax || 0),
@@ -280,7 +280,7 @@ export function mstatusline(mtmp, game) {
 // ============================================================================
 
 // cf. insight.c:3422 — ustatusline(void): hero probe/stethoscope status
-export function ustatusline(game) {
+export async function ustatusline(game) {
     const player = (game.u || game.player);
     let info = '';
 
@@ -338,7 +338,7 @@ export function ustatusline(game) {
     const alignSuffix = align_str(player.alignment);
     const pious = piousness(false, alignSuffix, player);
 
-    pline("Status of %s (%s):  Level %s  HP %s(%s)  AC %s%s.",
+    await pline("Status of %s (%s):  Level %s  HP %s(%s)  AC %s%s.",
           player.name, pious,
           String(player.ulevel || 1),
           String(player.uhp || 0), String(player.uhpmax || 0),
@@ -1190,7 +1190,7 @@ export function sokoban_in_play(player) {
 // Autotranslated from insight.c:2541
 export async function do_gamelog() {
   if (gg.gamelog) { await show_gamelog(ENL_GAMEINPROGRESS); }
-  else { pline("No chronicled events."); }
+  else { await pline("No chronicled events."); }
   return ECMD_OK;
 }
 
@@ -1294,7 +1294,7 @@ export async function list_vanquished(defquery, ask, game) {
     }
 
     if (mindx.length === 0) {
-        pline("No creatures have been vanquished.");
+        await pline("No creatures have been vanquished.");
         return;
     }
 
@@ -1483,7 +1483,7 @@ export async function list_genocided(defquery, ask, game) {
     const { count: ngone, mindx } = num_gone(mvflags_mask, game);
 
     if (ngone === 0) {
-        pline("No creatures have been genocided.");
+        await pline("No creatures have been genocided.");
         return;
     }
 

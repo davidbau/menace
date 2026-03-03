@@ -12,18 +12,18 @@ import { initLevelGeneration, makelevel, wallification, fix_wall_spines } from '
 import { GEHENNOM } from '../../js/special_levels.js';
 
 describe('Dungeon generation', () => {
-    it('generates a level with rooms', () => {
+    it('generates a level with rooms', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         assert.ok(map.rooms.length >= 1, 'Level should have at least 1 room');
         assert.ok(map.rooms.length <= 10, 'Level should have at most 10 rooms');
     });
 
-    it('rooms have valid dimensions', () => {
+    it('rooms have valid dimensions', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         for (const room of map.rooms) {
             assert.ok(room.lx >= 1 && room.lx < COLNO - 1);
             assert.ok(room.hx >= room.lx && room.hx < COLNO - 1);
@@ -42,10 +42,10 @@ describe('Dungeon generation', () => {
         }
     });
 
-    it('rooms are filled with accessible tiles', () => {
+    it('rooms are filled with accessible tiles', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         for (const room of map.rooms) {
             for (let x = room.lx; x <= room.hx; x++) {
                 for (let y = room.ly; y <= room.hy; y++) {
@@ -58,10 +58,10 @@ describe('Dungeon generation', () => {
         }
     });
 
-    it('rooms have walls around them', () => {
+    it('rooms have walls around them', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
         for (const room of map.rooms) {
             // Check top and bottom walls
@@ -82,18 +82,18 @@ describe('Dungeon generation', () => {
         }
     });
 
-    it('has a downstairs', () => {
+    it('has a downstairs', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         assert.ok(map.dnstair.x > 0 || map.dnstair.y > 0,
             'Level 1 should have a downstairs');
     });
 
-    it('downstairs is on accessible terrain', () => {
+    it('downstairs is on accessible terrain', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         if (map.dnstair.x > 0 || map.dnstair.y > 0) {
             const loc = map.at(map.dnstair.x, map.dnstair.y);
             assert.ok(ACCESSIBLE(loc.typ),
@@ -101,10 +101,10 @@ describe('Dungeon generation', () => {
         }
     });
 
-    it('corridors connect rooms', () => {
+    it('corridors connect rooms', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         // Count corridor tiles
         let corrCount = 0;
         for (let x = 0; x < COLNO; x++) {
@@ -117,10 +117,10 @@ describe('Dungeon generation', () => {
         }
     });
 
-    it('all rooms are reachable from the first room', () => {
+    it('all rooms are reachable from the first room', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         // Skip vault rooms -- they are intentionally disconnected in NetHack
         const nonVaultRooms = map.rooms.filter(r => r.rtype !== VAULT);
         if (nonVaultRooms.length <= 1) return;
@@ -155,32 +155,32 @@ describe('Dungeon generation', () => {
         }
     });
 
-    it('produces different layouts with different seeds', () => {
+    it('produces different layouts with different seeds', async () => {
         initRng(1);
         initLevelGeneration();
-        const map1 = makelevel(1);
+        const map1 = await makelevel(1);
         initRng(2);
         initLevelGeneration();
-        const map2 = makelevel(1);
+        const map2 = await makelevel(1);
         // Compare room counts or positions
         const rooms1 = map1.rooms.map(r => `${r.lx},${r.ly}`).join(';');
         const rooms2 = map2.rooms.map(r => `${r.lx},${r.ly}`).join(';');
         assert.notEqual(rooms1, rooms2, 'Different seeds should produce different maps');
     });
 
-    it('deeper levels can be generated', () => {
+    it('deeper levels can be generated', async () => {
         for (let depth = 1; depth <= 10; depth++) {
             initRng(42 + depth);
             initLevelGeneration();
-            const map = makelevel(depth);
+            const map = await makelevel(depth);
             assert.ok(map.rooms.length >= 1, `Level ${depth} should have rooms`);
         }
     });
 
-    it('fix_wall_spines does not perform wall_cleanup', () => {
+    it('fix_wall_spines does not perform wall_cleanup', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         map.at(40, 10).typ = HWALL;
         map.at(39, 10).typ = STONE;
         map.at(41, 10).typ = STONE;
@@ -194,11 +194,11 @@ describe('Dungeon generation', () => {
         assert.equal(map.at(40, 10).typ, STONE, 'full wallification should clean isolated wall');
     });
 
-    it('invocation maze places vibrating square trap', () => {
+    it('invocation maze places vibrating square trap', async () => {
         initRng(123);
         initLevelGeneration();
-        const invMap = makelevel(30, GEHENNOM, 9, { invocationLevel: true });
-        const nonInvMap = makelevel(30, GEHENNOM, 8, { invocationLevel: false });
+        const invMap = await makelevel(30, GEHENNOM, 9, { invocationLevel: true });
+        const nonInvMap = await makelevel(30, GEHENNOM, 8, { invocationLevel: false });
 
         assert.equal(invMap.traps.some(t => t.ttyp === VIBRATING_SQUARE), true,
             'invocation level should place vibrating square trap');

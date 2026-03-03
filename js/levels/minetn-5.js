@@ -13,7 +13,7 @@ function monkfoodshop() {
 }
 
 
-export function generate() {
+export async function generate() {
     const align = [A_CHAOTIC, A_NEUTRAL, A_LAWFUL];
     shuffle(align);
 
@@ -156,5 +156,5 @@ export function generate() {
     des.altar({ x: 31,y: 3, align: align[0], type: "shrine" });
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

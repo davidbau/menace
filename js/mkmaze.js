@@ -42,9 +42,9 @@ function at(map, x, y) {
     return map && map.at ? map.at(x, y) : null;
 }
 
-function vision_call(fn, x, y) {
+async function vision_call(fn, x, y) {
     try {
-        fn(x, y);
+        await fn(x, y);
     } catch (_err) {
         // Some unit paths call map generators without a full vision context.
     }
@@ -233,11 +233,11 @@ export function bad_location(map, x, y, nlx, nly, nhx, nhy) {
 }
 
 // C ref: mkmaze.c makemaz
-export function makemaz(map, protofile, dnum, dlevel, depth) {
+export async function makemaz(map, protofile, dnum, dlevel, depth) {
     // C ref: mkmaze.c:1127-1204
     // If protofile specified, load the matching special level.
     if (protofile && protofile !== "") {
-        const specialMap = load_special_by_protofile(protofile, dnum, dlevel, depth);
+        const specialMap = await load_special_by_protofile(protofile, dnum, dlevel, depth);
         if (specialMap) {
             Object.assign(map, specialMap);
             return;
@@ -792,13 +792,13 @@ export function baalz_fixup(map, state = {}) {
     map._specialFixups.baalz = { inX1, inX2, inY1, inY2, delX1, delY1, delX2, delY2, ...state };
     return true;
 }
-export function fixup_special(map, opts = {}) {
+export async function fixup_special(map, opts = {}) {
     if (!map) return false;
     const specialName = String(opts.specialName || '').toLowerCase();
     const dnum = Number.isInteger(opts.dnum) ? opts.dnum : null;
     const roleIndex = Number.isInteger(opts.roleIndex) ? opts.roleIndex : getMakemonRoleIndex();
     if (specialName === 'water' || specialName === 'air') {
-        setup_waterlevel(map, { isWaterLevel: specialName === 'water' });
+        await setup_waterlevel(map, { isWaterLevel: specialName === 'water' });
     }
     if (opts?.baalz || specialName === 'baalz') baalz_fixup(map, opts.baalz || {});
     if (opts?.portal && Number.isInteger(opts.portal.x) && Number.isInteger(opts.portal.y)) {
@@ -951,7 +951,7 @@ export function mkportal(map, x, y, _todnum, _todlevel) {
     return trap;
 }
 
-export function fumaroles(map, arg = null) {
+export async function fumaroles(map, arg = null) {
     if (!map) return 0;
 
     // Backward-compatible deterministic list mode used by existing water-level tests.
@@ -994,7 +994,7 @@ export function fumaroles(map, arg = null) {
 
         let region = null;
         try {
-            region = create_gas_cloud(x, y, rn1(10, sizemin), rn1(10, 5),
+            region = await create_gas_cloud(x, y, rn1(10, sizemin), rn1(10, 5),
                 map, player, game);
         } catch (err) {
             // Allow only known vision-lite generator contexts to proceed.
@@ -1014,12 +1014,12 @@ export function fumaroles(map, arg = null) {
     }
 
     if (snd && !(player?.Deaf || player?.deaf)) {
-        Norep(`You hear a ${loud ? 'loud ' : ''}whoosh!`);
+        await Norep(`You hear a ${loud ? 'loud ' : ''}whoosh!`);
     }
     return created;
 }
 
-function for_each_bubble_cell(map, bubble, fn) {
+async function for_each_bubble_cell(map, bubble, fn) {
     if (!map || !bubble || typeof fn !== 'function') return;
     const bm = Array.isArray(bubble.bm) ? bubble.bm : null;
     if (!bm || bm.length < 3) return;
@@ -1028,15 +1028,15 @@ function for_each_bubble_cell(map, bubble, fn) {
     for (let i = 0, x = bubble.x; i < w; i++, x++) {
         for (let j = 0, y = bubble.y; j < h; j++, y++) {
             if (!isok(x, y)) continue;
-            if (bm[j + 2] & (1 << i)) fn(x, y);
+            if (bm[j + 2] & (1 << i)) await fn(x, y);
         }
     }
 }
 
-function pickup_bubble_contents(map, bubble, heroPos = null, water = null) {
+async function pickup_bubble_contents(map, bubble, heroPos = null, water = null) {
     if (!map || !bubble) return;
     bubble.cons = [];
-    for_each_bubble_cell(map, bubble, (x, y) => {
+    await for_each_bubble_cell(map, bubble, (x, y) => {
         const objs = map.objectsAt(x, y);
         if (objs.length) {
             for (const obj of objs) {
@@ -1130,7 +1130,7 @@ function replace_bubble_contents(map, bubble, dx, dy, water = null) {
     bubble.cons = [];
 }
 
-export function movebubbles(map, dx = 0, dy = 0) {
+export async function movebubbles(map, dx = 0, dy = 0) {
     const water = map?._water;
     if (!water?.active) return false;
     if (map.flags?.is_waterlevel && !water.portal) {
@@ -1144,7 +1144,7 @@ export function movebubbles(map, dx = 0, dy = 0) {
                 if (!loc) continue;
                 loc.typ = WATER;
                 loc.lit = 0;
-                vision_call(block_point, x, y);
+                await vision_call(block_point, x, y);
             }
         }
     } else if (map.flags?.is_airlevel) {
@@ -1158,13 +1158,13 @@ export function movebubbles(map, dx = 0, dy = 0) {
                 if (!loc) continue;
                 loc.typ = AIR;
                 loc.lit = 1;
-                vision_call(recalc_block_point, x, y);
+                await vision_call(recalc_block_point, x, y);
                 const xedge = (x < xmin || x > xmax);
                 const yedge = (y < ymin || y > ymax);
                 if (xedge || yedge) {
                     if (!rn2(xedge ? 3 : 5)) {
                         loc.typ = CLOUD;
-                        vision_call(block_point, x, y);
+                        await vision_call(block_point, x, y);
                     }
                 }
             }
@@ -1183,13 +1183,13 @@ export function movebubbles(map, dx = 0, dy = 0) {
             ? water.heroPos
             : null;
         for (const b of ordered) {
-            pickup_bubble_contents(map, b, heroPos, water);
-            for_each_bubble_cell(map, b, (x, y) => {
+            await pickup_bubble_contents(map, b, heroPos, water);
+            await for_each_bubble_cell(map, b, async (x, y) => {
                 const loc = at(map, x, y);
                 if (!loc) return;
                 loc.typ = WATER;
                 loc.lit = 0;
-                vision_call(block_point, x, y);
+                await vision_call(block_point, x, y);
             });
         }
     }
@@ -1205,9 +1205,9 @@ export function movebubbles(map, dx = 0, dy = 0) {
                 const ry = rn2(3);
                 const stepX = curDx + 1 - (!curDx ? rx : (rx ? 1 : 0));
                 const stepY = curDy + 1 - (!curDy ? ry : (ry ? 1 : 0));
-                mv_bubble(map, b, stepX, stepY, false);
+                await mv_bubble(map, b, stepX, stepY, false);
             } else {
-                mv_bubble(map, b, dx, dy, false);
+                await mv_bubble(map, b, dx, dy, false);
             }
             if (map.flags?.is_waterlevel && Array.isArray(b.cons) && b.cons.length) {
                 replace_bubble_contents(map, b, b.x - ox, b.y - oy, water);
@@ -1228,7 +1228,7 @@ export function movebubbles(map, dx = 0, dy = 0) {
     }
     return true;
 }
-export function water_friction(map, player = null, display = null) {
+export async function water_friction(map, player = null, display = null) {
     if (!map?._water?.active || !player) return 0;
     if (player.swimming && rn2(4)) return 0; // C ref: natural swimmers get advantage
 
@@ -1257,7 +1257,7 @@ export function water_friction(map, player = null, display = null) {
         eff = true;
     }
     if (eff && display?.putstr_message) {
-        display.putstr_message('Water turbulence affects your movements.');
+        await display.putstr_message('Water turbulence affects your movements.');
     }
     return eff ? 1 : 0;
 }
@@ -1277,7 +1277,7 @@ export function save_waterlevel(map) {
         hero_memory: map.flags?.hero_memory ?? null,
     };
 }
-export function restore_waterlevel(map, saved = null) {
+export async function restore_waterlevel(map, saved = null) {
     if (!map || !saved || typeof saved !== 'object') return false;
     if (!('water' in saved)) return false;
     map._water = saved.water ? JSON.parse(JSON.stringify(saved.water)) : null;
@@ -1295,7 +1295,7 @@ export function restore_waterlevel(map, saved = null) {
         }
         if (map._water.active) {
             for (const bubble of map._water.bubbles) {
-                mv_bubble(map, bubble, 0, 0, true);
+                await mv_bubble(map, bubble, 0, 0, true);
             }
         }
     }
@@ -1320,7 +1320,7 @@ export function set_wportal(map, x = null, y = null, dst = null) {
     map._water.portal = { x, y, dst: dst || null };
     return true;
 }
-export function setup_waterlevel(map, args = {}) {
+export async function setup_waterlevel(map, args = {}) {
     if (!map) return false;
     const isWaterLevel = !!args.isWaterLevel;
     map.flags = map.flags || {};
@@ -1359,7 +1359,7 @@ export function setup_waterlevel(map, args = {}) {
         for (let y = ymin; y <= ymax; y += yskip) {
             if (x >= xmax || y >= ymax) continue;
             const n = rn2(7);
-            const bubble = mk_bubble(map, x, y, n);
+            const bubble = await mk_bubble(map, x, y, n);
             if (bubble) bubbles.push({ x: bubble.x, y: bubble.y, n: bubble.n });
         }
     }
@@ -1401,7 +1401,7 @@ export function unsetup_waterlevel(map) {
     }
     return true;
 }
-export function mk_bubble(map, x, y, n) {
+export async function mk_bubble(map, x, y, n) {
     if (!map) return null;
     const masks = [
         [2, 1, 0x3],
@@ -1438,7 +1438,7 @@ export function mk_bubble(map, x, y, n) {
     map._water = map._water || { bubbles: [] };
     map._water.bubbles.push(bubble);
     if (map.flags?.is_waterlevel) {
-        mv_bubble(map, bubble, 0, 0, true);
+        await mv_bubble(map, bubble, 0, 0, true);
     }
     return bubble;
 }
@@ -1464,7 +1464,7 @@ export function maybe_adjust_hero_bubble(map, heroPos = null) {
     }
     return false;
 }
-export function mv_bubble(map, bubble, dx = 0, dy = 0, ini = false) {
+export async function mv_bubble(map, bubble, dx = 0, dy = 0, ini = false) {
     if (!map || !bubble || !Number.isInteger(dx) || !Number.isInteger(dy)) return false;
     if (!Number.isInteger(bubble.x) || !Number.isInteger(bubble.y)) return false;
     const water = map._water || {};
@@ -1504,17 +1504,17 @@ export function mv_bubble(map, bubble, dx = 0, dy = 0, ini = false) {
         bubble.y = Math.min(Math.max(minY, ny), maxY - spanY);
     }
 
-    for_each_bubble_cell(map, bubble, (x, y) => {
+    await for_each_bubble_cell(map, bubble, async (x, y) => {
         const loc = at(map, x, y);
         if (!loc) return;
         if (map.flags?.is_waterlevel) {
             loc.typ = AIR;
             loc.lit = 1;
-            vision_call(unblock_point, x, y);
+            await vision_call(unblock_point, x, y);
         } else if (map.flags?.is_airlevel) {
             loc.typ = CLOUD;
             loc.lit = 1;
-            vision_call(block_point, x, y);
+            await vision_call(block_point, x, y);
         }
     });
 

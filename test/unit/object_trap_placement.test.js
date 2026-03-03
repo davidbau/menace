@@ -14,17 +14,17 @@ describe('Object and trap placement', () => {
         initRng(42);
     });
 
-    it('should place named objects at specific coordinates', () => {
+    it('should place named objects at specific coordinates', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
         des.level_flags('noflip');
 
         // Place some boulders
-        des.object('boulder', 10, 5);
-        des.object('boulder', 15, 8);
-        des.object('boulder', 20, 12);
+        await des.object('boulder', 10, 5);
+        await des.object('boulder', 15, 8);
+        await des.object('boulder', 20, 12);
 
-        finalize_level();
+        await finalize_level();
 
         const state = getLevelState();
         const map = state.map;
@@ -43,14 +43,14 @@ describe('Object and trap placement', () => {
         assert.equal(obj2.otyp, BOULDER, 'Object should be a boulder');
     });
 
-    it('should place scroll of earth', () => {
+    it('should place scroll of earth', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
         des.level_flags('noflip');
 
-        des.object('scroll of earth', 5, 10);
+        await des.object('scroll of earth', 5, 10);
 
-        finalize_level();
+        await finalize_level();
 
         const state = getLevelState();
         const map = state.map;
@@ -60,17 +60,17 @@ describe('Object and trap placement', () => {
         assert.equal(scroll.otyp, SCR_EARTH, 'Object should be scroll of earth');
     });
 
-    it('should place traps at specific coordinates', () => {
+    it('should place traps at specific coordinates', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
         des.level_flags('noflip');
 
         // Place some pit traps
-        des.trap('pit', 10, 5);
-        des.trap('pit', 12, 5);
-        des.trap('pit', 14, 5);
+        await des.trap('pit', 10, 5);
+        await des.trap('pit', 12, 5);
+        await des.trap('pit', 14, 5);
 
-        finalize_level();
+        await finalize_level();
 
         const state = getLevelState();
         const map = state.map;
@@ -89,16 +89,16 @@ describe('Object and trap placement', () => {
         assert.equal(trap2.ttyp, PIT, 'Trap should be a pit');
     });
 
-    it('should not place duplicate traps at same location', () => {
+    it('should not place duplicate traps at same location', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
         des.level_flags('noflip');
 
         // Try to place two traps at same spot
-        des.trap('pit', 10, 5);
-        des.trap('pit', 10, 5); // Should be ignored
+        await des.trap('pit', 10, 5);
+        await des.trap('pit', 10, 5); // Should be ignored
 
-        finalize_level();
+        await finalize_level();
 
         const state = getLevelState();
         const map = state.map;
@@ -106,27 +106,27 @@ describe('Object and trap placement', () => {
         assert.equal(map.traps.length, 1, 'Should only have 1 trap');
     });
 
-    it('should handle multiple objects and traps like Sokoban', () => {
+    it('should handle multiple objects and traps like Sokoban', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
         des.level_flags('noflip');
 
         // Simulate Sokoban-like placement
         // Boulders
-        des.object('boulder', 2, 2);
-        des.object('boulder', 2, 3);
-        des.object('boulder', 10, 2);
+        await des.object('boulder', 2, 2);
+        await des.object('boulder', 2, 3);
+        await des.object('boulder', 10, 2);
 
         // Scrolls
-        des.object('scroll of earth', 2, 11);
-        des.object('scroll of earth', 3, 11);
+        await des.object('scroll of earth', 2, 11);
+        await des.object('scroll of earth', 3, 11);
 
         // Pit traps
-        des.trap('pit', 3, 6);
-        des.trap('pit', 4, 6);
-        des.trap('pit', 5, 6);
+        await des.trap('pit', 3, 6);
+        await des.trap('pit', 4, 6);
+        await des.trap('pit', 5, 6);
 
-        finalize_level();
+        await finalize_level();
 
         const state = getLevelState();
         const map = state.map;

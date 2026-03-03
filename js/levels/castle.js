@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection, shuffle } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack castle castle.lua	$NHDT-Date: 1652196024 2022/5/10 15:20:24 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.7 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // NetHack may be freely redistributed.  See license for details.
@@ -162,11 +162,11 @@ export function generate() {
     // The treasure of the lord
     des.object("chest",37,8);
     // Traps
-    des.trap("trap door",40,8);
-    des.trap("trap door",44,8);
-    des.trap("trap door",48,8);
-    des.trap("trap door",52,8);
-    des.trap("trap door",55,8);
+    await des.trap("trap door",40,8);
+    await des.trap("trap door",44,8);
+    await des.trap("trap door",48,8);
+    await des.trap("trap door",52,8);
+    await des.trap("trap door",55,8);
     // Soldiers guarding the entry hall
     des.monster("soldier",8,6);
     des.monster("soldier",9,5);
@@ -266,5 +266,5 @@ export function generate() {
     des.region(selection.area(47,10,47,11),"unlit");
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

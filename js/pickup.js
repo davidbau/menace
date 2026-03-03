@@ -108,7 +108,7 @@ export function u_safe_from_fatal_corpse(obj, tests) {
 }
 
 // cf. pickup.c:285 — fatal_corpse_mistake(obj, remotely)
-function fatal_corpse_mistake(obj, remotely, player) {
+async function fatal_corpse_mistake(obj, remotely, player) {
     if (u_safe_from_fatal_corpse(obj, st_all, player) || remotely)
         return false;
 
@@ -117,20 +117,20 @@ function fatal_corpse_mistake(obj, remotely, player) {
         return false;
     }
 
-    pline("Touching %s is a fatal mistake.", doname(obj, player));
-    instapetrify("cockatrice corpse", player);
+    await pline("Touching %s is a fatal mistake.", doname(obj, player));
+    await instapetrify("cockatrice corpse", player);
     return true;
 }
 
 // cf. pickup.c:303 — rider_corpse_revival(obj, remotely)
-export function rider_corpse_revival(obj, remotely, player, map) {
+export async function rider_corpse_revival(obj, remotely, player, map) {
     if (!obj || obj.otyp !== CORPSE || !is_rider(mons[obj.corpsenm]))
         return false;
 
-    pline("At your %s, the corpse suddenly moves...",
+    await pline("At your %s, the corpse suddenly moves...",
           remotely ? "attempted acquisition" : "touch");
-    revive_corpse(obj, false, map);
-    exercise(player, A_WIS, false);
+    await revive_corpse(obj, false, map);
+    await exercise(player, A_WIS, false);
     return true;
 }
 
@@ -352,7 +352,7 @@ export function delta_cwt(container, obj) {
 
 // cf. pickup.c:1574 — carry_count(obj, container, count, telekinesis)
 // Simplified: returns how many of obj we can carry
-function carry_count(obj, container, count, telekinesis, player) {
+async function carry_count(obj, container, count, telekinesis, player) {
     const savequan = obj.quan || 0;
     const saveowt = obj.owt || 0;
     const targetCount = Math.max(0, Math.min(count || savequan, savequan));
@@ -387,14 +387,14 @@ function carry_count(obj, container, count, telekinesis, player) {
     if (qq > 0 && qq < targetCount) {
         const objName = doname(obj, player);
         const verb = container ? 'carry' : (telekinesis ? 'acquire' : 'lift');
-        You("can only %s %s of the %s %s.", verb,
+        await You("can only %s %s of the %s %s.", verb,
             qq === 1 ? 'one' : 'some',
             objName,
             container ? `in ${xname(container)}` : 'lying here');
     } else if (qq === 0 && targetCount > 0) {
         const objName = doname(obj, player);
         const verb = container ? 'carry' : (telekinesis ? 'acquire' : 'lift');
-        There("are %s %s, but you cannot %s any more.",
+        await There("are %s %s, but you cannot %s any more.",
             objName,
             container ? `in ${xname(container)}` : 'here',
             verb);
@@ -404,7 +404,7 @@ function carry_count(obj, container, count, telekinesis, player) {
 
 // cf. pickup.c:1709 — lift_object(obj, container, cnt_p, telekinesis)
 // Returns: 1 = ok, 0 = skip, -1 = abort
-function lift_object(obj, container, cnt_p, telekinesis, player) {
+async function lift_object(obj, container, cnt_p, telekinesis, player) {
     if (obj.otyp === BOULDER) {
         // Sokoban check would go here
     }
@@ -412,7 +412,7 @@ function lift_object(obj, container, cnt_p, telekinesis, player) {
         return 1; // lift regardless
     }
 
-    cnt_p.value = carry_count(obj, container, cnt_p.value, telekinesis, player);
+    cnt_p.value = await carry_count(obj, container, cnt_p.value, telekinesis, player);
     if (cnt_p.value < 1)
         return -1;
 
@@ -425,7 +425,7 @@ function lift_object(obj, container, cnt_p, telekinesis, player) {
 
 // cf. pickup.c:1897 — pick_obj(otmp)
 // Autotranslated from pickup.c:1896
-export function pick_obj(otmp, player) {
+export async function pick_obj(otmp, player) {
   let result, ox = otmp.ox, oy = otmp.oy;
   let robshop = (!player.uswallow && otmp !== uball && costly_spot(ox, oy));
   obj_extract_self(otmp);
@@ -440,13 +440,13 @@ export function pick_obj(otmp, player) {
     Strcpy(player.ushops, saveushops);
     robshop = otmp.unpaid && !strchr(player.ushops, fakeshop);
   }
-  result = addinv(otmp, player);
-  if (robshop) remote_burglary(ox, oy);
+  result = await addinv(otmp, player);
+  if (robshop) await remote_burglary(ox, oy);
   return result;
 }
 
 // cf. pickup.c:1802 — pickup_object(obj, count, telekinesis)
-function pickup_object(obj, count, telekinesis, player, map) {
+async function pickup_object(obj, count, telekinesis, player, map) {
     if (obj.quan < count) {
         impossible("pickup_object: count %d > quan %d?", count, obj.quan);
         return 0;
@@ -458,8 +458,8 @@ function pickup_object(obj, count, telekinesis, player, map) {
         return 0;
 
     if (obj.otyp === CORPSE) {
-        if (fatal_corpse_mistake(obj, telekinesis, player)
-            || rider_corpse_revival(obj, telekinesis, player, map))
+        if (await fatal_corpse_mistake(obj, telekinesis, player)
+            || await rider_corpse_revival(obj, telekinesis, player, map))
             return -1;
     } else if (obj.otyp === SCR_SCARE_MONSTER) {
         if (obj.blessed) {
@@ -467,7 +467,7 @@ function pickup_object(obj, count, telekinesis, player, map) {
         } else if (!obj.spe && !obj.cursed) {
             obj.spe = 1;
         } else {
-            pline_The("scroll%s %s to dust as you %s %s up.",
+            await pline_The("scroll%s %s to dust as you %s %s up.",
                       obj.quan !== 1 ? "s" : "",
                       obj.quan !== 1 ? "turn" : "turns",
                       telekinesis ? "raise" : "pick",
@@ -478,16 +478,16 @@ function pickup_object(obj, count, telekinesis, player, map) {
     }
 
     const cnt_p = { value: count || obj.quan };
-    const res = lift_object(obj, null, cnt_p, telekinesis, player);
+    const res = await lift_object(obj, null, cnt_p, telekinesis, player);
     if (res <= 0)
         return res;
 
     if (obj.quan !== cnt_p.value && obj.otyp !== LOADSTONE)
         obj = splitobj(obj, cnt_p.value);
 
-    obj = pick_obj(obj, player, map);
+    obj = await pick_obj(obj, player, map);
     // C ref: pickup.c — encumber_msg() called after pick_obj/pickup_prinv
-    encumber_msg(player);
+    await encumber_msg(player);
     return 1;
 }
 
@@ -498,14 +498,14 @@ function pickup_prinv(_obj, _count, _verb) { }
 // cf. pickup.c:1972 — encumber_msg()
 // Uses player._oldcap to track per-session baseline (avoids
 // module-level oldcap contaminating multiple test sessions).
-function encumber_msg(player) {
+async function encumber_msg(player) {
     const newcap = near_capacity(player);
     // C ref: static int oldcap = 0; — per-session initial encumbrance baseline
     const oldcap_val = Number.isInteger(player?._oldcap) ? player._oldcap : 0;
     const encMsg = get_encumber_msg_for_change(oldcap_val, newcap);
 
     if (encMsg) {
-        pline(encMsg);
+        await pline(encMsg);
     }
     if (player) {
         player._oldcap = newcap;
@@ -561,23 +561,23 @@ function container_at(x, y, countem, map) {
 }
 
 // cf. pickup.c:2034 — able_to_loot(x, y, looting)
-function able_to_loot(x, y, looting, player, map) {
+async function able_to_loot(x, y, looting, player, map) {
     const verb = looting ? "loot" : "tip";
     const loc = map.at(x, y);
     if (loc && IS_POOL(loc.typ)) {
-        You("cannot %s things that are deep in the water.", verb);
+        await You("cannot %s things that are deep in the water.", verb);
         return false;
     }
     if (loc && IS_LAVA(loc.typ)) {
-        You("cannot %s things that are deep in the lava.", verb);
+        await You("cannot %s things that are deep in the lava.", verb);
         return false;
     }
     if (nolimbs(player.data || {})) {
-        pline("Without limbs, you cannot %s anything.", verb);
+        await pline("Without limbs, you cannot %s anything.", verb);
         return false;
     }
     if (looting && nohands(player.data || {})) {
-        pline("Without a free %s, you cannot loot anything.",
+        await pline("Without a free %s, you cannot loot anything.",
               body_part(HAND, player));
         return false;
     }
@@ -599,54 +599,54 @@ export function mon_beside(x, y) {
 }
 
 // cf. pickup.c:2082 — do_loot_cont(cobjp, cindex, ccount)
-function do_loot_cont(cobj, cindex, ccount, player, map, display) {
+async function do_loot_cont(cobj, cindex, ccount, player, map, display) {
     if (!cobj)
         return 0;
     if (cobj.olocked) {
         if (cobj.lknown)
-            pline("%s is locked.", xname(cobj));
+            await pline("%s is locked.", xname(cobj));
         else
-            pline("Hmmm, %s turns out to be locked.", xname(cobj));
+            await pline("Hmmm, %s turns out to be locked.", xname(cobj));
         cobj.lknown = 1;
         return 0;
     }
     cobj.lknown = 1;
 
     if (cobj.otyp === BAG_OF_TRICKS) {
-        You("carefully open %s...", xname(cobj));
-        pline("It develops a huge set of teeth and bites you!");
+        await You("carefully open %s...", xname(cobj));
+        await pline("It develops a huge set of teeth and bites you!");
         const tmp = rnd(10);
         // losehp stub: damage not yet applied
         abort_looting = true;
         return 1;
     }
-    return use_container_simple(cobj, false, cindex < ccount, player, map, display);
+    return await use_container_simple(cobj, false, cindex < ccount, player, map, display);
 }
 
 // cf. pickup.c:2160 — doloot()
-function doloot(player, map, display) {
+async function doloot(player, map, display) {
     loot_reset_justpicked = true;
-    const res = doloot_core(player, map, display);
+    const res = await doloot_core(player, map, display);
     loot_reset_justpicked = false;
     return res;
 }
 
 // cf. pickup.c:2172 — doloot_core()
-function doloot_core(player, map, display) {
+async function doloot_core(player, map, display) {
     let c = -1;
     let timepassed = 0;
     abort_looting = false;
 
     if (nohands(player.data || {})) {
-        You("have no hands!");
+        await You("have no hands!");
         return 0;
     }
     if (player.Confusion) {
         // cf. pickup.c:2197 — RNG: rn2(6) then rn2(2)
-        if (rn2(6) && reverse_loot(player, map, display))
+        if (rn2(6) && await reverse_loot(player, map, display))
             return 1;
         if (rn2(2)) {
-            pline("Being confused, you find nothing to loot.");
+            await pline("Being confused, you find nothing to loot.");
             return 1;
         }
     }
@@ -654,13 +654,13 @@ function doloot_core(player, map, display) {
     const x = player.x, y = player.y;
     const num_conts = container_at(x, y, true, map);
     if (num_conts > 0) {
-        if (!able_to_loot(x, y, true, player, map))
+        if (!await able_to_loot(x, y, true, player, map))
             return 0;
 
         const floorObjs = map.objectsAt(x, y) || [];
         for (const cobj of floorObjs) {
             if (Is_container(cobj)) {
-                timepassed |= do_loot_cont(cobj, 1, 1, player, map, display);
+                timepassed |= await do_loot_cont(cobj, 1, 1, player, map, display);
                 if (abort_looting)
                     return timepassed ? 1 : 0;
             }
@@ -670,13 +670,13 @@ function doloot_core(player, map, display) {
     }
 
     if (c !== 'y') {
-        You("don't find anything here to loot.");
+        await You("don't find anything here to loot.");
     }
     return timepassed ? 1 : 0;
 }
 
 // cf. pickup.c:2344 — reverse_loot()
-function reverse_loot(player, map, display) {
+async function reverse_loot(player, map, display) {
     // cf. pickup.c:2351 — RNG: rn2(3)
     if (!rn2(3)) {
         // n objects: 1/(n+1) chance per object
@@ -685,7 +685,7 @@ function reverse_loot(player, map, display) {
         for (const otmp of inv) {
             // cf. pickup.c:2355 — RNG: rn2(n+1) for each item
             if (!rn2(n + 1)) {
-                pline("You find old loot: %s", doname(otmp, player));
+                await pline("You find old loot: %s", doname(otmp, player));
                 return true;
             }
             n--;
@@ -710,7 +710,7 @@ function reverse_loot(player, map, display) {
         return false;
 
     // Simplified: just drop gold on floor
-    pline("Ok, now there is loot here.");
+    await pline("Ok, now there is loot here.");
     return true;
 }
 
@@ -742,12 +742,12 @@ export function is_boh_item_gone() {
 
 // cf. pickup.c:2512 — do_boh_explosion(boh, on_floor)
 // Stub: scatter not yet ported; just destroy contents
-function do_boh_explosion(boh, on_floor) {
+async function do_boh_explosion(boh, on_floor) {
     const contents = Array.isArray(boh.cobj) ? [...boh.cobj] : [];
     for (const otmp of contents) {
         if (is_boh_item_gone()) {
             obj_extract_self(otmp);
-            mbag_item_gone(!on_floor, otmp, true);
+            await mbag_item_gone(!on_floor, otmp, true);
         } else {
             // scatter stub: items vanish (scatter not yet ported)
             obj_extract_self(otmp);
@@ -758,12 +758,12 @@ function do_boh_explosion(boh, on_floor) {
 
 // cf. pickup.c:2531 — boh_loss(container, held)
 // Autotranslated from pickup.c:2530
-export function boh_loss(container, held) {
+export async function boh_loss(container, held) {
   if (Is_mbag(container) && container.cursed && Has_contents(container)) {
     let loss = 0, curr, otmp;
     for (curr = container.cobj; curr; curr = otmp) {
       otmp = curr.nobj;
-      if (is_boh_item_gone()) { obj_extract_self(curr); loss += mbag_item_gone(held, curr, false); }
+      if (is_boh_item_gone()) { obj_extract_self(curr); loss += await mbag_item_gone(held, curr, false); }
     }
     return loss;
   }
@@ -771,49 +771,49 @@ export function boh_loss(container, held) {
 }
 
 // cf. pickup.c:2552 — in_container(obj)
-function in_container(obj, player) {
+async function in_container(obj, player) {
     if (!current_container) {
         impossible("<in> no current_container?");
         return 0;
     }
     if (obj === player.uball || obj === player.uchain) {
-        You("must be kidding.");
+        await You("must be kidding.");
         return 0;
     }
     if (obj === current_container) {
-        pline("That would be an interesting topological exercise.");
+        await pline("That would be an interesting topological exercise.");
         return 0;
     }
     if (obj.owornmask & (W_ARMOR | W_ACCESSORY)) {
-        Norep("You cannot %s %s you are wearing.",
+        await Norep("You cannot %s %s you are wearing.",
               current_container.otyp === ICE_BOX ? "refrigerate" : "stash",
               "something");
         return 0;
     }
     if (obj.otyp === LOADSTONE && obj.cursed) {
         set_bknown(obj, 1);
-        pline_The("stone%s won't leave your person.", obj.quan !== 1 ? "s" : "");
+        await pline_The("stone%s won't leave your person.", obj.quan !== 1 ? "s" : "");
         return 0;
     }
     if (obj.otyp === AMULET_OF_YENDOR
         || obj.otyp === CANDELABRUM_OF_INVOCATION
         || obj.otyp === BELL_OF_OPENING
         || obj.otyp === SPE_BOOK_OF_THE_DEAD) {
-        pline("%s cannot be confined in such trappings.", xname(obj));
+        await pline("%s cannot be confined in such trappings.", xname(obj));
         return 0;
     }
     if (obj.otyp === LEASH && obj.leashmon) {
-        pline("%s attached to your pet.", doname(obj, player));
+        await pline("%s attached to your pet.", doname(obj, player));
         return 0;
     }
 
-    if (fatal_corpse_mistake(obj, false, player))
+    if (await fatal_corpse_mistake(obj, false, player))
         return -1;
 
     // boxes, boulders, big statues can't fit
     if (obj.otyp === ICE_BOX || Is_box(obj) || obj.otyp === BOULDER
         || (obj.otyp === STATUE && bigmonst(mons[obj.corpsenm] || {}))) {
-        You("cannot fit %s into %s.", doname(obj, player), xname(current_container));
+        await You("cannot fit %s into %s.", doname(obj, player), xname(current_container));
         return 0;
     }
 
@@ -822,17 +822,17 @@ function in_container(obj, player) {
         // freeze: record age
         obj.age = (player.moves || 0) - (obj.age || 0);
     } else if (Is_mbag(current_container) && mbag_explodes(obj, 0)) {
-        pline("As you put %s inside, you are blasted by a magical explosion!",
+        await pline("As you put %s inside, you are blasted by a magical explosion!",
               doname(obj, player));
         // d(6,6) damage — RNG preserved
         const dmg = d(6, 6);
         // losehp stub
-        do_boh_explosion(current_container, !carried(current_container));
+        await do_boh_explosion(current_container, !carried(current_container));
         current_container = null;
     }
 
     if (current_container) {
-        You("put %s into %s.", doname(obj, player), xname(current_container));
+        await You("put %s into %s.", doname(obj, player), xname(current_container));
         if (!Array.isArray(current_container.cobj))
             current_container.cobj = [];
         current_container.cobj.push(obj);
@@ -847,18 +847,18 @@ function ck_bag(obj) {
 }
 
 // cf. pickup.c:2721 — out_container(obj)
-function out_container(obj, player, map) {
+async function out_container(obj, player, map) {
     if (!current_container) {
         impossible("<out> no current_container?");
         return -1;
     }
 
-    if (fatal_corpse_mistake(obj, false, player))
+    if (await fatal_corpse_mistake(obj, false, player))
         return -1;
 
     const count = obj.quan;
     const cnt_p = { value: count };
-    const res = lift_object(obj, current_container, cnt_p, false, player);
+    const res = await lift_object(obj, current_container, cnt_p, false, player);
     if (res <= 0)
         return res;
 
@@ -900,16 +900,16 @@ export function removed_from_icebox(obj, game) {
 
 // cf. pickup.c:2797 — mbag_item_gone(held, item, silent)
 // Autotranslated from pickup.c:2796
-export function mbag_item_gone(held, item, silent, player) {
+export async function mbag_item_gone(held, item, silent, player) {
   let shkp, loss = 0;
   if (!silent) {
-    if (item.dknown) pline("%s %s vanished!", Doname2(item), otense(item, "have"));
+    if (item.dknown) await pline("%s %s vanished!", Doname2(item), otense(item, "have"));
     else {
-      You("%s %s disappear!", Blind ? "notice" : "see", doname(item));
+      await You("%s %s disappear!", Blind ? "notice" : "see", doname(item));
     }
   }
   if ( player.ushops && (shkp = shop_keeper( player.ushops)) !== 0) {
-    if (held ?  item.unpaid : costly_spot(player.x, player.y)) loss = stolen_value(item, player.x, player.y,  shkp.mpeaceful, true);
+    if (held ?  item.unpaid : costly_spot(player.x, player.y)) loss = await stolen_value(item, player.x, player.y,  shkp.mpeaceful, true);
   }
   obfree(item,  0);
   return loss;
@@ -917,7 +917,7 @@ export function mbag_item_gone(held, item, silent, player) {
 
 // cf. pickup.c:2820 — observe_quantum_cat(box, makecat, givemsg)
 // Autotranslated from pickup.c:2819
-export function observe_quantum_cat(box, makecat, givemsg, game) {
+export async function observe_quantum_cat(box, makecat, givemsg, game) {
   let sc = "Schroedinger's Cat", deadcat, livecat = 0, ox, oy;
   let itsalive = !rn2(2);
   if (get_obj_location(box, ox, oy, 0)) box.ox = ox, box.oy = oy;
@@ -928,9 +928,9 @@ export function observe_quantum_cat(box, makecat, givemsg, game) {
       livecat.mpeaceful = 1;
       set_malign(livecat);
       if (givemsg) {
-        if (!canspotmon(livecat)) You("think %s brushed your %s.", something, body_part(FOOT));
+        if (!canspotmon(livecat)) await You("think %s brushed your %s.", something, body_part(FOOT));
         else {
-          pline("%s inside the box is still alive!", Monnam(livecat));
+          await pline("%s inside the box is still alive!", Monnam(livecat));
         }
       }
       christen_monst(livecat, sc);
@@ -944,9 +944,9 @@ export function observe_quantum_cat(box, makecat, givemsg, game) {
     if (deadcat) {
       deadcat.age = (Number(game?.moves) || 0);
       set_corpsenm(deadcat, PM_HOUSECAT);
-      deadcat = oname(deadcat, sc, ONAME_NO_FLAGS);
+      deadcat = await oname(deadcat, sc, ONAME_NO_FLAGS);
     }
-    if (givemsg) pline_The("%s inside the box is dead!", Hallucination ? rndmonnam( 0) : "housecat");
+    if (givemsg) await pline_The("%s inside the box is dead!", Hallucination ? rndmonnam( 0) : "housecat");
   }
   nhUse(deadcat);
   return;
@@ -959,14 +959,14 @@ function container_gone(fn) {
 
 // cf. pickup.c:2891 — explain_container_prompt(more_containers)
 // Stub: NHW_TEXT window system not yet ported
-function explain_container_prompt(more_containers) {
-    pline("Container actions: : look, o out, i in, b both, r reversed, s stash, n next, q quit");
+async function explain_container_prompt(more_containers) {
+    await pline("Container actions: : look, o out, i in, b both, r reversed, s stash, n next, q quit");
 }
 
 // cf. pickup.c:2923 — u_handsy()
-function u_handsy(player) {
+async function u_handsy(player) {
     if (nohands(player.data || {})) {
-        You("have no hands!");
+        await You("have no hands!");
         return false;
     }
     return true;
@@ -981,13 +981,13 @@ export async function stash_ok(obj) {
 }
 
 // cf. pickup.c:2951 — use_container (simplified)
-function use_container_simple(obj, held, more_containers, player, map, display) {
+async function use_container_simple(obj, held, more_containers, player, map, display) {
     // Simplified use_container for the JS port
     // Just handles basic open-and-loot for floor containers
     current_container = obj;
     let used = 0;
 
-    if (!u_handsy(player)) {
+    if (!await u_handsy(player)) {
         current_container = null;
         return 0;
     }
@@ -996,24 +996,24 @@ function use_container_simple(obj, held, more_containers, player, map, display) 
         obj.lknown = 1;
     }
     if (obj.olocked) {
-        pline("%s is locked.", xname(obj));
+        await pline("%s is locked.", xname(obj));
         current_container = null;
         return 0;
     }
 
     // Check for Schroedinger's cat
     if (SchroedingersBox(current_container)) {
-        observe_quantum_cat(current_container, true, true, player, map);
+        await observe_quantum_cat(current_container, true, true, player, map);
         used = 1;
     }
 
     // Cursed magic bag losses
     if (Is_mbag(current_container) && current_container.cursed
         && Has_contents(current_container)) {
-        const loss = boh_loss(current_container, held);
+        const loss = await boh_loss(current_container, held);
         if (loss) {
             used = 1;
-            You("owe %d %s for lost merchandise.", loss, currency(loss));
+            await You("owe %d %s for lost merchandise.", loss, currency(loss));
             current_container.owt = weight(current_container);
         }
     }
@@ -1199,39 +1199,39 @@ function burden_prefix(enc) {
     return 'You have a little trouble';
 }
 
-function handlePickup(player, map, display, game = null) {
+async function handlePickup(player, map, display, game = null) {
     const objs = map.objectsAt(player.x, player.y);
     if (objs.length === 0) {
         const loc = map.at(player.x, player.y);
         if (loc && loc.typ === THRONE) {
-            display.putstr_message(`It must weigh${loc.looted ? ' almost' : ''} a ton!`);
+            await display.putstr_message(`It must weigh${loc.looted ? ' almost' : ''} a ton!`);
             return { moved: false, tookTime: false };
         }
         if (loc && loc.typ === SINK) {
-            display.putstr_message('The plumbing connects it to the floor.');
+            await display.putstr_message('The plumbing connects it to the floor.');
             return { moved: false, tookTime: false };
         }
         if (loc && loc.typ === GRAVE) {
-            display.putstr_message("You don't need a gravestone.  Yet.");
+            await display.putstr_message("You don't need a gravestone.  Yet.");
             return { moved: false, tookTime: false };
         }
         if (loc && loc.typ === FOUNTAIN) {
-            display.putstr_message('You could drink the water...');
+            await display.putstr_message('You could drink the water...');
             return { moved: false, tookTime: false };
         }
         if (loc && IS_DOOR(loc.typ) && (loc.flags & D_ISOPEN)) {
-            display.putstr_message("It won't come off the hinges.");
+            await display.putstr_message("It won't come off the hinges.");
             return { moved: false, tookTime: false };
         }
         if (loc && loc.typ === ALTAR) {
-            display.putstr_message('Moving the altar would be a very bad idea.');
+            await display.putstr_message('Moving the altar would be a very bad idea.');
             return { moved: false, tookTime: false };
         }
         if (loc && loc.typ === STAIRS) {
-            display.putstr_message('The stairs are solidly affixed.');
+            await display.putstr_message('The stairs are solidly affixed.');
             return { moved: false, tookTime: false };
         }
-        display.putstr_message('There is nothing here to pick up.');
+        await display.putstr_message('There is nothing here to pick up.');
         return { moved: false, tookTime: false };
     }
 
@@ -1240,7 +1240,7 @@ function handlePickup(player, map, display, game = null) {
     if (gold) {
         player.addToInventory(gold);
         map.removeObject(gold);
-        display.putstr_message(formatGoldPickupMessage(gold, player));
+        await display.putstr_message(formatGoldPickupMessage(gold, player));
         return { moved: false, tookTime: true };
     }
 
@@ -1248,16 +1248,16 @@ function handlePickup(player, map, display, game = null) {
     // TODO: show menu if multiple items (like C NetHack)
     const obj = objs[0];
     if (!obj) {
-        display.putstr_message('There is nothing here to pick up.');
+        await display.putstr_message('There is nothing here to pick up.');
         return { moved: false, tookTime: false };
     }
     const cnt_p = { value: obj.quan || 1 };
-    const liftResult = lift_object(obj, null, cnt_p, false, player);
+    const liftResult = await lift_object(obj, null, cnt_p, false, player);
     if (liftResult <= 0 || cnt_p.value < 1) {
         return { moved: false, tookTime: liftResult < 0 };
     }
 
-    const completePickup = () => {
+    const completePickup = async () => {
         let pickedObj = obj;
         if ((obj.quan || 1) !== cnt_p.value && obj.otyp !== LOADSTONE) {
             pickedObj = splitobj(obj, cnt_p.value);
@@ -1279,22 +1279,22 @@ function handlePickup(player, map, display, game = null) {
             || ((pickupMsg.length + 2 + encMsg.length + 9) < Number(display?.cols || 80));
 
         if (encMsg && !combinedFits && game) {
-            display.putstr_message(`${pickupMsg}--More--`);
+            await display.putstr_message(`${pickupMsg}--More--`);
             player._oldcap = newcapVal;
             player.encumbrance = newcapVal;
             game.pendingPrompt = {
                 type: 'pickup_encumber_more',
-                onKey: (_chCode, gameCtx) => {
+                onKey: async (_chCode, gameCtx) => {
                     gameCtx.pendingPrompt = null;
                     if (typeof display.clearRow === 'function') display.clearRow(0);
                     if ('messageNeedsMore' in display) display.messageNeedsMore = false;
-                    display.putstr_message(encMsg);
+                    await display.putstr_message(encMsg);
                     return { handled: true, moved: false, tookTime: false };
                 },
             };
         } else {
-            display.putstr_message(pickupMsg);
-            encumber_msg(player);
+            await display.putstr_message(pickupMsg);
+            await encumber_msg(player);
         }
         return { moved: false, tookTime: true };
     };
@@ -1312,15 +1312,15 @@ function handlePickup(player, map, display, game = null) {
     const pickupBurden = parse_pickup_burden_level(game?.flags || player?.flags || {});
     const nextEnc = calc_capacity(player, addWt);
     if (game && nextEnc > Math.max(prevEnc, pickupBurden)) {
-        display.putstr_message(
+        await display.putstr_message(
             `${burden_prefix(nextEnc)} lifting ${promptObjName}.  Continue? [ynq] (q)`
         );
         game.pendingPrompt = {
             type: 'pickup_continue',
-            onKey: (chCode, gameCtx) => {
+            onKey: async (chCode, gameCtx) => {
                 if (chCode === 121 || chCode === 89) { // y/Y
                     gameCtx.pendingPrompt = null;
-                    const pickupResult = completePickup();
+                    const pickupResult = await completePickup();
                     return { handled: true, ...pickupResult };
                 }
                 if (chCode === 110 || chCode === 78 // n/N
@@ -1339,7 +1339,7 @@ function handlePickup(player, map, display, game = null) {
         return { moved: false, tookTime: false, prompt: true };
     }
 
-    return completePickup();
+    return await completePickup();
 }
 
 function getContainerContents(container) {
@@ -1370,7 +1370,7 @@ async function handleLoot(game) {
         .filter((obj) => obj && !!objectData[obj?.otyp]?.container);
 
     if (floorContainers.length === 0 && invContainers.length === 0) {
-        display.putstr_message("You don't find anything here to loot.");
+        await display.putstr_message("You don't find anything here to loot.");
         return { moved: false, tookTime: false };
     }
 
@@ -1378,12 +1378,12 @@ async function handleLoot(game) {
     if (floorContainers.length > 0) {
         const container = floorContainers[0];
         if (container.olocked && !container.obroken) {
-            display.putstr_message('Hmmm, it seems to be locked.');
+            await display.putstr_message('Hmmm, it seems to be locked.');
             return { moved: false, tookTime: false };
         }
         const contents = getContainerContents(container);
         if (contents.length === 0) {
-            display.putstr_message("It's empty.");
+            await display.putstr_message("It's empty.");
             return { moved: false, tookTime: true };
         }
         for (const item of contents) {
@@ -1392,7 +1392,7 @@ async function handleLoot(game) {
         }
         setContainerContents(container, []);
         const count = contents.length;
-        display.putstr_message(`You loot ${count} item${count === 1 ? '' : 's'}.`);
+        await display.putstr_message(`You loot ${count} item${count === 1 ? '' : 's'}.`);
         return { moved: false, tookTime: true };
     }
 
@@ -1409,12 +1409,12 @@ async function handleLoot(game) {
             ? `Loot which container? [${letters} or ?*]`
             : 'Loot which container? [?*]';
         while (true) {
-            display.putstr_message(prompt);
+            await display.putstr_message(prompt);
             const ch = await nhgetch();
             const c = String.fromCharCode(ch);
             if (ch === 27 || ch === 10 || ch === 13 || ch === 32) {
                 display.topMessage = null;
-                display.putstr_message('Never mind.');
+                await display.putstr_message('Never mind.');
                 return { moved: false, tookTime: false };
             }
             container = invContainers.find((o) => o.invlet === c);
@@ -1425,17 +1425,17 @@ async function handleLoot(game) {
 
     // cf. pickup.c doloot_core() — "Do you want to take things out of <x>? [yn]"
     const containerName = doname(container, player);
-    display.putstr_message(`Do you want to take things out of your ${containerName}? [yn] `);
+    await display.putstr_message(`Do you want to take things out of your ${containerName}? [yn] `);
     const ans = await nhgetch();
     display.topMessage = null;
     if (String.fromCharCode(ans) !== 'y') {
-        display.putstr_message('Never mind.');
+        await display.putstr_message('Never mind.');
         return { moved: false, tookTime: false };
     }
 
     const contents = getContainerContents(container);
     if (contents.length === 0) {
-        display.putstr_message("It's empty.");
+        await display.putstr_message("It's empty.");
         return { moved: false, tookTime: true };
     }
     for (const item of contents) {
@@ -1444,7 +1444,7 @@ async function handleLoot(game) {
     }
     setContainerContents(container, []);
     const count = contents.length;
-    display.putstr_message(`You take out ${count} item${count === 1 ? '' : 's'}.`);
+    await display.putstr_message(`You take out ${count} item${count === 1 ? '' : 's'}.`);
     return { moved: false, tookTime: true };
 }
 
@@ -1453,7 +1453,7 @@ async function handlePay(player, map, display) {
     // C ref: shk.c dopay() can still report "There appears..." even when
     // shopkeepers exist elsewhere on level; our billing-state model is partial,
     // so keep the C-safe no-shopkeeper text for strict replay parity.
-    display.putstr_message('There appears to be no shopkeeper here to receive your payment.');
+    await display.putstr_message('There appears to be no shopkeeper here to receive your payment.');
     return { moved: false, tookTime: false };
 }
 
@@ -1478,7 +1478,7 @@ async function handleTogglePickup(game) {
         msg = 'Autopickup: OFF.';
     }
 
-    display.putstr_message(msg);
+    await display.putstr_message(msg);
     return { moved: false, tookTime: false };
 }
 

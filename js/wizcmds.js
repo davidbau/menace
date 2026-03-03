@@ -49,10 +49,10 @@
 // TODO: wizcmds.c:156 — wiz_makemap(): regenerate current level
 
 // cf. wizcmds.c:176 — wiz_map(): reveal level map, traps, and engravings
-export function wizMap(game) {
+export async function wizMap(game) {
     const { map, player, display, fov } = game;
     if (!game.wizard) {
-        display.putstr_message('Unavailable command.');
+        await display.putstr_message('Unavailable command.');
         return { moved: false, tookTime: false };
     }
     for (let x = 0; x < COLNO; x++) {
@@ -66,7 +66,7 @@ export function wizMap(game) {
     }
     fov.compute(map, player.x, player.y);
     display.renderMap(map, player, fov);
-    display.putstr_message('You feel knowledgeable.');
+    await display.putstr_message('You feel knowledgeable.');
     return { moved: false, tookTime: false };
 }
 
@@ -74,7 +74,7 @@ export function wizMap(game) {
 export async function wizGenesis(game) {
     const { player, map, display } = game;
     if (!game.wizard) {
-        display.putstr_message('Unavailable command.');
+        await display.putstr_message('Unavailable command.');
         return { moved: false, tookTime: false };
     }
     const input = await getlin('Create what monster? ', display);
@@ -87,7 +87,7 @@ export async function wizGenesis(game) {
         mndx = mons.findIndex(m => m.name.toLowerCase().includes(name));
     }
     if (mndx < 0) {
-        display.putstr_message(`Unknown monster: "${input.trim()}".`);
+        await display.putstr_message(`Unknown monster: "${input.trim()}".`);
         return { moved: false, tookTime: false };
     }
     let placed = false;
@@ -104,13 +104,13 @@ export async function wizGenesis(game) {
             const mon = makemon(mndx, mx, my, 0, player.dungeonLevel, map);
             if (mon) {
                 mon.sleeping = false;
-                display.putstr_message(`A ${mons[mndx].name} appears!`);
+                await display.putstr_message(`A ${mons[mndx].name} appears!`);
                 placed = true;
             }
         }
     }
     if (!placed) {
-        display.putstr_message('There is no room near you to create a monster.');
+        await display.putstr_message('There is no room near you to create a monster.');
     }
     return { moved: false, tookTime: false };
 }
@@ -119,7 +119,7 @@ export async function wizGenesis(game) {
 export async function wizTeleport(game) {
     const { player, map, display, fov } = game;
     if (!game.wizard) {
-        display.putstr_message('Unavailable command.');
+        await display.putstr_message('Unavailable command.');
         return { moved: false, tookTime: false };
     }
     const input = await getlin('Teleport to (x,y): ', display);
@@ -142,28 +142,28 @@ export async function wizTeleport(game) {
             }
         }
         if (!found) {
-            display.putstr_message('Failed to find a valid teleport destination.');
+            await display.putstr_message('Failed to find a valid teleport destination.');
             return { moved: false, tookTime: false };
         }
     } else {
         const parts = trimmed.split(',');
         if (parts.length !== 2) {
-            display.putstr_message('Bad format. Use: x,y');
+            await display.putstr_message('Bad format. Use: x,y');
             return { moved: false, tookTime: false };
         }
         nx = parseInt(parts[0].trim(), 10);
         ny = parseInt(parts[1].trim(), 10);
         if (isNaN(nx) || isNaN(ny)) {
-            display.putstr_message('Bad coordinates.');
+            await display.putstr_message('Bad coordinates.');
             return { moved: false, tookTime: false };
         }
         if (!isok(nx, ny)) {
-            display.putstr_message('Out of bounds.');
+            await display.putstr_message('Out of bounds.');
             return { moved: false, tookTime: false };
         }
         const loc = map.at(nx, ny);
         if (!loc || !ACCESSIBLE(loc.typ)) {
-            display.putstr_message('That location is not accessible.');
+            await display.putstr_message('That location is not accessible.');
             return { moved: false, tookTime: false };
         }
     }
@@ -171,7 +171,7 @@ export async function wizTeleport(game) {
     player.y = ny;
     fov.compute(map, player.x, player.y);
     display.renderMap(map, player, fov);
-    display.putstr_message(`You teleport to (${nx},${ny}).`);
+    await display.putstr_message(`You teleport to (${nx},${ny}).`);
     return { moved: true, tookTime: true };
 }
 
@@ -210,14 +210,14 @@ import { schedule_goto } from './do.js';
 export async function wizWish(game) {
     const { player, display } = game;
     if (!game.wizard) {
-        display.putstr_message('Unavailable command.');
+        await display.putstr_message('Unavailable command.');
         return { moved: false, tookTime: false };
     }
     const wishText = await getlin('For what do you wish? ', display);
     if (wishText === null || wishText.trim() === '') {
         return { moved: false, tookTime: false };
     }
-    makewish(wishText, player, display);
+    await makewish(wishText, player, display);
     return { moved: false, tookTime: false };
 }
 
@@ -232,7 +232,7 @@ export async function handleWizLoadDes(game) {
     const levelName = input.trim();
     const generator = otherSpecialLevels[levelName];
     if (!generator) {
-        display.putstr_message(`Cannot find level: ${levelName}`);
+        await display.putstr_message(`Cannot find level: ${levelName}`);
         return { moved: false, tookTime: false };
     }
     // C ref: nhl_init() creates a fresh Lua state and loads nhlib.lua,
@@ -251,11 +251,11 @@ export async function handleWizLoadDes(game) {
         specialName: levelName,
         isBranchLevel: isBranchLevel(dnum, dlevel),
     });
-    const newMap = generator();
+    const newMap = await generator();
     if (newMap) {
         // Route through changeLevel for hero placement, pet migration, and
         // arrival collision — matching C's goto_level() flow.
-        game.changeLevel(player.dungeonLevel, 'teleport', { map: newMap });
+        await game.changeLevel(player.dungeonLevel, 'teleport', { map: newMap });
     }
     return { moved: false, tookTime: false };
 }
@@ -266,7 +266,7 @@ export async function handleWizLoadDes(game) {
 export async function wizLevelChange(game) {
     const { player, display } = game;
     if (!game.wizard) {
-        display.putstr_message('Unavailable command.');
+        await display.putstr_message('Unavailable command.');
         return { moved: false, tookTime: false };
     }
     const input = await getlin('To what level do you want to teleport? ', display);
@@ -275,11 +275,11 @@ export async function wizLevelChange(game) {
     }
     const level = parseInt(input.trim(), 10);
     if (isNaN(level) || level < 1 || level > MAXLEVEL) {
-        display.putstr_message(`Bad level number (1-${MAXLEVEL}).`);
+        await display.putstr_message(`Bad level number (1-${MAXLEVEL}).`);
         return { moved: false, tookTime: false };
     }
     if (level === player.dungeonLevel) {
-        display.putstr_message('You are already on that level.');
+        await display.putstr_message('You are already on that level.');
         return { moved: false, tookTime: false };
     }
     schedule_goto(player, level, 0, null, 'You materialize on a different level!');
@@ -418,39 +418,39 @@ export async function wizLevelChange(game) {
 // TODO: wizcmds.c:1938 — wizcustom_callback(): glyph detail display callback
 
 // Autotranslated from wizcmds.c:217
-export function wiz_where() {
+export async function wiz_where() {
   if (wizard) {
     print_dungeon(false, null, null);
   }
   else {
-    pline(unavailcmd, ecname_from_fn(wiz_where));
+    await pline(unavailcmd, ecname_from_fn(wiz_where));
   }
   return ECMD_OK;
 }
 
 // Autotranslated from wizcmds.c:228
-export function wiz_detect() {
+export async function wiz_detect() {
   if (wizard) {
-    findit();
+    await findit();
   }
   else {
-    pline(unavailcmd, ecname_from_fn(wiz_detect));
+    await pline(unavailcmd, ecname_from_fn(wiz_detect));
   }
   return ECMD_OK;
 }
 
 // Autotranslated from wizcmds.c:398
-export function wiz_level_tele() {
-  if (wizard) level_tele();
+export async function wiz_level_tele() {
+  if (wizard) await level_tele();
   else {
-    pline(unavailcmd, ecname_from_fn(wiz_level_tele));
+    await pline(unavailcmd, ecname_from_fn(wiz_level_tele));
   }
   return ECMD_OK;
 }
 
 // Autotranslated from wizcmds.c:567
-export function wiz_polyself() {
-  polyself(POLY_CONTROLLED);
+export async function wiz_polyself() {
+  await polyself(POLY_CONTROLLED);
   return ECMD_OK;
 }
 
@@ -478,7 +478,7 @@ export async function wiz_show_seenv(map, player) {
       }
     }
     row = '\0';
-    putstr(win, 0, row);
+    await putstr(win, 0, row);
   }
   await display_nhwindow(win, true);
   destroy_nhwindow(win);
@@ -489,7 +489,7 @@ export async function wiz_show_seenv(map, player) {
 export async function wiz_show_wmodes(map) {
   let win, x, y, row, lev, istty = WINDOWPORT(tty);
   win = create_nhwindow(NHW_TEXT);
-  if (istty) putstr(win, 0, "");
+  if (istty) await putstr(win, 0, "");
   for (y = 0; y < ROWNO; y++) {
     for (x = 0; x < COLNO; x++) {
       lev = map.locations[x][y];
@@ -502,7 +502,7 @@ export async function wiz_show_wmodes(map) {
       }
     }
     row = '\0';
-    putstr(win, 0, row[1]);
+    await putstr(win, 0, row[1]);
   }
   await display_nhwindow(win, true);
   destroy_nhwindow(win);
@@ -539,7 +539,7 @@ export function count_obj(chain, total_count, total_size, top, recurse) {
 }
 
 // Autotranslated from wizcmds.c:1176
-export function mon_invent_chain(win, src, chain, total_count, total_size) {
+export async function mon_invent_chain(win, src, chain, total_count, total_size) {
   let buf, count = 0, size = 0, mon;
   for (mon = chain; mon; mon = mon.nmon) {
     count_obj(mon.minvent, count, size, true, false);
@@ -548,7 +548,7 @@ export function mon_invent_chain(win, src, chain, total_count, total_size) {
      total_count += count;
      total_size += size;
     Sprintf(buf, template, src, count, size);
-    putstr(win, 0, buf);
+    await putstr(win, 0, buf);
   }
 }
 
@@ -586,7 +586,7 @@ export function size_monst(mtmp, incl_wsegs) {
 }
 
 // Autotranslated from wizcmds.c:1256
-export function mon_chain(win, src, chain, force, total_count, total_size, map) {
+export async function mon_chain(win, src, chain, force, total_count, total_size, map) {
   let buf, count, size, mon, incl_wsegs = !strcmpi(src, "(map?.fmon || null)");
   count = size = 0;
   for (mon = chain; mon; mon = mon.nmon) {
@@ -597,7 +597,7 @@ export function mon_chain(win, src, chain, force, total_count, total_size, map) 
      total_count += count;
      total_size += size;
     Sprintf(buf, template, src, count, size);
-    putstr(win, 0, buf);
+    await putstr(win, 0, buf);
   }
 }
 
@@ -661,25 +661,25 @@ export async function wiz_level_change(player) {
     ret = sscanf(buf, "%d%c", newlevel, dummy);
   }
   if (ret !== 1) { pline1(Never_mind); return ECMD_OK; }
-  if (newlevel === player.ulevel) { You("are already that experienced."); }
+  if (newlevel === player.ulevel) { await You("are already that experienced."); }
   else if (newlevel < player.ulevel) {
     if (player.ulevel === 1) {
-      You("are already as inexperienced as you can get.");
+      await You("are already as inexperienced as you can get.");
       return ECMD_OK;
     }
     if (newlevel < 1) newlevel = 1;
     while (player.ulevel > newlevel) {
-      losexp("#levelchange");
+      await losexp("#levelchange");
     }
   }
   else {
     if (player.ulevel >= MAXULEV) {
-      You("are already as experienced as you can get.");
+      await You("are already as experienced as you can get.");
       return ECMD_OK;
     }
     if (newlevel > MAXULEV) newlevel = MAXULEV;
     while (player.ulevel < newlevel) {
-      pluslvl(false);
+      await pluslvl(false);
     }
   }
   player.ulevelmax = player.ulevel;
@@ -695,39 +695,39 @@ export async function wiz_display_macros() {
     if (glyph_is_cmap(glyph)) {
       test = glyph_to_cmap(glyph);
       if (test === no_glyph) {
-        if (!trouble++) putstr(win, 0, display_issues);
+        if (!trouble++) await putstr(win, 0, display_issues);
         Sprintf(buf, "glyph_is_cmap() / glyph_to_cmap(glyph=%d)" + " sync failure, returned NO_GLYPH (%d)", glyph, test);
-        putstr(win, 0, buf);
+        await putstr(win, 0, buf);
       }
       if (glyph_is_cmap_zap(glyph) && !(test >= S_vbeam && test <= S_rslant)) {
-        if (!trouble++) putstr(win, 0, display_issues);
+        if (!trouble++) await putstr(win, 0, display_issues);
         Sprintf(buf, "glyph_is_cmap_zap(glyph=%d) returned non-zap cmap %d", glyph, test);
-        putstr(win, 0, buf);
+        await putstr(win, 0, buf);
       }
       if (!IndexOk(test, defsyms)) {
-        if (!trouble++) putstr(win, 0, display_issues);
+        if (!trouble++) await putstr(win, 0, display_issues);
         Sprintf(buf, "glyph_to_cmap(glyph=%d) returns %d" + " exceeds defsyms[%d] bounds (MAX_GLYPH = %d)", glyph, test, SIZE(defsyms), max_glyph);
-        putstr(win, 0, buf);
+        await putstr(win, 0, buf);
       }
     }
     if (glyph_is_monster(glyph)) {
       test = glyph_to_mon(glyph);
       if (test < 0 || test >= NUMMONS) {
-        if (!trouble++) putstr(win, 0, display_issues);
+        if (!trouble++) await putstr(win, 0, display_issues);
         Sprintf(buf, "glyph_to_mon(glyph=%d) returns %d" + " exceeds mons[%d] bounds", glyph, test, NUMMONS);
-        putstr(win, 0, buf);
+        await putstr(win, 0, buf);
       }
     }
     if (glyph_is_object(glyph)) {
       test = glyph_to_obj(glyph);
       if (test < 0 || test > NUM_OBJECTS) {
-        if (!trouble++) putstr(win, 0, display_issues);
+        if (!trouble++) await putstr(win, 0, display_issues);
         Sprintf(buf, "glyph_to_obj(glyph=%d) returns %d" + " exceeds objects[%d] bounds", glyph, test, NUM_OBJECTS);
-        putstr(win, 0, buf);
+        await putstr(win, 0, buf);
       }
     }
   }
-  if (!trouble) putstr(win, 0, "No display macro issues detected.");
+  if (!trouble) await putstr(win, 0, "No display macro issues detected.");
   await display_nhwindow(win, false);
   destroy_nhwindow(win);
   return ECMD_OK;
@@ -745,14 +745,14 @@ export async function wiz_mon_diff() {
     mhardcoded =  ptr.difficulty;
     mdiff = mhardcoded - mcalculated;
     if (mdiff) {
-      if (!trouble++) putstr(win, 0, window_title);
+      if (!trouble++) await putstr(win, 0, window_title);
       mlev =  ptr.mlevel;
       if (mlev > 50) mlev = 50;
       Snprintf(buf, buf.length, "%-18s [%3d:%2d]: calculated: %2d, hardcoded: %2d (%+d)", ptr.pmnames[NEUTRAL], cnt, mlev, mcalculated, mhardcoded, mdiff);
-      putstr(win, 0, buf);
+      await putstr(win, 0, buf);
     }
   }
-  if (!trouble) putstr(win, 0, "No monster difficulty discrepancies were detected.");
+  if (!trouble) await putstr(win, 0, "No monster difficulty discrepancies were detected.");
   await display_nhwindow(win, false);
   destroy_nhwindow(win);
   return ECMD_OK;

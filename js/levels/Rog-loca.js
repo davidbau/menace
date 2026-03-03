@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Rogue Rog-loca.lua	$NHDT-Date: 1652196012 2022/5/10 15:20:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1992 by Dean Luick
     // NetHack may be freely redistributed.  See license for details.
@@ -66,12 +66,12 @@ export function generate() {
     des.object();
     des.object();
     // Random traps
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // Random monsters.
     des.monster({ id: "leprechaun", peaceful: 0 });
     des.monster({ id: "leprechaun", peaceful: 0 });
@@ -108,5 +108,5 @@ export function generate() {
     des.monster({ id: "chameleon", peaceful: 0 });
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Ranger Ran-strt.lua	$NHDT-Date: 1652196011 2022/5/10 15:20:11 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991 by M. Stephenson
@@ -74,12 +74,12 @@ export function generate() {
     // Non diggable walls
     des.non_diggable(selection.area(0,0,40,20));
     // Traps
-    des.trap("arrow",30,9);
-    des.trap("arrow",30,10);
-    des.trap("pit",40,9);
-    des.trap("spiked pit");
-    des.trap("bear");
-    des.trap("bear");
+    await des.trap("arrow",30,9);
+    await des.trap("arrow",30,10);
+    await des.trap("pit",40,9);
+    await des.trap("spiked pit");
+    await des.trap("bear");
+    await des.trap("bear");
     // Monsters on siege duty.
     des.monster({ id: "minotaur", x: 33, y: 9, peaceful: 0, asleep: 1 });
     des.monster({ id: "forest centaur", x: 19, y: 3, peaceful: 0 });
@@ -110,5 +110,5 @@ export function generate() {
     des.monster({ id: "scorpion", peaceful: 0 });
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

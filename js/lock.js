@@ -174,11 +174,11 @@ export function lock_action(game) {
 }
 
 // cf. lock.c:1276 [static] — chest_shatter_msg(otmp): chest shatter message
-export function chest_shatter_msg(otmp) {
+export async function chest_shatter_msg(otmp) {
     if (otmp.oclass === POTION_CLASS) {
         // C: You("%s %s shatter!", Blind ? "hear" : "see", an(bottlename()));
         // potionbreathe not ported — just print the message
-        pline("You see a bottle shatter!");
+        await pline("You see a bottle shatter!");
         return;
     }
     const thing = xname(otmp);
@@ -195,11 +195,11 @@ export function chest_shatter_msg(otmp) {
     }
     // C: pline("%s %s!", An(thing), disposition);
     const an_thing = thing.charAt(0).toUpperCase() + thing.slice(1);
-    pline(`A ${an_thing} ${disposition}!`);
+    await pline(`A ${an_thing} ${disposition}!`);
 }
 
 // cf. lock.c:162 — breakchestlock(box, destroyit): break chest lock
-export function breakchestlock(game, box, destroyit) {
+export async function breakchestlock(game, box, destroyit) {
     const { player, map } = game;
     if (!destroyit) {
         // Bill for the box but not for its contents
@@ -210,12 +210,12 @@ export function breakchestlock(game, box, destroyit) {
     } else {
         // #force has destroyed this box
         const the_name = `the ${xname(box)}`;
-        pline(`In fact, you've totally destroyed ${the_name}.`);
+        await pline(`In fact, you've totally destroyed ${the_name}.`);
         // Put the contents on ground at the hero's feet
         const contents = Array.isArray(box.cobj) ? [...box.cobj] : [];
         for (const otmp of contents) {
             if (!rn2(3) || otmp.oclass === POTION_CLASS) {
-                chest_shatter_msg(otmp);
+                await chest_shatter_msg(otmp);
                 if (otmp.quan === 1 || otmp.quan == null) {
                     // Remove from contents
                     const idx = box.cobj.indexOf(otmp);
@@ -244,7 +244,7 @@ export function breakchestlock(game, box, destroyit) {
 }
 
 // cf. lock.c:926 [static] — obstructed(x, y, quietly): check location obstruction
-export function obstructed(x, y, quietly, map) {
+export async function obstructed(x, y, quietly, map) {
     const mtmp = map.monsterAt(x, y);
     if (mtmp) {
         // C: M_AP_TYPE != M_AP_FURNITURE check
@@ -255,7 +255,7 @@ export function obstructed(x, y, quietly, map) {
                 if (!quietly) {
                     const mname = some_mon_nam(mtmp) || 'Something';
                     const Mn = mname.charAt(0).toUpperCase() + mname.slice(1);
-                    pline(`${Mn} blocks the way!`);
+                    await pline(`${Mn} blocks the way!`);
                 }
                 return true;
             }
@@ -264,7 +264,7 @@ export function obstructed(x, y, quietly, map) {
     const objs = map.objectsAt(x, y) || [];
     if (objs.length > 0) {
         if (!quietly) {
-            pline("Something's in the way.");
+            await pline("Something's in the way.");
         }
         return true;
     }
@@ -279,12 +279,12 @@ export function u_have_forceable_weapon() {
 }
 
 // cf. lock.c:759 — stumble_onto_mimic(x, y): detect door mimic
-export function stumble_onto_mimic(x, y, map) {
+export async function stumble_onto_mimic(x, y, map) {
     const mtmp = map.monsterAt(x, y);
     if (mtmp && mtmp.m_ap_type === 'furniture'
         && mtmp.mappearance === DOOR) {
         // C: stumble_onto_mimic(mtmp) — not ported; reveal the mimic
-        pline("The door actually was a monster!");
+        await pline("The door actually was a monster!");
         if (mtmp.m_ap_type) mtmp.m_ap_type = null;
         if (mtmp.mappearance) mtmp.mappearance = null;
         return true;
@@ -316,11 +316,11 @@ export function autokey(player, opening) {
 
 // cf. lock.c:68 [static] — picklock(void): lock-picking occupation callback
 // This creates and returns the occupation callback function.
-function makePicklockOccupation(game) {
+async function makePicklockOccupation(game) {
     const { player, map, display } = game;
     const xlock = getXlock(game);
 
-    return function picklock_fn() {
+    return async function picklock_fn() {
         if (xlock.box) {
             // Check if box is still on floor at player position
             if (xlock.box.where !== 'OBJ_FLOOR'
@@ -343,23 +343,23 @@ function makePicklockOccupation(game) {
             }
             switch (xlock.door.flags) {
             case D_NODOOR:
-                pline("This doorway has no door.");
+                await pline("This doorway has no door.");
                 xlock.usedtime = 0;
                 return false;
             case D_ISOPEN:
-                You("cannot lock an open door.");
+                await You("cannot lock an open door.");
                 xlock.usedtime = 0;
                 return false;
             case D_BROKEN:
-                pline("This door is broken.");
+                await pline("This door is broken.");
                 xlock.usedtime = 0;
                 return false;
             }
         }
 
         if (xlock.usedtime++ >= 50) {
-            You(`give up your attempt at ${lock_action(game)}.`);
-            exercise(player, A_DEX, true); // even if you don't succeed
+            await You(`give up your attempt at ${lock_action(game)}.`);
+            await exercise(player, A_DEX, true); // even if you don't succeed
             xlock.usedtime = 0;
             return false;
         }
@@ -377,7 +377,7 @@ function makePicklockOccupation(game) {
             xlock.chance += 20;
             // Trap detection with magic key — simplified
             if (!xlock.door && xlock.box && !xlock.box.tknown) {
-                You("find a trap!");
+                await You("find a trap!");
                 xlock.box.tknown = true;
             }
             // C prompts "Do you want to try to disarm it?" — simplified: always disarm
@@ -387,17 +387,17 @@ function makePicklockOccupation(game) {
                 xlock.box.otrapped = false;
                 xlock.box.tknown = false;
             }
-            You("succeed in disarming the trap.");
-            exercise(player, A_WIS, true);
+            await You("succeed in disarming the trap.");
+            await exercise(player, A_WIS, true);
             xlock.usedtime = 0;
             return false;
         }
 
-        You(`succeed in ${lock_action(game)}.`);
+        await You(`succeed in ${lock_action(game)}.`);
         if (xlock.door) {
             if (xlock.door.flags & D_TRAPPED) {
                 // C: b_trapped("door", FINGER) — door trap explodes
-                pline("You set off a trap!");
+                await pline("You set off a trap!");
                 xlock.door.flags = D_NODOOR;
                 const dx = xlock._targetX;
                 const dy = xlock._targetY;
@@ -414,7 +414,7 @@ function makePicklockOccupation(game) {
             // C: if (xlock.box->otrapped) chest_trap(box, FINGER, FALSE)
             // chest_trap not ported
         }
-        exercise(player, A_DEX, true);
+        await exercise(player, A_DEX, true);
         xlock.usedtime = 0;
         return false;
     };
@@ -422,11 +422,11 @@ function makePicklockOccupation(game) {
 
 // cf. lock.c:216 [static] — forcelock(void): forced lock occupation callback
 // This creates and returns the occupation callback function.
-function makeForcelockOccupation(game) {
+async function makeForcelockOccupation(game) {
     const { player, map, display } = game;
     const xlock = getXlock(game);
 
-    return function forcelock_fn() {
+    return async function forcelock_fn() {
         if (!xlock.box) {
             xlock.usedtime = 0;
             return false;
@@ -440,9 +440,9 @@ function makeForcelockOccupation(game) {
 
         const uwep = player.weapon;
         if (xlock.usedtime++ >= 50 || !uwep) {
-            You("give up your attempt to force the lock.");
+            await You("give up your attempt to force the lock.");
             if (xlock.usedtime >= 50) {
-                exercise(player, xlock.picktyp ? A_DEX : A_STR, true);
+                await exercise(player, xlock.picktyp ? A_DEX : A_STR, true);
             }
             xlock.usedtime = 0;
             return false;
@@ -453,10 +453,10 @@ function makeForcelockOccupation(game) {
             if (rn2(1000 - (uwep.spe || 0)) > (992 - greatest_erosion(uwep) * 10)
                 && !uwep.cursed && !obj_resists(uwep, 0, 99)) {
                 const prefix = (uwep.quan > 1) ? "One of your" : "Your";
-                pline(`${prefix} ${xname(uwep)} broke!`);
+                await pline(`${prefix} ${xname(uwep)} broke!`);
                 useup(uwep, player);
-                You("give up your attempt to force the lock.");
-                exercise(player, A_DEX, true);
+                await You("give up your attempt to force the lock.");
+                await exercise(player, A_DEX, true);
                 xlock.usedtime = 0;
                 return false;
             }
@@ -469,10 +469,10 @@ function makeForcelockOccupation(game) {
             return true; // still busy
         }
 
-        You("succeed in forcing the lock.");
-        exercise(player, xlock.picktyp ? A_DEX : A_STR, true);
+        await You("succeed in forcing the lock.");
+        await exercise(player, xlock.picktyp ? A_DEX : A_STR, true);
         // C: breakchestlock(xlock.box, !picktyp && !rn2(3))
-        breakchestlock(game, xlock.box, !xlock.picktyp && !rn2(3));
+        await breakchestlock(game, xlock.box, !xlock.picktyp && !rn2(3));
         reset_pick(game);
         return false;
     };
@@ -493,11 +493,11 @@ export async function pick_lock(game, pick, rx, ry, container) {
     // Check whether we're resuming an interrupted previous attempt
     if (xlock.usedtime && picktyp === xlock.picktyp) {
         const action = lock_action(game);
-        You(`resume your attempt at ${action}.`);
+        await You(`resume your attempt at ${action}.`);
         xlock.magic_key = false; // simplified: is_magic_key not available here
         game.occupation = {
             occtxt: action,
-            fn: makePicklockOccupation(game),
+            fn: await makePicklockOccupation(game),
         };
         xlock._isPicklock = true;
         return PICKLOCK_DID_SOMETHING;
@@ -517,7 +517,7 @@ export async function pick_lock(game, pick, rx, ry, container) {
         ccy = ry;
     } else {
         // Prompt for direction
-        display.putstr_message('In what direction?');
+        await display.putstr_message('In what direction?');
         const dirCh = await nhgetch();
         display.topMessage = null;
         const c = String.fromCharCode(dirCh);
@@ -570,10 +570,10 @@ export async function pick_lock(game, pick, rx, ry, container) {
             }
 
             if (otmp.obroken) {
-                You_cant(`fix its broken lock with ${doname(pick)}.`);
+                await You_cant(`fix its broken lock with ${doname(pick)}.`);
                 return PICKLOCK_LEARNED_SOMETHING;
             } else if (picktyp === CREDIT_CARD && !otmp.olocked) {
-                You_cant("do that with a credit card.");
+                await You_cant("do that with a credit card.");
                 return PICKLOCK_LEARNED_SOMETHING;
             }
 
@@ -602,7 +602,7 @@ export async function pick_lock(game, pick, rx, ry, container) {
 
         if (!found) {
             if (!count) {
-                There("doesn't seem to be any sort of lock here.");
+                await There("doesn't seem to be any sort of lock here.");
             }
             return PICKLOCK_LEARNED_SOMETHING;
         }
@@ -615,32 +615,32 @@ export async function pick_lock(game, pick, rx, ry, container) {
         if (mtmp && mtmp.m_ap_type !== 'furniture' && mtmp.m_ap_type !== 'object') {
             if (picktyp === CREDIT_CARD
                 && (mtmp.isshk || mtmp.data?.mname === 'Oracle')) {
-                verbalize("No checks, no credit, no problem.");
+                await verbalize("No checks, no credit, no problem.");
             } else {
-                pline(`I don't think ${mon_nam(mtmp)} would appreciate that.`);
+                await pline(`I don't think ${mon_nam(mtmp)} would appreciate that.`);
             }
             return PICKLOCK_LEARNED_SOMETHING;
         }
 
         if (!loc || !IS_DOOR(loc.typ)) {
-            You("see no door there.");
+            await You("see no door there.");
             return PICKLOCK_DID_NOTHING;
         }
 
         switch (loc.flags) {
         case D_NODOOR:
-            pline("This doorway has no door.");
+            await pline("This doorway has no door.");
             return PICKLOCK_LEARNED_SOMETHING;
         case D_ISOPEN:
-            You("cannot lock an open door.");
+            await You("cannot lock an open door.");
             return PICKLOCK_LEARNED_SOMETHING;
         case D_BROKEN:
-            pline("This door is broken.");
+            await pline("This door is broken.");
             return PICKLOCK_LEARNED_SOMETHING;
         default:
             // credit cards are only good for unlocking
             if (picktyp === CREDIT_CARD && !(loc.flags & D_LOCKED)) {
-                You_cant("lock a door with a credit card.");
+                await You_cant("lock a door with a credit card.");
                 return PICKLOCK_LEARNED_SOMETHING;
             }
 
@@ -684,14 +684,14 @@ export async function pick_lock(game, pick, rx, ry, container) {
     const action = lock_action(game);
     game.occupation = {
         occtxt: action,
-        fn: makePicklockOccupation(game),
+        fn: await makePicklockOccupation(game),
     };
     return PICKLOCK_DID_SOMETHING;
 }
 
 // cf. lock.c:1056 — boxlock(obj, otmp): wand/spell effect on box
 // Returns true if something happened.
-export function boxlock(game, obj, otmp) {
+export async function boxlock(game, obj, otmp) {
     const xlock = getXlock(game);
     const player = (game.u || game.player);
     let res = false;
@@ -700,7 +700,7 @@ export function boxlock(game, obj, otmp) {
     case WAN_LOCKING:
     case SPE_WIZARD_LOCK:
         if (!obj.olocked) {
-            pline("Klunk!");
+            await pline("Klunk!");
             obj.olocked = true;
             obj.obroken = false;
             if (Role_if(player, PM_WIZARD))
@@ -713,7 +713,7 @@ export function boxlock(game, obj, otmp) {
     case WAN_OPENING:
     case SPE_KNOCK:
         if (obj.olocked) {
-            pline("Klick!");
+            await pline("Klick!");
             obj.olocked = false;
             res = true;
             if (Role_if(player, PM_WIZARD))
@@ -739,7 +739,7 @@ export function boxlock(game, obj, otmp) {
 
 // cf. lock.c:1103 — doorlock(otmp, x, y): wand/spell effect on door
 // Returns true if something happened.
-export function doorlock(game, otmp, x, y) {
+export async function doorlock(game, otmp, x, y) {
     const { map, player } = game;
     const door = map.at(x, y);
     if (!door) return false;
@@ -759,7 +759,7 @@ export function doorlock(game, otmp, x, y) {
             door.flags = D_CLOSED | (door.flags & D_TRAPPED);
             newsym(map, x, y);
             if (cansee(map, player, player.fov, x, y)) {
-                pline("A door appears in the wall!");
+                await pline("A door appears in the wall!");
             }
             if (otmp.otyp === WAN_OPENING || otmp.otyp === SPE_KNOCK) {
                 return true;
@@ -775,7 +775,7 @@ export function doorlock(game, otmp, x, y) {
     switch (otmp.otyp) {
     case WAN_LOCKING:
     case SPE_WIZARD_LOCK:
-        if (obstructed(x, y, false, map)) {
+        if (await obstructed(x, y, false, map)) {
             return false;
         }
         switch (door.flags & ~D_TRAPPED) {
@@ -820,9 +820,9 @@ export function doorlock(game, otmp, x, y) {
                 // C: mb_trapped or kaboom
                 loudness = 40;
                 if (cansee(map, player, player.fov, x, y)) {
-                    pline("KABOOM!!  You see a door explode.");
+                    await pline("KABOOM!!  You see a door explode.");
                 } else {
-                    You_hear("a nearby explosion.");
+                    await You_hear("a nearby explosion.");
                 }
                 break;
             }
@@ -830,9 +830,9 @@ export function doorlock(game, otmp, x, y) {
             recalc_block_point(x, y);
             newsym(map, x, y);
             if (cansee(map, player, player.fov, x, y)) {
-                pline_The("door crashes open!");
+                await pline_The("door crashes open!");
             } else {
-                You_hear("a crashing sound.");
+                await You_hear("a crashing sound.");
             }
             loudness = 20;
         } else {
@@ -845,7 +845,7 @@ export function doorlock(game, otmp, x, y) {
     }
 
     if (msg && cansee(map, player, player.fov, x, y)) {
-        pline(msg);
+        await pline(msg);
     }
     if (loudness > 0) {
         wake_nearto(x, y, loudness, map);
@@ -875,9 +875,9 @@ export async function handleForce(game) {
     const wep = player.weapon;
     if (!u_have_forceable_weapon(player)) {
         if (!wep) {
-            You_cant("force anything when not wielding a weapon.");
+            await You_cant("force anything when not wielding a weapon.");
         } else {
-            You_cant("force anything with that weapon.");
+            await You_cant("force anything with that weapon.");
         }
         return { moved: false, tookTime: false };
     }
@@ -887,10 +887,10 @@ export async function handleForce(game) {
 
     // C ref: resume previous attempt
     if (xlock.usedtime && xlock.box && picktyp === xlock.picktyp) {
-        You("resume your attempt to force the lock.");
+        await You("resume your attempt to force the lock.");
         game.occupation = {
             occtxt: 'forcing the lock',
-            fn: makeForcelockOccupation(game),
+            fn: await makeForcelockOccupation(game),
         };
         return { moved: false, tookTime: true };
     }
@@ -905,7 +905,7 @@ export async function handleForce(game) {
         if (otmp.obroken || !otmp.olocked) {
             otmp.lknown = false; // C: force doname() to omit prefix
             const lockState = otmp.obroken ? 'broken' : 'unlocked';
-            There(`is ${doname(otmp)} here, but its lock is already ${lockState}.`);
+            await There(`is ${doname(otmp)} here, but its lock is already ${lockState}.`);
             otmp.lknown = true;
             continue;
         }
@@ -920,9 +920,9 @@ export async function handleForce(game) {
         if (ansChar === 'n') continue;
 
         if (picktyp) {
-            You(`force ${doname(wep)} into a crack and pry.`);
+            await You(`force ${doname(wep)} into a crack and pry.`);
         } else {
-            You(`start bashing it with ${doname(wep)}.`);
+            await You(`start bashing it with ${doname(wep)}.`);
         }
         xlock.box = otmp;
         xlock.chance = (objectData[wep.otyp]?.ldam || 4) * 2;
@@ -935,10 +935,10 @@ export async function handleForce(game) {
     if (xlock.box) {
         game.occupation = {
             occtxt: 'forcing the lock',
-            fn: makeForcelockOccupation(game),
+            fn: await makeForcelockOccupation(game),
         };
     } else {
-        You("decide not to force the issue.");
+        await You("decide not to force the issue.");
     }
     return { moved: false, tookTime: true };
 }
@@ -946,7 +946,7 @@ export async function handleForce(game) {
 // Handle opening a door
 // C ref: lock.c doopen() / doopen_indir()
 export async function handleOpen(player, map, display, game) {
-    display.putstr_message('In what direction?');
+    await display.putstr_message('In what direction?');
     const dirCh = await nhgetch();
     // Prompt should not concatenate with outcome message.
     display.topMessage = null;
@@ -962,9 +962,9 @@ export async function handleOpen(player, map, display, game) {
         // silently fail with just "Never mind."; non-wizard sessions emit
         // "What a strange direction!" before the caller's "Never mind."
         if (game?.player?.wizard) {
-            display.putstr_message('Never mind.');
+            await display.putstr_message('Never mind.');
         } else {
-            display.putstr_message('What a strange direction!  Never mind.');
+            await display.putstr_message('What a strange direction!  Never mind.');
         }
         return { moved: false, tookTime: false };
     }
@@ -978,14 +978,14 @@ export async function handleOpen(player, map, display, game) {
     const ny = player.y + dir[1];
 
     // C ref: stumble_onto_mimic
-    if (stumble_onto_mimic(nx, ny, map)) {
+    if (await stumble_onto_mimic(nx, ny, map)) {
         return { moved: false, tookTime: true };
     }
 
     const loc = map.at(nx, ny);
 
     if (!loc || !IS_DOOR(loc.typ)) {
-        display.putstr_message('You see no door there.');
+        await display.putstr_message('You see no door there.');
         return { moved: false, tookTime: false };
     }
 
@@ -1002,7 +1002,7 @@ export async function handleOpen(player, map, display, game) {
         default:
             mesg = ' is locked'; break;
         }
-        display.putstr_message(`This door${mesg}.`);
+        await display.putstr_message(`This door${mesg}.`);
         return { moved: false, tookTime: false };
     }
 
@@ -1012,9 +1012,9 @@ export async function handleOpen(player, map, display, game) {
     const dex = acurr(player, A_DEX);
     const con = acurr(player, A_CON);
     if (rnl(20) < Math.floor((str + dex + con) / 3)) {
-        display.putstr_message("The door opens.");
+        await display.putstr_message("The door opens.");
         if (loc.flags & D_TRAPPED) {
-            display.putstr_message("You set off a trap!");
+            await display.putstr_message("You set off a trap!");
             loc.flags = D_NODOOR;
             unblock_point(nx, ny);
             newsym(map, nx, ny);
@@ -1024,8 +1024,8 @@ export async function handleOpen(player, map, display, game) {
         recalc_block_point(nx, ny);
         newsym(map, nx, ny);
     } else {
-        exercise(player, A_STR, true);
-        display.putstr_message("The door resists!");
+        await exercise(player, A_STR, true);
+        await display.putstr_message("The door resists!");
     }
     return { moved: false, tookTime: true };
 }
@@ -1033,7 +1033,7 @@ export async function handleOpen(player, map, display, game) {
 // Handle closing a door
 // C ref: lock.c doclose()
 export async function handleClose(player, map, display, game) {
-    display.putstr_message('In what direction?');
+    await display.putstr_message('In what direction?');
     const dirCh = await nhgetch();
     display.topMessage = null;
     display.messageNeedsMore = false;
@@ -1050,39 +1050,39 @@ export async function handleClose(player, map, display, game) {
 
     // C: self-direction check
     if (nx === player.x && ny === player.y) {
-        display.putstr_message("You are in the way!");
+        await display.putstr_message("You are in the way!");
         return { moved: false, tookTime: true };
     }
 
     const loc = map.at(nx, ny);
 
     // C: stumble_onto_mimic
-    if (stumble_onto_mimic(nx, ny, map)) {
+    if (await stumble_onto_mimic(nx, ny, map)) {
         return { moved: false, tookTime: true };
     }
 
     if (!loc || !IS_DOOR(loc.typ)) {
-        display.putstr_message('You see no door there.');
+        await display.putstr_message('You see no door there.');
         return { moved: false, tookTime: false };
     }
 
     if (loc.flags === D_NODOOR) {
-        display.putstr_message("This doorway has no door.");
+        await display.putstr_message("This doorway has no door.");
         return { moved: false, tookTime: false };
     }
 
     // C: obstructed check
-    if (obstructed(nx, ny, false, map)) {
+    if (await obstructed(nx, ny, false, map)) {
         return { moved: false, tookTime: false };
     }
 
     if (loc.flags === D_BROKEN) {
-        display.putstr_message("This door is broken.");
+        await display.putstr_message("This door is broken.");
         return { moved: false, tookTime: false };
     }
 
     if (loc.flags & (D_CLOSED | D_LOCKED)) {
-        display.putstr_message("This door is already closed.");
+        await display.putstr_message("This door is already closed.");
         return { moved: false, tookTime: false };
     }
 
@@ -1092,13 +1092,13 @@ export async function handleClose(player, map, display, game) {
         const dex = acurr(player, A_DEX);
         const con = acurr(player, A_CON);
         if (rn2(25) < Math.floor((str + dex + con) / 3)) {
-            display.putstr_message("The door closes.");
+            await display.putstr_message("The door closes.");
             loc.flags = D_CLOSED;
             block_point(nx, ny);
             newsym(map, nx, ny);
         } else {
-            exercise(player, A_STR, true);
-            display.putstr_message("The door resists!");
+            await exercise(player, A_STR, true);
+            await display.putstr_message("The door resists!");
         }
     }
 
@@ -1106,9 +1106,9 @@ export async function handleClose(player, map, display, game) {
 }
 
 // Autotranslated from lock.c:758
-export function stumble_on_door_mimic(x, y) {
+export async function stumble_on_door_mimic(x, y) {
   let mtmp;
-  if ((mtmp = m_at(x, y)) && is_door_mappear(mtmp) && !Protection_from_shape_changers) { stumble_onto_mimic(mtmp); return true; }
+  if ((mtmp = m_at(x, y)) && is_door_mappear(mtmp) && !Protection_from_shape_changers) { await stumble_onto_mimic(mtmp); return true; }
   return false;
 }
 

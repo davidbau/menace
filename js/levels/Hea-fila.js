@@ -5,7 +5,7 @@
 
 import * as des from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Healer Hea-fila.lua	$NHDT-Date: 1652196003 2022/5/10 15:20:3 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991, 1993 by M. Stephenson, P. Winner
@@ -44,11 +44,11 @@ export function generate() {
     des.monster({ class: "S", peaceful: 0 });
     des.monster({ class: "S", peaceful: 0 });
     // 
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

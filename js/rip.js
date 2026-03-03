@@ -43,7 +43,7 @@ export function center(line, text) {
 }
 
 // Autotranslated from rip.c:84
-export function genl_outrip(tmpwin, how, when) {
+export async function genl_outrip(tmpwin, how, when) {
   let dp, dpx, buf, x, line, year, cash;
   gr.rip = dp =  alloc(sizeof(rip_txt));
   for (x = 0; rip_txt[x]; ++x) {
@@ -76,12 +76,12 @@ export function genl_outrip(tmpwin, how, when) {
   year =  ((yyyymmdd(when) / 10000) % 10000);
   Sprintf(buf, "%4d", year);
   center(YEAR_LINE, buf);
-  putstr(tmpwin, 0, "");
+  await putstr(tmpwin, 0, "");
   for ( dp; dp++; ) {
-    putstr(tmpwin, 0, dp);
+    await putstr(tmpwin, 0, dp);
   }
-  putstr(tmpwin, 0, "");
-  putstr(tmpwin, 0, "");
+  await putstr(tmpwin, 0, "");
+  await putstr(tmpwin, 0, "");
   for (x = 0; rip_txt[x]; x++) {
     (gr.rip[x], 0);
   }

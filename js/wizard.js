@@ -383,7 +383,7 @@ export function choose_stairs(sx_out, sy_out, dir, map) {
 // cf. wizard.c:59
 // ============================================================================
 
-export function amulet(map, player, display) {
+export async function amulet(map, player, display) {
     // C: check if wearing or wielding the real Amulet of Yendor
     const amu = (player.amulet && player.amulet.otyp === AMULET_OF_YENDOR)
              ? player.amulet
@@ -400,11 +400,11 @@ export function amulet(map, player, display) {
                 const ty = ttmp.ty !== undefined ? ttmp.ty : ttmp.y;
                 const du = distu(player, tx, ty);
                 if (du <= 9)
-                    pline("The Amulet of Yendor feels hot!");
+                    await pline("The Amulet of Yendor feels hot!");
                 else if (du <= 64)
-                    pline("The Amulet of Yendor feels very warm.");
+                    await pline("The Amulet of Yendor feels very warm.");
                 else if (du <= 144)
-                    pline("The Amulet of Yendor feels warm.");
+                    await pline("The Amulet of Yendor feels warm.");
                 // else, the amulet feels normal
                 break;
             }
@@ -427,7 +427,7 @@ export function amulet(map, player, display) {
             mtmp.sleeping = false;
             mtmp.msleeping = 0;
             if (!m_next2u(mtmp, player))
-                You("get the creepy feeling that somebody noticed your taking the Amulet.");
+                await You("get the creepy feeling that somebody noticed your taking the Amulet.");
             return;
         }
     }
@@ -469,7 +469,7 @@ export function mon_has_special(mtmp) {
 // cf. wizard.c:367
 // ============================================================================
 
-export function tactics(mtmp, map, player, display, fov) {
+export async function tactics(mtmp, map, player, display, fov) {
     const strat = strategy(mtmp, map, player);
     const sx_out = { x: 0 };
     const sy_out = { y: 0 };
@@ -554,7 +554,7 @@ export function tactics(mtmp, map, player, display, fov) {
                 const otmp = on_ground(which_arti(targ), map);
                 if (otmp) {
                     if (cansee_pos(map, player, fov, mtmp.mx, mtmp.my))
-                        pline("%s picks up %s.", Monnam(mtmp), doname(otmp, player));
+                        await pline("%s picks up %s.", Monnam(mtmp), doname(otmp, player));
                     // obj_extract_self — remove from map objects
                     const idx = (map.objects || []).indexOf(otmp);
                     if (idx >= 0) map.objects.splice(idx, 1);
@@ -706,7 +706,7 @@ export function pick_nasty(difcap) {
 // Returns number of monsters created.
 // ============================================================================
 
-export function nasty(summoner, map, player, display, fov) {
+export async function nasty(summoner, map, player, display, fov) {
     const depth = player?.dungeonLevel || 1;
     // when a monster casts "summon nasties", suppress appear message;
     // when random harassment casts, show messages
@@ -716,7 +716,7 @@ export function nasty(summoner, map, player, display, fov) {
 
     if (!rn2(10) && Inhell()) {
         // summon demon prince/lord (like WoY)
-        const count = msummon(null, map, player, display);
+        const count = await msummon(null, map, player, display);
         return count > 0 ? monster_census(false, map, player, fov) - census : 0;
     }
 
@@ -818,7 +818,7 @@ export function nasty(summoner, map, player, display, fov) {
 // cf. wizard.c:708
 // ============================================================================
 
-export function resurrect(map, player, display) {
+export async function resurrect(map, player, display) {
     const depth = player?.dungeonLevel || 1;
     let mtmp;
     let verb;
@@ -862,8 +862,8 @@ export function resurrect(map, player, display) {
 
         // C: if (!Deaf)
         if (!player.deaf) {
-            pline("A voice booms out...");
-            verbalize("So thou thought thou couldst %s me, fool.", verb);
+            await pline("A voice booms out...");
+            await verbalize("So thou thought thou couldst %s me, fool.", verb);
         }
     }
 }
@@ -873,28 +873,28 @@ export function resurrect(map, player, display) {
 // cf. wizard.c:778
 // ============================================================================
 
-export function intervene(map, player, display, fov) {
+export async function intervene(map, player, display, fov) {
     // C: int which = Is_astralevel(&u.uz) ? rnd(4) : rn2(6);
     const which = Is_astralevel() ? rnd(4) : rn2(6);
 
     switch (which) {
     case 0:
     case 1:
-        You_feel("vaguely nervous.");
+        await You_feel("vaguely nervous.");
         break;
     case 2:
         if (!player.blind)
-            You("notice a %s glow surrounding you.", hcolor("black"));
-        rndcurse(player, map, display);
+            await You("notice a %s glow surrounding you.", hcolor("black"));
+        await rndcurse(player, map, display);
         break;
     case 3:
         aggravate(map, player);
         break;
     case 4:
-        nasty(null, map, player, display, fov);
+        await nasty(null, map, player, display, fov);
         break;
     case 5:
-        resurrect(map, player, display);
+        await resurrect(map, player, display);
         break;
     }
 }
@@ -920,40 +920,40 @@ export function wizdeadorgone(player) {
 // cf. wizard.c:839
 // ============================================================================
 
-export function cuss(mtmp, map, player) {
+export async function cuss(mtmp, map, player) {
     // C: if (Deaf) return;
     if (player.deaf) return;
 
     if (mtmp.iswiz) {
         if (!rn2(5)) { // typical bad guy action
-            pline("%s laughs fiendishly.", Monnam(mtmp));
+            await pline("%s laughs fiendishly.", Monnam(mtmp));
         } else if (you_have(M3_WANTSAMUL, player) && !rn2(random_insult.length)) {
             // C: SetVoice(mtmp, 0, 80, 0);
-            verbalize("Relinquish the amulet, %s!", ROLL_FROM(random_insult));
+            await verbalize("Relinquish the amulet, %s!", ROLL_FROM(random_insult));
         } else if ((player.uhp || 0) < 5 && !rn2(2)) { // Panic
             // C: SetVoice(mtmp, 0, 80, 0);
-            verbalize(rn2(2) ? "Even now thy life force ebbs, %s!"
+            await verbalize(rn2(2) ? "Even now thy life force ebbs, %s!"
                              : "Savor thy breath, %s, it be thy last!",
                       ROLL_FROM(random_insult));
         } else if (mtmp.mhp < 5 && !rn2(2)) { // Parthian shot
             // C: SetVoice(mtmp, 0, 80, 0);
-            verbalize(rn2(2) ? "I shall return." : "I'll be back.");
+            await verbalize(rn2(2) ? "I shall return." : "I'll be back.");
         } else {
             // C: SetVoice(mtmp, 0, 80, 0);
-            verbalize("%s %s!",
+            await verbalize("%s %s!",
                       ROLL_FROM(random_malediction),
                       ROLL_FROM(random_insult));
         }
     } else if (is_lminion(mtmp)
                && !(mtmp.isminion && mtmp.emin && mtmp.emin.renegade)) {
         // C: com_pager("angel_cuss") — quest text system not ported
-        pline("%s casts aspersions on your ancestry.", Monnam(mtmp));
+        await pline("%s casts aspersions on your ancestry.", Monnam(mtmp));
     } else {
         if (!rn2(is_minion(mptr(mtmp)) ? 100 : 5))
-            pline("%s casts aspersions on your ancestry.", Monnam(mtmp));
+            await pline("%s casts aspersions on your ancestry.", Monnam(mtmp));
         else {
             // C: com_pager("demon_cuss") — quest text system not ported
-            pline("%s casts aspersions on your ancestry.", Monnam(mtmp));
+            await pline("%s casts aspersions on your ancestry.", Monnam(mtmp));
         }
     }
 

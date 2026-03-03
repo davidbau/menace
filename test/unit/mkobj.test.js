@@ -78,19 +78,19 @@ describe('Object creation (C-faithful)', () => {
 });
 
 describe('Level object population (C-faithful)', () => {
-    it('makelevel places objects on the map', () => {
+    it('makelevel places objects on the map', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         assert.ok(map.objects.length > 0, 'Level should have objects');
     });
 
-    it('objects have C-faithful properties', () => {
+    it('objects have C-faithful properties', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         for (const obj of map.objects) {
@@ -103,10 +103,10 @@ describe('Level object population (C-faithful)', () => {
         }
     });
 
-    it('gold pieces have quantity > 1', () => {
+    it('gold pieces have quantity > 1', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         const gold = map.objects.filter(o => o.oclass === COIN_CLASS);

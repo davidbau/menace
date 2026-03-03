@@ -90,7 +90,7 @@ describe('Monster movement', () => {
         };
     }
 
-    it('hostile monsters move toward player', () => {
+    it('hostile monsters move toward player', async () => {
         initRng(42);
         const map = makeSimpleMap();
         const player = new Player();
@@ -112,14 +112,14 @@ describe('Monster movement', () => {
         map.monsters.push(mon);
 
         const startDist = Math.abs(mon.mx - player.x) + Math.abs(mon.my - player.y);
-        movemon(map, player, mockDisplay);
+        await movemon(map, player, mockDisplay);
         const endDist = Math.abs(mon.mx - player.x) + Math.abs(mon.my - player.y);
 
         assert.ok(endDist <= startDist,
             `Monster should move toward player: dist ${startDist} -> ${endDist}`);
     });
 
-    it('sleeping monsters do not move', () => {
+    it('sleeping monsters do not move', async () => {
         initRng(42);
         const map = makeSimpleMap();
         const player = new Player();
@@ -140,14 +140,14 @@ describe('Monster movement', () => {
         map.monsters.push(mon);
 
         const startX = mon.mx, startY = mon.my;
-        movemon(map, player, mockDisplay);
+        await movemon(map, player, mockDisplay);
 
         // Sleeping monster far from player should stay put
         assert.equal(mon.mx, startX);
         assert.equal(mon.my, startY);
     });
 
-    it('movemon does not stamp mlstmv for non-combat movement processing', () => {
+    it('movemon does not stamp mlstmv for non-combat movement processing', async () => {
         initRng(42);
         const map = makeSimpleMap();
         const player = new Player();
@@ -168,11 +168,11 @@ describe('Monster movement', () => {
         };
         map.monsters.push(mon);
 
-        movemon(map, player, mockDisplay);
+        await movemon(map, player, mockDisplay);
         assert.equal(mon.mlstmv, 7, 'mlstmv should only be updated by attack paths (mattackm parity)');
     });
 
-    it('dead monsters are removed', () => {
+    it('dead monsters are removed', async () => {
         const map = makeSimpleMap();
         const player = new Player();
         player.x = 20; player.y = 10;
@@ -191,11 +191,11 @@ describe('Monster movement', () => {
         });
 
         assert.equal(map.monsters.length, 1);
-        movemon(map, player, mockDisplay);
+        await movemon(map, player, mockDisplay);
         assert.equal(map.monsters.length, 0, 'Dead monsters should be removed');
     });
 
-    it('monsters do not move through walls', () => {
+    it('monsters do not move through walls', async () => {
         initRng(42);
         const map = makeSimpleMap();
         const player = new Player();
@@ -220,14 +220,14 @@ describe('Monster movement', () => {
         };
         map.monsters.push(mon);
 
-        movemon(map, player, mockDisplay);
+        await movemon(map, player, mockDisplay);
 
         // Monster should not have passed through the wall
         assert.ok(mon.mx <= 16 || mon.mx >= 18,
             `Monster at ${mon.mx} should not be on wall at x=17`);
     });
 
-    it('AT_WEAP monsters wield before melee attacking when currently unarmed', () => {
+    it('AT_WEAP monsters wield before melee attacking when currently unarmed', async () => {
         initRng(42);
         const map = makeSimpleMap();
         const player = new Player();
@@ -254,7 +254,7 @@ describe('Monster movement', () => {
             },
         };
 
-        movemon(map, player, display);
+        await movemon(map, player, display);
 
         assert.equal(goblin.weapon, dagger);
         assert.equal(player.hp, hpBefore);
@@ -297,7 +297,7 @@ describe('Monster movement', () => {
         assert.ok(player.hp <= hpBefore, 'projectile should not heal the player');
     });
 
-    it('collectors do not retarget to gold unless they like gold', () => {
+    it('collectors do not retarget to gold unless they like gold', async () => {
         initRng(42);
         const map = makeSimpleMap();
         const player = new Player();
@@ -316,12 +316,12 @@ describe('Monster movement', () => {
             buried: false,
         });
 
-        movemon(map, player, mockDisplay);
+        await movemon(map, player, mockDisplay);
         assert.equal(goblin.mx, 16);
         assert.equal(goblin.my, 10);
     });
 
-    it('collectors still retarget to practical items', () => {
+    it('collectors still retarget to practical items', async () => {
         initRng(42);
         const map = makeSimpleMap();
         const player = new Player();
@@ -340,12 +340,12 @@ describe('Monster movement', () => {
             buried: false,
         });
 
-        movemon(map, player, mockDisplay);
+        await movemon(map, player, mockDisplay);
         assert.equal(goblin.mx, 16);
         assert.equal(goblin.my, 11);
     });
 
-    it('pets cannot pick up items while standing in WATER tiles', () => {
+    it('pets cannot pick up items while standing in WATER tiles', async () => {
         initRng(1);
         const map = makeSimpleMap();
         const player = new Player();
@@ -366,7 +366,7 @@ describe('Monster movement', () => {
         });
 
         // Control check: same seed/position on ROOM allows pickup.
-        movemon(map, player, mockDisplay);
+        await movemon(map, player, mockDisplay);
         assert.equal(dog.minvent.length, 1, 'dog should pick up on ROOM for this deterministic seed');
         assert.equal(map.objects.length, 0);
 
@@ -389,12 +389,12 @@ describe('Monster movement', () => {
             buried: false,
         });
 
-        movemon(waterMap, waterPlayer, mockDisplay);
+        await movemon(waterMap, waterPlayer, mockDisplay);
         assert.equal(waterDog.minvent.length, 0, 'dog should not pick up while in WATER');
         assert.equal(waterMap.objects.length, 1, 'floor item should remain in WATER square');
     });
 
-    it('monster-vs-monster death drops preserve C top-of-pile ordering', () => {
+    it('monster-vs-monster death drops preserve C top-of-pile ordering', async () => {
         initRng(7);
         const map = makeSimpleMap();
         const player = new Player();
@@ -417,7 +417,7 @@ describe('Monster movement', () => {
         ];
 
         map.monsters.push(attacker, target);
-        movemon(map, player, mockDisplay);
+        await movemon(map, player, mockDisplay);
 
         const pile = map.objectsAt(13, 10);
         assert.ok(pile.length >= 2, 'target inventory should drop on death');

@@ -15,7 +15,7 @@ import { u_wipe_engr } from './engrave.js';
 // Handle kicking
 // C ref: dokick.c dokick()
 export async function handleKick(player, map, display, game) {
-    display.putstr_message('In what direction?');
+    await display.putstr_message('In what direction?');
     const dirCh = await nhgetch();
     // Prompt should not concatenate with outcome message.
     display.topMessage = null;
@@ -27,12 +27,12 @@ export async function handleKick(player, map, display, game) {
     }
     if (!dir) {
         if (game.flags.verbose) {
-            display.putstr_message("Never mind.");
+            await display.putstr_message("Never mind.");
         }
         return { moved: false, tookTime: false };
     }
     // C ref: dokick.c dokick() — successful kick direction smudges engraving.
-    u_wipe_engr(player, map, 2);
+    await u_wipe_engr(player, map, 2);
 
     const nx = player.x + dir[0];
     const ny = player.y + dir[1];
@@ -44,12 +44,12 @@ export async function handleKick(player, map, display, game) {
     // Kick a monster
     const mon = map.monsterAt(nx, ny);
     if (mon) {
-        display.putstr_message(`You kick the ${x_monnam(mon)}!`);
+        await display.putstr_message(`You kick the ${x_monnam(mon)}!`);
         const damage = rnd(4) + player.strDamage;
         mon.mhp -= Math.max(1, damage);
         if (mon.mhp <= 0) {
             mondead(mon, map, player);
-            display.putstr_message(`The ${x_monnam(mon)} dies!`);
+            await display.putstr_message(`The ${x_monnam(mon)} dies!`);
             map.removeMonster(mon);
         }
         return { moved: false, tookTime: true };
@@ -57,7 +57,7 @@ export async function handleKick(player, map, display, game) {
 
     // Kick a closed or locked door (C kick_door handles both the same way).
     if (IS_DOOR(loc.typ) && (loc.flags & (D_LOCKED | D_CLOSED))) {
-        exercise(player, A_DEX, true);
+        await exercise(player, A_DEX, true);
         const str = player.attributes ? player.attributes[A_STR] : 18;
         const dex = player.attributes ? player.attributes[A_DEX] : 11;
         const con = player.attributes ? player.attributes[A_CON] : 18;
@@ -65,17 +65,17 @@ export async function handleKick(player, map, display, game) {
         const kickedOpen = rnl(35) < avrgAttrib;
         if (kickedOpen) {
             if (str > 18 && rn2(5) === 0) {
-                display.putstr_message("As you kick the door, it shatters to pieces!");
+                await display.putstr_message("As you kick the door, it shatters to pieces!");
                 loc.flags = D_NODOOR;
             } else {
-                display.putstr_message("As you kick the door, it crashes open!");
+                await display.putstr_message("As you kick the door, it crashes open!");
                 loc.flags = D_BROKEN;
             }
-            exercise(player, A_STR, true);
+            await exercise(player, A_STR, true);
         } else {
             // We do not model Deaf yet; keep C's rn2(3) branch split for RNG parity.
-            exercise(player, A_STR, true);
-            display.putstr_message(rn2(3) ? "Whammm!!" : "Thwack!!");
+            await exercise(player, A_STR, true);
+            await display.putstr_message(rn2(3) ? "Whammm!!" : "Thwack!!");
         }
         return { moved: false, tookTime: true };
     }
@@ -89,10 +89,10 @@ export async function handleKick(player, map, display, game) {
         || loc.typ === FOUNTAIN
         || loc.typ === GRAVE
         || loc.typ === SINK) {
-        display.putstr_message("Ouch!  That hurts!");
+        await display.putstr_message("Ouch!  That hurts!");
         // C ref: exercise(A_DEX, FALSE), exercise(A_STR, FALSE)
-        exercise(player, A_DEX, false);
-        exercise(player, A_STR, false);
+        await exercise(player, A_DEX, false);
+        await exercise(player, A_STR, false);
         // C ref: if (!rn2(3)) set_wounded_legs(..., 5 + rnd(5))
         if (rn2(3) === 0) {
             const timeout = 5 + rnd(5);
@@ -110,13 +110,13 @@ export async function handleKick(player, map, display, game) {
     }
 
     // C ref: dokick.c kick_dumb() for kicking empty/non-solid space.
-    exercise(player, A_DEX, false);
+    await exercise(player, A_DEX, false);
     const dex = player.attributes?.[A_DEX] || 10;
     if (dex >= 16 || rn2(3) !== 0) {
-        display.putstr_message("You kick at empty space.");
+        await display.putstr_message("You kick at empty space.");
     } else {
-        display.putstr_message("Dumb move!  You strain a muscle.");
-        exercise(player, A_STR, false);
+        await display.putstr_message("Dumb move!  You strain a muscle.");
+        await exercise(player, A_STR, false);
         rnd(5); // set_wounded_legs timeout component
     }
     return { moved: false, tookTime: true };

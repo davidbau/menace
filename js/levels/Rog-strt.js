@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection, shuffle } from '../sp_lev.js';
 import { rn2, d } from '../rng.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Rogue Rog-strt.lua	$NHDT-Date: 1652196012 2022/5/10 15:20:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1992 by Dean Luick
     // NetHack may be freely redistributed.  See license for details.
@@ -135,22 +135,22 @@ export function generate() {
     // Non diggable walls
     des.non_diggable(selection.area(0,0,75,20));
     // Random traps
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // 
     // Monsters to get in the way.
     // 
@@ -175,5 +175,5 @@ export function generate() {
        des.monster({ id: "chameleon", coord: streets.rndcoord(1), peaceful: 0 });
     }
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

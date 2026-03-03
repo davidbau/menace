@@ -1683,35 +1683,35 @@ export function pick_can_reach(pick, x, y, player) {
 }
 
 // Autotranslated from dig.c:254
-export function digcheck_fail_message(digresult, madeby, x, y) {
+export async function digcheck_fail_message(digresult, madeby, x, y) {
   let verb = (madeby === BY_YOU && uwep && is_axe(uwep)) ? "chop" : "dig in";
   if (digresult < DIGCHECK_FAILED) return;
   switch (digresult) {
     case DIGCHECK_FAIL_AIRLEVEL:
-      You("cannot %s thin air.", verb);
+      await You("cannot %s thin air.", verb);
     break;
     case DIGCHECK_FAIL_ALTAR:
-      pline_The("altar is too hard to break apart.");
+      await pline_The("altar is too hard to break apart.");
     break;
     case DIGCHECK_FAIL_BOULDER:
-      There("isn't enough room to %s here.", verb);
+      await There("isn't enough room to %s here.", verb);
     break;
     case DIGCHECK_FAIL_ONLADDER:
-      pline_The("ladder resists your effort.");
+      await pline_The("ladder resists your effort.");
     break;
     case DIGCHECK_FAIL_ONSTAIRS:
-      pline_The("stairs are too hard to %s.", verb);
+      await pline_The("stairs are too hard to %s.", verb);
     break;
     case DIGCHECK_FAIL_THRONE:
-      pline_The("throne is too hard to break apart.");
+      await pline_The("throne is too hard to break apart.");
     break;
     case DIGCHECK_FAIL_CANTDIG:
       case DIGCHECK_FAIL_TOOHARD:
         case DIGCHECK_FAIL_UNDESTROYABLETRAP:
-          pline_The("%s here is too hard to %s.", surface(x, y), verb);
+          await pline_The("%s here is too hard to %s.", await surface(x, y), verb);
     break;
     case DIGCHECK_FAIL_WATERLEVEL:
-      pline_The("%s splashes and subsides.", hliquid("water"));
+      await pline_The("%s splashes and subsides.", hliquid("water"));
     break;
     case DIGCHECK_FAIL_OBJ_POOL_OR_TRAP:
       case DIGCHECK_PASSED:
@@ -1728,7 +1728,7 @@ export function watchman_canseeu(mtmp) {
 }
 
 // Autotranslated from dig.c:1762
-export function adj_pit_checks(cc, msg, map) {
+export async function adj_pit_checks(cc, msg, map) {
   let ltyp, room;
   let foundation_msg = "The foundation is too hard to dig through from this angle.";
   if (!cc) return false;
@@ -1751,13 +1751,13 @@ export function adj_pit_checks(cc, msg, map) {
     Strcpy(msg, "A tangled mass of plumbing remains below the sink.");
     return false;
   }
-  else if (On_ladder(cc.x, cc.y)) { Strcpy(msg, "The ladder is unaffected."); return false; }
+  else if (await On_ladder(cc.x, cc.y)) { Strcpy(msg, "The ladder is unaffected."); return false; }
   else {
     let supporting =  0;
     if (IS_FOUNTAIN(ltyp)) supporting = "fountain";
     else if (IS_THRONE(ltyp)) supporting = "throne";
     else if (IS_ALTAR(ltyp)) supporting = "altar";
-    else if (On_stairs(cc.x, cc.y)) supporting = "stairs";
+    else if (await On_stairs(cc.x, cc.y)) supporting = "stairs";
     else if (ltyp === DRAWBRIDGE_DOWN   || ltyp === DBWALL) supporting = "drawbridge";
     if (supporting) {
       Sprintf(msg, "The %s supporting structures remain intact.", s_suffix(supporting));

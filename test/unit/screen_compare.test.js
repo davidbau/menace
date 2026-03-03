@@ -223,7 +223,7 @@ function simulateTurnEnd(game) {
     }
 }
 
-function setupGame() {
+async function setupGame() {
     if (!session) throw new Error('Session data not loaded');
     initRng(session.seed);
     initLevelGeneration();
@@ -231,7 +231,7 @@ function setupGame() {
     player.initRole(11);
     player.name = session.character.name;
     player.gender = 1;
-    const map = makelevel(1);
+    const map = await makelevel(1);
     wallification(map);
     player.x = map.upstair.x;
     player.y = map.upstair.y;
@@ -258,9 +258,9 @@ const KEY_DIRS = {
 const NON_TURN_KEYS = new Set([':', 'i', '@']);
 
 describe('Screen comparison (seed 42)', () => {
-    it('map rendering matches C for all session states', { skip: !session }, () => {
+    it('map rendering matches C for all session states', { skip: !session }, async () => {
         if (!session) return;  // Skip if reference data not available
-        const game = setupGame();
+        const game = await setupGame();
         let totalDiffs = 0;
         let totalDataDiffs = 0;
         let totalFovDiffs = 0;

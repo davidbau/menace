@@ -5,7 +5,7 @@
 
 import * as des from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Archeologist Arc-filb.lua	$NHDT-Date: 1652195998 2022/5/10 15:19:58 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991 by M. Stephenson
@@ -29,37 +29,37 @@ export function generate() {
     })
 
     des.room({ type: "ordinary",
-               contents: function() {
+               contents: async function() {
                   des.object();
-                  des.trap();
+                  await des.trap();
                   des.object();
                   des.monster("M");
                }
     })
 
     des.room({ type: "ordinary",
-               contents: function() {
+               contents: async function() {
                   des.stair("down");
                   des.object();
-                  des.trap();
+                  await des.trap();
                   des.monster("S");
                   des.monster("human mummy");
                }
     })
 
     des.room({ type: "ordinary",
-               contents: function() {
+               contents: async function() {
                   des.object();
                   des.object();
-                  des.trap();
+                  await des.trap();
                   des.monster("S");
                }
     })
 
     des.room({ type: "ordinary",
-               contents: function() {
+               contents: async function() {
                   des.object();
-                  des.trap();
+                  await des.trap();
                   des.monster("S");
                }
     })
@@ -67,5 +67,5 @@ export function generate() {
     des.random_corridors();
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

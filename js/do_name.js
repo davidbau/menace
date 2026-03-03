@@ -832,7 +832,7 @@ export function safe_oname(obj) {
 // Autotranslated from do_name.c:198
 export async function do_mgivenname(player) {
   let buf, monnambuf, qbuf, cc, cx, cy, mtmp = 0, do_swallow = false;
-  if ((player?.Hallucination || player?.hallucinating || false)) { You("would never recognize it anyway."); return; }
+  if ((player?.Hallucination || player?.hallucinating || false)) { await You("would never recognize it anyway."); return; }
   cc.x = player.x;
   cc.y = player.y;
   if (getpos( cc, false, "the monster you want to name") < 0 || !isok(cc.x, cc.y)) return;
@@ -840,7 +840,7 @@ export async function do_mgivenname(player) {
   if (u_at(cx, cy)) {
     if (player.usteed && canspotmon(player.usteed)) { mtmp = player.usteed; }
     else {
-      pline("This %s creature is called %s and cannot be renamed.", beautiful(), svp.plname);
+      await pline("This %s creature is called %s and cannot be renamed.", beautiful(), svp.plname);
       return;
     }
   }
@@ -851,25 +851,25 @@ export async function do_mgivenname(player) {
     let glyph = glyph_at(cx, cy);
     if (glyph_is_swallow(glyph)) { mtmp = player.ustuck; do_swallow = true; }
   }
-  if (!do_swallow && (!mtmp || (!sensemon(mtmp) && (!(cansee(cx, cy) || see_with_infrared(mtmp)) || mtmp.mundetected || M_AP_TYPE(mtmp) === M_AP_FURNITURE || M_AP_TYPE(mtmp) === M_AP_OBJECT || (mtmp.minvis && !See_invisible))))) { pline("I see no monster there."); return; }
+  if (!do_swallow && (!mtmp || (!sensemon(mtmp) && (!(cansee(cx, cy) || see_with_infrared(mtmp)) || mtmp.mundetected || M_AP_TYPE(mtmp) === M_AP_FURNITURE || M_AP_TYPE(mtmp) === M_AP_OBJECT || (mtmp.minvis && !See_invisible))))) { await pline("I see no monster there."); return; }
   Sprintf(qbuf, "What do you want to call %s?", distant_monnam(mtmp, ARTICLE_THE, monnambuf));
   if (!name_from_player(buf, qbuf, has_mgivenname(mtmp) ? MGIVENNAME(mtmp) : null)) return;
   if ((mtmp.data.geno & G_UNIQ) && !mtmp.ispriest) {
-    if (!alreadynamed(mtmp, monnambuf, buf)) pline("%s doesn't like being called names!", upstart(monnambuf));
+    if (!alreadynamed(mtmp, monnambuf, buf)) await pline("%s doesn't like being called names!", upstart(monnambuf));
   }
   else if (mtmp.isshk && !((player?.Deaf || player?.deaf || false) || helpless(mtmp) || mtmp.data.msound <= MS_ANIMAL)) {
     if (!alreadynamed(mtmp, monnambuf, buf)) {
-      verbalize("I'm %s, not %s.", shkname(mtmp), buf);
+      await verbalize("I'm %s, not %s.", shkname(mtmp), buf);
     }
   }
   else if (mtmp.ispriest || mtmp.isminion || mtmp.isshk || mtmp.data === mons[PM_GHOST] || has_ebones(mtmp)) {
-    if (!alreadynamed(mtmp, monnambuf, buf)) pline("%s will not accept the name %s.", upstart(monnambuf), buf);
+    if (!alreadynamed(mtmp, monnambuf, buf)) await pline("%s will not accept the name %s.", upstart(monnambuf), buf);
   }
   else { christen_monst(mtmp, buf); }
 }
 
 // Autotranslated from do_name.c:371
-export function oname(obj, name, oflgs, player) {
+export async function oname(obj, name, oflgs, player) {
   let lth, buf;
   let via_naming = (oflgs & ONAME_VIA_NAMING) !== 0, skip_inv_update = (oflgs & ONAME_SKIP_INVUPD) !== 0;
   lth = name ?  (strlen(name) + 1) : 0;
@@ -885,8 +885,8 @@ export function oname(obj, name, oflgs, player) {
   }
   if (lth) artifact_exists(obj, name, true, oflgs);
   if (obj.oartifact) {
-    if (obj === player.swapWeapon) untwoweapon();
-    if (obj === player.weapon) set_artifact_intrinsic(obj, true, W_WEP);
+    if (obj === player.swapWeapon) await untwoweapon();
+    if (obj === player.weapon) await set_artifact_intrinsic(obj, true, W_WEP);
     if (obj.unpaid) alter_cost(obj, 0);
     if (via_naming) {
       if (!player.uconduct.literate++) livelog_printf(LL_CONDUCT | LL_ARTIFACT, "became literate by naming %s", bare_artifactname(obj));

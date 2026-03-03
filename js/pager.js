@@ -43,7 +43,7 @@ async function _showPagerCore(display, text, title) {
     let topLine = 0;
     let searchTerm = null;
 
-    function render() {
+    async function render() {
         // Clear and draw text
         for (let r = 0; r < PAGE_ROWS; r++) {
             const lineIdx = topLine + r;
@@ -56,7 +56,7 @@ async function _showPagerCore(display, text, title) {
                         display.setCell(c, r, line[c], isHighlight ? CLR_CYAN : CLR_GRAY);
                     }
                 } else {
-                    display.putstr(0, r, line.substring(0, TERMINAL_COLS), CLR_GRAY);
+                    await display.putstr(0, r, line.substring(0, TERMINAL_COLS), CLR_GRAY);
                 }
             }
         }
@@ -69,10 +69,10 @@ async function _showPagerCore(display, text, title) {
             : `(${Math.round(topLine / (lines.length - PAGE_ROWS) * 100)}%)`;
         const titleStr = title ? title + ' ' : '';
         const status = `${titleStr}-- ${pct} -- [q:quit  space:next  b:back  /:search]`;
-        display.putstr(0, STATUS_LINE, status.substring(0, TERMINAL_COLS), CLR_GREEN);
+        await display.putstr(0, STATUS_LINE, status.substring(0, TERMINAL_COLS), CLR_GREEN);
     }
 
-    render();
+    await render();
 
     // Input loop
     while (true) {
@@ -86,22 +86,22 @@ async function _showPagerCore(display, text, title) {
             // Next page (space, enter, j)
             if (topLine + PAGE_ROWS < lines.length) {
                 topLine = Math.min(topLine + PAGE_ROWS, lines.length - PAGE_ROWS);
-                render();
+                await render();
             }
         } else if (c === 'b' || c === 'k') {
             // Previous page
             if (topLine > 0) {
                 topLine = Math.max(topLine - PAGE_ROWS, 0);
-                render();
+                await render();
             }
         } else if (c === 'g' || ch === 36) {
             // Home - first page (36 = Home key mapped)
             topLine = 0;
-            render();
+            await render();
         } else if (c === 'G') {
             // End - last page
             topLine = Math.max(0, lines.length - PAGE_ROWS);
-            render();
+            await render();
         } else if (c === '/') {
             // Search
             searchTerm = await getSearchTerm(display);
@@ -111,14 +111,14 @@ async function _showPagerCore(display, text, title) {
                     topLine = Math.min(found, Math.max(0, lines.length - PAGE_ROWS));
                 }
             }
-            render();
+            await render();
         } else if (c === 'n' && searchTerm) {
             // Next search match
             const found = findNext(lines, topLine + 1, searchTerm);
             if (found >= 0) {
                 topLine = Math.min(found, Math.max(0, lines.length - PAGE_ROWS));
             }
-            render();
+            await render();
         }
         // Arrow keys come through as hjkl from input.js
         // h/l = 104/108 — ignore horizontal
@@ -173,7 +173,7 @@ function restoreTerminal(display, saved) {
 // Simple inline search prompt on the status line
 async function getSearchTerm(display) {
     display.clearRow(STATUS_LINE);
-    display.putstr(0, STATUS_LINE, '/', CLR_GREEN);
+    await display.putstr(0, STATUS_LINE, '/', CLR_GREEN);
 
     let term = '';
     while (true) {
@@ -186,11 +186,11 @@ async function getSearchTerm(display) {
             if (term.length > 0) {
                 term = term.slice(0, -1);
                 display.clearRow(STATUS_LINE);
-                display.putstr(0, STATUS_LINE, '/' + term, CLR_GREEN);
+                await display.putstr(0, STATUS_LINE, '/' + term, CLR_GREEN);
             }
         } else if (ch >= 32 && ch < 127) {
             term += String.fromCharCode(ch);
-            display.putstr(0, STATUS_LINE, '/' + term, CLR_GREEN);
+            await display.putstr(0, STATUS_LINE, '/' + term, CLR_GREEN);
         }
     }
 }
@@ -237,7 +237,7 @@ export async function handlePrevMessages(display) {
     const messages = display.messages || [];
 
     if (messages.length === 0) {
-        display.putstr_message('No previous messages.');
+        await display.putstr_message('No previous messages.');
         return { moved: false, tookTime: false };
     }
 
@@ -249,7 +249,7 @@ export async function handlePrevMessages(display) {
     if (messageIndex < 0 || messageIndex >= messages.length) {
         messageIndex = messages.length - 1;
     }
-    display.putstr_message(messages[messageIndex]);
+    await display.putstr_message(messages[messageIndex]);
     display.prevMessageCycleIndex = (messageIndex - 1 + messages.length) % messages.length;
 
     return { moved: false, tookTime: false };
@@ -276,8 +276,8 @@ export async function handleViewMapPrompt(game) {
     for (let i = 0; i < lines.length && i < display.rows; i++) {
         const text = lines[i].substring(0, Math.max(0, display.cols - 28));
         const attr = (i === 0) ? 1 : 0;
-        display.putstr(28, i, ' '.repeat(Math.max(0, display.cols - 28)));
-        display.putstr(28, i, text, undefined, attr);
+        await display.putstr(28, i, ' '.repeat(Math.max(0, display.cols - 28)));
+        await display.putstr(28, i, text, undefined, attr);
     }
 
     await nhgetch();
@@ -367,19 +367,19 @@ export async function handleHelp(game) {
     const c = sel ? sel[0].identifier : null;
     if (c === 'a') {
         // About NetHack
-        display.putstr_message(`${VERSION_STRING}`);
+        await display.putstr_message(`${VERSION_STRING}`);
     } else if (c === 'b') {
         const text = await fetchDataFile('dat/help.txt');
         if (text) await showPager(display, text, 'Long Description');
-        else display.putstr_message('Failed to load help text.');
+        else await display.putstr_message('Failed to load help text.');
     } else if (c === 'c') {
         const text = await fetchDataFile('dat/hh.txt');
         if (text) await showPager(display, text, 'Game Commands');
-        else display.putstr_message('Failed to load command list.');
+        else await display.putstr_message('Failed to load command list.');
     } else if (c === 'd') {
         const text = await fetchDataFile('dat/history.txt');
         if (text) await showPager(display, text, 'History of NetHack');
-        else display.putstr_message('Failed to load history.');
+        else await display.putstr_message('Failed to load history.');
     } else if (c === 'e') {
         return await dowhatis(game);
     } else if (c === 'f') {
@@ -387,7 +387,7 @@ export async function handleHelp(game) {
     } else if (c === 'g') {
         const text = await fetchDataFile('dat/opthelp.txt');
         if (text) await showPager(display, text, 'Game Options');
-        else display.putstr_message('Failed to load options help.');
+        else await display.putstr_message('Failed to load options help.');
     } else if (c === 'h') {
         await showPager(display, keyHelpText, 'Key Bindings');
     } else if (c === 'i') {
@@ -397,7 +397,7 @@ export async function handleHelp(game) {
     } else if (c === 'w' && game.wizard) {
         const text = await fetchDataFile('dat/wizhelp.txt');
         if (text) await showPager(display, text, 'Wizard Mode Commands');
-        else display.putstr_message('Failed to load wizard help.');
+        else await display.putstr_message('Failed to load wizard help.');
     }
     // ESC, q, or anything else = dismiss (sel is null)
 
@@ -466,7 +466,7 @@ const extendedCommandsText = [
 export async function handleWhatdoes(game) {
     const { display } = game;
 
-    display.putstr_message('What command?');
+    await display.putstr_message('What command?');
     const ch = await nhgetch();
 
     if (ch === 27) {
@@ -495,14 +495,14 @@ export async function handleWhatdoes(game) {
         }
         desc = ctrlDescs[ctrlChar];
         if (desc) {
-            display.putstr_message(`${ctrlChar}: ${desc}`);
+            await display.putstr_message(`${ctrlChar}: ${desc}`);
         } else {
-            display.putstr_message(`${ctrlChar}: unknown command.`);
+            await display.putstr_message(`${ctrlChar}: unknown command.`);
         }
     } else if (COMMAND_DESCRIPTIONS[c]) {
-        display.putstr_message(`'${c}': ${COMMAND_DESCRIPTIONS[c]}`);
+        await display.putstr_message(`'${c}': ${COMMAND_DESCRIPTIONS[c]}`);
     } else {
-        display.putstr_message(`'${c}': unknown command.`);
+        await display.putstr_message(`'${c}': unknown command.`);
     }
 
     return { moved: false, tookTime: false };
@@ -516,7 +516,7 @@ export async function handleHistory(game) {
     if (text) {
         await showPager(display, text, 'History of NetHack');
     } else {
-        display.putstr_message('Failed to load history.');
+        await display.putstr_message('Failed to load history.');
     }
     return { moved: false, tookTime: false };
 }
@@ -527,13 +527,13 @@ let guidebookText = null;
 // Fetch and display the NetHack Guidebook
 async function showGuidebook(display) {
     if (!guidebookText) {
-        display.putstr_message('Loading Guidebook...');
+        await display.putstr_message('Loading Guidebook...');
         try {
             const resp = await fetch('Guidebook.txt');
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             guidebookText = await resp.text();
         } catch (e) {
-            display.putstr_message('Failed to load Guidebook.');
+            await display.putstr_message('Failed to load Guidebook.');
             return;
         }
     }
@@ -572,10 +572,10 @@ export function trap_description(outbuf, tnum, x, y) {
 }
 
 // Autotranslated from pager.c:379
-export function look_at_object(buf, x, y, glyph, map) {
+export async function look_at_object(buf, x, y, glyph, map) {
   let otmp = 0, fakeobj = object_from_map(glyph, x, y, otmp);
   if (otmp) {
-    Strcpy(buf, (otmp.otyp !== STRANGE_OBJECT) ? distant_name(otmp, otmp.dknown ? doname_with_price : doname_vague_quan) : obj_descr[STRANGE_OBJECT].oc_name);
+    Strcpy(buf, (otmp.otyp !== STRANGE_OBJECT) ? await distant_name(otmp, otmp.dknown ? doname_with_price : doname_vague_quan) : obj_descr[STRANGE_OBJECT].oc_name);
     if (fakeobj) { otmp.where = OBJ_FREE; dealloc_obj(otmp), otmp = null; }
   }
   else { Strcpy(buf, something); }
@@ -615,7 +615,7 @@ export async function doquickwhatis() {
 }
 
 // Autotranslated from pager.c:2331
-export function doidtrap(player) {
+export async function doidtrap(player) {
   let trap, tt, glyph, x, y;
   if (!getdir("^")) return ECMD_CANCEL;
   x = player.x + player.dx;
@@ -624,7 +624,7 @@ export function doidtrap(player) {
   if (glyph_is_trap(glyph) && ((tt = glyph_to_trap(glyph)) === BEAR_TRAP || tt === TRAPPED_DOOR || tt === TRAPPED_CHEST)) {
     let chesttrap = trapped_chest_at(tt, x, y);
     if (chesttrap || trapped_door_at(tt, x, y)) {
-      pline("That is a trapped %s.", chesttrap ? "chest" : "door");
+      await pline("That is a trapped %s.", chesttrap ? "chest" : "door");
       return ECMD_OK;
     }
   }
@@ -639,11 +639,11 @@ export function doidtrap(player) {
           break;
         }
       }
-      pline("That is %s%s%s.", an(trapname(tt, false)), !trap.madeby_u ? "" : (tt === WEB) ? " woven"   : (tt === HOLE || tt === PIT) ? " dug" : " set", !trap.madeby_u ? "" : " by you");
+      await pline("That is %s%s%s.", an(trapname(tt, false)), !trap.madeby_u ? "" : (tt === WEB) ? " woven"   : (tt === HOLE || tt === PIT) ? " dug" : " set", !trap.madeby_u ? "" : " by you");
       return ECMD_OK;
     }
   }
-  pline("I can't see a trap there.");
+  await pline("I can't see a trap there.");
   return ECMD_OK;
 }
 

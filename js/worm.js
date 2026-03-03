@@ -258,7 +258,7 @@ export function wormhitu(worm, map, player, display, game, mattacku) {
 // ========================================================================
 // cf. worm.c:373 -- cutworm(worm, x, y, cuttier, map, player, game)
 // ========================================================================
-export function cutworm(worm, x, y, cuttier, map, player, game) {
+export async function cutworm(worm, x, y, cuttier, map, player, game) {
     var wnum = worm.wormno;
 
     if (!wnum) return;
@@ -309,9 +309,9 @@ export function cutworm(worm, x, y, cuttier, map, player, game) {
         var context = (game && game.svc && game.svc.context) || game?.context || {};
         if (context.mon_moving) {
             // canspotmon check simplified
-            pline("Part of %s tail has been cut off.", s_suffix(mon_nam(worm)));
+            await pline("Part of %s tail has been cut off.", s_suffix(mon_nam(worm)));
         } else {
-            You("cut part of the tail off of %s.", mon_nam(worm));
+            await You("cut part of the tail off of %s.", mon_nam(worm));
         }
         toss_wsegs(new_tail, true, map);
         if (worm.mhp > 1)
@@ -341,9 +341,9 @@ export function cutworm(worm, x, y, cuttier, map, player, game) {
 
     var ctx = (game && game.svc && game.svc.context) || game?.context || {};
     if (ctx.mon_moving)
-        pline("%s is cut in half.", Monnam(worm));
+        await pline("%s is cut in half.", Monnam(worm));
     else
-        You("cut %s in half.", mon_nam(worm));
+        await You("cut %s in half.", mon_nam(worm));
 }
 
 // ========================================================================

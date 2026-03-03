@@ -353,15 +353,15 @@ function make_blinded(player, duration, _talk) {
 }
 
 // Helper: make_stoned
-function make_stoned(player, duration, msg, _opt, _arg) {
+async function make_stoned(player, duration, msg, _opt, _arg) {
     if (player.stoned !== undefined) player.stoned = duration ? duration : 0;
-    if (msg) pline(msg);
+    if (msg) await pline(msg);
 }
 
 // Helper: make_slimed
-function make_slimed(player, duration, msg) {
+async function make_slimed(player, duration, msg) {
     if (player.slimed !== undefined) player.slimed = duration ? duration : 0;
-    if (msg) pline(msg);
+    if (msg) await pline(msg);
 }
 
 // Helper: nomul -- set multi-turn paralysis
@@ -983,18 +983,18 @@ export function worst_cursed_item(player) {
 // ================================================================
 // cf. pray.c:349 -- fix_curse_trouble(otmp, what, player)
 // ================================================================
-function fix_curse_trouble(otmp, what, player) {
+async function fix_curse_trouble(otmp, what, player) {
     if (!otmp) {
         // impossible
         return;
     }
     if (otmp === player.gloves && player.glib) {
         player.glib = 0;
-        Your("hands are no longer slippery.");
+        await Your("hands are no longer slippery.");
         if (!otmp.cursed) return;
     }
     if (!player.blind || (otmp === player.blindfold)) {
-        pline("%s %s.",
+        await pline("%s %s.",
               what || (Yobjnam2(otmp, "softly glow")),
               hcolor("amber"));
         otmp.bknown = !player.hallucinating;
@@ -1006,7 +1006,7 @@ function fix_curse_trouble(otmp, what, player) {
 // ================================================================
 // cf. pray.c:373 -- fix_worst_trouble(trouble, player, map)
 // ================================================================
-function fix_worst_trouble(trouble, player, map) {
+async function fix_worst_trouble(trouble, player, map) {
     let otmp = null;
     let what = null;
     const leftglow = "Your left ring softly glows";
@@ -1014,40 +1014,40 @@ function fix_worst_trouble(trouble, player, map) {
 
     switch (trouble) {
     case TROUBLE_STONED:
-        make_stoned(player, 0, "You feel more limber.");
+        await make_stoned(player, 0, "You feel more limber.");
         break;
     case TROUBLE_SLIMED:
-        make_slimed(player, 0, "The slime disappears.");
+        await make_slimed(player, 0, "The slime disappears.");
         break;
     case TROUBLE_STRANGLED:
         if (player.amulet && player.amulet.otyp === AMULET_OF_STRANGULATION) {
-            Your("amulet vanishes!");
+            await Your("amulet vanishes!");
             useup(player.amulet, player);
             player.amulet = null;
         }
-        You("can breathe again.");
+        await You("can breathe again.");
         player.strangled = 0;
         break;
     case TROUBLE_LAVA:
-        if (!safe_teleds(0, { player, map }))
-            reset_utrap(player, true);
+        if (!await safe_teleds(0, { player, map }))
+            await reset_utrap(player, true);
         rescued_from_terrain();
         break;
     case TROUBLE_STARVING:
         // FALLTHRU
     case TROUBLE_HUNGRY:
-        Your("%s feels content.", body_part(STOMACH, player));
-        init_uhunger(player);
+        await Your("%s feels content.", body_part(STOMACH, player));
+        await init_uhunger(player);
         break;
     case TROUBLE_SICK:
-        You_feel("better.");
-        make_sick(player, 0, null, false, 0);
+        await You_feel("better.");
+        await make_sick(player, 0, null, false, 0);
         break;
     case TROUBLE_REGION:
-        region_safety();
+        await region_safety();
         break;
     case TROUBLE_HIT: {
-        You_feel("much better.");
+        await You_feel("much better.");
         let maxhp;
         if (Upolyd(player)) {
             maxhp = (player.mhmax || 0) + rnd(5);
@@ -1064,7 +1064,7 @@ function fix_worst_trouble(trouble, player, map) {
     case TROUBLE_COLLAPSING: {
         const attrMax = player.attrMax || player.attributes;
         const diff = attrMax[A_STR] - player.attributes[A_STR];
-        You_feel("%sstronger.", diff > 6 ? "much " : "");
+        await You_feel("%sstronger.", diff > 6 ? "much " : "");
         player.attributes[A_STR] = attrMax[A_STR];
         if (Fixed_abil(player)) {
             otmp = stuck_ring(player.leftRing, RIN_SUSTAIN_ABILITY);
@@ -1074,17 +1074,17 @@ function fix_worst_trouble(trouble, player, map) {
                 if (otmp && otmp === player.rightRing) what = rightglow;
             }
             if (otmp) {
-                fix_curse_trouble(otmp, what, player);
+                await fix_curse_trouble(otmp, what, player);
                 break;
             }
         }
         break;
     }
     case TROUBLE_STUCK_IN_WALL:
-        if (safe_teleds(0, { player, map })) {
-            Your("surroundings change.");
+        if (await safe_teleds(0, { player, map })) {
+            await Your("surroundings change.");
         } else {
-            You_feel("much slimmer.");
+            await You_feel("much slimmer.");
         }
         break;
     case TROUBLE_CURSED_LEVITATION:
@@ -1095,22 +1095,22 @@ function fix_worst_trouble(trouble, player, map) {
         } else if ((otmp = stuck_ring(player.rightRing, RIN_LEVITATION)) != null) {
             if (otmp === player.rightRing) what = rightglow;
         }
-        fix_curse_trouble(otmp, what, player);
+        await fix_curse_trouble(otmp, what, player);
         break;
     case TROUBLE_UNUSEABLE_HANDS:
         if (welded(player.weapon)) {
             otmp = player.weapon;
-            fix_curse_trouble(otmp, what, player);
+            await fix_curse_trouble(otmp, what, player);
             break;
         }
         if (Upolyd(player) && player.data && nohands(player.data)) {
             if (!Unchanging(player)) {
-                Your("shape becomes uncertain.");
-                rehumanize(player);
+                await Your("shape becomes uncertain.");
+                await rehumanize(player);
             } else {
                 const unch = unchanger(player);
                 if (unch && unch.cursed) {
-                    fix_curse_trouble(unch, what, player);
+                    await fix_curse_trouble(unch, what, player);
                     break;
                 }
             }
@@ -1118,13 +1118,13 @@ function fix_worst_trouble(trouble, player, map) {
         break;
     case TROUBLE_CURSED_BLINDFOLD:
         otmp = player.blindfold;
-        fix_curse_trouble(otmp, what, player);
+        await fix_curse_trouble(otmp, what, player);
         break;
     case TROUBLE_LYCANTHROPE:
         you_unwere(player, true);
         break;
     case TROUBLE_PUNISHED:
-        Your("chain disappears.");
+        await Your("chain disappears.");
         if (player.utrap && player.utraptype === TT_BURIEDBALL)
             buried_ball_to_freedom();
         else
@@ -1135,19 +1135,19 @@ function fix_worst_trouble(trouble, player, map) {
             otmp = player.gloves;
         else if (Cursed_obj(player.boots, FUMBLE_BOOTS))
             otmp = player.boots;
-        fix_curse_trouble(otmp, what, player);
+        await fix_curse_trouble(otmp, what, player);
         break;
     case TROUBLE_CURSED_ITEMS:
         otmp = worst_cursed_item(player);
         if (otmp === player.rightRing) what = rightglow;
         else if (otmp === player.leftRing) what = leftglow;
-        fix_curse_trouble(otmp, what, player);
+        await fix_curse_trouble(otmp, what, player);
         break;
     case TROUBLE_POISONED:
         if (player.hallucinating)
-            pline("There's a tiger in your tank.");
+            await pline("There's a tiger in your tank.");
         else
-            You_feel("in good health again.");
+            await You_feel("in good health again.");
         if (player.attributes && player.attrMax) {
             for (let i = 0; i < A_MAX; i++) {
                 if (player.attributes[i] < player.attrMax[i]) {
@@ -1155,36 +1155,36 @@ function fix_worst_trouble(trouble, player, map) {
                 }
             }
         }
-        encumber_msg();
+        await encumber_msg();
         break;
     case TROUBLE_BLIND:
         if (player.blind) {
-            pline("Your eyes feel better.");
-            make_blinded(player, 0, false);
+            await pline("Your eyes feel better.");
+            await make_blinded(player, 0, false);
         }
         if (player.deaf) {
-            pline("You can hear again.");
+            await pline("You can hear again.");
         }
         break;
     case TROUBLE_WOUNDED_LEGS:
-        heal_legs(player);
+        await heal_legs(player);
         break;
     case TROUBLE_STUNNED:
-        make_stunned(player, 0, true);
+        await make_stunned(player, 0, true);
         break;
     case TROUBLE_CONFUSED:
-        make_confused(player, 0, true);
+        await make_confused(player, 0, true);
         break;
     case TROUBLE_HALLUCINATION:
-        pline("Looks like you are back in Kansas.");
-        make_hallucinated(player, 0, false, 0);
+        await pline("Looks like you are back in Kansas.");
+        await make_hallucinated(player, 0, false, 0);
         break;
     case TROUBLE_SADDLE:
         if (player.steed) {
             otmp = which_armor(player.steed, W_SADDLE);
             if (otmp) {
                 if (!player.blind) {
-                    pline("%s %s.", Yobjnam2(otmp, "softly glow"), hcolor("amber"));
+                    await pline("%s %s.", Yobjnam2(otmp, "softly glow"), hcolor("amber"));
                 }
                 uncurse(otmp);
             }
@@ -1196,62 +1196,62 @@ function fix_worst_trouble(trouble, player, map) {
 // ================================================================
 // cf. pray.c:610 -- god_zaps_you(resp_god, player, map)
 // ================================================================
-export function god_zaps_you(resp_god, player, map) {
+export async function god_zaps_you(resp_god, player, map) {
     if (player.uswallow) {
-        pline(
+        await pline(
           "Suddenly a bolt of lightning comes down at you from the heavens!");
-        pline("It strikes %s!", mon_nam(player.ustuck));
+        await pline("It strikes %s!", mon_nam(player.ustuck));
         if (!resists_elec(player.ustuck)) {
-            pline("%s fries to a crisp!", Monnam(player.ustuck));
+            await pline("%s fries to a crisp!", Monnam(player.ustuck));
             killed(player.ustuck, map, player);
         } else {
-            pline("%s seems unaffected.", Monnam(player.ustuck));
+            await pline("%s seems unaffected.", Monnam(player.ustuck));
         }
     } else {
-        pline("Suddenly, a bolt of lightning strikes you!");
+        await pline("Suddenly, a bolt of lightning strikes you!");
         if (Reflecting(player)) {
             shieldeff();
             if (player.blind)
-                pline("For some reason you're unaffected.");
+                await pline("For some reason you're unaffected.");
             else
-                pline("It reflects from your %s.", "body");
+                await pline("It reflects from your %s.", "body");
         } else if (Shock_resistance(player)) {
             shieldeff();
-            pline("It seems not to affect you.");
+            await pline("It seems not to affect you.");
         } else {
-            fry_by_god(resp_god, false, player);
+            await fry_by_god(resp_god, false, player);
         }
     }
 
-    pline("%s is not deterred...", align_gname(resp_god, player));
+    await pline("%s is not deterred...", align_gname(resp_god, player));
     if (player.uswallow) {
-        pline("A wide-angle disintegration beam aimed at you hits %s!",
+        await pline("A wide-angle disintegration beam aimed at you hits %s!",
               mon_nam(player.ustuck));
         if (!resists_disint(player.ustuck)) {
-            pline("%s disintegrates into a pile of dust!", Monnam(player.ustuck));
+            await pline("%s disintegrates into a pile of dust!", Monnam(player.ustuck));
             killed(player.ustuck, map, player);
         } else {
-            pline("%s seems unaffected.", Monnam(player.ustuck));
+            await pline("%s seems unaffected.", Monnam(player.ustuck));
         }
     } else {
-        pline("A wide-angle disintegration beam hits you!");
+        await pline("A wide-angle disintegration beam hits you!");
         // Destroy armor before disintegrating
-        if (player.shield) destroy_arm();
-        if (player.cloak) destroy_arm();
-        if (player.armor && !player.cloak) destroy_arm();
-        if (player.shirt && !player.armor && !player.cloak) destroy_arm();
+        if (player.shield) await destroy_arm();
+        if (player.cloak) await destroy_arm();
+        if (player.armor && !player.cloak) await destroy_arm();
+        if (player.shirt && !player.armor && !player.cloak) await destroy_arm();
         if (!Disint_resistance(player)) {
-            fry_by_god(resp_god, true, player);
+            await fry_by_god(resp_god, true, player);
         } else {
-            You("bask in its black glow for a minute...");
-            godvoice(resp_god, "I believe it not!", player);
+            await You("bask in its black glow for a minute...");
+            await godvoice(resp_god, "I believe it not!", player);
         }
         if (Is_astralevel() || Is_sanctum()) {
-            verbalize("Thou cannot escape my wrath, mortal!");
-            summon_minion(resp_god, false, map, player);
-            summon_minion(resp_god, false, map, player);
-            summon_minion(resp_god, false, map, player);
-            verbalize("Destroy %s, my servants!", uhim(player));
+            await verbalize("Thou cannot escape my wrath, mortal!");
+            await summon_minion(resp_god, false, map, player);
+            await summon_minion(resp_god, false, map, player);
+            await summon_minion(resp_god, false, map, player);
+            await verbalize("Destroy %s, my servants!", uhim(player));
         }
     }
 }
@@ -1259,17 +1259,17 @@ export function god_zaps_you(resp_god, player, map) {
 // ================================================================
 // cf. pray.c:694 -- fry_by_god(resp_god, via_disintegration, player)
 // ================================================================
-export function fry_by_god(resp_god, via_disintegration, player) {
-    You("%s!", !via_disintegration ? "fry to a crisp"
+export async function fry_by_god(resp_god, via_disintegration, player) {
+    await You("%s!", !via_disintegration ? "fry to a crisp"
                                    : "disintegrate into a pile of dust");
     player.deathCause = "the wrath of " + align_gname(resp_god, player);
-    done(player, "DIED");
+    await done(player, "DIED");
 }
 
 // ================================================================
 // cf. pray.c:704 -- angrygods(resp_god, player, map)
 // ================================================================
-function angrygods(resp_god, player, map) {
+async function angrygods(resp_god, player, map) {
     let maxanger;
 
     if (Inhell(player)) resp_god = A_NONE;
@@ -1292,50 +1292,50 @@ function angrygods(resp_god, player, map) {
     switch (rn2(maxanger)) {
     case 0:
     case 1:
-        You_feel("that %s is %s.", align_gname(resp_god, player),
+        await You_feel("that %s is %s.", align_gname(resp_god, player),
                  player.hallucinating ? "bummed" : "displeased");
         break;
     case 2:
     case 3:
-        godvoice(resp_god, null, player);
-        pline("\"Thou %s, %s.\"",
+        await godvoice(resp_god, null, player);
+        await pline("\"Thou %s, %s.\"",
               (ugod_is_angry(player) && resp_god === player.alignment)
                   ? "hast strayed from the path"
                   : "art arrogant",
               mletH === S_HUMAN ? "mortal" : "creature");
-        verbalize("Thou must relearn thy lessons!");
-        adjattrib(player, A_WIS, -1, false);
-        losexp(player);
+        await verbalize("Thou must relearn thy lessons!");
+        await adjattrib(player, A_WIS, -1, false);
+        await losexp(player);
         break;
     case 6:
         if (!Punished(player)) {
-            gods_angry(resp_god, player);
+            await gods_angry(resp_god, player);
             punish(player);
             break;
         }
         // FALLTHRU
     case 4:
     case 5:
-        gods_angry(resp_god, player);
+        await gods_angry(resp_god, player);
         if (!player.blind && !Antimagic(player))
-            pline("%s glow surrounds you.", An(hcolor("black")));
-        if (rn2(2) || !attrcurse(player))
-            rndcurse(player, map);
+            await pline("%s glow surrounds you.", An(hcolor("black")));
+        if (rn2(2) || !await attrcurse(player))
+            await rndcurse(player, map);
         break;
     case 7:
     case 8:
-        godvoice(resp_god, null, player);
-        verbalize("Thou durst %s me?",
+        await godvoice(resp_god, null, player);
+        await verbalize("Thou durst %s me?",
                   (on_altar(player, map) && a_align(player.x, player.y, map) !== resp_god)
                       ? "scorn"
                       : "call upon");
-        pline("\"Then die, %s!\"",
+        await pline("\"Then die, %s!\"",
               mletH === S_HUMAN ? "mortal" : "creature");
-        summon_minion(resp_god, false, map, player);
+        await summon_minion(resp_god, false, map, player);
         break;
     default:
-        gods_angry(resp_god, player);
-        god_zaps_you(resp_god, player, map);
+        await gods_angry(resp_god, player);
+        await god_zaps_you(resp_god, player, map);
         break;
     }
     // Set prayer timer
@@ -1347,14 +1347,14 @@ function angrygods(resp_god, player, map) {
 // ================================================================
 // cf. pray.c:788 -- at_your_feet(str, player)
 // ================================================================
-export function at_your_feet(str, player) {
+export async function at_your_feet(str, player) {
     if (player.blind) str = "Something";
     if (player.uswallow) {
-        pline("%s drops into %s %s.", str,
+        await pline("%s drops into %s %s.", str,
               s_suffix(mon_nam(player.ustuck)),
               mbodypart(player.ustuck, STOMACH));
     } else {
-        pline("%s %s %s your %s!", str,
+        await pline("%s %s %s your %s!", str,
               player.blind ? "lands" : "appears",
               Levitation(player) ? "beneath" : "at",
               makeplural(body_part(FOOT, player)));
@@ -1364,7 +1364,7 @@ export function at_your_feet(str, player) {
 // ================================================================
 // cf. pray.c:805 -- gcrownu(player, map)
 // ================================================================
-function gcrownu(player, map) {
+async function gcrownu(player, map) {
     let obj;
     let what;
     let already_exists, in_hand;
@@ -1373,7 +1373,7 @@ function gcrownu(player, map) {
     // Grant resistances
     // (In full C port these are intrinsic flags; here we note them)
     // HSee_invisible, HFire/Cold/Shock/Sleep/Poison_resistance |= FROMOUTSIDE
-    godvoice(player.alignment, null, player);
+    await godvoice(player.alignment, null, player);
 
     class_gift = STRANGE_OBJECT;
     if (Role_if(player, PM_WIZARD)
@@ -1396,7 +1396,7 @@ function gcrownu(player, map) {
     case A_LAWFUL:
         if (!player.uevent) player.uevent = {};
         player.uevent.uhand_of_elbereth = 1;
-        verbalize("I crown thee...  The Hand of Elbereth!");
+        await verbalize("I crown thee...  The Hand of Elbereth!");
         livelog_printf(0, "was crowned \"The Hand of Elbereth\" by %s",
                        u_gname(player));
         break;
@@ -1405,7 +1405,7 @@ function gcrownu(player, map) {
         player.uevent.uhand_of_elbereth = 2;
         in_hand = u_wield_art(player, ART_VORPAL_BLADE);
         already_exists = exist_artifact(LONG_SWORD, artiname(ART_VORPAL_BLADE));
-        verbalize("Thou shalt be my Envoy of Balance!");
+        await verbalize("Thou shalt be my Envoy of Balance!");
         livelog_printf(0, "became %s Envoy of Balance", s_suffix(u_gname(player)));
         break;
     case A_CHAOTIC:
@@ -1415,7 +1415,7 @@ function gcrownu(player, map) {
         already_exists = exist_artifact(RUNESWORD, artiname(ART_STORMBRINGER));
         what = (((already_exists && !in_hand) || class_gift !== STRANGE_OBJECT)
                 ? "take lives" : "steal souls");
-        verbalize("Thou art chosen to %s for My Glory!", what);
+        await verbalize("Thou art chosen to %s for My Glory!", what);
         livelog_printf(0, "was chosen to %s for the Glory of %s",
                        what, u_gname(player));
         break;
@@ -1427,8 +1427,8 @@ function gcrownu(player, map) {
         obj = mksobj(class_gift, true, false);
         bless_obj(obj);
         obj.bknown = true;
-        at_your_feet(upstart(ansimpleoname(obj)), player);
-        dropy(obj, player, map);
+        await at_your_feet(upstart(ansimpleoname(obj)), player);
+        await dropy(obj, player, map);
         player.ugifts = (player.ugifts || 0) + 1;
         livelog_printf(0, "was bestowed with %s", xname(obj));
         if (known_spell(player, class_gift) >= 0 && ok_wep(player.weapon))
@@ -1439,7 +1439,7 @@ function gcrownu(player, map) {
     switch (player.alignment) {
     case A_LAWFUL:
         if (class_gift === STRANGE_OBJECT && obj && obj.otyp === LONG_SWORD && !obj.oartifact) {
-            if (!player.blind) Your("sword shines brightly for a moment.");
+            if (!player.blind) await Your("sword shines brightly for a moment.");
             obj = oname_obj(obj, artiname(ART_EXCALIBUR));
             if (is_art(obj, ART_EXCALIBUR)) {
                 player.ugifts = (player.ugifts || 0) + 1;
@@ -1450,13 +1450,13 @@ function gcrownu(player, map) {
     case A_NEUTRAL:
         if (class_gift === STRANGE_OBJECT) {
             if (obj && in_hand) {
-                Your("%s goes snicker-snack!", xname(obj));
+                await Your("%s goes snicker-snack!", xname(obj));
             } else if (!already_exists) {
                 obj = mksobj(LONG_SWORD, false, false);
                 obj = oname_obj(obj, artiname(ART_VORPAL_BLADE));
                 obj.spe = 1;
-                at_your_feet("A sword", player);
-                dropy(obj, player, map);
+                await at_your_feet("A sword", player);
+                await dropy(obj, player, map);
                 player.ugifts = (player.ugifts || 0) + 1;
                 livelog_printf(0, "was bestowed with %s", artiname(ART_VORPAL_BLADE));
             }
@@ -1467,13 +1467,13 @@ function gcrownu(player, map) {
         const swordbuf = hcolor("black") + " sword";
         if (class_gift === STRANGE_OBJECT) {
             if (obj && in_hand) {
-                Your("%s hums ominously!", swordbuf);
+                await Your("%s hums ominously!", swordbuf);
             } else if (!already_exists) {
                 obj = mksobj(RUNESWORD, false, false);
                 obj = oname_obj(obj, artiname(ART_STORMBRINGER));
                 obj.spe = 1;
-                at_your_feet(An(swordbuf), player);
-                dropy(obj, player, map);
+                await at_your_feet(An(swordbuf), player);
+                await dropy(obj, player, map);
                 player.ugifts = (player.ugifts || 0) + 1;
                 livelog_printf(0, "was bestowed with %s", artiname(ART_STORMBRINGER));
             }
@@ -1498,7 +1498,7 @@ function gcrownu(player, map) {
         if ((obj.spe || 0) < 1) obj.spe = 1;
         unrestrict_weapon_skill(weapon_type(obj));
     } else if (class_gift === STRANGE_OBJECT) {
-        You_feel("unworthy.");
+        await You_feel("unworthy.");
     }
     update_inventory();
     add_weapon_skill(1);
@@ -1507,7 +1507,7 @@ function gcrownu(player, map) {
 // ================================================================
 // cf. pray.c:999 -- give_spell(player, map)
 // ================================================================
-function give_spell(player, map) {
+async function give_spell(player, map) {
     // Create a random spellbook
     let otmp = mkobj(SPBOOK_CLASS, true);
     let trycnt = (player.ulevel || 1) + 1;
@@ -1529,15 +1529,15 @@ function give_spell(player, map) {
             const spe_name = objectData[otmp.otyp] ? objectData[otmp.otyp].name : "a spell";
             const prior = known_spell(player, otmp.otyp);
             if (prior <= 0)
-                pline("Divine knowledge of %s fills your mind!  Spell '%s'.",
+                await pline("Divine knowledge of %s fills your mind!  Spell '%s'.",
                       spe_name, spe_let);
             else
-                Your("knowledge of spell '%s' - %s is refreshed.", spe_let, spe_name);
+                await Your("knowledge of spell '%s' - %s is refreshed.", spe_let, spe_name);
         }
         obfree(otmp);
     } else {
         bless_obj(otmp);
-        at_your_feet(upstart(ansimpleoname(otmp)), player);
+        await at_your_feet(upstart(ansimpleoname(otmp)), player);
         place_object(otmp, player.x, player.y, map);
         newsym(map, player.x, player.y);
     }
@@ -1546,11 +1546,11 @@ function give_spell(player, map) {
 // ================================================================
 // cf. pray.c:1071 -- pleased(g_align, player, map)
 // ================================================================
-function pleased(g_align, player, map) {
+async function pleased(g_align, player, map) {
     let trouble = in_trouble(player, map);
     let pat_on_head = 0;
 
-    You_feel("that %s is %s.", align_gname(g_align, player),
+    await You_feel("that %s is %s.", align_gname(g_align, player),
              ((player.alignmentRecord || 0) >= DEVOUT)
                  ? (player.hallucinating ? "pleased as punch" : "well-pleased")
                  : ((player.alignmentRecord || 0) >= STRIDENT)
@@ -1582,19 +1582,19 @@ function pleased(g_align, player, map) {
             // FALLTHRU
         case 4:
             do {
-                fix_worst_trouble(trouble, player, map);
+                await fix_worst_trouble(trouble, player, map);
             } while ((trouble = in_trouble(player, map)) !== 0);
             break;
         case 3:
-            fix_worst_trouble(trouble, player, map);
+            await fix_worst_trouble(trouble, player, map);
             // FALLTHRU
         case 2:
             while ((trouble = in_trouble(player, map)) > 0 && ++tryct < 10)
-                fix_worst_trouble(trouble, player, map);
+                await fix_worst_trouble(trouble, player, map);
             break;
         case 1:
             if (trouble > 0)
-                fix_worst_trouble(trouble, player, map);
+                await fix_worst_trouble(trouble, player, map);
             break;
         case 0:
             break; // blown off
@@ -1611,21 +1611,21 @@ function pleased(g_align, player, map) {
                 || is_weptool(player.weapon))) {
                 if (player.weapon.cursed) {
                     if (!player.blind) {
-                        pline("%s %s.", Yobjnam2(player.weapon, "softly glow"),
+                        await pline("%s %s.", Yobjnam2(player.weapon, "softly glow"),
                               hcolor("amber"));
                     } else {
-                        You_feel("the power of %s over %s.", u_gname(player),
+                        await You_feel("the power of %s over %s.", u_gname(player),
                                  yname(player.weapon));
                     }
                     uncurse(player.weapon);
                     player.weapon.bknown = true;
                 } else if (!player.weapon.blessed) {
                     if (!player.blind) {
-                        pline("%s with %s aura.",
+                        await pline("%s with %s aura.",
                               Yobjnam2(player.weapon, "softly glow"),
                               an(hcolor("light blue")));
                     } else {
-                        You_feel("the blessing of %s over %s.", u_gname(player),
+                        await You_feel("the blessing of %s over %s.", u_gname(player),
                                  yname(player.weapon));
                     }
                     bless_obj(player.weapon);
@@ -1643,15 +1643,15 @@ function pleased(g_align, player, map) {
             if (!player.uevent) player.uevent = {};
             if (!player.uevent.uopened_dbridge && !player.uevent.gehennom_entered) {
                 if ((player.uevent.uheard_tune || 0) < 1) {
-                    godvoice(g_align, null, player);
-                    verbalize("Hark, %s!",
+                    await godvoice(g_align, null, player);
+                    await verbalize("Hark, %s!",
                               (player.data && is_human(player.data)) ? "mortal" : "creature");
-                    verbalize("To enter the castle, thou must play the right tune!");
+                    await verbalize("To enter the castle, thou must play the right tune!");
                     player.uevent.uheard_tune = (player.uevent.uheard_tune || 0) + 1;
                     break;
                 } else if ((player.uevent.uheard_tune || 0) < 2) {
-                    You_hear("a divine music...");
-                    pline("It sounds like:  \"%s\".", player.tune || "");
+                    await You_hear("a divine music...");
+                    await pline("It sounds like:  \"%s\".", player.tune || "");
                     player.uevent.uheard_tune = (player.uevent.uheard_tune || 0) + 1;
                     record_achievement();
                     break;
@@ -1660,7 +1660,7 @@ function pleased(g_align, player, map) {
             // FALLTHRU
         case 2:
             if (!player.blind)
-                You("are surrounded by %s glow.", an(hcolor("golden")));
+                await You("are surrounded by %s glow.", an(hcolor("golden")));
             if ((player.ulevel || 1) < (player.levelmax || player.ulevel || 1)) {
                 // Would call pluslvl
             } else {
@@ -1674,25 +1674,25 @@ function pleased(g_align, player, map) {
             if (player.attributes && player.attrMax
                 && player.attributes[A_STR] < player.attrMax[A_STR]) {
                 player.attributes[A_STR] = player.attrMax[A_STR];
-                encumber_msg();
+                await encumber_msg();
             }
-            if ((player.hunger || 0) < 900) init_uhunger(player);
+            if ((player.hunger || 0) < 900) await init_uhunger(player);
             if ((player.luck || 0) < 0) player.luck = 0;
             player.ucreamed = 0;
-            make_blinded(player, 0, true);
+            await make_blinded(player, 0, true);
             break;
         case 4: {
             if (player.blind)
-                You_feel("the power of %s.", u_gname(player));
+                await You_feel("the power of %s.", u_gname(player));
             else
-                You("are surrounded by %s aura.", an(hcolor("light blue")));
+                await You("are surrounded by %s aura.", an(hcolor("light blue")));
             let any = 0;
             for (const otmp of player.inventory) {
                 if (otmp.cursed
                     && (otmp !== player.helmet
                         || player.helmet.otyp !== HELM_OF_OPPOSITE_ALIGNMENT)) {
                     if (!player.blind) {
-                        pline("%s %s.", Yobjnam2(otmp, "softly glow"),
+                        await pline("%s %s.", Yobjnam2(otmp, "softly glow"),
                               hcolor("amber"));
                         otmp.bknown = true;
                         any++;
@@ -1705,31 +1705,31 @@ function pleased(g_align, player, map) {
         }
         case 5: {
             const msg = "\"and thus I grant thee the gift of %s!\"";
-            godvoice(player.alignment, "Thou hast pleased me with thy progress,", player);
+            await godvoice(player.alignment, "Thou hast pleased me with thy progress,", player);
             // Grant intrinsic in priority order
             if (!player.telepat) {
-                pline(msg, "Telepathy");
+                await pline(msg, "Telepathy");
             } else if (!player.fast) {
-                pline(msg, "Speed");
+                await pline(msg, "Speed");
             } else if (!player.stealth) {
-                pline(msg, "Stealth");
+                await pline(msg, "Stealth");
             } else {
                 player.ublessed = (player.ublessed || 0) + 1;
-                pline(msg, "my protection");
+                await pline(msg, "my protection");
             }
-            verbalize("Use it wisely in my name!");
+            await verbalize("Use it wisely in my name!");
             break;
         }
         case 7:
         case 8:
             if ((player.alignmentRecord || 0) >= PIOUS
                 && !(player.uevent && player.uevent.uhand_of_elbereth)) {
-                gcrownu(player, map);
+                await gcrownu(player, map);
                 break;
             }
             // FALLTHRU
         case 6:
-            give_spell(player, map);
+            await give_spell(player, map);
             break;
         default:
             break;
@@ -1752,7 +1752,7 @@ function pleased(g_align, player, map) {
 // ================================================================
 // cf. pray.c:1387 -- water_prayer(bless_water, player, map)
 // ================================================================
-export function water_prayer(bless_water, player, map) {
+export async function water_prayer(bless_water, player, map) {
     let changed = 0;
     let other = false;
     const bc_known = !(player.blind || player.hallucinating);
@@ -1771,7 +1771,7 @@ export function water_prayer(bless_water, player, map) {
         }
     }
     if (!player.blind && changed) {
-        pline("%s potion%s on the altar glow%s %s for a moment.",
+        await pline("%s potion%s on the altar glow%s %s for a moment.",
               ((other && changed > 1) ? "Some of the"
                                        : (other ? "One of the" : "The")),
               ((other || changed > 1) ? "s" : ""),
@@ -1782,7 +1782,7 @@ export function water_prayer(bless_water, player, map) {
 }
 
 // cf. pray.c:1415 -- godvoice(g_align, words): print god's voice message
-export function godvoice(g_align, words, player) {
+export async function godvoice(g_align, words, player) {
     let quot = "";
     if (words) {
         quot = "\"";
@@ -1790,64 +1790,64 @@ export function godvoice(g_align, words, player) {
         words = "";
     }
     const verb = godvoices[rn2(godvoices.length)];
-    pline_The("voice of %s %s: %s%s%s", align_gname(g_align, player),
+    await pline_The("voice of %s %s: %s%s%s", align_gname(g_align, player),
               verb, quot, words, quot);
 }
 
 // cf. pray.c:1429 -- gods_angry(g_align): print angry god message
 // Autotranslated from pray.c:1428
-export function gods_angry(g_align) {
-  godvoice(g_align, "Thou hast angered me.");
+export async function gods_angry(g_align) {
+  await godvoice(g_align, "Thou hast angered me.");
 }
 
 // ================================================================
 // cf. pray.c:1436 -- gods_upset(g_align, player, map)
 // ================================================================
 // Autotranslated from pray.c:1435
-export function gods_upset(g_align, player) {
+export async function gods_upset(g_align, player) {
   if (g_align === player.ualign.type) player.ugangr++;
   else if (player.ugangr) player.ugangr--;
-  angrygods(g_align);
+  await angrygods(g_align);
 }
 
 // ================================================================
 // cf. pray.c:1446 -- consume_offering(otmp, player, map)
 // ================================================================
 // Autotranslated from pray.c:1445
-export function consume_offering(otmp, player) {
+export async function consume_offering(otmp, player) {
   if (Hallucination) {
     switch (rn2(3)) {
       case 0:
-        Your("sacrifice sprouts wings and a propeller and roars away!");
+        await Your("sacrifice sprouts wings and a propeller and roars away!");
       break;
       case 1:
-        Your("sacrifice puffs up, swelling bigger and bigger, and pops!");
+        await Your("sacrifice puffs up, swelling bigger and bigger, and pops!");
       break;
       case 2:
-        Your( "sacrifice collapses into a cloud of dancing particles and fades away!");
+        await Your( "sacrifice collapses into a cloud of dancing particles and fades away!");
       break;
     }
   }
-  else if (Blind &player.ualign.type === A_LAWFUL) Your("sacrifice disappears!");
+  else if (Blind &player.ualign.type === A_LAWFUL) await Your("sacrifice disappears!");
   else {
-    Your("sacrifice is consumed in a %s!", (player.ualign.type === A_LAWFUL) ? "flash of light" : (player.ualign.type === A_NEUTRAL) ? "plume of smoke" : "burst of flame");
+    await Your("sacrifice is consumed in a %s!", (player.ualign.type === A_LAWFUL) ? "flash of light" : (player.ualign.type === A_NEUTRAL) ? "plume of smoke" : "burst of flame");
   }
   if (carried(otmp)) useup(otmp);
   else {
     useupf(otmp, 1);
   }
-  exercise(A_WIS, true);
+  await exercise(A_WIS, true);
 }
 
 // ================================================================
 // cf. pray.c:1480 -- offer_too_soon(altaralign, player, map)
 // ================================================================
-function offer_too_soon(altaralign, player, map) {
+async function offer_too_soon(altaralign, player, map) {
     if (altaralign === A_NONE && Inhell(player)) {
-        gods_upset(A_NONE, player, map);
+        await gods_upset(A_NONE, player, map);
         return;
     }
-    You_feel("%s.", player.hallucinating
+    await You_feel("%s.", player.hallucinating
                     ? "homesick"
                     : (altaralign === player.alignment)
                         ? "an urge to return to the surface"
@@ -1857,23 +1857,23 @@ function offer_too_soon(altaralign, player, map) {
 // ================================================================
 // cf. pray.c:1501 -- desecrate_altar(highaltar, altaralign, player, map)
 // ================================================================
-export function desecrate_altar(highaltar, altaralign, player, map) {
+export async function desecrate_altar(highaltar, altaralign, player, map) {
     if (altaralign === player.alignment) {
         adjalign(player, -20);
         player.ugangr = (player.ugangr || 0) + 5;
     }
-    You_feel("the air around you grow charged...");
-    pline("Suddenly, you realize that %s has noticed you...",
+    await You_feel("the air around you grow charged...");
+    await pline("Suddenly, you realize that %s has noticed you...",
           align_gname(altaralign, player));
-    godvoice(altaralign, "So, mortal!  You dare desecrate my "
+    await godvoice(altaralign, "So, mortal!  You dare desecrate my "
              + (highaltar ? "High Temple" : "altar") + "!", player);
-    god_zaps_you(altaralign, player, map);
+    await god_zaps_you(altaralign, player, map);
 }
 
 // ================================================================
 // cf. pray.c:1529 -- offer_real_amulet(otmp, altaralign, player, map)
 // ================================================================
-function offer_real_amulet(otmp, altaralign, player, map) {
+async function offer_real_amulet(otmp, altaralign, player, map) {
     // Remove the amulet
     if (player.amulet === otmp) player.amulet = null;
     if (carried(otmp, player))
@@ -1881,86 +1881,86 @@ function offer_real_amulet(otmp, altaralign, player, map) {
     else
         useupf(otmp, 1, map);
 
-    You("offer the Amulet of Yendor to %s...", a_gname(player, map));
+    await You("offer the Amulet of Yendor to %s...", a_gname(player, map));
 
     if (altaralign === A_NONE) {
         if ((player.alignmentRecord || 0) > -99) player.alignmentRecord = -99;
-        pline("An invisible choir chants, and you are bathed in darkness...");
-        pline("%s shrugs and retains dominion over %s,", Moloch, u_gname(player));
-        pline("then mercilessly snuffs out your life.");
+        await pline("An invisible choir chants, and you are bathed in darkness...");
+        await pline("%s shrugs and retains dominion over %s,", Moloch, u_gname(player));
+        await pline("then mercilessly snuffs out your life.");
         player.deathCause = Moloch + " indifference";
-        done(player, "DIED");
-        pline("%s snarls and tries again...", Moloch);
-        fry_by_god(A_NONE, true, player);
-        done(player, "ESCAPED");
+        await done(player, "DIED");
+        await pline("%s snarls and tries again...", Moloch);
+        await fry_by_god(A_NONE, true, player);
+        await done(player, "ESCAPED");
     } else if (player.alignment !== altaralign) {
         adjalign(player, -99);
-        pline("%s accepts your gift, and gains dominion over %s...",
+        await pline("%s accepts your gift, and gains dominion over %s...",
               a_gname(player, map), u_gname(player));
-        pline("%s is enraged...", u_gname(player));
-        pline("Fortunately, %s permits you to live...", a_gname(player, map));
-        pline("A cloud of %s smoke surrounds you...", hcolor("orange"));
-        done(player, "ESCAPED");
+        await pline("%s is enraged...", u_gname(player));
+        await pline("Fortunately, %s permits you to live...", a_gname(player, map));
+        await pline("A cloud of %s smoke surrounds you...", hcolor("orange"));
+        await done(player, "ESCAPED");
     } else {
         if (!player.uevent) player.uevent = {};
         player.uevent.ascended = 1;
         adjalign(player, 10);
-        pline("An invisible choir sings, and you are bathed in radiance...");
-        godvoice(altaralign, "Mortal, thou hast done well!", player);
+        await pline("An invisible choir sings, and you are bathed in radiance...");
+        await godvoice(altaralign, "Mortal, thou hast done well!", player);
         display_nhwindow();
-        verbalize("In return for thy service, I grant thee the gift of Immortality!");
-        You("ascend to the status of Demigod%s...",
+        await verbalize("In return for thy service, I grant thee the gift of Immortality!");
+        await You("ascend to the status of Demigod%s...",
             player.female ? "dess" : "");
-        done(player, "ASCENDED");
+        await done(player, "ASCENDED");
     }
 }
 
 // ================================================================
 // cf. pray.c:1592 -- offer_negative_valued(highaltar, altaralign, player, map)
 // ================================================================
-export function offer_negative_valued(highaltar, altaralign, player, map) {
+export async function offer_negative_valued(highaltar, altaralign, player, map) {
     if (altaralign !== player.alignment && highaltar) {
-        desecrate_altar(highaltar, altaralign, player, map);
+        await desecrate_altar(highaltar, altaralign, player, map);
     } else {
-        gods_upset(altaralign, player, map);
+        await gods_upset(altaralign, player, map);
     }
 }
 
 // ================================================================
 // cf. pray.c:1602 -- offer_fake_amulet(otmp, highaltar, altaralign, player, map)
 // ================================================================
-export function offer_fake_amulet(otmp, highaltar, altaralign, player, map) {
+export async function offer_fake_amulet(otmp, highaltar, altaralign, player, map) {
     if (!highaltar && !otmp.known) {
-        offer_too_soon(altaralign, player, map);
+        await offer_too_soon(altaralign, player, map);
         return;
     }
-    You_hear("a nearby thunderclap.");
+    await You_hear("a nearby thunderclap.");
     if (!otmp.known) {
-        You("realize you have made a %s.",
+        await You("realize you have made a %s.",
             player.hallucinating ? "boo-boo" : "mistake");
         otmp.known = true;
         change_luck(player, -1);
     } else {
         if (Deaf(player))
-            pline("Oh, no.");
+            await pline("Oh, no.");
         change_luck(player, -3);
         adjalign(player, -1);
         player.ugangr = (player.ugangr || 0) + 3;
-        offer_negative_valued(highaltar, altaralign, player, map);
+        await offer_negative_valued(highaltar, altaralign, player, map);
     }
 }
 
 // ================================================================
 // cf. pray.c:1631 -- offer_different_alignment_altar(otmp, altaralign, player, map)
 // ================================================================
-export function offer_different_alignment_altar(otmp, altaralign, player, map) {
+export async function offer_different_alignment_altar(otmp, altaralign, player, map) {
     if (ugod_is_angry(player) || (altaralign === A_NONE && Inhell(player))) {
         const ualignbase_current = player.ualignbase_current || player.alignment;
         const ualignbase_original = player.ualignbase_original || player.alignment;
         if (ualignbase_current === ualignbase_original && altaralign !== A_NONE) {
-            You("have a strong feeling that %s is angry...", u_gname(player));
-            consume_offering(otmp, player, map);
-            pline("%s accepts your allegiance.", a_gname(player, map));
+            await You("have a strong feeling that %s is angry...", u_gname(player));
+            await consume_offering(otmp, player, map);
+            await pline("%s accepts your allegiance.", a_gname(player, map));
             // Conversion
             player.alignment = altaralign;
             change_luck(player, -3);
@@ -1968,19 +1968,19 @@ export function offer_different_alignment_altar(otmp, altaralign, player, map) {
         } else {
             player.ugangr = (player.ugangr || 0) + 3;
             adjalign(player, -5);
-            pline("%s rejects your sacrifice!", a_gname(player, map));
-            godvoice(altaralign, "Suffer, infidel!", player);
+            await pline("%s rejects your sacrifice!", a_gname(player, map));
+            await godvoice(altaralign, "Suffer, infidel!", player);
             change_luck(player, -5);
-            adjattrib(player, A_WIS, -2, true);
+            await adjattrib(player, A_WIS, -2, true);
             if (!Inhell(player))
-                angrygods(player.alignment, player, map);
+                await angrygods(player.alignment, player, map);
         }
     } else {
-        consume_offering(otmp, player, map);
-        You("sense a conflict between %s and %s.", u_gname(player), a_gname(player, map));
+        await consume_offering(otmp, player, map);
+        await You("sense a conflict between %s and %s.", u_gname(player), a_gname(player, map));
         if (rn2(8 + (player.ulevel || 1)) > 5) {
-            You_feel("the power of %s increase.", u_gname(player));
-            exercise(player, A_WIS, true);
+            await You_feel("the power of %s increase.", u_gname(player));
+            await exercise(player, A_WIS, true);
             change_luck(player, 1);
             const loc = map.at(player.x, player.y);
             const shrine = on_shrine(player, map);
@@ -1990,19 +1990,19 @@ export function offer_different_alignment_altar(otmp, altaralign, player, map) {
             if (!player.blind) {
                 const color = (player.alignment === A_LAWFUL) ? "white"
                              : player.alignment ? "black" : "gray";
-                pline_The("altar glows %s.", hcolor(color));
+                await pline_The("altar glows %s.", hcolor(color));
             }
             if (rnl(player.ulevel || 1, Luck(player)) > 6 && (player.alignmentRecord || 0) > 0
                 && rnd(player.alignmentRecord) > Math.floor(3 * ALIGNLIM / 4))
-                summon_minion(altaralign, true, map, player);
+                await summon_minion(altaralign, true, map, player);
             angry_priest();
         } else {
-            pline("Unluckily, you feel the power of %s decrease.", u_gname(player));
+            await pline("Unluckily, you feel the power of %s decrease.", u_gname(player));
             change_luck(player, -1);
-            exercise(player, A_WIS, false);
+            await exercise(player, A_WIS, false);
             if (rnl(player.ulevel || 1, Luck(player)) > 6 && (player.alignmentRecord || 0) > 0
                 && rnd(player.alignmentRecord) > Math.floor(7 * ALIGNLIM / 8))
-                summon_minion(altaralign, true, map, player);
+                await summon_minion(altaralign, true, map, player);
         }
     }
 }
@@ -2010,20 +2010,20 @@ export function offer_different_alignment_altar(otmp, altaralign, player, map) {
 // ================================================================
 // cf. pray.c:1698 -- sacrifice_your_race(otmp, highaltar, altaralign, player, map)
 // ================================================================
-function sacrifice_your_race(otmp, highaltar, altaralign, player, map) {
+async function sacrifice_your_race(otmp, highaltar, altaralign, player, map) {
     if (player.data && is_demon(player.data)) {
-        You("find the idea very satisfying.");
-        exercise(player, A_WIS, true);
+        await You("find the idea very satisfying.");
+        await exercise(player, A_WIS, true);
     } else if (player.alignment !== A_CHAOTIC) {
-        pline("You'll regret this infamous offense!");
-        exercise(player, A_WIS, false);
+        await pline("You'll regret this infamous offense!");
+        await exercise(player, A_WIS, false);
     }
 
     if (highaltar && (altaralign !== A_CHAOTIC || player.alignment !== A_CHAOTIC)) {
-        desecrate_altar(highaltar, altaralign, player, map);
+        await desecrate_altar(highaltar, altaralign, player, map);
         return;
     } else if (altaralign !== A_CHAOTIC && altaralign !== A_NONE) {
-        pline_The("altar is stained with %s blood.", "your");
+        await pline_The("altar is stained with %s blood.", "your");
         const loc = map.at(player.x, player.y);
         loc.flags = AM_CHAOTIC;
         newsym(map, player.x, player.y);
@@ -2031,7 +2031,7 @@ function sacrifice_your_race(otmp, highaltar, altaralign, player, map) {
     } else {
         let demonless_msg;
         if (altaralign === A_CHAOTIC && player.alignment !== A_CHAOTIC) {
-            pline("The blood floods the altar, which vanishes in %s cloud!",
+            await pline("The blood floods the altar, which vanishes in %s cloud!",
                   an(hcolor("black")));
             const loc = map.at(player.x, player.y);
             loc.typ = ROOM;
@@ -2040,7 +2040,7 @@ function sacrifice_your_race(otmp, highaltar, altaralign, player, map) {
             angry_priest();
             demonless_msg = "cloud dissipates";
         } else {
-            pline_The("blood covers the altar!");
+            await pline_The("blood covers the altar!");
             change_luck(player, altaralign === A_NONE ? -2 : 2);
             demonless_msg = "blood coagulates";
         }
@@ -2048,25 +2048,25 @@ function sacrifice_your_race(otmp, highaltar, altaralign, player, map) {
         if (pm >= 0) {
             const dmon = makemon(mons[pm], player.x, player.y, 0, player.dungeonLevel, map);
             if (dmon) {
-                You("have summoned %s!", mon_nam(dmon));
+                await You("have summoned %s!", mon_nam(dmon));
                 if (sgn(player.alignment) === sgn(dmon.data ? dmon.data.maligntyp || 0 : 0))
                     dmon.mpeaceful = true;
-                You("are terrified, and unable to move.");
+                await You("are terrified, and unable to move.");
                 nomul(player, -3);
             } else {
-                pline_The("%s.", demonless_msg);
+                await pline_The("%s.", demonless_msg);
             }
         } else {
-            pline_The("%s.", demonless_msg);
+            await pline_The("%s.", demonless_msg);
         }
     }
 
     if (player.alignment !== A_CHAOTIC) {
         adjalign(player, -5);
         player.ugangr = (player.ugangr || 0) + 3;
-        adjattrib(player, A_WIS, -1, true);
+        await adjattrib(player, A_WIS, -1, true);
         if (!Inhell(player))
-            angrygods(player.alignment, player, map);
+            await angrygods(player.alignment, player, map);
         change_luck(player, -5);
     } else {
         adjalign(player, 5);
@@ -2080,7 +2080,7 @@ function sacrifice_your_race(otmp, highaltar, altaralign, player, map) {
 // ================================================================
 // cf. pray.c:1781 -- bestow_artifact(max_giftvalue, player, map)
 // ================================================================
-export function bestow_artifact(max_giftvalue, player, map) {
+export async function bestow_artifact(max_giftvalue, player, map) {
     const nartifacts = nartifact_exist();
     let do_bestow = (player.ulevel || 1) > 2 && (player.luck || 0) >= 0;
     if (do_bestow)
@@ -2097,12 +2097,12 @@ export function bestow_artifact(max_giftvalue, player, map) {
             const buf = player.hallucinating ? "A doodad"
                       : player.blind ? "An object"
                       : ansimpleoname(otmp);
-            at_your_feet(upstart(buf), player);
-            dropy(otmp, player, map);
-            godvoice(player.alignment, "Use my gift wisely!", player);
+            await at_your_feet(upstart(buf), player);
+            await dropy(otmp, player, map);
+            await godvoice(player.alignment, "Use my gift wisely!", player);
             player.ugifts = (player.ugifts || 0) + 1;
             player.ublesscnt = rnz(300 + 50 * nartifacts);
-            exercise(player, A_WIS, true);
+            await exercise(player, A_WIS, true);
             livelog_printf(0, "was bestowed with %s by %s",
                            artiname(otmp.oartifact),
                            align_gname(player.alignment, player));
@@ -2134,14 +2134,14 @@ export function sacrifice_value(otmp, player) {
 // ================================================================
 // cf. pray.c:1854 -- dosacrifice(player, map)
 // ================================================================
-export function dosacrifice(player, map) {
+export async function dosacrifice(player, map) {
     if (!on_altar(player, map) || player.uswallow) {
-        You("are not %s an altar.",
+        await You("are not %s an altar.",
             (Levitation(player) || Flying(player)) ? "over" : "on");
         return 0;
     }
     if (player.confused || player.stunned) {
-        You("are too impaired to perform the rite.");
+        await You("are too impaired to perform the rite.");
         return 0;
     }
 
@@ -2161,22 +2161,22 @@ export function dosacrifice(player, map) {
 
     if (otmp.otyp === AMULET_OF_YENDOR) {
         if (!highaltar) {
-            offer_too_soon(altaralign, player, map);
+            await offer_too_soon(altaralign, player, map);
             return 1;
         } else {
-            offer_real_amulet(otmp, altaralign, player, map);
+            await offer_real_amulet(otmp, altaralign, player, map);
             return 1;
         }
     }
     if (otmp.otyp === FAKE_AMULET_OF_YENDOR) {
-        offer_fake_amulet(otmp, highaltar, altaralign, player, map);
+        await offer_fake_amulet(otmp, highaltar, altaralign, player, map);
         return 1;
     }
     if (otmp.otyp === CORPSE) {
-        offer_corpse(otmp, highaltar, altaralign, player, map);
+        await offer_corpse(otmp, highaltar, altaralign, player, map);
         return 1;
     }
-    pline("Nothing happens.");
+    await pline("Nothing happens.");
     return 1;
 }
 
@@ -2184,7 +2184,7 @@ export function dosacrifice(player, map) {
 // cf. pray.c:1899 -- eval_offering(otmp, altaralign, player)
 // ================================================================
 // Autotranslated from pray.c:1898
-export function eval_offering(otmp, altaralign, player) {
+export async function eval_offering(otmp, altaralign, player) {
   let ptr, value;
   value = sacrifice_value(otmp);
   if (!value) return 0;
@@ -2197,14 +2197,14 @@ export function eval_offering(otmp, altaralign, player) {
   else if (is_unicorn(ptr)) {
     let unicalign = sgn(ptr.maligntyp);
     if (unicalign === altaralign) {
-      pline("Such an action is an insult to %s!", (unicalign === A_CHAOTIC) ? "chaos" : unicalign ? "law" : "balance");
-      adjattrib(A_WIS, -1, true);
+      await pline("Such an action is an insult to %s!", (unicalign === A_CHAOTIC) ? "chaos" : unicalign ? "law" : "balance");
+      await adjattrib(A_WIS, -1, true);
       return -1;
     }
     else if (player.ualign.type === altaralign) {
-      if (player.ualign.record < ALIGNLIM) You_feel("appropriately %s.", align_str(player.ualign.type));
+      if (player.ualign.record < ALIGNLIM) await You_feel("appropriately %s.", align_str(player.ualign.type));
       else {
-        You_feel("you are thoroughly on the right path.");
+        await You_feel("you are thoroughly on the right path.");
       }
       adjalign(5);
       value += 3;
@@ -2218,18 +2218,18 @@ export function eval_offering(otmp, altaralign, player) {
 // ================================================================
 // cf. pray.c:1959 -- offer_corpse(otmp, highaltar, altaralign, player, map)
 // ================================================================
-export function offer_corpse(otmp, highaltar, altaralign, player, map) {
+export async function offer_corpse(otmp, highaltar, altaralign, player, map) {
     // Conduct tracking
     if (!player.uconduct) player.uconduct = {};
     if (!player.uconduct.gnostic) player.uconduct.gnostic = 0;
     player.uconduct.gnostic++;
 
-    feel_cockatrice();
-    if (rider_corpse_revival()) return;
+    await feel_cockatrice();
+    if (await rider_corpse_revival()) return;
 
     const ptr = mons[otmp.corpsenm];
     if (ptr && your_race(ptr, player)) {
-        sacrifice_your_race(otmp, highaltar, altaralign, player, map);
+        await sacrifice_your_race(otmp, highaltar, altaralign, player, map);
         return;
     }
 
@@ -2237,33 +2237,33 @@ export function offer_corpse(otmp, highaltar, altaralign, player, map) {
     if (has_omonst(otmp)) {
         const mtmp = get_mtraits(otmp);
         if (mtmp && mtmp.mtame) {
-            pline("So this is how you repay loyalty?");
+            await pline("So this is how you repay loyalty?");
             adjalign(player, -3);
-            offer_negative_valued(highaltar, altaralign, player, map);
+            await offer_negative_valued(highaltar, altaralign, player, map);
             return;
         }
     }
 
-    let value = eval_offering(otmp, altaralign, player);
+    let value = await eval_offering(otmp, altaralign, player);
     if (value === 0) {
-        pline("Nothing happens.");
+        await pline("Nothing happens.");
         return;
     }
     if (value < 0) {
-        offer_negative_valued(highaltar, altaralign, player, map);
+        await offer_negative_valued(highaltar, altaralign, player, map);
         return;
     }
 
     if (altaralign !== player.alignment && highaltar) {
-        desecrate_altar(highaltar, altaralign, player, map);
+        await desecrate_altar(highaltar, altaralign, player, map);
         return;
     }
     if (player.alignment !== altaralign) {
-        offer_different_alignment_altar(otmp, altaralign, player, map);
+        await offer_different_alignment_altar(otmp, altaralign, player, map);
         return;
     }
 
-    consume_offering(otmp, player, map);
+    await consume_offering(otmp, player, map);
 
     // Brownie points
     if (player.ugangr) {
@@ -2272,26 +2272,26 @@ export function offer_corpse(otmp, highaltar, altaralign, player, map) {
         if (player.ugangr < 0) player.ugangr = 0;
         if (player.ugangr !== saved_anger) {
             if (player.ugangr) {
-                pline("%s seems %s.", u_gname(player),
+                await pline("%s seems %s.", u_gname(player),
                       player.hallucinating ? "groovy" : "slightly mollified");
                 if ((player.luck || 0) < 0) change_luck(player, 1);
             } else {
-                pline("%s seems %s.", u_gname(player),
+                await pline("%s seems %s.", u_gname(player),
                       player.hallucinating ? "cosmic (not a new fact)" : "mollified");
                 if ((player.luck || 0) < 0) player.luck = 0;
             }
         } else {
             if (player.hallucinating)
-                pline_The("gods seem tall.");
+                await pline_The("gods seem tall.");
             else
-                You("have a feeling of inadequacy.");
+                await You("have a feeling of inadequacy.");
         }
     } else if (ugod_is_angry(player)) {
         if (value > MAXVALUE) value = MAXVALUE;
         if (value > -(player.alignmentRecord || 0))
             value = -(player.alignmentRecord || 0);
         adjalign(player, value);
-        You_feel("partially absolved.");
+        await You_feel("partially absolved.");
     } else if ((player.ublesscnt || 0) > 0) {
         const saved_cnt = player.ublesscnt;
         player.ublesscnt -= Math.floor(value * (player.alignment === A_CHAOTIC ? 500 : 300) / MAXVALUE);
@@ -2299,20 +2299,20 @@ export function offer_corpse(otmp, highaltar, altaralign, player, map) {
         if (player.ublesscnt !== saved_cnt) {
             if (player.ublesscnt) {
                 if (player.hallucinating)
-                    You("realize that the gods are not like you and I.");
+                    await You("realize that the gods are not like you and I.");
                 else
-                    You("have a hopeful feeling.");
+                    await You("have a hopeful feeling.");
                 if ((player.luck || 0) < 0) change_luck(player, 1);
             } else {
                 if (player.hallucinating)
-                    pline("Overall, there is a smell of fried onions.");
+                    await pline("Overall, there is a smell of fried onions.");
                 else
-                    You("have a feeling of reconciliation.");
+                    await You("have a feeling of reconciliation.");
                 if ((player.luck || 0) < 0) player.luck = 0;
             }
         }
     } else {
-        if (bestow_artifact(value, player, map))
+        if (await bestow_artifact(value, player, map))
             return;
 
         const orig_luck = player.luck || 0;
@@ -2326,9 +2326,9 @@ export function offer_corpse(otmp, highaltar, altaralign, player, map) {
         if ((player.luck || 0) < 0) player.luck = 0;
         if ((player.luck || 0) !== orig_luck) {
             if (player.blind)
-                You("think %s brushed your %s.", "something", body_part(FOOT, player));
+                await You("think %s brushed your %s.", "something", body_part(FOOT, player));
             else
-                You(player.hallucinating
+                await You(player.hallucinating
                     ? "see crabgrass at your %s.  A funny thing in a dungeon."
                     : "glimpse a four-leaf clover at your %s.",
                     makeplural(body_part(FOOT, player)));
@@ -2339,7 +2339,7 @@ export function offer_corpse(otmp, highaltar, altaralign, player, map) {
 // ================================================================
 // cf. pray.c:2124 -- can_pray(praying, player, map)
 // ================================================================
-export function can_pray(praying, player, map) {
+export async function can_pray(praying, player, map) {
     let alignment;
 
     p_aligntyp = on_altar(player, map) ? a_align(player.x, player.y, map) : player.alignment;
@@ -2348,13 +2348,13 @@ export function can_pray(praying, player, map) {
     if (player.data && is_demon(player.data)
         && (p_aligntyp === A_LAWFUL || p_aligntyp === A_NEUTRAL)) {
         if (praying)
-            pline_The("very idea of praying to a %s god is repugnant to you.",
+            await pline_The("very idea of praying to a %s god is repugnant to you.",
                       p_aligntyp ? "lawful" : "neutral");
         return false;
     }
 
     if (praying)
-        You("begin praying to %s.", align_gname(p_aligntyp, player));
+        await You("begin praying to %s.", align_gname(p_aligntyp, player));
 
     if (player.alignment && player.alignment === -p_aligntyp)
         alignment = -(player.alignmentRecord || 0);
@@ -2411,24 +2411,24 @@ export function pray_revive(player, map) {
 // ================================================================
 // cf. pray.c:2199 -- dopray(player, map)
 // ================================================================
-export function dopray(player, map) {
+export async function dopray(player, map) {
     // Conduct tracking
     if (!player.uconduct) player.uconduct = {};
     if (!player.uconduct.gnostic) player.uconduct.gnostic = 0;
     player.uconduct.gnostic++;
 
-    if (!can_pray(true, player, map))
+    if (!await can_pray(true, player, map))
         return 0;
 
     nomul(player, -3);
     player.multi_reason = "praying";
     player.nomovemsg = "You finish your prayer.";
     // Schedule prayer_done callback
-    player.afternmv = () => prayer_done(player, map);
+    player.afternmv = async () => await prayer_done(player, map);
 
     if (p_type === 3 && !Inhell(player)) {
         if (!player.blind)
-            You("are surrounded by a shimmering light.");
+            await You("are surrounded by a shimmering light.");
         player.uinvulnerable = true;
     }
 
@@ -2438,64 +2438,64 @@ export function dopray(player, map) {
 // ================================================================
 // cf. pray.c:2276 -- prayer_done(player, map)
 // ================================================================
-export function prayer_done(player, map) {
+export async function prayer_done(player, map) {
     const alignment = p_aligntyp;
 
     player.uinvulnerable = false;
     if (p_type === -2) {
-        You("%s diabolical laughter all around you...",
+        await You("%s diabolical laughter all around you...",
             !Deaf(player) ? "hear" : "intuit");
         wake_nearby(player, map);
         adjalign(player, -2);
-        exercise(player, A_WIS, false);
+        await exercise(player, A_WIS, false);
         if (!Inhell(player)) {
-            pline("Nothing else happens.");
+            await pline("Nothing else happens.");
             return 1;
         }
     } else if (p_type === -1) {
-        godvoice(alignment,
+        await godvoice(alignment,
                  (alignment === A_LAWFUL)
                     ? "Vile creature, thou durst call upon me?"
                     : "Walk no more, perversion of nature!", player);
-        You_feel("like you are falling apart.");
-        rehumanize(player);
-        losehp(player, rnd(20), "residual undead turning effect");
-        exercise(player, A_CON, false);
+        await You_feel("like you are falling apart.");
+        await rehumanize(player);
+        await losehp(player, rnd(20), "residual undead turning effect");
+        await exercise(player, A_CON, false);
         return 1;
     }
     if (Inhell(player)) {
-        pline("Since you are in Gehennom, %s can't help you.",
+        await pline("Since you are in Gehennom, %s can't help you.",
               align_gname(alignment, player));
         if ((player.alignmentRecord || 0) <= 0 || rnl((player.alignmentRecord || 0), Luck(player)))
-            angrygods(player.alignment, player, map);
+            await angrygods(player.alignment, player, map);
         return 0;
     }
 
     if (p_type === 0) {
         if (on_altar(player, map) && player.alignment !== alignment)
-            water_prayer(false, player, map);
+            await water_prayer(false, player, map);
         player.ublesscnt = (player.ublesscnt || 0) + rnz(250);
         change_luck(player, -3);
-        gods_upset(player.alignment, player, map);
+        await gods_upset(player.alignment, player, map);
     } else if (p_type === 1) {
         if (on_altar(player, map) && player.alignment !== alignment)
-            water_prayer(false, player, map);
-        angrygods(player.alignment, player, map);
+            await water_prayer(false, player, map);
+        await angrygods(player.alignment, player, map);
     } else if (p_type === 2) {
-        if (water_prayer(false, player, map)) {
+        if (await water_prayer(false, player, map)) {
             player.ublesscnt = (player.ublesscnt || 0) + rnz(250);
             change_luck(player, -3);
-            gods_upset(player.alignment, player, map);
+            await gods_upset(player.alignment, player, map);
         } else {
-            pleased(alignment, player, map);
+            await pleased(alignment, player, map);
         }
     } else {
         // Coaligned
         if (on_altar(player, map)) {
             pray_revive(player, map);
-            water_prayer(true, player, map);
+            await water_prayer(true, player, map);
         }
-        pleased(alignment, player, map);
+        await pleased(alignment, player, map);
     }
     return 1;
 }
@@ -2506,7 +2506,7 @@ export function prayer_done(player, map) {
 let turn_undead_range = 0;
 let turn_undead_msg_cnt = 0;
 
-function maybe_turn_mon_iter(mtmp, player, map) {
+async function maybe_turn_mon_iter(mtmp, player, map) {
     if (!couldsee(map, player, mtmp.mx, mtmp.my)
         || mdistu(mtmp, player) > turn_undead_range)
         return;
@@ -2520,7 +2520,7 @@ function maybe_turn_mon_iter(mtmp, player, map) {
         mtmp.msleeping = 0;
         if (player.confused) {
             if (!turn_undead_msg_cnt++)
-                pline("Unfortunately, your voice falters.");
+                await pline("Unfortunately, your voice falters.");
             mtmp.mflee = 0;
             mtmp.mfrozen = 0;
             mtmp.mcanmove = true;
@@ -2544,7 +2544,7 @@ function maybe_turn_mon_iter(mtmp, player, map) {
                 }
                 // FALLTHRU
             default:
-                monflee(mtmp, 0, false, true, player);
+                await monflee(mtmp, 0, false, true, player);
                 break;
             }
         }
@@ -2558,7 +2558,7 @@ export async function doturn(player, map) {
     if (!Role_if(player, PM_PRIEST) && !Role_if(player, PM_KNIGHT)) {
         if (known_spell(player, SPE_TURN_UNDEAD) >= 0)
             return await spelleffects(SPE_TURN_UNDEAD, false, player, map);
-        You("don't know how to turn undead!");
+        await You("don't know how to turn undead!");
         return 0;
     }
     if (!player.uconduct) player.uconduct = {};
@@ -2569,26 +2569,26 @@ export async function doturn(player, map) {
 
     const playerData = player.data || {};
     if (!can_chant(playerData, player.strangled)) {
-        You("are %s upon %s to turn aside evilness.",
+        await You("are %s upon %s to turn aside evilness.",
             player.strangled ? "not able to call" : "incapable of calling", Gname);
         return (player.uconduct.gnostic === 1) ? 1 : 0;
     }
     if ((player.alignment !== A_CHAOTIC
          && (is_demon(playerData) || is_undead(playerData)))
         || (player.ugangr || 0) > 6) {
-        pline("For some reason, %s seems to ignore you.", Gname);
+        await pline("For some reason, %s seems to ignore you.", Gname);
         aggravate(map);
-        exercise(player, A_WIS, false);
+        await exercise(player, A_WIS, false);
         return 1;
     }
     if (Inhell(player)) {
-        pline("Since you are in Gehennom, %s %s help you.",
+        await pline("Since you are in Gehennom, %s %s help you.",
               Gname, Gname === Moloch ? "won't" : "can't");
         aggravate(map);
         return 1;
     }
-    pline("Calling upon %s, you chant an arcane formula.", Gname);
-    exercise(player, A_WIS, true);
+    await pline("Calling upon %s, you chant an arcane formula.", Gname);
+    await exercise(player, A_WIS, true);
 
     turn_undead_range = BOLT_LIM + Math.floor((player.ulevel || 1) / 5);
     turn_undead_range *= turn_undead_range;
@@ -2597,7 +2597,7 @@ export async function doturn(player, map) {
     // Iterate over all monsters on the map
     if (map.monsters) {
         for (const mtmp of map.monsters) {
-            maybe_turn_mon_iter(mtmp, player, map);
+            await maybe_turn_mon_iter(mtmp, player, map);
         }
     }
 
@@ -2719,19 +2719,19 @@ export function align_gtitle(alignment, player) {
 }
 
 // cf. pray.c:2652 -- altar_wrath(x, y): divine wrath for altar desecration
-export function altar_wrath(x, y, player, map) {
+export async function altar_wrath(x, y, player, map) {
     const altaralign = a_align(x, y, map);
 
     if (player.alignment === altaralign && player.alignmentRecord > -rn2(4)) {
-        godvoice(altaralign, "How darest thou desecrate my altar!", player);
-        adjattrib(player, A_WIS, -1, false);
+        await godvoice(altaralign, "How darest thou desecrate my altar!", player);
+        await adjattrib(player, A_WIS, -1, false);
         player.alignmentRecord--;
     } else {
-        pline("%s %s%s:",
+        await pline("%s %s%s:",
               "A voice (could it be",
               align_gname(altaralign, player),
               "?) whispers");
-        verbalize("Thou shalt pay, infidel!");
+        await verbalize("Thou shalt pay, infidel!");
         const luck = player.luck || 0;
         if (luck > -5 && rn2(luck + 6)) {
             player.luck = luck + (rn2(20) ? -1 : -2);

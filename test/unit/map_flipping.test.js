@@ -8,7 +8,7 @@ import { resetLevelState, getLevelState, des } from '../../js/sp_lev.js';
 import { initRng, rn2 } from '../../js/rng.js';
 
 describe('Map flipping', () => {
-    it('should flip map vertically when RNG decides', () => {
+    it('should flip map vertically when RNG decides', async () => {
         // Test with a seed that produces vertical flip
         // We need to figure out which seed gives us vertical flip for soko4
 
@@ -28,7 +28,7 @@ describe('Map flipping', () => {
 DEF
 GHI`;
 
-            des.map(testMap);
+            await des.map(testMap);
 
             const state = getLevelState();
             const map = state.map;
@@ -45,7 +45,7 @@ GHI`;
         }
     });
 
-    it('should respect noflip flag', () => {
+    it('should respect noflip flag', async () => {
         resetLevelState();
         initRng(1);
 
@@ -55,7 +55,7 @@ GHI`;
         const testMap = `AB
 CD`;
 
-        des.map(testMap);
+        await des.map(testMap);
 
         const state = getLevelState();
         assert.equal(state.coder.allow_flips, 0, 'allow_flips should be 0 with noflip');

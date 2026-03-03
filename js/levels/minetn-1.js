@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection, percent, shuffle } from '../sp_lev.js';
 import { rn2 } from '../rng.js';
 
-export function generate() {
+export async function generate() {
     // NetHack 3.7	mines minetn-1.lua	$NHDT-Date: 1652196030 2022/5/10 15:20:30 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.8 $
     // Copyright (c) 1989-95 by Jean-Christophe Collet
     // Copyright (c) 1991-95 by M. Stephenson
@@ -158,5 +158,5 @@ export function generate() {
     des.wallify();
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

@@ -129,13 +129,13 @@ function is_edible(obj) {
 
 // cf. eat.c food_xname() — food-specific naming for messages
 // Autotranslated from eat.c:216
-export function food_xname(food, the_pfx) {
+export async function food_xname(food, the_pfx) {
   let result;
   if (food.otyp === CORPSE) {
     result = corpse_xname(food,  0, CXN_SINGULAR | (the_pfx ? CXN_PFX_THE : 0));
     if (type_is_pname( mons[food.corpsenm])) the_pfx = false;
   }
-  else { result = singular(food, xname); }
+  else { result = await singular(food, xname); }
   if (the_pfx) result = the(result);
   return result;
 }
@@ -158,11 +158,11 @@ function obj_nutrition(otmp) {
 
 // cf. eat.c init_uhunger() — initialize hunger state at game start
 // Autotranslated from eat.c:125
-export function init_uhunger(game, player) {
+export async function init_uhunger(game, player) {
   game.disp.botl = (player.uhs !== NOT_HUNGRY || ATEMP(A_STR) < 0);
   player.uhunger = 900;
   player.uhs = NOT_HUNGRY;
-  if (ATEMP(A_STR) < 0) { ATEMP(A_STR) = 0; encumber_msg(); }
+  if (ATEMP(A_STR) < 0) { ATEMP(A_STR) = 0; await encumber_msg(); }
 }
 
 
@@ -171,31 +171,31 @@ export function init_uhunger(game, player) {
 // ============================================================
 
 // cf. eat.c gethungry() — process hunger each turn
-function gethungry(player) {
+async function gethungry(player) {
     // Simplified: basic hunger decrement (the real version checks
     // poly form, rings, amulets, regeneration, etc.)
     player.hunger--;
     // cf. eat.c: accessorytime = rn2(20)
     rn2(20);
-    newuhs(player, true);
+    await newuhs(player, true);
 }
 
 // cf. eat.c morehungry() — increase hunger by amount
-export function morehungry(player, num) {
+export async function morehungry(player, num) {
     player.hunger -= num;
-    newuhs(player, true);
+    await newuhs(player, true);
 }
 
 // cf. eat.c lesshungry() — decrease hunger by amount
-function lesshungry(player, num) {
+async function lesshungry(player, num) {
     player.hunger += num;
     if (player.hunger >= 2000) {
         // choking territory - simplified
         choke(player, null);
     } else if (player.hunger >= 1500) {
-        pline("You're having a hard time getting all of it down.");
+        await pline("You're having a hard time getting all of it down.");
     }
-    newuhs(player, false);
+    await newuhs(player, false);
 }
 
 // cf. eat.c canchoke() — whether current hunger is in choking-warning range
@@ -204,7 +204,7 @@ function canchoke(player) {
 }
 
 // cf. eat.c newuhs() — update hunger state and messages
-function newuhs(player, incr) {
+async function newuhs(player, incr) {
     const h = player.hunger;
     let newhs;
     if (h > 1000) newhs = SATIATED;
@@ -223,11 +223,11 @@ function newuhs(player, incr) {
         }
         switch (newhs) {
         case HUNGRY:
-            You(incr ? 'are beginning to feel hungry.'
+            await You(incr ? 'are beginning to feel hungry.'
                      : 'only feel hungry now.');
             break;
         case WEAK:
-            You(incr ? 'are beginning to feel weak.'
+            await You(incr ? 'are beginning to feel weak.'
                      : 'are still weak.');
             break;
         }
@@ -237,10 +237,10 @@ function newuhs(player, incr) {
 
 // cf. eat.c unfaint() — recover from fainting
 // Autotranslated from eat.c:3330
-export function unfaint(game, player) {
-  Hear_again();
+export async function unfaint(game, player) {
+  await Hear_again();
   if (player.uhs > FAINTING) player.uhs = FAINTING;
-  stop_occupation();
+  await stop_occupation();
   game.disp.botl = true;
   return 0;
 }
@@ -262,27 +262,27 @@ export async function choke(food, player) {
   if (player.uhs !== SATIATED) {
     if (!food || food.otyp !== AMULET_OF_STRANGULATION) return;
   }
-  else if (Role_if(PM_KNIGHT) && player.ualign.type === A_LAWFUL) { adjalign(-1); You_feel("like a glutton!"); }
-  exercise(A_CON, false);
+  else if (Role_if(PM_KNIGHT) && player.ualign.type === A_LAWFUL) { adjalign(-1); await You_feel("like a glutton!"); }
+  await exercise(A_CON, false);
   if (Breathless || Hunger || (!Strangled && !rn2(20))) {
-    if (food && food.otyp === AMULET_OF_STRANGULATION) { You("choke, but recover your composure."); return; }
-    You("stuff yourself and then vomit voluminously.");
+    if (food && food.otyp === AMULET_OF_STRANGULATION) { await You("choke, but recover your composure."); return; }
+    await You("stuff yourself and then vomit voluminously.");
     await morehungry(Hunger ? (player.uhunger - 60) : 1000);
     vomit();
   }
   else {
     svk.killer.format = KILLED_BY_AN;
     if (food) {
-      You("choke over your %s.", foodword(food));
+      await You("choke over your %s.", foodword(food));
       if (food.oclass === COIN_CLASS) { Strcpy(svk.killer.name, "very rich meal"); }
       else {
         svk.killer.format = KILLED_BY;
         Strcpy(svk.killer.name, killer_xname(food));
       }
     }
-    else { You("choke over it."); Strcpy(svk.killer.name, "quick snack"); }
-    You("die...");
-    done(CHOKING);
+    else { await You("choke over it."); Strcpy(svk.killer.name, "quick snack"); }
+    await You("die...");
+    await done(CHOKING);
   }
 }
 
@@ -394,7 +394,7 @@ export function temp_givit(type, ptr) {
 }
 
 // cf. eat.c givit() — grant intrinsic from corpse
-function givit(player, type, ptr) {
+async function givit(player, type, ptr) {
     if (!should_givit(type, ptr) && !temp_givit(type, ptr))
         return;
 
@@ -402,67 +402,67 @@ function givit(player, type, ptr) {
     switch (type) {
     case FIRE_RES:
         if (!(prop.intrinsic & FROMOUTSIDE)) {
-            You_feel('a momentary chill.');
+            await You_feel('a momentary chill.');
             prop.intrinsic |= FROMOUTSIDE;
         }
         break;
     case SLEEP_RES:
         if (!(prop.intrinsic & FROMOUTSIDE)) {
-            You_feel('wide awake.');
+            await You_feel('wide awake.');
             prop.intrinsic |= FROMOUTSIDE;
         }
         break;
     case COLD_RES:
         if (!(prop.intrinsic & FROMOUTSIDE)) {
-            You_feel('full of hot air.');
+            await You_feel('full of hot air.');
             prop.intrinsic |= FROMOUTSIDE;
         }
         break;
     case DISINT_RES:
         if (!(prop.intrinsic & FROMOUTSIDE)) {
-            You_feel('very firm.');
+            await You_feel('very firm.');
             prop.intrinsic |= FROMOUTSIDE;
         }
         break;
     case SHOCK_RES:
         if (!(prop.intrinsic & FROMOUTSIDE)) {
-            Your('health currently feels amplified!');
+            await Your('health currently feels amplified!');
             prop.intrinsic |= FROMOUTSIDE;
         }
         break;
     case POISON_RES:
         if (!(prop.intrinsic & FROMOUTSIDE)) {
-            You_feel('healthy.');
+            await You_feel('healthy.');
             prop.intrinsic |= FROMOUTSIDE;
         }
         break;
     case TELEPORT:
         if (!(prop.intrinsic & FROMOUTSIDE)) {
-            You_feel('very jumpy.');
+            await You_feel('very jumpy.');
             prop.intrinsic |= FROMOUTSIDE;
         }
         break;
     case TELEPORT_CONTROL:
         if (!(prop.intrinsic & FROMOUTSIDE)) {
-            You_feel('in control of yourself.');
+            await You_feel('in control of yourself.');
             prop.intrinsic |= FROMOUTSIDE;
         }
         break;
     case TELEPAT:
         if (!(prop.intrinsic & FROMOUTSIDE)) {
-            You_feel('a strange mental acuity.');
+            await You_feel('a strange mental acuity.');
             prop.intrinsic |= FROMOUTSIDE;
         }
         break;
     case ACID_RES:
         // Timed resistance
-        You_feel('less concerned about being harmed by acid.');
+        await You_feel('less concerned about being harmed by acid.');
         prop.intrinsic = (prop.intrinsic & ~TIMEOUT)
             | Math.min(((prop.intrinsic & TIMEOUT) + d(3, 6)), TIMEOUT);
         break;
     case STONE_RES:
         // Timed resistance
-        You_feel('less concerned about becoming petrified.');
+        await You_feel('less concerned about becoming petrified.');
         prop.intrinsic = (prop.intrinsic & ~TIMEOUT)
             | Math.min(((prop.intrinsic & TIMEOUT) + d(3, 6)), TIMEOUT);
         break;
@@ -470,7 +470,7 @@ function givit(player, type, ptr) {
 }
 
 // cf. eat.c eye_of_newt_buzz() — energy boost from eating newt
-export function eye_of_newt_buzz(player) {
+export async function eye_of_newt_buzz(player) {
     if (rn2(3) || 3 * (player.pw || 0) <= 2 * (player.pwmax || 0)) {
         const oldPw = player.pw || 0;
         player.pw = (player.pw || 0) + rnd(3);
@@ -481,7 +481,7 @@ export function eye_of_newt_buzz(player) {
             player.pw = player.pwmax || 0;
         }
         if ((player.pw || 0) !== oldPw) {
-            You_feel('a mild buzz.');
+            await You_feel('a mild buzz.');
         }
     }
 }
@@ -517,12 +517,12 @@ function corpse_intrinsic(ptr) {
 // ============================================================
 
 // cf. eat.c maybe_cannibal() — check/apply cannibalism effects
-function maybe_cannibal(player, pm, allowmsg) {
+async function maybe_cannibal(player, pm, allowmsg) {
     if (!CANNIBAL_ALLOWED(player)) {
         // Simplified: check if eating own race
         // In full version this checks your_race() etc.
         if (allowmsg) {
-            You('cannibal!  You will regret this!');
+            await You('cannibal!  You will regret this!');
         }
         // Would apply luck penalty: change_luck(-rn1(4, 2))
         return true;
@@ -532,7 +532,7 @@ function maybe_cannibal(player, pm, allowmsg) {
 
 // cf. eat.c fix_petrification() — cure petrification by eating
 // Autotranslated from eat.c:866
-export function fix_petrification() {
+export async function fix_petrification() {
   let buf;
   if (Hallucination) {
     Sprintf(buf, "What a pity--you just ruined a future piece of %sart!", ACURR(A_CHA) > 15 ? "fine " : "");
@@ -540,11 +540,11 @@ export function fix_petrification() {
   else {
     Strcpy(buf, "You feel limber!");
   }
-  make_stoned(0, buf, 0,  0);
+  await make_stoned(0, buf, 0,  0);
 }
 
 // cf. eat.c cprefx() — corpse prefix effects (before eating)
-function cprefx(player, pm) {
+async function cprefx(player, pm) {
     // In full C version: calls maybe_cannibal, checks flesh_petrifies,
     // handles dogs/cats penalty, lizard un-stoning, rider death, green slime
     // Stub: consume RNG as C does but skip most side effects
@@ -558,15 +558,15 @@ function cprefx(player, pm) {
     case PM_LITTLE_DOG: case PM_DOG: case PM_LARGE_DOG:
     case PM_KITTEN: case PM_HOUSECAT: case PM_LARGE_CAT:
         if (!CANNIBAL_ALLOWED(player)) {
-            You_feel(`that eating the ${mons[pm].name} was a bad idea.`);
+            await You_feel(`that eating the ${mons[pm].name} was a bad idea.`);
         }
         break;
     case PM_LIZARD:
         // Would cure petrification
         break;
     case PM_DEATH: case PM_PESTILENCE: case PM_FAMINE:
-        pline('Eating that is instantly fatal.');
-        exercise(player, A_WIS, false);
+        await pline('Eating that is instantly fatal.');
+        await exercise(player, A_WIS, false);
         break;
     case PM_GREEN_SLIME:
         // Would apply sliming
@@ -580,13 +580,13 @@ function cprefx(player, pm) {
 }
 
 // cf. eat.c cpostfx() — corpse postfix effects (after eating)
-function cpostfx(player, pm, display) {
+async function cpostfx(player, pm, display) {
     let tmp = 0;
     let check_intrinsics = false;
 
     switch (pm) {
     case PM_WRAITH:
-        pluslvl(player, display, false);
+        await pluslvl(player, display, false);
         break;
     case PM_HUMAN_WERERAT:
     case PM_HUMAN_WEREJACKAL:
@@ -619,7 +619,7 @@ function cpostfx(player, pm, display) {
         // Would start mimicking
         break;
     case PM_QUANTUM_MECHANIC:
-        Your('velocity suddenly seems very uncertain!');
+        await Your('velocity suddenly seems very uncertain!');
         // Would toggle speed
         break;
     case PM_LIZARD:
@@ -630,7 +630,7 @@ function cpostfx(player, pm, display) {
     case PM_DOPPELGANGER:
     case PM_SANDESTIN:
     case PM_GENETIC_ENGINEER:
-        You_feel('momentarily different.');
+        await You_feel('momentarily different.');
         break;
     case PM_DISPLACER_BEAST:
         // Would grant temporary displacement; consume d(6,6)
@@ -645,11 +645,11 @@ function cpostfx(player, pm, display) {
     case PM_MIND_FLAYER:
     case PM_MASTER_MIND_FLAYER:
         if (!rn2(2)) {
-            pline('Yum!  That was real brain food!');
+            await pline('Yum!  That was real brain food!');
             // Would adjattrib(A_INT, 1)
             break; // don't give telepathy too
         } else {
-            pline('For some reason, that tasted bland.');
+            await pline('For some reason, that tasted bland.');
         }
         // FALLTHROUGH
     default:
@@ -662,20 +662,20 @@ function cpostfx(player, pm, display) {
 
         if (dmgtype(ptr, AD_STUN) || dmgtype(ptr, AD_HALU)
             || pm === PM_VIOLET_FUNGUS) {
-            pline('Oh wow!  Great stuff!');
+            await pline('Oh wow!  Great stuff!');
             // Would make_hallucinated
         }
 
         // Eating magical monsters can give magical energy
         if (attacktype(ptr, AT_MAGC) || pm === PM_NEWT)
-            eye_of_newt_buzz(player);
+            await eye_of_newt_buzz(player);
 
         tmp = corpse_intrinsic(ptr);
 
         if (tmp === -1) {
             // gainstr - would increase strength from giant
         } else if (tmp > 0) {
-            givit(player, tmp, ptr);
+            await givit(player, tmp, ptr);
         }
     }
 }
@@ -687,7 +687,7 @@ function cpostfx(player, pm, display) {
 
 // cf. eat.c eating_conducts() — track dietary conducts
 // Autotranslated from eat.c:575
-export function eating_conducts(pd, player) {
+export async function eating_conducts(pd, player) {
   let ll_conduct = 0;
   if (!player.uconduct.food++) {
     livelog_printf(LL_CONDUCT, "ate for the first time - %s", pd.pmnames[NEUTRAL]);
@@ -701,15 +701,15 @@ export function eating_conducts(pd, player) {
   }
   if (!vegetarian(pd)) {
     if (!player.uconduct.unvegetarian && !ll_conduct) livelog_printf(LL_CONDUCT, "tasted meat (%s) for the first time", pd.pmnames[NEUTRAL]);
-    violated_vegetarian();
+    await violated_vegetarian();
   }
 }
 
 // cf. eat.c violated_vegetarian() — check vegetarian conduct violation
 // Autotranslated from eat.c:1375
-export function violated_vegetarian(player) {
+export async function violated_vegetarian(player) {
   player.uconduct.unvegetarian++;
-  if (Role_if(PM_MONK)) { You_feel("guilty."); adjalign(-1); }
+  if (Role_if(PM_MONK)) { await You_feel("guilty."); adjalign(-1); }
   return;
 }
 
@@ -720,24 +720,24 @@ export function violated_vegetarian(player) {
 
 // cf. eat.c Hear_again() — restore hearing after deafening food
 // Autotranslated from eat.c:1795
-export function Hear_again(game) {
-  if (!rn2(2)) { make_deaf(0, false); game.disp.botl = true; }
+export async function Hear_again(game) {
+  if (!rn2(2)) { await make_deaf(0, false); game.disp.botl = true; }
   return 0;
 }
 
 // cf. eat.c rottenfood() — effects of eating rotten food
-function rottenfood(player, obj) {
-    pline(`Blecch!  Rotten ${foodword(obj)}!`);
+async function rottenfood(player, obj) {
+    await pline(`Blecch!  Rotten ${foodword(obj)}!`);
     if (!rn2(4)) {
-        You_feel('rather light-headed.');
+        await You_feel('rather light-headed.');
         // Would make_confused
     } else if (!rn2(4)) {
-        pline('Everything suddenly goes dark.');
+        await pline('Everything suddenly goes dark.');
         // Would make_blinded; consume d(2,10)
         d(2, 10);
     } else if (!rn2(3)) {
         const duration = rnd(10);
-        pline_The('world spins and goes dark.');
+        await pline_The('world spins and goes dark.');
         // Would nomul(-duration), set deafness
         return 1;
     }
@@ -745,7 +745,7 @@ function rottenfood(player, obj) {
 }
 
 // cf. eat.c eatcorpse() — eat a corpse (rot checks, reqtime, etc.)
-function eatcorpse(player, otmp) {
+async function eatcorpse(player, otmp) {
     let retcode = 0, tp = 0;
     const mnum = otmp.corpsenm;
 
@@ -756,7 +756,7 @@ function eatcorpse(player, otmp) {
         // unvegan conduct
     }
     if (!vegetarian(mons[mnum])) {
-        violated_vegetarian(player);
+        await violated_vegetarian(player);
     }
 
     let rotted = 0;
@@ -770,7 +770,7 @@ function eatcorpse(player, otmp) {
     const reqtime = 3 + ((mons[mnum].weight || 0) >> 6);
 
     if (!tp && !nonrotting_corpse(mnum) && !rn2(7)) {
-        if (rottenfood(player, otmp)) {
+        if (await rottenfood(player, otmp)) {
             retcode = 1;
         }
         if (!mons[mnum].nutrition) {
@@ -789,29 +789,29 @@ function eatcorpse(player, otmp) {
 
 // cf. eat.c garlic_breath() — scare nearby olfaction monsters
 // Autotranslated from eat.c:2079
-export function garlic_breath(mtmp) {
-  if (olfaction(mtmp.data) && distu(mtmp.mx, mtmp.my) < 7) monflee(mtmp, 0, false, false);
+export async function garlic_breath(mtmp) {
+  if (olfaction(mtmp.data) && distu(mtmp.mx, mtmp.my) < 7) await monflee(mtmp, 0, false, false);
 }
 
 // cf. eat.c fprefx() — food prefix effects (non-corpse)
-function fprefx(player, otmp, reqtime, map) {
+async function fprefx(player, otmp, reqtime, map) {
     switch (otmp.otyp) {
     case EGG:
         // Simplified: skip pyrolisk explosion, stale egg checks
         break;
     case FOOD_RATION:
         if (player.hunger <= 200)
-            pline('This food really hits the spot!');
+            await pline('This food really hits the spot!');
         else if (player.hunger < 700)
-            pline('This satiates your stomach!');
+            await pline('This satiates your stomach!');
         break;
     case TRIPE_RATION:
         if (carnivorous(mons[0] || {}) && !is_humanoid(mons[0] || {})) {
-            pline('This tripe ration is surprisingly good!');
+            await pline('This tripe ration is surprisingly good!');
         } else if (player.race === RACE_ORC) {
-            pline('Mmm, tripe... not bad!');
+            await pline('Mmm, tripe... not bad!');
         } else {
-            pline('Yak - dog food!');
+            await pline('Yak - dog food!');
             if (rn2(2) && !CANNIBAL_ALLOWED(player)) {
                 rn1(reqtime, 14); // make_vomiting duration
             }
@@ -819,21 +819,21 @@ function fprefx(player, otmp, reqtime, map) {
         break;
     case LEMBAS_WAFER:
         if (player.race === RACE_ORC) {
-            pline('!#?&* elf kibble!');
+            await pline('!#?&* elf kibble!');
         } else if (player.race === RACE_ELF) {
-            pline('A little goes a long way.');
+            await pline('A little goes a long way.');
         } else {
             // give_feedback
-            pline(`This ${otmp.name || 'food'} is delicious!`);
+            await pline(`This ${otmp.name || 'food'} is delicious!`);
         }
         break;
     case CLOVE_OF_GARLIC:
-        garlic_breath(player, map);
+        await garlic_breath(player, map);
         // FALLTHROUGH to default
-        pline(`This ${otmp.name || 'food'} is delicious!`);
+        await pline(`This ${otmp.name || 'food'} is delicious!`);
         break;
     default:
-        pline(`This ${otmp.name || 'food'} is delicious!`);
+        await pline(`This ${otmp.name || 'food'} is delicious!`);
         break;
     }
     return true;
@@ -921,8 +921,8 @@ export function bounded_increase(old, inc, typ) {
 
 // cf. eat.c accessory_has_effect() — check if accessory eating has effect
 // Autotranslated from eat.c:2252
-export function accessory_has_effect(otmp) {
-  pline("Magic spreads through your body as you digest the %s.", (otmp.oclass === RING_CLASS) ? "ring" : "amulet");
+export async function accessory_has_effect(otmp) {
+  await pline("Magic spreads through your body as you digest the %s.", (otmp.oclass === RING_CLASS) ? "ring" : "amulet");
 }
 
 // cf. eat.c eataccessory() — eat a ring or amulet
@@ -1025,15 +1025,15 @@ export function use_up_tin(tin, game) {
 }
 
 // cf. eat.c consume_tin() — eat the contents of an opened tin
-function consume_tin(player, tin, mesg) {
+async function consume_tin(player, tin, mesg) {
     // Stub: would handle full tin consumption with variety effects
-    pline(mesg || 'You succeed in opening the tin.');
+    await pline(mesg || 'You succeed in opening the tin.');
 }
 
 // cf. eat.c start_tin() — begin opening a tin
-function start_tin(player, otmp, game) {
+async function start_tin(player, otmp, game) {
     // Stub: would set up tin-opening occupation
-    pline('It is not so easy to open this tin.');
+    await pline('It is not so easy to open this tin.');
 }
 
 
@@ -1066,32 +1066,32 @@ export async function doeat_nonfood(otmp, game, player) {
   game.svc.context.victual.eating = 1;
   if (!player.uconduct.food++) {
     ll_conduct++;
-    livelog_printf(LL_CONDUCT, "ate for the first time (%s)", food_xname(otmp, false));
+    livelog_printf(LL_CONDUCT, "ate for the first time (%s)", await food_xname(otmp, false));
   }
   material = objects[otmp.otyp].oc_material;
   if (material === LEATHER || material === BONE || material === DRAGON_HIDE || material === WAX) {
     if (!player.uconduct.unvegan++ && !ll_conduct) {
-      livelog_printf(LL_CONDUCT, "consumed animal products for the first time, by eating %s", an(food_xname(otmp, false)));
+      livelog_printf(LL_CONDUCT, "consumed animal products for the first time, by eating %s", an(await food_xname(otmp, false)));
       ll_conduct++;
     }
     if (material !== WAX) {
-      if (!player.uconduct.unvegetarian && !ll_conduct) livelog_printf(LL_CONDUCT, "tasted meat by-products for the first time, by eating %s", an(food_xname(otmp, false)));
-      violated_vegetarian();
+      if (!player.uconduct.unvegetarian && !ll_conduct) livelog_printf(LL_CONDUCT, "tasted meat by-products for the first time, by eating %s", an(await food_xname(otmp, false)));
+      await violated_vegetarian();
     }
   }
-  if (otmp.cursed) { rottenfood(otmp); nodelicious = true; }
+  if (otmp.cursed) { await rottenfood(otmp); nodelicious = true; }
   else if (objects[otmp.otyp].oc_material === PAPER) nodelicious = true;
   if (otmp.oclass === WEAPON_CLASS && otmp.opoisoned) {
-    pline("Ecch - that must have been poisonous!");
+    await pline("Ecch - that must have been poisonous!");
     if (!Poison_resistance) {
-      poison_strdmg(rnd(4), rnd(15), xname(otmp), KILLED_BY_AN);
+      await poison_strdmg(rnd(4), rnd(15), xname(otmp), KILLED_BY_AN);
     }
     else {
-      You("seem unaffected by the poison.");
+      await You("seem unaffected by the poison.");
     }
   }
   else if (!nodelicious) {
-    pline("%s%s is delicious!", (obj_is_pname(otmp) && otmp.oartifact < ART_ORB_OF_DETECTION) ? "" : "This ", (otmp.oclass === COIN_CLASS) ? foodword(otmp) : singular(otmp, xname));
+    await pline("%s%s is delicious!", (obj_is_pname(otmp) && otmp.oartifact < ART_ORB_OF_DETECTION) ? "" : "This ", (otmp.oclass === COIN_CLASS) ? foodword(otmp) : await singular(otmp, xname));
   }
   await eatspecial();
   return ECMD_TIME;
@@ -1203,7 +1203,7 @@ export async function consume_oeaten(obj, amt, game) {
 }
 
 // cf. eat.c maybe_finished_meal() — check if meal is done
-function maybe_finished_meal(game, stopping) {
+async function maybe_finished_meal(game, stopping) {
     const occ = game?.occupation;
     if (!occ || typeof occ.fn !== 'function' || !occ.isEating) return false;
     const reqtime = Number.isInteger(occ?.eatState?.reqtime) ? occ.eatState.reqtime : (occ.xtime | 0);
@@ -1213,7 +1213,7 @@ function maybe_finished_meal(game, stopping) {
         game.occupation = null;
     }
     // C ref: maybe_finished_meal() calls eatfood() to finish the meal.
-    occ.fn(game);
+    await occ.fn(game);
     return true;
 }
 
@@ -1269,11 +1269,11 @@ async function handleEat(player, display, game) {
         const floorDescribed = doname(floorItem, null);
         const floorName = floorDescribed.replace(/^(?:an?|the)\s+/i, '');
         const article = /^[aeiou]/i.test(floorName) ? 'an' : 'a';
-        display.putstr_message(`There is ${article} ${floorName} here; eat it? [ynq] (n)`);
+        await display.putstr_message(`There is ${article} ${floorName} here; eat it? [ynq] (n)`);
         const ans = String.fromCharCode(await nhgetch()).toLowerCase();
         if (ans === 'q') {
             // cf. eat.c floorfood() — 'q' exits immediately
-            display.putstr_message('Never mind.');
+            await display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
         if (ans === 'y') {
@@ -1312,21 +1312,21 @@ async function handleEat(player, display, game) {
                 };
 
                 if (reqtime > 1) {
-                    const finishFloorEating = () => {
+                    const finishFloorEating = async () => {
                         consumeFloorItem();
                         if (rottenTriggered) {
-                            display.putstr_message(`Blecch!  Rotten food!  You finish eating the ${floorName}.`);
+                            await display.putstr_message(`Blecch!  Rotten food!  You finish eating the ${floorName}.`);
                         } else {
-                            display.putstr_message(`You finish eating the ${floorName}.`);
+                            await display.putstr_message(`You finish eating the ${floorName}.`);
                         }
                     };
                     // cf. eat.c eatfood() / start_eating() — set_occupation
                     game.occupation = {
-                        fn: () => {
+                        fn: async () => {
                             eatState.usedtime++;
                             // cf. eat.c eatfood(): done when ++usedtime > reqtime.
                             if (eatState.usedtime > reqtime) {
-                                finishFloorEating();
+                                await finishFloorEating();
                                 return 0;
                             }
                             return 1;
@@ -1340,9 +1340,9 @@ async function handleEat(player, display, game) {
                 } else {
                     consumeFloorItem();
                     if (rottenTriggered) {
-                        display.putstr_message(`Blecch!  Rotten food!  You finish eating the ${floorName}.`);
+                        await display.putstr_message(`Blecch!  Rotten food!  You finish eating the ${floorName}.`);
                     } else {
-                        display.putstr_message(`You finish eating the ${floorName}.`);
+                        await display.putstr_message(`You finish eating the ${floorName}.`);
                     }
                 }
                 return { moved: false, tookTime: true };
@@ -1355,7 +1355,7 @@ async function handleEat(player, display, game) {
     // cf. eat.c doeat() / eat_ok() (partial) — inventory food selection
     const food = player.inventory.filter(o => o.oclass === 6); // FOOD_CLASS
     if (food.length === 0) {
-        display.putstr_message("You don't have anything to eat.");
+        await display.putstr_message("You don't have anything to eat.");
         return { moved: false, tookTime: false };
     }
 
@@ -1364,7 +1364,7 @@ async function handleEat(player, display, game) {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
         display.messageNeedsMore = false;
-        display.putstr_message(`What do you want to eat? [${eatChoices} or ?*]`);
+        await display.putstr_message(`What do you want to eat? [${eatChoices} or ?*]`);
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
 
@@ -1372,7 +1372,7 @@ async function handleEat(player, display, game) {
             if (typeof display.clearRow === 'function') display.clearRow(0);
             display.topMessage = null;
             display.messageNeedsMore = false;
-            display.putstr_message('Never mind.');
+            await display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
         if (c === '?' || c === '*') {
@@ -1386,14 +1386,14 @@ async function handleEat(player, display, game) {
                 // cf. eat.c doeat() → getobj returns non-food item
                 // (eat_ok returns GETOBJ_EXCLUDE_SELECTABLE), then
                 // is_edible() check fails → "You cannot eat that!" and exit.
-                display.putstr_message('You cannot eat that!');
+                await display.putstr_message('You cannot eat that!');
                 return { moved: false, tookTime: false };
             }
             // cf. eat.c getobj() handles invalid letters differently depending
             // on mode. In non-wizard mode, it emits a "--More--" that blocks
             // until Space/Enter/Esc; in wizard mode it silently re-prompts.
             if (!player.wizard) {
-                display.putstr_message("You don't have that object.--More--");
+                await display.putstr_message("You don't have that object.--More--");
                 while (true) {
                     const moreCh = await nhgetch();
                     if (moreCh === 32 || moreCh === 10 || moreCh === 13 || moreCh === 27) break;
@@ -1446,19 +1446,19 @@ async function handleEat(player, display, game) {
         const eatState = { usedtime: 0, reqtime };
 
         // cf. eat.c bite() — apply incremental nutrition (partial)
-        function doBite() {
+        async function doBite() {
             if (nmod < 0) {
-                lesshungry(player, -nmod);
+                await lesshungry(player, -nmod);
                 player.nutrition += (-nmod);
             } else if (nmod > 0 && (eatState.usedtime % nmod)) {
-                lesshungry(player, 1);
+                await lesshungry(player, 1);
                 player.nutrition += 1;
             }
         }
 
         // First bite (turn 1) — mirrors C start_eating() + bite()
         eatState.usedtime++;
-        doBite();
+        await doBite();
         // cf. eat.c start_eating() — fprefx() is called for fresh
         // (not already partly eaten) non-corpse food, producing flavor
         // messages and RNG calls for specific food types.
@@ -1477,7 +1477,7 @@ async function handleEat(player, display, game) {
                 }
             }
             if (reqtime > 1) {
-                display.putstr_message(`You begin eating the ${eatenItem.name}.`);
+                await display.putstr_message(`You begin eating the ${eatenItem.name}.`);
             }
         }
         let consumedInventoryItem = false;
@@ -1488,7 +1488,7 @@ async function handleEat(player, display, game) {
         };
 
         if (reqtime > 1) {
-            const finishEating = (gameCtx) => {
+            const finishEating = async (gameCtx) => {
                 // cf. eat.c done_eating()/cpostfx() runs from eatfood() when
                 // occupation reaches completion, before moveloop's next monster turn.
                 consumeInventoryItem();
@@ -1496,13 +1496,13 @@ async function handleEat(player, display, game) {
                     const tastes = ['okay', 'stringy', 'gamey', 'fatty', 'tough'];
                     const idx = Math.max(0, Math.min(tastes.length - 1, corpseTasteIdx));
                     const verb = idx === 0 ? 'tastes' : 'is';
-                    display.putstr_message(
+                    await display.putstr_message(
                         `This ${eatenItem.name} ${verb} ${tastes[idx]}.  `
                         + `You finish eating the ${eatenItem.name}.--More--`
                     );
                 } else {
                     // cf. eat.c done_eating() generic multi-turn completion line.
-                    display.putstr_message("You're finally finished.");
+                    await display.putstr_message("You're finally finished.");
                 }
                 if (isCorpse && cnum === PM_NEWT) {
                     // cf. eat.c eye_of_newt_buzz() from cpostfx(PM_NEWT) (partial).
@@ -1519,7 +1519,7 @@ async function handleEat(player, display, game) {
                             if (gameCtx) {
                                 gameCtx.pendingToplineMessage = 'You feel a mild buzz.';
                             } else {
-                                display.putstr_message('You feel a mild buzz.');
+                                await display.putstr_message('You feel a mild buzz.');
                             }
                         }
                     }
@@ -1528,22 +1528,22 @@ async function handleEat(player, display, game) {
             // cf. eat.c eatfood() / start_eating() — set_occupation
             let fullwarn = false;
             game.occupation = {
-                fn: () => {
+                fn: async () => {
                     eatState.usedtime++;
                     // cf. eat.c eatfood(): done when ++usedtime > reqtime.
                     if (eatState.usedtime > reqtime) {
-                        finishEating(game);
+                        await finishEating(game);
                         return 0; // done
                     }
-                    doBite();
+                    await doBite();
                     const bitesLeft = reqtime - eatState.usedtime;
                     // C ref: eat.c lesshungry()/eatfood() — fullwarn path.
                     if (!fullwarn && bitesLeft > 1 && canchoke(player)) {
                         fullwarn = true;
-                        display.putstr_message('Continue eating? [yn] (n)');
+                        await display.putstr_message('Continue eating? [yn] (n)');
                         game.pendingPrompt = {
                             type: 'eat_continue',
-                            onKey: (chCode, gameCtx) => {
+                            onKey: async (chCode, gameCtx) => {
                                 if (chCode === 121 || chCode === 89) { // y/Y
                                     gameCtx.pendingPrompt = null;
                                     return { handled: true, continueEating: true };
@@ -1554,7 +1554,7 @@ async function handleEat(player, display, game) {
                                     || chCode === 27 || chCode === 32) {
                                     gameCtx.pendingPrompt = null;
                                     gameCtx.occupation = null;
-                                    display.putstr_message(`You stop eating the ${eatenItem.name}.`);
+                                    await display.putstr_message(`You stop eating the ${eatenItem.name}.`);
                                     return { handled: true, continueEating: false };
                                 }
                                 // Ignore unrelated keys while prompt is active.
@@ -1574,7 +1574,7 @@ async function handleEat(player, display, game) {
         } else {
             // Single-turn food — eat instantly
             consumeInventoryItem();
-            display.putstr_message(`This ${eatenItem.name} is delicious!`);
+            await display.putstr_message(`This ${eatenItem.name} is delicious!`);
             // cf. eat.c garlic_breath() — scare nearby olfaction monsters (partial).
             if (eatenItem.otyp === CLOVE_OF_GARLIC && map) {
                 for (const mon of map.monsters) {
@@ -1626,7 +1626,7 @@ export async function eatfood(game, player) {
 // Autotranslated from eat.c:1697
 export async function opentin(game, player) {
   if (!carried(game.svc.context.tin.tin) && (!obj_here(game.svc.context.tin.tin, player.x, player.y) || !can_reach_floor(true))) return 0;
-  if (game.svc.context.tin.usedtime++ >= 50) { You("give up your attempt to open the tin."); return 0; }
+  if (game.svc.context.tin.usedtime++ >= 50) { await You("give up your attempt to open the tin."); return 0; }
   if (game.svc.context.tin.usedtime < game.svc.context.tin.reqtime) return 1;
   await consume_tin("You succeed in opening the tin.");
   return 0;
@@ -1635,13 +1635,13 @@ export async function opentin(game, player) {
 // Autotranslated from eat.c:3092
 export async function use_tin_opener(obj) {
   let otmp, res = ECMD_OK;
-  if (!carrying(TIN)) { You("have no tin to open."); return ECMD_OK; }
+  if (!carrying(TIN)) { await You("have no tin to open."); return ECMD_OK; }
   if (obj !== uwep) {
     if (obj.cursed && obj.bknown) {
       let qbuf;
       if (ynq(safe_qbuf(qbuf, "Really wield ", "?", obj, doname, thesimpleoname, "that")) !== 'y') return ECMD_OK;
     }
-    if (!wield_tool(obj, "use")) return ECMD_OK;
+    if (!await wield_tool(obj, "use")) return ECMD_OK;
     res = ECMD_TIME;
   }
   otmp = getobj("open", tinopen_ok, GETOBJ_NOFLAGS);
@@ -1657,11 +1657,11 @@ export async function bite(game, player) {
   if (game.svc.context.victual.doreset) { await do_reset_eat(); return 0; }
   gf.force_save_hs = true;
   if (game.svc.context.victual.nmod < 0) {
-    lesshungry(adj_victual_nutrition( ));
+    await lesshungry(adj_victual_nutrition( ));
     await consume_oeaten(game.svc.context.victual.piece, game.svc.context.victual.nmod);
   }
   else if (game.svc.context.victual.nmod > 0 && (game.svc.context.victual.usedtime % game.svc.context.victual.nmod)) {
-    lesshungry(1);
+    await lesshungry(1);
     await consume_oeaten(game.svc.context.victual.piece, -1);
   }
   gf.force_save_hs = false;

@@ -374,12 +374,12 @@ function zhitm(mon, type, nd, map) {
 
 // C ref: mon.c:3581 xkilled() — handle monster death
 // Creates corpse, awards XP
-function xkilled_local(mon, map, player, display) {
+async function xkilled_local(mon, map, player, display) {
     // Award experience
     const exp = (mon.m_lev + 1) * (mon.m_lev + 1);
     player.exp += exp;
     player.score += exp;
-    newexplevel(player, display);
+    await newexplevel(player, display);
 
     // C ref: mon.c:3581 — "illogical but traditional" treasure drop
     rn2(6);
@@ -443,7 +443,7 @@ export async function handleZap(player, map, display, game) {
 
     if (itemCh === 27) { // ESC
         if (game.flags.verbose) {
-            display.putstr_message('Never mind.');
+            await display.putstr_message('Never mind.');
         }
         return { moved: false, tookTime: false };
     }
@@ -451,7 +451,7 @@ export async function handleZap(player, map, display, game) {
     // Find the wand in inventory
     const wand = player.inventory.find(o => o.invlet === itemChar);
     if (!wand || wand.oclass !== WAND_CLASS) {
-        display.putstr_message("That's not a wand!");
+        await display.putstr_message("That's not a wand!");
         return { moved: false, tookTime: false };
     }
 
@@ -462,13 +462,13 @@ export async function handleZap(player, map, display, game) {
 
     if (!dir) {
         if (game.flags.verbose) {
-            display.putstr_message('Never mind.');
+            await display.putstr_message('Never mind.');
         }
         return { moved: false, tookTime: false };
     }
 
     // C ref: attrib.c:506 — exercise(A_STR, TRUE) before zapping
-    exercise(player, A_STR, true);
+    await exercise(player, A_STR, true);
 
     player.dx = dir[0];
     player.dy = dir[1];
@@ -482,13 +482,13 @@ export async function handleZap(player, map, display, game) {
     }
 
     if (!zappable(wand)) {
-        if (display?.putstr_message) display.putstr_message('Nothing happens.');
+        if (display?.putstr_message) await display.putstr_message('Nothing happens.');
         return { moved: false, tookTime: true };
     }
 
     const need_dir = (objectData[wand.otyp]?.dir || 0) !== 1;
     if (need_dir && !player.dx && !player.dy && !player.dz) {
-        const damage = zapyourself(wand, player, true, map);
+        const damage = await zapyourself(wand, player, true, map);
         if (damage > 0) {
             // hp loss is already applied in zapyourself(); keep time semantics.
         }
@@ -566,7 +566,7 @@ function destroyable_by(obj, dmgtyp) {
 // ============================================================
 // cf. zap.c revive() — revive a corpse into a living monster
 // ============================================================
-export function revive(obj, by_hero, map) {
+export async function revive(obj, by_hero, map) {
   if (!obj || obj.otyp !== CORPSE) return null;
 
   const montype = obj.corpsenm;
@@ -607,7 +607,7 @@ export function revive(obj, by_hero, map) {
 
   // C ref: zap.c:1024-1060 — by_hero shop charge and messages
   if (by_hero) {
-    pline("The corpse glows iridescently.");
+    await pline("The corpse glows iridescently.");
   }
 
   // Remove the corpse from the map
@@ -668,7 +668,7 @@ function cancel_item(obj) {
 // ============================================================
 // cf. zap.c bhitm() — bolt/beam hits monster (IMMEDIATE wand effect)
 // ============================================================
-export function bhitm(mon, otmp, map, player) {
+export async function bhitm(mon, otmp, map, player) {
   if (!mon || !otmp) return 0;
   let ret = 0;
   let wake = true;
@@ -706,7 +706,7 @@ export function bhitm(mon, otmp, map, player) {
       const dmg = rnd(8);
       if (!resist(mon, otmp.oclass)) {
         mon.mhp -= dmg;
-        monflee(mon, 0, false, true);
+        await monflee(mon, 0, false, true);
       }
     }
     break;
@@ -741,7 +741,7 @@ export function bhitm(mon, otmp, map, player) {
     break;
   case WAN_PROBING:
     wake = false;
-    probe_monster(mon);
+    await probe_monster(mon);
     break;
   case WAN_OPENING:
   case SPE_KNOCK:
@@ -790,7 +790,7 @@ export function bhitm(mon, otmp, map, player) {
 // ============================================================
 // cf. zap.c burn_floor_objects() — fire on floor
 // ============================================================
-export function burn_floor_objects(x, y, give_feedback, u_caused, map) {
+export async function burn_floor_objects(x, y, give_feedback, u_caused, map) {
   if (!map) return 0;
   let cnt = 0;
   const objects_at = map.objectsAt ? map.objectsAt(x, y) : [];
@@ -812,9 +812,9 @@ export function burn_floor_objects(x, y, give_feedback, u_caused, map) {
         cnt += delquan;
         if (give_feedback) {
           if (delquan > 1)
-            pline("%d objects burn.", delquan);
+            await pline("%d objects burn.", delquan);
           else
-            pline("An object burns.");
+            await pline("An object burns.");
         }
         // Simplified: remove entire object if all copies burned
         if (delquan >= scrquan) {
@@ -843,12 +843,12 @@ export async function zapnodir(obj, player, map, display, game) {
   switch (obj.otyp) {
   case WAN_LIGHT:
   case SPE_LIGHT:
-    pline("A lit field surrounds you.");
+    await pline("A lit field surrounds you.");
     known = !!obj.dknown;
     break;
   case WAN_SECRET_DOOR_DETECTION:
   case SPE_DETECT_UNSEEN:
-    findit(player, map, display, game);
+    await findit(player, map, display, game);
     known = !!obj.dknown;
     break;
   case WAN_CREATE_MONSTER: {
@@ -865,9 +865,9 @@ export async function zapnodir(obj, player, map, display, game) {
   case WAN_WISHING:
     // Keep non-blocking behavior for replay safety.
     if (((player?.luck || 0) + rn2(5)) < 0) {
-      pline("Unfortunately, nothing happens.");
+      await pline("Unfortunately, nothing happens.");
     } else {
-      pline("You feel that a wish is possible.");
+      await pline("You feel that a wish is possible.");
       known = !!obj.dknown;
     }
     break;
@@ -916,14 +916,14 @@ async function bhit_zapped_wand(obj, player, map) {
 
       const mon = map.monsterAt ? map.monsterAt(x, y) : null;
       if (mon && !mon.dead) {
-        if (bhitm(mon, obj, map, player)) {
+        if (await bhitm(mon, obj, map, player)) {
           result = mon;
           break;
         }
         range -= 3;
       }
 
-      if (bhitpile(obj, bhito, x, y, 0, map)) {
+      if (await bhitpile(obj, bhito, x, y, 0, map)) {
         range--;
       }
 
@@ -980,7 +980,7 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
 
       // C ref: zap.c:4797-4802 — zap_over_floor for non-fireball, non-gas
       if (damgtype !== ZT_POISON_GAS) {
-        range += zap_over_floor(sx, sy, type, { value: shopdamage }, true, 0, map);
+        range += await zap_over_floor(sx, sy, type, { value: shopdamage }, true, 0, map);
       }
 
       // Check for monster
@@ -1077,26 +1077,26 @@ export async function weffects(obj, player, map, display = null, game = null) {
   let disclose = false;
 
   // C ref: zap.c:3424 — exercise wisdom
-  if (player) exercise(player, A_WIS, true);
+  if (player) await exercise(player, A_WIS, true);
 
   const od = objectData[otyp];
   const dir_type = od ? od.dir : 0;
   // NODIR=1, IMMEDIATE=2, RAY=3 in objectData.
 
   if (player?.usteed && dir_type !== 1 && !player.dx && !player.dy && player.dz > 0) {
-    if (zap_steed(obj, player, map)) disclose = true;
+    if (await zap_steed(obj, player, map)) disclose = true;
   } else
   if (dir_type === 2) {
     // C ref: zap.c:3436 — bhit for lateral, zap_updown for up/down.
     zapsetup(player);
     if (player?.ustuck) {
-      bhitm(player.ustuck, obj, map, player);
+      await bhitm(player.ustuck, obj, map, player);
     } else if (player && player.dz) {
-      if (zap_updown(obj, player, map)) disclose = true;
+      if (await zap_updown(obj, player, map)) disclose = true;
     } else {
       await bhit_zapped_wand(obj, player, map);
     }
-    zapwrapup(obj, disclose, player, display);
+    await zapwrapup(obj, disclose, player, display);
   } else if (dir_type === 1) {
     await zapnodir(obj, player, map, display, game);
   } else {
@@ -1121,7 +1121,7 @@ export async function weffects(obj, player, map, display = null, game = null) {
 // ============================================================
 // cf. zap.c bhitpile() — beam hits pile of objects
 // ============================================================
-export function bhitpile(obj, fhito_fn, tx, ty, zz, map) {
+export async function bhitpile(obj, fhito_fn, tx, ty, zz, map) {
   if (!map) return 0;
   const objects_at = map.objectsAt ? map.objectsAt(tx, ty) : [];
   if (!objects_at || objects_at.length === 0) return 0;
@@ -1133,7 +1133,7 @@ export function bhitpile(obj, fhito_fn, tx, ty, zz, map) {
   if (gp_poly_zapped >= 0) {
     const pileNow = map.objectsAt ? map.objectsAt(tx, ty) : [];
     if (pileNow && pileNow.length > 0) {
-      create_polymon(pileNow[0], gp_poly_zapped, map, null);
+      await create_polymon(pileNow[0], gp_poly_zapped, map, null);
     }
     gp_poly_zapped = -1;
   }
@@ -1143,10 +1143,10 @@ export function bhitpile(obj, fhito_fn, tx, ty, zz, map) {
 // ============================================================
 // cf. zap.c backfire() — wand backfire on hero
 // ============================================================
-export function backfire(obj, player) {
+export async function backfire(obj, player) {
   if (!obj || !player) return;
   // C ref: zap.c:2593-2602
-  pline("The wand suddenly explodes!");
+  await pline("The wand suddenly explodes!");
   const dmg = d((obj.spe || 0) + 2, 6);
   if (player.uhp) player.uhp -= dmg;
   // C would call useupall — simplified
@@ -1262,7 +1262,7 @@ export function do_osshock(obj, map, player) {
 }
 
 // C ref: zap.c makewish() — grant an object wish and hand it to hero.
-export function makewish(wishText, player, display) {
+export async function makewish(wishText, player, display) {
     let otmp = readobjnam(wishText, false, {
         wizard: !!player?.wizard,
         wizkit_wishing: !!player?.program_state?.wizkit_wishing,
@@ -1273,10 +1273,10 @@ export function makewish(wishText, player, display) {
         return otmp;
     }
     if (!otmp) {
-        if (display) display.putstr_message('Nothing fitting that description exists.');
+        if (display) await display.putstr_message('Nothing fitting that description exists.');
         return null;
     }
-    const got = hold_another_object(otmp, player, 'Oops!  %s to the floor!', null, null);
+    const got = await hold_another_object(otmp, player, 'Oops!  %s to the floor!', null, null);
     if (player) {
         player.ublesscnt = (player.ublesscnt || 0) + rn1(100, 50);
     }
@@ -1286,17 +1286,17 @@ export function makewish(wishText, player, display) {
 // ============================================================
 // cf. zap.c:624 probe_monster() — probing wand effect
 // ============================================================
-export function probe_monster(mon) {
+export async function probe_monster(mon) {
   if (!mon) return;
 
   // C ref: zap.c:626 — mstatusline
-  mstatusline(mon);
+  await mstatusline(mon);
 
   // C ref: zap.c:630-637 — display inventory or "not carrying anything"
   if (mon.minvent && mon.minvent.length > 0) {
     display_minventory(mon);
   } else {
-    pline("%s is not carrying anything.", Monnam(mon));
+    await pline("%s is not carrying anything.", Monnam(mon));
   }
 }
 
@@ -1349,7 +1349,7 @@ export async function break_wand(obj, player, map) {
     dmg = d(spe + 2, 6);
   }
 
-  pline("The wand explodes!");
+  await pline("The wand explodes!");
   if (beamType < 0 || !map) {
     if (player.uhp) player.uhp -= dmg;
     return;
@@ -1386,7 +1386,7 @@ export async function break_wand(obj, player, map) {
 // Effects on floor tiles: melt ice, evaporate pools, burn scrolls, etc.
 // Returns range modifier (negative = reduce range)
 // ============================================================
-export function zap_over_floor(x, y, type, shopdamage_ref, ignoremon, exploding_wand_typ, map) {
+export async function zap_over_floor(x, y, type, shopdamage_ref, ignoremon, exploding_wand_typ, map) {
   if (!map) return 0;
   let rangemod = 0;
   const damgtype = zaptype(type) % 10;
@@ -1401,7 +1401,7 @@ export function zap_over_floor(x, y, type, shopdamage_ref, ignoremon, exploding_
     if (map.objectsAt) {
       const objs = map.objectsAt(x, y);
       if (objs && objs.length > 0) {
-        burn_floor_objects(x, y, false, type > 0, map);
+        await burn_floor_objects(x, y, false, type > 0, map);
       }
     }
     break;
@@ -1448,7 +1448,7 @@ export function zap_over_floor(x, y, type, shopdamage_ref, ignoremon, exploding_
 // ============================================================
 // cf. zap.c:3207 zap_updown() — zap immediate wand up or down
 // ============================================================
-export function zap_updown(obj, player, map) {
+export async function zap_updown(obj, player, map) {
   if (!obj || !player) return false;
   let disclose = false;
   const x = player.x || 0;
@@ -1470,7 +1470,7 @@ export function zap_updown(obj, player, map) {
     return true;
   };
 
-  const zap_map_downward = () => {
+  const zap_map_downward = async () => {
     if (!map) return;
     const engr = engr_at(map, x, y);
     if (!engr || engr.type === 'headstone') return;
@@ -1493,13 +1493,13 @@ export function zap_updown(obj, player, map) {
       break;
     case SPE_STONE_TO_FLESH:
       if (engr.type === 'engrave') {
-        pline("The edges on the floor get smoother.");
-        wipe_engr_at(map, x, y, d(2, 4), true);
+        await pline("The edges on the floor get smoother.");
+        await wipe_engr_at(map, x, y, d(2, 4), true);
       }
       break;
     case WAN_STRIKING:
     case SPE_FORCE_BOLT:
-      wipe_engr_at(map, x, y, d(2, 4), true);
+      await wipe_engr_at(map, x, y, d(2, 4), true);
       break;
     default:
       break;
@@ -1509,13 +1509,13 @@ export function zap_updown(obj, player, map) {
   switch (obj.otyp) {
   case WAN_PROBING:
     if (player.dz && player.dz < 0) {
-      pline("You probe towards the ceiling.");
+      await pline("You probe towards the ceiling.");
     } else {
       // C ref: zap.c zap_map() handles down-zap engraving effects.
-      zap_map_downward();
-      pline("You probe beneath the floor.");
+      await zap_map_downward();
+      await pline("You probe beneath the floor.");
       // C ref: zap.c:3232 — bhitpile for floor objects
-      if (map) bhitpile(obj, bhito, x, y, player.dz || 1, map);
+      if (map) await bhitpile(obj, bhito, x, y, player.dz || 1, map);
     }
     return true;
 
@@ -1540,7 +1540,7 @@ export function zap_updown(obj, player, map) {
       break;
     }
     if (player.dz && player.dz < 0 && rn2(3)) {
-      pline("A rock is dislodged from the ceiling and falls on your head.");
+      await pline("A rock is dislodged from the ceiling and falls on your head.");
       const dmg = rnd(6);
       if (player.uhp) player.uhp -= dmg;
     }
@@ -1580,9 +1580,9 @@ export function zap_updown(obj, player, map) {
 
   // C ref: zap.c:3370-3396 — bhitpile for down zaps
   if (player.dz && player.dz > 0 && map) {
-    bhitpile(obj, bhito, x, y, player.dz, map);
+    await bhitpile(obj, bhito, x, y, player.dz, map);
     // C ref: zap.c zap_map() — down-zap engraving handling.
-    zap_map_downward();
+    await zap_map_downward();
   }
 
   return disclose;
@@ -1591,7 +1591,7 @@ export function zap_updown(obj, player, map) {
 // ============================================================
 // cf. zap.c:2117 bhito() — wand/spell effect hits an object on floor
 // ============================================================
-export function bhito(obj, otmp, map) {
+export async function bhito(obj, otmp, map) {
   if (!obj || !otmp) return 0;
   if (obj === otmp) return 0; // wand can't affect itself
   let res = 1;
@@ -1644,7 +1644,7 @@ export function bhito(obj, otmp, map) {
   case SPE_TURN_UNDEAD:
     // C ref: zap.c:2332-2390 — revive corpse or egg
     if (obj.otyp === CORPSE) {
-      revive(obj, true, map);
+      await revive(obj, true, map);
     }
     break;
 
@@ -1655,7 +1655,7 @@ export function bhito(obj, otmp, map) {
     // C ref: zap.c bhito() boxlock() path for box-like containers.
     if (obj.oclass === TOOL_CLASS) {
       const shimGame = { player: { roleIndex: -1 } };
-      res = boxlock(shimGame, obj, otmp) ? 1 : 0;
+      res = await boxlock(shimGame, obj, otmp) ? 1 : 0;
     } else {
       res = 0;
     }
@@ -1735,10 +1735,10 @@ export function zapsetup(player, dx = 0, dy = 0, dz = 0) {
   player.dz = dz;
 }
 
-export function zapwrapup(_obj, _disclose = false, player = null, display = null) {
+export async function zapwrapup(_obj, _disclose = false, player = null, display = null) {
   if (go_obj_zapped) {
-    if (display?.putstr_message) display.putstr_message('You feel shuddering vibrations.');
-    else if (player) pline('You feel shuddering vibrations.');
+    if (display?.putstr_message) await display.putstr_message('You feel shuddering vibrations.');
+    else if (player) await pline('You feel shuddering vibrations.');
   }
   go_obj_zapped = false;
   gp_poly_zapped = -1;
@@ -1752,29 +1752,29 @@ export function exclam(force) {
 }
 
 // C ref: zap.c miss()/hit() message helpers.
-export function miss(fltxt = 'beam') {
-  pline('The %s misses.', fltxt);
+export async function miss(fltxt = 'beam') {
+  await pline('The %s misses.', fltxt);
 }
 
-export function hit(fltxt = 'beam') {
-  pline('The %s hits!', fltxt);
+export async function hit(fltxt = 'beam') {
+  await pline('The %s hits!', fltxt);
 }
 
 // C ref: zap.c do_enlightenment_effect()
 export async function do_enlightenment_effect(player = null, display = null, game = null) {
   if (display?.putstr_message) {
-    display.putstr_message('You feel self-knowledgeable...');
+    await display.putstr_message('You feel self-knowledgeable...');
   } else {
-    pline('You feel self-knowledgeable...');
+    await pline('You feel self-knowledgeable...');
   }
   await display_nhwindow(WIN_MESSAGE, false);
   if (game) await run_magic_enlightenment_effect(game);
   if (display?.putstr_message) {
-    display.putstr_message('The feeling subsides.');
+    await display.putstr_message('The feeling subsides.');
   } else {
-    pline('The feeling subsides.');
+    await pline('The feeling subsides.');
   }
-  if (player) exercise(player, A_WIS, true);
+  if (player) await exercise(player, A_WIS, true);
   if (player) player._recentEnlightenment = true;
 }
 
@@ -1784,51 +1784,51 @@ export function wishcmdassist(text) {
 }
 
 // C ref: zap.c zapyourself()/zap_steed().
-export function zapyourself(obj, player, ordinary = true, map = null) {
+export async function zapyourself(obj, player, ordinary = true, map = null) {
   if (!obj || !player) return 0;
   let damage = 0;
   switch (obj.otyp) {
   case WAN_STRIKING:
   case SPE_FORCE_BOLT:
     if (player.antimagic) {
-      pline('Boing!');
+      await pline('Boing!');
     } else {
-      if (ordinary) pline('You bash yourself!');
+      if (ordinary) await pline('You bash yourself!');
       damage = ordinary ? d(2, 12) : d(1 + Math.max(0, obj.spe || 0), 6);
-      exercise(player, A_STR, false);
+      await exercise(player, A_STR, false);
     }
     break;
   case WAN_LIGHTNING:
     if (player.shock_resistance) {
-      pline('You zap yourself, but seem unharmed.');
+      await pline('You zap yourself, but seem unharmed.');
     } else {
-      pline('You shock yourself!');
+      await pline('You shock yourself!');
       damage = d(12, 6);
-      exercise(player, A_CON, false);
+      await exercise(player, A_CON, false);
     }
     break;
   case WAN_FIRE:
     if (player.fire_resistance) {
-      pline('You feel rather warm.');
+      await pline('You feel rather warm.');
     } else {
-      pline("You've set yourself afire!");
+      await pline("You've set yourself afire!");
       damage = d(12, 6);
     }
     break;
   case WAN_COLD:
     if (player.cold_resistance) {
-      pline('You feel a little chill.');
+      await pline('You feel a little chill.');
     } else {
-      pline('You imitate a popsicle!');
+      await pline('You imitate a popsicle!');
       damage = d(12, 6);
     }
     break;
   case WAN_MAGIC_MISSILE:
   case SPE_MAGIC_MISSILE:
     if (player.antimagic) {
-      pline('The missiles bounce!');
+      await pline('The missiles bounce!');
     } else {
-      pline("Idiot!  You've shot yourself!");
+      await pline("Idiot!  You've shot yourself!");
       damage = d(4, 6);
     }
     break;
@@ -1838,8 +1838,8 @@ export function zapyourself(obj, player, ordinary = true, map = null) {
     // Keep no-damage behavior here to avoid misapplying monster-only logic.
     break;
   case WAN_LIGHT:
-    damage = lightdamage(obj, player, ordinary ? 5 : d(Math.max(1, obj.spe || 1), 25), ordinary);
-    if (flashburn(rnd(25) + damage, false, player)) {
+    damage = await lightdamage(obj, player, ordinary ? 5 : d(Math.max(1, obj.spe || 1), 25), ordinary);
+    if (await flashburn(rnd(25) + damage, false, player)) {
       discoverObject(obj.otyp, true, true);
     }
     damage = 0;
@@ -1849,7 +1849,7 @@ export function zapyourself(obj, player, ordinary = true, map = null) {
     unturn_you(obj, player, map);
     break;
   default:
-    pline('You zap yourself.');
+    await pline('You zap yourself.');
     damage = d(2, 6);
     break;
   }
@@ -1857,12 +1857,12 @@ export function zapyourself(obj, player, ordinary = true, map = null) {
   return Math.max(0, damage);
 }
 
-export function zap_steed(obj, player, map) {
+export async function zap_steed(obj, player, map) {
   if (!obj || !player?.usteed) return false;
   const steed = player.usteed;
   switch (obj.otyp) {
   case WAN_PROBING:
-    probe_monster(steed);
+    await probe_monster(steed);
     learnwand(obj);
     return true;
   case WAN_TELEPORTATION:
@@ -1884,7 +1884,7 @@ export function zap_steed(obj, player, map) {
   case SPE_DRAIN_LIFE:
   case WAN_OPENING:
   case SPE_KNOCK:
-    bhitm(steed, obj, map, player);
+    await bhitm(steed, obj, map, player);
     return true;
   default:
     return false;
@@ -1892,12 +1892,12 @@ export function zap_steed(obj, player, map) {
 }
 
 // C ref: zap.c boxlock_invent()
-export function boxlock_invent(player, otmp) {
+export async function boxlock_invent(player, otmp) {
   if (!player || !Array.isArray(player.inventory) || !otmp) return 0;
   let changed = 0;
   const shimGame = { player };
   for (const obj of player.inventory) {
-    if (boxlock(shimGame, obj, otmp)) changed++;
+    if (await boxlock(shimGame, obj, otmp)) changed++;
   }
   return changed;
 }
@@ -2136,9 +2136,9 @@ export function blank_novel(obj) {
   delete obj.title;
   return true;
 }
-export function boomhit(dx, dy, range, obj, player, map) {
+export async function boomhit(dx, dy, range, obj, player, map) {
   // Reuse bhit line traversal behavior for boomerang-style probing.
-  const hit = bhit(dx, dy, range, 0, null, null, obj, map, player);
+  const hit = await bhit(dx, dy, range, 0, null, null, obj, map, player);
   return hit ? 1 : 0;
 }
 export function break_statue(obj, map) {
@@ -2151,7 +2151,7 @@ export function break_statue(obj, map) {
   }
   return true;
 }
-export function create_polymon(obj, mndx, map, player) {
+export async function create_polymon(obj, mndx, map, player) {
   if (!obj) return null;
   const x = Number(obj.ox ?? player?.x ?? 0);
   const y = Number(obj.oy ?? player?.y ?? 0);
@@ -2161,7 +2161,7 @@ export function create_polymon(obj, mndx, map, player) {
   polyuse_internal(obj, mndx, minwt, map);
   if (mon) {
     const material = pick_material_text(mndx);
-    pline(`Some ${material}objects meld, and ${x_monnam(mon)} arises from the pile!`);
+    await pline(`Some ${material}objects meld, and ${x_monnam(mon)} arises from the pile!`);
   }
   return mon || null;
 }
@@ -2172,10 +2172,10 @@ export function disintegrate_mon(mon, map, player) {
   mondead(mon, map, player);
   return true;
 }
-export function flashburn(duration, via_lightning = false, player = null) {
+export async function flashburn(duration, via_lightning = false, player = null) {
   const p = player || null;
   if (!p?.blind) {
-    pline('You are blinded by the flash!');
+    await pline('You are blinded by the flash!');
     if (p && Number.isFinite(duration) && duration > 0) {
       p.blind = Math.max(Number(p.blind || 0), Math.floor(duration));
     }
@@ -2184,7 +2184,7 @@ export function flashburn(duration, via_lightning = false, player = null) {
   if (!via_lightning && p?.blind_resist_artifact) return true;
   return false;
 }
-export function lightdamage(obj, playerOrUwep, amt, ordinary = true) {
+export async function lightdamage(obj, playerOrUwep, amt, ordinary = true) {
   const player = (playerOrUwep && playerOrUwep.hp != null) ? playerOrUwep : null;
   let dmg = Number.isFinite(amt) ? Math.max(0, Math.floor(amt)) : 0;
   if (!player || !dmg) return dmg;
@@ -2192,7 +2192,7 @@ export function lightdamage(obj, playerOrUwep, amt, ordinary = true) {
     dmg = rnd(dmg);
     if (dmg > 10) dmg = 10 + rnd(dmg - 10);
     if (dmg > 20) dmg = 20;
-    pline(`Ow, that light hurts${(dmg > 2 || (player.uhp || 0) <= 5) ? '!' : '.'}`);
+    await pline(`Ow, that light hurts${(dmg > 2 || (player.uhp || 0) <= 5) ? '!' : '.'}`);
     if (Number.isFinite(player.uhp)) player.uhp -= dmg;
   }
   return dmg;
@@ -2220,14 +2220,14 @@ export function melt_ice(x, y, _range, map) {
 export function melt_ice_away(x, y, map) {
   return melt_ice(x, y, 0, map);
 }
-export function mon_spell_hits_spot(typ, x, y, _mon, map, _player) {
+export async function mon_spell_hits_spot(typ, x, y, _mon, map, _player) {
   if (!map) return false;
   let adtyp = Number(typ);
   if (!Number.isFinite(adtyp)) return false;
   let zt = adtyp > 0 && adtyp < 20 ? adtyp - 1 : adtyp;
   if (zt < ZT_MAGIC_MISSILE || zt > ZT_ACID) return false;
   const spellType = -ZT_SPELL(zt);
-  zap_over_floor(x, y, spellType, { value: false }, true, 0, map);
+  await zap_over_floor(x, y, spellType, { value: false }, true, 0, map);
   return true;
 }
 export function montraits(obj, _fd) {
@@ -2253,10 +2253,10 @@ export function polyuse(objhdr, mat = 0, minwt = 0, map = null) {
   polyuse_internal(objhdr, mat, minwt, map);
   return minwt;
 }
-export function probe_objchain(obj, display) {
+export async function probe_objchain(obj, display) {
   const chain = build_obj_chain(obj);
   for (const otmp of chain) mark_probe_obj_known(otmp);
-  if (display?.putstr_message) display.putstr_message(`${chain.length} object${chain.length === 1 ? '' : 's'}.`);
+  if (display?.putstr_message) await display.putstr_message(`${chain.length} object${chain.length === 1 ? '' : 's'}.`);
   return chain.length;
 }
 export function revive_egg(obj, _silent, map, player) {
@@ -2361,7 +2361,7 @@ export function spell_damage_bonus(dmg, player) {
 // cf. zap.c:3815 bhit() — beam travel for IMMEDIATE wands
 // Travels in a line, calling fhitm/fhito for each monster/object hit
 // ============================================================
-export function bhit(ddx, ddy, range, weapon, fhitm_fn, fhito_fn, obj, map, player) {
+export async function bhit(ddx, ddy, range, weapon, fhitm_fn, fhito_fn, obj, map, player) {
   if (!map || !obj) return null;
   let result = null;
   let x = player ? player.x : 0;
@@ -2399,7 +2399,7 @@ export function bhit(ddx, ddy, range, weapon, fhitm_fn, fhito_fn, obj, map, play
 
     // Hit pile of objects
     if (fhito_fn) {
-      if (bhitpile(obj, fhito_fn, x, y, 0, map)) {
+      if (await bhitpile(obj, fhito_fn, x, y, 0, map)) {
         range--;
       }
     }

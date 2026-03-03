@@ -87,11 +87,11 @@ export async function moveloop_core(game, opts = {}) {
         // C ref: mon.c movemon() does deferred_goto() on u.utotype.
         // JS keeps it here until mon.c-level transition plumbing is fully ported.
         if (player.utotype) {
-            deferred_goto(player, game);
+            await deferred_goto(player, game);
             monscanmove = false;
         }
         if (!monscanmove && player.umovement < NORMAL_SPEED) {
-            moveloop_turnend(game);
+            await moveloop_turnend(game);
         }
     } while (player.umovement < NORMAL_SPEED);
 
@@ -113,14 +113,14 @@ export async function moveloop_core(game, opts = {}) {
 // Called once per real turn, after hero and monsters have moved.
 // game must provide: player, map, display, fov, multi, turnCount, seerTurn,
 //                    flags, travelPath, runMode
-export function moveloop_turnend(game) {
+export async function moveloop_turnend(game) {
     // C ref: allmain.c:239 — settrack() called after movemon, before moves++
     settrack((game.u || game.player));
     game.turnCount++;
     (game.u || game.player).turns = game.turnCount;
     setCurrentTurn(game.turnCount);
     setOutputContext(game.display);
-    nh_timeout({
+    await nh_timeout({
         player: (game.u || game.player),
         map: (game.lev || game.map),
         display: game.display,
@@ -147,7 +147,7 @@ export function moveloop_turnend(game) {
         && game.cmdKey === 's'.charCodeAt(0)) {
         (game.u || game.player).justHealedLegs = false;
         game.multi = 0;
-        game.display.putstr_message('Your leg feels better.');
+        await game.display.putstr_message('Your leg feels better.');
     }
 
     // C ref: mon.c m_calcdistress() — temporary flee timeout handling.
@@ -184,7 +184,7 @@ export function moveloop_turnend(game) {
     }
 
     // C ref: allmain.c:226-227 — reallocate movement to monsters via mcalcmove
-    allocateMonsterMovement((game.lev || game.map));
+    await allocateMonsterMovement((game.lev || game.map));
 
     // C ref: allmain.c:232-236 — occasionally spawn a new monster.
     // New monster spawns after movement allocation and therefore loses its first turn.
@@ -197,16 +197,16 @@ export function moveloop_turnend(game) {
     u_calc_moveamt((game.u || game.player));
 
     // C ref: allmain.c:295-301 — regen_hp(mvl_wtcap)
-    regen_hp(game);
+    await regen_hp(game);
 
     // C ref: allmain.c:341-343 — autosearch for players with Searching
     // intrinsic (Archeologists/Rangers at level 1, Rogues at 10, etc.)
     if ((game.u || game.player).searching && game.multi >= 0) {
-        dosearch0((game.u || game.player), (game.lev || game.map), game.display, game);
+        await dosearch0((game.u || game.player), (game.lev || game.map), game.display, game);
     }
 
     // C ref: allmain.c:351 dosounds() — ambient sounds
-    moveloop_dosounds(game);
+    await moveloop_dosounds(game);
 
     // C ref: allmain.c:374 — water/air planes update moving bubbles/clouds each turn.
     if ((game.lev || game.map)?.flags?.is_waterlevel || (game.lev || game.map)?.flags?.is_airlevel) {
@@ -230,7 +230,7 @@ export function moveloop_turnend(game) {
                 }
             };
         }
-        movebubbles((game.lev || game.map));
+        await movebubbles((game.lev || game.map));
     }
 
     // C ref: allmain.c:353 gethungry()
@@ -238,7 +238,7 @@ export function moveloop_turnend(game) {
     rn2(20);
     (game.u || game.player).hunger--;
     if ((game.u || game.player).hunger <= 0) {
-        game.display.putstr_message('You faint from lack of food.');
+        await game.display.putstr_message('You faint from lack of food.');
         (game.u || game.player).hunger = 1;
         (game.u || game.player).hp -= rnd(3);
         if ((game.u || game.player).hp <= 0) {
@@ -246,10 +246,10 @@ export function moveloop_turnend(game) {
         }
     }
     if ((game.u || game.player).hunger === 150) {
-        game.display.putstr_message('You are beginning to feel weak.');
+        await game.display.putstr_message('You are beginning to feel weak.');
     }
     if ((game.u || game.player).hunger === 300) {
-        game.display.putstr_message('You are beginning to feel hungry.');
+        await game.display.putstr_message('You are beginning to feel hungry.');
     }
 
     // C ref: allmain.c:354 age_spells() — decrement spell retention each turn
@@ -258,16 +258,16 @@ export function moveloop_turnend(game) {
     // C ref: attrib.c exerper() — periodic exercise updates.
     // C's svm.moves starts at 1 and increments before exerper/exerchk.
     const moves = game.turnCount + 1;
-    exerper((game.u || game.player), moves);
+    await exerper((game.u || game.player), moves);
 
     // C ref: attrib.c exerchk()
-    exerchk((game.u || game.player), moves);
+    await exerchk((game.u || game.player), moves);
 
     // C ref: allmain.c:359 — engrave wipe check
     const dex = (game.u || game.player).attributes ? (game.u || game.player).attributes[A_DEX] : 14;
     if (!rn2(40 + dex * 3)) {
         // C ref: allmain.c:359-360 u_wipe_engr(rnd(3))
-        wipe_engr_at((game.lev || game.map), (game.u || game.player).x, (game.u || game.player).y, rnd(3), false);
+        await wipe_engr_at((game.lev || game.map), (game.u || game.player).x, (game.u || game.player).y, rnd(3), false);
     }
 
     // C ref: allmain.c:414 seer_turn check
@@ -278,9 +278,9 @@ export function moveloop_turnend(game) {
     // C ref: allmain.c:385-393 — immobile turn countdown and unmul().
     if (game.multi < 0) {
         if (++game.multi === 0) {
-            unmul(null, (game.u || game.player), game.display, game);
+            await unmul(null, (game.u || game.player), game.display, game);
             if ((game.u || game.player)?.utotype) {
-                deferred_goto((game.u || game.player), game);
+                await deferred_goto((game.u || game.player), game);
             }
         }
     }
@@ -290,11 +290,11 @@ export function moveloop_turnend(game) {
 }
 
 // C ref: allmain.c:680 stop_occupation()
-export function stop_occupation(game) {
+export async function stop_occupation(game) {
     if (!game) return;
     const occ = game.occupation;
     if (occ && typeof occ.fn === 'function') {
-        const finishedMeal = !!maybe_finished_meal(game, true);
+        const finishedMeal = !!await maybe_finished_meal(game, true);
         if (!finishedMeal) {
             const occtxt = occ.occtxt || occ.txt;
             if (typeof occtxt === 'string' && occtxt.length > 0) {
@@ -349,7 +349,7 @@ function u_calc_moveamt(player) {
 // Each feature check uses short-circuit && so rn2() is only called
 // when the feature exists. Fountains/sinks don't return early;
 // all others return on a triggered sound.
-export function moveloop_dosounds(game) {
+export async function moveloop_dosounds(game) {
     if (game.flags && game.flags.acoustics === false) return;
     const hallu = (game.u || game.player)?.hallucinating ? 1 : 0;
     const playerInShop = (() => {
@@ -368,7 +368,7 @@ export function moveloop_dosounds(game) {
             'You hear the splashing of a naiad.',
             'You hear a soda fountain!',
         ];
-        game.display.putstr_message(fountainMsg[rn2(3) + hallu]);
+        await game.display.putstr_message(fountainMsg[rn2(3) + hallu]);
     }
     if (f.nsinks && !rn2(300)) {
         const sinkMsg = [
@@ -376,7 +376,7 @@ export function moveloop_dosounds(game) {
             'You hear a gurgling noise.',
             'You hear dishes being washed!',
         ];
-        game.display.putstr_message(sinkMsg[rn2(2) + hallu]);
+        await game.display.putstr_message(sinkMsg[rn2(2) + hallu]);
     }
     if (f.has_court && !rn2(200)) { return; }
     if (f.has_swamp && !rn2(200)) {
@@ -385,7 +385,7 @@ export function moveloop_dosounds(game) {
             'You smell marsh gas!',
             'You hear Donald Duck!',
         ];
-        game.display.putstr_message(swampMsg[rn2(2) + hallu]);
+        await game.display.putstr_message(swampMsg[rn2(2) + hallu]);
         return;
     }
     if (f.has_vault && !rn2(200)) {
@@ -394,7 +394,7 @@ export function moveloop_dosounds(game) {
             'You hear someone counting gold coins.',
             'You hear Ebenezer Scrooge!',
         ];
-        game.display.putstr_message(vaultMsg[rn2(2) + hallu]);
+        await game.display.putstr_message(vaultMsg[rn2(2) + hallu]);
         return;
     }
     if (f.has_beehive && !rn2(200)) { return; }
@@ -406,7 +406,7 @@ export function moveloop_dosounds(game) {
             'You hear dice being thrown.',
             'You hear General MacArthur!',
         ];
-        game.display.putstr_message(barracksMsg[rn2(3) + hallu]);
+        await game.display.putstr_message(barracksMsg[rn2(3) + hallu]);
         return;
     }
     if (f.has_zoo && !rn2(200)) { return; }
@@ -417,7 +417,7 @@ export function moveloop_dosounds(game) {
                 'You hear the chime of a cash register.',
                 'You hear Neiman and Marcus arguing!',
             ];
-            game.display.putstr_message(shopMsg[rn2(2) + hallu]);
+            await game.display.putstr_message(shopMsg[rn2(2) + hallu]);
         }
         return;
     }
@@ -549,7 +549,7 @@ export async function run_command(game, ch, opts = {}) {
     if (!skipRepeatRecord && !game.inDoAgain) {
         game._repeatPrefixChainActive = !!(result && !result.tookTime && isPrefixKey);
     }
-    maybe_deferred_goto_after_rhack(game, result, { skipTurnEnd });
+    await maybe_deferred_goto_after_rhack(game, result, { skipTurnEnd });
 
     // Clear advanceRunTurn
     game.advanceRunTurn = null;
@@ -625,11 +625,11 @@ export async function execute_repeat_command(game, opts = {}) {
 // C ref: allmain.c deferred_goto() immediately follows rhack() whenever
 // u.utotype is set. In JS, timed commands defer this until after moveloop_core()
 // so ordering stays after monster movement.
-export function maybe_deferred_goto_after_rhack(game, result, opts = {}) {
+export async function maybe_deferred_goto_after_rhack(game, result, opts = {}) {
     const { skipTurnEnd = false } = opts;
     if (!game?.player?.utotype) return;
     if (!(result && result.tookTime) || skipTurnEnd) {
-        deferred_goto((game.u || game.player), game);
+        await deferred_goto((game.u || game.player), game);
     }
 }
 
@@ -638,7 +638,7 @@ export function maybe_deferred_goto_after_rhack(game, result, opts = {}) {
 async function _drainOccupation(game, coreOpts, onTimedTurn) {
     while (game.occupation) {
         const occ = game.occupation;
-        const cont = occ.fn(game);
+        const cont = await occ.fn(game);
         const finishedOcc = !cont ? occ : null;
 
         if (cont === 'prompt') {
@@ -693,7 +693,7 @@ async function _drainOccupation(game, coreOpts, onTimedTurn) {
 //   if (u.uhp < u.uhpmax && (encumbrance_ok || U_CAN_REGEN())) ...
 // JS doesn't track wtcap or umoved, so we skip the gate.
 // This causes rn2(100) to be consumed when C would skip it in overencumbered+moved cases.
-function regen_hp(game) {
+async function regen_hp(game) {
     const player = (game.u || game.player);
     // C ref: allmain.c:656-660 — non-polymorph branch, encumbrance-gated
     if (player.uhp < player.uhpmax) {
@@ -718,7 +718,7 @@ function regen_hp(game) {
                     && !((game.svc?.context?.run || game.context?.run || 0) > 0)) {
                     game.multi = 0;
                     if (game.flags?.verbose !== false) {
-                        game.display.putstr_message('You are in full health.');
+                        await game.display.putstr_message('You are in full health.');
                     }
                 }
             }
@@ -768,14 +768,14 @@ const DEFAULT_GAME_FLAGS = {
     safe_wait: true,
 };
 
-function renderToplineMorePrompt(display, msg) {
+async function renderToplineMorePrompt(display, msg) {
     const raw = String(msg || '');
     const text = raw.endsWith('--More--')
         ? raw.slice(0, Math.max(0, raw.length - '--More--'.length))
         : raw;
     if (typeof display.clearRow === 'function') display.clearRow(0);
     if ('messageNeedsMore' in display) display.messageNeedsMore = false;
-    display.putstr_message(text);
+    await display.putstr_message(text);
     if (typeof display.renderMoreMarker === 'function') {
         display.renderMoreMarker();
         return;
@@ -783,10 +783,10 @@ function renderToplineMorePrompt(display, msg) {
     const moreStr = '--More--';
     const msgLen = text.length;
     const col = Math.min(msgLen, Math.max(0, display.cols - moreStr.length));
-    display.putstr(col, 0, moreStr, CLR_GRAY);
+    await display.putstr(col, 0, moreStr, CLR_GRAY);
 }
 
-function buildReplayTutorialPromptFlow(messages, enterAfterPromptCount, onEnterTutorial) {
+async function buildReplayTutorialPromptFlow(messages, enterAfterPromptCount, onEnterTutorial) {
     const prompts = Array.isArray(messages) ? messages.map((s) => String(s || '')).filter(Boolean) : [];
     let idx = 0;
     let entered = false;
@@ -797,7 +797,7 @@ function buildReplayTutorialPromptFlow(messages, enterAfterPromptCount, onEnterT
         : prompts.length;
     const handler = {
         isReplayStartupPrompt: true,
-        onKey: (_ch, g) => {
+        onKey: async (_ch, g) => {
             if (awaitingFinalDismiss) {
                 if (typeof g.display.clearRow === 'function') g.display.clearRow(0);
                 if ('messageNeedsMore' in g.display) g.display.messageNeedsMore = false;
@@ -810,7 +810,7 @@ function buildReplayTutorialPromptFlow(messages, enterAfterPromptCount, onEnterT
                     g.renderCurrentScreen();
                     didPostEnterRender = true;
                 }
-                renderToplineMorePrompt(g.display, prompts[idx]);
+                await renderToplineMorePrompt(g.display, prompts[idx]);
                 idx++;
                 if (!entered && idx >= enterAt) {
                     g._pendingPromptTask = Promise.resolve(onEnterTutorial(g));
@@ -966,10 +966,10 @@ export class NetHackGame {
     }
 
     // Emit lifecycle event
-    _runLifecycle(name, ...args) {
+    async _runLifecycle(name, ...args) {
         const fn = this.lifecycle[name];
         if (typeof fn === 'function') {
-            return fn(...args);
+            return await fn(...args);
         }
         return undefined;
     }
@@ -1116,7 +1116,7 @@ export class NetHackGame {
         // Show welcome message
         const wizStr = this.wizard ? ' [WIZARD MODE]' : '';
         const seedStr = urlOpts.seed !== null ? ` (seed:${seed})` : '';
-        this.display.putstr_message(`NetHack Royal Jelly -- Welcome to the Mazes of Menace!${wizStr}${seedStr}`);
+        await this.display.putstr_message(`NetHack Royal Jelly -- Welcome to the Mazes of Menace!${wizStr}${seedStr}`);
 
         // Player selection
         if (urlOpts.character) {
@@ -1166,7 +1166,7 @@ export class NetHackGame {
         this.dungeonAlignOverride = Number.isInteger(urlOpts.dungeonAlignOverride)
             ? urlOpts.dungeonAlignOverride : undefined;
         const startDlevel = Number.isInteger(urlOpts.startDlevel) ? urlOpts.startDlevel : 1;
-        const { map, initResult } = initFirstLevel(this.player, this.player.roleIndex, this.wizard, {
+        const { map, initResult } = await initFirstLevel(this.player, this.player.roleIndex, this.wizard, {
             startDlevel,
             startDnum: this.dnum,
             dungeonAlignOverride: this.dungeonAlignOverride,
@@ -1196,7 +1196,7 @@ export class NetHackGame {
                     ? urlOpts.tutorialStartupEnterAfterPromptCount
                     : replayStartupPrompts.length;
                 // Replay-only path: consume startup prompt-dismiss keys exactly as captured.
-                this.pendingPrompt = buildReplayTutorialPromptFlow(
+                this.pendingPrompt = await buildReplayTutorialPromptFlow(
                     replayStartupPrompts,
                     replayEnterAfter,
                     (game) => _enterTutorial(game, { direct: true, deferRender: true })
@@ -1217,7 +1217,7 @@ export class NetHackGame {
 
     // Generate or retrieve a level
     // C ref: dungeon.c -- level management
-    changeLevel(depth, transitionDir = null, opts = {}) {
+    async changeLevel(depth, transitionDir = null, opts = {}) {
         // C ref: makemon.c byyou = (!in_mklev && x == u.ux && y == u.uy).
         // At level-gen time in C, u.ux/u.uy are 0,0 (player not yet placed),
         // so byyou is never true during fill_zoo. In JS the player still has
@@ -1226,27 +1226,27 @@ export class NetHackGame {
         setMakemonPlayerContext({ ...this.player, x: null, y: null });
         const heroHasAmulet = !!(this.player?.uhave?.amulet);
         const makeLevel = Number.isInteger(this.dnum)
-            ? (d) => makelevel(d, this.dnum, d, {
+            ? async (d) => await makelevel(d, this.dnum, d, {
                 dungeonAlignOverride: this.dungeonAlignOverride,
                 heroHasAmulet,
             })
             : undefined;
-        changeLevelCore(this, depth, transitionDir, { ...opts, makeLevel });
+        await changeLevelCore(this, depth, transitionDir, { ...opts, makeLevel });
 
         // Bones level message
         if (this.map.isBones) {
-            this.display.putstr_message('You get an eerie feeling...');
+            await this.display.putstr_message('You get an eerie feeling...');
         }
 
         // Update display
         this.renderCurrentScreen();
-        this.maybeShowQuestLocateHint(depth);
+        await this.maybeShowQuestLocateHint(depth);
         if (typeof this.hooks.onLevelChange === 'function') {
             this.hooks.onLevelChange({ game: this, depth });
         }
     }
 
-    maybeShowQuestLocateHint(depth) {
+    async maybeShowQuestLocateHint(depth) {
         if (!this.display || !this.player || this.player.questLocateHintShown) return;
         if (!Number.isInteger(depth)) return;
         const currentDnum = Number.isInteger(this.dnum) ? this.dnum : 0;
@@ -1254,7 +1254,7 @@ export class NetHackGame {
         if (!questLocateDepth && !isBranchLevelToDnum(currentDnum, depth, 3)) return;
         rn2(3);
         rn2(2);
-        this.display.putstr_message("You couldn't quite make out that last message.");
+        await this.display.putstr_message("You couldn't quite make out that last message.");
         this.player.questLocateHintShown = true;
     }
 
@@ -1291,13 +1291,13 @@ export class NetHackGame {
     }
 
     // C-parity naming for internal callers.
-    stop_occupation() {
-        stop_occupation(this);
+    async stop_occupation() {
+        await stop_occupation(this);
     }
 
     // Compatibility alias for existing JS call sites.
-    stopOccupation() {
-        this.stop_occupation();
+    async stopOccupation() {
+        await this.stop_occupation();
     }
 
     // Render current screen state
@@ -1502,14 +1502,14 @@ export class NetHackGame {
         };
     }
 
-    teleportToLevel(depth) {
+    async teleportToLevel(depth) {
         if (!this.player?.wizard) {
             return { ok: false, reason: 'wizard-disabled' };
         }
         if (!Number.isInteger(depth) || depth <= 0) {
             return { ok: false, reason: 'invalid-depth' };
         }
-        this.changeLevel(depth, 'teleport');
+        await this.changeLevel(depth, 'teleport');
         this.renderCurrentScreen();
         if (typeof this.hooks.onLevelChange === 'function') {
             this.hooks.onLevelChange({ game: this, depth });
@@ -1576,7 +1576,7 @@ export class NetHackGame {
                     onBeforeRepeat: async () => {
                         if (this.shouldInterruptMulti()) {
                             this.multi = 0;
-                            this.display.putstr_message('--More--');
+                            await this.display.putstr_message('--More--');
                             await nhgetch();
                         }
                     },
@@ -1618,7 +1618,7 @@ export class NetHackGame {
                 onBeforeRepeat: async () => {
                     if (this.shouldInterruptMulti()) {
                         this.multi = 0;
-                        this.display.putstr_message('--More--');
+                        await this.display.putstr_message('--More--');
                         await nhgetch();
                     }
                 },
@@ -1655,19 +1655,19 @@ export async function moveloop(resuming) {
 }
 
 // Autotranslated from allmain.c:604
-export function regen_pw(wtcap, game, player) {
+export async function regen_pw(wtcap, game, player) {
   if (player.uen < player.uenmax && ((wtcap < MOD_ENCUMBER && (!((Number(game?.moves) || 0) % ((MAXULEV + 8 - player.ulevel) * (Role_if(PM_WIZARD) ? 3 : 4) / 6)))) || Energy_regeneration)) {
     let upper =  (acurr(player,A_WIS) + acurr(player,A_INT)) / 15 + 1;
     player.uen += rn1(upper, 1);
     if (player.uen > player.uenmax) player.uen = player.uenmax;
     game.disp.botl = true;
-    if (player.uen === player.uenmax) interrupt_multi("You feel full of energy.");
+    if (player.uen === player.uenmax) await interrupt_multi("You feel full of energy.");
   }
 }
 
 // Autotranslated from allmain.c:955
-export function interrupt_multi(msg, game) {
-  if (game.multi > 0 && !game.svc.context.travel && !(game?.svc?.context?.run || 0)) { nomul(0); if (game.flags.verbose && msg) Norep("%s", msg); }
+export async function interrupt_multi(msg, game) {
+  if (game.multi > 0 && !game.svc.context.travel && !(game?.svc?.context?.run || 0)) { nomul(0); if (game.flags.verbose && msg) await Norep("%s", msg); }
 }
 
 // Autotranslated from allmain.c:1187
@@ -1676,14 +1676,14 @@ export function timet_delta(etim, stim) {
 }
 
 // Autotranslated from allmain.c:1264
-export function dump_enums() {
+export async function dump_enums() {
   let NUM_ENUM_DUMPS;
   let omdump = [ dump_om(LAST_GENERIC), dump_om(OBJCLASS_HACK), dump_om(FIRST_OBJECT), dump_om(FIRST_AMULET), dump_om(LAST_AMULET), dump_om(FIRST_SPELL), dump_om(LAST_SPELL), dump_om(MAXSPELL), dump_om(FIRST_REAL_GEM), dump_om(LAST_REAL_GEM), dump_om(FIRST_GLASS_GEM), dump_om(LAST_GLASS_GEM), dump_om(NUM_REAL_GEMS), dump_om(NUM_GLASS_GEMS), dump_om(MAX_GLYPH), ];
   let ed = [ monsdump, objdump, omdump, defsym_cmap_dump, defsym_mon_syms_dump, defsym_mon_defchars_dump, objclass_defchars_dump, objclass_classes_dump, objclass_syms_dump, arti_enum_dump, ];
   let edmp = [ [ "monnums", "PM_", UNPREFIXED_COUNT, 0, SIZE(monsdump) ], [ "objects_nums", "", 1, 0, SIZE(objdump) ], [ "misc_object_nums", "", 1, 0, SIZE(omdump) ], [ "cmap_symbols", "", 1, 0, SIZE(defsym_cmap_dump) ], [ "mon_syms", "", 1, 0, SIZE(defsym_mon_syms_dump) ], [ "mon_defchars", "", 1, 1, SIZE(defsym_mon_defchars_dump) ], [ "objclass_defchars", "", 1, 1, SIZE(objclass_defchars_dump) ], [ "objclass_classes", "", 1, 0, SIZE(objclass_classes_dump) ], [ "objclass_syms", "", 1, 0, SIZE(objclass_syms_dump) ], [ "artifacts_nums", "", 1, 0, SIZE(arti_enum_dump) ], ];
   let nmprefix, i, j, nmwidth, comment;
   for (i = 0; i < NUM_ENUM_DUMPS; ++ i) {
-    raw_printf("enum %s = {", edmp[i].title);
+    await raw_printf("enum %s = {", edmp[i].title);
     for (j = 0; j < edmp[i].szd; ++j) {
       nmprefix = (j >= edmp[i].szd - edmp[i].unprefixed_count) ? "" : edmp[i].pfx;
       nmwidth = 27 -  strlen(nmprefix);
@@ -1691,7 +1691,7 @@ export function dump_enums() {
         Snprintf(comment, comment.length, "  ", (ed[i][j].val >= 32 && ed[i][j].val <= 126) ? ed[i][j].val : ' ');
       }
       else { comment = '\0'; }
-      raw_printf(" %s% s.value = %3d,%s", nmprefix, -nmwidth, ed[i][j].nm, ed[i][j].val, comment);
+      await raw_printf(" %s% s.value = %3d,%s", nmprefix, -nmwidth, ed[i][j].nm, ed[i][j].val, comment);
     }
     raw_print("};");
     raw_print("");

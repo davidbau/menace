@@ -780,7 +780,7 @@ export function optfn_role(optidx, req, negated, opts, op, game) {
 }
 
 // Autotranslated from options.c:3963
-export function optfn_sortvanquished(optidx, req, negated, opts, op, game) {
+export async function optfn_sortvanquished(optidx, req, negated, opts, op, game) {
   let vanqorders, vanqmodes = "tdaACcnz", optname = allopt[optidx].name;
   if (req === do_init) { game.flags.vanq_sortmode = VANQ_MLVL_MNDX; return optn_ok; }
   if (req === do_set) {
@@ -811,7 +811,7 @@ export function optfn_sortvanquished(optidx, req, negated, opts, op, game) {
   if (req === do_handler) {
     let prev_sortmode = game.flags.vanq_sortmode;
     set_vanq_order(true);
-    pline("'%s' %s \"%s: %s\".", optname, (game.flags.vanq_sortmode === prev_sortmode) ? "not changed, still" : "changed to", vanqorders[game.flags.vanq_sortmode][0], vanqorders[game.flags.vanq_sortmode][1]);
+    await pline("'%s' %s \"%s: %s\".", optname, (game.flags.vanq_sortmode === prev_sortmode) ? "not changed, still" : "changed to", vanqorders[game.flags.vanq_sortmode][0], vanqorders[game.flags.vanq_sortmode][1]);
   }
   return optn_ok;
 }
@@ -906,8 +906,8 @@ export function complain_about_duplicate(optidx) {
 }
 
 // Autotranslated from options.c:6796
-export function rejectoption(optname) {
-  pline("%s can be set only from NETHACKOPTIONS or %s.", optname, get_configfile());
+export async function rejectoption(optname) {
+  await pline("%s can be set only from NETHACKOPTIONS or %s.", optname, get_configfile());
 }
 
 // Autotranslated from options.c:6832
@@ -1081,8 +1081,8 @@ export function msgtype_parse_add(str) {
 }
 
 // Autotranslated from options.c:8094
-export function add_menu_cmd_alias(from_ch, to_ch, game) {
-  if (game.gn.n_menu_mapped >= MAX_MENU_MAPPED_CMDS) { pline("out of menu map space."); }
+export async function add_menu_cmd_alias(from_ch, to_ch, game) {
+  if (game.gn.n_menu_mapped >= MAX_MENU_MAPPED_CMDS) { await pline("out of menu map space."); }
   else {
     game.mapped_menu_cmds = from_ch;
     game.mapped_menu_op = to_ch;
@@ -1252,12 +1252,12 @@ export function doset_add_menu(win, option, fmtstr, idx, indexoffset) {
 }
 
 // Autotranslated from options.c:9099
-export function show_menu_controls(win, dolist) {
+export async function show_menu_controls(win, dolist) {
   let desc;
   let hardcoded = [ [ "Return", "Accept current choice(s) and dismiss menu" ], [ "Enter", "Same as Return" ], [ "Space", "If not on last page, advance one page;" ], [ " ", "when on last page, treat like Return" ], [ "Escape", "Cancel menu without making any choice(s)" ], [  0,  0] ];
   let mc_fmt = "%8s %-6s %s", mc_altfmt = "%9s %-6s %s", buf, fmt, arg, xcp;
   let has_menu_shift = wc2_supported("menu_shift");
-  putstr(win, 0, "Menu control keys:");
+  await putstr(win, 0, "Menu control keys:");
   if (dolist) {
     let i, ch;
     fmt = "%-7s %s";
@@ -1267,48 +1267,48 @@ export function show_menu_controls(win, dolist) {
         continue;
       }
       Sprintf(buf, fmt, visctrl(get_menu_cmd_key(ch)), default_menu_cmd_info[i].desc);
-      putstr(win, 0, buf);
+      await putstr(win, 0, buf);
     }
     fmt = "%s%-7s %s";
     arg = "";
   }
   else {
-    putstr(win, 0, "");
+    await putstr(win, 0, "");
     Sprintf(buf, mc_altfmt, "", "Whole", "Current");
-    putstr(win, 0, buf);
+    await putstr(win, 0, buf);
     Sprintf(buf, mc_altfmt, "", " Menu", " Page");
-    putstr(win, 0, buf);
+    await putstr(win, 0, buf);
     Sprintf(buf, mc_fmt, "Select", visctrl(get_menu_cmd_key(MENU_SELECT_ALL)), visctrl(get_menu_cmd_key(MENU_SELECT_PAGE)));
-    putstr(win, 0, buf);
+    await putstr(win, 0, buf);
     Sprintf(buf, mc_fmt, "Invert", visctrl(get_menu_cmd_key(MENU_INVERT_ALL)), visctrl(get_menu_cmd_key(MENU_INVERT_PAGE)));
-    putstr(win, 0, buf);
+    await putstr(win, 0, buf);
     Sprintf(buf, mc_fmt, "Deselect", visctrl(get_menu_cmd_key(MENU_UNSELECT_ALL)), visctrl(get_menu_cmd_key(MENU_UNSELECT_PAGE)));
-    putstr(win, 0, buf);
-    putstr(win, 0, "");
+    await putstr(win, 0, buf);
+    await putstr(win, 0, "");
     Sprintf(buf, mc_fmt, "Go to", visctrl(get_menu_cmd_key(MENU_NEXT_PAGE)), "Next page");
-    putstr(win, 0, buf);
+    await putstr(win, 0, buf);
     Sprintf(buf, mc_fmt, "", visctrl(get_menu_cmd_key(MENU_PREVIOUS_PAGE)), "Previous page");
-    putstr(win, 0, buf);
+    await putstr(win, 0, buf);
     Sprintf(buf, mc_fmt, "", visctrl(get_menu_cmd_key(MENU_FIRST_PAGE)), "First page");
-    putstr(win, 0, buf);
+    await putstr(win, 0, buf);
     Sprintf(buf, mc_fmt, "", visctrl(get_menu_cmd_key(MENU_LAST_PAGE)), "Last page");
-    putstr(win, 0, buf);
+    await putstr(win, 0, buf);
     if (has_menu_shift) {
       Sprintf(buf, mc_fmt, "Pan view", visctrl(get_menu_cmd_key(MENU_SHIFT_RIGHT)), "Right (perm_invent only)");
-      putstr(win, 0, buf);
+      await putstr(win, 0, buf);
       Sprintf(buf, mc_fmt, "", visctrl(get_menu_cmd_key(MENU_SHIFT_LEFT)), "Left");
-      putstr(win, 0, buf);
+      await putstr(win, 0, buf);
     }
-    putstr(win, 0, "");
+    await putstr(win, 0, "");
     Sprintf(buf, mc_fmt, "Search", visctrl(get_menu_cmd_key(MENU_SEARCH)), "Exter a target string and invert all matching entries");
-    putstr(win, 0, buf);
-    putstr(win, 0, "");
+    await putstr(win, 0, buf);
+    await putstr(win, 0, "");
     fmt = "%9s %-8s %s";
     arg = "Other ";
   }
   for (xcp = hardcoded; xcp.key; ++xcp) {
     Sprintf(buf, fmt, arg, xcp.key, xcp.desc);
-    putstr(win, 0, buf);
+    await putstr(win, 0, buf);
     arg = "";
   }
 }

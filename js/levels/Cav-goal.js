@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Caveman Cav-goal.lua	$NHDT-Date: 1652196002 2022/5/10 15:20:2 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991 by M. Stephenson
@@ -68,5 +68,5 @@ export function generate() {
     des.wallify();
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

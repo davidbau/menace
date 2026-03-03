@@ -16,7 +16,7 @@ export function hell_tweaks(protected_region) {
 }
 
 
-export function generate() {
+export async function generate() {
     // NetHack 3.7	hellfill.des	$NHDT-Date: 1432512783 2015/5/25 0:13:3 $  $NHDT-Branch: master $:$NHDT-Revision: 1.25 $
     // Copyright (c) 2022 by Pasi Kallinen
     // NetHack may be freely redistributed.  See license for details.
@@ -61,15 +61,15 @@ export function generate() {
 
     // 
 
-    function helltraps() {
+    async function helltraps() {
        for (let i = 1; i <= 12; i++) {
-          des.trap();
+          await des.trap();
        }
     }
 
     // 
 
-    function populatemaze() {
+    async function populatemaze() {
        const mazeObjectCount = rnd(8) + 11;
        for (let i = 1; i <= mazeObjectCount; i++) {
           if ((percent(50))) {
@@ -101,7 +101,7 @@ export function generate() {
 
    const trapCount = rnd(6) + 7;
    for (let i = 1; i <= trapCount; i++) {
-      des.trap();
+      await des.trap();
    }
 }
 
@@ -460,13 +460,13 @@ hells[hellno]();
 
 des.stair("up");
 if ((u.invocation_level)) {
-   des.trap("vibrating square");
+   await des.trap("vibrating square");
 } else {
    des.stair("down");
 }
 
-populatemaze();
+await populatemaze();
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

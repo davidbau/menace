@@ -408,7 +408,7 @@ export function poly_gender(player) {
 // ============================================================================
 
 // Autotranslated from polyself.c:2143
-export function ugolemeffects(damtype, dam, game, player) {
+export async function ugolemeffects(damtype, dam, game, player) {
   let heal = 0;
   if (player.umonnum !== PM_FLESH_GOLEM &player.umonnum !== PM_IRON_GOLEM) return;
   switch (damtype) {
@@ -423,8 +423,8 @@ export function ugolemeffects(damtype, dam, game, player) {
     player.mh += heal;
     if (player.mh > player.mhmax) player.mh = player.mhmax;
     game.disp.botl = true;
-    pline("Strangely, you feel better than before.");
-    exercise(A_STR, true);
+    await pline("Strangely, you feel better than before.");
+    await exercise(A_STR, true);
   }
 }
 
@@ -475,13 +475,13 @@ export function armor_to_dragon(atyp) {
 // Revert dragon scale skin merging.
 // ============================================================================
 
-export function skinback(player, silently) {
+export async function skinback(player, silently) {
     // cf. polyself.c:1938 — skinback()
     // Revert dragon scale skin merging.
     if (!player) return;
     if (player.uskin) {
         if (!silently) {
-            Your("skin returns to its original form.");
+            await Your("skin returns to its original form.");
         }
         player.uarm = player.uskin;
         player.uskin = null;
@@ -493,14 +493,14 @@ export function skinback(player, silently) {
 // Release monster held in player's clutches.
 // ============================================================================
 
-export function uunstick(player) {
+export async function uunstick(player) {
     // cf. polyself.c:1925 — uunstick()
     // Release monster held in player's clutches.
     if (!player) return;
     const mtmp = player.ustuck;
     if (!mtmp) return;
     player.ustuck = null;
-    pline("%s is no longer in your clutches.", Monnam(mtmp));
+    await pline("%s is no longer in your clutches.", Monnam(mtmp));
 }
 
 // ============================================================================
@@ -662,7 +662,7 @@ export function steed_vs_stealth(player) {
 // check_strangling(player, on) — cf. polyself.c:168
 // ============================================================================
 
-function check_strangling(player, on) {
+async function check_strangling(player, on) {
     // cf. polyself.c:168 — check_strangling()
     // For changing into form that's immune to strangulation.
     if (!player) return;
@@ -673,7 +673,7 @@ function check_strangling(player, on) {
         if (player.uamul && player.uamul.otyp === 201 /* AMULET_OF_STRANGULATION */
             && can_be_strangled(player.type || mons[PM_HUMAN])) {
             player.strangled = 6;
-            Your("%s %s your %s!",
+            await Your("%s %s your %s!",
                 player.uamul.name || "amulet",
                 was_strangled ? "still constricts" : "begins constricting",
                 body_part(NECK, player));
@@ -682,7 +682,7 @@ function check_strangling(player, on) {
         // off -- maybe block strangling
         if (player.strangled && !can_be_strangled(player.type || mons[PM_HUMAN])) {
             player.strangled = 0;
-            You("are no longer being strangled.");
+            await You("are no longer being strangled.");
         }
     }
 }
@@ -692,7 +692,7 @@ function check_strangling(player, on) {
 // Make a (new) human out of the player.
 // ============================================================================
 
-function polyman(player, fmt, arg) {
+async function polyman(player, fmt, arg) {
     // cf. polyself.c:200 — polyman()
     // Make a (new) human out of the player.
     if (!player) return;
@@ -712,11 +712,11 @@ function polyman(player, fmt, arg) {
     player.mh = 0;
     player.mhmax = 0;
     player.mtimedone = 0;
-    skinback(player, false);
+    await skinback(player, false);
     player.uundetected = 0;
 
     if (wasSticking)
-        uunstick(player);
+        await uunstick(player);
 
     // find_ac
     if (player.findAC) player.findAC();
@@ -728,11 +728,11 @@ function polyman(player, fmt, arg) {
     }
 
     // Output the polymorph message
-    if (fmt) pline(fmt, arg);
+    if (fmt) await pline(fmt, arg);
 
     // Genocide check
     if (ugenocided(player)) {
-        pline("You feel %s inside.", udeadinside(player));
+        await pline("You feel %s inside.", udeadinside(player));
     }
 
     // Twoweapon check
@@ -749,7 +749,7 @@ function polyman(player, fmt, arg) {
         player.blind = 0;
     }
 
-    check_strangling(player, true);
+    await check_strangling(player, true);
 }
 
 // ============================================================================
@@ -783,7 +783,7 @@ export function change_sex(player) {
 // Full port: consumes RNG to match C behavior order.
 // ============================================================================
 
-function newman(player) {
+async function newman(player) {
     // cf. polyself.c:332 — newman()
     // Transform player into a "new" human form with level/stat changes.
     if (!player) return;
@@ -794,8 +794,8 @@ function newman(player) {
 
     if (newlvl > 127 || newlvl < 1) {
         // level went below 0 or overflowed — fatal
-        pline("Your new form doesn't seem healthy enough to survive.");
-        if (player.done) player.done('DIED', "unsuccessful polymorph");
+        await pline("Your new form doesn't seem healthy enough to survive.");
+        if (player.done) await player.done('DIED', "unsuccessful polymorph");
         // Must have been life-saved to continue
         return;
     }
@@ -818,7 +818,7 @@ function newman(player) {
     }
 
     // adjabil(oldlvl, newlvl) — ability adjustments for level change
-    if (player.adjabil) player.adjabil(oldlvl, newlvl);
+    if (player.adjabil) await player.adjabil(oldlvl, newlvl);
 
     // rndexp(FALSE) — random experience points for new level
     // In C, rndexp consumes RNG. We call it if available.
@@ -895,7 +895,7 @@ function newman(player) {
         if (player.polyControl) {
             if (player.uhp <= 0) player.uhp = 1;
         } else {
-            pline("Your new form doesn't seem healthy enough to survive.");
+            await pline("Your new form doesn't seem healthy enough to survive.");
             // done(DIED) — "unsuccessful polymorph"
             // Must have been life-saved to get here
             return;
@@ -903,25 +903,25 @@ function newman(player) {
     }
 
     // newuhs(FALSE) — update hunger state
-    if (player.newuhs) player.newuhs(false);
+    if (player.newuhs) await player.newuhs(false);
 
     // Use race-specific form name
     const newform = (player.female && player.raceIndividualF)
         ? player.raceIndividualF
         : (player.raceIndividualM || player.raceNoun || "person");
-    polyman(player, "You feel like a new %s!", newform);
+    await polyman(player, "You feel like a new %s!", newform);
 
     const newgend = poly_gender(player);
     livelog_newform(true, oldgend, newgend);
 
     // Slime handling
     if (player.slimed) {
-        Your("body transforms, but there is still slime on you.");
+        await Your("body transforms, but there is still slime on you.");
         player.slimed = 10;
     }
 
     // encumber_msg, retouch_equipment, selftouch
-    if (player.encumber_msg) player.encumber_msg();
+    if (player.encumber_msg) await player.encumber_msg();
     if (player.retouch_equipment) player.retouch_equipment(2);
     if (!player.uarmg && player.selftouch) {
         player.selftouch("No longer petrify-resistant, you");
@@ -933,7 +933,7 @@ function newman(player) {
 // Main polymorph entry point.
 // ============================================================================
 
-export function polyself(player, psflags, map) {
+export async function polyself(player, psflags, map) {
     // cf. polyself.c:465 — polyself()
     // Main polymorph entry point.
     if (!player) return;
@@ -956,7 +956,7 @@ export function polyself(player, psflags, map) {
     const Unchanging = player.unchanging || false;
 
     if (Unchanging) {
-        You("fail to transform!");
+        await You("fail to transform!");
         return;
     }
 
@@ -964,11 +964,11 @@ export function polyself(player, psflags, map) {
     if (!polyControl && !forcecontrol && !draconian && !iswere && !isvamp) {
         const acon = (player.acurr && player.acurr.con) || player.acurr_con || 10;
         if (rn2(20) > acon) {
-            pline("You shudder for a moment.");
+            await pline("You shudder for a moment.");
             const dmg = rnd(30);
             player.uhp = (player.uhp || 1) - dmg;
-            if (player.losehp) player.losehp(dmg, "system shock", 1 /* KILLED_BY_AN */);
-            exercise('A_CON', false);
+            if (player.losehp) await player.losehp(dmg, "system shock", 1 /* KILLED_BY_AN */);
+            await exercise('A_CON', false);
             return;
         }
     }
@@ -993,9 +993,9 @@ export function polyself(player, psflags, map) {
             }
         }
         if (mntmp === PM_HUMAN)
-            newman(player);
+            await newman(player);
         else
-            polymon(player, mntmp, map);
+            await polymon(player, mntmp, map);
         return;
     }
 
@@ -1007,7 +1007,7 @@ export function polyself(player, psflags, map) {
         if (draconian) {
             // Dragon scale merge
             mntmp = armor_to_dragon(player.uarm.otyp);
-            You("merge with your scaly armor.");
+            await You("merge with your scaly armor.");
             player.uskin = player.uarm;
             player.uarm = null;
         } else if (iswere) {
@@ -1032,9 +1032,9 @@ export function polyself(player, psflags, map) {
         }
         // sex_change_ok left disabled for special changes
         if (mntmp === PM_HUMAN)
-            newman(player);
+            await newman(player);
         else
-            polymon(player, mntmp, map);
+            await polymon(player, mntmp, map);
         return;
     }
 
@@ -1054,9 +1054,9 @@ export function polyself(player, psflags, map) {
     if (!polyok(mons[mntmp]) || !rn2(5)
         || (mons[mntmp] && player.umonster !== undefined
             && mons[mntmp] === mons[player.umonster])) {
-        newman(player);
+        await newman(player);
     } else {
-        polymon(player, mntmp, map);
+        await polymon(player, mntmp, map);
     }
 
     player._sex_change_ok = (player._sex_change_ok || 1) - 1;
@@ -1072,7 +1072,7 @@ export function polyself(player, psflags, map) {
 // Consumes RNG: exercise calls, rn2 for sex change, rn1 for timer/HP.
 // ============================================================================
 
-export function polymon(player, mntmp, map) {
+export async function polymon(player, mntmp, map) {
     // cf. polyself.c:731 — polymon()
     // Transform player into specific monster type. Return 1 if successful.
     if (!player || mntmp < LOW_PM || mntmp >= mons.length) return 0;
@@ -1089,8 +1089,8 @@ export function polymon(player, mntmp, map) {
     player.uconduct.polyselfs = (player.uconduct.polyselfs || 0) + 1;
 
     // Exercise — must match C RNG consumption order
-    exercise('A_CON', false);
-    exercise('A_WIS', true);
+    await exercise('A_CON', false);
+    await exercise('A_WIS', true);
 
     const Upolyd = player.mtimedone > 0;
 
@@ -1128,14 +1128,14 @@ export function polymon(player, mntmp, map) {
     }
     buf += mons[mntmp].name;
     if (player.umonnum !== mntmp)
-        You("turn into a %s!", buf);
+        await You("turn into a %s!", buf);
     else
-        You("feel like a %s!", buf);
+        await You("feel like a %s!", buf);
 
     // If stoned and poly_when_stoned, become stone golem
     if (player.stoned && poly_when_stoned(mons[mntmp])) {
         mntmp = PM_STONE_GOLEM;
-        pline("You turn to stone!");
+        await pline("You turn to stone!");
         player.stoned = 0;
     }
 
@@ -1157,23 +1157,23 @@ export function polymon(player, mntmp, map) {
     // Stone_resistance && Stoned -> clear petrification
     if (player.stoned && ((mons[mntmp].mr1 || 0) & MR_STONE)) {
         player.stoned = 0;
-        You("no longer seem to be petrifying.");
+        await You("no longer seem to be petrifying.");
     }
     // Sick_resistance && Sick -> clear sickness
     if (player.sick && (mons[mntmp].mlet === S_FUNGUS || mons[mntmp] === mons[PM_GHOUL])) {
         player.sick = 0;
-        You("no longer feel sick.");
+        await You("no longer feel sick.");
     }
     // Slimed handling
     if (player.slimed) {
         if (flaming(mons[mntmp])) {
             player.slimed = 0;
-            pline("The slime burns away!");
+            await pline("The slime burns away!");
         } else if (mntmp === PM_GREEN_SLIME) {
             player.slimed = 0; // silently
         }
     }
-    check_strangling(player, false); // maybe stop strangling
+    await check_strangling(player, false); // maybe stop strangling
     if (nohands(mons[mntmp])) {
         player.glib = 0;
     }
@@ -1202,9 +1202,9 @@ export function polymon(player, mntmp, map) {
 
     // Handle skin/armor/weapon
     if (player.uskin && mntmp !== armor_to_dragon((player.uskin.otyp || 0)))
-        skinback(player, false);
-    break_armor(player);
-    drop_weapon(player, 1);
+        await skinback(player, false);
+    await break_armor(player);
+    await drop_weapon(player, 1);
     if (player.findAC) player.findAC();
 
     // Pit escape timer reset
@@ -1230,17 +1230,17 @@ export function polymon(player, mntmp, map) {
             || usiz >= MZ_HUGE
             || (ustdata && ustdata.msize < usiz && !is_whirly(ustdata))) {
             if (unsolid(mons[mntmp])) {
-                pline("%s can no longer contain you.",
+                await pline("%s can no longer contain you.",
                     player.ustuck.name || "It");
             }
-            if (player.expels) player.expels(player.ustuck);
+            if (player.expels) await player.expels(player.ustuck);
         }
     } else if (player.ustuck && !player.uswallow) {
         // Being held; if now capable of holding or unsolid, release
         if (sticks(mons[mntmp]) || unsolid(mons[mntmp])) {
             const stuckName = (player.ustuck.name || "It");
             player.ustuck = null;
-            pline("%s loses its grip on you.", stuckName);
+            await pline("%s loses its grip on you.", stuckName);
         }
     }
 
@@ -1254,35 +1254,35 @@ export function polymon(player, mntmp, map) {
     if (player.findAC) player.findAC();
 
     // Pool/lava spoteffects
-    if (player.spoteffects) player.spoteffects(true);
+    if (player.spoteffects) await player.spoteffects(true);
 
     // Passes_walls trap handling
     if (passes_walls(mons[mntmp]) && player.utrap) {
         const TT_INFLOOR = 4, TT_BURIEDBALL = 5;
         if (player.utraptype === TT_INFLOOR) {
-            pline_The("rock seems to no longer trap you.");
+            await pline_The("rock seems to no longer trap you.");
             player.utrap = 0;
         } else if (player.utraptype === TT_BURIEDBALL) {
-            pline_The("buried ball is no longer bound to you.");
+            await pline_The("buried ball is no longer bound to you.");
             player.utrap = 0;
         }
     }
 
     // Lava-loving creatures
     if (likes_lava(mons[mntmp]) && player.utrap && player.utraptype === 3 /* TT_LAVA */) {
-        pline_The("lava now feels soothing.");
+        await pline_The("lava now feels soothing.");
         player.utrap = 0;
     }
 
     // Amorphous/whirly/unsolid: slip out of chains, traps
     if (amorphous(mons[mntmp]) || is_whirly(mons[mntmp]) || unsolid(mons[mntmp])) {
         if (player.punished) {
-            You("slip out of the iron chain.");
+            await You("slip out of the iron chain.");
             player.punished = false;
         }
         const TT_WEB = 6, TT_BEARTRAP = 1;
         if (player.utrap && (player.utraptype === TT_WEB || player.utraptype === TT_BEARTRAP)) {
-            You("are no longer stuck in the %s.",
+            await You("are no longer stuck in the %s.",
                 player.utraptype === TT_WEB ? "web" : "bear trap");
             player.utrap = 0;
         }
@@ -1293,7 +1293,7 @@ export function polymon(player, mntmp, map) {
         const TT_WEB = 6, TT_BEARTRAP = 1;
         if ((player.utraptype === TT_WEB || player.utraptype === TT_BEARTRAP)
             && (mons[mntmp].msize !== undefined && mons[mntmp].msize <= MZ_SMALL)) {
-            You("are no longer stuck in the %s.",
+            await You("are no longer stuck in the %s.",
                 player.utraptype === TT_WEB ? "web" : "bear trap");
             player.utrap = 0;
         }
@@ -1301,14 +1301,14 @@ export function polymon(player, mntmp, map) {
 
     // Webmaker in web: orient yourself
     if (webmaker(mons[mntmp]) && player.utrap && player.utraptype === 6 /* TT_WEB */) {
-        You("orient yourself on the web.");
+        await You("orient yourself on the web.");
         player.utrap = 0;
     }
 
-    check_strangling(player, true); // maybe start strangling
+    await check_strangling(player, true); // maybe start strangling
 
     // Encumbrance, retouch equipment, selftouch
-    if (player.encumber_msg) player.encumber_msg();
+    if (player.encumber_msg) await player.encumber_msg();
     if (player.retouch_equipment) player.retouch_equipment(2);
     if (!player.uarmg && player.selftouch) {
         player.selftouch("No longer petrify-resistant, you");
@@ -1319,34 +1319,34 @@ export function polymon(player, mntmp, map) {
     const might_hide = (is_hider(uptr) || hides_under(uptr));
 
     if (can_breathe(uptr))
-        pline("Use the command #monster to use your breath weapon.");
+        await pline("Use the command #monster to use your breath weapon.");
     if (attacktype(uptr, AT_SPIT))
-        pline("Use the command #monster to spit venom.");
+        await pline("Use the command #monster to spit venom.");
     if (uptr.mlet === S_NYMPH)
-        pline("Use the command #monster to remove an iron ball.");
+        await pline("Use the command #monster to remove an iron ball.");
     if (attacktype(uptr, AT_GAZE))
-        pline("Use the command #monster to gaze at monsters.");
+        await pline("Use the command #monster to gaze at monsters.");
     if (might_hide && webmaker(uptr))
-        pline("Use the command #monster to hide or to spin a web.");
+        await pline("Use the command #monster to hide or to spin a web.");
     else if (might_hide)
-        pline("Use the command #monster to hide.");
+        await pline("Use the command #monster to hide.");
     else if (webmaker(uptr))
-        pline("Use the command #monster to spin a web.");
+        await pline("Use the command #monster to spin a web.");
     if (is_were(uptr))
-        pline("Use the command #monster to summon help.");
+        await pline("Use the command #monster to summon help.");
     if (mntmp === PM_GREMLIN)
-        pline("Use the command #monster to multiply in a fountain.");
+        await pline("Use the command #monster to multiply in a fountain.");
     if (is_unicorn(uptr))
-        pline("Use the command #monster to use your horn.");
+        await pline("Use the command #monster to use your horn.");
     if (is_mind_flayer(uptr))
-        pline("Use the command #monster to emit a mental blast.");
+        await pline("Use the command #monster to emit a mental blast.");
     if (uptr.sound === MS_SHRIEK)
-        pline("Use the command #monster to shriek.");
+        await pline("Use the command #monster to shriek.");
     if (is_vampire(uptr))
-        pline("Use the command #monster to change shape.");
+        await pline("Use the command #monster to change shape.");
     if (lays_eggs(uptr) && player.female
         && !(uptr === mons[PM_GIANT_EEL] || uptr === mons[PM_ELECTRIC_EEL]))
-        pline("Use the command #sit to lay an egg.");
+        await pline("Use the command #sit to lay an egg.");
 
     return 1;
 }
@@ -1356,7 +1356,7 @@ export function polymon(player, mntmp, map) {
 // Return to original form.
 // ============================================================================
 
-export function rehumanize(player) {
+export async function rehumanize(player) {
     // cf. polyself.c:1352 — rehumanize()
     // Return to original form, usually due to polymorph timing out or HP loss.
     if (!player) return;
@@ -1370,7 +1370,7 @@ export function rehumanize(player) {
     if (Unchanging) {
         if ((player.mh || 0) < 1) {
             // killed while stuck in creature form
-            if (player.done) player.done('DIED');
+            if (player.done) await player.done('DIED');
             return; // don't rehumanize after all (lifesaved)
         }
     }
@@ -1379,17 +1379,17 @@ export function rehumanize(player) {
     if (player.delLightSource) player.delLightSource();
 
     const raceAdj = player.raceAdj || "human";
-    polyman(player, "You return to %s form!", raceAdj);
+    await polyman(player, "You return to %s form!", raceAdj);
 
     if ((player.uhp || 0) < 1) {
-        Your("old form was not healthy enough to survive.");
-        if (player.done) player.done('DIED');
+        await Your("old form was not healthy enough to survive.");
+        if (player.done) await player.done('DIED');
     }
 
     // nomul(0) — cancel any multi-turn action
     if (player.nomul) player.nomul(0);
 
-    if (player.encumber_msg) player.encumber_msg();
+    if (player.encumber_msg) await player.encumber_msg();
 
     // Steed landing message
     if (was_flying && player.usteed) {
@@ -1397,7 +1397,7 @@ export function rehumanize(player) {
             (player.uprops[FLYING].intrinsic || player.uprops[FLYING].extrinsic) &&
             !player.uprops[FLYING].blocked;
         if (!isNowFlying) {
-            You("and %s return gently to the ground.",
+            await You("and %s return gently to the ground.",
                 player.usteed.name || "your steed");
         }
     }
@@ -1413,7 +1413,7 @@ export function rehumanize(player) {
 // Remove unsuitable armor when changing form.
 // ============================================================================
 
-export function break_armor(player) {
+export async function break_armor(player) {
     // cf. polyself.c:1153 — break_armor()
     // Remove/break armor that doesn't fit the new polymorphed form.
     if (!player || !player.type) return;
@@ -1431,42 +1431,42 @@ export function break_armor(player) {
     if (breakarm(uptr)) {
         // Large form breaks out of armor
         if (player.uarm) {
-            You("break out of your armor!");
-            exercise('A_STR', false);
+            await You("break out of your armor!");
+            await exercise('A_STR', false);
             if (player.Armor_gone) player.Armor_gone();
             if (player.useup) player.useup(player.uarm);
             player.uarm = null;
         }
         if (player.uarmc) {
             // Mummy wrapping adapts to some sizes — skip if allowed
-            pline_The("clasp on your cloak breaks open!");
+            await pline_The("clasp on your cloak breaks open!");
             removeArmor('uarmc', 'Cloak_off');
         }
         if (player.uarmu) {
-            Your("shirt rips to shreds!");
+            await Your("shirt rips to shreds!");
             if (player.useup) player.useup(player.uarmu);
             player.uarmu = null;
         }
     } else if (sliparm(uptr)) {
         // Small/slimy form slips out of armor
         if (player.uarm) {
-            Your("armor falls around you!");
+            await Your("armor falls around you!");
             if (player.Armor_gone) player.Armor_gone();
             if (player.dropp) player.dropp(player.uarm);
             player.uarm = null;
         }
         if (player.uarmc) {
             if (is_whirly(uptr))
-                Your("cloak falls, unsupported!");
+                await Your("cloak falls, unsupported!");
             else
-                You("shrink out of your cloak!");
+                await You("shrink out of your cloak!");
             removeArmor('uarmc', 'Cloak_off');
         }
         if (player.uarmu) {
             if (is_whirly(uptr))
-                You("seep right through your shirt!");
+                await You("seep right through your shirt!");
             else
-                You("become much too small for your shirt!");
+                await You("become much too small for your shirt!");
             if (player.dropp) player.dropp(player.uarmu);
             player.uarmu = null;
         }
@@ -1475,7 +1475,7 @@ export function break_armor(player) {
     // Horns pierce/knock off helmet
     if (has_horns(uptr)) {
         if (player.uarmh) {
-            Your("helmet falls to the ground!");
+            await Your("helmet falls to the ground!");
             removeArmor('uarmh', 'Helmet_off');
         }
     }
@@ -1483,16 +1483,16 @@ export function break_armor(player) {
     // No hands or very small — lose gloves, shield, helmet
     if (nohands(uptr) || (uptr.msize !== undefined && uptr.msize <= MZ_SMALL)) {
         if (player.uarmg) {
-            You("drop your gloves%s!", player.uwep ? " and weapon" : "");
-            drop_weapon(player, 0);
+            await You("drop your gloves%s!", player.uwep ? " and weapon" : "");
+            await drop_weapon(player, 0);
             removeArmor('uarmg', 'Gloves_off');
         }
         if (player.uarms) {
-            You("can no longer hold your shield!");
+            await You("can no longer hold your shield!");
             removeArmor('uarms', 'Shield_off');
         }
         if (player.uarmh) {
-            Your("helmet falls to the ground!");
+            await Your("helmet falls to the ground!");
             removeArmor('uarmh', 'Helmet_off');
         }
     }
@@ -1502,9 +1502,9 @@ export function break_armor(player) {
         || slithy(uptr) || uptr.mlet === S_CENTAUR) {
         if (player.uarmf) {
             if (is_whirly(uptr))
-                Your("boots fall away!");
+                await Your("boots fall away!");
             else
-                Your("boots %s off your feet!",
+                await Your("boots %s off your feet!",
                     (uptr.msize !== undefined && uptr.msize <= MZ_SMALL) ? "slide" : "are pushed");
             removeArmor('uarmf', 'Boots_off');
         }
@@ -1512,7 +1512,7 @@ export function break_armor(player) {
 
     // Eyewear falls off without a head
     if (player.ublindf && !has_head(uptr)) {
-        Your("eyewear falls off!");
+        await Your("eyewear falls off!");
         removeArmor('ublindf', 'Blindf_off');
     }
     // rings stay worn even when no hands
@@ -1523,7 +1523,7 @@ export function break_armor(player) {
 // Drop weapon for handless form.
 // ============================================================================
 
-export function drop_weapon(player, alone) {
+export async function drop_weapon(player, alone) {
     // cf. polyself.c:1290 — drop_weapon()
     // Drop weapon when polymorphed into a form that can't wield.
     if (!player) return;
@@ -1531,17 +1531,17 @@ export function drop_weapon(player, alone) {
     if (player.uwep) {
         if (!alone || cantwield(player.type)) {
             if (alone) {
-                You("find you must drop your weapon!");
+                await You("find you must drop your weapon!");
             }
             // Handle twoweapon: drop swap weapon first
             if (player.twoweap && player.uswapwep) {
                 const swapwep = player.uswapwep;
                 player.uswapwep = null;
-                if (player.dropx) player.dropx(swapwep);
+                if (player.dropx) await player.dropx(swapwep);
             }
             const wep = player.uwep;
             player.uwep = null;
-            if (player.dropx) player.dropx(wep);
+            if (player.dropx) await player.dropx(wep);
             if (player.update_inventory) player.update_inventory();
         }
     }
@@ -1592,16 +1592,16 @@ export function polysense(player) {
 // ============================================================================
 
 // cf. polyself.c:1405 — dobreathe(): breath weapon attack
-export function dobreathe(player, map) {
+export async function dobreathe(player, map) {
     // Breath weapon attack for polymorphed player.
     if (!player || !player.type) return 0;
 
     if (player.strangled) {
-        You_cant("breathe.  Sorry.");
+        await You_cant("breathe.  Sorry.");
         return 0;
     }
     if ((player.uen || 0) < 15) {
-        You("don't have enough energy to breathe!");
+        await You("don't have enough energy to breathe!");
         return 0;
     }
     player.uen -= 15;
@@ -1616,7 +1616,7 @@ export function dobreathe(player, map) {
 
     const mattk = attacktype_fordmg(player.type, AT_BREA, AD_ANY);
     if (!mattk) {
-        pline("bad breath attack?"); // impossible
+        await pline("bad breath attack?"); // impossible
     } else {
         if (!player.dx && !player.dy && !player.dz) {
             // Breathe on self
@@ -1645,7 +1645,7 @@ export async function dospit(player, map) {
 
     const mattk = attacktype_fordmg(player.type, AT_SPIT, AD_ANY);
     if (!mattk) {
-        pline("bad spit attack?"); // impossible
+        await pline("bad spit attack?"); // impossible
     } else {
         let otmp;
         switch (mattk.adtyp) {
@@ -1669,7 +1669,7 @@ export async function dospit(player, map) {
 }
 
 // cf. polyself.c:1465 — doremove(): remove iron chain
-export function doremove(player) {
+export async function doremove(player) {
     // cf. polyself.c:1465 — doremove()
     // Nymph form ability to remove iron chain punishment.
     if (!player) return 0;
@@ -1678,10 +1678,10 @@ export function doremove(player) {
 
     if (!Punished) {
         if (player.utrap && player.utraptype === 5 /* TT_BURIEDBALL */) {
-            pline_The("ball and chain are buried firmly in the ground.");
+            await pline_The("ball and chain are buried firmly in the ground.");
             return 0;
         }
-        You("are not chained to anything!");
+        await You("are not chained to anything!");
         return 0;
     }
     // unpunish() — remove ball and chain punishment
@@ -1694,7 +1694,7 @@ export function doremove(player) {
 }
 
 // cf. polyself.c:1481 — dospinweb(): web spinning attack
-export function dospinweb(player, map) {
+export async function dospinweb(player, map) {
     // cf. polyself.c:1481 — dospinweb()
     // Spider form ability to spin a web on the current tile.
     if (!player || !map) return 0;
@@ -1705,15 +1705,15 @@ export function dospinweb(player, map) {
     const reject_terrain = loc && (loc.isPool || loc.isLava || loc.isAir);
 
     if (player.levitation || reject_terrain) {
-        You("must be on %s ground to spin a web.",
+        await You("must be on %s ground to spin a web.",
             reject_terrain ? "solid" : "the");
         return 0;
     }
 
     if (player.uswallow) {
-        You("release web fluid inside %s.", mon_nam(player.ustuck));
+        await You("release web fluid inside %s.", mon_nam(player.ustuck));
         if (player.ustuck && is_animal(player.ustuck.type || player.ustuck.data)) {
-            if (player.expels) player.expels(player.ustuck);
+            if (player.expels) await player.expels(player.ustuck);
             return 0;
         }
         if (player.ustuck && is_whirly(player.ustuck.type || player.ustuck.data)) {
@@ -1728,25 +1728,25 @@ export function dospinweb(player, map) {
                         case AD_ELEC: sweep = "fries and "; break;
                         case AD_COLD: sweep = "freezes, shatters and "; break;
                         }
-                        pline_The("web %sis swept away!", sweep);
+                        await pline_The("web %sis swept away!", sweep);
                         return 0;
                     }
                 }
             }
-            pline_The("web is swept away!");
+            await pline_The("web is swept away!");
             return 0;
         }
         // default: a nasty jelly-like creature
-        pline_The("web dissolves into %s.", mon_nam(player.ustuck));
+        await pline_The("web dissolves into %s.", mon_nam(player.ustuck));
         return 0;
     }
 
     if (player.utrap) {
-        You("cannot spin webs while stuck in a trap.");
+        await You("cannot spin webs while stuck in a trap.");
         return 0;
     }
 
-    exercise('A_DEX', true);
+    await exercise('A_DEX', true);
 
     // Check for existing trap on tile
     const ttmp = loc ? loc.trap : null;
@@ -1761,32 +1761,32 @@ export function dospinweb(player, map) {
 
         switch (ttyp) {
         case PIT: case SPIKED_PIT:
-            You("spin a web, covering up the pit.");
+            await You("spin a web, covering up the pit.");
             if (loc.deltrap) loc.deltrap(ttmp);
             return 1;
         case SQKY_BOARD:
-            pline_The("squeaky board is muffled.");
+            await pline_The("squeaky board is muffled.");
             if (loc.deltrap) loc.deltrap(ttmp);
             return 1;
         case TELEP_TRAP: case LEVEL_TELEP:
         case MAGIC_PORTAL: case VIBRATING_SQUARE:
-            Your("webbing vanishes!");
+            await Your("webbing vanishes!");
             return 0;
         case WEB:
-            You("make the web thicker.");
+            await You("make the web thicker.");
             return 1;
         case HOLE: case TRAPDOOR:
-            You("web over the %s.", ttyp === TRAPDOOR ? "trap door" : "hole");
+            await You("web over the %s.", ttyp === TRAPDOOR ? "trap door" : "hole");
             if (loc.deltrap) loc.deltrap(ttmp);
             return 1;
         case ROLLING_BOULDER_TRAP:
-            You("spin a web, jamming the trigger.");
+            await You("spin a web, jamming the trigger.");
             if (loc.deltrap) loc.deltrap(ttmp);
             return 1;
         default:
             // Arrow, dart, bear, rock, fire, land mine, sleep gas, rust,
             // magic, anti-magic, poly traps — trigger them
-            You("have triggered a trap!");
+            await You("have triggered a trap!");
             if (player.dotrap) player.dotrap(ttmp);
             return 1;
         }
@@ -1794,7 +1794,7 @@ export function dospinweb(player, map) {
 
     // Check for stairs/ladders — cop out: don't let them hide the stairs
     if (loc && loc.isStairs) {
-        Your("web fails to impede access to the %s.",
+        await Your("web fails to impede access to the %s.",
              loc.isLadder ? "ladder" : "stairs");
         return 1;
     }
@@ -1806,36 +1806,36 @@ export function dospinweb(player, map) {
             newTrap.madeby_u = 1;
         }
     }
-    You("spin a web.");
+    await You("spin a web.");
     return 1; // ECMD_TIME
 }
 
 // cf. polyself.c:1608 — dosummon(): summon allies
-export function dosummon(player, map) {
+export async function dosummon(player, map) {
     // cf. polyself.c:1608 — dosummon()
     // Werewolf/werecreature form ability to summon allies.
     if (!player || !player.type) return 0;
 
     if ((player.uen || 0) < 10) {
-        You("lack the energy to send forth a call for help!");
+        await You("lack the energy to send forth a call for help!");
         return 0;
     }
     player.uen -= 10;
 
-    You("call upon your brethren for help!");
-    exercise('A_WIS', true);
+    await You("call upon your brethren for help!");
+    await exercise('A_WIS', true);
 
     // Call were_summon — matches C's RNG consumption
     const result = were_summon(player.type, player.x, player.y,
         true, { player }, map, 0);
     if (!result || !result.total) {
-        pline("But none arrive.");
+        await pline("But none arrive.");
     }
     return 1; // ECMD_TIME
 }
 
 // cf. polyself.c:1626 — dogaze(): gaze attack
-export function dogaze(player, map) {
+export async function dogaze(player, map) {
     // cf. polyself.c:1626 — dogaze()
     // Gaze attack for polymorphed player (umber hulk confuse, flaming sphere fire).
     if (!player || !player.type) return 0;
@@ -1849,19 +1849,19 @@ export function dogaze(player, map) {
         }
     }
     if (adtyp !== AD_CONF && adtyp !== AD_FIRE) {
-        pline("gaze attack %d?", adtyp); // impossible in C
+        await pline("gaze attack %d?", adtyp); // impossible in C
         return 0;
     }
 
     if (player.blind) {
-        You_cant("see anything to gaze at.");
+        await You_cant("see anything to gaze at.");
         return 0;
     } else if (player.hallucination) {
-        You_cant("gaze at anything you can see.");
+        await You_cant("gaze at anything you can see.");
         return 0;
     }
     if ((player.uen || 0) < 15) {
-        You("lack the energy to use your special gaze!");
+        await You("lack the energy to use your special gaze!");
         return 0;
     }
     player.uen -= 15;
@@ -1886,11 +1886,11 @@ export function dogaze(player, map) {
 
         // Invisible player check
         if (player.invisible && !perceives(mdata)) {
-            pline("%s seems not to notice your gaze.", Monnam(mtmp));
+            await pline("%s seems not to notice your gaze.", Monnam(mtmp));
         } else if (mtmp.invisible && !player.seeInvisible) {
-            You_cant("see where to gaze at %s.", Monnam(mtmp));
+            await You_cant("see where to gaze at %s.", Monnam(mtmp));
         } else if (player.safeDog && mtmp.tame && !player.confused) {
-            You("avoid gazing at %s.", mon_nam(mtmp));
+            await You("avoid gazing at %s.", mon_nam(mtmp));
         } else {
             // Peaceful monster confirmation check
             if (player.confirm && mtmp.mpeaceful && !player.confused) {
@@ -1908,9 +1908,9 @@ export function dogaze(player, map) {
 
             if (adtyp === AD_CONF) {
                 if (!mtmp.confused)
-                    Your("gaze confuses %s!", mon_nam(mtmp));
+                    await Your("gaze confuses %s!", mon_nam(mtmp));
                 else
-                    pline("%s is getting more and more confused.", Monnam(mtmp));
+                    await pline("%s is getting more and more confused.", Monnam(mtmp));
                 mtmp.confused = true;
                 if (mtmp.mconf !== undefined) mtmp.mconf = 1;
             } else if (adtyp === AD_FIRE) {
@@ -1919,9 +1919,9 @@ export function dogaze(player, map) {
                 const orig_dmg = dmg;
                 const lev = player.ulevel || 1;
 
-                You("attack %s with a fiery gaze!", mon_nam(mtmp));
+                await You("attack %s with a fiery gaze!", mon_nam(mtmp));
                 if (resists_fire(mtmp)) {
-                    pline_The("fire doesn't burn %s!", mon_nam(mtmp));
+                    await pline_The("fire doesn't burn %s!", mon_nam(mtmp));
                     dmg = 0;
                 }
                 if (lev > rn2(20)) {
@@ -1943,7 +1943,7 @@ export function dogaze(player, map) {
             if (mdata === mons[PM_FLOATING_EYE] && !mtmp.cancelled) {
                 const Free_action = player.freeAction || false;
                 if (!Free_action) {
-                    You("are frozen by %s gaze!", s_suffix(mon_nam(mtmp)));
+                    await You("are frozen by %s gaze!", s_suffix(mon_nam(mtmp)));
                     const mlev = mdata.mlevel || 0;
                     const damd = (mdata.attacks && mdata.attacks[0])
                         ? (mdata.attacks[0].damd || 1) : 1;
@@ -1953,29 +1953,29 @@ export function dogaze(player, map) {
                     if (player.nomul) player.nomul(freezeTime, "frozen by a monster's gaze");
                     return 1;
                 } else {
-                    You("stiffen momentarily under %s gaze.",
+                    await You("stiffen momentarily under %s gaze.",
                         s_suffix(mon_nam(mtmp)));
                 }
             }
 
             // Medusa gaze counter
             if (mdata === mons[PM_MEDUSA] && !mtmp.cancelled) {
-                pline("Gazing at the awake %s is not a very good idea.",
+                await pline("Gazing at the awake %s is not a very good idea.",
                     mon_nam(mtmp));
-                pline("You turn to stone...");
-                if (player.done) player.done('STONING', "deliberately meeting Medusa's gaze");
+                await pline("You turn to stone...");
+                if (player.done) await player.done('STONING', "deliberately meeting Medusa's gaze");
             }
         }
     }
 
     if (!looked) {
-        You("gaze at no place in particular.");
+        await You("gaze at no place in particular.");
     }
     return 1; // ECMD_TIME
 }
 
 // cf. polyself.c:1761 — dohide(): hide ability
-export function dohide(player, map) {
+export async function dohide(player, map) {
     // cf. polyself.c:1761 — dohide()
     // Form-specific hiding ability (mimics, piercers, lurkers, trappers, etc.)
     if (!player || !player.type) return 0;
@@ -1995,7 +1995,7 @@ export function dohide(player, map) {
             reason = "being held";
         else
             reason = "holding someone";
-        You_cant("hide while you're %s.", reason);
+        await You_cant("hide while you're %s.", reason);
         if (player.uundetected || (ismimic && player.mappearance)) {
             player.uundetected = 0;
             if (ismimic) {
@@ -2014,9 +2014,9 @@ export function dohide(player, map) {
         if (!isPool) {
             const isFountain = loc && loc.isFountain;
             if (isFountain)
-                pline_The("fountain is not deep enough to hide in.");
+                await pline_The("fountain is not deep enough to hide in.");
             else
-                pline("There is no water to hide in here.");
+                await pline("There is no water to hide in here.");
             player.uundetected = 0;
             return 0;
         }
@@ -2027,7 +2027,7 @@ export function dohide(player, map) {
         const loc = map && map.at ? map.at(player.x, player.y) : null;
         const hasObjects = loc && loc.objects && loc.objects.length > 0;
         if (!hasObjects) {
-            pline("There is nothing to hide under here.");
+            await pline("There is nothing to hide under here.");
             player.uundetected = 0;
             return 0;
         }
@@ -2039,7 +2039,7 @@ export function dohide(player, map) {
     // Air/Water planes check — clinger needs a ceiling
     if (on_ceiling) {
         if (player.noCeiling) {
-            pline("There is nowhere to hide above you.");
+            await pline("There is nowhere to hide above you.");
             player.uundetected = 0;
             return 0;
         }
@@ -2047,7 +2047,7 @@ export function dohide(player, map) {
     // Floor hiders on air/water planes
     if ((is_hider(player.type) && !Flying)) {
         if (player.noFloor) {
-            pline("There is nowhere to hide beneath you.");
+            await pline("There is nowhere to hide beneath you.");
             player.uundetected = 0;
             return 0;
         }
@@ -2055,7 +2055,7 @@ export function dohide(player, map) {
 
     // Already hiding
     if (player.uundetected || (ismimic && player.mappearance)) {
-        pline("You are already hiding.");
+        await pline("You are already hiding.");
         return 0;
     }
 
@@ -2068,12 +2068,12 @@ export function dohide(player, map) {
         player.uundetected = 1;
     }
     if (map && map.newsym) map.newsym(player.x, player.y);
-    pline("You are now hiding.");
+    await pline("You are now hiding.");
     return 1; // ECMD_TIME
 }
 
 // cf. polyself.c:1861 — dopoly(): polymorph into different form (vampire)
-export function dopoly(player, map) {
+export async function dopoly(player, map) {
     // cf. polyself.c:1861 — dopoly()
     // Vampire shape change ability — transform between vampire forms.
     if (!player || !player.type) return 0;
@@ -2082,9 +2082,9 @@ export function dopoly(player, map) {
 
     if (is_vampire(player.type)) {
         const savedat = player.type;
-        polyself(player, POLY_MONSTER, map);
+        await polyself(player, POLY_MONSTER, map);
         if (savedat !== player.type) {
-            You("transform into %s.", player.type.name);
+            await You("transform into %s.", player.type.name);
             if (map && map.newsym) map.newsym(player.x, player.y);
         }
     }
@@ -2092,7 +2092,7 @@ export function dopoly(player, map) {
 }
 
 // cf. polyself.c:1878 — domindblast(): psychic blast attack
-export function domindblast(player, map) {
+export async function domindblast(player, map) {
     // cf. polyself.c:1878 — domindblast()
     // Mind flayer psychic blast — damages all nearby non-mindless hostile monsters.
     // RNG consumption must match C: rn2(2) per telepathic monster, rn2(10) per other,
@@ -2100,13 +2100,13 @@ export function domindblast(player, map) {
     if (!player) return 0;
 
     if ((player.uen || 0) < 10) {
-        You("concentrate but lack the energy to maintain doing so.");
+        await You("concentrate but lack the energy to maintain doing so.");
         return 0;
     }
     player.uen -= 10;
 
-    You("concentrate.");
-    pline("A wave of psychic energy pours out.");
+    await You("concentrate.");
+    await pline("A wave of psychic energy pours out.");
 
     const monsters = map ? (map.monsters || []) : [];
     // Iterate in order matching C's fmon list traversal
@@ -2134,7 +2134,7 @@ export function domindblast(player, map) {
             // Wake it up — simplified
             wakeup(mtmp, (dmg > (mtmp.mhp || 0)) ? true : false, map, player);
 
-            You("lock in on %s %s.", s_suffix(mon_nam(mtmp)),
+            await You("lock in on %s %s.", s_suffix(mon_nam(mtmp)),
                 u_sen ? "telepathy"
                     : isTelepath ? "latent telepathy"
                         : "mind");

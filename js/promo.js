@@ -171,26 +171,26 @@ function drawPotionScene(display) {
 }
 
 // High-score table display.
-function drawHighScores(display) {
+async function drawHighScores(display) {
     const scores = loadScores();
     const title = 'High Scores';
     const titleRow = 11;
     const headerRow = 13;
     let row = 14;
 
-    display.putstr(Math.floor((80 - title.length) / 2), titleRow, title, CLR_YELLOW);
-    display.putstr(4, headerRow, formatTopTenHeader(), CLR_GRAY);
+    await display.putstr(Math.floor((80 - title.length) / 2), titleRow, title, CLR_YELLOW);
+    await display.putstr(4, headerRow, formatTopTenHeader(), CLR_GRAY);
 
     if (scores.length === 0) {
         const msg = '(no scores recorded yet)';
-        display.putstr(Math.floor((80 - msg.length) / 2), row + 2, msg, CLR_GRAY);
+        await display.putstr(Math.floor((80 - msg.length) / 2), row + 2, msg, CLR_GRAY);
     } else {
         const maxEntries = Math.min(scores.length, 6);
         for (let i = 0; i < maxEntries; i++) {
             const lines = formatTopTenEntry(scores[i], i + 1);
             for (const line of lines) {
                 if (row < 22) {
-                    display.putstr(4, row++, line, CLR_WHITE);
+                    await display.putstr(4, row++, line, CLR_WHITE);
                 }
             }
         }
@@ -198,7 +198,7 @@ function drawHighScores(display) {
 }
 
 // Render a full promo frame: logo + version + scene + prompt.
-function renderFrame(display, sceneIdx) {
+async function renderFrame(display, sceneIdx) {
     const version = `NetHack ${VERSION_MAJOR}.${VERSION_MINOR}.${PATCHLEVEL}`;
     const prompt  = '\u2014 Press any key to play \u2014';
 
@@ -208,14 +208,14 @@ function renderFrame(display, sceneIdx) {
     drawLogo(display, 2, CLR_YELLOW);
 
     // Version line (row 8)
-    display.putstr(Math.floor((80 - version.length) / 2), 8, version, CLR_GRAY);
+    await display.putstr(Math.floor((80 - version.length) / 2), 8, version, CLR_GRAY);
 
     // Scene
     const scenes = [drawDragonScene, drawHighScores, drawPotionScene];
     scenes[sceneIdx % scenes.length](display);
 
     // Always-visible play prompt (row 22)
-    display.putstr(Math.floor((80 - prompt.length) / 2), 22, prompt, CLR_WHITE);
+    await display.putstr(Math.floor((80 - prompt.length) / 2), 22, prompt, CLR_WHITE);
 }
 
 export class Promo {
@@ -235,7 +235,7 @@ export class Promo {
         });
 
         while (!keyPressed) {
-            renderFrame(display, sceneIdx);
+            await renderFrame(display, sceneIdx);
 
             // Wait 5 s or until a key arrives — whichever comes first.
             const timer = new Promise(resolve => setTimeout(resolve, 5000));

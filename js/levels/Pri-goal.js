@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 import { rn2 } from '../rng.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Priest Pri-goal.lua	$NHDT-Date: 1687033651 2023/6/17 20:27:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991-2 by M. Stephenson
@@ -57,12 +57,12 @@ xxxxx...xxxxxx....xxxxxxxx
     des.object();
     des.object();
     // Random traps
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap();
-    des.trap();
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap();
+    await des.trap();
     // Random monsters.
     des.monster("Nalzok",place[placeidx]);
     des.monster("human zombie");
@@ -94,5 +94,5 @@ xxxxx...xxxxxx....xxxxxxxx
     des.monster("W");
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

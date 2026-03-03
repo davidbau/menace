@@ -88,7 +88,7 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(state.flags.is_maze_lev, true);
     });
 
-    it('should place a simple map', () => {
+    it('should place a simple map', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
 
@@ -97,7 +97,7 @@ describe('sp_lev.js - des.* API', () => {
 |...|
 -----`;
 
-        des.map(testMap);
+        await des.map(testMap);
 
         const state = getLevelState();
         const map = state.map;
@@ -123,7 +123,7 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[20][10].typ, STAIRS_UP); // STAIRS (same as STAIRS_UP)
     });
 
-    it('should handle map alignment options', () => {
+    it('should handle map alignment options', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
 
@@ -131,7 +131,7 @@ describe('sp_lev.js - des.* API', () => {
 |.|
 ---`;
 
-        des.map({ map: smallMap, halign: 'left', valign: 'top' });
+        await des.map({ map: smallMap, halign: 'left', valign: 'top' });
 
         const state = getLevelState();
         const map = state.map;
@@ -143,14 +143,14 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[ox + 1][oy + 1].typ, ROOM);
     });
 
-    it('should handle explicit x,y coordinates for map placement', () => {
+    it('should handle explicit x,y coordinates for map placement', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
 
         const smallMap = `..
 ..`;
 
-        des.map({ map: smallMap, x: 50, y: 10 });
+        await des.map({ map: smallMap, x: 50, y: 10 });
 
         const state = getLevelState();
         const map = state.map;
@@ -161,7 +161,7 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[51][11].typ, ROOM);
     });
 
-    it('des.map clears per-cell metadata before applying terrain', () => {
+    it('des.map clears per-cell metadata before applying terrain', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
 
@@ -171,7 +171,7 @@ describe('sp_lev.js - des.* API', () => {
         map.locations[10][5].roomno = 42;
         map.locations[10][5].edge = 1;
 
-        des.map({ map: '.', x: 10, y: 5 });
+        await des.map({ map: '.', x: 10, y: 5 });
 
         assert.equal(map.locations[10][5].typ, ROOM);
         assert.equal(map.locations[10][5].flags, 0);
@@ -195,10 +195,10 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[13][7].altarAlign, A_CHAOTIC);
     });
 
-    it('des.altar honors map-relative coordinates after des.map', () => {
+    it('des.altar honors map-relative coordinates after des.map', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
-        des.map({ map: '..\n..', x: 10, y: 5 });
+        await des.map({ map: '..\n..', x: 10, y: 5 });
 
         des.altar({ x: 1, y: 1, align: 'neutral' });
         const map = getLevelState().map;
@@ -228,10 +228,10 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal((loc.flags & 2) !== 0, loc.featureFlags.warned);
     });
 
-    it('des.object preserves achievement marker for branch prize objects', () => {
+    it('des.object preserves achievement marker for branch prize objects', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
-        const obj = des.object({ id: 'luckstone', x: 12, y: 7, achievement: 1 });
+        const obj = await des.object({ id: 'luckstone', x: 12, y: 7, achievement: 1 });
 
         assert.ok(obj, 'object should be created');
         assert.equal(obj.achievement, 1, 'achievement marker should be copied to object');
@@ -240,10 +240,10 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(obj.oy, 7, 'object should be placed at y=7');
     });
 
-    it('des.gas_cloud uses absolute x/y and C-style ttl override semantics', () => {
+    it('des.gas_cloud uses absolute x/y and C-style ttl override semantics', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
-        des.map({ map: '..\n..', x: 10, y: 5 });
+        await des.map({ map: '..\n..', x: 10, y: 5 });
 
         des.gas_cloud({ x: 1, y: 1, damage: 3 });
         let clouds = getLevelState().map.gasClouds;
@@ -259,10 +259,10 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(clouds[1].ttl, 9, 'explicit ttl should be preserved');
     });
 
-    it('des.map parses backslash as THRONE terrain', () => {
+    it('des.map parses backslash as THRONE terrain', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
-        des.map({ map: '\\\\', x: 10, y: 5 });
+        await des.map({ map: '\\\\', x: 10, y: 5 });
 
         const map = getLevelState().map;
         assert.equal(map.locations[10][5].typ, THRONE);
@@ -399,7 +399,7 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(monsters[0].fleetim, 9);
     });
 
-    it('finalize_level applies C solidify_map to untouched stone/walls', () => {
+    it('finalize_level applies C solidify_map to untouched stone/walls', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
         des.level_flags('solidify');
@@ -408,18 +408,18 @@ describe('sp_lev.js - des.* API', () => {
         map.locations[10][5].typ = ROOM; // touched/open tile
         map.locations[30][10].typ = STONE; // untouched tile
 
-        des.finalize_level();
+        await des.finalize_level();
 
         assert.equal(map.locations[30][10].nondiggable, true, 'untouched stone should become nondiggable');
         assert.equal(map.locations[30][10].nonpasswall, true, 'untouched stone should become nonpasswall');
         assert.equal(map.locations[10][5].nonpasswall, undefined, 'touched tile should not be force-solidified');
     });
 
-    it('should preserve leading and trailing blank map lines', () => {
+    it('should preserve leading and trailing blank map lines', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
 
-        des.map({ map: '..\n..', x: 10, y: 5 });
+        await des.map({ map: '..\n..', x: 10, y: 5 });
         let state = getLevelState();
         let map = state.map;
         assert.equal(state.xsize, 2);
@@ -429,7 +429,7 @@ describe('sp_lev.js - des.* API', () => {
 
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
-        des.map({ map: '..\n..\n', x: 10, y: 5 });
+        await des.map({ map: '..\n..\n', x: 10, y: 5 });
         state = getLevelState();
         map = state.map;
         assert.equal(state.xsize, 2);
@@ -440,7 +440,7 @@ describe('sp_lev.js - des.* API', () => {
 
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
-        des.map({ map: '\n..\n..\n', x: 10, y: 5 });
+        await des.map({ map: '\n..\n..\n', x: 10, y: 5 });
         state = getLevelState();
         map = state.map;
         assert.equal(state.xsize, 2);
@@ -450,24 +450,24 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[10][7].typ, ROOM);
     });
 
-    it('applies des.region coordinates relative to des.map origin by default', () => {
+    it('applies des.region coordinates relative to des.map origin by default', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ', lit: 0 });
-        des.map({ map: '..\n..', x: 10, y: 5 });
+        await des.map({ map: '..\n..', x: 10, y: 5 });
 
-        des.region({ region: [0, 0, 0, 0], lit: true });
+        await des.region({ region: [0, 0, 0, 0], lit: true });
         const map = getLevelState().map;
         assert.equal(map.locations[10][5].lit, 1, 'relative region should target map origin');
         assert.equal(map.locations[0][0].lit, false, 'absolute origin should remain unchanged');
 
-        des.region({ region: [0, 0, 0, 0], lit: true, region_islev: true });
+        await des.region({ region: [0, 0, 0, 0], lit: true, region_islev: true });
         assert.equal(map.locations[0][0].lit, 1, 'region_islev should use absolute level coordinates');
     });
 
-    it('creates room metadata for non-ordinary des.region', () => {
+    it('creates room metadata for non-ordinary des.region', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.', lit: 0 });
-        des.region({ region: [10, 5, 12, 7], lit: true, type: 'temple', filled: 2, joined: false });
+        await des.region({ region: [10, 5, 12, 7], lit: true, type: 'temple', filled: 2, joined: false });
 
         const state = getLevelState();
         const map = state.map;
@@ -491,10 +491,10 @@ describe('sp_lev.js - des.* API', () => {
         assert.throws(() => des.exclusion({ type: 'teleport', region: { x1: 0, y1: 0, x2: 1, y2: 1 } }));
     });
 
-    it('keeps ordinary rectangular des.region as light-only (no room)', () => {
+    it('keeps ordinary rectangular des.region as light-only (no room)', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.', lit: 0 });
-        des.region({ region: [10, 5, 10, 5], lit: true, type: 'ordinary' });
+        await des.region({ region: [10, 5, 10, 5], lit: true, type: 'ordinary' });
 
         const map = getLevelState().map;
         assert.equal(map.nroom, 0);
@@ -502,10 +502,10 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[10][5].lit, 1);
     });
 
-    it('applies des.non_diggable coordinates relative to des.map origin', () => {
+    it('applies des.non_diggable coordinates relative to des.map origin', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
-        des.map({ map: '--\n..', x: 10, y: 5 });
+        await des.map({ map: '--\n..', x: 10, y: 5 });
 
         des.non_diggable({ x1: 0, y1: 0, x2: 0, y2: 0 });
         const map = getLevelState().map;
@@ -514,10 +514,10 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[0][0].nondiggable, false, 'absolute origin should remain diggable');
     });
 
-    it('applies des.wall_property default nondiggable to region coordinates', () => {
+    it('applies des.wall_property default nondiggable to region coordinates', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
-        des.map({ map: '--\n..', x: 10, y: 5 });
+        await des.map({ map: '--\n..', x: 10, y: 5 });
 
         des.wall_property({ region: [0, 0, 0, 0] });
         const map = getLevelState().map;
@@ -525,10 +525,10 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[10][6].nondiggable, false, 'non-wall tiles should remain unchanged');
     });
 
-    it('applies des.wall_property nonpasswall option', () => {
+    it('applies des.wall_property nonpasswall option', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
-        des.map({ map: '--\n..', x: 10, y: 5 });
+        await des.map({ map: '--\n..', x: 10, y: 5 });
 
         des.wall_property({ x1: 0, y1: 0, x2: 0, y2: 0, property: 'nonpasswall' });
         const map = getLevelState().map;
@@ -576,10 +576,10 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.engravings.some(e => e.x === 12 && e.y === 7 && e.text === 'Here lies JS.'), true);
     });
 
-    it('does not place grave on trap-occupied square', () => {
+    it('does not place grave on trap-occupied square', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
-        des.trap('pit', 10, 5);
+        await des.trap('pit', 10, 5);
 
         des.grave(10, 5, 'blocked');
         const map = getLevelState().map;
@@ -631,7 +631,7 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(corridorLike, 0, 'incomplete corridor spec should not carve');
     });
 
-    it('finalize_level map cleanup removes boulders and destroyable traps on liquid', () => {
+    it('finalize_level map cleanup removes boulders and destroyable traps on liquid', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
 
@@ -650,7 +650,7 @@ describe('sp_lev.js - des.* API', () => {
         map.engravings.push({ x: 10, y: 10, text: 'burned' });
         map.engravings.push({ x: 11, y: 10, text: 'safe' });
 
-        des.finalize_level();
+        await des.finalize_level();
 
         assert.equal(map.objects.some(o => o.otyp === BOULDER && o.ox === 10 && o.oy === 10), false,
             'boulder on liquid should be removed');
@@ -669,7 +669,7 @@ describe('sp_lev.js - des.* API', () => {
             'engraving on non-liquid should remain');
     });
 
-    it('finalize_level converts touched boundary CROSSWALL tiles to ROOM', () => {
+    it('finalize_level converts touched boundary CROSSWALL tiles to ROOM', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
 
@@ -679,7 +679,7 @@ describe('sp_lev.js - des.* API', () => {
         des.terrain(10, 10, 'B'); // touched CROSSWALL
         map.locations[11][10].typ = CROSSWALL; // untouched CROSSWALL
 
-        des.finalize_level();
+        await des.finalize_level();
 
         assert.notEqual(map.locations[10][10].typ, CROSSWALL,
             'touched CROSSWALL should no longer remain CROSSWALL');
@@ -687,7 +687,7 @@ describe('sp_lev.js - des.* API', () => {
             'untouched CROSSWALL should remain CROSSWALL');
     });
 
-    it('finalize_level links doors to rooms like C link_doors_rooms', () => {
+    it('finalize_level links doors to rooms like C link_doors_rooms', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
         const map = getLevelState().map;
@@ -703,13 +703,13 @@ describe('sp_lev.js - des.* API', () => {
         const doorY = 6;
         map.locations[doorX][doorY].typ = DOOR;
 
-        des.finalize_level();
+        await des.finalize_level();
 
         assert.ok(room.doorct > 0, 'finalize should attach adjacent doors to room metadata');
         assert.equal(map.doors.some(d => d.x === doorX && d.y === doorY), true, 'door list should include linked door');
     });
 
-    it('finalize_level keeps stair metadata aligned after vertical flip', () => {
+    it('finalize_level keeps stair metadata aligned after vertical flip', async () => {
         resetLevelState();
         initRng(1); // first rn2(2) => 1, so vertical flip is applied
         des.level_init({ style: 'solidfill', fg: '.', lit: 0 });
@@ -717,7 +717,7 @@ describe('sp_lev.js - des.* API', () => {
 
         const state = getLevelState();
         state.coder.allow_flips = 1; // vertical only
-        const map = des.finalize_level();
+        const map = await des.finalize_level();
 
         assert.equal(map.locations[10][15].typ, STAIRS, 'stair terrain should flip to mirrored y');
         assert.equal(map.upstair.x, 10, 'upstair x metadata should remain aligned');
@@ -774,14 +774,14 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.monsters.length, 0, 'monster should be removed when no legal relocation exists');
     });
 
-    it('fixup_special LR_PORTAL resolves named destination level', () => {
+    it('fixup_special LR_PORTAL resolves named destination level', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
         setFinalizeContext({ dnum: 0, dlevel: 1, specialName: 'portal-test' });
         des.levregion({ region: [10, 10, 10, 10], region_islev: 1, type: 'portal', name: 'fire' });
         getLevelState().coder.allow_flips = 0;
 
-        const map = des.finalize_level();
+        const map = await des.finalize_level();
         const portal = map.trapAt(10, 10);
         assert.ok(portal, 'portal trap should be placed');
         assert.equal(portal.ttyp, MAGIC_PORTAL, 'trap should be MAGIC_PORTAL');
@@ -789,14 +789,14 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(portal.dst.dlevel, -3, 'named destination should resolve destination level');
     });
 
-    it('fixup_special LR_PORTAL resolves numeric destination level in current dungeon', () => {
+    it('fixup_special LR_PORTAL resolves numeric destination level in current dungeon', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
         setFinalizeContext({ dnum: 6, dlevel: 2, specialName: 'portal-test' });
         des.levregion({ region: [12, 10, 12, 10], region_islev: 1, type: 'portal', name: '7' });
         getLevelState().coder.allow_flips = 0;
 
-        const map = des.finalize_level();
+        const map = await des.finalize_level();
         const portal = map.trapAt(12, 10);
         assert.ok(portal, 'portal trap should be placed');
         assert.equal(portal.ttyp, MAGIC_PORTAL, 'trap should be MAGIC_PORTAL');
@@ -804,38 +804,38 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(portal.dst.dlevel, 7, 'numeric destination should set destination level');
     });
 
-    it('fixup_special water setup clears hero_memory and converts fallback stone to WATER', () => {
+    it('fixup_special water setup clears hero_memory and converts fallback stone to WATER', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
         des.level_flags('premapped');
         setFinalizeContext({ specialName: 'water' });
         getLevelState().coder.allow_flips = 0;
 
-        const map = des.finalize_level();
+        const map = await des.finalize_level();
         assert.equal(map.flags.hero_memory, false, 'water setup should force hero_memory off');
         assert.equal(map.at(40, 10).typ, WATER, 'water setup should convert default STONE to WATER');
     });
 
-    it('fixup_special air setup clears hero_memory and converts fallback stone to AIR', () => {
+    it('fixup_special air setup clears hero_memory and converts fallback stone to AIR', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
         des.level_flags('premapped');
         setFinalizeContext({ specialName: 'air' });
         getLevelState().coder.allow_flips = 0;
 
-        const map = des.finalize_level();
+        const map = await des.finalize_level();
         assert.equal(map.flags.hero_memory, false, 'air setup should force hero_memory off');
         assert.equal(map.at(40, 10).typ, AIR, 'air setup should convert default STONE to AIR');
     });
 
-    it('fixup_special water setup seeds bubble scaffold and consumes setup RNG', () => {
+    it('fixup_special water setup seeds bubble scaffold and consumes setup RNG', async () => {
         resetLevelState();
         initRng(123);
         des.level_init({ style: 'solidfill', fg: ' ' });
         setFinalizeContext({ specialName: 'water' });
         getLevelState().coder.allow_flips = 0;
 
-        const map = des.finalize_level();
+        const map = await des.finalize_level();
         const setup = map._waterLevelSetup;
 
         assert.ok(setup, 'water setup should store seeded setup metadata');
@@ -850,28 +850,28 @@ describe('sp_lev.js - des.* API', () => {
         assert.ok(setup.bubbles.length > 0, 'bubble scaffold should include seeded entries');
     });
 
-    it('finalize_level applies premapped reveal when level flag is set', () => {
+    it('finalize_level applies premapped reveal when level flag is set', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
         des.level_flags('premapped');
-        des.trap('pit', 10, 5);
+        await des.trap('pit', 10, 5);
         getLevelState().coder.allow_flips = 0;
 
         const map = getLevelState().map;
         assert.notEqual(map.at(10, 5).seenv, 0xFF, 'square should not be pre-revealed before finalize');
 
-        des.finalize_level();
+        await des.finalize_level();
 
         assert.equal(map.at(10, 5).seenv, 0xFF, 'premapped should reveal terrain visibility bits');
         assert.equal(map.at(10, 5).waslit, true, 'premapped should mark terrain as lit/known');
         assert.equal(map.trapAt(10, 5)?.tseen, 1, 'premapped should reveal trap visibility');
     });
 
-    it('des.trap accepts packed SP_COORD coords in table form', () => {
+    it('des.trap accepts packed SP_COORD coords in table form', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
         const packed = (12 << 8) | 7;
-        des.trap({ type: 'pit', coord: packed });
+        await des.trap({ type: 'pit', coord: packed });
         const map = getLevelState().map;
         assert.ok(map.trapAt(12, 7), 'packed coordinate trap should be placed at decoded x/y');
     });

@@ -338,10 +338,10 @@ export function reorder_fruit(forward) {
 }
 
 // cf. objnam.c:347 — distant_name(obj, func): naming without side effects
-export function distant_name(obj, func = xname) {
+export async function distant_name(obj, func = xname) {
     if (!obj) return '';
     if (typeof func !== 'function') return xname(obj);
-    return func(obj);
+    return await func(obj);
 }
 
 // cf. objnam.c:2000 — short_oname(obj): short object name
@@ -888,12 +888,12 @@ export function killer_xname(obj) {
 // ============================================================================
 
 // cf. objnam.c:2082 — singular(otmp, func): apply naming func as if quan == 1
-export function singular(otmp, func) {
+export async function singular(otmp, func) {
     let fn = func || xname;
     if (otmp.otyp === CORPSE && fn === xname) fn = cxname;
     const saveQuan = otmp.quan;
     otmp.quan = 1;
-    const nam = fn(otmp);
+    const nam = await fn(otmp);
     otmp.quan = saveQuan;
     return nam;
 }

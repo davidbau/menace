@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Monk Mon-strt.lua	$NHDT-Date: 1652196007 2022/5/10 15:20:7 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991-2 by M. Stephenson
@@ -97,12 +97,12 @@ export function generate() {
     des.non_diggable(selection.area(18,3,55,16));
     // Random traps
     for (let i = 1; i <= 2; i++) {
-       des.trap("dart", spacelocs.rndcoord(1));
+       await des.trap("dart", spacelocs.rndcoord(1));
     }
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // Monsters on siege duty.
     for (let i = 1; i <= 8; i++) {
        des.monster("earth elemental", spacelocs.rndcoord(1));
@@ -117,5 +117,5 @@ export function generate() {
     des.object({ id: "food ration", coord: [46, 4], quantity: 4});
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

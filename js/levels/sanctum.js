@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack gehennom sanctum.lua	$NHDT-Date: 1652196034 2022/5/10 15:20:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1992 by M. Stephenson && Izchak Miller
@@ -56,47 +56,47 @@ export function generate() {
     des.door("closed",46,12);
     des.door("closed",53,10);
     // Surround the temple with fire
-    des.trap("fire",13,5);
-    des.trap("fire",14,5);
-    des.trap("fire",15,5);
-    des.trap("fire",16,5);
-    des.trap("fire",17,5);
-    des.trap("fire",18,5);
-    des.trap("fire",19,5);
-    des.trap("fire",20,5);
-    des.trap("fire",21,5);
-    des.trap("fire",22,5);
-    des.trap("fire",23,5);
-    des.trap("fire",13,12);
-    des.trap("fire",14,12);
-    des.trap("fire",15,12);
-    des.trap("fire",16,12);
-    des.trap("fire",17,12);
-    des.trap("fire",18,12);
-    des.trap("fire",19,12);
-    des.trap("fire",20,12);
-    des.trap("fire",21,12);
-    des.trap("fire",22,12);
-    des.trap("fire",23,12);
-    des.trap("fire",13,6);
-    des.trap("fire",13,7);
-    des.trap("fire",13,8);
-    des.trap("fire",13,9);
-    des.trap("fire",13,10);
-    des.trap("fire",13,11);
-    des.trap("fire",23,6);
-    des.trap("fire",23,7);
-    des.trap("fire",23,8);
-    des.trap("fire",23,9);
-    des.trap("fire",23,10);
-    des.trap("fire",23,11);
+    await des.trap("fire",13,5);
+    await des.trap("fire",14,5);
+    await des.trap("fire",15,5);
+    await des.trap("fire",16,5);
+    await des.trap("fire",17,5);
+    await des.trap("fire",18,5);
+    await des.trap("fire",19,5);
+    await des.trap("fire",20,5);
+    await des.trap("fire",21,5);
+    await des.trap("fire",22,5);
+    await des.trap("fire",23,5);
+    await des.trap("fire",13,12);
+    await des.trap("fire",14,12);
+    await des.trap("fire",15,12);
+    await des.trap("fire",16,12);
+    await des.trap("fire",17,12);
+    await des.trap("fire",18,12);
+    await des.trap("fire",19,12);
+    await des.trap("fire",20,12);
+    await des.trap("fire",21,12);
+    await des.trap("fire",22,12);
+    await des.trap("fire",23,12);
+    await des.trap("fire",13,6);
+    await des.trap("fire",13,7);
+    await des.trap("fire",13,8);
+    await des.trap("fire",13,9);
+    await des.trap("fire",13,10);
+    await des.trap("fire",13,11);
+    await des.trap("fire",23,6);
+    await des.trap("fire",23,7);
+    await des.trap("fire",23,8);
+    await des.trap("fire",23,9);
+    await des.trap("fire",23,10);
+    await des.trap("fire",23,11);
     // Some traps.
-    des.trap("spiked pit");
-    des.trap("fire");
-    des.trap("sleep gas");
-    des.trap("anti magic");
-    des.trap("fire");
-    des.trap("magic");
+    await des.trap("spiked pit");
+    await des.trap("fire");
+    await des.trap("sleep gas");
+    await des.trap("anti magic");
+    await des.trap("fire");
+    await des.trap("magic");
     // Some random objects
     des.object("[");
     des.object("[");
@@ -142,5 +142,5 @@ export function generate() {
     des.teleport_region({ region: [54,1,79,18], region_islev: 1, dir: "down" });
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

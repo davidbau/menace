@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Healer Hea-goal.lua	$NHDT-Date: 1652196003 2022/5/10 15:20:3 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991, 1993 by M. Stephenson, P. Winner
@@ -57,12 +57,12 @@ PPP..................................PPP.
     des.object();
     des.object();
     // Random traps
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // Random monsters.
     des.monster({ id: "Cyclops", x: 20, y: 6, peaceful: 0 });
     des.monster("rabid rat");
@@ -99,5 +99,5 @@ PPP..................................PPP.
 
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

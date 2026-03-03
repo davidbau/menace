@@ -5,7 +5,7 @@
 
 import * as des from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Barbarian Bar-filb.lua	$NHDT-Date: 1652196000 2022/5/10 15:20:0 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991 by M. Stephenson
@@ -33,10 +33,10 @@ export function generate() {
     des.object();
     des.object();
     // 
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // 
     des.monster({ id: "ogre", peaceful: 0 });
     des.monster({ id: "ogre", peaceful: 0 });
@@ -52,5 +52,5 @@ export function generate() {
     des.monster({ class: "T", peaceful: 0 });
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

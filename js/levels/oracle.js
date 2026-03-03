@@ -5,7 +5,7 @@
 
 import * as des from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack oracle oracle.lua	$NHDT-Date: 1652196033 2022/5/10 15:20:33 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 2015 by Pasi Kallinen
     // NetHack may be freely redistributed.  See license for details.
@@ -44,10 +44,10 @@ export function generate() {
                   }
     });
 
-    des.room({ contents: function() {
+    des.room({ contents: async function() {
                      des.stair("down");
                      des.object();
-                     des.trap();
+                     await des.trap();
                      des.monster();
                      des.monster();
                   }
@@ -60,16 +60,16 @@ export function generate() {
                   }
     });
 
-    des.room({ contents: function() {
+    des.room({ contents: async function() {
                      des.object();
-                     des.trap();
+                     await des.trap();
                      des.monster();
                   }
     });
 
-    des.room({ contents: function() {
+    des.room({ contents: async function() {
                      des.object();
-                     des.trap();
+                     await des.trap();
                      des.monster();
                   }
     });
@@ -77,5 +77,5 @@ export function generate() {
     des.random_corridors();
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

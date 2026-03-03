@@ -8,7 +8,7 @@
 
 import { des, selection, finalize_level } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     des.level_init({ style: 'solidfill', fg: ' ' });
 
     des.level_flags('mazelevel', 'noflip');
@@ -54,7 +54,7 @@ export function generate() {
 
     // Random traps (6)
     for (let i = 0; i < 6; i++) {
-        des.trap();
+        await des.trap();
     }
 
     // Lots of random monsters (28)
@@ -62,5 +62,5 @@ export function generate() {
         des.monster();
     }
 
-    return finalize_level();
+    return await finalize_level();
 }

@@ -13,7 +13,7 @@ function monkfoodshop() {
 }
 
 
-export function generate() {
+export async function generate() {
     const align = [A_CHAOTIC, A_NEUTRAL, A_LAWFUL];
     shuffle(align);
 
@@ -113,5 +113,5 @@ xxxx-------xxxxxxxxxxxxxxx--------------
 
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

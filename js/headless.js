@@ -301,7 +301,7 @@ export async function generateMapsWithCoreReplay(seed, maxDepth, options = {}) {
 
     for (let depth = 1; depth <= targetDepth; depth++) {
         if (depth > 1) {
-            game.teleportToLevel(depth);
+            await game.teleportToLevel(depth);
         }
         grids[depth] = game.getTypGrid();
         maps[depth] = (game.lev || game.map);

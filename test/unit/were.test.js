@@ -101,10 +101,10 @@ describe('were_summon', () => {
         assert.equal(genbuf, null);
     });
 
-    it('proceeds past protection check when yours=true', () => {
+    it('proceeds past protection check when yours=true', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
         const room = map.rooms[0];
         const cx = Math.floor((room.lx + room.hx) / 2);
@@ -116,10 +116,10 @@ describe('were_summon', () => {
         assert.equal(genbuf, 'wolf');
     });
 
-    it('sets genbuf to "wolf" for werewolf', () => {
+    it('sets genbuf to "wolf" for werewolf', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
         const room = map.rooms[0];
         const cx = Math.floor((room.lx + room.hx) / 2);
@@ -128,10 +128,10 @@ describe('were_summon', () => {
         assert.equal(genbuf, 'wolf');
     });
 
-    it('sets genbuf to "rat" for wererat', () => {
+    it('sets genbuf to "rat" for wererat', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
         const room = map.rooms[0];
         const cx = Math.floor((room.lx + room.hx) / 2);
@@ -140,10 +140,10 @@ describe('were_summon', () => {
         assert.equal(genbuf, 'rat');
     });
 
-    it('sets genbuf to "jackal" for werejackal', () => {
+    it('sets genbuf to "jackal" for werejackal', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
         const room = map.rooms[0];
         const cx = Math.floor((room.lx + room.hx) / 2);
@@ -152,10 +152,10 @@ describe('were_summon', () => {
         assert.equal(genbuf, 'jackal');
     });
 
-    it('sets genbuf for human were forms too (PM_HUMAN_WEREWOLF)', () => {
+    it('sets genbuf for human were forms too (PM_HUMAN_WEREWOLF)', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
         const room = map.rooms[0];
         const cx = Math.floor((room.lx + room.hx) / 2);
@@ -164,10 +164,10 @@ describe('were_summon', () => {
         assert.equal(genbuf, 'wolf');
     });
 
-    it('spawns at least one monster on a valid map', () => {
+    it('spawns at least one monster on a valid map', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
         // Clear existing monsters so were_summon has room to spawn
         map.monsters.length = 0;
@@ -178,10 +178,10 @@ describe('were_summon', () => {
         assert.ok(total >= 1, `Expected at least 1 summoned wolf, got ${total}`);
     });
 
-    it('total <= 5 (rnd(5) iterations max)', () => {
+    it('total <= 5 (rnd(5) iterations max)', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
         const room = map.rooms[0];
         const cx = Math.floor((room.lx + room.hx) / 2);
@@ -190,7 +190,7 @@ describe('were_summon', () => {
         for (let seed = 0; seed < 10; seed++) {
             initRng(seed);
             initLevelGeneration();
-            const m2 = makelevel(1);
+            const m2 = await makelevel(1);
             wallification(m2);
             const r2 = m2.rooms[0];
             const x2 = Math.floor((r2.lx + r2.hx) / 2);

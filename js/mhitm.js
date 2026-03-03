@@ -74,7 +74,7 @@ function DEADMONSTER(mon) {
 // ============================================================================
 
 // cf. mhitm.c:26 — noises(magr, mattk): combat noise output
-function noises(magr, mattk, display, ctx) {
+async function noises(magr, mattk, display, ctx) {
     if (!display) return;
     const player = ctx?.player || null;
     const deaf = Number(player?.deafness || 0) > 0 || !!player?.deaf;
@@ -89,7 +89,7 @@ function noises(magr, mattk, display, ctx) {
     farNoise = isFar;
     noiseTime = turn;
     const base = (mattk?.type === AT_EXPL) ? 'an explosion' : 'some noises';
-    display.putstr_message(`You hear ${base}${isFar ? ' in the distance' : ''}.`);
+    await display.putstr_message(`You hear ${base}${isFar ? ' in the distance' : ''}.`);
 }
 
 // cf. mhitm.c:40-72 — pre_mm_attack(): unhide/unmimic, newsym/map_invisible
@@ -115,14 +115,14 @@ function monCombatName(mon, visible, { capitalize = false, article = 'the' } = {
 }
 
 // cf. mhitm.c:75 — missmm(magr, mdef, mattk): miss message
-function missmm(magr, mdef, mattk, display, vis, map, ctx) {
+async function missmm(magr, mdef, mattk, display, vis, map, ctx) {
     pre_mm_attack(magr, mdef, vis, map, ctx);
     if (vis && display) {
-        display.putstr_message(
+        await display.putstr_message(
             `${monCombatName(magr, ctx?.agrVisible, { capitalize: true })} misses ${monCombatName(mdef, ctx?.defVisible)}.`
         );
     } else {
-        noises(magr, mattk, display, ctx);
+        await noises(magr, mattk, display, ctx);
     }
 }
 
@@ -362,7 +362,7 @@ export function passivemm(magr, mdef, mhitb, mdead, mwep, map) {
 // ============================================================================
 
 // cf. mhitm.c:643 — hitmm(magr, mdef, mattk, mwep, dieroll)
-function hitmm(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx) {
+async function hitmm(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx) {
     pre_mm_attack(magr, mdef, vis, map, ctx);
 
     // Display hit message
@@ -377,14 +377,14 @@ function hitmm(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx) {
         case AT_HUGS: verb = 'squeezes'; break;
         default: verb = 'hits'; break;
         }
-        display.putstr_message(
+        await display.putstr_message(
             `${monCombatName(magr, ctx?.agrVisible, { capitalize: true })} ${verb} ${monCombatName(mdef, ctx?.defVisible)}.`
         );
     } else {
-        noises(magr, mattk, display, ctx);
+        await noises(magr, mattk, display, ctx);
     }
 
-    return mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx);
+    return await mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx);
 }
 
 
@@ -393,13 +393,13 @@ function hitmm(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx) {
 // ============================================================================
 
 // cf. mhitm.c:735 — gazemm(magr, mdef, mattk)
-function gazemm(magr, mdef, mattk, display, vis, map, ctx) {
+async function gazemm(magr, mdef, mattk, display, vis, map, ctx) {
     // Simplified: gaze attacks between monsters
     if (magr.mcan || !mdef.mcansee) {
         return M_ATTK_MISS;
     }
     // For blinding gaze (Archon), delegate to adtyping
-    return mdamagem(magr, mdef, mattk, null, 0, display, vis, map, ctx);
+    return await mdamagem(magr, mdef, mattk, null, 0, display, vis, map, ctx);
 }
 
 
@@ -408,10 +408,10 @@ function gazemm(magr, mdef, mattk, display, vis, map, ctx) {
 // ============================================================================
 
 // cf. mhitm.c:969 — explmm(magr, mdef, mattk)
-export function explmm(magr, mdef, mattk, display, vis, map, ctx) {
+export async function explmm(magr, mdef, mattk, display, vis, map, ctx) {
     if (magr.mcan) return M_ATTK_MISS;
 
-    let result = mdamagem(magr, mdef, mattk, null, 0, display, vis, map, ctx);
+    let result = await mdamagem(magr, mdef, mattk, null, 0, display, vis, map, ctx);
 
     // Kill off aggressor (self-destruct)
     if (!(result & M_ATTK_AGR_DIED)) {
@@ -433,7 +433,7 @@ export function explmm(magr, mdef, mattk, display, vis, map, ctx) {
 // Always consumes rn2(3) for distance and rn2(chance) for trigger.
 // If triggered and eligible: rn2(2)+rn2(2) for message, rn2(4) for stun.
 // Returns true if knockback would fire.
-function mhitm_knockback_mm(magr, mdef, mattk, mwep, vis, display, ctx) {
+async function mhitm_knockback_mm(magr, mdef, mattk, mwep, vis, display, ctx) {
     rn2(3); // knockback distance (always consumed)
     const chance = 6; // default; Ogresmasher would use 2
     if (rn2(chance)) return false; // didn't trigger
@@ -471,7 +471,7 @@ function mhitm_knockback_mm(magr, mdef, mattk, mwep, vis, display, ctx) {
     if (vis && display) {
         const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true });
         const defName = monCombatName(mdef, ctx?.defVisible);
-        display.putstr_message(
+        await display.putstr_message(
             `${agrName} knocks ${defName} back with a ${adj} ${noun}!`
         );
     }
@@ -492,7 +492,7 @@ function mhitm_knockback_mm(magr, mdef, mattk, mwep, vis, display, ctx) {
 
 // cf. mhitm.c:1015 — mdamagem(magr, mdef, mattk, mwep, dieroll)
 // ctx: optional { player, turnCount } for corpse creation and XP
-function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx) {
+async function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx) {
     const mhm = {
         damage: c_d(mattk.damn || 0, mattk.damd || 0),
         hitflags: M_ATTK_MISS,
@@ -520,7 +520,7 @@ function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx) {
     }
 
     // C ref: mhitm.c:1061-1065 — mhitm_knockback
-    mhitm_knockback_mm(magr, mdef, mattk, mwep, vis, display, ctx);
+    await mhitm_knockback_mm(magr, mdef, mattk, mwep, vis, display, ctx);
 
     if (mhm.done) return mhm.hitflags;
     if (!mhm.damage) return mhm.hitflags;
@@ -534,7 +534,7 @@ function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx) {
         // still produces "It is killed!".
         if (cansee(map, ctx?.player, ctx?.fov, mdef.mx, mdef.my) && display) {
             const killVerb = nonliving(pd) ? 'destroyed' : 'killed';
-            display.putstr_message(
+            await display.putstr_message(
                 `${monCombatName(mdef, ctx?.defVisible, { article: 'the', capitalize: true })} is ${killVerb}!`
             );
         }
@@ -592,7 +592,7 @@ function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx) {
 // cf. mhitm.c:292 — mattackm(magr, mdef)
 // Shared m-vs-m attack used by pet combat (dogmove.js) and conflict (fightm).
 // ctx: optional { player, turnCount } for corpse creation.
-export function mattackm(magr, mdef, display, vis, map, ctx) {
+export async function mattackm(magr, mdef, display, vis, map, ctx) {
     if (!magr || !mdef) return M_ATTK_MISS;
     if (helpless(magr)) return M_ATTK_MISS;
 
@@ -651,7 +651,7 @@ export function mattackm(magr, mdef, display, vis, map, ctx) {
             possibly_unwield(magr, false);
             mwep = magr.weapon || null;
             if (mwep) {
-                mswingsm(magr, mdef, mwep, display, vis, ctx);
+                await mswingsm(magr, mdef, mwep, display, vis, ctx);
                 // C ref: mhitm.c mattackm() — temporary weapon to-hit bonus.
                 tmp += hitval(mwep, mdef);
             }
@@ -683,9 +683,9 @@ export function mattackm(magr, mdef, display, vis, map, ctx) {
                     strike = 0;
                     break;
                 }
-                res[i] = hitmm(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx);
+                res[i] = await hitmm(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx);
             } else {
-                missmm(magr, mdef, mattk, display, vis, map, ctx);
+                await missmm(magr, mdef, mattk, display, vis, map, ctx);
             }
             break;
 
@@ -697,19 +697,19 @@ export function mattackm(magr, mdef, display, vis, map, ctx) {
                 if (failed_grab(magr, mdef, mattk)) {
                     strike = 0;
                 } else {
-                    res[i] = hitmm(magr, mdef, mattk, null, 0, display, vis, map, ctx);
+                    res[i] = await hitmm(magr, mdef, mattk, null, 0, display, vis, map, ctx);
                 }
             }
             break;
 
         case AT_GAZE:
             strike = 0;
-            res[i] = gazemm(magr, mdef, mattk, display, vis, map, ctx);
+            res[i] = await gazemm(magr, mdef, mattk, display, vis, map, ctx);
             break;
 
         case AT_EXPL:
             if (distmin(magr.mx, magr.my, mdef.mx, mdef.my) > 1) continue;
-            res[i] = explmm(magr, mdef, mattk, display, vis, map, ctx);
+            res[i] = await explmm(magr, mdef, mattk, display, vis, map, ctx);
             if (res[i] === M_ATTK_MISS) {
                 strike = 0;
                 attk = 0;
@@ -728,10 +728,10 @@ export function mattackm(magr, mdef, display, vis, map, ctx) {
                     strike = 0;
                 } else {
                     // Simplified: just do damage, no actual engulfing
-                    res[i] = mdamagem(magr, mdef, mattk, null, 0, display, vis, map, ctx);
+                    res[i] = await mdamagem(magr, mdef, mattk, null, 0, display, vis, map, ctx);
                 }
             } else {
-                missmm(magr, mdef, mattk, display, vis, map, ctx);
+                await missmm(magr, mdef, mattk, display, vis, map, ctx);
             }
             break;
 
@@ -772,7 +772,7 @@ export function mattackm(magr, mdef, display, vis, map, ctx) {
 
 // cf. mhitm.c:105 — fightm(mtmp)
 // Returns 1 if an attack was made, 0 otherwise.
-export function fightm(mtmp, map, display, vis) {
+export async function fightm(mtmp, map, display, vis) {
     if (!map || !mtmp) return 0;
 
     // C ref: resist_conflict check — not implemented, proceed
@@ -781,7 +781,7 @@ export function fightm(mtmp, map, display, vis) {
     for (const mon of map.monsters) {
         if (mon === mtmp || DEADMONSTER(mon)) continue;
         if (monnear(mtmp, mon.mx, mon.my)) {
-            const result = mattackm(mtmp, mon, display, vis, map);
+            const result = await mattackm(mtmp, mon, display, vis, map);
             if (result & M_ATTK_AGR_DIED) return 1;
             return (result & M_ATTK_HIT) ? 1 : 0;
         }
@@ -874,14 +874,14 @@ export function mon_poly(magr, mdef, dmg) {
 // ============================================================================
 
 // cf. mhitm.c:1282 — mswingsm(magr, mdef, obj)
-export function mswingsm(magr, mdef, otemp, display, vis, ctx) {
+export async function mswingsm(magr, mdef, otemp, display, vis, ctx) {
     if (!vis || !display) return;
     const bash = false; // is_pole check omitted; adjacent polearm bash not yet needed
     const verb = monsterWeaponSwingVerb(otemp, bash);
     const oneOf = ((otemp.quan || 1) > 1) ? 'one of ' : '';
     const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true });
     const defName = monCombatName(mdef, ctx?.defVisible);
-    display.putstr_message(
+    await display.putstr_message(
         `${agrName} ${verb} ${oneOf}${monsterPossessive(magr)} ${xname(otemp)} at ${defName}.`
     );
 }

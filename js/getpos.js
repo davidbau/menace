@@ -327,7 +327,7 @@ function findTargetIndex(targets, cx, cy) {
     return idx >= 0 ? idx : 0;
 }
 
-function selectTargetFromMenu(display, targets, filter) {
+async function selectTargetFromMenu(display, targets, filter) {
     if (!targets.length) return null;
     if (typeof display?.putstr_message === 'function') {
         const count = Math.min(targets.length, 9);
@@ -335,7 +335,7 @@ function selectTargetFromMenu(display, targets, filter) {
         for (let i = 0; i < count; i++) {
             opts.push(`${i + 1}:${targets[i].x},${targets[i].y}`);
         }
-        display.putstr_message(`Targets (${targetFilterLabel(filter)}): ${opts.join(' ')} (1-9)`);
+        await display.putstr_message(`Targets (${targetFilterLabel(filter)}): ${opts.join(' ')} (1-9)`);
     }
     return 'pending';
 }
@@ -347,33 +347,33 @@ function getpos_filter_text(flags) {
     return '';
 }
 
-export function getpos_help_keyxhelp(display, k1, k2, gloc, moveCursorTo = 'move the cursor to ') {
+export async function getpos_help_keyxhelp(display, k1, k2, gloc, moveCursorTo = 'move the cursor to ') {
     if (typeof display?.putstr_message !== 'function') return;
     const filtertxt = getpos_filter_text(getposContext.flags);
-    display.putstr_message(
+    await display.putstr_message(
         `Use '${k1}'/'${k2}' to ${moveCursorTo}${glocLabel(gloc)}${filtertxt}.`
     );
 }
 
-function getpos_help(force, goal, display) {
+async function getpos_help(force, goal, display) {
     if (typeof display?.putstr_message !== 'function') return;
     const g = goal || 'desired location';
-    display.putstr_message(
+    await display.putstr_message(
         `Use 'h', 'j', 'k', 'l' to move the cursor to ${g}.`
     );
-    display.putstr_message("Use 'H', 'J', 'K', 'L' to fast-move the cursor.");
-    display.putstr_message("Use '@' to move the cursor onto yourself.");
-    display.putstr_message("Or enter a background symbol (example '<').");
-    getpos_help_keyxhelp(display, 'm', 'M', GLOC_MONS);
-    getpos_help_keyxhelp(display, 'o', 'O', GLOC_OBJS);
-    getpos_help_keyxhelp(display, 'd', 'D', GLOC_DOOR);
-    getpos_help_keyxhelp(display, 'x', 'X', GLOC_EXPLORE, 'move the cursor next to ');
-    getpos_help_keyxhelp(display, 'i', 'I', GLOC_INTERESTING);
-    getpos_help_keyxhelp(display, 'v', 'V', GLOC_VALID);
-    display.putstr_message("Use '^' to toggle marking of valid locations.");
-    display.putstr_message("Use '=' for a menu listing of possible targets.");
+    await display.putstr_message("Use 'H', 'J', 'K', 'L' to fast-move the cursor.");
+    await display.putstr_message("Use '@' to move the cursor onto yourself.");
+    await display.putstr_message("Or enter a background symbol (example '<').");
+    await getpos_help_keyxhelp(display, 'm', 'M', GLOC_MONS);
+    await getpos_help_keyxhelp(display, 'o', 'O', GLOC_OBJS);
+    await getpos_help_keyxhelp(display, 'd', 'D', GLOC_DOOR);
+    await getpos_help_keyxhelp(display, 'x', 'X', GLOC_EXPLORE, 'move the cursor next to ');
+    await getpos_help_keyxhelp(display, 'i', 'I', GLOC_INTERESTING);
+    await getpos_help_keyxhelp(display, 'v', 'V', GLOC_VALID);
+    await display.putstr_message("Use '^' to toggle marking of valid locations.");
+    await display.putstr_message("Use '=' for a menu listing of possible targets.");
     if (!force) {
-        display.putstr_message('Space can also finish selection.');
+        await display.putstr_message('Space can also finish selection.');
     }
 }
 
@@ -397,7 +397,7 @@ async function getpos_menu(display, map, gloc) {
 
     if (!candidates.length) {
         if (typeof display?.putstr_message === 'function') {
-            display.putstr_message(`No ${glocLabel(gloc)}.`);
+            await display.putstr_message(`No ${glocLabel(gloc)}.`);
         }
         return null;
     }
@@ -489,11 +489,11 @@ export function getpos_gloc_from_filter(filter) {
     }
 }
 
-function getpos_cycle_target(display, map, gloc, cx, cy, dir) {
+async function getpos_cycle_target(display, map, gloc, cx, cy, dir) {
     const targets = collectTargetsForGloc(map, gloc);
     if (!targets.length) {
         if (typeof display?.putstr_message === 'function') {
-            display.putstr_message(`Cannot detect ${glocLabel(gloc)}.`);
+            await display.putstr_message(`Cannot detect ${glocLabel(gloc)}.`);
         }
         return null;
     }
@@ -522,7 +522,7 @@ export async function getpos_async(ccp, force = true, goal = '') {
 
     if (typeof display?.putstr_message === 'function') {
         const promptGoal = goal || getposContext.goalPrompt || 'desired location';
-        display.putstr_message(`Move cursor to ${promptGoal}:`);
+        await display.putstr_message(`Move cursor to ${promptGoal}:`);
     }
     if (getpos_hilitefunc && getpos_hilite_state === HiliteGoodposSymbol && !hiliteOn) {
         callHilite(true);
@@ -551,7 +551,7 @@ export async function getpos_async(ccp, force = true, goal = '') {
                 return 0;
             }
             if (c === '?') {
-                getpos_help(force, goal || getposContext.goalPrompt, display);
+                await getpos_help(force, goal || getposContext.goalPrompt, display);
                 continue;
             }
             if (c === '^') {
@@ -583,7 +583,7 @@ export async function getpos_async(ccp, force = true, goal = '') {
             };
             if (glocKeys[c]) {
                 const [gloc, dir] = glocKeys[c];
-                const next = getpos_cycle_target(display, getposContext.map, gloc, cx, cy, dir);
+                const next = await getpos_cycle_target(display, getposContext.map, gloc, cx, cy, dir);
                 if (!next) continue;
                 restoreCursor(display, cursorState);
                 cx = next.x;
@@ -596,7 +596,7 @@ export async function getpos_async(ccp, force = true, goal = '') {
                 const cur = TARGET_FILTERS.indexOf(targetFilter);
                 targetFilter = TARGET_FILTERS[(cur + 1) % TARGET_FILTERS.length];
                 if (typeof display?.putstr_message === 'function') {
-                    display.putstr_message(`Target filter: ${targetFilterLabel(targetFilter)}.`);
+                    await display.putstr_message(`Target filter: ${targetFilterLabel(targetFilter)}.`);
                 }
                 continue;
             }
@@ -604,7 +604,7 @@ export async function getpos_async(ccp, force = true, goal = '') {
                 const targets = collectTargets(getposContext.map, targetFilter);
                 if (!targets.length) {
                     if (typeof display?.putstr_message === 'function') {
-                        display.putstr_message(`No ${targetFilterLabel(targetFilter)} targets.`);
+                        await display.putstr_message(`No ${targetFilterLabel(targetFilter)} targets.`);
                     }
                     continue;
                 }
@@ -652,7 +652,7 @@ export async function getpos_async(ccp, force = true, goal = '') {
                     cursorState = putCursor(display, cx, cy);
                     const desc = cursorDesc(display, cx, cy);
                     if (desc && typeof display?.putstr_message === 'function') {
-                        display.putstr_message(desc);
+                        await display.putstr_message(desc);
                     }
                 }
                 continue;
@@ -668,7 +668,7 @@ export async function getpos_async(ccp, force = true, goal = '') {
                     continue;
                 }
                 if (typeof display?.putstr_message === 'function') {
-                    display.putstr_message(`Can't find dungeon feature '${c}'.`);
+                    await display.putstr_message(`Can't find dungeon feature '${c}'.`);
                 }
                 continue;
             }

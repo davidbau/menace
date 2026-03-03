@@ -287,7 +287,7 @@ export function compareMapdumpCheckpoint(map, parsedCheckpoint) {
 
 // Generate levels 1→maxDepth sequentially on one continuous RNG stream.
 // Returns { grids: { depth: number[][] }, maps: { depth: GameMap } }
-export function generateMapsSequential(seed, maxDepth) {
+export async function generateMapsSequential(seed, maxDepth) {
     initrack(); // reset player track buffer between tests
     initRng(seed);
     setGameSeed(seed);
@@ -298,7 +298,7 @@ export function generateMapsSequential(seed, maxDepth) {
     const grids = {};
     const maps = {};
     for (let depth = 1; depth <= maxDepth; depth++) {
-        const map = makelevel(depth);
+        const map = await makelevel(depth);
         // Note: wallification and place_lregion are now called inside makelevel
 
         grids[depth] = extractTypGrid(map);
@@ -441,7 +441,7 @@ async function settleCommandOrInputWait(commandPromise, inputRuntime) {
 
 // Generate levels 1→maxDepth with RNG trace capture.
 // Returns { grids, maps, rngLogs } where rngLogs[depth] = { rngCalls, rng }.
-export function generateMapsWithRng(seed, maxDepth) {
+export async function generateMapsWithRng(seed, maxDepth) {
     initrack(); // reset player track buffer between tests
     initRng(seed);
     setGameSeed(seed);
@@ -457,7 +457,7 @@ export function generateMapsWithRng(seed, maxDepth) {
     let prevCount = 0;
     for (let depth = 1; depth <= maxDepth; depth++) {
         const previousMap = depth > 1 ? maps[depth - 1] : null;
-        const map = makelevel(depth);
+        const map = await makelevel(depth);
         // Note: wallification and place_lregion are now called inside makelevel
 
         grids[depth] = extractTypGrid(map);
@@ -549,7 +549,7 @@ export function hasStartupBurstInFirstStep(session) {
 // → player placement → simulatePostLevelInit (pet, inventory, attributes, welcome).
 // For chargen sessions, pre-startup menu RNG calls are consumed first.
 // Returns { grid, map, rngCalls, rng }.
-export function generateStartupWithRng(seed, session) {
+export async function generateStartupWithRng(seed, session) {
     initrack(); // reset player track buffer between tests
     enableRngLog();
     initRng(seed);
@@ -573,7 +573,7 @@ export function generateStartupWithRng(seed, session) {
         race: raceMap0[charOpts.race],
     });
 
-    const map = makelevel(1);
+    const map = await makelevel(1);
     // Note: wallification is now called inside makelevel
 
     // NOTE: Wizard mode (-D flag) enables omniscience for the PLAYER,
@@ -773,8 +773,8 @@ export async function replaySession(seed, session, opts = {}) {
         byteResults.push(frame);
         return frame;
     };
-    const applyPostRhack = (rhackResult) => {
-        maybe_deferred_goto_after_rhack(game, rhackResult);
+    const applyPostRhack = async (rhackResult) => {
+        await maybe_deferred_goto_after_rhack(game, rhackResult);
         return rhackResult;
     };
     const beginTimedCommand = (commandKey, countPrefix = 0) => (
@@ -879,7 +879,7 @@ export async function replaySession(seed, session, opts = {}) {
                 );
                 if (settled.done) {
                     commandResult = settled.value;
-                    applyPostRhack(commandResult);
+                    await applyPostRhack(commandResult);
                     pendingCommand = null;
                 } else if (opts.captureScreens) {
                     capturedScreenOverride = game.display.getScreenLines();
@@ -917,7 +917,7 @@ export async function replaySession(seed, session, opts = {}) {
                     }
                 } else {
                     commandResult = settled.value;
-                    applyPostRhack(commandResult);
+                    await applyPostRhack(commandResult);
                 }
             }
 

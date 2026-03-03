@@ -27,12 +27,12 @@ describe('mkmaze waterlevel state helpers', () => {
         initRng(12345);
     });
 
-    it('setup_waterlevel seeds deterministic scaffold and converts terrain', () => {
+    it('setup_waterlevel seeds deterministic scaffold and converts terrain', async () => {
         const map = new GameMap();
         map.flags.hero_memory = true;
         assert.equal(map.at(40, 10).typ, STONE);
 
-        setup_waterlevel(map, { isWaterLevel: true });
+        await setup_waterlevel(map, { isWaterLevel: true });
         assert.equal(map.flags.hero_memory, false);
         assert.equal(map.at(40, 10).typ, WATER);
         assert.ok(map._waterLevelSetup);
@@ -41,15 +41,15 @@ describe('mkmaze waterlevel state helpers', () => {
 
         const map2 = new GameMap();
         map2.flags.hero_memory = true;
-        setup_waterlevel(map2, { isWaterLevel: false });
+        await setup_waterlevel(map2, { isWaterLevel: false });
         assert.equal(map2.at(40, 10).typ, AIR);
     });
 
-    it('save/restore round-trips water state and hero_memory', () => {
+    it('save/restore round-trips water state and hero_memory', async () => {
         const map = new GameMap();
-        setup_waterlevel(map, { isWaterLevel: true });
+        await setup_waterlevel(map, { isWaterLevel: true });
         set_wportal(map, 10, 10, { dnum: 1, dlevel: 2 });
-        fumaroles(map, [{ x: 11, y: 10 }]);
+        await fumaroles(map, [{ x: 11, y: 10 }]);
 
         const saved = save_waterlevel(map);
         assert.ok(saved && saved.water && saved.waterLevelSetup);
@@ -57,7 +57,7 @@ describe('mkmaze waterlevel state helpers', () => {
         map.flags.hero_memory = true;
         map._water = null;
         map._waterLevelSetup = null;
-        const ok = restore_waterlevel(map, saved);
+        const ok = await restore_waterlevel(map, saved);
         assert.equal(ok, true);
         assert.equal(map.flags.hero_memory, false);
         assert.equal(map._water.portal.x, 10);
@@ -65,11 +65,11 @@ describe('mkmaze waterlevel state helpers', () => {
         assert.equal(map._waterLevelSetup.isWaterLevel, true);
     });
 
-    it('unsetup_waterlevel deactivates and clears runtime movers', () => {
+    it('unsetup_waterlevel deactivates and clears runtime movers', async () => {
         const map = new GameMap();
-        setup_waterlevel(map, { isWaterLevel: true });
+        await setup_waterlevel(map, { isWaterLevel: true });
         set_wportal(map, 10, 10, null);
-        fumaroles(map, [{ x: 11, y: 10 }]);
+        await fumaroles(map, [{ x: 11, y: 10 }]);
         map._water.heroPos = { x: 10, y: 10, dx: 0, dy: 0 };
         map._water.onHeroMoved = () => {};
         map._water.onVisionRecalc = () => {};
@@ -84,18 +84,18 @@ describe('mkmaze waterlevel state helpers', () => {
         assert.equal(map._water.onVisionRecalc, null);
     });
 
-    it('movebubbles shifts fumaroles in deterministic move mode', () => {
+    it('movebubbles shifts fumaroles in deterministic move mode', async () => {
         const map = new GameMap();
-        setup_waterlevel(map, { isWaterLevel: true });
+        await setup_waterlevel(map, { isWaterLevel: true });
         map._water.bubbles = [];
-        fumaroles(map, [{ x: 11, y: 10 }]);
-        movebubbles(map, 1, -1);
+        await fumaroles(map, [{ x: 11, y: 10 }]);
+        await movebubbles(map, 1, -1);
 
         assert.equal(map._water.fumaroles[0].x, 12);
         assert.equal(map._water.fumaroles[0].y, 9);
     });
 
-    it('fumaroles C-mode spawns gas clouds from lava squares', () => {
+    it('fumaroles C-mode spawns gas clouds from lava squares', async () => {
         const map = new GameMap();
         for (let x = 3; x < COLNO - 1; x++) {
             for (let y = 3; y < ROWNO - 1; y++) {
@@ -107,7 +107,7 @@ describe('mkmaze waterlevel state helpers', () => {
         vision_init();
         vision_reset(map);
 
-        const created = fumaroles(map, {
+        const created = await fumaroles(map, {
             player: { x: 40, y: 10, Deaf: true },
             game: { in_mklev: true },
         });
@@ -118,19 +118,19 @@ describe('mkmaze waterlevel state helpers', () => {
         assert.ok(map.regions.length >= created);
     });
 
-    it('mv_bubble allows 1x1 bubble to occupy xmax', () => {
+    it('mv_bubble allows 1x1 bubble to occupy xmax', async () => {
         const map = new GameMap();
-        setup_waterlevel(map, { isWaterLevel: true });
+        await setup_waterlevel(map, { isWaterLevel: true });
         const bubble = { x: map._water.xmax - 1, y: 10, n: 1, dx: 0, dy: 0 };
-        mv_bubble(map, bubble, 1, 0);
+        await mv_bubble(map, bubble, 1, 0);
         assert.equal(bubble.x, map._water.xmax);
     });
 
-    it('movebubbles carries bubble contents for water levels', () => {
+    it('movebubbles carries bubble contents for water levels', async () => {
         const map = new GameMap();
-        setup_waterlevel(map, { isWaterLevel: true });
+        await setup_waterlevel(map, { isWaterLevel: true });
         map._water.bubbles = [];
-        const bubble = mk_bubble(map, 10, 10, 0);
+        const bubble = await mk_bubble(map, 10, 10, 0);
         assert.ok(bubble);
 
         const obj = { otyp: 1, ox: 10, oy: 10, quan: 1 };
@@ -140,7 +140,7 @@ describe('mkmaze waterlevel state helpers', () => {
         const portal = { tx: 10, ty: 10, ttyp: MAGIC_PORTAL, dst: { dnum: 1, dlevel: 2 } };
         map.traps.push(portal);
 
-        movebubbles(map, 1, 0);
+        await movebubbles(map, 1, 0);
 
         assert.equal(obj.ox, 11);
         assert.equal(obj.oy, 10);
@@ -151,11 +151,11 @@ describe('mkmaze waterlevel state helpers', () => {
         assert.equal(map._water.portal.x, 11);
     });
 
-    it('movebubbles carries hero via water callback', () => {
+    it('movebubbles carries hero via water callback', async () => {
         const map = new GameMap();
-        setup_waterlevel(map, { isWaterLevel: true });
+        await setup_waterlevel(map, { isWaterLevel: true });
         map._water.bubbles = [];
-        const bubble = mk_bubble(map, 20, 10, 0);
+        const bubble = await mk_bubble(map, 20, 10, 0);
         assert.ok(bubble);
 
         const hero = { x: 20, y: 10 };
@@ -165,28 +165,28 @@ describe('mkmaze waterlevel state helpers', () => {
             hero.y = y;
         };
 
-        movebubbles(map, 1, 0);
+        await movebubbles(map, 1, 0);
         assert.equal(hero.x, 21);
         assert.equal(hero.y, 10);
     });
 
-    it('movebubbles invokes vision recalc callback when provided', () => {
+    it('movebubbles invokes vision recalc callback when provided', async () => {
         const map = new GameMap();
-        setup_waterlevel(map, { isWaterLevel: true });
+        await setup_waterlevel(map, { isWaterLevel: true });
         map._water.bubbles = [];
-        mk_bubble(map, 25, 10, 0);
+        await mk_bubble(map, 25, 10, 0);
         let called = 0;
         map._water.onVisionRecalc = () => { called++; };
 
-        movebubbles(map, 1, 0);
+        await movebubbles(map, 1, 0);
         assert.equal(called, 1);
     });
 
-    it('movebubbles displaces monster occupying hero bubble destination', () => {
+    it('movebubbles displaces monster occupying hero bubble destination', async () => {
         const map = new GameMap();
-        setup_waterlevel(map, { isWaterLevel: true });
+        await setup_waterlevel(map, { isWaterLevel: true });
         map._water.bubbles = [];
-        const bubble = mk_bubble(map, 40, 10, 0);
+        const bubble = await mk_bubble(map, 40, 10, 0);
         assert.ok(bubble);
 
         const hero = { x: 40, y: 10 };
@@ -198,17 +198,17 @@ describe('mkmaze waterlevel state helpers', () => {
             hero.y = y;
         };
 
-        movebubbles(map, 1, 0);
+        await movebubbles(map, 1, 0);
         assert.equal(hero.x, 41);
         assert.equal(hero.y, 10);
         assert.equal(mon.mx === 41 && mon.my === 10, false);
     });
 
-    it('maybe_adjust_hero_bubble steers bubble heading', () => {
+    it('maybe_adjust_hero_bubble steers bubble heading', async () => {
         const map = new GameMap();
-        setup_waterlevel(map, { isWaterLevel: true });
+        await setup_waterlevel(map, { isWaterLevel: true });
         map._water.bubbles = [];
-        const bubble = mk_bubble(map, 30, 12, 0);
+        const bubble = await mk_bubble(map, 30, 12, 0);
         assert.ok(bubble);
         bubble.dx = 0;
         bubble.dy = 0;
@@ -225,15 +225,15 @@ describe('mkmaze waterlevel state helpers', () => {
         assert.equal(bubble.dy, 1);
     });
 
-    it('water_friction applies C-style directional drift', () => {
+    it('water_friction applies C-style directional drift', async () => {
         const map = new GameMap();
-        setup_waterlevel(map, { isWaterLevel: true });
+        await setup_waterlevel(map, { isWaterLevel: true });
         const player = { x: 20, y: 10, dx: 1, dy: 0, swimming: false };
         let changed = false;
         for (let i = 0; i < 32; i++) {
             const beforeDx = player.dx;
             const beforeDy = player.dy;
-            water_friction(map, player);
+            await water_friction(map, player);
             if (player.dx !== beforeDx || player.dy !== beforeDy) {
                 changed = true;
                 break;
@@ -244,13 +244,13 @@ describe('mkmaze waterlevel state helpers', () => {
         assert.equal(changed, true);
     });
 
-    it('fixup_special applies castle/minetown flag side effects', () => {
+    it('fixup_special applies castle/minetown flag side effects', async () => {
         const castle = new GameMap();
-        fixup_special(castle, { specialName: 'castle' });
+        await fixup_special(castle, { specialName: 'castle' });
         assert.equal(castle.flags.graveyard, true);
 
         const minetown = new GameMap();
-        fixup_special(minetown, { specialName: 'minetn-1' });
+        await fixup_special(minetown, { specialName: 'minetn-1' });
         assert.equal(minetown.flags.has_town, true);
     });
 
@@ -261,9 +261,9 @@ describe('mkmaze waterlevel state helpers', () => {
         assert.equal(check_ransacked(map, 'armory'), true);
     });
 
-    it('makemaz loads protofile special levels when provided', () => {
+    it('makemaz loads protofile special levels when provided', async () => {
         const map = new GameMap();
-        makemaz(map, 'oracle', null, null, 5);
+        await makemaz(map, 'oracle', null, null, 5);
         assert.equal(map.flags.is_maze_lev, false);
         let fountains = 0;
         for (let x = 0; x < map.locations.length; x++) {

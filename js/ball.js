@@ -134,12 +134,12 @@ function obj_extract_self(obj, map) {
 }
 
 // cf. ball.c:23 — ballrelease(showmsg): drop carried ball
-export function ballrelease(showmsg, player, map) {
+export async function ballrelease(showmsg, player, map) {
     const uball = player.uball;
     if (!uball) return;
     if (carried(uball) && !welded(uball, player)) {
         if (showmsg)
-            pline("Startled, you drop the iron ball.");
+            await pline("Startled, you drop the iron ball.");
         if (player.weapon === uball)
             player.weapon = null;
         if (player.swapWeapon === uball)
@@ -155,34 +155,34 @@ export function ballrelease(showmsg, player, map) {
 }
 
 // cf. ball.c:43 — ballfall(void): ball falls through trapdoor
-export function ballfall(player, map) {
+export async function ballfall(player, map) {
     const uball = player.uball;
     if (!uball || (uball && carried(uball) && welded(uball, player)))
         return;
 
     const gets_hit = ((uball.ox !== player.x) || (uball.oy !== player.y))
                      && ((player.weapon === uball) ? false : !!rn2(5));
-    ballrelease(true, player, map);
+    await ballrelease(true, player, map);
     if (gets_hit) {
         let dmg = rn1(7, 25);
 
-        pline_The("iron ball falls on your %s.", body_part('HEAD'));
+        await pline_The("iron ball falls on your %s.", body_part('HEAD'));
         if (player.helmet) {
             if (hard_helmet(player.helmet)) {
-                pline("Fortunately, you are wearing a hard helmet.");
+                await pline("Fortunately, you are wearing a hard helmet.");
                 dmg = 3;
             } else {
                 // flags.verbose — assume true
-                pline("%s does not protect you.", player.helmet.name || "Your helmet");
+                await pline("%s does not protect you.", player.helmet.name || "Your helmet");
             }
         }
-        losehp(Maybe_Half_Phys(dmg, player), "crunched in the head by an iron ball",
+        await losehp(Maybe_Half_Phys(dmg, player), "crunched in the head by an iron ball",
                NO_KILLER_PREFIX, player, null, null);
     }
 }
 
 // cf. ball.c:119 — placebc_core(): place ball and chain on floor
-export function placebc_core(player, map) {
+export async function placebc_core(player, map) {
     const uchain = player.uchain;
     const uball = player.uball;
     if (!uchain || !uball) {
@@ -190,13 +190,13 @@ export function placebc_core(player, map) {
         return;
     }
 
-    flooreffects(uchain, player.x, player.y, "", player, map); // chain might rust
+    await flooreffects(uchain, player.x, player.y, "", player, map); // chain might rust
 
     if (carried(uball)) { // the ball is carried
         player.bc_order = BCPOS_DIFFER;
     } else {
         // ball might rust — already checked when carried
-        flooreffects(uball, player.x, player.y, "", player, map);
+        await flooreffects(uball, player.x, player.y, "", player, map);
         place_object(uball, player.x, player.y, map);
         player.bc_order = BCPOS_CHAIN;
     }
@@ -258,7 +258,7 @@ export function check_restriction(restriction) {
 }
 
 // cf. ball.c:192 — placebc(): place ball and chain
-export function placebc(player, map) {
+export async function placebc(player, map) {
     if (!check_restriction(0)) {
         return;
     }
@@ -266,7 +266,7 @@ export function placebc(player, map) {
         impossible("bc already placed?");
         return;
     }
-    placebc_core(player, map);
+    await placebc_core(player, map);
 }
 
 // cf. ball.c:211 — unplacebc(): remove ball and chain
@@ -291,7 +291,7 @@ export function unplacebc_and_covet_placebc() {
 }
 
 // cf. ball.c:235 — lift_covet_and_placebc(pin): lift restriction and replace
-export function lift_covet_and_placebc(pin, player, map) {
+export async function lift_covet_and_placebc(pin, player, map) {
     if (!check_restriction(pin)) {
         return;
     }
@@ -299,7 +299,7 @@ export function lift_covet_and_placebc(pin, player, map) {
         impossible("bc already placed?");
         return;
     }
-    placebc_core(player, map);
+    await placebc_core(player, map);
 }
 
 // cf. ball.c:353 — bc_order(): ball/chain stacking order
@@ -496,7 +496,7 @@ export function move_bc(before, control, ballx, bally, chainx, chainy, player, m
 // cf. ball.c:559 — drag_ball(): ball/chain drag computation
 // Returns { ret, bc_control, ballx, bally, chainx, chainy, cause_delay }
 // ret is true if caller needs to place ball and chain down again
-export function drag_ball(x, y, allow_drag, player, map, game) {
+export async function drag_ball(x, y, allow_drag, player, map, game) {
     const uball = player.uball;
     const uchain = player.uchain;
     if (!uball || !uchain) return { ret: false, bc_control: 0, ballx: 0, bally: 0, chainx: 0, chainy: 0, cause_delay: false };
@@ -669,7 +669,7 @@ export function drag_ball(x, y, allow_drag, player, map, game) {
 
     // drag:
     if (near_capacity(player) > SLT_ENCUMBER && dist2(x, y, player.x, player.y) <= 2) {
-        You("cannot %sdrag the heavy iron ball.",
+        await You("cannot %sdrag the heavy iron ball.",
             (player.inventory && player.inventory.length) ? "carry all that and also " : "");
         nomul(0, game);
         return { ret: false, bc_control, ballx, bally, chainx, chainy, cause_delay };
@@ -684,11 +684,11 @@ export function drag_ball(x, y, allow_drag, player, map, game) {
                      return t && (is_pit(t.ttyp) || is_hole(t.ttyp)); })())
     ) {
         if (player.levitating || player.levitation) {
-            You_feel("a tug from the iron ball.");
+            await You_feel("a tug from the iron ball.");
             const t = t_at(uchain.ox, uchain.oy, map);
             if (t) t.tseen = 1;
         } else {
-            You("are jerked back by the iron ball!");
+            await You("are jerked back by the iron ball!");
             const victim = map.monsterAt ? map.monsterAt(uchain.ox, uchain.oy) : null;
             if (victim) {
                 const dieroll = rnd(20);
@@ -718,7 +718,7 @@ export function drag_ball(x, y, allow_drag, player, map, game) {
             ballx = uchain.ox;
             bally = uchain.oy;
             move_bc(0, bc_control, ballx, bally, chainx, chainy, player, map);
-            spoteffects(true, player, map, null, game);
+            await spoteffects(true, player, map, null, game);
             return { ret: false, bc_control, ballx, bally, chainx, chainy, cause_delay };
         }
     }
@@ -753,7 +753,7 @@ export function drag_ball(x, y, allow_drag, player, map, game) {
 }
 
 // cf. ball.c:881 — drop_ball(x, y): drop ball at location
-export function drop_ball(x, y, player, map, game) {
+export async function drop_ball(x, y, player, map, game) {
     const uball = player.uball;
     const uchain = player.uchain;
     if (!uball || !uchain) return;
@@ -782,12 +782,12 @@ export function drop_ball(x, y, player, map, game) {
             && player.utraptype !== TT_INFLOOR && player.utraptype !== TT_BURIEDBALL) {
             switch (player.utraptype) {
             case TT_PIT:
-                pline("%s%s!", pullmsg, "pit");
+                await pline("%s%s!", pullmsg, "pit");
                 break;
             case TT_WEB:
-                pline("%s%s!", pullmsg, "web");
+                await pline("%s%s!", pullmsg, "web");
                 Soundeffect();
-                pline_The("web is destroyed!");
+                await pline_The("web is destroyed!");
                 // deltrap(t_at(player.x, player.y)) — trap deletion
                 { const t = t_at(player.x, player.y, map);
                   if (t && map.traps) {
@@ -797,18 +797,18 @@ export function drop_ball(x, y, player, map, game) {
                 }
                 break;
             case TT_LAVA:
-                pline("%s%s!", pullmsg, "lava");
+                await pline("%s%s!", pullmsg, "lava");
                 break;
             case TT_BEARTRAP: {
                 const side = rn2(3) ? LEFT_SIDE : RIGHT_SIDE;
-                pline("%s%s!", pullmsg, "bear trap");
+                await pline("%s%s!", pullmsg, "bear trap");
                 // set_wounded_legs(side, rn1(1000, 500))
                 // Stub: wounded legs not fully wired
                 if (!player.usteed) {
-                    Your("%s %s is severely damaged.",
+                    await Your("%s %s is severely damaged.",
                          (side === LEFT_SIDE) ? "left" : "right",
                          body_part('LEG'));
-                    losehp(Maybe_Half_Phys(2, player),
+                    await losehp(Maybe_Half_Phys(2, player),
                            "leg damage from being pulled out of a bear trap",
                            KILLED_BY, player, null, null);
                 }
@@ -857,13 +857,13 @@ export function drop_ball(x, y, player, map, game) {
         }
         newsym(map, player.x0, player.y0); // clean up old position
         if (player.x0 !== player.x || player.y0 !== player.y) {
-            spoteffects(true, player, map, null, game);
+            await spoteffects(true, player, map, null, game);
         }
     }
 }
 
 // cf. ball.c:964 — litter(): scatter items when dragged downstairs
-function litter(player, map) {
+async function litter(player, map) {
     const capacity = weight_cap(player);
     const inventory = player.inventory;
     if (!inventory) return;
@@ -876,7 +876,7 @@ function litter(player, map) {
             if (otmp.owornmask) continue;
             const qstr = (otmp.quan || 1) === 1 ? "it" : "they";
             const fallstr = (otmp.quan || 1) === 1 ? "falls" : "fall";
-            You("drop %s and %s %s down the stairs with you.",
+            await You("drop %s and %s %s down the stairs with you.",
                 xname(otmp), qstr, fallstr);
             // setnotworn + freeinv + hitfloor
             inventory.splice(i, 1);
@@ -889,7 +889,7 @@ function litter(player, map) {
 }
 
 // cf. ball.c:985 — drag_down(): effects of ball dragging hero downstairs
-export function drag_down(player, map, display, game) {
+export async function drag_down(player, map, display, game) {
     const uball = player.uball;
     if (!uball) return;
 
@@ -897,35 +897,35 @@ export function drag_down(player, map, display, game) {
     const forward = carried(uball) && (player.weapon === uball || !player.weapon || !rn2(3));
 
     if (carried(uball) && !welded(uball, player))
-        You("lose your grip on the iron ball.");
+        await You("lose your grip on the iron ball.");
 
     cls(display); // clear previous level display
 
     if (forward) {
         if (rn2(6)) {
-            pline_The("iron ball drags you downstairs!");
-            losehp(Maybe_Half_Phys(rnd(6), player),
+            await pline_The("iron ball drags you downstairs!");
+            await losehp(Maybe_Half_Phys(rnd(6), player),
                    "dragged downstairs by an iron ball", NO_KILLER_PREFIX,
                    player, display, game);
-            litter(player, map);
+            await litter(player, map);
         }
     } else {
         let dragchance = 3;
         if (rn2(2)) {
             Soundeffect();
-            pline_The("iron ball smacks into you!");
-            losehp(Maybe_Half_Phys(rnd(20), player), "iron ball collision",
+            await pline_The("iron ball smacks into you!");
+            await losehp(Maybe_Half_Phys(rnd(20), player), "iron ball collision",
                    KILLED_BY_AN, player, display, game);
-            exercise(player, A_STR, false);
+            await exercise(player, A_STR, false);
             dragchance -= 2;
         }
         if (dragchance >= rnd(6)) {
-            pline_The("iron ball drags you downstairs!");
-            losehp(Maybe_Half_Phys(rnd(3), player),
+            await pline_The("iron ball drags you downstairs!");
+            await losehp(Maybe_Half_Phys(rnd(3), player),
                    "dragged downstairs by an iron ball", NO_KILLER_PREFIX,
                    player, display, game);
-            exercise(player, A_STR, false);
-            litter(player, map);
+            await exercise(player, A_STR, false);
+            await litter(player, map);
         }
     }
 }

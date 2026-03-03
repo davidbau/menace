@@ -70,84 +70,84 @@ export const themeroom_fills = [
 
    {
       name: "Ice room",
-      contents: function(rm) {
+      contents: async function(rm) {
          const ice = selection.room();
-         des.terrain(ice, "I");
+         await des.terrain(ice, "I");
          if (percent(25)) {
             const mintime = 1000 - (nh.level_difficulty() * 100);
             const ice_melter = function(x,y) {
                nh.start_timer_at(x,y, "melt-ice", mintime + nh.rn2(1000));
             };
-            ice.iterate(ice_melter);
+            await ice.iterate(ice_melter);
          }
       },
    },
 
    {
       name: "Cloud room",
-      contents: function(rm) {
+      contents: async function(rm) {
          const fog = selection.room();
          for (let i = 1; i <= (fog.numpoints() / 4); i++) {
-            des.monster({ id: "fog cloud", asleep: true });
+            await des.monster({ id: "fog cloud", asleep: true });
          }
-         des.gas_cloud({ selection: fog });
+         await des.gas_cloud({ selection: fog });
       },
    },
 
    {
       name: "Boulder room",
       mindiff: 4,
-      contents: function(rm) {
+      contents: async function(rm) {
          const locs = selection.room().percentage(30);
-         const func = function(x,y) {
+         const func = async function(x,y) {
             if (percent(50)) {
-               des.object("boulder", x, y);
+               await des.object("boulder", x, y);
             } else {
-               des.trap("rolling boulder", x, y);
+               await des.trap("rolling boulder", x, y);
             }
          };
-         locs.iterate(func);
+         await locs.iterate(func);
       },
    },
 
    {
       name: "Spider nest",
-      contents: function(rm) {
+      contents: async function(rm) {
          const spooders = nh.level_difficulty() > 8;
          const locs = selection.room().percentage(30);
-         const func = function(x,y) {
-            des.trap({ type: "web", x: x, y: y,
+         const func = async function(x,y) {
+            await des.trap({ type: "web", x: x, y: y,
                        spider_on_web: spooders && percent(80) });
          };
-         locs.iterate(func);
+         await locs.iterate(func);
       },
    },
 
    {
       name: "Trap room",
-      contents: function(rm) {
+      contents: async function(rm) {
          const traps = [ "arrow", "dart", "falling rock", "bear",
                         "land mine", "sleep gas", "rust",
                         "anti magic" ];
          shuffle(traps);
          const locs = selection.room().percentage(30);
-         const func = function(x,y) {
-            des.trap(traps[0], x, y);
+         const func = async function(x,y) {
+            await des.trap(traps[0], x, y);
          };
-         locs.iterate(func);
+         await locs.iterate(func);
       },
    },
 
    {
       name: "Garden",
       eligible: function(rm) { return rm.rlit === true; },
-      contents: function(rm) {
+      contents: async function(rm) {
          const s = selection.room();
          const npts = (s.numpoints() / 6);
          for (let i = 1; i <= npts; i++) {
-            des.monster({ id: "wood nymph", asleep: true });
+            await des.monster({ id: "wood nymph", asleep: true });
             if (percent(30)) {
-               des.feature("fountain");
+               await des.feature("fountain");
             }
          }
          postprocess.push({ handler: make_garden_walls,
@@ -157,8 +157,8 @@ export const themeroom_fills = [
 
    {
       name: "Buried treasure",
-      contents: function(rm) {
-         des.object({ id: "chest", buried: true, contents: function(otmp) {
+      contents: async function(rm) {
+         await des.object({ id: "chest", buried: true, contents: async function(otmp) {
             const xobj = otmp.totable();
             // keep track of the last buried treasure
             if (xobj.NO_OBJ === undefined) {
@@ -167,7 +167,7 @@ export const themeroom_fills = [
             }
             const numObjects = d(3,4);  // Evaluate once, not on every iteration
             for (let i = 1; i <= numObjects; i++) {
-               des.object();
+               await des.object();
             }
          } });
       },
@@ -175,7 +175,7 @@ export const themeroom_fills = [
 
    {
       name: "Buried zombies",
-      contents: function(rm) {
+      contents: async function(rm) {
          const diff = nh.level_difficulty()
          // start with [1..4] for low difficulty
          const zombifiable = [ "kobold", "gnome", "orc", "dwarf" ];
@@ -189,7 +189,7 @@ export const themeroom_fills = [
          }
          for (let i = 1; i <= (rm.width * rm.height) / 2; i++) {
             shuffle(zombifiable);
-            const o = des.object({ id: "corpse", montype: zombifiable[0],
+            const o = await des.object({ id: "corpse", montype: zombifiable[0],
                                  buried: true });
             // Object timer hooks may be unavailable in the JS port path.
             // Guard to preserve generation flow instead of crashing.
@@ -205,7 +205,7 @@ export const themeroom_fills = [
 
    {
       name: "Massacre",
-      contents: function(rm) {
+      contents: async function(rm) {
          const mon = [ "apprentice", "warrior", "ninja", "thug",
                      "hunter", "acolyte", "abbot", "page",
                      "attendant", "neanderthal", "chieftain",
@@ -218,21 +218,21 @@ export const themeroom_fills = [
          const numCorpses = d(5,5);  // Evaluate once, not on every iteration
          for (let i = 1; i <= numCorpses; i++) {
             if (percent(10)) { idx = rn2(mon.length); }
-            des.object({ id: "corpse", montype: mon[idx] });
+            await des.object({ id: "corpse", montype: mon[idx] });
          }
       },
    },
 
    {
       name: "Statuary",
-      contents: function(rm) {
+      contents: async function(rm) {
          const numStatues = d(5,5);  // Evaluate once, not on every iteration
          for (let i = 1; i <= numStatues; i++) {
-            des.object({ id: "statue" });
+            await des.object({ id: "statue" });
          }
          const numTraps = d(1, 3);  // Evaluate once, not on every iteration
          for (let i = 1; i <= numTraps; i++) {
-            des.trap("statue");
+            await des.trap("statue");
          }
       },
    },
@@ -241,60 +241,60 @@ export const themeroom_fills = [
    {
       name: "Light source",
       eligible: function(rm) { return rm.rlit === false; },
-      contents: function(rm) {
-         des.object({ id: "oil lamp", lit: true });
+      contents: async function(rm) {
+         await des.object({ id: "oil lamp", lit: true });
       }
    },
 
    {
       name: "Temple of the gods",
-      contents: function(rm) {
-         des.altar({ align: align[0] });
-         des.altar({ align: align[1] });
-         des.altar({ align: align[2] });
+      contents: async function(rm) {
+         await des.altar({ align: align[0] });
+         await des.altar({ align: align[1] });
+         await des.altar({ align: align[2] });
       },
    },
 
    {
       name: "Ghost of an Adventurer",
-      contents: function(rm) {
+      contents: async function(rm) {
          const loc = selection.room().rndcoord(0);
-         des.monster({ id: "ghost", asleep: true, waiting: true,
+         await des.monster({ id: "ghost", asleep: true, waiting: true,
                        coord: loc });
          if (percent(65)) {
-            des.object({ id: "dagger", coord: loc, buc: "not-blessed" });
+            await des.object({ id: "dagger", coord: loc, buc: "not-blessed" });
          }
          if (percent(55)) {
-            des.object({ class: ")", coord: loc, buc: "not-blessed" });
+            await des.object({ class: ")", coord: loc, buc: "not-blessed" });
          }
          if (percent(45)) {
-            des.object({ id: "bow", coord: loc, buc: "not-blessed" });
-            des.object({ id: "arrow", coord: loc, buc: "not-blessed" });
+            await des.object({ id: "bow", coord: loc, buc: "not-blessed" });
+            await des.object({ id: "arrow", coord: loc, buc: "not-blessed" });
          }
          if (percent(65)) {
-            des.object({ class: "[", coord: loc, buc: "not-blessed" });
+            await des.object({ class: "[", coord: loc, buc: "not-blessed" });
          }
          if (percent(20)) {
-            des.object({ class: "=", coord: loc, buc: "not-blessed" });
+            await des.object({ class: "=", coord: loc, buc: "not-blessed" });
          }
          if (percent(20)) {
-            des.object({ class: "?", coord: loc, buc: "not-blessed" });
+            await des.object({ class: "?", coord: loc, buc: "not-blessed" });
          }
       },
    },
 
    {
       name: "Storeroom",
-      contents: function(rm) {
+      contents: async function(rm) {
          const locs = selection.room().percentage(30);
-         const func = function(x,y) {
+         const func = async function(x,y) {
             if (percent(25)) {
-               des.object("chest");
+               await des.object("chest");
             } else {
-               des.monster({ class: "m", appear_as: "obj:chest" });
+               await des.monster({ class: "m", appear_as: "obj:chest" });
             }
          };
-         locs.iterate(func);
+         await locs.iterate(func);
       },
    },
 
@@ -323,20 +323,20 @@ export const themerooms = [
    {
       name: "default",
       frequency: 1000,
-      contents: function() {
-         des.room({ type: "ordinary", filled: 1 });
+      contents: async function() {
+         await des.room({ type: "ordinary", filled: 1 });
       }
    },
 
    {
       name: "Fake Delphi",
-      contents: function() {
-         des.room({ type: "ordinary", w: 11, h: 9, filled: 1,
-                  contents: function() {
-                     des.room({ type: "ordinary", x: 4, y: 3, w: 3, h: 3,
+      contents: async function() {
+         await des.room({ type: "ordinary", w: 11, h: 9, filled: 1,
+                  contents: async function() {
+                     await des.room({ type: "ordinary", x: 4, y: 3, w: 3, h: 3,
                                 filled: 1,
-                                contents: function() {
-                                   des.door({ state: "random", wall: "all" });
+                                contents: async function() {
+                                   await des.door({ state: "random", wall: "all" });
                                 }
                      });
                   }
@@ -346,12 +346,12 @@ export const themerooms = [
 
    {
       name: "Room in a room",
-      contents: function() {
-         des.room({ type: "ordinary", filled: 1,
-                  contents: function() {
-                     des.room({ type: "ordinary",
-                                contents: function() {
-                                   des.door({ state: "random", wall: "all" });
+      contents: async function() {
+         await des.room({ type: "ordinary", filled: 1,
+                  contents: async function() {
+                     await des.room({ type: "ordinary",
+                                contents: async function() {
+                                   await des.door({ state: "random", wall: "all" });
                                 }
                      });
                   }
@@ -361,16 +361,16 @@ export const themerooms = [
 
    {
       name: "Huge room with another room inside",
-      contents: function() {
-         des.room({ type: "ordinary", w: rn2(10)+11, h: rn2(5)+8,
+      contents: async function() {
+         await des.room({ type: "ordinary", w: rn2(10)+11, h: rn2(5)+8,
                     filled: 1,
-            contents: function() {
+            contents: async function() {
                if (percent(90)) {
-                  des.room({ type: "ordinary", filled: 1,
-                             contents: function() {
-                                des.door({ state: "random", wall: "all" });
+                  await des.room({ type: "ordinary", filled: 1,
+                             contents: async function() {
+                                await des.door({ state: "random", wall: "all" });
                                    if (percent(50)) {
-                                      des.door({ state: "random", wall: "all" });
+                                      await des.door({ state: "random", wall: "all" });
                                    }
                               }
                   });
@@ -382,10 +382,10 @@ export const themerooms = [
 
    {
       name: "Nesting rooms",
-      contents: function() {
-         des.room({ type: "ordinary", w: 9 + rn2(4), h: 9 + rn2(4),
+      contents: async function() {
+         await des.room({ type: "ordinary", w: 9 + rn2(4), h: 9 + rn2(4),
                     filled: 1,
-            contents: function(rm) {
+            contents: async function(rm) {
                // Lua: math.random(floor(rm.width/2), rm.width-2) -> rn2(range)+min
                const minWid = Math.floor(rm.width / 2);
                const maxWid = rm.width - 2;
@@ -393,21 +393,21 @@ export const themerooms = [
                const minHei = Math.floor(rm.height / 2);
                const maxHei = rm.height - 2;
                const hei = rn2(maxHei - minHei + 1) + minHei;
-               des.room({ type: "ordinary", w: wid, h: hei, filled: 1,
-                  contents: function() {
+               await des.room({ type: "ordinary", w: wid, h: hei, filled: 1,
+                  contents: async function() {
                      if (percent(90)) {
-                        des.room({ type: "ordinary", filled: 1,
-                           contents: function() {
-                              des.door({ state: "random", wall: "all" });
+                        await des.room({ type: "ordinary", filled: 1,
+                           contents: async function() {
+                              await des.door({ state: "random", wall: "all" });
                               if (percent(15)) {
-                                 des.door({ state: "random", wall: "all" });
+                                 await des.door({ state: "random", wall: "all" });
                               }
                            }
                         });
                      }
-                     des.door({ state: "random", wall: "all" });
+                     await des.door({ state: "random", wall: "all" });
                      if (percent(15)) {
-                        des.door({ state: "random", wall: "all" });
+                        await des.door({ state: "random", wall: "all" });
                      }
                   }
                });
@@ -419,44 +419,44 @@ export const themerooms = [
    {
       name: "Default room with themed fill",
       frequency: 6,
-      contents: function() {
-         des.room({ type: "themed", contents: themeroom_fill });
+      contents: async function() {
+         await des.room({ type: "themed", contents: themeroom_fill });
       }
    },
 
    {
       name: "Unlit room with themed fill",
       frequency: 2,
-      contents: function() {
-         des.room({ type: "themed", lit: 0, contents: themeroom_fill });
+      contents: async function() {
+         await des.room({ type: "themed", lit: 0, contents: themeroom_fill });
       }
    },
 
    {
       name: "Room with both normal contents and themed fill",
       frequency: 2,
-      contents: function() {
-         des.room({ type: "themed", filled: 1, contents: themeroom_fill });
+      contents: async function() {
+         await des.room({ type: "themed", filled: 1, contents: themeroom_fill });
       }
    },
 
    {
       name: 'Pillars',
-      contents: function() {
+      contents: async function() {
          const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_THEMEROOMS === '1';
          if (DEBUG) console.log('Pillars: outer contents() called, about to call des.room()');
-         des.room({ type: "themed", w: 10, h: 10,
-                  contents: function(rm) {
+         await des.room({ type: "themed", w: 10, h: 10,
+                  contents: async function(rm) {
                      if (DEBUG) console.log(`Pillars: inner contents() called for room at (${rm.lx},${rm.ly}), about to shuffle`);
                      const terr = [ "-", "-", "-", "-", "L", "P", "T" ];
                      shuffle(terr);
                      if (DEBUG) console.log('Pillars: shuffle complete, terr=', terr);
                      for (let x = 0; x < (rm.width / 4); x++) {
                         for (let y = 0; y < (rm.height / 4); y++) {
-                           des.terrain({ x: x * 4 + 2, y: y * 4 + 2, typ: terr[0], lit: -2 });
-                           des.terrain({ x: x * 4 + 3, y: y * 4 + 2, typ: terr[0], lit: -2 });
-                           des.terrain({ x: x * 4 + 2, y: y * 4 + 3, typ: terr[0], lit: -2 });
-                           des.terrain({ x: x * 4 + 3, y: y * 4 + 3, typ: terr[0], lit: -2 });
+                           await des.terrain({ x: x * 4 + 2, y: y * 4 + 2, typ: terr[0], lit: -2 });
+                           await des.terrain({ x: x * 4 + 3, y: y * 4 + 2, typ: terr[0], lit: -2 });
+                           await des.terrain({ x: x * 4 + 2, y: y * 4 + 3, typ: terr[0], lit: -2 });
+                           await des.terrain({ x: x * 4 + 3, y: y * 4 + 3, typ: terr[0], lit: -2 });
                         }
                      }
                   }
@@ -467,22 +467,22 @@ export const themerooms = [
 
    {
       name: 'Mausoleum',
-      contents: function() {
-         des.room({ type: "themed", w: 5 + rn2(3)*2, h: 5 + rn2(3)*2,
-                  contents: function(rm) {
-                     des.room({ type: "themed",
+      contents: async function() {
+         await des.room({ type: "themed", w: 5 + rn2(3)*2, h: 5 + rn2(3)*2,
+                  contents: async function(rm) {
+                     await des.room({ type: "themed",
                                  x: Math.floor((rm.width - 1) / 2), y: Math.floor((rm.height - 1) / 2),
                                  w: 1, h: 1, joined: false,
-                                 contents: function() {
+                                 contents: async function() {
                                     if (percent(50)) {
                                        const mons = [ "M", "V", "L", "Z" ];
                                        shuffle(mons);
-                                       des.monster({ class: mons[0], x: 0, y: 0, waiting: 1 });
+                                       await des.monster({ class: mons[0], x: 0, y: 0, waiting: 1 });
                                     } else {
-                                       des.object({ id: "corpse", montype: "@", coord: [0, 0] });
+                                       await des.object({ id: "corpse", montype: "@", coord: [0, 0] });
                                     }
                                     if (percent(20)) {
-                                       des.door({ state: "secret", wall: "all" });
+                                       await des.door({ state: "secret", wall: "all" });
                                     }
                                  }
                      });
@@ -493,14 +493,14 @@ export const themerooms = [
 
    {
       name: 'Random dungeon feature in the middle of an odd-sized room',
-      contents: function() {
+      contents: async function() {
          const wid = 3 + (rn2(3) * 2);
          const hei = 3 + (rn2(3) * 2);
-         des.room({ type: "ordinary", filled: 1, w: wid, h: hei,
-                  contents: function(rm) {
+         await des.room({ type: "ordinary", filled: 1, w: wid, h: hei,
+                  contents: async function(rm) {
                      const feature = [ "C", "L", "I", "P", "T" ];
                      shuffle(feature);
-                     des.terrain(Math.floor((rm.width - 1) / 2), Math.floor((rm.height - 1) / 2),
+                     await des.terrain(Math.floor((rm.width - 1) / 2), Math.floor((rm.height - 1) / 2),
                                  feature[0]);
                   }
          });
@@ -509,8 +509,8 @@ export const themerooms = [
 
    {
       name: 'L-shaped',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 -----xxx
 |...|xxx
 |...|xxx
@@ -519,14 +519,14 @@ export const themerooms = [
 |......|
 |......|
 --------
-`, contents: function(m) { filler_region(1, 1); } });
+`, contents: async function(m) { await filler_region(1, 1); } });
       },
    },
 
    {
       name: 'L-shaped, rot 1',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 xxx-----
 xxx|...|
 xxx|...|
@@ -535,14 +535,14 @@ xxx|...|
 |......|
 |......|
 --------
-`, contents: function(m) { filler_region(5, 1); } });
+`, contents: async function(m) { await filler_region(5, 1); } });
       },
    },
 
    {
       name: 'L-shaped, rot 2',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 --------
 |......|
 |......|
@@ -551,14 +551,14 @@ xxx|...|
 xxx|...|
 xxx|...|
 xxx-----
-`, contents: function(m) { filler_region(1, 1); } });
+`, contents: async function(m) { await filler_region(1, 1); } });
       },
    },
 
    {
       name: 'L-shaped, rot 3',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 --------
 |......|
 |......|
@@ -567,14 +567,14 @@ xxx-----
 |...|xxx
 |...|xxx
 -----xxx
-`, contents: function(m) { filler_region(1, 1); } });
+`, contents: async function(m) { await filler_region(1, 1); } });
       },
    },
 
    {
       name: 'Blocked center',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 -----------
 |.........|
 |.........|
@@ -586,23 +586,23 @@ xxx-----
 |.........|
 |.........|
 -----------
-`, contents: function(m) {
+`, contents: async function(m) {
             if (percent(30)) {
                const terr = [ "-", "P" ];
                shuffle(terr);
-               des.replace_terrain({ region: [1, 1, 9, 9],
+               await des.replace_terrain({ region: [1, 1, 9, 9],
                                      fromterrain: "L",
                                      toterrain: terr[0] });
             }
-            filler_region(1, 1);
+            await filler_region(1, 1);
          } });
       },
    },
 
    {
       name: 'Circular, small',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 xx---xx
 x--.--x
 --...--
@@ -610,14 +610,14 @@ x--.--x
 --...--
 x--.--x
 xx---xx
-`, contents: function(m) { filler_region(3, 3); } });
+`, contents: async function(m) { await filler_region(3, 3); } });
       },
    },
 
    {
       name: 'Circular, medium',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 xx-----xx
 x--...--x
 --.....--
@@ -627,14 +627,14 @@ x--...--x
 --.....--
 x--...--x
 xx-----xx
-`, contents: function(m) { filler_region(4, 4); } });
+`, contents: async function(m) { await filler_region(4, 4); } });
       },
    },
 
    {
       name: 'Circular, big',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 xxx-----xxx
 x---...---x
 x-.......-x
@@ -646,14 +646,14 @@ x-.......-x
 x-.......-x
 x---...---x
 xxx-----xxx
-`, contents: function(m) { filler_region(5, 5); } });
+`, contents: async function(m) { await filler_region(5, 5); } });
       },
    },
 
    {
       name: 'T-shaped',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 xxx-----xxx
 xxx|...|xxx
 xxx|...|xxx
@@ -662,14 +662,14 @@ xxx|...|xxx
 |.........|
 |.........|
 -----------
-`, contents: function(m) { filler_region(5, 5); } });
+`, contents: async function(m) { await filler_region(5, 5); } });
       },
    },
 
    {
       name: 'T-shaped, rot 1',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 -----xxx
 |...|xxx
 |...|xxx
@@ -681,14 +681,14 @@ xxx|...|xxx
 |...|xxx
 |...|xxx
 -----xxx
-`, contents: function(m) { filler_region(2, 2); } });
+`, contents: async function(m) { await filler_region(2, 2); } });
       },
    },
 
    {
       name: 'T-shaped, rot 2',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 -----------
 |.........|
 |.........|
@@ -697,14 +697,14 @@ xxx|...|xxx
 xxx|...|xxx
 xxx|...|xxx
 xxx-----xxx
-`, contents: function(m) { filler_region(2, 2); } });
+`, contents: async function(m) { await filler_region(2, 2); } });
       },
    },
 
    {
       name: 'T-shaped, rot 3',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 xxx-----
 xxx|...|
 xxx|...|
@@ -716,14 +716,14 @@ xxx|...|
 xxx|...|
 xxx|...|
 xxx-----
-`, contents: function(m) { filler_region(5, 5); } });
+`, contents: async function(m) { await filler_region(5, 5); } });
       },
    },
 
    {
       name: 'S-shaped',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 -----xxx
 |...|xxx
 |...|xxx
@@ -735,14 +735,14 @@ xxx-----
 xxx|...|
 xxx|...|
 xxx-----
-`, contents: function(m) { filler_region(2, 2); } });
+`, contents: async function(m) { await filler_region(2, 2); } });
       },
    },
 
    {
       name: 'S-shaped, rot 1',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 xxx--------
 xxx|......|
 xxx|......|
@@ -751,14 +751,14 @@ xxx|......|
 |......|xxx
 |......|xxx
 --------xxx
-`, contents: function(m) { filler_region(5, 5); } });
+`, contents: async function(m) { await filler_region(5, 5); } });
       },
    },
 
    {
       name: 'Z-shaped',
-      contents: function() {
-         des.map({ map: `xxx-----
+      contents: async function() {
+         await des.map({ map: `xxx-----
 xxx|...|
 xxx|...|
 ----...|
@@ -769,14 +769,14 @@ xxx|...|
 |...|xxx
 |...|xxx
 -----xxx
-`, contents: function(m) { filler_region(5, 5); } });
+`, contents: async function(m) { await filler_region(5, 5); } });
       },
    },
 
    {
       name: 'Z-shaped, rot 1',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 --------xxx
 |......|xxx
 |......|xxx
@@ -785,14 +785,14 @@ xxx|...|
 xxx|......|
 xxx|......|
 xxx--------
-`, contents: function(m) { filler_region(2, 2); } });
+`, contents: async function(m) { await filler_region(2, 2); } });
       },
    },
 
    {
       name: 'Cross',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 xxx-----xxx
 xxx|...|xxx
 xxx|...|xxx
@@ -804,14 +804,14 @@ xxx|...|xxx
 xxx|...|xxx
 xxx|...|xxx
 xxx-----xxx
-`, contents: function(m) { filler_region(6, 6); } });
+`, contents: async function(m) { await filler_region(6, 6); } });
       },
    },
 
    {
       name: 'Four-leaf clover',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 -----x-----
 |...|x|...|
 |...---...|
@@ -823,22 +823,22 @@ xx|.....|xx
 |...---...|
 |...|x|...|
 -----x-----
-`, contents: function(m) { filler_region(6, 6); } });
+`, contents: async function(m) { await filler_region(6, 6); } });
       },
    },
 
    {
       name: 'Water-surrounded vault',
-      contents: function() {
-         des.map({ map: `
+      contents: async function() {
+         await des.map({ map: `
 }}}}}}
 }----}
 }|..|}
 }|..|}
 }----}
 }}}}}}
-`, contents: function(m) {
-            des.region({ region: [3, 3, 3, 3], type: "themed", irregular: true,
+`, contents: async function(m) {
+            await des.region({ region: [3, 3, 3, 3], type: "themed", irregular: true,
                          filled: 0, joined: false });
             const nasty_undead = [ "giant zombie", "ettin zombie", "vampire lord" ];
             const chest_spots = [ [ 2, 2 ], [ 3, 2 ], [ 2, 3 ], [ 3, 3 ] ];
@@ -860,21 +860,21 @@ xx|.....|xx
             const itm = escape_items[rn2(escape_items.length)];
             // Keep the guaranteed-escape-item logic but avoid Lua-only
             // object handle APIs (addcontent/class) not modeled in JS.
-            des.object({
+            await des.object({
                id: "chest",
                coord: chest_spots[0],
-               contents: function() {
-                  des.object(itm);
+               contents: async function() {
+                  await des.object(itm);
                }
             });
 
             for (let i = 1; i < chest_spots.length; i++) {
-                  des.object({ id: "chest", coord: chest_spots[i] });
+                  await des.object({ id: "chest", coord: chest_spots[i] });
             }
 
             shuffle(nasty_undead);
-            des.monster(nasty_undead[0], 2, 2);
-            des.exclusion({ type: "teleport", region: [ 2, 2, 3, 3 ] });
+            await des.monster(nasty_undead[0], 2, 2);
+            await des.exclusion({ type: "teleport", region: [ 2, 2, 3, 3 ] });
          } });
       },
    },
@@ -882,11 +882,11 @@ xx|.....|xx
    {
       name: 'Twin businesses',
       mindiff: 4, // arbitrary
-      contents: function() {
+      contents: async function() {
          // Due to the way room connections work in mklev.c, we must guarantee
          // that the "aisle" between the shops touches all four walls of the
          // larger room. Thus it has an extra width and height.
-         des.room({ type: "themed", w: 9, h: 5, contents: function() {
+         await des.room({ type: "themed", w: 9, h: 5, contents: async function() {
                // There are eight possible placements of the two shops, four of
                // which have the vertical aisle in the center.
                const southeast = function() { return percent(50) ? "south" : "east"; }
@@ -917,14 +917,14 @@ xx|.....|xx
                   }
                }
                const p = placements[d(1, placements.length) - 1];
-               des.room({ type: ltype, x: p["lx"], y: p["ly"], w: 3, h: 3, filled: 1, joined: false,
-                           contents: function() {
-                     des.door({ state: shopdoorstate(), wall: p["lwall"] })
+               await des.room({ type: ltype, x: p["lx"], y: p["ly"], w: 3, h: 3, filled: 1, joined: false,
+                           contents: async function() {
+                     await des.door({ state: shopdoorstate(), wall: p["lwall"] })
                   }
                });
-               des.room({ type: rtype, x: p["rx"], y: p["ry"], w: 3, h: 3, filled: 1, joined: false,
-                           contents: function() {
-                     des.door({ state: shopdoorstate(), wall: p["rwall"] })
+               await des.room({ type: rtype, x: p["rx"], y: p["ry"], w: 3, h: 3, filled: 1, joined: false,
+                           contents: async function() {
+                     await des.door({ state: shopdoorstate(), wall: p["rwall"] })
                   }
                });
             }
@@ -944,14 +944,14 @@ let _initialized = false;
 // Given a point in a themed room, ensure that themed room is stocked with
 // regular room contents.
 // With 30% chance, also give it a random themed fill.
-function filler_region(x, y) {
+async function filler_region(x, y) {
    let rmtyp = "ordinary";
    let func = null;
    if (percent(30)) {
       rmtyp = "themed";
       func = themeroom_fill;
    }
-   des.region({ region: [x, y, x, y], type: rmtyp, irregular: true, filled: 1, contents: func });
+   await des.region({ region: [x, y, x, y], type: rmtyp, irregular: true, filled: 1, contents: func });
 }
 
 function is_eligible(room, mkrm) {
@@ -990,7 +990,7 @@ function lookup_by_name(name, checkfills) {
 }
 
 // called repeatedly until the core decides there are enough rooms
-export function themerooms_generate(map, depth) {
+export async function themerooms_generate(map, depth) {
    _levelDepth = depth; // Update module-level depth for nh.level_difficulty()
 
    // C ref: In Lua, the MT init pattern (rn2(1000-1004), rn2(1010), etc.) is NOT a separate
@@ -1003,7 +1003,7 @@ export function themerooms_generate(map, depth) {
 
    // First-time initialization for this level: shuffle align and init Lua MT RNG
    if (!_initialized) {
-      pre_themerooms_generate();
+      await pre_themerooms_generate();
       _initialized = true;
    }
 
@@ -1018,11 +1018,11 @@ export function themerooms_generate(map, depth) {
          if (is_eligible(themerooms[debug_rm_idx])) {
             actualrm = debug_rm_idx;
          } else {
-            pline("Warning: themeroom '" + themerooms[debug_rm_idx].name
+            await pline("Warning: themeroom '" + themerooms[debug_rm_idx].name
                   + "' is ineligible");
          }
       }
-      themerooms[actualrm].contents();
+      await themerooms[actualrm].contents();
       return true;
    } else if (debug_fill_idx !== null) {
       // when a fill is requested but not a room, still create the "default"
@@ -1030,7 +1030,7 @@ export function themerooms_generate(map, depth) {
       // (themeroom_fill will take care of guaranteeing the fill in it)
       const actualrm = lookup_by_name(percent(50) ? "Default room with themed fill"
                                                   : "default", false);
-      themerooms[actualrm].contents();
+      await themerooms[actualrm].contents();
       return true;
    }
 
@@ -1103,7 +1103,7 @@ export function themerooms_generate(map, depth) {
    }
 
    try {
-      themerooms[pick].contents();
+      await themerooms[pick].contents();
    } finally {
       // Always clear the callback after contents() completes
       levelState.roomFailureCallback = null;
@@ -1122,7 +1122,7 @@ export function themerooms_generate(map, depth) {
 
 // called before any rooms are generated
 let _mtInitCount = 0;
-export function pre_themerooms_generate() {
+export async function pre_themerooms_generate() {
    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_LUA_RNG === '1';
 
    // C ref: MT initialization happens lazily on first Lua RNG call (des.object/des.monster),
@@ -1145,14 +1145,14 @@ export function pre_themerooms_generate() {
       if (lookup_by_name(debug_themerm, true) !== null) {
          xtrainfo = "; it is a fill type";
       }
-      pline("Warning: themeroom '" + debug_themerm
+      await pline("Warning: themeroom '" + debug_themerm
             + "' not found in themerooms" + xtrainfo, true);
    }
    if (debug_fill !== null && debug_fill_idx === null) {
       if (lookup_by_name(debug_fill, false) !== null) {
          xtrainfo = "; it is a room type";
       }
-      pline("Warning: themeroom fill '" + debug_fill
+      await pline("Warning: themeroom fill '" + debug_fill
             + "' not found in themeroom_fills" + xtrainfo, true);
    }
 }
@@ -1162,7 +1162,7 @@ export function pre_themerooms_generate() {
 export function post_themerooms_generate() {
 }
 
-export function themeroom_fill(rm) {
+export async function themeroom_fill(rm) {
    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_THEMEROOMS === '1';
    // C parity: Lua mkroom table exposes room dimensions; ensure callbacks
    // relying on rm.width/rm.height behave consistently.
@@ -1180,14 +1180,14 @@ export function themeroom_fill(rm) {
    if (debug_fill_idx !== null) {
       if (is_eligible(themeroom_fills[debug_fill_idx], rm)) {
          des.setCurrentRoom(rm);
-         themeroom_fills[debug_fill_idx].contents(rm);
+         await themeroom_fills[debug_fill_idx].contents(rm);
          des.setCurrentRoom(null);
       } else{
          // ideally this would be a debugpline, not a full pline, and offer
          // some more context on whether it failed because of difficulty or
          // because of eligible function returning false; the warning doesn't
          // necessarily mean anything.
-         pline("Warning: fill '" + themeroom_fills[debug_fill_idx].name
+         await pline("Warning: fill '" + themeroom_fills[debug_fill_idx].name
                + "' is not eligible in room that generated it");
       }
       return;
@@ -1236,12 +1236,12 @@ export function themeroom_fill(rm) {
    }
 
    des.setCurrentRoom(rm);
-   themeroom_fills[pick].contents(rm);
+   await themeroom_fills[pick].contents(rm);
    des.setCurrentRoom(null);
 }
 
 // postprocess callback: create an engraving pointing at a location
-function make_dig_engraving(data) {
+async function make_dig_engraving(data) {
    const floors = selection.negate().filter_mapchar(".");
    const pos = floors.rndcoord(0);
    const tx = data.x - pos.x - 1;
@@ -1257,33 +1257,33 @@ function make_dig_engraving(data) {
          dig = dig + ` ${Math.abs(ty)} ${(ty > 0) ? "south" : "north"}`;
       }
    }
-   des.engraving({ coord: pos, type: "burn", text: "Dig" + dig });
+   await des.engraving({ coord: pos, type: "burn", text: "Dig" + dig });
 }
 
 // postprocess callback: turn room walls into trees
-function make_garden_walls(data) {
+async function make_garden_walls(data) {
    const sel = data.sel.grow();
    // change walls to trees
-   des.replace_terrain({ selection: sel, fromterrain: "w", toterrain: "T" });
+   await des.replace_terrain({ selection: sel, fromterrain: "w", toterrain: "T" });
    // update secret doors; attempting to change to AIR will set arboreal flag
-   des.replace_terrain({ selection: sel, fromterrain: "S", toterrain: "A" });
+   await des.replace_terrain({ selection: sel, fromterrain: "S", toterrain: "A" });
 }
 
 // postprocess callback: make a trap
-function make_a_trap(data) {
+async function make_a_trap(data) {
    if (data.teledest === 1 && data.type === "teleport") {
       const locs = selection.negate().filter_mapchar(".");
       do {
          data.teledest = locs.rndcoord(1);
       } while (data.teledest.x === data.coord.x && data.teledest.y === data.coord.y);
    }
-   des.trap(data);
+   await des.trap(data);
 }
 
 // called once after the whole level has been generated
-export function themerooms_post_level_generate() {
+export async function themerooms_post_level_generate() {
    for (const v of postprocess) {
-      v.handler(v.data);
+      await v.handler(v.data);
    }
    postprocess = [];
 }

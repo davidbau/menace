@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection, percent } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack medusa medusa-3.lua	$NHDT-Date: 1716152250 2024/5/19 20:57:30 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.8 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1990, 1991 by M. Stephenson
@@ -122,11 +122,11 @@ export function generate() {
     des.object("scroll of blank paper",48,18);
     des.object("scroll of blank paper",48,18);
     // 
-    des.trap("rust");
-    des.trap("rust");
-    des.trap("board");
-    des.trap("board");
-    des.trap();
+    await des.trap("rust");
+    await des.trap("rust");
+    await des.trap("board");
+    await des.trap("board");
+    await des.trap();
     // 
     // place Medusa before placing other monsters so that they won't be able to
     // unintentionally steal her spot on the downstairs
@@ -147,5 +147,5 @@ export function generate() {
     // medusa.length-3.lua
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

@@ -244,7 +244,7 @@ function blackout(map, x, y) {
 // Restores fake corridor cells back to original terrain type.
 // Returns true if corridor fully cleared, false if blocked.
 // ========================================================================
-function clear_fcorr(grd, forceshow, map, player, fov) {
+async function clear_fcorr(grd, forceshow, map, player, fov) {
     const egrd = grd.egd;
     if (!egrd) return true;
 
@@ -310,7 +310,7 @@ function clear_fcorr(grd, forceshow, map, player, fov) {
         egrd.fcbeg++;
     }
     if (sawcorridor) {
-        pline_The("corridor disappears.");
+        await pline_The("corridor disappears.");
     }
     // C: check IS_OBSTRUCTED at hero position
     if (map && player) {
@@ -318,7 +318,7 @@ function clear_fcorr(grd, forceshow, map, player, fov) {
         if (heroLoc && IS_OBSTRUCTED(heroLoc.typ)) {
             const hp = player.Upolyd ? player.mh : player.uhp;
             if (hp > 0) {
-                You("are encased in rock.");
+                await You("are encased in rock.");
             }
         }
     }
@@ -329,8 +329,8 @@ function clear_fcorr(grd, forceshow, map, player, fov) {
 // cf. vault.c:117 [static] — restfakecorr(grd)
 // Attempts to clear the fake corridor; if successful, removes the guard.
 // ========================================================================
-export function restfakecorr(grd, map, player, fov) {
-    if (clear_fcorr(grd, false, map, player, fov)) {
+export async function restfakecorr(grd, map, player, fov) {
+    if (await clear_fcorr(grd, false, map, player, fov)) {
         grd.isgd = 0;
         mongone(grd, map, player);
     }
@@ -363,13 +363,13 @@ export function parkguard(grd, map) {
 // Called when a vault guard dies. Cleans up fake corridors.
 // ========================================================================
 // Autotranslated from vault.c:174
-export function grddead(grd) {
-  let dispose = clear_fcorr(grd, true);
+export async function grddead(grd) {
+  let dispose = await clear_fcorr(grd, true);
   if (!dispose) {
     relobj(grd, 0, false);
     grd.mhp = 0;
     parkguard(grd);
-    dispose = clear_fcorr(grd, true);
+    dispose = await clear_fcorr(grd, true);
   }
   if (dispose) grd.isgd = 0;
   return dispose;
@@ -429,7 +429,7 @@ export function vault_occupied(array, map) {
 // cf. vault.c:254 — uleftvault(grd)
 // Hero has teleported out of vault while a guard is active.
 // ========================================================================
-export function uleftvault(grd, map, player, fov) {
+export async function uleftvault(grd, map, player, fov) {
     if (!grd || !grd.isgd || grd.dead || (grd.mhp <= 0)) return;
 
     // If carrying gold and arriving anywhere other than next to the guard,
@@ -438,13 +438,13 @@ export function uleftvault(grd, map, player, fov) {
         && !um_dist(grd.mx, grd.my, 1, player)) {
         if (grd.mpeaceful) {
             if (canspotmon(grd, map, player, fov)) {
-                pline("%s becomes irate.", Monnam(grd));
+                await pline("%s becomes irate.", Monnam(grd));
             }
             grd.mpeaceful = 0; // bypass setmangry()
         }
         // If arriving outside guard's temporary corridor, give guard an extra move
         if (!in_fcorridor(grd, player.x, player.y)) {
-            gd_move(grd, map, player, fov);
+            await gd_move(grd, map, player, fov);
         }
     }
 }
@@ -512,7 +512,7 @@ function move_gold(gold, vroom, map) {
 // cf. vault.c:296 [static] — wallify_vault(grd)
 // Closes vault walls behind guard.
 // ========================================================================
-function wallify_vault(grd, map, player, fov) {
+async function wallify_vault(grd, map, player, fov) {
     const egrd = grd.egd;
     if (!egrd || !map || !map.rooms) return;
 
@@ -600,14 +600,14 @@ function wallify_vault(grd, map, player, fov) {
     if (movedgold || fixed) {
         if (in_fcorridor(grd, grd.mx, grd.my)
             || cansee(map, player, fov, grd.mx, grd.my)) {
-            pline("%s whispers an incantation.", noit_Monnam(grd));
+            await pline("%s whispers an incantation.", noit_Monnam(grd));
         } else {
-            You_hear("a distant chant.");
+            await You_hear("a distant chant.");
         }
         if (movedgold)
-            pline("A mysterious force moves the gold into the vault.");
+            await pline("A mysterious force moves the gold into the vault.");
         if (fixed)
-            pline_The("damaged vault's walls are magically restored!");
+            await pline_The("damaged vault's walls are magically restored!");
     }
 }
 
@@ -615,11 +615,11 @@ function wallify_vault(grd, map, player, fov) {
 // cf. vault.c:733 [static] — gd_mv_monaway(grd, nx, ny)
 // Move any monster out of guard's way.
 // ========================================================================
-export function gd_mv_monaway(grd, nx, ny, map, player, fov) {
+export async function gd_mv_monaway(grd, nx, ny, map, player, fov) {
     const mtmp = map.monsterAt ? map.monsterAt(nx, ny) : null;
     if (mtmp && mtmp !== grd) {
         if (!player?.deaf) {
-            verbalize("Out of my way, scum!");
+            await verbalize("Out of my way, scum!");
         }
         if (!rloc(mtmp, RLOC_ERR | RLOC_MSG, map, player)
             || (map.monsterAt && map.monsterAt(nx, ny))) {
@@ -635,7 +635,7 @@ export function gd_mv_monaway(grd, nx, ny, map, player, fov) {
 // cf. vault.c:751 [static] — gd_pick_corridor_gold(grd, goldx, goldy)
 // Have guard pick gold off the floor.
 // ========================================================================
-function gd_pick_corridor_gold(grd, goldx, goldy, map, player, fov) {
+async function gd_pick_corridor_gold(grd, goldx, goldy, map, player, fov) {
     const under_u = (player.x === goldx && player.y === goldy);
     const see_it = cansee(map, player, fov, goldx, goldy);
     const egrd = grd.egd;
@@ -662,7 +662,7 @@ function gd_pick_corridor_gold(grd, goldx, goldy, map, player, fov) {
 
     } else {
         // Gold at third spot
-        gd_mv_monaway(grd, goldx, goldy, map, player, fov);
+        await gd_mv_monaway(grd, goldx, goldy, map, player, fov);
         if (see_it) {
             newsym(map, grd.mx, grd.my);
             place_monster(grd, goldx, goldy, map);
@@ -671,7 +671,7 @@ function gd_pick_corridor_gold(grd, goldx, goldy, map, player, fov) {
     }
 
     if (see_it) {
-        pline("%s%s picks up the gold%s.", Some_Monnam(grd),
+        await pline("%s%s picks up the gold%s.", Some_Monnam(grd),
             (grd.mpeaceful && egrd.warncnt > 5)
                 ? " calms down and" : "",
             under_u ? " from beneath you" : "");
@@ -690,14 +690,14 @@ function gd_pick_corridor_gold(grd, goldx, goldy, map, player, fov) {
 // cf. vault.c:458 [static] — gd_letknow(grd)
 // Guard issues warning to hero.
 // ========================================================================
-export function gd_letknow(grd, map, player, fov) {
+export async function gd_letknow(grd, map, player, fov) {
     if (!cansee(map, player, fov, grd.mx, grd.my) || !mon_visible(grd, player)) {
-        You_hear("%s.",
+        await You_hear("%s.",
             m_carrying(grd, TIN_WHISTLE)
                 ? "the shrill sound of a guard's whistle"
                 : "angry shouting");
     } else {
-        You(!um_dist(grd.mx, grd.my, 2, player)
+        await You(!um_dist(grd.mx, grd.my, 2, player)
             ? "are confronted by %s."
             : "see %s approaching.",
             x_monnam(grd, ARTICLE_A, "angry", 0, false));
@@ -709,16 +709,16 @@ export function gd_letknow(grd, map, player, fov) {
 // Post-move guard cleanup.
 // Returns: 1=guard moved, -2=died
 // ========================================================================
-function gd_move_cleanup(grd, semi_dead, disappear_msg_seen, map, player, fov) {
+async function gd_move_cleanup(grd, semi_dead, disappear_msg_seen, map, player, fov) {
     const x = grd.mx, y = grd.my;
     const see_guard = canspotmon(grd, map, player, fov);
     parkguard(grd, map);
-    wallify_vault(grd, map, player, fov);
-    restfakecorr(grd, map, player, fov);
+    await wallify_vault(grd, map, player, fov);
+    await restfakecorr(grd, map, player, fov);
     if (!semi_dead && (in_fcorridor(grd, player.x, player.y)
         || cansee(map, player, fov, x, y))) {
         if (!disappear_msg_seen && see_guard) {
-            pline("Suddenly, %s disappears.", noit_mon_nam(grd));
+            await pline("Suddenly, %s disappears.", noit_mon_nam(grd));
         }
         return 1;
     }
@@ -730,7 +730,7 @@ function gd_move_cleanup(grd, semi_dead, disappear_msg_seen, map, player, fov) {
 // Called each turn when hero is in a vault. Manages guard summoning
 // and interaction.
 // ========================================================================
-export function invault(map, player, fov) {
+export async function invault(map, player, fov) {
     const vaultroom = vault_occupied(player.urooms || '', map);
     if (!vaultroom) {
         player.uinvault = 0;
@@ -829,27 +829,27 @@ export function invault(map, player, fov) {
 
     const spotted = canspotmon(guard, map, player, fov);
     if (spotted) {
-        pline("Suddenly one of the Vault's %s enters!",
+        await pline("Suddenly one of the Vault's %s enters!",
             pmname(guard.type || guard.data, Mgender(guard)) + 's');
         newsym(map, guard.mx, guard.my);
     } else {
-        pline("Someone else has entered the Vault.");
+        await pline("Someone else has entered the Vault.");
         map_invisible(map, guard.mx, guard.my, player);
     }
 
     // If hero is engulfed, guard can't interrogate
     if (player.uswallow) {
         if (!player.deaf) {
-            verbalize("What's going on here?");
+            await verbalize("What's going on here?");
         }
-        if (!spotted) pline_The("other presence vanishes.");
+        if (!spotted) await pline_The("other presence vanishes.");
         mongone(guard, map, player);
         return;
     }
 
     // If hero is mimicking an object or undetected
     if (player.uundetected) {
-        pline("Puzzled, the guard turns around and leaves.");
+        await pline("Puzzled, the guard turns around and leaves.");
         mongone(guard, map, player);
         return;
     }
@@ -857,9 +857,9 @@ export function invault(map, player, fov) {
     // If hero can't speak (strangled, silent, paralyzed)
     if (player.strangled || (player.multi && player.multi < 0)) {
         if (player.deaf) {
-            pline("%s huffs and turns to leave.", noit_Monnam(guard));
+            await pline("%s huffs and turns to leave.", noit_Monnam(guard));
         } else {
-            verbalize("I'll be back when you're ready to speak to me!");
+            await verbalize("I'll be back when you're ready to speak to me!");
         }
         mongone(guard, map, player);
         return;
@@ -871,40 +871,40 @@ export function invault(map, player, fov) {
     // "I don't know you" path (no name given)
 
     if (player.deaf) {
-        pline("%s doesn't %srecognize you.", noit_Monnam(guard),
+        await pline("%s doesn't %srecognize you.", noit_Monnam(guard),
             player.blind ? "" : "appear to ");
     } else {
-        verbalize("I don't know you.");
+        await verbalize("I don't know you.");
     }
 
     const umoney = money_cnt(player.inventory || player.invent);
     const hgold = hidden_gold(true, player);
     if (!umoney && !hgold) {
         if (player.deaf) {
-            pline("%s stomps%s.", noit_Monnam(guard),
+            await pline("%s stomps%s.", noit_Monnam(guard),
                 player.blind ? "" : " and beckons");
         } else {
-            verbalize("Please follow me.");
+            await verbalize("Please follow me.");
         }
     } else {
         if (!umoney) {
             if (player.deaf) {
                 if (!player.blind) {
-                    pline("%s glares at you%s.", noit_Monnam(guard),
+                    await pline("%s glares at you%s.", noit_Monnam(guard),
                         (player.inventory || player.invent)?.length ? "r stuff" : "");
                 }
             } else {
-                verbalize("You have hidden gold.");
+                await verbalize("You have hidden gold.");
             }
         }
         if (player.deaf) {
             if (!player.blind) {
-                pline("%s holds out %s palm and beckons with %s other hand.",
+                await pline("%s holds out %s palm and beckons with %s other hand.",
                     noit_Monnam(guard), "a", "the");
             }
         } else {
-            verbalize("Most likely all your gold was stolen from this vault.");
-            verbalize("Please drop that gold and follow me.");
+            await verbalize("Most likely all your gold was stolen from this vault.");
+            await verbalize("Please drop that gold and follow me.");
         }
         egrd.dropgoldcnt++;
     }
@@ -963,7 +963,7 @@ export function invault(map, player, fov) {
 // Main vault guard AI movement function.
 // Returns: 1=moved, 0=didn't move, -1=let m_move handle it, -2=died.
 // ========================================================================
-export function gd_move(grd, map, player, fov) {
+export async function gd_move(grd, map, player, fov) {
     if (!grd || !grd.egd) return -1;
     const egrd = grd.egd;
 
@@ -978,14 +978,14 @@ export function gd_move(grd, map, player, fov) {
 
     if (semi_dead || !grd.mx || egrd.gddone) {
         egrd.gddone = 1;
-        return gd_move_cleanup(grd, semi_dead, false, map, player, fov);
+        return await gd_move_cleanup(grd, semi_dead, false, map, player, fov);
     }
 
     const u_in_vault = !!vault_occupied(player.urooms || '', map);
     const grd_in_vault = !!in_rooms(grd.mx, grd.my, VAULT, map);
 
     if (!u_in_vault && !grd_in_vault) {
-        wallify_vault(grd, map, player, fov);
+        await wallify_vault(grd, map, player, fov);
     }
 
     // Hostile guard
@@ -994,14 +994,14 @@ export function gd_move(grd, map, player, fov) {
             && (grd_in_vault || (in_fcorridor(grd, grd.mx, grd.my)
                 && !in_fcorridor(grd, player.x, player.y)))) {
             rloc(grd, RLOC_MSG, map, player);
-            wallify_vault(grd, map, player, fov);
+            await wallify_vault(grd, map, player, fov);
             if (!in_fcorridor(grd, grd.mx, grd.my))
-                clear_fcorr(grd, true, map, player, fov);
-            gd_letknow(grd, map, player, fov);
+                await clear_fcorr(grd, true, map, player, fov);
+            await gd_letknow(grd, map, player, fov);
             return -1;
         }
         if (!in_fcorridor(grd, grd.mx, grd.my))
-            clear_fcorr(grd, true, map, player, fov);
+            await clear_fcorr(grd, true, map, player, fov);
         return -1;
     }
 
@@ -1012,7 +1012,7 @@ export function gd_move(grd, map, player, fov) {
     // Guard witnessed gold destruction
     if (egrd.witness) {
         if (!player.deaf) {
-            verbalize("How dare you %s that gold, scoundrel!",
+            await verbalize("How dare you %s that gold, scoundrel!",
                 (egrd.witness & GD_EATGOLD) ? "consume" : "destroy");
         }
         egrd.witness = 0;
@@ -1033,16 +1033,16 @@ export function gd_move(grd, map, player, fov) {
                 }
                 buf += "follow me!";
                 if (egrd.dropgoldcnt || !u_carry_gold)
-                    verbalize("I repeat, %s", buf);
+                    await verbalize("I repeat, %s", buf);
                 else
-                    verbalize("%s", upstart(buf));
+                    await verbalize("%s", upstart(buf));
                 if (u_carry_gold)
                     egrd.dropgoldcnt++;
             }
             if (egrd.warncnt === 7) {
                 const m = grd.mx, n = grd.my;
                 if (!player.deaf) {
-                    verbalize("You've been warned, knave!");
+                    await verbalize("You've been warned, knave!");
                 }
                 grd.mpeaceful = 0;
                 // C: mnexto(grd, RLOC_NOMSG) — simplified: rloc
@@ -1078,14 +1078,14 @@ export function gd_move(grd, map, player, fov) {
                 del_engr_at(m, n, map);
                 newsym(map, m, n);
                 grd.mpeaceful = 0;
-                gd_letknow(grd, map, player, fov);
+                await gd_letknow(grd, map, player, fov);
                 return -1;
             } else {
                 if (!player.deaf) {
-                    verbalize("Well, begone.");
+                    await verbalize("Well, begone.");
                 }
                 egrd.gddone = 1;
-                return gd_move_cleanup(grd, semi_dead, false, map, player, fov);
+                return await gd_move_cleanup(grd, semi_dead, false, map, player, fov);
             }
         }
     }
@@ -1096,34 +1096,34 @@ export function gd_move(grd, map, player, fov) {
             && !egrd.gddone && !in_fcorridor(grd, player.x, player.y)
             && map.at(egrd.fakecorr[0].fx, egrd.fakecorr[0].fy)?.typ
                 === egrd.fakecorr[0].ftyp) {
-            pline("%s, confused, disappears.", noit_Monnam(grd));
-            return gd_move_cleanup(grd, semi_dead, true, map, player, fov);
+            await pline("%s, confused, disappears.", noit_Monnam(grd));
+            return await gd_move_cleanup(grd, semi_dead, true, map, player, fov);
         }
         if (u_carry_gold && (in_fcorridor(grd, player.x, player.y)
             || (egrd.fcend > 1 && u_in_vault))) {
             if (!grd.mx) {
-                restfakecorr(grd, map, player, fov);
+                await restfakecorr(grd, map, player, fov);
                 return -2;
             }
             if (egrd.warncnt < 6) {
                 egrd.warncnt = 6;
                 if (player.deaf) {
                     if (!player.blind) {
-                        pline("%s holds out %s palm demandingly!",
+                        await pline("%s holds out %s palm demandingly!",
                             noit_Monnam(grd), "a");
                     }
                 } else {
-                    verbalize("Drop all your gold, scoundrel!");
+                    await verbalize("Drop all your gold, scoundrel!");
                 }
                 return 0;
             } else {
                 if (player.deaf) {
                     if (!player.blind) {
-                        pline("%s rubs %s hands with enraged delight!",
+                        await pline("%s rubs %s hands with enraged delight!",
                             noit_Monnam(grd), "the");
                     }
                 } else {
-                    verbalize("So be it, rogue!");
+                    await verbalize("So be it, rogue!");
                 }
                 grd.mpeaceful = 0;
                 return -1;
@@ -1145,7 +1145,7 @@ export function gd_move(grd, map, player, fov) {
 
     // New gold can appear if it was embedded in stone and hero kicked it
     if (goldincorridor && !egrd.gddone) {
-        gd_pick_corridor_gold(grd, m, n, map, player, fov);
+        await gd_pick_corridor_gold(grd, m, n, map, player, fov);
         if (!grd.mpeaceful)
             return -1;
         egrd.warncnt = 5;
@@ -1156,9 +1156,9 @@ export function gd_move(grd, map, player, fov) {
         if (!egrd.gddone && !rn2(10) && !player.deaf
             && !player.uswallow
             && !(player.ustuck /* && !sticks(youmonst.data) */)) {
-            verbalize("Move along!");
+            await verbalize("Move along!");
         }
-        restfakecorr(grd, map, player, fov);
+        await restfakecorr(grd, map, player, fov);
         return 0; // didn't move
     }
 
@@ -1188,15 +1188,15 @@ export function gd_move(grd, map, player, fov) {
                         egrd.gddone = 1;
                         if (ACCESSIBLE(typ)) {
                             // goto newpos
-                            gd_mv_monaway(grd, nx, ny, map, player, fov);
+                            await gd_mv_monaway(grd, nx, ny, map, player, fov);
                             if (egrd.gddone)
-                                return gd_move_cleanup(grd, semi_dead, false, map, player, fov);
+                                return await gd_move_cleanup(grd, semi_dead, false, map, player, fov);
                             egrd.ogx = grd.mx;
                             egrd.ogy = grd.my;
                             newsym(map, grd.mx, grd.my);
                             place_monster(grd, nx, ny, map);
                             newsym(map, grd.mx, grd.my);
-                            restfakecorr(grd, map, player, fov);
+                            await restfakecorr(grd, map, player, fov);
                             return 1;
                         }
                         crm.typ = (typ === SCORR) ? CORR : DOOR;
@@ -1224,9 +1224,9 @@ export function gd_move(grd, map, player, fov) {
                         }
 
                         // newpos
-                        gd_mv_monaway(grd, nx, ny, map, player, fov);
+                        await gd_mv_monaway(grd, nx, ny, map, player, fov);
                         if (egrd.gddone)
-                            return gd_move_cleanup(grd, semi_dead, false, map, player, fov);
+                            return await gd_move_cleanup(grd, semi_dead, false, map, player, fov);
                         egrd.ogx = grd.mx;
                         egrd.ogy = grd.my;
                         newsym(map, grd.mx, grd.my);
@@ -1234,11 +1234,11 @@ export function gd_move(grd, map, player, fov) {
                         if (g_at(nx, ny, map)) {
                             mpickgold(grd, map);
                             if (canspotmon(grd, map, player, fov))
-                                pline("%s picks up some gold.", Monnam(grd));
+                                await pline("%s picks up some gold.", Monnam(grd));
                         } else {
                             newsym(map, grd.mx, grd.my);
                         }
-                        restfakecorr(grd, map, player, fov);
+                        await restfakecorr(grd, map, player, fov);
                         return 1;
                     }
                 }
@@ -1329,8 +1329,8 @@ export function gd_move(grd, map, player, fov) {
         // We're stuck, so try to find a new destination
         const newDest = find_guard_dest(grd, map, player);
         if (!newDest || (newDest.x === ggx && newDest.y === ggy)) {
-            pline("%s, confused, disappears.", Monnam(grd));
-            return gd_move_cleanup(grd, semi_dead, true, map, player, fov);
+            await pline("%s, confused, disappears.", Monnam(grd));
+            return await gd_move_cleanup(grd, semi_dead, true, map, player, fov);
         } else {
             egrd.gdx = newDest.x;
             egrd.gdy = newDest.y;
@@ -1341,9 +1341,9 @@ export function gd_move(grd, map, player, fov) {
     }
 
     // newpos:
-    gd_mv_monaway(grd, nx, ny, map, player, fov);
+    await gd_mv_monaway(grd, nx, ny, map, player, fov);
     if (egrd.gddone)
-        return gd_move_cleanup(grd, semi_dead, false, map, player, fov);
+        return await gd_move_cleanup(grd, semi_dead, false, map, player, fov);
     egrd.ogx = grd.mx;
     egrd.ogy = grd.my;
     newsym(map, grd.mx, grd.my);
@@ -1352,11 +1352,11 @@ export function gd_move(grd, map, player, fov) {
         // Pick up pre-existing gold so guard doesn't blame hero later
         mpickgold(grd, map);
         if (canspotmon(grd, map, player, fov))
-            pline("%s picks up some gold.", Monnam(grd));
+            await pline("%s picks up some gold.", Monnam(grd));
     } else {
         newsym(map, grd.mx, grd.my);
     }
-    restfakecorr(grd, map, player, fov);
+    await restfakecorr(grd, map, player, fov);
     return 1;
 }
 
@@ -1365,7 +1365,7 @@ export function gd_move(grd, map, player, fov) {
 // Routine when dying or quitting with a vault guard around.
 // Consumes rn2(2) twice for gold placement if guard remits gold.
 // ========================================================================
-export function paygd(silently, map, player) {
+export async function paygd(silently, map, player) {
     const grd = findgd(map, player);
     const umoney = money_cnt(player.inventory || player.invent);
 
@@ -1376,7 +1376,7 @@ export function paygd(silently, map, player) {
 
     if (player.uinvault) {
         if (!silently) {
-            pline("Your %ld %s goes into the Magic Memory Vault.",
+            await pline("Your %ld %s goes into the Magic Memory Vault.",
                 umoney, currency(umoney));
         }
         gdx = player.x;
@@ -1391,7 +1391,7 @@ export function paygd(silently, map, player) {
         // C: mnexto(grd, RLOC_NOMSG) — simplified: rloc
         rloc(grd, RLOC_NOMSG, map, player);
         if (!silently)
-            pline("%s remits your gold to the vault.", Monnam(grd));
+            await pline("%s remits your gold to the vault.", Monnam(grd));
 
         const room = map.rooms?.[grd.egd?.vroom];
         if (room) {

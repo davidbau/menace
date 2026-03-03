@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Tourist Tou-strt.lua	$NHDT-Date: 1652196016 2022/5/10 15:20:16 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991,92 by M. Stephenson, P. Winner
@@ -132,16 +132,16 @@ export function generate() {
     des.monster("kraken", 34, 9);
     des.monster("kraken", 37, 9);
     // Random traps
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

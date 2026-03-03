@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection, percent, shuffle, nh, u } from '../sp_lev.js';
 import { rn2 } from '../rng.js';
 
-export function generate() {
+export async function generate() {
 
     let tut_ctrl_key = null;
     let tut_alt_key = null;
@@ -109,7 +109,7 @@ export function generate() {
     // 
 
     des.engraving({ coord: [ 4,5 ], type: "engrave", text: "You can leave the tutorial via the magic portal.", degrade: false });
-    des.trap({ type: "magic portal", coord: [ 4,4 ], seen: true });
+    await des.trap({ type: "magic portal", coord: [ 4,4 ], seen: true });
 
     // 
 
@@ -142,12 +142,12 @@ export function generate() {
     let locs = [ [14,11], [14,12], [15,12], [16,12], [16,11] ];
     shuffle(locs);
     for (let i = 0; i < 4; i++) {
-       des.trap({ type: percent(50) && "sleep gas" || "board",
+       await des.trap({ type: percent(50) && "sleep gas" || "board",
                   coord: locs[i], victim: false });
     }
 
     des.engraving({ coord: [ 15,15 ], type: "engrave", text: "Some traps can be disabled with '" + tut_key("untrap") + "'", degrade: false });
-    des.trap({ coord: [ 15,16 ], type: "web", spider_on_web: false });
+    await des.trap({ coord: [ 15,16 ], type: "web", spider_on_web: false });
 
     // 
 
@@ -175,7 +175,7 @@ export function generate() {
     des.engraving({ coord: [ 24,16 ], type: "engrave", text: "Now you know the very basics. You can leave the tutorial via the magic portal.", degrade: false });
 
     des.engraving({ coord: [ 26,16 ], type: "engrave", text: "Step into this portal to leave the tutorial", degrade: false });
-    des.trap({ type: "magic portal", coord: [ 27,16 ], seen: true });
+    await des.trap({ type: "magic portal", coord: [ 27,16 ], seen: true });
 
     // 
 
@@ -195,7 +195,7 @@ export function generate() {
     // 
 
     des.engraving({ coord: [ 19,10 ], type: "engrave", text: "Another magic portal, a way to leave this tutorial", degrade: false });
-    des.trap({ type: "magic portal", coord: [ 19,11 ], seen: true });
+    await des.trap({ type: "magic portal", coord: [ 19,11 ], seen: true });
 
     // 
 
@@ -219,7 +219,7 @@ export function generate() {
 
     des.engraving({ coord: [ 25,5 ], type: "engrave", text: "Throw items with '" + tut_key("throw") + "'", degrade: false });
 
-    des.trap({ type: "magic portal", coord: [ 21,1 ], seen: true });
+    await des.trap({ type: "magic portal", coord: [ 21,1 ], seen: true });
 
     // 
 
@@ -262,7 +262,7 @@ export function generate() {
 
     // 
 
-    des.trap({ type: "magic portal", coord: [ 27,14 ], seen: true });
+    await des.trap({ type: "magic portal", coord: [ 27,14 ], seen: true });
 
     // 
 
@@ -308,7 +308,7 @@ export function generate() {
 
     des.engraving({ coord: [ 65,3 ], type: "burn", text: "UNDER CONSTRUCTION", degrade: false });
 
-    des.trap({ type: "magic portal", coord: [ 66,2 ], seen: true });
+    await des.trap({ type: "magic portal", coord: [ 66,2 ], seen: true });
 
     // 
 
@@ -321,7 +321,7 @@ export function generate() {
     des.object({ id: "boulder", coord: [71,16] });
     des.object({ id: "boulder", coord: [72,16] });
     des.object({ id: "boulder", coord: [73,16] });
-    des.trap({ type: "trap door", coord: [ 73,15 ] });
+    await des.trap({ type: "trap door", coord: [ 73,15 ] });
 
     // 
 
@@ -360,5 +360,5 @@ export function generate() {
 
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

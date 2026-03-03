@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection, percent } from '../sp_lev.js';
 import { rn2 } from '../rng.js';
 
-export function generate() {
+export async function generate() {
     // NetHack knox knox.lua	$NHDT-Date: 1652196027 2022/5/10 15:20:27 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1992 by Izchak Miller
@@ -64,13 +64,13 @@ export function generate() {
     }
 
     // The Vault
-    function treasure_spot(x,y) {
+    async function treasure_spot(x,y) {
        des.gold({ x: x, y: y, amount: 600 + (rn2((300) - (0) + 1) + (0)) });
        if (((rn2((2) - (0) + 1) + (0)) == 0)) {
           if (((rn2((2) - (0) + 1) + (0)) == 0)) {
-             des.trap("spiked pit", x,y);
+             await des.trap("spiked pit", x,y);
           } else {
-             des.trap("land mine", x,y);
+             await des.trap("land mine", x,y);
           }
        }
     }
@@ -177,5 +177,5 @@ des.object("amethyst",47,13);
 des.object("amethyst",48,13);
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

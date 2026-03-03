@@ -422,7 +422,7 @@ export async function handleSet(game) {
         window.gameFlags = flags;
     }
 
-    function drawOptions() {
+    async function drawOptions() {
         const normalizedPage = normalizeOptionsPage(currentPage, showHelp);
         currentPage = normalizedPage;
         const { screen, attrs } = renderOptionsMenu(normalizedPage, showHelp, flags);
@@ -434,7 +434,7 @@ export async function handleSet(game) {
             const maxCols = Math.min(display.cols, line.length);
             for (let c = 0; c < maxCols; c++) {
                 const attr = lineAttrs[c] === '1' ? 1 : 0;
-                display.putstr(c, r, line[c], undefined, attr);
+                await display.putstr(c, r, line[c], undefined, attr);
             }
         }
     }
@@ -462,23 +462,23 @@ export async function handleSet(game) {
         return flags.statusconditions;
     }
 
-    function renderSimpleEditorLines(title, lines) {
+    async function renderSimpleEditorLines(title, lines) {
         display.clearScreen();
         const maxRows = Math.min(display.rows, lines.length + 3);
         const header = ` ${title} `;
-        display.putstr(0, 0, header, undefined, 1);
-        display.putstr(0, 1, '');
+        await display.putstr(0, 0, header, undefined, 1);
+        await display.putstr(0, 1, '');
         for (let i = 0; i < maxRows - 2; i++) {
-            display.putstr(0, i + 2, lines[i].substring(0, display.cols));
+            await display.putstr(0, i + 2, lines[i].substring(0, display.cols));
         }
     }
 
-    function renderCenteredList(lines, left = 41, headerInverse = false) {
+    async function renderCenteredList(lines, left = 41, headerInverse = false) {
         display.clearScreen();
         for (let i = 0; i < lines.length && i < display.rows; i++) {
             const text = lines[i].substring(0, Math.max(0, display.cols - left));
             const attr = (headerInverse && i === 0) ? 1 : 0;
-            display.putstr(left, i, text, undefined, attr);
+            await display.putstr(left, i, text, undefined, attr);
         }
     }
 
@@ -499,7 +499,7 @@ export async function handleSet(game) {
                 'x * exit this menu',
                 '(end)'
             ];
-            renderCenteredList(lines);
+            await renderCenteredList(lines);
 
             const ch = await nhgetch();
             const c = String.fromCharCode(ch);
@@ -543,7 +543,7 @@ export async function handleSet(game) {
             display.clearScreen();
             for (let i = 0; i < lines.length && i < display.rows; i++) {
                 const row = (i === lines.length - 1) ? 23 : i;
-                display.putstr(0, row, lines[i].substring(0, display.cols));
+                await display.putstr(0, row, lines[i].substring(0, display.cols));
             }
 
             const ch = await nhgetch();
@@ -572,7 +572,7 @@ export async function handleSet(game) {
                     `${field === 'hunger' ? 't - hunger text match' : `t - ${label} text match`}`,
                     '(end)'
                 ];
-                renderCenteredList(lines2);
+                await renderCenteredList(lines2);
                 const ch2 = await nhgetch();
                 const c2 = String.fromCharCode(ch2);
                 if (c2 === 'a' || c2 === 'c' || c2 === 't') {
@@ -609,7 +609,7 @@ export async function handleSet(game) {
             display.clearScreen();
             for (let i = 0; i < lines.length && i < display.rows; i++) {
                 const row = (i === lines.length - 1) ? 23 : i;
-                display.putstr(0, row, lines[i].substring(0, display.cols));
+                await display.putstr(0, row, lines[i].substring(0, display.cols));
             }
 
             const ch = await nhgetch();
@@ -650,7 +650,7 @@ export async function handleSet(game) {
             "f - -1 (off, 'z' to move upper-left, 'y' to zap wands)",
             '(end)',
         ];
-        renderCenteredList(lines, 24, true);
+        await renderCenteredList(lines, 24, true);
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
         const modeByKey = { a: 0, b: 1, c: 2, d: 3, e: 4, f: -1 };
@@ -705,8 +705,8 @@ export async function handleSet(game) {
             for (let i = 0; i < lines.length && i < display.rows; i++) {
                 const text = lines[i].substring(0, Math.max(0, display.cols - 41));
                 const attr = (i === 0) ? 1 : 0;
-                display.putstr(41, i, ' '.repeat(Math.max(0, display.cols - 41)));
-                display.putstr(41, i, text, undefined, attr);
+                await display.putstr(41, i, ' '.repeat(Math.max(0, display.cols - 41)));
+                await display.putstr(41, i, text, undefined, attr);
             }
 
             const ch = await nhgetch();
@@ -786,8 +786,8 @@ export async function handleSet(game) {
             for (let i = 0; i < lines.length && i < display.rows; i++) {
                 const text = lines[i].substring(0, Math.max(0, display.cols - 25));
                 const attr = (i === 0) ? 1 : 0;
-                display.putstr(24, i, ' '.repeat(Math.max(0, display.cols - 24)));
-                display.putstr(25, i, text, undefined, attr);
+                await display.putstr(24, i, ' '.repeat(Math.max(0, display.cols - 24)));
+                await display.putstr(25, i, text, undefined, attr);
             }
 
             const ch = await nhgetch();
@@ -810,7 +810,7 @@ export async function handleSet(game) {
 
     // Interactive loop - C ref: options.c doset() menu loop
     while (true) {
-        drawOptions();
+        await drawOptions();
 
         // Get input - C ref: options.c menu input loop
         const ch = await nhgetch();

@@ -72,19 +72,19 @@ function Not_firsttime(player) {
 // These stubs produce minimal pline output for quest flow.
 // ======================================================================
 
-function qt_pager(msgid, game) {
+async function qt_pager(msgid, game) {
     // Quest text system not ported; emit minimal placeholder message
     // In full C, this loads quest.lua and delivers role-specific text.
     // For now, just log the message id so quest flow still functions.
     if (msgid) {
-        pline("[Quest: %s]", msgid);
+        await pline("[Quest: %s]", msgid);
     }
 }
 
-function com_pager(msgid, game) {
+async function com_pager(msgid, game) {
     // Common (non-role-specific) quest text — same stub as qt_pager
     if (msgid) {
-        pline("[Quest: %s]", msgid);
+        await pline("[Quest: %s]", msgid);
     }
 }
 
@@ -93,23 +93,23 @@ function com_pager(msgid, game) {
 // ======================================================================
 
 // cf. quest.c:26 [static] — on_start(): quest start-level arrival message
-export function on_start(game) {
+export async function on_start(game) {
     const qs = Qstat(game);
     const player = (game.u || game.player);
     if (!qs.first_start) {
-        qt_pager("firsttime", game);
+        await qt_pager("firsttime", game);
         qs.first_start = true;
     } else if ((player.prevDnum !== player.dnum)
                || ((player.prevDungeonLevel || 0) < player.dungeonLevel)) {
         if ((qs.not_ready || 0) <= 2)
-            qt_pager("nexttime", game);
+            await qt_pager("nexttime", game);
         else
-            qt_pager("othertime", game);
+            await qt_pager("othertime", game);
     }
 }
 
 // cf. quest.c:40 [static] — on_locate(): quest locate-level arrival message
-export function on_locate(game) {
+export async function on_locate(game) {
     const qs = Qstat(game);
     const player = (game.u || game.player);
     // the locate messages only make sense when arriving from above
@@ -119,30 +119,30 @@ export function on_locate(game) {
         return;
     } else if (!qs.first_locate) {
         if (from_above)
-            qt_pager("locate_first", game);
+            await qt_pager("locate_first", game);
         // mark as seen even if arrived from below
         qs.first_locate = true;
     } else {
         if (from_above)
-            qt_pager("locate_next", game);
+            await qt_pager("locate_next", game);
     }
 }
 
 // cf. quest.c:62 [static] — on_goal(): quest goal-level arrival message
-function on_goal(game) {
+async function on_goal(game) {
     const qs = Qstat(game);
     const map = (game.lev || game.map);
 
     if (qs.killed_nemesis) {
         return;
     } else if (!qs.made_goal) {
-        qt_pager("goal_first", game);
+        await qt_pager("goal_first", game);
         qs.made_goal = 1;
     } else {
         // Check if quest artifact is present on the level (floor, minvent, buried)
         // In C this uses find_quest_artifact() with OBJ_FLOOR|OBJ_MINVENT|OBJ_BURIED
         let qarti = find_quest_artifact_on_level(map);
-        qt_pager(qarti ? "goal_next" : "goal_alt", game);
+        await qt_pager(qarti ? "goal_next" : "goal_alt", game);
         if (qs.made_goal < 7)
             qs.made_goal++;
     }
@@ -252,7 +252,7 @@ export function expulsion(seal, game) {
 
 // cf. quest.c:89 — onquest(): dispatch arrival messages for quest levels
 // Called on level change; does nothing if qcompleted or Not_firsttime.
-export function onquest(game) {
+export async function onquest(game) {
     const player = (game.u || game.player);
     const qs = Qstat(game);
 
@@ -268,22 +268,22 @@ export function onquest(game) {
 
     switch (map.quest_level_type) {
     case 'start':
-        on_start(game);
+        await on_start(game);
         break;
     case 'locate':
-        on_locate(game);
+        await on_locate(game);
         break;
     case 'goal':
     case 'nemesis':
-        on_goal(game);
+        await on_goal(game);
         break;
     }
 }
 
 // cf. quest.c:107 — nemdead(): nemesis was killed
 // Autotranslated from quest.c:106
-export function nemdead() {
-  if (!Qstat(killed_nemesis)) { Qstat(killed_nemesis) = true; qt_pager("killed_nemesis"); }
+export async function nemdead() {
+  if (!Qstat(killed_nemesis)) { Qstat(killed_nemesis) = true; await qt_pager("killed_nemesis"); }
 }
 
 // cf. quest.c:116 — leaddead(): quest leader was killed
@@ -293,7 +293,7 @@ export function leaddead() {
 }
 
 // cf. quest.c:125 — artitouch(obj): player first touches quest artifact
-export function artitouch(obj, game) {
+export async function artitouch(obj, game) {
     const qs = Qstat(game);
     const player = (game.u || game.player);
     if (!qs.touched_artifact) {
@@ -301,8 +301,8 @@ export function artitouch(obj, game) {
         // observe_object not yet ported globally; stub
         // Only give this message once
         qs.touched_artifact = true;
-        qt_pager("gotit", game);
-        exercise(player, A_WIS, true);
+        await qt_pager("gotit", game);
+        await exercise(player, A_WIS, true);
     }
 }
 
@@ -316,7 +316,7 @@ export async function ok_to_quest() {
 // cf. quest.c:225 — finish_quest(obj): handle quest artifact return to leader
 // obj=null: player has Amulet; obj=quest artifact: completion;
 // obj=other item: leader identifies it.
-export function finish_quest(obj, game) {
+export async function finish_quest(obj, game) {
     const player = (game.u || game.player);
     const qs = Qstat(game);
 
@@ -325,19 +325,19 @@ export function finish_quest(obj, game) {
         if (player.deaf) return;
         fully_identify_obj(obj);
         if (obj.otyp === AMULET_OF_YENDOR) {
-            qt_pager("hasamulet", game);
+            await qt_pager("hasamulet", game);
         } else if (obj.otyp === FAKE_AMULET_OF_YENDOR) {
-            verbalize(
+            await verbalize(
                 "Sorry to say, this is a mere imitation of the true Amulet of Yendor.");
         } else {
-            verbalize("Ah, I see you've found %s.", the(xname(obj)));
+            await verbalize("Ah, I see you've found %s.", the(xname(obj)));
         }
         return;
     }
 
     if (player.uhave && player.uhave.amulet) {
         // Has the amulet in inventory
-        qt_pager("hasamulet", game);
+        await qt_pager("hasamulet", game);
         // Leader IDs the real amulet but ignores fakes
         const otmp = carrying(AMULET_OF_YENDOR, player);
         if (otmp) {
@@ -346,10 +346,10 @@ export function finish_quest(obj, game) {
         }
     } else {
         // Normal quest completion
-        qt_pager(!qs.got_thanks ? "offeredit" : "offeredit2", game);
+        await qt_pager(!qs.got_thanks ? "offeredit" : "offeredit2", game);
         // Should have obtained bell during quest
         if (!carrying(BELL_OF_OPENING, player))
-            com_pager("quest_complete_no_bell", game);
+            await com_pager("quest_complete_no_bell", game);
     }
     qs.got_thanks = true;
 
@@ -362,7 +362,7 @@ export function finish_quest(obj, game) {
 }
 
 // cf. quest.c:282 [static] — chat_with_leader(mtmp): leader conversation logic
-function chat_with_leader(mtmp, game) {
+async function chat_with_leader(mtmp, game) {
     const player = (game.u || game.player);
     const map = (game.lev || game.map);
     const qs = Qstat(game);
@@ -377,9 +377,9 @@ function chat_with_leader(mtmp, game) {
     // Rule 1: You've gone back with/without the amulet (got_thanks already set)
     if (qs.got_thanks) {
         if (player.uhave && player.uhave.amulet)
-            finish_quest(null, game);
+            await finish_quest(null, game);
         else
-            qt_pager("posthanks", game);
+            await qt_pager("posthanks", game);
 
     // Rule 3: You've got the artifact and are back to return it
     } else if (player.uhave && player.uhave.questart) {
@@ -392,22 +392,22 @@ function chat_with_leader(mtmp, game) {
                 break;
             }
         }
-        finish_quest(qarti_obj, game);
+        await finish_quest(qarti_obj, game);
 
     // Rule 4: You haven't got the artifact yet but have the quest
     } else if (qs.got_quest) {
-        qt_pager("encourage", game);
+        await qt_pager("encourage", game);
 
     // Rule 5: You aren't yet acceptable - or are you?
     } else {
         let purity = 0;
 
         if (!qs.met_leader) {
-            qt_pager("leader_first", game);
+            await qt_pager("leader_first", game);
             qs.met_leader = true;
             qs.not_ready = 0;
         } else {
-            qt_pager("leader_next", game);
+            await qt_pager("leader_next", game);
         }
 
         // The quest leader might have passed through the portal into
@@ -418,38 +418,38 @@ function chat_with_leader(mtmp, game) {
             return;
 
         if (not_capable(player)) {
-            qt_pager("badlevel", game);
-            exercise(player, A_WIS, true);
+            await qt_pager("badlevel", game);
+            await exercise(player, A_WIS, true);
             expulsion(false, game);
         } else if ((purity = is_pure(true, game)) < 0) {
             if (!qs.pissed_off) {
-                com_pager("banished", game);
+                await com_pager("banished", game);
                 qs.pissed_off = true;
                 expulsion(false, game);
             }
         } else if (purity === 0) {
-            qt_pager("badalign", game);
+            await qt_pager("badalign", game);
             qs.not_ready = 1;
-            exercise(player, A_WIS, true);
+            await exercise(player, A_WIS, true);
             expulsion(false, game);
         } else {
             // You are worthy!
-            qt_pager("assignquest", game);
-            exercise(player, A_WIS, true);
+            await qt_pager("assignquest", game);
+            await exercise(player, A_WIS, true);
             qs.got_quest = true;
         }
     }
 }
 
 // cf. quest.c:357 — leader_speaks(mtmp): leader NPC response to chat
-export function leader_speaks(mtmp, game) {
+export async function leader_speaks(mtmp, game) {
     const qs = Qstat(game);
     const map = (game.lev || game.map);
 
     // Maybe you attacked leader?
     if (!mtmp.peaceful) {
         if (!qs.pissed_off) {
-            qt_pager("leader_last", game);
+            await qt_pager("leader_last", game);
         }
         qs.pissed_off = true;
         mtmp.mstrategy = (mtmp.mstrategy || 0) & ~STRAT_WAITMASK;
@@ -460,53 +460,53 @@ export function leader_speaks(mtmp, game) {
         return;
 
     if (!qs.pissed_off)
-        chat_with_leader(mtmp, game);
+        await chat_with_leader(mtmp, game);
 }
 
 // cf. quest.c:380 [static] — chat_with_nemesis(): nemesis taunt dialog
-export function chat_with_nemesis(game) {
+export async function chat_with_nemesis(game) {
     const qs = Qstat(game);
-    qt_pager("discourage", game);
+    await qt_pager("discourage", game);
     if (!qs.met_nemesis)
         qs.met_nemesis = true;
 }
 
 // cf. quest.c:388 — nemesis_speaks(): nemesis NPC response to chat
 // Autotranslated from quest.c:388
-export function nemesis_speaks(player) {
+export async function nemesis_speaks(player) {
   if (!Qstat(in_battle)) {
-    if (player.uhave.questart) qt_pager("nemesis_wantsit");
-    else if (Qstat(made_goal) === 1 || !Qstat(met_nemesis)) qt_pager("nemesis_first");
-    else if (Qstat(made_goal) < 4) qt_pager("nemesis_next");
-    else if (Qstat(made_goal) < 7) qt_pager("nemesis_other");
-    else if (!rn2(5)) qt_pager("discourage");
+    if (player.uhave.questart) await qt_pager("nemesis_wantsit");
+    else if (Qstat(made_goal) === 1 || !Qstat(met_nemesis)) await qt_pager("nemesis_first");
+    else if (Qstat(made_goal) < 4) await qt_pager("nemesis_next");
+    else if (Qstat(made_goal) < 7) await qt_pager("nemesis_other");
+    else if (!rn2(5)) await qt_pager("discourage");
     if (Qstat(made_goal) < 7) Qstat(made_goal)++;
     Qstat(met_nemesis) = true;
   }
-  else if (!rn2(5)) qt_pager("discourage");
+  else if (!rn2(5)) await qt_pager("discourage");
 }
 
 // cf. quest.c:411 — nemesis_stinks(mx, my): gas cloud on nemesis death
 // Autotranslated from quest.c:411
-export function nemesis_stinks(mx, my, game) {
+export async function nemesis_stinks(mx, my, game) {
   let save_mon_moving = game.svc.context.mon_moving;
   game.svc.context.mon_moving = true;
-  create_gas_cloud(mx, my, 5, 8);
+  await create_gas_cloud(mx, my, 5, 8);
   game.svc.context.mon_moving = save_mon_moving;
 }
 
 // cf. quest.c:427 [static] — chat_with_guardian(): guardian NPC dialog
-export function chat_with_guardian(game) {
+export async function chat_with_guardian(game) {
     const qs = Qstat(game);
     const player = (game.u || game.player);
     if (player.uhave && player.uhave.questart && qs.killed_nemesis)
-        qt_pager("guardtalk_after", game);
+        await qt_pager("guardtalk_after", game);
     else
-        qt_pager("guardtalk_before", game);
+        await qt_pager("guardtalk_before", game);
 }
 
 // cf. quest.c:437 [static] — prisoner_speaks(mtmp): prisoner awakening
-export function prisoner_speaks(mtmp, game) {
+export async function prisoner_speaks(mtmp, game) {
     const player = (game.u || game.player);
     const map = (game.lev || game.map);
 
@@ -514,9 +514,9 @@ export function prisoner_speaks(mtmp, game) {
         && ((mtmp.mstrategy || 0) & STRAT_WAITMASK)) {
         // Awaken the prisoner
         if (canseemon(mtmp, player))
-            pline("%s speaks:", Monnam(mtmp));
+            await pline("%s speaks:", Monnam(mtmp));
         // C: SetVoice(mtmp, 0, 80, 0) — voice system not ported
-        verbalize("I'm finally free!");
+        await verbalize("I'm finally free!");
         mtmp.mstrategy = (mtmp.mstrategy || 0) & ~STRAT_WAITMASK;
         mtmp.peaceful = true;
 
@@ -530,11 +530,11 @@ export function prisoner_speaks(mtmp, game) {
 }
 
 // cf. quest.c:459 — quest_chat(mtmp): dispatch chat to quest NPC
-export function quest_chat(mtmp, game) {
+export async function quest_chat(mtmp, game) {
     const qs = Qstat(game);
 
     if (mtmp.m_id === qs.leader_m_id) {
-        chat_with_leader(mtmp, game);
+        await chat_with_leader(mtmp, game);
         // Leader might have become pissed during the chat
         if (qs.pissed_off)
             setmangry(mtmp, false, (game.lev || game.map), (game.u || game.player));
@@ -542,10 +542,10 @@ export function quest_chat(mtmp, game) {
     }
     switch (mtmp.type ? mtmp.type.sound : 0) {
     case MS_NEMESIS:
-        chat_with_nemesis(game);
+        await chat_with_nemesis(game);
         break;
     case MS_GUARDIAN:
-        chat_with_guardian(game);
+        await chat_with_guardian(game);
         break;
     default:
         // impossible("quest_chat: Unknown quest character %s.", mon_nam(mtmp));
@@ -559,10 +559,10 @@ export async function quest_talk(mtmp) {
   if (mtmp.m_id === Qstat(leader_m_id)) { await leader_speaks(mtmp); return; }
   switch (mtmp.data.msound) {
     case MS_NEMESIS:
-      nemesis_speaks();
+      await nemesis_speaks();
     break;
     case MS_DJINNI:
-      prisoner_speaks(mtmp);
+      await prisoner_speaks(mtmp);
     break;
     default:
       break;

@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Knight Kni-goal.lua	$NHDT-Date: 1652196005 2022/5/10 15:20:5 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991,92 by M. Stephenson
@@ -69,14 +69,14 @@ export function generate() {
     des.object();
     des.object();
     // Random traps
-    des.trap("spiked pit",13,7);
-    des.trap("spiked pit",12,8);
-    des.trap("spiked pit",12,9);
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap("spiked pit",13,7);
+    await des.trap("spiked pit",12,8);
+    await des.trap("spiked pit",12,9);
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // Random monsters.
     des.monster({ id: "Ixoth", x: 50, y: 6, peaceful: 0 });
     des.monster({ id: "quasit", peaceful: 0 });
@@ -108,5 +108,5 @@ export function generate() {
     des.monster({ class: "j", peaceful: 0 });
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

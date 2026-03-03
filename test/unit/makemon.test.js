@@ -27,10 +27,10 @@ describe('Monster creation (C-faithful)', () => {
         assert.ok(mons.length > 300, `Expected >300 monster types, got ${mons.length}`);
     });
 
-    it('makemon creates a valid monster with known mndx', () => {
+    it('makemon creates a valid monster with known mndx', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         const room = map.rooms[0];
@@ -52,10 +52,10 @@ describe('Monster creation (C-faithful)', () => {
         assert.ok(!mon.dead, 'New monster should not be dead');
     });
 
-    it('makemon with null selects random monster', () => {
+    it('makemon with null selects random monster', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         const room = map.rooms[0];
@@ -107,19 +107,19 @@ describe('Monster creation (C-faithful)', () => {
 });
 
 describe('Level monster population (C-faithful)', () => {
-    it('makelevel places monsters on the map', () => {
+    it('makelevel places monsters on the map', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         assert.ok(map.monsters.length > 0, 'Level should have monsters');
     });
 
-    it('monsters are placed on accessible terrain', () => {
+    it('monsters are placed on accessible terrain', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         for (const mon of map.monsters) {
@@ -129,10 +129,10 @@ describe('Level monster population (C-faithful)', () => {
         }
     });
 
-    it('no two monsters share the same tile', () => {
+    it('no two monsters share the same tile', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         const positions = new Set();
@@ -144,10 +144,10 @@ describe('Level monster population (C-faithful)', () => {
         }
     });
 
-    it('monsters have C-faithful properties', () => {
+    it('monsters have C-faithful properties', async () => {
         initRng(42);
         initLevelGeneration();
-        const map = makelevel(1);
+        const map = await makelevel(1);
         wallification(map);
 
         for (const mon of map.monsters) {

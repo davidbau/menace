@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Ranger Ran-loca.lua	$NHDT-Date: 1652196010 2022/5/10 15:20:10 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991 by M. Stephenson
@@ -55,12 +55,12 @@ export function generate() {
     des.object();
     des.object();
     // Random traps
-    des.trap("spiked pit");
-    des.trap("spiked pit");
-    des.trap("teleport");
-    des.trap("teleport");
-    des.trap("arrow");
-    des.trap("arrow");
+    await des.trap("spiked pit");
+    await des.trap("spiked pit");
+    await des.trap("teleport");
+    await des.trap("teleport");
+    await des.trap("arrow");
+    await des.trap("arrow");
     // Random monsters.
     des.monster({ id: "wumpus", x: 27, y: 18, peaceful: 0, asleep: 1 });
     des.monster({ id: "giant bat", peaceful: 0 });
@@ -88,5 +88,5 @@ export function generate() {
 
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

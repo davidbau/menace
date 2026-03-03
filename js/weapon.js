@@ -233,10 +233,10 @@ export function special_dmgval(mon, obj = null) {
 }
 
 // C ref: weapon.c silver_sears() — message/effect helper.
-export function silver_sears(mon, display) {
+export async function silver_sears(mon, display) {
     if (!mon || !display) return false;
     if (!mon_hates_silver(mon)) return false;
-    display.putstr_message(`The silver sears ${x_monnam(mon)}!`);
+    await display.putstr_message(`The silver sears ${x_monnam(mon)}!`);
     return true;
 }
 
@@ -885,10 +885,10 @@ export function show_skills() {
 }
 
 // C ref: weapon.c give_may_advance_msg().
-export function give_may_advance_msg(display = null) {
+export async function give_may_advance_msg(display = null) {
     const any = add_skills_to_menu().some((row) => row.canAdvance);
     if (any && display) {
-        display.putstr_message('You feel more confident in your weapon skills.');
+        await display.putstr_message('You feel more confident in your weapon skills.');
     }
     return any;
 }

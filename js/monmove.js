@@ -205,7 +205,7 @@ export function mon_track_clear(mon) {
 // ========================================================================
 
 // cf. monmove.c monflee(mtmp, fleetime, first, fleemsg)
-export function monflee(mon, fleetime, first, fleemsg, player, display, fov) {
+export async function monflee(mon, fleetime, first, fleemsg, player, display, fov) {
     if (!mon || mon.dead) return;
 
     // C ref: monmove.c:473 — release hero if stuck
@@ -224,9 +224,9 @@ export function monflee(mon, fleetime, first, fleemsg, player, display, fov) {
         // C ref: monmove.c:487-520 — flee message
         if (!mon.flee && fleemsg && canseemon(mon, player, fov)) {
             if (!mon.mcanmove || !(mon.type?.speed)) {
-                display?.putstr_message(`${YMonnam(mon)} seems to flinch.`);
+                await display?.putstr_message(`${YMonnam(mon)} seems to flinch.`);
             } else {
-                display?.putstr_message(`${YMonnam(mon)} turns to flee.`);
+                await display?.putstr_message(`${YMonnam(mon)} turns to flee.`);
             }
         }
         mon.flee = true;
@@ -255,7 +255,7 @@ function flees_light(mon, map, player) {
 // and/or scared of something at or near the hero's position.
 // Sets inrange (within BOLT_LIM), nearby (adjacent), and scared (triggers flee).
 // Always consumes rn2(5) for bravegremlin check (C: monmove.c:551).
-export function distfleeck(mon, map, player, display, fov) {
+export async function distfleeck(mon, map, player, display, fov) {
     const bravegremlin = (rn2(5) === 0);
 
     const targetX = Number.isInteger(mon.mux) ? mon.mux : player.x;
@@ -279,7 +279,7 @@ export function distfleeck(mon, map, player, display, fov) {
         // C ref: monmove.c:559-565 — scared if: scary object, or gremlin flees light, or temple sanctuary
         if (sawscary || fleeLight || sanctuary) {
             scared = 1;
-            monflee(mon, rnd(rn2(7) ? 10 : 100), true, true, player, display, fov);
+            await monflee(mon, rnd(rn2(7) ? 10 : 100), true, true, player, display, fov);
         }
     }
     pushRngLogEntry(`^distfleeck[${mon.mndx}@${mon.mx},${mon.my} in=${inrange ? 1 : 0} near=${nearby ? 1 : 0} scare=${scared} brave=${bravegremlin ? 1 : 0} saw=${sawscary} light=${fleeLight} sanct=${sanctuary}]`);
@@ -689,14 +689,14 @@ function m_search_items_goal(mon, map, player, fov, ggx, ggy, appr) {
 // ========================================================================
 
 // C ref: mon.c:4084 — m_respond_shrieker(mtmp)
-function m_respond_shrieker(mon, map, player, display = null, game = null) {
+async function m_respond_shrieker(mon, map, player, display = null, game = null) {
     if (distmin(mon.mx, mon.my, player.x, player.y) > 1) return;
     if (!player?.deaf) {
         if (display) {
-            display.putstr_message(`${Monnam(mon)} shrieks.`);
+            await display.putstr_message(`${Monnam(mon)} shrieks.`);
         }
         if (game && typeof game.stopOccupation === 'function') {
-            game.stopOccupation();
+            await game.stopOccupation();
         }
     }
     if (!rn2(10)) {
@@ -732,11 +732,11 @@ function aggravate(map) {
 }
 
 // C ref: mon.c:4117 — m_respond(mtmp)
-function m_respond(mon, map, player, display = null, game = null) {
+async function m_respond(mon, map, player, display = null, game = null) {
     if (mon.mndx === PM_MEDUSA) {
-        m_respond_medusa(mon, map, player);
+        await m_respond_medusa(mon, map, player);
     } else if (mon.type?.sound === MS_SHRIEK) {
-        m_respond_shrieker(mon, map, player, display, game);
+        await m_respond_shrieker(mon, map, player, display, game);
     } else if (mon.mndx === PM_ERINYS) {
         // C ref: mon.c:4126 — aggravate()
         aggravate(map);
@@ -747,30 +747,30 @@ function m_respond(mon, map, player, display = null, game = null) {
 // mind_blast — C ref: monmove.c:582-646
 // Mind flayer psychic blast. RNG-faithful implementation.
 // ========================================================================
-function mind_blast(mon, map, player, display = null, fov = null) {
+async function mind_blast(mon, map, player, display = null, fov = null) {
     const BOLT_LIM_SQ = BOLT_LIM * BOLT_LIM;
 
     // C ref: monmove.c:590 — canseemon message
     const vismon = canSpotMonsterForMap(mon, map, player, fov);
     if (vismon && display) {
-        display.putstr_message(`${Monnam(mon)} concentrates.`);
+        await display.putstr_message(`${Monnam(mon)} concentrates.`);
     }
 
     // C ref: monmove.c:592 — distance check
     const d2 = dist2(mon.mx, mon.my, player.x, player.y);
     if (d2 > BOLT_LIM_SQ) {
         // C: "You sense a faint wave of psychic energy."
-        if (display) display.putstr_message('You sense a faint wave of psychic energy.');
+        if (display) await display.putstr_message('You sense a faint wave of psychic energy.');
         return;
     }
 
     // C: "A wave of psychic energy pours over you!"
-    if (display) display.putstr_message('A wave of psychic energy pours over you!');
+    if (display) await display.putstr_message('A wave of psychic energy pours over you!');
 
     // C ref: monmove.c:597-598 — peaceful check
     if (mon.peaceful) {
         // C: "It feels quite soothing." (no Conflict check — not implemented)
-        if (display) display.putstr_message('It feels quite soothing.');
+        if (display) await display.putstr_message('It feels quite soothing.');
     } else {
         // C ref: monmove.c:602 — lock-on check
         // C: sensemon(mtmp) — true if hero has telepathy and monster is not mindless
@@ -886,7 +886,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
 
     // C ref: monmove.c:735 — wipe engravings AFTER sleep check.
     // Sleeping monsters don't wipe dust engravings.
-    wipe_engr_at(map, mon.mx, mon.my, 1);
+    await wipe_engr_at(map, mon.mx, mon.my, 1);
 
     // C ref: monmove.c:738-743 — confused/stunned clearing
     if (mon.confused && !rn2(50)) mon.confused = false;
@@ -910,7 +910,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
     }
 
     // C ref: monmove.c:754 — m_respond() for special monsters
-    m_respond(mon, map, player, display, game);
+    await m_respond(mon, map, player, display, game);
 
     // C ref: monmove.c:759 — courage regain
     if (mon.flee && !(mon.fleetim > 0)
@@ -923,15 +923,15 @@ async function dochug(mon, map, player, display, fov, game = null) {
     set_apparxy(mon, map, player);
 
     // C ref: monmove.c:792 — distfleeck: determine range, proximity, fear
-    let { inrange, nearby, scared } = distfleeck(mon, map, player, display, fov);
+    let { inrange, nearby, scared } = await distfleeck(mon, map, player, display, fov);
 
     // C ref: monmove.c:795-803 — find_defensive / find_misc
     // Monsters check inventory for defensive or misc items to use.
     // Stubs return false for now (no RNG consumed when returning false).
-    if (find_defensive(mon, false, map, player)) {
+    if (await find_defensive(mon, false, map, player)) {
         if (await use_defensive(mon, map, player) !== 0) return;
-    } else if (find_misc(mon, map, player)) {
-        if (use_misc(mon, map, player) !== 0) return;
+    } else if (await find_misc(mon, map, player)) {
+        if (await use_misc(mon, map, player) !== 0) return;
     }
 
     // INCOMPLETE: C:803 — demonic blackmail (rare demon interaction)
@@ -939,10 +939,10 @@ async function dochug(mon, map, player, display, fov, game = null) {
     // C ref: monmove.c:832-836 — mind flayer psychic blast
     const mdat = mon.type || {};
     if (is_mind_flayer(mdat) && !rn2(20)) {
-        mind_blast(mon, map, player, display, fov);
+        await mind_blast(mon, map, player, display, fov);
         set_apparxy(mon, map, player);
         // C ref: monmove.c:835 — recalculate distfleeck after mind_blast
-        ({ inrange, nearby, scared } = distfleeck(mon, map, player, display, fov));
+        ({ inrange, nearby, scared } = await distfleeck(mon, map, player, display, fov));
     }
 
     const targetX = Number.isInteger(mon.mux) ? mon.mux : player.x;
@@ -1030,7 +1030,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
         && dist2(mon.mx, mon.my, targetX, targetY) <= 8
         && hasWeaponAttack(mon)
         && !scaredNow) {
-        if (maybeMonsterWieldBeforeAttack(mon, player, display, fov, nearby)) {
+        if (await maybeMonsterWieldBeforeAttack(mon, player, display, fov, nearby)) {
             return;
         }
     }
@@ -1052,7 +1052,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 return;
             }
             if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
-                m_postmove_effect(mon, map, player, game, omx, omy);
+                await m_postmove_effect(mon, map, player, game, omx, omy);
                 const trapResult = await mintrap_postmove(mon, map, player, display, fov);
                 if (trapResult === 2 || trapResult === 3) {
                     return;
@@ -1069,11 +1069,11 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 // else: escaped, continue with normal movement
             }
             const omx = mon.mx, omy = mon.my;
-            m_move(mon, map, player, display, fov);
+            await m_move(mon, map, player, display, fov);
             moveDone = !!mon._mMoveDone;
             let trapDied = false;
             if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
-                m_postmove_effect(mon, map, player, game, omx, omy);
+                await m_postmove_effect(mon, map, player, game, omx, omy);
                 const trapResult = await mintrap_postmove(mon, map, player, display, fov);
                 if (trapResult === 2 || trapResult === 3) {
                     trapDied = true;
@@ -1085,7 +1085,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 && mon.mcanmove !== false
                 && (mmoved || moveDone)
                 && map.objectsAt(mon.mx, mon.my).length > 0
-                && maybeMonsterPickStuff(mon, map, player, display, fov)) {
+                && await maybeMonsterPickStuff(mon, map, player, display, fov)) {
                 // C ref: postmov() sets mmoved = MMOVE_DONE when mpickstuff()
                 // succeeds, which suppresses Phase 4 attacks in dochug().
                 moveDone = true;
@@ -1097,7 +1097,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
         }
         // C ref: monmove.c:919 — recalculate distfleeck after m_move
         if (!mon.dead) {
-            ({ inrange, nearby, scared } = distfleeck(mon, map, player, display, fov));
+            ({ inrange, nearby, scared } = await distfleeck(mon, map, player, display, fov));
         }
 
         // C ref: monmove.c:949-953 — after movement, ranged attack check
@@ -1128,7 +1128,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 // !phase3Cond: monster never entered movement (was already adjacent).
                 // !mmoved: monster entered movement but didn't actually move.
                 if (!phase3Cond || !mmoved) {
-                    if (maybeMonsterWieldBeforeAttack(mon, player, display, fov, true)) {
+                    if (await maybeMonsterWieldBeforeAttack(mon, player, display, fov, true)) {
                         return;
                     }
                     await mattacku(mon, player, display, game);
@@ -1271,7 +1271,7 @@ function shk_move(mon, map, player) {
 }
 
 // C ref: mon.c mpickstuff() early gates.
-function maybeMonsterPickStuff(mon, map, player, display, fov) {
+async function maybeMonsterPickStuff(mon, map, player, display, fov) {
     if (mon.isshk && monsterInShop(mon, map)) return false;
     if (!mon.tame && monsterInShop(mon, map) && rn2(25)) return false;
 
@@ -1297,7 +1297,7 @@ function maybeMonsterPickStuff(mon, map, player, display, fov) {
             && !player?.blind
             && (canSpotMonsterForMap(mon, map, player, fov) || couldsee(map, player, mon.mx, mon.my))) {
             const seenName = doname({ ...picked, dknown: true }, player);
-            display.putstr_message(`${Monnam(mon)} picks up ${seenName}.`);
+            await display.putstr_message(`${Monnam(mon)} picks up ${seenName}.`);
         }
         mpickobj(mon, picked);
         return true;
@@ -1340,7 +1340,7 @@ function m_digweapon_check(mon, nix, niy, map) {
     return false;
 }
 
-function m_move(mon, map, player, display = null, fov = null) {
+async function m_move(mon, map, player, display = null, fov = null) {
     mon._mMoveDone = false;
     if (mon.isshk) {
         const omx = mon.mx, omy = mon.my;
@@ -1554,7 +1554,7 @@ function m_move(mon, map, player, display = null, fov = null) {
         const chosen = positions[chosenIdx];
         const attacksMonster = !!chosen.allowM
             || (nix === (mon.mux ?? -1) && niy === (mon.muy ?? -1));
-        if (attacksMonster && m_move_aggress(mon, map, player, nix, niy, display, fov)) {
+        if (attacksMonster && await m_move_aggress(mon, map, player, nix, niy, display, fov)) {
             mon._mMoveDone = true;
             return false;
         }
@@ -1572,7 +1572,7 @@ function m_move(mon, map, player, display = null, fov = null) {
         mon.my = niy;
 
         // C ref: monmove.c:1704 (postmov) — maybe_spin_web called AFTER position update (at new cell).
-        if (!mon.dead) maybe_spin_web(mon, map);
+        if (!mon.dead) await maybe_spin_web(mon, map);
 
         // C ref: postmov() line 1658 — if can_tunnel && may_dig, call mdig_tunnel.
         // mdig_tunnel always consumes rnd(12), even for non-obstructed terrain (returns FALSE).
@@ -1594,9 +1594,9 @@ function m_move(mon, map, player, display = null, fov = null) {
                 if (display) {
                     const canSeeDoor = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
                     if (canSeeDoor && mon.name) {
-                        display.putstr_message(`${Monnam(mon)} opens a door.`);
+                        await display.putstr_message(`${Monnam(mon)} opens a door.`);
                     } else {
-                        display.putstr_message('You hear a door open.');
+                        await display.putstr_message('You hear a door open.');
                     }
                 }
             }
@@ -1610,7 +1610,7 @@ function m_move(mon, map, player, display = null, fov = null) {
 // m_move_aggress — C ref: monmove.c:2090
 // ========================================================================
 // C-faithful: calls shared mattackm for full multi-attack resolution.
-export function m_move_aggress(mon, map, player, nx, ny, display = null, fov = null) {
+export async function m_move_aggress(mon, map, player, nx, ny, display = null, fov = null) {
     const target = map.monsterAt(nx, ny);
     if (!target || target === mon || target.dead) return false;
 
@@ -1628,7 +1628,7 @@ export function m_move_aggress(mon, map, player, nx, ny, display = null, fov = n
     // C ref: monmove.c:2100 — mattackm(mtmp, mtmp2)
     const ctx = { player, fov, turnCount: (player.turns || 0) + 1,
                   agrVisible: attackerVisible, defVisible: defenderVisible };
-    const mstatus = mattackm(mon, target, display, vis, map, ctx);
+    const mstatus = await mattackm(mon, target, display, vis, map, ctx);
 
     // C ref: monmove.c:2104 — aggressor died
     if ((mstatus & M_ATTK_AGR_DIED) || mon.dead || (mon.mhp != null && mon.mhp <= 0))
@@ -1642,7 +1642,7 @@ export function m_move_aggress(mon, map, player, nx, ny, display = null, fov = n
         else
             target.movement = 0;
         const rctx = { ...ctx, agrVisible: defenderVisible, defVisible: attackerVisible };
-        const rstatus = mattackm(target, mon, display, vis, map, rctx);
+        const rstatus = await mattackm(target, mon, display, vis, map, rctx);
         if (rstatus & M_ATTK_DEF_DIED) return true;
     }
 
@@ -1740,24 +1740,24 @@ export async function dochugw(mon, map, player, display, fov, game) {
 
 // C ref: monmove.c:660 m_everyturn_effect() — effects every turn for ALL alive monsters
 // Called before the movement check, so runs even when monster can't move this tick.
-export function m_everyturn_effect(mon, map, player, game) {
+export async function m_everyturn_effect(mon, map, player, game) {
     if (mon.mndx === PM_FOG_CLOUD) {
         // C ref: monmove.c:669-675 — fog cloud leaves harmless vapor unless door or existing cloud
         if (!closed_door(mon.mx, mon.my, map) && !visible_region_at(mon.mx, mon.my, map)) {
-            create_gas_cloud(mon.mx, mon.my, 1, 0, map, player, game);
+            await create_gas_cloud(mon.mx, mon.my, 1, 0, map, player, game);
         }
     }
 }
 
 // C ref: monmove.c:678 m_postmove_effect() — post-move effects at OLD position
 // omx/omy: pre-move position (C calls this before place_monster updates mtmp->mx/my)
-export function m_postmove_effect(mon, map, player, game, omx, omy) {
+export async function m_postmove_effect(mon, map, player, game, omx, omy) {
     if (mon.mndx === PM_HEZROU) {
         // C ref: monmove.c:692-693 — hezrou leaves stench cloud at old position
-        create_gas_cloud(omx, omy, 1, 8, map, player, game);
+        await create_gas_cloud(omx, omy, 1, 8, map, player, game);
     } else if (mon.mndx === PM_STEAM_VORTEX && !mon.mcan) {
         // C ref: monmove.c:694-695 — steam vortex leaves harmless vapor at old position
-        create_gas_cloud(omx, omy, 1, 0, map, player, game);
+        await create_gas_cloud(omx, omy, 1, 0, map, player, game);
     }
 }
 
@@ -1897,38 +1897,38 @@ export function closed_door(x, y, map) {
 }
 
 // Autotranslated from monmove.c:33
-export function msg_mon_movement(mtmp, omx, omy, game) {
+export async function msg_mon_movement(mtmp, omx, omy, game) {
   if (game.a11y.mon_movement && canspotmon(mtmp) && mtmp.mspotted) {
     let nix = mtmp.mx, niy = mtmp.my;
     let n2u = next2u(nix, niy), close = !n2u && (distu(nix, niy) <= (BOLT_LIM * BOLT_LIM)), closer = !n2u && (distu(nix, niy) <= distu(omx, omy));
-    pline_xy(nix, niy, "%s %s%s.", Monnam(mtmp), vtense( 0, locomotion(mtmp.data, "move")), n2u ? " next to you" : (close && closer) ? " closer" : (close && !closer) ? " further away" : " in the distance");
+    await pline_xy(nix, niy, "%s %s%s.", Monnam(mtmp), vtense( 0, locomotion(mtmp.data, "move")), n2u ? " next to you" : (close && closer) ? " closer" : (close && !closer) ? " further away" : " in the distance");
   }
 }
 
 // Autotranslated from monmove.c:106
-export function mon_yells(mon, shout, player) {
+export async function mon_yells(mon, shout, player) {
   if ((player?.Deaf || player?.deaf || false)) {
-    if (canspotmon(mon)) pline_mon(mon, "%s angrily %s %s %s!", Amonnam(mon), nolimbs(mon.data) ? "shakes" : "waves", mhis(mon), nolimbs(mon.data) ? mbodypart(mon, HEAD) : makeplural(mbodypart(mon, ARM)));
+    if (canspotmon(mon)) await pline_mon(mon, "%s angrily %s %s %s!", Amonnam(mon), nolimbs(mon.data) ? "shakes" : "waves", mhis(mon), nolimbs(mon.data) ? mbodypart(mon, HEAD) : makeplural(mbodypart(mon, ARM)));
   }
   else {
-    if (canspotmon(mon)) { pline_mon(mon, "%s yells:", Amonnam(mon)); }
-    else { You_hear("someone yell:"); }
+    if (canspotmon(mon)) { await pline_mon(mon, "%s yells:", Amonnam(mon)); }
+    else { await You_hear("someone yell:"); }
     verbalize1(shout);
   }
 }
 
 // Autotranslated from monmove.c:143
-export function m_break_boulder(mtmp, x, y, player) {
+export async function m_break_boulder(mtmp, x, y, player) {
   let otmp;
   if (m_can_break_boulder(mtmp) && ((otmp = sobj_at(BOULDER, x, y)) !== 0)) {
     if (!is_rider(mtmp.data)) {
       if (!(player?.Deaf || player?.deaf || false) && (mdistu(mtmp) < 4*4)) {
         if (canspotmon(mtmp)) set_msg_xy(mtmp.mx, mtmp.my);
-        pline("%s mutters %s.", Monnam(mtmp), mtmp.ispriest ? "a prayer" : "an incantation");
+        await pline("%s mutters %s.", Monnam(mtmp), mtmp.ispriest ? "a prayer" : "an incantation");
       }
       mtmp.mspec_used += rn1(20, 10);
     }
-    if (cansee(x, y)) { set_msg_xy(x, y); pline_The("boulder falls apart."); }
+    if (cansee(x, y)) { set_msg_xy(x, y); await pline_The("boulder falls apart."); }
     if (otmp.unpaid) { bill_dummy_object(otmp); }
     fracture_rock(otmp);
   }
@@ -1980,29 +1980,29 @@ export function leppie_stash(mtmp, map) {
 }
 
 // Autotranslated from monmove.c:1230
-export function holds_up_web(x, y, map) {
+export async function holds_up_web(x, y, map) {
   let sway;
-  if (!isok(x, y) || IS_OBSTRUCTED(map.locations[x][y].typ) || ((map.locations[x][y].typ === STAIRS || map.locations[x][y].typ === LADDER) && (sway = stairway_at(x, y, map)) !== 0 && sway.up) || map.locations[x][y].typ === IRONBARS) return true;
+  if (!isok(x, y) || IS_OBSTRUCTED(map.locations[x][y].typ) || ((map.locations[x][y].typ === STAIRS || map.locations[x][y].typ === LADDER) && (sway = await stairway_at(x, y, map)) !== 0 && sway.up) || map.locations[x][y].typ === IRONBARS) return true;
   return false;
 }
 
 // C ref: monmove.c:1260 count_webbing_walls() — count cardinal-direction walls that hold a web
-function count_webbing_walls(x, y, map) {
-    return (holds_up_web(x, y - 1, map) ? 1 : 0)
-         + (holds_up_web(x + 1, y, map) ? 1 : 0)
-         + (holds_up_web(x, y + 1, map) ? 1 : 0)
-         + (holds_up_web(x - 1, y, map) ? 1 : 0);
+async function count_webbing_walls(x, y, map) {
+    return (await holds_up_web(x, y - 1, map) ? 1 : 0)
+         + (await holds_up_web(x + 1, y, map) ? 1 : 0)
+         + (await holds_up_web(x, y + 1, map) ? 1 : 0)
+         + (await holds_up_web(x - 1, y, map) ? 1 : 0);
 }
 
 // C ref: monmove.c:1272 maybe_spin_web() — spider/spinner places a web trap
 // Called from end of m_move (C ref: monmove.c:1704) after movement candidate selection.
-export function maybe_spin_web(mtmp, map) {
+export async function maybe_spin_web(mtmp, map) {
     if (!webmaker(mtmp.data || mtmp.type)) return;
     if (helpless(mtmp) || mtmp.mspec_used) return;
     if (t_at(mtmp.mx, mtmp.my, map)) return;
     // soko_allow_web: returns false on sokoban levels; JS doesn't track sokoban
     // type per-level yet, so assume true (non-sokoban)
-    const nwalls = count_webbing_walls(mtmp.mx, mtmp.my, map);
+    const nwalls = await count_webbing_walls(mtmp.mx, mtmp.my, map);
     // count_traps(WEB): count existing webs on the level to reduce prob
     const nwebs = map && Array.isArray(map.traps) ? map.traps.filter(t => t && t.ttyp === WEB).length : 0;
     const prob = (((mtmp.mndx === PM_GIANT_SPIDER) ? 15 : 5) * (nwalls + 1)) - (3 * nwebs);
@@ -2064,9 +2064,9 @@ export function can_fog(mtmp, game) {
 }
 
 // Autotranslated from monmove.c:2172
-export function dissolve_bars(x, y, map) {
+export async function dissolve_bars(x, y, map) {
   map.locations[x][y].typ = (map.locations[x][y].edge === 1) ? DOOR : (Is_special(map.uz) || in_rooms(x, y, 0)) ? ROOM : CORR;
   map.locations[x][y].flags = 0;
   newsym(x, y);
-  if (u_at(x, y)) switch_terrain();
+  if (u_at(x, y)) await switch_terrain();
 }

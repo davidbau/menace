@@ -235,7 +235,7 @@ function is_vampshifter(mtmp) {
 // cf. end.c:188 — done_in_by(mtmp, how): construct killer message
 // Builds detailed killer message from monster type, name, and context.
 // In the JS port, this sets player.deathCause and then calls done().
-export function done_in_by(mtmp, how, game) {
+export async function done_in_by(mtmp, how, game) {
     const player = (game.u || game.player);
     const mndx = mtmp.mndx;
     const mptr = mons[mndx] || {};
@@ -244,7 +244,7 @@ export function done_in_by(mtmp, how, game) {
     const mimicker = (mtmp.m_ap_type != null && mtmp.m_ap_type > 0);
     const imitator = (mptr !== champtr || mimicker);
 
-    You((how === STONING) ? "turn to stone..." : "die...");
+    await You((how === STONING) ? "turn to stone..." : "die...");
 
     let buf = '';
     killer.format = KILLED_BY_AN;
@@ -320,7 +320,7 @@ export function done_in_by(mtmp, how, game) {
     else if (mndx === PM_GHOUL)
         player.ugrave_arise = PM_GHOUL;
 
-    done(how, game);
+    await done(how, game);
 }
 
 // ============================================================================
@@ -389,7 +389,7 @@ function savelife(how, game) {
 
 // cf. end.c:1022 — done(how): main game-end handler
 // Checks for life-saving, wizard/discover options, then calls really_done.
-export function done(how, game) {
+export async function done(how, game) {
     const player = (game.u || game.player);
     let survive = false;
 
@@ -422,11 +422,11 @@ export function done(how, game) {
     // C: Lifesaved = wearing AMULET_OF_LIFE_SAVING
     if (player.amulet && player.amulet.otyp === AMULET_OF_LIFE_SAVING
         && how <= GENOCIDED) {
-        pline("But wait...");
-        Your("medallion %s!", "begins to glow");
-        if (how === CHOKING) You("vomit ...");
-        You_feel("much better!");
-        pline_The("medallion crumbles to dust!");
+        await pline("But wait...");
+        await Your("medallion %s!", "begins to glow");
+        if (how === CHOKING) await You("vomit ...");
+        await You_feel("much better!");
+        await pline_The("medallion crumbles to dust!");
         // Remove the amulet (C: useup(uamul))
         const amuIdx = player.inventory.indexOf(player.amulet);
         if (amuIdx >= 0) player.inventory.splice(amuIdx, 1);
@@ -438,7 +438,7 @@ export function done(how, game) {
 
         savelife(how, game);
         if (how === GENOCIDED) {
-            pline("Unfortunately you are still genocided...");
+            await pline("Unfortunately you are still genocided...");
         } else {
             // Set death cause for livelog
             player.deathCause = '';
@@ -449,7 +449,7 @@ export function done(how, game) {
     // Wizard/discover mode: offer to not die
     // (In JS, we skip the paranoid_query and just let wizard mode survive)
     if (!survive && game.wizard && how <= GENOCIDED) {
-        pline("OK, so you don't %s.", (how === CHOKING) ? "choke" : "die");
+        await pline("OK, so you don't %s.", (how === CHOKING) ? "choke" : "die");
         savelife(how, game);
         survive = true;
     }
@@ -562,13 +562,13 @@ export function done_intr(game) {
 
 // cf. end.c:70 — done1(game): game interrupt handler
 // If flags.ignintr is set, ignore the interrupt. Otherwise, call done2().
-export function done1(game) {
+export async function done1(game) {
     if (game.flags && game.flags.ignintr) {
         // Ignore the interrupt; clear message window and return
         if (game.multi > 0) game.multi = 0;
         return;
     }
-    done2(game);
+    await done2(game);
 }
 
 // ============================================================================
@@ -580,8 +580,8 @@ export function done1(game) {
 // cf. end.c:92 — done2(game): #quit command handler
 // In C this prompts "Really quit?" with paranoid_query. In the JS port,
 // the UI layer handles confirmation before calling this.
-export function done2(game) {
-    done(QUIT, game);
+export async function done2(game) {
+    await done(QUIT, game);
 }
 
 // ============================================================================
@@ -969,7 +969,7 @@ function fuzzer_savelife(how, game) {
 // all_containers: if true, recurse into nested containers
 // reportempty: if true, report empty containers
 // game: game state for message output
-export function container_contents(list, identified, all_containers, reportempty, game) {
+export async function container_contents(list, identified, all_containers, reportempty, game) {
     const items = Array.isArray(list) ? list : _toArray(list);
 
     for (const box of items) {
@@ -1000,16 +1000,16 @@ export function container_contents(list, identified, all_containers, reportempty
 
                 // Output the container contents via pline
                 for (const line of lines) {
-                    pline(line);
+                    await pline(line);
                 }
 
                 // Recurse into nested containers
                 if (all_containers) {
-                    container_contents(box.cobj, identified, true, reportempty, game);
+                    await container_contents(box.cobj, identified, true, reportempty, game);
                 }
             } else if (reportempty) {
                 const boxName = (typeof xname === 'function') ? xname(box) : 'container';
-                pline("%s is empty.", boxName.charAt(0).toUpperCase() + boxName.slice(1));
+                await pline("%s is empty.", boxName.charAt(0).toUpperCase() + boxName.slice(1));
             }
         }
         if (!all_containers) break;

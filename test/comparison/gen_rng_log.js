@@ -23,7 +23,7 @@ const outFile = process.argv[3] || null;
 enableRngLog();
 initRng(seed);
 initLevelGeneration();
-makelevel(1);
+await makelevel(1);
 
 const log = getRngLog();
 

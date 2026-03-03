@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection, shuffle } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack gehennom juiblex.lua	$NHDT-Date: 1652196026 2022/5/10 15:20:26 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.5 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1992 by M. Stephenson && Izchak Miller
@@ -123,13 +123,13 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     des.object("%");
     des.object("boulder");
     // Some traps
-    des.trap("sleep gas");
-    des.trap("sleep gas");
-    des.trap("anti magic");
-    des.trap("anti magic");
-    des.trap("magic");
-    des.trap("magic");
+    await des.trap("sleep gas");
+    await des.trap("sleep gas");
+    await des.trap("anti magic");
+    await des.trap("anti magic");
+    await des.trap("magic");
+    await des.trap("magic");
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

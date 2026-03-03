@@ -5,7 +5,7 @@
 
 import * as des from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Priest Pri-fila.lua	$NHDT-Date: 1652196008 2022/5/10 15:20:8 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991-2 by M. Stephenson
@@ -28,40 +28,40 @@ export function generate() {
     })
 
     des.room({ type: "ordinary",
-               contents: function() {
+               contents: async function() {
                   des.object();
-                  des.trap();
+                  await des.trap();
                   des.object();
                   des.monster("human zombie");
                }
     })
 
     des.room({ type: "morgue",
-               contents: function() {
+               contents: async function() {
                   des.stair("down");
                   des.object();
-                  des.trap();
+                  await des.trap();
                }
     })
 
     des.room({ type: "ordinary",
-               contents: function() {
+               contents: async function() {
                   des.object();
                   des.object();
-                  des.trap();
+                  await des.trap();
                   des.monster("wraith");
                }
     })
 
     des.room({ type: "morgue",
-               contents: function() {
+               contents: async function() {
                   des.object();
-                  des.trap();
+                  await des.trap();
                }
     })
 
     des.random_corridors();
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

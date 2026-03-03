@@ -304,13 +304,13 @@ export function run_timers(when) {
     }
 }
 
-export function print_queue(win, base) {
+export async function print_queue(win, base) {
     const lines = _timerQueue.map((timer) => {
         const kind = kind_name(timer.kind);
         return `${base ? `${base}: ` : ''}${kind} ${timer.funcIndex} ${timer.when}`;
     });
     if (win && typeof win.putstr_message === 'function') {
-        for (const line of lines) win.putstr_message(line);
+        for (const line of lines) await win.putstr_message(line);
         return;
     }
     return lines;
@@ -429,7 +429,7 @@ export function spot_time_left(x, y, func_index, game) {
 
 // Timeout-driven gameplay behavior ------------------------------------------
 
-export function nh_timeout(context = {}) {
+export async function nh_timeout(context = {}) {
     if (context.player || context.display || context.map) {
         setTimerContext(context);
     }
@@ -459,7 +459,7 @@ export function nh_timeout(context = {}) {
                 entry.intrinsic = (entry.intrinsic & ~TIMEOUT) | newTimeout;
                 // On reaching zero, fire expiry effects
                 if (newTimeout === 0) {
-                    _fireExpiryEffect(player, prop);
+                    await _fireExpiryEffect(player, prop);
                 }
             }
         }
@@ -480,7 +480,7 @@ export function nh_timeout(context = {}) {
                 ? player.sleepWakeupMessage
                 : 'You wake up.';
             if (player.sleepWakeupMessage) {
-                pline(msg);
+                await pline(msg);
             }
         }
     }
@@ -511,41 +511,41 @@ export function registerMakeStatusFns(fns) {
 
 // Fire expiry effect when an intrinsic timeout reaches zero.
 // C ref: timeout.c nh_timeout() — the big switch on each prop (lines 690-940)
-function _fireExpiryEffect(player, prop) {
+async function _fireExpiryEffect(player, prop) {
     const fns = _makeStatusFns || {};
     const entry = player.uprops[prop];
 
     switch (prop) {
     case STONED:
         // C ref: done_timeout(STONING, STONED) — petrification death
-        pline("You have turned to stone.");
+        await pline("You have turned to stone.");
         done_timeout('stoned', 'petrification');
         break;
 
     case SLIMED:
         // C ref: slimed_to_death() — sliming death
-        pline("You have become a green slime.");
+        await pline("You have become a green slime.");
         done_timeout('slimed', 'sliming');
         break;
 
     case VOMITING:
-        if (fns.make_vomiting) fns.make_vomiting(player, 0, true);
+        if (fns.make_vomiting) await fns.make_vomiting(player, 0, true);
         break;
 
     case SICK:
         // C ref: hero might recover from food poisoning if good CON
         if ((player.usick_type & SICK_NONVOMITABLE) === 0
             && rn2(100) < (player.attributes?.[A_CON] || 10)) {
-            You("have recovered from your illness.");
-            if (fns.make_sick) fns.make_sick(player, 0, null, false, 0xFF);
-            exercise(player, A_CON, false);
+            await You("have recovered from your illness.");
+            if (fns.make_sick) await fns.make_sick(player, 0, null, false, 0xFF);
+            await exercise(player, A_CON, false);
             // C ref: adjattrib(A_CON, -1, 1) — lose 1 CON
             if (player.attributes && player.attributes[A_CON] > 3)
                 player.attributes[A_CON] -= 1;
             break;
         }
         // Fatal illness
-        pline("You die from your illness.");
+        await pline("You die from your illness.");
         done_timeout('illness', player.usick_cause || 'illness');
         player.usick_type = 0;
         break;
@@ -553,31 +553,31 @@ function _fireExpiryEffect(player, prop) {
     case FAST:
         // C ref: if (!Very_fast) You_feel("yourself slow down%s.");
         if (!player.veryFast)
-            You_feel("yourself slow down%s.",
+            await You_feel("yourself slow down%s.",
                      player.fast ? " a bit" : "");
         break;
 
     case CONFUSION:
         // C ref: set_itimeout(&HConfusion, 1L); make_confused(0L, TRUE);
         if (entry) entry.intrinsic = (entry.intrinsic & ~TIMEOUT) | 1;
-        if (fns.make_confused) fns.make_confused(player, 0, true);
+        if (fns.make_confused) await fns.make_confused(player, 0, true);
         break;
 
     case STUNNED:
         // C ref: set_itimeout(&HStun, 1L); make_stunned(0L, TRUE);
         if (entry) entry.intrinsic = (entry.intrinsic & ~TIMEOUT) | 1;
-        if (fns.make_stunned) fns.make_stunned(player, 0, true);
+        if (fns.make_stunned) await fns.make_stunned(player, 0, true);
         break;
 
     case BLINDED:
         // C ref: set_itimeout(&HBlinded, 1L); make_blinded(0L, TRUE);
         if (entry) entry.intrinsic = (entry.intrinsic & ~TIMEOUT) | 1;
-        if (fns.make_blinded) fns.make_blinded(player, 0, true);
+        if (fns.make_blinded) await fns.make_blinded(player, 0, true);
         break;
 
     case DEAF:
         if (entry) entry.intrinsic = (entry.intrinsic & ~TIMEOUT) | 1;
-        if (fns.make_deaf) fns.make_deaf(player, 0, true);
+        if (fns.make_deaf) await fns.make_deaf(player, 0, true);
         player._botl = true;
         break;
 
@@ -586,7 +586,7 @@ function _fireExpiryEffect(player, prop) {
         if (!player.blind) {
             const seeInvisEntry = player.uprops[SEE_INVIS];
             const canSeeInvis = seeInvisEntry && (seeInvisEntry.intrinsic || seeInvisEntry.extrinsic);
-            You(!canSeeInvis
+            await You(!canSeeInvis
                 ? "are no longer invisible."
                 : "can no longer see through yourself.");
         }
@@ -599,7 +599,7 @@ function _fireExpiryEffect(player, prop) {
     case HALLUC:
         // C ref: set_itimeout(&HHallucination, 1L); make_hallucinated(0L, TRUE, 0L);
         if (entry) entry.intrinsic = (entry.intrinsic & ~TIMEOUT) | 1;
-        if (fns.make_hallucinated) fns.make_hallucinated(player, 0, true, 0);
+        if (fns.make_hallucinated) await fns.make_hallucinated(player, 0, true, 0);
         break;
 
     case SLEEPING:
@@ -617,7 +617,7 @@ function _fireExpiryEffect(player, prop) {
 
     case STRANGLED:
         // C ref: done_timeout(DIED, STRANGLED) — strangulation death
-        pline("You suffocate.");
+        await pline("You suffocate.");
         done_timeout('strangled', 'strangulation');
         break;
 
@@ -635,7 +635,7 @@ function _fireExpiryEffect(player, prop) {
 
     case WOUNDED_LEGS:
         // C ref: heal_legs(0);
-        You_feel("better.");
+        await You_feel("better.");
         break;
 
     case GLIB:
@@ -651,7 +651,7 @@ function _fireExpiryEffect(player, prop) {
         break;
 
     case PASSES_WALLS:
-        pline("You're back to your normal self again.");
+        await pline("You're back to your normal self again.");
         break;
 
     case MAGICAL_BREATHING:
@@ -712,12 +712,12 @@ export function kill_egg(egg) {
     return removed;
 }
 
-export function hatch_egg(egg) {
+export async function hatch_egg(egg) {
     if (!egg || egg._deadHatching) return;
     egg._deadHatching = true;
     if (typeof pline === 'function') {
         if (typeof egg.corpsenm === 'number' && egg.corpsenm >= 0) {
-            pline(`A creature hatches from a nearby egg.`);
+            await pline(`A creature hatches from a nearby egg.`);
         }
     }
 }
@@ -727,12 +727,12 @@ export function attach_fig_transform_timeout(figurine) {
     return start_timer(rnd(9000) + 200, TIMER_KIND.SHORT, TIMER_FUNC.FIGURINE_TRANSFORM, figurine);
 }
 
-function fig_transform(figurine) {
+async function fig_transform(figurine) {
     if (!figurine || !figurine.corpsenm) {
         return;
     }
     if (!figurine._figTransformMessageIssued) {
-        pline('Your %s transforms!', figurine.name || 'figurine');
+        await pline('Your %s transforms!', figurine.name || 'figurine');
         figurine._figTransformMessageIssued = true;
     }
 }
@@ -796,9 +796,9 @@ export function do_storms() {
 export function stoned_dialogue() {}
 export function vomiting_dialogue() {}
 // Autotranslated from timeout.c:267
-export function sleep_dialogue() {
+export async function sleep_dialogue() {
   let i = (HSleepy & TIMEOUT);
-  if (i === 4) You("yawn.");
+  if (i === 4) await You("yawn.");
 }
 export function choke_dialogue() {}
 export function sickness_dialogue() {}
@@ -820,8 +820,8 @@ export function kindName(kind) {
     return kind_name(kind);
 }
 
-export function printQueue(win, base) {
-    return print_queue(win, base);
+export async function printQueue(win, base) {
+    return await print_queue(win, base);
 }
 
 export function relink_timers() {

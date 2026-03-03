@@ -22,7 +22,7 @@
 
 import { des, selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     des.level_init({ style: 'solidfill', fg: ' ' });
 
     des.level_flags('mazelevel', 'noteleport');
@@ -98,10 +98,10 @@ export function generate() {
 
     // Random traps
     for (let i = 0; i < 5; i++) {
-        des.trap();
+        await des.trap();
     }
-    des.trap('board', 38, 7);
-    des.trap('board', 38, 12);
+    await des.trap('board', 38, 7);
+    await des.trap('board', 38, 12);
 
     // Random monsters
     des.monster({ id: 'Medusa', x: 36, y: 10, asleep: 1 });
@@ -121,5 +121,5 @@ export function generate() {
         des.monster();
     }
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

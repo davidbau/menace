@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Rogue Rog-goal.lua	$NHDT-Date: 1652196012 2022/5/10 15:20:12 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1992 by Dean Luick
     // NetHack may be freely redistributed.  See license for details.
@@ -48,7 +48,7 @@ export function generate() {
     // Non diggable walls
     des.non_diggable(selection.area(0,0,75,20));
     // One trap to keep the gnomes at bay.
-    des.trap("spiked pit",37,7);
+    await des.trap("spiked pit",37,7);
     // Objects
     des.object({ id: "skeleton key", x: 38, y: 10, buc: "blessed", spe: 0, name: "The Master Key of Thievery" });
     des.object({ id: "tin", x: 26, y: 12, montype: "chameleon" });
@@ -66,17 +66,17 @@ export function generate() {
     des.object();
     des.object();
     // Random traps
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // Random monsters.
     des.monster({ id: "Master Assassin", x: 38, y: 10, peaceful: 0 });
     des.monster({ id: "leprechaun", peaceful: 0 });
@@ -119,5 +119,5 @@ export function generate() {
     des.monster({ id: "shark", x: 58, y: 10, peaceful: 0 });
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

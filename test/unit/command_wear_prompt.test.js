@@ -77,7 +77,7 @@ describe('wear command prompt parity', () => {
         // Simulate the occupation completing to verify armor is applied.
         if (game.occupation) {
             while (game.occupation.fn()) { /* drain turns */ }
-            game.occupation.onFinishAfterTurn?.();
+            await game.occupation.onFinishAfterTurn?.();
             game.occupation = null;
         }
         assert.equal(game.player.armor, armor);

@@ -91,11 +91,11 @@ describe('objnam port coverage', () => {
         assert.equal(otmp.blessed, true);
     });
 
-    it('provides naming wrappers and terrain names', () => {
+    it('provides naming wrappers and terrain names', async () => {
         const obj = mksobj(LONG_SWORD, true, false);
         assert.ok(xname_flags(obj, 0).length > 0);
         assert.ok(doname_base(obj, null).length > 0);
-        assert.ok(distant_name(obj).length > 0);
+        assert.ok((await distant_name(obj)).length > 0);
         assert.equal(dbterrainmesg(STONE), 'stone');
         assert.equal(dbterrainmesg(ROOM), 'room');
         assert.equal(dbterrainmesg(WATER), 'water');

@@ -5,7 +5,7 @@
 
 import * as des from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack endgame water.lua	$NHDT-Date: 1652196038 2022/5/10 15:20:38 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1992,1993 by Izchak Miller, David Cohrs,
@@ -110,5 +110,5 @@ WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

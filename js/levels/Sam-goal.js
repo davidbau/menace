@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 import { rn2 } from '../rng.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Samurai Sam-goal.lua	$NHDT-Date: 1652196013 2022/5/10 15:20:13 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991-92 by M. Stephenson, P. Winner
@@ -82,16 +82,16 @@ export function generate() {
     des.object();
     des.object();
     // 
-    des.trap("board",22,9);
-    des.trap("board",24,10);
-    des.trap("board",22,11);
+    await des.trap("board",22,9);
+    await des.trap("board",24,10);
+    await des.trap("board",22,11);
     // Random traps
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // Random monsters.
     des.monster("Ashikaga Takauji", 22, 10);
     des.monster({ id: "samurai", peaceful: 0 });
@@ -121,5 +121,5 @@ export function generate() {
     des.monster("stalker");
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

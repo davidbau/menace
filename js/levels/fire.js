@@ -5,7 +5,7 @@
 
 import * as des from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack endgame fire.lua	$NHDT-Date: 1700398454 2023/11/19 12:54:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1992,1993 by Izchak Miller, David Cohrs,
@@ -47,46 +47,46 @@ L.....LLL......................LLLLL.........L.........LLLLLLLL..............LL
     des.teleport_region({ region: [71,16,71,16] });
     des.levregion({ region: [0,0,78,19], exclude: [67,13,78,19], type: "portal", name: "water" });
 
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
     // An assortment of fire-appropriate nasties
     des.monster("red dragon");
     des.monster("balrog");
@@ -166,5 +166,5 @@ L.....LLL......................LLLLL.........L.........LLLLLLLL..............LL
 
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

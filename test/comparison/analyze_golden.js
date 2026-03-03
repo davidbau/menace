@@ -54,7 +54,7 @@ for (const file of goldenFiles) {
     const maxDepth = depth1Only ? 1 : Math.max(...session.levels.map(l => l.depth));
     const levels = depth1Only ? session.levels.filter(l => l.depth === 1) : session.levels;
 
-    const result = generateMapsSequential(seed, maxDepth);
+    const result = await generateMapsSequential(seed, maxDepth);
     const seedResult = { seed, depth1: null, depth2PlusFails: 0, depth2PlusTotal: 0 };
 
     for (const level of levels) {

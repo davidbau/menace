@@ -226,7 +226,7 @@ export function can_carry(mon, obj) {
 // ========================================================================
 // dog_eat — C ref: dogmove.c:217-342
 // ========================================================================
-export function dog_eat(mon, obj, map, turnCount, ctx = null) {
+export async function dog_eat(mon, obj, map, turnCount, ctx = null) {
     const edog = mon.edog;
     if (!edog) return 1;
     const display = ctx?.display || null;
@@ -266,9 +266,9 @@ export function dog_eat(mon, obj, map, turnCount, ctx = null) {
         const sawPet = (fov?.canSee ? fov.canSee(startX, startY) : couldsee(map, player, startX, startY))
             && !mon.minvis;
         if (sawPet || (seeObj && !mon.minvis)) {
-            display.putstr_message(`${YMonnam(mon)} eats ${doname(obj, null)}.`);
+            await display.putstr_message(`${YMonnam(mon)} eats ${doname(obj, null)}.`);
         } else if (seeObj) {
-            display.putstr_message(`It eats ${doname(obj, null)}.`);
+            await display.putstr_message(`It eats ${doname(obj, null)}.`);
         }
     }
 
@@ -297,17 +297,17 @@ export function dog_eat(mon, obj, map, turnCount, ctx = null) {
 // and experience. JS simplified to mon.dead = true. C also checks usteed.
 // C uses cansee() for visibility; JS uses fov?.canSee which may differ in edge cases.
 // C has Hallucination check ("bummed" vs "sad"); JS always uses "sad".
-export function dog_starve(mon, map, display, player, fov) {
+export async function dog_starve(mon, map, display, player, fov) {
     if (mon.mleashed) {
-        if (display) display.putstr_message('Your leash goes slack.');
+        if (display) await display.putstr_message('Your leash goes slack.');
     } else {
         const canSee = display && player && (
             fov?.canSee ? fov.canSee(mon.mx, mon.my) : false
         );
         if (canSee) {
-            display.putstr_message(`${Monnam(mon)} starves.`);
+            await display.putstr_message(`${Monnam(mon)} starves.`);
         } else if (display) {
-            display.putstr_message('You feel sad for a moment.');
+            await display.putstr_message('You feel sad for a moment.');
         }
     }
     mondead(mon, map, player);
@@ -320,7 +320,7 @@ export function dog_starve(mon, map, display, player, fov) {
 // calls beg(mtmp) when not visible but couldsee. JS skips beg() and
 // uses "worried" message for the else branch. C also calls stop_occupation().
 // ========================================================================
-export function dog_hunger(mon, edog, turnCount, map, display, player, fov) {
+export async function dog_hunger(mon, edog, turnCount, map, display, player, fov) {
     if (turnCount > edog.hungrytime + DOG_WEAK) {
         const mdat = monPtr(mon);
         if (mdat && !carnivorous(mdat) && !herbivorous(mdat)) {
@@ -333,20 +333,20 @@ export function dog_hunger(mon, edog, turnCount, map, display, player, fov) {
             if ((mon.mhp || 0) > mon.mhpmax)
                 mon.mhp = mon.mhpmax;
             if (mon.mhp <= 0 || mon.dead) {
-                dog_starve(mon, map, display, player, fov);
+                await dog_starve(mon, map, display, player, fov);
                 return true;
             }
             const canSee = display && player && (
                 fov?.canSee ? fov.canSee(mon.mx, mon.my) : false
             );
             if (canSee) {
-                display.putstr_message(`${Monnam(mon)} is confused from hunger.`);
+                await display.putstr_message(`${Monnam(mon)} is confused from hunger.`);
             } else if (display) {
-                display.putstr_message(`You feel worried about ${y_monnam(mon)}.`);
+                await display.putstr_message(`You feel worried about ${y_monnam(mon)}.`);
             }
         } else if (turnCount > edog.hungrytime + DOG_STARVE
                    || mon.mhp <= 0 || mon.dead) {
-            dog_starve(mon, map, display, player, fov);
+            await dog_starve(mon, map, display, player, fov);
             return true;
         }
     }
@@ -536,7 +536,7 @@ function droppables(mon) {
 // C ref: dogmove.c:392-471
 // Returns: 0 (no action), 1 (ate something), 2 (died)
 // ========================================================================
-function dog_invent(mon, edog, udist, map, turnCount, display, player, fov = null) {
+async function dog_invent(mon, edog, udist, map, turnCount, display, player, fov = null) {
     if (mon.meating) {
         pushRngLogEntry(`^dog_invent_decision[${mon.mndx}@${mon.mx},${mon.my} ud=${udist} act=-1 otyp=-1 carry=0 rv=0]`);
         return 0;
@@ -566,7 +566,7 @@ function dog_invent(mon, edog, udist, map, turnCount, display, player, fov = nul
                     if (canSeePet) {
                         // C ref: weapon.c:766 — Monnam(mon) uses ARTICLE_THE
                         const monLabel = Monnam(mon);
-                        display.putstr_message(`${monLabel} drops ${dropName}.`);
+                        await display.putstr_message(`${monLabel} drops ${dropName}.`);
                     }
                 }
                 if (edog.apport > 1) edog.apport--;
@@ -601,9 +601,9 @@ function dog_invent(mon, edog, udist, map, turnCount, display, player, fov = nul
                     fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my)
                 );
                 if (canSeePet) {
-                    display.putstr_message(`${YMonnam(mon)} eats ${doname(obj, null)}.`);
+                    await display.putstr_message(`${YMonnam(mon)} eats ${doname(obj, null)}.`);
                 }
-                dog_eat(mon, obj, map, turnCount);
+                await dog_eat(mon, obj, map, turnCount);
                 pushRngLogEntry(`^dog_invent_decision[${mon.mndx}@${omx},${omy} ud=${udist} act=2 otyp=${obj.otyp} carry=0 rv=1]`);
                 return 1;
             }
@@ -642,7 +642,7 @@ function dog_invent(mon, edog, udist, map, turnCount, display, player, fov = nul
                             observeObject(picked);
                             // C ref: dogmove.c:454 — Monnam(mtmp) uses ARTICLE_THE
                             const monLabel = Monnam(mon);
-                            display.putstr_message(`${monLabel} picks up ${doname(picked, null)}.`);
+                            await display.putstr_message(`${monLabel} picks up ${doname(picked, null)}.`);
                         }
                         diagAct = 3;
                         diagOtyp = picked?.otyp ?? -1;
@@ -852,14 +852,14 @@ export async function pet_ranged_attk(mon, map, player, display, fov = null, gam
     const agrSpot = canSpotMonsterForMap(mon, map, player, fov);
     const defSpot = canSpotMonsterForMap(mtarg, map, player, fov);
     const ctx = { player, fov, turnCount, agrVisible: agrSpot, defVisible: defSpot };
-    const mstatus = mattackm(mon, mtarg, display, vis, map, ctx);
+    const mstatus = await mattackm(mon, mtarg, display, vis, map, ctx);
     if (mstatus & M_ATTK_AGR_DIED) return 1;
     // C ref: dogmove.c:928-944 — retaliation for ranged attack
     if ((mstatus & M_ATTK_HIT) && !(mstatus & M_ATTK_DEF_DIED)
         && rn2(4)) {
         if (mtarg.mcansee !== false) {
             const rctx = { ...ctx, agrVisible: defSpot, defVisible: agrSpot };
-            const rstatus = mattackm(mtarg, mon, display, vis, map, rctx);
+            const rstatus = await mattackm(mtarg, mon, display, vis, map, rctx);
             if (rstatus & M_ATTK_DEF_DIED) return 1;
         }
     }
@@ -893,7 +893,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
     const dogDiagEvents = !!(env?.WEBHACK_DIAG_EVENTS && env.WEBHACK_DIAG_EVENTS !== '0');
 
     // C ref: dogmove.c:1005-1006 — hunger check (before dog_invent)
-    if (edogRaw && dog_hunger(mon, edogRaw, turnCount, map, display, player, fov))
+    if (edogRaw && await dog_hunger(mon, edogRaw, turnCount, map, display, player, fov))
         return 2; // MMOVE_DIED — starved
 
     // C ref: dogmove.c:1010-1015 — steed check (Conflict dismount)
@@ -903,7 +903,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
     // When dog_invent returns 1 (ate), C does goto newdogpos.
     // Since nix==omx at that point, no movement occurs — return MMOVE_MOVED.
     if (edog) {
-        const invResult = dog_invent(mon, edog, udist, map, turnCount, display, player, fov);
+        const invResult = await dog_invent(mon, edog, udist, map, turnCount, display, player, fov);
         if (invResult === 1) return 1; // ate — C: goto newdogpos, no movement
         if (invResult === 2) return 0; // died
     }
@@ -1133,7 +1133,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                 // C ref: do_clear_area(omx, omy, 9, wantdoor, &fardist)
                 // wantdoor finds visible-from-pet position closest to player
                 const wdState = { dist: fardist };
-                do_clear_area(fov, map, omx, omy, 9, (x, y, st) => {
+                await do_clear_area(fov, map, omx, omy, 9, (x, y, st) => {
                     const ndist = dist2(x, y, player.x, player.y);
                     if (st.dist > ndist) {
                         gx = x; gy = y; st.dist = ndist;
@@ -1281,7 +1281,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                 const monSpot = canSpotMonsterForMap(mon, map, player, fov);
                 const targetSpot = canSpotMonsterForMap(target, map, player, fov);
                 const ctx = { player, fov, turnCount, agrVisible: monSpot, defVisible: targetSpot };
-                const mstatus = mattackm(mon, target, display, mmVisible, map, ctx);
+                const mstatus = await mattackm(mon, target, display, mmVisible, map, ctx);
 
                 // C ref: dogmove.c:1148-1150 — pet died
                 if (mstatus & M_ATTK_AGR_DIED) return 0;
@@ -1292,7 +1292,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                     && target.mlstmv !== turnCount
                     && monnear(target, mon.mx, mon.my)) {
                     const rctx = { ...ctx, agrVisible: targetSpot, defVisible: monSpot };
-                    const rstatus = mattackm(target, mon, display, mmVisible, map, rctx);
+                    const rstatus = await mattackm(target, mon, display, mmVisible, map, rctx);
                     if (rstatus & M_ATTK_DEF_DIED) return 0;
                 }
                 return 0; // MMOVE_DONE
@@ -1431,7 +1431,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
         if (chi >= 0 && positions[chi] && positions[chi].allowU) {
             if (mon.mleashed) {
                 if (display) {
-                    display.putstr_message(`${Monnam(mon)} breaks loose of ${mon.female ? 'her' : 'his'} leash!`);
+                    await display.putstr_message(`${Monnam(mon)} breaks loose of ${mon.female ? 'her' : 'his'} leash!`);
                 }
                 mon.mleashed = false;
             }
@@ -1449,7 +1449,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                     : couldsee(map, player, mon.mx, mon.my) || couldsee(map, player, nix, niy)
             );
             if (canSeePet && display) {
-                display.putstr_message(`${YMonnam(mon)} moves reluctantly.`);
+                await display.putstr_message(`${YMonnam(mon)} moves reluctantly.`);
             }
         }
 
@@ -1464,9 +1464,9 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
             const sawPet = fov?.canSee ? fov.canSee(omx, omy) : couldsee(map, player, omx, omy);
             const seeObj = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
             if (display && (sawPet || seeObj)) {
-                display.putstr_message(`${YMonnam(mon)} eats ${doname(eatObj, null)}.`);
+                await display.putstr_message(`${YMonnam(mon)} eats ${doname(eatObj, null)}.`);
             }
-            dog_eat(mon, eatObj, map, turnCount);
+            await dog_eat(mon, eatObj, map, turnCount);
         }
     } else if (mon.mleashed && udist > 4) {
         // C ref: dogmove.c:1330-1348 — leashed pet drag-along
@@ -1494,7 +1494,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
 export async function quickmimic(mtmp, player) {
   let idx = 0, trycnt = 5, spotted, seeloc, was_leashed = mtmp.mleashed, buf;
   if (Protection_from_shape_changers || !mtmp.meating) return;
-  if (mtmp === player.usteed) dismount_steed(DISMOUNT_POLY);
+  if (mtmp === player.usteed) await dismount_steed(DISMOUNT_POLY);
   do {
     idx = rn2(SIZE(qm));
     if (qm[idx].mndx !== 0 && monsndx(mtmp.data) === qm[idx].mndx) {
@@ -1517,10 +1517,10 @@ export async function quickmimic(mtmp, player) {
     let prev_glyph = glyph_at(mtmp.mx, mtmp.my);
     let what = (M_AP_TYPE(mtmp) === M_AP_FURNITURE) ? defsyms[mtmp.mappearance].explanation : (M_AP_TYPE(mtmp) === M_AP_OBJECT && OBJ_DESCR(objectData[mtmp.mappearance])) ? OBJ_DESCR(objectData[mtmp.mappearance]) : (M_AP_TYPE(mtmp) === M_AP_OBJECT && OBJ_NAME(objectData[mtmp.mappearance])) ? OBJ_NAME(objectData[mtmp.mappearance]) : (M_AP_TYPE(mtmp) === M_AP_MONSTER) ? pmname( mons, Mgender(mtmp)) : something;
     newsym(mtmp.mx, mtmp.my);
-    if (was_leashed && (M_AP_TYPE(mtmp) !== M_AP_MONSTER || !mnum_leashable(mtmp.mappearance))) { Your("leash goes slack."); m_unleash(mtmp, false); }
-    if (glyph_at(mtmp.mx, mtmp.my) !== prev_glyph) You("%s %s %s where %s was!", seeloc ? "see" : "sense that", (what !== something) ? an(what) : what, seeloc ? "appear" : "has appeared", buf);
+    if (was_leashed && (M_AP_TYPE(mtmp) !== M_AP_MONSTER || !mnum_leashable(mtmp.mappearance))) { await Your("leash goes slack."); await m_unleash(mtmp, false); }
+    if (glyph_at(mtmp.mx, mtmp.my) !== prev_glyph) await You("%s %s %s where %s was!", seeloc ? "see" : "sense that", (what !== something) ? an(what) : what, seeloc ? "appear" : "has appeared", buf);
     else {
-      You("sense that %s feels rather %s-ish.", buf, what);
+      await You("sense that %s feels rather %s-ish.", buf, what);
     }
     await display_nhwindow(WIN_MAP, true);
   }

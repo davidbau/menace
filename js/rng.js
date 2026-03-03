@@ -102,11 +102,11 @@ export function disableRngLog() {
 }
 
 // Hot-path helper: avoid per-call stack parsing by supplying explicit tag context.
-export function withRngTag(tag, fn) {
+export async function withRngTag(tag, fn) {
     const prev = rngTagOverride;
     rngTagOverride = (typeof tag === 'string' && tag.length > 0) ? tag : null;
     try {
-        const out = fn();
+        const out = await fn();
         if (out && typeof out.then === 'function') {
             return out.finally(() => {
                 rngTagOverride = prev;

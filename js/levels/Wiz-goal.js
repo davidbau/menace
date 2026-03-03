@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Wizard Wiz-goal.lua	$NHDT-Date: 1652196018 2022/5/10 15:20:18 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1992 by David Cohrs
     // NetHack may be freely redistributed.  See license for details.
@@ -95,12 +95,12 @@ export function generate() {
     des.object();
     des.object();
     // Random traps
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // Random monsters.
     des.monster("Dark One", 16, 11);
     des.monster({ class: "B", random: 1, peaceful: 0 });
@@ -141,5 +141,5 @@ export function generate() {
     des.monster({ id: "prisoner", x: 41, y: 11, peaceful: 1, asleep: 1 });
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

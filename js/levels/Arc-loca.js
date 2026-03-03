@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection, shuffle } from '../sp_lev.js';
 import { A_CHAOTIC, A_NEUTRAL, A_LAWFUL } from '../config.js';
 
-export function generate() {
+export async function generate() {
     const align = [A_CHAOTIC, A_NEUTRAL, A_LAWFUL];
     shuffle(align);
 
@@ -105,29 +105,29 @@ export function generate() {
     des.engraving({ type: "engrave", text: "X marks the spot." });
     des.engraving({ type: "engrave", text: "X marks the spot." });
     // Random traps
-    des.trap("spiked pit",24,2);
-    des.trap("spiked pit",37,0);
-    des.trap("spiked pit",23,5);
-    des.trap("spiked pit",26,19);
-    des.trap("spiked pit",55,10);
-    des.trap("spiked pit",55,8);
-    des.trap("pit",51,1);
-    des.trap("pit",23,18);
-    des.trap("pit",31,18);
-    des.trap("pit",48,19);
-    des.trap("pit",55,15);
-    des.trap("magic",60,4);
-    des.trap("statue",72,7);
-    des.trap("statue");
-    des.trap("statue");
-    des.trap("anti magic",64,12);
-    des.trap("sleep gas");
-    des.trap("sleep gas");
-    des.trap("dart");
-    des.trap("dart");
-    des.trap("dart");
-    des.trap("rolling boulder",32,10);
-    des.trap("rolling boulder",40,16);
+    await des.trap("spiked pit",24,2);
+    await des.trap("spiked pit",37,0);
+    await des.trap("spiked pit",23,5);
+    await des.trap("spiked pit",26,19);
+    await des.trap("spiked pit",55,10);
+    await des.trap("spiked pit",55,8);
+    await des.trap("pit",51,1);
+    await des.trap("pit",23,18);
+    await des.trap("pit",31,18);
+    await des.trap("pit",48,19);
+    await des.trap("pit",55,15);
+    await des.trap("magic",60,4);
+    await des.trap("statue",72,7);
+    await des.trap("statue");
+    await des.trap("statue");
+    await des.trap("anti magic",64,12);
+    await des.trap("sleep gas");
+    await des.trap("sleep gas");
+    await des.trap("dart");
+    await des.trap("dart");
+    await des.trap("dart");
+    await des.trap("rolling boulder",32,10);
+    await des.trap("rolling boulder",40,16);
     // Random monsters.
     des.monster("S");
     des.monster("S");
@@ -158,5 +158,5 @@ export function generate() {
     des.monster("M");
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

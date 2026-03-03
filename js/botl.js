@@ -682,7 +682,7 @@ export async function status_hilites_viewall() {
   datawin = create_nhwindow(NHW_TEXT);
   while (hlstr) {
     Sprintf(buf, "OPTIONS=hilite_status: %.*s", Math.trunc(BUFSZ - ("OPTIONS=hilite_status: ").length - 1), hlstr.str);
-    putstr(datawin, 0, buf);
+    await putstr(datawin, 0, buf);
     hlstr = hlstr.next;
   }
   await display_nhwindow(datawin, false);

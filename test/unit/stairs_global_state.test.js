@@ -21,7 +21,7 @@ describe('stairs global gs.stairs state', () => {
         stairway_free_all();
     });
 
-    it('stairway_add populates global linked-list and map endpoints', () => {
+    it('stairway_add populates global linked-list and map endpoints', async () => {
         const map = {};
         stairway_add(map, 10, 5, true, false, { dnum: 0, dlevel: 1 });
         stairway_add(map, 12, 7, false, true, { dnum: 2, dlevel: 3 });
@@ -36,32 +36,32 @@ describe('stairs global gs.stairs state', () => {
         assert.equal(map.upstair.x, 10);
         assert.equal(map.dnstair.x, 12);
 
-        const up = stairway_at(10, 5, map);
-        const dn = stairway_at(12, 7, map);
+        const up = await stairway_at(10, 5, map);
+        const dn = await stairway_at(12, 7, map);
         assert.ok(up && dn);
         assert.equal(up.up, true);
         assert.equal(dn.up, false);
         assert.equal(dn.isladder, true);
 
-        const byDest = stairway_find({ dnum: 2, dlevel: 3 }, map);
+        const byDest = await stairway_find({ dnum: 2, dlevel: 3 }, map);
         assert.ok(byDest);
         assert.equal(byDest.sx, 12);
 
-        const byDestType = stairway_find_from({ dnum: 2, dlevel: 3 }, true, map);
+        const byDestType = await stairway_find_from({ dnum: 2, dlevel: 3 }, true, map);
         assert.ok(byDestType);
         assert.equal(byDestType.sx, 12);
 
-        assert.equal(stairway_find_dir(true, map).sx, 10);
-        assert.equal(stairway_find_dir(false, map).sx, 12);
-        assert.equal(stairway_find_type_dir(true, false, map).sx, 12);
+        assert.equal((await stairway_find_dir(true, map)).sx, 10);
+        assert.equal((await stairway_find_dir(false, map)).sx, 12);
+        assert.equal((await stairway_find_type_dir(true, false, map)).sx, 12);
 
-        assert.equal(On_stairs(10, 5, map), true);
-        assert.equal(On_ladder(12, 7, map), true);
-        assert.equal(On_stairs_up(10, 5, map), true);
-        assert.equal(On_stairs_dn(12, 7, map), true);
+        assert.equal(await On_stairs(10, 5, map), true);
+        assert.equal(await On_ladder(12, 7, map), true);
+        assert.equal(await On_stairs_up(10, 5, map), true);
+        assert.equal(await On_stairs_dn(12, 7, map), true);
     });
 
-    it('setCurrentLevelStairs rebuilds global list from map stair fields', () => {
+    it('setCurrentLevelStairs rebuilds global list from map stair fields', async () => {
         const map = {
             uz: { dnum: 0, dlevel: 1 },
             upstair: {
@@ -81,20 +81,20 @@ describe('stairs global gs.stairs state', () => {
         };
 
         setCurrentLevelStairs(map);
-        assert.ok(stairway_at(3, 4, map));
-        assert.ok(stairway_at(7, 8, map));
-        assert.equal(stairway_find_dir(true, map).sx, 3);
-        assert.equal(stairway_find_dir(false, map).sx, 7);
+        assert.ok(await stairway_at(3, 4, map));
+        assert.ok(await stairway_at(7, 8, map));
+        assert.equal((await stairway_find_dir(true, map)).sx, 3);
+        assert.equal((await stairway_find_dir(false, map)).sx, 7);
     });
 
-    it('stairway_free_all clears global linked-list', () => {
+    it('stairway_free_all clears global linked-list', async () => {
         const map = {};
         stairway_add(map, 1, 1, true, false, { dnum: 0, dlevel: 1 });
         assert.ok(globalThis.gs.stairs);
         stairway_free_all();
         assert.equal(globalThis.gs.stairs, null);
-        assert.equal(stairway_at(1, 1), null);
+        assert.equal(await stairway_at(1, 1), null);
         // map-aware lookup lazily rehydrates gs.stairs from the map.
-        assert.ok(stairway_at(1, 1, map));
+        assert.ok(await stairway_at(1, 1, map));
     });
 });

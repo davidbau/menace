@@ -8,7 +8,7 @@ import { selection, percent, shuffle } from '../sp_lev.js';
 import { rn2 } from '../rng.js';
 import { A_CHAOTIC, A_NEUTRAL, A_LAWFUL } from '../config.js';
 
-export function generate() {
+export async function generate() {
     const align = [A_CHAOTIC, A_NEUTRAL, A_LAWFUL];
     shuffle(align);
 
@@ -201,5 +201,5 @@ export function generate() {
     des.monster({ class: "D", peaceful: 0 });
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

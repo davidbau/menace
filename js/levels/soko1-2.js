@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection, percent } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack sokoban soko1-2.lua	$NHDT-Date: 1652196034 2022/5/10 15:20:34 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.6 $
     // Copyright (c) 1998-1999 by Kevin Hugo
     // NetHack may be freely redistributed.  See license for details.
@@ -72,24 +72,24 @@ export function generate() {
     // prevent monster generation over the (filled) holes
     des.exclusion({ type: "monster-generation", region: [ 5,1, 22,1 ] });
     // Traps
-    des.trap("hole",5,1);
-    des.trap("hole",6,1);
-    des.trap("hole",7,1);
-    des.trap("hole",8,1);
-    des.trap("hole",9,1);
-    des.trap("hole",10,1);
-    des.trap("hole",11,1);
-    des.trap("hole",12,1);
-    des.trap("hole",13,1);
-    des.trap("hole",14,1);
-    des.trap("hole",15,1);
-    des.trap("hole",16,1);
-    des.trap("hole",17,1);
-    des.trap("hole",18,1);
-    des.trap("hole",19,1);
-    des.trap("hole",20,1);
-    des.trap("hole",21,1);
-    des.trap("hole",22,1);
+    await des.trap("hole",5,1);
+    await des.trap("hole",6,1);
+    await des.trap("hole",7,1);
+    await des.trap("hole",8,1);
+    await des.trap("hole",9,1);
+    await des.trap("hole",10,1);
+    await des.trap("hole",11,1);
+    await des.trap("hole",12,1);
+    await des.trap("hole",13,1);
+    await des.trap("hole",14,1);
+    await des.trap("hole",15,1);
+    await des.trap("hole",16,1);
+    await des.trap("hole",17,1);
+    await des.trap("hole",18,1);
+    await des.trap("hole",19,1);
+    await des.trap("hole",20,1);
+    await des.trap("hole",21,1);
+    await des.trap("hole",22,1);
 
     des.monster({ id: "giant mimic", appear_as: "obj:boulder" });
     des.monster({ id: "giant mimic", appear_as: "obj:boulder" });
@@ -121,5 +121,5 @@ export function generate() {
     des.object({ id: "scroll of scare monster", coord: pt, buc: "cursed" });
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

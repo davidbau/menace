@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Barbarian Bar-strt.lua	$NHDT-Date: 1652196001 2022/5/10 15:20:1 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991 by M. Stephenson
@@ -96,7 +96,7 @@ export function generate() {
     // Non diggable walls
     des.non_diggable(selection.area(0,0,75,19));
     // One trap to keep the ogres at bay.
-    des.trap("spiked pit",37,7);
+    await des.trap("spiked pit",37,7);
     // Eels in the river
     des.monster("giant eel", 36, 1);
     des.monster("giant eel", 37, 9);
@@ -107,5 +107,5 @@ export function generate() {
        des.monster({ id: "ogre", coord: ogrelocs.rndcoord(1), peaceful: 0 });
     
     }
-    return des.finalize_level();
+    return await des.finalize_level();
 }

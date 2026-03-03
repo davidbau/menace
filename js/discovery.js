@@ -235,24 +235,24 @@ function buildDiscoveriesPages(lines, rows) {
     return pages.length > 0 ? pages : [[{ text: DISCOVERIES_TITLE, attr: 0 }]];
 }
 
-function drawDiscoveriesPage(display, page) {
+async function drawDiscoveriesPage(display, page) {
     const contentRows = Math.max(1, (display.rows || 24) - 1);
     const cols = display.cols || 80;
     display.clearScreen();
     for (let r = 0; r < contentRows; r++) {
         const row = page[r];
         if (!row) continue;
-        display.putstr(0, r, row.text.substring(0, cols), undefined, row.attr || 0);
+        await display.putstr(0, r, row.text.substring(0, cols), undefined, row.attr || 0);
     }
     display.clearRow(contentRows);
-    display.putstr(0, contentRows, '--More--', undefined, 0);
+    await display.putstr(0, contentRows, '--More--', undefined, 0);
 }
 
 export async function handleDiscoveries(game) {
     const { display } = game;
     const lines = getDiscoveriesMenuLines();
     if (!lines.length) {
-        display.putstr_message("You haven't discovered anything yet...");
+        await display.putstr_message("You haven't discovered anything yet...");
         return { moved: false, tookTime: false };
     }
 
@@ -266,7 +266,7 @@ export async function handleDiscoveries(game) {
     const pages = buildDiscoveriesPages(lines, display.rows || 24);
     let pageIndex = 0;
     while (true) {
-        drawDiscoveriesPage(display, pages[pageIndex] || []);
+        await drawDiscoveriesPage(display, pages[pageIndex] || []);
         const ch = await nhgetch();
         if (ch === 32 || ch === 10 || ch === 13) {
             if (pageIndex + 1 < pages.length) {
@@ -341,12 +341,12 @@ export async function handleCallObjectTypePrompt(player, display) {
     const isDismissKey = (code) => code === 27 || code === 32;
 
     while (true) {
-        display.putstr_message(prompt);
+        await display.putstr_message(prompt);
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
         if (isDismissKey(ch)) {
             replacePromptMessage();
-            display.putstr_message('Never mind.');
+            await display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
         if (c === '?' || c === '*') {
@@ -359,7 +359,7 @@ export async function handleCallObjectTypePrompt(player, display) {
         }
         if (!isObjectTypeCallable(selected)) {
             replacePromptMessage();
-            display.putstr_message('That is a silly thing to call.');
+            await display.putstr_message('That is a silly thing to call.');
             return { moved: false, tookTime: false };
         }
 

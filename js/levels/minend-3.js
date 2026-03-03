@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection, shuffle } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack mines minend-3.lua	$NHDT-Date: 1652196029 2022/5/10 15:20:29 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989-95 by Jean-Christophe Collet
     // Copyright (c) 1991-95 by M. Stephenson
@@ -87,16 +87,16 @@ export function generate() {
     des.object();
     des.object();
     des.object();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // One-time annoyance factor
-    des.trap("level teleport",place[1]);
-    des.trap("level teleport",place[0]);
+    await des.trap("level teleport",place[1]);
+    await des.trap("level teleport",place[0]);
     des.monster("M");
     des.monster("M");
     des.monster("M");
@@ -116,5 +116,5 @@ export function generate() {
     des.monster("e");
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

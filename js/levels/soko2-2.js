@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack sokoban soko2-2.lua	$NHDT-Date: 1652196035 2022/5/10 15:20:35 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1998-1999 by Kevin Hugo
     // NetHack may be freely redistributed.  See license for details.
@@ -58,17 +58,17 @@ export function generate() {
     // prevent monster generation over the (filled) holes
     des.exclusion({ type: "monster-generation", region: [ 6,11, 18,11 ] });
     // Traps
-    des.trap("hole",7,11);
-    des.trap("hole",8,11);
-    des.trap("hole",9,11);
-    des.trap("hole",10,11);
-    des.trap("hole",11,11);
-    des.trap("hole",12,11);
-    des.trap("hole",13,11);
-    des.trap("hole",14,11);
-    des.trap("hole",15,11);
-    des.trap("hole",16,11);
-    des.trap("hole",17,11);
+    await des.trap("hole",7,11);
+    await des.trap("hole",8,11);
+    await des.trap("hole",9,11);
+    await des.trap("hole",10,11);
+    await des.trap("hole",11,11);
+    await des.trap("hole",12,11);
+    await des.trap("hole",13,11);
+    await des.trap("hole",14,11);
+    await des.trap("hole",15,11);
+    await des.trap("hole",16,11);
+    await des.trap("hole",17,11);
 
     // Random objects
     des.object({ class: "%" });
@@ -79,5 +79,5 @@ export function generate() {
     des.object({ class: "/" });
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

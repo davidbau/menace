@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection, percent, nh } from '../sp_lev.js';
 import { rn2 } from '../rng.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Knight Kni-strt.lua	$NHDT-Date: 1652196006 2022/5/10 15:20:6 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991,92 by M. Stephenson
@@ -93,12 +93,12 @@ export function generate() {
     // Non diggable walls
     des.non_diggable(selection.area(0,0,49,15));
     // Random traps
-    des.trap("sleep gas",24,4);
-    des.trap("sleep gas",25,4);
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap("sleep gas",24,4);
+    await des.trap("sleep gas",25,4);
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // Monsters on siege duty.
     des.monster({ id: "quasit", x: 14, y: 0, peaceful: 0 });
     des.monster({ id: "quasit", x: 16, y: 0, peaceful: 0 });
@@ -118,5 +118,5 @@ export function generate() {
         des.monster({ id: "warhorse", peaceful: 1, inventory: function() { if (percent(50)) { des.object("saddle"); } } });
     
     }
-    return des.finalize_level();
+    return await des.finalize_level();
 }

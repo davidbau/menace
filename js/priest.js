@@ -336,7 +336,7 @@ function linedup(ax, ay, bx, by /*, boteflag*/) {
 // pri_move — cf. priest.c:177
 // Priest per-turn movement. Returns 1: moved, 0: didn't, -1: let m_move do it
 // ============================================================================
-export function pri_move(priest, map, player, display, fov) {
+export async function pri_move(priest, map, player, display, fov) {
     const omx = priest.mx;
     const omy = priest.my;
 
@@ -357,7 +357,7 @@ export function pri_move(priest, map, player, display, fov) {
         || (player.conflict && !resist_conflict(priest))) {
         if (monnear(priest, player.x, player.y)) {
             if (player.displaced) {
-                Your("displaced image doesn't fool %s!", mon_nam(priest));
+                await Your("displaced image doesn't fool %s!", mon_nam(priest));
             }
             // C: mattacku(priest) — not yet ported; stub
             // (void) mattacku(priest);
@@ -381,7 +381,7 @@ export function pri_move(priest, map, player, display, fov) {
 // intemple — cf. priest.c:410
 // Called from check_special_room() when the player enters the temple room.
 // ============================================================================
-export function intemple(roomno, map, player, display, fov) {
+export async function intemple(roomno, map, player, display, fov) {
     // don't do anything if hero is already in the room
     if (temple_occupied(player.urooms0 || '', map)) return;
 
@@ -404,7 +404,7 @@ export function intemple(roomno, map, player, display, fov) {
                 priest.ispriest = false;
             }
             const seer = (canseemon(priest, player, fov)) ? Monnam(priest) : "A nearby voice";
-            pline("%s intones:", seer);
+            await pline("%s intones:", seer);
             priest.ispriest = save_priest;
             epri_p.intone_time = moves + d(10, 500);
             // make sure entry message not suppressed
@@ -427,8 +427,8 @@ export function intemple(roomno, map, player, display, fov) {
 
         if (msg1 && can_speak && !player.deaf) {
             // C: SetVoice(priest, 0, 80, 0) — cosmetic, skip
-            verbalize(msg1);
-            if (msg2) verbalize(msg2);
+            await verbalize(msg1);
+            if (msg2) await verbalize(msg2);
             epri_p.enter_time = moves + d(10, 100);
         }
 
@@ -450,7 +450,7 @@ export function intemple(roomno, map, player, display, fov) {
             const this_time = epri_p[this_time_key] || 0;
             const other_time = epri_p[other_time_key] || 0;
             if (moves >= this_time || other_time >= this_time) {
-                You(feedback_msg, feedback_arg);
+                await You(feedback_msg, feedback_arg);
                 epri_p[this_time_key] = moves + d(10, 20);
                 if (epri_p[this_time_key] <= epri_p[other_time_key]) {
                     epri_p[other_time_key] = epri_p[this_time_key] - 1;
@@ -462,13 +462,13 @@ export function intemple(roomno, map, player, display, fov) {
         // untended temple
         switch (rn2(4)) {
         case 0:
-            You("have an eerie feeling...");
+            await You("have an eerie feeling...");
             break;
         case 1:
-            You_feel("like you are being watched.");
+            await You_feel("like you are being watched.");
             break;
         case 2:
-            pline("A shiver runs down your %s.", body_part(SPINE));
+            await pline("A shiver runs down your %s.", body_part(SPINE));
             break;
         default:
             break; // no message
@@ -482,16 +482,16 @@ export function intemple(roomno, map, player, display, fov) {
                     ? (map.mvitals[PM_GHOST].born || 0) : 0;
                 const canspot = canseemon(mtmp, player, fov);
                 if (canspot) {
-                    pline("A%s ghost appears next to you%c",
+                    await pline("A%s ghost appears next to you%c",
                           ngen < 5 ? "n enormous" : "",
                           ngen < 10 ? '!' : '.');
                 } else {
-                    You("sense a presence close by!");
+                    await You("sense a presence close by!");
                 }
                 mtmp.mpeaceful = false;
                 set_malign(mtmp);
                 if (player.verbose !== false) {
-                    You("are frightened to death, and unable to move.");
+                    await You("are frightened to death, and unable to move.");
                 }
                 nomul(player, -3);
                 // C: multi_reason = "being terrified of a ghost"
@@ -521,7 +521,7 @@ export function forget_temple_entry(priest) {
 // priest_talk — cf. priest.c:558
 // Handles donation/blessing interaction with a priest.
 // ============================================================================
-export function priest_talk(priest, map, player, display) {
+export async function priest_talk(priest, map, player, display) {
     const coaligned = p_coaligned(priest, player);
     const strayed = (player.alignmentRecord || 0) < 0;
 
@@ -533,7 +533,7 @@ export function priest_talk(priest, map, player, display) {
     }
 
     if (priest.mflee || (!priest.ispriest && coaligned && strayed)) {
-        pline("%s doesn't want anything to do with you!", Monnam(priest));
+        await pline("%s doesn't want anything to do with you!", Monnam(priest));
         priest.mpeaceful = false;
         return;
     }
@@ -547,14 +547,14 @@ export function priest_talk(priest, map, player, display) {
         ];
 
         if (helpless(priest)) {
-            pline("%s breaks out of %s reverie!", Monnam(priest),
+            await pline("%s breaks out of %s reverie!", Monnam(priest),
                   priest.female ? "her" : "his");
             priest.mfrozen = 0;
             priest.msleeping = false;
             priest.mcanmove = true;
         }
         priest.mpeaceful = false;
-        verbalize(cranky_msg[rn2(3)]);
+        await verbalize(cranky_msg[rn2(3)]);
         return;
     }
 
@@ -562,7 +562,7 @@ export function priest_talk(priest, map, player, display) {
     if (priest.mpeaceful
         && in_rooms(priest.mx, priest.my, TEMPLE, map)
         && !has_shrine(priest, map)) {
-        verbalize("Begone!  Thou desecratest this holy place with thy presence.");
+        await verbalize("Begone!  Thou desecratest this holy place with thy presence.");
         priest.mpeaceful = false;
         return;
     }
@@ -574,38 +574,38 @@ export function priest_talk(priest, map, player, display) {
             if (pmoney > 0) {
                 const bits = player.hallucinating ? "zorkmids"
                     : (pmoney === 1) ? "bit" : "bits";
-                pline("%s gives you %s%s for an ale.", Monnam(priest),
+                await pline("%s gives you %s%s for an ale.", Monnam(priest),
                       (pmoney === 1) ? "one " : "two ", bits);
                 // C: money2u(priest, pmoney > 1 ? 2 : 1) — simplified
             } else {
-                pline("%s preaches the virtues of poverty.", Monnam(priest));
+                await pline("%s preaches the virtues of poverty.", Monnam(priest));
             }
-            exercise(player, A_WIS, true);
+            await exercise(player, A_WIS, true);
         } else {
-            pline("%s is not interested.", Monnam(priest));
+            await pline("%s is not interested.", Monnam(priest));
         }
         return;
     } else {
-        pline("%s asks you for a contribution for the temple.",
+        await pline("%s asks you for a contribution for the temple.",
               Monnam(priest));
         const offer = bribe(priest, map, player, display);
         if (offer === 0) {
-            verbalize("Thou shalt regret thine action!");
+            await verbalize("Thou shalt regret thine action!");
             if (coaligned) adjalign(player, -1);
         } else if (offer < ((player.ulevel || 1) * 200)) {
             if (playerMoney > (offer * 2)) {
-                verbalize("Cheapskate.");
+                await verbalize("Cheapskate.");
             } else {
-                verbalize("I thank thee for thy contribution.");
-                exercise(player, A_WIS, true);
+                await verbalize("I thank thee for thy contribution.");
+                await exercise(player, A_WIS, true);
             }
         } else if (offer < ((player.ulevel || 1) * 400)) {
-            verbalize("Thou art indeed a pious individual.");
+            await verbalize("Thou art indeed a pious individual.");
             if (playerMoney < (offer * 2)) {
                 if (coaligned && (player.alignmentRecord || 0) <= ALGN_SINNED) {
                     adjalign(player, 1);
                 }
-                verbalize("I bestow upon thee a blessing.");
+                await verbalize("I bestow upon thee a blessing.");
                 // C: incr_itimeout(&HClairvoyant, rn1(500, 500))
                 // Simplified: player.clairvoyant timeout
                 if (!player.clairvoyantTimeout) player.clairvoyantTimeout = 0;
@@ -615,7 +615,7 @@ export function priest_talk(priest, map, player, display) {
                    && (!(player.protectionIntrinsic)
                        || ((player.ublessed || 0) < 20
                            && ((player.ublessed || 0) < 9 || !rn2(player.ublessed || 1))))) {
-            verbalize("Thou hast been rewarded for thy devotion.");
+            await verbalize("Thou hast been rewarded for thy devotion.");
             if (!player.protectionIntrinsic) {
                 player.protectionIntrinsic = true;
                 if (!player.ublessed) player.ublessed = rn1(3, 2);
@@ -623,7 +623,7 @@ export function priest_talk(priest, map, player, display) {
                 player.ublessed = (player.ublessed || 0) + 1;
             }
         } else {
-            verbalize("Thy selfless generosity is deeply appreciated.");
+            await verbalize("Thy selfless generosity is deeply appreciated.");
             if (playerMoney < (offer * 2) && coaligned) {
                 const moves = player.turns || 0;
                 if (strayed && (moves - (player.ucleansed || 0)) > 5000) {
@@ -771,22 +771,22 @@ export async function ghod_hitsu(priest, map, player) {
 
     switch (rn2(3)) {
     case 0:
-        pline("%s roars in anger:  \"Thou shalt suffer!\"",
+        await pline("%s roars in anger:  \"Thou shalt suffer!\"",
               a_gname_at(ax, ay, player, map));
         break;
     case 1:
-        pline("%s voice booms:  \"How darest thou harm my servant!\"",
+        await pline("%s voice booms:  \"How darest thou harm my servant!\"",
               s_suffix(a_gname_at(ax, ay, player, map)));
         break;
     default:
-        pline("%s roars:  \"Thou dost profane my shrine!\"",
+        await pline("%s roars:  \"Thou dost profane my shrine!\"",
               a_gname_at(ax, ay, player, map));
         break;
     }
 
     // bolt of lightning cast by unspecified monster
     await buzz(BZ_M_SPELL_ELEC, 6, x, y, sgn(tbx), sgn(tby), map, player);
-    exercise(player, A_WIS, false);
+    await exercise(player, A_WIS, false);
 }
 
 // ============================================================================

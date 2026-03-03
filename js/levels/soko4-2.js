@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack sokoban soko4-2.lua	$NHDT-Date: 1652196036 2022/5/10 15:20:36 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1998-1999 by Kevin Hugo
     // NetHack may be freely redistributed.  See license for details.
@@ -54,16 +54,16 @@ export function generate() {
     des.exclusion({ type: "monster-generation", region: [ 1,1, 1,9 ] });
     des.exclusion({ type: "monster-generation", region: [ 1,8, 7,9 ] });
     // Traps
-    des.trap("pit",1,2);
-    des.trap("pit",1,3);
-    des.trap("pit",1,4);
-    des.trap("pit",1,5);
-    des.trap("pit",1,6);
-    des.trap("pit",1,7);
-    des.trap("pit",3,8);
-    des.trap("pit",4,8);
-    des.trap("pit",5,8);
-    des.trap("pit",6,8);
+    await des.trap("pit",1,2);
+    await des.trap("pit",1,3);
+    await des.trap("pit",1,4);
+    await des.trap("pit",1,5);
+    await des.trap("pit",1,6);
+    await des.trap("pit",1,7);
+    await des.trap("pit",3,8);
+    await des.trap("pit",4,8);
+    await des.trap("pit",5,8);
+    await des.trap("pit",6,8);
 
     // A little help
     des.object("scroll of earth",1,9);
@@ -80,5 +80,5 @@ export function generate() {
 
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

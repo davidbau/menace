@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Monk Mon-loca.lua	$NHDT-Date: 1652196007 2022/5/10 15:20:7 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991-2 by M. Stephenson
@@ -75,12 +75,12 @@ export function generate() {
                  montype: "spinach" })
     des.engraving({ coord: tinloc, type: "burn", text: "Elbereth" });
     // Random traps
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // Random monsters.
     des.monster("earth elemental");
     des.monster("earth elemental");
@@ -107,5 +107,5 @@ export function generate() {
     des.monster("xorn");
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

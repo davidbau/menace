@@ -61,7 +61,7 @@ describe('eat occupation timing', () => {
         while (game.occupation) {
             const occ = game.occupation;
             const hadBefore = game.player.inventory.includes(ration);
-            const cont = occ.fn();
+            const cont = await occ.fn();
             const hasAfter = game.player.inventory.includes(ration);
             if (cont) {
                 sawContinue = true;
@@ -93,11 +93,11 @@ describe('eat occupation timing', () => {
 
         while (game.occupation) {
             const occ = game.occupation;
-            const cont = occ.fn();
+            const cont = await occ.fn();
             if (!cont) {
                 game.occupation = null;
                 if (typeof occ.onFinishAfterTurn === 'function') {
-                    occ.onFinishAfterTurn(game);
+                    await occ.onFinishAfterTurn(game);
                 }
             }
         }

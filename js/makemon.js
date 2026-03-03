@@ -15,7 +15,9 @@ import { couldsee } from './vision.js';
 
 // Registration for get_shop_item to avoid circular dependency with shknam.js.
 // shknam.js calls registerGetShopItem() during initialization.
-let _getShopItem = null;
+// Use `var` instead of `let` to avoid TDZ: ES module import hoisting means
+// shknam.js may call registerGetShopItem() before this line executes.
+var _getShopItem = null;
 export function registerGetShopItem(fn) { _getShopItem = fn; }
 import {
     mons, LOW_PM, SPECIAL_PM, MAXMCLASSES,
@@ -2276,7 +2278,7 @@ export function rndmonst() {
 }
 
 // Autotranslated from makemon.c:2045
-export function grow_up(mtmp, victim, game) {
+export async function grow_up(mtmp, victim, game) {
   let oldtype, newtype, max_increase, cur_increase, lev_limit, hp_threshold;
   let fem, ptr = mtmp.data;
   if (DEADMONSTER(mtmp)) return  0;
@@ -2310,7 +2312,7 @@ export function grow_up(mtmp, victim, game) {
     ptr = mons;
     fem = is_male(ptr) ? 0 : is_female(ptr) ? 1 : mtmp.female;
     if (game.mvitals[newtype].mvflags & G_GENOD) {
-      if (canspotmon(mtmp)) pline("As %s grows up into %s, %s %s!", mon_nam(mtmp), an(pmname(ptr, Mgender(mtmp))), mhe(mtmp), nonliving(ptr) ? "expires" : "dies");
+      if (canspotmon(mtmp)) await pline("As %s grows up into %s, %s %s!", mon_nam(mtmp), an(pmname(ptr, Mgender(mtmp))), mhe(mtmp), nonliving(ptr) ? "expires" : "dies");
       set_mon_data(mtmp, ptr);
       mondied(mtmp);
       return  0;
@@ -2318,7 +2320,7 @@ export function grow_up(mtmp, victim, game) {
     else if (canspotmon(mtmp)) {
       let buf;
       Sprintf(buf, "%s%s",   (mtmp.female && !fem) ? "male "   : (fem && !mtmp.female) ? "female " : "", pmname(ptr, fem));
-      pline_mon(mtmp, "%s %s %s.", YMonnam(mtmp), (fem !== mtmp.female) ? "changes into" : humanoid(ptr) ? "becomes" : "grows up into", an(buf));
+      await pline_mon(mtmp, "%s %s %s.", YMonnam(mtmp), (fem !== mtmp.female) ? "changes into" : humanoid(ptr) ? "becomes" : "grows up into", an(buf));
     }
     set_mon_data(mtmp, ptr);
     if (mtmp.cham === oldtype && is_shapeshifter(ptr)) mtmp.cham = newtype;

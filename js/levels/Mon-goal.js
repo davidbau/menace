@@ -7,7 +7,7 @@ import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 import { rn2 } from '../rng.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Monk Mon-goal.lua	$NHDT-Date: 1652196007 2022/5/10 15:20:7 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.1 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991-2 by M. Stephenson
@@ -56,12 +56,12 @@ xxxxx...xxxxxx....xxxxxxxx
     des.object();
     des.object();
     // Random traps
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap("fire");
-    des.trap();
-    des.trap();
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap("fire");
+    await des.trap();
+    await des.trap();
     // Random monsters.
     des.monster("Master Kaen",place[placeidx]);
     des.altar({ coord: place[placeidx], align: "noalign", type: "altar" });
@@ -85,5 +85,5 @@ xxxxx...xxxxxx....xxxxxxxx
     des.monster("xorn");
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

@@ -1847,17 +1847,17 @@ export function obj_meld(obj1, obj2) {
 }
 
 // Autotranslated from mkobj.c:3817
-export function pudding_merge_message(otmp, otmp2, player) {
+export async function pudding_merge_message(otmp, otmp2, player) {
   let visible = (cansee(otmp.ox, otmp.oy) || cansee(otmp2.ox, otmp2.oy)), onfloor = (otmp.where === 'OBJ_FLOOR' || otmp2.where === 'OBJ_FLOOR'), inpack = (carried(otmp) || carried(otmp2));
   if ((!(player?.Blind || player?.blind || false) && visible) || inpack) {
     if ((player?.Hallucination || player?.hallucinating || false)) {
-      if (onfloor) { You_see("parts of the floor melting!"); }
-      else if (inpack) { Your("pack reaches out and grabs something!"); }
+      if (onfloor) { await You_see("parts of the floor melting!"); }
+      else if (inpack) { await Your("pack reaches out and grabs something!"); }
     }
     else if (onfloor || inpack) {
       let adj = ((otmp.ox !== player.x || otmp.oy !== player.y) && (otmp2.ox !== player.x || otmp2.oy !== player.y));
-      pline("The %s%s coalesce%s.", (onfloor && adj) ? "adjacent " : "", makeplural(obj_typename(otmp.otyp)), inpack ? " inside your pack" : "");
+      await pline("The %s%s coalesce%s.", (onfloor && adj) ? "adjacent " : "", makeplural(obj_typename(otmp.otyp)), inpack ? " inside your pack" : "");
     }
   }
-  else { You_hear("a faint sloshing sound."); }
+  else { await You_hear("a faint sloshing sound."); }
 }

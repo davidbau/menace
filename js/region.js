@@ -73,10 +73,10 @@ function get_regions(map) {
 // ========================================================================
 // Callback dispatch — maps callback index to function
 // ========================================================================
-function dispatch_callback(f_indx, reg, arg, map, player, game) {
+async function dispatch_callback(f_indx, reg, arg, map, player, game) {
     switch (f_indx) {
-        case INSIDE_GAS_CLOUD: return inside_gas_cloud(reg, arg, map, player, game);
-        case EXPIRE_GAS_CLOUD: return expire_gas_cloud(reg, arg, map, player, game);
+        case INSIDE_GAS_CLOUD: return await inside_gas_cloud(reg, arg, map, player, game);
+        case EXPIRE_GAS_CLOUD: return await expire_gas_cloud(reg, arg, map, player, game);
         default: return true;
     }
 }
@@ -271,7 +271,7 @@ export function clear_regions(map) {
 // ========================================================================
 // cf. region.c:413 — run_regions(): per-turn region processing
 // ========================================================================
-export function run_regions(map, player, game) {
+export async function run_regions(map, player, game) {
     const regions = get_regions(map);
     let gas_cloud_diss_within = false;
     let gas_cloud_diss_seen = 0;
@@ -281,7 +281,7 @@ export function run_regions(map, player, game) {
         if (regions[i].ttl === 0) {
             const f_indx = regions[i].expire_f;
             if (f_indx === NO_CALLBACK
-                || dispatch_callback(f_indx, regions[i], null, map, player, game)) {
+                || await dispatch_callback(f_indx, regions[i], null, map, player, game)) {
                 remove_region(regions[i], map, player);
             }
         }
@@ -296,14 +296,14 @@ export function run_regions(map, player, game) {
         // Check if player is inside region
         const f_indx = regions[i].inside_f;
         if (f_indx !== NO_CALLBACK && hero_inside(regions[i]))
-            dispatch_callback(f_indx, regions[i], null, map, player, game);
+            await dispatch_callback(f_indx, regions[i], null, map, player, game);
 
         // Check if any monster is inside region
         if (f_indx !== NO_CALLBACK) {
             for (let j = 0; j < regions[i].monsters.length; j++) {
                 const mtmp = find_mid(regions[i].monsters[j], FM_FMON, map, player);
                 if (!mtmp || mtmp.dead
-                    || dispatch_callback(f_indx, regions[i], mtmp, map, player, game)) {
+                    || await dispatch_callback(f_indx, regions[i], mtmp, map, player, game)) {
                     // The monster died, remove it from list
                     const k = regions[i].monsters.length - 1;
                     regions[i].monsters[j] = regions[i].monsters[k];
@@ -321,7 +321,7 @@ export function run_regions(map, player, game) {
 // ========================================================================
 // cf. region.c:479 — in_out_region(x, y): player entered/left a region
 // ========================================================================
-export function in_out_region(x, y, map, player, game) {
+export async function in_out_region(x, y, map, player, game) {
     const regions = get_regions(map);
 
     // First check if hero can do the move
@@ -333,7 +333,7 @@ export function in_out_region(x, y, map, player, game) {
                && (f_indx = regions[i].can_enter_f) !== NO_CALLBACK)
             : (hero_inside(regions[i])
                && (f_indx = regions[i].can_leave_f) !== NO_CALLBACK)) {
-            if (!dispatch_callback(f_indx, regions[i], null, map, player, game))
+            if (!await dispatch_callback(f_indx, regions[i], null, map, player, game))
                 return false;
         }
     }
@@ -344,10 +344,10 @@ export function in_out_region(x, y, map, player, game) {
         if (hero_inside(regions[i]) && !inside_region(regions[i], x, y)) {
             clear_hero_inside(regions[i]);
             if (regions[i].leave_msg)
-                pline(regions[i].leave_msg);
+                await pline(regions[i].leave_msg);
             const f_indx = regions[i].leave_f;
             if (f_indx !== NO_CALLBACK)
-                dispatch_callback(f_indx, regions[i], null, map, player, game);
+                await dispatch_callback(f_indx, regions[i], null, map, player, game);
         }
     }
 
@@ -357,10 +357,10 @@ export function in_out_region(x, y, map, player, game) {
         if (!hero_inside(regions[i]) && inside_region(regions[i], x, y)) {
             set_hero_inside(regions[i]);
             if (regions[i].enter_msg)
-                pline(regions[i].enter_msg);
+                await pline(regions[i].enter_msg);
             const f_indx = regions[i].enter_f;
             if (f_indx !== NO_CALLBACK)
-                dispatch_callback(f_indx, regions[i], null, map, player, game);
+                await dispatch_callback(f_indx, regions[i], null, map, player, game);
         }
     }
 
@@ -370,7 +370,7 @@ export function in_out_region(x, y, map, player, game) {
 // ========================================================================
 // cf. region.c:533 — m_in_out_region(mon, x, y): monster entered/left a region
 // ========================================================================
-export function m_in_out_region(mon, x, y, map, player, game) {
+export async function m_in_out_region(mon, x, y, map, player, game) {
     const regions = get_regions(map);
 
     // First check if mon can do the move
@@ -382,7 +382,7 @@ export function m_in_out_region(mon, x, y, map, player, game) {
                && (f_indx = regions[i].can_enter_f) !== NO_CALLBACK)
             : (mon_in_region(regions[i], mon)
                && (f_indx = regions[i].can_leave_f) !== NO_CALLBACK)) {
-            if (!dispatch_callback(f_indx, regions[i], mon, map, player, game))
+            if (!await dispatch_callback(f_indx, regions[i], mon, map, player, game))
                 return false;
         }
     }
@@ -395,7 +395,7 @@ export function m_in_out_region(mon, x, y, map, player, game) {
             remove_mon_from_reg(regions[i], mon);
             const f_indx = regions[i].leave_f;
             if (f_indx !== NO_CALLBACK)
-                dispatch_callback(f_indx, regions[i], mon, map, player, game);
+                await dispatch_callback(f_indx, regions[i], mon, map, player, game);
         }
     }
 
@@ -407,7 +407,7 @@ export function m_in_out_region(mon, x, y, map, player, game) {
             add_mon_to_reg(regions[i], mon);
             const f_indx = regions[i].enter_f;
             if (f_indx !== NO_CALLBACK)
-                dispatch_callback(f_indx, regions[i], mon, map, player, game);
+                await dispatch_callback(f_indx, regions[i], mon, map, player, game);
         }
     }
 
@@ -535,7 +535,7 @@ function reset_region_mids(reg, map, player) {
 // ========================================================================
 // cf. region.c:1046 — expire_gas_cloud(reg): gas cloud expiration callback
 // ========================================================================
-export function expire_gas_cloud(reg, _arg, map, player, _game) {
+export async function expire_gas_cloud(reg, _arg, map, player, _game) {
     const damage = reg.arg;
 
     // If it was a thick cloud, it dissipates a little first
@@ -560,7 +560,7 @@ export function expire_gas_cloud(reg, _arg, map, player, _game) {
                 if (inside_region(reg, x, y)) {
                     if (player.x === x && player.y === y) {
                         // gas_cloud_diss_within
-                        pline_The("gas cloud around you dissipates.");
+                        await pline_The("gas cloud around you dissipates.");
                     } else if (map && cansee(map, player, null, x, y)) {
                         // gas_cloud_diss_seen — simplified
                     }
@@ -577,7 +577,7 @@ export function expire_gas_cloud(reg, _arg, map, player, _game) {
 // Returns true if mtmp is killed, false otherwise.
 // mtmp === null means the hero.
 // ========================================================================
-export function inside_gas_cloud(reg, mtmp, map, player, game) {
+export async function inside_gas_cloud(reg, mtmp, map, player, game) {
     const umon = mtmp || player;
     const dam = reg.arg;
 
@@ -592,24 +592,24 @@ export function inside_gas_cloud(reg, mtmp, map, player, game) {
         if (m_poisongas_ok(player) === M_POISONGAS_OK)
             return false;
         if (!player.blind) {
-            You("%s sting.", makeplural(body_part(EYE, player)));
+            await You("%s sting.", makeplural(body_part(EYE, player)));
             // make_blinded(1, false) — simplified
             player.blindedTimeout = Math.max(player.blindedTimeout || 0, 1);
         }
         if (!player.poisonResistance) {
-            pline("%s is burning your %s!", "Something",
+            await pline("%s is burning your %s!", "Something",
                   makeplural(body_part(LUNG, player)));
-            You("cough and spit blood!");
+            await You("cough and spit blood!");
             if (map) wake_nearto(player.x, player.y, 2, map);
             let dmg = rnd(dam) + 5;
             // Maybe_Half_Phys — check half physical damage
             if (player.halfPhysDamage) dmg = Math.floor((dmg + 1) / 2);
             // Half_gas_damage (worn towel)
             if (player.halfGasDamage) dmg = Math.floor((dmg + 1) / 2);
-            if (game) losehp(dmg, "gas cloud", 0, player, game.display, game);
+            if (game) await losehp(dmg, "gas cloud", 0, player, game.display, game);
             return false;
         } else {
-            You("cough!");
+            await You("cough!");
             if (map) wake_nearto(player.x, player.y, 2, map);
             return false;
         }
@@ -619,7 +619,7 @@ export function inside_gas_cloud(reg, mtmp, map, player, game) {
             if (!is_silent(mtmp.type || {})) {
                 if ((map && cansee(map, player, null, mtmp.mx, mtmp.my))
                     || dist2(player.x, player.y, mtmp.mx, mtmp.my) < 8)
-                    pline("%s coughs!", Monnam(mtmp));
+                    await pline("%s coughs!", Monnam(mtmp));
                 if (map) wake_nearto(mtmp.mx, mtmp.my, 2, map);
             }
             if (heros_fault(reg))
@@ -662,7 +662,7 @@ function is_hero_inside_gas_cloud(map) {
 // cf. region.c:1182 — make_gas_cloud(cloud, damage, inside_cloud):
 //   gas cloud common initialization
 // ========================================================================
-function make_gas_cloud(cloud, damage, inside_cloud, map, player, game) {
+async function make_gas_cloud(cloud, damage, inside_cloud, map, player, game) {
     if (!game?.in_mklev && !game?.mon_moving)
         set_heros_fault(cloud);
     cloud.inside_f = INSIDE_GAS_CLOUD;
@@ -674,7 +674,7 @@ function make_gas_cloud(cloud, damage, inside_cloud, map, player, game) {
     add_region(cloud, map, player);
 
     if (!game?.in_mklev && !inside_cloud && is_hero_inside_gas_cloud(map)) {
-        You("are enveloped in a cloud of %s!",
+        await You("are enveloped in a cloud of %s!",
             damage ? "noxious gas" : "steam");
     }
 }
@@ -694,7 +694,7 @@ function valid_cloud_pos(x, y, map) {
 // ========================================================================
 const MAX_CLOUD_SIZE = 150;
 
-export function create_gas_cloud(x, y, cloudsize, damage, map, player, game) {
+export async function create_gas_cloud(x, y, cloudsize, damage, map, player, game) {
     const xcoords = [x];
     const ycoords = [y];
     let newidx = 1;
@@ -758,14 +758,14 @@ export function create_gas_cloud(x, y, cloudsize, damage, map, player, game) {
     // If cloud was constrained, give it more time
     cloud.ttl = Math.floor((cloud.ttl * cloudsize) / newidx);
 
-    make_gas_cloud(cloud, damage, suppress || inside_cloud, map, player, game);
+    await make_gas_cloud(cloud, damage, suppress || inside_cloud, map, player, game);
     return cloud;
 }
 
 // ========================================================================
 // cf. region.c:1313 — create_gas_cloud_selection(sel, damage): selection-based
 // ========================================================================
-export function create_gas_cloud_selection(sel, damage, map, player, game) {
+export async function create_gas_cloud_selection(sel, damage, map, player, game) {
     const inside_cloud = is_hero_inside_gas_cloud(map);
     const cloud = create_region(null, 0);
 
@@ -776,7 +776,7 @@ export function create_gas_cloud_selection(sel, damage, map, player, game) {
         }
     }
 
-    make_gas_cloud(cloud, damage, inside_cloud, map, player, game);
+    await make_gas_cloud(cloud, damage, inside_cloud, map, player, game);
     return cloud;
 }
 
@@ -805,7 +805,7 @@ export function region_danger(map, player) {
 // ========================================================================
 // cf. region.c:1368 — region_safety(): mitigate region dangers after prayer
 // ========================================================================
-export function region_safety(map, player, game) {
+export async function region_safety(map, player, game) {
     if (!map || !player) return;
     const regions = get_regions(map);
     let r = null;
@@ -822,7 +822,7 @@ export function region_safety(map, player, game) {
 
     if (n > 1 || (n === 1 && !r)) {
         // Multiple overlapping cloud regions or non-expiring one
-        if (game) safe_teleds(0, game);
+        if (game) await safe_teleds(0, game);
         if (region_danger(map, player)) {
             // Grant temporary breathlessness
             // set_itimeout(&HMagical_breathing, d(4,4)+4)
@@ -831,13 +831,13 @@ export function region_safety(map, player, game) {
                 // Simplified: set breathless timeout
                 player.breathlessTimeout = dur;
             }
-            You_feel("able to breathe.");
+            await You_feel("able to breathe.");
         }
     } else if (r) {
         remove_region(r, map, player);
-        pline_The("gas cloud enveloping you dissipates.");
+        await pline_The("gas cloud enveloping you dissipates.");
     } else {
-        pline_The("gas cloud has dissipated.");
+        await pline_The("gas cloud has dissipated.");
     }
 
     // Maybe cure blindness too

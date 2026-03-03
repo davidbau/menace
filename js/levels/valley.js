@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection, percent } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack gehennom valley.lua	$NHDT-Date: 1652196038 2022/5/10 15:20:38 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1992 by M. Stephenson && Izchak Miller
@@ -143,17 +143,17 @@ export function generate() {
     des.object("(");
 
     // (Not so) Random traps.
-    des.trap("spiked pit", 5,2);
-    des.trap("spiked pit", 14,5);
-    des.trap("sleep gas", 3,1);
-    des.trap("board", 21,12);
-    des.trap("board");
-    des.trap("dart", 60,1);
-    des.trap("dart", 26,17);
-    des.trap("anti magic");
-    des.trap("anti magic");
-    des.trap("magic");
-    des.trap("magic");
+    await des.trap("spiked pit", 5,2);
+    await des.trap("spiked pit", 14,5);
+    await des.trap("sleep gas", 3,1);
+    await des.trap("board", 21,12);
+    await des.trap("board");
+    await des.trap("dart", 60,1);
+    await des.trap("dart", 26,17);
+    await des.trap("anti magic");
+    await des.trap("anti magic");
+    await des.trap("magic");
+    await des.trap("magic");
 
     // Random monsters.
     // The ghosts.
@@ -183,5 +183,5 @@ export function generate() {
     des.monster("M");
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

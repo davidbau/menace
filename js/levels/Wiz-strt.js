@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Wizard Wiz-strt.lua	$NHDT-Date: 1652196019 2022/5/10 15:20:19 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $
     // Copyright (c) 1992 by David Cohrs
     // NetHack may be freely redistributed.  See license for details.
@@ -92,12 +92,12 @@ export function generate() {
     // Non diggable walls
     des.non_diggable(selection.area(0,0,75,19));
     // Random traps
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // Monsters on siege duty.
     des.monster({ class: "B", x: 60, y: 9, peaceful: 0 });
     des.monster({ class: "W", x: 60, y: 10, peaceful: 0 });
@@ -116,5 +116,5 @@ export function generate() {
     des.monster({ class: "B", x: 10, y: 19, peaceful: 0 });
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

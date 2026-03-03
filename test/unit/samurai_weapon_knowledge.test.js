@@ -10,7 +10,7 @@ import { isObjectNameKnown } from '../../js/discovery.js';
 
 describe('samurai weapon knowledge', () => {
 
-function setupRole(seed, roleName) {
+async function setupRole(seed, roleName) {
     const roleIndex = roles.findIndex((r) => r.name === roleName);
     if (roleIndex < 0) throw new Error(`Unknown role: ${roleName}`);
     initRng(seed);
@@ -18,7 +18,7 @@ function setupRole(seed, roleName) {
     const player = new Player();
     player.initRole(roleIndex);
     player.name = roleName;
-    const map = makelevel(1);
+    const map = await makelevel(1);
     wallification(map);
     player.x = map.upstair.x;
     player.y = map.upstair.y;
@@ -26,14 +26,14 @@ function setupRole(seed, roleName) {
     return { player, map };
 }
 
-test('samurai starts with orcish dagger name known', () => {
-    const { player, map } = setupRole(110, 'Samurai');
+test('samurai starts with orcish dagger name known', async () => {
+    const { player, map } = await setupRole(110, 'Samurai');
     simulatePostLevelInit(player, map, 1);
     assert.equal(isObjectNameKnown(ORCISH_DAGGER), true);
 });
 
-test('wizard does not start with orcish dagger name known', () => {
-    const { player, map } = setupRole(113, 'Wizard');
+test('wizard does not start with orcish dagger name known', async () => {
+    const { player, map } = await setupRole(113, 'Wizard');
     simulatePostLevelInit(player, map, 1);
     assert.equal(isObjectNameKnown(ORCISH_DAGGER), false);
 });

@@ -73,7 +73,7 @@ test('counted rest bypasses wait safety and starts waiting occupation', async ()
         undefined
     );
 
-    const continueOcc = game.occupation.fn(game);
+    const continueOcc = await game.occupation.fn(game);
     assert.equal(continueOcc, true);
     assert.equal(game.multi, 2);
 });
@@ -113,7 +113,7 @@ test('counted search bypasses safety and starts searching occupation', async () 
         undefined
     );
 
-    const continueOcc = game.occupation.fn(game);
+    const continueOcc = await game.occupation.fn(game);
     assert.equal(continueOcc, true);
     assert.equal(game.multi, 1);
 });

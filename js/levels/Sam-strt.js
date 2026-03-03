@@ -6,7 +6,7 @@
 import * as des from '../sp_lev.js';
 import { selection } from '../sp_lev.js';
 
-export function generate() {
+export async function generate() {
     // NetHack Samurai Sam-strt.lua	$NHDT-Date: 1695932714 2023/9/28 20:25:14 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.4 $
     // Copyright (c) 1989 by Jean-Christophe Collet
     // Copyright (c) 1991-92 by M. Stephenson, P. Winner
@@ -85,12 +85,12 @@ export function generate() {
     // Non diggable walls
     des.non_diggable(selection.area(0,0,75,19));
     // Random traps
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
-    des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
+    await des.trap();
     // Monsters on siege duty.
     des.monster({ id: "ninja", x: 64, y: 0, peaceful: 0 });
     des.monster("wolf", 65, 1);
@@ -107,5 +107,5 @@ export function generate() {
     des.monster("stalker");
 
 
-    return des.finalize_level();
+    return await des.finalize_level();
 }

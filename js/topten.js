@@ -272,7 +272,7 @@ export function free_ttlist(tt) {
 }
 
 // Autotranslated from topten.c:1421
-export function tt_oname(otmp) {
+export async function tt_oname(otmp) {
   let tt;
   if (!otmp) return  0;
   tt = get_rnd_toptenentry();
@@ -280,7 +280,7 @@ export function tt_oname(otmp) {
   set_corpsenm(otmp, classmon(tt.plrole));
   if (tt.plgend === 'F') otmp.spe = CORPSTAT_FEMALE;
   else if (tt.plgend === 'M') otmp.spe = CORPSTAT_MALE;
-  otmp = oname(otmp, tt.name, ONAME_NO_FLAGS);
+  otmp = await oname(otmp, tt.name, ONAME_NO_FLAGS);
   return otmp;
 }
 

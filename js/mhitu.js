@@ -66,7 +66,7 @@ const PIERCE = 1;
 
 // cf. mhitu.c:30 hitmsg() — monster hits hero message.
 // Prints the appropriate hit verb for the attack type.
-function hitmsg(monster, attack, display, suppressHitMsg) {
+async function hitmsg(monster, attack, display, suppressHitMsg) {
     if (suppressHitMsg) return;
     let verb;
     switch (attack.aatyp) {
@@ -80,7 +80,7 @@ function hitmsg(monster, attack, display, suppressHitMsg) {
     case AT_TENT: verb = 'tentacles suck your brain'; break;
     default: verb = 'hits'; break;
     }
-    display.putstr_message(`The ${x_monnam(monster)} ${verb}!`);
+    await display.putstr_message(`The ${x_monnam(monster)} ${verb}!`);
 }
 
 // cf. mhitu.c mswings_verb() / mswings().
@@ -113,7 +113,7 @@ export function monsterPossessive(monster) {
 }
 
 // cf. mhitu.c AT_WEAP swing path (partial).
-function maybeMonsterWeaponSwingMessage(monster, player, display, suppressHitMsg) {
+async function maybeMonsterWeaponSwingMessage(monster, player, display, suppressHitMsg) {
     if (!monster?.weapon || suppressHitMsg) return;
     if (player?.blind) return;
     if (monster.minvis && !player?.seeInvisible) return;
@@ -122,7 +122,7 @@ function maybeMonsterWeaponSwingMessage(monster, player, display, suppressHitMsg
     const swingVerb = monsterWeaponSwingVerb(monster.weapon, bash);
     const oneOf = ((monster.weapon.quan || 1) > 1) ? 'one of ' : '';
     const seenWeapon = xname({ ...monster.weapon, dknown: true });
-    display.putstr_message(
+    await display.putstr_message(
         `The ${x_monnam(monster)} ${swingVerb} ${oneOf}${monsterPossessive(monster)} ${seenWeapon}.`
     );
 }
@@ -187,7 +187,7 @@ function drain_en(player, amount) {
 // cf. uhitm.c:5225 mhitm_knockback() — RNG + eligibility check.
 // Always consumes rn2(3) for distance and rn2(chance) for trigger.
 // Returns true if knockback would qualify (but we don't implement movement).
-function mhitm_knockback(monster, attack, weaponUsed, display) {
+async function mhitm_knockback(monster, attack, weaponUsed, display) {
     rn2(3);  // knockback distance: 67% 1 step, 33% 2 steps
     const chance = 6; // default 1/6 chance; Ogresmasher would use 2
     if (rn2(chance)) return false; // didn't trigger
@@ -220,7 +220,7 @@ function mhitm_knockback(monster, attack, weaponUsed, display) {
     const adj = rn2(2) ? 'forceful' : 'powerful';
     const noun = rn2(2) ? 'blow' : 'strike';
     if (display) {
-        display.putstr_message(
+        await display.putstr_message(
             `The ${x_monnam(monster)} knocks you back with a ${adj} ${noun}!`
         );
     }
@@ -238,7 +238,7 @@ function mhitm_knockback(monster, attack, weaponUsed, display) {
 // ============================================================================
 
 // cf. uhitm.c:3959 mhitm_ad_phys — mhitu branch (uhitm.c:3999-4105)
-function mhitu_ad_phys(monster, attack, player, mhm, ctx) {
+async function mhitu_ad_phys(monster, attack, player, mhm, ctx) {
     const { display, suppressHitMsg } = ctx;
 
     if (attack.aatyp === AT_HUGS) {
@@ -246,11 +246,11 @@ function mhitu_ad_phys(monster, attack, player, mhm, ctx) {
         if (!player.ustuck && rn2(2)) {
             // Grabbed
             player.ustuck = monster;
-            display.putstr_message(`The ${x_monnam(monster)} grabs you!`);
+            await display.putstr_message(`The ${x_monnam(monster)} grabs you!`);
             mhm.hitflags |= M_ATTK_HIT;
         } else if (player.ustuck === monster) {
-            exercise(player, A_STR, false);
-            display.putstr_message('You are being crushed.');
+            await exercise(player, A_STR, false);
+            await display.putstr_message('You are being crushed.');
         } else {
             mhm.damage = 0;
             mhm.hitflags |= M_ATTK_MISS;
@@ -263,7 +263,7 @@ function mhitu_ad_phys(monster, attack, player, mhm, ctx) {
             if (wsdam > 0) mhm.damage += rnd(wsdam);
             // Gauntlets of power: rn1(4,3) — skip, monsters rarely have them
             if (mhm.damage <= 0) mhm.damage = 1;
-            hitmsg(monster, attack, display, suppressHitMsg);
+            await hitmsg(monster, attack, display, suppressHitMsg);
             mhm.hitflags |= M_ATTK_HIT;
             // Weapon enchantment
             mhm.damage += weaponEnchantment(monster.weapon);
@@ -276,22 +276,22 @@ function mhitu_ad_phys(monster, attack, player, mhm, ctx) {
             // TODO: implement weapon poison path
         } else if (attack.aatyp !== AT_TUCH || mhm.damage !== 0
                    || monster !== player.ustuck) {
-            hitmsg(monster, attack, display, suppressHitMsg);
+            await hitmsg(monster, attack, display, suppressHitMsg);
             mhm.hitflags |= M_ATTK_HIT;
         }
     }
 }
 
 // cf. uhitm.c:2539 mhitm_ad_fire — mhitu branch
-function mhitu_ad_fire(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_fire(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     if (!mhitm_mgc_atk_negated(monster, player)) {
         if (!ctx.suppressHitMsg) {
-            ctx.display.putstr_message("You're on fire!");
+            await ctx.display.putstr_message("You're on fire!");
         }
         if (playerHasProp(player, FIRE_RES)) {
             if (!ctx.suppressHitMsg)
-                ctx.display.putstr_message("The fire doesn't feel hot!");
+                await ctx.display.putstr_message("The fire doesn't feel hot!");
             mhm.damage = 0;
         }
         // cf. uhitm.c:2557 — destroy_items check: magr->m_lev > rn2(20)
@@ -304,15 +304,15 @@ function mhitu_ad_fire(monster, attack, player, mhm, ctx) {
 }
 
 // cf. uhitm.c:2626 mhitm_ad_cold — mhitu branch
-function mhitu_ad_cold(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_cold(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     if (!mhitm_mgc_atk_negated(monster, player)) {
         if (!ctx.suppressHitMsg) {
-            ctx.display.putstr_message("You're covered in frost!");
+            await ctx.display.putstr_message("You're covered in frost!");
         }
         if (playerHasProp(player, COLD_RES)) {
             if (!ctx.suppressHitMsg)
-                ctx.display.putstr_message("The frost doesn't seem cold!");
+                await ctx.display.putstr_message("The frost doesn't seem cold!");
             mhm.damage = 0;
         }
         // cf. uhitm.c:2638 — destroy_items check
@@ -325,15 +325,15 @@ function mhitu_ad_cold(monster, attack, player, mhm, ctx) {
 }
 
 // cf. uhitm.c:2684 mhitm_ad_elec — mhitu branch
-function mhitu_ad_elec(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_elec(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     if (!mhitm_mgc_atk_negated(monster, player)) {
         if (!ctx.suppressHitMsg) {
-            ctx.display.putstr_message('You get zapped!');
+            await ctx.display.putstr_message('You get zapped!');
         }
         if (playerHasProp(player, SHOCK_RES)) {
             if (!ctx.suppressHitMsg)
-                ctx.display.putstr_message("The zap doesn't shock you!");
+                await ctx.display.putstr_message("The zap doesn't shock you!");
             mhm.damage = 0;
         }
         // cf. uhitm.c:2696 — destroy_items check
@@ -346,18 +346,18 @@ function mhitu_ad_elec(monster, attack, player, mhm, ctx) {
 }
 
 // cf. uhitm.c:2728 mhitm_ad_acid — mhitu branch
-function mhitu_ad_acid(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_acid(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: if (!magr->mcan && !rn2(3)) — acid effect
     if (!monster.mcan && !rn2(3)) {
         if (playerHasProp(player, ACID_RES)) {
             if (!ctx.suppressHitMsg)
-                ctx.display.putstr_message("You're covered in acid, but it seems harmless.");
+                await ctx.display.putstr_message("You're covered in acid, but it seems harmless.");
             mhm.damage = 0;
         } else {
             if (!ctx.suppressHitMsg)
-                ctx.display.putstr_message("You're covered in acid!  It burns!");
-            exercise(player, A_STR, false);
+                await ctx.display.putstr_message("You're covered in acid!  It burns!");
+            await exercise(player, A_STR, false);
         }
     } else {
         mhm.damage = 0;
@@ -365,22 +365,22 @@ function mhitu_ad_acid(monster, attack, player, mhm, ctx) {
 }
 
 // cf. uhitm.c:3299 mhitm_ad_stck — mhitu branch
-function mhitu_ad_stck(monster, attack, player, mhm, ctx) {
+async function mhitu_ad_stck(monster, attack, player, mhm, ctx) {
     const negated = mhitm_mgc_atk_negated(monster, player);
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     if (!negated && !player.ustuck) {
         player.ustuck = monster;
     }
 }
 
 // cf. uhitm.c:3354 mhitm_ad_wrap — mhitu branch
-function mhitu_ad_wrap(monster, attack, player, mhm, ctx) {
+async function mhitu_ad_wrap(monster, attack, player, mhm, ctx) {
     if ((!monster.mcan || player.ustuck === monster)) {
         if (!player.ustuck && !rn2(10)) {
             // Grab attempt
             player.ustuck = monster;
             if (!ctx.suppressHitMsg) {
-                ctx.display.putstr_message(
+                await ctx.display.putstr_message(
                     `The ${x_monnam(monster)} swings itself around you!`
                 );
             }
@@ -388,7 +388,7 @@ function mhitu_ad_wrap(monster, attack, player, mhm, ctx) {
             // Already grabbed — crushing
             if (attack.aatyp === AT_HUGS) {
                 if (!ctx.suppressHitMsg)
-                    ctx.display.putstr_message('You are being crushed.');
+                    await ctx.display.putstr_message('You are being crushed.');
             }
         } else {
             mhm.damage = 0;
@@ -399,8 +399,8 @@ function mhitu_ad_wrap(monster, attack, player, mhm, ctx) {
 }
 
 // cf. uhitm.c:3421 mhitm_ad_plys — mhitu branch
-function mhitu_ad_plys(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_plys(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: if (multi >= 0 && !rn2(3) && !mhitm_mgc_atk_negated(...))
     const game = ctx.game;
     const multi = game ? (game.multi || 0) : 0;
@@ -408,10 +408,10 @@ function mhitu_ad_plys(monster, attack, player, mhm, ctx) {
         && !mhitm_mgc_atk_negated(monster, player)) {
         if (playerHasProp(player, FREE_ACTION)) {
             if (!ctx.suppressHitMsg)
-                ctx.display.putstr_message('You momentarily stiffen.');
+                await ctx.display.putstr_message('You momentarily stiffen.');
         } else {
             if (!ctx.suppressHitMsg) {
-                ctx.display.putstr_message(
+                await ctx.display.putstr_message(
                     `You are frozen by ${x_monnam(monster)}!`
                 );
             }
@@ -420,14 +420,14 @@ function mhitu_ad_plys(monster, attack, player, mhm, ctx) {
                 game.multi = -rnd(10);
                 game.nomovemsg = 'You can move again.';
             }
-            exercise(player, A_DEX, false);
+            await exercise(player, A_DEX, false);
         }
     }
 }
 
 // cf. uhitm.c:3470 mhitm_ad_slee — mhitu branch
-function mhitu_ad_slee(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_slee(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: if (multi >= 0 && !rn2(5) && !mhitm_mgc_atk_negated(...))
     const game = ctx.game;
     const multi = game ? (game.multi || 0) : 0;
@@ -443,7 +443,7 @@ function mhitu_ad_slee(monster, attack, player, mhm, ctx) {
             game.nomovemsg = 'You can move again.';
         }
         if (!ctx.suppressHitMsg) {
-            ctx.display.putstr_message(
+            await ctx.display.putstr_message(
                 `You are put to sleep by ${x_monnam(monster)}!`
             );
         }
@@ -451,61 +451,61 @@ function mhitu_ad_slee(monster, attack, player, mhm, ctx) {
 }
 
 // cf. uhitm.c:3679 mhitm_ad_conf — mhitu branch
-function mhitu_ad_conf(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_conf(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: if (!magr->mcan && !rn2(4) && !magr->mspec_used)
     // NOTE: no mhitm_mgc_atk_negated in C for AD_CONF mhitu!
     if (!monster.mcan && !rn2(4) && !monster.mspec_used) {
         monster.mspec_used = (monster.mspec_used || 0) + mhm.damage + rn2(6);
         if (!ctx.suppressHitMsg) {
             if (player.confused)
-                ctx.display.putstr_message('You are getting even more confused.');
+                await ctx.display.putstr_message('You are getting even more confused.');
             else
-                ctx.display.putstr_message('You are getting confused.');
+                await ctx.display.putstr_message('You are getting confused.');
         }
         // cf. make_confused(HConfusion + damage, FALSE)
         const oldTimeout = player.getPropTimeout
             ? player.getPropTimeout(CONFUSION)
             : 0;
-        make_confused(player, oldTimeout + mhm.damage, false);
+        await make_confused(player, oldTimeout + mhm.damage, false);
     }
     mhm.damage = 0;
 }
 
 // cf. uhitm.c:4381 mhitm_ad_stun — mhitu branch
-function mhitu_ad_stun(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_stun(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: if (!magr->mcan && !rn2(4))
     if (!monster.mcan && !rn2(4)) {
         // cf. make_stunned((HStun & TIMEOUT) + damage, TRUE)
         const oldTimeout = player.getPropTimeout
             ? player.getPropTimeout(STUNNED)
             : 0;
-        make_stunned(player, oldTimeout + mhm.damage, true);
+        await make_stunned(player, oldTimeout + mhm.damage, true);
         mhm.damage = Math.floor(mhm.damage / 2);
     }
 }
 
 // cf. uhitm.c:2954 mhitm_ad_blnd — mhitu branch
-function mhitu_ad_blnd(monster, attack, player, mhm, ctx) {
+async function mhitu_ad_blnd(monster, attack, player, mhm, ctx) {
     // C: if (can_blnd(magr, mdef, mattk->aatyp, NULL)) — simplified: always can
     if (!player.blind) {
         if (!ctx.suppressHitMsg)
-            ctx.display.putstr_message(`The ${x_monnam(monster)} blinds you!`);
+            await ctx.display.putstr_message(`The ${x_monnam(monster)} blinds you!`);
     }
     // cf. make_blinded(BlindedTimeout + damage, FALSE)
     const oldTimeout = player.getPropTimeout
         ? player.getPropTimeout(BLINDED)
         : 0;
-    make_blinded(player, oldTimeout + mhm.damage, false);
+    await make_blinded(player, oldTimeout + mhm.damage, false);
     mhm.damage = 0;
 }
 
 // cf. uhitm.c:3121 mhitm_ad_drst — mhitu branch (poison: STR/DEX/CON drain)
-function mhitu_ad_drst(monster, attack, player, mhm, ctx) {
+async function mhitu_ad_drst(monster, attack, player, mhm, ctx) {
     // C: negated = mhitm_mgc_atk_negated() — consumed at top of handler
     const negated = mhitm_mgc_atk_negated(monster, player);
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     if (!negated && !rn2(8)) {
         // C: poisoned(buf, ptmp, ..., 30, FALSE)
         // ptmp depends on adtyp: AD_DRST→A_STR, AD_DRDX→A_DEX, AD_DRCO→A_CON
@@ -519,35 +519,35 @@ function mhitu_ad_drst(monster, attack, player, mhm, ctx) {
         // For now: apply attribute drain and print message.
         if (playerHasProp(player, POISON_RES)) {
             if (!ctx.suppressHitMsg)
-                ctx.display.putstr_message('The poison doesn\'t seem to affect you.');
+                await ctx.display.putstr_message('The poison doesn\'t seem to affect you.');
         } else {
             // C: poisoned() with hpdamchance=30 → !rn2(30) for instant kill
             if (!ctx.suppressHitMsg)
-                ctx.display.putstr_message('You feel very sick!');
+                await ctx.display.putstr_message('You feel very sick!');
             // Drain the appropriate attribute
             if (player.attributes && player.attributes[ptmp] > 1) {
                 player.attributes[ptmp]--;
             }
-            exercise(player, A_CON, false);
+            await exercise(player, A_CON, false);
         }
     }
 }
 
 // cf. uhitm.c:2457 mhitm_ad_drli — mhitu branch (level drain)
-function mhitu_ad_drli(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_drli(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: if (!rn2(3) && !Drain_resistance && !mhitm_mgc_atk_negated(...))
     // Note: rn2(3) BEFORE negation check — short-circuit!
     if (!rn2(3) && !playerHasProp(player, DRAIN_RES)
         && !mhitm_mgc_atk_negated(monster, player)) {
-        losexp(player, ctx.display, x_monnam(monster));
+        await losexp(player, ctx.display, x_monnam(monster));
     }
 }
 
 // cf. uhitm.c:2408 mhitm_ad_dren — mhitu branch (energy drain)
-function mhitu_ad_dren(monster, attack, player, mhm, ctx) {
+async function mhitu_ad_dren(monster, attack, player, mhm, ctx) {
     const negated = mhitm_mgc_atk_negated(monster, player);
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     if (!negated && !rn2(4)) {
         // cf. drain_en(damage, FALSE)
         drain_en(player, mhm.damage);
@@ -556,13 +556,13 @@ function mhitu_ad_dren(monster, attack, player, mhm, ctx) {
 }
 
 // cf. uhitm.c:3200 mhitm_ad_drin — mhitu branch (mind flayer brain drain)
-function mhitu_ad_drin(monster, attack, player, mhm, ctx) {
+async function mhitu_ad_drin(monster, attack, player, mhm, ctx) {
     // C: no mhitm_mgc_atk_negated for AD_DRIN mhitu!
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: helmet check: if (player.helmet && rn2(8)) blocks attack
     if (player.helmet && rn2(8)) {
         if (!ctx.suppressHitMsg)
-            ctx.display.putstr_message('Your helmet blocks the attack to your head.');
+            await ctx.display.putstr_message('Your helmet blocks the attack to your head.');
         return;
     }
     // C: mdamageu(magr, damage) then eat_brains
@@ -570,7 +570,7 @@ function mhitu_ad_drin(monster, attack, player, mhm, ctx) {
     // cf. adjattrib(A_INT, -rnd(2), FALSE)
     // Then: !rn2(5) → losespells, !rn2(5) → drain_weapon_skill
     if (!ctx.suppressHitMsg)
-        ctx.display.putstr_message('Your brain is being eaten!');
+        await ctx.display.putstr_message('Your brain is being eaten!');
     // INT drain
     const intLoss = rnd(2);
     if (player.attributes && player.attributes[1] > 3) { // A_INT=1
@@ -581,34 +581,34 @@ function mhitu_ad_drin(monster, attack, player, mhm, ctx) {
 }
 
 // cf. uhitm.c:3649 mhitm_ad_slow — mhitu branch
-function mhitu_ad_slow(monster, attack, player, mhm, ctx) {
+async function mhitu_ad_slow(monster, attack, player, mhm, ctx) {
     const negated = mhitm_mgc_atk_negated(monster, player);
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: if (!negated && HFast && !rn2(4)) u_slow_down()
     if (!negated && playerHasProp(player, FAST) && !rn2(4)) {
         // u_slow_down: remove Fast intrinsic
         if (!ctx.suppressHitMsg)
-            ctx.display.putstr_message('You slow down.');
+            await ctx.display.putstr_message('You slow down.');
         // TODO: actually remove Fast
     }
 }
 
 // cf. uhitm.c:4190 mhitm_ad_ston — mhitu branch (stoning)
-function mhitu_ad_ston(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_ston(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: if (!rn2(3)) — 1/3 chance
     // No mhitm_mgc_atk_negated for AD_STON mhitu!
     if (!rn2(3)) {
         if (monster.mcan) {
             // Cancelled: just a cough
             if (!ctx.suppressHitMsg)
-                ctx.display.putstr_message(
+                await ctx.display.putstr_message(
                     `You hear a cough from ${x_monnam(monster)}!`
                 );
         } else {
             // Hissing + possible petrification
             if (!ctx.suppressHitMsg) {
-                ctx.display.putstr_message(
+                await ctx.display.putstr_message(
                     `You hear ${x_monnam(monster)}'s hissing!`
                 );
             }
@@ -616,7 +616,7 @@ function mhitu_ad_ston(monster, attack, player, mhm, ctx) {
             if (!rn2(10)) {
                 // Petrification — not fully implemented
                 if (!ctx.suppressHitMsg) {
-                    ctx.display.putstr_message('You feel yourself slowing down.');
+                    await ctx.display.putstr_message('You feel yourself slowing down.');
                 }
             }
         }
@@ -624,12 +624,12 @@ function mhitu_ad_ston(monster, attack, player, mhm, ctx) {
 }
 
 // cf. uhitm.c:2862 mhitm_ad_tlpt — mhitu branch
-function mhitu_ad_tlpt(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_tlpt(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: if (mhitm_mgc_atk_negated(magr, mdef, FALSE))
     if (mhitm_mgc_atk_negated(monster, player)) {
         if (!ctx.suppressHitMsg)
-            ctx.display.putstr_message('You are not affected.');
+            await ctx.display.putstr_message('You are not affected.');
     } else {
         // Teleport hero — not implemented
         // C: if (damage >= u.uhp) cap damage
@@ -641,30 +641,30 @@ function mhitu_ad_tlpt(monster, attack, player, mhm, ctx) {
 }
 
 // cf. uhitm.c:2793 mhitm_ad_sgld — mhitu branch (steal gold)
-function mhitu_ad_sgld(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_sgld(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     if (player && ctx.display) {
-        stealgold(monster, player, ctx.display);
+        await stealgold(monster, player, ctx.display);
     }
     mhm.damage = 0;
 }
 
 // cf. uhitm.c:3015 mhitm_ad_curs — mhitu branch
-function mhitu_ad_curs(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_curs(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: if (!magr->mcan && !rn2(10)) — curse effect
     if (!monster.mcan && !rn2(10)) {
         // Curse items — not fully implemented
         if (!ctx.suppressHitMsg)
-            ctx.display.putstr_message('You feel as if you need some help.');
+            await ctx.display.putstr_message('You feel as if you need some help.');
     }
     mhm.damage = 0;
 }
 
 // cf. uhitm.c:3531 mhitm_ad_slim — mhitu branch (slime)
-function mhitu_ad_slim(monster, attack, player, mhm, ctx) {
+async function mhitu_ad_slim(monster, attack, player, mhm, ctx) {
     const negated = mhitm_mgc_atk_negated(monster, player);
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     if (negated) {
         return; // physical damage only
     }
@@ -673,9 +673,9 @@ function mhitu_ad_slim(monster, attack, player, mhm, ctx) {
 }
 
 // cf. uhitm.c:3589 mhitm_ad_ench — mhitu branch (disenchant)
-function mhitu_ad_ench(monster, attack, player, mhm, ctx) {
+async function mhitu_ad_ench(monster, attack, player, mhm, ctx) {
     const negated = mhitm_mgc_atk_negated(monster, player);
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     if (!negated) {
         // C: some_armor(mdef) then drain_item — consume rn2(5) for ring selection
         rn2(5);
@@ -684,48 +684,48 @@ function mhitu_ad_ench(monster, attack, player, mhm, ctx) {
 }
 
 // cf. uhitm.c:3729 mhitm_ad_poly — mhitu branch (polymorph)
-function mhitu_ad_poly(monster, attack, player, mhm, ctx) {
+async function mhitu_ad_poly(monster, attack, player, mhm, ctx) {
     const negated = mhitm_mgc_atk_negated(monster, player)
                     || !!monster.mspec_used;
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     if (!negated) {
         // Polymorph hero — not implemented
     }
 }
 
 // cf. uhitm.c:4254 mhitm_ad_were — mhitu branch (lycanthropy)
-function mhitu_ad_were(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_were(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: if (!rn2(4) && u.ulycn == NON_PM && !Protection_from_shape_changers
     //        && !defends(AD_WERE, player.weapon) && !mhitm_mgc_atk_negated(...))
     if (!rn2(4) && !mhitm_mgc_atk_negated(monster, player)) {
         // Lycanthropy — not implemented
-        exercise(player, A_CON, false);
+        await exercise(player, A_CON, false);
     }
 }
 
 // cf. uhitm.c:4274 mhitm_ad_heal — mhitu branch (nurse healing)
-function mhitu_ad_heal(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_heal(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // Nurse healing hero — complex, skip for now
     mhm.damage = 0;
 }
 
 // cf. uhitm.c:4403 mhitm_ad_legs — mhitu branch (leg wound)
-function mhitu_ad_legs(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_legs(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: xyloc check then leg damage — simplified
 }
 
 // cf. uhitm.c:4470 mhitm_ad_dgst — mhitu branch (digestion)
-function mhitu_ad_dgst(monster, attack, player, mhm, ctx) {
+async function mhitu_ad_dgst(monster, attack, player, mhm, ctx) {
     // Engulf/digestion — not handled here (gulpmu path)
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
 }
 
 // cf. uhitm.c:4557 mhitm_ad_samu — mhitu branch (steal amulet)
-function mhitu_ad_samu(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_samu(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: if (!rn2(20)) stealamulet(magr)
     if (!rn2(20)) {
         // Steal quest artifact — not implemented
@@ -733,34 +733,34 @@ function mhitu_ad_samu(monster, attack, player, mhm, ctx) {
 }
 
 // cf. uhitm.c:4582 mhitm_ad_dise — mhitu branch (disease)
-function mhitu_ad_dise(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_dise(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: if (!diseasemu(pa)) damage = 0
-    if (!diseasemu(monster.type || monster.data || {}, player, ctx.display)) {
+    if (!await diseasemu(monster.type || monster.data || {}, player, ctx.display)) {
         mhm.damage = 0;
     }
 }
 
 // cf. uhitm.c:4611 mhitm_ad_sedu — mhitu branch (seduction/theft)
-function mhitu_ad_sedu(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_sedu(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C ref: doseduce()/steal() — call steal for item theft
     if (player && ctx.display) {
-        steal(monster, player, ctx.display);
+        await steal(monster, player, ctx.display);
     }
     mhm.damage = 0;
 }
 
 // cf. uhitm.c:4729 mhitm_ad_ssex — mhitu branch
-function mhitu_ad_ssex(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_ssex(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     mhm.damage = 0;
 }
 
 // cf. uhitm.c:3827 mhitm_ad_deth — mhitu branch (Death's touch)
-function mhitu_ad_deth(monster, attack, player, mhm, ctx) {
+async function mhitu_ad_deth(monster, attack, player, mhm, ctx) {
     if (!ctx.suppressHitMsg) {
-        ctx.display.putstr_message(
+        await ctx.display.putstr_message(
             `The ${x_monnam(monster)} reaches out with its deadly touch.`
         );
     }
@@ -772,20 +772,20 @@ function mhitu_ad_deth(monster, attack, player, mhm, ctx) {
     } else if (roll >= 5) {
         // Life force drain
         if (!ctx.suppressHitMsg)
-            ctx.display.putstr_message('You feel your life force draining away...');
+            await ctx.display.putstr_message('You feel your life force draining away...');
         mhm.permdmg = 1;
     } else {
         // Lucky — no effect
         if (!ctx.suppressHitMsg)
-            ctx.display.putstr_message('Lucky for you, it didn\'t work!');
+            await ctx.display.putstr_message('Lucky for you, it didn\'t work!');
         mhm.damage = 0;
     }
 }
 
 // cf. uhitm.c:3798 mhitm_ad_pest — mhitu branch (Pestilence)
-function mhitu_ad_pest(monster, attack, player, mhm, ctx) {
+async function mhitu_ad_pest(monster, attack, player, mhm, ctx) {
     if (!ctx.suppressHitMsg) {
-        ctx.display.putstr_message(
+        await ctx.display.putstr_message(
             `The ${x_monnam(monster)} reaches out, and you feel fever and chills.`
         );
     }
@@ -793,28 +793,28 @@ function mhitu_ad_pest(monster, attack, player, mhm, ctx) {
 }
 
 // cf. uhitm.c:3767 mhitm_ad_famn — mhitu branch (Famine)
-function mhitu_ad_famn(monster, attack, player, mhm, ctx) {
+async function mhitu_ad_famn(monster, attack, player, mhm, ctx) {
     if (!ctx.suppressHitMsg) {
-        ctx.display.putstr_message(
+        await ctx.display.putstr_message(
             `The ${x_monnam(monster)} reaches out, and your body shrivels.`
         );
     }
-    exercise(player, A_CON, false);
+    await exercise(player, A_CON, false);
     // C: morehungry(rn1(40, 40)) — hunger not implemented
     rn1(40, 40);
 }
 
 // cf. uhitm.c:3885 mhitm_ad_halu — mhitu branch
-function mhitu_ad_halu(monster, attack, player, mhm, ctx) {
+async function mhitu_ad_halu(monster, attack, player, mhm, ctx) {
     const oldTimeout = player.getPropTimeout ? player.getPropTimeout(HALLUC) : (player.hallucinated || 0);
-    make_hallucinated(player, oldTimeout + Math.max(1, mhm.damage || 0), false, 0);
+    await make_hallucinated(player, oldTimeout + Math.max(1, mhm.damage || 0), false, 0);
     // C: damage = 0 for mhitu
     mhm.damage = 0;
 }
 
 // Equipment erosion handlers — hitmsg + erode armor + zero damage
-function mhitu_ad_rust(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_rust(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C ref: hurtarmor(mdef, AD_RUST) — erode hero's armor
     if (player) {
         // Erode a random worn armor piece
@@ -823,16 +823,16 @@ function mhitu_ad_rust(monster, attack, player, mhm, ctx) {
     }
     mhm.damage = 0;
 }
-function mhitu_ad_corr(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_corr(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     if (player) {
         const armor = player.armor || player.suit;
         if (armor) erode_obj(armor, null, ERODE_CORRODE, EF_GREASE | EF_VERBOSE);
     }
     mhm.damage = 0;
 }
-function mhitu_ad_dcay(monster, attack, player, mhm, ctx) {
-    hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+async function mhitu_ad_dcay(monster, attack, player, mhm, ctx) {
+    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     if (player) {
         const armor = player.armor || player.suit;
         if (armor) erode_obj(armor, null, ERODE_ROT, EF_GREASE | EF_VERBOSE);
@@ -847,54 +847,54 @@ function mhitu_ad_dcay(monster, attack, player, mhm, ctx) {
 
 // cf. uhitm.c:4760 mhitm_adtyping() — mhitu branch dispatch.
 // Replaces the old mhitu_adtyping_rng() stub with real handler calls.
-function mhitu_adtyping(monster, attack, player, mhm, ctx) {
+async function mhitu_adtyping(monster, attack, player, mhm, ctx) {
     const adtyp = attack.adtyp ?? AD_PHYS;
     switch (adtyp) {
-    case AD_PHYS: mhitu_ad_phys(monster, attack, player, mhm, ctx); break;
-    case AD_FIRE: mhitu_ad_fire(monster, attack, player, mhm, ctx); break;
-    case AD_COLD: mhitu_ad_cold(monster, attack, player, mhm, ctx); break;
-    case AD_ELEC: mhitu_ad_elec(monster, attack, player, mhm, ctx); break;
-    case AD_ACID: mhitu_ad_acid(monster, attack, player, mhm, ctx); break;
-    case AD_STCK: mhitu_ad_stck(monster, attack, player, mhm, ctx); break;
-    case AD_WRAP: mhitu_ad_wrap(monster, attack, player, mhm, ctx); break;
-    case AD_PLYS: mhitu_ad_plys(monster, attack, player, mhm, ctx); break;
-    case AD_SLEE: mhitu_ad_slee(monster, attack, player, mhm, ctx); break;
-    case AD_CONF: mhitu_ad_conf(monster, attack, player, mhm, ctx); break;
-    case AD_STUN: mhitu_ad_stun(monster, attack, player, mhm, ctx); break;
-    case AD_BLND: mhitu_ad_blnd(monster, attack, player, mhm, ctx); break;
+    case AD_PHYS: await mhitu_ad_phys(monster, attack, player, mhm, ctx); break;
+    case AD_FIRE: await mhitu_ad_fire(monster, attack, player, mhm, ctx); break;
+    case AD_COLD: await mhitu_ad_cold(monster, attack, player, mhm, ctx); break;
+    case AD_ELEC: await mhitu_ad_elec(monster, attack, player, mhm, ctx); break;
+    case AD_ACID: await mhitu_ad_acid(monster, attack, player, mhm, ctx); break;
+    case AD_STCK: await mhitu_ad_stck(monster, attack, player, mhm, ctx); break;
+    case AD_WRAP: await mhitu_ad_wrap(monster, attack, player, mhm, ctx); break;
+    case AD_PLYS: await mhitu_ad_plys(monster, attack, player, mhm, ctx); break;
+    case AD_SLEE: await mhitu_ad_slee(monster, attack, player, mhm, ctx); break;
+    case AD_CONF: await mhitu_ad_conf(monster, attack, player, mhm, ctx); break;
+    case AD_STUN: await mhitu_ad_stun(monster, attack, player, mhm, ctx); break;
+    case AD_BLND: await mhitu_ad_blnd(monster, attack, player, mhm, ctx); break;
     case AD_DRST:
     case AD_DRDX:
-    case AD_DRCO: mhitu_ad_drst(monster, attack, player, mhm, ctx); break;
-    case AD_DRLI: mhitu_ad_drli(monster, attack, player, mhm, ctx); break;
-    case AD_DREN: mhitu_ad_dren(monster, attack, player, mhm, ctx); break;
-    case AD_DRIN: mhitu_ad_drin(monster, attack, player, mhm, ctx); break;
-    case AD_SLOW: mhitu_ad_slow(monster, attack, player, mhm, ctx); break;
-    case AD_STON: mhitu_ad_ston(monster, attack, player, mhm, ctx); break;
-    case AD_TLPT: mhitu_ad_tlpt(monster, attack, player, mhm, ctx); break;
-    case AD_SGLD: mhitu_ad_sgld(monster, attack, player, mhm, ctx); break;
-    case AD_CURS: mhitu_ad_curs(monster, attack, player, mhm, ctx); break;
-    case AD_SLIM: mhitu_ad_slim(monster, attack, player, mhm, ctx); break;
-    case AD_ENCH: mhitu_ad_ench(monster, attack, player, mhm, ctx); break;
-    case AD_POLY: mhitu_ad_poly(monster, attack, player, mhm, ctx); break;
-    case AD_WERE: mhitu_ad_were(monster, attack, player, mhm, ctx); break;
-    case AD_HEAL: mhitu_ad_heal(monster, attack, player, mhm, ctx); break;
-    case AD_LEGS: mhitu_ad_legs(monster, attack, player, mhm, ctx); break;
-    case AD_DGST: mhitu_ad_dgst(monster, attack, player, mhm, ctx); break;
-    case AD_SAMU: mhitu_ad_samu(monster, attack, player, mhm, ctx); break;
-    case AD_DISE: mhitu_ad_dise(monster, attack, player, mhm, ctx); break;
+    case AD_DRCO: await mhitu_ad_drst(monster, attack, player, mhm, ctx); break;
+    case AD_DRLI: await mhitu_ad_drli(monster, attack, player, mhm, ctx); break;
+    case AD_DREN: await mhitu_ad_dren(monster, attack, player, mhm, ctx); break;
+    case AD_DRIN: await mhitu_ad_drin(monster, attack, player, mhm, ctx); break;
+    case AD_SLOW: await mhitu_ad_slow(monster, attack, player, mhm, ctx); break;
+    case AD_STON: await mhitu_ad_ston(monster, attack, player, mhm, ctx); break;
+    case AD_TLPT: await mhitu_ad_tlpt(monster, attack, player, mhm, ctx); break;
+    case AD_SGLD: await mhitu_ad_sgld(monster, attack, player, mhm, ctx); break;
+    case AD_CURS: await mhitu_ad_curs(monster, attack, player, mhm, ctx); break;
+    case AD_SLIM: await mhitu_ad_slim(monster, attack, player, mhm, ctx); break;
+    case AD_ENCH: await mhitu_ad_ench(monster, attack, player, mhm, ctx); break;
+    case AD_POLY: await mhitu_ad_poly(monster, attack, player, mhm, ctx); break;
+    case AD_WERE: await mhitu_ad_were(monster, attack, player, mhm, ctx); break;
+    case AD_HEAL: await mhitu_ad_heal(monster, attack, player, mhm, ctx); break;
+    case AD_LEGS: await mhitu_ad_legs(monster, attack, player, mhm, ctx); break;
+    case AD_DGST: await mhitu_ad_dgst(monster, attack, player, mhm, ctx); break;
+    case AD_SAMU: await mhitu_ad_samu(monster, attack, player, mhm, ctx); break;
+    case AD_DISE: await mhitu_ad_dise(monster, attack, player, mhm, ctx); break;
     case AD_SEDU:
-    case AD_SITM: mhitu_ad_sedu(monster, attack, player, mhm, ctx); break;
-    case AD_SSEX: mhitu_ad_ssex(monster, attack, player, mhm, ctx); break;
-    case AD_DETH: mhitu_ad_deth(monster, attack, player, mhm, ctx); break;
-    case AD_PEST: mhitu_ad_pest(monster, attack, player, mhm, ctx); break;
-    case AD_FAMN: mhitu_ad_famn(monster, attack, player, mhm, ctx); break;
-    case AD_HALU: mhitu_ad_halu(monster, attack, player, mhm, ctx); break;
-    case AD_RUST: mhitu_ad_rust(monster, attack, player, mhm, ctx); break;
-    case AD_CORR: mhitu_ad_corr(monster, attack, player, mhm, ctx); break;
-    case AD_DCAY: mhitu_ad_dcay(monster, attack, player, mhm, ctx); break;
+    case AD_SITM: await mhitu_ad_sedu(monster, attack, player, mhm, ctx); break;
+    case AD_SSEX: await mhitu_ad_ssex(monster, attack, player, mhm, ctx); break;
+    case AD_DETH: await mhitu_ad_deth(monster, attack, player, mhm, ctx); break;
+    case AD_PEST: await mhitu_ad_pest(monster, attack, player, mhm, ctx); break;
+    case AD_FAMN: await mhitu_ad_famn(monster, attack, player, mhm, ctx); break;
+    case AD_HALU: await mhitu_ad_halu(monster, attack, player, mhm, ctx); break;
+    case AD_RUST: await mhitu_ad_rust(monster, attack, player, mhm, ctx); break;
+    case AD_CORR: await mhitu_ad_corr(monster, attack, player, mhm, ctx); break;
+    case AD_DCAY: await mhitu_ad_dcay(monster, attack, player, mhm, ctx); break;
     default:
         // Unknown AD type — just show hit message, zero damage
-        hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+        await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
         mhm.damage = 0;
         break;
     }
@@ -959,7 +959,7 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         const toHit = acValue + 10 + monster.mlevel;
 
         if (attack.aatyp === AT_WEAP && monster.weapon) {
-            maybeMonsterWeaponSwingMessage(monster, player, display, suppressHitMsg);
+            await maybeMonsterWeaponSwingMessage(monster, player, display, suppressHitMsg);
         }
 
         const dieRoll = rnd(20 + i);
@@ -968,7 +968,7 @@ export async function mattacku(monster, player, display, game = null, opts = {})
             // Miss — cf. mhitu.c:86-98 missmu()
             if (!suppressHitMsg) {
                 const just = (toHit === dieRoll) ? 'just ' : '';
-                display.putstr_message(`The ${x_monnam(monster)} ${just}misses!`);
+                await display.putstr_message(`The ${x_monnam(monster)} ${just}misses!`);
             }
             continue;
         }
@@ -996,11 +996,11 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         // cf. mhitu.c:1187 — mhitm_adtyping dispatch
         // Each handler calls hitmsg() and applies effects.
         // For AD_PHYS + AT_WEAP, weapon damage is added inside the handler.
-        mhitu_adtyping(monster, attack, player, mhm, ctx);
+        await mhitu_adtyping(monster, attack, player, mhm, ctx);
 
         // cf. mhitu.c:1189 — mhitm_knockback()
         const weaponUsed = !!(attack.aatyp === AT_WEAP && monster.weapon);
-        mhitm_knockback(monster, attack, weaponUsed, display);
+        await mhitm_knockback(monster, attack, weaponUsed, display);
 
         // cf. mhitu.c:1192 — check if handler consumed the attack
         if (mhm.done) break;
@@ -1022,7 +1022,7 @@ export async function mattacku(monster, player, display, game = null, opts = {})
 
             // cf. allmain.c stop_occupation() via mhitu.c attack flow.
             if (game && game.occupation) {
-                if (typeof game.stopOccupation === 'function') game.stopOccupation();
+                if (typeof game.stopOccupation === 'function') await game.stopOccupation();
                 else {
                     game.occupation = null;
                     game.multi = 0;
@@ -1041,7 +1041,7 @@ export async function mattacku(monster, player, display, game = null, opts = {})
                         if (typeof display.clearRow === 'function') display.clearRow(0);
                         display.topMessage = null;
                         display.messageNeedsMore = false;
-                        display.putstr_message('OK, so you don\'t die.');
+                        await display.putstr_message('OK, so you don\'t die.');
                     }
                     if (game) {
                         game.nomovemsg = 'You survived that attempt on your life.';
@@ -1055,7 +1055,7 @@ export async function mattacku(monster, player, display, game = null, opts = {})
                     }
                 } else {
                     player.deathCause = `killed by a ${x_monnam(monster)}`;
-                    display.putstr_message('You die...');
+                    await display.putstr_message('You die...');
                 }
                 break;
             }
@@ -1082,33 +1082,33 @@ export function mpoisons_subj(monster, attack) {
 }
 
 // C ref: mhitu.c:162 u_slow_down() — hero slowdown from attack
-export function u_slow_down(player, display) {
+export async function u_slow_down(player, display) {
     if (!player) return;
     // C ref: HFast = 0L — clear intrinsic speed
     player.fast = false;
     if (display) {
         if (!player.fast_from_extrinsic)
-            display.putstr_message('You slow down.');
+            await display.putstr_message('You slow down.');
         else
-            display.putstr_message('Your quickness feels less natural.');
+            await display.putstr_message('Your quickness feels less natural.');
     }
-    exercise(player, A_DEX, false);
+    await exercise(player, A_DEX, false);
 }
 
 // C ref: mhitu.c:175 wildmiss() — displaced/invisible miss message
-function wildmiss(monster, attack, player, display) {
+async function wildmiss(monster, attack, player, display) {
     if (!display) return;
     // Simplified: just consume rn2(3) and show a message
     const name = x_monnam(monster);
     switch (rn2(3)) {
     case 0:
-        display.putstr_message(`The ${name} swings wildly and misses!`);
+        await display.putstr_message(`The ${name} swings wildly and misses!`);
         break;
     case 1:
-        display.putstr_message(`The ${name} attacks a spot beside you.`);
+        await display.putstr_message(`The ${name} attacks a spot beside you.`);
         break;
     case 2:
-        display.putstr_message(`The ${name} strikes at thin air!`);
+        await display.putstr_message(`The ${name} strikes at thin air!`);
         break;
     }
 }
@@ -1116,13 +1116,13 @@ function wildmiss(monster, attack, player, display) {
 // --- Group 3: Engulf expulsion (mhitu.c:263-308) ---
 
 // cf. mhitu.c:263 expels() — expel hero from engulfer
-export function expels(mtmp, mdat, message, player, display) {
+export async function expels(mtmp, mdat, message, player, display) {
     if (!mtmp || !player) return;
     if (message && display) {
         if (digests(mdat)) {
-            display.putstr_message('You get regurgitated!');
+            await display.putstr_message('You get regurgitated!');
         } else if (enfolds(mdat)) {
-            display.putstr_message(`The ${x_monnam(mtmp)} unfolds and you are released!`);
+            await display.putstr_message(`The ${x_monnam(mtmp)} unfolds and you are released!`);
         } else {
             const attk = dmgtype_fromattack(mdat, AD_WRAP, AT_ENGL)
                       || dmgtype_fromattack(mdat, AD_PHYS, AT_ENGL);
@@ -1136,7 +1136,7 @@ export function expels(mtmp, mdat, message, player, display) {
                     blast = ' with a squelch';
                 }
             }
-            display.putstr_message(`You get expelled from the ${x_monnam(mtmp)}${blast}!`);
+            await display.putstr_message(`You get expelled from the ${x_monnam(mtmp)}${blast}!`);
         }
     }
     // Unstuck
@@ -1197,7 +1197,7 @@ export function calc_mattacku_vars(mtmp, player) {
 // --- Group 5: Summoning/disease/slip (mhitu.c:954-1084) ---
 
 // cf. mhitu.c:954 summonmu() — monster summons help for its fight against hero
-export function summonmu(mtmp, youseeit, map, player, display) {
+export async function summonmu(mtmp, youseeit, map, player, display) {
     const mdat = mtmp.type || mtmp.data || {};
 
     if (is_demon(mdat)) {
@@ -1205,7 +1205,7 @@ export function summonmu(mtmp, youseeit, map, player, display) {
             // C: if (!rn2(Inhell ? 10 : 16)) msummon(mtmp)
             // Simplified: no Inhell check
             if (!rn2(16)) {
-                msummon(mtmp, map, player, display);
+                await msummon(mtmp, map, player, display);
             }
         }
         return;
@@ -1229,7 +1229,7 @@ export function summonmu(mtmp, youseeit, map, player, display) {
         // Maybe summon compatible critters
         if (!rn2(10)) {
             if (youseeit && display) {
-                display.putstr_message(`The ${x_monnam(mtmp)} summons help!`);
+                await display.putstr_message(`The ${x_monnam(mtmp)} summons help!`);
             }
             const result = were_summon(
                 mtmp.type || mtmp.data,
@@ -1242,9 +1242,9 @@ export function summonmu(mtmp, youseeit, map, player, display) {
             if (youseeit && display) {
                 if (result && result.total > 0) {
                     if (result.visible === 0)
-                        display.putstr_message('You feel hemmed in.');
+                        await display.putstr_message('You feel hemmed in.');
                 } else {
-                    display.putstr_message('But none comes.');
+                    await display.putstr_message('But none comes.');
                 }
             }
         }
@@ -1252,17 +1252,17 @@ export function summonmu(mtmp, youseeit, map, player, display) {
 }
 
 // cf. mhitu.c:1030 diseasemu() — disease attack on hero
-export function diseasemu(mdat, player, display) {
+export async function diseasemu(mdat, player, display) {
     if (!player) return false;
     if (playerHasProp(player, SICK_RES)) {
-        if (display) display.putstr_message('You feel a slight illness.');
+        if (display) await display.putstr_message('You feel a slight illness.');
         return false;
     } else {
         // C: make_sick(Sick ? Sick/3+1 : rn1(ACURR(A_CON), 20), ...)
         // Simplified: just apply disease status
         const con = (player.attributes && player.attributes[A_CON]) || 10;
         const duration = rn1(con, 20);
-        if (display) display.putstr_message('You feel very sick!');
+        if (display) await display.putstr_message('You feel very sick!');
         // TODO: make_sick() not fully ported — mark player as diseased
         if (player.sick !== undefined) {
             player.sick = player.sick ? Math.floor(player.sick / 3) + 1 : duration;
@@ -1272,7 +1272,7 @@ export function diseasemu(mdat, player, display) {
 }
 
 // cf. mhitu.c:1044 u_slip_free() — check whether slippery clothing protects from grab
-export function u_slip_free(mtmp, mattk, player, display) {
+export async function u_slip_free(mtmp, mattk, player, display) {
     canonicalizeAttackFields(mattk);
     // Greased armor does not protect against AT_ENGL+AD_WRAP
     if (mattk.aatyp === AT_ENGL) return false;
@@ -1290,12 +1290,12 @@ export function u_slip_free(mtmp, mattk, player, display) {
             const adtyp = mattk.adtyp;
             const action = adtyp === AD_WRAP ? 'slips off of' : 'grabs you, but cannot hold onto';
             const adjective = obj.greased ? 'greased' : 'slippery';
-            display.putstr_message(
+            await display.putstr_message(
                 `The ${x_monnam(mtmp)} ${action} your ${adjective} ${xname(obj)}.`
             );
         }
         if (obj.greased && !rn2(2)) {
-            if (display) display.putstr_message('The grease wears off.');
+            if (display) await display.putstr_message('The grease wears off.');
             obj.greased = 0;
         }
         return true;
@@ -1306,7 +1306,7 @@ export function u_slip_free(mtmp, mattk, player, display) {
 // --- Group 7: Engulf/explode/gaze (mhitu.c:1269-1894) ---
 
 // cf. mhitu.c:1284 gulpmu() — monster engulfs hero, or damages if already engulfed
-export function gulpmu(mtmp, mattk, player, map, display) {
+export async function gulpmu(mtmp, mattk, player, map, display) {
     if (!mtmp || !player) return M_ATTK_MISS;
     canonicalizeAttackFields(mattk);
 
@@ -1320,11 +1320,11 @@ export function gulpmu(mtmp, mattk, player, map, display) {
         player.uswallow = true;
         if (display) {
             if (digests(mtmp.type || mtmp.data || {})) {
-                display.putstr_message(`The ${x_monnam(mtmp)} swallows you whole!`);
+                await display.putstr_message(`The ${x_monnam(mtmp)} swallows you whole!`);
             } else if (enfolds(mtmp.type || mtmp.data || {})) {
-                display.putstr_message(`The ${x_monnam(mtmp)} folds itself around you!`);
+                await display.putstr_message(`The ${x_monnam(mtmp)} folds itself around you!`);
             } else {
-                display.putstr_message(`The ${x_monnam(mtmp)} engulfs you!`);
+                await display.putstr_message(`The ${x_monnam(mtmp)} engulfs you!`);
             }
         }
         // Compute swallow timer
@@ -1352,43 +1352,43 @@ export function gulpmu(mtmp, mattk, player, map, display) {
     case AD_DGST:
         physical_damage = true;
         if (player.uswldtim === 0) {
-            if (display) display.putstr_message(`The ${x_monnam(mtmp)} totally digests you!`);
+            if (display) await display.putstr_message(`The ${x_monnam(mtmp)} totally digests you!`);
             tmp = player.uhp || 999;
         } else {
             const suffix = (player.uswldtim === 2) ? ' thoroughly'
                          : (player.uswldtim === 1) ? ' utterly' : '';
             if (display)
-                display.putstr_message(`The ${x_monnam(mtmp)}${suffix} digests you!`);
-            exercise(player, A_STR, false);
+                await display.putstr_message(`The ${x_monnam(mtmp)}${suffix} digests you!`);
+            await exercise(player, A_STR, false);
         }
         break;
     case AD_PHYS:
         physical_damage = true;
-        if (display) display.putstr_message('You are pummeled with debris!');
-        exercise(player, A_STR, false);
+        if (display) await display.putstr_message('You are pummeled with debris!');
+        await exercise(player, A_STR, false);
         break;
     case AD_ACID:
         if (playerHasProp(player, ACID_RES)) {
-            if (display) display.putstr_message('You are covered with a seemingly harmless goo.');
+            if (display) await display.putstr_message('You are covered with a seemingly harmless goo.');
             tmp = 0;
         } else {
-            if (display) display.putstr_message('You are covered in slime!  It burns!');
-            exercise(player, A_STR, false);
+            if (display) await display.putstr_message('You are covered in slime!  It burns!');
+            await exercise(player, A_STR, false);
         }
         break;
     case AD_BLND:
         // Blinding engulf
         if (!player.blind) {
-            if (display) display.putstr_message("You can't see in here!");
-            make_blinded(player, tmp, false);
+            if (display) await display.putstr_message("You can't see in here!");
+            await make_blinded(player, tmp, false);
         }
         tmp = 0;
         break;
     case AD_ELEC:
         if (!mtmp.mcan && rn2(2)) {
-            if (display) display.putstr_message('The air around you crackles with electricity.');
+            if (display) await display.putstr_message('The air around you crackles with electricity.');
             if (playerHasProp(player, SHOCK_RES)) {
-                if (display) display.putstr_message('You seem unhurt.');
+                if (display) await display.putstr_message('You seem unhurt.');
                 tmp = 0;
             }
         } else {
@@ -1398,10 +1398,10 @@ export function gulpmu(mtmp, mattk, player, map, display) {
     case AD_COLD:
         if (!mtmp.mcan && rn2(2)) {
             if (playerHasProp(player, COLD_RES)) {
-                if (display) display.putstr_message('You feel mildly chilly.');
+                if (display) await display.putstr_message('You feel mildly chilly.');
                 tmp = 0;
             } else {
-                if (display) display.putstr_message('You are freezing to death!');
+                if (display) await display.putstr_message('You are freezing to death!');
             }
         } else {
             tmp = 0;
@@ -1410,17 +1410,17 @@ export function gulpmu(mtmp, mattk, player, map, display) {
     case AD_FIRE:
         if (!mtmp.mcan && rn2(2)) {
             if (playerHasProp(player, FIRE_RES)) {
-                if (display) display.putstr_message('You feel mildly hot.');
+                if (display) await display.putstr_message('You feel mildly hot.');
                 tmp = 0;
             } else {
-                if (display) display.putstr_message('You are burning to a crisp!');
+                if (display) await display.putstr_message('You are burning to a crisp!');
             }
         } else {
             tmp = 0;
         }
         break;
     case AD_DISE:
-        if (!diseasemu(mtmp.type || mtmp.data, player, display)) tmp = 0;
+        if (!await diseasemu(mtmp.type || mtmp.data, player, display)) tmp = 0;
         break;
     case AD_DREN:
         // AC magic cancellation doesn't help when engulfed
@@ -1445,19 +1445,19 @@ export function gulpmu(mtmp, mattk, player, map, display) {
     }
 
     // Apply damage via mdamageu
-    mdamageu(mtmp, tmp, player, display);
+    await mdamageu(mtmp, tmp, player, display);
 
     // Check for expulsion conditions
     if (player.uswallow) {
         if (!player.uswldtim) {
             if (display) {
-                display.putstr_message(
+                await display.putstr_message(
                     digests(mtmp.type || mtmp.data || {}) ? 'You get regurgitated!'
                     : enfolds(mtmp.type || mtmp.data || {}) ? 'You get released!'
                     : 'You get expelled!'
                 );
             }
-            expels(mtmp, mtmp.type || mtmp.data || {}, false, player, display);
+            await expels(mtmp, mtmp.type || mtmp.data || {}, false, player, display);
         }
     }
 
@@ -1474,9 +1474,9 @@ export async function explmu(mtmp, mattk, ufound, player, map, display) {
     const adtyp = mattk.adtyp ?? AD_PHYS;
 
     if (!ufound) {
-        if (display) display.putstr_message(`The ${x_monnam(mtmp)} explodes at a spot in thin air!`);
+        if (display) await display.putstr_message(`The ${x_monnam(mtmp)} explodes at a spot in thin air!`);
     } else {
-        hitmsg(mtmp, mattk, display, false);
+        await hitmsg(mtmp, mattk, display, false);
     }
 
     let kill_agr = true;
@@ -1503,21 +1503,21 @@ export async function explmu(mtmp, mattk, ufound, player, map, display) {
     case AD_BLND:
         not_affected = resists_blnd(player);
         if (ufound && !not_affected) {
-            if (display) display.putstr_message('You are blinded by a blast of light!');
+            if (display) await display.putstr_message('You are blinded by a blast of light!');
             tmp = Math.floor(tmp / 2);
-            make_blinded(player, tmp, false);
+            await make_blinded(player, tmp, false);
         }
         break;
     case AD_HALU:
         not_affected = !!player.blind;
         if (ufound && !not_affected) {
-            if (display) display.putstr_message('You are caught in a blast of kaleidoscopic light!');
+            if (display) await display.putstr_message('You are caught in a blast of kaleidoscopic light!');
             // Kill the monster immediately
             mondead(mtmp, map, player);
             kill_agr = false; // already killed
             // C: make_hallucinated(HHallucination + tmp, FALSE, 0L)
             // Hallucination not fully ported
-            if (display) display.putstr_message('You are freaked out.');
+            if (display) await display.putstr_message('You are freaked out.');
         }
         break;
     default:
@@ -1525,7 +1525,7 @@ export async function explmu(mtmp, mattk, ufound, player, map, display) {
     }
 
     if (not_affected) {
-        if (display) display.putstr_message('You seem unaffected by it.');
+        if (display) await display.putstr_message('You seem unaffected by it.');
     }
 
     if (kill_agr && !mtmp.dead && mtmp.mhp > 0) {
@@ -1536,7 +1536,7 @@ export async function explmu(mtmp, mattk, ufound, player, map, display) {
 }
 
 // cf. mhitu.c:1660 gazemu() — monster gazes at hero
-export function gazemu(mtmp, mattk, player, map, display) {
+export async function gazemu(mtmp, mattk, player, map, display) {
     if (!mtmp || !player) return M_ATTK_MISS;
     canonicalizeAttackFields(mattk);
 
@@ -1549,16 +1549,16 @@ export function gazemu(mtmp, mattk, player, map, display) {
         // Medusa stoning gaze
         if (cancelled || !mtmp.mcansee) {
             // Ineffective
-            if (display) display.putstr_message(`The ${x_monnam(mtmp)} gazes ineffectually.`);
+            if (display) await display.putstr_message(`The ${x_monnam(mtmp)} gazes ineffectually.`);
             break;
         }
         // C: check reflectable, hero stone resistance, etc.
         if (playerHasProp(player, REFLECTING)) {
             if (display)
-                display.putstr_message(`The ${x_monnam(mtmp)}'s gaze is reflected by your shield!`);
+                await display.putstr_message(`The ${x_monnam(mtmp)}'s gaze is reflected by your shield!`);
             // Reflected gaze petrifies Medusa
             if (mtmp.mcansee) {
-                if (display) display.putstr_message(`The ${x_monnam(mtmp)} is turned to stone!`);
+                if (display) await display.putstr_message(`The ${x_monnam(mtmp)} is turned to stone!`);
                 mtmp.mhp = 0;
                 mtmp.dead = true;
                 return M_ATTK_AGR_DIED;
@@ -1567,8 +1567,8 @@ export function gazemu(mtmp, mattk, player, map, display) {
         }
         if (!playerHasProp(player, STONE_RES) && !player.blind) {
             if (display) {
-                display.putstr_message(`You meet the ${x_monnam(mtmp)}'s gaze.`);
-                display.putstr_message('You turn to stone...');
+                await display.putstr_message(`You meet the ${x_monnam(mtmp)}'s gaze.`);
+                await display.putstr_message('You turn to stone...');
             }
             // Petrification death
             if (player.takeDamage) {
@@ -1583,18 +1583,18 @@ export function gazemu(mtmp, mattk, player, map, display) {
         if (mtmp.mcansee && !mtmp.mspec_used && rn2(5)) {
             if (cancelled) {
                 // Cancelled — just look confused
-                if (display) display.putstr_message(`The ${x_monnam(mtmp)} looks confused.`);
+                if (display) await display.putstr_message(`The ${x_monnam(mtmp)} looks confused.`);
             } else {
                 const conf = d(3, 4);
                 mtmp.mspec_used = (mtmp.mspec_used || 0) + conf + rn2(6);
                 if (!player.confused) {
-                    if (display) display.putstr_message(`The ${x_monnam(mtmp)}'s gaze confuses you!`);
+                    if (display) await display.putstr_message(`The ${x_monnam(mtmp)}'s gaze confuses you!`);
                 } else {
-                    if (display) display.putstr_message('You are getting more and more confused.');
+                    if (display) await display.putstr_message('You are getting more and more confused.');
                 }
                 const oldTimeout = player.getPropTimeout
                     ? player.getPropTimeout(CONFUSION) : 0;
-                make_confused(player, oldTimeout + conf, false);
+                await make_confused(player, oldTimeout + conf, false);
             }
         }
         break;
@@ -1603,14 +1603,14 @@ export function gazemu(mtmp, mattk, player, map, display) {
         // Stun gaze
         if (mtmp.mcansee && !mtmp.mspec_used && rn2(5)) {
             if (cancelled) {
-                if (display) display.putstr_message(`The ${x_monnam(mtmp)} looks stunned.`);
+                if (display) await display.putstr_message(`The ${x_monnam(mtmp)} looks stunned.`);
             } else {
                 const stun = d(2, 6);
                 mtmp.mspec_used = (mtmp.mspec_used || 0) + stun + rn2(6);
-                if (display) display.putstr_message(`The ${x_monnam(mtmp)} stares piercingly at you!`);
+                if (display) await display.putstr_message(`The ${x_monnam(mtmp)} stares piercingly at you!`);
                 const oldTimeout = player.getPropTimeout
                     ? player.getPropTimeout(STUNNED) : 0;
-                make_stunned(player, oldTimeout + stun, true);
+                await make_stunned(player, oldTimeout + stun, true);
             }
         }
         break;
@@ -1621,12 +1621,12 @@ export function gazemu(mtmp, mattk, player, map, display) {
             if (cancelled) {
                 if (display) {
                     const reaction = rn2(2) ? 'puzzled' : 'dazzled';
-                    display.putstr_message(`The ${x_monnam(mtmp)} looks ${reaction}.`);
+                    await display.putstr_message(`The ${x_monnam(mtmp)} looks ${reaction}.`);
                 }
             } else {
                 const blnd = c_d(mattk.damn || 1, mattk.damd || 6);
-                if (display) display.putstr_message(`You are blinded by the ${x_monnam(mtmp)}'s radiance!`);
-                make_blinded(player, blnd, false);
+                if (display) await display.putstr_message(`You are blinded by the ${x_monnam(mtmp)}'s radiance!`);
+                await make_blinded(player, blnd, false);
             }
         }
         break;
@@ -1636,16 +1636,16 @@ export function gazemu(mtmp, mattk, player, map, display) {
         if (mtmp.mcansee && !mtmp.mspec_used && rn2(5)) {
             if (cancelled) {
                 const reaction = rn2(2) ? 'irritated' : 'inflamed';
-                if (display) display.putstr_message(`The ${x_monnam(mtmp)} looks ${reaction}.`);
+                if (display) await display.putstr_message(`The ${x_monnam(mtmp)} looks ${reaction}.`);
             } else {
                 let dmg = d(2, 6);
-                if (display) display.putstr_message(`The ${x_monnam(mtmp)} attacks you with a fiery gaze!`);
+                if (display) await display.putstr_message(`The ${x_monnam(mtmp)} attacks you with a fiery gaze!`);
                 if (playerHasProp(player, FIRE_RES)) {
-                    if (display) display.putstr_message("The fire doesn't feel hot!");
+                    if (display) await display.putstr_message("The fire doesn't feel hot!");
                     dmg = 0;
                 }
                 if (dmg > 0) {
-                    mdamageu(mtmp, dmg, player, display);
+                    await mdamageu(mtmp, dmg, player, display);
                 }
             }
         }
@@ -1660,7 +1660,7 @@ export function gazemu(mtmp, mattk, player, map, display) {
 // --- Group 8: Damage/seduction (mhitu.c:1895-2348) ---
 
 // cf. mhitu.c:1895 mdamageu() — apply n points of damage to hero
-export function mdamageu(mtmp, n, player, display) {
+export async function mdamageu(mtmp, n, player, display) {
     if (!player) return;
     if (n < 0) n = 0;
 
@@ -1676,7 +1676,7 @@ export function mdamageu(mtmp, n, player, display) {
                     if (typeof display.clearRow === 'function') display.clearRow(0);
                     display.topMessage = null;
                     display.messageNeedsMore = false;
-                    display.putstr_message('OK, so you don\'t die.');
+                    await display.putstr_message('OK, so you don\'t die.');
                 }
                 if (game) {
                     game.nomovemsg = 'You survived that attempt on your life.';
@@ -1685,7 +1685,7 @@ export function mdamageu(mtmp, n, player, display) {
                 }
             } else {
                 player.deathCause = `killed by a ${x_monnam(mtmp)}`;
-                if (display) display.putstr_message('You die...');
+                if (display) await display.putstr_message('You die...');
             }
         }
     }
@@ -1719,23 +1719,23 @@ export function could_seduce(magr, mdef, mattk) {
 // cf. mhitu.c:1978 doseduce() — seduction attack
 // Highly simplified: the full C version involves complex armor removal dialogue.
 // This stub handles the core RNG and effects.
-export function doseduce(mon, player, display) {
+export async function doseduce(mon, player, display) {
     if (!mon || !player) return 0;
 
     if (mon.mcan || mon.mspec_used) {
         if (display) {
             const pronoun = mon.female ? 'she' : 'he';
-            display.putstr_message(
+            await display.putstr_message(
                 `The ${x_monnam(mon)} acts as though ${pronoun} has got a ${mon.mcan ? 'severe ' : ''}headache.`
             );
         }
         return 0;
     }
 
-    if (display) display.putstr_message(`You feel very attracted to the ${x_monnam(mon)}.`);
+    if (display) await display.putstr_message(`You feel very attracted to the ${x_monnam(mon)}.`);
 
     // Simplified: skip armor removal dialogue, go straight to outcome
-    if (display) display.putstr_message(
+    if (display) await display.putstr_message(
         `Time stands still while you and the ${x_monnam(mon)} lie in each other's arms...`
     );
 
@@ -1746,76 +1746,76 @@ export function doseduce(mon, player, display) {
 
     if (rn2(35) > Math.min(attr_tot, 32)) {
         // Bad outcome
-        if (display) display.putstr_message(
+        if (display) await display.putstr_message(
             `The ${x_monnam(mon)} seems to have enjoyed it more than you...`
         );
         switch (rn2(5)) {
         case 0:
-            if (display) display.putstr_message('You feel drained of energy.');
+            if (display) await display.putstr_message('You feel drained of energy.');
             if (player.pw !== undefined) player.pw = 0;
             if (player.pwmax !== undefined) player.pwmax -= rnd(10);
             if (player.pwmax < 0) player.pwmax = 0;
-            exercise(player, A_CON, false);
+            await exercise(player, A_CON, false);
             break;
         case 1:
-            if (display) display.putstr_message('You are down in the dumps.');
+            if (display) await display.putstr_message('You are down in the dumps.');
             if (player.attributes) player.attributes[A_CON] = Math.max(3, (player.attributes[A_CON] || 10) - 1);
-            exercise(player, A_CON, false);
+            await exercise(player, A_CON, false);
             break;
         case 2:
-            if (display) display.putstr_message('Your senses are dulled.');
+            if (display) await display.putstr_message('Your senses are dulled.');
             if (player.attributes) player.attributes[A_WIS] = Math.max(3, (player.attributes[A_WIS] || 10) - 1);
-            exercise(player, A_WIS, false);
+            await exercise(player, A_WIS, false);
             break;
         case 3:
             if (!playerHasProp(player, DRAIN_RES)) {
-                if (display) display.putstr_message('You feel out of shape.');
-                losexp(player, display, 'overexertion');
+                if (display) await display.putstr_message('You feel out of shape.');
+                await losexp(player, display, 'overexertion');
             } else {
-                if (display) display.putstr_message('You have a curious feeling...');
+                if (display) await display.putstr_message('You have a curious feeling...');
             }
-            exercise(player, A_CON, false);
-            exercise(player, A_DEX, false);
-            exercise(player, A_WIS, false);
+            await exercise(player, A_CON, false);
+            await exercise(player, A_DEX, false);
+            await exercise(player, A_WIS, false);
             break;
         case 4:
-            if (display) display.putstr_message('You feel exhausted.');
-            exercise(player, A_STR, false);
-            mdamageu(mon, rn1(10, 6), player, display);
+            if (display) await display.putstr_message('You feel exhausted.');
+            await exercise(player, A_STR, false);
+            await mdamageu(mon, rn1(10, 6), player, display);
             break;
         }
     } else {
         // Good outcome
         mon.mspec_used = rnd(100);
-        if (display) display.putstr_message(
+        if (display) await display.putstr_message(
             `You seem to have enjoyed it more than the ${x_monnam(mon)}...`
         );
         switch (rn2(5)) {
         case 0:
-            if (display) display.putstr_message('You feel raised to your full potential.');
-            exercise(player, A_CON, true);
+            if (display) await display.putstr_message('You feel raised to your full potential.');
+            await exercise(player, A_CON, true);
             if (player.pwmax !== undefined) player.pwmax += rnd(5);
             if (player.pw !== undefined) player.pw = player.pwmax;
             break;
         case 1:
-            if (display) display.putstr_message('You feel good enough to do it again.');
+            if (display) await display.putstr_message('You feel good enough to do it again.');
             if (player.attributes) player.attributes[A_CON] = (player.attributes[A_CON] || 10) + 1;
-            exercise(player, A_CON, true);
+            await exercise(player, A_CON, true);
             break;
         case 2:
-            if (display) display.putstr_message(`You will always remember the ${x_monnam(mon)}...`);
+            if (display) await display.putstr_message(`You will always remember the ${x_monnam(mon)}...`);
             if (player.attributes) player.attributes[A_WIS] = (player.attributes[A_WIS] || 10) + 1;
-            exercise(player, A_WIS, true);
+            await exercise(player, A_WIS, true);
             break;
         case 3:
-            if (display) display.putstr_message('That was a very educational experience.');
+            if (display) await display.putstr_message('That was a very educational experience.');
             // C: pluslvl(FALSE) — level gain
-            exercise(player, A_WIS, true);
+            await exercise(player, A_WIS, true);
             break;
         case 4:
-            if (display) display.putstr_message('You feel restored to health!');
+            if (display) await display.putstr_message('You feel restored to health!');
             if (player.uhpmax) player.uhp = player.uhpmax;
-            exercise(player, A_STR, true);
+            await exercise(player, A_STR, true);
             break;
         }
     }
@@ -1895,9 +1895,9 @@ export function mswings_verb(mwep, bash) {
 }
 
 // Autotranslated from mhitu.c:130
-export function mswings(mtmp, otemp, bash, game, player) {
+export async function mswings(mtmp, otemp, bash, game, player) {
   if (game.flags.verbose && !(player?.Blind || player?.blind || false) && mon_visible(mtmp)) {
-    pline_mon(
+    await pline_mon(
       mtmp,
       "%s %s %s%s %s.",
       Monnam(mtmp),
@@ -1910,11 +1910,11 @@ export function mswings(mtmp, otemp, bash, game, player) {
 }
 
 // Autotranslated from mhitu.c:2302
-export function mayberem(mon, seducer, obj, str, player) {
+export async function mayberem(mon, seducer, obj, str, player) {
   let qbuf;
   if (!obj || !obj.owornmask) return;
   if (player.utotype || !m_next2u(mon)) return;
-  if ((player?.Deaf || player?.deaf || false)) { pline("%s takes off your %s.", seducer, str); }
+  if ((player?.Deaf || player?.deaf || false)) { await pline("%s takes off your %s.", seducer, str); }
   else if (rn2(20) < acurr(player,A_CHA)) {
     Sprintf(qbuf, "\"Shall I remove your %s, %s?\"", str, (!rn2(2) ? "lover" : !rn2(2) ? "dear" : "sweetheart"));
     if (y_n(qbuf) === 'n') return;
@@ -1922,7 +1922,7 @@ export function mayberem(mon, seducer, obj, str, player) {
   else {
     let hairbuf;
     Sprintf(hairbuf, "let me run my fingers through your %s", body_part(HAIR));
-    verbalize("Take off your %s; %s.", str, (obj === player.armor) ? "let's get a little closer" : (obj === player.cloak || obj === player.shield) ? "it's in the way" : (obj === player.boots) ? "let me rub your feet" : (obj === player.gloves) ? "they're too clumsy" : (obj === player.shirt) ? "let me massage you"   : hairbuf);
+    await verbalize("Take off your %s; %s.", str, (obj === player.armor) ? "let's get a little closer" : (obj === player.cloak || obj === player.shield) ? "it's in the way" : (obj === player.boots) ? "let me rub your feet" : (obj === player.gloves) ? "they're too clumsy" : (obj === player.shirt) ? "let me massage you"   : hairbuf);
   }
   remove_worn_item(obj, true);
 }

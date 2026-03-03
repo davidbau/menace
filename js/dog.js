@@ -557,29 +557,29 @@ export function free_edog(mtmp) {
 }
 
 // Autotranslated from dog.c:103
-export function pick_familiar_pm(otmp, quietly, game) {
+export async function pick_familiar_pm(otmp, quietly, game) {
   let pm =  0;
   if (otmp) {
     let mndx = otmp.corpsenm;
     assert(ismnum(mndx));
     pm = mons;
-    if ((game.mvitals[mndx].mvflags & G_EXTINCT) && mbirth_limit(mndx) !== MAXMONNO) { if (!quietly) pline("... into a pile of dust."); return  0; }
+    if ((game.mvitals[mndx].mvflags & G_EXTINCT) && mbirth_limit(mndx) !== MAXMONNO) { if (!quietly) await pline("... into a pile of dust."); return  0; }
   }
   else if (!rn2(3)) { pm = mons; }
   else {
     let skill = spell_skilltype(SPE_CREATE_FAMILIAR), max = 3 * P_SKILL(skill);
     pm = rndmonst_adj(0, max);
-    if (!pm && !quietly) There("seems to be nothing available for a familiar.");
+    if (!pm && !quietly) await There("seems to be nothing available for a familiar.");
   }
   return pm;
 }
 
 // Autotranslated from dog.c:137
-export function make_familiar(otmp, x, y, quietly) {
+export async function make_familiar(otmp, x, y, quietly) {
   let pm, mtmp = 0, chance, trycnt = 100, reallytame = true;
   do {
     let mmflags, cgend;
-    if (!(pm = pick_familiar_pm(otmp, quietly))) {
+    if (!(pm = await pick_familiar_pm(otmp, quietly))) {
       break;
     }
     mmflags = MM_EDOG | MM_IGNOREWATER | NO_MINVENT | MM_NOMSG;
@@ -588,7 +588,7 @@ export function make_familiar(otmp, x, y, quietly) {
     mtmp = makemon(pm, x, y, mmflags);
     if (otmp) {
       if (!mtmp) {
-        if (!quietly) pline_The( "figurine writhes and then shatters into pieces!");
+        if (!quietly) await pline_The( "figurine writhes and then shatters into pieces!");
         break;
       }
       else if (mtmp.isminion) { mtmp.isminion = 0; free_emin(mtmp); }
@@ -602,7 +602,7 @@ export function make_familiar(otmp, x, y, quietly) {
     if (chance > 0) {
       reallytame = false;
       if (chance === 2) {
-        if (!quietly) You("get a bad feeling about this.");
+        if (!quietly) await You("get a bad feeling about this.");
         mtmp.mpeaceful = 0;
         set_malign(mtmp);
       }
@@ -628,7 +628,7 @@ export function update_mlstmv() {
 }
 
 // Autotranslated from dog.c:622
-export function mon_catchup_elapsed_time(mtmp, nmv, game) {
+export async function mon_catchup_elapsed_time(mtmp, nmv, game) {
   let imv = 0;
   if (nmv < 0) { throw new Error('catchup from future time?'); return; }
   else if (nmv === 0) { impossible("catchup from now?"); }
@@ -681,7 +681,7 @@ export function mon_catchup_elapsed_time(mtmp, nmv, game) {
     let edog = EDOG(mtmp);
     if (((Number(game?.moves) || 0) > edog.hungrytime + 500 && mtmp.mhp < 3) || ((Number(game?.moves) || 0) > edog.hungrytime + 750)) mtmp.mtame = mtmp.mpeaceful = 0;
   }
-  if (!mtmp.mtame && mtmp.mleashed) { impossible("catching up for leashed monster?"); m_unleash(mtmp, false); }
+  if (!mtmp.mtame && mtmp.mleashed) { impossible("catching up for leashed monster?"); await m_unleash(mtmp, false); }
   if (!regenerates(mtmp.data)) {
     imv /= 20;
   }
@@ -707,7 +707,7 @@ export function mon_leave(mtmp) {
 }
 
 // Autotranslated from dog.c:784
-export function keepdogs(pets_only, game, map, player) {
+export async function keepdogs(pets_only, game, map, player) {
   let mtmp, mtmp2;
   for (mtmp = (map?.fmon || null); mtmp; mtmp = mtmp2) {
     mtmp2 = mtmp.nmon;
@@ -735,19 +735,19 @@ export function keepdogs(pets_only, game, map, player) {
         mdrop_special_objs(mtmp);
       }
       else if (mtmp.meating || mtmp.mtrapped) {
-        if (canseemon(mtmp)) pline_mon(mtmp, "%s is still %s.", Monnam(mtmp), mtmp.meating ? "eating" : "trapped");
+        if (canseemon(mtmp)) await pline_mon(mtmp, "%s is still %s.", Monnam(mtmp), mtmp.meating ? "eating" : "trapped");
         stay_behind = true;
       }
       else if (mon_has_amulet(mtmp)) {
-        if (canseemon(mtmp)) pline("%s seems very disoriented for a moment.", Monnam(mtmp));
+        if (canseemon(mtmp)) await pline("%s seems very disoriented for a moment.", Monnam(mtmp));
         stay_behind = true;
       }
       if (stay_behind) {
         if (mtmp.mleashed) {
-          pline("%s leash suddenly comes loose.", humanoid(mtmp.data) ? (mtmp.female ? "Her" : "His") : "Its");
-          m_unleash(mtmp, false);
+          await pline("%s leash suddenly comes loose.", humanoid(mtmp.data) ? (mtmp.female ? "Her" : "His") : "Its");
+          await m_unleash(mtmp, false);
         }
-        if (mtmp === player.usteed) { impossible("steed left behind?"); dismount_steed(DISMOUNT_GENERIC); }
+        if (mtmp === player.usteed) { impossible("steed left behind?"); await dismount_steed(DISMOUNT_GENERIC); }
         continue;
       }
       num_segs = mon_leave(mtmp);
@@ -757,19 +757,19 @@ export function keepdogs(pets_only, game, map, player) {
       mtmp.mlstmv = (Number(game?.moves) || 0);
     }
     else if (keep_mon_accessible(mtmp)) {
-      migrate_to_level(mtmp, ledger_no(map.uz), MIGR_EXACT_XY, null);
+      await migrate_to_level(mtmp, ledger_no(map.uz), MIGR_EXACT_XY, null);
     }
     else if (mtmp.mleashed) {
-      pline("%s leash goes slack.", s_suffix(Monnam(mtmp)));
-      m_unleash(mtmp, false);
+      await pline("%s leash goes slack.", s_suffix(Monnam(mtmp)));
+      await m_unleash(mtmp, false);
     }
   }
 }
 
 // Autotranslated from dog.c:882
-export function migrate_to_level(mtmp, tolev, xyloc, cc, game, map) {
+export async function migrate_to_level(mtmp, tolev, xyloc, cc, game, map) {
   let new_lev, xyflags, mx = mtmp.mx, my = mtmp.my, num_segs;
-  if (mtmp.mleashed) { mtmp.mtame--; m_unleash(mtmp, true); }
+  if (mtmp.mleashed) { mtmp.mtame--; await m_unleash(mtmp, true); }
   num_segs = mon_leave(mtmp);
   relmon(mtmp, game.migrating_mons);
   mtmp.mstate |= MON_MIGRATING;
@@ -794,7 +794,7 @@ export function migrate_to_level(mtmp, tolev, xyloc, cc, game, map) {
 }
 
 // Autotranslated from dog.c:1357
-export function abuse_dog(mtmp) {
+export async function abuse_dog(mtmp) {
   if (!mtmp.mtame) return;
   if (Aggravate_monster || Conflict) {
     mtmp.mtame /= 2;
@@ -803,11 +803,11 @@ export function abuse_dog(mtmp) {
     mtmp.mtame--;
   }
   if (mtmp.mtame && !mtmp.isminion) EDOG(mtmp).abuse++;
-  if (!mtmp.mtame && mtmp.mleashed) m_unleash(mtmp, true);
+  if (!mtmp.mtame && mtmp.mleashed) await m_unleash(mtmp, true);
   if (mtmp.mx !== 0) {
-    if (mtmp.mtame && rn2(mtmp.mtame)) yelp(mtmp);
+    if (mtmp.mtame && rn2(mtmp.mtame)) await yelp(mtmp);
     else {
-      growl(mtmp);
+      await growl(mtmp);
     }
     if (!mtmp.mtame) {
       newsym(mtmp.mx, mtmp.my);

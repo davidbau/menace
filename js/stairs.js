@@ -37,10 +37,10 @@ function _prependStairNode(node) {
     return node;
 }
 
-function _forEachStair(fn) {
+async function _forEachStair(fn) {
     let tmp = gs.stairs;
     while (tmp) {
-        const out = fn(tmp);
+        const out = await fn(tmp);
         if (out !== undefined) return out;
         tmp = tmp.next;
     }
@@ -88,15 +88,15 @@ export function stairway_add(map, x, y, up, isladder, dest) {
 }
 
 // cf. stairs.c:39 — stairway_at(x, y)
-export function stairway_at(x, y, map = null) {
+export async function stairway_at(x, y, map = null) {
     _ensureStairsInitialized(map);
-    return _forEachStair((tmp) => (tmp.sx === x && tmp.sy === y ? tmp : undefined)) || null;
+    return await _forEachStair((tmp) => (tmp.sx === x && tmp.sy === y ? tmp : undefined)) || null;
 }
 
 // cf. stairs.c:49 — stairway_find(fromdlev)
-export function stairway_find(fromdlev, map = null) {
+export async function stairway_find(fromdlev, map = null) {
     _ensureStairsInitialized(map);
-    return _forEachStair((tmp) => (
+    return await _forEachStair((tmp) => (
         tmp.tolev.dnum === fromdlev.dnum && tmp.tolev.dlevel === fromdlev.dlevel
             ? tmp
             : undefined
@@ -104,9 +104,9 @@ export function stairway_find(fromdlev, map = null) {
 }
 
 // cf. stairs.c:63 — stairway_find_from(fromdlev, isladder)
-export function stairway_find_from(fromdlev, isladder, map = null) {
+export async function stairway_find_from(fromdlev, isladder, map = null) {
     _ensureStairsInitialized(map);
-    return _forEachStair((tmp) => (
+    return await _forEachStair((tmp) => (
         tmp.tolev.dnum === fromdlev.dnum
         && tmp.tolev.dlevel === fromdlev.dlevel
         && tmp.isladder === isladder
@@ -116,32 +116,32 @@ export function stairway_find_from(fromdlev, isladder, map = null) {
 }
 
 // cf. stairs.c:78 — stairway_find_dir(up)
-export function stairway_find_dir(up, map = null) {
+export async function stairway_find_dir(up, map = null) {
     _ensureStairsInitialized(map);
-    return _forEachStair((tmp) => (tmp.up === up ? tmp : undefined)) || null;
+    return await _forEachStair((tmp) => (tmp.up === up ? tmp : undefined)) || null;
 }
 
 // cf. stairs.c:88 — stairway_find_type_dir(isladder, up)
-export function stairway_find_type_dir(isladder, up, map = null) {
+export async function stairway_find_type_dir(isladder, up, map = null) {
     _ensureStairsInitialized(map);
-    return _forEachStair((tmp) => (
+    return await _forEachStair((tmp) => (
         tmp.isladder === isladder && tmp.up === up ? tmp : undefined
     )) || null;
 }
 
 // cf. stairs.c:98 — stairway_find_special_dir(up)
-export function stairway_find_special_dir(up, map = null) {
+export async function stairway_find_special_dir(up, map = null) {
     _ensureStairsInitialized(map);
     const m = _currentMap(map);
     const currentDnum = Number.isInteger(m?.uz?.dnum) ? m.uz.dnum : 0;
-    return _forEachStair((tmp) => (
+    return await _forEachStair((tmp) => (
         tmp.tolev.dnum !== currentDnum && tmp.up !== up ? tmp : undefined
     )) || null;
 }
 
 // cf. stairs.c:112 — u_on_sstairs(upflag)
-export function u_on_sstairs(upflag, map, player) {
-    const stway = stairway_find_special_dir(upflag, map);
+export async function u_on_sstairs(upflag, map, player) {
+    const stway = await stairway_find_special_dir(upflag, map);
     if (stway) {
         player.x = stway.sx;
         player.y = stway.sy;
@@ -149,47 +149,47 @@ export function u_on_sstairs(upflag, map, player) {
 }
 
 // cf. stairs.c:124 — u_on_upstairs()
-export function u_on_upstairs(map, player) {
-    const stway = stairway_find_dir(true, map);
+export async function u_on_upstairs(map, player) {
+    const stway = await stairway_find_dir(true, map);
     if (stway) {
         player.x = stway.sx;
         player.y = stway.sy;
     } else {
-        u_on_sstairs(0, map, player);
+        await u_on_sstairs(0, map, player);
     }
 }
 
 // cf. stairs.c:136 — u_on_dnstairs()
-export function u_on_dnstairs(map, player) {
-    const stway = stairway_find_dir(false, map);
+export async function u_on_dnstairs(map, player) {
+    const stway = await stairway_find_dir(false, map);
     if (stway) {
         player.x = stway.sx;
         player.y = stway.sy;
     } else {
-        u_on_sstairs(1, map, player);
+        await u_on_sstairs(1, map, player);
     }
 }
 
 // cf. stairs.c:147 — On_stairs(x, y)
-export function On_stairs(x, y, map = null) {
-    return stairway_at(x, y, map) !== null;
+export async function On_stairs(x, y, map = null) {
+    return await stairway_at(x, y, map) !== null;
 }
 
 // cf. stairs.c:153 — On_ladder(x, y)
-export function On_ladder(x, y, map = null) {
-    const stway = stairway_at(x, y, map);
+export async function On_ladder(x, y, map = null) {
+    const stway = await stairway_at(x, y, map);
     return !!(stway && stway.isladder);
 }
 
 // cf. stairs.c:161 — On_stairs_up(x, y)
-export function On_stairs_up(x, y, map = null) {
-    const stway = stairway_at(x, y, map);
+export async function On_stairs_up(x, y, map = null) {
+    const stway = await stairway_at(x, y, map);
     return !!(stway && stway.up);
 }
 
 // cf. stairs.c:169 — On_stairs_dn(x, y)
-export function On_stairs_dn(x, y, map = null) {
-    const stway = stairway_at(x, y, map);
+export async function On_stairs_dn(x, y, map = null) {
+    const stway = await stairway_at(x, y, map);
     return !!(stway && !stway.up);
 }
 

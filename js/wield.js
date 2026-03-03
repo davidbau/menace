@@ -74,10 +74,10 @@ export function welded(player) {
 }
 
 // cf. wield.c:1052 — weldmsg(obj): print "X is welded to your hand!" message
-export function weldmsg(player, display) {
+export async function weldmsg(player, display) {
     if (!player.weapon) return;
     player.weapon.bknown = true;
-    display.putstr_message(`${doname(player.weapon, player)} welded to your hand!`);
+    await display.putstr_message(`${doname(player.weapon, player)} welded to your hand!`);
 }
 
 // cf. wield.c:1068 — mwelded(obj): monster version of welded
@@ -112,19 +112,19 @@ export function set_twoweap(player, on) {
 }
 
 // cf. wield.c:897 — untwoweapon(): disable two-weapon mode
-export function untwoweapon(player, display) {
+export async function untwoweapon(player, display) {
     if (player.twoweap) {
-        if (display) display.putstr_message('You can no longer wield two weapons at once.');
+        if (display) await display.putstr_message('You can no longer wield two weapons at once.');
         set_twoweap(player, false);
     }
 }
 
 // cf. wield.c:756 — can_twoweapon(): check if hero can dual-wield
 // Simplified: role check not implemented (would need urole.roledata)
-function can_twoweapon(player, display) {
+async function can_twoweapon(player, display) {
     if (!player) return false;
     if (!player.weapon || !player.swapWeapon) {
-        if (display) display.putstr_message('Your hands are empty.');
+        if (display) await display.putstr_message('Your hands are empty.');
         return false;
     }
     // TWOWEAPOK: must be weapon-class (not launcher/ammo/missile) or weptool
@@ -141,35 +141,35 @@ function can_twoweapon(player, display) {
         return !!od.weptool;
     };
     if (!twoweapok(player.weapon) || !twoweapok(player.swapWeapon)) {
-        if (display) display.putstr_message('That is not a suitable weapon.');
+        if (display) await display.putstr_message('That is not a suitable weapon.');
         return false;
     }
     if (objectData[player.weapon.otyp]?.big || objectData[player.swapWeapon.otyp]?.big) {
-        if (display) display.putstr_message("That isn't one-handed.");
+        if (display) await display.putstr_message("That isn't one-handed.");
         return false;
     }
     if (player.shield) {
-        if (display) display.putstr_message("You can't use two weapons while wearing a shield.");
+        if (display) await display.putstr_message("You can't use two weapons while wearing a shield.");
         return false;
     }
     if (player.swapWeapon.cursed) {
         player.swapWeapon.bknown = true;
         // Drop secondary weapon
-        drop_uswapwep(player, display);
+        await drop_uswapwep(player, display);
         return false;
     }
     return true;
 }
 
 // cf. wield.c:803 — drop_uswapwep(): drop secondary weapon
-function drop_uswapwep(player, display) {
+async function drop_uswapwep(player, display) {
     const obj = player.swapWeapon;
     if (!obj) return;
     if (display) {
         if (!obj.cursed) {
-            display.putstr_message(`${doname(obj, player)} slips from your left hand!`);
+            await display.putstr_message(`${doname(obj, player)} slips from your left hand!`);
         } else {
-            display.putstr_message(`${doname(obj, player)} drops from your left hand!`);
+            await display.putstr_message(`${doname(obj, player)} drops from your left hand!`);
         }
     }
     setuswapwep(player, null);
@@ -178,15 +178,15 @@ function drop_uswapwep(player, display) {
 }
 
 // cf. wield.c:836 — dotwoweapon(): #twoweapon command
-function handleTwoWeapon(player, display) {
+async function handleTwoWeapon(player, display) {
     // Can always toggle off
     if (player.twoweap) {
-        display.putstr_message('You switch to your primary weapon.');
+        await display.putstr_message('You switch to your primary weapon.');
         set_twoweap(player, false);
         return { moved: false, tookTime: false };
     }
-    if (can_twoweapon(player, display)) {
-        display.putstr_message('You begin two-weapon combat.');
+    if (await can_twoweapon(player, display)) {
+        await display.putstr_message('You begin two-weapon combat.');
         set_twoweap(player, true);
         // C ref: wield.c:852 — rnd(20) > ACURR(A_DEX) → takes time
         const dex = player.dexterity || player.attributes?.[4] || 10;
@@ -202,7 +202,7 @@ function handleTwoWeapon(player, display) {
 
 // cf. wield.c:908 — chwepon(otmp, amount): enchant/corrode wielded weapon
 // Called from scroll of enchant weapon. Returns 1 if something happened.
-export function chwepon(player, display, otmp, amount) {
+export async function chwepon(player, display, otmp, amount) {
     const uwep = player.weapon;
     const od = uwep ? objectData[uwep.otyp] : null;
 
@@ -210,12 +210,12 @@ export function chwepon(player, display, otmp, amount) {
         // No weapon or not a real weapon
         if (amount >= 0 && uwep && will_weld(uwep)) {
             // Uncurse welded tin opener
-            if (display) display.putstr_message(`${doname(uwep, player)} glows with an amber aura.`);
+            if (display) await display.putstr_message(`${doname(uwep, player)} glows with an amber aura.`);
             uwep.cursed = false;
         } else {
             if (display) {
                 const msg = amount >= 0 ? 'Your hands twitch.' : 'Your hands itch.';
-                display.putstr_message(msg);
+                await display.putstr_message(msg);
             }
         }
         return 0;
@@ -223,7 +223,7 @@ export function chwepon(player, display, otmp, amount) {
 
     // Worm tooth → crysknife
     if (uwep.otyp === WORM_TOOTH && amount >= 0) {
-        if (display) display.putstr_message('Your weapon is much sharper now.');
+        if (display) await display.putstr_message('Your weapon is much sharper now.');
         uwep.otyp = CRYSKNIFE;
         uwep.oerodeproof = false;
         if (uwep.quan > 1) {
@@ -235,7 +235,7 @@ export function chwepon(player, display, otmp, amount) {
     }
     // Crysknife → worm tooth
     if (uwep.otyp === CRYSKNIFE && amount < 0) {
-        if (display) display.putstr_message('Your weapon is much duller now.');
+        if (display) await display.putstr_message('Your weapon is much duller now.');
         uwep.otyp = WORM_TOOTH;
         uwep.oerodeproof = false;
         if (uwep.quan > 1) {
@@ -248,7 +248,7 @@ export function chwepon(player, display, otmp, amount) {
     // Soft limits at +5/-5
     if (((uwep.spe > 5 && amount >= 0) || (uwep.spe < -5 && amount < 0))
         && rn2(3)) {
-        if (display) display.putstr_message(`${doname(uwep, player)} violently glows and evaporates.`);
+        if (display) await display.putstr_message(`${doname(uwep, player)} violently glows and evaporates.`);
         // Destroy weapon
         player.weapon = null;
         return 1;
@@ -258,14 +258,14 @@ export function chwepon(player, display, otmp, amount) {
     if (display) {
         const xtime = (amount * amount === 1) ? 'a moment' : 'a while';
         const color = amount < 0 ? 'black' : 'blue';
-        display.putstr_message(`${doname(uwep, player)} glows ${color} for ${xtime}.`);
+        await display.putstr_message(`${doname(uwep, player)} glows ${color} for ${xtime}.`);
     }
     uwep.spe = (uwep.spe || 0) + amount;
     if (amount > 0 && uwep.cursed) uwep.cursed = false;
 
     // Vibration warning at high enchant
     if ((uwep.spe > 5) && !rn2(7)) {
-        if (display) display.putstr_message(`${doname(uwep, player)} suddenly vibrates unexpectedly.`);
+        if (display) await display.putstr_message(`${doname(uwep, player)} suddenly vibrates unexpectedly.`);
     }
 
     return 1;
@@ -276,24 +276,24 @@ export function chwepon(player, display, otmp, amount) {
 // ============================================================
 
 // cf. wield.c:677 — wield_tool(obj, verb): wield a tool during #apply
-function wield_tool(player, display, obj, _verb) {
+async function wield_tool(player, display, obj, _verb) {
     if (player.weapon && obj === player.weapon) return true;
     if (obj.owornmask & (0x0001 | 0x0002 | 0x0004 | 0x0008 | 0x0010 | 0x0020 | 0x0040)) {
         // W_ARMOR | W_ACCESSORY bits — can't wield worn item
-        if (display) display.putstr_message("You can't wield that while wearing it.");
+        if (display) await display.putstr_message("You can't wield that while wearing it.");
         return false;
     }
     if (welded(player)) {
-        weldmsg(player, display);
+        await weldmsg(player, display);
         return false;
     }
     if (objectData[obj.otyp]?.big && player.shield) {
-        if (display) display.putstr_message('You cannot wield a two-handed tool while wearing a shield.');
+        if (display) await display.putstr_message('You cannot wield a two-handed tool while wearing a shield.');
         return false;
     }
-    if (display) display.putstr_message(`You now wield ${doname(obj, player)}.`);
+    if (display) await display.putstr_message(`You now wield ${doname(obj, player)}.`);
     setuwep(player, obj);
-    if (player.twoweap) untwoweapon(player, display);
+    if (player.twoweap) await untwoweapon(player, display);
     return true;
 }
 
@@ -302,14 +302,14 @@ function wield_tool(player, display, obj, _verb) {
 // ============================================================
 
 // cf. wield.c:163 — ready_weapon(wep): perform the actual wield
-function ready_weapon(player, display, wep) {
+async function ready_weapon(player, display, wep) {
     if (wep === null) {
         if (player.weapon) {
             setuwep(player, null);
-            display.putstr_message(`You are ${empty_handed(player)}.`);
+            await display.putstr_message(`You are ${empty_handed(player)}.`);
             return { tookTime: true };
         }
-        display.putstr_message(`You are already ${empty_handed(player)}.`);
+        await display.putstr_message(`You are already ${empty_handed(player)}.`);
         return { tookTime: false };
     }
 
@@ -317,21 +317,21 @@ function ready_weapon(player, display, wep) {
     if (wep === player.armor || wep === player.shield || wep === player.helmet
         || wep === player.gloves || wep === player.boots || wep === player.cloak
         || wep === player.amulet) {
-        display.putstr_message('You cannot wield that!');
+        await display.putstr_message('You cannot wield that!');
         return { tookTime: false };
     }
 
     // Bimanual + shield check
     if (objectData[wep.otyp]?.big && player.shield) {
-        display.putstr_message('You cannot wield a two-handed weapon while wearing a shield.');
+        await display.putstr_message('You cannot wield a two-handed weapon while wearing a shield.');
         return { tookTime: false };
     }
 
     setuwep(player, wep);
-    display.putstr_message(`${wep.invlet} - ${doname(wep, player)}.`);
+    await display.putstr_message(`${wep.invlet} - ${doname(wep, player)}.`);
     // Disable two-weapon if new weapon is incompatible
-    if (player.twoweap && !can_twoweapon(player, null)) {
-        untwoweapon(player, display);
+    if (player.twoweap && !await can_twoweapon(player, null)) {
+        await untwoweapon(player, display);
     }
     return { tookTime: true };
 }
@@ -352,7 +352,7 @@ function replacePromptMessage(display) {
 async function handleWield(player, display) {
     // Weld check
     if (welded(player)) {
-        weldmsg(player, display);
+        await weldmsg(player, display);
         return { moved: false, tookTime: false };
     }
 
@@ -369,7 +369,7 @@ async function handleWield(player, display) {
     const wieldPrompt = letters.length > 0
         ? `What do you want to wield? [- ${letters} or ?*]`
         : 'What do you want to wield? [- or ?*]';
-    display.putstr_message(wieldPrompt);
+    await display.putstr_message(wieldPrompt);
 
     while (true) {
         const ch = await nhgetch();
@@ -377,14 +377,14 @@ async function handleWield(player, display) {
 
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage(display);
-            display.putstr_message('Never mind.');
+            await display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
         if (c === '?' || c === '*') continue;
 
         if (c === '-') {
             replacePromptMessage(display);
-            const result = ready_weapon(player, display, null);
+            const result = await ready_weapon(player, display, null);
             return { moved: false, tookTime: result.tookTime };
         }
 
@@ -398,9 +398,9 @@ async function handleWield(player, display) {
             setuswapwep(player, oldwep);
             replacePromptMessage(display);
             if (player.swapWeapon) {
-                display.putstr_message(`${player.swapWeapon.invlet} - ${doname(player.swapWeapon, player)}.`);
+                await display.putstr_message(`${player.swapWeapon.invlet} - ${doname(player.swapWeapon, player)}.`);
             } else {
-                display.putstr_message('You have no secondary weapon readied.');
+                await display.putstr_message('You have no secondary weapon readied.');
             }
             return { moved: false, tookTime: true };
         }
@@ -410,7 +410,7 @@ async function handleWield(player, display) {
         if (player.swapWeapon === item) {
             setuswapwep(player, null);
         }
-        const result = ready_weapon(player, display, item);
+        const result = await ready_weapon(player, display, item);
         return { moved: false, tookTime: result.tookTime };
     }
 }
@@ -420,30 +420,30 @@ async function handleWield(player, display) {
 async function handleSwapWeapon(player, display) {
     // Weld check
     if (welded(player)) {
-        weldmsg(player, display);
+        await weldmsg(player, display);
         return { moved: false, tookTime: false };
     }
 
     const oldwep = player.weapon || null;
     if (!player.swapWeapon) {
         if (!player.weapon) {
-            display.putstr_message(`You are already ${empty_handed(player)}.`);
+            await display.putstr_message(`You are already ${empty_handed(player)}.`);
             return { moved: false, tookTime: false };
         }
-        display.putstr_message('You have no secondary weapon readied.');
+        await display.putstr_message('You have no secondary weapon readied.');
         // C ref: doswapweapon() consumes a turn even when swap slot is empty.
         return { moved: false, tookTime: true };
     }
     setuwep(player, player.swapWeapon);
     setuswapwep(player, oldwep);
     if (player.swapWeapon) {
-        display.putstr_message(`${player.swapWeapon.invlet} - ${doname(player.swapWeapon, player)}.`);
+        await display.putstr_message(`${player.swapWeapon.invlet} - ${doname(player.swapWeapon, player)}.`);
     } else {
-        display.putstr_message('You have no secondary weapon readied.');
+        await display.putstr_message('You have no secondary weapon readied.');
     }
     // C ref: wield.c:492 — disable two-weapon if incompatible after swap
-    if (player.twoweap && !can_twoweapon(player, null)) {
-        untwoweapon(player, display);
+    if (player.twoweap && !await can_twoweapon(player, null)) {
+        await untwoweapon(player, display);
     }
     return { moved: false, tookTime: true };
 }
@@ -466,7 +466,7 @@ async function handleQuiver(player, display) {
     const prompt = letters.length > 0
         ? `What do you want to ready? [- ${letters} or ?*]`
         : 'What do you want to ready? [- or ?*]';
-    display.putstr_message(prompt);
+    await display.putstr_message(prompt);
 
     while (true) {
         const ch = await nhgetch();
@@ -474,7 +474,7 @@ async function handleQuiver(player, display) {
 
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage(display);
-            display.putstr_message('Never mind.');
+            await display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
         if (c === '?' || c === '*') continue;
@@ -482,7 +482,7 @@ async function handleQuiver(player, display) {
         if (c === '-') {
             replacePromptMessage(display);
             setuqwep(player, null);
-            display.putstr_message('You now have no ammunition readied.');
+            await display.putstr_message('You now have no ammunition readied.');
             return { moved: false, tookTime: false };
         }
 
@@ -491,7 +491,7 @@ async function handleQuiver(player, display) {
 
         replacePromptMessage(display);
         setuqwep(player, item);
-        display.putstr_message(`${doname(item, player)} ready to be thrown.`);
+        await display.putstr_message(`${doname(item, player)} ready to be thrown.`);
         return { moved: false, tookTime: false };
     }
 }
@@ -507,9 +507,9 @@ export function wield_ok(obj) {
 }
 
 // Autotranslated from wield.c:340
-export function finish_splitting(obj) {
+export async function finish_splitting(obj) {
   freeinv(obj);
-  addinv_nomerge(obj);
+  await addinv_nomerge(obj);
 }
 
 // Autotranslated from wield.c:499
@@ -518,15 +518,15 @@ export function dowieldquiver() {
 }
 
 // Autotranslated from wield.c:835
-export function dotwoweapon(player) {
+export async function dotwoweapon(player) {
   if (player.twoweap) {
-    You("switch to your primary weapon.");
+    await You("switch to your primary weapon.");
     set_twoweap(false);
     update_inventory();
     return ECMD_OK;
   }
-  if (can_twoweapon()) {
-    You("begin two-weapon combat.");
+  if (await can_twoweapon()) {
+    await You("begin two-weapon combat.");
     set_twoweap(true);
     update_inventory();
     return (rnd(20) > acurr(player,A_DEX)) ? ECMD_TIME : ECMD_OK;

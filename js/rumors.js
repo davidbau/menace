@@ -205,14 +205,14 @@ export function getrumor(truth, exclude_cookie) {
 // N/A: rumors.c:939 — free_CapMons()
 
 // Autotranslated from rumors.c:528
-export function outrumor(truth, mechanism, player) {
+export async function outrumor(truth, mechanism, player) {
   let fortune_msg = "This cookie has a scrap of paper inside.", line, buf;
   let reading = (mechanism === BY_COOKIE || mechanism === BY_PAPER);
   if (reading) {
     if (is_fainted() && mechanism === BY_COOKIE) { return; }
     else if ((player?.Blind || player?.blind || false)) {
-      if (mechanism === BY_COOKIE) pline(fortune_msg);
-      pline("What a pity that you cannot read it!");
+      if (mechanism === BY_COOKIE) await pline(fortune_msg);
+      await pline("What a pity that you cannot read it!");
       return;
     }
   }
@@ -220,13 +220,13 @@ export function outrumor(truth, mechanism, player) {
   if (!line) line = "NetHack rumors file closed for renovation.";
   switch (mechanism) {
     case BY_ORACLE:
-      pline("True to her word, the Oracle %ssays: ", (!rn2(4) ? "offhandedly " : (!rn2(3) ? "casually " : (rn2(2) ? "nonchalantly " : ""))));
+      await pline("True to her word, the Oracle %ssays: ", (!rn2(4) ? "offhandedly " : (!rn2(3) ? "casually " : (rn2(2) ? "nonchalantly " : ""))));
     verbalize1(line);
     return;
     case BY_COOKIE:
-      pline(fortune_msg);
+      await pline(fortune_msg);
     case BY_PAPER:
-      pline("It reads:");
+      await pline("It reads:");
     break;
   }
   pline1(line);
