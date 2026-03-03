@@ -1,7 +1,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { replaySession } from '../../js/replay_core.js';
+import { replayGameplaySession } from '../comparison/session_helpers.js';
 import { DEFAULT_FLAGS } from '../../js/storage.js';
 import { loadAllSessions } from '../comparison/session_loader.js';
 
@@ -24,7 +24,7 @@ test('seed110 throw topline does not claim player killed pet', async () => {
         replayFlags.symset = 'DECgraphics, active, handler=DEC';
     }
 
-    const replay = await replaySession(session.meta.seed, session.raw, {
+    const replay = await replayGameplaySession(session.meta.seed, session.raw, {
         captureScreens: true,
         startupBurstInFirstStep: false,
         flags: replayFlags,

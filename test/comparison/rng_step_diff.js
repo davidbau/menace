@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve, basename } from 'node:path';
 
-import { replaySession } from '../../js/replay_core.js';
+import { replayGameplaySession } from './session_helpers.js';
 import { DEFAULT_FLAGS } from '../../js/storage.js';
 import { normalizeSession } from './session_loader.js';
 
@@ -94,7 +94,7 @@ async function main() {
     process.env.RNG_LOG_TAGS = '1';
     const replayFlags = { ...DEFAULT_FLAGS, bgcolors: true, customcolors: true };
     if (session.meta.options?.autopickup === false) replayFlags.pickup = false;
-    const replay = await replaySession(session.meta.seed, session.raw, {
+    const replay = await replayGameplaySession(session.meta.seed, session.raw, {
         captureScreens: true,
         startupBurstInFirstStep: false,
         flags: replayFlags,

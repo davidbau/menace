@@ -9,7 +9,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { compareRng, replaySession, generateStartupWithRng, hasStartupBurstInFirstStep, getSessionStartup, getSessionCharacter, getSessionGameplaySteps } from './session_helpers.js';
+import { compareRng, replayGameplaySession, generateStartupWithRng, hasStartupBurstInFirstStep, getSessionStartup, getSessionCharacter, getSessionGameplaySteps } from './session_helpers.js';
 import { normalizeSymsetLine } from './symset_normalization.js';
 
 function loadSession(filepath) {
@@ -199,7 +199,7 @@ async function main() {
     }
 
     const replayOpts = inferReplayStart(sessionPath, session);
-    const replay = await replaySession(seed, session, {
+    const replay = await replayGameplaySession(seed, session, {
         ...replayOpts,
         captureScreens: compareScreen,
     });

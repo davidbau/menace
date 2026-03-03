@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { replaySession } from '../../js/replay_core.js';
+import { replayGameplaySession } from '../comparison/session_helpers.js';
 
 describe('replay discoveries modal handling', () => {
     it('consumes space used to dismiss discoveries instead of passthrough command', async () => {
@@ -22,7 +22,7 @@ describe('replay discoveries modal handling', () => {
             ],
         };
 
-        const replay = await replaySession(2, session, {
+        const replay = await replayGameplaySession(2, session, {
             captureScreens: true,
             startupBurstInFirstStep: false,
         });

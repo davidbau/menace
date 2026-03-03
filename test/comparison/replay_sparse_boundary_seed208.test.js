@@ -2,9 +2,9 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-import { replaySession } from '../../js/replay_core.js';
+import { replayGameplaySession } from '../comparison/session_helpers.js';
 import { DEFAULT_FLAGS } from '../../js/storage.js';
-import { normalizeSession } from '../comparison/session_loader.js';
+import { normalizeSession } from './session_loader.js';
 
 describe('replay sparse boundary seed208', () => {
 
@@ -32,7 +32,7 @@ test('replay keeps sparse stop_occupation boundary frame state (seed208 step 263
         dir: 'test/comparison/sessions',
     });
 
-    const replay = await replaySession(session.meta.seed, session.raw, {
+    const replay = await replayGameplaySession(session.meta.seed, session.raw, {
         captureScreens: true,
         startupBurstInFirstStep: false,
         maxSteps: 264,

@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { replaySession } from '../../js/replay_core.js';
+import { replayGameplaySession } from '../comparison/session_helpers.js';
 
 describe('replay inventory modal handling', () => {
     it('keeps inventory open on non-space keys in replay', async () => {
@@ -22,7 +22,7 @@ describe('replay inventory modal handling', () => {
             ],
         };
 
-        const replay = await replaySession(1, session, {
+        const replay = await replayGameplaySession(1, session, {
             captureScreens: true,
             startupBurstInFirstStep: false,
         });
@@ -51,7 +51,7 @@ describe('replay inventory modal handling', () => {
             ],
         };
 
-        const replay = await replaySession(1, session, {
+        const replay = await replayGameplaySession(1, session, {
             captureScreens: true,
             startupBurstInFirstStep: false,
         });
@@ -100,7 +100,7 @@ describe('replay inventory modal handling', () => {
             ],
         };
 
-        const replay = await replaySession(42, session, {
+        const replay = await replayGameplaySession(42, session, {
             captureScreens: true,
             startupBurstInFirstStep: false,
         });

@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { getSessionStartup } from '../../js/replay_core.js';
+import { getSessionStartup } from '../comparison/session_helpers.js';
 
 describe('replay legacy startup parsing', () => {
     it('reads startup data from top-level v1 startup field', () => {

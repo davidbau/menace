@@ -4,7 +4,7 @@
  */
 
 import { readFileSync } from 'fs';
-import { replaySession, compareRng } from './test/comparison/session_helpers.js';
+import { replayGameplaySession, compareRng } from './test/comparison/session_helpers.js';
 
 const sessionFile = './test/comparison/sessions/seed3_selfplay_100turns.session.json';
 console.log(`Loading ${sessionFile}...`);
@@ -17,7 +17,7 @@ console.log(`  Steps: ${session.steps.length}`);
 console.log('');
 
 console.log('Replaying session...');
-const replay = await replaySession(session.seed, session);
+const replay = await replayGameplaySession(session.seed, session);
 
 console.log('');
 console.log('=== RESULTS ===');

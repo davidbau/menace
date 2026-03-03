@@ -6,9 +6,8 @@ import { statSync, readFileSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { Worker } from 'node:worker_threads';
 
-import {
-    replaySession,
-} from '../../js/replay_core.js';
+import { replaySession } from '../../js/replay_core.js';
+import { prepareReplayArgs } from '../../js/replay_compare.js';
 import { NetHackGame } from '../../js/allmain.js';
 import {
     createHeadlessInput,
@@ -293,13 +292,17 @@ async function replayInterfaceSession(session) {
             replayFlags.customsymbols = true;
             replayFlags.symset = 'DECgraphics, active, handler=DEC';
         }
-        return replaySession(session.meta.seed, session.raw, {
-            captureScreens: true,
-            startupBurstInFirstStep: false,
-            flags: replayFlags,
-            tutorial: subtype === 'tutorial' || session.meta.regen?.tutorial === true,
-            inferStatusFlagsFromStartup: false,
-        });
+        const { seed: replaySeed, opts: replayOpts, keys } = prepareReplayArgs(
+            session.meta.seed, session.raw, {
+                captureScreens: true,
+                startupBurstInFirstStep: false,
+                flags: replayFlags,
+                tutorial: subtype === 'tutorial' || session.meta.regen?.tutorial === true,
+            }
+        );
+        const raw = await replaySession(replaySeed, replayOpts, keys);
+        // Interface steps are single-key, so keys map 1:1 to steps.
+        return { startup: raw.startup, steps: raw.keys };
     }
     if (subtype === 'startup' || subtype === 'tutorial') {
         // C startup interface captures are recorded after login-derived name selection.

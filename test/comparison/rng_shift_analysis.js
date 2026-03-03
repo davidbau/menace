@@ -129,7 +129,7 @@ function analyzeSession(session, replay, opts) {
 
 async function replayAndAnalyze(session, opts) {
     // Use the session test runner's replay infrastructure
-    const { replaySession } = await import('../../js/replay_core.js');
+    const { replayGameplaySession } = await import('./session_helpers.js');
     const { DEFAULT_FLAGS } = await import('../../js/storage.js');
 
     // Set up environment for replay
@@ -164,7 +164,7 @@ async function replayAndAnalyze(session, opts) {
         replayFlags.symset = 'DECgraphics, active, handler=DEC';
     }
 
-    const replay = await replaySession(session.meta.seed, session.raw, {
+    const replay = await replayGameplaySession(session.meta.seed, session.raw, {
         captureScreens: false,
         startupBurstInFirstStep: false,
         flags: replayFlags,

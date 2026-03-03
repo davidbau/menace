@@ -529,6 +529,11 @@
       "reason": "Runtime/platform/infrastructure boundary; keep manual control."
     },
     {
+      "path": "js/replay_compare.js",
+      "policy": "manual_only",
+      "reason": "Test infrastructure: comparison and generation utilities for session tests."
+    },
+    {
       "path": "js/restore.js",
       "policy": "auto",
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."

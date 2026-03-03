@@ -21,6 +21,7 @@ const SKIP_SESSION_FILE_BASENAMES = new Set([
 
 const SESSION_MARKERS = [
     /\breplaySession\b/s,
+    /\breplayGameplaySession\b/s,
     /\bloadAllSessions\b/s,
     /sessionPath\s*:\s*['"]/,
     /test\/comparison\/sessions\//,

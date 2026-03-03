@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { replaySession } from '../../js/replay_core.js';
+import { replayGameplaySession } from '../comparison/session_helpers.js';
 
 describe('replay tutorial prompt handling', () => {
     it('does not treat recorded tutorial text as replay control flow', async () => {
@@ -37,7 +37,7 @@ describe('replay tutorial prompt handling', () => {
             ],
         };
 
-        const replay = await replaySession(1, session, {
+        const replay = await replayGameplaySession(1, session, {
             captureScreens: true,
             startupBurstInFirstStep: false,
         });
@@ -81,7 +81,7 @@ describe('replay tutorial prompt handling', () => {
             ],
         };
 
-        const replay = await replaySession(1, session, {
+        const replay = await replayGameplaySession(1, session, {
             captureScreens: true,
             startupBurstInFirstStep: false,
         });

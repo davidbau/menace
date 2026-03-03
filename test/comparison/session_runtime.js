@@ -5,6 +5,10 @@
 
 export {
     HeadlessDisplay,
+    replaySession,
+} from '../../js/replay_core.js';
+
+export {
     TYP_NAMES,
     typName,
     stripAnsiSequences,
@@ -12,21 +16,15 @@ export {
     getSessionStartup,
     getSessionCharacter,
     getSessionGameplaySteps,
+    hasStartupBurstInFirstStep,
     parseTypGrid,
     parseSessionTypGrid,
     compareGrids,
     formatDiffs,
     extractTypGrid,
     compareRng,
-    hasStartupBurstInFirstStep,
-    replaySession,
     generateMapsSequential,
-    checkWallCompleteness,
-    checkConnectivity,
-    checkStairs,
-    checkDimensions,
-    checkValidTypValues,
-} from '../../js/replay_core.js';
+} from '../../js/replay_compare.js';
 
 export {
     generateMapsWithCoreReplay as generateMapsWithRng,

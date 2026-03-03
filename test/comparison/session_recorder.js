@@ -2,6 +2,7 @@
 // Pure recording helpers: execute JS using C-captured inputs and return raw trace.
 
 import { replaySession } from '../../js/replay_core.js';
+import { prepareReplayArgs } from '../../js/replay_compare.js';
 import { DEFAULT_FLAGS } from '../../js/storage.js';
 
 function ensureSessionGlobals() {
@@ -64,27 +65,46 @@ export async function recordGameplaySessionFromInputs(session, opts = {}) {
     const emitProgress = (typeof globalThis.__SESSION_PROGRESS_EMIT === 'function')
         ? globalThis.__SESSION_PROGRESS_EMIT
         : null;
-    return replaySession(session.meta.seed, session.raw, {
-        captureScreens: true,
-        startupBurstInFirstStep: false,
-        flags,
-        tutorial,
-        replayTutorialStartupPrompts,
-        tutorialStartupEnterAfterPromptCount,
-        onStep: ({ stepIndex, step, game }) => {
-            if (!emitProgress) return;
-            let topline = '';
-            if (typeof game?.display?.getScreenLines === 'function') {
-                const lines = game.display.getScreenLines() || [];
-                topline = String(lines[0] || '');
-            }
-            emitProgress({
-                step: stepIndex + 1,
-                key: (typeof step?.key === 'string') ? step.key : null,
-                topline: topline.slice(0, 160),
-                pendingPrompt: !!game?.pendingPrompt,
-                multi: Number.isInteger(game?.multi) ? game.multi : 0,
-            });
-        },
-    });
+    const { seed: replaySeed, opts: replayOpts, keys, stepBoundaries } = prepareReplayArgs(
+        session.meta.seed, session.raw, {
+            captureScreens: true,
+            startupBurstInFirstStep: false,
+            flags,
+            tutorial,
+            replayTutorialStartupPrompts,
+            tutorialStartupEnterAfterPromptCount,
+            onKey: emitProgress ? ({ index, ch, game }) => {
+                let topline = '';
+                if (typeof game?.display?.getScreenLines === 'function') {
+                    const lines = game.display.getScreenLines() || [];
+                    topline = String(lines[0] || '');
+                }
+                emitProgress({
+                    step: index + 1,
+                    key: ch,
+                    topline: topline.slice(0, 160),
+                    pendingPrompt: !!game?.pendingPrompt,
+                    multi: Number.isInteger(game?.multi) ? game.multi : 0,
+                });
+            } : undefined,
+        }
+    );
+    const raw = await replaySession(replaySeed, replayOpts, keys);
+
+    // Group flat per-key results into per-step results for the comparator.
+    const steps = [];
+    let keyIdx = 0;
+    for (const len of stepBoundaries) {
+        const stepKeys = raw.keys.slice(keyIdx, keyIdx + len);
+        steps.push({
+            rng: stepKeys.flatMap(k => k.rng),
+            rngCalls: stepKeys.reduce((n, k) => n + k.rng.length, 0),
+            screen: stepKeys.length > 0 ? stepKeys[stepKeys.length - 1].screen : [],
+            screenAnsi: stepKeys.length > 0 ? stepKeys[stepKeys.length - 1].screenAnsi : undefined,
+            cursor: stepKeys.length > 0 ? stepKeys[stepKeys.length - 1].cursor : undefined,
+        });
+        keyIdx += len;
+    }
+
+    return { startup: raw.startup, steps };
 }
