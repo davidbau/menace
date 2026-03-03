@@ -66,7 +66,7 @@ import {
     objectData,
 } from './objects.js';
 import { obj_resists } from './objdata.js';
-import { mondead, newsym, mpickobj, vision_recalc } from './monutil.js';
+import { mondead, newsym, mpickobj } from './monutil.js';
 import { setmangry, seemimic, wakeup, wake_nearto, wake_nearby } from './mon.js';
 import { monflee } from './monmove.js';
 import { cansee } from './vision.js';
@@ -1439,7 +1439,6 @@ async function kick_door(x, y, avrg_attrib, maploc, player, map, game) {
         }
         feel_newsym(x, y);
         recalc_block_point(x, y);
-        vision_recalc();
         if (shopdoor) {
             add_damage(x, y, SHOP_DOOR_COST, map, game.moves);
             pay_for_damage("break", false, map, player, game.moves);
@@ -1477,7 +1476,6 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       else if (game.maploc.doormask !== D_NODOOR && !(game.maploc.doormask & D_LOCKED)) game.maploc.doormask = D_ISOPEN;
       feel_newsym(x, y);
       if (game.maploc.doormask === D_ISOPEN || game.maploc.doormask === D_NODOOR) unblock_point(x, y);
-      vision_recalc();
       return ECMD_TIME;
     }
     else { await kick_ouch(x, y, ""); return ECMD_TIME; }
@@ -1489,7 +1487,6 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       game.maploc.typ = CORR;
       feel_newsym(x, y);
       unblock_point(x, y);
-      vision_recalc();
       return ECMD_TIME;
     }
     else { await kick_ouch(x, y, ""); return ECMD_TIME; }

@@ -13,7 +13,8 @@ import {
     terrainSymbol as renderTerrainSymbol,
     CLR_GRAY, NO_COLOR, CLR_WHITE, CLR_BRIGHT_BLUE,
 } from './render.js';
-import { cansee, couldsee } from './vision.js';
+import { cansee, couldsee, clear_vision_full_recalc, get_vision_full_recalc } from './vision.js';
+export { mark_vision_dirty } from './vision.js';
 import { Monnam } from './mondata.js';
 import { is_hider, noattacks, dmgtype, attacktype } from './mondata.js';
 import { weight } from './mkobj.js';
@@ -316,6 +317,7 @@ export function see_monsters(map) {
 // after vision_recalc to ensure old and new player positions are updated
 // (vision_recalc only updates cells whose visibility changed).
 export function vision_recalc() {
+    clear_vision_full_recalc(); // C ref: vision_recalc clears vision_full_recalc flag
     const ctx = _displayContext;
     if (!ctx || !ctx.fov || !ctx.fov.visible || !ctx.map || !ctx.player) return;
     const { fov, map, player } = ctx;

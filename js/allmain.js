@@ -37,8 +37,8 @@ import { dosearch0 } from './detect.js';
 import { maybe_finished_meal } from './eat.js';
 import { exerper, exerchk } from './attrib_exercise.js';
 import { rhack } from './cmd.js';
-import { FOV } from './vision.js';
-import { monsterNearby, setDisplayContext, see_monsters } from './monutil.js';
+import { FOV, get_vision_full_recalc } from './vision.js';
+import { monsterNearby, setDisplayContext, see_monsters, vision_recalc } from './monutil.js';
 import { nomul, unmul, near_capacity } from './hack.js';
 import { Player, roles, races } from './player.js';
 import { makelevel, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
@@ -62,12 +62,16 @@ import { initAnimation, configureAnimation, setAnimationMode } from './animation
 // Called after the hero's action took time.  Runs movemon() for monster turns,
 // then moveloop_turnend() for once-per-turn effects.
 // opts.skipMonsterMove: skip movemon (used by some test harnesses)
-// opts.computeFov: recompute FOV before movemon (C ref: vision_recalc runs in domove)
+// C ref: vision_full_recalc checked at top of each loop iteration (vision.c)
 // Autotranslated from allmain.c:169
 export async function moveloop_core(game, opts = {}) {
     const player = (game.u || game.player);
-    if (opts.computeFov) {
-        game.fov.compute((game.lev || game.map), player.x, player.y);
+    // C ref: at top of each moveloop iteration, vision_recalc(0) if vision_full_recalc set.
+    // This catches topology changes from the player's action (door opens, dig, teleport, etc.)
+    // so that monsters run with up-to-date FOV.
+    if (game.fov && get_vision_full_recalc()) {
+        setDisplayContext({ display: game.display, player, fov: game.fov, flags: game.flags, map: (game.lev || game.map) });
+        vision_recalc();
     }
     if (!Number.isFinite(player.umovement)) {
         player.umovement = NORMAL_SPEED;
@@ -94,6 +98,13 @@ export async function moveloop_core(game, opts = {}) {
             await moveloop_turnend(game);
         }
     } while (player.umovement < NORMAL_SPEED);
+
+    // C ref: vision_full_recalc set during monster turns (digs, door breaks, etc.) —
+    // fire vision_recalc now so the display is current before screen capture.
+    if (game.fov && get_vision_full_recalc()) {
+        setDisplayContext({ display: game.display, player, fov: game.fov, flags: game.flags, map: (game.lev || game.map) });
+        vision_recalc();
+    }
 
     // C ref: allmain.c end of moveloop_core — check for player death
     if (player.isDead || player.uhp <= 0) {

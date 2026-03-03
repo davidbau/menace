@@ -21,6 +21,9 @@ let viz_clear;  // reference to FOV instance's viz_clear
 let right_ptrs_arr, left_ptrs_arr;
 let activeFov = null;
 let vision_full_recalc = 0;
+export function mark_vision_dirty() { vision_full_recalc = 1; }
+export function get_vision_full_recalc() { return vision_full_recalc; }
+export function clear_vision_full_recalc() { vision_full_recalc = 0; }
 let vis_func = null;
 let varg = null;
 

@@ -11,7 +11,7 @@ import { PM_GOLD_GOLEM, PM_LONG_WORM, S_EEL, S_WORM_TAIL } from './monsters.js';
 import { is_hider, hides_under } from './mondata.js';
 import { pline, You, Your, You_feel, You_see, pline_The,
          Norep, There, set_msg_xy } from './pline.js';
-import { BOLT_LIM, map_invisible, newsym, vision_recalc, helpless as monHelpless } from './monutil.js';
+import { BOLT_LIM, map_invisible, newsym, helpless as monHelpless } from './monutil.js';
 import { findgold } from './steal.js';
 import { observeObject } from './discovery.js';
 import { unblock_point, recalc_block_point, do_clear_area } from './vision.js';
@@ -871,7 +871,6 @@ export async function findit(player, map, display, game) {
     const fov = game && game.fov ? game.fov : null;
     await do_clear_area(fov, map, player.x, player.y, BOLT_LIM,
         (zx, zy, arg) => findone_fn(zx, zy, arg, player, map, display), found);
-    vision_recalc();
     let num = 0;
     const k = (found.num_sdoors ? 1 : 0) + (found.num_scorrs ? 1 : 0)
             + (found.num_traps ? 1 : 0) + (found.num_mons ? 1 : 0);

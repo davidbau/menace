@@ -29,7 +29,7 @@ import { onscary, wakeup, seemimic, xkilled, XKILL_NOMSG } from './mon.js';
 import { monflee } from './monmove.js';
 import { resist } from './zap.js';
 import { sleep_monst, slept_monst } from './mhitm.js';
-import { newsym, vision_recalc } from './monutil.js';
+import { newsym } from './monutil.js';
 import { dist2, highc, mungspaces } from './hacklib.js';
 import { consume_obj_charge, sobj_at } from './invent.js';
 import { selftouch, mselftouch } from './trap.js';
@@ -507,7 +507,6 @@ async function do_earthquake(force, map, player, fov) {
             }
         }
     }
-    vision_recalc(); // C ref: vision_recalc(0) after all terrain changes
 }
 
 // ============================================================================

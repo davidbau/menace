@@ -23,7 +23,7 @@ import { passes_walls, is_swimmer, is_flyer, is_floater,
          likes_lava, canseemon,
          is_rider, is_dlord, is_dprince, control_teleport,
          } from './mondata.js';
-import { newsym, mondead, vision_recalc } from './monutil.js';
+import { newsym, mondead, mark_vision_dirty } from './monutil.js';
 import { set_apparxy, mon_track_clear } from './monmove.js';
 import { onscary } from './mon.js';
 import { pline } from './pline.js';
@@ -636,10 +636,10 @@ export async function teleds(nx, ny, flags, game) {
     player.y = ny;
     if (player.ux0 !== undefined) { player.ux0 = ux0; player.uy0 = uy0; }
 
-    // Update display — C ref: teleds() calls vision_recalc(0) after moving hero
-    newsym(ux0, uy0);     // clear old position
-    vision_recalc();      // recompute FOV and reveal/hide changed cells
-    newsym(nx, ny);       // show '@' at new position (in case still visible)
+    // C ref: teleds() — player position changed, mark FOV dirty for moveloop_core
+    newsym(ux0, uy0);       // clear old position
+    mark_vision_dirty();    // FOV recomputed at start of moveloop_core
+    newsym(nx, ny);         // show '@' at new position
 
     if (is_teleport) {
         const same = (nx === ux0 && ny === uy0);

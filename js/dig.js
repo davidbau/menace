@@ -38,7 +38,7 @@ import {
 import { IS_TREE, IS_FOUNTAIN, IS_SINK, IS_GRAVE, IS_ALTAR, IS_THRONE } from './symbols.js';
 import { rn2, rnd, rn1 } from './rng.js';
 import { unblock_point, recalc_block_point } from './vision.js';
-import { newsym, vision_recalc } from './monutil.js';
+import { newsym } from './monutil.js';
 import { mb_trapped } from './monmove.js';
 import { canseemon } from './mondata.js';
 import { mksobj } from './mkobj.js';
@@ -1140,7 +1140,6 @@ export function dig(map, player) {
             unblock_point(dpx, dpy);
         }
         newsym(dpx, dpy);
-        vision_recalc();
 
         // Earth level: rn2(3), rn2(2) for earth elemental
         if (map.flags && map.flags.is_earthlevel && !rn2(3)) {

@@ -34,7 +34,7 @@ import { placeFloorObject, place_object } from './stackobj.js';
 import { xname, an, The } from './objnam.js';
 import { DIRECTION_KEYS } from './dothrow.js';
 import { dosearch0 } from './detect.js';
-import { dist2, monsterNearby, monnear, newsym, setDisplayContext, vision_recalc } from './monutil.js';
+import { dist2, monsterNearby, monnear, newsym, setDisplayContext, mark_vision_dirty } from './monutil.js';
 import { monflee } from './monmove.js';
 import { ynFunction } from './input.js';
 import { water_friction, maybe_adjust_hero_bubble } from './mkmaze.js';
@@ -399,10 +399,10 @@ export async function domove_swap_with_pet(mon, nx, ny, dir, player, map, displa
     player.displacedPetThisTurn = true;
     await maybeHandleShopEntryMessage(game, oldPlayerX, oldPlayerY);
 
-    // C ref: vision_recalc(0) after domove — recompute FOV and update changed cells
+    // C ref: player moved — mark FOV dirty; vision_recalc fires at start of moveloop_core
     if (game.fov) {
         setDisplayContext({ display, player, fov: game.fov, flags: game.flags, map });
-        vision_recalc();
+        mark_vision_dirty();
         newsym(oldPlayerX, oldPlayerY);  // show pet at old player position
         newsym(player.x, player.y);      // show '@' at new player position
         display.renderStatus(player);
@@ -763,12 +763,10 @@ export async function domove_core(dir, player, map, display, game) {
     clear_forcefight_prefix(game, ctx);
     await maybeHandleShopEntryMessage(game, oldX, oldY);
 
-    // C ref: vision_recalc(0) — recompute FOV and update changed cells after
-    // player moves.  Calls newsym() only for cells whose visibility changed,
-    // matching C's incremental display update in vision_recalc().
+    // C ref: player moved — mark FOV dirty; vision_recalc fires at start of moveloop_core
     if (game.fov) {
         setDisplayContext({ display, player, fov: game.fov, flags: game.flags, map });
-        vision_recalc();
+        mark_vision_dirty();
         newsym(oldX, oldY);          // update old player position (show terrain)
         newsym(player.x, player.y);  // update new player position (show '@')
         display.renderStatus(player);
@@ -2916,9 +2914,16 @@ export function feel_location(_x, _y, _map) {
     // Display update for blind hero; stub.
 }
 
-// C ref: hack.c feel_newsym() — update map display for a newly felt location
-export function feel_newsym(_map, _x, _y) {
-    // Display update for blind hero; stub.
+// C ref: hack.c feel_newsym() — update map display for a newly felt/seen location.
+// For sighted hero: newsym(x, y).  For blind: feel_location(x, y) (stub).
+// Signature is (x, y) matching C — some callers pass (map, x, y) due to old stub.
+export function feel_newsym(x, y) {
+    const player = _displayContext?.player;
+    if (player?.blind) {
+        feel_location(x, y);
+    } else {
+        newsym(x, y);
+    }
 }
 
 // C ref: hack.c lava_effects() — effects of stepping on lava

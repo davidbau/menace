@@ -35,7 +35,7 @@ import { pline, pline_The, You, You_cant, You_hear, There, set_msg_xy,
          verbalize } from './pline.js';
 import { acurr, acurrstr } from './attrib.js';
 import { obj_resists } from './objdata.js';
-import { newsym, vision_recalc } from './monutil.js';
+import { newsym } from './monutil.js';
 import { block_point, unblock_point, recalc_block_point, cansee } from './vision.js';
 import { wake_nearto, wake_nearby } from './mon.js';
 import { useup, delobj, currency } from './invent.js';
@@ -403,7 +403,6 @@ async function makePicklockOccupation(game) {
                 const dy = xlock._targetY;
                 unblock_point(dx, dy);
                 newsym(dx, dy);
-                vision_recalc();
             } else if (xlock.door.flags & D_LOCKED) {
                 xlock.door.flags = D_CLOSED;
             } else {
@@ -799,7 +798,6 @@ export async function doorlock(game, otmp, x, y) {
         block_point(x, y);
         door.flags = D_LOCKED | (door.flags & D_TRAPPED);
         newsym(x, y);
-        vision_recalc();
         break;
 
     case WAN_OPENING:
@@ -819,7 +817,6 @@ export async function doorlock(game, otmp, x, y) {
                 door.flags = D_NODOOR;
                 unblock_point(x, y);
                 newsym(x, y);
-                vision_recalc();
                 // C: mb_trapped or kaboom
                 loudness = 40;
                 if (cansee(map, player, player.fov, x, y)) {
@@ -832,7 +829,6 @@ export async function doorlock(game, otmp, x, y) {
             door.flags = D_BROKEN;
             recalc_block_point(x, y);
             newsym(x, y);
-            vision_recalc();
             if (cansee(map, player, player.fov, x, y)) {
                 await pline_The("door crashes open!");
             } else {
@@ -1027,7 +1023,6 @@ export async function handleOpen(player, map, display, game) {
         }
         recalc_block_point(nx, ny);
         newsym(nx, ny);
-        vision_recalc();
     } else {
         await exercise(player, A_STR, true);
         await display.putstr_message("The door resists!");
@@ -1101,7 +1096,6 @@ export async function handleClose(player, map, display, game) {
             loc.flags = D_CLOSED;
             block_point(nx, ny);
             newsym(nx, ny);
-            vision_recalc();
         } else {
             await exercise(player, A_STR, true);
             await display.putstr_message("The door resists!");

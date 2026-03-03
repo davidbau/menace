@@ -39,7 +39,7 @@ import { SADDLE } from './objects.js';
 import { roles } from './player.js';
 import { makemon, NO_MINVENT, MM_EDOG, mbirth_limit, MAXMONNO } from './makemon.js';
 import { mksobj } from './mkobj.js';
-import { mpickobj, vision_recalc } from './monutil.js';
+import { mpickobj, mark_vision_dirty } from './monutil.js';
 
 // Re-export dogmove.c functions that were previously defined here
 export { can_carry, dog_eat } from './dogmove.js';
@@ -790,7 +790,7 @@ export async function migrate_to_level(mtmp, tolev, xyloc, cc, game, map) {
   mtmp.mux = new_lev.dnum;
   mtmp.muy = new_lev.dlevel;
   mtmp.mx = mtmp.my = 0;
-  if (emits_light(mtmp.data)) vision_recalc();
+  if (emits_light(mtmp.data)) mark_vision_dirty();
 }
 
 // Autotranslated from dog.c:1357
