@@ -117,7 +117,7 @@ export function count_level_features(map) {
 export function clear_level_structures(map) {
     map.clear();
     map.flags.hero_memory = true;
-    map.flags.rndmongen = true;
+    map.flags.nomongen = false;
     map.flags.deathdrops = true;
 }
 

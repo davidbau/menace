@@ -274,7 +274,7 @@ export let levelState = {
         graveyard: false,
         corrmaze: false,
         temperature: 0,     // 0=temperate, 1=hot, -1=cold
-        rndmongen: true,
+        nomongen: false,
         deathdrops: true,
         noautosearch: false,
         fumaroles: false,
@@ -945,7 +945,7 @@ export function resetLevelState() {
             graveyard: false,
             corrmaze: false,
             temperature: 0,
-            rndmongen: true,
+            nomongen: false,
             deathdrops: true,
             noautosearch: false,
             fumaroles: false,
@@ -1639,7 +1639,7 @@ export function level_flags(...flags) {
                 setFlag('temperature', -1);
                 break;
             case 'nomongen':
-                setFlag('rndmongen', false);
+                setFlag('nomongen', true);
                 break;
             case 'nodeathdrops':
                 setFlag('deathdrops', false);

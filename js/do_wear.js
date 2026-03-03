@@ -37,6 +37,7 @@ import { ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS, objectData,
          WHITE_DRAGON_SCALES, WHITE_DRAGON_SCALE_MAIL,
          SILVER_DRAGON_SCALES, SILVER_DRAGON_SCALE_MAIL } from './objects.js';
 import { doname, is_crackable } from './mkobj.js';
+import { armor_simple_name } from './objnam.js';
 import { is_metallic, obj_resists } from './objdata.js';
 import { which_armor } from './worn.js';
 import { useup } from './invent.js';
@@ -1505,12 +1506,13 @@ export function count_worn_armor(player) {
 
 // Helper: collect all currently worn armor items
 function getWornArmorItems(player) {
-    const items = [];
+    // Preserve inventory letter order like C getobj()/askchain prompts.
+    const worn = new Set();
     for (const sub of Object.keys(ARMOR_SLOTS)) {
         const prop = ARMOR_SLOTS[sub].prop;
-        if (player[prop]) items.push(player[prop]);
+        if (player[prop]) worn.add(player[prop]);
     }
-    return items;
+    return (player.inventory || []).filter((obj) => worn.has(obj));
 }
 
 // cf. do_wear.c dowear() — W command: wear a piece of armor
@@ -1659,7 +1661,7 @@ async function handlePutOn(player, display) {
 }
 
 // cf. do_wear.c dotakeoff() — T command: take off a piece of armor
-async function handleTakeOff(player, display) {
+async function handleTakeOff(player, display, game = null) {
     const worn = getWornArmorItems(player);
     if (worn.length === 0) {
         await display.putstr_message("You're not wearing any armor.");
@@ -1709,10 +1711,41 @@ async function handleTakeOff(player, display) {
 
     const slot = ARMOR_SLOTS[sub];
     const offFn = SLOT_OFF[sub];
-    if (offFn) offFn(player);
-    player[slot.prop] = null;
-    find_ac(player);
-    await display.putstr_message(`You take off ${doname(item, player)}.`);
+    const takeOffNow = () => {
+        if (offFn) offFn(player);
+        player[slot.prop] = null;
+        find_ac(player);
+    };
+
+    // C parity: takeoff completion is emitted after this command's timed turn.
+    if (game) {
+        return {
+            moved: false,
+            tookTime: true,
+            onAfterTurn: () => {
+                takeOffNow();
+                const finishMsg = `You finish taking off your ${armor_simple_name(item)}.`;
+                const prior = (typeof display.topMessage === 'string') ? display.topMessage.trim() : '';
+                if (prior.length > 0 && !prior.endsWith(finishMsg)) {
+                    const combined = `${prior}  ${finishMsg}`;
+                    if (typeof display.clearRow === 'function') display.clearRow(0);
+                    if (typeof display.putstr === 'function') {
+                        const width = Number.isInteger(display.cols) ? display.cols : combined.length;
+                        display.putstr(0, 0, combined.substring(0, width));
+                    } else {
+                        display.putstr_message(combined);
+                    }
+                    display.topMessage = combined;
+                    if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = true;
+                    return;
+                }
+                display.putstr_message(finishMsg);
+            },
+        };
+    }
+
+    takeOffNow();
+    display.putstr_message(`You finish taking off your ${armor_simple_name(item)}.`);
     return { moved: false, tookTime: true };
 }
 

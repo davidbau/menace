@@ -106,6 +106,7 @@ export class GameMap {
             has_barracks: false,
             has_zoo: false,
             has_town: false,
+            nomongen: false,
             noteleport: false,
             hardfloor: false,
             nommap: false,

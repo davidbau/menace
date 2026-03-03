@@ -545,30 +545,11 @@ function isEventEntry(entry) {
 }
 
 function isIgnorableEventEntry(entry) {
-    if (typeof entry !== 'string') return false;
-    // C-only events (not produced by JS replay):
-    if (entry.startsWith('^mapdump[')) return true;
-    // JS-only events (not yet instrumented in C harness patches):
-    if (entry.startsWith('^delay_output[')) return true;
-    if (entry.startsWith('^dog_goal_start[')) return true;
-    if (entry.startsWith('^dog_goal_obj[')) return true;
-    if (entry.startsWith('^dog_goal_end[')) return true;
-    if (entry.startsWith('^tmp_at_start[')) return true;
-    if (entry.startsWith('^tmp_at_step[')) return true;
-    if (entry.startsWith('^tmp_at_end[')) return true;
-    // Events that can diverge due to screen-capture timing differences
-    // between tmux (C harness) and JS replay. These are correctly
-    // instrumented on both sides but session re-recording flakiness
-    // causes count mismatches. TODO: remove after reliable re-recording.
-    if (entry.startsWith('^distfleeck[')) return true;
-    if (entry.startsWith('^dog_invent_decision[')) return true;
-    if (entry.startsWith('^dog_move_choice[')) return true;
-    if (entry.startsWith('^dog_move_entry[')) return true;
-    if (entry.startsWith('^dog_move_exit[')) return true;
-    if (entry.startsWith('^dog_move_mfndpos[')) return true;
-    if (entry.startsWith('^mcalcmove[')) return true;
-    if (entry.startsWith('^movemon_turn[')) return true;
-    return false;
+    // `trick[...]` remains ignored because it is map-regeneration recovery noise.
+    // `mapdump[...]` is harness-level diagnostics rather than gameplay semantics.
+    // Dog/monster diagnostic events are compared directly.
+    return typeof entry === 'string'
+        && (entry.startsWith('^trick[') || entry.startsWith('^mapdump['));
 }
 
 // Strip JS caller context (` @ caller <= parent`) appended by pushRngLogEntry.

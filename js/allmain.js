@@ -199,7 +199,9 @@ export async function moveloop_turnend(game) {
 
     // C ref: allmain.c:232-236 — occasionally spawn a new monster.
     // New monster spawns after movement allocation and therefore loses its first turn.
-    if (!rn2(70) && !((game.lev || game.map)?.flags?.nomongen) && !((game.lev || game.map)?.flags?.is_tutorial)) {
+    const levFlags = (game.lev || game.map)?.flags || {};
+    const randomMonstersAllowed = !levFlags.nomongen;
+    if (!rn2(70) && randomMonstersAllowed && !levFlags.is_tutorial) {
         setMakemonPlayerContext((game.u || game.player));
         makemon(null, 0, 0, 0, (game.u || game.player).dungeonLevel, (game.lev || game.map));
     }
@@ -576,6 +578,9 @@ export async function run_command(game, ch, opts = {}) {
     // Post-rhack processing: moveloop_core, occupation, multi-repeat
     if (result && result.tookTime && !skipTurnEnd) {
         await advanceTimedTurn();
+        if (typeof result.onAfterTurn === 'function') {
+            await result.onAfterTurn(game);
+        }
 
         // Drain any occupation created by the command
         await _drainOccupation(game, coreOpts, onTimedTurn);
@@ -596,6 +601,9 @@ export async function run_command(game, ch, opts = {}) {
 
             if (!repeated || !repeated.tookTime) break;
             await advanceTimedTurn();
+            if (typeof repeated.onAfterTurn === 'function') {
+                await repeated.onAfterTurn(game);
+            }
 
             // Drain occupation from repeated command
             await _drainOccupation(game, coreOpts, onTimedTurn);

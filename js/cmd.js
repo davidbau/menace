@@ -333,7 +333,7 @@ export async function rhack(ch, game) {
 
     // Take off armor
     if (c === 'T') {
-        return await handleTakeOff(player, display);
+        return await handleTakeOff(player, display, game);
     }
 
     // Drop

@@ -76,7 +76,35 @@ def find_preset(options):
     return None
 
 
-def build_command(session_path, data):
+def _infer_interface_keys_from_session(data, regen):
+    """Infer interface key string when regen metadata omitted explicit keys."""
+    keys = regen.get('keys')
+    if keys is not None:
+        return keys
+
+    # Prefer explicit steps payload if available.
+    step_keys = []
+    for step in data.get('steps', []):
+        if not isinstance(step, dict):
+            continue
+        key = step.get('key')
+        if key is None:
+            continue
+        step_keys.append(str(key))
+    if step_keys:
+        return ''.join(step_keys)
+
+    # Name prompt captures historically stored only playerName.
+    subtype = regen.get('subtype', '')
+    if subtype == 'nameprompt':
+        player_name = data.get('options', {}).get('playerName')
+        if player_name:
+            return f'{player_name}\n'
+
+    return None
+
+
+def build_command(session_path, data, force_record_more_spaces=False):
     """Build the command to re-record a session. Returns (cmd, description) or (None, reason)."""
     regen = data.get('regen')
     if not regen or not regen.get('mode'):
@@ -88,17 +116,33 @@ def build_command(session_path, data):
     output = os.path.abspath(session_path)
 
     if mode == 'gameplay':
-        return _build_gameplay(seed, output, regen, options, data.get('steps'))
+        return _build_gameplay(
+            seed,
+            output,
+            regen,
+            options,
+            data.get('steps'),
+            force_record_more_spaces=force_record_more_spaces,
+        )
     elif mode == 'chargen':
         return _build_chargen(seed, output, regen)
     elif mode == 'wizload':
         return _build_wizload(seed, output, regen)
     elif mode == 'interface':
-        return _build_interface(seed, output, regen)
+        return _build_interface(seed, output, regen, data)
     elif mode == 'option_test':
         return _build_option_test(output, regen)
-    elif mode == 'keylog':
-        return _build_keylog(output, regen, data)
+    elif mode == 'keylog' or mode == 'manual-direct-live':
+        cmd, description = _build_from_steps(
+            seed,
+            output,
+            data,
+            options,
+            force_record_more_spaces=force_record_more_spaces,
+        )
+        if cmd is not None:
+            return cmd, description
+        return _build_keylog(session_path, output, regen, data)
     else:
         return None, f'unknown regen.mode: {mode}'
 
@@ -163,7 +207,7 @@ def _extract_step_key_delay_overrides(steps):
     return out
 
 
-def _build_gameplay(seed, output, regen, options, steps):
+def _build_gameplay(seed, output, regen, options, steps, force_record_more_spaces=False):
     moves = regen.get('moves', '...........')
     cmd = ['python3', RUN_SESSION, str(seed), output, moves]
 
@@ -184,10 +228,7 @@ def _build_gameplay(seed, output, regen, options, steps):
 
     if regen.get('raw_moves') or regen.get('rawMoves'):
         cmd.append('--raw-moves')
-    record_more_spaces = regen.get('record_more_spaces')
-    if record_more_spaces is None:
-        record_more_spaces = regen.get('recordMoreSpaces')
-    if bool(record_more_spaces):
+    if force_record_more_spaces:
         cmd.append('--record-more-spaces')
     if options.get('wizard') is False:
         cmd.append('--no-wizard')
@@ -221,6 +262,51 @@ def _build_gameplay(seed, output, regen, options, steps):
     return cmd, f'gameplay seed={seed}'
 
 
+def _append_character_and_mode_flags(cmd, options):
+    """Append role/name/wizard flags for gameplay capture commands."""
+    preset = find_preset(options)
+    if preset:
+        if preset != 'valkyrie':  # valkyrie is the default
+            cmd += ['--character', preset]
+    else:
+        role = options.get('role')
+        name = options.get('name')
+        if role and role != DEFAULT_CHARACTER['role']:
+            cmd += ['--role', role]
+        if name and name != DEFAULT_CHARACTER['name']:
+            cmd += ['--name', name]
+    if options.get('wizard') is False:
+        cmd.append('--no-wizard')
+    return cmd
+
+
+def _build_from_steps(seed, output, data, options, force_record_more_spaces=False):
+    """Build a raw-moves replay command from in-session step keys."""
+    steps = data.get('steps')
+    if not isinstance(steps, list) or not steps:
+        return None, 'no steps for internal key replay'
+
+    keys = []
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        key = step.get('key')
+        if key is None:
+            continue
+        if not isinstance(key, str):
+            return None, f'non-string key in step stream: {type(key).__name__}'
+        keys.append(key)
+    if not keys:
+        return None, 'no key events in steps for internal key replay'
+
+    move_str = ''.join(keys)
+    cmd = ['python3', RUN_SESSION, str(seed), output, move_str, '--raw-moves']
+    if force_record_more_spaces:
+        cmd.append('--record-more-spaces')
+    cmd = _append_character_and_mode_flags(cmd, options)
+    return cmd, f'gameplay raw-from-steps seed={seed} keys={len(keys)}'
+
+
 def _build_chargen(seed, output, regen):
     selections = regen.get('selections', '')
     cmd = ['python3', RUN_SESSION, str(seed), output, '--chargen', selections]
@@ -238,9 +324,9 @@ def _build_wizload(seed, output, regen):
     return cmd, f'wizload seed={seed} level={level}'
 
 
-def _build_interface(seed, output, regen):
+def _build_interface(seed, output, regen, data):
     subtype = regen.get('subtype', '')
-    keys = regen.get('keys')
+    keys = _infer_interface_keys_from_session(data, regen)
 
     # Interface sessions generated by gen_interface_sessions.py
     if subtype in ('startup', 'options', 'chargen', 'tutorial'):
@@ -272,14 +358,46 @@ def _build_option_test(output, regen):
     return cmd, f'option_test option={option} value={value_str}'
 
 
-def _build_keylog(output, regen, data):
+def _resolve_keylog_path(session_path, regen):
+    """Resolve keylog path with compatibility fallbacks for renamed files."""
     keylog_path = regen.get('keylog', '')
-    if not keylog_path:
-        return None, 'keylog session with no keylog path'
+    if keylog_path:
+        if os.path.isabs(keylog_path):
+            if os.path.exists(keylog_path):
+                return keylog_path, False
+        else:
+            candidate = os.path.join(PROJECT_ROOT, keylog_path)
+            if os.path.exists(candidate):
+                return candidate, False
 
-    # Make keylog path absolute relative to project root
-    if not os.path.isabs(keylog_path):
-        keylog_path = os.path.join(PROJECT_ROOT, keylog_path)
+    # Fallbacks for stale/manual keylog references
+    keylogs_dir = os.path.join(PROJECT_ROOT, 'test', 'comparison', 'keylogs')
+    session_base = os.path.basename(session_path).replace('.session.json', '')
+    fallback_basenames = []
+    if session_base.endswith('_gameplay'):
+        fallback_basenames.append(f'{session_base[:-9]}.jsonl')
+    fallback_basenames.append(f'{session_base}.jsonl')
+
+    regen_session = regen.get('session')
+    if regen_session:
+        fallback_basenames.append(f'{regen_session}.jsonl')
+
+    seen = set()
+    for name in fallback_basenames:
+        if name in seen:
+            continue
+        seen.add(name)
+        candidate = os.path.join(keylogs_dir, name)
+        if os.path.exists(candidate):
+            return candidate, True
+
+    return None, False
+
+
+def _build_keylog(session_path, output, regen, data):
+    keylog_path, used_fallback = _resolve_keylog_path(session_path, regen)
+    if not keylog_path:
+        return None, f'keylog file missing: {regen.get("keylog", "(none)")}'
 
     cmd = ['python3', KEYLOG_TO_SESSION, '--in', keylog_path, '--out', output]
 
@@ -302,18 +420,35 @@ def _build_keylog(output, regen, data):
     if symset:
         cmd += ['--symset', symset]
 
+    options = data.get('options', {}) if isinstance(data.get('options'), dict) else {}
+
     # Startup mode
     startup_mode = regen.get('startupMode')
+    if startup_mode is None:
+        startup_mode = regen.get('startup_mode')
     if startup_mode:
         cmd += ['--startup-mode', startup_mode]
 
     # Screen capture
     screen_capture = regen.get('screenCapture')
+    if screen_capture is None:
+        screen_capture = regen.get('screen_capture')
     if screen_capture:
         cmd += ['--screen-capture', screen_capture]
 
+    # Wizard mode
+    wizard = regen.get('wizard')
+    if wizard is None:
+        wizard = options.get('wizard')
+    if wizard is True:
+        cmd += ['--wizard', 'on']
+    elif wizard is False:
+        cmd += ['--wizard', 'off']
+
     # Tutorial
     tutorial = regen.get('tutorial')
+    if tutorial is None:
+        tutorial = options.get('tutorial')
     if tutorial is True:
         cmd += ['--tutorial', 'on']
     elif tutorial is False:
@@ -321,10 +456,13 @@ def _build_keylog(output, regen, data):
 
     # Drop leading spaces
     drop = regen.get('dropLeadingSpaces', 0)
+    if not drop:
+        drop = regen.get('drop_leading_spaces', 0)
     if drop:
         cmd += ['--drop-leading-spaces', str(drop)]
 
-    return cmd, f'keylog keylog={regen.get("keylog")}'
+    source = 'fallback' if used_fallback else 'regen'
+    return cmd, f'keylog[{source}] keylog={keylog_path}'
 
 
 def discover_sessions():
@@ -375,6 +513,11 @@ def main():
     parser.add_argument('--all', action='store_true', help='Re-record all sessions')
     parser.add_argument('--type', dest='filter_type', help='Only re-record sessions with this regen.mode')
     parser.add_argument('--dry-run', action='store_true', help='Show commands without executing')
+    parser.add_argument(
+        '--record-more-spaces',
+        action='store_true',
+        help='Force --record-more-spaces for gameplay sessions',
+    )
     parser.add_argument('--parallel', nargs='?', const=4, type=int, default=None,
                         help='Run up to N sessions in parallel (default 4)')
     args = parser.parse_args()
@@ -408,7 +551,11 @@ def main():
         if args.filter_type and mode != args.filter_type:
             continue
 
-        cmd, description = build_command(path, data)
+        cmd, description = build_command(
+            path,
+            data,
+            force_record_more_spaces=args.record_more_spaces,
+        )
         if cmd is None:
             skipped += 1
             warnings.append(f'  skip: {os.path.basename(path)} — {description}')

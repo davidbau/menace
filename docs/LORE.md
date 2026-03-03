@@ -1593,3 +1593,27 @@ hard-won wisdom:
 - `mktrap()`/`hole_destination()` in `dungeon.js` relies on `_genDnum/_genDlevel` for C-faithful trap depth RNG during level generation.
 - Without that context, hole/trapdoor destination depth consumed a different RNG path (`rn2(4)` loop against wrong dungeon/depth), shifting RNG from step 2.
 - Restoring `_genDnum/_genDlevel` (and `_dnum/_dlevel`) on special-level map init moved seed7 first RNG divergence back out to step 165.
+
+### Level flag naming migration: `rndmongen` -> `nomongen` (2026-03-02)
+
+- Standardized level random-monster-generation flag naming to the C-facing name `nomongen`.
+- Removed all runtime references to the JS-specific alias `rndmongen`; no compatibility read path remains.
+- Updated special-level flag parsing (`des.level_flags("nomongen")`) and level initialization defaults to write/read `nomongen` directly.
+- This is a breaking internal flag-name change for stale serialized in-memory flag objects that still use `rndmongen`.
+
+### Event parity migration: dog diagnostics now strict (2026-03-02)
+
+- Comparator event filtering for `^distfleeck[...]` and `^dog_invent_decision[...]` was removed, and `^dog_move_choice[...]` filtering was also removed.
+- Result: dog diagnostic events now participate in strict parity checks like other event channels.
+- Current gameplay session corpus is mixed-instrumentation:
+  - 4 gameplay sessions include `^distfleeck[...]`, `^dog_invent_decision[...]`, and `^dog_move_choice[...]`.
+  - 38 gameplay sessions include only older dog event schema (`^dog_move_entry[...]`/`^dog_move_exit[...]`) and will fail event parity until re-recorded.
+- Migration requirement: re-record gameplay sessions with the latest C harness event patches so event schemas match and strict event parity is meaningful.
+
+### Cursor parity for count-prefix replay frames (2026-03-02)
+
+- `seed204_multidigit_wait_gameplay` had a non-blocking cursor mismatch at step 2:
+  C capture cursor was on topline after `Count: 15` (`[9,0]`), while JS replay left cursor on player.
+- Root cause: replay count-prefix digit handling rendered map/status after writing `Count: N`, which reset cursor to player.
+- Fix: in replay capture path, restore cursor to topline (`setCursor(len("Count: N"), 0)`) after render and before snapshot capture.
+- Result: `seed204_multidigit_wait_gameplay` cursor parity is now full (`3/3`).

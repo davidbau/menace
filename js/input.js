@@ -530,9 +530,17 @@ export async function getCount(firstKey, maxCount, display) {
         if (cnt > 9 || backspaced) {
             if (disp) {
                 if (backspaced && !cnt && !showzero) {
-                    await disp.putstr_message('Count: ');
+                    const countText = 'Count: ';
+                    await disp.putstr_message(countText);
+                    if (typeof disp.moveCursorTo === 'function') {
+                        disp.moveCursorTo(countText.length, 0);
+                    }
                 } else {
-                    await disp.putstr_message(`Count: ${cnt}`);
+                    const countText = `Count: ${cnt}`;
+                    await disp.putstr_message(countText);
+                    if (typeof disp.moveCursorTo === 'function') {
+                        disp.moveCursorTo(countText.length, 0);
+                    }
                 }
             }
             backspaced = false;

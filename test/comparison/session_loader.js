@@ -88,10 +88,10 @@ function normalizeStep(step, index) {
 function decodeCell(cell) {
     if (typeof cell !== 'string' || cell.length === 0) return 0;
     if (/^\d+$/.test(cell)) return Number(cell);
-    const ch = cell.toLowerCase();
-    const code = ch.charCodeAt(0);
-    if (code >= 48 && code <= 57) return code - 48;
-    if (code >= 97 && code <= 122) return 10 + (code - 97);
+    const code = cell.charCodeAt(0);
+    if (code >= 48 && code <= 57) return code - 48;        // 0..9
+    if (code >= 97 && code <= 122) return 10 + (code - 97); // a..z => 10..35
+    if (code >= 65 && code <= 90) return 36 + (code - 65);  // A..Z => 36..61
     return 0;
 }
 

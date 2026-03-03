@@ -40,6 +40,7 @@ import { PM_FIRE_ELEMENTAL, PM_SALAMANDER, PM_FLOATING_EYE, PM_GELATINOUS_CUBE,
          G_FREQ } from './monsters.js';
 import { MAGIC_PORTAL } from './symbols.js';
 import { gettrack } from './track.js';
+import { helpless } from './monutil.js';
 
 // Shared utilities from monmove.js
 import { dist2, distmin, monnear, mfndpos, mon_allowflags,
@@ -538,7 +539,7 @@ function droppables(mon) {
 // Returns: 0 (no action), 1 (ate something), 2 (died)
 // ========================================================================
 async function dog_invent(mon, edog, udist, map, turnCount, display, player, fov = null) {
-    if (mon.meating) {
+    if (helpless(mon) || mon.meating) {
         pushRngLogEntry(`^dog_invent_decision[${mon.mndx}@${mon.mx},${mon.my} ud=${udist} act=-1 otyp=-1 carry=0 rv=0]`);
         return 0;
     }
@@ -1256,8 +1257,8 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                     } else if (isPetrifier && !resists_ston(mon)) {
                         skipTarget = true;
                     }
-                    if (skipTarget) continue;
-                }
+                if (skipTarget) continue;
+            }
 
                 // C ref: dogmove.c:1141 — only attack once per move
                 if (after) return 0;
