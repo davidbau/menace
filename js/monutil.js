@@ -345,6 +345,42 @@ export function vision_recalc() {
     }
 }
 
+// C ref: display.c:2200 flush_screen(cursor_on_u)
+// Syncs the display: update status if dirty, move cursor to hero.
+// cursor_on_u: 1 = update status + cursor; 0 = update status only;
+//              -1 = toggle delay_flushing (suppresses all flushes until called again)
+// C's glyph-buffer flush is a no-op in JS — newsym() writes directly to display.
+let _flushing = false;
+let _delay_flushing = false;
+
+export function flush_screen(cursor_on_u) {
+    // C ref: cursor_on_u == -1 toggles delay_flushing (used to bracket level changes)
+    if (cursor_on_u === -1) {
+        _delay_flushing = !_delay_flushing;
+        return;
+    }
+    if (_delay_flushing) return;
+    if (_flushing) return; // prevent re-entrancy: pline -> flush_screen -> pline
+    _flushing = true;
+
+    const ctx = _displayContext;
+    if (ctx?.display && ctx?.player) {
+        const { display, player } = ctx;
+        // C ref: if (disp.botl || disp.botlx) bot(); else if (disp.time_botl) timebot();
+        if (player._botl) {
+            if (typeof display.renderStatus === 'function')
+                display.renderStatus(player);
+            player._botl = false;
+        }
+        // C ref: glyph buffer flush (print cells marked gnew) — JS: no-op, newsym is immediate
+        // C ref: if (cursor_on_u) curs(WIN_MAP, u.ux, u.uy)
+        if (cursor_on_u > 0 && typeof display.cursorOnPlayer === 'function')
+            display.cursorOnPlayer(player);
+    }
+
+    _flushing = false;
+}
+
 // C ref: display.h canseemon(mon) — hero can see the monster
 // Checks cansee(location) AND mon_visible (not invisible, not hiding).
 // Note: C's canspotmon adds sensemon (telepathy/detection) — not yet ported.

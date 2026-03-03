@@ -18,6 +18,7 @@ import { highc, upstart, s_suffix } from './hacklib.js';
 import { CLR_MAX, NO_COLOR } from './symbols.js';
 import { hasGivenName, type_is_pname, is_mplayer,
          is_animal, is_mindless, is_humanoid } from './mondata.js';
+import { flush_screen } from './monutil.js';
 
 // Re-export helper needed by x_monnam naming logic.
 export { hasGivenName } from './mondata.js';

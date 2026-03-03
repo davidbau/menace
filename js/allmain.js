@@ -38,7 +38,7 @@ import { maybe_finished_meal } from './eat.js';
 import { exerper, exerchk } from './attrib_exercise.js';
 import { rhack } from './cmd.js';
 import { FOV, get_vision_full_recalc } from './vision.js';
-import { monsterNearby, setDisplayContext, see_monsters, vision_recalc, mark_vision_dirty } from './monutil.js';
+import { monsterNearby, setDisplayContext, see_monsters, vision_recalc, mark_vision_dirty, flush_screen } from './monutil.js';
 import { nomul, unmul, near_capacity } from './hack.js';
 import { Player, roles, races } from './player.js';
 import { makelevel, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
@@ -1273,6 +1273,8 @@ export class NetHackGame {
                 heroHasAmulet,
             })
             : undefined;
+
+        flush_screen(-1);   // C ref: do.c:1720 — suppress flushes during level transition
         await changeLevelCore(this, depth, transitionDir, { ...opts, makeLevel });
 
         // Bones level message
@@ -1280,8 +1282,10 @@ export class NetHackGame {
             await this.display.putstr_message('You get an eerie feeling...');
         }
 
-        // Update display
+        // Update display — C ref: do.c:1840 docrt() + do.c:1841 flush_screen(-1)
         this.docrt();
+        flush_screen(-1);   // C ref: do.c:1841 — restore flush capability after docrt()
+        flush_screen(1);    // C ref: cmd.c:1310 — update status + cursor
         await this.maybeShowQuestLocateHint(depth);
         if (typeof this.hooks.onLevelChange === 'function') {
             this.hooks.onLevelChange({ game: this, depth });
