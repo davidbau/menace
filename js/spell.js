@@ -11,6 +11,7 @@
 //   dospellmenu(): display spell menu UI.
 
 import { A_INT, A_WIS, A_STR, PM_KNIGHT, PM_WIZARD, IS_STWALL, IS_OBSTRUCTED } from './config.js';
+import { mark_vision_dirty } from './vision.js';
 import {
     objectData, ROBE, QUARTERSTAFF, SMALL_SHIELD, LENSES,
     SPE_DIG, SPE_MAGIC_MISSILE, SPE_FIREBALL, SPE_CONE_OF_COLD,
@@ -1199,6 +1200,7 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
         if (player.blind) {
             await pline("Your vision clears.");
             player.blind = false;
+            mark_vision_dirty();
         }
         break;
 

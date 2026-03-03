@@ -35,6 +35,7 @@ import { rn2_on_display_rng } from './rng.js';
 import { pline, pline_The, verbalize, You, Your, You_feel, You_hear,
          livelog_printf } from './pline.js';
 import { S_altar, IS_OBSTRUCTED } from './symbols.js';
+import { mark_vision_dirty } from './vision.js';
 import { S_LICH, S_GHOST, S_VAMPIRE, S_WRAITH, S_MUMMY, S_ZOMBIE, S_HUMAN,
          mons, PM_ACID_BLOB, PM_WRAITH,
          PM_CLERIC as MONS_PM_CLERIC, PM_KNIGHT as MONS_PM_KNIGHT,
@@ -349,7 +350,9 @@ function make_hallucinated(player, duration, _talk, _mask) {
 
 // Helper: make_blinded
 function make_blinded(player, duration, _talk) {
+    const was_blind = !!player.blind;
     player.blind = duration ? duration : 0;
+    if (!!player.blind !== was_blind) mark_vision_dirty();
 }
 
 // Helper: make_stoned

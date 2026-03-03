@@ -48,6 +48,7 @@
 //   polysense(player): full port — species awareness when polymorphed
 
 import { rn1, rn2, rnd, d } from './rng.js';
+import { mark_vision_dirty } from './vision.js';
 import { exercise } from './attrib_exercise.js';
 import {
     mons, NON_PM, LOW_PM, SPECIAL_PM,
@@ -619,6 +620,7 @@ export function set_uasmon(player) {
 
     float_vs_flight(player);
     polysense(player);
+    mark_vision_dirty(); // SEE_INVIS, INFRAVISION, TELEPAT, BLINDED may have changed
 }
 
 // ============================================================================
@@ -747,6 +749,7 @@ async function polyman(player, fmt, arg) {
     const was_blind = !!player.blind;
     if (was_blind && haseyes(player.type || mons[PM_HUMAN])) {
         player.blind = 0;
+        mark_vision_dirty();
     }
 
     await check_strangling(player, true);
@@ -1215,6 +1218,7 @@ export async function polymon(player, mntmp, map) {
     // Blindness: if was eyeless and now can see
     if (player.blind && haseyes(mons[mntmp])) {
         player.blind = 0;
+        mark_vision_dirty();
     }
 
     // Egg type learning

@@ -59,7 +59,7 @@ import { CORPSE, TIN, EGG, BOULDER,
          objectData, CLOTH } from './objects.js';
 import { bcsign, doname, splitobj, Is_container } from './mkobj.js';
 import { m_carrying } from './weapon.js';
-import { cansee, couldsee } from './vision.js';
+import { cansee, couldsee, mark_vision_dirty } from './vision.js';
 import { which_armor, extract_from_minvent,
          W_ARM, W_ARMH, W_ARMS, W_AMUL, W_WEP, W_ARMG,
          mon_set_minvis, mon_adjust_speed } from './worn.js';
@@ -1840,6 +1840,7 @@ export async function use_offensive(mtmp, map, player) {
             await pline('You are blinded by the flash of light!');
             player.blind = true;
             player.blindTimeout = (player.blindTimeout || 0) + rnd(51);
+            mark_vision_dirty();
         }
         m_using = false;
         otmp.spe--;
