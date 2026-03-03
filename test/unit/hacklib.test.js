@@ -110,7 +110,7 @@ describe('unpadline', () => {
 
 describe('parseEncryptedDataFile', () => {
     it('parses the compiled epitaph file correctly', () => {
-        const filePath = join(rootDir, 'nethack-c/dat/epitaph');
+        const filePath = join(rootDir, 'nethack-c/upstream/dat/epitaph');
         const fileText = readFileSync(filePath, 'ascii');
         const data = parseEncryptedDataFile(fileText);
 
@@ -119,7 +119,7 @@ describe('parseEncryptedDataFile', () => {
     });
 
     it('decrypts first epitaph correctly', () => {
-        const filePath = join(rootDir, 'nethack-c/dat/epitaph');
+        const filePath = join(rootDir, 'nethack-c/upstream/dat/epitaph');
         const fileText = readFileSync(filePath, 'ascii');
         const data = parseEncryptedDataFile(fileText);
 
@@ -127,7 +127,7 @@ describe('parseEncryptedDataFile', () => {
     });
 
     it('decrypts known epitaphs correctly', () => {
-        const filePath = join(rootDir, 'nethack-c/dat/epitaph');
+        const filePath = join(rootDir, 'nethack-c/upstream/dat/epitaph');
         const fileText = readFileSync(filePath, 'ascii');
         const data = parseEncryptedDataFile(fileText);
 
@@ -139,7 +139,7 @@ describe('parseEncryptedDataFile', () => {
     });
 
     it('all line bytes are 60 (padded lines)', () => {
-        const filePath = join(rootDir, 'nethack-c/dat/epitaph');
+        const filePath = join(rootDir, 'nethack-c/upstream/dat/epitaph');
         const fileText = readFileSync(filePath, 'ascii');
         const data = parseEncryptedDataFile(fileText);
 
@@ -153,12 +153,12 @@ describe('parseEncryptedDataFile', () => {
     });
 
     it('decrypted texts match epitaph.txt source', () => {
-        const filePath = join(rootDir, 'nethack-c/dat/epitaph');
+        const filePath = join(rootDir, 'nethack-c/upstream/dat/epitaph');
         const fileText = readFileSync(filePath, 'ascii');
         const data = parseEncryptedDataFile(fileText);
 
         // Read source file and extract non-comment lines
-        const srcPath = join(rootDir, 'nethack-c/dat/epitaph.txt');
+        const srcPath = join(rootDir, 'nethack-c/upstream/dat/epitaph.txt');
         const srcText = readFileSync(srcPath, 'utf-8');
         const srcLines = srcText.split('\n')
             .filter(l => !l.startsWith('#') && l.length > 0);
@@ -173,7 +173,7 @@ describe('parseEncryptedDataFile', () => {
     });
 
     it('parses the compiled engrave file correctly', () => {
-        const filePath = join(rootDir, 'nethack-c/dat/engrave');
+        const filePath = join(rootDir, 'nethack-c/upstream/dat/engrave');
         const fileText = readFileSync(filePath, 'ascii');
         const data = parseEncryptedDataFile(fileText);
 
@@ -186,7 +186,7 @@ describe('parseEncryptedDataFile', () => {
 
 describe('parseRumorsFile', () => {
     it('parses rumors file with correct section sizes', () => {
-        const filePath = join(rootDir, 'nethack-c/dat/rumors');
+        const filePath = join(rootDir, 'nethack-c/upstream/dat/rumors');
         const fileText = readFileSync(filePath, 'ascii');
         const data = parseRumorsFile(fileText);
 
@@ -195,7 +195,7 @@ describe('parseRumorsFile', () => {
     });
 
     it('has correct number of true and false rumors', () => {
-        const filePath = join(rootDir, 'nethack-c/dat/rumors');
+        const filePath = join(rootDir, 'nethack-c/upstream/dat/rumors');
         const fileText = readFileSync(filePath, 'ascii');
         const data = parseRumorsFile(fileText);
 
@@ -204,7 +204,7 @@ describe('parseRumorsFile', () => {
     });
 
     it('true lineBytes sum matches trueSize', () => {
-        const filePath = join(rootDir, 'nethack-c/dat/rumors');
+        const filePath = join(rootDir, 'nethack-c/upstream/dat/rumors');
         const fileText = readFileSync(filePath, 'ascii');
         const data = parseRumorsFile(fileText);
 
@@ -213,7 +213,7 @@ describe('parseRumorsFile', () => {
     });
 
     it('false lineBytes sum matches falseSize', () => {
-        const filePath = join(rootDir, 'nethack-c/dat/rumors');
+        const filePath = join(rootDir, 'nethack-c/upstream/dat/rumors');
         const fileText = readFileSync(filePath, 'ascii');
         const data = parseRumorsFile(fileText);
 
@@ -222,7 +222,7 @@ describe('parseRumorsFile', () => {
     });
 
     it('decrypts first true rumor correctly', () => {
-        const filePath = join(rootDir, 'nethack-c/dat/rumors');
+        const filePath = join(rootDir, 'nethack-c/upstream/dat/rumors');
         const fileText = readFileSync(filePath, 'ascii');
         const data = parseRumorsFile(fileText);
 
@@ -231,7 +231,7 @@ describe('parseRumorsFile', () => {
     });
 
     it('decrypts first false rumor correctly', () => {
-        const filePath = join(rootDir, 'nethack-c/dat/rumors');
+        const filePath = join(rootDir, 'nethack-c/upstream/dat/rumors');
         const fileText = readFileSync(filePath, 'ascii');
         const data = parseRumorsFile(fileText);
 
@@ -242,7 +242,7 @@ describe('parseRumorsFile', () => {
 
 describe('JS string constants match compiled C data files', () => {
     it('epitaph_data.js matches nethack-c/dat/epitaph', () => {
-        const fileText = readFileSync(join(rootDir, 'nethack-c/dat/epitaph'), 'ascii');
+        const fileText = readFileSync(join(rootDir, 'nethack-c/upstream/dat/epitaph'), 'ascii');
         const fromFile = parseEncryptedDataFile(fileText);
         const fromJS = parseEncryptedDataFile(EPITAPH_FILE_TEXT);
 
@@ -253,7 +253,7 @@ describe('JS string constants match compiled C data files', () => {
     });
 
     it('engrave_data.js matches nethack-c/dat/engrave', () => {
-        const fileText = readFileSync(join(rootDir, 'nethack-c/dat/engrave'), 'ascii');
+        const fileText = readFileSync(join(rootDir, 'nethack-c/upstream/dat/engrave'), 'ascii');
         const fromFile = parseEncryptedDataFile(fileText);
         const fromJS = parseEncryptedDataFile(ENGRAVE_FILE_TEXT);
 
@@ -264,7 +264,7 @@ describe('JS string constants match compiled C data files', () => {
     });
 
     it('rumor_data.js matches nethack-c/dat/rumors', () => {
-        const fileText = readFileSync(join(rootDir, 'nethack-c/dat/rumors'), 'ascii');
+        const fileText = readFileSync(join(rootDir, 'nethack-c/upstream/dat/rumors'), 'ascii');
         const fromFile = parseRumorsFile(fileText);
         const fromJS = parseRumorsFile(RUMORS_FILE_TEXT);
 

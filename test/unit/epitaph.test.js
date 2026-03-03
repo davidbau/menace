@@ -14,7 +14,7 @@ const rootDir = join(__dirname, '../..');
 
 // Load epitaph data the same way dungeon.js does
 function loadEpitaphData() {
-    const filePath = join(rootDir, 'nethack-c/dat/epitaph');
+    const filePath = join(rootDir, 'nethack-c/upstream/dat/epitaph');
     const fileText = readFileSync(filePath, 'ascii');
     return parseEncryptedDataFile(fileText);
 }
