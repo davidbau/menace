@@ -430,7 +430,14 @@ export function topologize(map, croom, do_ordinary = false) {
     const roomno = croom.roomnoidx + ROOMOFFSET;
     const lowx = croom.lx, lowy = croom.ly;
     const hix = croom.hx, hiy = croom.hy;
-    if (map.at(lowx, lowy)?.roomno === roomno || croom.irregular) return;
+    // C ref: topologize() skips irregular rooms and rooms already topologized.
+    // The "already done" check in C tests if interior cell has roomno set;
+    // in JS, do_room_or_subroom pre-sets interior roomno during creation, so
+    // we can't use that test — instead only skip irregular rooms (which are
+    // handled separately by sp_lev flood-fill).
+    if (croom.irregular) return;
+    // Guard against negative/invalid bounds (hx < 0 means uninitialized room).
+    if (croom.hx < 0) return;
 
     // Non-SPECIALIZATION C build always applies this block.
     for (let x = lowx; x <= hix; x++) {

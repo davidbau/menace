@@ -545,8 +545,12 @@ function isEventEntry(entry) {
     return typeof entry === 'string' && entry.length > 0 && entry[0] === '^';
 }
 
-function isIgnorableEventEntry(_entry) {
-    return false;
+function isIgnorableEventEntry(entry) {
+    // `trick[...]` is map-regeneration recovery noise.
+    // `mapdump[...]` is compared separately via compareMapdumpCheckpoints,
+    //   not via event comparison (old sessions pre-patch-017 don't have it).
+    return typeof entry === 'string'
+        && (entry.startsWith('^trick[') || entry.startsWith('^mapdump['));
 }
 
 // Strip JS caller context (` @ caller <= parent`) appended by pushRngLogEntry.
@@ -609,8 +613,13 @@ function compareMapdumpSparse(jsList = [], sessionList = []) {
 }
 
 export function compareMapdumpCheckpoints(jsCheckpoints = null, sessionCheckpoints = null) {
+    // If the session has no mapdump data (recorded before patch 017), skip comparison.
+    if (!sessionCheckpoints || typeof sessionCheckpoints !== 'object'
+            || Object.keys(sessionCheckpoints).length === 0) {
+        return { matched: 0, total: 0, firstDivergence: null };
+    }
     const js = (jsCheckpoints && typeof jsCheckpoints === 'object') ? jsCheckpoints : {};
-    const session = (sessionCheckpoints && typeof sessionCheckpoints === 'object') ? sessionCheckpoints : {};
+    const session = sessionCheckpoints;
     const ids = [...new Set([...Object.keys(js), ...Object.keys(session)])].sort();
     const total = ids.length;
     let matched = 0;
@@ -634,7 +643,8 @@ export function compareMapdumpCheckpoints(jsCheckpoints = null, sessionCheckpoin
         let idMatch = true;
         const gridSections = [
             ['typGrid', 'T'],
-            ['flagsGrid', 'F'],
+            // 'F' (flagsGrid) skipped: C rm.flags semantics differ from JS loc.flags
+            // (C initializes STONE cells to D_LOCKED=8; JS uses loc.flags for WM_MASK only)
             ['horizontalGrid', 'H'],
             ['litGrid', 'L'],
             ['roomnoGrid', 'R'],
