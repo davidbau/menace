@@ -1020,15 +1020,6 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         if (mhm.damage > 0) {
             const died = player.takeDamage(mhm.damage, x_monnam(monster));
 
-            // cf. allmain.c stop_occupation() via mhitu.c attack flow.
-            if (game && game.occupation) {
-                if (typeof game.stopOccupation === 'function') await game.stopOccupation();
-                else {
-                    game.occupation = null;
-                    game.multi = 0;
-                }
-            }
-
             if (died) {
                 if (player.wizard) {
                     // cf. end.c savelife() for wizard/discover survival path.
@@ -1058,6 +1049,20 @@ export async function mattacku(monster, player, display, game = null, opts = {})
                     await display.putstr_message('You die...');
                 }
                 break;
+            }
+        }
+
+        // cf. mhitu.c hitmu() end — stop_occupation() is called at the END
+        // of hitmu, AFTER damage application and passive effects.
+        // This means the attack message ("The X bites!") appears BEFORE
+        // the occupation stop message ("You stop searching.").
+        // The pre-attack stop (e.g., monster approaching within range)
+        // is handled by the dochugw approach check in mon.js movemon().
+        if (game && game.occupation) {
+            if (typeof game.stopOccupation === 'function') await game.stopOccupation();
+            else {
+                game.occupation = null;
+                game.multi = 0;
             }
         }
     }

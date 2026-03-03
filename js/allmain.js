@@ -650,6 +650,16 @@ async function _drainOccupation(game, coreOpts, onTimedTurn) {
             game.pendingPrompt = null;
         }
 
+        // C ref: allmain.c:510 — monster_nearby() check BEFORE movemon.
+        // After timed_occupation executes the occupation fn, C checks if a
+        // hostile monster is now adjacent. If so, stop_occupation() is
+        // called BEFORE monster turns, producing messages like
+        // "You stop searching." before "The fox bites!"
+        if (game.occupation && monsterNearby(
+                (game.lev || game.map), (game.u || game.player), game.fov)) {
+            await stop_occupation(game);
+        }
+
         // Occupation step took time — process monster moves + turn-end
         await moveloop_core(game, coreOpts);
         if (onTimedTurn) await onTimedTurn();
