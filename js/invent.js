@@ -2,7 +2,7 @@
 // cf. invent.c — ddoinv, display_inventory, display_pickinv, compactify, getobj, askchain
 
 import { nhgetch, getlin } from './input.js';
-import { create_nhwindow, destroy_nhwindow, NHW_MENU } from './windows.js';
+import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_putstr, NHW_MENU } from './windows.js';
 import { COLNO, STATUS_ROW_1, STATUS_ROW_2, PM_ARCHEOLOGIST, A_STR, A_CON, A_WIS,
          UNENCUMBERED, OVERLOADED } from './config.js';
 import { objectData, WEAPON_CLASS, FOOD_CLASS, WAND_CLASS, SPBOOK_CLASS,
@@ -1706,24 +1706,34 @@ export function dfeature_at(x, y, map) {
 }
 
 // C ref: invent.c look_here() — look at objects at hero location
+// For 2+ objects, C creates a NHW_MENU window and uses putstr to display
+// "Things that are here:" as a right-side popup, then blocks for keypress.
 export async function look_here(player, map, obj_cnt) {
     const x = player.x, y = player.y;
-    const objects = (map?.objects || []).filter(o => o.ox === x && o.oy === y && !o.buried);
+    // C iterates level.objects[x][y] via nexthere — a LIFO linked list where
+    // the most recently placed object comes first.  JS place_object appends
+    // to the end, so we reverse to match C's newest-first iteration order.
+    const objects = (map?.objects || []).filter(o => o.ox === x && o.oy === y && !o.buried).reverse();
     const dfeature = dfeature_at(x, y, map);
 
-    if (dfeature) {
-        await pline('There is %s here.', dfeature);
-    }
-
-    if (objects.length === 0) {
-        await You('see no objects here.');
+    if (objects.length >= 2 || dfeature) {
+        const tmpwin = create_nhwindow(NHW_MENU);
+        if (dfeature) {
+            await win_putstr(tmpwin, 0, dfeature);
+        }
+        if (objects.length >= 2) {
+            await win_putstr(tmpwin, 0, 'Things that are here:');
+        }
+        for (const obj of objects) {
+            await win_putstr(tmpwin, 0, doname(obj));
+        }
+        await win_putstr(tmpwin, 0, '');
+        await display_nhwindow(tmpwin, true);
+        destroy_nhwindow(tmpwin);
     } else if (objects.length === 1) {
         await You('see here %s.', doname(objects[0]));
-    } else {
-        await pline('Things that are here:');
-        for (const obj of objects) {
-            await pline('  %s', doname(obj));
-        }
+    } else if (!dfeature) {
+        await You('see no objects here.');
     }
 }
 

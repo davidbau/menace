@@ -700,6 +700,48 @@ export class HeadlessDisplay {
         }
     }
 
+    // C ref: tty_display_nhwindow process_text_window / process_menu_window
+    // Renders a text popup as a right-side overlay on the map.
+    // Used by look_here() for "Things that are here:" and similar displays.
+    renderTextPopup(lines) {
+        // Filter out trailing empty lines from the data
+        while (lines.length > 0 && lines[lines.length - 1] === '') {
+            lines = lines.slice(0, -1);
+        }
+        // Add "--More--" prompt at the end
+        lines = [...lines, '--More--'];
+
+        let maxcol = 0;
+        for (const line of lines) {
+            if (line.length > maxcol) maxcol = line.length;
+        }
+
+        // C ref: process_menu_window offx calculation:
+        // offx = min(min(82, cols/2), cols - maxcol - 1)
+        // Empirically, for 80 cols this produces offx=41 (0-indexed) because
+        // C adds cw->offx to the 1-based cursor x, yielding offx+1 screen col.
+        const halfCols = Math.floor(this.cols / 2) + 1;
+        const offx = Math.min(halfCols, this.cols - maxcol - 1);
+
+        const menuRows = Math.min(lines.length, this.rows - 2);
+        // Clear the popup area
+        for (let r = 0; r < menuRows; r++) {
+            for (let c = Math.max(0, offx); c < this.cols; c++) {
+                this.grid[r][c] = ' ';
+                this.colors[r][c] = CLR_GRAY;
+                this.attrs[r][c] = 0;
+            }
+        }
+        // Render each line
+        for (let i = 0; i < menuRows; i++) {
+            this.putstr(offx, i, lines[i], CLR_GRAY, 0);
+        }
+        // Position cursor at end of "--More--" on the last row
+        const lastRow = menuRows - 1;
+        const moreEnd = offx + lines[lastRow].length;
+        this.setCursor(Math.min(moreEnd, this.cols - 1), lastRow);
+    }
+
     // Return 24-line string array matching C TTY screen format
     getScreenLines() {
         const result = [];

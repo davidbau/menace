@@ -114,6 +114,19 @@ export async function display_nhwindow(win, blocking) {
         await _nhgetch();
         ttyDisplay.toplin = TOPLINE_EMPTY;
     }
+    // C ref: tty_display_nhwindow NHW_MENU/NHW_TEXT — render text popup
+    // When a NHW_MENU or NHW_TEXT window has putstr data (w.data) and no menu
+    // items (w.mlist empty), C renders it as a right-side text popup.
+    // Used by look_here() for "Things that are here:" display.
+    if ((w.type === NHW_MENU || w.type === NHW_TEXT) && w.data.length > 0 && w.mlist.length === 0) {
+        const lines = w.data.map(d => typeof d === 'string' ? d : d.str);
+        if (_display?.renderTextPopup) {
+            _display.renderTextPopup(lines);
+        }
+        if (blocking) {
+            await _nhgetch();
+        }
+    }
 }
 
 // destroy_nhwindow(win) — C ref: tty_destroy_nhwindow()
