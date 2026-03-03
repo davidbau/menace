@@ -67,6 +67,10 @@ LIBNH_SYSCONF_SOURCE = os.path.join(PROJECT_ROOT, 'nethack-c', 'sys', 'libnh', '
 DEFAULT_FIXED_DATETIME = '20000110090000'
 import re
 
+_DUMP_ERROR_RE = re.compile(
+    r'(?im)\b(?:dumpmap|dumpobj|dumpsnap):\s*cannot open\b[^\n]*'
+)
+
 # Default character options (must match .nethackrc)
 CHARACTER = {
     'name': 'Wizard',
@@ -158,6 +162,17 @@ def diag_events_env():
     return f'WEBHACK_DIAG_EVENTS={v} ' if v else ''
 
 
+def no_delay_env():
+    """Enable C tty delay suppression for harness captures by default.
+
+    Set NETHACK_NO_DELAY=0 in the environment to opt out.
+    """
+    v = os.environ.get('NETHACK_NO_DELAY')
+    if v is None:
+        return 'NETHACK_NO_DELAY=1 '
+    return '' if v == '0' else f'NETHACK_NO_DELAY={v} '
+
+
 def collect_mapdump_checkpoints(mapdump_dir, all_rng_entries):
     """Scan RNG entries for ^mapdump[id] markers and read corresponding dump files.
 
@@ -203,7 +218,20 @@ def tmux_capture(session):
         ['tmux', 'capture-pane', '-t', session, '-p', '-S', '0', '-E', '30'],
         capture_output=True, text=True, check=True
     )
+    _raise_on_dump_error(result.stdout)
     return result.stdout
+
+
+def _raise_on_dump_error(output_text):
+    """Fail recording if dump/raw_printf errors reach terminal output."""
+    if not output_text:
+        return
+    match = _DUMP_ERROR_RE.search(output_text)
+    if match:
+        line = match.group(0).strip()
+        raise RuntimeError(
+            f"Harness dump command failure detected: {line}"
+        )
 
 
 def ensure_install_sysconf():
@@ -387,16 +415,19 @@ def encode_screen_ansi_rle(lines):
 # === typGrid RLE Encoding ===
 
 def typ_to_char(typ):
-    """Convert terrain type (0-35) to single character.
+    """Convert terrain type (0-61) to single character.
 
-    0-9 -> '0'-'9'
+    0-9   -> '0'-'9'
     10-35 -> 'a'-'z'
+    36-61 -> 'A'-'Z'
     """
-    if typ < 0 or typ > 35:
+    if typ < 0 or typ > 61:
         return '?'
     if typ < 10:
         return str(typ)
-    return chr(ord('a') + typ - 10)
+    if typ < 36:
+        return chr(ord('a') + typ - 10)
+    return chr(ord('A') + typ - 36)
 
 
 def encode_typgrid_row_rle(row, row_width=80):
@@ -463,6 +494,7 @@ def capture_screen_ansi_lines(session):
         ['tmux', 'capture-pane', '-t', session, '-p', '-e', '-J', '-S', '0', '-E', '30'],
         capture_output=True, text=True, check=True
     )
+    _raise_on_dump_error(result.stdout)
     lines = result.stdout.split('\n')
     while len(lines) < 24:
         lines.append('')
@@ -1022,6 +1054,7 @@ def run_wizload_session(seed, output_json, level_name, verbose=False):
             f'NETHACKDIR={INSTALL_DIR} '
             f'{fixed_datetime_env()}'
             f'{diag_events_env()}'
+            f'{no_delay_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'NETHACK_DUMPMAP={dumpmap_file} '
@@ -1211,6 +1244,7 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
             f'NETHACKDIR={INSTALL_DIR} '
             f'{fixed_datetime_env()}'
             f'{diag_events_env()}'
+            f'{no_delay_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'HOME={RESULTS_DIR} '
@@ -1491,6 +1525,7 @@ def run_interface_session(seed, output_json, keys, verbose=False, auto_clear_mor
             f'NETHACKDIR={INSTALL_DIR} '
             f'{fixed_datetime_env()}'
             f'{diag_events_env()}'
+            f'{no_delay_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'HOME={RESULTS_DIR} '
@@ -1850,6 +1885,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             f'NETHACKDIR={INSTALL_DIR} '
             f'{fixed_datetime_env()}'
             f'{diag_events_env()}'
+            f'{no_delay_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'NETHACK_DUMPMAP={dumpmap_file} '
@@ -2022,8 +2058,13 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             prev_rng_count = rng_count
 
             if (record_more_spaces and '--More--' in ''.join(screen_lines)):
-                next_key = replay_keys[idx + 1] if (idx + 1) < len(replay_keys) else None
-                if next_key != ' ':
+                # --More-- can be dismissed with Space, Esc, or Enter.
+                # If one of those keys is already coming very soon, do not
+                # inject another Space to preserve intended key timing.
+                dismiss_keys = {' ', '\x1b', '\n', '\r'}
+                lookahead = replay_keys[idx + 1: idx + 4]
+                has_soon_dismiss = any(k in dismiss_keys for k in lookahead)
+                if not has_soon_dismiss:
                     replay_keys.insert(idx + 1, ' ')
                     auto_inserted_spaces += 1
                     print(f"        [auto-more] inserted ' ' as step {idx + 2}")

@@ -76,7 +76,7 @@ def find_preset(options):
     return None
 
 
-def build_command(session_path, data):
+def build_command(session_path, data, force_record_more_spaces=False):
     """Build the command to re-record a session. Returns (cmd, description) or (None, reason)."""
     regen = data.get('regen')
     if not regen or not regen.get('mode'):
@@ -88,7 +88,14 @@ def build_command(session_path, data):
     output = os.path.abspath(session_path)
 
     if mode == 'gameplay':
-        return _build_gameplay(seed, output, regen, options, data.get('steps'))
+        return _build_gameplay(
+            seed,
+            output,
+            regen,
+            options,
+            data.get('steps'),
+            force_record_more_spaces=force_record_more_spaces,
+        )
     elif mode == 'chargen':
         return _build_chargen(seed, output, regen)
     elif mode == 'wizload':
@@ -163,7 +170,7 @@ def _extract_step_key_delay_overrides(steps):
     return out
 
 
-def _build_gameplay(seed, output, regen, options, steps):
+def _build_gameplay(seed, output, regen, options, steps, force_record_more_spaces=False):
     moves = regen.get('moves', '...........')
     cmd = ['python3', RUN_SESSION, str(seed), output, moves]
 
@@ -187,7 +194,7 @@ def _build_gameplay(seed, output, regen, options, steps):
     record_more_spaces = regen.get('record_more_spaces')
     if record_more_spaces is None:
         record_more_spaces = regen.get('recordMoreSpaces')
-    if bool(record_more_spaces):
+    if force_record_more_spaces or bool(record_more_spaces):
         cmd.append('--record-more-spaces')
     if options.get('wizard') is False:
         cmd.append('--no-wizard')
@@ -375,6 +382,11 @@ def main():
     parser.add_argument('--all', action='store_true', help='Re-record all sessions')
     parser.add_argument('--type', dest='filter_type', help='Only re-record sessions with this regen.mode')
     parser.add_argument('--dry-run', action='store_true', help='Show commands without executing')
+    parser.add_argument(
+        '--record-more-spaces',
+        action='store_true',
+        help='Force --record-more-spaces for gameplay sessions',
+    )
     parser.add_argument('--parallel', nargs='?', const=4, type=int, default=None,
                         help='Run up to N sessions in parallel (default 4)')
     args = parser.parse_args()
@@ -408,7 +420,11 @@ def main():
         if args.filter_type and mode != args.filter_type:
             continue
 
-        cmd, description = build_command(path, data)
+        cmd, description = build_command(
+            path,
+            data,
+            force_record_more_spaces=args.record_more_spaces,
+        )
         if cmd is None:
             skipped += 1
             warnings.append(f'  skip: {os.path.basename(path)} — {description}')

@@ -1,43 +1,170 @@
-Auto-mapdump at end of level generation (017-auto-mapdump patch).
-
-When NETHACK_MAPDUMP_DIR env var is set, writes a compact dump file for each
-generated level after level_finalize_topology(), and emits ^mapdump[id] to the
-RNG log via event_log().
-
-Changes:
-  include/extern.h: declare harness_auto_mapdump()
-  src/mklev.c:      call harness_auto_mapdump() in mklev() after level_finalize_topology()
-  src/mklev.c:      add harness_auto_mapdump() function at end of file
-
---- a/include/extern.h
-+++ b/include/extern.h
-@@ -1571,6 +1571,7 @@ extern void level_finalize_topology(void);
- extern void mklev(void);
-+extern void harness_auto_mapdump(void);
- #ifdef SPECIALIZATION
-
+diff --git a/src/mklev.c b/src/mklev.c
 --- a/src/mklev.c
 +++ b/src/mklev.c
-@@ -1585,6 +1585,8 @@ mklev(void)
-
+@@ -49,6 +49,11 @@ staticfn void makerooms(void);
+ staticfn boolean good_rm_wall_doorpos(coordxy, coordxy, int, struct mkroom *);
+ staticfn boolean finddpos_shift(coordxy *, coordxy *, int, struct mkroom *);
++staticfn void harness_auto_mapdump(void);
++staticfn char harness_mapdump_cell(int);
++staticfn void harness_mapdump_emit_run(FILE *, int, int);
++staticfn void harness_mapdump_rle_grid(FILE *, int);
++staticfn void harness_mapdump_sparse_lists(FILE *);
+ 
+ staticfn boolean finddpos(coord *, int, struct mkroom *);
+ 
+@@ -1585,6 +1589,8 @@ mklev(void)
+ 
      level_finalize_topology();
-
+ 
 +    harness_auto_mapdump();
 +
      reseed_random(rn2);
-
-(harness_auto_mapdump function appended at end of mklev.c)
-
-Compact file format:
-  T<rle-grid>   terrain types (levl[x][y].typ)
-  F<rle-grid>   5-bit flags
-  H<rle-grid>   horizontal bit
-  L<rle-grid>   lit bit
-  R<rle-grid>   6-bit roomno
-  O<x>,<y>,<otyp>,<quan>;...   objects
-  M<x>,<y>,<mndx>,<mhp>;...   monsters
-  K<x>,<y>,<ttyp>;...          traps
-
-Grid encoding: each row is chars, runs of 3+ compressed as ~<count>,<char>
-(tilde prefix + comma separator prevents ambiguity with digit cell values),
-rows separated by '|'. Cell encoding: 0-9->'0'-'9', 10-35->'a'-'z', 36-61->'A'-'Z'.
+     reseed_random(rn2_on_display_rng);
+ }
+@@ -2918,4 +2924,128 @@ mk_knox_portal(coordxy x, coordxy y)
+     debugpline0("Made knox portal.");
+     place_branch(br, x, y);
+ }
++
++/* Compact auto-mapdump for harness captures. */
++staticfn char
++harness_mapdump_cell(int v)
++{
++    if (v < 0)
++        v = 0;
++    if (v <= 9)
++        return (char) ('0' + v);
++    if (v <= 35)
++        return (char) ('a' + (v - 10));
++    if (v <= 61)
++        return (char) ('A' + (v - 36));
++    return 'Z';
++}
++
++staticfn void
++harness_mapdump_emit_run(FILE *fp, int value, int count)
++{
++    if (count <= 0)
++        return;
++    if (count >= 3) {
++        (void) fprintf(fp, "~%d,%c", count, harness_mapdump_cell(value));
++    } else {
++        while (count-- > 0)
++            (void) fputc(harness_mapdump_cell(value), fp);
++    }
++}
++
++staticfn void
++harness_mapdump_rle_grid(FILE *fp, int which)
++{
++    coordxy x, y;
++    for (y = 0; y < ROWNO; y++) {
++        int runval = -1, runlen = 0;
++        if (y > 0)
++            (void) fputc('|', fp);
++        for (x = 0; x < COLNO; x++) {
++            struct rm *loc = &levl[x][y];
++            int v;
++            switch (which) {
++            case 0: v = (int) loc->typ; break;
++            case 1: v = ((int) loc->flags) & 0x1f; break;
++            case 2: v = loc->horizontal ? 1 : 0; break;
++            case 3: v = loc->lit ? 1 : 0; break;
++            case 4: v = ((int) loc->roomno) & 0x3f; break;
++            default: v = 0; break;
++            }
++            if (runlen == 0) {
++                runval = v;
++                runlen = 1;
++            } else if (v == runval) {
++                runlen++;
++            } else {
++                harness_mapdump_emit_run(fp, runval, runlen);
++                runval = v;
++                runlen = 1;
++            }
++        }
++        harness_mapdump_emit_run(fp, runval, runlen);
++    }
++}
++
++staticfn void
++harness_mapdump_sparse_lists(FILE *fp)
++{
++    struct obj *otmp;
++    struct monst *mtmp;
++    struct trap *ttmp;
++    boolean first;
++
++    (void) fputc('O', fp);
++    first = TRUE;
++    for (otmp = fobj; otmp; otmp = otmp->nobj) {
++        if (!isok(otmp->ox, otmp->oy))
++            continue;
++        (void) fprintf(fp, "%s%d,%d,%d,%ld",
++                       first ? "" : ";",
++                       (int) otmp->ox, (int) otmp->oy,
++                       (int) otmp->otyp, (long) otmp->quan);
++        first = FALSE;
++    }
++    (void) fputc('\n', fp);
++
++    (void) fputc('M', fp);
++    first = TRUE;
++    for (mtmp = fmon; mtmp; mtmp = mtmp->nmon) {
++        if (!isok(mtmp->mx, mtmp->my))
++            continue;
++        (void) fprintf(fp, "%s%d,%d,%d,%d",
++                       first ? "" : ";",
++                       (int) mtmp->mx, (int) mtmp->my,
++                       (int) monsndx(mtmp->data), (int) mtmp->mhp);
++        first = FALSE;
++    }
++    (void) fputc('\n', fp);
++
++    (void) fputc('K', fp);
++    first = TRUE;
++    for (ttmp = gf.ftrap; ttmp; ttmp = ttmp->ntrap) {
++        if (!isok(ttmp->tx, ttmp->ty))
++            continue;
++        (void) fprintf(fp, "%s%d,%d,%d",
++                       first ? "" : ";",
++                       (int) ttmp->tx, (int) ttmp->ty, (int) ttmp->ttyp);
++        first = FALSE;
++    }
++    (void) fputc('\n', fp);
++}
++
++void
++harness_auto_mapdump(void)
++{
++    const char *dir = nh_getenv("NETHACK_MAPDUMP_DIR");
++    static long dump_serial = 0;
++    char dump_id[64], pathbuf[BUFSZ];
++    FILE *fp;
++
++    if (!dir || !*dir)
++        return;
++
++    (void) Snprintf(dump_id, sizeof dump_id, "d%dl%d_%03ld",
++                    (int) u.uz.dnum, (int) u.uz.dlevel, ++dump_serial);
++    (void) Snprintf(pathbuf, sizeof pathbuf, "%s/%s", dir, dump_id);
++
++    fp = fopen(pathbuf, "w");
++    if (!fp) {
++        raw_printf("mapdump: cannot open %s for writing.", pathbuf);
++        return;
++    }
++
++    (void) fputc('T', fp); harness_mapdump_rle_grid(fp, 0); (void) fputc('\n', fp);
++    (void) fputc('F', fp); harness_mapdump_rle_grid(fp, 1); (void) fputc('\n', fp);
++    (void) fputc('H', fp); harness_mapdump_rle_grid(fp, 2); (void) fputc('\n', fp);
++    (void) fputc('L', fp); harness_mapdump_rle_grid(fp, 3); (void) fputc('\n', fp);
++    (void) fputc('R', fp); harness_mapdump_rle_grid(fp, 4); (void) fputc('\n', fp);
++    harness_mapdump_sparse_lists(fp);
++    (void) fclose(fp);
++
++    event_log("mapdump[%s]", dump_id);
++}
+ 
+ /*mklev.c*/
