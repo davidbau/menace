@@ -27,6 +27,7 @@ import { pushInput } from './input.js';
 import { initrack } from './monmove.js';
 import { NetHackGame, maybe_deferred_goto_after_rhack, run_command, execute_repeat_command } from './allmain.js';
 import { HeadlessDisplay, createHeadlessInput } from './headless.js';
+import { setDisplayContext } from './monutil.js';
 
 export { HeadlessDisplay };
 
@@ -754,7 +755,7 @@ export async function replaySession(seed, session, opts = {}) {
     let pendingCount = 0;
     // game.pendingDeferredTimedTurn is used instead (game-level flag)
 
-    const captureSnapshot = (rawLog, screen, screenAnsiOverride, stepIndex, byteIndex, key, cursorOverride) => {
+    const captureSnapshot = (rawLog, screen, screenAnsiOverride, stepIndex, byteIndex, key) => {
         const compact = rawLog.map(toCompactRng);
         const normalizedScreen = Array.isArray(screen)
             ? screen.map((line) => stripAnsiSequences(line))
@@ -766,8 +767,8 @@ export async function replaySession(seed, session, opts = {}) {
                     ? game.display.getScreenAnsiLines()
                     : null))
             : null;
-        const cursor = cursorOverride
-            || (typeof game.display?.getCursor === 'function' ? game.display.getCursor() : null);
+        const cursor = (typeof game.display?.getCursor === 'function')
+            ? game.display.getCursor() : null;
         const frame = {
             key,
             stepIndex,
@@ -797,7 +798,6 @@ export async function replaySession(seed, session, opts = {}) {
         const step = allSteps[stepIndex];
         (game.lev || game.map)._replayStepIndex = stepIndex;
         const stepStartCount = getRngLog().length;
-        game._replayForceEnterRun = false;
         // pendingDeferredTimedTurn is consumed later (after the player's command)
         // so that the player's post-move position is in effect for monster
         // decisions like dog_goal's On_stairs check. See below.
@@ -810,9 +810,6 @@ export async function replaySession(seed, session, opts = {}) {
         for (let byteIndex = 0; byteIndex < keyText.length; byteIndex++) {
             const prevByteCount = getRngLog().length;
             const ch = keyText.charCodeAt(byteIndex);
-            let capturedScreenOverride = null;
-            let capturedScreenAnsiOverride = null;
-            let capturedCursorOverride = null;
             let commandResult = null;
 
             const isCountPrefixDigit = !!(
@@ -828,19 +825,13 @@ export async function replaySession(seed, session, opts = {}) {
             }
             if (!pendingCommand
                 && ((game.u || game.player)?.deathCause || (game.u || game.player)?.dead || ((game.u || game.player)?.hp || 0) <= 0)) {
-                game.docrt();
+                // Dead player — display already current via newsym
                 const raw = getRngLog().slice(prevByteCount);
-                const frame = captureSnapshot(
+                stepFrames.push(captureSnapshot(
                     raw,
                     opts.captureScreens ? game.display.getScreenLines() : undefined,
-                    (typeof game.display?.getScreenAnsiLines === 'function')
-                        ? game.display.getScreenAnsiLines()
-                        : null,
-                    stepIndex,
-                    byteIndex,
-                    keyText[byteIndex]
-                );
-                stepFrames.push(frame);
+                    null, stepIndex, byteIndex, keyText[byteIndex]
+                ));
                 continue;
             }
 
@@ -856,19 +847,15 @@ export async function replaySession(seed, session, opts = {}) {
                     game.display.topMessage = null;
                     game.display.putstr_message(`Count: ${pendingCount}`);
                 }
-                game.docrt();
+                // Map already current via newsym; just update status + cursor
+                game.display.renderStatus(game.u || game.player);
+                game.display.cursorOnPlayer(game.u || game.player);
                 const raw = getRngLog().slice(prevByteCount);
-                const frame = captureSnapshot(
+                stepFrames.push(captureSnapshot(
                     raw,
                     opts.captureScreens ? game.display.getScreenLines() : undefined,
-                    (typeof game.display?.getScreenAnsiLines === 'function')
-                        ? game.display.getScreenAnsiLines()
-                        : null,
-                    stepIndex,
-                    byteIndex,
-                    keyText[byteIndex]
-                );
-                stepFrames.push(frame);
+                    null, stepIndex, byteIndex, keyText[byteIndex]
+                ));
                 continue;
             }
 
@@ -889,14 +876,6 @@ export async function replaySession(seed, session, opts = {}) {
                     commandResult = settled.value;
                     await applyPostRhack(commandResult);
                     pendingCommand = null;
-                } else if (opts.captureScreens) {
-                    capturedScreenOverride = game.display.getScreenLines();
-                    capturedScreenAnsiOverride = (typeof game.display?.getScreenAnsiLines === 'function')
-                        ? game.display.getScreenAnsiLines()
-                        : null;
-                    capturedCursorOverride = (typeof game.display?.getCursor === 'function')
-                        ? game.display.getCursor()
-                        : null;
                 }
             } else {
                 const countPrefixForRun = pendingCount > 0 ? pendingCount : 0;
@@ -914,28 +893,18 @@ export async function replaySession(seed, session, opts = {}) {
                         `key=${JSON.stringify(keyText[byteIndex] || '')}`,
                         'setPending=1'
                     );
-                    // C ref: when --More-- blocks mid-turn, the tty display
-                    // already reflects the player's new position (via newsym
-                    // calls during domove/movemon).  JS batches display updates
-                    // in docrt(), so we must flush the map grid
-                    // here before capturing the screen snapshot.
-                    // Only render when the pending is due to --More-- blocking
-                    // (display has topMessage and messageNeedsMore set), not
-                    // when the command blocks on a prompt.
+                    // C ref: when --More-- blocks mid-turn, C's display already
+                    // reflects the player's new position via newsym calls during
+                    // domove/movemon.  Refresh the map grid (with current FOV)
+                    // so the captured screen matches C.  Only render when the
+                    // pending is due to --More-- (not menus/prompts which have
+                    // their own display state).  Do NOT move the cursor.
                     if (game.display?.topMessage && game.display?.messageNeedsMore) {
                         const player = game.u || game.player;
                         game.fov.compute(game.map || game.lev, player.x, player.y);
+                        setDisplayContext({ display: game.display, player, fov: game.fov, flags: game.flags });
                         game.display.renderMap(game.map || game.lev, player, game.fov, game.flags);
                         game.display.renderStatus(player);
-                    }
-                    if (opts.captureScreens) {
-                        capturedScreenOverride = game.display.getScreenLines();
-                        capturedScreenAnsiOverride = (typeof game.display?.getScreenAnsiLines === 'function')
-                            ? game.display.getScreenAnsiLines()
-                            : null;
-                        capturedCursorOverride = (typeof game.display?.getCursor === 'function')
-                            ? game.display.getCursor()
-                            : null;
                     }
                 } else {
                     commandResult = settled.value;
@@ -943,24 +912,19 @@ export async function replaySession(seed, session, opts = {}) {
                 }
             }
 
-            const shouldRender = (typeof game.shouldRenderAfterCommand === 'function')
-                ? game.shouldRenderAfterCommand(commandResult)
-                : !(commandResult?.prompt || game.pendingPrompt);
-            if (!pendingCommand && shouldRender) {
+            // Recompute FOV + full refresh after completed commands so
+            // cells rendered by newsym() during the command are updated
+            // with the new visibility state (player may have moved).
+            if (!pendingCommand) {
                 game.docrt();
             }
 
             const raw = getRngLog().slice(prevByteCount);
-            const frame = captureSnapshot(
+            stepFrames.push(captureSnapshot(
                 raw,
-                opts.captureScreens ? (capturedScreenOverride || game.display.getScreenLines()) : undefined,
-                capturedScreenAnsiOverride,
-                stepIndex,
-                byteIndex,
-                keyText[byteIndex],
-                capturedCursorOverride
-            );
-            stepFrames.push(frame);
+                opts.captureScreens ? game.display.getScreenLines() : undefined,
+                null, stepIndex, byteIndex, keyText[byteIndex]
+            ));
         }
 
         if (typeof opts.onStep === 'function') {

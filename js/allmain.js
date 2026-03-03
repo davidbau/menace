@@ -1321,17 +1321,6 @@ export class NetHackGame {
         this.docrt();
     }
 
-    // Shared render policy for command-driven input flows (UI and replay).
-    // When a prompt/menu is active, preserve that screen instead of forcing a
-    // map/status redraw which would erase prompt content.
-    shouldRenderAfterCommand(commandResult = null) {
-        // Prompt-consuming keys should preserve prompt content. But if a timed
-        // command just produced a prompt (for instance "--More--"), C already
-        // reflects the command's world/map changes on that same step.
-        if (this.pendingPrompt && commandResult?.prompt) return false;
-        return true;
-    }
-
     // Return the COLNO×ROWNO terrain type grid
     getTypGrid() {
         const grid = [];
