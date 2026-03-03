@@ -14,6 +14,7 @@ import {
     CLR_GRAY, NO_COLOR, CLR_WHITE, CLR_BRIGHT_BLUE,
 } from './render.js';
 import { cansee, couldsee, clear_vision_full_recalc, get_vision_full_recalc } from './vision.js';
+import { do_light_sources } from './light.js';
 export { mark_vision_dirty } from './vision.js';
 import { Monnam } from './mondata.js';
 import { is_hider, noattacks, dmgtype, attacktype } from './mondata.js';
@@ -329,7 +330,8 @@ export function vision_recalc() {
     }
 
     // Recompute FOV — mutates fov.visible in place
-    fov.compute(map, player.x, player.y);
+    // C ref: vision_recalc() calls do_light_sources() to mark TEMP_LIT before lighting loop
+    fov.compute(map, player.x, player.y, do_light_sources);
 
     // Call newsym for all cells whose visibility changed
     if (ctx.display) {

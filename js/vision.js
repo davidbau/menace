@@ -13,6 +13,7 @@ import { BOULDER } from './objects.js';
 // Vision bit flags (C ref: vision.h)
 const COULD_SEE = 0x1;
 const IN_SIGHT  = 0x2;
+const TEMP_LIT  = 0x4;  // C ref: vision.h — set by do_light_sources() for dynamic light
 
 // Module-level state for Algorithm C (C ref: vision.c lines 1125-1133)
 let start_row, start_col, step;
@@ -812,7 +813,7 @@ export class FOV {
 
     // Recompute field of view from player position
     // C ref: vision.c:511-846 vision_recalc()
-    compute(gameMap, px, py) {
+    compute(gameMap, px, py, lightFn) {
         // Build lookup tables (once per level, or rebuild each time for simplicity)
         this.visionReset(gameMap);
         activeFov = this;
@@ -857,7 +858,10 @@ export class FOV {
             }
         }
 
-        // Lighting loop: COULD_SEE + lit → IN_SIGHT
+        // C ref: vision.c:703 — do_light_sources(next_array) marks TEMP_LIT
+        if (lightFn) lightFn(cs, gameMap, { x: px, y: py });
+
+        // Lighting loop: COULD_SEE + (lit | TEMP_LIT) → IN_SIGHT
         // C ref: vision.c:727-829
         for (let row = 0; row < ROWNO; row++) {
             for (let col = 0; col < COLNO; col++) {
@@ -865,7 +869,7 @@ export class FOV {
                     // Already visible via night vision — nothing more to do
                 } else if (cs[row][col] & COULD_SEE) {
                     const loc = gameMap.at(col, row);
-                    if (loc && loc.lit) {
+                    if (loc && (loc.lit || (cs[row][col] & TEMP_LIT))) {
                         // Door/wall special case: only visible if adjacent square
                         // toward hero is also lit (prevents seeing doors at end
                         // of dark hallways)
@@ -877,7 +881,7 @@ export class FOV {
                             const adjCol = col + dx, adjRow = row + dy;
                             if (adjCol >= 0 && adjCol < COLNO && adjRow >= 0 && adjRow < ROWNO) {
                                 const adj = gameMap.at(adjCol, adjRow);
-                                if (adj && adj.lit) {
+                                if (adj && (adj.lit || (cs[adjRow][adjCol] & TEMP_LIT))) {
                                     cs[row][col] |= IN_SIGHT;
                                 }
                             }
