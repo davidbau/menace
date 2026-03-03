@@ -488,8 +488,8 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
                 projectile.ox = result.x;
                 projectile.oy = result.y;
                 placeFloorObject(map, projectile);
-                if (game?.renderCurrentScreen) {
-                    game.renderCurrentScreen();
+                if (game?.docrt) {
+                    game.docrt();
                 }
             }
         }

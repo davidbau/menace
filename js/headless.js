@@ -19,7 +19,7 @@ import { makelevel, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
 import { rankOf, roles } from './player.js';
 import { initrack } from './monmove.js';
 import { FOV } from './vision.js';
-import { monsterNearby } from './monutil.js';
+import { monsterNearby, newsym, setDisplayContext } from './monutil.js';
 import { getArrivalPosition, changeLevel as changeLevelCore } from './do.js';
 import { doname, setObjectMoves } from './mkobj.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
@@ -948,140 +948,15 @@ export class HeadlessDisplay {
         this._lastMapState = { gameMap, player, fov, flags: { ...this.flags } };
         const mapOffset = this.flags.msg_window ? 3 : MAP_ROW_START;
 
-
+        // Temporarily set display context so newsym() renders to this display
+        const prevCtx = setDisplayContext({ display: this, player, fov, flags: this.flags });
         for (let y = 0; y < ROWNO; y++) {
             const row = y + mapOffset;
             // C tty map rendering uses game x in [1..COLNO-1] at terminal cols [0..COLNO-2].
             // Keep the last terminal column blank for map rows.
             this.setCell(COLNO - 1, row, ' ', CLR_GRAY);
             for (let x = 1; x < COLNO; x++) {
-                const col = x - 1;
-
-                if (!fov || !fov.canSee(x, y)) {
-                    const loc = gameMap.at(x, y);
-                    // C ref: map_invisible() uses show_glyph() directly,
-                    // so mem_invis displays even at unseen locations.
-                    if (loc && loc.mem_invis) {
-                        this.setCell(col, row, 'I', CLR_GRAY);
-                        continue;
-                    }
-                    if (loc && loc.seenv) {
-                        if (loc.mem_obj) {
-                            const rememberedObjColor = Number.isInteger(loc.mem_obj_color)
-                                ? loc.mem_obj_color
-                                : CLR_BLACK;
-                            this.setCell(col, row, loc.mem_obj, rememberedObjColor);
-                            continue;
-                        }
-                        if (loc.mem_trap) {
-                            // C ref: back_to_glyph() preserves trap's full color in memory.
-                            const memTrapColor = Number.isInteger(loc.mem_trap_color)
-                                ? loc.mem_trap_color : CLR_BLACK;
-                            this.setCell(col, row, loc.mem_trap, memTrapColor);
-                            continue;
-                        }
-                        if (IS_WALL(loc.typ) && !wallIsVisible(loc.typ, loc.seenv, loc.flags)) {
-                            this.setCell(col, row, ' ', CLR_GRAY);
-                            continue;
-                        }
-                        const sym = this.terrainSymbol(loc, gameMap, x, y);
-                        const rememberedColor = (loc.typ === ROOM) ? NO_COLOR : sym.color;
-                        this.setCell(col, row, sym.ch, rememberedColor);
-                    } else {
-                        this.setCell(col, row, ' ', CLR_GRAY);
-                    }
-                    continue;
-                }
-
-                const loc = gameMap.at(x, y);
-                if (!loc) {
-                    this.setCell(col, row, ' ', CLR_GRAY);
-                    continue;
-                }
-                // seenv is now tracked by vision.js compute()
-
-                if (player && x === player.x && y === player.y) {
-                    this.setCell(col, row, '@', CLR_WHITE);
-                    continue;
-                }
-
-                const mon = gameMap.monsterAt(x, y);
-                if (mon) {
-                    loc.mem_invis = false;
-                    const underObjs = gameMap.objectsAt(x, y);
-                    if (underObjs.length > 0) {
-                        const underTop = underObjs[underObjs.length - 1];
-                        const underGlyph = objectMapGlyph(underTop, false, { player, x, y });
-                        loc.mem_obj = underGlyph.ch || 0;
-                        loc.mem_obj_color = Number.isInteger(underGlyph.color)
-                            ? underGlyph.color
-                            : CLR_GRAY;
-                    } else {
-                        const engr = gameMap.engravingAt(x, y);
-                        if (engr && (player?.wizard || engr.erevealed)) {
-                            const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
-                            loc.mem_obj = engrCh;
-                            loc.mem_obj_color = CLR_BRIGHT_BLUE;
-                        } else {
-                            loc.mem_obj = 0;
-                            loc.mem_obj_color = 0;
-                        }
-                    }
-                    const hallu = !!player?.hallucinating;
-                    const glyph = monsterMapGlyph(mon, hallu);
-                    this.setCell(col, row, glyph.ch, glyph.color);
-                    continue;
-                }
-                if (loc.mem_invis) {
-                    this.setCell(col, row, 'I', CLR_GRAY);
-                    continue;
-                }
-
-                const objs = gameMap.objectsAt(x, y);
-                if (objs.length > 0) {
-                    const topObj = objs[objs.length - 1];
-                    const hallu = !!player?.hallucinating;
-                    const glyph = objectMapGlyph(topObj, hallu, { player, x, y });
-                    const memGlyph = hallu
-                        ? objectMapGlyph(topObj, false, { player, x, y, observe: false })
-                        : glyph;
-                    loc.mem_obj = memGlyph.ch || 0;
-                    loc.mem_obj_color = Number.isInteger(memGlyph.color)
-                        ? memGlyph.color
-                        : CLR_GRAY;
-                    this.setCell(col, row, glyph.ch, glyph.color);
-                    continue;
-                }
-                loc.mem_obj = 0;
-                loc.mem_obj_color = 0;
-
-                const trap = gameMap.trapAt(x, y);
-                if (trap && trap.tseen) {
-                    const tg = trapGlyph(trap.ttyp);
-                    loc.mem_trap = tg.ch;
-                    loc.mem_trap_color = tg.color;
-                    this.setCell(col, row, tg.ch, tg.color);
-                    continue;
-                }
-                loc.mem_trap = 0;
-
-                // C ref: display.c back_to_glyph() — wizard mode shows
-                // engravings with S_engroom ('`') / S_engrcorr ('#').
-                const engr = gameMap.engravingAt(x, y);
-                if (engr && (player?.wizard || engr.erevealed)) {
-                    const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
-                    loc.mem_obj = engrCh;
-                    loc.mem_obj_color = CLR_BRIGHT_BLUE;
-                    this.setCell(col, row, engrCh, CLR_BRIGHT_BLUE);
-                    continue;
-                }
-
-                if (IS_WALL(loc.typ) && !wallIsVisible(loc.typ, loc.seenv, loc.flags)) {
-                    this.setCell(col, row, ' ', CLR_GRAY);
-                    continue;
-                }
-                const sym = this.terrainSymbol(loc, gameMap, x, y);
-                this.setCell(col, row, sym.ch, sym.color);
+                newsym(gameMap, x, y);
             }
         }
         this._captureMapBase();

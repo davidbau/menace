@@ -330,8 +330,8 @@ export async function read_engr_at(map, x, y, player, game = null) {
     if (needsMoreBetweenMessages && game?.display && typeof game.display.morePrompt === 'function') {
         // C-parity for in-command engraving prompts: movement side effects have
         // already happened; refresh map/status before waiting for dismissal.
-        if (typeof game.renderCurrentScreen === 'function') {
-            game.renderCurrentScreen();
+        if (typeof game.docrt === 'function') {
+            game.docrt();
         }
         if (typeof game.display.renderMoreMarker === 'function') {
             game.display.renderMoreMarker();

@@ -38,7 +38,7 @@ import { maybe_finished_meal } from './eat.js';
 import { exerper, exerchk } from './attrib_exercise.js';
 import { rhack } from './cmd.js';
 import { FOV } from './vision.js';
-import { monsterNearby } from './monutil.js';
+import { monsterNearby, setDisplayContext } from './monutil.js';
 import { nomul, unmul, near_capacity } from './hack.js';
 import { Player, roles, races } from './player.js';
 import { makelevel, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
@@ -816,8 +816,8 @@ async function buildReplayTutorialPromptFlow(messages, enterAfterPromptCount, on
                 return { handled: true };
             }
             if (idx < prompts.length) {
-                if (entered && !didPostEnterRender && idx >= enterAt && typeof g.renderCurrentScreen === 'function') {
-                    g.renderCurrentScreen();
+                if (entered && !didPostEnterRender && idx >= enterAt && typeof g.docrt === 'function') {
+                    g.docrt();
                     didPostEnterRender = true;
                 }
                 await renderToplineMorePrompt(g.display, prompts[idx]);
@@ -1249,7 +1249,7 @@ export class NetHackGame {
         }
 
         // Update display
-        this.renderCurrentScreen();
+        this.docrt();
         await this.maybeShowQuestLocateHint(depth);
         if (typeof this.hooks.onLevelChange === 'function') {
             this.hooks.onLevelChange({ game: this, depth });
@@ -1309,15 +1309,16 @@ export class NetHackGame {
     }
 
     // Render current screen state
-    renderCurrentScreen() {
+    docrt() {
         this.fov.compute(this.map, this.player.x, this.player.y);
+        setDisplayContext({ display: this.display, player: this.player, fov: this.fov, flags: this.flags });
         this.display.renderMap(this.map, this.player, this.fov, this.flags);
         this.display.renderStatus(this.player);
         this.display.cursorOnPlayer(this.player);
     }
 
     _renderAll() {
-        this.renderCurrentScreen();
+        this.docrt();
     }
 
     // Shared render policy for command-driven input flows (UI and replay).
@@ -1466,7 +1467,7 @@ export class NetHackGame {
             },
         });
 
-        this.renderCurrentScreen();
+        this.docrt();
 
         return {
             tookTime: result?.tookTime || false,
@@ -1518,7 +1519,7 @@ export class NetHackGame {
             return { ok: false, reason: 'invalid-depth' };
         }
         await this.changeLevel(depth, 'teleport');
-        this.renderCurrentScreen();
+        this.docrt();
         if (typeof this.hooks.onLevelChange === 'function') {
             this.hooks.onLevelChange({ game: this, depth });
         }
@@ -1536,7 +1537,7 @@ export class NetHackGame {
                 }
             }
         }
-        this.renderCurrentScreen();
+        this.docrt();
     }
 
     // Show game-over screen (tombstone + score). Delegates to nethack.js showGameOver.

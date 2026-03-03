@@ -544,8 +544,8 @@ export async function handleInventory(player, display, game) {
                 }
                 if (actionKey === 'i') {
                     // cf. invent.c doorganize() / #adjust — reassign inventory letter
-                    if (game && typeof game.renderCurrentScreen === 'function') {
-                        game.renderCurrentScreen();
+                    if (game && typeof game.docrt === 'function') {
+                        game.docrt();
                     }
                     const inv = player.inventory || [];
                     const usedLetters = new Set(inv.map(o => o.invlet));
@@ -596,8 +596,8 @@ export async function handleInventory(player, display, game) {
                     return { moved: false, tookTime: false };
                 }
                 if (actionKey === 'c') {
-                    if (game && typeof game.renderCurrentScreen === 'function') {
-                        game.renderCurrentScreen();
+                    if (game && typeof game.docrt === 'function') {
+                        game.docrt();
                     }
                     const namedInput = await getlin(`What do you want to name this ${baseName}? `, display);
                     if (namedInput !== null) {

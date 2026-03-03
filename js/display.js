@@ -30,6 +30,7 @@ import {
 } from './render.js';
 import { rankOf } from './player.js';
 import { do_lookat, format_do_look_html } from './look.js';
+import { newsym, setDisplayContext } from './monutil.js';
 
 // Re-export color constants from the canonical source (render.js)
 export {

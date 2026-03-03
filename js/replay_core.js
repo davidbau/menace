@@ -828,7 +828,7 @@ export async function replaySession(seed, session, opts = {}) {
             }
             if (!pendingCommand
                 && ((game.u || game.player)?.deathCause || (game.u || game.player)?.dead || ((game.u || game.player)?.hp || 0) <= 0)) {
-                game.renderCurrentScreen();
+                game.docrt();
                 const raw = getRngLog().slice(prevByteCount);
                 const frame = captureSnapshot(
                     raw,
@@ -856,7 +856,7 @@ export async function replaySession(seed, session, opts = {}) {
                     game.display.topMessage = null;
                     game.display.putstr_message(`Count: ${pendingCount}`);
                 }
-                game.renderCurrentScreen();
+                game.docrt();
                 const raw = getRngLog().slice(prevByteCount);
                 const frame = captureSnapshot(
                     raw,
@@ -917,7 +917,7 @@ export async function replaySession(seed, session, opts = {}) {
                     // C ref: when --More-- blocks mid-turn, the tty display
                     // already reflects the player's new position (via newsym
                     // calls during domove/movemon).  JS batches display updates
-                    // in renderCurrentScreen(), so we must flush the map grid
+                    // in docrt(), so we must flush the map grid
                     // here before capturing the screen snapshot.
                     // Only render when the pending is due to --More-- blocking
                     // (display has topMessage and messageNeedsMore set), not
@@ -947,7 +947,7 @@ export async function replaySession(seed, session, opts = {}) {
                 ? game.shouldRenderAfterCommand(commandResult)
                 : !(commandResult?.prompt || game.pendingPrompt);
             if (!pendingCommand && shouldRender) {
-                game.renderCurrentScreen();
+                game.docrt();
             }
 
             const raw = getRngLog().slice(prevByteCount);

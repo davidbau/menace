@@ -2,10 +2,17 @@
 // Distance macros from hack.h, debug tracing, display helpers,
 // visibility checks, and monster inventory utilities.
 
-import { isok } from './config.js';
+import { isok, IS_WALL, CORR, SCORR, ROOM,
+         MAP_ROW_START } from './config.js';
 import { PM_GRID_BUG,
          AT_BITE, AT_CLAW, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_WEAP,
          AT_ENGL, AT_HUGS, AD_STCK } from './monsters.js';
+import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
+import {
+    wallIsVisible, trapGlyph,
+    terrainSymbol as renderTerrainSymbol,
+    CLR_GRAY, NO_COLOR, CLR_WHITE, CLR_BRIGHT_BLUE,
+} from './render.js';
 import { cansee, couldsee } from './vision.js';
 import { Monnam } from './mondata.js';
 import { is_hider, noattacks, dmgtype, attacktype } from './mondata.js';
@@ -122,19 +129,161 @@ export function map_invisible(map, x, y, player) {
     loc.mem_invis = true;
 }
 
+// ========================================================================
+// Display context — allows newsym() to perform per-cell rendering
+// without changing its (map, x, y) call signature at 217 call sites.
+// ========================================================================
+let _displayContext = null;
+
+// Set the display context for incremental rendering.
+// ctx = { display, player, fov, flags } or null to disable.
+// Returns the previous context (for save/restore in renderMap).
+export function setDisplayContext(ctx) {
+    const prev = _displayContext;
+    _displayContext = ctx || null;
+    return prev;
+}
+
 // C ref: display.c:918 newsym() — update the display at a location.
-// Full C newsym is the display workhorse (handles monsters, objects, traps,
-// lighting, memory).  This minimal JS version covers the cases currently
-// needed: clearing invisible markers and updating remembered terrain.
-// Expand as more display logic is ported.
+// When _displayContext is wired, this performs per-cell rendering matching
+// C's incremental newsym behavior.  When _displayContext is null (during
+// level generation or tests), just updates memory state.
 export function newsym(map, x, y) {
     if (!map || !isok(x, y)) return;
     const loc = map.at(x, y);
     if (!loc) return;
-    // C ref: display.c:981-983 — when cansee and no visible monster present,
-    // glyph_is_invisible → map_invisible; otherwise _map_location replaces
-    // the invisible glyph.  The common case we need: clear stale I markers.
-    loc.mem_invis = false;
+
+    const ctx = _displayContext;
+    if (!ctx || !ctx.display) {
+        // No display wired — just update memory state (level gen, tests)
+        loc.mem_invis = false;
+        return;
+    }
+
+    const { display, player, fov, flags } = ctx;
+    const mapOffset = flags?.msg_window ? 3 : MAP_ROW_START;
+    const col = x - 1;
+    const row = y + mapOffset;
+
+    // --- Not visible (out of FOV) ---
+    if (!fov || !fov.canSee(x, y)) {
+        if (loc.mem_invis) {
+            display.setCell(col, row, 'I', CLR_GRAY);
+            return;
+        }
+        if (loc.seenv) {
+            if (loc.mem_obj) {
+                const rememberedObjColor = Number.isInteger(loc.mem_obj_color)
+                    ? loc.mem_obj_color : 0;
+                display.setCell(col, row, loc.mem_obj, rememberedObjColor);
+                return;
+            }
+            if (loc.mem_trap) {
+                const memTrapColor = Number.isInteger(loc.mem_trap_color)
+                    ? loc.mem_trap_color : 0;
+                display.setCell(col, row, loc.mem_trap, memTrapColor);
+                return;
+            }
+            if (IS_WALL(loc.typ) && !wallIsVisible(loc.typ, loc.seenv, loc.flags)) {
+                display.setCell(col, row, ' ', CLR_GRAY);
+                return;
+            }
+            const sym = renderTerrainSymbol(loc, map, x, y, flags);
+            const rememberedColor = (loc.typ === ROOM) ? NO_COLOR : sym.color;
+            display.setCell(col, row, sym.ch, rememberedColor);
+        } else {
+            display.setCell(col, row, ' ', CLR_GRAY);
+        }
+        return;
+    }
+
+    // --- Visible (in FOV) ---
+
+    // Player glyph
+    if (player && x === player.x && y === player.y) {
+        display.setCell(col, row, '@', CLR_WHITE);
+        return;
+    }
+
+    // Monster
+    const mon = map.monsterAt(x, y);
+    if (mon) {
+        loc.mem_invis = false;
+        // Update remembered object under the monster
+        const underObjs = map.objectsAt(x, y);
+        if (underObjs.length > 0) {
+            const underTop = underObjs[underObjs.length - 1];
+            const underGlyph = objectMapGlyph(underTop, false, { player, x, y });
+            loc.mem_obj = underGlyph.ch || 0;
+            loc.mem_obj_color = Number.isInteger(underGlyph.color)
+                ? underGlyph.color : CLR_GRAY;
+        } else {
+            const engr = map.engravingAt(x, y);
+            if (engr && (player?.wizard || engr.erevealed)) {
+                const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
+                loc.mem_obj = engrCh;
+                loc.mem_obj_color = CLR_BRIGHT_BLUE;
+            } else {
+                loc.mem_obj = 0;
+                loc.mem_obj_color = 0;
+            }
+        }
+        const hallu = !!player?.hallucinating;
+        const glyph = monsterMapGlyph(mon, hallu);
+        display.setCell(col, row, glyph.ch, glyph.color);
+        return;
+    }
+    if (loc.mem_invis) {
+        display.setCell(col, row, 'I', CLR_GRAY);
+        return;
+    }
+
+    // Objects
+    const objs = map.objectsAt(x, y);
+    if (objs.length > 0) {
+        const topObj = objs[objs.length - 1];
+        const hallu = !!player?.hallucinating;
+        const glyph = objectMapGlyph(topObj, hallu, { player, x, y });
+        const memGlyph = hallu
+            ? objectMapGlyph(topObj, false, { player, x, y, observe: false })
+            : glyph;
+        loc.mem_obj = memGlyph.ch || 0;
+        loc.mem_obj_color = Number.isInteger(memGlyph.color)
+            ? memGlyph.color : CLR_GRAY;
+        display.setCell(col, row, glyph.ch, glyph.color);
+        return;
+    }
+    loc.mem_obj = 0;
+    loc.mem_obj_color = 0;
+
+    // Traps
+    const trap = map.trapAt(x, y);
+    if (trap && trap.tseen) {
+        const tg = trapGlyph(trap.ttyp);
+        loc.mem_trap = tg.ch;
+        loc.mem_trap_color = tg.color;
+        display.setCell(col, row, tg.ch, tg.color);
+        return;
+    }
+    loc.mem_trap = 0;
+
+    // Engravings (wizard mode or revealed)
+    const engr = map.engravingAt(x, y);
+    if (engr && (player?.wizard || engr.erevealed)) {
+        const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
+        loc.mem_obj = engrCh;
+        loc.mem_obj_color = CLR_BRIGHT_BLUE;
+        display.setCell(col, row, engrCh, CLR_BRIGHT_BLUE);
+        return;
+    }
+
+    // Terrain
+    if (IS_WALL(loc.typ) && !wallIsVisible(loc.typ, loc.seenv, loc.flags)) {
+        display.setCell(col, row, ' ', CLR_GRAY);
+        return;
+    }
+    const sym = renderTerrainSymbol(loc, map, x, y, flags);
+    display.setCell(col, row, sym.ch, sym.color);
 }
 
 // C ref: display.h canseemon(mon) — hero can see the monster

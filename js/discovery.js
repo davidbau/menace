@@ -291,8 +291,8 @@ export async function handleDiscoveries(game) {
         && savedLines.length > 0
         && typeof display.setScreenLines === 'function') {
         display.setScreenLines(savedLines);
-    } else if (typeof game.renderCurrentScreen === 'function') {
-        game.renderCurrentScreen();
+    } else if (typeof game.docrt === 'function') {
+        game.docrt();
     }
     display.topMessage = null;
     display.messageNeedsMore = false;
