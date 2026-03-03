@@ -402,7 +402,7 @@ export async function domove_swap_with_pet(mon, nx, ny, dir, player, map, displa
     // C ref: vision_recalc(0) after domove — recompute FOV at new player position
     if (game.fov) {
         game.fov.compute(map, player.x, player.y);
-        setDisplayContext({ display, player, fov: game.fov, flags: game.flags });
+        setDisplayContext({ display, player, fov: game.fov, flags: game.flags, map });
         display.renderMap(map, player, game.fov, game.flags);
         display.renderStatus(player);
     }
@@ -768,7 +768,7 @@ export async function domove_core(dir, player, map, display, game) {
     // messages (combat, --More--) are shown.
     if (game.fov) {
         game.fov.compute(map, player.x, player.y);
-        setDisplayContext({ display, player, fov: game.fov, flags: game.flags });
+        setDisplayContext({ display, player, fov: game.fov, flags: game.flags, map });
         display.renderMap(map, player, game.fov, game.flags);
         display.renderStatus(player);
     }

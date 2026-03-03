@@ -501,11 +501,13 @@ export async function mlevel_tele_trap(mtmp, trap, force_it, in_sight, map, play
                 : 'it';
             await pline(`Suddenly, ${mname} disappears out of sight.`);
             // C ref: teleport.c:2082 — seetrap(trap) when in_sight
-            if (trap && !trap.tseen) { trap.tseen = 1; newsym(trap.tx, trap.ty); }
+            if (trap && !trap.tseen) { trap.tseen = 1; newsym(map, trap.tx, trap.ty); }
         }
+        const _omx = mtmp.mx, _omy = mtmp.my;
         if (map?.removeMonster) map.removeMonster(mtmp);
         mtmp.mx = 0;
         mtmp.my = 0;
+        newsym(map, _omx, _omy);
         return 3; // Trap_Moved_Mon
     }
 

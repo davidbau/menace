@@ -403,7 +403,12 @@ function do_entity(etmp, occupants, map, player) {
         if (!is_u(etmp)) {
             // Move monster
             const mon = etmp.emon;
-            if (mon) { mon.mx = newx; mon.my = newy; }
+            if (mon) {
+                const _omx = mon.mx, _omy = mon.my;
+                mon.mx = newx; mon.my = newy;
+                newsym(map, _omx, _omy);
+                newsym(map, newx, newy);
+            }
         } else {
             player.x = newx;
             player.y = newy;

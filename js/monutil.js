@@ -136,7 +136,7 @@ export function map_invisible(map, x, y, player) {
 let _displayContext = null;
 
 // Set the display context for incremental rendering.
-// ctx = { display, player, fov, flags } or null to disable.
+// ctx = { display, player, fov, flags, map } or null to disable.
 // Returns the previous context (for save/restore in renderMap).
 export function setDisplayContext(ctx) {
     const prev = _displayContext;
@@ -148,7 +148,20 @@ export function setDisplayContext(ctx) {
 // When _displayContext is wired, this performs per-cell rendering matching
 // C's incremental newsym behavior.  When _displayContext is null (during
 // level generation or tests), just updates memory state.
-export function newsym(map, x, y) {
+//
+// Supports both newsym(map, x, y) and newsym(x, y) calling conventions.
+// The 2-arg form gets map from the display context (matching C's implicit
+// global level pointer).
+export function newsym(mapOrX, xOrY, maybeY) {
+    let map, x, y;
+    if (maybeY !== undefined) {
+        // 3-arg: newsym(map, x, y)
+        map = mapOrX; x = xOrY; y = maybeY;
+    } else {
+        // 2-arg: newsym(x, y) — get map from display context
+        x = mapOrX; y = xOrY;
+        map = _displayContext?.map;
+    }
     if (!map || !isok(x, y)) return;
     const loc = map.at(x, y);
     if (!loc) return;

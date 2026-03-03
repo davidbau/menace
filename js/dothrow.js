@@ -52,7 +52,7 @@ import { find_mac, W_WEP, W_QUIVER, W_SWAPWEP } from './worn.js';
 import { spec_abon } from './artifact.js';
 import { erode_obj, ERODE_CRACK, EF_DESTROY, EF_VERBOSE, ER_DESTROYED } from './trap.js';
 import { goodpos } from './teleport.js';
-import { mpickobj } from './monutil.js';
+import { mpickobj, newsym } from './monutil.js';
 import { makemon } from './makemon.js';
 import { exercise } from './attrib_exercise.js';
 import {
@@ -780,9 +780,12 @@ export function will_hurtle(mon, x, y, map, player) {
 async function mhurtle_step(mon, x, y, map, player) {
     if (!isok(x, y)) return false;
     if (will_hurtle(mon, x, y, map, player)) {
+        const _omx = mon.mx, _omy = mon.my;
         if (typeof map.removeMonster === 'function') map.removeMonster(mon.mx, mon.my);
         mon.mx = x; mon.my = y;
         if (typeof map.placeMonster === 'function') map.placeMonster(mon, x, y);
+        newsym(map, _omx, _omy);
+        newsym(map, x, y);
         return true;
     }
     const mtmp = map.monsterAt ? map.monsterAt(x, y) : null;

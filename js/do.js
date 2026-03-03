@@ -1117,7 +1117,12 @@ export function resolveArrivalCollision(game) {
 
     const moveMonsterNearby = () => {
         const pos = enexto((game.u || game.player).x, (game.u || game.player).y, (game.lev || game.map));
-        if (pos) { mtmp.mx = pos.x; mtmp.my = pos.y; }
+        if (pos) {
+            const _omx = mtmp.mx, _omy = mtmp.my;
+            mtmp.mx = pos.x; mtmp.my = pos.y;
+            newsym((game.lev || game.map), _omx, _omy);
+            newsym((game.lev || game.map), pos.x, pos.y);
+        }
     };
 
     if (!rn2(2)) {

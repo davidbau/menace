@@ -1137,7 +1137,7 @@ export function is_safemon(mon) {
 export function unmap_invisible(x, y, map) {
   if (isok(x,y) && glyph_is_invisible(map.locations[x][y].glyph)) {
     unmap_object(x, y);
-    newsym(x, y);
+    newsym(map, x, y);
     return true;
   }
   return false;
@@ -1258,7 +1258,7 @@ export async function under_water(mode, map, player) {
       if (isok(x, y) && (is_pool_or_lava(x, y) || is_ice(x, y))) {
         if ((player?.Blind || player?.blind || false) && !u_at(x, y)) show_glyph(x, y, GLYPH_UNEXPLORED);
         else {
-          newsym(x, y);
+          newsym(map, x, y);
         }
       }
     }

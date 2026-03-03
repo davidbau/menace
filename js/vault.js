@@ -283,8 +283,10 @@ async function clear_fcorr(grd, forceshow, map, player, fov) {
                 }
                 if (!rloc(mtmp, RLOC_MSG, map, player)) {
                     // m_into_limbo: just move off-map
+                    const _omx = mtmp.mx, _omy = mtmp.my;
                     mtmp.mx = 0;
                     mtmp.my = 0;
+                    newsym(map, _omx, _omy);
                 }
             }
         }
@@ -547,8 +549,10 @@ async function wallify_vault(grd, map, player, fov) {
                         // yelp(mon) — simplified
                     }
                     if (!rloc(mon, RLOC_MSG, map, player)) {
+                        const _omx = mon.mx, _omy = mon.my;
                         mon.mx = 0;
                         mon.my = 0;
+                        newsym(map, _omx, _omy);
                     }
                 }
 
@@ -624,8 +628,10 @@ export async function gd_mv_monaway(grd, nx, ny, map, player, fov) {
         if (!rloc(mtmp, RLOC_ERR | RLOC_MSG, map, player)
             || (map.monsterAt && map.monsterAt(nx, ny))) {
             // m_into_limbo
+            const _omx = mtmp.mx, _omy = mtmp.my;
             mtmp.mx = 0;
             mtmp.my = 0;
+            newsym(map, _omx, _omy);
         }
         recalc_block_point(nx, ny);
     }

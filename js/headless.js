@@ -949,7 +949,7 @@ export class HeadlessDisplay {
         const mapOffset = this.flags.msg_window ? 3 : MAP_ROW_START;
 
         // Temporarily set display context so newsym() renders to this display
-        const prevCtx = setDisplayContext({ display: this, player, fov, flags: this.flags });
+        const prevCtx = setDisplayContext({ display: this, player, fov, flags: this.flags, map: gameMap });
         for (let y = 0; y < ROWNO; y++) {
             const row = y + mapOffset;
             // C tty map rendering uses game x in [1..COLNO-1] at terminal cols [0..COLNO-2].

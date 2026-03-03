@@ -1338,7 +1338,7 @@ export class NetHackGame {
     // Render current screen state
     docrt() {
         this.fov.compute(this.map, this.player.x, this.player.y);
-        setDisplayContext({ display: this.display, player: this.player, fov: this.fov, flags: this.flags });
+        setDisplayContext({ display: this.display, player: this.player, fov: this.fov, flags: this.flags, map: this.map });
         this.display.renderMap(this.map, this.player, this.fov, this.flags);
         this.display.renderStatus(this.player);
         this.display.cursorOnPlayer(this.player);

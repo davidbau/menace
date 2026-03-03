@@ -1499,7 +1499,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       game.maploc.typ = ROOM;
       mkgold( rnd(200), x, y);
       if (Blind) await pline("CRASH! You destroy it.");
-      else { await pline("CRASH! You destroy the throne."); newsym(x, y); }
+      else { await pline("CRASH! You destroy the throne."); newsym(map, x, y); }
       await exercise(A_DEX, true);
       return ECMD_TIME;
     }
@@ -1513,7 +1513,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       if (Blind) await You("kick %s loose!", something);
       else {
         await You("kick loose some ornamental coins and gems!");
-        newsym(x, y);
+        newsym(map, x, y);
       }
       game.maploc.looted = T_LOOTED;
       return ECMD_TIME;
@@ -1556,7 +1556,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       mksobj_at(ROCK, x, y, true, false);
       del_engr_at(x, y);
       if (Blind) { await pline("Crack! %s broke!", Something); }
-      else { await pline_The("headstone topples over and breaks!"); newsym(x, y); }
+      else { await pline_The("headstone topples over and breaks!"); newsym(map, x, y); }
     }
     return ECMD_TIME;
   }
@@ -1585,7 +1585,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       }
       await exercise(A_DEX, true);
       await exercise(A_WIS, true);
-      newsym(x, y);
+      newsym(map, x, y);
       game.maploc.looted |= TREE_LOOTED;
       return ECMD_TIME;
     }
@@ -1624,13 +1624,13 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       }
       makemon( mons[PM_BLACK_PUDDING], x, y, MM_NOMSG);
       await exercise(A_DEX, true);
-      newsym(x, y);
+      newsym(map, x, y);
       game.maploc.looted |= S_LPUDDING;
       return ECMD_TIME;
     }
     else if (!(game.maploc.looted & S_LDWASHER) && !rn2(3) && !(game.mvitals[PM_AMOROUS_DEMON].mvflags & G_GONE)) {
       await pline("%s returns!", (Blind ? Something : "The dish washer"));
-      if (makemon( mons[PM_AMOROUS_DEMON], x, y, MM_NOMSG | ((gend === 1 || (gend === 2 && rn2(2))) ? MM_MALE : MM_FEMALE))) newsym(x, y);
+      if (makemon( mons[PM_AMOROUS_DEMON], x, y, MM_NOMSG | ((gend === 1 || (gend === 2 && rn2(2))) ? MM_MALE : MM_FEMALE))) newsym(map, x, y);
       game.maploc.looted |= S_LDWASHER;
       await exercise(A_DEX, true);
       return ECMD_TIME;

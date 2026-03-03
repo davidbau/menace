@@ -32,7 +32,7 @@ import { pline, You, Your, You_hear, You_feel, You_cant, pline_The, There,
          verbalize, Norep, impossible, livelog_printf } from './pline.js';
 import { s_suffix, upstart, highc } from './hacklib.js';
 import { findgold } from './steal.js';
-import { add_to_minv, helpless as monHelpless } from './monutil.js';
+import { add_to_minv, helpless as monHelpless, newsym } from './monutil.js';
 import { canseemon } from './mondata.js';
 
 // ============================================================
@@ -887,10 +887,13 @@ export function home_shk(shkp, killkops, map) {
         // C: mnearto(shkp, x, y, TRUE, RLOC_NOMSG)
         // Simplified: just teleport the shopkeeper
         if (map) {
+            const _omx = shkp.mx, _omy = shkp.my;
             map.removeMonster?.(shkp);
             shkp.mx = x;
             shkp.my = y;
             map.placeMonster?.(shkp, x, y);
+            newsym(map, _omx, _omy);
+            newsym(map, x, y);
         }
     }
     after_shk_move(shkp, map);
