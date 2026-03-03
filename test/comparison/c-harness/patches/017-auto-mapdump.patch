@@ -135,7 +135,7 @@ diff --git a/src/mklev.c b/src/mklev.c
 +    (void) fputc('\n', fp);
 +}
 +
-+void
++staticfn void
 +harness_auto_mapdump(void)
 +{
 +    const char *dir = nh_getenv("NETHACK_MAPDUMP_DIR");

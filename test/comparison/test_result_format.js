@@ -54,6 +54,7 @@ export function createSessionResult(session) {
             screenWindow: { matched: 0, total: 0, earlyOnlyCount: 0 },
             colorWindow: { matched: 0, total: 0, earlyOnlyCount: 0 },
             events: { matched: 0, total: 0 },
+            mapdump: { matched: 0, total: 0 },
             animationBoundaries: { matched: 0, total: 0 },
             cursor: { matched: 0, total: 0 },
         },
@@ -178,6 +179,18 @@ export function recordEvents(result, matched, total) {
 }
 
 /**
+ * Record mapdump checkpoint comparison.
+ * Mapdump parity is required when checkpoints are present.
+ */
+export function recordMapdump(result, matched, total) {
+    result.metrics.mapdump.matched += matched;
+    result.metrics.mapdump.total += total;
+    if (matched < total) {
+        result.passed = false;
+    }
+}
+
+/**
  * Record animation delay-boundary comparison.
  * This is a parallel metric and does not currently change pass/fail.
  */
@@ -222,6 +235,7 @@ export function finalizeResult(result) {
         if (m.screenWindow?.total === 0) delete m.screenWindow;
         if (m.colorWindow?.total === 0) delete m.colorWindow;
         if (m.events?.total === 0) delete m.events;
+        if (m.mapdump?.total === 0) delete m.mapdump;
         if (m.animationBoundaries?.total === 0) delete m.animationBoundaries;
         if (m.cursor?.total === 0) delete m.cursor;
 
@@ -346,6 +360,7 @@ export function formatResult(result) {
         parts.push(`earlyOnly=${(m.screenWindow?.earlyOnlyCount || 0) + (m.colorWindow?.earlyOnlyCount || 0)}`);
     }
     if (m.events) parts.push(`events=${m.events.matched}/${m.events.total}`);
+    if (m.mapdump) parts.push(`mapdump=${m.mapdump.matched}/${m.mapdump.total}`);
     if (m.animationBoundaries) parts.push(`anim=${m.animationBoundaries.matched}/${m.animationBoundaries.total}`);
     if (m.cursor) parts.push(`cursor=${m.cursor.matched}/${m.cursor.total}`);
     if (result.error) parts.push(`error: ${result.error}`);

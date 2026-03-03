@@ -1,31 +1,3 @@
-diff --git a/src/display.c b/src/display.c
-index e3f8225f8..ccd03b428 100644
---- a/src/display.c
-+++ b/src/display.c
-@@ -1183,6 +1183,7 @@ tmp_at(coordxy x, coordxy y)
-         tglyph->style = x;
-         tglyph->glyph = y;
-         flush_screen(0); /* flush buffered glyphs */
-+        event_log("tmp_at_start[mode=%d,glyph=%d]", x, y);
-         return;
-
-     case DISP_FREEMEM: /* in case game ends with tmp_at() in progress */
-@@ -1234,6 +1235,7 @@ tmp_at(coordxy x, coordxy y)
-                     newsym(tglyph->saved[0].x, tglyph->saved[0].y);
-             }
-             /* tglyph->sidx = 0; -- about to be freed, so not necessary */
-+            event_log("tmp_at_end[flags=%d]", y);
-             tmp = tglyph->prev;
-             if (tglyph != &tgfirst)
-                 free((genericptr_t) tglyph);
-@@ -1281,6 +1283,7 @@ tmp_at(coordxy x, coordxy y)
-
-             show_glyph(x, y, tglyph->glyph); /* show it */
-             flush_screen(0);                 /* make sure it shows up */
-+            event_log("tmp_at_step[%d,%d,%d]", x, y, tglyph->glyph);
-             break;
-         } /* end switch */
-     }
 diff --git a/src/dogmove.c b/src/dogmove.c
 index 2d47e0cfb..0e4702c43 100644
 --- a/src/dogmove.c
@@ -117,3 +89,31 @@ index 2d47e0cfb..0e4702c43 100644
      return appr;
  #undef FARAWAY
  }
+diff --git a/src/display.c b/src/display.c
+index e3f8225f8..ccd03b428 100644
+--- a/src/display.c
++++ b/src/display.c
+@@ -1183,6 +1183,7 @@ tmp_at(coordxy x, coordxy y)
+         tglyph->style = x;
+         tglyph->glyph = y;
+         flush_screen(0); /* flush buffered glyphs */
++        event_log("tmp_at_start[mode=%d,glyph=%d]", x, y);
+         return;
+
+     case DISP_FREEMEM: /* in case game ends with tmp_at() in progress */
+@@ -1234,6 +1235,7 @@ tmp_at(coordxy x, coordxy y)
+                     newsym(tglyph->saved[0].x, tglyph->saved[0].y);
+             }
+             /* tglyph->sidx = 0; -- about to be freed, so not necessary */
++            event_log("tmp_at_end[flags=%d]", y);
+             tmp = tglyph->prev;
+             if (tglyph != &tgfirst)
+                 free((genericptr_t) tglyph);
+@@ -1281,6 +1283,7 @@ tmp_at(coordxy x, coordxy y)
+
+             show_glyph(x, y, tglyph->glyph); /* show it */
+             flush_screen(0);                 /* make sure it shows up */
++            event_log("tmp_at_step[%d,%d,%d]", x, y, tglyph->glyph);
+             break;
+         } /* end switch */
+     }

@@ -2,9 +2,10 @@ diff --git a/include/extern.h b/include/extern.h
 index c8ee05bb..7954f033 100644
 --- a/include/extern.h
 +++ b/include/extern.h
-@@ -2732,6 +2732,10 @@ extern void shuffle_int_array(int *, int) NONNULLARG1;
+@@ -2732,7 +2732,11 @@ extern void shuffle_int_array(int *, int) NONNULLARG1;
  /* PRNG call logging (004-prng-logging patch) */
  extern void rng_log_init(void);
+ extern boolean rng_log_enabled(void);
  extern void rng_log_set_caller(const char *, int, const char *);
 +/* Deterministic qsort wrapper (006-deterministic-qsort patch) */
 +extern void nh_deterministic_qsort(void *, size_t, size_t,

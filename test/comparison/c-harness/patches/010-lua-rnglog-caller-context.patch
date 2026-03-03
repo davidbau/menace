@@ -41,6 +41,9 @@ index 96970f73c..55a75f71d 100644
 +staticfn void
 +nhl_rnglog_set_lua_caller(lua_State *L, const char *fallback)
 +{
++    /* Static buffers are safe here because this helper is used
++       synchronously for a single Lua->C->RNG call path and is not
++       expected to be re-entrant. */
 +    static char rnglog_srcbuf[BUFSZ];
 +    static char rnglog_namebuf[BUFSZ];
 +    static char rnglog_name1buf[BUFSZ];

@@ -13,7 +13,7 @@ import { Player, roles, races, validRacesForRole, validAlignsForRoleRace,
          needsGenderMenu, rankOf, godForRoleAlign, isGoddess, greetingForRole,
          roleNameForGender, alignName, formatLoreText } from './player.js';
 import { GameMap } from './map.js';
-import { initLevelGeneration, makelevel, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
+import { initLevelGeneration, mklev, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
 import { TUTORIAL } from './special_levels.js';
 import { setSplevPlayerContext, clearSplevPlayerContext } from './sp_lev.js';
 import { setMakemonPlayerContext } from './makemon.js';
@@ -286,7 +286,7 @@ export async function enterTutorial(game, opts = {}) {
 
     setMakemonPlayerContext((game.u || game.player));
     setSplevPlayerContext((game.u || game.player));
-    game.lev = await makelevel(1, TUTORIAL, 1, { dungeonAlignOverride: A_NONE });
+    game.lev = await mklev(1, TUTORIAL, 1, { dungeonAlignOverride: A_NONE });
     clearSplevPlayerContext();
     game.levels[1] = (game.lev || game.map);
     (game.u || game.player).dungeonLevel = 1;

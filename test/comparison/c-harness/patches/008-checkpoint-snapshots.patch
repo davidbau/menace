@@ -10,9 +10,10 @@ index 7954f033c..ca91f0cb0 100644
  
  /* ### date.c ### */
  
-@@ -2732,6 +2733,7 @@ extern void shuffle_int_array(int *, int) NONNULLARG1;
+@@ -2732,7 +2733,8 @@ extern void shuffle_int_array(int *, int) NONNULLARG1;
  /* PRNG call logging (004-prng-logging patch) */
  extern void rng_log_init(void);
+ extern boolean rng_log_enabled(void);
  extern void rng_log_set_caller(const char *, int, const char *);
 +extern int rng_log_get_call_count(void);
  /* Deterministic qsort wrapper (006-deterministic-qsort patch) */
@@ -39,7 +40,7 @@ index d77454878..843e21f50 100644
 +{
 +    int c;
 +    if (!s) {
-+        fputs("", fp);
++        fputs("null", fp);
 +        return;
 +    }
 +    while ((c = (unsigned char) *s++) != '\0') {
@@ -384,7 +385,7 @@ index 2e1b4ab65..117817159 100644
       */
      if (!svl.level.flags.corrmaze)
          wallification(1, 0, COLNO - 1, ROWNO - 1);
-+    harness_dump_checkpoint("after_wallification");
++    harness_dump_checkpoint("after_wallification_special");
  
      flip_level_rnd(gc.coder->allow_flips, FALSE);
  
@@ -392,7 +393,7 @@ index 2e1b4ab65..117817159 100644
      if (gc.coder->premapped)
          premap_detect();
  
-+    harness_dump_checkpoint("after_finalize");
++    harness_dump_checkpoint("after_finalize_special");
 +
      result = TRUE;
   give_up:

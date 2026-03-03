@@ -41,7 +41,7 @@ import { FOV, get_vision_full_recalc } from './vision.js';
 import { monsterNearby, setDisplayContext, see_monsters, vision_recalc, mark_vision_dirty, flush_screen } from './monutil.js';
 import { nomul, unmul, near_capacity } from './hack.js';
 import { Player, roles, races } from './player.js';
-import { makelevel, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
+import { mklev, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
 import { getArrivalPosition, changeLevel as changeLevelCore, deferred_goto } from './do.js';
 import { loadSave, deleteSave, loadFlags, saveFlags, deserializeRng,
          restGameState, restLev, listSavedData, clearAllData } from './storage.js';
@@ -1276,7 +1276,7 @@ export class NetHackGame {
         setMakemonPlayerContext({ ...this.player, x: null, y: null });
         const heroHasAmulet = !!(this.player?.uhave?.amulet);
         const makeLevel = Number.isInteger(this.dnum)
-            ? async (d) => await makelevel(d, this.dnum, d, {
+            ? async (d) => await mklev(d, this.dnum, d, {
                 dungeonAlignOverride: this.dungeonAlignOverride,
                 heroHasAmulet,
             })

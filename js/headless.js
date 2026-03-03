@@ -15,7 +15,6 @@ import {
     setRngCallCount,
     pushRngLogEntry,
 } from './rng.js';
-import { makelevel, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
 import { rankOf, roles } from './player.js';
 import { initrack } from './monmove.js';
 import { FOV } from './vision.js';

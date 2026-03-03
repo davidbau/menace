@@ -7,7 +7,7 @@ import { COLNO, ROWNO, STAIRS,
          IS_FURNITURE, IS_LAVA, IS_POOL, MAGIC_PORTAL, VIBRATING_SQUARE,
          PM_TOURIST } from './config.js';
 import { rn1, rn2, rnd, d } from './rng.js';
-import { deltrap, enexto, makelevel, assign_level } from './dungeon.js';
+import { deltrap, enexto, mklev, assign_level } from './dungeon.js';
 import { depth as dungeonDepth } from './dungeon.js';
 import { mon_arrive } from './dog.js';
 import { initrack } from './monmove.js';
@@ -1151,7 +1151,7 @@ export function resolveArrivalCollision(game) {
 //
 // game must provide: .map, .player, .levels
 // opts.map: pre-generated map (e.g., wizloaddes)
-// opts.makeLevel(depth): custom level generator (default: makelevel(depth))
+// opts.makeLevel(depth): custom level generator (default: mklev(depth))
 export async function changeLevel(game, depth, transitionDir = null, opts = {}) {
     const currentDnum = Number.isInteger(game.dnum)
         ? game.dnum
@@ -1182,7 +1182,7 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     } else if (game.levels[depth]) {
         game.lev = game.levels[depth];
     } else {
-        game.lev = opts.makeLevel ? await opts.makeLevel(depth) : await makelevel(depth);
+        game.lev = opts.makeLevel ? await opts.makeLevel(depth) : await mklev(depth);
         game.levels[depth] = (game.lev || game.map);
         game.levelsByBranch[branchCacheKey] = (game.lev || game.map);
     }

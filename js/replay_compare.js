@@ -5,7 +5,7 @@
 
 import { COLNO, ROWNO } from './config.js';
 import { initRng, enableRngLog, getRngLog, disableRngLog } from './rng.js';
-import { initLevelGeneration, makelevel, setGameSeed } from './dungeon.js';
+import { initLevelGeneration, mklev, setGameSeed } from './dungeon.js';
 import { simulatePostLevelInit } from './u_init.js';
 import { mon_arrive } from './dog.js';
 import { Player, roles } from './player.js';
@@ -333,7 +333,7 @@ export async function generateMapsSequential(seed, maxDepth) {
     const grids = {};
     const maps = {};
     for (let depth = 1; depth <= maxDepth; depth++) {
-        const map = await makelevel(depth);
+        const map = await mklev(depth);
         grids[depth] = extractTypGrid(map);
         maps[depth] = map;
     }
@@ -353,7 +353,7 @@ export async function generateMapsWithRng(seed, maxDepth) {
     let prevCount = 0;
     for (let depth = 1; depth <= maxDepth; depth++) {
         const previousMap = depth > 1 ? maps[depth - 1] : null;
-        const map = await makelevel(depth);
+        const map = await mklev(depth);
         grids[depth] = extractTypGrid(map);
         maps[depth] = map;
         if (depth === 1) {
@@ -457,7 +457,7 @@ export async function generateStartupWithRng(seed, session) {
         race: raceMap0[charOpts.race],
     });
 
-    const map = await makelevel(1);
+    const map = await mklev(1);
     const grid = extractTypGrid(map);
 
     const player = new Player();

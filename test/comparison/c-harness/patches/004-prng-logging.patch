@@ -2,12 +2,13 @@ diff --git a/include/extern.h b/include/extern.h
 index 899f72b4a..02b6ae642 100644
 --- a/include/extern.h
 +++ b/include/extern.h
-@@ -2729,6 +2729,9 @@ extern int rnz(int);
+@@ -2729,6 +2729,10 @@ extern int rnz(int);
  extern void init_random(int(*fn)(int));
  extern void reseed_random(int(*fn)(int));
  extern void shuffle_int_array(int *, int) NONNULLARG1;
 +/* PRNG call logging (004-prng-logging patch) */
 +extern void rng_log_init(void);
++extern boolean rng_log_enabled(void);
 +extern void rng_log_set_caller(const char *, int, const char *);
  
  /* ### role.c ### */
@@ -38,12 +39,24 @@ index a52258a4e..d147e6fad 100644
 + * rather than setting their own.
 + */
 +#ifndef RNGLOG_IN_RND_C
-+#define rn2(x) (rng_log_set_caller(__FILE__, __LINE__, __func__), rn2(x))
-+#define rnd(x) (rng_log_set_caller(__FILE__, __LINE__, __func__), rnd(x))
-+#define rnl(x) (rng_log_set_caller(__FILE__, __LINE__, __func__), rnl(x))
-+#define d(n,x) (rng_log_set_caller(__FILE__, __LINE__, __func__), d((n),(x)))
-+#define rne(x) (rng_log_set_caller(__FILE__, __LINE__, __func__), rne(x))
-+#define rnz(x) (rng_log_set_caller(__FILE__, __LINE__, __func__), rnz(x))
++#define rn2(x) (rng_log_enabled() \
++                ? (rng_log_set_caller(__FILE__, __LINE__, __func__), rn2(x)) \
++                : rn2(x))
++#define rnd(x) (rng_log_enabled() \
++                ? (rng_log_set_caller(__FILE__, __LINE__, __func__), rnd(x)) \
++                : rnd(x))
++#define rnl(x) (rng_log_enabled() \
++                ? (rng_log_set_caller(__FILE__, __LINE__, __func__), rnl(x)) \
++                : rnl(x))
++#define d(n,x) (rng_log_enabled() \
++                ? (rng_log_set_caller(__FILE__, __LINE__, __func__), d((n),(x))) \
++                : d((n),(x)))
++#define rne(x) (rng_log_enabled() \
++                ? (rng_log_set_caller(__FILE__, __LINE__, __func__), rne(x)) \
++                : rne(x))
++#define rnz(x) (rng_log_enabled() \
++                ? (rng_log_set_caller(__FILE__, __LINE__, __func__), rnz(x)) \
++                : rnz(x))
 +#endif /* RNGLOG_IN_RND_C */
 +
  #endif  /* RECOVER_C */
@@ -97,6 +110,12 @@ index beb4992ed..498999111 100644
 +        if (rng_logfile)
 +            setvbuf(rng_logfile, NULL, _IOLBF, 0); /* line-buffered */
 +    }
++}
++
++boolean
++rng_log_enabled(void)
++{
++    return rng_logfile ? TRUE : FALSE;
 +}
 +
 +void

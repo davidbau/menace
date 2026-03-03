@@ -221,6 +221,8 @@ let _dungeonLevelCounts = new Map();
 let inMklev = false;
 // Mirror C global wizard mode checks used by mkroom.c pick_room().
 let _wizardMode = true;
+let _harnessMapdumpSerial = 0;
+let _harnessMapdumpPayloads = new Map();
 
 // C ref: gi.in_mklev is also TRUE while special-level Lua code runs.
 // Exposed for sp_lev.js to bracket des.* generation phases.
@@ -287,6 +289,125 @@ const _dungeonEntryLevelByDnum = new Map([
     [TUTORIAL, 1],
 ]);
 let _specialLevelChain = [];
+
+function harnessMapdumpCell(v) {
+    let n = Number.isFinite(v) ? Math.trunc(v) : 0;
+    if (n < 0) n = 0;
+    if (n <= 9) return String.fromCharCode(48 + n);
+    if (n <= 35) return String.fromCharCode(97 + (n - 10));
+    if (n <= 61) return String.fromCharCode(65 + (n - 36));
+    return 'Z';
+}
+
+function emitHarnessMapdumpRun(parts, value, count) {
+    if (count <= 0) return;
+    if (count >= 3) {
+        parts.push(`~${count},${harnessMapdumpCell(value)}`);
+        return;
+    }
+    const ch = harnessMapdumpCell(value);
+    for (let i = 0; i < count; i++) parts.push(ch);
+}
+
+function buildHarnessMapdumpGrid(map, which) {
+    const rowParts = [];
+    for (let y = 0; y < ROWNO; y++) {
+        const out = [];
+        let runVal = null;
+        let runLen = 0;
+        for (let x = 0; x < COLNO; x++) {
+            const loc = map.at(x, y);
+            let value = 0;
+            switch (which) {
+                case 0: value = Number(loc?.typ ?? 0); break;
+                case 1: value = Number(loc?.flags ?? 0) & 0x1f; break;
+                case 2: value = loc?.horizontal ? 1 : 0; break;
+                case 3: value = loc?.lit ? 1 : 0; break;
+                case 4: value = Number(loc?.roomno ?? 0) & 0x3f; break;
+            }
+            if (runLen === 0) {
+                runVal = value;
+                runLen = 1;
+            } else if (value === runVal) {
+                runLen++;
+            } else {
+                emitHarnessMapdumpRun(out, runVal, runLen);
+                runVal = value;
+                runLen = 1;
+            }
+        }
+        emitHarnessMapdumpRun(out, runVal, runLen);
+        rowParts.push(out.join(''));
+    }
+    return rowParts.join('|');
+}
+
+function buildHarnessMapdumpPayload(map) {
+    const lines = [];
+    lines.push(`T${buildHarnessMapdumpGrid(map, 0)}`);
+    lines.push(`F${buildHarnessMapdumpGrid(map, 1)}`);
+    lines.push(`H${buildHarnessMapdumpGrid(map, 2)}`);
+    lines.push(`L${buildHarnessMapdumpGrid(map, 3)}`);
+    lines.push(`R${buildHarnessMapdumpGrid(map, 4)}`);
+
+    const objParts = [];
+    for (const obj of (Array.isArray(map?.objects) ? map.objects : [])) {
+        const ox = Number(obj?.ox);
+        const oy = Number(obj?.oy);
+        if (!isok(ox, oy)) continue;
+        const otyp = Number.isFinite(obj?.otyp) ? Math.trunc(obj.otyp) : 0;
+        const quan = Number.isFinite(obj?.quan) ? Math.trunc(obj.quan) : 0;
+        objParts.push(`${ox},${oy},${otyp},${quan}`);
+    }
+    lines.push(`O${objParts.join(';')}`);
+
+    const monParts = [];
+    for (const mon of (Array.isArray(map?.monsters) ? map.monsters : [])) {
+        const mx = Number(mon?.mx);
+        const my = Number(mon?.my);
+        if (!isok(mx, my)) continue;
+        const mndx = Number.isFinite(mon?.mndx) ? Math.trunc(mon.mndx) : 0;
+        const mhp = Number.isFinite(mon?.mhp) ? Math.trunc(mon.mhp) : 0;
+        monParts.push(`${mx},${my},${mndx},${mhp}`);
+    }
+    lines.push(`M${monParts.join(';')}`);
+
+    const trapParts = [];
+    for (const trap of (Array.isArray(map?.traps) ? map.traps : [])) {
+        const tx = Number(trap?.tx);
+        const ty = Number(trap?.ty);
+        if (!isok(tx, ty)) continue;
+        const ttyp = Number.isFinite(trap?.ttyp) ? Math.trunc(trap.ttyp) : 0;
+        trapParts.push(`${tx},${ty},${ttyp}`);
+    }
+    lines.push(`K${trapParts.join(';')}`);
+
+    return `${lines.join('\n')}\n`;
+}
+
+function emitHarnessMapdumpEvent(map, depth, dnum, dlevel) {
+    const mapDnum = Number.isInteger(map?._genDnum) ? map._genDnum : undefined;
+    const mapDlevel = Number.isInteger(map?._genDlevel) ? map._genDlevel : undefined;
+    const useDnum = Number.isInteger(mapDnum)
+        ? mapDnum
+        : (Number.isInteger(dnum) ? dnum : DUNGEONS_OF_DOOM);
+    const useDlevel = Number.isInteger(mapDlevel)
+        ? mapDlevel
+        : (Number.isInteger(dlevel)
+            ? dlevel
+            : (Number.isInteger(depth) && depth > 0 ? depth : 1));
+    const serial = String(++_harnessMapdumpSerial).padStart(3, '0');
+    const dumpId = `d${useDnum}l${useDlevel}_${serial}`;
+    _harnessMapdumpPayloads.set(dumpId, buildHarnessMapdumpPayload(map));
+    pushRngLogEntry(`^mapdump[${dumpId}]`);
+}
+
+export function consumeHarnessMapdumpPayloads() {
+    const out = {};
+    for (const [id, payload] of _harnessMapdumpPayloads.entries()) out[id] = payload;
+    _harnessMapdumpPayloads = new Map();
+    return out;
+}
 const RUNTIME_SPECIAL_LEVEL_CANON = new Map([
     [DUNGEONS_OF_DOOM, [
         { index: 0, canonDlevel: 15 }, // rogue
@@ -4255,6 +4376,8 @@ export function mineralize(map, depth, opts = null) {
 //        u_init.c u_init(), nhlua pre_themerooms
 export function initLevelGeneration(roleIndex, wizard = true, opts = {}) {
     _wizardMode = !!wizard;
+    _harnessMapdumpSerial = 0;
+    _harnessMapdumpPayloads = new Map();
     set_mkroom_wizard_mode(_wizardMode);
     set_mkroom_ubirthday(_gameUbirthday);
     init_objects();
@@ -4278,6 +4401,10 @@ export function initLevelGeneration(roleIndex, wizard = true, opts = {}) {
  * @returns {GameMap} The generated level
  */
 export async function makelevel(depth, dnum, dlevel, opts = {}) {
+    const finishGeneratedMap = (outMap) => {
+        emitHarnessMapdumpEvent(outMap, depth, dnum, dlevel);
+        return outMap;
+    };
     const forcedAlign = Number.isInteger(opts?.dungeonAlignOverride)
         ? opts.dungeonAlignOverride
         : undefined;
@@ -4300,7 +4427,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
     // C ref: bones.c getbones() — rn2(3) + bones load pipeline
     // Must happen BEFORE special level check to match C RNG order
     const bonesMap = getbones(null, depth);
-    if (bonesMap) return bonesMap;
+    if (bonesMap) return finishGeneratedMap(bonesMap);
     inMklev = true;
     setMakemonInMklevContext(true);
     setMklevObjectContext(true);
@@ -4374,7 +4501,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
                     specialMap.flags.is_rogue_lev = true;
                     specialMap.flags.roguelike = true;
                 }
-                return specialMap;
+                return finishGeneratedMap(specialMap);
             }
             // If special level generation fails, fall through to procedural
             if (DEBUG) console.warn(`Special level ${special.name} generation failed, using procedural`);
@@ -4409,7 +4536,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
             if (!rogueMap.flags) rogueMap.flags = {};
             rogueMap.flags.is_rogue_lev = true;
             rogueMap.flags.roguelike = true;
-            return rogueMap;
+            return finishGeneratedMap(rogueMap);
         }
         // C ref: mklev.c:1287 makerooms()
         // Initialize rectangle pool for BSP room placement
@@ -4589,7 +4716,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
     // C ref: mklev.c:1533-1539,1558,1561-1562 — level_finalize_topology().
     level_finalize_topology(map, depth);
 
-    return map;
+    return finishGeneratedMap(map);
     } finally {
         leaveMklevContext();
     }

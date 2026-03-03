@@ -125,5 +125,11 @@ export async function recordGameplaySessionFromInputs(session, opts = {}) {
         keyIdx += len;
     }
 
-    return { startup, steps };
+    return {
+        startup,
+        steps,
+        checkpoints: (jsSession?.checkpoints && typeof jsSession.checkpoints === 'object')
+            ? jsSession.checkpoints
+            : null,
+    };
 }

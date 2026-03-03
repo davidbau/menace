@@ -3,6 +3,7 @@
 
 import { stripAnsiSequences } from './session_loader.js';
 import { createGameplayComparatorPolicy } from './comparator_policy.js';
+import { compareMapdumpCheckpoints } from './comparators.js';
 
 export function compareRecordedGameplaySession(session, replay, options = {}) {
     const policy = options.policy || createGameplayComparatorPolicy(session);
@@ -134,6 +135,10 @@ export function compareRecordedGameplaySession(session, replay, options = {}) {
     }
 
     const eventCmp = policy.compareEvents(allJsRng, allSessionRng);
+    const mapdumpCmp = compareMapdumpCheckpoints(
+        replay?.checkpoints || null,
+        session?.mapdumpCheckpoints || null
+    );
 
     return {
         rng: {
@@ -171,6 +176,11 @@ export function compareRecordedGameplaySession(session, replay, options = {}) {
             matched: eventCmp.matched,
             total: eventCmp.total,
             firstDivergence: eventCmp.firstDivergence || null,
+        },
+        mapdump: {
+            matched: mapdumpCmp.matched,
+            total: mapdumpCmp.total,
+            firstDivergence: mapdumpCmp.firstDivergence || null,
         },
         animationBoundaries: {
             matched: animationBoundariesMatched,

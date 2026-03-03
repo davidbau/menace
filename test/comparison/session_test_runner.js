@@ -48,6 +48,7 @@ import {
     recordScreenWindow,
     recordColorWindow,
     recordEvents,
+    recordMapdump,
     recordAnimationBoundaries,
     recordCursor,
     markFailed,
@@ -468,6 +469,10 @@ async function runGameplayResult(session) {
                 total: result.metrics.events.total,
             };
             setFirstDivergence(result, 'event', cmp.event.firstDivergence);
+        }
+        if (cmp.mapdump?.total > 0) {
+            recordMapdump(result, cmp.mapdump.matched, cmp.mapdump.total);
+            setFirstDivergence(result, 'mapdump', cmp.mapdump.firstDivergence);
         }
         if (cmp.animationBoundaries.total > 0) {
             recordAnimationBoundaries(

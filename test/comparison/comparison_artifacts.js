@@ -13,7 +13,6 @@ function shouldKeepEntry(entry, { eventsOnly = false } = {}) {
     if (typeof entry !== 'string' || entry.length === 0) return false;
     if (eventsOnly) {
         if (entry[0] !== '^') return false;
-        if (entry.startsWith('^trick[')) return false;
         return true;
     }
     const noPrefix = entry.replace(/^\d+\s+/, '');

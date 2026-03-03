@@ -80,15 +80,21 @@ diff --git a/src/monmove.c b/src/monmove.c
  
      *inrange = (dist2(mtmp->mx, mtmp->my, mtmp->mux, mtmp->muy)
                  <= (BOLT_LIM * BOLT_LIM));
-@@ -558,13 +559,18 @@
+@@ -558,13 +559,23 @@
      }
  
      sawscary = onscary(seescaryx, seescaryy, mtmp);
 -    if (*nearby && (sawscary
 -                    || (flees_light(mtmp) && !bravegremlin)
 -                    || (!mtmp->mpeaceful && in_your_sanctuary(mtmp, 0, 0)))) {
-+    fleelight = flees_light(mtmp) && !bravegremlin;
-+    sanctuary = !mtmp->mpeaceful && in_your_sanctuary(mtmp, 0, 0);
++    if (*nearby) {
++        if (!sawscary) {
++            fleelight = flees_light(mtmp) && !bravegremlin;
++            if (!fleelight)
++                sanctuary = !mtmp->mpeaceful
++                            && in_your_sanctuary(mtmp, 0, 0);
++        }
++    }
 +    if (*nearby && (sawscary || fleelight || sanctuary)) {
          *scared = 1;
          monflee(mtmp, rnd(rn2(7) ? 10 : 100), TRUE, TRUE);

@@ -123,7 +123,7 @@ function approximateStepForRngIndex(session, normalizedIndex) {
 }
 
 function stepForEventIndex(session, eventIndex) {
-    const isEvent = (e) => typeof e === 'string' && e.startsWith('^') && !e.startsWith('^trick[');
+    const isEvent = (e) => typeof e === 'string' && e.startsWith('^');
     let cumulative = 0;
     cumulative += (session.startup?.rng || []).filter(isEvent).length;
     for (let i = 0; i < session.steps.length; i++) {

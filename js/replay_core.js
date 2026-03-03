@@ -9,6 +9,7 @@ import { pushInput } from './input.js';
 import { initrack } from './monmove.js';
 import { NetHackGame, maybe_deferred_goto_after_rhack, run_command, execute_repeat_command } from './allmain.js';
 import { HeadlessDisplay, createHeadlessInput } from './headless.js';
+import { consumeHarnessMapdumpPayloads } from './dungeon.js';
 
 export { HeadlessDisplay };
 
@@ -167,10 +168,13 @@ export async function replaySession(seed, opts, keys) {
 
     disableRngLog();
 
+    const checkpoints = consumeHarnessMapdumpPayloads();
+
     return {
         version: 3,
         seed,
         source: 'js',
         steps,
+        checkpoints,
     };
 }

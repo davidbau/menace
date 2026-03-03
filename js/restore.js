@@ -25,6 +25,7 @@
 // N/A: JS port uses storage.js (localStorage/IndexedDB) with a different
 //   format — no direct equivalents to these file-based restore functions.
 //   Bones/ghost level handling is not yet implemented in JS.
+import { pushRngLogEntry } from './rng.js';
 
 // cf. restore.c:71 — find_lev_obj(): rebuild object-by-position grid
 // Reconstructs svl.level.objects[x][y] by scanning all objects on the level.
@@ -247,7 +248,7 @@ export function rest_levl(nhfp, map) {
 
 // Autotranslated from restore.c:1026
 export async function trickery(reason) {
-  event_log("trick[%s]", reason ? reason : "");
+  pushRngLogEntry(`^trick[${reason ? String(reason) : ''}]`);
   await pline("Strange, this map is not as I remember it.");
   await pline("Somebody is trying some trickery here...");
   await pline("This game is void.");

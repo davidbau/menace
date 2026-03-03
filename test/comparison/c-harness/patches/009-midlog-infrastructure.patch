@@ -2,9 +2,10 @@ diff --git a/include/extern.h b/include/extern.h
 index 959db5978..fdbd43f66 100644
 --- a/include/extern.h
 +++ b/include/extern.h
-@@ -2732,10 +2732,14 @@ extern void shuffle_int_array(int *, int) NONNULLARG1;
+@@ -2732,11 +2732,15 @@ extern void shuffle_int_array(int *, int) NONNULLARG1;
  /* PRNG call logging (004-prng-logging patch) */
  extern void rng_log_init(void);
+ extern boolean rng_log_enabled(void);
  extern void rng_log_set_caller(const char *, int, const char *);
  extern int rng_log_get_call_count(void);
  /* Deterministic qsort wrapper (006-deterministic-qsort patch) */
@@ -23,8 +24,7 @@ diff --git a/include/hack.h b/include/hack.h
 index 4f6bf9353..26da07c3f 100644
 --- a/include/hack.h
 +++ b/include/hack.h
-@@ -1597,6 +1597,139 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
- #define rnz(x) (rng_log_set_caller(__FILE__, __LINE__, __func__), rnz(x))
+@@ -1609,6 +1609,139 @@ typedef uint32_t mmflags_nht;     /* makemon MM_ flags */
  #endif /* RNGLOG_IN_RND_C */
  
 +/*
@@ -350,12 +350,14 @@ index 3830e3713..d60962dcb 100644
 @@ -908,8 +909,13 @@ dochug(struct monst *mtmp)
          }
  
-         if (!status)
+-        if (!status)
 -            status = m_move(mtmp, 0);
++        if (!status) {
 +            midlog_enter("m_move", __FILE__, __LINE__, __func__);
 +            status = m_move(mtmp, 0);
 +            midlog_exit_int("m_move", status,
 +                            __FILE__, __LINE__, __func__);
++        }
          if (mon_offmap(mtmp))
              return 1;
          if (status != MMOVE_DIED)
