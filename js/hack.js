@@ -45,7 +45,7 @@ import { stucksteed } from './steed.js';
 import { in_out_region } from './region.js';
 import { drag_ball as drag_ball_core } from './ball.js';
 import { pline, You, You_feel, You_cant, set_msg_xy } from './pline.js';
-import { look_here, dfeature_at } from './invent.js';
+import { look_here, dfeature_at, merge_choice } from './invent.js';
 import { maybe_unhide_at } from './mon.js';
 import { MZ_LARGE } from './monsters.js';
 
@@ -941,8 +941,17 @@ export async function domove_core(dir, player, map, display, game) {
         const obj = objs.find(o => o.oclass !== COIN_CLASS && shouldAutopickup(o, pickupTypes));
         if (obj) {
             observeObject(obj);
+            const mergeTarget = merge_choice(player.inventory || [], obj);
+            const discoveredByCompare = !!mergeTarget && (
+                !!mergeTarget.known !== !!obj.known
+                || !!mergeTarget.rknown !== !!obj.rknown
+                || !!mergeTarget.bknown !== !!obj.bknown
+            );
             const inventoryObj = player.addToInventory(obj);
             map.removeObject(obj);
+            if (discoveredByCompare) {
+                await display.putstr_message('You learn more about your items by comparing them.');
+            }
             await display.putstr_message(formatInventoryPickupMessage(obj, inventoryObj, player));
             pickedUp = true;
         }

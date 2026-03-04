@@ -97,15 +97,12 @@ export function mergable(otmp, obj) {
         if (!!obj.orotten !== !!otmp.orotten) return false;
     }
 
-    if (!!obj.dknown !== !!otmp.dknown) return false;
-    if (!!obj.bknown !== !!otmp.bknown) return false;
     if ((obj.oeroded ?? 0) !== (otmp.oeroded ?? 0)) return false;
     if ((obj.oeroded2 ?? 0) !== (otmp.oeroded2 ?? 0)) return false;
     if (!!obj.greased !== !!otmp.greased) return false;
 
     if (erosion_matters(obj)) {
         if (!!obj.oerodeproof !== !!otmp.oerodeproof) return false;
-        if (!!obj.rknown !== !!otmp.rknown) return false;
     }
 
     if (obj.otyp === CORPSE || obj.otyp === EGG || obj.otyp === TIN) {
@@ -131,7 +128,6 @@ export function mergable(otmp, obj) {
     // Artifacts must match
     if ((obj.oartifact || 0) !== (otmp.oartifact || 0)) return false;
 
-    if (!!obj.known !== !!otmp.known) return false;
     if (!!obj.opoisoned !== !!otmp.opoisoned) return false;
 
     return true;

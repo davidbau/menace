@@ -663,20 +663,21 @@ export class Player {
                 && ((a.oeaten ?? 0) !== (b.oeaten ?? 0) || !!a.orotten !== !!b.orotten)) {
                 return false;
             }
-            if (!!a.dknown !== !!b.dknown || !!a.bknown !== !!b.bknown) return false;
             if ((a.oeroded ?? 0) !== (b.oeroded ?? 0) || (a.oeroded2 ?? 0) !== (b.oeroded2 ?? 0)) {
                 return false;
             }
             if (!!a.greased !== !!b.greased) return false;
-            if (!!a.oerodeproof !== !!b.oerodeproof || !!a.rknown !== !!b.rknown) return false;
+            if (!!a.oerodeproof !== !!b.oerodeproof) return false;
             if ((a.corpsenm ?? -1) !== (b.corpsenm ?? -1)) return false;
             if (!!a.opoisoned !== !!b.opoisoned) return false;
-            if (!!a.known !== !!b.known) return false;
             return true;
         };
 
         const existing = this.inventory.find(it => canMerge(it, obj));
         if (existing) {
+            if (!!existing.known !== !!obj.known) existing.known = true;
+            if (!!existing.rknown !== !!obj.rknown) existing.rknown = true;
+            if (!!existing.bknown !== !!obj.bknown) existing.bknown = true;
             existing.quan = (existing.quan || 1) + (obj.quan || 1);
             existing.owt = weight(existing);
             return existing;
