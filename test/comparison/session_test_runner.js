@@ -64,10 +64,32 @@ const MAPS_DIR = join(__dirname, 'maps');
 const SKIP_SESSIONS = new Set();
 const DEFAULT_FIXED_DATETIME = '20000110090000';
 
+function recordedAtToDatetime(recordedAt) {
+    if (typeof recordedAt !== 'string' || recordedAt.length === 0) return null;
+    const d = new Date(recordedAt);
+    if (!Number.isFinite(d.getTime())) return null;
+    const y = d.getUTCFullYear();
+    const mo = d.getUTCMonth() + 1;
+    const day = d.getUTCDate();
+    const h = d.getUTCHours();
+    const mi = d.getUTCMinutes();
+    const s = d.getUTCSeconds();
+    return `${String(y).padStart(4, '0')}${String(mo).padStart(2, '0')}${String(day).padStart(2, '0')}`
+        + `${String(h).padStart(2, '0')}${String(mi).padStart(2, '0')}${String(s).padStart(2, '0')}`;
+}
+
 function resolveSessionFixedDatetime(session) {
+    const sourcePref = process.env.NETHACK_SESSION_DATETIME_SOURCE || 'session';
     const candidate = session?.meta?.options?.datetime || session?.meta?.regen?.datetime;
-    if (typeof candidate === 'string' && /^\d{14}$/.test(candidate)) return candidate;
-    return null;
+    const fromSession = (typeof candidate === 'string' && /^\d{14}$/.test(candidate))
+        ? candidate
+        : null;
+    const recordedAt = session?.meta?.options?.recordedAt || session?.meta?.regen?.recordedAt;
+    const fromRecordedAt = recordedAtToDatetime(recordedAt);
+    if (sourcePref === 'recorded-at-only') return fromRecordedAt || null;
+    if (sourcePref === 'recorded-at-prefer') return fromRecordedAt || fromSession || null;
+    if (sourcePref === 'session') return fromSession || fromRecordedAt || null;
+    return fromSession || fromRecordedAt || null;
 }
 
 async function withSessionFixedDatetime(session, fn) {
@@ -1080,6 +1102,12 @@ export async function runSessionCli() {
         else if (arg.startsWith('--session-timeout-ms=')) {
             args.sessionTimeoutMs = parseInt(arg.slice('--session-timeout-ms='.length), 10);
         }
+        else if (arg === '--datetime-source' && argv[i + 1]) {
+            process.env.NETHACK_SESSION_DATETIME_SOURCE = argv[++i];
+        }
+        else if (arg.startsWith('--datetime-source=')) {
+            process.env.NETHACK_SESSION_DATETIME_SOURCE = arg.slice('--datetime-source='.length);
+        }
         else if (arg === '--type' && argv[i + 1]) args.typeFilter = argv[++i];
         else if (arg.startsWith('--type=')) args.typeFilter = arg.slice('--type='.length);
         else if (arg === '--session-list' && argv[i + 1]) args.sessionListPath = argv[++i];
@@ -1111,6 +1139,7 @@ export async function runSessionCli() {
             console.log('  --sessions=a,b,c  Run only these session files (comma-separated)');
             console.log('  --failed[=FILE]   Run sessions marked failed in FILE (default: oracle/pending.jsonl)');
             console.log('  --session-timeout-ms=N  Timeout for single-session runs (default: 20000)');
+            console.log('  --datetime-source=MODE  session|recorded-at-prefer|recorded-at-only');
             console.log('  --golden          Compare against golden branch');
             process.exit(0);
         } else if (arg.startsWith('--')) {

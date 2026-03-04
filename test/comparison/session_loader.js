@@ -4,31 +4,36 @@ import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 
-const keylogDatetimeCache = new Map();
+const keylogMetaCache = new Map();
 
 function isFourteenDigitDatetime(value) {
     return typeof value === 'string' && /^\d{14}$/.test(value);
 }
 
-function datetimeFromKeylogPath(keylogPath) {
+function keylogMetaFromPath(keylogPath) {
     if (!keylogPath || typeof keylogPath !== 'string') return null;
     const resolved = resolve(keylogPath);
-    if (keylogDatetimeCache.has(resolved)) return keylogDatetimeCache.get(resolved);
+    if (keylogMetaCache.has(resolved)) return keylogMetaCache.get(resolved);
     let out = null;
     try {
         if (existsSync(resolved)) {
             const firstLine = readFileSync(resolved, 'utf8').split(/\r?\n/, 1)[0] || '';
             if (firstLine.trim()) {
                 const row = JSON.parse(firstLine);
-                if (row?.type === 'meta' && isFourteenDigitDatetime(row?.datetime)) {
-                    out = row.datetime;
+                if (row?.type === 'meta') {
+                    out = {
+                        datetime: isFourteenDigitDatetime(row?.datetime) ? row.datetime : null,
+                        recordedAt: (typeof row?.recordedAt === 'string' && row.recordedAt.length > 0)
+                            ? row.recordedAt
+                            : null,
+                    };
                 }
             }
         }
     } catch {
         out = null;
     }
-    keylogDatetimeCache.set(resolved, out);
+    keylogMetaCache.set(resolved, out);
     return out;
 }
 
@@ -39,7 +44,19 @@ function inferSessionDatetime(raw) {
     if (isFourteenDigitDatetime(fromRegen)) return fromRegen;
     const keylog = raw?.regen?.keylog;
     if (typeof keylog === 'string' && keylog.length > 0) {
-        return datetimeFromKeylogPath(keylog);
+        return keylogMetaFromPath(keylog)?.datetime || null;
+    }
+    return null;
+}
+
+function inferSessionRecordedAt(raw) {
+    const fromOptions = raw?.options?.recordedAt;
+    if (typeof fromOptions === 'string' && fromOptions.length > 0) return fromOptions;
+    const fromRegen = raw?.regen?.recordedAt;
+    if (typeof fromRegen === 'string' && fromRegen.length > 0) return fromRegen;
+    const keylog = raw?.regen?.keylog;
+    if (typeof keylog === 'string' && keylog.length > 0) {
+        return keylogMetaFromPath(keylog)?.recordedAt || null;
     }
     return null;
 }
@@ -271,6 +288,10 @@ export function normalizeSession(raw, meta = {}) {
     const inferredDatetime = inferSessionDatetime(raw);
     if (!options.datetime && inferredDatetime) {
         options.datetime = inferredDatetime;
+    }
+    const inferredRecordedAt = inferSessionRecordedAt(raw);
+    if (!options.recordedAt && inferredRecordedAt) {
+        options.recordedAt = inferredRecordedAt;
     }
 
     const sourceSteps = Array.isArray(raw?.steps) ? raw.steps : [];
