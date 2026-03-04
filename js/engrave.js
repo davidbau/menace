@@ -138,15 +138,14 @@ function wipeoutEngravingText(text, cnt) {
 // Centralized engraving wiping/erosion.
 export async function wipe_engr_at(map, x, y, cnt, magical = false) {
     if (!map || !Array.isArray(map.engravings)) return;
-    // C ref: event_log("wipe[%d,%d]") is unconditional — logged even when
-    // no engraving exists at (x,y). This matches C's wipe_engr_at which
-    // calls event_log() before checking if ep is non-NULL.
-    pushRngLogEntry(`^wipe[${x},${y}]`);
     await withRngTag('wipe_engr_at(engrave.js:139)', () => {
         const idx = map.engravings.findIndex((e) => e && e.x === x && e.y === y);
         if (idx < 0) return;
         const engr = map.engravings[idx];
         if (!engr || engr.type === 'headstone' || engr.nowipeout) return;
+        // C harness parity: only emit wipe when an engraving actually exists
+        // and is eligible to be wiped.
+        pushRngLogEntry(`^wipe[${x},${y}]`);
         const loc = map.at ? map.at(x, y) : null;
         const isIce = !!loc && loc.typ === ICE;
         if (engr.type !== 'burn' || isIce || (magical && !rn2(2))) {

@@ -892,7 +892,8 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
     const traceDogGoal = dogGoalTraceEnabled
         && (dogGoalTraceStep === dogGoalStepLabel || dogGoalTraceStep === '*');
     // C ref: dog_diag_events_enabled() checks WEBHACK_DIAG_EVENTS env var
-    const dogDiagEvents = !!(env?.WEBHACK_DIAG_EVENTS && env.WEBHACK_DIAG_EVENTS !== '0');
+    // Event parity mode: dog_goal* diagnostics are now canonical session events.
+    const dogDiagEvents = true;
 
     // C ref: dogmove.c:1005-1006 — hunger check (before dog_invent)
     if (edogRaw && await dog_hunger(mon, edogRaw, turnCount, map, display, player, fov))
