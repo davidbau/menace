@@ -1222,6 +1222,7 @@ async function fixupSpecialLevel() {
         baalz_fixup(levelState.map);
     }
     if (specialName.startsWith('medusa')) {
+        levelState.map.flags.is_medusa_level = true;
         medusa_fixup(levelState.map);
     }
     // C ref: mkmaze.c fixup_special():

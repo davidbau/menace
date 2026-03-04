@@ -32,13 +32,14 @@ import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop
 import { observeObject } from './discovery.js';
 import { place_object } from './stackobj.js';
 import { xname, an, The } from './objnam.js';
+import { hliquid } from './do_name.js';
 import { DIRECTION_KEYS } from './dothrow.js';
 import { dosearch0 } from './detect.js';
 import { dist2, monsterNearby, monnear, newsym, setDisplayContext, mark_vision_dirty, vision_recalc, canSpotMonsterForMap } from './monutil.js';
 import { monflee } from './monmove.js';
 import { ynFunction } from './input.js';
 import { water_friction, maybe_adjust_hero_bubble } from './mkmaze.js';
-import { Invocation_lev } from './dungeon.js';
+import { Invocation_lev, find_level } from './dungeon.js';
 import { tmp_at, nh_delay_output, nh_delay_output_nowait, DISP_ALL, DISP_END } from './animation.js';
 import { set_getpos_context, getpos_async } from './getpos.js';
 import { stucksteed } from './steed.js';
@@ -1587,7 +1588,7 @@ async function safetyWarning(cmd, game, display) {
 
     const msg = includeHint ? `${act}  Use 'm' prefix to force ${cmddesc}.` : act;
     if (game.lastSafetyWarningMessage === msg) {
-        clearTopline(display);
+        // C Norep-style suppression keeps existing topline; it does not clear it.
         return;
     }
     await display.putstr_message(msg);
@@ -2159,10 +2160,10 @@ export async function swim_move_danger(x, y, player, map, display) {
     if (player.uinwater && IS_POOL(loc.typ)) return false;
     // Warn about stepping into liquid
     if (!player.stunned && !player.confused) {
-        if (display) {
-            const what = IS_POOL(loc.typ) ? 'water' : 'lava';
-            await display.putstr_message(`You avoid stepping into the ${what}.`);
-        }
+        const what = waterbody_name_at(x, y, map);
+        set_msg_xy(x, y);
+        await You('avoid stepping into the %s.', what);
+        await handle_tip('swim', player, display);
         return true;
     }
     return false;
@@ -2187,10 +2188,32 @@ export async function avoid_moving_on_liquid(x, y, msg, player, map, display, fl
     const loc = map.at(x, y);
     if (!loc || !loc.seenv) return false;
     if (msg && flags && flags.mention_walls) {
-        const what = IS_POOL(loc.typ) ? 'water' : 'lava';
-        if (display) await display.putstr_message(`You stop at the edge of the ${what}.`);
+        const what = waterbody_name_at(x, y, map);
+        set_msg_xy(x, y);
+        await You('stop at the edge of the %s.', what);
     }
     return true;
+}
+
+function waterbody_name_at(x, y, map) {
+    const loc = map?.at?.(x, y);
+    if (!loc) return 'water';
+    const currentSpecial = find_level(map?.uz?.dnum, map?.uz?.dlevel);
+    const specialName = String(currentSpecial?.name || '').toLowerCase();
+    const isMedusa = !!(map?.flags?.is_medusa_level || specialName.startsWith('medusa'));
+    if (is_lava(x, y, map)) return `molten ${hliquid('lava')}`;
+    if (is_pool(x, y, map)) {
+        if (loc.typ === POOL) return `pool of ${hliquid('water')}`;
+        if (loc.typ === MOAT) {
+            if (isMedusa) return 'shallow sea';
+            if (specialName.startsWith('juiblex')) return 'swamp';
+            return 'moat';
+        }
+        return hliquid('water');
+    }
+    if (IS_WATERWALL(loc.typ)) return `wall of ${hliquid('water')}`;
+    if (loc.typ === LAVAWALL) return `wall of ${hliquid('lava')}`;
+    return 'water';
 }
 
 // C ref: hack.c avoid_running_into_trap_or_liquid()
@@ -2895,9 +2918,23 @@ export function u_locomotion(def, player) {
 }
 
 // C ref: hack.c handle_tip() — show gameplay tip
-export function handle_tip(_tip, _player, _display) {
-    // Tips system not yet implemented.
-    return false;
+export async function handle_tip(tip, player, display) {
+    if (!player) return false;
+    const key = String(tip || '');
+    player._tipsShown = player._tipsShown || {};
+    if (player._tipsShown[key]) return false;
+    let msg = null;
+    if (key === 'swim' || key === 'TIP_SWIM' || key === '1') {
+        msg = "(Tip: use 'm' prefix to step in if you really want to.)";
+    }
+    if (!msg) return false;
+    player._tipsShown[key] = true;
+    if (display?.putstr_message) {
+        await display.putstr_message(msg);
+    } else {
+        await pline('%s', msg);
+    }
+    return true;
 }
 
 // --------------------------------------------------------------------

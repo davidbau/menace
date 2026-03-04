@@ -133,14 +133,18 @@ export const TERRAIN_SYMBOLS_DEC = {
     [SINK]:           { ch: '#',       color: CLR_GRAY },
     [GRAVE]:          { ch: '\u2020',  color: CLR_WHITE },  // DAGGER
     [ALTAR]:          { ch: '_',       color: CLR_GRAY },
-    [POOL]:           { ch: '\u2248',  color: CLR_BLUE },   // APPROX EQUAL
-    [MOAT]:           { ch: '\u2248',  color: CLR_BLUE },
-    [WATER]:          { ch: '\u2248',  color: CLR_BRIGHT_BLUE },
-    [LAVAPOOL]:       { ch: '\u2248',  color: CLR_RED },
-    [LAVAWALL]:       { ch: '\u2248',  color: CLR_ORANGE },
+    // C ref: dat/symbols DECgraphics
+    // S_pool/S_water/S_lava/S_lavawall use meta-\ (DEC diamond).
+    [POOL]:           { ch: '\u25c6',  color: CLR_BLUE },   // BLACK DIAMOND
+    [MOAT]:           { ch: '\u25c6',  color: CLR_BLUE },
+    [WATER]:          { ch: '\u25c6',  color: CLR_BRIGHT_BLUE },
+    [LAVAPOOL]:       { ch: '\u25c6',  color: CLR_RED },
+    [LAVAWALL]:       { ch: '\u25c6',  color: CLR_ORANGE },
     [ICE]:            { ch: '\u00b7', color: CLR_CYAN },    // MIDDLE DOT
-    [IRONBARS]:       { ch: '#',       color: HI_METAL },
-    [TREE]:           { ch: '#',       color: CLR_GREEN },
+    // C ref: dat/symbols DECgraphics
+    // S_bars: meta-| (not-equals), S_tree: meta-g (plus-or-minus).
+    [IRONBARS]:       { ch: '\u2260',  color: HI_METAL },   // NOT EQUAL TO
+    [TREE]:           { ch: '\u00b1',  color: CLR_GREEN },  // PLUS-MINUS
     [DRAWBRIDGE_UP]:  { ch: '#',       color: CLR_BROWN },
     [DRAWBRIDGE_DOWN]:{ ch: '\u00b7', color: CLR_BROWN },   // MIDDLE DOT
     [AIR]:            { ch: ' ',       color: CLR_CYAN },

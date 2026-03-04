@@ -809,6 +809,8 @@ export async function fixup_special(map, opts = {}) {
         map._specialFixups.ransacked = true;
     }
     if (specialName.startsWith('medusa')) {
+        map.flags = map.flags || {};
+        map.flags.is_medusa_level = true;
         medusa_fixup(map, Number.isFinite(opts.depth) ? opts.depth : 1);
     } else if (roleIndex === ROLE_PRIEST && dnum === QUEST) {
         map.flags = map.flags || {};

@@ -2,7 +2,9 @@
 // Distance macros from hack.h, debug tracing, display helpers,
 // visibility checks, and monster inventory utilities.
 
-import { isok, IS_WALL, CORR, SCORR, ROOM,
+import { isok, IS_WALL, CORR, SCORR, ROOM, ICE,
+         POOL, MOAT, WATER, LAVAPOOL, LAVAWALL,
+         DRAWBRIDGE_UP, DB_UNDER, DB_MOAT, DB_LAVA,
          MAP_ROW_START, COLNO, ROWNO } from './config.js';
 import { PM_GRID_BUG,
          AT_BITE, AT_CLAW, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_WEAP,
@@ -140,6 +142,36 @@ export function map_invisible(map, x, y, player) {
 // ========================================================================
 let _displayContext = null;
 
+function spotShowsEngravings(loc) {
+    const typ = loc?.typ;
+    return typ === CORR || typ === ICE || typ === ROOM;
+}
+
+function isPoolAt(loc) {
+    if (!loc) return false;
+    if (loc.typ === POOL || loc.typ === MOAT || loc.typ === WATER) return true;
+    if (loc.typ === DRAWBRIDGE_UP) {
+        return (loc.drawbridgemask & DB_UNDER) === DB_MOAT;
+    }
+    return false;
+}
+
+function coversObjectsAt(loc, player) {
+    const underwater = !!(player?.underwater || player?.uinwater || player?.Underwater);
+    return ((isPoolAt(loc) && !underwater)
+        || loc?.typ === LAVAPOOL
+        || loc?.typ === LAVAWALL);
+}
+
+function monsterShownOnMap(mon, player) {
+    if (!mon) return false;
+    if (mon.mundetected) return false;
+    const ap = mon.m_ap_type;
+    if (ap === 'furniture' || ap === 'object' || ap === 1 || ap === 2) return false;
+    if (mon.minvis && !(player?.seeInvisible || player?.See_invisible)) return false;
+    return true;
+}
+
 // Set the display context for incremental rendering.
 // ctx = { display, player, fov, flags, map } or null to disable.
 // Returns the previous context (for save/restore in renderMap).
@@ -222,10 +254,10 @@ export function newsym(x, y) {
 
     // Monster
     const mon = map.monsterAt(x, y);
-    if (mon) {
+    if (monsterShownOnMap(mon, player)) {
         loc.mem_invis = false;
         // Update remembered object under the monster
-        const underObjs = map.objectsAt(x, y);
+        const underObjs = coversObjectsAt(loc, player) ? [] : map.objectsAt(x, y);
         if (underObjs.length > 0) {
             const underTop = underObjs[underObjs.length - 1];
             const underGlyph = objectMapGlyph(underTop, false, { player, x, y });
@@ -254,7 +286,7 @@ export function newsym(x, y) {
     }
 
     // Objects
-    const objs = map.objectsAt(x, y);
+    const objs = coversObjectsAt(loc, player) ? [] : map.objectsAt(x, y);
     if (objs.length > 0) {
         const topObj = objs[objs.length - 1];
         const hallu = !!player?.hallucinating;
@@ -273,7 +305,7 @@ export function newsym(x, y) {
 
     // Traps
     const trap = map.trapAt(x, y);
-    if (trap && trap.tseen) {
+    if (trap && trap.tseen && !coversObjectsAt(loc, player)) {
         const tg = trapGlyph(trap.ttyp);
         loc.mem_trap = tg.ch;
         loc.mem_trap_color = tg.color;
@@ -284,7 +316,10 @@ export function newsym(x, y) {
 
     // Engravings (wizard mode or revealed)
     const engr = map.engravingAt(x, y);
-    if (engr && (player?.wizard || !player?.blind || engr.erevealed)) {
+    if (spotShowsEngravings(loc)
+        && engr
+        && (player?.wizard || !player?.blind || engr.erevealed)
+        && !coversObjectsAt(loc, player)) {
         const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
         loc.mem_obj = engrCh;
         loc.mem_obj_color = CLR_BRIGHT_BLUE;
@@ -479,13 +514,9 @@ export function monsterNearby(map, player, fov) {
             if (monsterHelpless(mon)) continue;
             if (onscary(map, px, py)) continue;
 
-            let visible = true;
-            try {
-                visible = canSpotMonsterForMap(mon, map, player, fov);
-            } catch (_err) {
-                visible = true;
-            }
-            if (!visible) continue;
+            // C ref: hack.c monster_nearby() uses canspotmon(mtmp), which is
+            // broader than strict cansee() (telepathy/warning paths can qualify).
+            // Avoid over-constraining to direct LoS-only visibility here.
 
             return true;
         }

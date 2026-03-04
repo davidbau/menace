@@ -10,6 +10,7 @@ import {
     STAIRS, FOUNTAIN, THRONE, SINK, GRAVE, ALTAR, POOL, MOAT,
     WATER, LAVAPOOL, LAVAWALL, ICE, IRONBARS, TREE,
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN, AIR, CLOUD, SDOOR, SCORR,
+    DB_UNDER, DB_MOAT,
     D_NODOOR, D_CLOSED, D_ISOPEN, D_LOCKED,
     IS_WALL,
 } from './config.js';
@@ -63,6 +64,36 @@ const COLOR_CSS = [
 ];
 
 // Terrain symbol tables and rendering logic live in render.js.
+
+function spotShowsEngravings(loc) {
+    const typ = loc?.typ;
+    return typ === CORR || typ === ICE || typ === ROOM;
+}
+
+function isPoolAt(loc) {
+    if (!loc) return false;
+    if (loc.typ === POOL || loc.typ === MOAT || loc.typ === WATER) return true;
+    if (loc.typ === DRAWBRIDGE_UP) {
+        return (loc.drawbridgemask & DB_UNDER) === DB_MOAT;
+    }
+    return false;
+}
+
+function coversObjectsAt(loc, player) {
+    const underwater = !!(player?.underwater || player?.uinwater || player?.Underwater);
+    return ((isPoolAt(loc) && !underwater)
+        || loc?.typ === LAVAPOOL
+        || loc?.typ === LAVAWALL);
+}
+
+function monsterShownOnMap(mon, player) {
+    if (!mon) return false;
+    if (mon.mundetected) return false;
+    const ap = mon.m_ap_type;
+    if (ap === 'furniture' || ap === 'object' || ap === 1 || ap === 2) return false;
+    if (mon.minvis && !(player?.seeInvisible || player?.See_invisible)) return false;
+    return true;
+}
 
 
 /**
@@ -507,11 +538,11 @@ span.nh-cursor {
 
                 // Check for monsters
                 const mon = gameMap.monsterAt(x, y);
-                if (mon) {
+                if (monsterShownOnMap(mon, player)) {
                     loc.mem_invis = false;
                     // Keep remembered object glyph under visible monsters in sync
                     // so when LOS drops, memory matches C back_to_glyph behavior.
-                    const underObjs = gameMap.objectsAt(x, y);
+                    const underObjs = coversObjectsAt(loc, player) ? [] : gameMap.objectsAt(x, y);
                     if (underObjs.length > 0) {
                         const underTop = underObjs[underObjs.length - 1];
                         const underGlyph = objectMapGlyph(underTop, false, { player, x, y });
@@ -552,7 +583,7 @@ span.nh-cursor {
                 }
 
                 // Check for objects on the ground
-                const objs = gameMap.objectsAt(x, y);
+                const objs = coversObjectsAt(loc, player) ? [] : gameMap.objectsAt(x, y);
                 if (objs.length > 0) {
                     const topObj = objs[objs.length - 1];
                     const hallu = !!player?.hallucinating;
@@ -581,7 +612,7 @@ span.nh-cursor {
 
                 // Check for traps
                 const trap = gameMap.trapAt(x, y);
-                if (trap && trap.tseen) {
+                if (trap && trap.tseen && !coversObjectsAt(loc, player)) {
                     const tg = trapGlyph(trap.ttyp);
                     loc.mem_trap = tg.ch;
                     loc.mem_trap_color = tg.color;
@@ -599,7 +630,10 @@ span.nh-cursor {
                 // as S_engroom ('`') or S_engrcorr ('#') when no higher-priority
                 // map symbol (player/monster/object/trap) occupies the square.
                 const engr = gameMap.engravingAt(x, y);
-                if (engr && (player?.wizard || !player?.blind || engr.erevealed)) {
+                if (spotShowsEngravings(loc)
+                    && engr
+                    && (player?.wizard || !player?.blind || engr.erevealed)
+                    && !coversObjectsAt(loc, player)) {
                     const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
                     loc.mem_obj = engrCh;
                     loc.mem_obj_color = CLR_BRIGHT_BLUE;

@@ -160,6 +160,14 @@ export async function rhack(ch, game) {
         player.kickedloc = null;
     }
 
+    // Reset wait/search safety-warning suppression when processing any
+    // non-wait command key. C's Norep behavior allows the warning to
+    // reappear after intervening different messages.
+    if (game && game.lastSafetyWarningMessage) {
+        const isWaitLike = (c === '.' || c === 's' || (c === ' ' && game?.flags?.rest_on_space));
+        if (!isWaitLike) game.lastSafetyWarningMessage = '';
+    }
+
     // C ref: cmd.c parse() / get_count() — digit keys '1'-'9' start a count
     // prefix; '0'-'9' extend an existing one.  C only displays "Count: N"
     // after the second digit (when N > 9, get_count.c:4839).
@@ -277,10 +285,6 @@ export async function rhack(ch, game) {
             game.occupation = null;
         }
         return result;
-    }
-
-    if (game && game.lastSafetyWarningMessage) {
-        game.lastSafetyWarningMessage = '';
     }
 
     // Pick up
