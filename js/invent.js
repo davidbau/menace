@@ -1715,7 +1715,8 @@ export function inv_cnt(incl_gold, player) {
 // ============================================================
 
 // C ref: invent.c dfeature_at() — describe dungeon feature at location
-// opts.depth: player's dungeon level (for "out of the dungeon" on level 1)
+// opts.depth: player's dungeon level (for "out of the dungeon" on DoD level 1)
+// opts.dnum: player's current dungeon number (0 = DUNGEONS_OF_DOOM)
 export function dfeature_at(x, y, map, opts = {}) {
     if (!map) return null;
     const cell = (typeof map.at === 'function') ? map.at(x, y) : null;
@@ -1725,7 +1726,7 @@ export function dfeature_at(x, y, map, opts = {}) {
         if (map.upstair && map.upstair.x === x && map.upstair.y === y) {
             // C ref: pickup.c describe_decor() — on dungeon level 1, the
             // upstair is the exit from the dungeon.
-            if (opts.depth === 1) return 'staircase up out of the dungeon';
+            if (opts.depth === 1 && opts.dnum === 0) return 'staircase up out of the dungeon';
             return 'staircase up';
         }
         if (map.dnstair && map.dnstair.x === x && map.dnstair.y === y) {
@@ -1769,7 +1770,7 @@ export async function look_here(player, map, obj_cnt) {
     // the most recently placed object comes first.  JS place_object appends
     // to the end, so we reverse to match C's newest-first iteration order.
     const objects = (map?.objects || []).filter(o => o.ox === x && o.oy === y && !o.buried).reverse();
-    const dfeature = dfeature_at(x, y, map, { depth: player.dungeonLevel });
+    const dfeature = dfeature_at(x, y, map, { depth: player.dungeonLevel, dnum: player.dnum });
 
     if (objects.length >= 2 || dfeature) {
         const tmpwin = create_nhwindow(NHW_MENU);

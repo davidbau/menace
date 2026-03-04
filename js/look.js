@@ -46,9 +46,17 @@ const SYMBOL_DESCRIPTIONS = {
     '\u00b7': 'floor of a room (middle dot)',
 };
 
-function terrain_here_description(loc) {
+function terrain_here_description(loc, ctx = {}) {
     if (!loc) return '';
-    if (loc.typ === STAIRS && loc.flags === 1) return 'There is a staircase up out of the dungeon here.';
+    const player = ctx.player || null;
+    const map = ctx.map || null;
+    const dnum = Number.isInteger(player?.dnum)
+        ? player.dnum
+        : (Number.isInteger(map?._genDnum) ? map._genDnum : undefined);
+    const depth = Number.isInteger(player?.dungeonLevel) ? player.dungeonLevel : undefined;
+    const outOfDungeonExit = (loc.typ === STAIRS && loc.flags === 1 && dnum === 0 && depth === 1);
+    if (outOfDungeonExit) return 'There is a staircase up out of the dungeon here.';
+    if (loc.typ === STAIRS && loc.flags === 1) return 'There is a staircase up here.';
     if (loc.typ === STAIRS && loc.flags === 0) return 'There is a staircase down here.';
     if (loc.typ === LADDER && loc.flags === 1) return 'There is a ladder up here.';
     if (loc.typ === LADDER && loc.flags === 0) return 'There is a ladder down here.';
@@ -140,7 +148,7 @@ export function do_screen_description(ctx, cc) {
     }
 
     const loc = map.at ? map.at(x, y) : null;
-    const terrain = terrain_here_description(loc);
+    const terrain = terrain_here_description(loc, { map, player });
     if (terrain) {
         return { found: true, firstmatch: terrain, outStr: '', text: terrain, kind: 'terrain' };
     }
@@ -250,7 +258,7 @@ function build_dolook_message(ctx) {
 
     const loc = map.at ? map.at(player.x, player.y) : null;
     const objs = map.objectsAt ? map.objectsAt(player.x, player.y) : [];
-    const terrain = terrain_here_description(loc);
+    const terrain = terrain_here_description(loc, { map, player });
     const objText = (objs.length > 0)
         ? `Things that are here: ${objs.map(o => look_object_name(o)).join(', ')}`
         : '';
