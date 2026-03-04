@@ -562,9 +562,11 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
             clear_forcefight_prefix(game, ctx);
             return { handled: true, moved: false, tookTime: true };
         }
-        const swapped = await domove_swap_with_pet(mon, nx, ny, dir, player, map, display, game);
+        // C ref: hack.c — safemon displacement is resolved later in domove()
+        // after movement viability checks; this stage only decides that attack
+        // should not consume the turn yet.
         clear_forcefight_prefix(game, ctx);
-        return { handled: true, moved: !!swapped, tookTime: true };
+        return { handled: false, pendingSwap: true, mon };
     }
 
     if (mon.peaceful && !mon.tame && game.flags?.confirm) {
@@ -774,6 +776,7 @@ export async function domove_core(dir, player, map, display, game) {
     }
 
     // Check for monster at target position
+    let pendingSwapMon = null;
     const mon = map.monsterAt(nx, ny);
     runTrace(
         `step=${replayStepLabel(map)}`,
@@ -790,6 +793,9 @@ export async function domove_core(dir, player, map, display, game) {
         const attackResult = await domove_attackmon_at(mon, nx, ny, moveDir, player, map, display, game);
         if (attackResult.handled) {
             return { moved: !!attackResult.moved, tookTime: !!attackResult.tookTime };
+        }
+        if (attackResult.pendingSwap && attackResult.mon === mon) {
+            pendingSwapMon = mon;
         }
     }
 
@@ -862,6 +868,12 @@ export async function domove_core(dir, player, map, display, game) {
         if (ans !== 'y'.charCodeAt(0)) {
             return { moved: false, tookTime: false };
         }
+    }
+
+    if (pendingSwapMon && !pendingSwapMon.dead && map.monsterAt(nx, ny) === pendingSwapMon) {
+        const swapped = await domove_swap_with_pet(pendingSwapMon, nx, ny, moveDir, player, map, display, game);
+        clear_forcefight_prefix(game, ctx);
+        return { moved: !!swapped, tookTime: true };
     }
 
     // Move the player
