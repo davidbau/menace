@@ -627,7 +627,8 @@ export class Player {
 
     // Add an item to inventory, assigning an inventory letter
     // C ref: invent.c addinv()
-    addToInventory(obj) {
+    addToInventory(obj, options = {}) {
+        const withMeta = !!options?.withMeta;
         // C ref: the special mines/sokoban prize marker is cleared once the
         // hero picks the object up, allowing normal monster interactions later.
         if (obj && obj.achievement) obj.achievement = 0;
@@ -640,11 +641,15 @@ export class Player {
             if (existingCoin) {
                 existingCoin.quan = (existingCoin.quan || 1) + (obj.quan || 1);
                 existingCoin.invlet = '$';
-                return existingCoin;
+                return withMeta
+                    ? { item: existingCoin, merged: true, discoveredByCompare: false }
+                    : existingCoin;
             }
             obj.invlet = '$';
             this.inventory.push(obj);
-            return obj;
+            return withMeta
+                ? { item: obj, merged: false, discoveredByCompare: false }
+                : obj;
         }
 
         // C ref: invent.c mergable() — merge before assigning a new invlet.
@@ -675,12 +680,24 @@ export class Player {
 
         const existing = this.inventory.find(it => canMerge(it, obj));
         if (existing) {
+            let discoveredByCompare = false;
+            if (!!existing.known !== !!obj.known) discoveredByCompare = true;
+            if (!!existing.rknown !== !!obj.rknown && !!existing.oerodeproof) {
+                discoveredByCompare = true;
+            }
+            const roleName = String(this.roleName || '');
+            const roleIsCleric = roleName === 'Priest' || roleName === 'Priestess' || roleName === 'Cleric';
+            if (!!existing.bknown !== !!obj.bknown && !roleIsCleric) {
+                discoveredByCompare = true;
+            }
             if (!!existing.known !== !!obj.known) existing.known = true;
             if (!!existing.rknown !== !!obj.rknown) existing.rknown = true;
             if (!!existing.bknown !== !!obj.bknown) existing.bknown = true;
             existing.quan = (existing.quan || 1) + (obj.quan || 1);
             existing.owt = weight(existing);
-            return existing;
+            return withMeta
+                ? { item: existing, merged: true, discoveredByCompare }
+                : existing;
         }
 
         // C ref: invent.c assigninvlet() — preserve an object's existing invlet
@@ -717,7 +734,9 @@ export class Player {
             obj.invlet = '?';
         }
         this.inventory.push(obj);
-        return obj;
+        return withMeta
+            ? { item: obj, merged: false, discoveredByCompare: false }
+            : obj;
     }
 
     // Remove item from inventory

@@ -22,7 +22,7 @@ import { body_part, HAND, FOOT } from './polyself.js';
 import { instapetrify } from './trap.js';
 import { exercise } from './attrib_exercise.js';
 import { newsym } from './monutil.js';
-import { currency, merge_choice } from './invent.js';
+import { currency } from './invent.js';
 import { makemon, NO_MM_FLAGS, NO_MINVENT, MM_ADJACENTOK } from './makemon.js';
 import { christen_monst, Monnam, mon_nam, x_monnam, ARTICLE_THE,
          SUPPRESS_SADDLE } from './do_name.js';
@@ -1266,18 +1266,13 @@ async function handlePickup(player, map, display, game = null) {
             }
         }
 
-        const mergeTarget = merge_choice(player.inventory || [], pickedObj);
-        const discoveredByCompare = !!mergeTarget && (
-            !!mergeTarget.known !== !!pickedObj.known
-            || !!mergeTarget.rknown !== !!pickedObj.rknown
-            || !!mergeTarget.bknown !== !!pickedObj.bknown
-        );
-        const inventoryObj = player.addToInventory(pickedObj);
+        const addResult = player.addToInventory(pickedObj, { withMeta: true });
+        const inventoryObj = addResult.item;
         if (pickedObj === obj) {
             map.removeObject(obj);
         }
         observeObject(pickedObj);
-        if (discoveredByCompare) {
+        if (addResult.discoveredByCompare) {
             await display.putstr_message('You learn more about your items by comparing them.');
         }
         const pickupMsg = formatInventoryPickupMessage(pickedObj, inventoryObj, player);

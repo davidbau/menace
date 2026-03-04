@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { Player, roles, races, initialAlignmentRecordForRole } from '../../js/player.js';
 import { initRng } from '../../js/rng.js';
 import { M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC } from '../../js/monsters.js';
+import { POT_HEALING, POTION_CLASS } from '../../js/objects.js';
 
 describe('Player', () => {
     it('creates a player with default values', () => {
@@ -145,6 +146,56 @@ describe('Player', () => {
         p.removeFromInventory(removed);
         const wrapped = p.addToInventory({ name: 'replacement', oclass: 1, otyp: 999 });
         assert.equal(wrapped.invlet, 'b');
+    });
+
+    it('addToInventory withMeta reports compare discovery for known-state merge', () => {
+        const p = new Player();
+        p.initRole(12); // Wizard
+        p.addToInventory({
+            oclass: POTION_CLASS,
+            otyp: POT_HEALING,
+            quan: 1,
+            known: true,
+            rknown: true,
+            bknown: true,
+        });
+
+        const result = p.addToInventory({
+            oclass: POTION_CLASS,
+            otyp: POT_HEALING,
+            quan: 1,
+            known: false,
+            rknown: false,
+            bknown: false,
+        }, { withMeta: true });
+
+        assert.equal(result.merged, true);
+        assert.equal(result.discoveredByCompare, true);
+    });
+
+    it('addToInventory withMeta suppresses BUC compare discovery for cleric roles', () => {
+        const p = new Player();
+        p.initRole(6); // Priest
+        p.addToInventory({
+            oclass: POTION_CLASS,
+            otyp: POT_HEALING,
+            quan: 1,
+            known: true,
+            rknown: true,
+            bknown: true,
+        });
+
+        const result = p.addToInventory({
+            oclass: POTION_CLASS,
+            otyp: POT_HEALING,
+            quan: 1,
+            known: true,
+            rknown: true,
+            bknown: false,
+        }, { withMeta: true });
+
+        assert.equal(result.merged, true);
+        assert.equal(result.discoveredByCompare, false);
     });
 
     it('removeFromInventory removes items', () => {
