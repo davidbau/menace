@@ -57,6 +57,8 @@ import { CLR_GRAY } from './display.js';
 import { initFirstLevel } from './u_init.js';
 import { movebubbles } from './mkmaze.js';
 import { initAnimation, configureAnimation, setAnimationMode } from './animation.js';
+import { phase_of_the_moon, friday_13th } from './calendar.js';
+import { change_luck } from './attrib.js';
 
 // cf. allmain.c:169 — moveloop_core() monster movement + turn-end processing.
 // Called after the hero's action took time.  Runs movemon() for monster turns,
@@ -1247,6 +1249,26 @@ export class NetHackGame {
             this.player.alignment = A_NEUTRAL;
         } else {
             await _playerSelection(this);
+        }
+
+        // C ref: allmain.c moveloop_preamble() — real-world side effects.
+        this.flags.moonphase = phase_of_the_moon();
+        if (this.flags.moonphase === 4) { // FULL_MOON
+            if (!urlOpts.character) {
+                await this.display.putstr_message('You are lucky!  Full moon tonight.');
+            }
+            change_luck(1, this.player);
+        } else if (this.flags.moonphase === 0) { // NEW_MOON
+            if (!urlOpts.character) {
+                await this.display.putstr_message('Be careful!  New moon tonight.');
+            }
+        }
+        this.flags.friday13 = friday_13th();
+        if (this.flags.friday13) {
+            if (!urlOpts.character) {
+                await this.display.putstr_message('Watch out!  Bad things can happen on Friday the 13th.');
+            }
+            change_luck(-1, this.player);
         }
 
         // First-level init

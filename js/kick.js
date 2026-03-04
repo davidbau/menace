@@ -62,7 +62,10 @@ export async function handleKick(player, map, display, game) {
         const dex = player.attributes ? player.attributes[A_DEX] : 11;
         const con = player.attributes ? player.attributes[A_CON] : 18;
         const avrgAttrib = Math.floor((str + dex + con) / 3);
-        const kickedOpen = rnl(35) < avrgAttrib;
+        // C ref: dokick.c kick_door() uses Luck-adjusted rnl(35).
+        // Passing luck here is required for RNG-call parity (may trigger rn2(37+|luck|)).
+        const luck = ((player.uluck ?? player.luck) || 0) + (player.moreluck || 0);
+        const kickedOpen = rnl(35, luck) < avrgAttrib;
         if (kickedOpen) {
             if (str > 18 && rn2(5) === 0) {
                 await display.putstr_message("As you kick the door, it shatters to pieces!");

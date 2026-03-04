@@ -808,7 +808,7 @@ function score_targ(mon, target, map, player) {
 // C ref: dogmove.c:842-890 best_target() — find best ranged attack target
 export function best_target(mon, forced, map, player) {
     // C ref: dogmove.c:854 — if (!mtmp->mcansee) return 0;
-    const monCanSee = (mon.mcansee !== false)
+    const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false)
         && !mon.blind
         && !(Number.isFinite(mon.mblinded) && mon.mblinded > 0)
         && !mon.mblind;
@@ -860,7 +860,7 @@ export async function pet_ranged_attk(mon, map, player, display, fov = null, gam
     // C ref: dogmove.c:928-944 — retaliation for ranged attack
     if ((mstatus & M_ATTK_HIT) && !(mstatus & M_ATTK_DEF_DIED)
         && rn2(4)) {
-        if (mtarg.mcansee !== false) {
+        if (mtarg.mcansee !== 0 && mtarg.mcansee !== false) {
             const rctx = { ...ctx, agrVisible: defSpot, defVisible: agrSpot };
             const rstatus = await mattackm(mtarg, mon, display, vis, map, rctx);
             if (rstatus & M_ATTK_DEF_DIED) return 1;
@@ -1238,11 +1238,11 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                 {
                     const tdat = mons[target.mndx] || target.type || {};
                     const mondat = mons[mon.mndx] || mon.type || {};
-                    const monCanSee = (mon.mcansee !== false)
+                    const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false)
                         && !mon.blind
                         && !(Number.isFinite(mon.mblinded) && mon.mblinded > 0)
                         && !mon.mblind;
-                    const targCanSee = (target.mcansee !== false)
+                    const targCanSee = (target.mcansee !== 0 && target.mcansee !== false)
                         && !target.blind
                         && !(Number.isFinite(target.mblinded) && target.mblinded > 0)
                         && !target.mblind;

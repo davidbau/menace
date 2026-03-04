@@ -247,7 +247,7 @@ function flees_light(mon, map, player) {
     const uarm = player.uarm;
     if (!((uwep && uwep.lamplit && artifact_light(uwep))
             || (uarm && uarm.lamplit && artifact_light(uarm)))) return false;
-    if (mon.mcansee === false) return false;
+    if (mon.mcansee === 0 || mon.mcansee === false) return false;
     return couldsee(map, player, mon.mx, mon.my);
 }
 
@@ -268,9 +268,9 @@ export async function distfleeck(mon, map, player, display, fov) {
     let fleeLight = 0;
     let sanctuary = 0;
     // C ref: monmove.c:548-558 — determine scary square even when not nearby
-    const monCanSee = (mon.mcansee !== false);
+    const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false);
     const canPerceiveInvis = perceives(mon.type || mons[mon.mndx] || {});
-    const heroInvis = !!(player.invisible || player.Invis);
+    const heroInvis = !!player.Invis;
     const seescaryX = (!monCanSee || (heroInvis && !canPerceiveInvis)) ? targetX : player.x;
     const seescaryY = (!monCanSee || (heroInvis && !canPerceiveInvis)) ? targetY : player.y;
     sawscary = onscary(map, seescaryX, seescaryY, mon) ? 1 : 0;
@@ -451,7 +451,7 @@ export function mon_allowflags(mon, player) {
 // ========================================================================
 export function m_avoid_kicked_loc(mon, nx, ny, player) {
     const kl = player?.kickedloc;
-    const monCanSee = (mon?.mcansee !== false) && !mon?.blind;
+    const monCanSee = (mon?.mcansee !== 0 && mon?.mcansee !== false) && !mon?.blind;
     if (!kl || !isok(kl.x, kl.y)) return false;
     if (!(mon?.peaceful || mon?.tame)) return false;
     if (player?.conflict) return false;
@@ -957,7 +957,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
     const targetX = Number.isInteger(mon.mux) ? mon.mux : player.x;
     const targetY = Number.isInteger(mon.muy) ? mon.muy : player.y;
     const isWanderer = !!(mon.type && mon.type.flags2 & M2_WANDER);
-    const monCanSee = (mon.mcansee !== false) && !mon.blind;
+    const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false) && !mon.blind;
 
     let scaredNow = !!scared;
     monmovePhase3Trace(
@@ -1461,7 +1461,7 @@ async function m_move(mon, map, player, display = null, fov = null) {
         `pos=(${omx},${omy})`,
         `target=(${ggx},${ggy})`,
         `mux=(${mon.mux ?? '?'},${mon.muy ?? '?'})`,
-        `mcansee=${mon.mcansee === false ? 0 : 1}`,
+        `mcansee=${(mon.mcansee !== 0 && mon.mcansee !== false) ? 1 : 0}`,
         `blind=${mon.blind ? 1 : 0}`,
         `shouldSee=${should_see ? 1 : 0}`,
         `shortsighted=${map?.flags?.shortsighted ? 1 : 0}`,
@@ -1686,8 +1686,9 @@ export function set_apparxy(mon, map, player) {
     const mdat = mons[mon.mndx] || mon.type || {};
     const canOoze = !!(mdat.flags1 & M1_AMORPHOUS);
     const canFog = canOoze || !!(mdat.flags1 & M1_UNSOLID);
-    const monCanSee = mon.mcansee !== false;
-    const notseen = (!monCanSee || (player.invisible && !perceives(mdat)));
+    const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false);
+    const heroInvis = !!player.Invis;
+    const notseen = (!monCanSee || (heroInvis && !perceives(mdat)));
     const playerDisplaced = !!(player.displaced
         || (player.cloak && player.cloak.otyp === CLOAK_OF_DISPLACEMENT));
     const notthere = playerDisplaced && mon.mndx !== PM_DISPLACER_BEAST;

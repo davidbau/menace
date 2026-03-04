@@ -397,7 +397,7 @@ export function mfndpos(mon, map, player, flag) {
         flag &= ~NOTONL;
     }
     // C ref: mon.c:2146-2147 — blind: add ALLOW_SSM
-    if (mon.blind || mon.mcansee === false) {
+    if (mon.blind || mon.mcansee === 0 || mon.mcansee === false) {
         flag |= ALLOW_SSM;
     }
 
@@ -546,10 +546,10 @@ export function mfndpos(mon, map, player, flag) {
 
             // C ref: mon.c:2325-2331 — NOTONL: check monlineu
             if (flag & NOTONL) {
-                const monSeeHero = (mon.mcansee !== false)
+                const monSeeHero = (mon.mcansee !== 0 && mon.mcansee !== false)
                     && !mon.blind
                     && m_cansee(mon, map, player.x, player.y)
-                    && (!player.invisible || perceives(mdat));
+                    && (!player.Invis || perceives(mdat));
                 if (monSeeHero && monlineu(mon, player, nx, ny)) {
                     posInfo |= NOTONL;
                 }

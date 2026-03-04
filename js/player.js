@@ -488,8 +488,15 @@ export class Player {
         this.moved = false;
 
         // Luck
-        // C ref: you.h u.uluck, u.moreluck
-        this.luck = 0;
+        // C ref: you.h u.uluck, u.moreluck.
+        // Keep legacy `player.luck` as an alias so old callsites stay in sync.
+        this.uluck = 0;
+        Object.defineProperty(this, 'luck', {
+            get: () => this.uluck,
+            set: (v) => { this.uluck = v; },
+            enumerable: true,
+            configurable: true,
+        });
         this.moreluck = 0;
 
         // Intrinsic properties (C ref: you.h u.uprops[])

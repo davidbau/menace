@@ -21,8 +21,19 @@ export function getnow() {
 
 // cf. calendar.c:46
 function getlt() {
-    const date = getnow();
-    return new Date(date * 1000);
+    const d = new Date(getnow() * 1000);
+    const jan1 = new Date(d.getFullYear(), 0, 1);
+    const tm_yday = Math.floor((d - jan1) / 86400000);
+    return {
+        tm_year: d.getFullYear() - 1900,
+        tm_mon: d.getMonth(),
+        tm_mday: d.getDate(),
+        tm_hour: d.getHours(),
+        tm_min: d.getMinutes(),
+        tm_sec: d.getSeconds(),
+        tm_wday: d.getDay(),
+        tm_yday,
+    };
 }
 
 // cf. calendar.c:55
