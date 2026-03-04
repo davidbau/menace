@@ -1617,3 +1617,17 @@ hard-won wisdom:
 - Root cause: replay count-prefix digit handling rendered map/status after writing `Count: N`, which reset cursor to player.
 - Fix: in replay capture path, restore cursor to topline (`setCursor(len("Count: N"), 0)`) after render and before snapshot capture.
 - Result: `seed204_multidigit_wait_gameplay` cursor parity is now full (`3/3`).
+
+### seed301 kick-door RNG mismatch triage (2026-03-04)
+
+- `seed301_archeologist_selfplay200_gameplay` first RNG divergence is at step 10 around a `^D`/`l` kick-door interaction.
+- JS emits:
+  - `rn2(19)=10` (DEX exercise),
+  - `rnl(35)=23`.
+- The recorded C session emits:
+  - `rn2(19)=10` (DEX exercise),
+  - `rn2(38)=10`,
+  - `rnl(35)=22`.
+- Current C source (`dokick.c` + `rnd.c`) only emits `rn2(37+abs(Luck))` inside `rnl()` when `Luck != 0`.
+- JS runtime trace at that kick site shows `uluck=0`, `moreluck=0`, so no `rn2(38)` is expected from current C logic either.
+- Conclusion: this looks like capture provenance mismatch (session generated from a C build/behavior not matching current patched source), not a safe JS core fix candidate.
