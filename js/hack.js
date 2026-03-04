@@ -410,7 +410,8 @@ export async function domove_swap_with_pet(mon, nx, ny, dir, player, map, displa
     await display.putstr_message(`You swap places with ${y_monnam(mon)}.`);
     const landedObjs = map.objectsAt(nx, ny);
     if (landedObjs.length > 1) {
-        clearTopline(display);
+        // C ref: invent.c look_here() — for 2+ objects, show "Things that are here:" popup
+        await look_here(player, map, landedObjs.length);
     } else if (landedObjs.length === 1) {
         const seen = landedObjs[0];
         if (seen.oclass === COIN_CLASS) {

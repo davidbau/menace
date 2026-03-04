@@ -48,7 +48,7 @@ import {
 import { obj_resists } from './objdata.js';
 import { newexplevel } from './exper.js';
 import { applyMonflee } from './mhitu.js';
-import { mondead } from './monutil.js';
+import { mondead, newsym } from './monutil.js';
 import { placeFloorObject } from './stackobj.js';
 import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
 import { find_mac } from './worn.js';
@@ -1671,6 +1671,7 @@ async function handleMonsterKilled(player, monster, display, map) {
         const corpse = mkcorpstat(CORPSE, monster.mndx || 0, true,
             map ? monster.mx : 0, map ? monster.my : 0, map);
         corpse.age = Math.max((player?.turns || 0) + 1, 1);
+        if (map) newsym(monster.mx, monster.my);
     }
 
     return true;

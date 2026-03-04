@@ -119,6 +119,17 @@ export async function display_nhwindow(win, blocking) {
     // items (w.mlist empty), C renders it as a right-side text popup.
     // Used by look_here() for "Things that are here:" display.
     if ((w.type === NHW_MENU || w.type === NHW_TEXT) && w.data.length > 0 && w.mlist.length === 0) {
+        // C ref: tty_display_nhwindow — before showing popup, flush pending topline
+        // message with --More-- if toplin is non-empty.  Also check display.messageNeedsMore
+        // for messages sent via display.putstr_message() directly (not through putstr()).
+        if (blocking && (ttyDisplay.toplin === TOPLINE_NON_EMPTY || _display?.messageNeedsMore)) {
+            if (_display?.renderMoreMarker) _display.renderMoreMarker();
+            await _nhgetch();
+            // Clear row 0 after --More-- dismissal (C: more() clears the topline).
+            if (_display?.clearRow) _display.clearRow(0);
+            ttyDisplay.toplin = TOPLINE_EMPTY;
+            if (_display) { _display.messageNeedsMore = false; _display.topMessage = null; }
+        }
         const lines = w.data.map(d => typeof d === 'string' ? d : d.str);
         if (_display?.renderTextPopup) {
             _display.renderTextPopup(lines);
