@@ -114,7 +114,7 @@ const STRAT_WAITMASK = (STRAT_CLOSE | STRAT_WAITFORU);
 // Re-export mthrowu.c functions
 import { hasWeaponAttack, maybeMonsterWieldBeforeAttack, linedUpToPlayer } from './mthrowu.js';
 import { m_carrying } from './mthrowu.js';
-import { find_defensive, use_defensive, find_misc, use_misc } from './muse.js';
+import { find_defensive, use_defensive, find_misc, use_misc, searches_for_item } from './muse.js';
 
 // ========================================================================
 // movemon — wrapper that binds dochug into mon.js movemon
@@ -545,6 +545,11 @@ function mon_would_take_item_search(mon, obj, map, profile = null) {
 
     const prefs = profile || mon_item_search_profile(mon);
     const pctload = prefs.pctload;
+
+    // C ref: monmove.c mon_would_take_item():
+    // if sentient and below 75% load, searches_for_item can make many
+    // practical magical items attractive regardless of likes_magic/likes_objs.
+    if (pctload < 75 && searches_for_item(mon, obj)) return true;
 
     if (prefs.likesGold && obj.otyp === GOLD_PIECE && pctload < 95) return true;
     if (prefs.likesGems && obj.oclass === GEM_CLASS
