@@ -15,7 +15,7 @@ import { TIMEOUT, INTRINSIC, FROMOUTSIDE,
          STONED, SLIMED, STRANGLED, INVIS, SEE_INVIS, DISPLACED,
          PASSES_WALLS, MAGICAL_BREATHING, FLYING,
          FIRE_RES, STONE_RES, DETECT_MONSTERS, PROT_FROM_SHAPE_CHANGERS,
-         SICK_NONVOMITABLE, A_CON } from './config.js';
+         SICK_NONVOMITABLE, A_CON, A_DEX, A_STR, ACCESSIBLE } from './config.js';
 import { exercise } from './attrib_exercise.js';
 
 export const TIMER_KIND = {
@@ -437,14 +437,16 @@ export async function nh_timeout(context = {}) {
 
     const player = context.player || _timeoutContext.player;
     if (!player) return;
+    const map = context.map || _timeoutContext.map;
 
-    // --- Dialogue callbacks for active countdowns (C ref: timeout.c:640-680) ---
-    // These fire BEFORE the timeout decrement, giving countdown messages
-    if (player.getPropTimeout(STONED)) stoned_dialogue();
-    if (player.getPropTimeout(SLIMED)) slime_dialogue();
-    if (player.getPropTimeout(VOMITING)) vomiting_dialogue();
-    if (player.getPropTimeout(STRANGLED)) choke_dialogue();
-    if (player.getPropTimeout(SICK)) sickness_dialogue();
+    // --- Dialogue callbacks for active countdowns (C ref: timeout.c:620-640) ---
+    // These fire BEFORE the timeout decrement, giving countdown messages.
+    if (player.getPropTimeout(STONED)) await stoned_dialogue(player);
+    if (player.getPropTimeout(SLIMED)) await slime_dialogue(player);
+    if (player.getPropTimeout(VOMITING)) await vomiting_dialogue(player);
+    if (player.getPropTimeout(STRANGLED)) await choke_dialogue(player);
+    if (player.getPropTimeout(SICK)) await sickness_dialogue(player);
+    if (player.getPropTimeout(LEVITATION)) await levitation_dialogue(player, map);
 
     // --- Intrinsic timeout decrements (C ref: timeout.c nh_timeout()) ---
     if (player.uprops) {
@@ -502,7 +504,9 @@ export async function nh_timeout(context = {}) {
 
 // Status effect function registry — set by potion.js at import time via
 // registerMakeStatusFns() to avoid circular import issues.
-let _makeStatusFns = {};
+// var (not let) avoids TDZ when potion.js calls registerMakeStatusFns() during
+// circular-import module init before this line would execute with let/const.
+var _makeStatusFns;
 
 // Called by potion.js to register make_* functions for expiry callbacks.
 export function registerMakeStatusFns(fns) {
@@ -793,17 +797,246 @@ export function do_storms() {
     return;
 }
 
-export function stoned_dialogue() {}
-export function vomiting_dialogue() {}
-// Autotranslated from timeout.c:267
-export async function sleep_dialogue() {
-  let i = (HSleepy & TIMEOUT);
-  if (i === 4) await You("yawn.");
+// C ref: timeout.c — petrification countdown messages
+// stoned_texts[0..4] indexed by SIZE - i where i = (Stoned & TIMEOUT)
+const stoned_texts = [
+    "You are slowing down.",            // i=5
+    "Your limbs are stiffening.",       // i=4
+    "Your limbs have turned to stone.", // i=3
+    "You have turned to stone.",        // i=2
+    "You are a statue.",                // i=1
+];
+export async function stoned_dialogue(player) {
+    const p = player || _timeoutContext.player;
+    if (!p) return;
+    const i = p.getPropTimeout(STONED);
+    if (i > 0 && i <= stoned_texts.length) {
+        let msg = stoned_texts[stoned_texts.length - i];
+        // C: nolimbs(ptr) — M1_NOLIMBS flag; use "extremities" instead of "limbs"
+        const M1_NOLIMBS = 0x00040000;
+        if (p.data && (p.data.flags1 & M1_NOLIMBS) && msg.includes('limbs'))
+            msg = msg.replace('limbs', 'extremities');
+        await pline(msg);
+    }
+    // C: case 5 — HFast = 0L (lose intrinsic speed)
+    if (i === 5 && p.uprops?.[FAST]) {
+        p.uprops[FAST].intrinsic &= ~TIMEOUT;
+    }
+    // C: case 4 — limbs stiffening: stop_occupation() + nomul(0) — skipped (complex)
+    // C: case 3 — limbs turned to stone: nomul(-3) — skipped (complex)
+    await exercise(p, A_DEX, false);
 }
-export function choke_dialogue() {}
-export function sickness_dialogue() {}
-export function levitation_dialogue() {}
-export function slime_dialogue() {}
+
+// C ref: timeout.c — vomiting countdown messages
+// Note: switch is on (v-1) because dialogue fires before the decrement.
+const vomiting_texts = [
+    "are feeling mildly nauseated.", // v-1=14 (v=15)
+    "feel slightly confused.",       // v-1=11 (v=12)
+    "can't seem to think straight.", // v-1=8  (v=9)
+    "feel incredibly sick.",         // v-1=5  (v=6)
+    "are about to vomit.",           // v-1=2  (v=3)
+];
+export async function vomiting_dialogue(player) {
+    const p = player || _timeoutContext.player;
+    if (!p) return;
+    const v = p.getPropTimeout(VOMITING);
+    const fns = _makeStatusFns || {};
+    switch (v - 1) {
+    case 14:
+        await You(vomiting_texts[0]);
+        break;
+    case 11: {
+        let txt = vomiting_texts[1];
+        if (p.getPropTimeout(CONFUSION))
+            txt = txt.replace(' confused', ' more confused');
+        await You(txt);
+        break;
+    }
+    case 9:
+        // C: make_confused — increases confusion
+        if (fns.make_confused)
+            await fns.make_confused(p, (p.getPropTimeout(CONFUSION) || 0) + rnd(4) + rnd(4), false);
+        break;
+    case 8:
+        await You(vomiting_texts[2]);
+        break;
+    case 6:
+        // C: make_stunned + FALLTHROUGH to case 9 (make_confused)
+        if (fns.make_stunned)
+            await fns.make_stunned(p, (p.getPropTimeout(STUNNED) || 0) + rnd(4) + rnd(4), false);
+        if (fns.make_confused)
+            await fns.make_confused(p, (p.getPropTimeout(CONFUSION) || 0) + rnd(4) + rnd(4), false);
+        break;
+    case 5:
+        await You(vomiting_texts[3]);
+        break;
+    case 2: {
+        let txt = vomiting_texts[4];
+        // C: cantvomit(ptr) — plants, fungi, etc. (M2_NOLIMBS or sessile)
+        // Simplified: check mlet for plant/fungus class
+        const mlet = p.data?.mlet;
+        if (mlet === 'F' || mlet === 'P')  // F=fungus, P=plant
+            txt = "gag uncontrollably.";
+        else if (p.getPropTimeout(HALLUC))
+            txt = "are about to hurl!";
+        await You(txt);
+        break;
+    }
+    case 0:
+        // C: vomit() — actual vomiting (complex, handled by expiry callback)
+        break;
+    default:
+        break;
+    }
+    await exercise(p, A_CON, false);
+}
+
+// Autotranslated from timeout.c:267
+export async function sleep_dialogue(player) {
+    const p = player || _timeoutContext.player;
+    if (!p) return;
+    const i = p.getPropTimeout(SLEEPING);
+    if (i === 4) await You("yawn.");
+}
+
+// C ref: timeout.c — strangulation countdown messages
+const choke_texts = [
+    "You find it hard to breathe.",  // i=5
+    "You're gasping for air.",        // i=4
+    "You can no longer breathe.",     // i=3
+    "You're turning %s.",             // i=2 — %s = blue
+    "You suffocate.",                 // i=1
+];
+const choke_texts2 = [
+    "Your %s is becoming constricted.", // i=5 — %s = neck
+    "Your blood is having trouble reaching your brain.", // i=4
+    "The pressure on your %s increases.", // i=3 — %s = neck
+    "Your consciousness is fading.",  // i=2
+    "You suffocate.",                 // i=1
+];
+export async function choke_dialogue(player) {
+    const p = player || _timeoutContext.player;
+    if (!p) return;
+    const i = p.getPropTimeout(STRANGLED);
+    if (i > 0 && i <= choke_texts.length) {
+        // C: if (Breathless || !rn2(50)) use choke_texts2 (neck pressure variant)
+        // C: Breathless = gaseous/incorporeal monster forms; simplified here
+        const breathless = !!(p.data?.mlet === 'E');  // E=elemental (gaseous)
+        if (breathless || !rn2(50)) {
+            let msg = choke_texts2[choke_texts2.length - i];
+            // C: body_part(NECK) → "neck" for humans; "throat" for some forms
+            if (msg.includes('%s')) msg = msg.replace(/%s/g, 'neck');
+            await pline(msg);
+        } else {
+            const str = choke_texts[choke_texts.length - i];
+            if (str.includes('%s')) {
+                // C: hcolor(NH_BLUE) → "blue" normally, random hallu color
+                const color = p.getPropTimeout(HALLUC) ? 'indigo' : 'blue';
+                await pline(str.replace('%s', color));
+            } else {
+                await pline(str);
+            }
+        }
+    }
+    await exercise(p, A_STR, false);
+}
+
+// C ref: timeout.c — sickness countdown messages
+const sickness_texts = [
+    "Your illness feels worse.",   // i=3
+    "Your illness is severe.",     // i=2
+    "You are at Death's door.",    // i=1
+];
+export async function sickness_dialogue(player) {
+    const p = player || _timeoutContext.player;
+    if (!p) return;
+    const j = p.getPropTimeout(SICK);
+    const i = Math.trunc(j / 2);
+    if (i > 0 && i <= sickness_texts.length && (j % 2) !== 0) {
+        let msg = sickness_texts[sickness_texts.length - i];
+        // C: food poisoning (not SICK_NONVOMITABLE) uses "sickness" not "illness"
+        if ((p.usick_type & SICK_NONVOMITABLE) === 0)
+            msg = msg.replace('illness', 'sickness');
+        // C: Hallucination adds "She is inviting you in." etc.
+        await pline(msg);
+    }
+    await exercise(p, A_CON, false);
+}
+
+// C ref: timeout.c — levitation countdown messages
+const levi_texts = [
+    "You float slightly lower.",          // i=2
+    "You wobble unsteadily %s the %s.",   // i=1
+];
+export async function levitation_dialogue(player, map) {
+    const p = player || _timeoutContext.player;
+    const m = map || _timeoutContext.map;
+    if (!p) return;
+    // C: ELevitation (extrinsic) → no countdown messages
+    if (p.uprops?.[LEVITATION]?.extrinsic) return;
+    // C: skip in inaccessible cells (walls etc) or over pool/lava
+    // ACCESSIBLE(typ): typ >= DOOR (8 in C's rm.h)
+    const cellTyp = m?.locations?.[p.x]?.[p.y]?.typ ?? 0;
+    const poolLavaTypes = new Set([22, 23, 24, 25]);  // POOL, MOAT, WATER, LAVAPOOL approx
+    if (m && !ACCESSIBLE(cellTyp) && !poolLavaTypes.has(cellTyp)) return;
+    const t = p.getPropTimeout(LEVITATION);
+    // C: fires on odd turns of (HLevitation-1)/2
+    const i = Math.trunc((t - 1) / 2);
+    if ((t % 2 !== 0) && i > 0 && i <= levi_texts.length) {
+        const s = levi_texts[levi_texts.length - i];
+        if (s.includes('%s')) {
+            const danger = m && poolLavaTypes.has(m.locations?.[p.x]?.[p.y]?.typ ?? 0);
+            // "over" vs "in", "surface()" vs "air"
+            const prep = danger ? "over" : "in";
+            const loc = danger ? "the water" : "the air";
+            await pline(s.replace('%s', prep).replace('%s', loc));
+        } else {
+            await pline(s);
+        }
+    }
+}
+
+// C ref: timeout.c — slime transformation countdown messages
+const slime_texts = [
+    "You are turning a little %s.",   // i=4 (t=9): %s=green
+    "Your limbs are getting oozy.",   // i=3 (t=7)
+    "Your skin begins to peel away.", // i=2 (t=5)
+    "You are turning into %s.",       // i=1 (t=3): %s=a green slime
+    "You have become %s.",            // i=0 (t=1): %s=a green slime
+];
+export async function slime_dialogue(player) {
+    const p = player || _timeoutContext.player;
+    if (!p) return;
+    const t = p.getPropTimeout(SLIMED);
+    const i = Math.trunc(t / 2);
+    if ((t % 2) !== 0 && i >= 0 && i < slime_texts.length) {
+        let msg = slime_texts[slime_texts.length - i - 1];
+        // C: nolimbs(ptr) — M1_NOLIMBS flag
+        const M1_NOLIMBS = 0x00040000;
+        if (p.data && (p.data.flags1 & M1_NOLIMBS) && msg.includes('limbs'))
+            msg = msg.replace('limbs', 'extremities');
+        if (msg.includes('%s')) {
+            if (i === 4) {
+                // "turning a little green" — only if not blind
+                if (!p.getPropTimeout(BLINDED))
+                    await pline(msg.replace('%s', 'green'));
+            } else {
+                // "turning into a green slime" or "have become a green slime"
+                // C: an(rndmonnam()) when hallucinating; "a green slime" normally
+                const monname = 'green slime';  // hallucination variant skipped (no rndmonnam import)
+                // simple "a"/"an" article
+                const article = /^[aeiou]/i.test(monname) ? 'an' : 'a';
+                await pline(msg.replace('%s', `${article} ${monname}`));
+            }
+        } else {
+            await pline(msg);
+        }
+    }
+    // C: case 3 (i=3, t=7): HFast = 0L — lose intrinsic speed when limbs go oozy
+    if (i === 3 && p.uprops?.[FAST]) {
+        p.uprops[FAST].intrinsic &= ~TIMEOUT;
+    }
+}
 export function burn_away_slime() {}
 export function slimed_to_death(_ptr) {}
 export function phaze_dialogue() {}
