@@ -582,10 +582,11 @@ export function create_worm_tail(num_segs) {
 // cf. worm.c:883 -- worm_known(worm, map, player, fov)
 // ========================================================================
 // Autotranslated from worm.c:882
-export function worm_known(worm) {
+export function worm_known(worm, map, player, fov) {
+  if (!worm || !worm.wormno) return false;
   let curr = wtails[worm.wormno];
   while (curr) {
-    if (cansee(curr.wx, curr.wy)) return true;
+    if (cansee(map, player, fov, curr.wx, curr.wy)) return true;
     curr = curr.nseg;
   }
   return false;

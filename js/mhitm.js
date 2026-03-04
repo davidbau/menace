@@ -18,7 +18,10 @@
 
 import { rn2, rnd, d, c_d } from './rng.js';
 import { distmin } from './hacklib.js';
-import { monnear, mondead, monAttackName, map_invisible, newsym, helpless, canSpotMonsterForMap } from './monutil.js';
+import {
+    monnear, mondead, monAttackName, map_invisible, newsym,
+    canSpotMonsterForMap, helpless,
+} from './monutil.js';
 import { cansee } from './vision.js';
 import {
     x_monnam, touch_petrifies, unsolid, resists_fire, resists_cold,
@@ -97,6 +100,7 @@ async function noises(magr, mattk, display, ctx) {
 function pre_mm_attack(magr, mdef, vis, map, ctx) {
     const player = ctx?.player || null;
     const fov = ctx?.fov || null;
+    let showit = false;
     const spottedNow = (mon, fallbackVisible) => (
         (typeof fallbackVisible === 'boolean')
             ? fallbackVisible
@@ -105,15 +109,25 @@ function pre_mm_attack(magr, mdef, vis, map, ctx) {
                 : false)
     );
 
-    if (mdef.mundetected) mdef.mundetected = 0;
-    if (magr.mundetected) magr.mundetected = 0;
+    if (mdef.mundetected) {
+        mdef.mundetected = 0;
+        showit = true;
+    }
+    if (magr.mundetected) {
+        magr.mundetected = 0;
+        showit = true;
+    }
     // C ref: mhitm.c:62-71 — mark invisible monsters on map
     if (vis && map) {
         if (!spottedNow(magr, ctx?.agrVisible)) {
             map_invisible(map, magr.mx, magr.my, ctx?.player);
+        } else if (showit) {
+            newsym(magr.mx, magr.my);
         }
         if (!spottedNow(mdef, ctx?.defVisible)) {
             map_invisible(map, mdef.mx, mdef.my, ctx?.player);
+        } else if (showit) {
+            newsym(mdef.mx, mdef.my);
         }
     }
 }

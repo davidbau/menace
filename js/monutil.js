@@ -5,7 +5,8 @@
 import { isok, IS_WALL, CORR, SCORR, ROOM, ICE,
          POOL, MOAT, WATER, LAVAPOOL, LAVAWALL,
          DRAWBRIDGE_UP, DB_UNDER, DB_MOAT, DB_LAVA,
-         MAP_ROW_START, COLNO, ROWNO, SEE_INVIS, INFRAVISION } from './config.js';
+         MAP_ROW_START, COLNO, ROWNO,
+         SEE_INVIS, DETECT_MONSTERS, TELEPAT, INFRAVISION, WARNING, WARN_OF_MON } from './config.js';
 import { PM_GRID_BUG,
          AT_BITE, AT_CLAW, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_WEAP,
          AT_ENGL, AT_HUGS, AD_STCK } from './monsters.js';
@@ -19,12 +20,13 @@ import { cansee, couldsee, clear_vision_full_recalc, get_vision_full_recalc } fr
 import { do_light_sources } from './light.js';
 export { mark_vision_dirty } from './vision.js';
 import { Monnam } from './mondata.js';
-import { is_hider, noattacks, dmgtype, attacktype, infravisible } from './mondata.js';
+import { is_hider, noattacks, dmgtype, attacktype, is_mindless, infravisible } from './mondata.js';
 import { weight } from './mkobj.js';
 import { pushRngLogEntry, rnd } from './rng.js';
 import { place_object, stackobj } from './stackobj.js';
 import { SCR_SCARE_MONSTER } from './objects.js';
 import { extract_from_minvent, update_mon_extrinsics } from './worn.js';
+import { worm_known } from './worm.js';
 
 // ========================================================================
 // Constants — C ref: hack.h / monst.h / dogmove.c
@@ -438,32 +440,88 @@ export function flush_screen(cursor_on_u) {
     _flushing = false;
 }
 
-// C ref: display.h canseemon(mon) — hero can see the monster
-// Checks cansee(location) AND mon_visible (not invisible, not hiding).
-// Note: C's canspotmon adds sensemon (telepathy/detection) — not yet ported.
-function playerHasInfravision(player) {
-    return !!(player?.infravision || player?.Infravision || playerHasActiveProp(player, INFRAVISION));
-}
-
-export function canSpotMonsterForMap(mon, map, player, fov) {
-    if (!mon || !map || !player) return false;
-    if (fov && typeof fov.compute === 'function') {
-        const stalePos = (fov._playerX !== player.x) || (fov._playerY !== player.y);
-        const staleMap = fov._map !== map;
-        if (stalePos || staleMap) {
-            fov.compute(map, player.x, player.y, do_light_sources);
+function hasPlayerProp(player, propId, ...legacyFlags) {
+    if (!player) return false;
+    if (typeof player.hasProp === 'function') {
+        try {
+            if (player.hasProp(propId)) return true;
+        } catch (e) {
+            // Fall through to legacy field checks.
         }
     }
-    if (player.blind) return false;
-    const canSeeCell = cansee(map, player, fov, mon.mx, mon.my);
-    const canInfraSee = (!canSeeCell
-        && playerHasInfravision(player)
-        && infravisible(mon.type || {})
-        && couldsee(map, player, mon.mx, mon.my));
-    if (!canSeeCell && !canInfraSee) return false;
+    return legacyFlags.some((flag) => !!player?.[flag]);
+}
+
+function playerBlind(player) {
+    return !!(player?.blind || player?.Blind);
+}
+
+// C ref: display.h _mon_visible(mon)
+export function monVisibleForMap(mon, player) {
+    if (!mon) return false;
     if (mon.mundetected) return false;
-    if (mon.minvis && !playerCanSeeInvisible(player)) return false;
+    const seeInvis = hasPlayerProp(player, SEE_INVIS, 'seeInvisible', 'See_invisible');
+    if (mon.minvis && !seeInvis) return false;
     return true;
+}
+
+// C ref: display.h _see_with_infrared(mon)
+export function seeWithInfraredForMap(mon, map, player) {
+    if (!mon || !map || !player) return false;
+    if (playerBlind(player)) return false;
+    const hasInfra = hasPlayerProp(player, INFRAVISION, 'infravision', 'Infravision');
+    if (!hasInfra) return false;
+    const mdat = mon.type || mon.data || null;
+    if (!mdat || !infravisible(mdat)) return false;
+    return couldsee(map, player, mon.mx, mon.my);
+}
+
+// C ref: display.h _canseemon(mon)
+export function canSeeMonsterForMap(mon, map, player, fov) {
+    if (!mon || !map || !player) return false;
+    const locSeen = mon.wormno
+        ? worm_known(mon, map, player, fov)
+        : (cansee(map, player, fov, mon.mx, mon.my)
+            || seeWithInfraredForMap(mon, map, player));
+    if (!locSeen) return false;
+    return monVisibleForMap(mon, player);
+}
+
+// C ref: display.h _sensemon(mon)
+export function senseMonsterForMap(mon, map, player) {
+    if (!mon || !player) return false;
+    if (player?.uswallow && player?.ustuck && mon !== player.ustuck) return false;
+
+    const heroUnderwater = !!(player?.underwater || player?.uinwater || player?.Underwater);
+    if (heroUnderwater) {
+        const d2 = dist2(player.x, player.y, mon.mx, mon.my);
+        const onPool = !!(map && isPoolAt(map.at(mon.mx, mon.my)));
+        if (!(d2 <= 2 && onPool)) return false;
+    }
+
+    const detectMonsters = hasPlayerProp(player, DETECT_MONSTERS, 'detectMonsters', 'Detect_monsters');
+    const telepathy = hasPlayerProp(player, TELEPAT, 'telepathy', 'Telepathy');
+    let tpSense = false;
+    if (telepathy) {
+        const mdat = mon.type || mon.data || null;
+        if (mdat && !is_mindless(mdat)) {
+            const blindTelepathic = playerBlind(player);
+            const unblindRange = Number(player?.unblind_telepat_range || player?.unblindTelepathRange || BOLT_LIM);
+            tpSense = blindTelepathic || dist2(player.x, player.y, mon.mx, mon.my) <= (unblindRange * unblindRange);
+        }
+    }
+
+    const warning = hasPlayerProp(player, WARNING, 'warning', 'Warning');
+    const warnOfMon = hasPlayerProp(player, WARN_OF_MON, 'warnOfMon', 'Warn_of_mon');
+    const warnSense = warning || warnOfMon;
+
+    return detectMonsters || tpSense || warnSense;
+}
+
+// C ref: display.h canspotmon(mon) = canseemon(mon) || sensemon(mon)
+export function canSpotMonsterForMap(mon, map, player, fov) {
+    return canSeeMonsterForMap(mon, map, player, fov)
+        || senseMonsterForMap(mon, map, player);
 }
 
 function onscary(map, x, y) {
