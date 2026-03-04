@@ -1588,7 +1588,9 @@ async function safetyWarning(cmd, game, display) {
 
     const msg = includeHint ? `${act}  Use 'm' prefix to force ${cmddesc}.` : act;
     if (game.lastSafetyWarningMessage === msg) {
-        // C Norep-style suppression keeps existing topline; it does not clear it.
+        // C ref: pline() with Norep suppression clears the message window
+        // (clear_nhwindow(WIN_MESSAGE)) without displaying a new message.
+        clearTopline(display);
         return;
     }
     await display.putstr_message(msg);
