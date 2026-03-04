@@ -1717,7 +1717,7 @@ export function set_apparxy(mon, map, player) {
     let my = Number.isInteger(mon.muy) ? mon.muy : 0;
 
     // C ref: monmove.c:2214 — pet, grabber, or already-at-hero position
-    if (mon.tame || player.ustuck === mon || (mx === player.x && my === player.y)) {
+    if (mon.mtame || mon.tame || player.ustuck === mon || (mx === player.x && my === player.y)) {
         mon.mux = player.x;
         mon.muy = player.y;
         return;

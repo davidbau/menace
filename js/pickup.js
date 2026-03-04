@@ -23,7 +23,7 @@ import { body_part, HAND, FOOT } from './polyself.js';
 import { instapetrify } from './trap.js';
 import { exercise } from './attrib_exercise.js';
 import { newsym } from './monutil.js';
-import { currency } from './invent.js';
+import { currency, compactInvletPromptChars } from './invent.js';
 import { makemon, NO_MM_FLAGS, NO_MINVENT, MM_ADJACENTOK } from './makemon.js';
 import { christen_monst, Monnam, mon_nam, x_monnam, ARTICLE_THE,
          SUPPRESS_SADDLE } from './do_name.js';
@@ -1406,6 +1406,12 @@ async function announceLootedItems(display, player, items, verb) {
 async function containerMenu(game, container) {
     const { player, display } = game;
     let tookTime = false;
+    const putMenuPrompt = async (msg) => {
+        const prevNoConcat = !!display?.noConcatenateMessages;
+        if (display) display.noConcatenateMessages = true;
+        await display.putstr_message(msg);
+        if (display) display.noConcatenateMessages = prevNoConcat;
+    };
 
     while (true) {
         const contents = getContainerContents(container);
@@ -1419,7 +1425,7 @@ async function containerMenu(game, container) {
             : `The ${cname} is empty.  Do what with it?`;
         const cols = display?.cols || 80;
         const pad = Math.max(0, Math.floor((cols - prompt.length) / 2));
-        await display.putstr_message(`${' '.repeat(pad)}${prompt}`);
+        await putMenuPrompt(`${' '.repeat(pad)}${prompt}`);
 
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
@@ -1473,7 +1479,7 @@ async function containerMenu(game, container) {
             if (seenClasses.size > 1) {
                 const classStr = [...seenClasses].join('');
                 // Mirrors C wording from query_classes() for take-out.
-                await display.putstr_message(`Take out what type of objects? [${classStr} or ?*]`);
+                await putMenuPrompt(`Take out what type of objects? [${classStr} or ?*]`);
                 const clsCh = await nhgetch();
                 if (clsCh === 27) continue; // ESC => back to "Do what?" menu
                 const cls = String.fromCharCode(clsCh);
@@ -1494,7 +1500,7 @@ async function containerMenu(game, container) {
                 });
                 if (!visible.length) break;
                 const available = letters.slice(0, visible.length);
-                await display.putstr_message(`Take out what? [${available} or ?*]`);
+                await putMenuPrompt(`Take out what? [${available} or ?*]`);
                 const tch = await nhgetch();
                 if (tch === 27) break; // ESC → back to "Do what?" menu
                 const tidx = letters.indexOf(String.fromCharCode(tch).toLowerCase());
@@ -1509,20 +1515,21 @@ async function containerMenu(game, container) {
         } else if (c === 's') {
             // Stash one item — cf. pickup.c "Stash: put one item in".
             // C exits the container menu after one stash.
-            const inv = (player.inventory || []).filter((o) => o?.invlet);
+            const inv = (player.inventory || []).filter((o) => o?.invlet && o !== container);
             if (!inv.length) {
                 await display.putstr_message('You have nothing to put in.');
                 return { moved: false, tookTime };
             }
             const letters = inv.map((o) => o.invlet).join('');
-            await display.putstr_message(`What do you want to stash? [${letters} or ?*]`);
+            const compact = compactInvletPromptChars(letters);
+            await putMenuPrompt(`What do you want to stash? [${compact} or ?*]`);
             const sch = await nhgetch();
             const item = inv.find((o) => o.invlet === String.fromCharCode(sch));
             if (item) {
                 player.inventory = player.inventory.filter((o) => o !== item);
                 const cur = getContainerContents(container);
                 setContainerContents(container, [...cur, item]);
-                await display.putstr_message(`You put ${doname(item, player)} into the ${cname}.`);
+                await putMenuPrompt(`You put ${doname(item, player)} into the ${cname}.`);
                 tookTime = true;
             }
             return { moved: false, tookTime }; // 's' exits menu (C behavior)
