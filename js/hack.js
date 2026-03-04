@@ -711,7 +711,8 @@ export async function domove_core(dir, player, map, display, game) {
         const dex = player.attributes ? player.attributes[A_DEX] : 11;
         const con = player.attributes ? player.attributes[A_CON] : 18;
         const threshold = Math.floor((str + dex + con) / 3);
-        if (rnl(20) < threshold) {
+        const luck = (player.uluck ?? player.luck) || 0;
+        if (rnl(20, luck) < threshold) {
             loc.flags = (loc.flags & ~D_CLOSED) | D_ISOPEN;
             await display.putstr_message("The door opens.");
         } else {

@@ -44,31 +44,35 @@ export function getyear() {
 
 // cf. calendar.c:62
 export function yyyymmdd(date) {
-    const lt = (date === 0 || date === undefined) ? getlt() : new Date(date * 1000);
-    const year = lt.getFullYear();
+    const d = (date === 0 || date === undefined) ? null : new Date(date * 1000);
+    const lt = d ? null : getlt();
+    const year = d ? d.getFullYear() : (1900 + lt.tm_year);
     let datenum = year < 1970 ? year + 2000 : year;
-    datenum = datenum * 100 + (lt.getMonth() + 1);
-    datenum = datenum * 100 + lt.getDate();
+    datenum = datenum * 100 + (d ? (d.getMonth() + 1) : (lt.tm_mon + 1));
+    datenum = datenum * 100 + (d ? d.getDate() : lt.tm_mday);
     return datenum;
 }
 
 // cf. calendar.c:86
 export function hhmmss(date) {
-    const lt = (date === 0 || date === undefined) ? getlt() : new Date(date * 1000);
-    return lt.getHours() * 10000 + lt.getMinutes() * 100 + lt.getSeconds();
+    const d = (date === 0 || date === undefined) ? null : new Date(date * 1000);
+    if (d) return d.getHours() * 10000 + d.getMinutes() * 100 + d.getSeconds();
+    const lt = getlt();
+    return lt.tm_hour * 10000 + lt.tm_min * 100 + lt.tm_sec;
 }
 
 // cf. calendar.c:101
 export function yyyymmddhhmmss(date) {
-    const lt = (date === 0 || date === undefined) ? getlt() : new Date(date * 1000);
-    const year = lt.getFullYear();
+    const d = (date === 0 || date === undefined) ? null : new Date(date * 1000);
+    const lt = d ? null : getlt();
+    const year = d ? d.getFullYear() : (1900 + lt.tm_year);
     const datenum = year < 1970 ? year + 2000 : year;
     return String(datenum).padStart(4, '0')
-        + String(lt.getMonth() + 1).padStart(2, '0')
-        + String(lt.getDate()).padStart(2, '0')
-        + String(lt.getHours()).padStart(2, '0')
-        + String(lt.getMinutes()).padStart(2, '0')
-        + String(lt.getSeconds()).padStart(2, '0');
+        + String(d ? (d.getMonth() + 1) : (lt.tm_mon + 1)).padStart(2, '0')
+        + String(d ? d.getDate() : lt.tm_mday).padStart(2, '0')
+        + String(d ? d.getHours() : lt.tm_hour).padStart(2, '0')
+        + String(d ? d.getMinutes() : lt.tm_min).padStart(2, '0')
+        + String(d ? d.getSeconds() : lt.tm_sec).padStart(2, '0');
 }
 
 // cf. calendar.c:126
