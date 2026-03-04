@@ -150,19 +150,23 @@ test('#dip shows unavailable message', async () => {
         `expected non-empty message from #dip, got: ${JSON.stringify(game.display.messages)}`);
 });
 
-test('#enhance with no advanceable skills shows current skills heading', async () => {
+test('#enhance shows skill list for initialized role (Wizard has 22 skills)', async () => {
     clearInputQueue();
-    const game = makeGame();
+    const game = makeGame(); // makeGame calls player.initRole(11) = Valkyrie
+    // re-init as Wizard (role index 12) for spell skills
+    game.player.initRole(12);
     for (const ch of 'enhance') pushInput(ch.charCodeAt(0));
     pushInput('\n'.charCodeAt(0));
+    pushInput(27); // ESC from skill selection (no slots to advance at level 1)
 
     const result = await rhack('#'.charCodeAt(0), game);
     assert.equal(result.tookTime, false);
-    // skill system not initialized in unit test context — shows empty message
-    assert.ok(game.display.topMessage !== null,
-        'expected some message from #enhance');
-    assert.ok(!game.display.topMessage.includes('not yet implemented'),
-        `expected real enhance response, got: ${game.display.topMessage}`);
+    // With role skills initialized, should show "Current skills:" (no advance slots yet)
+    assert.ok(game.display.messages.some((m) => m.includes('Current skills') || m.includes('Pick a skill')),
+        `expected skills heading, got: ${JSON.stringify(game.display.messages)}`);
+    // Should list at least one skill (Wizard has 22)
+    assert.ok(game.display.messages.some((m) => m.includes('dagger') || m.includes('spell') || m.includes('quarterstaff')),
+        `expected a skill name in messages, got: ${JSON.stringify(game.display.messages)}`);
 });
 
 test('#chat with ESC direction shows nothing or cancels', async () => {

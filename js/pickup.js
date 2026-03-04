@@ -1402,10 +1402,9 @@ async function containerMenu(game, container) {
                     await display.putstr_message(`  ${doname(item, player)}`);
                 }
             }
-        } else if (c === 'b' || c === 'o') {
-            // 'b' = bring all out (cf. "take all things out"); 'o' = take out.
-            // For 'o', C prompts per-item; we take all for now (same net effect).
-            // cf. pickup.c use_container() — exits menu after taking everything.
+        } else if (c === 'b') {
+            // 'b' = bring all out — takes everything, exits menu.
+            // cf. pickup.c use_container() 'b' case.
             if (!hasContents) { await display.putstr_message('It is empty.'); continue; }
             const taken = [...contents];
             for (const item of taken) { player.addToInventory(item); observeObject(item); }
@@ -1413,6 +1412,28 @@ async function containerMenu(game, container) {
             await announceLootedItems(display, player, taken, 'loot');
             tookTime = true;
             break; // exit menu after bringing all (C behavior)
+        } else if (c === 'o') {
+            // 'o' = take out — per-item selection loop.
+            // cf. pickup.c out_container(): prompts "Take out what? [letters or ?*]"
+            // loops until ESC, then returns to outer "Do what?" menu.
+            if (!hasContents) { await display.putstr_message('It is empty.'); continue; }
+            const letters = 'abcdefghijklmnopqrstuvwxyz';
+            while (true) {
+                const cur = getContainerContents(container);
+                if (!cur.length) break;
+                const available = letters.slice(0, cur.length);
+                await display.putstr_message(`Take out what? [${available} or ?*]`);
+                const tch = await nhgetch();
+                if (tch === 27) break; // ESC → back to "Do what?" menu
+                const tidx = letters.indexOf(String.fromCharCode(tch));
+                if (tidx < 0 || tidx >= cur.length) continue;
+                const item = cur[tidx];
+                player.addToInventory(item); observeObject(item);
+                setContainerContents(container, cur.filter((_, i) => i !== tidx));
+                await display.putstr_message(`You take out ${doname(item, player)}.`);
+                tookTime = true;
+            }
+            // after ESC from take-out, loop back to "Do what?" menu (C behavior)
         } else if (c === 's') {
             // Stash one item — cf. pickup.c "Stash: put one item in".
             // C exits the container menu after one stash.

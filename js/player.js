@@ -10,6 +10,7 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
 import { M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC } from './monsters.js';
 import { objectData, COIN_CLASS, FOOD_CLASS } from './objects.js';
 import { weight } from './mkobj.js';
+import { skill_init, skills_for_role } from './weapon.js';
 
 const INVENTORY_LETTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -572,6 +573,10 @@ export class Player {
 
         // Starting AC depends on role; default 10 = unarmored
         this.ac = 10;
+
+        // cf. u_init.c:1400 — skill_init(skills_for_role())
+        // Initialize weapon/spell skill caps from the role's skill table.
+        skill_init(skills_for_role(roleIndex));
     }
 
     // Get the role name
