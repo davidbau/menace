@@ -23,7 +23,8 @@ import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, ACCESSIBLE,
          SHOPBASE, ROOMOFFSET, NORMAL_SPEED, isok } from './config.js';
 import { AMULET_OF_LIFE_SAVING, CORPSE } from './objects.js';
 import { which_armor } from './worn.js';
-import { W_AMUL, W_ARMG } from './worn.js';
+import { W_AMUL, W_ARMG,
+         W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMF, W_ARMU, W_WEP } from './worn.js';
 import { nonliving, resists_ston, resists_fire, resists_poison,
          is_flyer, is_floater,
          likes_lava, cant_drown, can_teleport, vegan as vegan_mondata,
@@ -722,7 +723,7 @@ export function lifesaved_monster(mon) {
 
 // C ref: mon.c check_gear_next_turn() — flag for next-turn equipment evaluation
 export function check_gear_next_turn(mon) {
-    mon.misc_worn_check = (mon.misc_worn_check || 0) | 0x80000000; // I_SPECIAL
+    mon.misc_worn_check = (mon.misc_worn_check || 0) | 0x20000000; // I_SPECIAL
 }
 
 // C ref: mon.c m_detach() — detach monster from map
@@ -1512,7 +1513,39 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                 continue;
             }
             // TODO: minliquid(mon) — drowning/sinking not yet ported
-            // TODO: m_dowear(mon, FALSE) — monster armor equipping not yet ported
+            // C ref: mon.c:1254-1267 — monster may spend turn equipping gear (I_SPECIAL check)
+            const I_SPECIAL = 0x20000000;
+            if (mon.misc_worn_check & I_SPECIAL) {
+                const mux = Number.isInteger(mon.mux) ? mon.mux : player.x;
+                const muy = Number.isInteger(mon.muy) ? mon.muy : player.y;
+                if (mon.mpeaceful || mon.mtame || dist2(mon.mx, mon.my, mux, muy) > 9) {
+                    mon.misc_worn_check = (mon.misc_worn_check & ~I_SPECIAL) >>> 0;
+                    const oldworn = mon.misc_worn_check;
+                    // Simplified m_dowear(FALSE): try to equip one unequipped wearable item.
+                    // Sub-type to wornmask mapping for armor (ARM_SUIT=0..ARM_SHIRT=6).
+                    const armorSubMask = [W_ARM, W_ARMS, W_ARMH, W_ARMG, W_ARMF, W_ARMC, W_ARMU];
+                    for (const obj of (mon.minvent || [])) {
+                        if (obj.owornmask) continue; // already worn/wielded
+                        const ocls = obj.oclass ?? obj.oc_class;
+                        if (ocls === 2 /* ARMOR_CLASS */) {
+                            const sub = obj.sub ?? 0;
+                            const bit = (sub >= 0 && sub < armorSubMask.length) ? armorSubMask[sub] : 0;
+                            if (bit && !(mon.misc_worn_check & bit)) {
+                                obj.owornmask = bit;
+                                mon.misc_worn_check = (mon.misc_worn_check | bit) >>> 0;
+                                break;
+                            }
+                        } else if (ocls === 1 /* WEAPON_CLASS */ && !(mon.misc_worn_check & W_WEP)) {
+                            obj.owornmask = W_WEP;
+                            mon.misc_worn_check = (mon.misc_worn_check | W_WEP) >>> 0;
+                            break;
+                        }
+                    }
+                    if (mon.misc_worn_check !== oldworn || mon.mcanmove === false) {
+                        continue; // spent this turn equipping
+                    }
+                }
+            }
             // C ref: mon.c:1277-1284 — eel hiding
             if (mon.type?.mlet === S_EEL && !mon.mundetected
                 && (mon.flee || distmin(mon.mx, mon.my, player.x, player.y) > 1)

@@ -37,6 +37,7 @@ import {
     M2_HOSTILE, M2_PEACEFUL, M2_DOMESTIC, M2_NEUTER, M2_GREEDY,
     M2_SHAPESHIFTER, M2_WERE, M2_PNAME, M2_HUMAN, M2_ELF, M2_DWARF,
     M2_MINION, M2_DEMON,
+    M3_WAITFORU, M3_CLOSE, M3_WAITMASK, M3_COVETOUS,
     M1_FLY, M1_NOHANDS, M1_SWIM, M1_AMPHIBIOUS, M1_WALLWALK, M1_AMORPHOUS,
     PM_ORC, PM_GIANT, PM_ELF, PM_HUMAN, PM_ETTIN, PM_MINOTAUR, PM_NAZGUL,
     PM_ELVEN_MONARCH,
@@ -1720,6 +1721,7 @@ function set_mimic_sym(mndx, x, y, map, depth) {
 // MM flags — C ref: hack.h
 export const NO_MM_FLAGS = 0;
 export const NO_MINVENT      = 0x00000001; // suppress minvent when creating mon
+export const MM_NOWAIT       = 0x00000002; // don't set STRAT_WAITFORU/STRAT_CLOSE from mflags3
 export const MM_IGNOREWATER  = 0x00000008;
 export const MM_ADJACENTOK   = 0x00000010;
 export const MM_NONAME       = 0x00000040; // monster is not christened
@@ -2226,6 +2228,16 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         if (!rn2(100) && is_domestic(ptr)) {
             mongets(mon,SADDLE);
         }
+    }
+
+    // C ref: makemon.c:1457-1463 — set mstrategy from mflags3 unless MM_NOWAIT.
+    if ((ptr.flags3 || 0) && !(mmflags & MM_NOWAIT)) {
+        const STRAT_WAITFORU  = 0x20000000;
+        const STRAT_CLOSE     = 0x10000000;
+        const STRAT_APPEARMSG = 0x80000000;
+        if (ptr.flags3 & M3_WAITFORU) mon.mstrategy = (mon.mstrategy || 0) | STRAT_WAITFORU;
+        if (ptr.flags3 & M3_CLOSE)    mon.mstrategy = (mon.mstrategy || 0) | STRAT_CLOSE;
+        if (ptr.flags3 & (M3_WAITMASK | M3_COVETOUS)) mon.mstrategy = (mon.mstrategy || 0) | STRAT_APPEARMSG;
     }
 
     // C ref: event_log("makemon[%d@%d,%d]", mndx, mtmp->mx, mtmp->my)

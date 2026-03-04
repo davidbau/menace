@@ -90,6 +90,7 @@ export { initrack, settrack };
 import { movemon as _movemon, mfndpos, handleHiderPremove,
          onscary,
          corpse_chance,
+         check_gear_next_turn,
          ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U, ALLOW_M, ALLOW_TM, ALLOW_ALL,
          NOTONL, OPENDOOR, UNLOCKDOOR, BUSTDOOR, ALLOW_ROCK, ALLOW_WALL,
          ALLOW_DIG, ALLOW_BARS, ALLOW_SANCT, ALLOW_SSM, NOGARLIC } from './mon.js';
@@ -942,6 +943,8 @@ async function dochug(mon, map, player, display, fov, game = null) {
         return true;
     }
 
+    // C ref: monmove.c:739-744 — sleep check: if sleeping and doesn't wake up, skip movement.
+    // If monster wakes up, dochug continues (wipe engravings, etc.).
     const monsterSleeping = !!(mon.msleeping || mon.sleeping);
     if (monsterSleeping) {
         monmoveTrace('dochug-skip',
@@ -951,11 +954,11 @@ async function dochug(mon, map, player, display, fov, game = null) {
             `reason=sleep`,
             `msleeping=${mon.msleeping ? 1 : 0}`,
             `sleeping=${mon.sleeping ? 1 : 0}`);
-        if (disturb(mon)) {
-            mon.sleeping = false;
-            mon.msleeping = 0;
+        if (!disturb(mon)) {
+            return;
         }
-        return;
+        mon.sleeping = false;
+        mon.msleeping = 0;
     }
 
     // C ref: monmove.c:735 — wipe engravings AFTER sleep check.
@@ -1387,6 +1390,7 @@ async function maybeMonsterPickStuff(mon, map, player, display, fov) {
             await display.putstr_message(`${Monnam(mon)} picks up ${seenName}.`);
         }
         mpickobj(mon, picked);
+        check_gear_next_turn(mon); // C ref: mon.c:1889 — let monster try to equip it next turn
         return true;
     }
     return false;
