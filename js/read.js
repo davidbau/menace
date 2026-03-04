@@ -35,6 +35,7 @@ import { getpos_sethilite, getpos_async, set_getpos_context } from './getpos.js'
 import { pline, impossible } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
 import { newsym } from './monutil.js';
+import { identify_pack } from './invent.js';
 
 const SPELL_KEEN = 20000; // cf. spell.c KEEN
 const MAX_SPELL_STUDY = 3; // cf. spell.h MAX_SPELL_STUDY
@@ -552,43 +553,22 @@ async function seffect_identify(sobj, player, display) {
         return true; // consumed
     }
 
-    // Identify items in inventory
     const inv = player.inventory || [];
-    if (inv.length) {
-        let cval = 1;
-        if (sblessed || (!scursed && !rn2(5))) {
-            cval = rn2(5);
-            // cval==0 means identify ALL
-            if (cval === 1 && sblessed && (player.luck || 0) > 0) {
-                ++cval;
-            }
-        }
-        // cf. identify_pack(cval) — identify cval items (0 = all)
-        if (cval === 0) {
-            // Identify everything
-            for (const obj of inv) {
-                obj.dknown = true;
-                obj.bknown = true;
-                obj.known = true;
-                discoverObject(obj.otyp, true, true);
-            }
-        } else {
-            // Identify cval items — in C this prompts, simplified: identify first N unknown
-            let remaining = cval;
-            for (const obj of inv) {
-                if (remaining <= 0) break;
-                if (!obj.dknown || !obj.bknown) {
-                    obj.dknown = true;
-                    obj.bknown = true;
-                    obj.known = true;
-                    discoverObject(obj.otyp, true, true);
-                    remaining--;
-                }
-            }
-        }
-    } else {
+    if (!inv.length) {
         await display.putstr_message("You're not carrying anything else to be identified.");
+        return true; // consumed (useup already called)
     }
+
+    let cval = 1;
+    if (sblessed || (!scursed && !rn2(5))) {
+        cval = rn2(5);
+        // cval==0 means identify ALL
+        if (cval === 1 && sblessed && (player.luck || 0) > 0) {
+            ++cval;
+        }
+    }
+    // C ref: read.c identify_pack(cval, FALSE)
+    await identify_pack(cval, player, false);
     return true; // consumed (useup already called)
 }
 
