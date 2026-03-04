@@ -219,9 +219,13 @@ export async function maybeDoTutorial(game) {
     add_menu(win, null, { ival: 'n' }, 'n'.charCodeAt(0), 0, ATR_NONE, 0, 'No, just start play', 0);
     end_menu(win, ' Do you want a tutorial?');
     const sel = await select_menu(win, PICK_ONE);
-    destroy_nhwindow(win);  // triggers _rerenderGame(), fixing bug #162
+    destroy_nhwindow(win);
     if (sel && sel[0].identifier.ival === 'y') {
         await enterTutorial(game);
+    } else {
+        // Clear the chargen menu from screen. _rerenderGame() can't run yet
+        // (map/fov aren't initialized until after init() returns), so clear directly.
+        game.display?.clearScreen?.();
     }
 }
 
