@@ -868,6 +868,12 @@ async function dochug(mon, map, player, display, fov, game = null) {
     // C ref: monmove.c:717-724 — immobile/waiting monsters cannot act.
     // Preserve Hallucination newsym side effect when represented.
     if (mon.mcanmove === false || (((mon.mstrategy || 0) & STRAT_WAITMASK) !== 0)) {
+        monmoveTrace('dochug-skip',
+            `step=${monmoveStepLabel(map)}`,
+            `id=${mon.m_id ?? '?'}`,
+            `mndx=${mon.mndx ?? '?'}`,
+            `reason=${mon.mcanmove === false ? 'mcanmove0' : 'waitmask'}`,
+            `mstrategy=0x${Number(mon.mstrategy || 0).toString(16)}`);
         if (player?.hallucinating) newsym(mon.mx, mon.my);
         return;
     }
@@ -896,8 +902,19 @@ async function dochug(mon, map, player, display, fov, game = null) {
         return true;
     }
 
-    if (mon.sleeping) {
-        if (disturb(mon)) mon.sleeping = false;
+    const monsterSleeping = !!(mon.msleeping || mon.sleeping);
+    if (monsterSleeping) {
+        monmoveTrace('dochug-skip',
+            `step=${monmoveStepLabel(map)}`,
+            `id=${mon.m_id ?? '?'}`,
+            `mndx=${mon.mndx ?? '?'}`,
+            `reason=sleep`,
+            `msleeping=${mon.msleeping ? 1 : 0}`,
+            `sleeping=${mon.sleeping ? 1 : 0}`);
+        if (disturb(mon)) {
+            mon.sleeping = false;
+            mon.msleeping = 0;
+        }
         return;
     }
 

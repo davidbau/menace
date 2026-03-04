@@ -136,6 +136,8 @@ export async function replaySession(seed, opts, keys) {
     let pendingCommand = null;
 
     for (let i = 0; i < keys.length; i++) {
+        const preMap = game.lev || game.map || null;
+        if (preMap) preMap._replayStepIndex = i;
         const prevCount = getRngLog().length;
         const ch = keys.charCodeAt(i);
         let commandSettled = false;
@@ -166,6 +168,8 @@ export async function replaySession(seed, opts, keys) {
         if (commandSettled) {
             rerenderLikeMainLoop(game);
         }
+        const postMap = game.lev || game.map || null;
+        if (postMap) postMap._replayStepIndex = i;
 
         const raw = getRngLog().slice(prevCount);
         const step = {
