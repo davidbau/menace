@@ -1365,7 +1365,9 @@ export async function kick_dumb(x, y, map, player) {
     await exercise(A_STR, false);
     set_wounded_legs(RIGHT_SIDE, 5 + rnd(5));
   }
-  if ((Is_airlevel(map.uz) || Levitation) && rn2(2)) await hurtle(-player.dx, -player.dy, 1, true);
+  if ((Is_airlevel(player.uz) || player.levitating) && rn2(2)) {
+      await hurtle(-player.dx, -player.dy, 1, true);
+  }
 }
 
 // ============================================================================
@@ -1390,7 +1392,9 @@ export async function kick_ouch(x, y, kickobjnam, game, map, player) {
   if (!rn2(3)) set_wounded_legs(RIGHT_SIDE, 5 + rnd(5));
   dmg = rnd(ACURR(A_CON) > 15 ? 3 : 5);
   await losehp(Maybe_Half_Phys(dmg), kickstr(buf, kickobjnam), KILLED_BY);
-  if (Is_airlevel(map.uz) || Levitation) await hurtle(-player.dx, -player.dy, rn1(2, 4), true);
+  if (Is_airlevel(player.uz) || player.levitating) {
+      await hurtle(-player.dx, -player.dy, rn1(2, 4), true);
+  }
 }
 
 // ============================================================================
@@ -1402,13 +1406,13 @@ async function kick_door(x, y, avrg_attrib, maploc, player, map, game) {
     const doormask = maploc.flags || maploc.doormask || 0;
 
     if (doormask === D_ISOPEN || doormask === D_BROKEN || doormask === D_NODOOR) {
-        await kick_dumb(x, y, player, map);
+        await kick_dumb(x, y, map, player);
         return;
     }
 
     // not enough leverage while levitating
     if (player.levitating) {
-        await kick_ouch(x, y, "", maploc, player, map);
+        await kick_ouch(x, y, "", game, map, player);
         return;
     }
 
