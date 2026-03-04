@@ -16,7 +16,7 @@ import { nhgetch, ynFunction, getlin, cmdq_pop_command, cmdq_clear, cmdq_add_ec,
 import { handleEat } from './eat.js';
 import { handleQuaff } from './potion.js';
 import { handleRead } from './read.js';
-import { handleWear, handlePutOn, handleTakeOff, handleRemove } from './do_wear.js';
+import { handleWear, handlePutOn, handleTakeOff, handleRemove, handleRemoveAll } from './do_wear.js';
 import { handleWield, handleSwapWeapon, handleQuiver } from './wield.js';
 import { handleDownstairs, handleUpstairs, handleDrop } from './do.js';
 import { handleInventory, currency } from './invent.js';
@@ -344,6 +344,12 @@ export async function rhack(ch, game) {
     // C ref: do_wear.c doremring()
     if (c === 'R') {
         return await handleRemove(player, display);
+    }
+
+    // Take off all worn items (category menu)
+    // C ref: do_wear.c doddoremarm()
+    if (c === 'A') {
+        return await handleRemoveAll(player, display, game);
     }
 
     // Engrave

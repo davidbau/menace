@@ -669,7 +669,8 @@ export class HeadlessDisplay {
 
         for (let i = 0; i < menuRows; i++) {
             const line = lines[i];
-            const isHeader = isCategoryHeader(line);
+            // C ref: wintty.c — menu prompt (line 0) and category headers use inverse video.
+            const isHeader = (i === 0 && line.trim().length > 0) || isCategoryHeader(line);
             if (isHeader) {
                 // C ref: wintty.c — category headers have a single leading
                 // space that is part of the clear region, not inverse video.

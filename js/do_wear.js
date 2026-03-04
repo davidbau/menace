@@ -40,7 +40,7 @@ import { doname, is_crackable } from './mkobj.js';
 import { armor_simple_name } from './objnam.js';
 import { is_metallic, obj_resists } from './objdata.js';
 import { which_armor } from './worn.js';
-import { useup } from './invent.js';
+import { useup, renderOverlayMenuUntilDismiss } from './invent.js';
 import { discoverObject } from './discovery.js';
 import { pline, You, You_feel } from './pline.js';
 import { rn2, rnd } from './rng.js';
@@ -1260,6 +1260,57 @@ function remarm_swapwep(_player) {
 function menu_remarm(_retry) {
     // No-op: menu system for multi-remove not yet ported
     return 0;
+}
+
+// cf. do_wear.c doddoremarm() — 'A' command: show category menu for take-off-all
+export async function handleRemoveAll(player, display, _game) {
+    // Collect worn/wielded items via player slot properties (owornmask not reliably set in JS)
+    const wornItems = [
+        player.weapon, player.swapwep, player.quiver,
+        player.armor, player.cloak, player.shirt, player.helmet,
+        player.gloves, player.boots, player.shield,
+        player.leftRing, player.rightRing, player.amulet,
+    ].filter(Boolean);
+    if (wornItems.length === 0) {
+        await pline("Not wearing anything.");
+        return { moved: false, tookTime: false };
+    }
+
+    // Build category menu (cf. C query_category with WORN_TYPES|ALL_TYPES|BUCX_TYPES)
+    const CLASS_LABEL = {
+        1: 'Weapons', 2: 'Armor', 3: 'Rings', 4: 'Amulets',
+        5: 'Tools', 6: 'Comestibles', 7: 'Potions', 8: 'Scrolls',
+        9: 'Spellbooks', 10: 'Wands', 11: 'Coins', 12: 'Gems/Stones',
+    };
+    // Mirrors C def_inv_order (COIN, AMULET, WEAPON, ARMOR, FOOD, SCROLL, SPBOOK, POTION, RING, WAND, TOOL, GEM, ROCK, BALL, CHAIN)
+    const INV_ORDER = [11, 4, 1, 2, 6, 8, 9, 7, 3, 10, 5, 12, 13, 14, 15];
+
+    const lines = ["What type of things do you want to take off?", ""];
+    lines.push("a - All worn and wielded types");
+
+    let autoChar = 'b'.charCodeAt(0);
+    const wornClasses = new Set(wornItems.map(o => o.oclass));
+    for (const cls of INV_ORDER) {
+        if (!wornClasses.has(cls)) continue;
+        const label = CLASS_LABEL[cls] || 'Other';
+        lines.push(String.fromCharCode(autoChar) + " - " + label);
+        autoChar++;
+        if (autoChar > 'z'.charCodeAt(0)) autoChar = 'A'.charCodeAt(0);
+    }
+
+    // BUC entries with fixed letters (only shown if any worn item has that status)
+    const bucLines = [];
+    if (wornItems.some(o => o.bknown && o.blessed))                  bucLines.push("B - Items known to be Blessed");
+    if (wornItems.some(o => o.bknown && o.cursed))                   bucLines.push("C - Items known to be Cursed");
+    if (wornItems.some(o => o.bknown && !o.blessed && !o.cursed))    bucLines.push("U - Items known to be Uncursed");
+    if (wornItems.some(o => !o.bknown))                              bucLines.push("X - Items of unknown B/C/U status");
+    if (bucLines.length > 0) {
+        lines.push("", ...bucLines);
+    }
+    lines.push("(end)");
+
+    await renderOverlayMenuUntilDismiss(display, lines, '');
+    return { moved: false, tookTime: false };
 }
 
 // ============================================================
