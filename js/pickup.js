@@ -1357,6 +1357,12 @@ function setContainerContents(container, items) {
     }
 }
 
+async function announceLootedItems(display, player, items, verb) {
+    for (const item of (items || [])) {
+        await display.putstr_message(`You ${verb} ${doname(item, player)}.`);
+    }
+}
+
 async function handleLoot(game) {
     const { player, map, display } = game;
 
@@ -1391,8 +1397,7 @@ async function handleLoot(game) {
             observeObject(item);
         }
         setContainerContents(container, []);
-        const count = contents.length;
-        await display.putstr_message(`You loot ${count} item${count === 1 ? '' : 's'}.`);
+        await announceLootedItems(display, player, contents, 'loot');
         return { moved: false, tookTime: true };
     }
 
@@ -1443,8 +1448,7 @@ async function handleLoot(game) {
         observeObject(item);
     }
     setContainerContents(container, []);
-    const count = contents.length;
-    await display.putstr_message(`You take out ${count} item${count === 1 ? '' : 's'}.`);
+    await announceLootedItems(display, player, contents, 'take out');
     return { moved: false, tookTime: true };
 }
 
