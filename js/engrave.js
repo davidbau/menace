@@ -25,7 +25,7 @@ import { compactInvletPromptChars } from './invent.js';
 import { pline, You, You_cant, impossible, You_see } from './pline.js';
 import {
     COLNO, ROWNO, ROOM, GRAVE, FOUNTAIN, ICE,
-    ACCESSIBLE, isok,
+    ACCESSIBLE, is_hole, is_pit, isok,
 } from './config.js';
 import { is_lava, is_pool, is_pool_or_lava } from './dbridge.js';
 import { IS_GRAVE, IS_AIR } from './symbols.js';
@@ -33,6 +33,9 @@ import { newsym } from './monutil.js';
 import { goodpos } from './teleport.js';
 import { makemon } from './makemon.js';
 import { exercise } from './attrib_exercise.js';
+import { t_at } from './trap.js';
+import { attacktype, ceiling_hider, sticks } from './mondata.js';
+import { AT_HUGS, MZ_HUGE } from './monsters.js';
 
 function engrTraceEnabled() {
     const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
@@ -87,9 +90,26 @@ export function del_engr(map, x, y) {
 // cf. engrave.c:461 — del_engr_at(x, y)
 // Deletes any engraving at location (x,y). Convenience wrapper around del_engr.
 // Autotranslated from engrave.c:462
-export function del_engr_at(x, y) {
-  let ep = engr_at(x, y);
-  if (ep) del_engr(ep);
+export function del_engr_at(mapOrX, xOrY, yMaybe) {
+    let map = null;
+    let x = null;
+    let y = null;
+
+    if (mapOrX && Array.isArray(mapOrX.engravings)) {
+        map = mapOrX;
+        x = xOrY;
+        y = yMaybe;
+    } else if (yMaybe && Array.isArray(yMaybe.engravings)) {
+        x = mapOrX;
+        y = xOrY;
+        map = yMaybe;
+    } else {
+        return;
+    }
+
+    if (!Number.isInteger(x) || !Number.isInteger(y)) return;
+    const ep = engr_at(map, x, y);
+    if (ep) del_engr(map, x, y);
 }
 
 // C ref: engrave.c:120 — wipeout_text(engr, cnt, seed=0)
@@ -175,21 +195,40 @@ export async function wipe_engr_at(map, x, y, cnt, magical = false) {
 //           Flying/huge size, pit teetering.
 // In JS the player properties for Levitation/Flying/etc. are not yet uniformly
 // available, so this is a simplified version that covers the common cases.
-export function can_reach_floor(player, map) {
+export function can_reach_floor(player, map, check_pit = false) {
     if (!player) return true;
-    // C: if (u.uswallow) return FALSE
-    if (player.uswallow) return false;
-    // C: if (u.ustuck && !sticks(youmonst.data) && attacktype(ustuck.data, AT_HUGS))
-    // Simplified: if stuck and not sticking, can't reach
-    // C: if (Levitation && !(Is_airlevel || Is_waterlevel)) return FALSE
-    const props = player.uprops || {};
-    const HLevitation = (props[19] && props[19].intrinsic) || 0; // LEVITATION = 19
-    const ELevitation = (props[19] && props[19].extrinsic) || 0;
-    if (HLevitation || ELevitation) return false;
-    // C: if (u.usteed && P_SKILL(P_RIDING) < P_BASIC) return FALSE
-    if (player.usteed) return false; // simplified: all riders can't reach
-    // C: Flying or huge size => can reach
-    // For simplicity, assume reachable in the common ground case
+    const mapRef = map || player.lev || player.map || null;
+    const youmonst = player.data || player.type || null;
+    const stuckData = player.ustuck?.data || player.ustuck?.type || null;
+    const levitation = !!(player.Levitation || player.levitating
+        || player.inherentLevitation
+        || ((player.uprops || {})[19]?.intrinsic)
+        || ((player.uprops || {})[19]?.extrinsic));
+
+    if (player.uswallow
+        || (player.ustuck && !sticks(youmonst) && attacktype(stuckData, AT_HUGS))
+        || levitation) {
+        return false;
+    }
+    // C checks riding skill; JS does not track full skill state here. Keep
+    // prior conservative behavior: riders can't reach floor.
+    if (player.usteed) return false;
+    if (player.uundetected && ceiling_hider(youmonst)) return false;
+
+    if (player.Flying || player.flying || (youmonst?.size >= MZ_HUGE)) {
+        return true;
+    }
+
+    // C: if check_pit and hero is teetering at seen pit or just escaped shaft,
+    // cannot reach floor.
+    const trap = check_pit && mapRef ? t_at(player.x, player.y, mapRef) : null;
+    if (trap?.tseen) {
+        const heroInPit = !!player.utrap && (is_pit(trap.ttyp) || is_hole(trap.ttyp));
+        if ((is_pit(trap.ttyp) && !heroInPit) || (is_hole(trap.ttyp) && !heroInPit)) {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -235,7 +274,7 @@ export function sengr_at(map, s, x, y, strict) {
 // cf. engrave.c:264 — u_wipe_engr(cnt): wipe engraving at hero's location
 // Wipes cnt characters from engraving at hero's position if reachable.
 export async function u_wipe_engr(player, map, cnt) {
-    if (can_reach_floor(player, map)) await wipe_engr_at(map, player.x, player.y, cnt, false);
+    if (can_reach_floor(player, map, true)) await wipe_engr_at(map, player.x, player.y, cnt, false);
 }
 
 // cf. engrave.c:297 — engr_can_be_felt(ep): engraving can be felt?
@@ -743,7 +782,7 @@ export async function maybeSmudgeEngraving(map, x1, y1, x2, y2, player) {
         return `${ep.type || '?'} len=${txt.length} nowipeout=${ep.nowipeout ? 1 : 0}`;
     };
     // C ref: if (can_reach_floor(TRUE)) { ... }
-    const reach = can_reach_floor(player, map);
+    const reach = can_reach_floor(player, map, true);
     engrTrace(`step=${step}`, `maybeSmudgeEngraving reach=${reach ? 1 : 0}`, `from=(${x1},${y1})`, `to=(${x2},${y2})`);
     if (!reach) return;
     // C ref: if ((ep = engr_at(x1,y1)) && ep->engr_type != HEADSTONE)

@@ -1567,7 +1567,8 @@ export function clear_conjoined_pits(trap) {
 
 // Autotranslated from trap.c:6512
 export function adj_nonconjoined_pit(adjtrap, player) {
-  let trap_with_u = t_at(player.x0, player.y0);
+  const map = player?.lev || player?.map || null;
+  let trap_with_u = map ? t_at(player.x0, player.y0, map) : null;
   if (trap_with_u && adjtrap && player.utrap && player.utraptype === TT_PIT && is_pit(trap_with_u.ttyp) && is_pit(adjtrap.ttyp)) {
     if (xytod(player.dx, player.dy) !== DIR_ERR) return true;
   }
@@ -1576,12 +1577,12 @@ export function adj_nonconjoined_pit(adjtrap, player) {
 
 // Autotranslated from trap.c:6556
 export function uteetering_at_seen_pit(trap, player) {
-  return (trap && is_pit(trap.ttyp) && trap.tseen && u_at(trap.tx, trap.ty) && !(player.utrap && player.utraptype === TT_PIT));
+  return (trap && is_pit(trap.ttyp) && trap.tseen && u_at(player, trap.tx, trap.ty) && !(player.utrap && player.utraptype === TT_PIT));
 }
 
 // Autotranslated from trap.c:6568
-export function uescaped_shaft(trap) {
-  return (trap && is_hole(trap.ttyp) && trap.tseen && u_at(trap.tx, trap.ty));
+export function uescaped_shaft(trap, player) {
+  return (trap && is_hole(trap.ttyp) && trap.tseen && u_at(player, trap.tx, trap.ty));
 }
 
 // Autotranslated from trap.c:6576
