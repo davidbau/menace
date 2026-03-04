@@ -1478,7 +1478,7 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
     for (const mon of map.monsters) {
         if (mon.dead) continue;
         // C ref: mon.c:1230 — m_everyturn_effect called for ALL alive monsters before movement check
-        if (everyturnEffect) everyturnEffect(mon, map, player, game);
+        if (everyturnEffect) await everyturnEffect(mon, map, player, game);
         if (mon.movement >= NORMAL_SPEED) {
             pushRngLogEntry(`^movemon_turn[${mon.mndx}@${mon.mx},${mon.my} mv=${mon.movement}->${mon.movement - NORMAL_SPEED}]`);
             const oldx = mon.mx;
