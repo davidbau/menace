@@ -1719,3 +1719,14 @@ hard-won wisdom:
 - Debugging rule: when text is identical but appears one step early/late and
   RNG/events still match, treat it as step-boundary timing skew (render/flush
   boundary attribution), not a gameplay logic mismatch.
+
+### seed307 follow-up: fixture skew confirmed by re-record (2026-03-04)
+
+- `seed307_priest_selfplay200_gameplay` was later re-recorded and now passes
+  with full screen parity, confirming this case was fixture-side capture skew.
+- Practical triage for adjacent-step text skew:
+  1. If RNG/events diverge: treat as gameplay/state bug.
+  2. If RNG/events match but per-step attribution shifts: treat as engine
+     timing/display-boundary skew.
+  3. If re-record removes the mismatch without code changes: classify as
+     recording/capture skew and prefer fixture replacement over engine edits.
