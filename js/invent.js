@@ -1409,6 +1409,84 @@ export function is_inuse(obj, player) {
     return is_worn(obj, player) || tool_being_used(obj, player);
 }
 
+// C ref: invent.c doorganize() — #adjust extended command
+// Prompt for an inventory item then reassign its letter.
+export async function doorganize(game) {
+    const { player, display } = game;
+    const inv = Array.isArray(player.inventory) ? player.inventory : [];
+    if (!inv.length) {
+        await display.putstr_message("You have nothing to adjust.");
+        return { moved: false, tookTime: false };
+    }
+
+    // Step 1: prompt for which item to adjust (by inventory letter)
+    const letters = inv.map(o => o.invlet).join('');
+    const selectPrompt = `Adjust which item? [${letters} or ?*]`;
+    await display.putstr_message(selectPrompt);
+    if (typeof display.setCursor === 'function') {
+        display.setCursor(Math.min(selectPrompt.length + 1, (display.cols || 80) - 1), 0);
+    }
+
+    let selected = null;
+    while (!selected) {
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+        if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
+            if (typeof display.clearRow === 'function') display.clearRow(0);
+            display.topMessage = null;
+            await display.putstr_message('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+        if (c === '?' || c === '*') continue;
+        selected = inv.find(o => o.invlet === c);
+    }
+
+    // Step 2: prompt for target letter
+    if (typeof display.clearRow === 'function') display.clearRow(0);
+    display.topMessage = null;
+
+    const usedLetters = new Set(inv.map(o => o.invlet));
+    const allLetters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let availStr = '';
+    {
+        let i = 0;
+        while (i < allLetters.length) {
+            const ch = allLetters[i];
+            if (!usedLetters.has(ch) || ch === selected.invlet) {
+                let j = i;
+                while (j + 1 < allLetters.length
+                    && (!usedLetters.has(allLetters[j + 1]) || allLetters[j + 1] === selected.invlet)) {
+                    j++;
+                }
+                if (j - i >= 2) {
+                    availStr += `${allLetters[i]}-${allLetters[j]}`;
+                } else {
+                    for (let k = i; k <= j; k++) availStr += allLetters[k];
+                }
+                i = j + 1;
+            } else {
+                i++;
+            }
+        }
+    }
+    const adjustPrompt = `Adjust letter to what [${availStr}] (? see used letters)?`;
+    await display.putstr_message(adjustPrompt);
+    const adjCh = await nhgetch();
+    const adjChar = String.fromCharCode(adjCh);
+    if (typeof display.clearRow === 'function') display.clearRow(0);
+    display.topMessage = null;
+    if (adjCh === 27 || adjCh === 10 || adjCh === 13 || adjCh === 32) {
+        await display.putstr_message('Never mind.');
+        return { moved: false, tookTime: false };
+    }
+    if (/^[a-zA-Z]$/.test(adjChar)) {
+        const other = inv.find(o => o !== selected && o.invlet === adjChar);
+        if (other) other.invlet = selected.invlet;
+        selected.invlet = adjChar;
+    }
+    return { moved: false, tookTime: false };
+}
+
 // C ref: invent.c getobj() — prompt player to select an inventory object
 // Simplified JS version that works with the existing input system
 export function getobj_simple(word, obj_ok, player) {

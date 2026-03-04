@@ -19,7 +19,7 @@ import { handleRead } from './read.js';
 import { handleWear, handlePutOn, handleTakeOff, handleRemove, handleRemoveAll } from './do_wear.js';
 import { handleWield, handleSwapWeapon, handleQuiver } from './wield.js';
 import { handleDownstairs, handleUpstairs, handleDrop } from './do.js';
-import { handleInventory, currency } from './invent.js';
+import { handleInventory, currency, doorganize } from './invent.js';
 import { handleCallObjectTypePrompt, handleDiscoveries } from './discovery.js';
 import { handlePrevMessages, handleHelp, handleWhatdoes, handleHistory, handleViewMapPrompt } from './pager.js';
 import { dolook, dowhatis, doquickwhatis } from './look.js';
@@ -681,6 +681,9 @@ async function handleExtendedCommand(game) {
         case 'optionsfull':
             queueRepeatExtcmd((g) => handleSet(g, { showAdvanced: true }));
             return await handleSet(game, { showAdvanced: true });
+        case 'adjust':
+            queueRepeatExtcmd((g) => doorganize(g));
+            return await doorganize(game);
         case 'n':
         case 'name': {
             queueRepeatExtcmd(async (g) => handleExtendedCommandName(g));
