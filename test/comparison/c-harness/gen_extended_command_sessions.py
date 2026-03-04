@@ -7,6 +7,8 @@ Commands covered:
   #offer    -- sacrifice at altar (try #offer when not on altar)
   #monster  -- polymorphed special ability (Ctrl-W wish poly potion, drink, #monster)
                also records non-polymorphed response for completeness
+  #loot     -- full container interaction: wish apple+chest, drop chest, loot it
+               shows: put-in, look-in, take-out prompt flows
 
 Notes on C wizard mode:
   - #levelchange  works as a text extended command
@@ -26,6 +28,7 @@ Usage:
     python3 gen_extended_command_sessions.py --chat
     python3 gen_extended_command_sessions.py --offer
     python3 gen_extended_command_sessions.py --monster
+    python3 gen_extended_command_sessions.py --loot
     python3 gen_extended_command_sessions.py --all
 
 Output: test/comparison/sessions/pending/seed500_extcmd_<cmd>.session.json
@@ -151,6 +154,52 @@ def capture_monster(seed=503):
     print(f'  -> {out}')
 
 
+def capture_loot(seed=504):
+    """Full #loot container interaction flow with multiple items.
+
+    C behavior (seed 504, wizard mode):
+    - Case 1: #loot '.' with nothing on floor → "You don't find anything here to loot."
+    - Set up: wish apple(→'n'), carrot(→'o'), sack(→'p'); drop sack
+    - 's' stash exits the container menu after one item → re-loot for each stash:
+      → #loot + 's' + 'n': stash apple → "You put an apple into the bag."
+      → #loot + 's' + 'o': stash carrot → "You put a carrot into the bag."
+    - #loot: re-enter → "Do what with the bag?"
+      → ':' (look in) → shows bag contents → SP to dismiss
+      → 'o' (take Out) → "Take out what? [ab or ?*]" → 'a' (apple) → ESC
+      → 'q' to quit
+
+    Note: sacks/bags are not lockable unlike chests (which are often locked).
+    When a container is at the player's position, #loot skips the direction prompt.
+    's' (stash) puts one item in and exits the container menu automatically.
+    Probe confirmed letters: first wish→'n', second→'o', third→'p'.
+    """
+    print(f'Capturing #loot (seed {seed})...')
+    moves = (
+        # Case 1: #loot '.' on empty floor → "You don't find anything here to loot."
+        extcmd('loot') + '.'
+        # Set up: wish for apple, carrot, sack (letters n, o, p)
+        + CTRL_W + 'apple\n'     # → inv letter 'n'
+        + CTRL_W + 'carrot\n'    # → inv letter 'o'
+        + CTRL_W + 'sack\n'      # → inv letter 'p' (C gives "a bag")
+        + 'd' + 'p'              # drop bag to floor
+        # Stash apple into bag ('s' exits menu after one item)
+        + extcmd('loot') + 's' + 'n'
+        # Stash carrot into bag
+        + extcmd('loot') + 's' + 'o'
+        # Re-enter loot to show look-in and take-out flow
+        + extcmd('loot')         # "Do what with the bag? [:oibrsq or ?] (q)"
+        + ':'                    # look In → shows bag contents (apple + carrot)
+        + SP                     # dismiss look-in display
+        + 'o'                    # take Out → "Take out what? [ab or ?*]"
+        + 'a'                    # take apple out (first item in bag = 'a')
+        + '\x1b'                 # ESC: done taking out, back to "Do what" prompt
+        + 'q'                    # quit the loot prompt
+    )
+    out = os.path.join(SESSIONS_DIR, f'seed{seed}_extcmd_loot.session.json')
+    _rs.run_session(seed, out, moves, raw_moves=True, wizard_mode=True, character=CHARACTER)
+    print(f'  -> {out}')
+
+
 def main():
     args = sys.argv[1:]
     if not args:
@@ -168,6 +217,8 @@ def main():
         capture_offer()
     if run_all or '--monster' in args:
         capture_monster()
+    if run_all or '--loot' in args:
+        capture_loot()
 
 
 if __name__ == '__main__':
