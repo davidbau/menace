@@ -47,7 +47,7 @@ import { drag_ball as drag_ball_core } from './ball.js';
 import { pline, You, You_feel, You_cant, set_msg_xy } from './pline.js';
 import { look_here, dfeature_at } from './invent.js';
 import { maybe_unhide_at } from './mon.js';
-import { MZ_LARGE } from './monsters.js';
+import { MZ_LARGE, PM_GRID_BUG } from './monsters.js';
 
 // Run direction keys (shift = run)
 export const RUN_KEYS = {
@@ -416,6 +416,37 @@ export async function domove_bump_mon(mon, _glyph, _nopick, game, display) {
 export async function domove_swap_with_pet(mon, nx, ny, dir, player, map, display, game) {
     const oldPlayerX = player.x;
     const oldPlayerY = player.y;
+    const diagSwap = (oldPlayerX !== nx) && (oldPlayerY !== ny);
+    const monTrap = mon?.mtrapped ? (map?.trapAt ? map.trapAt(mon.mx, mon.my) : null) : null;
+    const blockedPit = !!(mon?.mtrapped
+        && monTrap
+        && is_pit(monTrap.ttyp)
+        && sobj_at(BOULDER, monTrap.tx, monTrap.ty, map));
+    const noDiag = Number(mon?.mndx ?? -1) === PM_GRID_BUG;
+    const heroOldTrap = map?.trapAt ? map.trapAt(oldPlayerX, oldPlayerY) : null;
+
+    // C ref: hack.c domove_swap_with_pet() — clear hidden state before swap checks.
+    mon.mundetected = 0;
+    if (monTrap) mon.mtrapped = true;
+    else mon.mtrapped = 0;
+
+    if (blockedPit) {
+        // C: silently fail swap when pet is pinned in pit by a boulder.
+        return false;
+    }
+    if (diagSwap && noDiag) {
+        await You('stop.  %s can\'t move diagonally.', YMonnam(mon));
+        return false;
+    }
+    if (mon.peaceful && mon.mtrapped) {
+        await You('stop.  %s can\'t move out of that trap.', YMonnam(mon));
+        return false;
+    }
+    if (mon.peaceful && heroOldTrap) {
+        await You('stop.  %s doesn\'t want to swap places.', YMonnam(mon));
+        return false;
+    }
+
     // C ref: remove_monster/place_monster → newsym at old+new positions
     const petOldX = mon.mx, petOldY = mon.my;
     mon.mx = oldPlayerX;
@@ -451,6 +482,7 @@ export async function domove_swap_with_pet(mon, nx, ny, dir, player, map, displa
             await display.putstr_message(`You see here ${describeGroundObjectForPlayer(seen, player, map)}.`);
         }
     }
+    return true;
 }
 
 // C ref: hack.c domove_attackmon_at()
@@ -466,32 +498,49 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
     // C ref: is_safemon(mon) uses canspotmon(mon), not canseemon(mon).
     // Use map+FOV-aware spotting semantics so safe-mon gating matches C.
     const safeMonVisible = canSpotMonsterForMap(mon, map, player, game?.fov || null);
-    const shouldDisplace = safeDogEnabled
-        && !!mon.peaceful
+    // C ref: is_safemon() protects peaceful monsters and (optionally) tame pets.
+    const safeMon = !!mon.peaceful || (!!mon.tame && safeDogEnabled);
+    const shouldDisplace = safeMon
         && safeMonVisible
         && !disoriented
         && !forcefight;
+    runTrace(
+        `step=${replayStepLabel(map)}`,
+        'domove_attackmon_at',
+        `mon=${mon?.mndx ?? '?'}@${mon?.mx},${mon?.my}`,
+        `target=${nx},${ny}`,
+        `tame=${mon?.tame ? 1 : 0}`,
+        `peaceful=${mon?.peaceful ? 1 : 0}`,
+        `visible=${safeMonVisible ? 1 : 0}`,
+        `safe=${safeMon ? 1 : 0}`,
+        `displace=${shouldDisplace ? 1 : 0}`,
+        `forcefight=${forcefight ? 1 : 0}`,
+    );
     if (shouldDisplace) {
         const monData = mon.type || {};
         const playerLoc = map?.at ? map.at(player.x, player.y) : null;
-        const monLoc = map?.at ? map.at(mon.mx, mon.my) : null;
-        const monRoomNo = Number(monLoc?.roomno || 0);
-        const monRoom = (monRoomNo >= ROOMOFFSET) ? map?.rooms?.[monRoomNo - ROOMOFFSET] : null;
-        const inTendedShop = !!(monRoom
-            && Number(monRoom.rtype || 0) >= SHOPBASE
-            && monRoom.resident
-            && inhishop(monRoom.resident, map));
         const punished = !!(player?.Punished || player?.punished || player?.uchain);
         const petIsLongworm = !!(is_longworm(monData) && mon.wormno);
         const obstructedHeroSquare = !!(playerLoc && IS_OBSTRUCTED(playerLoc.typ));
-        const blocked = (
-            inTendedShop
-            ||
+        // C ref: uhitm.c do_attack() — evaluate foo first (including rn2(7)),
+        // then only check in-shop when foo is false.
+        const foo = (
             punished
             || !rn2(7)
             || petIsLongworm
             || (obstructedHeroSquare && !passes_walls(monData))
         );
+        let inTendedShop = false;
+        if (!foo) {
+            const monLoc = map?.at ? map.at(mon.mx, mon.my) : null;
+            const monRoomNo = Number(monLoc?.roomno || 0);
+            const monRoom = (monRoomNo >= ROOMOFFSET) ? map?.rooms?.[monRoomNo - ROOMOFFSET] : null;
+            inTendedShop = !!(monRoom
+                && Number(monRoom.rtype || 0) >= SHOPBASE
+                && monRoom.resident
+                && inhishop(monRoom.resident, map));
+        }
+        const blocked = (inTendedShop || foo);
         if (blocked) {
             if (mon.tame) {
                 await monflee(mon, rnd(6), false, false, player, display, null);
@@ -513,16 +562,11 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
             clear_forcefight_prefix(game, ctx);
             return { handled: true, moved: false, tookTime: true };
         }
-        await domove_swap_with_pet(mon, nx, ny, dir, player, map, display, game);
+        const swapped = await domove_swap_with_pet(mon, nx, ny, dir, player, map, display, game);
         clear_forcefight_prefix(game, ctx);
-        return { handled: true, moved: true, tookTime: true };
+        return { handled: true, moved: !!swapped, tookTime: true };
     }
 
-    if (mon.tame && game.flags?.safe_pet && !forcefight) {
-        await display.putstr_message("You cannot attack your pet!");
-        clear_forcefight_prefix(game, ctx);
-        return { handled: true, moved: false, tookTime: false };
-    }
     if (mon.peaceful && !mon.tame && game.flags?.confirm) {
         const answer = await ynFunction(
             `Really attack ${x_monnam(mon)}?`,
@@ -731,6 +775,13 @@ export async function domove_core(dir, player, map, display, game) {
 
     // Check for monster at target position
     const mon = map.monsterAt(nx, ny);
+    runTrace(
+        `step=${replayStepLabel(map)}`,
+        'domove_target',
+        `from=${oldX},${oldY}`,
+        `to=${nx},${ny}`,
+        `mon=${mon ? `${mon.mndx}@${mon.mx},${mon.my}` : 'none'}`,
+    );
     if (mon) {
         const bump = await domove_bump_mon(mon, null, nopick, game, display);
         if (bump.handled) {
