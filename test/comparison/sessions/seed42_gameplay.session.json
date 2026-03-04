@@ -2,7 +2,7 @@
 "version":3,
 "seed":42,
 "source":"c",
-"recorded_with":{"menace": "2da23e9f", "nethack_c": "79c688cc6"},
+"recorded_with":{"menace": "b8e24a57", "nethack_c": "79c688cc6"},
 "regen":{"mode": "gameplay", "moves": ":hhlhhhh.hhs"},
 "options":{"name": "Wizard", "role": "Valkyrie", "race": "human", "gender": "female", "align": "neutral", "wizard": true, "symset": "DECgraphics", "autopickup": false, "pickup_types": ""},
 "steps":[
