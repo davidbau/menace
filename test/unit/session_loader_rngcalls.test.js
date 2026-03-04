@@ -35,12 +35,12 @@ test('normalizeSession preserves explicit rngCalls values', () => {
     assert.equal(normalized.steps[0]?.rngCalls, 2);
 });
 
-test('getSessionScreenAnsiLines prefers explicit screenAnsi over plain screen', () => {
+test('getSessionScreenAnsiLines returns ANSI lines from v3 screen string', () => {
+    // v3 canonical: screen is a string with ANSI sequences, split by newline.
     const lines = getSessionScreenAnsiLines({
-        screen: ['plain-line'],
-        screenAnsi: ['\u001b[31mred-line\u001b[0m'],
+        screen: '\u001b[31mred-line\u001b[0m\nplain-line',
     });
-    assert.deepEqual(lines, ['\u001b[31mred-line\u001b[0m']);
+    assert.deepEqual(lines, ['\u001b[31mred-line\u001b[0m', 'plain-line']);
 });
 
 }); // describe
