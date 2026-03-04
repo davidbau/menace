@@ -62,6 +62,7 @@ const __dirname = dirname(__filename);
 const SESSIONS_DIR = join(__dirname, 'sessions');
 const MAPS_DIR = join(__dirname, 'maps');
 const SKIP_SESSIONS = new Set();
+const DEFAULT_FIXED_DATETIME = '20000110090000';
 
 function createReplayResult(session) {
     const result = createSessionResult({
@@ -914,6 +915,12 @@ export async function runSessionBundle({
     onProgress = null,
     sessionTimeoutMs = 20000,
 } = {}) {
+    // Keep JS replay-time calendar/luck behavior aligned with C captures.
+    // Allow explicit caller override via environment.
+    if (!process.env.NETHACK_FIXED_DATETIME) {
+        process.env.NETHACK_FIXED_DATETIME = DEFAULT_FIXED_DATETIME;
+    }
+
     const sessions = loadAllSessions({
         sessionsDir: SESSIONS_DIR,
         mapsDir: MAPS_DIR,

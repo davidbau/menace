@@ -107,6 +107,14 @@ runnerLog(`  Key delay: ${opts.keyDelay}ms`);
 runnerLog(`  Symbol set: ${opts.symset}`);
 runnerLog('');
 
+// Ensure deterministic and fast C runs unless caller explicitly overrides.
+if (!process.env.NETHACK_FIXED_DATETIME) {
+    process.env.NETHACK_FIXED_DATETIME = '20000110090000';
+}
+if (!process.env.NETHACK_NO_DELAY) {
+    process.env.NETHACK_NO_DELAY = '1';
+}
+
 const adapter = new TmuxAdapter({
     keyDelay: opts.keyDelay,
     symset: opts.symset,

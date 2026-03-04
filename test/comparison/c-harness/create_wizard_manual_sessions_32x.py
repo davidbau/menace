@@ -8,6 +8,7 @@ then hands control to the selfplay agent for ~200 turns of adaptive play.
 import base64
 import argparse
 import json
+import os
 import random
 import subprocess
 from pathlib import Path
@@ -17,6 +18,7 @@ KEYLOG_DIR = PROJECT_ROOT / 'test' / 'comparison' / 'keylogs'
 SESSIONS_DIR = PROJECT_ROOT / 'test' / 'comparison' / 'sessions'
 DOC_PATH = PROJECT_ROOT / 'docs' / 'SESSION_CAPTURE_3XX_OPTIONS.md'
 INSTALL_DIR = PROJECT_ROOT / 'nethack-c' / 'install' / 'games' / 'lib' / 'nethackdir'
+FIXED_DATETIME = '20000110090000'
 
 CLASSES = [
     ('archeologist', 'Archeologist', 321),
@@ -70,7 +72,10 @@ def clean_state():
             or 'wizard' in n
             or 'recorder' in n
         ):
-            p.unlink()
+            try:
+                p.unlink()
+            except FileNotFoundError:
+                pass
 
 
 def classify_item(item):
@@ -168,9 +173,9 @@ def build_options(role: str):
     ]
 
 
-def run_cmd(cmd):
+def run_cmd(cmd, env=None):
     print('+', ' '.join(cmd))
-    subprocess.run(cmd, check=True)
+    subprocess.run(cmd, check=True, env=env)
 
 
 def upsert_doc(entries):
@@ -231,6 +236,9 @@ def main():
         setup_keys, plan = build_setup(slug, seed)
         setup_b64 = base64.b64encode(setup_keys.encode('utf-8')).decode('ascii')
         options = build_options(role)
+        env = os.environ.copy()
+        env['NETHACK_FIXED_DATETIME'] = FIXED_DATETIME
+        env['NETHACK_NO_DELAY'] = '1'
 
         run_cmd([
             'node', 'selfplay/runner/run_wizard_agent_session.js',
@@ -247,7 +255,7 @@ def main():
             '--tmux-socket=default',
             f'--keylog={keylog}',
             f'--setup-base64={setup_b64}',
-        ])
+        ], env=env)
 
         run_cmd([
             'python3', 'test/comparison/c-harness/keylog_to_session.py',

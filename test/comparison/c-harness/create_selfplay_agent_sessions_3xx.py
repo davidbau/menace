@@ -18,6 +18,7 @@ KEYLOG_DIR = PROJECT_ROOT / 'test' / 'comparison' / 'keylogs'
 SESSIONS_DIR = PROJECT_ROOT / 'test' / 'comparison' / 'sessions'
 DOC_PATH = PROJECT_ROOT / 'docs' / 'SESSION_CAPTURE_3XX_OPTIONS.md'
 INSTALL_DIR = PROJECT_ROOT / 'nethack-c' / 'install' / 'games' / 'lib' / 'nethackdir'
+FIXED_DATETIME = '20000110090000'
 
 CLASSES = [
     ('archeologist', 'Archeologist', 301),
@@ -138,7 +139,7 @@ def main():
             'wizard': False,
             'tutorial': False,
             'symset': 'DECgraphics',
-            'datetime': '20000110090000',
+            'datetime': FIXED_DATETIME,
             'keylogDelayMs': 0,
             'nethackOptions': options,
             'generator': 'create_selfplay_agent_sessions_3xx.py',
@@ -148,7 +149,8 @@ def main():
         env = os.environ.copy()
         env['NETHACK_KEYLOG'] = str(keylog)
         env['NETHACK_KEYLOG_DELAY_MS'] = '0'
-        env['NETHACK_FIXED_DATETIME'] = '20000110090000'
+        env['NETHACK_FIXED_DATETIME'] = FIXED_DATETIME
+        env['NETHACK_NO_DELAY'] = '1'
 
         run_cmd([
             'node', 'selfplay/runner/c_runner.js',

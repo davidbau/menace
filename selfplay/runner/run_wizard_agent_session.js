@@ -113,6 +113,7 @@ async function main() {
     process.env.NETHACK_KEYLOG = opts.keylog;
     process.env.NETHACK_KEYLOG_DELAY_MS = '0';
     process.env.NETHACK_FIXED_DATETIME = opts.fixedDatetime;
+    if (!process.env.NETHACK_NO_DELAY) process.env.NETHACK_NO_DELAY = '1';
     if (opts.tmuxSocket) process.env.SELFPLAY_TMUX_SOCKET = opts.tmuxSocket;
 
     const adapter = new TmuxAdapter({
