@@ -119,6 +119,7 @@ const NON_PM = -1;
 const MALE = 0;
 const FEMALE = 1;
 const NEUTRAL = -1;
+const STRAT_WAITFORU = 0x20000000;
 
 const ALIGN_TYPE_MAP = {
     noalign: A_NONE,
@@ -6279,8 +6280,15 @@ async function createScriptMonster(deferred) {
                 mtmp.msleeping = !!opts.asleep;
                 mtmp.sleeping = !!opts.asleep;
             }
-            if (opts.waiting !== undefined) mtmp.mstrategy = opts.waiting ? 1 : 0;
-            if (opts.waiting !== undefined) mtmp.waiting = !!opts.waiting;
+            if (opts.waiting !== undefined) {
+                const waiting = !!opts.waiting;
+                const baseStrategy = Number(mtmp.mstrategy || 0);
+                mtmp.mstrategy = waiting
+                    ? (baseStrategy | STRAT_WAITFORU)
+                    : (baseStrategy & ~STRAT_WAITFORU);
+                // Legacy compatibility field; movement logic is strategy-bit driven.
+                mtmp.waiting = waiting;
+            }
             if (opts.invisible !== undefined) {
                 mtmp.minvis = !!opts.invisible;
                 mtmp.perminvis = !!opts.invisible;

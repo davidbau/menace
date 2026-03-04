@@ -145,8 +145,13 @@ function M_AP_TYPE(mon) {
 }
 
 function m_canseeu(mon, map, player) {
-    if (!mon || !player) return false;
-    return !!m_cansee(mon, player.x, player.y, map);
+    if (!mon || !player || !map) return false;
+    const heroInvis = !!(player.Invis || player.invisible);
+    const canPerceiveInvis = perceives(mon.type || mons[mon.mndx] || {});
+    if (heroInvis && !canPerceiveInvis) return false;
+    if (player.underwater) return false;
+    // C macro uses couldsee(mon->mx, mon->my): hero visibility of monster square.
+    return !!couldsee(map, player, mon.mx, mon.my);
 }
 
 // ========================================================================
@@ -735,8 +740,8 @@ function m_respond_medusa(mon, map, player) {
 function aggravate(map) {
     for (const mtmp of map.monsters || []) {
         if (mtmp.dead) continue;
-        // C: clears STRAT_WAITFORU | STRAT_APPEARMSG from mstrategy
-        // JS: mstrategy is not widely used; clear waiting flag
+        // C: clears STRAT_WAITFORU | STRAT_APPEARMSG from mstrategy.
+        mtmp.mstrategy = Number(mtmp.mstrategy || 0) & ~STRAT_WAITFORU;
         if (mtmp.waiting) mtmp.waiting = false;
         mtmp.sleeping = false;
         if (mtmp.mcanmove === false && !rn2(5)) {
@@ -864,10 +869,20 @@ async function mind_blast(mon, map, player, display = null, fov = null) {
 
 
 async function dochug(mon, map, player, display, fov, game = null) {
-    if (mon.waiting && map?.flags?.is_tutorial) return;
-
     if (mon.type && mon.type.mlet === S_MIMIC) {
         return;
+    }
+
+    // C ref: monmove.c:710-712 — waiting monsters wake once they can see
+    // the hero or after taking damage.
+    if ((Number(mon.mstrategy || 0) & STRAT_WAITFORU) !== 0) {
+        const canSeeHero = m_canseeu(mon, map, player);
+        const mhp = Number(mon.mhp);
+        const mhpmax = Number(mon.mhpmax);
+        const tookDamage = Number.isFinite(mhp) && Number.isFinite(mhpmax) && mhp < mhpmax;
+        if (canSeeHero || tookDamage) {
+            mon.mstrategy = Number(mon.mstrategy || 0) & ~STRAT_WAITFORU;
+        }
     }
 
     // C ref: monmove.c:717-724 — immobile/waiting monsters cannot act.
