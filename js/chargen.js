@@ -223,9 +223,19 @@ export async function maybeDoTutorial(game) {
     if (sel && sel[0].identifier.ival === 'y') {
         await enterTutorial(game);
     } else {
-        // Clear the chargen menu from screen. _rerenderGame() can't run yet
-        // (map/fov aren't initialized until after init() returns), so clear directly.
+        // Clear the chargen menu from screen then re-render the map that was
+        // already computed before maybeDoTutorial was called.
         game.display?.clearScreen?.();
+        if (game.fov && (game.lev || game.map) && (game.u || game.player)) {
+            const map = game.lev || game.map;
+            const player = game.u || game.player;
+            game.fov.compute(map, player.x, player.y);
+            game.display.renderMap(map, player, game.fov, game.flags);
+            if (typeof game.display.renderStatus === 'function') {
+                game.display.renderStatus(player);
+            }
+            game.display.cursorOnPlayer(player);
+        }
     }
 }
 

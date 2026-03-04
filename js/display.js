@@ -215,9 +215,8 @@ export class Display {
         const style = document.createElement('style');
         style.textContent = `
 @keyframes nh-cursor-blink {
-  0%, 49% { outline: 2px solid rgba(255,255,255,0.85);
-            outline-offset: -2px; }
-  50%, 100% { outline: none; }
+  0%, 49% { border-bottom: 2px solid rgba(255,255,255,0.85); }
+  50%, 100% { border-bottom: none; }
 }
 span.nh-cursor {
   animation: nh-cursor-blink 0.8s step-end infinite;
@@ -874,6 +873,9 @@ span.nh-cursor {
                 this.putstr(offx, i, line, CLR_WHITE, 0);
             }
         }
+
+        // Place cursor at row 0 col 0 (not wherever the last putstr_message left it).
+        this.setCursor(0, 0);
 
         return offx;
     }
