@@ -18,8 +18,10 @@ import { handleQuaff } from './potion.js';
 import { handleRead } from './read.js';
 import { handleWear, handlePutOn, handleTakeOff, handleRemove, handleRemoveAll } from './do_wear.js';
 import { handleWield, handleSwapWeapon, handleQuiver } from './wield.js';
-import { handleDownstairs, handleUpstairs, handleDrop } from './do.js';
+import { handleDownstairs, handleUpstairs, handleDrop, dowipe } from './do.js';
 import { handleInventory, currency, doorganize } from './invent.js';
+import { dopray, doturn } from './pray.js';
+import { dodip } from './potion.js';
 import { handleCallObjectTypePrompt, handleDiscoveries } from './discovery.js';
 import { handlePrevMessages, handleHelp, handleWhatdoes, handleHistory, handleViewMapPrompt } from './pager.js';
 import { dolook, dowhatis, doquickwhatis } from './look.js';
@@ -684,6 +686,24 @@ async function handleExtendedCommand(game) {
         case 'adjust':
             queueRepeatExtcmd((g) => doorganize(g));
             return await doorganize(game);
+        case 'wipe':
+            queueRepeatExtcmd((g) => dowipe(g.player).then(t => ({ moved: false, tookTime: !!t })));
+            return { moved: false, tookTime: !!(await dowipe(player)) };
+        case 'pray':
+            queueRepeatExtcmd((g) => dopray(g.player, g.map).then(t => ({ moved: false, tookTime: !!t })));
+            return { moved: false, tookTime: !!(await dopray(player, game.map)) };
+        case 'turn':
+            queueRepeatExtcmd((g) => doturn(g.player, g.map).then(t => ({ moved: false, tookTime: !!t })));
+            return { moved: false, tookTime: !!(await doturn(player, game.map)) };
+        case 'dip':
+            queueRepeatExtcmd((g) => dodip(g.player, g.map, g.display).then(t => ({ moved: false, tookTime: !!t })));
+            return { moved: false, tookTime: !!(await dodip(player, game.map, display)) };
+        case 'enhance':
+        case 'chat':
+        case 'offer':
+        case 'monster':
+            await display.putstr_message(`#${rawCmd}: not yet implemented.`);
+            return { moved: false, tookTime: false };
         case 'n':
         case 'name': {
             queueRepeatExtcmd(async (g) => handleExtendedCommandName(g));
