@@ -563,10 +563,52 @@ export class HeadlessDisplay {
         }
 
         this.clearRow(0);
-        this.putstr(0, 0, msg.substring(0, this.cols));
-        this.topMessage = msg;
+        if (msg.length <= this.cols) {
+            this.putstr(0, 0, msg.substring(0, this.cols));
+            this.topMessage = msg;
+            this.messageNeedsMore = true;
+            this.setCursor(Math.min(msg.length, this.cols - 1), 0);
+            return;
+        }
+
+        // Match tty paging: reserve room for " --More--" on long toplines,
+        // pause, then continue with the overflow text.
+        const maxLineLen = Math.max(1, this.cols - 10);
+        let breakPoint = msg.lastIndexOf(' ', maxLineLen);
+        if (breakPoint === -1) {
+            breakPoint = maxLineLen;
+        }
+        const firstLine = msg.substring(0, breakPoint);
+        const wrapped = msg.substring(breakPoint).trimStart();
+
+        this.putstr(0, 0, firstLine);
+        this.topMessage = firstLine;
         this.messageNeedsMore = true;
-        this.setCursor(Math.min(msg.length, this.cols - 1), 0);
+
+        if (wrapped.length === 0) {
+            return;
+        }
+
+        if (this._moreBlockingEnabled && this._nhgetch) {
+            const moreStr = '--More--';
+            const secondMax = Math.max(1, this.cols - moreStr.length);
+            const secondLine = wrapped.substring(0, secondMax);
+            const remainder = wrapped.substring(secondLine.length).trimStart();
+            this.clearRow(1);
+            this.putstr(0, 1, secondLine);
+            this.putstr(Math.min(secondLine.length, this.cols - moreStr.length), 1, moreStr);
+            await this._nhgetch();
+            this.clearRow(0);
+            this.messageNeedsMore = false;
+            this.topMessage = null;
+            if (remainder.length > 0) {
+                await this.putstr_message(remainder);
+            }
+            return;
+        }
+
+        this._pendingMore = true;
+        this._messageQueue.push(wrapped);
     }
 
     // Dismiss the --More-- prompt and display queued messages.

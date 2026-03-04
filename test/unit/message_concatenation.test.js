@@ -48,6 +48,26 @@ test('message concatenation: "You die" never concatenates', () => {
     assert.strictEqual(display.topMessage, 'You die...');
 });
 
+test('message display: long single message pauses with --More-- on row 0', () => {
+    const display = new HeadlessDisplay(80, 24);
+    const msg = 'You read: "Never mind the monsters hit?i?c be?.  they just replace the chargemen with robots and carry on."';
+
+    display.putstr_message(msg);
+
+    assert.strictEqual(display._pendingMore, true, 'long message should wait for --More--');
+    assert.strictEqual(display._messageQueue.length, 1, 'overflow text should be queued');
+    assert.ok(display.topMessage.length <= 70, 'visible topline should reserve room for --More--');
+
+    let row1HasText = false;
+    for (let c = 0; c < display.cols; c++) {
+        if (display.grid[1][c] !== ' ') {
+            row1HasText = true;
+            break;
+        }
+    }
+    assert.strictEqual(row1HasText, false, 'overflow should not spill onto row 1');
+});
+
 test('message concatenation: matches C NetHack spacing', () => {
     const display = new HeadlessDisplay(80, 24);
 

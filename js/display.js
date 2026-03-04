@@ -335,20 +335,25 @@ span.nh-cursor {
             this.putstr(0, MESSAGE_ROW, msg, CLR_WHITE);
             this.topMessage = msg;
         } else {
-            // Message is too long - wrap at word boundary
-            let breakPoint = msg.lastIndexOf(' ', this.cols);
+            // C tty messages pause with --More-- rather than spilling onto
+            // extra rows; keep room for " --More--" on the same line.
+            const maxLineLen = Math.max(1, this.cols - 10);
+            let breakPoint = msg.lastIndexOf(' ', maxLineLen);
             if (breakPoint === -1) {
-                breakPoint = this.cols;
+                breakPoint = maxLineLen;
             }
 
             const firstLine = msg.substring(0, breakPoint);
             this.putstr(0, MESSAGE_ROW, firstLine, CLR_WHITE);
-            this.topMessage = msg;
+            this.topMessage = firstLine;
 
-            const wrapped = msg.substring(breakPoint).trim();
+            const wrapped = msg.substring(breakPoint).trimStart();
             if (wrapped.length > 0) {
-                this.clearRow(MESSAGE_ROW + 1);
-                this.putstr(0, MESSAGE_ROW + 1, wrapped.substring(0, this.cols), CLR_WHITE);
+                this.messageNeedsMore = true;
+                this.renderMoreMarker();
+                this._pendingMore = true;
+                this._messageQueue.push(wrapped);
+                return;
             }
         }
 
