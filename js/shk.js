@@ -1944,15 +1944,25 @@ export function u_entered_shop(enterroom, map, player) {
 // C ref: shk.c u_left_shop()
 export async function u_left_shop(leaveroom, newlev, map, player) {
     if (!map || !player) return;
-    const shkp = shop_keeper(map, leaveroom);
+    void newlev;
+    const roomno = (typeof leaveroom === 'string' && leaveroom.length > 0)
+        ? leaveroom.charCodeAt(0)
+        : Number(leaveroom || 0);
+    const shkp = shop_keeper(map, roomno);
     if (!shkp || !inhishop(shkp, map)) return;
 
-    if (!(shkp.billct || 0) && !(shkp.debit || 0)) return;
+    const hasDebt = !!((shkp.billct || 0) || (shkp.debit || 0));
+    const hasUnpaidInventory = (player.inventory || []).some((obj) => !!obj?.unpaid);
+    if (!hasDebt && !hasUnpaidInventory) return;
 
-    // Player is leaving with unpaid goods
-    if (!muteshk(shkp)) {
-        await verbalize("Please pay before leaving!");
+    // If the hero is on the boundary square, issue a warning first.
+    const heroInsideThisShop = (insideShop(map, player.x, player.y) === roomno);
+    if (heroInsideThisShop && !muteshk(shkp)) {
+        await verbalize("%s!  Please pay before leaving.", String(player?.name || 'Customer'));
+        return;
     }
+
+    hot_pursuit(shkp);
 }
 
 // ============================================================

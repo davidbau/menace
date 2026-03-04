@@ -28,7 +28,7 @@ import { formatGoldPickupMessage, formatInventoryPickupMessage } from './do.js';
 import { x_monnam, y_monnam, YMonnam, Monnam, mon_nam, canseemon } from './mondata.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, u_wipe_engr } from './engrave.js';
 import { gethungry } from './eat.js';
-import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage } from './shk.js';
+import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop } from './shk.js';
 import { observeObject } from './discovery.js';
 import { place_object } from './stackobj.js';
 import { xname, an, The } from './objnam.js';
@@ -2353,6 +2353,12 @@ export function move_update(newlev, player, map) {
 // C ref: hack.c check_special_room() — room entry messages
 export async function check_special_room(newlev, player, map, display) {
     move_update(newlev, player, map);
+
+    if (player.ushops_left) {
+        for (const ch of player.ushops_left) {
+            await u_left_shop(ch, !!newlev, map, player);
+        }
+    }
 
     if (!player.uentered && !player.ushops_entered) return;
 
