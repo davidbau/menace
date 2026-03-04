@@ -141,6 +141,10 @@ export async function replaySession(seed, opts, keys) {
         const prevCount = getRngLog().length;
         const ch = keys.charCodeAt(i);
         let commandSettled = false;
+        // Expose current replay step to runtime diagnostics (run/monmove traces).
+        // This is debug-only metadata and does not affect game logic.
+        if (game?.map) game.map._replayStepIndex = i;
+        if (game?.lev) game.lev._replayStepIndex = i;
 
         if (pendingCommand) {
             pushInput(ch);
