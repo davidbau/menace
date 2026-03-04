@@ -236,38 +236,33 @@ export function could_move_onto_boulder(_sx, _sy, player) {
 }
 
 // C ref: hack.c cannot_push_msg()
-export async function cannot_push_msg(otmp, rx, ry, map, display) {
+export async function cannot_push_msg(otmp, _rx, _ry, _map, display, player = null) {
     const name = (otmp?.otyp === BOULDER) ? 'the boulder' : 'that object';
-    const mon = map?.monsterAt ? map.monsterAt(rx, ry) : null;
-    if (mon) {
-        await display?.putstr_message(`You hear a monster behind ${name}.`);
-        return;
-    }
-    const loc = map?.at ? map.at(rx, ry) : null;
-    if (loc && IS_OBSTRUCTED(loc.typ)) {
-        await display?.putstr_message(`${name} won't roll any further.`);
+    if (player?.usteed) {
+        // C uses YMonnam(u.usteed); keep wording faithful.
+        await display?.putstr_message(`Your steed tries to move ${name}, but cannot.`);
     } else {
-        await display?.putstr_message(`You cannot push ${name} there.`);
+        await display?.putstr_message(`You try to move ${name}, but in vain.`);
     }
 }
 
 // C ref: hack.c cannot_push()
-export async function cannot_push(otmp, rx, ry, map, display) {
+export async function cannot_push(otmp, rx, ry, map, display, player = null) {
     if (!isok(rx, ry)) {
-        await cannot_push_msg(otmp, rx, ry, map, display);
+        await cannot_push_msg(otmp, rx, ry, map, display, player);
         return true;
     }
     const loc = map.at(rx, ry);
     if (!loc || IS_OBSTRUCTED(loc.typ) || closed_door(rx, ry, map)) {
-        await cannot_push_msg(otmp, rx, ry, map, display);
+        await cannot_push_msg(otmp, rx, ry, map, display, player);
         return true;
     }
     if (map.monsterAt(rx, ry)) {
-        await cannot_push_msg(otmp, rx, ry, map, display);
+        await cannot_push_msg(otmp, rx, ry, map, display, player);
         return true;
     }
     if (sobj_at(BOULDER, rx, ry, map)) {
-        await cannot_push_msg(otmp, rx, ry, map, display);
+        await cannot_push_msg(otmp, rx, ry, map, display, player);
         return true;
     }
     return false;
@@ -279,10 +274,35 @@ export async function rock_disappear_msg(otmp, display) {
     await display?.putstr_message(`${name} disappears.`);
 }
 
+function currentMovesLikeC(game) {
+    if (!game || typeof game !== 'object') return 0;
+    const moves = Number(game.moves);
+    if (Number.isFinite(moves) && moves > 0) return moves;
+    const turnCount = Number(game.turnCount);
+    // C's svm.moves is initialized to 1 and advances once per completed turn.
+    return Number.isFinite(turnCount) ? (turnCount + 1) : 0;
+}
+
+function boulderPushShouldMessage(otmp, game) {
+    if (!game || typeof game !== 'object' || !otmp) return true;
+    const moves = currentMovesLikeC(game);
+    if (otmp.o_id !== game.bldrpush_oid) {
+        game.bldrpushtime = moves + 1;
+        game.bldrpush_oid = otmp.o_id;
+    }
+    const bldrpushtime = Number(game.bldrpushtime) || 0;
+    const givemesg = (moves > bldrpushtime + 2) || (moves < bldrpushtime);
+    game.bldrpushtime = moves;
+    return givemesg;
+}
+
 // C ref: hack.c dopush()
-export async function dopush(sx, sy, rx, ry, otmp, _costly, map, display) {
+export async function dopush(sx, sy, rx, ry, otmp, _costly, map, display, player, game) {
     const name = (otmp?.otyp === BOULDER) ? 'the boulder' : 'that object';
-    await display?.putstr_message(`With great effort you move ${name}.`);
+    if (boulderPushShouldMessage(otmp, game)) {
+        const effort = player?.throwsRocks ? 'little' : 'great';
+        await display?.putstr_message(`With ${effort} effort you move ${name}.`);
+    }
     movobj(otmp, rx, ry, map);
     return { sx, sy, rx, ry };
 }
@@ -302,7 +322,7 @@ export async function moverock_core(sx, sy, dx, dy, player, map, display, game) 
     if (here.length > 0 && here[here.length - 1] !== otmp) movobj(otmp, sx, sy, map);
     const rx = sx + dx;
     const ry = sy + dy;
-    if (await cannot_push(otmp, rx, ry, map, display)) {
+    if (await cannot_push(otmp, rx, ry, map, display, player)) {
         return -1;
     }
     // C ref: hack.c moverock_core() — relink at top of fobj chain before dopush.
@@ -312,7 +332,7 @@ export async function moverock_core(sx, sy, dx, dy, player, map, display, game) 
     }
     // C ref: hack.c dopush() — strength exercise happens before moving rock.
     if (player && !player.throwsRocks) await exercise(player, A_STR, true);
-    await dopush(sx, sy, rx, ry, otmp, false, map, display);
+    await dopush(sx, sy, rx, ry, otmp, false, map, display, player, game);
     if (game) game.lastMoveDir = [dx, dy];
     return 1;
 }
