@@ -67,7 +67,7 @@ import {
     GEM_CLASS, SPBOOK_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS, VENOM_CLASS,
     SCR_EARTH, objectData, GOLD_PIECE, STATUE
 } from './objects.js';
-import { mons, M2_FEMALE, M2_MALE, G_NOGEN, G_IGNORE, PM_MINOTAUR, MR_STONE, S_EEL } from './monsters.js';
+import { mons, M2_FEMALE, M2_MALE, G_NOGEN, G_IGNORE, PM_MINOTAUR, PM_ARCHEOLOGIST, PM_WIZARD, MR_STONE, S_EEL } from './monsters.js';
 import { poly_when_stoned } from './mondata.js';
 import { getSpecialLevel, findSpecialLevelByName, GEHENNOM } from './special_levels.js';
 import { placeFloorObject, place_object } from './stackobj.js';
@@ -1267,8 +1267,12 @@ function medusa_fixup(map) {
         return !!(m.mr1 & MR_STONE) || poly_when_stoned(m);
     };
     const mk_tt_statue = (x, y) => {
-        const otmp = mksobj(STATUE, true, false);
+        // C ref: mk_tt_object(STATUE) uses mksobj_at(..., init=FALSE).
+        const otmp = mksobj(STATUE, false, false);
         if (!otmp) return null;
+        // C ref: mk_tt_object() tt_oname path (scoreboard RNG) + fallback role.
+        rnd(10);
+        set_corpsenm(otmp, rn1(PM_WIZARD - PM_ARCHEOLOGIST + 1, PM_ARCHEOLOGIST));
         placeObjectAt(otmp, x, y);
         return otmp;
     };
@@ -1285,14 +1289,13 @@ function medusa_fixup(map) {
     }
 
     let otmp = null;
-    {
+    if (rn2(2)) {
         const { x, y } = randRoomPos();
-        if (rn2(2)) {
-            otmp = mk_tt_statue(x, y);
-        } else {
-            // Medusa statues don't contain books in this branch.
-            otmp = mkcorpstat(STATUE, -1, false, x, y, levelState.map);
-        }
+        otmp = mk_tt_statue(x, y);
+    } else {
+        // Medusa statues don't contain books in this branch.
+        const { x, y } = randRoomPos();
+        otmp = mkcorpstat(STATUE, -1, false, x, y, levelState.map);
     }
     if (otmp) {
         let tryct = 0;

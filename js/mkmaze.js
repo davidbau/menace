@@ -24,7 +24,7 @@ import { placeFloorObject } from './stackobj.js';
 import { mkobj, mksobj, mkcorpstat, set_corpsenm, weight, RANDOM_CLASS } from './mkobj.js';
 import { GEM_CLASS, BOULDER, GOLD_PIECE, STATUE } from './objects.js';
 import { makemon, NO_MM_FLAGS, rndmonnum, getMakemonRoleIndex } from './makemon.js';
-import { mons, PM_MINOTAUR, MR_STONE } from './monsters.js';
+import { mons, PM_MINOTAUR, PM_ARCHEOLOGIST, PM_WIZARD, MR_STONE } from './monsters.js';
 import {
     occupied,
     mkstairs,
@@ -1565,8 +1565,12 @@ function medusa_fixup(map, depth = 1) {
         return obj;
     };
     const mk_tt_statue = (x, y) => {
-        const otmp = mksobj(STATUE, true, false);
+        // C ref: mk_tt_object(STATUE) uses mksobj_at(..., init=FALSE).
+        const otmp = mksobj(STATUE, false, false);
         if (!otmp) return null;
+        // C ref: mk_tt_object() tt_oname path (scoreboard RNG) + fallback role.
+        rnd(10);
+        set_corpsenm(otmp, rn1(PM_WIZARD - PM_ARCHEOLOGIST + 1, PM_ARCHEOLOGIST));
         return placeObjectAt(otmp, x, y);
     };
 
@@ -1580,11 +1584,12 @@ function medusa_fixup(map, depth = 1) {
         }
     }
 
-    const { x, y } = randRoomPos();
     let finalStatue = null;
     if (rn2(2)) {
+        const { x, y } = randRoomPos();
         finalStatue = mk_tt_statue(x, y);
     } else {
+        const { x, y } = randRoomPos();
         finalStatue = isok(x, y) ? mkcorpstat(STATUE, -1, false, x, y, map) : null;
     }
     if (finalStatue) {
