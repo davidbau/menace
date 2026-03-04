@@ -707,35 +707,6 @@ export async function domove_core(dir, player, map, display, game) {
 
     let loc = map.at(nx, ny);
 
-    // C ref: hack.c crawl_destination()/test_move:
-    // diagonal movement into a doorway is blocked unless the target door is
-    // effectively doorless (D_NODOOR or D_BROKEN).
-    if (loc && IS_DOOR(loc.typ) && Math.abs(moveDir[0]) + Math.abs(moveDir[1]) === 2) {
-        const doorFlags = loc.flags || 0;
-        const doorlessDoor = (doorFlags & ~(D_NODOOR | D_BROKEN)) === 0;
-        if (!doorlessDoor) {
-            if (map?.flags?.mention_walls || map?.flags?.is_tutorial) {
-                await display.putstr_message("You can't move diagonally into an intact doorway.");
-            }
-            return { moved: false, tookTime: false };
-        }
-    }
-    // C ref: hack.c test_move() out-of-door diagonal gate:
-    // moving diagonally out of an intact doorway is also blocked.
-    if (Math.abs(moveDir[0]) + Math.abs(moveDir[1]) === 2) {
-        const fromLoc = map.at(oldX, oldY);
-        if (fromLoc && IS_DOOR(fromLoc.typ)) {
-            const fromDoorFlags = fromLoc.flags || 0;
-            const fromDoorless = (fromDoorFlags & ~(D_NODOOR | D_BROKEN)) === 0;
-            if (!fromDoorless) {
-                if (map?.flags?.mention_walls || map?.flags?.is_tutorial) {
-                    await display.putstr_message("You can't move diagonally out of an intact doorway.");
-                }
-                return { moved: false, tookTime: false };
-            }
-        }
-    }
-
     // C ref: hack.c:2741 escape_from_sticky_mon(x, y)
     // If hero is stuck to a monster and trying to move away, attempt escape.
     if (player.ustuck && (nx !== player.ustuck.mx || ny !== player.ustuck.my)) {

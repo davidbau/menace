@@ -61,6 +61,17 @@ function rerenderLikeMainLoop(game) {
     game.display.cursorOnPlayer(game.player);
 }
 
+function replayPendingTraceEnabled() {
+    const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
+    return env.WEBHACK_REPLAY_PENDING_TRACE === '1';
+}
+
+function replayPendingTrace(...args) {
+    if (!replayPendingTraceEnabled()) return;
+    // eslint-disable-next-line no-console
+    console.log('[REPLAY_PENDING_TRACE]', ...args);
+}
+
 // ---------------------------------------------------------------------------
 // replaySession(seed, opts, keys)
 //
@@ -147,12 +158,16 @@ export async function replaySession(seed, opts, keys) {
         if (game?.lev) game.lev._replayStepIndex = i;
 
         if (pendingCommand) {
+            replayPendingTrace(`step=${i + 1}`, `key=${JSON.stringify(String.fromCharCode(ch))}`, 'mode=resume');
             pushInput(ch);
             const settled = await tryResolve(pendingCommand, game.input);
             if (settled.done) {
                 await maybe_deferred_goto_after_rhack(game, settled.value);
                 pendingCommand = null;
                 commandSettled = true;
+                replayPendingTrace(`step=${i + 1}`, 'resume=done');
+            } else {
+                replayPendingTrace(`step=${i + 1}`, 'resume=waiting');
             }
         } else {
             const commandPromise = (ch === 1)
@@ -161,6 +176,12 @@ export async function replaySession(seed, opts, keys) {
             const settled = await tryResolve(commandPromise, game.input);
             if (!settled.done) {
                 pendingCommand = commandPromise;
+                replayPendingTrace(
+                    `step=${i + 1}`,
+                    `key=${JSON.stringify(String.fromCharCode(ch))}`,
+                    'mode=start',
+                    'start=waiting'
+                );
             } else {
                 await maybe_deferred_goto_after_rhack(game, settled.value);
                 commandSettled = true;
