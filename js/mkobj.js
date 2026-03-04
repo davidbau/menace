@@ -1361,7 +1361,9 @@ export function doname(obj, player) {
                 const isMissile = odSub <= -23 && odSub >= -25; // -P_DART..-P_BOOMERANG
                 const useWielded = (quan !== 1)
                     || (obj.oclass === WEAPON_CLASS ? (isAmmo || isMissile) : !isWeptool);
-                result += useWielded ? ' (wielded)' : ' (weapon in right hand)';
+                // C ref: objnam.c:1584-1588 — URIGHTY ? "right" : "left"
+                const handStr = (player.uhandedness === 0 || player.uhandedness == null) ? 'right' : 'left';
+                result += useWielded ? ' (wielded)' : ` (weapon in ${handStr} hand)`;
             }
         } else if (player.swapWeapon === obj) {
             // C ref: objnam.c plur(obj->quan) for alternate weapon(s)

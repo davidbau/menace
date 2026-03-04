@@ -2785,7 +2785,9 @@ export function fill_ordinary_room(map, croom, depth, bonusItems) {
                     const otyp = rn2(2) ? POT_HEALING : supply_items[rn2(9)];
                     const otmp = mksobj(otyp, true, false);
                     if (otyp === POT_HEALING && rn2(2)) {
-                        // quan = 2 (no extra RNG, just weight update)
+                        // C ref: mklev.c:1056-1058
+                        otmp.quan = 2;
+                        otmp.owt = weight(otmp);
                     }
                     cursed = otmp.cursed;
                     // C ref: mklev.c — add_to_container() stores item in chest
@@ -2821,6 +2823,8 @@ export function fill_ordinary_room(map, croom, depth, bonusItems) {
                     if (chest) chest.cobj.push(otmp);
                 }
 
+                // C ref: mklev.c:1112 — add_to_container() doesn't update container weight
+                if (chest) chest.owt = weight(chest);
                     skip_chests = true;
                 }
             }
@@ -4036,12 +4040,13 @@ export function init_dungeons(roleIndex, wizard = true) {
     const enadv = role ? (role.enadv || 0) : 0;
     const enadv_roll = enadv > 0 ? rnd(enadv) : 0;
     // C ref: u_init.c u_init_misc() — rn2(10)
-    rn2(10);
+    // RIGHT_HANDED=0, LEFT_HANDED=1; 9/10 chance right-handed
+    const uhandedness = rn2(10) ? 0 : 1;
 
     // 5. nhlua pre_themerooms shuffle (loaded when themerms.lua is first used)
     rn2(3); rn2(2);
 
-    return { enadv_roll };
+    return { enadv_roll, uhandedness };
 }
 
 // Simulate C's place_level() recursive backtracking for one dungeon.

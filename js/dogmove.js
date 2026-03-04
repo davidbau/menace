@@ -185,7 +185,7 @@ function curr_mon_load(mon) {
 }
 
 // C ref: dogmove.c:1971-2034
-export function can_carry(mon, obj) {
+export function can_carry(mon, obj, player = null) {
     const mdat = monPtr(mon);
     if (!mdat) return 0;
 
@@ -215,6 +215,9 @@ export function can_carry(mon, obj) {
         }
         if (!glomper) return 1;
     }
+
+    // C ref: mon.c:2002 — steeds don't pick up stuff (to avoid shop abuse)
+    if (player && mon === player.usteed) return 0;
 
     if (mon.peaceful && !mon.tame) return 0;
     if ((mdat.flags2 & M2_ROCKTHROW) && obj.otyp === BOULDER) return iquan;
@@ -611,7 +614,7 @@ async function dog_invent(mon, edog, udist, map, turnCount, display, player, fov
             }
 
             // C ref: dogmove.c:440-467 — carry check
-            const carryamt = can_carry(mon, obj);
+            const carryamt = can_carry(mon, obj, player);
             if (carryamt > 0 && !obj.cursed
                 && could_reach_item(map, mon, obj.ox, obj.oy)) {
                 if (rn2(20) < edog.apport + 3) {
@@ -1022,7 +1025,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                 // C ref: dogmove.c:543-552 — APPORT/MANFOOD with apport+carry check
                 // aproll extracted from condition so we can log it (mirrors C restructuring)
                 const aproll = rn2(8);
-                const carryRes = (edog.apport > aproll) ? can_carry(mon, obj) : 0;
+                const carryRes = (edog.apport > aproll) ? can_carry(mon, obj, player) : 0;
                 if (dogDiagEvents)
                     pushRngLogEntry(`^dog_goal_obj[M${mon.m_id} oid=${obj.o_id}@${ox},${oy} food=${otyp} apport=${edog.apport} rn2_8=${aproll} carry=${carryRes} sel=${(edog.apport > aproll && carryRes > 0) ? 1 : 0}]`);
                 if (edog.apport > aproll && carryRes > 0) {
