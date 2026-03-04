@@ -478,9 +478,7 @@ export function can_reach_location(map, mon, mx, my, fx, fy) {
 function droppables(mon) {
     const inv = mon_inventory_items(mon);
     const mdat = mon.type || {};
-    const wep = mon.weapon
-        || inv.find((obj) => ((obj?.owornmask || 0) & W_WEP) !== 0)
-        || null;
+    const wep = mon.weapon || null;
     const shield = inv.find((obj) => ((obj?.owornmask || 0) & W_ARMS) !== 0) || null;
     const dummy = { dummy: true, oartifact: 1 };
     let pickaxe = null;
@@ -552,7 +550,11 @@ function droppables(mon) {
         }
         // C ref: dogmove.c droppables() — generic drop candidates skip worn/wielded.
         // Cursed filtering is handled only for specific tool classes above.
-        if (!obj.owornmask && obj !== wep) return obj;
+        const wornmask = Number(obj.owornmask || 0);
+        // Maintain C invariant: when MON_WEP(mon) is null, no inventory object
+        // should carry W_WEP. Clear stale W_WEP locally for droppables().
+        const effectiveWornmask = !wep ? (wornmask & ~W_WEP) : wornmask;
+        if (!effectiveWornmask && obj !== wep) return obj;
     }
     return null;
 }
