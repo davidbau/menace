@@ -1676,9 +1676,25 @@ async function handleWear(player, display, game = null) {
 
 // cf. do_wear.c doputon() — P command: put on ring or amulet
 async function handlePutOn(player, display) {
+    const isEyewear = (o) => !!o && (o.otyp === BLINDFOLD || o.otyp === TOWEL || o.otyp === LENSES);
+    const isPutOnClass = (o) => !!o
+        && (o.oclass === ARMOR_CLASS || o.oclass === RING_CLASS || o.oclass === AMULET_CLASS || isEyewear(o));
+    const isAlreadyWornForPutOn = (o) => !!o && (
+        (o.oclass === ARMOR_CLASS && (
+            o === player.armor || o === player.cloak || o === player.helmet
+            || o === player.shield || o === player.gloves || o === player.boots
+            || o === player.shirt
+        ))
+        ||
+        (o.oclass === RING_CLASS && (o === player.leftRing || o === player.rightRing))
+        || (o.oclass === AMULET_CLASS && o === player.amulet)
+        || (isEyewear(o) && o === player.blindfold)
+    );
+
     const eligible = (player.inventory || []).filter((o) => {
         if (o.oclass === RING_CLASS && o !== player.leftRing && o !== player.rightRing) return true;
         if (o.oclass === AMULET_CLASS && o !== player.amulet) return true;
+        if (isEyewear(o) && o !== player.blindfold) return true;
         return false;
     });
     if (eligible.length === 0) {
@@ -1710,7 +1726,11 @@ async function handlePutOn(player, display) {
     if (!eligible.includes(selected)) {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
-        await display.putstr_message('That is a silly thing to put on.');
+        if (isPutOnClass(selected) && isAlreadyWornForPutOn(selected)) {
+            await display.putstr_message('You are already wearing that!');
+        } else {
+            await display.putstr_message('That is a silly thing to put on.');
+        }
         return { moved: false, tookTime: false };
     }
     const item = selected;
@@ -1730,6 +1750,13 @@ async function handlePutOn(player, display) {
         }
         player.amulet = item;
         await Amulet_on(player);
+    } else if (isEyewear(item)) {
+        if (player.blindfold) {
+            await display.putstr_message('You are already wearing that!');
+            return { moved: false, tookTime: false };
+        }
+        player.blindfold = item;
+        await Blindf_on(player, item);
     }
 
     find_ac(player);

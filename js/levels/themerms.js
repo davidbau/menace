@@ -18,6 +18,8 @@ import { rn2, rnd, d, getRngLog, getRngCallCount } from '../rng.js';
 import { setMtInitialized } from '../dungeon.js';
 import { start_timer_at } from '../timeout.js';
 import { impossible, pline } from '../pline.js';
+import { readobjnam } from '../objnam.js';
+import { objectData, GLASS } from '../objects.js';
 
 // Module-level state for postprocessing callbacks
 let postprocess = [];
@@ -39,7 +41,16 @@ const nh = {
 // Stub other globals
 const align = ['lawful', 'neutral', 'chaotic']; // Will be shuffled by caller
 const obj = {
-    new: (id) => { return { class: () => ({ material: "unknown" }) }; } // Stub
+    // C ref: nhlobj.c l_obj_new_readobjnam() — obj.new("...") uses readobjnam.
+    new: (id) => {
+        const name = String(id || '');
+        const otmp = readobjnam(name, null);
+        if (!otmp) return null;
+        otmp.class = () => ({
+            material: (objectData[otmp.otyp]?.material === GLASS) ? 'glass' : 'unknown',
+        });
+        return otmp;
+    },
 };
 
 // Reset state between level generations
@@ -857,16 +868,17 @@ xx|.....|xx
                "scroll of teleportation", "ring of teleportation",
                "wand of teleportation", "wand of digging"
             ];
-            const itm = escape_items[rn2(escape_items.length)];
-            // Keep the guaranteed-escape-item logic but avoid Lua-only
-            // object handle APIs (addcontent/class) not modeled in JS.
-            await des.object({
+            // C ref: themerms.lua uses obj.new(...) here, then box:addcontent(itm).
+            // This consumes readobjnam RNG before chest creation.
+            const itm = obj.new(escape_items[rn2(escape_items.length)]);
+            const box = await des.object({
                id: "chest",
                coord: chest_spots[0],
-               contents: async function() {
-                  await des.object(itm);
-               }
             });
+            if (box && itm) {
+               if (!Array.isArray(box.contents)) box.contents = [];
+               box.contents.push(itm);
+            }
 
             for (let i = 1; i < chest_spots.length; i++) {
                   await des.object({ id: "chest", coord: chest_spots[i] });
