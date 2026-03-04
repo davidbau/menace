@@ -1,5 +1,8 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import { getSessionScreenAnsiLines, normalizeSession } from '../comparison/session_loader.js';
 
@@ -41,6 +44,33 @@ test('getSessionScreenAnsiLines returns ANSI lines from v3 screen string', () =>
         screen: '\u001b[31mred-line\u001b[0m\nplain-line',
     });
     assert.deepEqual(lines, ['\u001b[31mred-line\u001b[0m', 'plain-line']);
+});
+
+test('normalizeSession infers datetime and recordedAt from keylog meta row', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'session-loader-test-'));
+    try {
+        const keylog = join(dir, 'session.jsonl');
+        writeFileSync(
+            keylog,
+            `${JSON.stringify({
+                type: 'meta',
+                datetime: '20000110090000',
+                recordedAt: '2026-03-03T22:30:16.799Z',
+            })}\n{"type":"key","key":"h"}\n`
+        );
+
+        const normalized = normalizeSession({
+            version: 3,
+            seed: 1,
+            regen: { keylog },
+            steps: [],
+        }, { file: 'tmp.session.json', dir: '.' });
+
+        assert.equal(normalized.meta.options.datetime, '20000110090000');
+        assert.equal(normalized.meta.options.recordedAt, '2026-03-03T22:30:16.799Z');
+    } finally {
+        rmSync(dir, { recursive: true, force: true });
+    }
 });
 
 }); // describe

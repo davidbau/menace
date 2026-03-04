@@ -41,6 +41,27 @@ Wizard of Yendor while the Riders watch — dramatic, but unproductive.
 
 ## RNG Parity
 
+### Repro harness datetime should be explicit and selectable
+
+Some sessions are sensitive to calendar-dependent behavior (moon phase, Friday
+13th luck, and downstream RNG/state effects). If replay always forces one fixed
+date, sessions recorded under a different calendar condition can diverge early.
+
+Harness rule:
+
+1. preserve both `options.datetime` and `options.recordedAt` in session metadata;
+2. allow explicit replay policy for fixed datetime source;
+3. default to session-declared datetime for strict reproducibility.
+
+Current replay selector modes:
+
+- `session`: use session datetime first, then `recordedAt`-derived UTC datetime
+- `recorded-at-prefer`: prefer `recordedAt`-derived UTC datetime
+- `recorded-at-only`: only use `recordedAt`-derived UTC datetime
+
+This enables controlled experiments without mutating sessions when diagnosing
+calendar-conditioned divergences.
+
 ### `maybe_wail()` message parity depends on intrinsic power-count branch
 
 C `hack.c maybe_wail()` does not always print the same warning for
