@@ -42,6 +42,7 @@ import { MAGIC_PORTAL } from './symbols.js';
 import { gettrack } from './track.js';
 import { helpless } from './monutil.js';
 import { onscary } from './mon.js';
+import { W_ARMS, W_WEP } from './worn.js';
 
 // Shared utilities from monmove.js
 import { dist2, distmin, monnear, mfndpos, mon_allowflags,
@@ -477,7 +478,10 @@ export function can_reach_location(map, mon, mx, my, fx, fy) {
 function droppables(mon) {
     const inv = mon_inventory_items(mon);
     const mdat = mon.type || {};
-    const wep = mon.weapon || null;
+    const wep = mon.weapon
+        || inv.find((obj) => ((obj?.owornmask || 0) & W_WEP) !== 0)
+        || null;
+    const shield = inv.find((obj) => ((obj?.owornmask || 0) & W_ARMS) !== 0) || null;
     const dummy = { dummy: true, oartifact: 1 };
     let pickaxe = null;
     let unihorn = null;
@@ -498,6 +502,8 @@ function droppables(mon) {
     for (const obj of inv) {
         switch (obj.otyp) {
         case DWARVISH_MATTOCK:
+            // C ref: dogmove.c droppables() — keep mattock if shielded.
+            if (shield) break;
             if (pickaxe && pickaxe !== dummy
                 && pickaxe.otyp === PICK_AXE
                 && pickaxe !== wep

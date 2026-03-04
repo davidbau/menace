@@ -9,9 +9,10 @@ import { GameMap } from '../../js/map.js';
 import { movemon, mon_track_add, mon_track_clear, monhaskey, m_can_break_boulder, MTSZ } from '../../js/monmove.js';
 import { Player } from '../../js/player.js';
 import { GOLD_PIECE, COIN_CLASS, WEAPON_CLASS, ARMOR_CLASS, ORCISH_DAGGER, ORCISH_HELM,
-         SKELETON_KEY, LOCK_PICK, CREDIT_CARD } from '../../js/objects.js';
+         SKELETON_KEY, LOCK_PICK, CREDIT_CARD, PICK_AXE, DWARVISH_MATTOCK } from '../../js/objects.js';
 import { mons, PM_GOBLIN, PM_LITTLE_DOG, PM_DEATH, PM_PELIAS, AT_WEAP, G_NOCORPSE,
          MS_LEADER } from '../../js/monsters.js';
+import { W_WEP } from '../../js/worn.js';
 
 // Mock display
 const mockDisplay = { putstr_message() {} };
@@ -203,6 +204,56 @@ describe('Monster movement', () => {
         assert.ok(
             log.some((line) => line.includes('^dog_goal_start[') && line.includes('minvent=1')),
             'dog_goal_start should report minvent=1 when inventory is a linked list'
+        );
+    });
+
+    it('pet drop logic honors W_WEP inventory marker when mon.weapon is null', async () => {
+        initRng(42);
+        const map = makeSimpleMap();
+        const player = new Player();
+        player.x = 20; player.y = 10;
+        player.initRole(0);
+
+        const pet = makeGoblin(20, 10, player);
+        pet.peaceful = true;
+        pet.tame = true;
+        pet.edog = {
+            apport: 10,
+            hungrytime: 1000,
+            whistletime: 0,
+            ogoal: { x: 0, y: 0 },
+            mhpmax_penalty: 0,
+        };
+
+        const wieldedPick = {
+            otyp: PICK_AXE,
+            oclass: WEAPON_CLASS,
+            quan: 1,
+            owt: 100,
+            owornmask: W_WEP,
+            nobj: null,
+        };
+        const spareMattock = {
+            otyp: DWARVISH_MATTOCK,
+            oclass: WEAPON_CLASS,
+            quan: 1,
+            owt: 120,
+            owornmask: 0,
+            nobj: null,
+        };
+        pet.weapon = null; // parity case: rely on W_WEP fallback, like MON_WEP
+        pet.minvent = [wieldedPick, spareMattock];
+        map.monsters.push(pet);
+
+        await movemon(map, player, mockDisplay);
+
+        assert.ok(
+            pet.minvent.some((obj) => obj.otyp === PICK_AXE),
+            'wielded pick-axe should remain in inventory'
+        );
+        assert.ok(
+            map.objects.some((obj) => obj.otyp === DWARVISH_MATTOCK && obj.ox === 20 && obj.oy === 10),
+            'spare mattock should be dropped at pet location'
         );
     });
 
