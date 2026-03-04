@@ -1105,36 +1105,42 @@ async function dochug(mon, map, player, display, fov, game = null) {
         } else {
             // C ref: monmove.c:1747 — pre-movement mtrapped check.
             // If monster is already trapped, try to escape before allowing movement.
+            // C returns MMOVE_NOTHING when still trapped; dochug() still recalc's
+            // distfleeck() and can proceed to attack-phase logic.
+            let trappedNoMove = false;
             if (mon.mtrapped) {
                 await mintrap_postmove(mon, map, player, display, fov);
                 if (mon.dead) return; // monster died in trap
-                if (mon.mtrapped) return; // still caught → MMOVE_NOTHING (no movement)
-                // else: escaped, continue with normal movement
-            }
-            const omx = mon.mx, omy = mon.my;
-            await m_move(mon, map, player, display, fov);
-            moveDone = !!mon._mMoveDone;
-            let trapDied = false;
-            if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
-                await m_postmove_effect(mon, map, player, game, omx, omy);
-                const trapResult = await mintrap_postmove(mon, map, player, display, fov);
-                if (trapResult === 2 || trapResult === 3) {
-                    trapDied = true;
-                } else {
-                    mmoved = true;
+                if (mon.mtrapped) {
+                    trappedNoMove = true; // MMOVE_NOTHING path (no movement attempt)
                 }
             }
-            if (!trapDied && !mon.dead
-                && mon.mcanmove !== false
-                && (mmoved || moveDone)
-                && map.objectsAt(mon.mx, mon.my).length > 0
-                && await maybeMonsterPickStuff(mon, map, player, display, fov)) {
-                // C ref: postmov() sets mmoved = MMOVE_DONE when mpickstuff()
-                // succeeds, which suppresses Phase 4 attacks in dochug().
-                moveDone = true;
-                mmoved = false;
-            } else if (moveDone) {
-                mmoved = false;
+            let trapDied = false;
+            if (!trappedNoMove) {
+                const omx = mon.mx, omy = mon.my;
+                await m_move(mon, map, player, display, fov);
+                moveDone = !!mon._mMoveDone;
+                if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
+                    await m_postmove_effect(mon, map, player, game, omx, omy);
+                    const trapResult = await mintrap_postmove(mon, map, player, display, fov);
+                    if (trapResult === 2 || trapResult === 3) {
+                        trapDied = true;
+                    } else {
+                        mmoved = true;
+                    }
+                }
+                if (!trapDied && !mon.dead
+                    && mon.mcanmove !== false
+                    && (mmoved || moveDone)
+                    && map.objectsAt(mon.mx, mon.my).length > 0
+                    && await maybeMonsterPickStuff(mon, map, player, display, fov)) {
+                    // C ref: postmov() sets mmoved = MMOVE_DONE when mpickstuff()
+                    // succeeds, which suppresses Phase 4 attacks in dochug().
+                    moveDone = true;
+                    mmoved = false;
+                } else if (moveDone) {
+                    mmoved = false;
+                }
             }
             if (trapDied) return;
         }

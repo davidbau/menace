@@ -60,6 +60,7 @@ import { movebubbles } from './mkmaze.js';
 import { initAnimation, configureAnimation, setAnimationMode } from './animation.js';
 import { phase_of_the_moon, friday_13th } from './calendar.js';
 import { change_luck } from './attrib.js';
+import { throne_mon_sound } from './sounds.js';
 
 // cf. allmain.c:169 — moveloop_core() monster movement + turn-end processing.
 // Called after the hero's action took time.  Runs movemon() for monster turns,
@@ -391,7 +392,12 @@ export async function moveloop_dosounds(game) {
         ];
         await game.display.putstr_message(sinkMsg[rn2(2) + hallu]);
     }
-    if (f.has_court && !rn2(200)) { return; }
+    if (f.has_court && !rn2(200)) {
+        for (const mtmp of ((game.lev || game.map)?.monsters || [])) {
+            if (!mtmp || mtmp.dead) continue;
+            if (await throne_mon_sound(mtmp, hallu, game)) return;
+        }
+    }
     if (f.has_swamp && !rn2(200)) {
         const swampMsg = [
             'You hear mosquitoes!',

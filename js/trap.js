@@ -9,7 +9,7 @@ import {
     IS_DOOR, IS_STWALL, IRONBARS, TREE,
     D_BROKEN, D_CLOSED, D_LOCKED
 } from './config.js';
-import { rn2, rnd, rnl, d, rn1 } from './rng.js';
+import { rn2, rnd, rnl, d, c_d, rn1 } from './rng.js';
 import { is_mindless, touch_petrifies, resists_ston,
          amorphous, is_whirly, unsolid, is_clinger, passes_walls,
          webmaker, grounded, is_flyer, is_floater, breathless,
@@ -430,7 +430,7 @@ function trapeffect_bear_trap_mon(mon, trap, map, player) {
         seetrap(trap);
     }
     if (mon.mtrapped)
-        trapkilled = thitm(0, mon, null, d(2, 4), false, map, player);
+        trapkilled = thitm(0, mon, null, c_d(2, 4), false, map, player);
 
     return trapkilled ? Trap_Killed_Mon
         : mon.mtrapped ? Trap_Caught_Mon : Trap_Effect_Finished;

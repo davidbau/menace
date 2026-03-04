@@ -53,7 +53,9 @@ const h_sounds = [
 
 // cf. sounds.c:19 — mon_in_room(mon, rmtyp): check if monster is in room type
 function mon_in_room(mon, rmtyp, map) {
-    const loc = map.at(mon.x, mon.y);
+    if (!mon || !map) return false;
+    if (!Number.isInteger(mon.mx) || !Number.isInteger(mon.my)) return false;
+    const loc = map.at(mon.mx, mon.my);
     if (!loc || !Number.isFinite(loc.roomno)) return false;
     const rno = loc.roomno;
     if (rno >= ROOMOFFSET) {
@@ -72,7 +74,7 @@ function mon_in_room(mon, rmtyp, map) {
 // cf. sounds.c:29 — throne_mon_sound(mtmp): throne room ambient sound
 export async function throne_mon_sound(mtmp, hallu, game) {
     const ptr = mtmp.type;
-    if ((mtmp.sleeping || is_lord(ptr) || is_prince(ptr))
+    if ((mtmp.msleeping || is_lord(ptr) || is_prince(ptr))
         && !is_animal(ptr)
         && mon_in_room(mtmp, COURT, (game.lev || game.map))) {
         const throne_msg = [
