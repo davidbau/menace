@@ -63,41 +63,58 @@ Concrete fixes already landed:
 8. **Overlay menu prompt rendering** — `renderOverlayMenu` line 0 renders with
    inverse video (attr=1) to match C `tty_select_menu` behavior.
 
-## Current State (as of branch snapshot)
+## Current State (latest gate run)
 
-Session suite: **122 / 150 passing** (28 failing).
+Session suite: **123 / 150 passing** (27 failing).
 
-Remaining failure clusters:
+Observed failure taxonomy (current evidence):
 
-| Group | Sessions | Root cause |
-|-------|----------|------------|
-| B | seed031–033 (`manual_direct`) | Chargen RNG divergence — JS calls `init_objects` before `role_init`, C does `role_init` first |
-| C | seed301–313 (`selfplay200`) | Same chargen RNG ordering divergence |
-| D | seed321–333 (`wizard` gameplay) | Same chargen RNG ordering divergence |
+The current failing set is no longer a single-cause bucket. Chargen RNG
+ordering is still relevant in some paths, but detailed `^event` evidence now
+shows several concrete divergence families that should be worked in parallel.
 
-All 28 failures share the same root cause: JS and C differ in the order of
-startup RNG calls at character creation time. This is a single systematic
-divergence cluster. Groups B/C/D are the same bug exercised across different
-roles, seeds, and move sequences.
+1. **Monster movement / pet AI cascade** (dominant):
+   - most first RNG divergences originate at `dochug(monmove.js:847)`,
+   - first event mismatches frequently include `^distfleeck`, `^movemon_turn`,
+     `^dog_goal_*`, and `^mcalcmove`.
+2. **Explicit `--More--` text-boundary parity gaps**:
+   - several failures now show missing or late `--More--` in JS topline frames,
+     with session rows containing expected `--More--` suffixes.
+3. **Early generation/rebaseline divergences (subset)**:
+   - some wizard seeds diverge at step 1 in map/gen paths (`themeroom_fill`,
+     `makerooms`, `makedog`, placement events), consistent with refreshed
+     baselines and stricter capture.
+4. **Prompt/input boundary bug (single-session blocker)**:
+   - `seed033_manual_direct` currently times out (`Unknown command ' '`) and
+     needs explicit prompt-state handling fix for space-dismiss transitions.
 
 ## Active Workstreams
 
-1. **Chargen RNG ordering** (primary blocker for Groups B/C/D):
-   - Identify the exact JS/C callsite order difference in `u_init.js` / `role.c`.
-   - Fix JS to call `role_init`-equivalent before `init_objects`, or vice versa
-     to match actual C ordering.
-   - Re-record affected sessions once fix is confirmed.
+Team execution lanes:
 
-2. **Cursor parity closure** (tracked in [`docs/CURSOR_PLAN.md`](CURSOR_PLAN.md)):
+1. **Monster-movement/pet-AI first-divergence cluster** (primary blocker):
+   - Triage and fix `dochug`/`distfleeck`/`dog_goal` ordering and decision-path
+     mismatches using current `^event` traces.
+   - Prioritize fixes that move first divergence later across many sessions.
+
+2. **`--More--` boundary correctness** (high impact):
+   - Resolve missing/late `--More--` topline states in async message paths.
+   - Keep explicit space-dismiss key steps as authoritative session behavior.
+
+3. **Prompt/input boundary stabilization** (targeted):
+   - Fix manual-direct timeout path (`seed033`) where space is treated as a
+     command instead of modal dismissal at the relevant boundary.
+
+4. **Cursor parity closure** (tracked in [`docs/CURSOR_PLAN.md`](CURSOR_PLAN.md)):
    - Complete JS `setCursor` / `getCursor` integration across display paths.
    - Add cursor comparison to gameplay session suite.
    - Align gameplay/topline/prompt cursor behavior with C.
 
-3. **Async message-flow parity** (ongoing):
+5. **Async message-flow parity** (ongoing):
    - Propagate async call chains wherever C behavior can block on `--More--`.
    - Eliminate any remaining queueing-era approximations that mask ordering.
 
-4. **Event fidelity** (ongoing):
+6. **Event fidelity** (ongoing, supports all lanes):
    - Add instrumentation where first-divergence evidence is thin.
    - Keep instrumentation behavior-neutral (no gameplay side effects).
 
@@ -116,7 +133,8 @@ roles, seeds, and move sequences.
 
 Operation More Needed is successful when all are true:
 
-1. All 28 remaining failures are resolved (chargen RNG ordering fixed).
+1. Remaining gameplay failures are reduced to an agreed merge threshold, with
+   first-divergence clusters materially narrowed and documented.
 2. Cursor channel is captured and compared for gameplay suites.
 3. `--More--` handling is explicit in sessions and correctly replayed with no
    suppression-era approximations remaining.
