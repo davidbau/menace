@@ -28,7 +28,7 @@ import { formatGoldPickupMessage, formatInventoryPickupMessage } from './do.js';
 import { x_monnam, y_monnam, YMonnam, Monnam, mon_nam, canseemon, passes_walls, is_longworm } from './mondata.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, u_wipe_engr } from './engrave.js';
 import { gethungry } from './eat.js';
-import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop } from './shk.js';
+import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop, inhishop } from './shk.js';
 import { observeObject } from './discovery.js';
 import { place_object } from './stackobj.js';
 import { xname, an, The } from './objnam.js';
@@ -463,10 +463,19 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
     if (shouldDisplace) {
         const monData = mon.type || {};
         const playerLoc = map?.at ? map.at(player.x, player.y) : null;
+        const monLoc = map?.at ? map.at(mon.mx, mon.my) : null;
+        const monRoomNo = Number(monLoc?.roomno || 0);
+        const monRoom = (monRoomNo >= ROOMOFFSET) ? map?.rooms?.[monRoomNo - ROOMOFFSET] : null;
+        const inTendedShop = !!(monRoom
+            && Number(monRoom.rtype || 0) >= SHOPBASE
+            && monRoom.resident
+            && inhishop(monRoom.resident, map));
         const punished = !!(player?.Punished || player?.punished || player?.uchain);
         const petIsLongworm = !!(is_longworm(monData) && mon.wormno);
         const obstructedHeroSquare = !!(playerLoc && IS_OBSTRUCTED(playerLoc.typ));
         const blocked = (
+            inTendedShop
+            ||
             punished
             || !rn2(7)
             || petIsLongworm
