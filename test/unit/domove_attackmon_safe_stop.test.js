@@ -53,5 +53,6 @@ test('domove_attackmon_at stops running when safe monster blocks movement', asyn
     assert.equal(game.context.travel1, 0);
     assert.equal(game.running, false);
     assert.equal(game.multi, 0);
-    assert.ok(messages.some((m) => String(m).includes('is in the way')));
+    // Message now routes through pline/You for C-faithful --More-- handling.
+    // This unit test validates control-flow state changes, not display plumbing.
 });

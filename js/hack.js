@@ -34,7 +34,7 @@ import { place_object } from './stackobj.js';
 import { xname, an, The } from './objnam.js';
 import { DIRECTION_KEYS } from './dothrow.js';
 import { dosearch0 } from './detect.js';
-import { dist2, monsterNearby, monnear, newsym, setDisplayContext, mark_vision_dirty, vision_recalc } from './monutil.js';
+import { dist2, monsterNearby, monnear, newsym, setDisplayContext, mark_vision_dirty, vision_recalc, canSpotMonsterForMap } from './monutil.js';
 import { monflee } from './monmove.js';
 import { ynFunction } from './input.js';
 import { water_friction, maybe_adjust_hero_bubble } from './mkmaze.js';
@@ -463,7 +463,9 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
     const disoriented = !!(player?.confused || player?.Confusion
         || player?.hallucinating || player?.Hallucination
         || player?.stunned || player?.Stunned);
-    const safeMonVisible = game?.fov ? canseemon(mon, player, game.fov) : true;
+    // C ref: is_safemon(mon) uses canspotmon(mon), not canseemon(mon).
+    // Use map+FOV-aware spotting semantics so safe-mon gating matches C.
+    const safeMonVisible = canSpotMonsterForMap(mon, map, player, game?.fov || null);
     const shouldDisplace = safeDogEnabled
         && !!mon.peaceful
         && safeMonVisible
@@ -495,7 +497,9 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
                 await monflee(mon, rnd(6), false, false, player, display, null);
             }
             const label = YMonnam(mon);
-            await display.putstr_message(`You stop.  ${label} is in the way!`);
+            // C ref: uhitm.c:499 — You("stop.  %s is in the way!", ...)
+            // Route through pline/You so --More-- semantics stay C-faithful.
+            await You('stop.  %s is in the way!', label);
             end_running(true, game);
             clear_forcefight_prefix(game, ctx);
             return { handled: true, moved: false, tookTime: true };
@@ -503,7 +507,8 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
         if (mon.mfrozen || mon.mcanmove === false || mon.msleeping
             || ((mon.type?.speed ?? 0) === 0 && rn2(6))) {
             const label = YMonnam(mon);
-            await display.putstr_message(`${label} doesn't seem to move!`);
+            // C ref: uhitm.c:504 — pline("%s doesn't seem to move!", Monnam(mtmp))
+            await pline("%s doesn't seem to move!", label);
             end_running(true, game);
             clear_forcefight_prefix(game, ctx);
             return { handled: true, moved: false, tookTime: true };
