@@ -43,8 +43,7 @@ function makeGame() {
     };
 }
 
-function makeTestItem() {
-    const otyp = 18;
+function makeTestItem(otyp = 18) {
     return {
         otyp,
         oclass: objectData[otyp].oc_class,
@@ -291,6 +290,35 @@ describe('loot via meta key', () => {
         assert.equal(result.tookTime, false);
         assert.equal(game.player.inventory.length, 0);
         assert.equal(chest.contents.length, 1);
+    });
+
+    it('containerMenu o take-out prompts for object type when classes differ', async () => {
+        const { game, messages } = makeGame();
+        const weapon = makeTestItem(18); // class ')'
+        const armor = makeTestItem(95); // class '['
+        const chest = {
+            otyp: CHEST,
+            ox: game.player.x,
+            oy: game.player.y,
+            contents: [weapon, armor],
+            olocked: false,
+            obroken: false,
+        };
+        game.map.objects.push(chest);
+        pushInput('o'.charCodeAt(0)); // take-out mode
+        pushInput(')'.charCodeAt(0)); // weapon class only
+        pushInput('a'.charCodeAt(0)); // select first visible item
+        pushInput(27);                // ESC back to container menu
+        pushInput('q'.charCodeAt(0)); // quit
+
+        const result = await rhack('l'.charCodeAt(0) | 0x80, game);
+
+        assert.equal(result.tookTime, true);
+        assert.equal(game.player.inventory.length, 1);
+        assert.equal(game.player.inventory[0].otyp, 18);
+        assert.equal(chest.contents.length, 1);
+        assert.ok(messages.some((m) => m.includes('Take out what type of objects?')),
+            `expected type-filter prompt, got: ${JSON.stringify(messages)}`);
     });
 
     it('containerMenu i put-in with a=all moves all inventory into chest', async () => {

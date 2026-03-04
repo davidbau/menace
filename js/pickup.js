@@ -1415,22 +1415,49 @@ async function containerMenu(game, container) {
             break; // exit menu after bringing all (C behavior)
         } else if (c === 'o') {
             // 'o' = take out — per-item selection loop.
-            // cf. pickup.c out_container(): prompts "Take out what? [letters or ?*]"
+            // cf. pickup.c traditional_loot(FALSE): first asks class filter,
+            // then prompts "Take out what?" for matching letters.
             // loops until ESC, then returns to outer "Do what?" menu.
             if (!hasContents) { await display.putstr_message('It is empty.'); continue; }
+            const currentContents = getContainerContents(container);
+            const seenClasses = new Set();
+            for (const o of currentContents) {
+                const sym = CLASS_SYMBOLS[o?.oclass];
+                if (sym) seenClasses.add(sym);
+            }
+            let allowedClasses = null; // null => all classes
+            if (seenClasses.size > 1) {
+                const classStr = [...seenClasses].join('');
+                // Mirrors C wording from query_classes() for take-out.
+                await display.putstr_message(`Take out what type of objects? [${classStr} or ?*]`);
+                const clsCh = await nhgetch();
+                if (clsCh === 27) continue; // ESC => back to "Do what?" menu
+                const cls = String.fromCharCode(clsCh);
+                if (cls === '?' || cls === '*') {
+                    allowedClasses = null;
+                } else {
+                    if (!seenClasses.has(cls)) continue; // invalid class choice
+                    allowedClasses = new Set([cls]);
+                }
+            }
             const letters = 'abcdefghijklmnopqrstuvwxyz';
             while (true) {
                 const cur = getContainerContents(container);
                 if (!cur.length) break;
-                const available = letters.slice(0, cur.length);
+                const visible = cur.filter((o) => {
+                    if (allowedClasses === null) return true;
+                    return allowedClasses.has(CLASS_SYMBOLS[o?.oclass]);
+                });
+                if (!visible.length) break;
+                const available = letters.slice(0, visible.length);
                 await display.putstr_message(`Take out what? [${available} or ?*]`);
                 const tch = await nhgetch();
                 if (tch === 27) break; // ESC → back to "Do what?" menu
-                const tidx = letters.indexOf(String.fromCharCode(tch));
-                if (tidx < 0 || tidx >= cur.length) continue;
-                const item = cur[tidx];
+                const tidx = letters.indexOf(String.fromCharCode(tch).toLowerCase());
+                if (tidx < 0 || tidx >= visible.length) continue;
+                const item = visible[tidx];
                 player.addToInventory(item); observeObject(item);
-                setContainerContents(container, cur.filter((_, i) => i !== tidx));
+                setContainerContents(container, cur.filter((o) => o !== item));
                 await display.putstr_message(`You take out ${doname(item, player)}.`);
                 tookTime = true;
             }
