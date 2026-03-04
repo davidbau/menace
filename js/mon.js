@@ -386,6 +386,7 @@ export function mfndpos(mon, map, player, flag) {
     if (typeof flag !== 'number') flag = 0;
 
     const omx = mon.mx, omy = mon.my;
+    const nowtyp = map.at(omx, omy)?.typ;
     const mdat = mon.type || {};
     const mflags1 = mdat.flags1 || 0;
     const mlet = mdat.mlet ?? -1;
@@ -467,18 +468,14 @@ export function mfndpos(mon, map, player, flag) {
             // C ref: mon.c:2236-2237 — LAVAWALL needs lavaok AND ALLOW_WALL
             if (ntyp === LAVAWALL && (!lavaok || !(flag & ALLOW_WALL))) continue;
 
-            // C ref: mon.c:2240-2265 — pool/lava conditional
-            if ((IS_POOL(ntyp) || IS_LAVA(ntyp))) {
-                if (IS_POOL(ntyp) && !poolok && !(wantpool && IS_POOL(ntyp))) {
-                    // On nexttry==1, skip wantpool check for eels
-                    if (nexttry === 0 || !wantpool) continue;
-                }
-                if (!poolok && IS_POOL(ntyp) !== wantpool) {
-                    if (nexttry === 0) continue;
-                    // On nexttry, eels accept non-pool too
-                }
-                if (!lavaok && IS_LAVA(ntyp)) continue;
-            }
+            // C ref: mon.c:2245-2246 — pool/lava gate applies to every square:
+            // (poolok || is_pool(nx,ny)==wantpool) && (lavaok || !is_lava(nx,ny))
+            // This is critical for eel movement: when wantpool is true and poolok
+            // is false, non-pool squares must be rejected here.
+            const isPool = IS_POOL(ntyp);
+            const isLava = IS_LAVA(ntyp);
+            if (!(poolok || (isPool === wantpool))) continue;
+            if (!(lavaok || !isLava)) continue;
 
             // === Inside the "acceptable terrain" block ===
 
@@ -589,8 +586,9 @@ export function mfndpos(mon, map, player, flag) {
         }
     }
 
-    // C ref: mon.c:2358-2365 — eel nexttry: retry without wantpool requirement
-    if (positions.length === 0 && nexttry === 0 && wantpool) {
+    // C ref: mon.c:2363-2365 — eel nexttry only when no moves and current
+    // square is not pool.
+    if (positions.length === 0 && nexttry === 0 && wantpool && !IS_POOL(nowtyp)) {
         nexttry = 1;
         continue;
     }
