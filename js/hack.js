@@ -25,7 +25,7 @@ import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
 import { nhgetch } from './input.js';
 import { do_attack } from './uhitm.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage } from './do.js';
-import { x_monnam, y_monnam, YMonnam, Monnam, mon_nam, canseemon } from './mondata.js';
+import { x_monnam, y_monnam, YMonnam, Monnam, mon_nam, canseemon, passes_walls, is_longworm } from './mondata.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, u_wipe_engr } from './engrave.js';
 import { gethungry } from './eat.js';
 import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop } from './shk.js';
@@ -461,13 +461,24 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
     if (forcefight && ctx) ctx.forcefight = 1;
     const shouldDisplace = (mon.tame || mon.peaceful) && !forcefight;
     if (shouldDisplace) {
-        const blocked = (!rn2(7));
+        const monData = mon.type || {};
+        const playerLoc = map?.at ? map.at(player.x, player.y) : null;
+        const punished = !!(player?.Punished || player?.punished || player?.uchain);
+        const petIsLongworm = !!(is_longworm(monData) && mon.wormno);
+        const obstructedHeroSquare = !!(playerLoc && IS_OBSTRUCTED(playerLoc.typ));
+        const blocked = (
+            punished
+            || !rn2(7)
+            || petIsLongworm
+            || (obstructedHeroSquare && !passes_walls(monData))
+        );
         if (blocked) {
             if (mon.tame) {
                 await monflee(mon, rnd(6), false, false, player, display, null);
             }
             const label = YMonnam(mon);
             await display.putstr_message(`You stop.  ${label} is in the way!`);
+            end_running(true, game);
             clear_forcefight_prefix(game, ctx);
             return { handled: true, moved: false, tookTime: true };
         }
@@ -475,6 +486,7 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
             || ((mon.type?.speed ?? 0) === 0 && rn2(6))) {
             const label = YMonnam(mon);
             await display.putstr_message(`${label} doesn't seem to move!`);
+            end_running(true, game);
             clear_forcefight_prefix(game, ctx);
             return { handled: true, moved: false, tookTime: true };
         }
