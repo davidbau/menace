@@ -229,7 +229,7 @@ export function newsym(x, y) {
                 ? underGlyph.color : CLR_GRAY;
         } else {
             const engr = map.engravingAt(x, y);
-            if (engr && (player?.wizard || engr.erevealed)) {
+            if (engr && (player?.wizard || !player?.blind || engr.erevealed)) {
                 const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
                 loc.mem_obj = engrCh;
                 loc.mem_obj_color = CLR_BRIGHT_BLUE;
@@ -279,7 +279,7 @@ export function newsym(x, y) {
 
     // Engravings (wizard mode or revealed)
     const engr = map.engravingAt(x, y);
-    if (engr && (player?.wizard || engr.erevealed)) {
+    if (engr && (player?.wizard || !player?.blind || engr.erevealed)) {
         const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
         loc.mem_obj = engrCh;
         loc.mem_obj_color = CLR_BRIGHT_BLUE;

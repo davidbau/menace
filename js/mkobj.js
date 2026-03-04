@@ -1231,7 +1231,20 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
         }
         break;
     default:
-        base = od.name;
+        // C ref: objnam.c xname() includes the monster descriptor for statues.
+        if (obj.otyp === STATUE) {
+            const statueIdx = Number.isInteger(obj.corpsenm) ? obj.corpsenm : obj.corpsem;
+            const monName = (Number.isInteger(statueIdx) && mons[statueIdx])
+                ? String(mons[statueIdx].name || '').trim()
+                : '';
+            if (monName) {
+                base = `statue of ${just_an(monName)} ${monName}`;
+            } else {
+                base = od.name;
+            }
+        } else {
+            base = od.name;
+        }
         break;
     }
     // C uses gem-name logic that yields "flint stone(s)" for FLINT.

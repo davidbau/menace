@@ -505,7 +505,7 @@ span.nh-cursor {
                             : CLR_GRAY;
                     } else {
                         const engr = gameMap.engravingAt(x, y);
-                        if (engr && (player?.wizard || engr.erevealed)) {
+                        if (engr && (player?.wizard || !player?.blind || engr.erevealed)) {
                             const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
                             loc.mem_obj = engrCh;
                             loc.mem_obj_color = CLR_BRIGHT_BLUE;
@@ -583,7 +583,7 @@ span.nh-cursor {
                 // as S_engroom ('`') or S_engrcorr ('#') when no higher-priority
                 // map symbol (player/monster/object/trap) occupies the square.
                 const engr = gameMap.engravingAt(x, y);
-                if (engr && (player?.wizard || engr.erevealed)) {
+                if (engr && (player?.wizard || !player?.blind || engr.erevealed)) {
                     const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
                     loc.mem_obj = engrCh;
                     loc.mem_obj_color = CLR_BRIGHT_BLUE;
