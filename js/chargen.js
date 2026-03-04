@@ -1092,6 +1092,14 @@ async function manualSelection(game) {
             if (!needsGenderMenu(roleIdx)) {
                 gender = roles[roleIdx].forceGender === 'female' ? FEMALE : MALE;
             } else {
+                // C ref: plsel_startmenu(RS_GENDER) → rigid_role_checks() → pick_align(PICK_RIGID)
+                // When alignment is forced to a single choice, rn2(n) is consumed even before the menu.
+                if (align === -128) {
+                    const validAligns = validAlignsForRoleRace(roleIdx, raceIdx).filter(a => okAlign(game, a));
+                    if (validAligns.length === 1) {
+                        rn2(1); // C ref: role.c:1222 pick_align via rigid_role_checks(PICK_RIGID)
+                    }
+                }
                 const result = await showGenderMenu(game, roleIdx, raceIdx, align, isFirstMenu);
                 isFirstMenu = false;
                 if (result.action === 'quit') { await game._runLifecycle('promo'); return; }

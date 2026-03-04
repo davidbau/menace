@@ -238,9 +238,55 @@ export function getSessionCharacter(session) {
     return parseSessionCharacter(session);
 }
 
+// For 'manual-direct-live' sessions, find all large-RNG bursts (level gen, tutorial gen)
+// and compute the boundary index in raw.steps after which gameplay begins.
+// Returns { boundary, hasTutorial, firstBurst, lastBurst } or null.
+// Takes the raw session (raw.steps has the null-key startup at index 0).
+function getManualDirectChargenInfo(rawSession) {
+    const steps = rawSession?.steps || [];
+    let firstBurst = -1;
+    let lastBurst = -1;
+    for (let i = 1; i < steps.length; i++) {
+        if ((steps[i].rng || []).length > 100) {
+            if (firstBurst < 0) firstBurst = i;
+            lastBurst = i;
+        }
+        // Stop scanning after 10 steps past first burst — all setup bursts are nearby
+        if (firstBurst >= 0 && i > firstBurst + 10) break;
+    }
+    if (firstBurst < 0) return null;
+    // hasTutorial: a secondary burst (tutorial level gen) follows the primary (dungeon level gen)
+    const hasTutorial = lastBurst > firstBurst;
+    let boundary;
+    if (hasTutorial) {
+        // Tutorial level gen is the last pre-gameplay step; gameplay starts after it.
+        boundary = Math.min(lastBurst, steps.length - 1);
+    } else {
+        // Scan forward: include steps with ≤ 3 raw RNG entries (preamble=2, prompt dismisses=0).
+        // C shows welcome message, then maybe_do_tutorial() prompt (answered "n" to decline).
+        // These steps have 0-2 entries. First actual gameplay step has 5+ entries.
+        boundary = firstBurst;
+        for (let j = firstBurst + 1; j < steps.length && j <= firstBurst + 10; j++) {
+            if ((steps[j].rng || []).length > 3) break;
+            boundary = j;
+        }
+    }
+    return { boundary, hasTutorial, firstBurst, lastBurst };
+}
+
+function getManualDirectChargenBoundary(rawSession) {
+    return getManualDirectChargenInfo(rawSession)?.boundary ?? -1;
+}
+
 export function getSessionGameplaySteps(session) {
     if (!session?.steps) return [];
     if (session.steps.length > 0 && session.steps[0].key === null) {
+        // For manual-direct-live, skip all embedded chargen+lore steps.
+        // The boundary points to the last pre-gameplay step; gameplay starts at boundary+1.
+        if (session.regen?.mode === 'manual-direct-live') {
+            const boundary = getManualDirectChargenBoundary(session);
+            if (boundary >= 0) return session.steps.slice(boundary + 1);
+        }
         return session.steps.slice(1);
     }
     return session.steps;
@@ -256,6 +302,39 @@ export function getChargenKeys(session) {
         }
     }
     return keys;
+}
+
+// For manual-direct-live sessions, build a comparison-ready session view that:
+//  1. Folds ALL pre-gameplay RNG (chargen + level-gen + moveloop_preamble + lore dismiss)
+//     into startup.rng, so the flat JS startup RNG can match it.
+//  2. Slices session.steps to only include gameplay steps (so screen indices align).
+//  3. Sets startup.screen from the first gameplay step (so parseSessionCharacter works).
+// This is called in the test runner before passing to compareRecordedGameplaySession.
+export function applyManualDirectChargenView(session) {
+    if (session.raw?.regen?.mode !== 'manual-direct-live') return session;
+    // session.steps = raw.steps.slice(1) — null-key startup was extracted to session.startup.
+    // getManualDirectChargenBoundary returns a raw.steps index (extended by +2 for lore steps).
+    // sessionBoundary = rawBoundary - 1 (converts raw index to session.steps index).
+    const rawBoundary = getManualDirectChargenBoundary(session.raw);
+    if (rawBoundary < 0) return session;
+    const sessionBoundary = rawBoundary - 1; // index in session.steps
+    const chargenSteps = session.steps.slice(0, sessionBoundary + 1);
+    const chargenRng = chargenSteps.flatMap((s) => s.rng || []);
+    const hasPickAlign = chargenSteps.some((s) =>
+        (s.rng || []).some((r) => typeof r === 'string' && r.includes('pick_align'))
+    );
+    // Use first gameplay step's screen so parseSessionCharacter can detect the character.
+    const firstGameplayStep = session.steps[sessionBoundary + 1];
+    return {
+        ...session,
+        startup: {
+            ...(session.startup || {}),
+            rng: [...(session.startup?.rng || []), ...chargenRng],
+            screen: firstGameplayStep?.screen ?? (session.startup?.screen ?? []),
+        },
+        steps: session.steps.slice(sessionBoundary + 1),
+        _manualDirectChargen: { hasPickAlign },
+    };
 }
 
 export function hasStartupBurstInFirstStep(session) {
@@ -288,6 +367,19 @@ export function prepareReplayArgs(seed, session, opts = {}) {
                 ? opts.tutorialStartupEnterAfterPromptCount : undefined,
             tutorialDirectStart: opts.tutorialDirectStart === true,
         };
+    // For manual-direct-live sessions, add RNG simulation so the JS startup matches
+    // the combined C startup (chargen + level-gen + moveloop_preamble steps folded in).
+    if (session.regen?.mode === 'manual-direct-live') {
+        const info = getManualDirectChargenInfo(session);
+        if (info) {
+            // Search steps before level gen (steps 1..firstBurst-1) for pick_align RNG entries.
+            const chargenOnlySteps = (session.steps || []).slice(1, info.firstBurst);
+            const hasPickAlign = chargenOnlySteps.some((s) =>
+                (s.rng || []).some((r) => typeof r === 'string' && r.includes('pick_align'))
+            );
+            initOpts.simulateManualDirectChargen = { hasPickAlign, hasTutorial: info.hasTutorial };
+        }
+    }
 
     // Flatten all gameplay step keys into a single string.
     const steps = getSessionGameplaySteps(session);
@@ -401,8 +493,16 @@ function parseSessionCharacter(session) {
     if (!session?.options) return {};
     let startupName = null;
     let startupRank = null;
-    // Find character name from startup status line
-    const startup = session?.steps?.[0]?.key === null ? session.steps[0] : session?.startup;
+    // Find character name from startup status line.
+    // For manual-direct-live sessions, the startup screen is blank (chargen menus);
+    // use the first gameplay step's screen instead.
+    let startup;
+    if (session.regen?.mode === 'manual-direct-live') {
+        const info = getManualDirectChargenInfo(session);
+        startup = info ? (session.steps || [])[info.boundary + 1] : null;
+    } else {
+        startup = session?.steps?.[0]?.key === null ? session.steps[0] : session?.startup;
+    }
     const startupLines = getSessionScreenLines(startup || {});
     for (const line of startupLines) {
         if (!line || !line.includes('St:')) continue;
@@ -429,12 +529,39 @@ function parseSessionCharacter(session) {
         }
         if (matches.length === 1) roleFromStartup = matches[0];
     }
+
+    // For manual-direct-live sessions, parse race/gender/align from the welcome message.
+    // The welcome message (step after level gen) reads: "You are a(n)? {align} [gender] {race_adj} {role}."
+    // session.options.race/gender/align are placeholder defaults and cannot be trusted.
+    let alignFromWelcome = null, genderFromWelcome = null, raceFromWelcome = null, roleFromWelcome = null;
+    if (session.regen?.mode === 'manual-direct-live') {
+        const info = getManualDirectChargenInfo(session);
+        if (info) {
+            const welcomeStep = (session.steps || [])[info.firstBurst + 1];
+            const welcomeLines = getSessionScreenLines(welcomeStep || {});
+            const raceAdjMap = { human: 'human', elven: 'elf', dwarven: 'dwarf', gnomish: 'gnome', orcish: 'orc' };
+            for (const line of welcomeLines) {
+                if (!line?.includes('You are a')) continue;
+                // Format: "You are a(n)? {align} [male|female] {race_adj} {role}."
+                const m = line.match(/You are an?\s+(chaotic|neutral|lawful)\s+(?:(male|female)\s+)?(\w+)\s+(\w+)/);
+                if (m) {
+                    alignFromWelcome = m[1];
+                    genderFromWelcome = m[2] || 'male';
+                    raceFromWelcome = raceAdjMap[m[3]] || m[3];
+                    const roleMatch = roles.find((r) => r.name === m[4]);
+                    if (roleMatch) roleFromWelcome = roleMatch.name;
+                    break;
+                }
+            }
+        }
+    }
+
     return {
         name: startupName || session.options.name,
-        role: roleFromStartup || session.options.role,
-        race: session.options.race,
-        gender: session.options.gender,
-        align: session.options.align,
+        role: roleFromStartup || roleFromWelcome || session.options.role,
+        race: raceFromWelcome || session.options.race,
+        gender: genderFromWelcome || session.options.gender,
+        align: alignFromWelcome || session.options.align,
     };
 }
 

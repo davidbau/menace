@@ -1213,6 +1213,13 @@ export class NetHackGame {
             if (validAligns.length > 0 && !validAligns.includes(this.player.alignment)) {
                 this.player.alignment = validAligns[0];
             }
+            // C ref: role.c:1222 pick_align(PICK_RIGID) via rigid_role_checks()
+            // For manual-direct-live sessions, the C recording includes a rn2(1) call that
+            // fires when the gender menu is shown (if alignment is forced to a single choice).
+            // Simulate it here so the flat RNG stream stays aligned.
+            if (urlOpts.simulateManualDirectChargen?.hasPickAlign) {
+                rn2(1);
+            }
         } else if (this.wizard) {
             // Wizard mode: auto-select Valkyrie (index 11)
             this.player.initRole(11); // PM_VALKYRIE
@@ -1238,6 +1245,14 @@ export class NetHackGame {
         this.levels[startDlevel] = map;
         this.player.wizard = this.wizard;
         this.seerTurn = initResult.seerTurn;
+
+        // For manual-direct-live session replays, the preamble (rnd(9000)+rnd(30)) is
+        // already consumed by simulatePostLevelInit above. If the player chose the tutorial,
+        // call enterTutorial to generate the tutorial level-gen RNG (folded into startup).
+        // direct:true skips the "Entering the tutorial." message/morePrompt.
+        if (urlOpts.simulateManualDirectChargen?.hasTutorial) {
+            await _enterTutorial(this, { direct: true });
+        }
 
         // Apply flags
         this.player.showExp = this.flags.showexp;
