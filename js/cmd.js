@@ -682,7 +682,10 @@ async function handleExtendedCommand(game) {
         return { moved: false, tookTime: false };
     }
     const rawCmd = input.trim();
-    const cmd = rawCmd.toLowerCase();
+    // C ref: get_ext_cmd() accepts a unique prefix and resolves it to the full
+    // command name. "#l\n" → "loot", "#lo\n" → "loot", etc.
+    const completedRaw = displayCompletedExtcmd(rawCmd, game);
+    const cmd = completedRaw.toLowerCase();
     const queueRepeatExtcmd = async (fn) => {
         if (game?.inDoAgain || typeof fn !== 'function') return;
         cmdq_clear(CQ_REPEAT);

@@ -50,7 +50,8 @@ test('extended command unknown feedback preserves typed casing', async () => {
     assert.equal(game.display.topMessage, '#Oyce: unknown extended command.');
 });
 
-test('single-letter #l remains unknown unless full command is entered', async () => {
+test('#l autocompletes to loot (C prefix-completion parity)', async () => {
+    // C ref: get_ext_cmd() accepts a unique prefix — '#l\n' resolves to 'loot'.
     clearInputQueue();
     const game = makeGame();
     pushInput('l'.charCodeAt(0));
@@ -59,7 +60,7 @@ test('single-letter #l remains unknown unless full command is entered', async ()
     const result = await rhack('#'.charCodeAt(0), game);
 
     assert.equal(result.tookTime, false);
-    assert.equal(game.display.topMessage, '#l: unknown extended command.');
+    assert.equal(game.display.topMessage, "You don't find anything here to loot.");
 });
 
 test('#name object-type path rejects non-callable inventory item with C wording', async () => {
