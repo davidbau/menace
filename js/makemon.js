@@ -3,7 +3,7 @@
 // C ref: makemon.c — monster creation, selection, weapon/inventory assignment
 
 import { rn2, rnd, rn1, d, c_d, getRngLog, getRngCallCount, pushRngLogEntry } from './rng.js';
-import { mksobj, mkobj, next_ident, weight, place_object } from './mkobj.js';
+import { mksobj, mkobj, next_ident, weight, place_object, set_corpsenm } from './mkobj.js';
 import { def_monsyms } from './symbols.js';
 import { m_dowear } from './worn.js';
 import {
@@ -56,6 +56,7 @@ import {
     MS_LEADER, MS_NEMESIS, MS_GUARDIAN, MS_PRIEST,
     PM_CROESUS,
     PM_ARCHEOLOGIST, PM_WIZARD,
+    PM_QUANTUM_MECHANIC, PM_HOUSECAT,
 } from './monsters.js';
 import {
     ROCK, STATUE, FIGURINE, EGG, TIN, STRANGE_OBJECT, GOLD_PIECE, DILITHIUM_CRYSTAL,
@@ -100,7 +101,7 @@ import {
     RIN_INVISIBILITY,
     AMULET_OF_LIFE_SAVING, AMULET_OF_YENDOR,
     CANDELABRUM_OF_INVOCATION, BELL_OF_OPENING, SPE_BOOK_OF_THE_DEAD,
-    CORPSE, LUCKSTONE, objectData,
+    CORPSE, LARGE_BOX, LUCKSTONE, objectData,
 } from './objects.js';
 import { roles, races, initialAlignmentRecordForRole } from './player.js';
 import { mpickobj, dist2, BOLT_LIM } from './monutil.js';
@@ -1314,6 +1315,25 @@ function m_initinv(mon, mndx, depth, m_lev, map) {
 
     case S_LEPRECHAUN:
         mkmonmoney(mon, c_d(Math.max(depth, 1), 30));
+        break;
+
+    case S_QUANTMECH:
+        // C ref: makemon.c:779-793 — Schroedinger's Box check for quantum mechanic.
+        // Always consumes rn2(20); creates a large box with a cat corpse when triggered.
+        if (!rn2(20) && mndx === PM_QUANTUM_MECHANIC) {
+            const box = mksobj(LARGE_BOX, false, false);
+            if (box) {
+                box.spe = 1; // Schroedinger's Box flag
+                const catcorpse = mksobj(CORPSE, true, false);
+                if (catcorpse) {
+                    set_corpsenm(catcorpse, PM_HOUSECAT);
+                    if (!Array.isArray(box.cobj)) box.cobj = [];
+                    box.cobj.push(catcorpse);
+                    box.owt = weight(box);
+                }
+                mpickobj(mon, box);
+            }
+        }
         break;
 
     default:
