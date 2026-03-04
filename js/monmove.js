@@ -24,7 +24,8 @@ import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          ACCESSIBLE, CORR, DOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN,
          SHOPBASE, ROOM, ROOMOFFSET,
          NORMAL_SPEED, isok, WEB, IS_OBSTRUCTED, IS_STWALL,
-         IRONBARS, STAIRS, LADDER } from './config.js';
+         IRONBARS, STAIRS, LADDER,
+         INVIS, DISPLACED } from './config.js';
 import { rn2, rnd, d, c_d, pushRngLogEntry } from './rng.js';
 import { wipe_engr_at } from './engrave.js';
 import { mattacku } from './mhitu.js';
@@ -261,6 +262,25 @@ function flees_light(mon, map, player) {
     return couldsee(map, player, mon.mx, mon.my);
 }
 
+function playerHasActiveProperty(player, prop) {
+    if (!player || !Number.isInteger(prop)) return false;
+    if (typeof player.hasProp === 'function') return !!player.hasProp(prop);
+    const entry = player.uprops?.[prop];
+    if (!entry) return false;
+    return !!(entry.intrinsic || entry.extrinsic);
+}
+
+function playerIsInvisibleForMonAI(player) {
+    return !!(player?.Invis || player?.invis || playerHasActiveProperty(player, INVIS));
+}
+
+function playerIsDisplacedForMonAI(player) {
+    return !!(player?.Displaced
+        || player?.displaced
+        || playerHasActiveProperty(player, DISPLACED)
+        || (player?.cloak && player.cloak.otyp === CLOAK_OF_DISPLACEMENT));
+}
+
 // C ref: monmove.c:534 — determine whether a monster is in range, nearby,
 // and/or scared of something at or near the hero's position.
 // Sets inrange (within BOLT_LIM), nearby (adjacent), and scared (triggers flee).
@@ -280,7 +300,7 @@ export async function distfleeck(mon, map, player, display, fov) {
     // C ref: monmove.c:548-558 — determine scary square even when not nearby
     const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false);
     const canPerceiveInvis = perceives(mon.type || mons[mon.mndx] || {});
-    const heroInvis = !!player.Invis;
+    const heroInvis = playerIsInvisibleForMonAI(player);
     const seescaryX = (!monCanSee || (heroInvis && !canPerceiveInvis)) ? targetX : player.x;
     const seescaryY = (!monCanSee || (heroInvis && !canPerceiveInvis)) ? targetY : player.y;
     sawscary = onscary(map, seescaryX, seescaryY, mon) ? 1 : 0;
@@ -1742,10 +1762,9 @@ export function set_apparxy(mon, map, player) {
     const canOoze = !!(mdat.flags1 & M1_AMORPHOUS);
     const canFog = canOoze || !!(mdat.flags1 & M1_UNSOLID);
     const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false);
-    const heroInvis = !!player.Invis;
+    const heroInvis = playerIsInvisibleForMonAI(player);
     const notseen = (!monCanSee || (heroInvis && !perceives(mdat)));
-    const playerDisplaced = !!(player.displaced
-        || (player.cloak && player.cloak.otyp === CLOAK_OF_DISPLACEMENT));
+    const playerDisplaced = playerIsDisplacedForMonAI(player);
     const notthere = playerDisplaced && mon.mndx !== PM_DISPLACER_BEAST;
     let displ;
     if (player.uinwater || player.underwater || player.Underwater) {

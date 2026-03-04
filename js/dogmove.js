@@ -49,7 +49,7 @@ import { dist2, distmin, monnear, mfndpos, mon_allowflags,
          m_avoid_kicked_loc, m_avoid_soko_push_loc,
          m_harmless_trap,
          monmoveTrace, monmoveStepLabel,
-         canSpotMonsterForMap, map_invisible,
+         canSpotMonsterForMap,
          mondead, mpickobj, mdrop_obj,
          MTSZ, SQSRCHRADIUS, FARAWAY,
          mon_track_add,
@@ -873,12 +873,12 @@ export async function pet_ranged_attk(mon, map, player, display, fov = null, gam
         return 1; // acted (MMOVE_DONE)
     }
     // C ref: dogmove.c:918 — mattackm(mtmp, mtarg)
-    const monVisible = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
-    const targVisible = fov?.canSee ? fov.canSee(mtarg.mx, mtarg.my) : couldsee(map, player, mtarg.mx, mtarg.my);
-    const vis = monVisible || targVisible;
     const turnCount = (player.turns || 0) + 1;
     const agrSpot = canSpotMonsterForMap(mon, map, player, fov);
     const defSpot = canSpotMonsterForMap(mtarg, map, player, fov);
+    const monVisible = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
+    const targVisible = fov?.canSee ? fov.canSee(mtarg.mx, mtarg.my) : couldsee(map, player, mtarg.mx, mtarg.my);
+    const vis = monVisible || targVisible;
     const ctx = { player, fov, turnCount, agrVisible: agrSpot, defVisible: defSpot };
     const mstatus = await mattackm(mon, mtarg, display, vis, map, ctx);
     if (mstatus & M_ATTK_AGR_DIED) return 1;
@@ -1291,21 +1291,15 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                 if (after) return 0;
 
                 // C ref: dogmove.c:1144-1146 — visibility for combat messages
-                const monVisible = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
-                const targetVisible = fov?.canSee ? fov.canSee(target.mx, target.my) : couldsee(map, player, target.mx, target.my);
-                const mmVisible = monVisible || targetVisible;
-                if (mmVisible) {
-                    if (!canSpotMonsterForMap(mon, map, player, fov)) {
-                        map_invisible(map, mon.mx, mon.my, player);
-                    }
-                    if (!canSpotMonsterForMap(target, map, player, fov)) {
-                        map_invisible(map, target.mx, target.my, player);
-                    }
-                }
-
-                // C ref: dogmove.c:1146 — mattackm(mtmp, mtmp2)
                 const monSpot = canSpotMonsterForMap(mon, map, player, fov);
                 const targetSpot = canSpotMonsterForMap(target, map, player, fov);
+                const monVisible = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
+                const targetVisible = fov?.canSee ? fov.canSee(target.mx, target.my) : couldsee(map, player, target.mx, target.my);
+                // C ref: mhitm.c mattackm() sets gv.vis to
+                // ((cansee(magr) && canspotmon(magr)) || (cansee(mdef) && canspotmon(mdef))).
+                const mmVisible = ((monVisible && monSpot) || (targetVisible && targetSpot));
+
+                // C ref: dogmove.c:1146 — mattackm(mtmp, mtmp2)
                 const ctx = { player, fov, turnCount, agrVisible: monSpot, defVisible: targetSpot };
                 const mstatus = await mattackm(mon, target, display, mmVisible, map, ctx);
 

@@ -5,7 +5,7 @@
 import { isok, IS_WALL, CORR, SCORR, ROOM, ICE,
          POOL, MOAT, WATER, LAVAPOOL, LAVAWALL,
          DRAWBRIDGE_UP, DB_UNDER, DB_MOAT, DB_LAVA,
-         MAP_ROW_START, COLNO, ROWNO } from './config.js';
+         MAP_ROW_START, COLNO, ROWNO, SEE_INVIS, INFRAVISION } from './config.js';
 import { PM_GRID_BUG,
          AT_BITE, AT_CLAW, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_WEAP,
          AT_ENGL, AT_HUGS, AD_STCK } from './monsters.js';
@@ -19,7 +19,7 @@ import { cansee, couldsee, clear_vision_full_recalc, get_vision_full_recalc } fr
 import { do_light_sources } from './light.js';
 export { mark_vision_dirty } from './vision.js';
 import { Monnam } from './mondata.js';
-import { is_hider, noattacks, dmgtype, attacktype } from './mondata.js';
+import { is_hider, noattacks, dmgtype, attacktype, infravisible } from './mondata.js';
 import { weight } from './mkobj.js';
 import { pushRngLogEntry, rnd } from './rng.js';
 import { place_object, stackobj } from './stackobj.js';
@@ -163,12 +163,24 @@ function coversObjectsAt(loc, player) {
         || loc?.typ === LAVAWALL);
 }
 
+function playerHasActiveProp(player, prop) {
+    if (!player || !Number.isInteger(prop)) return false;
+    if (typeof player.hasProp === 'function') return !!player.hasProp(prop);
+    const entry = player.uprops?.[prop];
+    if (!entry) return false;
+    return !!(entry.intrinsic || entry.extrinsic);
+}
+
+function playerCanSeeInvisible(player) {
+    return !!(player?.seeInvisible || player?.See_invisible || playerHasActiveProp(player, SEE_INVIS));
+}
+
 function monsterShownOnMap(mon, player) {
     if (!mon) return false;
     if (mon.mundetected) return false;
     const ap = mon.m_ap_type;
     if (ap === 'furniture' || ap === 'object' || ap === 1 || ap === 2) return false;
-    if (mon.minvis && !(player?.seeInvisible || player?.See_invisible)) return false;
+    if (mon.minvis && !playerCanSeeInvisible(player)) return false;
     return true;
 }
 
@@ -429,12 +441,28 @@ export function flush_screen(cursor_on_u) {
 // C ref: display.h canseemon(mon) — hero can see the monster
 // Checks cansee(location) AND mon_visible (not invisible, not hiding).
 // Note: C's canspotmon adds sensemon (telepathy/detection) — not yet ported.
+function playerHasInfravision(player) {
+    return !!(player?.infravision || player?.Infravision || playerHasActiveProp(player, INFRAVISION));
+}
+
 export function canSpotMonsterForMap(mon, map, player, fov) {
     if (!mon || !map || !player) return false;
-    if (!cansee(map, player, fov, mon.mx, mon.my)) return false;
+    if (fov && typeof fov.compute === 'function') {
+        const stalePos = (fov._playerX !== player.x) || (fov._playerY !== player.y);
+        const staleMap = fov._map !== map;
+        if (stalePos || staleMap) {
+            fov.compute(map, player.x, player.y, do_light_sources);
+        }
+    }
     if (player.blind) return false;
+    const canSeeCell = cansee(map, player, fov, mon.mx, mon.my);
+    const canInfraSee = (!canSeeCell
+        && playerHasInfravision(player)
+        && infravisible(mon.type || {})
+        && couldsee(map, player, mon.mx, mon.my));
+    if (!canSeeCell && !canInfraSee) return false;
     if (mon.mundetected) return false;
-    if (mon.minvis && !player.seeInvisible) return false;
+    if (mon.minvis && !playerCanSeeInvisible(player)) return false;
     return true;
 }
 
@@ -588,6 +616,9 @@ export function unstuck(mon, player) {
 export function mondead(mon, map, player) {
     mon.dead = true;
     pushRngLogEntry(`^die[${mon.mndx || 0}@${mon.mx},${mon.my}]`);
+    // C ref: mon.c mondead -> m_detach -> newsym clears stale invisible marker.
+    const deathLoc = map?.at?.(mon.mx, mon.my);
+    if (deathLoc) deathLoc.mem_invis = false;
     // C ref: mon.c mondead → m_detach → newsym clears invisible marker
     newsym(mon.mx, mon.my);
     // C ref: mon.c:2685 mon_leaving_level → unstuck

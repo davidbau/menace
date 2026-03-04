@@ -1687,3 +1687,27 @@ hard-won wisdom:
   - preserves full parity for `seed309_rogue_selfplay200_gameplay`,
   - improves `seed313_wizard_selfplay200_gameplay` by moving first divergence
     from step 13 to a later screen-only map glyph mismatch at step 78.
+
+### Invisible marker stale-clear on monster death (2026-03-04)
+
+- `seed304_healer_selfplay200_gameplay` had full RNG/event parity but failed
+  screen parity with a stale `I` marker after monster-vs-monster combat.
+- Root cause: JS could leave `mem_invis` set at a square after the defender
+  died there (`^die[...]` already emitted), so `newsym` kept rendering `I`.
+- C-faithful fix was applied in core map/monster lifecycle (not harness):
+  `mondead()` now clears `mem_invis` at the death location before `newsym()`.
+- Validation:
+  - `seed304_healer_selfplay200_gameplay` now passes fully,
+  - guard sessions `seed303`, `seed313`, and `seed321` remain green,
+  - full gameplay suite improved from `10/34` to `11/34`.
+
+### seed307 message-step shift diagnosis (2026-03-04)
+
+- `seed307_priest_selfplay200_gameplay` remains a screen-only mismatch with
+  full RNG/event parity.
+- Around steps 89-90, JS and session contain the same hit message text but on
+  adjacent steps:
+  - step 89: session topline empty, JS has throw+hit message;
+  - step 90: session has hit message, JS topline empty.
+- This indicates a display/timing/topline flush ordering issue (not gameplay
+  state or RNG drift), and should be chased in message pipeline behavior.

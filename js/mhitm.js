@@ -18,7 +18,7 @@
 
 import { rn2, rnd, d, c_d } from './rng.js';
 import { distmin } from './hacklib.js';
-import { monnear, mondead, monAttackName, map_invisible, helpless } from './monutil.js';
+import { monnear, mondead, monAttackName, map_invisible, newsym, helpless, canSpotMonsterForMap } from './monutil.js';
 import { cansee } from './vision.js';
 import {
     x_monnam, touch_petrifies, unsolid, resists_fire, resists_cold,
@@ -44,6 +44,7 @@ import {
     mhitm_adtyping,
 } from './uhitm.js';
 import { monsterWeaponSwingVerb, monsterPossessive } from './mhitu.js';
+import { mhurtle, will_hurtle } from './dothrow.js';
 import { find_mac, W_ARMG, W_ARMF, W_ARMH } from './worn.js';
 import { mon_wield_item, possibly_unwield, NEED_WEAPON, NEED_HTH_WEAPON, hitval } from './weapon.js';
 import { spec_dbon } from './artifact.js';
@@ -94,14 +95,24 @@ async function noises(magr, mattk, display, ctx) {
 
 // cf. mhitm.c:40-72 — pre_mm_attack(): unhide/unmimic, newsym/map_invisible
 function pre_mm_attack(magr, mdef, vis, map, ctx) {
+    const player = ctx?.player || null;
+    const fov = ctx?.fov || null;
+    const spottedNow = (mon, fallbackVisible) => (
+        (typeof fallbackVisible === 'boolean')
+            ? fallbackVisible
+            : ((player && map)
+                ? canSpotMonsterForMap(mon, map, player, fov)
+                : false)
+    );
+
     if (mdef.mundetected) mdef.mundetected = 0;
     if (magr.mundetected) magr.mundetected = 0;
     // C ref: mhitm.c:62-71 — mark invisible monsters on map
     if (vis && map) {
-        if (!ctx?.agrVisible) {
+        if (!spottedNow(magr, ctx?.agrVisible)) {
             map_invisible(map, magr.mx, magr.my, ctx?.player);
         }
-        if (!ctx?.defVisible) {
+        if (!spottedNow(mdef, ctx?.defVisible)) {
             map_invisible(map, mdef.mx, mdef.my, ctx?.player);
         }
     }
@@ -433,56 +444,65 @@ export async function explmm(magr, mdef, mattk, display, vis, map, ctx) {
 // Always consumes rn2(3) for distance and rn2(chance) for trigger.
 // If triggered and eligible: rn2(2)+rn2(2) for message, rn2(4) for stun.
 // Returns true if knockback would fire.
-async function mhitm_knockback_mm(magr, mdef, mattk, mwep, vis, display, ctx) {
-    rn2(3); // knockback distance (always consumed)
+async function mhitm_knockback_mm(magr, mdef, mattk, mwep, vis, display, map, ctx) {
+    const knockdistance = rn2(3) ? 1 : 2; // C ref: uhitm.c mhitm_knockback
     const chance = 6; // default; Ogresmasher would use 2
-    if (rn2(chance)) return false; // didn't trigger
+    if (rn2(chance)) return 0; // didn't trigger
 
     // Eligibility: only AD_PHYS + specific melee attack types
     if (!(mattk.adtyp === AD_PHYS
           && (mattk.aatyp === AT_CLAW || mattk.aatyp === AT_KICK
               || mattk.aatyp === AT_BUTT || mattk.aatyp === AT_WEAP))) {
-        return false;
+        return 0;
     }
 
     // C ref: uhitm.c:5288 — attacker engulfs/hugs → no knockback
     const pa = magr.type || {};
     if (attacktype(pa, AT_ENGL) || attacktype(pa, AT_HUGS) || sticks(pa)) {
-        return false;
+        return 0;
     }
 
     // C ref: uhitm.c:5298 — size check: agr must be much larger
     const agrSize = pa.msize ?? 0;
     const defSize = (mdef.type || {}).msize ?? 0;
-    if (!(agrSize > defSize + 1)) return false;
+    if (!(agrSize > defSize + 1)) return 0;
 
     // C ref: uhitm.c:5303 — unsolid attacker can't knockback
-    if (unsolid(pa)) return false;
+    if (unsolid(pa)) return 0;
 
-    // C ref: uhitm.c:5326 — m_is_steadfast (Woodchuck / Gauntlets of Power)
-    // Stub: always false for now (very rare)
-
-    // C ref: uhitm.c:5338 — movement validation (isok + door diagonal)
-    // Stub: skip movement validation (we don't implement actual mhurtle)
+    const dx = Math.sign((mdef.mx || 0) - (magr.mx || 0));
+    const dy = Math.sign((mdef.my || 0) - (magr.my || 0));
+    const knockedhow = will_hurtle(mdef, mdef.mx + dx, mdef.my + dy, map, ctx?.player)
+        ? 'backward' : 'back';
 
     // C ref: uhitm.c:5350-5352 — knockback message
-    const adj = rn2(2) ? 'forceful' : 'powerful';
-    const noun = rn2(2) ? 'blow' : 'strike';
-    if (vis && display) {
+    if (display && ctx?.defVisible) {
+        const adj = rn2(2) ? 'forceful' : 'powerful';
+        const noun = rn2(2) ? 'blow' : 'strike';
         const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true });
         const defName = monCombatName(mdef, ctx?.defVisible);
         await display.putstr_message(
-            `${agrName} knocks ${defName} back with a ${adj} ${noun}!`
+            `${agrName} knocks ${defName} ${knockedhow} with a ${adj} ${noun}!`
         );
     }
 
-    // C ref: uhitm.c:5383-5398 — stun chance
-    if (!rn2(4)) {
+    // C ref: uhitm.c:5388+ — actual hurtle can kill via traps.
+    const oldx = mdef.mx;
+    const oldy = mdef.my;
+    await mhurtle(mdef, dx, dy, knockdistance, map, ctx?.player);
+    if ((mdef.mx !== oldx || mdef.my !== oldy || DEADMONSTER(mdef))
+        && map?.at?.(oldx, oldy)?.mem_invis) {
+        map.at(oldx, oldy).mem_invis = false;
+        newsym(oldx, oldy);
+    }
+    let kbFlags = M_ATTK_HIT;
+    if (DEADMONSTER(mdef)) {
+        kbFlags |= M_ATTK_DEF_DIED;
+    } else if (!rn2(4)) {
+        // C ref: uhitm.c:5383-5398 — extra stun chance after knockback
         mdef.mstun = 1;
     }
-
-    // C ref: actual mhurtle movement skipped (complex displacement)
-    return true;
+    return kbFlags;
 }
 
 
@@ -520,7 +540,12 @@ async function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx
     }
 
     // C ref: mhitm.c:1061-1065 — mhitm_knockback
-    await mhitm_knockback_mm(magr, mdef, mattk, mwep, vis, display, ctx);
+    const kbFlags = await mhitm_knockback_mm(magr, mdef, mattk, mwep, vis, display, map, ctx);
+    if (kbFlags) {
+        mhm.hitflags |= kbFlags;
+        // C ref: mhitm.c mdamagem() returns early after successful knockback.
+        if (kbFlags & (M_ATTK_DEF_DIED | M_ATTK_HIT)) return mhm.hitflags;
+    }
 
     if (mhm.done) return mhm.hitflags;
     if (!mhm.damage) return mhm.hitflags;
