@@ -5,6 +5,7 @@ import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/map.js';
 import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput } from '../../js/input.js';
+import { setOutputContext } from '../../js/pline.js';
 
 describe('extended command case', () => {
 
@@ -86,15 +87,18 @@ test('#repeat returns repeat request sentinel', async () => {
     assert.equal(result.tookTime, false);
 });
 
-test('#wipe returns tookTime true', async () => {
+test('#wipe prints face-clean message and returns tookTime true', async () => {
     clearInputQueue();
     const game = makeGame();
     game.player.ucreamed = 0;
+    setOutputContext(game.display);
     for (const ch of 'wipe') pushInput(ch.charCodeAt(0));
     pushInput('\n'.charCodeAt(0));
 
     const result = await rhack('#'.charCodeAt(0), game);
     assert.equal(result.tookTime, true);
+    assert.ok(game.display.messages.some(m => m.includes('already clean') || m.includes('face')),
+        `expected face message, got: ${JSON.stringify(game.display.messages)}`);
 });
 
 test('#pray returns without crashing', async () => {
