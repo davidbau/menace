@@ -1631,3 +1631,18 @@ hard-won wisdom:
 - Current C source (`dokick.c` + `rnd.c`) only emits `rn2(37+abs(Luck))` inside `rnl()` when `Luck != 0`.
 - JS runtime trace at that kick site shows `uluck=0`, `moreluck=0`, so no `rn2(38)` is expected from current C logic either.
 - Conclusion: this looks like capture provenance mismatch (session generated from a C build/behavior not matching current patched source), not a safe JS core fix candidate.
+
+### Engraving/trap helper correctness hardening (2026-03-04)
+
+- Fixed `engrave.del_engr_at()` argument handling; it previously called `engr_at()`/`del_engr()` with wrong signatures and could silently no-op.
+- `del_engr_at()` now accepts map-first and map-last call forms and correctly deletes from `map.engravings`.
+- Tightened `can_reach_floor()` toward C semantics:
+  - checks `uswallow`, `ustuck + AT_HUGS`, levitation, `uundetected + ceiling_hider`, flying/huge-size fast path,
+  - supports explicit `check_pit` gating and uses trap-at-hero checks for pit/hole edge cases.
+- Updated `u_wipe_engr()` and `maybeSmudgeEngraving()` to pass `check_pit=TRUE` semantics explicitly.
+- Fixed translated trap helpers with wrong argument order:
+  - `adj_nonconjoined_pit()` now passes map to `t_at()`,
+  - `uteetering_at_seen_pit()` and `uescaped_shaft()` now pass `player` to `u_at()`.
+- Validation:
+  - `seed309_rogue_selfplay200_gameplay` remains fully green (no regression),
+  - known `seed312` first divergence (`^wipe[56,13]`) is unchanged, so this patch improves helper correctness but does not resolve that divergence yet.
