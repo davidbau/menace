@@ -292,4 +292,86 @@ describe('loot via meta key', () => {
         assert.equal(game.player.inventory.length, 0);
         assert.equal(chest.contents.length, 1);
     });
+
+    it('containerMenu i put-in with a=all moves all inventory into chest', async () => {
+        const { game, messages } = makeGame();
+        const item = makeTestItem();
+        item.invlet = 'a';
+        game.player.inventory = [item];
+        const chest = {
+            otyp: CHEST,
+            ox: game.player.x,
+            oy: game.player.y,
+            contents: [],
+            olocked: false,
+            obroken: false,
+        };
+        game.map.objects.push(chest);
+        pushInput('i'.charCodeAt(0)); // put-in mode
+        // Only one class → no class-query prompt; getlin prompt for classes skipped
+        // But with multiple classes we'd get a getlin — here only one class so auto-selected
+        // Actually with only one class, still uses getlin. Let's use 'a' to select all.
+        // Push 'a\n' for the getlin class-selection prompt (all classes).
+        pushInput('a'.charCodeAt(0));
+        pushInput('\n'.charCodeAt(0));
+        pushInput('q'.charCodeAt(0)); // quit outer menu (should not be reached)
+
+        const result = await rhack('l'.charCodeAt(0) | 0x80, game);
+
+        assert.equal(result.tookTime, true);
+        assert.equal(game.player.inventory.length, 0);
+        assert.equal(chest.contents.length, 1);
+        assert.ok(messages.some((m) => m.includes('You put')),
+            `expected "You put" message, got: ${JSON.stringify(messages)}`);
+    });
+
+    it('containerMenu i put-in ESC on class prompt cancels without moving items', async () => {
+        // With two different classes in inventory, the class-selection getlin appears.
+        // ESC on that getlin (getlin returns null) should cancel put-in.
+        const { game, messages } = makeGame();
+        const weapon = makeTestItem();  // otyp 18 = arrow, class 1 (WEAPON)
+        weapon.invlet = 'a';
+        const food = { otyp: 291, oclass: 6, quan: 1, name: 'food ration', invlet: 'b' };
+        game.player.inventory = [weapon, food];
+        const chest = {
+            otyp: CHEST,
+            ox: game.player.x,
+            oy: game.player.y,
+            contents: [],
+            olocked: false,
+            obroken: false,
+        };
+        game.map.objects.push(chest);
+        pushInput('i'.charCodeAt(0)); // put-in mode → shows class-selection getlin
+        pushInput(27);                // ESC → getlin returns null → cancel
+        pushInput('q'.charCodeAt(0)); // quit outer menu
+
+        const result = await rhack('l'.charCodeAt(0) | 0x80, game);
+
+        assert.equal(result.tookTime, false);
+        assert.equal(game.player.inventory.length, 2);
+        assert.equal(chest.contents.length, 0);
+    });
+
+    it('containerMenu i put-in with empty inventory shows message', async () => {
+        const { game, messages } = makeGame();
+        game.player.inventory = [];
+        const chest = {
+            otyp: CHEST,
+            ox: game.player.x,
+            oy: game.player.y,
+            contents: [],
+            olocked: false,
+            obroken: false,
+        };
+        game.map.objects.push(chest);
+        pushInput('i'.charCodeAt(0)); // put-in mode (should say "nothing to put in")
+        pushInput('q'.charCodeAt(0)); // quit outer menu
+
+        const result = await rhack('l'.charCodeAt(0) | 0x80, game);
+
+        assert.equal(result.tookTime, false);
+        assert.ok(messages.some((m) => m.includes("don't have anything")),
+            `expected "don't have anything" message, got: ${JSON.stringify(messages)}`);
+    });
 });
