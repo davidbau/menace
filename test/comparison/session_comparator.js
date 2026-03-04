@@ -46,13 +46,17 @@ export function compareRecordedGameplaySession(session, replay, options = {}) {
         const expected = session.steps[i];
         const actual = replay.steps[i] || {};
 
+        let screenOk = true;
         if (expected.screen.length > 0) {
             screensTotal++;
             const screenCmp = policy.compareScreenStep(actual, expected, i);
             if (screenCmp.match) {
                 screensMatched++;
-            } else if (!firstScreenDivergence && screenCmp.firstDiff) {
-                firstScreenDivergence = { step: i + 1, ...screenCmp.firstDiff };
+            } else {
+                screenOk = false;
+                if (!firstScreenDivergence && screenCmp.firstDiff) {
+                    firstScreenDivergence = { step: i + 1, ...screenCmp.firstDiff };
+                }
             }
             const screenWindowCmp = policy.compareScreenWindowStep(actual, expected, i);
             if (screenWindowCmp && screenWindowCmp.total > 0) {
@@ -110,11 +114,13 @@ export function compareRecordedGameplaySession(session, replay, options = {}) {
             }
         }
 
-        // Cursor comparison — optional (old sessions lack cursor field)
+        // Cursor comparison — optional (old sessions lack cursor field).
         // Supports both [col, row] (legacy) and [col, row, visible] formats.
+        // Skip when screen already diverged: cursor position is determined by screen
+        // content, so a cursor mismatch at a screen-divergent step is not independent signal.
         const expectedCursor = expected.cursor || null;
         const actualCursor = actual.cursor || null;
-        if (expectedCursor) {
+        if (expectedCursor && screenOk) {
             cursorTotal++;
             const [ec, er, ev] = expectedCursor;
             const [ac, ar, av] = actualCursor || [null, null, null];

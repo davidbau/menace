@@ -355,7 +355,7 @@ Remaining work: re-record sessions to add `cursor` fields.
 - [x] Layer 6: `test/comparison/test_result_format.js`
 - [x] Layer 7: `test/comparison/session_test_runner.js`
 - [x] Layer 1: `test/comparison/c-harness/run_session.py`
-- [ ] Re-record sessions (procedure below)
+- [x] Re-record sessions (cursor fields already present in all session files as of 2026-03-04)
 
 ---
 
