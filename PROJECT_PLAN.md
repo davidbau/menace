@@ -3,7 +3,7 @@
 > *"Never build a dungeon you wouldn't be happy to spend the night in yourself."*
 > — Terry Pratchett, quoted in the NetHack 3.6.0 release notes
 
-**Current phase:** Phase 2 (testing burndown) with Phase 5 (self-play) as a concurrent track. As of **March 4, 2026**, the original IRON_PARITY execution strategy is considered unsuccessful and has been replaced by a parity-recovery sequence: stabilize baseline/tooling first, then drive direct gameplay parity burndown in Tier-1 runtime code. The active near-term execution spec is [`docs/CURSOR_PLAN.md`](docs/CURSOR_PLAN.md). Progress is tracked on the [Oracle dashboard](https://davidbau.github.io/mazesofmenace/oracle/) with per-commit parity metrics sourced from [oracle/results.jsonl](oracle/results.jsonl).
+**Current phase:** Phase 2 (testing burndown) with Phase 5 (self-play) as a concurrent track. As of **March 4, 2026**, the original IRON_PARITY execution strategy is considered unsuccessful and has been replaced by a parity-recovery sequence: stabilize baseline/tooling first, then drive direct gameplay parity burndown in Tier-1 runtime code. The active near-term execution campaign is **Operation Crystal Replay** ([`docs/CRYSTAL_REPLAY_CAMPAIGN.md`](docs/CRYSTAL_REPLAY_CAMPAIGN.md)), with cursor-parity closure tracked in [`docs/CURSOR_PLAN.md`](docs/CURSOR_PLAN.md). Progress is tracked on the [Oracle dashboard](https://davidbau.github.io/mazesofmenace/oracle/) with per-commit parity metrics sourced from [oracle/results.jsonl](oracle/results.jsonl).
 
 **Context:** [README.md](README.md) explains what Royal Jelly is, why NetHack matters, and the intersection of the 3.7.0 release moment with AI-assisted software development. This document describes **how** we build it—the strategy, phases, gates, and working discipline that will transform an audacious goal into a real, shipped product.
 
@@ -124,6 +124,26 @@ Milestones use a hybrid model: phase completion + parity gates + release-timing 
      - use coverage-guided targeted sessions to verify changed paths are exercised and corrected.
 9. **Public release**
    - Publish within 1–2 days of official NetHack 3.7.0 release with must-hit criteria satisfied.
+
+## CRYSTAL_REPLAY Campaign (Active)
+
+Operation Crystal Replay is the active parity campaign on this branch.
+
+Campaign intent:
+1. Use high-fidelity, explicit session evidence (events, `--More--` keysteps,
+   cursor, screen, RNG) to drive parity fixes.
+2. Keep replay execution simple and deterministic; keep flexible logic in
+   comparator/reporting layers.
+3. Align JS message/timing behavior with C at real pause boundaries by
+   continuing async-message-flow refactors where needed.
+
+Branch success target:
+1. Bring a substantial portion of the new gameplay sessions green under this
+   stricter evidence model.
+2. Merge `more-needed` into `main` once campaign gates are met.
+
+Authoritative campaign doc:
+1. [docs/CRYSTAL_REPLAY_CAMPAIGN.md](docs/CRYSTAL_REPLAY_CAMPAIGN.md)
 
 ## IRON_PARITY Campaign (Status: Pivoted on March 4, 2026)
 

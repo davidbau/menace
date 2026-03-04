@@ -1,5 +1,8 @@
 # Recorder/Comparator Pipeline
 
+> Active campaign context: [Operation Crystal Replay](CRYSTAL_REPLAY_CAMPAIGN.md)
+> is the current parity strategy for replay/session evidence hardening.
+
 This project now treats session parity as a two-phase pipeline:
 
 1. **Recorder phase**: run JS from captured C inputs and record raw JS outputs.
