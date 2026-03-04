@@ -1084,6 +1084,8 @@ export class NetHackGame {
         setAnimationMode(interactiveMode ? 'interactive' : 'headless');
         configureAnimation({
             skipDelays: !interactiveMode,
+            // C harness parity: tmp_at_start/step/end are canonical events.
+            trace: true,
             canSee: (x, y) => {
                 if (!this.fov || typeof this.fov.canSee !== 'function') return true;
                 return !!this.fov.canSee(x, y);
@@ -1105,8 +1107,6 @@ export class NetHackGame {
                     pushRngLogEntry(`^tmp_at_step[${p.x},${p.y},${String(p.glyph)}]`);
                 } else if (trace.type === 'tmp_at_end') {
                     pushRngLogEntry(`^tmp_at_end[flags=${String(p.flags)}]`);
-                } else if (trace.type === 'delay_output') {
-                    pushRngLogEntry(`^delay_output[ms=${String(p.ms || 0)}]`);
                 }
                 if (typeof this.hooks.onAnimationTrace === 'function') {
                     this.hooks.onAnimationTrace({ game: this, trace });

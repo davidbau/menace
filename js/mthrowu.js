@@ -55,13 +55,22 @@ import {
     tmp_at, tmp_at_end_async, nh_delay_output,
     DISP_FLASH, DISP_TETHER, DISP_END, BACKTRACK,
 } from './animation.js';
-import { objectMapGlyph } from './display_rng.js';
 import { canonicalizeAttackFields } from './attack_fields.js';
 
 const hallublasts = [
     'bubbles', 'butterflies', 'dust specks', 'flowers', 'glitter',
     'hot air', 'lightning', 'music', 'rainbows', 'stars',
 ];
+
+// C ref: include/display.h GLYPH_OBJ_OFF/obj_to_glyph().
+// For thrown objects we need canonical numeric glyph IDs so tmp_at_* event
+// payloads match C harness logs.
+function objectTmpGlyph(otmp) {
+    const otyp = Number.isInteger(otmp?.otyp) ? otmp.otyp : 0;
+    const NUMMONS = Array.isArray(mons) ? mons.length : 0;
+    const GLYPH_OBJ_OFF = (9 * NUMMONS) + 1;
+    return GLYPH_OBJ_OFF + otyp;
+}
 
 /* Return a random hallucinatory blast.
  * C ref: mthrowu.c rnd_hallublast().
@@ -558,12 +567,7 @@ export async function m_throw_timed(
         return { drop: true, x: startX, y: startY };
     }
 
-    const projGlyph = objectMapGlyph(weapon, false, {
-        player,
-        x: startX,
-        y: startY,
-        observe: false,
-    });
+    const projGlyph = objectTmpGlyph(weapon);
     tmp_at(tethered_weapon ? DISP_TETHER : DISP_FLASH, projGlyph);
     while (range-- > 0) {
         x += dx;
@@ -641,6 +645,10 @@ export async function m_throw_timed(
                 }
             }
             if (hitu) {
+                if (!tethered_weapon) {
+                    drop_throw(weapon, true, player.x, player.y, map);
+                    dropHandledInImpact = true;
+                }
                 hitPlayer = true;
                 break;
             }
@@ -651,9 +659,18 @@ export async function m_throw_timed(
         const ny = y + dy;
         const nextLoc = isok(nx, ny) ? map.at(nx, ny) : null;
         if (nextLoc && nextLoc.typ === IRONBARS && await hits_bars(weapon, x, y, nx, ny, forcehit ? 1 : 0, 0, map)) {
+            // C ref: mthrowu.c hit_bars()/drop_throw happen before the final tmp_at
+            // frame on blocked flight.
+            dropHandledInImpact = true;
             break;
         }
-        if (!range || flightBlocked(x, y, false, forcehit)) break;
+        if (!range || flightBlocked(x, y, false, forcehit)) {
+            if (!tethered_weapon) {
+                drop_throw(weapon, false, x, y, map);
+                dropHandledInImpact = true;
+            }
+            break;
+        }
 
         tmp_at(x, y);
         await nh_delay_output();
