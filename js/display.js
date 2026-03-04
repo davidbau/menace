@@ -820,11 +820,18 @@ span.nh-cursor {
         return selected || null;
     }
 
-    // Clear the entire screen
+    // Clear the entire screen and reset message state.
+    // C ref: tty_clear_nhwindow() — wipes the whole terminal including topline.
+    // Resetting topMessage/messageNeedsMore prevents stale state from triggering
+    // spurious --More-- on the next putstr_message call.
     clearScreen() {
         for (let r = 0; r < this.rows; r++) {
             this.clearRow(r);
         }
+        this.topMessage = null;
+        this.messageNeedsMore = false;
+        this._pendingMore = false;
+        this._messageQueue = [];
     }
 
     // Display a chargen menu matching C TTY positioning

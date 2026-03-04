@@ -5,8 +5,9 @@ import { objectData, COIN_CLASS, CORPSE, ICE_BOX, LARGE_BOX, CHEST,
          BAG_OF_HOLDING, BAG_OF_TRICKS, WAN_CANCELLATION, LOADSTONE,
          BOULDER, STATUE, AMULET_OF_YENDOR, CANDELABRUM_OF_INVOCATION,
          BELL_OF_OPENING, SPE_BOOK_OF_THE_DEAD, LEASH, SCR_SCARE_MONSTER,
-         GOLD_PIECE, SADDLE, HORN_OF_PLENTY, SACK, OILSKIN_SACK } from './objects.js';
-import { nhgetch } from './input.js';
+         GOLD_PIECE, SADDLE, HORN_OF_PLENTY, SACK, OILSKIN_SACK,
+         CLASS_SYMBOLS } from './objects.js';
+import { nhgetch, getlin, ynFunction } from './input.js';
 import { doname, xname, Is_container, weight, splitobj, unbless, set_bknown,
          set_corpsenm } from './mkobj.js';
 import { observeObject } from './discovery.js';
@@ -1455,11 +1456,63 @@ async function containerMenu(game, container) {
             }
             return { moved: false, tookTime }; // 's' exits menu (C behavior)
         } else if (c === 'i') {
-            // Put things in — cf. pickup.c "Put in" with type filter.
-            // Show type-filter prompt; stub: accept all types with a single keypress.
-            await display.putstr_message('Put in what type of objects?');
-            await nhgetch(); // consume the class-filter key (stub)
-            // Full query_classes() type filter not yet ported — treated as cancel.
+            // Put things in — cf. pickup.c traditional_loot(put_in=TRUE).
+            // query_classes() shows available object-class chars from inventory.
+            // User types class letters (or 'a'=all, 'A'=one-at-a-time, ESC=cancel).
+            const inv = (player.inventory || []).filter(
+                (o) => o && o.invlet && o !== container);
+            if (!inv.length) {
+                await display.putstr_message(
+                    "You don't have anything" + (player.inventory?.length ? ' else' : '') + ' to put in.');
+                continue;
+            }
+            // Build sorted unique class-symbol string from inventory.
+            const seenClasses = new Set();
+            for (const o of inv) {
+                const sym = CLASS_SYMBOLS[o.oclass];
+                if (sym) seenClasses.add(sym);
+            }
+            const classStr = [...seenClasses].join('');
+            // cf. pickup.c query_classes(): if only one class present, auto-select it.
+            let selectedClasses = null; // null = all
+            let oneByOne = false;
+            if (seenClasses.size > 1) {
+                // Multiple classes: ask user to choose.
+                const prompt = `What kinds of things do you want to put in? [${classStr} a A]`;
+                const userInput = await getlin(prompt, display);
+                if (userInput === null || userInput.trim() === '\x1b') continue; // ESC
+                const trimmed = userInput.trim();
+                if (trimmed === '' || trimmed.includes('a')) {
+                    selectedClasses = null; // all
+                } else if (trimmed.includes('A')) {
+                    selectedClasses = null;
+                    oneByOne = true;
+                } else {
+                    selectedClasses = new Set(trimmed.split('').filter((ch) => seenClasses.has(ch)));
+                    if (selectedClasses.size === 0) continue; // no valid class selected
+                }
+            }
+            // Filter inventory items by selected classes.
+            const candidates = inv.filter((o) => {
+                if (selectedClasses === null) return true;
+                return selectedClasses.has(CLASS_SYMBOLS[o.oclass]);
+            });
+            // Put matching items into container, asking per-item if oneByOne.
+            for (const item of candidates) {
+                if (oneByOne) {
+                    const ans = await ynFunction(
+                        `Put in ${doname(item, player)}?`, 'ynaq', 'n'.charCodeAt(0), display);
+                    const ansC = String.fromCharCode(ans);
+                    if (ansC === 'q') break;
+                    if (ansC === 'n') continue;
+                }
+                player.inventory = player.inventory.filter((o) => o !== item);
+                const cur = getContainerContents(container);
+                setContainerContents(container, [...cur, item]);
+                await display.putstr_message(`You put ${doname(item, player)} into the ${cname}.`);
+                tookTime = true;
+            }
+            if (tookTime) break; // C exits menu after putting things in
         } else if (c === '?') {
             await display.putstr_message(
                 'Container actions: : look, o take out, i put in, b bring all, s stash one, q quit');
