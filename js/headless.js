@@ -480,6 +480,10 @@ export class HeadlessDisplay {
         for (let r = 0; r < this.rows; r++) {
             this.clearRow(r);
         }
+        // Reset message state so stale topMessage doesn't trigger a spurious
+        // --More-- on the next putstr_message call (mirrors Display.clearScreen).
+        this.topMessage = null;
+        this.messageNeedsMore = false;
     }
 
     // No-op for headless mode; the browser display refreshes the DOM here.

@@ -154,3 +154,29 @@ test('E2E: clearing message clears topMessage', async () => {
     assert.strictEqual(display.topMessage, null,
                       'topMessage should be clearable');
 });
+
+test('E2E: clearScreen resets message state to prevent spurious --More--', () => {
+    // Regression test: returning players (saved name) had the welcome message
+    // as stale topMessage when clearScreen() was called, causing the next
+    // putstr_message to overflow and show --More-- on the chargen screen.
+    const display = new HeadlessDisplay();
+
+    // Simulate welcome message (sets topMessage and messageNeedsMore).
+    display.putstr_message('NetHack Royal Jelly -- Welcome to the Mazes of Menace!');
+    assert.strictEqual(display.messageNeedsMore, true, 'messageNeedsMore should be set');
+    assert(display.topMessage, 'topMessage should be set after welcome');
+
+    // clearScreen() should wipe both the visual cells AND the message state.
+    display.clearScreen();
+    assert.strictEqual(display.topMessage, null,
+        'clearScreen should reset topMessage');
+    assert.strictEqual(display.messageNeedsMore, false,
+        'clearScreen should reset messageNeedsMore');
+
+    // Next putstr_message should display normally without triggering --More--.
+    display.putstr_message("Shall I pick character's race, role, gender and alignment for you? [ynaq]");
+    assert.strictEqual(display._pendingMore, false,
+        'No --More-- should be triggered after clearScreen');
+    assert(display.topMessage.includes('Shall I pick'),
+        'Chargen prompt should be shown normally after clearScreen');
+});
