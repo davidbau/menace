@@ -29,6 +29,7 @@ import { GameMap, makeRoom } from './map.js';
 import { getDiscoveryState, setDiscoveryState } from './discovery.js';
 
 const SAVE_KEY = 'menace-save';
+const AUTOSAVE_KEY = 'menace-autosave';
 const BONES_KEY_PREFIX = 'menace-bones-';
 const OPTIONS_KEY = 'menace-options';
 const TOPTEN_KEY = 'menace-topten';
@@ -38,13 +39,17 @@ const SAVE_VERSION = 2;
 // In Node.js 22+, globalThis.localStorage exists but warns without --localstorage-file.
 // Suppress that one-time warning on first access.
 let _storageWarned = false;
+let _mockStorage = null;
 function isStorageLike(s) {
     return !!s
         && typeof s.getItem === 'function'
         && typeof s.setItem === 'function'
         && typeof s.removeItem === 'function';
 }
+// Inject a mock storage for unit tests. Pass null to restore normal behavior.
+export function setStorageForTesting(mock) { _mockStorage = mock; }
 function storage() {
+    if (_mockStorage) return _mockStorage;
     try {
         if (typeof localStorage === 'undefined') return null;
         if (!_storageWarned && typeof process !== 'undefined' && typeof window === 'undefined') {
@@ -467,6 +472,132 @@ export function deleteSave() {
     const s = storage();
     if (!s) return;
     try { s.removeItem(SAVE_KEY); } catch (e) { /* ignore */ }
+}
+
+// Autosave — crash recovery only. Deleted synchronously on death.
+// Disabled in headless/test environments (storage() returns null in Node.js).
+// Set game.flags.autosave = true to enable; false to disable explicitly.
+
+let _autosaveInFlight = false;
+let _autosavePending = null;
+
+// Compress a string using the built-in CompressionStream API (gzip).
+// Returns a base64-encoded string, or null if CompressionStream is unavailable.
+async function _gzipToBase64(str) {
+    if (typeof CompressionStream === 'undefined') return null;
+    try {
+        const bytes = new TextEncoder().encode(str);
+        const cs = new CompressionStream('gzip');
+        const writer = cs.writable.getWriter();
+        writer.write(bytes);
+        writer.close();
+        const chunks = [];
+        const reader = cs.readable.getReader();
+        for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+        }
+        const total = chunks.reduce((n, c) => n + c.length, 0);
+        const merged = new Uint8Array(total);
+        let off = 0;
+        for (const c of chunks) { merged.set(c, off); off += c.length; }
+        // btoa requires a binary string
+        let binary = '';
+        for (let i = 0; i < merged.length; i++) binary += String.fromCharCode(merged[i]);
+        return btoa(binary);
+    } catch (e) {
+        return null;
+    }
+}
+
+// Decompress a base64-encoded gzip string produced by _gzipToBase64.
+async function _base64GunzipToString(b64) {
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const ds = new DecompressionStream('gzip');
+    const writer = ds.writable.getWriter();
+    writer.write(bytes);
+    writer.close();
+    const chunks = [];
+    const reader = ds.readable.getReader();
+    for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+    }
+    return new TextDecoder().decode(
+        chunks.reduce((acc, c) => { const m = new Uint8Array(acc.length + c.length); m.set(acc); m.set(c, acc.length); return m; }, new Uint8Array(0))
+    );
+}
+
+async function _runAutosave(snapshot) {
+    _autosaveInFlight = true;
+    try {
+        const s = storage();
+        if (s) {
+            const json = JSON.stringify(snapshot);
+            const compressed = await _gzipToBase64(json);
+            if (compressed) {
+                s.setItem(AUTOSAVE_KEY, 'gz:' + compressed);
+            } else {
+                s.setItem(AUTOSAVE_KEY, json);
+            }
+        }
+    } catch (e) {
+        // Silently ignore autosave failures (storage full, etc.)
+    } finally {
+        _autosaveInFlight = false;
+        if (_autosavePending) {
+            const next = _autosavePending;
+            _autosavePending = null;
+            _runAutosave(next);
+        }
+    }
+}
+
+// Schedule an autosave after a completed turn. Fire-and-forget; does not block the game loop.
+// Guards: requires storage() to be available AND game.flags.autosave !== false.
+export function scheduleAutosave(game) {
+    if (!storage()) return;               // no-op in headless/Node.js tests
+    if (game.flags?.autosave === false) return;  // explicitly disabled
+    const snapshot = buildSaveData(game);
+    if (_autosaveInFlight) {
+        _autosavePending = snapshot;      // replace any queued snapshot
+    } else {
+        _runAutosave(snapshot);           // start immediately, no await
+    }
+}
+
+// Load autosave data (for crash recovery on page load). Returns parsed object or null.
+// Handles both plain JSON and compressed 'gz:...' format.
+export async function loadAutosave() {
+    const s = storage();
+    if (!s) return null;
+    try {
+        const raw = s.getItem(AUTOSAVE_KEY);
+        if (!raw) return null;
+        let json;
+        if (raw.startsWith('gz:')) {
+            json = await _base64GunzipToString(raw.slice(3));
+        } else {
+            json = raw;
+        }
+        const data = JSON.parse(json);
+        if (!data || data.version !== SAVE_VERSION) return null;
+        return data;
+    } catch (e) {
+        return null;
+    }
+}
+
+// Delete the autosave. Must be called synchronously on death, before any await.
+export function deleteAutosave() {
+    _autosavePending = null;              // drop any queued snapshot
+    const s = storage();
+    if (!s) return;
+    try { s.removeItem(AUTOSAVE_KEY); } catch (e) { /* ignore */ }
 }
 
 // Check if a save exists without fully parsing it.

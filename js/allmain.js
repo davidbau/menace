@@ -43,7 +43,8 @@ import { nomul, unmul, near_capacity } from './hack.js';
 import { Player, roles, races } from './player.js';
 import { mklev, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
 import { getArrivalPosition, changeLevel as changeLevelCore, deferred_goto } from './do.js';
-import { loadSave, deleteSave, loadFlags, saveFlags, deserializeRng,
+import { loadSave, deleteSave, loadAutosave, scheduleAutosave, deleteAutosave,
+         loadFlags, saveFlags, deserializeRng,
          restGameState, restLev, listSavedData, clearAllData } from './storage.js';
 import { buildEntry, saveScore, loadScores, formatTopTenEntry, formatTopTenHeader } from './topten.js';
 import { startRecording } from './keylog.js';
@@ -1153,12 +1154,14 @@ export class NetHackGame {
         this.flags = loadFlags(urlOpts.flags || null);
         this._emitRuntimeBindings();
 
-        // Check for saved game before RNG init
-        const saveData = loadSave();
+        // Check for saved game before RNG init.
+        // Prefer manual save; fall back to autosave (crash recovery).
+        const saveData = loadSave() || await loadAutosave();
         if (saveData) {
             const restored = await _restoreFromSave(this, saveData, urlOpts);
             if (restored) return;
             deleteSave();
+            deleteAutosave();
         }
 
         // Initialize RNG with seed from URL or random
@@ -1746,9 +1749,12 @@ export class NetHackGame {
             this.display.renderMap(this.map, this.player, this.fov, this.flags);
             this.display.renderStatus(this.player);
             this.display.cursorOnPlayer(this.player);
+            scheduleAutosave(this);   // fire-and-forget crash recovery save
         }
 
-        // Game over
+        // Game over — delete autosave synchronously before any await so a tab
+        // close at the death screen cannot restore a dead character.
+        deleteAutosave();
         await this.showGameOver();
     }
 }
