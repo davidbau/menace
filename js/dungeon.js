@@ -3293,8 +3293,8 @@ export function mkinvokearea(map, invPos, depth = 1) {
 
 // C ref: mklev.c:1312-1322 — vault creation and fill
 // Called when check_room succeeds for vault position.
-// Creates the vault room structure, fills with gold (simulated RNG),
-// and runs wallification on the vault region.
+// Creates the vault room structure, calls fill_special_room (matching C's
+// mklev.c:1319 first fill), then runs wallification on the vault region.
 async function do_fill_vault(map, vaultCheck, depth) {
     const lowx = vaultCheck.lowx;
     const lowy = vaultCheck.lowy;
@@ -3306,17 +3306,10 @@ async function do_fill_vault(map, vaultCheck, depth) {
     // C ref: mklev.c:1318 — vault room gets needfill=FILL_NORMAL
     map.rooms[map.nroom - 1].needfill = FILL_NORMAL;
 
-    // C ref: fill_special_room for VAULT — mkgold per cell
-    // mkgold(rn1(abs(depth)*100, 51), x, y) for each cell
-    // rn1(n, base) = rn2(n) + base, then mkgold → mksobj_at(GOLD_PIECE)
-    // → newobj() → next_ident() which consumes rnd(2) per gold object.
-    const vroom = map.rooms[map.nroom - 1];
-    for (let vx = vroom.lx; vx <= vroom.hx; vx++) {
-        for (let vy = vroom.ly; vy <= vroom.hy; vy++) {
-            // C ref: sp_lev.c:2758-2762 — mkgold(rn1(abs(depth)*100, 51), x, y)
-            mkgold(map, rn1(Math.abs(depth) * 100, 51), vx, vy);
-        }
-    }
+    // C ref: mklev.c:1319 — fill_special_room called immediately after vault creation.
+    // C calls it here AND again in the general room loop (mklev.c:1406), so vault gold
+    // is filled twice and stacks. needfill is not reset to FILL_NONE by fill_special_room.
+    fill_special_room(map, map.rooms[map.nroom - 1], depth);
 
     // C ref: mk_knox_portal(vault_x + w, vault_y + h)
     mk_knox_portal(map, hix, hiy, depth);
@@ -3634,9 +3627,11 @@ export function fill_special_room(map, croom, depth) {
         }
         switch (croom.rtype) {
         case VAULT:
+            // C ref: sp_lev.c:2758-2762 — mkgold(rn1(abs(depth)*100, 51), x, y) per cell.
+            // Called twice for vault (mklev.c:1319 + mklev.c:1406), so gold stacks.
             for (let vx = croom.lx; vx <= croom.hx; vx++) {
                 for (let vy = croom.ly; vy <= croom.hy; vy++) {
-                    rn2(Math.abs(depth) * 100 || 100);
+                    mkgold(map, rn1(Math.abs(depth) * 100 || 100, 51), vx, vy);
                 }
             }
             break;
