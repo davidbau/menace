@@ -1,5 +1,11 @@
 # MORE_NEEDED_CAMPAIGN.md
 
+## Execution Update (March 4, 2026)
+
+MORE_NEEDED implementation and parity-fix work now lands directly on `main`.
+Treat this document as the campaign tracker, but use `main` as the active
+integration branch for day-to-day engineering updates.
+
 ## Campaign Name
 Operation More Needed
 
