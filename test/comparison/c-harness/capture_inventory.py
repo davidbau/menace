@@ -50,7 +50,8 @@ compact_session_json = _session.compact_session_json
 read_rng_log = _session.read_rng_log
 tmux_send = _session.tmux_send
 tmux_send_special = _session.tmux_send_special
-capture_screen_lines = _session.capture_screen_lines
+capture_screen_compressed = _session.capture_screen_compressed
+screen_to_plain_lines = _session.screen_to_plain_lines
 clear_more_prompts = _session.clear_more_prompts
 detect_depth = _session.detect_depth
 quit_game = _session.quit_game
@@ -213,7 +214,7 @@ def run_session(seed, output_json, move_str):
         time.sleep(0.1)
 
         # Capture startup state
-        startup_screen = capture_screen_lines(session_name)
+        startup_screen = capture_screen_compressed(session_name)
         startup_rng_count, startup_rng_lines = read_rng_log(rng_log_file)
         print(f'Startup: {startup_rng_count} RNG calls')
 
@@ -247,13 +248,13 @@ def run_session(seed, output_json, move_str):
 
             # For inventory, the display stays up until dismissed
             # Capture what's on screen before dismissing
-            screen = capture_screen_lines(session_name)
+            screen = capture_screen_compressed(session_name)
             rng_count, rng_lines = read_rng_log(rng_log_file)
             delta_lines = rng_lines[prev_rng_count:rng_count]
             rng_entries = parse_rng_lines(delta_lines)
 
             # Detect depth from status line
-            depth = detect_depth(screen)
+            depth = detect_depth(screen_to_plain_lines(screen))
 
             non_turn_keys = {':', 'i', '@'}
             if key not in non_turn_keys:

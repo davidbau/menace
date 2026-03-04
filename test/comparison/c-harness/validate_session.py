@@ -22,6 +22,7 @@ import time
 import subprocess
 import shutil
 import tempfile
+import importlib.util
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.normpath(os.path.join(SCRIPT_DIR, '..', '..', '..'))
@@ -30,6 +31,13 @@ RESULTS_DIR = os.path.join(SCRIPT_DIR, 'results')
 INSTALL_DIR = os.path.join(PROJECT_ROOT, 'nethack-c', 'install', 'games', 'lib', 'nethackdir')
 NETHACK_BINARY = os.path.join(INSTALL_DIR, 'nethack')
 DEFAULT_FIXED_DATETIME = '20000110090000'
+RUN_SESSION_PATH = os.path.join(SCRIPT_DIR, 'run_session.py')
+
+_spec = importlib.util.spec_from_file_location('run_session', RUN_SESSION_PATH)
+_session = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_session)
+capture_screen_compressed = _session.capture_screen_compressed
+screen_to_plain_lines = _session.screen_to_plain_lines
 
 
 def harness_fixed_datetime():
@@ -63,12 +71,8 @@ def tmux_capture(session):
 
 
 def capture_screen_lines(session):
-    """Capture tmux screen and return as list of 24 lines."""
-    content = tmux_capture(session)
-    lines = content.split('\n')
-    while len(lines) < 24:
-        lines.append('')
-    return lines[:24]
+    """Capture screen via canonical ANSI payload and decode plain lines."""
+    return screen_to_plain_lines(capture_screen_compressed(session))
 
 
 def extract_message_line(screen_lines):

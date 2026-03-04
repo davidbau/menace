@@ -525,6 +525,21 @@ def capture_screen_compressed(session):
     return encode_screen_ansi_rle(lines)
 
 
+_CSI_RE = re.compile(r'\x1b\[[0-9;?]*[A-Za-z]')
+
+
+def screen_to_plain_lines(screen, rows=24):
+    """Decode a stored ANSI screen payload into plain text lines."""
+    raw = str(screen or '').split('\n')
+    out = []
+    for line in raw[:rows]:
+        cleaned = _CSI_RE.sub('', line).replace('\x0e', '').replace('\x0f', '')
+        out.append(cleaned)
+    while len(out) < rows:
+        out.append('')
+    return out
+
+
 def capture_cursor(session):
     """Return [col, row, visible] cursor position and visibility (0-indexed).
 
@@ -539,16 +554,6 @@ def capture_cursor(session):
     ).stdout.strip()
     col, row, visible = (int(v) for v in out.split(','))
     return [col, row, visible]
-
-
-def capture_screen_payload(session, include_ansi=False):
-    payload = {
-        'screen': capture_screen_lines(session)
-    }
-    if include_ansi:
-        payload['screenAnsi'] = capture_screen_ansi_lines(session)
-    return payload
-
 
 def read_typ_grid(dumpmap_file):
     """Read a dumpmap file and return 21x80 grid of ints."""
@@ -959,14 +964,21 @@ def detect_depth(screen_lines):
     This allows detecting level changes across all dungeon branches.
     """
     import re
-    for line in screen_lines[22:24]:
+    level_re = re.compile(
+        r'(Tutorial|Dlvl|Mines|Sokoban|Quest|Astral|Fort Ludios|Vlad\'s Tower|Air|Earth|Fire|Water):\s*(\d+)'
+    )
+    # Status rows are expected near the bottom, but tmux capture can shift rows
+    # when there is wrapped output. Scan the bottom window instead of fixed rows.
+    tail = screen_lines[max(0, len(screen_lines) - 8):]
+    for line in reversed(tail):
+        cleaned = re.sub(r'\x1b\[[0-9;?]*[A-Za-z]', '', line).replace('\x0e', '').replace('\x0f', '')
         # Match various level indicators: Dlvl:N, Mines:N, Quest:N, etc.
         # Also handles End Game and other special areas
-        m = re.search(r'(Dlvl|Mines|Sokoban|Quest|Astral|Fort Ludios|Vlad\'s Tower|Air|Earth|Fire|Water):\s*(\d+)', line)
+        m = level_re.search(cleaned)
         if m:
             return f'{m.group(1)}:{m.group(2)}'
         # Handle End Game specially
-        if 'End Game' in line:
+        if 'End Game' in cleaned:
             return 'End Game'
     return 'Dlvl:1'
 
@@ -2038,8 +2050,8 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
                 time.sleep(final_capture_delay_s)
 
             # Capture state after this step
-            screen_lines = capture_screen_lines(session_name)
             screen_compressed = capture_screen_compressed(session_name)
+            screen_lines = screen_to_plain_lines(screen_compressed)
             rng_count, rng_lines = read_rng_log(rng_log_file)
             step_cursor = capture_cursor(session_name)
             delta_lines = rng_lines[prev_rng_count:rng_count]

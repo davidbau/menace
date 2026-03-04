@@ -146,7 +146,7 @@ def run_watcher(args):
     session_mod = load_run_session_module()
 
     capture_screen_compressed = session_mod.capture_screen_compressed
-    capture_screen_lines = session_mod.capture_screen_lines
+    screen_to_plain_lines = session_mod.screen_to_plain_lines
     read_rng_log = session_mod.read_rng_log
     parse_rng_lines = session_mod.parse_rng_lines
     detect_depth = session_mod.detect_depth
@@ -234,7 +234,7 @@ def run_watcher(args):
             time.sleep(0.03)
             try:
                 screen = capture_screen_compressed(session_name)
-                lines = capture_screen_lines(session_name)
+                lines = screen_to_plain_lines(screen)
                 cur_rng_count, cur_rng_lines = read_rng_log(rnglog)
                 delta = parse_rng_lines(cur_rng_lines[rng_count:cur_rng_count])
                 rng_count = cur_rng_count

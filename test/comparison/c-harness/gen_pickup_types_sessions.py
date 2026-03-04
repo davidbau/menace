@@ -43,7 +43,7 @@ _spec.loader.exec_module(_session)
 tmux_send = _session.tmux_send
 tmux_send_special = _session.tmux_send_special
 tmux_capture = _session.tmux_capture
-capture_screen_lines = _session.capture_screen_lines
+capture_screen_compressed = _session.capture_screen_compressed
 clear_more_prompts = _session.clear_more_prompts
 wait_for_game_ready = _session.wait_for_game_ready
 quit_game = _session.quit_game
@@ -134,7 +134,7 @@ def generate_pickup_types_session(session_name, seed, pickup_types_value, pickup
     time.sleep(0.3)
 
     # Capture startup
-    screen = capture_screen_lines(session_id)
+    screen = capture_screen_compressed(session_id)
     steps.append({
         'step': 0,
         'command': 'startup',
@@ -198,7 +198,7 @@ def generate_pickup_types_session(session_name, seed, pickup_types_value, pickup
     time.sleep(0.3)
     clear_more_prompts(session_id)
 
-    screen = capture_screen_lines(session_id)
+    screen = capture_screen_compressed(session_id)
     steps.append({
         'step': 1,
         'command': 'drop_items',
@@ -211,7 +211,7 @@ def generate_pickup_types_session(session_name, seed, pickup_types_value, pickup
     time.sleep(0.3)
     clear_more_prompts(session_id)
 
-    screen = capture_screen_lines(session_id)
+    screen = capture_screen_compressed(session_id)
     steps.append({
         'step': 2,
         'command': 'move-east',
@@ -224,7 +224,7 @@ def generate_pickup_types_session(session_name, seed, pickup_types_value, pickup
     time.sleep(0.5)
     clear_more_prompts(session_id)
 
-    screen = capture_screen_lines(session_id)
+    screen = capture_screen_compressed(session_id)
     steps.append({
         'step': 3,
         'command': 'move-west',
@@ -235,7 +235,7 @@ def generate_pickup_types_session(session_name, seed, pickup_types_value, pickup
     # Check inventory to see what was picked up
     tmux_send(session_id, 'i')  # inventory
     time.sleep(0.3)
-    screen = capture_screen_lines(session_id)
+    screen = capture_screen_compressed(session_id)
     steps.append({
         'step': 4,
         'command': 'inventory',

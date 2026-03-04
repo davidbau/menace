@@ -34,8 +34,8 @@ _spec.loader.exec_module(_session)
 
 tmux_send = _session.tmux_send
 tmux_send_special = _session.tmux_send_special
-capture_screen_lines = _session.capture_screen_lines
 capture_screen_compressed = _session.capture_screen_compressed
+screen_to_plain_lines = _session.screen_to_plain_lines
 clear_more_prompts = _session.clear_more_prompts
 wait_for_game_ready = _session.wait_for_game_ready
 read_rng_log = _session.read_rng_log
@@ -272,8 +272,14 @@ def capture_screen_v3(session_name):
 def detect_screen_depth(screen_lines):
     """Detect depth/branch from rendered status lines only (not keylog metadata)."""
     import re
-    for line in screen_lines[22:24]:
-        m = re.search(r'(Tutorial|Dlvl|Mines|Sokoban|Quest|Astral|Fort Ludios|Vlad\'s Tower|Air|Earth|Fire|Water):\s*(\d+)', line)
+    level_re = re.compile(
+        r'(Tutorial|Dlvl|Mines|Sokoban|Quest|Astral|Fort Ludios|Vlad\'s Tower|Air|Earth|Fire|Water):\s*(\d+)'
+    )
+    # Status rows are expected near the bottom, but tmux capture can shift rows
+    # when there is wrapped output. Scan the bottom window instead of fixed rows.
+    tail = screen_lines[max(0, len(screen_lines) - 8):]
+    for line in reversed(tail):
+        m = level_re.search(line)
         if m:
             return f'{m.group(1)}:{m.group(2)}'
         if 'End Game' in line:
@@ -361,7 +367,7 @@ def run_from_keylog(
             time.sleep(0.1)
 
         startup_screen = capture_screen_v3(session_name)
-        startup_screen_lines = capture_screen_lines(session_name)
+        startup_screen_lines = screen_to_plain_lines(startup_screen)
         startup_rng_count, startup_rng_lines = read_rng_log(rng_log_file)
         startup_rng_entries = parse_rng_lines(startup_rng_lines)
         startup_actual_rng = sum(1 for e in startup_rng_entries if e[0] not in ('>', '<'))
@@ -409,7 +415,7 @@ def run_from_keylog(
             send_keycode(session_name, code, key_delay_s)
 
             screen = capture_screen_v3(session_name)
-            screen_lines = capture_screen_lines(session_name)
+            screen_lines = screen_to_plain_lines(screen)
             rng_count, rng_lines = read_rng_log(rng_log_file)
             delta_lines = rng_lines[prev_rng_count:rng_count]
             rng_entries = parse_rng_lines(delta_lines)

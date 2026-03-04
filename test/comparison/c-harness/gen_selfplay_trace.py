@@ -48,7 +48,8 @@ tmux_send_special = _session.tmux_send_special
 parse_rng_lines = _session.parse_rng_lines
 compact_session_json = _session.compact_session_json
 read_rng_log = _session.read_rng_log
-capture_screen_lines = _session.capture_screen_lines
+capture_screen_compressed = _session.capture_screen_compressed
+screen_to_plain_lines = _session.screen_to_plain_lines
 read_typ_grid = _session.read_typ_grid
 execute_dumpmap = _session.execute_dumpmap
 clear_more_prompts = _session.clear_more_prompts
@@ -164,7 +165,7 @@ def wait_for_game_ready_with_chargen(session, rng_log_file, role='Valkyrie'):
 
         # Wait for screen update, then capture state
         time.sleep(0.1)
-        screen = capture_screen_lines(session)
+        screen = capture_screen_compressed(session)
         rng_count, rng_lines = read_rng_log(rng_log_file)
         delta_lines = rng_lines[prev_rng_count:rng_count]
         rng_entries = parse_rng_lines(delta_lines)
@@ -241,7 +242,7 @@ def generate_trace(seed, max_turns=100, role='Valkyrie'):
         )
 
         # Capture startup state (after chargen)
-        startup_screen = capture_screen_lines(session_name)
+        startup_screen = capture_screen_compressed(session_name)
         startup_rng_count, startup_rng_lines = read_rng_log(rng_log_file)
         startup_rng_entries = parse_rng_lines(startup_rng_lines[:prev_rng_count])
 
@@ -295,7 +296,7 @@ def generate_trace(seed, max_turns=100, role='Valkyrie'):
 
         while turn < max_turns:
             # Get current screen
-            screen = capture_screen_lines(session_name)
+            screen = capture_screen_compressed(session_name)
 
             # Get next move from agent
             key = get_agent_move(session_name, screen, turn)
@@ -307,13 +308,13 @@ def generate_trace(seed, max_turns=100, role='Valkyrie'):
             time.sleep(0.1)
 
             # Capture state after move
-            screen = capture_screen_lines(session_name)
+            screen = capture_screen_compressed(session_name)
             rng_count, rng_lines = read_rng_log(rng_log_file)
             delta_lines = rng_lines[prev_rng_count:rng_count]
             rng_entries = parse_rng_lines(delta_lines)
 
             # Detect depth
-            depth = detect_depth(screen)
+            depth = detect_depth(screen_to_plain_lines(screen))
 
             # Build step
             turn += 1

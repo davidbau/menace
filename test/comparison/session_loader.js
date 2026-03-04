@@ -57,34 +57,13 @@ export function stripAnsiSequences(text) {
 }
 
 export function getSessionScreenLines(screenHolder) {
-    if (Array.isArray(screenHolder?.screen)) {
-        return screenHolder.screen.map((line) => stripAnsiSequences(line));
-    }
     if (typeof screenHolder?.screen === 'string') {
         return screenHolder.screen.split('\n').map((line) => stripAnsiSequences(line));
-    }
-    // Deprecated compatibility path. v3 canonical field is `screen`.
-    if (Array.isArray(screenHolder?.screenAnsi)) {
-        return screenHolder.screenAnsi.map((line) => stripAnsiSequences(line));
-    }
-    if (typeof screenHolder?.screenAnsi === 'string') {
-        return screenHolder.screenAnsi.split('\n').map((line) => stripAnsiSequences(line));
     }
     return [];
 }
 
 export function getSessionScreenAnsiLines(screenHolder) {
-    // Prefer explicit ANSI captures when both plain and ANSI views exist.
-    // normalizeSession populates both, and color comparisons must use ANSI.
-    if (Array.isArray(screenHolder?.screenAnsi)) {
-        return screenHolder.screenAnsi.map((line) => String(line || ''));
-    }
-    if (typeof screenHolder?.screenAnsi === 'string') {
-        return screenHolder.screenAnsi.split('\n').map((line) => String(line || ''));
-    }
-    if (Array.isArray(screenHolder?.screen)) {
-        return screenHolder.screen.map((line) => String(line || ''));
-    }
     if (typeof screenHolder?.screen === 'string') {
         // v3 canonical: ANSI-compressed screen is stored directly in `screen`.
         return screenHolder.screen.split('\n').map((line) => String(line || ''));
@@ -111,6 +90,9 @@ function normalizeStep(step, index) {
     return {
         index,
         key: row.key ?? null,
+        action: row.action ?? null,
+        turn: Number.isInteger(row.turn) ? row.turn : null,
+        depth: (typeof row.depth === 'string' && row.depth.length > 0) ? row.depth : null,
         rng,
         // Prefer explicit traces over count-only comparison. For captured
         // `rng: []`, leave rngCalls null so downstream uses compareRng()
