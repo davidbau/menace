@@ -1187,8 +1187,12 @@ export class NetHackGame {
                 const idx = roles.findIndex(r => r.name === char.role);
                 if (idx >= 0) roleIndex = idx;
             }
-            this.player.initRole(roleIndex);
-            this.player.name = char.name || 'Agent';
+            const role = roles[roleIndex] || roles[11];
+            const roleRaces = Array.isArray(role?.validRaces) && role.validRaces.length
+                ? role.validRaces.slice()
+                : [RACE_HUMAN];
+
+            let selectedRace = this.player.race;
             if (Number.isInteger(char.gender)) {
                 this.player.gender = char.gender;
             } else if (typeof char.gender === 'string' && char.gender.toLowerCase() === 'female') {
@@ -1196,18 +1200,44 @@ export class NetHackGame {
             }
             const raceMap = { human: RACE_HUMAN, elf: RACE_ELF, dwarf: RACE_DWARF, gnome: RACE_GNOME, orc: RACE_ORC };
             if (Number.isInteger(char.race)) {
-                this.player.race = char.race;
+                selectedRace = char.race;
             } else if (typeof char.race === 'string') {
                 const r = raceMap[char.race.toLowerCase()];
-                if (r !== undefined) this.player.race = r;
+                if (r !== undefined) selectedRace = r;
             }
+            if (!roleRaces.includes(selectedRace)) {
+                selectedRace = roleRaces[0];
+            }
+
+            this.player.initRole(roleIndex);
+            this.player.name = char.name || 'Agent';
+            this.player.race = selectedRace;
+
+            // C ref: role.c rigid_role_checks() -- enforce forced gender.
+            if (role?.forceGender === 'female') {
+                this.player.gender = FEMALE;
+            } else if (role?.forceGender === 'male') {
+                this.player.gender = MALE;
+            }
+
             const alignMap = { lawful: A_LAWFUL, neutral: A_NEUTRAL, chaotic: A_CHAOTIC };
+            let selectedAlign = this.player.alignment;
             if (Number.isInteger(char.alignment)) {
-                this.player.alignment = char.alignment;
+                selectedAlign = char.alignment;
             } else if (typeof char.align === 'string') {
                 const a = alignMap[char.align.toLowerCase()];
-                if (a !== undefined) this.player.alignment = a;
+                if (a !== undefined) selectedAlign = a;
             }
+            const raceAligns = Array.isArray(races[selectedRace]?.validAligns)
+                ? races[selectedRace].validAligns
+                : [];
+            const validAligns = Array.isArray(role?.validAligns)
+                ? role.validAligns.filter((a) => raceAligns.includes(a))
+                : [];
+            if (!validAligns.includes(selectedAlign)) {
+                selectedAlign = validAligns[0] ?? role?.validAligns?.[0] ?? A_NEUTRAL;
+            }
+            this.player.alignment = selectedAlign;
         } else if (this.wizard) {
             // Wizard mode: auto-select Valkyrie (index 11)
             this.player.initRole(11); // PM_VALKYRIE

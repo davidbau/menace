@@ -41,6 +41,7 @@ import { PM_FIRE_ELEMENTAL, PM_SALAMANDER, PM_FLOATING_EYE, PM_GELATINOUS_CUBE,
 import { MAGIC_PORTAL } from './symbols.js';
 import { gettrack } from './track.js';
 import { helpless } from './monutil.js';
+import { onscary } from './mon.js';
 
 // Shared utilities from monmove.js
 import { dist2, distmin, monnear, mfndpos, mon_allowflags,
@@ -1290,6 +1291,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                 if ((mstatus & (M_ATTK_HIT | M_ATTK_DEF_DIED)) === M_ATTK_HIT
                     && rn2(4)
                     && target.mlstmv !== turnCount
+                    && !onscary(map, mon.mx, mon.my, target)
                     && monnear(target, mon.mx, mon.my)) {
                     const rctx = { ...ctx, agrVisible: targetSpot, defVisible: monSpot };
                     const rstatus = await mattackm(target, mon, display, mmVisible, map, rctx);

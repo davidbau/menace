@@ -267,20 +267,25 @@ export async function distfleeck(mon, map, player, display, fov) {
     let sawscary = 0;
     let fleeLight = 0;
     let sanctuary = 0;
-    if (nearby) {
-        // C ref: monmove.c:552-558 — displaced image vs real position
-        const monCanSee = (mon.mcansee !== false) && !mon.blind;
-        const seescaryX = monCanSee ? player.x : targetX;
-        const seescaryY = monCanSee ? player.y : targetY;
+    // C ref: monmove.c:548-558 — determine scary square even when not nearby
+    const monCanSee = (mon.mcansee !== false);
+    const canPerceiveInvis = perceives(mon.type || mons[mon.mndx] || {});
+    const heroInvis = !!(player.invisible || player.Invis);
+    const seescaryX = (!monCanSee || (heroInvis && !canPerceiveInvis)) ? targetX : player.x;
+    const seescaryY = (!monCanSee || (heroInvis && !canPerceiveInvis)) ? targetY : player.y;
+    sawscary = onscary(map, seescaryX, seescaryY, mon) ? 1 : 0;
 
-        sawscary = onscary(map, seescaryX, seescaryY, mon) ? 1 : 0;
+    // C ref: monmove.c:559-564 — evaluate light/sanctuary only when nearby and not already scared by Elbereth/etc
+    if (nearby && !sawscary) {
         fleeLight = (flees_light(mon, map, player) && !bravegremlin) ? 1 : 0;
-        sanctuary = (!mon.mpeaceful && in_your_sanctuary(mon, 0, 0, map, player)) ? 1 : 0;
-        // C ref: monmove.c:559-565 — scared if: scary object, or gremlin flees light, or temple sanctuary
-        if (sawscary || fleeLight || sanctuary) {
-            scared = 1;
-            await monflee(mon, rnd(rn2(7) ? 10 : 100), true, true, player, display, fov);
+        if (!fleeLight) {
+            sanctuary = (!mon.mpeaceful && in_your_sanctuary(mon, 0, 0, map, player)) ? 1 : 0;
         }
+    }
+    // C ref: monmove.c:565-568 — trigger fleeing when nearby and scared
+    if (nearby && (sawscary || fleeLight || sanctuary)) {
+        scared = 1;
+        await monflee(mon, rnd(rn2(7) ? 10 : 100), true, true, player, display, fov);
     }
     pushRngLogEntry(`^distfleeck[${mon.mndx}@${mon.mx},${mon.my} in=${inrange ? 1 : 0} near=${nearby ? 1 : 0} scare=${scared} brave=${bravegremlin ? 1 : 0} saw=${sawscary} light=${fleeLight} sanct=${sanctuary}]`);
 
