@@ -2935,9 +2935,16 @@ export function feel_location(_x, _y, _map) {
 // C ref: hack.c feel_newsym() — update map display for a newly felt/seen location.
 // For sighted hero: newsym(x, y).  For blind: feel_location(x, y) (stub).
 // Signature is (x, y) matching C — some callers pass (map, x, y) due to old stub.
-export function feel_newsym(x, y) {
-    const player = _displayContext?.player;
-    if (player?.blind) {
+export function feel_newsym(a, b, c) {
+    // Compatibility: some old callers pass (map, x, y); canonical is (x, y).
+    let x = a;
+    let y = b;
+    if (typeof a === 'object' && Number.isInteger(b) && Number.isInteger(c)) {
+        x = b;
+        y = c;
+    }
+    if (!Number.isInteger(x) || !Number.isInteger(y)) return;
+    if (typeof c === 'object' && c?.blind) {
         feel_location(x, y);
     } else {
         newsym(x, y);

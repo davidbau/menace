@@ -20,7 +20,7 @@ import {
 } from './objects.js';
 import { MAXOCLASSES, ROOM, SHOPBASE, ROOMOFFSET, SDOOR, DOOR, CORR,
          D_NODOOR, D_ISOPEN, D_TRAPPED, D_LOCKED } from './config.js';
-import { makemon, mkclass, NO_MM_FLAGS, registerGetShopItem } from './makemon.js';
+import { makemon, mkclass, mongets, NO_MM_FLAGS, registerGetShopItem } from './makemon.js';
 import { mksobj, mkobj } from './mkobj.js';
 import { RANDOM_CLASS } from './objclass.js';
 import { PM_SHOPKEEPER, S_MIMIC } from './monsters.js';
@@ -526,13 +526,13 @@ function shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo) {
 
     // C ref: shknam.c:683-688 — conditional mongets
     if (shp.shknms === shkrings) {
-        mksobj(TOUCHSTONE, true, false);
+        mongets(shk, TOUCHSTONE);
     }
     if (shp.shknms === shktools || shp.shknms === shkwands
         || (shp.shknms === shkrings && rn2(2))
         || (shp.shknms === shkgeneral && rn2(5))) {
-        // C: mongets(shk, SCR_CHARGING) = mksobj(SCR_CHARGING, TRUE, FALSE)
-        mksobj(SCR_CHARGING, true, false);
+        // C ref: shknam.c:687 — (void) mongets(shk, SCR_CHARGING)
+        mongets(shk, SCR_CHARGING);
     }
 
     // C ref: shknam.c:689 — name the shopkeeper
