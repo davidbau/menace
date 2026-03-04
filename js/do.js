@@ -788,6 +788,9 @@ export async function handleDownstairs(player, map, display, game) {
         return { moved: false, tookTime: false };
     }
 
+    // C ref: do.c goto_level() ordinary descent message when verbose.
+    await display.putstr_message('You descend the stairs.');
+
     // Go to next level
     const newDepth = player.dungeonLevel + 1;
     if (newDepth > player.maxDungeonLevel) {
@@ -817,6 +820,9 @@ export async function handleUpstairs(player, map, display, game) {
         }
         return { moved: false, tookTime: false };
     }
+
+    // C ref: do.c goto_level() ordinary ascent message when verbose.
+    await display.putstr_message('You climb up the stairs.');
 
     const newDepth = player.dungeonLevel - 1;
     await game.changeLevel(newDepth, 'up');

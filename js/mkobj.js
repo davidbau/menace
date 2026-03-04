@@ -1349,6 +1349,7 @@ export function doname(obj, player) {
     // Suffix: worn/wielded/charges
     if (player) {
         if (player.weapon === obj) {
+            const dominantHand = player.rightHanded === false ? 'left' : 'right';
             if (od.big) {
                 result += ' (weapon in hands)';
             } else {
@@ -1361,7 +1362,7 @@ export function doname(obj, player) {
                 const isMissile = odSub <= -23 && odSub >= -25; // -P_DART..-P_BOOMERANG
                 const useWielded = (quan !== 1)
                     || (obj.oclass === WEAPON_CLASS ? (isAmmo || isMissile) : !isWeptool);
-                result += useWielded ? ' (wielded)' : ' (weapon in right hand)';
+                result += useWielded ? ' (wielded)' : ` (weapon in ${dominantHand} hand)`;
             }
         } else if (player.swapWeapon === obj) {
             // C ref: objnam.c plur(obj->quan) for alternate weapon(s)

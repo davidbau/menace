@@ -1232,10 +1232,12 @@ export async function initFirstLevel(player, roleIndex, wizard, opts = {}) {
     const startDlevel = opts.startDlevel ?? 1;
     initrack();
     setMakemonPlayerContext(player);
-    const { enadv_roll } = initLevelGeneration(roleIndex, wizard, {
+    const { enadv_roll, rightHanded } = initLevelGeneration(roleIndex, wizard, {
         alignment: player.alignment,
         race: player.race,
     });
+    // C ref: u_init_misc() handedness assignment in u.uhandedness
+    player.rightHanded = rightHanded;
     const map = (opts.startDnum != null)
         ? await mklev(startDlevel, opts.startDnum, startDlevel,
             {

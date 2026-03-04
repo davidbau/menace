@@ -49,6 +49,18 @@ function captureCursor(display) {
     return (typeof display.getCursor === 'function') ? display.getCursor() : null;
 }
 
+function rerenderLikeMainLoop(game) {
+    if (typeof game?.docrt === 'function') {
+        game.docrt();
+        return;
+    }
+    if (!game?.fov || !game?.map || !game?.player || !game?.display) return;
+    game.fov.compute(game.map, game.player.x, game.player.y);
+    game.display.renderMap(game.map, game.player, game.fov, game.flags);
+    game.display.renderStatus(game.player);
+    game.display.cursorOnPlayer(game.player);
+}
+
 // ---------------------------------------------------------------------------
 // replaySession(seed, opts, keys)
 //
@@ -126,6 +138,7 @@ export async function replaySession(seed, opts, keys) {
     for (let i = 0; i < keys.length; i++) {
         const prevCount = getRngLog().length;
         const ch = keys.charCodeAt(i);
+        let commandSettled = false;
 
         if (pendingCommand) {
             pushInput(ch);
@@ -133,6 +146,7 @@ export async function replaySession(seed, opts, keys) {
             if (settled.done) {
                 await maybe_deferred_goto_after_rhack(game, settled.value);
                 pendingCommand = null;
+                commandSettled = true;
             }
         } else {
             const commandPromise = (ch === 1)
@@ -143,7 +157,14 @@ export async function replaySession(seed, opts, keys) {
                 pendingCommand = commandPromise;
             } else {
                 await maybe_deferred_goto_after_rhack(game, settled.value);
+                commandSettled = true;
             }
+        }
+
+        // C ref: allmain.c handleInput loop re-renders after each consumed key.
+        // Replay must do the same so cursor/topline/map state matches captured C steps.
+        if (commandSettled) {
+            rerenderLikeMainLoop(game);
         }
 
         const raw = getRngLog().slice(prevCount);
