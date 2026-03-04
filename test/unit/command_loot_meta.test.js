@@ -402,4 +402,30 @@ describe('loot via meta key', () => {
         assert.ok(messages.some((m) => m.includes("don't have anything")),
             `expected "don't have anything" message, got: ${JSON.stringify(messages)}`);
     });
+
+    it('loot prompts for direction when monster is adjacent and no containers exist', async () => {
+        const { game, messages } = makeGame();
+        game.map.monsters.push({ mx: game.player.x + 1, my: game.player.y, m_id: 1 });
+        pushInput('.'.charCodeAt(0)); // underfoot target
+
+        const result = await rhack('l'.charCodeAt(0) | 0x80, game);
+
+        assert.equal(result.tookTime, true);
+        assert.ok(messages.some((m) => m.includes('Loot in what direction?')),
+            `expected direction prompt, got: ${JSON.stringify(messages)}`);
+        assert.ok(messages.some((m) => m.includes("don't find anything here to loot")),
+            `expected no-loot message, got: ${JSON.stringify(messages)}`);
+    });
+
+    it('loot directional target away from self says there to loot', async () => {
+        const { game, messages } = makeGame();
+        game.map.monsters.push({ mx: game.player.x + 1, my: game.player.y, m_id: 1 });
+        pushInput('l'.charCodeAt(0)); // east target
+
+        const result = await rhack('l'.charCodeAt(0) | 0x80, game);
+
+        assert.equal(result.tookTime, true);
+        assert.ok(messages.some((m) => m.includes("don't find anything there to loot")),
+            `expected directional no-loot message, got: ${JSON.stringify(messages)}`);
+    });
 });

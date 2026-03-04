@@ -1362,6 +1362,35 @@ function setContainerContents(container, items) {
     }
 }
 
+function monsterBeside(map, x, y) {
+    const mons = Array.isArray(map?.monsters) ? map.monsters : [];
+    for (const mon of mons) {
+        if (!mon) continue;
+        const mx = mon.mx;
+        const my = mon.my;
+        if (!Number.isInteger(mx) || !Number.isInteger(my)) continue;
+        const dx = Math.abs(mx - x);
+        const dy = Math.abs(my - y);
+        if ((dx <= 1 && dy <= 1) && !(dx === 0 && dy === 0)) return true;
+    }
+    return false;
+}
+
+function lootDirectionDelta(ch) {
+    switch (String.fromCharCode(ch).toLowerCase()) {
+        case 'h': return [-1, 0];
+        case 'j': return [0, 1];
+        case 'k': return [0, -1];
+        case 'l': return [1, 0];
+        case 'y': return [-1, -1];
+        case 'u': return [1, -1];
+        case 'b': return [-1, 1];
+        case 'n': return [1, 1];
+        case '.': return [0, 0];
+        default: return null;
+    }
+}
+
 async function announceLootedItems(display, player, items, verb) {
     for (const item of (items || [])) {
         await display.putstr_message(`You ${verb} ${doname(item, player)}.`);
@@ -1562,6 +1591,36 @@ async function handleLoot(game) {
         .filter((obj) => obj && !!objectData[obj?.otyp]?.container);
 
     if (floorContainers.length === 0 && invContainers.length === 0) {
+        // cf. pickup.c doloot_core(): when adjacent monsters are present,
+        // C asks directional loot target before reporting no loot.
+        if (monsterBeside(map, player.x, player.y)) {
+            // C prompt leaves cursor one past '?' on topline.
+            await display.putstr_message('Loot in what direction? ');
+            const dirCh = await nhgetch();
+            if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
+                await display.putstr_message('Never mind.');
+                return { moved: false, tookTime: false };
+            }
+            const delta = lootDirectionDelta(dirCh);
+            if (!delta) {
+                await display.putstr_message('Invalid loot location');
+                return { moved: false, tookTime: false };
+            }
+            const tx = player.x + delta[0];
+            const ty = player.y + delta[1];
+            const thereContainers = (map.objectsAt(tx, ty) || [])
+                .filter((obj) => !!objectData[obj?.otyp]?.container);
+            if ((delta[0] !== 0 || delta[1] !== 0) && thereContainers.length > 0) {
+                await display.putstr_message('You have to be at a container to loot it.');
+                return { moved: false, tookTime: false };
+            }
+            await display.putstr_message(
+                (delta[0] === 0 && delta[1] === 0)
+                    ? "You don't find anything here to loot."
+                    : "You don't find anything there to loot."
+            );
+            return { moved: false, tookTime: true };
+        }
         await display.putstr_message("You don't find anything here to loot.");
         return { moved: false, tookTime: false };
     }
