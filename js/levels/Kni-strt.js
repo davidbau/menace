@@ -114,7 +114,8 @@ export async function generate() {
     await des.monster({ id: "quasit", x: 36, y: 0, peaceful: 0 });
 
     // Some warhorses
-    for (let i = 1; i <= 2 + nh.rn2(3); i++) {
+    const warhorseCount = 2 + nh.rn2(3);
+    for (let i = 1; i <= warhorseCount; i++) {
         await des.monster({ id: "warhorse", peaceful: 1, inventory: async function() { if (percent(50)) { await des.object("saddle"); } } });
     
     }

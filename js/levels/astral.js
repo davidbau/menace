@@ -72,7 +72,8 @@ export async function generate() {
             des.terrain(41,18, ".");
          }
          // extra monsters; was [6 + 3d4] when both wings were opened up at once
-         for (let i = 1; i <= 3 + (rn2((2*3) - (2 - 1) + 1) + (2 - 1)); i++) {
+         const extraMonsterWaves = 3 + (rn2((2*3) - (2 - 1) + 1) + (2 - 1));
+         for (let i = 1; i <= extraMonsterWaves; i++) {
             await des.monster({ id: "Angel", coord: hall.rndcoord(1), align: "noalign", peaceful: 0 });
             if (percent(50)) {
                await des.monster({ coord: hall.rndcoord(1), peaceful: 0 });

@@ -167,11 +167,13 @@ export async function generate() {
     await des.monster({ id: "leprechaun", x: 25, y: 19, peaceful: 0 });
     await des.monster({ id: "water nymph", x: 25, y: 18, peaceful: 0 });
     // Wandering the streets.
-    for (let i = 1; i <= 4 + (rn2((1*3) - (1 - 1) + 1) + (1 - 1)); i++) {
+    const wanderingPairCount = 4 + (rn2((1*3) - (1 - 1) + 1) + (1 - 1));
+    for (let i = 1; i <= wanderingPairCount; i++) {
        await des.monster({ id: "water nymph", coord: streets.rndcoord(1), peaceful: 0 });
        await des.monster({ id: "leprechaun", coord: streets.rndcoord(1), peaceful: 0 });
     }
-    for (let i = 1; i <= 7 + (rn2((1*3) - (1 - 1) + 1) + (1 - 1)); i++) {
+    const chameleonCount = 7 + (rn2((1*3) - (1 - 1) + 1) + (1 - 1));
+    for (let i = 1; i <= chameleonCount; i++) {
        await des.monster({ id: "chameleon", coord: streets.rndcoord(1), peaceful: 0 });
     }
 

@@ -98,7 +98,8 @@ export async function generate() {
     await des.object({ id: "corpse", montype: "watch captain" });
 
     // Rubble!
-    for (let i = 1; i <= 9 + (rn2((2*5) - (2 - 1) + 1) + (2 - 1)); i++) {
+    const rubbleCount = 9 + (rn2((2*5) - (2 - 1) + 1) + (2 - 1));
+    for (let i = 1; i <= rubbleCount; i++) {
       if (percent(90)) {
         await des.object("boulder");
       }
@@ -128,7 +129,8 @@ export async function generate() {
     let inside = selection.floodfill(18,8)
     let near_temple = selection.area(17,8, 23,14).intersect(inside)
 
-    for (let i = 1; i <= 5 + (rn2((1*10) - (1 - 1) + 1) + (1 - 1)); i++) {
+    const orcArmyCount = 5 + (rn2((1*10) - (1 - 1) + 1) + (1 - 1));
+    for (let i = 1; i <= orcArmyCount; i++) {
        if (percent(50)) {
           await des.monster({ id: "orc-captain", coord: inside.rndcoord(1), peaceful: 0 });
        } else {
@@ -140,12 +142,14 @@ export async function generate() {
        }
     }
     // shamans can be hanging out in/near the temple
-    for (let i = 1; i <= (rn2((2*3) - (2 - 1) + 1) + (2 - 1)); i++) {
+    const shamanCount = (rn2((2*3) - (2 - 1) + 1) + (2 - 1));
+    for (let i = 1; i <= shamanCount; i++) {
        await des.monster({ id: "orc shaman", coord: near_temple.rndcoord(0), peaceful: 0 });
     }
     // these are ! such a big deal
     // to run into outside the bars
-    for (let i = 1; i <= 9 + (rn2((2*5) - (2 - 1) + 1) + (2 - 1)); i++) {
+    const outsideOrcCount = 9 + (rn2((2*5) - (2 - 1) + 1) + (2 - 1));
+    for (let i = 1; i <= outsideOrcCount; i++) {
        if (percent(90)) {
           await des.monster({ id: "hill orc", peaceful: 0 });
        } else {
