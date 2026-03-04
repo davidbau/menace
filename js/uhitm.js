@@ -1643,40 +1643,52 @@ async function handleMonsterKilled(player, monster, display, map) {
     player.score += exp;
     await newexplevel(player, display);
 
-    // cf. mon.c:3581-3609 xkilled() — "illogical but traditional" treasure drop.
-    const treasureRoll = rn2(6);
-    const canDropTreasure = treasureRoll === 0
-        && !((mdat.geno || 0) & G_NOCORPSE)
-        && !monster.mcloned
-        && (monster.mx !== player.x || monster.my !== player.y)
-        && mdat.mlet !== S_KOP;
-    if (canDropTreasure && map) {
-        const otmp = mkobj(RANDOM_CLASS, true, false);
-        const flags2 = mdat.flags2 || 0;
-        const isSmallMonster = (mdat.msize || 0) < MZ_HUMAN;
-        const isPermaFood = otmp && otmp.oclass === FOOD_CLASS && !otmp.oartifact;
-        const dropTooBig = isSmallMonster && !!otmp
-            && otmp.otyp !== FIGURINE
-            && ((otmp.owt || 0) > 30 || !!objectData[otmp.otyp]?.oc_big);
-        if (isPermaFood && !(flags2 & M2_COLLECT)) {
-            obj_resists(otmp, 0, 0);
-        } else if (dropTooBig) {
-            obj_resists(otmp, 0, 0);
-        } else {
-            otmp.ox = monster.mx;
-            otmp.oy = monster.my;
-            placeFloorObject(map, otmp);
-        }
+    // C ref: mon.c LEVEL_SPECIFIC_NOCORPSE() + xkilled() gate.
+    // This pre-check suppresses both treasure drops and corpse creation.
+    const isRogueLevel = !!map?.flags?.is_rogue_level;
+    const deathdropsDisabled = map?.flags?.deathdrops === false;
+    let graveyardUndeadNoCorpse = false;
+    if (!isRogueLevel && !deathdropsDisabled && map?.flags?.graveyard && is_undead(mdat)) {
+        // C macro term: (graveyard && is_undead(mdat) && rn2(3))
+        graveyardUndeadNoCorpse = rn2(3) !== 0;
     }
+    const levelSpecificNoCorpse = isRogueLevel || deathdropsDisabled || graveyardUndeadNoCorpse;
 
-    // C ref: mon.c:3178-3252 corpse_chance()
-    const createCorpse = corpse_chance(monster);
+    if (!levelSpecificNoCorpse) {
+        // cf. mon.c:3581-3609 xkilled() — "illogical but traditional" treasure drop.
+        const treasureRoll = rn2(6);
+        const canDropTreasure = treasureRoll === 0
+            && !((mdat.geno || 0) & G_NOCORPSE)
+            && !monster.mcloned
+            && (monster.mx !== player.x || monster.my !== player.y)
+            && mdat.mlet !== S_KOP;
+        if (canDropTreasure && map) {
+            const otmp = mkobj(RANDOM_CLASS, true, false);
+            const flags2 = mdat.flags2 || 0;
+            const isSmallMonster = (mdat.msize || 0) < MZ_HUMAN;
+            const isPermaFood = otmp && otmp.oclass === FOOD_CLASS && !otmp.oartifact;
+            const dropTooBig = isSmallMonster && !!otmp
+                && otmp.otyp !== FIGURINE
+                && ((otmp.owt || 0) > 30 || !!objectData[otmp.otyp]?.oc_big);
+            if (isPermaFood && !(flags2 & M2_COLLECT)) {
+                obj_resists(otmp, 0, 0);
+            } else if (dropTooBig) {
+                obj_resists(otmp, 0, 0);
+            } else {
+                otmp.ox = monster.mx;
+                otmp.oy = monster.my;
+                placeFloorObject(map, otmp);
+            }
+        }
 
-    if (createCorpse) {
-        const corpse = mkcorpstat(CORPSE, monster.mndx || 0, true,
-            map ? monster.mx : 0, map ? monster.my : 0, map);
-        corpse.age = Math.max((player?.turns || 0) + 1, 1);
-        if (map) newsym(monster.mx, monster.my);
+        // C ref: mon.c:3178-3252 corpse_chance()
+        const createCorpse = corpse_chance(monster);
+        if (createCorpse) {
+            const corpse = mkcorpstat(CORPSE, monster.mndx || 0, true,
+                map ? monster.mx : 0, map ? monster.my : 0, map);
+            corpse.age = Math.max((player?.turns || 0) + 1, 1);
+            if (map) newsym(monster.mx, monster.my);
+        }
     }
 
     return true;
