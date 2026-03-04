@@ -40,7 +40,7 @@ import { rhack } from './cmd.js';
 import { FOV, get_vision_full_recalc } from './vision.js';
 import { monsterNearby, setDisplayContext, see_monsters, vision_recalc, mark_vision_dirty, flush_screen } from './monutil.js';
 import { nomul, unmul, near_capacity } from './hack.js';
-import { Player, roles, races } from './player.js';
+import { Player, roles, races, validAlignsForRoleRace } from './player.js';
 import { mklev, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
 import { getArrivalPosition, changeLevel as changeLevelCore, deferred_goto } from './do.js';
 import { loadSave, deleteSave, loadFlags, saveFlags, deserializeRng,
@@ -1207,6 +1207,11 @@ export class NetHackGame {
             } else if (typeof char.align === 'string') {
                 const a = alignMap[char.align.toLowerCase()];
                 if (a !== undefined) this.player.alignment = a;
+            }
+            // C ref: role.c player_selection() — if chosen alignment is not valid for role+race, use first valid one
+            const validAligns = validAlignsForRoleRace(this.player.roleIndex, this.player.race);
+            if (validAligns.length > 0 && !validAligns.includes(this.player.alignment)) {
+                this.player.alignment = validAligns[0];
             }
         } else if (this.wizard) {
             // Wizard mode: auto-select Valkyrie (index 11)
