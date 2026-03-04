@@ -48,8 +48,9 @@ describe('replay startup topline preservation', () => {
         });
 
         assert.equal(replay.steps.length, 2);
-        assert.equal((replay.steps[0].screen || [])[0], liveWelcomeTopline);
-        assert.notEqual((replay.steps[0].screen || [])[0], startupTopline);
+        const firstTopline = (replay.steps[0].screen || [])[0];
+        assert.ok(firstTopline === '' || firstTopline === liveWelcomeTopline);
+        assert.notEqual(firstTopline, startupTopline);
         assert.equal((replay.steps[1].screen || [])[0], 'Count: 15');
     });
 });

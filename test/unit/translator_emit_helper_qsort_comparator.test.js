@@ -28,7 +28,7 @@ test('emit-helper lowers qsort comparator pointer params for cond_cmp', (t) => {
             'python',
             'tools/c_translator/main.py',
             '--src',
-            'nethack-c/src/botl.c',
+            'nethack-c/upstream/src/botl.c',
             '--func',
             'cond_cmp',
             '--emit',

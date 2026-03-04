@@ -14,7 +14,7 @@ describe('HeadlessGame replay contract', () => {
             wizard: true,
             character: {
                 name: 'ReplayTester',
-                role: 'Archeologist',
+                role: 'Wizard',
                 race: 'elf',
                 gender: 'female',
                 align: 'chaotic',

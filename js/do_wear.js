@@ -1591,8 +1591,9 @@ async function handleWear(player, display, game = null) {
             forcePrompt = true;
             continue;
         }
-        // C equip_ok for 'W': armor that fails canwearobj is downplayed.
-        if (!await canwearobj(player, obj, display, false)) {
+        // C getobj downplay path should not print side messages during prompt
+        // candidate discovery; only the final chosen item validation may print.
+        if (!await canwearobj(player, obj, display, true)) {
             forcePrompt = true;
             continue;
         }

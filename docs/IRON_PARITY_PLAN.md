@@ -1,5 +1,29 @@
 # IRON_PARITY_PLAN.md
 
+## Status Update (March 4, 2026)
+
+Operation Iron Parity is currently in **archived-guidance mode** rather than
+active execution mode.
+
+Reason for status change:
+1. Current branch evidence shows baseline instability (tool/source-path drift,
+   compiled-data fixture drift) and broad replay regressions that reduce signal
+   quality.
+2. Translator throughput work is therefore not the current highest-leverage
+   path to gameplay parity closure.
+
+Active execution pivot:
+1. Stabilize baseline and restore trustworthy parity/test signal first.
+2. Prioritize direct Tier-1 gameplay parity burndown (monster movement, pet AI,
+   and first-divergence clusters).
+3. Execute cursor-parity closure from `/share/u/davidbau/git/mazesofmenace/mazes/docs/CURSOR_PLAN.md`
+   as the near-term concrete plan.
+4. Keep translator work gated and limited to support tasks until baseline and
+   gameplay parity are stable again.
+
+This document remains authoritative for naming, canonical-state targets, and
+translator policy constraints when translator work resumes.
+
 ## Campaign Name
 Operation Iron Parity
 

@@ -3,7 +3,7 @@
 > *"Never build a dungeon you wouldn't be happy to spend the night in yourself."*
 > — Terry Pratchett, quoted in the NetHack 3.6.0 release notes
 
-**Current phase:** Phase 2 (testing burndown) with Phase 5 (self-play) as a concurrent track. Phase 3 groundwork is underway (C↔JS correspondence ledger and issue tracking). Progress is tracked on the [Oracle dashboard](https://davidbau.github.io/mazesofmenace/oracle/) with per-commit parity metrics sourced from [oracle/results.jsonl](oracle/results.jsonl).
+**Current phase:** Phase 2 (testing burndown) with Phase 5 (self-play) as a concurrent track. As of **March 4, 2026**, the original IRON_PARITY execution strategy is considered unsuccessful and has been replaced by a parity-recovery sequence: stabilize baseline/tooling first, then drive direct gameplay parity burndown in Tier-1 runtime code. The active near-term execution spec is [`docs/CURSOR_PLAN.md`](docs/CURSOR_PLAN.md). Progress is tracked on the [Oracle dashboard](https://davidbau.github.io/mazesofmenace/oracle/) with per-commit parity metrics sourced from [oracle/results.jsonl](oracle/results.jsonl).
 
 **Context:** [README.md](README.md) explains what Royal Jelly is, why NetHack matters, and the intersection of the 3.7.0 release moment with AI-assisted software development. This document describes **how** we build it—the strategy, phases, gates, and working discipline that will transform an audacious goal into a real, shipped product.
 
@@ -125,12 +125,30 @@ Milestones use a hybrid model: phase completion + parity gates + release-timing 
 9. **Public release**
    - Publish within 1–2 days of official NetHack 3.7.0 release with must-hit criteria satisfied.
 
-## IRON_PARITY Campaign (Active Cross-Phase Program)
+## IRON_PARITY Campaign (Status: Pivoted on March 4, 2026)
 
-Operation Iron Parity is the repository's structured campaign for closing the
-remaining C-faithfulness gap through coordinated state canonicalization and
-translator-assisted porting. It runs across Phases 2-4 and feeds Phase 6
-readiness by reducing hidden-state drift and improving auditability.
+Operation Iron Parity remains valuable as architecture guidance, but it is no
+longer the active execution driver for near-term parity closure.
+
+Current execution priority order:
+1. Restore trustworthy baseline signals in `npm test` by fixing environment and
+   source-path/data-source drift in tests and tooling.
+2. Focus parity burndown directly on highest-cascade gameplay divergence origins
+   (especially Tier-1 monster movement and pet AI paths).
+3. Execute cursor-parity closure from [`docs/CURSOR_PLAN.md`](docs/CURSOR_PLAN.md) as the
+   concrete near-term implementation track.
+4. Run translator work only as gated support work after baseline and gameplay
+   parity stability are restored.
+5. Treat translator throughput milestones as paused until parity evidence and
+   regression gates are healthy again.
+
+See [docs/IRON_PARITY_PLAN.md](docs/IRON_PARITY_PLAN.md) for detailed pivot
+policy and recovery gates.
+Historical context: Operation Iron Parity is the repository's structured
+campaign for closing the remaining C-faithfulness gap through coordinated state
+canonicalization and translator-assisted porting. It runs across Phases 2-4 and
+feeds Phase 6 readiness by reducing hidden-state drift and improving
+auditability.
 
 Authoritative design and execution documents:
 1. [docs/IRON_PARITY_PLAN.md](docs/IRON_PARITY_PLAN.md)
