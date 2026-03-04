@@ -254,11 +254,10 @@ export async function rhack(ch, game) {
     // Period/space = wait/search
     // C ref: cmd.c — space maps to donull only when rest_on_space is enabled.
     if (c === '.' || c === 's' || (c === ' ' && game?.flags?.rest_on_space)) {
-        const result = await performWaitSearch(c, game, map, player, fov, display);
-        // C ref: cmd.c set_occupation(..., "waiting"/"searching", gm.multi)
-        // for counted repeats of rest/search. timed_occupation executes the
-        // command then decrements multi each turn.
-        if (result.tookTime && game && game.multi > 0 && !game.occupation) {
+        // C ref: cmd.c set_occupation(..., gm.multi) is established before the
+        // command executes when a count prefix is active.
+        let armedOccupation = false;
+        if (game && game.multi > 0 && !game.occupation) {
             const occCmd = c;
             game.occupation = {
                 occtxt: occCmd === 's' ? 'searching' : 'waiting',
@@ -268,6 +267,14 @@ export async function rhack(ch, game) {
                     return g.multi > 0;
                 },
             };
+            armedOccupation = true;
+        }
+
+        const result = await performWaitSearch(c, game, map, player, fov, display);
+        // If the command didn't take time (for example, safety-prevented),
+        // don't leave a pre-armed occupation behind.
+        if (armedOccupation && !result.tookTime) {
+            game.occupation = null;
         }
         return result;
     }
