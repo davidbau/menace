@@ -62,12 +62,24 @@ Concrete fixes already landed:
    `HeadlessDisplay`; comparator reports cursor divergences (non-blocking).
 8. **Overlay menu prompt rendering** — `renderOverlayMenu` line 0 renders with
    inverse video (attr=1) to match C `tty_select_menu` behavior.
+9. **Engraving visibility fix** — `newsym()` and `renderDisplayMap()` now set
+   `engr.erevealed = true` when a square is visible, matching C display.c:963-964.
+   Previously engravings at visible squares showed as floor tiles until explicitly
+   read or felt. Also fixed statue object naming ("statue of a sewer rat").
+   Resolved: [#215](https://github.com/davidbau/menace/issues/215).
 
 ## Current State (latest gate run)
 
-Session suite: **123 / 150 passing** (27 failing).
+Session suite: **124 / 150 passing** (26 failing).
 
-Observed failure taxonomy (all 27 failing sessions triaged):
+Fixes landed since last triage:
+- **seed305 fixed** (engraving `erevealed` + statue naming): `newsym()` and
+  `renderDisplayMap()` now set `engr.erevealed = true` for any visible square,
+  matching C display.c:963-964 ("even when covered by objects or a monster").
+  Statue object names now include the monster type ("statue of a sewer rat").
+  seed305 now passes all channels (RNG 8209/8209, events 3081/3081, screen).
+
+Observed failure taxonomy (all 26 failing sessions triaged):
 
 1. **`dochug` monster-movement/pet-AI divergence** (~14 sessions, dominant):
    First RNG mismatch is JS at `dochug(monmove.js:847)` while C is at a
@@ -83,17 +95,12 @@ Observed failure taxonomy (all 27 failing sessions triaged):
    Several diverge at step 1 immediately after descending to a new level.
    Affected: seed321, seed323, seed326, seed327, seed328, seed330, seed331.
 
-3. **Screen-only failure** (1 session — RNG and events fully matched):
-   seed305 passes all RNG and event checks but diverges on screen rendering
-   (floor tile `·` rendered as `` ` `` at step 118).
-   These are pure display bugs, not logic divergences.
-
-4. **Other gameplay divergences** (~4 sessions):
+3. **Other gameplay divergences** (~4 sessions):
    Miscellaneous first divergences: seed302 (`getbones` — bones-file
    loading), seed322/seed332/seed333 (combat and makemon paths diverging
    late in long sessions), seed312 (`wipe_engr_at` vs `mcalcmove`).
 
-5. **Manual-direct message/turn boundary divergence** (1 session):
+4. **Manual-direct message/turn boundary divergence** (1 session):
    `seed033_manual_direct` currently fails as gameplay divergence (`rhack` vs
    `mcalcmove` first RNG mismatch) with `^mcalcmove` event disagreement.
 
