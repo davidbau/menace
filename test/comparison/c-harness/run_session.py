@@ -67,6 +67,24 @@ LIBNH_SYSCONF_SOURCE = os.path.join(PROJECT_ROOT, 'nethack-c', 'patched', 'sys',
 DEFAULT_FIXED_DATETIME = '20000110090000'
 import re
 
+def _get_git_hash(path):
+    """Return the short git commit hash for the given directory, or 'unknown'."""
+    try:
+        result = subprocess.run(
+            ['git', '-C', path, 'rev-parse', '--short', 'HEAD'],
+            capture_output=True, text=True, timeout=5
+        )
+        return result.stdout.strip() if result.returncode == 0 else 'unknown'
+    except Exception:
+        return 'unknown'
+
+def get_recorded_with():
+    """Return dict of git hashes for menace project and upstream nethack-c."""
+    return {
+        'menace': _get_git_hash(PROJECT_ROOT),
+        'nethack_c': _get_git_hash(os.path.join(PROJECT_ROOT, 'nethack-c', 'upstream')),
+    }
+
 _DUMP_ERROR_RE = re.compile(
     r'(?im)\b(?:dumpmap|dumpobj|dumpsnap):\s*cannot open\b[^\n]*'
 )
@@ -1103,6 +1121,7 @@ def run_wizload_session(seed, output_json, level_name, verbose=False):
             'version': 3,
             'seed': seed,
             'source': 'c',
+            'recorded_with': get_recorded_with(),
             'regen': {
                 'mode': 'wizload',
                 'level': level_name,
@@ -1472,6 +1491,7 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
             'version': 3,
             'seed': seed,
             'source': 'c',
+            'recorded_with': get_recorded_with(),
             'type': 'chargen',
             'regen': {
                 'mode': 'chargen',
@@ -1568,6 +1588,7 @@ def run_interface_session(seed, output_json, keys, verbose=False, auto_clear_mor
             'version': 3,
             'seed': seed,
             'source': 'c',
+            'recorded_with': get_recorded_with(),
             'type': 'interface',
             'regen': {
                 'mode': 'interface',
@@ -1945,6 +1966,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             'version': 3,
             'seed': seed,
             'source': 'c',
+            'recorded_with': get_recorded_with(),
             'regen': {
                 'mode': 'gameplay',
                 'moves': move_str,
