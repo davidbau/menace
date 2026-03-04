@@ -394,14 +394,21 @@ span.nh-cursor {
         }
     }
 
-    // Display "--More--" and wait for input
-    // C ref: tty_display_nhwindow for message window
-    async morePrompt(nhgetch) {
+    // Render the "--More--" marker on the message row without waiting for input.
+    // Called by putstr_message() when message overflow requires a --More-- pause,
+    // and by dolook/engrave for parity with C screen captures.
+    renderMoreMarker() {
         const moreStr = '--More--';
         const msgLen = (this.topMessage || '').length;
         const col = Math.min(msgLen, this.cols - moreStr.length);
         this.putstr(col, MESSAGE_ROW, moreStr, CLR_GREEN);
         this.setCursor(Math.min(col + moreStr.length, this.cols - 1), 0);
+    }
+
+    // Display "--More--" and wait for input
+    // C ref: tty_display_nhwindow for message window
+    async morePrompt(nhgetch) {
+        this.renderMoreMarker();
         await nhgetch();
         this.clearRow(MESSAGE_ROW);
     }
