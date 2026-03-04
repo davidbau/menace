@@ -42,6 +42,17 @@ export const OPTIONS_DATA = {
         }
     ],
 
+    // Advanced options — shown only via #optionsfull (C ref: optlist.h Advanced category)
+    advanced: [
+        {
+            category: 'Advanced',
+            options: [
+                { key: 'a', name: 'tutorial', type: 'bool', flag: 'tutorial', help: 'show tutorial option at game start' },
+                { key: 'b', name: 'name', type: 'text', flag: 'name', help: 'your character name' }
+            ]
+        }
+    ],
+
     // Page 2 - Map & Status
     page2: [
         {
@@ -101,18 +112,21 @@ function flattenOptions() {
 
 const FLAT_OPTIONS = flattenOptions();
 
-export function getTotalPages(showHelp) {
+export function getTotalPages(showHelp, showAdvanced) {
     if (showHelp) return HELP_TOTAL_PAGES;
-    return 2;
+    return showAdvanced ? 3 : 2;
 }
 
-export function normalizeOptionsPage(page, showHelp) {
-    return clampPage(page, 1, getTotalPages(showHelp));
+export function normalizeOptionsPage(page, showHelp, showAdvanced) {
+    return clampPage(page, 1, getTotalPages(showHelp, showAdvanced));
 }
 
-export function getVisibleOptions(page, showHelp) {
+export function getVisibleOptions(page, showHelp, showAdvanced) {
     if (!showHelp) {
-        const categories = page === 2 ? OPTIONS_DATA.page2 : OPTIONS_DATA.page1;
+        let categories;
+        if (page === 3 && showAdvanced) categories = OPTIONS_DATA.advanced;
+        else if (page === 2) categories = OPTIONS_DATA.page2;
+        else categories = OPTIONS_DATA.page1;
         const out = [];
         for (const category of categories) {
             for (const option of category.options) {
@@ -130,8 +144,8 @@ export function getVisibleOptions(page, showHelp) {
     return FLAT_OPTIONS.slice(start, end);
 }
 
-export function getOptionByKey(page, showHelp, key) {
-    const options = getVisibleOptions(page, showHelp);
+export function getOptionByKey(page, showHelp, key, showAdvanced) {
+    const options = getVisibleOptions(page, showHelp, showAdvanced);
     return options.find(opt => opt.key === key) || null;
 }
 
@@ -142,8 +156,8 @@ export function getOptionByKey(page, showHelp, key) {
  * @param {object} flags - Current flag values from storage
  * @returns {object} - {screen: string[], attrs: string[]}
  */
-export function renderOptionsMenu(page, showHelp, flags) {
-    const normalizedPage = normalizeOptionsPage(page, showHelp);
+export function renderOptionsMenu(page, showHelp, flags, showAdvanced) {
+    const normalizedPage = normalizeOptionsPage(page, showHelp, showAdvanced);
 
     // C NetHack uses variable-length lines, not fixed 80-char
     const screen = Array(24).fill('');
@@ -180,9 +194,10 @@ export function renderOptionsMenu(page, showHelp, flags) {
 
     let pageData;
     if (!showHelp) {
-        pageData = normalizedPage === 1 ? OPTIONS_DATA.page1 : OPTIONS_DATA.page2;
+        if (normalizedPage === 3 && showAdvanced) pageData = OPTIONS_DATA.advanced;
+        else pageData = normalizedPage === 1 ? OPTIONS_DATA.page1 : OPTIONS_DATA.page2;
     } else {
-        const visibleOptions = getVisibleOptions(normalizedPage, true);
+        const visibleOptions = getVisibleOptions(normalizedPage, true, showAdvanced);
         pageData = [];
         let currentCategory = null;
         for (const opt of visibleOptions) {
@@ -270,7 +285,7 @@ export function renderOptionsMenu(page, showHelp, flags) {
     }
 
     // Footer - page indicator on current row (exactly 20 chars)
-    const totalPages = getTotalPages(showHelp);
+    const totalPages = getTotalPages(showHelp, showAdvanced);
     screen[row] = ' (' + normalizedPage + ' of ' + totalPages + ')           ';
     attrs[row] = '0'.repeat(20);
     row += 1;
@@ -407,9 +422,10 @@ const STATUS_CONDITION_DEFAULT_ON = new Set([
     'cond_ride', 'cond_slime', 'cond_stone', 'cond_strngl', 'cond_stun', 'cond_termIll'
 ]);
 
-// Handle options (O) — C ref: cmd.c doset(), options.c doset()
-// Interactive menu with immediate toggle - stays open until q/ESC
-export async function handleSet(game) {
+// Handle options (O or #optionsfull) — C ref: cmd.c doset(), options.c doset()
+// Interactive menu with immediate toggle - stays open until q/ESC.
+// Pass { showAdvanced: true } for #optionsfull to include Advanced options page.
+export async function handleSet(game, { showAdvanced = false } = {}) {
     const { display, player } = game;
     const flags = game.flags;
 
@@ -423,9 +439,9 @@ export async function handleSet(game) {
     }
 
     async function drawOptions() {
-        const normalizedPage = normalizeOptionsPage(currentPage, showHelp);
+        const normalizedPage = normalizeOptionsPage(currentPage, showHelp, showAdvanced);
         currentPage = normalizedPage;
-        const { screen, attrs } = renderOptionsMenu(normalizedPage, showHelp, flags);
+        const { screen, attrs } = renderOptionsMenu(normalizedPage, showHelp, flags, showAdvanced);
 
         display.clearScreen();
         for (let r = 0; r < display.rows; r++) {
@@ -824,7 +840,7 @@ export async function handleSet(game) {
         // Check for navigation - C ref: MENU_NEXT_PAGE, MENU_PREVIOUS_PAGE, MENU_FIRST_PAGE
         // Also accept J/K (PageDown/PageUp from browser_input.js arrow key mapping)
         if (c === '>' || c === 'J') {
-            const maxPage = getTotalPages(showHelp);
+            const maxPage = getTotalPages(showHelp, showAdvanced);
             if (currentPage < maxPage) currentPage += 1;
             continue;
         }
@@ -838,12 +854,12 @@ export async function handleSet(game) {
         }
         if (c === '?') {
             showHelp = !showHelp;
-            currentPage = normalizeOptionsPage(currentPage, showHelp);
+            currentPage = normalizeOptionsPage(currentPage, showHelp, showAdvanced);
             continue;
         }
 
         // Check for option selection
-        const selected = getOptionByKey(currentPage, showHelp, c);
+        const selected = getOptionByKey(currentPage, showHelp, c, showAdvanced);
         if (selected) {
             if (selected.flag === 'number_pad') {
                 await editNumberPadModeOption();

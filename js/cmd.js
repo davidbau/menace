@@ -676,9 +676,11 @@ async function handleExtendedCommand(game) {
     switch (cmd) {
         case 'o':
         case 'options':
-        case 'optionsfull':
             queueRepeatExtcmd((g) => handleSet(g));
             return await handleSet(game);
+        case 'optionsfull':
+            queueRepeatExtcmd((g) => handleSet(g, { showAdvanced: true }));
+            return await handleSet(game, { showAdvanced: true });
         case 'n':
         case 'name': {
             queueRepeatExtcmd(async (g) => handleExtendedCommandName(g));
