@@ -251,10 +251,11 @@ describe('loot via meta key', () => {
             obroken: false,
         };
         game.map.objects.push(chest);
-        // 'o' → take-out loop; 'a' → take first item; ESC → back to "Do what?"
-        // then 'q' to quit the outer menu
+        // 'o' → take-out loop; 'a' selects item; Enter commits selection;
+        // ESC returns to "Do what?"; then 'q' quits outer menu.
         pushInput('o'.charCodeAt(0));
-        pushInput('a'.charCodeAt(0)); // take first item (letter 'a')
+        pushInput('a'.charCodeAt(0)); // select first item (letter 'a')
+        pushInput('\n'.charCodeAt(0)); // commit selected item
         pushInput(27);                // ESC — return to "Do what?" menu
         pushInput('q'.charCodeAt(0)); // quit
 
@@ -308,6 +309,7 @@ describe('loot via meta key', () => {
         pushInput('o'.charCodeAt(0)); // take-out mode
         pushInput(')'.charCodeAt(0)); // weapon class only
         pushInput('a'.charCodeAt(0)); // select first visible item
+        pushInput('\n'.charCodeAt(0)); // commit selected item
         pushInput(27);                // ESC back to container menu
         pushInput('q'.charCodeAt(0)); // quit
 

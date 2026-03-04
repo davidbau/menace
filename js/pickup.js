@@ -1424,7 +1424,10 @@ async function containerMenu(game, container) {
             ? `Do what with the ${cname}?`
             : `The ${cname} is empty.  Do what with it?`;
         const cols = display?.cols || 80;
-        const pad = Math.max(0, Math.floor((cols - prompt.length) / 2));
+        // C tty + menu hybrid prompts land this at a fixed right-shift on 80 cols.
+        const pad = (cols >= 80)
+            ? 38
+            : Math.max(0, Math.floor((cols - prompt.length) / 2));
         await putMenuPrompt(`${' '.repeat(pad)}${prompt}`);
 
         const ch = await nhgetch();
@@ -1491,6 +1494,7 @@ async function containerMenu(game, container) {
                 }
             }
             const letters = 'abcdefghijklmnopqrstuvwxyz';
+            const selected = new Set();
             while (true) {
                 const cur = getContainerContents(container);
                 if (!cur.length) break;
@@ -1503,13 +1507,24 @@ async function containerMenu(game, container) {
                 await putMenuPrompt(`Take out what? [${available} or ?*]`);
                 const tch = await nhgetch();
                 if (tch === 27) break; // ESC → back to "Do what?" menu
+                if (tch === 10 || tch === 13) {
+                    // C-style menu flow: selection letters mark items; Enter commits.
+                    const chosen = visible.filter((o) => selected.has(o));
+                    if (!chosen.length) continue;
+                    for (const item of chosen) {
+                        player.addToInventory(item); observeObject(item);
+                        setContainerContents(container, getContainerContents(container).filter((o) => o !== item));
+                        await display.putstr_message(`You take out ${doname(item, player)}.`);
+                        tookTime = true;
+                    }
+                    selected.clear();
+                    continue;
+                }
                 const tidx = letters.indexOf(String.fromCharCode(tch).toLowerCase());
                 if (tidx < 0 || tidx >= visible.length) continue;
                 const item = visible[tidx];
-                player.addToInventory(item); observeObject(item);
-                setContainerContents(container, cur.filter((o) => o !== item));
-                await display.putstr_message(`You take out ${doname(item, player)}.`);
-                tookTime = true;
+                if (selected.has(item)) selected.delete(item);
+                else selected.add(item);
             }
             // after ESC from take-out, loop back to "Do what?" menu (C behavior)
         } else if (c === 's') {
@@ -1522,7 +1537,7 @@ async function containerMenu(game, container) {
             }
             const letters = inv.map((o) => o.invlet).join('');
             const compact = compactInvletPromptChars(letters);
-            await putMenuPrompt(`What do you want to stash? [${compact} or ?*]`);
+            await putMenuPrompt(`What do you want to stash? [${compact} or ?*] `);
             const sch = await nhgetch();
             const item = inv.find((o) => o.invlet === String.fromCharCode(sch));
             if (item) {
