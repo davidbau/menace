@@ -13,6 +13,7 @@ import {
     CHAIN_CLASS, VENOM_CLASS,
     IRON, COPPER, WOOD, PLASTIC, GLASS, DRAGON_HIDE, LIQUID,
     ARROW, ELVEN_ARROW, ORCISH_ARROW, YA, CROSSBOW_BOLT, DART, FLINT, ROCK,
+    SHORT_SWORD,
     GOLD_PIECE, DILITHIUM_CRYSTAL, LOADSTONE,
     WAN_CANCELLATION, WAN_LIGHT, WAN_LIGHTNING,
     BAG_OF_HOLDING, OILSKIN_SACK, BAG_OF_TRICKS, SACK, HORN_OF_PLENTY,
@@ -32,6 +33,7 @@ import {
     PM_SCORPIUS, PM_SCORPION, PM_KILLER_BEE, PM_QUEEN_BEE,
     PM_GARGOYLE, PM_WINGED_GARGOYLE
 } from './monsters.js';
+import { PM_SAMURAI } from './config.js';
 import { lays_eggs } from './mondata.js';
 
 // Re-export RANDOM_CLASS from objclass.js (no-import module).
@@ -1094,7 +1096,7 @@ function makeplural(word) {
         ['staff', 'staves'],
         ['man', 'men'],
     ]);
-    const asIs = ['boots', 'shoes', 'gloves', 'lenses', 'scales', 'gauntlets', 'iron bars'];
+    const asIs = ['boots', 'shoes', 'gloves', 'lenses', 'scales', 'gauntlets', 'iron bars', 'ya'];
     const stemLower = stem.toLowerCase();
     if (asIs.some(s => stemLower.endsWith(s))) return `${stem}${excess}`;
 
@@ -1267,6 +1269,7 @@ export function xname(obj, opts = {}) {
 // C ref: objnam.c add_erosion_words()
 function erosion_words(obj) {
     if (!obj || !is_damageable(obj) || obj.otyp === CRYSKNIFE) return '';
+    const iscrys = obj.otyp === CRYSKNIFE;
     let words = '';
     if (obj.oeroded > 0) {
         if (obj.oeroded === 2) words += 'very ';
@@ -1279,6 +1282,15 @@ function erosion_words(obj) {
         if (obj.oeroded2 === 2) words += 'very ';
         else if (obj.oeroded2 >= 3) words += 'thoroughly ';
         words += is_corrodeable(obj) ? 'corroded ' : 'rotted ';
+    }
+    if (obj.rknown && obj.oerodeproof) {
+        words += iscrys ? 'fixed '
+            : is_rustprone(obj) ? 'rustproof '
+                : is_corrodeable(obj) ? 'corrodeproof '
+                    : is_flammable(obj) ? 'fireproof '
+                        : is_crackable(obj) ? 'tempered '
+                            : is_rottable(obj) ? 'rotproof '
+                                : '';
     }
     return words;
 }
@@ -1335,19 +1347,24 @@ export function doname(obj, player) {
         prefix += 'poisoned ';
     }
 
-    // C ref: objnam.c doname_base() known enchantment
-    // C uses is_weptool(obj) ? WEAPON_CLASS : obj->oclass in its switch,
-    // so tools with a weapon skill (sub != 0) get enchantment display.
+    let baseName = xname_for_doname(obj, dknown, known, bknown);
+    // C ref: objnam.c Japanese_item_name() usage for Samurai inventory display.
+    if (player?.roleIndex === PM_SAMURAI && obj.otyp === SHORT_SWORD && baseName === 'short sword') {
+        baseName = 'wakizashi';
+    }
+    const erosionPrefix = erosion_words(obj);
+
+    // C ref: objnam.c doname_base() -- add_erosion_words() precedes enchantment.
+    // C uses is_weptool(obj) ? WEAPON_CLASS : obj->oclass in this switch.
+    let spePrefix = '';
     const isWeptool = obj.oclass === TOOL_CLASS && (od.sub || 0) !== 0;
     if (known && (obj.oclass === WEAPON_CLASS || isWeptool
         || obj.oclass === ARMOR_CLASS
         || (obj.oclass === RING_CLASS && od.charged))) {
-        prefix += `${obj.spe >= 0 ? '+' : ''}${obj.spe} `;
+        spePrefix = `${obj.spe >= 0 ? '+' : ''}${obj.spe} `;
     }
 
-    const baseName = xname_for_doname(obj, dknown, known, bknown);
-    const erosionPrefix = erosion_words(obj);
-    let result = `${prefix}${erosionPrefix}${baseName}`.trimStart();
+    let result = `${prefix}${erosionPrefix}${spePrefix}${baseName}`.trimStart();
     if (quan === 1 && !result.startsWith('the ')) {
         result = `${just_an(result)} ${result}`;
     }

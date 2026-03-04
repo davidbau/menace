@@ -1409,7 +1409,7 @@ export const objectData = [
     },
     { // [46] SHORT_SWORD
         name: "short sword",
-        desc: null,
+        desc: "wakizashi",
         oc_class: 1, // WEAPON_CLASS
         symbol: ')',
         color: 6,

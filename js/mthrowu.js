@@ -29,7 +29,7 @@ import {
 import { doname, xname, mkcorpstat, mksobj } from './mkobj.js';
 import { couldsee, m_cansee } from './vision.js';
 import {
-    x_monnam, Monnam, is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
+    x_monnam, Monnam, canseemon, is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
     throws_rocks, is_unicorn,
 } from './mondata.js';
 import {
@@ -470,7 +470,7 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
     let hitPlayer = false;
     let promptedForTopline = false;
 
-    if (display) {
+    if (display && canseemon(mon, player, game?.fov)) {
         const targetName = mtarg ? ` at the ${x_monnam(mtarg)}` : '';
         await display.putstr_message(`The ${x_monnam(mon)} throws ${thrownObjectName(otmp, player)}${targetName}!`);
     }

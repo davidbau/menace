@@ -574,6 +574,14 @@ export function ini_inv(player, table) {
                 obj.blessed = trop.bless > 0;
                 obj.cursed = trop.bless < 0;
             }
+
+            // C ref: mkobj.c ARMOR_CLASS init -- "simulate lacquered armor for samurai".
+            // During startup inventory creation, samurai splint mail is rustproof and
+            // that rustproof status is known.
+            if (player.roleIndex === PM_SAMURAI && obj.otyp === SPLINT_MAIL) {
+                obj.oerodeproof = true;
+                obj.rknown = true;
+            }
         }
 
         // Add to player inventory
