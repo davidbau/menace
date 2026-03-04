@@ -182,6 +182,30 @@ describe('Monster movement', () => {
         );
     });
 
+    it('dog_move treats linked-list minvent as inventory-present', async () => {
+        initRng(42);
+        enableRngLog();
+        const map = makeSimpleMap();
+        const player = new Player();
+        player.x = 20; player.y = 10;
+        player.initRole(0);
+
+        const dog = makeLittleDog(18, 10, player);
+        dog.m_id = 1;
+        const invObj = { otyp: GOLD_PIECE, oclass: COIN_CLASS, quan: 1, owt: 1, owornmask: 0, nobj: null };
+        dog.minvent = invObj; // C-style linked list node, not an array
+        map.monsters.push(dog);
+
+        await movemon(map, player, mockDisplay);
+        const log = (getRngLog() || []).map((entry) => String(entry));
+        disableRngLog();
+
+        assert.ok(
+            log.some((line) => line.includes('^dog_goal_start[') && line.includes('minvent=1')),
+            'dog_goal_start should report minvent=1 when inventory is a linked list'
+        );
+    });
+
     it('movemon does not stamp mlstmv for non-combat movement processing', async () => {
         initRng(42);
         const map = makeSimpleMap();

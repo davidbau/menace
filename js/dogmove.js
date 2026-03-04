@@ -173,14 +173,28 @@ function max_mon_load(mon) {
     return Math.floor(maxload);
 }
 
+// Normalize monster inventory to an iterable sequence.
+// Some paths still carry C-style nobj-linked chains instead of arrays.
+function mon_inventory_items(mon) {
+    if (!mon?.minvent) return [];
+    if (Array.isArray(mon.minvent)) return mon.minvent;
+    const items = [];
+    const seen = new Set();
+    let cur = mon.minvent;
+    while (cur && typeof cur === 'object' && !seen.has(cur)) {
+        items.push(cur);
+        seen.add(cur);
+        cur = cur.nobj || null;
+    }
+    return items;
+}
+
 function curr_mon_load(mon) {
     let load = 0;
     const throws = !!(monPtr(mon)?.flags2 & M2_ROCKTHROW);
-    if (mon.minvent) {
-        for (const obj of mon.minvent) {
-            if (obj.otyp !== BOULDER || !throws)
-                load += obj.owt || 0;
-        }
+    for (const obj of mon_inventory_items(mon)) {
+        if (obj.otyp !== BOULDER || !throws)
+            load += obj.owt || 0;
     }
     return load;
 }
@@ -461,7 +475,7 @@ export function can_reach_location(map, mon, mx, my, fx, fy) {
 // C ref: dogmove.c droppables(mon)
 // Pick next inventory item a tame monster is willing to drop.
 function droppables(mon) {
-    const inv = mon.minvent || [];
+    const inv = mon_inventory_items(mon);
     const mdat = mon.type || {};
     const wep = mon.weapon || null;
     const dummy = { dummy: true, oartifact: 1 };
