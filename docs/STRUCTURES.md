@@ -1,5 +1,8 @@
 # C-Faithful State Refactor Plan
 
+Execution checklist source of truth for Issue #227:
+[`docs/ISSUE_227_EXECUTION_CHECKLIST.md`](/share/u/davidbau/git/mazesofmenace/game/docs/ISSUE_227_EXECUTION_CHECKLIST.md)
+
 ## Goal
 
 Make the JS runtime state match NetHack C global variable names directly, so that

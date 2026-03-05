@@ -1,5 +1,8 @@
 # Constant Dependency Design Doc
 
+Execution checklist source of truth for Issue #227:
+[`docs/ISSUE_227_EXECUTION_CHECKLIST.md`](/share/u/davidbau/git/mazesofmenace/game/docs/ISSUE_227_EXECUTION_CHECKLIST.md)
+
 ## Goal
 
 Understand which C header files are "leaf" constants files (safe to import from
