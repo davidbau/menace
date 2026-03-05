@@ -1181,45 +1181,30 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 moveStatus = MMOVE_MOVED;
             }
         } else {
-            // C ref: monmove.c:1747 — pre-movement mtrapped check.
-            // If monster is already trapped, try to escape before allowing movement.
-            // C returns MMOVE_NOTHING when still trapped; dochug() still recalc's
-            // distfleeck() and can proceed to attack-phase logic.
-            let trappedNoMove = false;
-            if (mon.mtrapped) {
-                await mintrap_postmove(mon, map, player, display, fov);
-                if (mon.dead) return; // monster died in trap
-                if (mon.mtrapped) {
-                    trappedNoMove = true; // MMOVE_NOTHING path (no movement attempt)
-                    moveStatus = MMOVE_NOTHING;
+            let trapDied = false;
+            const omx = mon.mx, omy = mon.my;
+            moveStatus = await m_move(mon, map, player, display, fov);
+            if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
+                await m_postmove_effect(mon, map, player, game, omx, omy);
+                const trapResult = await mintrap_postmove(mon, map, player, display, fov);
+                if (trapResult === 2 || trapResult === 3) {
+                    trapDied = true;
+                    moveStatus = MMOVE_DIED;
+                } else {
+                    mmoved = true;
+                    moveStatus = MMOVE_MOVED;
                 }
             }
-            let trapDied = false;
-            if (!trappedNoMove) {
-                const omx = mon.mx, omy = mon.my;
-                moveStatus = await m_move(mon, map, player, display, fov);
-                if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
-                    await m_postmove_effect(mon, map, player, game, omx, omy);
-                    const trapResult = await mintrap_postmove(mon, map, player, display, fov);
-                    if (trapResult === 2 || trapResult === 3) {
-                        trapDied = true;
-                        moveStatus = MMOVE_DIED;
-                    } else {
-                        mmoved = true;
-                        moveStatus = MMOVE_MOVED;
-                    }
-                }
-                if (!trapDied && !mon.dead
-                    && mon.mcanmove !== false
-                    && (mmoved || moveStatus === MMOVE_DONE)
-                    && map.objectsAt(mon.mx, mon.my).length > 0
-                    && await maybeMonsterPickStuff(mon, map, player, display, fov)) {
-                    // C ref: postmov() sets status = MMOVE_DONE when mpickstuff() succeeds.
-                    moveStatus = MMOVE_DONE;
-                    mmoved = false;
-                } else if (moveStatus === MMOVE_DONE) {
-                    mmoved = false;
-                }
+            if (!trapDied && !mon.dead
+                && mon.mcanmove !== false
+                && (mmoved || moveStatus === MMOVE_DONE)
+                && map.objectsAt(mon.mx, mon.my).length > 0
+                && await maybeMonsterPickStuff(mon, map, player, display, fov)) {
+                // C ref: postmov() sets status = MMOVE_DONE when mpickstuff() succeeds.
+                moveStatus = MMOVE_DONE;
+                mmoved = false;
+            } else if (moveStatus === MMOVE_DONE) {
+                mmoved = false;
             }
             if (trapDied) return;
         }
@@ -1468,6 +1453,17 @@ function m_digweapon_check(mon, nix, niy, map) {
 }
 
 async function m_move(mon, map, player, display = null, fov = null) {
+    // C ref: monmove.c:1748-1757 — trapped monsters resolve mintrap at m_move entry.
+    if (mon.mtrapped) {
+        const trapResult = await mintrap_postmove(mon, map, player, display, fov);
+        if (trapResult === 2 || trapResult === 3 || mon.dead) {
+            return MMOVE_DIED;
+        }
+        if (mon.mtrapped) {
+            return MMOVE_NOTHING;
+        }
+    }
+
     if (mon.isshk) {
         const omx = mon.mx, omy = mon.my;
         shk_move(mon, map, player);

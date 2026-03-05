@@ -135,10 +135,11 @@ export function goodpos(x, y, mtmp, gpflags, map, player) {
         if ((f1 & M1_AMORPHOUS) && loc.typ === DOOR
             && (loc.flags & (D_CLOSED | D_LOCKED))) return true;
 
-        // Scary check
+        // C ref: teleport.c goodpos() checks onscary for real monsters and
+        // goodpos_onscary for fake placement probes (m_id==0 path). In JS,
+        // onscary(map,x,y,mon) handles both when given the probe monster data.
         if (checkscary) {
-            // C signature/order: onscary(x, y, mon) with level context; JS helper takes (map, x, y, mon).
-            if (mtmp.m_id && typeof onscary === 'function' && onscary(map, x, y, mtmp))
+            if (typeof onscary === 'function' && onscary(map, x, y, mtmp))
                 return false;
         }
     }
