@@ -280,8 +280,10 @@ export function dbon(str) {
 export function weapon_hit_bonus(weapon) {
     if (!skillSystemActive) return 0;
     const skill = weapon_type(weapon);
-    const level = heroSkill[skill] || P_UNSKILLED;
+    if (skill === P_NONE) return 0;
+    const level = heroSkill[skill] ?? P_ISRESTRICTED;
     switch (level) {
+    case P_ISRESTRICTED:
     case P_UNSKILLED: return -4;
     case P_BASIC: return 0;
     case P_SKILLED: return 2;
@@ -296,8 +298,10 @@ export function weapon_hit_bonus(weapon) {
 export function weapon_dam_bonus(weapon) {
     if (!skillSystemActive) return 0;
     const skill = weapon_type(weapon);
-    const level = heroSkill[skill] || P_UNSKILLED;
+    if (skill === P_NONE) return 0;
+    const level = heroSkill[skill] ?? P_ISRESTRICTED;
     switch (level) {
+    case P_ISRESTRICTED:
     case P_UNSKILLED: return -2;
     case P_BASIC: return 0;
     case P_SKILLED: return 1;

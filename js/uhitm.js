@@ -9,7 +9,7 @@ import {
     A_STR, A_DEX, PM_MONK,
     FIRE_RES, COLD_RES, SHOCK_RES, ACID_RES, FREE_ACTION,
 } from './config.js';
-import { spec_abon, spec_dbon } from './artifact.js';
+import { spec_dbon } from './artifact.js';
 import {
     G_FREQ, G_NOCORPSE, MZ_TINY, MZ_HUMAN, MZ_LARGE, M2_COLLECT,
     S_ZOMBIE, S_MUMMY, S_VAMPIRE, S_WRAITH, S_LICH, S_GHOST, S_DEMON, S_KOP,
@@ -37,6 +37,7 @@ import {
 } from './objects.js';
 import { mkobj, mkcorpstat, RANDOM_CLASS, next_ident, xname } from './mkobj.js';
 import { hitval as weapon_hitval, dmgval, abon, dbon, weapon_hit_bonus, weapon_dam_bonus } from './weapon.js';
+import { near_capacity } from './hack.js';
 import {
     nonliving, x_monnam, y_monnam, is_undead, is_demon,
     magic_negation,
@@ -215,17 +216,14 @@ function find_roll_to_hit(player, mtmp, aatyp, weapon) {
     if (isElfHero && is_orc(mtmp?.type || {})) tmp += 1;
 
     // cf. uhitm.c:407-410 — encumbrance and trap penalties
-    // In JS, current encumbrance level is tracked in player.wc (0..5).
-    if (Number.isInteger(player.wc) && player.wc > 0) tmp -= player.wc;
+    const enc = near_capacity(player);
+    if (enc) tmp -= (enc * 2) - 1;
     if (player.utrap) tmp -= 3;
 
     // cf. uhitm.c:417-423 — weapon bonuses
     if (aatyp === AT_WEAP || aatyp === AT_CLAW) {
         if (weapon) tmp += weapon_hitval(weapon, mtmp);
-        else tmp += weaponEnchantment(weapon); // fallback for bare-handed
         tmp += weapon_hit_bonus(weapon); // skill-based (stub: returns 0)
-        // cf. uhitm.c:423 — artifact to-hit bonus
-        if (weapon && weapon.oartifact) tmp += spec_abon(weapon, mtmp);
     }
 
     return tmp;

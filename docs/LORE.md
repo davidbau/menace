@@ -1770,3 +1770,19 @@ hard-won wisdom:
   - `seed311_tourist_selfplay200_gameplay` improved materially
     (`rng 4195->4226`, `screens 73->77`, `events 1015->1023`), with first
     divergence moving later to attack-resolution logic (`do_attack_core`).
+
+### `weapon_hit_bonus` must special-case `P_NONE` (2026-03-05)
+
+- C `weapon.c` returns zero hit/damage skill bonus when `weapon_type()==P_NONE`
+  (for non-weapon tools that can be wielded, such as tin opener paths).
+- JS incorrectly treated `P_NONE` like an unskilled weapon, applying `-4` to-hit
+  and `-2` damage penalties.
+- This caused false misses and RNG drift in `seed311_tourist_selfplay200_gameplay`
+  during tin-opener melee.
+- Fix: align `weapon_hit_bonus()`/`weapon_dam_bonus()` with C by returning `0`
+  when `skill === P_NONE`, and only applying unskilled penalties for real
+  weapon skills.
+- Validation:
+  - `seed311_tourist_selfplay200_gameplay` became fully green,
+  - guard `seed303_caveman_selfplay200_gameplay` stayed green,
+  - full gameplay report improved `14/34 -> 15/34` passing.
