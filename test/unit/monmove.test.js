@@ -11,7 +11,7 @@ import { Player } from '../../js/player.js';
 import { GOLD_PIECE, COIN_CLASS, WEAPON_CLASS, ARMOR_CLASS, ORCISH_DAGGER, ORCISH_HELM,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD, PICK_AXE, DWARVISH_MATTOCK } from '../../js/objects.js';
 import { mons, PM_GOBLIN, PM_LITTLE_DOG, PM_DEATH, PM_PELIAS, AT_WEAP, G_NOCORPSE,
-         MS_LEADER } from '../../js/monsters.js';
+         MS_LEADER, M1_AMPHIBIOUS } from '../../js/monsters.js';
 import { W_WEP } from '../../js/worn.js';
 
 // Mock display
@@ -488,6 +488,9 @@ describe('Monster movement', () => {
         waterPlayer.initRole(0);
         waterMap.at(12, 10).typ = WATER;
         const waterDog = makeLittleDog(12, 10, waterPlayer);
+        // Make the dog amphibious so it survives in water (test is about
+        // pickup behaviour, not drowning via minliquid).
+        waterDog.type = { ...waterDog.type, flags1: waterDog.type.flags1 | M1_AMPHIBIOUS };
         waterMap.monsters.push(waterDog);
         waterMap.objects.push({
             otyp: ORCISH_DAGGER,
