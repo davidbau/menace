@@ -868,3 +868,7 @@ Before committing edits to `guide.md`, verify each of the following against
 - [ ] Pet resistance gain from corpses — `mon.c` or `eat.c`
 - [ ] Peaceful displacement limits — `hack.c`
       (source confirms: exists with safety checks for NPCs and terrain)
+
+
+## Audit Note (2026-03-05)
+This file was spot-audited for NetHack 3.7.0 correctness against  and  for major strategy deltas (peaceful displacement, vampire form-loop updates, Demonbane silver-mace change, undead-turning monster usage, restful sleep regen, hot-ground potion breakage, sacrifice-luck cap, and ranged-kiting AI). No contradictory 3.7.0 behavior was found in those areas.
