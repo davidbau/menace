@@ -8,6 +8,7 @@ import { isok, IS_WALL, CORR, SCORR, ROOM, ICE,
          MAP_ROW_START, COLNO, ROWNO,
          SEE_INVIS, DETECT_MONSTERS, TELEPAT, INFRAVISION, WARNING, WARN_OF_MON } from './config.js';
 import { PM_GRID_BUG,
+         PM_ANGEL, G_UNIQ,
          AT_BITE, AT_CLAW, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_WEAP,
          AT_ENGL, AT_HUGS, AD_STCK } from './monsters.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
@@ -20,7 +21,7 @@ import { cansee, couldsee, clear_vision_full_recalc, get_vision_full_recalc } fr
 import { do_light_sources } from './light.js';
 export { mark_vision_dirty } from './vision.js';
 import { Monnam } from './mondata.js';
-import { is_hider, noattacks, dmgtype, attacktype, is_mindless, infravisible } from './mondata.js';
+import { is_hider, noattacks, dmgtype, attacktype, is_mindless, infravisible, is_human, is_rider } from './mondata.js';
 import { weight } from './mkobj.js';
 import { pushRngLogEntry, rnd } from './rng.js';
 import { place_object, stackobj } from './stackobj.js';
@@ -524,8 +525,16 @@ export function canSpotMonsterForMap(mon, map, player, fov) {
         || senseMonsterForMap(mon, map, player);
 }
 
-function onscary(map, x, y) {
+function onscary(map, x, y, mon = null) {
     if (!map) return false;
+    if (mon) {
+        const mdat = mon.type || mon.data || {};
+        if (mon.iswiz) return false;
+        if (is_rider(mdat)) return false;
+        if (mdat.mndx === PM_ANGEL) return false;
+        if (is_human(mdat) || (Number(mdat.geno || 0) & G_UNIQ)
+            || mon.isshk || mon.ispriest) return false;
+    }
     const objects = Array.isArray(map.objects) ? map.objects : [];
 
     for (const obj of objects) {
@@ -548,13 +557,10 @@ function onscary(map, x, y) {
     return false;
 }
 
-function monsterHelpless(mon) {
-    if (!mon) return true;
-    if (mon.sleeping) return true;
-    if (mon.mfrozen > 0) return true;
-    if (mon.mcanmove === false) return true;
-    if (mon.stunned) return true;
-    return false;
+function monsterIsTame(mon) {
+    if (!mon) return false;
+    if (mon.mtame !== undefined) return !!mon.mtame;
+    return !!mon.tame;
 }
 
 function sanitizeMonsterType(mon) {
@@ -594,11 +600,11 @@ export function monsterNearby(map, player, fov) {
 
             const mptr = sanitizeMonsterType(mon);
             const isPeaceful = !!(mon.mpeaceful || mon.peaceful);
-            if (!(playerHallucinating || (!mon.tame && !isPeaceful && !noattacks(mptr)))) continue;
+            if (!(playerHallucinating || (!monsterIsTame(mon) && !isPeaceful && !noattacks(mptr)))) continue;
 
             if (is_hider(mptr || {}) && mon.mundetected) continue;
-            if (monsterHelpless(mon)) continue;
-            if (onscary(map, px, py)) continue;
+            if (helpless(mon)) continue;
+            if (onscary(map, px, py, mon)) continue;
 
             // C ref: hack.c monster_nearby() requires canspotmon(mtmp).
             if (!canSpotMonsterForMap(mon, map, player, fov)) continue;

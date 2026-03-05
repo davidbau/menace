@@ -56,7 +56,7 @@ import { stackobj } from './stackobj.js';
 import { thitu } from './mthrowu.js';
 import { dmgval } from './weapon.js';
 import { poisoned, acurr, acurrstr } from './attrib.js';
-import { t_missile, seetrap } from './trap.js';
+import { t_missile, seetrap, conjoined_pits, adj_nonconjoined_pit } from './trap.js';
 
 // Run direction keys (shift = run)
 export const RUN_KEYS = {
@@ -952,6 +952,13 @@ export async function domove_core(dir, player, map, display, game) {
         }
         // C ref: trap.c trapeffect_pit() — set trap timeout and apply damage.
         else if (trap.ttyp === PIT || trap.ttyp === SPIKED_PIT) {
+            // C ref: trap.c trapeffect_pit() — stepping from one pit into an
+            // adjacent non-conjoined pit consumes rn2(5) for "between pits"
+            // message suffix selection before setting TT_PIT duration.
+            const oldTrap = map?.trapAt?.(oldX, oldY) || null;
+            const conjPit = !!(oldTrap && conjoined_pits(trap, oldTrap, true, player));
+            const adjPit = !!adj_nonconjoined_pit(trap, player);
+            if (adjPit && !conjPit) rn2(5);
             const trapTurns = rn2(6) + 2; // rn1(6,2)
             player.pitTrapTurns = Math.max(player.pitTrapTurns || 0, trapTurns);
             // C ref: trap.c set_utrap(rn1(6,2), TT_PIT)
