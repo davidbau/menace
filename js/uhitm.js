@@ -1869,11 +1869,8 @@ export async function do_attack_core(player, monster, display, map, game = null)
 
     if (!mhit) {
         // cf. uhitm.c:608 — known_hitum miss path → missum()
-        if (bashPrefix) {
-            await display.putstr_message(`${bashPrefix}  You miss ${y_monnam(monster)}.`);
-        } else {
-            await display.putstr_message(`You miss ${y_monnam(monster)}.`);
-        }
+        if (bashPrefix) await display.putstr_message(bashPrefix);
+        await display.putstr_message(`You miss ${y_monnam(monster)}.`);
         // cf. uhitm.c:788 passive() after miss
         await passive(monster, player.weapon || null, false, true, AT_WEAP, false, {
             player, display, map, game,

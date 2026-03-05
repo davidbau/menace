@@ -868,10 +868,29 @@ async function erode_armor_on_player(player, erosionType, display = null) {
         if (etype === ERODE_ROT) return 'rots';
         return 'is damaged';
     };
+    const erosionPast = (etype) => {
+        if (etype === ERODE_RUST) return 'rusted';
+        if (etype === ERODE_CORRODE) return 'corroded';
+        if (etype === ERODE_ROT) return 'rotten';
+        return 'damaged';
+    };
     const erosionCount = (obj) => isPrimary ? Number(obj?.oeroded || 0) : Number(obj?.oeroded2 || 0);
-    const erosionMessage = (obj, before) =>
-        `Your ${xname(obj)} ${erosionVerb(erosionType)}${before > 0 ? ' further' : ''}!`;
-    let acDirty = false;
+    const erosionMessage = (obj, before) => {
+        const adverb = before >= 2 ? ' completely' : (before > 0 ? ' further' : '');
+        return `Your ${xname(obj)} ${erosionVerb(erosionType)}${adverb}!`;
+    };
+    const erosionLooksMessage = (obj) =>
+        `Your ${xname(obj)} looks completely ${erosionPast(erosionType)}.`;
+    const maybePrintErosion = async (target, before, er, verbose = false) => {
+        if (!display || !target) return;
+        if (er === ER_DAMAGED || er === ER_DESTROYED) {
+            await display.putstr_message(erosionMessage(target, before));
+            return;
+        }
+        if (verbose && er === ER_NOTHING && before >= 3) {
+            await display.putstr_message(erosionLooksMessage(target));
+        }
+    };
     while (true) {
         switch (rn2(5)) {
         case 0: { // helmet
@@ -881,10 +900,7 @@ async function erode_armor_on_player(player, erosionType, display = null) {
             if (!target || er === ER_NOTHING) {
                 continue;
             }
-            if (er === ER_DAMAGED || er === ER_DESTROYED) {
-                acDirty = true;
-                if (display) await display.putstr_message(erosionMessage(target, before));
-            }
+            await maybePrintErosion(target, before, er, false);
             break;
         }
         case 1: { // cloak, else body armor, else shirt
@@ -892,30 +908,21 @@ async function erode_armor_on_player(player, erosionType, display = null) {
             if (cloak) {
                 const before = erosionCount(cloak);
                 const er = erode_obj(cloak, xname(cloak), erosionType, EF_GREASE | EF_VERBOSE);
-                if (er === ER_DAMAGED || er === ER_DESTROYED) {
-                    acDirty = true;
-                    if (display) await display.putstr_message(erosionMessage(cloak, before));
-                }
+                await maybePrintErosion(cloak, before, er, true);
                 break;
             }
             const suit = player.armor || player.suit || null;
             if (suit) {
                 const before = erosionCount(suit);
                 const er = erode_obj(suit, xname(suit), erosionType, EF_GREASE | EF_VERBOSE);
-                if (er === ER_DAMAGED || er === ER_DESTROYED) {
-                    acDirty = true;
-                    if (display) await display.putstr_message(erosionMessage(suit, before));
-                }
+                await maybePrintErosion(suit, before, er, true);
                 break;
             }
             const shirt = player.shirt || null;
             if (shirt) {
                 const before = erosionCount(shirt);
                 const er = erode_obj(shirt, xname(shirt), erosionType, EF_GREASE | EF_VERBOSE);
-                if (er === ER_DAMAGED || er === ER_DESTROYED) {
-                    acDirty = true;
-                    if (display) await display.putstr_message(erosionMessage(shirt, before));
-                }
+                await maybePrintErosion(shirt, before, er, true);
             }
             break;
         }
@@ -926,10 +933,7 @@ async function erode_armor_on_player(player, erosionType, display = null) {
             if (!target || er === ER_NOTHING) {
                 continue;
             }
-            if (er === ER_DAMAGED || er === ER_DESTROYED) {
-                acDirty = true;
-                if (display) await display.putstr_message(erosionMessage(target, before));
-            }
+            await maybePrintErosion(target, before, er, false);
             break;
         }
         case 3: { // gloves
@@ -939,10 +943,7 @@ async function erode_armor_on_player(player, erosionType, display = null) {
             if (!target || er === ER_NOTHING) {
                 continue;
             }
-            if (er === ER_DAMAGED || er === ER_DESTROYED) {
-                acDirty = true;
-                if (display) await display.putstr_message(erosionMessage(target, before));
-            }
+            await maybePrintErosion(target, before, er, false);
             break;
         }
         case 4: { // boots
@@ -952,10 +953,7 @@ async function erode_armor_on_player(player, erosionType, display = null) {
             if (!target || er === ER_NOTHING) {
                 continue;
             }
-            if (er === ER_DAMAGED || er === ER_DESTROYED) {
-                acDirty = true;
-                if (display) await display.putstr_message(erosionMessage(target, before));
-            }
+            await maybePrintErosion(target, before, er, false);
             break;
         }
         default:
@@ -963,7 +961,6 @@ async function erode_armor_on_player(player, erosionType, display = null) {
         }
         break;
     }
-    if (acDirty) find_ac(player);
 }
 
 async function mhitu_ad_rust(monster, attack, player, mhm, ctx) {

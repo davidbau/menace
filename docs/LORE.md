@@ -2035,3 +2035,39 @@ hard-won wisdom:
     damage is `0` (rust/corrode touches),
   - armor erosion now marks AC dirty for `ER_DESTROYED` as well as
     `ER_DAMAGED`.
+
+### Seed322 `--More--`/combat-message parity lessons (2026-03-05)
+
+- Step-223 AC mismatch (`AC:8` JS vs `AC:7` C) was a timing issue, not state
+  terminally wrong:
+  - JS recomputed AC immediately inside `mhitu` armor erosion,
+  - C `erode_armor()` does not call `find_ac()` there; AC refresh is deferred.
+- C-faithful fix:
+  - remove immediate `find_ac()` in `erode_armor_on_player` and rely on
+    end-of-turn AC recomputation path.
+  - Result: first screen divergence moved off step 223.
+
+- Next exposed mismatch was message-boundary structure in `uhitm`:
+  - JS miss path concatenated
+    `"You begin bashing monsters with ..."` + `"You miss ..."` into one
+    message string,
+  - C emits these as separate `pline`s, allowing `--More--` gating between
+    them when needed.
+- C-faithful fix:
+  - emit bash-prefix and miss message separately in `do_attack_core` miss path.
+
+- Next exposed mismatch was erosion wording and prompt gating:
+  - JS always printed `"rusts further"` for repeated erosion and omitted C's
+    `"looks completely rusted."` follow-up in verbose erosion paths,
+  - this suppressed a required `--More--` boundary and caused subsequent
+    replay keys (space) to be interpreted as commands.
+- C-faithful fix:
+  - use adverb selection that reaches `"completely"` at max erosion level,
+  - emit `"looks completely <past-participle>."` on `ER_NOTHING` at max
+    erosion for the `EF_VERBOSE` armor path.
+
+- Validation snapshot:
+  - `seed322_barbarian_wizard_gameplay` improved screen matches from
+    `291/516` to `367/516`, first screen divergence moved from step `228`
+    to step `241`,
+  - `seed306_monk_selfplay200_gameplay` remains full-pass.
