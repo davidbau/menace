@@ -18,7 +18,7 @@
 //   purge_all_custom_entries(): clear all custom glyph customizations.
 //
 // JS implementations:
-//   symbols.js: exports symbol and color definitions equivalent to glyphs.c's G_/S_ glyph IDs.
+//   const.js: exports symbol and color definitions equivalent to glyphs.c's G_/S_ glyph IDs.
 //   display.js:621 — terrainSymbol(): similar symbol lookup by location type.
 
 // cf. glyphs.c:112 — glyphrep_to_custom_map_entries(op, glyphptr): parse glyph rep string

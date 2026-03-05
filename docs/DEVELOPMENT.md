@@ -1151,7 +1151,7 @@ symbols mapped to Unicode box-drawing characters. No canvas, no WebGL.
 - **ES6 modules**: No build step, no bundler. Import directly in browser.
 - **No frameworks**: Vanilla JS, vanilla DOM. The game ran in 1987 without React.
 - **Constants match C**: `STONE`, `VWALL`, `ROOM`, etc. are identical values.
-  See `js/config.js`.
+  See `js/const.js`.
 
 ## Current Parity Findings (2026-02-18)
 

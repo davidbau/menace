@@ -42,7 +42,7 @@ Probabilities sum to 100:
   ring(3), wand(3), tool(3), book(3), health(2)
 
 Negative `itype` = specific object (use `mksobj`), positive = class (use `mkobj`).
-`VEGETARIAN_CLASS = 19` (MAXOCLASSES + 1, where MAXOCLASSES=18 in config.js).
+`VEGETARIAN_CLASS = 19` (MAXOCLASSES + 1, where MAXOCLASSES=18 in const.js).
 
 #### 1b. Shopkeeper name lists
 All 12 arrays verbatim from C (`shknam.c:32-188`):

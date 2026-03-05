@@ -92,7 +92,7 @@
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."
     },
     {
-      "path": "js/config.js",
+      "path": "js/const.js",
       "policy": "manual_only",
       "reason": "Runtime/platform/infrastructure boundary; keep manual control."
     },
@@ -622,11 +622,6 @@
       "path": "js/storage.js",
       "policy": "manual_only",
       "reason": "Runtime/platform/infrastructure boundary; keep manual control."
-    },
-    {
-      "path": "js/symbols.js",
-      "policy": "auto",
-      "reason": "C-mapped gameplay module; eligible for rule-driven translation."
     },
     {
       "path": "js/teleport.js",

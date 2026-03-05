@@ -1,7 +1,7 @@
 // Test autopickup option behavior
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { POTION_CLASS, SCROLL_CLASS, WEAPON_CLASS, RING_CLASS } from '../../js/symbols.js';
+import { POTION_CLASS, SCROLL_CLASS, WEAPON_CLASS, RING_CLASS } from '../../js/const.js';
 
 test('autopickup option behavior', () => {
     // Mock player, map, display, game

@@ -61,7 +61,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | dogmove.c | dogmove.js | Pet movement AI. All functions except `quickmimic` |
 | `[a]` | dokick.c | kick.js | Kicking mechanics. handleKick (dokick) approximation; full kick effects TODO |
 | `[a]` | dothrow.c | dothrow.js | Throwing mechanics. handleThrow/handleFire (dothrow/dofire), promptDirectionAndThrowItem (throwit), ammoAndLauncher, DIRECTION_KEYS; throw flight now uses `tmp_at(DISP_FLASH)` + `nh_delay_output`-boundary frames, including awaited projectile-frame timing in the active throw command path and awaited per-step timing in `throwit` paths (legacy `nowait` path removed there). Boomerang visuals now follow C `boomhit` structure with `DISP_FLASH` + per-step `DISP_CHANGE` toggling (`S_boomleft/right`) and awaited frame boundaries; tethered-weapon backtrack cleanup now uses awaited async `tmp_at(DISP_END, BACKTRACK)` timing in interactive mode. ~30 functions TODO |
-| `[a]` | drawing.c | symbols.js | Symbol/glyph drawing tables and lookup functions. Data tables in symbols.js; 3 lookup functions implemented |
+| `[a]` | drawing.c | const.js | Symbol/glyph drawing tables and lookup functions. Data tables in const.js; 3 lookup functions implemented |
 | `[~]` | dungeon.c | dungeon.js | Dungeon structure and level management |
 | `[a]` | eat.c | eat.js | Eating mechanics. handleEat (doeat) implemented; ~50 functions TODO |
 | `[~]` | end.c | end.js | Game over, death, scoring |
@@ -72,7 +72,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[N/A]` | files.c | — | File I/O operations. JS: `storage.js` |
 | `[a]` | fountain.c | fountain.js | Fountain effects. drinkfountain/dryup implemented (RNG-parity); ~12 functions TODO |
 | `[~]` | getpos.c | getpos.js | Position selection UI. Core highlight callback lifecycle wired (`getpos_sethilite`, toggle, refresh, cleanup) and interactive cursor loop implemented (`getpos_async`: vi/arrow movement, pick/cancel, redraw/help, filter cycle, C-style target-class next/prev keys `m/M o/O d/D x/X i/I v/V`, typed map-symbol cycling forward/backward, and NHW_MENU-backed `=` target picking). `getloc_filter` handling now applies basic view/area gating in target gathering, target cycling, and map-symbol searches. Helper surfaces `getpos_getvalids_selection`, `getpos_help_keyxhelp`, `getpos_help`, and `getpos_menu` now exist in partial form. Full C parity for keybindings/target classes/filter-area behavior/help text details remains partial |
-| `[~]` | glyphs.c | glyphs.js | Glyph system. JS: partially in `display.js`, `symbols.js` |
+| `[~]` | glyphs.c | glyphs.js | Glyph system. JS: partially in `display.js`, `const.js` |
 | `[a]` | hack.c | hack.js | Core movement and actions. C-structure entry points now explicit: `domove`, `domove_core`, `do_run`, `do_rush`, `lookaround`, `findtravelpath` (with `TRAVP_*` modes), travel setup (`dotravel`/`dotravel_target`), and spot/capacity helpers. Behavior remains partial vs C in many edge paths (~70 TODOs), but structure and naming fidelity improved. |
 | `[a]` | hacklib.c | hacklib.js | String/char utilities. All C functions implemented; in-place string ops return new strings in JS |
 | `[~]` | iactions.c | iactions.js | Item actions context menu |
@@ -141,7 +141,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | steal.c | steal.js | Monster stealing. somegold, findgold, stealgold, thiefdead, unresponsive, remove_worn_item, steal (weighted random), relobj implemented. stealamulet/maybe_absorb_item/mdrop_special_objs stubs. stealarm/unstolenarm/worn_item_removal/mpickobj TODO |
 | `[a]` | steed.c | steed.js | Riding steeds. `can_saddle`, `can_ride`, `put_saddle_on_mon`, `maybewakesteed`, `doride`, `mount_steed` (full eligibility + message + stat changes), `exercise_steed`, `kick_steed`, `dismount_steed` (all reasons including petrification/engulf/poly), `poly_steed`, `stucksteed`, `rider_cant_reach` — 12 functions implemented. `place_monster` and related spawn helpers partially inline from `vault.js`. |
 | `[N/A]` | strutil.c | — | String utilities (strbuf, pmatch). JS: native string ops |
-| `[N/A]` | symbols.c | — | Terminal graphics mode management (ASCII/IBM/curses/UTF-8 symbol-set switching). Browser port uses static data in symbols.js; no runtime mode switching |
+| `[N/A]` | symbols.c | — | Terminal graphics mode management (ASCII/IBM/curses/UTF-8 symbol-set switching). Browser port uses static data in const.js; no runtime mode switching |
 | `[N/A]` | sys.c | — | System-level interface |
 | `[~]` | teleport.c | teleport.js | Teleportation. `goodpos()` in `teleport.js` now uses canonical monster flag constants (`M1_SWIM`, `M1_AMPHIBIOUS`, `M1_FLY`, `M1_WALLWALK`, `M1_AMORPHOUS`, `M2_ROCKTHROW`, `S_EEL`) imported from `monsters.js` rather than hardcoded bit values; `onscary` probe check now runs for both real monsters and placement probes (not gated on `m_id`); `rloc`, `mtele_trap`, `mlevel_tele_trap`, `teleds`, `tele` and supporting helpers ported. `collect_coords`/`enexto`/`can_teleport` still TODO. |
 | `[~]` | timeout.c | timeout.js | Timer-based effects. Full timer queue: run_timers, start/stop/peek/insert/remove_timer, obj_move/split/stop_timers, obj_has_timer, spot timers, done_timeout, egg/figurine/burn timers, fall_asleep. nh_timeout() has intrinsic timeout decrement loop matching C structure: calls dialogue functions before decrement, then on expiry fires effect via _fireExpiryEffect with full switch covering STONED/SLIMED/STRANGLED death, SICK death-or-recovery (CON check), CONFUSION/STUNNED/BLINDED/DEAF/HALLUC set-to-1-then-clear pattern, FAST slow message, INVIS expiry message, FUMBLING re-increment, VOMITING/GLIB/WOUNDED_LEGS/DISPLACED/PASSES_WALLS/DETECT_MONSTERS handlers. Dialogue stubs exported for stoned/vomiting/sleep/choke/sickness/levitation/slime/phaze. Remaining gaps: full dialogue countdown text sequences, float_down for levitation, vision system calls |
@@ -187,7 +187,7 @@ These JS files don't directly correspond to a single C file:
 | attrib_exercise.js | Attribute exercise tracking | attrib.c |
 | browser_input.js | Browser keyboard/mouse input | None (JS-only) |
 | cmd.js | Command dispatch | cmd.c |
-| config.js | Game configuration | decl.c, options.c |
+| const.js | Game configuration | decl.c, options.c |
 | delay.js | Delay/animation timing | None (JS-only) |
 | discovery.js | Object identification, handleDiscoveries, handleCallObjectTypePrompt | o_init.c, invent.c |
 | display_rng.js | Display-layer RNG | rnd.c |
@@ -1486,7 +1486,7 @@ This section is generated from source symbol tables and includes function rows f
 | 656 | `walk_path` | - | Missing |
 | 977 | `will_hurtle` | - | Missing |
 
-### drawing.c -> symbols.js
+### drawing.c -> const.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 120 | `def_char_is_furniture` | - | Missing |

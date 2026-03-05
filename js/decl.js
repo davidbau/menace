@@ -19,7 +19,7 @@
 //
 // JS implementations: global state is spread across multiple JS modules.
 //   xdir/ydir → cmd.js (direction deltas)
-//   c_obj_colors → symbols.js or display.js
+//   c_obj_colors → const.js or display.js
 //   initializeGameDataStructures → nethack.js startup
 //   All per-instance globals → player.js, dungeon.js, etc.
 

@@ -4,7 +4,7 @@
 import { initRng } from './js/rng.js';
 import { initLevelGeneration, makelevel, setGameSeed } from './js/dungeon.js';
 import { Player, roles } from './js/player.js';
-import { SDOOR, SCORR, DOOR, CORR, STAIRS, ROOM, HWALL, VWALL } from './js/config.js';
+import { SDOOR, SCORR, DOOR, CORR, STAIRS, ROOM, HWALL, VWALL } from './js/const.js';
 
 const TERRAIN_NAMES = {
     0: 'STONE', 1: 'VWALL', 2: 'HWALL', 3: 'TLCORNER', 4: 'TRCORNER',

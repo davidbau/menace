@@ -394,7 +394,7 @@ export async function amulet(map, player, display) {
     if (amu && !rn2(15)) {
         // Search for magic portal traps and give proximity hints
         for (const ttmp of map.traps || []) {
-            // MAGIC_PORTAL = 28 (from config.js)
+            // MAGIC_PORTAL = 28 (from const.js)
             if (ttmp.ttyp === 28) {
                 const tx = ttmp.tx !== undefined ? ttmp.tx : ttmp.x;
                 const ty = ttmp.ty !== undefined ? ttmp.ty : ttmp.y;

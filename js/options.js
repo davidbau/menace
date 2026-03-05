@@ -44,7 +44,7 @@
 //   options_menu.js:290 — getOptionValue(opt, flags)
 //   options_menu.js:349 — toggleOption(page, key, flags)
 //   options_menu.js:358 — setOptionValue(page, showHelp, key, rawValue, flags)
-//   config.js: stores option values and handles configuration
+//   const.js: stores option values and handles configuration
 
 // cf. options.c:7064 — initoptions(void): process all options
 // Processes options including the SYSCF system config file.

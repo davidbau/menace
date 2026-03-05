@@ -33,7 +33,7 @@ const screen = await adapter.readScreen();
 
 // Find downstairs in game.map
 let stairsPos = null;
-const STAIRS = 26;  // From config.js
+const STAIRS = 26;  // From const.js
 for (let y = 0; y < 21; y++) {
     for (let x = 0; x < 80; x++) {
         const cell = game.map.at(x, y);

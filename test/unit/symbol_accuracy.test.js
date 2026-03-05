@@ -237,7 +237,7 @@ describe('Symbol System Accuracy', () => {
 
   describe('Special Entity Symbols', () => {
     it('should have monster type symbols', () => {
-      // C ref: Special monster appearance symbols (uppercase in symbols.js)
+      // C ref: Special monster appearance symbols (uppercase in const.js)
       assert(typeof S_GOLEM === 'number', 'S_GOLEM should be defined');
       assert(typeof S_DEMON === 'number', 'S_DEMON should be defined');
       assert(typeof S_HUMAN === 'number', 'S_HUMAN should be defined');

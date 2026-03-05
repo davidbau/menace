@@ -3,7 +3,7 @@
 
 import { initRng } from './js/rng.js';
 import { makelevel, wallification, initLevelGeneration } from './js/dungeon.js';
-import { ROOM, CORR, DOOR, SDOOR, SCORR } from './js/config.js';
+import { ROOM, CORR, DOOR, SDOOR, SCORR } from './js/const.js';
 
 console.log('Testing depth 2 generation for seed163...\n');
 

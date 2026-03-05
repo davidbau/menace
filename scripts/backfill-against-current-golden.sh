@@ -146,7 +146,7 @@ while read commit; do
   cp -r "$GOLDEN_WORKTREE/test/unit" test/ 2>/dev/null || true
   cp "$GOLDEN_WORKTREE/scripts/collect-test-results.mjs" scripts/ 2>/dev/null || true
 
-  # Note: We intentionally do NOT copy js/config.js, js/special_levels.js, or js/levels/
+  # Note: We intentionally do NOT copy js/const.js, js/special_levels.js, or js/levels/
   # The backfill_runner.js only uses core modules (rng, config, dungeon) from the old commit
   # Copying golden's special_levels.js would cause import failures due to missing exports
 

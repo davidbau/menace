@@ -790,7 +790,7 @@ class SimpleLuaConverter:
         if 'hell_tweaks' in self.imports_needed:
             imports.append("import { hell_tweaks } from './hellfill.js';")
         if 'align_consts' in self.imports_needed:
-            imports.append("import { A_CHAOTIC, A_NEUTRAL, A_LAWFUL } from '../config.js';")
+            imports.append("import { A_CHAOTIC, A_NEUTRAL, A_LAWFUL } from '../const.js';")
 
         # Build the module
         header = f'''/**

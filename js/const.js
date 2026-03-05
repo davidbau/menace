@@ -1,4 +1,4 @@
-// config.js -- Game constants and configuration
+// const.js -- Game constants and configuration
 // Mirrors constants from include/hack.h, include/global.h, include/rm.h
 
 import { COMMIT_NUMBER } from './version.js';
@@ -387,12 +387,12 @@ export const SICK_NONVOMITABLE = 0x02; // illness (from corpse, etc.)
 
 
 // --------------------------------------------------------------------------
-// Merged from former symbols.js
+// Merged from former symbol definitions module
 // --------------------------------------------------------------------------
 
 
 /**
- * symbols.js - NetHack 3.7 symbol and color definitions
+ * const.js - NetHack 3.7 symbol and color definitions
  *
  * Ported from the following C source files:
  *   - include/color.h      (color constants)

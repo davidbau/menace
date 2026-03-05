@@ -360,7 +360,7 @@ The recommended order prioritizes getting testable results quickly:
   - {ttyp, tx, ty, tseen, launch, launch2, dst, tnote, once, madeby_u, conjoined}
 - Prevents duplicate traps at same location (checks via map.trapAt())
 - Uses GameMap.traps array for storage
-- Note: FALLING_ROCK_TRAP (type 3) not exported from config.js, commented out in trapNameToType()
+- Note: FALLING_ROCK_TRAP (type 3) not exported from const.js, commented out in trapNameToType()
 
 **Integration with level generation:**
 - Called during level definition phase (after des.map, before finalize_level)

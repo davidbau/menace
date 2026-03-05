@@ -47,14 +47,14 @@ webhack/
 │   │
 │   │  ┌─ Core ─────────────────────────────────────────────┐
 │   ├── nethack.js             Entry point, game init (← allmain.c)
-│   ├── config.js              Game constants & terrain types (← rm.h, hack.h)
+│   ├── const.js              Game constants & terrain types (← rm.h, hack.h)
 │   ├── player.js              Player state (← you.h, decl.h)
 │   ├── cmd.js                 Command dispatch (← cmd.c)
 │   │
 │   │  ┌─ Display & I/O ───────────────────────────────────┐
 │   ├── display.js             Browser TTY display (← win/tty/*.c)
 │   ├── input.js               Async keyboard queue (← tty input)
-│   ├── symbols.js             Display symbols & colors (← defsym.h, drawing.c)
+│   ├── const.js              (also includes display symbols & colors from ← defsym.h, drawing.c)
 │   ├── pager.js               In-terminal text pager (← pager.c)
 │   │
 │   │  ┌─ RNG ─────────────────────────────────────────────┐

@@ -492,7 +492,7 @@ Completeness mechanism:
 6. `js/options_menu.js`
 7. `js/keylog.js`
 8. `js/input.js`
-9. `js/config.js`
+9. `js/const.js`
 10. `js/iactions.js`
 11. `js/discovery.js`
 12. `js/floor_objects.js`

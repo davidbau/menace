@@ -8,7 +8,7 @@
 import { initRng } from './js/rng.js';
 import { generate as generateMinetn3 } from './js/levels/minetn-3.js';
 import { getLevelState } from './js/sp_lev.js';
-import { ROOM, CORR, DOOR, STONE } from './js/config.js';
+import { ROOM, CORR, DOOR, STONE } from './js/const.js';
 
 initRng(42);
 

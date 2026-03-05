@@ -121,7 +121,7 @@ AD_TYPES = {
 
 # ── Invoke properties (from artifact.h, LAST_PROP=63) ────────────────
 LAST_PROP = 63
-# Regular properties used as inv_prop values (from prop.h / config.js)
+# Regular properties used as inv_prop values (from prop.h / const.js)
 PROP_CONSTANTS = {
     'INVIS': 33,
     'LEVITATION': 38,

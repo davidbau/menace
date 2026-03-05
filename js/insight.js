@@ -343,7 +343,7 @@ export async function ustatusline(game) {
 // Helper: check if player has a property set (by index or name)
 function hasPlayerProp(player, propName) {
     if (!player.uprops) return false;
-    // Try numeric property indices from config.js
+    // Try numeric property indices from const.js
     // CONFUSION=18, BLINDED=21, STUNNED=22, FAST=12, INVIS=6
     const propMap = {
         'CONFUSION': 18,
