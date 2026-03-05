@@ -4788,23 +4788,9 @@ export async function region(opts_or_selection, type) {
         }
 
         // C ref: sp_lev.c lspo_region() calls topologize() for non-irregular rooms.
-        // Mirror topologize edge-roomno stamping around the rectangular region.
-        for (let x = rx1 - 1; x <= rx2 + 1; x++) {
-            for (const y of [ry1 - 1, ry2 + 1]) {
-                if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) continue;
-                const loc = levelState.map.locations[x][y];
-                loc.edge = true;
-                loc.roomno = loc.roomno ? SHARED_ROOMNO : roomno;
-            }
-        }
-        for (const x of [rx1 - 1, rx2 + 1]) {
-            for (let y = ry1; y <= ry2; y++) {
-                if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) continue;
-                const loc = levelState.map.locations[x][y];
-                loc.edge = true;
-                loc.roomno = loc.roomno ? SHARED_ROOMNO : roomno;
-            }
-        }
+        // Edge-roomno stamping is handled by topologize() in finalize_level(),
+        // not here — doing it in both places causes double-stamping where the
+        // second pass marks already-set edges as SHARED instead of the correct roomno.
 
         if (rlit) {
             light_region(rx1 - 1, ry1 - 1, rx2 + 1, ry2 + 1, true);
