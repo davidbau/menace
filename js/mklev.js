@@ -845,9 +845,14 @@ export function level_finalize_topology(map, depth) {
             if (loc && IS_LAVA(loc.typ)) loc.lit = true;
         }
     }
-    if (!map.flags.is_maze_lev) {
-        for (let i = 0; i < map.nroom; i++) topologize(map, map.rooms[i]);
-    }
+    // C ref: mklev.c:level_finalize_topology() calls topologize() for ALL rooms,
+    // including rooms added via sp_lev scripts inside maze levels (e.g. Lua-scripted
+    // rooms placed in procedural maze levels). The !is_maze_lev guard was incorrect:
+    // maze levels can have sp_lev rooms (like the Lua-scripted room in level 21 past
+    // Medusa) that need topologize() to assign roomno to their wall/edge cells.
+    // Removing the guard is safe because pure maze levels have map.nroom=0, so the
+    // loop body never executes for them.
+    for (let i = 0; i < map.nroom; i++) topologize(map, map.rooms[i]);
     set_wall_state(map);
     for (let i = 0; i < map.rooms.length; i++) {
         map.rooms[i].orig_rtype = map.rooms[i].rtype;

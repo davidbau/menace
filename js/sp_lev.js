@@ -24,7 +24,7 @@ import {
     setup_waterlevel,
     baalz_fixup,
 } from './mkmaze.js';
-import { count_level_features, create_subroom } from './mklev.js';
+import { count_level_features, create_subroom, topologize } from './mklev.js';
 import { somex, somey, somexy } from './mkroom.js';
 import { make_engr_at, del_engr } from './engrave.js';
 import { random_epitaph_text } from './rumors.js';
@@ -6924,6 +6924,18 @@ export async function finalize_level() {
         if (levelState._mklevContextEntered) {
             leaveMklevContext();
             levelState._mklevContextEntered = false;
+        }
+
+        // C ref: mklev.c:level_finalize_topology() — topologize() assigns roomno to
+        // wall/edge cells of each room. Without this, wall cells get roomno=0 even
+        // though the interior cells have the correct roomno set by do_room_or_subroom().
+        // In C, level_finalize_topology() calls topologize() for ALL rooms (including
+        // rooms created by sp_lev scripts inside maze levels). Irregular rooms are
+        // handled by floodFillAndRegister() which already sets wall roomno during fill.
+        if (levelState.map.nroom > 0) {
+            for (let i = 0; i < levelState.map.nroom; i++) {
+                topologize(levelState.map, levelState.map.rooms[i]);
+            }
         }
 
         // C ref: sp_lev.c:6055-6057 — lspo_finalize_level() fills special rooms
