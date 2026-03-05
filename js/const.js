@@ -364,6 +364,16 @@ export const MM_NOMSG = 0x00020000;
 export const MM_NOEXCLAM = 0x00040000;
 export const MM_IGNORELAVA = 0x00080000;
 
+// Dogfood classification enum (include/mextra.h dogfood_types; used by src/dog.c/dogmove.c)
+export const DOGFOOD = 0;
+export const CADAVER = 1;
+export const ACCFOOD = 2;
+export const MANFOOD = 3;
+export const APPORT = 4;
+export const POISON = 5;
+export const UNDEF = 6;
+export const TABU = 7;
+
 // Trap types (trap.h)
 export const ALL_TRAPS = -1;
 export const NO_TRAP = 0;

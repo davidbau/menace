@@ -4,7 +4,8 @@
 
 import { COLNO, ROWNO, IS_ROOM, IS_DOOR, IS_POOL, IS_LAVA,
          D_CLOSED, D_LOCKED,
-         POOL, STAIRS, LADDER, isok } from './const.js';
+         POOL, STAIRS, LADDER, isok,
+         DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT, UNDEF } from './const.js';
 import { rn2, rnd, pushRngLogEntry } from './rng.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED } from './const.js';
 import { mattacku } from './mhitu.js';
@@ -18,8 +19,7 @@ import { CORPSE, BALL_CLASS, CHAIN_CLASS, ROCK_CLASS, FOOD_CLASS,
 import { doname, next_ident, weight } from './mkobj.js';
 import { obj_resists, is_organic, is_metallic, is_rustprone } from './objdata.js';
 import { observeObject } from './discovery.js';
-import { dogfood, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT,
-         UNDEF } from './dog.js';
+import { dogfood } from './dog.js';
 import { couldsee, m_cansee, do_clear_area } from './vision.js';
 import { mattackm } from './mhitm.js';
 import { is_animal, is_mindless, nohands, nolimbs, unsolid,

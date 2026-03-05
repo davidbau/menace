@@ -35,7 +35,8 @@ import {
 import { rn2, rn1 } from './rng.js';
 import { isok, ACCESSIBLE, COLNO, ROWNO, IS_DOOR, D_CLOSED, D_LOCKED,
          POOL, LAVAPOOL, PM_CAVEMAN, PM_SAMURAI, PM_BARBARIAN, PM_RANGER,
-         MM_EDOG, MM_NOMSG, MM_IGNOREWATER, MM_FEMALE, MM_MALE } from './const.js';
+         MM_EDOG, MM_NOMSG, MM_IGNOREWATER, MM_FEMALE, MM_MALE,
+         DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT, POISON, UNDEF, TABU } from './const.js';
 import { SADDLE } from './objects.js';
 import { roles } from './player.js';
 import { makemon, NO_MINVENT, mbirth_limit, MAXMONNO } from './makemon.js';
@@ -44,18 +45,6 @@ import { mpickobj, mark_vision_dirty } from './monutil.js';
 
 // Re-export dogmove.c functions that were previously defined here
 export { can_carry, dog_eat } from './dogmove.js';
-
-// ========================================================================
-// dogfood return categories (C ref: mextra.h dogfood_types)
-// ========================================================================
-export const DOGFOOD  = 0;
-export const CADAVER  = 1;
-export const ACCFOOD  = 2;
-export const MANFOOD  = 3;
-export const APPORT   = 4;
-export const POISON   = 5;
-export const UNDEF    = 6;
-export const TABU     = 7;
 
 const NON_PM = -1;
 
