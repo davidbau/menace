@@ -1730,3 +1730,24 @@ hard-won wisdom:
      timing/display-boundary skew.
   3. If re-record removes the mismatch without code changes: classify as
      recording/capture skew and prefer fixture replacement over engine edits.
+
+### `#loot` take-out menu key-capture fix (`seed031`) (2026-03-05)
+
+- `seed031_manual_direct` had a long key-capture skew inside container
+  `o` (take-out) handling.
+- Root cause in JS:
+  - `Take out what?` ignored `@` (select-all), while C/session uses `@`.
+  - Enter with no selected items stayed in the take-out loop, consuming
+    unrelated future gameplay keys.
+  - JS then stayed in the outer container menu and kept absorbing keys.
+- C-faithful adjustments in `js/pickup.js`:
+  - accept `a/A` in class filtering as all-classes selection,
+  - accept `@`/`*` as select-all in the take-out item prompt,
+  - treat Enter with empty selection as exit from take-out,
+  - return to gameplay after the `o` take-out action completes.
+- Measured impact on `seed031_manual_direct`:
+  - RNG matched `7655 -> 7757`
+  - events matched `846 -> 851`
+  - screens matched `35 -> 40`
+  - first RNG divergence moved earlier index-wise to a cleaner dog_goal drift
+    (`rn2(1)` vs `rn2(3)` at step 41), replacing the prior container-remove skew.

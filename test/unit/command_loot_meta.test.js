@@ -293,6 +293,53 @@ describe('loot via meta key', () => {
         assert.equal(chest.contents.length, 1);
     });
 
+    it('containerMenu o take-out supports @ select-all then Enter commit', async () => {
+        const { game } = makeGame();
+        const item1 = makeTestItem();
+        const item2 = makeTestItem();
+        const chest = {
+            otyp: CHEST,
+            ox: game.player.x,
+            oy: game.player.y,
+            contents: [item1, item2],
+            olocked: false,
+            obroken: false,
+        };
+        game.map.objects.push(chest);
+        pushInput('o'.charCodeAt(0)); // take-out mode
+        pushInput('@'.charCodeAt(0)); // select all visible
+        pushInput('\n'.charCodeAt(0)); // commit selection
+
+        const result = await rhack('l'.charCodeAt(0) | 0x80, game);
+
+        assert.equal(result.tookTime, true);
+        const movedQty = game.player.inventory.reduce((sum, it) => sum + (it.quan || 1), 0);
+        assert.equal(movedQty, 2);
+        assert.equal(chest.contents.length, 0);
+    });
+
+    it('containerMenu o take-out Enter with no selection exits take-out', async () => {
+        const { game } = makeGame();
+        const item = makeTestItem();
+        const chest = {
+            otyp: CHEST,
+            ox: game.player.x,
+            oy: game.player.y,
+            contents: [item],
+            olocked: false,
+            obroken: false,
+        };
+        game.map.objects.push(chest);
+        pushInput('o'.charCodeAt(0)); // take-out mode
+        pushInput('\n'.charCodeAt(0)); // no selection => leave take-out
+
+        const result = await rhack('l'.charCodeAt(0) | 0x80, game);
+
+        assert.equal(result.tookTime, false);
+        assert.equal(game.player.inventory.length, 0);
+        assert.equal(chest.contents.length, 1);
+    });
+
     it('containerMenu o take-out prompts for object type when classes differ', async () => {
         const { game, messages } = makeGame();
         const weapon = makeTestItem(18); // class ')'

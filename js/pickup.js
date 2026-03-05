@@ -1489,7 +1489,7 @@ async function containerMenu(game, container) {
                 const clsCh = await nhgetch();
                 if (clsCh === 27) continue; // ESC => back to "Do what?" menu
                 const cls = String.fromCharCode(clsCh);
-                if (cls === '?' || cls === '*') {
+                if (cls === '?' || cls === '*' || cls === 'a' || cls === 'A') {
                     allowedClasses = null;
                 } else {
                     if (!seenClasses.has(cls)) continue; // invalid class choice
@@ -1510,10 +1510,11 @@ async function containerMenu(game, container) {
                 await putMenuPrompt(`Take out what? [${available} or ?*]`);
                 const tch = await nhgetch();
                 if (tch === 27) break; // ESC → back to "Do what?" menu
+                const tchar = String.fromCharCode(tch).toLowerCase();
                 if (tch === 10 || tch === 13) {
                     // C-style menu flow: selection letters mark items; Enter commits.
                     const chosen = visible.filter((o) => selected.has(o));
-                    if (!chosen.length) continue;
+                    if (!chosen.length) break;
                     for (const item of chosen) {
                         player.addToInventory(item); observeObject(item);
                         setContainerContents(container, getContainerContents(container).filter((o) => o !== item));
@@ -1523,13 +1524,22 @@ async function containerMenu(game, container) {
                     selected.clear();
                     continue;
                 }
-                const tidx = letters.indexOf(String.fromCharCode(tch).toLowerCase());
+                if (tchar === '@' || tchar === '*') {
+                    for (const item of visible) selected.add(item);
+                    continue;
+                }
+                if (tchar === '.' || tchar === '-') {
+                    selected.clear();
+                    continue;
+                }
+                const tidx = letters.indexOf(tchar);
                 if (tidx < 0 || tidx >= visible.length) continue;
                 const item = visible[tidx];
                 if (selected.has(item)) selected.delete(item);
                 else selected.add(item);
             }
-            // after ESC from take-out, loop back to "Do what?" menu (C behavior)
+            // Taking things out is a complete loot action in C flow; return to gameplay.
+            return { moved: false, tookTime };
         } else if (c === 's') {
             // Stash one item — cf. pickup.c "Stash: put one item in".
             // C exits the container menu after one stash.
