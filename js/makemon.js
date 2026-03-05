@@ -2001,8 +2001,14 @@ function makemonVisibleToPlayer(mon, map) {
     const ux = _makemonPlayerCtx?.x;
     const uy = _makemonPlayerCtx?.y;
     if (!Number.isInteger(ux) || !Number.isInteger(uy) || !map || !mon) return false;
-    if (!couldsee(map, { x: ux, y: uy }, mon.mx, mon.my)) return false;
+    const player = map?.player || null;
+    if (player) {
+        if (sensemon(mon, player, map)) return true;
+        return canseemon(mon, player, getActiveFov());
+    }
+    if (!cansee(map, { x: ux, y: uy }, getActiveFov(), mon.mx, mon.my)) return false;
     if (mon.mundetected) return false;
+    if (mon.minvis) return false;
     return true;
 }
 

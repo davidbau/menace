@@ -343,6 +343,9 @@ async function mhitu_ad_elec(monster, attack, player, mhm, ctx) {
             // destroy_items() — not implemented
         }
     } else {
+        if (!ctx.suppressHitMsg) {
+            await ctx.display.putstr_message('You avoid harm.');
+        }
         mhm.damage = 0;
     }
 }
