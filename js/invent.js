@@ -176,10 +176,26 @@ async function drawInventoryPage(display, lines, opts = {}) {
             await display.putstr(offx, promptRow, prompt, undefined, 0);
         }
         // C ref: wintty.c line 2831 — morestr is "(end) " (with trailing space).
-        // Cursor for menu wait sits after the prompt on the prompt row.
-        if (prompt && typeof display.setCursor === 'function') {
+        // Cursor sits after the last rendered line. renderOverlayMenu goes
+        // fullscreen (offx=1, all rows) when lines.length >= display.rows;
+        // in that case use the fullscreen cursor formula regardless of prompt.
+        if (typeof display.setCursor === 'function') {
             const cols = display.cols || 80;
-            display.setCursor(Math.min(offx + prompt.length + 1, cols - 1), promptRow);
+            const displayRows = (display && Number.isInteger(display.rows)) ? display.rows : 24;
+            const internalFullScreen = lines.length >= displayRows;
+            if (internalFullScreen) {
+                // renderOverlayMenu used offx=1 and rendered all rows including (end).
+                const lastRow = Math.min(lines.length, displayRows) - 1;
+                const lastLine = String(lines[lastRow] || '');
+                display.setCursor(Math.min(1 + lastLine.length + 1, cols - 1), lastRow);
+            } else if (prompt) {
+                display.setCursor(Math.min(offx + prompt.length + 1, cols - 1), promptRow);
+            } else {
+                const menuRows = Math.min(lines.length, STATUS_ROW_1);
+                const lastRow = menuRows - 1;
+                const lastLine = String(lines[lastRow] || '');
+                display.setCursor(Math.min(offx + lastLine.length + 1, cols - 1), lastRow);
+            }
         }
         return;
     }
@@ -201,6 +217,13 @@ async function drawInventoryPage(display, lines, opts = {}) {
             display.setCell(0, i, ' ', 7, 0);
         }
         await display.putstr(1, i, rendered, undefined, header ? 1 : 0);
+    }
+    // C ref: wintty.c — cursor sits after last line (offx=1 for full-screen).
+    if (typeof display.setCursor === 'function') {
+        const cols = display.cols || 80;
+        const lastRow = rows - 1;
+        const lastLine = String(lines[lastRow] || '');
+        display.setCursor(Math.min(1 + lastLine.length + 1, cols - 1), lastRow);
     }
 }
 

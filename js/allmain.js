@@ -1492,7 +1492,14 @@ export class NetHackGame {
         setDisplayContext({ display: this.display, player: this.player, fov: this.fov, flags: this.flags, map: this.map });
         this.display.renderMap(this.map, this.player, this.fov, this.flags);
         this.display.renderStatus(this.player);
-        this.display.cursorOnPlayer(this.player);
+        // C ref: docrt() puts cursor on player, but if a --More-- is pending
+        // on the topline (player fell down shaft, etc.), the cursor must sit
+        // at the end of the --More-- text, not on the player tile.
+        if (this.display._pendingMore && typeof this.display.renderMoreMarker === 'function') {
+            this.display.renderMoreMarker();
+        } else {
+            this.display.cursorOnPlayer(this.player);
+        }
     }
 
     _renderAll() {
