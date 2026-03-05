@@ -166,6 +166,10 @@ that plan; legacy wiring decommission is **Phase 5**. No `initAll` or startup
 orchestrator is added; cross-module interactions happen at normal runtime call
 sites.
 
+Phase-0 artifacts (inventory + baseline) are committed and referenced here:
+- [`docs/port-status/ISSUE_227_PHASE0_INVENTORY_2026-03-05.md`](/share/u/davidbau/git/mazesofmenace/game/docs/port-status/ISSUE_227_PHASE0_INVENTORY_2026-03-05.md)
+- [`docs/port-status/ISSUE_227_PHASE0_BASELINE_2026-03-05.md`](/share/u/davidbau/git/mazesofmenace/game/docs/port-status/ISSUE_227_PHASE0_BASELINE_2026-03-05.md)
+
 ### Target end state
 
 When the refactor is complete:

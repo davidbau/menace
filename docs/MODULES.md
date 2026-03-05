@@ -192,6 +192,12 @@ done autonomously without ambiguity.
 Exit gate:
 - Inventory file(s) exist and are reviewed.
 - Baseline parity report is captured in commit notes/comments.
+- Inventory artifact is committed and referenced:
+  [`docs/port-status/ISSUE_227_PHASE0_INVENTORY_2026-03-05.md`](/share/u/davidbau/git/mazesofmenace/game/docs/port-status/ISSUE_227_PHASE0_INVENTORY_2026-03-05.md)
+- Baseline artifact is committed and referenced:
+  [`docs/port-status/ISSUE_227_PHASE0_BASELINE_2026-03-05.md`](/share/u/davidbau/git/mazesofmenace/game/docs/port-status/ISSUE_227_PHASE0_BASELINE_2026-03-05.md)
+  with full per-session JSON:
+  [`docs/metrics/issue227_phase0_session_baseline_2026-03-05.json`](/share/u/davidbau/git/mazesofmenace/game/docs/metrics/issue227_phase0_session_baseline_2026-03-05.json)
 
 ### Phase 1 — Infrastructure Laydown (highway first)
 

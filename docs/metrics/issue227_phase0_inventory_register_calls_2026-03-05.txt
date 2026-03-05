@@ -1,0 +1,2 @@
+js/nethack.js:57:    registerKeylogApis();
+js/nethack.js:69:    registerMenuApis(display, promo, restart);

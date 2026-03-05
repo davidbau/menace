@@ -1,0 +1,53 @@
+js/allmain.js:1049:        setOutputContext(this.display);
+js/allmain.js:121:    setMakemonPlayerContext(player);
+js/allmain.js:126:        setDisplayContext({ display: game.display, player, fov: game.fov, flags: game.flags, map: (game.lev || game.map) });
+js/allmain.js:1505:        setMakemonPlayerContext({ ...this.player, x: null, y: null });
+js/allmain.js:1649:        setDisplayContext({ display: this.display, player: this.player, fov: this.fov, flags: this.flags, map: this.map });
+js/allmain.js:167:        setDisplayContext({ display: game.display, player, fov: game.fov, flags: game.flags, map: (game.lev || game.map) });
+js/allmain.js:200:    setMakemonPlayerContext((game.u || game.player));
+js/allmain.js:207:    setOutputContext(game.display);
+js/allmain.js:277:        setMakemonPlayerContext((game.u || game.player));
+js/allmain.js:319:                setDisplayContext({ display: game.display, player: (game.u || game.player), fov: game.fov, flags: game.flags, map: (game.lev || game.map) });
+js/chargen.js:303:    setMakemonPlayerContext((game.u || game.player));
+js/chargen.js:304:    setSplevPlayerContext((game.u || game.player));
+js/chargen.js:383:    setMakemonPlayerContext((game.u || game.player));
+js/do.js:1323:                setDisplayContext({ display: game.display, player: (game.u || game.player), fov: game.fov, flags: game.flags, map: (game.lev || game.map) });
+js/dungeon.js:1532:    setFinalizeContext({
+js/dungeon.js:169:        setLevelContext(map, depth);
+js/dungeon.js:240:    setMakemonInMklevContext(true);
+js/dungeon.js:241:    setMklevObjectContext(true);
+js/dungeon.js:246:    setMakemonInMklevContext(false);
+js/dungeon.js:247:    setMklevObjectContext(false);
+js/dungeon.js:4521:    setMakemonRoleContext(roleIndex, opts);
+js/dungeon.js:4552:    setMakemonLevelContext({
+js/dungeon.js:4572:    setMakemonInMklevContext(true);
+js/dungeon.js:4573:    setMklevObjectContext(true);
+js/dungeon.js:4605:            setMakemonLevelContext({ dungeonAlign: specialAlign });
+js/dungeon.js:4616:            setFinalizeContext({
+js/dungeon.js:4862:    setLevelContext(map, depth);
+js/exper.js:147:    setMakemonPlayerContext(player);
+js/exper.js:190:        setMakemonPlayerContext(player);
+js/hack.js:474:        setDisplayContext({ display, player, fov: game.fov, flags: game.flags, map });
+js/hack.js:882:        setDisplayContext({ display, player, fov: game.fov, flags: game.flags, map });
+js/headless.js:1016:        const prevCtx = setDisplayContext({ display: this, player, fov, flags: this.flags, map: gameMap });
+js/kick.js:20:        setDisplayContext({ display, player, fov: game.fov, flags: game.flags, map });
+js/makemon.js:262:export function setMakemonPlayerContext(playerLike) {
+js/makemon.js:285:export function setMakemonRoleContext(roleIndex, opts = {}) {
+js/makemon.js:293:export function setMakemonLevelContext(levelCtx = {}) {
+js/makemon.js:301:export function setMakemonInMklevContext(active) {
+js/mkobj.js:144:export function setMklevObjectContext(enabled) { _inMklevContext = !!enabled; }
+js/monutil.js:193:export function setDisplayContext(ctx) {
+js/pline.js:41:export function setOutputContext(context) {
+js/sp_lev.js:1035:export function setFinalizeContext(ctx = null) {
+js/sp_lev.js:527:export function setLevelContext(map, depth) {
+js/sp_lev.js:6976:    setFinalizeContext({
+js/sp_lev.js:7181: * Call setSplevPlayerContext(player) before generating a special level
+js/sp_lev.js:7203:export function setSplevPlayerContext(player) {
+js/timeout.js:128:export function setTimerContext(context = {}) {
+js/timeout.js:440:        setTimerContext(context);
+js/u_init.js:1168:    setMakemonPlayerContext(player);
+js/u_init.js:1177:    setMakemonPlayerContext({ ...player, alignmentRecord: petAlignmentRecord });
+js/u_init.js:1179:    setMakemonPlayerContext(player);
+js/u_init.js:1272:    setMakemonPlayerContext(player);
+js/wizcmds.js:103:            setMakemonPlayerContext(player);
+js/wizcmds.js:255:    setFinalizeContext({
