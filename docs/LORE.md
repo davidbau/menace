@@ -2172,3 +2172,20 @@ hard-won wisdom:
 - Fix in `js/dungeon.js`:
   - added pool/lava endpoint rejection in rolling-boulder launch search,
   - changed door checks to bitmask (`flags & D_CLOSED/D_LOCKED`).
+
+### Seed323 mapdump parity fix: `maketrap` terrain normalization for pit/hole/trapdoor (2026-03-05)
+
+- `seed323_caveman_wizard_gameplay` had reached full `rng/events/cursor` parity but still
+  failed mapdump at `d0l11_003` with `T[51,1]` mismatch (`SCORR` in JS vs `CORR` in C).
+- Root cause: JS `dungeon.maketrap()` did not apply C `trap.c::maketrap()` terrain
+  normalization for `PIT/SPIKED_PIT/HOLE/TRAPDOOR` tiles before creating the trap.
+- Faithful fix in `js/dungeon.js`:
+  - `IS_ROOM -> ROOM`
+  - `STONE/SCORR -> CORR`
+  - `WALL/SDOOR -> ROOM|CORR|DOOR` depending on level flags,
+  - clear `loc.flags`.
+- Result on seed323:
+  - before: `mapdump=1/3`
+  - after: `mapdump=3/3` with `rng=18770/18770`, `events=9072/9072`, `cursor=413/413`.
+- Remaining first divergence is now a single screen-line timing mismatch at step `373`
+  (`Unknown command ' '.`), which is separate from this terrain-state fix.

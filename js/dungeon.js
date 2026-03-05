@@ -2443,7 +2443,17 @@ export function maketrap(map, x, y, typ, depth = 1) {
             // C ref: trap.c hole_destination() — RNG-driven destination depth.
             trap.dst = hole_destination(map);
         }
-        // For pits/holes in rooms, terrain stays ROOM (IS_ROOM check in C)
+        // C ref: trap.c maketrap() terrain normalization for pit/hole/trapdoor.
+        if (IS_ROOM(loc.typ)) {
+            loc.typ = ROOM;
+        } else if (loc.typ === STONE || loc.typ === SCORR) {
+            loc.typ = CORR;
+        } else if (IS_WALL(loc.typ) || loc.typ === SDOOR) {
+            loc.typ = (map.flags?.is_maze_lev)
+                ? ROOM
+                : (map.flags?.is_cavernous_lev ? CORR : DOOR);
+        }
+        loc.flags = 0;
         break;
     }
 
