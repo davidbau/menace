@@ -34,9 +34,15 @@ If any other doc conflicts, follow this file.
 - [ ] Confirm canonical ownership table in `docs/MODULES.md` and `docs/STRUCTURES.md` has no stale text.
 - [ ] Run full parity report and record a short Phase-1 signoff note in docs.
 
+### 1D. Constant export rule enforcement (pulled into Phase 1)
+- [ ] Only leaf headers export capitalized constants: `const.js`, `objects.js`, `monsters.js`, `version.js`.
+- [ ] Move any stray exported capitalized constants from gameplay modules.
+- [ ] Normalize capitalized constant imports so they come from leaf headers only.
+
 Phase-1 exit gate:
 - [ ] Structural targets in place for migrated subsystems.
 - [ ] No parity regression vs baseline envelope.
+- [ ] `rg "export (const|let|var) [A-Z]" js` reports only the four leaf files.
 
 ## Phase 2: C Field Name Normalization
 
@@ -48,30 +54,21 @@ Phase-2 exit gate:
 - [ ] No remaining alias reads/writes listed in `docs/STRUCTURES.md` field tables.
 - [ ] No parity regression vs baseline envelope.
 
-## Phase 3: Constant Export Rule Enforcement
-
-- [ ] Only leaf headers export capitalized constants: `const.js`, `objects.js`, `monsters.js`, `version.js`.
-- [ ] Move any stray exported capitalized constants from gameplay modules.
-
-Phase-3 exit gate:
-- [ ] `rg "export (const|let|var) [A-Z]" js` reports only the four leaf files.
-- [ ] No parity regression vs baseline envelope.
-
-## Phase 4: File-Per-C-Source Reorganization
+## Phase 3: File-Per-C-Source Reorganization
 
 - [ ] Move functions so each JS file aligns to its C source ownership plan.
 - [ ] Keep each move commit structure-only (no logic edits mixed in).
 
-Phase-4 exit gate:
+Phase-3 exit gate:
 - [ ] Ownership mapping in `docs/MODULES.md` reflects code reality.
 - [ ] No parity regression vs baseline envelope.
 
-## Phase 5: Legacy Top-Level Wiring Cleanup
+## Phase 4: Legacy Top-Level Wiring Cleanup
 
 - [ ] Remove remaining top-level gameplay `register*` and `set*Context` wiring side effects.
 - [ ] Keep bootstrap/UI-only runtime setup where appropriate (not gameplay wiring hacks).
 
-Phase-5 exit gate:
+Phase-4 exit gate:
 - [ ] No gameplay top-level lazy-registration side effects remain.
 - [ ] No parity regression vs baseline envelope.
 
@@ -84,4 +81,4 @@ Phase-5 exit gate:
 
 ## Current Focus
 
-- Finish Phase 1 exit-gate items (1C), then start Phase 2.
+- Finish Phase 1 exit-gate items (1C + 1D), then start Phase 2.
