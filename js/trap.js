@@ -1127,8 +1127,8 @@ export function erode_obj(otmp, ostr, type, ef_flags) {
         return ER_NOTHING;
     } else if (!vulnerable || (otmp.oerodeproof && otmp.rknown)) {
         return ER_NOTHING;
-    } else if (otmp.oerodeproof || (otmp.blessed && !rn2(4))) {
-        // C ref: rnl(4) simplified to rn2(4) — blessed protection
+    } else if (otmp.oerodeproof || (otmp.blessed && !rnl(4))) {
+        // C ref: trap.c erode_obj() uses rnl(4) for blessed protection.
         if (otmp.oerodeproof) {
             otmp.rknown = true;
         }
