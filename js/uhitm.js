@@ -74,6 +74,23 @@ function martial_bonus(player) {
     return role === PM_MONK || role === PM_SAMURAI;
 }
 
+async function abuse_dog_like_c(mon, display = null) {
+    if (!Number(mon?.mtame || 0)) return;
+    // C halves tameness for Aggravate/Conflict; those globals are not wired
+    // in JS combat paths, so apply the normal decrement path.
+    mon.mtame -= 1;
+    if (Number(mon.mtame || 0) > 0 && !mon.isminion && mon.edog) {
+        mon.edog.abuse = Number(mon.edog.abuse || 0) + 1;
+    }
+    if (Number(mon.mx || 0) !== 0 && display) {
+        if (Number(mon.mtame || 0) > 0 && rn2(mon.mtame)) {
+            await display.putstr_message(`The ${x_monnam(mon)} yowls!`);
+        } else {
+            await display.putstr_message(`The ${x_monnam(mon)} growls!`);
+        }
+    }
+}
+
 
 // ============================================================================
 // 1. Magic negation and attack result constants
@@ -558,12 +575,16 @@ export function hmon_hitmon_stagger(hmd, mon, obj) {
 
 // cf. uhitm.c:1566 — hmon_hitmon_pet(hmd, mon, obj):
 //   Adjust behavior when hitting a pet.
-export function hmon_hitmon_pet(hmd, mon, obj) {
-    if (mon.mtame && hmd.dmg > 0) {
-        // C: abuse_dog(mon) — reduces tameness
-        if (mon.mtame > 0) mon.mtame--;
+export async function hmon_hitmon_pet(hmd, mon, obj, display = null) {
+    // Some loader/runtime paths only preserve boolean tame; C uses mtame>0.
+    const tameLike = !!(Number(mon.mtame || 0) > 0 || mon.tame);
+    if (tameLike && hmd.dmg > 0) {
+        if (!Number(mon.mtame)) mon.mtame = 10;
+        // C ref: uhitm.c hmon_hitmon_pet() calls abuse_dog(), which handles
+        // tameness reduction and pet vocalization RNG/message behavior.
+        await abuse_dog_like_c(mon, display);
         // C: monflee if still tame and not destroyed
-        if (mon.mtame && !hmd.destroyed) {
+        if (Number(mon.mtame || 0) > 0 && !hmd.destroyed) {
             applyMonflee(mon, 10 * rnd(hmd.dmg), false);
         }
     }
@@ -695,7 +716,7 @@ async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
     if (mon.mhp <= 0) hmd.destroyed = true;
 
     // Phase 7: pet handling
-    hmon_hitmon_pet(hmd, mon, obj);
+    await hmon_hitmon_pet(hmd, mon, obj, display);
 
     // Phase 8: pudding splitting
     hmon_hitmon_splitmon(hmd, mon, obj);
@@ -1946,7 +1967,19 @@ export async function do_attack_core(player, monster, display, map, game = null)
     // cf. uhitm.c -- "You hit the <monster>!"
     monster.mhp -= damage;
 
-    if (monster.mhp <= 0) {
+    const destroyed = (monster.mhp <= 0);
+    const tameLike = !!(Number(monster.mtame || 0) > 0 || monster.tame);
+    if (tameLike && damage > 0) {
+        if (!Number(monster.mtame)) monster.mtame = 10;
+        // C ref: uhitm.c hmon_hitmon_pet() runs before hit message and
+        // applies abuse_dog() side effects (yelp/growl RNG + message).
+        await abuse_dog_like_c(monster, display);
+        if (Number(monster.mtame || 0) > 0 && !destroyed) {
+            applyMonflee(monster, 10 * rnd(damage), false);
+        }
+    }
+
+    if (destroyed) {
         // cf. uhitm.c:788 passive() called even when monster dies (malive=false)
         // The "alive-only" effects (rn2(3) gate) are skipped.
         const killed = await handleMonsterKilled(player, monster, display, map);
