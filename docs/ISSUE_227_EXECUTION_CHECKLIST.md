@@ -11,6 +11,9 @@ If any other doc conflicts, follow this file.
 - Structure-only in Phase 1 (no gameplay behavior changes).
 - Keep parity no worse than baseline after each batch.
 - Land small commits with validation evidence.
+- When moving constants into `const.js`, annotate provenance with original
+  NetHack C source/header context (for example `include/rm.h`, `include/sym.h`,
+  `src/drawing.c`).
 
 ## Baseline (Locked Reference)
 
@@ -43,6 +46,7 @@ If any other doc conflicts, follow this file.
 - [ ] Organize consolidated constants into clear sections in leaf headers (by subsystem/source).
 - [ ] Document constant ownership and allowed import sources in `docs/MODULES.md`.
 - [ ] Add a quick audit command snippet for future checks.
+- [ ] Ensure newly moved `const.js` constants include C provenance comments.
 
 Phase-1 exit gate:
 - [ ] Structural targets in place for migrated subsystems.
