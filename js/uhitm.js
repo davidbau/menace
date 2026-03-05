@@ -6,7 +6,7 @@ import { rn2, rnd, d, c_d } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { corpse_chance } from './mon.js';
 import {
-    A_STR, A_DEX, PM_MONK,
+    A_STR, A_DEX, PM_MONK, PM_SAMURAI,
     FIRE_RES, COLD_RES, SHOCK_RES, ACID_RES, FREE_ACTION,
 } from './config.js';
 import { spec_dbon } from './artifact.js';
@@ -67,6 +67,11 @@ function exclam(force) {
     if (force < 0) return '?';
     if (force <= 4) return '.';
     return '!';
+}
+
+function martial_bonus(player) {
+    const role = Number(player?.roleIndex);
+    return role === PM_MONK || role === PM_SAMURAI;
 }
 
 
@@ -205,11 +210,19 @@ function find_roll_to_hit(player, mtmp, aatyp, weapon) {
 
     // cf. uhitm.c:396-404 — role/race adjustments
     // Monk: bonus when unarmed; heavy penalty if armored.
-    if ((player.roleIndex === PM_MONK) && !weapon) {
-        tmp += Math.floor((player.ulevel || 1) / 3) + 2;
-        const armored = !!(player.armor || player.suit || player.cloak
-            || player.helmet || player.gloves || player.boots || player.shield);
-        if (armored) tmp -= 20;
+    if (player.roleIndex === PM_MONK) {
+        // C monk handling is specific:
+        // - body armor (uarm) applies spell-armor roll penalty
+        // - unarmed + no shield grants monk hit bonus
+        const bodyArmor = !!(player.uarm || player.armor || player.suit);
+        if (bodyArmor) {
+            const monkArmorPenalty = Number.isFinite(player?.spelarmr)
+                ? Number(player.spelarmr)
+                : 20;
+            tmp -= monkArmorPenalty;
+        } else if (!weapon && !(player.uarms || player.shield)) {
+            tmp += Math.floor((player.ulevel || 1) / 3) + 2;
+        }
     }
     // Elf hero bonus vs orcs.
     const isElfHero = player.race === 'elf' || player.raceName === 'elf' || player.raceIndex === 1;
@@ -355,8 +368,8 @@ function hmon_hitmon_barehands(hmd, mon) {
     if ((mon.mndx ?? -1) === PM_SHADE) {
         hmd.dmg = 0;
     } else {
-        // C: rnd(!martial_bonus() ? 2 : 4) — martial arts not tracked in JS
-        hmd.dmg = rnd(2);
+        // C: rnd(!martial_bonus() ? 2 : 4)
+        hmd.dmg = rnd(martial_bonus(hmd.player) ? 4 : 2);
         hmd.use_weapon_skill = true;
         hmd.train_weapon_skill = (hmd.dmg > 1);
     }
@@ -609,6 +622,7 @@ async function hmon_hitmon_msg_lightobj(hmd, mon, obj, display) {
 //   Returns true if monster survives, false if dead.
 async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
     const hmd = {
+        player,
         dmg: 0,
         thrown: thrown,
         twohits: 0,
@@ -1904,7 +1918,7 @@ export async function do_attack_core(player, monster, display, map, game = null)
     } else {
         // Bare-handed combat
         // cf. uhitm.c:837 hmon_hitmon_barehands() — 1d2 base + martial arts
-        damage = rnd(2);
+        damage = rnd(martial_bonus(player) ? 4 : 2);
     }
 
     // cf. uhitm.c:1414 hmon_hitmon_dmg_recalc() — add strength and skill bonuses
@@ -1920,6 +1934,13 @@ export async function do_attack_core(player, monster, display, map, game = null)
 
     // Minimum 1 damage on a hit
     if (damage < 1) damage = 1;
+
+    // C ref: uhitm.c hmon_hitmon_stagger() rolls rnd(100) for unarmed hits
+    // with damage > 1 before death handling, so consume it even on kill.
+    const unarmedStaggerRolled = (!player.weapon && damage > 1);
+    if (unarmedStaggerRolled) {
+        rnd(100);
+    }
 
     // Apply damage
     // cf. uhitm.c -- "You hit the <monster>!"
@@ -1961,7 +1982,7 @@ export async function do_attack_core(player, monster, display, map, game = null)
                     );
                 }
             }
-        } else if (!player.weapon && damage > 1) {
+        } else if (!player.weapon && damage > 1 && !unarmedStaggerRolled) {
             // cf. uhitm.c:1554 hmon_hitmon_stagger — rnd(100) stun chance check
             rnd(100);
         }
