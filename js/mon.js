@@ -57,7 +57,7 @@ export const ALLOW_SANCT  = 0x20000000;
 export const ALLOW_SSM    = 0x40000000;
 export const NOGARLIC     = 0x80000000 | 0; // force signed 32-bit
 import { rn2, rnd, d, pushRngLogEntry, withRngTag } from './rng.js';
-import { BOULDER, SCR_SCARE_MONSTER, CLOVE_OF_GARLIC } from './objects.js';
+import { BOULDER, COIN_CLASS, SCR_SCARE_MONSTER, CLOVE_OF_GARLIC } from './objects.js';
 import { couldsee, m_cansee } from './vision.js';
 import { is_hider, hides_under, is_mindless, is_displacer, perceives,
          is_human, is_elf, is_dwarf, is_gnome, is_orc, is_shapeshifter,
@@ -978,8 +978,7 @@ export function maybe_unhide_at(x, y, map) {
     }
     // Hider-under without objects
     if (hides_under(mdat)) {
-        const objects = map.objectsAt ? map.objectsAt(x, y) : [];
-        if (!objects || objects.length === 0) {
+        if (!can_hide_under_obj_at(map, x, y)) {
             hideunder(mon, map);
         }
     }
@@ -1005,9 +1004,10 @@ export function hideunder(mon, map, player = null, fov = null) {
             && !isWaterLevel
             && (!heroUnderwater || !(fov?.canSee ? fov.canSee(x, y) : couldsee(map, player, x, y)));
     } else if (hides_under(mdat)) {
-        // Hider-unders hide under objects on non-water tiles
-        const objects = map.objectsAt ? map.objectsAt(x, y) : [];
-        if (objects && objects.length > 0 && !IS_POOL(map.at(x, y)?.typ)) {
+        // C ref: mon.c hideunder() requires hideable floor objects and no pool/lava.
+        if (can_hide_under_obj_at(map, x, y)
+            && !IS_POOL(map.at(x, y)?.typ)
+            && !IS_LAVA(map.at(x, y)?.typ)) {
             undetected = true;
         }
     }
@@ -1029,6 +1029,29 @@ export function hide_monst(mon, map) {
         if (hider_under)
             hideunder(mon, map);
     }
+}
+
+function can_hide_under_obj_at(map, x, y) {
+    if (!map) return false;
+    // C ref: can_hide_under_obj() rejects non-pit trap locations.
+    const trap = map.trapAt ? map.trapAt(x, y) : null;
+    if (trap && trap.ttyp !== PIT && trap.ttyp !== SPIKED_PIT) return false;
+
+    const stack = map.objectsAt ? map.objectsAt(x, y) : [];
+    if (!stack || stack.length === 0) return false;
+
+    // C ref: leading coin stacks need at least 10 coins to hide under.
+    if (stack[0]?.oclass === COIN_CLASS) {
+        let coinquan = 0;
+        let i = 0;
+        while (i < stack.length && stack[i]?.oclass === COIN_CLASS) {
+            coinquan += Number(stack[i]?.quan || 0);
+            if (coinquan >= 10) break;
+            i++;
+        }
+        if (coinquan < 10) return false;
+    }
+    return true;
 }
 
 
