@@ -54,7 +54,6 @@ import { spec_dbon } from './artifact.js';
 import { msummon } from './minion.js';
 import { new_were, were_summon } from './were.js';
 import { Mgender, Monnam } from './do_name.js';
-import { couldsee } from './vision.js';
 import { resists_blnd } from './zap.js';
 import { canonicalizeAttackFields } from './attack_fields.js';
 import { rloc, RLOC_MSG, tele_restrict } from './teleport.js';
@@ -766,16 +765,9 @@ async function mhitu_ad_sedu(monster, attack, player, mhm, ctx) {
     }
     if (stole > 0) {
         if (!animalAttacker && ctx.map && !tele_restrict(monster, ctx.map)) {
-            const teleported = rloc(monster, RLOC_MSG, ctx.map, player, ctx.display);
-            // C ref: teleport.c rloc_to_core — emit "X vanishes!" when monster
-            // teleports out of sight. rloc_to_core does this internally in C;
-            // JS rloc_to_core is sync and can't emit messages, so we do it here.
-            if (teleported && ctx.display && player) {
-                const newVisible = couldsee(ctx.map, player, monster.mx, monster.my);
-                if (!newVisible) {
-                    await ctx.display.putstr_message(`${Monnam(monster)} vanishes!`);
-                }
-            }
+            // C ref: uhitm.c mhitm_ad_sedu + teleport.c rloc_to_core:
+            // relocation handles any vanish/reappear messaging.
+            rloc(monster, RLOC_MSG, ctx.map, player, ctx.display);
         }
         monster.mflee = true;
         monster.mfleetim = 0;

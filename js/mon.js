@@ -1525,6 +1525,7 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                     mon.misc_worn_check = (mon.misc_worn_check & ~I_SPECIAL) >>> 0;
                     const oldworn = mon.misc_worn_check;
                     // Simplified m_dowear(FALSE): try to equip one unequipped wearable item.
+                    // Intentionally excludes weapon wielding; C m_dowear doesn't wield here.
                     // Sub-type to wornmask mapping for armor (ARM_SUIT=0..ARM_SHIRT=6).
                     const armorSubMask = [W_ARM, W_ARMS, W_ARMH, W_ARMG, W_ARMF, W_ARMC, W_ARMU];
                     for (const obj of (mon.minvent || [])) {
@@ -1538,10 +1539,6 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                                 mon.misc_worn_check = (mon.misc_worn_check | bit) >>> 0;
                                 break;
                             }
-                        } else if (ocls === 1 /* WEAPON_CLASS */ && !(mon.misc_worn_check & W_WEP)) {
-                            obj.owornmask = W_WEP;
-                            mon.misc_worn_check = (mon.misc_worn_check | W_WEP) >>> 0;
-                            break;
                         }
                     }
                     if (mon.misc_worn_check !== oldworn || mon.mcanmove === false) {

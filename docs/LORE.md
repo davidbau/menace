@@ -1931,3 +1931,22 @@ hard-won wisdom:
   - `seed306` retains full RNG/event parity (`6904/6904`, `3949/3949`) after
     reverting the slot-based workaround,
   - canaries remain green: `seed301`, `seed302`, `seed307`, `seed308`.
+
+### Remove duplicate seduction teleport "vanishes!" message in JS (2026-03-05)
+
+- `seed329_rogue_wizard_gameplay` had first screen drift at step `362` with an
+  extra JS `--More--` on:
+  `"She stole a +0 short sword.  The water nymph vanishes!--More--"`.
+- Root cause: JS emitted the teleport vanish line twice during `AD_SEDU`:
+  - once in `teleport.js:rloc_to_core(..., RLOC_MSG, ...)` (C-faithful place),
+  - again in `mhitu.js:mhitu_ad_sedu` after `rloc(...)`.
+- The duplicate second line forced an extra `--More--`, shifted key consumption,
+  and cascaded into RNG/event drift.
+- Fix:
+  - keep vanish/reappear messaging in teleport relocation path,
+  - remove duplicate post-`rloc` vanish emission from `mhitu_ad_sedu`.
+
+- Validation:
+  - `seed329` now fully matches (`rng=15900/15900`, `events=14329/14329`,
+    `screens=423/423`),
+  - full session suite improved from `135/150` to `136/150` passed.
