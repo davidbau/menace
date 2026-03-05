@@ -8,6 +8,10 @@ This file defines how coding agents should work in this repository.
 
 This project uses GitHub Issues for work tracking. `PROJECT_PLAN.md` is the authoritative source for goals, scope, and milestone priorities.
 
+## Current Mission (Temporary Priority)
+1. Execute GitHub issue `#227` as the top active workstream.
+2. Prioritize issue `#227` structural/module-init tasks over unrelated parity tuning unless explicitly directed otherwise.
+
 ## Source of Truth and Priorities
 1. NetHack C 3.7.0 behavior is the gameplay source of truth.
 2. `PROJECT_PLAN.md` is the execution roadmap and phase gate definition.
