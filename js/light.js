@@ -19,7 +19,7 @@
 //   snuff_light_source(): extinguish light at a location.
 //   save/restore_light_sources: persistence (N/A in JS, uses storage.js).
 
-import { COLNO, ROWNO, isok } from './config.js';
+import { COLNO, ROWNO, isok } from './const.js';
 import {
     CANDELABRUM_OF_INVOCATION, TALLOW_CANDLE, WAX_CANDLE,
     BRASS_LANTERN, OIL_LAMP, MAGIC_LAMP, POT_OIL,

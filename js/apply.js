@@ -67,7 +67,7 @@ import { doname, xname, splitobj, set_bknown } from './mkobj.js';
 import { IS_DOOR, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          A_STR, A_DEX, A_CON, A_CHA,
          PM_ROGUE, PM_HEALER, PM_ARCHEOLOGIST,
-         isok, COLNO, ROWNO, IS_OBSTRUCTED } from './config.js';
+         isok, COLNO, ROWNO, IS_OBSTRUCTED } from './const.js';
 import { rn2, rnd, rn1, d, rnl, shuffle_int_array } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { pline, You, Your, You_feel, You_cant, You_hear, You_see,

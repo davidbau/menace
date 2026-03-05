@@ -7,7 +7,7 @@ import {
     IS_DOOR, IS_STWALL, IRONBARS, TREE,
     D_BROKEN, D_CLOSED, D_LOCKED,
     A_STR, A_DEX, A_CON
-} from './config.js';
+} from './const.js';
 import { rn2, rnd, rnl, d, c_d, rn1 } from './rng.js';
 import { is_mindless, touch_petrifies, resists_ston,
          amorphous, is_whirly, unsolid, is_clinger, passes_walls,
@@ -66,7 +66,7 @@ import { Monnam, mon_nam } from './do_name.js';
 import { dist2 } from './monutil.js';
 import { an } from './objnam.js';
 import { float_vs_flight } from './polyself.js';
-import { LEVITATION, TIMEOUT, HALLUC } from './config.js';
+import { LEVITATION, TIMEOUT, HALLUC } from './const.js';
 import { losehp } from './hack.js';
 import { fall_asleep } from './timeout.js';
 import { thitu } from './mthrowu.js';

@@ -28,7 +28,7 @@
 import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, AM_MASK, AM_SHRINE, AM_CHAOTIC,
          AM_SANCTUM, ALTAR, ROOM, SDOOR, SCORR, isok, Amask2align, Align2amask,
          A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
-         HVY_ENCUMBER, EXT_ENCUMBER } from './config.js';
+         HVY_ENCUMBER, EXT_ENCUMBER } from './const.js';
 import { roles, godForRoleAlign, isGoddess } from './player.js';
 import { rn2, rnd, rn1, rnl, rnz, d } from './rng.js';
 import { rn2_on_display_rng } from './rng.js';
@@ -40,7 +40,7 @@ import { S_LICH, S_GHOST, S_VAMPIRE, S_WRAITH, S_MUMMY, S_ZOMBIE, S_HUMAN,
          mons, PM_ACID_BLOB, PM_WRAITH,
          PM_CLERIC as MONS_PM_CLERIC, PM_KNIGHT as MONS_PM_KNIGHT,
          PM_WIZARD as MONS_PM_WIZARD, PM_MONK as MONS_PM_MONK } from './monsters.js';
-import { PM_PRIEST, PM_KNIGHT, PM_WIZARD, PM_MONK } from './config.js';
+import { PM_PRIEST, PM_KNIGHT, PM_WIZARD, PM_MONK } from './const.js';
 import { CORPSE, STATUE, AMULET_OF_YENDOR, FAKE_AMULET_OF_YENDOR,
          POT_WATER, POTION_CLASS, LOADSTONE, LEVITATION_BOOTS, FUMBLE_BOOTS,
          GAUNTLETS_OF_FUMBLING, HELM_OF_OPPOSITE_ALIGNMENT,

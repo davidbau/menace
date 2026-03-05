@@ -15,7 +15,7 @@ import {
     SCR_BLANK_PAPER,
     CANDY_BAR,
 } from './objects.js';
-import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO } from './config.js';
+import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO } from './const.js';
 import { doname } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { discoverObject, isObjectNameKnown } from './discovery.js';

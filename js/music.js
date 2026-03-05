@@ -56,7 +56,7 @@ import { isok, COLNO, ROWNO, PIT, SPIKED_PIT, is_pit,
          SDOOR, DOOR, D_NODOOR,
          AM_MASK, AM_SANCTUM, Amask2align,
          DRAWBRIDGE_DOWN, DRAWBRIDGE_UP, SHOPBASE,
-         IS_DRAWBRIDGE } from './config.js';
+         IS_DRAWBRIDGE } from './const.js';
 import { getlin, ynFunction } from './input.js';
 
 // ============================================================================

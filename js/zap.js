@@ -9,7 +9,7 @@ import {
     ICE, POOL,
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN,
     TELEP_TRAP, LEVEL_TELEP, MAGIC_TRAP, ANTI_MAGIC, POLY_TRAP, MAGIC_PORTAL, VIBRATING_SQUARE,
-} from './config.js';
+} from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
          POTION_CLASS, RING_CLASS, SPBOOK_CLASS, GEM_CLASS, ROCK_CLASS,

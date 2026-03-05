@@ -34,7 +34,7 @@ import {
 } from './mondata.js';
 import { rn2, rn1 } from './rng.js';
 import { isok, ACCESSIBLE, COLNO, ROWNO, IS_DOOR, D_CLOSED, D_LOCKED,
-         POOL, LAVAPOOL, PM_CAVEMAN, PM_SAMURAI, PM_BARBARIAN, PM_RANGER } from './config.js';
+         POOL, LAVAPOOL, PM_CAVEMAN, PM_SAMURAI, PM_BARBARIAN, PM_RANGER } from './const.js';
 import { SADDLE } from './objects.js';
 import { roles } from './player.js';
 import { makemon, NO_MINVENT, MM_EDOG, MM_NOMSG, mbirth_limit, MAXMONNO } from './makemon.js';

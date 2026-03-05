@@ -2,7 +2,7 @@
 // Displays long text documents inside the 80x24 terminal, with scrolling.
 // Modeled after NetHack's built-in text display (pager.c).
 
-import { TERMINAL_COLS, TERMINAL_ROWS, VERSION_STRING } from './config.js';
+import { TERMINAL_COLS, TERMINAL_ROWS, VERSION_STRING } from './const.js';
 import { nhgetch } from './input.js';
 import { CLR_GRAY, CLR_WHITE, CLR_GREEN, CLR_CYAN } from './display.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,

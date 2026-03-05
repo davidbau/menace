@@ -15,7 +15,7 @@ import { isok, STAIRS, LADDER, SCORR, CORR, ACCESSIBLE,
          TELEP_TRAP, TRAPDOOR, HOLE, PIT, SPIKED_PIT, BEAR_TRAP, WEB,
          POLY_TRAP, FIRE_TRAP,
          is_pit, is_hole,
-         IS_FURNITURE, IS_DRAWBRIDGE } from './config.js';
+         IS_FURNITURE, IS_DRAWBRIDGE } from './const.js';
 import { rn2, rnd, rn1, d } from './rng.js';
 import { pline, pline_mon, You_hear, verbalize } from './pline.js';
 import { dist2, distmin, BOLT_LIM, mondead, mpickobj, mdrop_obj,

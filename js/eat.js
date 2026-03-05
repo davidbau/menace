@@ -37,7 +37,7 @@ import { PM_CAVEMAN, RACE_ORC, RACE_ELF, RACE_DWARF,
          FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES,
          POISON_RES, ACID_RES, STONE_RES,
          TELEPORT, TELEPORT_CONTROL, TELEPAT, LAST_PROP,
-         FROMOUTSIDE, INTRINSIC, TIMEOUT } from './config.js';
+         FROMOUTSIDE, INTRINSIC, TIMEOUT } from './const.js';
 import { applyMonflee } from './mhitu.js';
 import { obj_resists } from './objdata.js';
 import { compactInvletPromptChars } from './invent.js';

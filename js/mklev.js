@@ -16,7 +16,7 @@ import {
     HOLE, TRAPDOOR, TELEP_TRAP, LEVEL_TELEP, MAGIC_PORTAL, WEB,
     STATUE_TRAP, POLY_TRAP, VIBRATING_SQUARE, TRAPPED_DOOR, TRAPPED_CHEST, TRAPNUM,
     MKTRAP_NOFLAGS, MKTRAP_NOSPIDERONWEB, is_hole, isok,
-} from './config.js';
+} from './const.js';
 import { rn1, rn2, rnd, getRngCallCount } from './rng.js';
 import { makeRoom } from './mkroom.js';
 import { mksobj, mkobj, mkcorpstat } from './mkobj.js';

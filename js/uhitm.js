@@ -8,7 +8,7 @@ import { corpse_chance } from './mon.js';
 import {
     A_STR, A_DEX, PM_MONK, PM_SAMURAI, PM_BARBARIAN,
     FIRE_RES, COLD_RES, SHOCK_RES, ACID_RES, FREE_ACTION,
-} from './config.js';
+} from './const.js';
 import { spec_dbon } from './artifact.js';
 import {
     G_FREQ, G_NOCORPSE, MZ_TINY, MZ_HUMAN, MZ_LARGE, M2_COLLECT,

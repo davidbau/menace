@@ -13,7 +13,7 @@ import { movobj, near_capacity, losehp, nomul, spoteffects } from './hack.js';
 import { flooreffects } from './do.js';
 import { placeFloorObject } from './stackobj.js';
 import { IS_OBSTRUCTED, IS_DOOR, D_CLOSED, D_LOCKED, POOL,
-         is_pit, is_hole, A_STR, SLT_ENCUMBER } from './config.js';
+         is_pit, is_hole, A_STR, SLT_ENCUMBER } from './const.js';
 import { xname } from './objnam.js';
 import { HEAVY_IRON_BALL, IRON_CHAIN } from './objects.js';
 import { W_BALL, W_CHAIN, W_WEAPONS } from './worn.js';

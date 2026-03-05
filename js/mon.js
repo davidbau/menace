@@ -20,7 +20,7 @@
 import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, ACCESSIBLE,
          POOL, ROOM, WATER, LAVAWALL, IRONBARS,
          D_CLOSED, D_LOCKED, D_BROKEN,
-         SHOPBASE, ROOMOFFSET, TEMPLE, NORMAL_SPEED, isok } from './config.js';
+         SHOPBASE, ROOMOFFSET, TEMPLE, NORMAL_SPEED, isok } from './const.js';
 import { AMULET_OF_LIFE_SAVING, CORPSE } from './objects.js';
 import { which_armor } from './worn.js';
 import { W_AMUL, W_ARMG,

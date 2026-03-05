@@ -34,7 +34,7 @@ import {
     PM_SCORPIUS, PM_SCORPION, PM_KILLER_BEE, PM_QUEEN_BEE,
     PM_GARGOYLE, PM_WINGED_GARGOYLE
 } from './monsters.js';
-import { PM_SAMURAI } from './config.js';
+import { PM_SAMURAI } from './const.js';
 import { lays_eggs } from './mondata.js';
 import { start_timer, stop_timer, TIMER_KIND, TIMER_FUNC } from './timeout.js';
 

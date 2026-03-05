@@ -6,7 +6,7 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
          FEMALE, MALE,
          CONFUSION, STUNNED, BLINDED, HALLUC, HALLUC_RES, SICK, FAST,
-         TIMEOUT, INTRINSIC, SICK_VOMITABLE, SICK_NONVOMITABLE } from './config.js';
+         TIMEOUT, INTRINSIC, SICK_VOMITABLE, SICK_NONVOMITABLE } from './const.js';
 import { M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC } from './monsters.js';
 import { objectData, COIN_CLASS, FOOD_CLASS } from './objects.js';
 import { weight } from './mkobj.js';

@@ -5,7 +5,7 @@
  * C ref: display.c tmp_at(), include/display.h DISP_* constants,
  *        and nh_delay_output() timing boundaries.
  */
-import { COLNO } from './config.js';
+import { COLNO } from './const.js';
 
 export const DISP_BEAM = -1;
 export const DISP_ALL = -2;

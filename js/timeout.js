@@ -15,7 +15,7 @@ import { TIMEOUT, INTRINSIC, FROMOUTSIDE,
          STONED, SLIMED, STRANGLED, INVIS, SEE_INVIS, DISPLACED,
          PASSES_WALLS, MAGICAL_BREATHING, FLYING,
          FIRE_RES, STONE_RES, DETECT_MONSTERS, PROT_FROM_SHAPE_CHANGERS,
-         SICK_NONVOMITABLE, A_CON, A_DEX, A_STR, ACCESSIBLE } from './config.js';
+         SICK_NONVOMITABLE, A_CON, A_DEX, A_STR, ACCESSIBLE } from './const.js';
 import { exercise } from './attrib_exercise.js';
 
 export const TIMER_KIND = {

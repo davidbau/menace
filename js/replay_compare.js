@@ -3,13 +3,13 @@
 // Grid comparison, map generation, RNG comparison, screen normalization.
 // These are test infrastructure utilities, not part of the replay engine.
 
-import { COLNO, ROWNO } from './config.js';
+import { COLNO, ROWNO } from './const.js';
 import { initRng, enableRngLog, getRngLog, disableRngLog } from './rng.js';
 import { initLevelGeneration, mklev, setGameSeed } from './dungeon.js';
 import { simulatePostLevelInit } from './u_init.js';
 import { mon_arrive } from './dog.js';
 import { Player, roles } from './player.js';
-import { RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC } from './config.js';
+import { RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC } from './const.js';
 import { initrack } from './monmove.js';
 
 // ---------------------------------------------------------------------------

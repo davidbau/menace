@@ -24,7 +24,7 @@
 
 import { rn1, rn2, rnd, d } from './rng.js';
 import { pline, You, You_feel, pline_The, You_see } from './pline.js';
-import { isok, ACCESSIBLE, COLNO, ROWNO } from './config.js';
+import { isok, ACCESSIBLE, COLNO, ROWNO } from './const.js';
 import { newsym } from './monutil.js';
 import { cansee, block_point, unblock_point, mark_vision_dirty } from './vision.js';
 import { nonliving, haseyes, is_silent, resists_poison, canseemon } from './mondata.js';

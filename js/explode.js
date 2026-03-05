@@ -4,7 +4,7 @@
 //                 adtyp_to_expltype, mon_explodes
 
 import { rn2, rnd, d } from './rng.js';
-import { isok } from './config.js';
+import { isok } from './const.js';
 import { AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST, AD_ACID,
          MR_FIRE, MR_COLD, MR_ELEC,
          mons } from './monsters.js';

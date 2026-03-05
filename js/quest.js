@@ -39,8 +39,8 @@ import {
     MS_NEMESIS, MS_GUARDIAN, MS_DJINNI,
     PM_PRISONER, mons,
 } from './monsters.js';
-import { MAGIC_PORTAL } from './config.js';
-import { A_WIS } from './config.js';
+import { MAGIC_PORTAL } from './const.js';
+import { A_WIS } from './const.js';
 import { the, xname } from './objnam.js';
 
 // C: #define MIN_QUEST_LEVEL 14

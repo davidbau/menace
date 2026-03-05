@@ -31,7 +31,7 @@ import {
 } from './monsters.js';
 import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP,
          CONFLICT, LEVITATION, INVIS,
-       } from './config.js';
+       } from './const.js';
 import { SILVER } from './objects.js';
 import { pline, pline_The, You, You_feel, You_cant } from './pline.js';
 

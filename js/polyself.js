@@ -135,7 +135,7 @@ import {
     TELEPORT, TELEPORT_CONTROL, LEVITATION, FLYING, SWIMMING,
     PASSES_WALLS, REGENERATION, REFLECTING,
     FROM_FORM, FROM_RACE, FROMOUTSIDE, I_SPECIAL,
-} from './config.js';
+} from './const.js';
 import { TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, TT_BEARTRAP } from './trap.js';
 
 // Local helper: cf. C attacktype_fordmg() — find attack with given type and damage type

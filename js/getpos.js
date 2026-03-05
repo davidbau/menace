@@ -2,7 +2,7 @@
 // cf. getpos.c -- getpos_sethilite(), getpos_toggle_hilite_state(),
 // getpos_refresh(), getpos() lifecycle.
 
-import { MAP_ROW_START, COLNO, ROWNO, DOOR, ROOM, CORR, isok } from './config.js';
+import { MAP_ROW_START, COLNO, ROWNO, DOOR, ROOM, CORR, isok } from './const.js';
 import { nhgetch } from './input.js';
 import { flush_screen } from './monutil.js';
 import {

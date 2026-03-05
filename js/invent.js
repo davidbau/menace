@@ -6,7 +6,7 @@ import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_puts
 import { COLNO, STATUS_ROW_1, STATUS_ROW_2, PM_ARCHEOLOGIST, A_STR, A_CON, A_WIS,
          UNENCUMBERED, OVERLOADED,
          STAIRS, LADDER, FOUNTAIN, THRONE, SINK, GRAVE, ALTAR, TREE,
-         IS_DOOR, D_NODOOR, D_BROKEN, D_ISOPEN, D_CLOSED, D_LOCKED } from './config.js';
+         IS_DOOR, D_NODOOR, D_BROKEN, D_ISOPEN, D_CLOSED, D_LOCKED } from './const.js';
 import { objectData, WEAPON_CLASS, FOOD_CLASS, WAND_CLASS, SPBOOK_CLASS,
          FLINT, ROCK, SLING, MAGIC_MARKER, COIN_CLASS, ARMOR_CLASS,
          RING_CLASS, AMULET_CLASS, TOOL_CLASS, POTION_CLASS, SCROLL_CLASS,

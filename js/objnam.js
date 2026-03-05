@@ -55,7 +55,7 @@ import {
     ROLLING_BOULDER_TRAP, SLP_GAS_TRAP, RUST_TRAP, FIRE_TRAP, PIT, SPIKED_PIT,
     HOLE, TRAPDOOR, TELEP_TRAP, LEVEL_TELEP, MAGIC_PORTAL, WEB, STATUE_TRAP,
     MAGIC_TRAP, ANTI_MAGIC, POLY_TRAP, VIBRATING_SQUARE,
-} from './config.js';
+} from './const.js';
 import { maketrap, deltrap } from './dungeon.js';
 import { make_grave, del_engr_at } from './engrave.js';
 import { water_damage_chain, fire_damage_chain } from './trap.js';

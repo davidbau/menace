@@ -16,7 +16,7 @@ import {
     MAGIC_PORTAL,
     HOLE, TRAPDOOR,
     is_pit, is_hole,
-} from './config.js';
+} from './const.js';
 import { BOULDER } from './objects.js';
 import { M1_SWIM, M1_AMPHIBIOUS, M1_FLY, M1_WALLWALK, M1_AMORPHOUS, M2_ROCKTHROW, S_EEL } from './monsters.js';
 import { rn2, rnd, rn1 } from './rng.js';

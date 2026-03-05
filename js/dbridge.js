@@ -21,7 +21,7 @@ import {
     DB_NORTH, DB_SOUTH, DB_EAST, DB_WEST, DB_DIR,
     DB_MOAT, DB_LAVA, DB_ICE, DB_UNDER,
     D_NODOOR,
-} from './config.js';
+} from './const.js';
 import { rnd, rn2 } from './rng.js';
 import { block_point, unblock_point } from './vision.js';
 import { passes_walls, noncorporeal, is_flyer, is_floater,

@@ -16,7 +16,7 @@
 import { IS_DOOR, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN, D_TRAPPED,
          SDOOR, DOOR, A_STR, A_DEX, A_CON, A_WIS,
          SHOPBASE,
-         PM_ROGUE, PM_WIZARD } from './config.js';
+         PM_ROGUE, PM_WIZARD } from './const.js';
 import { rn2, rnl, rnd } from './rng.js';
 import { nhgetch, ynFunction } from './input.js';
 import { exercise } from './attrib_exercise.js';

@@ -26,7 +26,7 @@ import { pline, You, You_cant, impossible, You_see } from './pline.js';
 import {
     COLNO, ROWNO, ROOM, GRAVE, FOUNTAIN, ICE,
     ACCESSIBLE, is_hole, is_pit, isok,
-} from './config.js';
+} from './const.js';
 import { is_lava, is_pool, is_pool_or_lava } from './dbridge.js';
 import { IS_GRAVE, IS_AIR } from './symbols.js';
 import { newsym } from './monutil.js';

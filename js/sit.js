@@ -9,7 +9,7 @@ import { ROOM, THRONE, SINK, ALTAR, GRAVE, STAIRS, LADDER,
          FIRE_RES, COLD_RES, POISON_RES, SHOCK_RES,
          SEE_INVIS, INVIS, TELEPORT, TELEPAT,
          FAST, STEALTH, PROTECTION, AGGRAVATE_MONSTER,
-         isok } from './config.js';
+         isok } from './const.js';
 import { COIN_CLASS, SADDLE } from './objects.js';
 import { pline, You, Your, You_feel, You_cant, pline_The,
          verbalize } from './pline.js';

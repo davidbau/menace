@@ -200,7 +200,7 @@ import { resetLevelState, setFinalizeContext, setSpecialLevelDepth } from './sp_
 import { isBranchLevel } from './dungeon.js';
 import { otherSpecialLevels } from './special_levels.js';
 import { getlin } from './input.js';
-import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, isok } from './config.js';
+import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, isok } from './const.js';
 import { makemon, setMakemonPlayerContext } from './makemon.js';
 import { mons } from './monsters.js';
 import { makewish } from './zap.js';

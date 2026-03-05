@@ -10,7 +10,7 @@
 // - No buzzmu (spell ray) implementation
 
 import { ACCESSIBLE, IS_OBSTRUCTED, IS_DOOR,
-         D_CLOSED, D_LOCKED, IRONBARS, SINK, isok, A_STR } from './config.js';
+         D_CLOSED, D_LOCKED, IRONBARS, SINK, isok, A_STR } from './const.js';
 import { rn2, rnd } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { newexplevel } from './exper.js';

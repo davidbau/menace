@@ -11,8 +11,8 @@ import {
     VAULT, ZOO, DELPHI, TEMPLE,
     D_LOCKED, D_CLOSED, SDOOR, SCORR, isok, COLNO, ROWNO,
     ALL_TRAPS, HOLE, TRAPDOOR
-} from './config.js';
-import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC } from './config.js';
+} from './const.js';
+import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC } from './const.js';
 import { couldsee, cansee, getActiveFov } from './vision.js';
 import { get_shop_item } from './shknam.js';
 import {

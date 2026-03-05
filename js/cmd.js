@@ -3,7 +3,7 @@
 // Maps keyboard input to game actions.
 
 import { A_STR, A_DEX, A_CON, A_WIS, STATUS_ROW_1,
-         PM_CAVEMAN, PM_ROGUE, RACE_ORC, SQKY_BOARD } from './config.js';
+         PM_CAVEMAN, PM_ROGUE, RACE_ORC, SQKY_BOARD } from './const.js';
 import { rn2 } from './rng.js';
 import { handleWizLoadDes, wizLevelChange, wizMap, wizTeleport, wizGenesis, wizWish } from './wizcmds.js';
 import { DIRECTION_KEYS, handleThrow, handleFire } from './dothrow.js';

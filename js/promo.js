@@ -4,7 +4,7 @@
 
 import { CLR_RED, CLR_YELLOW, CLR_BRIGHT_GREEN, CLR_WHITE, CLR_GRAY, CLR_ORANGE } from './display.js';
 import { loadScores, formatTopTenHeader, formatTopTenEntry } from './topten.js';
-import { VERSION_MAJOR, VERSION_MINOR, PATCHLEVEL } from './config.js';
+import { VERSION_MAJOR, VERSION_MINOR, PATCHLEVEL } from './const.js';
 
 // NETHACK logo — hand-crafted 5×5 pixel-art letterforms
 const LETTERS = {

@@ -4,7 +4,7 @@
 import {
     STAIRS, LADDER, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE, POOL, LAVAPOOL,
     DOOR, IRONBARS, TREE, CORR, SCORR, ICE,
-} from './config.js';
+} from './const.js';
 import { set_getpos_context, getpos_async } from './getpos.js';
 import { nhgetch } from './input.js';
 import { def_monsyms } from './symbols.js';

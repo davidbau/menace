@@ -2,7 +2,7 @@
 // cf. steed.c -- saddle application, mounting/dismounting, steed movement and kicks
 
 import { rn2, rnd, rn1 } from './rng.js';
-import { isok, A_WIS, A_DEX, A_CHA } from './config.js';
+import { isok, A_WIS, A_DEX, A_CHA } from './const.js';
 import { pline, You, Your, You_feel, You_cant, pline_The } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { Monnam, mon_nam } from './do_name.js';

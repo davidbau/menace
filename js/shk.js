@@ -3,7 +3,7 @@
 // Handles shop pricing, billing, entry messages, shopkeeper queries,
 // payment, selling, damage tracking, and shopkeeper movement hooks.
 
-import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, A_WIS, isok } from './config.js';
+import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, A_WIS, isok } from './const.js';
 import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_CLASS,
          COIN_CLASS, GEM_CLASS, FOOD_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
          BALL_CLASS, CHAIN_CLASS, RING_CLASS, AMULET_CLASS,

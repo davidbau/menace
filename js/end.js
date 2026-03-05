@@ -21,7 +21,7 @@
 //   renderTombstone → display.js:1135 (PARTIAL — tombstone rendering)
 //   renderTopTen → display.js:1186 (PARTIAL — high score display)
 
-import { A_CON, isok } from './config.js';
+import { A_CON, isok } from './const.js';
 import { pline, You, Your, You_feel, pline_The, impossible } from './pline.js';
 import { mons, G_UNIQ, PM_GHOST, PM_HIGH_CLERIC, PM_WRAITH,
          PM_VAMPIRE, PM_GHOUL, S_WRAITH, S_MUMMY, S_VAMPIRE,

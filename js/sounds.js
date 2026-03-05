@@ -6,7 +6,7 @@ import { rn2, rn1 } from './rng.js';
 import {
     ROOMOFFSET, SHOPBASE, COURT, BEEHIVE, MORGUE, BARRACKS, ZOO,
     TEMPLE, LEPREHALL,
-} from './config.js';
+} from './const.js';
 import {
     MS_SILENT, MS_BARK, MS_MEW, MS_ROAR, MS_BELLOW, MS_GROWL, MS_SQEEK,
     MS_SQAWK, MS_CHIRP, MS_HISS, MS_BUZZ, MS_GRUNT, MS_NEIGH, MS_MOO,

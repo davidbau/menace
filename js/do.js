@@ -5,7 +5,7 @@ import { nhgetch, ynFunction } from './input.js';
 import { COLNO, ROWNO, STAIRS,
          CORR, ROOM, AIR, A_DEX,
          IS_FURNITURE, IS_LAVA, IS_POOL, MAGIC_PORTAL, VIBRATING_SQUARE,
-         PM_TOURIST, I_SPECIAL, TIMEOUT } from './config.js';
+         PM_TOURIST, I_SPECIAL, TIMEOUT } from './const.js';
 import { rn1, rn2, rnd, c_d } from './rng.js';
 import { deltrap, enexto, mklev, assign_level, resolveBranchDestinationForStair } from './dungeon.js';
 import { depth as dungeonDepth } from './dungeon.js';

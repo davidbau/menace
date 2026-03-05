@@ -3,7 +3,7 @@
 
 import { IS_DOOR, D_LOCKED, D_CLOSED, D_ISOPEN, D_BROKEN, D_NODOOR,
          IRONBARS, TREE, THRONE, ALTAR, FOUNTAIN, GRAVE, SINK,
-         IS_WALL, A_STR, A_DEX, A_CON } from './config.js';
+         IS_WALL, A_STR, A_DEX, A_CON } from './const.js';
 import { rn2, rnd, rnl } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { x_monnam } from './mondata.js';

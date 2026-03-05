@@ -21,10 +21,10 @@ import { ynFunction } from './input.js';
 import { mons } from './monsters.js';
 import { def_monsyms } from './symbols.js';
 import { CLASS_SYMBOLS } from './objects.js';
-import { COLNO, ROWNO } from './config.js';
+import { COLNO, ROWNO } from './const.js';
 import { Player } from './player.js';
 import { CONFUSION, STUNNED, BLINDED, HALLUC, SICK,
-         TIMEOUT, SICK_VOMITABLE, SICK_NONVOMITABLE } from './config.js';
+         TIMEOUT, SICK_VOMITABLE, SICK_NONVOMITABLE } from './const.js';
 import { GameMap } from './game.js';
 import { makeRoom } from './mkroom.js';
 import { getDiscoveryState, setDiscoveryState } from './discovery.js';

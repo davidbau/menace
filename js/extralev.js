@@ -6,7 +6,7 @@ import { curse, mksobj, weight } from './mkobj.js';
 import {
     ARROW, BOW, FAKE_AMULET_OF_YENDOR, FOOD_RATION, MACE, PLATE_MAIL, RING_MAIL, TWO_HANDED_SWORD,
 } from './objects.js';
-import { CORR, D_NODOOR, OROOM, SCORR } from './config.js';
+import { CORR, D_NODOOR, OROOM, SCORR } from './const.js';
 import { PM_GHOST } from './monsters.js';
 import { makemon, NO_MM_FLAGS } from './makemon.js';
 import { christen_monst, roguename } from './do_name.js';

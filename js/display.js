@@ -13,7 +13,7 @@ import {
     DB_UNDER, DB_MOAT,
     D_NODOOR, D_CLOSED, D_ISOPEN, D_LOCKED,
     IS_WALL,
-} from './config.js';
+} from './const.js';
 
 import { def_monsyms, def_oc_syms } from './symbols.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';

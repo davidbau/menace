@@ -5,7 +5,7 @@ import {
     CORR, ROOM, AIR, CLOUD, MAGIC_PORTAL, VIBRATING_SQUARE, MKTRAP_MAZEFLAG,
     POOL, TLWALL, TRWALL, TUWALL, TDWALL, BRCORNER, BLCORNER, TRCORNER, TLCORNER,
     IS_WALL, IS_POOL, isok, PM_PRIEST as ROLE_PRIEST,
-} from './config.js';
+} from './const.js';
 import { rn1, rn2, rnd } from './rng.js';
 import {
     maketrap,

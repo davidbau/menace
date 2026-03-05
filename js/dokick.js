@@ -26,7 +26,7 @@ import {
     SLT_ENCUMBER, HVY_ENCUMBER,
     PIT, SPIKED_PIT, WEB, HOLE, TRAPDOOR, STATUE_TRAP,
     is_pit, is_hole,
-} from './config.js';
+} from './const.js';
 import {
     IS_TREE, IS_THRONE, IS_FOUNTAIN, IS_SINK, IS_GRAVE, IS_ALTAR,
     IS_DRAWBRIDGE, IS_SOFT, ZAP_POS,
@@ -1650,7 +1650,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
 }
 
 // A_LAWFUL import
-import { A_LAWFUL } from './config.js';
+import { A_LAWFUL } from './const.js';
 
 // ============================================================================
 // 15. dokick — the #kick command handler

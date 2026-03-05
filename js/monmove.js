@@ -25,7 +25,7 @@ import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          SHOPBASE, ROOM, ROOMOFFSET,
          NORMAL_SPEED, isok, WEB, IS_OBSTRUCTED, IS_STWALL, A_STR,
          IRONBARS, STAIRS, LADDER,
-         INVIS, DISPLACED } from './config.js';
+         INVIS, DISPLACED } from './const.js';
 import { rn2, rnd, d, c_d, pushRngLogEntry } from './rng.js';
 import { wipe_engr_at } from './engrave.js';
 import { mattacku } from './mhitu.js';

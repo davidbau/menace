@@ -24,7 +24,7 @@
 //   All functions ported from C insight.c.
 
 import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
-         A_STR, A_DEX, A_CON, A_INT, A_WIS, A_CHA } from './config.js';
+         A_STR, A_DEX, A_CON, A_INT, A_WIS, A_CHA } from './const.js';
 import { mons, MZ_TINY, MZ_SMALL, MZ_MEDIUM, MZ_LARGE, MZ_HUGE, MZ_GIGANTIC,
          PM_LONG_WORM, PM_HIGH_CLERIC, G_UNIQ, M2_PNAME, NUMMONS, LOW_PM } from './monsters.js';
 import { x_monnam } from './mondata.js';

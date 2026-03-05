@@ -15,7 +15,7 @@ import {
     AIR, CLOUD, SDOOR, SCORR,
     D_ISOPEN, D_CLOSED, D_LOCKED,
     IS_WALL, Amask2align,
-} from './config.js';
+} from './const.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
 
 // ============================================================================

@@ -6,7 +6,7 @@ import { roles, races } from './player.js';
 import { setMakemonPlayerContext } from './makemon.js';
 import { A_CON, A_WIS,
          PM_PRIEST, PM_WIZARD, PM_HEALER, PM_KNIGHT,
-         PM_BARBARIAN, PM_VALKYRIE } from './config.js';
+         PM_BARBARIAN, PM_VALKYRIE } from './const.js';
 
 const MAXULEV = 30;
 

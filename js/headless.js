@@ -48,7 +48,7 @@ import {
     ALTAR, FOUNTAIN, THRONE, SINK, GRAVE, POOL, MOAT, WATER, LAVAPOOL,
     LAVAWALL, ICE, DRAWBRIDGE_UP, DRAWBRIDGE_DOWN, AIR, CLOUD, TREE,
     D_ISOPEN, D_CLOSED, D_LOCKED,
-} from './config.js';
+} from './const.js';
 
 
 const DEFAULT_GAME_FLAGS = {

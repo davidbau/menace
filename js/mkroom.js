@@ -7,7 +7,7 @@ import {
     COURT, ZOO, BEEHIVE, MORGUE, BARRACKS, LEPREHALL, COCKNEST, ANTHOLE, TEMPLE,
     A_NONE, ALTAR, AM_MASK, AM_SHRINE, Align2amask, Amask2align, xdir, ydir, N_DIRS,
     isok,
-} from './config.js';
+} from './const.js';
 import { rn1, rn2, rnd } from './rng.js';
 import { mkclass, makemon, NO_MM_FLAGS } from './makemon.js';
 import { ndemon } from './minion.js';

@@ -1,6 +1,6 @@
 import { rn2, rnd, rn1 } from './rng.js';
 import { FOUNTAIN, SINK, ROOM, POOL, A_STR, A_DEX, A_CON, A_WIS, A_LAWFUL,
-         isok } from './config.js';
+         isok } from './const.js';
 import { COIN_CLASS, RING_CLASS, POTION_CLASS, LONG_SWORD, BOULDER,
          DILITHIUM_CRYSTAL, LUCKSTONE,
          POT_POLYMORPH, POT_OIL, POT_ACID, POT_LEVITATION,

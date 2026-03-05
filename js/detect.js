@@ -1,7 +1,7 @@
 import { isok, COLNO, ROWNO, SDOOR, SCORR, DOOR, CORR, STONE,
          D_CLOSED, D_LOCKED, D_TRAPPED, D_NODOOR, D_BROKEN, D_ISOPEN,
          IS_DOOR, A_WIS, A_INT, TRAPPED_CHEST, TRAPPED_DOOR,
-         BEAR_TRAP, STATUE_TRAP, SQKY_BOARD, SLP_GAS_TRAP } from './config.js';
+         BEAR_TRAP, STATUE_TRAP, SQKY_BOARD, SLP_GAS_TRAP } from './const.js';
 import { rn2, rnd, rnl } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, FOOD_CLASS, POTION_CLASS, COIN_CLASS, ROCK_CLASS,

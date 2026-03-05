@@ -26,7 +26,7 @@ import {
     A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
     MALE, FEMALE,
     RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
-} from './config.js';
+} from './const.js';
 import { rn2, rn2_on_display_rng } from './rng.js';
 import { PM_HUMAN, PM_ELF, PM_DWARF, PM_GNOME, PM_ORC } from './monsters.js';
 

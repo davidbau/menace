@@ -19,7 +19,7 @@ import {
     SCR_FOOD_DETECTION, LUMP_OF_ROYAL_JELLY,
 } from './objects.js';
 import { MAXOCLASSES, ROOM, SHOPBASE, ROOMOFFSET, SDOOR, DOOR, CORR,
-         D_NODOOR, D_ISOPEN, D_TRAPPED, D_LOCKED } from './config.js';
+         D_NODOOR, D_ISOPEN, D_TRAPPED, D_LOCKED } from './const.js';
 import { makemon, mkclass, mongets, NO_MM_FLAGS } from './makemon.js';
 import { mksobj, mkobj } from './mkobj.js';
 import { RANDOM_CLASS } from './objclass.js';

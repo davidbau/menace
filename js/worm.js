@@ -12,7 +12,7 @@
 import { rn2, rnd, rn1, d } from './rng.js';
 import { pline, impossible, You } from './pline.js';
 import { newsym } from './monutil.js';
-import { NORMAL_SPEED, isok, xdir, ydir, N_DIRS } from './config.js';
+import { NORMAL_SPEED, isok, xdir, ydir, N_DIRS } from './const.js';
 import { mcalcmove } from './mon.js';
 import { mon_nam, Monnam } from './do_name.js';
 import { s_suffix, distmin } from './hacklib.js';

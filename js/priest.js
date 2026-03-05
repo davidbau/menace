@@ -9,7 +9,7 @@
 import { A_NONE, A_LAWFUL, A_CHAOTIC, A_NEUTRAL,
          AM_MASK, AM_SHRINE, ROOMOFFSET, TEMPLE,
          Amask2align, A_WIS, ALL_TRAPS,
-         isok } from './config.js';
+         isok } from './const.js';
 import { IS_ALTAR, IS_DOOR, IS_ROOM } from './symbols.js';
 import { rn2, rnd, rn1, d } from './rng.js';
 import { pline, pline_The, verbalize, You, Your, You_feel,

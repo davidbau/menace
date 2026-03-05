@@ -18,7 +18,7 @@
 //   hurtle(): move hero through air after kick or impact.
 //   breakobj()/breaktest(): object breakage mechanics.
 
-import { ACCESSIBLE, isok, xdir, ydir } from './config.js';
+import { ACCESSIBLE, isok, xdir, ydir } from './const.js';
 import { IS_SOFT, ZAP_POS, S_boomleft, S_boomright, defsyms } from './symbols.js';
 import { rn2, rnd } from './rng.js';
 import { nhgetch } from './input.js';

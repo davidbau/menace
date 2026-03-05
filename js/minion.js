@@ -18,7 +18,7 @@ import {
     PM_SHOPKEEPER, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC,
     G_UNIQ,
 } from './monsters.js';
-import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL } from './config.js';
+import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL } from './const.js';
 import {
     is_ndemon, is_dlord, is_dprince,
     is_lord, canseemon,

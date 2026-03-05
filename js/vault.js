@@ -21,7 +21,7 @@ import {
     TLCORNER, TRCORNER, BLCORNER, BRCORNER,
     IS_WALL, IS_STWALL, IS_POOL, IS_ROOM, ACCESSIBLE, IS_OBSTRUCTED,
     D_NODOOR,
-} from './config.js';
+} from './const.js';
 import { PM_GUARD, PM_CROESUS } from './monsters.js';
 import { COIN_CLASS, ROCK, BOULDER, TIN_WHISTLE, GOLD_PIECE } from './objects.js';
 import { pline, pline_The, You, You_hear, You_see, verbalize } from './pline.js';

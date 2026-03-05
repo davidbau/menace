@@ -116,7 +116,7 @@ import { m_cansee } from './vision.js';
 
 import { AMULET_OF_YENDOR, AMULET_OF_GUARDING, FOOD_CLASS, VEGGY, CORPSE, BANANA,
          objectData } from './objects.js';
-import { ALL_TRAPS, NO_TRAP } from './config.js';
+import { ALL_TRAPS, NO_TRAP } from './const.js';
 import { dist2 } from './monutil.js';
 import { W_ARMOR, W_AMUL } from './worn.js';
 

@@ -29,7 +29,7 @@ import {
     PM_ARCHEOLOGIST as ROLE_ARCHEOLOGIST, PM_WIZARD as ROLE_WIZARD,
     PM_PRIEST as ROLE_PRIEST,
     A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC
-} from './config.js';
+} from './const.js';
 import { GameMap } from './game.js';
 import { rn2, rnd, rn1, d, getRngCallCount, advanceRngRaw, pushRngLogEntry } from './rng.js';
 import { getbones } from './bones.js';

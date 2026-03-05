@@ -40,6 +40,10 @@ Phase 1 (infrastructure laydown first), with `map.js` elimination completed
    - parity spot checks (`seed42`, `seed100`) pass,
    - `bash scripts/run-and-report.sh --failures` unchanged envelope (`23/34`,
      same 11 failing sessions).
+7. Began `const.js` migration path:
+   - added `js/const.js` as the consolidated constant import surface,
+   - migrated `game.js` and then broad `./config.js` consumer imports to
+     `./const.js` (path-only, no logic changes).
 
 ## Next Commit Target
 

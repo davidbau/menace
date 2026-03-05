@@ -7,7 +7,7 @@ import { rn1, rn2, rnd } from './rng.js';
 import {
     COLNO, ROWNO, STONE, ROOM, TREE, CROSSWALL, HWALL, VWALL,
     IS_OBSTRUCTED, IS_WALL,
-} from './config.js';
+} from './const.js';
 
 const MKMAP_HEIGHT = ROWNO - 1;
 const MKMAP_WIDTH = COLNO - 2;

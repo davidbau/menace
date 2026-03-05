@@ -3,7 +3,7 @@
 
 import { rn2, rn1 } from './rng.js';
 import { A_STR, A_INT, A_CHA, A_DEX, A_CON, A_WIS,
-    MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, PM_MONK } from './config.js';
+    MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, PM_MONK } from './const.js';
 
 const EXERCISE_LIMIT = 50;
 const DEFAULT_NEXT_CHECK = 600;

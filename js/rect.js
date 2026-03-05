@@ -5,7 +5,7 @@
 // Rooms are placed by picking a random free rectangle and splitting the
 // remaining space around the allocated room.
 
-import { COLNO, ROWNO } from './config.js';
+import { COLNO, ROWNO } from './const.js';
 import { rn2 } from './rng.js';
 
 // cf. rect.c:16-17

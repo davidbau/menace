@@ -4,7 +4,7 @@
 import { NORMAL_SPEED, A_DEX, A_CON,
          A_LAWFUL, A_NEUTRAL, A_CHAOTIC, A_NONE,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
-         FEMALE, MALE, TERMINAL_COLS, ROOMOFFSET, SHOPBASE } from './config.js';
+         FEMALE, MALE, TERMINAL_COLS, ROOMOFFSET, SHOPBASE } from './const.js';
 import { initRng, rn2, rnd, rn1, getRngState, setRngState, getRngCallCount, setRngCallCount, pushRngLogEntry } from './rng.js';
 import { CLR_GRAY } from './display.js';
 import { nhgetch, getCount, getlin, setInputRuntime } from './input.js';

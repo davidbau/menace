@@ -4,7 +4,7 @@
 
 import { COLNO, ROWNO, IS_ROOM, IS_DOOR, IS_POOL, IS_LAVA,
          D_CLOSED, D_LOCKED,
-         POOL, STAIRS, LADDER, isok } from './config.js';
+         POOL, STAIRS, LADDER, isok } from './const.js';
 import { rn2, rnd, pushRngLogEntry } from './rng.js';
 import { mattacku } from './mhitu.js';
 import { CORPSE, BALL_CLASS, CHAIN_CLASS, ROCK_CLASS, FOOD_CLASS,
