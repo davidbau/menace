@@ -347,6 +347,23 @@ export const M_ATTK_DEF_DIED = 0x2;
 export const M_ATTK_AGR_DIED = 0x4;
 export const M_ATTK_AGR_DONE = 0x8;
 
+// Monster creation flags (include/hack.h; consumed by src/makemon.c)
+export const NO_MM_FLAGS = 0;
+export const NO_MINVENT = 0x00000001;
+export const MM_NOWAIT = 0x00000002;
+export const MM_NOCOUNTBIRTH = 0x00000004;
+export const MM_IGNOREWATER = 0x00000008;
+export const MM_ADJACENTOK = 0x00000010;
+export const MM_NONAME = 0x00000040;
+export const MM_EDOG = 0x00000800;
+export const MM_ASLEEP = 0x00001000;
+export const MM_NOGRP = 0x00002000;
+export const MM_MALE = 0x00008000;
+export const MM_FEMALE = 0x00010000;
+export const MM_NOMSG = 0x00020000;
+export const MM_NOEXCLAM = 0x00040000;
+export const MM_IGNORELAVA = 0x00080000;
+
 // Trap types (trap.h)
 export const ALL_TRAPS = -1;
 export const NO_TRAP = 0;

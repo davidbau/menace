@@ -22,12 +22,12 @@
 //     └─ deleteBones()      — remove used bones
 
 import { rn2 } from './rng.js';
-import { ACCESSIBLE } from './const.js';
+import { ACCESSIBLE, MM_NONAME } from './const.js';
 import { CLASS_SYMBOLS } from './objects.js';
 import { mons, PM_GHOST } from './monsters.js';
 import { placeFloorObject } from './stackobj.js';
 import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
-import { makemon, MM_NONAME } from './makemon.js';
+import { makemon } from './makemon.js';
 import {
     saveLev, restLev, saveObjChn,
     saveBones, loadBones, deleteBones,

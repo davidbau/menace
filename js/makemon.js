@@ -10,9 +10,17 @@ import {
     SHOPBASE, ROOMOFFSET, IS_POOL, IS_LAVA, IS_STWALL, IS_DOOR, IS_WALL, ACCESSIBLE,
     VAULT, ZOO, DELPHI, TEMPLE,
     D_LOCKED, D_CLOSED, SDOOR, SCORR, isok, COLNO, ROWNO,
-    ALL_TRAPS, HOLE, TRAPDOOR
+    ALL_TRAPS, HOLE, TRAPDOOR, NO_MM_FLAGS, NO_MINVENT, MM_NOWAIT,
+    MM_NOCOUNTBIRTH, MM_IGNOREWATER, MM_ADJACENTOK, MM_NONAME, MM_MALE,
+    MM_FEMALE, MM_EDOG, MM_ASLEEP, MM_NOGRP, MM_NOMSG, MM_NOEXCLAM,
+    MM_IGNORELAVA,
 } from './const.js';
 import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC } from './const.js';
+export {
+    NO_MM_FLAGS, NO_MINVENT, MM_NOWAIT, MM_NOCOUNTBIRTH, MM_IGNOREWATER,
+    MM_ADJACENTOK, MM_NONAME, MM_MALE, MM_FEMALE, MM_EDOG, MM_ASLEEP,
+    MM_NOGRP, MM_NOMSG, MM_NOEXCLAM, MM_IGNORELAVA,
+} from './const.js';
 import { couldsee, cansee, getActiveFov } from './vision.js';
 import { get_shop_item } from './shknam.js';
 import {
@@ -1912,23 +1920,6 @@ function set_mimic_sym(mndx, x, y, map, depth) {
 // C ref: makemon.c:1148-1505
 // Simplified for level generation PRNG alignment
 // ========================================================================
-
-// MM flags — C ref: hack.h
-export const NO_MM_FLAGS = 0;
-export const NO_MINVENT      = 0x00000001; // suppress minvent when creating mon
-export const MM_NOWAIT       = 0x00000002; // don't set STRAT_WAITFORU/STRAT_CLOSE from mflags3
-export const MM_NOCOUNTBIRTH = 0x00000004;
-export const MM_IGNOREWATER  = 0x00000008;
-export const MM_ADJACENTOK   = 0x00000010;
-export const MM_NONAME       = 0x00000040; // monster is not christened
-export const MM_MALE         = 0x00008000; // force male variation
-export const MM_FEMALE       = 0x00010000; // force female variation
-export const MM_EDOG         = 0x00000800; // add edog structure
-export const MM_ASLEEP       = 0x00001000; // monsters should be generated asleep
-export const MM_NOGRP        = 0x00002000;
-export const MM_NOMSG        = 0x00020000; // no appear message
-export const MM_NOEXCLAM     = 0x00040000; // use "<mon> appears."
-export const MM_IGNORELAVA   = 0x00080000;
 
 // C ref: makemon.c makemon_rnd_goodpos() — find random valid position
 // Tries up to 50 random positions using rn2(COLNO-3)+2, rn2(ROWNO).

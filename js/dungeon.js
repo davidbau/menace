@@ -28,7 +28,8 @@ import {
     MKTRAP_NOFLAGS, MKTRAP_SEEN, MKTRAP_MAZEFLAG, MKTRAP_NOSPIDERONWEB, MKTRAP_NOVICTIM,
     PM_ARCHEOLOGIST as ROLE_ARCHEOLOGIST, PM_WIZARD as ROLE_WIZARD,
     PM_PRIEST as ROLE_PRIEST,
-    A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC
+    A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
+    MM_NOGRP
 } from './const.js';
 import { GameMap } from './game.js';
 import { rn2, rnd, rn1, d, getRngCallCount, advanceRngRaw, pushRngLogEntry } from './rng.js';
@@ -45,7 +46,7 @@ import {
     TAINT_AGE,
     RANDOM_CLASS,
 } from './mkobj.js';
-import { makemon, mkclass, rndmonnum_adj, NO_MM_FLAGS, MM_NOGRP, setMakemonRoleContext, setMakemonLevelContext, getMakemonRoleIndex, setMakemonInMklevContext } from './makemon.js';
+import { makemon, mkclass, rndmonnum_adj, NO_MM_FLAGS, setMakemonRoleContext, setMakemonLevelContext, getMakemonRoleIndex, setMakemonInMklevContext } from './makemon.js';
 import {
     mons, S_UNICORN, S_DRAGON, S_GIANT, S_TROLL, S_CENTAUR, S_ORC, S_GNOME, S_KOBOLD,
     S_VAMPIRE, S_ZOMBIE, S_DEMON, S_FUNGUS,

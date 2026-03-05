@@ -15,12 +15,12 @@ import {
     SCR_BLANK_PAPER,
     CANDY_BAR,
 } from './objects.js';
-import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO } from './const.js';
+import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK } from './const.js';
 import { doname } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { discoverObject, isObjectNameKnown } from './discovery.js';
 import { make_confused, make_stunned } from './potion.js';
-import { makemon, MM_EDOG, NO_MINVENT, MM_ADJACENTOK } from './makemon.js';
+import { makemon, NO_MINVENT } from './makemon.js';
 import { mons, PM_ACID_BLOB, PM_YELLOW_LIGHT, PM_BLACK_LIGHT, S_HUMAN } from './monsters.js';
 import { resist } from './zap.js';
 import { monflee } from './monmove.js';

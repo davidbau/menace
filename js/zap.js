@@ -9,6 +9,7 @@ import {
     ICE, POOL,
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN,
     TELEP_TRAP, LEVEL_TELEP, MAGIC_TRAP, ANTI_MAGIC, POLY_TRAP, MAGIC_PORTAL, VIBRATING_SQUARE,
+    MM_NOWAIT, MM_NOMSG, MM_NOCOUNTBIRTH, MM_MALE, MM_FEMALE,
 } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
@@ -46,7 +47,7 @@ import { mons, G_FREQ, MZ_TINY, MZ_HUMAN, M1_NOEYES,
          PM_LONG_WORM, S_TROLL, S_ZOMBIE, S_EEL, S_GOLEM, S_MIMIC } from './monsters.js';
 import {
   rndmonnum, makemon,
-  NO_MINVENT, MM_NOWAIT, MM_NOMSG, MM_NOCOUNTBIRTH, MM_MALE, MM_FEMALE,
+  NO_MINVENT,
 } from './makemon.js';
 import { next_ident, mksobj, mkobj, weight } from './mkobj.js';
 import { newexplevel } from './exper.js';

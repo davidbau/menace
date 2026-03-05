@@ -40,7 +40,7 @@ import {
 } from './mondata.js';
 import {
     makemon, mkclass, def_char_to_monclass, NO_MM_FLAGS,
-    MM_NOGRP, MM_ADJACENTOK, MM_IGNOREWATER, rndmonnum, getMakemonRoleIndex
+    rndmonnum, getMakemonRoleIndex
 } from './makemon.js';
 import {
     STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
@@ -60,7 +60,8 @@ import {
     A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, Align2amask,
     MKTRAP_SEEN, MKTRAP_MAZEFLAG, MKTRAP_NOSPIDERONWEB, MKTRAP_NOVICTIM,
     MAXNROFROOMS, ROOMOFFSET, MAXMCLASSES,
-    PM_PRIEST as ROLE_PRIEST
+    PM_PRIEST as ROLE_PRIEST,
+    MM_NOGRP, MM_ADJACENTOK, MM_IGNOREWATER, MM_NOCOUNTBIRTH
 } from './const.js';
 import {
     BOULDER, SCROLL_CLASS, FOOD_CLASS, WEAPON_CLASS, ARMOR_CLASS,
@@ -6111,7 +6112,6 @@ async function createScriptMonster(deferred) {
     const traceStart = traceMon ? getRngCallCount() : 0;
     const traceSeq = ++monsterExecSeq;
     const MM_NOTAIL = 0x00004000;
-    const MM_NOCOUNTBIRTH = 0x00000004;
     const NO_INVENT = 0;
     const CUSTOM_INVENT = 0x01;
     const DEFAULT_INVENT = 0x02;

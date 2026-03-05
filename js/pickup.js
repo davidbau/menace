@@ -1,6 +1,6 @@
 import { THRONE, SINK, GRAVE, FOUNTAIN, STAIRS, ALTAR, IS_DOOR, D_ISOPEN,
          IS_POOL, IS_LAVA, isok, SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER,
-         EXT_ENCUMBER, A_WIS, STONE } from './const.js';
+         EXT_ENCUMBER, A_WIS, STONE, MM_ADJACENTOK, MM_NOMSG } from './const.js';
 import { objectData, COIN_CLASS, CORPSE, ICE_BOX, LARGE_BOX, CHEST,
          BAG_OF_HOLDING, BAG_OF_TRICKS, WAN_CANCELLATION, LOADSTONE,
          BOULDER, STATUE, AMULET_OF_YENDOR, CANDELABRUM_OF_INVOCATION,
@@ -24,7 +24,7 @@ import { instapetrify } from './trap.js';
 import { exercise } from './attrib_exercise.js';
 import { newsym } from './monutil.js';
 import { currency, compactInvletPromptChars } from './invent.js';
-import { makemon, NO_MM_FLAGS, NO_MINVENT, MM_ADJACENTOK } from './makemon.js';
+import { makemon, NO_MM_FLAGS, NO_MINVENT } from './makemon.js';
 import { christen_monst, Monnam, mon_nam, x_monnam, ARTICLE_THE,
          SUPPRESS_SADDLE } from './do_name.js';
 import { revive as revive_corpse } from './zap.js';
