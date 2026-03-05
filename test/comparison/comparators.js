@@ -667,7 +667,17 @@ export function compareMapdumpCheckpoints(jsCheckpoints = null, sessionCheckpoin
             ['traps', 'K'],
         ];
         for (const [field, section] of sparseSections) {
-            const sparseCmp = compareMapdumpSparse(jParsed[field], sParsed[field]);
+            // C's fmon list retains dead monsters (mhp=0) until dmonsfree(), which runs
+            // after harness_auto_mapdump(). JS removes dead monsters immediately from
+            // map.monsters. Filter out mhp=0 entries from the M section to avoid
+            // false divergences on monsters killed/failed during level generation.
+            const jField = (section === 'M')
+                ? (jParsed[field] || []).filter((m) => m[3] !== 0)
+                : jParsed[field];
+            const sField = (section === 'M')
+                ? (sParsed[field] || []).filter((m) => m[3] !== 0)
+                : sParsed[field];
+            const sparseCmp = compareMapdumpSparse(jField, sField);
             if (!sparseCmp.match) {
                 idMatch = false;
                 if (!firstDivergence) {
