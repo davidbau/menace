@@ -1396,6 +1396,30 @@ function lootDirectionDelta(ch) {
     }
 }
 
+function classSymbolLabel(sym) {
+    switch (sym) {
+        case ')': return 'Weapons';
+        case '[': return 'Armor';
+        case '=': return 'Rings';
+        case '"': return 'Amulets';
+        case '(': return 'Tools';
+        case '%': return 'Comestibles';
+        case '!': return 'Potions';
+        case '?': return 'Scrolls';
+        case '+': return 'Spellbooks';
+        case '/': return 'Wands';
+        case '$': return 'Coins';
+        case '*': return 'Gems/Stones';
+        default: return 'Objects';
+    }
+}
+
+function cContainerOrder(items) {
+    // C container chains are prepended (head is newest); JS arrays are append-order.
+    // Reverse for menu/class enumeration parity.
+    return [...(items || [])].reverse();
+}
+
 async function announceLootedItems(display, player, items, verb) {
     for (const item of (items || [])) {
         await display.putstr_message(`You ${verb} ${doname(item, player)}.`);
@@ -1409,6 +1433,19 @@ async function announceLootedItems(display, player, items, verb) {
 async function containerMenu(game, container) {
     const { player, display } = game;
     let tookTime = false;
+    const clearMenuOptionRows = () => {
+        if (typeof display?.clearRow !== 'function') return;
+        for (let r = 2; r <= 10; r++) display.clearRow(r);
+    };
+    const drawMenuOptionLine = (col, row, text) => {
+        if (typeof display?.putstr !== 'function') return;
+        display.putstr(col, row, text);
+    };
+    const centeredPad = (text, fallback80) => {
+        const cols = display?.cols || 80;
+        if (cols >= 80 && Number.isInteger(fallback80)) return fallback80;
+        return Math.max(0, Math.floor((cols - text.length) / 2));
+    };
     const putMenuPrompt = async (msg) => {
         const prevNoConcat = !!display?.noConcatenateMessages;
         if (display) display.noConcatenateMessages = true;
@@ -1426,12 +1463,23 @@ async function containerMenu(game, container) {
         const prompt = outmaybe
             ? `Do what with the ${cname}?`
             : `The ${cname} is empty.  Do what with it?`;
-        const cols = display?.cols || 80;
-        // C tty + menu hybrid prompts land this at a fixed right-shift on 80 cols.
-        const pad = (cols >= 80)
-            ? 38
-            : Math.max(0, Math.floor((cols - prompt.length) / 2));
+        const pad = centeredPad(prompt, 38);
+        clearMenuOptionRows();
         await putMenuPrompt(`${' '.repeat(pad)}${prompt}`);
+        if (outmaybe) {
+            drawMenuOptionLine(pad, 2, `: - Look inside the ${cname}`);
+            if (hasContents) {
+                drawMenuOptionLine(pad, 3, 'o - take something out');
+                drawMenuOptionLine(pad, 4, 'i - put something in');
+                drawMenuOptionLine(pad, 5, 'b - both; take out, then put in');
+                drawMenuOptionLine(pad, 6, 'r - both reversed; put in, then take out');
+            } else {
+                drawMenuOptionLine(pad, 3, 'i - put something in');
+            }
+            drawMenuOptionLine(pad, 7, `s - stash one item into the ${cname}`);
+            drawMenuOptionLine(pad, 9, 'q * do nothing');
+            drawMenuOptionLine(pad, 10, '(end)');
+        }
 
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
@@ -1476,32 +1524,56 @@ async function containerMenu(game, container) {
                 continue;
             }
             const currentContents = getContainerContents(container);
+            const letters = 'abcdefghijklmnopqrstuvwxyz';
             const seenClasses = new Set();
-            for (const o of currentContents) {
+            for (const o of cContainerOrder(currentContents)) {
                 const sym = CLASS_SYMBOLS[o?.oclass];
                 if (sym) seenClasses.add(sym);
             }
             let allowedClasses = null; // null => all classes
             if (seenClasses.size > 1) {
-                const classStr = [...seenClasses].join('');
-                // Mirrors C wording from query_classes() for take-out.
-                await putMenuPrompt(`Take out what type of objects? [${classStr} or ?*]`);
+                const classOrder = [...seenClasses];
+                const classPrompt = 'Take out what type of objects?';
+                const classPad = centeredPad(classPrompt, 23);
+                const hasUnknownBUC = currentContents.some((o) => !o?.bknown);
+                clearMenuOptionRows();
+                await putMenuPrompt(`${' '.repeat(classPad)}${classPrompt}`);
+                drawMenuOptionLine(classPad, 2, 'A - Auto-select every relevant item');
+                drawMenuOptionLine(classPad + 4, 3, '(ignored unless some other choices are also picked)');
+                drawMenuOptionLine(classPad, 5, 'a - All types');
+                for (let i = 0; i < classOrder.length; i++) {
+                    const letter = String.fromCharCode('b'.charCodeAt(0) + i);
+                    drawMenuOptionLine(
+                        classPad,
+                        6 + i,
+                        `${letter} - ${classSymbolLabel(classOrder[i])}`
+                    );
+                }
+                if (hasUnknownBUC) {
+                    drawMenuOptionLine(classPad, 9, 'X - Items of unknown Bless/Curse status');
+                }
+                drawMenuOptionLine(classPad, 10, '(end)');
                 const clsCh = await nhgetch();
                 if (clsCh === 27) continue; // ESC => back to "Do what?" menu
                 const cls = String.fromCharCode(clsCh);
-                if (cls === '?' || cls === '*' || cls === 'a' || cls === 'A') {
+                if (cls === '?' || cls === '*' || cls === 'A' || cls === 'a') {
                     allowedClasses = null;
                 } else {
-                    if (!seenClasses.has(cls)) continue; // invalid class choice
-                    allowedClasses = new Set([cls]);
+                    const letterIndex = letters.indexOf(cls.toLowerCase());
+                    if (letterIndex >= 1 && (letterIndex - 1) < classOrder.length) {
+                        allowedClasses = new Set([classOrder[letterIndex - 1]]);
+                    } else if (classOrder.includes(cls)) {
+                        allowedClasses = new Set([cls]);
+                    } else {
+                        continue; // invalid class choice
+                    }
                 }
             }
-            const letters = 'abcdefghijklmnopqrstuvwxyz';
             const selected = new Set();
             while (true) {
                 const cur = getContainerContents(container);
                 if (!cur.length) break;
-                const visible = cur.filter((o) => {
+                const visible = cContainerOrder(cur).filter((o) => {
                     if (allowedClasses === null) return true;
                     return allowedClasses.has(CLASS_SYMBOLS[o?.oclass]);
                 });
