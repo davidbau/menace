@@ -846,11 +846,6 @@ def wait_for_game_ready(session, rng_log_file):
             print(f'  [startup-{attempt}] rng={rng_count} GAME READY')
             break
 
-        lines = content.strip().split('\n')
-        if len(lines) > 5 and any('|' in line and '-' in line for line in lines[1:22]):
-            print(f'  [startup-{attempt}] rng={rng_count} GAME READY (map detected)')
-            break
-
         if attempt > 2:
             tmux_send_special(session, 'Space', 0.1)
         else:
@@ -1961,9 +1956,20 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             else:
                 print('WARNING: Failed to capture startup typGrid')
 
-        # Capture compressed ANSI screen for startup
+        # Capture compressed ANSI screen for startup.
+        # Defensive remediation: if tutorial prompt is still visible here, we are
+        # not in true gameplay-ready state yet. Dismiss it and recapture startup.
         startup_screen_compressed = capture_screen_compressed(session_name)
         startup_cursor = capture_cursor(session_name)
+        if 'Do you want a tutorial?' in startup_screen_compressed:
+            print('WARNING: tutorial prompt leaked into gameplay startup; answering "n" and recapturing startup.')
+            tmux_send(session_name, 'n', 0.1)
+            wait_for_game_ready(session_name, rng_log_file)
+            time.sleep(0.02)
+            startup_rng_count, startup_rng_lines = read_rng_log(rng_log_file)
+            startup_screen_compressed = capture_screen_compressed(session_name)
+            startup_cursor = capture_cursor(session_name)
+            print(f'Startup recaptured: {startup_rng_count} RNG calls')
 
         # Build session object (unified format v3)
         startup_rng_entries = parse_rng_lines(startup_rng_lines)

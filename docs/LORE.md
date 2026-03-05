@@ -2111,3 +2111,19 @@ hard-won wisdom:
   - timeout frontier moved later (10s timeout from ~step `307` to ~`318-320`);
     remaining timeout indicates further message/prompt drift still exists in the
     same combat-heavy window.
+
+### Seed323 tutorial prompt leak is a rerecord-startup boundary bug (2026-03-05)
+
+- `seed323_caveman_wizard_gameplay` currently starts with tutorial prompt text
+  in startup and first keyed step (`"Do you want a tutorial?"` + leading space),
+  which is not a true gameplay boundary.
+- This makes first divergence reports non-actionable (`Unknown command ' '`
+  vs tutorial prompt) and obscures later gameplay parity work.
+- Harness fix in `test/comparison/c-harness/run_session.py`:
+  - `wait_for_game_ready()` now requires status readiness (`Dlvl/St/HP`) and no
+    longer treats map-shape detection as sufficient readiness.
+  - Added a defensive startup recapture: if tutorial prompt is still visible
+    when capturing startup for gameplay sessions, answer `n`, re-run readiness,
+    and recapture startup before recording gameplay keys.
+- Guidance: re-record `seed323` with updated harness; gameplay sessions should
+  not include tutorial menu interaction in keyed gameplay steps.
