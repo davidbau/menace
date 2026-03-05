@@ -674,12 +674,9 @@ export function pointInShop(x, y, map) {
     }
 
     // C ref: in_rooms() handles SHARED/SHARED_PLUS tiles by scanning
-    // nearby roomno entries for eligible rooms. Our map roomno assignment
-    // can leave doorway/corridor connectors as NO_ROOM, so use a narrow
-    // fallback for door/corridor (and shared-like roomno values).
+    // nearby roomno entries for eligible rooms.
     const isSharedLike = roomno === 1 || roomno === 2;
-    const isDoorCorr = loc && (loc.typ === DOOR || loc.typ === CORR);
-    if (!isSharedLike && !isDoorCorr) return false;
+    if (!isSharedLike) return false;
 
     for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
