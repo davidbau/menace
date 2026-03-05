@@ -873,11 +873,6 @@ export async function domove_core(dir, player, map, display, game) {
     player.moved = true;
     ctx.move = 1;
     game.lastMoveDir = moveDir;
-    // C parity: maybe_smudge_engr() is tied to command-attempt context
-    // and should not fire on continued multi-run movement turns.
-    if (!ctx.skip_smudge_engr) {
-        await maybe_smudge_engr(map, oldX, oldY, player.x, player.y, player);
-    }
 
     // Clear force-fight prefix after successful movement.
     clear_forcefight_prefix(game, ctx);
@@ -1178,6 +1173,13 @@ export async function domove_core(dir, player, map, display, game) {
         if (trapResult === 'teleported') {
             return { moved: true, tookTime: true };
         }
+    }
+
+    // C ref: hack.c domove() calls maybe_smudge_engr() after domove_core()
+    // succeeds, so read_engr_at() sees pre-smudge text for the current step.
+    // Keep the existing run-step suppression for continued multi-run turns.
+    if (!ctx.skip_smudge_engr) {
+        await maybe_smudge_engr(map, oldX, oldY, player.x, player.y, player);
     }
 
     await runmode_delay_output(game, display);

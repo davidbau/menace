@@ -205,10 +205,10 @@ export async function moveloop_turnend(game) {
     // C ref: mon.c m_calcdistress() shapechange + lycanthropy pass.
     for (const mon of (game.lev || game.map).monsters) {
         if (mon.dead) continue;
-        runtimeDecideToShapeshift(mon, (game.u || game.player).dungeonLevel,
+        await runtimeDecideToShapeshift(mon, (game.u || game.player).dungeonLevel,
             (game.lev || game.map), (game.u || game.player), game.fov);
         if (mon.type && (mon.type.flags2 & M2_WERE)) {
-            were_change(mon, {
+            await were_change(mon, {
                 player: (game.u || game.player),
                 map: (game.lev || game.map),
                 fov: game.fov,

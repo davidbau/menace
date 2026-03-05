@@ -8,7 +8,7 @@ import { objectData, ARMOR_CLASS, AMULET_CLASS, RING_CLASS, WEAPON_CLASS,
        } from './objects.js';
 import { nohands, is_animal, is_mindless, cantweararm, slithy, has_horns,
          is_humanoid, breakarm, sliparm, is_whirly, noncorporeal,
-         attacktype,
+         attacktype, canseemon,
        } from './mondata.js';
 import { S_MUMMY, S_CENTAUR } from './symbols.js';
 import { PM_SKELETON, PM_HOBBIT, MZ_TINY, MZ_SMALL, MZ_HUMAN, MZ_HUGE,
@@ -16,8 +16,8 @@ import { PM_SKELETON, PM_HOBBIT, MZ_TINY, MZ_SMALL, MZ_HUMAN, MZ_HUGE,
        } from './monsters.js';
 import { mons } from './monsters.js';
 import { newsym } from './monutil.js';
+import { You_hear } from './pline.js';
 import { placeFloorObject } from './stackobj.js';
-import { pushRngLogEntry } from './rng.js';
 
 // ============================================================================
 // Wornmask constants — cf. prop.h
@@ -686,7 +686,6 @@ export function m_lose_armor(mon, obj, polyspot, map) {
     obj.ox = mon.mx;
     obj.oy = mon.my;
     placeFloorObject(map, obj);
-    pushRngLogEntry(`^drop[${mon.mndx}@${mon.mx},${mon.my},${obj.otyp}]`);
     if (polyspot) bypass_obj(obj);
     if (map) newsym(mon.mx, mon.my);
 }
@@ -695,14 +694,22 @@ export function m_lose_armor(mon, obj, polyspot, map) {
 // mon_break_armor — cf. worn.c:1167
 // ============================================================================
 // Remove/destroy armor when monster polymorphs.
-export function mon_break_armor(mon, polyspot, map) {
+export async function mon_break_armor(mon, polyspot, map, opts = {}) {
     const mdat = mon.type || {};
     const handless_or_tiny = nohands(mdat) || (mdat.msize || 0) < MZ_SMALL;
+    const vis = canseemon(mon, opts.player || null, opts.fov || null, map);
+    const emitClank = async () => {
+        if (opts?.display && typeof opts.display.putstr_message === 'function') {
+            await opts.display.putstr_message('You hear a clank.');
+            return;
+        }
+        await You_hear('a clank.');
+    };
     let otmp;
-
     if (breakarm(mdat)) {
         // Body armor breaks
         if ((otmp = which_armor(mon, W_ARM)) != null) {
+            if (!vis && (objectData[otmp.otyp]?.sub === ARM_HELM)) await emitClank();
             // Destroy it (m_useup equivalent: remove from inventory)
             extract_from_minvent(mon, otmp, true, false);
         }
@@ -718,6 +725,7 @@ export function mon_break_armor(mon, polyspot, map) {
     } else if (sliparm(mdat)) {
         // Armor falls off
         if ((otmp = which_armor(mon, W_ARM)) != null) {
+            if (!vis && (objectData[otmp.otyp]?.sub === ARM_HELM)) await emitClank();
             m_lose_armor(mon, otmp, polyspot, map);
         }
         if ((otmp = which_armor(mon, W_ARMC)) != null
@@ -734,6 +742,7 @@ export function mon_break_armor(mon, polyspot, map) {
             m_lose_armor(mon, otmp, polyspot, map);
         }
         if ((otmp = which_armor(mon, W_ARMS)) != null) {
+            if (!vis) await emitClank();
             m_lose_armor(mon, otmp, polyspot, map);
         }
     }
@@ -741,6 +750,7 @@ export function mon_break_armor(mon, polyspot, map) {
     if (handless_or_tiny || has_horns(mdat)) {
         if ((otmp = which_armor(mon, W_ARMH)) != null
             && (handless_or_tiny || (objectData[otmp.otyp]?.material || 0) > 7)) {
+            if (!vis) await emitClank();
             m_lose_armor(mon, otmp, polyspot, map);
         }
     }

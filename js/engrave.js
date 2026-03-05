@@ -175,6 +175,7 @@ export async function wipe_engr_at(map, x, y, cnt, magical = false) {
         // and is eligible to be wiped.
         engrTrace(`step=${step}`, `wipe_at(${x},${y})`, `cnt=${cnt}`, `magical=${magical ? 1 : 0}`,
             `engr=${engr.type}`, `len=${String(engr.text || '').length}`);
+        const beforeText = String(engr.text || '');
         pushRngLogEntry(`^wipe[${x},${y}]`);
         const loc = map.at ? map.at(x, y) : null;
         const isIce = !!loc && loc.typ === ICE;
@@ -185,6 +186,12 @@ export async function wipe_engr_at(map, x, y, cnt, magical = false) {
             }
             if (erase > 0) {
                 engr.text = wipeoutEngravingText(engr.text || '', erase).replace(/^ +/, '');
+                engrTrace(
+                    `step=${step}`,
+                    `wipe_text(${x},${y})`,
+                    `before=${JSON.stringify(beforeText)}`,
+                    `after=${JSON.stringify(String(engr.text || ''))}`
+                );
                 if (!engr.text) {
                     del_engr(map, x, y);
                 }
@@ -368,6 +375,12 @@ export async function read_engr_at(map, x, y, player, game = null) {
     const info = describe_readable_engraving(map, x, y, player);
     if (!info) return;
     const { ep, typeMsg, readMsg } = info;
+    engrTrace(
+        `step=${Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?'}`,
+        `read_engr_at(${x},${y})`,
+        `type=${String(ep?.type || '')}`,
+        `text=${JSON.stringify(String(ep?.text || ''))}`
+    );
     await pline(typeMsg);
     // Match C topline flow for engraving reads: split into two prompts only
     // when both messages can't fit on one topline.
