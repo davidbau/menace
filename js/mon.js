@@ -1533,10 +1533,8 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                 `flee=${mon.mflee ? 1 : 0}`,
                 `peace=${mon.peaceful ? 1 : 0}`,
                 `conf=${mon.confused ? 1 : 0}`);
-            if ((hhp || handleHiderPremove)(mon, map, player, fov)) {
-                continue;
-            }
-            // TODO: minliquid(mon) — drowning/sinking not yet ported
+            // C ref: mon.c:1250-1251 — minliquid() before gear/hider logic.
+            if (minliquid(mon, map, player)) continue;
             // C ref: mon.c:1254-1267 — monster may spend turn equipping gear (I_SPECIAL check)
             const I_SPECIAL = 0x20000000;
             if (mon.misc_worn_check & I_SPECIAL) {
@@ -1566,6 +1564,9 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                         continue; // spent this turn equipping
                     }
                 }
+            }
+            if ((hhp || handleHiderPremove)(mon, map, player, fov)) {
+                continue;
             }
             // C ref: mon.c:1277-1284 — eel hiding
             if (mon.type?.mlet === S_EEL && !mon.mundetected

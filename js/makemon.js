@@ -110,6 +110,7 @@ import { senseMonsterForMap } from './monutil.js';
 import { Amonnam } from './do_name.js';
 import { vtense } from './objnam.js';
 import { Norep, set_msg_xy } from './pline.js';
+import { get_wormno, initworm, place_worm_tail_randomly } from './worm.js';
 
 // ========================================================================
 // Monster flags needed for m_initweap/m_initinv checks
@@ -1508,7 +1509,17 @@ function pickvampshape(mon, chamMndx, map) {
     return mndx;
 }
 
-function apply_newcham_from_base(mon, baseMndx, depth, map = null) {
+function maybe_init_long_worm_after_newcham(mon, newMndx, map = null, player = null) {
+    // C ref: mon.c newcham(): long worm gets new wormno and rn2(5)-sized tail.
+    if (newMndx !== PM_LONG_WORM) return;
+    const wormno = get_wormno();
+    mon.wormno = wormno;
+    if (!wormno) return;
+    initworm(mon, rn2(5));
+    place_worm_tail_randomly(mon, mon.mx, mon.my, map, player);
+}
+
+function apply_newcham_from_base(mon, baseMndx, depth, map = null, player = null) {
     let target = null;
     let tryct = 20;
     do {
@@ -1543,13 +1554,14 @@ function apply_newcham_from_base(mon, baseMndx, depth, map = null) {
     mon.m_lev = newLev;
     mon.mac = target.ac;
     mon.speed = target.speed;
+    maybe_init_long_worm_after_newcham(mon, newMndx, map, player);
     return true;
 }
 
 // C ref: mon.c newcham() with specific target ptr — apply form change to a known target mndx.
 // Used when the target form was already selected (e.g., pickvampshape was already called).
 // Unlike apply_newcham_from_base, does NOT re-call select_newcham_form/pickvampshape.
-function apply_newcham_direct(mon, targetMndx, depth, map = null) {
+function apply_newcham_direct(mon, targetMndx, depth, map = null, player = null) {
     const target = mons[targetMndx];
     if (!target) return false;
 
@@ -1575,6 +1587,7 @@ function apply_newcham_direct(mon, targetMndx, depth, map = null) {
     mon.m_lev = newLev;
     mon.mac = target.ac;
     mon.speed = target.speed;
+    maybe_init_long_worm_after_newcham(mon, targetMndx, map, player);
     return true;
 }
 
@@ -1583,7 +1596,7 @@ function maybe_apply_newcham(mon, baseMndx, depth, map = null) {
     if (!(basePtr.flags2 & M2_SHAPESHIFTER)) return false;
     if (baseMndx === PM_VLAD_THE_IMPALER) return false;
     mon.cham = baseMndx;
-    return apply_newcham_from_base(mon, baseMndx, depth, map);
+    return apply_newcham_from_base(mon, baseMndx, depth, map, null);
 }
 
 // C ref: mon.c m_calcdistress() decide_to_shapeshift()
@@ -1597,7 +1610,7 @@ export function runtimeDecideToShapeshift(mon, depth = 1, map = null, player = n
     if (!is_vampshifter_mndx(chamMndx)) {
         // Regular shapeshifter: rn2(6) to decide
         if (rn2(6) !== 0) return false;
-        return apply_newcham_from_base(mon, chamMndx, depth, map);
+        return apply_newcham_from_base(mon, chamMndx, depth, map, player);
     }
 
     // Vampshifter — C ref: mon.c:4882 decide_to_shapeshift() vampshifter path
@@ -1613,7 +1626,7 @@ export function runtimeDecideToShapeshift(mon, depth = 1, map = null, player = n
             if (!rn2(4)) return false;
             // Shift back to base vampire form directly (C: newcham with specific ptr)
             if (chamMndx >= LOW_PM && chamMndx < SPECIAL_PM)
-                return apply_newcham_direct(mon, chamMndx, depth, map);
+                return apply_newcham_direct(mon, chamMndx, depth, map, player);
         } else if (mon.mndx === PM_FOG_CLOUD && mon.mhp === mon.mhpmax) {
             // C: fog cloud at full HP — consume rn2(4); if zero AND unseen/far → new shape
             if (rn2(4) !== 0) return false;
@@ -1623,7 +1636,7 @@ export function runtimeDecideToShapeshift(mon, depth = 1, map = null, player = n
             // pickvampshape selects new form; use apply_newcham_direct to avoid double-calling
             const newMndx = pickvampshape(mon, chamMndx, map);
             if (newMndx < 0 || newMndx === mon.mndx) return false;
-            return apply_newcham_direct(mon, newMndx, depth, map);
+            return apply_newcham_direct(mon, newMndx, depth, map, player);
         }
     } else {
         // Currently in vampire (base) form — maybe shift to alternate form
@@ -1633,7 +1646,7 @@ export function runtimeDecideToShapeshift(mon, depth = 1, map = null, player = n
             const seen = canseemon(mon, player, fov, map);
             const distSq = player ? dist2(player.x, player.y, mon.mx, mon.my) : 999;
             if (seen && distSq <= BOLT_LIM * BOLT_LIM) return false;
-            return apply_newcham_from_base(mon, chamMndx, depth, map);
+            return apply_newcham_from_base(mon, chamMndx, depth, map, player);
         }
     }
     return false;
