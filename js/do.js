@@ -761,20 +761,13 @@ export async function handleDrop(player, map, display) {
 // 4. Stair commands
 // ============================================================
 
-async function waitForStairMessageAck(display) {
-    // C ref: tty window handoff can force --More-- before map redraw on
-    // stair transitions. Reproduce that blocking acknowledgment so replayed
-    // key timing aligns with captured sessions.
-    if (!display?._moreBlockingEnabled || typeof display?.morePrompt !== 'function'
-        || typeof display?._nhgetch !== 'function') {
-        return;
-    }
-    if (typeof display.renderMoreMarker === 'function') {
+function showNonBlockingStairMore(display) {
+    // C captures show a visible "--More--" suffix at some stair transition
+    // boundaries, but key handling continues via the normal command loop.
+    if (typeof display?.renderMoreMarker === 'function') {
         display.renderMoreMarker();
+        display._nonBlockingMore = true;
     }
-    await display.morePrompt(display._nhgetch);
-    display.topMessage = null;
-    display.messageNeedsMore = false;
 }
 
 // cf. do.c u_stuck_cannot_go() — check if engulfed/grabbed preventing movement
@@ -808,7 +801,7 @@ export async function handleDownstairs(player, map, display, game) {
 
     // C ref: do.c goto_level() ordinary descent message when verbose.
     await display.putstr_message('You descend the stairs.');
-    await waitForStairMessageAck(display);
+    showNonBlockingStairMore(display);
 
     const currentDnum = Number.isInteger(game?.dnum)
         ? game.dnum
@@ -857,7 +850,7 @@ export async function handleUpstairs(player, map, display, game) {
 
     // C ref: do.c goto_level() ordinary ascent message when verbose.
     await display.putstr_message('You climb up the stairs.');
-    await waitForStairMessageAck(display);
+    showNonBlockingStairMore(display);
 
     const currentDnum = Number.isInteger(game?.dnum)
         ? game.dnum

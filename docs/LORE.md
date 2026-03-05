@@ -2189,3 +2189,18 @@ hard-won wisdom:
   - after: `mapdump=3/3` with `rng=18770/18770`, `events=9072/9072`, `cursor=413/413`.
 - Remaining first divergence is now a single screen-line timing mismatch at step `373`
   (`Unknown command ' '.`), which is separate from this terrain-state fix.
+
+### Stair transition `--More--` lesson: visible marker vs blocking key consumption (2026-03-05)
+
+- We found a regression in `do.js` stair handlers where an explicit
+  `waitForStairMessageAck()` blocked on `_nhgetch()` after:
+  - `You climb up the stairs.`
+  - `You descend the stairs.`
+- This consumed the next replay key inside the prompt path, creating
+  step-boundary skew (`space` never reached command parsing).
+- C-faithful correction:
+  - remove forced blocking stair ack,
+  - keep a visible `--More--` marker as non-blocking display state on stair
+    transition messages.
+- Practical effect: command-step ownership remains in `run_command` (as in
+  C command flow), which prevents hidden key consumption at stair boundaries.
