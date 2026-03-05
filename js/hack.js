@@ -1728,6 +1728,8 @@ const WT_WEIGHTCAP_SPARE = 50;
 const MAX_CARR_CAP = 1000;
 const WT_HUMAN = 1450;
 const WT_WOUNDEDLEG_REDUCT = 100;
+const LEFT_SIDE = 0x10;
+const RIGHT_SIDE = 0x20;
 
 // --------------------------------------------------------------------
 // Utility
@@ -1883,8 +1885,11 @@ export function weight_cap(player) {
         if (carrcap > MAX_CARR_CAP) carrcap = MAX_CARR_CAP;
         // Wounded legs reduction
         if (!player.flying) {
-            if (player.woundedLegLeft) carrcap -= WT_WOUNDEDLEG_REDUCT;
-            if (player.woundedLegRight) carrcap -= WT_WOUNDEDLEG_REDUCT;
+            const woundedBits = Number(player?.eWoundedLegs || 0);
+            const leftWounded = !!player?.woundedLegLeft || ((woundedBits & LEFT_SIDE) !== 0);
+            const rightWounded = !!player?.woundedLegRight || ((woundedBits & RIGHT_SIDE) !== 0);
+            if (leftWounded) carrcap -= WT_WOUNDEDLEG_REDUCT;
+            if (rightWounded) carrcap -= WT_WOUNDEDLEG_REDUCT;
         }
     }
     return Math.max(carrcap, 1);
