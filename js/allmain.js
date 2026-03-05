@@ -680,14 +680,15 @@ export async function execute_repeat_command(game, opts = {}) {
 }
 
 // C ref: allmain.c deferred_goto() immediately follows rhack() whenever
-// u.utotype is set. In JS, timed commands defer this until after moveloop_core()
-// so ordering stays after monster movement.
+// u.utotype is set.
 export async function maybe_deferred_goto_after_rhack(game, result, opts = {}) {
     const { skipTurnEnd = false } = opts;
     if (!game?.player?.utotype) return;
-    if (!(result && result.tookTime) || skipTurnEnd) {
+    if (!result || skipTurnEnd || result.prompt) {
         await deferred_goto((game.u || game.player), game);
+        return;
     }
+    await deferred_goto((game.u || game.player), game);
 }
 
 // Internal helper: drain a multi-turn occupation until it completes or is

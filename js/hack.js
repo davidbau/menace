@@ -24,7 +24,7 @@ import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
          WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BOULDER } from './objects.js';
 import { nhgetch } from './input.js';
 import { do_attack } from './uhitm.js';
-import { formatGoldPickupMessage, formatInventoryPickupMessage } from './do.js';
+import { formatGoldPickupMessage, formatInventoryPickupMessage, schedule_goto } from './do.js';
 import { x_monnam, y_monnam, YMonnam, Monnam, mon_nam, canseemon, passes_walls, is_longworm } from './mondata.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, u_wipe_engr } from './engrave.js';
 import { gethungry } from './eat.js';
@@ -952,6 +952,26 @@ export async function domove_core(dir, player, map, display, game) {
                 }
                 await display.putstr_message(`You feel your magical energy drain away${punct}`);
             }
+        }
+        // C ref: trap.c dotrap() -> fall_through(TRUE, ...)
+        else if (trap.ttyp === TRAPDOOR || trap.ttyp === HOLE) {
+            await pline(trap.ttyp === TRAPDOOR
+                ? 'A trap door opens up under you!'
+                : "There's a gaping hole under you!");
+            await You('fall down a shaft!');
+            // Falling to another level should pause on the combined trap message
+            // before the level transition redraw.
+            if (display && typeof display.renderMoreMarker === 'function') {
+                display.renderMoreMarker();
+                display._pendingMore = true;
+            }
+            const currentDepth = Number.isInteger(player?.dungeonLevel)
+                ? player.dungeonLevel
+                : (Number.isInteger(map?._genDlevel) ? map._genDlevel : 1);
+            const destDepth = Number.isInteger(trap?.dst?.dlevel)
+                ? trap.dst.dlevel
+                : (currentDepth + 1);
+            schedule_goto(player, destDepth, 0, null, null);
         }
     }
 

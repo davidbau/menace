@@ -1786,3 +1786,18 @@ hard-won wisdom:
   - `seed311_tourist_selfplay200_gameplay` became fully green,
   - guard `seed303_caveman_selfplay200_gameplay` stayed green,
   - full gameplay report improved `14/34 -> 15/34` passing.
+
+### Trapdoor fall parity depends on immediate `deferred_goto` ordering (2026-03-05)
+
+- `seed302_barbarian_selfplay200_gameplay` had early trapdoor skew:
+  missing trap message/`--More--`, no level fall at the right boundary, then
+  old-level `^movemon_turn` before expected new-level generation events.
+- Two C-structure fixes were required together:
+  - add player trapdoor/hole fall handling in `domove` (`trap.c dotrap ->
+    fall_through` shape): message, shaft fall, and scheduled level transition,
+  - execute `deferred_goto` immediately after `rhack()` when `u.utotype` is
+    set (C `allmain.c` ordering), not after monster movement.
+- Practical effect:
+  - seed302 improved substantially (`rng 2922 -> 6041`, `screens 44 -> 105`,
+    `events 715 -> 858`) and the first drift moved past the trapdoor boundary.
+  - seed303 canary became fully green under the same ordering fix.
