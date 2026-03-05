@@ -5414,7 +5414,7 @@ know with the respect you'd give one you've never seen before.*
 NetHack has been played, cursed at, loved, and documented since
 1987. The game itself is the work of the NetHack DevTeam, a
 loose collective of developers who have maintained one of the
-longest-running open source projects in existence. But the
+longest-running continuously developed open source projects in existence. But the
 documentation, the strategy, the collected wisdom about how to
 actually survive the thing, that came from the players.
 
