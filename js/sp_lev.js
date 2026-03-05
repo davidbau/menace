@@ -532,6 +532,15 @@ export function setLevelContext(map, depth) {
     levelState.roomStack = [];
     levelState.roomDepth = 0;
     levelState.currentRoom = null;
+    // Procedural mklev themed-room pass runs against the full level, not des.map().
+    // Reset any stale map-fragment coordinate state from prior special-level scripts.
+    levelState.mapCoordMode = false;
+    levelState.mapOriginX = 0;
+    levelState.mapOriginY = 0;
+    levelState.xstart = 0;
+    levelState.ystart = 0;
+    levelState.xsize = 0;
+    levelState.ysize = 0;
     levelState.finalizeContext = null;
     // C ref: gi.in_mk_themerooms — set during themed room generation
     // Affects needfill default: themed rooms default to FILL_NONE (0), not FILL_NORMAL (1)
@@ -552,6 +561,13 @@ export function clearLevelContext() {
     levelState.roomStack = [];
     levelState.roomDepth = 0;
     levelState.currentRoom = null;
+    levelState.mapCoordMode = false;
+    levelState.mapOriginX = 0;
+    levelState.mapOriginY = 0;
+    levelState.xstart = 0;
+    levelState.ystart = 0;
+    levelState.xsize = 0;
+    levelState.ysize = 0;
     levelState.finalizeContext = null;
     levelState.inThemerooms = false;
 }
@@ -7261,7 +7277,7 @@ export const selection = {
                 if (levelState.currentRoom) {
                     rx -= levelState.currentRoom.lx;
                     ry -= levelState.currentRoom.ly;
-                } else if (levelState.xstart !== undefined) {
+                } else if (levelState.mapCoordMode && levelState.xstart !== undefined) {
                     rx -= levelState.xstart;
                     ry -= levelState.ystart;
                 }
@@ -7275,7 +7291,7 @@ export const selection = {
                     if (levelState.currentRoom) {
                         rx -= levelState.currentRoom.lx;
                         ry -= levelState.currentRoom.ly;
-                    } else if (levelState.xstart !== undefined) {
+                    } else if (levelState.mapCoordMode && levelState.xstart !== undefined) {
                         rx -= levelState.xstart;
                         ry -= levelState.ystart;
                     }
@@ -7438,7 +7454,7 @@ export const selection = {
             if (levelState.currentRoom) {
                 rx -= levelState.currentRoom.lx;
                 ry -= levelState.currentRoom.ly;
-            } else if (levelState.xstart !== undefined) {
+            } else if (levelState.mapCoordMode && levelState.xstart !== undefined) {
                 rx -= levelState.xstart;
                 ry -= levelState.ystart;
             }
