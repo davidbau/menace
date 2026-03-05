@@ -52,7 +52,7 @@ import { find_mac, W_WEP, W_QUIVER, W_SWAPWEP } from './worn.js';
 import { spec_abon } from './artifact.js';
 import { erode_obj, ERODE_CRACK, EF_DESTROY, EF_VERBOSE, ER_DESTROYED } from './trap.js';
 import { goodpos } from './teleport.js';
-import { mpickobj, newsym, flush_screen } from './monutil.js';
+import { mpickobj, newsym, flush_screen, canSeeMonsterForMap } from './monutil.js';
 import { makemon } from './makemon.js';
 import { exercise } from './attrib_exercise.js';
 import {
@@ -790,7 +790,12 @@ async function mhurtle_step(mon, x, y, map, player) {
     }
     const mtmp = map.monsterAt ? map.monsterAt(x, y) : null;
     if (mtmp && mtmp !== mon) {
-        await pline(`${Monnam(mon)} bumps into ${a_monnam(mtmp)}.`);
+        // C ref: dothrow.c mhurtle_step(): only print bump message when at
+        // least one of the two monsters is visible to the hero.
+        if (canSeeMonsterForMap(mon, map, player, null)
+            || canSeeMonsterForMap(mtmp, map, player, null)) {
+            await pline(`${Monnam(mon)} bumps into ${a_monnam(mtmp)}.`);
+        }
         wakeup(mtmp, true, map, player);
     } else if (player && x === player.x && y === player.y) {
         await pline(`${Monnam(mon)} bumps into you.`);
