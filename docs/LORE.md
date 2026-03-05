@@ -2287,3 +2287,21 @@ hard-won wisdom:
   - `seed329_rogue_wizard_gameplay` now fully passes:
     `rng=15900/15900`, `events=14329/14329`, `screens=423/423`,
     `colors=10152/10152`, `cursor=423/423`, `mapdump=2/2`.
+
+### `seed321` mapdump `R` parity: `des.region` needs topologize-style border stamping (2026-03-05)
+
+- `seed321_archeologist_wizard_gameplay` was mapdump-only failing at
+  `d0l21_002 R[51,14]` (`JS=0`, `C=3`), with full RNG/event/screen parity.
+- Diff shape was a complete 1-tile perimeter ring around a 3x3 room interior
+  (`x=51..55, y=14..18`), indicating missing topologize edge-roomno assignment.
+- Root cause: JS `sp_lev` rectangular `des.region` path (`addRegionRectRoom`) set
+  roomno only inside the region and did not apply C `topologize()` border
+  stamping (`roomno`/`SHARED` on surrounding edge cells).
+- Fix in `js/sp_lev.js`:
+  - add topologize-style border loops around rectangular regions:
+    - top/bottom rows at `y1-1` and `y2+1`,
+    - side columns at `x1-1` and `x2+1`,
+    - set `edge=1` and `roomno=(existing ? SHARED : roomno)`.
+- Validation:
+  - `seed321_archeologist_wizard_gameplay`: full pass (`mapdump=2/2`).
+  - `seed329_rogue_wizard_gameplay`: still full pass (no regression).

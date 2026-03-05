@@ -4752,6 +4752,7 @@ export async function region(opts_or_selection, type) {
     const doArrivalRoom = !!opts.arrival_room;
     const rlit = litstate_rnd(parseLitState(opts.lit), depth);
     const roomNotNeeded = (rtype === 0 && !irregular && !doArrivalRoom && !levelState.inThemerooms);
+    const SHARED_ROOMNO = 1; // C ref: rm.h SHARED marker used by topologize().
 
     const addRegionRectRoom = (rx1, ry1, rx2, ry2) => {
         const room = {
@@ -4782,6 +4783,25 @@ export async function region(opts_or_selection, type) {
                 loc.roomno = roomno;
                 if (rlit) loc.lit = 1;
                 loc.edge = (x === rx1 || x === rx2 || y === ry1 || y === ry2);
+            }
+        }
+
+        // C ref: sp_lev.c lspo_region() calls topologize() for non-irregular rooms.
+        // Mirror topologize edge-roomno stamping around the rectangular region.
+        for (let x = rx1 - 1; x <= rx2 + 1; x++) {
+            for (const y of [ry1 - 1, ry2 + 1]) {
+                if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) continue;
+                const loc = levelState.map.locations[x][y];
+                loc.edge = true;
+                loc.roomno = loc.roomno ? SHARED_ROOMNO : roomno;
+            }
+        }
+        for (const x of [rx1 - 1, rx2 + 1]) {
+            for (let y = ry1; y <= ry2; y++) {
+                if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) continue;
+                const loc = levelState.map.locations[x][y];
+                loc.edge = true;
+                loc.roomno = loc.roomno ? SHARED_ROOMNO : roomno;
             }
         }
 
