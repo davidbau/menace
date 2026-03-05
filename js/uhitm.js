@@ -1708,9 +1708,11 @@ async function handleMonsterKilled(player, monster, display, map) {
             }
         }
 
-        // C ref: mon.c:3178-3252 corpse_chance()
-        const createCorpse = corpse_chance(monster);
-        if (createCorpse) {
+        // C ref: mon.c xkilled() calls corpse_chance() first, then
+        // make_corpse() may still return null for G_NOCORPSE species.
+        const speciesNoCorpse = !!((mdat.geno || 0) & G_NOCORPSE);
+        const createCorpseRoll = corpse_chance(monster);
+        if (createCorpseRoll && !speciesNoCorpse) {
             const corpse = mkcorpstat(CORPSE, monster.mndx || 0, true,
                 map ? monster.mx : 0, map ? monster.my : 0, map);
             corpse.age = Math.max((player?.turns || 0) + 1, 1);

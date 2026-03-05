@@ -106,6 +106,10 @@ const m = {
     has_misc: 0,
 };
 
+function mon_can_see(mon) {
+    return mon?.mcansee !== 0 && mon?.mcansee !== false;
+}
+
 // C ref: gm.m_using — flag to suppress certain messages during monster item use
 let m_using = false;
 
@@ -788,7 +792,7 @@ export async function find_defensive(mon, tryescape, map, player) {
     if (player.uswallow && stuck) return false;
 
     // Unicorn horn for confusion/stun/blindness
-    if (mon.mconf || mon.mstun || !mon.mcansee) {
+    if (mon.mconf || mon.mstun || !mon_can_see(mon)) {
         obj = null;
         if (!nohands(mdat)) {
             for (const o of (mon.minvent || [])) {
@@ -822,7 +826,7 @@ export async function find_defensive(mon, tryescape, map, player) {
     }
 
     // Healing for blind (non-Pestilence)
-    if (!mon.mcansee && !nohands(mdat) && mdat.mndx !== PM_PESTILENCE) {
+    if (!mon_can_see(mon) && !nohands(mdat) && mdat.mndx !== PM_PESTILENCE) {
         if (m_use_healing(mon)) return true;
     }
 
@@ -966,7 +970,7 @@ export async function find_defensive(mon, tryescape, map, player) {
             }
         }
         if (m.has_defense === MUSE_SCR_TELEPORTATION) continue;
-        if (obj2.otyp === SCR_TELEPORTATION && mon.mcansee && haseyes(mdat)
+        if (obj2.otyp === SCR_TELEPORTATION && mon_can_see(mon) && haseyes(mdat)
             && (!obj2.cursed || (!(mon.isshk && inhishop(mon))
                 && !mon.isgd && !mon.ispriest))) {
             if (!noteleport_level(mon, map) || !mon_knows_traps(mon, TELEP_TRAP)) {
@@ -1068,7 +1072,7 @@ export async function use_defensive(mon, map, player) {
                 await pline(`The tip of ${name2}'s horn glows!`);
             }
         }
-        if (!mon.mcansee) {
+    if (!mon_can_see(mon)) {
             await mcureblindness(mon, vismon, player);
         } else if (mon.mconf || mon.mstun) {
             mon.mconf = 0;
@@ -1275,7 +1279,7 @@ export async function use_defensive(mon, map, player) {
         await mquaffmsg(mon, otmp, player);
         i = d(6 + 2 * bcsign(otmp), 4);
         healmon(mon, i, 1);
-        if (!otmp.cursed && !mon.mcansee)
+        if (!otmp.cursed && !mon_can_see(mon))
             await mcureblindness(mon, vismon, player);
         if (vismon)
             await pline_mon(mon, `${name} looks better.`);
@@ -1288,7 +1292,7 @@ export async function use_defensive(mon, map, player) {
         await mquaffmsg(mon, otmp, player);
         i = d(6 + 2 * bcsign(otmp), 8);
         healmon(mon, i, otmp.blessed ? 5 : 2);
-        if (!mon.mcansee)
+        if (!mon_can_see(mon))
             await mcureblindness(mon, vismon, player);
         if (vismon)
             await pline_mon(mon, `${name} looks much better.`);
@@ -1304,7 +1308,7 @@ export async function use_defensive(mon, map, player) {
             otmp.blessed = false;
         }
         healmon(mon, mon.mhpmax || 1, otmp.blessed ? 8 : 4);
-        if (!mon.mcansee && otmp.otyp !== POT_SICKNESS)
+        if (!mon_can_see(mon) && otmp.otyp !== POT_SICKNESS)
             await mcureblindness(mon, vismon, player);
         if (vismon)
             await pline_mon(mon, `${name} looks completely healed.`);
@@ -2265,6 +2269,7 @@ export async function use_misc(mon, map, player) {
     return 0;
 }
 
+
 // ========================================================================
 // rnd_misc_item — C ref: muse.c:2619
 // Note: also implemented in makemon.js for level generation.
@@ -2529,7 +2534,7 @@ export async function munslime(mon, by_you, map, player) {
 // C ref: cures_sliming(mon, obj) — can this object cure green slime?
 // Autotranslated from muse.c:3210
 export function cures_sliming(mon, obj) {
-  if (obj.otyp === SCR_FIRE) return (haseyes(mon.data) && mon.mcansee && !nohands(mon.data));
+  if (obj.otyp === SCR_FIRE) return (haseyes(mon.data) && mon_can_see(mon) && !nohands(mon.data));
   if (obj.otyp === POT_OIL) return !nohands(mon.data);
   return ((obj.otyp === WAN_FIRE || (obj.otyp === FIRE_HORN && can_blow(mon))) && obj.spe > 0);
 }

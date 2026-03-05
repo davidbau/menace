@@ -1614,7 +1614,8 @@ async function m_move(mon, map, player, display = null, fov = null) {
         const isUnicorn = mon.mndx === PM_WHITE_UNICORN
             || mon.mndx === PM_GRAY_UNICORN
             || mon.mndx === PM_BLACK_UNICORN;
-        if (!isUnicorn || rn2(2) || (map.flags && map.flags.noteleport)) return false;
+        // C ref: monmove.c:2063 — unicorn fallback teleport only when rn2(2) != 0.
+        if (!isUnicorn || !rn2(2) || (map.flags && map.flags.noteleport)) return false;
         for (let tries = 0; tries < 200; tries++) {
             const nx = rnd(COLNO - 1);
             const ny = rn2(ROWNO);
