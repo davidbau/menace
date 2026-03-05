@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build script for "The Traveler's Companion to the Mazes of Menace"
-# Converts spoilers.md → index.html → spoilers.pdf
+# Converts companion.md → index.html → companion.pdf
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -22,7 +22,7 @@ if [ ! -x "$WEASYPRINT" ]; then
 fi
 
 echo "=== Building HTML ==="
-pandoc spoilers.md \
+pandoc companion.md \
   --from=markdown \
   --to=html5 \
   --template=template.html \
@@ -33,7 +33,7 @@ pandoc spoilers.md \
 echo "    → index.html"
 
 echo "=== Building PDF ==="
-"$WEASYPRINT" index.html spoilers.pdf 2>&1 | grep -v "^$" || true
+"$WEASYPRINT" index.html companion.pdf 2>&1 | grep -v "^$" || true
 
-echo "    → spoilers.pdf"
+echo "    → companion.pdf"
 echo "=== Done ==="
