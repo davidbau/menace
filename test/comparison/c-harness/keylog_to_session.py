@@ -116,9 +116,9 @@ def setup_home(character, symset, tutorial_enabled=False, interactive=False):
             f.write(f'OPTIONS=role:{character["role"]}\n')
             f.write(f'OPTIONS=gender:{character["gender"]}\n')
             f.write(f'OPTIONS=align:{character["align"]}\n')
-        f.write('OPTIONS=!autopickup\n')
-        f.write('OPTIONS=tutorial\n' if tutorial_enabled else 'OPTIONS=!tutorial\n')
-        f.write('OPTIONS=suppress_alert:3.4.3\n')
+            f.write('OPTIONS=!autopickup\n')
+            f.write('OPTIONS=tutorial\n' if tutorial_enabled else 'OPTIONS=!tutorial\n')
+            f.write('OPTIONS=suppress_alert:3.4.3\n')
         if symset == 'DECgraphics':
             f.write('OPTIONS=symset:DECgraphics\n')
         else:

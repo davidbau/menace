@@ -222,7 +222,13 @@ def has_calendar_luck_warning(content):
 
 
 def tmux_send(session, keys, delay=0):
-    subprocess.run(['tmux', 'send-keys', '-t', session, '-l', keys], check=True)
+    # tmux drops a standalone ';' token as a command separator (tmux issue #1849).
+    # Use paste-buffer to send any string containing semicolons reliably.
+    if ';' in keys:
+        subprocess.run(['tmux', 'load-buffer', '-'], input=keys.encode(), check=True)
+        subprocess.run(['tmux', 'paste-buffer', '-t', session, '-d'], check=True)
+    else:
+        subprocess.run(['tmux', 'send-keys', '-t', session, '-l', keys], check=True)
     if delay > 0:
         time.sleep(delay)
 
