@@ -61,6 +61,7 @@ import { initAnimation, configureAnimation, setAnimationMode } from './animation
 import { phase_of_the_moon, friday_13th } from './calendar.js';
 import { change_luck } from './attrib.js';
 import { throne_mon_sound } from './sounds.js';
+import { find_ac } from './do_wear.js';
 
 // cf. allmain.c:169 — moveloop_core() monster movement + turn-end processing.
 // Called after the hero's action took time.  Runs movemon() for monster turns,
@@ -70,6 +71,8 @@ import { throne_mon_sound } from './sounds.js';
 // Autotranslated from allmain.c:169
 export async function moveloop_core(game, opts = {}) {
     const player = (game.u || game.player);
+    // Keep makemon selection context synchronized with live player state.
+    setMakemonPlayerContext(player);
     // C ref: at top of each moveloop iteration, vision_recalc(0) if vision_full_recalc set.
     // This catches topology changes from the player's action (door opens, dig, teleport, etc.)
     // so that monsters run with up-to-date FOV.
@@ -567,7 +570,14 @@ export async function run_command(game, ch, opts = {}) {
     // Process one timed turn of world updates after a command consumed time.
     const advanceTimedTurn = async () => {
         await moveloop_core(game, coreOpts);
+        // C ref: allmain.c once-per-hero-took-time seer_turn scheduling.
+        // Keep moves offset consistent with existing turn counter semantics.
+        const moves = game.turnCount + 1;
+        if (moves >= game.seerTurn) {
+            game.seerTurn = moves + rn1(31, 15);
+        }
         // C ref: allmain.c:459-474 — "once-per-player-input" section.
+        find_ac(game.u || game.player);
         // After monsters move, update display at every monster position.
         see_monsters(game.map);
         if (onTimedTurn) {

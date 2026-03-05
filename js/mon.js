@@ -113,7 +113,10 @@ const MFAST = 2;
 // Randomly rounds speed to a multiple of NORMAL_SPEED (12).
 // ========================================================================
 export function mcalcmove(mon) {
-    let mmove = mon.speed;  // mon->data->mmove
+    // C reads mtmp->data->mmove each turn; prefer live form data over cached fields.
+    let mmove = Number.isFinite(mon?.type?.speed)
+        ? mon.type.speed
+        : (Number.isFinite(mon?.speed) ? mon.speed : NORMAL_SPEED);
 
     // C ref: mon.c:1120-1129 — MSLOW/MFAST adjustments
     if (mon.mspeed === MSLOW) {
@@ -1494,6 +1497,10 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
     // Iterate a snapshot for equivalent stability under JS array mutation.
     for (const mon of [...map.monsters]) {
         if (mon.dead) continue;
+        // C ref: mon.c movemon_singlemon() skips monsters not on this map.
+        if (!isok(mon.mx, mon.my)) continue;
+        // C ref: parked vault guards at (0,0) don't take normal turns.
+        if (mon.isgd && mon.mx === 0 && mon.my === 0) continue;
         // C ref: mon.c:1230 — m_everyturn_effect called for ALL alive monsters before movement check
         if (everyturnEffect) await everyturnEffect(mon, map, player, game);
         if (mon.movement >= NORMAL_SPEED) {

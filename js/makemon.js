@@ -178,6 +178,9 @@ function normalizePlayerContext(ctx = {}) {
     const role = roleIndex !== undefined ? roles[roleIndex] : null;
     return {
         roleIndex,
+        ulevel: Number.isInteger(ctx.ulevel)
+            ? ctx.ulevel
+            : (Number.isInteger(ctx.level) ? ctx.level : 1),
         alignment: Number.isInteger(ctx.alignment) ? ctx.alignment : (role?.align || 0),
         alignmentRecord: Number.isInteger(ctx.alignmentRecord)
             ? ctx.alignmentRecord
@@ -224,6 +227,8 @@ export function setMakemonPlayerContext(playerLike) {
     const inventory = Array.isArray(playerLike?.inventory) ? playerLike.inventory : [];
     _makemonPlayerCtx = normalizePlayerContext({
         roleIndex: playerLike?.roleIndex,
+        ulevel: playerLike?.ulevel,
+        level: playerLike?.level,
         alignment: playerLike?.alignment,
         alignmentRecord: playerLike?.alignmentRecord,
         alignmentAbuse: playerLike?.alignmentAbuse,
@@ -232,6 +237,12 @@ export function setMakemonPlayerContext(playerLike) {
         x: playerLike?.x,
         y: playerLike?.y,
     });
+}
+
+function getMakemonUlevel() {
+    const n = Number(_makemonPlayerCtx?.ulevel);
+    if (Number.isFinite(n) && n >= 1) return Math.floor(n);
+    return 1;
 }
 
 export function setMakemonRoleContext(roleIndex, opts = {}) {
@@ -347,7 +358,7 @@ export function rndmonst_adj(minadj, maxadj, depth) {
     const trace = shouldTraceRndmon();
     const traceIdx = _rndmonTraceInvocation++;
     const traceCtx = trace ? getRndmonTraceCtx() : '?';
-    const ulevel = 1; // hardcoded for level gen testing
+    const ulevel = getMakemonUlevel();
     // C ref: level_difficulty() returns depth(&u.uz) for main dungeon
     const zlevel = depth;
     const minmlev = monmin_difficulty(zlevel) + minadj;
@@ -488,7 +499,7 @@ export function init_mongen_order() {
 
 // C ref: makemon.c:2007-2039 adj_lev()
 export function adj_lev(ptr, depth = 1) {
-    const ulevel = 1; // during level gen
+    const ulevel = getMakemonUlevel();
     let tmp = ptr.mlevel;
     if (tmp > 49) return 50;
     let tmp2 = depth - tmp;
@@ -509,7 +520,7 @@ function montoostrong(mndx, lev) {
 // C ref: makemon.c:1866-1967 mkclass() / mkclass_aligned()
 // Returns monster index (mndx) or -1 (NON_PM)
 export function mkclass(monclass, spc, depth = 1, atyp = A_NONE) {
-    const ulevel = 1;
+    const ulevel = getMakemonUlevel();
     const maxmlev = depth >> 1; // level_difficulty() >> 1
     const gehennom = 0; // not in hell during level gen
 
