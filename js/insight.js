@@ -24,7 +24,12 @@
 //   All functions ported from C insight.c.
 
 import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
-         A_STR, A_DEX, A_CON, A_INT, A_WIS, A_CHA } from './const.js';
+         A_STR, A_DEX, A_CON, A_INT, A_WIS, A_CHA,
+         ACH_BELL, ACH_HELL, ACH_CNDL, ACH_BOOK, ACH_INVK, ACH_AMUL, ACH_ENDG,
+         ACH_ASTR, ACH_UWIN, ACH_MINE_PRIZE, ACH_SOKO_PRIZE, ACH_MEDU,
+         ACH_BLND, ACH_NUDE, ACH_MINE, ACH_TOWN, ACH_SHOP, ACH_TMPL, ACH_ORCL,
+         ACH_NOVL, ACH_SOKO, ACH_BGRM, ACH_RNK1, ACH_RNK2, ACH_RNK3, ACH_RNK4,
+         ACH_RNK5, ACH_RNK6, ACH_RNK7, ACH_RNK8, ACH_TUNE, N_ACH } from './const.js';
 import { mons, MZ_TINY, MZ_SMALL, MZ_MEDIUM, MZ_LARGE, MZ_HUGE, MZ_GIGANTIC,
          PM_LONG_WORM, PM_HIGH_CLERIC, G_UNIQ, M2_PNAME, NUMMONS, LOW_PM } from './monsters.js';
 import { x_monnam } from './mondata.js';
@@ -38,42 +43,6 @@ import { TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBAL
 //          end_menu, select_menu, display_nhwindow,
 //          NHW_MENU, NHW_TEXT, MENU_BEHAVE_STANDARD, PICK_NONE, PICK_ONE,
 //          ATR_NONE } from './windows.js';
-
-// ============================================================================
-// Achievement constants (cf. you.h enum achievements)
-// ============================================================================
-export const ACH_BELL = 1;
-export const ACH_HELL = 2;
-export const ACH_CNDL = 3;
-export const ACH_BOOK = 4;
-export const ACH_INVK = 5;
-export const ACH_AMUL = 6;
-export const ACH_ENDG = 7;
-export const ACH_ASTR = 8;
-export const ACH_UWIN = 9;
-export const ACH_MINE_PRIZE = 10;
-export const ACH_SOKO_PRIZE = 11;
-export const ACH_MEDU = 12;
-export const ACH_BLND = 13;
-export const ACH_NUDE = 14;
-export const ACH_MINE = 15;
-export const ACH_TOWN = 16;
-export const ACH_SHOP = 17;
-export const ACH_TMPL = 18;
-export const ACH_ORCL = 19;
-export const ACH_NOVL = 20;
-export const ACH_SOKO = 21;
-export const ACH_BGRM = 22;
-export const ACH_RNK1 = 23;
-export const ACH_RNK2 = 24;
-export const ACH_RNK3 = 25;
-export const ACH_RNK4 = 26;
-export const ACH_RNK5 = 27;
-export const ACH_RNK6 = 28;
-export const ACH_RNK7 = 29;
-export const ACH_RNK8 = 30;
-export const ACH_TUNE = 31;
-export const N_ACH = 32;
 
 // Enlightenment final-state constants
 const ENL_GAMEINPROGRESS = 0;

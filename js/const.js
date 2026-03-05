@@ -156,6 +156,65 @@ export const PM_TOURIST = 10;
 export const PM_VALKYRIE = 11;
 export const PM_WIZARD = 12;
 
+// Monster spell ids (src/mcastu.c: choose_magic_spell/choose_clerical_spell)
+export const MGC_PSI_BOLT = 0;
+export const MGC_CURE_SELF = 1;
+export const MGC_HASTE_SELF = 2;
+export const MGC_STUN_YOU = 3;
+export const MGC_DISAPPEAR = 4;
+export const MGC_WEAKEN_YOU = 5;
+export const MGC_DESTRY_ARMR = 6;
+export const MGC_CURSE_ITEMS = 7;
+export const MGC_AGGRAVATION = 8;
+export const MGC_SUMMON_MONS = 9;
+export const MGC_CLONE_WIZ = 10;
+export const MGC_DEATH_TOUCH = 11;
+
+export const CLC_OPEN_WOUNDS = 0;
+export const CLC_CURE_SELF = 1;
+export const CLC_CONFUSE_YOU = 2;
+export const CLC_PARALYZE = 3;
+export const CLC_BLIND_YOU = 4;
+export const CLC_INSECTS = 5;
+export const CLC_CURSE_ITEMS = 6;
+export const CLC_LIGHTNING = 7;
+export const CLC_FIRE_PILLAR = 8;
+export const CLC_GEYSER = 9;
+
+// Achievements enum (include/you.h, used by src/insight.c)
+export const ACH_BELL = 1;
+export const ACH_HELL = 2;
+export const ACH_CNDL = 3;
+export const ACH_BOOK = 4;
+export const ACH_INVK = 5;
+export const ACH_AMUL = 6;
+export const ACH_ENDG = 7;
+export const ACH_ASTR = 8;
+export const ACH_UWIN = 9;
+export const ACH_MINE_PRIZE = 10;
+export const ACH_SOKO_PRIZE = 11;
+export const ACH_MEDU = 12;
+export const ACH_BLND = 13;
+export const ACH_NUDE = 14;
+export const ACH_MINE = 15;
+export const ACH_TOWN = 16;
+export const ACH_SHOP = 17;
+export const ACH_TMPL = 18;
+export const ACH_ORCL = 19;
+export const ACH_NOVL = 20;
+export const ACH_SOKO = 21;
+export const ACH_BGRM = 22;
+export const ACH_RNK1 = 23;
+export const ACH_RNK2 = 24;
+export const ACH_RNK3 = 25;
+export const ACH_RNK4 = 26;
+export const ACH_RNK5 = 27;
+export const ACH_RNK6 = 28;
+export const ACH_RNK7 = 29;
+export const ACH_RNK8 = 30;
+export const ACH_TUNE = 31;
+export const N_ACH = 32;
+
 // Attributes (attrib.h)
 export const A_STR = 0;
 export const A_INT = 1;

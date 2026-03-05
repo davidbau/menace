@@ -13,32 +13,13 @@ import {
   ZT_DEATH, ZT_LIGHTNING, ZT_POISON_GAS, ZT_ACID,
 } from './zap.js';
 import { canonicalizeAttackFields } from './attack_fields.js';
-
-// Wizard spell constants (C ref: mcastu.c)
-const MGC_PSI_BOLT = 0;
-const MGC_CURE_SELF = 1;
-const MGC_HASTE_SELF = 2;
-const MGC_STUN_YOU = 3;
-const MGC_DISAPPEAR = 4;
-const MGC_WEAKEN_YOU = 5;
-const MGC_DESTRY_ARMR = 6;
-const MGC_CURSE_ITEMS = 7;
-const MGC_AGGRAVATION = 8;
-const MGC_SUMMON_MONS = 9;
-const MGC_CLONE_WIZ = 10;
-const MGC_DEATH_TOUCH = 11;
-
-// Cleric spell constants
-const CLC_OPEN_WOUNDS = 0;
-const CLC_CURE_SELF = 1;
-const CLC_CONFUSE_YOU = 2;
-const CLC_PARALYZE = 3;
-const CLC_BLIND_YOU = 4;
-const CLC_INSECTS = 5;
-const CLC_CURSE_ITEMS = 6;
-const CLC_LIGHTNING = 7;
-const CLC_FIRE_PILLAR = 8;
-const CLC_GEYSER = 9;
+import {
+  MGC_PSI_BOLT, MGC_CURE_SELF, MGC_HASTE_SELF, MGC_STUN_YOU, MGC_DISAPPEAR,
+  MGC_WEAKEN_YOU, MGC_DESTRY_ARMR, MGC_CURSE_ITEMS, MGC_AGGRAVATION,
+  MGC_SUMMON_MONS, MGC_CLONE_WIZ, MGC_DEATH_TOUCH, CLC_OPEN_WOUNDS,
+  CLC_CURE_SELF, CLC_CONFUSE_YOU, CLC_PARALYZE, CLC_BLIND_YOU, CLC_INSECTS,
+  CLC_CURSE_ITEMS, CLC_LIGHTNING, CLC_FIRE_PILLAR, CLC_GEYSER,
+} from './const.js';
 
 // cf. mcastu.c:48 — cursetxt(mtmp, vis)
 export function cursetxt(mtmp, vis) {
