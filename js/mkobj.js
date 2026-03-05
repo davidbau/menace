@@ -142,6 +142,7 @@ let _levelDepth = 1;
 export function setLevelDepth(d) { _levelDepth = d; }
 let _inMklevContext = false;
 export function setMklevObjectContext(enabled) { _inMklevContext = !!enabled; }
+let _zombifyContext = false;
 let _objectMoves = 1;
 export function setObjectMoves(moves) {
     if (Number.isInteger(moves) && moves > 0) _objectMoves = moves;
@@ -955,7 +956,7 @@ export function start_corpse_timeout(body, opts = {}) {
     if (!body || body.otyp !== CORPSE) return;
     const corpsenm = Number.isInteger(body.corpsenm) ? body.corpsenm : -1;
     if (corpsenm < 0 || !mons[corpsenm]) return;
-    const zombify = !!opts?.zombify;
+    const zombify = !!opts?.zombify || _zombifyContext;
     const norevive = !!opts?.norevive || !!body.norevive;
     // Lizards and lichen don't rot or revive
     if (corpsenm === PM_LIZARD || corpsenm === PM_LICHEN) return;
@@ -1037,31 +1038,37 @@ export function set_corpsenm(obj, id) {
 //   mksobj_at equivalent (matching C where mkcorpstat calls mksobj_at internally).
 //   This ensures ^place event is logged before ^corpse, matching C event order.
 export function mkcorpstat(objtype, ptr_mndx, init, x = 0, y = 0, map = null, opts = {}) {
-    const otmp = mksobj(objtype, init, false);
-    // C: when x,y are non-zero, mkcorpstat calls mksobj_at which places via place_object
-    if (x && y && map) {
-        otmp.ox = x;
-        otmp.oy = y;
-        place_object(otmp, otmp.ox, otmp.oy, map);
-    }
-    if (ptr_mndx >= 0) {
-        const old_corpsenm = otmp.corpsenm;
-        otmp.corpsenm = ptr_mndx;
-        otmp.owt = weight(otmp);
-        if (objectData[otmp.otyp]?.name === 'corpse'
-            && (!!opts.zombify
-                || special_corpse(old_corpsenm)
-                || special_corpse(ptr_mndx))) {
-            // C: obj_stop_timers(otmp) — no RNG consumed
-            // Restart corpse timeout with new corpsenm
-            start_corpse_timeout(otmp, {
-                zombify: !!opts.zombify,
-                norevive: !!otmp.norevive,
-            });
+    const prevZombifyContext = _zombifyContext;
+    _zombifyContext = prevZombifyContext || !!opts.zombify;
+    try {
+        const otmp = mksobj(objtype, init, false);
+        // C: when x,y are non-zero, mkcorpstat calls mksobj_at which places via place_object
+        if (x && y && map) {
+            otmp.ox = x;
+            otmp.oy = y;
+            place_object(otmp, otmp.ox, otmp.oy, map);
         }
+        if (ptr_mndx >= 0) {
+            const old_corpsenm = otmp.corpsenm;
+            otmp.corpsenm = ptr_mndx;
+            otmp.owt = weight(otmp);
+            if (objectData[otmp.otyp]?.name === 'corpse'
+                && (!!opts.zombify
+                    || special_corpse(old_corpsenm)
+                    || special_corpse(ptr_mndx))) {
+                // C: obj_stop_timers(otmp) — no RNG consumed
+                // Restart corpse timeout with new corpsenm
+                start_corpse_timeout(otmp, {
+                    zombify: !!opts.zombify,
+                    norevive: !!otmp.norevive,
+                });
+            }
+        }
+        pushRngLogEntry(`^corpse[${otmp.corpsenm},${otmp.ox || 0},${otmp.oy || 0}]`);
+        return otmp;
+    } finally {
+        _zombifyContext = prevZombifyContext;
     }
-    pushRngLogEntry(`^corpse[${otmp.corpsenm},${otmp.ox || 0},${otmp.oy || 0}]`);
-    return otmp;
 }
 
 // C ref: mkobj.c mkobj() -- create random object of a class
