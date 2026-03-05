@@ -10,7 +10,7 @@ import {
     IS_WALL, IS_DOOR, IS_ROOM, ACCESSIBLE,
     MAXNROFROOMS, ROOMOFFSET,
     isok
-} from './config.js';
+} from './const.js';
 import { pushRngLogEntry } from './rng.js';
 
 // A single map location (mirrors struct rm in rm.h:220+)
