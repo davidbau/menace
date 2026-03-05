@@ -46,7 +46,7 @@ import { make_confused, make_stunned, make_blinded, make_hallucinated } from './
 import { losexp } from './exper.js';
 import { stealgold, steal } from './steal.js';
 import { erode_obj, ERODE_RUST, ERODE_CORRODE, ERODE_ROT,
-         EF_GREASE, EF_VERBOSE } from './trap.js';
+         EF_GREASE, EF_VERBOSE, ER_NOTHING } from './trap.js';
 import { xkilled, XKILL_NOMSG } from './mon.js';
 import { mondead, flush_screen } from './monutil.js';
 import { mon_explodes } from './explode.js';
@@ -847,29 +847,82 @@ async function mhitu_ad_halu(monster, attack, player, mhm, ctx) {
 }
 
 // Equipment erosion handlers — hitmsg + erode armor + zero damage
+// C ref: uhitm.c erode_armor(mdef, hurt)
+function erode_armor_on_player(player, erosionType) {
+    if (!player) return;
+    while (true) {
+        switch (rn2(5)) {
+        case 0: { // helmet
+            const target = player.helmet || null;
+            if (!target || erode_obj(target, xname(target), erosionType, EF_GREASE) === ER_NOTHING) {
+                continue;
+            }
+            break;
+        }
+        case 1: { // cloak, else body armor, else shirt
+            const cloak = player.cloak || null;
+            if (cloak) {
+                erode_obj(cloak, xname(cloak), erosionType, EF_GREASE | EF_VERBOSE);
+                break;
+            }
+            const suit = player.armor || player.suit || null;
+            if (suit) {
+                erode_obj(suit, xname(suit), erosionType, EF_GREASE | EF_VERBOSE);
+                break;
+            }
+            const shirt = player.shirt || null;
+            if (shirt) {
+                erode_obj(shirt, xname(shirt), erosionType, EF_GREASE | EF_VERBOSE);
+            }
+            break;
+        }
+        case 2: { // shield
+            const target = player.shield || null;
+            if (!target || erode_obj(target, xname(target), erosionType, EF_GREASE) === ER_NOTHING) {
+                continue;
+            }
+            break;
+        }
+        case 3: { // gloves
+            const target = player.gloves || null;
+            if (!target || erode_obj(target, xname(target), erosionType, EF_GREASE) === ER_NOTHING) {
+                continue;
+            }
+            break;
+        }
+        case 4: { // boots
+            const target = player.boots || null;
+            if (!target || erode_obj(target, xname(target), erosionType, EF_GREASE) === ER_NOTHING) {
+                continue;
+            }
+            break;
+        }
+        default:
+            break;
+        }
+        break;
+    }
+}
+
 async function mhitu_ad_rust(monster, attack, player, mhm, ctx) {
     await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C ref: hurtarmor(mdef, AD_RUST) — erode hero's armor
     if (player) {
-        // Erode a random worn armor piece
-        const armor = player.armor || player.suit;
-        if (armor) erode_obj(armor, null, ERODE_RUST, EF_GREASE | EF_VERBOSE);
+        erode_armor_on_player(player, ERODE_RUST);
     }
     mhm.damage = 0;
 }
 async function mhitu_ad_corr(monster, attack, player, mhm, ctx) {
     await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     if (player) {
-        const armor = player.armor || player.suit;
-        if (armor) erode_obj(armor, null, ERODE_CORRODE, EF_GREASE | EF_VERBOSE);
+        erode_armor_on_player(player, ERODE_CORRODE);
     }
     mhm.damage = 0;
 }
 async function mhitu_ad_dcay(monster, attack, player, mhm, ctx) {
     await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     if (player) {
-        const armor = player.armor || player.suit;
-        if (armor) erode_obj(armor, null, ERODE_ROT, EF_GREASE | EF_VERBOSE);
+        erode_armor_on_player(player, ERODE_ROT);
     }
     mhm.damage = 0;
 }
