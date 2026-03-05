@@ -158,6 +158,10 @@ function t_at(x, y, map) {
 
 function obj_extract_self(obj, map) {
   if (!obj || !map || !Array.isArray(map.objects)) return;
+  if (typeof map.removeObject === 'function') {
+    map.removeObject(obj);
+    return;
+  }
   const idx = map.objects.indexOf(obj);
   if (idx >= 0) map.objects.splice(idx, 1);
 }

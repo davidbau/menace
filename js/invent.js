@@ -1262,7 +1262,11 @@ export function delobj_core(obj, map, force) {
     if (wasOnFloor) {
         const idx = map.objects.indexOf(obj);
         if (idx >= 0) {
-            map.objects.splice(idx, 1);
+            if (typeof map.removeObject === 'function') {
+                map.removeObject(obj);
+            } else {
+                map.objects.splice(idx, 1);
+            }
             if (typeof newsym === 'function') {
                 newsym(obj.ox, obj.oy);
             }

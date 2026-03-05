@@ -1534,8 +1534,12 @@ export function rot_organic(arg, timeout, map, player) {
 
     // Remove the rotted object
     if (map) {
-        const idx = map.objects.indexOf(obj);
-        if (idx >= 0) map.objects.splice(idx, 1);
+        if (typeof map.removeObject === 'function') {
+            map.removeObject(obj);
+        } else {
+            const idx = map.objects.indexOf(obj);
+            if (idx >= 0) map.objects.splice(idx, 1);
+        }
     }
 }
 

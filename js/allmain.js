@@ -157,7 +157,7 @@ export async function moveloop_turnend(game) {
     settrack((game.u || game.player));
     game.turnCount++;
     (game.u || game.player).turns = game.turnCount;
-    setCurrentTurn(game.turnCount);
+    setCurrentTurn(game.turnCount + 1);
     setOutputContext(game.display);
     // C ref: allmain.c -- random spawn happens before svm.moves++.
     // During this turn-end frame, mkobj-side erosion checks should

@@ -365,8 +365,12 @@ export async function boulder_hits_pool(otmp, rx, ry, pushing, player, map) {
         }
     }
     // Boulder is now gone — remove from map objects if present
-    const idx = map.objects?.indexOf(otmp);
-    if (idx >= 0) map.objects.splice(idx, 1);
+    if (typeof map?.removeObject === 'function') {
+        map.removeObject(otmp);
+    } else {
+        const idx = map.objects?.indexOf(otmp);
+        if (idx >= 0) map.objects.splice(idx, 1);
+    }
     return true;
 }
 
