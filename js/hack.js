@@ -18,6 +18,7 @@ import { COLNO, ROWNO, STONE, DOOR, CORR, SDOOR, SCORR, STAIRS, LADDER, FOUNTAIN
          HOLE, TRAPDOOR } from './config.js';
 import { SQKY_BOARD, SLP_GAS_TRAP, FIRE_TRAP, PIT, SPIKED_PIT, ANTI_MAGIC, TELEP_TRAP,
          ARROW_TRAP, DART_TRAP, ROCKTRAP } from './symbols.js';
+import { defsyms, trap_to_defsym } from './symbols.js';
 import { rn2, rnd, rnl, d, c_d } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
@@ -56,7 +57,7 @@ import { stackobj } from './stackobj.js';
 import { thitu } from './mthrowu.js';
 import { dmgval } from './weapon.js';
 import { poisoned, acurr, acurrstr } from './attrib.js';
-import { t_missile, seetrap, conjoined_pits, adj_nonconjoined_pit } from './trap.js';
+import { t_missile, seetrap, conjoined_pits, adj_nonconjoined_pit, into_vs_onto } from './trap.js';
 
 // Run direction keys (shift = run)
 export const RUN_KEYS = {
@@ -838,10 +839,19 @@ export async function domove_core(dir, player, map, display, game) {
     }
     loc = map.at(nx, ny);
     const steppingTrap = map.trapAt(nx, ny);
-    // C-style confirmation prompt for known anti-magic fields.
-    if (steppingTrap && steppingTrap.ttyp === ANTI_MAGIC && steppingTrap.tseen) {
+    // C ref: hack.c:2533-2561 — paranoid trap confirmation for known traps.
+    // Respect 'm' (nopick) prefix suppression unless moving recklessly (run).
+    if (steppingTrap && steppingTrap.tseen
+        && !player.stunned && !player.confused
+        && (!ctx.nopick || ctx.run)) {
+        const trapType = steppingTrap.ttyp;
+        const trapDesc = defsyms[trap_to_defsym(trapType)]?.explanation
+            || defsyms[trap_to_defsym(trapType)]?.desc
+            || 'trap';
+        const into = into_vs_onto(trapType);
+        const prompt = `Really ${u_locomotion('step', player)} ${into ? 'into' : 'onto'} that ${trapDesc}?`;
         const ans = await ynFunction(
-            'Really step onto that anti-magic field?',
+            prompt,
             'yn',
             'n'.charCodeAt(0),
             display
