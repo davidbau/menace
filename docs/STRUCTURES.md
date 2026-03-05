@@ -150,24 +150,271 @@ Where a cycle is truly unavoidable (two modules need each other's functions),
 use a lazy function-level import or a registration pattern rather than a
 top-level `import` statement.
 
-## Migration Order
+## Work Plan
 
-1. **Extract constants** — move `TT_*`, terrain symbols, and other pure constants
-   into zero-dependency modules. Fixes the most import-order bugs cheaply.
+The full three-phase refactor is described in `docs/MODULES.md` (Issue #227).
+Each step must leave the test suite no worse than before moving to the next —
+this is purely structural; no behavior changes at any phase.
 
-2. **Define game object shape** — write `game.js` that creates and exports the
-   canonical `game` singleton with all fields initialized to C defaults.
+### Target end state
 
-3. **Add state_paths.json rewrites** — enable autotranslate to emit `game.*`
-   references directly.
+When the refactor is complete:
+- Every JS function has the same name as the C function it ports
+- Every JS file is named after the C source file it corresponds to
+- Every struct field has the same name as in C (no aliases, no adapters)
+- No pass-through functions (no `function foo(...args) { return _foo(...args); }`)
+- No legacy-fallback expressions (no `legacyField ?? newField`)
+- No compatibility shim objects (`player`, `game.svc`, `game.u` aliases, etc.)
+- `game` is the single shared state root; `game.u` holds hero state as a sub-object
 
-4. **Migrate field by field** — for each C global used in a function being
-   ported, ensure `game.fieldname` exists and is initialized. No need to migrate
-   everything at once; do it function-by-function as translation proceeds.
+Backward-compatible aliases introduced during migration are **temporary
+scaffolding only** — each alias is removed as soon as the last code that uses it
+is migrated and tests are confirmed no worse.
 
-5. **Retire player/map as separate objects** — once core modules read `game.*`,
-   make `player` and `map` aliases (`game.player = game.youmonst`, etc.) and
-   eventually remove the aliases.
+### Phase 1 — Struct Field Name Normalization
+
+Rename all non-C JS field aliases to canonical C names, file by file.
+Run tests after each file. This is a pure rename of property accesses with no
+logic changes.
+
+**Exit gate — before moving to Phase 2:**
+
+| | Status |
+|-|--------|
+| **Present** | All struct fields accessed by canonical C names throughout the codebase |
+| **Complete** | Every alias listed in the tables below has been renamed in every file |
+| **Deleted** | `attack_fields.js` is gone; no remaining uses of `.at`, `.type` (on attacks), `.damage`, `.ad`, `.dice`, `.sides`, `.speed`, `.difficulty`, `.mr1`, `.mr2`, `.flags1/.2/.3`, `.sdam`, `.ldam`, `.oc1`, `.oc2`, `.sub` (on objclass), `.prop` (on objclass), `.dir` (on objclass) |
+| **Verified** | Test suite is no worse than before Phase 1 began |
+
+**Attack struct** (`struct attack` in `permonst.h`):
+
+| JS alias | → C field | Files |
+|----------|-----------|-------|
+| `.at` / `.type` | `.aatyp` | `attack_fields.js`, `dogmove.js`, `mon.js`, `mondata.js` |
+| `.damage` / `.ad` | `.adtyp` | `mhitu.js`, `mondata.js`, `artifact.js` |
+| `.dice` | `.damn` | `artifact.js` |
+| `.sides` | `.damd` | `artifact.js` |
+
+The generated `monsters.js` already emits canonical names. Delete
+`attack_fields.js` once all call sites are normalized — it exists only to paper
+over these aliases at runtime.
+
+**Permonst struct** (`struct permonst` in `permonst.h`) — generated `monsters.js`
+already emits C names; fix all reading-side uses:
+
+| JS alias | → C field | Notes |
+|----------|-----------|-------|
+| `.name` | `.pmnames` | Array `[name, namePlural]` |
+| `.symbol` | `.mlet` | |
+| `.level` | `.mlevel` | |
+| `.speed` | `.mmove` | |
+| `.difficulty` | `.mlevel` | JS alias for the same C field as `.level`; normalize both |
+| `.align` | `.maligntyp` | |
+| `.attacks` | `.mattk` | |
+| `.weight` | `.cwt` | |
+| `.nutrition` | `.cnutrit` | |
+| `.sound` | `.msound` | |
+| `.size` | `.msize` | |
+| `.mr1` | `.mresists` | |
+| `.mr2` | `.mconveys` | |
+| `.flags1` / `.flags2` / `.flags3` | `.mflags1` / `.mflags2` / `.mflags3` | |
+| `.color` | `.mcolor` | |
+
+Note: `.difficulty` and `.level` are two JS aliases for the same C field
+`.mlevel`. Normalize both to `.mlevel`.
+
+**ObjClass struct** (`struct objclass` in `objclass.h`) — generated `objects.js`
+already emits C names; fix all reading-side uses:
+
+| JS alias | → C field |
+|----------|-----------|
+| `.name` | `.oc_name` |
+| `.desc` | `.oc_descr` |
+| `.sdam` | `.oc_wsdam` |
+| `.ldam` | `.oc_wldam` |
+| `.oc1` | `.oc_oc1` |
+| `.oc2` | `.oc_oc2` |
+| `.sub` | `.oc_subtyp` |
+| `.prop` | `.oc_oprop` |
+| `.dir` | `.oc_dir` |
+| `.material` | `.oc_material` |
+
+**Obj instance struct** (`struct obj` in `obj.h`):
+
+| JS alias | → C field | Notes |
+|----------|-----------|-------|
+| `.name` (user-given name) | `.oname` | ~11 files; distinct from `.oc_name` |
+
+### Phase 1 parallel — game.js bootstrap (fifth leaf file)
+
+`docs/MODULES.md` defines four constant leaf files (`version.js`, `const.js`,
+`objects.js`, `monsters.js`). `game.js` is the fifth leaf: it owns the game
+singleton and all top-level variable initializations.
+
+**The five leaf files and their import rules:**
+
+| File | Imports from | Contains |
+|------|-------------|---------|
+| `version.js` | nothing | build artifact (git hook output) |
+| `const.js` | `version.js` | all hand-maintained capitalized constants |
+| `objects.js` | `const.js` | auto-generated object table + `initObjectData()` |
+| `monsters.js` | `const.js` | auto-generated monster table |
+| `game.js` | `const.js` only | `game` singleton + struct class definitions |
+
+All other gameplay files import freely from each other **and** from these five.
+Because the five leaf files import no gameplay functions, they cannot participate
+in cycles. This makes all other circular imports safe — they involve only
+function bindings, which resolve before any function body executes.
+
+```js
+// game.js — imports only const.js (no gameplay modules)
+import { ... } from './const.js';
+
+// Struct class definitions live here (inline or in game.js directly):
+class Context { constructor() { this.run = 0; ... } }
+class Flag     { constructor() { this.debug = false; ... } }
+// ...
+
+export const game = {
+  u:        new You(),      // struct you  — hero state (u.* → game.u.*)
+  context:  new Context(),  // svc.context — replaces game.svc.context
+  flags:    new Flag(),     // flags       — replaces game.wizard etc.
+  youmonst: new Monst(),    // gy.youmonst — hero-as-monster form cache
+  // ... all fields from Complete game.* Field Reference below
+};
+```
+
+During migration, temporary shims can be added to `game.js`:
+
+```js
+// TEMPORARY — delete when all callers are migrated to game.context
+game.svc = { context: game.context };
+```
+
+Each shim is marked `// TEMPORARY` and deleted as soon as its last caller is
+updated. End state: zero shims in `game.js`.
+
+**`game.u` is a live sub-object.** Ported C functions can do:
+```js
+const u = game.u;   // mirrors C's global `struct you u;`
+```
+
+**Exit gate for game.js bootstrap — before the legacy rename sweep:**
+
+| | Status |
+|-|--------|
+| **Present** | `game.js` exists; exports `game` singleton with all fields from the Complete Reference; all struct class definitions are in `game.js` |
+| **Complete** | All gameplay modules import `game` from `game.js`; all `// TEMPORARY` shims are documented |
+| **Deleted** | Nothing yet — shims still present; `player.js` still in use |
+| **Verified** | Test suite is no worse than before |
+
+### Phase 2 — Constant Consolidation
+
+Move all capitalized constants into the four leaf files (`const.js`, `objects.js`,
+`monsters.js`, `version.js`). No behavior changes — only the file that owns each
+constant changes. After this phase, circular imports among all other files are
+safe because they involve only function bindings, not constant values.
+
+**Exit gate — before the legacy rename sweep:**
+
+| | Status |
+|-|--------|
+| **Present** | `const.js`, `objects.js`, `monsters.js`, `version.js` each contain all their respective constants |
+| **Complete** | Only these four files (plus `game.js`) export capitalized names; no other JS file exports a capitalized constant |
+| **Deleted** | Any intermediate consolidation helpers or re-export shims used during the move |
+| **Verified** | Test suite is no worse than before Phase 2 began |
+
+### Between Phase 2 and Phase 3 — state_paths.json and legacy rename sweep
+
+Add autotranslate rewrites so newly ported functions emit `game.*` directly:
+
+```json
+{ "c": "u.",   "js": "game.u.", "requires_params": ["game"] },
+{ "c": "ga.",  "js": "game.",   "requires_params": ["game"] },
+{ "c": "gb.",  "js": "game.",   "requires_params": ["game"] },
+...  (one entry per letter a–z, and per saved-game letter sva–svy)
+```
+
+Sweep remaining legacy JS names to their canonical targets (file by file, tests
+must pass after each file):
+
+| Legacy JS | → Target JS | C source |
+|-----------|-------------|----------|
+| `game.turnCount` | `game.moves` | `svm.moves` |
+| `game.svc.context` | `game.context` | `svc.context` |
+| `game.wizard` | `game.flags.debug` | `flags.debug` |
+| `game.in_doAgain` | `game.in_doagain` | `gi.in_doagain` |
+| `player.x` / `player.y` | `game.u.ux` / `game.u.uy` | `u.ux` / `u.uy` |
+| `player.hp` / `player.hpmax` | `game.u.uhp` / `game.u.uhpmax` | `u.uhp` / `u.uhpmax` |
+| `player.pw` / `player.pwmax` | `game.u.uen` / `game.u.uenmax` | `u.uen` / `u.uenmax` |
+| `player.ac` | `game.u.uac` | `u.uac` |
+| `player.level` | `game.u.ulevel` | `u.ulevel` |
+| `player.exp` | `game.u.uexp` | `u.uexp` |
+| `player.hunger` | `game.u.uhunger` | `u.uhunger` |
+| `player.moved` | `game.u.umoved` | `u.umoved` |
+| `player.alignment` | `game.u.ualign.type` | `u.ualign.type` |
+| `player.alignmentRecord` | `game.u.ualign.record` | `u.ualign.record` |
+| `player.alignmentAbuse` | `game.u.ualign.abuse` | `u.ualign.abuse` |
+| `player.attributes[]` | `game.u.acurr.a[]` | `u.acurr.a[]` |
+| `player.uluck` / `player.moreluck` | `game.u.uluck` / `game.u.moreluck` | `u.uluck` / `u.moreluck` |
+| `player.uprops` | `game.u.uprops` | `u.uprops` |
+| `player.inventory` | `game.invent` | `gi.invent` |
+| `player.spells` | `game.spl_book` | `svs.spl_book` |
+| `player.name` | `game.plname` | `gp.plname` |
+
+**Exit gate for the legacy rename sweep — before Phase 3:**
+
+| | Status |
+|-|--------|
+| **Present** | `state_paths.json` has entries for all `gX.`/`svX.` prefixes and `u.`; all canonical `game.*` / `game.u.*` field names are in use throughout the codebase |
+| **Complete** | Every row in the legacy rename table above has been applied in every file |
+| **Deleted** | `game.svc` shim; `game.wizard` reference; `game.turnCount` reference; all `// TEMPORARY` shims that have been migrated |
+| **Verified** | Test suite is no worse than before |
+
+### youmonst and set_uasmon() in JS
+
+`game.youmonst` is a **form cache**, not a continuous mirror of `game.u`.
+It is initialized by `set_uasmon()` — port this function before porting anything
+that passes the hero to monster-combat functions.
+
+When porting `set_uasmon()` (called from `u_init`, `restore`, `polyself`, `were`,
+`allmain`):
+- Set `game.youmonst.data = mons[game.u.umonnum]` (permonst entry for current form)
+- Set `game.youmonst.m_id = 1` (always; `mx` stays 0 — youmonst has no map position)
+- Propagate species intrinsics into `game.u.uprops[]`
+- Do **not** sync `game.youmonst` on every turn — it is rebuilt only on polymorph,
+  lycanthropy/were-change, and save-file restore.
+
+### Phase 3 — File-per-C-Source Reorganization
+
+Move functions to `.js` files matching their `.c` origin. No pass-through
+wrappers — each function is defined once, in the file where others will import it,
+with the same name used in C. See `docs/MODULES.md` for the full file list.
+
+After Phase 2, all non-leaf modules can import each other freely without any
+concern about circular initialization order. The five leaf files guarantee that
+all constants and the `game` singleton are fully initialized before any function
+body runs. Gameplay modules just import what they need, with no restrictions.
+
+**Exit gate — before the final cleanup step:**
+
+| | Status |
+|-|--------|
+| **Present** | Every gameplay function lives in a `.js` file named after its origin `.c` file; each function defined exactly once |
+| **Complete** | No pass-through wrapper functions anywhere in the codebase; autotranslator targets correct files |
+| **Deleted** | JS invented consolidation files (`combat.js`, `look.js`, `monutil.js`, `stackobj.js`, `player.js`, `discovery.js`, `options_menu.js`) once their contents are distributed |
+| **Verified** | Test suite is no worse than before Phase 3 began |
+
+### Final step — remove all remaining scaffolding
+
+**Exit gate (done when all of the following are true):**
+
+| | Status |
+|-|--------|
+| **Present** | Clean codebase with canonical C names everywhere |
+| **Complete** | No `// TEMPORARY` comments remain; no `?? legacyField` fallback expressions; no shim objects |
+| **Deleted** | `player.js`; `game.svc`; all legacy alias blocks; any remaining re-export pass-throughs |
+| **Verified** | Test suite is no worse than the start of the refactor |
 
 ## Complete game.* Field Reference
 
