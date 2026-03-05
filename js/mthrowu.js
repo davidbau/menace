@@ -504,26 +504,9 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
         }
         if (mon.dead) break;
     }
-    // Preserve existing throw-message ack behavior, but don't consume the next
-    // command key when the throw already resolved with a direct hit on hero.
-    if (!hitPlayer
-        && !mtarg
-        && !promptedForTopline
-        && display
-        && typeof display.morePrompt === 'function') {
-        // C ref: win/tty/topl.c tmore() renders "--More--" before blocking on getch,
-        // but only when two messages were concatenated onto the topline.
-        // When only a single throw message is present, C does not show --More-- here.
-        if (typeof display.renderMoreMarker === 'function'
-            && (display.topMessage || '').includes('  ')) {
-            display.renderMoreMarker();
-        }
-        await display.morePrompt(nhgetch);
-        if (Object.hasOwn(display, 'noConcatenateMessages')) {
-            display.noConcatenateMessages = true;
-            game._tempNoConcatMessages = true;
-        }
-    }
+    // C ref: monshoot() does not unconditionally force an extra topline
+    // acknowledgement here; `putstr_message()`/`thitu()` already handle
+    // required --More-- pauses while messages are emitted.
     return true;
 }
 

@@ -2096,3 +2096,18 @@ hard-won wisdom:
     to `385/516`,
   - first screen divergence moved from step `241` to step `339`,
   - `seed306_monk_selfplay200_gameplay` remains full-pass.
+
+### Seed323 timeout is pending-command/topline paging drift, not loop crash (2026-03-05)
+
+- `seed323_caveman_wizard_gameplay` timeout investigation showed replay staying
+  in a long-lived pending command state with repeated `nhgetch()` waits inside
+  `HeadlessDisplay.morePrompt` during monster throw/combat messaging.
+- This is not a hard crash out of `run_command`/`moveloop`; it is input pacing
+  drift where gameplay keys are consumed by unexpected extra topline acks.
+- Fix applied:
+  - removed extra end-of-`monshoot()` prompt path in `js/mthrowu.js`; required
+    `--More--` pauses are already handled while messages are emitted.
+- Effect:
+  - timeout frontier moved later (10s timeout from ~step `307` to ~`318-320`);
+    remaining timeout indicates further message/prompt drift still exists in the
+    same combat-heavy window.
