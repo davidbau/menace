@@ -127,8 +127,8 @@ export async function stealgold(mon, player, display) {
     if (display) await display.putstr_message('Your purse feels lighter.');
 
     // C ref: steal.c:111-113 — leprechaun flees after theft
-    mon.flee = true;
-    mon.fleetim = 0;
+    mon.mflee = true;
+    mon.mfleetim = 0;
 }
 
 // ============================================================================
@@ -288,8 +288,8 @@ export async function steal(mon, player, display, map = null) {
     mon.mavenge = true;
 
     // Monster flees after theft
-    mon.flee = true;
-    mon.fleetim = 0;
+    mon.mflee = true;
+    mon.mfleetim = 0;
 
     return 1;
 }

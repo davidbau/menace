@@ -230,23 +230,23 @@ export async function monflee(mon, fleetime, first, fleemsg, player, display, fo
         unstuck(mon, player);
     }
 
-    if (!first || !mon.flee) {
+    if (!first || !mon.mflee) {
         if (!fleetime) {
-            mon.fleetim = 0;
-        } else if (!mon.flee || (mon.fleetim > 0)) {
-            let ft = fleetime + (mon.fleetim || 0);
+            mon.mfleetim = 0;
+        } else if (!mon.mflee || (mon.mfleetim > 0)) {
+            let ft = fleetime + (mon.mfleetim || 0);
             if (ft === 1) ft = 2;
-            mon.fleetim = Math.min(ft, 127);
+            mon.mfleetim = Math.min(ft, 127);
         }
         // C ref: monmove.c:487-520 — flee message
-        if (!mon.flee && fleemsg && canseemon(mon, player, fov)) {
+        if (!mon.mflee && fleemsg && canseemon(mon, player, fov)) {
             if (!mon.mcanmove || !(mon.type?.speed)) {
                 await display?.putstr_message(`${YMonnam(mon)} seems to flinch.`);
             } else {
                 await display?.putstr_message(`${YMonnam(mon)} turns to flee.`);
             }
         }
-        mon.flee = true;
+        mon.mflee = true;
     }
     mon_track_clear(mon);
 }
@@ -977,7 +977,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
     if (mon.stunned && !rn2(10)) mon.stunned = false;
 
     // C ref: monmove.c:746 — flee teleport
-    if (mon.flee && !rn2(40) && can_teleport(mon.type || {})
+    if (mon.mflee && !rn2(40) && can_teleport(mon.type || {})
         && !mon.iswiz && !(map.flags && map.flags.noteleport)) {
             for (let tries = 0; tries < 50; tries++) {
                 const nx = rnd(COLNO - 1);
@@ -1001,10 +1001,10 @@ async function dochug(mon, map, player, display, fov, game = null) {
     await m_respond(mon, map, player, display, game);
 
     // C ref: monmove.c:759 — courage regain
-    if (mon.flee && !(mon.fleetim > 0)
+    if (mon.mflee && !(mon.mfleetim > 0)
         && (mon.mhp ?? 0) >= (mon.mhpmax ?? 0)
         && !rn2(25)) {
-        mon.flee = false;
+        mon.mflee = false;
     }
 
     // C ref: monmove.c:779 — set_apparxy after flee checks
@@ -1048,7 +1048,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
         `target=(${targetX},${targetY})`,
         `inrange=${inrange ? 1 : 0}`,
         `nearby=${nearby ? 1 : 0}`,
-        `flee=${mon.flee ? 1 : 0}`,
+        `flee=${mon.mflee ? 1 : 0}`,
         `conf=${mon.confused ? 1 : 0}`,
         `stun=${mon.stunned ? 1 : 0}`,
         `minvis=${mon.minvis ? 1 : 0}`,
@@ -1059,8 +1059,8 @@ async function dochug(mon, map, player, display, fov, game = null) {
     // Short-circuit OR matching C's evaluation order (C ref: monmove.c:883-888)
     let phase3Cond = !nearby;
     if (phase3Cond) monmovePhase3Trace(`step=${monmoveStepLabel(map)}`, `id=${mon.m_id ?? '?'}`, 'gate=!nearby');
-    if (!phase3Cond) phase3Cond = !!(mon.flee);
-    if (phase3Cond && mon.flee) monmovePhase3Trace(`step=${monmoveStepLabel(map)}`, `id=${mon.m_id ?? '?'}`, 'gate=mflee');
+    if (!phase3Cond) phase3Cond = !!(mon.mflee);
+    if (phase3Cond && mon.mflee) monmovePhase3Trace(`step=${monmoveStepLabel(map)}`, `id=${mon.m_id ?? '?'}`, 'gate=mflee');
     if (!phase3Cond && scared) {
         phase3Cond = true;
         monmovePhase3Trace(`step=${monmoveStepLabel(map)}`, `id=${mon.m_id ?? '?'}`, 'gate=scared');
@@ -1213,7 +1213,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
     // Phase 4: Standard Attacks
     // cf. mhitu.c mattacku() — both melee and ranged attacks are dispatched
     // through the attack table.  range2 determines which attack types fire.
-    if (phase4Allowed && !mon.peaceful && !mon.flee && !mon.dead) {
+    if (phase4Allowed && !mon.peaceful && !mon.mflee && !mon.dead) {
         if (inrange || panicattk) {
             if (nearby) {
                 // C ref: monmove.c:938-959 — MMOVE_MOVED returns 0 (skip Phase 4
@@ -1464,7 +1464,7 @@ async function m_move(mon, map, player, display = null, fov = null) {
 
     let ggx = mon.mux ?? player.x, ggy = mon.muy ?? player.y;
 
-    let appr = mon.flee ? -1 : 1;
+    let appr = mon.mflee ? -1 : 1;
 
     const monLoc = map.at(omx, omy);
     const playerLoc = map.at(ggx, ggy);

@@ -322,8 +322,8 @@ export async function dog_eat(mon, obj, map, turnCount, ctx = null) {
         edog.mhpmax_penalty = 0;
     }
 
-    if (mon.flee && mon.fleetim > 1)
-        mon.fleetim = Math.floor(mon.fleetim / 2);
+    if (mon.mflee && mon.mfleetim > 1)
+        mon.mfleetim = Math.floor(mon.mfleetim / 2);
 
     if (mon.tame < 20)
         mon.tame++;
@@ -1126,7 +1126,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
             return 0;
         }
 
-        appr = (udist >= 9) ? 1 : (mon.flee) ? -1 : 0;
+        appr = (udist >= 9) ? 1 : (mon.mflee) ? -1 : 0;
 
         if (udist > 1) {
             // C ref: dogmove.c:575-578 — approach check

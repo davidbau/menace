@@ -735,7 +735,7 @@ export async function seffect_scare_monster(sobj, player, display, game) {
             if (!canSee) continue;
 
             if (confused || scursed) {
-                mtmp.flee = false;
+                mtmp.mflee = false;
                 mtmp.mfrozen = 0;
                 mtmp.msleeping = 0;
                 mtmp.sleeping = false;

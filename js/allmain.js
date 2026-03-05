@@ -168,11 +168,11 @@ export async function moveloop_turnend(game) {
     // C ref: mon.c m_calcdistress() — temporary flee timeout handling.
     for (const mon of (game.lev || game.map).monsters) {
         if (mon.dead) continue;
-        if (mon.fleetim && mon.fleetim > 0) {
-            mon.fleetim--;
-            if (mon.fleetim <= 0) {
-                mon.fleetim = 0;
-                mon.flee = false;
+        if (mon.mfleetim && mon.mfleetim > 0) {
+            mon.mfleetim--;
+            if (mon.mfleetim <= 0) {
+                mon.mfleetim = 0;
+                mon.mflee = false;
             }
         }
     }

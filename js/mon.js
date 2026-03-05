@@ -1290,8 +1290,8 @@ function minliquid_core(mon, map, player) {
                 mon.mhp = (mon.mhp || 0) - 1;
             }
             // C ref: monflee(mon, 2, FALSE, FALSE) — simplified
-            mon.flee = true;
-            mon.fleetim = Math.max(mon.fleetim || 0, 2);
+            mon.mflee = true;
+            mon.mfleetim = Math.max(mon.mfleetim || 0, 2);
         }
     }
     return 0;
@@ -1509,7 +1509,7 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                 `name=${mon.type?.name || mon.name || '?'}`,
                 `pos=(${oldx},${oldy})`,
                 `mv=${mon.movement + NORMAL_SPEED}->${mon.movement}`,
-                `flee=${mon.flee ? 1 : 0}`,
+                `flee=${mon.mflee ? 1 : 0}`,
                 `peace=${mon.peaceful ? 1 : 0}`,
                 `conf=${mon.confused ? 1 : 0}`);
             if ((hhp || handleHiderPremove)(mon, map, player, fov)) {
@@ -1551,7 +1551,7 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
             }
             // C ref: mon.c:1277-1284 — eel hiding
             if (mon.type?.mlet === S_EEL && !mon.mundetected
-                && (mon.flee || distmin(mon.mx, mon.my, player.x, player.y) > 1)
+                && (mon.mflee || distmin(mon.mx, mon.my, player.x, player.y) > 1)
                 && !canseemon(mon, player, fov)
                 && !rn2(4)) {
                 if (hideunder(mon, map, player, fov))

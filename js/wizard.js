@@ -518,7 +518,7 @@ export async function tactics(mtmp, map, player, display, fov) {
     // FALLTHROUGH to STRAT_NONE
     // eslint-disable-next-line no-fallthrough
     case STRAT_NONE: { // harass
-        if (!rn2(!mtmp.flee ? 5 : 33)) {
+        if (!rn2(!mtmp.mflee ? 5 : 33)) {
             // mnexto: teleport near current position
             const cc = {};
             if (enexto(cc, mtmp.mx, mtmp.my, mptr(mtmp), map, player))

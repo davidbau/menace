@@ -144,16 +144,16 @@ function clearMonsterTrack(monster) {
 
 // cf. monmove.c monflee() subset used by melee morale checks.
 export function applyMonflee(monster, fleetime, first = false) {
-    const oldFleetim = Number(monster?.fleetim || 0);
-    if (!first || !monster.flee) {
+    const oldFleetim = Number(monster?.mfleetim || 0);
+    if (!first || !monster.mflee) {
         if (!fleetime) {
-            monster.fleetim = 0;
-        } else if (!monster.flee || oldFleetim > 0) {
+            monster.mfleetim = 0;
+        } else if (!monster.mflee || oldFleetim > 0) {
             let nextFleetim = fleetime + oldFleetim;
             if (nextFleetim === 1) nextFleetim = 2;
-            monster.fleetim = Math.min(nextFleetim, 127);
+            monster.mfleetim = Math.min(nextFleetim, 127);
         }
-        monster.flee = true;
+        monster.mflee = true;
     }
     clearMonsterTrack(monster);
 }
@@ -777,8 +777,8 @@ async function mhitu_ad_sedu(monster, attack, player, mhm, ctx) {
                 }
             }
         }
-        monster.flee = true;
-        monster.fleetim = 0;
+        monster.mflee = true;
+        monster.mfleetim = 0;
         mhm.hitflags = M_ATTK_AGR_DONE;
         mhm.done = true;
     }

@@ -204,7 +204,7 @@ function find_roll_to_hit(player, mtmp, aatyp, weapon) {
 
     // cf. uhitm.c:386-393 — monster state adjustments
     if (mtmp.stunned || mtmp.mstun) tmp += 2;
-    if (mtmp.flee || mtmp.mflee) tmp += 2;
+    if (mtmp.mflee) tmp += 2;
     if (mtmp.sleeping || mtmp.msleeping) tmp += 2;
     if (mtmp.mcanmove === false) tmp += 4;
 

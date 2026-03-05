@@ -768,7 +768,7 @@ export async function domonnoise(mtmp, game) {
             pline_msg = 'howls.';
         } else if (mtmp.peaceful) {
             if (mtmp.tame
-                && (mtmp.confused || mtmp.flee || mtmp.trapped
+                && (mtmp.confused || mtmp.mflee || mtmp.trapped
                     || (mtmp.edog && game.turnCount > mtmp.edog.hungrytime)
                     || (mtmp.tame < 5)))
                 pline_msg = 'whines.';
@@ -786,7 +786,7 @@ export async function domonnoise(mtmp, game) {
 
     case MS_MEW:
         if (mtmp.tame) {
-            if (mtmp.confused || mtmp.flee || mtmp.trapped
+            if (mtmp.confused || mtmp.mflee || mtmp.trapped
                 || (mtmp.tame < 5))
                 pline_msg = 'yowls.';
             else if (mtmp.edog && game.turnCount > mtmp.edog.hungrytime)
@@ -945,7 +945,7 @@ export async function domonnoise(mtmp, game) {
             break;
         }
         // Generic peaceful humanoid behavior
-        if (mtmp.flee)
+        if (mtmp.mflee)
             pline_msg = 'wants nothing to do with you.';
         else if (mtmp.hp < (mtmp.hpmax || 1) / 4)
             pline_msg = 'moans.';
