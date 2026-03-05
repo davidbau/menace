@@ -2305,3 +2305,33 @@ hard-won wisdom:
 - Validation:
   - `seed321_archeologist_wizard_gameplay`: full pass (`mapdump=2/2`).
   - `seed329_rogue_wizard_gameplay`: still full pass (no regression).
+
+### Trap type constants are inconsistent across JS files (2026-03-05)
+
+- C defines trap types as a contiguous enum in `you.h`:
+  `TT_BEARTRAP=1, TT_PIT=2, TT_WEB=3, TT_LAVA=4, TT_INFLOOR=5, TT_BURIEDBALL=6`.
+- JS runtime values differ: `hack.js` defines `PIT=1` (line 969),
+  `dig.js` defines `BURIEDBALL=5` (line 1423), `insight.js` defines
+  `BEARTRAP=0, PIT=1, WEB=3, LAVA=4, INFLOOR=5, BURIEDBALL=6`.
+- Multiple files (`ball.js`, `dokick.js`, `sit.js`, `polyself.js`) define
+  their own local trap type constants with varying values.
+- **Impact**: `do_wear.js` `canwearobj()` used C's `TT_BEARTRAP=1` to block
+  boot-wearing, but JS runtime has `PIT=1`. This incorrectly blocked boots
+  while in a pit (C allows it) and allowed boots while in a beartrap (C blocks it).
+- **Fix**: Changed `do_wear.js` to use JS runtime values explicitly.
+- **Future work**: Centralize trap type constants into a single export to
+  prevent recurrence.
+
+### `display.putstr_message()` bypasses pline `_lastMessage` tracking (2026-03-05)
+
+- Several places in JS use `display.putstr_message(text)` directly instead of
+  `pline()` / `You()` / `Your()`. This bypasses `_lastMessage` in `pline.js`,
+  breaking `Norep()` suppression for subsequent messages.
+- Known locations: `do_wear.js` `handleWear()` (lines 902-1803), `mhitm.js`
+  `noises()` (line 96).
+- **Pattern**: After calling `display.putstr_message(text)`, call
+  `updateLastPlineMessage(text)` from `pline.js` to keep `_lastMessage` in sync.
+- **Why not just use pline?**: Some callers need the message to appear on the
+  display's topline (via `display.putstr_message`) rather than through pline's
+  output context. Unit tests also mock `display.putstr_message` directly.
+- **Impact**: Fixed seed326 from 504/507 to 507/507 screens (individually).

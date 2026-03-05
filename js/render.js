@@ -90,7 +90,7 @@ export const TERRAIN_SYMBOLS_ASCII = {
     [STAIRS]:         { ch: '<',   color: CLR_GRAY },
     [FOUNTAIN]:       { ch: '{',   color: CLR_BRIGHT_BLUE },
     [THRONE]:         { ch: '\\',  color: HI_GOLD },
-    [SINK]:           { ch: '#',   color: CLR_GRAY },
+    [SINK]:           { ch: '{',   color: CLR_WHITE },
     [GRAVE]:          { ch: '|',   color: CLR_WHITE },
     [ALTAR]:          { ch: '_',   color: CLR_GRAY },
     [POOL]:           { ch: '}',   color: CLR_BLUE },
@@ -130,7 +130,7 @@ export const TERRAIN_SYMBOLS_DEC = {
     [STAIRS]:         { ch: '<',       color: CLR_GRAY },
     [FOUNTAIN]:       { ch: '{',       color: CLR_BRIGHT_BLUE },
     [THRONE]:         { ch: '\\',      color: HI_GOLD },
-    [SINK]:           { ch: '#',       color: CLR_GRAY },
+    [SINK]:           { ch: '{',       color: CLR_WHITE },
     [GRAVE]:          { ch: '\u2020',  color: CLR_WHITE },  // DAGGER
     [ALTAR]:          { ch: '\u03c0',  color: CLR_GRAY },   // PI (DEC meta-{)
     // C ref: dat/symbols DECgraphics

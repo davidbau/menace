@@ -59,8 +59,15 @@ export { M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_D
 const NATTK = 6; // C ref: monattk.h — max number of monster attacks
 const STRAT_WAITFORU = 0x20000000; // C ref: mon.h
 let farNoise = false;
-let noiseTime = -999999;
+let noiseTime = 0;
 
+// C ref: noises() uses static locals that reset per-process.
+// In the JS test suite, module state persists across replays.
+// Reset to C defaults (static int = 0, static boolean = false).
+export function resetNoisesState() {
+    farNoise = false;
+    noiseTime = 0;
+}
 
 // ============================================================================
 // Helper predicates

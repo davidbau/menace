@@ -12,6 +12,7 @@ import { HeadlessDisplay, createHeadlessInput } from './headless.js';
 import { consumeHarnessMapdumpPayloads } from './dungeon.js';
 import { hasActiveTextPopupWindow, redrawActiveTextPopupWindows } from './windows.js';
 import { resetPlineState } from './pline.js';
+import { resetNoisesState } from './mhitm.js';
 
 export { HeadlessDisplay };
 
@@ -93,6 +94,7 @@ export async function replaySession(seed, opts, keys) {
     }
     initrack();
     resetPlineState();
+    resetNoisesState();
     enableRngLog();
 
     const display = new HeadlessDisplay();

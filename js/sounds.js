@@ -87,8 +87,9 @@ export async function throne_mon_sound(mtmp, hallu, game) {
         if (which !== 2) {
             await game.display.putstr_message(`You hear ${throne_msg[which]}`);
         } else {
-            // "Someone shouts 'Off with his/her head!'"
-            const pron = (game.u || game.player)?.female ? 'her' : 'his';
+            // C ref: sounds.c:52 — pline(throne_msg[2], uhis())
+            // C uhis() uses flags.female; match that via game.flags.female.
+            const pron = game.flags?.female ? 'her' : 'his';
             await game.display.putstr_message(throne_msg[2].replace('%s', pron));
         }
         return true;
@@ -1023,7 +1024,7 @@ export async function domonnoise(mtmp, game) {
     }
     case MS_ARREST:
         if (mtmp.peaceful) {
-            const title = (game.u || game.player)?.female ? "Ma'am" : 'Sir';
+            const title = game.flags?.female ? "Ma'am" : 'Sir';
             await game.display.putstr_message(`"Just the facts, ${title}."`);
         } else {
             const arrest_msg = [
