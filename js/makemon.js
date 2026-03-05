@@ -59,6 +59,7 @@ import {
     PM_CROESUS,
     PM_ARCHEOLOGIST, PM_WIZARD,
     PM_QUANTUM_MECHANIC, PM_HOUSECAT, PM_PONY,
+    PM_FOREST_CENTAUR,
 } from './monsters.js';
 import {
     ROCK, STATUE, FIGURINE, EGG, TIN, STRANGE_OBJECT, GOLD_PIECE, DILITHIUM_CRYSTAL,
@@ -969,9 +970,15 @@ function m_initweap(mon, mndx, depth) {
         break;
 
     case S_CENTAUR:
+        // C ref: makemon.c:477 — forest centaurs get BOW+ARROW, others CROSSBOW+BOLT
         if (rn2(2)) {
-            mongets(mon,CROSSBOW);
-            m_initthrow(mon, CROSSBOW_BOLT, 12);
+            if (mndx === PM_FOREST_CENTAUR) {
+                mongets(mon, BOW);
+                m_initthrow(mon, ARROW, 12);
+            } else {
+                mongets(mon, CROSSBOW);
+                m_initthrow(mon, CROSSBOW_BOLT, 12);
+            }
         }
         break;
 
