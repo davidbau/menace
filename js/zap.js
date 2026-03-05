@@ -451,23 +451,43 @@ async function xkilled_local(mon, map, player, display) {
 // Main zap handler — called from cmd.js
 // C ref: zap.c dozap()
 export async function handleZap(player, map, display, game) {
-    // Read item letter
+    // C ref: zap.c:2626 — getobj("zap", zap_ok, GETOBJ_NOFLAGS)
+    const wands = (player.inventory || []).filter(o => o.oclass === WAND_CLASS);
+    if (wands.length === 0) {
+        await pline("You don't have anything to zap.");
+        return { moved: false, tookTime: false };
+    }
+
+    const zapPrompt = `What do you want to zap? [${wands.map(w => w.invlet).join('')} or ?*] `;
+    await display.putstr_message(zapPrompt);
     const itemCh = await nhgetch();
     const itemChar = String.fromCharCode(itemCh);
+    const replacePromptMessage = () => {
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        display.topMessage = null;
+        display.messageNeedsMore = false;
+    };
 
-    if (itemCh === 27) { // ESC
-        if (game.flags.verbose) {
-            await display.putstr_message('Never mind.');
-        }
+    if (itemCh === 27 || itemCh === 10 || itemCh === 13 || itemChar === ' ') {
+        replacePromptMessage();
+        await pline('Never mind.');
         return { moved: false, tookTime: false };
     }
 
     // Find the wand in inventory
-    const wand = player.inventory.find(o => o.invlet === itemChar);
-    if (!wand || wand.oclass !== WAND_CLASS) {
-        await display.putstr_message("That's not a wand!");
+    const selected = player.inventory.find(o => o.invlet === itemChar);
+    if (selected && selected.oclass !== WAND_CLASS) {
+        replacePromptMessage();
+        await pline("That's not a wand!");
         return { moved: false, tookTime: false };
     }
+    const wand = wands.find(w => w.invlet === itemChar);
+    if (!wand) {
+        replacePromptMessage();
+        await pline("You don't have that object.");
+        return { moved: false, tookTime: false };
+    }
+    replacePromptMessage();
 
     // Read direction
     const dirCh = await nhgetch();
