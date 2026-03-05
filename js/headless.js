@@ -594,9 +594,12 @@ export class HeadlessDisplay {
             const secondMax = Math.max(1, this.cols - moreStr.length);
             const secondLine = wrapped.substring(0, secondMax);
             const remainder = wrapped.substring(secondLine.length).trimStart();
+            const moreCol = Math.min(secondLine.length, this.cols - moreStr.length);
             this.clearRow(1);
             this.putstr(0, 1, secondLine);
-            this.putstr(Math.min(secondLine.length, this.cols - moreStr.length), 1, moreStr);
+            this.putstr(moreCol, 1, moreStr);
+            // C ref: win/tty/topl.c more() — cursor lands after --More-- on row 1.
+            this.setCursor(Math.min(moreCol + moreStr.length, this.cols - 1), 1);
             await this._nhgetch();
             this.clearRow(0);
             this.messageNeedsMore = false;

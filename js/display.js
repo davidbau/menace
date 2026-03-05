@@ -198,6 +198,7 @@ export class Display {
         this._nhgetch = null;
         this._pendingMore = false;
         this._messageQueue = [];
+        this._topMessageRow1 = undefined; // set when message wraps to row 1
 
         this._createDOM();
     }
@@ -359,31 +360,40 @@ span.nh-cursor {
             return;
         }
 
-        // Display message on single line
+        // Display message, wrapping to row 1 if needed.
+        // C ref: win/tty/topl.c update_topl() inserts '\n' at word boundaries
+        // when n0 >= CO, then more() places --More-- on the last row used.
         this.clearRow(MESSAGE_ROW);
 
         if (msg.length <= this.cols) {
             this.putstr(0, MESSAGE_ROW, msg, CLR_WHITE);
             this.topMessage = msg;
         } else {
-            // C tty messages pause with --More-- rather than spilling onto
-            // extra rows; keep room for " --More--" on the same line.
-            const maxLineLen = Math.max(1, this.cols - 10);
-            let breakPoint = msg.lastIndexOf(' ', maxLineLen);
-            if (breakPoint === -1) {
-                breakPoint = maxLineLen;
+            // Break at word boundary near cols (C uses CO-1 as scan start).
+            let breakPoint = msg.lastIndexOf(' ', this.cols - 1);
+            if (breakPoint <= 0) {
+                breakPoint = this.cols; // hard break if no space found
             }
 
-            const firstLine = msg.substring(0, breakPoint);
-            this.putstr(0, MESSAGE_ROW, firstLine, CLR_WHITE);
-            this.topMessage = firstLine;
+            const row0 = msg.substring(0, breakPoint);
+            const row1rest = msg.substring(breakPoint).trimStart();
 
-            const wrapped = msg.substring(breakPoint).trimStart();
-            if (wrapped.length > 0) {
+            this.putstr(0, MESSAGE_ROW, row0, CLR_WHITE);
+            this.topMessage = row0;
+
+            if (row1rest.length > 0) {
+                // Write as much as fits on row 1, queue any remainder.
+                const row1 = row1rest.substring(0, this.cols);
+                this.clearRow(MESSAGE_ROW + 1);
+                this.putstr(0, MESSAGE_ROW + 1, row1, CLR_WHITE);
+                this._topMessageRow1 = row1;
                 this.messageNeedsMore = true;
                 this.renderMoreMarker();
                 this._pendingMore = true;
-                this._messageQueue.push(wrapped);
+                const row1overflow = row1rest.substring(this.cols).trimStart();
+                if (row1overflow.length > 0) {
+                    this._messageQueue.push(row1overflow);
+                }
                 return;
             }
         }
@@ -398,6 +408,10 @@ span.nh-cursor {
     _clearMore() {
         this._pendingMore = false;
         this.clearRow(MESSAGE_ROW);
+        if (this._topMessageRow1 !== undefined) {
+            this.clearRow(MESSAGE_ROW + 1);
+            this._topMessageRow1 = undefined;
+        }
         this.messageNeedsMore = false;
         this.topMessage = null;
         while (this._messageQueue.length > 0 && !this._pendingMore) {
@@ -432,12 +446,24 @@ span.nh-cursor {
     // Render the "--More--" marker on the message row without waiting for input.
     // Called by putstr_message() when message overflow requires a --More-- pause,
     // and by dolook/engrave for parity with C screen captures.
+    // C ref: win/tty/topl.c more() — wraps to next row if curx >= CO - 8.
     renderMoreMarker() {
         const moreStr = '--More--';
-        const msgLen = (this.topMessage || '').length;
-        const col = Math.min(msgLen, this.cols - moreStr.length);
-        this.putstr(col, MESSAGE_ROW, moreStr, CLR_GREEN);
-        this.setCursor(Math.min(col + moreStr.length, this.cols - 1), 0);
+        if (this._topMessageRow1 !== undefined) {
+            // Message wrapped to row 1; place --More-- after row 1 content.
+            // C: more() checks if curx >= CO - 8 to decide on a newline first,
+            // but for row 1 we follow the same rule: if row1 content leaves room,
+            // append on the same row.
+            const row1Len = this._topMessageRow1.length;
+            const col = Math.min(row1Len, this.cols - moreStr.length);
+            this.putstr(col, MESSAGE_ROW + 1, moreStr, CLR_GREEN);
+            this.setCursor(Math.min(col + moreStr.length, this.cols - 1), MESSAGE_ROW + 1);
+        } else {
+            const msgLen = (this.topMessage || '').length;
+            const col = Math.min(msgLen, this.cols - moreStr.length);
+            this.putstr(col, MESSAGE_ROW, moreStr, CLR_GREEN);
+            this.setCursor(Math.min(col + moreStr.length, this.cols - 1), MESSAGE_ROW);
+        }
     }
 
     // Display "--More--" and wait for input
