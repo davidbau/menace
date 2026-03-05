@@ -143,8 +143,9 @@ both `A` and `B` import `game` from the same zero-dep root.
 ### Fix: runtime wiring discipline
 
 Avoid top-level side-effect wiring and `register*()`-style initialization
-patterns. Cross-module wiring belongs in explicit init routines orchestrated by
-startup order (see Issue #227), after modules are loaded.
+patterns. Do not add `initAll`/startup orchestrator wiring; module top-level
+code should stay declarative, and cross-module interactions should happen when
+runtime functions/classes are called/instantiated.
 
 ## Work Plan
 

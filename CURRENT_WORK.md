@@ -1,6 +1,6 @@
 # Current Work: Issue #227 Execution
 
-**Issue**: #227 — explicit init phase / circular-import fragility removal  
+**Issue**: #227 — module-init fragility removal (no initAll)  
 **Branch**: main  
 **Date**: 2026-03-05  
 **Owner**: agent:game
@@ -15,7 +15,7 @@ Phase 0 (preflight and baseline), per `docs/MODULES.md` Autonomous Execution Pla
 2. Resolved contradictory guidance in `docs/STRUCTURES.md`:
    - removed alternate `constants.js` / `trapconst.js` direction,
    - aligned to leaf architecture (`version.js`, `const.js`, `objects.js`, `monsters.js`, `game.js`),
-   - replaced deferred-import guidance with explicit init-phase wiring discipline.
+   - replaced deferred-import guidance with no-top-level-wiring discipline.
 3. Added explicit autonomous execution gates to `docs/MODULES.md`:
    - Phase 0 preflight/baseline requirements,
    - Phase 1 init-fragility scope and gates,

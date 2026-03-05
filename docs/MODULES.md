@@ -193,11 +193,13 @@ Exit gate:
 - Inventory file(s) exist and are reviewed.
 - Baseline parity report is captured in commit notes/comments.
 
-### Phase 1 — Initialization fragility removal (Issue #227 core scope)
+### Phase 1 — Module-init fragility removal (Issue #227 core scope)
 
-1. Convert top-level cross-module registration/wiring to explicit init functions.
-2. Add a single startup orchestrator order where init functions are called.
-3. Remove top-level side-effect registration calls.
+1. Remove top-level cross-module registration/wiring side effects.
+2. Do not add `initAll` or any global startup orchestrator.
+3. Keep module top-level code limited to declarations/constants/class/function
+   definitions; wiring happens at normal runtime call sites.
+4. Remove `register*()` patterns as touched.
 
 Batching rule:
 - Land in small batches (1-3 wiring paths per commit), each with targeted test
@@ -205,20 +207,20 @@ Batching rule:
 
 Exit gate:
 - No remaining top-level `register*()` invocations in gameplay modules.
-- Startup order is explicit and documented.
+- No top-level cross-module wiring side effects outside leaf modules.
 - Parity is no worse than baseline.
 
-### Phase 1 — C Field Name Normalization
+### Phase 2 — C Field Name Normalization
 
 Fix all non-C field name aliases across the JS codebase (see table below).
 Work file-by-file; run tests after each file. When all aliases are gone,
 delete `attack_fields.js`.
 
-This phase is prerequisite to Phases 2 and 3 because once names are canonical,
+This phase is prerequisite to Phases 3 and 4 because once names are canonical,
 the autotranslator can emit correct code for newly ported functions without
 a field-mapping layer.
 
-### Phase 2 — Constant Consolidation
+### Phase 3 — Constant Consolidation
 
 Move all exported capitalized constants into the four header files. After this
 phase the rule is enforced: `const.js`, `objects.js`, `monsters.js`,
@@ -235,14 +237,14 @@ Exit gate:
 - `rg "export (const|let|var) [A-Z]" js` only reports the four leaf files.
 - Parity is no worse than baseline.
 
-### Phase 3 — File-per-C-Source Reorganization
+### Phase 4 — File-per-C-Source Reorganization
 
 Move every function into a `.js` file whose name matches the `.c` file it was
 ported from. This makes porting new C functions trivial: you always know which
 file to put them in, and the autotranslator can target the right file directly.
 
 Circular imports between `.js` files are explicitly allowed and safe after
-Phase 2. No need for registration patterns or deferred imports.
+Phase 3. No `register*()` and no `initAll` needed.
 
 Batching rule:
 - Move functions file-by-file with no behavior edits in the same commit.
