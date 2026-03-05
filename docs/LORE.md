@@ -1992,3 +1992,25 @@ hard-won wisdom:
     (`rng=6904/6904`, `events=3949/3949`),
   - new exposed frontier is in `set_apparxy`/`distfleeck` nearby state for the
     kitten turn at step `356` (targeting/phase gating skew).
+
+### Step-356 pet-position skew needs real-position localization (2026-03-05)
+
+- New frontier after zombify-timeout fix:
+  - `seed322` first RNG mismatch at step `356`:
+    JS `rn2(4)` (wander gate in `dochug`), C `rn2(100)` (`obj_resists` in
+    `dog_goal` path).
+  - paired event mismatch:
+    `^distfleeck[32@20,5 ... near=1 ...]` (JS) vs `near=0` (C).
+- Added gated diagnostics (no gameplay behavior change):
+  - `monmove.js:set_apparxy` now emits `MONMOVE_TRACE` with old/new apparent
+    target, direct/nodispl/displ mode, and hero position.
+  - `dogmove.js:DOGGOAL_TRACE` now includes hero position, apparent target,
+    and `udist`.
+- Diagnostic result from traced run:
+  - JS at step `356` logs pet `id=52` with `u=(19,4)` and `udist=2`/`1` in the
+    two kitten turns that frame.
+  - C session logs `ud=4` at that boundary.
+- Conclusion:
+  - this frontier is currently a pre-existing hero/pet positional-state skew
+    entering step `356` (not a local `dog_goal` formula typo); continue
+    debugging upstream movement/position semantics feeding `set_apparxy`.

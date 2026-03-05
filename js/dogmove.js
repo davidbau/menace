@@ -1028,6 +1028,9 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                 `step=${dogGoalStepLabel}`,
                 `mon=${mon.m_id ?? '?'}`,
                 `pos=(${omx},${omy})`,
+                `u=(${player?.x ?? '?'},${player?.y ?? '?'})`,
+                `apparent=(${Number.isInteger(mon?.mux) ? mon.mux : '?'},${Number.isInteger(mon?.muy) ? mon.muy : '?'})`,
+                `udist=${udist}`,
                 `range=[${minX}..${maxX}]x[${minY}..${maxY}]`,
                 `objects=${map.objects.length}`);
         }

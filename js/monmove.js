@@ -1788,11 +1788,26 @@ export function set_apparxy(mon, map, player) {
     const umoney = goldQuantity(player?.inventory || player?.invent || []);
     let mx = Number.isInteger(mon.mux) ? mon.mux : 0;
     let my = Number.isInteger(mon.muy) ? mon.muy : 0;
+    const oldMux = mx;
+    const oldMuy = my;
+    const step = monmoveStepLabel(map);
 
     // C ref: monmove.c:2214 — pet, grabber, or already-at-hero position
     if (mon_is_tame(mon) || player.ustuck === mon || (mx === player.x && my === player.y)) {
         mon.mux = player.x;
         mon.muy = player.y;
+        monmoveTrace(
+            'set_apparxy',
+            `step=${step}`,
+            `id=${mon.m_id ?? '?'}`,
+            'mode=direct',
+            `tame=${mon_is_tame(mon) ? 1 : 0}`,
+            `ustuck=${player.ustuck === mon ? 1 : 0}`,
+            `u_at_old=${(oldMux === player.x && oldMuy === player.y) ? 1 : 0}`,
+            `u=(${player.x},${player.y})`,
+            `old=(${oldMux},${oldMuy})`,
+            `new=(${mon.mux},${mon.muy})`,
+        );
         return;
     }
 
@@ -1819,6 +1834,17 @@ export function set_apparxy(mon, map, player) {
     if (!displ) {
         mon.mux = player.x;
         mon.muy = player.y;
+        monmoveTrace(
+            'set_apparxy',
+            `step=${step}`,
+            `id=${mon.m_id ?? '?'}`,
+            'mode=nodispl',
+            `notseen=${notseen ? 1 : 0}`,
+            `notthere=${notthere ? 1 : 0}`,
+            `u=(${player.x},${player.y})`,
+            `old=(${oldMux},${oldMuy})`,
+            `new=(${mon.mux},${mon.muy})`,
+        );
         return;
     }
 
@@ -1856,6 +1882,19 @@ export function set_apparxy(mon, map, player) {
 
     mon.mux = mx;
     mon.muy = my;
+    monmoveTrace(
+        'set_apparxy',
+        `step=${step}`,
+        `id=${mon.m_id ?? '?'}`,
+        'mode=displ',
+        `notseen=${notseen ? 1 : 0}`,
+        `notthere=${notthere ? 1 : 0}`,
+        `displ=${displ}`,
+        `gotu=${gotu ? 1 : 0}`,
+        `u=(${player.x},${player.y})`,
+        `old=(${oldMux},${oldMuy})`,
+        `new=(${mon.mux},${mon.muy})`,
+    );
 }
 
 
