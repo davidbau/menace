@@ -757,7 +757,9 @@ function find_targ(mon, dx, dy, maxdist, map, player) {
     const mux = Number.isInteger(mon.mux) ? mon.mux : 0;
     const muy = Number.isInteger(mon.muy) ? mon.muy : 0;
     let curx = mon.mx, cury = mon.my;
-    for (let dist = 0; dist <= maxdist; dist++) {
+    // C ref: dogmove.c:653 — loop condition is `dist < maxdist`.
+    // Using `<=` scans one extra tile and can introduce non-C targets/RNG.
+    for (let dist = 0; dist < maxdist; dist++) {
         curx += dx;
         cury += dy;
         if (!isok(curx, cury)) break;

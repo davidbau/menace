@@ -2252,3 +2252,21 @@ hard-won wisdom:
   - Convert with `rm.lx/rm.ly` directly in themed-room trap postprocessing.
 - Validation:
   - `seed330_samurai_wizard_gameplay`: full pass (`rng/events/mapdump/screen/cursor` all matched).
+
+### `seed329` pet ranged-target scan off-by-one consumed extra `rnd(5)` (2026-03-05)
+
+- `seed329_rogue_wizard_gameplay` diverged first at step `288` with an extra
+  JS `rnd(5)` before `^dog_move_choice`, then cascaded into broad RNG/event/screen
+  mismatch.
+- Root cause in `js/dogmove.js`: `find_targ()` used `dist <= maxdist`, but C
+  `dogmove.c::find_targ()` loops with `dist < maxdist`. JS scanned one extra
+  tile, found a non-C target, and ran `score_targ()` fuzz (`rnd(5)`).
+- Faithful fix:
+  - change `find_targ()` loop bound to `< maxdist` (C-exact).
+- Validation:
+  - `seed329_rogue_wizard_gameplay` moved from broad failure
+    (`rng=9687/15900`, `events=4418/14329`, `screens=292/423`) to full
+    `rng/events/screens/colors/cursor` parity (`15900/15900`, `14329/14329`,
+    `423/423`, `10152/10152`, `423/423`).
+  - remaining mismatch is mapdump-only (`d0l24_002`, `H[37,17]`), likely same
+    topology-state class as `seed321`.
