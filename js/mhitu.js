@@ -9,6 +9,7 @@ import {
     FIRE_RES, COLD_RES, SHOCK_RES, SLEEP_RES, POISON_RES, DRAIN_RES,
     ACID_RES, FREE_ACTION, FAST, SICK_RES, STONE_RES, REFLECTING,
     MALE, FEMALE, DISPLACED,
+    M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
 } from './const.js';
 import {
     G_UNIQ, M2_NEUTER, M2_MALE, M2_FEMALE, M2_PNAME,
@@ -37,7 +38,6 @@ import {
 import {
     weaponEnchantment, weaponDamageSides,
     mhitm_mgc_atk_negated,
-    M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
 } from './uhitm.js';
 import { thrwmu, spitmu, breamu } from './mthrowu.js';
 import { castmu } from './mcastu.js';

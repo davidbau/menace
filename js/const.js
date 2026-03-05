@@ -340,6 +340,13 @@ export const ALLOW_SANCT  = 0x20000000;
 export const ALLOW_SSM    = 0x40000000;
 export const NOGARLIC     = 0x80000000 | 0; // force signed 32-bit
 
+// Monster attack result bitmask flags (src/uhitm.c and src/mhitm.c)
+export const M_ATTK_MISS = 0x0;
+export const M_ATTK_HIT = 0x1;
+export const M_ATTK_DEF_DIED = 0x2;
+export const M_ATTK_AGR_DIED = 0x4;
+export const M_ATTK_AGR_DONE = 0x8;
+
 // Trap types (trap.h)
 export const ALL_TRAPS = -1;
 export const NO_TRAP = 0;

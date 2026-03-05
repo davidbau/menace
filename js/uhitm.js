@@ -8,6 +8,7 @@ import { corpse_chance } from './mon.js';
 import {
     A_STR, A_DEX, PM_MONK, PM_SAMURAI, PM_BARBARIAN,
     FIRE_RES, COLD_RES, SHOCK_RES, ACID_RES, FREE_ACTION,
+    M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
 } from './const.js';
 import { spec_dbon } from './artifact.js';
 import {
@@ -95,13 +96,6 @@ async function abuse_dog_like_c(mon, display = null) {
 // ============================================================================
 // 1. Magic negation and attack result constants
 // ============================================================================
-
-// C ref: monattk.h — monster-to-monster attack result bitmask
-export const M_ATTK_MISS = 0x0;
-export const M_ATTK_HIT = 0x1;
-export const M_ATTK_DEF_DIED = 0x2;
-export const M_ATTK_AGR_DIED = 0x4;
-export const M_ATTK_AGR_DONE = 0x8;
 
 // cf. uhitm.c:74 — mhitm_mgc_atk_negated(magr, mdef, verbosely):
 //   Check if a magical attack is negated by target's magic cancellation.

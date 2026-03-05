@@ -27,6 +27,7 @@ import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          IRONBARS, STAIRS, LADDER,
          INVIS, DISPLACED } from './const.js';
 import { rn2, rnd, d, c_d, pushRngLogEntry } from './rng.js';
+import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED } from './const.js';
 import { wipe_engr_at } from './engrave.js';
 import { mattacku } from './mhitu.js';
 import { makemon } from './makemon.js';
@@ -95,7 +96,7 @@ import { movemon as _movemon, mfndpos, handleHiderPremove,
 import { ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U, ALLOW_M, ALLOW_TM, ALLOW_ALL,
          NOTONL, OPENDOOR, UNLOCKDOOR, BUSTDOOR, ALLOW_ROCK, ALLOW_WALL,
          ALLOW_DIG, ALLOW_BARS, ALLOW_SANCT, ALLOW_SSM, NOGARLIC } from './const.js';
-import { mattackm, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED } from './mhitm.js';
+import { mattackm } from './mhitm.js';
 export { mfndpos, onscary, corpse_chance, ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U, ALLOW_M, ALLOW_TM, ALLOW_ALL, NOTONL, OPENDOOR, UNLOCKDOOR, BUSTDOOR, ALLOW_ROCK, ALLOW_WALL, ALLOW_DIG, ALLOW_BARS, ALLOW_SANCT, ALLOW_SSM, NOGARLIC };
 // mon_allowflags is exported from its definition below
 

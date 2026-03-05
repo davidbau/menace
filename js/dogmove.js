@@ -6,6 +6,7 @@ import { COLNO, ROWNO, IS_ROOM, IS_DOOR, IS_POOL, IS_LAVA,
          D_CLOSED, D_LOCKED,
          POOL, STAIRS, LADDER, isok } from './const.js';
 import { rn2, rnd, pushRngLogEntry } from './rng.js';
+import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED } from './const.js';
 import { mattacku } from './mhitu.js';
 import { CORPSE, BALL_CLASS, CHAIN_CLASS, ROCK_CLASS, FOOD_CLASS,
          COIN_CLASS, GEM_CLASS,
@@ -20,7 +21,7 @@ import { observeObject } from './discovery.js';
 import { dogfood, DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT,
          UNDEF } from './dog.js';
 import { couldsee, m_cansee, do_clear_area } from './vision.js';
-import { mattackm, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED } from './mhitm.js';
+import { mattackm } from './mhitm.js';
 import { is_animal, is_mindless, nohands, nolimbs, unsolid,
          carnivorous, herbivorous, is_metallivore,
          y_monnam, YMonnam, Monnam,

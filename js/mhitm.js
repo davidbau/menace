@@ -42,8 +42,9 @@ import { corpse_chance, zombie_maker, zombie_form } from './mon.js';
 import { mkcorpstat, xname } from './mkobj.js';
 import { CORPSE, WEAPON_CLASS, objectData } from './objects.js';
 import {
-    M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED,
-    M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
+    M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
+} from './const.js';
+import {
     mhitm_adtyping,
 } from './uhitm.js';
 import { monsterWeaponSwingVerb, monsterPossessive } from './mhitu.js';
@@ -52,9 +53,6 @@ import { find_mac, W_ARMG, W_ARMF, W_ARMH } from './worn.js';
 import { mon_wield_item, possibly_unwield, NEED_WEAPON, NEED_HTH_WEAPON, hitval } from './weapon.js';
 import { spec_dbon } from './artifact.js';
 import { canonicalizeAttackFields } from './attack_fields.js';
-
-// Re-export M_ATTK_* for convenience
-export { M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE };
 
 const NATTK = 6; // C ref: monattk.h — max number of monster attacks
 const STRAT_WAITFORU = 0x20000000; // C ref: mon.h
