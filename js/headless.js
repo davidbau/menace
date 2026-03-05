@@ -766,8 +766,8 @@ export class HeadlessDisplay {
         while (lines.length > 0 && lines[lines.length - 1] === '') {
             lines = lines.slice(0, -1);
         }
-        // Add "--More--" prompt at the end
-        lines = [...lines, '--More--'];
+        // C tty text popups use a leading space before --More--.
+        lines = [...lines, ' --More--'];
 
         let maxcol = 0;
         for (const line of lines) {
@@ -792,11 +792,14 @@ export class HeadlessDisplay {
         }
         // Render each line
         for (let i = 0; i < menuRows; i++) {
-            this.putstr(offx, i, lines[i], CLR_GRAY, 0);
+            const isMoreLine = (i === menuRows - 1) && lines[i].endsWith('--More--');
+            const col = isMoreLine ? Math.max(0, offx - 1) : offx;
+            this.putstr(col, i, lines[i], CLR_GRAY, 0);
         }
         // Position cursor at end of "--More--" on the last row
         const lastRow = menuRows - 1;
-        const moreEnd = offx + lines[lastRow].length;
+        const moreCol = lines[lastRow].endsWith('--More--') ? Math.max(0, offx - 1) : offx;
+        const moreEnd = moreCol + lines[lastRow].length;
         this.setCursor(Math.min(moreEnd, this.cols - 1), lastRow);
     }
 
