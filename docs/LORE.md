@@ -1950,3 +1950,21 @@ hard-won wisdom:
   - `seed329` now fully matches (`rng=15900/15900`, `events=14329/14329`,
     `screens=423/423`),
   - full session suite improved from `135/150` to `136/150` passed.
+
+### `rndmonst_adj` must use live hero level (`u.ulevel`) outside level-gen (2026-03-05)
+
+- `seed322_barbarian_wizard_gameplay` had a persistent frontier where JS/C
+  diverged inside `rndmonst_adj` weighted selection totals at step `355`.
+- Root cause: JS `makemon.js` hardcoded `ulevel = 1` in `rndmonst_adj`
+  (and related helpers), while C uses live `u.ulevel`.
+- This skewed difficulty windows (`monmax_difficulty`) once the hero level
+  changed, causing a subtle monster-candidate weight drift that cascaded into
+  later movement and combat parity failures.
+- Fix:
+  - extend makemon player context to track `ulevel`,
+  - use that live value in `rndmonst_adj`, `adj_lev`, and `mkclass`,
+  - refresh makemon context from live player state each timed turn.
+- Validation:
+  - `seed322` improved from `rng=13995/30190` and `events=3879/21344` to
+    `rng=14190/30190` and `events=3902/21344`,
+  - `seed306_monk_selfplay200_gameplay` remained full-pass.

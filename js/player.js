@@ -784,6 +784,8 @@ export class Player {
     set uhpmax(v) { this.hpmax = v; }
     get ulevel() { return this.level; }
     set ulevel(v) { this.level = v; }
+    get uexp() { return this.exp; }
+    set uexp(v) { this.exp = v; }
     get ux() { return this.x; }
     set ux(v) { this.x = v; }
     get uy() { return this.y; }

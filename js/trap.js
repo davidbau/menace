@@ -1149,6 +1149,56 @@ export function erode_obj(otmp, ostr, type, ef_flags) {
     }
 }
 
+function erosion_action(type) {
+    switch (type) {
+    case ERODE_BURN: return 'burns';
+    case ERODE_RUST: return 'rusts';
+    case ERODE_ROT: return 'rots';
+    case ERODE_CORRODE: return 'corrodes';
+    case ERODE_CRACK: return 'cracks';
+    default: return 'wears';
+    }
+}
+
+function erosion_past_participle(type) {
+    switch (type) {
+    case ERODE_BURN: return 'burnt';
+    case ERODE_RUST: return 'rusted';
+    case ERODE_ROT: return 'rotten';
+    case ERODE_CORRODE: return 'corroded';
+    case ERODE_CRACK: return 'cracked';
+    default: return 'worn';
+    }
+}
+
+// C-faithful player-facing erosion messaging for carried armor paths.
+// Mirrors trap.c erode_obj() wording for the common damaged/destroyed cases.
+export async function erode_obj_player(otmp, ostr, type, ef_flags) {
+    const result = erode_obj(otmp, ostr, type, ef_flags);
+    if (!(ef_flags & EF_VERBOSE) || !otmp) return result;
+
+    const name = ostr || 'item';
+    if (result === ER_DAMAGED) {
+        const isPrimary = (type !== ERODE_ROT && type !== ERODE_CORRODE);
+        const level = isPrimary ? (otmp.oeroded || 0) : (otmp.oeroded2 || 0);
+        const adverb = (level >= MAX_ERODE) ? ' completely' : (level > 1 ? ' further' : '');
+        await pline('Your %s %s%s!', name, erosion_action(type), adverb);
+    } else if (result === ER_NOTHING) {
+        const isPrimary = (type !== ERODE_ROT && type !== ERODE_CORRODE);
+        const level = isPrimary ? (otmp.oeroded || 0) : (otmp.oeroded2 || 0);
+        if (level >= MAX_ERODE) {
+            await pline('Your %s looks completely %s.', name, erosion_past_participle(type));
+        }
+    } else if (result === ER_DESTROYED) {
+        if (type === ERODE_CRACK) {
+            await pline('Your %s shatters!', name);
+        } else {
+            await pline('Your %s %s away!', name, erosion_action(type));
+        }
+    }
+    return result;
+}
+
 // C ref: trap.c water_damage() — water damage to a single object
 export function water_damage(obj, ostr, force) {
     if (!obj) return ER_NOTHING;
