@@ -140,6 +140,24 @@ function mon_is_peaceful(mon) {
     return !!mon.peaceful;
 }
 
+function mon_is_tame(mon) {
+    if (!mon) return false;
+    if (mon.mtame !== undefined) return !!mon.mtame;
+    return !!mon.tame;
+}
+
+function mon_is_confused(mon) {
+    if (!mon) return false;
+    if (mon.mconf !== undefined) return !!mon.mconf;
+    return !!mon.confused;
+}
+
+function mon_is_stunned(mon) {
+    if (!mon) return false;
+    if (mon.mstun !== undefined) return !!mon.mstun;
+    return !!mon.stunned;
+}
+
 function DEADMONSTER(mon) {
     return !!(mon && (mon.dead || mon.mhp <= 0));
 }
@@ -287,6 +305,13 @@ function playerIsDisplacedForMonAI(player) {
         || (player?.cloak && player.cloak.otyp === CLOAK_OF_DISPLACEMENT));
 }
 
+function monApparentTarget(mon) {
+    return {
+        x: Number.isInteger(mon?.mux) ? mon.mux : 0,
+        y: Number.isInteger(mon?.muy) ? mon.muy : 0,
+    };
+}
+
 // C ref: monmove.c:534 — determine whether a monster is in range, nearby,
 // and/or scared of something at or near the hero's position.
 // Sets inrange (within BOLT_LIM), nearby (adjacent), and scared (triggers flee).
@@ -294,8 +319,7 @@ function playerIsDisplacedForMonAI(player) {
 export async function distfleeck(mon, map, player, display, fov) {
     const bravegremlin = (rn2(5) === 0);
 
-    const targetX = Number.isInteger(mon.mux) ? mon.mux : player.x;
-    const targetY = Number.isInteger(mon.muy) ? mon.muy : player.y;
+    const { x: targetX, y: targetY } = monApparentTarget(mon);
     const inrange = dist2(mon.mx, mon.my, targetX, targetY) <= (BOLT_LIM * BOLT_LIM);
     const nearby = inrange && monnear(mon, targetX, targetY);
 
@@ -399,9 +423,9 @@ export function mon_allowflags(mon, player, map = null) {
     let flag = 0;
 
     // C ref: mon.c:2049-2059 — disposition-based flags
-    if (mon.tame) {
+    if (mon_is_tame(mon)) {
         flag |= ALLOW_M | ALLOW_TRAPS | ALLOW_SANCT | ALLOW_SSM;
-    } else if (mon.peaceful) {
+    } else if (mon_is_peaceful(mon)) {
         flag |= ALLOW_SANCT | ALLOW_SSM;
     } else {
         flag |= ALLOW_U;
@@ -473,7 +497,7 @@ export function mon_allowflags(mon, player, map = null) {
     // C ref: mon.c:2083 — can_tunnel → ALLOW_DIG
     // can_tunnel = tunnels(ptr) unless needspick && hostile && close to player
     let can_tunnel = tunnels(ptr);
-    if (can_tunnel && needspick(ptr) && !mon.tame && !mon.peaceful) {
+    if (can_tunnel && needspick(ptr) && !mon_is_tame(mon) && !mon_is_peaceful(mon)) {
         const mux = Number.isInteger(mon.mux) ? mon.mux : (player?.x ?? mon.mx);
         const muy = Number.isInteger(mon.muy) ? mon.muy : (player?.y ?? mon.my);
         if (dist2(mon.mx, mon.my, mux, muy) <= 8) can_tunnel = false;
@@ -490,9 +514,9 @@ export function m_avoid_kicked_loc(mon, nx, ny, player) {
     const kl = player?.kickedloc;
     const monCanSee = (mon?.mcansee !== 0 && mon?.mcansee !== false) && !mon?.blind;
     if (!kl || !isok(kl.x, kl.y)) return false;
-    if (!(mon?.peaceful || mon?.tame)) return false;
+    if (!(mon_is_peaceful(mon) || mon_is_tame(mon))) return false;
     if (player?.conflict) return false;
-    if (!monCanSee || mon?.confused || mon?.stunned) return false;
+    if (!monCanSee || mon_is_confused(mon) || mon_is_stunned(mon)) return false;
     return nx === kl.x && ny === kl.y && dist2(nx, ny, player.x, player.y) <= 2;
 }
 
@@ -501,8 +525,8 @@ export function m_avoid_kicked_loc(mon, nx, ny, player) {
 // ========================================================================
 export function m_avoid_soko_push_loc(mon, nx, ny, map, player) {
     if (!map?.flags?.sokoban) return false;
-    if (!(mon?.peaceful || mon?.tame)) return false;
-    if (mon?.confused || mon?.stunned) return false;
+    if (!(mon_is_peaceful(mon) || mon_is_tame(mon))) return false;
+    if (mon_is_confused(mon) || mon_is_stunned(mon)) return false;
     if (player?.conflict) return false;
     if (dist2(nx, ny, player.x, player.y) !== 4) return false;
     const bx = nx + Math.sign(player.x - nx);
@@ -573,7 +597,7 @@ function mon_item_search_profile(mon) {
 function mon_would_take_item_search(mon, obj, map, profile = null) {
     if (!obj) return false;
     if (obj.achievement) return false;
-    if (mon?.tame && obj.cursed) return false;
+    if (mon_is_tame(mon) && obj.cursed) return false;
 
     const prefs = profile || mon_item_search_profile(mon);
     const pctload = prefs.pctload;
@@ -611,10 +635,10 @@ function m_search_items_goal(mon, map, player, fov, ggx, ggy, appr) {
 
     const mux = Number.isInteger(mon.mux) ? mon.mux : ggx;
     const muy = Number.isInteger(mon.muy) ? mon.muy : ggy;
-    if (!mon.peaceful && distmin(mux, muy, omx, omy) < SQSRCHRADIUS) {
+    if (!mon_is_peaceful(mon) && distmin(mux, muy, omx, omy) < SQSRCHRADIUS) {
         minr--;
     }
-    if (!mon.peaceful && is_mercenary(mon.type || {})) {
+    if (!mon_is_peaceful(mon) && is_mercenary(mon.type || {})) {
         minr = 1;
     }
 
@@ -817,7 +841,7 @@ async function mind_blast(mon, map, player, display = null, fov = null) {
     if (display) await display.putstr_message('A wave of psychic energy pours over you!');
 
     // C ref: monmove.c:597-598 — peaceful check
-    if (mon.peaceful) {
+    if (mon_is_peaceful(mon)) {
         // C: "It feels quite soothing." (no Conflict check — not implemented)
         if (display) await display.putstr_message('It feels quite soothing.');
     } else {
@@ -856,7 +880,7 @@ async function mind_blast(mon, map, player, display = null, fov = null) {
     // C ref: monmove.c:630-645 — blast hits other monsters
     for (const m2 of map.monsters || []) {
         if (m2.dead) continue;
-        if (!!(m2.peaceful) === !!(mon.peaceful)) continue;
+        if (!!(m2?.mpeaceful ?? m2?.peaceful) === !!(mon?.mpeaceful ?? mon?.peaceful)) continue;
         if (is_mindless(m2.type || {})) continue;
         if (m2 === mon) continue;
 
@@ -974,8 +998,14 @@ async function dochug(mon, map, player, display, fov, game = null) {
     await wipe_engr_at(map, mon.mx, mon.my, 1);
 
     // C ref: monmove.c:738-743 — confused/stunned clearing
-    if (mon.confused && !rn2(50)) mon.confused = false;
-    if (mon.stunned && !rn2(10)) mon.stunned = false;
+    if (mon_is_confused(mon) && !rn2(50)) {
+        mon.mconf = 0;
+        mon.confused = false;
+    }
+    if (mon_is_stunned(mon) && !rn2(10)) {
+        mon.mstun = 0;
+        mon.stunned = false;
+    }
 
     // C ref: monmove.c:746 — flee teleport
     if (mon.mflee && !rn2(40) && can_teleport(mon.type || {})
@@ -1034,10 +1064,9 @@ async function dochug(mon, map, player, display, fov, game = null) {
         ({ inrange, nearby, scared } = await distfleeck(mon, map, player, display, fov));
     }
 
-    const targetX = Number.isInteger(mon.mux) ? mon.mux : player.x;
-    const targetY = Number.isInteger(mon.muy) ? mon.muy : player.y;
+    const { x: targetX, y: targetY } = monApparentTarget(mon);
     const isWanderer = !!(mon.type && mon.type.flags2 & M2_WANDER);
-    const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false) && !mon.blind;
+    const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false);
 
     let scaredNow = !!scared;
     monmovePhase3Trace(
@@ -1050,12 +1079,12 @@ async function dochug(mon, map, player, display, fov, game = null) {
         `inrange=${inrange ? 1 : 0}`,
         `nearby=${nearby ? 1 : 0}`,
         `flee=${mon.mflee ? 1 : 0}`,
-        `conf=${mon.confused ? 1 : 0}`,
-        `stun=${mon.stunned ? 1 : 0}`,
+        `conf=${mon_is_confused(mon) ? 1 : 0}`,
+        `stun=${mon_is_stunned(mon) ? 1 : 0}`,
         `minvis=${mon.minvis ? 1 : 0}`,
         `wander=${isWanderer ? 1 : 0}`,
         `mcansee=${monCanSee ? 1 : 0}`,
-        `peace=${mon.peaceful ? 1 : 0}`,
+        `peace=${mon_is_peaceful(mon) ? 1 : 0}`,
     );
     // Short-circuit OR matching C's evaluation order (C ref: monmove.c:883-888)
     let phase3Cond = !nearby;
@@ -1066,10 +1095,10 @@ async function dochug(mon, map, player, display, fov, game = null) {
         phase3Cond = true;
         monmovePhase3Trace(`step=${monmoveStepLabel(map)}`, `id=${mon.m_id ?? '?'}`, 'gate=scared');
     }
-    if (!phase3Cond) phase3Cond = !!(mon.confused);
-    if (phase3Cond && mon.confused) monmovePhase3Trace(`step=${monmoveStepLabel(map)}`, `id=${mon.m_id ?? '?'}`, 'gate=confused');
-    if (!phase3Cond) phase3Cond = !!(mon.stunned);
-    if (phase3Cond && mon.stunned) monmovePhase3Trace(`step=${monmoveStepLabel(map)}`, `id=${mon.m_id ?? '?'}`, 'gate=stunned');
+    if (!phase3Cond) phase3Cond = mon_is_confused(mon);
+    if (phase3Cond && mon_is_confused(mon)) monmovePhase3Trace(`step=${monmoveStepLabel(map)}`, `id=${mon.m_id ?? '?'}`, 'gate=confused');
+    if (!phase3Cond) phase3Cond = mon_is_stunned(mon);
+    if (phase3Cond && mon_is_stunned(mon)) monmovePhase3Trace(`step=${monmoveStepLabel(map)}`, `id=${mon.m_id ?? '?'}`, 'gate=stunned');
     if (!phase3Cond && mon.minvis) {
         const invisRoll = rn2(3);
         phase3Cond = !invisRoll;
@@ -1109,12 +1138,12 @@ async function dochug(mon, map, player, display, fov, game = null) {
             `take=${phase3Cond ? 1 : 0}`,
         );
     }
-    if (!phase3Cond) phase3Cond = !!(mon.peaceful);
-    if (phase3Cond && mon.peaceful) monmovePhase3Trace(`step=${monmoveStepLabel(map)}`, `id=${mon.m_id ?? '?'}`, 'gate=peaceful');
+    if (!phase3Cond) phase3Cond = mon_is_peaceful(mon);
+    if (phase3Cond && mon_is_peaceful(mon)) monmovePhase3Trace(`step=${monmoveStepLabel(map)}`, `id=${mon.m_id ?? '?'}`, 'gate=peaceful');
     monmovePhase3Trace(`step=${monmoveStepLabel(map)}`, `id=${mon.m_id ?? '?'}`, `phase3Cond=${phase3Cond ? 1 : 0}`);
 
     // Wield gate before movement
-    if (!mon.peaceful
+    if (!mon_is_peaceful(mon)
         && inrange
         && dist2(mon.mx, mon.my, targetX, targetY) <= 8
         && hasWeaponAttack(mon)
@@ -1134,7 +1163,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
         if (mon.meating) {
             mon.meating--;
             moveStatus = MMOVE_DONE; // eating uses up the action
-        } else if (mon.tame) {
+        } else if (mon_is_tame(mon)) {
             const omx = mon.mx, omy = mon.my;
             const petMoveStatus = await dog_move(mon, map, player, display, fov, false, game);
             // C ref: MMOVE_DIED == 2. dog_move can kill or remove the pet before post-move.
@@ -1214,7 +1243,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
     // Phase 4: Standard Attacks
     // cf. mhitu.c mattacku() — both melee and ranged attacks are dispatched
     // through the attack table.  range2 determines which attack types fire.
-    if (phase4Allowed && !mon.peaceful && !mon.mflee && !mon.dead) {
+    if (phase4Allowed && !mon_is_peaceful(mon) && !mon.mflee && !mon.dead) {
         if (inrange || panicattk) {
             if (nearby) {
                 // C ref: monmove.c:938-959 — MMOVE_MOVED returns 0 (skip Phase 4
@@ -1251,7 +1280,7 @@ export function move_special(mon, map, player, inHisShop, appr, uondoor, avoid, 
     const omx = mon.mx;
     const omy = mon.my;
     if (omx === ggx && omy === ggy) return 0;
-    if (mon.confused) {
+    if (mon_is_confused(mon)) {
         avoid = false;
         appr = 0;
     }
@@ -1321,7 +1350,7 @@ function shk_move(mon, map, player) {
     let badinv = false;
 
     if (udist < 3) {
-        if (!mon.peaceful) {
+        if (!mon_is_peaceful(mon)) {
             return 0;
         }
         if (mon.following && udist < 2) {
@@ -1329,7 +1358,7 @@ function shk_move(mon, map, player) {
         }
     }
 
-    if (!mon.peaceful) {
+    if (!mon_is_peaceful(mon)) {
         gtx = player.x;
         gty = player.y;
         avoid = false;
@@ -1370,7 +1399,7 @@ function shk_move(mon, map, player) {
 // C ref: mon.c mpickstuff() early gates.
 async function maybeMonsterPickStuff(mon, map, player, display, fov) {
     if (mon.isshk && monsterInShop(mon, map)) return false;
-    if (!mon.tame && monsterInShop(mon, map) && rn2(25)) return false;
+    if (!mon_is_tame(mon) && monsterInShop(mon, map) && rn2(25)) return false;
 
     const pile = (map.objectsAt?.(mon.mx, mon.my) || [])
         .filter((obj) => obj && !obj.buried);
@@ -1463,7 +1492,7 @@ async function m_move(mon, map, player, display = null, fov = null) {
 
     set_apparxy(mon, map, player);
 
-    let ggx = mon.mux ?? player.x, ggy = mon.muy ?? player.y;
+    let { x: ggx, y: ggy } = monApparentTarget(mon);
 
     let appr = mon.mflee ? -1 : 1;
 
@@ -1473,10 +1502,10 @@ async function m_move(mon, map, player, display = null, fov = null) {
         && (playerLoc && playerLoc.lit || !(monLoc && monLoc.lit))
         && (dist2(omx, omy, ggx, ggy) <= 36);
 
-    if (mon.confused) {
+    if (mon_is_confused(mon)) {
         appr = 0;
     }
-    if (mon.peaceful) {
+    if (mon_is_peaceful(mon)) {
         appr = 0;
     }
     // C ref: monmove.c m_move() random hesitation for stalkers, bats, lights.
@@ -1505,8 +1534,9 @@ async function m_move(mon, map, player, display = null, fov = null) {
             || Number(player?.str)
             || Number(player?.acurrstr)
             || 10;
+        const { x: apparentX, y: apparentY } = monApparentTarget(mon);
         const inLine = linedUpToPlayer(mon, map, player, fov)
-            && (distmin(mon.mx, mon.my, mon.mux ?? player.x, mon.muy ?? player.y)
+            && (distmin(mon.mx, mon.my, apparentX, apparentY)
                 <= (Math.floor(heroStr / 2) + 1));
         if (appr !== 1 || !inLine) getitems = true;
     }
@@ -1589,7 +1619,7 @@ async function m_move(mon, map, player, display = null, fov = null) {
     let chosenIdx = -1;
     let mmoved = false;
     const jcnt = Math.min(MTSZ, cnt - 1);
-    if (!mon.peaceful
+    if (!mon_is_peaceful(mon)
         && map?.flags?.shortsighted
         && nidist > (couldsee(map, player, nix, niy) ? 144 : 36)
         && appr === 1) {
@@ -1760,7 +1790,7 @@ export function set_apparxy(mon, map, player) {
     let my = Number.isInteger(mon.muy) ? mon.muy : 0;
 
     // C ref: monmove.c:2214 — pet, grabber, or already-at-hero position
-    if (mon.mtame || mon.tame || player.ustuck === mon || (mx === player.x && my === player.y)) {
+    if (mon_is_tame(mon) || player.ustuck === mon || (mx === player.x && my === player.y)) {
         mon.mux = player.x;
         mon.muy = player.y;
         return;
@@ -1922,6 +1952,7 @@ export function should_displace(mon, positions, goalx, goaly) {
 // Returns true if monster dies.
 export function mb_trapped(mon, map, player) {
     if (!mon || !map) return false;
+    mon.mstun = 1;
     mon.stunned = true;
     mon.mhp = (mon.mhp || 0) - rnd(15);
     if ((mon.mhp || 0) <= 0) {
@@ -1967,7 +1998,7 @@ export function watch_on_duty(mon) {
 export function m_balks_at_approaching(oldappr, mon, player) {
     if (!mon || !player) return oldappr;
     const mdat = mon.type || {};
-    if (mon.peaceful || mon.tame) return oldappr;
+    if (mon_is_peaceful(mon) || mon_is_tame(mon)) return oldappr;
 
     const edist = dist2(mon.mx, mon.my, player.x, player.y);
     if (edist >= 25) return oldappr; // too far to care

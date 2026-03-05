@@ -358,8 +358,8 @@ function cant_squeeze_thru_mon(mon) {
 // C ref: monmove.c monlineu() — true if (nx,ny) lies on a line from mon through hero.
 // Used for NOTONL: shopkeepers/priests avoid standing on a line from hero.
 export function monlineu(mon, player, nx, ny) {
-    const mux = Number.isInteger(mon.mux) ? mon.mux : player.x;
-    const muy = Number.isInteger(mon.muy) ? mon.muy : player.y;
+    const mux = Number.isInteger(mon.mux) ? mon.mux : 0;
+    const muy = Number.isInteger(mon.muy) ? mon.muy : 0;
     return nx === mux || ny === muy
         || (ny - muy) === (nx - mux)
         || (ny - muy) === -(nx - mux);
@@ -1523,8 +1523,8 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
             // C ref: mon.c:1254-1267 — monster may spend turn equipping gear (I_SPECIAL check)
             const I_SPECIAL = 0x20000000;
             if (mon.misc_worn_check & I_SPECIAL) {
-                const mux = Number.isInteger(mon.mux) ? mon.mux : player.x;
-                const muy = Number.isInteger(mon.muy) ? mon.muy : player.y;
+                const mux = Number.isInteger(mon.mux) ? mon.mux : 0;
+                const muy = Number.isInteger(mon.muy) ? mon.muy : 0;
                 if (mon.mpeaceful || mon.mtame || dist2(mon.mx, mon.my, mux, muy) > 9) {
                     mon.misc_worn_check = (mon.misc_worn_check & ~I_SPECIAL) >>> 0;
                     const oldworn = mon.misc_worn_check;
