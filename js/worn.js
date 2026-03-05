@@ -698,8 +698,21 @@ export async function mon_break_armor(mon, polyspot, map, opts = {}) {
     const mdat = mon.type || {};
     const handless_or_tiny = nohands(mdat) || (mdat.msize || 0) < MZ_SMALL;
     const vis = canseemon(mon, opts.player || null, opts.fov || null, map);
+    let clankEmitted = false;
     const emitClank = async () => {
+        if (clankEmitted) return;
+        const currentTop = String(opts?.display?.topMessage || '');
+        if (currentTop.includes('You hear a clank.')) {
+            clankEmitted = true;
+            return;
+        }
+        clankEmitted = true;
         if (opts?.display && typeof opts.display.putstr_message === 'function') {
+            if (opts.display.messageNeedsMore && typeof opts.display.clearRow === 'function') {
+                opts.display.clearRow(0);
+                opts.display.topMessage = null;
+                opts.display.messageNeedsMore = false;
+            }
             await opts.display.putstr_message('You hear a clank.');
             return;
         }

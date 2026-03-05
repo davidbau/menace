@@ -111,7 +111,7 @@ import {
 } from './objects.js';
 import { roles, races, initialAlignmentRecordForRole } from './player.js';
 import { mpickobj, dist2, BOLT_LIM, newsym } from './monutil.js';
-import { canseemon, olfaction } from './mondata.js';
+import { canseemon } from './mondata.js';
 import { senseMonsterForMap } from './monutil.js';
 import { Amonnam } from './do_name.js';
 import { vtense } from './objnam.js';
@@ -1526,15 +1526,7 @@ function maybe_init_long_worm_after_newcham(mon, newMndx, map = null, player = n
 }
 
 function maybe_usmellmon_after_newcham(mdat, newMndx, player = null, display = null) {
-    const youdata = player?.data
-        || player?.type
-        || player?.monsterData
-        || player?.monsterType
-        || player?.youmonst?.data
-        || (Number.isInteger(player?.umonnum) ? mons[player.umonnum] : null)
-        || mons[PM_HUMAN];
-    if (!mdat || !youdata || !olfaction(youdata)) return false;
-
+    if (!mdat) return false;
     if (!display || typeof display.putstr_message !== 'function') return false;
 
     const emit = (text) => {

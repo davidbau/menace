@@ -6,6 +6,7 @@ import { makemon, NO_MM_FLAGS } from './makemon.js';
 import { canseemon } from './mondata.js';
 import { mon_break_armor } from './worn.js';
 import { newsym } from './monutil.js';
+import { possibly_unwield } from './weapon.js';
 import {
     mons,
     PM_WERERAT,
@@ -94,7 +95,7 @@ function wakeNear(map, x, y, dist2max) {
 }
 
 // cf. were.c:96 — apply lycanthrope form change (wake, heal, update data)
-export function new_were(mon, newMndx, ctx = null) {
+export async function new_were(mon, newMndx, ctx = null) {
     const data = mons[newMndx];
     if (!data) return;
     mon.mndx = newMndx;
@@ -117,18 +118,16 @@ export function new_were(mon, newMndx, ctx = null) {
     const heal = Math.max(0, Math.floor((hpmax - hp) / 4));
     mon.mhp = Math.min(hpmax, hp + heal);
     newsym(mon.mx, mon.my);
-    // C ref: worn.c mon_break_armor() gates clank by whether hero sees monster.
-    // Replay parity is closest to strict current FOV visibility here.
-    const visible = !!ctx?.fov?.canSee?.(mon.mx, mon.my);
-    mon_break_armor(mon, false, ctx?.map || null, {
-        // C ref: worn.c mon_break_armor() visibility checks key off canseemon(mon).
-        visible,
+    await mon_break_armor(mon, false, ctx?.map || null, {
+        player: ctx?.player || null,
+        fov: ctx?.fov || null,
         display: ctx?.display || null,
     });
+    possibly_unwield(mon, false);
 }
 
 // cf. were.c:9 — turn-end lycanthrope form change check
-export function were_change(mon, ctx) {
+export async function were_change(mon, ctx) {
     if (!mon || mon.dead) return;
 
     const otherForm = counter_were(mon.mndx);
@@ -144,11 +143,7 @@ export function were_change(mon, ctx) {
         if (protectedFromShifters) return;
         if (rn2(50) !== 0) return;
 
-        new_were(mon, otherForm, ctx);
-        if (ctx?.display && typeof ctx.display.putstr_message === 'function'
-            && !canSeeMonster(mon, ctx?.player, ctx?.fov)) {
-            void ctx.display.putstr_message('You hear a clank.');
-        }
+        await new_were(mon, otherForm, ctx);
 
         // Unseen jackal/wolf change can trigger howl + wake_nearto
         const deaf = !!ctx?.player?.deaf;
@@ -164,7 +159,7 @@ export function were_change(mon, ctx) {
 
     // Beast form: chance to revert to human form
     if (rn2(30) === 0 || protectedFromShifters) {
-        new_were(mon, otherForm, ctx);
+        await new_were(mon, otherForm, ctx);
     }
 }
 

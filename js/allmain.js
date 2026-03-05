@@ -206,7 +206,7 @@ export async function moveloop_turnend(game) {
     for (const mon of (game.lev || game.map).monsters) {
         if (mon.dead) continue;
         await runtimeDecideToShapeshift(mon, (game.u || game.player).dungeonLevel,
-            (game.lev || game.map), (game.u || game.player), game.fov);
+            (game.lev || game.map), (game.u || game.player), game.fov, game.display);
         if (mon.type && (mon.type.flags2 & M2_WERE)) {
             await were_change(mon, {
                 player: (game.u || game.player),
