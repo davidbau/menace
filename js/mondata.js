@@ -113,10 +113,11 @@ import {
     PM_MONKEY, PM_APE, PM_LICHEN,
 } from './monsters.js';
 
-import { AMULET_OF_YENDOR, FOOD_CLASS, VEGGY, CORPSE, BANANA,
+import { AMULET_OF_YENDOR, AMULET_OF_GUARDING, FOOD_CLASS, VEGGY, CORPSE, BANANA,
          objectData } from './objects.js';
 import { ALL_TRAPS, NO_TRAP } from './config.js';
 import { dist2 } from './monutil.js';
+import { W_ARMOR, W_AMUL } from './worn.js';
 
 const NATTK = 6;
 
@@ -989,12 +990,57 @@ export function resists_ston(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_STONE)
 // 0 for most monsters. Special cases for high priests and minions preserved.
 // ========================================================================
 export function magic_negation(mon) {
-    // Most monsters have mc=0 without worn armor with a_can
-    let mc = 0;
     const ptr = _mdat(mon);
-    // C ref: gotprot for PM_HIGH_CLERIC and is_minion
-    if (ptr === mons[PM_HIGH_CLERIC] || is_minion(ptr)) {
-        mc = Math.max(mc, 1);
+    const isYou = !!(mon && Array.isArray(mon.inventory));
+    let mc = 0;
+    let viaAmul = false;
+    let gotprot = !isYou && ptr === mons[PM_HIGH_CLERIC];
+
+    const inv = [];
+    if (Array.isArray(mon?.inventory)) inv.push(...mon.inventory);
+    if (Array.isArray(mon?.minvent)) inv.push(...mon.minvent);
+    else if (mon?.minvent && typeof mon.minvent === 'object') {
+        const seen = new Set();
+        for (let o = mon.minvent; o && !seen.has(o); o = o.nobj) {
+            seen.add(o);
+            inv.push(o);
+        }
+    }
+
+    // Player equipment is authoritative for worn state; inventory owornmask can
+    // be stale in some replay paths and undercount magic cancellation.
+    if (isYou) {
+        const wornSlots = [
+            mon.armor, mon.cloak, mon.helmet, mon.shield,
+            mon.gloves, mon.boots, mon.shirt, mon.amulet,
+        ];
+        for (const o of wornSlots) {
+            if (!o) continue;
+            if (o.otyp === AMULET_OF_GUARDING) viaAmul = true;
+            if ((Number(objectData[o.otyp]?.oc_class) || 0) !== 2) continue; // ARMOR_CLASS
+            const armpro = Number(objectData[o.otyp]?.oc2) || 0; // objects[].a_can
+            if (armpro > mc) mc = armpro;
+        }
+    }
+
+    for (const o of inv) {
+        if (!o) continue;
+        const worn = o.owornmask || 0;
+        if (worn & W_ARMOR) {
+            const armpro = Number(objectData[o.otyp]?.oc2) || 0; // objects[].a_can
+            if (armpro > mc) mc = armpro;
+        } else if ((worn & W_AMUL) && o.otyp === AMULET_OF_GUARDING) {
+            viaAmul = true;
+        }
+    }
+
+    if (gotprot) {
+        mc += viaAmul ? 2 : 1;
+        if (mc > 3) mc = 3;
+    } else if (mc < 1) {
+        if (!isYou && (ptr === mons[PM_ALIGNED_CLERIC] || is_minion(ptr))) {
+            mc = 1;
+        }
     }
     return mc;
 }

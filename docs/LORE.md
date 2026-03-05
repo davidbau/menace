@@ -1913,3 +1913,22 @@ hard-won wisdom:
     with matched RNG increasing (`4389/7096` -> `4510/6904`),
   - nearby green canaries remained green:
     `seed301`, `seed302`, `seed307`, `seed308`.
+
+### `magic_negation` must read hero worn slots, not only inventory `owornmask` (2026-03-05)
+
+- In `seed306_monk_selfplay200_gameplay`, first drift at step `115` showed:
+  C consumed `rn2(10)` in `mhitm_mgc_atk_negated` then went directly to
+  `mhitm_knockback` (`rn2(3)`, `rn2(6)`), while JS consumed an extra `rn2(20)`
+  from elemental-item-destruction path.
+- Root cause: JS `magic_negation(player)` could undercount hero magic
+  cancellation when relying on `inventory[].owornmask` alone; in replay paths
+  that metadata can be stale while player equipment slots are authoritative.
+- Fix:
+  - in `mondata.js`, compute hero MC from direct worn slots
+    (`armor/cloak/helmet/shield/gloves/boots/shirt/amulet`) and keep inventory
+    scan as fallback for monsters and compatibility.
+- Validation:
+  - `seed306` now reaches full RNG/event parity
+    (`rng=6904/6904`, `events=3949/3949`),
+  - canaries remain green:
+    `seed301`, `seed302`, `seed307`, `seed308`.
