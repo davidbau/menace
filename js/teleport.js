@@ -18,6 +18,7 @@ import {
     is_pit, is_hole,
 } from './config.js';
 import { BOULDER } from './objects.js';
+import { M1_SWIM, M1_AMPHIBIOUS, M1_FLY, M1_WALLWALK, M1_AMORPHOUS, M2_ROCKTHROW, S_EEL } from './monsters.js';
 import { rn2, rnd, rn1 } from './rng.js';
 import { is_pool, is_lava, is_waterwall } from './dbridge.js';
 import { passes_walls, is_swimmer, is_flyer, is_floater,
@@ -116,21 +117,14 @@ export function goodpos(x, y, mtmp, gpflags, map, player) {
         const f1 = mdat.flags1 || 0;
 
         if (is_pool(x, y, map) && !ignorewater) {
-            // Check swimming/flying/amphibious
-            const M1_SWIM = 0x00002000;
-            const M1_AMPHIBIOUS = 0x00100000;
-            const M1_FLY = 0x00004000;
             return !!(f1 & (M1_SWIM | M1_AMPHIBIOUS | M1_FLY));
-        } else if (mdat.mlet === 59 /* S_EEL */ && rn2(13) && !ignorewater) {
+        } else if (mdat.mlet === S_EEL && rn2(13) && !ignorewater) {
             return false;
         } else if (is_lava(x, y, map) && !ignorelava) {
-            const M1_FLY = 0x00004000;
             if (likes_lava(mdat) || (f1 & M1_FLY)) return true;
             return false;
         }
 
-        const M1_WALLWALK = 0x00400000;
-        const M1_AMORPHOUS = 0x00800000;
         if ((f1 & M1_WALLWALK) && loc.typ < DOOR) return true;
         if ((f1 & M1_AMORPHOUS) && loc.typ === DOOR
             && (loc.flags & (D_CLOSED | D_LOCKED))) return true;
@@ -158,7 +152,6 @@ export function goodpos(x, y, mtmp, gpflags, map, player) {
         if (hasBoulder) {
             if (!mtmp) return false;
             const mdat = mtmp.data || mtmp.type || {};
-            const M2_ROCKTHROW = 0x00002000;
             if (!((mdat.flags2 || 0) & M2_ROCKTHROW)) return false;
         }
     }
@@ -432,7 +425,6 @@ export function rloc(mtmp, rlocflags, map, player, display, fov) {
     // Exhaustive search with shuffled order
     const cc_flags = CC_INCL_CENTER | CC_UNSHUFFLED | CC_SKIP_MONS;
     const mdat = mtmp.data || mtmp.type || {};
-    const M1_WALLWALK = 0x00400000;
     if (!((mdat.flags1 || 0) & M1_WALLWALK))
         // Note: CC_SKIP_INACCS is OR'd in below
         ;
