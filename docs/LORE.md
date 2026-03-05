@@ -1751,3 +1751,22 @@ hard-won wisdom:
   - screens matched `35 -> 40`
   - first RNG divergence moved earlier index-wise to a cleaner dog_goal drift
     (`rn2(1)` vs `rn2(3)` at step 41), replacing the prior container-remove skew.
+
+### seed311 startup + wield prompt parity improvements (2026-03-05)
+
+- `seed311_tourist_selfplay200_gameplay` had early inventory/prompt skew tied to
+  startup weapon selection and `#wield` handling of quivered stacks.
+- C-faithful startup fix in `u_init`:
+  - `equipInitialGear()` now treats `TIN_OPENER`, `FLINT`, and `ROCK` as
+    startup wield candidates (matching `ini_inv_use_obj()` in C) instead of
+    excluding them from weapon-slot setup.
+  - Ammo/missile startup items continue to prefer quiver placement.
+- C-faithful `#wield` fix in `wield`:
+  - choosing the currently quivered item now follows the C confirmation path
+    (`Wield one? [ynq]`, optional split, and `Wield all of them instead?`).
+  - non-`y` responses preserve no-time behavior and keep item readied.
+- Validation (targeted):
+  - `seed303_caveman_selfplay200_gameplay` remains fully green,
+  - `seed311_tourist_selfplay200_gameplay` improved materially
+    (`rng 4195->4226`, `screens 73->77`, `events 1015->1023`), with first
+    divergence moving later to attack-resolution logic (`do_attack_core`).

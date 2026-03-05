@@ -1,13 +1,15 @@
 // wield.js -- Weapon wielding, swapping, quivering, and two-weapon combat
 // cf. wield.c — setuwep, dowield, doswapweapon, chwepon, welded, twoweapon
 
-import { nhgetch } from './input.js';
+import { nhgetch, ynFunction } from './input.js';
 import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, ARMOR_CLASS,
          RING_CLASS, AMULET_CLASS, HEAVY_IRON_BALL, IRON_CHAIN, TIN_OPENER,
-         WORM_TOOTH, CRYSKNIFE } from './objects.js';
-import { doname, weight } from './mkobj.js';
+         WORM_TOOTH, CRYSKNIFE, LOADSTONE } from './objects.js';
+import { doname, weight, splitobj, xname } from './mkobj.js';
 import { rn2, rnd } from './rng.js';
 import { W_WEP } from './worn.js';
+import { is_plural, otense } from './objnam.js';
+import { Shk_Your } from './shk.js';
 
 // ============================================================
 // 1. Slot setters
@@ -347,6 +349,25 @@ function replacePromptMessage(display) {
     display.messageNeedsMore = false;
 }
 
+async function ynqPrompt(display, prompt) {
+    const resp = await ynFunction(prompt, 'ynq', 'q'.charCodeAt(0), display);
+    return String.fromCharCode(resp);
+}
+
+function invCountWithoutGold(player) {
+    let ct = 0;
+    for (const obj of (player?.inventory || [])) {
+        if (obj?.invlet !== '$') ct++;
+    }
+    return ct;
+}
+
+function splittableLikeC(obj, player) {
+    if (obj?.otyp === LOADSTONE && obj?.cursed) return false;
+    if (obj === player?.weapon && obj?.welded) return false;
+    return true;
+}
+
 // cf. wield.c:350 — dowield(): #wield command
 // Moved from cmd.js handleWield
 async function handleWield(player, display) {
@@ -425,6 +446,56 @@ async function handleWield(player, display) {
                 await display.putstr_message('You have no secondary weapon readied.');
             }
             return { moved: false, tookTime: true };
+        }
+
+        // C ref: wield.c dowield() — selecting uquiver requires confirmation
+        // and may split stacks for wielding a single readied item.
+        if (player.quiver && item === player.quiver) {
+            replacePromptMessage(display);
+            const canSplitQuiverStack = (item.quan || 1) > 1
+                && invCountWithoutGold(player) < 52 /* invlet_basic in C */
+                && splittableLikeC(item, player);
+
+            if (canSplitQuiverStack) {
+                const choice = await ynqPrompt(
+                    display,
+                    `You have ${(item.quan || 1)} ${xname(item)} readied.  Wield one?`
+                );
+                if (choice === 'q') {
+                    return { moved: false, tookTime: false };
+                }
+                if (choice === 'y') {
+                    const split = splitobj(item, 1);
+                    if (split) {
+                        await finish_splitting(split, player, item);
+                        const result = await ready_weapon(player, display, split);
+                        return { moved: false, tookTime: result.tookTime };
+                    }
+                }
+                const wieldAllChoice = await ynqPrompt(display, 'Wield all of them instead?');
+                if (wieldAllChoice !== 'y') {
+                    await display.putstr_message(
+                        `${Shk_Your('', item)}${xname(item)} ${otense(item, 'remain')} readied.`
+                    );
+                    return { moved: false, tookTime: false };
+                }
+            } else {
+                const usePlural = is_plural(item);
+                const wieldChoice = await ynqPrompt(
+                    display,
+                    `You have ${usePlural ? 'those' : 'that'} readied.  Wield ${usePlural ? 'them' : 'it'} instead?`
+                );
+                if (wieldChoice !== 'y') {
+                    await display.putstr_message(
+                        `${Shk_Your('', item)}${xname(item)} ${otense(item, 'remain')} readied.`
+                    );
+                    return { moved: false, tookTime: false };
+                }
+            }
+            // Wielding whole readied stack, so clear quiver slot first.
+            setuqwep(player, null);
+            const result = await ready_weapon(player, display, item);
+            return { moved: false, tookTime: result.tookTime };
         }
 
         replacePromptMessage(display);
@@ -533,9 +604,11 @@ export function wield_ok(obj) {
 }
 
 // Autotranslated from wield.c:340
-export async function finish_splitting(obj) {
-  freeinv(obj);
-  await addinv_nomerge(obj);
+export async function finish_splitting(obj, player, parentObj = null) {
+  if (!obj || !player) return;
+  const { freeinv, addinv_nomerge } = await import('./invent.js');
+  freeinv(obj, player);
+  await addinv_nomerge(obj, player);
 }
 
 // Autotranslated from wield.c:499

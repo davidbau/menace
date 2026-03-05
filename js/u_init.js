@@ -981,20 +981,25 @@ function equipInitialGear(player) {
         // C ref: u_init.c ini_inv_use_obj() — weapons and weptools
         // (TOOL_CLASS with oc_skill != P_NONE) are eligible for player.weapon/player.swapWeapon.
         const isWeptool = item.oclass === TOOL_CLASS && info && (info.sub || 0) !== 0;
-        if (item.oclass !== WEAPON_CLASS && !isWeptool) continue;
+        // C ref: u_init.c ini_inv_use_obj() also treats TIN_OPENER/FLINT/ROCK
+        // as startup wield candidates.
+        const isSpecialWieldable = item.otyp === TIN_OPENER || item.otyp === FLINT || item.otyp === ROCK;
+        if (item.oclass !== WEAPON_CLASS && !isWeptool && !isSpecialWieldable) continue;
         // C ref: u_init.c:1282-1293 ini_inv_use_obj() — ammo (is_ammo)
         // and missiles (is_missile) go to quiver, not player.weapon.  Both have
         // negative oc_skill (sub < 0); melee weapons and launchers have
         // non-negative oc_skill.
-        if (info && info.sub >= 0) {
-            if (!player.weapon) {
-                player.weapon = item;
-            } else if (!player.swapWeapon) {
-                // C ref: startup sets up an alternate weapon slot (player.swapWeapon)
-                // for classes with multiple starting weapons (e.g. Valkyrie).
-                player.swapWeapon = item;
-                break;
-            }
+        if (info && info.sub < 0) {
+            if (!player.quiver) player.quiver = item;
+            continue;
+        }
+        if (!player.weapon) {
+            player.weapon = item;
+        } else if (!player.swapWeapon) {
+            // C ref: startup sets up an alternate weapon slot (player.swapWeapon)
+            // for classes with multiple starting weapons (e.g. Valkyrie).
+            player.swapWeapon = item;
+            break;
         }
     }
 
