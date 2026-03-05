@@ -159,11 +159,6 @@ export async function moveloop_turnend(game) {
     (game.u || game.player).turns = game.turnCount;
     setCurrentTurn(game.turnCount);
     setOutputContext(game.display);
-    await nh_timeout({
-        player: (game.u || game.player),
-        map: (game.lev || game.map),
-        display: game.display,
-    });
     // C ref: allmain.c -- random spawn happens before svm.moves++.
     // During this turn-end frame, mkobj-side erosion checks should
     // still observe the pre-increment move count.
@@ -239,6 +234,14 @@ export async function moveloop_turnend(game) {
 
     // C ref: allmain.c:238 u_calc_moveamt(wtcap)
     u_calc_moveamt((game.u || game.player));
+
+    // C ref: allmain.c once-per-turn block runs nh_timeout() after
+    // mcalcdistress/mcalcmove and random spawn setup.
+    await nh_timeout({
+        player: (game.u || game.player),
+        map: (game.lev || game.map),
+        display: game.display,
+    });
 
     // C ref: allmain.c:295-301 — regen_hp(mvl_wtcap)
     await regen_hp(game);

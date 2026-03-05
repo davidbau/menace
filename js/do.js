@@ -898,16 +898,24 @@ export async function deferred_goto(player, game) {
     const dest = player.utolev;
     const typmask = Number(player.utotype) || 0;
     const fromDepth = Number(player.dungeonLevel) || 1;
+    const fromDnum = Number.isInteger(game?.dnum)
+        ? game.dnum
+        : (Number.isInteger(game?.map?._genDnum) ? game.map._genDnum : 0);
     if (dest !== player.dungeonLevel) {
         if (player.dfr_pre_msg)
             await pline(player.dfr_pre_msg);
-        // C ref: do.c — maybe_lvltport_feedback() prints "materialize" BEFORE quest hint check.
-        // In JS, changeLevel() calls maybeShowQuestLocateHint() internally, so dfr_post_msg
-        // must be printed BEFORE changeLevel() to match C's message ordering.
-        if (player.dfr_post_msg)
-            await pline(player.dfr_post_msg);
         // In C this calls goto_level(); in JS we use changeLevel()
         await game.changeLevel(dest, 'teleport');
+        // C ref: do.c deferred_goto() prints dfr_post_msg after goto_level()
+        // iff level actually changed. maybe_lvltport_feedback() can consume
+        // this early for specific paths (for example Sting side effects).
+        const toDnum = Number.isInteger(game?.dnum)
+            ? game.dnum
+            : (Number.isInteger(game?.map?._genDnum) ? game.map._genDnum : fromDnum);
+        const levelChanged = (Number(player.dungeonLevel) !== fromDepth) || (toDnum !== fromDnum);
+        if (player.dfr_post_msg && levelChanged) {
+            await pline(player.dfr_post_msg);
+        }
         // C ref: do.c goto_level(falling) damage uses d(max(dist,1),6) from
         // rnd.c (composite d() log entry).
         if (typmask & 0x02) {

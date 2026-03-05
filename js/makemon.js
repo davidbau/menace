@@ -105,7 +105,7 @@ import {
 } from './objects.js';
 import { roles, races, initialAlignmentRecordForRole } from './player.js';
 import { mpickobj, dist2, BOLT_LIM, newsym } from './monutil.js';
-import { canseemon } from './mondata.js';
+import { canseemon, polyok } from './mondata.js';
 import { senseMonsterForMap } from './monutil.js';
 import { Amonnam } from './do_name.js';
 import { vtense } from './objnam.js';
@@ -1418,22 +1418,14 @@ function is_placeholder_mndx(mndx) {
         || mndx === PM_ELF || mndx === PM_HUMAN;
 }
 
-function polyok_for_newcham(ptr) {
-    if (!ptr) return false;
-    const f2 = ptr.flags2 || 0;
-    if (f2 & M2_PNAME) return false;
-    if (f2 & M2_WERE) return false;
-    if ((f2 & M2_HUMAN) && ptr.mlet !== S_KOP) return false;
-    return true;
-}
-
 function accept_newcham_form(chamMndx, mndx) {
     if (!Number.isInteger(mndx) || mndx < LOW_PM || mndx >= SPECIAL_PM) return null;
     if (is_placeholder_mndx(mndx)) return null;
     const mdat = mons[mndx];
     if (!mdat) return null;
     if ((mdat.flags2 & M2_SHAPESHIFTER) && mndx === chamMndx) return mdat;
-    if (!polyok_for_newcham(mdat)) return null;
+    // C ref: mon.c accept_newcham_form() uses polyok().
+    if (!polyok(mdat)) return null;
     if (mdat.flags2 & M2_SHAPESHIFTER) return null;
     return mdat;
 }
