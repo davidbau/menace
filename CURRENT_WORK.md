@@ -21,6 +21,9 @@ Phase 0 (preflight and baseline), per `docs/MODULES.md` Autonomous Execution Pla
    - Phase 1 init-fragility scope and gates,
    - batching rules and stop conditions for Phases 2/3,
    - non-negotiable autonomy rules for commit hygiene and regression handling.
+4. Added explicit `map.js` retirement direction to plan docs:
+   - `STRUCTURES.md`: `map.js` marked transitional; canonical level structures live under `game.*`.
+   - `MODULES.md`: `map.js` moved out of permanent infrastructure list into consolidation files to retire.
 
 ## Next Commit Target
 

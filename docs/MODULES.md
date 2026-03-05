@@ -304,11 +304,15 @@ JS built-ins or irrelevant in the browser):
 
 **JS files with no C counterpart** (JS infrastructure — keep as-is):
 `animation`, `browser_input`, `chargen`, `config`, `delay`, `headless`,
-`input`, `keylog`, `map`, `nethack`, `render`, `replay_core`, `replay_compare`,
+`input`, `keylog`, `nethack`, `render`, `replay_core`, `replay_compare`,
 `rng`, `storage`, `xoshiro256`
 
-**JS invented consolidation files** (functions need sorting into C-named files):
-`combat`, `look`, `monutil`, `stackobj`, `player`, `discovery`, `options_menu`
+**JS invented consolidation files** (functions/structures need sorting into canonical ownership):
+`combat`, `look`, `monutil`, `stackobj`, `player`, `discovery`, `options_menu`, `map`
+
+`map.js` plan: treat as transitional consolidation scaffolding. Move level/map
+structures and APIs into canonical `game.*` state ownership and/or C-source
+module ownership during Phase 4, then delete remaining compatibility shims.
 
 ---
 
