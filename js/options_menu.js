@@ -12,7 +12,7 @@ import { nhgetch, getlin } from './input.js';
  * Options menu data structure matching C NetHack
  * Each option has: name, key, type (bool/text/number), category, page
  */
-export const OPTIONS_DATA = {
+const OPTIONS_DATA = {
     // Page 1 - General & Behavior
     page1: [
         {

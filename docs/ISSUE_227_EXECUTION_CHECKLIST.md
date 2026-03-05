@@ -39,6 +39,11 @@ If any other doc conflicts, follow this file.
 - [ ] Move any stray exported capitalized constants from gameplay modules.
 - [ ] Normalize capitalized constant imports so they come from leaf headers only.
 
+### 1E. Constant organization and documentation
+- [ ] Organize consolidated constants into clear sections in leaf headers (by subsystem/source).
+- [ ] Document constant ownership and allowed import sources in `docs/MODULES.md`.
+- [ ] Add a quick audit command snippet for future checks.
+
 Phase-1 exit gate:
 - [ ] Structural targets in place for migrated subsystems.
 - [ ] No parity regression vs baseline envelope.

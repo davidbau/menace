@@ -15,30 +15,30 @@ import {
 import { canonicalizeAttackFields } from './attack_fields.js';
 
 // Wizard spell constants (C ref: mcastu.c)
-export const MGC_PSI_BOLT = 0;
-export const MGC_CURE_SELF = 1;
-export const MGC_HASTE_SELF = 2;
-export const MGC_STUN_YOU = 3;
-export const MGC_DISAPPEAR = 4;
-export const MGC_WEAKEN_YOU = 5;
-export const MGC_DESTRY_ARMR = 6;
-export const MGC_CURSE_ITEMS = 7;
-export const MGC_AGGRAVATION = 8;
-export const MGC_SUMMON_MONS = 9;
-export const MGC_CLONE_WIZ = 10;
-export const MGC_DEATH_TOUCH = 11;
+const MGC_PSI_BOLT = 0;
+const MGC_CURE_SELF = 1;
+const MGC_HASTE_SELF = 2;
+const MGC_STUN_YOU = 3;
+const MGC_DISAPPEAR = 4;
+const MGC_WEAKEN_YOU = 5;
+const MGC_DESTRY_ARMR = 6;
+const MGC_CURSE_ITEMS = 7;
+const MGC_AGGRAVATION = 8;
+const MGC_SUMMON_MONS = 9;
+const MGC_CLONE_WIZ = 10;
+const MGC_DEATH_TOUCH = 11;
 
 // Cleric spell constants
-export const CLC_OPEN_WOUNDS = 0;
-export const CLC_CURE_SELF = 1;
-export const CLC_CONFUSE_YOU = 2;
-export const CLC_PARALYZE = 3;
-export const CLC_BLIND_YOU = 4;
-export const CLC_INSECTS = 5;
-export const CLC_CURSE_ITEMS = 6;
-export const CLC_LIGHTNING = 7;
-export const CLC_FIRE_PILLAR = 8;
-export const CLC_GEYSER = 9;
+const CLC_OPEN_WOUNDS = 0;
+const CLC_CURE_SELF = 1;
+const CLC_CONFUSE_YOU = 2;
+const CLC_PARALYZE = 3;
+const CLC_BLIND_YOU = 4;
+const CLC_INSECTS = 5;
+const CLC_CURSE_ITEMS = 6;
+const CLC_LIGHTNING = 7;
+const CLC_FIRE_PILLAR = 8;
+const CLC_GEYSER = 9;
 
 // cf. mcastu.c:48 — cursetxt(mtmp, vis)
 export function cursetxt(mtmp, vis) {
