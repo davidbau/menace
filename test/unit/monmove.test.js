@@ -134,9 +134,9 @@ describe('Monster movement', () => {
             ac: 8, level: 1,
             speed: 12, movement: 12,
             attacks: [],
-            dead: false, sleeping: true,
+            dead: false, msleeping: true,
             confused: false, peaceful: false,
-            tame: false, flee: false,
+            tame: false, mflee: false,
         };
         map.monsters.push(mon);
 

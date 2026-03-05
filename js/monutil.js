@@ -95,6 +95,7 @@ export function helpless(mon) {
     if (mon.msleeping || mon.sleeping) return true;
     if (mon.mcanmove === false || mon.mcanmove === 0) return true;
     if (Number(mon.mfrozen || 0) > 0) return true;
+    if (mon.mstun || mon.stunned) return true;
     return false;
 }
 
