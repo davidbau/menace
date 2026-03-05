@@ -20,7 +20,7 @@
 import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, ACCESSIBLE,
          POOL, ROOM, WATER, LAVAWALL, IRONBARS,
          D_CLOSED, D_LOCKED, D_BROKEN,
-         SHOPBASE, ROOMOFFSET, NORMAL_SPEED, isok } from './config.js';
+         SHOPBASE, ROOMOFFSET, TEMPLE, NORMAL_SPEED, isok } from './config.js';
 import { AMULET_OF_LIFE_SAVING, CORPSE } from './objects.js';
 import { which_armor } from './worn.js';
 import { W_AMUL, W_ARMG,
@@ -36,6 +36,7 @@ import { is_metallic, is_organic, obj_resists } from './objdata.js';
 import { mondead as _monutil_mondead, unstuck, newsym, mpickobj, mdrop_obj } from './monutil.js';
 import { water_damage_chain, fire_damage_chain } from './trap.js';
 import { rloc, tele_restrict, enexto } from './teleport.js';
+import { in_your_sanctuary } from './priest.js';
 
 // ========================================================================
 // mfndpos flag constants — C ref: mfndpos.h
@@ -537,6 +538,20 @@ export function mfndpos(mon, map, player, flag) {
                     }
                 }
                 if (hasGarlic) continue;
+            }
+
+            // C ref: mon.c:2298-2304 — entering your sanctuary.
+            // ALLOW_SANCT permits stepping into temple sanctuary squares.
+            if (map?.flags?.has_temple) {
+                const roomHere = map.roomAt ? map.roomAt(omx, omy) : null;
+                const roomThere = map.roomAt ? map.roomAt(nx, ny) : null;
+                const hereTemple = roomHere?.rtype === TEMPLE;
+                const thereTemple = roomThere?.rtype === TEMPLE;
+                if (thereTemple && !hereTemple
+                    && in_your_sanctuary(null, nx, ny, map, player)) {
+                    if (!(flag & ALLOW_SANCT)) continue;
+                    posInfo |= ALLOW_SANCT;
+                }
             }
 
             // C ref: mon.c:2315-2323 — boulder check (ALLOW_ROCK)
