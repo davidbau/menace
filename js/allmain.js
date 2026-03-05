@@ -490,6 +490,28 @@ export async function run_command(game, ch, opts = {}) {
         return { tookTime: false };
     }
 
+    // Prompt handlers (e.g., eat.c "Continue eating? [yn]") consume input
+    // without advancing time until a terminating answer is provided.
+    if (game.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
+        const promptResult = game.pendingPrompt.onKey(chCode, game);
+        if (promptResult && promptResult.handled) {
+            if (game._pendingPromptTask) {
+                await game._pendingPromptTask;
+                game._pendingPromptTask = null;
+            }
+            if (!game.pendingPrompt && game._pendingTutorialStrip
+                && typeof game._applyTutorialStrip === 'function') {
+                game._applyTutorialStrip();
+                game._pendingTutorialStrip = false;
+            }
+            return {
+                tookTime: false,
+                moved: false,
+                prompt: true,
+            };
+        }
+    }
+
     // C ref: tty_display_nhwindow(WIN_MESSAGE, FALSE) — at the start of
     // each command cycle, C clears the previous turn's topline message.
     // The old message text is "remembered" (pushed to history) and the
@@ -516,28 +538,6 @@ export async function run_command(game, ch, opts = {}) {
         || chCode === 'F'.charCodeAt(0)
         || chCode === 'G'.charCodeAt(0)
         || chCode === 'g'.charCodeAt(0);
-
-    // Prompt handlers (e.g., eat.c "Continue eating? [yn]") consume input
-    // without advancing time until a terminating answer is provided.
-    if (game.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
-        const promptResult = game.pendingPrompt.onKey(chCode, game);
-        if (promptResult && promptResult.handled) {
-            if (game._pendingPromptTask) {
-                await game._pendingPromptTask;
-                game._pendingPromptTask = null;
-            }
-            if (!game.pendingPrompt && game._pendingTutorialStrip
-                && typeof game._applyTutorialStrip === 'function') {
-                game._applyTutorialStrip();
-                game._pendingTutorialStrip = false;
-            }
-            return {
-                tookTime: false,
-                moved: false,
-                prompt: true,
-            };
-        }
-    }
 
     if (!skipRepeatRecord && !game.inDoAgain
         && chCode !== 0

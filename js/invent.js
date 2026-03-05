@@ -27,6 +27,7 @@ import { touch_petrifies } from './mondata.js';
 import { newsym } from './monutil.js';
 import { observeObject, discoverObject, isObjectNameKnown } from './discovery.js';
 import { exercise } from './attrib_exercise.js';
+import { acurr, acurrstr } from './attrib.js';
 
 
 // ============================================================
@@ -1039,8 +1040,8 @@ const LEFT_SIDE = 0x10;
 const RIGHT_SIDE = 0x20;
 
 function weight_cap_for_inventory(player) {
-    const str = player?.attributes ? player.attributes[A_STR] : 10;
-    const con = player?.attributes ? player.attributes[A_CON] : 10;
+    const str = acurrstr(player);
+    const con = acurr(player, A_CON);
     let carrcap = WT_WEIGHTCAP_STRCON * (str + con) + WT_WEIGHTCAP_SPARE;
     if (player?.levitating || player?.flying) {
         carrcap = MAX_CARR_CAP;
@@ -1138,8 +1139,9 @@ export async function hold_another_object(obj, player, drop_fmt, drop_arg, hold_
     await encumber_msg_transition(prevCap, newCap);
     if (player) {
         player.encumbrance = newCap;
-        // Keep pickup.c-style oldcap tracking in sync across call sites
-        // (e.g. hold_another_object() followed by wiz_wish encumber_msg()).
+        // Keep pickup.c-style oldcap tracking in sync so a subsequent
+        // encumber_msg() in the same command (e.g., wiz_wish()) does not
+        // duplicate the same transition message.
         player._oldcap = newCap;
     }
     return result;

@@ -55,7 +55,7 @@ import { MZ_LARGE, PM_GRID_BUG } from './monsters.js';
 import { stackobj } from './stackobj.js';
 import { thitu } from './mthrowu.js';
 import { dmgval } from './weapon.js';
-import { poisoned } from './attrib.js';
+import { poisoned, acurr, acurrstr } from './attrib.js';
 import { t_missile, seetrap } from './trap.js';
 
 // Run direction keys (shift = run)
@@ -1875,8 +1875,8 @@ function sobj_at(otyp, x, y, map) {
 
 // C ref: hack.c weight_cap() — maximum carrying capacity
 export function weight_cap(player) {
-    const str = player.attributes ? player.attributes[A_STR] : 10;
-    const con = player.attributes ? player.attributes[A_CON] : 10;
+    const str = acurrstr(player);
+    const con = acurr(player, A_CON);
     let carrcap = WT_WEIGHTCAP_STRCON * (str + con) + WT_WEIGHTCAP_SPARE;
     // Polymorph adjustments omitted for now
     if (player.levitating || player.flying) {
