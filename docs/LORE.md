@@ -2071,3 +2071,28 @@ hard-won wisdom:
     `291/516` to `367/516`, first screen divergence moved from step `228`
     to step `241`,
   - `seed306_monk_selfplay200_gameplay` remains full-pass.
+
+### Seed322 passive-rust/glove-contact parity unlocked later screen frontier (2026-03-05)
+
+- At step `241`, C showed:
+  - `You smite the rust monster.  Your pair of fencing gloves rusts!--More--`
+  while JS showed:
+  - `You hit the rust monster.  The rust monster touches you!--More--`
+- Root causes:
+  - hero hit verb selection in JS used a die-roll shortcut; C uses role/object
+    structure (`Barbarian` hand-to-hand defaults to `smite` unless bash/lash),
+  - passive object erosion path did not emit C-faithful player-facing erosion
+    messages for non-verbose flags, so glove rust feedback and prompt pacing
+    drifted.
+- Fixes:
+  - make Barbarian melee hit verb default to `smite` in the corresponding path,
+  - route passive erosion through player-facing erosion emitter and pass object
+    names (`xname(obj)`), preserving passive rust wording,
+  - align `erode_obj_player` messaging semantics to print damaged/destroyed
+    messages even without `EF_VERBOSE` (while keeping "looks completely ..."
+    gated to verbose path).
+- Validation:
+  - `seed322_barbarian_wizard_gameplay` improved from `367/516` screen matches
+    to `385/516`,
+  - first screen divergence moved from step `241` to step `339`,
+  - `seed306_monk_selfplay200_gameplay` remains full-pass.

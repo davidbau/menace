@@ -6,7 +6,7 @@ import { rn2, rnd, d, c_d } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { corpse_chance } from './mon.js';
 import {
-    A_STR, A_DEX, PM_MONK, PM_SAMURAI,
+    A_STR, A_DEX, PM_MONK, PM_SAMURAI, PM_BARBARIAN,
     FIRE_RES, COLD_RES, SHOCK_RES, ACID_RES, FREE_ACTION,
 } from './config.js';
 import { spec_dbon } from './artifact.js';
@@ -55,7 +55,7 @@ import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
 import { find_mac } from './worn.js';
 import { make_stunned } from './potion.js';
 import {
-    erode_obj, ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE,
+    erode_obj, erode_obj_player, ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE,
     EF_GREASE, EF_VERBOSE,
 } from './trap.js';
 import { tmp_at, nh_delay_output, DISP_ALWAYS, DISP_END } from './animation.js';
@@ -1372,7 +1372,7 @@ export function hmonas(player, mon, display, map) {
 //   Passive defense damages hero's weapon/armor.
 //   Called for AD_FIRE, AD_ACID, AD_RUST, AD_CORR, AD_ENCH when hero hits
 //   a monster with those passive attack types.
-export function passive_obj(mon, obj, mattk) {
+export async function passive_obj(mon, obj, mattk) {
     canonicalizeAttackFields(mattk);
     if (!obj) return;
     const ptr = mon.type || {};
@@ -1382,30 +1382,30 @@ export function passive_obj(mon, obj, mattk) {
     case AD_FIRE:
         // C: if (!rn2(6) && !mon->mcan) erode_obj(obj, ERODE_BURN)
         if (!rn2(6) && !mon.mcan) {
-            erode_obj(obj, null, ERODE_BURN, EF_GREASE | EF_VERBOSE);
+            await erode_obj_player(obj, xname(obj), ERODE_BURN, 0);
         }
         break;
     case AD_ACID:
         // C: if (!rn2(6)) erode_obj(obj, ERODE_CORRODE)
         if (!rn2(6)) {
-            erode_obj(obj, null, ERODE_CORRODE, EF_GREASE | EF_VERBOSE);
+            await erode_obj_player(obj, xname(obj), ERODE_CORRODE, EF_GREASE);
         }
         break;
     case AD_RUST:
         // C: if (!mon->mcan) erode_obj(obj, ERODE_RUST)
         if (!mon.mcan) {
-            erode_obj(obj, null, ERODE_RUST, EF_GREASE | EF_VERBOSE);
+            await erode_obj_player(obj, xname(obj), ERODE_RUST, EF_GREASE);
         }
         break;
     case AD_CORR:
         // C: if (!mon->mcan) erode_obj(obj, ERODE_CORRODE)
         if (!mon.mcan) {
-            erode_obj(obj, null, ERODE_CORRODE, EF_GREASE | EF_VERBOSE);
+            await erode_obj_player(obj, xname(obj), ERODE_CORRODE, EF_GREASE);
         }
         break;
     case AD_DCAY:
         if (!mon.mcan) {
-            erode_obj(obj, null, ERODE_ROT, EF_GREASE | EF_VERBOSE);
+            await erode_obj_player(obj, xname(obj), ERODE_ROT, EF_GREASE);
         }
         break;
     case AD_ENCH:
@@ -1786,7 +1786,7 @@ async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destr
     }
 
     if (mhit && weapon && !wep_was_destroyed && aatyp === AT_WEAP) {
-        passive_obj(mon, weapon, passiveAttk);
+        await passive_obj(mon, weapon, passiveAttk);
     }
 
     if (tmp > 0 && player) {
@@ -1956,11 +1956,8 @@ export async function do_attack_core(player, monster, display, map, game = null)
         return killed;
     } else {
         // cf. uhitm.c -- various hit messages
-        if (dieRoll >= 18) {
-            await display.putstr_message(`You smite the ${x_monnam(monster)}!`);
-        } else {
-            await display.putstr_message(`You hit the ${x_monnam(monster)}${exclam(damage)}`);
-        }
+        const hitVerb = (player?.roleIndex === PM_BARBARIAN) ? 'smite' : 'hit';
+        await display.putstr_message(`You ${hitVerb} the ${x_monnam(monster)}${exclam(damage)}`);
         // cf. uhitm.c hmon_hitmon_core():
         // For armed melee hits with damage > 1: mhitm_knockback().
         // For unarmed hits with damage > 1: hmon_hitmon_stagger() → rnd(100).

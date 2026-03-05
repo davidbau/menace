@@ -1175,7 +1175,7 @@ function erosion_past_participle(type) {
 // Mirrors trap.c erode_obj() wording for the common damaged/destroyed cases.
 export async function erode_obj_player(otmp, ostr, type, ef_flags) {
     const result = erode_obj(otmp, ostr, type, ef_flags);
-    if (!(ef_flags & EF_VERBOSE) || !otmp) return result;
+    if (!otmp) return result;
 
     const name = ostr || 'item';
     if (result === ER_DAMAGED) {
@@ -1184,6 +1184,7 @@ export async function erode_obj_player(otmp, ostr, type, ef_flags) {
         const adverb = (level >= MAX_ERODE) ? ' completely' : (level > 1 ? ' further' : '');
         await pline('Your %s %s%s!', name, erosion_action(type), adverb);
     } else if (result === ER_NOTHING) {
+        if (!(ef_flags & EF_VERBOSE)) return result;
         const isPrimary = (type !== ERODE_ROT && type !== ERODE_CORRODE);
         const level = isPrimary ? (otmp.oeroded || 0) : (otmp.oeroded2 || 0);
         if (level >= MAX_ERODE) {
