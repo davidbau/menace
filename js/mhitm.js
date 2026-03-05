@@ -38,7 +38,7 @@ import {
     AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_RUST, AD_CORR,
     MZ_HUGE,
 } from './monsters.js';
-import { corpse_chance } from './mon.js';
+import { corpse_chance, zombie_form, zombie_maker } from './mon.js';
 import { mkcorpstat, xname } from './mkobj.js';
 import { CORPSE, WEAPON_CLASS, objectData } from './objects.js';
 import {
@@ -585,8 +585,12 @@ async function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx
         // C ref: mon.c xkilled() → corpse_chance + mkcorpstat
         if (corpse_chance(mdef)
             && !(((pd.geno || 0) & G_NOCORPSE) !== 0)) {
+            const zombify = !mwep
+                && zombie_maker(magr)
+                && (mattk.aatyp === AT_TUCH || mattk.aatyp === AT_CLAW || mattk.aatyp === AT_BITE)
+                && zombie_form(pd) >= 0;
             const corpse = mkcorpstat(CORPSE, mdef.mndx || 0, true,
-                mdef.mx, mdef.my, map);
+                mdef.mx, mdef.my, map, { zombify });
             corpse.age = ctx?.turnCount || 1;
         }
 

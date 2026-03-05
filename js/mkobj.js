@@ -30,6 +30,7 @@ import { rndmonnum, rndmonnum_adj } from './makemon.js';
 import {
     mons, G_NOCORPSE, M2_NEUTER, M2_FEMALE, M2_MALE, MZ_SMALL,
     PM_LIZARD, PM_LICHEN, S_TROLL, MS_RIDER,
+    M2_DWARF, S_KOBOLD, S_ORC, S_GIANT, S_HUMAN, S_KOP, S_GNOME, S_HUMANOID,
     PM_SCORPIUS, PM_SCORPION, PM_KILLER_BEE, PM_QUEEN_BEE,
     PM_GARGOYLE, PM_WINGED_GARGOYLE
 } from './monsters.js';
@@ -920,11 +921,29 @@ function special_corpse(mndx) {
         || mons[mndx].sound === MS_RIDER;
 }
 
+function zombie_form_exists_for_corpse(corpsenm) {
+    const pm = mons[corpsenm];
+    if (!pm) return false;
+    switch (pm.mlet) {
+    case S_KOBOLD:
+    case S_ORC:
+    case S_GIANT:
+    case S_HUMAN:
+    case S_KOP:
+    case S_GNOME:
+        return true;
+    case S_HUMANOID:
+        return !!(pm.flags2 & M2_DWARF);
+    default:
+        return false;
+    }
+}
+
 // C ref: mkobj.c start_corpse_timeout() — consume RNG for corpse rot/revive timing
 // Only called for RNG alignment; we don't actually track timers.
 export const TAINT_AGE = 50;
 const TROLL_REVIVE_CHANCE = 37;
-function start_corpse_timeout(corpsenm) {
+function start_corpse_timeout(corpsenm, opts = {}) {
     // Lizards and lichen don't rot or revive
     if (corpsenm === PM_LIZARD || corpsenm === PM_LICHEN) return;
     // C ref: mkobj.c start_corpse_timeout() — rot_adjust depends on gi.in_mklev.
@@ -941,6 +960,10 @@ function start_corpse_timeout(corpsenm) {
         for (let age = 2; age <= TAINT_AGE; age++) {
             if (!rn2(TROLL_REVIVE_CHANCE)) break;
         }
+    } else if (!!opts.zombify && !opts.norevive
+               && zombie_form_exists_for_corpse(corpsenm)) {
+        // C ref: mkobj.c start_corpse_timeout() zombify branch
+        rn1(15, 5); // consume rn2(15)
     }
 }
 
@@ -987,7 +1010,7 @@ export function set_corpsenm(obj, id) {
 // x, y, map: when provided with non-zero x,y, places object at (x,y) via
 //   mksobj_at equivalent (matching C where mkcorpstat calls mksobj_at internally).
 //   This ensures ^place event is logged before ^corpse, matching C event order.
-export function mkcorpstat(objtype, ptr_mndx, init, x = 0, y = 0, map = null) {
+export function mkcorpstat(objtype, ptr_mndx, init, x = 0, y = 0, map = null, opts = {}) {
     const otmp = mksobj(objtype, init, false);
     // C: when x,y are non-zero, mkcorpstat calls mksobj_at which places via place_object
     if (x && y && map) {
@@ -1000,11 +1023,15 @@ export function mkcorpstat(objtype, ptr_mndx, init, x = 0, y = 0, map = null) {
         otmp.corpsenm = ptr_mndx;
         otmp.owt = weight(otmp);
         if (objectData[otmp.otyp]?.name === 'corpse'
-            && (special_corpse(old_corpsenm)
+            && (!!opts.zombify
+                || special_corpse(old_corpsenm)
                 || special_corpse(ptr_mndx))) {
             // C: obj_stop_timers(otmp) — no RNG consumed
             // Restart corpse timeout with new corpsenm
-            start_corpse_timeout(ptr_mndx);
+            start_corpse_timeout(ptr_mndx, {
+                zombify: !!opts.zombify,
+                norevive: !!opts.norevive,
+            });
         }
     }
     pushRngLogEntry(`^corpse[${otmp.corpsenm},${otmp.ox || 0},${otmp.oy || 0}]`);
