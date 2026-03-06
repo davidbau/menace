@@ -8,6 +8,7 @@ import { rn2, rnd, rnl } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { Luck } from './attrib.js';
 import { x_monnam, is_watch } from './mondata.js';
+import { KICKING_BOOTS } from './objects.js';
 import { mondead, angry_guards } from './mon.js';
 import { newsym } from './display.js';
 import { nhgetch } from './input.js';
@@ -16,6 +17,18 @@ import { u_wipe_engr } from './engrave.js';
 import { recalc_block_point, couldsee } from './vision.js';
 import { add_damage, pay_for_damage } from './shk.js';
 import { in_town } from './hack.js';
+
+function hasMartialBonus(player) {
+    const roleName = String(player?.role || '').toLowerCase();
+    const roleAbbr = String(player?.roleAbbr || '').toLowerCase();
+    const roleTitle = String(player?.roleName || '').toLowerCase();
+    const monkOrSamurai = roleName === 'monk' || roleName === 'samurai'
+        || roleAbbr === 'mon' || roleAbbr === 'sam'
+        || roleTitle === 'monk' || roleTitle === 'samurai';
+    // Kicking boots grant martial-style kicking in C's martial() macro.
+    const wearingKickingBoots = !!(player?.boots && player.boots.otyp === KICKING_BOOTS);
+    return monkOrSamurai || wearingKickingBoots;
+}
 
 // Handle kicking
 // C ref: dokick.c dokick()
@@ -75,7 +88,8 @@ export async function handleKick(player, map, display, game) {
             ? map?.rooms?.[roomno - ROOMOFFSET]
             : null;
         const shopdoor = !!(room && Number.isFinite(room.rtype) && room.rtype >= SHOPBASE);
-        const kickedOpen = rnl(35, Luck(player)) < avrgAttrib;
+        const dexBonus = hasMartialBonus(player) ? dex : 0;
+        const kickedOpen = rnl(35, Luck(player)) < (avrgAttrib + dexBonus);
         if (kickedOpen) {
             // C ref: dokick.c:940 — do not roll rn2(5) for shop doors.
             if (str > 18 && !shopdoor && rn2(5) === 0) {
