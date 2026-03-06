@@ -3,12 +3,14 @@
 
 import { rn2, rn1, rnd, d } from './rng.js';
 import { nhgetch } from './input.js';
-import { objectData, FOOD_CLASS, CORPSE, TRIPE_RATION, CLOVE_OF_GARLIC,
+import { objectData, FOOD_CLASS, COIN_CLASS, CORPSE, TRIPE_RATION, CLOVE_OF_GARLIC,
          TIN, EGG, FOOD_RATION, LEMBAS_WAFER, CRAM_RATION,
          MEAT_RING, MEATBALL, MEAT_STICK, ENORMOUS_MEATBALL,
          LUMP_OF_ROYAL_JELLY, EUCALYPTUS_LEAF, APPLE, PEAR,
          FORTUNE_COOKIE, CREAM_PIE, CANDY_BAR, PANCAKE, SPRIG_OF_WOLFSBANE,
          CARROT, K_RATION, C_RATION, SLIME_MOLD,
+         RIN_SLOW_DIGESTION, RIN_PROTECTION,
+         FAKE_AMULET_OF_YENDOR, AMULET_OF_STRANGULATION,
          FLESH, VEGGY } from './objects.js';
 import { doname, next_ident } from './mkobj.js';
 import { mons, PM_LIZARD, PM_LICHEN, PM_NEWT,
@@ -40,7 +42,10 @@ import { PM_CAVEMAN, PM_VALKYRIE, PM_WIZARD,
          TELEPORT, TELEPORT_CONTROL, TELEPAT, LAST_PROP,
          FROMOUTSIDE, INTRINSIC, TIMEOUT,
          SLT_ENCUMBER, DEAF,
-         STARVING, KILLED_BY } from './const.js';
+         REGENERATION, CONFLICT, PROTECTION, HUNGER, STRANGLED,
+         W_RINGL, W_RINGR, W_ARTI, W_WEP, FROMFORM,
+         CHOKING, A_LAWFUL, PM_KNIGHT, PM_MONK,
+         STARVING, KILLED_BY, KILLED_BY_AN } from './const.js';
 import { game as _gstate } from './gstate.js';
 import { applyMonflee } from './mhitu.js';
 import { obj_resists } from './objdata.js';
@@ -48,7 +53,7 @@ import { compactInvletPromptChars } from './invent.js';
 import { pline, You, Your, You_feel, You_cant, pline_The, You_hear } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, ensureAttrArrays } from './attrib.js';
-import { nomul, end_running } from './hack.js';
+import { nomul, end_running, near_capacity } from './hack.js';
 import { incr_itimeout } from './potion.js';
 import { done, setKillerName, setKillerFormat } from './end.js';
 import { stop_occupation } from './allmain.js';
@@ -199,20 +204,71 @@ async function gethungry(player) {
     const accessorytime = rn2(20);
     if (accessorytime % 2) { // odd — regeneration/encumbrance hunger
         // C: (HRegeneration & ~FROMFORM) || (ERegeneration & ~(W_ARTI|W_WEP))
-        if (player.regeneration)
+        const hRegen = player.uprops && player.uprops[REGENERATION]
+            ? player.uprops[REGENERATION].intrinsic : 0;
+        const eRegen = player.uprops && player.uprops[REGENERATION]
+            ? player.uprops[REGENERATION].extrinsic : 0;
+        if ((hRegen & ~FROMFORM) || (eRegen & ~(W_ARTI | W_WEP)))
             player.hunger--;
         // C: near_capacity() > SLT_ENCUMBER
-        // Avoid circular import (hack.js↔eat.js); use player.encumbrance if tracked
-        if ((player.encumbrance || 0) > SLT_ENCUMBER)
+        if (near_capacity(player) > SLT_ENCUMBER)
             player.hunger--;
     } else { // even — conflict/hunger intrinsic + ring/amulet accessory hunger
         if (player.Hunger)
             player.hunger--;
-        if (player.Conflict)
+        // C: HConflict || (EConflict & ~W_ARTI)
+        const hConflict = player.uprops && player.uprops[CONFLICT]
+            ? player.uprops[CONFLICT].intrinsic : 0;
+        const eConflict = player.uprops && player.uprops[CONFLICT]
+            ? player.uprops[CONFLICT].extrinsic : 0;
+        if (hConflict || (eConflict & ~W_ARTI))
             player.hunger--;
-        // C: ring/amulet accessory hunger on specific even values (0,4,6,8,10,12)
-        // Simplified: not fully tracked which rings are worn.
-        // TODO: port full ring/amulet hunger when equipment tracking is complete.
+        // C:3218-3269 — ring/amulet accessory hunger on specific even values
+        switch (accessorytime) {
+        case 0:
+            // Slow digestion from armor (not ring) still burns nutrition
+            if (slowDigestion
+                && (!player.uright || player.uright.otyp !== RIN_SLOW_DIGESTION)
+                && (!player.uleft || player.uleft.otyp !== RIN_SLOW_DIGESTION))
+                player.hunger--;
+            break;
+        case 4: {
+            // C: EProtection = u.uprops[PROTECTION].extrinsic
+            const eProt = (player.uprops && player.uprops[PROTECTION])
+                ? player.uprops[PROTECTION].extrinsic : 0;
+            if (player.uleft && player.uleft.otyp !== MEAT_RING
+                && (player.uleft.spe
+                    || !objectData[player.uleft.otyp].oc_charged
+                    || (player.uleft.otyp === RIN_PROTECTION
+                        && ((eProt & ~W_RINGL) === 0
+                            || ((eProt & ~W_RINGL) === W_RINGR
+                                && player.uright && player.uright.otyp === RIN_PROTECTION
+                                && !player.uright.spe)))))
+                player.hunger--;
+            break;
+        }
+        case 8:
+            if (player.uamul && player.uamul.otyp !== FAKE_AMULET_OF_YENDOR)
+                player.hunger--;
+            break;
+        case 12: {
+            const eProt = (player.uprops && player.uprops[PROTECTION])
+                ? player.uprops[PROTECTION].extrinsic : 0;
+            if (player.uright && player.uright.otyp !== MEAT_RING
+                && (player.uright.spe
+                    || !objectData[player.uright.otyp].oc_charged
+                    || (player.uright.otyp === RIN_PROTECTION
+                        && ((eProt & ~W_RINGR) === 0))))
+                player.hunger--;
+        }
+            break;
+        case 16:
+            if (player.uhave && player.uhave.amulet)
+                player.hunger--;
+            break;
+        default:
+            break;
+        }
     }
     await newuhs(player, true);
 }
@@ -450,14 +506,34 @@ async function newuhs(player, incr) {
     }
 }
 
-// cf. eat.c unfaint() — recover from fainting
-// Autotranslated from eat.c:3330
+// cf. eat.c:1796-1804 Hear_again() — chance to cure deafness
+async function Hear_again(player) {
+    const game = _gstate;
+    if (!rn2(2)) {
+        // C: make_deaf(0L, FALSE) — clear deafness
+        if (player.ensureUProp) {
+            const entry = player.ensureUProp(DEAF);
+            entry.intrinsic = entry.intrinsic & ~TIMEOUT;
+        }
+        if (game) {
+            game.disp = game.disp || {};
+            game.disp.botl = true;
+        }
+    }
+    return 0;
+}
+
+// cf. eat.c:3330-3339 unfaint() — recover from fainting
 export async function unfaint(game, player) {
-  await Hear_again();
-  if (player.uhs > FAINTING) player.uhs = FAINTING;
-  await stop_occupation();
-  game.disp.botl = true;
-  return 0;
+    if (!player && game) player = game.player;
+    await Hear_again(player);
+    if (player.uhs > FAINTING) player.uhs = FAINTING;
+    if (game) await stop_occupation(game);
+    if (game) {
+        game.disp = game.disp || {};
+        game.disp.botl = true;
+    }
+    return 0;
 }
 
 // cf. eat.c is_fainted() — check if hero is fainted from hunger
@@ -471,34 +547,52 @@ function reset_faint(player) {
     // stub — would clear faint timer
 }
 
-// cf. eat.c choke() — choking on food
-// Autotranslated from eat.c:244
+// cf. eat.c:244-288 choke() — choking on food
 export async function choke(food, player) {
-  if (player.uhs !== SATIATED) {
-    if (!food || food.otyp !== AMULET_OF_STRANGULATION) return;
-  }
-  else if (Role_if(PM_KNIGHT) && player.ualign.type === A_LAWFUL) { adjalign(-1); await You_feel("like a glutton!"); }
-  await exercise(A_CON, false);
-  if (Breathless || Hunger || (!Strangled && !rn2(20))) {
-    if (food && food.otyp === AMULET_OF_STRANGULATION) { await You("choke, but recover your composure."); return; }
-    await You("stuff yourself and then vomit voluminously.");
-    await morehungry(Hunger ? (player.uhunger - 60) : 1000);
-    vomit();
-  }
-  else {
-    svk.killer.format = KILLED_BY_AN;
-    if (food) {
-      await You("choke over your %s.", foodword(food));
-      if (food.oclass === COIN_CLASS) { svk.killer.name = "very rich meal"; }
-      else {
-        svk.killer.format = KILLED_BY;
-        svk.killer.name = killer_xname(food);
-      }
+    const game = _gstate;
+    // C: only happens if you were satiated
+    if (player.uhs !== SATIATED) {
+        if (!food || food.otyp !== AMULET_OF_STRANGULATION) return;
+    } else if (player.roleIndex === PM_KNIGHT
+               && player.ualign && player.ualign.type === A_LAWFUL) {
+        // C: adjalign(-1) — gluttony is unchivalrous
+        if (player.ualign) player.ualign.record = (player.ualign.record || 0) - 1;
+        await You_feel("like a glutton!");
     }
-    else { await You("choke over it."); svk.killer.name = "quick snack"; }
-    await You("die...");
-    await done(CHOKING);
-  }
+    await exercise(A_CON, false);
+
+    // C: Breathless || Hunger || (!Strangled && !rn2(20))
+    // Breathless: M1_BREATHLESS from polymorph form; false for normal player
+    const breathless = false; // TODO: check polymorph form M1_BREATHLESS
+    const hunger = player.hasProp ? player.hasProp(HUNGER) : !!player.Hunger;
+    const strangled = player.hasProp ? player.hasProp(STRANGLED) : false;
+
+    if (breathless || hunger || (!strangled && !rn2(20))) {
+        if (food && food.otyp === AMULET_OF_STRANGULATION) {
+            await You("choke, but recover your composure.");
+            return;
+        }
+        await You("stuff yourself and then vomit voluminously.");
+        await morehungry(player, hunger ? (player.hunger - 60) : 1000);
+        await vomit(player);
+    } else {
+        // C: killer setup and death
+        setKillerFormat(KILLED_BY_AN);
+        if (food) {
+            await You("choke over your food.");
+            if (food.oclass === COIN_CLASS) {
+                setKillerName("very rich meal");
+            } else {
+                setKillerFormat(KILLED_BY);
+                setKillerName(food_xname(food, true));
+            }
+        } else {
+            await You("choke over it.");
+            setKillerName("quick snack");
+        }
+        await You("die...");
+        await done(CHOKING, game);
+    }
 }
 
 
@@ -923,9 +1017,12 @@ export async function eating_conducts(pd, player) {
 // cf. eat.c violated_vegetarian() — check vegetarian conduct violation
 // Autotranslated from eat.c:1375
 export async function violated_vegetarian(player) {
-  player.uconduct.unvegetarian++;
-  if (Role_if(PM_MONK)) { await You_feel("guilty."); adjalign(-1); }
-  return;
+  if (!player.uconduct) player.uconduct = {};
+  player.uconduct.unvegetarian = (player.uconduct.unvegetarian || 0) + 1;
+  if (player.roleIndex === PM_MONK) {
+      await You_feel("guilty.");
+      if (player.ualign) player.ualign.record = (player.ualign.record || 0) - 1;
+  }
 }
 
 
@@ -933,12 +1030,7 @@ export async function violated_vegetarian(player) {
 // 8. Rotten food / corpse eating
 // ============================================================
 
-// cf. eat.c Hear_again() — restore hearing after deafening food
-// Autotranslated from eat.c:1795
-export async function Hear_again(game) {
-  if (!rn2(2)) { await make_deaf(0, false); game.disp.botl = true; }
-  return 0;
-}
+// Hear_again() defined above (eat.c:1796-1804) — used by unfaint and rottenfood
 
 // cf. eat.c rottenfood() — effects of eating rotten food
 async function rottenfood(player, obj) {
@@ -1369,10 +1461,31 @@ function floorfood(player, map, verb) {
 // 14. Side effects
 // ============================================================
 
-// cf. eat.c vomit() — vomiting effects
-function vomit(player) {
-    // Simplified vomiting
-    // Would cure SICK_VOMITABLE, apply nomul(-2)
+// cf. eat.c:3731-3780 vomit() — vomiting effects
+async function vomit(player) {
+    const game = _gstate;
+    // C: cantvomit(youmonst.data) — vortex/elemental/etc can't vomit
+    // Simplified: assume player form can vomit (polymorphed checks omitted)
+    const canVomit = true;
+
+    if (!canVomit) {
+        await Your("jaw gapes convulsively.");
+    } else {
+        // C: cure SICK_VOMITABLE
+        // TODO: make_sick(0L, 0, TRUE, SICK_VOMITABLE) when sickness system ported
+        if (player.uhs >= FAINTING) {
+            // C: Your("%s heaves convulsively!", body_part(STOMACH))
+            await Your("stomach heaves convulsively!");
+        }
+        // else: spewed = true (handled by vomiting_dialog countdown)
+    }
+
+    // C: nomul(-2) if multi >= -2
+    if (game && (game.multi || 0) >= -2) {
+        nomul(-2, game);
+        game.multi_reason = "vomiting";
+        game.nomovemsg = "You can move again.";
+    }
 }
 
 // cf. eat.c eaten_stat() — calculate how much of food has been eaten
