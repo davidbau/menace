@@ -1217,6 +1217,9 @@ export class NetHackGame {
                 this.input = maybeRuntime;
             }
         }
+        if (this.input && typeof this.input.setDisplay === 'function') {
+            this.input.setDisplay(this.display);
+        }
 
         // Wire up nhwindow infrastructure
         init_nhwindows(this.display, nhgetch, () => this._rerenderGame());

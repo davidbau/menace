@@ -21,8 +21,11 @@ import { in_town } from './hack.js';
 export async function handleKick(player, map, display, game) {
     await display.putstr_message('In what direction? ');
     const dirCh = await nhgetch();
-    // Prompt should not concatenate with outcome message.
-    display.topMessage = null;
+    // C getdir() prompt is transient; clear it before reporting kick outcome.
+    if (display) {
+        display.topMessage = null;
+        display.messageNeedsMore = false;
+    }
     const c = String.fromCharCode(dirCh);
     let dir = DIRECTION_KEYS[c];
     // Match getdir-style tty behavior used by recorded sessions.

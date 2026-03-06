@@ -881,7 +881,8 @@ export async function breamu(mtmp, mattk, map, player, display, game) {
 
 // Check if a monster has any AT_WEAP attacks (can throw weapons).
 export function hasWeaponAttack(mon) {
-    const attacks = mon.attacks || (mon.type && mon.type.attacks) || [];
+    const mdat = mon?.data || mon?.type || (Number.isInteger(mon?.mndx) ? mons[mon.mndx] : null) || null;
+    const attacks = mon?.attacks || mdat?.attacks || [];
     return attacks.some(a => a && a.aatyp === AT_WEAP);
 }
 

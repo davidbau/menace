@@ -589,6 +589,23 @@ export class HeadlessDisplay {
             return;
         }
 
+        // C ref: pline.c puts each pline() behind flush_screen(1).  During
+        // blocking replay, when an unacknowledged topline already exists,
+        // pause with --More-- before showing the next message.
+        if (this._moreBlockingEnabled && this.topMessage && this.messageNeedsMore) {
+            this.renderMoreMarker();
+            if (this._nhgetch) {
+                await this._nhgetch();
+                this.clearRow(0);
+                this.messageNeedsMore = false;
+                this.topMessage = null;
+            } else {
+                this._pendingMore = true;
+                this._messageQueue.push(msg);
+                return;
+            }
+        }
+
         // C ref: win/tty/topl.c:264-267 — Concatenate messages if they fit.
         // C reserves space for " --More--" (9 chars) when checking if messages
         // can be concatenated.  When the combined message plus --More-- would

@@ -2642,3 +2642,30 @@ hard-won wisdom:
   - seed332 retains full RNG+event parity (`17821/17821`, `6595/6595`)
 - Maintainer rule: replay boundary detection should key off runtime waiting
   transitions, not message/topline side effects.
+
+### seed325 digging branch alignment push (2026-03-06)
+
+- Investigated seed325 first RNG divergence at step 218 in `dochug` vs C
+  `mdig_tunnel`, with mismatch `rn2(5)` (JS wall branch) vs `rn2(3)` (C door
+  draft branch).
+- C-faithful fix in `js/dig.js`:
+  - `mdig_tunnel()` now uses canonical `cvt_sdoor_to_door()` conversion instead
+    of preserving raw secret-door flags.
+  - `mdig_tunnel()` emits `You hear crashing rock.` on the `!rn2(5)` wall-sound
+    branch (and is async so the message is actually surfaced).
+- Call-site propagation in `js/monmove.js`:
+  - await `mdig_tunnel()` in both tunneling paths.
+  - `m_digweapon_check()` converted to async and now emits the wield message
+    (`Monnam(mon) wields ...`) when a visible monster switches to its dig tool.
+  - fixed runtime regression from this path (`x_monnam` reference in monmove).
+- Validation:
+  - `node scripts/test-unit-core.mjs` passes.
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed325_knight_wizard_gameplay.session.json`
+    now reaches first RNG divergence at step `224` (was `218` before this
+    digging fix cycle), with RNG prefix `10493/25281`.
+- Remaining first divergence after this cycle:
+  - RNG index `9215`, step `224`:
+    - JS: `rn2(20)=12 @ moveloop_core`
+    - C: `rn2(2)=0 @ morgue_mon_sound(sounds.c:96)`
+  - Nearby screen/map drift still appears around step `218` (`·` vs `─` tile),
+    and should be treated as likely upstream state cause of later event drift.

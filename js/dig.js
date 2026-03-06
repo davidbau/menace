@@ -72,6 +72,7 @@ import { add_damage, pay_for_damage } from './shk.js';
 import { t_at, conjoined_pits } from './trap.js';
 import { On_ladder, On_stairs } from './stairs.js';
 import { s_suffix } from './hacklib.js';
+import { cvt_sdoor_to_door } from './detect.js';
 
 // ============================================================================
 // Constants (cf. dig.c:19-27)
@@ -186,17 +187,14 @@ export function dig_typ(otmp, x, y, map) {
 // Monster digs a tunnel through terrain.
 // RNG: rnd(12) always consumed at entry.
 // Additional RNG: rn2(3) for draft, rn2(5) for wall sound.
-export function mdig_tunnel(mtmp, map, player) {
+export async function mdig_tunnel(mtmp, map, player) {
     const here = map.at(mtmp.mx, mtmp.my);
     if (!here) return false;
 
     const pile = rnd(12); // C: int pile = rnd(12);
 
-    // C: cvt_sdoor_to_door — convert secret door to door
-    if (here.typ === SDOOR) {
-        here.typ = DOOR;
-        // doormask is preserved (kept in here.flags)
-    }
+    // C: cvt_sdoor_to_door — normalize secret door flags before digging branch.
+    if (here.typ === SDOOR) cvt_sdoor_to_door(here, map);
 
     // Eats away door if present & closed or locked
     if (closed_door(mtmp.mx, mtmp.my, map)) {
