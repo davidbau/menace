@@ -868,6 +868,11 @@ async function apply_dochug_postmove(mon, map, player, display, fov, game, omx, 
 async function run_dochug_postmove_pipeline_current_js(
     mon, map, player, display, fov, game, omx, omy, { preTrapDig = false } = {}
 ) {
+    const baseStatus = await apply_dochug_postmove(mon, map, player, display, fov, game, omx, omy);
+    if (baseStatus === MMOVE_DIED || mon.dead) {
+        return MMOVE_DIED;
+    }
+
     if (preTrapDig) {
         const isRogueLevel = !!(map?.flags?.is_rogue || map?.flags?.roguelike || map?.flags?.is_rogue_lev);
         const can_tunnel = !isRogueLevel && tunnels(mon.data || mon.type || mons[mon.mndx] || {});
@@ -878,7 +883,7 @@ async function run_dochug_postmove_pipeline_current_js(
             }
         }
     }
-    return await apply_dochug_postmove(mon, map, player, display, fov, game, omx, omy);
+    return MMOVE_MOVED;
 }
 
 async function mind_blast(mon, map, player, display = null, fov = null) {

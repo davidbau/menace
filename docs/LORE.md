@@ -3087,3 +3087,14 @@ hard-won wisdom:
   - seed325 first RNG divergence remains step `238`
   - seed327 first RNG divergence remains step `390`
   - seed328 remains RNG/event full-match with first divergence in screen channel at step `231`
+
+## Lesson: C-faithful postmov trap-before-dig can land as a neutral semantic slice
+
+- In C `postmov()`, trap resolution (`mintrap`) runs before tunneling (`mdig_tunnel`).
+- JS pet path previously did `mdig_tunnel` before `mintrap` in `dochug`.
+- For issue #260 Gate 3, we moved pet digging to run after shared trap handling in
+  `run_dochug_postmove_pipeline_current_js(...)`.
+- Validation after the change:
+  - target seeds `325`, `327`, `328`: unchanged first-divergence signatures
+  - `./scripts/run-and-report.sh --failures`: remained at `7` failing gameplay sessions
+- This is useful as a safe C-ordering correction even without immediate frontier gain.
