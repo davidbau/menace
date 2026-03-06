@@ -335,6 +335,30 @@ export const DISP_END = -7;
 export const DISP_FREEMEM = -8;
 export const BACKTRACK = -1;
 
+// Body-part selector enum (include/hack.h enum bodypart_types; src/polyself.c)
+// Runtime fields:
+// - body_part(partId) and mbodypart(mon, partId) selector args
+// - message formatting for anatomy-dependent text
+export const ARM = 0;
+export const EYE = 1;
+export const FACE = 2;
+export const FINGER = 3;
+export const FINGERTIP = 4;
+export const FOOT = 5;
+export const HAND = 6;
+export const HANDED = 7;
+export const HEAD = 8;
+export const LEG = 9;
+export const LIGHT_HEADED = 10;
+export const NECK = 11;
+export const SPINE = 12;
+export const TOE = 13;
+export const HAIR = 14;
+export const BLOOD = 15;
+export const LUNG = 16;
+export const NOSE = 17;
+export const STOMACH = 18;
+
 // Maximum values
 export const MAXNROFROOMS = 40;
 export const MAXDUNGEON = 16;

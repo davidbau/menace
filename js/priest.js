@@ -25,11 +25,11 @@ import { makemon } from './makemon.js';
 import { wakeup, setmangry, mongone } from './mon.js';
 import { exercise } from './attrib_exercise.js';
 import { s_suffix, sgn } from './hacklib.js';
-import { body_part, SPINE } from './polyself.js';
+import { body_part } from './polyself.js';
 import { a_gname_at, halu_gname } from './pray.js';
 import { adjalign } from './attrib.js';
 import { rloc } from './teleport.js';
-import { RLOC_NOMSG } from './const.js';
+import { RLOC_NOMSG, SPINE } from './const.js';
 import { buzz } from './zap.js';
 
 // cf. priest.c:9-10 — alignment thresholds

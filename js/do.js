@@ -36,7 +36,8 @@ import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenu
 import { pline, pline_The, You, Your, You_hear, You_see, You_feel, There, Norep } from './pline.js';
 import { hcolor, hliquid, rndmonnam, Monnam } from './do_name.js';
 import { an } from './objnam.js';
-import { body_part, FACE, HAND, LEG, STOMACH } from './polyself.js';
+import { body_part } from './polyself.js';
+import { FACE, HAND, LEG, STOMACH } from './const.js';
 import { IS_SINK, IS_ALTAR } from './const.js';
 import { newsym, mark_vision_dirty, vision_recalc, setDisplayContext } from './monutil.js';
 import { digests, touch_petrifies, is_rider, is_reviver, throws_rocks, passes_walls, is_whirly } from './mondata.js';

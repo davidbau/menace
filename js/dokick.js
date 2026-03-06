@@ -76,7 +76,8 @@ import { near_capacity, inv_weight, weight_cap, overexertion, feel_location, fee
 import { in_rooms } from './hack.js';
 import { is_pool, is_ice, is_drawbridge_wall, find_drawbridge } from './dbridge.js';
 import { noteleport_level, goodpos, rloco } from './teleport.js';
-import { body_part, LEG, FOOT, poly_gender } from './polyself.js';
+import { body_part, poly_gender } from './polyself.js';
+import { LEG, FOOT } from './const.js';
 import { set_wounded_legs } from './do.js';
 import { flooreffects } from './do.js';
 import { hurtle } from './dothrow.js';

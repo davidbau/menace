@@ -29,7 +29,7 @@ import { newsym } from './monutil.js';
 import { cansee, block_point, unblock_point, mark_vision_dirty } from './vision.js';
 import { nonliving, haseyes, is_silent, resists_poison, canseemon } from './mondata.js';
 import { Monnam } from './do_name.js';
-import { body_part, EYE, LUNG } from './polyself.js';
+import { body_part } from './polyself.js';
 import { makeplural } from './objnam.js';
 import { m_poisongas_ok, wake_nearto, killed, monkilled, setmangry } from './mon.js';
 import { find_mid } from './light.js';
@@ -41,6 +41,7 @@ import { S_poisoncloud, S_cloud } from './const.js';
 import { AD_DRST } from './monsters.js';
 import { PM_FOG_CLOUD } from './monsters.js';
 import { PM_LONG_WORM } from './monsters.js';
+import { EYE, LUNG } from './const.js';
 
 const NO_CALLBACK = -1;
 

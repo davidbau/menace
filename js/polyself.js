@@ -136,6 +136,8 @@ import {
     PASSES_WALLS, REGENERATION, REFLECTING,
     FROM_FORM, FROM_RACE, FROMOUTSIDE, I_SPECIAL,
     TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, TT_BEARTRAP,
+    ARM, EYE, FACE, FINGER, FINGERTIP, FOOT, HAND, HANDED, HEAD, LEG,
+    LIGHT_HEADED, NECK, SPINE, TOE, HAIR, BLOOD, LUNG, NOSE, STOMACH,
 } from './const.js';
 
 // Local helper: cf. C attacktype_fordmg() — find attack with given type and damage type
@@ -152,29 +154,6 @@ function attacktype_fordmg(ptr, atyp, adtyp) {
 // C's humanoid() macro is M1_HUMANOID check, same as JS's is_humanoid()
 const humanoid = is_humanoid;
 
-// ============================================================================
-// Body part constants (cf. hack.h:129 enum bodypart_types)
-// ============================================================================
-
-export const ARM = 0;
-export const EYE = 1;
-export const FACE = 2;
-export const FINGER = 3;
-export const FINGERTIP = 4;
-export const FOOT = 5;
-export const HAND = 6;
-export const HANDED = 7;
-export const HEAD = 8;
-export const LEG = 9;
-export const LIGHT_HEADED = 10;
-export const NECK = 11;
-export const SPINE = 12;
-export const TOE = 13;
-export const HAIR = 14;
-export const BLOOD = 15;
-export const LUNG = 16;
-export const NOSE = 17;
-export const STOMACH = 18;
 const NO_PART = -1;
 
 // ============================================================================

@@ -19,7 +19,8 @@ import { W_ARMOR, W_ACCESSORY, W_WEAPONS, W_SADDLE } from './const.js';
 import { rn2, rnd, d } from './rng.js';
 import { pline, You, Your, You_cant, pline_The, There, Norep,
          impossible } from './pline.js';
-import { body_part, HAND, FOOT } from './polyself.js';
+import { body_part } from './polyself.js';
+import { HAND, FOOT } from './const.js';
 import { instapetrify } from './trap.js';
 import { exercise } from './attrib_exercise.js';
 import { newsym } from './monutil.js';
