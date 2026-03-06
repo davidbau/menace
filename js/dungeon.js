@@ -79,6 +79,7 @@ import {
     findSpecialLevelByProto,
     initQuestLevels,
 } from './special_levels.js';
+import { envFlag, hasEnv } from './runtime_env.js';
 import { litstate_rnd } from './mkmap.js';
 import { withLevelContext, withFinalizeContext, withSpecialLevelDepth, initLuaMT, resetLevelState } from './sp_lev.js';
 import {
@@ -161,7 +162,7 @@ import { makeroguerooms } from './extralev.js';
  * work with procedural dungeon generation.
  */
 async function themerooms_generate(map, depth) {
-    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_THEMEROOMS === '1';
+    const DEBUG = envFlag('DEBUG_THEMEROOMS');
 
     // NOTE: MT initialization happens LAZILY during themed room generation,
     // NOT here. In C, MT init is triggered by the first nhl_rn2 call during
@@ -905,7 +906,7 @@ export function check_room(map, lowx, ddx, lowy, ddy, vault, inThemerooms) {
             if (ymax >= ROWNO) ymax = ROWNO - 1;
             for (; y <= ymax; y++) {
                 const loc = map.at(x, y);
-                if (loc && loc.typ !== STONE) { if (typeof process !== "undefined" && process.env.DEBUG_CHECK_ROOM === "1") console.log(`  check_room CONFLICT at (${x},${y}) typ=${loc.typ} in room check (${lowx},${lowy})-(${hix},${hiy}), nroom=${map.nroom}`);
+                if (loc && loc.typ !== STONE) { if (envFlag('DEBUG_CHECK_ROOM')) console.log(`  check_room CONFLICT at (${x},${y}) typ=${loc.typ} in room check (${lowx},${lowy})-(${hix},${hiy}), nroom=${map.nroom}`);
                     if (!rn2(3)) return null;
                     // C ref: sp_lev.c:1457-1458 — in themerooms mode,
                     // any overlap causes immediate failure (no shrinking)
@@ -942,7 +943,7 @@ export function check_room(map, lowx, ddx, lowy, ddy, vault, inThemerooms) {
 // C ref: sp_lev.c create_room() -- create a random room using rect BSP
 // Returns true if room was created, false if failed.
 export function create_room(map, x, y, w, h, xal, yal, rtype, rlit, depth, inThemerooms) {
-    const DEBUG_THEME = typeof process !== 'undefined' && process.env.DEBUG_THEMEROOMS === '1';
+    const DEBUG_THEME = envFlag('DEBUG_THEMEROOMS');
     const nroom_before = map.nroom;
     let xabs = 0, yabs = 0;
     let wtmp, htmp, xtmp, ytmp;
@@ -1254,7 +1255,7 @@ function bsdQsort(arr, cmpFn) {
 // data has explicit wall tiles. This affects finddpos()/dig_corridor routing.
 export function repair_irregular_room_boundaries(map) {
     if (!map || !Array.isArray(map.rooms)) return;
-    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_IRREG_REPAIR === '1';
+    const DEBUG = envFlag('DEBUG_IRREG_REPAIR');
     const roomByNo = new Map();
     for (let i = 0; i < (map.nroom || 0); i++) {
         const r = map.rooms[i];
@@ -1549,8 +1550,8 @@ export async function makerooms(map, depth) {
 
     // Make rooms until satisfied (no more rects available)
     // C ref: mklev.c:393-417
-    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_THEMEROOMS === '1';
-    const DEBUG_POOL = typeof process !== 'undefined' && process.env.DEBUG_POOL === '1';
+    const DEBUG = envFlag('DEBUG_THEMEROOMS');
+    const DEBUG_POOL = envFlag('DEBUG_POOL');
 
     let loop_count = 0;
     while (map.nroom < (MAXNROFROOMS - 1) && rnd_rect()) {
@@ -1725,8 +1726,8 @@ export function dig_corridor(map, org, dest, nxcor, depth) {
     const ftyp = map.flags.arboreal ? ROOM : CORR;
     const btyp = STONE;
 
-    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_CORRIDORS === '1';
-    const TRACE_STEPS = typeof process !== 'undefined' && process.env.DEBUG_CORRIDOR_STEPS === '1';
+    const DEBUG = envFlag('DEBUG_CORRIDORS');
+    const TRACE_STEPS = envFlag('DEBUG_CORRIDOR_STEPS');
     if (DEBUG) {
         console.log(`dig_corridor: (${org.x},${org.y}) -> (${dest.x},${dest.y}) nxcor=${nxcor}`);
     }
@@ -1903,7 +1904,7 @@ export function join(map, a, b, nxcor, depth) {
 
     if (!cc || !tt) return;
 
-    if (typeof process !== 'undefined' && process.env.DEBUG_FINDDPOS === '1') {
+    if (envFlag('DEBUG_FINDDPOS')) {
         console.log(`[JOIN] call=${getRngCallCount()} a=${a} b=${b} nxcor=${nxcor ? 1 : 0} cc=(${cc.x},${cc.y}) tt=(${tt.x},${tt.y}) croom=(${croom.lx},${croom.ly})-(${croom.hx},${croom.hy}) ir=${croom.irregular ? 1 : 0} troom=(${troom.lx},${troom.ly})-(${troom.hx},${troom.hy}) ir=${troom.irregular ? 1 : 0}`);
     }
 
@@ -4302,7 +4303,7 @@ export function bound_digging(map) {
     // C ref: mkmaze.c:1439-1455
     // Mark boundary stone/wall cells as non-diggable so mineralize skips them.
     const { xmin, xmax, ymin, ymax } = get_level_extends(map);
-    if (typeof process !== 'undefined' && process.env.DEBUG_MINERALIZE === '1') {
+    if (envFlag('DEBUG_MINERALIZE')) {
         console.log(`bound_digging: xmin=${xmin} xmax=${xmax} ymin=${ymin} ymax=${ymax}`);
     }
 
@@ -4348,7 +4349,7 @@ export function mineralize(map, depth, opts = null) {
     const kelp_moat = (opts && Number.isFinite(opts.kelp_moat) && opts.kelp_moat >= 0)
         ? Math.trunc(opts.kelp_moat) : 30; // C default when kelp_moat < 0
 
-    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_MINERALIZE === '1';
+    const DEBUG = envFlag('DEBUG_MINERALIZE');
     if (DEBUG) console.log(`  mineralize depth=${depth}`);
     let eligible_count = 0;
     let rng_calls = 0;
@@ -4418,7 +4419,7 @@ export function mineralize(map, depth, opts = null) {
                 continue;
             }
             // C ref: mklev.c:1496-1503 — check W_NONDIGGABLE and all 8 neighbors
-            const skipNondigDebug = (typeof process !== 'undefined' && process?.env?.DEBUG_SKIP_NONDIG);
+            const skipNondigDebug = hasEnv('DEBUG_SKIP_NONDIG');
             if (!skipNondigDebug && loc.nondiggable) { if (DEBUG) { debug_nondig++; } continue; }
             if (map.at(x, y - 1)?.typ !== STONE
                 || map.at(x + 1, y - 1)?.typ !== STONE
@@ -4563,7 +4564,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
     // Normal path uses explicit branch coordinates.
     // Fallback path (depth-only callers) supports dynamic Oracle depth parity
     // based on simulated init_dungeons placement.
-    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_MAKELEVEL === '1';
+    const DEBUG = envFlag('DEBUG_MAKELEVEL');
     let special = null;
     let specialDnum = dnum;
     let specialDlevel = dlevel;

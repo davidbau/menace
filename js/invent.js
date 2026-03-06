@@ -29,6 +29,7 @@ import { promptDirectionAndThrowItem, ammoAndLauncher } from './dothrow.js';
 import { pline, You, Your } from './pline.js';
 import { rn2, pushRngLogEntry } from './rng.js';
 import { touch_petrifies } from './mondata.js';
+import { mons } from './monsters.js';
 import { newsym } from './display.js';
 import { observeObject, discoverObject, isObjectNameKnown } from './o_init.js';
 import { exercise } from './attrib_exercise.js';
@@ -1317,13 +1318,9 @@ export function carrying_stoning_corpse(player) {
 
 // Helper: check if monster type causes petrification on touch
 function touch_petrifies_corpsenm(corpsenm) {
-    // Requires mons data; simplified stub — checks for cockatrice-like
-    try {
-        const { mons } = require('./monsters.js');
-        if (corpsenm >= 0 && corpsenm < mons.length) {
-            return touch_petrifies(mons[corpsenm]);
-        }
-    } catch (e) { /* mons not available */ }
+    if (corpsenm >= 0 && corpsenm < mons.length) {
+        return touch_petrifies(mons[corpsenm]);
+    }
     return false;
 }
 
