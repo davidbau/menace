@@ -10,6 +10,7 @@ import { COLNO, ROWNO, IS_ROOM, IS_DOOR, IS_POOL, IS_LAVA,
          M_AP_FURNITURE, M_AP_OBJECT, M_AP_MONSTER,
          S_sink } from './const.js';
 import { rn2, rnd, pushRngLogEntry } from './rng.js';
+import { getEnv } from './runtime_env.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED } from './const.js';
 import { mattacku } from './mhitu.js';
 import { CORPSE, BALL_CLASS, CHAIN_CLASS, ROCK_CLASS, FOOD_CLASS,
@@ -979,8 +980,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
     // so during movemon() svm.moves = (completed turns + 1).
     // JS player.turns is incremented after movemon(), so add 1 to match C.
     const turnCount = (player.turns || 0) + 1;
-    const env = (typeof process !== 'undefined' && process.env) ? process.env : null;
-    const dogGoalTraceStep = env?.WEBHACK_DOGGOAL_TRACE_STEP;
+    const dogGoalTraceStep = getEnv('WEBHACK_DOGGOAL_TRACE_STEP');
     const dogGoalTraceEnabled = !!dogGoalTraceStep;
     const dogGoalStepLabel = monmoveStepLabel(map);
     const traceDogGoal = dogGoalTraceEnabled

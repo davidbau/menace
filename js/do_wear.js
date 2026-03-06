@@ -67,6 +67,7 @@ import { float_vs_flight } from './polyself.js';
 import { mark_vision_dirty } from './vision.js';
 import { nohands, nolimbs, cantweararm, slithy, has_horns, has_head, is_humanoid } from './mondata.js';
 import { MZ_SMALL, S_CENTAUR } from './monsters.js';
+import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
 
 // Worn-mask bits (cf. worn.js / prop.h)
 const W_ARM = 0x00000001;
@@ -167,11 +168,10 @@ function toggle_displacement(player, on) {
 // Helper: adjust a single extrinsic flag by +1 or -1
 function toggle_extrinsic(player, prop, on) {
     const entry = player.ensureUProp(prop);
-    if (prop === 28 && typeof process !== 'undefined'
-        && process?.env?.WEBHACK_RUN_DEBUG
-        && process.env.WEBHACK_RUN_DEBUG !== '0') {
+    if (prop === 28 && hasEnv('WEBHACK_RUN_DEBUG')
+        && getEnv('WEBHACK_RUN_DEBUG') !== '0') {
         const e = new Error();
-        process.stderr.write(`DBG toggle_extrinsic FAST on=${on} turns=${player?.turns} stack=${e.stack.split('\n').slice(1,8).join('|')}\n`);
+        writeStderr(`DBG toggle_extrinsic FAST on=${on} turns=${player?.turns} stack=${e.stack.split('\n').slice(1,8).join('|')}\n`);
     }
     if (on) {
         entry.extrinsic = (entry.extrinsic || 0) + 1;

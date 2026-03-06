@@ -36,10 +36,10 @@ import { exercise } from './attrib_exercise.js';
 import { t_at } from './trap.js';
 import { attacktype, ceiling_hider, sticks } from './mondata.js';
 import { AT_HUGS, MZ_HUGE } from './monsters.js';
+import { envFlag } from './runtime_env.js';
 
 function engrTraceEnabled() {
-    const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
-    return env.WEBHACK_ENGR_TRACE === '1';
+    return envFlag('WEBHACK_ENGR_TRACE');
 }
 
 function engrTrace(...args) {

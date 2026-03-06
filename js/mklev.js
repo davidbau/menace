@@ -36,6 +36,7 @@ import {
 } from './dungeon.js';
 import { mazexy } from './mkmaze.js';
 import { somex, somey, somexy, somexyspace, inside_room } from './mkroom.js';
+import { envFlag } from './runtime_env.js';
 
 const DOORINC = 20;
 const DUNGEONS_OF_DOOM = 0;
@@ -338,7 +339,7 @@ export function finddpos(map, dir, aroom) {
         return null;
     }
 
-    if (typeof process !== 'undefined' && process.env.DEBUG_FINDDPOS === '1') {
+    if (envFlag('DEBUG_FINDDPOS')) {
         console.log(`[FDP] call=${getRngCallCount()} dir=${dir} room=(${aroom.lx},${aroom.ly})-(${aroom.hx},${aroom.hy}) rangeX=${x2 - x1 + 1} rangeY=${y2 - y1 + 1}`);
     }
     let tryct = 0;

@@ -90,6 +90,7 @@ import {
     finish_map,
     litstate_rnd,
 } from './mkmap.js';
+import { getEnv, getEnvObject, envFlag } from './runtime_env.js';
 
 const ROOM_TYPE_MAP = {
     'ordinary': 0,
@@ -201,7 +202,7 @@ function setLevlTypAt(map, x, y, newTyp) {
 }
 
 function getProcessEnv(name) {
-    return (typeof process !== 'undefined' && process.env) ? process.env[name] : undefined;
+    return getEnv(name);
 }
 
 let spObjTraceEvent = 0;
@@ -529,7 +530,7 @@ function captureCheckpoint(phase) {
  * @param {number} depth - Current dungeon depth (for level_difficulty)
  */
 function applyLevelContext(map, depth) {
-    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_LUA_RNG === '1';
+    const DEBUG = envFlag('DEBUG_LUA_RNG');
 
     levelState.map = map;
     levelState.depth = depth || 1;
@@ -619,7 +620,7 @@ export function resetMtInitFlag() {
 
 export function initLuaMT() {
     _mtCallCount++;
-    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_LUA_RNG === '1';
+    const DEBUG = envFlag('DEBUG_LUA_RNG');
 
     if (DEBUG) {
         const rngCount = typeof getRngCallCount === 'function' ? getRngCallCount() : '?';
@@ -690,8 +691,8 @@ export function initLuaMT() {
  * @returns {Object|null} Room object {lx, ly, hx, hy, rtype, rlit} or null on failure
  */
 function create_room_splev(x, y, w, h, xalign, yalign, rtype, rlit, depth, skipLitstate = false, forceRandomize = false, deferCreateRoom = false) {
-    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_ROOMS === '1';
-    const DEBUG_BUILD = typeof process !== 'undefined' && process.env.DEBUG_BUILD_ROOM === '1';
+    const DEBUG = envFlag('DEBUG_ROOMS');
+    const DEBUG_BUILD = envFlag('DEBUG_BUILD_ROOM');
     if (DEBUG || DEBUG_BUILD) {
         const rngBefore = typeof getRngCallCount === 'function' ? getRngCallCount() : '?';
         console.log(`[RNG ${rngBefore}] create_room_splev: x=${x}, y=${y}, w=${w}, h=${h}, xalign=${xalign}, yalign=${yalign}, skipLitstate=${skipLitstate}, deferCreateRoom=${deferCreateRoom}`);
@@ -1728,7 +1729,7 @@ export function level_flags(...flags) {
  */
 function flipLevelRandom(extras = false) {
     const allowFlips = levelState.coder.allow_flips;
-    const DEBUG_FLIP = typeof process !== 'undefined' && process.env.DEBUG_FLIP === '1';
+    const DEBUG_FLIP = envFlag('DEBUG_FLIP');
     const rngBefore = DEBUG_FLIP && typeof getRngCallCount === 'function' ? getRngCallCount() : null;
     let flipBits = 0;
     let flipYRoll = null;
@@ -3065,7 +3066,7 @@ export async function build_room(opts = {}) {
     // C ref: Both themed and ordinary rooms default to random lighting (-1)
     // C trace evidence (seed 42): themed rooms call litstate_rnd with rlit=-1
     let lit = opts.lit ?? -1;  // let: modified by litstate_rnd()
-    const DEBUG_LIT = typeof process !== 'undefined' && process.env.DEBUG_BUILD_ROOM === '1';
+    const DEBUG_LIT = envFlag('DEBUG_BUILD_ROOM');
     if (DEBUG_LIT && type === 'themed') {
         console.log(`  des.room(): type="${type}", opts.lit=${opts.lit}, computed lit=${lit}`);
     }
@@ -3100,8 +3101,8 @@ export async function build_room(opts = {}) {
 
     // For special levels, we create rooms differently than procedural dungeons
     // Special levels use fixed coordinates, not BSP rectangle selection
-    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_ROOMS === '1';
-    const DEBUG_BUILD = typeof process !== 'undefined' && process.env.DEBUG_BUILD_ROOM === '1';
+    const DEBUG = envFlag('DEBUG_ROOMS');
+    const DEBUG_BUILD = envFlag('DEBUG_BUILD_ROOM');
     const inThemerooms = !!levelState.inThemerooms;
     const roomGenDepth = (levelState.finalizeContext && Number.isFinite(levelState.finalizeContext.dunlev))
         ? levelState.finalizeContext.dunlev
@@ -3572,7 +3573,7 @@ export async function build_room(opts = {}) {
     };
 
     // Mark floor tiles for the room
-    if (DEBUG || typeof process !== 'undefined' && process.env.DEBUG_ROOM_TILES === '1') {
+    if (DEBUG || envFlag('DEBUG_ROOM_TILES')) {
         console.log(`Marking room tiles: (${roomX},${roomY})-(${roomX+roomW-1},${roomY+roomH-1})`);
     }
     const roomno = roomIdx + ROOMOFFSET;
@@ -6140,7 +6141,7 @@ export function sp_amask_to_amask(amask = 'random') {
 async function createScriptMonster(deferred) {
     const { opts_or_class, x, y } = deferred;
     const immediateParity = !!levelState.finalizeContext || !!deferred.parityImmediate;
-    const traceMon = (typeof process !== 'undefined' && process.env.WEBHACK_MON_TRACE === '1');
+    const traceMon = envFlag('WEBHACK_MON_TRACE');
     const traceStart = traceMon ? getRngCallCount() : 0;
     const traceSeq = ++monsterExecSeq;
     const MM_NOTAIL = 0x00004000;
@@ -6560,7 +6561,7 @@ async function createScriptTrap(deferred) {
         pushRngLogEntry(`<mktrap #${start + 1}-${end} @ create_trap(sp_lev.js)`);
     };
     const maybeTrapContextLog = (ttyp, flags, x, y, depth) => {
-        const trapContextEnv = (typeof process !== 'undefined' && process.env) ? process.env : null;
+        const trapContextEnv = getEnvObject();
         if (trapContextEnv?.WEBHACK_LOG_TRAP_CONTEXT !== '1') return;
         pushRngLogEntry(`~create_trap type=${ttyp} flags=${flags} at=${x},${y} depth=${depth}`);
     };
@@ -7066,7 +7067,7 @@ export function percent(n) {
  * @param {Array} arr - Array to shuffle
  */
 export function shuffle(arr) {
-    const trace = (typeof process !== 'undefined' && process.env.WEBHACK_SHUFFLE_TRACE === '1');
+    const trace = envFlag('WEBHACK_SHUFFLE_TRACE');
     let before = null;
     if (trace) {
         before = Array.isArray(arr) ? [...arr] : arr;
@@ -7128,12 +7129,13 @@ export const nh = {
      */
     debug_themerm: (is_fill) => {
         // Check if we're running in Node.js environment
-        if (typeof process === 'undefined' || !process.env) {
+        const env = getEnvObject();
+        if (!env) {
             return null;
         }
 
         const varName = is_fill ? 'THEMERMFILL' : 'THEMERM';
-        const value = typeof process !== 'undefined' ? process.env[varName] : undefined;
+        const value = env[varName];
 
         // Return null if not set or empty (matching C behavior)
         if (!value || value === '') {
@@ -8454,7 +8456,7 @@ export function maze1xy(humidity) {
     let x = 3;
     let y = 3;
     let tryct = 2000;
-    const ignoreTouched = (typeof process !== 'undefined' && process.env.WEBHACK_MAZEWALK_IGNORE_TOUCHED === '1');
+    const ignoreTouched = envFlag('WEBHACK_MAZEWALK_IGNORE_TOUCHED');
     const spLevMap = levelState.spLevMap || levelState.spLevTouched;
     do {
         x = rn1(maxX - 3, 3);
@@ -8577,7 +8579,7 @@ export function fill_empty_maze() {
         mktrap(levelState.map, trytrap, MKTRAP_MAZEFLAG | MKTRAP_NOVICTIM, null, pos, depth);
     }
 
-    if (typeof process !== 'undefined' && process.env.WEBHACK_MAZEWALK_TRACE === '1') {
+    if (envFlag('WEBHACK_MAZEWALK_TRACE')) {
         console.log(`[MAZEFILL] mapcount=${stats.mapcount}/${stats.mapcountmax} mapfact=${stats.mapfact} counts={obj:${stats.objCount},boulder:${stats.boulderCount},minotaur:${stats.minotaurCount},mon:${stats.monCount},gold:${stats.goldCount},trap:${stats.trapCount}}`);
     }
 }
@@ -8627,7 +8629,7 @@ export function mazewalk(xOrOpts, y, direction) {
     if (sx < 0 || sx >= COLNO || sy < 0 || sy >= ROWNO) return;
 
     const dirName = direction || 'random';
-    const trace = (typeof process !== 'undefined' && process.env.WEBHACK_MAZEWALK_TRACE === '1');
+    const trace = envFlag('WEBHACK_MAZEWALK_TRACE');
     const traceStartRng = trace ? getRngCallCount() : 0;
     const dirs = [
         { name: 'north', dx: 0, dy: -1 },

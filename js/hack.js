@@ -66,10 +66,10 @@ import { poisoned, acurr, acurrstr } from './attrib.js';
 import { intemple } from './priest.js';
 import { t_missile, seetrap, conjoined_pits, adj_nonconjoined_pit, into_vs_onto,
        } from './trap.js';
+import { envFlag } from './runtime_env.js';
 
 function runTraceEnabled() {
-    const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
-    return env.WEBHACK_RUN_TRACE === '1';
+    return envFlag('WEBHACK_RUN_TRACE');
 }
 
 function runTrace(...args) {
@@ -78,8 +78,7 @@ function runTrace(...args) {
 }
 
 function engrTraceEnabled() {
-    const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
-    return env.WEBHACK_ENGR_TRACE === '1';
+    return envFlag('WEBHACK_ENGR_TRACE');
 }
 
 function engrTrace(...args) {
@@ -93,8 +92,7 @@ function replayStepLabel(map) {
 }
 
 function travelTmpAtDebugEnabled() {
-    const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
-    return env.WEBHACK_TRAVEL_TMP_AT_DEBUG === '1';
+    return envFlag('WEBHACK_TRAVEL_TMP_AT_DEBUG');
 }
 
 function debug_travel_tmp_at(path, startX, startY) {

@@ -135,6 +135,7 @@ export function mergable(otmp, obj) {
 }
 
 import { game as _gstate } from './gstate.js';
+import { envFlag } from './runtime_env.js';
 
 // Accessors for game state previously passed through set*Context() wiring hacks.
 // Now read from the game singleton (gstate.js), mirroring C's global variables.
@@ -148,7 +149,7 @@ export function setStartupInventoryMode(enabled) {
 }
 
 function mkobjTrace(msg) {
-    if (typeof process !== 'undefined' && process.env.WEBHACK_MKOBJ_TRACE === '1') {
+    if (envFlag('WEBHACK_MKOBJ_TRACE')) {
         const stack = new Error().stack || '';
         const lines = stack.split('\n');
         const toTag = (line) => {

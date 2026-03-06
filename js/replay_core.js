@@ -13,6 +13,7 @@ import { consumeHarnessMapdumpPayloads } from './dungeon.js';
 import { hasActiveTextPopupWindow, redrawActiveTextPopupWindows } from './windows.js';
 import { resetPlineState } from './pline.js';
 import { resetNoisesState } from './mhitm.js';
+import { envFlag } from './runtime_env.js';
 
 export { HeadlessDisplay };
 
@@ -66,8 +67,7 @@ function rerenderLikeMainLoop(game) {
 }
 
 function replayPendingTraceEnabled() {
-    const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
-    return env.WEBHACK_REPLAY_PENDING_TRACE === '1';
+    return envFlag('WEBHACK_REPLAY_PENDING_TRACE');
 }
 
 function replayPendingTrace(...args) {

@@ -4,6 +4,7 @@
 // C ref: rnd.c, isaac64.c
 
 import { isaac64_init, isaac64_next_uint64 } from './isaac64.js';
+import { getEnv, getEnvObject, envFlag } from './runtime_env.js';
 
 let coreCtx = null; // CORE ISAAC64 context (C rn2)
 let dispCtx = null; // DISP ISAAC64 context (C rn2_on_display_rng)
@@ -30,16 +31,11 @@ const rngTagCache = new Map();
 const rngEventTagCache = new Map();
 
 export function enableRngLog(withTags = true) {
-    if (typeof process !== 'undefined' && process?.env) {
-        if (process.env.RNG_LOG_TAGS === '0') withTags = false;
-        else if (process.env.RNG_LOG_TAGS === '1') withTags = true;
-    }
-    const parentPref = (typeof process !== 'undefined' && process?.env)
-        ? process.env.RNG_LOG_PARENT
-        : undefined;
-    const eventTagPref = (typeof process !== 'undefined' && process?.env)
-        ? process.env.RNG_LOG_EVENT_TAGS
-        : undefined;
+    const tagsPref = getEnv('RNG_LOG_TAGS');
+    if (tagsPref === '0') withTags = false;
+    else if (tagsPref === '1') withTags = true;
+    const parentPref = getEnv('RNG_LOG_PARENT');
+    const eventTagPref = getEnv('RNG_LOG_EVENT_TAGS');
     rngLog = [];
     rngCallCount = 0;
     rngLogWithTags = withTags;
@@ -271,7 +267,7 @@ export function rn2(x) {
     if (x <= 0) { exitRng(); return 0; }
 
     // Debug Lua RNG calls
-    if (typeof process !== 'undefined' && process.env.DEBUG_LUA_RNG === '1' && x >= 1000 && x <= 1040) {
+    if (envFlag('DEBUG_LUA_RNG') && x >= 1000 && x <= 1040) {
         const stack = new Error().stack;
         console.log(`\n=== rn2(${x}) called (Lua RNG) ===`);
         console.log(`Stack:\n${stack}`);
@@ -288,7 +284,7 @@ export function rn2(x) {
 export function rn2_on_display_rng(x) {
     if (x <= 0) return 0;
     const result = DRND(x);
-    const processEnv = (typeof process !== 'undefined' && process?.env) ? process.env : null;
+    const processEnv = getEnvObject();
     const dispLogEnabled = processEnv?.RNG_LOG_DISP === '1';
     if (rngLog && dispLogEnabled) {
         const tag = rngCallerTag ? ` @ ${rngCallerTag}` : '';
@@ -383,7 +379,7 @@ export function c_d(n, x) {
 export function advanceRngRaw(count = 1) {
     if (!coreCtx) return;
     const n = Math.max(0, Number.isInteger(count) ? count : 0);
-    const processEnv = (typeof process !== 'undefined' && process?.env) ? process.env : null;
+    const processEnv = getEnvObject();
     const rawAdvanceLogEnabled = processEnv?.WEBHACK_LOG_RAW_ADVANCES === '1';
     if (rngLog && rawAdvanceLogEnabled) {
         let tag = '';

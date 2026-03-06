@@ -3,6 +3,7 @@
 // C ref: makemon.c — monster creation, selection, weapon/inventory assignment
 
 import { game as _gstate } from './gstate.js';
+import { envFlag, getEnv } from './runtime_env.js';
 import { rn2, rnd, rn1, d, c_d, getRngLog, getRngCallCount, pushRngLogEntry } from './rng.js';
 import { mksobj, mkobj, next_ident, weight, place_object, set_corpsenm } from './mkobj.js';
 import { def_monsyms } from './const.js';
@@ -275,10 +276,9 @@ function _getInMklev() { return !!_gstate?._inMklev; }
 let _rndmonTraceInvocation = 0;
 
 function shouldTraceRndmon() {
-    const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
-    if (env.WEBHACK_RNDMON_TRACE !== '1') return false;
-    const start = Number.parseInt(env.WEBHACK_RNDMON_TRACE_START || '0', 10);
-    const count = Number.parseInt(env.WEBHACK_RNDMON_TRACE_COUNT || '20', 10);
+    if (!envFlag('WEBHACK_RNDMON_TRACE')) return false;
+    const start = Number.parseInt(getEnv('WEBHACK_RNDMON_TRACE_START', '0'), 10);
+    const count = Number.parseInt(getEnv('WEBHACK_RNDMON_TRACE_COUNT', '20'), 10);
     return _rndmonTraceInvocation >= start && _rndmonTraceInvocation < (start + count);
 }
 
@@ -2205,7 +2205,7 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     let mndx;
     let anymon = false;
 
-    const DEBUG_MAKEMON = (typeof process !== 'undefined' && process.env.WEBHACK_MAKEMON_TRACE === '1');
+    const DEBUG_MAKEMON = envFlag('WEBHACK_MAKEMON_TRACE');
     if (DEBUG_MAKEMON && depth >= 2) {
         console.log(`\nmakemon(${ptr_or_null === null ? 'null' : ptr_or_null}, ${x}, ${y}, ${mmflags}, depth=${depth})`);
     }

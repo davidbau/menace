@@ -18,6 +18,7 @@
 import { movemon, settrack, mon_regen } from './monmove.js';
 import { savebones } from './bones.js';
 import { setGame } from './gstate.js';
+import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
 import { nh_timeout } from './timeout.js';
 import { pline } from './pline.js';
 import { runtimeDecideToShapeshift, makemon, withMakemonPlayerOverrideAsync } from './makemon.js';
@@ -392,12 +393,11 @@ export async function stop_occupation(game) {
 function u_calc_moveamt(player) {
     let moveamt = player.speed || NORMAL_SPEED;
     if (player.veryFast) {
-        if (typeof process !== 'undefined'
-            && process?.env?.WEBHACK_RUN_DEBUG
-            && process.env.WEBHACK_RUN_DEBUG !== '0') {
+        if (hasEnv('WEBHACK_RUN_DEBUG')
+            && getEnv('WEBHACK_RUN_DEBUG') !== '0') {
             const e = player.uprops[28];
             const rngIdx = readRngLog().length;
-            process.stderr.write(`DBG u_calc_moveamt veryFast turns=${player.turns} rngIdx=${rngIdx} intr=${e?.intrinsic} extr=${e?.extrinsic}\n`);
+            writeStderr(`DBG u_calc_moveamt veryFast turns=${player.turns} rngIdx=${rngIdx} intr=${e?.intrinsic} extr=${e?.extrinsic}\n`);
         }
     }
     if (player.veryFast) {

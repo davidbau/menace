@@ -7,6 +7,7 @@
 
 import { COLNO, ROWNO, XLIM, YLIM } from './const.js';
 import { rn2 } from './rng.js';
+import { envFlag } from './runtime_env.js';
 
 // cf. rect.c:19-21
 const n_rects = Math.floor((COLNO * ROWNO) / 30);
@@ -51,8 +52,8 @@ export function get_rect(r) {
 
 // cf. rect.c:104 — get some random rect from the list
 export function rnd_rect() {
-    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_THEMEROOMS === '1';
-    const DEBUG_POOL = typeof process !== 'undefined' && process.env.DEBUG_RECT_POOL === '1';
+    const DEBUG = envFlag('DEBUG_THEMEROOMS');
+    const DEBUG_POOL = envFlag('DEBUG_RECT_POOL');
     if (DEBUG) {
         const stack = new Error().stack.split('\n')[2].trim();
         console.log(`  rnd_rect: ENTRY rect_cnt=${rect_cnt} from ${stack}`);
@@ -113,7 +114,7 @@ export function add_rect(r) {
 
 // cf. rect.c:182 — split r1 around allocated r2
 export function split_rects(r1, r2) {
-    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_RECTS === '1';
+    const DEBUG = envFlag('DEBUG_RECTS');
     const old_cnt = rect_cnt;
     const old_r = { lx: r1.lx, ly: r1.ly, hx: r1.hx, hy: r1.hy };
     remove_rect(r1);
@@ -159,7 +160,7 @@ export function split_rects(r1, r2) {
 // Helper for sp_lev.js — split all rects around a fixed-position room.
 // Not in C's rect.c but factored out from sp_lev.c/dungeon.js usage pattern.
 export function update_rect_pool_for_room(room) {
-    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_RECTS === '1';
+    const DEBUG = envFlag('DEBUG_RECTS');
     const old_cnt = rect_cnt;
 
     // C ref: sp_lev.c:1635-1638 — r2 bounds include border (x-1, y-1) to (x+w, y+h)

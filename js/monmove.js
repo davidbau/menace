@@ -74,6 +74,7 @@ import { pointInShop, monsterInShop } from './shknam.js';
 import { stop_occupation } from './allmain.js';
 import { in_your_sanctuary } from './priest.js';
 import { artifact_light } from './artifact.js';
+import { envFlag } from './runtime_env.js';
 
 // Shared utilities — re-exported for consumers
 import { dist2, distmin } from './hack.js';
@@ -2283,8 +2284,7 @@ export function can_fog(mtmp, game) {
 // Debug tracing — development-only trace helpers
 // ========================================================================
 function monmoveTraceEnabled() {
-    const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
-    return env.WEBHACK_MONMOVE_TRACE === '1';
+    return envFlag('WEBHACK_MONMOVE_TRACE');
 }
 
 export function monmoveTrace(...args) {
@@ -2293,8 +2293,7 @@ export function monmoveTrace(...args) {
 }
 
 function monmovePhase3TraceEnabled() {
-    const env = (typeof process !== 'undefined' && process.env) ? process.env : {};
-    return env.WEBHACK_MONMOVE_PHASE3_TRACE === '1';
+    return envFlag('WEBHACK_MONMOVE_PHASE3_TRACE');
 }
 
 export function monmovePhase3Trace(...args) {

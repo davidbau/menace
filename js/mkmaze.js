@@ -38,6 +38,7 @@ import { block_point, unblock_point, recalc_block_point } from './vision.js';
 import { create_gas_cloud, clear_heros_fault } from './region.js';
 import { Norep } from './pline.js';
 import { dist2 } from './hacklib.js';
+import { envFlag } from './runtime_env.js';
 
 function at(map, x, y) {
     return map && map.at ? map.at(x, y) : null;
@@ -52,7 +53,7 @@ async function vision_call(fn, x, y) {
 }
 
 function bubble_trace_enabled() {
-    return typeof process !== 'undefined' && process.env?.DEBUG_BUBBLES_TRACE === '1';
+    return envFlag('DEBUG_BUBBLES_TRACE');
 }
 
 function bubble_trace(msg) {

@@ -8,10 +8,11 @@
 //  - night and midnight (the undead are dangerous at midnight)
 //  - determination of what files are "very old"
 
+import { getEnv } from './runtime_env.js';
+
 // cf. calendar.c:32
 export function getnow() {
-    const fixed_dt = (typeof process !== 'undefined' && process?.env?.NETHACK_FIXED_DATETIME)
-        || undefined;
+    const fixed_dt = getEnv('NETHACK_FIXED_DATETIME');
     if (fixed_dt) {
         const parsed = time_from_yyyymmddhhmmss(fixed_dt);
         if (parsed !== 0) return parsed;

@@ -8,6 +8,8 @@
  * Algorithm: https://prng.di.unimi.it/xoshiro256starstar.c
  */
 
+import { envFlag } from './runtime_env.js';
+
 let s0 = 0n;
 let s1 = 0n;
 let s2 = 0n;
@@ -84,7 +86,7 @@ export function getXoshiroState() {
  * @param {number} seed - Main RNG seed (e.g., 163)
  */
 export function seedFromMainRng(seed) {
-    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_XOSHIRO === '1';
+    const DEBUG = envFlag('DEBUG_XOSHIRO');
 
     if (DEBUG) {
         console.log(`\n[xoshiro] Seeding from main RNG seed: ${seed}`);
@@ -148,7 +150,7 @@ export function seedFromMT(mtInitValues) {
         console.warn(`seedFromMT: got ${mtInitValues.length} values, expected 30`);
     }
 
-    const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_XOSHIRO === '1';
+    const DEBUG = envFlag('DEBUG_XOSHIRO');
 
     // Try creating a hash from ALL 30 MT values
     // This might better match how Lua initializes from full MT state

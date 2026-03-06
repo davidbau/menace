@@ -20,6 +20,7 @@ import { start_timer_at } from '../timeout.js';
 import { impossible, pline } from '../pline.js';
 import { readobjnam } from '../objnam.js';
 import { objectData, GLASS } from '../objects.js';
+import { envFlag } from '../runtime_env.js';
 
 // Module-level state for postprocessing callbacks
 let postprocess = [];
@@ -465,7 +466,7 @@ export const themerooms = [
    {
       name: 'Pillars',
       contents: async function() {
-         const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_THEMEROOMS === '1';
+         const DEBUG = envFlag('DEBUG_THEMEROOMS');
          if (DEBUG) console.log('Pillars: outer contents() called, about to call await des.room()');
          await des.room({ type: "themed", w: 10, h: 10,
                   contents: async function(rm) {
@@ -1081,7 +1082,7 @@ export async function themerooms_generate(map, depth) {
          // but uses integer RNG so it appears in the RNG trace
          if (this_frequency > 0) {
             const randValue = rn2(total_frequency);
-            const DEBUG_RESERVOIR = typeof process !== 'undefined' && process.env.DEBUG_RESERVOIR === '1';
+            const DEBUG_RESERVOIR = envFlag('DEBUG_RESERVOIR');
             if (DEBUG_RESERVOIR) {
                console.log(`  Room ${i} (${themerooms[i].name || 'unnamed'}): rn2(${total_frequency})=${randValue}, this_freq=${this_frequency}, total=${total_frequency}, pick=${randValue < this_frequency ? 'YES' : 'no'}`);
             }
@@ -1106,7 +1107,7 @@ export async function themerooms_generate(map, depth) {
       levelState.luaRngCounter = 37;
    }
 
-   const DEBUG_THEME = typeof process !== 'undefined' && process.env.DEBUG_THEMEROOMS === '1';
+   const DEBUG_THEME = envFlag('DEBUG_THEMEROOMS');
    if (DEBUG_THEME) {
       console.log(`Selected themed room [${pick}]: "${themerooms[pick].name}"`);
    }
@@ -1119,7 +1120,7 @@ export async function themerooms_generate(map, depth) {
    levelState.roomFailureCallback = () => { themeroom_failed = true; };
 
    // Debug: Log which themed room was selected
-   const DEBUG_SELECTION = typeof process !== 'undefined' && process.env.DEBUG_THEMERM_SELECT === '1';
+   const DEBUG_SELECTION = envFlag('DEBUG_THEMERM_SELECT');
    if (DEBUG_SELECTION) {
       const rngCount = typeof getRngCallCount === 'function' ? getRngCallCount() : '?';
       console.log(`\n[RNG ${rngCount}] Selected themed room #${pick}: ${themerooms[pick].name || 'default'}`);
@@ -1146,7 +1147,7 @@ export async function themerooms_generate(map, depth) {
 // called before any rooms are generated
 let _mtInitCount = 0;
 export async function pre_themerooms_generate() {
-   const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_LUA_RNG === '1';
+   const DEBUG = envFlag('DEBUG_LUA_RNG');
 
    // C ref: MT initialization happens lazily on first Lua RNG call (des.object/des.monster),
    // NOT here in pre_themerooms_generate(). Removing MT init from here to match C timing.
@@ -1186,7 +1187,7 @@ export function post_themerooms_generate() {
 }
 
 export async function themeroom_fill(rm) {
-   const DEBUG = typeof process !== 'undefined' && process.env.DEBUG_THEMEROOMS === '1';
+   const DEBUG = envFlag('DEBUG_THEMEROOMS');
    // C parity: Lua mkroom table exposes room dimensions; ensure callbacks
    // relying on rm.width/rm.height behave consistently.
    if (rm && !Number.isFinite(rm.width)
@@ -1238,13 +1239,13 @@ export async function themeroom_fill(rm) {
          }
 
          // Debug: Log each eligible room
-         if (typeof process !== 'undefined' && process.env.DEBUG_THEMERM_ELIGIBLE === '1') {
+         if (envFlag('DEBUG_THEMERM_ELIGIBLE')) {
             console.log(`  Eligible[${eligible_count}]: ${themeroom_fills[i].name} (freq=${this_frequency}, total=${total_frequency}, picked=${pick === i})`);
          }
       }
    }
 
-   if (typeof process !== 'undefined' && process.env.DEBUG_THEMERM_ELIGIBLE === '1') {
+   if (envFlag('DEBUG_THEMERM_ELIGIBLE')) {
       console.log(`Total eligible rooms: ${eligible_count}, final frequency: ${total_frequency}`);
    }
 
@@ -1254,7 +1255,7 @@ export async function themeroom_fill(rm) {
    }
 
    // Debug: Log which themed room was selected
-   if (typeof process !== 'undefined' && process.env.DEBUG_THEMERM_EXEC === '1') {
+   if (envFlag('DEBUG_THEMERM_EXEC')) {
       console.log(`\n=== Executing themed room fill: ${themeroom_fills[pick].name} ===`);
    }
 

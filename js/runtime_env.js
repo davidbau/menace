@@ -4,6 +4,10 @@ function processEnv() {
     return (typeof process !== 'undefined' && process?.env) ? process.env : null;
 }
 
+export function getEnvObject() {
+    return processEnv();
+}
+
 export function getEnv(name, fallback = undefined) {
     const env = processEnv();
     if (!env) return fallback;
@@ -20,3 +24,10 @@ export function hasEnv(name) {
     return value !== undefined && value !== null && value !== '';
 }
 
+export function writeStderr(msg) {
+    if (typeof process !== 'undefined' && process?.stderr?.write) {
+        process.stderr.write(msg);
+        return true;
+    }
+    return false;
+}
