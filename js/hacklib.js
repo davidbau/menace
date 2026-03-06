@@ -126,6 +126,16 @@ export function c_eos(s) {
     return s.length;
 }
 
+// C stdlib: strchr(s, ch) — find first occurrence of ch in s
+// Returns the substring starting at ch, or null if not found.
+export function strchr(s, ch) {
+    if (s == null || ch == null) return null;
+    const text = String(s);
+    const needle = typeof ch === 'number' ? String.fromCharCode(ch) : String(ch)[0] || '';
+    const idx = text.indexOf(needle);
+    return idx >= 0 ? text.slice(idx) : null;
+}
+
 // ============================================================================
 // String comparison utilities
 // C ref: hacklib.c:277-337

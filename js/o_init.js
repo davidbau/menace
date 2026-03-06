@@ -1,3 +1,4 @@
+import { strchr } from './hacklib.js';
 // o_init.js -- Object initialization (description shuffling)
 // Faithful port of o_init.c from NetHack 3.7.
 // C ref: o_init.c init_objects(), shuffle_all(), shuffle(), randomize_gem_colors()

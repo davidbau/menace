@@ -2,6 +2,7 @@
 // Mirrors constants from include/hack.h, include/global.h, include/rm.h
 
 import { COMMIT_NUMBER } from './version.js';
+import { strchr } from './hacklib.js';
 
 // Version (patchlevel.h)
 export const VERSION_MAJOR = 3;

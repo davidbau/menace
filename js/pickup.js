@@ -1,3 +1,4 @@
+import { strchr } from './hacklib.js';
 import { THRONE, SINK, GRAVE, FOUNTAIN, STAIRS, ALTAR, IS_DOOR, D_ISOPEN,
          IS_POOL, IS_LAVA, isok, SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER,
          EXT_ENCUMBER, A_WIS, STONE, MM_ADJACENTOK, MM_NOMSG } from './const.js';

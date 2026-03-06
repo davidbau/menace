@@ -2,6 +2,7 @@
 // Faithful port of mkobj.c from NetHack 3.7
 // C ref: mkobj.c — object creation, class initialization, containers
 
+import { strchr } from './hacklib.js';
 import { rn2, rnd, rn1, rne, rnz, d, getRngCallCount, pushRngLogEntry } from './rng.js';
 import { isObjectNameKnown } from './o_init.js';
 import {

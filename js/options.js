@@ -1,3 +1,4 @@
+import { strchr } from './hacklib.js';
 // options.js -- Game options parsing, initialization, and menu
 // cf. options.c — initoptions, initoptions_init, initoptions_finish,
 //                 match_optname, determine_ambiguities, txt2key,

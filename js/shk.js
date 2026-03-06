@@ -30,7 +30,7 @@ import { shtypes, shkname, Shknam, saleable, is_izchak } from './shknam.js';
 import { rn2, rnd } from './rng.js';
 import { pline, You, Your, You_hear, You_feel, You_cant, pline_The, There,
          verbalize, Norep, impossible, livelog_printf } from './pline.js';
-import { s_suffix, upstart, highc } from './hacklib.js';
+import { s_suffix, upstart, highc, strchr } from './hacklib.js';
 import { findgold } from './steal.js';
 import { helpless as monHelpless } from './mon.js';
 import { newsym } from './display.js';
@@ -255,7 +255,8 @@ export function corpsenm_price_adj(obj) {
   let val = 0;
   if ((obj.otyp === TIN || obj.otyp === EGG || obj.otyp === CORPSE) && ismnum(obj.corpsenm)) {
     let i, tmp = 1, ptr =  mons[obj.corpsenm];
-    let icost = [ [ FIRE_RES, 2 ], [ SLEEP_RES, 3 ], [ COLD_RES, 2 ], [ DISINT_RES, 5 ], [ SHOCK_RES, 4 ], [ POISON_RES, 2 ], [ ACID_RES, 1 ], [ STONE_RES, 3 ], [ TELEPORT, 2 ], [ TELEPORT_CONTROL, 3 ], [ TELEPAT, 5 ] ];
+    // C ref: shk.c corpsenm_price_adj() — struct { trinsic, cost } icost[]
+    let icost = [ { trinsic: FIRE_RES, cost: 2 }, { trinsic: SLEEP_RES, cost: 3 }, { trinsic: COLD_RES, cost: 2 }, { trinsic: DISINT_RES, cost: 5 }, { trinsic: SHOCK_RES, cost: 4 }, { trinsic: POISON_RES, cost: 2 }, { trinsic: ACID_RES, cost: 1 }, { trinsic: STONE_RES, cost: 3 }, { trinsic: TELEPORT, cost: 2 }, { trinsic: TELEPORT_CONTROL, cost: 3 }, { trinsic: TELEPAT, cost: 5 } ];
     for (i = 0; i < icost.length; i++) {
       if (intrinsic_possible(icost[i].trinsic, ptr)) {
         tmp += icost[i].cost;

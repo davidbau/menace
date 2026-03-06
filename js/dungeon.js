@@ -182,7 +182,7 @@ async function themerooms_generate(map, depth) {
     return result;
 }
 
-import { parseEncryptedDataFile } from './hacklib.js';
+import { parseEncryptedDataFile, strchr } from './hacklib.js';
 import { get_rnd_line_index, getrumor, random_epitaph_text } from './rumors.js';
 
 // Branch type constants (C ref: include/dungeon.h)
