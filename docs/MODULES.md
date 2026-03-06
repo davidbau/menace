@@ -159,24 +159,6 @@ that dependency entirely.
 `attack_fields.js` (runtime alias shim) is deleted entirely once all call
 sites use canonical C field names (Phase 2).
 
-### Table-building helper functions
-
-The auto-generated table files (`objects.js`, `artifacts.js`) use C macro
-idioms that become small pure helper functions in JS. These are defined
-**inline at the top of the file that uses them** — they are not exported
-and not shared:
-
-| Helper | Defined in | What it does |
-|--------|-----------|-------------|
-| `HARDGEM(n)` | `objects.js` | `n >= 8 ? 1 : 0` — gem toughness from Mohs hardness |
-| `BITS(...)` | `objects.js` | Unpacks object bitfield args into a plain object |
-| `PHYS/DRLI/COLD/FIRE/ELEC/STUN/POIS(a,b)` | `artifacts.js` | Attack struct shorthand |
-| `NO_ATTK`, `NO_DFNS`, `NO_CARY` | `artifacts.js` | Empty attack/defense/carry struct |
-| `DFNS(c)`, `CARY(c)` | `artifacts.js` | Defense/carry struct shorthand |
-
-If a helper is ever needed across multiple leaf files it moves to `const.js`,
-but in practice all known helpers are file-specific.
-
 ### The rule
 
 - **Core leaf headers** (`version.js`, `const.js`): export capitalized constants;
