@@ -46,6 +46,7 @@ import { IS_TREE, IS_FOUNTAIN, IS_SINK, IS_GRAVE, IS_ALTAR, IS_THRONE } from './
 import { rn2, rnd, rn1, rnl } from './rng.js';
 import { unblock_point, recalc_block_point } from './vision.js';
 import { newsym } from './display.js';
+import { cansee } from './vision.js';
 import { mb_trapped } from './monmove.js';
 import { canseemon } from './mondata.js';
 import { mksobj } from './mkobj.js';
@@ -69,6 +70,8 @@ import { game as _gstate } from './gstate.js';
 import { wake_nearby } from './mon.js';
 import { add_damage, pay_for_damage } from './shk.js';
 import { t_at, conjoined_pits } from './trap.js';
+import { On_ladder, On_stairs } from './stairs.js';
+import { s_suffix } from './hacklib.js';
 
 // ============================================================================
 // Constants (cf. dig.c:19-27)
@@ -788,6 +791,8 @@ export async function zap_dig(map, player) {
                         room.typ = ROOM;
                         room.flags = 0;
                         unblock_point(zx, zy);
+                    } else if (!(player?.Blind || player?.blind)) {
+                        _gstate?.display?.putstr_message?.('The wall glows then fades.');
                     }
                     break;
                 } else if (IS_TREE(room.typ)) {
@@ -795,6 +800,8 @@ export async function zap_dig(map, player) {
                         room.typ = ROOM;
                         room.flags = 0;
                         unblock_point(zx, zy);
+                    } else if (!(player?.Blind || player?.blind)) {
+                        _gstate?.display?.putstr_message?.('The tree shudders but is unharmed.');
                     }
                     break;
                 } else if (room.typ === STONE || room.typ === SCORR) {
@@ -802,6 +809,8 @@ export async function zap_dig(map, player) {
                         room.typ = CORR;
                         room.flags = 0;
                         unblock_point(zx, zy);
+                    } else if (!(player?.Blind || player?.blind)) {
+                        _gstate?.display?.putstr_message?.('The rock glows then fades.');
                     }
                     break;
                 }
@@ -833,6 +842,9 @@ export async function zap_dig(map, player) {
                     digdepth--;
                 }
                 unblock_point(zx, zy);
+            }
+            if (room.typ === DOOR && cansee(map, player, _gstate?.fov || null, zx, zy)) {
+                _gstate?.display?.putstr_message?.('The door is razed!');
             }
 
             newsym(zx, zy);
@@ -1950,6 +1962,7 @@ export async function adj_pit_checks(cc, msg, map) {
     const room = map.at(cc.x, cc.y);
     if (!room) return false;
     const ltyp = room.typ;
+    room.flags = 0;
     const foundation_msg = "The foundation is too hard to dig through from this angle.";
     let out = null;
 
@@ -1965,6 +1978,16 @@ export async function adj_pit_checks(cc, msg, map) {
         out = "The bars go much deeper than your pit.";
     } else if (IS_SINK(ltyp)) {
         out = "A tangled mass of plumbing remains below the sink.";
+    } else if (await On_ladder(cc.x, cc.y, map)) {
+        out = "The ladder is unaffected.";
+    } else {
+        let supporting = null;
+        if (IS_FOUNTAIN(ltyp)) supporting = "fountain";
+        else if (IS_THRONE(ltyp)) supporting = "throne";
+        else if (IS_ALTAR(ltyp)) supporting = "altar";
+        else if (await On_stairs(cc.x, cc.y, map)) supporting = "stairs";
+        else if (ltyp === DRAWBRIDGE_DOWN || ltyp === DBWALL) supporting = "drawbridge";
+        if (supporting) out = `The ${s_suffix(supporting)} supporting structures remain intact.`;
     }
     if (out) {
         await _gstate?.display?.putstr_message?.(out);
