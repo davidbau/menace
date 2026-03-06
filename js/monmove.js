@@ -887,12 +887,8 @@ async function run_dochug_postmove_pipeline_current_js(
         mon._m_move_postmove_ctx = null;
         if (ctx) {
             const { allowflags = 0, can_open = false, can_unlock = false } = ctx;
-            // Preserve current JS moved-cell side-effect order for non-pet path.
-            if (!mon.dead) await maybe_spin_web(mon, map);
-            if ((allowflags & ALLOW_DIG) && may_dig(mon.mx, mon.my, map)) {
-                const monsterDied = await mdig_tunnel(mon, map, player);
-                if (monsterDied || mon.dead) return MMOVE_DIED;
-            }
+            // Gate-3 semantic slice: align non-pet moved-cell order toward C postmov:
+            // door/bars handling before tunneling; tail effects (web) after.
             const here = map.at(mon.mx, mon.my);
             if (here && IS_DOOR(here.typ)) {
                 const wasLocked = !!(here.flags & D_LOCKED);
@@ -910,6 +906,11 @@ async function run_dochug_postmove_pipeline_current_js(
                     }
                 }
             }
+            if ((allowflags & ALLOW_DIG) && may_dig(mon.mx, mon.my, map)) {
+                const monsterDied = await mdig_tunnel(mon, map, player);
+                if (monsterDied || mon.dead) return MMOVE_DIED;
+            }
+            if (!mon.dead) await maybe_spin_web(mon, map);
         }
     }
     return MMOVE_MOVED;

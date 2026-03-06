@@ -3118,3 +3118,15 @@ hard-won wisdom:
   - `./scripts/run-and-report.sh --failures`: still `27/34` passing, `7` failing
 - Takeaway: this supports the hypothesis that postmov trap-boundary ordering is a
   real parity frontier, and it can be improved without increasing failing-session count.
+
+## Lesson: door-before-dig ordering slice can be adopted incrementally when neutral
+
+- Follow-up Gate 3 slice adjusted non-pet moved-cell effect order in shared postmove:
+  `door handling -> mdig_tunnel -> maybe_spin_web`.
+- This aligns closer to C `postmov` sequencing (`door/bars` before dig; web is tail work).
+- Validation stayed neutral relative to prior slice:
+  - `seed325` remained at first RNG divergence step `309`
+  - `seed327`/`seed328` unchanged
+  - `./scripts/run-and-report.sh --failures` remained `27/34` passing, `7` failing
+- Even when immediate frontier movement is flat, landing C-faithful neutral slices
+  simplifies later debugging and reduces mixed-order confounders.
