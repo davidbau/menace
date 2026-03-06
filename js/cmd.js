@@ -1413,7 +1413,7 @@ export function there_cmd_menu_next2u(win, x, y, mod, act, map, player) {
   let K = 0, buf, typ = map.locations[x][y].typ, ttmp, mtmp;
   if (!next2u(x, y)) return K;
   if (IS_DOOR(typ)) {
-    let key_or_pick, card, dm = map.locations[x][y].doormask;
+    let key_or_pick, card, dm = map.locations[x][y].flags || 0;
     if ((dm & (D_CLOSED | D_LOCKED))) {
       mcmd_addmenu(win, MCMD_OPEN_DOOR, "Open the door"), ++K;
       key_or_pick = (carrying(SKELETON_KEY) || carrying(LOCK_PICK));

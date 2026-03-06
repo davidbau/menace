@@ -942,7 +942,7 @@ export async function invault(map, player, fov) {
     // C: spot_stop_timers(x, y, MELT_ICE_AWAY) — simplified
     if (loc) {
         loc.typ = DOOR;
-        loc.doormask = D_NODOOR;
+        loc.flags = D_NODOOR;
     }
     unblock_point(x, y);
     egrd.fcend = 1;
@@ -1192,7 +1192,7 @@ export async function gd_move(grd, map, player, fov) {
                         }
                         crm.typ = (typ === SCORR) ? CORR : DOOR;
                         if (crm.typ === DOOR)
-                            crm.doormask = D_NODOOR;
+                            crm.flags = D_NODOOR;
                         else
                             crm.flags = 0;
                         del_engr_at(nx, ny, map);
@@ -1261,7 +1261,7 @@ export async function gd_move(grd, map, player, fov) {
             crm = map.at(nx, ny);
             if (crm) {
                 crm.typ = DOOR;
-                crm.doormask = D_NODOOR;
+                crm.flags = D_NODOOR;
             }
             del_engr_at(ex, ey, map);
             break; // goto proceed
@@ -1285,7 +1285,7 @@ export async function gd_move(grd, map, player, fov) {
         if (IS_ROOM(typ)) {
             if (crm) {
                 crm.typ = DOOR;
-                crm.doormask = D_NODOOR;
+                crm.flags = D_NODOOR;
             }
             del_engr_at(ex, ey, map);
             break; // goto proceed

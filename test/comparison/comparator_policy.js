@@ -160,7 +160,8 @@ function approximateStepForRngIndex(session, normalizedIndex) {
         cumulative += count(session.steps[i].rng || []);
         if (normalizedIndex < cumulative) return i + 1;
     }
-    return 'n/a';
+    // Divergence index is past all session steps — report as last step
+    return session.steps.length || 'n/a';
 }
 
 function stepForEventIndex(session, eventIndex) {
@@ -171,7 +172,8 @@ function stepForEventIndex(session, eventIndex) {
         cumulative += (session.steps[i].rng || []).filter(isEvent).length;
         if (eventIndex < cumulative) return i + 1;
     }
-    return 'n/a';
+    // Divergence index is past all session steps — report as last step
+    return session.steps.length || 'n/a';
 }
 
 function expectedDelayBoundaryCount(step) {

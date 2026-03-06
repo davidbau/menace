@@ -474,13 +474,12 @@ async function do_earthquake(force, map, player, fov) {
             case DOOR: // make the door collapse
                 // if already doorless, treat like room or corridor
                 /* Use ?? not || since D_NODOOR=0 is falsy */
-                if ((loc.doormask ?? loc.flags ?? 0) === D_NODOOR) {
+                if ((loc.flags ?? 0) === D_NODOOR) {
                     await do_pit(x, y, tu_pit, map, player, fov);
                     break;
                 }
                 // wasn't doorless, now it will be
-                if (loc.doormask !== undefined) loc.doormask = D_NODOOR;
-                if (loc.flags !== undefined) loc.flags = D_NODOOR;
+                loc.flags = D_NODOOR;
                 recalc_block_point(x, y);
                 newsym(x, y); // before pline
                 if (cansee(map, player, fov, x, y))

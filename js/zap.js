@@ -1006,7 +1006,7 @@ async function bhit_zapped_wand(obj, player, map) {
         range--;
       }
 
-      if (IS_WALL(loc.typ) || (IS_DOOR(loc.typ) && loc.doormask)) {
+      if (IS_WALL(loc.typ) || (IS_DOOR(loc.typ) && loc.flags)) {
         x -= ddx;
         y -= ddy;
         break;
@@ -2508,7 +2508,7 @@ export async function bhit(ddx, ddy, range, weapon, fhitm_fn, fhito_fn, obj, map
     }
 
     // Check for wall/closed door — beam stops
-    if (IS_WALL(loc.typ) || (IS_DOOR(loc.typ) && loc.doormask)) {
+    if (IS_WALL(loc.typ) || (IS_DOOR(loc.typ) && loc.flags)) {
       x -= ddx;
       y -= ddy;
       break;

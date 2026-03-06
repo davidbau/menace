@@ -2831,7 +2831,7 @@ export function sel_set_ter(x, y, terrain, opts = {}) {
     loc.typ = terrain;
     if (loc.typ === SDOOR || loc.typ === DOOR) {
         if (loc.typ === SDOOR) {
-            loc.doormask = D_CLOSED;
+            loc.flags = D_CLOSED;
         }
         if (x > 0) {
             const left = levelState.map.locations[x - 1][y];
@@ -6098,7 +6098,7 @@ export function m_bad_boulder_spot(x, y) {
     if (levelState.map?.trapAt?.(x, y)) return true;
     if (hasBoulderAt(x, y)) return true;
     const lev = levelState.map?.locations?.[x]?.[y];
-    if (lev && lev.typ === DOOR && ((lev.doormask || lev.flags || 0) & (D_CLOSED | D_LOCKED))) {
+    if (lev && lev.typ === DOOR && ((lev.flags || 0) & (D_CLOSED | D_LOCKED))) {
         return true;
     }
     return false;

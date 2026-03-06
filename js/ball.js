@@ -89,7 +89,7 @@ function IS_CHAIN_ROCK(x, y, map) {
     const loc = map.at(x, y);
     if (!loc) return true;
     return IS_OBSTRUCTED(loc.typ)
-        || (IS_DOOR(loc.typ) && (loc.doormask & (D_CLOSED | D_LOCKED)));
+        || (IS_DOOR(loc.typ) && ((loc.flags || 0) & (D_CLOSED | D_LOCKED)));
 }
 
 // Helper: CHAIN_IN_MIDDLE — chain position is valid between hero and ball

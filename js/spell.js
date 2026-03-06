@@ -1555,7 +1555,7 @@ export async function spelleffects_check(spell, res, energy, game, player) {
 // Autotranslated from spell.c:1606
 export function spell_aim_step(arg, x, y, map) {
   if (!isok(x,y)) return false;
-  if (!ZAP_POS(map.locations[x][y].typ) && !(IS_DOOR(map.locations[x][y].typ) && (map.locations[x][y].doormask & D_ISOPEN))) return false;
+  if (!ZAP_POS(map.locations[x][y].typ) && !(IS_DOOR(map.locations[x][y].typ) && ((map.locations[x][y].flags || 0) & D_ISOPEN))) return false;
   return true;
 }
 

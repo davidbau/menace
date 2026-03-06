@@ -211,7 +211,7 @@ function t_at(x, y, map) {
 function closed_door(x, y, map) {
     const loc = map.at(x, y);
     if (!loc || !IS_DOOR(loc.typ)) return false;
-    return !!((loc.flags || loc.doormask || 0) & (D_CLOSED | D_LOCKED));
+    return !!((loc.flags || 0) & (D_CLOSED | D_LOCKED));
 }
 
 // isok helper
@@ -1396,7 +1396,7 @@ export async function kick_ouch(x, y, kickobjnam, game, map, player) {
 // ============================================================================
 
 async function kick_door(x, y, avrg_attrib, maploc, player, map, game) {
-    const doormask = maploc.flags || maploc.doormask || 0;
+    const doormask = maploc.flags || 0;
 
     if (doormask === D_ISOPEN || doormask === D_BROKEN || doormask === D_NODOOR) {
         await kick_dumb(x, y, map, player);
@@ -1421,18 +1421,15 @@ async function kick_door(x, y, avrg_attrib, maploc, player, map, game) {
                 await You("kick the door.");
             await exercise(player, A_STR, false);
             maploc.flags = D_NODOOR;
-            if (maploc.doormask !== undefined) maploc.doormask = D_NODOOR;
             await b_trapped("door", FOOT, player, map);
         } else if (ACURR(player, A_STR) > 18 && !rn2(5) && !shopdoor) {
             await pline("As you kick the door, it shatters to pieces!");
             await exercise(player, A_STR, true);
             maploc.flags = D_NODOOR;
-            if (maploc.doormask !== undefined) maploc.doormask = D_NODOOR;
         } else {
             await pline("As you kick the door, it crashes open!");
             await exercise(player, A_STR, true);
             maploc.flags = D_BROKEN;
-            if (maploc.doormask !== undefined) maploc.doormask = D_BROKEN;
         }
         feel_newsym(x, y);
         recalc_block_point(x, y);
@@ -1467,12 +1464,12 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
   if (game.maploc.typ === SDOOR) {
     if (!Levitation && rn2(30) < avrg_attrib) {
       cvt_sdoor_to_door(game.maploc);
-      await pline("Crash! %s a secret door!",   ((game.maploc.doormask & (D_LOCKED | D_TRAPPED)) === D_LOCKED) ? "Your kick uncovers" : "You kick open");
+      await pline("Crash! %s a secret door!",   (((game.maploc.flags || 0) & (D_LOCKED | D_TRAPPED)) === D_LOCKED) ? "Your kick uncovers" : "You kick open");
       await exercise(A_DEX, true);
-      if (game.maploc.doormask & D_TRAPPED) { game.maploc.doormask = D_NODOOR; await b_trapped("door", FOOT); }
-      else if (game.maploc.doormask !== D_NODOOR && !(game.maploc.doormask & D_LOCKED)) game.maploc.doormask = D_ISOPEN;
+      if ((game.maploc.flags || 0) & D_TRAPPED) { game.maploc.flags = D_NODOOR; await b_trapped("door", FOOT); }
+      else if (game.maploc.flags !== D_NODOOR && !((game.maploc.flags || 0) & D_LOCKED)) game.maploc.flags = D_ISOPEN;
       feel_newsym(x, y);
-      if (game.maploc.doormask === D_ISOPEN || game.maploc.doormask === D_NODOOR) unblock_point(x, y);
+      if (game.maploc.flags === D_ISOPEN || game.maploc.flags === D_NODOOR) unblock_point(x, y);
       return ECMD_TIME;
     }
     else { await kick_ouch(x, y, ""); return ECMD_TIME; }

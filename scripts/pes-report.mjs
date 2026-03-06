@@ -130,7 +130,7 @@ function fmtCell(step, total, full, yellowThres = null) {
 
     // Apply color based on pct
     if (pct === null) return raw;
-    if (pct >= 1.0)   return cGreen(raw);
+    if (full && pct >= 1.0) return cGreen(raw);
     if (pct <= 0.25)  return cRed(raw);
     if (yellowThres !== null && pct >= yellowThres) return cYellow(raw);
     return raw;  // plain

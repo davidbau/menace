@@ -810,17 +810,11 @@ async function trapeffect_rolling_boulder_trap_mon(mon, trap, map, player) {
     };
     const doorIsClosed = (loc) => {
         if (!loc || !IS_DOOR(loc.typ)) return false;
-        const mask = Number.isInteger(loc.flags) ? loc.flags : (loc.doormask || 0);
-        return !!(mask & (D_CLOSED | D_LOCKED));
+        return !!((loc.flags || 0) & (D_CLOSED | D_LOCKED));
     };
     const breakDoor = (loc) => {
         if (!loc || !IS_DOOR(loc.typ)) return;
-        if (Number.isInteger(loc.flags)) {
-            loc.flags = D_BROKEN;
-        }
-        if (loc.doormask !== undefined) {
-            loc.doormask = D_BROKEN;
-        }
+        loc.flags = D_BROKEN;
     };
     let boulder = findBoulderAt(launch.x, launch.y);
     let x = launch.x;
@@ -1480,7 +1474,7 @@ export async function blow_up_landmine(trap, map) {
   scatter(x, y, 4, MAY_DESTROY | MAY_HIT | MAY_FRACTURE | VIS_EFFECTS,  0);
   del_engr_at(x, y);
   wake_nearto(x, y, 400);
-  if (IS_DOOR(lev.typ)) lev.doormask = D_BROKEN;
+  if (IS_DOOR(lev.typ)) lev.flags = D_BROKEN;
   if (lev.typ === DRAWBRIDGE_DOWN || is_drawbridge_wall(x, y) >= 0) {
     dbx = x, dby = y;
     if (find_drawbridge( dbx, dby)) destroy_drawbridge(dbx, dby);

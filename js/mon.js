@@ -1611,6 +1611,12 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
     // so list mutations (death/migration) do not skip subsequent turns.
     // Iterate a snapshot for equivalent stability under JS array mutation.
     for (const mon of [...map.monsters]) {
+        // C ref: mon.c movemon_singlemon():1197-1206 — abort all monster
+        // processing when the hero is flagged to leave the level.
+        if (player.utotype) {
+            somebodyCanMove = false;
+            break;
+        }
         if (mon.dead) continue;
         // C ref: mon.c movemon_singlemon() skips monsters not on this map.
         if (!isok(mon.mx, mon.my)) continue;

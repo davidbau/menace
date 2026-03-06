@@ -545,7 +545,6 @@ export function wizterrainwish(ctx) {
         }
         loc.typ = secret ? SDOOR : DOOR;
         loc.flags = mask;
-        loc.doormask = mask;
         if (secret) loc.flags |= D_SECRET;
     } else if (result.terrain === 'wall') {
         loc.typ = HWALL;

@@ -769,7 +769,7 @@ export async function do_vicinity_map(sobj, player, map, display) {
 // ========================================================================
 // Autotranslated from detect.c:1589
 export function cvt_sdoor_to_door(lev, map) {
-  let newmask = lev.doormask & ~WM_MASK;
+  let newmask = (lev.flags || 0) & ~WM_MASK;
   if (Is_rogue_level(map.uz)) { newmask = D_NODOOR; }
   else {
     if (!(newmask & D_LOCKED)) {
@@ -777,7 +777,7 @@ export function cvt_sdoor_to_door(lev, map) {
     }
   }
   lev.typ = DOOR;
-  lev.doormask = newmask;
+  lev.flags = newmask;
   lev.arboreal_sdoor = 0;
 }
 
