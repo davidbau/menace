@@ -610,7 +610,7 @@ export async function add_one_tobill(obj, dummy, shkp, player) {
 // Autotranslated from shk.c:3597
 export function sub_one_frombill(obj, shkp) {
   let bp, eshkp;
-  if ((bp = onbill(obj, shkp, false)) !== 0) {
+  if ((bp = onbill(obj, shkp, false)) != null) {
     let otmp;
     obj.unpaid = 0;
     if (bp.bquan > obj.quan) {
@@ -2284,7 +2284,7 @@ export function obfree(obj, merge, player) {
     }
   }
   if (!shkp) shkp = shop_keeper( player.ushops);
-  if ((bp = onbill(obj, shkp, false)) !== 0) {
+  if ((bp = onbill(obj, shkp, false)) != null) {
     if (!merge) {
       bp.useup = true;
       obj.unpaid = 0;
@@ -2378,7 +2378,7 @@ export function bp_to_obj(bp) {
 export function unpaid_cost(unp_obj, cost_type, player) {
   let bp =  0, shkp = 0, shop, amt = 0;
   for (shop = player.ushops;  shop; shop++) {
-    if ((shkp = shop_keeper( shop)) !== 0) {
+    if ((shkp = shop_keeper( shop)) != null) {
       if ((bp = onbill(unp_obj, shkp, true))) {
         amt = bp.price;
         if (cost_type !== COST_SINGLEOBJ) { amt *= unp_obj.quan; }
@@ -2426,7 +2426,7 @@ export function stolen_container(obj, shkp, price, ininv) {
     }
     billamt = 0;
     if (!billable( shkp, otmp, ESHK(shkp).shoproom, true)) {
-      if ((bp = onbill(otmp, shkp, false)) === 0) {
+      if ((bp = onbill(otmp, shkp, false)) == null) {
         continue;
       }
       assert(shkp !== null);

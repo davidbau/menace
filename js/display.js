@@ -1244,7 +1244,7 @@ export function show_mon_or_warn(x, y, monglyph, map) {
   let o;
   if (glyph_is_invisible(map.locations[x][y].glyph)) {
     unmap_object(x, y);
-    if (cansee(x, y) && (o = vobj_at(x, y)) !== 0) map_object(o, false);
+    if (cansee(x, y) && (o = vobj_at(x, y)) != null) map_object(o, false);
   }
   show_glyph(x, y, monglyph);
 }

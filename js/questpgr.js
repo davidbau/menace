@@ -139,7 +139,7 @@ export function find_qarti(ochain) {
   let otmp, qarti;
   for (otmp = ochain; otmp; otmp = otmp.nobj) {
     if (is_quest_artifact(otmp)) return otmp;
-    if (Has_contents(otmp) && (qarti = find_qarti(otmp.cobj)) !== 0) return qarti;
+    if (Has_contents(otmp) && (qarti = find_qarti(otmp.cobj)) != null) return qarti;
   }
   return  0;
 }

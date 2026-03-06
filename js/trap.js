@@ -1564,7 +1564,7 @@ export async function cnv_trap_obj(otyp, cnt, ttmp, bury_it, player) {
   }
   newsym(ttmp.tx, ttmp.ty);
   if (player.utrap && u_at(ttmp.tx, ttmp.ty)) await reset_utrap(true);
-  if (((mtmp = m_at(ttmp.tx, ttmp.ty)) !== 0) && mtmp.mtrapped) mtmp.mtrapped = 0;
+  if (((mtmp = m_at(ttmp.tx, ttmp.ty)) != null) && mtmp.mtrapped) mtmp.mtrapped = 0;
   deltrap(ttmp);
 }
 
@@ -1744,7 +1744,7 @@ export async function delfloortrap(ttmp, player) {
     if (u_at(ttmp.tx, ttmp.ty)) {
       if (player.utraptype !== TT_BURIEDBALL) await reset_utrap(true);
     }
-    else if ((mtmp = m_at(ttmp.tx, ttmp.ty)) !== 0) { mtmp.mtrapped = 0; }
+    else if ((mtmp = m_at(ttmp.tx, ttmp.ty)) != null) { mtmp.mtrapped = 0; }
     deltrap(ttmp);
     return true;
   }
@@ -1795,7 +1795,7 @@ export async function trap_ice_effects(x, y, ice_is_melting) {
   let ttmp = t_at(x, y);
   if (ttmp && ice_is_melting) {
     let mtmp;
-    if (((mtmp = m_at(x, y)) !== 0) && mtmp.mtrapped) mtmp.mtrapped = 0;
+    if (((mtmp = m_at(x, y)) != null) && mtmp.mtrapped) mtmp.mtrapped = 0;
     if (ttmp.ttyp === LANDMINE || ttmp.ttyp === BEAR_TRAP) {
       let otyp = (ttmp.ttyp === LANDMINE) ? LAND_MINE : BEARTRAP;
       await cnv_trap_obj(otyp, 1, ttmp, true);

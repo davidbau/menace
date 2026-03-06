@@ -5100,7 +5100,7 @@ export function get_annotation(lev) {
 // Autotranslated from dungeon.c:2482
 export async function print_level_annotation(map) {
   let annotation;
-  if ((annotation = get_annotation(map.uz)) !== 0) await You("remember this level as %s.", annotation);
+  if ((annotation = get_annotation(map.uz)) != null) await You("remember this level as %s.", annotation);
 }
 
 // Autotranslated from dungeon.c:2564

@@ -911,7 +911,7 @@ export async function mbag_item_gone(held, item, silent, player) {
       await You("%s %s disappear!", Blind ? "notice" : "see", doname(item));
     }
   }
-  if ( player.ushops && (shkp = shop_keeper( player.ushops)) !== 0) {
+  if ( player.ushops && (shkp = shop_keeper( player.ushops)) != null) {
     if (held ?  item.unpaid : costly_spot(player.x, player.y)) loss = await stolen_value(item, player.x, player.y,  shkp.mpeaceful, true);
   }
   obfree(item,  0);

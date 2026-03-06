@@ -1678,7 +1678,7 @@ export function mkgold(amount, x, y, map) {
 // Autotranslated from mkobj.c:2126
 export function corpse_revive_type(obj) {
   let revivetype = obj.corpsenm, mtmp;
-  if (has_omonst(obj) && ((mtmp = get_mtraits(obj, false)) !== 0)) { revivetype = mtmp.mnum; }
+  if (has_omonst(obj) && ((mtmp = get_mtraits(obj, false)) != null)) { revivetype = mtmp.mnum; }
   return revivetype;
 }
 
@@ -1897,7 +1897,7 @@ export function obj_nexto_xy(obj, x, y, recurs) {
   for (fx = ex; Math.abs(fx - ex) < 3; fx += dx) {
     for (fy = ey; Math.abs(fy - ey) < 3; fy += dy) {
       if (isok(fx, fy) && (fx !== x || fy !== y)) {
-        if ((otmp = obj_nexto_xy(obj, fx, fy, false)) !== 0) return otmp;
+        if ((otmp = obj_nexto_xy(obj, fx, fy, false)) != null) return otmp;
       }
     }
   }

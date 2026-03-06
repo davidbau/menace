@@ -2125,7 +2125,7 @@ export async function mon_yells(mon, shout, player) {
 // Autotranslated from monmove.c:143
 export async function m_break_boulder(mtmp, x, y, player) {
   let otmp;
-  if (m_can_break_boulder(mtmp) && ((otmp = sobj_at(BOULDER, x, y)) !== 0)) {
+  if (m_can_break_boulder(mtmp) && ((otmp = sobj_at(BOULDER, x, y)) != null)) {
     if (!is_rider(mtmp.data)) {
       if (!(player?.Deaf || player?.deaf || false) && (mdistu(mtmp) < 4*4)) {
         if (canspotmon(mtmp)) set_msg_xy(mtmp.mx, mtmp.my);
@@ -2175,7 +2175,7 @@ export function gelcube_digests(mtmp) {
 // Autotranslated from monmove.c:1157
 export function leppie_stash(mtmp, map) {
   let gold;
-  if (mtmp.data === mons[PM_LEPRECHAUN] && !DEADMONSTER(mtmp) && !m_canseeu(mtmp) && !in_rooms(mtmp.mx, mtmp.my, SHOPBASE) && map.locations[mtmp.mx][mtmp.my].typ === ROOM && !t_at(mtmp.mx, mtmp.my, map) && rn2(4) && (gold = findgold(mtmp.minvent)) !== 0) {
+  if (mtmp.data === mons[PM_LEPRECHAUN] && !DEADMONSTER(mtmp) && !m_canseeu(mtmp) && !in_rooms(mtmp.mx, mtmp.my, SHOPBASE) && map.locations[mtmp.mx][mtmp.my].typ === ROOM && !t_at(mtmp.mx, mtmp.my, map) && rn2(4) && (gold = findgold(mtmp.minvent)) != null) {
     mdrop_obj(mtmp, gold, false);
     gold = g_at(mtmp.mx, mtmp.my);
     if (gold) {

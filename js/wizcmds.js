@@ -617,7 +617,7 @@ export async function you_sanity_check(player) {
     player.uswldtim = 0;
     docrt();
   }
-  if ((mtmp = m_at(player.x, player.y)) !== 0) {
+  if ((mtmp = m_at(player.x, player.y)) != null) {
     if (player.ustuck !== mtmp) impossible("sanity_check: you over monster");
   }
   if (player.hp > player.hpmax) {
