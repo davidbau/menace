@@ -863,6 +863,24 @@ async function apply_dochug_postmove(mon, map, player, display, fov, game, omx, 
     return MMOVE_MOVED;
 }
 
+// Gate-2 structural helper: centralize current JS postmove sequencing used by
+// both pet and non-pet dochug paths, without changing behavior.
+async function run_dochug_postmove_pipeline_current_js(
+    mon, map, player, display, fov, game, omx, omy, { preTrapDig = false } = {}
+) {
+    if (preTrapDig) {
+        const isRogueLevel = !!(map?.flags?.is_rogue || map?.flags?.roguelike || map?.flags?.is_rogue_lev);
+        const can_tunnel = !isRogueLevel && tunnels(mon.data || mon.type || mons[mon.mndx] || {});
+        if (can_tunnel && may_dig(mon.mx, mon.my, map)) {
+            const diedDigging = await mdig_tunnel(mon, map, player);
+            if (diedDigging || mon.dead) {
+                return MMOVE_DIED;
+            }
+        }
+    }
+    return await apply_dochug_postmove(mon, map, player, display, fov, game, omx, omy);
+}
+
 async function mind_blast(mon, map, player, display = null, fov = null) {
     const BOLT_LIM_SQ = BOLT_LIM * BOLT_LIM;
 
@@ -1299,15 +1317,9 @@ async function dochug(mon, map, player, display, fov, game = null) {
             // dog_move returns MMOVE_MOVED even when the dog stays put,
             // so postmov (mdig_tunnel, mintrap, etc.) must always run.
             if (!mon.dead && moveStatus === MMOVE_MOVED) {
-                const isRogueLevel = !!(map?.flags?.is_rogue || map?.flags?.roguelike || map?.flags?.is_rogue_lev);
-                const can_tunnel = !isRogueLevel && tunnels(mon.data || mon.type || mons[mon.mndx] || {});
-                if (can_tunnel && may_dig(mon.mx, mon.my, map)) {
-                    const petDiedDigging = await mdig_tunnel(mon, map, player);
-                    if (petDiedDigging || mon.dead) {
-                        return;
-                    }
-                }
-                const postmoveStatus = await apply_dochug_postmove(mon, map, player, display, fov, game, omx, omy);
+                const postmoveStatus = await run_dochug_postmove_pipeline_current_js(
+                    mon, map, player, display, fov, game, omx, omy, { preTrapDig: true }
+                );
                 if (postmoveStatus === MMOVE_DIED) {
                     return;
                 }
@@ -1333,7 +1345,9 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 moveStatus = await m_move(mon, map, player, display, fov);
                 const movedThisTurn = !mon.dead && (mon.mx !== omx || mon.my !== omy);
                 if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
-                    const postmoveStatus = await apply_dochug_postmove(mon, map, player, display, fov, game, omx, omy);
+                    const postmoveStatus = await run_dochug_postmove_pipeline_current_js(
+                        mon, map, player, display, fov, game, omx, omy
+                    );
                     if (postmoveStatus === MMOVE_DIED) {
                         trapDied = true;
                         moveStatus = MMOVE_DIED;
@@ -1826,26 +1840,13 @@ async function m_move(mon, map, player, display = null, fov = null) {
         }
     }
 
-    if (nix !== omx || niy !== omy) {
-        // C ref: monmove.c:2026 — m_digweapon_check: if tunneling monster needs to wield
-        // its pick before digging, it wields it and returns MMOVE_DONE (no movement this turn).
-        if ((allowflags & ALLOW_DIG) && await m_digweapon_check(mon, nix, niy, map, player, display, fov)) {
-            return MMOVE_DONE;
-        }
-
-        // C ref: monmove.c:2065 — mon_track_add(mtmp, omx, omy)
-        mon_track_add(mon, omx, omy);
-        // C ref: monmove.c m_move() remove/place only updates monster grid.
-        // Visible redraw happens in postmov() around mintrap/newsym ordering.
-        mon.mx = nix;
-        mon.my = niy;
-
+    async function m_move_apply_moved_effects_current_order() {
         // C ref: monmove.c:1704 (postmov) — maybe_spin_web called AFTER position update (at new cell).
         if (!mon.dead) await maybe_spin_web(mon, map);
 
         // C ref: postmov() line 1658 — if can_tunnel && may_dig, call mdig_tunnel.
         // Return MMOVE_DIED only when mdig_tunnel reports actual monster death.
-        if ((allowflags & ALLOW_DIG) && may_dig(nix, niy, map)) {
+        if ((allowflags & ALLOW_DIG) && may_dig(mon.mx, mon.my, map)) {
             const monsterDied = await mdig_tunnel(mon, map, player);
             if (monsterDied || mon.dead) return MMOVE_DIED;
         }
@@ -1866,6 +1867,27 @@ async function m_move(mon, map, player, display = null, fov = null) {
                     }
                 }
             }
+        }
+        return MMOVE_MOVED;
+    }
+
+    if (nix !== omx || niy !== omy) {
+        // C ref: monmove.c:2026 — m_digweapon_check: if tunneling monster needs to wield
+        // its pick before digging, it wields it and returns MMOVE_DONE (no movement this turn).
+        if ((allowflags & ALLOW_DIG) && await m_digweapon_check(mon, nix, niy, map, player, display, fov)) {
+            return MMOVE_DONE;
+        }
+
+        // C ref: monmove.c:2065 — mon_track_add(mtmp, omx, omy)
+        mon_track_add(mon, omx, omy);
+        // C ref: monmove.c m_move() remove/place only updates monster grid.
+        // Visible redraw happens in postmov() around mintrap/newsym ordering.
+        mon.mx = nix;
+        mon.my = niy;
+
+        const movedEffectsStatus = await m_move_apply_moved_effects_current_order();
+        if (movedEffectsStatus === MMOVE_DIED) {
+            return MMOVE_DIED;
         }
         return MMOVE_MOVED;
     }

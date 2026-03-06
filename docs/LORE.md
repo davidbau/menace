@@ -3073,3 +3073,17 @@ hard-won wisdom:
 - This is a fundamental rendering model difference, not a game logic bug.
 - The monsterShownOnMap() enhancement to check senseMonsterForMap() is correct
   C parity but doesn't fix this case since the player lacks detection abilities.
+
+## Lesson: Gate-2 postmov refactors need explicit A/B parity proof
+
+- For issue #260, we extracted postmove flow into named helpers in `js/monmove.js`
+  to prepare a faithful C ordering port:
+  - `run_dochug_postmove_pipeline_current_js(...)` for pet/non-pet `dochug` paths.
+  - `m_move_apply_moved_effects_current_order(...)` for moved-cell effects.
+- Requirement: Gate-2 is structure-only. Any refactor must prove no parity drift.
+- Reliable method: stash patch, run target seeds on baseline commit, pop patch, rerun,
+  and compare first-divergence signatures.
+- A/B result for seeds `325`, `327`, `328` was identical after extraction:
+  - seed325 first RNG divergence remains step `238`
+  - seed327 first RNG divergence remains step `390`
+  - seed328 remains RNG/event full-match with first divergence in screen channel at step `231`
