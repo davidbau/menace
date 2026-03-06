@@ -2,7 +2,7 @@
 
 *You feel a strange vibration under your feet.*
 
-NetHack is one of the most complex single-player games ever made — a procedurally
+NetHack is one of the most complex single-player games ever made: a procedurally
 generated dungeon RPG with 38 years of accumulated rules, running in 80 columns of
 ASCII text. This is a faithful JavaScript port, playable in any modern browser.
 Open the page, pick a role, descend.
@@ -250,12 +250,12 @@ The DevTeam anticipated this. NetHack has a clean windowing abstraction layer
 cross-compilation via Emscripten. An Emscripten-compiled NetHack in the browser
 is a real possibility the DevTeam has in mind.
 
-This project takes a different path: porting the game logic directly to JavaScript.
-The result is readable, debuggable, and hackable in any browser devtools — no WASM
-toolchain, no binary blob. It also allows a natural async/await game loop that maps
-cleanly onto the browser's event model. The tradeoff is faithfulness by construction
-rather than faithfulness by compilation: every behavior must be deliberately ported,
-which is both the hard part and the point.
+Mazes of Menace takes a different path: porting the game logic directly to JavaScript.
+The result is readable, debuggable, and hackable in any browser devtools, with no
+WASM toolchain and no binary blob. It also allows a natural async/await game loop
+that maps cleanly onto the browser's event model. The tradeoff is faithfulness by
+construction rather than faithfulness by compilation: every behavior must be
+deliberately ported, which is both the hard part and the point.
 
 ---
 
@@ -276,7 +276,7 @@ is: *"The DevTeam thinks of everything."*
 
 **The lineage.** NetHack descends from *Hack*, written by Jay Fenlason in 1981–1982
 as a student at Lincoln-Sudbury Regional High School in Massachusetts, inspired by
-*Rogue* (1980) — the game that originated the roguelike genre. Andries Brouwer, a
+*Rogue* (1980), the game that originated the roguelike genre. Andries Brouwer, a
 Dutch mathematician at CWI Amsterdam, obtained the code, substantially rewrote it,
 and posted *Hack 1.0* to Usenet in December 1984. The response was so overwhelming
 that Gene Spafford had to create a dedicated newsgroup just to handle the traffic.
@@ -304,28 +304,24 @@ The DevTeam thinks of everything — except telling you when.
 
 *You hear a low buzzing.*
 
-**Royal Jelly** is the codename of this project: a faithful, vibe-coded JavaScript
-port of NetHack 3.7.0, built to ship the day the official release drops. The name
-refers to this port — the sweet output of The Hive — not to the official 3.7.0
-release itself, which has no codename.
+**Royal Jelly** is the codename of this project. The name refers to the port itself,
+the sweet output of The Hive. The 3.7.0 release has no codename of its own.
 
-In February 2025, Andrej Karpathy coined the term **"vibe coding"**: describe what
-you want to an AI, accept its code without reading the diffs, paste error messages
-back when things break, see what happens. By early 2026 the approach had matured
-into what Karpathy calls **"agentic engineering"** — the same core idea, but with
-more structure, more oversight, and the recognition that orchestrating AI agents
-to produce real software is itself *"an art and science and expertise."*
+In February 2025, Andrej Karpathy coined the term *vibe coding*: describe what you
+want to an AI, accept the output without reading the diffs, paste errors back when
+things break. By 2026 the approach had acquired more structure and a more serious
+name — *agentic engineering* — along with the recognition that directing AI agents
+to produce real software requires genuine skill and judgment.
 
-This project is a test of that proposition at scale. Can AI agents, directed by a
-human, produce a faithful port of one of the most complex single-player codebases
-in gaming history? Not a toy demo or a weekend throwaway, but a real, playable,
-parity-correct reimplementation — 175,000+ lines of readable JavaScript that match
-NetHack's behavior down to the random number generator?
+Mazes of Menace is a test of that claim. The question was whether AI agents, with
+human direction, could produce a faithful port of one of the most complex codebases
+in gaming history: not a prototype, but a real, playable, parity-correct
+reimplementation that matches NetHack's behavior down to the random number generator.
 
-The entire codebase — 141 JavaScript modules, 2,400+ passing unit tests, 156
-golden C-comparison sessions, and a suite of Python harness scripts — was produced
-through natural-language conversation with AI agents. The human provided direction
-and taste; the agents wrote the code, tests, and documentation.
+So far, yes. The codebase — 141 JavaScript modules, 2,400+ passing unit tests, 156
+golden C-comparison sessions — was written through natural-language conversation
+with AI agents. The human set direction; the agents wrote the code, tests, and
+documentation.
 
 ---
 
