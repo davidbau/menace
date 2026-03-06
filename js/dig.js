@@ -62,7 +62,7 @@ import {
     is_pool, is_lava, is_pool_or_lava, is_moat, is_ice,
     is_drawbridge_wall, find_drawbridge, destroy_drawbridge,
 } from './dbridge.js';
-import { deltrap } from './dungeon.js';
+import { deltrap, Can_dig_down } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END } from './const.js';
 import { TT_NONE, TT_PIT, TT_WEB, TT_BURIEDBALL } from './const.js';
@@ -443,9 +443,8 @@ export function dighole(pit_only, by_magic, cc, map, player) {
     const old_typ = lev.typ;
     let retval = false;
 
-    // C: dig_check(BY_YOU, dig_x, dig_y) — simplified
-    // nohole = can't dig down on this level
-    const nohole = false; // TODO: Can_dig_down check
+    // C ref: nohole = !Can_dig_down(&u.uz) && !levl[dig_x][dig_y].candig
+    const nohole = !Can_dig_down(map) && !lev.candig;
 
     if (is_pool_or_lava(dig_x, dig_y, map)) {
         // C: "The water/lava sloshes furiously..."
@@ -714,6 +713,7 @@ export async function zap_dig(map, player) {
     let zx = u.x + (u.dx || 0);
     let zy = u.y + (u.dy || 0);
     let shopdoor = false, shopwall = false;
+    let razedVisibleDoor = false;
     let trap_with_u = null;
     let diridx = 8;
     let pitdig = false;
@@ -775,11 +775,16 @@ export async function zap_dig(map, player) {
                     break;
                 }
             } else if (closed_door(zx, zy, map) || room.typ === SDOOR) {
+                const wasSdoor = (room.typ === SDOOR);
                 if (in_rooms_shopbase(zx, zy, map)) {
                     add_damage(zx, zy, 400, map, _gstate?.moves || 0);
                     shopdoor = true;
                 }
-                if (room.typ === SDOOR) room.typ = DOOR;
+                if (wasSdoor) {
+                    room.typ = DOOR;
+                } else {
+                    razedVisibleDoor = !!cansee(map, player, _gstate?.fov || null, zx, zy);
+                }
                 watch_dig(null, zx, zy, true, map);
                 room.flags = D_NODOOR;
                 recalc_block_point(zx, zy);
@@ -843,8 +848,9 @@ export async function zap_dig(map, player) {
                 }
                 unblock_point(zx, zy);
             }
-            if (room.typ === DOOR && cansee(map, player, _gstate?.fov || null, zx, zy)) {
+            if (razedVisibleDoor) {
                 _gstate?.display?.putstr_message?.('The door is razed!');
+                razedVisibleDoor = false;
             }
 
             newsym(zx, zy);
