@@ -330,10 +330,9 @@ export function rnl(x, luck = 0) {
         adjustment = Math.floor((Math.abs(adjustment) + 1) / 3) * Math.sign(adjustment);
     }
     let i = RND(x);
-    // C rnl() consumes this gate via rn2(), but C RNG logs do not expose
-    // that internal helper call as a separate rn2 entry. Use raw RND()
-    // here to preserve PRNG state without creating an extra logged event.
-    if (adjustment && RND(37 + Math.abs(adjustment))) {
+    // C rnl() consumes this gate via rn2(), which the C harness logs as
+    // a separate rn2 entry. Use rn2() here to match.
+    if (adjustment && rn2(37 + Math.abs(adjustment))) {
         i -= adjustment;
         if (i < 0) i = 0;
         else if (i >= x) i = x - 1;
