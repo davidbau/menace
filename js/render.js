@@ -38,7 +38,7 @@ export {
 // Terrain symbol tables
 // C ref: dat/symbols (ASCII and DECgraphics symsets)
 // ============================================================================
-export const TERRAIN_SYMBOLS_ASCII = {
+const TERRAIN_SYMBOLS_ASCII = {
     [STONE]:          { ch: ' ',   color: CLR_GRAY },
     [VWALL]:          { ch: '|',   color: CLR_GRAY },
     [HWALL]:          { ch: '-',   color: CLR_GRAY },
@@ -78,7 +78,7 @@ export const TERRAIN_SYMBOLS_ASCII = {
 
 // DECgraphics terrain symbols (box-drawing characters)
 // C ref: dat/symbols DECgraphics symset
-export const TERRAIN_SYMBOLS_DEC = {
+const TERRAIN_SYMBOLS_DEC = {
     [STONE]:          { ch: ' ',       color: CLR_GRAY },
     [VWALL]:          { ch: '\u2502',  color: CLR_GRAY },   // BOX VERT
     [HWALL]:          { ch: '\u2500',  color: CLR_GRAY },   // BOX HORIZ

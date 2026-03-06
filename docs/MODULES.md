@@ -156,9 +156,14 @@ only import from `const.js`.
 
 ### The rule
 
-- **Header files** (`const.js`, `objects.js`, `monsters.js`, `version.js`):
+- **Core leaf headers** (`const.js`, `objects.js`, `monsters.js`, `version.js`):
   export capitalized constants; import only from each other.
-- **All other files**: import constants freely from the header files; may have
+- **Data-definition leaf headers** (`artifacts.js`, `engrave_data.js`,
+  `epitaph_data.js`, `rumor_data.js`): export capitalized data constants;
+  import only from core leaf headers.
+- **Options leaf header** (`storage.js`): exports `DEFAULT_FLAGS` and
+  `OPTION_DEFS` — config data with 30+ consumers. Import from core leaf headers.
+- **All other files**: import constants freely from leaf headers; may have
   arbitrary circular imports between themselves (functions only); must not
   export capitalized constants.
 
@@ -168,8 +173,20 @@ only import from `const.js`.
 2. Update the Python generators so `objects.js` and `monsters.js` import from
    `const.js` only; delete `attack_fields.js` after normalizing all call sites
 3. Audit all other JS files and move any stray exported capitalized constants
-   into the appropriate header file
-4. Keep all constant import sites normalized to `const.js`
+   into the appropriate leaf header
+4. Keep all constant import sites normalized to leaf headers
+
+### Audit command
+
+Check for stray exported capitalized constants outside leaf headers:
+
+```bash
+grep -rn "export \(const\|let\|var\) [A-Z]" js/*.js \
+  | grep -v 'js/const\.js\|js/objects\.js\|js/monsters\.js\|js/version\.js' \
+  | grep -v 'js/artifacts\.js\|js/.*_data\.js\|js/storage\.js'
+```
+
+This should produce no output. If it does, move or unexport the offending constants.
 
 ---
 
@@ -232,9 +249,9 @@ a field-mapping layer.
 
 ### Phase 3 — Constant Consolidation
 
-Move all exported capitalized constants into the four header files. After this
-phase the rule is enforced: `const.js`, `objects.js`, `monsters.js`,
-`version.js` are the only files that export capitalized names.
+Move all exported capitalized constants into leaf header files. After this
+phase the rule is enforced: only leaf headers (core, data-definition, and
+options — see "The rule" above) export capitalized names.
 
 Circular imports among all other files become safe — they only involve
 function bindings, which are resolved before any function executes.

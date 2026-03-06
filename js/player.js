@@ -413,7 +413,7 @@ export function initialAlignmentRecordForRole(roleIndex) {
 
 // Lore text template -- from quest.lua
 // Substitutions: %d=deity name, %G=god/goddess, %r=rank title
-export const LORE_TEXT_TEMPLATE = `It is written in the Book of %d:
+const LORE_TEXT_TEMPLATE = `It is written in the Book of %d:
 
     After the Creation, the cruel god Moloch rebelled
     against the authority of Marduk the Creator.

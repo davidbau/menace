@@ -429,6 +429,18 @@ export const GEHENNOM = 5;
 export const VLADS_TOWER = 6;
 export const TUTORIAL = 8;
 
+// C ref: dungeon.c init_dungeons() -> svd.dungeons[dnum].flags.align
+export const DUNGEON_ALIGN_BY_DNUM = {
+    [DUNGEONS_OF_DOOM]: A_NONE,
+    [GNOMISH_MINES]: A_LAWFUL,
+    [SOKOBAN]: A_NEUTRAL,
+    [QUEST]: A_NONE,
+    [KNOX]: A_NONE,
+    [GEHENNOM]: A_NONE,
+    [VLADS_TOWER]: A_CHAOTIC,
+    [TUTORIAL]: A_NONE,
+};
+
 // Role/race selection sentinels and chooser policy (src/role.c)
 // Runtime fields:
 // - flags.initrole/initrace/initgend/initalign unresolved-state sentinels

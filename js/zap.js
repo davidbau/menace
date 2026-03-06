@@ -103,7 +103,7 @@ import {
     tmp_at, nh_delay_output,
 } from './animation.js';
 import { DISP_BEAM, DISP_END } from './const.js';
-import { WIN_MESSAGE, display_nhwindow } from './windows.js';
+import { getWinMessage, display_nhwindow } from './windows.js';
 import { attach_egg_hatch_timeout } from './timeout.js';
 import { impossible, You_feel } from './pline.js';
 import { acurr } from './attrib.js';
@@ -1846,7 +1846,7 @@ export async function do_enlightenment_effect(player = null, display = null, gam
   } else {
     await pline('You feel self-knowledgeable...');
   }
-  await display_nhwindow(WIN_MESSAGE, false);
+  await display_nhwindow(getWinMessage(), false);
   if (game) await run_magic_enlightenment_effect(game);
   if (display?.putstr_message) {
     await display.putstr_message('The feeling subsides.');

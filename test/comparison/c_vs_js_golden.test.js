@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
     generateMapsSequential, extractTypGrid, compareGrids, formatDiffs,
-    typName, TYP_NAMES,
+    typName,
 } from './session_helpers.js';
 
 const __filename = fileURLToPath(import.meta.url);

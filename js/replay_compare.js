@@ -64,7 +64,7 @@ export function getSessionScreenAnsiLines(screenHolder) {
 // Terrain type names and grid comparison
 // ---------------------------------------------------------------------------
 
-export const TYP_NAMES = [
+const TYP_NAMES = [
     'STONE', 'VWALL', 'HWALL', 'TLCORNER', 'TRCORNER', 'BLCORNER',
     'BRCORNER', 'CROSSWALL', 'TUWALL', 'TDWALL', 'TLWALL', 'TRWALL',
     'DBWALL', 'TREE', 'SDOOR', 'SCORR', 'POOL', 'MOAT', 'WATER',

@@ -24,7 +24,6 @@ export {
 } from '../../js/replay_core.js';
 
 export {
-    TYP_NAMES,
     typName,
     parseTypGrid,
     parseSessionTypGrid,

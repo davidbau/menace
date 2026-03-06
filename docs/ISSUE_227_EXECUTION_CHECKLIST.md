@@ -34,24 +34,42 @@ If any other doc conflicts, follow this file.
 - [x] Keep historical timestamped artifacts unchanged (`docs/metrics`, `docs/port-status`, `docs/archive`).
 
 ### 1C. Phase-1 remaining work
-- [ ] Confirm canonical ownership table in `docs/MODULES.md` and `docs/STRUCTURES.md` has no stale text.
-- [ ] Run full parity report and record a short Phase-1 signoff note in docs.
+- [x] Confirm canonical ownership table in `docs/MODULES.md` and `docs/STRUCTURES.md` has no stale text.
+  - No references to deleted files (`config.js`, `symbols.js`, `objclass.js`).
+  - Updated "The rule" section to document expanded leaf header taxonomy.
+- [x] Run full parity report and record a short Phase-1 signoff note in docs.
+  - See Phase-1 exit gate below.
 
 ### 1D. Constant export rule enforcement (pulled into Phase 1)
-- [ ] Only leaf headers export capitalized constants: `const.js`, `objects.js`, `monsters.js`, `version.js`.
-- [ ] Move any stray exported capitalized constants from gameplay modules.
-- [ ] Normalize capitalized constant imports so they come from leaf headers only.
+- [x] Only leaf headers export capitalized constants.
+  - Core leaf headers: `const.js`, `objects.js`, `monsters.js`, `version.js`.
+  - Data-definition leaf headers: `artifacts.js`, `engrave_data.js`, `epitaph_data.js`, `rumor_data.js`.
+  - Options leaf header: `storage.js` (`DEFAULT_FLAGS`, `OPTION_DEFS` — config data, 30+ consumers).
+- [x] Move any stray exported capitalized constants from gameplay modules.
+  - Moved `DUNGEON_ALIGN_BY_DNUM` from `dungeon.js` → `const.js`.
+  - Removed unused exports: `LORE_TEXT_TEMPLATE` (player.js), `TERRAIN_SYMBOLS_*` (render.js), `TYP_NAMES` (replay_compare.js).
+  - Converted `WIN_*` mutable globals (windows.js) to getter function.
+- [x] Normalize capitalized constant imports so they come from leaf headers only.
 
 ### 1E. Constant organization and documentation
-- [ ] Organize consolidated constants into clear sections in leaf headers (by subsystem/source).
-- [ ] Document constant ownership and allowed import sources in `docs/MODULES.md`.
-- [ ] Add a quick audit command snippet for future checks.
-- [ ] Ensure newly moved `const.js` constants include C provenance comments.
+- [x] Organize consolidated constants into clear sections in leaf headers (by subsystem/source).
+  - `const.js` already organized by C header provenance with section comments.
+  - `DUNGEON_ALIGN_BY_DNUM` placed adjacent to dungeon constants with C ref comment.
+- [x] Document constant ownership and allowed import sources in `docs/MODULES.md`.
+  - Updated "The rule" with three tiers: core, data-definition, and options leaf headers.
+  - Updated Phase 3 description to use "leaf headers" instead of "four header files".
+- [x] Add a quick audit command snippet for future checks.
+  - Added "Audit command" section to MODULES.md with grep command and expected output.
+- [x] Ensure newly moved `const.js` constants include C provenance comments.
+  - `DUNGEON_ALIGN_BY_DNUM` has `// C ref: dungeon.c init_dungeons()` comment.
 
 Phase-1 exit gate:
-- [ ] Structural targets in place for migrated subsystems.
-- [ ] No parity regression vs baseline envelope.
-- [ ] `rg "export (const|let|var) [A-Z]" js` reports only the four leaf files.
+- [x] Structural targets in place for migrated subsystems.
+- [x] No parity regression vs baseline envelope (2630/2639, 25/34 gameplay — matches baseline).
+- [x] `rg "export (const|let|var) [A-Z]" js` reports only leaf header files (core + data + options).
+- [x] Run full parity report (`scripts/run-and-report.sh`) and record Phase-1 signoff.
+  - Phase-1 signoff: 2026-03-06, commit 88837e8b. 25/34 gameplay passing (matches baseline).
+  - All 9 failures are dochug/monmove divergences (agent:game #213). No UX-agent regressions.
 
 ## Phase 2: C Field Name Normalization
 

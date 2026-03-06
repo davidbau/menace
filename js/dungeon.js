@@ -28,7 +28,7 @@ import {
     MKTRAP_NOFLAGS, MKTRAP_SEEN, MKTRAP_MAZEFLAG, MKTRAP_NOSPIDERONWEB, MKTRAP_NOVICTIM,
     PM_ARCHEOLOGIST as ROLE_ARCHEOLOGIST, PM_WIZARD as ROLE_WIZARD,
     PM_PRIEST as ROLE_PRIEST,
-    A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
+    A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, DUNGEON_ALIGN_BY_DNUM,
     MM_NOGRP, FILL_NONE, FILL_NORMAL, RUMOR_PAD_LENGTH, RANDOM_CLASS, TAINT_AGE,
     XLIM, YLIM,
 } from './const.js';
@@ -245,18 +245,6 @@ export function leaveMklevContext() {
     setMakemonInMklevContext(false);
     setMklevObjectContext(false);
 }
-
-// C ref: dungeon.c init_dungeons() -> svd.dungeons[dnum].flags.align
-export const DUNGEON_ALIGN_BY_DNUM = {
-    [DUNGEONS_OF_DOOM]: A_NONE,
-    [GNOMISH_MINES]: A_LAWFUL,
-    [SOKOBAN]: A_NEUTRAL,
-    [QUEST]: A_NONE,
-    [KNOX]: A_NONE,
-    [GEHENNOM]: A_NONE,
-    [VLADS_TOWER]: A_CHAOTIC,
-    [TUTORIAL]: A_NONE,
-};
 
 // C ref: dungeon.c induced_align(int pct)
 // JS returns aligntyp (-1/0/1), not an AM_* bitmask.

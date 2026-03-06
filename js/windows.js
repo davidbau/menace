@@ -10,7 +10,9 @@ import {
 } from './const.js';
 
 // Window ID globals (mirrors decl.c WIN_MESSAGE / WIN_MAP etc.)
-export let WIN_MESSAGE, WIN_STATUS, WIN_MAP, WIN_INVEN, BASE_WINDOW;
+let WIN_MESSAGE, WIN_STATUS, WIN_MAP, WIN_INVEN, BASE_WINDOW;
+
+export function getWinMessage() { return WIN_MESSAGE; }
 
 // --- Internal module state ---
 const MAXWIN = 20;
