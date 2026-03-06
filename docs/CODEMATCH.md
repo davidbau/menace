@@ -105,11 +105,11 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[N/A]` | nhlsel.c | — | Lua selection bindings (l_selection_*). All ~40 functions wrap selvar.c for Lua; JS port uses the `selection` object exported from sp_lev.js directly |
 | `[N/A]` | nhlua.c | — | Lua interpreter integration |
 | `[N/A]` | nhmd4.c | — | MD4 hash implementation |
-| `[a]` | o_init.c | o_init.js | Object class initialization. Core shuffle functions aligned; setgemprobs, obj_shuffle_range, objdescr_is added; discovery functions in `discovery.js` |
+| `[a]` | o_init.c | o_init.js | Object class initialization. Core shuffle functions aligned; setgemprobs, obj_shuffle_range, objdescr_is added; discovery handlers now in `o_init.js` (`handleDiscoveries`) and `do_name.js` (`handleCallObjectTypePrompt`) |
 | `[a]` | objects.c | objects.js | Object data tables. objects.js is auto-generated from objects.h (same source as C); objects_globals_init implicit in module load |
 | `[p]` | objnam.c | objnam.js | Object naming/wishing now covers xname/doname/makeplural/makesingular/readobjnam plus helper symbol set (fruit lookup, safe_qbuf, wallprop/terrain hooks, readobjnam pre/postparse wrappers). Remaining parity gaps: full wiz terrain wish behavior and precise C fruit-chain semantics |
-| `[~]` | options.c | options.js | Game options. JS: options.js (data), options_menu.js (handleSet UI) |
-| `[~]` | pager.c | pager.js + look.js | Text pager and look/describe commands. `pager.js` handles menu/history/help wrappers (`dohelp`/`dowhatdoes`/`dohistory`/`doprev_message`/`doterrain`) and routes `:` through shared look core. `look.js` now hosts shared reduced-structure ports of `do_look()` and `do_screen_description()` used by `:` and display hover metadata. Remaining full `do_look` menu/cursor flows (`/`, `;`, lookat, waterbody_name, checkfile/supplemental info) still partial |
+| `[~]` | options.c | options.js | Game options. JS: `options.js` now owns both data and `handleSet` UI flow |
+| `[~]` | pager.c | pager.js | Text pager and look/describe commands. `pager.js` handles menu/history/help wrappers (`dohelp`/`dowhatdoes`/`dohistory`/`doprev_message`/`doterrain`) and now owns `do_look()` / `do_screen_description()` / `dowhatis()` / `doquickwhatis()`. Remaining full `do_look` menu/cursor flows (`/`, `;`, lookat, waterbody_name, checkfile/supplemental info) still partial |
 | `[a]` | pickup.c | pickup.js | Picking up items. handlePickup/handleLoot/handlePay/handleTogglePickup (dopickup/doloot/dopay/dotogglepickup); pay is a stub; ~50 functions TODO |
 | `[a]` | pline.c | pline.js | Message output. pline, custompline, vpline, Norep, urgent_pline, raw_printf, vraw_printf, impossible, livelog_printf, gamelog_add, verbalize, You/Your/You_feel/You_cant/You_hear/You_see/pline_The/There, pline_dir/pline_xy/pline_mon, set_msg_dir/set_msg_xy, dumplogmsg/dumplogfreemessages, execplinehandler, nhassert_failed, You_buf/free_youbuf all implemented. putmesg semantics handled via setOutputContext |
 | `[~]` | polyself.c | polyself.js | Polymorphing |
@@ -125,7 +125,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[~]` | restore.c | restore.js | Game state restoration. All functions N/A (JS uses storage.js/IndexedDB with different format) |
 | `[a]` | rip.c | display.js | RIP screen. genl_outrip as Display.renderTombstone (method); center() inlined |
 | `[x]` | rnd.c | rng.js | Random number generation |
-| `[~]` | role.c | role.js | Role/race/gender/alignment selection. roles[] data in player.js (includes hpadv/enadv_full/xlev structs for all roles, hpadv/enadv for all races); ok_role/ok_race/ok_align PARTIAL in chargen.js; role_init PARTIAL in chargen.js+u_init.js; Hello() in player.js; all others TODO |
+| `[~]` | role.c | role.js | Role/race/gender/alignment selection. roles[]/races[] data now in `role.js` (includes hpadv/enadv_full/xlev structs for all roles, hpadv/enadv for all races) and re-exported by `player.js`; ok_role/ok_race/ok_align PARTIAL in chargen.js; role_init PARTIAL in chargen.js+u_init.js; Hello() in player.js; all others TODO |
 | `[~]` | rumors.c | rumors.js | Rumor/oracle/CapitalMon system. JS: `rumor_data.js` (data); unpadline/init_rumors/get_rnd_line in `hacklib.js`; getrumor inlined in `dungeon.js`; outoracle/doconsult/CapitalMon TODO |
 | `[~]` | save.c | save.js | Game state serialization. N/A (JS uses storage.js/IndexedDB); handleSave in storage.js. `freedynamicdata()` now calls `tmp_at(DISP_FREEMEM,0)` to mirror C display cleanup hook |
 | `[a]` | selvar.c | — | Selection geometry. JS: `selection` object in `sp_lev.js`. All major geometry functions aligned including ellipse/gradient/is_irregular/size_description |
@@ -176,9 +176,10 @@ don't follow the same 1:1 C→JS mapping pattern.
 - **Needs alignment (`[~]`)**: 43
 - **No JS file yet (`[ ]`)**: 0
 
-### JS Files Without C Counterparts
+### JS Files With Non-Strict C Mapping
 
-These JS files don't directly correspond to a single C file:
+These JS files are infrastructure or intentionally split/aggregated relative to
+the C layout (not strict 1:1 modules):
 
 | JS File | Purpose | C Counterparts |
 |---------|---------|----------------|
@@ -189,7 +190,6 @@ These JS files don't directly correspond to a single C file:
 | cmd.js | Command dispatch | cmd.c |
 | const.js | Game configuration | decl.c, options.c |
 | delay.js | Delay/animation timing | None (JS-only) |
-| discovery.js | Object identification, handleDiscoveries, handleCallObjectTypePrompt | o_init.c, invent.c |
 | display_rng.js | Display-layer RNG | rnd.c |
 | engrave_data.js | Engraving text data | engrave.c |
 | epitaph_data.js | Epitaph text data | engrave.c |
@@ -204,8 +204,7 @@ These JS files don't directly correspond to a single C file:
 | monsters.js | Monster data tables | monst.c |
 | nethack.js | Browser entry point: reads URL params, wires Display+input to NetHackGame, registers window APIs | sys/unix/nethack.c (platform main) |
 | objdata.js | Object property queries | objnam.c, mkobj.c |
-| options_menu.js | Options UI and handleSet | options.c |
-| player.js | Player state and roles | role.c, decl.c |
+| player.js | Player state runtime (roles/races sourced from role.js) | decl.c, role.c |
 | replay_core.js | Session replay/comparison | None (JS-only, test infra). Records per-step animation delay-boundary snapshots (`animationBoundaries`) in parallel with RNG/screen/event metrics |
 | rumor_data.js | Rumor text data | rumors.c |
 | special_levels.js | Special level registry | sp_lev.c, extralev.c |
@@ -2012,7 +2011,7 @@ This section is generated from source symbol tables and includes function rows f
 | 4086 | `maybe_wail` | hack.js:maybe_wail | Implemented (partial) — role/race gates and intrinsic-power warning split |
 | 4444 | `money_cnt` | - | Missing |
 | 90 | `monst_to_any` | hack.js:monst_to_any | Implemented |
-| 3991 | `monster_nearby` | monutil.js:monsterNearby | Aligned |
+| 3991 | `monster_nearby` | hack.js:monsterNearby | Aligned |
 | 3351 | `monstinroom` | - | Missing |
 | 2567 | `move_out_of_bounds` | - | Missing |
 | 3473 | `move_update` | - | Missing |
@@ -2903,10 +2902,10 @@ No function symbols parsed from isaac64.c.
 | 4824 | `mon_animal_list` | - | Missing |
 | 1708 | `mon_give_prop` | mon.js | Implemented — grant intrinsic property to monster |
 | 1760 | `mon_givit` | mon.js | Implemented — give intrinsics from eaten corpse |
-| 2678 | `mon_leaving_level` | monutil.js | Partial — unstuck() called from mondead, mtrapped clearing; Missing: worm removal, mswallower display, mimic unhide, newsym |
+| 2678 | `mon_leaving_level` | mon.js | Partial — unstuck() called from mondead, mtrapped clearing; Missing: worm removal, mswallower display, mimic unhide, newsym |
 | 240 | `mon_sanity_check` | - | Missing |
 | 3743 | `mon_to_stone` | - | Missing |
-| 3077 | `mondead` | monutil.js + mon.js:mondead_full | Partial in monutil.js (basic death); mondead_full in mon.js adds lifesaved_monster, m_detach, corpse drops. Still missing: vamprises, steam vortex gas cloud, Kop respawn, chameleon/lycanthrope revert, mvitals tracking |
+| 3077 | `mondead` | mon.js:mondead + mon.js:mondead_full | Partial in mon.js; mondead_full adds lifesaved_monster, m_detach, corpse drops. Still missing: vamprises, steam vortex gas cloud, Kop respawn, chameleon/lycanthrope revert, mvitals tracking |
 | 3249 | `mondied` | mon.js | Implemented — died of own accord, calls mondead + corpse_chance + make_corpse |
 | 3263 | `mongone` | mon.js | Implemented — remove monster without corpse |
 | 3373 | `monkilled` | mon.js | Implemented — killed by non-hero |
@@ -2943,7 +2942,7 @@ No function symbols parsed from isaac64.c.
 | 4260 | `setmangry` | mon.js | Implemented — make peaceful monster hostile |
 | 6051 | `shieldeff_mon` | - | Missing |
 | 399 | `undead_to_corpse` | - | Missing |
-| 3434 | `unstuck` | monutil.js | Implemented — clears player.ustuck, rnd(2) for sticky/engulf/hug monsters; TODO: swallowed-player repositioning + vision recalc (no RNG impact) |
+| 3434 | `unstuck` | mon.js | Implemented — clears player.ustuck, rnd(2) for sticky/engulf/hug monsters; TODO: swallowed-player repositioning + vision recalc (no RNG impact) |
 | 5789 | `usmellmon` | - | Missing |
 | 5008 | `valid_vampshiftform` | - | Missing |
 | 4986 | `validspecmon` | - | Missing |
@@ -3481,7 +3480,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 9221 | `count_apes` | - | Missing |
 | 9209 | `count_cond` | - | Missing |
 | 6688 | `determine_ambiguities` | - | Missing |
-| 8800 | `doset` | options_menu.js:handleSet | APPROX — options menu |
+| 8800 | `doset` | options.js:handleSet | APPROX — options menu |
 | 9048 | `doset_add_menu` | - | Missing |
 | 8722 | `doset_simple` | - | Missing |
 | 8551 | `doset_simple_menu` | - | Missing |
@@ -3711,18 +3710,18 @@ Remaining parity gaps are mostly behavioral depth:
 | 2762 | `dispfile_optmenu` | - | Missing |
 | 2750 | `dispfile_shelp` | - | Missing |
 | 2780 | `dispfile_usagehelp` | - | Missing |
-| 1669 | `do_look` | look.js:do_look | Partial — C-shaped async look core for `/` and `;` with getpos loop + symbol path; full menu/checkfile/supplemental-info branches still TODO |
-| 1246 | `do_screen_description` | look.js:do_screen_description | Partial — monster/object/trap/terrain location description core |
+| 1669 | `do_look` | pager.js:do_look | Partial — C-shaped async look core for `/` and `;` with getpos loop + symbol path; full menu/checkfile/supplemental-info branches still TODO |
+| 1246 | `do_screen_description` | pager.js:do_screen_description | Partial — monster/object/trap/terrain location description core |
 | 2249 | `do_supplemental_info` | - | Missing |
 | 2714 | `docontact` | - | Missing |
 | 2856 | `dohelp` | pager.js:handleHelp | APPROX — help command |
 | 2957 | `dohistory` | pager.js:handleHistory | APPROX — message history |
 | 2332 | `doidtrap` | - | Missing |
 | 2816 | `domenucontrols` | - | Missing |
-| 2325 | `doquickwhatis` | look.js:doquickwhatis | Partial — quick cursor-based glance path |
+| 2325 | `doquickwhatis` | pager.js:doquickwhatis | Partial — quick cursor-based glance path |
 | 2655 | `dowhatdoes` | pager.js:handleWhatdoes | APPROX — key help |
 | 2573 | `dowhatdoes_core` | - | Missing |
-| 2318 | `dowhatis` | look.js:dowhatis | Partial — routed through do_look mode 0 |
+| 2318 | `dowhatis` | pager.js:dowhatis | Partial — routed through do_look mode 0 |
 | 2810 | `hmenu_doextlist` | - | Missing |
 | 2786 | `hmenu_doextversion` | - | Missing |
 | 2792 | `hmenu_dohistory` | - | Missing |
@@ -4989,7 +4988,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 618 | `mpickobj` | - | Missing — full monster pickup with side effects |
 | 689 | `stealamulet` | steal.js:217 | Stub — requires quest artifact tracking |
 | 772 | `maybe_absorb_item` | steal.js:225 | Stub — mimic absorption |
-| 814 | `mdrop_obj` | monutil.js | Partial — uses extract_from_minvent |
+| 814 | `mdrop_obj` | steal.js | Partial — uses extract_from_minvent |
 | 852 | `mdrop_special_objs` | steal.js:234 | Stub — requires obj_resists |
 | 875 | `relobj` | steal.js:243 | Implemented — release all monster inventory to floor |
 
