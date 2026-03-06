@@ -30,6 +30,7 @@ test('gen_constants deferred report JSON shape is stable', () => {
     assert.ok(Array.isArray(report.unknownOwnerBlockers));
     assert.equal(typeof report.immediateMissingCounts, 'object');
     assert.equal(typeof report.rootMissingCounts, 'object');
+    assert.equal(report.details.length, report.deferredCount);
 
     for (const entry of report.details) {
         assert.equal(typeof entry.name, 'string');
@@ -87,4 +88,23 @@ test('generator root-blocker report matches generated const.js export', async ()
         norm(constRootBlockers),
         'generator report rootBlockers must match const.js DEFERRED_HEADER_CONST_ROOT_BLOCKERS',
     );
+});
+
+test('deferred report accounting invariants hold', () => {
+    const report = loadDeferredReport();
+
+    const sum = (arr) => arr.reduce((acc, x) => acc + Number(x), 0);
+    const rootBlockerTotal = sum(report.rootBlockers.map((b) => b.count));
+    const rootMissingTotal = sum(Object.values(report.rootMissingCounts));
+    assert.equal(rootBlockerTotal, rootMissingTotal);
+
+    const ownerSummaryTotal = sum(report.ownerSummary.map((o) => o.count));
+    assert.equal(ownerSummaryTotal, rootBlockerTotal);
+
+    const unknownByOwner = report.rootBlockers
+        .filter((b) => b.ownerHint === 'unknown')
+        .map((b) => b.name)
+        .sort();
+    const unknownDeclared = [...report.unknownOwnerBlockers].sort();
+    assert.deepEqual(unknownDeclared, unknownByOwner);
 });
