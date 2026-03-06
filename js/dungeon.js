@@ -779,7 +779,7 @@ export function br_string(type) {
 
 // Autotranslated from dungeon.c:3379
 export function br_string2(br, player) {
-  let closed_portal = (br.end2.dnum === quest_dnum &player.uevent.qexpelled);
+  let closed_portal = (br.end2.dnum === quest_dnum && player.uevent.qexpelled);
   switch (br.type) {
     case BR_PORTAL:
       return closed_portal ? "Sealed portal" : "Portal";

@@ -1829,7 +1829,7 @@ export async function consume_offering(otmp, player) {
       break;
     }
   }
-  else if (Blind &player.ualign.type === A_LAWFUL) await Your("sacrifice disappears!");
+  else if (Blind && player.ualign.type === A_LAWFUL) await Your("sacrifice disappears!");
   else {
     await Your("sacrifice is consumed in a %s!", (player.ualign.type === A_LAWFUL) ? "flash of light" : (player.ualign.type === A_NEUTRAL) ? "plume of smoke" : "burst of flame");
   }

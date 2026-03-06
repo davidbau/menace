@@ -393,7 +393,7 @@ export function poly_gender(player) {
 // Autotranslated from polyself.c:2143
 export async function ugolemeffects(damtype, dam, game, player) {
   let heal = 0;
-  if (player.umonnum !== PM_FLESH_GOLEM &player.umonnum !== PM_IRON_GOLEM) return;
+  if (player.umonnum !== PM_FLESH_GOLEM && player.umonnum !== PM_IRON_GOLEM) return;
   switch (damtype) {
     case AD_ELEC:
       if (player.umonnum === PM_FLESH_GOLEM) heal = (dam + 5) / 6;
@@ -611,7 +611,7 @@ export function set_uasmon(player) {
 
 // Autotranslated from polyself.c:130
 export function float_vs_flight(game, player) {
-  let stuck_in_floor = (player.utrap &player.utraptype !== TT_PIT);
+  let stuck_in_floor = (player.utrap && player.utraptype !== TT_PIT);
   if ((HLevitation || ELevitation) || ((HFlying || EFlying) && stuck_in_floor)) {
     BFlying |= I_SPECIAL;
   }
