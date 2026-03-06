@@ -15,6 +15,7 @@ const ALLOWED_CAPS_EXPORT_FILES = new Set([
     'monsters.js',
     'objects.js',
     'rumor_data.js',
+    'symbols.js',
     'storage.js',
     'version.js',
 ]);

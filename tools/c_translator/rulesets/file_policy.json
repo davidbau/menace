@@ -3,11 +3,6 @@
   "updated_at": "2026-02-28T21:12:41.613Z",
   "files": [
     {
-      "path": "js/gstate.js",
-      "policy": "manual_only",
-      "reason": "Game state singleton — no C equivalent, JS-only infrastructure."
-    },
-    {
       "path": "js/allmain.js",
       "policy": "mixed",
       "reason": "Contains both translatable core logic and manual boundary code.",
@@ -128,11 +123,6 @@
       "reason": "Runtime/platform/infrastructure boundary; keep manual control."
     },
     {
-      "path": "js/render.js",
-      "policy": "manual_only",
-      "reason": "Shared rendering logic (glyph selection, wall_angle, seenv); display infrastructure shared by display.js and headless.js."
-    },
-    {
       "path": "js/do.js",
       "policy": "auto",
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."
@@ -218,6 +208,11 @@
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."
     },
     {
+      "path": "js/game.js",
+      "policy": "auto",
+      "reason": "C-mapped gameplay module; eligible for rule-driven translation."
+    },
+    {
       "path": "js/getpos.js",
       "policy": "mixed",
       "reason": "Contains both translatable core logic and manual boundary code.",
@@ -227,6 +222,11 @@
       "path": "js/glyphs.js",
       "policy": "auto",
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."
+    },
+    {
+      "path": "js/gstate.js",
+      "policy": "manual_only",
+      "reason": "Game state singleton \u2014 no C equivalent, JS-only infrastructure."
     },
     {
       "path": "js/hack.js",
@@ -290,11 +290,6 @@
     },
     {
       "path": "js/makemon.js",
-      "policy": "auto",
-      "reason": "C-mapped gameplay module; eligible for rule-driven translation."
-    },
-    {
-      "path": "js/game.js",
       "policy": "auto",
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."
     },
@@ -489,14 +484,19 @@
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."
     },
     {
-      "path": "js/replay_core.js",
+      "path": "js/render.js",
       "policy": "manual_only",
-      "reason": "Runtime/platform/infrastructure boundary; keep manual control."
+      "reason": "Shared rendering logic (glyph selection, wall_angle, seenv); display infrastructure shared by display.js and headless.js."
     },
     {
       "path": "js/replay_compare.js",
       "policy": "manual_only",
       "reason": "Test infrastructure: comparison and generation utilities for session tests."
+    },
+    {
+      "path": "js/replay_core.js",
+      "policy": "manual_only",
+      "reason": "Runtime/platform/infrastructure boundary; keep manual control."
     },
     {
       "path": "js/restore.js",
@@ -587,6 +587,11 @@
       "path": "js/storage.js",
       "policy": "manual_only",
       "reason": "Runtime/platform/infrastructure boundary; keep manual control."
+    },
+    {
+      "path": "js/symbols.js",
+      "policy": "manual_only",
+      "reason": "Late-bound symbol/deferred-constant aggregation module used for phase-3 constants architecture experiments."
     },
     {
       "path": "js/teleport.js",
