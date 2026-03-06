@@ -4,10 +4,8 @@
 
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { 
-    DISP_BEAM, DISP_FLASH, DISP_END, DISP_TETHER, BACKTRACK,
-    initAnimations, tmp_at 
-} from '../../js/animation.js';
+import { initAnimations, tmp_at } from '../../js/animation.js';
+import { DISP_BEAM, DISP_FLASH, DISP_END, DISP_TETHER, BACKTRACK } from '../../js/const.js';
 
 // Mock display for testing
 class MockDisplay {

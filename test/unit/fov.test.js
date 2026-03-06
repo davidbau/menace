@@ -4,7 +4,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { COLNO, ROWNO, ROOM, CORR, STONE, HWALL, VWALL } from '../../js/const.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
 import { FOV } from '../../js/vision.js';
 
 // Create a simple map with one lit room

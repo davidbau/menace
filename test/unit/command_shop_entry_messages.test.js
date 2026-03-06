@@ -2,7 +2,7 @@ import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
 import {
     DOOR, CORR, ROOM, D_ISOPEN,
     SHOPBASE, ROOMOFFSET, A_CHA,

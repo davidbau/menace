@@ -4,8 +4,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { initRng } from '../../js/rng.js';
-import { ACCESSIBLE } from '../../js/const.js';
-import { makemon, rndmonnum, NO_MM_FLAGS, MM_ASLEEP, MM_NOGRP, setMakemonPlayerContext, mbirth_limit } from '../../js/makemon.js';
+import { ACCESSIBLE, MM_ASLEEP, NO_MM_FLAGS, MM_NOGRP } from '../../js/const.js';
+import { makemon, rndmonnum, setMakemonPlayerContext, mbirth_limit } from '../../js/makemon.js';
 import { mons, PM_NAZGUL, PM_ERINYS, PM_LEPRECHAUN, PM_LITTLE_DOG } from '../../js/monsters.js';
 import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 

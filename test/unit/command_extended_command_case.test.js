@@ -2,10 +2,10 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
+import { setGame } from '../../js/gstate.js';
 import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput } from '../../js/input.js';
-import { setOutputContext } from '../../js/pline.js';
 import { ALTAR } from '../../js/const.js';
 
 describe('extended command case', () => {
@@ -28,13 +28,15 @@ function makeGame() {
         },
     };
 
-    return {
+    const game = {
         player,
         map,
         display,
         fov: null,
         flags: { verbose: false },
     };
+    setGame(game);
+    return game;
 }
 
 test('extended command unknown feedback preserves typed casing', async () => {
@@ -105,7 +107,6 @@ test('#wipe prints face-clean message and returns tookTime true', async () => {
     clearInputQueue();
     const game = makeGame();
     game.player.ucreamed = 0;
-    setOutputContext(game.display);
     for (const ch of 'wipe') pushInput(ch.charCodeAt(0));
     pushInput('\n'.charCodeAt(0));
 
@@ -118,7 +119,6 @@ test('#wipe prints face-clean message and returns tookTime true', async () => {
 test('#pray shows prayer message', async () => {
     clearInputQueue();
     const game = makeGame();
-    setOutputContext(game.display);
     for (const ch of 'pray') pushInput(ch.charCodeAt(0));
     pushInput('\n'.charCodeAt(0));
 
@@ -135,7 +135,6 @@ test('#pray shows prayer message', async () => {
 test('#turn shows turn-undead message', async () => {
     clearInputQueue();
     const game = makeGame();
-    setOutputContext(game.display);
     for (const ch of 'turn') pushInput(ch.charCodeAt(0));
     pushInput('\n'.charCodeAt(0));
 
@@ -152,7 +151,6 @@ test('#turn shows turn-undead message', async () => {
 test('#dip shows unavailable message', async () => {
     clearInputQueue();
     const game = makeGame();
-    setOutputContext(game.display);
     for (const ch of 'dip') pushInput(ch.charCodeAt(0));
     pushInput('\n'.charCodeAt(0));
 
@@ -210,7 +208,6 @@ test('#chat with no monster at target cell says no one to talk to', async () => 
 test('#offer off altar prints C wording', async () => {
     clearInputQueue();
     const game = makeGame();
-    setOutputContext(game.display);
     for (const ch of 'offer') pushInput(ch.charCodeAt(0));
     pushInput('\n'.charCodeAt(0));
 
@@ -224,7 +221,6 @@ test('#offer off altar prints C wording', async () => {
 test('#offer on altar does not say not-on-altar', async () => {
     clearInputQueue();
     const game = makeGame();
-    setOutputContext(game.display);
     // Place an altar at player position
     const loc = game.map.at(game.player.x, game.player.y);
     loc.typ = ALTAR;

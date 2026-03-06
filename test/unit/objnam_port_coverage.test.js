@@ -27,7 +27,7 @@ import {
 import { mksobj } from '../../js/mkobj.js';
 import { LONG_SWORD } from '../../js/objects.js';
 import { STONE, ROOM, WATER, DOOR, D_LOCKED, FIRE_TRAP } from '../../js/const.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
 import { initRng } from '../../js/rng.js';
 
 describe('objnam port coverage', () => {

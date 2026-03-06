@@ -2,7 +2,7 @@ import { describe, it, before } from 'node:test';
 import assert from 'node:assert';
 import { selection, resetLevelState, getLevelState } from '../../js/sp_lev.js';
 import { ROOM, CORR, HWALL, VWALL, DOOR, STONE, COLNO, ROWNO } from '../../js/const.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
 import { initRng } from '../../js/rng.js';
 
 describe('Selection API', () => {

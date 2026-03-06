@@ -9,12 +9,6 @@ import {
     nhgetch,
     clearInputQueue,
     ynFunction,
-    CMDQ_KEY,
-    CMDQ_INT,
-    CMDQ_DIR,
-    CMDQ_USER_INPUT,
-    CQ_CANNED,
-    CQ_REPEAT,
     cmdq_add_key,
     cmdq_add_int,
     cmdq_add_dir,
@@ -30,6 +24,7 @@ import {
     setCmdqInputMode,
     setCmdqRepeatRecordMode,
 } from '../../js/input.js';
+import { CMDQ_KEY, CMDQ_INT, CMDQ_DIR, CMDQ_USER_INPUT, CQ_CANNED, CQ_REPEAT } from '../../js/const.js';
 import { mapBrowserKeyToNhCode } from '../../js/browser_input.js';
 
 describe('input runtime primitives', () => {

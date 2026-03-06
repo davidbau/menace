@@ -2,7 +2,7 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
 import { STAIRS, VWALL } from '../../js/const.js';
 

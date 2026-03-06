@@ -2,23 +2,22 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { initRng, enableRngLog, getRngLog, disableRngLog } from '../../js/rng.js';
-import { mksobj, setMklevObjectContext, setObjectMoves } from '../../js/mkobj.js';
+import { mksobj } from '../../js/mkobj.js';
 import { DAGGER } from '../../js/objects.js';
+import { setGame } from '../../js/gstate.js';
 
 describe('mkobj erosion gate', () => {
 
 function runCreateDagger({ moves, inMklev }) {
     initRng(123);
     enableRngLog();
-    setMklevObjectContext(inMklev);
-    setObjectMoves(moves);
+    setGame({ moves, _inMklev: inMklev });
     try {
         mksobj(DAGGER, true, false);
         return getRngLog().map((entry) => String(entry));
     } finally {
         disableRngLog();
-        setMklevObjectContext(false);
-        setObjectMoves(1);
+        setGame(null);
     }
 }
 

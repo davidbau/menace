@@ -2,7 +2,7 @@ import { beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput } from '../../js/input.js';
 import { BATTLE_AXE, CREDIT_CARD, FLINT, GEM_CLASS, LANCE, SPE_HEALING, STETHOSCOPE } from '../../js/objects.js';

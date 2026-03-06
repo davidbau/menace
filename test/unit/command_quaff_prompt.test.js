@@ -2,9 +2,10 @@ import { beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput } from '../../js/input.js';
+import { POT_EXTRA_HEALING, POTION_CLASS } from '../../js/objects.js';
 
 function makeGame() {
     const map = new GameMap();
@@ -51,7 +52,12 @@ describe('quaff prompt', () => {
         const game = makeGame();
         game.player.hp = 10;
         game.player.hpmax = 10;
-        game.player.inventory.push({ invlet: 'k', oclass: 7, name: 'potion of extra healing' });
+        game.player.inventory.push({
+            invlet: 'k',
+            oclass: POTION_CLASS,
+            otyp: POT_EXTRA_HEALING,
+            oname: 'potion of extra healing',
+        });
         pushInput('k'.charCodeAt(0));
 
         const result = await rhack('q'.charCodeAt(0), game);

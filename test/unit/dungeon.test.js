@@ -9,7 +9,7 @@ import { COLNO, ROWNO, STONE, ROOM, CORR, DOOR, STAIRS, HWALL, VWALL,
 function REACHABLE(typ) { return ACCESSIBLE(typ) || typ === SDOOR || typ === SCORR; }
 import { initRng } from '../../js/rng.js';
 import { initLevelGeneration, makelevel, wallification, fix_wall_spines } from '../../js/dungeon.js';
-import { GEHENNOM } from '../../js/special_levels.js';
+import { GEHENNOM } from '../../js/const.js';
 
 describe('Dungeon generation', () => {
     it('generates a level with rooms', async () => {

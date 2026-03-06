@@ -3,7 +3,7 @@
 import { describe, test } from 'node:test';
 import assert from 'assert';
 import { HeadlessDisplay } from '../comparison/session_helpers.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
 import { SDOOR, HWALL, VWALL } from '../../js/const.js';
 
 describe('secret door symbols', () => {

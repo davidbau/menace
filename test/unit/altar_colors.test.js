@@ -4,7 +4,7 @@
 import { describe, test } from 'node:test';
 import assert from 'assert';
 import { HeadlessDisplay } from '../comparison/session_helpers.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
 import { ALTAR, A_LAWFUL, A_NEUTRAL, A_CHAOTIC } from '../../js/const.js';
 
 describe('altar colors', () => {

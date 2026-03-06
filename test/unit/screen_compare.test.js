@@ -15,8 +15,9 @@ import { simulatePostLevelInit } from '../../js/u_init.js';
 import { movemon } from '../../js/monmove.js';
 import { FOV } from '../../js/vision.js';
 import { dosearch0 } from '../../js/detect.js';
+import { NORMAL_SPEED } from '../../js/monsters.js';
 import {
-    COLNO, ROWNO, NORMAL_SPEED, A_DEX, A_CON,
+    COLNO, ROWNO, A_DEX, A_CON,
     STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
     CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL,
     ROOM, CORR, DOOR, STAIRS, SDOOR, SCORR,

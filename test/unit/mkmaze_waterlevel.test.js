@@ -1,7 +1,7 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { initRng } from '../../js/rng.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
 import { WATER, AIR, STONE, FOUNTAIN, MAGIC_PORTAL, LAVAPOOL, COLNO, ROWNO } from '../../js/const.js';
 import { vision_init, vision_reset } from '../../js/vision.js';
 import {

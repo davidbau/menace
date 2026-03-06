@@ -6,11 +6,13 @@ import {
     init_nhwindows, create_nhwindow, destroy_nhwindow, clear_nhwindow,
     display_nhwindow,
     start_menu, add_menu, end_menu, select_menu, putstr,
+    getWinMessage,
+} from '../../js/windows.js';
+import {
     NHW_MESSAGE, NHW_MENU, NHW_TEXT,
     PICK_NONE, PICK_ONE, PICK_ANY,
     MENU_BEHAVE_STANDARD, ATR_NONE,
-    WIN_MESSAGE,
-} from '../../js/windows.js';
+} from '../../js/const.js';
 import { handleInventory } from '../../js/invent.js';
 import { handleKnownSpells } from '../../js/spell.js';
 import { Player } from '../../js/player.js';
@@ -36,7 +38,8 @@ describe('nhwindow infrastructure (windows.js)', () => {
         it('creates WIN_MESSAGE window', () => {
             const display = makeDisplay();
             init_nhwindows(display, null, null);
-            assert.ok(typeof WIN_MESSAGE === 'number' && WIN_MESSAGE >= 1);
+            const winMessage = getWinMessage();
+            assert.ok(typeof winMessage === 'number' && winMessage >= 1);
         });
 
         it('resets wins state on each call', () => {
@@ -272,7 +275,8 @@ describe('nhwindow infrastructure (windows.js)', () => {
         it('routes putstr to display.putstr_message for NHW_MESSAGE window', () => {
             const display = makeDisplay();
             init_nhwindows(display, null, null);
-            putstr(WIN_MESSAGE, ATR_NONE, 'hello world');
+            const winMessage = getWinMessage();
+            putstr(winMessage, ATR_NONE, 'hello world');
             assert.ok(display.messages.includes('hello world'));
         });
 
@@ -418,9 +422,10 @@ describe('nhwindow infrastructure (windows.js)', () => {
             const display = makeDisplay();
             init_nhwindows(display, null, null);
             // Simulate a message having been shown (toplin = NON_EMPTY)
-            putstr(WIN_MESSAGE, ATR_NONE, 'A message');
+            const winMessage = getWinMessage();
+            putstr(winMessage, ATR_NONE, 'A message');
             pushInput(' '.charCodeAt(0));
-            await display_nhwindow(WIN_MESSAGE, true);
+            await display_nhwindow(winMessage, true);
             assert.ok(display.messages.some(m => m === '--More--'));
         });
     });

@@ -2,11 +2,11 @@ import { beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput } from '../../js/input.js';
 import { ROOM } from '../../js/const.js';
-import { FLINT, GEM_CLASS } from '../../js/objects.js';
+import { FLINT, GEM_CLASS, ORCISH_DAGGER } from '../../js/objects.js';
 
 function makeGame() {
     const map = new GameMap();
@@ -20,7 +20,7 @@ function makeGame() {
     player.x = 10;
     player.y = 10;
     player.inventory = [
-        { invlet: 'b', oclass: 1, name: 'dagger' },
+        { invlet: 'b', oclass: 1, otyp: ORCISH_DAGGER, name: 'dagger' },
         { invlet: 'd', oclass: 7, name: 'potion of healing' },
     ];
 
@@ -123,7 +123,7 @@ describe('throw prompt behavior', () => {
 
         const result = await rhack('t'.charCodeAt(0), game);
         assert.equal(result.tookTime, true);
-        assert.equal(game.display.messages.at(-1), 'The dagger misses the kitten.');
+        assert.equal(game.display.messages.at(-1), 'The orcish dagger misses the kitten.');
         const thrown = game.map.objects.find((o) => o.name === 'dagger');
         assert.ok(thrown);
         assert.equal(thrown.ox, 11);

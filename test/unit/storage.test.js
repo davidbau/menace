@@ -5,13 +5,13 @@ import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { initRng, getRngState, setRngState, getRngCallCount, setRngCallCount, rn2, rnd } from '../../js/rng.js';
 import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
-import { makemon, NO_MM_FLAGS } from '../../js/makemon.js';
+import { makemon } from '../../js/makemon.js';
 import { mksobj } from '../../js/mkobj.js';
 import { mons, PM_GHOST } from '../../js/monsters.js';
 import { objectData, SCR_EARTH } from '../../js/objects.js';
-import { COLNO, ROWNO, ACCESSIBLE } from '../../js/const.js';
+import { COLNO, ROWNO, ACCESSIBLE, NO_MM_FLAGS } from '../../js/const.js';
 import { Player, roles } from '../../js/player.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
 import {
     initDiscoveryState, discoverObject, isObjectNameKnown, isObjectEncountered,
 } from '../../js/o_init.js';

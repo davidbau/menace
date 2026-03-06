@@ -2,9 +2,10 @@ import { describe, test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { run_command, get_repeat_command_snapshot, execute_repeat_command } from '../../js/allmain.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
-import { cmdq_clear, cmdq_copy, CQ_REPEAT } from '../../js/input.js';
+import { cmdq_clear, cmdq_copy } from '../../js/input.js';
+import { CQ_REPEAT } from '../../js/const.js';
 
 function makeGame() {
     const map = new GameMap();

@@ -10,7 +10,7 @@ import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.
 import { mons, PM_GHOST } from '../../js/monsters.js';
 import { COLNO, ROWNO, ACCESSIBLE } from '../../js/const.js';
 import { Player } from '../../js/player.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
 import { saveLev, saveBones, loadBones, deleteBones } from '../../js/storage.js';
 import {
     can_make_bones as canMakeBones,

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { STAIRS } from '../../js/const.js';
 import { HeadlessDisplay } from '../../js/headless.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
 
 describe('stairs color', () => {
 
