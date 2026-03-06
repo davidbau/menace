@@ -3015,3 +3015,61 @@ hard-won wisdom:
   - Companion checks show no frontier regression:
     - `seed327_priest_wizard_gameplay` first RNG divergence still step `390`.
     - `seed328_ranger_wizard_gameplay` first RNG divergence still step `242`.
+
+## Lesson: vault_occupied returns '\0' which is truthy in JS
+
+- C function `vault_occupied()` returns `'\0'` (null char) for "no vault found" and
+  a room char for "player is in vault".
+- In C, `'\0'` is falsy (it equals 0). In JS, `'\0'` is a non-empty string → **truthy**.
+- This caused `gd_sound()` to always return false in JS, suppressing vault sounds
+  when they should have played, causing rn2(2) divergence on vault levels.
+- Fix: check `vaultOcc && vaultOcc !== '\0'` instead of just `vaultOcc`.
+- General lesson: any C function returning `'\0'` as a sentinel needs explicit
+  null-char checks in JS. This pattern likely exists in other room-query functions.
+
+## Lesson: spurious rn2(20) in hack.js domove_attackmon_at
+
+- JS hack.js:597 has `rn2(20)` before `exercise(A_STR, true)` in the attack path.
+- C's `do_attack()` in uhitm.c has NO rn2(20) — it calls `exercise(A_STR, TRUE)`
+  (which internally calls `rn2(19)`) then `u_wipe_engr(3)`.
+- Removing the JS rn2(20) causes 16 session regressions, meaning it compensates
+  for some other C RNG call that JS doesn't otherwise make.
+- The rn2(20) is a legacy alignment hack. Do NOT remove without first identifying
+  exactly which C RNG call it substitutes for. Likely candidates: something in
+  the attack_checks/hitum path that JS handles differently.
+
+## Lesson: eat.js eating paths must dispatch to cpostfx/fpostfx
+
+- C's `done_eating()` (eat.c:562-565) dispatches to `cpostfx()` for corpses
+  and `fpostfx()` for non-corpse food after eating completes.
+- JS had these functions defined but never called from the eating completion paths.
+  Multi-turn eating used inline PM_NEWT-only logic; single-turn eating had none.
+- Missing `fpostfx()` meant fortune cookie `outrumor()` (rn2(2) + rn2(chunksize))
+  was never consumed, and royal jelly rnd(20)/rn2(17) were never applied.
+- Fix: wire cpostfx/fpostfx into both multi-turn `finishEating` and single-turn paths.
+
+## Lesson: m_ap_type must use numeric constants, not strings
+
+- C's `m_ap_type` is an enum: M_AP_NOTHING=0, M_AP_FURNITURE=1, M_AP_OBJECT=2,
+  M_AP_MONSTER=3. JS was using both string values ('object', 'furniture', 'monster')
+  and numeric constants inconsistently across ~10 files.
+- This caused type mismatches where `m_ap_type === 'furniture'` wouldn't match
+  numeric `M_AP_FURNITURE` (1), and vice versa.
+- display.js `monsterShownOnMap()` had a dual-check kludge (`ap === 'furniture' ||
+  ap === 1`) that partially masked the bug.
+- Fix: standardize all assignments and comparisons to use imported numeric constants
+  from const.js. Updated: mon.js, display.js, hack.js, lock.js, wizard.js, pray.js,
+  objnam.js.
+
+## Lesson: seed328 screen divergence is stale-glyph rendering model difference
+
+- seed328 has 13659/13659 RNG match and 1723/1723 events match — pure display issue.
+- A centipede at (6,14) has M1_HIDE and mundetected=true. Player has no telepathy,
+  warning, or detect_monsters. Both C and JS should hide it.
+- But C shows 's' at that position because C uses **incremental** rendering (newsym):
+  the centipede was visible at an earlier step, then became mundetected, but no
+  newsym() was called at that tile to clear the old glyph.
+- JS does a **full re-render** every frame, always checking current monster state.
+- This is a fundamental rendering model difference, not a game logic bug.
+- The monsterShownOnMap() enhancement to check senseMonsterForMap() is correct
+  C parity but doesn't fix this case since the player lacks detection abilities.
