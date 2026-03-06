@@ -60,7 +60,42 @@ INCLUDE_DIR = os.path.dirname(HACK_H)
 OUTPUT_PATH = os.path.join(SCRIPT_DIR, "..", "..", "js", "const.js")
 MARKER_GLOBAL_RM = MarkerSpec("CONST_GLOBAL_RM")
 MARKER_ALL_HEADERS = MarkerSpec("CONST_ALL_HEADERS")
+MARKER_ALL_HEADERS_POST = MarkerSpec("CONST_ALL_HEADERS_POST")
 MARKER_WEAPON = MarkerSpec("CONST_WEAPON_SKILLS")
+
+# Version constants are owned manually/version.js integration at top of const.js.
+HEADER_MACRO_BLACKLIST_EXACT = {
+    "PATCHLEVEL",
+}
+HEADER_MACRO_BLACKLIST_PREFIXES = (
+    "VERSION_",
+)
+
+# Header macros which are compile-time annotations or runtime expressions in C
+# and should not be emitted as JS constants.
+HEADER_MACRO_NON_EMITTABLE: dict[str, str] = {
+    "SHOP_WALL_DMG": "depends on runtime ACURRSTR (not a pure constant)",
+    "UNDEFINED_PTR": "C pointer sentinel (NULL), not meaningful as JS const",
+    "VOICEONLY": "macro alias to UNUSED (compile-time annotation)",
+    "SOUNDLIBONLY": "macro alias to UNUSED (compile-time annotation)",
+    "N_DIRS_Z": "kept manual with direction arrays and DIR_* ordering contract",
+    "DLBFILE": "platform/filesystem path constant; not used in web runtime",
+    "DUMPLOG_FILE": "platform/filesystem path template; not used in web runtime",
+    "HACKDIR": "platform/filesystem path constant; not used in web runtime",
+}
+
+# Platform compatibility defaults for curses-ish environments (Ubuntu/ncurses).
+# These are explicit JS fallbacks where C headers depend on external ncurses
+# macros that are not available in this JS build.
+PLATFORM_DEFAULT_CONSTS: list[tuple[str, str, str]] = [
+    ("LEFTBUTTON", "0x2", "FROM_LEFT_1ST_BUTTON_PRESSED fallback"),
+    ("MIDBUTTON", "0x80", "FROM_LEFT_2ND_BUTTON_PRESSED fallback"),
+    ("RIGHTBUTTON", "0x800", "RIGHTMOST_BUTTON_PRESSED fallback"),
+    ("MOUSEMASK", "(LEFTBUTTON | RIGHTBUTTON | MIDBUTTON)", "mouse button mask fallback"),
+    ("A_LEFTLINE", "0", "A_LEFT fallback disabled in web renderer"),
+    ("A_RIGHTLINE", "0", "A_RIGHT fallback disabled in web renderer"),
+    ("A_ITALIC", "0", "A_UNDERLINE fallback disabled in web renderer"),
+]
 
 
 def _read(path: str) -> str:
@@ -168,8 +203,157 @@ def _parse_object_defines(text: str, *, ignore: set[str] | None = None) -> list[
     return out
 
 
+def _split_csv_top_level(body: str) -> list[str]:
+    parts: list[str] = []
+    cur: list[str] = []
+    depth = 0
+    in_single = False
+    in_double = False
+    escaped = False
+    for ch in body:
+        if escaped:
+            cur.append(ch)
+            escaped = False
+            continue
+        if ch == "\\":
+            cur.append(ch)
+            escaped = True
+            continue
+        if not in_double and ch == "'":
+            in_single = not in_single
+            cur.append(ch)
+            continue
+        if not in_single and ch == '"':
+            in_double = not in_double
+            cur.append(ch)
+            continue
+        if in_single or in_double:
+            cur.append(ch)
+            continue
+        if ch in "([{":
+            depth += 1
+            cur.append(ch)
+            continue
+        if ch in ")]}":
+            depth = max(0, depth - 1)
+            cur.append(ch)
+            continue
+        if ch == "," and depth == 0:
+            token = "".join(cur).strip()
+            if token:
+                parts.append(token)
+            cur = []
+            continue
+        cur.append(ch)
+    tail = "".join(cur).strip()
+    if tail:
+        parts.append(tail)
+    return parts
+
+
+def _parse_enum_constants(text: str) -> list[tuple[str, str]]:
+    cleaned = _strip_c_comments(_collapse_line_continuations(text))
+    out: list[tuple[str, str]] = []
+
+    i = 0
+    n = len(cleaned)
+    while i < n:
+        m = re.search(r"\benum\b", cleaned[i:])
+        if not m:
+            break
+        enum_pos = i + m.start()
+        brace = cleaned.find("{", enum_pos)
+        if brace < 0:
+            i = enum_pos + 4
+            continue
+
+        # Ensure this "enum" really introduces this brace (skip forward decls).
+        semi = cleaned.find(";", enum_pos)
+        if semi >= 0 and semi < brace:
+            i = semi + 1
+            continue
+
+        depth = 1
+        j = brace + 1
+        while j < n and depth > 0:
+            if cleaned[j] == "{":
+                depth += 1
+            elif cleaned[j] == "}":
+                depth -= 1
+            j += 1
+        if depth != 0:
+            i = brace + 1
+            continue
+
+        body = cleaned[brace + 1 : j - 1]
+        prev_name: str | None = None
+        for item in _split_csv_top_level(body):
+            if not item:
+                continue
+            # Keep only macro-style enum constants for const.js.
+            m_item = re.match(r"^\s*([A-Z_][A-Z0-9_]*)\s*(?:=\s*(.+))?$", item)
+            if not m_item:
+                continue
+            name = m_item.group(1)
+            expr = m_item.group(2).strip() if m_item.group(2) else (f"({prev_name} + 1)" if prev_name else "0")
+            out.append((name, _sanitize_c_expr_for_js(expr)))
+            prev_name = name
+
+        i = j
+    return out
+
+
+def _is_blacklisted_header_macro(name: str) -> bool:
+    if name in HEADER_MACRO_BLACKLIST_EXACT:
+        return True
+    return any(name.startswith(prefix) for prefix in HEADER_MACRO_BLACKLIST_PREFIXES)
+
+
+def _parse_local_includes(text: str) -> list[str]:
+    includes: list[str] = []
+    for line in text.splitlines():
+        m = re.match(r'^\s*#\s*include\s+[<"]([^">]+)[">]', line)
+        if not m:
+            continue
+        includes.append(os.path.basename(m.group(1)))
+    return includes
+
+
+def _header_paths_include_order(include_dir: str) -> list[str]:
+    header_names = sorted(name for name in os.listdir(include_dir) if name.endswith(".h"))
+    header_set = set(header_names)
+    deps: dict[str, list[str]] = {}
+    for name in header_names:
+        text = _read(os.path.join(include_dir, name))
+        deps[name] = [dep for dep in _parse_local_includes(text) if dep in header_set]
+
+    order: list[str] = []
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def dfs(name: str) -> None:
+        if name in visited:
+            return
+        if name in visiting:
+            # Cycle: keep deterministic behavior by breaking recursion.
+            return
+        visiting.add(name)
+        for dep in deps.get(name, []):
+            dfs(dep)
+        visiting.remove(name)
+        visited.add(name)
+        order.append(name)
+
+    for name in header_names:
+        dfs(name)
+    return [os.path.join(include_dir, name) for name in order]
+
+
 def _sanitize_c_expr_for_js(expr: str) -> str:
     expr = expr.strip()
+    # Drop C-style casts for lowercase type names (e.g., "(seenV) 0x01" -> "0x01").
+    # This preserves grouping for uppercase macro groupings like "(MAXOCLASSES + 1)".
+    expr = re.sub(r"\(\s*[A-Za-z_]*[a-z][A-Za-z0-9_]*(?:\s*\*+)?\s*\)\s*", "", expr)
     # Remove C integer suffixes (U/L/UL/...) from literals.
     expr = re.sub(r"\b(0[xX][0-9A-Fa-f]+|\d+)([uUlL]+)\b", r"\1", expr)
     # Convert legacy C-style octal integer literals (e.g., 011) to JS 0o11 form.
@@ -278,68 +462,142 @@ def generate_global_rm_block() -> str:
     return "\n".join(lines)
 
 
-def generate_all_headers_block(existing_exports_before: set[str], existing_exports_outside: set[str]) -> str:
-    header_paths = sorted(
-        os.path.join(INCLUDE_DIR, name)
-        for name in os.listdir(INCLUDE_DIR)
-        if name.endswith(".h")
-    )
+def _collect_header_const_candidates(existing_exports_outside: set[str]) -> list[tuple[str, str, str]]:
+    header_paths = _header_paths_include_order(INCLUDE_DIR)
+    platform_names = {name for name, _expr, _note in PLATFORM_DEFAULT_CONSTS}
 
     merged: dict[str, tuple[str, str]] = {}
     for path in header_paths:
         header_name = os.path.basename(path)
         guard_guess = os.path.splitext(header_name)[0].upper() + "_H"
+        for name, value in _parse_enum_constants(_read(path)):
+            if _is_blacklisted_header_macro(name):
+                continue
+            if name in HEADER_MACRO_NON_EMITTABLE:
+                continue
+            if name in platform_names:
+                continue
+            merged.setdefault(name, (header_name, value))
         for name, value in _parse_object_defines(_read(path), ignore={guard_guess}):
+            if _is_blacklisted_header_macro(name):
+                continue
+            if name in HEADER_MACRO_NON_EMITTABLE:
+                continue
+            if name in platform_names:
+                continue
             merged.setdefault(name, (header_name, _sanitize_c_expr_for_js(value)))
 
     # Candidate constants: const-style macros not already exported elsewhere.
-    candidates: dict[str, tuple[str, str]] = {}
+    candidates: list[tuple[str, str, str]] = []
     for name, (src, expr) in merged.items():
         if name in existing_exports_outside:
             continue
         if _is_potential_const_style(expr):
-            candidates[name] = (src, expr)
+            candidates.append((name, src, expr))
+    return candidates
 
-    # Resolve dependency order: identifiers must already be known or emitted earlier.
-    known = set(existing_exports_before)
+
+def _resolve_const_candidates(
+    candidates: list[tuple[str, str, str]], known_initial: set[str]
+) -> tuple[list[tuple[str, str, str]], list[tuple[str, str, str]]]:
+    known = set(known_initial)
     emitted: list[tuple[str, str, str]] = []
-    pending = dict(candidates)
+    pending = list(candidates)
     while pending:
         progress = False
-        for name in sorted(list(pending.keys())):
-            src, expr = pending[name]
+        next_pending: list[tuple[str, str, str]] = []
+        for name, src, expr in pending:
             deps = set(_expr_identifiers(expr))
             if deps.issubset(known | {name}):
                 emitted.append((name, expr, src))
                 known.add(name)
-                del pending[name]
                 progress = True
+            else:
+                next_pending.append((name, src, expr))
+        pending = next_pending
         if not progress:
             break
+    return emitted, pending
 
-    unresolved = sorted((name, src) for name, (src, _expr) in pending.items())
+
+def _emit_header_block(
+    *,
+    title: str,
+    emitted: list[tuple[str, str, str]],
+    unresolved: list[tuple[str, str, str]],
+    include_deferred: bool,
+    include_platform_defaults: bool,
+) -> str:
+    unresolved_names = [(name, src) for name, src, _expr in unresolved]
 
     lines: list[str] = []
-    lines.append("// Auto-imported const-style object macros from C include headers")
+    lines.append(f"// {title}")
     lines.append(f"// Source dir: {INCLUDE_DIR}")
     lines.append("//")
     lines.append("// Rules:")
-    lines.append("// - include only object-like #define macros (not function-like)")
+    lines.append("// - include object-like #define macros (not function-like) and enum constants")
     lines.append("// - include only const-style expressions (no runtime/lowercase identifiers)")
-    lines.append("// - emit only when dependencies are already resolvable at this marker location")
+    lines.append("// - preserve include dependency order and in-header declaration order")
+    lines.append("// - emit only when dependencies are resolvable at this marker location")
+    lines.append(f"// - non-emittable blacklist count: {len(HEADER_MACRO_NON_EMITTABLE)}")
     lines.append("")
+    if include_platform_defaults:
+        lines.append("// Platform fallback constants (Ubuntu/ncurses-style defaults)")
+        for name, expr, note in PLATFORM_DEFAULT_CONSTS:
+            lines.append(f"// {note}")
+            lines.append(f"export const {name} = {expr};")
+        lines.append("")
     lines.append(f"// Added direct exports: {len(emitted)}")
-    lines.append(f"// Deferred unresolved const-style macros: {len(unresolved)}")
+    lines.append(f"// Deferred unresolved const-style macros: {len(unresolved_names)}")
     for name, expr, src in emitted:
         lines.append(f"// {src}")
         lines.append(f"export const {name} = {expr};")
     lines.append("")
-    lines.append("export const DEFERRED_HEADER_CONST_MACROS = Object.freeze([")
-    for name, src in unresolved:
-        lines.append(f'    "{name} ({src})",')
-    lines.append("]);")
-    lines.append("")
+    if include_deferred:
+        lines.append("export const DEFERRED_HEADER_CONST_MACROS = Object.freeze([")
+        for name, src in unresolved_names:
+            lines.append(f'    "{name} ({src})",')
+        lines.append("]);")
+        lines.append("")
+        lines.append("export const HEADER_MACRO_NON_EMITTABLE = Object.freeze([")
+        for name, why in sorted(HEADER_MACRO_NON_EMITTABLE.items()):
+            lines.append(f'    "{name}: {why}",')
+        lines.append("]);")
+        lines.append("")
     return "\n".join(lines)
+
+
+def generate_all_headers_blocks(
+    existing_exports_before_pre: set[str],
+    existing_exports_before_post: set[str],
+    existing_exports_outside_pre: set[str],
+) -> tuple[str, str]:
+    candidates = _collect_header_const_candidates(existing_exports_outside_pre)
+    pre_known = set(existing_exports_before_pre) | {name for name, _expr, _note in PLATFORM_DEFAULT_CONSTS}
+    pre_emitted, pre_pending = _resolve_const_candidates(candidates, pre_known)
+
+    post_known = (
+        set(existing_exports_before_post)
+        | {name for name, _expr, _note in PLATFORM_DEFAULT_CONSTS}
+        | {name for name, _expr, _src in pre_emitted}
+    )
+    post_emitted, post_pending = _resolve_const_candidates(pre_pending, post_known)
+
+    pre_block = _emit_header_block(
+        title="Auto-imported header constants (pre-symbol pass)",
+        emitted=pre_emitted,
+        unresolved=pre_pending,
+        include_deferred=False,
+        include_platform_defaults=True,
+    )
+    post_block = _emit_header_block(
+        title="Auto-imported header constants (post-symbol pass)",
+        emitted=post_emitted,
+        unresolved=post_pending,
+        include_deferred=True,
+        include_platform_defaults=False,
+    )
+    return pre_block, post_block
 
 
 def generate_weapon_constants_block() -> str:
@@ -405,7 +663,8 @@ def main() -> None:
     global_rm_block = generate_global_rm_block()
     before = _existing_export_names_before_marker(args.output, MARKER_ALL_HEADERS.tag)
     outside = _existing_export_names_outside_marker(args.output, MARKER_ALL_HEADERS.tag)
-    all_headers_block = generate_all_headers_block(before, outside)
+    before_post = _existing_export_names_before_marker(args.output, MARKER_ALL_HEADERS_POST.tag)
+    all_headers_block, all_headers_post_block = generate_all_headers_blocks(before, before_post, outside)
     weapon_block = generate_weapon_constants_block()
 
     if args.stdout:
@@ -413,15 +672,21 @@ def main() -> None:
         print(global_rm_block)
         print(f"/* {MARKER_ALL_HEADERS.tag} */")
         print(all_headers_block)
+        print(f"/* {MARKER_ALL_HEADERS_POST.tag} */")
+        print(all_headers_post_block)
         print(f"/* {MARKER_WEAPON.tag} */")
         print(weapon_block)
         return
 
     patch_between_markers(args.output, MARKER_GLOBAL_RM, global_rm_block)
     patch_between_markers(args.output, MARKER_ALL_HEADERS, all_headers_block)
+    patch_between_markers(args.output, MARKER_ALL_HEADERS_POST, all_headers_post_block)
     patch_between_markers(args.output, MARKER_WEAPON, weapon_block)
     print(
-        f"Patched {args.output} ({MARKER_GLOBAL_RM.tag}, {MARKER_ALL_HEADERS.tag}, {MARKER_WEAPON.tag})",
+        (
+            f"Patched {args.output} "
+            f"({MARKER_GLOBAL_RM.tag}, {MARKER_ALL_HEADERS.tag}, {MARKER_ALL_HEADERS_POST.tag}, {MARKER_WEAPON.tag})"
+        ),
         file=sys.stderr,
     )
 

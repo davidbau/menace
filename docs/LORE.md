@@ -2463,3 +2463,24 @@ hard-won wisdom:
 - **Lesson**: When porting C code that uses `*mtmp = zeromonst` initialization,
   check for any fields explicitly set to non-zero values afterward — those are
   the dangerous ones in JS where `undefined` silently differs from the C default.
+
+### const.js generator: enums + post-symbol pass + non-emittable blacklist (2026-03-06)
+
+- `scripts/generators/gen_constants.py` now parses enum constants (not only
+  `#define`) from `include/*.h` into generated `const.js` blocks.
+- Added two-pass header emission:
+  - `CONST_ALL_HEADERS` (pre-symbol),
+  - `CONST_ALL_HEADERS_POST` (post-symbol, after `MAXPCHARS/MAXOCLASSES/...` exist).
+- Added explicit platform defaults for curses-style constants used in JS:
+  `LEFTBUTTON`, `MIDBUTTON`, `RIGHTBUTTON`, `MOUSEMASK`,
+  `A_LEFTLINE`, `A_RIGHTLINE`, `A_ITALIC`.
+- Added `HEADER_MACRO_NON_EMITTABLE` with explanations for C macros that are
+  not meaningful as JS compile-time constants (runtime expressions, pointer
+  sentinels, or compile-time annotations).
+- Important dependency lesson:
+  - topo sort alone is not enough if a dependency is emitted later in the file
+    (JS TDZ) or lives in another module (`objects.js`/`monsters.js`/`artifacts.js`);
+    those must be deferred or manually anchored.
+- Direction constants were re-anchored to C-faithful values near direction
+  arrays to prevent generator drift:
+  - `N_DIRS_Z = 10`, `N_DIRS = 8`.
