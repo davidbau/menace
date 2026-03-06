@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hack 1982</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #000;
+      color: #ccc;
+      font-family: "Courier New", Courier, monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 8px;
+    }
+    #hack-container {
+      display: inline-block;
+      outline: 1px solid #333;
+    }
+    #hack-screen {
+      display: block;
+    }
+    #help-bar {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #555;
+      text-align: center;
+    }
+    #help-bar a { color: #777; text-decoration: none; }
+    #help-bar a:hover { color: #aaa; }
+  </style>
+</head>
+<body>
+  <div id="hack-container"></div>
+  <div id="help-bar">
+    Hack (1982) · hjklyubn to move · e eat · q drink · r read · w wield · W wear · s search ·
+    &lt; up · &gt; down · i inventory · d drop · t throw · Q quit ·
+    <a href="https://mazesofmenace.net">← Mazes of Menace</a>
+  </div>
+  <script type="module" src="js/browser_main.js"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+This is a hack command list:
+
+Command		What it does
+
+q(obj)		Quaff (drink) a potion.
+Q		Quit the game.
+w(obj)		Wield a weapon.
+W(obj)		Wear armor.
+e(obj)		Eat food.
+r(obj)		Read a scroll.
+R(obj)		Remove a ring you are wearing.
+t(obj)		Throw an object.
+T		Take off the armor you are wearing.
+I(obj)		Print the object an inventory letter refers to.
+i		List everything you are carrying.
+o		Set options.
+p(obj)		Zap (point) a wand.
+P(obj)		Put on a ring.
+s		Search for secret doors and traps (Only right next to you).
+S		Save the game.
+d(obj)		Drop something
+(Hit <return> to continue)
+f(dir)		Move in direction dir until you meet a door or side passage.
+c(obj)		Call something.
+
+
+To move in a direction, use the following list:
+
+	y  k  u
+	 \ | /
+	h--@--l
+	 / | \
+	b  j  n
+
+A capital letter will continue movement until you meet a door, a monster,
+or a wall.
+'f' followed by a letter will cotinue until you meet a side passage, or one
+of the above.
+
+

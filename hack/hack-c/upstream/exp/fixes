@@ -1,0 +1,18 @@
+Hack.h:
+	put parenthases around ginv, gcan, etc for monsters.
+hack.new1.c:
+	make inrange() read
+{
+	register dir;
+
+	if((dir=near(mtmp->mloc,u.uloc,8)) && bhit(dir,8)==mtmp)
+		buzz(1,mtmp->mloc,dir);
+}
+
+	make dochug(), case 'D' do an 'else inrange(mtmp)' instead
+	of commented out buzz.
+
+	insert new first line of code in newcham,
+	'if(ginv(mtmp) && gcan(mtmp->mloc)) newsym(mtmp->mloc);'
+
+	make mp a float in newcham, hack expressions involving it.

@@ -1,0 +1,551 @@
+// C ref: hack.mon.c — monster AI, combat, movement
+import { MNORM, FLEE, SLEEP, MFROZ, MCONF, MSLOW, MFAST, SEEN, HP } from './const.js';
+import { rn1, rn2, rnd, d } from './rng.js';
+import { game } from './gstate.js';
+import { makeMonst, makeStole } from './game.js';
+import { mon, mregen, CRUSH, NOBLUE, RUST, NOCOLD, mlarge } from './data.js';
+import { pline, atl, newsym, nscr, bot, curs, pru, losehp } from './pri.js';
+
+// Forward refs for functions in hack.js / do1.js / do.js imported at call time
+let _setsee, _tele, _nomul, _killed, _rloc, _newcham, _mnexto, _attmon, _amon;
+let _buzz, _dosearch, _losestr, _ndaminc;
+export function _setMonDeps(deps) {
+  _setsee = deps.setsee; _tele = deps.tele; _nomul = deps.nomul;
+  _killed = deps.killed; _rloc = deps.rloc; _newcham = deps.newcham;
+  _mnexto = deps.mnexto; _attmon = deps.attmon; _amon = deps.amon;
+  _buzz = deps.buzz; _dosearch = deps.dosearch; _losestr = deps.losestr;
+  _ndaminc = deps.ndaminc;
+}
+
+// C ref: g_at(x,y,gen) — search a linked list for gen at (x,y)
+export function g_at(x, y, ptr) {
+  while (ptr) {
+    if (ptr.gx === x && ptr.gy === y) return ptr;
+    // Also handles struct obj (.ox/.oy) and struct monst (.mx/.my)
+    if (ptr.ox === x && ptr.oy === y) return ptr;
+    if (ptr.mx === x && ptr.my === y) return ptr;
+    ptr = ptr.ngen || ptr.nobj || ptr.nmon || null;
+  }
+  return null;
+}
+
+// More specific versions for each list type
+export function g_at_gen(x, y, ptr) {
+  while (ptr) { if (ptr.gx === x && ptr.gy === y) return ptr; ptr = ptr.ngen; }
+  return null;
+}
+export function g_at_obj(x, y, ptr) {
+  while (ptr) { if (ptr.ox === x && ptr.oy === y) return ptr; ptr = ptr.nobj; }
+  return null;
+}
+export function g_at_mon(x, y, ptr) {
+  while (ptr) { if (ptr.mx === x && ptr.my === y) return ptr; ptr = ptr.nmon; }
+  return null;
+}
+
+// C ref: movemon() — move all monsters
+export async function movemon() {
+  for (let mtmp = game.fmon; mtmp; mtmp = mtmp.nmon) {
+    if (mtmp.mspeed !== MSLOW || !(game.moves % 2)) await dochug(mtmp);
+    if (mtmp.mspeed === MFAST) await dochug(mtmp);
+  }
+}
+
+// C ref: justswld(mtmp) — monster just swallowed player
+export async function justswld(mtmp) {
+  game.u.ustuck = mtmp;
+  game.u.uswallow = true;
+  game.flags.botl = true;
+  game.u.uswldtim = 0;
+  if (mtmp.mstat === SLEEP) mtmp.mstat = MNORM;
+  // swallowed() display called from docrt
+  if (mtmp.data.mlet === 'P') await k1('%s%s swallows you!', mtmp.data.mname);
+  else await k1('%s%s engulfs you!', mtmp.data.mname);
+  hits_val = -1;
+}
+
+// C ref: youswld(mtmp,dam,die)
+export function youswld(mtmp, dam, die) {
+  game.u.uhp -= dam;
+  if (game.u.uswldtim++ === die) game.u.uhp = -1;
+  game.flags.botl |= HP;
+  game.killer = mtmp.data.mname;
+  hits_val = -1;
+}
+
+// Local variable used by dochug to track hit status
+let hits_val = 0;
+
+// Helper: print hit messages (k1 in C is `pline("The %s%s...", article, name)`)
+async function k1(fmt, name, ...rest) {
+  const article = 'aeiou'.includes(name[0].toLowerCase()) ? 'an ' : 'a ';
+  await pline(fmt, article, name, ...rest);
+}
+
+// C ref: dochug(mtmp) — one monster's action
+export async function dochug(mtmp) {
+  if (mtmp.cham && !rn2(6) && _newcham) _newcham(mtmp, mon[rn1(6, 2)][rn2(8)]);
+  const mdat = mtmp.data;
+  // Regenerate monsters
+  if ((!game.moves % 20 || mregen.includes(mdat.mlet)) && mtmp.mhp < mtmp.orig_hp)
+    mtmp.mhp++;
+  if (mtmp.mstat === MFROZ || mtmp.sinv) return;
+  if (mtmp.mstat === SLEEP) {
+    if (game.levl[mtmp.mx][mtmp.my].cansee && !game.u.ustelth &&
+        (!rn2(7) || game.u.uagmon)) mtmp.mstat = MNORM;
+    else return;
+  }
+  if (mdat.mmove >= rnd(12) &&
+      (mtmp.mstat === FLEE || Math.abs(mtmp.mx - game.u.ux) > 1 || Math.abs(mtmp.my - game.u.uy) > 1) &&
+      _rloc && m_move(mtmp) && mdat.mmove <= 12) return;
+
+  if (game.u.uswallow) {
+    if (mtmp === game.u.ustuck) {
+      switch (mtmp.data.mlet) {
+        case ',': await k1(CRUSH, mtmp.data.mname); youswld(mtmp, 4 + game.u.uac, 5); break;
+        case '~': await k1(CRUSH, mtmp.data.mname); youswld(mtmp, rnd(6), 7); break;
+        default:  await k1('%s%s digests you!', mtmp.data.mname); youswld(mtmp, d(2,4), 12); break;
+      }
+    }
+    return;
+  }
+
+  const mdix = Math.abs(mtmp.mx - game.u.ux);
+  const mdiy = Math.abs(mtmp.my - game.u.uy);
+
+  if (mdat.mlet !== 'a' && mdix < 2 && mdiy < 2) {
+    hits_val = 0;
+    _nomul && _nomul(0);
+    if (!'EyF&D'.includes(mdat.mlet))
+      hitu(mdat.mhd, d(mdat.damn, mdat.damd), mdat.mname);
+
+    switch (mdat.mlet) {
+      case '&':
+        if (!mtmp.mcan && !rn2(15)) {
+          if (!rn2(3)) break;
+          makemon(mon[7][6]); mnexto(game.fmon); hits_val = -1;
+        } else {
+          hitu(10, d(2,6), mdat.mname); hitu(10, d(2,6), mdat.mname);
+          hitu(10, rnd(3), mdat.mname); hitu(10, rnd(3), mdat.mname);
+          hitu(10, rn1(4,2), mdat.mname);
+        }
+        break;
+      case '~': case ',':
+        if (hits_val && !mtmp.mcan) { await mhit(mdat.mname); await justswld(mtmp); }
+        break;
+      case 'A':
+        if (!mtmp.mcan && hits_val && rn2(2)) {
+          await mhit(mdat.mname); await pline('You feel weaker!'); _losestr && _losestr(1);
+        }
+        break;
+      case 'C': hitu(4, rnd(6), mdat.mname); break;
+      case 'c':
+        if (!mtmp.mcan && hits_val && rn2(2)) {
+          await mhit(mdat.mname);
+          if (rn2(5)) {
+            await pline('You feel real drugged out now.');
+            switch (rn2(3)) {
+              case 0: game.u.uconfused = d(4,5); break;
+              case 1: _nomul && _nomul(-d(3,4)); break;
+              case 2: game.u.ufast += d(3,3); break;
+            }
+          } else {
+            await pline('You get turned to stone!'); game.u.uhp = -1;
+            game.killer = mdat.mname;
+          }
+        }
+        break;
+      case 'D':
+        if (rn2(6) || mtmp.mcan) {
+          hitu(10, d(3,10), mdat.mname); hitu(10, rnd(8), mdat.mname); hitu(10, rnd(8), mdat.mname);
+          break;
+        }
+        _buzz && await _buzz(1, mtmp.mx, mtmp.my, game.u.ux - mtmp.mx, game.u.uy - mtmp.my);
+        game.killer = mdat.mname; hits_val = -1; break;
+      case 'd': hitu(6, d(2,4), mdat.mname); break;
+      case 'E':
+        if (!game.u.ublind && !rn2(3) && game.multi >= 0) {
+          await k1('You are frozen by %s%ss gaze!', mdat.mname);
+          _nomul && _nomul(-rn1(8,5));
+        }
+        return;
+      case 'e': hitu(10, d(3,6), mdat.mname); break;
+      case 'F':
+        if (mtmp.mcan) break;
+        await k1('%s%s explodes!', mdat.mname);
+        if (game.u.ucoldres) await pline(NOCOLD);
+        else {
+          if (17 - Math.floor(game.u.ulevel / 2) > rnd(20)) {
+            await pline('You get blasted!'); losehp(d(6,6));
+          } else { await pline('You duck the blast...'); losehp(d(3,6)); }
+          game.killer = mdat.mname;
+        }
+        delmon(mtmp); hits_val = -1;
+        if (game.levl[mtmp.mx][mtmp.my].scrsym === 'F') newsym(mtmp.mx, mtmp.my);
+        break;
+      case 'g':
+        if (!mtmp.mcan && hits_val && game.multi >= 0 && !rn2(6)) {
+          await mhit(mdat.mname);
+          await k1('You are frozen by %s%ss juices.', mdat.mname);
+          _nomul && _nomul(-rnd(10));
+        }
+        break;
+      case 'h':
+        if (!mtmp.mcan && hits_val && game.multi >= 0 && !rn2(5)) {
+          await mhit(mdat.mname); _nomul && _nomul(-rnd(10));
+          await k1('%s%ss bite puts you to sleep!', mdat.mname);
+        }
+        break;
+      case 'j': {
+        let t = hitu(4, rnd(3), mdat.mname);
+        t &= hitu(4, rnd(3), mdat.mname);
+        if (t) { hitu(4, rnd(4), mdat.mname); hitu(4, rnd(4), mdat.mname); }
+        break;
+      }
+      case 'k':
+        if (hitu(4, rnd(4), mdat.mname) && !mtmp.mcan && !rn2(8)) {
+          await mhit(mdat.mname); await poisoned("the bee's sting");
+          game.killer = mdat.mname;
+        }
+        break;
+      case 'L':
+        if (!mtmp.mcan && hits_val && game.u.ugold && rn2(2)) {
+          await mhit(mdat.mname);
+          let tmp = rnd(game.u.ugold);
+          if (tmp < 100 && game.u.ugold < 100) tmp = game.u.ugold;
+          game.u.ugold -= tmp; game.u.urexp -= tmp;
+          await pline('Your purse feels lighter.');
+          _rloc && _rloc(mtmp); mtmp.mstat = FLEE; game.flags.botl |= 2;
+          // Add to fstole
+          let stmp = game.fstole;
+          while (stmp && stmp.smon !== mtmp) stmp = stmp.nstole;
+          if (stmp) stmp.sgold += tmp;
+          else {
+            stmp = makeStole(mtmp, null, tmp);
+            stmp.nstole = game.fstole; game.fstole = stmp;
+          }
+        }
+        break;
+      case 'N':
+        if (!mtmp.mcan && hits_val && game.invent && rn2(2)) {
+          await mhit(mdat.mname); await steal(mtmp);
+          _rloc && _rloc(mtmp); mtmp.mstat = FLEE;
+        }
+        break;
+      case 'n':
+        hitu(11, d(2,6), mdat.mname); hitu(11, d(2,6), mdat.mname); break;
+      case 'o': {
+        let t1 = hitu(5, rnd(6), mdat.mname);
+        if (hitu(5, rnd(6), mdat.mname) && !mtmp.mcan && t1 && !game.u.ustuck && rn2(2)) {
+          game.u.ustuck = mtmp; await mhit(mdat.mname);
+          await k1('%s%s has grabbed you!', mdat.mname); game.u.uhp -= d(2,8);
+        } else if (game.u.ustuck === mtmp) {
+          game.u.uhp -= d(2,8); game.flags.botl |= HP;
+          await pline('You are being crushed.');
+        }
+        game.killer = mdat.mname; break;
+      }
+      case 'P':
+        if (!mtmp.mcan && hits_val && !rn2(4)) { await mhit(mdat.mname); await justswld(mtmp); }
+        else hitu(15, d(2,4), mdat.mname);
+        break;
+      case 'Q': hitu(3, rnd(2), mdat.mname); hitu(3, rnd(2), mdat.mname); break;
+      case 'R':
+        hitu(5, 0, mdat.mname);
+        if (!mtmp.mcan && hits_val && game.uarm && game.uarm.otyp !== 2 &&
+            (!game.uarm.minus || game.uarm.otyp - game.uarm.spe !== 1)) {
+          await mhit(mdat.mname); await pline(RUST);
+          minusone(game.uarm); game.u.uac++; game.flags.botl |= 32;
+        }
+        break;
+      case 'S':
+        if (!mtmp.mcan && hits_val && !rn2(8)) {
+          await mhit(mdat.mname); await poisoned("snake's bite"); game.killer = mdat.mname;
+        }
+        break;
+      case 's':
+        if (hits_val && !rn2(8)) { await poisoned("scorpion's sting"); game.killer = mdat.mname; }
+        hitu(5, rnd(8), mdat.mname); hitu(5, rnd(8), mdat.mname); break;
+      case 'T': hitu(6, rnd(6), mdat.mname); hitu(6, rnd(6), mdat.mname); break;
+      case 'U': hitu(9, d(3,4), mdat.mname); hitu(9, d(3,4), mdat.mname); break;
+      case 'v': if (!mtmp.mcan && hits_val && !game.u.ustuck) game.u.ustuck = mtmp; break;
+      case 'V':
+        if (hits_val) {
+          game.u.uhp -= 4; await mhit(mdat.mname);
+          if (!mtmp.mcan && !rn2(3)) losexp(); game.killer = mdat.mname;
+        }
+        break;
+      case 'W':
+        if (!mtmp.mcan && hits_val && !rn2(5)) { await mhit(mdat.mname); losexp(); }
+        break;
+      case 'X':
+        for (let i = 0; i < 3; i++) hitu(8, rnd(3), mdat.mname); break;
+      case 'y':
+        if (mtmp.mcan) break;
+        delmon(mtmp);
+        if (game.levl[mtmp.mx][mtmp.my].cansee) newsym(mtmp.mx, mtmp.my);
+        if (!game.u.ublind) {
+          await pline('A yellow light blinds you!');
+          game.u.ublind = d(4,12);
+          // seeoff(0)
+        }
+        hits_val = -1; break;
+      case 'Y': hitu(4, rnd(6), mdat.mname); break;
+    }
+
+    switch (hits_val) {
+      case 0: await k1('%s%s misses', mdat.mname); break;
+      case -1: break;
+      default: await mhit(mdat.mname);
+    }
+    // Extra movement for fast monsters
+    for (let tmp = mdat.mmove - 12; tmp > rnd(12); tmp -= 12) m_move(mtmp);
+  }
+}
+
+// C ref: mhit(name) — print hit message
+async function mhit(name) {
+  const hnu = ['twice', 'three times', 'four times', 'five times'];
+  if (hits_val < 1) { await pline('bad mhit'); return; }
+  if (hits_val === 1) await k1('%s%s hits!', name);
+  else {
+    if (game.u.ublind) await pline('It hits %s!', hnu[hits_val - 2]);
+    else await k1('%s%s hits %s!', name, hnu[hits_val - 2]);
+  }
+}
+
+// C ref: hitu(str,dam,name) — monster hits player
+// Returns 1 if hit, 0 if miss
+export function hitu(ac_check, dam, name) {
+  if (rnd(20) < ac_check - game.u.uac) {
+    if (dam) { game.u.uhp -= dam; game.flags.botl |= HP; }
+    hits_val++;
+    return 1;
+  }
+  return 0;
+}
+
+// C ref: m_move(mtmp) — move monster one step toward/away from player
+export function m_move(mtmp) {
+  const mdat = mtmp.data;
+  let nx = mtmp.mx, ny = mtmp.my;
+  let moves = 0;
+
+  // Compute direction toward/away from player
+  let ddx = 0, ddy = 0;
+  const distx = game.u.ux - mtmp.mx;
+  const disty = game.u.uy - mtmp.my;
+
+  if (mtmp.mstat === FLEE) {
+    // Move away from player
+    if (distx > 0) ddx = -1; else if (distx < 0) ddx = 1;
+    if (disty > 0) ddy = -1; else if (disty < 0) ddy = 1;
+  } else {
+    // Move toward player
+    if (distx > 0) ddx = 1; else if (distx < 0) ddx = -1;
+    if (disty > 0) ddy = 1; else if (disty < 0) ddy = -1;
+  }
+
+  // Try to move
+  const candidates = [];
+  if (ddx && ddy) candidates.push([ddx, ddy], [ddx, 0], [0, ddy]);
+  else if (ddx) candidates.push([ddx, 0], [ddx, 1], [ddx, -1]);
+  else candidates.push([0, ddy], [1, ddy], [-1, ddy]);
+
+  for (const [cdx, cdy] of candidates) {
+    const nx2 = mtmp.mx + cdx, ny2 = mtmp.my + cdy;
+    if (nx2 < 0 || nx2 >= 80 || ny2 < 0 || ny2 >= 22) continue;
+    const cell = game.levl[nx2][ny2];
+    if (cell.typ < 3) continue; // can't enter WALL/SDOOR/impassable
+    if (nx2 === game.u.ux && ny2 === game.u.uy) continue; // player
+    if (g_at_mon(nx2, ny2, game.fmon)) continue; // occupied
+    // Teleporter monster: 't' teleports others
+    if (mdat.mlet === 't' && !rn2(5) && _rloc) { _rloc(mtmp); return 1; }
+    nx = nx2; ny = ny2;
+    moves = 1;
+    break;
+  }
+
+  if (moves) {
+    if (game.levl[mtmp.mx][mtmp.my].cansee) newsym(mtmp.mx, mtmp.my);
+    mtmp.mx = nx; mtmp.my = ny;
+    if (game.levl[nx][ny].cansee) pmon(mtmp);
+  }
+  return moves;
+}
+
+// C ref: makemon(pmonst) — create a new monster
+export function makemon(pmonst) {
+  const mtmp = makeMonst(null);
+  mtmp.nmon = game.fmon;
+  game.fmon = mtmp;
+  mtmp.mstat = SLEEP;
+
+  let mdat;
+  if (pmonst) {
+    mdat = pmonst;
+  } else {
+    const tier = Math.min(Math.floor(game.dlevel / 3 + 1), 7);
+    mdat = mon[rn2(tier + 1)][rn2(7)];
+  }
+  mtmp.data = mdat;
+  if (!mdat.mlet) { game.fmon = mtmp.nmon; return null; }
+
+  if (mdat.mlet === 'D') mtmp.mhp = mtmp.orig_hp = 80;
+  else if (mdat.mhd) mtmp.orig_hp = mtmp.mhp = d(mdat.mhd, 8);
+  else mtmp.orig_hp = mtmp.mhp = rnd(4);
+
+  if (mdat.mlet === ':' && !game.u.ucham) mtmp.cham = true;
+  if (mdat.mlet === 'I') mtmp.invis = true;
+  if ('p~,M'.includes(mdat.mlet)) { mtmp.invis = true; mtmp.sinv = true; }
+  return mtmp;
+}
+
+// C ref: rloc(mon) — relocate monster to random position
+export function rloc(mtmp) {
+  let x, y;
+  do {
+    x = rn1(80, 0); y = rn1(22, 0);
+  } while (game.levl[x][y].typ < 3 || g_at_mon(x, y, game.fmon) ||
+           (x === game.u.ux && y === game.u.uy));
+  if (game.levl[mtmp.mx][mtmp.my].cansee) newsym(mtmp.mx, mtmp.my);
+  mtmp.mx = x; mtmp.my = y;
+  if (game.levl[x][y].cansee) pmon(mtmp);
+}
+
+// C ref: mnexto(mon) — move monster next to player
+export function mnexto(mtmp) {
+  for (let ddx = -1; ddx <= 1; ddx++) {
+    for (let ddy = -1; ddy <= 1; ddy++) {
+      if (!ddx && !ddy) continue;
+      const x = game.u.ux + ddx, y = game.u.uy + ddy;
+      if (x < 0 || x >= 80 || y < 0 || y >= 22) continue;
+      if (game.levl[x][y].typ >= 3 && !g_at_mon(x, y, game.fmon)) {
+        mtmp.mx = x; mtmp.my = y;
+        if (game.levl[x][y].cansee) pmon(mtmp);
+        return;
+      }
+    }
+  }
+  rloc(mtmp);
+}
+
+// C ref: newcham(mon,pmonst) — change monster form
+export function newcham(mtmp, new_mdat) {
+  if (!new_mdat || !new_mdat.mlet) return;
+  if (game.levl[mtmp.mx][mtmp.my].cansee) newsym(mtmp.mx, mtmp.my);
+  mtmp.data = new_mdat;
+  if (game.levl[mtmp.mx][mtmp.my].cansee) atl(mtmp.mx, mtmp.my, new_mdat.mlet);
+}
+
+// C ref: killed(mtmp) — monster killed
+export async function killed(mtmp) {
+  const kmsg = [
+    'You destroy %s%s!', 'You blow away %s%s!',
+    'You wale on %s%s!', 'You have defeated %s%s!',
+  ];
+  const article = 'aeiou'.includes(mtmp.data.mname[0].toLowerCase()) ? 'an ' : 'a ';
+  await pline(kmsg[rn2(4)], article, mtmp.data.mname);
+  game.u.urexp += mtmp.data.mhd * 4;
+  if (game.u.ulevel < 21 && game.u.uexp + game.u.urexp > _levelXP(game.u.ulevel)) {
+    game.u.ulevel++;
+    game.u.uhpmax += rnd(game.u.ulevel > 9 ? game.u.ulevel - 9 : game.u.ulevel + 2);
+    game.u.uhp = game.u.uhpmax;
+    game.flags.botl |= 0xff;
+    await pline('Welcome to level %d.', game.u.ulevel);
+  }
+  game.flags.botl |= 2; // GOLD (score)
+  delmon(mtmp);
+}
+
+function _levelXP(lev) {
+  // Simple XP thresholds (C doesn't define these explicitly, using standard values)
+  const thresholds = [0,20,40,80,160,320,640,1280,2560,5120,10240,
+    20480,40960,81920,163840,327680,655360,1310720,2621440,5242880];
+  return thresholds[Math.min(lev, thresholds.length - 1)];
+}
+
+// C ref: delmon(mon) — remove monster from list
+export function delmon(mtmp) {
+  if (mtmp === game.fmon) { game.fmon = game.fmon.nmon; }
+  else {
+    let prev = game.fmon;
+    while (prev && prev.nmon !== mtmp) prev = prev.nmon;
+    if (prev) prev.nmon = mtmp.nmon;
+  }
+}
+
+// C ref: steal(mon) — monster steals an item from player
+export async function steal(mtmp) {
+  let obj = game.invent;
+  if (!obj) return;
+  // Find a non-equipped item
+  let prev = null;
+  let cur = game.invent;
+  while (cur) {
+    if (cur !== game.uarm && cur !== game.uwep && cur !== game.uleft && cur !== game.uright) break;
+    prev = cur; cur = cur.nobj;
+  }
+  if (!cur) { await pline('It fails to steal anything.'); return; }
+  if (!prev) game.invent = cur.nobj;
+  else prev.nobj = cur.nobj;
+  // Put in stole list
+  let stmp = game.fstole;
+  while (stmp && stmp.smon !== mtmp) stmp = stmp.nstole;
+  if (!stmp) {
+    stmp = makeStole(mtmp, null, 0);
+    stmp.nstole = game.fstole; game.fstole = stmp;
+  }
+  cur.nobj = stmp.sobj; stmp.sobj = cur;
+  await pline('Your %s was stolen!', itemName(cur));
+}
+
+// C ref: poisoned(str) — player poisoned
+export async function poisoned(str) {
+  if (game.u.upres) {
+    await pline('You feel no ill effects from %s.', str);
+    return;
+  }
+  await pline('You are poisoned by %s!', str);
+  if (rn2(2)) { _losestr && _losestr(rnd(4)); }
+  else { game.u.uhp -= rn1(10, 6); game.flags.botl |= HP; }
+}
+
+// C ref: losexp() — lose an experience level
+export async function losexp() {
+  if (game.u.ulevel < 2) return;
+  game.u.ulevel--;
+  game.u.uhpmax -= rnd(game.u.ulevel > 9 ? game.u.ulevel - 9 : game.u.ulevel + 2);
+  if (game.u.uhp > game.u.uhpmax) game.u.uhp = game.u.uhpmax;
+  game.flags.botl |= 0x40 | 0x80 | HP | 8; // ULV|UEX|HP|HPM
+  await pline('You feel your life force ebb!');
+}
+
+// Helpers
+function minusone(otmp) { otmp.spe = Math.max(0, otmp.spe - 1); }
+
+function itemName(obj) {
+  // STUB: simplified name
+  return obj.olet === ')' ? 'weapon' :
+         obj.olet === '[' ? 'armor' :
+         obj.olet === '!' ? 'potion' :
+         obj.olet === '?' ? 'scroll' :
+         obj.olet === '%' ? 'food' : 'item';
+}
+
+function pmon(mtmp) {
+  if (!mtmp.invis || game.u.ucinvis)
+    atl(mtmp.mx, mtmp.my, mtmp.data.mlet);
+}
+
+// C ref: attmon(mtmp,otmp,range) — player attacks monster with missile
+// STUB: simplified - full implementation in hack.js
+export async function attmon(mtmp, otmp, range) {
+  // STUB: not yet ported — see hack.js amon()
+}
+
+// C ref: amon(mtmp,otmp,range) — one round of combat vs monster
+// STUB: imported from hack.js
+export async function amon(mtmp, otmp, range) {
+  if (_amon) return _amon(mtmp, otmp, range);
+}
