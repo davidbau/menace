@@ -1363,7 +1363,9 @@ async function dochug(mon, map, player, display, fov, game = null) {
     // Phase 4: Standard Attacks
     // cf. mhitu.c mattacku() — both melee and ranged attacks are dispatched
     // through the attack table.  range2 determines which attack types fire.
-    if (phase4Allowed && !mon_is_peaceful(mon) && !mon.mflee && !mon.dead) {
+    // C ref: monmove.c:983-989 — Phase 4 is gated by status/peacefulness
+    // (and Conflict handling), not by mtmp->mflee.
+    if (phase4Allowed && !mon_is_peaceful(mon) && !mon.dead) {
         if (inrange || panicattk) {
             if (nearby) {
                 // C ref: monmove.c:938-959 — MMOVE_MOVED returns 0 (skip Phase 4
@@ -1779,6 +1781,17 @@ async function m_move(mon, map, player, display = null, fov = null) {
 
     if (mmoved && chosenIdx >= 0) {
         const chosen = positions[chosenIdx];
+        // C ref: monmove.c:1986-2005 — if ALLOW_U was selected, retarget to
+        // current apparent hero position before deciding attack/displace paths.
+        if (chosen.allowU) {
+            nix = mon.mux;
+            niy = mon.muy;
+        }
+        if (player.x === nix && player.y === niy) {
+            mon.mux = player.x;
+            mon.muy = player.y;
+            return MMOVE_NOTHING;
+        }
         const attacksMonster = !!chosen.allowM
             || (nix === (mon.mux ?? -1) && niy === (mon.muy ?? -1));
         if (attacksMonster) {
@@ -1789,8 +1802,9 @@ async function m_move(mon, map, player, display = null, fov = null) {
     if (nix !== omx || niy !== omy) {
         // C ref: monmove.c:2026 — m_digweapon_check: if tunneling monster needs to wield
         // its pick before digging, it wields it and returns MMOVE_DONE (no movement this turn).
-        if ((allowflags & ALLOW_DIG) && await m_digweapon_check(mon, nix, niy, map, player, display, fov))
+        if ((allowflags & ALLOW_DIG) && await m_digweapon_check(mon, nix, niy, map, player, display, fov)) {
             return MMOVE_DONE;
+        }
 
         // C ref: monmove.c:2065 — mon_track_add(mtmp, omx, omy)
         mon_track_add(mon, omx, omy);

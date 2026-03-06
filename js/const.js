@@ -3722,8 +3722,10 @@ export function ACCESSIBLE(typ) {
     return typ >= DOOR;
 }
 export function IS_POOL(typ) {
-    // C ref: rm.h — IS_POOL(typ) ((typ) >= POOL && (typ) <= DRAWBRIDGE_UP)
-    return typ >= POOL && typ <= DRAWBRIDGE_UP;
+    // C ref: dbridge.c is_pool(x,y): POOL/MOAT/WATER (plus is_moat(x,y)).
+    // Typ-only helper cannot evaluate map-state is_moat() context, so keep
+    // the direct typ subset only.
+    return typ === POOL || typ === MOAT || typ === WATER;
 }
 export function IS_LAVA(typ) {
     // C ref: rm.h — IS_LAVA(typ) ((typ) == LAVAPOOL || (typ) == LAVAWALL)
