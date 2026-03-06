@@ -126,19 +126,19 @@ import { In_sokoban, Is_stronghold } from './dungeon.js';
 // ========================================================================
 
 // Check helpers
-function is_mercenary(ptr) { return !!(ptr.flags2 & M2_MERC); }
-function is_lord(ptr) { return !!(ptr.flags2 & M2_LORD); }
-function is_prince(ptr) { return !!(ptr.flags2 & M2_PRINCE); }
-function is_nasty(ptr) { return !!(ptr.flags2 & M2_NASTY); }
-function is_female(ptr) { return !!(ptr.flags2 & M2_FEMALE); }
-function is_male(ptr) { return !!(ptr.flags2 & M2_MALE); }
-function strongmonst(ptr) { return !!(ptr.flags2 & M2_STRONG); }
-function is_neuter(ptr) { return !!(ptr.flags2 & M2_NEUTER); }
-function is_domestic(ptr) { return !!(ptr.flags2 & M2_DOMESTIC); }
-function is_elf(ptr) { return !!(ptr.flags2 & M2_ELF); }
-function is_dwarf(ptr) { return !!(ptr.flags2 & M2_DWARF); }
-function is_hobbit(ptr) { return ptr.mlet === S_HUMANOID && ptr.name && ptr.name.includes('hobbit'); }
-function is_giant_species(ptr) { return ptr.mlet === S_GIANT && ptr.name && ptr.name.includes('giant'); }
+function is_mercenary(ptr) { return !!(ptr.mflags2 & M2_MERC); }
+function is_lord(ptr) { return !!(ptr.mflags2 & M2_LORD); }
+function is_prince(ptr) { return !!(ptr.mflags2 & M2_PRINCE); }
+function is_nasty(ptr) { return !!(ptr.mflags2 & M2_NASTY); }
+function is_female(ptr) { return !!(ptr.mflags2 & M2_FEMALE); }
+function is_male(ptr) { return !!(ptr.mflags2 & M2_MALE); }
+function strongmonst(ptr) { return !!(ptr.mflags2 & M2_STRONG); }
+function is_neuter(ptr) { return !!(ptr.mflags2 & M2_NEUTER); }
+function is_domestic(ptr) { return !!(ptr.mflags2 & M2_DOMESTIC); }
+function is_elf(ptr) { return !!(ptr.mflags2 & M2_ELF); }
+function is_dwarf(ptr) { return !!(ptr.mflags2 & M2_DWARF); }
+function is_hobbit(ptr) { return ptr.mlet === S_HUMANOID && ptr.mname && ptr.mname.includes('hobbit'); }
+function is_giant_species(ptr) { return ptr.mlet === S_GIANT && ptr.mname && ptr.mname.includes('giant'); }
 // C ref: mondata.h:87 — #define is_armed(ptr) attacktype(ptr, AT_WEAP)
 function is_armed(ptr) { return ptr.attacks && ptr.attacks.some(a => a.type === AT_WEAP); }
 
@@ -167,14 +167,14 @@ function is_mplayer_idx(mndx) { return mndx >= PM_ARCHEOLOGIST && mndx <= PM_WIZ
 // C ref: is_lminion — lawful minion (angel aligned to lawful god)
 // During level generation, we approximate: angel with A_LAWFUL alignment
 function is_lminion(mon) {
-    return mon.type?.mlet === S_ANGEL && (mon.type?.align || 0) > 0;
+    return mon.type?.mlet === S_ANGEL && (mon.type?.maligntyp || 0) > 0;
 }
 function attacktype(ptr, atyp) { return ptr.attacks && ptr.attacks.some(a => a.type === atyp); }
-function is_animal(ptr) { return !!(ptr.flags1 & 0x00040000); } // M1_ANIMAL
-function mindless(ptr) { return !!(ptr.flags1 & 0x00010000); } // M1_MINDLESS
+function is_animal(ptr) { return !!(ptr.mflags1 & 0x00040000); } // M1_ANIMAL
+function mindless(ptr) { return !!(ptr.mflags1 & 0x00010000); } // M1_MINDLESS
 function is_ndemon(ptr) { return ptr.mlet === S_DEMON; }
-function always_hostile(ptr) { return !!(ptr.flags2 & M2_HOSTILE); }
-function always_peaceful(ptr) { return !!(ptr.flags2 & M2_PEACEFUL); }
+function always_hostile(ptr) { return !!(ptr.mflags2 & M2_HOSTILE); }
+function always_peaceful(ptr) { return !!(ptr.mflags2 & M2_PEACEFUL); }
 function playerHasAmulet(map) {
     const inv = map?.player?.inventory;
     return Array.isArray(inv) && inv.some((o) => o?.otyp === AMULET_OF_YENDOR);
@@ -191,13 +191,13 @@ function sensemon(mon, player = null, map = null) {
 }
 
 function race_peaceful(ptr, playerCtx) {
-    const flags2 = ptr.flags2 || 0;
+    const flags2 = ptr.mflags2 || 0;
     const lovemask = races[playerCtx.race]?.lovemask || 0;
     return !!(flags2 & lovemask);
 }
 
 function race_hostile(ptr, playerCtx) {
-    const flags2 = ptr.flags2 || 0;
+    const flags2 = ptr.mflags2 || 0;
     const hatemask = races[playerCtx.race]?.hatemask || 0;
     return !!(flags2 & hatemask);
 }
@@ -308,15 +308,15 @@ export function setMakemonInMklevContext(active) {
 
 // C ref: makemon.c peace_minded(struct permonst *ptr)
 function peace_minded(ptr, playerCtx = _makemonPlayerCtx) {
-    const mal = ptr.align || 0;
+    const mal = ptr.maligntyp || 0;
     const ual = playerCtx.alignment || 0;
     const alignRecord = playerCtx.alignmentRecord;
     const alignAbuse = playerCtx.alignmentAbuse;
 
     if (always_peaceful(ptr)) return true;
     if (always_hostile(ptr)) return false;
-    if (ptr.sound === MS_LEADER || ptr.sound === MS_GUARDIAN) return true;
-    if (ptr.sound === MS_NEMESIS) return false;
+    if (ptr.msound === MS_LEADER || ptr.msound === MS_GUARDIAN) return true;
+    if (ptr.msound === MS_NEMESIS) return false;
     if (ptr === mons[PM_ERINYS]) return !alignAbuse;
 
     if (race_peaceful(ptr, playerCtx)) return true;
@@ -324,7 +324,7 @@ function peace_minded(ptr, playerCtx = _makemonPlayerCtx) {
 
     if (sgn(mal) !== sgn(ual)) return false;
     if (mal < 0 && playerCtx.hasAmulet) return false;
-    if ((ptr.flags2 || 0) & M2_MINION) return alignRecord >= 0;
+    if ((ptr.mflags2 || 0) & M2_MINION) return alignRecord >= 0;
 
     return !!rn2(16 + (alignRecord < -15 ? -15 : alignRecord))
         && !!rn2(2 + Math.abs(mal));
@@ -381,11 +381,11 @@ function align_shift(ptr) {
     case A_NONE:
         return 0;
     case A_LAWFUL:
-        return Math.trunc(((ptr.align || 0) + 20) / (2 * ALIGNWEIGHT));
+        return Math.trunc(((ptr.maligntyp || 0) + 20) / (2 * ALIGNWEIGHT));
     case A_NEUTRAL:
-        return Math.trunc((20 - Math.abs(ptr.align || 0)) / ALIGNWEIGHT);
+        return Math.trunc((20 - Math.abs(ptr.maligntyp || 0)) / ALIGNWEIGHT);
     case A_CHAOTIC:
-        return Math.trunc((20 - (ptr.align || 0)) / (2 * ALIGNWEIGHT));
+        return Math.trunc((20 - (ptr.maligntyp || 0)) / (2 * ALIGNWEIGHT));
     }
 }
 
@@ -444,7 +444,7 @@ export function rndmonst_adj(minadj, maxadj, depth) {
 
             // DEBUG: Log first 10 eligible monsters
             if (DEBUG_RNG && iterCount < 10) {
-                console.log(`[${iterCount}] mndx=${mndx} ${ptr.name.padEnd(20)} diff=${ptr.difficulty} geno=0x${ptr.geno.toString(16)} freq=${ptr.geno & G_FREQ} weight=${weight} total=${oldTotal}->${totalweight}`);
+                console.log(`[${iterCount}] mndx=${mndx} ${ptr.mname.padEnd(20)} diff=${ptr.difficulty} geno=0x${ptr.geno.toString(16)} freq=${ptr.geno & G_FREQ} weight=${weight} total=${oldTotal}->${totalweight}`);
                 iterCount++;
             }
 
@@ -454,7 +454,7 @@ export function rndmonst_adj(minadj, maxadj, depth) {
             // }
             const roll = rn2(totalweight);
             if (trace) {
-                console.log(`[RNDMON] #${traceIdx} mndx=${mndx} name=${ptr.name} w=${weight} total=${oldTotal}->${totalweight} roll=${roll} pick=${roll < weight ? 1 : 0} ctx=${traceCtx}`);
+                console.log(`[RNDMON] #${traceIdx} mndx=${mndx} name=${ptr.mname} w=${weight} total=${oldTotal}->${totalweight} roll=${roll} pick=${roll < weight ? 1 : 0} ctx=${traceCtx}`);
             }
             // if (depth === 3 && minadj === 0 && maxadj === 0 && iterCount < 5) {
             //     console.log(`  -> Result: ${roll}, weight=${weight}, selected=${roll < weight ? mndx : 'unchanged'}`);
@@ -465,7 +465,7 @@ export function rndmonst_adj(minadj, maxadj, depth) {
     }
 
     if (trace) {
-        const selectedName = selected_mndx >= 0 ? (mons[selected_mndx]?.name || `#${selected_mndx}`) : 'NON_PM';
+        const selectedName = selected_mndx >= 0 ? (mons[selected_mndx]?.mname || `#${selected_mndx}`) : 'NON_PM';
         console.log(`[RNDMON] end #${traceIdx} totalweight=${totalweight} selected=${selected_mndx} ${selectedName} ctx=${traceCtx}`);
     }
 
@@ -589,7 +589,7 @@ export function mkclass(monclass, spc, depth = 1, atyp = A_NONE) {
         const mndx = mongen_order[last];
 
         // Alignment filter (for mkclass_aligned)
-        if (atyp !== A_NONE && Math.sign(mons[mndx].align) !== Math.sign(atyp))
+        if (atyp !== A_NONE && Math.sign(mons[mndx].maligntyp) !== Math.sign(atyp))
             continue;
 
         // C ref: hell/nohell gating — rn2(9) per candidate
@@ -709,7 +709,7 @@ export function mongets(mon,otyp) {
     const ptr = mon?.type || (mon?.mndx != null ? mons[mon.mndx] : null);
     if (ptr) {
         // C ref: makemon.c:2186 — demons never get blessed objects
-        if (ptr.flags2 & M2_DEMON) {
+        if (ptr.mflags2 & M2_DEMON) {
             if (otmp.blessed) {
                 otmp.blessed = false;
                 otmp.cursed = true;
@@ -853,7 +853,7 @@ function m_initweap(mon, mndx, depth) {
         } else {
             // Generic human — check specific types
             // Ninja, priest, cleric, etc. — simplified
-            if (ptr.sound === MS_PRIEST) {
+            if (ptr.msound === MS_PRIEST) {
                 // C ref: makemon.c m_initweap() priest branch uses mksobj()
                 // directly (not mongets), so no WEAPON_CLASS init RNG here.
                 const otmp = mksobj(MACE, false, false);
@@ -862,7 +862,7 @@ function m_initweap(mon, mndx, depth) {
                     if (!rn2(2)) otmp.cursed = true;
                     mpickobj(mon, otmp);
                 }
-            } else if (ptr.name && ptr.name === 'ninja') {
+            } else if (ptr.mname && ptr.mname === 'ninja') {
                 if (rn2(4)) m_initthrow(mon, SHURIKEN, 8);
                 else m_initthrow(mon, DART, 8);
                 if (rn2(4)) mongets(mon,SHORT_SWORD);
@@ -997,7 +997,7 @@ function m_initweap(mon, mndx, depth) {
 
     case S_LIZARD:
         // Salamander
-        if (ptr.name && ptr.name === 'salamander') {
+        if (ptr.mname && ptr.mname === 'salamander') {
             if (!rn2(7)) mongets(mon,SPEAR);
             else if (!rn2(3)) mongets(mon,TRIDENT);
             else mongets(mon,STILETTO);
@@ -1006,7 +1006,7 @@ function m_initweap(mon, mndx, depth) {
 
     case S_DEMON:
         // Horned devil
-        if (ptr.name && ptr.name === 'horned devil') {
+        if (ptr.mname && ptr.mname === 'horned devil') {
             if (!rn2(4)) {
                 mongets(mon,rn2(2) ? TRIDENT : BULLWHIP);
             }
@@ -1132,7 +1132,7 @@ function rnd_misc_item(mon) {
 
     // Non-living monsters and vampshifters don't get amulet of life saving
     // Note: is_vampshifter check omitted (only applies to existing monsters)
-    const nonliving_monster = !!(ptr.flags3 & 0x00000040); // MZ_NONLIVING
+    const nonliving_monster = !!(ptr.mflags3 & 0x00000040); // MZ_NONLIVING
     if (!rn2(40) && !nonliving_monster) {
         return AMULET_OF_LIFE_SAVING;
     }
@@ -1304,7 +1304,7 @@ function m_initinv(mon, mndx, depth, m_lev, map) {
                 if (!rn2(2)) mongets(mon,C_RATION);
                 if (mndx !== PM_SOLDIER && !rn2(3)) mongets(mon,BUGLE);
             }
-        } else if (ptr.sound === MS_PRIEST) {
+        } else if (ptr.msound === MS_PRIEST) {
             mongets(mon,rn2(7) ? ROBE : (rn2(3) ? CLOAK_OF_PROTECTION : CLOAK_OF_MAGIC_RESISTANCE));
             mongets(mon,SMALL_SHIELD);
             mkmonmoney(mon, rn1(10, 20));
@@ -1425,7 +1425,7 @@ function m_initinv(mon, mndx, depth, m_lev, map) {
         const otyp = rnd_misc_item(mon);
         if (otyp) mongets(mon,otyp);
     }
-    if ((ptr.flags2 & M2_GREEDY) && !findgold(mon?.minvent) && !rn2(5)) {
+    if ((ptr.mflags2 & M2_GREEDY) && !findgold(mon?.minvent) && !rn2(5)) {
         // C ref: mkmonmoney(mtmp, d(level_difficulty(), minvent ? 5 : 10))
         const moneyDie = (Array.isArray(mon?.minvent) && mon.minvent.length > 0) ? 5 : 10;
         const amount = c_d(Math.max(depth, 1), moneyDie);
@@ -1460,7 +1460,7 @@ function is_placeholder_mndx(mndx) {
 function polyok_for_newcham(ptr) {
     if (!ptr) return false;
     // C ref: mondata.h polyok(ptr) => ((ptr->mflags2 & M2_NOPOLY) == 0L)
-    return ((ptr.flags2 || 0) & M2_NOPOLY) === 0;
+    return ((ptr.mflags2 || 0) & M2_NOPOLY) === 0;
 }
 function accept_newcham_form(chamMndx, mndx) {
     if (!Number.isInteger(mndx) || mndx < LOW_PM || mndx >= SPECIAL_PM) return null;
@@ -1470,7 +1470,7 @@ function accept_newcham_form(chamMndx, mndx) {
     // C ref: accept_newcham_form() allows mplayer forms even when !polyok.
     if (is_mplayer_idx(mndx)) return mdat;
     // C ref: allow only the monster's own natural shapeshifter form.
-    if ((mdat.flags2 & M2_SHAPESHIFTER) && mndx === chamMndx) return mdat;
+    if ((mdat.mflags2 & M2_SHAPESHIFTER) && mndx === chamMndx) return mdat;
     if (!polyok_for_newcham(mdat)) return null;
     return mdat;
 }
@@ -1659,17 +1659,17 @@ function apply_newcham_from_base(mon, baseMndx, depth, map = null, player = null
 
     const symEntry = def_monsyms[target.mlet];
     mon.mndx = newMndx;
+    mon.data = target;
     mon.type = target;
-    mon.name = target.name;
+    mon.name = target.mname;
     mon.displayChar = symEntry ? symEntry.sym : '?';
-    mon.displayColor = target.color;
+    mon.displayColor = target.mcolor;
     mon.attacks = target.attacks;
     mon.mhp = newHp;
     mon.mhpmax = newHp;
     mon.m_lev = newLev;
     mon.m_lev = newLev;
     mon.mac = target.ac;
-    mon.speed = target.speed;
     const seenAfter = canseemon(mon, player, fov, map);
     // C ref: newcham() post-transform gear handling.
     mon_break_armor(mon, false, map, { visible: canseemon(mon, player, fov, map) });
@@ -1704,16 +1704,16 @@ function apply_newcham_direct(mon, targetMndx, depth, map = null, player = null,
     const { hp: newHp, m_lev: newLev } = newmonhp(targetMndx, depth || 1);
     const symEntry = def_monsyms[target.mlet];
     mon.mndx = targetMndx;
+    mon.data = target;
     mon.type = target;
-    mon.name = target.name;
+    mon.name = target.mname;
     mon.displayChar = symEntry ? symEntry.sym : '?';
-    mon.displayColor = target.color;
+    mon.displayColor = target.mcolor;
     mon.attacks = target.attacks;
     mon.mhp = newHp;
     mon.mhpmax = newHp;
     mon.m_lev = newLev;
     mon.mac = target.ac;
-    mon.speed = target.speed;
     const seenAfter = canseemon(mon, player, fov, map);
     // C ref: newcham() post-transform gear handling.
     mon_break_armor(mon, false, map, { visible: canseemon(mon, player, fov, map) });
@@ -1730,7 +1730,7 @@ function apply_newcham_direct(mon, targetMndx, depth, map = null, player = null,
 
 function maybe_apply_newcham(mon, baseMndx, depth, map = null) {
     const basePtr = mons[baseMndx];
-    if (!(basePtr.flags2 & M2_SHAPESHIFTER)) return false;
+    if (!(basePtr.mflags2 & M2_SHAPESHIFTER)) return false;
     if (baseMndx === PM_VLAD_THE_IMPALER) return false;
     mon.cham = baseMndx;
     return apply_newcham_from_base(mon, baseMndx, depth, map, null, null, null, false);
@@ -1922,7 +1922,7 @@ function boulderBlocks(ptr, map, x, y) {
     if (!Array.isArray(map?.objects)) return false;
     const hasBoulder = map.objects.some(o => o && o.otyp === BOULDER && o.ox === x && o.oy === y);
     if (!hasBoulder) return false;
-    return !ptr || ((ptr.flags2 || 0) & M2_ROCKTHROW) === 0;
+    return !ptr || ((ptr.mflags2 || 0) & M2_ROCKTHROW) === 0;
 }
 
 function eelDryPlacementFails(ptr, typ) {
@@ -1976,17 +1976,17 @@ function makemonGoodpos(map, x, y, ptr, mmflags = NO_MM_FLAGS, avoidMonpos = tru
 
     if (ptr) {
         if (IS_POOL(loc.typ) && !ignoreWater) {
-            const f1 = ptr.flags1 || 0;
+            const f1 = ptr.mflags1 || 0;
             if (!(f1 & (M1_SWIM | M1_AMPHIBIOUS | M1_FLY))) return false;
         } else if (ptr.mlet === S_EEL && !ignoreWater && eelDryPlacementFails(ptr, loc.typ)) {
             return false;
         } else if (IS_LAVA(loc.typ) && !ignoreLava) {
-            const f1 = ptr.flags1 || 0;
+            const f1 = ptr.mflags1 || 0;
             if (!(f1 & M1_FLY)) return false;
         }
 
-        if ((ptr.flags1 & M1_WALLWALK) && mayPasswallAt(map, x, y)) return true;
-        if ((ptr.flags1 & M1_AMORPHOUS) && closedDoorAt(map, x, y)) return true;
+        if ((ptr.mflags1 & M1_WALLWALK) && mayPasswallAt(map, x, y)) return true;
+        if ((ptr.mflags1 & M1_AMORPHOUS) && closedDoorAt(map, x, y)) return true;
     }
 
     if (!accessibleAt(map, x, y)) {
@@ -2217,7 +2217,7 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
             ptr = mons[mndx];
             const ok = randomMonGoodpos(ptr, x, y, map, mmflags || NO_MM_FLAGS);
             if (DEBUG_MAKEMON) {
-                console.log(`[MAKEMON] rnd try=${tryct + 1} depth=${depth || 1} at=${x},${y} mndx=${mndx} name=${ptr?.name || '?'} ok=${ok}`);
+                console.log(`[MAKEMON] rnd try=${tryct + 1} depth=${depth || 1} at=${x},${y} mndx=${mndx} name=${ptr?.mname || '?'} ok=${ok}`);
             }
             if (++tryct > 50 || ok) break;
         } while (true);
@@ -2331,10 +2331,11 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     const mon = {
         mndx,
         m_id,
+        data: ptr,
         type: ptr,
-        name: ptr.name,
+        name: ptr.mname,
         displayChar: symEntry ? symEntry.sym : '?',
-        displayColor: ptr.color,
+        displayColor: ptr.mcolor,
         mx: x,
         my: y,
         mhp: hp,
@@ -2342,7 +2343,6 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         mlevel: m_lev,
         m_lev,
         mac: ptr.ac,
-        speed: ptr.speed,
         movement: 0,  // C ref: *mtmp = cg.zeromonst (zero-init)
         attacks: ptr.attacks,
         peaceful: monPeaceful,
@@ -2467,13 +2467,13 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     }
 
     // C ref: makemon.c:1457-1463 — set mstrategy from mflags3 unless MM_NOWAIT.
-    if ((ptr.flags3 || 0) && !(mmflags & MM_NOWAIT)) {
+    if ((ptr.mflags3 || 0) && !(mmflags & MM_NOWAIT)) {
         const STRAT_WAITFORU  = 0x20000000;
         const STRAT_CLOSE     = 0x10000000;
         const STRAT_APPEARMSG = 0x80000000;
-        if (ptr.flags3 & M3_WAITFORU) mon.mstrategy = (mon.mstrategy || 0) | STRAT_WAITFORU;
-        if (ptr.flags3 & M3_CLOSE)    mon.mstrategy = (mon.mstrategy || 0) | STRAT_CLOSE;
-        if (ptr.flags3 & (M3_WAITMASK | M3_COVETOUS)) mon.mstrategy = (mon.mstrategy || 0) | STRAT_APPEARMSG;
+        if (ptr.mflags3 & M3_WAITFORU) mon.mstrategy = (mon.mstrategy || 0) | STRAT_WAITFORU;
+        if (ptr.mflags3 & M3_CLOSE)    mon.mstrategy = (mon.mstrategy || 0) | STRAT_CLOSE;
+        if (ptr.mflags3 & (M3_WAITMASK | M3_COVETOUS)) mon.mstrategy = (mon.mstrategy || 0) | STRAT_APPEARMSG;
     }
 
     // C ref: makemon.c:1469-1498 — runtime appear message outside mklev.

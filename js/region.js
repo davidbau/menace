@@ -617,7 +617,7 @@ export async function inside_gas_cloud(reg, mtmp, map, player, game) {
     } else {
         // A monster is inside the cloud
         if (m_poisongas_ok(mtmp) !== M_POISONGAS_OK) {
-            if (!is_silent(mtmp.type || {})) {
+            if (!is_silent(mtmp.data || mtmp.type || {})) {
                 if ((map && cansee(map, player, null, mtmp.mx, mtmp.my))
                     || dist2(player.x, player.y, mtmp.mx, mtmp.my) < 8)
                     await pline("%s coughs!", Monnam(mtmp));
@@ -625,7 +625,7 @@ export async function inside_gas_cloud(reg, mtmp, map, player, game) {
             }
             if (heros_fault(reg))
                 setmangry(mtmp, true, map, player);
-            if (haseyes(mtmp.type || {}) && mtmp.mcansee) {
+            if (haseyes(mtmp.data || mtmp.type || {}) && mtmp.mcansee) {
                 mtmp.mblinded = 1;
                 mtmp.mcansee = false;
             }
@@ -794,7 +794,7 @@ export function region_danger(map, player) {
         const f_indx = regions[i].inside_f;
         if (f_indx === INSIDE_GAS_CLOUD) {
             const mdat = player.type || {};
-            if (nonliving(mdat) || (mdat.flags1 && (mdat.flags1 & 0x00000020))) // M1_BREATHLESS
+            if (nonliving(mdat) || (mdat.mflags1 && (mdat.mflags1 & 0x00000020))) // M1_BREATHLESS
                 continue;
             if (player.poisonResistance) continue;
             ++n;

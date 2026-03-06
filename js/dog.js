@@ -88,14 +88,14 @@ function is_rider(ptr) {
 function resists_poison(mon) { return !!(monPtr(mon)?.mr1 & MR_POISON); }
 function resists_acid(mon)   { return !!(monPtr(mon)?.mr1 & MR_ACID); }
 function resists_ston(mon)   { return !!(monPtr(mon)?.mr1 & MR_STONE); }
-function likes_fire(ptr) { return !!(ptr.mr1 & MR_FIRE); }
+function likes_fire(ptr) { return !!(ptr.mresists & MR_FIRE); }
 function polyfood(obj) { return false; }
 function slimeproof(ptr) { return false; }
 
 function mon_hates_silver(mon) {
     const ptr = monPtr(mon);
     if (!ptr) return false;
-    return !!(ptr.flags2 & 0x00000400);
+    return !!(ptr.mflags2 & 0x00000400);
 }
 
 function ismnum(fx) { return fx >= 0 && fx < NUMMONS; }
@@ -103,7 +103,7 @@ const humanoid = is_humanoid;
 
 function same_race(ptr1, ptr2) {
     const race_flags = 0x00004000 | 0x00008000 | 0x00010000 | 0x00020000 | 0x00040000;
-    return !!(ptr1.flags2 & ptr2.flags2 & race_flags);
+    return !!(ptr1.mflags2 & ptr2.mflags2 & race_flags);
 }
 
 function is_quest_artifact(obj) { return false; }
@@ -269,7 +269,7 @@ function pet_type(roleIndex) {
     return rn2(2) ? PM_KITTEN : PM_LITTLE_DOG;
 }
 
-function is_domestic(ptr) { return !!(ptr.flags2 & M2_DOMESTIC); }
+function is_domestic(ptr) { return !!(ptr.mflags2 & M2_DOMESTIC); }
 
 // C ref: dog.c makedog()
 export function makedog(map, player, depth) {
@@ -359,7 +359,7 @@ function arrivalGoodPos(map, mon, x, y) {
     if (!loc || !ACCESSIBLE(loc.typ)) return false;
     if (IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED))) return false;
     if (map.monsterAt(x, y)) return false;
-    const flags1 = mon?.type?.flags1 || 0;
+    const flags1 = mon?.type?.mflags1 || 0;
     const canFlyOrSwim = !!(flags1 & (M1_FLY | M1_SWIM | M1_AMPHIBIOUS));
     if ((loc.typ === POOL || loc.typ === LAVAPOOL) && !canFlyOrSwim) return false;
     return true;

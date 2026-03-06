@@ -175,7 +175,7 @@ function M_AP_TYPE(mon) {
 function m_canseeu(mon, map, player) {
     if (!mon || !player || !map) return false;
     const heroInvis = !!(player.Invis || player.invisible);
-    const canPerceiveInvis = perceives(mon.type || mons[mon.mndx] || {});
+    const canPerceiveInvis = perceives(mon.data || mon.type || mons[mon.mndx] || {});
     if (heroInvis && !canPerceiveInvis) return false;
     if (player.underwater) return false;
     // C macro uses couldsee(mon->mx, mon->my): hero visibility of monster square.
@@ -261,7 +261,7 @@ export async function monflee(mon, fleetime, first, fleemsg, player, display, fo
         }
         // C ref: monmove.c:487-520 — flee message
         if (!mon.mflee && fleemsg && canseemon(mon, player, fov)) {
-            if (!mon.mcanmove || !(mon.type?.speed)) {
+            if (!mon.mcanmove || !((mon.data || mon.type)?.mmove)) {
                 await display?.putstr_message(`${YMonnam(mon)} seems to flinch.`);
             } else {
                 await display?.putstr_message(`${YMonnam(mon)} turns to flee.`);
@@ -280,7 +280,7 @@ export async function monflee(mon, fleetime, first, fleemsg, player, display, fo
 // Gremlin flees from hero's lit artifact weapon or body armor.
 // C: uwep->lamplit && artifact_light(uwep) || uarm->lamplit && artifact_light(uarm)
 function flees_light(mon, map, player) {
-    if ((mon.type || mon.data || {}).mndx !== PM_GREMLIN) return false;
+    if ((mon.data || mon.type || {}).mndx !== PM_GREMLIN) return false;
     const uwep = player.uwep;
     const uarm = player.uarm;
     if (!((uwep && uwep.lamplit && artifact_light(uwep))
@@ -332,7 +332,7 @@ export async function distfleeck(mon, map, player, display, fov) {
     let sanctuary = 0;
     // C ref: monmove.c:548-558 — determine scary square even when not nearby
     const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false);
-    const canPerceiveInvis = perceives(mon.type || mons[mon.mndx] || {});
+    const canPerceiveInvis = perceives(mon.data || mon.type || mons[mon.mndx] || {});
     const heroInvis = playerIsInvisibleForMonAI(player);
     const seescaryX = (!monCanSee || (heroInvis && !canPerceiveInvis)) ? targetX : player.x;
     const seescaryY = (!monCanSee || (heroInvis && !canPerceiveInvis)) ? targetY : player.y;
@@ -356,7 +356,7 @@ export async function distfleeck(mon, map, player, display, fov) {
         `step=${monmoveStepLabel(map)}`,
         `id=${mon.m_id ?? '?'}`,
         `mndx=${mon.mndx ?? '?'}`,
-        `name=${mon.type?.name || mon.name || '?'}`,
+        `name=${mon.data?.mname || mon.type?.mname || mon.name || '?'}`,
         `pos=(${mon.mx},${mon.my})`,
         `roll=${bravegremlin ? 0 : 1}`);
 
@@ -370,7 +370,7 @@ export async function distfleeck(mon, map, player, display, fov) {
 // C ref: monmove.c:308 — regenerate monster HP, decrement mspec_used,
 // and handle digesting (meating countdown).
 export function mon_regen(mon, digest_meal, moves) {
-    const mdat = mon.type || {};
+    const mdat = mon.data || mon.type || {};
     // C: every 20 turns or if monster regenerates naturally
     if (moves % 20 === 0 || mdat.regen) {
         if ((mon.mhp ?? 0) < (mon.mhpmax ?? 0)) {
@@ -412,7 +412,7 @@ export function monhaskey(mon, forUnlocking) {
 // Autotranslated from monmove.c:134
 // Autotranslated from monmove.c:133
 export function m_can_break_boulder(mtmp) {
-  return (is_rider((monsdat(mtmp) || {})) || (!mtmp.mspec_used && (mtmp.isshk || mtmp.ispriest || ((((monsdat(mtmp) || {}).msound ?? (monsdat(mtmp) || {}).sound ?? 0)) === MS_LEADER))));
+  return (is_rider((monsdat(mtmp) || {})) || (!mtmp.mspec_used && (mtmp.isshk || mtmp.ispriest || ((((monsdat(mtmp) || {}).msound ?? (monsdat(mtmp) || {}).msound ?? 0)) === MS_LEADER))));
 }
 
 // ========================================================================
@@ -421,8 +421,8 @@ export function m_can_break_boulder(mtmp) {
 // Compute the bitfield flag argument for mfndpos().
 // INCOMPLETE: Conflict ALLOW_U not implemented
 export function mon_allowflags(mon, player, map = null) {
-    const ptr = (Number.isInteger(mon?.mndx) && mons[mon.mndx]) || mon?.type || {};
-    const f1 = ptr.flags1 || 0;
+    const ptr = mon?.data || mon?.type || ((Number.isInteger(mon?.mndx) && mons[mon.mndx]) || {});
+    const f1 = ptr.mflags1 || 0;
     let flag = 0;
 
     // C ref: mon.c:2049-2059 — disposition-based flags
@@ -548,8 +548,8 @@ const MAGICAL_CLASSES = new Set([AMULET_CLASS, POTION_CLASS, SCROLL_CLASS, WAND_
 
 function max_mon_load_for_search(mon) {
     const mdat = mon?.type || {};
-    const strong = !!(mdat.flags2 & M2_STRONG);
-    const cwt = Number(mdat.weight || 0);
+    const strong = !!(mdat.mflags2 & M2_STRONG);
+    const cwt = Number(mdat.cwt || 0);
     const msize = Number(mdat.msize || 0);
     let maxload;
     if (!cwt) {
@@ -565,7 +565,7 @@ function max_mon_load_for_search(mon) {
 
 function curr_mon_load_for_search(mon) {
     let load = 0;
-    const throwsRocks = !!(mon?.type?.flags2 & M2_ROCKTHROW);
+    const throwsRocks = !!(mon?.type?.mflags2 & M2_ROCKTHROW);
     for (const obj of mon?.minvent || []) {
         if (obj?.otyp === BOULDER && throwsRocks) continue;
         load += Number(obj?.owt || 0);
@@ -575,12 +575,12 @@ function curr_mon_load_for_search(mon) {
 
 function mon_item_search_profile(mon) {
     const ptr = mon?.type || {};
-    const likesGold = !!(ptr.flags2 & M2_GREEDY);
-    const likesGems = !!(ptr.flags2 & M2_JEWELS);
-    const likesObjs = !!(ptr.flags2 & M2_COLLECT)
+    const likesGold = !!(ptr.mflags2 & M2_GREEDY);
+    const likesGems = !!(ptr.mflags2 & M2_JEWELS);
+    const likesObjs = !!(ptr.mflags2 & M2_COLLECT)
         || (Array.isArray(ptr.attacks) && ptr.attacks.some((atk) => atk?.type === AT_WEAP));
-    const likesMagic = !!(ptr.flags2 & M2_MAGIC);
-    const throwsRocks = !!(ptr.flags2 & M2_ROCKTHROW);
+    const likesMagic = !!(ptr.mflags2 & M2_MAGIC);
+    const throwsRocks = !!(ptr.mflags2 & M2_ROCKTHROW);
     const anyInterest = likesGold || likesGems || likesObjs || likesMagic || throwsRocks;
 
     const maxload = max_mon_load_for_search(mon);
@@ -641,7 +641,7 @@ function m_search_items_goal(mon, map, player, fov, ggx, ggy, appr) {
     if (!mon_is_peaceful(mon) && distmin(mux, muy, omx, omy) < SQSRCHRADIUS) {
         minr--;
     }
-    if (!mon_is_peaceful(mon) && is_mercenary(mon.type || {})) {
+    if (!mon_is_peaceful(mon) && is_mercenary(mon.data || mon.type || {})) {
         minr = 1;
     }
 
@@ -698,7 +698,7 @@ function m_search_items_goal(mon, map, player, fov, ggx, ggy, appr) {
             if (!pile || pile.length === 0) continue;
             if (minr < distmin(omx, omy, xx, yy)) continue;
             if (!could_reach_item(map, mon, xx, yy)) continue;
-            if (hides_under(mon.type || {}) && cansee_for_hider_avoidance(map, player, fov, xx, yy)) continue;
+            if (hides_under(mon.data || mon.type || {}) && cansee_for_hider_avoidance(map, player, fov, xx, yy)) continue;
             const occ = monsterByCoord[idx] || null;
             if (occ && occ !== mon) {
                 const occHelpless = !!occ.sleeping
@@ -706,7 +706,7 @@ function m_search_items_goal(mon, map, player, fov, ggx, ggy, appr) {
                     || occ.mcanmove === false;
                 const occHidden = !!occ.mundetected;
                 const occMimicDisguise = !!occ.mappearance && !occ.iswiz;
-                const occImmobile = Number(occ.type?.speed || 0) <= 0;
+                const occImmobile = Number((occ.data || occ.type)?.mmove || 0) <= 0;
                 if (occHelpless || occHidden || occMimicDisguise || occImmobile) continue;
             }
             if (onscary(map, xx, yy)) continue;
@@ -732,7 +732,7 @@ function m_search_items_goal(mon, map, player, fov, ggx, ggy, appr) {
                 ggy = yy;
                 monmoveTrace('m_search-pick',
                     `id=${mon.m_id ?? '?'}`,
-                    `name=${mon.type?.name || mon.name || '?'}`,
+                    `name=${mon.data?.mname || mon.type?.mname || mon.name || '?'}`,
                     `obj=(${obj?.otyp ?? '?'},class=${obj?.oclass ?? '?'},quan=${obj?.quan ?? '?'})`,
                     `at=(${xx},${yy})`,
                     `minr=${minr}`,
@@ -811,7 +811,7 @@ function aggravate(map) {
 async function m_respond(mon, map, player, display = null, game = null) {
     if (mon.mndx === PM_MEDUSA) {
         await m_respond_medusa(mon, map, player);
-    } else if (mon.type?.sound === MS_SHRIEK) {
+    } else if ((mon.data || mon.type)?.msound === MS_SHRIEK) {
         await m_respond_shrieker(mon, map, player, display, game);
     } else if (mon.mndx === PM_ERINYS) {
         // C ref: mon.c:4126 — aggravate()
@@ -860,7 +860,7 @@ async function mind_blast(mon, map, player, display = null, fov = null) {
         // C ref: monmove.c:602 — lock-on check
         // C: sensemon(mtmp) — true if hero has telepathy and monster is not mindless
         // JS: approximate via player.telepathy (intrinsic or helmet)
-        const m_sen = !!(player.telepathy) && !is_mindless(mon.type || {});
+        const m_sen = !!(player.telepathy) && !is_mindless(mon.data || mon.type || {});
         const blind_telepat = !!(player.telepathy) && !!player.blind;
 
         // C: if (m_sen || (Blind_telepat && rn2(2)) || !rn2(10))
@@ -893,11 +893,11 @@ async function mind_blast(mon, map, player, display = null, fov = null) {
     for (const m2 of map.monsters || []) {
         if (m2.dead) continue;
         if (!!(m2?.mpeaceful ?? m2?.peaceful) === !!(mon?.mpeaceful ?? mon?.peaceful)) continue;
-        if (is_mindless(m2.type || {})) continue;
+        if (is_mindless(m2.data || m2.type || {})) continue;
         if (m2 === mon) continue;
 
         // C: if ((telepathic(m2->data) && (rn2(2) || m2->mblinded)) || !rn2(10))
-        const m2dat = m2.type || {};
+        const m2dat = m2.data || m2.type || {};
         let m2hit = false;
         if (telepathic(m2dat)) {
             if (rn2(2) || m2.blind) {
@@ -916,7 +916,7 @@ async function mind_blast(mon, map, player, display = null, fov = null) {
             monmoveTrace('mind_blast',
                 `step=${monmoveStepLabel(map)}`,
                 `id=${mon.m_id ?? '?'}`,
-                `target=${m2.m_id ?? '?'}(${m2dat.name || '?'})`,
+                `target=${m2.m_id ?? '?'}(${m2dat.mname || '?'})`,
                 `dmg=${m2dmg}`,
                 `hp=${m2.mhp}`);
             if (m2.mhp <= 0) {
@@ -934,7 +934,7 @@ async function mind_blast(mon, map, player, display = null, fov = null) {
 
 
 async function dochug(mon, map, player, display, fov, game = null) {
-    if (mon.type && mon.type.mlet === S_MIMIC) {
+    if ((mon.data || mon.type) && (mon.data || mon.type).mlet === S_MIMIC) {
         return;
     }
 
@@ -969,14 +969,15 @@ async function dochug(mon, map, player, display, fov, game = null) {
         if (!canSee) return false;
         if (dist2(monster.mx, monster.my, player.x, player.y) > 100) return false;
 
+        const speciesName = monster.data?.mname || monster.type?.mname || '';
         if (player.stealth) {
-            const isEttin = monster.type?.name === 'ettin';
+            const isEttin = speciesName === 'ettin';
             if (!(isEttin && rn2(10))) return false;
         }
 
-        const sym = monster.type?.mlet;
+        const sym = (monster.data || monster.type)?.mlet;
         const isHardSleeper = sym === S_NYMPH
-            || monster.type?.name === 'jabberwock'
+            || speciesName === 'jabberwock'
             || sym === S_LEPRECHAUN;
         if (isHardSleeper && rn2(50)) return false;
 
@@ -1019,7 +1020,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
     }
 
     // C ref: monmove.c:746 — flee teleport
-    if (mon.mflee && !rn2(40) && can_teleport(mon.type || {})
+    if (mon.mflee && !rn2(40) && can_teleport(mon.data || mon.type || {})
         && !mon.iswiz && !(map.flags && map.flags.noteleport)) {
             for (let tries = 0; tries < 50; tries++) {
                 const nx = rnd(COLNO - 1);
@@ -1067,7 +1068,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
     // INCOMPLETE: C:803 — demonic blackmail (rare demon interaction)
 
     // C ref: monmove.c:832-836 — mind flayer psychic blast
-    const mdat = mon.type || {};
+    const mdat = mon.data || mon.type || {};
     if (is_mind_flayer(mdat) && !rn2(20)) {
         await mind_blast(mon, map, player, display, fov);
         set_apparxy(mon, map, player);
@@ -1076,7 +1077,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
     }
 
     const { x: targetX, y: targetY } = monApparentTarget(mon);
-    const isWanderer = !!(mon.type && mon.type.flags2 & M2_WANDER);
+    const isWanderer = !!((mon.data || mon.type) && (mon.data || mon.type).mflags2 & M2_WANDER);
     const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false);
 
     let scaredNow = !!scared;
@@ -1084,7 +1085,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
         `step=${monmoveStepLabel(map)}`,
         `id=${mon.m_id ?? '?'}`,
         `mndx=${mon.mndx ?? '?'}`,
-        `name=${mon.type?.name || mon.name || '?'}`,
+        `name=${mon.data?.mname || mon.type?.mname || mon.name || '?'}`,
         `pos=(${mon.mx},${mon.my})`,
         `target=(${targetX},${targetY})`,
         `inrange=${inrange ? 1 : 0}`,
@@ -1459,7 +1460,7 @@ async function maybeMonsterPickStuff(mon, map, player, display, fov) {
 // Returns TRUE if the monster switched weapons (costs the move, no dig this turn).
 // Called BEFORE moving when ALLOW_DIG is set, to let monster wield its pick first.
 function m_digweapon_check(mon, nix, niy, map) {
-    const ptr = mon.type || mon.data;
+    const ptr = mon.data || mon.type;
     if (!tunnels(ptr) || !needspick(ptr)) return false;
     const mw_tmp = mon.weapon || null;
     if (mwelded(mw_tmp)) return false;
@@ -1510,7 +1511,7 @@ async function m_move(mon, map, player, display = null, fov = null) {
     }
 
     const omx = mon.mx, omy = mon.my;
-    const ptr = mon.type || {};
+    const ptr = mon.data || mon.type || {};
     const verysmall = (ptr.msize || 0) === MZ_TINY;
     const can_open = !(nohands(ptr) || verysmall);
     // C ref: monmove.c:1768 — can_unlock = (can_open && monhaskey) || iswiz || is_rider
@@ -1545,7 +1546,7 @@ async function m_move(mon, map, player, display = null, fov = null) {
         appr = -1;
     }
 
-    if (!should_see && !noeyes(mon.type || {})) {
+    if (!should_see && !noeyes(mon.data || mon.type || {})) {
         const cp = gettrack(omx, omy);
         if (cp) {
             ggx = cp.x;
@@ -1578,7 +1579,7 @@ async function m_move(mon, map, player, display = null, fov = null) {
         monmoveTrace('m_move-search',
             `step=${replayStep}`,
             `id=${mon.m_id ?? '?'}`,
-            `name=${mon.type?.name || mon.name || '?'}`,
+            `name=${mon.data?.mname || mon.type?.mname || mon.name || '?'}`,
             `mux=(${mon.mux ?? '?'},${mon.muy ?? '?'})`,
             `from=(${ggxBeforeSearch},${ggyBeforeSearch})`,
             `to=(${ggx},${ggy})`,
@@ -1600,7 +1601,7 @@ async function m_move(mon, map, player, display = null, fov = null) {
         `step=${monmoveStepLabel(map)}`,
         `id=${mon.m_id ?? '?'}`,
         `mndx=${mon.mndx ?? '?'}`,
-        `name=${mon.type?.name || mon.name || '?'}`,
+        `name=${mon.data?.mname || mon.type?.mname || mon.name || '?'}`,
         `pos=(${omx},${omy})`,
         `target=(${ggx},${ggy})`,
         `mux=(${mon.mux ?? '?'},${mon.muy ?? '?'})`,
@@ -1672,7 +1673,7 @@ async function m_move(mon, map, player, display = null, fov = null) {
                         `step=${monmoveStepLabel(map)}`,
                         `id=${mon.m_id ?? '?'}`,
                         `mndx=${mon.mndx ?? '?'}`,
-                        `name=${mon.type?.name || mon.name || '?'}`,
+                        `name=${mon.data?.mname || mon.type?.mname || mon.name || '?'}`,
                         `pos=(${omx},${omy})`,
                         `cand=(${nx},${ny})`,
                         `j=${j}`,
@@ -1779,8 +1780,8 @@ export async function m_move_aggress(mon, map, player, nx, ny, display = null, f
     const replayStep = Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?';
     monmoveTrace('m_move_aggress',
         `step=${replayStep}`,
-        `attacker=${mon.m_id ?? '?'}(${mon.type?.name || mon.name || '?'})`,
-        `defender=${target.m_id ?? '?'}(${target.type?.name || target.name || '?'})`,
+        `attacker=${mon.m_id ?? '?'}(${mon.data?.mname || mon.type?.mname || mon.name || '?'})`,
+        `defender=${target.m_id ?? '?'}(${target.data?.mname || target.type?.mname || target.name || '?'})`,
         `at=(${mon.mx},${mon.my})->(${target.mx},${target.my})`,
         `vis=${vis ? 1 : 0}`);
 
@@ -1843,9 +1844,9 @@ export function set_apparxy(mon, map, player) {
         return;
     }
 
-    const mdat = mons[mon.mndx] || mon.type || {};
-    const canOoze = !!(mdat.flags1 & M1_AMORPHOUS);
-    const canFog = canOoze || !!(mdat.flags1 & M1_UNSOLID);
+    const mdat = mon.data || mons[mon.mndx] || mon.type || {};
+    const canOoze = !!(mdat.mflags1 & M1_AMORPHOUS);
+    const canFog = canOoze || !!(mdat.mflags1 & M1_UNSOLID);
     const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false);
     const heroInvis = playerIsInvisibleForMonAI(player);
     const notseen = (!monCanSee || (heroInvis && !perceives(mdat)));
@@ -1984,7 +1985,7 @@ export async function postmov(mon, map, player, mmoved) {
         const objects = map.objectsAt ? map.objectsAt(mon.mx, mon.my) : [];
         if (objects.length > 0 && !mon.dead) {
             // Hiding under objects
-            const mdat = mon.type || {};
+            const mdat = mon.data || mon.type || {};
             if (hides_under(mdat) || mdat.mlet === 57 /* S_EEL */) {
                 if (mon.mundetected || rn2(5)) {
                     // hideunder logic — simplified
@@ -2068,7 +2069,7 @@ export function watch_on_duty(mon) {
 // Simplified: ranged weapon/polearm/launcher checks not fully ported.
 export function m_balks_at_approaching(oldappr, mon, player) {
     if (!mon || !player) return oldappr;
-    const mdat = mon.type || {};
+    const mdat = mon.data || mon.type || {};
     if (mon_is_peaceful(mon) || mon_is_tame(mon)) return oldappr;
 
     const edist = dist2(mon.mx, mon.my, player.x, player.y);
@@ -2087,7 +2088,7 @@ export function m_balks_at_approaching(oldappr, mon, player) {
 // Simplified stub: metallivorous eats metal, gelatinous cube eats organic.
 export function mon_would_consume_item(mon, obj) {
     if (!mon || !obj) return false;
-    const mdat = mon.type || {};
+    const mdat = mon.data || mon.type || {};
     // Rust monsters / rock moles eat metal
     if (mdat.metallivorous) return true;
     // Gelatinous cubes eat organic

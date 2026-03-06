@@ -338,7 +338,7 @@ function On_W_tower_level(map) { return false; }
 function In_V_tower(map) { return false; }
 
 // C ref: is_Vlad(mtmp) — is this monster Vlad?
-function is_Vlad(mtmp) { return !!(mtmp.type && mtmp.type.name === 'Vlad the Impaler'); }
+function is_Vlad(mtmp) { return !!((mtmp.data || mtmp.type) && (mtmp.data || mtmp.type).mname === 'Vlad the Impaler'); }
 
 // C ref: mon_offmap(mon)
 function mon_offmap(mon) { return !isok(mon.mx, mon.my); }
@@ -458,7 +458,7 @@ export async function mon_consume_unstone(mon, obj, by_you, stoning, map, player
     const food = obj.otyp === CORPSE || tinned;
     const acid = obj.otyp === POT_ACID
         || (food && obj.corpsenm >= 0 && mons[obj.corpsenm]
-            && !!(mons[obj.corpsenm].mr1 & 0x08)); // MR_ACID
+            && !!(mons[obj.corpsenm].mresists & 0x08)); // MR_ACID
     const lizard = food && obj.corpsenm === PM_LIZARD;
 
     if (stoning)
@@ -508,12 +508,12 @@ export function cures_stoning(mon, obj, tinok) {
     if (obj.otyp !== CORPSE && (obj.otyp !== TIN || !tinok)) return false;
     if ((obj.corpsenm ?? NON_PM) === NON_PM) return false;
     return (obj.corpsenm === PM_LIZARD
-        || (mons[obj.corpsenm] && !!(mons[obj.corpsenm].mr1 & 0x08))); // MR_ACID => acidic
+        || (mons[obj.corpsenm] && !!(mons[obj.corpsenm].mresists & 0x08))); // MR_ACID => acidic
 }
 
 // C ref: mcould_eat_tin — can monster open a tin?
 export function mcould_eat_tin(mon) {
-    const mdat = mon.type || {};
+    const mdat = mon.data || mon.type || {};
     if (is_animal(mdat)) return false;
     const mwep = MON_WEP(mon);
     const welded_wep = mwep && mwelded(mwep);
@@ -534,7 +534,7 @@ export async function mcureblindness(mon, verbos, player) {
     if (!mon.mcansee) {
         mon.mcansee = 1;
         mon.mblinded = 0;
-        if (verbos && haseyes(mon.type || {})) {
+        if (verbos && haseyes(mon.data || mon.type || {})) {
             const name = x_monnam(mon, { article: 'the', capitalize: true });
             await pline_mon(mon, `${name} can see again.`);
         }
@@ -710,7 +710,7 @@ export function m_sees_sleepy_soldier(mtmp, map) {
         for (let yy = y - 3; yy <= y + 3; yy++) {
             if (!isok(xx, yy) || (xx === x && yy === y)) continue;
             const mon2 = m_at(xx, yy, map);
-            if (mon2 && is_mercenary(mon2.type || {})
+            if (mon2 && is_mercenary(mon2.data || mon2.type || {})
                 && mon2.mndx !== PM_GUARD
                 && helpless(mon2)) {
                 return true;
@@ -779,9 +779,9 @@ export async function find_defensive(mon, tryescape, map, player) {
     let obj;
     let t;
     const x = mon.mx, y = mon.my;
-    const mdat = mon.type || {};
+    const mdat = mon.data || mon.type || {};
     const stuck = (mon === player.ustuck);
-    const immobile = (mdat.mmove === 0 || mdat.speed === 0);
+    const immobile = (mdat.mmove === 0 || mdat.mmove === 0);
 
     m.defensive = null;
     m.has_defense = 0;
@@ -1046,7 +1046,7 @@ export async function mon_escape(mtmp, vismon, map, player) {
 export async function use_defensive(mon, map, player) {
     let i;
     const otmp = m.defensive;
-    const mdat = mon.type || {};
+    const mdat = mon.data || mon.type || {};
 
     if ((i = await precheck(mon, otmp, map, player)) !== 0) return i;
 
@@ -1338,7 +1338,7 @@ export async function use_defensive(mon, map, player) {
 // This version is for runtime use.
 // ========================================================================
 export function rnd_defensive_item(mtmp, map) {
-    const pm = mtmp.type || {};
+    const pm = mtmp.data || mtmp.type || {};
     const difficulty = pm.difficulty || pm.mlevel || 0;
     let trycnt = 0;
 
@@ -1463,7 +1463,7 @@ function mon_likes_objpile_at(mtmp, x, y, map) {
 // find_offensive — C ref: muse.c:1419
 // ========================================================================
 export async function find_offensive(mtmp, map, player) {
-    const mdat = mtmp.type || {};
+    const mdat = mtmp.data || mtmp.type || {};
 
     m.offensive = null;
     m.has_offense = 0;
@@ -1661,7 +1661,7 @@ async function mbhitm(mtmp, otmp, map, player) {
         } else {
             let wake = false;
             if (unturn_dead(mtmp)) wake = true;
-            if (is_undead(mtmp.type || {}) || is_vampshifter(mtmp)) {
+            if (is_undead(mtmp.data || mtmp.type || {}) || is_vampshifter(mtmp)) {
                 wake = reveal_invis = true;
                 resist(mtmp, WAND_CLASS);
             }
@@ -1767,7 +1767,7 @@ async function mbhit(mon, range, fhitm, fhito, obj, map, player) {
 export async function use_offensive(mtmp, map, player) {
     let i;
     const otmp = m.offensive;
-    const mdat = mtmp.type || {};
+    const mdat = mtmp.data || mtmp.type || {};
 
     // Offensive potions are thrown, not drunk — skip precheck for them
     if (otmp.oclass !== POTION_CLASS && (i = await precheck(mtmp, otmp, map, player)) !== 0)
@@ -1920,9 +1920,9 @@ export function rnd_offensive_item(mtmp) {
 // find_misc — C ref: muse.c:2074
 // ========================================================================
 export async function find_misc(mon, map, player) {
-    const mdat = mon.type || {};
+    const mdat = mon.data || mon.type || {};
     const x = mon.mx, y = mon.my;
-    const immobile = (mdat.mmove === 0 || mdat.speed === 0);
+    const immobile = (mdat.mmove === 0 || mdat.mmove === 0);
     const stuck = (mon === player.ustuck);
 
     m.misc = null;
@@ -2114,7 +2114,7 @@ async function you_aggravate(mtmp) {
 export async function use_misc(mon, map, player) {
     let i;
     const otmp = m.misc;
-    const mdat = mon.type || {};
+    const mdat = mon.data || mon.type || {};
 
     if ((i = await precheck(mon, otmp, map, player)) !== 0) return i;
 
@@ -2318,7 +2318,7 @@ function necrophiliac(objlist, any_corpse = false) {
 // ========================================================================
 export function searches_for_item(mon, obj) {
     const typ = obj.otyp;
-    const mdat = mon.type || {};
+    const mdat = mon.data || mon.type || {};
 
     // Don't interact with protected items on scary squares
     if (obj.where === 'floor' && obj.ox === mon.mx && obj.oy === mon.my
@@ -2366,7 +2366,7 @@ export function searches_for_item(mon, obj) {
         break;
     case AMULET_CLASS:
         if (typ === AMULET_OF_LIFE_SAVING)
-            return !(mdat.flags3 & 0x00000040); // !nonliving
+            return !(mdat.mflags3 & 0x00000040); // !nonliving
         if (typ === AMULET_OF_REFLECTION || typ === AMULET_OF_GUARDING)
             return true;
         break;
@@ -2404,7 +2404,7 @@ export function searches_for_item(mon, obj) {
 // mon_reflects — C ref: muse.c:2761
 // ========================================================================
 export async function mon_reflects(mon, str) {
-    const mdat = mon.type || {};
+    const mdat = mon.data || mon.type || {};
     let orefl = which_armor(mon, W_ARMS);
     if (orefl && orefl.otyp === SHIELD_OF_REFLECTION) {
         if (str) {
@@ -2500,10 +2500,10 @@ export async function munstone(mon, by_you) {
 // munslime — C ref: muse.c:2995
 // ========================================================================
 export async function munslime(mon, by_you, map, player) {
-    const mptr = mon.type || {};
+    const mptr = mon.data || mon.type || {};
 
     // slimeproof check
-    if (mptr.flags3 && (mptr.flags3 & 0x00002000)) return false; // MH_SLIME
+    if (mptr.mflags3 && (mptr.mflags3 & 0x00002000)) return false; // MH_SLIME
     if (mon.meating || helpless(mon)) return false;
     mon.mstrategy = (mon.mstrategy || 0) & ~0x08000000;
 
@@ -2572,6 +2572,6 @@ async function muse_unslime(mon, obj, trap, by_you, map, player) {
 
 // C ref: green_mon — is monster green?
 function green_mon(mon) {
-    const ptr = mon.type || {};
+    const ptr = mon.data || mon.type || {};
     return (ptr.mcolor === 2 || ptr.mcolor === 10); // CLR_GREEN or CLR_BRIGHT_GREEN
 }

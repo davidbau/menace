@@ -1023,7 +1023,7 @@ export async function artifact_hit(magr, mdef, otmp, dmgptr, dieroll) {
     if (realizes_damage) {
       const mdat = mdef.data || (mdef.mnum != null ? mons[mdef.mnum] : null);
       const action = !spec_dbon_applies_val ? 'hits'
-        : (mdat && mdat.mnum === PM_WATER_ELEMENTAL) ? 'vaporizes part of'
+        : (mdat && mdat.mndx === PM_WATER_ELEMENTAL) ? 'vaporizes part of'
         : 'burns';
       await pline_The("fiery blade %s %s%s", action, hittee, !spec_dbon_applies_val ? '.' : '!');
     }
@@ -1095,7 +1095,7 @@ export async function artifact_hit(magr, mdef, otmp, dmgptr, dieroll) {
         return true;
       }
     } else if (is_art(otmp, ART_VORPAL_BLADE)
-               && (dieroll === 1 || (mdef.data && mdef.data.mnum === PM_JABBERWOCK)
+               && (dieroll === 1 || (mdef.data && mdef.data.mndx === PM_JABBERWOCK)
                    || (mdef.mnum === PM_JABBERWOCK))) {
       const wepdesc = artilist[ART_VORPAL_BLADE].name;
       if (!youdefend) {

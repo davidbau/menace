@@ -375,7 +375,7 @@ export function cant_squeeze_thru(player, map) {
         || (player.uprops && player.uprops[62])) return 0; // 62 = PASSES_WALLS
     // bigmonst check: msize >= MZ_LARGE (3)
     const mdat = player.type;
-    const msize = mdat ? (mdat.msize ?? mdat.size ?? 0) : 0;
+    const msize = mdat ? (mdat.msize ?? 0) : 0;
     const isBig = msize >= MZ_LARGE;
     if (isBig) {
         // amorphous/whirly/noncorporeal/slithy/can_fog checks omitted for brevity;
@@ -521,7 +521,7 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
         `forcefight=${forcefight ? 1 : 0}`,
     );
     if (shouldDisplace) {
-        const monData = mon.type || {};
+        const monData = mon.data || mon.type || {};
         const playerLoc = map?.at ? map.at(player.x, player.y) : null;
         const punished = !!(player?.Punished || player?.punished || player?.uchain);
         const petIsLongworm = !!(is_longworm(monData) && mon.wormno);
@@ -558,7 +558,7 @@ export async function domove_attackmon_at(mon, nx, ny, dir, player, map, display
             return { handled: true, moved: false, tookTime: true };
         }
         if (mon.mfrozen || mon.mcanmove === false || mon.msleeping
-            || ((mon.type?.speed ?? 0) === 0 && rn2(6))) {
+            || (((mon.data || mon.type)?.mmove ?? 0) === 0 && rn2(6))) {
             const label = YMonnam(mon);
             // C ref: uhitm.c:504 — pline("%s doesn't seem to move!", Monnam(mtmp))
             await pline("%s doesn't seem to move!", label);
@@ -1810,9 +1810,9 @@ export function bad_rock(mdat, x, y, map) {
     if (!loc) return true;
     // Sokoban boulder check omitted (Sokoban not yet modeled)
     if (!IS_OBSTRUCTED(loc.typ)) return false;
-    const tunnels = !!(mdat && mdat.flags2 & 0x00000040); // M2_TUNNEL placeholder
-    const needspick = !!(mdat && mdat.flags1 & 0x00002000); // M1_NEEDPICK placeholder
-    const passes = !!(mdat && mdat.flags1 & 0x00000100); // M1_WALLWALK placeholder
+    const tunnels = !!(mdat && mdat.mflags2 & 0x00000040); // M2_TUNNEL placeholder
+    const needspick = !!(mdat && mdat.mflags1 & 0x00002000); // M1_NEEDPICK placeholder
+    const passes = !!(mdat && mdat.mflags1 & 0x00000100); // M1_WALLWALK placeholder
     if (tunnels && !needspick) return false;
     if (passes && may_passwall(x, y, map)) return false;
     return true;
@@ -2507,7 +2507,9 @@ export function monstinroom(mdat_pmid, roomno, map) {
     if (!map || !map.monsters) return null;
     for (const mon of map.monsters) {
         if (mon.dead) continue;
-        if (mon.mnum === mdat_pmid || (mon.type && mon.type.mnum === mdat_pmid)) {
+        if (mon.mnum === mdat_pmid
+            || (mon.data && mon.data.mndx === mdat_pmid)
+            || (mon.type && mon.type.mndx === mdat_pmid)) {
             const rooms = in_rooms(mon.mx, mon.my, 0, map);
             if (rooms.includes(roomno + ROOMOFFSET)) return mon;
         }

@@ -467,7 +467,7 @@ function hmon_hitmon_misc_obj(hmd, mon, obj) {
         break;
     case CLOVE_OF_GARLIC:
         // cf. uhitm.c:1238 — garlic vs undead: flee
-        if (is_undead(mon.type || {})) {
+        if (is_undead(mon.data || mon.type || {})) {
             applyMonflee(mon, d(2, 4), false);
         }
         hmd.dmg = 1;
@@ -607,7 +607,7 @@ export async function hmon_hitmon_msg_hit(hmd, mon, obj, display) {
 //   "The silver sears <monster>!" message.
 async function hmon_hitmon_msg_silver(hmd, mon, obj, display) {
     const name = x_monnam(mon);
-    const ptr = mon.type || {};
+    const ptr = mon.data || mon.type || {};
     let whom = name;
     if (!noncorporeal(ptr) && !amorphous(ptr)) {
         whom = `${name}'s flesh`;
@@ -626,7 +626,7 @@ async function hmon_hitmon_msg_silver(hmd, mon, obj, display) {
 //   Light-source weapon message (burning undead, etc).
 async function hmon_hitmon_msg_lightobj(hmd, mon, obj, display) {
     const name = x_monnam(mon);
-    const ptr = mon.type || {};
+    const ptr = mon.data || mon.type || {};
     let whom = name;
     if (!noncorporeal(ptr) && !amorphous(ptr)) {
         whom = `${name}'s flesh`;
@@ -644,7 +644,7 @@ async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
         thrown: thrown,
         twohits: 0,
         dieroll: dieroll,
-        mdat: mon.type || {},
+        mdat: mon.data || mon.type || {},
         use_weapon_skill: false,
         train_weapon_skill: false,
         barehand_silver_rings: 0,
@@ -853,7 +853,7 @@ function steal_it(mdef, mattk) {
 // cf. uhitm.c:3959 — physical damage handler
 // m-vs-m branch: uhitm.c:4106-4177
 export function mhitm_ad_phys(magr, mattk, mdef, mhm) {
-    const pd = mdef.type || {};
+    const pd = mdef.data || mdef.type || {};
     if (mattk.aatyp === AT_KICK && thick_skinned(pd)) {
         mhm.damage = 0;
     }
@@ -1046,8 +1046,8 @@ export function mhitm_ad_dren(magr, mattk, mdef, mhm) {
 // cf. uhitm.c:3146 — brain drain (mind flayer)
 // m-vs-m: uhitm.c:3241-3280
 export function mhitm_ad_drin(magr, mattk, mdef, mhm) {
-    const pd = mdef.type || {};
-    if (!pd.flags1 || (pd.flags1 & 0x00040000 /* M1_NOHEAD */)) {
+    const pd = mdef.data || mdef.type || {};
+    if (!pd.mflags1 || (pd.mflags1 & 0x00040000 /* M1_NOHEAD */)) {
         // Can't drain brain from headless monster
         mhm.damage = 0;
         return;
@@ -1316,8 +1316,8 @@ async function missum_internal(player, mon, uattk, wouldhavehit, display) {
 export function m_is_steadfast(mtmp) {
     // C: checks Flying/Levitation, Giantslayer artifact, loadstone
     // Simplified: check for flying/floating
-    const ptr = mtmp.type || {};
-    if (ptr.flags1 && (ptr.flags1 & 0x00000004)) return false; // M1_FLY — not steadfast
+    const ptr = mtmp.data || mtmp.type || {};
+    if (ptr.mflags1 && (ptr.mflags1 & 0x00000004)) return false; // M1_FLY — not steadfast
     // loadstone check would require inventory search
     return false;
 }
@@ -1341,13 +1341,13 @@ export function mhitm_knockback(magr, mdef, mattk, hitflags, weapon_used) {
         return false;
 
     // Attacker must be much larger than defender
-    const agrSize = (magr.type || magr.data || {}).msize ?? MZ_HUMAN;
-    const defSize = (mdef.type || mdef.data || {}).msize ?? MZ_HUMAN;
+    const agrSize = (magr.data || magr.type || {}).msize ?? MZ_HUMAN;
+    const defSize = (mdef.data || mdef.type || {}).msize ?? MZ_HUMAN;
     if (!(agrSize > defSize + 1)) return false;
 
     // Unsolid attacker can't knock back
-    const agrPtr = magr.type || magr.data || {};
-    if (agrPtr.flags1 && (agrPtr.flags1 & 0x00200000 /* M1_UNSOLID */)) return false;
+    const agrPtr = magr.data || magr.type || {};
+    if (agrPtr.mflags1 && (agrPtr.mflags1 & 0x00200000 /* M1_UNSOLID */)) return false;
 
     // Generate message
     rn2(2); // "forceful" vs "powerful"
@@ -1392,7 +1392,7 @@ export function hmonas(player, mon, display, map) {
 export async function passive_obj(mon, obj, mattk) {
     canonicalizeAttackFields(mattk);
     if (!obj) return;
-    const ptr = mon.type || {};
+    const ptr = mon.data || mon.type || {};
     const adtyp = mattk ? (mattk.adtyp ?? AD_PHYS) : AD_PHYS;
 
     switch (adtyp) {
@@ -1513,7 +1513,7 @@ export function nohandglow(mon) {
 //   Returns 1 if flash had a noticeable effect, 0 otherwise.
 //   Wakes sleeping monsters, blinds non-resistant ones, damages gremlins.
 export function flash_hits_mon(mtmp, otmp) {
-    const ptr = mtmp.type || {};
+    const ptr = mtmp.data || mtmp.type || {};
     let res = 0;
 
     // Wake mimics — simplified, no M_AP_TYPE tracking
@@ -1661,7 +1661,7 @@ async function hitMonsterWithPotion(player, monster, display, weapon) {
 // TODO: future mon.js codematch should migrate this to mon.js.
 async function handleMonsterKilled(player, monster, display, map) {
     // cf. uhitm.c -> mon.c mondead() -> killed() -> xkilled()
-    const mdat = monster.type || {};
+    const mdat = monster.data || monster.type || {};
     const killVerb = nonliving(mdat) ? 'destroy' : 'kill';
     await display.putstr_message(`You ${killVerb} the ${x_monnam(monster)}!`);
     mondead(monster, map, player);
@@ -1687,7 +1687,7 @@ async function handleMonsterKilled(player, monster, display, map) {
             && mdat.mlet !== S_KOP;
         if (canDropTreasure && map) {
             const otmp = mkobj(RANDOM_CLASS, true, false);
-            const flags2 = mdat.flags2 || 0;
+            const flags2 = mdat.mflags2 || 0;
             const isSmallMonster = (mdat.msize || 0) < MZ_HUMAN;
             const isPermaFood = otmp && otmp.oclass === FOOD_CLASS && !otmp.oartifact;
             const dropTooBig = isSmallMonster && !!otmp
@@ -1741,7 +1741,7 @@ async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destr
     const player = ctx.player || null;
     const display = ctx.display || null;
     const game = ctx.game || null;
-    const ptr = mon.type || {};
+    const ptr = mon.data || mon.type || {};
     const attacks = ptr.attacks || [];
 
     // Find the AT_NONE (passive) attack slot
@@ -2000,7 +2000,7 @@ export async function do_attack_core(player, monster, display, map, game = null)
                 // Passed 1/6 chance gate. Check eligibility:
                 // AD_PHYS + AT_WEAP: passes for armed hero (mattk is hero's attack)
                 // Size: hero (MZ_HUMAN) must be > mdef.msize + 1
-                const msize = monster.type?.msize ?? MZ_HUMAN;
+                const msize = (monster.data || monster.type)?.msize ?? MZ_HUMAN;
                 if (msize + 1 < MZ_HUMAN) {
                     // cf. uhitm.c:5350-5352 — knockback message
                     const adj = rn2(2) ? 'forceful' : 'powerful';

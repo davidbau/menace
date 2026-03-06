@@ -447,7 +447,7 @@ function _apply_extrinsic(mon, obj, which, on, silently) {
 // ============================================================================
 // Calculate monster's effective armor class accounting for worn armor.
 export function find_mac(mon) {
-    const ptr = mon.type || {};
+    const ptr = mon.data || mon.type || {};
     let base = ptr.ac ?? 10;
     const mwflags = mon.misc_worn_check || 0;
 
@@ -490,7 +490,7 @@ export function which_armor(mon, flag) {
 // ============================================================================
 // Monster equips best available armor.
 export function m_dowear(mon, creation) {
-    const ptr = mon.type || {};
+    const ptr = mon.data || mon.type || {};
     // Guards: verysmall, nohands, animal skip entirely
     if ((ptr.msize || 0) < MZ_SMALL || nohands(ptr) || is_animal(ptr))
         return;
@@ -561,13 +561,13 @@ function m_dowear_type(mon, flag, creation, racialexception) {
         case W_ARMC:
             if (armcat !== ARM_CLOAK) continue;
             // mummy wrapping is only cloak for monsters bigger than human
-            if ((mon.type?.msize || 0) > MZ_HUMAN && obj.otyp !== MUMMY_WRAPPING)
+            if (((mon.data || mon.type)?.msize || 0) > MZ_HUMAN && obj.otyp !== MUMMY_WRAPPING)
                 continue;
             break;
         case W_ARMH:
             if (armcat !== ARM_HELM) continue;
             // Horned monsters can only wear flimsy helms
-            if (has_horns(mon.type) && (od.material || 0) > 7) // LEATHER=7
+            if (has_horns(mon.data || mon.type) && (od.material || 0) > 7) // LEATHER=7
                 continue;
             break;
         case W_ARMS: if (armcat !== ARM_SHIELD) continue; break;
@@ -621,7 +621,7 @@ export function extra_pref(mon, obj) {
 // ============================================================================
 // Race-based armor exceptions.
 export function racial_exception(mon, obj) {
-    const ptr = mon.type || {};
+    const ptr = mon.data || mon.type || {};
     // Allow hobbits to wear elven armor - LoTR
     if (ptr === mons[PM_HOBBIT]) {
         const od = objectData[obj.otyp];
@@ -676,7 +676,7 @@ export function m_lose_armor(mon, obj, polyspot, map) {
 // ============================================================================
 // Remove/destroy armor when monster polymorphs.
 export async function mon_break_armor(mon, polyspot, map, opts = {}) {
-    const mdat = mon.type || {};
+    const mdat = mon.data || mon.type || {};
     const handless_or_tiny = nohands(mdat) || (mdat.msize || 0) < MZ_SMALL;
     const vis = canseemon(mon, opts.player || null, opts.fov || null, map);
     let clankEmitted = false;

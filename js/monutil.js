@@ -465,7 +465,7 @@ export function seeWithInfraredForMap(mon, map, player) {
     if (playerBlind(player)) return false;
     const hasInfra = hasPlayerProp(player, INFRAVISION, 'infravision', 'Infravision');
     if (!hasInfra) return false;
-    const mdat = mon.type || mon.data || null;
+    const mdat = mon.data || mon.type || null;
     if (!mdat || !infravisible(mdat)) return false;
     return couldsee(map, player, mon.mx, mon.my);
 }
@@ -497,7 +497,7 @@ export function senseMonsterForMap(mon, map, player) {
     const telepathy = hasPlayerProp(player, TELEPAT, 'telepathy', 'Telepathy');
     let tpSense = false;
     if (telepathy) {
-        const mdat = mon.type || mon.data || null;
+        const mdat = mon.data || mon.type || null;
         if (mdat && !is_mindless(mdat)) {
             const blindTelepathic = playerBlind(player);
             const unblindRange = Number(player?.unblind_telepat_range || player?.unblindTelepathRange || BOLT_LIM);
@@ -521,7 +521,7 @@ export function canSpotMonsterForMap(mon, map, player, fov) {
 function onscary(map, x, y, mon = null) {
     if (!map) return false;
     if (mon) {
-        const mdat = mon.type || mon.data || {};
+        const mdat = mon.data || mon.type || {};
         if (mon.iswiz) return false;
         if (is_rider(mdat)) return false;
         if (mdat.mndx === PM_ANGEL) return false;
@@ -557,7 +557,7 @@ function monsterIsTame(mon) {
 }
 
 function sanitizeMonsterType(mon) {
-    const ptr = mon?.type;
+    const ptr = mon?.data || mon?.type;
     const ptrIsObject = ptr && typeof ptr === 'object';
     const attacks = ptrIsObject && Array.isArray(ptr.attacks)
         ? ptr.attacks
@@ -566,9 +566,9 @@ function sanitizeMonsterType(mon) {
     return {
         ...(ptrIsObject ? ptr : {}),
         attacks,
-        flags1: Number(ptr?.flags1 ?? 0),
-        flags2: Number(ptr?.flags2 ?? 0),
-        flags3: Number(ptr?.flags3 ?? 0),
+        mflags1: Number(ptr?.mflags1 ?? 0),
+        mflags2: Number(ptr?.mflags2 ?? 0),
+        mflags3: Number(ptr?.mflags3 ?? 0),
     };
 }
 
@@ -593,19 +593,19 @@ export function monsterNearby(map, player, fov) {
 
             const mptr = sanitizeMonsterType(mon);
             const isPeaceful = !!(mon.mpeaceful || mon.peaceful);
-            if (!(playerHallucinating || (!monsterIsTame(mon) && !isPeaceful && !noattacks(mptr)))) continue;
-
-            if (is_hider(mptr || {}) && mon.mundetected) continue;
-            if (helpless(mon)) continue;
-            if (onscary(map, px, py, mon)) continue;
-
-            // C ref: hack.c monster_nearby() requires canspotmon(mtmp).
-            if (!canSpotMonsterForMap(mon, map, player, fov)) continue;
-
+            const hostileThreat = playerHallucinating || (!monsterIsTame(mon) && !isPeaceful && !noattacks(mptr));
+            const hidden = is_hider(mptr || {}) && mon.mundetected;
+            const isHelpless = helpless(mon);
+            const scary = onscary(map, px, py, mon);
+            const canSpot = canSpotMonsterForMap(mon, map, player, fov);
+            if (!hostileThreat) continue;
+            if (hidden) continue;
+            if (isHelpless) continue;
+            if (scary) continue;
+            if (!canSpot) continue;
             return true;
         }
     }
-
     return false;
 }
 
@@ -655,7 +655,7 @@ export function addToMonsterInventory(mon, obj) {
 // immediate re-engagement (relevant when monster doesn't die, e.g. polymorph).
 export function unstuck(mon, player) {
     if (!player || player.ustuck !== mon) return;
-    const ptr = mon.type || {};
+    const ptr = mon.data || mon.type || {};
     player.ustuck = null;
     // C ref: mon.c:3458-3461 — prevent holder from immediately re-holding
     if (!mon.mspec_used && (dmgtype(ptr, AD_STCK)

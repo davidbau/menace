@@ -170,14 +170,14 @@ const _monsterNameIndex = new Map();
 function monsterIndexByName(name) {
     if (!name) return -1;
     if (_monsterNameIndex.has(name)) return _monsterNameIndex.get(name);
-    const idx = mons.findIndex(m => m?.name === name);
+    const idx = mons.findIndex(m => m?.mname === name);
     _monsterNameIndex.set(name, idx);
     return idx;
 }
 
 // C ref: mon.c little_to_big() subset needed by can_be_hatched().
 function little_to_big_maybe(mnum) {
-    const nm = mons[mnum]?.name;
+    const nm = mons[mnum]?.mname;
     if (!nm) return mnum;
     if (nm.startsWith('baby ')) {
         const adult = monsterIndexByName(nm.slice(5));
@@ -303,7 +303,7 @@ export function weight(obj) {
     if (obj.quan < 1) return 0;
     if (Is_container(obj) || obj.otyp === STATUE) {
         if (obj.otyp === STATUE && obj.corpsenm >= 0 && obj.corpsenm < mons.length) {
-            wt = Math.floor(3 * mons[obj.corpsenm].weight / 2);
+            wt = Math.floor(3 * mons[obj.corpsenm].cwt / 2);
             const msize = mons[obj.corpsenm].msize || 0;
             const minwt = (msize * 2 + 1) * 100;
             if (wt < minwt) wt = minwt;
@@ -320,7 +320,7 @@ export function weight(obj) {
         return wt + cwt;
     }
     if (obj.otyp === CORPSE && obj.corpsenm >= 0 && obj.corpsenm < mons.length) {
-        return obj.quan * mons[obj.corpsenm].weight;
+        return obj.quan * mons[obj.corpsenm].cwt;
     }
     if (obj.oclass === COIN_CLASS) {
         return Math.max(Math.floor((obj.quan + 50) / 100), 1);
@@ -511,9 +511,9 @@ function undead_to_corpse(mndx) {
             [['ettin zombie', 'ettin mummy'], 'ettin'],
         ];
         for (const [srcs, tgt] of targets) {
-            const tgtIdx = mons.findIndex(m => m.name === tgt);
+            const tgtIdx = mons.findIndex(m => m.mname === tgt);
             for (const src of srcs) {
-                const srcIdx = mons.findIndex(m => m.name === src);
+                const srcIdx = mons.findIndex(m => m.mname === src);
                 if (srcIdx >= 0 && tgtIdx >= 0) _undead_cache.set(srcIdx, tgtIdx);
             }
         }
@@ -560,7 +560,7 @@ function mksobj_init(obj, artif, skipErosion) {
             } while (obj.corpsenm >= 0
                      && (mons[obj.corpsenm].geno & G_NOCORPSE)
                      && --tryct > 0);
-            if (tryct === 0) obj.corpsenm = mons.findIndex(m => m.name === 'human');
+            if (tryct === 0) obj.corpsenm = mons.findIndex(m => m.mname === 'human');
         } else if (od.name === 'egg') {
             obj.corpsenm = -1;
             const eggRoll = rn2(3);
@@ -584,10 +584,10 @@ function mksobj_init(obj, artif, skipErosion) {
                 // C ref: mkobj.c:930-937 — retry until cnutrit && !G_NOCORPSE
                 for (let tryct = 200; tryct > 0; --tryct) {
                     const mndx = undead_to_corpse(rndmonnum(_levelDepth));
-                    const nutrition = mndx >= 0 ? (mons[mndx].nutrition || 0) : 0;
+                    const nutrition = mndx >= 0 ? (mons[mndx].cnutrit || 0) : 0;
                     const nocorpse = mndx >= 0 ? (((mons[mndx].geno & G_NOCORPSE) !== 0) ? 1 : 0) : -1;
                     mkobjTrace(`tin try=${201 - tryct} call=${getRngCallCount()} mndx=${mndx} cnutrit=${nutrition} nocorpse=${nocorpse}`);
-                    if (mndx >= 0 && mons[mndx].nutrition > 0
+                    if (mndx >= 0 && mons[mndx].cnutrit > 0
                         && !(mons[mndx].geno & G_NOCORPSE)) {
                         obj.corpsenm = mndx;
                         rn2(15); // set_tin_variety RANDOM_TIN: rn2(TTSZ-1) where TTSZ=16
@@ -879,9 +879,9 @@ function mksobj_postinit(obj) {
     // C ref: mkobj.c:1215-1219 — store CORPSTAT_* in spe.
     if (obj.corpsenm >= 0 && (od.name === 'corpse' || od.name === 'statue' || od.name === 'figurine')) {
         const ptr = mons[obj.corpsenm];
-        const isNeuter = !!(ptr.flags2 & M2_NEUTER);
-        const isFemale = !!(ptr.flags2 & M2_FEMALE);
-        const isMale   = !!(ptr.flags2 & M2_MALE);
+        const isNeuter = !!(ptr.mflags2 & M2_NEUTER);
+        const isFemale = !!(ptr.mflags2 & M2_FEMALE);
+        const isMale   = !!(ptr.mflags2 & M2_MALE);
         const CORPSTAT_FEMALE = 1;
         const CORPSTAT_MALE = 2;
         const CORPSTAT_NEUTER = 3;
@@ -922,7 +922,7 @@ function special_corpse(mndx) {
     if (mndx < 0) return false;
     return mndx === PM_LIZARD || mndx === PM_LICHEN
         || mons[mndx].mlet === S_TROLL
-        || mons[mndx].sound === MS_RIDER;
+        || mons[mndx].msound === MS_RIDER;
 }
 
 function zombie_form_exists_for_corpse(corpsenm) {
@@ -937,7 +937,7 @@ function zombie_form_exists_for_corpse(corpsenm) {
     case S_GNOME:
         return true;
     case S_HUMANOID:
-        return !!(pm.flags2 & M2_DWARF);
+        return !!(pm.mflags2 & M2_DWARF);
     default:
         return false;
     }
@@ -964,7 +964,7 @@ export function start_corpse_timeout(body, opts = {}) {
     let when = (age > 250) ? rotAdjust : (250 - age);
     when += (rnz(rotAdjust) - rotAdjust);
     // Rider: rn2(3) loop for revival time
-    if (mons[corpsenm].sound === MS_RIDER) {
+    if (mons[corpsenm].msound === MS_RIDER) {
         action = TIMER_FUNC.REVIVE_MON;
         const minturn = 12; // non-Death rider default
         for (when = minturn; when < 67; when++) {
@@ -1293,7 +1293,7 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
         if (obj.otyp === CORPSE) {
             const corpseIdx = Number.isInteger(obj.corpsenm) ? obj.corpsenm : obj.corpsem;
             if (Number.isInteger(corpseIdx) && mons[corpseIdx]) {
-                base = `${mons[corpseIdx].name} corpse`;
+                base = `${mons[corpseIdx].mname} corpse`;
             } else {
                 base = 'corpse';
             }
@@ -1304,7 +1304,7 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
             } else if (Number.isInteger(obj.corpsenm) && obj.corpsenm >= 0 && mons[obj.corpsenm]) {
                 // C: vegetarian monsters get "tin of <name>"; others get "tin of <name> meat"
                 // JS monsters lack material field; default to meat (correct for sewer rat etc.)
-                base = `tin of ${mons[obj.corpsenm].name} meat`;
+                base = `tin of ${mons[obj.corpsenm].mname} meat`;
             }
             // else: empty/unknown tin — just "tin"
         } else {
@@ -1316,7 +1316,7 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
         if (obj.otyp === STATUE) {
             const statueIdx = Number.isInteger(obj.corpsenm) ? obj.corpsenm : obj.corpsem;
             const monName = (Number.isInteger(statueIdx) && mons[statueIdx])
-                ? String(mons[statueIdx].name || '').trim()
+                ? String(mons[statueIdx].mname || '').trim()
                 : '';
             if (monName) {
                 base = `statue of ${just_an(monName)} ${monName}`;

@@ -96,23 +96,23 @@ function flesh_petrifies(pm) {
 // C ref: mondata.h — touch_petrifies(pm) — same as flesh_petrifies for corpse monsters
 function touch_petrifies(pm) { return flesh_petrifies(pm); }
 
-function resists_poison(mon) { return !!(monPtr(mon)?.mr1 & MR_POISON); }
-function resists_acid(mon)   { return !!(monPtr(mon)?.mr1 & MR_ACID); }
-function resists_ston(mon)   { return !!(monPtr(mon)?.mr1 & MR_STONE); }
-function likes_fire(ptr) { return !!(ptr.mr1 & MR_FIRE); }
+function resists_poison(mon) { return !!(monPtr(mon)?.mresists & MR_POISON); }
+function resists_acid(mon)   { return !!(monPtr(mon)?.mresists & MR_ACID); }
+function resists_ston(mon)   { return !!(monPtr(mon)?.mresists & MR_STONE); }
+function likes_fire(ptr) { return !!(ptr.mresists & MR_FIRE); }
 
 function mon_hates_silver(mon) {
     const ptr = monPtr(mon);
     if (!ptr) return false;
-    return !!(ptr.flags2 & 0x00000400);
+    return !!(ptr.mflags2 & 0x00000400);
 }
 
 // C ref: mondata.h — has_head(ptr) = !(M1_NOHEAD)
-function has_head(ptr) { return !(ptr.flags1 & M1_NOHEAD); }
+function has_head(ptr) { return !(ptr.mflags1 & M1_NOHEAD); }
 
 // C ref: mondata.h — haseyes(ptr) = !(M1_NOEYES)
 // M1_NOEYES = 0x00001000
-function haseyes(ptr) { return !(ptr.flags1 & 0x00001000); }
+function haseyes(ptr) { return !(ptr.mflags1 & 0x00001000); }
 
 // C ref: mondata.c max_passive_dmg(mdef, magr)
 function max_passive_dmg(mdef, magr) {
@@ -155,7 +155,7 @@ function max_passive_dmg(mdef, magr) {
             || (adtyp === AD_ELEC && !resists_elec(magr))
             || adtyp === AD_PHYS) {
             let dmg = Number(atk.damn) || 0;
-            if (!dmg) dmg = (Number(mdefData.level) || 0) + 1;
+            if (!dmg) dmg = (Number(mdefData.mlevel) || 0) + 1;
             dmg *= Number(atk.damd) || 0;
             return dmg * multi2;
         }
@@ -177,8 +177,8 @@ function dog_nutrition(mon, obj) {
     if (obj.oclass === FOOD_CLASS) {
         if (obj.otyp === CORPSE) {
             const corpsenm = obj.corpsenm !== undefined ? obj.corpsenm : 0;
-            mon.meating = 3 + (mons[corpsenm].weight >> 6);
-            nutrit = mons[corpsenm].nutrition || 0;
+            mon.meating = 3 + (mons[corpsenm].cwt >> 6);
+            nutrit = mons[corpsenm].cnutrit || 0;
         } else {
             mon.meating = objectData[obj.otyp].delay || 0;
             nutrit = objectData[obj.otyp].nutrition || 0;
@@ -209,8 +209,8 @@ function dog_nutrition(mon, obj) {
 function max_mon_load(mon) {
     const mdat = monPtr(mon);
     if (!mdat) return 0;
-    const strong = !!(mdat.flags2 & M2_STRONG);
-    const cwt = mdat.weight || 0;
+    const strong = !!(mdat.mflags2 & M2_STRONG);
+    const cwt = mdat.cwt || 0;
     const msize = mdat.msize || 0;
     let maxload;
 
@@ -246,7 +246,7 @@ function mon_inventory_items(mon) {
 
 function curr_mon_load(mon) {
     let load = 0;
-    const throws = !!(monPtr(mon)?.flags2 & M2_ROCKTHROW);
+    const throws = !!(monPtr(mon)?.mflags2 & M2_ROCKTHROW);
     for (const obj of mon_inventory_items(mon)) {
         if (obj.otyp !== BOULDER || !throws)
             load += obj.owt || 0;
@@ -259,7 +259,7 @@ export function can_carry(mon, obj, player = null) {
     const mdat = monPtr(mon);
     if (!mdat) return 0;
 
-    if (mdat.flags1 & M1_NOTAKE) return 0;
+    if (mdat.mflags1 & M1_NOTAKE) return 0;
 
     if ((obj.otyp === CORPSE || obj.otyp === EGG)
         && obj.corpsenm !== undefined
@@ -273,7 +273,7 @@ export function can_carry(mon, obj, player = null) {
 
     const iquan = obj.quan || 1;
 
-    if (iquan > 1 && (mdat.flags1 & M1_NOHANDS)) {
+    if (iquan > 1 && (mdat.mflags1 & M1_NOHANDS)) {
         let glomper = false;
         if (mdat.mlet === S_DRAGON
             && (obj.oclass === COIN_CLASS || obj.oclass === GEM_CLASS)) {
@@ -290,7 +290,7 @@ export function can_carry(mon, obj, player = null) {
     if (player && mon === player.usteed) return 0;
 
     if (mon.peaceful && !mon.tame) return 0;
-    if ((mdat.flags2 & M2_ROCKTHROW) && obj.otyp === BOULDER) return iquan;
+    if ((mdat.mflags2 & M2_ROCKTHROW) && obj.otyp === BOULDER) return iquan;
     if (mdat.mlet === S_NYMPH)
         return (obj.oclass === ROCK_CLASS) ? 0 : iquan;
     if (curr_mon_load(mon) + (obj.owt || 0) > max_mon_load(mon)) return 0;
@@ -436,7 +436,7 @@ export async function dog_hunger(mon, edog, turnCount, map, display, player, fov
 export function finish_meating(mon) {
     mon.meating = 0;
     if (mon.m_ap_type && mon.m_ap_type !== 0
-        && mon.type?.mlet !== S_MIMIC) {
+        && (mon.data || mon.type)?.mlet !== S_MIMIC) {
         mon.m_ap_type = 0;
         mon.mappearance = 0;
     }
@@ -484,9 +484,9 @@ export function could_reach_item(map, mon, nx, ny) {
     const mdat = mon?.type || {};
     const isPool = IS_POOL(loc.typ);
     const isLava = IS_LAVA(loc.typ);
-    const isSwimmer = !!(mdat.flags1 & M1_SWIM);
+    const isSwimmer = !!(mdat.mflags1 & M1_SWIM);
     const likesLava = mon?.mndx === PM_FIRE_ELEMENTAL || mon?.mndx === PM_SALAMANDER;
-    const throwsRocks = !!(mdat.flags2 & M2_ROCKTHROW);
+    const throwsRocks = !!(mdat.mflags2 & M2_ROCKTHROW);
     // C: sobj_at(BOULDER, nx, ny) — is there a boulder at this position?
     let hasBoulder = false;
     for (const obj of map.objects) {
@@ -531,7 +531,7 @@ export function can_reach_location(map, mon, mx, my, fx, fy) {
 // Pick next inventory item a tame monster is willing to drop.
 function droppables(mon) {
     const inv = mon_inventory_items(mon);
-    const mdat = mon.type || {};
+    const mdat = mon.data || mon.type || {};
     const wep = mon.weapon || null;
     const shield = inv.find((obj) => ((obj?.owornmask || 0) & W_ARMS) !== 0) || null;
     const dummy = { dummy: true, oartifact: 1 };
@@ -543,7 +543,7 @@ function droppables(mon) {
     if (is_animal(mdat) || is_mindless(mdat)) {
         pickaxe = unihorn = key = dummy;
     } else {
-        if (!(mdat.flags1 & M1_TUNNEL) || !(mdat.flags1 & M1_NEEDPICK)) pickaxe = dummy;
+        if (!(mdat.mflags1 & M1_TUNNEL) || !(mdat.mflags1 & M1_NEEDPICK)) pickaxe = dummy;
         if (nohands(mdat) || verysmall) key = dummy;
     }
     if (wep) {
@@ -775,7 +775,7 @@ function find_targ(mon, dx, dy, maxdist, map, player) {
         const targ = map.monsterAt(curx, cury);
         if (targ && !targ.dead) {
             // C ref: dogmove.c:687-690 — must be visible to the pet and not hidden
-            const perceiveInvis = !!(mons[mon.mndx]?.flags1 & M1_SEE_INVIS);
+            const perceiveInvis = !!(mons[mon.mndx]?.mflags1 & M1_SEE_INVIS);
             if ((!targ.minvis || perceiveInvis) && !targ.mundetected) {
                 return targ;
             }
@@ -808,7 +808,7 @@ export function find_friends(mon, target, maxdist, map, player) {
         const pal = map.monsterAt(curx, cury);
         if (pal && !pal.dead) {
             if (pal.tame) {
-                const perceiveInvis = !!(mons[mon.mndx]?.flags1 & M1_SEE_INVIS);
+                const perceiveInvis = !!(mons[mon.mndx]?.mflags1 & M1_SEE_INVIS);
                 if (!pal.minvis || perceiveInvis) return true;
             }
             // Quest leaders/guardians — skip for now (not in early game)
@@ -1247,7 +1247,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
     monmoveTrace('dog_move-begin',
         `step=${(Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?')}`,
         `id=${mon.m_id ?? '?'}`,
-        `name=${mon.type?.name || mon.name || '?'}`,
+        `name=${mon.data?.mname || mon.type?.mname || mon.name || '?'}`,
         `pos=(${omx},${omy})`,
         `goal=(${gx},${gy})`,
         `appr=${appr}`,
@@ -1306,8 +1306,8 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                 const targetMpeaceful = !!(target.mpeaceful ?? target.peaceful);
                 const targetMtame = !!((target.mtame || 0) > 0 || target.tame);
                 const monMtame = !!((mon.mtame || 0) > 0 || mon.tame);
-                const targetMsound = (target.type?.sound ?? target.type?.msound
-                    ?? mons[target.mndx]?.sound ?? mons[target.mndx]?.msound ?? 0);
+                const targetMsound = ((target.data || target.type)?.msound ?? (target.data || target.type)?.msound
+                    ?? mons[target.mndx]?.msound ?? mons[target.mndx]?.msound ?? 0);
                 const passiveDmg = max_passive_dmg(target, mon);
                 if ((target.m_lev || 0) >= balk
                     || (targetMtame && monMtame && !conflictActive)
@@ -1335,8 +1335,8 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                 // best_target() fallback for ranged-only attack. JS simplified to always
                 // skip (continue) since early-game pets have no ranged attacks.
                 {
-                    const tdat = mons[target.mndx] || target.type || {};
-                    const mondat = mons[mon.mndx] || mon.type || {};
+                    const tdat = target.data || mons[target.mndx] || target.type || {};
+                    const mondat = mon.data || mons[mon.mndx] || mon.type || {};
                     const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false)
                         && !mon.blind
                         && !(Number.isFinite(mon.mblinded) && mon.mblinded > 0)
@@ -1351,7 +1351,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                     let skipTarget = false;
                     if (isFloatingEye && rn2(10)
                         && monCanSee && haseyes(mondat) && targCanSee
-                        && (!target.minvis || !!(mondat.flags1 & M1_SEE_INVIS))) {
+                        && (!target.minvis || !!(mondat.mflags1 & M1_SEE_INVIS))) {
                         skipTarget = true;
                     } else if (isGelCube && rn2(10)) {
                         skipTarget = true;
@@ -1535,7 +1535,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
         monmoveTrace('dog_move-pick',
             `step=${(Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?')}`,
             `id=${mon.m_id ?? '?'}`,
-            `name=${mon.type?.name || mon.name || '?'}`,
+            `name=${mon.data?.mname || mon.type?.mname || mon.name || '?'}`,
             `from=(${omx},${omy})`,
             `to=(${nix},${niy})`,
             `chi=${chi}`,

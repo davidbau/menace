@@ -332,7 +332,7 @@ export function select_rwep(mtmp) {
     let otmp;
     let propellor = null; // null means "hands" (no launcher needed)
 
-    const mlet = (mtmp.type || {}).mlet;
+    const mlet = (mtmp.data || mtmp.type || {}).mlet;
 
     // cockatrice eggs first
     if ((otmp = oselect(mtmp, EGG)) != null) return { weapon: otmp, propellor: null };
@@ -342,7 +342,7 @@ export function select_rwep(mtmp) {
         return { weapon: otmp, propellor: null };
 
     // Giants prefer boulders
-    if ((mtmp.type?.flags2 || 0) & 0x00002000 /* M2_ROCKTHROW */ &&
+    if (((mtmp.data || mtmp.type)?.mflags2 || 0) & 0x00002000 /* M2_ROCKTHROW */ &&
         (otmp = oselect(mtmp, BOULDER)) != null)
         return { weapon: otmp, propellor: null };
 
@@ -354,7 +354,7 @@ export function select_rwep(mtmp) {
         for (const pw of pwep) {
             const od = objectData[pw];
             if (!od) continue;
-            if (((strongmonst(mtmp.type) && !(mtmp.misc_worn_check & W_ARMS))
+            if (((strongmonst(mtmp.data || mtmp.type) && !(mtmp.misc_worn_check & W_ARMS))
                  || !od.big)
                 && (od.material !== 14 /* SILVER */ || !mon_hates_silver(mtmp))) {
                 if ((otmp = oselect(mtmp, pw)) != null
@@ -367,7 +367,7 @@ export function select_rwep(mtmp) {
 
     // Throw-and-return weapons (aklys)
     for (const arw of arwep) {
-        if (!is_mindless(mtmp.type || {}) && !is_animal(mtmp.type || {}) && !mweponly
+        if (!is_mindless(mtmp.data || mtmp.type || {}) && !is_animal(mtmp.data || mtmp.type || {}) && !mweponly
             && dist2(mtmp.mx, mtmp.my, mtmp.mux || 0, mtmp.muy || 0) <= arw.range) {
             const od = objectData[arw.otyp];
             if ((!(mtmp.misc_worn_check & W_ARMS) || !(od && od.big))
@@ -383,7 +383,7 @@ export function select_rwep(mtmp) {
     // Standard ranged weapon priority list
     for (let i = 0; i < rwep.length; i++) {
         // Gem-slinging: right before darts
-        if (rwep[i] === DART && likes_gems(mtmp.type || {})
+        if (rwep[i] === DART && likes_gems(mtmp.data || mtmp.type || {})
             && m_carrying(mtmp, SLING)) {
             for (const invObj of (mtmp.minvent || [])) {
                 if (invObj.oclass === GEM_CLASS
@@ -464,18 +464,18 @@ const hwep = [
 // ============================================================================
 // Select best melee weapon for monster.
 export function select_hwep(mtmp) {
-    const strong = strongmonst(mtmp.type || {});
+    const strong = strongmonst(mtmp.data || mtmp.type || {});
     const wearing_shield = !!(mtmp.misc_worn_check & W_ARMS);
 
     // Prefer artifacts (simplified: skip artifact check, not implemented)
 
     // Giants prefer clubs
-    if (is_giant(mtmp.type || {})) {
+    if (is_giant(mtmp.data || mtmp.type || {})) {
         const otmp = oselect(mtmp, CLUB);
         if (otmp) return otmp;
     }
     // Balrog prefers bullwhip
-    if (mtmp.type === mons[PM_BALROG]) {
+    if ((mtmp.data || mtmp.type) === mons[PM_BALROG]) {
         const otmp = oselect(mtmp, BULLWHIP);
         if (otmp) return otmp;
     }
@@ -540,7 +540,7 @@ export function possibly_unwield(mon, _polyspot) {
         return;
     }
 
-    if (!attacktype(mon.type || {}, AT_WEAP)) {
+    if (!attacktype(mon.data || mon.type || {}, AT_WEAP)) {
         // Monster can no longer use weapons
         setmnotwielded(mon, mw_tmp);
         mon.weapon_check = NO_WEAPON_WANTED;
