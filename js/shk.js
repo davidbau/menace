@@ -24,7 +24,7 @@ import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_C
          CANDELABRUM_OF_INVOCATION } from './objects.js';
 import { isObjectNameKnown } from './o_init.js';
 import { doname, xname, splitobj, next_ident, weight, Is_container, add_to_minv } from './mkobj.js';
-import { currency } from './invent.js';
+import { currency, o_on } from './invent.js';
 import { greetingForRole } from './player.js';
 import { shtypes, shkname, Shknam, saleable, is_izchak } from './shknam.js';
 import { rn2, rnd } from './rng.js';
@@ -34,7 +34,8 @@ import { s_suffix, upstart, highc, strchr } from './hacklib.js';
 import { findgold } from './steal.js';
 import { helpless as monHelpless } from './mon.js';
 import { newsym } from './display.js';
-import { canseemon } from './mondata.js';
+import { canseemon, y_monnam } from './mondata.js';
+import { game as _gstate } from './gstate.js';
 
 // ============================================================
 // Constants
@@ -44,12 +45,30 @@ const BILLSZ = 200;
 const REPAIR_DELAY = 5;
 const MAXULEV = 30;
 const CANDLESHOP = 25;
+const LITTER_UPDATE = 0x80;
 
 // Pay result codes (C: PAY_BUY, PAY_CANT, PAY_SKIP, PAY_BROKE)
 const PAY_BUY = 1;
 const PAY_CANT = 0;
 const PAY_SKIP = -1;
 const PAY_BROKE = -2;
+
+// C ref: enum bill_use_mode in shk.c
+const FullyUsedUp = 0;
+const PartlyUsedUp = 1;
+const PartlyIntact = 2;
+const FullyIntact = 3;
+const KnownContainer = 4;
+const UndisclosedContainer = 5;
+
+const LITTER_HORIZ = [-1, 0, 1, -1, 0, 1, -1, 0, 1];
+const LITTER_VERT = [-1, -1, -1, 0, 0, 0, 1, 1, 1];
+function horiz(i) {
+    return LITTER_HORIZ[i] ?? 0;
+}
+function vert(i) {
+    return LITTER_VERT[i] ?? 0;
+}
 
 // ============================================================
 // Room / shop location helpers (existing, preserved)
@@ -1547,6 +1566,103 @@ export async function dopay(game) {
     return 0;
 }
 
+// C ref: shk.c make_itemized_bill()
+function make_itemized_bill(shkp) {
+    const eshkp = shkp || {};
+    const bill = Array.isArray(eshkp.bill) ? eshkp.bill : [];
+    const ibill = [];
+    for (let i = 0; i < bill.length; i++) {
+        const bp = bill[i];
+        if (!bp) continue;
+        const obj = bp_to_obj(bp);
+        if (!obj) continue;
+        ibill.push({
+            obj,
+            cost: Number(bp.price || 0) * Number(bp.bquan || obj.quan || 1),
+            quan: Number(bp.bquan || obj.quan || 1),
+            bidx: i,
+            usedup: bp.useup ? PartlyUsedUp : FullyIntact,
+            queuedpay: false,
+        });
+    }
+    ibill.sort(sortbill_cmp);
+    return ibill;
+}
+
+// C ref: shk.c menu_pick_pay_items()
+function menu_pick_pay_items(_ibillct, ibill) {
+    for (const item of (ibill || [])) {
+        item.queuedpay = true;
+    }
+    return 1;
+}
+
+// C ref: shk.c reject_purchase()
+function reject_purchase(shkp, obj, quantity) {
+    const name = doname(obj, _gstate?.player || null);
+    const qty = Number(quantity || obj?.quan || 1);
+    void pline("%s declines to sell %ld %s.", Shknam(shkp), qty, name);
+}
+
+// C ref: shk.c insufficient_funds()
+function insufficient_funds(shkp, obj, ltmp) {
+    const player = _gstate?.player || null;
+    const cash = Number(player?.gold || 0);
+    const credit = Number(shkp?.credit || 0);
+    const needed = Number(ltmp || get_pricing_units(obj) * get_cost(obj, shkp));
+    return (cash + credit) < needed;
+}
+
+// C ref: shk.c dopayobj()
+function dopayobj(shkp, bp, obj, _pass, _itemize, _sightunseen) {
+    if (!shkp || !bp || !obj) return PAY_SKIP;
+    const units = get_pricing_units(obj);
+    const cost = Number(bp.price || get_cost(obj, shkp)) * units;
+    if (insufficient_funds(shkp, obj, cost)) {
+        reject_purchase(shkp, obj, units);
+        return PAY_CANT;
+    }
+    pay(cost, shkp, _gstate);
+    update_bill(-1, 0, [], shkp, bp, obj);
+    return PAY_BUY;
+}
+
+// C ref: shk.c buy_container()
+function buy_container(shkp, indx, ibillct, ibill) {
+    if (!Array.isArray(ibill) || indx < 0 || indx >= ibill.length) return PAY_SKIP;
+    const item = ibill[indx];
+    if (!item?.obj) return PAY_SKIP;
+    const bp = (Array.isArray(shkp?.bill) && Number.isInteger(item.bidx)) ? shkp.bill[item.bidx] : null;
+    if (!bp) return PAY_SKIP;
+    return dopayobj(shkp, bp, item.obj, 1, true, false);
+}
+
+// C ref: shk.c pay_billed_items()
+function pay_billed_items(shkp, ibillct, ibill, _stashedGold, paidRef = { paid: false }) {
+    if (!menu_pick_pay_items(ibillct, ibill)) return false;
+    let paidAny = false;
+    for (let i = 0; i < ibill.length; i++) {
+        const item = ibill[i];
+        if (!item?.queuedpay) continue;
+        const bp = (Array.isArray(shkp?.bill) && Number.isInteger(item.bidx)) ? shkp.bill[item.bidx] : null;
+        if (!bp || !item.obj) continue;
+        const result = dopayobj(shkp, bp, item.obj, 1, true, false);
+        if (result === PAY_BUY) paidAny = true;
+    }
+    paidRef.paid = paidAny;
+    return true;
+}
+
+// C ref: shk.c inherits()
+function inherits(shkp, _numsk, _croaked, _silently) {
+    if (!shkp) return false;
+    const debt = Number(shop_debt(shkp) || 0);
+    if (debt <= 0) return false;
+    shkp.robbed = Number(shkp.robbed || 0) + debt;
+    setpaid(shkp);
+    return true;
+}
+
 // ============================================================
 // sellobj -- selling objects in shops (C: shk.c sellobj)
 // Complex interactive function; stub
@@ -1718,6 +1834,13 @@ export function pay_for_damage(dmgstr, cant_mollify, map, player, moves) {
     hot_pursuit(shkp);
 }
 
+// C ref: shk.c getcad() -- verbal rebuke helper
+function getcad(shkp, dmgstr, _x, _y, _uinshop, _animal, _pursue) {
+    if (!shkp || muteshk(shkp)) return;
+    const offense = dmgstr || 'that';
+    void verbalize("Cad!  You did %s!", offense);
+}
+
 // C ref: shk.c shopdig()
 export async function shopdig(fall, map, player) {
     if (!map || !player) return;
@@ -1780,11 +1903,64 @@ export async function block_entry(x, y, map, player) {
 // shk_your / Shk_Your (C: shk.c)
 // ============================================================
 
+// C ref: shk.c append_honorific()
+function append_honorific(buf, player = _gstate?.player) {
+    const honored = [
+        'good', 'honored', 'most gracious', 'esteemed', 'most renowned and sacred'
+    ];
+    const demigod = Number(player?.uevent?.udemigod || 0);
+    const idx = rn2(honored.length - 1) + (demigod ? 1 : 0);
+    let out = `${buf}${honored[Math.max(0, Math.min(honored.length - 1, idx))]}`;
+
+    const female = !!player?.female;
+    const race = String(player?.race || '').toLowerCase();
+    const role = String(player?.roleName || '').toLowerCase();
+    const isVampireForm = !!player?.vampireForm || role.includes('vampire');
+    if (isVampireForm) {
+        out += female ? ' dark lady' : ' dark lord';
+    } else if (race === 'elf' || race.includes('elf')) {
+        out += female ? ' hiril' : ' hir';
+    } else {
+        const nonHuman = race && race !== 'human';
+        out += nonHuman ? ' creature' : (female ? ' lady' : ' sir');
+    }
+    return out;
+}
+
+// C ref: shk.c shk_owns()
+function shk_owns(obj, map = _gstate?.map) {
+    if (!obj || !map) return null;
+    const x = Number(obj.ox);
+    const y = Number(obj.oy);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    const isFloor = (obj.where === 'floor' || obj.where === 3 || obj.where === 'OBJ_FLOOR');
+    if (!(obj.unpaid || (isFloor && !obj.no_charge && costly_spot(x, y, map)))) return null;
+    const shkp = shop_keeper(map, inside_shop(x, y, map));
+    return shkp ? sSuffix(shkname(shkp)) : 'the';
+}
+
+// C ref: shk.c mon_owns()
+function mon_owns(obj) {
+    if (!obj) return null;
+    const where = obj.where;
+    const minvent = (where === 'minvent' || where === 4 || where === 'OBJ_MINVENT');
+    if (!minvent || !obj.ocarry) return null;
+    return sSuffix(y_monnam(obj.ocarry));
+}
+
+// C ref: shk.c sasc_bug() -- historical compiler workaround.
+export function sasc_bug(op, x) {
+    if (!op) return;
+    op.unpaid = x;
+}
+
 // C ref: shk.c shk_your() -- "your " or "Foobar's "
 export function shk_your(obj, map) {
-    // Simplified: return "your " for carried, "the " for floor
-    if (obj.where === 'invent' || obj.carried) return "your ";
-    return "the ";
+    if (!obj) return 'your ';
+    const own = shk_owns(obj, map) || mon_owns(obj);
+    if (own) return `${own} `;
+    const inInvent = (obj.where === 'invent' || obj.where === 1 || obj.where === 'OBJ_INVENT');
+    return inInvent || obj.carried ? 'your ' : 'the ';
 }
 
 // C ref: shk.c Shk_Your()
@@ -1817,6 +1993,58 @@ export function after_shk_move(shkp, map) {
         // C: reset bill_p if it was invalidated
         ensureBill(shkp);
     }
+}
+
+// C ref: shk.c shk_move()
+// Returns 1 moved, 0 stayed, -1 delegate to generic m_move, -2 died.
+export function shk_move(shkp, map, player) {
+    if (!shkp || !map || !player) return 0;
+    const dist2 = (x1, y1, x2, y2) => {
+        const dx = x1 - x2;
+        const dy = y1 - y2;
+        return dx * dx + dy * dy;
+    };
+    const omx = Number(shkp.mx || 0);
+    const omy = Number(shkp.my || 0);
+    const home = shkp.shk || { x: omx, y: omy };
+    const door = shkp.shd || { x: home.x, y: home.y };
+    const udist = dist2(omx, omy, player.x, player.y);
+
+    if (inhishop(shkp, map)) {
+        // Keep behavior C-shaped: repairs are attempted before movement.
+        void shk_fixes_damage(shkp, map, _gstate);
+    }
+
+    if (udist < 3 && (shkp.mpeaceful === false || shkp.peaceful === false)) {
+        return 0;
+    }
+
+    let gtx = home.x;
+    let gty = home.y;
+    if (shkp.following) {
+        if (udist > 4 && !Number(shkp.billct || 0)) return -1;
+        gtx = player.x;
+        gty = player.y;
+    } else if (shkp.mpeaceful === false || shkp.peaceful === false) {
+        gtx = player.x;
+        gty = player.y;
+    }
+
+    const step = (cur, goal) => (goal > cur ? 1 : (goal < cur ? -1 : 0));
+    const nx = omx + step(omx, gtx);
+    const ny = omy + step(omy, gty);
+    if (!isok(nx, ny)) return 0;
+    if (nx === player.x && ny === player.y) return 0;
+    if (typeof map.monsterAt === 'function' && map.monsterAt(nx, ny)) return 0;
+
+    shkp.mx = nx;
+    shkp.my = ny;
+    if (typeof newsym === 'function') {
+        newsym(omx, omy);
+        newsym(nx, ny);
+    }
+    after_shk_move(shkp, map);
+    return (nx !== omx || ny !== omy) ? 1 : 0;
 }
 
 // ============================================================
@@ -2089,7 +2317,17 @@ export function get_cost_of_shop_item(obj, map, player) {
 
 // C ref: shk.c fix_shop_damage()
 export function fix_shop_damage(map) {
-    // Stub: iterate shopkeepers and repair damage older than REPAIR_DELAY
+    if (!map || !Array.isArray(map.monsters)) return;
+    for (const shkp of map.monsters) {
+        if (!shkp || shkp.dead || !shkp.isshk) continue;
+        if (shk_impaired(shkp, map)) continue;
+        for (;;) {
+            const dam = find_damage(shkp, map, _gstate);
+            if (!dam) break;
+            repair_damage(shkp, dam, true, map);
+            discard_damage_struct(dam, map);
+        }
+    }
 }
 
 // ============================================================
@@ -2348,6 +2586,22 @@ export function update_bill(indx, ibillct, ibill, eshkp, bp, paiditem) {
   return;
 }
 
+// C ref: shk.c sortbill_cmp() -- qsort comparator for itemized billing
+function sortbill_cmp(vptr1, vptr2) {
+    const sbi1 = vptr1;
+    const sbi2 = vptr2;
+    const cost1 = Number(sbi1?.cost || 0);
+    const cost2 = Number(sbi2?.cost || 0);
+    const bidx1 = Number(sbi1?.bidx || 0);
+    const bidx2 = Number(sbi2?.bidx || 0);
+    const used1 = Number(sbi1?.usedup || 0) <= PartlyUsedUp;
+    const used2 = Number(sbi2?.usedup || 0) <= PartlyUsedUp;
+
+    if (used1 !== used2) return Number(used2) - Number(used1);
+    if (cost1 !== cost2) return cost2 - cost1;
+    return bidx1 - bidx2;
+}
+
 // Autotranslated from shk.c:2622
 export function set_repo_loc(shkp, player) {
   let ox, oy, eshkp = ESHK(shkp);
@@ -2370,11 +2624,64 @@ export function set_repo_loc(shkp, player) {
 // Autotranslated from shk.c:2699
 export function bp_to_obj(bp) {
   let obj, id = bp.bo_id;
-  if (bp.useup) obj = o_on(id, gb.billobjs);
-  else {
+  if (bp.useup) {
+    const billobjs = Array.isArray(_gstate?.billobjs) ? _gstate.billobjs : [];
+    obj = o_on(id, billobjs);
+  } else {
     obj = find_oid(id);
   }
   return obj;
+}
+
+// C ref: shk.c find_oid() -- search all object lists except billobjs
+export function find_oid(id, map = _gstate?.map, player = _gstate?.player) {
+    const oid = Number(id);
+    if (!Number.isFinite(oid)) return null;
+
+    const inv = Array.isArray(player?.inventory) ? player.inventory : [];
+    let obj = o_on(oid, inv);
+    if (obj) return obj;
+
+    const floorObjects = Array.isArray(map?.objects) ? map.objects : [];
+    obj = o_on(oid, floorObjects);
+    if (obj) return obj;
+
+    const buriedObjects = Array.isArray(map?.buriedobjlist)
+        ? map.buriedobjlist
+        : (Array.isArray(map?.buriedObjects) ? map.buriedObjects : []);
+    obj = o_on(oid, buriedObjects);
+    if (obj) return obj;
+
+    const migratingObjs = Array.isArray(_gstate?.migrating_objs) ? _gstate.migrating_objs : [];
+    obj = o_on(oid, migratingObjs);
+    if (obj) return obj;
+
+    const scanMonList = (headOrArray) => {
+        if (!headOrArray) return null;
+        if (Array.isArray(headOrArray)) {
+            for (const mon of headOrArray) {
+                const hit = o_on(oid, mon?.minvent || []);
+                if (hit) return hit;
+            }
+            return null;
+        }
+        for (let mon = headOrArray; mon; mon = mon.nmon) {
+            const hit = o_on(oid, mon?.minvent || []);
+            if (hit) return hit;
+        }
+        return null;
+    };
+
+    const monLists = [
+        map?.fmon || map?.monsters || null,
+        _gstate?.migrating_mons || null,
+        _gstate?.mydogs || null,
+    ];
+    for (const list of monLists) {
+        obj = scanMonList(list);
+        if (obj) return obj;
+    }
+    return null;
 }
 
 // Autotranslated from shk.c:3200
@@ -2400,8 +2707,8 @@ export function unpaid_cost(unp_obj, cost_type, player) {
 export function add_to_billobjs(obj) {
   if (obj.where !== OBJ_FREE) throw new Error('add_to_billobjs: obj not free');
   if (obj.timed) obj_stop_timers(obj);
-  obj.nobj = gb.billobjs;
-  gb.billobjs = obj;
+  if (!Array.isArray(_gstate.billobjs)) _gstate.billobjs = [];
+  _gstate.billobjs.unshift(obj);
   obj.where = OBJ_ONBILL;
   obj.in_use = 0;
   obj.bypass = 0;
@@ -2486,35 +2793,87 @@ export function getprice(obj, shk_buying, player) {
 }
 
 // Autotranslated from shk.c:4386
-export function repairable_damage(dam, shkp, game) {
-  let x, y, ttmp, mtmp;
-  if (!dam || shk_impaired(shkp)) return false;
-  x = dam.place.x;
-  y = dam.place.y;
-  if (((Number(game?.moves) || 0) - dam.when) < REPAIR_DELAY) return false;
-  if (!IS_ROOM(dam.typ)) {
-    if ((u_at(x, y) && !Passes_walls) || (x === shkp.mx && y === shkp.my) || ((mtmp = m_at(x, y)) != null && !passes_walls(mtmp.data))) return false;
-  }
-  ttmp = t_at(x, y);
-  if (ttmp) {
-    if (u_at(x, y)) return false;
-    if ((mtmp = m_at(x,y)) != null && mtmp.mtrapped) return false;
-  }
-  if (!strchr(in_rooms(x, y, SHOPBASE), ESHK(shkp).shoproom)) return false;
-  return true;
+export function repairable_damage(dam, shkp, game, map = _gstate?.map) {
+    if (!dam || !shkp || !map) return false;
+    if (shk_impaired(shkp, map)) return false;
+
+    const x = Number(dam.x ?? dam.place?.x);
+    const y = Number(dam.y ?? dam.place?.y);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+    if (((Number(game?.moves || _gstate?.moves) || 0) - Number(dam.when || 0)) < REPAIR_DELAY) {
+        return false;
+    }
+    if (x === Number(shkp.mx) && y === Number(shkp.my)) return false;
+
+    const player = game?.player || _gstate?.player || null;
+    if (player && x === Number(player.x) && y === Number(player.y)) return false;
+    if (typeof map.monsterAt === 'function') {
+        const mtmp = map.monsterAt(x, y);
+        if (mtmp && mtmp !== shkp) return false;
+    }
+
+    const shoproom = Number(shkp?.shoproom ?? shkp?.shopRoom ?? shkp?.eshkp?.shoproom);
+    if (!Number.isFinite(shoproom)) return false;
+    return in_rooms(map, x, y, SHOPBASE).includes(shoproom);
+}
+
+// C ref: shk.c repair_damage()
+function repair_damage(shkp, dam, _catchup, map = _gstate?.map) {
+    if (!dam || !map) return false;
+    const x = Number(dam.x ?? dam.place?.x);
+    const y = Number(dam.y ?? dam.place?.y);
+    if (!isok(x, y)) return false;
+    const loc = map.at(x, y);
+    if (!loc) return false;
+    if (Number.isFinite(dam.typ)) loc.typ = dam.typ;
+    if (Number.isFinite(dam.flags)) loc.flags = dam.flags;
+    newsym(x, y);
+    return true;
+}
+
+// C ref: shk.c find_damage() -- first repairable damage for shopkeeper
+function find_damage(shkp, map = _gstate?.map, game = _gstate) {
+    const damagelist = Array.isArray(map?._damagelist) ? map._damagelist : [];
+    if (shk_impaired(shkp, map)) return null;
+    for (const dam of damagelist) {
+        if (repairable_damage(dam, shkp, game)) return dam;
+    }
+    return null;
+}
+
+// C ref: shk.c discard_damage_struct()
+function discard_damage_struct(dam, map = _gstate?.map) {
+    if (!dam || !Array.isArray(map?._damagelist)) return;
+    const idx = map._damagelist.indexOf(dam);
+    if (idx >= 0) map._damagelist.splice(idx, 1);
+}
+
+// C ref: shk.c discard_damage_owned_by()
+function discard_damage_owned_by(shkp, map = _gstate?.map) {
+    if (!shkp || !Array.isArray(map?._damagelist)) return;
+    const room = Number(shkp?.shoproom ?? shkp?.shopRoom ?? shkp?.eshkp?.shoproom);
+    if (!Number.isFinite(room)) return;
+    map._damagelist = map._damagelist.filter((dam) => {
+        const rooms = in_rooms(map, Number(dam?.x), Number(dam?.y), SHOPBASE);
+        return !rooms.includes(room);
+    });
 }
 
 // Autotranslated from shk.c:4490
-export async function shk_fixes_damage(shkp) {
-  let dam = find_damage(shkp), shk_closeby;
-  if (!dam) return;
-  shk_closeby = (mdistu(shkp) <= (BOLT_LIM / 2) * (BOLT_LIM / 2));
-  if (canseemon(shkp)) {
-    await pline("%s whispers %s.", Shknam(shkp), shk_closeby ? "an incantation" : "something");
-  }
-  else if (!Deaf && shk_closeby) { await You_hear("someone muttering an incantation."); }
-  repair_damage(shkp, dam, false);
-  discard_damage_struct(dam);
+export async function shk_fixes_damage(shkp, map = _gstate?.map, game = _gstate) {
+    const dam = find_damage(shkp, map, game);
+    if (!dam) return;
+    const player = game?.player || _gstate?.player || null;
+    const shkCloseBy = !!player
+        && ((Number(shkp.mx) - Number(player.x)) ** 2
+            + (Number(shkp.my) - Number(player.y)) ** 2) <= 64;
+    if (canseemon(shkp)) {
+        await pline("%s whispers %s.", Shknam(shkp), shkCloseBy ? 'an incantation' : 'something');
+    } else if (shkCloseBy) {
+        await You_hear('someone muttering an incantation.');
+    }
+    repair_damage(shkp, dam, false, map);
+    discard_damage_struct(dam, map);
 }
 
 // Autotranslated from shk.c:4646
@@ -2523,6 +2882,31 @@ export function litter_newsyms(litter, x, y) {
   for (i = 0; i < 9; i++) {
     if (litter[i] & LITTER_UPDATE) newsym(x + horiz(i), y + vert(i));
   }
+}
+
+// C ref: shk.c litter_getpos()
+function litter_getpos(litter, x, y, shkp) {
+    if (!Array.isArray(litter) || litter.length < 9) return 0;
+    let touched = 0;
+    for (let i = 0; i < 9; i++) {
+        litter[i] = 0;
+        const xx = x + horiz(i);
+        const yy = y + vert(i);
+        if (!isok(xx, yy)) continue;
+        if (shkp && xx === shkp.mx && yy === shkp.my) continue;
+        litter[i] = 1;
+        touched++;
+    }
+    return touched;
+}
+
+// C ref: shk.c litter_scatter()
+function litter_scatter(litter, x, y, _shkp) {
+    if (!Array.isArray(litter)) return;
+    for (let i = 0; i < 9; i++) {
+        if (litter[i]) litter[i] |= 0x80;
+    }
+    litter_newsyms(litter, x, y);
 }
 
 // Autotranslated from shk.c:5047
