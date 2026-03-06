@@ -108,7 +108,7 @@ const MFAST = 2;
 // Calculate monster's movement budget for a turn.
 // Randomly rounds speed to a multiple of NORMAL_SPEED (12).
 // ========================================================================
-export function mcalcmove(mon) {
+export function mcalcmove(mon, m_moving = true) {
     // C reads mtmp->data->mmove each turn.
     // Some JS paths still only carry mndx without data/type pointer,
     // so include mndx->mons fallback to preserve runtime semantics.
@@ -131,11 +131,15 @@ export function mcalcmove(mon) {
     }
     // Note: usteed/gallop check (C mon.c:1131-1136) skipped — riding not ported.
 
-    // C ref: mon.c:1138-1146 — random rounding for non-standard speeds
-    const mmoveAdj = mmove % NORMAL_SPEED;
-    mmove -= mmoveAdj;
-    if (rn2(NORMAL_SPEED) < mmoveAdj) {
-        mmove += NORMAL_SPEED;
+    // C ref: mon.c:1136-1147 — random rounding for non-standard speeds.
+    // Only done when m_moving=true (actual movement allocation).
+    // worm.c calls with m_moving=false (speed-only, no rn2 consumed).
+    if (m_moving) {
+        const mmoveAdj = mmove % NORMAL_SPEED;
+        mmove -= mmoveAdj;
+        if (rn2(NORMAL_SPEED) < mmoveAdj) {
+            mmove += NORMAL_SPEED;
+        }
     }
     return mmove;
 }

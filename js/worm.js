@@ -165,7 +165,7 @@ export function worm_move(worm, map, game) {
             // New worm; usually grow a tail segment on its next turn
             wgrowtime[wnum] = moves + rnd(5);
         } else {
-            var mmove = mcalcmove(worm);
+            var mmove = mcalcmove(worm, false);
             var incr = rn1(10, 2); // 2..12
             incr = Math.floor((incr * NORMAL_SPEED) / Math.max(mmove, 1));
             wgrowtime[wnum] = moves + incr;
