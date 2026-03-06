@@ -1023,6 +1023,7 @@ export class HeadlessDisplay {
                 newsym(x, y);
             }
         }
+        setDisplayContext(prevCtx);
         this._captureMapBase();
         this._applyTempOverlay();
     }

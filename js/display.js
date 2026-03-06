@@ -1574,17 +1574,13 @@ export function map_invisible(map, x, y, player) {
 // C ref: display.c:918 newsym()
 export function newsym(x, y) {
     const ctx = _getDisplayCtx();
-    if (!ctx?.map) return;
-    const map = ctx.map;
+    const map = ctx?.map;
     if (!map || !isok(x, y)) return;
     const loc = map.at(x, y);
     if (!loc) return;
 
-    if (!ctx || !ctx.display || typeof ctx.display.setCell !== 'function') {
-        return;
-    }
-
     const { display, player, fov, flags } = ctx;
+    if (!display || typeof display.setCell !== 'function') return;
     const mapOffset = flags?.msg_window ? 3 : MAP_ROW_START;
     const col = x - 1;
     const row = y + mapOffset;

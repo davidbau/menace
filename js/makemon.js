@@ -334,9 +334,6 @@ export function setMakemonLevelContext(levelCtx = {}) {
     }
 }
 
-// setMakemonInMklevContext removed — now unified on gstate.game._inMklev
-// (set by dungeon.js enterMklevContext/leaveMklevContext)
-
 // C ref: makemon.c peace_minded(struct permonst *ptr)
 function peace_minded(ptr, playerCtx = _getMakemonPlayerCtx()) {
     const mal = ptr.maligntyp || 0;
@@ -1994,8 +1991,9 @@ function makemonGoodpos(map, x, y, ptr, mmflags = NO_MM_FLAGS, avoidMonpos = tru
 
     // C ref: teleport.c goodpos() rejects hero location unless GP_ALLOW_U.
     // makemon_rnd_goodpos() doesn't set GP_ALLOW_U, so keep hero tile invalid.
-    if (Number.isInteger(_getMakemonPlayerCtx()?.x) && Number.isInteger(_getMakemonPlayerCtx()?.y)
-        && x === _getMakemonPlayerCtx().x && y === _getMakemonPlayerCtx().y) {
+    const pctx = _getMakemonPlayerCtx();
+    if (Number.isInteger(pctx?.x) && Number.isInteger(pctx?.y)
+        && x === pctx.x && y === pctx.y) {
         return false;
     }
 
@@ -2080,11 +2078,12 @@ function makemon_rnd_goodpos(map, ptr, mmflags = NO_MM_FLAGS) {
         lastNy = ny;
         // C ref: makemon.c makemon_rnd_goodpos()
         // good = (!in_mklev && cansee(nx,ny)) ? FALSE : goodpos(...)
+        const pctx = _getMakemonPlayerCtx();
         if (!_getInMklev()
-            && Number.isInteger(_getMakemonPlayerCtx()?.x) && Number.isInteger(_getMakemonPlayerCtx()?.y)
+            && Number.isInteger(pctx?.x) && Number.isInteger(pctx?.y)
             && cansee(
                 map,
-                { x: _getMakemonPlayerCtx().x, y: _getMakemonPlayerCtx().y },
+                { x: pctx.x, y: pctx.y },
                 getActiveFov(),
                 nx,
                 ny
@@ -2176,8 +2175,9 @@ function randomMonGoodpos(ptr, x, y, map, mmflags = NO_MM_FLAGS) {
 }
 
 function makemonVisibleToPlayer(mon, map) {
-    const ux = _getMakemonPlayerCtx()?.x;
-    const uy = _getMakemonPlayerCtx()?.y;
+    const pctx = _getMakemonPlayerCtx();
+    const ux = pctx?.x;
+    const uy = pctx?.y;
     if (!Number.isInteger(ux) || !Number.isInteger(uy) || !map || !mon) return false;
     const player = map?.player || null;
     if (player) {
@@ -2209,9 +2209,10 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     const allow_minvent = !(mmflags & NO_MINVENT);
 
     // C ref: makemon.c:1160 — byyou: creating monster at hero position
+    const pctx = _getMakemonPlayerCtx();
     const byyou = map && !_getInMklev()
-        && Number.isInteger(_getMakemonPlayerCtx()?.x) && Number.isInteger(_getMakemonPlayerCtx()?.y)
-        && x === _getMakemonPlayerCtx().x && y === _getMakemonPlayerCtx().y;
+        && Number.isInteger(pctx?.x) && Number.isInteger(pctx?.y)
+        && x === pctx.x && y === pctx.y;
 
     // C ref: makemon.c:1173-1178 — random position finding for (0,0)
     // Happens before random monster selection when ptr is null.
@@ -2514,8 +2515,9 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         if (!(mmflags & MM_NOMSG) && makemonVisibleToPlayer(mon, map)) {
             const exclaim = !(mmflags & MM_NOEXCLAM);
             const what = Amonnam(mon);
-            const ux = Number.isInteger(_getMakemonPlayerCtx()?.x) ? _getMakemonPlayerCtx().x : null;
-            const uy = Number.isInteger(_getMakemonPlayerCtx()?.y) ? _getMakemonPlayerCtx().y : null;
+            const pctx = _getMakemonPlayerCtx();
+            const ux = Number.isInteger(pctx?.x) ? pctx.x : null;
+            const uy = Number.isInteger(pctx?.y) ? pctx.y : null;
             let suffix = '';
             if (ux != null && uy != null) {
                 if (dist2(x, y, ux, uy) <= 2) suffix = ' next to you';

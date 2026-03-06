@@ -109,10 +109,7 @@ function traceTimerEvent(event) {
     if (_timerTrace.length > 200) _timerTrace.shift();
 }
 
-// setTimerContext is now a no-op — _timeoutContext reads from gstate directly.
-export function setTimerContext(context = {}) {
-    // Kept for backward compatibility; context reads fall through to gstate.
-}
+// setTimerContext removed in Phase 4 — _timeoutContext reads from gstate directly.
 
 function _getCurrentTurn() {
     if (_gstate && '_currentTurn' in _gstate) return _gstate._currentTurn;

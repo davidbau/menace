@@ -8,8 +8,7 @@ const PLINE_NOREP = 1 << 1;
 
 const NOREPEAT = '___PLINE_NO_REPEAT___';
 
-// _outputContext now reads from gstate.game.display by default.
-// The explicit setter is kept for headless/test paths that may override.
+// Output context reads from gstate.game.display by default.
 let _outputContextOverride = null;
 let _lastMessage = NOREPEAT;
 const _pendingContext = {
@@ -41,10 +40,6 @@ function getOutputContext() {
             console.log(safeString(text));
         }
     } };
-}
-
-export function setOutputContext(context) {
-    _outputContextOverride = context || null;
 }
 
 function clearTransientContext() {
