@@ -2,6 +2,9 @@
 #include <signal.h>
 #include "hack.h"
 #include "hack.vars"
+#ifdef HARNESS
+extern int current_rng_count;
+#endif
 
 char lock[11] = "alock";	/* long enough for login name */
 /* note that lock is also used for temp file names */

@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <signal.h>
 #include "hack.h"
+#ifdef HARNESS
+extern int current_rng_count;
+#endif
 
 #define MAZX (2*rnd(37)+1)
 #define MAZY (2*rnd(8)+1)
@@ -108,7 +111,7 @@ char *argv[];
 	}
 jumpout:
 #ifdef HARNESS
-	harness_debug("[mklev] rooms done\n");
+	{ char _buf[64]; snprintf(_buf,sizeof(_buf),"[mklev] rooms done rng=%d\n",current_rng_count); harness_debug(_buf); }
 #endif
 	croom->hx= -1;	/* the only goto in hack */
 #ifdef DEBUG
@@ -129,6 +132,9 @@ g_at(xdnstair,ydnstair,ftrap));
 		} while(g_at(xdnstair,ydnstair,ftrap));
 	}
 	levl[xdnstair][ydnstair].scrsym='>';
+#ifdef HARNESS
+	{ char _buf[64]; snprintf(_buf,sizeof(_buf),"[mklev] dn done rng=%d\n",current_rng_count); harness_debug(_buf); }
+#endif
 #ifdef DEBUG
 	out("dn @%d,%d\n",xdnstair,ydnstair);
 #endif
@@ -139,6 +145,9 @@ g_at(xdnstair,ydnstair,ftrap));
 		yupstair=somey();
 	} while(croom==troom);
 	levl[xupstair][yupstair].scrsym='<';
+#ifdef HARNESS
+	{ char _buf[64]; snprintf(_buf,sizeof(_buf),"[mklev] up done rng=%d\n",current_rng_count); harness_debug(_buf); }
+#endif
 #ifdef DEBUG
 	out("up @%d,%d\n",xupstair,yupstair);
 #endif
@@ -195,6 +204,9 @@ g_at(xdnstair,ydnstair,ftrap));
 			}
 		}
 	}
+#ifdef HARNESS
+	{ char _buf[64]; snprintf(_buf,sizeof(_buf),"[mklev] populate done rng=%d\n",current_rng_count); harness_debug(_buf); }
+#endif
 #ifdef DEBUG
 	out("Past loop\n");
 #endif
@@ -208,6 +220,9 @@ g_at(xdnstair,ydnstair,ftrap));
 	mkpos();
 	do makecor(x+dx,y+dy);
 	while (croom->hx>0 && troom->hx>0);
+#ifdef HARNESS
+	{ char _buf[64]; snprintf(_buf,sizeof(_buf),"[mklev] corridors done rng=%d\n",current_rng_count); harness_debug(_buf); }
+#endif
 	savelev();
 }
 mkobj()
@@ -370,29 +385,33 @@ levl[x+1][y].typ==SDOOR || levl[x][y-1].typ==SDOOR || levl[x][y+1].typ==SDOOR)
 newloc()
 {
 	register a,b;
+	int ci0 = croom - room;
+	int ti0 = troom - room;
 
 	++croom;
 	++troom;
+	fprintf(stderr, "newloc: ci=%d->%d ti=%d->%d nxcor=%d cansee=%d\n",
+		ci0, (int)(croom-room), ti0, (int)(troom-room), nxcor, croom->hx);
 	if(nxcor||croom->hx<0||troom->hx<0) {
-		if(nxcor++>rn1(nroom,4)) {
+		int oldnx = nxcor;
+		int limit = rn1(nroom,4);
+		fprintf(stderr, "  check: %d > %d ?\n", oldnx, limit);
+		if(oldnx > limit) {
+			nxcor++;
+			fprintf(stderr, "  sentinel set!\n");
 			croom= &room[nroom];
-#ifdef DEBUG
-			out("newloc ends\n");
-#endif
 			return;
 		}
+		nxcor++;
+		fprintf(stderr, "  picking new rooms (nxcor now %d)\n", nxcor);
 		do {
 			a=rn2(nroom);
 			b=rn2(nroom);
 			croom= &room[a];
 			troom= &room[b];
 		} while(croom==troom || (troom==(croom+1) && !rn2(3)));
-#ifdef DEBUG
-		if(tfoo) fprintf(tfoo,"croom %d troom %d\n",a,b);
-	} else if(tfoo) fputs("newloc.\n",tfoo);
-#else
+		fprintf(stderr, "  new rooms: a=%d b=%d\n", a, b);
 	}
-#endif
 	mkpos();
 }
 

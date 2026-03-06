@@ -65,7 +65,7 @@ register FILE *fp;
 	struct obj obuf;
 	struct stole sbuf;
 	register unsigned tmoves;
-	unsigned omoves;
+	unsigned omoves = 0;
 
 	if(fp==0 || fread(levl,1,3520,fp)!=3520) return(1);
 	mread(fp,&omoves,2);

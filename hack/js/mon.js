@@ -90,7 +90,10 @@ export async function dochug(mtmp) {
   if ((!game.moves % 20 || mregen.includes(mdat.mlet)) && mtmp.mhp < mtmp.orig_hp)
     mtmp.mhp++;
   if (mtmp.mstat === MFROZ || mtmp.sinv) return;
-  if (mtmp.mstat === SLEEP) {
+  // C parity: SLEEP=2 stored as -2 in signed 2-bit bitfield; mstat==SLEEP (-2==2)
+  // is always false, so C never enters this block. Sleeping monsters fall through
+  // to movement code just like awake ones.
+  if (false && mtmp.mstat === SLEEP) {
     if (game.levl[mtmp.mx][mtmp.my].cansee && !game.u.ustelth &&
         (!rn2(7) || game.u.uagmon)) mtmp.mstat = MNORM;
     else return;

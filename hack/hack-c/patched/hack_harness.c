@@ -39,7 +39,7 @@ static void screen_clear(void) {
 
 static void screen_putch(int c) {
   if (c == '\r') { cursor_x = 0; return; }
-  if (c == '\n') { cursor_y++; if (cursor_y >= SCRROWS) cursor_y = SCRROWS-1; cursor_x = 0; return; }
+  if (c == '\n') { cursor_y++; if (cursor_y >= SCRROWS) cursor_y = SCRROWS-1; return; }  /* LF: down only, no CR */
   if (c == '\b') { if (cursor_x > 0) cursor_x--; return; }
   if (c == '\007') return;  /* bell */
   if (cursor_x < SCRCOLS && cursor_y < SCRROWS && cursor_y >= 0)
@@ -110,7 +110,13 @@ static void feed_char(int c) {
     if (esc_len < (int)(sizeof(esc_buf)-1)) esc_buf[esc_len++] = (char)c;
     /* CSI sequences end at 0x40-0x7e; ESC sequences end at 0x40-0x7e too */
     if (esc_len == 1 && c != '[') {
-      /* Simple 2-char ESC sequence — ignore */
+      /* Simple 2-char ESC sequence */
+      if (c == 'M') {
+        /* ESC M = reverse linefeed (cursor up 1) */
+        cursor_y--;
+        if (cursor_y < 0) cursor_y = 0;
+      }
+      /* Other 2-char sequences: ignore */
       in_esc = esc_len = 0;
       return;
     }
@@ -153,13 +159,21 @@ static unsigned int rng_seed = 0;
 static unsigned int seed_override = 42;
 static int has_seed_override = 0;
 
+/* Per-step RNG accumulation buffer */
+#define MAX_RNG_PER_STEP 512
+static int current_rng_buf[MAX_RNG_PER_STEP];
+int current_rng_count = 0;
+
 void harness_srand(unsigned int seed) {
   rng_seed = has_seed_override ? seed_override : seed;
 }
 
 int harness_rand(void) {
   rng_seed = rng_seed * 1103515245U + 12345U;
-  return (int)((rng_seed >> 16) & 0x7fff);
+  int v = (int)((rng_seed >> 16) & 0x7fff);
+  if (current_rng_count < MAX_RNG_PER_STEP)
+    current_rng_buf[current_rng_count++] = v;
+  return v;
 }
 
 int harness_getpid(void) { return 1982; }
@@ -263,6 +277,8 @@ int harness_fwrite(const void *ptr, int sz, int n, FILE *fp) {
 
 static struct {
   char key;
+  int  rng[MAX_RNG_PER_STEP];
+  int  rng_count;
   char rows[SCRROWS][SCRCOLS + 1];
 } steps[MAX_STEPS];
 static int step_count = 0;
@@ -271,6 +287,10 @@ void harness_capture_screen(void) {
   int r, len;
   if (step_count >= MAX_STEPS) return;
   steps[step_count].key = keys_ptr ? keys_ptr[key_pos - 1] : '?';
+  /* Copy and reset the per-step RNG buffer */
+  memcpy(steps[step_count].rng, current_rng_buf, current_rng_count * sizeof(int));
+  steps[step_count].rng_count = current_rng_count;
+  current_rng_count = 0;
   for (r = 0; r < SCRROWS; r++) {
     memcpy(steps[step_count].rows[r], screen[r], SCRCOLS);
     steps[step_count].rows[r][SCRCOLS] = '\0';
@@ -298,7 +318,7 @@ static void json_escape(FILE *out, const char *s) {
 }
 
 static void emit_session_json(FILE *out, unsigned int seed) {
-  int i, r;
+  int i, r, j;
   fprintf(out, "{\n");
   fprintf(out, "  \"seed\": %u,\n", seed);
   fprintf(out, "  \"steps\": [\n");
@@ -311,6 +331,12 @@ static void emit_session_json(FILE *out, unsigned int seed) {
     else if (k >= 32 && k < 127) fputc(k, out);
     else                fprintf(out, "\\u%04x", (unsigned char)k);
     fprintf(out, "\",\n");
+    fprintf(out, "      \"rng\": [");
+    for (j = 0; j < steps[i].rng_count; j++) {
+      if (j > 0) fputc(',', out);
+      fprintf(out, "%d", steps[i].rng[j]);
+    }
+    fprintf(out, "],\n");
     fprintf(out, "      \"screen\": [\n");
     for (r = 0; r < SCRROWS; r++) {
       fprintf(out, "        ");
