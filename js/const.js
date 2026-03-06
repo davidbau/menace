@@ -5808,6 +5808,74 @@ export const DEFERRED_HEADER_CONST_MACRO_DETAILS = Object.freeze([
     }),
 ]);
 
+export const DEFERRED_HEADER_CONST_ROOT_BLOCKERS = Object.freeze([
+    Object.freeze({
+        name: "NUMMONS",
+        count: 41,
+        ownerHint: "monsters.js",
+    }),
+    Object.freeze({
+        name: "GLYPH_SWALLOW_OFF",
+        count: 23,
+        ownerHint: "const.js (symbols)",
+    }),
+    Object.freeze({
+        name: "NUM_OBJECTS",
+        count: 12,
+        ownerHint: "objects.js",
+    }),
+    Object.freeze({
+        name: "AFTER_LAST_ARTIFACT",
+        count: 1,
+        ownerHint: "artifacts.js",
+    }),
+    Object.freeze({
+        name: "FIRST_GLASS_GEM",
+        count: 1,
+        ownerHint: "objects.js",
+    }),
+    Object.freeze({
+        name: "FIRST_REAL_GEM",
+        count: 1,
+        ownerHint: "objects.js",
+    }),
+    Object.freeze({
+        name: "FIRST_SPELL",
+        count: 1,
+        ownerHint: "objects.js",
+    }),
+    Object.freeze({
+        name: "GLYPH_ALTAR_OFF",
+        count: 1,
+        ownerHint: "const.js (symbols)",
+    }),
+    Object.freeze({
+        name: "GLYPH_ZAP_OFF",
+        count: 1,
+        ownerHint: "const.js (symbols)",
+    }),
+    Object.freeze({
+        name: "LAST_GLASS_GEM",
+        count: 1,
+        ownerHint: "objects.js",
+    }),
+    Object.freeze({
+        name: "LAST_REAL_GEM",
+        count: 1,
+        ownerHint: "objects.js",
+    }),
+    Object.freeze({
+        name: "LAST_SPELL",
+        count: 1,
+        ownerHint: "objects.js",
+    }),
+    Object.freeze({
+        name: "PM_LONG_WORM_TAIL",
+        count: 1,
+        ownerHint: "monsters.js",
+    }),
+]);
+
 export const HEADER_MACRO_NON_EMITTABLE = Object.freeze([
     "DLBFILE: platform/filesystem path constant; not used in web runtime",
     "DUMPLOG_FILE: platform/filesystem path template; not used in web runtime",

@@ -903,6 +903,10 @@ python3 scripts/generators/gen_constants.py --report-deferred
 
 # Same deferred report as machine-readable JSON
 python3 scripts/generators/gen_constants.py --report-deferred-json
+
+# JSON report includes:
+# - details[] with missingDeps/rootMissingDeps per deferred macro
+# - rootBlockers[] with ownerHint (likely leaf owner)
 ```
 
 ### Converting Lua special levels to JavaScript

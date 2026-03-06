@@ -85,6 +85,28 @@ HEADER_MACRO_NON_EMITTABLE: dict[str, str] = {
     "HACKDIR": "platform/filesystem path constant; not used in web runtime",
 }
 
+# Root blocker ownership hints for deferred constants.
+# These map unresolved symbols to the leaf module that owns them.
+ROOT_BLOCKER_OWNER_HINTS: dict[str, str] = {
+    # monsters.js generated constants
+    "NUMMONS": "monsters.js",
+    "PM_LONG_WORM_TAIL": "monsters.js",
+    # objects.js generated constants
+    "NUM_OBJECTS": "objects.js",
+    "FIRST_REAL_GEM": "objects.js",
+    "LAST_REAL_GEM": "objects.js",
+    "FIRST_GLASS_GEM": "objects.js",
+    "LAST_GLASS_GEM": "objects.js",
+    "FIRST_SPELL": "objects.js",
+    "LAST_SPELL": "objects.js",
+    # artifacts.js generated constants
+    "AFTER_LAST_ARTIFACT": "artifacts.js",
+    # symbol-system groups from defsym expansion in const.js
+    "GLYPH_ALTAR_OFF": "const.js (symbols)",
+    "GLYPH_ZAP_OFF": "const.js (symbols)",
+    "GLYPH_SWALLOW_OFF": "const.js (symbols)",
+}
+
 # Platform compatibility defaults for curses-ish environments (Ubuntu/ncurses).
 # These are explicit JS fallbacks where C headers depend on external ncurses
 # macros that are not available in this JS build.
@@ -590,6 +612,13 @@ def _emit_header_block(
     lines.append("")
     if include_deferred:
         unresolved_details = _unresolved_dependency_details(unresolved, known_names)
+        root_counts: dict[str, int] = {}
+        for _name, _src, _deps, roots, _expr in unresolved_details:
+            if not roots:
+                root_counts["<unknown>"] = root_counts.get("<unknown>", 0) + 1
+                continue
+            for dep in roots:
+                root_counts[dep] = root_counts.get(dep, 0) + 1
 
         lines.append("export const DEFERRED_HEADER_CONST_MACROS = Object.freeze([")
         for name, src in unresolved_names:
@@ -607,6 +636,16 @@ def _emit_header_block(
             lines.append(f"        missingDeps: Object.freeze([{deps_js}]),")
             lines.append(f"        rootMissingDeps: Object.freeze([{roots_js}]),")
             lines.append(f'        expr: "{expr_js}",')
+            lines.append("    }),")
+        lines.append("]);")
+        lines.append("")
+        lines.append("export const DEFERRED_HEADER_CONST_ROOT_BLOCKERS = Object.freeze([")
+        for dep, count in sorted(root_counts.items(), key=lambda kv: (-kv[1], kv[0])):
+            owner = ROOT_BLOCKER_OWNER_HINTS.get(dep, "unknown")
+            lines.append("    Object.freeze({")
+            lines.append(f'        name: "{dep}",')
+            lines.append(f"        count: {count},")
+            lines.append(f'        ownerHint: "{owner}",')
             lines.append("    }),")
         lines.append("]);")
         lines.append("")
@@ -786,6 +825,14 @@ def main() -> None:
             "details": payload_details,
             "immediateMissingCounts": dict(sorted(dep_counts.items(), key=lambda kv: (-kv[1], kv[0]))),
             "rootMissingCounts": dict(sorted(root_counts.items(), key=lambda kv: (-kv[1], kv[0]))),
+            "rootBlockers": [
+                {
+                    "name": dep,
+                    "count": count,
+                    "ownerHint": ROOT_BLOCKER_OWNER_HINTS.get(dep, "unknown"),
+                }
+                for dep, count in sorted(root_counts.items(), key=lambda kv: (-kv[1], kv[0]))
+            ],
         }
 
         if args.report_deferred_json:
@@ -806,7 +853,8 @@ def main() -> None:
         print("")
         print("Top root blockers (transitive):")
         for dep, count in payload["rootMissingCounts"].items():
-            print(f"  {dep}: {count}")
+            owner = ROOT_BLOCKER_OWNER_HINTS.get(dep, "unknown")
+            print(f"  {dep}: {count} (owner: {owner})")
         return
 
     all_headers_block, all_headers_post_block = generate_all_headers_blocks(before, before_post, outside)
