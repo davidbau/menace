@@ -858,7 +858,7 @@ export function artifact_score(list, counting, lines, player) {
                 otmp.known = otmp.dknown = otmp.bknown = otmp.rknown = 1;
                 const name = otmp.oartifact
                     ? artiname(otmp.oartifact)
-                    : (objectData[otmp.otyp] ? objectData[otmp.otyp].name : 'item');
+                    : (objectData[otmp.otyp] ? objectData[otmp.otyp].oc_name : 'item');
                 const cur = currency(value);
                 lines.push(`${name} (worth ${value} ${cur} and ${points} points)`);
             }

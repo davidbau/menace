@@ -1527,7 +1527,7 @@ async function give_spell(player, map) {
         && known_spell(player, otmp.otyp) !== 1) {
         const spe_let = force_learn_spell(player, otmp.otyp);
         if (spe_let) {
-            const spe_name = objectData[otmp.otyp] ? objectData[otmp.otyp].name : "a spell";
+            const spe_name = objectData[otmp.otyp] ? objectData[otmp.otyp].oc_name : "a spell";
             const prior = known_spell(player, otmp.otyp);
             if (prior <= 0)
                 await pline("Divine knowledge of %s fills your mind!  Spell '%s'.",

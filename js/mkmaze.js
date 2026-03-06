@@ -1571,7 +1571,7 @@ function medusa_fixup(map, depth = 1) {
         if (obj.corpsenm < 0 || obj.corpsenm >= mons.length) return false;
         const m = mons[obj.corpsenm];
         if (!m) return false;
-        return !!(m.mr1 & MR_STONE);
+        return !!(m.mresists & MR_STONE);
     };
     const placeObjectAt = (obj, x, y) => {
         if (!obj || !isok(x, y)) return null;

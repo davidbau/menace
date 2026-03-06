@@ -355,7 +355,7 @@ describe('Monster movement', () => {
         goblin.weapon = null;
         map.monsters.push(goblin);
 
-        assert.ok((goblin.attacks || []).some((atk) => atk?.type === AT_WEAP));
+        assert.ok((goblin.attacks || []).some((atk) => atk?.aatyp === AT_WEAP));
         const hpBefore = player.hp;
         const messages = [];
         const display = {
@@ -490,7 +490,7 @@ describe('Monster movement', () => {
         const waterDog = makeLittleDog(12, 10, waterPlayer);
         // Make the dog amphibious so it survives in water (test is about
         // pickup behaviour, not drowning via minliquid).
-        waterDog.type = { ...waterDog.type, flags1: waterDog.type.flags1 | M1_AMPHIBIOUS };
+        waterDog.type = { ...waterDog.type, flags1: waterDog.type.mflags1 | M1_AMPHIBIOUS };
         waterMap.monsters.push(waterDog);
         waterMap.objects.push({
             otyp: ORCISH_DAGGER,
@@ -517,7 +517,7 @@ describe('Monster movement', () => {
 
         const attacker = makeLittleDog(12, 10, player);
         attacker.mlevel = 30;
-        attacker.attacks = [{ type: 1, dice: 3, sides: 6 }];
+        attacker.attacks = [{ aatyp: 1, damn: 3, damd: 6 }];
 
         const target = makeGoblin(13, 10, player);
         target.mhp = 1;

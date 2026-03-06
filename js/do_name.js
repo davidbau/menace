@@ -910,7 +910,7 @@ export function docall_xname(obj) {
   else if (otemp.otyp === TOWEL || otemp.otyp === STATUE) otemp.spe = 0;
   else if (otemp.otyp === TIN) otemp.known = 0;
   else if (otemp.otyp === FIGURINE) otemp.corpsenm = NON_PM;
-  else if (otemp.otyp === HEAVY_IRON_BALL) otemp.owt = objectData[HEAVY_IRON_BALL].oc_weight;
+  else if (otemp.otyp === HEAVY_IRON_BALL) otemp.owt = objectData[HEAVY_IRON_BALL].oc_wt;
   else if (otemp.oclass === FOOD_CLASS && otemp.globby) otemp.owt = 120;
   return an(xname( otemp));
 }

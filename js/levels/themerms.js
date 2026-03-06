@@ -47,7 +47,7 @@ const obj = {
         const otmp = readobjnam(name, null);
         if (!otmp) return null;
         otmp.class = () => ({
-            material: (objectData[otmp.otyp]?.material === GLASS) ? 'glass' : 'unknown',
+            material: (objectData[otmp.otyp]?.oc_material === GLASS) ? 'glass' : 'unknown',
         });
         return otmp;
     },

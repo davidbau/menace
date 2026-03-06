@@ -144,8 +144,8 @@ import {
 // Local helper: cf. C attacktype_fordmg() — find attack with given type and damage type
 // Attack objects are canonicalized to C field names: aatyp/adtyp/damn/damd.
 function attacktype_fordmg(ptr, atyp, adtyp) {
-    if (!ptr.attacks) return null;
-    for (const atk of ptr.attacks) {
+    if (!ptr.mattk) return null;
+    for (const atk of ptr.mattk) {
         if (atk.aatyp === atyp && (adtyp === AD_ANY || atk.adtyp === adtyp))
             return atk;
     }
@@ -553,7 +553,7 @@ export function set_uasmon(player) {
         }
     }
 
-    // resist_from_form: check mdat.mresists (C's mresists) for resistance bits
+    // resist_from_form: check mdat.mresists for resistance bits
     const mr = mdat.mresists || 0;
 
     propset(FIRE_RES, !!(mr & MR_FIRE));
@@ -1706,7 +1706,7 @@ export async function dospinweb(player, map) {
             const ustdata = player.ustuck.type || player.ustuck.data;
             if (ustdata && ustdata.attacks) {
                 for (let i = 0; i < ustdata.attacks.length; i++) {
-                    if (ustdata.attacks[i].type === AT_ENGL) {
+                    if (ustdata.attacks[i].aatyp === AT_ENGL) {
                         let sweep = "";
                         switch (ustdata.attacks[i].adtyp) {
                         case AD_FIRE: sweep = "ignites and "; break;
@@ -1828,7 +1828,7 @@ export async function dogaze(player, map) {
     let adtyp = 0;
     const attacks = player.type.attacks || [];
     for (let i = 0; i < attacks.length; i++) {
-        if (attacks[i].type === AT_GAZE) {
+        if (attacks[i].aatyp === AT_GAZE) {
             adtyp = attacks[i].adtyp;
             break;
         }

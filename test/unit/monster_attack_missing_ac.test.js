@@ -11,7 +11,7 @@ test('mattacku does not crash when replay player AC fields are missing', async (
     const monster = {
         name: 'goblin',
         mlevel: 1,
-        attacks: [{ type: 2, dice: 1, sides: 4 }],
+        attacks: [{ aatyp: 2, damn: 1, damd: 4 }],
     };
     const player = {
         hp: 10,

@@ -85,7 +85,7 @@ export const hands_obj = Object.freeze({ _hands_obj: true });
 function GemStone(typ) {
     if (typ === FLINT) return true;
     const od = objectData[typ];
-    return od && od.material === GEMSTONE
+    return od && od.oc_material === GEMSTONE
         && typ !== DILITHIUM_CRYSTAL && typ !== RUBY && typ !== DIAMOND
         && typ !== SAPPHIRE && typ !== BLACK_OPAL && typ !== EMERALD
         && typ !== OPAL;
@@ -139,8 +139,8 @@ function xcalled(buf, un) {
 export function obj_typename(otyp) {
     const ocl = objectData[otyp];
     if (!ocl) return 'object?';
-    let actualn = ocl.name;
-    const dn = ocl.desc;
+    let actualn = ocl.oc_name;
+    const dn = ocl.oc_descr;
     const un = ocl.uname || null; // user-assigned name
     const nn = isObjectNameKnown(otyp);
 
@@ -196,7 +196,7 @@ export function obj_typename(otyp) {
         } else {
             buf += (dn || actualn);
             if (ocl.oc_class === GEM_CLASS)
-                buf += (ocl.material === MINERAL) ? ' stone' : ' gem';
+                buf += (ocl.oc_material === MINERAL) ? ' stone' : ' gem';
             if (un) buf = xcalled(buf, un);
         }
         return buf;
@@ -209,7 +209,7 @@ export function obj_typename(otyp) {
         } else {
             buf += (dn || actualn);
             if (ocl.oc_class === GEM_CLASS)
-                buf += (ocl.material === MINERAL) ? ' stone' : ' gem';
+                buf += (ocl.oc_material === MINERAL) ? ' stone' : ' gem';
             if (un) buf = xcalled(buf, un);
         }
         return buf;
@@ -246,12 +246,12 @@ export function simple_typename(otyp) {
 
 // cf. objnam.c:312 — safe_typename(otyp): type name with sanity check
 export function safe_typename(otyp) {
-    if (otyp < STRANGE_OBJECT || otyp >= NUM_OBJECTS || !objectData[otyp]?.name) {
+    if (otyp < STRANGE_OBJECT || otyp >= NUM_OBJECTS || !objectData[otyp]?.oc_name) {
         return `glorkum[${otyp}]`;
     }
     // Force fully-discovered view: use the actual name directly
     const ocl = objectData[otyp];
-    const actualn = ocl.name || 'object?';
+    const actualn = ocl.oc_name || 'object?';
     // Build the simple typename as if oc_name_known were true
     switch (ocl.oc_class) {
     case COIN_CLASS: return actualn;
@@ -276,7 +276,7 @@ export function safe_typename(otyp) {
         let name = actualn;
         if (GemStone(otyp)) name += ' stone';
         if (ocl.oc_class === GEM_CLASS && !isObjectNameKnown(otyp))
-            name += (ocl.material === MINERAL) ? ' stone' : ' gem';
+            name += (ocl.oc_material === MINERAL) ? ' stone' : ' gem';
         return name;
     }
     }
@@ -649,7 +649,7 @@ function is_weptool(obj) {
 }
 
 function is_damageable(obj) {
-    const mat = objectData[obj.otyp]?.material;
+    const mat = objectData[obj.otyp]?.oc_material;
     if (!mat) return false;
     // is_rustprone || is_flammable || is_rottable || is_corrodeable
     return is_rustprone(obj) || is_flammable(obj) || is_rottable(obj) || is_corrodeable(obj);
@@ -767,7 +767,7 @@ export function corpse_xname(otmp, adjective, { singular: ignorequan = false, no
     let any_prefix = anyPrefix;
 
     if (glob) {
-        mnam = objectData[otmp.otyp]?.name || 'glob'; // "glob of <monster>"
+        mnam = objectData[otmp.otyp]?.oc_name || 'glob'; // "glob of <monster>"
     } else if (omndx == null || omndx < 0 || !mons[omndx]) {
         mnam = 'thing';
     } else {
@@ -1110,8 +1110,8 @@ export function ansimpleoname(obj) {
     const simplename = simpleonames(obj);
     let otyp = obj.otyp;
     if (otyp === FAKE_AMULET_OF_YENDOR) otyp = AMULET_OF_YENDOR;
-    if (objectData[otyp]?.unique && objectData[otyp]?.name
-        && simplename === objectData[otyp].name) {
+    if (objectData[otyp]?.unique && objectData[otyp]?.oc_name
+        && simplename === objectData[otyp].oc_name) {
         return the(simplename);
     }
     if ((obj.quan || 1) === 1) return an(simplename);
@@ -1783,11 +1783,11 @@ function rnd_otyp_by_namedesc(name, oclass, xtra_prob) {
 
     for (let i = lo; i <= hi; i++) {
         const od = objectData[i];
-        if (!od || !od.name) continue;
+        if (!od || !od.oc_name) continue;
         if (oclass && od.oc_class !== oclass) continue;
 
-        const zn = od.name;
-        const desc = od.desc || null;
+        const zn = od.oc_name;
+        const desc = od.oc_descr || null;
         const uname = od.uname || null;
         const ofInName = check_of ? strstri(zn, ' of ') : null;
         const ofInDesc = (check_of && desc) ? strstri(desc, ' of ') : null;
@@ -1974,7 +1974,7 @@ function readobjnam_classify(state, rawText) {
     if (text.endsWith(' dragon scale mail')) {
         oclass = ARMOR_CLASS;
         for (let i = 0; i < NUM_OBJECTS; i++) {
-            if ((objectData[i]?.name || '').toLowerCase() === text) {
+            if ((objectData[i]?.oc_name || '').toLowerCase() === text) {
                 forcedTyp = i;
                 break;
             }
@@ -2194,7 +2194,7 @@ export function suit_simple_name(suit) {
     if (suit) {
         if (Is_dragon_mail(suit)) return 'dragon mail';
         if (Is_dragon_scales(suit)) return 'dragon scales';
-        const suitnm = objectData[suit.otyp]?.name || '';
+        const suitnm = objectData[suit.otyp]?.oc_name || '';
         if (suitnm.length > 5 && suitnm.endsWith(' mail')) return 'mail';
         if (suitnm.length > 7 && suitnm.endsWith(' jacket')) return 'jacket';
     }
@@ -2233,8 +2233,8 @@ export function helm_simple_name(helmet) {
 export function gloves_simple_name(gloves) {
     if (gloves && gloves.dknown) {
         const otyp = gloves.otyp;
-        const actualn = objectData[otyp]?.name || '';
-        const descrpn = objectData[otyp]?.desc || '';
+        const actualn = objectData[otyp]?.oc_name || '';
+        const descrpn = objectData[otyp]?.oc_descr || '';
         const nameKnown = isObjectNameKnown(otyp);
         const checkStr = nameKnown ? actualn : descrpn;
         if (checkStr.toLowerCase().includes('gauntlets')) return 'gauntlets';
@@ -2246,8 +2246,8 @@ export function gloves_simple_name(gloves) {
 export function boots_simple_name(boots) {
     if (boots && boots.dknown) {
         const otyp = boots.otyp;
-        const actualn = objectData[otyp]?.name || '';
-        const descrpn = objectData[otyp]?.desc || '';
+        const actualn = objectData[otyp]?.oc_name || '';
+        const descrpn = objectData[otyp]?.oc_descr || '';
         if (descrpn.toLowerCase().includes('shoes')
             || (isObjectNameKnown(otyp) && actualn.toLowerCase().includes('shoes')))
             return 'shoes';

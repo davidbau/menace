@@ -103,7 +103,7 @@ describe('Combat system', () => {
         };
 
         const withWeapon = makeMonster({
-            attacks: [{ type: AT_WEAP, dice: 1, sides: 4 }],
+            attacks: [{ aatyp: AT_WEAP, damn: 1, damd: 4 }],
             mx: 6, my: 5,
         });
         withWeapon.weapon = weapon;
@@ -117,7 +117,7 @@ describe('Combat system', () => {
         }
 
         const noWeapon = makeMonster({
-            attacks: [{ type: AT_WEAP, dice: 1, sides: 4 }],
+            attacks: [{ aatyp: AT_WEAP, damn: 1, damd: 4 }],
             mx: 6, my: 5,
         });
         noWeapon.weapon = null;
@@ -144,9 +144,9 @@ describe('Combat system', () => {
         const mon = makeMonster({
             name: 'goblin',
             level: 10,
-            attacks: [{ type: AT_WEAP, dice: 1, sides: 4 }],
+            attacks: [{ aatyp: AT_WEAP, damn: 1, damd: 4 }],
         });
-        mon.type = { flags1: M1_HUMANOID, flags2: 0, geno: 0 };
+        mon.type = { mflags1: M1_HUMANOID, mflags2: 0, geno: 0 };
         mon.female = true;
         mon.weapon = {
             otyp: ORCISH_DAGGER,

@@ -169,7 +169,7 @@ export async function mon_explodes(mon, mattk, map, player) {
   }
 
   // Determine explosion type from attack damage type
-  const adtyp = mattk.adtyp || mattk.ad || AD_PHYS;
+  const adtyp = mattk.adtyp || AD_PHYS;
   const expltype = adtyp_to_expltype(adtyp);
 
   // Type encoding for breath-like explosion

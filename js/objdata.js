@@ -22,9 +22,8 @@ import { rn2 } from './rng.js';
 
 // Get the material of an object instance
 // C ref: #define oc_material(obj)  objects[(obj)->otyp].oc_material
-// In JS: objectData[obj.otyp].material
 export function oc_material(obj) {
-    return objectData[obj.otyp].material;
+    return objectData[obj.otyp].oc_material;
 }
 
 // C ref: there is NO is_meat() macro in C. Instead C checks material == FLESH.

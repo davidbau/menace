@@ -54,7 +54,6 @@ import { mhurtle, will_hurtle } from './dothrow.js';
 import { find_mac } from './worn.js';
 import { mon_wield_item, possibly_unwield, hitval } from './weapon.js';
 import { spec_dbon } from './artifact.js';
-import { canonicalizeAttackFields } from './attack_fields.js';
 
 const NATTK = 6; // C ref: monattk.h — max number of monster attacks
 const STRAT_WAITFORU = 0x20000000; // C ref: mon.h
@@ -99,7 +98,7 @@ async function noises(magr, mattk, display, ctx) {
     if (isFar === farNoise && (turn - noiseTime) <= 10) return;
     farNoise = isFar;
     noiseTime = turn;
-    const base = (mattk?.type === AT_EXPL) ? 'an explosion' : 'some noises';
+    const base = (mattk?.aatyp === AT_EXPL) ? 'an explosion' : 'some noises';
     await display.putstr_message(`You hear ${base}${isFar ? ' in the distance' : ''}.`);
 }
 
@@ -284,7 +283,7 @@ export function passivemm(magr, mdef, mhitb, mdead, mwep, map) {
     // entry to match C's behavior (which still consumes rn2(3) for the no-op).
     let passiveAttk = null;
     for (let i = 0; i < attacks.length; i++) {
-        const attack = canonicalizeAttackFields(attacks[i]);
+        const attack = attacks[i];
         if (attack.aatyp === AT_NONE) {
             passiveAttk = attack;
             break;
@@ -296,7 +295,6 @@ export function passivemm(magr, mdef, mhitb, mdead, mwep, map) {
         // Synthesize NO_ATTK: C would find AT_NONE/AD_PHYS(=AD_NONE)/0/0
         passiveAttk = { aatyp: AT_NONE, adtyp: AD_PHYS, damn: 0, damd: 0 };
     }
-    canonicalizeAttackFields(passiveAttk);
 
     // Roll damage
     let tmp;
@@ -676,7 +674,7 @@ export async function mattackm(magr, mdef, display, vis, map, ctx) {
 
     for (let i = 0; i < Math.min(attacks.length, NATTK); i++) {
         res[i] = M_ATTK_MISS;
-        const mattk = canonicalizeAttackFields(attacks[i]);
+        const mattk = attacks[i];
         if (!mattk || mattk.aatyp === AT_NONE) continue;
 
         // C ref: check if target still valid after previous attacks

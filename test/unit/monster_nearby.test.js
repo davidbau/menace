@@ -68,7 +68,7 @@ test('monsterNearby ignores hidden apes in mimic/furniture/object appearances', 
 
 test('monsterNearby ignores undetected hiders', () => {
     const player = { x: 10, y: 10, hallucinating: false };
-    const hiddenType = { flags1: M1_HIDE };
+    const hiddenType = { mflags1: M1_HIDE };
     const map = mkMap({
         monsters: { '11,10': hostileMonster(hiddenType, { mundetected: true }) },
     });

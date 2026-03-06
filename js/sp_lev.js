@@ -3822,7 +3822,7 @@ function objectNameToType(name, classFilter = null) {
     // Search objectData for matching name
     for (let i = 0; i < objectData.length; i++) {
         const od = objectData[i];
-        const objName = od?.name;
+        const objName = od?.oc_name;
         if (!objName) continue;
         if (!candidates.has(objName.toLowerCase())) continue;
         if (classHint !== null && od.oc_class !== classHint) continue;
@@ -3832,7 +3832,7 @@ function objectNameToType(name, classFilter = null) {
     // Fallback without class hint (for non-ambiguous aliases).
     if (classHint !== null) {
         for (let i = 0; i < objectData.length; i++) {
-            const objName = objectData[i].name;
+            const objName = objectData[i].oc_name;
             if (!objName) continue;
             if (candidates.has(objName.toLowerCase())) {
                 return i;

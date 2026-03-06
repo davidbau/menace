@@ -20,11 +20,6 @@
       "reason": "Generated or data-table module; managed by generators/data sources."
     },
     {
-      "path": "js/attack_fields.js",
-      "policy": "manual_only",
-      "reason": "Runtime compatibility aliases between legacy JS attack fields and C-style names."
-    },
-    {
       "path": "js/apply.js",
       "policy": "auto",
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."

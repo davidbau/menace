@@ -182,7 +182,7 @@ export async function chest_shatter_msg(otmp) {
         return;
     }
     const thing = xname(otmp);
-    const mat = objectData[otmp.otyp]?.material;
+    const mat = objectData[otmp.otyp]?.oc_material;
     let disposition;
     switch (mat) {
     case PAPER:  disposition = 'is torn to shreds'; break;

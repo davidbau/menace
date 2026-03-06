@@ -268,7 +268,7 @@ export function can_carry(mon, obj, player = null) {
         && !resists_ston(mon))
         return 0;
     if (mon_hates_silver(mon)
-        && objectData[obj.otyp] && objectData[obj.otyp].material === SILVER)
+        && objectData[obj.otyp] && objectData[obj.otyp].oc_material === SILVER)
         return 0;
 
     const iquan = obj.quan || 1;
@@ -279,8 +279,8 @@ export function can_carry(mon, obj, player = null) {
             && (obj.oclass === COIN_CLASS || obj.oclass === GEM_CLASS)) {
             glomper = true;
         } else {
-            for (const atk of mdat.attacks || []) {
-                if (atk.type === AT_ENGL) { glomper = true; break; }
+            for (const atk of mdat.mattk || []) {
+                if (atk.aatyp === AT_ENGL) { glomper = true; break; }
             }
         }
         if (!glomper) return 1;
@@ -858,7 +858,7 @@ function score_targ(mon, target, map, player) {
         if (!target.peaceful) score += 10;
         // C ref: dogmove.c:800-801 — passive monster penalty
         const mdat = mons[target.mndx];
-        if (mdat && mdat.attacks && mdat.attacks[0] && mdat.attacks[0].type === 0) {
+        if (mdat && mdat.mattk && mdat.mattk[0] && mdat.mattk[0].aatyp === 0) {
             score -= 1000;
         }
         // C ref: dogmove.c:804-807 — weak target penalty
@@ -1306,8 +1306,8 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                 const targetMpeaceful = !!(target.mpeaceful ?? target.peaceful);
                 const targetMtame = !!((target.mtame || 0) > 0 || target.tame);
                 const monMtame = !!((mon.mtame || 0) > 0 || mon.tame);
-                const targetMsound = ((target.data || target.type)?.msound ?? (target.data || target.type)?.msound
-                    ?? mons[target.mndx]?.msound ?? mons[target.mndx]?.msound ?? 0);
+                const targetMsound = ((target.data || target.type)?.msound
+                    ?? mons[target.mndx]?.msound ?? 0);
                 const passiveDmg = max_passive_dmg(target, mon);
                 if ((target.m_lev || 0) >= balk
                     || (targetMtame && monMtame && !conflictActive)

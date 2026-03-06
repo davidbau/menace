@@ -56,7 +56,6 @@ import { msummon } from './minion.js';
 import { new_were, were_summon } from './were.js';
 import { Mgender, Monnam } from './do_name.js';
 import { resists_blnd } from './zap.js';
-import { canonicalizeAttackFields } from './attack_fields.js';
 import { rloc, tele_restrict } from './teleport.js';
 import { RLOC_MSG } from './const.js';
 import { find_ac } from './do_wear.js';
@@ -1081,7 +1080,6 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         }
         const attack = getmattk(monster, player, i, sum);
         if (!attack) continue;
-        canonicalizeAttackFields(attack);
         if (attack.aatyp === AT_NONE) continue;
         if (skipnonmagc && attack.aatyp !== AT_MAGC) continue;
 
@@ -1322,7 +1320,7 @@ export async function expels(mtmp, mdat, message, player, display) {
             let blast = '';
             if (attk) {
                 if (is_whirly(mdat)) {
-                    const adtyp = attk.adtyp ?? attk.damage;
+                    const adtyp = attk.adtyp;
                     if (adtyp === AD_ELEC) blast = ' in a shower of sparks';
                     else if (adtyp === AD_COLD) blast = ' in a blast of frost';
                 } else {
@@ -1344,7 +1342,7 @@ export async function expels(mtmp, mdat, message, player, display) {
 // Missing: SEDUCE=0 substitution, energy scaling, elemental home doubling.
 export function getmattk(monster, mdef, indx, prev_result) {
     const mptr = monster.type || monster.data || {};
-    const attacks = mptr.attacks || monster.attacks || [];
+    const attacks = mptr.mattk || monster.attacks || [];
     if (indx >= attacks.length) return null;
     const attk = { ...attacks[indx] };
     attk._attackIndex = indx;
@@ -1353,7 +1351,7 @@ export function getmattk(monster, mdef, indx, prev_result) {
     if (indx > 0 && prev_result && prev_result[indx - 1] > M_ATTK_MISS) {
         const prevAttk = attacks[indx - 1];
         if ((attk.adtyp === AD_DISE || attk.adtyp === AD_PEST || attk.adtyp === AD_FAMN)
-            && prevAttk && attk.adtyp === prevAttk.damage) {
+            && prevAttk && attk.adtyp === prevAttk.adtyp) {
             attk.adtyp = AD_STUN;
         }
     }
@@ -1475,7 +1473,6 @@ export async function diseasemu(mdat, player, display) {
 
 // cf. mhitu.c:1044 u_slip_free() — check whether slippery clothing protects from grab
 export async function u_slip_free(mtmp, mattk, player, display) {
-    canonicalizeAttackFields(mattk);
     // Greased armor does not protect against AT_ENGL+AD_WRAP
     if (mattk.aatyp === AT_ENGL) return false;
 
@@ -1510,7 +1507,6 @@ export async function u_slip_free(mtmp, mattk, player, display) {
 // cf. mhitu.c:1284 gulpmu() — monster engulfs hero, or damages if already engulfed
 export async function gulpmu(mtmp, mattk, player, map, display) {
     if (!mtmp || !player) return M_ATTK_MISS;
-    canonicalizeAttackFields(mattk);
 
     const tmp_dmg = c_d(mattk.damn || 0, mattk.damd || 0);
     let tmp = tmp_dmg;
@@ -1671,7 +1667,6 @@ export async function gulpmu(mtmp, mattk, player, map, display) {
 export async function explmu(mtmp, mattk, ufound, player, map, display) {
     if (!mtmp) return M_ATTK_MISS;
     if (mtmp.mcan) return M_ATTK_MISS;
-    canonicalizeAttackFields(mattk);
 
     let tmp = c_d(mattk.damn || 0, mattk.damd || 0);
     const adtyp = mattk.adtyp ?? AD_PHYS;
@@ -1741,7 +1736,6 @@ export async function explmu(mtmp, mattk, ufound, player, map, display) {
 // cf. mhitu.c:1660 gazemu() — monster gazes at hero
 export async function gazemu(mtmp, mattk, player, map, display) {
     if (!mtmp || !player) return M_ATTK_MISS;
-    canonicalizeAttackFields(mattk);
 
     const adtyp = mattk.adtyp ?? AD_PHYS;
     const cancelled = !!(mtmp.mcan);
@@ -1905,7 +1899,6 @@ export function could_seduce(magr, mdef, mattk) {
     const genagr = magr.female ? FEMALE : MALE;
     const gendef = mdef?.female ? FEMALE : (mdef?.gender ?? MALE);
 
-    if (mattk) canonicalizeAttackFields(mattk);
     const adtyp = mattk ? (mattk.adtyp ?? AD_PHYS)
                  : dmgtype(pagr, AD_SSEX) ? AD_SSEX
                  : dmgtype(pagr, AD_SEDU) ? AD_SEDU
@@ -2057,7 +2050,7 @@ export function passiveum(olduasmon, mtmp, mattk, map, player) {
     let oldu_mattk = null;
     for (const a of attacks) {
         if (!a) continue;
-        if (a.type === AT_NONE || a.type === AT_BOOM) {
+        if (a.aatyp === AT_NONE || a.aatyp === AT_BOOM) {
             oldu_mattk = a;
             break;
         }

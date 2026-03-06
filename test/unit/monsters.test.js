@@ -55,10 +55,6 @@ describe('Monsters database', () => {
                 assert.equal(typeof atk.adtyp, 'number', `${m.mname} adtyp not number`);
                 assert.equal(typeof atk.damn, 'number', `${m.mname} damn not number`);
                 assert.equal(typeof atk.damd, 'number', `${m.mname} damd not number`);
-                assert.equal(typeof atk.type, 'number', `${m.mname} attack type not number`);
-                assert.equal(typeof atk.damage, 'number', `${m.mname} damage type not number`);
-                assert.equal(typeof atk.dice, 'number', `${m.mname} attack dice not number`);
-                assert.equal(typeof atk.sides, 'number', `${m.mname} attack sides not number`);
             }
         }
     });

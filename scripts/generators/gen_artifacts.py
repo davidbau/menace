@@ -371,7 +371,7 @@ def parse_artilist():
 
 def format_attack(atk):
     """Format an attack object as JS."""
-    return f"{{at:{atk['at']},ad:{atk['ad']},dice:{atk['dice']},sides:{atk['sides']}}}"
+    return f"{{aatyp:{atk['at']},adtyp:{atk['ad']},damn:{atk['dice']},damd:{atk['sides']}}}"
 
 
 def generate_js(artifacts):

@@ -412,7 +412,7 @@ export function monhaskey(mon, forUnlocking) {
 // Autotranslated from monmove.c:134
 // Autotranslated from monmove.c:133
 export function m_can_break_boulder(mtmp) {
-  return (is_rider((monsdat(mtmp) || {})) || (!mtmp.mspec_used && (mtmp.isshk || mtmp.ispriest || ((((monsdat(mtmp) || {}).msound ?? (monsdat(mtmp) || {}).msound ?? 0)) === MS_LEADER))));
+  return (is_rider((monsdat(mtmp) || {})) || (!mtmp.mspec_used && (mtmp.isshk || mtmp.ispriest || (((monsdat(mtmp) || {}).msound ?? 0) === MS_LEADER))));
 }
 
 // ========================================================================
@@ -578,7 +578,7 @@ function mon_item_search_profile(mon) {
     const likesGold = !!(ptr.mflags2 & M2_GREEDY);
     const likesGems = !!(ptr.mflags2 & M2_JEWELS);
     const likesObjs = !!(ptr.mflags2 & M2_COLLECT)
-        || (Array.isArray(ptr.attacks) && ptr.attacks.some((atk) => atk?.type === AT_WEAP));
+        || (Array.isArray(ptr.mattk) && ptr.mattk.some((atk) => atk?.aatyp === AT_WEAP));
     const likesMagic = !!(ptr.mflags2 & M2_MAGIC);
     const throwsRocks = !!(ptr.mflags2 & M2_ROCKTHROW);
     const anyInterest = likesGold || likesGems || likesObjs || likesMagic || throwsRocks;
@@ -612,7 +612,7 @@ function mon_would_take_item_search(mon, obj, map, profile = null) {
 
     if (prefs.likesGold && obj.otyp === GOLD_PIECE && pctload < 95) return true;
     if (prefs.likesGems && obj.oclass === GEM_CLASS
-        && (objectData[obj.otyp]?.material !== MINERAL)
+        && (objectData[obj.otyp]?.oc_material !== MINERAL)
         && pctload < 85) return true;
     if (prefs.likesObjs && PRACTICAL_CLASSES.has(obj.oclass) && pctload < 75) return true;
     if (prefs.likesMagic && MAGICAL_CLASSES.has(obj.oclass) && pctload < 85) return true;
@@ -2076,8 +2076,8 @@ export function m_balks_at_approaching(oldappr, mon, player) {
     if (edist >= 25) return oldappr; // too far to care
 
     // Has ranged attack capability and is low on HP — avoid
-    const hasRanged = (mdat.attacks || []).some(a =>
-        a && (a.type === 11 /* AT_BREA */ || a.type === 12 /* AT_SPIT */));
+    const hasRanged = (mdat.mattk || []).some(a =>
+        a && (a.aatyp === 11 /* AT_BREA */ || a.aatyp === 12 /* AT_SPIT */));
     if (hasRanged && ((mon.mhp || 0) < ((mon.mhpmax || 1) + 1) / 3 || !mon.mspec_used))
         return -1; // retreat
 

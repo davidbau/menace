@@ -85,9 +85,9 @@ function is_rider(ptr) {
         || ptr === mons[PM_FAMINE];
 }
 
-function resists_poison(mon) { return !!(monPtr(mon)?.mr1 & MR_POISON); }
-function resists_acid(mon)   { return !!(monPtr(mon)?.mr1 & MR_ACID); }
-function resists_ston(mon)   { return !!(monPtr(mon)?.mr1 & MR_STONE); }
+function resists_poison(mon) { return !!(monPtr(mon)?.mresists & MR_POISON); }
+function resists_acid(mon)   { return !!(monPtr(mon)?.mresists & MR_ACID); }
+function resists_ston(mon)   { return !!(monPtr(mon)?.mresists & MR_STONE); }
 function likes_fire(ptr) { return !!(ptr.mresists & MR_FIRE); }
 function polyfood(obj) { return false; }
 function slimeproof(ptr) { return false; }
@@ -235,7 +235,7 @@ export function dogfood(mon, obj, moves) {
         return TABU;
 
     if (mon_hates_silver(mon)
-        && objectData[obj.otyp].material === SILVER)
+        && objectData[obj.otyp].oc_material === SILVER)
         return TABU;
 
     if (monIndex(mon) === PM_GELATINOUS_CUBE && is_organic(obj))

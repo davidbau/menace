@@ -400,7 +400,7 @@ def format_attacks(attacks):
         return '[]'
     parts = []
     for a in real_attacks:
-        parts.append(f"{{ type: {a['type']}, damage: {a['damage']}, dice: {a['dice']}, sides: {a['sides']} }}")
+        parts.append(f"{{ aatyp: {a['type']}, adtyp: {a['damage']}, damn: {a['dice']}, damd: {a['sides']} }}")
     return '[' + ', '.join(parts) + ']'
 
 
@@ -410,7 +410,7 @@ out.append('// NetHack 3.7 Monster Data - auto-generated from monsters.h')
 out.append('// Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985.')
 out.append('// NetHack may be freely redistributed.  See license for details.')
 out.append('')
-out.append("import { canonicalizeAttackFields } from './attack_fields.js';")
+# (canonicalizeAttackFields import removed — attacks now use canonical C field names)
 out.append('')
 
 # Monster symbol classes
@@ -659,7 +659,7 @@ for idx, mon in enumerate(monsters):
     else:
         atk_parts = []
         for a in real_attacks:
-            atk_parts.append(f'{{ type: {a["type"]}, damage: {a["damage"]}, dice: {a["dice"]}, sides: {a["sides"]} }}')
+            atk_parts.append(f'{{ aatyp: {a["type"]}, adtyp: {a["damage"]}, damn: {a["dice"]}, damd: {a["sides"]} }}')
         if len(atk_parts) <= 2:
             atk_str = '[' + ', '.join(atk_parts) + ']'
         else:
@@ -684,10 +684,10 @@ for idx, mon in enumerate(monsters):
     out.append(f'    mlet: {mon["symbol"]},')
     out.append(f'    mlevel: {mon["level"]}, mmove: {mon["speed"]}, ac: {mon["ac"]}, mr: {mon["mr"]}, maligntyp: {mon["align"]},')
     out.append(f'    geno: {geno},')
-    out.append(f'    attacks: {atk_str},')
+    out.append(f'    mattk: {atk_str},')
     out.append(f'    cwt: {mon["weight"]}, cnutrit: {mon["nutrition"]},')
     out.append(f'    msound: {mon["sound"]}, msize: {mon["size"]},')
-    out.append(f'    mresists: {mr1}, mresists2: {mr2},')
+    out.append(f'    mresists: {mr1}, mconveys: {mr2},')
     out.append(f'    mflags1: {flags1},')
     out.append(f'    mflags2: {flags2},')
     out.append(f'    mflags3: {flags3},')
@@ -696,8 +696,8 @@ for idx, mon in enumerate(monsters):
 
 out.append('];')
 out.append('')
-# Normalize monster fields: set C-faithful aliases (mlet/mlevel/m_lev/msize)
-# and canonicalize attack field names (type/damage/dice/sides ↔ aatyp/adtyp/damn/damd).
+# Normalize monster fields: create backward-compat JS aliases from C-canonical names.
+# Generator now emits C names; aliases allow gradual migration of reading sites.
 out.append('function setAliasPair(obj, canonical, legacy) {')
 out.append('  if (!obj || typeof obj !== "object") return;')
 out.append('  if (obj[canonical] === undefined && obj[legacy] !== undefined) {')
@@ -710,13 +710,16 @@ out.append('}')
 out.append('')
 out.append('function normalizeMonsterFields(mon) {')
 out.append('  if (!mon || typeof mon !== "object") return;')
+out.append('  // C→JS backward-compat aliases (remove once all reads use C names)')
+out.append('  setAliasPair(mon, "mname", "name");')
+out.append('  setAliasPair(mon, "mlet", "symbol");')
 out.append('  setAliasPair(mon, "mlevel", "level");')
 out.append('  setAliasPair(mon, "m_lev", "mlevel");')
+out.append('  setAliasPair(mon, "mmove", "speed");')
 out.append('  setAliasPair(mon, "msize", "size");')
-out.append('  setAliasPair(mon, "mlet", "symbol");')
-out.append('  if (Array.isArray(mon.attacks)) {')
-out.append('    for (const attk of mon.attacks) canonicalizeAttackFields(attk);')
-out.append('  }')
+out.append('  setAliasPair(mon, "mattk", "attacks");')
+out.append('  setAliasPair(mon, "mcolor", "color");')
+out.append('  setAliasPair(mon, "maligntyp", "align");')
 out.append('}')
 out.append('')
 out.append('for (const mon of mons) {')

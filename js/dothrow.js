@@ -209,7 +209,7 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         rn2(3);
         obj_resists(item, 0, 0);
         const od = objectData[item.otyp];
-        const baseName = od?.name || item.name || 'item';
+        const baseName = od?.oc_name || item.name || 'item';
         const named = (typeof item.oname === 'string' && item.oname.length > 0)
             ? `${baseName} named ${item.oname}`
             : baseName;
@@ -620,7 +620,7 @@ export function autoquiver(player) {
         } else if (otmp.otyp === ROCK
                    || (otmp.otyp === FLINT && objectData[otmp.otyp]?.known)
                    || (otmp.oclass === GEM_CLASS
-                       && (objectData[otmp.otyp]?.material ?? 0) === GLASS
+                       && (objectData[otmp.otyp]?.oc_material ?? 0) === GLASS
                        && objectData[otmp.otyp]?.known)) {
             if (uslinging_check(player)) oammo = otmp;
             else if (ammo_and_launcher(otmp, uswapwep)) altammo = otmp;
@@ -859,7 +859,7 @@ export function harmless_missile(obj) {
         return !Has_contents(obj);
     default:
         if (obj.oclass === SCROLL_CLASS) return true;
-        if ((objectData[obj.otyp]?.material ?? 0) === CLOTH) return true;
+        if ((objectData[obj.otyp]?.oc_material ?? 0) === CLOTH) return true;
         break;
     }
     return false;
@@ -1196,7 +1196,7 @@ export async function thitmonst(mon, obj, player, map, game) {
 
     // Unicorn gem acceptance
     if (obj.oclass === GEM_CLASS && is_unicorn(data)
-        && (objectData[obj.otyp]?.material ?? 0) !== MINERAL && !uslinging_check(player)) {
+        && (objectData[obj.otyp]?.oc_material ?? 0) !== MINERAL && !uslinging_check(player)) {
         if (mon.msleeping || !mon.mcanmove) { await tmiss(obj, mon, false, player, map); return 0; }
         else if (mon.mtame) { await pline(`${Monnam(mon)} catches and drops the ${xname(obj)}.`); return 0; }
         else { await pline(`${Monnam(mon)} catches the ${xname(obj)}.`); return await gem_accept(mon, obj, player, map); }
@@ -1257,7 +1257,7 @@ export async function thitmonst(mon, obj, player, map, game) {
 async function gem_accept(mon, obj, player, _map) {
     const data = mon.data || (mons ? mons[mon.mndx] : null) || {};
     const is_buddy = sgn(data.maligntyp || 0) === sgn(player.alignment || 0);
-    const is_gem = (objectData[obj.otyp]?.material ?? 0) === GEMSTONE;
+    const is_gem = (objectData[obj.otyp]?.oc_material ?? 0) === GEMSTONE;
     let ret = 0;
     let buf = Monnam(mon);
     mon.mpeaceful = 1; mon.mavenge = 0;
@@ -1346,10 +1346,10 @@ export async function breakobj(obj, x, y, hero_caused, from_invent, player, map)
 // cf. dothrow.c:2581 -- breaktest(obj)
 export function breaktest(obj) {
     let nonbreakchance = 1;
-    if (obj.oclass === ARMOR_CLASS && (objectData[obj.otyp]?.material ?? 0) === GLASS)
+    if (obj.oclass === ARMOR_CLASS && (objectData[obj.otyp]?.oc_material ?? 0) === GLASS)
         nonbreakchance = 90;
     if (obj_resists(obj, nonbreakchance, 99)) return false;
-    if ((objectData[obj.otyp]?.material ?? 0) === GLASS && !obj.oartifact && obj.oclass !== GEM_CLASS)
+    if ((objectData[obj.otyp]?.oc_material ?? 0) === GLASS && !obj.oartifact && obj.oclass !== GEM_CLASS)
         return true;
     const etype = obj.oclass === POTION_CLASS ? POT_WATER : obj.otyp;
     switch (etype) {

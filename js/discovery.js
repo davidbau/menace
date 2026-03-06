@@ -35,7 +35,7 @@ export function initDiscoveryState() {
     ocEncountered = new Array(objectData.length).fill(false);
     for (let i = 0; i < objectData.length; i++) {
         const od = objectData[i];
-        ocNameKnown[i] = !!od?.known || !od?.desc;
+        ocNameKnown[i] = !!od?.known || !od?.oc_descr;
         ocEncountered[i] = false;
     }
     resetDiscoByClass();
@@ -44,7 +44,7 @@ export function initDiscoveryState() {
 export function isObjectNameKnown(otyp) {
     if (ocNameKnown.length === 0) {
         const od = objectData[otyp];
-        return !!od?.known || !od?.desc;
+        return !!od?.known || !od?.oc_descr;
     }
     return !!ocNameKnown[otyp];
 }
@@ -101,16 +101,16 @@ export function observeObject(obj) {
 function interestingToDiscover(otyp) {
     const od = objectData[otyp];
     if (!od) return false;
-    return ((ocNameKnown[otyp] || ocEncountered[otyp]) && !!od.desc);
+    return ((ocNameKnown[otyp] || ocEncountered[otyp]) && !!od.oc_descr);
 }
 
 export function discoveryTypeName(otyp) {
     const od = objectData[otyp];
     if (!od) return 'unknown object';
     const nn = ocNameKnown[otyp];
-    const dn = od.desc || od.name;
-    const an = od.name;
-    const withDesc = (base) => od.desc ? `${base} (${od.desc})` : base;
+    const dn = od.oc_descr || od.oc_name;
+    const an = od.oc_name;
+    const withDesc = (base) => od.oc_descr ? `${base} (${od.oc_descr})` : base;
 
     switch (od.oc_class) {
     case COIN_CLASS:
@@ -304,7 +304,7 @@ export function isObjectTypeCallable(obj) {
     if (!obj) return false;
     // C ref: do_name.c objtyp_is_callable() requires OBJ_DESCR for most classes.
     const meta = objectData[obj.otyp] || null;
-    const hasDesc = !!(meta && typeof meta.desc === 'string' && meta.desc.length > 0);
+    const hasDesc = !!(meta && typeof meta.oc_descr === 'string' && meta.oc_descr.length > 0);
     if (!hasDesc) return false;
 
     if (obj.oclass === AMULET_CLASS) {

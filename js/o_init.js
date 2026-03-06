@@ -47,21 +47,21 @@ let savedProps = null;
 function save_originals() {
     if (savedProps) return; // only save once (from the pristine objectData)
     savedProps = objectData.map(obj => ({
-        desc: obj.desc,
+        desc: obj.oc_descr,
         color: obj.color,
         tough: obj.tough || 0,
-        material: obj.material,
+        material: obj.oc_material,
         dir: obj.dir,
     }));
 }
 
 function restore_originals() {
     for (let i = 0; i < objectData.length; i++) {
-        objectData[i].desc = savedProps[i].desc;
+        objectData[i].oc_descr = savedProps[i].desc;
         objectData[i].color = savedProps[i].color;
         if (savedProps[i].tough) objectData[i].tough = savedProps[i].tough;
         else delete objectData[i].tough;
-        objectData[i].material = savedProps[i].material;
+        objectData[i].oc_material = savedProps[i].material;
         objectData[i].dir = savedProps[i].dir;
     }
 }
@@ -73,7 +73,7 @@ function restore_originals() {
 // ========================================================================
 
 function copy_obj_descr(dst_idx, src_idx) {
-    objectData[dst_idx].desc = objectData[src_idx].desc;
+    objectData[dst_idx].oc_descr = objectData[src_idx].oc_descr;
     objectData[dst_idx].color = objectData[src_idx].color;
 }
 export function randomize_gem_colors() {
@@ -101,7 +101,7 @@ export function randomize_gem_colors() {
 function is_name_known(idx) {
     // In C, oc_name_known is set for objects with no description.
     // C ref: o_init.c:210-224 validation
-    return !objectData[idx].desc;
+    return !objectData[idx].oc_descr;
 }
 
 // C ref: obj_shuffle_range() for AMULET/SCROLL/SPBOOK classes.
@@ -133,9 +133,9 @@ export function shuffle(o_low, o_high, domaterial) {
         } while (is_name_known(i));
 
         // Swap desc (C: oc_descr_idx)
-        let sw = objectData[j].desc;
-        objectData[j].desc = objectData[i].desc;
-        objectData[i].desc = sw;
+        let sw = objectData[j].oc_descr;
+        objectData[j].oc_descr = objectData[i].oc_descr;
+        objectData[i].oc_descr = sw;
 
         // Swap tough (C: oc_tough)
         sw = objectData[j].tough || 0;
@@ -149,9 +149,9 @@ export function shuffle(o_low, o_high, domaterial) {
 
         // Swap material if domaterial (class shuffles)
         if (domaterial) {
-            sw = objectData[j].material;
-            objectData[j].material = objectData[i].material;
-            objectData[i].material = sw;
+            sw = objectData[j].oc_material;
+            objectData[j].oc_material = objectData[i].oc_material;
+            objectData[i].oc_material = sw;
         }
     }
 }
@@ -229,7 +229,7 @@ export function init_objects() {
 // Returns true if obj's shuffled/unshuffled description equals descr.
 export function objdescr_is(obj, descr) {
     if (!obj) return false;
-    const objdescr = objectData[obj.otyp]?.desc;
+    const objdescr = objectData[obj.otyp]?.oc_descr;
     if (!objdescr) return false;
     return objdescr === descr;
 }

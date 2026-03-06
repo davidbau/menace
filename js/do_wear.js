@@ -901,7 +901,7 @@ async function canwearobj(player, obj, display, silent = false) {
     const weapon = player?.weapon || null;
     const bimanualWep = !!(weapon && objectData[weapon.otyp]?.bimanual);
     const weldedWep = !!(weapon && weapon.cursed);
-    const isFlimsy = (o) => Number(objectData[o?.otyp]?.material || 0) <= 7;
+    const isFlimsy = (o) => Number(objectData[o?.otyp]?.oc_material || 0) <= 7;
 
     // C: verysmall/nohands gate
     if (verysmall || (!!mdat && nohands(mdat))) {

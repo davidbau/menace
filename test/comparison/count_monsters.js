@@ -14,8 +14,8 @@ simulatePostLevelInit(player, map, 1);
 
 console.log('Total monsters:', map.monsters.length);
 for (const m of map.monsters) {
-    const wander = (m.type && m.type.flags2 || 0) & 0x800000;
-    const flags2 = (m.type && m.type.flags2) || 0;
+    const wander = (m.type && m.type.mflags2 || 0) & 0x800000;
+    const flags2 = (m.type && m.type.mflags2) || 0;
     console.log('  ' + m.name + ' at (' + m.mx + ',' + m.my + ') mlevel=' + m.mlevel
         + ' sleeping=' + m.sleeping + ' speed=' + m.speed + ' tame=' + m.tame
         + ' wander=' + !!wander + ' flags2=0x' + flags2.toString(16)

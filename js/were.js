@@ -103,7 +103,8 @@ export async function new_were(mon, newMndx, ctx = null) {
     mon.data = data;
     mon.type = data;
     mon.name = data.mname;
-    mon.attacks = data.attacks;
+    mon.speed = data.mmove;
+    mon.attacks = data.mattk;
 
     // Transformation wakes helpless monsters
     if (mon.sleeping || (mon.mfrozen > 0) || mon.mcanmove === false) {

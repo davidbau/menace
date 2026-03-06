@@ -352,9 +352,9 @@ export function is_pet(mon) { return !!mon.tame; }
 
 // C ref: #define attacktype(ptr, atyp) — check if monster has this attack type
 export function attacktype(ptr, atyp) {
-    if (!ptr || !ptr.attacks) return false;
-    for (const atk of ptr.attacks) {
-        if (atk.type === atyp) return true;
+    if (!ptr || !ptr.mattk) return false;
+    for (const atk of ptr.mattk) {
+        if (atk.aatyp === atyp) return true;
     }
     return false;
 }
@@ -539,10 +539,10 @@ export function passes_bars(mdat) {
 // Returns true if monster has an attack of type atyp dealing damage dtyp.
 // atyp == AT_ANY matches any attack type.
 export function dmgtype_fromattack(ptr, dtyp, atyp) {
-    if (!ptr || !ptr.attacks) return false;
-    for (const atk of ptr.attacks) {
-        const adtyp = atk.adtyp ?? atk.damage;
-        const aatyp = atk.aatyp ?? atk.type;
+    if (!ptr || !ptr.mattk) return false;
+    for (const atk of ptr.mattk) {
+        const adtyp = atk.adtyp;
+        const aatyp = atk.aatyp;
         if (adtyp === dtyp && (atyp === AT_ANY || aatyp === atyp))
             return true;
     }
@@ -564,7 +564,7 @@ export function noattacks(ptr) {
   const mattk = ptr?.mattk || ptr?.attacks || [];
   for (i = 0; i < NATTK; i++) {
     const atk = mattk[i] || null;
-    const aatyp = atk?.aatyp ?? atk?.type ?? 0;
+    const aatyp = atk?.aatyp ?? 0;
     if (aatyp === AT_BOOM) {
       continue;
     }
@@ -577,9 +577,9 @@ export function noattacks(ptr) {
 // Returns true if monster has any distance attack (DISTANCE_ATTK_TYPE macro).
 // DISTANCE_ATTK_TYPE = AT_SPIT || AT_BREA || AT_MAGC || AT_GAZE
 export function ranged_attk(ptr) {
-    if (!ptr || !ptr.attacks) return false;
-    for (const atk of ptr.attacks) {
-        const t = atk.type;
+    if (!ptr || !ptr.mattk) return false;
+    for (const atk of ptr.mattk) {
+        const t = atk.aatyp;
         if (t === AT_SPIT || t === AT_BREA || t === AT_MAGC || t === AT_GAZE)
             return true;
     }
@@ -946,7 +946,6 @@ export function levl_follower(mon, player) {
 // ========================================================================
 
 // C ref: #define pm_resistance(ptr, typ) (((ptr)->mresists & (typ)) != 0)
-// JS: C's mresists maps to ptr.mresists in the JS monster struct.
 export function pm_resistance(ptr, typ) { return !!(ptr.mresists & typ); }
 
 // ========================================================================
@@ -1155,11 +1154,11 @@ export function cantwield(ptr) { return nohands(ptr) || (ptr.msize || 0) < MZ_SM
 
 // C ref: #define could_twoweap(ptr) — multiple AT_WEAP in first 3 attack slots
 export function could_twoweap(ptr) {
-    const atks = ptr.attacks;
+    const atks = ptr.mattk;
     if (!atks) return false;
     let count = 0;
     for (let i = 0; i < 3; i++) {
-        if (atks[i]?.type === AT_WEAP) count++;
+        if (atks[i]?.aatyp === AT_WEAP) count++;
     }
     return count > 1;
 }
@@ -1323,7 +1322,7 @@ export function befriend_with_obj(ptr, obj) {
         return obj.otyp === BANANA;
     return is_domestic(ptr) && obj.oclass === FOOD_CLASS
         && (ptr.mlet !== S_UNICORN
-            || (objectData[obj.otyp]?.material === VEGGY)
+            || (objectData[obj.otyp]?.oc_material === VEGGY)
             || (obj.otyp === CORPSE && obj.corpsenm === PM_LICHEN));
 }
 

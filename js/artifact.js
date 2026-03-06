@@ -234,7 +234,7 @@ export function arti_reflects(obj) {
 
 // cf. artifact.c:555 — shade_glare(obj)
 export function shade_glare(obj) {
-  if (objectData[obj.otyp] && objectData[obj.otyp].material === SILVER) return true;
+  if (objectData[obj.otyp] && objectData[obj.otyp].oc_material === SILVER) return true;
   const arti = get_artifact(obj);
   if (arti !== artilist[ART_NONARTIFACT]
       && (arti.spfx & SPFX_DFLAG2) && arti.mtype === M2_UNDEAD)
@@ -273,7 +273,7 @@ export function defends(adtyp, otmp) {
   if (!otmp) return false;
   const weap = get_artifact(otmp);
   if (weap !== artilist[ART_NONARTIFACT]) {
-    return weap.defn.ad === adtyp;
+    return weap.defn.adtyp === adtyp;
   }
   // Dragon armor defense is handled elsewhere
   return false;
@@ -283,7 +283,7 @@ export function defends(adtyp, otmp) {
 // Autotranslated from artifact.c:686
 export function defends_when_carried(adtyp, otmp) {
   let weap;
-  if ((weap = get_artifact(otmp)) !== artilist[ART_NONARTIFACT]) return  (weap.cary.adtyp === adtyp);
+  if ((weap = get_artifact(otmp)) !== artilist[ART_NONARTIFACT]) return  (weap.cary.adtyptyp === adtyp);
   return false;
 }
 
@@ -303,7 +303,7 @@ export function arti_immune(obj, dtyp) {
   const weap = get_artifact(obj);
   if (weap === artilist[ART_NONARTIFACT]) return false;
   if (dtyp === AD_PHYS) return false;
-  return weap.attk.ad === dtyp || weap.defn.ad === dtyp || weap.cary.ad === dtyp;
+  return weap.attk.adtyp === dtyp || weap.defn.adtyptyp === dtyp || weap.cary.adtyptyp === dtyp;
 }
 
 // cf. artifact.c:2299 — artifact_has_invprop(otmp, inv_prop)
@@ -370,7 +370,7 @@ export function bane_applies(oart, mon) {
 // cf. artifact.c:1009 — spec_applies(weap, mon)
 export function spec_applies(weap, mon) {
   if (!(weap.spfx & (SPFX_DBONUS | SPFX_ATTK)))
-    return (weap.attk.ad === AD_PHYS) ? 1 : 0;
+    return (weap.attk.adtyp === AD_PHYS) ? 1 : 0;
 
   const ptr = mon.data || (mon.mnum != null ? mons[mon.mnum] : null);
   if (!ptr) return 0;
@@ -388,7 +388,7 @@ export function spec_applies(weap, mon) {
     return (Math.sign(ptr.maligntyp) !== weap.alignment) ? 1 : 0;
   } else if (weap.spfx & SPFX_ATTK) {
     // Check element resistances
-    switch (weap.attk.ad) {
+    switch (weap.attk.adtyp) {
       case AD_FIRE:
         return !(mon.mintrinsics & 0x01) ? 1 : 0; // MR_FIRE
       case AD_COLD:
@@ -413,7 +413,7 @@ export function spec_applies(weap, mon) {
 // Autotranslated from artifact.c:1075
 export function spec_abon(otmp, mon) {
   let weap = get_artifact(otmp);
-  if (weap !== artilist[ART_NONARTIFACT] && weap.attk.damn && spec_applies(weap, mon)) return rnd( weap.attk.damn);
+  if (weap !== artilist[ART_NONARTIFACT] && weap.attk.damn && spec_applies(weap, mon)) return rnd(weap.attk.damn);
   return 0;
 }
 
@@ -424,7 +424,7 @@ export function spec_dbon(otmp, mon, tmp) {
   let applies;
 
   if (weap === artilist[ART_NONARTIFACT]
-      || (weap.attk.ad === AD_PHYS && weap.attk.dice === 0 && weap.attk.sides === 0)) {
+      || (weap.attk.adtyp === AD_PHYS && weap.attk.damn === 0 && weap.attk.damd === 0)) {
     applies = false;
   } else if (is_art(otmp, ART_GRIMTOOTH)) {
     // Grimtooth damage applies to all targets
@@ -434,7 +434,7 @@ export function spec_dbon(otmp, mon, tmp) {
   }
 
   if (applies) {
-    return [weap.attk.sides ? rnd(weap.attk.sides) : Math.max(tmp, 1), true];
+    return [weap.attk.damd ? rnd(weap.attk.damd) : Math.max(tmp, 1), true];
   }
   return [0, false];
 }
@@ -479,7 +479,7 @@ export function disp_artifact_discoveries(putstr_fn) {
       const algnstr = align === A_LAWFUL ? 'lawful' :
                       align === A_NEUTRAL ? 'neutral' :
                       align === A_CHAOTIC ? 'chaotic' : 'non-aligned';
-      const typname = objectData[otyp] ? objectData[otyp].name : 'unknown';
+      const typname = objectData[otyp] ? objectData[otyp].oc_name : 'unknown';
       putstr_fn(`  ${artiname(m)} [${algnstr} ${typname}]`);
     }
   }
@@ -604,7 +604,7 @@ export async function retouch_object(obj, loseit, player) {
     // Check silver bane
     const oart = get_artifact(obj);
     const bane = (oart !== artilist[ART_NONARTIFACT]) && bane_applies(oart, player || { data: null });
-    const ag = objectData[obj.otyp] && objectData[obj.otyp].material === SILVER;
+    const ag = objectData[obj.otyp] && objectData[obj.otyp].oc_material === SILVER;
     if (!ag && !bane) return 1;
     // Hero can't handle it
     await You_cant("handle %s%s!", obj.oname || 'the object',
@@ -671,7 +671,7 @@ export async function set_artifact_intrinsic(otmp, on, wp_mask, player) {
   }
 
   // --- defn / cary resistance ---
-  const dtyp = (wp_mask !== W_ART) ? oart.defn.ad : oart.cary.ad;
+  const dtyp = (wp_mask !== W_ART) ? oart.defn.adtyp : oart.cary.adtyp;
   // Map AD_ to property index
   const adtypToProp = {
     [AD_FIRE]: 0,   // FIRE_RES
@@ -693,7 +693,7 @@ export async function set_artifact_intrinsic(otmp, on, wp_mask, player) {
       for (const o of inv) {
         if (o !== otmp && o.oartifact) {
           const art2 = get_artifact(o);
-          if (art2 !== artilist[ART_NONARTIFACT] && art2.cary.ad === dtyp) {
+          if (art2 !== artilist[ART_NONARTIFACT] && art2.cary.adtyp === dtyp) {
             dominated = true;
             break;
           }
@@ -1473,8 +1473,8 @@ export function what_gives(abil, player) {
       const art = get_artifact(obj);
       if (art !== artilist[ART_NONARTIFACT]) {
         if (dtyp) {
-          if (art.cary.ad === dtyp) return obj;
-          if (art.defn.ad === dtyp && obj.owornmask) return obj;
+          if (art.cary.adtyp === dtyp) return obj;
+          if (art.defn.adtyp === dtyp && obj.owornmask) return obj;
         }
         if (spfx) {
           if ((art.cspfx & spfx) === spfx) return obj;

@@ -309,7 +309,7 @@ export function get_shop_item(type) {
 // C ref: shknam.c:379-405 — check if object type is vegetarian
 function veggy_item(otyp) {
     if (objectData[otyp].oc_class !== FOOD_CLASS) return false;
-    return objectData[otyp].material === VEGGY || otyp === EGG;
+    return objectData[otyp].oc_material === VEGGY || otyp === EGG;
 }
 
 // C ref: shknam.c:407-439 — pick a random vegetarian food item

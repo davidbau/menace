@@ -73,13 +73,67 @@ Phase-1 exit gate:
 
 ## Phase 2: C Field Name Normalization
 
-- [ ] Remove non-C field aliases (attack/permonst/objclass/obj).
-- [ ] Normalize callsites to canonical C names.
-- [ ] Delete `js/attack_fields.js`.
+### 2A. Attack field normalization (complete)
+- [x] Update `gen_monsters.py` and `gen_artifacts.py` to emit canonical C names (`aatyp`/`adtyp`/`damn`/`damd`).
+- [x] Regenerate `monsters.js` and `artifacts.js`.
+- [x] Remove all `canonicalizeAttackFields()` calls and imports from runtime files.
+- [x] Convert all legacy attack field reads (`.type`→`.aatyp`, `.ad`→`.adtyp`, `.dice`→`.damn`, `.sides`→`.damd`) across ~15 source files.
+- [x] Fix `sanitizeMonsterType` fallback in `monutil.js` (was using old `.type` field name).
+- [x] Update 4 test files with canonical field names.
+- [x] Delete `js/attack_fields.js`.
+- [x] Remove stale `file_policy.json` entry.
+
+### 2B. Permonst field normalization — unambiguous batch (complete)
+- [x] `mr1`→`mresists`, `mr2`→`mconveys` (resistance/conveyance bitmasks, ~50 sites)
+- [x] `flags1/2/3`→`mflags1/2/3` (monster flag bitmasks, ~220 sites across 28 files)
+- [x] `sound`→`msound` (monster sound type, 29 sites across 9 files)
+- [x] `weight`→`cwt` (corpse weight on permonst only, ~8 sites)
+- [x] `nutrition`→`cnutrit` (corpse nutrition on permonst only, ~6 sites)
+- [x] `size` now emitted as `msize` in generator (alias already existed, kept for compat)
+- [x] Fix `sanitizeMonsterType` in `monutil.js` (flags1→mflags1 etc.)
+- [x] Update test mocks (monster_accuracy, combat, monmove, monster_nearby, domove_attackmon)
+
+### 2C. Permonst field normalization — overloaded fields (complete)
+These fields share names with monster instance, player, or object properties.
+Required per-usage context analysis (not safe for `replace_all`):
+- [x] `speed`→`mmove` (shared with monster.speed; migrated permonst reads in 8 files)
+- [x] `attacks`→`mattk` (shared with monster.attacks; migrated permonst reads in 14 files)
+- [x] `color`→`mcolor` (shared with obj/display; migrated 3 permonst reads)
+- [x] `align`→`maligntyp` (shared with player/dungeon; migrated 8 permonst reads)
+- [x] Generator emits `mlet`/`mlevel`/`mmove`/`mattk`/`mcolor`/`maligntyp` as primary names
+- [x] Bidirectional aliases added via `normalizeMonsterFields` for backward compat
+- [x] Cleaned up dual-read fallback patterns in muse.js, dothrow.js, hack.js
+- [x] Updated test mock in domove_attackmon_safe_stop.test.js
+- [ ] `symbol`→`mlet`: alias exists, ~9 remaining reads (deferred — low priority)
+- [ ] `level`→`mlevel`: alias exists, ~33 remaining reads (deferred — many in /levels/)
+- [ ] `name` — keep as `name` (C 3.7 uses `name` in struct permonst)
+
+### 2D. Objclass field normalization (complete)
+Generator now emits C-canonical names (oc_name, oc_descr, oc_color, oc_prob,
+oc_delay, oc_wt, oc_cost, oc_wsdam, oc_wldam, oc_oc1, oc_oc2, oc_nutrition,
+oc_material, oc_oprop, oc_dir, oc_subtyp) with getter/setter alias pairs for
+backward compat. Aliases include C macro aliases: oc_skill↔oc_subtyp,
+oc_bulky↔oc_bimanual↔big.
+
+- [x] Generator emits all C-canonical objclass field names
+- [x] Getter/setter aliases propagate writes between canonical and legacy names
+- [x] Fixed ~35 live bugs (oc_material, oc_dir, oc_skill, oc_oprop, oc_name, etc. were undefined)
+- [x] Fixed pager.js undefined `obj_descr` variable
+- [x] Fixed do_name.js `oc_weight` (should be `oc_wt`)
+- [x] Migrated `.material`→`.oc_material` (~45 reads, 20 files)
+- [x] Migrated `.desc`→`.oc_descr` (~42 reads, 7 files)
+- [x] Migrated `.name`→`.oc_name` (~115 reads, 12 files)
+- [ ] Migrate remaining legacy reads: .prob, .cost, .color, .weight, .delay, .sdam, .ldam, .oc1, .oc2, .sub, .dir, .prop, .nutrition (low priority — aliases handle these)
+- [ ] Normalize obj instance `.name`→`.oname` (~11 files)
 
 Phase-2 exit gate:
-- [ ] No remaining alias reads/writes listed in `docs/STRUCTURES.md` field tables.
-- [ ] No parity regression vs baseline envelope.
+- [x] No remaining attack alias reads/writes.
+- [x] `attack_fields.js` deleted with no remaining imports.
+- [x] No remaining unambiguous permonst aliases (mr1/2, flags1/2/3, sound, weight, nutrition).
+- [x] No parity regression vs baseline envelope (2488/2488 unit, 25/34 gameplay).
+- [x] Objclass generator emits C-canonical names with getter/setter aliases.
+- [x] Top 3 objclass fields migrated (oc_name, oc_descr, oc_material — ~200 reads total).
+- [ ] Remaining objclass legacy reads deferred (low priority, aliases handle them).
 
 ## Phase 3: File-Per-C-Source Reorganization
 
@@ -108,4 +162,4 @@ Phase-4 exit gate:
 
 ## Current Focus
 
-- Finish Phase 1 exit-gate items (1C + 1D), then start Phase 2.
+- Phase 2D core complete. Remaining: migrate lower-priority objclass legacy reads, obj instance .name→.oname, then Phase 3 (file-per-C-source reorg).

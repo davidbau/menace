@@ -56,7 +56,6 @@ import {
     tmp_at, tmp_at_end_async, nh_delay_output,
 } from './animation.js';
 import { DISP_FLASH, DISP_TETHER, DISP_END, BACKTRACK } from './const.js';
-import { canonicalizeAttackFields } from './attack_fields.js';
 
 const hallublasts = [
     'bubbles', 'butterflies', 'dust specks', 'flowers', 'glitter',
@@ -854,7 +853,6 @@ function breath_zap_type(adtyp) {
 // C ref: mthrowu.c breamm().
 export async function breamm(mtmp, mattk, mtarg, map, player, display, game) {
     if (!m_lined_up(mtarg, mtmp, map, player)) return 0;
-    canonicalizeAttackFields(mattk);
     if (mtmp.mcan) {
         if (display) await display.putstr_message(`The ${x_monnam(mtmp)} coughs.`);
         return 0;
@@ -884,7 +882,7 @@ export async function breamu(mtmp, mattk, map, player, display, game) {
 // Check if a monster has any AT_WEAP attacks (can throw weapons).
 export function hasWeaponAttack(mon) {
     const attacks = mon.attacks || (mon.type && mon.type.attacks) || [];
-    return attacks.some(a => a && a.type === AT_WEAP);
+    return attacks.some(a => a && a.aatyp === AT_WEAP);
 }
 
 // C ref: monmove.c:853-860 — dochug weapon wielding gate

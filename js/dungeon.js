@@ -2633,13 +2633,13 @@ export function mktrap_victim(map, trap, depth) {
         if (trap.ttyp !== PIT) return false; // only exploded landmine path
         const od = objectData[obj.otyp] || {};
         let nonbreakchance = 1;
-        if (obj.oclass === ARMOR_CLASS && od.material === GLASS) {
+        if (obj.oclass === ARMOR_CLASS && od.oc_material === GLASS) {
             nonbreakchance = 90;
         }
         if (obj_resists(obj, nonbreakchance, 99)) {
             return false;
         }
-        if (od.material === GLASS && !obj.oartifact && obj.oclass !== GEM_CLASS) {
+        if (od.oc_material === GLASS && !obj.oartifact && obj.oclass !== GEM_CLASS) {
             return true;
         }
         const breakTyp = (obj.oclass === POTION_CLASS) ? POT_WATER : obj.otyp;

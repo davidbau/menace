@@ -574,7 +574,7 @@ async function precheck(mon, obj, map, player) {
         // These are rare (rn2 with POTION_OCCUPANT_CHANCE) and only trigger
         // for specific descriptors. We honor RNG gates when descriptor text
         // is available on the object.
-        const desc = String(obj.desc || obj.dname || objectData[obj.otyp]?.desc || '').toLowerCase();
+        const desc = String(obj.desc || obj.dname || objectData[obj.otyp]?.oc_descr || '').toLowerCase();
         if (desc.includes('milky') && !rn2(POTION_OCCUPANT_CHANCE(4))) {
             makemon(mons[PM_GHOST], mon.mx, mon.my, 0, 0, map);
         } else if (desc.includes('smoky') && !rn2(POTION_OCCUPANT_CHANCE(4))) {
@@ -781,7 +781,7 @@ export async function find_defensive(mon, tryescape, map, player) {
     const x = mon.mx, y = mon.my;
     const mdat = mon.data || mon.type || {};
     const stuck = (mon === player.ustuck);
-    const immobile = (mdat.mmove === 0 || mdat.mmove === 0);
+    const immobile = ((mdat.mmove || 0) === 0);
 
     m.defensive = null;
     m.has_defense = 0;
@@ -1922,7 +1922,7 @@ export function rnd_offensive_item(mtmp) {
 export async function find_misc(mon, map, player) {
     const mdat = mon.data || mon.type || {};
     const x = mon.mx, y = mon.my;
-    const immobile = (mdat.mmove === 0 || mdat.mmove === 0);
+    const immobile = ((mdat.mmove || 0) === 0);
     const stuck = (mon === player.ustuck);
 
     m.misc = null;
@@ -2048,7 +2048,7 @@ export function muse_newcham_mon(mon) {
         return mons[PM_SILVER_DRAGON];
     }
     if (m_armr) {
-        const n = String(objectData[m_armr.otyp]?.oc_name || objectData[m_armr.otyp]?.name || '').toLowerCase();
+        const n = String(objectData[m_armr.otyp]?.oc_name || '').toLowerCase();
         if (n.includes('chromatic')) return mons[PM_CHROMATIC_DRAGON];
     }
     return rndmonst();

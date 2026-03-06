@@ -789,7 +789,7 @@ export function loot_classify(sort_item, obj) {
         else k = 2;
         break;
     case GEM_CLASS: {
-        const mat = od.material;
+        const mat = od.oc_material;
         if (mat === GEMSTONE) k = !seen ? 1 : !discovered ? 2 : 3;
         else if (mat === GLASS) k = !seen ? 1 : !discovered ? 2 : 4;
         else k = !seen ? 5 : 8;
@@ -803,7 +803,7 @@ export function loot_classify(sort_item, obj) {
 
     // discovery status
     k = !seen ? 1
-        : (discovered || !od.desc) ? 4
+        : (discovered || !od.oc_descr) ? 4
         : (od.uname) ? 3
         : 2;
     sort_item.disco = k;

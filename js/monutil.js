@@ -559,9 +559,9 @@ function monsterIsTame(mon) {
 function sanitizeMonsterType(mon) {
     const ptr = mon?.data || mon?.type;
     const ptrIsObject = ptr && typeof ptr === 'object';
-    const attacks = ptrIsObject && Array.isArray(ptr.attacks)
-        ? ptr.attacks
-        : (!ptrIsObject ? [{ type: AT_WEAP }] : []);
+    const attacks = ptrIsObject && Array.isArray(ptr.mattk)
+        ? ptr.mattk
+        : (!ptrIsObject ? [{ aatyp: AT_WEAP }] : []);
 
     return {
         ...(ptrIsObject ? ptr : {}),

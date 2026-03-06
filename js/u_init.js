@@ -430,7 +430,7 @@ function spellDisciplineForRole(otyp, roleIndex) {
         // C ref: role.c role_init() remaps light to cleric skill for priests.
         return SPELL_DISCIPLINE.CLERIC;
     }
-    const name = objectData[otyp]?.name;
+    const name = objectData[otyp]?.oc_name;
     return SPELL_DISCIPLINE_BY_NAME[name] || null;
 }
 export 
@@ -1031,7 +1031,7 @@ function applyStartupDiscoveries(player) {
         if (!obj) continue;
         // Startup inventory is effectively identified in our baseline traces.
         // Mark descriptor-bearing types as known+encountered.
-        if (objectData[obj.otyp]?.desc && obj.dknown) {
+        if (objectData[obj.otyp]?.oc_descr && obj.dknown) {
             discoverObject(obj.otyp, true, true);
         }
         if (obj.otyp === OIL_LAMP) {

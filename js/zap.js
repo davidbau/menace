@@ -1323,7 +1323,7 @@ export function do_osshock(obj, map, player) {
     for (let i = quan; i > 0; i--) {
       const luck = (player && player.luck) || 0;
       if (!rn2(luck + 45)) {
-        gp_poly_zapped = objectData[obj.otyp]?.material ?? 0;
+        gp_poly_zapped = objectData[obj.otyp]?.oc_material ?? 0;
         break;
       }
     }
@@ -2200,7 +2200,7 @@ function polyuse_internal(objhdr, mat, minwt, map) {
     if (minwt <= 0) break;
     if (!otmp) continue;
     if (obj_resists(otmp, 0, 0)) continue;
-    const omat = objectData[otmp.otyp]?.material ?? otmp.material ?? 0;
+    const omat = objectData[otmp.otyp]?.oc_material ?? otmp.material ?? 0;
     if (((omat === mat) === (rn2(minwt + 1) !== 0))) {
       minwt -= Math.max(1, Number(otmp.quan || 1));
       if (map?.removeFloorObject) map.removeFloorObject(otmp);

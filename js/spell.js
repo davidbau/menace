@@ -235,7 +235,7 @@ function spellname(player, idx) {
     const otyp = spellid(player, idx);
     if (otyp === NO_SPELL) return '';
     const od = objectData[otyp];
-    return od ? od.name : '';
+    return od ? od.oc_name : '';
 }
 
 // Helper: increment spell knowledge (C: incrnknow)
@@ -264,7 +264,7 @@ function percent_success(player, spell_idx) {
     const sp = spells[spell_idx];
     const otyp = sp.otyp;
     const od = objectData[otyp] || {};
-    const spellName = String(od.name || '').toLowerCase();
+    const spellName = String(od.oc_name || '').toLowerCase();
     const category = spellCategoryForName(spellName);
     const spellLevel = Math.max(1, Number(od.oc2 || sp.sp_lev || 1));
 
@@ -418,7 +418,7 @@ export async function handleKnownSpells(player, display) {
     for (let i = 0; i < knownSpells.length && i < 52; i++) {
         const sp = knownSpells[i];
         const od = objectData[sp.otyp] || null;
-        const spellName = String(od?.name || 'unknown spell').toLowerCase();
+        const spellName = String(od?.oc_name || 'unknown spell').toLowerCase();
         const spellLevel = Math.max(1, Number(od?.oc2 || sp.sp_lev || 1));
         const category = spellCategoryForName(spellName);
         const skillRank = spellSkillRank(player, category);
@@ -472,7 +472,7 @@ export function spelltypemnemonic(skill) {
 // cf. spell.c spell_skilltype() — skill category for spell
 export function spell_skilltype(booktype) {
     return spellCategoryForName(
-        objectData[booktype] ? objectData[booktype].name : ''
+        objectData[booktype] ? objectData[booktype].oc_name : ''
     );
 }
 
@@ -563,7 +563,7 @@ export async function study_book(spellbook, player) {
     // Check if already known with good retention
     const idx = spell_idx(booktype, player);
     if (idx !== UNKNOWN_SPELL && spellknow(player, idx) > KEEN / 10) {
-        await You("know \"%s\" quite well already.", od.name || 'this spell');
+        await You("know \"%s\" quite well already.", od.oc_name || 'this spell');
         return 0;
     }
 
@@ -694,7 +694,7 @@ export async function learn(player) {
 
     const booktype = book.otyp;
     const od = objectData[booktype] || {};
-    const spellName = String(od.name || 'unknown spell').toLowerCase();
+    const spellName = String(od.oc_name || 'unknown spell').toLowerCase();
 
     await exercise(player, A_WIS, true);
 
@@ -1016,7 +1016,7 @@ export async function getspell(prompt, player, display) {
     for (let i = 0; i < spells.length && i < 52; i++) {
         const sp = spells[i];
         const od = objectData[sp.otyp] || null;
-        const spellNameStr = String(od?.name || 'unknown spell').toLowerCase();
+        const spellNameStr = String(od?.oc_name || 'unknown spell').toLowerCase();
         const spellLevel = Math.max(1, Number(od?.oc2 || sp.sp_lev || 1));
         const category = spellCategoryForName(spellNameStr);
         const turnsLeft = Math.max(0, sp.sp_know);

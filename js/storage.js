@@ -134,7 +134,7 @@ export function restMon(data) {
     const ptr = mons[mon.mndx];
     mon.data = ptr;
     mon.type = ptr;
-    mon.attacks = ptr.attacks;
+    mon.attacks = ptr.mattk;
     const symEntry = def_monsyms[ptr.mlet];
     mon.displayChar = symEntry ? symEntry.sym : '?';
     mon.displayColor = ptr.mcolor;

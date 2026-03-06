@@ -12,7 +12,6 @@ import {
   buzz, ZT_BREATH, ZT_MAGIC_MISSILE, ZT_FIRE, ZT_COLD, ZT_SLEEP,
   ZT_DEATH, ZT_LIGHTNING, ZT_POISON_GAS, ZT_ACID,
 } from './zap.js';
-import { canonicalizeAttackFields } from './attack_fields.js';
 import {
   MGC_PSI_BOLT, MGC_CURE_SELF, MGC_HASTE_SELF, MGC_STUN_YOU, MGC_DISAPPEAR,
   MGC_WEAKEN_YOU, MGC_DESTRY_ARMR, MGC_CURSE_ITEMS, MGC_AGGRAVATION,
@@ -210,7 +209,6 @@ export function cast_cleric_spell(mtmp, dmg, spellid, player, map) {
 // Returns 1 if spell was cast, 0 if failed
 export async function castmu(mtmp, mattk, vis, thrown, player, map) {
   if (!mtmp || !mattk) return 0;
-  canonicalizeAttackFields(mattk);
 
   const ml = mtmp.m_lev || 1;
   const aatyp = mattk.aatyp || 0;
@@ -297,7 +295,6 @@ export function spell_would_be_useless(mtmp, aatyp, spellid) {
 // Monster fires a directed beam at hero
 export async function buzzmu(mtmp, mattk, player, map) {
   if (!mtmp || !mattk || !player || !map) return 0;
-  canonicalizeAttackFields(mattk);
 
   const adtyp = mattk.adtyp || AD_MAGM;
   const nd = Math.max(1, mattk.damn || 6);

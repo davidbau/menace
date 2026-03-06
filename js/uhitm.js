@@ -62,7 +62,6 @@ import {
 } from './trap.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_ALWAYS, DISP_END } from './const.js';
-import { canonicalizeAttackFields } from './attack_fields.js';
 import { pline, pline_The, You, impossible } from './pline.js';
 import { mon_nam, Monnam } from './do_name.js';
 
@@ -352,14 +351,14 @@ async function hitum(player, mon, uattk, display, map, game = null) {
     // cf. uhitm.c:775 — twohits: double punch or two-weapon
     // const twohits = (weapon ? !!player.twoweap : double_punch()) ? 1 : 0;
 
-    const tmp = find_roll_to_hit(player, mon, uattk?.type ?? AT_WEAP, weapon);
+    const tmp = find_roll_to_hit(player, mon, uattk?.aatyp ?? AT_WEAP, weapon);
     mon_maybe_unparalyze(mon);
     const dieroll = rnd(20);
     const mhit = (tmp > dieroll);
     if (tmp > dieroll) await exercise(player, A_DEX, true);
 
     const malive = await known_hitum(player, mon, weapon, mhit, tmp, 0, uattk, dieroll, display, map);
-    await passive(mon, weapon, mhit, malive, uattk?.type ?? AT_WEAP, false, {
+    await passive(mon, weapon, mhit, malive, uattk?.aatyp ?? AT_WEAP, false, {
         player, display, map, game,
     });
 
@@ -398,7 +397,7 @@ export function hmon_hitmon_weapon_ranged(hmd, mon, obj) {
     } else {
         hmd.dmg = rnd(2);
     }
-    const material = objectData[obj.otyp]?.material;
+    const material = objectData[obj.otyp]?.oc_material;
     if (material === SILVER && mon_hates_silver(mon)) {
         hmd.silvermsg = true;
         hmd.silverobj = true;
@@ -416,7 +415,7 @@ function hmon_hitmon_weapon_melee(hmd, mon, obj) {
     // cf. uhitm.c:993-1011 — artifact hit
     // artifact_hit() not yet ported; skip
 
-    const material = objectData[obj.otyp]?.material;
+    const material = objectData[obj.otyp]?.oc_material;
     if (material === SILVER && mon_hates_silver(mon)) {
         hmd.silvermsg = true;
         hmd.silverobj = true;
@@ -474,7 +473,7 @@ function hmon_hitmon_misc_obj(hmd, mon, obj) {
         break;
     default: {
         // cf. uhitm.c:1320-1360 — generic non-weapon: weight-based damage
-        const material = objectData[obj.otyp]?.material;
+        const material = objectData[obj.otyp]?.oc_material;
         if ((material === VEGGY || material === PAPER)
             && (obj.oclass !== SPBOOK_CLASS)) {
             hmd.dmg = 0;
@@ -773,7 +772,7 @@ export function shade_aware(obj) {
         || obj.otyp === MIRROR
         || obj.otyp === CLOVE_OF_GARLIC)
         return true;
-    const material = objectData[obj.otyp]?.material;
+    const material = objectData[obj.otyp]?.oc_material;
     if (material === SILVER) return true;
     return false;
 }
@@ -1160,7 +1159,6 @@ export function mhitm_ad_halu(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 //   Dispatch to specific mhitm_ad_* handler based on attack damage type.
 //   mattk.adtyp is the JS equivalent of mattk->adtyp.
 export function mhitm_adtyping(magr, mattk, mdef, mhm) {
-    canonicalizeAttackFields(mattk);
     switch (mattk.adtyp) {
     case AD_PHYS: mhitm_ad_phys(magr, mattk, mdef, mhm); break;
     case AD_FIRE: mhitm_ad_fire(magr, mattk, mdef, mhm); break;
@@ -1219,7 +1217,6 @@ export function mhitm_adtyping(magr, mattk, mdef, mhm) {
 //   Rolls d(mattk.damn, mattk.damd), dispatches through mhitm_adtyping.
 //   Returns M_ATTK_DEF_DIED if monster dies, M_ATTK_HIT otherwise.
 export function damageum(mdef, mattk, specialdmg) {
-    canonicalizeAttackFields(mattk);
     const mhm = {
         damage: d(mattk.damn || 0, mattk.damd || 0),
         hitflags: M_ATTK_MISS,
@@ -1246,7 +1243,6 @@ export function damageum(mdef, mattk, specialdmg) {
 //   Exploding attack (hero polymorphed into exploding monster).
 //   Returns M_ATTK_DEF_DIED or M_ATTK_HIT.
 export function explum(mdef, mattk) {
-    canonicalizeAttackFields(mattk);
     const tmp = d(mattk.damn || 0, mattk.damd || 0);
     // C: various cases (AD_BLND, AD_HALU, AD_COLD/FIRE/ELEC → explode())
     // Simplified: just apply damage for elemental types
@@ -1280,7 +1276,6 @@ export function end_engulf() {
 //   Returns M_ATTK_MISS or M_ATTK_DEF_DIED.
 //   In JS, engulfment is not yet supported. Stub returns miss.
 export async function gulpum(mdef, mattk) {
-    canonicalizeAttackFields(mattk);
     if (mdef) {
         await start_engulf(mdef);
         end_engulf();
@@ -1327,7 +1322,6 @@ export function m_is_steadfast(mtmp) {
 //   Returns true if knockback occurred.
 //   Consumes rn2(3), rn2(chance), and possibly rn2(2)*2 for message.
 export function mhitm_knockback(magr, mdef, mattk, hitflags, weapon_used) {
-    canonicalizeAttackFields(mattk);
     const knockdistance = rn2(3) ? 1 : 2;
     const chance = 6;
     if (rn2(chance)) return false;
@@ -1390,7 +1384,6 @@ export function hmonas(player, mon, display, map) {
 //   Called for AD_FIRE, AD_ACID, AD_RUST, AD_CORR, AD_ENCH when hero hits
 //   a monster with those passive attack types.
 export async function passive_obj(mon, obj, mattk) {
-    canonicalizeAttackFields(mattk);
     if (!obj) return;
     const ptr = mon.data || mon.type || {};
     const adtyp = mattk ? (mattk.adtyp ?? AD_PHYS) : AD_PHYS;
@@ -1742,7 +1735,7 @@ async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destr
     const display = ctx.display || null;
     const game = ctx.game || null;
     const ptr = mon.data || mon.type || {};
-    const attacks = ptr.attacks || [];
+    const attacks = ptr.mattk || [];
 
     // Find the AT_NONE (passive) attack slot
     // C ref: uhitm.c:5856-5861 — scan attacks for AT_NONE
@@ -1750,7 +1743,7 @@ async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destr
     let passiveAttk = null;
     for (let i = 0; i < attacks.length; i++) {
         if (i >= NATTK) return; // no passive attacks
-        const attack = canonicalizeAttackFields(attacks[i]);
+        const attack = attacks[i];
         if (attack.aatyp === AT_NONE) {
             passiveAttk = attack;
             break;
@@ -1761,7 +1754,6 @@ async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destr
         // Synthesize NO_ATTK: C would find AT_NONE/AD_NONE(=AD_PHYS)/0/0
         passiveAttk = { aatyp: AT_NONE, adtyp: AD_PHYS, damn: 0, damd: 0 };
     }
-    canonicalizeAttackFields(passiveAttk);
 
     const adtyp = passiveAttk.adtyp;
 

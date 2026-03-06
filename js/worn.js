@@ -368,7 +368,7 @@ export function update_mon_extrinsics(mon, obj, on, silently) {
     let which = od.oc_oprop || 0;
     // altprop for alchemy smock: confers both poison and acid resistance
     let altwhich = 0;
-    if (od.name === 'alchemy smock') {
+    if (od.oc_name === 'alchemy smock') {
         altwhich = POISON_RES + ACID_RES - which;
     }
 
@@ -459,7 +459,7 @@ export function find_mac(mon) {
                     // AMULET_OF_GUARDING gives fixed -2
                     if (od && od.otyp === AMULET_OF_GUARDING) {
                         base -= 2;
-                    } else if (od && od.name === 'amulet of guarding') {
+                    } else if (od && od.oc_name === 'amulet of guarding') {
                         base -= 2;
                     } else {
                         base -= arm_bonus(obj);
@@ -531,7 +531,7 @@ function m_dowear_type(mon, flag, creation, racialexception) {
     const old = which_armor(mon, flag);
     if (old && old.cursed) return;
     if (old && flag === W_AMUL) {
-        const odn = objectData[old.otyp]?.name;
+        const odn = objectData[old.otyp]?.oc_name;
         if (odn !== 'amulet of guarding') return; // already have life-saving/reflection
     }
     let best = old;
@@ -543,12 +543,12 @@ function m_dowear_type(mon, flag, creation, racialexception) {
         // Check if this item fits the slot
         if (flag === W_AMUL) {
             if (od.oc_class !== AMULET_CLASS) continue;
-            if (od.name !== 'amulet of life saving'
-                && od.name !== 'amulet of reflection'
-                && od.name !== 'amulet of guarding') continue;
-            if (!best || od.name !== 'amulet of guarding') {
+            if (od.oc_name !== 'amulet of life saving'
+                && od.oc_name !== 'amulet of reflection'
+                && od.oc_name !== 'amulet of guarding') continue;
+            if (!best || od.oc_name !== 'amulet of guarding') {
                 best = obj;
-                if (od.name !== 'amulet of guarding') break; // life-saving/reflection: use immediately
+                if (od.oc_name !== 'amulet of guarding') break; // life-saving/reflection: use immediately
             }
             continue;
         }
@@ -567,7 +567,7 @@ function m_dowear_type(mon, flag, creation, racialexception) {
         case W_ARMH:
             if (armcat !== ARM_HELM) continue;
             // Horned monsters can only wear flimsy helms
-            if (has_horns(mon.data || mon.type) && (od.material || 0) > 7) // LEATHER=7
+            if (has_horns(mon.data || mon.type) && (od.oc_material || 0) > 7) // LEATHER=7
                 continue;
             break;
         case W_ARMS: if (armcat !== ARM_SHIELD) continue; break;
@@ -625,7 +625,7 @@ export function racial_exception(mon, obj) {
     // Allow hobbits to wear elven armor - LoTR
     if (ptr === mons[PM_HOBBIT]) {
         const od = objectData[obj.otyp];
-        if (od && /^elven /i.test(od.name || ''))
+        if (od && /^elven /i.test(od.oc_name || ''))
             return 1;
     }
     return 0;
@@ -743,7 +743,7 @@ export async function mon_break_armor(mon, polyspot, map, opts = {}) {
 
     if (handless_or_tiny || has_horns(mdat)) {
         if ((otmp = which_armor(mon, W_ARMH)) != null
-            && (handless_or_tiny || (objectData[otmp.otyp]?.material || 0) > 7)) {
+            && (handless_or_tiny || (objectData[otmp.otyp]?.oc_material || 0) > 7)) {
             if (!vis) await emitClank();
             m_lose_armor(mon, otmp, polyspot, map);
         }

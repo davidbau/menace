@@ -9,6 +9,7 @@ import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, sele
        } from './windows.js';
 import { NHW_MENU, NHW_TEXT, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE } from './const.js';
 import { dowhatis } from './look.js';
+import { objectData, STRANGE_OBJECT } from './objects.js';
 
 // Number of usable text rows (reserve 1 for status bar at bottom)
 const PAGE_ROWS = TERMINAL_ROWS - 1;
@@ -576,7 +577,7 @@ export function trap_description(outbuf, tnum, x, y) {
 export async function look_at_object(buf, x, y, glyph, map) {
   let otmp = 0, fakeobj = object_from_map(glyph, x, y, otmp);
   if (otmp) {
-    Strcpy(buf, (otmp.otyp !== STRANGE_OBJECT) ? await distant_name(otmp, otmp.dknown ? doname_with_price : doname_vague_quan) : obj_descr[STRANGE_OBJECT].oc_name);
+    Strcpy(buf, (otmp.otyp !== STRANGE_OBJECT) ? await distant_name(otmp, otmp.dknown ? doname_with_price : doname_vague_quan) : objectData[STRANGE_OBJECT].oc_name);
     if (fakeobj) { otmp.where = OBJ_FREE; dealloc_obj(otmp), otmp = null; }
   }
   else { Strcpy(buf, something); }

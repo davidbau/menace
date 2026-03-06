@@ -17,7 +17,7 @@ test('domove_attackmon_at stops running when safe monster blocks movement', asyn
         mfrozen: 0,
         mcanmove: true,
         msleeping: false,
-        type: { speed: 12, flags1: 0 },
+        type: { mmove: 12, mflags1: 0 },
     };
     const map = {
         at() {

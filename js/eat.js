@@ -354,14 +354,14 @@ function adj_victual_nutrition(player, nmod) {
 // cf. eat.c intrinsic_possible() — check if monster can give an intrinsic
 function intrinsic_possible(type, ptr) {
     switch (type) {
-    case FIRE_RES:    return (ptr.mresists2 & MR_FIRE) !== 0;
-    case SLEEP_RES:   return (ptr.mresists2 & MR_SLEEP) !== 0;
-    case COLD_RES:    return (ptr.mresists2 & MR_COLD) !== 0;
-    case DISINT_RES:  return (ptr.mresists2 & MR_DISINT) !== 0;
-    case SHOCK_RES:   return (ptr.mresists2 & MR_ELEC) !== 0;
-    case POISON_RES:  return (ptr.mresists2 & MR_POISON) !== 0;
-    case ACID_RES:    return (ptr.mresists2 & MR_ACID) !== 0;
-    case STONE_RES:   return (ptr.mresists2 & MR_STONE) !== 0;
+    case FIRE_RES:    return (ptr.mconveys & MR_FIRE) !== 0;
+    case SLEEP_RES:   return (ptr.mconveys & MR_SLEEP) !== 0;
+    case COLD_RES:    return (ptr.mconveys & MR_COLD) !== 0;
+    case DISINT_RES:  return (ptr.mconveys & MR_DISINT) !== 0;
+    case SHOCK_RES:   return (ptr.mconveys & MR_ELEC) !== 0;
+    case POISON_RES:  return (ptr.mconveys & MR_POISON) !== 0;
+    case ACID_RES:    return (ptr.mconveys & MR_ACID) !== 0;
+    case STONE_RES:   return (ptr.mconveys & MR_STONE) !== 0;
     case TELEPORT:    return can_teleport(ptr);
     case TELEPORT_CONTROL: return control_teleport(ptr);
     case TELEPAT:     return telepathic(ptr);

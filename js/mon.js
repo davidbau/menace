@@ -715,9 +715,9 @@ export function corpse_chance(mon) {
         return false;
 
     // C ref: mon.c:3197-3229 — gas spores explode (no corpse, no RNG)
-    if (mdat.attacks) {
-        for (const atk of mdat.attacks) {
-            if (atk && atk.type === AT_BOOM) return false;
+    if (mdat.mattk) {
+        for (const atk of mdat.mattk) {
+            if (atk && atk.aatyp === AT_BOOM) return false;
         }
     }
 
@@ -1453,7 +1453,7 @@ export function can_touch_safely(mon, otmp) {
 // C ref: eat.c:889 intrinsic_possible() — can this corpse give this intrinsic?
 function intrinsic_possible(type, ptr) {
     if (!ptr) return false;
-    const mr2 = ptr.mresists2 || 0; // mconveys equivalent
+    const mr2 = ptr.mconveys || 0;
     switch (type) {
     case 1: return !!(mr2 & MR_FIRE);     // FIRE_RES
     case 2: return !!(mr2 & MR_COLD);     // COLD_RES
@@ -1567,7 +1567,7 @@ export function mcalcdistress(map, player) {
 function m_calcdistress(mon, map, player) {
     // Non-moving monsters need liquid check
     const mdat = mon.data || mon.type || {};
-    if ((mdat.mmove || mdat.mmove || 0) === 0) {
+    if ((mdat.mmove || 0) === 0) {
         if (minliquid(mon, map, player)) return;
     }
 
@@ -1677,8 +1677,8 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
             const rd = await withRngTag('dochug(monmove.js:847)', () =>
                 dochug(mon, map, player, display, fov, game));
             if (game && game.occupation && !mon.dead && !rd) {
-                const attacks = (mon.data || mon.type)?.attacks || [];
-                const noAttacks = !attacks.some((a) => a && a.type !== AT_NONE);
+                const attacks = (mon.data || mon.type)?.mattk || [];
+                const noAttacks = !attacks.some((a) => a && a.aatyp !== AT_NONE);
                 const threatRangeSq = (BOLT_LIM + 1) * (BOLT_LIM + 1);
                 const oldDist = dist2(oldx, oldy, player.x, player.y);
                 const newDist = dist2(mon.mx, mon.my, player.x, player.y);

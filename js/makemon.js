@@ -140,7 +140,7 @@ function is_dwarf(ptr) { return !!(ptr.mflags2 & M2_DWARF); }
 function is_hobbit(ptr) { return ptr.mlet === S_HUMANOID && ptr.mname && ptr.mname.includes('hobbit'); }
 function is_giant_species(ptr) { return ptr.mlet === S_GIANT && ptr.mname && ptr.mname.includes('giant'); }
 // C ref: mondata.h:87 — #define is_armed(ptr) attacktype(ptr, AT_WEAP)
-function is_armed(ptr) { return ptr.attacks && ptr.attacks.some(a => a.type === AT_WEAP); }
+function is_armed(ptr) { return ptr.mattk && ptr.mattk.some(a => a.aatyp === AT_WEAP); }
 
 function canHideUnderObjAt(map, x, y) {
     if (!map) return false;
@@ -169,7 +169,7 @@ function is_mplayer_idx(mndx) { return mndx >= PM_ARCHEOLOGIST && mndx <= PM_WIZ
 function is_lminion(mon) {
     return mon.type?.mlet === S_ANGEL && (mon.type?.maligntyp || 0) > 0;
 }
-function attacktype(ptr, atyp) { return ptr.attacks && ptr.attacks.some(a => a.type === atyp); }
+function attacktype(ptr, atyp) { return ptr.mattk && ptr.mattk.some(a => a.aatyp === atyp); }
 function is_animal(ptr) { return !!(ptr.mflags1 & 0x00040000); } // M1_ANIMAL
 function mindless(ptr) { return !!(ptr.mflags1 & 0x00010000); } // M1_MINDLESS
 function is_ndemon(ptr) { return ptr.mlet === S_DEMON; }
@@ -1016,7 +1016,7 @@ function m_initweap(mon, mndx, depth) {
     default:
         // Generic weapon assignment for armed monsters
         // C ref: makemon.c:534-571
-        if (ptr.attacks && ptr.attacks.some(a => a.type === 254)) { // AT_WEAP
+        if (ptr.mattk && ptr.mattk.some(a => a.aatyp === 254)) { // AT_WEAP
             const w = rnd(Math.max(1, 14 - 2 * bias));
             switch (w) {
             case 1:
@@ -2343,8 +2343,9 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         mlevel: m_lev,
         m_lev,
         mac: ptr.ac,
+        speed: ptr.mmove,
         movement: 0,  // C ref: *mtmp = cg.zeromonst (zero-init)
-        attacks: ptr.attacks,
+        attacks: ptr.mattk,
         peaceful: monPeaceful,
         mpeaceful: false,
         female: monFemale,

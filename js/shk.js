@@ -289,7 +289,7 @@ function oid_price_adjustment(obj, oid) {
     const od = objectData[obj.otyp] || {};
     const nameKnown = isObjectNameKnown(obj.otyp);
     if (!(obj.dknown && nameKnown)
-        && (obj.oclass !== GEM_CLASS || (od.material || 0) !== GLASS)) {
+        && (obj.oclass !== GEM_CLASS || (od.oc_material || 0) !== GLASS)) {
         return ((oid % 4) === 0) ? 1 : 0;
     }
     return 0;
@@ -308,7 +308,7 @@ function get_cost(obj, shkp) {
 
     // Shopkeeper may notice if player isn't knowledgeable
     if (!obj.dknown || !nameKnown) {
-        if (obj.oclass === GEM_CLASS && (od.material || 0) === GLASS) {
+        if (obj.oclass === GEM_CLASS && (od.oc_material || 0) === GLASS) {
             // Glass gems get priced as if they were real gems
             // C ref: pseudorand pricing for glass gems
             // Simplified: use a fixed high price

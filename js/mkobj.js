@@ -268,24 +268,24 @@ function is_poisonable(obj) {
 
 // Helper: material checks for erosion
 export function is_flammable(obj) {
-    const mat = objectData[obj.otyp].material;
+    const mat = objectData[obj.otyp].oc_material;
     if (mat === LIQUID) return false;
     return (mat <= WOOD) || mat === PLASTIC;
 }
 export function is_rustprone(obj) {
-    return objectData[obj.otyp].material === IRON;
+    return objectData[obj.otyp].oc_material === IRON;
 }
 export function is_crackable(obj) {
-    return objectData[obj.otyp].material === GLASS && obj.oclass === ARMOR_CLASS;
+    return objectData[obj.otyp].oc_material === GLASS && obj.oclass === ARMOR_CLASS;
 }
 // Autotranslated from mkobj.c:2286
 export function is_rottable(otmp) {
   const otyp = otmp.otyp;
-  const mat = objectData[otyp]?.material ?? 0;
+  const mat = objectData[otyp]?.oc_material ?? 0;
   return ((mat <= WOOD && mat !== LIQUID) || mat === DRAGON_HIDE);
 }
 export function is_corrodeable(obj) {
-    const mat = objectData[obj.otyp].material;
+    const mat = objectData[obj.otyp].oc_material;
     return mat === COPPER || mat === IRON;
 }
 
@@ -466,7 +466,7 @@ function newobj(otyp) {
         known: false,
         dknown: false,
         bknown: false,
-        name: objectData[otyp].name,
+        name: objectData[otyp].oc_name,
         oname: '',
     };
 }
@@ -549,9 +549,9 @@ function mksobj_init(obj, artif, skipErosion) {
         break;
 
     case FOOD_CLASS:
-        mkobjTrace(`food init call=${getRngCallCount()} otyp=${obj.otyp} name=${od.name}`);
+        mkobjTrace(`food init call=${getRngCallCount()} otyp=${obj.otyp} name=${od.oc_name}`);
         // Check specific food types by name since we may not have all constants
-        if (od.name === 'corpse') {
+        if (od.oc_name === 'corpse') {
             // C ref: mkobj.c:900-910 — retry if G_NOCORPSE
             let tryct = 50;
             do {
@@ -561,7 +561,7 @@ function mksobj_init(obj, artif, skipErosion) {
                      && (mons[obj.corpsenm].geno & G_NOCORPSE)
                      && --tryct > 0);
             if (tryct === 0) obj.corpsenm = mons.findIndex(m => m.mname === 'human');
-        } else if (od.name === 'egg') {
+        } else if (od.oc_name === 'egg') {
             obj.corpsenm = -1;
             const eggRoll = rn2(3);
             mkobjTrace(`egg roll call=${getRngCallCount()} rn2(3)=${eggRoll}`);
@@ -574,7 +574,7 @@ function mksobj_init(obj, artif, skipErosion) {
                     if (mndx >= 0) break;
                 }
             }
-        } else if (od.name === 'tin') {
+        } else if (od.oc_name === 'tin') {
             obj.corpsenm = -1;
             if (!rn2(6)) {
                 // spinach tin -- C ref: set_tin_variety(SPINACH_TIN) sets spe=1
@@ -597,80 +597,80 @@ function mksobj_init(obj, artif, skipErosion) {
                 }
             }
             blessorcurse(obj, 10);
-        } else if (od.name === 'kelp frond') {
+        } else if (od.oc_name === 'kelp frond') {
             obj.quan = rnd(2);
-        } else if (od.name === 'candy bar') {
+        } else if (od.oc_name === 'candy bar') {
             rn2(12); // C ref: read.c assign_candy_wrapper() uses rn2(12) in 3.7 trace
         }
         // General food: possible quan=2 (C: else branch of Is_pudding)
-        if (od.name !== 'corpse' && od.name !== 'meat ring'
-            && od.name !== 'kelp frond') {
+        if (od.oc_name !== 'corpse' && od.oc_name !== 'meat ring'
+            && od.oc_name !== 'kelp frond') {
             if (!rn2(6)) obj.quan = 2;
         }
         break;
 
     case GEM_CLASS:
-        if (od.name === 'loadstone') {
+        if (od.oc_name === 'loadstone') {
             curse(obj);
-        } else if (od.name === 'rock') {
+        } else if (od.oc_name === 'rock') {
             obj.quan = rn1(6, 6);
-        } else if (od.name !== 'luckstone' && !rn2(6)) {
+        } else if (od.oc_name !== 'luckstone' && !rn2(6)) {
             obj.quan = 2;
         }
         break;
 
     case TOOL_CLASS:
-        if (od.name === 'tallow candle' || od.name === 'wax candle') {
+        if (od.oc_name === 'tallow candle' || od.oc_name === 'wax candle') {
             obj.spe = 1;
             obj.quan = 1 + (rn2(2) ? rn2(7) : 0);
             blessorcurse(obj, 5);
-        } else if (od.name === 'brass lantern' || od.name === 'oil lamp') {
+        } else if (od.oc_name === 'brass lantern' || od.oc_name === 'oil lamp') {
             obj.spe = 1;
             obj.age = rn1(500, 1000);
             blessorcurse(obj, 5);
-        } else if (od.name === 'magic lamp') {
+        } else if (od.oc_name === 'magic lamp') {
             obj.spe = 1;
             blessorcurse(obj, 2);
-        } else if (od.name === 'chest' || od.name === 'large box') {
+        } else if (od.oc_name === 'chest' || od.oc_name === 'large box') {
             obj.olocked = !!rn2(5);
             obj.otrapped = !rn2(10);
             obj.tknown = obj.otrapped && !rn2(100);
             // mkbox_cnts -- consume RNG for contents
             mkbox_cnts(obj);
-        } else if (od.name === 'ice box' || od.name === 'sack'
-                   || od.name === 'oilskin sack' || od.name === 'bag of holding') {
+        } else if (od.oc_name === 'ice box' || od.oc_name === 'sack'
+                   || od.oc_name === 'oilskin sack' || od.oc_name === 'bag of holding') {
             mkbox_cnts(obj);
-        } else if (od.name === 'expensive camera' || od.name === 'tinning kit'
-                   || od.name === 'magic marker') {
+        } else if (od.oc_name === 'expensive camera' || od.oc_name === 'tinning kit'
+                   || od.oc_name === 'magic marker') {
             obj.spe = rn1(70, 30);
-        } else if (od.name === 'can of grease') {
+        } else if (od.oc_name === 'can of grease') {
             obj.spe = rn1(21, 5);
             blessorcurse(obj, 10);
-        } else if (od.name === 'crystal ball') {
+        } else if (od.oc_name === 'crystal ball') {
             obj.spe = rn1(5, 3);
             blessorcurse(obj, 2);
-        } else if (od.name === 'horn of plenty' || od.name === 'bag of tricks') {
+        } else if (od.oc_name === 'horn of plenty' || od.oc_name === 'bag of tricks') {
             obj.spe = rn1(18, 3);
-        } else if (od.name === 'figurine') {
+        } else if (od.oc_name === 'figurine') {
             let tryct = 0;
             do {
                 obj.corpsenm = rndmonnum_adj(5, 10, _levelDepth);
                 mkobjTrace(`figurine try=${tryct + 1} call=${getRngCallCount()} corpsenm=${obj.corpsenm}`);
             } while (tryct++ < 30 && false); // simplified: first attempt ok
             blessorcurse(obj, 4);
-        } else if (od.name === 'Bell of Opening') {
+        } else if (od.oc_name === 'Bell of Opening') {
             obj.spe = 3;
-        } else if (od.name === 'magic flute' || od.name === 'magic harp'
-                   || od.name === 'frost horn' || od.name === 'fire horn'
-                   || od.name === 'drum of earthquake') {
+        } else if (od.oc_name === 'magic flute' || od.oc_name === 'magic harp'
+                   || od.oc_name === 'frost horn' || od.oc_name === 'fire horn'
+                   || od.oc_name === 'drum of earthquake') {
             obj.spe = rn1(5, 4);
         }
         break;
 
     case AMULET_CLASS:
-        if (rn2(10) && (od.name === 'amulet of strangulation'
-                        || od.name === 'amulet of change'
-                        || od.name === 'amulet of restful sleep')) {
+        if (rn2(10) && (od.oc_name === 'amulet of strangulation'
+                        || od.oc_name === 'amulet of change'
+                        || od.oc_name === 'amulet of restful sleep')) {
             curse(obj);
         } else {
             blessorcurse(obj, 10);
@@ -692,10 +692,10 @@ function mksobj_init(obj, artif, skipErosion) {
         break;
 
     case ARMOR_CLASS:
-        if (rn2(10) && (od.name === 'fumble boots'
-                        || od.name === 'levitation boots'
-                        || od.name === 'helm of opposite alignment'
-                        || od.name === 'gauntlets of fumbling'
+        if (rn2(10) && (od.oc_name === 'fumble boots'
+                        || od.oc_name === 'levitation boots'
+                        || od.oc_name === 'helm of opposite alignment'
+                        || od.oc_name === 'gauntlets of fumbling'
                         || !rn2(11))) {
             curse(obj);
             obj.spe = -rne(3);
@@ -711,7 +711,7 @@ function mksobj_init(obj, artif, skipErosion) {
         break;
 
     case WAND_CLASS:
-        if (od.name === 'wishing') {
+        if (od.oc_name === 'wishing') {
             obj.spe = 1;
         } else {
             obj.spe = rn1(5, (od.dir === 1) ? 11 : 4); // NODIR=1
@@ -732,17 +732,17 @@ function mksobj_init(obj, artif, skipErosion) {
                 obj.spe = rn2(4) - rn2(3);
             if (obj.spe < 0 && rn2(5))
                 curse(obj);
-        } else if (rn2(10) && (od.name === 'teleportation'
-                               || od.name === 'polymorph'
-                               || od.name === 'aggravate monster'
-                               || od.name === 'hunger'
+        } else if (rn2(10) && (od.oc_name === 'teleportation'
+                               || od.oc_name === 'polymorph'
+                               || od.oc_name === 'aggravate monster'
+                               || od.oc_name === 'hunger'
                                || !rn2(9))) {
             curse(obj);
         }
         break;
 
     case ROCK_CLASS:
-        if (od.name === 'statue') {
+        if (od.oc_name === 'statue') {
             obj.corpsenm = rndmonnum(_levelDepth); // Pass depth for correct monster selection
             mkobjTrace(`statue call=${getRngCallCount()} corpsenm=${obj.corpsenm}`);
             // C ref: !verysmall() && rn2(level_difficulty()/2+10) > 10
@@ -775,13 +775,13 @@ function mksobj_init(obj, artif, skipErosion) {
 function mkbox_cnts(box) {
     const od = objectData[box.otyp];
     let n;
-    if (od.name === 'ice box') {
+    if (od.oc_name === 'ice box') {
         n = 20;
-    } else if (od.name === 'chest') {
+    } else if (od.oc_name === 'chest') {
         n = box.olocked ? 7 : 5;
-    } else if (od.name === 'large box') {
+    } else if (od.oc_name === 'large box') {
         n = box.olocked ? 5 : 3;
-    } else if ((od.name === 'sack' || od.name === 'oilskin sack')
+    } else if ((od.oc_name === 'sack' || od.oc_name === 'oilskin sack')
                && _objectMoves <= 1 && !_inMklevContext) {
         // C ref: mkobj.c mkbox_cnts() -- sacks/oilskin sacks are empty when
         // moves<=1 outside mklev (early game startup and equivalent contexts).
@@ -800,7 +800,7 @@ function mkbox_cnts(box) {
 
     // For each item in box, generate it and store in the container
     for (let i = 0; i < n; i++) {
-        if (od.name === 'ice box') {
+        if (od.oc_name === 'ice box') {
             // C ref: mkobj.c:347 — mksobj(CORPSE, TRUE, FALSE) for ice box
             const corpse = mksobj(CORPSE, true, false);
             if (corpse) box.cobj.push(corpse);
@@ -862,7 +862,7 @@ function mkbox_cnts(box) {
 function mksobj_postinit(obj) {
     const od = objectData[obj.otyp];
     // Corpse: if corpsenm not set, assign one
-    if (od.name === 'corpse' && obj.corpsenm === -1) {
+    if (od.oc_name === 'corpse' && obj.corpsenm === -1) {
         obj.corpsenm = undead_to_corpse(rndmonnum(_levelDepth));
     }
     // C ref: mkobj.c mksobj() SPE_NOVEL case:
@@ -872,12 +872,12 @@ function mksobj_postinit(obj) {
     }
     // Statue/figurine: if corpsenm not set, assign one
     // C ref: mkobj.c:1212 — otmp->corpsenm = rndmonnum()
-    if ((od.name === 'statue' || od.name === 'figurine') && obj.corpsenm === -1) {
+    if ((od.oc_name === 'statue' || od.oc_name === 'figurine') && obj.corpsenm === -1) {
         obj.corpsenm = rndmonnum(_levelDepth);
     }
     // Gender assignment for corpse/statue/figurine.
     // C ref: mkobj.c:1215-1219 — store CORPSTAT_* in spe.
-    if (obj.corpsenm >= 0 && (od.name === 'corpse' || od.name === 'statue' || od.name === 'figurine')) {
+    if (obj.corpsenm >= 0 && (od.oc_name === 'corpse' || od.oc_name === 'statue' || od.oc_name === 'figurine')) {
         const ptr = mons[obj.corpsenm];
         const isNeuter = !!(ptr.mflags2 & M2_NEUTER);
         const isFemale = !!(ptr.mflags2 & M2_FEMALE);
@@ -905,7 +905,7 @@ function mksobj_postinit(obj) {
 // skipErosion: if true, skip mkobj_erosions (for ini_inv items)
 export function mksobj(otyp, init, artif, skipErosion) {
     if (otyp < 0 || otyp >= NUM_OBJECTS) otyp = 0;
-    const nm = objectData[otyp]?.name;
+    const nm = objectData[otyp]?.oc_name;
     if (nm === 'tin' || nm === 'egg' || nm === 'corpse') {
         mkobjTrace(`mksobj create otyp=${otyp} name=${nm} init=${init ? 1 : 0} artif=${artif ? 1 : 0} call=${getRngCallCount()}`);
     }
@@ -1046,7 +1046,7 @@ export function mkcorpstat(objtype, ptr_mndx, init, x = 0, y = 0, map = null, op
             const old_corpsenm = otmp.corpsenm;
             otmp.corpsenm = ptr_mndx;
             otmp.owt = weight(otmp);
-            if (objectData[otmp.otyp]?.name === 'corpse'
+            if (objectData[otmp.otyp]?.oc_name === 'corpse'
                 && (!!opts.zombify
                     || special_corpse(old_corpsenm)
                     || special_corpse(ptr_mndx))) {
@@ -1196,22 +1196,22 @@ const QUIVER_IN_QUIVER_TYPES = new Set([ARROW, ELVEN_ARROW, ORCISH_ARROW, YA, CR
 function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
     const od = objectData[obj.otyp];
     const nameKnown = isObjectNameKnown(obj.otyp) || !!known;
-    let base = od.name;
+    let base = od.oc_name;
     switch (obj.oclass) {
     case RING_CLASS:
         base = !dknown ? 'ring'
-            : nameKnown ? `ring of ${od.name}`
-                : `${od.desc || od.name} ring`;
+            : nameKnown ? `ring of ${od.oc_name}`
+                : `${od.oc_descr || od.oc_name} ring`;
         break;
     case AMULET_CLASS:
         base = !dknown ? 'amulet'
-            : nameKnown ? od.name
-                : `${od.desc || od.name} amulet`;
+            : nameKnown ? od.oc_name
+                : `${od.oc_descr || od.oc_name} amulet`;
         break;
     case POTION_CLASS:
         base = !dknown ? 'potion'
-            : nameKnown ? `potion of ${od.name}`
-                : `${od.desc || od.name} potion`;
+            : nameKnown ? `potion of ${od.oc_name}`
+                : `${od.oc_descr || od.oc_name} potion`;
         if (dknown && obj.odiluted) {
             base = `diluted ${base}`;
         }
@@ -1222,50 +1222,50 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
         break;
     case SCROLL_CLASS:
         if (!dknown) base = 'scroll';
-        else if (nameKnown) base = `scroll of ${od.name}`;
-        else if (od.magic) base = `scroll labeled ${od.desc || od.name}`;
-        else base = `${od.desc || od.name} scroll`;
+        else if (nameKnown) base = `scroll of ${od.oc_name}`;
+        else if (od.magic) base = `scroll labeled ${od.oc_descr || od.oc_name}`;
+        else base = `${od.oc_descr || od.oc_name} scroll`;
         break;
     case SPBOOK_CLASS:
         base = !dknown ? 'spellbook'
             : nameKnown ? (obj.otyp === SPE_BOOK_OF_THE_DEAD
-                ? od.name
-                : `spellbook of ${od.name}`)
-                : `${od.desc || od.name} spellbook`;
+                ? od.oc_name
+                : `spellbook of ${od.oc_name}`)
+                : `${od.oc_descr || od.oc_name} spellbook`;
         break;
     case WAND_CLASS:
         if (!dknown) base = 'wand';
-        else if (nameKnown) base = `wand of ${od.name}`;
-        else if (od.desc) base = `${od.desc} wand`;
-        else base = `wand of ${od.name}`;
+        else if (nameKnown) base = `wand of ${od.oc_name}`;
+        else if (od.oc_descr) base = `${od.oc_descr} wand`;
+        else base = `wand of ${od.oc_name}`;
         break;
     case WEAPON_CLASS:
         // C ref: objnam.c xname() WEAPON_CLASS falls through to TOOL_CLASS.
         // Unidentified weapons show appearance (desc) instead of actual name.
-        if (!dknown) base = od.desc || od.name;
-        else if (nameKnown) base = od.name;
-        else base = od.desc || od.name;
+        if (!dknown) base = od.oc_descr || od.oc_name;
+        else if (nameKnown) base = od.oc_name;
+        else base = od.oc_descr || od.oc_name;
         break;
     case TOOL_CLASS:
         // C ref: objnam.c xname() — lenses get "pair of ".
         if (obj.otyp === LENSES) {
             base = `pair of ${dknown
-                ? (nameKnown ? od.name : (od.desc || od.name))
-                : (od.desc || od.name)}`;
+                ? (nameKnown ? od.oc_name : (od.oc_descr || od.oc_name))
+                : (od.oc_descr || od.oc_name)}`;
         } else {
             base = dknown
-                ? (nameKnown ? od.name : (od.desc || od.name))
-                : (od.desc || od.name);
+                ? (nameKnown ? od.oc_name : (od.oc_descr || od.oc_name))
+                : (od.oc_descr || od.oc_name);
         }
         break;
     case ARMOR_CLASS:
         // C ref: objnam.c xname() armor handling.
         if (obj.otyp >= GRAY_DRAGON_SCALES && obj.otyp <= YELLOW_DRAGON_SCALES) {
-            base = `set of ${od.name}`;
+            base = `set of ${od.oc_name}`;
         } else if (od.sub === ARM_BOOTS || od.sub === ARM_GLOVES) {
             base = `pair of ${dknown
-                ? (nameKnown ? od.name : (od.desc || od.name))
-                : (od.desc || od.name)}`;
+                ? (nameKnown ? od.oc_name : (od.oc_descr || od.oc_name))
+                : (od.oc_descr || od.oc_name)}`;
         } else if (!dknown && od.sub === ARM_SHIELD) {
             // C ref: objnam.c xname() unknown shield special-cases.
             if (obj.otyp >= ELVEN_SHIELD && obj.otyp <= ORCISH_SHIELD) {
@@ -1273,20 +1273,20 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
             } else if (obj.otyp === SHIELD_OF_REFLECTION) {
                 base = 'smooth shield';
             } else {
-                base = od.desc || od.name;
+                base = od.oc_descr || od.oc_name;
             }
         } else {
             base = dknown
-                ? (nameKnown ? od.name : (od.desc || od.name))
-                : (od.desc || od.name);
+                ? (nameKnown ? od.oc_name : (od.oc_descr || od.oc_name))
+                : (od.oc_descr || od.oc_name);
         }
         break;
     case WEAPON_CLASS:
         // C ref: objnam.c xname() uses oc_descr for dknown-but-undiscovered weapons.
-        if (dknown && !nameKnown && od.desc) {
-            base = od.desc;
+        if (dknown && !nameKnown && od.oc_descr) {
+            base = od.oc_descr;
         } else {
-            base = od.name;
+            base = od.oc_name;
         }
         break;
     case FOOD_CLASS:
@@ -1308,7 +1308,7 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
             }
             // else: empty/unknown tin — just "tin"
         } else {
-            base = od.name;
+            base = od.oc_name;
         }
         break;
     default:
@@ -1321,10 +1321,10 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
             if (monName) {
                 base = `statue of ${just_an(monName)} ${monName}`;
             } else {
-                base = od.name;
+                base = od.oc_name;
             }
         } else {
-            base = od.name;
+            base = od.oc_name;
         }
         break;
     }
