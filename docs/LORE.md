@@ -2924,3 +2924,33 @@ hard-won wisdom:
     mismatch at step `231`; RNG/events 100%).
   - `scripts/run-and-report.sh --failures` unchanged (`27/34` gameplay passing,
     same 7 failing sessions).
+
+### domove locked-door bump now routes through autounlock pick path (2026-03-06)
+
+- Root cause:
+  - JS `domove_core()` hard-returned on locked doors with `"This door is locked."`.
+  - C movement path (`test_move()` -> `doopen_indir()`) can trigger autounlock
+    (`autokey()` + `pick_lock()`) during movement bumps.
+- Fix:
+  - `js/hack.js` now uses gameplay option flags (`game.flags`) to gate locked-door
+    autoopen path and invokes `autokey(...)/pick_lock(...)` for apply-key
+    autounlock during movement bumps.
+- Validation:
+  - No failing-session count regression in `scripts/run-and-report.sh`
+    (`27/34` gameplay passing, same 7 failing sessions).
+
+### trap visibility ordering fix for stepped arrow/dart traps (2026-03-06)
+
+- Root cause:
+  - In `domove_core()` stepped-trap handling, JS set `trap.tseen = true` before
+    arrow/dart `once && tseen && rn2(15)` logic.
+  - C `trapeffect_arrow_trap/_dart_trap` checks `trap->tseen` before `seetrap()`.
+    Using updated `tseen` in JS could add a premature `rn2(15)` on first seen triggers.
+- Fix:
+  - `applySteppedTrap()` now captures `wasSeen` before discovery updates and uses
+    `wasSeen` for the arrow/dart `once` click-away gate.
+- Validation:
+  - `seed032_manual_direct` advanced materially:
+    first RNG/event divergence moved from step `43` to step `48`
+    (`rng matched 4902 -> 5081`, `events matched 1507 -> 1548`).
+  - `scripts/run-and-report.sh` remains stable at `27/34` gameplay passing.

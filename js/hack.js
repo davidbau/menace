@@ -68,6 +68,7 @@ import { intemple } from './priest.js';
 import { t_missile, seetrap, conjoined_pits, adj_nonconjoined_pit, into_vs_onto,
        } from './trap.js';
 import { envFlag } from './runtime_env.js';
+import { autokey, pick_lock } from './lock.js';
 
 function runTraceEnabled() {
     return envFlag('WEBHACK_RUN_TRACE');
@@ -155,6 +156,14 @@ function ensure_context(game) {
     if (!Number.isInteger(ctx.door_opened)) ctx.door_opened = 0;
     if (!Number.isInteger(ctx.move)) ctx.move = 0;
     return ctx;
+}
+
+function autounlock_has_action(flags, action) {
+    const raw = String(flags?.autounlock ?? '').trim();
+    if (raw === 'none') return false;
+    if (!raw) return action === 'apply-key';
+    const parts = raw.split(/[,\s]+/).map((p) => p.trim()).filter(Boolean);
+    return parts.includes(action);
 }
 
 function has_forcefight_prefix(game, ctx) {
@@ -798,7 +807,24 @@ export async function domove_core(dir, player, map, display, game) {
     // D_LOCKED (8) implies closed but uses a distinct bit from D_CLOSED (4).
     if (loc && IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED))) {
         if (loc.flags & D_LOCKED) {
-            // C ref: hack.c domove() — locked doors produce a message, no RNG.
+            // C ref: hack.c test_move()->doopen_indir(): with autoopen enabled,
+            // bumping a locked door prints "This door is locked." and may
+            // autounlock via key/pick/card.
+            const flags = game?.flags || map?.flags || {};
+            if (flags.autoopen && !ctx.run && !player.confused && !player.stunned && !player.fumbling) {
+                await pline("This door is locked.");
+                if (autounlock_has_action(flags, 'apply-key')) {
+                    const unlocktool = autokey(player, true);
+                    if (unlocktool) {
+                        const res = await pick_lock(game, unlocktool, nx, ny, null);
+                        return { moved: false, tookTime: res !== 0 };
+                    }
+                }
+                return { moved: false, tookTime: false };
+            }
+            // Without autoopen path, C movement prints "That door is closed."
+            // (or bump text for low dexterity/stunned/blind); keep existing
+            // locked-door wording for now for branch-local parity.
             await pline("This door is locked.");
             return { moved: false, tookTime: false };
         }
@@ -880,6 +906,7 @@ export async function domove_core(dir, player, map, display, game) {
 
     async function applySteppedTrap(trap) {
         if (!trap) return null;
+        const wasSeen = !!trap.tseen;
         // C ref: trap.c seetrap() — mark trap as discovered
         if (!trap.tseen) {
             trap.tseen = true;
@@ -891,7 +918,10 @@ export async function domove_core(dir, player, map, display, game) {
         // C ref: trap.c trapeffect_arrow_trap()/trapeffect_dart_trap()
         // Hero branch in dotrap().
         if (trap.ttyp === ARROW_TRAP || trap.ttyp === DART_TRAP) {
-            if (trap.once && trap.tseen && !rn2(15)) {
+            // C ref: trap.c checks trap->once && trap->tseen before calling
+            // seetrap(); use pre-step visibility (wasSeen), not the updated
+            // trap.tseen we just set above for awareness propagation.
+            if (trap.once && wasSeen && !rn2(15)) {
                 await You_hear(trap.ttyp === ARROW_TRAP ? 'a loud click!' : 'a soft click.');
                 deltrap(map, trap);
                 newsym(player.x, player.y);
