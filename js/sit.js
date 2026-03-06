@@ -11,7 +11,7 @@ import { ROOM, THRONE, SINK, ALTAR, GRAVE, STAIRS, LADDER,
          FAST, STEALTH, PROTECTION, AGGRAVATE_MONSTER,
          isok, W_SADDLE,
          TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL,
-         S_DRAGON } from './const.js';
+         PIT, SPIKED_PIT, S_DRAGON } from './const.js';
 import { COIN_CLASS, SADDLE } from './objects.js';
 import { pline, You, Your, You_feel, You_cant, pline_The,
          verbalize } from './pline.js';
@@ -398,7 +398,7 @@ export async function dosit(player, map, display) {
 
     // Check for objects on the tile
     const objs = map.objectsAt ? map.objectsAt(px, py) : [];
-    if (objs.length > 0 && !(trap && (trap.ttyp === 7 || trap.ttyp === 8))) {
+    if (objs.length > 0 && !(trap && (trap.ttyp === PIT || trap.ttyp === SPIKED_PIT))) {
         // Not teetering at a pit — sit on objects
         const obj = objs[0]; // top object
         if (playerType.mlet === S_DRAGON && obj.oclass === COIN_CLASS) {
@@ -421,7 +421,7 @@ export async function dosit(player, map, display) {
                 await You_cant("sit down with your foot in the bear trap.");
                 player.utrap++;
             } else if (player.utraptype === TT_PIT) { // TT_PIT
-                if (trap && trap.ttyp === 8) { // SPIKED_PIT
+                if (trap && trap.ttyp === SPIKED_PIT) {
                     await You("sit down on a spike.  Ouch!");
                     // RNG parity: rn2(2) for half phys damage
                     const dmg = player.half_physical_damage ? rn2(2) : 1;

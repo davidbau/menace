@@ -57,7 +57,7 @@ import { look_here, dfeature_at } from './invent.js';
 import { maybe_unhide_at } from './mon.js';
 import { safe_teleds } from './teleport.js';
 import { TELEDS_ALLOW_DRAG, TELEDS_TELEPORT } from './const.js';
-import { TT_PIT } from './const.js';
+import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP } from './const.js';
 import { MZ_LARGE, PM_GRID_BUG, PM_ANGEL, G_UNIQ, AT_WEAP } from './monsters.js';
 import { stackobj } from './invent.js';
 import { thitu } from './mthrowu.js';
@@ -3074,10 +3074,10 @@ export async function handle_tip(tip, player, display) {
 export async function trapmove(player, x, y, display, map = null) {
     if (!player.utrap) return true;
     const ttyp = player.utraptype;
-    const isBear = (ttyp === 'beartrap' || ttyp === 0 || ttyp === 2);
-    const isPitTrap = (ttyp === 'pit' || ttyp === 1);
-    const isWebTrap = (ttyp === 'web' || ttyp === 3 || ttyp === 6);
-    const isLavaTrap = (ttyp === 'lava' || ttyp === 4);
+    const isBear = (ttyp === TT_BEARTRAP);
+    const isPitTrap = (ttyp === TT_PIT);
+    const isWebTrap = (ttyp === TT_WEB);
+    const isLavaTrap = (ttyp === TT_LAVA);
     const desttrap = map?.trapAt ? map.trapAt(x, y) : null;
 
     if (isBear) {

@@ -6,7 +6,7 @@
 import { rn2, rnd, rn1 } from './rng.js';
 import { pline, You, You_feel, verbalize } from './pline.js';
 import { makemon } from './makemon.js';
-import { NO_MM_FLAGS, RLOC_MSG, BOLT_LIM } from './const.js';
+import { NO_MM_FLAGS, RLOC_MSG, BOLT_LIM, MAGIC_PORTAL } from './const.js';
 import { mksobj, doname, add_to_minv } from './mkobj.js';
 import {
     AMULET_OF_YENDOR, FAKE_AMULET_OF_YENDOR,
@@ -396,8 +396,7 @@ export async function amulet(map, player, display) {
     if (amu && !rn2(15)) {
         // Search for magic portal traps and give proximity hints
         for (const ttmp of map.traps || []) {
-            // MAGIC_PORTAL = 28 (from const.js)
-            if (ttmp.ttyp === 28) {
+            if (ttmp.ttyp === MAGIC_PORTAL) {
                 const tx = ttmp.tx !== undefined ? ttmp.tx : ttmp.x;
                 const ty = ttmp.ty !== undefined ? ttmp.ty : ttmp.y;
                 const du = distu(player, tx, ty);
