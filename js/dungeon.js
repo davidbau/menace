@@ -4418,7 +4418,8 @@ export function mineralize(map, depth, opts = null) {
                 continue;
             }
             // C ref: mklev.c:1496-1503 — check W_NONDIGGABLE and all 8 neighbors
-            if (!process.env.DEBUG_SKIP_NONDIG && loc.nondiggable) { if (DEBUG) { debug_nondig++; } continue; }
+            const skipNondigDebug = (typeof process !== 'undefined' && process?.env?.DEBUG_SKIP_NONDIG);
+            if (!skipNondigDebug && loc.nondiggable) { if (DEBUG) { debug_nondig++; } continue; }
             if (map.at(x, y - 1)?.typ !== STONE
                 || map.at(x + 1, y - 1)?.typ !== STONE
                 || map.at(x - 1, y - 1)?.typ !== STONE
