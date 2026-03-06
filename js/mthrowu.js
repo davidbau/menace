@@ -10,7 +10,7 @@
 // - No buzzmu (spell ray) implementation
 
 import { ACCESSIBLE, IS_OBSTRUCTED, IS_DOOR,
-         D_CLOSED, D_LOCKED, IRONBARS, SINK, isok, A_STR } from './const.js';
+         D_CLOSED, D_LOCKED, IRONBARS, SINK, isok, A_STR, BOLT_LIM } from './const.js';
 import { rn2, rnd } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { newexplevel } from './exper.js';
@@ -36,7 +36,7 @@ import {
     mons, AT_WEAP, G_NOCORPSE, AD_ACID, AD_BLND, AD_DRST,
     AD_MAGM, AD_FIRE, AD_COLD, AD_SLEE, AD_DISN, AD_ELEC, MZ_TINY, MZ_HUMAN, MZ_LARGE,
 } from './monsters.js';
-import { distmin, dist2, mondead, BOLT_LIM, flush_screen, canSeeMonsterForMap } from './monutil.js';
+import { distmin, dist2, mondead, flush_screen, canSeeMonsterForMap } from './monutil.js';
 import { add_to_minv } from './monutil.js';
 import { placeFloorObject } from './stackobj.js';
 import { corpse_chance } from './mon.js';

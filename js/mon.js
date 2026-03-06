@@ -26,7 +26,8 @@ import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, ACCESSIBLE,
          ALLOW_DIG, ALLOW_BARS, ALLOW_SANCT, ALLOW_SSM, NOGARLIC,
          XKILL_GIVEMSG, XKILL_NOMSG, XKILL_NOCORPSE, XKILL_NOCONDUCT,
          M_POISONGAS_OK, M_POISONGAS_MINOR, M_POISONGAS_BAD,
-         W_AMUL, W_ARMG, W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMF, W_ARMU, W_WEP } from './const.js';
+         W_AMUL, W_ARMG, W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMF, W_ARMU, W_WEP,
+         BOLT_LIM } from './const.js';
 import { AMULET_OF_LIFE_SAVING, CORPSE } from './objects.js';
 import { which_armor } from './worn.js';
 import { nonliving, resists_ston, resists_fire, resists_poison,
@@ -87,7 +88,7 @@ import { PIT, SPIKED_PIT, HOLE, S_poisoncloud } from './const.js';
 import { m_harmless_trap } from './trap.js';
 import { dist2, distmin, monnear,
          monmoveTrace, monmoveStepLabel,
-         canSpotMonsterForMap, BOLT_LIM } from './monutil.js';
+         canSpotMonsterForMap } from './monutil.js';
 import { monsterAtWithSegments } from './worm.js';
 
 // ========================================================================

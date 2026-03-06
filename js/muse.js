@@ -17,10 +17,11 @@ import { isok, STAIRS, LADDER, SCORR, CORR, ACCESSIBLE,
          is_pit, is_hole,
          IS_FURNITURE, IS_DRAWBRIDGE,
          XKILL_NOMSG, XKILL_NOCONDUCT,
-         W_ARM, W_ARMH, W_ARMS, W_AMUL, W_WEP, W_ARMG } from './const.js';
+         W_ARM, W_ARMH, W_ARMS, W_AMUL, W_WEP, W_ARMG,
+         BOLT_LIM } from './const.js';
 import { rn2, rnd, rn1, d } from './rng.js';
 import { pline, pline_mon, You_hear, verbalize } from './pline.js';
-import { dist2, distmin, BOLT_LIM, mondead, mpickobj, mdrop_obj,
+import { dist2, distmin, mondead, mpickobj, mdrop_obj,
          newsym, map_invisible, monnear, canSpotMonsterForMap } from './monutil.js';
 import { is_animal, is_mindless, nohands, is_mercenary, is_unicorn,
          is_floater, is_flyer, throws_rocks, passes_walls,

@@ -123,7 +123,7 @@ import {
 import { pline, You, Your, You_cant, You_feel, pline_The } from './pline.js';
 import { Monnam, mon_nam } from './do_name.js';
 import { s_suffix } from './hacklib.js';
-import { BOLT_LIM, dist2 } from './monutil.js';
+import { dist2 } from './monutil.js';
 import { killed, wakeup, setmangry } from './mon.js';
 import { mksobj } from './mkobj.js';
 import { were_summon } from './were.js';
@@ -138,6 +138,7 @@ import {
     TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, TT_BEARTRAP,
     ARM, EYE, FACE, FINGER, FINGERTIP, FOOT, HAND, HANDED, HEAD, LEG,
     LIGHT_HEADED, NECK, SPINE, TOE, HAIR, BLOOD, LUNG, NOSE, STOMACH,
+    BOLT_LIM,
 } from './const.js';
 
 // Local helper: cf. C attacktype_fordmg() — find attack with given type and damage type

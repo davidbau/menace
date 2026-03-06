@@ -14,6 +14,7 @@ import {
     MM_NOCOUNTBIRTH, MM_IGNOREWATER, MM_ADJACENTOK, MM_NONAME, MM_MALE,
     MM_FEMALE, MM_EDOG, MM_ASLEEP, MM_NOGRP, MM_NOMSG, MM_NOEXCLAM,
     MM_IGNORELAVA,
+    BOLT_LIM,
 } from './const.js';
 import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC } from './const.js';
 import { couldsee, cansee, getActiveFov } from './vision.js';
@@ -110,7 +111,7 @@ import {
     CORPSE, LARGE_BOX, LUCKSTONE, objectData,
 } from './objects.js';
 import { roles, races, initialAlignmentRecordForRole } from './player.js';
-import { mpickobj, dist2, BOLT_LIM, newsym } from './monutil.js';
+import { mpickobj, dist2, newsym } from './monutil.js';
 import { canseemon, mon_learns_traps } from './mondata.js';
 import { senseMonsterForMap } from './monutil.js';
 import { Amonnam } from './do_name.js';

@@ -391,6 +391,15 @@ export const RUN_KEYS = {
     Y: [-1, -1], U: [1, -1], B: [-1, 1], N: [1, 1],
 };
 
+// Shared monster/pathing distance constants (include/monst.h, include/hack.h, src/dogmove.c)
+// Runtime fields:
+// - monster mtrack ring size and object-search radius in dog/monmove logic
+// - threat range / spell range checks and "far away" distance sentinels
+export const MTSZ = 4;
+export const SQSRCHRADIUS = 5;
+export const FARAWAY = 127;
+export const BOLT_LIM = 8;
+
 // Maximum values
 export const MAXNROFROOMS = 40;
 export const MAXDUNGEON = 16;

@@ -28,7 +28,8 @@
 import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, AM_MASK, AM_SHRINE, AM_CHAOTIC,
          AM_SANCTUM, ALTAR, ROOM, SDOOR, SCORR, isok, Amask2align, Align2amask,
          A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
-         HVY_ENCUMBER, EXT_ENCUMBER, W_SADDLE, TT_NONE, TT_LAVA, TT_BURIEDBALL } from './const.js';
+         HVY_ENCUMBER, EXT_ENCUMBER, W_SADDLE, TT_NONE, TT_LAVA, TT_BURIEDBALL,
+         BOLT_LIM } from './const.js';
 import { roles, godForRoleAlign, isGoddess } from './player.js';
 import { rn2, rnd, rn1, rnl, rnz, d } from './rng.js';
 import { rn2_on_display_rng } from './rng.js';
@@ -70,7 +71,6 @@ import { makemon } from './makemon.js';
 import { weapon_type, unrestrict_weapon_skill, add_weapon_skill } from './weapon.js';
 import { monflee } from './monmove.js';
 import { newsym } from './monutil.js';
-import { BOLT_LIM } from './monutil.js';
 import { couldsee } from './vision.js';
 import { aggravate } from './wizard.js';
 import { spelleffects } from './spell.js';

@@ -6,7 +6,8 @@ import { isok, IS_WALL, CORR, SCORR, ROOM, ICE,
          POOL, MOAT, WATER, LAVAPOOL, LAVAWALL,
          DRAWBRIDGE_UP, DB_UNDER, DB_MOAT, DB_LAVA,
          MAP_ROW_START, COLNO, ROWNO,
-         SEE_INVIS, DETECT_MONSTERS, TELEPAT, INFRAVISION, WARNING, WARN_OF_MON } from './const.js';
+         SEE_INVIS, DETECT_MONSTERS, TELEPAT, INFRAVISION, WARNING, WARN_OF_MON,
+         MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM } from './const.js';
 import { PM_GRID_BUG,
          PM_ANGEL, G_UNIQ,
          AT_BITE, AT_CLAW, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_WEAP,
@@ -28,14 +29,6 @@ import { place_object, stackobj } from './stackobj.js';
 import { SCR_SCARE_MONSTER } from './objects.js';
 import { extract_from_minvent, update_mon_extrinsics } from './worn.js';
 import { worm_known } from './worm.js';
-
-// ========================================================================
-// Constants — C ref: hack.h / monst.h / dogmove.c
-// ========================================================================
-export const MTSZ = 4;           // C ref: monst.h — track history size
-export const SQSRCHRADIUS = 5;   // C ref: dogmove.c — object search radius
-export const FARAWAY = 127;      // C ref: hack.h — large distance sentinel
-export const BOLT_LIM = 8;       // C ref: hack.h BOLT_LIM (threat radius baseline)
 
 // ========================================================================
 // Debug tracing — development-only trace helpers

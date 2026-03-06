@@ -25,7 +25,8 @@ import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          SHOPBASE, ROOM, ROOMOFFSET,
          NORMAL_SPEED, isok, WEB, IS_OBSTRUCTED, IS_STWALL, A_STR,
          IRONBARS, STAIRS, LADDER,
-         INVIS, DISPLACED } from './const.js';
+         INVIS, DISPLACED,
+         MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM } from './const.js';
 import { rn2, rnd, d, c_d, pushRngLogEntry } from './rng.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED } from './const.js';
 import { wipe_engr_at } from './engrave.js';
@@ -80,8 +81,7 @@ import { dist2, distmin, monnear,
          canSpotMonsterForMap, map_invisible, newsym,
          addToMonsterInventory, canMergeMonsterInventoryObj,
          mondead, mpickobj, mdrop_obj, unstuck,
-         helpless,
-         MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM } from './monutil.js';
+         helpless } from './monutil.js';
 export { dist2, distmin, monnear, monmoveTrace, monmovePhase3Trace, monmoveStepLabel, attackVerb, monAttackName, canSpotMonsterForMap, map_invisible, addToMonsterInventory, canMergeMonsterInventoryObj, mondead, mpickobj, mdrop_obj, MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM };
 
 // Re-export track functions (track.c)
