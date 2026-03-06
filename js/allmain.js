@@ -27,11 +27,12 @@ import { were_change } from './were.js';
 import { allocateMonsterMovement } from './mon.js';
 import { rn2, rnd, rn1, initRng, getRngState, setRngState, getRngCallCount, setRngCallCount,
          enableRngLog, getRngLog as readRngLog, pushRngLogEntry } from './rng.js';
-import { A_DEX, A_CON, ROOMOFFSET, SHOPBASE,
+import { A_STR, A_DEX, A_CON, A_INT, A_WIS, ROOMOFFSET, SHOPBASE,
          COLNO, ROWNO, A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
-         FEMALE, MALE, TERMINAL_COLS,
+         FEMALE, MALE, TERMINAL_COLS, MAXULEV,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
-         SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER } from './const.js';
+         SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER,
+         PM_WIZARD } from './const.js';
 import { ageSpells } from './spell.js';
 import { wipe_engr_at } from './engrave.js';
 import { dosearch0 } from './detect.js';
@@ -60,7 +61,7 @@ import { initFirstLevel } from './u_init.js';
 import { movebubbles } from './mkmaze.js';
 import { initAnimation, configureAnimation, setAnimationMode } from './animation.js';
 import { phase_of_the_moon, friday_13th } from './calendar.js';
-import { change_luck } from './attrib.js';
+import { change_luck, acurr } from './attrib.js';
 import { dosounds } from './sounds.js';
 import { find_ac } from './do_wear.js';
 
@@ -282,6 +283,42 @@ export async function moveloop_turnend(game) {
 
     // C ref: allmain.c:295-301 — regen_hp(mvl_wtcap)
     await regen_hp(game);
+
+    // C ref: allmain.c:297-301 — overexert_hp when encumbered and moving
+    {
+        const p = (game.u || game.player);
+        const wtcap = near_capacity(p);
+        if (wtcap > MOD_ENCUMBER && p.umoved) {
+            const moves = game.turnCount + 1;
+            if (!(wtcap < EXT_ENCUMBER ? moves % 30 : moves % 10)) {
+                await overexert_hp(game);
+            }
+        }
+    }
+
+    // C ref: allmain.c:304 — regen_pw(mvl_wtcap)
+    regen_pw_turnend(game);
+
+    // C ref: allmain.c:306-338 — Teleportation/Polymorph/Lycanthropy checks
+    {
+        const p = (game.u || game.player);
+        if (!p.uinvulnerable) {
+            if (p.Teleportation && !rn2(85)) {
+                // tele() — full teleportation not ported; consume RNG only
+                // TODO: wire tele() when available
+            }
+            if (p.Polymorph && !rn2(100)) {
+                // polyself() — full polymorph not ported; consume RNG only
+                // TODO: wire polyself() when available
+            } else if (p.ulycn != null && p.ulycn >= 0 && !p.Upolyd) {
+                const nightBonus = 0; // TODO: night() not ported
+                if (!rn2(80 - (20 * nightBonus))) {
+                    // you_were() — lycanthropy not ported; consume RNG only
+                    // TODO: wire you_were() when available
+                }
+            }
+        }
+    }
 
     // C ref: allmain.c:341-343 — autosearch for players with Searching
     // intrinsic (Archeologists/Rangers at level 1, Rogues at 10, etc.)
@@ -792,6 +829,42 @@ async function regen_hp(game) {
                     }
                 }
             }
+        }
+    }
+}
+
+// C ref: hack.c:3015 — overexert_hp(): lose 1 HP when moving while encumbered
+async function overexert_hp(game) {
+    const player = (game.u || game.player);
+    if (player.uhp > 1) {
+        player.uhp -= 1;
+    } else {
+        await pline('You pass out from exertion!');
+        exercise(player, A_CON, false);
+        // fall_asleep(-10, false) — sleep timeout not fully ported
+        // TODO: wire fall_asleep when available
+    }
+}
+
+// C ref: allmain.c:598 — regen_pw(wtcap): regenerate power (mana) each turn
+// Fires every ((MAXULEV+8-ulevel) * (wizard?3:4) / 6) turns when unencumbered.
+function regen_pw_turnend(game) {
+    const player = (game.u || game.player);
+    const moves = game.turnCount + 1; // svm.moves equivalent
+    if (player.uen == null || player.uenmax == null) return; // pw not initialized
+    if (player.uen < player.uenmax) {
+        const wtcap = near_capacity(player);
+        const isWizard = (player.roleIndex === PM_WIZARD);
+        const interval = Math.floor((MAXULEV + 8 - (player.ulevel || 1))
+                                    * (isWizard ? 3 : 4) / 6);
+        const energyRegen = player.Energy_regeneration || false;
+        if ((wtcap < MOD_ENCUMBER && interval > 0 && !(moves % interval))
+            || energyRegen) {
+            const upper = Math.floor(
+                (acurr(player, A_WIS) + acurr(player, A_INT)) / 15) + 1;
+            player.uen += rn1(upper, 1);
+            if (player.uen > player.uenmax)
+                player.uen = player.uenmax;
         }
     }
 }
