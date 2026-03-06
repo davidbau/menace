@@ -533,18 +533,6 @@ export async function run_command(game, ch, opts = {}) {
     // command.  This handles --More-- for turns where nhgetch is not
     // called (normal combat/movement turns without prompts).
     if (game.display && game.display._pendingMore) {
-        // C ref: tty xwaitforspace()/dismiss_more only accepts specific keys
-        // while "--More--" is pending; other keys are ignored (with a beep).
-        const isMoreDismissKey = (code) => (
-            code === 10     // '\n'
-            || code === 13  // '\r'
-            || code === 27  // ESC
-            || code === 32  // space
-            || code === 16  // ^P
-        );
-        if (!isMoreDismissKey(chCode)) {
-            return { tookTime: false };
-        }
         game.display._clearMore();
         if (game._pendingDeferredTurnAfterMore) {
             if ((game.u || game.player)?.utotype) {

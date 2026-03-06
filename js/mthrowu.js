@@ -889,7 +889,7 @@ export function hasWeaponAttack(mon) {
 // C ref: monmove.c:853-860 — dochug weapon wielding gate
 // Called from monmove.js before melee attacks. Uses mon_wield_item for
 // proper weapon AI (select_hwep priority list) instead of first-item scan.
-export async function maybeMonsterWieldBeforeAttack(mon, map, player, display, fov, nearby = true) {
+export async function maybeMonsterWieldBeforeAttack(mon, player, display, fov, nearby = true) {
     if (!hasWeaponAttack(mon)) return false;
     // Keep legacy behavior for monsters that start unarmed in JS fixtures.
     // C equivalent checks weapon_check state; JS tests also rely on
@@ -903,7 +903,8 @@ export async function maybeMonsterWieldBeforeAttack(mon, map, player, display, f
     if (mon_wield_item(mon) !== 0) {
         // Wielding took monster's turn — show message if visible
         if (mon.weapon && mon.weapon !== oldWeapon) {
-            const visible = canSeeMonsterForMap(mon, map, player, fov);
+            const visible = !fov?.canSee || (fov.canSee(mon.mx, mon.my)
+                && !player?.blind && !mon.minvis);
             if (display && visible) {
                 await display.putstr_message(`The ${x_monnam(mon)} wields ${thrownObjectName(mon.weapon, player)}!`);
             }

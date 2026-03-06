@@ -1246,7 +1246,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
         && dist2(mon.mx, mon.my, targetX, targetY) <= 8
         && hasWeaponAttack(mon)
         && !scaredNow) {
-        if (await maybeMonsterWieldBeforeAttack(mon, map, player, display, fov, nearby)) {
+        if (await maybeMonsterWieldBeforeAttack(mon, player, display, fov, nearby)) {
             return;
         }
     }
@@ -1369,7 +1369,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 // !phase3Cond: monster never entered movement (was already adjacent).
                 // !mmoved: monster entered movement but didn't actually move.
                 if (!phase3Cond || !mmoved) {
-                    if (await maybeMonsterWieldBeforeAttack(mon, map, player, display, fov, true)) {
+                    if (await maybeMonsterWieldBeforeAttack(mon, player, display, fov, true)) {
                         return;
                     }
                     await mattacku(mon, player, display, game, { map });
@@ -1500,7 +1500,7 @@ async function maybeMonsterPickStuff(mon, map, player, display, fov) {
 // C ref: monmove.c:1124 — m_digweapon_check()
 // Returns TRUE if the monster switched weapons (costs the move, no dig this turn).
 // Called BEFORE moving when ALLOW_DIG is set, to let monster wield its pick first.
-async function m_digweapon_check(mon, nix, niy, map, player, display = null, fov = null) {
+async function m_digweapon_check(mon, nix, niy, map, player, display, fov) {
     const ptr = mon.data || mon.type || mons[mon.mndx] || {};
     if (!tunnels(ptr) || !needspick(ptr)) return false;
     const mw_tmp = mon.weapon || null;
@@ -1519,16 +1519,16 @@ async function m_digweapon_check(mon, nix, niy, map, player, display = null, fov
         if (!mw_tmp || (mw_tmp.otyp !== PICK_AXE && mw_tmp.otyp !== DWARVISH_MATTOCK))
             mon.weapon_check = NEED_PICK_AXE;
     }
-    if ((mon.weapon_check ?? 0) >= NEED_PICK_AXE) {
-        const oldWeapon = mon.weapon || null;
-        if (mon_wield_item(mon) !== 0) {
-            // C ref: weapon.c mon_wield_item() prints a visible wield message.
-            if (display && mon.weapon && mon.weapon !== oldWeapon
-                && canSpotMonsterForMap(mon, map, player, fov)) {
+    const oldWeapon = mon.weapon;
+    if ((mon.weapon_check ?? 0) >= NEED_PICK_AXE && mon_wield_item(mon) !== 0) {
+        if (display && mon.weapon && mon.weapon !== oldWeapon) {
+            const visible = !fov?.canSee || (fov.canSee(mon.mx, mon.my)
+                && !player?.blind && !mon.minvis);
+            if (visible) {
                 await display.putstr_message(`${Monnam(mon)} wields ${doname(mon.weapon, player)}.`);
             }
-            return true;
         }
+        return true;
     }
     return false;
 }
@@ -1770,8 +1770,7 @@ async function m_move(mon, map, player, display = null, fov = null) {
     if (nix !== omx || niy !== omy) {
         // C ref: monmove.c:2026 — m_digweapon_check: if tunneling monster needs to wield
         // its pick before digging, it wields it and returns MMOVE_DONE (no movement this turn).
-        if ((allowflags & ALLOW_DIG)
-            && await m_digweapon_check(mon, nix, niy, map, player, display, fov))
+        if ((allowflags & ALLOW_DIG) && await m_digweapon_check(mon, nix, niy, map, player, display, fov))
             return MMOVE_DONE;
 
         // C ref: monmove.c:2065 — mon_track_add(mtmp, omx, omy)
