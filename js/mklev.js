@@ -75,7 +75,7 @@ export function mkroom_cmp(vx, vy) {
   x =  vx;
   y =  vy;
   if (x.lx < y.lx) return -1;
-  return (x.lx > y.lx);
+  return (x.lx > y.lx) ? 1 : 0;
 }
 
 // C ref: mklev.c sort_rooms()
