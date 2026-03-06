@@ -3,7 +3,7 @@
 
 import { rn2, rnd, rn1 } from './rng.js';
 import {
-    isok, A_WIS, A_DEX, A_CHA, W_SADDLE, PM_KNIGHT,
+    isok, A_WIS, A_DEX, A_CHA, W_SADDLE, PM_KNIGHT, ROOM, CORR,
     DISMOUNT_BYCHOICE, DISMOUNT_THROWN, DISMOUNT_KNOCKED, DISMOUNT_FELL,
     DISMOUNT_POLY, DISMOUNT_ENGULFED, DISMOUNT_BONES, DISMOUNT_GENERIC,
 } from './const.js';
@@ -323,7 +323,7 @@ function landing_spot(player, map, reason) {
         // Check accessible and not occupied by monster
         // Simplified: check that it's a walkable tile
         const typ = loc.typ;
-        if (typ >= 25 /* ROOM */ || typ === 7 /* CORR */) {
+        if (typ >= ROOM || typ === CORR) {
             if (!map.monsterAt(nx, ny)) {
                 return { x: nx, y: ny };
             }

@@ -58,6 +58,7 @@ import {
     PM_GHOST, PM_WRAITH,
     PM_OGRE_TYRANT, PM_ELVEN_MONARCH, PM_DWARF_RULER, PM_GNOME_RULER,
     M2_PRINCE, M2_LORD, M2_DEMON, M2_HOSTILE, M2_PEACEFUL,
+    MS_LEADER,
 } from './monsters.js';
 import { init_objects, setgemprobs } from './o_init.js';
 import { roles } from './player.js';
@@ -3448,7 +3449,7 @@ function set_malign(mtmp) {
     // C: priest/minion alignment checks — skipped (not relevant for zoo monsters)
     // Player alignment assumed A_NEUTRAL for level gen context
     const coaligned = (Math.sign(mal) === Math.sign(0));
-    if (mtmp.data.msound === 12 /* MS_LEADER */) {
+    if (mtmp.data.msound === MS_LEADER) {
         mtmp.malign = -20;
     } else if (mal === A_NONE) {
         mtmp.malign = mtmp.mpeaceful ? 0 : 20;

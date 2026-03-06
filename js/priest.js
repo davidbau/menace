@@ -15,7 +15,7 @@ import { rn2, rnd, rn1, d, c_d } from './rng.js';
 import { pline, pline_The, verbalize, You, Your, You_feel,
          livelog_printf } from './pline.js';
 import { mons, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC, PM_ANGEL,
-         PM_GHOST } from './monsters.js';
+         PM_GHOST, MS_LEADER } from './monsters.js';
 import { mon_nam, Monnam, mon_pmname, rndmonnam, hcolor } from './do_name.js';
 import { is_minion, is_rider, canseemon, mon_learns_traps } from './mondata.js';
 import { newsym } from './display.js';
@@ -267,7 +267,7 @@ function set_malign(mtmp) {
     if (!mtmp) return;
     const data = mtmp.type || mtmp.data || {};
     let mal = data.maligntyp || 0;
-    if (data.msound === 12 /* MS_LEADER */) {
+    if (data.msound === MS_LEADER) {
         mtmp.malign = -20;
     } else if (mal === A_NONE) {
         mtmp.malign = mtmp.mpeaceful ? 0 : 20;

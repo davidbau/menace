@@ -58,7 +58,7 @@ import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons,
          PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN,
          PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS,
          PM_HEZROU, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER,
-         AT_WEAP,
+         AT_WEAP, AT_BREA, AT_SPIT,
          S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL,
          S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN,
          M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID,
@@ -2077,7 +2077,7 @@ export function m_balks_at_approaching(oldappr, mon, player) {
 
     // Has ranged attack capability and is low on HP — avoid
     const hasRanged = (mdat.mattk || []).some(a =>
-        a && (a.aatyp === 11 /* AT_BREA */ || a.aatyp === 12 /* AT_SPIT */));
+        a && (a.aatyp === AT_BREA || a.aatyp === AT_SPIT));
     if (hasRanged && ((mon.mhp || 0) < ((mon.mhpmax || 1) + 1) / 3 || !mon.mspec_used))
         return -1; // retreat
 

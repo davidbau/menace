@@ -5,7 +5,7 @@
 import { rn2, rn1 } from './rng.js';
 import {
     ROOMOFFSET, SHOPBASE, COURT, BEEHIVE, MORGUE, BARRACKS, ZOO,
-    TEMPLE, LEPREHALL,
+    TEMPLE, LEPREHALL, FULL_MOON,
 } from './const.js';
 import {
     MS_SILENT, MS_BARK, MS_MEW, MS_ROAR, MS_BELLOW, MS_GROWL, MS_SQEEK,
@@ -750,7 +750,7 @@ export async function domonnoise(mtmp, game) {
         break;
     }
     case MS_WERE:
-        if (game.flags?.moonphase === 2 /* FULL_MOON */
+        if (game.flags?.moonphase === FULL_MOON
             && (night() ^ !rn2(13))) {
             const howl = (ptr === mons[PM_HUMAN_WERERAT])
                 ? 'shriek' : 'howl';

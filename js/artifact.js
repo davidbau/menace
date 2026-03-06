@@ -29,7 +29,9 @@ import {
   mons,
 } from './monsters.js';
 import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP,
-         CONFLICT, LEVITATION, INVIS, W_ARM,
+         CONFLICT, LEVITATION, INVIS, W_ARM, PROTECTION,
+         STEALTH, REGENERATION, TELEPORT_CONTROL,
+         ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING,
          ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT,
          ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI,
        } from './const.js';
@@ -289,7 +291,7 @@ export function defends_when_carried(adtyp, otmp) {
 
 // cf. artifact.c:698 — protects(otmp, being_worn)
 export function protects(otmp, being_worn) {
-  if (being_worn && objectData[otmp.otyp] && objectData[otmp.otyp].oc_oprop === 22 /* PROTECTION */) {
+  if (being_worn && objectData[otmp.otyp] && objectData[otmp.otyp].oc_oprop === PROTECTION) {
     return true;
   }
   const arti = get_artifact(otmp);
@@ -727,14 +729,14 @@ export async function set_artifact_intrinsic(otmp, on, wp_mask, player) {
   const spfxMap = [
     [SPFX_SEARCH, 31],  // SEARCHING
     [SPFX_ESP,    49],  // TELEPAT
-    [SPFX_STLTH,  39],  // STEALTH
-    [SPFX_REGEN,  48],  // REGENERATION
-    [SPFX_TCTRL,  35],  // TELEPORT_CONTROL
-    [SPFX_EREGEN, 45],  // ENERGY_REGENERATION
-    [SPFX_HSPDAM, 46],  // HALF_SPDAM
-    [SPFX_HPHDAM, 47],  // HALF_PHDAM
-    [SPFX_PROTECT,42],  // PROTECTION
-    [SPFX_REFLECT,60],  // REFLECTING (only for W_WEP)
+    [SPFX_STLTH,  STEALTH],
+    [SPFX_REGEN,  REGENERATION],
+    [SPFX_TCTRL,  TELEPORT_CONTROL],
+    [SPFX_EREGEN, ENERGY_REGENERATION],
+    [SPFX_HSPDAM, HALF_SPDAM],
+    [SPFX_HPHDAM, HALF_PHDAM],
+    [SPFX_PROTECT,PROTECTION],
+    [SPFX_REFLECT,REFLECTING],  // only for W_WEP
   ];
 
   for (const [bit, prop] of spfxMap) {
