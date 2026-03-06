@@ -2514,3 +2514,23 @@ hard-won wisdom:
   - `node scripts/test-unit-core.mjs` passes.
   - targeted gameplay seeds (`seed325`, `seed327`) remain at same first
     divergence points; no measured parity shift yet from this closure.
+
+### mfndpos tame ALLOW_M semantics fixed for occupied peaceful squares (2026-03-06)
+
+- In C `mon.c:2283-2293`, when caller passes `ALLOW_M` (as `dog_move()` does),
+  occupied squares are eligible attack squares unless the defender is tame and
+  `ALLOW_TM` is absent.
+- JS `mfndpos()` was incorrectly rejecting peaceful occupied squares for tame
+  movers (`!monAtPos.peaceful` gate), which removed legal options from pet move
+  evaluation and changed `dog_move` choice space.
+- Fix in `js/mon.js`:
+  - for `flag & ALLOW_M`, allow occupied squares unconditionally except tame
+    defenders without `ALLOW_TM`;
+  - keep `mm_aggression`-derived behavior for non-`ALLOW_M` callers;
+  - set `ALLOW_TM` bit in `posInfo` when the occupied defender is tame.
+- Validation:
+  - `node scripts/test-unit-core.mjs` passes.
+  - targeted seeds (`325/327/328/332`) show no regressions in first divergence.
+  - `seed332_valkyrie_wizard_gameplay` improved event alignment from
+    `173/6595` to `175/6595`, and the prior step-206 pet `mfndpos` count now
+    matches C (`cnt=5`).

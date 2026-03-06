@@ -540,21 +540,25 @@ export function mfndpos(mon, map, player, flag) {
             if (monAtPos) {
                 let allowMAttack = false;
                 if (flag & ALLOW_M) {
-                    // Tame: attack non-tame non-peaceful
-                    allowMAttack = !monAtPos.tame && !monAtPos.peaceful;
+                    // C ref: mon.c mfndpos() — ALLOW_M from caller permits
+                    // attacking occupied squares; defender tame still requires ALLOW_TM.
+                    allowMAttack = true;
+                    if (monAtPos.tame && !(flag & ALLOW_TM)) {
+                        allowMAttack = false;
+                    }
                 } else {
-                    // Hostile/peaceful: check mm_aggression
+                    // Hostile/peaceful: check mm_aggression-derived flags.
                     const mmflag = mm_aggression(mon, monAtPos, map);
                     if (mmflag.allowM) {
-                        if (monAtPos.tame) {
-                            if (flag & ALLOW_TM) allowMAttack = true;
-                        } else {
-                            allowMAttack = true;
+                        allowMAttack = true;
+                        if (monAtPos.tame && !mmflag.allowTM) {
+                            allowMAttack = false;
                         }
                     }
                 }
                 if (allowMAttack) {
                     posInfo |= ALLOW_M;
+                    if (monAtPos.tame) posInfo |= ALLOW_TM;
                 } else if (mm_displacement(mon, monAtPos)) {
                     posInfo |= ALLOW_MDISP;
                 } else {
