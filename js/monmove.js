@@ -23,12 +23,13 @@
 import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          ACCESSIBLE, CORR, DOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN,
          SHOPBASE, ROOM, ROOMOFFSET,
-         NORMAL_SPEED, isok, WEB, IS_OBSTRUCTED, IS_STWALL, A_STR,
+         isok, WEB, IS_OBSTRUCTED, IS_STWALL, A_STR,
          IRONBARS, STAIRS, LADDER,
          INVIS, DISPLACED,
          MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM } from './const.js';
 import { rn2, rnd, d, c_d, pushRngLogEntry } from './rng.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED } from './const.js';
+import { NORMAL_SPEED } from './monsters.js';
 import { wipe_engr_at } from './engrave.js';
 import { mattacku } from './mhitu.js';
 import { makemon } from './makemon.js';

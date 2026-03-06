@@ -742,6 +742,9 @@ export const PM_APPRENTICE = 382;
 export const NUMMONS = 383;
 export const NON_PM = -1;
 export const LOW_PM = 0;
+export const LEAVESTATUE = NON_PM - 1;
+export const NATTK = 6;
+export const NORMAL_SPEED = 12;
 export const HIGH_PM = 381;
 export const SPECIAL_PM = PM_LONG_WORM_TAIL; // 330
 

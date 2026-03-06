@@ -62,9 +62,12 @@ test('deferred constants inventory does not regress beyond current envelope', ()
         `deferredCount regressed: ${report.deferredCount} > 48`,
     );
 
-    const knownRootBlockers = new Set(report.rootBlockers.map((b) => b.name));
-    for (const required of ['NUMMONS', 'NUM_OBJECTS', 'GLYPH_SWALLOW_OFF']) {
-        assert.ok(knownRootBlockers.has(required), `missing expected root blocker ${required}`);
+    // Ownership routing: these headers are now owned by leaf modules and
+    // should not appear as const.js deferred items.
+    for (const entry of report.details) {
+        assert.notEqual(entry.source, 'display.h');
+        assert.notEqual(entry.source, 'permonst.h');
+        assert.notEqual(entry.source, 'objclass.h');
     }
 
     assert.deepEqual(

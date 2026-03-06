@@ -17,6 +17,7 @@ import {
 } from './rng.js';
 import { rankOf, roles } from './player.js';
 import { initrack } from './monmove.js';
+import { NORMAL_SPEED } from './monsters.js';
 import { FOV } from './vision.js';
 import { monsterNearby } from './hack.js';
 import { newsym, setDisplayContext } from './display.js'; // setDisplayContext still used for explicit override in renderMap
@@ -34,7 +35,7 @@ import {
     CLR_RED, CLR_ORANGE, CLR_BRIGHT_BLUE,
 } from './render.js';
 import {
-    COLNO, ROWNO, NORMAL_SPEED,
+    COLNO, ROWNO,
     A_STR, A_DEX, A_CON,
     A_LAWFUL, A_CHAOTIC, Amask2align,
     RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,

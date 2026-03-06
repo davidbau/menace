@@ -2,12 +2,13 @@
 // Mirrors struct you from you.h and player-related globals from decl.h
 
 import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
-         NORMAL_SPEED, A_NEUTRAL, A_LAWFUL, A_CHAOTIC,
+         A_NEUTRAL, A_LAWFUL, A_CHAOTIC,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
          FEMALE, MALE,
          CONFUSION, STUNNED, BLINDED, HALLUC, HALLUC_RES, SICK, FAST,
          TIMEOUT, INTRINSIC, SICK_VOMITABLE, SICK_NONVOMITABLE } from './const.js';
 import { objectData, COIN_CLASS, FOOD_CLASS } from './objects.js';
+import { NORMAL_SPEED } from './monsters.js';
 import { weight } from './mkobj.js';
 import { skill_init, skills_for_role } from './weapon.js';
 

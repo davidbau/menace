@@ -13,13 +13,19 @@ function loadDeferredNames() {
         maxBuffer: 8 * 1024 * 1024,
     });
     const report = JSON.parse(raw);
-    return report.details.map((d) => d.name);
+    return report.details.map((d) => ({
+        name: d.name,
+        source: d.source,
+    }));
 }
 
-test('symbols.js late module loads and exports all deferred constants', async () => {
+test('symbols.js late module loads and exports display.h deferred constants', async () => {
     const deferred = loadDeferredNames();
     const symbols = await import(SYMBOLS_JS_URL);
-    for (const name of deferred) {
+    const displayDeferred = deferred
+        .filter((d) => d.source === 'display.h')
+        .map((d) => d.name);
+    for (const name of displayDeferred) {
         assert.ok(name in symbols, `symbols.js missing deferred export: ${name}`);
         assert.notEqual(symbols[name], undefined, `symbols.js export undefined: ${name}`);
     }
@@ -32,4 +38,13 @@ test('symbols.js key glyph ordering invariants hold', async () => {
     assert.ok(s.GLYPH_CMAP_OFF > s.GLYPH_OBJ_OFF);
     assert.ok(s.GLYPH_SWALLOW_OFF > s.GLYPH_CMAP_C_OFF);
     assert.ok(s.MAX_GLYPH > s.GLYPH_NOTHING_OFF);
+});
+
+test('symbols.js does not own non-display deferred constants', async () => {
+    const s = await import(SYMBOLS_JS_URL);
+    assert.equal('HIGH_PM' in s, false);
+    assert.equal('SPECIAL_PM' in s, false);
+    assert.equal('NROFARTIFACTS' in s, false);
+    assert.equal('MAXSPELL' in s, false);
+    assert.equal('NUM_REAL_GEMS' in s, false);
 });

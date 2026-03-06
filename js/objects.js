@@ -31,6 +31,7 @@ export const SPBOOK_no_NOVEL = -SPBOOK_CLASS;
 
 // ── Material Constants ─────────────────────────────────────────
 // C ref: material.h
+export const NO_MATERIAL = 0;
 export const LIQUID = 1;
 export const WAX = 2;
 export const VEGGY = 3;
@@ -61,6 +62,15 @@ export const ARM_GLOVES = 3;
 export const ARM_BOOTS = 4;
 export const ARM_CLOAK = 5;
 export const ARM_SHIRT = 6;
+
+// ── Direction / Attack Encoding Constants ─────────────────────
+// C ref: objclass.h
+export const NODIR = 1;
+export const IMMEDIATE = 2;
+export const RAY = 3;
+export const PIERCE = 1;
+export const SLASH = 2;
+export const WHACK = 4;
 
 // ── Object Class Symbols ───────────────────────────────────────
 // C ref: defsym.h — OBJCLASS section
@@ -578,6 +588,10 @@ export const FIRST_REAL_GEM = 436;
 export const LAST_REAL_GEM = 457;
 export const FIRST_GLASS_GEM = 458;
 export const LAST_GLASS_GEM = 466;
+// C ref: objclass.h derived range counts
+export const NUM_REAL_GEMS = (LAST_REAL_GEM - FIRST_REAL_GEM + 1);
+export const NUM_GLASS_GEMS = (LAST_GLASS_GEM - FIRST_GLASS_GEM + 1);
+export const MAXSPELL = (LAST_SPELL - FIRST_SPELL + 1);
 
 // ── Object Data Array ──────────────────────────────────────────
 // C ref: objects.c — objects[] array
@@ -9263,7 +9277,7 @@ export function initObjectData() {
     for (let oc = 0; oc < MAXOCLASSES_OBJ; oc++) {
         let sum = 0;
         for (let i = bases[oc]; i < bases[oc + 1]; i++) {
-            sum += objectData[i].oc_prob || 0;
+            sum += objectData[i].prob || 0;
         }
         oclass_prob_totals[oc] = sum;
     }

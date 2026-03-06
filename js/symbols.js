@@ -1,12 +1,11 @@
 // symbols.js -- late-bound symbol offsets and dependent constants
-// C refs: include/display.h enum glyph_offsets, include/permonst.h, include/objclass.h, include/hack.h
+// C refs: include/display.h enum glyph_offsets
 //
 // This module intentionally depends on const.js + generated leaf data modules
 // (objects.js / monsters.js / artifacts.js). It can be imported late to obtain
 // constants which are deferred in const.js generation due cross-leaf deps.
 
 import {
-    GLYPH_MON_OFF,
     S_trwall,
     S_vwall,
     S_brdnladder,
@@ -16,17 +15,39 @@ import {
     S_grave,
     S_goodpos,
     S_digbeam,
-    NUM_ZAP,
     MAXEXPCHARS,
     WARNCOUNT,
 } from './const.js';
-import { NUM_OBJECTS, FIRST_REAL_GEM, LAST_REAL_GEM, FIRST_GLASS_GEM, LAST_GLASS_GEM, FIRST_SPELL, LAST_SPELL } from './objects.js';
-import { NUMMONS, PM_LONG_WORM_TAIL } from './monsters.js';
-import { AFTER_LAST_ARTIFACT } from './artifacts.js';
+import { NUM_OBJECTS } from './objects.js';
+import { NUMMONS } from './monsters.js';
 
-// include/permonst.h enum monnums
-export const HIGH_PM = NUMMONS - 1;
-export const SPECIAL_PM = PM_LONG_WORM_TAIL;
+// ===== display.h constants (owned by symbols.js) =====
+export const GM_FLAGS = 0;
+export const GM_TTYCHAR = (GM_FLAGS + 1);
+export const GM_COLOR = (GM_TTYCHAR + 1);
+export const NUM_GLYPHMOD = (GM_COLOR + 1);
+export const GLYPH_MON_OFF = 0;
+export const SHIELD_COUNT = 21;
+export const NUM_ZAP = 8;
+export const MG_FLAG_NORMAL = 0x00;
+export const MG_FLAG_NOOVERRIDE = 0x01;
+export const MG_HERO = 0x00001;
+export const MG_CORPSE = 0x00002;
+export const MG_INVIS = 0x00004;
+export const MG_DETECT = 0x00008;
+export const MG_PET = 0x00010;
+export const MG_RIDDEN = 0x00020;
+export const MG_STATUE = 0x00040;
+export const MG_OBJPILE = 0x00080;
+export const MG_BW_LAVA = 0x00100;
+export const MG_BW_ICE = 0x00200;
+export const MG_BW_SINK = 0x00200;
+export const MG_BW_ENGR = 0x00200;
+export const MG_NOTHING = 0x00400;
+export const MG_UNEXPL = 0x00800;
+export const MG_MALE = 0x01000;
+export const MG_FEMALE = 0x02000;
+export const MG_BADXY = 0x04000;
 
 // include/display.h enum glyph_offsets
 export const GLYPH_MON_MALE_OFF = GLYPH_MON_OFF;
@@ -82,11 +103,3 @@ export const NO_GLYPH = MAX_GLYPH;
 export const GLYPH_INVISIBLE = GLYPH_INVIS_OFF;
 export const GLYPH_UNEXPLORED = GLYPH_UNEXPLORED_OFF;
 export const GLYPH_NOTHING = GLYPH_NOTHING_OFF;
-
-// include/objclass.h
-export const NUM_REAL_GEMS = (LAST_REAL_GEM - FIRST_REAL_GEM + 1);
-export const NUM_GLASS_GEMS = (LAST_GLASS_GEM - FIRST_GLASS_GEM + 1);
-export const MAXSPELL = (LAST_SPELL - FIRST_SPELL + 1);
-
-// include/hack.h
-export const NROFARTIFACTS = (AFTER_LAST_ARTIFACT - 1);

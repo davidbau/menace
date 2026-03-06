@@ -21,12 +21,12 @@ import { setGame } from './gstate.js';
 import { nh_timeout } from './timeout.js';
 import { pline } from './pline.js';
 import { runtimeDecideToShapeshift, makemon, setMakemonPlayerContext } from './makemon.js';
-import { M2_WERE } from './monsters.js';
+import { M2_WERE, NORMAL_SPEED } from './monsters.js';
 import { were_change } from './were.js';
 import { allocateMonsterMovement } from './mon.js';
 import { rn2, rnd, rn1, initRng, getRngState, setRngState, getRngCallCount, setRngCallCount,
          enableRngLog, getRngLog as readRngLog, pushRngLogEntry } from './rng.js';
-import { NORMAL_SPEED, A_DEX, A_CON, ROOMOFFSET, SHOPBASE,
+import { A_DEX, A_CON, ROOMOFFSET, SHOPBASE,
          COLNO, ROWNO, A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
          FEMALE, MALE, TERMINAL_COLS,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,

@@ -146,15 +146,16 @@ any constant initialization risk.
 | `objects.js` | Auto-generated object data table + `initObjectData()` | `const.js` only | `gen_objects.py` |
 | `monsters.js` | Auto-generated monster data table | `const.js` only | `gen_monsters.py` |
 | `artifacts.js` | Auto-generated artifact data table (`artilist[]`) + `ART_*` / `SPFX_*` constants | `const.js` only | `gen_artifacts.py` |
+| `symbols.js` | Late-bound symbol/glyph constants and deferred cross-leaf constants (`display.h` chain) | `const.js`, `objects.js`, `monsters.js`, `artifacts.js` | hand-maintained (prototype) |
 | `game.js` | `game` singleton + all struct class definitions | `const.js` only | hand-written |
 | `engrave_data.js` | Encrypted engrave strings (makedefs output) | none | build artifact |
 | `epitaph_data.js` | Encrypted epitaph strings (makedefs output) | none | build artifact |
 | `rumor_data.js` | Encrypted rumor strings (makedefs output) | none | build artifact |
 | `storage.js` | `DEFAULT_FLAGS`, `OPTION_DEFS` — config data with 30+ consumers | core leaf headers | hand-maintained |
 
-`config.js` and `symbols.js` are merged into `const.js`. `symbols.js`
-currently imports level-type constants from `config.js`; merging eliminates
-that dependency entirely.
+`config.js` is merged into `const.js`.
+`symbols.js` is reintroduced as a late-bound module for symbol/glyph chains
+that depend on generated leaf data (`objects.js`/`monsters.js`/`artifacts.js`).
 
 `attack_fields.js` (runtime alias shim) is deleted entirely once all call
 sites use canonical C field names (Phase 2).
@@ -209,7 +210,7 @@ node --test test/unit/constants_export_policy.test.js
 node --test test/unit/gen_constants_report.test.js
 
 rg -n "^export (const|let|var) [A-Z]" js \
-  | rg -v "js/(const|objects|monsters|artifacts|version|storage|.*_data)\\.js:"
+  | rg -v "js/(const|objects|monsters|artifacts|symbols|version|storage|.*_data)\\.js:"
 ```
 
 This should produce no output. If it does, move or unexport the offending constants.

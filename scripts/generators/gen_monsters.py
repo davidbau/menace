@@ -620,6 +620,9 @@ for idx, mon in enumerate(monsters):
 out.append(f'export const NUMMONS = {len(monsters)};')
 out.append(f'export const NON_PM = -1;')
 out.append(f'export const LOW_PM = 0;')
+out.append('export const LEAVESTATUE = NON_PM - 1;')  # permonst.h
+out.append('export const NATTK = 6;')  # permonst.h
+out.append('export const NORMAL_SPEED = 12;')  # permonst.h
 out.append(f'export const HIGH_PM = {len(monsters) - 2};')  # C: NUMMONS-2 (last non-quest-leader)
 # Find LONG_WORM_TAIL index
 lwt_idx = None

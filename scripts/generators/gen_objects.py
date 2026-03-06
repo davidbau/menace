@@ -872,6 +872,7 @@ def emit_js():
 
     lines.append('// ── Material Constants ─────────────────────────────────────────')
     lines.append('// C ref: material.h')
+    lines.append('export const NO_MATERIAL = 0;')
     for name, val in sorted(MATERIALS.items(), key=lambda x: x[1]):
         lines.append(f'export const {name} = {val};')
     lines.append('')
@@ -879,6 +880,16 @@ def emit_js():
     lines.append('// ── Armor Subtypes ─────────────────────────────────────────────')
     for name, val in sorted(ARM_SUBTYPES.items(), key=lambda x: x[1]):
         lines.append(f'export const {name} = {val};')
+    lines.append('')
+
+    lines.append('// ── Direction / Attack Encoding Constants ─────────────────────')
+    lines.append('// C ref: objclass.h')
+    lines.append('export const NODIR = 1;')
+    lines.append('export const IMMEDIATE = 2;')
+    lines.append('export const RAY = 3;')
+    lines.append('export const PIERCE = 1;')
+    lines.append('export const SLASH = 2;')
+    lines.append('export const WHACK = 4;')
     lines.append('')
 
     lines.append('// ── Object Class Symbols ───────────────────────────────────────')
@@ -919,6 +930,10 @@ def emit_js():
             sn_map[tag] = val  # allow later markers to reference this
         except:
             lines.append(f'// export const {tag} = {sn_expr}; // unresolved')
+    lines.append('// C ref: objclass.h derived range counts')
+    lines.append('export const NUM_REAL_GEMS = (LAST_REAL_GEM - FIRST_REAL_GEM + 1);')
+    lines.append('export const NUM_GLASS_GEMS = (LAST_GLASS_GEM - FIRST_GLASS_GEM + 1);')
+    lines.append('export const MAXSPELL = (LAST_SPELL - FIRST_SPELL + 1);')
     lines.append('')
 
     lines.append('// ── Object Data Array ──────────────────────────────────────────')

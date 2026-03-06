@@ -3,7 +3,7 @@
 gen_constants.py — Parse C headers and patch generated constants blocks in js/const.js.
 
 Sources:
-- include/global.h, rm.h, permonst.h (map/global block)
+- include/global.h, rm.h (map/global block)
 - include/skills.h, monst.h (weapon/skills block)
 - include/*.h (all const-style object macros)
 """
@@ -46,11 +46,6 @@ RM_H = _pick_existing(
     os.path.join(SCRIPT_DIR, "..", "..", "nethack-c", "patched", "include", "rm.h"),
     os.path.join(SCRIPT_DIR, "..", "..", "nethack-c", "include", "rm.h"),
 )
-PERMONST_H = _pick_existing(
-    os.path.join(SCRIPT_DIR, "nethack-c", "include", "permonst.h"),
-    os.path.join(SCRIPT_DIR, "..", "..", "nethack-c", "patched", "include", "permonst.h"),
-    os.path.join(SCRIPT_DIR, "..", "..", "nethack-c", "include", "permonst.h"),
-)
 HACK_H = _pick_existing(
     os.path.join(SCRIPT_DIR, "nethack-c", "include", "hack.h"),
     os.path.join(SCRIPT_DIR, "..", "..", "nethack-c", "patched", "include", "hack.h"),
@@ -83,6 +78,18 @@ HEADER_MACRO_NON_EMITTABLE: dict[str, str] = {
     "DLBFILE": "platform/filesystem path constant; not used in web runtime",
     "DUMPLOG_FILE": "platform/filesystem path template; not used in web runtime",
     "HACKDIR": "platform/filesystem path constant; not used in web runtime",
+    "NROFARTIFACTS": "owned by artifacts.js (derived from AFTER_LAST_ARTIFACT)",
+    "P": "objects.h alias; owned by objects.js with objclass.h direction constants",
+    "S": "objects.h alias; owned by objects.js with objclass.h direction constants",
+    "B": "objects.h alias; owned by objects.js with objclass.h direction constants",
+    "PAPER": "objects.h alias; owned by objects.js material constants",
+}
+
+# Header ownership routing: const.js intentionally does not emit these.
+HEADER_OWNED_BY_LEAF: set[str] = {
+    "display.h",   # owned by symbols.js
+    "permonst.h",  # owned by monsters.js
+    "objclass.h",  # owned by objects.js
 }
 
 # Root blocker ownership hints for deferred constants.
@@ -443,13 +450,11 @@ def _existing_export_names_outside_marker(path: str, marker_tag: str) -> set[str
 def generate_global_rm_block() -> str:
     global_h = _read(GLOBAL_H)
     rm_h = _read(RM_H)
-    permonst_h = _read(PERMONST_H)
 
     colno = _parse_define_int(global_h, "COLNO")
     rowno = _parse_define_int(global_h, "ROWNO")
-    normal_speed = _parse_define_int(permonst_h, "NORMAL_SPEED")
-    if not colno or not rowno or not normal_speed:
-        raise RuntimeError("Failed parsing COLNO/ROWNO/NORMAL_SPEED from C headers.")
+    if not colno or not rowno:
+        raise RuntimeError("Failed parsing COLNO/ROWNO from C headers.")
 
     levl_types = _parse_enum_block(rm_h, "levl_typ_types")
     if not levl_types:
@@ -463,7 +468,7 @@ def generate_global_rm_block() -> str:
 
     lines: list[str] = []
     lines.append("// Auto-imported global/rm constants from C headers")
-    lines.append(f"// Sources: {os.path.basename(GLOBAL_H)}, {os.path.basename(RM_H)}, {os.path.basename(PERMONST_H)}")
+    lines.append(f"// Sources: {os.path.basename(GLOBAL_H)}, {os.path.basename(RM_H)}")
     lines.append("")
     lines.append("// Map dimensions — cf. global.h")
     lines.append(f"export const COLNO = {colno};")
@@ -479,9 +484,6 @@ def generate_global_rm_block() -> str:
     for name in door_names:
         lines.append(f"export const {name} = {door_defs[name]};")
     lines.append("")
-    lines.append("// Movement speed — cf. permonst.h")
-    lines.append(f"export const NORMAL_SPEED = {normal_speed};")
-    lines.append("")
     return "\n".join(lines)
 
 
@@ -492,6 +494,8 @@ def _collect_header_const_candidates(existing_exports_outside: set[str]) -> list
     merged: dict[str, tuple[str, str]] = {}
     for path in header_paths:
         header_name = os.path.basename(path)
+        if header_name in HEADER_OWNED_BY_LEAF:
+            continue
         guard_guess = os.path.splitext(header_name)[0].upper() + "_H"
         for name, value in _parse_enum_constants(_read(path)):
             if _is_blacklisted_header_macro(name):
@@ -606,7 +610,13 @@ def _emit_header_block(
         lines.append("")
     lines.append(f"// Added direct exports: {len(emitted)}")
     lines.append(f"// Deferred unresolved const-style macros: {len(unresolved_names)}")
+    current_src: str | None = None
     for name, expr, src in emitted:
+        if src != current_src:
+            if current_src is not None:
+                lines.append("")
+            lines.append(f"// ===== {src} =====")
+            current_src = src
         lines.append(f"// {src}")
         lines.append(f"export const {name} = {expr};")
     lines.append("")

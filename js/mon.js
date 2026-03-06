@@ -20,7 +20,7 @@
 import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, ACCESSIBLE,
          POOL, ROOM, WATER, LAVAWALL, IRONBARS,
          D_CLOSED, D_LOCKED, D_BROKEN,
-         SHOPBASE, ROOMOFFSET, TEMPLE, NORMAL_SPEED, isok,
+         SHOPBASE, ROOMOFFSET, TEMPLE, isok,
          ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U, ALLOW_M, ALLOW_TM, ALLOW_ALL,
          NOTONL, OPENDOOR, UNLOCKDOOR, BUSTDOOR, ALLOW_ROCK, ALLOW_WALL,
          ALLOW_DIG, ALLOW_BARS, ALLOW_SANCT, ALLOW_SSM, NOGARLIC,
@@ -28,6 +28,7 @@ import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, ACCESSIBLE,
          M_POISONGAS_OK, M_POISONGAS_MINOR, M_POISONGAS_BAD,
          W_AMUL, W_ARMG, W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMF, W_ARMU, W_WEP,
          BOLT_LIM, LS_MONSTER } from './const.js';
+import { NORMAL_SPEED } from './monsters.js';
 import { AMULET_OF_LIFE_SAVING, CORPSE } from './objects.js';
 import { which_armor } from './worn.js';
 import { nonliving, resists_ston, resists_fire, resists_poison,

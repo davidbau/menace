@@ -11,7 +11,7 @@ export const VERSION_STRING = `NetHack ${VERSION_MAJOR}.${VERSION_MINOR}.${PATCH
 
 // AUTO-IMPORT-BEGIN: CONST_GLOBAL_RM
 // Auto-imported global/rm constants from C headers
-// Sources: global.h, rm.h, permonst.h
+// Sources: global.h, rm.h
 
 // Map dimensions — cf. global.h
 export const COLNO = 80;
@@ -65,9 +65,6 @@ export const D_CLOSED = 0x04;
 export const D_LOCKED = 0x08;
 export const D_TRAPPED = 0x10;
 export const D_SECRET = 0x20;
-
-// Movement speed — cf. permonst.h
-export const NORMAL_SPEED = 12;
 // AUTO-IMPORT-END: CONST_GLOBAL_RM
 
 // Display dimensions
@@ -451,7 +448,7 @@ export const DUNGEON_ALIGN_BY_DNUM = {
 // - include only const-style expressions (no runtime/lowercase identifiers)
 // - preserve include dependency order and in-header declaration order
 // - emit only when dependencies are resolvable at this marker location
-// - non-emittable blacklist count: 8
+// - non-emittable blacklist count: 13
 
 // Platform fallback constants (Ubuntu/ncurses-style defaults)
 // FROM_LEFT_1ST_BUTTON_PRESSED fallback
@@ -469,8 +466,9 @@ export const A_RIGHTLINE = 0;
 // A_UNDERLINE fallback disabled in web renderer
 export const A_ITALIC = 0;
 
-// Added direct exports: 1540
-// Deferred unresolved const-style macros: 102
+// Added direct exports: 1471
+// Deferred unresolved const-style macros: 54
+// ===== align.h =====
 // align.h
 export const A_COALIGNED = 1;
 // align.h
@@ -483,6 +481,8 @@ export const AM_SPLEV_NONCO = 0x40;
 export const AM_SPLEV_RANDOM = 0x80;
 // align.h
 export const MSA_NONE = 0;
+
+// ===== monattk.h =====
 // monattk.h
 export const AT_ANY = (-1);
 // monattk.h
@@ -619,6 +619,8 @@ export const AD_RBRE = 242;
 export const AD_SAMU = 252;
 // monattk.h
 export const AD_CURS = 253;
+
+// ===== monflag.h =====
 // monflag.h
 export const MS_SILENT = 0;
 // monflag.h
@@ -953,14 +955,8 @@ export const G_EXTINCT = 0x01;
 export const G_GONE = (G_GENOD | G_EXTINCT);
 // monflag.h
 export const MV_KNOWS_EGG = 0x08;
-// permonst.h
-export const NON_PM = -1;
-// permonst.h
-export const LOW_PM = NON_PM + 1;
-// permonst.h
-export const LEAVESTATUE = NON_PM - 1;
-// permonst.h
-export const NATTK = 6;
+
+// ===== prop.h =====
 // prop.h
 export const W_ART = 0x00001000;
 // prop.h
@@ -969,6 +965,8 @@ export const W_ARTI = 0x00002000;
 export const FROMRACE = 0x02000000;
 // prop.h
 export const FROMFORM = 0x10000000;
+
+// ===== artifact.h =====
 // artifact.h
 export const SPFX_NONE = 0x00000000;
 // artifact.h
@@ -1029,8 +1027,12 @@ export const SPFX_XRAY = 0x02000000;
 export const SPFX_REFLECT = 0x04000000;
 // artifact.h
 export const SPFX_PROTECT = 0x08000000;
+
+// ===== attrib.h =====
 // attrib.h
 export const A_MAX = (A_CHA + 1);
+
+// ===== botl.h =====
 // botl.h
 export const BL_CHARACTERISTICS = -3;
 // botl.h
@@ -1219,10 +1221,14 @@ export const BL_TH_ALWAYS_HILITE = 105;
 export const BL_TH_CRITICALHP = 106;
 // botl.h
 export const MAXVALWIDTH = 80;
+
+// ===== color.h =====
 // color.h
 export const NH_BASIC_COLOR = 0x1000000;
 // color.h
 export const NH_ALTPALETTE = 0x2000000;
+
+// ===== patchlevel.h =====
 // patchlevel.h
 export const EDITLEVEL = 132;
 // patchlevel.h
@@ -1241,10 +1247,14 @@ export const COPYRIGHT_BANNER_A = "NetHack, Copyright 1985-2026";
 export const COPYRIGHT_BANNER_B = "         By Stichting Mathematisch Centrum and M. Stephenson.";
 // patchlevel.h
 export const COPYRIGHT_BANNER_D = "         See license for details.";
+
+// ===== tradstdc.h =====
 // tradstdc.h
 export const NH_C = 202300;
 // tradstdc.h
 export const NH_PRAGMA_MESSAGE = 1;
+
+// ===== vmsconf.h =====
 // vmsconf.h
 export const FCMASK = 0o660;
 // vmsconf.h
@@ -1257,6 +1267,8 @@ export const O_RDWR = 2;
 export const O_CREAT = 0x200;
 // vmsconf.h
 export const O_TRUNC = 0x400;
+
+// ===== unixconf.h =====
 // unixconf.h
 export const AMS_MAILBOX = "/Mailbox";
 // unixconf.h
@@ -1265,6 +1277,8 @@ export const DEF_MAILREADER = "/usr/bin/mail";
 export const MAILCKFREQ = 50;
 // unixconf.h
 export const SERVER_ADMIN_MSG_CKFREQ = 25;
+
+// ===== pcconf.h =====
 // pcconf.h
 export const CONFIG_FILE = "defaults.nh";
 // pcconf.h
@@ -1277,6 +1291,8 @@ export const FILENAME = 80;
 export const STKSIZ = 5 * 1024;
 // pcconf.h
 export const PORT_HELP = "msdoshlp.txt";
+
+// ===== windconf.h =====
 // windconf.h
 export const OPTIONS_USED = "options";
 // windconf.h
@@ -1293,6 +1309,8 @@ export const INTERJECT_PANIC = 0;
 export const INTERJECTION_TYPES = (INTERJECT_PANIC + 1);
 // windconf.h
 export const MAX_LAN_USERNAME = 20;
+
+// ===== fnamesiz.h =====
 // fnamesiz.h
 export const LOCKNAMEINIT = "1lock";
 // fnamesiz.h
@@ -1303,6 +1321,8 @@ export const INDEXT = ".xxxxxx";
 export const SAVEX = "save/99999.e";
 // fnamesiz.h
 export const SAVE_EXTENSION = "";
+
+// ===== global.h =====
 // global.h
 export const HELP = "help";
 // global.h
@@ -1483,6 +1503,8 @@ export const NHL_SBRV_ACCEPT = 2;
 export const NHL_SBRV_FAIL = 3;
 // global.h
 export const SFCTOOL_BIT = (1 << 30);
+
+// ===== config.h =====
 // config.h
 export const DEFAULT_WINDOW_SYS = "mac";
 // config.h
@@ -1511,6 +1533,8 @@ export const COMPRESS_EXTENSION = ".Z";
 export const LIVELOGFILE = "livelog";
 // config.h
 export const DUMPLOG_MSG_COUNT = 50;
+
+// ===== context.h =====
 // context.h
 export const TIP_ENHANCE = 0;
 // context.h
@@ -1523,16 +1547,22 @@ export const TIP_GETPOS = (TIP_UNTRAP_MON + 1);
 export const NUM_TIPS = (TIP_GETPOS + 1);
 // context.h
 export const CONTEXTVERBSZ = 30;
+
+// ===== date.h =====
 // date.h
 export const BUILD_DATE = "Tue Mar  3 14:40:51 2026";
 // date.h
 export const BUILD_TIME = (1772566851);
 // date.h
 export const IGNORED_FEATURES = 0x40080000;
+
+// ===== decl.h =====
 // decl.h
 export const DOMOVE_WALK = 0x00000001;
 // decl.h
 export const DOMOVE_RUSH = 0x00000002;
+
+// ===== dgn_file.h =====
 // dgn_file.h
 export const TBR_STAIR = 0;
 // dgn_file.h
@@ -1565,6 +1595,8 @@ export const D_ALIGN_MASK = 0x70;
 export const LEV_LIMIT = 50;
 // dgn_file.h
 export const BRANCH_LIMIT = 32;
+
+// ===== vision.h =====
 // vision.h
 export const LS_NONE = 0;
 // vision.h
@@ -1589,60 +1621,8 @@ export const MONSEEN_XRAYVIS = 0x0010;
 export const MONSEEN_DETECT = 0x0020;
 // vision.h
 export const MONSEEN_WARNMON = 0x0040;
-// display.h
-export const GM_FLAGS = 0;
-// display.h
-export const GM_TTYCHAR = (GM_FLAGS + 1);
-// display.h
-export const GM_COLOR = (GM_TTYCHAR + 1);
-// display.h
-export const NUM_GLYPHMOD = (GM_COLOR + 1);
-// display.h
-export const GLYPH_MON_OFF = 0;
-// display.h
-export const GLYPH_MON_MALE_OFF = (GLYPH_MON_OFF);
-// display.h
-export const SHIELD_COUNT = 21;
-// display.h
-export const NUM_ZAP = 8;
-// display.h
-export const MG_FLAG_NORMAL = 0x00;
-// display.h
-export const MG_FLAG_NOOVERRIDE = 0x01;
-// display.h
-export const MG_HERO = 0x00001;
-// display.h
-export const MG_CORPSE = 0x00002;
-// display.h
-export const MG_INVIS = 0x00004;
-// display.h
-export const MG_DETECT = 0x00008;
-// display.h
-export const MG_PET = 0x00010;
-// display.h
-export const MG_RIDDEN = 0x00020;
-// display.h
-export const MG_STATUE = 0x00040;
-// display.h
-export const MG_OBJPILE = 0x00080;
-// display.h
-export const MG_BW_LAVA = 0x00100;
-// display.h
-export const MG_BW_ICE = 0x00200;
-// display.h
-export const MG_BW_SINK = 0x00200;
-// display.h
-export const MG_BW_ENGR = 0x00200;
-// display.h
-export const MG_NOTHING = 0x00400;
-// display.h
-export const MG_UNEXPL = 0x00800;
-// display.h
-export const MG_MALE = 0x01000;
-// display.h
-export const MG_FEMALE = 0x02000;
-// display.h
-export const MG_BADXY = 0x04000;
+
+// ===== dlb.h =====
 // dlb.h
 export const MAX_DLB_FILENAME = 256;
 // dlb.h
@@ -1661,6 +1641,8 @@ export const WRTMODE = "w+b";
 export const RDBMODE = "rb";
 // dlb.h
 export const WRBMODE = "w+b";
+
+// ===== dungeon.h =====
 // dungeon.h
 export const LR_DOWNSTAIR = 0;
 // dungeon.h
@@ -1719,6 +1701,8 @@ export const MIGR_LEFTOVERS = 8192;
 export const VISITED = 0x01;
 // dungeon.h
 export const LFILE_EXISTS = 0x04;
+
+// ===== engrave.h =====
 // engrave.h
 export const DUST = 1;
 // engrave.h
@@ -1733,6 +1717,8 @@ export const ENGR_BLOOD = 5;
 export const HEADSTONE = 6;
 // engrave.h
 export const N_ENGRAVE = 6;
+
+// ===== flag.h =====
 // flag.h
 export const GFILTER_NONE = 0;
 // flag.h
@@ -1869,6 +1855,8 @@ export const TER_FULL = 0x10;
 export const TER_DETECT = 0x20;
 // flag.h
 export const MAX_ALTKEYHANDLING = 25;
+
+// ===== func_tab.h =====
 // func_tab.h
 export const IFBURIED = 0x0001;
 // func_tab.h
@@ -1903,6 +1891,8 @@ export const ECM_IGNOREAC = 0x01;
 export const ECM_EXACTMATCH = 0x02;
 // func_tab.h
 export const ECM_NO1CHARCMD = 0x04;
+
+// ===== weight.h =====
 // weight.h
 export const WT_ETHEREAL = 0;
 // weight.h
@@ -1939,74 +1929,8 @@ export const WT_HUMAN = 1450;
 export const WT_BABY_DRAGON = 1500;
 // weight.h
 export const WT_DRAGON = 4500;
-// objclass.h
-export const NO_MATERIAL = 0;
-// objclass.h
-export const LIQUID = 1;
-// objclass.h
-export const WAX = 2;
-// objclass.h
-export const VEGGY = 3;
-// objclass.h
-export const FLESH = 4;
-// objclass.h
-export const CLOTH = 6;
-// objclass.h
-export const LEATHER = 7;
-// objclass.h
-export const WOOD = 8;
-// objclass.h
-export const BONE = 9;
-// objclass.h
-export const DRAGON_HIDE = 10;
-// objclass.h
-export const IRON = 11;
-// objclass.h
-export const METAL = 12;
-// objclass.h
-export const COPPER = 13;
-// objclass.h
-export const SILVER = 14;
-// objclass.h
-export const GOLD = 15;
-// objclass.h
-export const PLATINUM = 16;
-// objclass.h
-export const MITHRIL = 17;
-// objclass.h
-export const PLASTIC = 18;
-// objclass.h
-export const GLASS = 19;
-// objclass.h
-export const GEMSTONE = 20;
-// objclass.h
-export const MINERAL = 21;
-// objclass.h
-export const ARM_SUIT = 0;
-// objclass.h
-export const ARM_SHIELD = 1;
-// objclass.h
-export const ARM_HELM = 2;
-// objclass.h
-export const ARM_GLOVES = 3;
-// objclass.h
-export const ARM_BOOTS = 4;
-// objclass.h
-export const ARM_CLOAK = 5;
-// objclass.h
-export const ARM_SHIRT = 6;
-// objclass.h
-export const NODIR = 1;
-// objclass.h
-export const IMMEDIATE = 2;
-// objclass.h
-export const RAY = 3;
-// objclass.h
-export const PIERCE = 1;
-// objclass.h
-export const SLASH = 2;
-// objclass.h
-export const WHACK = 4;
+
+// ===== wintype.h =====
 // wintype.h
 export const ANY_VOID = 1;
 // wintype.h
@@ -2087,6 +2011,8 @@ export const MENU_ITEMFLAGS_SELECTED = 0x0000001;
 export const MENU_ITEMFLAGS_SKIPINVERT = 0x0000002;
 // wintype.h
 export const MENU_ITEMFLAGS_SKIPMENUCOLORS = 0x0000004;
+
+// ===== sym.h =====
 // sym.h
 export const H_UNK = 0;
 // sym.h
@@ -2109,6 +2035,8 @@ export const NUM_GRAPHICS = (ROGUESET + 1);
 export const UNICODESET = NUM_GRAPHICS;
 // sym.h
 export const DEFAULT_GRAPHICS = 0;
+
+// ===== trap.h =====
 // trap.h
 export const TRAP_NOT_IMMUNE = 0;
 // trap.h
@@ -2127,6 +2055,8 @@ export const AS_OK = 0;
 export const AS_NO_MON = 1;
 // trap.h
 export const AS_MON_IS_UNIQUE = 2;
+
+// ===== mkroom.h =====
 // mkroom.h
 export const ARMORSHOP = 15;
 // mkroom.h
@@ -2171,6 +2101,8 @@ export const SHARED = 1;
 export const SHARED_PLUS = 2;
 // mkroom.h
 export const FILL_LVFLAGS = 2;
+
+// ===== obj.h =====
 // obj.h
 export const SPE_LIM = 99;
 // obj.h
@@ -2229,16 +2161,22 @@ export const LOST_EXPLODING = 4;
 export const NAMED_PLAIN = 0;
 // obj.h
 export const NAMED_KEEP = 1;
+
+// ===== quest.h =====
 // quest.h
 export const MIN_QUEST_ALIGN = 20;
 // quest.h
 export const MIN_QUEST_LEVEL = 14;
+
+// ===== region.h =====
 // region.h
 export const REG_HERO_INSIDE = 0x01;
 // region.h
 export const REG_NOT_HEROS = 0x02;
 // region.h
 export const MONST_INC = 5;
+
+// ===== rm.h =====
 // rm.h
 export const T_LOOTED = 1;
 // rm.h
@@ -2301,6 +2239,8 @@ export const WM_X_TLBR = 5;
 export const WM_X_BLTR = 6;
 // rm.h
 export const SVALL = (0xFF);
+
+// ===== sndprocs.h =====
 // sndprocs.h
 export const SOUND_TRIGGER_USERSOUNDS = 0x0001;
 // sndprocs.h
@@ -2313,6 +2253,8 @@ export const SOUND_TRIGGER_SOUNDEFFECTS = 0x0008;
 export const SOUND_TRIGGER_AMBIENCE = 0x0010;
 // sndprocs.h
 export const SOUND_TRIGGER_VERBAL = 0x0020;
+
+// ===== spell.h =====
 // spell.h
 export const NO_SPELL = 0;
 // spell.h
@@ -2323,6 +2265,8 @@ export const MAX_SPELL_STUDY = 3;
 export const ALL_MAP = 0x1;
 // spell.h
 export const ALL_SPELLS = 0x2;
+
+// ===== timeout.h =====
 // timeout.h
 export const TIMER_NONE = 0;
 // timeout.h
@@ -2355,6 +2299,8 @@ export const SHRINK_GLOB = (FIG_TRANSFORM + 1);
 export const RANGE_LEVEL = 0;
 // timeout.h
 export const RANGE_GLOBAL = 1;
+
+// ===== winprocs.h =====
 // winprocs.h
 export const WC_COLOR = 0x00000001;
 // winprocs.h
@@ -2493,12 +2439,16 @@ export const WININIT_UNDO = 1;
 export const WINCHAIN_ALLOC = 0;
 // winprocs.h
 export const WINCHAIN_INIT = 1;
+
+// ===== mextra.h =====
 // mextra.h
 export const FCSIZ = (ROWNO + COLNO);
 // mextra.h
 export const REPAIR_DELAY = 5;
 // mextra.h
 export const BILLSZ = 200;
+
+// ===== monst.h =====
 // monst.h
 export const M_AP_NOTHING = 0;
 // monst.h
@@ -2585,6 +2535,8 @@ export const STRAT_GOAL = 0x000000ff;
 export const MSLOW = 1;
 // monst.h
 export const MFAST = 2;
+
+// ===== you.h =====
 // you.h
 export const UTOTYPE_NONE = 0x00;
 // you.h
@@ -2649,6 +2601,8 @@ export const LUCKMAX = 10;
 export const LUCKMIN = (-10);
 // you.h
 export const AC_MAX = 99;
+
+// ===== hack.h =====
 // hack.h
 export const ZAPPED_WAND = 0;
 // hack.h
@@ -3319,26 +3273,36 @@ export const PHYS_EXPL_TYPE = -1;
 export const DEVTEAM_EMAIL = "devteam@nethack.org";
 // hack.h
 export const DEVTEAM_URL = "https://www.nethack.org/";
+
+// ===== isaac64.h =====
 // isaac64.h
 export const ISAAC64_SZ_LOG = (8);
 // isaac64.h
 export const ISAAC64_SZ = (1<<ISAAC64_SZ_LOG);
 // isaac64.h
 export const ISAAC64_SEED_SZ_MAX = (ISAAC64_SZ<<3);
+
+// ===== mail.h =====
 // mail.h
 export const MSG_OTHER = 0;
 // mail.h
 export const MSG_MAIL = 1;
 // mail.h
 export const MSG_CALL = 2;
+
+// ===== nhmd4.h =====
 // nhmd4.h
 export const NHMD4_DIGEST_LENGTH = 128;
 // nhmd4.h
 export const NHMD4_RESULTLEN = (128 / 8);
+
+// ===== sfprocs.h =====
 // sfprocs.h
 export const NHTYPE_SIMPLE = 1;
 // sfprocs.h
 export const NHTYPE_COMPLEX = 2;
+
+// ===== sp_lev.h =====
 // sp_lev.h
 export const LVLINIT_NONE = 0;
 // sp_lev.h
@@ -3433,8 +3397,12 @@ export const NO_INVENT = 0;
 export const CUSTOM_INVENT = 0x01;
 // sp_lev.h
 export const DEFAULT_INVENT = 0x02;
+
+// ===== tile2x11.h =====
 // tile2x11.h
 export const TILES_PER_ROW = (40);
+
+// ===== winX.h =====
 // winX.h
 export const START_SIZE = 512;
 // winX.h
@@ -3465,6 +3433,8 @@ export const EXIT_ON_KEY_OR_BUTTON_PRESS = 1;
 export const EXIT_ON_EXIT = 2;
 // winX.h
 export const EXIT_ON_SENT_EVENT = 3;
+
+// ===== winami.h =====
 // winami.h
 export const WEUNK = 0;
 // winami.h
@@ -3489,6 +3459,8 @@ export const MAXWIN = 20;
 export const NHW_BASE = 6;
 // winami.h
 export const NHW_OVER = 7;
+
+// ===== wincurs.h =====
 // wincurs.h
 export const CENTER = 0;
 // wincurs.h
@@ -3523,6 +3495,8 @@ export const MENU_WIN = 6;
 export const NHWIN_MAX = 7;
 // wincurs.h
 export const CURSES_DARK_GRAY = 17;
+
+// ===== wintty.h =====
 // wintty.h
 export const WIN_CANCELLED = 1;
 // wintty.h
@@ -3539,18 +3513,14 @@ export const TOPLINE_NEED_MORE = 1;
 export const TOPLINE_NON_EMPTY = 2;
 // wintty.h
 export const TOPLINE_SPECIAL_PROMPT = 3;
+
+// ===== botl.h =====
 // botl.h
 export const REASSESS_ONLY = TRUE;
+
+// ===== fnamesiz.h =====
 // fnamesiz.h
 export const LOCKNAMESIZE = (PL_NSIZ + 14);
-// objects.h
-export const P = PIERCE;
-// objects.h
-export const S = SLASH;
-// objects.h
-export const B = WHACK;
-// objects.h
-export const PAPER = LEATHER;
 // AUTO-IMPORT-END: CONST_ALL_HEADERS
 
 // Digging target classification and digcheck return codes (src/dig.c)
@@ -5305,10 +5275,11 @@ export const AKLYS_LIM = BOLT_LIM / 2;
 // - include only const-style expressions (no runtime/lowercase identifiers)
 // - preserve include dependency order and in-header declaration order
 // - emit only when dependencies are resolvable at this marker location
-// - non-emittable blacklist count: 8
+// - non-emittable blacklist count: 13
 
 // Added direct exports: 54
-// Deferred unresolved const-style macros: 48
+// Deferred unresolved const-style macros: 0
+// ===== prop.h =====
 // prop.h
 export const LEFT_RING = W_RINGL;
 // prop.h
@@ -5337,6 +5308,8 @@ export const WORN_AMUL = W_AMUL;
 export const WORN_BLINDF = W_TOOL;
 // prop.h
 export const WORN_SHIRT = W_ARMU;
+
+// ===== artifact.h =====
 // artifact.h
 export const TAMING = (LAST_PROP + 1);
 // artifact.h
@@ -5365,6 +5338,8 @@ export const FIRESTORM = (FLING_POISON + 1);
 export const SNOWSTORM = (FIRESTORM + 1);
 // artifact.h
 export const BLINDING_RAY = (SNOWSTORM + 1);
+
+// ===== botl.h =====
 // botl.h
 export const HL_ATTCLR_NONE = CLR_MAX + 1;
 // botl.h
@@ -5381,10 +5356,16 @@ export const HL_ATTCLR_BLINK = CLR_MAX + 6;
 export const HL_ATTCLR_INVERSE = CLR_MAX + 7;
 // botl.h
 export const BL_ATTCLR_MAX = CLR_MAX + 8;
+
+// ===== vision.h =====
 // vision.h
 export const NUM_LS_SOURCES = (LS_MONSTER + 1);
+
+// ===== timeout.h =====
 // timeout.h
 export const NUM_TIME_FUNCS = (MELT_ICE_AWAY + 1);
+
+// ===== hack.h =====
 // hack.h
 export const MAXLINFO = (MAXDUNGEON * MAXLEVEL);
 // hack.h
@@ -5401,6 +5382,8 @@ export const SYM_MAX = (SYM_OFF_X + MAXOTHER);
 export const BUC_ALLBKNOWN = (BUC_BLESSED | BUC_CURSED | BUC_UNCURSED);
 // hack.h
 export const BUCX_TYPES = (BUC_ALLBKNOWN | BUC_UNKNOWN);
+
+// ===== wincurs.h =====
 // wincurs.h
 export const DIALOG_BORDER_COLOR = CLR_MAGENTA;
 // wincurs.h
@@ -5419,468 +5402,24 @@ export const STAT_UP_COLOR = CLR_GREEN;
 export const STAT_DOWN_COLOR = CLR_RED;
 
 export const DEFERRED_HEADER_CONST_MACROS = Object.freeze([
-    "HIGH_PM (permonst.h)",
-    "SPECIAL_PM (permonst.h)",
-    "GLYPH_MON_FEM_OFF (display.h)",
-    "GLYPH_PET_OFF (display.h)",
-    "GLYPH_PET_MALE_OFF (display.h)",
-    "GLYPH_PET_FEM_OFF (display.h)",
-    "GLYPH_INVIS_OFF (display.h)",
-    "GLYPH_DETECT_OFF (display.h)",
-    "GLYPH_DETECT_MALE_OFF (display.h)",
-    "GLYPH_DETECT_FEM_OFF (display.h)",
-    "GLYPH_BODY_OFF (display.h)",
-    "GLYPH_RIDDEN_OFF (display.h)",
-    "GLYPH_RIDDEN_MALE_OFF (display.h)",
-    "GLYPH_RIDDEN_FEM_OFF (display.h)",
-    "GLYPH_OBJ_OFF (display.h)",
-    "GLYPH_CMAP_OFF (display.h)",
-    "GLYPH_CMAP_STONE_OFF (display.h)",
-    "GLYPH_CMAP_MAIN_OFF (display.h)",
-    "GLYPH_CMAP_B_OFF (display.h)",
-    "GLYPH_CMAP_C_OFF (display.h)",
-    "GLYPH_EXPLODE_OFF (display.h)",
-    "GLYPH_EXPLODE_DARK_OFF (display.h)",
-    "GLYPH_EXPLODE_NOXIOUS_OFF (display.h)",
-    "GLYPH_EXPLODE_MUDDY_OFF (display.h)",
-    "GLYPH_EXPLODE_WET_OFF (display.h)",
-    "GLYPH_EXPLODE_MAGICAL_OFF (display.h)",
-    "GLYPH_EXPLODE_FIERY_OFF (display.h)",
-    "GLYPH_EXPLODE_FROSTY_OFF (display.h)",
-    "GLYPH_WARNING_OFF (display.h)",
-    "GLYPH_STATUE_OFF (display.h)",
-    "GLYPH_STATUE_MALE_OFF (display.h)",
-    "GLYPH_STATUE_FEM_OFF (display.h)",
-    "GLYPH_PILETOP_OFF (display.h)",
-    "GLYPH_OBJ_PILETOP_OFF (display.h)",
-    "GLYPH_BODY_PILETOP_OFF (display.h)",
-    "GLYPH_STATUE_MALE_PILETOP_OFF (display.h)",
-    "GLYPH_STATUE_FEM_PILETOP_OFF (display.h)",
-    "GLYPH_UNEXPLORED_OFF (display.h)",
-    "GLYPH_NOTHING_OFF (display.h)",
-    "MAX_GLYPH (display.h)",
-    "NO_GLYPH (display.h)",
-    "GLYPH_INVISIBLE (display.h)",
-    "GLYPH_UNEXPLORED (display.h)",
-    "GLYPH_NOTHING (display.h)",
-    "NUM_REAL_GEMS (objclass.h)",
-    "NUM_GLASS_GEMS (objclass.h)",
-    "MAXSPELL (objclass.h)",
-    "NROFARTIFACTS (hack.h)",
 ]);
 
 export const DEFERRED_HEADER_CONST_MACRO_DETAILS = Object.freeze([
-    Object.freeze({
-        name: "HIGH_PM",
-        source: "permonst.h",
-        missingDeps: Object.freeze(["NUMMONS"]),
-        rootMissingDeps: Object.freeze(["NUMMONS"]),
-        expr: "NUMMONS - 1",
-    }),
-    Object.freeze({
-        name: "SPECIAL_PM",
-        source: "permonst.h",
-        missingDeps: Object.freeze(["PM_LONG_WORM_TAIL"]),
-        rootMissingDeps: Object.freeze(["PM_LONG_WORM_TAIL"]),
-        expr: "PM_LONG_WORM_TAIL",
-    }),
-    Object.freeze({
-        name: "GLYPH_MON_FEM_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["NUMMONS"]),
-        rootMissingDeps: Object.freeze(["NUMMONS"]),
-        expr: "(NUMMONS + GLYPH_MON_MALE_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_PET_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_MON_FEM_OFF", "NUMMONS"]),
-        rootMissingDeps: Object.freeze(["NUMMONS"]),
-        expr: "(NUMMONS + GLYPH_MON_FEM_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_PET_MALE_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_PET_OFF"]),
-        rootMissingDeps: Object.freeze(["NUMMONS"]),
-        expr: "(GLYPH_PET_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_PET_FEM_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_PET_MALE_OFF", "NUMMONS"]),
-        rootMissingDeps: Object.freeze(["NUMMONS"]),
-        expr: "(NUMMONS + GLYPH_PET_MALE_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_INVIS_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_PET_FEM_OFF", "NUMMONS"]),
-        rootMissingDeps: Object.freeze(["NUMMONS"]),
-        expr: "(NUMMONS + GLYPH_PET_FEM_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_DETECT_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_INVIS_OFF"]),
-        rootMissingDeps: Object.freeze(["NUMMONS"]),
-        expr: "(1 + GLYPH_INVIS_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_DETECT_MALE_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_DETECT_OFF"]),
-        rootMissingDeps: Object.freeze(["NUMMONS"]),
-        expr: "(GLYPH_DETECT_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_DETECT_FEM_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_DETECT_MALE_OFF", "NUMMONS"]),
-        rootMissingDeps: Object.freeze(["NUMMONS"]),
-        expr: "(NUMMONS + GLYPH_DETECT_MALE_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_BODY_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_DETECT_FEM_OFF", "NUMMONS"]),
-        rootMissingDeps: Object.freeze(["NUMMONS"]),
-        expr: "(NUMMONS + GLYPH_DETECT_FEM_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_RIDDEN_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_BODY_OFF", "NUMMONS"]),
-        rootMissingDeps: Object.freeze(["NUMMONS"]),
-        expr: "(NUMMONS + GLYPH_BODY_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_RIDDEN_MALE_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_RIDDEN_OFF"]),
-        rootMissingDeps: Object.freeze(["NUMMONS"]),
-        expr: "(GLYPH_RIDDEN_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_RIDDEN_FEM_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_RIDDEN_MALE_OFF", "NUMMONS"]),
-        rootMissingDeps: Object.freeze(["NUMMONS"]),
-        expr: "(NUMMONS + GLYPH_RIDDEN_MALE_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_OBJ_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_RIDDEN_FEM_OFF", "NUMMONS"]),
-        rootMissingDeps: Object.freeze(["NUMMONS"]),
-        expr: "(NUMMONS + GLYPH_RIDDEN_FEM_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_CMAP_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_OBJ_OFF", "NUM_OBJECTS"]),
-        rootMissingDeps: Object.freeze(["NUMMONS", "NUM_OBJECTS"]),
-        expr: "(NUM_OBJECTS + GLYPH_OBJ_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_CMAP_STONE_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_CMAP_OFF"]),
-        rootMissingDeps: Object.freeze(["NUMMONS", "NUM_OBJECTS"]),
-        expr: "(GLYPH_CMAP_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_CMAP_MAIN_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_CMAP_STONE_OFF"]),
-        rootMissingDeps: Object.freeze(["NUMMONS", "NUM_OBJECTS"]),
-        expr: "(1 + GLYPH_CMAP_STONE_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_CMAP_B_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_ALTAR_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_ALTAR_OFF"]),
-        expr: "(5 + GLYPH_ALTAR_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_CMAP_C_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_ZAP_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_ZAP_OFF"]),
-        expr: "((NUM_ZAP << 2) + GLYPH_ZAP_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_EXPLODE_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS"]),
-        expr: "((NUMMONS << 3) + GLYPH_SWALLOW_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_EXPLODE_DARK_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_EXPLODE_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS"]),
-        expr: "(GLYPH_EXPLODE_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_EXPLODE_NOXIOUS_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_EXPLODE_DARK_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS"]),
-        expr: "(MAXEXPCHARS + GLYPH_EXPLODE_DARK_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_EXPLODE_MUDDY_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_EXPLODE_NOXIOUS_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS"]),
-        expr: "(MAXEXPCHARS + GLYPH_EXPLODE_NOXIOUS_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_EXPLODE_WET_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_EXPLODE_MUDDY_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS"]),
-        expr: "(MAXEXPCHARS + GLYPH_EXPLODE_MUDDY_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_EXPLODE_MAGICAL_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_EXPLODE_WET_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS"]),
-        expr: "(MAXEXPCHARS + GLYPH_EXPLODE_WET_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_EXPLODE_FIERY_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_EXPLODE_MAGICAL_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS"]),
-        expr: "(MAXEXPCHARS + GLYPH_EXPLODE_MAGICAL_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_EXPLODE_FROSTY_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_EXPLODE_FIERY_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS"]),
-        expr: "(MAXEXPCHARS + GLYPH_EXPLODE_FIERY_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_WARNING_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_EXPLODE_FROSTY_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS"]),
-        expr: "(MAXEXPCHARS + GLYPH_EXPLODE_FROSTY_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_STATUE_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_WARNING_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS"]),
-        expr: "(WARNCOUNT + GLYPH_WARNING_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_STATUE_MALE_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_STATUE_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS"]),
-        expr: "(GLYPH_STATUE_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_STATUE_FEM_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_STATUE_MALE_OFF", "NUMMONS"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS"]),
-        expr: "(NUMMONS + GLYPH_STATUE_MALE_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_PILETOP_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_STATUE_FEM_OFF", "NUMMONS"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS"]),
-        expr: "(NUMMONS + GLYPH_STATUE_FEM_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_OBJ_PILETOP_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_PILETOP_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS"]),
-        expr: "(GLYPH_PILETOP_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_BODY_PILETOP_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_OBJ_PILETOP_OFF", "NUM_OBJECTS"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS", "NUM_OBJECTS"]),
-        expr: "(NUM_OBJECTS + GLYPH_OBJ_PILETOP_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_STATUE_MALE_PILETOP_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_BODY_PILETOP_OFF", "NUMMONS"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS", "NUM_OBJECTS"]),
-        expr: "(NUMMONS + GLYPH_BODY_PILETOP_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_STATUE_FEM_PILETOP_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_STATUE_MALE_PILETOP_OFF", "NUMMONS"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS", "NUM_OBJECTS"]),
-        expr: "(NUMMONS + GLYPH_STATUE_MALE_PILETOP_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_UNEXPLORED_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_STATUE_FEM_PILETOP_OFF", "NUMMONS"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS", "NUM_OBJECTS"]),
-        expr: "(NUMMONS + GLYPH_STATUE_FEM_PILETOP_OFF)",
-    }),
-    Object.freeze({
-        name: "GLYPH_NOTHING_OFF",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_UNEXPLORED_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS", "NUM_OBJECTS"]),
-        expr: "(GLYPH_UNEXPLORED_OFF + 1)",
-    }),
-    Object.freeze({
-        name: "MAX_GLYPH",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_NOTHING_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS", "NUM_OBJECTS"]),
-        expr: "(GLYPH_NOTHING_OFF + 1)",
-    }),
-    Object.freeze({
-        name: "NO_GLYPH",
-        source: "display.h",
-        missingDeps: Object.freeze(["MAX_GLYPH"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS", "NUM_OBJECTS"]),
-        expr: "MAX_GLYPH",
-    }),
-    Object.freeze({
-        name: "GLYPH_INVISIBLE",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_INVIS_OFF"]),
-        rootMissingDeps: Object.freeze(["NUMMONS"]),
-        expr: "GLYPH_INVIS_OFF",
-    }),
-    Object.freeze({
-        name: "GLYPH_UNEXPLORED",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_UNEXPLORED_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS", "NUM_OBJECTS"]),
-        expr: "GLYPH_UNEXPLORED_OFF",
-    }),
-    Object.freeze({
-        name: "GLYPH_NOTHING",
-        source: "display.h",
-        missingDeps: Object.freeze(["GLYPH_NOTHING_OFF"]),
-        rootMissingDeps: Object.freeze(["GLYPH_SWALLOW_OFF", "NUMMONS", "NUM_OBJECTS"]),
-        expr: "GLYPH_NOTHING_OFF",
-    }),
-    Object.freeze({
-        name: "NUM_REAL_GEMS",
-        source: "objclass.h",
-        missingDeps: Object.freeze(["FIRST_REAL_GEM", "LAST_REAL_GEM"]),
-        rootMissingDeps: Object.freeze(["FIRST_REAL_GEM", "LAST_REAL_GEM"]),
-        expr: "(LAST_REAL_GEM - FIRST_REAL_GEM + 1)",
-    }),
-    Object.freeze({
-        name: "NUM_GLASS_GEMS",
-        source: "objclass.h",
-        missingDeps: Object.freeze(["FIRST_GLASS_GEM", "LAST_GLASS_GEM"]),
-        rootMissingDeps: Object.freeze(["FIRST_GLASS_GEM", "LAST_GLASS_GEM"]),
-        expr: "(LAST_GLASS_GEM - FIRST_GLASS_GEM + 1)",
-    }),
-    Object.freeze({
-        name: "MAXSPELL",
-        source: "objclass.h",
-        missingDeps: Object.freeze(["FIRST_SPELL", "LAST_SPELL"]),
-        rootMissingDeps: Object.freeze(["FIRST_SPELL", "LAST_SPELL"]),
-        expr: "(LAST_SPELL - FIRST_SPELL + 1)",
-    }),
-    Object.freeze({
-        name: "NROFARTIFACTS",
-        source: "hack.h",
-        missingDeps: Object.freeze(["AFTER_LAST_ARTIFACT"]),
-        rootMissingDeps: Object.freeze(["AFTER_LAST_ARTIFACT"]),
-        expr: "(AFTER_LAST_ARTIFACT - 1)",
-    }),
 ]);
 
 export const DEFERRED_HEADER_CONST_ROOT_BLOCKERS = Object.freeze([
-    Object.freeze({
-        name: "NUMMONS",
-        count: 41,
-        ownerHint: "monsters.js",
-    }),
-    Object.freeze({
-        name: "GLYPH_SWALLOW_OFF",
-        count: 23,
-        ownerHint: "const.js (symbols)",
-    }),
-    Object.freeze({
-        name: "NUM_OBJECTS",
-        count: 12,
-        ownerHint: "objects.js",
-    }),
-    Object.freeze({
-        name: "AFTER_LAST_ARTIFACT",
-        count: 1,
-        ownerHint: "artifacts.js",
-    }),
-    Object.freeze({
-        name: "FIRST_GLASS_GEM",
-        count: 1,
-        ownerHint: "objects.js",
-    }),
-    Object.freeze({
-        name: "FIRST_REAL_GEM",
-        count: 1,
-        ownerHint: "objects.js",
-    }),
-    Object.freeze({
-        name: "FIRST_SPELL",
-        count: 1,
-        ownerHint: "objects.js",
-    }),
-    Object.freeze({
-        name: "GLYPH_ALTAR_OFF",
-        count: 1,
-        ownerHint: "const.js (symbols)",
-    }),
-    Object.freeze({
-        name: "GLYPH_ZAP_OFF",
-        count: 1,
-        ownerHint: "const.js (symbols)",
-    }),
-    Object.freeze({
-        name: "LAST_GLASS_GEM",
-        count: 1,
-        ownerHint: "objects.js",
-    }),
-    Object.freeze({
-        name: "LAST_REAL_GEM",
-        count: 1,
-        ownerHint: "objects.js",
-    }),
-    Object.freeze({
-        name: "LAST_SPELL",
-        count: 1,
-        ownerHint: "objects.js",
-    }),
-    Object.freeze({
-        name: "PM_LONG_WORM_TAIL",
-        count: 1,
-        ownerHint: "monsters.js",
-    }),
 ]);
 
 export const HEADER_MACRO_NON_EMITTABLE = Object.freeze([
+    "B: objects.h alias; owned by objects.js with objclass.h direction constants",
     "DLBFILE: platform/filesystem path constant; not used in web runtime",
     "DUMPLOG_FILE: platform/filesystem path template; not used in web runtime",
     "HACKDIR: platform/filesystem path constant; not used in web runtime",
+    "NROFARTIFACTS: owned by artifacts.js (derived from AFTER_LAST_ARTIFACT)",
     "N_DIRS_Z: kept manual with direction arrays and DIR_* ordering contract",
+    "P: objects.h alias; owned by objects.js with objclass.h direction constants",
+    "PAPER: objects.h alias; owned by objects.js material constants",
+    "S: objects.h alias; owned by objects.js with objclass.h direction constants",
     "SHOP_WALL_DMG: depends on runtime ACURRSTR (not a pure constant)",
     "SOUNDLIBONLY: macro alias to UNUSED (compile-time annotation)",
     "UNDEFINED_PTR: C pointer sentinel (NULL), not meaningful as JS const",
