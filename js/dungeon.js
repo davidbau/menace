@@ -5063,7 +5063,7 @@ export function unreachable_level(lvl_p, unplaced, map) {
   let dummy;
   if (unplaced) return true;
   if (In_endgame(map.uz) && !In_endgame(lvl_p)) return true;
-  if ((dummy = find_level("dummy")) !== 0 && on_level(lvl_p, dummy.dlevel)) return true;
+  if ((dummy = find_level("dummy")) != null && on_level(lvl_p, dummy.dlevel)) return true;
   return false;
 }
 

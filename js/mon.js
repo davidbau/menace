@@ -1989,7 +1989,7 @@ export function m_restartcham(mtmp) {
 // Autotranslated from mon.c:4660
 export function restrap(mtmp, map, player) {
   let t;
-  if (mtmp.mcan || M_AP_TYPE(mtmp) || cansee(mtmp.mx, mtmp.my) || rn2(3) || mtmp === player.ustuck   || (mtmp.mtrapped && (t = t_at(mtmp.mx, mtmp.my)) !== 0 && !is_pit(t.ttyp))   || (ceiling_hider(mtmp.data) && !has_ceiling(map.uz))   || (sensemon(mtmp) && m_next2u(mtmp))) return false;
+  if (mtmp.mcan || M_AP_TYPE(mtmp) || cansee(mtmp.mx, mtmp.my) || rn2(3) || mtmp === player.ustuck   || (mtmp.mtrapped && (t = t_at(mtmp.mx, mtmp.my)) != null && !is_pit(t.ttyp))   || (ceiling_hider(mtmp.data) && !has_ceiling(map.uz))   || (sensemon(mtmp) && m_next2u(mtmp))) return false;
   if (mtmp.data.mlet === S_MIMIC) {
     if (mtmp.msleeping || mtmp.mfrozen) { return false; }
     set_mimic_sym(mtmp);

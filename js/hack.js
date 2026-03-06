@@ -3312,7 +3312,7 @@ export function monster_nearby(player) {
       if (!isok(x, y) || u_at(x, y)) {
         continue;
       }
-      if ((mtmp = m_at(x, y)) !== 0 && M_AP_TYPE(mtmp) !== M_AP_FURNITURE && M_AP_TYPE(mtmp) !== M_AP_OBJECT && (Hallucination || (!mtmp.mpeaceful && !noattacks(mtmp.data))) && (!is_hider(mtmp.data) || !mtmp.mundetected) && !helpless(mtmp) && !onscary(player.x, player.y, mtmp) && canspotmon(mtmp)) return 1;
+      if ((mtmp = m_at(x, y)) != null && M_AP_TYPE(mtmp) !== M_AP_FURNITURE && M_AP_TYPE(mtmp) !== M_AP_OBJECT && (Hallucination || (!mtmp.mpeaceful && !noattacks(mtmp.data))) && (!is_hider(mtmp.data) || !mtmp.mundetected) && !helpless(mtmp) && !onscary(player.x, player.y, mtmp) && canspotmon(mtmp)) return 1;
     }
   }
   return 0;

@@ -2490,12 +2490,12 @@ export function repairable_damage(dam, shkp, game) {
   y = dam.place.y;
   if (((Number(game?.moves) || 0) - dam.when) < REPAIR_DELAY) return false;
   if (!IS_ROOM(dam.typ)) {
-    if ((u_at(x, y) && !Passes_walls) || (x === shkp.mx && y === shkp.my) || ((mtmp = m_at(x, y)) !== 0 && !passes_walls(mtmp.data))) return false;
+    if ((u_at(x, y) && !Passes_walls) || (x === shkp.mx && y === shkp.my) || ((mtmp = m_at(x, y)) != null && !passes_walls(mtmp.data))) return false;
   }
   ttmp = t_at(x, y);
   if (ttmp) {
     if (u_at(x, y)) return false;
-    if ((mtmp = m_at(x,y)) !== 0 && mtmp.mtrapped) return false;
+    if ((mtmp = m_at(x,y)) != null && mtmp.mtrapped) return false;
   }
   if (!strchr(in_rooms(x, y, SHOPBASE), ESHK(shkp).shoproom)) return false;
   return true;

@@ -2187,7 +2187,7 @@ export function leppie_stash(mtmp, map) {
 // Autotranslated from monmove.c:1230
 export async function holds_up_web(x, y, map) {
   let sway;
-  if (!isok(x, y) || IS_OBSTRUCTED(map.locations[x][y].typ) || ((map.locations[x][y].typ === STAIRS || map.locations[x][y].typ === LADDER) && (sway = await stairway_at(x, y, map)) !== 0 && sway.up) || map.locations[x][y].typ === IRONBARS) return true;
+  if (!isok(x, y) || IS_OBSTRUCTED(map.locations[x][y].typ) || ((map.locations[x][y].typ === STAIRS || map.locations[x][y].typ === LADDER) && (sway = await stairway_at(x, y, map)) != null && sway.up) || map.locations[x][y].typ === IRONBARS) return true;
   return false;
 }
 
@@ -2224,7 +2224,7 @@ export async function maybe_spin_web(mtmp, map) {
 export function can_hide_under_obj(obj) {
   let t;
   if (!obj || obj.where !== 'OBJ_FLOOR') return false;
-  if ((t = t_at(obj.ox, obj.oy)) !== 0 && !is_pit(t.ttyp)) return false;
+  if ((t = t_at(obj.ox, obj.oy)) != null && !is_pit(t.ttyp)) return false;
   if (obj.oclass === COIN_CLASS) {
     let coinquan = 0;
     do {

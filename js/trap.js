@@ -1531,7 +1531,7 @@ export function isclearpath(cc, distance, dx, dy, map) {
     if (!isok(x, y)) return false;
     typ = map.locations[x][y].typ;
     if (!ZAP_POS(typ) || closed_door(x, y)) return false;
-    if ((t = t_at(x, y)) !== 0 && (is_pit(t.ttyp) || is_hole(t.ttyp) || is_xport(t.ttyp))) return false;
+    if ((t = t_at(x, y)) != null && (is_pit(t.ttyp) || is_hole(t.ttyp) || is_xport(t.ttyp))) return false;
   }
   cc.x = x;
   cc.y = y;
@@ -1541,7 +1541,7 @@ export function isclearpath(cc, distance, dx, dy, map) {
 // Autotranslated from trap.c:3917
 export async function fill_pit(x, y) {
   let otmp, t;
-  if ((t = t_at(x, y)) !== 0 && (is_pit(t.ttyp) || is_hole(t.ttyp)) && (otmp = sobj_at(BOULDER, x, y)) !== 0) { obj_extract_self(otmp); await flooreffects(otmp, x, y, "settle"); }
+  if ((t = t_at(x, y)) != null && (is_pit(t.ttyp) || is_hole(t.ttyp)) && (otmp = sobj_at(BOULDER, x, y)) != null) { obj_extract_self(otmp); await flooreffects(otmp, x, y, "settle"); }
 }
 
 // Autotranslated from trap.c:5155
@@ -1710,7 +1710,7 @@ export function clear_conjoined_pits(trap) {
       if (trap.conjoined & (1 << diridx)) {
         x = trap.tx + xdir;
         y = trap.ty + ydir;
-        if (isok(x, y) && (t = t_at(x, y)) !== 0 && is_pit(t.ttyp)) { adjidx = DIR_180(diridx); t.conjoined &= ~(1 << adjidx); }
+        if (isok(x, y) && (t = t_at(x, y)) != null && is_pit(t.ttyp)) { adjidx = DIR_180(diridx); t.conjoined &= ~(1 << adjidx); }
         trap.conjoined &= ~(1 << diridx);
       }
     }

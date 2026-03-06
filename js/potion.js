@@ -1525,7 +1525,7 @@ export async function peffect_levitation(otmp, map, player) {
     H(player?.Levitation || player?.levitating || false) &= ~I_SPECIAL;
     if (B(player?.Levitation || player?.levitating || false)) {
     }
-    else if ((stway = await stairway_at(player.x, player.y)) !== 0 && stway.up) { doup(); gp.potion_nothing = 0; }
+    else if ((stway = await stairway_at(player.x, player.y)) != null && stway.up) { doup(); gp.potion_nothing = 0; }
     else if (has_ceiling(map.uz)) {
       let dmg = rnd(!uarmh ? 10 : !hard_helmet(uarmh) ? 6 : 3);
       await You("hit your %s on the %s.", body_part(HEAD), ceiling(player.x, player.y));
