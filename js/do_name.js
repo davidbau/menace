@@ -15,35 +15,18 @@ import { mons, LOW_PM, SPECIAL_PM, G_NOGEN, G_UNIQ,
          PM_GHOST, PM_WIZARD_OF_YENDOR, PM_SHOPKEEPER,
          } from './monsters.js';
 import { highc, upstart, s_suffix } from './hacklib.js';
-import { CLR_MAX, NO_COLOR } from './const.js';
+import {
+    CLR_MAX, NO_COLOR,
+    ARTICLE_NONE, ARTICLE_THE, ARTICLE_A, ARTICLE_YOUR,
+    SUPPRESS_IT, SUPPRESS_INVISIBLE, SUPPRESS_HALLUCINATION, SUPPRESS_SADDLE,
+    SUPPRESS_MAPPEARANCE, SUPPRESS_NAME, AUGMENT_IT, EXACT_NAME,
+} from './const.js';
 import { hasGivenName, type_is_pname, is_mplayer,
          is_animal, is_mindless, is_humanoid } from './mondata.js';
 import { flush_screen } from './monutil.js';
 
 // Re-export helper needed by x_monnam naming logic.
 export { hasGivenName } from './mondata.js';
-
-// ========================================================================
-// Article constants — cf. do_name.c article enum
-// ========================================================================
-export const ARTICLE_NONE = 0;
-export const ARTICLE_THE  = 1;
-export const ARTICLE_A    = 2;
-export const ARTICLE_YOUR = 3;
-
-// ========================================================================
-// Suppress flags — cf. do_name.c suppress bitmask
-// ========================================================================
-export const SUPPRESS_IT            = 0x01;
-export const SUPPRESS_INVISIBLE     = 0x02;
-export const SUPPRESS_HALLUCINATION = 0x04;
-export const SUPPRESS_SADDLE        = 0x08;
-export const SUPPRESS_MAPPEARANCE   = 0x10;
-export const SUPPRESS_NAME          = 0x20;
-export const AUGMENT_IT             = 0x40;
-export const EXACT_NAME = (SUPPRESS_IT | SUPPRESS_INVISIBLE
-    | SUPPRESS_HALLUCINATION | SUPPRESS_SADDLE
-    | SUPPRESS_MAPPEARANCE | SUPPRESS_NAME);
 
 // ========================================================================
 // christen_monst — cf. do_name.c:132
