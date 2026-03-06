@@ -37,6 +37,7 @@ import { helpless as monHelpless } from './mon.js';
 import { newsym } from './display.js';
 import { canseemon, y_monnam } from './mondata.js';
 import { game as _gstate } from './gstate.js';
+import { getpos_async } from './getpos.js';
 
 // ============================================================
 // Constants
@@ -1560,7 +1561,6 @@ export async function maybeHandleShopEntryMessage(game, oldX, oldY) {
 
 // ============================================================
 // dopay -- the #pay command (C: shk.c dopay)
-// This is a complex interactive function; stub that preserves interface
 // ============================================================
 
 // C ref: shk.c dopay() -- the #pay command
@@ -1620,7 +1620,35 @@ export async function dopay(game) {
         shkp = resident;
     } else {
         await pline("Pay whom?");
-        return 0;
+        const cc = { x: Number(player?.x || 1), y: Number(player?.y || 0) };
+        const pick = await getpos_async(cc, true, "the creature you want to pay", { map, display: game?.display, player });
+        if (pick < 0) return 0;
+        const cx = Number(cc.x);
+        const cy = Number(cc.y);
+        if (cx < 0) {
+            await pline("Try again...");
+            return 0;
+        }
+        if (cx === Number(player?.x) && cy === Number(player?.y)) {
+            await You("are generous to yourself.");
+            return 0;
+        }
+        const mtmp = (typeof map.monsterAt === 'function')
+            ? map.monsterAt(cx, cy)
+            : (map.monsters || []).find((m) => m && !m.dead && Number(m.mx) === cx && Number(m.my) === cy);
+        if (!mtmp || !canspotmon(mtmp)) {
+            await You("can't see anyone there.");
+            return 0;
+        }
+        if (!mtmp.isshk) {
+            await pline("%s is not interested in your payment.", y_monnam(mtmp));
+            return 0;
+        }
+        if (mtmp !== resident && !m_next2u(mtmp, player)) {
+            await pline("%s is too far to receive your payment.", Shknam(mtmp));
+            return 0;
+        }
+        shkp = mtmp;
     }
 
     if (!shkp) return 0;
@@ -1652,37 +1680,125 @@ export async function dopay(game) {
         return tookTime ? 1 : 0;
     }
 
-    if (resident) {
-        const eshkp = resident;
-        if (!eshkp.billct && !eshkp.debit) {
-            if (!eshkp.robbed && eshkp.mpeaceful !== false) {
-                await You("do not owe %s anything.", shkname(resident));
-                tookTime = true;
+    let paid = false;
+    let pay_done = true;
+    const eshkp = shkp;
+
+    if (!eshkp.billct && !eshkp.debit) {
+        const umoney = moneyOnHand();
+        if (!robbed && shkp.mpeaceful !== false) {
+            await You("do not owe %s anything.", shkname(shkp));
+            if (!umoney) await pline("You have no money.");
+            tookTime = true;
+        } else if (robbed) {
+            await pline("%s is after blood, not gold!", shkname(shkp));
+            if (umoney < Math.floor(robbed / 2)) {
+                if (!umoney) await pline("You have no money.");
+                else await pline("You don't have enough to interest %s.", mhim(shkp));
+                return 1;
             }
+            await pline("But since %s shop has been robbed recently,", mhis(shkp));
+            await pline("you %scompensate %s for %s losses.",
+                (umoney < robbed) ? "partially " : "", shkname(shkp), mhis(shkp));
+            await pay(umoney < robbed ? umoney : robbed, shkp, game);
+            await make_happy_shk(shkp, false, map);
+            tookTime = true;
         } else {
-            if ((resident.debit || 0) > 0) {
-                const debit = Number(resident.debit || 0);
-                if (debit > 0) {
-                    if (!insufficient_funds(resident, { otyp: 0, quan: 1, oclass: 0 }, debit)) {
-                        await pay(debit, resident, game);
-                        resident.debit = 0;
-                        tookTime = true;
-                    }
-                }
+            await pline("%s is after your hide, not your gold!", Shknam(shkp));
+            if (umoney < 1000) {
+                if (!umoney) await pline("You have no money.");
+                else await pline("You don't have enough to interest %s.", mhim(shkp));
+                return 1;
             }
-            const ibill = make_itemized_bill(resident);
-            const paid = { paid: false };
-            await pay_billed_items(resident, ibill.length, ibill, false, paid);
-            if (paid.paid) tookTime = true;
-            if (!paid.paid && (resident.billct || 0)) {
-                await pline("You owe %s %d %s.", shkname(resident),
-                    shop_debt(resident), currency(shop_debt(resident)));
-                tookTime = true;
+            await You("try to appease %s by giving %s 1000 gold pieces.",
+                canspotmon(shkp) ? `the angry ${shkname(shkp)}` : shkname(shkp), mhim(shkp));
+            await pay(1000, shkp, game);
+            if (rn2(3)) {
+                await make_happy_shk(shkp, false, map);
+            } else {
+                await pline("But %s is as angry as ever.", shkname(shkp));
             }
+            tookTime = true;
+        }
+        return tookTime ? 1 : 0;
+    }
+
+    if (shkp !== resident) {
+        impossible("dopay: not to shopkeeper?");
+        if (resident) setpaid(resident);
+        return 0;
+    }
+
+    if (eshkp.debit) {
+        let dtmp = Number(eshkp.debit || 0);
+        const loan = Number(eshkp.loan || 0);
+        const umoney = moneyOnHand();
+        let debtMsg = `You owe ${shkname(shkp)} ${dtmp} ${currency(dtmp)} `;
+        if (loan) {
+            debtMsg += (loan === dtmp)
+                ? "you picked up in the store."
+                : "for gold picked up and the use of merchandise.";
+        } else {
+            debtMsg += "for the use of merchandise.";
+        }
+        await pline("%s", debtMsg);
+
+        if (umoney + Number(eshkp.credit || 0) < dtmp) {
+            await pline("But you don't have enough gold%s.", eshkp.credit ? " or credit" : "");
+            return 1;
+        }
+
+        if (Number(eshkp.credit || 0) >= dtmp) {
+            eshkp.credit = Number(eshkp.credit || 0) - dtmp;
+            eshkp.debit = 0;
+            eshkp.loan = 0;
+            await Your("debt is covered by your credit.");
+        } else if (!Number(eshkp.credit || 0)) {
+            money2mon(shkp, dtmp);
+            eshkp.debit = 0;
+            eshkp.loan = 0;
+            await You("pay that debt.");
+        } else {
+            dtmp -= Number(eshkp.credit || 0);
+            eshkp.credit = 0;
+            money2mon(shkp, dtmp);
+            eshkp.debit = 0;
+            eshkp.loan = 0;
+            await pline("That debt is partially offset by your credit.");
+            await You("pay the remainder.");
+        }
+        paid = true;
+        tookTime = true;
+    }
+
+    if (eshkp.billct) {
+        const ibill = make_itemized_bill(shkp);
+        const paidRef = { paid };
+        if (!await pay_billed_items(shkp, ibill.length, ibill, false, paidRef)) {
+            pay_done = false;
+        } else {
+            paid = paidRef.paid;
+            if (paid) tookTime = true;
         }
     }
 
-    return tookTime ? 1 : 0;
+    if (pay_done && shkp.mpeaceful !== false && paid) {
+        if (!muteshk(shkp)) {
+            await verbalize("Thank you for shopping in %s %s%s",
+                sSuffix(shkname(shkp)),
+                shtypes[Number(shkp.shoptype || SHOPBASE) - SHOPBASE]?.name || "shop",
+                !shkp.surcharge ? "!" : ".");
+        } else {
+            await pline("%s nods%s at you for shopping in %s %s%s",
+                Shknam(shkp),
+                !shkp.surcharge ? " appreciatively" : "",
+                mhis(shkp),
+                shtypes[Number(shkp.shoptype || SHOPBASE) - SHOPBASE]?.name || "shop",
+                !shkp.surcharge ? "!" : ".");
+        }
+    }
+
+    return (paid || tookTime) ? 1 : 0;
 }
 
 // C ref: shk.c make_itemized_bill()
