@@ -19,6 +19,8 @@ test('gen_constants deferred report JSON shape is stable', () => {
     assert.equal(typeof report.deferredCount, 'number');
     assert.ok(Array.isArray(report.details));
     assert.ok(Array.isArray(report.rootBlockers));
+    assert.ok(Array.isArray(report.ownerSummary));
+    assert.ok(Array.isArray(report.unknownOwnerBlockers));
     assert.equal(typeof report.immediateMissingCounts, 'object');
     assert.equal(typeof report.rootMissingCounts, 'object');
 
@@ -35,6 +37,13 @@ test('gen_constants deferred report JSON shape is stable', () => {
         assert.equal(typeof blocker.count, 'number');
         assert.equal(typeof blocker.ownerHint, 'string');
     }
+    for (const ownerEntry of report.ownerSummary) {
+        assert.equal(typeof ownerEntry.ownerHint, 'string');
+        assert.equal(typeof ownerEntry.count, 'number');
+    }
+    for (const name of report.unknownOwnerBlockers) {
+        assert.equal(typeof name, 'string');
+    }
 });
 
 test('deferred constants inventory does not regress beyond current envelope', () => {
@@ -49,4 +58,10 @@ test('deferred constants inventory does not regress beyond current envelope', ()
     for (const required of ['NUMMONS', 'NUM_OBJECTS', 'GLYPH_SWALLOW_OFF']) {
         assert.ok(knownRootBlockers.has(required), `missing expected root blocker ${required}`);
     }
+
+    assert.deepEqual(
+        report.unknownOwnerBlockers,
+        [],
+        `unknown owner hints for root blockers: ${report.unknownOwnerBlockers.join(', ')}`,
+    );
 });

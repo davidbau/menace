@@ -801,6 +801,7 @@ def main() -> None:
     if args.report_deferred or args.report_deferred_json:
         dep_counts: dict[str, int] = {}
         root_counts: dict[str, int] = {}
+        owner_counts: dict[str, int] = {}
         details = _unresolved_dependency_details(post_pending, post_known)
         payload_details: list[dict[str, object]] = []
         for name, src, missing, roots, expr in details:
@@ -810,6 +811,8 @@ def main() -> None:
                 dep_counts[dep] = dep_counts.get(dep, 0) + 1
             for dep in out_roots:
                 root_counts[dep] = root_counts.get(dep, 0) + 1
+                owner = ROOT_BLOCKER_OWNER_HINTS.get(dep, "unknown")
+                owner_counts[owner] = owner_counts.get(owner, 0) + 1
             payload_details.append(
                 {
                     "name": name,
@@ -833,6 +836,14 @@ def main() -> None:
                 }
                 for dep, count in sorted(root_counts.items(), key=lambda kv: (-kv[1], kv[0]))
             ],
+            "ownerSummary": [
+                {"ownerHint": owner, "count": count}
+                for owner, count in sorted(owner_counts.items(), key=lambda kv: (-kv[1], kv[0]))
+            ],
+            "unknownOwnerBlockers": [
+                dep for dep, _count in sorted(root_counts.items(), key=lambda kv: kv[0])
+                if ROOT_BLOCKER_OWNER_HINTS.get(dep, "unknown") == "unknown"
+            ],
         }
 
         if args.report_deferred_json:
@@ -855,6 +866,15 @@ def main() -> None:
         for dep, count in payload["rootMissingCounts"].items():
             owner = ROOT_BLOCKER_OWNER_HINTS.get(dep, "unknown")
             print(f"  {dep}: {count} (owner: {owner})")
+        print("")
+        print("Owner summary:")
+        for entry in payload["ownerSummary"]:
+            print(f"  {entry['ownerHint']}: {entry['count']}")
+        if payload["unknownOwnerBlockers"]:
+            print("")
+            print("Unknown owner blockers:")
+            for dep in payload["unknownOwnerBlockers"]:
+                print(f"  {dep}")
         return
 
     all_headers_block, all_headers_post_block = generate_all_headers_blocks(before, before_post, outside)
