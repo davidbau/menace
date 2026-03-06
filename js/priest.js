@@ -284,7 +284,9 @@ function m_canseeu(mon, player) {
     return mon.mcansee !== false && !mon.blind;
 }
 function helpless(mon) {
-    return !!(mon.mfrozen || mon.msleeping || !mon.mcanmove);
+    // C: mcanmove defaults to 1 for new monsters; JS leaves it undefined.
+    // Treat undefined as "can move" (not helpless).
+    return !!(mon.mfrozen || mon.msleeping || (mon.mcanmove !== undefined && !mon.mcanmove));
 }
 function resist_conflict(mon) {
     // C: resist(mon, RING_CLASS, 0, 0)
@@ -406,7 +408,16 @@ export async function intemple(roomno, map, player, display, fov) {
             if (sanctum && !player.hallucinating) {
                 priest.ispriest = false;
             }
-            const seer = (canseemon(priest, player, fov)) ? Monnam(priest) : "A nearby voice";
+            // C ref: priest.c:434 — Monnam() → x_monnam → priestname for priests.
+            // JS Monnam doesn't integrate priestname, so call it directly.
+            // Capitalize first letter to match Monnam behavior.
+            let seer;
+            if (canseemon(priest, player, fov)) {
+                const pn = priestname(priest, ARTICLE_THE, false, player);
+                seer = pn.charAt(0).toUpperCase() + pn.slice(1);
+            } else {
+                seer = "A nearby voice";
+            }
             await pline("%s intones:", seer);
             priest.ispriest = save_priest;
             epri_p.intone_time = moves + c_d(10, 500);
