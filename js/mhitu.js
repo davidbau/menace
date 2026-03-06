@@ -42,7 +42,7 @@ import {
     mhitm_mgc_atk_negated,
 } from './uhitm.js';
 import { thrwmu, spitmu, breamu } from './mthrowu.js';
-import { castmu } from './mcastu.js';
+import { castmu, buzzmu } from './mcastu.js';
 import { exercise } from './attrib_exercise.js';
 import { make_confused, make_stunned, make_blinded, make_hallucinated } from './potion.js';
 import { losexp } from './exper.js';
@@ -1103,11 +1103,18 @@ export async function mattacku(monster, player, display, game = null, opts = {})
                 continue;
             }
             if (attack.aatyp === AT_MAGC) {
-                const vis = !player?.blind && !(monster.minvis && !player?.seeInvisible);
-                await castmu(monster, attack, vis, foundyou, player, map);
+                if (map) {
+                    await buzzmu(monster, attack, player, map);
+                }
                 continue;
             }
             // Skip melee-only attack types when at range
+            continue;
+        }
+
+        if (attack.aatyp === AT_MAGC) {
+            const vis = !player?.blind && !(monster.minvis && !player?.seeInvisible);
+            await castmu(monster, attack, vis, foundyou, player, map);
             continue;
         }
 

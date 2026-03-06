@@ -6,12 +6,13 @@
 
 import { rn2, rnd, d } from './rng.js';
 import {
-  AD_FIRE, AD_COLD, AD_ELEC, AD_MAGM, AD_SLEE, AD_DISN, AD_DRST, AD_ACID, AT_MAGC,
+  AD_FIRE, AD_COLD, AD_ELEC, AD_MAGM, AD_SLEE, AD_DISN, AD_DRST, AD_ACID, AD_SPC2, AD_SPEL, AD_CLRC, AT_MAGC,
 } from './monsters.js';
 import {
   buzz, ZT_BREATH, ZT_MAGIC_MISSILE, ZT_FIRE, ZT_COLD, ZT_SLEEP,
   ZT_DEATH, ZT_LIGHTNING, ZT_POISON_GAS, ZT_ACID,
 } from './zap.js';
+import { lined_up } from './mthrowu.js';
 import {
   MGC_PSI_BOLT, MGC_CURE_SELF, MGC_HASTE_SELF, MGC_STUN_YOU, MGC_DISAPPEAR,
   MGC_WEAKEN_YOU, MGC_DESTRY_ARMR, MGC_CURSE_ITEMS, MGC_AGGRAVATION,
@@ -29,42 +30,45 @@ export function cursetxt(mtmp, vis) {
 // cf. mcastu.c:75 — choose_magic_spell(n)
 // Maps a spell value to a wizard spell type
 export function choose_magic_spell(n) {
-  // C ref: mcastu.c:75-126
-  // The spell value is recursively reduced: while > 24 && rn2(25), re-roll
+  // C ref: mcastu.c choose_magic_spell()
   while (n > 24 && rn2(25)) {
     n = rn2(n);
   }
 
-  if (n >= 24) return MGC_DEATH_TOUCH;
-  if (n >= 22) return MGC_CLONE_WIZ;
-  if (n >= 20) return MGC_SUMMON_MONS;
-  if (n >= 16) return MGC_AGGRAVATION;
-  if (n >= 14) return MGC_CURSE_ITEMS;
-  if (n >= 12) return MGC_DESTRY_ARMR;
-  if (n >= 10) return MGC_WEAKEN_YOU;
-  if (n >= 8) return MGC_DISAPPEAR;
-  if (n >= 6) return MGC_STUN_YOU;
-  if (n >= 4) return MGC_HASTE_SELF;
-  if (n >= 2) return MGC_CURE_SELF;
+  if (n >= 20) return MGC_DEATH_TOUCH;
+  if (n >= 18) return MGC_CLONE_WIZ;
+  if (n >= 15) return MGC_SUMMON_MONS;
+  if (n >= 13) return MGC_AGGRAVATION;
+  if (n >= 10) return MGC_CURSE_ITEMS;
+  if (n >= 8) return MGC_DESTRY_ARMR;
+  if (n >= 6) return MGC_WEAKEN_YOU;
+  if (n >= 4) return MGC_DISAPPEAR;
+  if (n === 3) return MGC_STUN_YOU;
+  if (n === 2) return MGC_HASTE_SELF;
+  if (n === 1) return MGC_CURE_SELF;
   return MGC_PSI_BOLT;
 }
 
 // cf. mcastu.c:129 — choose_clerical_spell(n)
 export function choose_clerical_spell(n) {
-  while (n > 24 && rn2(25)) {
+  // C ref: mcastu.c choose_clerical_spell()
+  while (n > 15 && rn2(16)) {
     n = rn2(n);
   }
 
-  if (n >= 22) return CLC_GEYSER;
-  if (n >= 20) return CLC_FIRE_PILLAR;
-  if (n >= 16) return CLC_LIGHTNING;
-  if (n >= 14) return CLC_CURSE_ITEMS;
-  if (n >= 12) return CLC_INSECTS;
-  if (n >= 10) return CLC_BLIND_YOU;
-  if (n >= 8) return CLC_PARALYZE;
-  if (n >= 6) return CLC_CONFUSE_YOU;
-  if (n >= 4) return CLC_OPEN_WOUNDS;
-  if (n >= 2) return CLC_CURE_SELF;
+  if (n === 15 || n === 14) {
+    if (rn2(3)) return CLC_OPEN_WOUNDS;
+    return CLC_GEYSER;
+  }
+  if (n === 13) return CLC_GEYSER;
+  if (n === 12) return CLC_FIRE_PILLAR;
+  if (n === 11) return CLC_LIGHTNING;
+  if (n === 10 || n === 9) return CLC_CURSE_ITEMS;
+  if (n === 8) return CLC_INSECTS;
+  if (n === 7 || n === 6) return CLC_BLIND_YOU;
+  if (n === 5 || n === 4) return CLC_PARALYZE;
+  if (n === 3 || n === 2) return CLC_CONFUSE_YOU;
+  if (n === 1) return CLC_CURE_SELF;
   return CLC_OPEN_WOUNDS;
 }
 
@@ -212,15 +216,40 @@ export async function castmu(mtmp, mattk, vis, thrown, player, map) {
 
   const ml = mtmp.m_lev || 1;
   const aatyp = mattk.aatyp || 0;
+  const adtyp = mattk.adtyp || 0;
+  let spellnum = 0;
 
-  // Spell fumble check
-  if (rn2(ml * 10) < (mtmp.mconf ? 100 : 20)) {
-    if (vis) cursetxt(mtmp, vis);
-    return 1; // spell fumbled but turn consumed
+  // C ref: mcastu.c castmu() — when using AD_SPEL/AD_CLRC and ml>0,
+  // choose spell first (consumes rn2(ml) and possibly choose_* RNG).
+  if ((adtyp === AD_SPEL || adtyp === AD_CLRC) && ml > 0) {
+    spellnum = rn2(ml);
+    if (adtyp === AD_SPEL) spellnum = choose_magic_spell(spellnum);
+    else spellnum = choose_clerical_spell(spellnum);
+    if (spell_would_be_useless(mtmp, adtyp, spellnum)) return 0;
   }
 
-  // Select spell
-  let spellnum = rn2(ml);
+  // C ref: mcastu.c castmu() — disabled casters fail before fumble roll.
+  if (mtmp.mcan || mtmp.mspec_used || !ml) {
+    if (vis) cursetxt(mtmp, vis);
+    return 0;
+  }
+
+  // C ref: mcastu.c castmu() — spellcasters spend mspec_used before fumble.
+  if (adtyp === AD_SPEL || adtyp === AD_CLRC) {
+    mtmp.mspec_used = (ml < 8) ? (10 - ml) : 2;
+  }
+
+  // Spell fumble check (after spell choice + mspec_used setup in C).
+  if (rn2(ml * 10) < (mtmp.mconf ? 100 : 20)) {
+    if (vis) cursetxt(mtmp, vis);
+    return 0; // fumbled
+  }
+
+  // Non-spell adtyp path still picks a raw spell number for downstream logic.
+  if (!(adtyp === AD_SPEL || adtyp === AD_CLRC)) {
+    spellnum = rn2(ml);
+  }
+
   let dmg;
   if (mattk.damd) {
     dmg = d(Math.floor(ml / 2) + (mattk.damn || 0), mattk.damd);
@@ -234,11 +263,15 @@ export async function castmu(mtmp, mattk, vis, thrown, player, map) {
   // For simplicity, check monster data for caster type
 
   if (isWizard) {
-    const spell = choose_magic_spell(spellnum);
+    const spell = (adtyp === AD_SPEL || adtyp === AD_CLRC)
+      ? spellnum
+      : choose_magic_spell(spellnum);
     if (spell_would_be_useless(mtmp, aatyp, spell)) return 0;
     cast_wizard_spell(mtmp, dmg, spell, player, map);
   } else {
-    const spell = choose_clerical_spell(spellnum);
+    const spell = (adtyp === AD_SPEL || adtyp === AD_CLRC)
+      ? spellnum
+      : choose_clerical_spell(spellnum);
     if (spell_would_be_useless(mtmp, aatyp, spell)) return 0;
     cast_cleric_spell(mtmp, dmg, spell, player, map);
   }
@@ -297,6 +330,14 @@ export async function buzzmu(mtmp, mattk, player, map) {
   if (!mtmp || !mattk || !player || !map) return 0;
 
   const adtyp = mattk.adtyp || AD_MAGM;
+  // C ref: mcastu.c buzzmu() — only AD_MAGM..AD_SPC2 are valid beam adtypes.
+  if (adtyp < AD_MAGM || adtyp > AD_SPC2) return 0;
+  // C ref: mcastu.c buzzmu() — cancelled monsters don't cast beam spells.
+  if (mtmp.mcan) return 0;
+
+  // C ref: mcastu.c buzzmu() — line-up check with 2/3 chance to fire.
+  if (!(lined_up(mtmp, map, player) && rn2(3))) return 0;
+
   const nd = Math.max(1, mattk.damn || 6);
   const dx = Math.sign((player.x || 0) - (mtmp.mx || 0));
   const dy = Math.sign((player.y || 0) - (mtmp.my || 0));
