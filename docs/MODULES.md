@@ -257,10 +257,20 @@ Target: dissolve JS "consolidation" files (`combat.js`, `look.js`,
 `monutil.js`, `stackobj.js`, `player.js`, `discovery.js`, `options_menu.js`)
 into their canonical C-source-named counterparts.
 
+**Status: COMPLETE** (March 2026). All 6 consolidation files dissolved:
+- `combat.js` → `exper.js`
+- `options_menu.js` → `options.js`
+- `look.js` → `pager.js`
+- `discovery.js` → `o_init.js`, `do_name.js`
+- `stackobj.js` → `invent.js`
+- `monutil.js` → `display.js`, `mon.js`, `hack.js`, `steal.js`, `mhitm.js`,
+  `do_name.js`, `monmove.js`, `invent.js`
+- `player.js` roles/races tables → `role.js` (Player class remains in `player.js`)
+
 Exit gate:
-- Each gameplay function is in its corresponding C-source-named file.
-- Ownership mapping in `docs/MODULES.md` reflects code reality.
-- No parity regression vs baseline.
+- Each gameplay function is in its corresponding C-source-named file. ✓
+- Ownership mapping in `docs/MODULES.md` reflects code reality. ✓
+- No parity regression vs baseline. ✓
 
 ### Phase 4 — Remove `set*Context` Wiring Hacks
 
@@ -332,11 +342,9 @@ JS built-ins or irrelevant in the browser):
 `input`, `keylog`, `nethack`, `render`, `replay_core`, `replay_compare`,
 `rng`, `storage`, `xoshiro256`
 
-**JS invented consolidation files** (functions/structures need sorting into canonical ownership):
-`combat`, `look`, `monutil`, `stackobj`, `player`, `discovery`, `options_menu`, `map`
-
-`map.js` plan status: completed. Level map ownership now lives in `game.js`;
-`map.js` has been removed.
+**JS invented consolidation files** (dissolved — Phase 3 complete):
+~~`combat`, `look`, `monutil`, `stackobj`, `discovery`, `options_menu`, `map`~~ — all deleted.
+`player.js` roles/races moved to `role.js`; Player class remains in `player.js`.
 
 ### `map.js` elimination execution checklist (completed)
 
