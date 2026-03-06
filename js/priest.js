@@ -284,9 +284,7 @@ function m_canseeu(mon, player) {
     return mon.mcansee !== false && !mon.blind;
 }
 function helpless(mon) {
-    // C: mcanmove defaults to 1 for new monsters; JS leaves it undefined.
-    // Treat undefined as "can move" (not helpless).
-    return !!(mon.mfrozen || mon.msleeping || (mon.mcanmove !== undefined && !mon.mcanmove));
+    return !!(mon.mfrozen || mon.msleeping || !mon.mcanmove);
 }
 function resist_conflict(mon) {
     // C: resist(mon, RING_CLASS, 0, 0)

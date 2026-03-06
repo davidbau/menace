@@ -2365,6 +2365,8 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         muy: 0,
         mtrack: [{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}],
         mtrapseen: 0,
+        mcanmove: 1,  // C ref: makemon.c:1293 — mtmp->mcansee = mtmp->mcanmove = 1
+        mcansee: 1,
     };
     mon.mpeaceful = mon.peaceful;
 
