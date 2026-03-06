@@ -7,7 +7,11 @@ import { NHW_MENU } from './const.js';
 import { COLNO, STATUS_ROW_1, STATUS_ROW_2, PM_ARCHEOLOGIST, A_STR, A_CON, A_WIS,
          UNENCUMBERED, OVERLOADED,
          STAIRS, LADDER, FOUNTAIN, THRONE, SINK, GRAVE, ALTAR, TREE,
-         IS_DOOR, D_NODOOR, D_BROKEN, D_ISOPEN, D_CLOSED, D_LOCKED } from './const.js';
+         IS_DOOR, D_NODOOR, D_BROKEN, D_ISOPEN, D_CLOSED, D_LOCKED,
+         BUC_BLESSED, BUC_UNCURSED, BUC_CURSED, BUC_UNKNOWN,
+         GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_INACCESS,
+         GETOBJ_EXCLUDE_SELECTABLE, GETOBJ_EXCLUDE_NONINVENT,
+         GETOBJ_ALLOWCNT, GETOBJ_PROMPT, GETOBJ_NOFLAGS } from './const.js';
 import { objectData, WEAPON_CLASS, FOOD_CLASS, WAND_CLASS, SPBOOK_CLASS,
          FLINT, ROCK, SLING, MAGIC_MARKER, COIN_CLASS, ARMOR_CLASS,
          RING_CLASS, AMULET_CLASS, TOOL_CLASS, POTION_CLASS, SCROLL_CLASS,
@@ -681,25 +685,6 @@ const GOLD_SYM = '$';
 const HANDS_SYM = '-';
 const CONTAINED_SYM = '>';
 const INVENTORY_LETTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-// BUC filter constants — cf. pickup.c
-export const BUC_BLESSED = 1;
-export const BUC_UNCURSED = 2;
-export const BUC_CURSED = 3;
-export const BUC_UNKNOWN = 4;
-
-// GETOBJ return codes — cf. invent.c
-export const GETOBJ_EXCLUDE = 0;
-export const GETOBJ_SUGGEST = 1;
-export const GETOBJ_DOWNPLAY = 2;
-export const GETOBJ_EXCLUDE_INACCESS = 3;
-export const GETOBJ_EXCLUDE_SELECTABLE = 4;
-export const GETOBJ_EXCLUDE_NONINVENT = 5;
-
-// GETOBJ control flags
-export const GETOBJ_ALLOWCNT = 0x01;
-export const GETOBJ_PROMPT = 0x02;
-export const GETOBJ_NOFLAGS = 0;
 
 // Object class names — cf. invent.c names[]
 const CLASS_NAMES = [

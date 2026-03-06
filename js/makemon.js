@@ -14,7 +14,7 @@ import {
     MM_NOCOUNTBIRTH, MM_IGNOREWATER, MM_ADJACENTOK, MM_NONAME, MM_MALE,
     MM_FEMALE, MM_EDOG, MM_ASLEEP, MM_NOGRP, MM_NOMSG, MM_NOEXCLAM,
     MM_IGNORELAVA,
-    BOLT_LIM,
+    BOLT_LIM, LS_MONSTER,
 } from './const.js';
 import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC } from './const.js';
 import { couldsee, cansee, getActiveFov } from './vision.js';

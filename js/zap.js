@@ -13,6 +13,7 @@ import {
     W_ARMOR, W_ACCESSORY, W_WEP, W_ARMC, W_ARM, W_ARMU, W_ARMH, W_ARMG,
     W_ARMF, W_ARMS, W_AMUL, W_TOOL, W_RING, W_RINGL, W_RINGR,
     TT_NONE,
+    MELT_ICE_AWAY,
 } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
@@ -103,7 +104,7 @@ import {
 } from './animation.js';
 import { DISP_BEAM, DISP_END } from './const.js';
 import { WIN_MESSAGE, display_nhwindow } from './windows.js';
-import { attach_egg_hatch_timeout, MELT_ICE_AWAY } from './timeout.js';
+import { attach_egg_hatch_timeout } from './timeout.js';
 import { impossible, You_feel } from './pline.js';
 import { acurr } from './attrib.js';
 import { noit_Monnam } from './do_name.js';

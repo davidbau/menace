@@ -513,6 +513,56 @@ export const BC_CHAIN = 0x02;
 export const XLIM = 4;
 export const YLIM = 3;
 
+// Bless/curse/unknown categories and getobj prompt policy flags (src/invent.c)
+// Runtime fields:
+// - inventory BUC classification and filters
+// - getobj callback return categories and option flags
+export const BUC_BLESSED = 1;
+export const BUC_UNCURSED = 2;
+export const BUC_CURSED = 3;
+export const BUC_UNKNOWN = 4;
+export const GETOBJ_EXCLUDE = 0;
+export const GETOBJ_SUGGEST = 1;
+export const GETOBJ_DOWNPLAY = 2;
+export const GETOBJ_EXCLUDE_INACCESS = 3;
+export const GETOBJ_EXCLUDE_SELECTABLE = 4;
+export const GETOBJ_EXCLUDE_NONINVENT = 5;
+export const GETOBJ_ALLOWCNT = 0x01;
+export const GETOBJ_PROMPT = 0x02;
+export const GETOBJ_NOFLAGS = 0;
+
+// Extra-level room graph bitmasks (src/extralev.c)
+// Runtime fields: 3x3 room doortable directional connectivity bits.
+export const XL_UP = 1;
+export const XL_DOWN = 2;
+export const XL_LEFT = 4;
+export const XL_RIGHT = 8;
+
+// Light-source type tags (src/light.c)
+// Runtime fields: light_base[] entry type and routing for object/monster lookups.
+export const LS_OBJECT = 0;
+export const LS_MONSTER = 1;
+
+// Timeout timer-kind and timer-function enums (src/timeout.c)
+// Runtime fields: timer queue kind/func selectors and timer dispatch.
+export const TIMER_KIND = Object.freeze({
+    SHORT: 0,
+    LONG: 1,
+    SPECIAL: 2,
+});
+export const TIMER_FUNC = Object.freeze({
+    BURN_OBJECT: 'BURN_OBJECT',
+    HATCH_EGG: 'HATCH_EGG',
+    FIGURINE_TRANSFORM: 'FIGURINE_TRANSFORM',
+    FALL_ASLEEP: 'FALL_ASLEEP',
+    DO_STORMS: 'DO_STORMS',
+    REVIVE_MON: 'REVIVE_MON',
+    ZOMBIFY_MON: 'ZOMBIFY_MON',
+    ROT_CORPSE: 'ROT_CORPSE',
+    MELT_ICE_AWAY: 'MELT_ICE_AWAY',
+});
+export const MELT_ICE_AWAY = TIMER_FUNC.MELT_ICE_AWAY;
+
 // Maximum values
 export const MAXNROFROOMS = 40;
 export const MAXDUNGEON = 16;

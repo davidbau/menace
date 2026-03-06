@@ -34,9 +34,9 @@ import {
     PM_SCORPIUS, PM_SCORPION, PM_KILLER_BEE, PM_QUEEN_BEE,
     PM_GARGOYLE, PM_WINGED_GARGOYLE
 } from './monsters.js';
-import { PM_SAMURAI } from './const.js';
+import { PM_SAMURAI, TIMER_KIND, TIMER_FUNC } from './const.js';
 import { lays_eggs } from './mondata.js';
-import { start_timer, stop_timer, TIMER_KIND, TIMER_FUNC } from './timeout.js';
+import { start_timer, stop_timer } from './timeout.js';
 
 // Named object indices we need (exported from objects.js)
 // Check: CORPSE, EGG, TIN, SLIME_MOLD, KELP_FROND, CANDY_BAR,

@@ -6,7 +6,7 @@ import { curse, mksobj, weight } from './mkobj.js';
 import {
     ARROW, BOW, FAKE_AMULET_OF_YENDOR, FOOD_RATION, MACE, PLATE_MAIL, RING_MAIL, TWO_HANDED_SWORD,
 } from './objects.js';
-import { CORR, D_NODOOR, OROOM, SCORR } from './const.js';
+import { CORR, D_NODOOR, OROOM, SCORR, XL_UP, XL_DOWN, XL_LEFT, XL_RIGHT } from './const.js';
 import { PM_GHOST } from './monsters.js';
 import { makemon } from './makemon.js';
 import { NO_MM_FLAGS } from './const.js';
@@ -16,11 +16,6 @@ import {
     fill_ordinary_room,
 } from './dungeon.js';
 import { add_room, dodoor, generate_stairs, sort_rooms } from './mklev.js';
-
-export const XL_UP = 1;
-export const XL_DOWN = 2;
-export const XL_LEFT = 4;
-export const XL_RIGHT = 8;
 
 // C ref: extralev.c:277 corr()
 export function corr(map, x, y) {

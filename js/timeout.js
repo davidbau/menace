@@ -15,31 +15,11 @@ import { TIMEOUT, INTRINSIC, FROMOUTSIDE,
          STONED, SLIMED, STRANGLED, INVIS, SEE_INVIS, DISPLACED,
          PASSES_WALLS, MAGICAL_BREATHING, FLYING,
          FIRE_RES, STONE_RES, DETECT_MONSTERS, PROT_FROM_SHAPE_CHANGERS,
-         SICK_NONVOMITABLE, A_CON, A_DEX, A_STR, ACCESSIBLE } from './const.js';
+         SICK_NONVOMITABLE, A_CON, A_DEX, A_STR, ACCESSIBLE,
+         TIMER_KIND, TIMER_FUNC, MELT_ICE_AWAY } from './const.js';
 import { exercise } from './attrib_exercise.js';
 
-export const TIMER_KIND = {
-    SHORT: 0,
-    LONG: 1,
-    SPECIAL: 2,
-};
-
 const OBJ_TIMER_KIND = TIMER_KIND.SHORT;
-
-export const TIMER_FUNC = {
-    BURN_OBJECT: 'BURN_OBJECT',
-    HATCH_EGG: 'HATCH_EGG',
-    FIGURINE_TRANSFORM: 'FIGURINE_TRANSFORM',
-    FALL_ASLEEP: 'FALL_ASLEEP',
-    DO_STORMS: 'DO_STORMS',
-    MELT_ICE_AWAY: 'MELT_ICE_AWAY',
-    REVIVE_MON: 'REVIVE_MON',
-    ZOMBIFY_MON: 'ZOMBIFY_MON',
-    ROT_CORPSE: 'ROT_CORPSE',
-};
-
-// C ref: timeout.h func_index enum value used by zap.c melt-ice timers.
-export const MELT_ICE_AWAY = TIMER_FUNC.MELT_ICE_AWAY;
 
 const MAX_EGG_HATCH_TIME = 200;
 

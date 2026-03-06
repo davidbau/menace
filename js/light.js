@@ -19,7 +19,7 @@
 //   snuff_light_source(): extinguish light at a location.
 //   save/restore_light_sources: persistence (N/A in JS, uses storage.js).
 
-import { COLNO, ROWNO, isok } from './const.js';
+import { COLNO, ROWNO, isok, LS_OBJECT, LS_MONSTER } from './const.js';
 import {
     CANDELABRUM_OF_INVOCATION, TALLOW_CANDLE, WAX_CANDLE,
     BRASS_LANTERN, OIL_LAMP, MAGIC_LAMP, POT_OIL,
@@ -33,10 +33,6 @@ import { clear_path, mark_vision_dirty } from './vision.js';
 // cf. light.c:41-43
 const LSF_SHOW = 0x1;
 const LSF_NEEDS_FIXUP = 0x2;
-
-// Light source types
-export const LS_OBJECT  = 0;
-export const LS_MONSTER = 1;
 
 const MAX_RADIUS = 16;
 

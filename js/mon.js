@@ -27,7 +27,7 @@ import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, ACCESSIBLE,
          XKILL_GIVEMSG, XKILL_NOMSG, XKILL_NOCORPSE, XKILL_NOCONDUCT,
          M_POISONGAS_OK, M_POISONGAS_MINOR, M_POISONGAS_BAD,
          W_AMUL, W_ARMG, W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMF, W_ARMU, W_WEP,
-         BOLT_LIM } from './const.js';
+         BOLT_LIM, LS_MONSTER } from './const.js';
 import { AMULET_OF_LIFE_SAVING, CORPSE } from './objects.js';
 import { which_armor } from './worn.js';
 import { nonliving, resists_ston, resists_fire, resists_poison,
