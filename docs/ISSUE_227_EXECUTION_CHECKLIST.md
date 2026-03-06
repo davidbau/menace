@@ -106,7 +106,7 @@ Required per-usage context analysis (not safe for `replace_all`):
 - [x] Updated test mock in domove_attackmon_safe_stop.test.js
 - [ ] `symbol`→`mlet`: alias exists, ~9 remaining reads (deferred — low priority)
 - [ ] `level`→`mlevel`: alias exists, ~33 remaining reads (deferred — many in /levels/)
-- [ ] `name` — keep as `name` (C 3.7 uses `name` in struct permonst)
+- [x] `name`→`mname` (done by constgen agent; alias `name`↔`mname` added)
 
 ### 2D. Objclass field normalization (complete)
 Generator now emits C-canonical names (oc_name, oc_descr, oc_color, oc_prob,
@@ -130,7 +130,7 @@ Phase-2 exit gate:
 - [x] No remaining attack alias reads/writes.
 - [x] `attack_fields.js` deleted with no remaining imports.
 - [x] No remaining unambiguous permonst aliases (mr1/2, flags1/2/3, sound, weight, nutrition).
-- [x] No parity regression vs baseline envelope (2488/2488 unit, 25/34 gameplay).
+- [x] No parity regression vs baseline envelope (2511/2511 unit, 25/34 gameplay).
 - [x] Objclass generator emits C-canonical names with getter/setter aliases.
 - [x] Top 3 objclass fields migrated (oc_name, oc_descr, oc_material — ~200 reads total).
 - [ ] Remaining objclass legacy reads deferred (low priority, aliases handle them).
