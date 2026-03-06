@@ -900,6 +900,9 @@ python3 scripts/generators/gen_constants.py
 
 # Inspect unresolved/deferred header macros with missing dependency details
 python3 scripts/generators/gen_constants.py --report-deferred
+
+# Same deferred report as machine-readable JSON
+python3 scripts/generators/gen_constants.py --report-deferred-json
 ```
 
 ### Converting Lua special levels to JavaScript

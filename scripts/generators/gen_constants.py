@@ -11,6 +11,7 @@ Sources:
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import sys
@@ -740,6 +741,11 @@ def main() -> None:
         action="store_true",
         help="Print deferred header macro details and dependency summary without patching.",
     )
+    parser.add_argument(
+        "--report-deferred-json",
+        action="store_true",
+        help="Print deferred header macro report as JSON without patching.",
+    )
     parser.add_argument("--output", default=OUTPUT_PATH, help="Target js file (default: js/const.js).")
     args = parser.parse_args()
 
@@ -753,31 +759,53 @@ def main() -> None:
     post_pending = resolved["post_pending"]
     post_known = resolved["post_known"] | {name for name, _expr, _src in post_emitted}
 
-    if args.report_deferred:
+    if args.report_deferred or args.report_deferred_json:
         dep_counts: dict[str, int] = {}
         root_counts: dict[str, int] = {}
         details = _unresolved_dependency_details(post_pending, post_known)
-        print(f"Deferred macro count: {len(post_pending)}")
+        payload_details: list[dict[str, object]] = []
         for name, src, missing, roots, expr in details:
-            if not missing:
-                missing = ["<unknown>"]
-            if not roots:
-                roots = ["<unknown>"]
-            for dep in missing:
+            out_missing = missing if missing else ["<unknown>"]
+            out_roots = roots if roots else ["<unknown>"]
+            for dep in out_missing:
                 dep_counts[dep] = dep_counts.get(dep, 0) + 1
-            for dep in roots:
+            for dep in out_roots:
                 root_counts[dep] = root_counts.get(dep, 0) + 1
-            print(f"{name} ({src})")
-            print(f"  missing: {', '.join(missing)}")
-            print(f"  roots: {', '.join(roots)}")
-            print(f"  expr: {expr}")
+            payload_details.append(
+                {
+                    "name": name,
+                    "source": src,
+                    "missingDeps": out_missing,
+                    "rootMissingDeps": out_roots,
+                    "expr": expr,
+                }
+            )
+
+        payload = {
+            "deferredCount": len(post_pending),
+            "details": payload_details,
+            "immediateMissingCounts": dict(sorted(dep_counts.items(), key=lambda kv: (-kv[1], kv[0]))),
+            "rootMissingCounts": dict(sorted(root_counts.items(), key=lambda kv: (-kv[1], kv[0]))),
+        }
+
+        if args.report_deferred_json:
+            json.dump(payload, sys.stdout, indent=2, sort_keys=True)
+            print("")
+            return
+
+        print(f"Deferred macro count: {payload['deferredCount']}")
+        for entry in payload_details:
+            print(f"{entry['name']} ({entry['source']})")
+            print(f"  missing: {', '.join(entry['missingDeps'])}")
+            print(f"  roots: {', '.join(entry['rootMissingDeps'])}")
+            print(f"  expr: {entry['expr']}")
         print("")
         print("Top missing dependencies (immediate):")
-        for dep, count in sorted(dep_counts.items(), key=lambda kv: (-kv[1], kv[0])):
+        for dep, count in payload["immediateMissingCounts"].items():
             print(f"  {dep}: {count}")
         print("")
         print("Top root blockers (transitive):")
-        for dep, count in sorted(root_counts.items(), key=lambda kv: (-kv[1], kv[0])):
+        for dep, count in payload["rootMissingCounts"].items():
             print(f"  {dep}: {count}")
         return
 
