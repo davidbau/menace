@@ -5,75 +5,10 @@
 *You feel a strange vibration under your feet.*
 
 A faithful JavaScript port of NetHack, playable in any modern web browser.
-ASCII terminal display with DEC line-drawing graphics, native keyboard
-commands, no build step. Open the page. Pick a role. Descend.
-The strength of this port lies in its fidelity to the original C source.
+ASCII terminal display with DEC line-drawing graphics, native keyboard commands,
+no build step. Open the page. Pick a role. Descend.
 
 **Play it now:** [https://mazesofmenace.net/](https://mazesofmenace.net/)
-
-## The Game
-
-> *"Never build a dungeon you wouldn't be happy to spend the night in yourself."*
-> — Terry Pratchett, quoted in the NetHack 3.6.0 release notes
-
-NetHack is the greatest game most people have never heard of. First released on July 28, 1987, it is a single-player dungeon exploration game in which a character descends through procedurally generated levels, fights monsters, solves puzzles, and ultimately retrieves the Amulet of Yendor from the depths of Gehennom to offer it to their deity and achieve ascension. The game runs in a terminal. The hero is an `@` sign. A newt is a `:`. A dragon is a `D`. The entire world—objects, monsters, traps, terrain—is rendered in 24 lines of 80 columns of text characters. It is arguably the most complex and deeply interactive single-player game ever created, with interaction rules so thorough that the community's highest compliment is: *"The DevTeam thinks of everything."*
-
-NetHack's lineage runs deep. It descends from **Hack**, written by **Jay Fenlason** in 1981–1982 as a student at Lincoln-Sudbury Regional High School in Massachusetts. Lincoln-Sudbury had a PDP-11 running Unix, administered by a student-run Computer Center Users Society, and Fenlason—working with classmates Kenny Woodland, Mike Thome, and Jonathan Payne—wrote his dungeon crawler inspired by **Rogue** (1980), the game that originated the entire roguelike genre and gave it its name. Brian Harvey, the school's Computer Director, submitted Fenlason's Hack to the USENIX 82-1 software distribution tape, giving it its first public distribution.
-
-Two years later, **Andries Brouwer**, a Dutch mathematician at CWI Amsterdam (Stichting Mathematisch Centrum), obtained the code, substantially rewrote it, and on December 17, 1984 posted **Hack 1.0** to the Usenet newsgroup `net.sources` in fifteen parts. The response was so overwhelming that Gene Spafford had to create a dedicated newsgroup, `net.games.hack`, just to handle the traffic. Brouwer later described his version as "almost entirely rewritten" relative to Fenlason's original—which is why the NetHack copyright still carries CWI's name. Fenlason himself largely stepped back after that. In a 2000 interview, he said he had "voluntarily avoided participation pretty much since spawning the original Hack almost 20 years ago," and felt the game had drifted from his original priority of gameplay over features. He still played his own version at home. He doesn't hold a grudge.
-
-When Mike Stephenson merged several Hack variants and published **NetHack** in 1987, he built on this accretion of student work, professional rewriting, Usenet communal evolution, and one mathematician's obsessive polish. Nearly four decades later, the dungeon is still accepting visitors — making NetHack one of the longest-running continuously developed open source projects in existence.
-
-The game's relationship to failure is part of its culture. The community coined **YASD** (*Yet Another Stupid Death*) for the deaths that feel obvious in retrospect—the floating eye you hit in melee, the potion you quaffed unidentified, the cockatrice corpse you picked up without gloves. YASD is not a complaint; it is a taxonomy. And when a player finally wins—*ascends*, in NetHack terminology—they post a **YAFAP** (*Yet Another First Ascension Post*) to share the story. The tradition goes back to Usenet. It continues today. Every death teaches something. Every ascension is worth announcing.
-
-NetHack is maintained by a secretive volunteer group known simply as the DevTeam, whose release schedule is governed by a single policy: *"When it's ready."* They mean it. After releasing version 3.4.3 in December 2003, the DevTeam went silent for **twelve years**. During that gap, the community created dozens of fan variants, the NetHack Wiki ran humorous "next version pools" where fans bet on the release date, and a leak of work-in-progress code in 2014 fueled a fresh round of speculation. Then, in December 2015, NetHack 3.6.0 appeared—focused on infrastructure modernization rather than gameplay changes.
-
-The 3.6.x series continued through 3.6.7 (February 2023, a security patch), but the real action has been happening on the 3.7 development branch. NetHack 3.7.0 represents the most ambitious set of gameplay changes in the game's 38-year history: a Gehennom overhaul, themed rooms, four new monsters including the dreaded genetic engineer (who polymorphs you and teleports away), dragon scale mail granting two extrinsics instead of one, nerfed unicorn horns (a meta-shattering shock to a generation of players who kept one in every kit), mirrored special levels, and much more.
-
-As of early 2026, 3.7.0 remains unreleased. The DevTeam's README warns: *"Don't treat NetHack-3.7 branch as released code."* The community plays it on the Hardfought server. Variants have already forked from it. Everyone waits. The DevTeam thinks of everything—except telling you when.
-
-## Royal Jelly: An Experiment in Vibe Coding
-
-*You hear a low buzzing.*
-
-**Royal Jelly** is the codename of this project: a faithful, vibe-coded JavaScript port of NetHack 3.7.0, built to ship the day the official release drops. The name refers to this port—the sweet output of The Hive—not to the official 3.7.0 release itself, which has no codename.
-
-The project exists at the intersection of two unlikely forces: the pending release of NetHack 3.7.0 and the rise of AI-assisted software development.
-
-In February 2025, Andrej Karpathy coined the term **"vibe coding"** to describe a new way of working: describe what you want to an AI, accept its code without reading the diffs, paste error messages back when things break, and see what happens. By early 2026 the approach had matured into what Karpathy calls **"agentic engineering"**—the same core idea, but with more structure, more oversight, and the recognition that orchestrating AI agents to produce real software is itself *"an art and science and expertise."*
-
-This project is a test of that proposition at scale. Can AI agents, directed by a non-expert human, produce a faithful port of one of the most complex single-player codebases in gaming history? Not a toy demo or a weekend throwaway, but a real, playable, parity-correct reimplementation—over one hundred fifty thousand lines of readable JavaScript that match NetHack's behavior down to the random number generator?
-
-The entire codebase—147 JavaScript modules, 3,100+ passing tests, 150 golden C-comparison sessions, and a suite of Python test harness scripts—was produced through natural-language conversation with AI agents. The human provided direction and taste; the agents wrote the code, tests, and documentation.
-
-## Architecture
-
-*You descend the stairs. This level is a module diagram.*
-
-The port mirrors the original C source structure with traceable references
-throughout. See the full architecture and design documents:
-
-- **[Architecture & Design](docs/DESIGN.md)** — Module structure, display
-  system, async game loop, data porting strategy
-- **[Design Decisions](docs/DECISIONS.md)** — Key trade-offs: async input
-  queue, `<pre>`/`<span>` rendering, ES6 modules without bundling,
-  DECGraphics via Unicode, simplified FOV
-
-### Key Design Choices
-
-*A voice whispers: "The build step has been removed from the game."*
-
-- **ES6 modules, no build step** — Just serve the directory and open
-  `index.html`. Each JS module maps to a C source file. Do not kick it,
-  it is load bearing.
-- **Async/await game loop** — The C code's blocking `nhgetch()` becomes
-  `await nhgetch()`, preserving the sequential logic of the original.
-- **`<pre>` with per-cell `<span>`** — 80x24 terminal grid, 16 ANSI colors,
-  DEC box-drawing characters for walls. It's less straining on your
-  eyes than you might think.
-- **Faithful C references** — Comments like `// C ref: uhitm.c find_roll_to_hit()`
-  link every function to its C source counterpart. It makes for dry reading,
-  but a shopkeeper would approve of the bookkeeping.
 
 ## What's Implemented
 
@@ -124,7 +59,7 @@ throughout. See the full architecture and design documents:
 - **Special level event logic** — all 132 levels generate correctly as maps, but their unique triggers, quest mechanics, and scripted monster placements are mostly missing
 - **Player trap effects** — monster traps are fully ported; the player `dotrap()` path is not yet implemented, so arrow traps, dart traps, rolling boulders, landmines, and others are present in maps but do not trigger for the player
 - **Some artifact invocations** — taming, healing, and energy-boost invocations work; portal creation, ammo creation, demon banishment, and a few others are stubs
-- **And more** — NetHack 3.7 has ~420,000 lines of C, headers, and Lua across ~8,600 functions; so far, this port covers the core engine and most major gameplay systems with 157,000+ lines of JavaScript (with the goal of replicating the whole game faithfully)
+- **And more** — NetHack 3.7 has ~420,000 lines of C, headers, and Lua across ~8,600 functions; so far, this port covers the core engine and most major gameplay systems with 157,000+ lines of JavaScript
 
 The Hive is aware of this.
 
@@ -172,11 +107,37 @@ script to enable test automation and build the C NetHack harness:
 
 See **[docs/TESTING.md](docs/TESTING.md)** for the complete testing guide.
 
+## Architecture
+
+*You descend the stairs. This level is a module diagram.*
+
+The port mirrors the original C source structure with traceable references
+throughout. See the full architecture and design documents:
+
+- **[Architecture & Design](docs/DESIGN.md)** — Module structure, display
+  system, async game loop, data porting strategy
+- **[Design Decisions](docs/DECISIONS.md)** — Key trade-offs: async input
+  queue, `<pre>`/`<span>` rendering, ES6 modules without bundling,
+  DECGraphics via Unicode, simplified FOV
+
+### Key Design Choices
+
+*A voice whispers: "The build step has been removed from the game."*
+
+- **ES6 modules, no build step** — Just serve the directory and open
+  `index.html`. Each JS module maps to a C source file.
+- **Async/await game loop** — The C code's blocking `nhgetch()` becomes
+  `await nhgetch()`, preserving the sequential logic of the original.
+- **`<pre>` with per-cell `<span>`** — 80×24 terminal grid, 16 ANSI colors,
+  DEC box-drawing characters for walls.
+- **Faithful C references** — Comments like `// C ref: uhitm.c find_roll_to_hit()`
+  link every function to its C source counterpart.
+
 ## Data Generation
 
 *You read the scroll of generate data. Your objects.js glows blue!*
 
-Monster and object data are auto-generated from the NetHack C source
+Monster, object, and artifact data are auto-generated from the NetHack C source
 headers via Python scripts:
 
 ```bash
@@ -291,6 +252,41 @@ no C build step, no binary blob. It also allows a natural async/await game loop
 that maps cleanly onto the browser's event model. The tradeoff is faithfulness
 by construction rather than faithfulness by compilation: every behavior must be
 deliberately ported, which is both the hard part and the point.
+
+## About NetHack
+
+> *"Never build a dungeon you wouldn't be happy to spend the night in yourself."*
+> — Terry Pratchett, quoted in the NetHack 3.6.0 release notes
+
+NetHack is the greatest game most people have never heard of. First released on July 28, 1987, it is a single-player dungeon exploration game in which a character descends through procedurally generated levels, fights monsters, solves puzzles, and ultimately retrieves the Amulet of Yendor from the depths of Gehennom to offer it to their deity and achieve ascension. The game runs in a terminal. The hero is an `@` sign. A newt is a `:`. A dragon is a `D`. The entire world—objects, monsters, traps, terrain—is rendered in 24 lines of 80 columns of text characters. It is arguably the most complex and deeply interactive single-player game ever created, with interaction rules so thorough that the community's highest compliment is: *"The DevTeam thinks of everything."*
+
+NetHack's lineage runs deep. It descends from **Hack**, written by **Jay Fenlason** in 1981–1982 as a student at Lincoln-Sudbury Regional High School in Massachusetts. Lincoln-Sudbury had a PDP-11 running Unix, administered by a student-run Computer Center Users Society, and Fenlason—working with classmates Kenny Woodland, Mike Thome, and Jonathan Payne—wrote his dungeon crawler inspired by **Rogue** (1980), the game that originated the entire roguelike genre and gave it its name. Brian Harvey, the school's Computer Director, submitted Fenlason's Hack to the USENIX 82-1 software distribution tape, giving it its first public distribution.
+
+Two years later, **Andries Brouwer**, a Dutch mathematician at CWI Amsterdam (Stichting Mathematisch Centrum), obtained the code, substantially rewrote it, and on December 17, 1984 posted **Hack 1.0** to the Usenet newsgroup `net.sources` in fifteen parts. The response was so overwhelming that Gene Spafford had to create a dedicated newsgroup, `net.games.hack`, just to handle the traffic. Brouwer later described his version as "almost entirely rewritten" relative to Fenlason's original—which is why the NetHack copyright still carries CWI's name. Fenlason himself largely stepped back after that. In a 2000 interview, he said he had "voluntarily avoided participation pretty much since spawning the original Hack almost 20 years ago," and felt the game had drifted from his original priority of gameplay over features. He still played his own version at home. He doesn't hold a grudge.
+
+When Mike Stephenson merged several Hack variants and published **NetHack** in 1987, he built on this accretion of student work, professional rewriting, Usenet communal evolution, and one mathematician's obsessive polish. Nearly four decades later, the dungeon is still accepting visitors — making NetHack one of the longest-running continuously developed open source projects in existence.
+
+The game's relationship to failure is part of its culture. The community coined **YASD** (*Yet Another Stupid Death*) for the deaths that feel obvious in retrospect — the floating eye you hit in melee, the potion you quaffed unidentified, the cockatrice corpse you picked up without gloves. YASD is not a complaint; it is a taxonomy. And when a player finally wins — *ascends*, in NetHack terminology — they post a **YAFAP** (*Yet Another First Ascension Post*) to share the story. The tradition goes back to Usenet. It continues today. Every death teaches something. Every ascension is worth announcing.
+
+NetHack is maintained by a secretive volunteer group known simply as the DevTeam, whose release schedule is governed by a single policy: *"When it's ready."* They mean it. After releasing version 3.4.3 in December 2003, the DevTeam went silent for **twelve years**. During that gap, the community created dozens of fan variants, the NetHack Wiki ran humorous "next version pools" where fans bet on the release date, and a leak of work-in-progress code in 2014 fueled a fresh round of speculation. Then, in December 2015, NetHack 3.6.0 appeared — focused on infrastructure modernization rather than gameplay changes.
+
+The 3.6.x series continued through 3.6.7 (February 2023, a security patch), but the real action has been happening on the 3.7 development branch. NetHack 3.7.0 represents the most ambitious set of gameplay changes in the game's 38-year history: a Gehennom overhaul, themed rooms, four new monsters including the dreaded genetic engineer (who polymorphs you and teleports away), dragon scale mail granting two extrinsics instead of one, nerfed unicorn horns (a meta-shattering shock to a generation of players who kept one in every kit), mirrored special levels, and much more.
+
+As of early 2026, 3.7.0 remains unreleased. The DevTeam's README warns: *"Don't treat NetHack-3.7 branch as released code."* The community plays it on the Hardfought server. Variants have already forked from it. Everyone waits. The DevTeam thinks of everything — except telling you when.
+
+## Royal Jelly: An Experiment in Vibe Coding
+
+*You hear a low buzzing.*
+
+**Royal Jelly** is the codename of this project: a faithful, vibe-coded JavaScript port of NetHack 3.7.0, built to ship the day the official release drops. The name refers to this port — the sweet output of The Hive — not to the official 3.7.0 release itself, which has no codename.
+
+The project exists at the intersection of two unlikely forces: the pending release of NetHack 3.7.0 and the rise of AI-assisted software development.
+
+In February 2025, Andrej Karpathy coined the term **"vibe coding"** to describe a new way of working: describe what you want to an AI, accept its code without reading the diffs, paste error messages back when things break, and see what happens. By early 2026 the approach had matured into what Karpathy calls **"agentic engineering"** — the same core idea, but with more structure, more oversight, and the recognition that orchestrating AI agents to produce real software is itself *"an art and science and expertise."*
+
+This project is a test of that proposition at scale. Can AI agents, directed by a non-expert human, produce a faithful port of one of the most complex single-player codebases in gaming history? Not a toy demo or a weekend throwaway, but a real, playable, parity-correct reimplementation — over one hundred fifty thousand lines of readable JavaScript that match NetHack's behavior down to the random number generator?
+
+The entire codebase — 147 JavaScript modules, 3,100+ passing tests, 150 golden C-comparison sessions, and a suite of Python test harness scripts — was produced through natural-language conversation with AI agents. The human provided direction and taste; the agents wrote the code, tests, and documentation.
 
 ## License
 
