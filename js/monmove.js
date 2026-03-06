@@ -59,7 +59,8 @@ import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons,
          PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN,
          PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS,
          PM_HEZROU, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER,
-         AT_WEAP, AT_BREA, AT_SPIT,
+         AT_WEAP, AT_BREA, AT_SPIT, AT_MAGC,
+         AD_SPEL, AD_CLRC,
          S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL,
          S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN,
          M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID,
@@ -112,6 +113,11 @@ import { stairway_at } from './stairs.js';
 import { mwelded } from './wield.js';
 import { mon_wield_item } from './weapon.js';
 import { NEED_PICK_AXE, NEED_AXE, NEED_PICK_OR_AXE } from './const.js';
+import { choose_magic_spell, choose_clerical_spell, cast_wizard_spell, cast_cleric_spell } from './mcastu.js';
+import {
+    MGC_CLONE_WIZ, MGC_SUMMON_MONS, MGC_AGGRAVATION, MGC_DISAPPEAR, MGC_HASTE_SELF, MGC_CURE_SELF,
+    CLC_INSECTS, CLC_CURE_SELF
+} from './const.js';
 
 // C ref: monst.h strategy bits used by monmove.c:717 early dochug gate
 const STRAT_WAITFORU = 0x20000000;
@@ -930,6 +936,76 @@ async function mind_blast(mon, map, player, display = null, fov = null) {
     }
 }
 
+function isUndirectedSpell(adtyp, spellid) {
+    if (adtyp === AD_SPEL) {
+        return spellid === MGC_CLONE_WIZ
+            || spellid === MGC_SUMMON_MONS
+            || spellid === MGC_AGGRAVATION
+            || spellid === MGC_DISAPPEAR
+            || spellid === MGC_HASTE_SELF
+            || spellid === MGC_CURE_SELF;
+    }
+    if (adtyp === AD_CLRC) {
+        return spellid === CLC_INSECTS || spellid === CLC_CURE_SELF;
+    }
+    return false;
+}
+
+function spellWouldBeUseless(mon, adtyp, spellid) {
+    if (adtyp === AD_SPEL) {
+        if (spellid === MGC_HASTE_SELF) return (mon.mspeed || 0) >= 2;
+        if (spellid === MGC_CURE_SELF) return (mon.mhp || 0) >= (mon.mhpmax || 0);
+        if (spellid === MGC_DISAPPEAR) return !!mon.minvis;
+        return false;
+    }
+    if (adtyp === AD_CLRC) {
+        if (spellid === CLC_CURE_SELF) return (mon.mhp || 0) >= (mon.mhpmax || 0);
+        return false;
+    }
+    return false;
+}
+
+// C ref: monmove.c:889-907 + mcastu.c:209-217 (thinks_it_foundyou=false).
+// Attempt one undirected spell before movement when phase-3 gate is taken.
+async function maybeCastUndirectedPreMove(mon, mdat, player, map) {
+    if (mon.mspec_used || dist2(mon.mx, mon.my, player.x, player.y) > 49) {
+        return false;
+    }
+    const mattk = Array.isArray(mdat?.attacks) ? mdat.attacks : [];
+    const ml = Number(mon.m_lev) || 0;
+    for (const a of mattk) {
+        if (!a || a.aatyp !== AT_MAGC) continue;
+        if (a.adtyp !== AD_SPEL && a.adtyp !== AD_CLRC) continue;
+        if (ml <= 0) continue;
+
+        // C ref: mcastu.c castmu() not-attacking case still consumes rn2(ml).
+        const rawSpell = rn2(ml);
+        const spellid = (a.adtyp === AD_SPEL)
+            ? choose_magic_spell(rawSpell)
+            : choose_clerical_spell(rawSpell);
+
+        // C not-attacking path: reject directed/useless spells and keep moving.
+        if (!isUndirectedSpell(a.adtyp, spellid) || spellWouldBeUseless(mon, a.adtyp, spellid)) {
+            continue;
+        }
+
+        if (mon.mcan || mon.mspec_used) continue;
+        mon.mspec_used = (ml < 8) ? (10 - ml) : 2;
+        if (rn2(ml * 10) < (mon.mconf ? 100 : 20)) {
+            continue;
+        }
+
+        // Undirected phase-3 casting uses damage 0 in C (foundyou=false).
+        if (a.adtyp === AD_SPEL) {
+            cast_wizard_spell(mon, 0, spellid, player, map);
+        } else {
+            cast_cleric_spell(mon, 0, spellid, player, map);
+        }
+        return true;
+    }
+    return false;
+}
+
 // ========================================================================
 // dochug — C ref: monmove.c:690
 // ========================================================================
@@ -1174,7 +1250,10 @@ async function dochug(mon, map, player, display, fov, game = null) {
     let phase4Allowed = !phase3Cond;
     let moveStatus = MMOVE_NOTHING;
     if (phase3Cond) {
-        if (mon.meating) {
+        const castedUndirected = await maybeCastUndirectedPreMove(mon, mdat, player, map);
+        if (castedUndirected) {
+            moveStatus = MMOVE_DONE;
+        } else if (mon.meating) {
             mon.meating--;
             moveStatus = MMOVE_DONE; // eating uses up the action
         } else if (mon_is_tame(mon)) {

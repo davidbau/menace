@@ -2534,3 +2534,25 @@ hard-won wisdom:
   - `seed332_valkyrie_wizard_gameplay` improved event alignment from
     `173/6595` to `175/6595`, and the prior step-206 pet `mfndpos` count now
     matches C (`cnt=5`).
+
+### dochug phase-3 undirected spell attempt restored before movement (2026-03-06)
+
+- C `dochug()` phase-3 path (`monmove.c:889-907`) attempts an undirected
+  spell cast before `m_move()` when the phase-3 movement gate is taken.
+  JS had no equivalent pre-move cast attempt, so C consumed spell-selection
+  RNG (`castmu` path) that JS skipped.
+- Implemented C-faithful pre-move attempt in `js/monmove.js`:
+  - new `maybeCastUndirectedPreMove()` runs before movement in phase-3 gate.
+  - consumes `rn2(m_lev)` per candidate spell attack (`AT_MAGC` with
+    `AD_SPEL`/`AD_CLRC`) and rejects directed/useless outcomes for this
+    non-attacking context.
+  - applies `mspec_used` cooldown and fumble gate (`rn2(m_lev * 10)`) when an
+    undirected cast proceeds, then executes undirected spell effects.
+- Validation:
+  - `node scripts/test-unit-core.mjs` passes.
+  - `seed332_valkyrie_wizard_gameplay` first RNG divergence moved later:
+    step `206` -> `221`.
+  - seed332 metrics improved materially:
+    - RNG `7887/17821` -> `8398/19976`
+    - events `175/6595` -> `570/8135`
+    - screens `269/410` -> `297/410`
