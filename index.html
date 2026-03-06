@@ -585,6 +585,7 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
             border-radius: 8px;
             outline: 3px solid var(--color-accent);
+            overflow: hidden;  /* clip content to rounded corners */
         }
 
         body.docs-mode #page:hover {
@@ -1628,7 +1629,10 @@
             var d = mmParse(mmLoad());
             var nw = page.scrollWidth, nh = page.scrollHeight;
             var vw = window.innerWidth, vh = window.innerHeight;
-            var w = nw * d.scale, h = nh * d.scale;
+            // Cap scale so minimap always fits within viewport (important on small screens)
+            var maxFit = Math.min(MM_MAX, (vw - 20) / nw, (vh - 20) / nh);
+            var scale = Math.min(d.scale, Math.max(MM_MIN, maxFit));
+            var w = nw * scale, h = nh * scale;
             var left, top;
             if      (d.hSide === 'l') left = d.hOff;
             else if (d.hSide === 'r') left = vw - w - d.hOff;
@@ -1639,7 +1643,7 @@
             // Clamp so minimap is never fully off-screen
             left = Math.max(-(w * 0.8), Math.min(vw - w * 0.2, left));
             top  = Math.max(-(h * 0.8), Math.min(vh - h * 0.2, top));
-            return { left: left, top: top, scale: d.scale };
+            return { left: left, top: top, scale: scale };
         }
 
         // Apply { left, top, scale } as inline styles (instant=true suppresses transition)
