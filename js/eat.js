@@ -545,10 +545,10 @@ async function maybe_cannibal(player, pm, allowmsg) {
 export async function fix_petrification() {
   let buf;
   if (Hallucination) {
-    Sprintf(buf, "What a pity--you just ruined a future piece of %sart!", ACURR(A_CHA) > 15 ? "fine " : "");
+    buf = `What a pity--you just ruined a future piece of ${ACURR(A_CHA) > 15 ? "fine " : ""}art!`;
   }
   else {
-    Strcpy(buf, "You feel limber!");
+    buf = "You feel limber!";
   }
   await make_stoned(0, buf, 0,  0);
 }

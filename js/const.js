@@ -5138,7 +5138,7 @@ export function savedsym_free() {
 // Autotranslated from symbols.c:738
 export function savedsym_add(name, val, which_set) {
   let tmp = null;
-  if ((tmp = savedsym_find(name, which_set)) !== 0) { (tmp.val, 0); tmp.val = dupstr(val); }
+  if ((tmp = savedsym_find(name, which_set)) != null) { tmp.val = dupstr(val); }
   else {
     tmp =  alloc(tmp.length);
     tmp.name = dupstr(name);

@@ -1597,11 +1597,10 @@ export async function drop(obj, game, map, player) {
   if (obj === player.swapWeapon) { setuswapwep( 0); }
   if (player.uswallow) {
     if (game.flags.verbose) {
-      let onam_p, mnam_p, monbuf;
+      let onam_p, mnam_p;
       mnam_p = mon_nam(player.ustuck);
       if (digests(player.ustuck.data)) {
-        Sprintf(monbuf, "%s %s", s_suffix(mnam_p), mbodypart(player.ustuck, STOMACH));
-        mnam_p = monbuf;
+        mnam_p = `${s_suffix(mnam_p)} ${mbodypart(player.ustuck, STOMACH)}`;
       }
       onam_p = is_unpaid(obj) ? yobjnam(obj,  0) : doname(obj);
       await You("drop %s into %s.", onam_p, mnam_p);

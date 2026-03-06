@@ -543,7 +543,7 @@ export function mon_arrive(oldMap, newMap, player, opts = {}) {
 
 // Autotranslated from dog.c:34
 export function free_edog(mtmp) {
-  if (mtmp.mextra && EDOG(mtmp)) { free( EDOG(mtmp)); EDOG(mtmp) =  0; }
+  if (mtmp.mextra && EDOG(mtmp)) { EDOG(mtmp) = 0; } // JS: no free() needed
   mtmp.mtame = 0;
 }
 

@@ -1886,8 +1886,7 @@ export async function vamp_stone(mtmp, game) {
   if (is_vampshifter(mtmp)) {
     let mndx = mtmp.cham, x = mtmp.mx, y = mtmp.my;
     if (mndx >= LOW_PM && mndx !== monsndx(mtmp.data) && !(game.mvitals[mndx].mvflags & G_GENOD)) {
-      let buf;
-      Sprintf(buf, "The lapidifying %s %s %s", x_monnam(mtmp, ARTICLE_NONE,  0, (SUPPRESS_SADDLE | SUPPRESS_HALLUCINATION | SUPPRESS_INVISIBLE | SUPPRESS_IT), false), amorphous(mtmp.data) ? "coalesces on the" : is_flyer(mtmp.data) ? "drops to the" : "writhes on the", await surface(x, y));
+      let buf = `The lapidifying ${x_monnam(mtmp, ARTICLE_NONE,  0, (SUPPRESS_SADDLE | SUPPRESS_HALLUCINATION | SUPPRESS_INVISIBLE | SUPPRESS_IT), false)} ${amorphous(mtmp.data) ? "coalesces on the" : is_flyer(mtmp.data) ? "drops to the" : "writhes on the"} ${await surface(x, y)}`;
       mtmp.mcanmove = 1;
       mtmp.mfrozen = 0;
       set_mon_min_mhpmax(mtmp, 10);
@@ -2116,21 +2115,20 @@ export async function angry_guards(silent, map) {
   }
   if (ct) {
     if (!silent) {
-      let buf;
       if (slct) {
-        Sprintf(buf, "guard%s", plur(slct));
+        let buf = `guard${plur(slct)}`;
         await pline_The("%s %s up.", buf, vtense(buf, "wake"));
       }
       if (nct) {
-        Sprintf(buf, "guard%s", plur(nct));
+        let buf = `guard${plur(nct)}`;
         await pline_The("%s %s angry!", buf, vtense(buf, "get"));
       }
       else if (sct) {
-        Sprintf(buf, "guard%s", plur(sct));
+        let buf = `guard${plur(sct)}`;
         await pline("%s %s %s approaching!", (sct === 1) ? "An angry" : "Angry", buf, vtense(buf, "are"));
       }
       else {
-        Strcpy(buf, (ct === 1) ? "a guard's" : "guards'");
+        let buf = (ct === 1) ? "a guard's" : "guards'";
         await You_hear("the shrill sound of %s whistle%s.", buf, plur(ct));
       }
     }

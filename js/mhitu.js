@@ -2114,12 +2114,11 @@ export async function mayberem(mon, seducer, obj, str, player) {
   if (player.utotype || !m_next2u(mon)) return;
   if ((player?.Deaf || player?.deaf || false)) { await pline("%s takes off your %s.", seducer, str); }
   else if (rn2(20) < acurr(player,A_CHA)) {
-    Sprintf(qbuf, "\"Shall I remove your %s, %s?\"", str, (!rn2(2) ? "lover" : !rn2(2) ? "dear" : "sweetheart"));
+    qbuf = `"Shall I remove your ${str}, ${!rn2(2) ? "lover" : !rn2(2) ? "dear" : "sweetheart"}?"`;
     if (y_n(qbuf) === 'n') return;
   }
   else {
-    let hairbuf;
-    Sprintf(hairbuf, "let me run my fingers through your %s", body_part(HAIR));
+    let hairbuf = `let me run my fingers through your ${body_part(HAIR)}`;
     await verbalize("Take off your %s; %s.", str, (obj === player.armor) ? "let's get a little closer" : (obj === player.cloak || obj === player.shield) ? "it's in the way" : (obj === player.boots) ? "let me rub your feet" : (obj === player.gloves) ? "they're too clumsy" : (obj === player.shirt) ? "let me massage you"   : hairbuf);
   }
   remove_worn_item(obj, true);

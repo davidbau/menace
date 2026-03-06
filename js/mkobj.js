@@ -1572,7 +1572,7 @@ export function new_omailcmd(otmp, response_cmd) {
 
 // Autotranslated from mkobj.c:167
 export function free_omailcmd(otmp) {
-  if (otmp.oextra && OMAILCMD(otmp)) { free( OMAILCMD(otmp)); OMAILCMD(otmp) =  0; }
+  if (otmp.oextra && OMAILCMD(otmp)) { OMAILCMD(otmp) = 0; } // JS: no free() needed
 }
 
 // Autotranslated from mkobj.c:238

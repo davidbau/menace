@@ -806,12 +806,12 @@ export function noveltitle(novidx = null) {
 
 // Autotranslated from do_name.c:50
 export function free_mgivenname(mon) {
-  if (has_mgivenname(mon)) { free( MGIVENNAME(mon)); MGIVENNAME(mon) =  0; }
+  if (has_mgivenname(mon)) { MGIVENNAME(mon) = 0; } // JS: no free() needed
 }
 
 // Autotranslated from do_name.c:80
 export function free_oname(obj) {
-  if (has_oname(obj)) { free( ONAME(obj)); ONAME(obj) =  0; }
+  if (has_oname(obj)) { ONAME(obj) = 0; } // JS: no free() needed
 }
 
 // Autotranslated from do_name.c:94

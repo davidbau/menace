@@ -773,6 +773,6 @@ export function monsterInShop(mon, map) {
 
 // Autotranslated from shknam.c:568
 export function free_eshk(mtmp) {
-  if (mtmp.mextra && ESHK(mtmp)) { free( ESHK(mtmp)); ESHK(mtmp) =  0; }
+  if (mtmp.mextra && ESHK(mtmp)) { ESHK(mtmp) = 0; } // JS: no free() needed
   mtmp.isshk = 0;
 }

@@ -2680,8 +2680,7 @@ export async function grow_up(mtmp, victim, game) {
       return  0;
     }
     else if (canspotmon(mtmp)) {
-      let buf;
-      Sprintf(buf, "%s%s",   (mtmp.female && !fem) ? "male "   : (fem && !mtmp.female) ? "female " : "", pmname(ptr, fem));
+      let buf = `${(mtmp.female && !fem) ? "male " : (fem && !mtmp.female) ? "female " : ""}${pmname(ptr, fem)}`;
       await pline_mon(mtmp, "%s %s %s.", YMonnam(mtmp), (fem !== mtmp.female) ? "changes into" : humanoid(ptr) ? "becomes" : "grows up into", an(buf));
     }
     set_mon_data(mtmp, ptr);

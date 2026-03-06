@@ -1616,7 +1616,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
 
 // Autotranslated from dogmove.c:1473
 export async function quickmimic(mtmp, player) {
-  let idx = 0, trycnt = 5, spotted, seeloc, was_leashed = mtmp.mleashed, buf;
+  let idx = 0, trycnt = 5, spotted, seeloc, was_leashed = mtmp.mleashed;
   if (Protection_from_shape_changers || !mtmp.meating) return;
   if (mtmp === player.usteed) await dismount_steed(DISMOUNT_POLY);
   do {
@@ -1632,7 +1632,7 @@ export async function quickmimic(mtmp, player) {
     }
   } while (--trycnt > 0);
   if (trycnt === 0) idx = SIZE(qm) - 1;
-  Strcpy(buf, y_monnam(mtmp));
+  let buf = y_monnam(mtmp);
   spotted = canspotmon(mtmp);
   seeloc = cansee(mtmp.mx, mtmp.my);
   mtmp.m_ap_type = qm[idx].m_ap_type;
