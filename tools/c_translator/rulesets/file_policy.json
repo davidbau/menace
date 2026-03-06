@@ -226,7 +226,7 @@
     {
       "path": "js/gstate.js",
       "policy": "manual_only",
-      "reason": "Game state singleton \u2014 no C equivalent, JS-only infrastructure."
+      "reason": "Game state singleton — no C equivalent, JS-only infrastructure."
     },
     {
       "path": "js/hack.js",
@@ -527,6 +527,11 @@
       "path": "js/rumors.js",
       "policy": "auto",
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."
+    },
+    {
+      "path": "js/runtime_env.js",
+      "policy": "manual_only",
+      "reason": "Runtime/platform/infrastructure boundary; keep manual control."
     },
     {
       "path": "js/save.js",
