@@ -42,7 +42,7 @@ import { PM_CAVEMAN, PM_VALKYRIE, PM_WIZARD,
          TELEPORT, TELEPORT_CONTROL, TELEPAT, LAST_PROP,
          FROMOUTSIDE, INTRINSIC, TIMEOUT,
          SLT_ENCUMBER, DEAF,
-         REGENERATION, CONFLICT, PROTECTION, HUNGER, STRANGLED,
+         REGENERATION, CONFLICT, PROTECTION, HUNGER, STRANGLED, CONFUSION,
          W_RINGL, W_RINGR, W_ARTI, W_WEP, FROMFORM,
          CHOKING, A_LAWFUL, PM_KNIGHT, PM_MONK,
          STARVING, KILLED_BY, KILLED_BY_AN } from './const.js';
@@ -1032,58 +1032,161 @@ export async function violated_vegetarian(player) {
 
 // Hear_again() defined above (eat.c:1796-1804) — used by unfaint and rottenfood
 
-// cf. eat.c rottenfood() — effects of eating rotten food
+// cf. eat.c:1807-1846 rottenfood() — effects of eating rotten food
 async function rottenfood(player, obj) {
-    await pline(`Blecch!  Rotten ${foodword(obj)}!`);
+    const game = _gstate;
+    // C: is_rottable(obj) ? "Rotten" : "Awful"
+    const adj = obj.otyp === CORPSE ? 'Rotten' : 'Awful';
+    await pline(`Blecch!  ${adj} ${foodword(obj)}!`);
     if (!rn2(4)) {
-        await You_feel('rather light-headed.');
-        // Would make_confused
+        // C: make_confused(HConfusion + d(2,4), FALSE)
+        if (player.Hallucination)
+            await You_feel('rather trippy.');
+        else
+            await You_feel('rather light-headed.');
+        const confDuration = d(2, 4);
+        const oldConf = player.getPropTimeout ? player.getPropTimeout(CONFUSION) : 0;
+        if (player.ensureUProp) {
+            const entry = player.ensureUProp(CONFUSION);
+            entry.intrinsic = (entry.intrinsic & ~TIMEOUT) | ((oldConf + confDuration) & TIMEOUT);
+        }
     } else if (!rn2(4)) {
+        // C: make_blinded(Blinded + d(2,10), FALSE) — only if !Blind
         await pline('Everything suddenly goes dark.');
-        // Would make_blinded; consume d(2,10)
-        d(2, 10);
+        const blindDuration = d(2, 10);
+        // TODO: apply blindness when blind system is ported
     } else if (!rn2(3)) {
         const duration = rnd(10);
+        // C: pline_The("world spins and %s %s.", what, where)
         await pline_The('world spins and goes dark.');
-        // Would nomul(-duration), set deafness
+        // C: incr_itimeout(&HDeaf, duration)
+        if (player.ensureUProp) incr_itimeout(player, DEAF, duration);
+        if (game) {
+            game.disp = game.disp || {};
+            game.disp.botl = true;
+        }
+        // C: nomul(-duration)
+        if (game) {
+            nomul(-duration, game);
+            game.multi_reason = 'unconscious from rotten food';
+            game.nomovemsg = 'You are conscious again.';
+        }
+        // C: afternmv = Hear_again — TODO when occupation system supports it
         return 1;
     }
     return 0;
 }
 
-// cf. eat.c eatcorpse() — eat a corpse (rot checks, reqtime, etc.)
+// cf. eat.c:1849-2009 eatcorpse() — eat a corpse (rot checks, reqtime, etc.)
 async function eatcorpse(player, otmp) {
+    const game = _gstate;
     let retcode = 0, tp = 0;
     const mnum = otmp.corpsenm;
 
-    if (mnum < 0 || mnum >= mons.length) return 0;
+    if (mnum < 0 || mnum >= mons.length) return { retcode: 0, reqtime: 3 };
+
+    const glob = !!otmp.globby;
+    // C: stoneable/slimeable flags — simplified for now
+    const stoneable = flesh_petrifies(mons[mnum]);
+    const slimeable = (mnum === PM_GREEN_SLIME && !slimeproof(mons[mnum]));
 
     // Conduct tracking
     if (!vegan(mons[mnum])) {
-        // unvegan conduct
+        if (!player.uconduct) player.uconduct = {};
+        player.uconduct.unvegan = (player.uconduct.unvegan || 0) + 1;
     }
     if (!vegetarian(mons[mnum])) {
         await violated_vegetarian(player);
     }
 
+    // C:3879-3887 — compute rotted value
     let rotted = 0;
     if (!nonrotting_corpse(mnum)) {
-        // cf. eat.c: rotted = (moves - age) / (10 + rn2(20))
-        rotted = rn2(20); // consume RNG for denominator
-        // Simplified rotted calculation
+        // C: rotted = (moves - age) / (10L + rn2(20))
+        const age = otmp.age || 0;
+        const moves = (game && game.moves) || 0;
+        rotted = Math.floor((moves - age) / (10 + rn2(20)));
+        if (otmp.cursed) rotted += 2;
+        else if (otmp.blessed) rotted -= 2;
     }
 
-    // Delay is weight dependent
-    const reqtime = 3 + ((mons[mnum].cwt || 0) >> 6);
+    // C:3890-3938 — tainted/acidic/poisonous/mild illness checks
+    if (!glob && !stoneable && !slimeable && rotted > 5) {
+        // C: tainted meat — make_sick
+        const meatType = (mons[mnum].mlet === S_FUNGUS) ? 'fungoid vegetation'
+            : vegetarian(mons[mnum]) ? 'protoplasm' : 'meat';
+        await pline(`Ulch - that ${meatType} was tainted!`);
+        // C: rn1(10, 10) for sick_time
+        const sickTime = rn1(10, 10);
+        // TODO: apply make_sick when sickness system is ported
+        await pline('(It must have died too long ago to be safe to eat.)');
+        // C: useup(otmp) — corpse destroyed
+        return { retcode: 2, reqtime: 3 };
+    } else if (acidic(mons[mnum]) && !player.hasProp?.(ACID_RES)) {
+        tp++;
+        await You('have a very bad case of stomach acid.');
+        const dmg = rnd(15);
+        // TODO: losehp(dmg, "acidic corpse", KILLED_BY_AN)
+    } else if (poisonous(mons[mnum]) && rn2(5)) {
+        tp++;
+        await pline('Ecch - that must have been poisonous!');
+        if (!player.hasProp?.(POISON_RES)) {
+            const strDmg = rnd(4);
+            const hpDmg = rnd(15);
+            // TODO: poison_strdmg(strDmg, hpDmg, "poisonous corpse", KILLED_BY_AN)
+        } else {
+            await You('seem unaffected by the poison.');
+        }
+    } else if ((rotted > 5 || (rotted > 3 && rn2(5))) && !player.Sick_resistance) {
+        tp++;
+        const prefix = player.Sick ? 'very ' : '';
+        await You_feel(`${prefix}sick.`);
+        const dmg = rnd(8);
+        // TODO: losehp(dmg, "cadaver", KILLED_BY_AN)
+    }
 
-    if (!tp && !nonrotting_corpse(mnum) && !rn2(7)) {
+    // C: delay is weight dependent
+    const reqtime = 3 + ((!glob ? (mons[mnum].cwt || 0) : (otmp.owt || 0)) >> 6);
+
+    // C:3944-3965 — rottenfood check
+    if (!tp && !nonrotting_corpse(mnum) && (otmp.orotten || !rn2(7))) {
         if (await rottenfood(player, otmp)) {
+            otmp.orotten = true;
             retcode = 1;
         }
-        if (!mons[mnum].cnutrit) {
-            // Corpse rots away completely
+        if (!mons[otmp.corpsenm].cnutrit) {
+            if (!retcode)
+                await pline_The('corpse rots away completely.');
             retcode = 2;
         }
+        if (!retcode) {
+            // C: consume_oeaten(otmp, 2) — oeaten >>= 2
+            if (otmp.oeaten) otmp.oeaten >>= 2;
+        }
+    } else if ((mnum === PM_COCKATRICE || mnum === PM_CHICKATRICE)
+               && (player.Stone_resistance || player.Hallucination)) {
+        await pline('This tastes just like chicken!');
+    } else if (mnum === PM_FLOATING_EYE && player.umonnum === PM_RAVEN) {
+        await You('peck the eyeball with delight.');
+    } else if (!tp) {
+        // C:3974-4009 — taste messages with RNG for palatability
+        const isVegan = vegan(mons[mnum]);
+        const isVegetarian = vegetarian(mons[mnum]);
+        // C: yummy/palatable — simplified for humans (omnivore: yummy=false, palatable varies)
+        const yummy = false; // omnivore
+        const palatable = (isVegetarian || true /* omnivore herbivorous */)
+            && rn2(10) && (rotted < 1 || !rn2(rotted + 1));
+        const palatable_msgs = ['okay', 'stringy', 'gamey', 'fatty', 'tough'];
+        const idx = isVegetarian ? 0 : rn2(palatable_msgs.length);
+        const tasteWord = player.Hallucination
+            ? (yummy ? 'gnarly' : palatable ? 'copacetic' : 'grody')
+            : (yummy ? 'delicious' : palatable ? palatable_msgs[idx] : 'terrible');
+        const useIs = player.Hallucination || (palatable && idx > 0
+            && ['stringy', 'gamey', 'fatty', 'tough'].includes(palatable_msgs[idx]));
+        const verb = useIs ? 'is' : 'tastes';
+        const punct = (yummy || !palatable) ? '!' : '.';
+        const prefix = type_is_pname(mons[mnum]) ? '' : 'This ';
+        await pline(`${prefix}${foodword(otmp)} ${verb} ${tasteWord}${punct}`);
     }
 
     return { retcode, reqtime };
