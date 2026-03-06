@@ -15,7 +15,7 @@
 // - m_move: covetous monster teleport-to-hero not implemented (C:1737)
 // - m_move_aggress: simplified attack — only first attack used, no full mattackm
 // - set_apparxy: displacement displacement-offset details simplified
-// - shk_move: simplified from full C shk.c; no billing/theft tracking
+// - shk_move: delegated to shk.js; remaining fidelity gaps are tracked in shk parity issues
 // - undesirable_disp: not yet implemented (C:2279)
 // - distfleeck: in_your_sanctuary implemented (priest.js); flees_light implemented
 // - mon_allowflags: Conflict ALLOW_U not implemented
@@ -76,6 +76,7 @@ import { stop_occupation } from './allmain.js';
 import { in_your_sanctuary } from './priest.js';
 import { artifact_light } from './artifact.js';
 import { envFlag } from './runtime_env.js';
+import { shk_move } from './shk.js';
 
 // Shared utilities — re-exported for consumers
 import { dist2, distmin } from './hack.js';
@@ -1440,67 +1441,6 @@ export function move_special(mon, map, player, inHisShop, appr, uondoor, avoid, 
         return 1;
     }
     return 0;
-}
-
-function shk_move(mon, map, player) {
-    const omx = mon.mx;
-    const omy = mon.my;
-    const home = mon.shk || { x: omx, y: omy };
-    const door = mon.shd || { x: home.x, y: home.y };
-    const udist = dist2(omx, omy, player.x, player.y);
-    const satdoor = (home.x === omx && home.y === omy);
-    let appr = 1;
-    let gtx = home.x;
-    let gty = home.y;
-    let avoid = false;
-    let uondoor = (player.x === door.x && player.y === door.y);
-    let badinv = false;
-
-    if (udist < 3) {
-        if (!mon_is_peaceful(mon)) {
-            return 0;
-        }
-        if (mon.following && udist < 2) {
-            return 0;
-        }
-    }
-
-    if (!mon_is_peaceful(mon)) {
-        gtx = player.x;
-        gty = player.y;
-        avoid = false;
-    } else {
-        if (player.invis || player.usteed) {
-            avoid = false;
-        } else {
-            if (uondoor) {
-                const hasPickaxeInInventory = !!(player.inventory || []).find((o) =>
-                    o && (o.otyp === PICK_AXE || o.otyp === DWARVISH_MATTOCK));
-                const hasPickaxeOnGround = !!(map.objectsAt?.(player.x, player.y) || []).find((o) =>
-                    o && (o.otyp === PICK_AXE || o.otyp === DWARVISH_MATTOCK));
-                badinv = hasPickaxeInInventory || hasPickaxeOnGround;
-                if (satdoor && badinv) return 0;
-                avoid = !badinv;
-            } else {
-                const inShop = pointInShop(player.x, player.y, map);
-                avoid = inShop && dist2(gtx, gty, player.x, player.y) > 8;
-                badinv = false;
-            }
-
-            const gdist = dist2(omx, omy, gtx, gty);
-            if (((!mon.robbed && !mon.billct && !mon.debit) || avoid) && gdist < 3) {
-                if (!badinv && !onlineu(mon, player)) return 0;
-                if (satdoor) {
-                    appr = 0;
-                    gtx = 0;
-                    gty = 0;
-                }
-            }
-        }
-    }
-
-    const inHisShop = monsterInShop(mon, map);
-    return move_special(mon, map, player, inHisShop, appr, uondoor, avoid, gtx, gty);
 }
 
 // C ref: mon.c mpickstuff() early gates.
