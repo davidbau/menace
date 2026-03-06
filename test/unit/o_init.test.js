@@ -4,7 +4,7 @@ import { init_objects, objdescr_is, obj_shuffle_range, setgemprobs } from '../..
 import {
     initDiscoveryState, discoverObject, undiscoverObject,
     getDiscoveriesMenuLines, getDiscoveryState,
-} from '../../js/discovery.js';
+} from '../../js/o_init.js';
 import { objectData, bases,
     AMULET_OF_ESP, AMULET_OF_FLYING,
     POT_GAIN_ABILITY, POT_OIL, POT_WATER, POT_HEALING,

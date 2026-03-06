@@ -22,7 +22,7 @@ import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_C
          AMETHYST, JASPER, FLUORITE, AGATE, JADE,
          STRANGE_OBJECT, GEMSTONE, GLASS,
          CANDELABRUM_OF_INVOCATION } from './objects.js';
-import { isObjectNameKnown } from './discovery.js';
+import { isObjectNameKnown } from './o_init.js';
 import { doname, xname, splitobj, next_ident, weight, Is_container } from './mkobj.js';
 import { currency } from './invent.js';
 import { greetingForRole } from './player.js';

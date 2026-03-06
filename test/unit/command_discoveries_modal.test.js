@@ -5,7 +5,7 @@ import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/map.js';
 import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput } from '../../js/input.js';
-import { initDiscoveryState, discoverObject } from '../../js/discovery.js';
+import { initDiscoveryState, discoverObject } from '../../js/o_init.js';
 import { POT_HEALING, POT_EXTRA_HEALING, POT_SICKNESS } from '../../js/objects.js';
 
 function makeDisplay(rows = 4, cols = 80) {

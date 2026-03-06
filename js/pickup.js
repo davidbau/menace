@@ -10,7 +10,7 @@ import { objectData, COIN_CLASS, CORPSE, ICE_BOX, LARGE_BOX, CHEST,
 import { nhgetch, getlin, ynFunction } from './input.js';
 import { doname, xname, Is_container, weight, splitobj, unbless, set_bknown,
          set_corpsenm, start_corpse_timeout } from './mkobj.js';
-import { observeObject } from './discovery.js';
+import { observeObject } from './o_init.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage } from './do.js';
 import { mons, PM_HOUSECAT, PM_ICE_TROLL, MZ_LARGE } from './monsters.js';
 import { is_rider, touch_petrifies, nohands, nolimbs, notake,

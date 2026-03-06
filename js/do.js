@@ -31,7 +31,7 @@ import { COIN_CLASS, RING_CLASS, POTION_CLASS,
 import { doname, xname, splitobj, set_bknown, set_corpsenm } from './mkobj.js';
 import { placeFloorObject } from './stackobj.js';
 import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
-import { observeObject } from './discovery.js';
+import { observeObject } from './o_init.js';
 import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { pline, pline_The, You, Your, You_hear, You_see, You_feel, There, Norep } from './pline.js';
 import { hcolor, hliquid, rndmonnam, Monnam } from './do_name.js';

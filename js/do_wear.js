@@ -45,7 +45,7 @@ import {
     setnotworn,
 } from './worn.js';
 import { useup, renderOverlayMenuUntilDismiss, silly_thing } from './invent.js';
-import { discoverObject } from './discovery.js';
+import { discoverObject } from './o_init.js';
 import { pline, You, Your, You_cant, You_feel, updateLastPlineMessage } from './pline.js';
 import { retouch_object } from './artifact.js';
 import { rn2, rnd } from './rng.js';

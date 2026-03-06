@@ -3,7 +3,7 @@
 // C ref: mkobj.c — object creation, class initialization, containers
 
 import { rn2, rnd, rn1, rne, rnz, d, getRngCallCount, pushRngLogEntry } from './rng.js';
-import { isObjectNameKnown } from './discovery.js';
+import { isObjectNameKnown } from './o_init.js';
 import {
     objectData, bases, oclass_prob_totals, mkobjprobs, NUM_OBJECTS,
     ILLOBJ_CLASS, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,

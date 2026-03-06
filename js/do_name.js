@@ -24,6 +24,12 @@ import {
 import { hasGivenName, type_is_pname, is_mplayer,
          is_animal, is_mindless, is_humanoid } from './mondata.js';
 import { flush_screen } from './monutil.js';
+import { nhgetch, getlin } from './input.js';
+import { doname } from './mkobj.js';
+import { objectData,
+         AMULET_CLASS, SCROLL_CLASS, POTION_CLASS, WAND_CLASS, RING_CLASS,
+         GEM_CLASS, SPBOOK_CLASS, ARMOR_CLASS, TOOL_CLASS, VENOM_CLASS,
+       } from './objects.js';
 
 // Re-export helper needed by x_monnam naming logic.
 export { hasGivenName } from './mondata.js';
@@ -959,4 +965,76 @@ export function lookup_novel(lookname, idx) {
   }
   if (idx && IndexOk( idx, sir_Terry_novels)) return sir_Terry_novels;
   return  0;
+}
+
+// ========================================================================
+// Object type calling (merged from discovery.js)
+// C ref: do_name.c objtyp_is_callable(), docallcmd()
+// ========================================================================
+
+// C ref: do_name.c objtyp_is_callable()
+export function isObjectTypeCallable(obj) {
+    if (!obj) return false;
+    const meta = objectData[obj.otyp] || null;
+    const hasDesc = !!(meta && typeof meta.oc_descr === 'string' && meta.oc_descr.length > 0);
+    if (!hasDesc) return false;
+
+    if (obj.oclass === AMULET_CLASS) {
+        const name = String(meta?.name || '').toLowerCase();
+        return !name.includes('amulet of yendor');
+    }
+    return obj.oclass === SCROLL_CLASS
+        || obj.oclass === POTION_CLASS
+        || obj.oclass === WAND_CLASS
+        || obj.oclass === RING_CLASS
+        || obj.oclass === GEM_CLASS
+        || obj.oclass === SPBOOK_CLASS
+        || obj.oclass === ARMOR_CLASS
+        || obj.oclass === TOOL_CLASS
+        || obj.oclass === VENOM_CLASS;
+}
+
+// C ref: do_name.c docallcmd() — #call/#name command prompt
+export async function handleCallObjectTypePrompt(player, display) {
+    const inventory = Array.isArray(player.inventory) ? player.inventory : [];
+    const callChoices = inventory
+        .filter((obj) => isObjectTypeCallable(obj) && obj.invlet)
+        .map((obj) => obj.invlet)
+        .join('');
+    const prompt = callChoices
+        ? `What do you want to call? [${callChoices} or ?*] `
+        : 'What do you want to call? [*] ';
+    const replacePromptMessage = () => {
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        display.topMessage = null;
+        display.messageNeedsMore = false;
+    };
+    const isDismissKey = (code) => code === 27 || code === 32;
+
+    while (true) {
+        await display.putstr_message(prompt);
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+        if (isDismissKey(ch)) {
+            replacePromptMessage();
+            await display.putstr_message('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+        if (c === '?' || c === '*') {
+            continue;
+        }
+
+        const selected = inventory.find((obj) => obj && obj.invlet === c);
+        if (!selected) {
+            continue;
+        }
+        if (!isObjectTypeCallable(selected)) {
+            replacePromptMessage();
+            await display.putstr_message('That is a silly thing to call.');
+            return { moved: false, tookTime: false };
+        }
+
+        await getlin(`Call ${doname(selected, player)}:`, display);
+        return { moved: false, tookTime: false };
+    }
 }

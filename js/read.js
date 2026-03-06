@@ -18,7 +18,7 @@ import {
 import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK } from './const.js';
 import { doname } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
-import { discoverObject, isObjectNameKnown } from './discovery.js';
+import { discoverObject, isObjectNameKnown } from './o_init.js';
 import { make_confused, make_stunned } from './potion.js';
 import { makemon } from './makemon.js';
 import { NO_MINVENT } from './const.js';

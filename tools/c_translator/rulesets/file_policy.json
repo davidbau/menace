@@ -112,11 +112,6 @@
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."
     },
     {
-      "path": "js/discovery.js",
-      "policy": "manual_only",
-      "reason": "Runtime/platform/infrastructure boundary; keep manual control."
-    },
-    {
       "path": "js/display.js",
       "policy": "mixed",
       "reason": "Contains both translatable core logic and manual boundary code.",

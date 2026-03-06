@@ -18,7 +18,7 @@ import {
 import { def_monsyms, def_oc_syms } from './const.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
 import { tempGlyphToCell } from './temp_glyph.js';
-import { isObjectNameKnown, isObjectEncountered, discoveryTypeName } from './discovery.js';
+import { isObjectNameKnown, isObjectEncountered, discoveryTypeName } from './o_init.js';
 import {
     wallIsVisible,
     trapGlyph,

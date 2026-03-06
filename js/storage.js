@@ -27,7 +27,7 @@ import { CONFUSION, STUNNED, BLINDED, HALLUC, SICK,
          TIMEOUT, SICK_VOMITABLE, SICK_NONVOMITABLE } from './const.js';
 import { GameMap } from './game.js';
 import { makeRoom } from './mkroom.js';
-import { getDiscoveryState, setDiscoveryState } from './discovery.js';
+import { getDiscoveryState, setDiscoveryState } from './o_init.js';
 
 const SAVE_KEY = 'menace-save';
 const AUTOSAVE_KEY = 'menace-autosave';

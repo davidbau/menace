@@ -95,7 +95,7 @@ import { is_db_wall, find_drawbridge, open_drawbridge, close_drawbridge, destroy
 import { HOLE, TRAPDOOR } from './const.js';
 import { engr_at, del_engr_at, wipe_engr_at, rloc_engr, make_engr_at } from './engrave.js';
 import { random_engraving_rng, deltrap } from './dungeon.js';
-import { discoverObject } from './discovery.js';
+import { discoverObject } from './o_init.js';
 import { u_teleport_mon, rloco, enexto } from './teleport.js';
 import { boxlock } from './lock.js';
 import { cansee } from './vision.js';

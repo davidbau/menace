@@ -35,7 +35,7 @@ import { x_monnam, y_monnam, YMonnam, Monnam, mon_nam, canseemon, passes_walls, 
 import { engr_at, read_engr_at, maybeSmudgeEngraving, u_wipe_engr } from './engrave.js';
 import { gethungry } from './eat.js';
 import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop, inhishop } from './shk.js';
-import { observeObject } from './discovery.js';
+import { observeObject } from './o_init.js';
 import { place_object } from './stackobj.js';
 import { xname, an, The } from './objnam.js';
 import { hliquid } from './do_name.js';

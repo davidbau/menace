@@ -34,8 +34,8 @@ import {
     is_rustprone, is_corrodeable, is_flammable, is_crackable, is_rottable,
     Is_container, mksobj, mkobj, bless, curse, uncurse, weight,
 } from './mkobj.js';
-import { isObjectNameKnown } from './discovery.js';
-import { discoverObject } from './discovery.js';
+import { isObjectNameKnown } from './o_init.js';
+import { discoverObject } from './o_init.js';
 import { artiname, artifact_name, undiscovered_artifact } from './artifact.js';
 import { ART_EYES_OF_THE_OVERWORLD, ART_ORB_OF_DETECTION } from './artifacts.js';
 import {

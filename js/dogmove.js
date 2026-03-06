@@ -19,7 +19,7 @@ import { CORPSE, BALL_CLASS, CHAIN_CLASS, ROCK_CLASS, FOOD_CLASS,
          objectData } from './objects.js';
 import { doname, next_ident, weight } from './mkobj.js';
 import { obj_resists, is_organic, is_metallic, is_rustprone } from './objdata.js';
-import { observeObject } from './discovery.js';
+import { observeObject } from './o_init.js';
 import { dogfood } from './dog.js';
 import { couldsee, m_cansee, do_clear_area } from './vision.js';
 import { mattackm } from './mhitm.js';

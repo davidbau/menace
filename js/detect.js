@@ -17,7 +17,7 @@ import {
     canSpotMonsterForMap, senseMonsterForMap,
 } from './monutil.js';
 import { findgold } from './steal.js';
-import { observeObject } from './discovery.js';
+import { observeObject } from './o_init.js';
 import { unblock_point, recalc_block_point, do_clear_area } from './vision.js';
 import { body_part } from './polyself.js';
 import { tmp_at, nh_delay_output } from './animation.js';

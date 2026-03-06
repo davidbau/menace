@@ -14,7 +14,7 @@ import { Player, roles } from '../../js/player.js';
 import { GameMap } from '../../js/map.js';
 import {
     initDiscoveryState, discoverObject, isObjectNameKnown, isObjectEncountered,
-} from '../../js/discovery.js';
+} from '../../js/o_init.js';
 import {
     saveObj, restObj, saveObjChn, restObjChn,
     saveMon, restMon, saveMonChn, restMonChn,

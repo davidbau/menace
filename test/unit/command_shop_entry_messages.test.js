@@ -8,7 +8,7 @@ import {
     SHOPBASE, ROOMOFFSET, A_CHA,
 } from '../../js/const.js';
 import { SPBOOK_CLASS, SPE_TELEPORT_AWAY } from '../../js/objects.js';
-import { initDiscoveryState } from '../../js/discovery.js';
+import { initDiscoveryState } from '../../js/o_init.js';
 import { Player } from '../../js/player.js';
 
 function makeGame() {

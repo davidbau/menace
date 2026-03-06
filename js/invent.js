@@ -30,7 +30,7 @@ import { pline, You, Your } from './pline.js';
 import { rn2 } from './rng.js';
 import { touch_petrifies } from './mondata.js';
 import { newsym } from './monutil.js';
-import { observeObject, discoverObject, isObjectNameKnown } from './discovery.js';
+import { observeObject, discoverObject, isObjectNameKnown } from './o_init.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, acurrstr } from './attrib.js';
 

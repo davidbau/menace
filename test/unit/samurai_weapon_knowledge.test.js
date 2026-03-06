@@ -6,7 +6,7 @@ import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.
 import { Player, roles } from '../../js/player.js';
 import { simulatePostLevelInit } from '../../js/u_init.js';
 import { ORCISH_DAGGER } from '../../js/objects.js';
-import { isObjectNameKnown } from '../../js/discovery.js';
+import { isObjectNameKnown } from '../../js/o_init.js';
 
 describe('samurai weapon knowledge', () => {
 

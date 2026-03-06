@@ -86,7 +86,7 @@ import {
     STATUE,
 } from './objects.js';
 import { roles, races } from './player.js';
-import { discoverObject } from './discovery.js';
+import { discoverObject } from './o_init.js';
 import { mons } from './monsters.js';
 import { makedog, mon_arrive } from './dog.js';
 import { MON_ARRIVE_WITH_YOU } from './const.js';

@@ -11,7 +11,7 @@ import {
     isObjectEncountered,
     getDiscoveryState,
     setDiscoveryState,
-} from '../../js/discovery.js';
+} from '../../js/o_init.js';
 import { POT_HEALING, POT_SICKNESS, POT_EXTRA_HEALING } from '../../js/objects.js';
 
 // ========================================================================
