@@ -322,6 +322,27 @@ Timeout policy (hang detection):
 - Single-session replay runs (`node test/comparison/session_test_runner.js <session>`) enforce a `10000ms` timeout per session by default.
 - `session_test_runner` runs the full selected set by default; add `--fail-fast` only when you explicitly want to stop on first failure.
 
+### Systematic Stall CPU Diagnosis
+
+When a session times out and appears CPU-bound/live-locked, use the profiler wrapper:
+
+```bash
+node scripts/replay_stall_diagnose.mjs \
+  --session seed325_knight_wizard_gameplay \
+  --timeout-ms 12000 \
+  --top 20
+```
+
+What it does:
+- Runs `session_test_runner` under Node `--cpu-prof`.
+- Stores artifacts in `tmp/stall-diagnose/<timestamp>/`.
+- Writes:
+  - `run.log` (full replay/test output),
+  - `summary.txt` (top self-sample functions and files),
+  - `summary.json` (machine-readable summary).
+
+This makes hotspot triage repeatable across agents and avoids ad-hoc manual profiling.
+
 ### Fast Parity Triage Loop (Comparison Artifacts)
 
 Use this loop when chasing a specific seed/session divergence.
