@@ -23,7 +23,7 @@ import { SQKY_BOARD, SLP_GAS_TRAP, FIRE_TRAP, PIT, SPIKED_PIT, ANTI_MAGIC, TELEP
          ARROW_TRAP, DART_TRAP, ROCKTRAP } from './const.js';
 import { defsyms, trap_to_defsym, PASSES_WALLS } from './const.js';
 import { rn2, rnd, rnl, d, c_d } from './rng.js';
-import { exercise } from './attrib_exercise.js';
+import { exercise, registerNearCapacity } from './attrib_exercise.js';
 import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
          TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
          WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BOULDER,
@@ -1960,6 +1960,7 @@ export function near_capacity() {
     if (!player) return UNENCUMBERED;
     return calc_capacity(player, 0);
 }
+registerNearCapacity(near_capacity);
 
 // C ref: hack.c max_capacity() — how far over max capacity
 export function max_capacity(player) {

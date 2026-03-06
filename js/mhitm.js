@@ -260,7 +260,7 @@ export function rustm(mdef, obj) {
 // cf. mhitm.c:1460 — xdrainenergym(mon, vis)
 export function xdrainenergym(mon, vis) {
     if ((mon.mspec_used || 0) < 20) {
-        mon.mspec_used = (mon.mspec_used || 0) + d(2, 2);
+        mon.mspec_used = (mon.mspec_used || 0) + c_d(2, 2);
     }
 }
 
@@ -298,10 +298,10 @@ export function passivemm(magr, mdef, mhitb, mdead, mwep, map) {
     // Roll damage
     let tmp;
     if (passiveAttk.damn) {
-        tmp = d(passiveAttk.damn, passiveAttk.damd || 0);
+        tmp = c_d(passiveAttk.damn, passiveAttk.damd || 0);
     } else if (passiveAttk.damd) {
         const mlev = mddat.mlevel || 0;  // C: mddat->mlevel (species base, not adjusted)
-        tmp = d(mlev + 1, passiveAttk.damd);
+        tmp = c_d(mlev + 1, passiveAttk.damd);
     } else {
         tmp = 0;
     }

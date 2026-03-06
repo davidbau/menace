@@ -5,6 +5,10 @@ import { rn2, rn1 } from './rng.js';
 import { A_STR, A_INT, A_CHA, A_DEX, A_CON, A_WIS,
     MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, PM_MONK } from './const.js';
 
+// Lazy import to avoid circular dependency (hack.js imports from attrib_exercise.js)
+var _near_capacity = null;
+export function registerNearCapacity(fn) { _near_capacity = fn; }
+
 const EXERCISE_LIMIT = 50;
 const DEFAULT_NEXT_CHECK = 600;
 const ATTR_COUNT = 6;
@@ -89,9 +93,7 @@ export async function exerper(player, moves) {
         }
 
         // Encumbrance checks
-        const wtcap = (typeof player.near_capacity === 'function')
-            ? player.near_capacity()
-            : (player.encumbrance || 0);
+        const wtcap = _near_capacity ? _near_capacity(player) : 0;
         if (wtcap === MOD_ENCUMBER) {
             await exercise(player, A_STR, true);
         } else if (wtcap === HVY_ENCUMBER) {

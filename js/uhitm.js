@@ -468,7 +468,7 @@ function hmon_hitmon_misc_obj(hmd, mon, obj) {
     case CLOVE_OF_GARLIC:
         // cf. uhitm.c:1238 — garlic vs undead: flee
         if (is_undead(mon.data || mon.type || {})) {
-            applyMonflee(mon, d(2, 4), false);
+            applyMonflee(mon, c_d(2, 4), false);
         }
         hmd.dmg = 1;
         break;
@@ -556,7 +556,7 @@ export function hmon_hitmon_poison(hmd, mon, obj) {
 //   Jousting bonus damage with lance while riding.
 //   In JS, riding/jousting is not yet implemented.
 export function hmon_hitmon_jousting(hmd, mon, obj) {
-    hmd.dmg += d(2, 10);
+    hmd.dmg += c_d(2, 10);
     hmd.hittxt = true;
 }
 
@@ -920,7 +920,7 @@ function mhitm_really_poison(magr, mattk, mdef, mhm) {
     // C ref: mhitm.c:3094 — m_lev > 0 ? lose a level : take 2d6 damage
     if ((mdef.m_lev || 0) > 0) {
         const mlev = mdef.m_lev || 0;
-        mhm.damage = d(2, 6);
+        mhm.damage = c_d(2, 6);
         if (mdef.mhpmax > (mlev + 1)) {
             mdef.mhpmax -= mhm.damage;
             if (mdef.mhpmax < (mlev + 1)) mdef.mhpmax = mlev + 1;
@@ -959,7 +959,7 @@ export function mhitm_ad_conf(magr, mattk, mdef, mhm) {
 // m-vs-m branch: uhitm.c:2964-2989
 export function mhitm_ad_blnd(magr, mattk, mdef, mhm) {
     // C ref: can_blnd check omitted for simplicity; uses damage dice for duration
-    let rnd_tmp = d(mattk.damn || 0, mattk.damd || 0);
+    let rnd_tmp = c_d(mattk.damn || 0, mattk.damd || 0);
     rnd_tmp += (mdef.mblinded || 0);
     if (rnd_tmp > 127) rnd_tmp = 127;
     mdef.mblinded = rnd_tmp;
@@ -1008,7 +1008,7 @@ export function mhitm_ad_wrap(magr, mattk, mdef, mhm) {
 export function mhitm_ad_drli(magr, mattk, mdef, mhm) {
     if (!rn2(3) && !resists_ston(mdef) /* resists_drli in C, using ston as proxy */
         && !mhitm_mgc_atk_negated(magr, mdef)) {
-        mhm.damage = d(2, 6);
+        mhm.damage = c_d(2, 6);
         const mlev = mdef.m_lev || 0;
         if (mdef.mhpmax - mhm.damage > mlev) {
             mdef.mhpmax -= mhm.damage;
@@ -1039,7 +1039,7 @@ export function mhitm_ad_dren(magr, mattk, mdef, mhm) {
     if (negated) mhm.damage = 0;
     // C ref: xdrainenergym — increases mspec_used
     if (!negated && (mdef.mspec_used || 0) < 20) {
-        mdef.mspec_used = (mdef.mspec_used || 0) + d(2, 2);
+        mdef.mspec_used = (mdef.mspec_used || 0) + c_d(2, 2);
     }
 }
 
@@ -1056,7 +1056,7 @@ export function mhitm_ad_drin(magr, mattk, mdef, mhm) {
     const mlev = mdef.m_lev || 0;
     if (mlev > 0) {
         if (mdef.m_lev !== undefined) mdef.m_lev--;
-        mhm.damage = d(2, 6);
+        mhm.damage = c_d(2, 6);
         if (mdef.mhpmax > (mlev + 1)) {
             mdef.mhpmax -= mhm.damage;
             if (mdef.mhpmax < (mlev)) mdef.mhpmax = mlev;
@@ -1219,7 +1219,7 @@ export function mhitm_adtyping(magr, mattk, mdef, mhm) {
 //   Returns M_ATTK_DEF_DIED if monster dies, M_ATTK_HIT otherwise.
 export function damageum(mdef, mattk, specialdmg) {
     const mhm = {
-        damage: d(mattk.damn || 0, mattk.damd || 0),
+        damage: c_d(mattk.damn || 0, mattk.damd || 0),
         hitflags: M_ATTK_MISS,
         permdmg: 0,
         specialdmg: specialdmg || 0,
@@ -1244,7 +1244,7 @@ export function damageum(mdef, mattk, specialdmg) {
 //   Exploding attack (hero polymorphed into exploding monster).
 //   Returns M_ATTK_DEF_DIED or M_ATTK_HIT.
 export function explum(mdef, mattk) {
-    const tmp = d(mattk.damn || 0, mattk.damd || 0);
+    const tmp = c_d(mattk.damn || 0, mattk.damd || 0);
     // C: various cases (AD_BLND, AD_HALU, AD_COLD/FIRE/ELEC → explode())
     // Simplified: just apply damage for elemental types
     if (mdef) {
@@ -1762,10 +1762,10 @@ async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destr
     // tmp = d(damn, damd) or d(mlev+1, damd) or 0
     let tmp = 0;
     if (passiveAttk.damn) {
-        tmp = d(passiveAttk.damn, passiveAttk.damd || 0);
+        tmp = c_d(passiveAttk.damn, passiveAttk.damd || 0);
     } else if (passiveAttk.damd) {
         const mlev = mon.m_lev ?? (ptr.mlevel || 0);
-        tmp = d(mlev + 1, passiveAttk.damd);
+        tmp = c_d(mlev + 1, passiveAttk.damd);
     }
 
     // C ref: uhitm.c:5872-5993 — first switch: effects that work even if dead
