@@ -45,22 +45,26 @@ test('emit-helper lowers Sprintf/Snprintf and string helpers', (t) => {
 
     const fmtAssign = emitHelper('fmt_assign');
     assert.equal(fmtAssign.meta.translated, true);
-    assert.match(fmtAssign.js, /buf = __fmt;/);
+    // Now emits template literal: buf = `18/${String(st - 18).padStart(2, "0")}`
+    assert.match(fmtAssign.js, /buf = `18\/\$\{String\(st - 18\)\.padStart\(2, "0"\)\}`/);
     assert.doesNotMatch(fmtAssign.js, /\bSprintf\s*\(/);
 
     const fmtAppend = emitHelper('fmt_append');
     assert.equal(fmtAppend.meta.translated, true);
-    assert.match(fmtAppend.js, /buf = \(buf \?\? ''\) \+ __fmt;/);
+    // Now emits: buf += `-${x}`
+    assert.match(fmtAppend.js, /buf \+= `-\$\{x\}`/);
     assert.doesNotMatch(fmtAppend.js, /\beos\s*\(/);
 
     const fmtBound = emitHelper('fmt_bound');
     assert.equal(fmtBound.meta.translated, true);
-    assert.match(fmtBound.js, /slice\(0, Math\.max\(0, Number\(n\) - 1\)\)/);
+    // Now emits: buf = x (single %d optimized to plain assignment)
+    assert.match(fmtBound.js, /buf = x/);
     assert.doesNotMatch(fmtBound.js, /\bSnprintf\s*\(/);
 
     const strOps = emitHelper('str_ops');
     assert.equal(strOps.meta.translated, true);
-    assert.match(strOps.js, /buf = \(src \?\? ''\);/);
+    // Strcpy now emits: buf = src (no ?? '')
+    assert.match(strOps.js, /buf = src;/);
     assert.match(strOps.js, /buf = \(buf \?\? ''\) \+ \("!" \?\? ''\);/);
     assert.match(strOps.js, /buf = \(src \?\? ''\)\.slice\(0, Math\.max\(0, Number\(3\)\)\);/);
 

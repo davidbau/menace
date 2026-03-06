@@ -922,6 +922,188 @@ def _split_top_level_args(src):
     return out
 
 
+def _extract_string_literal(expr):
+    """Return the raw string content from a quoted expression, or None."""
+    s = expr.strip()
+    if len(s) >= 2 and s[0] == '"' and s[-1] == '"':
+        return s[1:-1]
+    if len(s) >= 2 and s[0] == "'" and s[-1] == "'":
+        return s[1:-1]
+    # Template literal
+    if len(s) >= 2 and s[0] == '`' and s[-1] == '`':
+        return s[1:-1]
+    return None
+
+
+def _try_static_format_expr(fmt_str, arg_exprs):
+    """Parse C printf format string at Python time, return JS expression.
+
+    Returns (js_expr, is_single_value) or (None, False) on failure.
+    is_single_value is True when the format is just "%s" with one arg,
+    so the caller can emit a plain assignment instead of a template literal.
+    """
+    # Regex for C printf format specifiers
+    spec_re = re.compile(r'%(?:%|[-+ #0]*(?:\*|\d+)?(?:\.(?:\*|\d+))?(?:[hlLzjt]*)[cCdiouxXfFeEgGaAnps])')
+    parts = []       # list of (literal_str | None, format_spec | None)
+    arg_idx = 0
+    pos = 0
+    while pos < len(fmt_str):
+        m = spec_re.search(fmt_str, pos)
+        if m is None:
+            # Rest is literal text
+            parts.append(fmt_str[pos:])
+            break
+        # Literal text before this specifier
+        if m.start() > pos:
+            parts.append(fmt_str[pos:m.start()])
+        spec = m.group(0)
+        if spec == '%%':
+            parts.append('%')
+            pos = m.end()
+            continue
+        # Parse the specifier to produce a JS expression
+        js_expr = _format_spec_to_js(spec, arg_exprs, arg_idx)
+        if js_expr is None:
+            return None, False
+        # Count consumed args
+        consumed = spec.count('*') + 1
+        arg_idx += consumed
+        parts.append(('EXPR', js_expr))
+        pos = m.end()
+
+    if arg_idx != len(arg_exprs):
+        # Arg count mismatch — fall back
+        return None, False
+
+    # Optimize: single %s with one arg → plain value
+    expr_parts = [p for p in parts if isinstance(p, tuple)]
+    literal_parts = [p for p in parts if isinstance(p, str)]
+    if (len(expr_parts) == 1 and len(arg_exprs) == 1
+            and all(p == '' for p in literal_parts)):
+        # Just "%s" or "%d" with no surrounding text
+        return expr_parts[0][1], True
+
+    # Optimize: no format specifiers → plain string literal
+    if not expr_parts:
+        combined = ''.join(literal_parts)
+        escaped = combined.replace('\\', '\\\\').replace('"', '\\"')
+        return f'"{escaped}"', False
+
+    # Build template literal
+    tl_parts = []
+    for p in parts:
+        if isinstance(p, str):
+            # Escape backticks and ${} in literal text
+            escaped = p.replace('\\', '\\\\').replace('`', '\\`').replace('${', '\\${')
+            tl_parts.append(escaped)
+        else:
+            tl_parts.append('${' + p[1] + '}')
+    return '`' + ''.join(tl_parts) + '`', False
+
+
+def _format_spec_to_js(spec, arg_exprs, arg_idx):
+    """Convert a single C format specifier to a JS expression, or None."""
+    # Parse: %[flags][width][.precision][length]type
+    m = re.match(r'^%([-+ #0]*)([\d*]*)(?:\.([\d*]*))?([hlLzjt]*)([cCdiouxXfFeEgGaAnps])$', spec)
+    if not m:
+        return None
+    flags, width, precision, _length, conv = m.groups()
+
+    # Handle * width/precision — not supported for static emit
+    if width == '*' or precision == '*':
+        # Special case: %.*s (precision from arg)
+        if precision == '*' and conv == 's' and width == '':
+            if arg_idx + 1 >= len(arg_exprs):
+                return None
+            prec_arg = arg_exprs[arg_idx]
+            str_arg = arg_exprs[arg_idx + 1]
+            # We'll consume 2 args; caller handles via spec.count('*')
+            # But we need to return expr for the string arg using both
+            return f'String({str_arg}).slice(0, {prec_arg})'
+        return None
+
+    if arg_idx >= len(arg_exprs):
+        return None
+    arg = arg_exprs[arg_idx]
+
+    w = int(width) if width else 0
+    if w <= 1 and not ('0' in flags):
+        w = 0  # padStart(1)/padEnd(1) are no-ops; skip unless zero-padding
+    left_align = '-' in flags
+    zero_pad = '0' in flags
+    plus_sign = '+' in flags
+
+    if conv in ('s',):
+        if w and left_align:
+            return f'String({arg}).padEnd({w})'
+        elif w:
+            return f'String({arg}).padStart({w})'
+        return arg
+
+    if conv in ('d', 'i'):
+        base_expr = arg
+        if plus_sign:
+            base_expr = f'(({arg}) > 0 ? "+" : "") + String({arg})'
+            if w:
+                pad_char = "'0'" if zero_pad else None
+                pad_args = f'{w}' if not pad_char else f'{w}, {pad_char}'
+                if left_align:
+                    return f'({base_expr}).padEnd({pad_args})'
+                return f'({base_expr}).padStart({pad_args})'
+            return base_expr
+        if w and zero_pad:
+            return f'String({arg}).padStart({w}, "0")'
+        elif w and left_align:
+            return f'String({arg}).padEnd({w})'
+        elif w:
+            return f'String({arg}).padStart({w})'
+        return arg
+
+    if conv in ('u',):
+        if w and zero_pad:
+            return f'String({arg}).padStart({w}, "0")'
+        elif w and left_align:
+            return f'String({arg}).padEnd({w})'
+        elif w:
+            return f'String({arg}).padStart({w})'
+        return arg
+
+    if conv in ('x', 'X'):
+        to_str = f'({arg}).toString(16)'
+        if conv == 'X':
+            to_str += '.toUpperCase()'
+        if w and zero_pad:
+            return f'{to_str}.padStart({w}, "0")'
+        elif w and left_align:
+            return f'{to_str}.padEnd({w})'
+        elif w:
+            return f'{to_str}.padStart({w})'
+        return to_str
+
+    if conv == 'c':
+        return arg
+
+    if conv in ('o',):
+        to_str = f'({arg}).toString(8)'
+        if w and zero_pad:
+            return f'{to_str}.padStart({w}, "0")'
+        elif w:
+            return f'{to_str}.padStart({w})'
+        return to_str
+
+    if conv in ('f', 'F', 'e', 'E', 'g', 'G'):
+        if precision is not None:
+            p = int(precision) if precision else 0
+            if conv in ('f', 'F'):
+                return f'({arg}).toFixed({p})'
+            elif conv in ('e', 'E'):
+                return f'({arg}).toExponential({p})'
+        return arg
+
+    # Unsupported specifier
+    return None
+
+
 def _emit_c_format_expr(fmt_expr, arg_exprs):
     args_src = ", ".join(arg_exprs) if arg_exprs else ""
     return (
@@ -959,7 +1141,11 @@ def _lower_known_helper_stmt(stmt, rewrite_rules):
             return None, set()
         dst, fmt = lowered_args[0], lowered_args[1]
         fmt_args = lowered_args[2:]
-        formatted = _emit_c_format_expr(fmt, fmt_args)
+        # Try static template literal first
+        fmt_str = _extract_string_literal(fmt)
+        static_expr, is_single = (None, False)
+        if fmt_str is not None:
+            static_expr, is_single = _try_static_format_expr(fmt_str, fmt_args)
         eos_m = re.match(r"^eos\s*\(\s*(.+)\s*\)$", raw_args[0].strip())
         if eos_m:
             target_raw = eos_m.group(1).strip()
@@ -967,16 +1153,25 @@ def _lower_known_helper_stmt(stmt, rewrite_rules):
             if target is None:
                 return None, set()
             required.update(req2)
+            if static_expr is not None:
+                return f"{target} += {static_expr}", required
+            formatted = _emit_c_format_expr(fmt, fmt_args)
             return f"{{ const __fmt = {formatted}; {target} = ({target} ?? '') + __fmt; }}", required
+        if static_expr is not None:
+            return f"{dst} = {static_expr}", required
+        formatted = _emit_c_format_expr(fmt, fmt_args)
         return f"{{ const __fmt = {formatted}; {dst} = __fmt; }}", required
 
     if name in {"Snprintf", "snprintf"}:
         if len(lowered_args) < 3:
             return None, set()
-        dst, maxlen, fmt = lowered_args[0], lowered_args[1], lowered_args[2]
+        dst, _maxlen, fmt = lowered_args[0], lowered_args[1], lowered_args[2]
         fmt_args = lowered_args[3:]
-        formatted = _emit_c_format_expr(fmt, fmt_args)
-        bounded = f"({formatted}).slice(0, Math.max(0, Number({maxlen}) - 1))"
+        # Try static template literal first (ignore size arg)
+        fmt_str = _extract_string_literal(fmt)
+        static_expr, is_single = (None, False)
+        if fmt_str is not None:
+            static_expr, is_single = _try_static_format_expr(fmt_str, fmt_args)
         eos_m = re.match(r"^eos\s*\(\s*(.+)\s*\)$", raw_args[0].strip())
         if eos_m:
             target_raw = eos_m.group(1).strip()
@@ -984,11 +1179,19 @@ def _lower_known_helper_stmt(stmt, rewrite_rules):
             if target is None:
                 return None, set()
             required.update(req2)
+            if static_expr is not None:
+                return f"{target} += {static_expr}", required
+            formatted = _emit_c_format_expr(fmt, fmt_args)
+            bounded = f"({formatted}).slice(0, Math.max(0, Number({_maxlen}) - 1))"
             return f"{{ const __fmt = {bounded}; {target} = ({target} ?? '') + __fmt; }}", required
+        if static_expr is not None:
+            return f"{dst} = {static_expr}", required
+        formatted = _emit_c_format_expr(fmt, fmt_args)
+        bounded = f"({formatted}).slice(0, Math.max(0, Number({_maxlen}) - 1))"
         return f"{{ const __fmt = {bounded}; {dst} = __fmt; }}", required
 
     if name in {"Strcpy", "strcpy"} and len(lowered_args) >= 2:
-        return f"{lowered_args[0]} = ({lowered_args[1]} ?? '')", required
+        return f"{lowered_args[0]} = {lowered_args[1]}", required
     if name in {"Strcat", "strcat"} and len(lowered_args) >= 2:
         dst = lowered_args[0]
         return f"{dst} = ({dst} ?? '') + ({lowered_args[1]} ?? '')", required
