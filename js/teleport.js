@@ -95,7 +95,7 @@ export function goodpos(x, y, mtmp, gpflags, map, player) {
             return false;
 
         const mdat = mtmp.data || mtmp.type || {};
-        const f1 = mdat.flags1 || 0;
+        const f1 = mdat.mflags1 || 0;
 
         if (is_pool(x, y, map) && !ignorewater) {
             return !!(f1 & (M1_SWIM | M1_AMPHIBIOUS | M1_FLY));
@@ -133,7 +133,7 @@ export function goodpos(x, y, mtmp, gpflags, map, player) {
         if (hasBoulder) {
             if (!mtmp) return false;
             const mdat = mtmp.data || mtmp.type || {};
-            if (!((mdat.flags2 || 0) & M2_ROCKTHROW)) return false;
+            if (!((mdat.mflags2 || 0) & M2_ROCKTHROW)) return false;
         }
     }
 
@@ -406,12 +406,12 @@ export function rloc(mtmp, rlocflags, map, player, display, fov) {
     // Exhaustive search with shuffled order
     const cc_flags = CC_INCL_CENTER | CC_UNSHUFFLED | CC_SKIP_MONS;
     const mdat = mtmp.data || mtmp.type || {};
-    if (!((mdat.flags1 || 0) & M1_WALLWALK))
+    if (!((mdat.mflags1 || 0) & M1_WALLWALK))
         // Note: CC_SKIP_INACCS is OR'd in below
         ;
     const candy = collect_coords(
         Math.floor(COLNO / 2), Math.floor(ROWNO / 2), 0,
-        cc_flags | (((mdat.flags1 || 0) & M1_WALLWALK) ? 0 : CC_SKIP_INACCS),
+        cc_flags | (((mdat.mflags1 || 0) & M1_WALLWALK) ? 0 : CC_SKIP_INACCS),
         map
     );
     let backupX = 0, backupY = 0;

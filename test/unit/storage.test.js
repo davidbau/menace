@@ -136,7 +136,7 @@ describe('Monster save/restore (saveMon/restMon)', () => {
         assert.equal(restored.mhpmax, mon.mhpmax);
         assert.equal(restored.mlevel, mon.mlevel);
         assert.equal(restored.name, mon.name);
-        assert.equal(restored.speed, mon.speed);
+        assert.equal(restored.data?.mmove, mon.data?.mmove);
         assert.equal(restored.peaceful, mon.peaceful);
         assert.equal(restored.tame, mon.tame);
         assert.equal(restored.dead, mon.dead);

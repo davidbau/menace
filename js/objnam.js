@@ -771,7 +771,7 @@ export function corpse_xname(otmp, adjective, { singular: ignorequan = false, no
     } else if (omndx == null || omndx < 0 || !mons[omndx]) {
         mnam = 'thing';
     } else {
-        mnam = mons[omndx].name;
+        mnam = mons[omndx].mname;
         if (the_unique_pm(mons[omndx]) || type_is_pname(mons[omndx])) {
             mnam = s_suffix(mnam);
             possessive = true;

@@ -111,6 +111,7 @@ export function restObjChn(list) {
 export function saveMon(mon) {
     const data = { ...mon };
     // Remove derived references -- rebuilt from mndx on restore
+    delete data.data;
     delete data.type;
     delete data.attacks;
     delete data.displayChar;
@@ -131,11 +132,12 @@ export function saveMonChn(list) {
 export function restMon(data) {
     const mon = { ...data };
     const ptr = mons[mon.mndx];
+    mon.data = ptr;
     mon.type = ptr;
     mon.attacks = ptr.attacks;
     const symEntry = def_monsyms[ptr.mlet];
     mon.displayChar = symEntry ? symEntry.sym : '?';
-    mon.displayColor = ptr.color;
+    mon.displayColor = ptr.mcolor;
     // Restore monster inventory
     if (mon.minvent && mon.minvent.length > 0) {
         mon.minvent = restObjChn(mon.minvent);

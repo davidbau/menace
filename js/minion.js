@@ -87,7 +87,7 @@ function is_lminion(mon) {
         return mon.emin.min_align === A_LAWFUL;
     }
     // Fallback: check base monster alignment
-    return (ptr.align || 0) > 0;
+    return (ptr.maligntyp || 0) > 0;
 }
 
 // ============================================================================
@@ -104,7 +104,7 @@ export function dprince(atyp) {
         const pm = rn1(PM_DEMOGORGON + 1 - PM_ORCUS, PM_ORCUS);
         // C: !(mvitals[pm].mvflags & G_GONE) — genocide not tracked yet
         // C: (atyp == A_NONE || sgn(mons[pm].maligntyp) == sgn(atyp))
-        if (atyp === A_NONE || Math.sign(mons[pm].align) === Math.sign(atyp))
+        if (atyp === A_NONE || Math.sign(mons[pm].maligntyp) === Math.sign(atyp))
             return pm;
     }
     return dlord(atyp); // approximate
@@ -120,7 +120,7 @@ export function dlord(atyp) {
     for (let tryct = tryct_max; tryct > 0; --tryct) {
         // C: pm = rn1(PM_YEENOGHU + 1 - PM_JUIBLEX, PM_JUIBLEX)
         const pm = rn1(PM_YEENOGHU + 1 - PM_JUIBLEX, PM_JUIBLEX);
-        if (atyp === A_NONE || Math.sign(mons[pm].align) === Math.sign(atyp))
+        if (atyp === A_NONE || Math.sign(mons[pm].maligntyp) === Math.sign(atyp))
             return pm;
     }
     return ndemon(atyp); // approximate
@@ -187,12 +187,12 @@ export async function msummon(mon, map, player, display) {
         } else if (mon.isminion && mon.emin) {
             atyp = mon.emin.min_align;
         } else {
-            atyp = (ptr.align === A_NONE) ? A_NONE : Math.sign(ptr.align);
+            atyp = (ptr.maligntyp === A_NONE) ? A_NONE : Math.sign(ptr.maligntyp);
         }
     } else {
         // Null summoner = Wizard of Yendor
         ptr = mons[PM_WIZARD_OF_YENDOR];
-        atyp = (ptr.align === A_NONE) ? A_NONE : Math.sign(ptr.align);
+        atyp = (ptr.maligntyp === A_NONE) ? A_NONE : Math.sign(ptr.maligntyp);
     }
 
     if (is_dprince(ptr) || (mon === null || (mon && mon.mndx === PM_WIZARD_OF_YENDOR))) {
@@ -383,7 +383,7 @@ export async function demon_talk(mtmp, map, player, display) {
     const Athome = false; // TODO: Inhell check not available
 
     let demand = Math.floor((cash * (rnd(80) + 20 * (Athome ? 1 : 0)))
-        / (100 * (1 + (Math.sign(player?.alignment || 0) === Math.sign(ptr.align || 0) ? 1 : 0))));
+        / (100 * (1 + (Math.sign(player?.alignment || 0) === Math.sign(ptr.maligntyp || 0) ? 1 : 0))));
 
     if (!demand) {
         mtmp.peaceful = false;

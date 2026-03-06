@@ -1287,7 +1287,7 @@ function medusa_fixup(map) {
         if (obj.corpsenm < 0 || obj.corpsenm >= mons.length) return false;
         const m = mons[obj.corpsenm];
         if (!m) return false;
-        return !!(m.mr1 & MR_STONE) || poly_when_stoned(m);
+        return !!(m.mresists & MR_STONE) || poly_when_stoned(m);
     };
     const mk_tt_statue = (x, y) => {
         // C ref: mk_tt_object(STATUE) uses mksobj_at(..., init=FALSE).
@@ -3717,7 +3717,7 @@ function monsterNameToIndex(name) {
     const lowerName = name.toLowerCase();
 
     // Search mons array for matching name
-    const index = mons.findIndex(m => m.name && m.name.toLowerCase() === lowerName);
+    const index = mons.findIndex(m => m.mname && m.mname.toLowerCase() === lowerName);
     return index >= 0 ? index : -1;
 }
 
@@ -3757,10 +3757,10 @@ function resolveNamedMonsterLikeC(monsterId) {
     }
 
     const ptr = mons[mndx];
-    if (ptr.flags2 & M2_FEMALE) {
+    if (ptr.mflags2 & M2_FEMALE) {
         return { mndx, female: true };
     }
-    if (ptr.flags2 & M2_MALE) {
+    if (ptr.mflags2 & M2_MALE) {
         return { mndx, female: false };
     }
     return { mndx, female: (namedGender !== undefined) ? namedGender : !!rn2(2) };
@@ -4267,7 +4267,7 @@ export async function object(name_or_opts, x, y) {
                 if (was) {
                     const wasMndx = Number.isInteger(was.mndx) ? was.mndx : wastyp;
                     const wasData = mons[wasMndx];
-                    if (!(wasData?.mr1 & MR_STONE) && !poly_when_stoned(wasData)) {
+                    if (!(wasData?.mresists & MR_STONE) && !poly_when_stoned(wasData)) {
                         break;
                     }
                     mongone(was, levelState.map, null);

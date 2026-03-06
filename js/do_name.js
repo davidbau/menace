@@ -49,7 +49,7 @@ export function christen_monst(mtmp, name) {
 // C uses has_mgivenname(mtmp) macro and MGIVENNAME(mtmp) macro.
 // In our JS port, the given name is either in mon.mgivenname (if
 // christen_monst was called) or detected by hasGivenName() in mondata.js
-// which compares mon.name to mon.type.name.
+// which compares mon.name to mon.type.mname.
 // ========================================================================
 function has_mgivenname(mon) {
     if (mon?.mgivenname) return true;
@@ -80,12 +80,12 @@ export function Mgender(mtmp) {
 // ========================================================================
 // pmname — cf. do_name.c:1302
 // Returns the creature type name. C has pmnames[] array per gender;
-// JS monsters just have a single .name field.
+// JS monster data uses a single C-style mname field.
 // ========================================================================
 // Autotranslated from do_name.c:1302
 export function pmname(pm, mgender) {
-  // JS monsters have a single .name field rather than C's pmnames[] array per gender
-  return pm?.name || '';
+  // JS monsters have a single mname field rather than C's pmnames[] array per gender.
+  return pm?.mname || '';
 }
 
 // ========================================================================
@@ -94,7 +94,7 @@ export function pmname(pm, mgender) {
 // ========================================================================
 // Autotranslated from do_name.c:1312
 export function mon_pmname(mon) {
-  return pmname(mon.type || mon.data, Mgender(mon));
+  return pmname(mon.data || mon.type, Mgender(mon));
 }
 
 // ========================================================================

@@ -100,9 +100,9 @@ export async function new_were(mon, newMndx, ctx = null) {
     const data = mons[newMndx];
     if (!data) return;
     mon.mndx = newMndx;
+    mon.data = data;
     mon.type = data;
-    mon.name = data.name;
-    mon.speed = data.speed;
+    mon.name = data.mname;
     mon.attacks = data.attacks;
 
     // Transformation wakes helpless monsters

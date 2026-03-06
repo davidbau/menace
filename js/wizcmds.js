@@ -82,9 +82,9 @@ export async function wizGenesis(game) {
         return { moved: false, tookTime: false };
     }
     const name = input.trim().toLowerCase();
-    let mndx = mons.findIndex(m => m.name.toLowerCase() === name);
+    let mndx = mons.findIndex(m => m.mname.toLowerCase() === name);
     if (mndx < 0) {
-        mndx = mons.findIndex(m => m.name.toLowerCase().includes(name));
+        mndx = mons.findIndex(m => m.mname.toLowerCase().includes(name));
     }
     if (mndx < 0) {
         await display.putstr_message(`Unknown monster: "${input.trim()}".`);
@@ -104,7 +104,7 @@ export async function wizGenesis(game) {
             const mon = makemon(mndx, mx, my, 0, player.dungeonLevel, map);
             if (mon) {
                 mon.sleeping = false;
-                await display.putstr_message(`A ${mons[mndx].name} appears!`);
+                await display.putstr_message(`A ${mons[mndx].mname} appears!`);
                 placed = true;
             }
         }

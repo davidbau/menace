@@ -96,9 +96,9 @@ export async function explode(x, y, type, dam, olet, expltype, map, player) {
             let mdam = dam;
             const mdat = mon.data || (mon.mndx != null ? mons[mon.mndx] : null);
             if (mdat) {
-              if (adtyp === AD_FIRE && (mdat.mr1 & MR_FIRE)) mdam = 0;
-              else if (adtyp === AD_COLD && (mdat.mr1 & MR_COLD)) mdam = 0;
-              else if (adtyp === AD_ELEC && (mdat.mr1 & MR_ELEC)) mdam = 0;
+              if (adtyp === AD_FIRE && (mdat.mresists & MR_FIRE)) mdam = 0;
+              else if (adtyp === AD_COLD && (mdat.mresists & MR_COLD)) mdam = 0;
+              else if (adtyp === AD_ELEC && (mdat.mresists & MR_ELEC)) mdam = 0;
             }
             if (mdam > 0 && resist(mon, olet >= 0 ? olet : WAND_CLASS)) {
               mdam = Math.floor((mdam + 1) / 2);

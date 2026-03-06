@@ -36,7 +36,7 @@ async function setupTestGame() {
 
 // Inline mcalcmove for testing (mirrors nethack.js)
 function mcalcmove(mon) {
-    let mmove = mon.speed;
+    let mmove = mon.data?.mmove ?? mon.type?.mmove ?? NORMAL_SPEED;
     const mmoveAdj = mmove % NORMAL_SPEED;
     mmove -= mmoveAdj;
     if (rn2(NORMAL_SPEED) < mmoveAdj) {

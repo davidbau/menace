@@ -46,7 +46,7 @@ describe('Monster creation (C-faithful)', () => {
         assert.equal(mon.mx, pos.x);
         assert.equal(mon.my, pos.y);
         assert.ok(mon.mhp > 0, 'Monster should have HP');
-        assert.ok(mon.speed > 0, 'Monster should have speed');
+        assert.ok((mon.data?.mmove || 0) > 0, 'Monster should have mmove on mon.data');
         assert.equal(mon.name, 'grid bug');
         assert.equal(typeof mon.displayChar, 'string');
         assert.ok(!mon.dead, 'New monster should not be dead');
@@ -181,7 +181,7 @@ describe('Level monster population (C-faithful)', () => {
             assert.ok(mon.mndx >= 0 && mon.mndx < mons.length,
                 `${mon.name} mndx ${mon.mndx} should be valid`);
             assert.ok(mon.mhp > 0, `${mon.name} should have positive HP`);
-            assert.ok(mon.speed >= 0, `${mon.name} should have non-negative speed`);
+            assert.ok((mon.data?.mmove || 0) >= 0, `${mon.name} should have non-negative mmove`);
             assert.ok(Array.isArray(mon.attacks), `${mon.name} should have attacks array`);
             assert.ok(Array.isArray(mon.mtrack), `${mon.name} should have mtrack array`);
         }

@@ -181,7 +181,7 @@ export async function temple_priest_sound(mtmp, hallu, game) {
             msgIdx = rn2(msgCount - 1 + hallu);
         } while (++trycount < 50
                  && ((msgIdx === 0 || msgIdx === 1 || msgIdx === 3)
-                     && mtmp.type.sound <= MS_ANIMAL));
+                     && mtmp.type.msound <= MS_ANIMAL));
         await game.display.putstr_message(`You hear ${temple_msg[msgIdx]}`);
         return true;
     }
@@ -394,7 +394,7 @@ export async function dosounds(game) {
 // cf. sounds.c:350 — growl_sound(mtmp): return growl verb string
 export function growl_sound(mtmp) {
     const ptr = mtmp.type || mtmp;
-    switch (ptr.sound) {
+    switch (ptr.msound) {
     case MS_MEW:
     case MS_HISS:
         return 'hiss';
@@ -433,7 +433,7 @@ export function growl_sound(mtmp) {
 // cf. sounds.c:401 — growl(mtmp): seriously abused pet growls at hero
 export async function growl(mtmp, game) {
     if ((mtmp.sleeping || mtmp.paralyzed || mtmp.stunned)
-        || mtmp.type.sound === MS_SILENT)
+        || mtmp.type.msound === MS_SILENT)
         return;
 
     let verb;
@@ -457,14 +457,14 @@ export async function growl(mtmp, game) {
 
 // cf. sounds.c:426 — yelp(mtmp): mistreated pet yelps
 export async function yelp(mtmp, game) {
-    if ((mtmp.sleeping || mtmp.paralyzed) || !mtmp.type.sound)
+    if ((mtmp.sleeping || mtmp.paralyzed) || !mtmp.type.msound)
         return;
 
     let verb = null;
     if ((game.u || game.player)?.hallucinating) {
         verb = h_sounds[rn2(h_sounds.length)];
     } else {
-        switch (mtmp.type.sound) {
+        switch (mtmp.type.msound) {
         case MS_MEW:
             verb = 'yowl';
             break;
@@ -500,14 +500,14 @@ export async function yelp(mtmp, game) {
 
 // cf. sounds.c:478 — whimper(mtmp): distressed pet whimpers
 export async function whimper(mtmp, game) {
-    if ((mtmp.sleeping || mtmp.paralyzed) || !mtmp.type.sound)
+    if ((mtmp.sleeping || mtmp.paralyzed) || !mtmp.type.msound)
         return;
 
     let verb = null;
     if ((game.u || game.player)?.hallucinating) {
         verb = h_sounds[rn2(h_sounds.length)];
     } else {
-        switch (mtmp.type.sound) {
+        switch (mtmp.type.msound) {
         case MS_MEW:
         case MS_GROWL:
             verb = 'whimper';
@@ -538,9 +538,9 @@ export async function beg(mtmp, game) {
         || !(carnivorous(mtmp.type) || herbivorous(mtmp.type)))
         return;
 
-    if (!is_silent(mtmp.type) && mtmp.type.sound <= MS_ANIMAL) {
+    if (!is_silent(mtmp.type) && mtmp.type.msound <= MS_ANIMAL) {
         await domonnoise(mtmp, game);
-    } else if (mtmp.type.sound >= MS_HUMANOID) {
+    } else if (mtmp.type.msound >= MS_HUMANOID) {
         await game.display.putstr_message(`"I'm hungry."`);
     } else {
         const name = x_monnam(mtmp);
@@ -557,7 +557,7 @@ const Exclam = ['Gasp!', 'Uh-oh.', 'Oh my!', 'What?', 'Why?'];
 
 export function maybe_gasp(mon) {
     const ptr = mon.type;
-    let msound = ptr.sound;
+    let msound = ptr.msound;
     let dogasp = false;
 
     // Guardian/priest adjustments
@@ -612,7 +612,7 @@ export function maybe_gasp(mon) {
 // cf. sounds.c:616 — cry_sound(mtmp): sound verb for a hatching egg
 export function cry_sound(mtmp) {
     const ptr = mtmp.type || mtmp;
-    switch (ptr.sound) {
+    switch (ptr.msound) {
     default:
     case MS_SILENT:
         return (ptr.mlet === S_EEL) ? 'gurgle' : 'chitter';
@@ -656,7 +656,7 @@ export function mon_is_gecko(mon) {
 // RNG in the correct order for all cases that use it.
 export async function domonnoise(mtmp, game) {
     const ptr = mtmp.type;
-    let msound = ptr.sound;
+    let msound = ptr.msound;
     let pline_msg = null;
     let verbl_msg = null;
 
@@ -1135,7 +1135,7 @@ export async function dotalk(game) {
     // cf. sounds.c:1287 — prompt for direction
     // Lazy import to avoid circular dependency.
     const { nhgetch } = await import('./input.js');
-    const { DIRECTION_KEYS } = await import('./dothrow.js');
+    const { DIRECTION_KEYS } = await import('./const.js');
     await display.putstr_message('Talk to whom? (in what direction)');
     const ch = await nhgetch();
     const c = String.fromCharCode(ch);

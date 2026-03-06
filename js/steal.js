@@ -237,7 +237,7 @@ export async function steal(mon, player, display, map = null) {
     if (eligible.length === 0) {
         if (display) {
             await display.putstr_message(
-                `${mon.type?.name || 'Something'} tries to rob you, but there is nothing to steal!`);
+                `${mon.data?.mname || mon.type?.mname || 'Something'} tries to rob you, but there is nothing to steal!`);
         }
         return 1; // let her flee
     }

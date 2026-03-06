@@ -152,12 +152,12 @@ function fromDefsym(idx) {
 function fromMonsterIndex(mndx) {
     if (!Number.isInteger(mndx) || mndx < 0 || mndx >= mons.length) return null;
     const mon = mons[mndx] || {};
-    const mlet = Number.isInteger(mon.symbol) ? mon.symbol : 0;
+    const mlet = Number.isInteger(mon.mlet) ? mon.mlet : 0;
     const sym = def_monsyms[mlet];
     if (!sym || typeof sym.sym !== 'string' || sym.sym.length === 0) return null;
     return {
         ch: sym.sym[0],
-        color: Number.isInteger(mon.color) ? mon.color : CLR_WHITE,
+        color: Number.isInteger(mon.mcolor) ? mon.mcolor : CLR_WHITE,
         attr: 0,
     };
 }

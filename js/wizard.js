@@ -186,7 +186,7 @@ function is_lminion(mon) {
     const ptr = mptr(mon);
     if (ptr.mlet !== S_ANGEL) return false;
     if (mon.isminion && mon.emin) return (mon.emin.min_align || 0) > 0;
-    return (ptr.align || 0) > 0;
+    return (ptr.maligntyp || 0) > 0;
 }
 
 // ============================================================================
@@ -195,7 +195,7 @@ function is_lminion(mon) {
 // ============================================================================
 
 function M_Wants(mtmp, mask) {
-    return !!(mptr(mtmp).flags3 & mask);
+    return !!(mptr(mtmp).mflags3 & mask);
 }
 
 // ============================================================================
@@ -688,7 +688,7 @@ export function pick_nasty(difcap) {
         alt = big_to_little(res);
     }
     if (alt !== res /* && not genocided */) {
-        const mnam = mons[alt].name || '';
+        const mnam = mons[alt].mname || '';
         // only non-juveniles can become alternate choice
         if (!mnam.startsWith('baby ')
             && !mnam.endsWith(' hatchling')

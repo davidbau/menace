@@ -1271,11 +1271,11 @@ export async function list_vanquished(defquery, ask, game) {
 
     for (const i of mindx) {
         const nkilled = (mvitals[i] && mvitals[i].died) || 0;
-        const mname = (mons[i] && mons[i].name) || `monster #${i}`;
+        const mname = (mons[i] && mons[i].mname) || `monster #${i}`;
 
         let buf;
         if (UniqCritterIndx(i)) {
-            const prefix = (mons[i].flags2 && (mons[i].flags2 & M2_PNAME)) ? '' : 'the ';
+            const prefix = (mons[i].mflags2 && (mons[i].mflags2 & M2_PNAME)) ? '' : 'the ';
             buf = `${prefix}${mname}`;
             if (nkilled > 1) {
                 switch (nkilled) {
@@ -1327,8 +1327,8 @@ function vanqsort_cmp(indx1, indx2, sortmode, mvitals) {
     }
     // falls through
     case VANQ_ALPHA_MIX: {
-        const name1 = (mons[indx1] && mons[indx1].name) || '';
-        const name2 = (mons[indx2] && mons[indx2].name) || '';
+        const name1 = (mons[indx1] && mons[indx1].mname) || '';
+        const name2 = (mons[indx2] && mons[indx2].mname) || '';
         res = name1.toLowerCase().localeCompare(name2.toLowerCase());
         break;
     }
@@ -1466,7 +1466,7 @@ export async function list_genocided(defquery, ask, game) {
     lines.push('');
 
     for (const mndx of mindx) {
-        const mname = (mons[mndx] && mons[mndx].name) || `monster #${mndx}`;
+        const mname = (mons[mndx] && mons[mndx].mname) || `monster #${mndx}`;
         let buf = ` ${makeplural(mname)}`;
         if (mvitals[mndx] && (mvitals[mndx].mvflags & G_GONE) === G_EXTINCT)
             buf += ' (extinct)';
@@ -1524,7 +1524,7 @@ export async function doborn(game) {
                        : (mvflags & G_GONE) === G_GENOD ? 'G'
                        : (mvflags & G_GONE) !== 0 ? 'X'
                        : ' ';
-            const mname = (mons[i] && mons[i].name) || `monster #${i}`;
+            const mname = (mons[i] && mons[i].mname) || `monster #${i}`;
             lines.push(`${String(died).padStart(4)} ${String(born).padStart(4)} ${flag} ${mname}`);
             nborn += born;
             ndied += died;

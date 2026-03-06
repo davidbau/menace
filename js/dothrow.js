@@ -1136,9 +1136,9 @@ export function omon_adj(mon, obj, mon_notices) {
     const data = mon.data || (mons ? mons[mon.mndx] : null) || {};
     tmp += ((data.msize || MZ_MEDIUM) - MZ_MEDIUM);
     if (mon.msleeping) tmp += 2;
-    if (!mon.mcanmove || !(data.mmove || data.speed || 0)) {
+    if (!mon.mcanmove || !(data.mmove || 0)) {
         tmp += 4;
-        if (mon_notices && (data.mmove || data.speed || 0) && !rn2(10)) {
+        if (mon_notices && (data.mmove || 0) && !rn2(10)) {
             mon.mcanmove = 1; mon.mfrozen = 0;
         }
     }

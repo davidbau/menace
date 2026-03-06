@@ -827,7 +827,7 @@ export async function stoned_dialogue(player) {
         let msg = stoned_texts[stoned_texts.length - i];
         // C: nolimbs(ptr) — M1_NOLIMBS flag; use "extremities" instead of "limbs"
         const M1_NOLIMBS = 0x00040000;
-        if (p.data && (p.data.flags1 & M1_NOLIMBS) && msg.includes('limbs'))
+        if (p.data && (p.data.mflags1 & M1_NOLIMBS) && msg.includes('limbs'))
             msg = msg.replace('limbs', 'extremities');
         await pline(msg);
     }
@@ -1026,7 +1026,7 @@ export async function slime_dialogue(player) {
         let msg = slime_texts[slime_texts.length - i - 1];
         // C: nolimbs(ptr) — M1_NOLIMBS flag
         const M1_NOLIMBS = 0x00040000;
-        if (p.data && (p.data.flags1 & M1_NOLIMBS) && msg.includes('limbs'))
+        if (p.data && (p.data.mflags1 & M1_NOLIMBS) && msg.includes('limbs'))
             msg = msg.replace('limbs', 'extremities');
         if (msg.includes('%s')) {
             if (i === 4) {

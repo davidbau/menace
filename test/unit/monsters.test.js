@@ -21,12 +21,12 @@ describe('Monsters database', () => {
     it('all monsters have required fields', () => {
         for (let i = 0; i < monsterData.length; i++) {
             const m = monsterData[i];
-            assert.equal(typeof m.name, 'string', `Monster ${i} missing name`);
-            assert.equal(typeof m.symbol, 'number', `Monster ${i} missing symbol`);
-            assert.equal(typeof m.level, 'number', `Monster ${i} missing level`);
-            assert.equal(typeof m.speed, 'number', `Monster ${i} missing speed`);
+            assert.equal(typeof m.mname, 'string', `Monster ${i} missing mname`);
+            assert.equal(typeof m.mlet, 'number', `Monster ${i} missing mlet`);
+            assert.equal(typeof m.mlevel, 'number', `Monster ${i} missing mlevel`);
+            assert.equal(typeof m.mmove, 'number', `Monster ${i} missing mmove`);
             assert.equal(typeof m.ac, 'number', `Monster ${i} missing ac`);
-            assert.equal(typeof m.color, 'number', `Monster ${i} missing color`);
+            assert.equal(typeof m.mcolor, 'number', `Monster ${i} missing mcolor`);
             assert.ok(Array.isArray(m.attacks), `Monster ${i} missing attacks array`);
         }
     });
@@ -34,16 +34,16 @@ describe('Monsters database', () => {
     it('specific monsters match C source', () => {
         // giant ant
         const ant = monsterData[PM_GIANT_ANT];
-        assert.equal(ant.name, 'giant ant');
-        assert.equal(ant.symbol, S_ANT);
+        assert.equal(ant.mname, 'giant ant');
+        assert.equal(ant.mlet, S_ANT);
 
         // newt
         const newt = monsterData[PM_NEWT];
-        assert.equal(newt.name, 'newt');
+        assert.equal(newt.mname, 'newt');
 
         // grid bug
         const gb = monsterData[PM_GRID_BUG];
-        assert.equal(gb.name, 'grid bug');
+        assert.equal(gb.mname, 'grid bug');
     });
 
     it('monsters have valid attack types', () => {
@@ -51,39 +51,39 @@ describe('Monsters database', () => {
             for (const atk of m.attacks) {
                 // Attacks are canonical C-style {aatyp, adtyp, damn, damd}
                 // with legacy aliases kept for compatibility.
-                assert.equal(typeof atk.aatyp, 'number', `${m.name} aatyp not number`);
-                assert.equal(typeof atk.adtyp, 'number', `${m.name} adtyp not number`);
-                assert.equal(typeof atk.damn, 'number', `${m.name} damn not number`);
-                assert.equal(typeof atk.damd, 'number', `${m.name} damd not number`);
-                assert.equal(typeof atk.type, 'number', `${m.name} attack type not number`);
-                assert.equal(typeof atk.damage, 'number', `${m.name} damage type not number`);
-                assert.equal(typeof atk.dice, 'number', `${m.name} attack dice not number`);
-                assert.equal(typeof atk.sides, 'number', `${m.name} attack sides not number`);
+                assert.equal(typeof atk.aatyp, 'number', `${m.mname} aatyp not number`);
+                assert.equal(typeof atk.adtyp, 'number', `${m.mname} adtyp not number`);
+                assert.equal(typeof atk.damn, 'number', `${m.mname} damn not number`);
+                assert.equal(typeof atk.damd, 'number', `${m.mname} damd not number`);
+                assert.equal(typeof atk.type, 'number', `${m.mname} attack type not number`);
+                assert.equal(typeof atk.damage, 'number', `${m.mname} damage type not number`);
+                assert.equal(typeof atk.dice, 'number', `${m.mname} attack dice not number`);
+                assert.equal(typeof atk.sides, 'number', `${m.mname} attack sides not number`);
             }
         }
     });
 
     it('monster levels are non-negative', () => {
         for (const m of monsterData) {
-            assert.ok(m.level >= 0, `${m.name} has negative level ${m.level}`);
+            assert.ok(m.mlevel >= 0, `${m.mname} has negative level ${m.mlevel}`);
         }
     });
 
     it('monster speeds are non-negative', () => {
         for (const m of monsterData) {
-            assert.ok(m.speed >= 0, `${m.name} has negative speed ${m.speed}`);
+            assert.ok(m.mmove >= 0, `${m.mname} has negative speed ${m.mmove}`);
         }
     });
 
     it('PM constants index correctly', () => {
-        assert.equal(monsterData[PM_GIANT_ANT].name, 'giant ant');
-        assert.equal(monsterData[PM_KILLER_BEE].name, 'killer bee');
-        assert.equal(monsterData[PM_JACKAL].name, 'jackal');
-        assert.equal(monsterData[PM_GNOME].name, 'gnome');
+        assert.equal(monsterData[PM_GIANT_ANT].mname, 'giant ant');
+        assert.equal(monsterData[PM_KILLER_BEE].mname, 'killer bee');
+        assert.equal(monsterData[PM_JACKAL].mname, 'jackal');
+        assert.equal(monsterData[PM_GNOME].mname, 'gnome');
     });
 
     it('all symbol classes are used', () => {
-        const usedSymbols = new Set(monsterData.map(m => m.symbol));
+        const usedSymbols = new Set(monsterData.map(m => m.mlet));
         // Should have many different symbol classes
         assert.ok(usedSymbols.size > 20, `Expected >20 symbol classes, got ${usedSymbols.size}`);
     });

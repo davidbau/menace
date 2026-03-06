@@ -4,7 +4,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { COLNO, ROWNO, STONE, ROOM, ACCESSIBLE } from '../../js/const.js';
-import { GameMap } from '../../js/map.js';
+import { GameMap } from '../../js/game.js';
 
 describe('GameMap', () => {
     it('creates a map with correct dimensions', () => {

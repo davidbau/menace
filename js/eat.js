@@ -150,7 +150,7 @@ function foodword(otmp) {
 function obj_nutrition(otmp) {
     if (otmp.otyp === CORPSE) {
         const cnum = otmp.corpsenm;
-        if (cnum >= 0 && cnum < mons.length) return mons[cnum].nutrition || 0;
+        if (cnum >= 0 && cnum < mons.length) return mons[cnum].cnutrit || 0;
     }
     const od = objectData[otmp.otyp];
     return od ? (od.nutrition || 0) : 0;
@@ -354,14 +354,14 @@ function adj_victual_nutrition(player, nmod) {
 // cf. eat.c intrinsic_possible() — check if monster can give an intrinsic
 function intrinsic_possible(type, ptr) {
     switch (type) {
-    case FIRE_RES:    return (ptr.mr2 & MR_FIRE) !== 0;
-    case SLEEP_RES:   return (ptr.mr2 & MR_SLEEP) !== 0;
-    case COLD_RES:    return (ptr.mr2 & MR_COLD) !== 0;
-    case DISINT_RES:  return (ptr.mr2 & MR_DISINT) !== 0;
-    case SHOCK_RES:   return (ptr.mr2 & MR_ELEC) !== 0;
-    case POISON_RES:  return (ptr.mr2 & MR_POISON) !== 0;
-    case ACID_RES:    return (ptr.mr2 & MR_ACID) !== 0;
-    case STONE_RES:   return (ptr.mr2 & MR_STONE) !== 0;
+    case FIRE_RES:    return (ptr.mresists2 & MR_FIRE) !== 0;
+    case SLEEP_RES:   return (ptr.mresists2 & MR_SLEEP) !== 0;
+    case COLD_RES:    return (ptr.mresists2 & MR_COLD) !== 0;
+    case DISINT_RES:  return (ptr.mresists2 & MR_DISINT) !== 0;
+    case SHOCK_RES:   return (ptr.mresists2 & MR_ELEC) !== 0;
+    case POISON_RES:  return (ptr.mresists2 & MR_POISON) !== 0;
+    case ACID_RES:    return (ptr.mresists2 & MR_ACID) !== 0;
+    case STONE_RES:   return (ptr.mresists2 & MR_STONE) !== 0;
     case TELEPORT:    return can_teleport(ptr);
     case TELEPORT_CONTROL: return control_teleport(ptr);
     case TELEPAT:     return telepathic(ptr);
@@ -568,7 +568,7 @@ async function cprefx(player, pm) {
     case PM_LITTLE_DOG: case PM_DOG: case PM_LARGE_DOG:
     case PM_KITTEN: case PM_HOUSECAT: case PM_LARGE_CAT:
         if (!CANNIBAL_ALLOWED(player)) {
-            await You_feel(`that eating the ${mons[pm].name} was a bad idea.`);
+            await You_feel(`that eating the ${mons[pm].mname} was a bad idea.`);
         }
         break;
     case PM_LIZARD:
@@ -777,13 +777,13 @@ async function eatcorpse(player, otmp) {
     }
 
     // Delay is weight dependent
-    const reqtime = 3 + ((mons[mnum].weight || 0) >> 6);
+    const reqtime = 3 + ((mons[mnum].cwt || 0) >> 6);
 
     if (!tp && !nonrotting_corpse(mnum) && !rn2(7)) {
         if (await rottenfood(player, otmp)) {
             retcode = 1;
         }
-        if (!mons[mnum].nutrition) {
+        if (!mons[mnum].cnutrit) {
             // Corpse rots away completely
             retcode = 2;
         }
@@ -1303,7 +1303,7 @@ async function handleEat(player, display, game) {
                         }
                     }
                 }
-                const corpseWeight = (cnum >= 0 && mons[cnum]) ? (mons[cnum].weight || 0) : 0;
+                const corpseWeight = (cnum >= 0 && mons[cnum]) ? (mons[cnum].cwt || 0) : 0;
                 // cf. eat.c eatcorpse() -> reqtime from corpse weight, then
                 // rotten path consume_oeaten(..., 2) effectively quarters meal size.
                 const baseReqtime = 3 + (corpseWeight >> 6);
@@ -1449,10 +1449,10 @@ async function handleEat(player, display, game) {
         const isCorpse = eatenItem.otyp === CORPSE && cnum >= 0 && cnum < mons.length;
         // cf. eat.c eatcorpse() overrides reqtime to 3 + (corpse weight >> 6).
         const reqtime = isCorpse
-            ? (3 + ((mons[cnum].weight || 0) >> 6))
+            ? (3 + ((mons[cnum].cwt || 0) >> 6))
             : Math.max(1, (od ? od.delay : 1));
         const baseNutr = isCorpse
-            ? (mons[cnum].nutrition || (od ? od.nutrition : 200))
+            ? (mons[cnum].cnutrit || (od ? od.nutrition : 200))
             : (od ? od.nutrition : 200);
         // cf. eat.c bite() nmod calculation — nutrition distributed per bite.
         // nmod < 0 means add -nmod each turn; nmod > 0 means add 1 some turns

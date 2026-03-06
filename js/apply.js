@@ -359,7 +359,7 @@ export async function check_leash(player, x, y, map) {
                 } else {
                     await You("pull on the leash.");
                     const data = mtmp.data || mons[mtmp.mnum];
-                    if (data.sound !== MS_SILENT) rn2(3);
+                    if (data.msound !== MS_SILENT) rn2(3);
                 }
             }
         }

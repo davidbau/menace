@@ -237,13 +237,13 @@ describe('Monster System Accuracy', () => {
       // Check first few monsters
       for (let i = 0; i < Math.min(10, mons.length); i++) {
         const mon = mons[i];
-        assert(mon.name, `Monster ${i} should have name`);
-        assert(typeof mon.symbol === 'number', `Monster ${i} should have symbol (monster class)`);
-        assert(typeof mon.level === 'number', `Monster ${i} should have level`);
+        assert(mon.mname, `Monster ${i} should have mname`);
+        assert(typeof mon.mlet === 'number', `Monster ${i} should have mlet (monster class)`);
+        assert(typeof mon.mlevel === 'number', `Monster ${i} should have mlevel`);
         assert(typeof mon.mr === 'number', `Monster ${i} should have mr (magic resistance)`);
-        assert(typeof mon.flags1 === 'number', `Monster ${i} should have flags1`);
-        assert(typeof mon.flags2 === 'number', `Monster ${i} should have flags2`);
-        assert(typeof mon.flags3 === 'number', `Monster ${i} should have flags3`);
+        assert(typeof mon.mflags1 === 'number', `Monster ${i} should have mflags1`);
+        assert(typeof mon.mflags2 === 'number', `Monster ${i} should have mflags2`);
+        assert(typeof mon.mflags3 === 'number', `Monster ${i} should have mflags3`);
       }
     });
 
@@ -254,9 +254,9 @@ describe('Monster System Accuracy', () => {
       assert(mons[PM_LITTLE_DOG], 'PM_LITTLE_DOG should index valid monster');
 
       // Verify the names match expectations
-      assert(mons[PM_GIANT_ANT].name.toLowerCase().includes('ant'),
+      assert(mons[PM_GIANT_ANT].mname.toLowerCase().includes('ant'),
         'PM_GIANT_ANT should refer to an ant');
-      assert(mons[PM_LITTLE_DOG].name.toLowerCase().includes('dog'),
+      assert(mons[PM_LITTLE_DOG].mname.toLowerCase().includes('dog'),
         'PM_LITTLE_DOG should refer to a dog');
     });
   });
@@ -265,66 +265,66 @@ describe('Monster System Accuracy', () => {
     it('carnivorous() should detect carnivore flag', () => {
       // Test with a monster that should be carnivorous (dog)
       const dog = mons[PM_DOG];
-      if (dog.flags1 & M1_CARNIVORE) {
+      if (dog.mflags1 & M1_CARNIVORE) {
         assert(carnivorous(dog), 'Dog should be carnivorous');
       }
     });
 
     it('herbivorous() should detect herbivore flag', () => {
       // Test function exists and works
-      const testMon = { flags1: M1_HERBIVORE };
+      const testMon = { mflags1: M1_HERBIVORE };
       assert(herbivorous(testMon), 'Should detect herbivore flag');
     });
 
     it('is_omnivore() should require both diet flags', () => {
       // C ref: Omnivore requires BOTH carnivore and herbivore bits
-      const omnivore = { flags1: M1_OMNIVORE };
+      const omnivore = { mflags1: M1_OMNIVORE };
       assert(is_omnivore(omnivore), 'Should detect omnivore (both flags)');
 
-      const carnivore = { flags1: M1_CARNIVORE };
+      const carnivore = { mflags1: M1_CARNIVORE };
       assert(!is_omnivore(carnivore), 'Carnivore only is not omnivore');
 
-      const herbivore = { flags1: M1_HERBIVORE };
+      const herbivore = { mflags1: M1_HERBIVORE };
       assert(!is_omnivore(herbivore), 'Herbivore only is not omnivore');
     });
 
     it('can_fly() should detect fly flag', () => {
-      const flyer = { flags1: M1_FLY };
+      const flyer = { mflags1: M1_FLY };
       assert(can_fly(flyer), 'Should detect M1_FLY');
 
-      const nonFlyer = { flags1: 0 };
+      const nonFlyer = { mflags1: 0 };
       assert(!can_fly(nonFlyer), 'Should not detect fly on monster without flag');
     });
 
     it('can_swim() should detect swim flag', () => {
-      const swimmer = { flags1: M1_SWIM };
+      const swimmer = { mflags1: M1_SWIM };
       assert(can_swim(swimmer), 'Should detect M1_SWIM');
     });
 
     it('is_humanoid() should detect humanoid flag', () => {
-      const humanoid = { flags1: M1_HUMANOID };
+      const humanoid = { mflags1: M1_HUMANOID };
       assert(is_humanoid(humanoid), 'Should detect M1_HUMANOID');
     });
 
     it('nolimbs() should require exact NOLIMBS bits', () => {
       // C ref: nolimbs(ptr) checks (flags1 & M1_NOLIMBS) === M1_NOLIMBS
-      const noLimbs = { flags1: M1_NOLIMBS };
+      const noLimbs = { mflags1: M1_NOLIMBS };
       assert(nolimbs(noLimbs), 'Should detect M1_NOLIMBS');
 
       // Just NOHANDS is not enough for nolimbs()
-      const justNoHands = { flags1: M1_NOHANDS };
+      const justNoHands = { mflags1: M1_NOHANDS };
       assert(!nolimbs(justNoHands), 'M1_NOHANDS alone should not satisfy nolimbs()');
     });
 
     it('passes_walls() should detect wallwalk flag', () => {
-      const wallwalker = { flags1: M1_WALLWALK };
+      const wallwalker = { mflags1: M1_WALLWALK };
       assert(passes_walls(wallwalker), 'Should detect M1_WALLWALK');
     });
 
     it('amorphous() should detect amorphous flag', () => {
       const blob = mons[PM_ACID_BLOB];
       // Acid blobs should be amorphous
-      if (blob.flags1 & M1_AMORPHOUS) {
+      if (blob.mflags1 & M1_AMORPHOUS) {
         assert(amorphous(blob), 'Acid blob should be amorphous');
       }
     });
@@ -335,7 +335,7 @@ describe('Monster System Accuracy', () => {
       const cockatrice = mons[PM_COCKATRICE];
       // Cockatrices petrify on touch (would need to check attack data)
       assert(cockatrice, 'Cockatrice should exist in mons array');
-      assert(cockatrice.name.toLowerCase().includes('cockatrice'),
+      assert(cockatrice.mname.toLowerCase().includes('cockatrice'),
         'PM_COCKATRICE should refer to a cockatrice');
     });
 
@@ -343,7 +343,7 @@ describe('Monster System Accuracy', () => {
       const eye = mons[PM_FLOATING_EYE];
       assert(eye, 'Floating eye should exist');
       // Floating eyes have a monster symbol class
-      assert(typeof eye.symbol === 'number', 'Floating eye should have symbol class');
+      assert(typeof eye.mlet === 'number', 'Floating eye should have symbol class');
     });
 
     it('grid bug should have specific movement', () => {
@@ -363,7 +363,7 @@ describe('Monster System Accuracy', () => {
       assert(typeof M2_WERE === 'number', 'M2_WERE should be defined');
 
       const werewolf = mons[PM_WEREWOLF];
-      if (werewolf.flags2 & M2_WERE) {
+      if (werewolf.mflags2 & M2_WERE) {
         assert(true, 'Werewolf has M2_WERE flag');
       }
     });

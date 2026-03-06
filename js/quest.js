@@ -540,7 +540,7 @@ export async function quest_chat(mtmp, game) {
             setmangry(mtmp, false, (game.lev || game.map), (game.u || game.player));
         return;
     }
-    switch (mtmp.type ? mtmp.type.sound : 0) {
+    switch (mtmp.type ? mtmp.type.msound : 0) {
     case MS_NEMESIS:
         await chat_with_nemesis(game);
         break;

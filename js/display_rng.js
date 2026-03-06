@@ -16,9 +16,9 @@ function randomMonsterGlyph() {
     }
     const idx = rn2_on_display_rng(mons.length);
     const mon = mons[idx] || {};
-    const symIdx = Number.isInteger(mon.symbol) ? mon.symbol : 0;
+    const symIdx = Number.isInteger(mon.mlet) ? mon.mlet : 0;
     const sym = def_monsyms[symIdx]?.sym || '?';
-    const color = Number.isInteger(mon.color) ? mon.color : 7;
+    const color = Number.isInteger(mon.mcolor) ? mon.mcolor : 7;
     return { ch: sym, color };
 }
 
@@ -98,15 +98,15 @@ export function objectMapGlyph(obj, hallucinating = false, options = {}) {
         && Number.isInteger(obj?.corpsenm) && obj.corpsenm >= 0
         && obj.corpsenm < mons.length) {
         const mon = mons[obj.corpsenm];
-        const symIdx = Number.isInteger(mon?.symbol) ? mon.symbol : 0;
+        const symIdx = Number.isInteger(mon?.mlet) ? mon.mlet : 0;
         const ch = def_monsyms[symIdx]?.sym || '?';
         return { ch, color: Number.isInteger(obj?.displayColor) ? obj.displayColor : 7 };
     }
     const corpseColor = (obj?.otyp === CORPSE
         && Number.isInteger(obj?.corpsenm)
         && obj.corpsenm >= 0
-        && Number.isInteger(mons[obj.corpsenm]?.color))
-        ? mons[obj.corpsenm].color
+        && Number.isInteger(mons[obj.corpsenm]?.mcolor))
+        ? mons[obj.corpsenm].mcolor
         : null;
     return {
         ch: obj?.displayChar || '?',

@@ -126,156 +126,156 @@ const NATTK = 6;
 // ========================================================================
 
 // C ref: #define carnivorous(ptr)   ((ptr)->mflags1 & M1_CARNIVORE)
-export function carnivorous(ptr) { return !!(ptr.flags1 & M1_CARNIVORE); }
+export function carnivorous(ptr) { return !!(ptr.mflags1 & M1_CARNIVORE); }
 
 // C ref: #define herbivorous(ptr)   ((ptr)->mflags1 & M1_HERBIVORE)
-export function herbivorous(ptr) { return !!(ptr.flags1 & M1_HERBIVORE); }
+export function herbivorous(ptr) { return !!(ptr.mflags1 & M1_HERBIVORE); }
 
 // C ref: #define is_omnivore(ptr) (((ptr)->mflags1 & M1_OMNIVORE) == M1_OMNIVORE)
 // Note: M1_OMNIVORE = M1_CARNIVORE | M1_HERBIVORE
-export function is_omnivore(ptr) { return (ptr.flags1 & M1_OMNIVORE) === M1_OMNIVORE; }
+export function is_omnivore(ptr) { return (ptr.mflags1 & M1_OMNIVORE) === M1_OMNIVORE; }
 
 // C ref: #define is_metallivore(ptr) ((ptr)->mflags1 & M1_METALLIVORE)
-export function is_metallivore(ptr) { return !!(ptr.flags1 & M1_METALLIVORE); }
+export function is_metallivore(ptr) { return !!(ptr.mflags1 & M1_METALLIVORE); }
 
 // ========================================================================
 // Body type predicates — C ref: mondata.h
 // ========================================================================
 
 // C ref: #define is_animal(ptr)     ((ptr)->mflags1 & M1_ANIMAL)
-export function is_animal(ptr) { return !!(ptr.flags1 & M1_ANIMAL); }
+export function is_animal(ptr) { return !!(ptr.mflags1 & M1_ANIMAL); }
 
 // C ref: #define is_mindless(ptr)   ((ptr)->mflags1 & M1_MINDLESS)
-export function is_mindless(ptr) { return !!(ptr.flags1 & M1_MINDLESS); }
+export function is_mindless(ptr) { return !!(ptr.mflags1 & M1_MINDLESS); }
 
 // C ref: #define is_humanoid(ptr)   ((ptr)->mflags1 & M1_HUMANOID)
-export function is_humanoid(ptr) { return !!(ptr.flags1 & M1_HUMANOID); }
+export function is_humanoid(ptr) { return !!(ptr.mflags1 & M1_HUMANOID); }
 
 // C ref: #define slithy(ptr)        ((ptr)->mflags1 & M1_SLITHY)
-export function slithy(ptr) { return !!(ptr.flags1 & M1_SLITHY); }
+export function slithy(ptr) { return !!(ptr.mflags1 & M1_SLITHY); }
 
 // C ref: #define unsolid(ptr)       ((ptr)->mflags1 & M1_UNSOLID)
-export function unsolid(ptr) { return !!(ptr.flags1 & M1_UNSOLID); }
+export function unsolid(ptr) { return !!(ptr.mflags1 & M1_UNSOLID); }
 
 // C ref: #define nohands(ptr)       ((ptr)->mflags1 & M1_NOHANDS)
-export function nohands(ptr) { return !!(ptr.flags1 & M1_NOHANDS); }
+export function nohands(ptr) { return !!(ptr.mflags1 & M1_NOHANDS); }
 
 // C ref: #define nolimbs(ptr)       (((ptr)->mflags1 & M1_NOLIMBS) == M1_NOLIMBS)
-export function nolimbs(ptr) { return (ptr.flags1 & M1_NOLIMBS) === M1_NOLIMBS; }
+export function nolimbs(ptr) { return (ptr.mflags1 & M1_NOLIMBS) === M1_NOLIMBS; }
 
 // C ref: #define nohead(ptr)        ((ptr)->mflags1 & M1_NOHEAD)
-export function nohead(ptr) { return !!(ptr.flags1 & M1_NOHEAD); }
+export function nohead(ptr) { return !!(ptr.mflags1 & M1_NOHEAD); }
 
 // C ref: #define noeyes(ptr)        ((ptr)->mflags1 & M1_NOEYES)
-export function noeyes(ptr) { return !!(ptr.flags1 & M1_NOEYES); }
+export function noeyes(ptr) { return !!(ptr.mflags1 & M1_NOEYES); }
 
 // C ref: #define notake(ptr)        ((ptr)->mflags1 & M1_NOTAKE)
-export function notake(ptr) { return !!(ptr.flags1 & M1_NOTAKE); }
+export function notake(ptr) { return !!(ptr.mflags1 & M1_NOTAKE); }
 
 // ========================================================================
 // Movement predicates — C ref: mondata.h
 // ========================================================================
 
 // C ref: #define can_fly(ptr)       ((ptr)->mflags1 & M1_FLY)
-export function can_fly(ptr) { return !!(ptr.flags1 & M1_FLY); }
+export function can_fly(ptr) { return !!(ptr.mflags1 & M1_FLY); }
 
 // C ref: #define can_swim(ptr)      ((ptr)->mflags1 & M1_SWIM)
-export function can_swim(ptr) { return !!(ptr.flags1 & M1_SWIM); }
+export function can_swim(ptr) { return !!(ptr.mflags1 & M1_SWIM); }
 
 // C ref: #define amorphous(ptr)     ((ptr)->mflags1 & M1_AMORPHOUS)
-export function amorphous(ptr) { return !!(ptr.flags1 & M1_AMORPHOUS); }
+export function amorphous(ptr) { return !!(ptr.mflags1 & M1_AMORPHOUS); }
 
 // C ref: #define passes_walls(ptr)  ((ptr)->mflags1 & M1_WALLWALK)
-export function passes_walls(ptr) { return !!(ptr.flags1 & M1_WALLWALK); }
+export function passes_walls(ptr) { return !!(ptr.mflags1 & M1_WALLWALK); }
 
 // C ref: #define can_tunnel(ptr)    ((ptr)->mflags1 & M1_TUNNEL)
-export function can_tunnel(ptr) { return !!(ptr.flags1 & M1_TUNNEL); }
+export function can_tunnel(ptr) { return !!(ptr.mflags1 & M1_TUNNEL); }
 
 // C ref: #define needs_pick(ptr)    ((ptr)->mflags1 & M1_NEEDPICK)
-export function needs_pick(ptr) { return !!(ptr.flags1 & M1_NEEDPICK); }
+export function needs_pick(ptr) { return !!(ptr.mflags1 & M1_NEEDPICK); }
 
 // C ref: #define hides_under(ptr)   ((ptr)->mflags1 & M1_CONCEAL)
-export function hides_under(ptr) { return !!(ptr.flags1 & M1_CONCEAL); }
+export function hides_under(ptr) { return !!(ptr.mflags1 & M1_CONCEAL); }
 
 // C ref: #define is_hider(ptr)      ((ptr)->mflags1 & M1_HIDE)
-export function is_hider(ptr) { return !!(ptr.flags1 & M1_HIDE); }
+export function is_hider(ptr) { return !!(ptr.mflags1 & M1_HIDE); }
 
 // C ref: #define is_clinger(ptr)    ((ptr)->mflags1 & M1_CLING)
-export function is_clinger(ptr) { return !!(ptr.flags1 & M1_CLING); }
+export function is_clinger(ptr) { return !!(ptr.mflags1 & M1_CLING); }
 
 // C ref: #define amphibious(ptr)    ((ptr)->mflags1 & M1_AMPHIBIOUS)
-export function amphibious(ptr) { return !!(ptr.flags1 & M1_AMPHIBIOUS); }
+export function amphibious(ptr) { return !!(ptr.mflags1 & M1_AMPHIBIOUS); }
 
 // C ref: #define breathless(ptr)    ((ptr)->mflags1 & M1_BREATHLESS)
-export function breathless(ptr) { return !!(ptr.flags1 & M1_BREATHLESS); }
+export function breathless(ptr) { return !!(ptr.mflags1 & M1_BREATHLESS); }
 
 // ========================================================================
 // Defense/combat predicates — C ref: mondata.h
 // ========================================================================
 
 // C ref: #define acidic(ptr)        ((ptr)->mflags1 & M1_ACID)
-export function acidic(ptr) { return !!(ptr.flags1 & M1_ACID); }
+export function acidic(ptr) { return !!(ptr.mflags1 & M1_ACID); }
 
 // C ref: #define poisonous(ptr)     ((ptr)->mflags1 & M1_POIS)
-export function poisonous(ptr) { return !!(ptr.flags1 & M1_POIS); }
+export function poisonous(ptr) { return !!(ptr.mflags1 & M1_POIS); }
 
 // C ref: #define thick_skinned(ptr) ((ptr)->mflags1 & M1_THICK_HIDE)
-export function thick_skinned(ptr) { return !!(ptr.flags1 & M1_THICK_HIDE); }
+export function thick_skinned(ptr) { return !!(ptr.mflags1 & M1_THICK_HIDE); }
 
 // C ref: #define regenerates(ptr)   ((ptr)->mflags1 & M1_REGEN)
-export function regenerates(ptr) { return !!(ptr.flags1 & M1_REGEN); }
+export function regenerates(ptr) { return !!(ptr.mflags1 & M1_REGEN); }
 
 // C ref: #define lays_eggs(ptr)     ((ptr)->mflags1 & M1_OVIPAROUS)
-export function lays_eggs(ptr) { return !!(ptr.flags1 & M1_OVIPAROUS); }
+export function lays_eggs(ptr) { return !!(ptr.mflags1 & M1_OVIPAROUS); }
 
 // C ref: #define perceives(ptr)     ((ptr)->mflags1 & M1_SEE_INVIS)
-export function perceives(ptr) { return !!(ptr.flags1 & M1_SEE_INVIS); }
+export function perceives(ptr) { return !!(ptr.mflags1 & M1_SEE_INVIS); }
 
 // C ref: #define can_teleport(ptr)  ((ptr)->mflags1 & M1_TPORT)
-export function can_teleport(ptr) { return !!(ptr.flags1 & M1_TPORT); }
+export function can_teleport(ptr) { return !!(ptr.mflags1 & M1_TPORT); }
 
 // C ref: #define control_teleport(ptr) ((ptr)->mflags1 & M1_TPORT_CNTRL)
-export function control_teleport(ptr) { return !!(ptr.flags1 & M1_TPORT_CNTRL); }
+export function control_teleport(ptr) { return !!(ptr.mflags1 & M1_TPORT_CNTRL); }
 
 // ========================================================================
 // Race/type predicates — C ref: mondata.h (flags2)
 // ========================================================================
 
 // C ref: #define is_undead(ptr)     ((ptr)->mflags2 & M2_UNDEAD)
-export function is_undead(ptr) { return !!(ptr.flags2 & M2_UNDEAD); }
+export function is_undead(ptr) { return !!(ptr.mflags2 & M2_UNDEAD); }
 
 // C ref: #define is_were(ptr)       ((ptr)->mflags2 & M2_WERE)
-export function is_were(ptr) { return !!(ptr.flags2 & M2_WERE); }
+export function is_were(ptr) { return !!(ptr.mflags2 & M2_WERE); }
 
 // C ref: #define is_human(ptr)      ((ptr)->mflags2 & M2_HUMAN)
-export function is_human(ptr) { return !!(ptr.flags2 & M2_HUMAN); }
+export function is_human(ptr) { return !!(ptr.mflags2 & M2_HUMAN); }
 
 // C ref: #define is_elf(ptr)        ((ptr)->mflags2 & M2_ELF)
-export function is_elf(ptr) { return !!(ptr.flags2 & M2_ELF); }
+export function is_elf(ptr) { return !!(ptr.mflags2 & M2_ELF); }
 
 // C ref: #define is_dwarf(ptr)      ((ptr)->mflags2 & M2_DWARF)
-export function is_dwarf(ptr) { return !!(ptr.flags2 & M2_DWARF); }
+export function is_dwarf(ptr) { return !!(ptr.mflags2 & M2_DWARF); }
 
 // C ref: #define is_gnome(ptr)      ((ptr)->mflags2 & M2_GNOME)
-export function is_gnome(ptr) { return !!(ptr.flags2 & M2_GNOME); }
+export function is_gnome(ptr) { return !!(ptr.mflags2 & M2_GNOME); }
 
 // C ref: #define is_orc(ptr)        ((ptr)->mflags2 & M2_ORC)
-export function is_orc(ptr) { return !!(ptr.flags2 & M2_ORC); }
+export function is_orc(ptr) { return !!(ptr.mflags2 & M2_ORC); }
 
 // C ref: #define is_demon(ptr)      ((ptr)->mflags2 & M2_DEMON)
-export function is_demon(ptr) { return !!(ptr.flags2 & M2_DEMON); }
+export function is_demon(ptr) { return !!(ptr.mflags2 & M2_DEMON); }
 
 // C ref: #define is_mercenary(ptr)  ((ptr)->mflags2 & M2_MERC)
-export function is_mercenary(ptr) { return !!(ptr.flags2 & M2_MERC); }
+export function is_mercenary(ptr) { return !!(ptr.mflags2 & M2_MERC); }
 
 // C ref: #define is_minion(ptr)     ((ptr)->mflags2 & M2_MINION)
-export function is_minion(ptr) { return !!(ptr.flags2 & M2_MINION); }
+export function is_minion(ptr) { return !!(ptr.mflags2 & M2_MINION); }
 
 // C ref: #define is_giant(ptr)      ((ptr)->mflags2 & M2_GIANT)
-export function is_giant(ptr) { return !!(ptr.flags2 & M2_GIANT); }
+export function is_giant(ptr) { return !!(ptr.mflags2 & M2_GIANT); }
 
 // C ref: #define is_shapeshifter(ptr) ((ptr)->mflags2 & M2_SHAPESHIFTER)
-export function is_shapeshifter(ptr) { return !!(ptr.flags2 & M2_SHAPESHIFTER); }
+export function is_shapeshifter(ptr) { return !!(ptr.mflags2 & M2_SHAPESHIFTER); }
 
 // C ref: #define is_golem(ptr)      ((ptr)->mlet == S_GOLEM)
 export function is_golem(ptr) { return ptr.mlet === S_GOLEM; }
@@ -293,54 +293,54 @@ export function nonliving(ptr) {
 // ========================================================================
 
 // C ref: #define is_domestic(ptr)   ((ptr)->mflags2 & M2_DOMESTIC)
-export function is_domestic(ptr) { return !!(ptr.flags2 & M2_DOMESTIC); }
+export function is_domestic(ptr) { return !!(ptr.mflags2 & M2_DOMESTIC); }
 
 // C ref: #define is_wanderer(ptr)   ((ptr)->mflags2 & M2_WANDER)
-export function is_wanderer(ptr) { return !!(ptr.flags2 & M2_WANDER); }
+export function is_wanderer(ptr) { return !!(ptr.mflags2 & M2_WANDER); }
 
 // C ref: #define always_hostile(ptr) ((ptr)->mflags2 & M2_HOSTILE)
-export function always_hostile(ptr) { return !!(ptr.flags2 & M2_HOSTILE); }
+export function always_hostile(ptr) { return !!(ptr.mflags2 & M2_HOSTILE); }
 
 // C ref: #define always_peaceful(ptr) ((ptr)->mflags2 & M2_PEACEFUL)
-export function always_peaceful(ptr) { return !!(ptr.flags2 & M2_PEACEFUL); }
+export function always_peaceful(ptr) { return !!(ptr.mflags2 & M2_PEACEFUL); }
 
 // C ref: #define strongmonst(ptr)   ((ptr)->mflags2 & M2_STRONG)
-export function strongmonst(ptr) { return !!(ptr.flags2 & M2_STRONG); }
+export function strongmonst(ptr) { return !!(ptr.mflags2 & M2_STRONG); }
 
 // C ref: #define can_rockthrow(ptr) ((ptr)->mflags2 & M2_ROCKTHROW)
-export function can_rockthrow(ptr) { return !!(ptr.flags2 & M2_ROCKTHROW); }
+export function can_rockthrow(ptr) { return !!(ptr.mflags2 & M2_ROCKTHROW); }
 
 // ========================================================================
 // Item affinity predicates — C ref: mondata.h (flags2)
 // ========================================================================
 
 // C ref: #define likes_gold(ptr)    ((ptr)->mflags2 & M2_GREEDY)
-export function likes_gold(ptr) { return !!(ptr.flags2 & M2_GREEDY); }
+export function likes_gold(ptr) { return !!(ptr.mflags2 & M2_GREEDY); }
 
 // C ref: #define likes_gems(ptr)    ((ptr)->mflags2 & M2_JEWELS)
-export function likes_gems(ptr) { return !!(ptr.flags2 & M2_JEWELS); }
+export function likes_gems(ptr) { return !!(ptr.mflags2 & M2_JEWELS); }
 
 // C ref: #define likes_objs(ptr)    ((ptr)->mflags2 & M2_COLLECT || is_armed(ptr))
-export function likes_objs(ptr) { return !!(ptr.flags2 & M2_COLLECT) || is_armed(ptr); }
+export function likes_objs(ptr) { return !!(ptr.mflags2 & M2_COLLECT) || is_armed(ptr); }
 
 // C ref: #define likes_magic(ptr)   ((ptr)->mflags2 & M2_MAGIC)
-export function likes_magic(ptr) { return !!(ptr.flags2 & M2_MAGIC); }
+export function likes_magic(ptr) { return !!(ptr.mflags2 & M2_MAGIC); }
 
 // ========================================================================
 // Flags3 predicates — C ref: mondata.h
 // ========================================================================
 
 // C ref: #define is_covetous(ptr)   ((ptr)->mflags3 & M3_COVETOUS)
-export function is_covetous(ptr) { return !!(ptr.flags3 & M3_COVETOUS); }
+export function is_covetous(ptr) { return !!(ptr.mflags3 & M3_COVETOUS); }
 
 // C ref: #define infravision(ptr)   ((ptr)->mflags3 & M3_INFRAVISION)
-export function infravision(ptr) { return !!(ptr.flags3 & M3_INFRAVISION); }
+export function infravision(ptr) { return !!(ptr.mflags3 & M3_INFRAVISION); }
 
 // C ref: #define infravisible(ptr)  ((ptr)->mflags3 & M3_INFRAVISIBLE)
-export function infravisible(ptr) { return !!(ptr.flags3 & M3_INFRAVISIBLE); }
+export function infravisible(ptr) { return !!(ptr.mflags3 & M3_INFRAVISIBLE); }
 
 // C ref: #define is_displacer(ptr)  ((ptr)->mflags3 & M3_DISPLACES)
-export function is_displacer(ptr) { return !!(ptr.flags3 & M3_DISPLACES); }
+export function is_displacer(ptr) { return !!(ptr.mflags3 & M3_DISPLACES); }
 
 // ========================================================================
 // Composite predicates — C ref: mondata.h
@@ -412,10 +412,10 @@ export function monDisplayName(mon) {
 // Returns true when the monster has a user-given name (e.g. "Idefix")
 // that differs from the species name (e.g. "little dog").
 // In C, MGIVENNAME is a separate field; in JS, compare mon.name to
-// mon.type.name — if they differ, the monster was named by the player.
+// mon.type.mname — if they differ, the monster was named by the player.
 export function hasGivenName(mon) {
     if (!mon?.name) return false;
-    const speciesName = mon.type?.name;
+    const speciesName = mon.data?.mname || mon.type?.mname;
     if (!speciesName) return false;
     return mon.name !== speciesName;
 }
@@ -520,7 +520,7 @@ export function mon_learns_traps(mtmp, ttyp) {
 // C ref: mondata.c passes_bars() — can this monster pass through iron bars?
 // passes_walls || amorphous || is_whirly || verysmall || (slithy && !bigmonst)
 export function passes_bars(mdat) {
-    const f1 = mdat?.flags1 || 0;
+    const f1 = mdat?.mflags1 || 0;
     if (f1 & M1_WALLWALK) return true;  // passes_walls
     if (f1 & M1_AMORPHOUS) return true; // amorphous
     const mlet = mdat?.mlet ?? -1;
@@ -671,7 +671,7 @@ export function breakarm(ptr) {
 }
 
 // C ref: mondata.h haseyes macro — #define haseyes(ptr) (((ptr)->mflags1 & M1_NOEYES) == 0)
-export function haseyes(ptr) { return !(ptr.flags1 & M1_NOEYES); }
+export function haseyes(ptr) { return !(ptr.mflags1 & M1_NOEYES); }
 
 // C ref: mondata.h hates_light macro — #define hates_light(ptr) ((ptr) == &mons[PM_GREMLIN])
 export function hates_light(ptr) { return ptr === mons[PM_GREMLIN]; }
@@ -705,7 +705,7 @@ export function can_track(ptr, wieldsExcalibur = false) {
 // C ref: is_silent(ptr) = msound == MS_SILENT; has_head(ptr) = !(M1_NOHEAD)
 // C ref: verysmall(ptr) = msize < MZ_SMALL
 export function can_blow(ptr, isStrangled = false) {
-    if ((ptr.sound === MS_SILENT || ptr.sound === MS_BUZZ)
+    if ((ptr.msound === MS_SILENT || ptr.msound === MS_BUZZ)
         && (breathless(ptr) || ptr.msize < MZ_SMALL || nohead(ptr) || ptr.mlet === S_EEL))
         return false;
     if (isStrangled) return false;
@@ -716,8 +716,8 @@ export function can_blow(ptr, isStrangled = false) {
 // Returns true if monster can chant (cast spells verbally or read scrolls).
 // Note: C also checks Strangled for the hero; pass isStrangled=true for that case.
 export function can_chant(ptr, isStrangled = false) {
-    if (isStrangled || ptr.sound === MS_SILENT || nohead(ptr)
-        || ptr.sound === MS_BUZZ || ptr.sound === MS_BURBLE)
+    if (isStrangled || ptr.msound === MS_SILENT || nohead(ptr)
+        || ptr.msound === MS_BUZZ || ptr.msound === MS_BURBLE)
         return false;
     return true;
 }
@@ -938,7 +938,7 @@ export function levl_follower(mon, player) {
     // C: return (mtmp->data->mflags2 & M2_STALK) && (!mtmp->mflee || u.uhave.amulet)
     const playerHasAmulet = player && Array.isArray(player.inventory)
         && player.inventory.some(o => o?.otyp === AMULET_OF_YENDOR);
-    return !!(mon.type?.flags2 & M2_STALK) && (!mon.mflee || !!playerHasAmulet);
+    return !!(mon.type?.mflags2 & M2_STALK) && (!mon.mflee || !!playerHasAmulet);
 }
 
 // ========================================================================
@@ -946,8 +946,8 @@ export function levl_follower(mon, player) {
 // ========================================================================
 
 // C ref: #define pm_resistance(ptr, typ) (((ptr)->mresists & (typ)) != 0)
-// JS: C's mresists maps to ptr.mr1 in the JS monster struct.
-export function pm_resistance(ptr, typ) { return !!(ptr.mr1 & typ); }
+// JS: C's mresists maps to ptr.mresists in the JS monster struct.
+export function pm_resistance(ptr, typ) { return !!(ptr.mresists & typ); }
 
 // ========================================================================
 // Resistance check helpers — C ref: include/mondata.h resists_* macros
@@ -960,28 +960,28 @@ export function pm_resistance(ptr, typ) { return !!(ptr.mr1 & typ); }
 function _mdat(mon) { return mon?.type || mon?.data || mon; }
 
 // C ref: #define resists_fire(mon) (mon->data->mresists & MR_FIRE || defended(mon, AD_FIRE))
-export function resists_fire(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_FIRE); }
+export function resists_fire(mon) { return !!((_mdat(mon)?.mresists || 0) & MR_FIRE); }
 
 // C ref: #define resists_cold(mon)
-export function resists_cold(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_COLD); }
+export function resists_cold(mon) { return !!((_mdat(mon)?.mresists || 0) & MR_COLD); }
 
 // C ref: #define resists_sleep(mon)
-export function resists_sleep(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_SLEEP); }
+export function resists_sleep(mon) { return !!((_mdat(mon)?.mresists || 0) & MR_SLEEP); }
 
 // C ref: #define resists_disint(mon)
-export function resists_disint(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_DISINT); }
+export function resists_disint(mon) { return !!((_mdat(mon)?.mresists || 0) & MR_DISINT); }
 
 // C ref: #define resists_elec(mon)
-export function resists_elec(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_ELEC); }
+export function resists_elec(mon) { return !!((_mdat(mon)?.mresists || 0) & MR_ELEC); }
 
 // C ref: #define resists_poison(mon)
-export function resists_poison(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_POISON); }
+export function resists_poison(mon) { return !!((_mdat(mon)?.mresists || 0) & MR_POISON); }
 
 // C ref: #define resists_acid(mon)
-export function resists_acid(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_ACID); }
+export function resists_acid(mon) { return !!((_mdat(mon)?.mresists || 0) & MR_ACID); }
 
 // C ref: #define resists_ston(mon) — stoning resistance
-export function resists_ston(mon) { return !!((_mdat(mon)?.mr1 || 0) & MR_STONE); }
+export function resists_ston(mon) { return !!((_mdat(mon)?.mresists || 0) & MR_STONE); }
 
 // ========================================================================
 // Magic negation — C ref: mhitu.c:1085 magic_negation()
@@ -1036,16 +1036,16 @@ export function immune_poisongas(ptr) {
 
 // Movement aliases — C ref: mondata.h
 // C ref: #define is_flyer(ptr)   (((ptr)->mflags1 & M1_FLY) != 0L)
-export function is_flyer(ptr) { return !!(ptr.flags1 & M1_FLY); }
+export function is_flyer(ptr) { return !!(ptr.mflags1 & M1_FLY); }
 
 // C ref: #define is_swimmer(ptr) (((ptr)->mflags1 & M1_SWIM) != 0L)
-export function is_swimmer(ptr) { return !!(ptr.flags1 & M1_SWIM); }
+export function is_swimmer(ptr) { return !!(ptr.mflags1 & M1_SWIM); }
 
 // C ref: #define tunnels(ptr)    (((ptr)->mflags1 & M1_TUNNEL) != 0L)
-export function tunnels(ptr) { return !!(ptr.flags1 & M1_TUNNEL); }
+export function tunnels(ptr) { return !!(ptr.mflags1 & M1_TUNNEL); }
 
 // C ref: #define needspick(ptr)  (((ptr)->mflags1 & M1_NEEDPICK) != 0L)
-export function needspick(ptr) { return !!(ptr.flags1 & M1_NEEDPICK); }
+export function needspick(ptr) { return !!(ptr.mflags1 & M1_NEEDPICK); }
 
 // C ref: #define is_floater(ptr) ((ptr)->mlet == S_EYE || (ptr)->mlet == S_LIGHT)
 export function is_floater(ptr) { return ptr.mlet === S_EYE || ptr.mlet === S_LIGHT; }
@@ -1082,7 +1082,7 @@ export function eyecount(ptr) {
 }
 
 // C ref: #define has_head(ptr) (((ptr)->mflags1 & M1_NOHEAD) == 0L)
-export function has_head(ptr) { return !(ptr.flags1 & M1_NOHEAD); }
+export function has_head(ptr) { return !(ptr.mflags1 & M1_NOHEAD); }
 
 // C ref: #define has_horns(ptr) (num_horns(ptr) > 0)
 export function has_horns(ptr) { return num_horns(ptr) > 0; }
@@ -1100,7 +1100,7 @@ export function flaming(ptr) {
 }
 
 // C ref: #define is_silent(ptr) ((ptr)->msound == MS_SILENT)
-export function is_silent(ptr) { return ptr.sound === MS_SILENT; }
+export function is_silent(ptr) { return ptr.msound === MS_SILENT; }
 
 // C ref: #define is_vampire(ptr) ((ptr)->mlet == S_VAMPIRE)
 export function is_vampire(ptr) { return ptr.mlet === S_VAMPIRE; }
@@ -1110,25 +1110,25 @@ export function passes_rocks(ptr) { return passes_walls(ptr) && !unsolid(ptr); }
 
 // Race/gender predicates — C ref: mondata.h (flags2)
 // C ref: #define is_male(ptr)    (((ptr)->mflags2 & M2_MALE) != 0L)
-export function is_male(ptr) { return !!(ptr.flags2 & M2_MALE); }
+export function is_male(ptr) { return !!(ptr.mflags2 & M2_MALE); }
 
 // C ref: #define is_female(ptr)  (((ptr)->mflags2 & M2_FEMALE) != 0L)
-export function is_female(ptr) { return !!(ptr.flags2 & M2_FEMALE); }
+export function is_female(ptr) { return !!(ptr.mflags2 & M2_FEMALE); }
 
 // C ref: #define is_neuter(ptr)  (((ptr)->mflags2 & M2_NEUTER) != 0L)
-export function is_neuter(ptr) { return !!(ptr.flags2 & M2_NEUTER); }
+export function is_neuter(ptr) { return !!(ptr.mflags2 & M2_NEUTER); }
 
 // C ref: #define type_is_pname(ptr) (((ptr)->mflags2 & M2_PNAME) != 0L)
-export function type_is_pname(ptr) { return !!(ptr.flags2 & M2_PNAME); }
+export function type_is_pname(ptr) { return !!(ptr.mflags2 & M2_PNAME); }
 
 // C ref: #define is_lord(ptr)    (((ptr)->mflags2 & M2_LORD) != 0L)
-export function is_lord(ptr) { return !!(ptr.flags2 & M2_LORD); }
+export function is_lord(ptr) { return !!(ptr.mflags2 & M2_LORD); }
 
 // C ref: #define is_prince(ptr)  (((ptr)->mflags2 & M2_PRINCE) != 0L)
-export function is_prince(ptr) { return !!(ptr.flags2 & M2_PRINCE); }
+export function is_prince(ptr) { return !!(ptr.mflags2 & M2_PRINCE); }
 
 // C ref: #define is_ndemon(ptr) (is_demon(ptr) && (((ptr)->mflags2 & (M2_LORD|M2_PRINCE)) == 0L))
-export function is_ndemon(ptr) { return is_demon(ptr) && !(ptr.flags2 & (M2_LORD | M2_PRINCE)); }
+export function is_ndemon(ptr) { return is_demon(ptr) && !(ptr.mflags2 & (M2_LORD | M2_PRINCE)); }
 
 // C ref: #define is_dlord(ptr) (is_demon(ptr) && is_lord(ptr))
 export function is_dlord(ptr) { return is_demon(ptr) && is_lord(ptr); }
@@ -1137,13 +1137,13 @@ export function is_dlord(ptr) { return is_demon(ptr) && is_lord(ptr); }
 export function is_dprince(ptr) { return is_demon(ptr) && is_prince(ptr); }
 
 // C ref: #define polyok(ptr) (((ptr)->mflags2 & M2_NOPOLY) == 0L)
-export function polyok(ptr) { return !(ptr.flags2 & M2_NOPOLY); }
+export function polyok(ptr) { return !(ptr.mflags2 & M2_NOPOLY); }
 
 // C ref: #define extra_nasty(ptr) (((ptr)->mflags2 & M2_NASTY) != 0L)
-export function extra_nasty(ptr) { return !!(ptr.flags2 & M2_NASTY); }
+export function extra_nasty(ptr) { return !!(ptr.mflags2 & M2_NASTY); }
 
 // C ref: #define throws_rocks(ptr) (((ptr)->mflags2 & M2_ROCKTHROW) != 0L)
-export function throws_rocks(ptr) { return !!(ptr.flags2 & M2_ROCKTHROW); }
+export function throws_rocks(ptr) { return !!(ptr.mflags2 & M2_ROCKTHROW); }
 
 // Combat predicates — C ref: mondata.h
 // C ref: #define is_armed(ptr) attacktype(ptr, AT_WEAP)

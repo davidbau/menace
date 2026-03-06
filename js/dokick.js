@@ -1745,7 +1745,7 @@ export async function dokick(player, map, display, game) {
             break;
         case 1:
             if (player.ustuck && player.ustuck.data
-                && (player.ustuck.data.flags1 & 0x4000000)) { // digests
+                && (player.ustuck.data.mflags1 & 0x4000000)) { // digests
                 await pline("%s burps loudly.", Monnam(player.ustuck));
                 break;
             }
@@ -2212,7 +2212,7 @@ export function deliver_obj_to_mon(mtmp, cnt, deliverflags, game) {
 
         const monData = mtmp.type || mtmp.data;
         if (otmp.migr_species !== NON_PM
-            && ((monData.flags2 || monData.mflags2 || 0) & DELIVER_PM) === otmp.migr_species) {
+            && ((monData.mflags2 || monData.mflags2 || 0) & DELIVER_PM) === otmp.migr_species) {
             otmp.owornmask = 0;
             otmp.ox = otmp.oy = 0;
 

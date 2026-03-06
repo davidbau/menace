@@ -86,7 +86,9 @@ function DEADMONSTER(mon) {
 }
 
 function has_mgivenname(mon) {
-    return !!(mon.mgivenname || mon.mname);
+    if (mon?.mgivenname) return true;
+    const species = mon?.data?.mname || mon?.type?.mname || null;
+    return !!(mon?.name && species && mon.name !== species);
 }
 
 // C: M_AP_TYPE(mtmp) — appearance type constants

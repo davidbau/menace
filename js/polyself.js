@@ -553,8 +553,8 @@ export function set_uasmon(player) {
         }
     }
 
-    // resist_from_form: check mdat.mr1 (C's mresists) for resistance bits
-    const mr = mdat.mr1 || 0;
+    // resist_from_form: check mdat.mresists (C's mresists) for resistance bits
+    const mr = mdat.mresists || 0;
 
     propset(FIRE_RES, !!(mr & MR_FIRE));
     propset(COLD_RES, !!(mr & MR_COLD));
@@ -1063,7 +1063,7 @@ export async function polymon(player, mntmp, map) {
 
     // Genocide check — mvitals not tracked yet, skip
     // if (mvitals[mntmp].mvflags & G_GENOD) {
-    //     You_feel("rather %s-ish.", mons[mntmp].name);
+    //     You_feel("rather %s-ish.", mons[mntmp].mname);
     //     exercise('A_WIS', true);
     //     return 0;
     // }
@@ -1110,7 +1110,7 @@ export async function polymon(player, mntmp, map) {
         else
             buf += player.female ? "female " : "male ";
     }
-    buf += mons[mntmp].name;
+    buf += mons[mntmp].mname;
     if (player.umonnum !== mntmp)
         await You("turn into a %s!", buf);
     else
@@ -1139,7 +1139,7 @@ export async function polymon(player, mntmp, map) {
     }
 
     // Stone_resistance && Stoned -> clear petrification
-    if (player.stoned && ((mons[mntmp].mr1 || 0) & MR_STONE)) {
+    if (player.stoned && ((mons[mntmp].mresists || 0) & MR_STONE)) {
         player.stoned = 0;
         await You("no longer seem to be petrifying.");
     }
@@ -1325,7 +1325,7 @@ export async function polymon(player, mntmp, map) {
         await pline("Use the command #monster to use your horn.");
     if (is_mind_flayer(uptr))
         await pline("Use the command #monster to emit a mental blast.");
-    if (uptr.sound === MS_SHRIEK)
+    if (uptr.msound === MS_SHRIEK)
         await pline("Use the command #monster to shriek.");
     if (is_vampire(uptr))
         await pline("Use the command #monster to change shape.");
@@ -2069,7 +2069,7 @@ export async function dopoly(player, map) {
         const savedat = player.type;
         await polyself(player, POLY_MONSTER, map);
         if (savedat !== player.type) {
-            await You("transform into %s.", player.type.name);
+            await You("transform into %s.", player.type.mname);
             if (map && map.newsym) map.newsym(player.x, player.y);
         }
     }

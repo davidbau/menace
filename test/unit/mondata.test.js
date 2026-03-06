@@ -774,7 +774,7 @@ describe('levl_follower', () => {
 
     it('non-stalking, non-tame monster does not follow', () => {
         // PM_GRID_BUG has no M2_STALK
-        const gridBugIdx = mons.findIndex(m => m.name === 'grid bug');
+        const gridBugIdx = mons.findIndex(m => m.mname === 'grid bug');
         const mon = makeMon({ type: mons[gridBugIdx] });
         assert.equal(levl_follower(mon, { inventory: [] }), false);
     });
@@ -884,7 +884,7 @@ describe('cant_drown / grounded', () => {
 
 describe('ceiling_hider / eyecount', () => {
     it('ceiling_hider: rock piercer (clinger+hider, not mimic) is ceiling hider', () => {
-        const piercerIdx = mons.findIndex(m => m && m.name === 'rock piercer');
+        const piercerIdx = mons.findIndex(m => m && m.mname === 'rock piercer');
         assert.equal(ceiling_hider(mons[piercerIdx]), true);
     });
     it('eyecount: floating eye has 1 eye', () => {
@@ -897,7 +897,7 @@ describe('ceiling_hider / eyecount', () => {
         assert.equal(eyecount(mons[PM_LITTLE_DOG]), 2);
     });
     it('eyecount: acid blob (M1_NOEYES) has 0 eyes', () => {
-        const acidBlobIdx = mons.findIndex(m => m && m.name === 'acid blob');
+        const acidBlobIdx = mons.findIndex(m => m && m.mname === 'acid blob');
         assert.equal(eyecount(mons[acidBlobIdx]), 0);
     });
 });
@@ -907,7 +907,7 @@ describe('has_head / has_horns', () => {
         assert.equal(has_head(mons[PM_LITTLE_DOG]), true);
     });
     it('has_head: acid blob has no head (M1_NOHEAD)', () => {
-        const acidBlobIdx = mons.findIndex(m => m && m.name === 'acid blob');
+        const acidBlobIdx = mons.findIndex(m => m && m.mname === 'acid blob');
         assert.equal(has_head(mons[acidBlobIdx]), false);
     });
     it('has_horns: minotaur has horns', () => {
@@ -962,7 +962,7 @@ describe('is_wooden / hug_throttles / flaming / is_silent / is_vampire', () => {
 
 describe('passes_rocks', () => {
     it('xorn passes rocks (passes_walls && !unsolid)', () => {
-        const xornIdx = mons.findIndex(m => m.name === 'xorn');
+        const xornIdx = mons.findIndex(m => m.mname === 'xorn');
         assert.equal(passes_rocks(mons[xornIdx]), true);
     });
     it('shade does not pass rocks (is unsolid)', () => {
@@ -1043,7 +1043,7 @@ describe('polyok / extra_nasty / throws_rocks', () => {
 
 describe('is_armed / cantwield / could_twoweap / cantweararm', () => {
     it('is_armed: soldier (wielder) is armed', () => {
-        const soldierIdx = mons.findIndex(m => m.name === 'soldier');
+        const soldierIdx = mons.findIndex(m => m.mname === 'soldier');
         assert.equal(is_armed(mons[soldierIdx]), true);
     });
     it('is_armed: little dog (no weapon attacks) is not armed', () => {
@@ -1145,7 +1145,7 @@ describe('is_reviver / unique_corpstat / emits_light', () => {
         assert.equal(is_reviver(mons[PM_DEATH]), true);
     });
     it('is_reviver: troll is a reviver (S_TROLL)', () => {
-        const trollIdx = mons.findIndex(m => m.name === 'troll');
+        const trollIdx = mons.findIndex(m => m.mname === 'troll');
         assert.equal(is_reviver(mons[trollIdx]), true);
     });
     it('is_reviver: little dog is not a reviver', () => {
@@ -1234,7 +1234,7 @@ describe('weirdnonliving / nonliving', () => {
         assert.equal(weirdnonliving(mons[PM_LITTLE_DOG]), false);
     });
     it('nonliving: human zombie is nonliving (undead)', () => {
-        const zombieIdx = mons.findIndex(m => m && m.name === 'human zombie');
+        const zombieIdx = mons.findIndex(m => m && m.mname === 'human zombie');
         assert.equal(nonliving(mons[zombieIdx]), true);
     });
     it('nonliving: manes is nonliving (special case)', () => {
@@ -1290,7 +1290,7 @@ describe('is_bat / is_bird', () => {
         assert.equal(is_bat(mons[PM_LITTLE_DOG]), false);
     });
     it('is_bird: raven is a bird (S_BAT but not bat)', () => {
-        const ravenIdx = mons.findIndex(m => m.name === 'raven');
+        const ravenIdx = mons.findIndex(m => m.mname === 'raven');
         assert.equal(is_bird(mons[ravenIdx]), true);
     });
     it('is_bird: bat is not a bird', () => {
@@ -1315,7 +1315,7 @@ describe('vegan / vegetarian / corpse_eater', () => {
         assert.equal(vegan(mons[PM_LITTLE_DOG]), false);
     });
     it('vegetarian: brown pudding (S_PUDDING, not black) is vegetarian', () => {
-        const brownPuddingIdx = mons.findIndex(m => m.name === 'brown pudding');
+        const brownPuddingIdx = mons.findIndex(m => m.mname === 'brown pudding');
         assert.equal(vegetarian(mons[brownPuddingIdx]), true);
     });
     it('vegetarian: black pudding is NOT vegetarian', () => {
@@ -1334,11 +1334,11 @@ describe('vegan / vegetarian / corpse_eater', () => {
 
 describe('likes_objs (fixed: includes is_armed)', () => {
     it('likes_objs: soldier (armed, M2_COLLECT not required) is true', () => {
-        const soldierIdx = mons.findIndex(m => m.name === 'soldier');
+        const soldierIdx = mons.findIndex(m => m.mname === 'soldier');
         assert.equal(likes_objs(mons[soldierIdx]), true);
     });
     it('likes_objs: wood nymph (M2_COLLECT) is true', () => {
-        const nymphIdx = mons.findIndex(m => m && m.name === 'wood nymph');
+        const nymphIdx = mons.findIndex(m => m && m.mname === 'wood nymph');
         assert.equal(likes_objs(mons[nymphIdx]), true);
     });
     it('likes_objs: little dog (no M2_COLLECT, no weapon attacks) is false', () => {

@@ -286,18 +286,18 @@ function zhitm(mon, type, nd, map) {
 
     switch (damgtype) {
     case ZT_MAGIC_MISSILE:
-        if (mdat.mr1 & MR_FIRE) { // resists_magm approximation
+        if (mdat.mresists & MR_FIRE) { // resists_magm approximation
             // magic resistance — no damage
             break;
         }
         tmp = d(nd, 6);
         break;
     case ZT_FIRE:
-        if (mdat.mr1 & MR_FIRE) {
+        if (mdat.mresists & MR_FIRE) {
             break; // resistant — no damage
         }
         tmp = d(nd, 6);
-        if (mdat.mr1 & MR_COLD) tmp += 7; // cold-resistant takes extra fire
+        if (mdat.mresists & MR_COLD) tmp += 7; // cold-resistant takes extra fire
         if (burnarmor(mon)) {
             if (!rn2(3)) {
                 // destroy_items — stub for most monsters
@@ -305,11 +305,11 @@ function zhitm(mon, type, nd, map) {
         }
         break;
     case ZT_COLD:
-        if (mdat.mr1 & MR_COLD) {
+        if (mdat.mresists & MR_COLD) {
             break; // resistant
         }
         tmp = d(nd, 6);
-        if (mdat.mr1 & MR_FIRE) tmp += d(nd, 3); // fire-resistant takes extra cold
+        if (mdat.mresists & MR_FIRE) tmp += d(nd, 3); // fire-resistant takes extra cold
         if (!rn2(3)) {
             // destroy_items
         }
@@ -335,7 +335,7 @@ function zhitm(mon, type, nd, map) {
             type = -1; // no saving throw
         } else {
             // disintegration breath
-            if (mdat.mr1 & MR_DISINT) {
+            if (mdat.mresists & MR_DISINT) {
                 break; // resistant
             }
             // No armor handling — simplified; full kill
@@ -347,7 +347,7 @@ function zhitm(mon, type, nd, map) {
         break;
     case ZT_LIGHTNING:
         tmp = d(nd, 6);
-        if (mdat.mr1 & MR_ELEC) {
+        if (mdat.mresists & MR_ELEC) {
             tmp = 0; // resistant, but still rolls damage for RNG
         }
         // blindness from lightning
@@ -364,13 +364,13 @@ function zhitm(mon, type, nd, map) {
         }
         break;
     case ZT_POISON_GAS:
-        if (mdat.mr1 & MR_POISON) {
+        if (mdat.mresists & MR_POISON) {
             break;
         }
         tmp = d(nd, 6);
         break;
     case ZT_ACID:
-        if (mdat.mr1 & MR_ACID) {
+        if (mdat.mresists & MR_ACID) {
             break;
         }
         tmp = d(nd, 6);
@@ -418,7 +418,7 @@ async function xkilled_local(mon, map, player, display) {
         // C ref: mksobj_postinit -> gender for random monster
         if (rndmndx >= 0) {
             const rndmon = mons[rndmndx];
-            const f2 = rndmon ? rndmon.flags2 || 0 : 0;
+            const f2 = rndmon ? rndmon.mflags2 || 0 : 0;
             if (!(f2 & M2_NEUTER) && !(f2 & M2_FEMALE) && !(f2 & M2_MALE)) {
                 rn2(2); // sex
             }
