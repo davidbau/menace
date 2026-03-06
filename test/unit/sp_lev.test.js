@@ -5,7 +5,7 @@
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-    des, resetLevelState, getLevelState, setFinalizeContext,
+    des, resetLevelState, getLevelState, withFinalizeContext,
     mapfrag_fromstr, mapfrag_canmatch, mapfrag_error, mapfrag_match,
     check_mapchr, get_table_mapchr_opt, get_table_mapchr, l_selection_filter_mapchar,
     get_table_boolean, get_table_boolean_opt, get_table_int, get_table_int_opt,
@@ -777,11 +777,13 @@ describe('sp_lev.js - des.* API', () => {
     it('fixup_special LR_PORTAL resolves named destination level', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
-        setFinalizeContext({ dnum: 0, dlevel: 1, specialName: 'portal-test' });
         des.levregion({ region: [10, 10, 10, 10], region_islev: 1, type: 'portal', name: 'fire' });
         getLevelState().coder.allow_flips = 0;
 
-        const map = await des.finalize_level();
+        const map = await withFinalizeContext(
+            { dnum: 0, dlevel: 1, specialName: 'portal-test' },
+            async () => await des.finalize_level()
+        );
         const portal = map.trapAt(10, 10);
         assert.ok(portal, 'portal trap should be placed');
         assert.equal(portal.ttyp, MAGIC_PORTAL, 'trap should be MAGIC_PORTAL');
@@ -792,11 +794,13 @@ describe('sp_lev.js - des.* API', () => {
     it('fixup_special LR_PORTAL resolves numeric destination level in current dungeon', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
-        setFinalizeContext({ dnum: 6, dlevel: 2, specialName: 'portal-test' });
         des.levregion({ region: [12, 10, 12, 10], region_islev: 1, type: 'portal', name: '7' });
         getLevelState().coder.allow_flips = 0;
 
-        const map = await des.finalize_level();
+        const map = await withFinalizeContext(
+            { dnum: 6, dlevel: 2, specialName: 'portal-test' },
+            async () => await des.finalize_level()
+        );
         const portal = map.trapAt(12, 10);
         assert.ok(portal, 'portal trap should be placed');
         assert.equal(portal.ttyp, MAGIC_PORTAL, 'trap should be MAGIC_PORTAL');
@@ -808,10 +812,12 @@ describe('sp_lev.js - des.* API', () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
         des.level_flags('premapped');
-        setFinalizeContext({ specialName: 'water' });
         getLevelState().coder.allow_flips = 0;
 
-        const map = await des.finalize_level();
+        const map = await withFinalizeContext(
+            { specialName: 'water' },
+            async () => await des.finalize_level()
+        );
         assert.equal(map.flags.hero_memory, false, 'water setup should force hero_memory off');
         assert.equal(map.at(40, 10).typ, WATER, 'water setup should convert default STONE to WATER');
     });
@@ -820,10 +826,12 @@ describe('sp_lev.js - des.* API', () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: ' ' });
         des.level_flags('premapped');
-        setFinalizeContext({ specialName: 'air' });
         getLevelState().coder.allow_flips = 0;
 
-        const map = await des.finalize_level();
+        const map = await withFinalizeContext(
+            { specialName: 'air' },
+            async () => await des.finalize_level()
+        );
         assert.equal(map.flags.hero_memory, false, 'air setup should force hero_memory off');
         assert.equal(map.at(40, 10).typ, AIR, 'air setup should convert default STONE to AIR');
     });
@@ -832,10 +840,12 @@ describe('sp_lev.js - des.* API', () => {
         resetLevelState();
         initRng(123);
         des.level_init({ style: 'solidfill', fg: ' ' });
-        setFinalizeContext({ specialName: 'water' });
         getLevelState().coder.allow_flips = 0;
 
-        const map = await des.finalize_level();
+        const map = await withFinalizeContext(
+            { specialName: 'water' },
+            async () => await des.finalize_level()
+        );
         const setup = map._waterLevelSetup;
 
         assert.ok(setup, 'water setup should store seeded setup metadata');

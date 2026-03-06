@@ -1045,7 +1045,7 @@ export function resetLevelState() {
  * @param {string} [ctx.specialName]
  * @param {"stairs"|"portal"|"none"|"stair-up"|"stair-down"} [ctx.branchPlacement]
  */
-export function setFinalizeContext(ctx = null) {
+function applyFinalizeContext(ctx = null) {
     if (!ctx) {
         levelState.finalizeContext = null;
         return;
@@ -1066,6 +1066,16 @@ export function setFinalizeContext(ctx = null) {
             ? ctx.branchPlacement
             : undefined
     };
+}
+
+export async function withFinalizeContext(ctx, fn) {
+    const prev = levelState.finalizeContext ? { ...levelState.finalizeContext } : null;
+    applyFinalizeContext(ctx);
+    try {
+        return await fn();
+    } finally {
+        levelState.finalizeContext = prev;
+    }
 }
 
 export function setSpecialLevelDepth(depth) {
@@ -6975,13 +6985,12 @@ export async function load_special(name) {
 
     resetLevelState();
     setSpecialLevelDepth(where.dlevel);
-    setFinalizeContext({
+    const map = await withFinalizeContext({
         dnum: where.dnum,
         dlevel: where.dlevel,
         specialName: typeof special.name === 'string' ? special.name : name,
         isBranchLevel: false,
-    });
-    const map = await special.generator();
+    }, async () => await special.generator());
     if (!map) return false;
     levelState.map = map;
     return true;

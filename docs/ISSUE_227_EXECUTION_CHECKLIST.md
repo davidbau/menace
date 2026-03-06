@@ -186,7 +186,6 @@ as function parameters (matching how C passes struct pointers).
 | mkobj.js | `setMklevObjectContext()` | `_inMklevContext` | dungeon |
 | mkobj.js | `setLevelDepth()` | `_levelDepth` | dungeon |
 | timeout.js | `setTimerContext()` | `_timeoutContext` | timeout (internal) |
-| sp_lev.js | `setFinalizeContext()` | `levelState.finalizeContext` | dungeon, wizcmds, sp_lev |
 
 - [ ] For each setter: replace with direct import of `game` singleton or
       explicit parameter passing, matching C's approach.
@@ -197,9 +196,9 @@ Current Phase-4 reality snapshot (2026-03-06):
 - Completed/reduced in prior passes: `setOutputContext`, timer/global state
   wiring, display context override wiring (`setDisplayContext`), and makemon
   setter wiring now replaced with scoped/direct-state helpers, and level-context
-  wiring now scoped through `withLevelContext`.
-- Remaining active setters (still to eliminate or formally justify):
-  - `setFinalizeContext` (`sp_lev.js`).
+  wiring now scoped through `withLevelContext`; finalize-context wiring now
+  scoped through `withFinalizeContext`.
+- Remaining active setters (still to eliminate or formally justify): none.
 
 Phase-4 exit gate:
 - [ ] No `set*Context` / `set*Player` style module-level wiring remains.

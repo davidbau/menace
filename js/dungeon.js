@@ -80,7 +80,7 @@ import {
     initQuestLevels,
 } from './special_levels.js';
 import { litstate_rnd } from './mkmap.js';
-import { withLevelContext, initLuaMT, setSpecialLevelDepth, setFinalizeContext, resetLevelState } from './sp_lev.js';
+import { withLevelContext, withFinalizeContext, initLuaMT, setSpecialLevelDepth, resetLevelState } from './sp_lev.js';
 import {
     themerooms_generate as themermsGenerate,
     themerooms_post_level_generate,
@@ -1510,20 +1510,19 @@ export async function load_special_by_protofile(protofile, dnum, dlevel, depth) 
     resetLevelState();
     setSpecialLevelDepth(Number.isInteger(depth) ? depth : where.dlevel);
     const specialName = typeof special.name === 'string' ? special.name : String(protofile || '');
-    setFinalizeContext({
+    const specialMap = await withFinalizeContext({
         dnum: where.dnum,
         dlevel: where.dlevel,
         specialName,
         isBranchLevel: isBranchLevel(where.dnum, where.dlevel),
+    }, async () => {
+        // C ref: nhlua.c load_lua()/nhl_init() for every special-level load.
+        // Each load initializes a fresh Lua state and executes nhlib.lua,
+        // whose top-level shuffle(align) consumes rn2(3), rn2(2).
+        rn2(3);
+        rn2(2);
+        return await special.generator();
     });
-
-    // C ref: nhlua.c load_lua()/nhl_init() for every special-level load.
-    // Each load initializes a fresh Lua state and executes nhlib.lua,
-    // whose top-level shuffle(align) consumes rn2(3), rn2(2).
-    rn2(3);
-    rn2(2);
-
-    const specialMap = await special.generator();
     if (!specialMap) return null;
     if (!specialMap.flags) specialMap.flags = {};
     specialMap.flags.is_tutorial = (where.dnum === TUTORIAL);
@@ -4598,20 +4597,19 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
             // C parity: special-level depth-sensitive logic should use absolute depth,
             // not branch-local dlevel.
             setSpecialLevelDepth(depth);
-            setFinalizeContext({
+            const specialMap = await withFinalizeContext({
                 dnum: useDnum,
                 dlevel: useDlevel,
                 specialName,
                 isBranchLevel: isBranchLevel(useDnum, useDlevel),
+            }, async () => {
+                // C ref: nhlua.c load_lua()/nhl_init() for load_special():
+                // each special-level generation loads nhlib.lua and consumes
+                // shuffle(align): rn2(3), rn2(2).
+                rn2(3);
+                rn2(2);
+                return await special.generator();
             });
-
-            // C ref: nhlua.c load_lua()/nhl_init() for load_special():
-            // each special-level generation loads nhlib.lua and consumes
-            // shuffle(align): rn2(3), rn2(2).
-            rn2(3);
-            rn2(2);
-
-            const specialMap = await special.generator();
             if (specialMap) {
                 if (!specialMap.flags) specialMap.flags = {};
                 specialMap._heroHasAmulet = heroHasAmulet;
