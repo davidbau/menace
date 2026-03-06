@@ -5,6 +5,19 @@ Issue: https://github.com/davidbau/menace/issues/227
 This file is the single execution checklist for #227.
 If any other doc conflicts, follow this file.
 
+## Design Principle
+
+Cyclic imports between JS modules are fine — ESM resolves function bindings
+lazily at call time. The only real constraint is: **no cycles in init-time
+constant computation**. A module's top-level code must not read an exported
+constant from another module that hasn't finished evaluating yet.
+
+Solution: all exported capitalized constants live in a small set of **leaf
+header files** (`const.js`, `objects.js`, `monsters.js`, `artifacts.js`,
+`version.js`, `storage.js`, data files). These files import only from each
+other and never from gameplay modules, so they always finish evaluating first.
+Everything else can freely import from them and from each other.
+
 ## Rules (Non-Negotiable)
 
 - No `initAll` and no global startup orchestrator.
@@ -139,20 +152,53 @@ Phase-2 exit gate:
 
 ## Phase 3: File-Per-C-Source Reorganization
 
-- [ ] Move functions so each JS file aligns to its C source ownership plan.
-- [ ] Keep each move commit structure-only (no logic edits mixed in).
+Move functions so each JS file aligns to its C source file. Cyclic imports
+between gameplay files are explicitly allowed — function bindings resolve
+lazily at call time, so moving functions cannot create init-time cycles.
+
+- [ ] Move functions from JS "consolidation" files (`combat.js`, `look.js`,
+      `monutil.js`, `stackobj.js`, `player.js`, `discovery.js`,
+      `options_menu.js`) into their canonical C-source-named JS files.
+- [ ] Each move commit is structure-only (no logic edits mixed in).
+- [ ] Update `docs/MODULES.md` ownership table after each batch.
 
 Phase-3 exit gate:
 - [ ] Ownership mapping in `docs/MODULES.md` reflects code reality.
 - [ ] No parity regression vs baseline envelope.
 
-## Phase 4: Legacy Top-Level Wiring Cleanup
+## Phase 4: Remove `set*Context` Wiring Hacks
 
-- [ ] Remove remaining top-level gameplay `register*` and `set*Context` wiring side effects.
-- [ ] Keep bootstrap/UI-only runtime setup where appropriate (not gameplay wiring hacks).
+The `set*Context` / `set*Player` pattern was introduced to pass runtime state
+(player, display, map, FOV) into modules that couldn't import it due to feared
+circular dependency issues. Now that we know cyclic imports are safe for
+functions, these hacks can be replaced by direct imports or by passing state
+as function parameters (matching how C passes struct pointers).
+
+### Inventory of hacks to remove
+
+| Module | Setter | Internal var | Callers |
+|--------|--------|-------------|---------|
+| pline.js | `setOutputContext()` | `_outputContext` | allmain, chargen, headless |
+| monutil.js | `setDisplayContext()` | `_displayContext` | allmain, do, hack, kick, headless |
+| makemon.js | `setMakemonPlayerContext()` | `_makemonPlayerCtx` | allmain, chargen, exper, u_init, wizcmds, dungeon |
+| makemon.js | `setMakemonRoleContext()` | `_makemonPlayerCtx` | dungeon |
+| makemon.js | `setMakemonLevelContext()` | `_makemonLevelCtx` | dungeon |
+| makemon.js | `setMakemonInMklevContext()` | `_makemonInMklev` | dungeon |
+| mkobj.js | `setObjectMoves()` | `_objectMoves` | allmain, chargen |
+| mkobj.js | `setMklevObjectContext()` | `_inMklevContext` | dungeon |
+| mkobj.js | `setLevelDepth()` | `_levelDepth` | dungeon |
+| timeout.js | `setTimerContext()` | `_timeoutContext` | timeout (internal) |
+| sp_lev.js | `setLevelContext()` | `levelState` | dungeon |
+| sp_lev.js | `setFinalizeContext()` | `levelState.finalizeContext` | dungeon, wizcmds, sp_lev |
+| sp_lev.js | `setSplevPlayerContext()` | `u.*` | chargen |
+
+- [ ] For each setter: replace with direct import of `game` singleton or
+      explicit parameter passing, matching C's approach.
+- [ ] Remove setter functions and module-level context variables.
+- [ ] Keep bootstrap/UI-only runtime setup where appropriate.
 
 Phase-4 exit gate:
-- [ ] No gameplay top-level lazy-registration side effects remain.
+- [ ] No `set*Context` / `set*Player` style module-level wiring remains.
 - [ ] No parity regression vs baseline envelope.
 
 ## Validation Commands (Use Per Batch)
@@ -164,5 +210,8 @@ Phase-4 exit gate:
 
 ## Current Focus
 
-- Phase 2D migration complete for runtime objclass/object naming fields.
-- Remaining Phase-2 scope: monitor parity while preparing Phase 3 (file-per-C-source reorg); canonical runtime field migration targets are complete.
+- Phase 2 complete. All C field name normalization done for attack, permonst,
+  and objclass structs. Backward-compat aliases remain in generators.
+- Next: Phase 3 (file-per-C-source reorg) — move functions from consolidation
+  files into canonical C-source-named JS files.
+- Then: Phase 4 — remove `set*Context` wiring hacks.

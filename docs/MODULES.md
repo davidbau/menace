@@ -216,108 +216,68 @@ This should produce no output. If it does, move or unexport the offending consta
 
 ## Master Refactor Plan (Issue #227)
 
-Five sequential phases. Each phase keeps tests passing before moving to the next.
+Four phases. Each phase keeps tests passing before moving to the next.
 
-## Autonomous Execution Plan (Issue #227)
+### Design principle
 
-This section defines the required execution order and stop gates so work can be
-done autonomously without ambiguity.
+Cyclic imports between JS modules are fine — ESM resolves function bindings
+lazily at call time, so gameplay modules can freely import from each other.
+The only constraint: **no cycles in init-time constant computation**. This is
+solved by the leaf header architecture (Phase 1): all exported capitalized
+constants live in leaf files that never import gameplay modules.
 
-### Phase 0 — Preflight and baseline (required before code edits)
+### Phase 0 — Preflight and baseline (complete)
 
-1. Generate and check in an inventory of:
-   - top-level `register*()` calls,
-   - top-level `set*Context` / `set*Player` / similar wiring calls,
-   - gameplay modules exporting capitalized names outside the leaf set.
-2. Record baseline parity metrics using the current standard report command.
-3. Do not start structural rewrites until both inventory and baseline are
-   committed.
+Inventory and baseline captured before code edits began.
+- [`docs/port-status/ISSUE_227_PHASE0_INVENTORY_2026-03-05.md`](/share/u/davidbau/git/mazesofmenace/game/docs/port-status/ISSUE_227_PHASE0_INVENTORY_2026-03-05.md)
+- [`docs/port-status/ISSUE_227_PHASE0_BASELINE_2026-03-05.md`](/share/u/davidbau/git/mazesofmenace/game/docs/port-status/ISSUE_227_PHASE0_BASELINE_2026-03-05.md)
 
-Exit gate:
-- Inventory file(s) exist and are reviewed.
-- Baseline parity report is captured in commit notes/comments.
-- Inventory artifact is committed and referenced:
-  [`docs/port-status/ISSUE_227_PHASE0_INVENTORY_2026-03-05.md`](/share/u/davidbau/git/mazesofmenace/game/docs/port-status/ISSUE_227_PHASE0_INVENTORY_2026-03-05.md)
-- Baseline artifact is committed and referenced:
-  [`docs/port-status/ISSUE_227_PHASE0_BASELINE_2026-03-05.md`](/share/u/davidbau/git/mazesofmenace/game/docs/port-status/ISSUE_227_PHASE0_BASELINE_2026-03-05.md)
-  with full per-session JSON:
-  [`docs/metrics/issue227_phase0_session_baseline_2026-03-05.json`](/share/u/davidbau/git/mazesofmenace/game/docs/metrics/issue227_phase0_session_baseline_2026-03-05.json)
+### Phase 1 — Infrastructure Laydown + Constant Consolidation (complete)
 
-### Phase 1 — Infrastructure Laydown (highway first)
+Established leaf header architecture. All exported capitalized constants now
+live in leaf files only. `config.js`, `symbols.js`, `objclass.js` deleted.
+Constant export rule enforced via audit command.
 
-1. Lay down target ownership and module boundaries first:
-   - establish/expand leaf ownership (`version.js`, `const.js`, `objects.js`,
-     `monsters.js`, `game.js`),
-   - move structural ownership to canonical homes (for example map/level state).
-2. Keep behavior unchanged; this phase is structure-only.
-3. Do not add `initAll` or any global startup orchestrator.
-4. Existing legacy wiring (`register*`, `set*Context`, etc.) may temporarily
-   remain if still needed during migration.
+### Phase 2 — C Field Name Normalization (complete)
 
-Batching rule:
-- Land in small structural batches with regression evidence.
+All struct field names normalized to C-canonical: attack fields (`aatyp`,
+`adtyp`, `damn`, `damd`), permonst fields (`mflags1/2/3`, `mresists`,
+`mconveys`, `msound`, `cwt`, `cnutrit`, `mmove`, `mattk`, `mcolor`,
+`maligntyp`, `mname`), objclass fields (`oc_name`, `oc_descr`, `oc_material`,
+etc.). Generators emit canonical names with backward-compat aliases.
 
-Exit gate:
-- Canonical ownership targets are in place for migrated subsystems.
-- No parity regressions vs baseline.
+### Phase 3 — File-per-C-Source Reorganization
 
-### Phase 2 — C Field Name Normalization
+Move functions so each JS file aligns to its C source file. Cyclic imports
+between gameplay files are explicitly allowed — function bindings resolve
+lazily, so moving functions freely cannot create init-time cycles.
 
-Fix all non-C field name aliases across the JS codebase (see table below).
-Work file-by-file; run tests after each file. When all aliases are gone,
-delete `attack_fields.js`.
-
-This phase is prerequisite to Phases 3 and 4 because once names are canonical,
-the autotranslator can emit correct code for newly ported functions without
-a field-mapping layer.
-
-### Phase 3 — Constant Consolidation
-
-Move all exported capitalized constants into the leaf files. After this
-phase the rule is enforced: only the leaf files listed above export
-capitalized names.
-
-Circular imports among all other files become safe — they only involve
-function bindings, which are resolved before any function executes.
-
-Batching rule:
-- Move constants by subsystem (for example: traps/symbols, dungeon, combat),
-  one subsystem per commit.
-
-Exit gate:
-- `rg "export (const|let|var) [A-Z]" js` only reports the leaf files listed above.
-- Parity is no worse than baseline.
-
-### Phase 4 — File-per-C-Source Reorganization
-
-Move every function into a `.js` file whose name matches the `.c` file it was
-ported from. This makes porting new C functions trivial: you always know which
-file to put them in, and the autotranslator can target the right file directly.
-
-Circular imports between `.js` files are explicitly allowed and safe after
-Phase 3. No `register*()` and no `initAll` needed.
-
-Batching rule:
-- Move functions file-by-file with no behavior edits in the same commit.
-- After each move commit, run targeted parity tests for touched areas.
+Target: dissolve JS "consolidation" files (`combat.js`, `look.js`,
+`monutil.js`, `stackobj.js`, `player.js`, `discovery.js`, `options_menu.js`)
+into their canonical C-source-named counterparts.
 
 Exit gate:
 - Each gameplay function is in its corresponding C-source-named file.
-- Consolidation helper files listed below are either empty or deleted.
-- Parity is no worse than baseline.
+- Ownership mapping in `docs/MODULES.md` reflects code reality.
+- No parity regression vs baseline.
 
-### Phase 5 — Legacy Wiring Decommission
+### Phase 4 — Remove `set*Context` Wiring Hacks
 
-1. Remove no-longer-needed module-init wiring patterns:
-   - top-level `register*()` usage in gameplay modules,
-   - top-level `set*Context`/`set*Player` style cross-module wiring side effects.
-2. Convert remaining initialization to declarative data setup or runtime call
-   sites.
-3. Keep bootstrap/UI-only registration helpers scoped to bootstrap modules.
+The `set*Context`/`set*Player` pattern was a workaround for passing runtime
+state into modules without importing them directly. Now that cyclic imports
+are understood to be safe, these can be replaced by direct imports of the
+`game` singleton or explicit function parameters (matching how C passes
+struct pointers).
+
+Target: remove `setOutputContext`, `setDisplayContext`,
+`setMakemonPlayerContext`, `setMakemonRoleContext`, `setMakemonLevelContext`,
+`setMakemonInMklevContext`, `setObjectMoves`, `setMklevObjectContext`,
+`setLevelDepth`, `setTimerContext`, `setLevelContext`, `setFinalizeContext`,
+`setSplevPlayerContext` and their associated module-level context variables.
 
 Exit gate:
-- No remaining top-level gameplay `register*()`/context wiring side effects.
-- No parity regressions vs baseline.
+- No `set*Context`/`set*Player` style module-level wiring remains.
+- No parity regression vs baseline.
 
 ## Non-Negotiable Autonomy Rules
 

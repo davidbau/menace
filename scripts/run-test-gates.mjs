@@ -456,6 +456,17 @@ async function main() {
         console.log(`${c.bold}Test Summary:${c.reset}`);
         console.log(formatTable(tableRows));
 
+        // Print error details below the table for visibility
+        const errorSessions = sessionResults.filter(r => !r.passed && r.error);
+        if (errorSessions.length > 0) {
+            console.log(`\n${c.red}${c.bold}Sessions with errors:${c.reset}`);
+            for (const r of errorSessions) {
+                const errLine = String(r.error).split('\n')[0].slice(0, 120);
+                console.log(`  ${c.red}${r.session}${c.reset}: ${errLine}`);
+            }
+            console.log('');
+        }
+
         const anyFailed = unitResults.failed > 0 || sessTotalFailed > 0;
         process.exit(anyFailed ? 1 : 0);
     } catch (err) {
