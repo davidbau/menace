@@ -1635,6 +1635,12 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
             somebodyCanMove = false;
             break;
         }
+        // C ref: done(DIED) terminates the process; in JS we must
+        // explicitly stop monster processing after the hero dies.
+        if (game && game.playerDied) {
+            somebodyCanMove = false;
+            break;
+        }
         if (mon.dead) continue;
         // C ref: mon.c movemon_singlemon() skips monsters not on this map.
         if (!isok(mon.mx, mon.my)) continue;
