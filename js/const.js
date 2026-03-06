@@ -359,6 +359,24 @@ export const LUNG = 16;
 export const NOSE = 17;
 export const STOMACH = 18;
 
+// Object class selector for random-class generation (include/objclass.h)
+// Runtime fields:
+// - mkobj/mksobj/random object generation `oclass` selector args
+export const RANDOM_CLASS = 0;
+
+// Room fill policy enum for mkroom/mklev generation (src/mkroom.c)
+// Runtime fields: room.needfill on room structs.
+export const FILL_NONE = 0;
+export const FILL_NORMAL = 1;
+
+// Padded text chunk width for makedefs-generated rumor-like files.
+// Runtime fields: get_rnd_line_index(..., chunksize) for rumors/epitaph/engraving pools.
+export const RUMOR_PAD_LENGTH = 60;
+
+// Pet migration mode string token (src/dog.c mon_arrive)
+// Runtime field: migrating monster `mon_arrive(..., with_you, ...)` argument.
+export const MON_ARRIVE_WITH_YOU = 'With_you';
+
 // Maximum values
 export const MAXNROFROOMS = 40;
 export const MAXDUNGEON = 16;

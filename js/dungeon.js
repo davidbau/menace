@@ -29,7 +29,7 @@ import {
     PM_ARCHEOLOGIST as ROLE_ARCHEOLOGIST, PM_WIZARD as ROLE_WIZARD,
     PM_PRIEST as ROLE_PRIEST,
     A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
-    MM_NOGRP
+    MM_NOGRP, FILL_NONE, FILL_NORMAL, RUMOR_PAD_LENGTH,
 } from './const.js';
 import { GameMap } from './game.js';
 import { rn2, rnd, rn1, d, getRngCallCount, advanceRngRaw, pushRngLogEntry } from './rng.js';
@@ -90,8 +90,6 @@ import {
 import {
     isbig,
     makeRoom,
-    FILL_NONE,
-    FILL_NORMAL,
     has_dnstairs,
     has_upstairs,
     somex,
@@ -190,7 +188,7 @@ async function themerooms_generate(map, depth) {
 }
 
 import { parseEncryptedDataFile } from './hacklib.js';
-import { get_rnd_line_index, getrumor, random_epitaph_text, RUMOR_PAD_LENGTH } from './rumors.js';
+import { get_rnd_line_index, getrumor, random_epitaph_text } from './rumors.js';
 
 // Branch type constants (C ref: include/dungeon.h)
 const BR_STAIR = 0;

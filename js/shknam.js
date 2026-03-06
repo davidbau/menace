@@ -23,7 +23,7 @@ import { MAXOCLASSES, ROOM, SHOPBASE, ROOMOFFSET, SDOOR, DOOR, CORR,
 import { makemon, mkclass, mongets } from './makemon.js';
 import { NO_MM_FLAGS } from './const.js';
 import { mksobj, mkobj } from './mkobj.js';
-import { RANDOM_CLASS } from './objclass.js';
+import { RANDOM_CLASS } from './const.js';
 import { PM_SHOPKEEPER, S_MIMIC } from './monsters.js';
 import { placeFloorObject } from './stackobj.js';
 

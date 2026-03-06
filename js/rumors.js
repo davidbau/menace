@@ -19,10 +19,7 @@ import { rn2 } from './rng.js';
 import { parseRumorsFile, parseEncryptedDataFile } from './hacklib.js';
 import { RUMORS_FILE_TEXT } from './rumor_data.js';
 import { EPITAPH_FILE_TEXT } from './epitaph_data.js';
-
-// Padded line size for rumor/engrave/epitaph files (makedefs MD_PAD_RUMORS = 60).
-// Exported so dungeon.js can use it for engrave get_rnd_line_index calls.
-export const RUMOR_PAD_LENGTH = 60;
+import { RUMOR_PAD_LENGTH } from './const.js';
 
 // Rumor data — parsed at module load from the compiled-in encrypted constant.
 // cf. rumors.c init_rumors() + global gt/gf structs (true_rumor_size etc.)

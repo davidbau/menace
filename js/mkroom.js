@@ -6,7 +6,7 @@ import {
     OROOM, SWAMP, POOL, SHOPBASE,
     COURT, ZOO, BEEHIVE, MORGUE, BARRACKS, LEPREHALL, COCKNEST, ANTHOLE, TEMPLE,
     A_NONE, ALTAR, AM_MASK, AM_SHRINE, Align2amask, Amask2align, xdir, ydir, N_DIRS,
-    isok,
+    isok, FILL_NONE, FILL_NORMAL,
 } from './const.js';
 import { rn1, rn2, rnd } from './rng.js';
 import { mkclass, makemon } from './makemon.js';
@@ -26,9 +26,6 @@ import {
 } from './monsters.js';
 import { WAND_CLASS, SPBOOK_CLASS, SPBOOK_no_NOVEL, MACE } from './objects.js';
 import { shtypes } from './shknam.js';
-
-export const FILL_NONE = 0;
-export const FILL_NORMAL = 1;
 
 export function makeRoom() {
     return {

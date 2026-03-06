@@ -88,12 +88,14 @@ import {
 import { roles, races } from './player.js';
 import { discoverObject } from './discovery.js';
 import { mons } from './monsters.js';
-import { makedog, mon_arrive, MON_ARRIVE_WITH_YOU } from './dog.js';
+import { makedog, mon_arrive } from './dog.js';
+import { MON_ARRIVE_WITH_YOU } from './const.js';
 import {
     W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMG, W_ARMF, W_ARMU,
     W_WEP, W_SWAPWEP, W_QUIVER,
 } from './const.js';
-export { mon_arrive, MON_ARRIVE_WITH_YOU } from './dog.js';
+export { mon_arrive } from './dog.js';
+export { MON_ARRIVE_WITH_YOU } from './const.js';
 
 // ========================================================================
 // Inventory Creation

@@ -38,10 +38,10 @@ import { PM_SAMURAI } from './const.js';
 import { lays_eggs } from './mondata.js';
 import { start_timer, stop_timer, TIMER_KIND, TIMER_FUNC } from './timeout.js';
 
-// Re-export RANDOM_CLASS from objclass.js (no-import module).
+// Re-export RANDOM_CLASS from const.js.
 // Re-export bindings are live at link-time, preventing TDZ in circular imports.
 // C ref: include/objclass.h RANDOM_CLASS = 0
-export { RANDOM_CLASS } from './objclass.js';
+export { RANDOM_CLASS } from './const.js';
 
 // Named object indices we need (exported from objects.js)
 // Check: CORPSE, EGG, TIN, SLIME_MOLD, KELP_FROND, CANDY_BAR,

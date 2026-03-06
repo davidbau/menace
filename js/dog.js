@@ -36,7 +36,8 @@ import { rn2, rn1 } from './rng.js';
 import { isok, ACCESSIBLE, COLNO, ROWNO, IS_DOOR, D_CLOSED, D_LOCKED,
          POOL, LAVAPOOL, PM_CAVEMAN, PM_SAMURAI, PM_BARBARIAN, PM_RANGER,
          MM_EDOG, MM_NOMSG, MM_IGNOREWATER, MM_FEMALE, MM_MALE,
-         DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT, POISON, UNDEF, TABU } from './const.js';
+         DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT, POISON, UNDEF, TABU,
+         MON_ARRIVE_WITH_YOU } from './const.js';
 import { SADDLE } from './objects.js';
 import { roles } from './player.js';
 import { makemon, mbirth_limit } from './makemon.js';
@@ -318,8 +319,6 @@ export function makedog(map, player, depth) {
 // mon_arrive — C ref: dog.c:474
 // Pet/follower migration between levels.
 // ========================================================================
-
-export const MON_ARRIVE_WITH_YOU = 'With_you';
 
 // C ref: teleport.c collect_coords() — collect positions by ring and shuffle.
 // Used by mon_arrive for mnexto-style placement.
