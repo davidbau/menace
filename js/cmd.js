@@ -4,14 +4,16 @@
 
 import { A_STR, A_DEX, A_CON, A_WIS, STATUS_ROW_1,
          PM_CAVEMAN, PM_ROGUE, RACE_ORC, SQKY_BOARD,
+         DART_TRAP, ARROW_TRAP,
          DIRECTION_KEYS, RUN_KEYS, CQ_REPEAT, P_NUM_SKILLS } from './const.js';
-import { rn2 } from './rng.js';
+import { rn2, rnl } from './rng.js';
 import { handleWizLoadDes, wizLevelChange, wizMap, wizTeleport, wizGenesis, wizWish } from './wizcmds.js';
 import { handleThrow, handleFire } from './dothrow.js';
 import { handleKnownSpells } from './spell.js';
 import { handleEngrave } from './engrave.js';
 import { handleApply } from './apply.js';
 import { COIN_CLASS } from './objects.js';
+import { DART, ARROW } from './objects.js';
 import { nhgetch, ynFunction, getlin, cmdq_pop_command, cmdq_clear, cmdq_add_ec,
        } from './input.js';
 import { handleEat } from './eat.js';
@@ -40,6 +42,7 @@ import { handleSet } from './options.js';
 import { pline, impossible } from './pline.js';
 import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
          performWaitSearch, dist2 } from './hack.js';
+import { cnv_trap_obj } from './trap.js';
 
 
 function t_at(x, y, map) {
@@ -906,6 +909,30 @@ async function handleExtendedCommandUntrap(game) {
     if (!trap) {
         await display.putstr_message('You cannot disable that trap.');
         return { moved: false, tookTime: false };
+    }
+
+    // C-faithful core for shooting traps: untrap_prob() + disarm_shooting_trap().
+    if (trap.ttyp === DART_TRAP || trap.ttyp === ARROW_TRAP) {
+        let chance = 3;
+        if (player.confused || player.hallucinating) chance++;
+        if (player.blind) chance++;
+        if (player.stunned) chance += 2;
+        if (player.fumbling) chance *= 2;
+        if (trap.madeby_u) chance--;
+        if (chance < 1) chance = 1;
+
+        if (rn2(chance)) {
+            const tname = (trap.ttyp === DART_TRAP) ? 'dart trap' : 'arrow trap';
+            const which = trap.madeby_u ? 'Your' : 'That';
+            await display.putstr_message(`${which} ${tname} is difficult to disarm.`);
+            return { moved: false, tookTime: true };
+        }
+
+        const which = trap.madeby_u ? 'your' : 'the';
+        await display.putstr_message(`You disarm ${which} trap.`);
+        const otyp = (trap.ttyp === DART_TRAP) ? DART : ARROW;
+        await cnv_trap_obj(otyp, 50 - rnl(50), trap, false, player);
+        return { moved: false, tookTime: true };
     }
 
     if (trap.ttyp === SQKY_BOARD) {

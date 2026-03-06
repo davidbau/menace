@@ -51,6 +51,7 @@ import { PM_FIRE_ELEMENTAL, PM_SALAMANDER, PM_FLOATING_EYE, PM_GELATINOUS_CUBE,
          G_FREQ } from './monsters.js';
 import { MAGIC_PORTAL } from './const.js';
 import { gettrack } from './track.js';
+import { On_stairs } from './stairs.js';
 import { helpless, onscary } from './mon.js';
 
 // Shared utilities from monmove.js
@@ -1156,20 +1157,8 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
 
         // C ref: dogmove.c:583-606 — check stairs, food in inventory, portal
         if (appr === 0) {
-            // C ref: On_stairs(u.ux, u.uy) — checks ALL stairway types
-            // (regular stairs, ladders, branch stairs)
-            const onStairs = (player.x === map.upstair?.x && player.y === map.upstair?.y)
-                || (player.x === map.dnstair?.x && player.y === map.dnstair?.y)
-                || (player.x === map.upladder?.x && player.y === map.upladder?.y)
-                || (player.x === map.dnladder?.x && player.y === map.dnladder?.y);
-            const pLoc = map.at(player.x, player.y);
-            // C ref: On_stairs() checks stairway_at() which maintains a
-            // linked list of ALL stairways (regular, ladders, branch).
-            // JS tracks only one up/down stair, so also check the tile type
-            // as a fallback for any untracked branch stairs or ladders.
-            const onStairsOrTile = onStairs
-                || (pLoc && (pLoc.typ === STAIRS || pLoc.typ === LADDER));
-            if (onStairsOrTile) {
+            // C-faithful stairway check: stairs.c On_stairs() via stairway_at().
+            if (await On_stairs(player.x, player.y, map)) {
                 appr = 1;
             } else {
                 // C ref: scan player inventory for DOGFOOD items

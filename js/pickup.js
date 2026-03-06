@@ -1277,6 +1277,20 @@ async function handlePickup(player, map, display, game = null) {
         if (pickedObj === obj) {
             map.removeObject(obj);
         }
+        // C pickup behavior can collect additional stacks for the same
+        // selected type at this square.
+        const px = obj.ox, py = obj.oy;
+        while (true) {
+            const extra = (map.objectsAt(px, py) || []).find((o) =>
+                o
+                && o !== pickedObj
+                && o.oclass !== COIN_CLASS
+                && o.otyp === pickedObj.otyp
+            );
+            if (!extra) break;
+            player.addToInventory(extra, { withMeta: true });
+            map.removeObject(extra);
+        }
         observeObject(pickedObj);
         if (addResult.discoveredByCompare) {
             await display.putstr_message('You learn more about your items by comparing them.');
