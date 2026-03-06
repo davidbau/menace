@@ -424,11 +424,6 @@
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."
     },
     {
-      "path": "js/objclass.js",
-      "policy": "not_to_translate",
-      "reason": "Zero-import constants module created to break circular TDZ; holds RANDOM_CLASS from include/objclass.h."
-    },
-    {
       "path": "js/objdata.js",
       "policy": "auto",
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."

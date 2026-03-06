@@ -743,7 +743,7 @@ export const PM_APPRENTICE = 382;
 export const NUMMONS = 383;
 export const NON_PM = -1;
 export const LOW_PM = 0;
-export const HIGH_PM = 382;
+export const HIGH_PM = 381;
 export const SPECIAL_PM = PM_LONG_WORM_TAIL; // 330
 
 // The master monster array
@@ -6674,9 +6674,29 @@ export const mons = [
   },
 ];
 
+function setAliasPair(obj, canonical, legacy) {
+  if (!obj || typeof obj !== 'object') return;
+  if (obj[canonical] === undefined && obj[legacy] !== undefined) {
+    obj[canonical] = obj[legacy];
+  }
+  if (obj[legacy] === undefined && obj[canonical] !== undefined) {
+    obj[legacy] = obj[canonical];
+  }
+}
+
+function normalizeMonsterFields(mon) {
+  if (!mon || typeof mon !== 'object') return;
+  setAliasPair(mon, 'mlevel', 'level');
+  setAliasPair(mon, 'm_lev', 'mlevel');
+  setAliasPair(mon, 'msize', 'size');
+  setAliasPair(mon, 'mlet', 'symbol');
+  if (Array.isArray(mon.attacks)) {
+    for (const attk of mon.attacks) canonicalizeAttackFields(attk);
+  }
+}
+
 for (const mon of mons) {
-  if (!Array.isArray(mon.attacks)) continue;
-  for (const attk of mon.attacks) canonicalizeAttackFields(attk);
+  normalizeMonsterFields(mon);
 }
 
 // End of monsters.js

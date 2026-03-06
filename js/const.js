@@ -390,7 +390,6 @@ export const MON_ARRIVE_WITH_YOU = 'With_you';
 export const DIRECTION_KEYS = {
     h: [-1, 0], j: [0, 1], k: [0, -1], l: [1, 0],
     y: [-1, -1], u: [1, -1], b: [-1, 1], n: [1, 1],
-    '.': [0, 0],
 };
 export const RUN_KEYS = {
     H: [-1, 0], J: [0, 1], K: [0, -1], L: [1, 0],
