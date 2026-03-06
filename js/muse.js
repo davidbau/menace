@@ -61,7 +61,7 @@ import { CORPSE, TIN, EGG, BOULDER,
          SILVER_DRAGON_SCALES, SILVER_DRAGON_SCALE_MAIL,
          PICK_AXE, TIN_OPENER, ICE_BOX, LARGE_BOX,
          GLOB_OF_GREEN_SLIME,
-         objectData, CLOTH } from './objects.js';
+         objectData, CLOTH, BAG_OF_TRICKS } from './objects.js';
 import { bcsign, doname, splitobj, Is_container } from './mkobj.js';
 import { m_carrying } from './weapon.js';
 import { cansee, couldsee, mark_vision_dirty } from './vision.js';
@@ -2028,7 +2028,7 @@ export async function find_misc(mon, map, player) {
         }
 
         if (m.has_misc === MUSE_MISC_BAG) continue;
-        if (Is_container(obj) && obj.otyp !== 218 /* BAG_OF_TRICKS -- not in objects.js as constant */
+        if (Is_container(obj) && obj.otyp !== BAG_OF_TRICKS
             && !rn2(5)
             && !m.has_misc && Has_contents(obj)
             && !obj.olocked && !obj.otrapped) {

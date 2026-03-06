@@ -1,6 +1,6 @@
 import { rn2, rnd, rn1 } from './rng.js';
 import { FOUNTAIN, SINK, ROOM, POOL, A_STR, A_DEX, A_CON, A_WIS, A_LAWFUL,
-         isok } from './const.js';
+         isok, PM_KNIGHT } from './const.js';
 import { COIN_CLASS, RING_CLASS, POTION_CLASS, LONG_SWORD, BOULDER,
          DILITHIUM_CRYSTAL, LUCKSTONE,
          POT_POLYMORPH, POT_OIL, POT_ACID, POT_LEVITATION,
@@ -12,7 +12,7 @@ import { exercise } from './attrib_exercise.js';
 import { adjattrib, poison_strdmg } from './attrib.js';
 import { makemon } from './makemon.js';
 import { mons, PM_WATER_MOCCASIN, PM_WATER_DEMON, PM_WATER_NYMPH,
-         PM_WATER_ELEMENTAL, PM_SEWER_RAT, PM_KNIGHT } from './monsters.js';
+         PM_WATER_ELEMENTAL, PM_SEWER_RAT } from './monsters.js';
 import { mksobj, mkobj, bless, curse, uncurse, xname } from './mkobj.js';
 import { newsym, mark_vision_dirty } from './display.js';
 import { cansee, couldsee, do_clear_area } from './vision.js';

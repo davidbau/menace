@@ -21,7 +21,10 @@
 import { ACCESSIBLE, isok, xdir, ydir, W_WEP, W_QUIVER, W_SWAPWEP,
          ERODE_CRACK, EF_DESTROY, EF_VERBOSE, ER_DESTROYED,
          DIRECTION_KEYS } from './const.js';
-import { IS_SOFT, ZAP_POS, S_boomleft, S_boomright, defsyms } from './const.js';
+import { IS_SOFT, ZAP_POS, S_boomleft, S_boomright, defsyms,
+         PM_WIZARD, PM_CAVEMAN, PM_HEALER, PM_TOURIST,
+         PM_MONK, PM_RANGER, PM_ROGUE,
+         RACE_ELF, RACE_ORC } from './const.js';
 import { rn2, rnd } from './rng.js';
 import { nhgetch } from './input.js';
 import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
@@ -530,16 +533,16 @@ export function multishot_class_bonus(pm, ammo, launcher) {
     let multishot = 0;
     const skill = objectData[ammo.otyp]?.oc_subtyp ?? 0;
     switch (pm) {
-    case 1: // PM_CAVE_DWELLER
+    case PM_CAVEMAN:
         if (skill === -P_SLING || skill === P_SPEAR) multishot++;
         break;
-    case 5: // PM_MONK
+    case PM_MONK:
         if (skill === -P_SHURIKEN) multishot++;
         break;
-    case 8: // PM_RANGER
+    case PM_RANGER:
         if (skill !== P_DAGGER) multishot++;
         break;
-    case 7: // PM_ROGUE
+    case PM_ROGUE:
         if (skill === P_DAGGER) multishot++;
         break;
     case 9: // PM_SAMURAI
@@ -558,19 +561,19 @@ export function throw_obj(player, obj, shotlimit) {
     const uwep = player.weapon;
     if ((obj.quan || 1) > 1
         && (is_ammo(obj) ? matching_launcher(obj, uwep) : obj.oclass === WEAPON_CLASS)) {
-        const role = player.role || 0;
-        const weakmultishot = (role === 12 || role === 2
-            || (role === 3 && skill !== P_KNIFE)
-            || (role === 10 && skill !== -P_DART)
+        const role = player.roleIndex ?? 0;
+        const weakmultishot = (role === PM_WIZARD || role === PM_CAVEMAN
+            || (role === PM_HEALER && skill !== P_KNIFE)
+            || (role === PM_TOURIST && skill !== -P_DART)
             || (player.dex || 10) <= 6);
         const pskill = player.skills?.[weapon_type(obj)] || 0;
         if (pskill >= 4) { multishot++; if (!weakmultishot) multishot++; }
         else if (pskill >= 3) { if (!weakmultishot) multishot++; }
         multishot += multishot_class_bonus(role, obj, uwep);
         if (!weakmultishot) {
-            const race = player.race || 0;
-            if (race === 264 && obj.otyp === ELVEN_ARROW && uwep && uwep.otyp === ELVEN_BOW) multishot++;
-            else if (race === 72 && obj.otyp === ORCISH_ARROW && uwep && uwep.otyp === ORCISH_BOW) multishot++;
+            const race = player.race ?? 0;
+            if (race === RACE_ELF && obj.otyp === ELVEN_ARROW && uwep && uwep.otyp === ELVEN_BOW) multishot++;
+            else if (race === RACE_ORC && obj.otyp === ORCISH_ARROW && uwep && uwep.otyp === ORCISH_BOW) multishot++;
         }
         if (multishot > 1 && skill === -P_CROSSBOW
             && ammo_and_launcher(obj, uwep) && (player.str || 10) < 18)

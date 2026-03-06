@@ -40,7 +40,8 @@ import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
          STRANGE_OBJECT, BOULDER, STATUE, FIGURINE, EGG,
          SCR_FIRE, BAG_OF_HOLDING,
          SCR_MAGIC_MAPPING,
-         ROCK, DWARVISH_CLOAK, CHEST, LARGE_BOX, TIN } from './objects.js';
+         ROCK, DWARVISH_CLOAK, CHEST, LARGE_BOX, TIN,
+         SPE_DIG } from './objects.js';
 import { mons, G_FREQ, MZ_TINY, MZ_HUMAN, M1_NOEYES,
          M2_NEUTER, M2_MALE, M2_FEMALE, M2_UNDEAD, M2_DEMON,
          MR_FIRE, MR_COLD, MR_SLEEP, MR_ELEC, MR_POISON, MR_ACID, MR_DISINT,
@@ -1179,7 +1180,7 @@ export async function weffects(obj, player, map, display = null, game = null) {
     await zapnodir(obj, player, map, display, game);
   } else {
     // RAY wand or spell
-    if (otyp === WAN_DIGGING || otyp === 364 /* SPE_DIG */) {
+    if (otyp === WAN_DIGGING || otyp === SPE_DIG) {
       await zap_dig_core(map, player);
     } else if (otyp >= WAN_MAGIC_MISSILE && otyp <= WAN_LIGHTNING) {
       const beamType = wandToBeamType(otyp);

@@ -19,12 +19,12 @@ import { ACURR } from './attrib.js';
 import { pline, pline_The, You, Your, You_hear, You_feel, You_cant,
          Norep, impossible } from './pline.js';
 import { Monnam, mon_nam, a_monnam, x_monnam, Amonnam } from './do_name.js';
-import { SUPPRESS_SADDLE } from './const.js';
+import { SUPPRESS_SADDLE, PM_ARCHEOLOGIST } from './const.js';
 import { Tobjnam, yname, Yname2, xname, thesimpleoname, an } from './objnam.js';
 import { unique_corpstat, is_mindless, canseemon, is_mercenary,
          is_flyer, is_clinger, is_humanoid, slithy, nolimbs,
          ceiling_hider, can_blow } from './mondata.js';
-import { mons, PM_GUARD, PM_ARCHEOLOGIST, S_SNAKE, S_NYMPH } from './monsters.js';
+import { mons, PM_GUARD, S_SNAKE, S_NYMPH } from './monsters.js';
 import { onscary, wakeup, seemimic, xkilled } from './mon.js';
 import { monflee } from './monmove.js';
 import { resist } from './zap.js';

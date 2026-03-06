@@ -23,6 +23,8 @@ import {
     GRAY_DRAGON_SCALES, YELLOW_DRAGON_SCALES,
     GRAY_DRAGON_SCALE_MAIL, YELLOW_DRAGON_SCALE_MAIL,
     SMALL_SHIELD,
+    LARGE_BOX, CHEST,
+    ELVEN_LEATHER_HELM, FEDORA, CORNUTHAUM, DUNCE_CAP,
 } from './objects.js';
 import {
     mons, G_UNIQ,
@@ -675,7 +677,7 @@ export function not_fully_identified(otmp) {
 
 function Is_box(obj) {
     const otyp = obj.otyp;
-    return otyp === 268 /* LARGE_BOX */ || otyp === 269 /* CHEST */;
+    return otyp === LARGE_BOX || otyp === CHEST;
 }
 
 // ============================================================================
@@ -2224,7 +2226,7 @@ export function helm_simple_name(helmet) {
         const od = objectData[otyp];
         // Items that are "hats" (don't provide hard helmet protection):
         // fedora (92), cornuthaum (93), dunce cap (94), elven leather helm (89)
-        if (otyp === 89 || otyp === 92 || otyp === 93 || otyp === 94) return 'hat';
+        if (otyp === ELVEN_LEATHER_HELM || otyp === FEDORA || otyp === CORNUTHAUM || otyp === DUNCE_CAP) return 'hat';
     }
     return 'helm';
 }

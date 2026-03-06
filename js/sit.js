@@ -17,6 +17,7 @@ import { pline, You, Your, You_feel, You_cant, pline_The,
          verbalize } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { is_pool, is_lava, is_ice } from './dbridge.js';
+import { PM_TRAPPER } from './monsters.js';
 import { is_prince, slithy, is_hider, lays_eggs, likes_lava,
          amorphous, is_humanoid, eggs_in_water, sticks } from './mondata.js';
 import { which_armor } from './worn.js';
@@ -367,7 +368,7 @@ export async function dosit(player, map, display) {
     // Un-hide from ceiling
     const playerType = player.type || {};
     if (player.uundetected && is_hider(playerType)
-        && (player.umonnum || 0) !== 291 /* PM_TRAPPER */) {
+        && (player.umonnum || 0) !== PM_TRAPPER) {
         player.uundetected = false;
     }
 

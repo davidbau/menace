@@ -1420,7 +1420,7 @@ export function mpickgold(mon, map) {
     for (const gold of [...objects]) {
         if (!gold || gold.buried) continue;
         // C ref: g_at() — find gold object
-        if (gold.oclass !== 16 /* COIN_CLASS */) continue;
+        if (gold.oclass !== COIN_CLASS) continue;
         if (map && typeof map.removeObject === 'function') {
             map.removeObject(gold);
         }

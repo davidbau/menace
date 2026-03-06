@@ -3,7 +3,7 @@
 
 import { rn2, rnd, rn1 } from './rng.js';
 import {
-    isok, A_WIS, A_DEX, A_CHA, W_SADDLE,
+    isok, A_WIS, A_DEX, A_CHA, W_SADDLE, PM_KNIGHT,
     DISMOUNT_BYCHOICE, DISMOUNT_THROWN, DISMOUNT_KNOCKED, DISMOUNT_FELL,
     DISMOUNT_POLY, DISMOUNT_ENGULFED, DISMOUNT_BONES, DISMOUNT_GENERIC,
 } from './const.js';
@@ -180,7 +180,7 @@ export async function mount_steed(mtmp, force, player, map, display) {
     }
 
     // Tameness decrement for non-knight
-    if (!force && player.roleIndex !== 4 /* PM_KNIGHT in config */ && mtmp.mtame) {
+    if (!force && player.roleIndex !== PM_KNIGHT && mtmp.mtame) {
         mtmp.mtame--;
         if (!mtmp.mtame) {
             await pline("%s resists!", Monnam(mtmp));
