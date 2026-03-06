@@ -209,6 +209,7 @@ export function nscr() {
   }
   game.flags.dscr = game.scrhx = game.scrhy = 0;
   game.scrlx = 80; game.scrly = 22;
+  game.flags.topl = 0;
 }
 
 // C ref: pmon(mon) — draw a monster if visible

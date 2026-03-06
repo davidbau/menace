@@ -283,6 +283,7 @@ export async function gameLoop(seed) {
 
     if (!game.multi) {
       if (game.flags.dscr) nscr();
+      else game.flags.topl = 0;
       if (game.flags.botl) bot();
       if (game.flags.mv) game.flags.mv = false;
       await rhack(await parse());
