@@ -16,7 +16,7 @@ import { Player, roles, races, validRacesForRole, validAlignsForRoleRace,
          roleNameForGender, alignName, formatLoreText } from './player.js';
 import { GameMap } from './game.js';
 import { initLevelGeneration, mklev, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
-import { setSplevPlayerContext, clearSplevPlayerContext } from './sp_lev.js';
+import { runWithSplevPlayerSnapshot } from './sp_lev.js';
 import { monsterNearby } from './hack.js';
 import { simulatePostLevelInit, initFirstLevel } from './u_init.js';
 import { getArrivalPosition, changeLevel as changeLevelCore } from './do.js';
@@ -299,9 +299,9 @@ export async function enterTutorial(game, opts = {}) {
         applyTutorialStrip();
     }
 
-    setSplevPlayerContext((game.u || game.player));
-    game.lev = await mklev(1, TUTORIAL, 1, { dungeonAlignOverride: A_NONE });
-    clearSplevPlayerContext();
+    game.lev = await runWithSplevPlayerSnapshot((game.u || game.player), async () =>
+        await mklev(1, TUTORIAL, 1, { dungeonAlignOverride: A_NONE })
+    );
     game.levels[1] = (game.lev || game.map);
     (game.u || game.player).dungeonLevel = 1;
     (game.u || game.player).inTutorial = true;

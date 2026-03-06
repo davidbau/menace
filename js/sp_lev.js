@@ -7171,8 +7171,8 @@ export const nh = {
  * (especially tutorial levels) can reference player properties
  * without causing errors.
  *
- * Call setSplevPlayerContext(player) before generating a special level
- * to populate these fields from the actual player object.
+ * Use runWithSplevPlayerSnapshot(player, fn) to populate these fields from the
+ * actual player object during special level generation work.
  */
 export const u = {
     role: null,       // Player role name (e.g., "Knight", "Wizard") — C: gu.urole.name.m
@@ -7193,7 +7193,7 @@ export const u = {
  * C ref: nhlua.c nhlua_u_get() — Lua u.* reads directly from C u struct.
  * Call this before generating a special level with a real player context.
  */
-export function setSplevPlayerContext(player) {
+function applySplevPlayerSnapshot(player) {
     if (!player) return;
     if (player.roleName != null) u.role = player.roleName;
     else if (player.role != null) u.role = player.role;
@@ -7221,7 +7221,7 @@ export function setSplevPlayerContext(player) {
  * Clear the sp_lev u object back to defaults.
  * Call this after special level generation completes.
  */
-export function clearSplevPlayerContext() {
+function clearSplevPlayerSnapshot() {
     u.role = null;
     u.race = null;
     u.alignment = null;
@@ -7233,6 +7233,15 @@ export function clearSplevPlayerContext() {
     u.uluck = 0;
     u.uhunger = 900;
     u.invocation_level = false;
+}
+
+export async function runWithSplevPlayerSnapshot(player, fn) {
+    applySplevPlayerSnapshot(player);
+    try {
+        return await fn();
+    } finally {
+        clearSplevPlayerSnapshot();
+    }
 }
 
 /**
