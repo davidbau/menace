@@ -119,7 +119,29 @@ await pline(`${Monnam(mtmp)} freezes.`);
 ```
 The translator has a template literal pass but it doesn't always trigger.
 
-### 5. C pass-by-reference
+### 5. C `&=` on booleans — DO NOT convert to `&&`
+```c
+do_spec &= (rn2(ACURR(A_DEX)) + u.ulevel > 25);  // always evaluates rn2()
+```
+The translator correctly emits `&=` as-is. **Do NOT "improve" this to `&&`.**
+JS `&&` short-circuits: if `do_spec` is false, the RHS is never evaluated,
+meaning `rn2()` is never called — a silent RNG divergence. Keep `&=` or use
+explicit `&` (bitwise AND):
+```js
+do_spec = do_spec & (rn2(ACURR(player, A_DEX)) + ulevel > 25);
+```
+
+### 6. `||` with falsy constants (D_NODOOR=0, etc.)
+```js
+// BUG: D_NODOOR is 0 (falsy), so || skips it
+if ((loc.doormask || loc.flags || 0) === D_NODOOR)  // WRONG
+// FIX: use ?? (nullish coalescing) to preserve 0
+if ((loc.doormask ?? loc.flags ?? 0) === D_NODOOR)   // RIGHT
+```
+When the comparison target is 0 or another falsy value, `||` chains silently
+skip it. Use `??` which only falls through on null/undefined.
+
+### 7. C pass-by-reference
 ```c
 void func(int *xp, int *yp) { *xp = 5; }
 ```
@@ -127,17 +149,21 @@ void func(int *xp, int *yp) { *xp = 5; }
 // Return an object instead: return { x: 5, y: ... }
 ```
 
-### 6. monsdat(mtmp) -> mtmp.data || mtmp.type
+### 8. monsdat(mtmp) -> mtmp.data || mtmp.type
 The translator emits `monsdat(mtmp)` for `mtmp->data`. Fix to `mtmp.data || mtmp.type`.
 
-### 7. Missing function parameters
+### 9. Missing function parameters
 C functions access globals (player, map, fov, display) directly. JS needs them
 as explicit parameters. The translator adds params declared in `requires_params`
 from macro/state rewrites, but callers must also be updated to pass them.
 
-### 8. NOTELL parameter on resist()
+### 10. NOTELL parameter on resist()
 C: `resist(mtmp, TOOL_CLASS, 0, NOTELL)` — JS `resist()` only takes 2 args.
 Drop extra args.
+
+### 11. Missing `the()` wrapper on object names
+C: `the(xname(instr))` — the translator may drop the `the()` call. Verify
+against C source that object name messages include the appropriate article.
 
 ## Workflow: Translating a New Batch
 
