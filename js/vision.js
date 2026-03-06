@@ -584,9 +584,9 @@ export function fill_point(row, col) {
         }
     } else if (col === (COLNO - 1)) {
         if (viz_clear[row][COLNO - 2]) {
-            right_ptrs_arr[row][COLNO - 1] = COLNO - 1;
+            left_ptrs_arr[row][COLNO - 1] = COLNO - 1;
         } else {
-            right_ptrs_arr[row][COLNO - 1] = right_ptrs_arr[row][COLNO - 2];
+            left_ptrs_arr[row][COLNO - 1] = left_ptrs_arr[row][COLNO - 2];
             for (i = left_ptrs_arr[row][COLNO - 2]; i < COLNO - 1; i++)
                 right_ptrs_arr[row][i] = COLNO - 1;
         }
@@ -603,11 +603,13 @@ export function fill_point(row, col) {
             left_ptrs_arr[row][COLNO - 1] = col;
 
     } else if (viz_clear[row][col - 1]) {
-        for (i = col + 1; i <= right_ptrs_arr[row][col + 1]; i++)
+        for (i = col; i <= right_ptrs_arr[row][col + 1]; i++)
             left_ptrs_arr[row][i] = col;
         for (i = left_ptrs_arr[row][col - 1] + 1; i < col; i++)
             right_ptrs_arr[row][i] = col;
-        left_ptrs_arr[row][col] = left_ptrs_arr[row][col - 1];
+        if (!left_ptrs_arr[row][col - 1])
+            right_ptrs_arr[row][i] = col;
+        right_ptrs_arr[row][col] = right_ptrs_arr[row][col + 1];
 
     } else if (viz_clear[row][col + 1]) {
         for (i = left_ptrs_arr[row][col - 1]; i <= col; i++)
@@ -615,7 +617,7 @@ export function fill_point(row, col) {
         for (i = col + 1; i < right_ptrs_arr[row][col + 1]; i++)
             left_ptrs_arr[row][i] = col;
         if (right_ptrs_arr[row][col + 1] === (COLNO - 1))
-            left_ptrs_arr[row][col] = col;
+            left_ptrs_arr[row][i] = col;
         left_ptrs_arr[row][col] = left_ptrs_arr[row][col - 1];
 
     } else {
@@ -635,41 +637,43 @@ export function dig_point(row, col) {
         if (viz_clear[row][1]) {
             right_ptrs_arr[row][0] = right_ptrs_arr[row][1];
         } else {
-            left_ptrs_arr[row][0] = 1;
+            right_ptrs_arr[row][0] = 1;
             for (i = 1; i <= right_ptrs_arr[row][1]; i++)
                 left_ptrs_arr[row][i] = 1;
         }
     } else if (col === (COLNO - 1)) {
         if (viz_clear[row][COLNO - 2]) {
-            right_ptrs_arr[row][COLNO - 1] = right_ptrs_arr[row][COLNO - 2];
+            left_ptrs_arr[row][COLNO - 1] = left_ptrs_arr[row][COLNO - 2];
         } else {
-            right_ptrs_arr[row][COLNO - 1] = COLNO - 2;
+            left_ptrs_arr[row][COLNO - 1] = COLNO - 2;
             for (i = left_ptrs_arr[row][COLNO - 2]; i < COLNO - 1; i++)
                 right_ptrs_arr[row][i] = COLNO - 2;
         }
     } else if (viz_clear[row][col - 1] && viz_clear[row][col + 1]) {
-        for (i = left_ptrs_arr[row][col - 1] + 1; i <= col; i++) {
+        for (i = left_ptrs_arr[row][col - 1]; i <= col; i++) {
             if (!viz_clear[row][i]) continue;
-            right_ptrs_arr[row][i] = col;
+            right_ptrs_arr[row][i] = right_ptrs_arr[row][col + 1];
         }
-        for (i = col + 1; i < right_ptrs_arr[row][col + 1]; i++) {
+        for (i = col; i <= right_ptrs_arr[row][col + 1]; i++) {
             if (!viz_clear[row][i]) continue;
-            left_ptrs_arr[row][i] = col;
+            left_ptrs_arr[row][i] = left_ptrs_arr[row][col - 1];
         }
     } else if (viz_clear[row][col - 1]) {
         for (i = col + 1; i <= right_ptrs_arr[row][col + 1]; i++)
             left_ptrs_arr[row][i] = col + 1;
-        for (i = left_ptrs_arr[row][col - 1] + 1; i < col; i++)
-            right_ptrs_arr[row][i] = col;
+        for (i = left_ptrs_arr[row][col - 1]; i <= col; i++) {
+            if (!viz_clear[row][i]) continue;
+            right_ptrs_arr[row][i] = col + 1;
+        }
         left_ptrs_arr[row][col] = left_ptrs_arr[row][col - 1];
     } else if (viz_clear[row][col + 1]) {
-        for (i = left_ptrs_arr[row][col - 1]; i <= col; i++)
+        for (i = left_ptrs_arr[row][col - 1]; i < col; i++)
             right_ptrs_arr[row][i] = col - 1;
-        for (i = col + 1; i < right_ptrs_arr[row][col + 1]; i++)
+        for (i = col; i <= right_ptrs_arr[row][col + 1]; i++) {
+            if (!viz_clear[row][i]) continue;
             left_ptrs_arr[row][i] = col - 1;
-        if (right_ptrs_arr[row][col + 1] === (COLNO - 1))
-            left_ptrs_arr[row][col] = col - 1;
-        left_ptrs_arr[row][col] = left_ptrs_arr[row][col - 1];
+        }
+        right_ptrs_arr[row][col] = right_ptrs_arr[row][col + 1];
     } else {
         for (i = left_ptrs_arr[row][col - 1]; i < col; i++)
             right_ptrs_arr[row][i] = col - 1;

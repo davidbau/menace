@@ -2832,3 +2832,27 @@ hard-won wisdom:
     - seed325 first divergence step `238`
     - seed327 first divergence step `390`
     - seed328 first divergence step `220`
+
+### Vision pointer-table parity fix removes replay live-lock hotspot (2026-03-06)
+
+- Symptom:
+  - `seed325_knight_wizard_gameplay` timed out with no comparable metrics
+    (`rng=0/0`, `events=0/0`) after enabling C-faithful postmov ordering.
+  - CPU profiling showed dominant self time in `vision.js` (`right_side`,
+    `q4_path`) during pet-path `do_clear_area(...)` calls.
+- Root cause:
+  - `js/vision.js` pointer-maintenance logic for `fill_point()`/`dig_point()`
+    had multiple C-port mismatches (wrong left/right pointer targets and
+    boundary updates), corrupting `left_ptrs_arr`/`right_ptrs_arr`.
+  - Corrupted row pointers caused pathological LOS scanning cost in
+    `view_from()` recursion.
+- C-faithful fix:
+  - Re-aligned `fill_point()` and `dig_point()` branch-by-branch with
+    `nethack-c/patched/src/vision.c` (`fill_point`/`dig_point`).
+  - Corrected edge handling and "catch end case" updates so row pointer tables
+    stay valid.
+- Validation:
+  - `node scripts/replay_stall_diagnose.mjs --session seed325_knight_wizard_gameplay --timeout-ms 8000 --top 12`
+    now completes without timeout and produces full comparable metrics.
+  - Direct run also completes (no timeout):
+    `node test/comparison/session_test_runner.js --verbose --session-timeout-ms=12000 --sessions=seed325_knight_wizard_gameplay.session.json`.
