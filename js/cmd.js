@@ -1260,7 +1260,7 @@ export async function handler_change_autocompletions() {
     if ((ec.flags & (INTERNALCMD|CMD_NOT_AVAILABLE)) !== 0) {
       continue;
     }
-    if (strlen(ec.ef_txt) < 2) {
+    if (ec.ef_txt.length < 2) {
       continue;
     }
     any.a_int = (i + 1);
@@ -1277,7 +1277,7 @@ export async function handler_change_autocompletions() {
       if ((ec.flags & (INTERNALCMD|CMD_NOT_AVAILABLE)) !== 0) {
         continue;
       }
-      if (strlen(ec.ef_txt) < 2) {
+      if (ec.ef_txt.length < 2) {
         continue;
       }
       Sprintf(buf, "%s", ec.ef_txt);

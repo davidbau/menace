@@ -521,13 +521,13 @@ export function size_obj(otmp) {
   if (otmp.oextra) {
     sz +=  sizeof ;
     if (ONAME(otmp)) {
-      sz +=  strlen(ONAME(otmp)) + 1;
+      sz +=  ONAME(otmp).length + 1;
     }
     if (OMONST(otmp)) {
       sz += size_monst(OMONST(otmp), false);
     }
     if (OMAILCMD(otmp)) {
-      sz +=  strlen(OMAILCMD(otmp)) + 1;
+      sz +=  OMAILCMD(otmp).length + 1;
     }
   }
   return sz;
@@ -567,7 +567,7 @@ export function size_monst(mtmp, incl_wsegs) {
   if (mtmp.mextra) {
     sz +=  sizeof ;
     if (MGIVENNAME(mtmp)) {
-      sz +=  strlen(MGIVENNAME(mtmp)) + 1;
+      sz +=  MGIVENNAME(mtmp).length + 1;
     }
     if (EGD(mtmp)) {
       sz +=  sizeof ;

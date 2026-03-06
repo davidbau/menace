@@ -1768,7 +1768,7 @@ export function copy_mextra(mtmp2, mtmp1) {
   if (!mtmp2 || !mtmp1 || !mtmp1.mextra) return;
   if (!mtmp2.mextra) mtmp2.mextra = newmextra();
   if (MGIVENNAME(mtmp1)) {
-    new_mgivenname(mtmp2,  strlen(MGIVENNAME(mtmp1)) + 1);
+    new_mgivenname(mtmp2, MGIVENNAME(mtmp1).length + 1);
     Strcpy(MGIVENNAME(mtmp2), MGIVENNAME(mtmp1));
   }
   if (EGD(mtmp1)) {

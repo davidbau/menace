@@ -926,7 +926,7 @@ export async function look_at_object(buf, x, y, glyph, map) {
   if (otmp && otmp.where === OBJ_BURIED) {
     Strcat(buf, " (buried)");
   }
-  else if (IS_TREE(map.locations[x][y].typ)) Snprintf(eos(buf), BUFSZ - strlen(buf), " %s in a tree", (otmp && is_treefruit(otmp)) ? "dangling" : "stuck");
+  else if (IS_TREE(map.locations[x][y].typ)) buf += ` ${(otmp && is_treefruit(otmp)) ? "dangling" : "stuck"} in a tree`;
   else if (map.locations[x][y].typ === STONE || map.locations[x][y].typ === SCORR) {
     Strcat(buf, " embedded in stone");
   }

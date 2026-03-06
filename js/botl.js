@@ -144,7 +144,7 @@ export function title_to_mon(str, rank_indx, title_length) {
 // Autotranslated from botl.c:1106
 export function parse_cond_option(negated, opts) {
   let i, sl, compareto, uniqpart, prefix = "cond_";
-  if (!opts || strlen(opts) <= prefix.length - 1) return 2;
+  if (!opts || opts.length <= prefix.length - 1) return 2;
   uniqpart = opts + (prefix.length - 1);
   for (i = 0; i < CONDITION_COUNT; ++i) {
     compareto = condtests[i].useroption;
@@ -422,7 +422,7 @@ export function hlattr2attrname(attrib, buf, bufsz) {
     if (attrib & HL_INVERSE) {
       Strcat(attbuf, first++ ? "+inverse" : "inverse");
     }
-    k = strlen(attbuf);
+    k = attbuf.length;
     if (k < (bufsz - 1)) {
       Strcpy(buf, attbuf);
     }
@@ -653,7 +653,7 @@ export function fldname_to_bl_indx(name) {
       }
     }
     if (!nmatches) {
-      let len =  strlen(name);
+      let len = name.length;
       for (i = 0; i < SIZE(initblstats); i++) {
         if (!strncmpi(name, initblstats[i].fldname, len)) { fld = initblstats[i].fld; nmatches++; }
       }
@@ -716,7 +716,7 @@ export function match_str2conditionbitmask(str) {
       }
     }
     if (!nmatches) {
-      let len =  strlen(str);
+      let len = str.length;
       for (i = 0; i < SIZE(condition_aliases); i++) {
         if (!strncmpi(str, condition_aliases[i].id, len)) { mask |= condition_aliases[i].bitmask; nmatches++; }
       }

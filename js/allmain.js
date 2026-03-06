@@ -2046,7 +2046,7 @@ export async function dump_enums() {
     await raw_printf("enum %s = {", edmp[i].title);
     for (j = 0; j < edmp[i].szd; ++j) {
       nmprefix = (j >= edmp[i].szd - edmp[i].unprefixed_count) ? "" : edmp[i].pfx;
-      nmwidth = 27 -  strlen(nmprefix);
+      nmwidth = 27 - nmprefix.length;
       if (edmp[i].dumpflgs > 0) {
         Snprintf(comment, comment.length, "  ", (ed[i][j].val >= 32 && ed[i][j].val <= 126) ? ed[i][j].val : ' ');
       }

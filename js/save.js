@@ -211,14 +211,14 @@ export function saveobj(nhfp, otmp) {
   Sfo_int(nhfp, buflen, "obj-obj_length");
   Sfo_obj(nhfp, otmp, "obj");
   if (otmp.oextra) {
-    buflen = ONAME(otmp) ?  strlen(ONAME(otmp)) + 1 : 0;
+    buflen = ONAME(otmp) ?  ONAME(otmp).length + 1 : 0;
     Sfo_int(nhfp, buflen, "obj-oname_length");
     if (buflen > 0) {
       Sfo_char(nhfp, ONAME(otmp), "obj-oname", buflen);
     }
     if (OMONST(otmp)) { savemon(nhfp, OMONST(otmp)); }
     else { Sfo_int(nhfp, zerobuf, "obj-omonst_length"); }
-    buflen = OMAILCMD(otmp) ?  strlen(OMAILCMD(otmp)) + 1 : 0;
+    buflen = OMAILCMD(otmp) ?  OMAILCMD(otmp).length + 1 : 0;
     Sfo_int(nhfp, buflen, "obj-omailcmd_length");
     if (buflen > 0) {
       Sfo_char(nhfp, OMAILCMD(otmp), "obj-omailcmd", buflen);
@@ -235,7 +235,7 @@ export function savemon(nhfp, mtmp) {
   Sfo_int(nhfp, buflen, "monst-monst_length");
   Sfo_monst(nhfp, mtmp, "monst");
   if (mtmp.mextra) {
-    buflen = MGIVENNAME(mtmp) ?  strlen(MGIVENNAME(mtmp)) + 1 : 0;
+    buflen = MGIVENNAME(mtmp) ?  MGIVENNAME(mtmp).length + 1 : 0;
     Sfo_int(nhfp, buflen, "monst-mgivenname_length");
     if (buflen > 0) {
       Sfo_char(nhfp, MGIVENNAME(mtmp), "monst-mgivenname", buflen);

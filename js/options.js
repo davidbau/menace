@@ -348,7 +348,7 @@ export function check_misc_menu_command(opts, op) {
   let i, name_to_check;
   for (i = 0; default_menu_cmd_info[i].name; i++) {
     name_to_check = default_menu_cmd_info[i].name;
-    if (match_optname(opts, name_to_check,  strlen(name_to_check), true)) return i;
+    if (match_optname(opts, name_to_check, name_to_check.length, true)) return i;
   }
   return -1;
 }
@@ -913,7 +913,7 @@ export async function rejectoption(optname) {
 // Autotranslated from options.c:6832
 export function nh_getenv(ev) {
   let getev = getenv(ev);
-  if (getev && strlen(getev) <= (BUFSZ / 2)) return getev;
+  if (getev && getev.length <= (BUFSZ / 2)) return getev;
   else {
     return  0;
   }
@@ -960,7 +960,7 @@ export function warning_opts(opts, optype) {
   let translate, length, i;
   if ((opts = string_for_env_opt(optype, opts, false)) === empty_optstr) return false;
   escapes(opts, opts);
-  length =  strlen(opts);
+  length = opts.length;
   for (i = 0; i < WARNCOUNT; i++) {
     translate = (i >= length) ? 0 : opts[i] ?  opts[i] : def_warnsyms[i].sym;
   }
@@ -1386,7 +1386,7 @@ export function options_free_window_colors() {
 export function enhance_menu_text(buf, sz, whichpass, bool_p, thisopt) {
   let nowsz, availsz;
   if (!buf) return;
-  nowsz = strlen(buf) + 1;
+  nowsz = buf.length + 1;
   availsz = sz - nowsz;
   nhUse(availsz);
   nhUse(bool_p);

@@ -149,7 +149,7 @@ export async function deliver_by_pline(str) {
   let in_line, out_line, msgp = str, msgend = eos( str);
   while (msgp < msgend) {
     copynchars(in_line, msgp,  in_line.length - 1);
-    msgp += strlen(in_line) + 1;
+    msgp += in_line.length + 1;
     convert_line(in_line, out_line);
     await pline("%s", out_line);
   }
