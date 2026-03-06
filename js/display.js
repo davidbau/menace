@@ -1526,12 +1526,7 @@ export function fn_cmap_to_glyph(cmap) {
 
 import { game as _gstate } from './gstate.js';
 
-// Display context — allows newsym() to perform per-cell rendering.
-// Falls back to gstate.game fields when no explicit override is active.
-let _displayContext = null;
-
 function _getDisplayCtx() {
-    if (_displayContext) return _displayContext;
     if (!_gstate) return null;
     return {
         display: _gstate.display,
@@ -1554,11 +1549,15 @@ function playerCanSeeInvisible(player) {
     return !!(player?.seeInvisible || player?.See_invisible || playerHasActiveProp(player, SEE_INVIS));
 }
 
-// Set the display context for incremental rendering.
-export function setDisplayContext(ctx) {
-    const prev = _displayContext;
-    _displayContext = ctx || null;
-    return prev;
+function _resolveDisplayCtx(ctxOrMap) {
+    if (ctxOrMap && typeof ctxOrMap === 'object') {
+        if (ctxOrMap.display) return ctxOrMap;
+        if (typeof ctxOrMap.at === 'function') {
+            const base = _getDisplayCtx() || {};
+            return { ...base, map: ctxOrMap };
+        }
+    }
+    return _getDisplayCtx();
 }
 
 // C ref: display.c:378 map_invisible()
@@ -1572,8 +1571,8 @@ export function map_invisible(map, x, y, player) {
 }
 
 // C ref: display.c:918 newsym()
-export function newsym(x, y) {
-    const ctx = _getDisplayCtx();
+export function newsym(x, y, ctxOrMap = null) {
+    const ctx = _resolveDisplayCtx(ctxOrMap);
     const map = ctx?.map;
     if (!map || !isok(x, y)) return;
     const loc = map.at(x, y);

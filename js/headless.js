@@ -20,7 +20,7 @@ import { initrack } from './monmove.js';
 import { NORMAL_SPEED } from './monsters.js';
 import { FOV } from './vision.js';
 import { monsterNearby } from './hack.js';
-import { newsym, setDisplayContext } from './display.js'; // setDisplayContext still used for explicit override in renderMap
+import { newsym } from './display.js';
 import { getArrivalPosition, changeLevel as changeLevelCore } from './do.js';
 import { doname } from './mkobj.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
@@ -1013,18 +1013,16 @@ export class HeadlessDisplay {
         this._lastMapState = { gameMap, player, fov, flags: { ...this.flags } };
         const mapOffset = this.flags.msg_window ? 3 : MAP_ROW_START;
 
-        // Temporarily set display context so newsym() renders to this display
-        const prevCtx = setDisplayContext({ display: this, player, fov, flags: this.flags, map: gameMap });
+        const renderCtx = { display: this, player, fov, flags: this.flags, map: gameMap };
         for (let y = 0; y < ROWNO; y++) {
             const row = y + mapOffset;
             // C tty map rendering uses game x in [1..COLNO-1] at terminal cols [0..COLNO-2].
             // Keep the last terminal column blank for map rows.
             this.setCell(COLNO - 1, row, ' ', CLR_GRAY);
             for (let x = 1; x < COLNO; x++) {
-                newsym(x, y);
+                newsym(x, y, renderCtx);
             }
         }
-        setDisplayContext(prevCtx);
         this._captureMapBase();
         this._applyTempOverlay();
     }

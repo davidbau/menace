@@ -182,7 +182,6 @@ as function parameters (matching how C passes struct pointers).
 | Module | Setter | Internal var | Callers |
 |--------|--------|-------------|---------|
 | pline.js | `setOutputContext()` | `_outputContext` | allmain, chargen, headless |
-| monutil.js | `setDisplayContext()` | `_displayContext` | allmain, do, hack, kick, headless |
 | makemon.js | `setMakemonPlayerContext()` | `_makemonPlayerCtx` | allmain, chargen, exper, u_init, wizcmds, dungeon |
 | makemon.js | `setMakemonRoleContext()` | `_makemonPlayerCtx` | dungeon |
 | makemon.js | `setMakemonLevelContext()` | `_makemonLevelCtx` | dungeon |
@@ -202,9 +201,9 @@ as function parameters (matching how C passes struct pointers).
 
 Current Phase-4 reality snapshot (2026-03-06):
 - Completed/reduced in prior passes: `setOutputContext`, timer/global state
-  wiring, and several mkobj/makemon context consumers now read via `gstate`.
+  wiring, display context override wiring (`setDisplayContext`), and several
+  mkobj/makemon context consumers now read via `gstate`.
 - Remaining active setters (still to eliminate or formally justify):
-  - `setDisplayContext` (`display.js`) for headless explicit override save/restore.
   - `setMakemonPlayerContext` / `setMakemonRoleContext` / `setMakemonLevelContext` (`makemon.js`).
   - `setLevelContext` / `setFinalizeContext` / `setSplevPlayerContext` (`sp_lev.js`).
 
