@@ -611,9 +611,6 @@ export async function rhack(ch, game) {
             setForceFight(false);
         } else {
             setForceFight(true);
-            if (game.flags.verbose) {
-                await display.putstr_message('Next movement will force fight even if no monster visible.');
-            }
         }
         return { moved: false, tookTime: false };
     }
@@ -625,9 +622,6 @@ export async function rhack(ch, game) {
             clearRunMode();
         } else {
             setRunMode(3); // run mode
-            if (game.flags.verbose) {
-                await display.putstr_message('Next direction will run until something interesting.');
-            }
         }
         return { moved: false, tookTime: false };
     }
@@ -639,9 +633,6 @@ export async function rhack(ch, game) {
             clearRunMode();
         } else {
             setRunMode(2); // rush mode
-            if (game.flags.verbose) {
-                await display.putstr_message('Next direction will rush until something interesting.');
-            }
         }
         return { moved: false, tookTime: false };
     }
