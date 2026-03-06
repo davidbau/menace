@@ -205,9 +205,10 @@ pre-evaluating them — keeping the JS tables readable and close to the C source
 Check for stray exported capitalized constants outside leaf files:
 
 ```bash
-grep -rn "export \(const\|let\|var\) [A-Z]" js/*.js \
-  | grep -v 'js/const\.js\|js/objects\.js\|js/monsters\.js\|js/version\.js' \
-  | grep -v 'js/artifacts\.js\|js/game\.js\|js/.*_data\.js\|js/storage\.js'
+node --test test/unit/constants_export_policy.test.js
+
+rg -n "^export (const|let|var) [A-Z]" js \
+  | rg -v "js/(const|objects|monsters|artifacts|version|storage|.*_data)\\.js:"
 ```
 
 This should produce no output. If it does, move or unexport the offending constants.
