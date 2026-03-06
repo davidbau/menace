@@ -15,57 +15,24 @@ import {
     AIR, CLOUD, SDOOR, SCORR,
     D_ISOPEN, D_CLOSED, D_LOCKED,
     IS_WALL, Amask2align,
+    CLR_BLACK, CLR_RED, CLR_GREEN, CLR_BROWN, CLR_BLUE, CLR_MAGENTA,
+    CLR_CYAN, CLR_GRAY, NO_COLOR, CLR_ORANGE, CLR_BRIGHT_GREEN,
+    CLR_YELLOW, CLR_BRIGHT_BLUE, CLR_BRIGHT_MAGENTA, CLR_BRIGHT_CYAN, CLR_WHITE,
+    HI_METAL, HI_WOOD, HI_GOLD, HI_ZAP,
+    SV0, SV1, SV2, SV3, SV4, SV5, SV6, SV7,
+    WM_MASK, WM_C_OUTER, WM_C_INNER,
 } from './const.js';
 import { defsyms, trap_to_defsym } from './const.js';
 
-// ============================================================================
-// Color constants (C ref: include/color.h)
-// Defined here as the authoritative source for render.js's own use.
-// display.js re-exports these for the browser frontend; headless.js imports
-// only the ones it needs.
-// ============================================================================
-export const CLR_BLACK         = 0;
-export const CLR_RED           = 1;
-export const CLR_GREEN         = 2;
-export const CLR_BROWN         = 3;
-export const CLR_BLUE          = 4;
-export const CLR_MAGENTA       = 5;
-export const CLR_CYAN          = 6;
-export const CLR_GRAY          = 7;
-export const NO_COLOR          = 8;
-export const CLR_ORANGE        = 9;
-export const CLR_BRIGHT_GREEN  = 10;
-export const CLR_YELLOW        = 11;
-export const CLR_BRIGHT_BLUE   = 12;
-export const CLR_BRIGHT_MAGENTA = 13;
-export const CLR_BRIGHT_CYAN   = 14;
-export const CLR_WHITE         = 15;
-// Semantic aliases (C ref: display.h)
-export const HI_METAL = CLR_CYAN;
-export const HI_WOOD  = CLR_BROWN;
-export const HI_GOLD  = CLR_YELLOW;
-export const HI_ZAP   = CLR_BRIGHT_BLUE;
-
-// ============================================================================
-// seenv angle bits (C ref: rm.h:367-387)
-// 8-bit octant mask for the 8 sub-tiles surrounding a cell:
-//   0 1 2
-//   7 x 3
-//   6 5 4
-// ============================================================================
-export const SV0 = 0x01; // upper-left
-export const SV1 = 0x02; // upper
-export const SV2 = 0x04; // upper-right
-export const SV3 = 0x08; // left
-export const SV4 = 0x10; // right
-export const SV5 = 0x20; // lower-right
-export const SV6 = 0x40; // lower-left
-export const SV7 = 0x80; // lower
-
-// wall_info mode constants (C ref: rm.h:287,348-365)
-export const WM_MASK    = 0x07;
-export const WM_C_OUTER = 1; // corner: outer half visible
-export const WM_C_INNER = 2; // corner: inner half visible
+// Re-export shared render constants from const.js for existing imports.
+export {
+    CLR_BLACK, CLR_RED, CLR_GREEN, CLR_BROWN, CLR_BLUE, CLR_MAGENTA,
+    CLR_CYAN, CLR_GRAY, NO_COLOR, CLR_ORANGE, CLR_BRIGHT_GREEN,
+    CLR_YELLOW, CLR_BRIGHT_BLUE, CLR_BRIGHT_MAGENTA, CLR_BRIGHT_CYAN, CLR_WHITE,
+    HI_METAL, HI_WOOD, HI_GOLD, HI_ZAP,
+    SV0, SV1, SV2, SV3, SV4, SV5, SV6, SV7,
+    WM_MASK, WM_C_OUTER, WM_C_INNER,
+};
 
 // ============================================================================
 // Terrain symbol tables

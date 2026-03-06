@@ -563,6 +563,23 @@ export const TIMER_FUNC = Object.freeze({
 });
 export const MELT_ICE_AWAY = TIMER_FUNC.MELT_ICE_AWAY;
 
+// Corpse taint/revival age window (src/mkobj.c)
+// Runtime fields: rot/revive scheduling bound for corpse timers.
+export const TAINT_AGE = 50;
+
+// seenv octants and wall-info bits (include/rm.h)
+export const SV0 = 0x01;
+export const SV1 = 0x02;
+export const SV2 = 0x04;
+export const SV3 = 0x08;
+export const SV4 = 0x10;
+export const SV5 = 0x20;
+export const SV6 = 0x40;
+export const SV7 = 0x80;
+export const WM_MASK = 0x07;
+export const WM_C_OUTER = 1;
+export const WM_C_INNER = 2;
+
 // Maximum values
 export const MAXNROFROOMS = 40;
 export const MAXDUNGEON = 16;
