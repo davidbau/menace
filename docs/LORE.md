@@ -2798,3 +2798,19 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/session_datetime.test.js test/unit/session_recorder_datetime.test.js`
   - `node scripts/test-unit-core.mjs --runInBand`
+
+### m_move parity: restore missing Tengu early-teleport branch (2026-03-06)
+
+- Root cause:
+  - `js/monmove.js:m_move()` skipped the C `PM_TENGU` early special-case branch
+    (`monmove.c:1840-1848`) and always fell through to generic movement logic.
+- C-faithful fix:
+  - Added the Tengu pre-`not_special` gate and branch ordering:
+    - `!rn2(5) && !mcan && !tele_restrict(...)`
+    - `mhp < 7 || peaceful || rn2(2)` -> `rloc(..., RLOC_MSG)`
+    - else -> adjacent relocation attempt via `enexto(...)` + `rloc_to(...)`
+      with `rloc(..., RLOC_MSG)` fallback.
+- Validation:
+  - `node scripts/test-unit-core.mjs --runInBand` passes.
+  - Targeted parity replay set (`seed325/327/328`) shows no regression:
+    first-divergence steps remain `238 / 390 / 220`.

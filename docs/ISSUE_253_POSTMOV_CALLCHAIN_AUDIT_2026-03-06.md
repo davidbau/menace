@@ -45,9 +45,12 @@ JS files audited:
 - JS current: `m_move()` runs `mdig_tunnel()` before `dochug()` performs `mintrap_postmove()` in non-pet movement path.
 - Evidence: seed325 first RNG split signature (`rnd(12)` JS vs `rnd(79)` C relocation path).
 
-### F4 (Open): missing Tengu special teleport branch in JS `m_move`
+### F4 (Fixed 2026-03-06): missing Tengu special teleport branch in JS `m_move`
 - C has explicit early Tengu teleport branch before `not_special` movement block.
-- JS `m_move` currently has no `PM_TENGU` branch.
+- JS now includes a C-ordered early `PM_TENGU` branch:
+  - gate: `!rn2(5) && !mcan && !tele_restrict`
+  - low-HP/peaceful/coinflip branch teleports with `rloc(..., RLOC_MSG)`
+  - otherwise attempts adjacent relocation (`enexto` + `rloc_to`) with `rloc` fallback.
 - Risk: RNG/control-flow drift for sessions involving Tengu.
 
 ### F5 (Open): pet postmove sequencing differs structurally from C

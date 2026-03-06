@@ -54,6 +54,7 @@ import { can_teleport, noeyes, perceives, nohands,
          webmaker, tunnels, needspick } from './mondata.js';
 import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons,
          PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER,
+         PM_TENGU,
          PM_XORN, PM_GELATINOUS_CUBE,
          PM_DISPLACER_BEAST,
          PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN,
@@ -115,6 +116,7 @@ import { mwelded } from './wield.js';
 import { mon_wield_item } from './weapon.js';
 import { NEED_PICK_AXE, NEED_AXE, NEED_PICK_OR_AXE } from './const.js';
 import { choose_magic_spell, choose_clerical_spell, cast_wizard_spell, cast_cleric_spell } from './mcastu.js';
+import { tele_restrict, rloc, enexto, rloc_to } from './teleport.js';
 import {
     MGC_CLONE_WIZ, MGC_SUMMON_MONS, MGC_AGGRAVATION, MGC_DISAPPEAR, MGC_HASTE_SELF, MGC_CURE_SELF,
     CLC_INSECTS, CLC_CURE_SELF
@@ -1560,8 +1562,25 @@ async function m_move(mon, map, player, display = null, fov = null) {
         }
     }
 
-    const omx = mon.mx, omy = mon.my;
     const ptr = mon.data || mon.type || mons[mon.mndx] || {};
+
+    // C ref: monmove.c:1840-1848 — Tengu innate teleport before normal movement.
+    if (mon.mndx === PM_TENGU && !rn2(5) && !mon.mcan && !tele_restrict(mon, map)) {
+        if (mon.mhp < 7 || mon_is_peaceful(mon) || rn2(2)) {
+            await rloc(mon, 1, map, player, display, fov); // RLOC_MSG
+        } else {
+            const cc = { x: 0, y: 0 };
+            const foundAdj = enexto(cc, player.x, player.y, ptr, map, player);
+            if (foundAdj) {
+                await rloc_to(mon, cc.x, cc.y);
+            } else {
+                await rloc(mon, 1, map, player, display, fov); // RLOC_MSG fallback
+            }
+        }
+        return MMOVE_MOVED;
+    }
+
+    const omx = mon.mx, omy = mon.my;
     const verysmall = (ptr.msize || 0) === MZ_TINY;
     const can_open = !(nohands(ptr) || verysmall);
     // C ref: monmove.c:1768 — can_unlock = (can_open && monhaskey) || iswiz || is_rider
