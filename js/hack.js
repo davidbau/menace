@@ -2670,6 +2670,22 @@ export async function check_special_room(newlev, player, map, display, fov) {
             break;
         }
 
+        // C hack.c:3649-3660: wake monsters in special rooms on entry
+        if (rt === COURT || rt === SWAMP || rt === MORGUE || rt === ZOO) {
+            const stealth = player.hasProp ? player.hasProp(STEALTH) : false;
+            for (const mtmp of (map.monsters || [])) {
+                if (mtmp.dead || mtmp.mhp <= 0) continue;
+                // Check monster is in this room
+                const mloc = map.at ? map.at(mtmp.mx, mtmp.my) : null;
+                if (!mloc || (mloc.roomno !== undefined
+                    ? mloc.roomno !== roomno
+                    : false)) continue;
+                if (!stealth && !rn2(3)) {
+                    mtmp.msleeping = 0;
+                }
+            }
+        }
+
         // Mark room as discovered (type -> OROOM) after first entry
         if (rt !== OROOM && rt !== TEMPLE && rt < SHOPBASE) {
             map.rooms[roomno].rtype = OROOM;
