@@ -256,7 +256,7 @@ export function corpsenm_price_adj(obj) {
   if ((obj.otyp === TIN || obj.otyp === EGG || obj.otyp === CORPSE) && ismnum(obj.corpsenm)) {
     let i, tmp = 1, ptr =  mons[obj.corpsenm];
     let icost = [ [ FIRE_RES, 2 ], [ SLEEP_RES, 3 ], [ COLD_RES, 2 ], [ DISINT_RES, 5 ], [ SHOCK_RES, 4 ], [ POISON_RES, 2 ], [ ACID_RES, 1 ], [ STONE_RES, 3 ], [ TELEPORT, 2 ], [ TELEPORT_CONTROL, 3 ], [ TELEPAT, 5 ] ];
-    for (i = 0; i < SIZE(icost); i++) {
+    for (i = 0; i < icost.length; i++) {
       if (intrinsic_possible(icost[i].trinsic, ptr)) {
         tmp += icost[i].cost;
       }

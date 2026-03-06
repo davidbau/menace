@@ -1331,24 +1331,23 @@ const no_man = [
 ];
 // Autotranslated from objnam.c:3183
 export function badman(basestr, to_plural) {
-  let no_men = [ "albu", "antihu", "anti", "ata", "auto", "bildungsro", "cai", "cay", "ceru", "corner", "decu", "des", "dura", "fir", "hanu", "het", "infrahu", "inhu", "nonhu", "otto", "out", "prehu", "protohu", "subhu", "superhu", "talis", "unhu", "sha", "hu", "un", "le", "re", "so", "to", "at", "a", ];
-  let no_man = [ "abdo", "acu", "agno", "ceru", "cogno", "cycla", "fleh", "grava", "hegu", "preno", "sonar", "speci", "dai", "exa", "fla", "sta", "teg", "tegu", "vela", "da", "hy", "lu", "no", "nu", "ra", "ru", "se", "vi", "ya", "o", "a", ];
-  let i, al, endstr, spot;
-  if (!basestr || strlen < 4) return false;
-  endstr = eos;
-  if (to_plural) {
-    for (i = 0; i < SIZE; i++) {
-      al =  strlen(no_men[i]);
-      spot = endstr - (al + 3);
-      if (!BSTRNCMPI(basestr, spot, no_men[i], al) && (spot === basestr || (spot - 1) === ' ')) return true;
-    }
-  }
-  else {
-    for (i = 0; i < SIZE; i++) {
-      al =  strlen(no_man[i]);
-      spot = endstr - (al + 3);
-      if (!BSTRNCMPI(basestr, spot, no_man[i], al) && (spot === basestr || (spot - 1) === ' ')) return true;
-    }
+  // C: objnam.c:3183 — check if "man"/"men" ending should NOT be converted
+  // e.g., "human" should NOT become "humen", "omen" should NOT become "oman"
+  const no_men = [ "albu", "antihu", "anti", "ata", "auto", "bildungsro", "cai", "cay", "ceru", "corner", "decu", "des", "dura", "fir", "hanu", "het", "infrahu", "inhu", "nonhu", "otto", "out", "prehu", "protohu", "subhu", "superhu", "talis", "unhu", "sha", "hu", "un", "le", "re", "so", "to", "at", "a", ];
+  const no_man = [ "abdo", "acu", "agno", "ceru", "cogno", "cycla", "fleh", "grava", "hegu", "preno", "sonar", "speci", "dai", "exa", "fla", "sta", "teg", "tegu", "vela", "da", "hy", "lu", "no", "nu", "ra", "ru", "se", "vi", "ya", "o", "a", ];
+  if (!basestr || basestr.length < 4) return false;
+  const lower = basestr.toLowerCase();
+  // to_plural: basestr ends in "man", check no_men prefixes
+  // !to_plural: basestr ends in "men", check no_man prefixes
+  const list = to_plural ? no_men : no_man;
+  const suffix = to_plural ? "man" : "men";
+  for (let i = 0; i < list.length; i++) {
+    const prefix = list[i];
+    const spot = basestr.length - (prefix.length + suffix.length);
+    if (spot < 0) continue;
+    if (lower.substring(spot, spot + prefix.length) === prefix
+        && (spot === 0 || basestr[spot - 1] === ' '))
+      return true;
   }
   return false;
 }

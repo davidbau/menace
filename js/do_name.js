@@ -863,11 +863,10 @@ export async function do_mgivenname(player) {
 export async function oname(obj, name, oflgs, player) {
   let lth, buf;
   let via_naming = (oflgs & ONAME_VIA_NAMING) !== 0, skip_inv_update = (oflgs & ONAME_SKIP_INVUPD) !== 0;
-  lth = name ?  (strlen(name) + 1) : 0;
+  lth = name ? (name.length + 1) : 0;
   if (lth > PL_PSIZ) {
     lth = PL_PSIZ;
-    name = strncpy(buf, name, PL_PSIZ - 1);
-    buf = '\0';
+    name = name.slice(0, PL_PSIZ - 1);
   }
   if (obj.oartifact || (lth && exist_artifact(obj.otyp, name))) return obj;
   new_oname(obj, lth);
@@ -952,19 +951,24 @@ export function obj_pmname(obj) {
   return "two-legged glorkum-seeker";
 }
 
-// Autotranslated from do_name.c:1626
+// C ref: do_name.c:1626 — lookup_novel(): search for novel title by name
 export function lookup_novel(lookname, idx) {
-  let k;
-  if (!strcmpi(The(lookname), "The Color of Magic")) lookname = sir_Terry_novels;
-  else if (!strcmpi(lookname, "Sorcery")) lookname = sir_Terry_novels;
-  else if (!strcmpi(lookname, "Masquerade")) lookname = sir_Terry_novels;
-  else if (!strcmpi(The(lookname), "The Amazing Maurice")) lookname = sir_Terry_novels;
-  else if (!strcmpi(lookname, "Thud")) lookname = sir_Terry_novels;
-  for (k = 0; k < SIZE(sir_Terry_novels); ++k) {
-    if (!strcmpi(lookname, sir_Terry_novels[k]) || !strcmpi(The(lookname), sir_Terry_novels[k])) { if (idx) idx = k; return sir_Terry_novels; }
+  const eq = (a, b) => a.toLowerCase() === b.toLowerCase();
+  // Handle common misspellings/abbreviations
+  if (eq(The(lookname), "The Color of Magic")) lookname = sir_Terry_novels[0];
+  else if (eq(lookname, "Sorcery")) lookname = sir_Terry_novels[4];
+  else if (eq(lookname, "Masquerade")) lookname = sir_Terry_novels[17];
+  else if (eq(The(lookname), "The Amazing Maurice")) lookname = sir_Terry_novels[27];
+  else if (eq(lookname, "Thud")) lookname = sir_Terry_novels[33];
+  for (let k = 0; k < sir_Terry_novels.length; ++k) {
+    if (eq(lookname, sir_Terry_novels[k]) || eq(The(lookname), sir_Terry_novels[k])) {
+      return { title: sir_Terry_novels[k], index: k };
+    }
   }
-  if (idx && IndexOk( idx, sir_Terry_novels)) return sir_Terry_novels;
-  return  0;
+  if (idx != null && idx >= 0 && idx < sir_Terry_novels.length) {
+    return { title: sir_Terry_novels[idx], index: idx };
+  }
+  return null;
 }
 
 // ========================================================================

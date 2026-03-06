@@ -19,6 +19,7 @@ import {
     BAG_OF_HOLDING, OILSKIN_SACK, BAG_OF_TRICKS, SACK, HORN_OF_PLENTY,
     LARGE_BOX, CHEST, ICE_BOX, CORPSE, STATUE, FIGURINE, EGG,
     GRAY_DRAGON_SCALES, YELLOW_DRAGON_SCALES, LENSES,
+    APPLE, ORANGE, PEAR, BANANA, EUCALYPTUS_LEAF,
     ELVEN_SHIELD, ORCISH_SHIELD, SHIELD_OF_REFLECTION,
     WORM_TOOTH, CRYSKNIFE, UNICORN_HORN, POT_WATER, TIN, POT_OIL,
     SPE_BOOK_OF_THE_DEAD, SPE_NOVEL, SPE_BLANK_PAPER,
@@ -1653,11 +1654,13 @@ export function start_glob_timeout(obj, when) {
   start_timer(when, TIMER_OBJECT, SHRINK_GLOB, obj_to_any(obj));
 }
 
-// Autotranslated from mkobj.c:1987
+// C ref: mkobj.c:1974 — treefruits[] array
+const treefruits = [APPLE, ORANGE, PEAR, BANANA, EUCALYPTUS_LEAF];
+
+// C ref: mkobj.c:1987 — is_treefruit()
 export function is_treefruit(otmp) {
-  let fruitidx;
-  for (fruitidx = 0; fruitidx < SIZE(treefruits); ++fruitidx) {
-    if (treefruits === otmp.otyp) return true;
+  for (let fruitidx = 0; fruitidx < treefruits.length; ++fruitidx) {
+    if (treefruits[fruitidx] === otmp.otyp) return true;
   }
   return false;
 }

@@ -1861,9 +1861,11 @@ export function logdeadmon(mtmp, mndx, game) {
   }
 }
 
-// Autotranslated from mon.c:3070
+// C ref: mon.c:3070 — anger_quest_guardians
+// TODO: Needs urole.guardnum from quest system (not yet in JS roles table)
 export function anger_quest_guardians(mtmp, player) {
-  if (mtmp.data === mons) setmangry(mtmp, true); // TODO: C checks &mons[urole.guardnum]
+  // C: if (mtmp->data == &mons[urole.guardnum]) setmangry(mtmp, TRUE);
+  // guardnum is role-specific quest guardian PM_* index; not yet in JS roles
 }
 
 // Autotranslated from mon.c:3746
@@ -1967,7 +1969,8 @@ export async function m_respond(mtmp) {
 
 // Autotranslated from mon.c:4133
 export async function qst_guardians_respond(map, player) {
-  let mon, q_guardian = mons, got_mad = 0; // TODO: C uses &mons[urole.guardnum]
+  // TODO: q_guardian should be mons[urole.guardnum] from quest system (not yet in JS roles)
+  let mon, q_guardian = null, got_mad = 0;
   for (mon = (map?.fmon || null); mon; mon = mon.nmon) {
     if (DEADMONSTER(mon)) {
       continue;

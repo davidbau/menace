@@ -1224,7 +1224,7 @@ export function term_for_boolean(idx, b) {
   let booleanterms = [ [ "false", "off", "disabled", "excluded from build" ], [ "true", "on", "enabled", "included"], ];
   boolean_term = booleanterms[f_t][0];
   i =  allopt[idx].termpref;
-  if (i > Term_False && i < num_terms && i < SIZE(booleanterms[0])) boolean_term = booleanterms[f_t][i];
+  if (i > Term_False && i < num_terms && i < booleanterms[0].length) boolean_term = booleanterms[f_t][i];
   return boolean_term;
 }
 

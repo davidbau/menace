@@ -6,7 +6,9 @@ import { COLNO, ROWNO, IS_ROOM, IS_DOOR, IS_POOL, IS_LAVA,
          D_CLOSED, D_LOCKED,
          POOL, STAIRS, LADDER, isok,
          DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT, UNDEF,
-         W_ARMS, W_WEP } from './const.js';
+         W_ARMS, W_WEP,
+         M_AP_FURNITURE, M_AP_OBJECT, M_AP_MONSTER,
+         S_sink } from './const.js';
 import { rn2, rnd, pushRngLogEntry } from './rng.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED } from './const.js';
 import { mattacku } from './mhitu.js';
@@ -15,7 +17,7 @@ import { CORPSE, BALL_CLASS, CHAIN_CLASS, ROCK_CLASS, FOOD_CLASS,
          PICK_AXE, DWARVISH_MATTOCK, UNICORN_HORN,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
          BOULDER, TIN, EGG,
-         SILVER,
+         SILVER, TRIPE_RATION,
          objectData } from './objects.js';
 import { doname, next_ident, weight } from './mkobj.js';
 import { obj_resists, is_organic, is_metallic, is_rustprone } from './objdata.js';
@@ -30,6 +32,8 @@ import { is_animal, is_mindless, nohands, nolimbs, unsolid,
          completelyburns, completelyrots, completelyrusts } from './mondata.js';
 import { PM_FIRE_ELEMENTAL, PM_SALAMANDER, PM_FLOATING_EYE, PM_GELATINOUS_CUBE,
          PM_LONG_WORM, PM_COCKATRICE, PM_CHICKATRICE, PM_MEDUSA,
+         PM_LITTLE_DOG, PM_DOG, PM_LARGE_DOG,
+         PM_KITTEN, PM_HOUSECAT, PM_LARGE_CAT, PM_GIANT_RAT,
          NUMMONS,
          mons,
          AT_NONE, AT_CLAW, AT_BITE, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_WEAP,
@@ -40,7 +44,7 @@ import { PM_FIRE_ELEMENTAL, PM_SALAMANDER, PM_FLOATING_EYE, PM_GELATINOUS_CUBE,
          M1_SWIM, M1_NEEDPICK, M1_TUNNEL, M1_SEE_INVIS,
          M1_NOTAKE, M1_NOHANDS, M1_UNSOLID, M1_NOHEAD, M1_NOLIMBS,
          M2_STRONG, M2_ROCKTHROW,
-         S_MIMIC, S_DRAGON, S_NYMPH, MS_GUARDIAN, MS_LEADER,
+         S_DOG, S_MIMIC, S_DRAGON, S_NYMPH, MS_GUARDIAN, MS_LEADER,
          WT_HUMAN, MZ_HUMAN,
          MZ_TINY, MZ_SMALL, MZ_MEDIUM, MZ_LARGE, MZ_HUGE, MZ_GIGANTIC,
          G_FREQ } from './monsters.js';
@@ -68,6 +72,19 @@ const DOG_STARVE = 750;
 
 const MAX_CARR_CAP = 1000; // C ref: weight.h
 const NON_PM = -1;
+
+// C ref: dogmove.c:1422 — quickmimic choices table
+const qm = [
+    { mndx: PM_LITTLE_DOG, mlet: 0, mappearance: PM_KITTEN, m_ap_type: M_AP_MONSTER },
+    { mndx: PM_DOG, mlet: 0, mappearance: PM_HOUSECAT, m_ap_type: M_AP_MONSTER },
+    { mndx: PM_LARGE_DOG, mlet: 0, mappearance: PM_LARGE_CAT, m_ap_type: M_AP_MONSTER },
+    { mndx: PM_KITTEN, mlet: 0, mappearance: PM_LITTLE_DOG, m_ap_type: M_AP_MONSTER },
+    { mndx: PM_HOUSECAT, mlet: 0, mappearance: PM_DOG, m_ap_type: M_AP_MONSTER },
+    { mndx: PM_LARGE_CAT, mlet: 0, mappearance: PM_LARGE_DOG, m_ap_type: M_AP_MONSTER },
+    { mndx: PM_HOUSECAT, mlet: 0, mappearance: PM_GIANT_RAT, m_ap_type: M_AP_MONSTER },
+    { mndx: 0, mlet: S_DOG, mappearance: S_sink, m_ap_type: M_AP_FURNITURE },
+    { mndx: 0, mlet: 0, mappearance: TRIPE_RATION, m_ap_type: M_AP_OBJECT },
+];
 
 // ========================================================================
 // Helper predicates — moved from dog.js (originally C dogmove.c helpers)
@@ -458,7 +475,7 @@ export function mnum_leashable(mnum) {
 // Stub: requires mimic appearance system not yet in JS
 // ========================================================================
 // TODO: implement when mimic appearance system is available
-// RNG: rn2(SIZE(qm)) — would need qm table
+// RNG: rn2(qm.length) — would need qm table
 
 // ========================================================================
 // dog_goal helper functions — C-faithful checks
@@ -1620,7 +1637,7 @@ export async function quickmimic(mtmp, player) {
   if (Protection_from_shape_changers || !mtmp.meating) return;
   if (mtmp === player.usteed) await dismount_steed(DISMOUNT_POLY);
   do {
-    idx = rn2(SIZE(qm));
+    idx = rn2(qm.length);
     if (qm[idx].mndx !== 0 && monsndx(mtmp.data) === qm[idx].mndx) {
       break;
     }
@@ -1631,7 +1648,7 @@ export async function quickmimic(mtmp, player) {
       break;
     }
   } while (--trycnt > 0);
-  if (trycnt === 0) idx = SIZE(qm) - 1;
+  if (trycnt === 0) idx = qm.length - 1;
   let buf = y_monnam(mtmp);
   spotted = canspotmon(mtmp);
   seeloc = cansee(mtmp.mx, mtmp.my);
