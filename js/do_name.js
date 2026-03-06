@@ -946,7 +946,7 @@ export function obj_pmname(obj) {
   if ((obj.otyp === CORPSE || obj.otyp === STATUE || obj.otyp === FIGURINE) && ismnum(obj.corpsenm)) {
     let cgend = (obj.spe & CORPSTAT_GENDER), mgend = ((cgend === CORPSTAT_MALE) ? MALE : (cgend === CORPSTAT_FEMALE) ? FEMALE : NEUTRAL), mndx = obj.corpsenm;
     if (mndx === PM_ALIGNED_CLERIC && cgend === CORPSTAT_RANDOM) mndx = PM_CLERIC;
-    return pmname( mons, mgend);
+    return pmname(mons[mndx], mgend);
   }
   impossible("obj_pmname otyp:%i,corpsenm:%i", obj.otyp, obj.corpsenm);
   return "two-legged glorkum-seeker";

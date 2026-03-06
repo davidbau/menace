@@ -1321,10 +1321,10 @@ export function minstapetrify(mon, byplayer) {
 export function mk_trap_statue(x, y, game, player) {
   let mtmp, otmp, statue, mptr, trycount = 10;
   do {
-    mptr = mons;
+    mptr = mons[rndmonnum()]; // C: &mons[rndmonnum()]
   } while (--trycount > 0 && is_unicorn(mptr) && sgn(player.ualigame.gn.type) === sgn(mptr.maligntyp));
   statue = mkcorpstat(STATUE,  0, mptr, x, y, CORPSTAT_NONE);
-  mtmp = makemon( mons, 0, 0, MM_NOCOUNTBIRTH | MM_NOMSG);
+  mtmp = makemon(mptr, 0, 0, MM_NOCOUNTBIRTH | MM_NOMSG);
   if (!mtmp) return;
   while (mtmp.minvent) {
     otmp = mtmp.minvent;

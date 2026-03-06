@@ -2793,7 +2793,7 @@ export function bagotricks(bag, tipping, seencount, player) {
 export function summon_furies(limit, player) {
   let i = 0;
   while (mk_gen_ok(PM_ERINYS, G_GONE, 0) && (i < limit || !limit)) {
-    makemon( mons, player.x, player.y, MM_ADJACENTOK | MM_NOWAIT);
+    makemon(mons[PM_ERINYS], player.x, player.y, MM_ADJACENTOK | MM_NOWAIT);
     i++;
   }
 }
