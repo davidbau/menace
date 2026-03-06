@@ -5,7 +5,7 @@ import {
     CORR, ROOM, AIR, CLOUD, MAGIC_PORTAL, VIBRATING_SQUARE, MKTRAP_MAZEFLAG,
     POOL, TLWALL, TRWALL, TUWALL, TDWALL, BRCORNER, BLCORNER, TRCORNER, TLCORNER,
     IS_WALL, IS_POOL, isok, PM_PRIEST as ROLE_PRIEST,
-    QUEST, GNOMISH_MINES,
+    QUEST, GNOMISH_MINES, RANDOM_CLASS,
 } from './const.js';
 import { rn1, rn2, rnd } from './rng.js';
 import {
@@ -22,7 +22,7 @@ import {
     repair_irregular_room_boundaries,
 } from './dungeon.js';
 import { placeFloorObject } from './stackobj.js';
-import { mkobj, mksobj, mkcorpstat, set_corpsenm, weight, RANDOM_CLASS } from './mkobj.js';
+import { mkobj, mksobj, mkcorpstat, set_corpsenm, weight } from './mkobj.js';
 import { GEM_CLASS, BOULDER, GOLD_PIECE, STATUE } from './objects.js';
 import { makemon, rndmonnum, getMakemonRoleIndex } from './makemon.js';
 import { NO_MM_FLAGS } from './const.js';
