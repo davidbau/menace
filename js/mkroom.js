@@ -9,7 +9,8 @@ import {
     isok,
 } from './const.js';
 import { rn1, rn2, rnd } from './rng.js';
-import { mkclass, makemon, NO_MM_FLAGS } from './makemon.js';
+import { mkclass, makemon } from './makemon.js';
+import { NO_MM_FLAGS } from './const.js';
 import { ndemon } from './minion.js';
 import { mkobj, mksobj } from './mkobj.js';
 import { mpickobj } from './monutil.js';

@@ -23,7 +23,8 @@ import {
 import { placeFloorObject } from './stackobj.js';
 import { mkobj, mksobj, mkcorpstat, set_corpsenm, weight, RANDOM_CLASS } from './mkobj.js';
 import { GEM_CLASS, BOULDER, GOLD_PIECE, STATUE } from './objects.js';
-import { makemon, NO_MM_FLAGS, rndmonnum, getMakemonRoleIndex } from './makemon.js';
+import { makemon, rndmonnum, getMakemonRoleIndex } from './makemon.js';
+import { NO_MM_FLAGS } from './const.js';
 import { mons, PM_MINOTAUR, PM_ARCHEOLOGIST, PM_WIZARD, MR_STONE } from './monsters.js';
 import {
     occupied,

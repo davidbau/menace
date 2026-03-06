@@ -46,7 +46,8 @@ import {
     TAINT_AGE,
     RANDOM_CLASS,
 } from './mkobj.js';
-import { makemon, mkclass, rndmonnum_adj, NO_MM_FLAGS, setMakemonRoleContext, setMakemonLevelContext, getMakemonRoleIndex, setMakemonInMklevContext } from './makemon.js';
+import { makemon, mkclass, rndmonnum_adj, setMakemonRoleContext, setMakemonLevelContext, getMakemonRoleIndex, setMakemonInMklevContext } from './makemon.js';
+import { NO_MM_FLAGS } from './const.js';
 import {
     mons, S_UNICORN, S_DRAGON, S_GIANT, S_TROLL, S_CENTAUR, S_ORC, S_GNOME, S_KOBOLD,
     S_VAMPIRE, S_ZOMBIE, S_DEMON, S_FUNGUS,

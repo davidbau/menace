@@ -39,7 +39,8 @@ import { isok, ACCESSIBLE, COLNO, ROWNO, IS_DOOR, D_CLOSED, D_LOCKED,
          DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT, POISON, UNDEF, TABU } from './const.js';
 import { SADDLE } from './objects.js';
 import { roles } from './player.js';
-import { makemon, NO_MINVENT, mbirth_limit, MAXMONNO } from './makemon.js';
+import { makemon, mbirth_limit } from './makemon.js';
+import { NO_MINVENT, MAXMONNO } from './const.js';
 import { mksobj } from './mkobj.js';
 import { mpickobj, mark_vision_dirty } from './monutil.js';
 

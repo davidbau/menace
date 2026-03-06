@@ -39,7 +39,7 @@ import {
     likes_fire,
 } from './mondata.js';
 import {
-    makemon, mkclass, def_char_to_monclass, NO_MM_FLAGS,
+    makemon, mkclass, def_char_to_monclass,
     rndmonnum, getMakemonRoleIndex
 } from './makemon.js';
 import {
@@ -58,6 +58,7 @@ import {
     D_NODOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN, D_SECRET,
     COLNO, ROWNO, IS_ROOM, IS_OBSTRUCTED, IS_WALL, IS_STWALL, IS_POOL, IS_LAVA,
     A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, Align2amask,
+    NO_MM_FLAGS,
     MKTRAP_SEEN, MKTRAP_MAZEFLAG, MKTRAP_NOSPIDERONWEB, MKTRAP_NOVICTIM,
     MAXNROFROOMS, ROOMOFFSET, MAXMCLASSES,
     PM_PRIEST as ROLE_PRIEST,

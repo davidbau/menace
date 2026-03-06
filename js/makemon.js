@@ -10,17 +10,12 @@ import {
     SHOPBASE, ROOMOFFSET, IS_POOL, IS_LAVA, IS_STWALL, IS_DOOR, IS_WALL, ACCESSIBLE,
     VAULT, ZOO, DELPHI, TEMPLE,
     D_LOCKED, D_CLOSED, SDOOR, SCORR, isok, COLNO, ROWNO,
-    ALL_TRAPS, HOLE, TRAPDOOR, NO_MM_FLAGS, NO_MINVENT, MM_NOWAIT,
+    ALL_TRAPS, HOLE, TRAPDOOR, NO_MM_FLAGS, NO_MINVENT, MAXMONNO, MM_NOWAIT,
     MM_NOCOUNTBIRTH, MM_IGNOREWATER, MM_ADJACENTOK, MM_NONAME, MM_MALE,
     MM_FEMALE, MM_EDOG, MM_ASLEEP, MM_NOGRP, MM_NOMSG, MM_NOEXCLAM,
     MM_IGNORELAVA,
 } from './const.js';
 import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC } from './const.js';
-export {
-    NO_MM_FLAGS, NO_MINVENT, MM_NOWAIT, MM_NOCOUNTBIRTH, MM_IGNOREWATER,
-    MM_ADJACENTOK, MM_NONAME, MM_MALE, MM_FEMALE, MM_EDOG, MM_ASLEEP,
-    MM_NOGRP, MM_NOMSG, MM_NOEXCLAM, MM_IGNORELAVA,
-} from './const.js';
 import { couldsee, cansee, getActiveFov } from './vision.js';
 import { get_shop_item } from './shknam.js';
 import {
@@ -641,9 +636,6 @@ export function def_char_to_monclass(ch) {
 
 // cf. makemon.c:1539 — return the birth limit for a monster type
 // (how many of this monster can exist before the population is considered too large)
-// C ref: global.h MAXMONNO = 120
-export const MAXMONNO = 120;
-
 // Autotranslated from makemon.c:1539
 export function mbirth_limit(mndx) {
   return (mndx === PM_NAZGUL ? 9 : mndx === PM_ERINYS ? 3 : MAXMONNO);

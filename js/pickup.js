@@ -24,7 +24,8 @@ import { instapetrify } from './trap.js';
 import { exercise } from './attrib_exercise.js';
 import { newsym } from './monutil.js';
 import { currency, compactInvletPromptChars } from './invent.js';
-import { makemon, NO_MM_FLAGS, NO_MINVENT } from './makemon.js';
+import { makemon } from './makemon.js';
+import { NO_MM_FLAGS, NO_MINVENT } from './const.js';
 import { christen_monst, Monnam, mon_nam, x_monnam, ARTICLE_THE,
          SUPPRESS_SADDLE } from './do_name.js';
 import { revive as revive_corpse } from './zap.js';

@@ -385,6 +385,9 @@ export const M_POISONGAS_OK = 2;
 export const M_POISONGAS_MINOR = 1;
 export const M_POISONGAS_BAD = 0;
 
+// C ref: include/global.h MAXMONNO
+export const MAXMONNO = 120;
+
 // Trap types (trap.h)
 export const ALL_TRAPS = -1;
 export const NO_TRAP = 0;

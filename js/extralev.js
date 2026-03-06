@@ -8,7 +8,8 @@ import {
 } from './objects.js';
 import { CORR, D_NODOOR, OROOM, SCORR } from './const.js';
 import { PM_GHOST } from './monsters.js';
-import { makemon, NO_MM_FLAGS } from './makemon.js';
+import { makemon } from './makemon.js';
+import { NO_MM_FLAGS } from './const.js';
 import { christen_monst, roguename } from './do_name.js';
 import { placeFloorObject } from './stackobj.js';
 import {

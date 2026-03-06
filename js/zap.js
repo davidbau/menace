@@ -47,8 +47,8 @@ import { mons, G_FREQ, MZ_TINY, MZ_HUMAN, M1_NOEYES,
          PM_LONG_WORM, S_TROLL, S_ZOMBIE, S_EEL, S_GOLEM, S_MIMIC } from './monsters.js';
 import {
   rndmonnum, makemon,
-  NO_MINVENT,
 } from './makemon.js';
+import { NO_MINVENT } from './const.js';
 import { next_ident, mksobj, mkobj, weight } from './mkobj.js';
 import { newexplevel } from './exper.js';
 import { corpse_chance } from './mon.js';

@@ -2,7 +2,8 @@
 // cf. were.c — lycanthrope form changes, summoning, and player lycanthropy
 
 import { rn2, rnd } from './rng.js';
-import { makemon, NO_MM_FLAGS } from './makemon.js';
+import { makemon } from './makemon.js';
+import { NO_MM_FLAGS } from './const.js';
 import { canseemon } from './mondata.js';
 import { mon_break_armor } from './worn.js';
 import { newsym } from './monutil.js';

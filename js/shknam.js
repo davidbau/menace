@@ -20,7 +20,8 @@ import {
 } from './objects.js';
 import { MAXOCLASSES, ROOM, SHOPBASE, ROOMOFFSET, SDOOR, DOOR, CORR,
          D_NODOOR, D_ISOPEN, D_TRAPPED, D_LOCKED } from './const.js';
-import { makemon, mkclass, mongets, NO_MM_FLAGS } from './makemon.js';
+import { makemon, mkclass, mongets } from './makemon.js';
+import { NO_MM_FLAGS } from './const.js';
 import { mksobj, mkobj } from './mkobj.js';
 import { RANDOM_CLASS } from './objclass.js';
 import { PM_SHOPKEEPER, S_MIMIC } from './monsters.js';

@@ -5,7 +5,8 @@
 
 import { rn2, rnd, rn1 } from './rng.js';
 import { pline, You, You_feel, verbalize } from './pline.js';
-import { makemon, NO_MM_FLAGS } from './makemon.js';
+import { makemon } from './makemon.js';
+import { NO_MM_FLAGS } from './const.js';
 import { mksobj, doname } from './mkobj.js';
 import {
     AMULET_OF_YENDOR, FAKE_AMULET_OF_YENDOR,

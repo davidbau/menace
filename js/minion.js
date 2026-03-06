@@ -6,7 +6,8 @@
 
 import { rn2, rnd, rn1 } from './rng.js';
 import { pline, You_feel, verbalize } from './pline.js';
-import { makemon, mkclass, NO_MM_FLAGS } from './makemon.js';
+import { makemon, mkclass } from './makemon.js';
+import { NO_MM_FLAGS } from './const.js';
 import { AMULET_OF_YENDOR } from './objects.js';
 import {
     mons, S_ANGEL, S_DEMON, NON_PM,
