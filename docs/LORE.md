@@ -2556,3 +2556,27 @@ hard-won wisdom:
     - RNG `7887/17821` -> `8398/19976`
     - events `175/6595` -> `570/8135`
     - screens `269/410` -> `297/410`
+
+### dochug pre-move useless-spell filters aligned to C (2026-03-06)
+
+- Follow-up on seed332 pre-move spell parity: JS was still allowing spell
+  candidates that C rejects in non-attacking contexts, consuming extra RNG
+  before movement resolution.
+- C-faithful fix in `js/monmove.js` `spellWouldBeUseless(...)`:
+  - for `AD_SPEL`, peaceful monsters now reject
+    `MGC_AGGRAVATION`, `MGC_SUMMON_MONS`, `MGC_CLONE_WIZ`;
+  - for `AD_CLRC`, peaceful monsters reject `CLC_INSECTS`;
+  - for `AD_CLRC`, `CLC_BLIND_YOU` is rejected when player is already blind;
+  - cure-self useless check kept for both spell groups.
+- Also corrected `timeout.c` egg hatch loop bound in `js/timeout.js`:
+  - `attach_egg_hatch_timeout()` now starts at `i = 151` (`MAX_EGG_HATCH_TIME - 49`),
+    matching C (`rnd(151)` first call), not `i = 150`.
+- Validation:
+  - `node scripts/test-unit-core.mjs` passes.
+  - tracked seeds after fix:
+    - seed325: unchanged first RNG divergence at step 218 (`dochug` vs `mdig_tunnel`)
+    - seed327: unchanged first RNG divergence at step 226 (`dochug` vs `passivemm`)
+    - seed328: unchanged first RNG divergence at step 201 (`dochug` vs `rndmonst_adj`)
+    - seed332: first RNG divergence moved from step `221` -> `386`
+      (`moveloop_turnend rn2(400)` vs `hatch_egg rnd(1)`), with
+      RNG `16471/17821`, screens `393/410`, events `5709/6595`.

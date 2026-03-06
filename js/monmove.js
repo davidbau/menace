@@ -952,14 +952,21 @@ function isUndirectedSpell(adtyp, spellid) {
     return false;
 }
 
-function spellWouldBeUseless(mon, adtyp, spellid) {
+function spellWouldBeUseless(mon, adtyp, spellid, player = null) {
+    const mpeaceful = !!(mon?.mpeaceful ?? mon?.peaceful);
     if (adtyp === AD_SPEL) {
+        if (mpeaceful
+            && (spellid === MGC_AGGRAVATION || spellid === MGC_SUMMON_MONS || spellid === MGC_CLONE_WIZ)) {
+            return true;
+        }
         if (spellid === MGC_HASTE_SELF) return (mon.mspeed || 0) >= 2;
         if (spellid === MGC_CURE_SELF) return (mon.mhp || 0) >= (mon.mhpmax || 0);
         if (spellid === MGC_DISAPPEAR) return !!mon.minvis;
         return false;
     }
     if (adtyp === AD_CLRC) {
+        if (mpeaceful && spellid === CLC_INSECTS) return true;
+        if (player?.blind && spellid === CLC_BLIND_YOU) return true;
         if (spellid === CLC_CURE_SELF) return (mon.mhp || 0) >= (mon.mhpmax || 0);
         return false;
     }
@@ -986,7 +993,7 @@ async function maybeCastUndirectedPreMove(mon, mdat, player, map) {
             : choose_clerical_spell(rawSpell);
 
         // C not-attacking path: reject directed/useless spells and keep moving.
-        if (!isUndirectedSpell(a.adtyp, spellid) || spellWouldBeUseless(mon, a.adtyp, spellid)) {
+        if (!isUndirectedSpell(a.adtyp, spellid) || spellWouldBeUseless(mon, a.adtyp, spellid, player)) {
             continue;
         }
 

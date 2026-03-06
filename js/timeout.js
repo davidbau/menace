@@ -711,7 +711,7 @@ export function attach_egg_hatch_timeout(egg, when) {
     const base = normalizeTurnArg(when);
     let timeout = base;
     if (!base || base <= 0) {
-        for (let i = MAX_EGG_HATCH_TIME - 50; i <= MAX_EGG_HATCH_TIME; i++) {
+        for (let i = (MAX_EGG_HATCH_TIME - 50) + 1; i <= MAX_EGG_HATCH_TIME; i++) {
             if (rnd(i) > 150) {
                 timeout = i;
                 break;
