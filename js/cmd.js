@@ -24,8 +24,10 @@ import { handleInventory, currency, doorganize } from './invent.js';
 import { dopray, doturn, dosacrifice } from './pray.js';
 import { dodip } from './potion.js';
 import { handleCallObjectTypePrompt, handleDiscoveries } from './discovery.js';
-import { handlePrevMessages, handleHelp, handleWhatdoes, handleHistory, handleViewMapPrompt } from './pager.js';
-import { dolook, dowhatis, doquickwhatis } from './look.js';
+import {
+    handlePrevMessages, handleHelp, handleWhatdoes, handleHistory,
+    handleViewMapPrompt, dolook, dowhatis, doquickwhatis,
+} from './pager.js';
 import { handleKick } from './kick.js';
 import { handleZap } from './zap.js';
 import { handleSave } from './storage.js';

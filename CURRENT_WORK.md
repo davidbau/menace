@@ -7,20 +7,16 @@
 
 ## Active Phase
 
-Phase 2 wrap-up complete; preparing Phase 4 file-per-C-source reorganization
-(per current `docs/MODULES.md` sequencing).
+Phase 4 structure-only reorganization, batch-by-batch, with strict no-regression
+validation against the current gameplay baseline envelope.
 
 ## Latest Validated Commit
 
-- `cf5862d3` — `issue227 phase2: canonicalize objclass fields and object naming`
-  - Migrated runtime objclass field reads to canonical `oc_*` names.
-  - Normalized gameplay object instance naming from `.name` to `.oname`
-    in object contexts.
-  - Updated `docs/ISSUE_227_EXECUTION_CHECKLIST.md` to mark Phase 2 runtime
-    migration items complete.
-  - Validation envelope unchanged:
+- `ed8ada40` — `docs: refresh CURRENT_WORK status for issue 227 phase transition`
+  - Documentation handoff for Phase 2 completion and Phase 4 kickoff.
+  - Validation envelope unchanged at handoff:
     - `npm test`: `2652/2661` (9 gameplay parity failures; known baseline set)
-    - session hook note: `141/150` (9 failed)
+    - gameplay suite: `25/34` pass
 
 ## Current Code State
 
@@ -34,15 +30,15 @@ Phase 2 wrap-up complete; preparing Phase 4 file-per-C-source reorganization
 
 ## Next Concrete Commit Target
 
-Phase 4 structure-only batch 1:
-- Pick one invented consolidation module with clear ownership destination.
-- Move functions file-by-file to matching C-source-named module(s) only.
-- No behavior edits mixed with moves.
-- Validate no regression against baseline envelope before push.
-
-Candidate first batch (low risk):
-- `look.js` -> `pager.js` ownership consolidation for look/whatis flows, with
-  import path updates only.
+Phase 4 structure-only batch 2:
+- Continue look/pager ownership consolidation after batch 1 routing work.
+- Keep `look.js` as compatibility layer during transition, then prune once
+  imports are fully rerouted without cycles.
+- Validate with:
+  - `node --test test/unit/config.test.js test/unit/symbol_accuracy.test.js`
+  - `node test/comparison/session_test_runner.js test/comparison/sessions/seed42_gameplay.session.json`
+  - `npm test --silent`
+  - `scripts/run-and-report.sh`
 
 ## Blockers / Risks
 

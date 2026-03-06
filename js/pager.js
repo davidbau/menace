@@ -8,8 +8,26 @@ import { CLR_GRAY, CLR_WHITE, CLR_GREEN, CLR_CYAN } from './display.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
        } from './windows.js';
 import { NHW_MENU, NHW_TEXT, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE } from './const.js';
-import { dowhatis } from './look.js';
+import {
+    dolook as look_dolook,
+    dowhatis as look_dowhatis,
+    doquickwhatis as look_doquickwhatis,
+} from './look.js';
 import { objectData, STRANGE_OBJECT } from './objects.js';
+
+// #227 phase-4 wiring cleanup: command-facing look handlers are exported from
+// pager.js as a single routing module, while core look logic remains in look.js.
+export async function dolook(game) {
+    return await look_dolook(game);
+}
+
+export async function dowhatis(game) {
+    return await look_dowhatis(game);
+}
+
+export async function doquickwhatis(game) {
+    return await look_doquickwhatis(game);
+}
 
 // Number of usable text rows (reserve 1 for status bar at bottom)
 const PAGE_ROWS = TERMINAL_ROWS - 1;
@@ -609,11 +627,6 @@ export function look_region_nearby(lo_x, lo_y, hi_x, hi_y, nearby, player) {
    lo_x = nearby ? Math.max(player.x - BOLT_LIM, 1) : 1;
    hi_y = nearby ? Math.min(player.y + BOLT_LIM, ROWNO - 1) : ROWNO - 1;
    hi_x = nearby ? Math.min(player.x + BOLT_LIM, COLNO - 1) : COLNO - 1;
-}
-
-// Autotranslated from pager.c:2324
-export async function doquickwhatis() {
-  return do_look(1, null);
 }
 
 // Autotranslated from pager.c:2331
