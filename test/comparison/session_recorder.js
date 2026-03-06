@@ -56,19 +56,35 @@ function splitScreen(screenStr) {
     return { ansi, plain };
 }
 
+export function resolveRecorderFixedDatetime(session, {
+    prevDatetime = process.env.NETHACK_FIXED_DATETIME,
+    sourcePref = process.env.NETHACK_SESSION_DATETIME_SOURCE || 'session',
+} = {}) {
+    const sessionDatetime = resolveSessionFixedDatetime(session, sourcePref);
+    return sessionDatetime || prevDatetime || DEFAULT_FIXED_DATETIME;
+}
+
+export async function withRecorderFixedDatetime(session, fn, {
+    sourcePref = process.env.NETHACK_SESSION_DATETIME_SOURCE || 'session',
+} = {}) {
+    const prevDatetime = process.env.NETHACK_FIXED_DATETIME;
+    const chosenDatetime = resolveRecorderFixedDatetime(session, { prevDatetime, sourcePref });
+    if (chosenDatetime) process.env.NETHACK_FIXED_DATETIME = chosenDatetime;
+    else delete process.env.NETHACK_FIXED_DATETIME;
+    try {
+        return await fn();
+    } finally {
+        if (prevDatetime == null) delete process.env.NETHACK_FIXED_DATETIME;
+        else process.env.NETHACK_FIXED_DATETIME = prevDatetime;
+    }
+}
+
 export async function recordGameplaySessionFromInputs(session, opts = {}) {
     ensureSessionGlobals();
 
-    const prevDatetime = process.env.NETHACK_FIXED_DATETIME;
-    const sourcePref = process.env.NETHACK_SESSION_DATETIME_SOURCE || 'session';
-    const sessionDatetime = resolveSessionFixedDatetime(session, sourcePref);
-    const chosenDatetime = sessionDatetime || prevDatetime || DEFAULT_FIXED_DATETIME;
-    if (chosenDatetime) process.env.NETHACK_FIXED_DATETIME = chosenDatetime;
-    else delete process.env.NETHACK_FIXED_DATETIME;
-
     let jsSession;
     let stepBoundaries;
-    try {
+    await withRecorderFixedDatetime(session, async () => {
         const flags = opts.flags || buildGameplayReplayFlags(session);
         const tutorial = typeof opts.tutorial === 'boolean'
             ? opts.tutorial
@@ -111,10 +127,7 @@ export async function recordGameplaySessionFromInputs(session, opts = {}) {
         );
         stepBoundaries = args.stepBoundaries;
         jsSession = await replaySession(args.seed, args.opts, args.keys);
-    } finally {
-        if (prevDatetime == null) delete process.env.NETHACK_FIXED_DATETIME;
-        else process.env.NETHACK_FIXED_DATETIME = prevDatetime;
-    }
+    });
 
     // Adapt V3 session for the comparator.
     // jsSession.steps[0] is startup, jsSession.steps[1..] are per-keystroke.

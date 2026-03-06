@@ -2783,3 +2783,18 @@ hard-won wisdom:
     canonical first divergence at step `238` (`rnd(12)` vs `rnd(79)`) instead
     of drifting to a date-dependent Luck split.
   - `node scripts/test-unit-core.mjs --runInBand` passes.
+
+### Recorder datetime helper tests (2026-03-06)
+
+- Added explicit unit coverage for recorder datetime behavior to keep
+  date-sensitive Luck parity deterministic during ad-hoc replay triage.
+- `test/comparison/session_recorder.js` now exposes:
+  - `resolveRecorderFixedDatetime(session, ...)`
+  - `withRecorderFixedDatetime(session, fn, ...)`
+- New tests in `test/unit/session_recorder_datetime.test.js` verify:
+  - source preference handling (`session` vs `recorded-at-prefer`)
+  - fallback ordering (session -> env -> default)
+  - env restoration after success and after thrown errors.
+- Validation:
+  - `node --test test/unit/session_datetime.test.js test/unit/session_recorder_datetime.test.js`
+  - `node scripts/test-unit-core.mjs --runInBand`
