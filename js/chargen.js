@@ -30,7 +30,8 @@ import { startRecording } from './keylog.js';
 import { setOutputContext } from './pline.js';
 import { init_nhwindows, create_nhwindow, destroy_nhwindow,
          start_menu, add_menu, end_menu, select_menu,
-         NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE } from './windows.js';
+       } from './windows.js';
+import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE } from './const.js';
 import { find_ac } from './do_wear.js';
 
 // --- Game State ---

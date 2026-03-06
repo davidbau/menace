@@ -31,7 +31,8 @@ import {
 } from './objects.js';
 import { is_metallic } from './objdata.js';
 import { nhgetch } from './input.js';
-import { create_nhwindow, destroy_nhwindow, NHW_MENU } from './windows.js';
+import { create_nhwindow, destroy_nhwindow } from './windows.js';
+import { NHW_MENU } from './const.js';
 import { rn2, rnd, rn1, rnl } from './rng.js';
 import { pline, You, Your, You_feel, pline_The, You_hear } from './pline.js';
 import { exercise } from './attrib_exercise.js';

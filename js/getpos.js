@@ -6,9 +6,6 @@ import { MAP_ROW_START, COLNO, ROWNO, DOOR, ROOM, CORR, isok } from './const.js'
 import { nhgetch } from './input.js';
 import { flush_screen } from './monutil.js';
 import {
-    NHW_MENU,
-    PICK_ONE,
-    ATR_NONE,
     create_nhwindow,
     start_menu,
     add_menu,
@@ -16,6 +13,7 @@ import {
     select_menu,
     destroy_nhwindow,
 } from './windows.js';
+import { NHW_MENU, PICK_ONE, ATR_NONE } from './const.js';
 
 const HiliteNormalMap = 0;
 const HiliteGoodposSymbol = 1;

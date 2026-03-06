@@ -53,8 +53,8 @@ import { nhgetch, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_
          cmdq_copy, cmdq_peek, cmdq_restore, setCmdqInputMode,
          setCmdqRepeatRecordMode,
          CQ_CANNED, CQ_REPEAT, CMDQ_INT, CMDQ_KEY } from './input.js';
-import { init_nhwindows, NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE,
-         create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu } from './windows.js';
+import { init_nhwindows, create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu } from './windows.js';
+import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE } from './const.js';
 import { CLR_GRAY } from './display.js';
 import { initFirstLevel } from './u_init.js';
 import { movebubbles } from './mkmaze.js';

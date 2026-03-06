@@ -2,7 +2,8 @@
 // cf. invent.c — ddoinv, display_inventory, display_pickinv, compactify, getobj, askchain
 
 import { nhgetch, getlin } from './input.js';
-import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_putstr, NHW_MENU } from './windows.js';
+import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_putstr } from './windows.js';
+import { NHW_MENU } from './const.js';
 import { COLNO, STATUS_ROW_1, STATUS_ROW_2, PM_ARCHEOLOGIST, A_STR, A_CON, A_WIS,
          UNENCUMBERED, OVERLOADED,
          STAIRS, LADDER, FOUNTAIN, THRONE, SINK, GRAVE, ALTAR, TREE,

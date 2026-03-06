@@ -247,6 +247,19 @@ export const NHW_STATUS = 2;
 export const NHW_MAP = 3;
 export const NHW_MENU = 4;
 export const NHW_TEXT = 5;
+export const NHW_PERMINVENT = 6;
+export const PICK_NONE = 0;
+export const PICK_ONE = 1;
+export const PICK_ANY = 2;
+export const MENU_BEHAVE_STANDARD = 0;
+export const MENU_BEHAVE_PERMINV = 1;
+export const ATR_NONE = 0;
+export const ATR_ULINE = 1;
+export const ATR_BOLD = 2;
+export const ATR_BLINK = 4;
+export const ATR_INVERSE = 8;
+export const ATR_URGENT = 16;
+export const ATR_NOHISTORY = 32;
 
 // Maximum values
 export const MAXNROFROOMS = 40;

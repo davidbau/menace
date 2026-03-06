@@ -6,7 +6,8 @@ import { TERMINAL_COLS, TERMINAL_ROWS, VERSION_STRING } from './const.js';
 import { nhgetch } from './input.js';
 import { CLR_GRAY, CLR_WHITE, CLR_GREEN, CLR_CYAN } from './display.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
-         NHW_MENU, NHW_TEXT, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE } from './windows.js';
+       } from './windows.js';
+import { NHW_MENU, NHW_TEXT, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE } from './const.js';
 import { dowhatis } from './look.js';
 
 // Number of usable text rows (reserve 1 for status bar at bottom)

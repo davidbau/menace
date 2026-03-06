@@ -2,32 +2,12 @@
 // Mirrors src/windows.c + win/tty/wintty.c + win/tty/topl.c
 
 import { nhgetch as defaultNhgetch } from './input.js';
-
-// Window types (wintype.h)
-export const NHW_MESSAGE    = 1;
-export const NHW_STATUS     = 2;
-export const NHW_MAP        = 3;
-export const NHW_MENU       = 4;
-export const NHW_TEXT       = 5;
-export const NHW_PERMINVENT = 6;
-
-// Selection modes (winprocs.h)
-export const PICK_NONE = 0;
-export const PICK_ONE  = 1;
-export const PICK_ANY  = 2;
-
-// Menu behaviours
-export const MENU_BEHAVE_STANDARD = 0;
-export const MENU_BEHAVE_PERMINV  = 1;
-
-// Text attributes (color.h ATR_*)
-export const ATR_NONE      =  0;
-export const ATR_ULINE     =  1;
-export const ATR_BOLD      =  2;
-export const ATR_BLINK     =  4;
-export const ATR_INVERSE   =  8;
-export const ATR_URGENT    = 16;
-export const ATR_NOHISTORY = 32;
+import {
+    NHW_MESSAGE, NHW_STATUS, NHW_MAP, NHW_MENU, NHW_TEXT, NHW_PERMINVENT,
+    PICK_NONE, PICK_ONE, PICK_ANY,
+    MENU_BEHAVE_STANDARD, MENU_BEHAVE_PERMINV,
+    ATR_NONE, ATR_ULINE, ATR_BOLD, ATR_BLINK, ATR_INVERSE, ATR_URGENT, ATR_NOHISTORY,
+} from './const.js';
 
 // Window ID globals (mirrors decl.c WIN_MESSAGE / WIN_MAP etc.)
 export let WIN_MESSAGE, WIN_STATUS, WIN_MAP, WIN_INVEN, BASE_WINDOW;
