@@ -1,59 +1,81 @@
 /*
  * hack_patch.h — Harness patches for seed control and JSON session capture.
- * Included before all C source files via Makefile CFLAGS.
  *
- * Replaces:
- *   - getchar()  → harness_getchar() (reads from injected keystroke buffer)
- *   - srand()    → harness_srand()   (seed-controlled)
- *   - rand()     → harness_rand()    (logged)
- *   - getpid()   → harness_getpid()  (deterministic)
- *   - exit()     → harness_exit()    (captured, not fatal)
- *   - Terminal output → JSON frame capture
+ * Strategy: include system headers FIRST, then define override macros.
+ * This prevents the macros from mangling system header declarations.
  */
 
 #ifndef HACK_PATCH_H
 #define HACK_PATCH_H
 
+/* ===== System headers first (before any override macros) ===== */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>    /* for index() */
+#include <signal.h>     /* for kill(), signal() */
+#include <errno.h>
+#include <stdarg.h>
 
-/* Forward declarations */
+/* ===== Forward declarations of harness functions ===== */
 int harness_getchar(void);
 void harness_srand(unsigned int seed);
 int harness_rand(void);
 int harness_getpid(void);
 void harness_exit(int code);
 void harness_capture_screen(void);
-void harness_emit_rng(const char *fn, int x, int y, int result);
-
-/* Replace system calls */
-#define getchar()    harness_getchar()
-#define srand(s)     harness_srand(s)
-#define rand()       harness_rand()
-#define getpid()     harness_getpid()
-#define exit(c)      harness_exit(c)
-
-/* Terminal I/O → no-op or screen buffer */
-#define fputs(s,f)   harness_fputs(s, f)
-#define putchar(c)   harness_putchar(c)
-#define printf(...)  harness_printf(__VA_ARGS__)
-#define fflush(f)    harness_fflush(f)
 
 void harness_fputs(const char *s, FILE *f);
 void harness_putchar(int c);
 int  harness_printf(const char *fmt, ...);
 void harness_fflush(FILE *f);
 
-/* Signal handling — ignore */
+FILE* harness_fopen(const char *path, const char *mode);
+int   harness_fclose(FILE *fp);
+int   harness_fread(void *ptr, int sz, int n, FILE *fp);
+int   harness_fwrite(const void *ptr, int sz, int n, FILE *fp);
+
+void harness_getlin(char *buf);
+
+int harness_do_fork(void);
+void harness_debug(const char *msg);  /* write to real stderr */
+
+/* ===== Replace system calls ===== */
+#define getchar()    harness_getchar()
+#define srand(s)     harness_srand(s)
+#define rand()       harness_rand()
+#define getpid()     harness_getpid()
+#define exit(c)      harness_exit(c)
+
+/* Terminal I/O → screen buffer */
+#define fputs(s,f)   harness_fputs(s, f)
+#define putchar(c)   harness_putchar(c)
+#define printf(...)  harness_printf(__VA_ARGS__)
+#define fflush(f)    harness_fflush(f)
+
+/* Signal/process — no-ops (included signal.h first so these only affect calls) */
 #define signal(sig, handler)  ((void)0)
-#define kill(pid, sig)        ((void)0)
-#define fork()                0
-#define wait(s)               0
 #define sleep(n)              ((void)0)
 #define chdir(p)              0
 
-/* File I/O — use temp in-memory buffers */
+/* kill: need to suppress calls without mangling signal.h prototype.
+   Use a renamed wrapper defined in rng_log.c/harness. */
+#undef kill
+static inline int harness_kill(int p, int s) { (void)p; (void)s; return 0; }
+#define kill(p,s)  harness_kill(p,s)
+
+/* fork/wait: call mklev inline instead of spawning a subprocess */
+#define fork()   harness_do_fork()
+#define wait(s)  (*(s) = 0, 0)
+
+/* execl: should never be reached (fork() handles mklev inline) */
+#define execl(...)   harness_exit(1)
+
+/* File I/O — use in-memory buffers */
+#undef fopen
+#undef fclose
+#undef fread
+#undef fwrite
 #define fopen(path, mode)     harness_fopen(path, mode)
 #define fclose(fp)            harness_fclose(fp)
 #define fread(ptr,s,n,fp)     harness_fread(ptr,s,n,fp)
@@ -61,36 +83,42 @@ void harness_fflush(FILE *f);
 #define ferror(fp)            0
 #define unlink(f)             0
 #define link(a,b)             0
+
+/* Low-level fd I/O — disable */
 #define open(f,m)             (-1)
 #define read(fd,buf,n)        0
 #define write(fd,buf,n)       (n)
 #define creat(f,m)            (-1)
 #define close(fd)             ((void)0)
 
-FILE* harness_fopen(const char *path, const char *mode);
-int   harness_fclose(FILE *fp);
-int   harness_fread(void *ptr, int sz, int n, FILE *fp);
-int   harness_fwrite(const void *ptr, int sz, int n, FILE *fp);
-
-/* String functions */
-#include <string.h>
-char *harness_index(const char *s, int c);
-#define index(s,c)  harness_index(s,c)
-
-/* Remove exec/fork */
-#define execl(...)   harness_exit(1)
-
-/* Other */
-#define cbin()   ((void)0)
-#define cbout()  ((void)0)
-#define getlin(buf) harness_getlin(buf)
-void harness_getlin(char *buf);
+/* Other system calls */
 #define getgid()  42
 #define getuid()  42
 #define setuid(u) ((void)0)
+
+/* getlogin: avoid NULL return in headless environment.
+   Use identifier macro so char *getlogin() in hack.h stays valid. */
+static inline char *harness_getlogin(void) { return "hplayer"; }
+#define getlogin harness_getlogin
 #define alarm(n)  ((void)0)
 
 /* Options */
 #define set1(s) ((void)0)
+
+/* Harness aliases */
+#define cbin()   ((void)0)
+#define cbout()  ((void)0)
+/* getlin: let game's own getlin() run using harness_getchar() */
+
+/* mfree: the game uses mfree() as free() */
+#define mfree(ptr) free(ptr)
+
+/* pow: game defines pow(n) = 2^n, conflicts with math.h pow(x,y).
+   Rename the game's pow to avoid the clash. */
+#define pow pow_game
+
+/* alloc() is defined in hack.main.c with explicit char* return type.
+   Declare it here so ALL translation units get the correct 64-bit pointer ABI. */
+extern char *alloc(int);
 
 #endif /* HACK_PATCH_H */
