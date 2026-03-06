@@ -3288,9 +3288,9 @@ export function mk_knox_portal(map, x, y, depth) {
     const dnum = Number.isInteger(map?._genDnum) ? map._genDnum : DUNGEONS_OF_DOOM;
     const dlevel = Number.isInteger(map?._genDlevel) ? map._genDlevel : depth;
     if (isBranchLevel(dnum, dlevel)) return false;
-    // C ref: mklev.c mk_knox_portal() — defer if rn2(3) is non-zero.
-    // Wizard mode does NOT bypass this check (C does not skip rn2(3) in wizard mode).
-    if (rn2(3)) return false;
+    // C ref: mklev.c:2647 — (rn2(3) && !wizard): defer 2/3 of the time,
+    // but in wizard mode always place the portal.
+    if (rn2(3) && !_wizardMode) return false;
     return !!maketrap(map, x, y, MAGIC_PORTAL, depth);
 }
 

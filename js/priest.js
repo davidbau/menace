@@ -11,7 +11,7 @@ import { A_NONE, A_LAWFUL, A_CHAOTIC, A_NEUTRAL,
          Amask2align, A_WIS, ALL_TRAPS,
          isok } from './const.js';
 import { IS_ALTAR, IS_DOOR, IS_ROOM } from './const.js';
-import { rn2, rnd, rn1, d } from './rng.js';
+import { rn2, rnd, rn1, d, c_d } from './rng.js';
 import { pline, pline_The, verbalize, You, Your, You_feel,
          livelog_printf } from './pline.js';
 import { mons, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC, PM_ANGEL,
@@ -165,7 +165,9 @@ export function findpriest(roomno, map) {
 // ============================================================================
 // Autotranslated from priest.c:369
 export function p_coaligned(priest, player) {
-  return (player.ualign.type === mon_aligntyp(priest));
+  // C ref: u.ualign.type; JS stores alignment as player.alignment (numeric).
+  const playerAlign = player.ualign?.type ?? player.alignment ?? 0;
+  return (playerAlign === mon_aligntyp(priest));
 }
 
 // ============================================================================
@@ -407,7 +409,7 @@ export async function intemple(roomno, map, player, display, fov) {
             const seer = (canseemon(priest, player, fov)) ? Monnam(priest) : "A nearby voice";
             await pline("%s intones:", seer);
             priest.ispriest = save_priest;
-            epri_p.intone_time = moves + d(10, 500);
+            epri_p.intone_time = moves + c_d(10, 500);
             // make sure entry message not suppressed
             epri_p.enter_time = 0;
         }
@@ -430,7 +432,7 @@ export async function intemple(roomno, map, player, display, fov) {
             // C: SetVoice(priest, 0, 80, 0) — cosmetic, skip
             await verbalize(msg1);
             if (msg2) await verbalize(msg2);
-            epri_p.enter_time = moves + d(10, 100);
+            epri_p.enter_time = moves + c_d(10, 100);
         }
 
         if (!sanctum) {
@@ -452,7 +454,7 @@ export async function intemple(roomno, map, player, display, fov) {
             const other_time = epri_p[other_time_key] || 0;
             if (moves >= this_time || other_time >= this_time) {
                 await You(feedback_msg, feedback_arg);
-                epri_p[this_time_key] = moves + d(10, 20);
+                epri_p[this_time_key] = moves + c_d(10, 20);
                 if (epri_p[this_time_key] <= epri_p[other_time_key]) {
                     epri_p[other_time_key] = epri_p[this_time_key] - 1;
                 }

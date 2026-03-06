@@ -936,6 +936,13 @@ export async function deferred_goto(player, game) {
             }
         }
     }
+    // C ref: do.c goto_level() calls check_special_room(FALSE) before return.
+    // This handles temple entry (intemple), etc. when arriving on a new level.
+    // Lazy import to avoid circular dependency (hack.js imports from do.js).
+    if (dest !== fromDepth) {
+        const { check_special_room } = await import('./hack.js');
+        await check_special_room(false, player, game?.map || game?.lev, game?.display, game?.fov || null);
+    }
     player.utotype = 0;
     player.dfr_pre_msg = null;
     player.dfr_post_msg = null;

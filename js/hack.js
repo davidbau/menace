@@ -58,6 +58,7 @@ import { stackobj } from './stackobj.js';
 import { thitu } from './mthrowu.js';
 import { dmgval } from './weapon.js';
 import { poisoned, acurr, acurrstr } from './attrib.js';
+import { intemple } from './priest.js';
 import { t_missile, seetrap, conjoined_pits, adj_nonconjoined_pit, into_vs_onto,
          TT_PIT } from './trap.js';
 
@@ -2591,7 +2592,7 @@ export function move_update(newlev, player, map) {
 }
 
 // C ref: hack.c check_special_room() — room entry messages
-export async function check_special_room(newlev, player, map, display) {
+export async function check_special_room(newlev, player, map, display, fov) {
     move_update(newlev, player, map);
 
     if (player.ushops_left) {
@@ -2647,7 +2648,8 @@ export async function check_special_room(newlev, player, map, display) {
             // Oracle greeting handled separately
             break;
         case TEMPLE:
-            // Temple entry handled separately
+            // C ref: hack.c:3610 — intemple(roomno + ROOMOFFSET)
+            await intemple(roomno + ROOMOFFSET, map, player, display, fov);
             break;
         default:
             break;
@@ -2747,7 +2749,7 @@ export async function spoteffects(pick, player, map, display, game) {
         }
 
         // Room entry messages
-        await check_special_room(false, player, map, display);
+        await check_special_room(false, player, map, display, game?.fov || null);
 
         // Sink + levitation
         if (curLoc && curLoc.typ === SINK && player.levitating) {
