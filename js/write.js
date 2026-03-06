@@ -30,7 +30,7 @@ const GETOBJ_SUGGEST    =  2;
 // For scrolls: fixed per-type cost table matching C.
 function cost(otmp) {
     if (otmp.oclass === SPBOOK_CLASS)
-        return 10 * objectData[otmp.otyp].oc2; // oc2 == oc_level for books
+        return 10 * objectData[otmp.otyp].oc_oc2; // oc2 == oc_level for books
 
     switch (otmp.otyp) {
     case SCR_LIGHT:

@@ -48,21 +48,21 @@ function save_originals() {
     if (savedProps) return; // only save once (from the pristine objectData)
     savedProps = objectData.map(obj => ({
         desc: obj.oc_descr,
-        color: obj.color,
+        oc_color: obj.oc_color,
         tough: obj.tough || 0,
         material: obj.oc_material,
-        dir: obj.dir,
+        oc_dir: obj.oc_dir,
     }));
 }
 
 function restore_originals() {
     for (let i = 0; i < objectData.length; i++) {
         objectData[i].oc_descr = savedProps[i].desc;
-        objectData[i].color = savedProps[i].color;
+        objectData[i].oc_color = savedProps[i].oc_color;
         if (savedProps[i].tough) objectData[i].tough = savedProps[i].tough;
         else delete objectData[i].tough;
         objectData[i].oc_material = savedProps[i].material;
-        objectData[i].dir = savedProps[i].dir;
+        objectData[i].oc_dir = savedProps[i].oc_dir;
     }
 }
 
@@ -74,7 +74,7 @@ function restore_originals() {
 
 function copy_obj_descr(dst_idx, src_idx) {
     objectData[dst_idx].oc_descr = objectData[src_idx].oc_descr;
-    objectData[dst_idx].color = objectData[src_idx].color;
+    objectData[dst_idx].oc_color = objectData[src_idx].oc_color;
 }
 export function randomize_gem_colors() {
     // Turquoise: maybe change from green to blue (copy from sapphire)
@@ -143,9 +143,9 @@ export function shuffle(o_low, o_high, domaterial) {
         objectData[i].tough = sw;
 
         // Swap color (C: oc_color)
-        const color = objectData[j].color;
-        objectData[j].color = objectData[i].color;
-        objectData[i].color = color;
+        const color = objectData[j].oc_color;
+        objectData[j].oc_color = objectData[i].oc_color;
+        objectData[i].oc_color = color;
 
         // Swap material if domaterial (class shuffles)
         if (domaterial) {
@@ -222,7 +222,7 @@ export function init_objects() {
 
     // Randomize WAN_NOTHING direction (1 rn2 call)
     // C ref: o_init.c:233
-    objectData[WAN_NOTHING].dir = rn2(2) ? NODIR : IMMEDIATE;
+    objectData[WAN_NOTHING].oc_dir = rn2(2) ? NODIR : IMMEDIATE;
 }
 
 // cf. o_init.c:351 — check if an object's description matches a string
@@ -294,18 +294,18 @@ export function setgemprobs(depth) {
     // Zero out the first (9 - floor(lev/3)) gems (the rarest, depth-limited ones)
     let j;
     for (j = 0; j < 9 - Math.floor(lev / 3); j++)
-        objectData[first + j].prob = 0;
+        objectData[first + j].oc_prob = 0;
     first += j; // first now points to the first accessible gem
 
     // Set probability for accessible gems proportionally
     // C: (171 + j - first) / (LAST_REAL_GEM + 1 - first) — integer division
     const denom = LAST_REAL_GEM + 1 - first;
     for (j = first; j <= LAST_REAL_GEM; j++)
-        objectData[j].prob = denom > 0 ? Math.floor((171 + j - first) / denom) : 0;
+        objectData[j].oc_prob = denom > 0 ? Math.floor((171 + j - first) / denom) : 0;
 
     // Recompute GEM_CLASS probability total (including rocks/stones beyond LAST_REAL_GEM)
     for (j = bases[GEM_CLASS]; j < bases[GEM_CLASS + 1]; j++)
-        sum += (objectData[j].prob || 0);
+        sum += (objectData[j].oc_prob || 0);
     oclass_prob_totals[GEM_CLASS] = sum;
 }
 

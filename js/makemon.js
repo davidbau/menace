@@ -1337,7 +1337,7 @@ function m_initinv(mon, mndx, depth, m_lev, map) {
                 const otyp = mkobj_rnd_class(DILITHIUM_CRYSTAL, LUCKSTONE - 1);
                 const otmp = mksobj(otyp, false, false);
                 otmp.quan = rn1(2, 3);
-                otmp.owt = otmp.quan * (objectData[otmp.otyp].weight || 1);
+                otmp.owt = otmp.quan * (objectData[otmp.otyp].oc_wt || 1);
                 mpickobj(mon, otmp);
             }
         }

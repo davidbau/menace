@@ -2714,11 +2714,11 @@ export function mktrap_victim(map, trap, depth) {
 function rnd_class(first, last) {
     let sum = 0;
     for (let i = first; i <= last; i++)
-        sum += objectData[i].prob || 0;
+        sum += objectData[i].oc_prob || 0;
     if (!sum) return rn1(last - first + 1, first);
     let x = rnd(sum);
     for (let i = first; i <= last; i++) {
-        x -= objectData[i].prob || 0;
+        x -= objectData[i].oc_prob || 0;
         if (x <= 0) return i;
     }
     return first;
@@ -2898,7 +2898,7 @@ export function fill_ordinary_room(map, croom, depth, bonusItems) {
                             let otmp2;
                             const otyp2 = rnd_class(bases[SPBOOK_CLASS], SPE_BLANK_PAPER);
                             otmp2 = mksobj(otyp2, true, false);
-                            if (objectData[otmp.otyp].oc2 > objectData[otmp2.otyp].oc2) {
+                            if (objectData[otmp.otyp].oc_oc2 > objectData[otmp2.otyp].oc_oc2) {
                                 otmp = otmp2;
                             }
                         }

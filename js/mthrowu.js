@@ -365,7 +365,7 @@ export async function hits_bars(objp, x, y, barsx, barsy, always_hit = 0, whodid
     if (!hits) {
         switch (obj.oclass) {
         case WEAPON_CLASS: {
-            const skill = objectData[obj.otyp]?.sub || 0;
+            const skill = objectData[obj.otyp]?.oc_subtyp || 0;
             // Most missiles pass through; bigger melee weapons hit.
             hits = !(skill === -20 /* bow ammo skill */
                 || skill === -22 /* crossbow ammo skill */
@@ -417,8 +417,8 @@ export async function ohitmon(mtmp, otmp, range, verbose, map, player, display, 
         let damage = 0;
         if (otmp.oclass === WEAPON_CLASS || otmp.oclass === GEM_CLASS) {
             damage = dmgval(otmp, mtmp);
-        } else if ((od.sdam || 0) > 0) {
-            damage = rnd(od.sdam || 0);
+        } else if ((od.oc_wsdam || 0) > 0) {
+            damage = rnd(od.oc_wsdam || 0);
         }
         damage += (otmp.spe || 0);
         if (damage < 1) damage = 1;
@@ -606,7 +606,7 @@ export async function m_throw_timed(
                 hitv = 3 - distmin(player.x, player.y, mon.mx, mon.my);
                 if (hitv < -4) hitv = -4;
                 if (is_elf(mon?.type || {})
-                    && (objectData[weapon.otyp]?.sub === -P_BOW)) {
+                    && (objectData[weapon.otyp]?.oc_subtyp === -P_BOW)) {
                     hitv += 1;
                     if (mon.weapon?.otyp === ELVEN_BOW) hitv += 1;
                     if (weapon.otyp === ELVEN_ARROW) dam += 1;
@@ -709,7 +709,7 @@ export async function thrwmu(mon, map, player, display, game) {
                 await display.putstr_message(`The ${x_monnam(mon)} thrusts ${thrownObjectName(otmp, player)}.`);
             }
             const od = objectData[otmp.otyp] || {};
-            let dam = (od.sdam || 0) > 0 ? rnd(od.sdam || 0) : 1;
+            let dam = (od.oc_wsdam || 0) > 0 ? rnd(od.oc_wsdam || 0) : 1;
             dam += (otmp.spe || 0);
             if (dam < 1) dam = 1;
             let hitv = 3 - distmin(player.x, player.y, mon.mx, mon.my);

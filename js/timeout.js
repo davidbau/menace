@@ -749,7 +749,7 @@ async function fig_transform(figurine) {
         return;
     }
     if (!figurine._figTransformMessageIssued) {
-        await pline('Your %s transforms!', figurine.name || 'figurine');
+        await pline('Your %s transforms!', figurine.oname || 'figurine');
         figurine._figTransformMessageIssued = true;
     }
 }

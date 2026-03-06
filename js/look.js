@@ -84,7 +84,7 @@ function monster_class_desc(mon) {
 
 function look_object_name(obj) {
     if (!obj) return 'object';
-    if (typeof obj.name === 'string' && obj.name.length) return obj.name;
+    if (typeof obj.oname === 'string' && obj.oname.length) return obj.oname;
     if (typeof obj.dname === 'string' && obj.dname.length) return obj.dname;
     if (typeof obj.oc_name === 'string' && obj.oc_name.length) return obj.oc_name;
     return 'object';

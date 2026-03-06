@@ -153,7 +153,7 @@ function obj_nutrition(otmp) {
         if (cnum >= 0 && cnum < mons.length) return mons[cnum].cnutrit || 0;
     }
     const od = objectData[otmp.otyp];
-    return od ? (od.nutrition || 0) : 0;
+    return od ? (od.oc_nutrition || 0) : 0;
 }
 
 // cf. eat.c init_uhunger() — initialize hunger state at game start
@@ -834,16 +834,16 @@ async function fprefx(player, otmp, reqtime, map) {
             await pline('A little goes a long way.');
         } else {
             // give_feedback
-            await pline(`This ${otmp.name || 'food'} is delicious!`);
+            await pline(`This ${otmp.oname || 'food'} is delicious!`);
         }
         break;
     case CLOVE_OF_GARLIC:
         await garlic_breath(player, map);
         // FALLTHROUGH to default
-        await pline(`This ${otmp.name || 'food'} is delicious!`);
+        await pline(`This ${otmp.oname || 'food'} is delicious!`);
         break;
     default:
-        await pline(`This ${otmp.name || 'food'} is delicious!`);
+        await pline(`This ${otmp.oname || 'food'} is delicious!`);
         break;
     }
     return true;
@@ -1450,10 +1450,10 @@ async function handleEat(player, display, game) {
         // cf. eat.c eatcorpse() overrides reqtime to 3 + (corpse weight >> 6).
         const reqtime = isCorpse
             ? (3 + ((mons[cnum].cwt || 0) >> 6))
-            : Math.max(1, (od ? od.delay : 1));
+            : Math.max(1, (od ? od.oc_delay : 1));
         const baseNutr = isCorpse
-            ? (mons[cnum].cnutrit || (od ? od.nutrition : 200))
-            : (od ? od.nutrition : 200);
+            ? (mons[cnum].cnutrit || (od ? od.oc_nutrition : 200))
+            : (od ? od.oc_nutrition : 200);
         // cf. eat.c bite() nmod calculation — nutrition distributed per bite.
         // nmod < 0 means add -nmod each turn; nmod > 0 means add 1 some turns
         const nmod = (reqtime === 0 || baseNutr === 0) ? 0

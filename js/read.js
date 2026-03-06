@@ -346,8 +346,8 @@ async function handleRead(player, display, game) {
                     return { moved: false, tookTime: true };
                 }
                 // cf. spell.c study_book():537-558 — calculate study delay
-                const ocLevel = od.oc2 || 1;
-                const ocDelay = od.delay || 1;
+                const ocLevel = od.oc_oc2 || 1;
+                const ocDelay = od.oc_delay || 1;
                 let delayTurns;
                 if (ocLevel <= 2) delayTurns = ocDelay;
                 else if (ocLevel <= 4) delayTurns = (ocLevel - 1) * ocDelay;

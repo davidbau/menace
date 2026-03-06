@@ -430,7 +430,7 @@ async function handleQuaff(player, map, display) {
     const item = potions.find(p => p.invlet === c);
     if (item) {
         player.removeFromInventory(item);
-        const potionName = String(item.name || '').toLowerCase();
+        const potionName = String(item.oname || '').toLowerCase();
         // Simple potion effects
         // cf. potion.c peffect_full_healing() (partial)
         if (potionName.includes('full healing')) {
@@ -1283,7 +1283,7 @@ async function potion_dip(player, obj, potion) {
     }
 
     if (potion.otyp === POT_WATER) {
-        const obj_glows = `Your ${obj.name || 'object'} glows`;
+        const obj_glows = `Your ${obj.oname || 'object'} glows`;
         if (await H2Opotion_dip(potion, obj, !player.blind, obj_glows)) {
             poof(player, potion);
             return true;

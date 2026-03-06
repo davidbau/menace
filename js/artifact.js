@@ -316,10 +316,10 @@ export function artifact_has_invprop(otmp, inv_prop) {
 // cf. artifact.c:2309 — arti_cost(otmp)
 export function arti_cost(otmp) {
   if (!otmp.oartifact)
-    return objectData[otmp.otyp].cost || 0;
+    return objectData[otmp.otyp].oc_cost || 0;
   if (artilist[otmp.oartifact].cost)
     return artilist[otmp.oartifact].cost;
-  return 100 * (objectData[otmp.otyp].cost || 0);
+  return 100 * (objectData[otmp.otyp].oc_cost || 0);
 }
 
 // cf. artifact.c:2264 — artifact_light(obj)

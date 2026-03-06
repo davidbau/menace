@@ -234,11 +234,11 @@ function ensureObjectClassTablesInitialized() {
 function rnd_class(first, last) {
     let sum = 0;
     for (let i = first; i <= last; i++)
-        sum += objectData[i].prob || 0;
+        sum += objectData[i].oc_prob || 0;
     if (!sum) return rn1(last - first + 1, first);
     let x = rnd(sum);
     for (let i = first; i <= last; i++) {
-        x -= objectData[i].prob || 0;
+        x -= objectData[i].oc_prob || 0;
         if (x <= 0) return i;
     }
     return first;
@@ -257,7 +257,7 @@ const P_SHURIKEN = 24;
 // Helper: is object a stackable missile?
 function is_multigen(obj) {
     if (obj.oclass !== WEAPON_CLASS) return false;
-    const skill = objectData[obj.otyp].sub;
+    const skill = objectData[obj.otyp].oc_subtyp;
     return skill >= -P_SHURIKEN && skill <= -P_BOW;
 }
 
@@ -299,7 +299,7 @@ export function Is_container(obj) {
 // C ref: mkobj.c weight() — compute actual weight of an object
 // Considers quantity, corpse type, container contents, coins
 export function weight(obj) {
-    let wt = objectData[obj.otyp].weight;
+    let wt = objectData[obj.otyp].oc_wt;
     if (obj.quan < 1) return 0;
     if (Is_container(obj) || obj.otyp === STATUE) {
         if (obj.otyp === STATUE && obj.corpsenm >= 0 && obj.corpsenm < mons.length) {
@@ -337,7 +337,7 @@ export function erosion_matters(obj) {
     case CHAIN_CLASS:
         return true;
     case TOOL_CLASS:
-        return (objectData[obj.otyp].sub || 0) !== 0; // is_weptool
+        return (objectData[obj.otyp].oc_subtyp || 0) !== 0; // is_weptool
     default:
         return false;
     }
@@ -455,9 +455,9 @@ function newobj(otyp) {
         greased: false,
         opoisoned: 0,
         corpsenm: -1, // NON_PM
-        owt: objectData[otyp].weight,
+        owt: objectData[otyp].oc_wt,
         displayChar: CLASS_SYMBOLS[objectData[otyp].oc_class] || '?',
-        displayColor: objectData[otyp].color,
+        displayColor: objectData[otyp].oc_color,
         ox: 0, oy: 0,
         where: 'free',
         lamplit: false,
@@ -714,7 +714,7 @@ function mksobj_init(obj, artif, skipErosion) {
         if (od.oc_name === 'wishing') {
             obj.spe = 1;
         } else {
-            obj.spe = rn1(5, (od.dir === 1) ? 11 : 4); // NODIR=1
+            obj.spe = rn1(5, (od.oc_dir === 1) ? 11 : 4); // NODIR=1
         }
         blessorcurse(obj, 17);
         break;
@@ -1100,7 +1100,7 @@ export function mkobj(oclass, artif, skipErosion) {
         prob = rnd(probTotal);
         i = bases[oclass];
         while (prob > 0 && i < bases[oclass + 1]) {
-            prob -= objectData[i].prob || 0;
+            prob -= objectData[i].oc_prob || 0;
             if (prob > 0) i++;
         }
     } else {
@@ -1262,11 +1262,11 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
         // C ref: objnam.c xname() armor handling.
         if (obj.otyp >= GRAY_DRAGON_SCALES && obj.otyp <= YELLOW_DRAGON_SCALES) {
             base = `set of ${od.oc_name}`;
-        } else if (od.sub === ARM_BOOTS || od.sub === ARM_GLOVES) {
+        } else if (od.oc_subtyp === ARM_BOOTS || od.oc_subtyp === ARM_GLOVES) {
             base = `pair of ${dknown
                 ? (nameKnown ? od.oc_name : (od.oc_descr || od.oc_name))
                 : (od.oc_descr || od.oc_name)}`;
-        } else if (!dknown && od.sub === ARM_SHIELD) {
+        } else if (!dknown && od.oc_subtyp === ARM_SHIELD) {
             // C ref: objnam.c xname() unknown shield special-cases.
             if (obj.otyp >= ELVEN_SHIELD && obj.otyp <= ORCISH_SHIELD) {
                 base = 'shield';
@@ -1439,7 +1439,7 @@ export function doname(obj, player) {
     // C ref: objnam.c doname_base() -- add_erosion_words() precedes enchantment.
     // C uses is_weptool(obj) ? WEAPON_CLASS : obj->oclass in this switch.
     let spePrefix = '';
-    const isWeptool = obj.oclass === TOOL_CLASS && (od.sub || 0) !== 0;
+    const isWeptool = obj.oclass === TOOL_CLASS && (od.oc_subtyp || 0) !== 0;
     if (known && (obj.oclass === WEAPON_CLASS || isWeptool
         || obj.oclass === ARMOR_CLASS
         || (obj.oclass === RING_CLASS && od.charged))) {
@@ -1466,7 +1466,7 @@ export function doname(obj, player) {
                 // single regular weapon; uses "(wielded)" for stacks, ammo
                 // (sub in -22..-20, P_CROSSBOW..P_BOW), missiles
                 // (sub in -25..-23, P_BOOMERANG..P_DART), and non-weptools.
-                const odSub = od.sub || 0;
+                const odSub = od.oc_subtyp || 0;
                 const isAmmo = odSub <= -20 && odSub >= -22; // -P_BOW..-P_CROSSBOW
                 const isMissile = odSub <= -23 && odSub >= -25; // -P_DART..-P_BOOMERANG
                 const useWielded = (quan !== 1)

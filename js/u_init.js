@@ -463,7 +463,7 @@ export function ini_inv_mkobj_filter(oclass, gotSp1, roleIndex, race) {
             || (otyp === SCR_ENCHANT_WEAPON && roleIndex === PM_MONK)
             || (otyp === SPE_FORCE_BOLT && roleIndex === PM_WIZARD)
             || (oclass === SPBOOK_CLASS
-                && ((objectData[otyp].oc2 || 0) > (gotSp1 ? 3 : 1)
+                && ((objectData[otyp].oc_oc2 || 0) > (gotSp1 ? 3 : 1)
                     || restricted_spell_discipline(otyp, roleIndex)))
             || otyp === SPE_NOVEL) {
             continue; // reject, try again
@@ -479,7 +479,7 @@ function initialSpell(player, obj) {
     const spells = player.spells || (player.spells = []);
     if (spells.some(s => s.otyp === obj.otyp)) return; // already known
     const od = objectData[obj.otyp] || {};
-    spells.push({ otyp: obj.otyp, sp_lev: od.oc2 || 1, sp_know: 20000 }); // KEEN=20000
+    spells.push({ otyp: obj.otyp, sp_lev: od.oc_oc2 || 1, sp_know: 20000 }); // KEEN=20000
 }
 
 // ---- ini_inv: Create starting inventory from trobj table ----
@@ -599,7 +599,7 @@ export function ini_inv(player, table) {
         }
 
         // Track level-1 spellbooks for filter
-        if (obj.oclass === SPBOOK_CLASS && (objectData[otyp].oc2 || 0) === 1) {
+        if (obj.oclass === SPBOOK_CLASS && (objectData[otyp].oc_oc2 || 0) === 1) {
             gotSp1 = true;
         }
 
@@ -937,7 +937,7 @@ function selectStartupQuiverItem(player) {
     if (dart) return dart;
 
     return inv.find((item) =>
-        item?.oclass === WEAPON_CLASS && (objectData[item.otyp]?.sub ?? 0) < 0) || null;
+        item?.oclass === WEAPON_CLASS && (objectData[item.otyp]?.oc_subtyp ?? 0) < 0) || null;
 }
 
 function equipInitialGear(player) {
@@ -957,7 +957,7 @@ function equipInitialGear(player) {
         if (item.oclass !== ARMOR_CLASS) continue;
         const info = objectData[item.otyp];
         if (!info) continue;
-        switch (info.sub) {
+        switch (info.oc_subtyp) {
             case ARM_SUIT:
                 if (!player.armor) player.armor = item;
                 break;
@@ -986,7 +986,7 @@ function equipInitialGear(player) {
         const info = objectData[item.otyp];
         // C ref: u_init.c ini_inv_use_obj() — weapons and weptools
         // (TOOL_CLASS with oc_skill != P_NONE) are eligible for player.weapon/player.swapWeapon.
-        const isWeptool = item.oclass === TOOL_CLASS && info && (info.sub || 0) !== 0;
+        const isWeptool = item.oclass === TOOL_CLASS && info && (info.oc_subtyp || 0) !== 0;
         // C ref: u_init.c ini_inv_use_obj() also treats TIN_OPENER/FLINT/ROCK
         // as startup wield candidates.
         const isSpecialWieldable = item.otyp === TIN_OPENER || item.otyp === FLINT || item.otyp === ROCK;
@@ -995,7 +995,7 @@ function equipInitialGear(player) {
         // and missiles (is_missile) go to quiver, not player.weapon.  Both have
         // negative oc_skill (sub < 0); melee weapons and launchers have
         // non-negative oc_skill.
-        if (info && info.sub < 0) {
+        if (info && info.oc_subtyp < 0) {
             if (!player.quiver) player.quiver = item;
             continue;
         }
@@ -1068,7 +1068,7 @@ function discoverClassByRule(oclass, shouldKnow) {
 
 function discoverWeaponClassForRole(roleIndex) {
     discoverClassByRule(WEAPON_CLASS, (od) => {
-        const skill = Number(od.sub || 0);
+        const skill = Number(od.oc_subtyp || 0);
         if (roleIndex !== PM_KNIGHT && roleIndex !== PM_SAMURAI
             && skill === WEAPON_SKILL_POLEARM) {
             return false; // C: knows_class(WEAPON_CLASS) excludes polearms
@@ -1244,7 +1244,7 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
         if (!item) continue;
         const info = objectData[item.otyp];
         if (!info) continue;
-        const baseAC = info.oc1 || 0;
+        const baseAC = info.oc_oc1 || 0;
         player.ac -= (baseAC + (item.spe || 0));
     }
 

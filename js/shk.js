@@ -211,7 +211,7 @@ function roundScaled(value, multiplier, divisor) {
 // C ref: shk.c getprice() -- base price of object
 function getprice_base(obj, shk_buying = false) {
     const od = objectData[obj.otyp] || {};
-    let tmp = Number(od.cost || 0);
+    let tmp = Number(od.oc_cost || 0);
 
     // Artifact pricing handled via base cost * 4 in get_cost
     // C ref: if (obj->oartifact) tmp = arti_cost(obj);
@@ -236,7 +236,7 @@ function getprice_base(obj, shk_buying = false) {
         break;
     case TOOL_CLASS:
         if (Is_candle(obj)
-            && Number(obj.age || 0) < 20 * Number(od.cost || 0))
+            && Number(obj.age || 0) < 20 * Number(od.oc_cost || 0))
             tmp = Math.floor(tmp / 2);
         break;
     }
@@ -318,7 +318,7 @@ function get_cost(obj, shkp) {
             if (glassIdx >= 0 && glassIdx < 9) {
                 // Use a pseudo-random choice based on birthday (simplified)
                 const i = realGems[glassIdx] || realGems[0];
-                tmp = Number((objectData[i] || {}).cost || 0);
+                tmp = Number((objectData[i] || {}).oc_cost || 0);
             }
         } else if (oid_price_adjustment(obj, Number(obj.o_id || 0)) > 0) {
             multiplier *= 4;
@@ -1217,7 +1217,7 @@ export function cost_per_charge(shkp, otmp, altusage, map) {
 
     if (otmp.otyp === MAGIC_LAMP) {
         if (!altusage)
-            tmp = Number((objectData[OIL_LAMP] || {}).cost || 0);
+            tmp = Number((objectData[OIL_LAMP] || {}).oc_cost || 0);
         else
             tmp += Math.floor(tmp / 3);
     } else if (otmp.otyp === MAGIC_MARKER) {
@@ -1830,7 +1830,7 @@ export function contained_cost(obj, shkp, price, usell, unpaid_only) {
             if (saleable(shkp, otmp) && !otmp.unpaid
                 && otmp.oclass !== BALL_CLASS
                 && !(otmp.oclass === FOOD_CLASS && otmp.oeaten)
-                && !(Is_candle(otmp) && Number(otmp.age || 0) < 20 * Number((objectData[otmp.otyp] || {}).cost || 0)))
+                && !(Is_candle(otmp) && Number(otmp.age || 0) < 20 * Number((objectData[otmp.otyp] || {}).oc_cost || 0)))
                 price += set_cost(otmp, shkp);
         } else {
             if (otmp.unpaid || !unpaid_only)

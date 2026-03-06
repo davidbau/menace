@@ -171,7 +171,7 @@ export async function ballfall(player, map) {
                 dmg = 3;
             } else {
                 // flags.verbose — assume true
-                await pline("%s does not protect you.", player.helmet.name || "Your helmet");
+                await pline("%s does not protect you.", player.helmet.oname || "Your helmet");
             }
         }
         await losehp(Maybe_Half_Phys(dmg, player), "crunched in the head by an iron ball",

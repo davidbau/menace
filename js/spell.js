@@ -266,7 +266,7 @@ function percent_success(player, spell_idx) {
     const od = objectData[otyp] || {};
     const spellName = String(od.oc_name || '').toLowerCase();
     const category = spellCategoryForName(spellName);
-    const spellLevel = Math.max(1, Number(od.oc2 || sp.sp_lev || 1));
+    const spellLevel = Math.max(1, Number(od.oc_oc2 || sp.sp_lev || 1));
 
     const role = ROLE_SPELLCAST.get(player.roleIndex)
         || { spelbase: 10, spelheal: 0, spelshld: 2, spelarmr: 10, spelstat: A_INT, spelspec: '', spelsbon: 0 };
@@ -314,8 +314,8 @@ function percent_success(player, spell_idx) {
     if (chance < 0) chance = 0;
     if (chance > 120) chance = 120;
 
-    const shieldWeight = Number(objectData[shield?.otyp]?.weight || 0);
-    const smallShieldWeight = Number(objectData[SMALL_SHIELD]?.weight || 40);
+    const shieldWeight = Number(objectData[shield?.otyp]?.oc_wt || 0);
+    const smallShieldWeight = Number(objectData[SMALL_SHIELD]?.oc_wt || 40);
     if (shield && shieldWeight > smallShieldWeight) {
         if (spellName === role.spelspec) {
             chance = Math.floor(chance / 2);
@@ -375,8 +375,8 @@ function estimateSpellFailPercent(player, spellName, spellLevel, category) {
     }
     chance = Math.max(0, Math.min(120, chance));
 
-    const shieldWeight = Number(objectData[shield?.otyp]?.weight || 0);
-    const smallShieldWeight = Number(objectData[SMALL_SHIELD]?.weight || 40);
+    const shieldWeight = Number(objectData[shield?.otyp]?.oc_wt || 0);
+    const smallShieldWeight = Number(objectData[SMALL_SHIELD]?.oc_wt || 40);
     if (shield && shieldWeight > smallShieldWeight) {
         chance = (String(spellName || '').toLowerCase() === role.spelspec)
             ? Math.floor(chance / 2)
@@ -527,7 +527,7 @@ export async function study_book(spellbook, player) {
 
     const booktype = spellbook.otyp;
     const od = objectData[booktype] || {};
-    const ocLevel = od.oc2 || 1;
+    const ocLevel = od.oc_oc2 || 1;
 
     // Blank paper
     if (booktype === SPE_BLANK_PAPER) {
@@ -545,16 +545,16 @@ export async function study_book(spellbook, player) {
     let delay;
     switch (ocLevel) {
     case 1: case 2:
-        delay = od.delay || 1;
+        delay = od.oc_delay || 1;
         break;
     case 3: case 4:
-        delay = (ocLevel - 1) * (od.delay || 1);
+        delay = (ocLevel - 1) * (od.oc_delay || 1);
         break;
     case 5: case 6:
-        delay = ocLevel * (od.delay || 1);
+        delay = ocLevel * (od.oc_delay || 1);
         break;
     case 7:
-        delay = 8 * (od.delay || 1);
+        delay = 8 * (od.oc_delay || 1);
         break;
     default:
         return 0;
@@ -603,7 +603,7 @@ export async function study_book(spellbook, player) {
 // C ref: spell.c cursed_book() — TRUE if book should be destroyed
 export async function cursed_book(spellbook, player) {
     const od = objectData[spellbook.otyp] || {};
-    const lev = od.oc2 || 1;
+    const lev = od.oc_oc2 || 1;
 
     switch (rn2(lev)) {
     case 0:
@@ -736,7 +736,7 @@ export async function learn(player) {
             const newIdx = spells.length;
             spells.push({
                 otyp: booktype,
-                sp_lev: od.oc2 || 1,
+                sp_lev: od.oc_oc2 || 1,
                 sp_know: KEEN + 1, // incrnknow(i, 1)
             });
             book.spestudied = studyCount + 1;
@@ -1074,7 +1074,7 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
 
     const sp = player.spells[idx];
     const od = objectData[sp.otyp] || {};
-    const spLev = sp.sp_lev || od.oc2 || 1;
+    const spLev = sp.sp_lev || od.oc_oc2 || 1;
     let energy = SPELL_LEV_PW(spLev);
 
     // Check if spell is forgotten
@@ -1328,7 +1328,7 @@ export function force_learn_spell(player, otyp) {
         const od = objectData[otyp] || {};
         spells.push({
             otyp,
-            sp_lev: od.oc2 || 1,
+            sp_lev: od.oc_oc2 || 1,
             sp_know: KEEN, // incrnknow(i, 0)
         });
         i = spells.length - 1;
@@ -1354,7 +1354,7 @@ export function initialspell(player, obj) {
     const od = objectData[otyp] || {};
     spells.push({
         otyp,
-        sp_lev: od.oc2 || 1,
+        sp_lev: od.oc_oc2 || 1,
         sp_know: KEEN, // incrnknow(i, 0) — no +1 for initial spells
     });
 }
@@ -1384,7 +1384,7 @@ export function tport_spell(player, what) {
             const od = objectData[SPE_TELEPORT_AWAY] || {};
             spells.push({
                 otyp: SPE_TELEPORT_AWAY,
-                sp_lev: od.oc2 || 1,
+                sp_lev: od.oc_oc2 || 1,
                 sp_know: KEEN,
             });
             return REMOVESPELL;

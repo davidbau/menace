@@ -404,9 +404,9 @@ export async function dosit(player, map, display) {
             await You("coil up around your hoard.");
         } else {
             if (slithy(playerType))
-                await You("coil up around %s.", obj.name || "it");
+                await You("coil up around %s.", obj.oname || "it");
             else
-                await You("sit on %s.", obj.name || "it");
+                await You("sit on %s.", obj.oname || "it");
             if (!obj.otyp) {
                 // generic
             } else {
@@ -536,7 +536,7 @@ export async function rndcurse(player, map, display) {
             // Intelligent artifact resistance
             if (otmp.oartifact && spec_ability(otmp, SPFX_INTEL)
                 && rn2(10) < 8) {
-                await pline("%s resists!", otmp.name || "An item");
+                await pline("%s resists!", otmp.oname || "An item");
                 continue;
             }
 
@@ -557,7 +557,7 @@ export async function rndcurse(player, map, display) {
             else
                 curseObj(saddle);
             if (!player.blind) {
-                await pline("%s glows %s.", saddle.name || "The saddle",
+                await pline("%s glows %s.", saddle.oname || "The saddle",
                       saddle.cursed ? "black" : "brown");
             }
         }

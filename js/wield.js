@@ -135,7 +135,7 @@ async function can_twoweapon(player, display) {
         if (!od) return false;
         if (od.oc_class === WEAPON_CLASS) {
             // Exclude launchers, ammo, missiles
-            const sub = od.sub || 0;
+            const sub = od.oc_subtyp || 0;
             if (sub < 0) return false; // launcher (negative skill = ammo_for_launcher)
             if (od.missile) return false;
             return true;
@@ -382,7 +382,7 @@ async function handleWield(player, display) {
         if (!obj) return false;
         if (obj.oclass === WEAPON_CLASS) return true;
         // C ref: wield.c wield_ok() includes is_weptool() in suggestions.
-        return obj.oclass === TOOL_CLASS && (objectData[obj.otyp]?.sub || 0) !== 0;
+        return obj.oclass === TOOL_CLASS && (objectData[obj.otyp]?.oc_subtyp || 0) !== 0;
     };
 
     // C ref: wield.c getobj() prompt format for wield command.

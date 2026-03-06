@@ -320,13 +320,13 @@ function shkveg() {
         if (objectData[i].oc_class !== FOOD_CLASS) break;
         if (veggy_item(i)) {
             ok.push(i);
-            maxprob += objectData[i].prob || 0;
+            maxprob += objectData[i].oc_prob || 0;
         }
     }
     let prob = rnd(maxprob);
     let j = 0;
     let i = ok[0];
-    while ((prob -= (objectData[i].prob || 0)) > 0) {
+    while ((prob -= (objectData[i].oc_prob || 0)) > 0) {
         j++;
         i = ok[j];
     }

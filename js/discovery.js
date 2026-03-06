@@ -130,7 +130,7 @@ export function discoveryTypeName(otyp) {
     default:
         if (nn) {
             const pairPrefix = (od.oc_class === ARMOR_CLASS
-                && (od.sub === ARM_GLOVES || od.sub === ARM_BOOTS))
+                && (od.oc_subtyp === ARM_GLOVES || od.oc_subtyp === ARM_BOOTS))
                 ? 'pair of '
                 : '';
             return withDesc(`${pairPrefix}${an}`);

@@ -183,7 +183,7 @@ export function obj_typename(otyp) {
         if (dn) buf += ` (${dn})`;
         return buf;
     case ARMOR_CLASS:
-        if ((ocl.sub || 0) === ARM_GLOVES || (ocl.sub || 0) === ARM_BOOTS)
+        if ((ocl.oc_subtyp || 0) === ARM_GLOVES || (ocl.oc_subtyp || 0) === ARM_BOOTS)
             buf = 'pair of ';
         else if (otyp >= GRAY_DRAGON_SCALES && otyp <= YELLOW_DRAGON_SCALES)
             buf = 'set of ';
@@ -266,7 +266,7 @@ export function safe_typename(otyp) {
     case AMULET_CLASS: return actualn;
     case ARMOR_CLASS: {
         let prefix = '';
-        if ((ocl.sub || 0) === ARM_GLOVES || (ocl.sub || 0) === ARM_BOOTS)
+        if ((ocl.oc_subtyp || 0) === ARM_GLOVES || (ocl.oc_subtyp || 0) === ARM_BOOTS)
             prefix = 'pair of ';
         else if (otyp >= GRAY_DRAGON_SCALES && otyp <= YELLOW_DRAGON_SCALES)
             prefix = 'set of ';
@@ -645,7 +645,7 @@ export function mshot_xname(obj) {
 // ============================================================================
 
 function is_weptool(obj) {
-    return obj.oclass === TOOL_CLASS && (objectData[obj.otyp]?.sub || 0) !== 0;
+    return obj.oclass === TOOL_CLASS && (objectData[obj.otyp]?.oc_subtyp || 0) !== 0;
 }
 
 function is_damageable(obj) {
@@ -1695,7 +1695,7 @@ export function rnd_otyp_by_wpnskill(skill) {
     }
     if (base < 0) return otyp;
     for (let i = base; i < NUM_OBJECTS && objectData[i].oc_class === WEAPON_CLASS; i++) {
-        if (objectData[i].sub === skill) {
+        if (objectData[i].oc_subtyp === skill) {
             n++;
             otyp = i;
         }
@@ -1703,7 +1703,7 @@ export function rnd_otyp_by_wpnskill(skill) {
     if (n > 0) {
         let r = rn2(n);
         for (let i = base; i < NUM_OBJECTS && objectData[i].oc_class === WEAPON_CLASS; i++) {
-            if (objectData[i].sub === skill) {
+            if (objectData[i].oc_subtyp === skill) {
                 if (--r < 0) return i;
             }
         }
@@ -1806,14 +1806,14 @@ function rnd_otyp_by_namedesc(name, oclass, xtra_prob) {
 
         if (matched) {
             validobjs.push(i);
-            maxprob += (od.prob || 0) + xtra_prob;
+            maxprob += (od.oc_prob || 0) + xtra_prob;
         }
     }
 
     if (validobjs.length > 0 && maxprob > 0) {
         let prob = rn2(maxprob);
         for (let i = 0; i < validobjs.length - 1; i++) {
-            prob -= (objectData[validobjs[i]].prob || 0) + xtra_prob;
+            prob -= (objectData[validobjs[i]].oc_prob || 0) + xtra_prob;
             if (prob < 0) return validobjs[i];
         }
         return validobjs[validobjs.length - 1];
@@ -2272,7 +2272,7 @@ export function shirt_simple_name(shirt) {
 
 // cf. objnam.c:5425 — armor_simple_name(armor): dispatch to specific armor type
 export function armor_simple_name(armor) {
-    const armcat = objectData[armor.otyp]?.sub;
+    const armcat = objectData[armor.otyp]?.oc_subtyp;
     switch (armcat) {
     case ARM_SUIT: return suit_simple_name(armor);
     case ARM_CLOAK: return cloak_simple_name(armor);

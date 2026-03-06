@@ -1581,13 +1581,13 @@ export function weaponDamageSides(weapon, monster) {
     const info = objectData[weapon.otyp];
     if (!info) return 0;
     const isLarge = (monster?.type?.msize ?? MZ_TINY) >= MZ_LARGE;
-    return isLarge ? (info.ldam || 0) : (info.sdam || 0);
+    return isLarge ? (info.oc_wldam || 0) : (info.oc_wsdam || 0);
 }
 
 // cf. uhitm.c hmon_hitmon_weapon() — ranged weapon used in melee check
 function usesRangedMeleeDamage(weapon) {
     if (!weapon) return false;
-    const sub = objectData[weapon.otyp]?.sub;
+    const sub = objectData[weapon.otyp]?.oc_subtyp;
     if (!Number.isInteger(sub)) return false;
     const isLauncher = sub >= 20 && sub <= 22;      // P_BOW..P_CROSSBOW
     const isAmmoOrMissile = sub <= -20 && sub >= -24; // -P_BOW..-P_SHURIKEN

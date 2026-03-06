@@ -120,8 +120,8 @@ export function monsterWeaponSwingVerb(weapon, bash = false) {
 // cf. mondata.c pronoun_gender() and mhis().
 export function monsterPossessive(monster) {
     const mdat = monster?.type || {};
-    const flags1 = mdat.mflags1 ?? mdat.flags1 ?? 0;
-    const flags2 = mdat.mflags2 ?? mdat.flags2 ?? 0;
+    const flags1 = mdat.mflags1 ?? 0;
+    const flags2 = mdat.mflags2 ?? 0;
     if (flags2 & M2_NEUTER) return 'its';
 
     const useGenderedPronoun = is_humanoid({ ...mdat, mflags1: flags1 })

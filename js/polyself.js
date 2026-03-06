@@ -657,7 +657,7 @@ async function check_strangling(player, on) {
             && can_be_strangled(player.type || mons[PM_HUMAN])) {
             player.strangled = 6;
             await Your("%s %s your %s!",
-                player.uamul.name || "amulet",
+                player.uamul.oname || "amulet",
                 was_strangled ? "still constricts" : "begins constricting",
                 body_part(NECK, player));
         }

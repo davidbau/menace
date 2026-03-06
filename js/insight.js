@@ -852,7 +852,7 @@ export function weapon_insight(final, game) {
     } else if (player.twoweap) {
         you_are(final, 'wielding two weapons at once', '');
     } else {
-        const weapName = uwep.name || uwep.oname || 'a weapon';
+        const weapName = uwep.oname || 'a weapon';
         you_are(final, `wielding ${weapName}`, '');
     }
 }

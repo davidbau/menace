@@ -115,7 +115,7 @@ function arm_bonus(obj) {
     if (!obj) return 0;
     const od = objectData[obj.otyp];
     if (!od) return 0;
-    const baseAc = Number(od.oc1 || 0);  // a_ac
+    const baseAc = Number(od.oc_oc1 || 0);  // a_ac
     const spe = Number(obj.spe || 0);
     const erosion = Math.max(Number(obj.oeroded || 0), Number(obj.oeroded2 || 0));
     return baseAc + spe - Math.min(erosion, baseAc);
@@ -259,7 +259,7 @@ export function wearslot(obj) {
     case RING_CLASS:
         return W_RINGL | W_RINGR;
     case ARMOR_CLASS: {
-        const armcat = od.sub;
+        const armcat = od.oc_subtyp;
         return ARMCAT_TO_MASK[armcat] || 0;
     }
     case WEAPON_CLASS: {
@@ -428,7 +428,7 @@ function _apply_extrinsic(mon, obj, which, on, silently) {
                 if (!otd) continue;
                 if (otd.oc_oprop === which) { found = true; break; }
                 // check altprop (alchemy smock)
-                if (otd.name === 'alchemy smock' &&
+                if (otd.oc_name === 'alchemy smock' &&
                     (POISON_RES + ACID_RES - otd.oc_oprop) === which) {
                     found = true; break;
                 }
@@ -554,7 +554,7 @@ function m_dowear_type(mon, flag, creation, racialexception) {
         }
 
         if (od.oc_class !== ARMOR_CLASS) continue;
-        const armcat = od.sub;
+        const armcat = od.oc_subtyp;
 
         switch (flag) {
         case W_ARMU: if (armcat !== ARM_SHIRT) continue; break;
@@ -703,7 +703,7 @@ export async function mon_break_armor(mon, polyspot, map, opts = {}) {
     if (breakarm(mdat)) {
         // Body armor breaks
         if ((otmp = which_armor(mon, W_ARM)) != null) {
-            if (!vis && (objectData[otmp.otyp]?.sub === ARM_HELM)) await emitClank();
+            if (!vis && (objectData[otmp.otyp]?.oc_subtyp === ARM_HELM)) await emitClank();
             // Destroy it (m_useup equivalent: remove from inventory)
             extract_from_minvent(mon, otmp, true, false);
         }
@@ -719,7 +719,7 @@ export async function mon_break_armor(mon, polyspot, map, opts = {}) {
     } else if (sliparm(mdat)) {
         // Armor falls off
         if ((otmp = which_armor(mon, W_ARM)) != null) {
-            if (!vis && (objectData[otmp.otyp]?.sub === ARM_HELM)) await emitClank();
+            if (!vis && (objectData[otmp.otyp]?.oc_subtyp === ARM_HELM)) await emitClank();
             m_lose_armor(mon, otmp, polyspot, map);
         }
         if ((otmp = which_armor(mon, W_ARMC)) != null

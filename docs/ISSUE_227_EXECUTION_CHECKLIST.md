@@ -104,8 +104,8 @@ Required per-usage context analysis (not safe for `replace_all`):
 - [x] Bidirectional aliases added via `normalizeMonsterFields` for backward compat
 - [x] Cleaned up dual-read fallback patterns in muse.js, dothrow.js, hack.js
 - [x] Updated test mock in domove_attackmon_safe_stop.test.js
-- [ ] `symbol`→`mlet`: alias exists, ~9 remaining reads (deferred — low priority)
-- [ ] `level`→`mlevel`: alias exists, ~33 remaining reads (deferred — many in /levels/)
+- [x] `symbol`→`mlet`: runtime permonst reads migrated (audit 2026-03-06)
+- [x] `level`→`mlevel`: runtime permonst reads migrated (audit 2026-03-06)
 - [x] `name`→`mname` (done by constgen agent; alias `name`↔`mname` added)
 
 ### 2D. Objclass field normalization (complete)
@@ -123,8 +123,10 @@ oc_bulky↔oc_bimanual↔big.
 - [x] Migrated `.material`→`.oc_material` (~45 reads, 20 files)
 - [x] Migrated `.desc`→`.oc_descr` (~42 reads, 7 files)
 - [x] Migrated `.name`→`.oc_name` (~115 reads, 12 files)
-- [ ] Migrate remaining legacy reads: .prob, .cost, .color, .weight, .delay, .sdam, .ldam, .oc1, .oc2, .sub, .dir, .prop, .nutrition (low priority — aliases handle these)
-- [ ] Normalize obj instance `.name`→`.oname` (~11 files)
+- [x] Migrate remaining legacy reads: .prob, .cost, .color, .weight, .delay, .sdam, .ldam, .oc1, .oc2, .sub, .dir, .prop, .nutrition
+  - Audit (2026-03-06): no remaining runtime `objectData[...]` legacy field reads for these names outside generated `objects.js`; remaining matches are non-objclass contexts.
+- [x] Normalize obj instance `.name`→`.oname` in gameplay object contexts
+  - Remaining `.name` reads are monster/player/meta contexts (not object instance naming fields).
 
 Phase-2 exit gate:
 - [x] No remaining attack alias reads/writes.
@@ -133,7 +135,7 @@ Phase-2 exit gate:
 - [x] No parity regression vs baseline envelope (2511/2511 unit, 25/34 gameplay).
 - [x] Objclass generator emits C-canonical names with getter/setter aliases.
 - [x] Top 3 objclass fields migrated (oc_name, oc_descr, oc_material — ~200 reads total).
-- [ ] Remaining objclass legacy reads deferred (low priority, aliases handle them).
+- [x] Remaining objclass legacy reads migration completed (runtime paths).
 
 ## Phase 3: File-Per-C-Source Reorganization
 
@@ -162,4 +164,5 @@ Phase-4 exit gate:
 
 ## Current Focus
 
-- Phase 2D core complete. Remaining: migrate lower-priority objclass legacy reads, obj instance .name→.oname, then Phase 3 (file-per-C-source reorg).
+- Phase 2D migration complete for runtime objclass/object naming fields.
+- Remaining Phase-2 scope: monitor parity while preparing Phase 3 (file-per-C-source reorg); canonical runtime field migration targets are complete.

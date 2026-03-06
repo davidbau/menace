@@ -209,7 +209,7 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         rn2(3);
         obj_resists(item, 0, 0);
         const od = objectData[item.otyp];
-        const baseName = od?.oc_name || item.name || 'item';
+        const baseName = od?.oc_name || item.oname || 'item';
         const named = (typeof item.oname === 'string' && item.oname.length > 0)
             ? `${baseName} named ${item.oname}`
             : baseName;

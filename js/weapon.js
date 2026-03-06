@@ -67,20 +67,20 @@ export function hitval(otmp, mon) {
     const Is_weapon = (info.oc_class === WEAPON_CLASS || info.weptool);
 
     if (Is_weapon) tmp += (otmp.spe || 0);
-    tmp += (info.oc1 || 0);
+    tmp += (info.oc_oc1 || 0);
 
     if (mon) {
         const ptr = mon.type || mon.data || {};
         if (Is_weapon && otmp.blessed && mon_hates_blessings(mon))
             tmp += 2;
         const mlet = ptr.mlet;
-        if (info.sub === P_SPEAR && isKebabable(mlet))
+        if (info.oc_subtyp === P_SPEAR && isKebabable(mlet))
             tmp += 2;
-        if (info.sub === P_TRIDENT && ptr.swim) {
+        if (info.oc_subtyp === P_TRIDENT && ptr.swim) {
             if (mlet === S_EEL || mlet === S_SNAKE)
                 tmp += 2;
         }
-        if (info.sub === P_PICK_AXE && ptr.passes_walls && ptr.thick_skinned)
+        if (info.oc_subtyp === P_PICK_AXE && ptr.passes_walls && ptr.thick_skinned)
             tmp += 2;
     }
 
@@ -108,7 +108,7 @@ export function dmgval(otmp, mon) {
     let tmp = 0;
 
     if (isLarge) {
-        if (info.ldam) tmp = rnd(info.ldam);
+        if (info.oc_wldam) tmp = rnd(info.oc_wldam);
         switch (otyp) {
         case IRON_CHAIN: case CROSSBOW_BOLT: case MORNING_STAR:
         case PARTISAN: case RUNESWORD: case ELVEN_BROADSWORD: case BROADSWORD:
@@ -123,7 +123,7 @@ export function dmgval(otmp, mon) {
             tmp += d(2, 6); break;
         }
     } else {
-        if (info.sdam) tmp = rnd(info.sdam);
+        if (info.oc_wsdam) tmp = rnd(info.oc_wsdam);
         switch (otyp) {
         case IRON_CHAIN: case CROSSBOW_BOLT: case MACE: case SILVER_MACE:
         case WAR_HAMMER: case FLAIL: case SPETUM: case TRIDENT:
@@ -152,7 +152,7 @@ export function dmgval(otmp, mon) {
         let bonus = 0;
         if (mon && otmp.blessed && mon_hates_blessings(mon))
             bonus += rnd(4);
-        if (info.sub === P_AXE && ptr.body === 'wood')
+        if (info.oc_subtyp === P_AXE && ptr.body === 'wood')
             bonus += rnd(4);
         if (mon && info.oc_material === 14 /* SILVER */ && mon_hates_silver(mon))
             bonus += rnd(20);
@@ -263,7 +263,7 @@ export function weapon_type(obj) {
     if (od.oc_class !== WEAPON_CLASS && od.oc_class !== TOOL_CLASS
         && od.oc_class !== GEM_CLASS)
         return P_NONE;
-    const skill = od.sub || 0; // mapped from C oc_skill
+    const skill = od.oc_subtyp || 0; // mapped from C oc_skill
     return skill < 0 ? -skill : skill;
 }
 
@@ -395,7 +395,7 @@ export function select_rwep(mtmp) {
 
         propellor = null; // hands
         const od = objectData[rwep[i]];
-        const skill = od ? (od.sub || 0) : 0;
+        const skill = od ? (od.oc_subtyp || 0) : 0;
         if (skill < 0) {
             switch (-skill) {
             case P_BOW:

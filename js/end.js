@@ -678,7 +678,7 @@ export function dump_everything(how, when, game) {
     if (player.inventory && player.inventory.length > 0) {
         dumplog.push("Inventory:");
         for (const obj of player.inventory) {
-            const name = (typeof doname === 'function') ? doname(obj, player) : (obj.name || 'item');
+            const name = (typeof doname === 'function') ? doname(obj, player) : (obj.oname || 'item');
             dumplog.push(`  ${name}`);
             // Show container contents
             if ((Is_container(obj) || obj.otyp === STATUE) && obj.cobj && obj.cobj.length > 0) {
@@ -975,7 +975,7 @@ export async function container_contents(list, identified, all_containers, repor
                         }
                     }
                     const name = (typeof doname === 'function')
-                        ? doname(obj, game && (game.u || game.player)) : (obj.name || 'item');
+                        ? doname(obj, game && (game.u || game.player)) : (obj.oname || 'item');
                     lines.push(`  ${name}`);
                 }
 

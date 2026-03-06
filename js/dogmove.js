@@ -180,8 +180,8 @@ function dog_nutrition(mon, obj) {
             mon.meating = 3 + (mons[corpsenm].cwt >> 6);
             nutrit = mons[corpsenm].cnutrit || 0;
         } else {
-            mon.meating = objectData[obj.otyp].delay || 0;
-            nutrit = objectData[obj.otyp].nutrition || 0;
+            mon.meating = objectData[obj.otyp].oc_delay || 0;
+            nutrit = objectData[obj.otyp].oc_nutrition || 0;
         }
         switch (mdat.msize) {
             case MZ_TINY:     nutrit *= 8; break;
@@ -197,7 +197,7 @@ function dog_nutrition(mon, obj) {
         nutrit = Math.floor((obj.quan || 1) / 20);
     } else {
         mon.meating = Math.floor((obj.owt || 0) / 20) + 1;
-        nutrit = 5 * (objectData[obj.otyp].nutrition || 0);
+        nutrit = 5 * (objectData[obj.otyp].oc_nutrition || 0);
     }
     return nutrit;
 }

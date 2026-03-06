@@ -769,7 +769,7 @@ export function loot_classify(sort_item, obj) {
     switch (oclass) {
     case ARMOR_CLASS: {
         const armcatMap = [7, 4, 1, 2, 3, 5, 6]; // ARM_SUIT..ARM_SHIRT -> sort order
-        const ac = od.sub ?? 0;
+        const ac = od.oc_subtyp ?? 0;
         k = (ac >= 0 && ac < 7) ? (armcatMap[ac] || 8) : 8;
         break;
     }
@@ -1331,7 +1331,7 @@ function touch_petrifies_corpsenm(corpsenm) {
 export function u_carried_gloves(player) {
     if (player.gloves) return player.gloves;
     for (const obj of (player.inventory || [])) {
-        if (obj.oclass === ARMOR_CLASS && (objectData[obj.otyp]?.sub === ARM_GLOVES)) {
+        if (obj.oclass === ARMOR_CLASS && (objectData[obj.otyp]?.oc_subtyp === ARM_GLOVES)) {
             return obj;
         }
     }

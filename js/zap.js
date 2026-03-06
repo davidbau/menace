@@ -496,7 +496,7 @@ export async function handleZap(player, map, display, game) {
     replacePromptMessage();
 
     // C ref: zap.c:2632 — need_dir check BEFORE direction prompt
-    const need_dir = (objectData[wand.otyp]?.dir || 0) !== 1; // NODIR = 1
+    const need_dir = (objectData[wand.otyp]?.oc_dir || 0) !== 1; // NODIR = 1
 
     // C ref: zap.c:2633-2634 — zappable check (before direction prompt)
     if (!zappable(wand)) {
@@ -1159,7 +1159,7 @@ export async function weffects(obj, player, map, display = null, game = null) {
   if (player) await exercise(player, A_WIS, true);
 
   const od = objectData[otyp];
-  const dir_type = od ? od.dir : 0;
+  const dir_type = od ? od.oc_dir : 0;
   // NODIR=1, IMMEDIATE=2, RAY=3 in objectData.
 
   if (player?.usteed && dir_type !== 1 && !player.dx && !player.dy && player.dz > 0) {
