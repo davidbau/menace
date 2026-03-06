@@ -620,7 +620,7 @@ for idx, mon in enumerate(monsters):
 out.append(f'export const NUMMONS = {len(monsters)};')
 out.append(f'export const NON_PM = -1;')
 out.append(f'export const LOW_PM = 0;')
-out.append(f'export const HIGH_PM = {len(monsters) - 1};')
+out.append(f'export const HIGH_PM = {len(monsters) - 2};')  # C: NUMMONS-2 (last non-quest-leader)
 # Find LONG_WORM_TAIL index
 lwt_idx = None
 for idx, mon in enumerate(monsters):
@@ -696,10 +696,31 @@ for idx, mon in enumerate(monsters):
 
 out.append('];')
 out.append('')
-# Keep attack structures canonicalized for C-faithful field aliases.
+# Normalize monster fields: set C-faithful aliases (mlet/mlevel/m_lev/msize)
+# and canonicalize attack field names (type/damage/dice/sides ↔ aatyp/adtyp/damn/damd).
+out.append('function setAliasPair(obj, canonical, legacy) {')
+out.append('  if (!obj || typeof obj !== "object") return;')
+out.append('  if (obj[canonical] === undefined && obj[legacy] !== undefined) {')
+out.append('    obj[canonical] = obj[legacy];')
+out.append('  }')
+out.append('  if (obj[legacy] === undefined && obj[canonical] !== undefined) {')
+out.append('    obj[legacy] = obj[canonical];')
+out.append('  }')
+out.append('}')
+out.append('')
+out.append('function normalizeMonsterFields(mon) {')
+out.append('  if (!mon || typeof mon !== "object") return;')
+out.append('  setAliasPair(mon, "mlevel", "level");')
+out.append('  setAliasPair(mon, "m_lev", "mlevel");')
+out.append('  setAliasPair(mon, "msize", "size");')
+out.append('  setAliasPair(mon, "mlet", "symbol");')
+out.append('  if (Array.isArray(mon.attacks)) {')
+out.append('    for (const attk of mon.attacks) canonicalizeAttackFields(attk);')
+out.append('  }')
+out.append('}')
+out.append('')
 out.append('for (const mon of mons) {')
-out.append('  if (!Array.isArray(mon.attacks)) continue;')
-out.append('  for (const attk of mon.attacks) canonicalizeAttackFields(attk);')
+out.append('  normalizeMonsterFields(mon);')
 out.append('}')
 out.append('')
 out.append('// End of monsters.js')
