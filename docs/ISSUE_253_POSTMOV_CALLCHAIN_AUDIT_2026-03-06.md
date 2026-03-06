@@ -67,7 +67,51 @@ JS files audited:
 3. Re-run `seed325/327/328` after each patch and ensure no replay hangs/timeouts.
 4. Keep comparator/harness unchanged.
 
+## Current JS vs C Branch Matrix (non-pet path)
+
+Target C sequence (`postmov` moved case):
+1. `newsym(oldpos)`
+2. `mintrap`
+3. door/bars handling
+4. `mdig_tunnel`
+5. moved-cell redraw/update
+6. moved/done tail: object consumption/pickup, `maybe_spin_web`, hide-under
+
+Current JS sequence (non-pet path, split across `m_move` + `dochug`):
+1. `m_move`: position update + `newsym(old/new)`
+2. `m_move`: `maybe_spin_web`
+3. `m_move`: `mdig_tunnel`
+4. `m_move`: limited door-open handling
+5. `dochug`: `m_postmove_effect` (old position gases)
+6. `dochug`: `mintrap_postmove`
+7. `dochug`: pickup + hide-under
+
+Known mismatch points:
+- `mintrap` happens after `mdig_tunnel` in JS (C does opposite).
+- `maybe_spin_web` runs earlier in JS than C moved/done tail.
+- Postmove responsibility is split across two functions, which increases branch drift risk.
+
+## Attempted Direct Reorder Result (2026-03-06)
+
+- A direct non-pet reorder attempt (`mintrap` moved into `m_move` before door/dig) repeatedly introduced a replay timeout:
+  - `seed325_knight_wizard_gameplay` timeout at step `257` (`key="b"`).
+- Change was reverted; no regressing code remains.
+- Conclusion: we need a more constrained migration path with explicit per-step gates, not a broad in-place reorder.
+
+## Faithful Port Plan (gated)
+
+1. Introduce one authoritative `postmov` helper for non-pet movement, preserving current behavior first.
+   - Gate: seeds `325/327/328` unchanged; no timeouts.
+2. Move `mintrap` into that helper, but keep `mdig_tunnel` order unchanged in same patch.
+   - Gate: no timeout; if timeout appears, keep helper and revert only order delta.
+3. Move door/bars + `mdig_tunnel` into same helper in C order (`mintrap` before dig), keep `maybe_spin_web` position unchanged.
+   - Gate: no timeout on 325; RNG step can move, but execution must remain stable.
+4. Move `maybe_spin_web` to C moved/done tail location and verify object/hide interactions.
+   - Gate: no timeout + no new infinite-loop prompts on 325.
+5. Apply same helper call pattern to pet flow (`dog_move -> postmov helper`) with C-equivalent status mapping.
+   - Gate: no regression on 325/327/328 and core unit suite pass.
+
 ## Next Implementation Slices
-1. Establish a single authoritative JS postmove helper used by both pet/non-pet paths, preserving current behavior first.
-2. Move `mintrap`/`mdig_tunnel` ordering toward C in the narrowest branch that reproduces seed325 step-238 mismatch.
-3. Add Tengu branch parity in `m_move` after sequencing stabilization.
+1. Complete gated step (1): authoritative non-pet postmov helper with no behavior change.
+2. Execute gated step (2): `mintrap` relocation into helper with rollback-safe delta.
+3. Continue through steps (3)-(5) only if each gate remains timeout-free.
