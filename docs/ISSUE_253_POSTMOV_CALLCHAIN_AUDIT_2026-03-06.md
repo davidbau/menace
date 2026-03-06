@@ -39,6 +39,9 @@ JS files audited:
   - `js/monmove.js:dochug(...)` (contains additional postmove/trap/pickup/hide behavior)
   - `js/monmove.js:postmov(...)` exported function exists but is simplified and not used by `m_move()`.
 - Risk: ordering drift and branch inconsistencies (especially `mintrap` vs `mdig_tunnel`).
+- Progress (2026-03-06):
+  - Introduced shared `dochug` postmove helper in JS (`apply_dochug_postmove`) and switched both pet/non-pet callers to it.
+  - This is a behavior-preserving structural step (no intentional sequencing change yet), reducing duplication before deeper ordering fixes.
 
 ### F3 (Open): `mdig_tunnel` ordering mismatch on key paths
 - C baseline: `postmov()` runs `mintrap()` before `mdig_tunnel()`.

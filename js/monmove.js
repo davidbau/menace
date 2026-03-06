@@ -843,6 +843,19 @@ function maybe_postmove_hideunder(mon, map, player, fov, display = null) {
     newsym(mon.mx, mon.my);
 }
 
+// Shared dochug post-move block for both pet and non-pet movement paths.
+// Preserves current JS sequencing: m_postmove_effect on displacement, then mintrap.
+async function apply_dochug_postmove(mon, map, player, display, fov, game, omx, omy) {
+    if (mon.mx !== omx || mon.my !== omy) {
+        await m_postmove_effect(mon, map, player, game, omx, omy);
+    }
+    const trapResult = await mintrap_postmove(mon, map, player, display, fov);
+    if (trapResult === 2 || trapResult === 3) {
+        return MMOVE_DIED;
+    }
+    return MMOVE_MOVED;
+}
+
 async function mind_blast(mon, map, player, display = null, fov = null) {
     const BOLT_LIM_SQ = BOLT_LIM * BOLT_LIM;
 
@@ -1287,11 +1300,8 @@ async function dochug(mon, map, player, display, fov, game = null) {
                         return;
                     }
                 }
-                if (mon.mx !== omx || mon.my !== omy) {
-                    await m_postmove_effect(mon, map, player, game, omx, omy);
-                }
-                const trapResult = await mintrap_postmove(mon, map, player, display, fov);
-                if (trapResult === 2 || trapResult === 3) {
+                const postmoveStatus = await apply_dochug_postmove(mon, map, player, display, fov, game, omx, omy);
+                if (postmoveStatus === MMOVE_DIED) {
                     return;
                 }
                 mmoved = true;
@@ -1316,9 +1326,8 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 moveStatus = await m_move(mon, map, player, display, fov);
                 const movedThisTurn = !mon.dead && (mon.mx !== omx || mon.my !== omy);
                 if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
-                    await m_postmove_effect(mon, map, player, game, omx, omy);
-                    const trapResult = await mintrap_postmove(mon, map, player, display, fov);
-                    if (trapResult === 2 || trapResult === 3) {
+                    const postmoveStatus = await apply_dochug_postmove(mon, map, player, display, fov, game, omx, omy);
+                    if (postmoveStatus === MMOVE_DIED) {
                         trapDied = true;
                         moveStatus = MMOVE_DIED;
                     } else {

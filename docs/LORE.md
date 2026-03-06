@@ -2814,3 +2814,21 @@ hard-won wisdom:
   - `node scripts/test-unit-core.mjs --runInBand` passes.
   - Targeted parity replay set (`seed325/327/328`) shows no regression:
     first-divergence steps remain `238 / 390 / 220`.
+
+### dochug postmove unification groundwork (2026-03-06)
+
+- Problem:
+  - `dochug` pet and non-pet paths duplicated the same post-move trap/effect
+    sequence (`m_postmove_effect` + `mintrap_postmove`) in separate branches.
+  - This duplication increased risk of accidental branch drift while fixing
+    issue #253 sequencing.
+- Change:
+  - Added shared helper `apply_dochug_postmove(...)` in `js/monmove.js`.
+  - Converted both pet and non-pet callers to use that helper with preserved
+    current JS order and conditions (behavior-preserving refactor).
+- Validation:
+  - `node scripts/test-unit-core.mjs --runInBand` passes.
+  - Targeted replay seeds unchanged (no regression):
+    - seed325 first divergence step `238`
+    - seed327 first divergence step `390`
+    - seed328 first divergence step `220`
