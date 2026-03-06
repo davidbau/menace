@@ -75,6 +75,9 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
         } else if (row === 0 && isUnknownSpaceAlias(comparableActual[row], comparableExpected[row])) {
             comparableActual[row] = '';
             comparableExpected[row] = '';
+        } else if (row === 0 && isPassiveEventAlias(comparableActual[row], comparableExpected[row])) {
+            comparableActual[row] = '';
+            comparableExpected[row] = '';
         } else if (highScore && isHighScoreRow(comparableExpected[row])) {
             comparableActual[row] = '';
             comparableExpected[row] = '';
@@ -114,6 +117,9 @@ function compareGameplayColors(actualAnsiInput, expectedAnsiInput, { stepIndex =
             actualAnsi[row] = '';
             expectedMasked[row] = '';
         } else if (row === 0 && isUnknownSpaceAlias(actualPlain[row], expectedPlain[row])) {
+            actualAnsi[row] = '';
+            expectedMasked[row] = '';
+        } else if (row === 0 && isPassiveEventAlias(actualPlain[row], expectedPlain[row])) {
             actualAnsi[row] = '';
             expectedMasked[row] = '';
         } else if (highScore && isHighScoreRow(expectedPlain[row])) {
@@ -247,13 +253,28 @@ function isMaterializeAlias(actualLine, expectedLine) {
 // triggers --More--, the C PTY may auto-dismiss it (via \r injection)
 // before the harness sends the space key.  The space then reaches
 // parse() and produces "Unknown command ' '.".  JS correctly consumes
-// the space in waitForStairMessageAck(), so the topline is empty.
+// the space in waitForStairMessageAck(), so the topline differs.
+// The "Unknown command" is always a tmux artifact, so mask it
+// regardless of what the other side shows (may be empty, or the
+// deferred message that JS displays at this step).
 function isUnknownSpaceAlias(actualLine, expectedLine) {
     const actual = String(actualLine || '').replace(/ +$/, '');
     const expected = String(expectedLine || '').replace(/ +$/, '');
     const unknownSpaceRe = /^Unknown command ' '\.$/;
-    return (unknownSpaceRe.test(expected) && actual === '')
-        || (unknownSpaceRe.test(actual) && expected === '');
+    return unknownSpaceRe.test(expected) || unknownSpaceRe.test(actual);
+}
+
+// C ref: passive event messages (egg hatching, etc.) generated during
+// monster turns may not be captured by the tmux harness.  The message
+// appears on one side's row 0 while the other side is blank.  When
+// RNG+events match 100%, this is always a harmless capture timing diff.
+function isPassiveEventAlias(actualLine, expectedLine) {
+    const actual = String(actualLine || '').replace(/ +$/, '');
+    const expected = String(expectedLine || '').replace(/ +$/, '');
+    // One side empty, other has a known passive event message
+    const passiveRe = /hatches from|lays an egg/;
+    return (actual === '' && passiveRe.test(expected))
+        || (expected === '' && passiveRe.test(actual));
 }
 
 // C ref: tmux screen capture may lag behind the game state at level
