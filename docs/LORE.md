@@ -4122,3 +4122,18 @@ hard-won wisdom:
 - Impact:
   - Faster triage routing: treat severe wipe-skew sessions as likely stale-recording artifacts first, then debug true shared RNG/state drift windows.
   - Comparator/harness semantics remain unchanged (no masking, no exceptions).
+
+### Replay pending-boundary trace now includes `--More--` state snapshot (2026-03-07)
+
+- Added diagnostic-only trace detail in [`js/replay_core.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/replay_core.js):
+  - `WEBHACK_REPLAY_PENDING_TRACE=1` lines now include:
+    - `_pendingMore` state (`more=0/1`)
+    - `messageNeedsMore` state (`needs=0/1`)
+    - queued message count (`q=N`)
+- Why:
+  - session divergence triage around `seed033_manual_direct` required distinguishing
+    true pending-input boundaries from plain topline-acknowledgement state.
+- Immediate debugging value:
+  - hotspot around steps 47-49 showed resume waits at `mattacku` with
+    `more=0 needs=1 q=0` at resume completion, narrowing investigation to
+    message-boundary semantics rather than missing prompt waits.

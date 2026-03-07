@@ -95,6 +95,14 @@ function replayPendingTrace(...args) {
     console.log('[REPLAY_PENDING_TRACE]', ...args);
 }
 
+function replayMoreState(display) {
+    if (!display) return 'more=na';
+    const pending = !!display._pendingMore;
+    const needs = !!display.messageNeedsMore;
+    const queueLen = Array.isArray(display._messageQueue) ? display._messageQueue.length : 0;
+    return `more=${pending ? 1 : 0} needs=${needs ? 1 : 0} q=${queueLen}`;
+}
+
 function pendingWaitSite(inputRuntime) {
     const st = inputRuntime?.getInputState?.();
     const raw = String(st?.waitContext || st?.waitStack || '');
@@ -196,14 +204,19 @@ export async function replaySession(seed, opts, keys) {
         if (game?.lev) game.lev._replayStepIndex = i;
 
         if (pendingCommand) {
-            replayPendingTrace(`step=${i + 1}`, `key=${JSON.stringify(String.fromCharCode(ch))}`, 'mode=resume');
+            replayPendingTrace(
+                `step=${i + 1}`,
+                `key=${JSON.stringify(String.fromCharCode(ch))}`,
+                'mode=resume',
+                replayMoreState(game.display)
+            );
             pushInput(ch);
             const settled = await drainUntilInput(pendingCommand, game.input);
             if (settled.done) {
                 pendingCommand = null;
-                replayPendingTrace(`step=${i + 1}`, 'resume=done');
+                replayPendingTrace(`step=${i + 1}`, 'resume=done', replayMoreState(game.display));
             } else {
-                replayPendingTrace(`step=${i + 1}`, 'resume=waiting');
+                replayPendingTrace(`step=${i + 1}`, 'resume=waiting', replayMoreState(game.display));
             }
         } else {
             const commandPromise = (ch === 1)
@@ -217,14 +230,16 @@ export async function replaySession(seed, opts, keys) {
                     `key=${JSON.stringify(String.fromCharCode(ch))}`,
                     'mode=start',
                     'start=waiting',
-                    pendingWaitSite(game.input)
+                    pendingWaitSite(game.input),
+                    replayMoreState(game.display)
                 );
             } else {
                 replayPendingTrace(
                     `step=${i + 1}`,
                     `key=${JSON.stringify(String.fromCharCode(ch))}`,
                     'mode=start',
-                    'start=done'
+                    'start=done',
+                    replayMoreState(game.display)
                 );
             }
         }
