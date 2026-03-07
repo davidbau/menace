@@ -48,17 +48,24 @@ Use this for session parity failures where gameplay diverges between C and JS:
    - Note: `rng_step_diff.js` replays one step in isolation; use it as a
      microscope only. Treat `session_test_runner.js --verbose` as authoritative
      for true first divergence.
-5. Confirm expected behavior in C source:
+5. Capture rich state snapshots around divergence with debug mapdump:
+   - `node test/comparison/dbgmapdump.js <session-path> --steps <N> --window 1`
+   - Inspect with:
+     - `diff -u step00NN_raw*.mapdump step00MM_raw*.mapdump`
+     - `rg -n '^(U|A|M|N|K|J)' <mapdump-file>`
+   - Use this when screen/RNG evidence is insufficient and you need direct
+     monster/object/trap/hero state at exact replay steps.
+6. Confirm expected behavior in C source:
    - Use `nethack-c/patched/src/` — this is the primary reference. It is
      `nethack-c/upstream/` plus all instrumentation patches (RNG logging,
      event tracing, harness hooks) that make session recording possible.
    - The ultimate goal is matching vanilla upstream NetHack behavior, but
      `patched/` is the measurable target: it's what generated the sessions.
-6. Patch JS core behavior to match C semantics.
-7. Re-run the same session, then a targeted set:
+7. Patch JS core behavior to match C semantics.
+8. Re-run the same session, then a targeted set:
    - `node test/comparison/session_test_runner.js --verbose <session-path>`
    - `node test/comparison/session_test_runner.js --type gameplay --sessions=<seedA,...>`
-8. Record durable learning in `docs/LORE.md`.
+9. Record durable learning in `docs/LORE.md`.
 
 ## Guardrails (Non-Negotiable)
 - Do not add comparator exceptions/masking to hide mismatches.
@@ -90,6 +97,10 @@ Run after any core JS change and after every `git pull`:
   count. Prefer this over `npm test` during iteration.
 - Upstream pulls sometimes rename fields (e.g. `flee→mflee`, `sleeping→msleeping`);
   unit tests that hardcode old field names will fail and need updating.
+
+## Debug Mapdump Notes
+- `dbgmapdump` captures replay-time compact mapdumps without mutating fixtures.
+- For syntax and interpretation details, see `docs/DBGMAPDUMP_TOOL.md`.
 
 ## Done Criteria
 - First divergence is eliminated or moved later with evidence.

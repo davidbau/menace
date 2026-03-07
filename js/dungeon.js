@@ -347,7 +347,7 @@ function buildHarnessMapdumpGrid(map, which) {
     return rowParts.join('|');
 }
 
-function buildHarnessMapdumpPayload(map) {
+function buildHarnessMapdumpPayload(map, options = {}) {
     const lines = [];
     lines.push(`T${buildHarnessMapdumpGrid(map, 0)}`);
     lines.push(`F${buildHarnessMapdumpGrid(map, 1)}`);
@@ -356,7 +356,7 @@ function buildHarnessMapdumpPayload(map) {
     lines.push(`R${buildHarnessMapdumpGrid(map, 4)}`);
     // Explicit wall_info mirror (C rm.wall_info aliases flags bits).
     lines.push(`W${buildHarnessMapdumpGrid(map, 1)}`);
-    const hero = map?.player || map?.u || null;
+    const hero = options.hero || map?.player || map?.u || null;
     const heroX = hero ? (hero.x | 0) : 0;
     const heroY = hero ? (hero.y | 0) : 0;
     const hp = Number.isFinite(hero?.hp) ? Math.trunc(hero.hp) : (Number(hero?.uhp) || 0);
@@ -376,8 +376,11 @@ function buildHarnessMapdumpPayload(map) {
     lines.push(
         `U${heroX},${heroY},${hp},${hpmax},${en},${enmax},${multi},${utrap},${utraptype},${move},${moves},${conf},${stun},${blind},${hallu},${fumbling}`
     );
-    const anchorHeroSeq = Number.isFinite(hero?.heroSeq) ? Math.trunc(hero.heroSeq) : 0;
-    lines.push(`A${moves},${anchorHeroSeq}`);
+    const anchorMoves = Number.isFinite(options.moves) ? Math.trunc(options.moves) : moves;
+    const anchorHeroSeq = Number.isFinite(options.heroSeq)
+        ? Math.trunc(options.heroSeq)
+        : (Number.isFinite(hero?.heroSeq) ? Math.trunc(hero.heroSeq) : 0);
+    lines.push(`A${anchorMoves},${anchorHeroSeq}`);
 
     const objParts = [];
     for (const obj of (Array.isArray(map?.objects) ? map.objects : [])) {
@@ -483,6 +486,12 @@ function buildHarnessMapdumpPayload(map) {
     lines.push(`J${trapDetailParts.join(';')}`);
 
     return `${lines.join('\n')}\n`;
+}
+
+// Debug helper used by comparison tooling to snapshot current map state
+// in the same compact mapdump format emitted by harness checkpoints.
+export function buildDebugMapdumpPayload(map, options = {}) {
+    return buildHarnessMapdumpPayload(map, options);
 }
 
 function emitHarnessMapdumpEvent(map, depth, dnum, dlevel) {

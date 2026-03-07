@@ -612,16 +612,8 @@ function compareMapdumpSparse(jsList = [], sessionList = []) {
     return { match: true, diff: null };
 }
 
-function hasNonEmptySparse(value) {
-    return Array.isArray(value) && value.length > 0;
-}
-
-function hasNonEmptyGrid(value) {
-    return Array.isArray(value) && value.length > 0;
-}
-
-function hasNonEmptyVector(value) {
-    return Array.isArray(value) && value.length > 0;
+function hasMapdumpSection(parsed, section) {
+    return !!(parsed && parsed._sections && parsed._sections[section]);
 }
 
 export function compareMapdumpCheckpoints(jsCheckpoints = null, sessionCheckpoints = null) {
@@ -666,7 +658,7 @@ export function compareMapdumpCheckpoints(jsCheckpoints = null, sessionCheckpoin
         for (const [field, section] of gridSections) {
             // Optional sections only compare when both sides provide data.
             if (section === 'W'
-                && !(hasNonEmptyGrid(jParsed[field]) && hasNonEmptyGrid(sParsed[field]))) {
+                && !(hasMapdumpSection(jParsed, section) && hasMapdumpSection(sParsed, section))) {
                 continue;
             }
             const diff = findFirstGridDiff(jParsed[field] || [], sParsed[field] || []);
@@ -691,7 +683,7 @@ export function compareMapdumpCheckpoints(jsCheckpoints = null, sessionCheckpoin
         ];
         for (const [field, section] of sparseSections) {
             if ((section === 'Q' || section === 'N' || section === 'J')
-                && !(hasNonEmptySparse(jParsed[field]) && hasNonEmptySparse(sParsed[field]))) {
+                && !(hasMapdumpSection(jParsed, section) && hasMapdumpSection(sParsed, section))) {
                 continue;
             }
             // C's fmon list retains dead monsters (mhp=0) until dmonsfree(), which runs
@@ -725,7 +717,7 @@ export function compareMapdumpCheckpoints(jsCheckpoints = null, sessionCheckpoin
             ['anchor', 'A'],
         ];
         for (const [field, section] of vectorSections) {
-            if (!(hasNonEmptyVector(jParsed[field]) && hasNonEmptyVector(sParsed[field]))) {
+            if (!(hasMapdumpSection(jParsed, section) && hasMapdumpSection(sParsed, section))) {
                 continue;
             }
             const sparseCmp = compareMapdumpSparse([jParsed[field]], [sParsed[field]]);

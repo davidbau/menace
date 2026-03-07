@@ -243,11 +243,12 @@ function parseCompactSparseListVariable(str, minFieldCount = 1) {
  */
 export function parseCompactMapdump(content) {
     if (!content) return null;
-    const result = {};
+    const result = { _sections: {} };
     const lines = content.split('\n').filter(Boolean);
     for (const line of lines) {
         const prefix = line[0];
         const data = line.slice(1);
+        result._sections[prefix] = true;
         switch (prefix) {
             case 'T': result.typGrid = decodeCompactRleGrid(data); break;
             case 'F': result.flagsGrid = decodeCompactRleGrid(data); break;

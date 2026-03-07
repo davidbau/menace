@@ -110,4 +110,39 @@ describe('mapdump extensions', () => {
         assert.equal(cmp.firstDivergence?.kind, 'vector');
         assert.equal(cmp.firstDivergence?.section, 'U');
     });
+
+    it('compares present-but-empty optional sparse sections', () => {
+        const left = [
+            'T~80,0',
+            'F~80,0',
+            'H~80,0',
+            'L~80,0',
+            'R~80,0',
+            'Q',
+            'O',
+            'M',
+            'K',
+            '',
+        ].join('\n');
+        const right = [
+            'T~80,0',
+            'F~80,0',
+            'H~80,0',
+            'L~80,0',
+            'R~80,0',
+            'Q1,39,4,7,1,1,0,0,10,97,0,0,0,0',
+            'O',
+            'M',
+            'K',
+            '',
+        ].join('\n');
+        const cmp = compareMapdumpCheckpoints(
+            { d0l1_001: left },
+            { d0l1_001: right }
+        );
+        assert.equal(cmp.matched, 0);
+        assert.equal(cmp.total, 1);
+        assert.equal(cmp.firstDivergence?.kind, 'sparse');
+        assert.equal(cmp.firstDivergence?.section, 'Q');
+    });
 });

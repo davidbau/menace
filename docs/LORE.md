@@ -3914,3 +3914,24 @@ hard-won wisdom:
   - replay-core wait-boundary detection is working for the trap `yn` flow;
     remaining seed032 mismatch is downstream gameplay parity, not an
     undetected blocked-input boundary.
+
+### `dbgmapdump`: step-targeted compact mapdump captures (2026-03-07)
+
+- Added tool:
+  - [`test/comparison/dbgmapdump.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/dbgmapdump.js)
+    captures compact mapdump snapshots at selected gameplay steps during JS
+    replay, with optional `--window` expansion.
+  - Output format uses the same compact mapdump sections (`T/F/H/L/R/W/U/A/O/Q/M/N/K/J`)
+    as harness checkpoints.
+- Key implementation detail:
+  - Debug capture now injects hero state from live game runtime when map-local
+    player state is absent, so `U/A` are actionable in replay captures.
+- Seed032 diagnosis using tool:
+  - Captured steps `88..90` around first RNG divergence (`step 89`):
+    `node test/comparison/dbgmapdump.js test/comparison/sessions/seed032_manual_direct.session.json --steps 89 --window 1`
+  - `diff` across those mapdumps showed no terrain/object/monster/trap deltas.
+  - Interpretation: this divergence window is primarily control-flow/RNG-call
+    ordering (dog/monster decision path), not immediate map mutation drift.
+- Documentation:
+  - usage and triage workflow are in
+    [`docs/DBGMAPDUMP_TOOL.md`](/share/u/davidbau/git/mazesofmenace/mazes/docs/DBGMAPDUMP_TOOL.md).
