@@ -38,7 +38,7 @@ import { AMULET_OF_LIFE_SAVING, CORPSE, FIGURINE, STATUE, objectData,
          LEATHER_ARMOR, LEATHER_CLOAK, SADDLE,
          SCR_BLANK_PAPER,
          GLOB_OF_BLACK_PUDDING } from './objects.js';
-import { which_armor } from './worn.js';
+import { which_armor, mon_adjust_speed } from './worn.js';
 import { nonliving, resists_ston, resists_fire, resists_poison,
          is_flyer, is_floater,
          likes_lava, cant_drown, can_teleport, vegan as vegan_mondata,
@@ -46,7 +46,7 @@ import { nonliving, resists_ston, resists_fire, resists_poison,
          is_male, is_female, is_neuter,
          dmgtype, attacktype } from './mondata.js';
 import { mkcorpstat, weight, is_rustprone, mkobj, mksobj_at, mkgold, place_object } from './mkobj.js';
-import { impossible } from './pline.js';
+import { impossible, pline_mon } from './pline.js';
 import { next_ident } from './mkobj.js';
 import { is_metallic, is_organic, obj_resists, hasPoisonTrapBit } from './objdata.js';
 import { newsym, canSpotMonsterForMap } from './display.js';
@@ -66,7 +66,7 @@ import { is_hider, hides_under, is_mindless, is_displacer, perceives,
          mon_knows_traps, passes_bars, nohands, is_clinger,
          is_giant, is_undead, is_unicorn, is_minion, throws_rocks,
          is_golem, is_rider, is_mplayer, canseemon } from './mondata.js';
-import { y_monnam, locomotion } from './mondata.js';
+import { y_monnam, locomotion, Monnam, is_watch } from './mondata.js';
 import { PM_ANGEL, PM_GRID_BUG, PM_FIRE_ELEMENTAL, PM_SALAMANDER,
          PM_FLOATING_EYE, PM_MINOTAUR,
          PM_PURPLE_WORM, PM_BABY_PURPLE_WORM, PM_SHRIEKER,
@@ -2347,19 +2347,6 @@ export function m_restartcham(mtmp) {
   if (mtmp.data.mlet === S_MIMIC && mtmp.msleeping) { set_mimic_sym(mtmp); newsym(mtmp.mx, mtmp.my); }
 }
 
-// Autotranslated from mon.c:4660
-export function restrap(mtmp, map, player) {
-  let t;
-  if (mtmp.mcan || M_AP_TYPE(mtmp) || cansee(mtmp.mx, mtmp.my) || rn2(3) || mtmp === player.ustuck   || (mtmp.mtrapped && (t = t_at(mtmp.mx, mtmp.my, map)) != null && !is_pit(t.ttyp))   || (ceiling_hider(mtmp.data) && !has_ceiling(map.uz))   || (sensemon(mtmp) && m_next2u(mtmp))) return false;
-  if (mtmp.data.mlet === S_MIMIC) {
-    if (mtmp.msleeping || mtmp.mfrozen) { return false; }
-    set_mimic_sym(mtmp);
-    return true;
-  }
-  else if (map.locations[mtmp.mx][mtmp.my].typ === ROOM) { mtmp.mundetected = 1; return true; }
-  return false;
-}
-
 // Autotranslated from mon.c:4937
 export function pickvampshape(mon, game, map) {
   let mndx = mon.cham, wolfchance = 10;
@@ -2433,69 +2420,47 @@ export function kill_eggs(obj_list) {
   }
 }
 
-// Autotranslated from mon.c:5676
+// C ref: mon.c:5672-5699 golemeffects()
 export async function golemeffects(mon, damtype, dam) {
   let heal = 0, slow = 0;
-  if (mon.data === mons[PM_FLESH_GOLEM]) {
+  const mdat = mon?.data || mon?.type;
+  if (mdat === mons[PM_FLESH_GOLEM]) {
     if (damtype === AD_ELEC) heal = Math.floor((dam + 5) / 6);
     else if (damtype === AD_FIRE || damtype === AD_COLD) slow = 1;
   }
-  else if (mon.data === mons[PM_IRON_GOLEM]) {
+  else if (mdat === mons[PM_IRON_GOLEM]) {
     if (damtype === AD_ELEC) slow = 1;
     else if (damtype === AD_FIRE) heal = dam;
   }
   else { return; }
   if (slow) {
-    if (mon.mspeed !== MSLOW) mon_adjust_speed(mon, -1,  0);
+    if (mon.mspeed !== 1 /* MSLOW */) mon_adjust_speed(mon, -1, null);
   }
   if (heal) {
     if (healmon(mon, heal, 0)) {
-      if (cansee(mon.mx, mon.my)) await pline_mon(mon, "%s seems healthier.", Monnam(mon));
+      if (canseemon(mon)) await pline_mon(mon, "%s seems healthier.", Monnam(mon));
     }
   }
 }
 
-// Autotranslated from mon.c:5707
-export async function angry_guards(silent, map) {
-  let mtmp, ct = 0, nct = 0, sct = 0, slct = 0;
-  for (mtmp = (map?.fmon || null); mtmp; mtmp = mtmp.nmon) {
-    if (DEADMONSTER(mtmp)) {
-      continue;
-    }
-    if (is_watch(mtmp.data) && mtmp.mpeaceful) {
+// C ref: mon.c:5703-5752 angry_guards()
+export function angry_guards(silent, map) {
+  let ct = 0, slct = 0;
+  if (!map?.monsters) return false;
+  for (const mtmp of map.monsters) {
+    if (mtmp.dead || (mtmp.mhp || 0) <= 0) continue;
+    const mdat = mtmp.data || mtmp.type;
+    if (mdat && is_watch(mdat) && mtmp.mpeaceful) {
       ct++;
-      if (canspotmon(mtmp) && mtmp.mcanmove) {
-        if (m_next2u(mtmp)) nct++;
-        else {
-          sct++;
-        }
+      if (mtmp.msleeping || mtmp.mfrozen) {
+        slct++;
+        mtmp.msleeping = 0;
+        mtmp.mfrozen = 0;
       }
-      if (mtmp.msleeping || mtmp.mfrozen) { slct++; mtmp.msleeping = mtmp.mfrozen = 0; }
       mtmp.mpeaceful = 0;
     }
   }
-  if (ct) {
-    if (!silent) {
-      if (slct) {
-        let buf = `guard${plur(slct)}`;
-        await pline_The("%s %s up.", buf, vtense(buf, "wake"));
-      }
-      if (nct) {
-        let buf = `guard${plur(nct)}`;
-        await pline_The("%s %s angry!", buf, vtense(buf, "get"));
-      }
-      else if (sct) {
-        let buf = `guard${plur(sct)}`;
-        await pline("%s %s %s approaching!", (sct === 1) ? "An angry" : "Angry", buf, vtense(buf, "are"));
-      }
-      else {
-        let buf = (ct === 1) ? "a guard's" : "guards'";
-        await You_hear("the shrill sound of %s whistle%s.", buf, plur(ct));
-      }
-    }
-    return true;
-  }
-  return false;
+  return ct > 0;
 }
 
 // Autotranslated from mon.c:5759
