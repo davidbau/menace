@@ -225,10 +225,13 @@ export function can_reach_floor(player, map, check_pit = false) {
         || player.inherentLevitation
         || ((player.uprops || {})[19]?.intrinsic)
         || ((player.uprops || {})[19]?.extrinsic));
+    const isAirOrWaterLevel = !!(mapRef?.flags?.is_airlevel || mapRef?.flags?.is_waterlevel);
 
+    // C ref: engrave.c can_reach_floor():
+    //   Levitation blocks floor reach except on air/water levels.
     if (player.uswallow
         || (player.ustuck && !sticks(youmonst) && attacktype(stuckData, AT_HUGS))
-        || levitation) {
+        || (levitation && !isAirOrWaterLevel)) {
         return false;
     }
     // C checks riding skill; JS does not track full skill state here. Keep
