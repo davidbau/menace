@@ -3601,3 +3601,21 @@ hard-won wisdom:
   - Gameplay failure set remains stable (`31/34` passing).
   - `seed031` first RNG divergence moved later (`step 131 -> 139`), confirming
     forward progress without regressions.
+
+### corpse-eat RNG ordering cleanup (2026-03-07)
+
+- `handleEat()` still had synthetic corpse pre-rolls (`rn2(20)`, `rn2(7)`,
+  `rn2(10)`, `rn2(5)`) before consumption, while `eatcorpse()` was already
+  available and should own corpse-specific RNG/message behavior.
+- Fix:
+  - removed synthetic corpse pre-rolls from `handleEat()`;
+  - always route corpse handling through `eatcorpse()`;
+  - keep bite timing from `corpseOutcome.reqtime` and preserve `retcode==2`
+    early-consume behavior.
+- Why this matters:
+  - keeps RNG call ownership in the same semantic location as C (`eatcorpse`
+    path) and avoids duplicate/early rolls that can shift later monster-move
+    parity.
+- Validation:
+  - on `seed031_manual_direct`, first RNG divergence remained at the later
+    post-fix boundary (`step 139`) after rebasing onto latest `main`.
