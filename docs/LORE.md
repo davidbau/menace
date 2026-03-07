@@ -3809,3 +3809,29 @@ hard-won wisdom:
   - `node scripts/test-unit-core.mjs` passes;
   - `./scripts/run-and-report.sh --failures` remains stable at `31/34`
     passing (same failing trio).
+
+### run-step smudge gating now follows C `domove_attempting` semantics (2026-03-07)
+
+- Regression context:
+  - `seed033_manual_direct` had dropped from first RNG divergence step `175`
+    down to `32` after enabling `maybe_smudge_engr()` on every run step.
+  - First mismatch was an extra early `rnd(5)` from
+    `maybe_smudge_engr(hack.js)` before the expected `^movemon_turn`.
+- Root cause:
+  - In C, post-`domove_core` smudging is gated by `gd.domove_succeeded`, which
+    derives from `gd.domove_attempting` (`hack.c:2682`, `hack.c:2944-2947`).
+  - During run-step engraving reads, `read_engr_at()` can `nomul(0)` and clear
+    running state before that gate is evaluated, suppressing that step's
+    smudge.
+  - JS lacked this gate and always smudged after `domove_core()`.
+- Fix in [`js/hack.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/hack.js):
+  - track run-at-move-start (`ctx._runAtMoveStart`) per `do_run()` iteration;
+  - in `domove_core()`, skip post-move smudge when running was cleared during
+    that move (`runAtMoveStart > 0 && ctx.run === 0`), matching C gate effect.
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed033_manual_direct.session.json`
+    now returns to first RNG divergence step `175` (from `32`);
+  - `./scripts/run-and-report.sh --failures` remains `31/34` passing, with
+    failing trio unchanged (`seed031`, `seed032`, `seed033`) and improved
+    `seed033` frontier (`175/1400`);
+  - `node scripts/test-unit-core.mjs` passes.

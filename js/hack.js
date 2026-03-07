@@ -1257,9 +1257,15 @@ export async function domove_core(dir, player, map, display, game) {
         }
     }
 
-    // C ref: hack.c:2682 — domove() calls maybe_smudge_engr() after every
-    // successful domove_core(), including intermediate run steps.
-    await maybe_smudge_engr(map, oldX, oldY, player.x, player.y, player);
+    // C ref: hack.c:2682 + 2944-2947
+    // domove() smudges only when gd.domove_succeeded carries DOMOVE flags.
+    // If nomul(0) clears running during this move (for example read_engr_at()),
+    // C clears the attempting gate and skips this post-move smudge.
+    const runAtMoveStart = Number(ctx._runAtMoveStart || 0);
+    const runClearedDuringMove = runAtMoveStart > 0 && Number(ctx.run || 0) === 0;
+    if (!runClearedDuringMove) {
+        await maybe_smudge_engr(map, oldX, oldY, player.x, player.y, player);
+    }
 
     await runmode_delay_output(game, display);
 
@@ -1294,7 +1300,12 @@ export async function do_run(dir, player, map, display, fov, game, runStyle = 'r
     while (steps < 80) { // safety limit
         const beforeX = player.x;
         const beforeY = player.y;
+        // Preserve run/rush attempt state across domove(). C gates post-domove
+        // smudging on gd.domove_succeeded, which is derived from
+        // gd.domove_attempting; nomul(0) during the move can clear that gate.
+        ctx._runAtMoveStart = Number(ctx.run || 0);
         const result = await domove(runDir, player, map, display, game);
+        ctx._runAtMoveStart = 0;
         if (result.tookTime) timedTurns++;
         runTrace(
             `step=${replayStepLabel(map)}`,
@@ -1348,6 +1359,7 @@ export async function do_run(dir, player, map, display, fov, game, runStyle = 'r
 
     }
     ctx.run = 0;
+    ctx._runAtMoveStart = 0;
     game.running = false;
     return {
         moved: steps > 0,
