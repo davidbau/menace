@@ -440,7 +440,7 @@ export async function healup(player, nhp, nxtra, curesick, cureblind) {
         }
     }
     if (cureblind) await make_blinded(player, 0, true);
-    if (curesick) await make_sick(player, 0, null, true, 0);
+    if (curesick) await make_sick(player, 0, null, true, SICK_ALL);
 }
 
 // cf. potion.c peffect_confusion()
@@ -557,11 +557,10 @@ export async function peffect_hallucination(player, otmp, display) {
 // cf. potion.c peffect_healing()
 export async function peffect_healing(player, otmp, display) {
     const bcsign = otmp.blessed ? 1 : (otmp.cursed ? -1 : 0);
-    const heal = 8 + c_d(4 + (2 * bcsign), 4);
-    await healup(player, heal, !otmp.cursed ? 1 : 0, false, !otmp.cursed);
-    if (!otmp.cursed) await make_blinded(player, 0, true);
-    await exercise(player, A_CON, true);
     await You_feel("better.");
+    const heal = 8 + c_d(4 + (2 * bcsign), 4);
+    await healup(player, heal, !otmp.cursed ? 1 : 0, !!otmp.blessed, !otmp.cursed);
+    await exercise(player, A_CON, true);
     return false;
 }
 

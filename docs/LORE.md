@@ -3768,3 +3768,26 @@ hard-won wisdom:
   - `node scripts/test-unit-core.mjs` passes;
   - `./scripts/run-and-report.sh --failures` remains stable at `31/34`
     passing (same failing trio: `seed031`, `seed032`, `seed033`).
+
+### healing/attribute exercise faithfulness cleanup (2026-03-07)
+
+- C-faithful fixes applied without comparator/replay masking:
+  - [`js/attrib_exercise.js`](/share/u/davidbau/git/mazesofmenace/game/js/attrib_exercise.js)
+    now mirrors `attrib.c` status checks in `exerper()`:
+    - clairvoyance wisdom exercise uses `HClairvoyant` (`intrinsic|timeout`)
+      and blocked-state gating;
+    - regeneration strength exercise uses `HRegeneration` (`intrinsic`) rather
+      than legacy `player.regeneration`.
+  - [`js/potion.js`](/share/u/davidbau/git/mazesofmenace/game/js/potion.js)
+    `peffect_healing()` now matches C ordering/arguments:
+    - `You_feel("better.")` before `healup(...)`;
+    - `healup(..., curesick=!!otmp.blessed, cureblind=!otmp.cursed)`;
+    - removed non-C extra blindness call from this path;
+    - `healup()` now cures with `SICK_ALL` (was incorrectly `0`).
+- Validation:
+  - no spike/regression in targeted parity checks:
+    - `seed031_manual_direct` remained `10277` matched RNG calls, first drift
+      still at `index 10150` (`rn2(19)` vs `rn2(5)`);
+    - `seed032_manual_direct` remained at prior first drift window (`step 89`).
+  - These are correctness cleanups that close C/JS semantic gaps even though
+    the remaining seed031 first drift is unchanged.

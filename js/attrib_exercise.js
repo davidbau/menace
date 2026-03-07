@@ -3,7 +3,8 @@
 
 import { rn2, rn1 } from './rng.js';
 import { A_STR, A_INT, A_CHA, A_DEX, A_CON, A_WIS,
-    MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, PM_MONK } from './const.js';
+    MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, PM_MONK,
+    CLAIRVOYANT, REGENERATION, INTRINSIC, TIMEOUT } from './const.js';
 import { acurr } from './attrib.js';
 
 // Lazy import to avoid circular dependency (hack.js imports from attrib_exercise.js)
@@ -106,7 +107,16 @@ export async function exerper(player, moves) {
     }
 
     if (moves % 5 === 0) {
-        if (player.regeneration) {
+        const clair = player.uprops?.[CLAIRVOYANT];
+        const hClairvoyant = (clair?.intrinsic || 0);
+        const bClairvoyant = (clair?.blocked || 0);
+        if ((hClairvoyant & (INTRINSIC | TIMEOUT)) && !bClairvoyant) {
+            await exercise(player, A_WIS, true);
+        }
+
+        // C ref: attrib.c:571 — HRegeneration (intrinsic only), not generic property activity.
+        const hRegeneration = (player.uprops?.[REGENERATION]?.intrinsic || 0);
+        if (hRegeneration) {
             await exercise(player, A_STR, true);
         }
         if (player.sick || player.vomiting) {
