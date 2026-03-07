@@ -1542,11 +1542,11 @@ export function newoextra() {
 export function dealloc_oextra(o) {
   let x = o.oextra;
   if (x) {
-    if (x.oname) (x.oname, 0), x.oname = 0;
+    if (x.oname) x.oname = null;
     if (x.omonst) free_omonst(o);
-    if (x.omailcmd) (x.omailcmd, 0), x.omailcmd = 0;
-    (x, 0);
-    o.oextra =  0;
+    if (x.omailcmd) x.omailcmd = null;
+    // C: free(x) — JS garbage collects
+    o.oextra = null;
   }
 }
 
@@ -1844,8 +1844,7 @@ export function add_to_migration(obj, game, map) {
 // Autotranslated from mkobj.c:2814
 export function dealloc_obj_real(obj) {
   if (obj.oextra) dealloc_oextra(obj);
-   obj = cg.zeroobj;
-  (obj, 0);
+  // C: *obj = cg.zeroobj; free(obj); — JS garbage collects
 }
 
 // Autotranslated from mkobj.c:3203

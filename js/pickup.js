@@ -958,7 +958,7 @@ export async function in_or_out_menu(prompt, obj, outokay, inokay, alreadyused, 
   if (n > 0) {
     let k = pick_list[0].item.a_int;
     if (n > 1 && k === (more_containers ? 7 : 8)) k = pick_list[1].item.a_int;
-    (pick_list, 0);
+    // C: free(pick_list) — JS garbage collects
     return lootchars[k];
   }
   return (n === 0 && more_containers) ? 'n' : 'q';
