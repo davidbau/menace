@@ -11,14 +11,12 @@ Tracks the mapping between C source (`rogue-c/patched/`) and JavaScript (`js/`).
 
 ---
 
-## armor.c → (no dedicated JS file)
-
-C functions live in `command.js` (wired as dep-injected stubs) and `main.js`.
+## armor.c → js/armor.js
 
 | C function | JS location | Status | Notes |
 |------------|-------------|--------|-------|
-| `wear()` | command.js | `[s]` | stub: `async () => {}` |
-| `take_off()` | command.js | `[s]` | stub: `async () => {}` |
+| `wear()` | armor.js | `[x]` | full implementation |
+| `take_off()` | armor.js | `[x]` | full implementation |
 | `waste_time()` | main.js | `[x]` | empty async (correct — just costs a turn) |
 
 ---
@@ -47,7 +45,7 @@ C functions live in `command.js` (wired as dep-injected stubs) and `main.js`.
 | `d_level()` | `d_level()` | `[x]` | |
 | `u_level()` | `u_level()` | `[x]` | |
 | `search()` | `search()` *(in misc.js)* | `[x]` | |
-| `call()` | command.js | `[s]` | stub: `async () => {}` |
+| `call()` | command.js | `[s]` | names an item; skipped (askme=false in browser) |
 | `shell()` | — | `[ ]` | not applicable in browser |
 
 ---
@@ -266,28 +264,21 @@ Options/settings system not ported — not applicable to browser-based play.
 
 ---
 
-## potions.c → (no JS file)
-
-`quaff()` is dep-injected into `command.js` as a no-op stub. Individual
-potion effects not yet ported.
-
-| C function | JS location | Status |
-|------------|-------------|--------|
-| `quaff()` | command.js | `[s]` |
-| *(potion effects)* | — | `[ ]` |
-
----
-
-## rings.c → (no JS file)
-
-Ring wear/remove dep-injected as stubs. Ring stat effects partially handled
-in `daemons.js` (ISRING checks during stomach/doctor).
+## potions.c → js/potions.js
 
 | C function | JS location | Status | Notes |
 |------------|-------------|--------|-------|
-| `ring_on()` | command.js | `[s]` | stub |
-| `ring_off()` | command.js | `[s]` | stub |
-| `gethand()` | — | `[ ]` | hand-selection prompt |
+| `quaff()` | potions.js | `[x]` | all 14 potion types implemented |
+
+---
+
+## rings.c → js/rings.js
+
+| C function | JS location | Status | Notes |
+|------------|-------------|--------|-------|
+| `ring_on()` | rings.js | `[x]` | full implementation with gethand |
+| `ring_off()` | rings.js | `[x]` | full implementation with gethand |
+| `gethand()` | rings.js | `[x]` | L/R hand prompt |
 | `ring_eat()` | daemons.js | `[~]` | hunger effects via ISRING checks |
 
 ---
@@ -334,14 +325,11 @@ Save/restore not implemented — browser sessions are ephemeral.
 
 ---
 
-## scrolls.c → (no JS file)
+## scrolls.c → js/scrolls.js
 
-`read_scroll()` wired as no-op stub. See [issue #271](https://github.com/davidbau/menace/issues/271).
-
-| C function | JS location | Status |
-|------------|-------------|--------|
-| `read_scroll()` | command.js | `[s]` |
-| *(scroll effects)* | — | `[ ]` |
+| C function | JS location | Status | Notes |
+|------------|-------------|--------|-------|
+| `read_scroll()` | scrolls.js | `[x]` | all 16 scroll types implemented |
 
 ---
 
@@ -350,8 +338,8 @@ Save/restore not implemented — browser sessions are ephemeral.
 | C function | JS function | Status | Notes |
 |------------|-------------|--------|-------|
 | `fix_stick(cur)` | `fix_stick(cur)` | `[x]` | |
-| `do_zap()` | command.js | `[s]` | stub |
-| `drain()` | — | `[ ]` | wand charge drain on hit |
+| `do_zap()` | `do_zap()` | `[x]` | all wand types: light, drain, polymorph, telaway, telto, cancel, missile, hit, haste/slow, elect/fire/cold |
+| `drain()` | `drain()` | `[x]` | wand of drain: splits player HP among nearby monsters |
 
 ---
 
@@ -401,7 +389,7 @@ Wizard mode not implemented.
 
 | File | Status |
 |------|--------|
-| `armor.c` | `[s]` wear/take_off stubbed |
+| `armor.c` | `[x]` complete |
 | `chase.c` | `[x]` complete |
 | `command.c` | `[x]` complete (shell/call stubbed, not needed) |
 | `daemon.c` | `[x]` complete |
@@ -418,13 +406,13 @@ Wizard mode not implemented.
 | `options.c` | `[ ]` not applicable in browser |
 | `pack.c` | `[x]` complete |
 | `passages.c` | `[x]` complete |
-| `potions.c` | `[s]` quaff stubbed |
-| `rings.c` | `[s]` ring_on/ring_off stubbed |
+| `potions.c` | `[x]` complete |
+| `rings.c` | `[x]` complete |
 | `rip.c` | `[~]` death sets flag; no RIP screen |
 | `rooms.c` | `[x]` complete |
 | `save.c` | `[ ]` not applicable in browser |
-| `scrolls.c` | `[s]` read_scroll stubbed (issue #271) |
-| `sticks.c` | `[s]` do_zap stubbed |
+| `scrolls.c` | `[x]` complete |
+| `sticks.c` | `[x]` complete |
 | `things.c` | `[x]` complete |
 | `weapons.c` | `[x]` complete |
 | `wizard.c` | `[ ]` wizard mode not implemented |

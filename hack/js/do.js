@@ -161,9 +161,17 @@ function litroom() {
       game.levl[x][y].lit = true;
 }
 
-// C ref: rescham() — restore shapechanger
+// C ref: rescham() — force all chameleons to become normal
+// C: for each monster with cham flag, clears cham and calls newcham(mtmp, &mon[6][6])
+// mon[6][6] is the chameleon form: {mname:'chameleon', mlet:':', mhd:6, ...}
+const CHAMELEON_DATA = { mname: 'chameleon', mlet: ':', mhd: 6, mmove: 5, ac: 6, damn: 4, damd: 2 };
 function rescham() {
-  // No-op for now (STUB)
+  for (let mtmp = game.fmon; mtmp; mtmp = mtmp.nmon) {
+    if (mtmp.cham) {
+      mtmp.cham = false;
+      newcham(mtmp, CHAMELEON_DATA);
+    }
+  }
 }
 
 // C ref: drink1(otmp) — drink a potion

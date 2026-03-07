@@ -52,7 +52,7 @@ divergence is a known open issue under investigation.
 | C function | JS function | Status | Notes |
 |------------|-------------|--------|-------|
 | `unsee()` | `unsee()` | `[x]` | |
-| `setsee()` | `setsee()` | `[~]` | blind handling incomplete (STUB comment line 18) |
+| `setsee()` | `setsee()` | `[x]` | blind: calls pru() and returns early |
 | `seeoff(mode)` | `seeoff(mode)` | `[x]` | |
 | `movecm(cmd)` | `movecm(cmd)` | `[x]` | 8-directional + Rogue key mapping |
 | `domove()` | `domove()` | `[x]` | movement with traps, monsters, items, stairs, blindness |
@@ -96,7 +96,7 @@ divergence is a known open issue under investigation.
 | `getlin()` | `getlin()` | `[x]` | line input with backspace/esc |
 | `docall(obj)` | `docall(obj)` | `[x]` | name/call an item |
 | `litroom()` | `litroom()` | `[x]` | wand of light effect |
-| `rescham()` | `rescham()` | `[s]` | no-op stub (shapechanger restoration) |
+| `rescham()` | `rescham()` | `[x]` | iterates fmon list, resets cham monsters via newcham() |
 | `applyRingOn(otmp)` | `applyRingOn(otmp)` | `[x]` | ring activation side effects |
 | `loseone(obj,tdx,tdy)` | `loseone(obj,tdx,tdy)` | `[x]` | throw/fire one item |
 | `dodr1(obj)` | `dodr1(obj)` | `[x]` | drop one item |
@@ -219,8 +219,8 @@ divergence is a known open issue under investigation.
 |--------|---------|-----------|-------|--------|
 | `rnd.c` | `rng.js` | 4 | 0 | Complete |
 | `hack.main.c` | `main.js` | 12 | 0 | Complete |
-| `hack.c` | `hack.js` | 17 | 1 (setsee blind) | Near-complete |
-| `hack.do.c` | `do.js` | 25 | 1 (rescham) | Near-complete |
+| `hack.c` | `hack.js` | 17 | 0 | Complete |
+| `hack.do.c` | `do.js` | 25 | 0 | Complete |
 | `hack.do1.c` | `do1.js` | 11 | 1 (dorecover) | Near-complete |
 | `hack.mon.c` | `mon.js` | 21 | 0 | Complete |
 | `hack.pri.c` | `pri.js` | 21 | 0 | Complete |

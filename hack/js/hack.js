@@ -15,7 +15,7 @@ export function setsee() {
   const levl = game.levl;
   const u = game.u;
   if (u.ublind) {
-    u.ux = game.xupstair; // STUB: proper blind handling
+    pru();
     return;
   }
   const cell = levl[u.ux][u.uy];
