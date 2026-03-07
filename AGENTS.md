@@ -33,6 +33,12 @@ This project uses GitHub Issues for work tracking. `PROJECT_PLAN.md` is the auth
    Scope may include deterministic replay tooling, diagnostics, and code coverage.
    Constraint: infrastructure reveals bugs; it must not solve or mask them.
 
+## Burndown Scoring Standard (Current Phase)
+1. A change is a **regression** if it moves first divergence earlier on any parity channel (`PRNG`, `events`, or `screen`) for a session that was previously better.
+2. A change is **progress** if it moves first divergence later (or fully green) on one or more parity channels without causing larger regressions elsewhere.
+3. Treat boundary-only capture artifacts as neutral unless they clearly shift true gameplay parity.
+4. Use per-session first-divergence step movement as the decision signal for go/no-go commits.
+
 ## Non-Negotiable Engineering Rules
 1. Fix behavior in core JS game code, not by patching comparator/harness logic.
 2. Keep harness simple, deterministic, and high-signal for debugging.
