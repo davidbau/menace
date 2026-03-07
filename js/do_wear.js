@@ -2300,13 +2300,13 @@ export async function Ring_off_or_gone(obj, gone, game, player) {
       else { float_vs_flight(game || { disp: {} }, player); }
     break;
     case RIN_GAIN_STRENGTH:
-      adjust_attrib(obj, A_STR, -obj.spe);
+      adjust_attrib(obj, A_STR, -obj.spe, game, player);
     break;
     case RIN_GAIN_CONSTITUTION:
-      adjust_attrib(obj, A_CON, -obj.spe);
+      adjust_attrib(obj, A_CON, -obj.spe, game, player);
     break;
     case RIN_ADORNMENT:
-      adjust_attrib(obj, A_CHA, -obj.spe);
+      adjust_attrib(obj, A_CHA, -obj.spe, game, player);
     break;
     case RIN_INCREASE_ACCURACY:
       player.uhitinc -= obj.spe;
