@@ -176,8 +176,9 @@ merge back is clean.
 
 **Yes, dramatically.**
 
-Hack 1982 took multiple sessions over several days to achieve 22/22 passing. There were many
-back-and-forth debugging cycles, the `PARITY.md` document had to be written from scratch, and
+Hack 1982 took roughly one day (March 6–7) to achieve 22/22 passing — Phase 0 completed
+around noon, and Phase 4 (all sessions passing) finished just after midnight. There were many
+back-and-forth debugging commits, the `PARITY.md` document had to be written from scratch, and
 several bugs required multiple attempts to find.
 
 Rogue 3.6 — a larger, more complex game (8,415 lines vs. 6,200, with curses, linked lists,
