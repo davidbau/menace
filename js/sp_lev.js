@@ -6957,6 +6957,11 @@ export async function finalize_level() {
             }
         }
 
+        // C ref: mklev.c level_finalize_topology() calls set_wall_state()
+        // after topologize(). This sets WM_MASK bits on wall cells for correct
+        // T-wall/corner rendering based on adjacent terrain context.
+        set_wall_state(levelState.map);
+
         // C ref: sp_lev.c:6055-6057 — lspo_finalize_level() fills special rooms
         // after level_finalize_topology() (which includes bound_digging + mineralize).
         if (levelState.map.nroom > 0) {
