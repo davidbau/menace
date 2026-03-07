@@ -1562,7 +1562,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       await kick_ouch(x, y, "");
       return ECMD_TIME;
     }
-    if (rn2(15) && !(game.maploc.looted & TREE_LOOTED) && (treefruit = rnd_treefruit_at(x, y))) {
+    if (rn2(15) && !(game.maploc.looted & TREE_LOOTED) && (treefruit = rnd_treefruit_at(x, y, game.lev || game.map))) {
       let nfruit = 8 - rnl(7), nfall, frtype = treefruit.otyp;
       treefruit.quan = nfruit;
       treefruit.owt = weight(treefruit);

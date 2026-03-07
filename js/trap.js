@@ -1493,7 +1493,7 @@ export async function blow_up_landmine(trap, map) {
     dbx = x, dby = y;
     if (find_drawbridge( dbx, dby)) destroy_drawbridge(dbx, dby);
   }
-  trap = t_at(x, y);
+  trap = t_at(x, y, map);
   if (trap) {
     if (Is_waterlevel(map.uz) || Is_airlevel(map.uz)) { deltrap(trap); }
     else {
@@ -1509,7 +1509,7 @@ export async function blow_up_landmine(trap, map) {
       }
     }
   }
-  await fill_pit(x, y);
+  await fill_pit(x, y, map);
   maybe_dunk_boulders(x, y);
   recalc_block_point(x, y);
   spot_checks(x, y, old_typ);
@@ -1533,7 +1533,7 @@ export function isclearpath(cc, distance, dx, dy, map) {
     if (!isok(x, y)) return false;
     typ = map.locations[x][y].typ;
     if (!ZAP_POS(typ) || closed_door(x, y)) return false;
-    if ((t = t_at(x, y)) != null && (is_pit(t.ttyp) || is_hole(t.ttyp) || is_xport(t.ttyp))) return false;
+    if ((t = t_at(x, y, map)) != null && (is_pit(t.ttyp) || is_hole(t.ttyp) || is_xport(t.ttyp))) return false;
   }
   cc.x = x;
   cc.y = y;
@@ -1541,9 +1541,9 @@ export function isclearpath(cc, distance, dx, dy, map) {
 }
 
 // Autotranslated from trap.c:3917
-export async function fill_pit(x, y) {
+export async function fill_pit(x, y, map) {
   let otmp, t;
-  if ((t = t_at(x, y)) != null && (is_pit(t.ttyp) || is_hole(t.ttyp)) && (otmp = sobj_at(BOULDER, x, y)) != null) { obj_extract_self(otmp); await flooreffects(otmp, x, y, "settle"); }
+  if ((t = t_at(x, y, map)) != null && (is_pit(t.ttyp) || is_hole(t.ttyp)) && (otmp = sobj_at(BOULDER, x, y, map)) != null) { obj_extract_self(otmp); await flooreffects(otmp, x, y, "settle"); }
 }
 
 // Autotranslated from trap.c:5155
@@ -1826,14 +1826,14 @@ export function conjoined_pits(trap2, trap1, u_entering_trap2, player) {
 }
 
 // Autotranslated from trap.c:6488
-export function clear_conjoined_pits(trap) {
+export function clear_conjoined_pits(trap, map) {
   let diridx, adjidx, x, y, t;
   if (trap && is_pit(trap.ttyp)) {
     for (diridx = 0; diridx < N_DIRS; ++diridx) {
       if (trap.conjoined & (1 << diridx)) {
         x = trap.tx + xdir[diridx];
         y = trap.ty + ydir[diridx];
-        if (isok(x, y) && (t = t_at(x, y)) != null && is_pit(t.ttyp)) { adjidx = DIR_180(diridx); t.conjoined &= ~(1 << adjidx); }
+        if (isok(x, y) && (t = t_at(x, y, map)) != null && is_pit(t.ttyp)) { adjidx = DIR_180(diridx); t.conjoined &= ~(1 << adjidx); }
         trap.conjoined &= ~(1 << diridx);
       }
     }
@@ -1914,11 +1914,11 @@ export async function sink_into_lava(player) {
 }
 
 // Autotranslated from trap.c:7080
-export async function trap_ice_effects(x, y, ice_is_melting) {
-  let ttmp = t_at(x, y);
+export async function trap_ice_effects(x, y, ice_is_melting, map) {
+  let ttmp = t_at(x, y, map);
   if (ttmp && ice_is_melting) {
     let mtmp;
-    if (((mtmp = m_at(x, y)) != null) && mtmp.mtrapped) mtmp.mtrapped = 0;
+    if (((mtmp = m_at(x, y, map)) != null) && mtmp.mtrapped) mtmp.mtrapped = 0;
     if (ttmp.ttyp === LANDMINE || ttmp.ttyp === BEAR_TRAP) {
       let otyp = (ttmp.ttyp === LANDMINE) ? LAND_MINE : BEARTRAP;
       await cnv_trap_obj(otyp, 1, ttmp, true);

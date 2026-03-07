@@ -1990,7 +1990,7 @@ export async function vamp_stone(mtmp, game) {
     mtmp.mfrozen = 0;
     set_mon_min_mhpmax(mtmp, 10);
     mtmp.mhp = mtmp.mhpmax;
-    newcham(mtmp, mons, NC_SHOW_MSG);
+    newcham(mtmp, mons[0], NC_SHOW_MSG);
     newsym(mtmp.mx, mtmp.my);
     return false;
   }
@@ -2011,7 +2011,7 @@ export function ok_to_obliterate(mtmp, player) {
 
 // Autotranslated from mon.c:3997
 export async function maybe_mnexto(mtmp, player) {
-  let mm = {x: 0, y: 0}, ptr = mtmp.data, diagok = !NODIAG(ptr - mons), tryct = 20;
+  let mm = {x: 0, y: 0}, ptr = mtmp.data, diagok = !NODIAG(monsndx(mtmp.data)), tryct = 20;
   do {
     if (!enexto( mm, player.x, player.y, ptr)) return;
     if (couldsee(mm.x, mm.y)   && (diagok || mm.x === mtmp.mx || mm.y === mtmp.my)) { await rloc_to(mtmp, mm.x, mm.y); return; }
@@ -2021,7 +2021,7 @@ export async function maybe_mnexto(mtmp, player) {
 // Autotranslated from mon.c:4087
 export async function m_respond_shrieker(mtmp, player) {
   if (!(player?.Deaf || player?.deaf || false)) { await pline("%s shrieks.", Monnam(mtmp)); await stop_occupation(); }
-  if (!rn2(10)) { makemon(rn2(13) ?  0 : mons, 0, 0, NO_MM_FLAGS); }
+  if (!rn2(10)) { makemon(rn2(13) ? 0 : mons[PM_PURPLE_WORM], 0, 0, NO_MM_FLAGS); }
   aggravate();
 }
 
@@ -2066,7 +2066,7 @@ export function m_restartcham(mtmp) {
 // Autotranslated from mon.c:4660
 export function restrap(mtmp, map, player) {
   let t;
-  if (mtmp.mcan || M_AP_TYPE(mtmp) || cansee(mtmp.mx, mtmp.my) || rn2(3) || mtmp === player.ustuck   || (mtmp.mtrapped && (t = t_at(mtmp.mx, mtmp.my)) != null && !is_pit(t.ttyp))   || (ceiling_hider(mtmp.data) && !has_ceiling(map.uz))   || (sensemon(mtmp) && m_next2u(mtmp))) return false;
+  if (mtmp.mcan || M_AP_TYPE(mtmp) || cansee(mtmp.mx, mtmp.my) || rn2(3) || mtmp === player.ustuck   || (mtmp.mtrapped && (t = t_at(mtmp.mx, mtmp.my, map)) != null && !is_pit(t.ttyp))   || (ceiling_hider(mtmp.data) && !has_ceiling(map.uz))   || (sensemon(mtmp) && m_next2u(mtmp))) return false;
   if (mtmp.data.mlet === S_MIMIC) {
     if (mtmp.msleeping || mtmp.mfrozen) { return false; }
     set_mimic_sym(mtmp);
@@ -2299,7 +2299,7 @@ export async function see_nearby_monsters(game, player) {
       if (!isok(x, y)) {
         continue;
       }
-      if (!(mtmp = m_at(x, y))) {
+      if (!(mtmp = m_at(x, y, game?.lev || game?.map))) {
         continue;
       }
       mndx = monsndx(mtmp.data);

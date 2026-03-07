@@ -1450,7 +1450,7 @@ export function there_cmd_menu_next2u(win, x, y, mod, act, map, player) {
     }
   }
   if (typ <= SCORR) mcmd_addmenu(win, MCMD_SEARCH, "Search for secret doors"), ++K;
-  if ((ttmp = t_at(x, y)) != null && ttmp.tseen) {
+  if ((ttmp = t_at(x, y, map)) != null && ttmp.tseen) {
     mcmd_addmenu(win, MCMD_LOOK_TRAP, "Examine trap"), ++K;
     if (ttmp.ttyp !== VIBRATING_SQUARE) mcmd_addmenu(win, MCMD_UNTRAP_TRAP, "Attempt to disarm trap"), ++K;
     mcmd_addmenu(win, MCMD_MOVE_DIR, "Move on the trap"), ++K;
