@@ -95,6 +95,18 @@ function replayPendingTrace(...args) {
     console.log('[REPLAY_PENDING_TRACE]', ...args);
 }
 
+function pendingWaitSite(inputRuntime) {
+    const st = inputRuntime?.getInputState?.();
+    const raw = String(st?.waitStack || '');
+    if (!raw) return '';
+    const lines = raw.split('\n').map((s) => s.trim()).filter(Boolean);
+    const useful = lines.slice(1).find((line) => (
+        !line.includes('/js/headless.js')
+        && !line.includes('/js/input.js')
+    ));
+    return useful || lines[2] || lines[1] || '';
+}
+
 // ---------------------------------------------------------------------------
 // replaySession(seed, opts, keys)
 //
@@ -193,7 +205,8 @@ export async function replaySession(seed, opts, keys) {
                     `step=${i + 1}`,
                     `key=${JSON.stringify(String.fromCharCode(ch))}`,
                     'mode=start',
-                    'start=waiting'
+                    'start=waiting',
+                    pendingWaitSite(game.input)
                 );
             }
         }
