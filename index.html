@@ -844,6 +844,10 @@
                 <button class="hm-item" id="hm-del-bones"><span class="hm-check"></span>Delete bones</button>
                 <button class="hm-item" id="hm-reset-opts"><span class="hm-check"></span>Reset options</button>
                 <div class="hm-divider"></div>
+                <button class="hm-item" id="hm-nethack" disabled><span class="hm-check">&#x2713;</span>Play NetHack</button>
+                <button class="hm-item" id="hm-hack"><span class="hm-check"></span>Play Hack (1982)</button>
+                <button class="hm-item" id="hm-rogue"><span class="hm-check"></span>Play Rogue (1980)</button>
+                <div class="hm-divider"></div>
                 <button class="hm-item" id="hm-fullscreen"><span class="hm-check"></span>Fullscreen<span class="hm-shortcut" id="hm-fullscreen-shortcut"></span></button>
                 <button class="hm-item" id="hm-darkmode"><span class="hm-check"></span>Dark mode</button>
                 <button class="hm-item" id="hm-keyref"><span class="hm-check"></span>Control help</button>
@@ -1404,6 +1408,10 @@
             try { localStorage.removeItem('menace-panels-hidden'); } catch(e) {}
             closeMenu();
         });
+
+        // Game navigation
+        document.getElementById('hm-hack').addEventListener('click', function() { window.location.href = 'hack/'; });
+        document.getElementById('hm-rogue').addEventListener('click', function() { window.location.href = 'rogue/'; });
 
         document.getElementById('hm-del-bones').addEventListener('click', function() {
             if (this.disabled) return;

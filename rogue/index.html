@@ -163,6 +163,113 @@
     }
 
     /* ============================================================
+       Controls (bottom-right: font size + hamburger menu)
+       ============================================================ */
+    #controls {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 4px;
+      z-index: 10;
+      filter: drop-shadow(0 2px 8px var(--color-shadow));
+    }
+
+    #controls button {
+      background: var(--color-bg);
+      border: 2px solid var(--color-accent);
+      color: var(--color-accent);
+      padding: 0.4em 0.8em;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all var(--transition-fast);
+      font-family: var(--font-serif);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .mono-char {
+      font-family: var(--font-mono);
+    }
+
+    #controls button:hover {
+      background: var(--color-accent);
+      color: #fff;
+    }
+
+    #controls button:active {
+      transform: scale(0.95);
+    }
+
+    #panel-toggle.menu-open {
+      background: var(--color-accent);
+      color: var(--color-bg);
+    }
+
+    #hamburger-menu {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      right: 0;
+      flex-direction: column;
+      background: var(--color-bg);
+      border: 2px solid var(--color-accent);
+      border-radius: 4px;
+      min-width: 200px;
+      box-shadow: 0 4px 16px var(--color-shadow);
+      z-index: 100;
+    }
+
+    #hamburger-menu.open {
+      display: flex;
+    }
+
+    #hamburger-menu .hm-item {
+      background: none;
+      border: none;
+      border-top: 1px solid var(--color-accent);
+      border-radius: 0;
+      color: var(--color-accent);
+      padding: 0.5em 1em;
+      text-align: left;
+      cursor: pointer;
+      font-family: var(--font-serif);
+      font-size: 16px;
+      white-space: nowrap;
+      width: 100%;
+      transition: background var(--transition-fast), color var(--transition-fast);
+      filter: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #hamburger-menu .hm-item:first-child {
+      border-top: none;
+    }
+
+    .hm-check {
+      display: inline-block;
+      width: 1.2em;
+    }
+
+    #hamburger-menu .hm-item:hover:not(:disabled) {
+      background: var(--color-accent);
+      color: #fff;
+    }
+
+    #hamburger-menu .hm-item:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    .hm-divider {
+      border-top: 2px solid var(--color-accent);
+      margin: 0;
+    }
+
+    /* ============================================================
        Docs Overlay
        ============================================================ */
     #docs-overlay {
@@ -335,7 +442,8 @@
 
     body.docs-mode #nav,
     body.docs-mode #nav-spacer,
-    body.docs-mode #help-bar {
+    body.docs-mode #help-bar,
+    body.docs-mode #controls {
       display: none;
     }
 
@@ -352,8 +460,6 @@
   <div id="page">
     <nav id="nav" role="navigation">
       <a href="#about" id="about-link">About Rogue (1980)</a>
-      <a href="../">Play NetHack</a>
-      <a href="../hack/">Play Hack (1982)</a>
     </nav>
     <main id="main">
       <div id="rogue-container">
@@ -373,6 +479,20 @@
       <span class="help-key">&gt;</span> descend &middot;
       <span class="help-key">Q</span> quit
     </div>
+    <div id="controls">
+      <button id="font-smaller" title="Decrease font size" aria-label="Decrease font size" tabindex="-1"><span class="mono-char">A</span>&#x2212;</button>
+      <button id="font-larger" title="Increase font size" aria-label="Increase font size" tabindex="-1"><span class="mono-char">A</span>+</button>
+      <button id="panel-toggle" title="Game menu" aria-label="Open game menu" tabindex="-1">&#x2630;</button>
+      <div id="hamburger-menu">
+        <button class="hm-item" id="hm-reset-opts"><span class="hm-check"></span>Reset options</button>
+        <div class="hm-divider"></div>
+        <button class="hm-item" id="hm-nethack"><span class="hm-check"></span>Play NetHack</button>
+        <button class="hm-item" id="hm-hack"><span class="hm-check"></span>Play Hack (1982)</button>
+        <button class="hm-item" id="hm-rogue" disabled><span class="hm-check">&#x2713;</span>Play Rogue (1980)</button>
+        <div class="hm-divider"></div>
+        <button class="hm-item" id="hm-fullscreen"><span class="hm-check"></span>Fullscreen</button>
+      </div>
+    </div>
     <div id="nav-spacer" aria-hidden="true"></div>
   </div>
 
@@ -383,7 +503,7 @@
   <button id="docs-close" title="Return to game" aria-label="Close documentation">&times;</button>
 
   <script>
-  /* Remove loading div once the game screen appears */
+  /* Remove loading div and apply saved font size once the game screen appears */
   (function() {
     var container = document.getElementById('rogue-container');
     if (!container) return;
@@ -392,6 +512,9 @@
       if (screen) {
         var loading = document.getElementById('loading');
         if (loading) loading.remove();
+        var sz = 16;
+        try { sz = parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) {}
+        screen.style.fontSize = sz + 'px';
         observer.disconnect();
       }
     });
@@ -407,6 +530,102 @@
     sync();
     if (window.ResizeObserver) new ResizeObserver(sync).observe(nav);
     window.addEventListener('resize', sync);
+  })();
+
+  /* Font size controls — shared with other games via localStorage */
+  (function() {
+    function applyFontSize(size) {
+      var screen = document.getElementById('rogue-screen');
+      if (screen) screen.style.fontSize = size + 'px';
+    }
+
+    document.getElementById('font-smaller').addEventListener('click', function() {
+      var size = 16;
+      try { size = parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) {}
+      size = Math.max(12, size - 2);
+      applyFontSize(size);
+      try { localStorage.setItem('menace-font-size', size); } catch(e) {}
+      this.blur();
+    });
+
+    document.getElementById('font-larger').addEventListener('click', function() {
+      var size = 16;
+      try { size = parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) {}
+      size = Math.min(24, size + 2);
+      applyFontSize(size);
+      try { localStorage.setItem('menace-font-size', size); } catch(e) {}
+      this.blur();
+    });
+  })();
+
+  /* Hamburger menu */
+  (function() {
+    var panelToggle = document.getElementById('panel-toggle');
+    var menu = document.getElementById('hamburger-menu');
+    var menuBackdrop = null;
+
+    function isOpen() { return menu.classList.contains('open'); }
+
+    function openMenu() {
+      var hasOptions = false;
+      try { hasOptions = !!(localStorage.getItem('menace-options') || localStorage.getItem('menace-font-size')); } catch(e) {}
+      document.getElementById('hm-reset-opts').disabled = !hasOptions;
+
+      var isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+      document.querySelector('#hm-fullscreen .hm-check').textContent = isFs ? '\u2713' : '';
+
+      if (!menuBackdrop) {
+        menuBackdrop = document.createElement('div');
+        menuBackdrop.style.cssText = 'position:fixed;inset:0;z-index:9;';
+        menuBackdrop.addEventListener('mousedown', closeMenu);
+        document.body.appendChild(menuBackdrop);
+      }
+      menu.classList.add('open');
+      panelToggle.classList.add('menu-open');
+    }
+
+    function closeMenu() {
+      if (menuBackdrop) { document.body.removeChild(menuBackdrop); menuBackdrop = null; }
+      menu.classList.remove('open');
+      panelToggle.classList.remove('menu-open');
+    }
+
+    panelToggle.addEventListener('click', function() {
+      if (isOpen()) closeMenu(); else openMenu();
+      this.blur();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && isOpen()) closeMenu();
+    });
+
+    document.getElementById('font-smaller').addEventListener('mousedown', closeMenu);
+    document.getElementById('font-larger').addEventListener('mousedown', closeMenu);
+
+    // Game navigation
+    document.getElementById('hm-nethack').addEventListener('click', function() { window.location.href = '../'; });
+    document.getElementById('hm-hack').addEventListener('click', function() { window.location.href = '../hack/'; });
+
+    // Reset options
+    document.getElementById('hm-reset-opts').addEventListener('click', function() {
+      if (this.disabled) return;
+      try { localStorage.removeItem('menace-options'); } catch(e) {}
+      try { localStorage.removeItem('menace-font-size'); } catch(e) {}
+      var screen = document.getElementById('rogue-screen');
+      if (screen) screen.style.fontSize = '16px';
+      closeMenu();
+    });
+
+    // Fullscreen
+    document.getElementById('hm-fullscreen').addEventListener('click', function() {
+      closeMenu();
+      var el = document.documentElement;
+      if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement) {
+        (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen).call(document);
+      } else {
+        (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen).call(el);
+      }
+    });
   })();
 
   /* Docs overlay — fetch HISTORY.md, render as HTML, minimap the game */
