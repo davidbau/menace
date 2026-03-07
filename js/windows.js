@@ -118,7 +118,14 @@ export async function display_nhwindow(win, blocking) {
             _display.renderTextPopup(lines);
         }
         if (blocking) {
-            await _nhgetch();
+            // C ref: tty_more() semantics for text/menu blocking prompts:
+            // only specific keys dismiss --More-- style windows.
+            while (true) {
+                const ch = await _nhgetch();
+                if (ch === 32 || ch === 10 || ch === 13 || ch === 27 || ch === 16) {
+                    break;
+                }
+            }
         }
     }
 }

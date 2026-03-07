@@ -4310,3 +4310,31 @@ hard-won wisdom:
   - `node --test test/unit/command_fire_prompt.test.js` passes.
   - `./scripts/run-and-report.sh --failures` remains `31/34` gameplay sessions passing.
   - `seed031_manual_direct` first screen mismatch advanced from step `538` to step `595`.
+
+### armor naming + text-window dismissal semantics in `look_here` popups (2026-03-07)
+
+- Divergence context:
+  - After fixing `dofire`, `seed031_manual_direct` next mismatch at step `595` was:
+    - JS: `an iron skull cap`
+    - C:  `an orcish helm`
+  - After fixing naming, next uncovered mismatch was popup lifecycle:
+    C kept `Things that are here:` visible across non-dismiss keys; JS dismissed
+    on first key.
+- C behavior:
+  - `objnam.c:xname()` for `ARMOR_CLASS` names uses `oc_name_known` (`nn`)
+    directly (except special `!dknown` shield path); generic armor naming is not
+    gated by `obj->dknown`.
+  - `tty_more()`-style blocking windows require explicit dismiss keys
+    (`space/enter/esc/^P`), not arbitrary keypress.
+- Fixes:
+  - In [`js/mkobj.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mkobj.js),
+    updated `xname_for_doname()` `ARMOR_CLASS` path to follow C:
+    - boots/gloves and general armor now depend on `isObjectNameKnown` only
+      (preserving existing unknown-shield special case on `!dknown`).
+  - In [`js/windows.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/windows.js),
+    `display_nhwindow(win, true)` for text popups now loops until a C-style
+    dismiss key (`space/enter/esc/^P`), instead of dismissing on first key.
+- Validation:
+  - `node --test test/unit/command_fire_prompt.test.js` passes.
+  - `./scripts/run-and-report.sh --failures` remains `31/34` gameplay sessions passing.
+  - `seed031_manual_direct` screen frontier advanced from `595/1365` to `628/1365`.

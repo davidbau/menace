@@ -1268,9 +1268,8 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
         if (obj.otyp >= GRAY_DRAGON_SCALES && obj.otyp <= YELLOW_DRAGON_SCALES) {
             base = `set of ${od.oc_name}`;
         } else if (od.oc_subtyp === ARM_BOOTS || od.oc_subtyp === ARM_GLOVES) {
-            base = `pair of ${dknown
-                ? (nameKnown ? od.oc_name : (od.oc_descr || od.oc_name))
-                : (od.oc_descr || od.oc_name)}`;
+            // C ref: armor names depend on oc_name_known, not obj.dknown.
+            base = `pair of ${nameKnown ? od.oc_name : (od.oc_descr || od.oc_name)}`;
         } else if (!dknown && od.oc_subtyp === ARM_SHIELD) {
             // C ref: objnam.c xname() unknown shield special-cases.
             if (obj.otyp >= ELVEN_SHIELD && obj.otyp <= ORCISH_SHIELD) {
@@ -1281,9 +1280,8 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
                 base = od.oc_descr || od.oc_name;
             }
         } else {
-            base = dknown
-                ? (nameKnown ? od.oc_name : (od.oc_descr || od.oc_name))
-                : (od.oc_descr || od.oc_name);
+            // C ref: armor names depend on oc_name_known, not obj.dknown.
+            base = nameKnown ? od.oc_name : (od.oc_descr || od.oc_name);
         }
         break;
     case WEAPON_CLASS:
