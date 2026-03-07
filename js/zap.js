@@ -72,7 +72,10 @@ import {
   find_mac,
   mon_adjust_speed,
   mon_set_minvis,
+  which_armor,
 } from './worn.js';
+import { erode_obj } from './trap.js';
+import { ERODE_BURN, EF_GREASE } from './const.js';
 import { W_ART } from './artifact.js';
 import { sleep_monst, slept_monst } from './mhitm.js';
 import { mstatusline, run_magic_enlightenment_effect } from './insight.js';
@@ -253,16 +256,52 @@ export function resist(mon, oclass) {
 // While loop picks random armor slot; case 1 (body armor) always returns TRUE.
 // Other cases continue if monster has no armor in that slot.
 function burnarmor(mon) {
-    // C ref: trap.c:112-156 — while(1) switch(rn2(5))
+    // C ref: trap.c:88-157 burnarmor() — while(1) switch(rn2(5))
+    // #define burn_dmg(obj, descr) erode_obj(obj, descr, ERODE_BURN, EF_GREASE)
     while (true) {
-        const slot = rn2(5);
-        if (slot === 1) {
-            // Case 1: cloak/body/shirt — always returns TRUE even if no armor
+        switch (rn2(5)) {
+        case 0: {
+            const item = which_armor(mon, W_ARMH);
+            if (!erode_obj(item, 'helmet', ERODE_BURN, EF_GREASE))
+                continue;
+            break;
+        }
+        case 1: {
+            let item = which_armor(mon, W_ARMC);
+            if (item) {
+                erode_obj(item, null, ERODE_BURN, EF_GREASE);
+                return true;
+            }
+            item = which_armor(mon, W_ARM);
+            if (item) {
+                erode_obj(item, null, ERODE_BURN, EF_GREASE);
+                return true;
+            }
+            item = which_armor(mon, W_ARMU);
+            if (item)
+                erode_obj(item, 'shirt', ERODE_BURN, EF_GREASE);
             return true;
         }
-        // Cases 0, 2, 3, 4: if monster has no armor (typical), continue loop
-        // For monsters with armor we'd check erode_obj, but for simplicity
-        // assume no armor (most early monsters) -> continue
+        case 2: {
+            const item = which_armor(mon, W_ARMS);
+            if (!erode_obj(item, 'wooden shield', ERODE_BURN, EF_GREASE))
+                continue;
+            break;
+        }
+        case 3: {
+            const item = which_armor(mon, W_ARMG);
+            if (!erode_obj(item, 'gloves', ERODE_BURN, EF_GREASE))
+                continue;
+            break;
+        }
+        case 4: {
+            const item = which_armor(mon, W_ARMF);
+            if (!erode_obj(item, 'boots', ERODE_BURN, EF_GREASE))
+                continue;
+            break;
+        }
+        }
+        break; // Out of while loop
     }
 }
 
