@@ -4,7 +4,7 @@ import { HP, GOLD, AC, STR, SEEN } from './const.js';
 import { rn1, rn2, rnd, d } from './rng.js';
 import { game } from './gstate.js';
 import { pline, atl, newsym, nscr, bot, cls, curs, on, pru } from './pri.js';
-import { movecm, domove, parse, tele, nomul, doname, setsee, seeoff, amon, attmon, prinv } from './hack.js';
+import { movecm, domove, parse, tele, nomul, doname, setsee, seeoff, amon, attmon, prinv } from './oldhack.js';
 import { movemon, makemon, rloc, mnexto, g_at_mon, g_at_obj, g_at_gen, delmon, killed,
          newcham, steal } from './mon.js';
 import { ringoff, hit, miss, bhit, buzz, dosearch, dosave, dorecover, zhit } from './do1.js';

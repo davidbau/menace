@@ -4,7 +4,7 @@ import { rn1, rn2, rnd, d, seedRng, logEvent } from './rng.js';
 import { game } from './gstate.js';
 import { makeObj } from './game.js';
 import { pline, bot, nscr, cls, panic, losehp } from './pri.js';
-import { setsee, unsee, seeoff, domove, movecm, tele, parse, nomul, doname } from './hack.js';
+import { setsee, unsee, seeoff, domove, movecm, tele, parse, nomul, doname } from './oldhack.js';
 import { movemon, makemon, rloc, delmon, mnexto } from './mon.js';
 import { dosave, dosearch } from './do1.js';
 import { mklev } from './lev.js';
