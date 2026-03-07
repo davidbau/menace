@@ -1584,9 +1584,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       return ECMD_TIME;
     }
     else if (!(game.maploc.looted & TREE_SWARM)) {
-      let cnt = rnl(4) + 2, made = 0, mm;
-      mm.x = x;
-      mm.y = y;
+      let cnt = rnl(4) + 2, made = 0, mm = {x, y};
       while (cnt--) {
         if (enexto( mm, mm.x, mm.y, mons[PM_KILLER_BEE]) && makemon( mons[PM_KILLER_BEE], mm.x, mm.y, MM_ANGRY|MM_NOMSG)) made++;
       }

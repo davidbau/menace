@@ -1968,7 +1968,7 @@ export async function vamp_stone(mtmp, game) {
       mtmp.mhp = mtmp.mhpmax;
       if (engulfing_u(mtmp)) await expels(mtmp, mtmp.data, false);
       if (amorphous(mtmp.data) && closed_door(mtmp.mx, mtmp.my)) {
-        let new_xy;
+        let new_xy = {x: 0, y: 0};
         if (enexto( new_xy, mtmp.mx, mtmp.my, mons[mndx])) { await rloc_to(mtmp, new_xy.x, new_xy.y); }
       }
       if (canspotmon(mtmp)) { await pline_mon(mtmp, "%s!", buf); await display_nhwindow(WIN_MESSAGE, false); }
@@ -2010,7 +2010,7 @@ export function ok_to_obliterate(mtmp, player) {
 
 // Autotranslated from mon.c:3997
 export function maybe_mnexto(mtmp, player) {
-  let mm, ptr = mtmp.data, diagok = !NODIAG(ptr - mons), tryct = 20;
+  let mm = {x: 0, y: 0}, ptr = mtmp.data, diagok = !NODIAG(ptr - mons), tryct = 20;
   do {
     if (!enexto( mm, player.x, player.y, ptr)) return;
     if (couldsee(mm.x, mm.y)   && (diagok || mm.x === mtmp.mx || mm.y === mtmp.my)) { rloc_to(mtmp, mm.x, mm.y); return; }

@@ -959,7 +959,7 @@ export async function domonnoise(mtmp, game) {
         // Generic peaceful humanoid behavior
         if (mtmp.mflee)
             pline_msg = 'wants nothing to do with you.';
-        else if (mtmp.hp < (mtmp.hpmax || 1) / 4)
+        else if (mtmp.hp < Math.floor((mtmp.hpmax || 1) / 4))
             pline_msg = 'moans.';
         else if (mtmp.confused || mtmp.stunned)
             verbl_msg = !rn2(3) ? 'Huh?' : rn2(2) ? 'What?' : 'Eh?';

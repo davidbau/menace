@@ -3386,7 +3386,7 @@ function litter_scatter(litter, x, y, _shkp) {
 // Autotranslated from shk.c:5047
 export function makekops(mm, game, map) {
   let k_mndx = [ PM_KEYSTONE_KOP, PM_KOP_SERGEANT, PM_KOP_LIEUTENANT, PM_KOP_KAPTAIN ];
-  let k_cnt, cnt, mndx, k;
+  let k_cnt = [], cnt, mndx, k;
   k_cnt[0] = cnt = Math.abs(depth(map.uz)) + rnd(5);
   k_cnt[1] = Math.floor(cnt / 3) + 1;
   k_cnt[2] = Math.floor(cnt / 6);

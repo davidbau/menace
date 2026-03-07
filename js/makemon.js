@@ -2621,7 +2621,7 @@ export function unmakemon(mon, mmflags, game) {
 
 // Autotranslated from makemon.c:1553
 export function create_critters(cnt, mptr, neverask, player) {
-  let c, x, y, mon, known = false, ask = (wizard && !neverask);
+  let c = {x: 0, y: 0}, x, y, mon, known = false, ask = (wizard && !neverask);
   while (cnt--) {
     if (ask) {
       if (create_particular()) { known = true; continue; }
