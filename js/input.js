@@ -439,9 +439,9 @@ export function nhgetch() {
             || ch === 32  // space
             || ch === 16  // ^P (tty dismiss_more)
         );
-        const waitForMoreDismiss = () => _getRawKey().then((ch) => {
+        const waitForMoreDismiss = () => _getRawKey().then(async (ch) => {
             if (isMoreDismissKey(ch)) {
-                display._clearMore();
+                await display._clearMore();
                 return nhgetch();
             }
             // C ref: tty xwaitforspace() ignores non-dismiss keys (and beeps).

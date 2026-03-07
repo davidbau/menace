@@ -503,7 +503,7 @@ export async function run_command(game, ch, opts = {}) {
         if (typeof prevMoreBlocking === 'boolean') {
             game.display._moreBlockingEnabled = false;
         }
-        game.display._clearMore();
+        await game.display._clearMore();
         if (typeof prevMoreBlocking === 'boolean') {
             game.display._moreBlockingEnabled = prevMoreBlocking;
         }
@@ -1615,7 +1615,14 @@ export class NetHackGame {
         const player = this.player;
         const msgid = this.getQuestPortalMsgId(previousDnum);
         if (!msgid || !player) return;
-        if (opts?.suppressOutputForLvltport) {
+        const suppressForPendingMore = !!this.display?._pendingMore;
+        if (opts?.suppressOutputForLvltport || suppressForPendingMore) {
+            // C ref: do.c sets qcalled before com_pager("quest_portal").
+            // Even when we suppress output at lvltport boundaries for capture
+            // parity, preserve the quest state transition.
+            if (msgid === 'quest_portal') {
+                player.uevent.qcalled = true;
+            }
             // Preserve C RNG seen at this transition boundary (nhlib shuffle),
             // but do not emit quest text here.
             rn2(3);

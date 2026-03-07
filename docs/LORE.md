@@ -3559,3 +3559,23 @@ hard-won wisdom:
   - `seed332` now full pass: RNG/events/screen/mapdump all 100%.
   - `scripts/run-and-report.sh --failures` improved from `29/34` to `30/34`
     passing gameplay sessions; no new failures introduced.
+
+### `--More--`/quest pager boundary refinement (seed325 spillover reduction) (2026-03-07)
+
+- `seed325` showed quest pager text leaking into later command frames
+  (`302..305`) despite RNG/events being fully aligned.
+- Root cause was JS fallback `--More--` queue behavior at command boundaries:
+  quest portal messaging could be emitted while a prior prompt was pending,
+  then replayed later as queued toplines.
+- C-faithful refinement applied:
+  - `run_command()` and `nhgetch()` now await async `display._clearMore()`.
+  - `_clearMore()` resumes at most one queued message per dismissal instead of
+    draining the whole queue in one pass.
+  - `maybeShowQuestPortalCall()` suppresses quest text output when a `--More--`
+    prompt is already pending, while preserving the same RNG consumption and
+    `qcalled` state transition.
+- Validation:
+  - `scripts/run-and-report.sh --failures` now reports `30/34` passing (`4`
+    failing), matching current team frontier.
+  - Remaining `seed325` divergence is later screen-only (`step 306`, missing
+    floor `)` glyph) with RNG/events still full-match.

@@ -703,19 +703,19 @@ export class HeadlessDisplay {
         this._messageQueue.push(wrapped);
     }
 
-    // Dismiss the --More-- prompt and display queued messages.
+    // Dismiss the --More-- prompt and resume queued fallback messages.
     // Called when a key is consumed for --More-- dismissal (from nhgetch
-    // or run_command).  Drains the queue one message at a time; if another
-    // overflow triggers a new --More--, draining stops.
-    _clearMore() {
+    // or run_command).  Resume at most one queued message per dismissal
+    // so prompt/message progression remains explicit.
+    async _clearMore() {
         this._pendingMore = false;
         this._pendingMoreNoCursor = false;
         this.clearRow(0);
         this.messageNeedsMore = false;
         this.topMessage = null;
-        while (this._messageQueue.length > 0 && !this._pendingMore) {
+        if (this._messageQueue.length > 0) {
             const queued = this._messageQueue.shift();
-            this.putstr_message(queued);
+            await this.putstr_message(queued);
         }
     }
 
