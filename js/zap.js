@@ -60,7 +60,7 @@ import { corpse_chance } from './mon.js';
 import { xkilled, killed, monkilled,
          wakeup, healmon, mondead } from './mon.js';
 import { nhgetch } from './input.js';
-import { getdir } from './hack.js';
+import { getdir, registerBurnarmor } from './hack.js';
 import { nonliving, is_undead, is_demon, is_rider,
          x_monnam, resists_fire, resists_cold, resists_elec,
          resists_poison, resists_acid, resists_disint } from './mondata.js';
@@ -252,58 +252,78 @@ export function resist(mon, oclass) {
     return rn2(100 + alev - dlev) < mr;
 }
 
-// C ref: trap.c:88 burnarmor() — check if monster's armor burns
-// While loop picks random armor slot; case 1 (body armor) always returns TRUE.
-// Other cases continue if monster has no armor in that slot.
-function burnarmor(mon) {
-    // C ref: trap.c:88-157 burnarmor() — while(1) switch(rn2(5))
-    // #define burn_dmg(obj, descr) erode_obj(obj, descr, ERODE_BURN, EF_GREASE)
+// C ref: trap.c:88-157 burnarmor() — check if victim's armor burns
+// Handles both monsters and the player. While loop picks random armor slot;
+// case 1 (body armor) always returns TRUE.
+export function burnarmor(victim, player) {
+    if (!victim) return false;
+    const hitting_u = (victim === player);
+    // C ref: trap.c:100-109 — towel drying (rn2 consumed); skipped for now
+
+    function getArmor(slot) {
+        if (hitting_u) {
+            switch (slot) {
+            case W_ARMH: return player.helmet;
+            case W_ARMC: return player.cloak;
+            case W_ARM:  return player.armor;
+            case W_ARMU: return player.shirt;
+            case W_ARMS: return player.shield;
+            case W_ARMG: return player.gloves;
+            case W_ARMF: return player.boots;
+            default: return null;
+            }
+        }
+        return which_armor(victim, slot);
+    }
+
     while (true) {
         switch (rn2(5)) {
         case 0: {
-            const item = which_armor(mon, W_ARMH);
+            const item = getArmor(W_ARMH);
             if (!erode_obj(item, 'helmet', ERODE_BURN, EF_GREASE))
                 continue;
             break;
         }
         case 1: {
-            let item = which_armor(mon, W_ARMC);
+            let item = getArmor(W_ARMC);
             if (item) {
                 erode_obj(item, null, ERODE_BURN, EF_GREASE);
                 return true;
             }
-            item = which_armor(mon, W_ARM);
+            item = getArmor(W_ARM);
             if (item) {
                 erode_obj(item, null, ERODE_BURN, EF_GREASE);
                 return true;
             }
-            item = which_armor(mon, W_ARMU);
+            item = getArmor(W_ARMU);
             if (item)
                 erode_obj(item, 'shirt', ERODE_BURN, EF_GREASE);
             return true;
         }
         case 2: {
-            const item = which_armor(mon, W_ARMS);
+            const item = getArmor(W_ARMS);
             if (!erode_obj(item, 'wooden shield', ERODE_BURN, EF_GREASE))
                 continue;
             break;
         }
         case 3: {
-            const item = which_armor(mon, W_ARMG);
+            const item = getArmor(W_ARMG);
             if (!erode_obj(item, 'gloves', ERODE_BURN, EF_GREASE))
                 continue;
             break;
         }
         case 4: {
-            const item = which_armor(mon, W_ARMF);
+            const item = getArmor(W_ARMF);
             if (!erode_obj(item, 'boots', ERODE_BURN, EF_GREASE))
                 continue;
             break;
         }
         }
-        break; // Out of while loop
+        break;
     }
+    return false;
 }
+registerBurnarmor(burnarmor);
 
 // C ref: zap.c:4646 zap_hit() — determine if beam hits a monster
 export function zap_hit(ac, type) {
@@ -337,10 +357,9 @@ function zhitm(mon, type, nd, map) {
         }
         tmp = d(nd, 6);
         if (mdat.mresists & MR_COLD) tmp += 7; // cold-resistant takes extra fire
-        if (burnarmor(mon)) {
-            if (!rn2(3)) {
-                // destroy_items — stub for most monsters
-            }
+        // C ref: if (burnarmor(mtmp) || rn2(3)) { destroy_items }
+        if (burnarmor(mon) || rn2(3)) {
+            // destroy_items — stub: rn2(3) consumed for fire damage
         }
         break;
     case ZT_COLD:
@@ -2580,7 +2599,7 @@ export function resists_stun(mon) {
 // ============================================================
 // Exported zhitm and zap_hit for use by other modules (e.g., mcastu)
 // ============================================================
-export { zhitm, burnarmor };
+export { zhitm };
 
 // Autotranslated from zap.c:5582
 export function destroyable(obj, adtyp) {

@@ -2,6 +2,10 @@
 // Mirrors hack.c from the C source.
 // domove(), findtravelpath(), lookaround(), etc.
 
+// Lazy-registered function to avoid circular import (zap.js imports from hack.js)
+var _burnarmor = () => false;
+export function registerBurnarmor(fn) { _burnarmor = fn; }
+
 import { COLNO, ROWNO, STONE, DOOR, CORR, SDOOR, SCORR, STAIRS, LADDER, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE,
          POOL, LAVAPOOL, IRONBARS, TREE, ROOM, IS_DOOR, D_CLOSED, D_LOCKED,
          D_ISOPEN, D_NODOOR, D_BROKEN, ACCESSIBLE, IS_OBSTRUCTED, IS_WALL, ICE,
@@ -1033,8 +1037,8 @@ export async function domove_core(dir, player, map, display, game) {
             const fireDmg = d(2, 4);
             await display.putstr_message('A tower of flame erupts from the floor!');
             player.takeDamage(Math.max(0, fireDmg), 'a fire trap');
-            // C ref: burnarmor() || rn2(3)
-            rn2(3);
+            // C ref: burnarmor(&youmonst) || rn2(3)
+            if (!_burnarmor(player, player)) rn2(3);
             void origDmg; // kept for parity readability with C's orig_dmg handling.
         }
         // C ref: trap.c trapeffect_pit() — set trap timeout and apply damage.
