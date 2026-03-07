@@ -820,10 +820,22 @@ export function corpse_chance(mon) {
     if (mon.mndx === PM_VLAD_THE_IMPALER || mdat.mlet === S_LICH)
         return false;
 
-    // C ref: mon.c:3197-3229 — gas spores explode (no corpse, no RNG)
+    // C ref: mon.c:3195-3231 — gas spores explode (AT_BOOM); d() consumed for damage
     if (mdat.mattk) {
         for (const atk of mdat.mattk) {
-            if (atk && atk.aatyp === AT_BOOM) return false;
+            if (atk && atk.aatyp === AT_BOOM) {
+                // C computes explosion damage even though corpse_chance just returns false
+                // The d() call consumes RNG and must be matched
+                let tmp;
+                if (atk.damn)
+                    tmp = d(atk.damn, atk.damd);
+                else if (atk.damd)
+                    tmp = d((mdat.mlevel || 0) + 1, atk.damd);
+                // else tmp = 0 — no RNG consumed
+                // C then calls mon_explodes() which may consume more RNG,
+                // but that's a separate function not yet ported
+                return false;
+            }
         }
     }
 
