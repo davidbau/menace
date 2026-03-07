@@ -572,6 +572,21 @@ export async function run_command(game, ch, opts = {}) {
                 game._applyTutorialStrip();
                 game._pendingTutorialStrip = false;
             }
+            // If a prompt was completed by this key, restore normal status/cursor
+            // positioning for the next command frame (C tty command boundary).
+            if (!game.pendingPrompt
+                && !game.gameOver
+                && !(game.display && game.display._pendingMore)) {
+                const p = game.u || game.player;
+                if (game.display && p) {
+                    if (typeof game.display.renderStatus === 'function') {
+                        game.display.renderStatus(p);
+                    }
+                    if (typeof game.display.cursorOnPlayer === 'function') {
+                        game.display.cursorOnPlayer(p);
+                    }
+                }
+            }
             return {
                 tookTime: false,
                 moved: false,

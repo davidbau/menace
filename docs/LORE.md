@@ -3685,3 +3685,21 @@ hard-won wisdom:
     sessions: `seed031`, `seed032`, `seed033`);
   - `seed032` first divergence remained at step `89` (no regression spike),
     while step-44 pickup keys stayed command-local.
+
+### prompt-completion cursor/status boundary (2026-03-07)
+
+- `run_command()` previously returned immediately for handled prompt keys
+  (`pendingPrompt.onKey`) without restoring normal cursor/status placement when
+  the prompt closed.
+- That left replay-time command frames in a stale prompt-cursor state and
+  contributed to manual-direct drift.
+- Fix:
+  - after prompt key handling, if the prompt is fully closed and no `--More--`
+    is pending, refresh status and cursor to player position;
+  - guard this refresh behind `!game.gameOver` to avoid end-of-game screen
+    regressions.
+- Validation:
+  - `seed031_manual_direct` first RNG/event divergence improved from step `139`
+    to step `152`;
+  - `./scripts/run-and-report.sh --failures` remained stable at `31/34`
+    passing (same failing trio: `seed031`, `seed032`, `seed033`).
