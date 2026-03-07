@@ -1800,16 +1800,21 @@ async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destr
     // C ref: uhitm.c:5872-5993 — first switch: effects that work even if dead
     switch (adtyp) {
     case AD_ACID:
-        if (mhit && !rn2(2)) {
+        if (mhit && rn2(2)) {
+            // C ref: uhitm.c:5885-5900 — splash damage path
             if (playerHasProp(player, ACID_RES)) {
                 tmp = 0;
             }
-            rn2(30); // erosion check path
-            rn2(6);  // acid item-damage check path
-            if (player) await exercise(player, A_STR, false);
+            rn2(30); // erode_armor stub
         } else {
             tmp = 0;
         }
+        if (mhit && weapon && aatyp === AT_KICK) {
+            // C ref: uhitm.c:5902-5905 — boot erosion for AT_KICK only
+            rn2(6); // erode_obj(boots) stub
+        }
+        // C ref: uhitm.c:5910 — exercise is unconditional
+        if (player) await exercise(player, A_STR, false);
         break;
     case AD_ENCH:
         if (!weapon || wep_was_destroyed || aatyp !== AT_WEAP) {
@@ -1834,8 +1839,9 @@ async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destr
         player.uhp = Math.max(0, (player.uhp || 0) - tmp);
     }
 
-    // C ref: uhitm.c:5997 — if (malive && !mon->mcan && rn2(3)) return;
-    if (!malive || mon.mcan || rn2(3)) {
+    // C ref: uhitm.c:5997 — if (malive && !mon->mcan && rn2(3)) { ... }
+    // Proceed to "still alive" effects when monster alive, not cancelled, and rn2(3)!=0
+    if (!malive || mon.mcan || !rn2(3)) {
         return;
     }
 
@@ -1849,8 +1855,13 @@ async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destr
                 if (game) game.multi = Math.max(game.multi || 0, tmp);
                 if (display) await display.putstr_message(`You are frozen by ${y_monnam(mon)}!`);
             }
-        } else {
+        } else if (playerHasProp(player, FREE_ACTION)) {
+            // C ref: uhitm.c:6032-6033 — Free_action prevents paralysis
             tmp = 0;
+        } else {
+            // C ref: uhitm.c:6034-6041 — gelatinous cube passive paralysis
+            // nomul(-tmp) + exercise
+            if (player) await exercise(player, A_DEX, false);
         }
         break;
     case AD_COLD:
