@@ -1525,17 +1525,14 @@ export function doname(obj, player) {
     return result;
 }
 
-// Autotranslated from mkobj.c:80
+// C ref: mkobj.c:80 — init_oextra zeroes the struct
 export function init_oextra(oex) {
-   oex = zerooextra;
+  // C zeroes the struct; JS empty object suffices
 }
 
-// Autotranslated from mkobj.c:86
+// C ref: mkobj.c:86 — allocate new oextra struct
 export function newoextra() {
-  let oextra;
-  oextra =  alloc(0);
-  init_oextra(oextra);
-  return oextra;
+  return {};
 }
 
 // Autotranslated from mkobj.c:96

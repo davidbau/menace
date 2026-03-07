@@ -40,7 +40,7 @@ import { isok, ACCESSIBLE, COLNO, ROWNO, IS_DOOR, D_CLOSED, D_LOCKED,
          MON_ARRIVE_WITH_YOU } from './const.js';
 import { SADDLE } from './objects.js';
 import { roles } from './player.js';
-import { makemon, mbirth_limit } from './makemon.js';
+import { makemon, mbirth_limit, set_malign } from './makemon.js';
 import { NO_MINVENT, MAXMONNO } from './const.js';
 import { mksobj } from './mkobj.js';
 import { mpickobj } from './steal.js';

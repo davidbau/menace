@@ -1567,7 +1567,7 @@ export async function cnv_trap_obj(otyp, cnt, ttmp, bury_it, player, mapRef = nu
   }
   newsym(ttmp.tx, ttmp.ty);
   if (player.utrap && u_at(ttmp.tx, ttmp.ty)) await reset_utrap(true);
-  if (((mtmp = m_at(ttmp.tx, ttmp.ty)) != null) && mtmp.mtrapped) mtmp.mtrapped = 0;
+  if (((mtmp = m_at(ttmp.tx, ttmp.ty, map)) != null) && mtmp.mtrapped) mtmp.mtrapped = 0;
   deltrap(map, ttmp);
 }
 
@@ -1867,7 +1867,7 @@ export async function delfloortrap(ttmp, player) {
     if (u_at(ttmp.tx, ttmp.ty)) {
       if (player.utraptype !== TT_BURIEDBALL) await reset_utrap(true);
     }
-    else if ((mtmp = m_at(ttmp.tx, ttmp.ty)) != null) { mtmp.mtrapped = 0; }
+    else if ((mtmp = m_at(ttmp.tx, ttmp.ty, player?.lev || player?.map)) != null) { mtmp.mtrapped = 0; }
     deltrap(ttmp);
     return true;
   }

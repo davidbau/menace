@@ -2589,17 +2589,14 @@ export function monhp_per_lvl(mon) {
   return hp;
 }
 
-// Autotranslated from makemon.c:1060
+// C ref: makemon.c:1060 — init_mextra zeroes and sets mcorpsenm
 export function init_mextra(mex) {
-   mex = zeromextra;
-  mex.mcorpsenm = NON_PM;
+  if (mex) mex.mcorpsenm = NON_PM;
 }
 
-// Autotranslated from makemon.c:1067
+// C ref: makemon.c:1067 — allocate new mextra struct
 export function newmextra() {
-  let mextra;
-  mextra =  alloc(0);
-  init_mextra(mextra);
+  const mextra = { mcorpsenm: NON_PM };
   return mextra;
 }
 
