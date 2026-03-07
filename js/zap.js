@@ -1156,10 +1156,23 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
       if (player && sx === player.x && sy === player.y && range >= 0) {
         if (zap_hit(player.uac || 10, 0)) {
           range -= 2;
-          // C ref: zap.c:4920 — zhitu (damage to player)
-          // Simplified: just apply damage
+          // C ref: zap.c:4920 — zhitu / zap_over_floor player damage
+          const damgtype = zaptype(type) % 10;
           const dam = d(nd, 6);
           if (player.uhp) player.uhp -= dam;
+          // C ref: exercise calls from zap_over_floor (zap.c:4395-4524)
+          if (damgtype === ZT_MAGIC_MISSILE) {
+            exercise(player, A_STR, false);
+          } else if (damgtype === ZT_FIRE) {
+            if (burnarmor(player, player) || rn2(3)) { /* destroy_items stub */ }
+          } else if (damgtype === ZT_COLD) {
+            if (!rn2(3)) { /* destroy_items stub */ }
+          } else if (damgtype === ZT_LIGHTNING) {
+            exercise(player, A_CON, false);
+            if (!rn2(3)) { /* destroy_items stub */ }
+          } else if (damgtype === ZT_ACID) {
+            exercise(player, A_STR, false);
+          }
         }
       }
 
