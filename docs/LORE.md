@@ -4085,3 +4085,20 @@ hard-won wisdom:
     - asserts wall-kick damage is deducted from current HP, not max HP,
     - and nearby sleepers are awakened while distant sleepers remain asleep.
   - `seed033_manual_direct` first divergence remains step `54` (no frontier regression from this correctness fix).
+
+### wipe_engr_at event-call parity: emit `^wipe` at function entry (2026-03-07)
+
+- Divergence:
+  - after latest upstream pull, `seed033_manual_direct` showed an early event-channel drift at step `5`/event index `40` while RNG remained aligned until step `54`.
+  - C emitted `^wipe[x,y]` at wipe call sites where JS emitted nothing when no engraving existed.
+- Root cause:
+  - JS `wipe_engr_at()` emitted `^wipe[...]` only inside the "engraving exists and is wipeable" mutation path.
+  - C harness semantics treat `^wipe` as a call-entry event, not a mutation-only event.
+- Fix in [`js/engrave.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/engrave.js):
+  - moved `pushRngLogEntry(^wipe[x,y])` to function entry.
+  - preserved mutation behavior gating for actual engraving state.
+- Validation:
+  - added unit coverage in [`test/unit/engrave_wipe_event.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/engrave_wipe_event.test.js) to assert event emission with no engraving present.
+  - `seed033_manual_direct` returned to expected boundary (`events=504/12750`, first event divergence back to step `48` rather than step `5`).
+  - `seed032_manual_direct` improved from `rng=4574/7702` to `rng=4665/7832` (first RNG divergence moved from step `442` to `447`).
+  - `seed031_manual_direct` first divergence remained unchanged at step `166`.
