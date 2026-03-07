@@ -66,6 +66,7 @@ int werase(WINDOW *win)
     for (i = 0; i < LINES; i++) {
         memset(win->_data[i], ' ', COLS);
         win->_data[i][COLS] = '\0';
+        memset(win->_overlay[i], '\0', COLS + 1);
     }
     win->_cury = win->_curx = 0;
     return OK;
@@ -124,7 +125,10 @@ int waddch(WINDOW *win, int ch)
     }
     /* regular character */
     if (x < COLS) {
-        win->_data[y][x] = (char)(ch & 0xff);
+        char c = (char)(ch & 0x7f);
+        win->_data[y][x] = c;
+        /* overlay: non-space = opaque; space = transparent (clear overlay) */
+        win->_overlay[y][x] = (c == ' ') ? '\0' : c;
         win->_curx = x + 1;
     }
     return OK;
@@ -176,7 +180,7 @@ int wclrtoeol(WINDOW *win)
     int x = win->_curx;
     if (y < 0 || y >= LINES) return ERR;
     int i;
-    for (i = x; i < COLS; i++) win->_data[y][i] = ' ';
+    for (i = x; i < COLS; i++) { win->_data[y][i] = ' '; win->_overlay[y][i] = '\0'; }
     return OK;
 }
 
@@ -275,42 +279,44 @@ int wrefresh(WINDOW *win)
 {
     if (!win) return ERR;
 
-    /* Determine the source window to snapshot */
-    WINDOW *src = win;
+    /* mw is only used by winat() — never snapshot to harness_display */
+    if (win == mw) return OK;
 
-    /* If refreshing hw or stdscr, merge into cw first */
-    /* We always capture from cw after any refresh of a "visible" window. */
-    if (win == stdscr) {
-        /* copy stdscr -> cw */
-        int i;
-        for (i = 0; i < LINES; i++) {
-            memcpy(cw->_data[i], stdscr->_data[i], COLS + 1);
-        }
-        cw->_cury = stdscr->_cury;
-        cw->_curx = stdscr->_curx;
-        src = cw;
-    } else if (win == hw) {
-        /* hw displayed as full overlay over cw */
-        int i;
-        for (i = 0; i < LINES; i++) {
-            memcpy(cw->_data[i], hw->_data[i], COLS + 1);
-        }
-        cw->_cury = hw->_cury;
-        cw->_curx = hw->_curx;
-        src = cw;
-    } else if (win == mw) {
-        /* mw is monster window — not a display event, skip snapshot */
+    int i, j;
+
+    if (win == hw) {
+        /* Help window replaces entire display */
+        for (i = 0; i < LINES; i++)
+            memcpy(harness_display[i], hw->_data[i], COLS + 1);
         return OK;
-    } else if (win == curscr) {
-        /* curscr refresh — treat same as cw */
-        src = cw;
     }
-    /* else win == cw: snapshot directly */
 
-    /* Copy src (cw) to harness_display */
-    int i;
+    /* For cw, stdscr, or curscr: composite the three layers:
+     *   Layer 1 (base):    stdscr._data  — dungeon map, status line (move/addch)
+     *   Layer 2 (overlay): mw._overlay   — monsters (mvwaddch to mw)
+     *   Layer 3 (overlay): cw._overlay   — player @ (wmove/waddch to cw)
+     *
+     * This matches Berkeley curses behaviour: addch/move → stdscr;
+     * mvwaddch(mw,...) → mw; wmove(cw,...)/waddch(cw,...) → cw.
+     * wrefresh(cw) composites all three to the physical terminal.
+     */
     for (i = 0; i < LINES; i++) {
-        memcpy(harness_display[i], src->_data[i], COLS + 1);
+        /* Start with stdscr (dungeon map + status line) */
+        memcpy(harness_display[i], stdscr->_data[i], COLS + 1);
+        /* Overlay mw non-null chars (monsters) */
+        if (mw) {
+            for (j = 0; j < COLS; j++) {
+                char mc = mw->_overlay[i][j];
+                if (mc) harness_display[i][j] = mc;
+            }
+        }
+        /* Overlay cw non-null chars (player, explicitly drawn items) */
+        if (cw) {
+            for (j = 0; j < COLS; j++) {
+                char cc = cw->_overlay[i][j];
+                if (cc) harness_display[i][j] = cc;
+            }
+        }
     }
 
     return OK;

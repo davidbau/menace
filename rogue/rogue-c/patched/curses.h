@@ -35,6 +35,9 @@ typedef struct _win_st {
     int _lines;             /* number of rows */
     int _cols;              /* number of columns */
     char _data[LINES][COLS + 1]; /* character grid, null-terminated rows */
+    /* _overlay tracks which cells were explicitly written to THIS window
+     * (not inherited from another). Used by wrefresh for compositing. */
+    char _overlay[LINES][COLS + 1];
 } WINDOW;
 
 /* Global windows */
