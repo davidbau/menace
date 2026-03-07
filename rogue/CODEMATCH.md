@@ -45,7 +45,7 @@ Tracks the mapping between C source (`rogue-c/patched/`) and JavaScript (`js/`).
 | `d_level()` | `d_level()` | `[x]` | |
 | `u_level()` | `u_level()` | `[x]` | |
 | `search()` | `search()` *(in misc.js)* | `[x]` | |
-| `call()` | command.js | `[s]` | names an item; skipped (askme=false in browser) |
+| `call()` | command.js | `[x]` | names/labels an unidentified item ('c' key) |
 | `shell()` | — | `[ ]` | not applicable in browser |
 
 ---
@@ -155,7 +155,7 @@ Tracks the mapping between C source (`rogue-c/patched/`) and JavaScript (`js/`).
 | `playit()` | `playit()` | `[x]` | |
 | `rnd(range)` | `rnd(range)` *(in rng.js)* | `[x]` | |
 | `roll(num, sides)` | `roll(num, sides)` *(in rng.js)* | `[x]` | |
-| `endit()` | inline in `fight.js` | `[~]` | graceful exit not wired |
+| `endit()` | — | `[ ]` | Unix SIGINT handler, N/A in browser |
 | `fatal(msg)` | — | `[ ]` | not applicable in browser |
 | `tstp()` | — | `[ ]` | Unix signal handler, N/A |
 | `checkout()` | — | `[ ]` | copy-protection, not needed |
@@ -279,20 +279,18 @@ Options/settings system not ported — not applicable to browser-based play.
 | `ring_on()` | rings.js | `[x]` | full implementation with gethand |
 | `ring_off()` | rings.js | `[x]` | full implementation with gethand |
 | `gethand()` | rings.js | `[x]` | L/R hand prompt |
-| `ring_eat()` | daemons.js | `[~]` | hunger effects via ISRING checks |
+| `ring_eat()` | daemons.js | `[x]` | R_REGEN/R_SUSTSTR/R_SEARCH/R_DIGEST food costs |
 
 ---
 
-## rip.c → (no JS file)
-
-End-of-game screen not fully implemented.
+## rip.c → js/rip.js
 
 | C function | JS location | Status | Notes |
 |------------|-------------|--------|-------|
-| `death(monst)` | fight.js dep-injection | `[~]` | sets `g.playing=false`, no RIP screen |
-| `score()` | — | `[ ]` | high-score list |
-| `total_winner()` | — | `[ ]` | winning end screen |
-| `killname()` | — | `[ ]` | cause-of-death string |
+| `death(monst)` | rip.js | `[x]` | RIP gravestone art, waits for space |
+| `score()` | — | `[ ]` | high-score file; not applicable in browser |
+| `total_winner()` | rip.js | `[x]` | win banner + item tally |
+| `killname()` | rip.js | `[x]` | returns monster/weapon name |
 
 ---
 
@@ -408,7 +406,7 @@ Wizard mode not implemented.
 | `passages.c` | `[x]` complete |
 | `potions.c` | `[x]` complete |
 | `rings.c` | `[x]` complete |
-| `rip.c` | `[~]` death sets flag; no RIP screen |
+| `rip.c` | `[x]` complete (score/high-score list N/A in browser) |
 | `rooms.c` | `[x]` complete |
 | `save.c` | `[ ]` not applicable in browser |
 | `scrolls.c` | `[x]` complete |

@@ -33,6 +33,7 @@ import { wear, take_off, _setArmorDeps } from './armor.js';
 import { ring_on, ring_off, _setRingsDeps } from './rings.js';
 import { quaff, _setPotionsDeps } from './potions.js';
 import { read_scroll, _setScrollsDeps } from './scrolls.js';
+import { death, total_winner, killname } from './rip.js';
 import { pack_char } from './pack.js';
 
 // ===== Private helper functions =====
@@ -169,14 +170,14 @@ export function wireGameDeps(g) {
 
   _setFightDeps({
     msg, addmsg, endmsg, status, runto, save, ISWEARING, ISRING,
-    chg_str, death: (who) => { g.playing = false; },
+    chg_str, death,
     check_level, fall, light, fallpos, new_item,
     inv_name, discard, detach: detach_from_pack, init_weapon,
   });
 
   _setMoveDeps({
     msg, fight, pick_up, be_trapped, step_ok: step_ok_fn,
-    diag_ok, rndmove, light, new_level, status, save, swing, death: (who) => {},
+    diag_ok, rndmove, light, new_level, status, save, swing, death,
     ISWEARING, chg_str, fall, teleport, new_item, init_weapon, wake_monster,
   });
 
@@ -238,7 +239,8 @@ export function wireGameDeps(g) {
     inventory, picky_inven, drop, quaff, read_scroll,
     eat, wield, wear, take_off,
     ring_on, ring_off,
-    option: async () => {}, call: async () => {},
+    option: async () => {},
+    get_item, total_winner,
     d_level, u_level, help, identify, search, do_zap,
     get_dir, missile, teleport, new_level, draw, ISRING, quit,
     save_game: async () => false,

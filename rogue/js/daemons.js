@@ -5,7 +5,7 @@
 
 import { game } from './gstate.js';
 import { rnd, roll } from './rng.js';
-import { BEFORE, AFTER, WANDERTIME, R_REGEN, LEFT, RIGHT, ISBLIND, ISHUH, ISHASTE, CANSEE } from './const.js';
+import { BEFORE, AFTER, WANDERTIME, R_REGEN, R_SUSTSTR, R_SEARCH, R_DIGEST, LEFT, RIGHT, ISBLIND, ISHUH, ISHASTE, CANSEE } from './const.js';
 
 // Injected deps
 let _msg = null;
@@ -52,6 +52,8 @@ export function doctor() {
 }
 
 let _between = 0;
+
+export function resetBetween() { _between = 0; }
 
 /**
  * swander(): called to start rolling for wandering monsters.
@@ -148,9 +150,13 @@ export async function stomach() {
 
 function ring_eat(which) {
   const g = game();
-  // R_SLOW_DIGEST = 10, R_ADDSTR = 0
-  const R_SLOW_DIGEST = 10;
-  if (g.cur_ring[which] && g.cur_ring[which].o_which === R_SLOW_DIGEST) return -1;
-  if (g.cur_ring[which] && g.cur_ring[which].o_which === 0 /* R_ADDSTR */) return 1;
-  return 0;
+  const r = g.cur_ring[which];
+  if (r === null) return 0;
+  switch (r.o_which) {
+    case R_REGEN:   return 2;
+    case R_SUSTSTR: return 1;
+    case R_SEARCH:  return (rnd(100) < 33) ? 1 : 0;
+    case R_DIGEST:  return (rnd(100) < 50) ? -1 : 0;
+    default:        return 0;
+  }
 }

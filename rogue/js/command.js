@@ -8,6 +8,7 @@ import { rnd } from './rng.js';
 import { wmove, wclrtoeol, mvwaddstr, draw, wclear } from './curses.js';
 import {
   BEFORE, AFTER, LEFT, RIGHT, R_SEARCH, R_TELEPORT, ISHASTE, LINES,
+  CALLABLE, RING, POTION, SCROLL, STICK,
 } from './const.js';
 import { do_daemons, do_fuses } from './daemon.js';
 import { runners } from './chase.js';
@@ -34,7 +35,7 @@ let _take_off = null;
 let _ring_on = null;
 let _ring_off = null;
 let _option = null;
-let _call = null;
+let _get_item = null;
 let _d_level = null;
 let _u_level = null;
 let _help = null;
@@ -50,6 +51,7 @@ let _ISRING = null;
 let _quit = null;
 let _save_game = null;
 let _wizard_cmds = null;
+let _total_winner = null;
 
 export function _setCommandDeps(deps) {
   _msg = deps.msg;
@@ -73,7 +75,7 @@ export function _setCommandDeps(deps) {
   _ring_on = deps.ring_on;
   _ring_off = deps.ring_off;
   _option = deps.option;
-  _call = deps.call;
+  _get_item = deps.get_item;
   _d_level = deps.d_level;
   _u_level = deps.u_level;
   _help = deps.help;
@@ -89,6 +91,7 @@ export function _setCommandDeps(deps) {
   _quit = deps.quit;
   _save_game = deps.save_game;
   _wizard_cmds = deps.wizard_cmds;
+  _total_winner = deps.total_winner;
 }
 
 /**
@@ -246,7 +249,7 @@ async function dispatch(g, ch) {
     case 'P': if (_ring_on) await _ring_on(); break;
     case 'R': if (_ring_off) await _ring_off(); break;
     case 'o': if (_option) await _option(); break;
-    case 'c': if (_call) await _call(); break;
+    case 'c': g.after = false; await call_item(); break;
     case '>': g.after = false; if (_d_level) await _d_level(); break;
     case '<': g.after = false; if (_u_level) await _u_level(); break;
     case '?': g.after = false; if (_help) await _help(); break;
@@ -360,9 +363,8 @@ export async function u_level() {
     if (g.amulet) {
       g.level--;
       if (g.level === 0) {
-        // total_winner
-        await _msg('You have escaped the dungeon! You win!');
-        g.playing = false;
+        if (_total_winner) await _total_winner();
+        else g.playing = false;
         return;
       }
       if (_new_level) await _new_level();
@@ -415,6 +417,63 @@ export async function help() {
   wmove(g.cw, 0, 0);
   wclrtoeol(g.cw);
   _status();
+}
+
+/**
+ * call_item(): allow the player to name an unidentified ring/potion/scroll/stick.
+ * Ported from call() in command.c.
+ */
+async function call_item() {
+  const g = game();
+  const item = await _get_item('call', CALLABLE);
+  if (item === null) return;
+  const obj = item.l_data;
+
+  let guess, know, elsewise;
+  switch (obj.o_type) {
+    case RING:
+      guess = g.r_guess; know = g.r_know;
+      elsewise = g.r_guess[obj.o_which] ?? g.r_stones[obj.o_which];
+      break;
+    case POTION:
+      guess = g.p_guess; know = g.p_know;
+      elsewise = g.p_guess[obj.o_which] ?? g.p_colors[obj.o_which];
+      break;
+    case SCROLL:
+      guess = g.s_guess; know = g.s_know;
+      elsewise = g.s_guess[obj.o_which] ?? g.s_names[obj.o_which];
+      break;
+    case STICK:
+      guess = g.ws_guess; know = g.ws_know;
+      elsewise = g.ws_guess[obj.o_which] ?? g.ws_made[obj.o_which];
+      break;
+    default:
+      await _msg("You can't call that anything");
+      return;
+  }
+
+  if (know[obj.o_which]) {
+    await _msg('That has already been identified');
+    return;
+  }
+
+  if (g.terse) _addmsg('C'); else _addmsg('Was c');
+  await _msg(`alled "${elsewise || ''}"`);
+
+  await _msg(g.terse ? 'Call it: ' : 'What do you want to call it? ');
+  const buf = await get_line(_readchar, elsewise || '');
+  if (buf !== null) guess[obj.o_which] = buf;
+}
+
+async function get_line(readchar, initial) {
+  let buf = initial;
+  for (;;) {
+    const ch = await readchar();
+    if (ch === '\r' || ch === '\n') return buf;
+    if (ch === '\x1b') return null;
+    if (ch === '\x7f' || ch === '\x08') { if (buf.length > 0) buf = buf.slice(0, -1); }
+    else buf += ch;
+  }
 }
 
 /**
