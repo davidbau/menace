@@ -55,7 +55,7 @@ import { can_teleport, noeyes, perceives, nohands,
 import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons,
          PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER,
          PM_TENGU,
-         PM_XORN, PM_GELATINOUS_CUBE,
+         PM_XORN, PM_RUST_MONSTER, PM_GELATINOUS_CUBE,
          PM_DISPLACER_BEAST,
          PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN,
          PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS,
@@ -81,7 +81,7 @@ import { after_shk_move, shk_move } from './shk.js';
 
 // Shared utilities — re-exported for consumers
 import { dist2, distmin } from './hack.js';
-import { monnear, helpless, mondead, unstuck } from './mon.js';
+import { monnear, helpless, mondead, unstuck, meatmetal, meatobj, meatcorpse } from './mon.js';
 import { attackVerb } from './mhitm.js';
 import { monAttackName } from './do_name.js';
 import { canSpotMonsterForMap, map_invisible, newsym } from './display.js';
@@ -922,14 +922,44 @@ async function run_dochug_postmove_tail_current_js(
         return { moveStatus, mmoved };
     }
 
-    if (mon.mcanmove !== false
-        && (mmoved || moveStatus === MMOVE_DONE)
-        && map.objectsAt(mon.mx, mon.my).length > 0
-        && await maybeMonsterPickStuff(mon, map, player, display, fov)) {
-        // C ref: postmov() sets status = MMOVE_DONE when mpickstuff() succeeds.
-        moveStatus = MMOVE_DONE;
-        mmoved = false;
-    } else if (moveStatus === MMOVE_DONE) {
+    if (mon.mcanmove !== false && (mmoved || moveStatus === MMOVE_DONE)) {
+        const objectsHere = map.objectsAt(mon.mx, mon.my);
+        if (objectsHere.length > 0) {
+            const ptr = mon.data || mon.type || mons[mon.mndx] || {};
+
+            // C ref: postmov() tail — object-consumption hooks before mpickstuff.
+            if (mon.mndx === PM_RUST_MONSTER || mon.mndx === PM_XORN) {
+                const metalResult = meatmetal(mon, map);
+                if (metalResult >= 2 || mon.dead) {
+                    return { moveStatus: MMOVE_DIED, mmoved: false };
+                }
+            }
+            if (!mon.dead && mon.mndx === PM_GELATINOUS_CUBE) {
+                const cubeResult = meatobj(mon, map);
+                if (cubeResult >= 2 || mon.dead) {
+                    return { moveStatus: MMOVE_DIED, mmoved: false };
+                }
+            }
+            if (!mon.dead && corpse_eater(ptr)) {
+                const corpseResult = meatcorpse(mon, map);
+                if (corpseResult >= 2 || mon.dead) {
+                    return { moveStatus: MMOVE_DIED, mmoved: false };
+                }
+            }
+
+            if (!mon.dead && await maybeMonsterPickStuff(mon, map, player, display, fov)) {
+                // C ref: postmov() sets status = MMOVE_DONE when mpickstuff() succeeds.
+                moveStatus = MMOVE_DONE;
+                mmoved = false;
+            }
+
+            if (mon.minvis) {
+                newsym(mon.mx, mon.my);
+            }
+        }
+    }
+
+    if (moveStatus === MMOVE_DONE) {
         mmoved = false;
     }
 

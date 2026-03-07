@@ -3166,3 +3166,17 @@ hard-won wisdom:
 - We added this call to the shared JS tail helper so shopkeeper bookkeeping is
   applied uniformly after post-move processing.
 - Validation stayed stable on target seeds and failing-suite count stayed at `7`.
+
+## Lesson: postmov tail must run meatmetal/meatobj/meatcorpse before pickup
+
+- C `postmov()` performs object-consumption hooks before `mpickstuff`:
+  - `meatmetal` (metallivores)
+  - `meatobj` (gelatinous cube)
+  - `meatcorpse` (corpse eaters)
+- JS tail previously jumped straight to pickup logic, skipping this branch.
+- We added these checks to shared `dochug` postmove tail before
+  `maybeMonsterPickStuff`, preserving C ordering and death semantics.
+- Validation remained stable:
+  - `seed325` frontier unchanged at step `309`
+  - `seed327`/`seed328` unchanged
+  - failing suite remained `27/34` passing, `7` failing
