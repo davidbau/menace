@@ -3935,3 +3935,47 @@ hard-won wisdom:
 - Documentation:
   - usage and triage workflow are in
     [`docs/DBGMAPDUMP_TOOL.md`](/share/u/davidbau/git/mazesofmenace/mazes/docs/DBGMAPDUMP_TOOL.md).
+
+### throw prompt parity: allow swap-weapon in `dothrow` selection (2026-03-07)
+
+- Divergence:
+  - `seed031_manual_direct` early throw prompt differed at step 9:
+    JS showed `What do you want to throw? [*]` while C showed
+    `What do you want to throw? [b or ?*]`.
+- Root cause:
+  - [`js/dothrow.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dothrow.js)
+    filtered out all `owornmask` inventory entries, which incorrectly excluded
+    swap-weapon slot items (`W_SWAPWEP`) from throw candidates.
+- Fix:
+  - keep excluding non-weapon worn equipment, but allow weapon-slot masks
+    (`W_WEP|W_SWAPWEP|W_QUIVER`) in throw candidate filtering.
+  - maintain C-like invalid-object interaction in throw prompt loop with
+    repeated `You don't have that object.--More--` until dismissal.
+- Validation:
+  - new unit test:
+    [`test/unit/dothrow_prompt.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/dothrow_prompt.test.js)
+    verifies seed031 step-9 throw prompt includes `b`.
+  - `seed031_manual_direct` screens improved from `152/1365` to `156/1365`
+    (RNG frontier unchanged at step 166).
+  - `seed033_manual_direct` improved from `rng=3715/18558, events=54/12191`
+    to `rng=3728/14973, events=59/10678` in current fixture set.
+
+### `dbgmapdump` refinement: actionable JS transition diffs + aligned C replay keys (2026-03-07)
+
+- Tool enhancements in
+  [`test/comparison/dbgmapdump.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/dbgmapdump.js):
+  - comprehensive `--help` with defaults, section legend, output layout, and examples;
+  - new `--adjacent-diff` mode to compare each captured JS step against prior captured JS step;
+  - `index.json` now includes `adjacentComparisons` when enabled;
+  - C-side capture now writes `<out-dir>/replay_keys.json` and passes it to
+    `capture_step_snapshot.py` so C replay uses the same normalized key stream as JS capture.
+- C-side harness bridge update in
+  [`test/comparison/c-harness/capture_step_snapshot.py`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/c-harness/capture_step_snapshot.py):
+  - added `--keys-json` support (JSON string or string-array), used by dbgmapdump to align replay keys.
+- Validation of usefulness (JS-first mode):
+  - `node test/comparison/dbgmapdump.js test/comparison/sessions/seed033_manual_direct.session.json --steps 45-49 --adjacent-diff --sections U,M,N,O,Q,K,J,T,F,W`
+  - output isolated the only transition delta at `46 -> 47` (`section=U`), matching known first divergence step and narrowing debug focus quickly.
+- Current caveat:
+  - C-side mapdump parity still does not fully align for early steps on some sessions despite replay-key alignment; keep treating `--c-side` as secondary evidence until further harness-step alignment work lands.
+- Parity safety check after tool-only work:
+  - `./scripts/run-and-report.sh --failures` remains at gameplay `31/34` passing (`seed031`, `seed032`, `seed033` only).

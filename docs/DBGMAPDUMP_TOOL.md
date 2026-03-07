@@ -1,71 +1,71 @@
 # Debug Mapdump Tool
 
 `dbgmapdump` captures compact mapdump snapshots at selected gameplay steps
-during JS replay. It is designed for parity debugging when you need rich state
-visibility exactly at or around a first divergence step.
+and can compare them against peer mapdumps (including optional C-side
+snapshots). It is intended for parity debugging around first divergence.
 
 ## Command
 
 ```bash
-node test/comparison/dbgmapdump.js <session.json> --steps <spec> [--window N] [--out-dir DIR]
+node test/comparison/dbgmapdump.js <session.json> (--steps <spec> | --first-divergence) [options]
 ```
 
-Examples:
+Use built-in help for the authoritative flag list:
+
+```bash
+node test/comparison/dbgmapdump.js --help
+```
+
+## Key Options
+
+- `--steps <spec>`: gameplay step selector (`89`, `88-92`, `88-92,140`)
+- `--first-divergence`: auto-pick first divergence step (RNG, then event, then screen)
+- `--window <N>`: expand selected steps by `+/- N`
+- `--sections <list>`: restrict written sections (`T,F,H,L,R,W,U,A,O,Q,M,N,K,J`)
+- `--context <N>`: include RNG/event context around each captured raw replay step
+- `--adjacent-diff`: compare each captured JS step to the previous captured JS step
+- `--c-side`: also capture C-side snapshots via `capture_step_snapshot.py`
+- `--compare <DIR>`: compare JS captures against mapdumps in `DIR`
+- `--compare-sections <list>`: section set used by compare
+
+## Output Layout
+
+`--out-dir` defaults to `tmp/dbgmapdump/<session>_<timestamp>`.
+
+- `<out-dir>/index.json`: summary, signatures, context, compare details
+- `<out-dir>/replay_keys.json`: normalized replay key stream used for JS/C alignment
+- `<out-dir>/js/stepNNNN.mapdump`: JS compact mapdump per selected step
+- `<out-dir>/c/stepNNNN.mapdump`: C-derived compact mapdump (with `--c-side`)
+- `<out-dir>/c/stepNNNN.snapshot.json`: raw C checkpoint JSON (with `--c-side`)
+
+## Typical Workflows
+
+1. Capture around first divergence:
+
+```bash
+node test/comparison/dbgmapdump.js \
+  test/comparison/sessions/seed033_manual_direct.session.json \
+  --first-divergence --window 1 --adjacent-diff
+```
+
+2. Capture JS and C snapshots, then compare:
+
+```bash
+node test/comparison/dbgmapdump.js \
+  test/comparison/sessions/seed031_manual_direct.session.json \
+  --steps 164-167 --c-side --compare-sections M,N,O,Q,K,J,T,F,W
+```
+
+3. Focus only on a subset of state sections:
 
 ```bash
 node test/comparison/dbgmapdump.js \
   test/comparison/sessions/seed032_manual_direct.session.json \
-  --steps 89 \
-  --window 1
-
-node test/comparison/dbgmapdump.js \
-  test/comparison/sessions/seed033_manual_direct.session.json \
-  --steps 120-130,200
+  --steps 20-24 --sections T,F,W,U,M,N --adjacent-diff
 ```
 
-Step spec:
-- Comma-separated indices and ranges (`89`, `88-92`, `88-92,140`).
-- Steps are 1-based gameplay step indices (startup is not counted).
+## Notes
 
-`--window N` expands each selected step to `step-N .. step+N`.
-
-## Output
-
-The tool writes files under `tmp/dbgmapdump/...` (or `--out-dir`):
-- `stepXXXX_rawYYYY.mapdump` (compact mapdump payload)
-- `index.json` (capture metadata and file list)
-
-Mapdump payload format matches the compact checkpoint schema:
-- Grid sections: `T/F/H/L/R/W`
-- Vector sections: `U/A`
-- Sparse sections: `O/Q/M/N/K/J`
-
-## Typical Workflow
-
-1. Find first divergence:
-```bash
-node test/comparison/session_test_runner.js --verbose <session.json>
-```
-2. Capture state around that step:
-```bash
-node test/comparison/dbgmapdump.js <session.json> --steps <first-step> --window 1
-```
-3. Inspect deltas:
-```bash
-diff -u <stepA.mapdump> <stepB.mapdump>
-rg -n '^(U|A|M|N|K|J)' <step*.mapdump>
-```
-
-## Interpretation Tips
-
-- If mapdumps are identical across divergence-adjacent steps, mismatch is
-  likely ordering/control-flow/RNG-call alignment, not terrain/object mutation.
-- `U`/`A` quickly tell whether hero position/timing state changed.
-- `N`/`J` often expose monster/trap state transitions that are otherwise hard
-  to infer from screen-only diffs.
-
-## Scope
-
-- This tool snapshots **JS replay** state only.
-- It is intentionally diagnostic and does not alter comparator behavior or
-  session fixtures.
+- Step indices are gameplay/session steps (1-based), not raw replay key indices.
+- The tool is diagnostic only; it does not modify fixtures or comparator logic.
+- C-side capture uses session-aligned fixed datetime for determinism.

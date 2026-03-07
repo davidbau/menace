@@ -84,13 +84,12 @@ def replay_steps(session_name, keys, step_index):
         for ch in key:
             send_char(session_name, ch)
             time.sleep(0.003)
-        clear_more_prompts(session_name)
     return target
 
 
-def run_capture(session_path, step_index, output_path, phase_tag=None):
+def run_capture(session_path, step_index, output_path, phase_tag=None, keys_override=None):
     session = load_session(session_path)
-    keys = extract_keys(session)
+    keys = keys_override if keys_override is not None else extract_keys(session)
     seed = int(session.get("seed", 1))
     char = build_character(session)
 
@@ -173,9 +172,24 @@ def main():
     parser.add_argument("step_index", type=int, help="0-based gameplay step index")
     parser.add_argument("output_json", help="Output file path for captured snapshot JSON")
     parser.add_argument("--phase", default=None, help="Optional phase tag for #dumpsnap")
+    parser.add_argument(
+        "--keys-json",
+        default=None,
+        help="Optional JSON file containing an explicit replay key array to use instead of extracting from session steps",
+    )
     args = parser.parse_args()
+    keys_override = None
+    if args.keys_json:
+        with open(args.keys_json, "r", encoding="utf-8") as f:
+            loaded = json.load(f)
+        if isinstance(loaded, str):
+            keys_override = list(loaded)
+        elif isinstance(loaded, list) and all(isinstance(k, str) for k in loaded):
+            keys_override = loaded
+        else:
+            raise ValueError("--keys-json must be a JSON string or array of strings")
 
-    run_capture(args.session_json, args.step_index, args.output_json, args.phase)
+    run_capture(args.session_json, args.step_index, args.output_json, args.phase, keys_override)
 
 
 if __name__ == "__main__":

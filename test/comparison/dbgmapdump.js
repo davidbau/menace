@@ -57,6 +57,8 @@ function usage() {
         + '  --sections <list>         Filter written sections (comma list from: '
         + ALL_SECTIONS.join(',') + '; default: all)\n'
         + '  --context <N>             Include RNG/event context from +/- N raw replay steps (default: 8)\n'
+        + '  --adjacent-diff           Compare each captured JS step to the previous captured JS step\n'
+        + '                            and report first differing section (uses --sections)\n'
         + '  --c-side                  Also capture C-side snapshots for selected steps\n\n'
         + 'Compare options:\n'
         + '  --compare <DIR>           Compare JS mapdumps against mapdumps in DIR\n'
@@ -67,6 +69,7 @@ function usage() {
         + `  ${sectionLegend}\n\n`
         + 'Output layout:\n'
         + '  <out-dir>/index.json              Summary: selected steps, signatures, context, compare results\n'
+        + '  <out-dir>/replay_keys.json        Exact normalized replay key stream used for JS/C capture alignment\n'
         + '  <out-dir>/js/stepNNNN.mapdump     JS compact mapdump per selected session step\n'
         + '  <out-dir>/c/stepNNNN.mapdump      C-derived compact mapdump (when --c-side)\n'
         + '  <out-dir>/c/stepNNNN.snapshot.json Raw C checkpoint JSON (when --c-side)\n\n'
@@ -79,7 +82,7 @@ function usage() {
         + '  node test/comparison/dbgmapdump.js test/comparison/sessions/seed032_manual_direct.session.json --steps 89 --window 1\n'
         + '  node test/comparison/dbgmapdump.js test/comparison/sessions/seed031_manual_direct.session.json --first-divergence --window 1 --c-side\n'
         + '  node test/comparison/dbgmapdump.js test/comparison/sessions/seed031_manual_direct.session.json --steps 14-16 --c-side --compare-sections U,A,M,N,O,Q\n'
-        + '  node test/comparison/dbgmapdump.js test/comparison/sessions/seed033_manual_direct.session.json --steps 140-145 --sections T,F,W,U,M,N --context 16 --out-dir tmp/dbgmapdump/seed033_focus\n'
+        + '  node test/comparison/dbgmapdump.js test/comparison/sessions/seed033_manual_direct.session.json --steps 140-145 --sections T,F,W,U,M,N --context 16 --adjacent-diff --out-dir tmp/dbgmapdump/seed033_focus\n'
     );
 }
 
@@ -95,6 +98,7 @@ function parseArgs(argv) {
         sessionPath: '',
         cSide: false,
         firstDivergence: false,
+        adjacentDiff: false,
     };
     for (let i = 2; i < argv.length; i++) {
         const a = argv[i];
@@ -114,6 +118,7 @@ function parseArgs(argv) {
         else if (a.startsWith('--context=')) out.context = Number.parseInt(a.slice('--context='.length), 10) || 8;
         else if (a === '--c-side') out.cSide = true;
         else if (a === '--first-divergence') out.firstDivergence = true;
+        else if (a === '--adjacent-diff') out.adjacentDiff = true;
         else if (a === '--help' || a === '-h') out.help = true;
         else if (!out.sessionPath) out.sessionPath = a;
         else throw new Error(`Unknown arg: ${a}`);
@@ -371,15 +376,22 @@ function getContextEntries(replay, rawStep, span = 8) {
     return out;
 }
 
-function runCStepCapture(sessionPath, step, outJson) {
+function runCStepCapture(sessionPath, rawStep, outJson, fixedDatetime = null, keysJsonPath = null) {
     const script = resolve('test/comparison/c-harness/capture_step_snapshot.py');
-    const res = spawnSync('python3', [script, sessionPath, String(step - 1), outJson], {
+    const env = { ...process.env };
+    if (fixedDatetime) env.NETHACK_FIXED_DATETIME = fixedDatetime;
+    const args = [script, sessionPath, String(rawStep - 1), outJson];
+    if (keysJsonPath) {
+        args.push('--keys-json', keysJsonPath);
+    }
+    const res = spawnSync('python3', args, {
         encoding: 'utf8',
         stdio: 'pipe',
+        env,
     });
     if (res.status !== 0) {
         const msg = (res.stderr || res.stdout || '').trim();
-        throw new Error(`C snapshot failed at step ${step}: ${msg}`);
+        throw new Error(`C snapshot failed at raw step ${rawStep}: ${msg}`);
     }
 }
 
@@ -421,6 +433,7 @@ async function main() {
         replayMode: session.meta.type === 'interface' ? 'interface' : undefined,
     });
     const stepCount = replayArgs.stepBoundaries.length;
+    const fixedDatetime = resolveSessionFixedDatetime(session, process.env.NETHACK_SESSION_DATETIME_SOURCE || 'session');
 
     let stepSpec = args.steps;
     if (args.firstDivergence) {
@@ -473,7 +486,6 @@ async function main() {
     };
 
     const prevDatetime = process.env.NETHACK_FIXED_DATETIME;
-    const fixedDatetime = resolveSessionFixedDatetime(session, process.env.NETHACK_SESSION_DATETIME_SOURCE || 'session');
     if (fixedDatetime) process.env.NETHACK_FIXED_DATETIME = fixedDatetime;
     let replay = null;
     try {
@@ -489,9 +501,11 @@ async function main() {
     }
 
     if (args.cSide) {
+        const keysJsonPath = join(outDir, 'replay_keys.json');
+        writeFileSync(keysJsonPath, `${JSON.stringify(replayArgs.keys)}\n`, 'utf8');
         for (const c of captures) {
             const outJson = join(cDir, `step${String(c.sessionStep).padStart(4, '0')}.snapshot.json`);
-            runCStepCapture(sessionPath, c.sessionStep, outJson);
+            runCStepCapture(sessionPath, c.rawStep, outJson, fixedDatetime, keysJsonPath);
             const capture = JSON.parse(readFileSync(outJson, 'utf8'));
             const cPayloadFull = buildCompactMapdumpFromCSnapshot(capture, sectionSet);
             const cPayload = filterMapdumpSections(cPayloadFull, sectionSet);
@@ -526,6 +540,23 @@ async function main() {
         });
     }
 
+    let adjacentComparisons = [];
+    if (args.adjacentDiff && captures.length >= 2) {
+        const ordered = captures.slice().sort((a, b) => a.sessionStep - b.sessionStep);
+        adjacentComparisons = ordered.slice(1).map((curr, idx) => {
+            const prev = ordered[idx];
+            const aParsed = parseCompactMapdump(readFileSync(prev.jsPath, 'utf8'));
+            const bParsed = parseCompactMapdump(readFileSync(curr.jsPath, 'utf8'));
+            const diffs = compareParsedMapdumps(aParsed, bParsed, sectionSet);
+            return {
+                fromStep: prev.sessionStep,
+                toStep: curr.sessionStep,
+                ok: diffs.length === 0,
+                diffs,
+            };
+        });
+    }
+
     const summary = {
         session: sessionPath,
         seed: session.meta.seed,
@@ -538,9 +569,11 @@ async function main() {
             compareDir: compareDir || null,
             context: args.context,
             firstDivergence: args.firstDivergence,
+            adjacentDiff: args.adjacentDiff,
         },
         captured: captures,
         comparisons,
+        adjacentComparisons,
         outDir,
         jsDir,
         cDir: args.cSide ? cDir : null,
@@ -562,6 +595,15 @@ async function main() {
             if (d?.section) console.log(`  step ${row.sessionStep}: first diff section=${d.section} kind=${d.kind}`);
             else if (row.missingPeer) console.log(`  step ${row.sessionStep}: missing peer ${row.missingPeer}`);
             else console.log(`  step ${row.sessionStep}: mismatch`);
+        }
+    }
+    if (args.adjacentDiff && adjacentComparisons.length > 0) {
+        const ok = adjacentComparisons.filter((c) => c.ok).length;
+        console.log(`Adjacent JS diff summary (${[...sectionSet].join(',')}): ${ok}/${adjacentComparisons.length} transition(s) unchanged`);
+        for (const row of adjacentComparisons.filter((c) => !c.ok)) {
+            const d = row.diffs?.[0];
+            if (d?.section) console.log(`  ${row.fromStep} -> ${row.toStep}: first diff section=${d.section} kind=${d.kind}`);
+            else console.log(`  ${row.fromStep} -> ${row.toStep}: mismatch`);
         }
     }
 }
