@@ -1303,7 +1303,7 @@ export function cost_per_charge(shkp, otmp, altusage, map) {
     return tmp;
 }
 
-// C ref: shk.c check_unpaid_usage()
+// C ref: shk.c:5623 check_unpaid_usage()
 export function check_unpaid_usage(otmp, altusage, map) {
     if (!otmp.unpaid) return;
 
@@ -1314,6 +1314,30 @@ export function check_unpaid_usage(otmp, altusage, map) {
 
     const tmp = cost_per_charge(shkp, otmp, altusage, map);
     if (!tmp) return;
+
+    // cf. shk.c:5639-5665 — verbalize block with RNG consumption
+    let arg1 = "", arg2 = "";
+    if (otmp.oclass === SPBOOK_CLASS) {
+        arg1 = rn2(2) ? `This is no free library!  ` : "";
+        arg2 = (shkp.debit || 0) > 0 ? " an additional" : "";
+    } else if (otmp.otyp === POT_OIL) {
+        // no rn2 calls for POT_OIL
+    } else if (altusage && (otmp.otyp === BAG_OF_TRICKS
+                            || otmp.otyp === HORN_OF_PLENTY)) {
+        if (!rn2(3))
+            arg1 = "Whoa!  ";
+        if (!rn2(3))
+            arg1 = "Watch it!  ";
+    } else {
+        if (!rn2(3))
+            arg1 = "Hey!  ";
+        if (!rn2(3))
+            arg2 = "Ahem.  ";
+    }
+
+    if (!muteshk(shkp)) {
+        verbalize(`${arg1}${arg2}Usage fee, ${tmp} zorkmid${tmp !== 1 ? 's' : ''}.`);
+    }
 
     shkp.debit = (shkp.debit || 0) + tmp;
 }
@@ -2416,6 +2440,11 @@ export function shk_move(shkp, map, player) {
         if (udist > 4 && !Number(shkp.billct || 0)) return -1;
         gtx = player.x;
         gty = player.y;
+        // cf. shk.c:4859 — rn2(9) rile_shk when following
+        if (!rn2(9)) {
+            shkp.mpeaceful = false;
+            shkp.peaceful = false;
+        }
     } else if (shkp.mpeaceful === false || shkp.peaceful === false) {
         gtx = player.x;
         gty = player.y;
