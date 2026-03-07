@@ -3870,3 +3870,30 @@ hard-won wisdom:
     remains stable (`5430/29894` RNG match; first divergence unchanged);
   - `./scripts/run-and-report.sh --failures` remains stable at `31/34`
     passing with the same three failing sessions.
+
+### replay wait-site tracing + `tele_trap()` await fix (2026-03-07)
+
+- Boundary diagnostics improvement:
+  - [`js/headless.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/headless.js)
+    and [`js/input.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/input.js)
+    now accept `setWaitContext(...)` and expose `waitContext` in
+    `getInputState()` for blocked-input attribution.
+  - [`js/replay_core.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/replay_core.js)
+    `pendingWaitSite()` now prefers `waitContext` over fallback stacks.
+- Teleport sequencing fix:
+  - [`js/teleport.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/teleport.js)
+    `tele_trap()` now `await`s `tele(game)` in both the one-shot and random
+    teleport branches (previously fire-and-forget).
+- Targeted trace added:
+  - `WEBHACK_YN_TRACE=1` logs `ynFunction` prompt/key flow and key source
+    (`queued|replay|runtime`) to localize prompt-boundary drift.
+- Seed032 finding:
+  - Known-teleport-trap confirm path does execute `ynFunction` and consume
+    `y` from runtime input, but replay pending trace still misses this as a
+    blocked-input boundary in current run, pointing to remaining replay-core
+    boundary attribution drift.
+- Validation:
+  - `node test/comparison/session_test_runner.js --parallel=1 --verbose test/comparison/sessions/seed032_manual_direct.session.json`
+    unchanged (`5430/29894`, first divergence still step 89);
+  - `./scripts/run-and-report.sh --failures` unchanged (31/34 passing,
+    failing: `seed031`, `seed032`, `seed033`).

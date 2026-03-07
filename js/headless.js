@@ -169,6 +169,7 @@ export function createHeadlessInput({ throwOnEmpty = false } = {}) {
     let resolver = null;
     let waitEpoch = 0;
     let waitStack = null;
+    let waitContext = null;
     const waitListeners = [];
     let onWaitStarted = null;
 
@@ -206,6 +207,8 @@ export function createHeadlessInput({ throwOnEmpty = false } = {}) {
             if (resolver) {
                 const resolve = resolver;
                 resolver = null;
+                waitStack = null;
+                waitContext = null;
                 resolve(ch);
             } else {
                 queue.push(ch);
@@ -226,6 +229,10 @@ export function createHeadlessInput({ throwOnEmpty = false } = {}) {
         pushKey(ch) {
             this.pushInput(ch);
         },
+        setWaitContext(stack) {
+            waitContext = stack || null;
+            waitStack = waitContext;
+        },
         async nhgetch() {
             if (queue.length > 0) {
                 return queue.shift();
@@ -236,7 +243,10 @@ export function createHeadlessInput({ throwOnEmpty = false } = {}) {
             if (throwOnEmpty) {
                 throw new Error('Input queue empty - test may be missing keystrokes');
             }
-            waitStack = new Error('input wait').stack || null;
+            if (!waitContext) {
+                waitContext = new Error('input wait').stack || null;
+            }
+            waitStack = waitContext;
             notifyWaitStarted();
             return await new Promise((resolve) => {
                 resolver = resolve;
@@ -251,6 +261,7 @@ export function createHeadlessInput({ throwOnEmpty = false } = {}) {
                 queueLength: queue.length,
                 waitEpoch,
                 waitStack,
+                waitContext,
             };
         },
         waitForInputWait({ afterEpoch = 0, signal = null } = {}) {

@@ -7,6 +7,17 @@ import {
     CMDQ_KEY, CMDQ_EXTCMD, CMDQ_DIR, CMDQ_USER_INPUT, CMDQ_INT,
     CQ_CANNED, CQ_REPEAT,
 } from './const.js';
+import { envFlag } from './runtime_env.js';
+
+function ynTraceEnabled() {
+    return envFlag('WEBHACK_YN_TRACE');
+}
+
+function ynTrace(...args) {
+    if (!ynTraceEnabled()) return;
+    // eslint-disable-next-line no-console
+    console.log('[YN_TRACE]', ...args);
+}
 
 /**
  * Display contract used by input helpers.
@@ -36,6 +47,8 @@ export function createInputQueue({ throwOnEmpty = false } = {}) {
     const inputQueue = [];
     let inputResolver = null;
     let waitEpoch = 0;
+    let waitStack = null;
+    let waitContext = null;
     const waitListeners = [];
 
     function abortError() {
@@ -68,10 +81,16 @@ export function createInputQueue({ throwOnEmpty = false } = {}) {
             if (inputResolver) {
                 const resolve = inputResolver;
                 inputResolver = null;
+                waitStack = null;
+                waitContext = null;
                 resolve(ch);
             } else {
                 inputQueue.push(ch);
             }
+        },
+        setWaitContext(stack) {
+            waitContext = stack || null;
+            waitStack = waitContext;
         },
         nhgetch() {
             if (inputQueue.length > 0) {
@@ -83,6 +102,10 @@ export function createInputQueue({ throwOnEmpty = false } = {}) {
             if (throwOnEmpty) {
                 throw new Error('Input queue empty - test may be missing keystrokes');
             }
+            if (!waitContext) {
+                waitContext = new Error('input wait').stack || null;
+            }
+            waitStack = waitContext;
             notifyWaitStarted();
             return new Promise((resolve) => {
                 inputResolver = resolve;
@@ -96,6 +119,8 @@ export function createInputQueue({ throwOnEmpty = false } = {}) {
                 waiting: inputResolver !== null,
                 queueLength: inputQueue.length,
                 waitEpoch,
+                waitStack,
+                waitContext,
             };
         },
         waitForInputWait({ afterEpoch = 0, signal = null } = {}) {
@@ -401,6 +426,7 @@ function popQueuedInputKey(inDoAgain = false) {
 function _getRawKey() {
     const queuedKey = popQueuedInputKey(cmdqInputModeDoAgain);
     if (Number.isFinite(queuedKey)) {
+        ynTrace('raw=queued', queuedKey, String.fromCharCode(queuedKey));
         recordKey(queuedKey);
         return Promise.resolve(queuedKey);
     }
@@ -408,12 +434,18 @@ function _getRawKey() {
     if (isReplayMode()) {
         const key = getNextReplayKey();
         if (key !== null) {
+            ynTrace('raw=replay', key, String.fromCharCode(key));
             recordKey(key);
             return Promise.resolve(key);
         }
     }
 
+    if (typeof activeInputRuntime?.setWaitContext === 'function') {
+        activeInputRuntime.setWaitContext(new Error('input wait context').stack || null);
+    }
+
     return Promise.resolve(activeInputRuntime.nhgetch()).then((ch) => {
+        ynTrace('raw=runtime', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
         recordKey(ch);
         if (cmdqRepeatRecordMode && Number.isFinite(ch)) {
             cmdq_add_key(CQ_REPEAT, ch);
@@ -532,6 +564,7 @@ export async function ynFunction(query, choices, def, display) {
     prompt += ' ';
 
     if (disp) await disp.putstr_message(prompt);
+    ynTrace('prompt', prompt.trimEnd(), `choices=${choices || ''}`, `def=${def || 0}`);
 
     // C ref: tty_yn_function() lowercases responses unless choices contain
     // explicit uppercase entries, in which case case is preserved.
@@ -539,8 +572,10 @@ export async function ynFunction(query, choices, def, display) {
 
     while (true) {
         const ch = await nhgetch();
+        ynTrace('key', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
         // C quitchars handling for yn prompts: Space/CR/LF use default.
         if ((ch === 32 || ch === 13 || ch === 10) && def) {
+            ynTrace('return=default', def, String.fromCharCode(def));
             return def;
         }
         // ESC returns 'q' or 'n' or default
@@ -554,8 +589,10 @@ export async function ynFunction(query, choices, def, display) {
         let c = String.fromCharCode(ch);
         if (!preserveCase) c = c.toLowerCase();
         if (!choices || choices.includes(c)) {
+            ynTrace('return=choice', c);
             return c.charCodeAt(0);
         }
+        ynTrace('reject', c);
     }
 }
 

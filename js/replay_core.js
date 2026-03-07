@@ -97,7 +97,7 @@ function replayPendingTrace(...args) {
 
 function pendingWaitSite(inputRuntime) {
     const st = inputRuntime?.getInputState?.();
-    const raw = String(st?.waitStack || '');
+    const raw = String(st?.waitContext || st?.waitStack || '');
     if (!raw) return '';
     const lines = raw.split('\n').map((s) => s.trim()).filter(Boolean);
     const useful = lines.slice(1).find((line) => (

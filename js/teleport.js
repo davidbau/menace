@@ -901,7 +901,7 @@ export async function tele_trap(trap, game) {
             deltrap(map, trap);
             newsym(player.x, player.y);
             // vault_tele — falls through to tele()
-            tele(game);
+            await tele(game);
             return;
         }
 
@@ -925,7 +925,7 @@ export async function tele_trap(trap, game) {
         }
 
         // cf. teleport.c:1527 — random teleport
-        tele(game);
+        await tele(game);
     } finally {
         in_tele_trap = false;
     }
