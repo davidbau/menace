@@ -1219,14 +1219,24 @@ export function seemimic(mon, map) {
     if (map) newsym(mon.mx, mon.my);
 }
 
-// C ref: mon.c wake_nearto_core() — wake all within distance
+// C ref: mon.c:4367-4392 wake_nearto_core() — wake all within distance
 export function wake_nearto_core(x, y, distance, petcall, map) {
     if (!map) return;
     for (const mon of map.monsters) {
-        if (mon.dead) continue;
+        if (mon.dead || (mon.mhp || 0) <= 0) continue;
         if (distance === 0 || dist2(mon.mx, mon.my, x, y) < distance) {
+            // C ref: mon.c:4378-4381
             mon.msleeping = 0;
             mon.sleeping = false;
+            const mdat = mon.data || mon.type || {};
+            if (!((mdat.geno || 0) & G_UNIQ)) {
+                mon.mstrategy = (mon.mstrategy || 0) & ~STRAT_WAITMASK;
+            }
+            // C ref: mon.c:4382-4389 — petcall handling
+            if (petcall && mon.mtame) {
+                // C: EDOG(mtmp)->whistletime = moves
+                if (mon.edog) mon.edog.whistletime = _gstate?.moves || 0;
+            }
         }
     }
 }
