@@ -44,7 +44,7 @@ import {
 import { thrwmu, spitmu, breamu } from './mthrowu.js';
 import { castmu, buzzmu } from './mcastu.js';
 import { exercise } from './attrib_exercise.js';
-import { poisoned } from './attrib.js';
+import { poisoned, acurr } from './attrib.js';
 import { make_confused, make_stunned, make_blinded, make_hallucinated } from './potion.js';
 import { losexp } from './exper.js';
 import { stealgold, steal } from './steal.js';
@@ -58,7 +58,7 @@ import { new_were, were_summon } from './were.js';
 import { Mgender, Monnam, pmname } from './do_name.js';
 import { resists_blnd } from './zap.js';
 import { rloc, tele_restrict } from './teleport.js';
-import { RLOC_MSG } from './const.js';
+import { RLOC_MSG, A_CHA } from './const.js';
 import { s_suffix } from './hacklib.js';
 import { find_ac } from './do_wear.js';
 import { done_in_by } from './end.js';
@@ -1452,7 +1452,7 @@ export async function diseasemu(mdat, player, display) {
     } else {
         // C: make_sick(Sick ? Sick/3+1 : rn1(ACURR(A_CON), 20), ...)
         // Simplified: just apply disease status
-        const con = (player.attributes && player.attributes[A_CON]) || 10;
+        const con = acurr(player, A_CON);
         const duration = rn1(con, 20);
         if (display) await display.putstr_message('You feel very sick!');
         // TODO: make_sick() not fully ported — mark player as diseased
@@ -1522,7 +1522,7 @@ export async function gulpmu(mtmp, mattk, player, map, display) {
         const adtyp = mattk.adtyp ?? AD_PHYS;
         let tim_tmp;
         if (adtyp === AD_DGST) {
-            const con = (player.attributes && player.attributes[A_CON]) || 10;
+            const con = acurr(player, A_CON);
             const ac = player.ac ?? player.effectiveAC ?? 10;
             tim_tmp = con + 10 - ac + rn2(20);
             if (tim_tmp < 0) tim_tmp = 0;
@@ -1915,8 +1915,8 @@ export async function doseduce(mon, player, display) {
     );
 
     // C: attr_tot = ACURR(A_CHA) + ACURR(A_INT); if (rn2(35) > min(attr_tot, 32)) bad outcome
-    const cha = (player.attributes && player.attributes[6]) || 10; // A_CHA=6
-    const intel = (player.attributes && player.attributes[A_INT]) || 10;
+    const cha = acurr(player, A_CHA);
+    const intel = acurr(player, A_INT);
     const attr_tot = cha + intel;
 
     if (rn2(35) > Math.min(attr_tot, 32)) {
