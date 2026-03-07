@@ -3144,3 +3144,18 @@ hard-won wisdom:
   - failing suite remained `27/34` passing, `7` failing
 - This reduces one more ordering mismatch and keeps the code closer to C postmov
   structure without introducing regressions.
+
+## Lesson: shared postmov tail helper keeps pet/non-pet sequencing aligned
+
+- C `postmov()` applies moved/done tail effects for both pet and non-pet outcomes.
+- JS previously duplicated tail handling in non-pet only, leaving pet flow less aligned.
+- We added `run_dochug_postmove_tail_current_js(...)` and now route both branches
+  through it for moved/done statuses:
+  - item pickup (`maybeMonsterPickStuff`) and `MMOVE_DONE` normalization
+  - `maybe_spin_web`
+  - hide-under reevaluation
+- Validation stayed stable:
+  - `seed325` remained at first RNG divergence step `309`
+  - `seed327`/`seed328` unchanged
+  - failing suite remained `27/34` passing, `7` failing
+- This reduces branch fragmentation and makes subsequent C-ordering audits easier.

@@ -915,6 +915,39 @@ async function run_dochug_postmove_pipeline_current_js(
     return MMOVE_MOVED;
 }
 
+async function run_dochug_postmove_tail_current_js(
+    mon, map, player, display, fov, moveStatus, mmoved
+) {
+    if (mon.dead) {
+        return { moveStatus, mmoved };
+    }
+
+    if (mon.mcanmove !== false
+        && (mmoved || moveStatus === MMOVE_DONE)
+        && map.objectsAt(mon.mx, mon.my).length > 0
+        && await maybeMonsterPickStuff(mon, map, player, display, fov)) {
+        // C ref: postmov() sets status = MMOVE_DONE when mpickstuff() succeeds.
+        moveStatus = MMOVE_DONE;
+        mmoved = false;
+    } else if (moveStatus === MMOVE_DONE) {
+        mmoved = false;
+    }
+
+    if (!mon.dead && (moveStatus === MMOVE_MOVED || moveStatus === MMOVE_DONE)) {
+        // C ref: postmov() tail — maybe_spin_web runs in moved/done tail.
+        await maybe_spin_web(mon, map);
+    }
+
+    // C ref: monmove.c postmov() applies hides-under reevaluation
+    // whenever status is MMOVE_MOVED or MMOVE_DONE, even if the
+    // monster ended up staying on the same square.
+    if (!mon.dead && (moveStatus === MMOVE_MOVED || moveStatus === MMOVE_DONE)) {
+        maybe_postmove_hideunder(mon, map, player, fov, display);
+    }
+
+    return { moveStatus, mmoved };
+}
+
 async function mind_blast(mon, map, player, display = null, fov = null) {
     const BOLT_LIM_SQ = BOLT_LIM * BOLT_LIM;
 
@@ -1359,6 +1392,9 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 }
                 mmoved = true;
             }
+            ({ moveStatus, mmoved } = await run_dochug_postmove_tail_current_js(
+                mon, map, player, display, fov, moveStatus, mmoved
+            ));
         } else {
             let trapDied = false;
             // C ref: monmove.c:1747 — pre-movement mtrapped check.
@@ -1390,28 +1426,10 @@ async function dochug(mon, map, player, display, fov, game = null) {
                         moveStatus = MMOVE_MOVED;
                     }
                 }
-                if (!trapDied && !mon.dead
-                    && mon.mcanmove !== false
-                    && (mmoved || moveStatus === MMOVE_DONE)
-                    && map.objectsAt(mon.mx, mon.my).length > 0
-                    && await maybeMonsterPickStuff(mon, map, player, display, fov)) {
-                    // C ref: postmov() sets status = MMOVE_DONE when mpickstuff() succeeds.
-                    moveStatus = MMOVE_DONE;
-                    mmoved = false;
-                } else if (moveStatus === MMOVE_DONE) {
-                    mmoved = false;
-                }
-                if (!trapDied && !mon.dead
-                    && (moveStatus === MMOVE_MOVED || moveStatus === MMOVE_DONE)) {
-                    // C ref: postmov() tail — maybe_spin_web runs in moved/done tail.
-                    await maybe_spin_web(mon, map);
-                }
-                // C ref: monmove.c postmov() applies hides-under reevaluation
-                // whenever status is MMOVE_MOVED or MMOVE_DONE, even if the
-                // monster ended up staying on the same square.
-                if (!trapDied && !mon.dead
-                    && (moveStatus === MMOVE_MOVED || moveStatus === MMOVE_DONE)) {
-                    maybe_postmove_hideunder(mon, map, player, fov, display);
+                if (!trapDied) {
+                    ({ moveStatus, mmoved } = await run_dochug_postmove_tail_current_js(
+                        mon, map, player, display, fov, moveStatus, mmoved
+                    ));
                 }
             }
             if (trapDied) return;
