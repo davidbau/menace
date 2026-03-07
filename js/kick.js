@@ -113,9 +113,10 @@ export async function handleKick(player, map, display, game) {
                 await maybeWatchmanThiefArrest(map, player, display);
             }
         } else {
-            // We do not model Deaf yet; keep C's rn2(3) branch split for RNG parity.
             await exercise(player, A_STR, true);
-            await display.putstr_message(rn2(3) ? "Whammm!!" : "Thwack!!");
+            // C ref: dokick.c:966 — Deaf (or rn2==0) yields "Thwack", else "Whammm".
+            const isDeaf = !!(player?.deaf || player?.Deaf);
+            await display.putstr_message((isDeaf || rn2(3) === 0) ? "Thwack!!" : "Whammm!!");
         }
         return { moved: false, tookTime: true };
     }
@@ -133,6 +134,8 @@ export async function handleKick(player, map, display, game) {
         // C ref: exercise(A_DEX, FALSE), exercise(A_STR, FALSE)
         await exercise(player, A_DEX, false);
         await exercise(player, A_STR, false);
+        // C ref: dokick.c kick_ouch() wakes nearby monsters before wound-roll.
+        wake_nearto(nx, ny, 5 * 5, map);
         // C ref: if (!rn2(3)) set_wounded_legs(..., 5 + rnd(5))
         if (rn2(3) === 0) {
             const timeout = 5 + rnd(5);
@@ -142,8 +145,6 @@ export async function handleKick(player, map, display, game) {
                 player.attributes[A_DEX] = Math.max(1, player.attributes[A_DEX] - 1);
             }
         }
-        // C ref: dokick.c kick_ouch() — wake nearby monsters after impact.
-        wake_nearto(nx, ny, 5 * 5, map);
         // C ref: dmg = rnd(ACURR(A_CON) > 15 ? 3 : 5)
         const con = acurr(player, A_CON);
         const dmg = rnd(con > 15 ? 3 : 5);
@@ -154,7 +155,8 @@ export async function handleKick(player, map, display, game) {
     // C ref: dokick.c kick_dumb() for kicking empty/non-solid space.
     await exercise(player, A_DEX, false);
     const dex = player.attributes?.[A_DEX] || 10;
-    if (dex >= 16 || rn2(3) !== 0) {
+    // C ref: dokick.c:867 — martial() short-circuits before rn2(3).
+    if (hasMartialBonus(player) || dex >= 16 || rn2(3) !== 0) {
         await display.putstr_message("You kick at empty space.");
     } else {
         await display.putstr_message("Dumb move!  You strain a muscle.");
