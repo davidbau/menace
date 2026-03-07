@@ -36,7 +36,10 @@ function hasMartialBonus(player) {
 // C ref: dokick.c dokick()
 export async function handleKick(player, map, display, game) {
     // C ref: dokick.c:1279 — check wounded legs BEFORE asking direction
-    if (player.woundedLegs) {
+    const hasWoundedLegs = !!player?.woundedLegs
+        || !!(player?.hWoundedLegs > 0)
+        || !!((Number(player?.eWoundedLegs || 0) & 0x60000) !== 0);
+    if (hasWoundedLegs) {
         await legs_in_no_shape("kicking", false, player);
         // C ref: dokick.c:1314 — display_nhwindow(WIN_MESSAGE, TRUE)
         // Consume a key for --More-- to match C's step boundary.

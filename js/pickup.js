@@ -101,6 +101,40 @@ function age_is_relative(obj) {
     return obj.otyp === CORPSE;
 }
 
+// C ref: cmd.c help_dir() text for invalid directional input with cmdassist.
+async function show_invalid_direction_cmdassist_help(display) {
+    const lines = [
+        'cmdassist: Invalid direction key!',
+        '',
+        'Valid direction keys are:',
+        '          y  k  u',
+        '           \\ | / ',
+        '          h- . -l',
+        '           / | \\ ',
+        '          b  j  n',
+        '',
+        '          <  up',
+        '          >  down',
+        '          .  direct at yourself',
+        '',
+        '(Suppress this message with !cmdassist in config file.)',
+    ];
+    if (display?.putstr) {
+        const rows = Number.isInteger(display.rows) ? display.rows : lines.length;
+        if (display.clearRow) {
+            for (let row = 0; row < rows; row++) display.clearRow(row);
+        }
+        for (let row = 0; row < lines.length; row++) {
+            display.putstr(0, row, lines[row]);
+        }
+        const moreRow = rows > 0 ? rows - 1 : 0;
+        display.putstr(0, moreRow, '--More--');
+        if (display.setCursor) display.setCursor(8, moreRow);
+        return;
+    }
+    await display?.putstr_message?.('cmdassist: Invalid direction key!');
+}
+
 function obj_extract_self(obj) {
     // Stub: in the JS port, object list management is handled differently.
     // This is a no-op placeholder for C's obj_extract_self().
@@ -1762,7 +1796,7 @@ async function handleLoot(game) {
                 const delta = lootDirectionDelta(dirCh);
                 if (!delta) {
                     if (game.flags?.cmdassist !== false) {
-                        await display.putstr_message('cmdassist: Invalid direction key!');
+                        await show_invalid_direction_cmdassist_help(display);
                         continue;
                     }
                     await display.putstr_message('Never mind.');
