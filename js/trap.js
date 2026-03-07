@@ -31,7 +31,7 @@ import { find_mac, which_armor } from './worn.js';
 import { mtele_trap, mlevel_tele_trap,
          tele_trap, level_tele_trap, domagicportal } from './teleport.js';
 import { rloco } from './teleport.js';
-import { resist } from './zap.js';
+import { resist, burnarmor } from './zap.js';
 import { dmgval } from './weapon.js';
 import { deltrap } from './dungeon.js';
 import { mons,
@@ -578,11 +578,9 @@ function trapeffect_fire_trap_mon(mon, trap, map, player) {
         }
     }
 
-    // C ref: burnarmor(mtmp) || rn2(3) — burnarmor not ported
-    // Consume rn2 for parity approximation
-    if (rn2(3)) {
-        // C ref: destroy_items(mtmp, AD_FIRE, orig_dmg) — not ported
-        // C ref: ignite_items — not ported
+    // C ref: if (burnarmor(mtmp) || rn2(3)) { destroy_items; ignite_items }
+    if (burnarmor(mon) || rn2(3)) {
+        // destroy_items/ignite_items — not ported (cosmetic)
     }
     // C ref: burn_floor_objects — not ported
 
@@ -2072,8 +2070,10 @@ async function dofiretrap(box, player, game, map) {
         await You('are uninjured.');
     else
         await losehp(num, tower_of_flame, 3 /*KILLED_BY_AN*/, player, game?.display, game);
-    // C: burnarmor() || rn2(3) → destroy items, ignite inventory — not fully ported
-    if (rn2(3)) { /* consume RNG for parity */ }
+    // C ref: if (burnarmor(&youmonst) || rn2(3)) { destroy_items; ignite_items }
+    if (burnarmor(player, player) || rn2(3)) {
+        // destroy_items/ignite_items — not ported (cosmetic)
+    }
 }
 
 // C ref: trap.c:4225 domagictrap() — magic trap random effects
