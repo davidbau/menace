@@ -111,6 +111,7 @@ export async function rhack(ch, game) {
         context.run = canonical;
         if ('runMode' in game) game.runMode = canonical;
     };
+    let dispatchedFromQueue = false;
     if (ch === 0) {
         const queued = cmdq_pop_command(!!game?.inDoAgain);
         if (!queued) return { moved: false, tookTime: false };
@@ -127,7 +128,8 @@ export async function rhack(ch, game) {
             }
             return { moved: false, tookTime: false };
         }
-    if (!queued.key) return { moved: false, tookTime: false };
+        if (!queued.key) return { moved: false, tookTime: false };
+        dispatchedFromQueue = true;
         ch = queued.key;
     }
 
@@ -624,6 +626,9 @@ export async function rhack(ch, game) {
             // C ref: cmd.c do_reqmenu() — sets iflags.menu_requested
             // silently; no screen message in C's TTY implementation.
         }
+        if (game?.inDoAgain && dispatchedFromQueue) {
+            return await rhack(0, game);
+        }
         return { moved: false, tookTime: false };
     }
 
@@ -632,9 +637,15 @@ export async function rhack(ch, game) {
         if (getForceFight()) {
             await display.putstr_message('Double fight prefix, canceled.');
             setForceFight(false);
+            if (game?.inDoAgain && dispatchedFromQueue) {
+                return { moved: false, tookTime: false };
+            }
         } else {
             setForceFight(true);
             // C does not print a message for the success case (only for double-prefix cancel)
+            if (game?.inDoAgain && dispatchedFromQueue) {
+                return await rhack(0, game);
+            }
         }
         return { moved: false, tookTime: false };
     }
@@ -644,9 +655,15 @@ export async function rhack(ch, game) {
         if (getRunMode()) {
             await display.putstr_message('Double run prefix, canceled.');
             clearRunMode();
+            if (game?.inDoAgain && dispatchedFromQueue) {
+                return { moved: false, tookTime: false };
+            }
         } else {
             setRunMode(3); // run mode
             // C does not print a message for the success case
+            if (game?.inDoAgain && dispatchedFromQueue) {
+                return await rhack(0, game);
+            }
         }
         return { moved: false, tookTime: false };
     }
@@ -656,9 +673,15 @@ export async function rhack(ch, game) {
         if (getRunMode()) {
             await display.putstr_message('Double rush prefix, canceled.');
             clearRunMode();
+            if (game?.inDoAgain && dispatchedFromQueue) {
+                return { moved: false, tookTime: false };
+            }
         } else {
             setRunMode(2); // rush mode
             // C does not print a message for the success case
+            if (game?.inDoAgain && dispatchedFromQueue) {
+                return await rhack(0, game);
+            }
         }
         return { moved: false, tookTime: false };
     }
