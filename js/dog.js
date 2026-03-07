@@ -363,7 +363,7 @@ function arrivalGoodPos(map, mon, x, y) {
     if (!loc || !ACCESSIBLE(loc.typ)) return false;
     if (IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED))) return false;
     if (map.monsterAt(x, y)) return false;
-    const flags1 = mon?.type?.mflags1 || 0;
+    const flags1 = (mon?.data || mon?.type)?.mflags1 || 0;
     const canFlyOrSwim = !!(flags1 & (M1_FLY | M1_SWIM | M1_AMPHIBIOUS));
     if ((loc.typ === POOL || loc.typ === LAVAPOOL) && !canFlyOrSwim) return false;
     return true;

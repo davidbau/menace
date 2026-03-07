@@ -561,7 +561,7 @@ const PRACTICAL_CLASSES = new Set([WEAPON_CLASS, ARMOR_CLASS, GEM_CLASS, FOOD_CL
 const MAGICAL_CLASSES = new Set([AMULET_CLASS, POTION_CLASS, SCROLL_CLASS, WAND_CLASS, RING_CLASS, SPBOOK_CLASS]);
 
 function max_mon_load_for_search(mon) {
-    const mdat = mon?.type || {};
+    const mdat = mon?.data || mon?.type || {};
     const strong = !!(mdat.mflags2 & M2_STRONG);
     const cwt = Number(mdat.cwt || 0);
     const msize = Number(mdat.msize || 0);
@@ -579,7 +579,7 @@ function max_mon_load_for_search(mon) {
 
 function curr_mon_load_for_search(mon) {
     let load = 0;
-    const throwsRocks = !!(mon?.type?.mflags2 & M2_ROCKTHROW);
+    const throwsRocks = !!((mon?.data || mon?.type)?.mflags2 & M2_ROCKTHROW);
     for (const obj of mon?.minvent || []) {
         if (obj?.otyp === BOULDER && throwsRocks) continue;
         load += Number(obj?.owt || 0);
@@ -588,7 +588,7 @@ function curr_mon_load_for_search(mon) {
 }
 
 function mon_item_search_profile(mon) {
-    const ptr = mon?.type || {};
+    const ptr = mon?.data || mon?.type || {};
     const likesGold = !!(ptr.mflags2 & M2_GREEDY);
     const likesGems = !!(ptr.mflags2 & M2_JEWELS);
     const likesObjs = !!(ptr.mflags2 & M2_COLLECT)
@@ -1030,7 +1030,7 @@ async function run_dochug_postmove_tail_current_js(
         //     (void) hideunder(mtmp);
         //   newsym(mtmp->mx, mtmp->my);
         // }
-        const mdat = mon?.type || {};
+        const mdat = mon?.data || mon?.type || {};
         if (hides_under(mdat) || mdat.mlet === S_EEL) {
             if (mon.mundetected || (!helpless(mon) && rn2(5))) {
                 await hideunder(mon, map, player, fov, display);
