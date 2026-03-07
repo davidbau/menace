@@ -4,11 +4,11 @@ import { HP, GOLD, AC, STR, SEEN } from './const.js';
 import { rn1, rn2, rnd, d } from './rng.js';
 import { game } from './gstate.js';
 import { pline, atl, newsym, nscr, bot, cls, curs, on, pru } from './pri.js';
-import { movecm, domove, parse, tele, nomul, doname, setsee, seeoff, amon, attmon } from './hack.js';
+import { movecm, domove, parse, tele, nomul, doname, setsee, seeoff, amon, attmon, prinv } from './hack.js';
 import { movemon, makemon, rloc, mnexto, g_at_mon, g_at_obj, g_at_gen, delmon, killed,
          newcham, steal } from './mon.js';
 import { ringoff, hit, miss, bhit, buzz, dosearch, dosave, dorecover, zhit } from './do1.js';
-import { dodown, doup, done, losestr, ndaminc } from './main.js';
+import { dodown, doup, done, done1, losestr, ndaminc } from './main.js';
 import { mon, pottyp, scrtyp, wantyp, ringtyp, foodnam, wepnam, armnam,
          NOTHIN, CURSED, EMPTY, DONTH, WEARI, MORE } from './data.js';
 import { savelev, getlev, mkobj } from './lev.js';
@@ -76,11 +76,6 @@ async function getlin() {
     s += ch;
   }
   return s;
-}
-
-// C ref: prinv(obj) — print "You are now holding a <item>."
-async function prinv(obj) {
-  await pline('You are now holding %s', doname(obj));
 }
 
 // C ref: lesshungry(n) — reduce hunger (eat food)
@@ -264,7 +259,7 @@ export async function rhack(cmd) {
       else { await pline('That really hit the spot!'); lesshungry(900); game.multi = -5; }
       useup(otmp); break;
     }
-    case 'Q': await done('quit'); game.flags.move = game.multi = 0; break;
+    case 'Q': await done1(); break;
     case 'q': {
       const otmp = await getobj('!', 'drink');
       if (!otmp) { game.multi = game.flags.move = 0; }

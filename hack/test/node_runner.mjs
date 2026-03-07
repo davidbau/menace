@@ -99,13 +99,13 @@ export async function runSession(seed, keys) {
     const rng = [...g.rawRngLog];
     g.rawRngLog = [];
 
-    const key = keyIndex < keys.length ? keys[keyIndex] : null;
-    steps.push({ key, rng, screen });
-
     if (keyIndex >= keys.length) {
-      // No more keys — terminate session
+      // No more keys — terminate session without recording a step
       throw new SessionDone();
     }
+
+    const key = keys[keyIndex];
+    steps.push({ key, rng, screen });
 
     return keys[keyIndex++];
   };

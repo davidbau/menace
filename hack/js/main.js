@@ -87,20 +87,10 @@ function useup(obj) {
 }
 
 // C ref: done(str) — game over (death or escape)
+// C just exits; JS throws GameOver so callers (browser or test runner) can catch it.
+// "Press any key" is handled by the caller (browser_main.js) after catching GameOver.
 export async function done(reason) {
-  cls();
-  game.display.moveCursor(1, 12);
-  if (reason === 'escaped') {
-    game.display.putString('You escaped the dungeon!');
-  } else {
-    game.display.putString(`You died (${game.killer || reason}).`);
-  }
-  game.display.moveCursor(1, 14);
-  game.display.putString(`Score: ${game.u.urexp}`);
-  game.display.moveCursor(1, 16);
-  game.display.putString('Press any key to continue.');
   game.display.flush();
-  await game.input.getKey();
   throw new GameOver(reason);
 }
 
@@ -136,8 +126,14 @@ export async function doup() {
   game.u.ux = game.xdnstair; game.u.uy = game.ydnstair;
 }
 
-// C ref: done1() — quit handler (^C)
-async function done1() { await done('quit'); }
+// C ref: done1() — quit handler (^C / Q key)
+// C: pline("Really quit?"); fflush; if(getchar()!='y') return; done(QUIT)
+export async function done1() {
+  await pline('Really quit?');
+  const ans = await game.input.getKey();  // harness captures screen with "Really quit?" visible
+  if (ans !== 'y') { game.flags.move = game.multi = 0; return; }
+  await done('quit');
+}
 
 // C ref: rhack(cmd) — execute one command
 async function rhack(cmd) {
@@ -286,7 +282,6 @@ export async function gameLoop(seed) {
 
     if (!game.multi) {
       if (game.flags.dscr) nscr();
-      else game.flags.topl = 0;
       if (game.flags.botl) bot();
       if (game.flags.mv) game.flags.mv = false;
       await rhack(await parse());

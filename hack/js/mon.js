@@ -79,9 +79,17 @@ export function youswld(mtmp, dam, die) {
 let hits_val = 0;
 
 // Helper: print hit messages (k1 in C is `pline("The %s%s...", article, name)`)
+// C ref: k1(str,arg) — pline helper; uses "The " or "the " article (or IT/It when blind)
+// If format starts with '%': blind→("","It"), sighted→("The ",name)
+// If format doesn't start with '%': blind→("","it"), sighted→("the ",name)
 async function k1(fmt, name, ...rest) {
-  const article = 'aeiou'.includes(name[0].toLowerCase()) ? 'an ' : 'a ';
-  await pline(fmt, article, name, ...rest);
+  if (game.u.ublind) {
+    const it = fmt[0] === '%' ? 'It' : 'it';
+    await pline(fmt, '', it, ...rest);
+  } else {
+    const article = fmt[0] === '%' ? 'The ' : 'the ';
+    await pline(fmt, article, name, ...rest);
+  }
 }
 
 // C ref: dochug(mtmp) — one monster's action
@@ -317,15 +325,18 @@ async function mhit(name) {
   }
 }
 
-// C ref: hitu(str,dam,name) — monster hits player
-// Returns 1 if hit, 0 if miss
-export function hitu(ac_check, dam, name) {
-  if (rnd(20) < ac_check - game.u.uac) {
-    if (dam) { game.u.uhp -= dam; game.flags.botl |= HP; }
-    hits_val++;
-    return 1;
-  }
-  return 0;
+// C ref: hitu(mlev,dam,name) — monster hits player
+// C formula: tmp = -1 + u.uac + mlev + adjustments; hit if tmp >= rnd(20)
+export function hitu(mlev, dam, name) {
+  let tmp = -1 + game.u.uac + mlev;
+  if (game.multi < 0) tmp += 4;     // immobilized: easier to hit
+  if (game.u.uinvis) tmp -= 2;       // invisible: harder to hit
+  if (game.u.uconfused) tmp++;       // confused: easier to hit
+  if (game.u.ublind) tmp++;          // blind: easier to hit
+  if (tmp < rnd(20)) return 0;       // miss
+  if (dam) { game.u.uhp -= dam; game.flags.botl |= HP; }
+  if (name) hits_val++;
+  return 1;
 }
 
 // C ref: r_free(x,y) — check if cell is free for monster movement
@@ -418,14 +429,21 @@ export function makemon(pmonst) {
   const mtmp = makeMonst(null);
   mtmp.nmon = game.fmon;
   game.fmon = mtmp;
-  mtmp.mstat = SLEEP;
+  // C makemon() sets mstat=0 (MNORM/awake) — do NOT set SLEEP here.
+  // Level-gen monsters are set to SLEEP by mklev.js::makemon_lev() separately.
 
   let mdat;
   if (pmonst) {
     mdat = pmonst;
   } else {
-    const tier = Math.min(Math.floor(game.dlevel / 3 + 1), 7);
-    mdat = mon[rn2(tier + 1)][rn2(7)];
+    // C: do { foo=dlevel/3+1; tmp=rn2(foo); ptr=&mon[tmp>7?rn2(8):tmp][rn2(7)]; } while(!ptr->mlet)
+    // Note: C uses INTEGER division for dlevel/3, and rn2(foo) not rn2(foo+1).
+    do {
+      const foo = (game.dlevel / 3 | 0) + 1;
+      let tmp = rn2(foo);
+      if (tmp > 7) tmp = rn2(8);
+      mdat = mon[tmp][rn2(7)];
+    } while (!mdat.mlet);
   }
   mtmp.data = mdat;
   if (!mdat.mlet) { game.fmon = mtmp.nmon; return null; }
@@ -441,11 +459,13 @@ export function makemon(pmonst) {
 }
 
 // C ref: rloc(mon) — relocate monster to random position
+// C uses rn1(77,2) and rn1(19,2) to stay within inner bounds (x:2-78, y:2-20)
 export function rloc(mtmp) {
-  let x, y;
+  if (mtmp === game.u.ustuck) { game.u.ustuck = null; game.u.uswallow = game.u.uswldtim = 0; }
+  let x, y, tmp;
   do {
-    x = rn1(80, 0); y = rn1(22, 0);
-  } while (game.levl[x][y].typ < 3 || g_at_mon(x, y, game.fmon) ||
+    tmp = game.levl[x = rn1(77, 2)][y = rn1(19, 2)].typ;
+  } while (tmp < 3 || g_at_mon(x, y, game.fmon) ||
            (x === game.u.ux && y === game.u.uy));
   if (game.levl[mtmp.mx][mtmp.my].cansee) newsym(mtmp.mx, mtmp.my);
   mtmp.mx = x; mtmp.my = y;

@@ -241,7 +241,7 @@ export async function domove() {
     for (let o = game.invent; o; o = o.nobj) wt += weight(o);
     wt += weight(obj);
     if (wt > 85) await pline('Your pack is full.');
-    else { gobj(obj); }
+    else { await gobj(obj); }
     if (game.flags.mv > 1) nomul(0);
   }
 
@@ -334,10 +334,12 @@ export function doname(obj) {
       return s + '.';
     }
     case '[': {
-      const nm = armnam[obj.otyp] || 'armor';
-      let s = `a ${nm}`;
-      if (obj.spe) s += obj.minus ? ` (-${obj.spe})` : ` (+${obj.spe})`;
-      if (obj.cursed) s += ' {cursed}';
+      // C: "a suit of ±N X armor" if known, else "a suit of X armor"; + "(being worn)"
+      const nm = armnam[obj.otyp - 2] || 'armor';
+      let s;
+      if (obj.known) s = `a suit of ${obj.minus ? '-' : '+'}${obj.spe} ${nm} armor`;
+      else s = `a suit of ${nm} armor`;
+      if (obj === game.uarm) s += '  (being worn)';
       return s + '.';
     }
     case '!': {
@@ -346,9 +348,13 @@ export function doname(obj) {
       return obj.quan > 1 ? `${obj.quan} ${s}s.` : `a ${s}.`;
     }
     case '?': {
-      let s = obj.known ? scrtyp[obj.otyp] || 'scroll' :
-              (game.scrnam && game.scrnam[obj.otyp]) ? `scroll labeled "${game.scrnam[obj.otyp]}"` : 'a scroll';
-      return `a ${s}.`;
+      // C: if(quan>1) "%d scrolls" else "a scroll"; then " of X." / " called X." / " labeled 'X'."
+      const base = obj.quan > 1 ? `${obj.quan} scrolls` : 'a scroll';
+      if (obj.known) return `${base} of ${scrtyp[obj.otyp]}.`;
+      const callname = game.scrcall && game.scrcall[obj.otyp];
+      if (callname) return `${base} called ${callname}.`;
+      const label = game.scrnam && game.scrnam[obj.otyp];
+      return label ? `${base} labeled '${label}'.` : `${base}.`;
     }
     case '/': {
       let s = obj.known ? wantyp[obj.otyp] || 'wand' :
@@ -361,17 +367,28 @@ export function doname(obj) {
                  (game.rinnam && game.rinnam[obj.otyp]) ? `${game.rinnam[obj.otyp]} ring` : 'a ring';
       return `a ${nm}.`;
     }
-    case '*': return `a gem.`;
+    case '*': {
+      const typname = (game.potcol && game.potcol[obj.otyp]) || 'glowing';
+      if (obj.quan > 1) return `${obj.quan} ${typname} gems.`;
+      const art = 'aeiou'.includes(typname[0].toLowerCase()) ? 'an' : 'a';
+      return `${art} ${typname} gem.`;
+    }
     case '$': return `${obj.quan} gold pieces.`;
     default: return 'an unknown item.';
   }
 }
 
 // C ref: parse() — read and return next command
+// C sequence: curs(player), fflush, getchar (harness captures screen HERE), then clear topl, reset flags
 export async function parse() {
-  game.flags.topl = game.flags.topl === 2 ? 1 : 0;
+  const hadMsg = game.flags.topl !== 0;  // save BEFORE any reset
   game.display.flush();
-  const cmd = await game.input.getKey();
+  const cmd = await game.input.getKey();  // screen captured WITH message still visible
+  if (hadMsg) {                           // clear top line AFTER capture (matches C: home(); cl_end(); after getchar)
+    game.display.moveCursor(1, 1);
+    game.display.clearToEol();
+  }
+  game.flags.mdone = game.flags.topl = game.oldux = game.olduy = 0;
   return cmd;
 }
 
@@ -433,24 +450,40 @@ export async function attmon(mtmp, otmp, range) {
 
 function vowelStart(s) { return 'aeiou'.includes(s[0].toLowerCase()); }
 
-// Helper: item weight
+/// C ref: weight(obj) — item weight for carrying capacity (limit is 85)
 function weight(obj) {
   if (!obj) return 0;
   switch (obj.olet) {
-    case ')': return obj.quan * 3;
-    case '[': return 30;
-    case '!': return 2;
-    case '?': return 1;
-    case '/': return 7;
-    case '=': return 3;
-    case '%': return obj.quan * 20;
-    case '*': return 1;
-    default: return 1;
+    case '"': return 2;                        // amulet
+    case '[': return 8;                        // armor
+    case '%':                                  // food: if otyp!=0, return quan; else fall through
+      if (obj.otyp) return obj.quan;
+      /* falls through */
+    case '?': return 3 * obj.quan;            // scroll (and food otyp=0 falls here)
+    case '!': return 2 * obj.quan;            // potion
+    case ')':                                  // weapon
+      if (obj.otyp === 8) return 4;           // arrows
+      if (obj.otyp < 4) return (obj.quan / 2) | 0;  // small weapons (dagger, etc.)
+      return 3;
+    case '=': return 1;                        // ring
+    case '*': return obj.quan;                 // gem
+    case '/': return 3;                        // wand
+    default: return 0;
   }
 }
 
-// gobj — pick up an object from the floor into inventory
-function gobj(obj) {
+// C ref: prinv(obj) — print "<letter> - <item_name>" for obj in inventory
+export async function prinv(obj) {
+  let ilet = 'a'.charCodeAt(0);
+  for (let o = game.invent; o && o !== obj; o = o.nobj) {
+    if (++ilet > 'z'.charCodeAt(0)) ilet = 'A'.charCodeAt(0);
+  }
+  await pline('%s - %s', String.fromCharCode(ilet), doname(obj));
+}
+
+// C ref: gobj(obj) — pick up an object from the floor into inventory
+// C: appends to end with stacking, then calls prinv(). Does NOT clear scrsym.
+async function gobj(obj) {
   // Remove from fobj list
   if (obj === game.fobj) game.fobj = game.fobj.nobj;
   else {
@@ -458,9 +491,32 @@ function gobj(obj) {
     while (prev && prev.nobj !== obj) prev = prev.nobj;
     if (prev) prev.nobj = obj.nobj;
   }
-  obj.nobj = game.invent;
-  game.invent = obj;
-  game.levl[obj.ox][obj.oy].scrsym = '.'; // clear floor marker
+  // Add to inventory: append to end with stacking (matches C's gobj())
+  if (!game.invent) {
+    game.invent = obj;
+    obj.nobj = null;
+  } else {
+    let merged = null;
+    let otmp;
+    for (otmp = game.invent; otmp; otmp = otmp.nobj) {
+      if (otmp.otyp === obj.otyp && otmp.olet === obj.olet) {
+        if (obj.otyp < 4 && obj.olet === ')' &&
+            obj.quan + otmp.quan < 128 && obj.spe === otmp.spe && obj.minus === otmp.minus) {
+          otmp.quan += obj.quan;
+          merged = otmp;
+          break;
+        } else if ('%?!*'.includes(otmp.olet)) {
+          otmp.quan += obj.quan;
+          merged = otmp;
+          break;
+        }
+      }
+      if (!otmp.nobj) { otmp.nobj = obj; obj.nobj = null; break; }
+    }
+    if (merged) obj = merged;
+  }
+  await prinv(obj);
+  if (game.u.uinvis) newsym(game.u.ux, game.u.uy);
 }
 
 // Stubs for cross-file imports

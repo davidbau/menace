@@ -79,16 +79,14 @@ export const mon = [
   ],
 ];
 
-// C ref: hack.vars char *armnam[]
+// C ref: hack.vars char *armnam[] — 6 entries; accessed as armnam[obj.otyp - 2]
 export const armnam = [
-  'leather armor',
-  'ring mail',
-  'studded leather armor',
-  'scale mail',
-  'chain mail',
-  'splint mail',
-  'banded mail',
-  'plate mail',
+  'leather',
+  'ring',
+  'scale',
+  'chain',
+  'splint',
+  'plate',
 ];
 
 // C ref: hack.vars char *foodnam[]
@@ -215,41 +213,44 @@ export const ringtyp = [
 ];
 
 // C ref: hack.vars char *potcol[] (potion colors / gem types used for shuffle)
+// Must match C exactly: ebony/magenta/clear/emerald/ruby/swirly/white/yellow/purple/puce/pink/smokey/glowing/bubbly/orange
 export const potcol = [
-  'ruby',
-  'emerald',
-  'topaz',
-  'amber',
-  'diamond',
-  'sapphire',
-  'amethyst',
-  'orange',
-  'silver',
-  'green',
-  'white',
-  'red',
-  'blue',
-  'brown',
+  'ebony',
+  'magenta',
   'clear',
+  'emerald',
+  'ruby',
+  'swirly',
+  'white',
+  'yellow',
+  'purple',
+  'puce',
+  'pink',
+  'smokey',
+  'glowing',
+  'bubbly',
+  'orange',
 ];
 
-// C ref: hack.vars char *scrnam[] (scroll names — shuffled at start)
+// C ref: hack.vars char *scrnam[] — scroll label names shuffled at game start
+// C array has 16 entries; shufl(scrnam, SCRNUM=15) shuffles only first 15.
+// JS has exactly 15 entries to match what gets shuffled in C.
 export const scrnam = [
-  'ZELGO MER',
-  'JUYED AWK YACC',
-  'NR 9',
-  'XIXAXA XOXAXA XUXAXA',
-  'PRATYAVAYAH',
-  'DAIYEN FOOELS',
-  'LEP GEX VEN ZEA',
-  'PRIRUTSENIE',
-  'ELBIB YLOH',
-  'VERR YED HORRE',
-  'VENZAR BORGAVVE',
-  'THARR',
-  'YUM YUM',
-  'HACKEM MUCHE',
-  'VELOX NEB',
+  'Velox Neb',
+  'Foobie Bletch',
+  'Temov',
+  'Garven Deh',
+  'Zelgo Mer',
+  'Andova Begarin',
+  'Elam Ebow',
+  'Kernod Wel',
+  'Tharr',
+  'Venzar Borgavve',
+  'Elbib Yloh',
+  'Verr Yed Horre',
+  'Juyed Awk Yacc',
+  'Hackem Muche',
+  'Lep Gex Ven Zea',
 ];
 
 // C ref: hack.vars char *wannam[] (wand materials — shuffled)
