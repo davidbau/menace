@@ -758,7 +758,7 @@ export class HeadlessDisplay {
         const code = typeof ch === 'number'
             ? ch
             : (typeof ch === 'string' && ch.length > 0 ? ch.charCodeAt(0) : 0);
-        return code === 32 || code === 27 || code === 10 || code === 13; // ' ', ESC, LF, CR
+        return code === 32 || code === 27 || code === 10 || code === 13 || code === 16; // ' ', ESC, LF, CR, ^P
     }
 
     // C ref: xwaitforspace("\033 ") in win/tty/topl.c.

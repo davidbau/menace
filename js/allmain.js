@@ -521,7 +521,7 @@ export async function run_command(game, ch, opts = {}) {
     if (game.display && game.display._pendingMore) {
         // C ref: win/tty/topl.c more() -> xwaitforspace("\033 "):
         // Space, Esc, or Enter dismisses --More--; other keys are ignored.
-        const dismissesMore = (chCode === 32 || chCode === 27 || chCode === 10 || chCode === 13);
+        const dismissesMore = (chCode === 32 || chCode === 27 || chCode === 10 || chCode === 13 || chCode === 16);
         if (!dismissesMore) {
             return { tookTime: false };
         }
