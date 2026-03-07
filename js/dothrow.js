@@ -532,9 +532,26 @@ export async function handleFire(player, map, display, game) {
         : 'What do you want to fire? [*] ';
     await display.putstr_message(firePrompt);
     let pendingCount = '';
+    let invalidMorePending = false;
     while (true) {
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
+        if (invalidMorePending) {
+            if (ch === 27) {
+                invalidMorePending = false;
+                replacePromptMessage();
+                await display.putstr_message('Never mind.');
+                return { moved: false, tookTime: false };
+            }
+            if (ch === 32 || ch === 10 || ch === 13 || ch === 16) {
+                invalidMorePending = false;
+                replacePromptMessage();
+                await display.putstr_message(firePrompt);
+                continue;
+            }
+            await display.putstr_message("You don't have that object.--More--");
+            continue;
+        }
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
             await display.putstr_message('Never mind.');
@@ -570,6 +587,8 @@ export async function handleFire(player, map, display, game) {
             setuqwep(player, selected);
             return await promptDirectionAndThrowItem(player, map, display, selected, { fromFire: true });
         }
+        await display.putstr_message("You don't have that object.--More--");
+        invalidMorePending = true;
     }
 }
 

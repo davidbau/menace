@@ -39,6 +39,7 @@ test('fire command keeps prompt open until canceled', async () => {
     pushInput('l'.charCodeAt(0));
     pushInput('l'.charCodeAt(0));
     pushInput(' '.charCodeAt(0));
+    pushInput(27);
 
     const result = await rhack('f'.charCodeAt(0), game);
     assert.equal(result.tookTime, false);
@@ -196,6 +197,24 @@ test('fire accepts manual inventory letters then asks direction', async () => {
     assert.equal(game.display.messages[2], 'In what direction? ');
     assert.equal(game.display.topMessage, null);
     assert.equal(game.player.quiver, readied);
+});
+
+test("fire invalid inventory letter shows C-style don't-have-object --More-- loop", async () => {
+    const game = makeGame();
+    game.player.inventory = [
+        { oclass: COIN_CLASS, otyp: GOLD_PIECE, invlet: '$', name: 'gold piece', quan: 10 },
+        { oclass: FOOD_CLASS, otyp: 0, invlet: 'b', name: 'food ration', quan: 1 },
+    ];
+    clearInputQueue();
+    pushInput('f'.charCodeAt(0)); // invalid item letter
+    pushInput(' '.charCodeAt(0)); // dismiss --More-- and reprompt
+    pushInput(27); // cancel
+
+    const result = await rhack('f'.charCodeAt(0), game);
+    assert.equal(result.tookTime, false);
+    assert.equal(game.display.messages[2], "You don't have that object.--More--");
+    assert.equal(game.display.messages[3], 'What do you want to fire? [$ or ?*] ');
+    assert.equal(game.display.topMessage, 'Never mind.');
 });
 
 }); // describe

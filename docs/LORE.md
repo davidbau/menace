@@ -4281,3 +4281,32 @@ hard-won wisdom:
   - `node --test test/unit/gold_pickup_message.test.js` passes.
   - `./scripts/run-and-report.sh --failures` remains `31/34` gameplay sessions passing.
   - `seed031_manual_direct` first screen mismatch advanced from step `252` to step `538`.
+
+### `dofire` invalid inventory letter must emit `You don't have that object.--More--` loop (2026-03-07)
+
+- Divergence context:
+  - In `seed031_manual_direct`, first screen mismatch at step `538`:
+    - JS: `What do you want to fire? [$b or ?*]`
+    - C:  `You don't have that object.--More--`
+  - Sequence came from entering `f` (fire) selection, then typing an inventory
+    letter not present in fire candidates.
+- C behavior:
+  - Fire selection uses getobj-style invalid-item handling:
+    - print `You don't have that object.--More--`
+    - wait for dismissal key
+    - reprompt `What do you want to fire?...`
+    - allow `ESC` to cancel from the pending-more loop.
+- Fix:
+  - In [`js/dothrow.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dothrow.js),
+    `handleFire()` now mirrors the `handleThrow()` invalid-item loop via
+    `invalidMorePending`:
+    - invalid selection emits `You don't have that object.--More--`
+    - `space/enter/^P` dismisses and reprompts
+    - `ESC` cancels with `Never mind.`
+  - Added unit coverage in
+    [`test/unit/command_fire_prompt.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/command_fire_prompt.test.js)
+    for this exact invalid-letter flow.
+- Validation:
+  - `node --test test/unit/command_fire_prompt.test.js` passes.
+  - `./scripts/run-and-report.sh --failures` remains `31/34` gameplay sessions passing.
+  - `seed031_manual_direct` first screen mismatch advanced from step `538` to step `595`.
