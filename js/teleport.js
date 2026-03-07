@@ -19,8 +19,9 @@ import {
     NO_MM_FLAGS, MM_IGNOREWATER, MM_IGNORELAVA,
     GP_CHECKSCARY, GP_ALLOW_U, GP_AVOID_MONPOS, GP_ALLOW_XY,
     RLOC_NONE, RLOC_NOMSG, RLOC_MSG, RLOC_TELE, RLOC_ERR,
-    TELEDS_TELEPORT, ANTIMAGIC,
+    TELEDS_TELEPORT, ANTIMAGIC, VAULT,
 } from './const.js';
+import { somexyspace, search_special } from './mkroom.js';
 import { BOULDER, CLOAK_OF_MAGIC_RESISTANCE } from './objects.js';
 import { M1_SWIM, M1_AMPHIBIOUS, M1_FLY, M1_WALLWALK, M1_AMORPHOUS, M2_ROCKTHROW, S_EEL } from './monsters.js';
 import { rn2, rnd, rn1 } from './rng.js';
@@ -912,8 +913,8 @@ export async function tele_trap(trap, game) {
         if (isok(tx, ty)) {
             const mtmp = map.monsterAt(tx, ty);
             if (mtmp) {
-                const dest = enexto(mtmp.mx, mtmp.my, mtmp.data, map, player);
-                if (dest.found) {
+                const dest = {x: 0, y: 0};
+                if (enexto(dest, mtmp.mx, mtmp.my, mtmp.data, map, player)) {
                     await rloc_to(mtmp, dest.x, dest.y, map, player);
                 }
             }
@@ -985,14 +986,17 @@ export function m_blocks_teleporting(mtmp) {
 }
 
 // Autotranslated from teleport.c:200
-export function enexto_gpflags(cc, xx, yy, mdat, entflags) {
-  return (enexto_core(cc, xx, yy, mdat, GP_CHECKSCARY | entflags) || enexto_core(cc, xx, yy, mdat, entflags));
+export function enexto_gpflags(cc, xx, yy, mdat, entflags, map, player) {
+  return (enexto_core(cc, xx, yy, mdat, GP_CHECKSCARY | entflags, map, player) || enexto_core(cc, xx, yy, mdat, entflags, map, player));
 }
 
 // Autotranslated from teleport.c:767
-export async function vault_tele() {
-  let croom = search_special(VAULT), c;
-  if (croom && somexyspace(croom, c) && teleok(c.x, c.y, false)) { await teleds(c.x, c.y, TELEDS_TELEPORT); return; }
+export async function vault_tele(map, player, game) {
+  const croom = search_special(map, VAULT);
+  if (croom) {
+    const c = somexyspace(map, croom);
+    if (c && teleok(c.x, c.y, false)) { await teleds(c.x, c.y, TELEDS_TELEPORT, game); return; }
+  }
   await tele();
 }
 
@@ -1007,7 +1011,10 @@ export function stairway_find_forwiz(isladder, up, map) {
 
 // Autotranslated from teleport.c:1931
 export async function mvault_tele(mtmp, map, player) {
-  let croom = search_special(VAULT), c;
-  if (croom && somexyspace(croom, c) && goodpos(c.x, c.y, mtmp, 0)) { await rloc_to(mtmp, c.x, c.y, map, player); return; }
+  const croom = search_special(map, VAULT);
+  if (croom) {
+    const c = somexyspace(map, croom);
+    if (c && goodpos(c.x, c.y, mtmp, 0, map, player)) { await rloc_to(mtmp, c.x, c.y, map, player); return; }
+  }
   await rloc(mtmp, RLOC_NONE, map, player);
 }
