@@ -181,9 +181,9 @@ describe('throw prompt behavior', () => {
         assert.equal(result.tookTime, false);
         assert.deepEqual(game.display.messages, [
             'What do you want to throw? [b or ?*] ',
-            "You don't have that object.",
-            "You don't have that object.",
-            "You don't have that object.",
+            "You don't have that object.--More--",
+            "You don't have that object.--More--",
+            "You don't have that object.--More--",
             'Never mind.',
         ]);
     });

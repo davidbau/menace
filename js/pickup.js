@@ -1750,41 +1750,47 @@ async function handleLoot(game) {
         if (monsterBeside(map, player.x, player.y)) {
             // C prompt leaves cursor one past '?' on topline.
             await display.putstr_message('Loot in what direction? ');
-            const dirCh = await nhgetch();
-            // Avoid concatenating prompt + result on the same topline message.
-            display.topMessage = null;
-            display.messageNeedsMore = false;
-            if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
-                await display.putstr_message('Never mind.');
+            while (true) {
+                const dirCh = await nhgetch();
+                // Avoid concatenating prompt + result on the same topline message.
+                display.topMessage = null;
+                display.messageNeedsMore = false;
+                if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
+                    await display.putstr_message('Never mind.');
+                    return { moved: false, tookTime: false };
+                }
+                const delta = lootDirectionDelta(dirCh);
+                if (!delta) {
+                    if (game.flags?.cmdassist !== false) {
+                        await display.putstr_message('cmdassist: Invalid direction key!');
+                        continue;
+                    }
+                    await display.putstr_message('Never mind.');
+                    return { moved: false, tookTime: false };
+                }
+                if (delta.dz < 0) {
+                    await display.putstr_message("You don't find anything to loot on the ceiling.");
+                    return { moved: false, tookTime: true };
+                }
+                const tx = player.x + delta.dx;
+                const ty = player.y + delta.dy;
+                if (!isok(tx, ty)) {
+                    await display.putstr_message('Invalid loot location');
+                    return { moved: false, tookTime: false };
+                }
+                const thereContainers = (map.objectsAt(tx, ty) || [])
+                    .filter((obj) => !!objectData[obj?.otyp]?.container);
+                if ((delta.dx !== 0 || delta.dy !== 0) && thereContainers.length > 0) {
+                    await display.putstr_message('You have to be at a container to loot it.');
+                    return { moved: false, tookTime: false };
+                }
+                await display.putstr_message(
+                    (delta.dx === 0 && delta.dy === 0)
+                        ? "You don't find anything here to loot."
+                        : "You don't find anything there to loot."
+                );
                 return { moved: false, tookTime: false };
             }
-            const delta = lootDirectionDelta(dirCh);
-            if (!delta) {
-                await display.putstr_message('Never mind.');
-                return { moved: false, tookTime: false };
-            }
-            if (delta.dz < 0) {
-                await display.putstr_message("You don't find anything to loot on the ceiling.");
-                return { moved: false, tookTime: true };
-            }
-            const tx = player.x + delta.dx;
-            const ty = player.y + delta.dy;
-            if (!isok(tx, ty)) {
-                await display.putstr_message('Invalid loot location');
-                return { moved: false, tookTime: false };
-            }
-            const thereContainers = (map.objectsAt(tx, ty) || [])
-                .filter((obj) => !!objectData[obj?.otyp]?.container);
-            if ((delta.dx !== 0 || delta.dy !== 0) && thereContainers.length > 0) {
-                await display.putstr_message('You have to be at a container to loot it.');
-                return { moved: false, tookTime: false };
-            }
-            await display.putstr_message(
-                (delta.dx === 0 && delta.dy === 0)
-                    ? "You don't find anything here to loot."
-                    : "You don't find anything there to loot."
-            );
-            return { moved: false, tookTime: false };
         }
         await display.putstr_message("You don't find anything here to loot.");
         return { moved: false, tookTime: false };

@@ -336,19 +336,25 @@ export async function handleThrow(player, map, display) {
         ? `What do you want to throw? [${throwChoices} or ?*] `
         : 'What do you want to throw? [*] ';
     await display.putstr_message(throwPrompt);
-    let invalidSelectionMore = false;
+    let invalidMorePending = false;
     while (true) {
         const ch = await nhgetch();
         let c = String.fromCharCode(ch);
-        if (invalidSelectionMore) {
-            if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
+        if (invalidMorePending) {
+            // C/getobj-style invalid-item loop with explicit --More-- text.
+            if (ch === 27) {
+                invalidMorePending = false;
+                replacePromptMessage();
+                await display.putstr_message('Never mind.');
+                return { moved: false, tookTime: false };
+            }
+            if (ch === 32 || ch === 10 || ch === 13 || ch === 16) {
+                invalidMorePending = false;
                 replacePromptMessage();
                 await display.putstr_message(throwPrompt);
-                invalidSelectionMore = false;
-            } else {
-                replacePromptMessage();
-                await display.putstr_message("You don't have that object.--More--");
+                continue;
             }
+            await display.putstr_message("You don't have that object.--More--");
             continue;
         }
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
@@ -393,9 +399,8 @@ export async function handleThrow(player, map, display) {
         }
         const selItem = player.inventory.find(o => o.invlet === c);
         if (!selItem) {
-            replacePromptMessage();
             await display.putstr_message("You don't have that object.--More--");
-            invalidSelectionMore = true;
+            invalidMorePending = true;
             continue;
         }
         return await promptDirectionAndThrowItem(player, map, display, selItem);

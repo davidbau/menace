@@ -218,6 +218,25 @@ describe('loot via meta key', () => {
             `expected generic unknown-emptiness prompt, got: ${JSON.stringify(messages)}`);
     });
 
+    it('loot direction prompt repeats cmdassist on invalid keys before cancel', async () => {
+        const { game, messages } = makeGame();
+        // No containers on player square, but adjacent monster triggers direction prompt path.
+        game.map.monsters.push({ mx: game.player.x + 1, my: game.player.y, mpeaceful: 0, data: {} });
+        pushInput('o'.charCodeAt(0));   // invalid direction key
+        pushInput('a'.charCodeAt(0));   // invalid direction key
+        pushInput('\n'.charCodeAt(0));  // cancel
+
+        const result = await rhack('l'.charCodeAt(0) | 0x80, game);
+
+        assert.equal(result.tookTime, false);
+        assert.deepEqual(messages, [
+            'Loot in what direction? ',
+            'cmdassist: Invalid direction key!',
+            'cmdassist: Invalid direction key!',
+            'Never mind.',
+        ]);
+    });
+
     it('containerMenu s stash puts item into container and exits menu', async () => {
         const { game, messages } = makeGame();
         const item = makeTestItem();
