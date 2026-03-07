@@ -1736,6 +1736,7 @@ export async function chest_trap(obj, bodypart, disarm, game = null, playerArg =
         if (!player.Free_action) {
           await pline("Suddenly you are frozen in place!");
           player.multi = -(d(5, 6));
+          await exercise(player, A_DEX, false);
         } else {
           await You("momentarily stiffen.");
         }

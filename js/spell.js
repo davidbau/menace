@@ -1507,7 +1507,7 @@ export async function spelleffects_check(spell, res, energy, game, player) {
   else if (await check_capacity( "Your concentration falters while carrying so much stuff.")) { res = ECMD_TIME; return true; }
   if (player.uhave.amulet && player.uen >= energy) {
     await You_feel("the amulet draining your energy away.");
-    player.uen -= rnd(2 * energy.value);
+    player.uen -= rnd(2 * energy);
     if (player.uen < 0) player.uen = 0;
     game.disp.botl = true;
      res = ECMD_TIME;
@@ -1518,7 +1518,7 @@ export async function spelleffects_check(spell, res, energy, game, player) {
   }
   else {
     if (spellid(spell) !== SPE_DETECT_FOOD) {
-      let hungr =  energy * 2, intell = acurr(A_INT);
+      let hungr =  energy * 2, intell = acurr(player, A_INT);
       if (!Role_if(PM_WIZARD)) intell = 10;
       switch (intell) {
         case 25:
