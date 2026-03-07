@@ -1964,7 +1964,8 @@ export async function m_move(mon, map, player, display = null, fov = null) {
         && appr === 1) {
         appr = 0;
     }
-    const betterWithDisplacing = false;
+    // C ref: monmove.c:1944-1945 — check if displacement is beneficial
+    const betterWithDisplacing = should_displace(mon, positions, ggx, ggy);
 
     for (let i = 0; i < cnt; i++) {
         const nx = positions[i].x;

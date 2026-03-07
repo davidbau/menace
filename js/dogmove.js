@@ -62,7 +62,8 @@ import { dist2, distmin, monnear, mfndpos, mon_allowflags,
          mondead, mpickobj, mdrop_obj,
          MTSZ, SQSRCHRADIUS, FARAWAY,
          mon_track_add,
-         ALLOW_M, ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U } from './monmove.js';
+         ALLOW_M, ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U,
+         should_displace } from './monmove.js';
 import { newsym } from './display.js';
 
 // ========================================================================
@@ -1281,6 +1282,9 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
         if (cursed_object_at(map, nx, ny)) continue;
         uncursedcnt++;
     }
+
+    // C ref: dogmove.c:1073-1074 — check if displacement is beneficial
+    const better_with_displacing = should_displace(mon, positions, gx, gy);
 
     // Second pass: evaluate positions
     // C ref: dogmove.c:1088-1268
