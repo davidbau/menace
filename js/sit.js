@@ -16,6 +16,7 @@ import { COIN_CLASS, SADDLE } from './objects.js';
 import { pline, You, Your, You_feel, You_cant, pline_The,
          verbalize } from './pline.js';
 import { exercise } from './attrib_exercise.js';
+import { adjattrib } from './attrib.js';
 import { is_pool, is_lava, is_ice } from './dbridge.js';
 import { PM_TRAPPER } from './monsters.js';
 import { is_prince, slithy, is_hider, lays_eggs, likes_lava,
@@ -137,9 +138,8 @@ async function special_throne_effect(effect, player, map, display) {
         // ability shuffle
         await pline("As you sit on the throne, your body and mind start to warp.");
         for (let ability = 0; ability < 6; ++ability) { // A_MAX = 6
-            // RNG parity: rn2(5) - 2 for each attribute
             const adj = rn2(5) - 2;
-            // TODO: adjattrib(ability, adj, -1)
+            await adjattrib(player, ability, adj, -1);
         }
         break;
     }
@@ -168,7 +168,7 @@ async function throne_sit_effect(player, map, display) {
             {
                 const attr = rn2(6); // rn2(A_MAX)
                 const loss = rn1(4, 3); // rn2(4) + 3
-                // TODO: adjattrib(attr, -loss, FALSE)
+                await adjattrib(player, attr, -loss, 0);
                 const dmg = rnd(10);
                 // TODO: losehp(dmg, "cursed throne", KILLED_BY_AN)
             }
@@ -177,7 +177,7 @@ async function throne_sit_effect(player, map, display) {
             // stat gain
             {
                 const attr = rn2(6); // rn2(A_MAX)
-                // TODO: adjattrib(attr, 1, FALSE)
+                await adjattrib(player, attr, 1, 0);
             }
             break;
         case 3:
@@ -315,7 +315,7 @@ async function throne_sit_effect(player, map, display) {
             await Your("mind turns into a pretzel!");
             {
                 const confDur = rn1(7, 16); // rn2(7) + 16
-                // TODO: make_confused(HConfusion + confDur, FALSE)
+                await make_confused(player, confDur, false);
             }
             break;
         default:
