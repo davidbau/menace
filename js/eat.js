@@ -1768,6 +1768,8 @@ async function handleEat(player, display, game) {
     const floorFoods = map
         ? map.objectsAt(player.x, player.y).filter((o) => o && o.oclass === FOOD_CLASS)
         : [];
+    let selectedItem = null;
+    let selectedFromFloor = false;
 
     // cf. eat.c floorfood() (partial) — if edible food is at hero square,
     // ask before opening inventory selector.
@@ -1784,76 +1786,8 @@ async function handleEat(player, display, game) {
             return { moved: false, tookTime: false };
         }
         if (ans === 'y') {
-            if (floorItem.otyp === CORPSE) {
-                const cnum = Number.isInteger(floorItem.corpsenm) ? floorItem.corpsenm : -1;
-                const nonrotting = (cnum === PM_LIZARD || cnum === PM_LICHEN);
-                let rottenTriggered = false;
-                if (!nonrotting) {
-                    rn2(20); // C: rotted age denominator
-                    if (!rn2(7)) {
-                        rottenTriggered = true;
-                        // cf. eat.c rottenfood() branch probes
-                        const c1 = rn2(4);
-                        if (c1 !== 0) {
-                            const c2 = rn2(4);
-                            if (c2 !== 0) rn2(3);
-                        }
-                    }
-                }
-                const corpseWeight = (cnum >= 0 && mons[cnum]) ? (mons[cnum].cwt || 0) : 0;
-                // cf. eat.c eatcorpse() -> reqtime from corpse weight, then
-                // rotten path consume_oeaten(..., 2) effectively quarters meal size.
-                const baseReqtime = 3 + (corpseWeight >> 6);
-                const reqtime = rottenTriggered
-                    ? Math.max(1, Math.floor((baseReqtime + 2) / 4))
-                    : baseReqtime;
-                const eatState = { usedtime: 1, reqtime }; // first bite already happened
-                let consumedFloorItem = false;
-                const consumeFloorItem = () => {
-                    if (consumedFloorItem) return;
-                    consumedFloorItem = true;
-                    // cf. eat.c done_eating() -> useupf() -> delobj() -> delobj_core()
-                    // delobj_core consumes obj_resists(obj, 0, 0) for ordinary objects.
-                    obj_resists(floorItem, 0, 0);
-                    map.removeObject(floorItem);
-                };
-
-                if (reqtime > 1) {
-                    const finishFloorEating = async () => {
-                        consumeFloorItem();
-                        if (rottenTriggered) {
-                            await display.putstr_message(`Blecch!  Rotten food!  You finish eating the ${floorName}.`);
-                        } else {
-                            await display.putstr_message(`You finish eating the ${floorName}.`);
-                        }
-                    };
-                    // cf. eat.c eatfood() / start_eating() — set_occupation
-                    game.occupation = {
-                        fn: async () => {
-                            eatState.usedtime++;
-                            // cf. eat.c eatfood(): done when ++usedtime > reqtime.
-                            if (eatState.usedtime > reqtime) {
-                                await finishFloorEating();
-                                return 0;
-                            }
-                            return 1;
-                        },
-                        isEating: true,
-                        eatState,
-                        occtxt: `eating ${floorName}`,
-                        txt: `eating ${floorName}`,
-                        xtime: reqtime,
-                    };
-                } else {
-                    consumeFloorItem();
-                    if (rottenTriggered) {
-                        await display.putstr_message(`Blecch!  Rotten food!  You finish eating the ${floorName}.`);
-                    } else {
-                        await display.putstr_message(`You finish eating the ${floorName}.`);
-                    }
-                }
-                return { moved: false, tookTime: true };
-            }
+            selectedItem = floorItem;
+            selectedFromFloor = true;
         }
         // cf. eat.c floorfood() — 'n' (or default) falls through to getobj()
         // for inventory food selection, NOT "Never mind."
@@ -1861,62 +1795,71 @@ async function handleEat(player, display, game) {
 
     // cf. eat.c doeat() / eat_ok() (partial) — inventory food selection
     const food = player.inventory.filter(o => o.oclass === FOOD_CLASS);
-    if (food.length === 0) {
+    if (!selectedItem && food.length === 0) {
         await display.putstr_message("You don't have anything to eat.");
         return { moved: false, tookTime: false };
     }
 
-    const eatChoices = compactInvletPromptChars(food.map(f => f.invlet).join(''));
-    while (true) {
-        if (typeof display.clearRow === 'function') display.clearRow(0);
-        display.topMessage = null;
-        display.messageNeedsMore = false;
-        const eatPrompt = `What do you want to eat? [${eatChoices} or ?*] `;
-        await display.putstr_message(eatPrompt);
-        const ch = await nhgetch();
-        const c = String.fromCharCode(ch);
-
-        if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
+    if (!selectedItem) {
+        const eatChoices = compactInvletPromptChars(food.map(f => f.invlet).join(''));
+        while (true) {
             if (typeof display.clearRow === 'function') display.clearRow(0);
             display.topMessage = null;
             display.messageNeedsMore = false;
-            await display.putstr_message('Never mind.');
-            return { moved: false, tookTime: false };
-        }
-        if (c === '?' || c === '*') {
-            continue;
-        }
+            const eatPrompt = `What do you want to eat? [${eatChoices} or ?*] `;
+            await display.putstr_message(eatPrompt);
+            const ch = await nhgetch();
+            const c = String.fromCharCode(ch);
 
-        const item = food.find(f => f.invlet === c);
-        if (!item) {
-            const anyItem = player.inventory.find((o) => o.invlet === c);
-            if (anyItem) {
-                // cf. eat.c doeat() → getobj returns non-food item
-                // (eat_ok returns GETOBJ_EXCLUDE_SELECTABLE), then
-                // is_edible() check fails → "You cannot eat that!" and exit.
-                await display.putstr_message('You cannot eat that!');
+            if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
+                if (typeof display.clearRow === 'function') display.clearRow(0);
+                display.topMessage = null;
+                display.messageNeedsMore = false;
+                await display.putstr_message('Never mind.');
                 return { moved: false, tookTime: false };
             }
-            // cf. eat.c getobj() handles invalid letters differently depending
-            // on mode. In non-wizard mode, it emits a "--More--" that blocks
-            // until Space/Enter/Esc; in wizard mode it silently re-prompts.
-            if (!player.wizard) {
-                await display.putstr_message("You don't have that object.--More--");
-                while (true) {
-                    const moreCh = await nhgetch();
-                    if (moreCh === 32 || moreCh === 10 || moreCh === 13 || moreCh === 27) break;
-                }
+            if (c === '?' || c === '*') {
+                continue;
             }
-            continue;
+
+            const item = food.find(f => f.invlet === c);
+            if (!item) {
+                const anyItem = player.inventory.find((o) => o.invlet === c);
+                if (anyItem) {
+                    // cf. eat.c doeat() → getobj returns non-food item
+                    // (eat_ok returns GETOBJ_EXCLUDE_SELECTABLE), then
+                    // is_edible() check fails → "You cannot eat that!" and exit.
+                    await display.putstr_message('You cannot eat that!');
+                    return { moved: false, tookTime: false };
+                }
+                // cf. eat.c getobj() handles invalid letters differently depending
+                // on mode. In non-wizard mode, it emits a "--More--" that blocks
+                // until Space/Enter/Esc; in wizard mode it silently re-prompts.
+                if (!player.wizard) {
+                    await display.putstr_message("You don't have that object.--More--");
+                    while (true) {
+                        const moreCh = await nhgetch();
+                        if (moreCh === 32 || moreCh === 10 || moreCh === 13 || moreCh === 27) break;
+                    }
+                }
+                continue;
+            }
+
+            // C ref: after getobj() returns, tty clears the prompt from topline.
+            if (typeof display.clearRow === 'function') display.clearRow(0);
+            display.topMessage = null;
+            display.messageNeedsMore = false;
+            selectedItem = item;
+            break;
         }
-        // C ref: after getobj() returns, tty clears the prompt from topline.
-        if (typeof display.clearRow === 'function') display.clearRow(0);
-        display.topMessage = null;
-        display.messageNeedsMore = false;
+    }
+
+    const item = selectedItem;
+    const fromFloor = selectedFromFloor;
 
         // cf. eat.c doesplit() path — splitobj() for stacked comestibles:
         // splitobj() creates a single-item object and consumes next_ident() (rnd(2)).
-        const eatingFromStack = ((item.quan || 1) > 1 && item.oclass === FOOD_CLASS);
+        const eatingFromStack = !fromFloor && ((item.quan || 1) > 1 && item.oclass === FOOD_CLASS);
         let eatenItem = item;
         if (eatingFromStack) {
             // cf. eat.c splitobj() keeps both pieces in inventory until done_eating().
@@ -2003,7 +1946,12 @@ async function handleEat(player, display, game) {
         const consumeInventoryItem = () => {
             if (consumedInventoryItem) return;
             consumedInventoryItem = true;
-            player.removeFromInventory(eatingFromStack ? eatenItem : item);
+            if (fromFloor) {
+                obj_resists(item, 0, 0);
+                if (map) map.removeObject(item);
+            } else {
+                player.removeFromInventory(eatingFromStack ? eatenItem : item);
+            }
         };
 
         if (reqtime > 1) {
@@ -2114,7 +2062,6 @@ async function handleEat(player, display, game) {
             }
         }
         return { moved: false, tookTime: true };
-    }
 }
 
 
