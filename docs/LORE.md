@@ -4202,3 +4202,18 @@ hard-won wisdom:
 - Validation:
   - `./scripts/run-and-report.sh --failures` stays stable at `31/34` gameplay sessions passing (no regressions in failing set).
   - `seed033` step-62 first-line mismatch is removed; remaining mismatch now points at missing multi-line tip body rendering.
+
+### save confirmation parity: `Really save?` and silent cancel (2026-03-07)
+
+- Divergence context:
+  - `seed032_manual_direct` early screen mismatch started at save-confirm prompt text and cancel handling.
+- C behavior (`save.c dosave()`):
+  - prompt text is `Really save?`
+  - default `n` response returns without emitting `Never mind.`
+  - prompt is cleared after response.
+- Fix in [`js/storage.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/storage.js):
+  - changed save confirmation text from `Save and quit?` to `Really save?`
+  - on non-`y` response, return silently and clear message-line prompt state (`clearRow(0)`, reset `topMessage`/`messageNeedsMore`).
+- Validation:
+  - failures sweep remains `31/34` gameplay sessions passing (no regression in failing set).
+  - `seed032_manual_direct` screen frontier improved from step `1` to step `10` while preserving existing RNG/event frontier (`447/678`, `21/678`).

@@ -1015,9 +1015,12 @@ export function setFlag(key, value) {
 // C ref: cmd.c dosave()
 export async function handleSave(game) {
     const { display } = game;
-    const ans = await ynFunction('Save and quit?', 'yn', 'n'.charCodeAt(0), display);
+    // C ref: save.c dosave() confirmation prompt.
+    const ans = await ynFunction('Really save?', 'yn', 'n'.charCodeAt(0), display);
     if (String.fromCharCode(ans) !== 'y') {
-        await display.putstr_message('Never mind.');
+        if (typeof display?.clearRow === 'function') display.clearRow(0);
+        if ('topMessage' in (display || {})) display.topMessage = null;
+        if ('messageNeedsMore' in (display || {})) display.messageNeedsMore = false;
         return { moved: false, tookTime: false };
     }
     const ok = saveGame(game);
