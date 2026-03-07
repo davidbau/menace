@@ -1390,7 +1390,7 @@ export function calc_mattacku_vars(mtmp, player) {
 
 // cf. mhitu.c:954 summonmu() — monster summons help for its fight against hero
 export async function summonmu(mtmp, youseeit, map, player, display) {
-    const mdat = mtmp.type || mtmp.data || {};
+    const mdat = mtmp.data || mtmp.type || {};
 
     if (is_demon(mdat)) {
         if (mdat !== mons[PM_BALROG] && mdat !== mons[PM_AMOROUS_DEMON]) {
@@ -1424,7 +1424,7 @@ export async function summonmu(mtmp, youseeit, map, player, display) {
                 await display.putstr_message(`The ${x_monnam(mtmp)} summons help!`);
             }
             const result = were_summon(
-                mtmp.type || mtmp.data,
+                mtmp.data || mtmp.type,
                 mtmp.mx, mtmp.my,
                 false, // not yours
                 { player },
@@ -1510,9 +1510,9 @@ export async function gulpmu(mtmp, mattk, player, map, display) {
         player.ustuck = mtmp;
         player.uswallow = true;
         if (display) {
-            if (digests(mtmp.type || mtmp.data || {})) {
+            if (digests(mtmp.data || mtmp.type || {})) {
                 await display.putstr_message(`The ${x_monnam(mtmp)} swallows you whole!`);
-            } else if (enfolds(mtmp.type || mtmp.data || {})) {
+            } else if (enfolds(mtmp.data || mtmp.type || {})) {
                 await display.putstr_message(`The ${x_monnam(mtmp)} folds itself around you!`);
             } else {
                 await display.putstr_message(`The ${x_monnam(mtmp)} engulfs you!`);
@@ -1611,7 +1611,7 @@ export async function gulpmu(mtmp, mattk, player, map, display) {
         }
         break;
     case AD_DISE:
-        if (!await diseasemu(mtmp.type || mtmp.data, player, display)) tmp = 0;
+        if (!await diseasemu(mtmp.data || mtmp.type, player, display)) tmp = 0;
         break;
     case AD_DREN:
         // AC magic cancellation doesn't help when engulfed
@@ -1643,12 +1643,12 @@ export async function gulpmu(mtmp, mattk, player, map, display) {
         if (!player.uswldtim) {
             if (display) {
                 await display.putstr_message(
-                    digests(mtmp.type || mtmp.data || {}) ? 'You get regurgitated!'
-                    : enfolds(mtmp.type || mtmp.data || {}) ? 'You get released!'
+                    digests(mtmp.data || mtmp.type || {}) ? 'You get regurgitated!'
+                    : enfolds(mtmp.data || mtmp.type || {}) ? 'You get released!'
                     : 'You get expelled!'
                 );
             }
-            await expels(mtmp, mtmp.type || mtmp.data || {}, false, player, display);
+            await expels(mtmp, mtmp.data || mtmp.type || {}, false, player, display);
         }
     }
 
@@ -1731,7 +1731,7 @@ export async function gazemu(mtmp, mattk, player, map, display) {
 
     const adtyp = mattk.adtyp ?? AD_PHYS;
     const cancelled = !!(mtmp.mcan);
-    const mdat = mtmp.type || mtmp.data || {};
+    const mdat = mtmp.data || mtmp.type || {};
 
     switch (adtyp) {
     case AD_STON: {

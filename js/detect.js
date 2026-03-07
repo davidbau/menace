@@ -264,7 +264,7 @@ export async function gold_detect(sobj, player, map, display, game) {
     let steedgold = false;
     for (const mtmp of (map.monsters || [])) {
         if (DEADMONSTER(mtmp) || (mtmp.isgd && !mtmp.mx)) continue;
-        const mndx = (mtmp.type || mtmp.data || {}).mndx || mtmp.mndx;
+        const mndx = (mtmp.data || mtmp.type || {}).mndx || mtmp.mndx;
         if (findgold(mtmp.minvent || []) || mndx === PM_GOLD_GOLEM) {
             if (mtmp === player.usteed) { steedgold = true; }
             else { known = true; return await _gold_detect_outgoldmap(sobj, player, map, display); }
@@ -318,7 +318,7 @@ async function _gold_detect_outgoldmap(sobj, player, map, display) {
     for (const mtmp of (map.monsters || [])) {
         if (DEADMONSTER(mtmp) || (mtmp.isgd && !mtmp.mx)) continue;
         let temp = null;
-        const mndx = (mtmp.type || mtmp.data || {}).mndx || mtmp.mndx;
+        const mndx = (mtmp.data || mtmp.type || {}).mndx || mtmp.mndx;
         if (findgold(mtmp.minvent || []) || mndx === PM_GOLD_GOLEM) {
             const gq = rnd(10);
             temp = { otyp: GOLD_PIECE, quan: gq, ox: mtmp.mx, oy: mtmp.my };
@@ -510,7 +510,7 @@ export async function monster_detect(otmp, mclass, player, map, display, game) {
         cls(); unconstrain_map(player);
         for (const mtmp of (map.monsters || [])) {
             if (DEADMONSTER(mtmp) || (mtmp.isgd && !mtmp.mx)) continue;
-            const mdat = mtmp.type || mtmp.data || {};
+            const mdat = mtmp.data || mtmp.type || {};
             if (!mclass || mdat.mlet === mclass
                 || (mdat.mndx === PM_LONG_WORM && mclass === S_WORM_TAIL))
                 map_monst(mtmp, true);
@@ -826,7 +826,7 @@ function findone_fn(zx, zy, found_p, player, map, display) {
     if (mtmp && (!canSpotMonsterForMap(mtmp, map, player) || mtmp.mundetected || M_AP_TYPE(mtmp))) {
         if (M_AP_TYPE(mtmp)) { seemimic_local(mtmp); found_p.num_mons++; }
         else if (mtmp.mundetected) {
-            const mdat = mtmp.type || mtmp.data || {};
+            const mdat = mtmp.data || mtmp.type || {};
             if (is_hider(mdat) || hides_under(mdat) || mdat.mlet === S_EEL) {
                 mtmp.mundetected = 0; newsym(zx, zy); found_p.num_mons++;
             }
@@ -958,7 +958,7 @@ export async function mfind0(mtmp, via_warning, player, map, display) {
         seemimic_local(mtmp); found_something = true;
     } else {
         found_something = !canSpotMonsterForMap(mtmp, map, player);
-        const mdat = mtmp.type || mtmp.data || {};
+        const mdat = mtmp.data || mtmp.type || {};
         if (mtmp.mundetected && (is_hider(mdat) || hides_under(mdat) || mdat.mlet === S_EEL)) {
             if (via_warning && found_something) {
                 set_msg_xy(x, y);

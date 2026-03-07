@@ -197,7 +197,7 @@ export async function temple_priest_sound(mtmp, hallu, game) {
 
 // cf. sounds.c:180 — oracle_sound(mtmp): oracle ambient sound
 export async function oracle_sound(mtmp, hallu, game) {
-    if (mtmp.data || mtmp.type !== mons[PM_ORACLE]) return false;
+    if ((mtmp.data || mtmp.type) !== mons[PM_ORACLE]) return false;
 
     if (hallu || !canseemon(mtmp, (game.u || game.player), game.fov)) {
         const ora_msg = [

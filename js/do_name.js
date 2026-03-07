@@ -139,7 +139,7 @@ export function x_monnam(mtmp, article = ARTICLE_NONE, adjective = null,
                          suppress = 0, called = false) {
     if (!mtmp) return 'it';
 
-    const mdat = mtmp.type || {};
+    const mdat = mtmp.data || mtmp.type || {};
 
     // C: if (mtmp == &youmonst) return "you"
     // JS: no youmonst equivalent yet; skip

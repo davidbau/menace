@@ -253,7 +253,7 @@ export function thitm(tlev, mon, obj, d_override, nocorpse, map, player) {
 // Autotranslated from trap.c:3633
 export function m_easy_escape_pit(mtmp) {
   // C ref: mon->data is stored as mon.type in JS (auto-translated field alias)
-  const mdata = mtmp.type || mons[mtmp.mndx];
+  const mdata = mtmp.data || mtmp.type || mons[mtmp.mndx];
   return (mdata === mons[PM_PIT_FIEND] || mdata.msize >= MZ_HUGE);
 }
 
@@ -1590,7 +1590,7 @@ export function into_vs_onto(traptype) {
 // Autotranslated from trap.c:5437
 export async function reward_untrap(ttmp, mtmp, game, player) {
   if (!ttmp.madeby_u) {
-    const _mdata = mtmp.type || mons[mtmp.mndx]; // C: mon->data alias
+    const _mdata = mtmp.data || mtmp.type || mons[mtmp.mndx]; // C: mon->data alias
     if (rnl(10) < 8 && !mtmp.mpeaceful && !helpless(mtmp) && !mtmp.mfrozen && !mindless(_mdata) && !unique_corpstat(_mdata) && _mdata.mlet !== S_HUMAN) {
       mtmp.mpeaceful = 1;
       set_malign(mtmp);

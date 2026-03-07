@@ -367,13 +367,13 @@ export async function demon_talk(mtmp, map, player, display) {
     }
 
     // C: Slight advantage — demon prince becomes visible
-    if (is_dprince(mtmp.type || mtmp.data || {}) && mtmp.invisible) {
+    if (is_dprince(mtmp.data || mtmp.type || {}) && mtmp.invisible) {
         mtmp.invisible = false;
         mtmp.perminvis = false;
         if (map && display) newsym(mtmp.mx, mtmp.my);
     }
 
-    const ptr = mtmp.type || mtmp.data || {};
+    const ptr = mtmp.data || mtmp.type || {};
     // C: if (youmonst.data->mlet == S_DEMON) — player polymorphed into demon
     // TODO: player polymorph check
 

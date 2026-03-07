@@ -1868,7 +1868,7 @@ export async function dogaze(player, map) {
         if (!mtmp.visible && !mtmp.detected) continue;
 
         looked++;
-        const mdata = mtmp.type || mtmp.data;
+        const mdata = mtmp.data || mtmp.type;
         if (!mdata) continue;
 
         // Invisible player check
@@ -2106,7 +2106,7 @@ export async function domindblast(player, map) {
         if (dist2(player.x, player.y, mx, my) > BOLT_LIM * BOLT_LIM)
             continue;
         if (mtmp.peaceful || mtmp.mpeaceful) continue;
-        const mdata = mtmp.type || mtmp.data;
+        const mdata = mtmp.data || mtmp.type;
         if (!mdata) continue;
         if (is_mindless(mdata)) continue;
 

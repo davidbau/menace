@@ -265,7 +265,7 @@ function In_endgame() { return false; }
 // Not exported from any module; define locally.
 function set_malign(mtmp) {
     if (!mtmp) return;
-    const data = mtmp.type || mtmp.data || {};
+    const data = mtmp.data || mtmp.type || {};
     let mal = data.maligntyp || 0;
     if (data.msound === MS_LEADER) {
         mtmp.malign = -20;

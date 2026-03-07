@@ -172,7 +172,7 @@ function inhishop(mtmp) { return !!(mtmp.isshk && mtmp.shoproom); }
 function helpless(mtmp) { return monHelpless(mtmp); }
 
 // ptr accessor for monster data
-function mptr(mtmp) { return mtmp.type || mtmp.data || {}; }
+function mptr(mtmp) { return mtmp.data || mtmp.type || {}; }
 
 // cansee_pos — can hero see location? (approximate)
 function cansee_pos(map, player, fov, x, y) {

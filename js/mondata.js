@@ -1441,7 +1441,7 @@ export function mons_see_trap(ttmp, map) {
   const maxdist = lit ? 49 : 2;
   for (const mtmp of map.monsters) {
     if (!mtmp || mtmp.dead) continue;
-    const mdat = mtmp.type || {};
+    const mdat = mtmp.data || mtmp.type || {};
     if (is_animal(mdat) || is_mindless(mdat) || !haseyes(mdat) || !mtmp.mcansee) {
       continue;
     }

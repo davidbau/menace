@@ -1373,7 +1373,7 @@ export async function revive_corpse(corpse, player, map) {
     if (where === 'invent') {
         await You_feel("squirming in your backpack!");
     } else if (where === 'floor' || !where) {
-        const ptr = mtmp.type || mtmp.data;
+        const ptr = mtmp.data || mtmp.type;
         let effect = "";
         if (ptr === mons[PM_DEATH]) effect = " in a whirl of spectral skulls";
         else if (ptr === mons[PM_PESTILENCE]) effect = " in a churning pillar of flies";

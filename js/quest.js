@@ -509,7 +509,7 @@ export async function prisoner_speaks(mtmp, game) {
     const player = (game.u || game.player);
     const map = (game.lev || game.map);
 
-    if (mtmp.type === mons[PM_PRISONER]
+    if ((mtmp.data || mtmp.type) === mons[PM_PRISONER]
         && ((mtmp.mstrategy || 0) & STRAT_WAITMASK)) {
         // Awaken the prisoner
         if (canseemon(mtmp, player))
@@ -539,7 +539,7 @@ export async function quest_chat(mtmp, game) {
             setmangry(mtmp, false, (game.lev || game.map), (game.u || game.player));
         return;
     }
-    switch (mtmp.type ? mtmp.type.msound : 0) {
+    switch ((mtmp.data || mtmp.type) ? (mtmp.data || mtmp.type).msound : 0) {
     case MS_NEMESIS:
         await chat_with_nemesis(game);
         break;

@@ -857,7 +857,7 @@ async function kick_monster(mon, x, y, player, map, game) {
 export async function ghitm(mtmp, gold, player, map) {
     let msg_given = false;
 
-    const monData = mtmp.type || mtmp.data;
+    const monData = mtmp.data || mtmp.type;
     if (!likes_gold(monData) && !mtmp.isshk && !mtmp.ispriest
         && !mtmp.isgd && !is_mercenary(monData)) {
         wakeup(mtmp, true, map, player);
@@ -1790,7 +1790,7 @@ export async function dokick(player, map, display, game) {
 
     // The next five tests: monsters, pools, objects, non-doors, doors.
     if (mtmp) {
-        const mdat = mtmp.type || mtmp.data;
+        const mdat = mtmp.data || mtmp.type;
         await kick_monster(mtmp, x, y, player, map, game);
 
         if (mtmp.mhp <= 0) {
@@ -2204,7 +2204,7 @@ export function deliver_obj_to_mon(mtmp, cnt, deliverflags, game) {
             continue;
         }
 
-        const monData = mtmp.type || mtmp.data;
+        const monData = mtmp.data || mtmp.type;
         if (otmp.migr_species !== NON_PM
             && ((monData.mflags2 || monData.mflags2 || 0) & DELIVER_PM) === otmp.migr_species) {
             otmp.owornmask = 0;
