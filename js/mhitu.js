@@ -1209,11 +1209,12 @@ export async function mattacku(monster, player, display, game = null, opts = {})
 
             if (died) {
                 player.deathCause = `killed by a ${x_monnam(monster)}`;
-                await display.putstr_message('You die...');
                 if (game) {
                     game.playerDied = true;
+                    await done_in_by(monster, 0, game);
+                } else if (display) {
+                    await display.putstr_message('You die...');
                 }
-                await done_in_by(monster, 0, game);
                 break;
             }
         }
@@ -1856,11 +1857,12 @@ export async function mdamageu(mtmp, n, player, display, game = null) {
         const died = player.takeDamage(n, x_monnam(mtmp));
         if (died) {
             player.deathCause = `killed by a ${x_monnam(mtmp)}`;
-            if (display) await display.putstr_message('You die...');
             if (game) {
                 game.playerDied = true;
+                await done_in_by(mtmp, 0, game);
+            } else if (display) {
+                await display.putstr_message('You die...');
             }
-            await done_in_by(mtmp, 0, game);
         }
     }
 }

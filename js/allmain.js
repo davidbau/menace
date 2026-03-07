@@ -500,6 +500,12 @@ export async function run_command(game, ch, opts = {}) {
         if (Object.hasOwn(game.display, '_nonBlockingMore')) {
             game.display._nonBlockingMore = false;
         }
+        if (typeof game._deferredWizardDiePrompt === 'function'
+            && !game.display._pendingMore
+            && !game.pendingPrompt) {
+            await game._deferredWizardDiePrompt();
+            game._deferredWizardDiePrompt = null;
+        }
         if (game._pendingDeferredTurnAfterMore) {
             if ((game.u || game.player)?.utotype) {
                 await deferred_goto((game.u || game.player), game);

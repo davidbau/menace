@@ -3266,3 +3266,26 @@ hard-won wisdom:
   - failing-session count remained stable (`28/34` passing, `6` failing).
   - `seed331` frontier remains in monster-move divergence (`dochug` at late step),
     so this was architectural correctness cleanup, not the final parity fix.
+
+## Lesson: wizard `Die? [yn] (n)` must be strict-keyed and deferred after `--More--`
+
+- C wizard death confirmation uses a real `yn` prompt semantics:
+  only explicit `y`/`n` (plus default-on-Enter/Esc) should resolve it.
+- JS accepted any non-`y` key as `n`, which let `space` auto-survive during
+  death message sequencing and reopened gameplay flow too early.
+- Fixes:
+  - `js/end.js`: `wizard_die_confirm` now resolves only on `y/Y`, `n/N`,
+    and default `n` via Enter/Esc; other keys are consumed but ignored.
+  - `js/end.js`: when death messaging has pending `--More--`, defer prompt
+    installation via `game._deferredWizardDiePrompt`.
+  - `js/allmain.js`: execute deferred wizard prompt immediately after
+    clearing `--More--`, before any other deferred turn behavior.
+  - `js/mhitu.js`: remove duplicate immediate `You die...` message from
+    lethal branches when `done_in_by` is used, preserving canonical
+    death-message staging through `end.c` path.
+- Validation impact:
+  - `seed331_tourist_wizard_gameplay` now reaches full RNG/event parity
+    (`PRNG 389/389`, `Events 389/389`); remaining mismatch is screen-only
+    at step `378` (`'#y#'` visibility row diff).
+  - failure count remains `28/34` passing (`6` failing), with improved
+    channel totals: PRNG `31/34`, Events `30/34`.

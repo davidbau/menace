@@ -429,27 +429,40 @@ export async function done(how, game) {
     }
 
     // Wizard/discover mode: offer to not die.
-    if (!survive && game.wizard && how <= GENOCIDED) {
-        await pline(`Die? [yn] (n)`);
+    // In C this prompt appears after death messaging/--More-- sequencing.
+    const installWizardDiePrompt = async () => {
+        await pline('Die? [yn] (n)');
         game.pendingPrompt = {
             type: 'wizard_die_confirm',
-            onKey: async (chCode, gameCtx) => {
+            onKey: (chCode, gameCtx) => {
                 if (chCode === 121 || chCode === 89) { // y/Y
                     gameCtx.pendingPrompt = null;
                     really_done(how, gameCtx);
                     return { handled: true, moved: false, tookTime: false };
                 }
-                // default answer is "n": survive.
-                gameCtx.pendingPrompt = null;
-                savelife(how, gameCtx);
-                if (Object.hasOwn(gameCtx, 'playerDied')) {
-                    gameCtx.playerDied = false;
+                const isNo = (chCode === 110 || chCode === 78); // n/N
+                const isDefaultNo = (chCode === 13 || chCode === 10 || chCode === 27); // enter/esc
+                if (isNo || isDefaultNo) {
+                    gameCtx.pendingPrompt = null;
+                    savelife(how, gameCtx);
+                    if (Object.hasOwn(gameCtx, 'playerDied')) {
+                        gameCtx.playerDied = false;
+                    }
+                    killer.name = '';
+                    killer.format = KILLED_BY_AN;
                 }
-                killer.name = '';
-                killer.format = KILLED_BY_AN;
+                // Ignore non-[yn<enter><esc>] keys while the prompt is active.
                 return { handled: true, moved: false, tookTime: false };
             },
         };
+    };
+    if (!survive && game.wizard && how <= GENOCIDED) {
+        if (game.display?._pendingMore) {
+            // Defer prompt install until --More-- is acknowledged.
+            game._deferredWizardDiePrompt = installWizardDiePrompt;
+        } else {
+            await installWizardDiePrompt();
+        }
         return;
     }
 
