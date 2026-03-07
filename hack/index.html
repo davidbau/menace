@@ -25,6 +25,7 @@
       --color-shadow: rgba(0, 0, 0, 0.15);
       --font-mono: "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace;
       --font-serif: 'EB Garamond', Georgia, serif;
+      --game-font-size: 16px;
       --transition-fast: 0.2s;
     }
 
@@ -75,7 +76,7 @@
       flex-wrap: wrap;
       gap: 1.5em;
       padding: 0.5em 0;
-      font-size: 16px;
+      font-size: calc(var(--game-font-size) * 1.0);
       justify-content: center;
       width: 100%;
       order: -2;
@@ -151,8 +152,8 @@
        Help Bar
        ============================================================ */
     #help-bar {
-      margin-top: 0.6em;
-      font-size: 13px;
+      margin-top: 0.3em;
+      font-size: calc(var(--game-font-size) * 0.8);
       color: var(--color-text-muted);
       text-align: center;
       font-family: var(--font-serif);
@@ -161,7 +162,7 @@
 
     .help-key {
       font-family: var(--font-mono);
-      font-size: 12px;
+      font-size: calc(var(--game-font-size) * 0.75);
       color: var(--color-text);
     }
 
@@ -183,7 +184,7 @@
       border: 2px solid var(--color-accent);
       color: var(--color-accent);
       padding: 0.4em 0.8em;
-      font-size: 16px;
+      font-size: calc(var(--game-font-size) * 1.0);
       font-weight: 600;
       cursor: pointer;
       border-radius: 4px;
@@ -238,7 +239,7 @@
       text-align: left;
       cursor: pointer;
       font-family: var(--font-serif);
-      font-size: 16px;
+      font-size: calc(var(--game-font-size) * 1.0);
       white-space: nowrap;
       width: 100%;
       transition: background var(--transition-fast), color var(--transition-fast);
@@ -510,6 +511,7 @@
     var sz = 16;
     try { sz = parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) {}
     container.style.fontSize = sz + 'px';
+    document.documentElement.style.setProperty('--game-font-size', sz + 'px');
   })();
 
   /* Remove loading div and apply saved font size once the game screen appears */
@@ -544,6 +546,7 @@
   /* Font size controls — shared with other games via localStorage */
   (function() {
     function applyFontSize(size) {
+      document.documentElement.style.setProperty('--game-font-size', size + 'px');
       var container = document.getElementById('hack-container');
       if (container) container.style.fontSize = size + 'px';
       var screen = document.getElementById('hack-screen');
