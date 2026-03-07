@@ -339,6 +339,30 @@ export async function moveloop_turnend(game) {
     // C ref: allmain.c:351 dosounds() — ambient sounds
     await moveloop_dosounds(game);
 
+    // C ref: allmain.c:353 gethungry()
+    await gethungry((game.u || game.player));
+
+    // C ref: allmain.c:354 age_spells() — decrement spell retention each turn
+    ageSpells((game.u || game.player));
+
+    // C ref: attrib.c exerper() — periodic exercise updates.
+    // C's svm.moves starts at 1 and increments before exerper/exerchk.
+    const moves = game.turnCount + 1;
+    await exerper((game.u || game.player), moves);
+
+    // C ref: attrib.c exerchk()
+    await exerchk((game.u || game.player), moves);
+
+    // C ref: allmain.c:362 — invault() between exerchk and u_wipe_engr
+    await invault((game.lev || game.map), (game.u || game.player), game.fov || FOV);
+
+    // C ref: allmain.c:359 — engrave wipe check (ACURR(A_DEX))
+    const dex = acurr((game.u || game.player), A_DEX);
+    if (!rn2(40 + dex * 3)) {
+        // C ref: allmain.c:359-360 u_wipe_engr(rnd(3))
+        await wipe_engr_at((game.lev || game.map), (game.u || game.player).x, (game.u || game.player).y, rnd(3), false);
+    }
+
     // C ref: allmain.c:374 — water/air planes update moving bubbles/clouds each turn.
     if ((game.lev || game.map)?.flags?.is_waterlevel || (game.lev || game.map)?.flags?.is_airlevel) {
         if ((game.lev || game.map)?._water && (game.u || game.player)) {
@@ -358,30 +382,6 @@ export async function moveloop_turnend(game) {
             };
         }
         await movebubbles((game.lev || game.map));
-    }
-
-    // C ref: allmain.c:353 gethungry()
-    await gethungry((game.u || game.player));
-
-    // C ref: allmain.c:354 age_spells() — decrement spell retention each turn
-    ageSpells((game.u || game.player));
-
-    // C ref: attrib.c exerper() — periodic exercise updates.
-    // C's svm.moves starts at 1 and increments before exerper/exerchk.
-    const moves = game.turnCount + 1;
-    await exerper((game.u || game.player), moves);
-
-    // C ref: attrib.c exerchk()
-    await exerchk((game.u || game.player), moves);
-
-    // C ref: allmain.c:362 — invault() between exerchk and u_wipe_engr
-    await invault((game.lev || game.map), (game.u || game.player), game.fov || FOV);
-
-    // C ref: allmain.c:359 — engrave wipe check
-    const dex = (game.u || game.player).attributes ? (game.u || game.player).attributes[A_DEX] : 14;
-    if (!rn2(40 + dex * 3)) {
-        // C ref: allmain.c:359-360 u_wipe_engr(rnd(3))
-        await wipe_engr_at((game.lev || game.map), (game.u || game.player).x, (game.u || game.player).y, rnd(3), false);
     }
 
     // C ref: allmain.c:385-393 — immobile turn countdown and unmul().
