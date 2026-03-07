@@ -254,7 +254,14 @@ export function onscary(map, x, y, mon = null) {
         if (ep) {
             const player = _gstate?.player;
             const atHero = player && x === player.x && y === player.y;
-            if (atHero) {
+            // C ref: monmove.c:296-298 — Elbereth requires hero presence,
+            // displaced image, or guardobjects with objects present
+            const hasObjects = ep.guardobjects
+                && (map.objectsAt ? map.objectsAt(x, y).length > 0
+                    : (map.objects || []).some(o => o.ox === x && o.oy === y && !o.buried));
+            const displaced = player && (player.Displaced || player.displaced)
+                && mon && mon.mux === x && mon.muy === y;
+            if (atHero || displaced || hasObjects) {
                 // C ref: monmove.c:299-302 — Elbereth exclusions
                 if (mon) {
                     if (mon.isshk || mon.isgd || !mon.mcansee
