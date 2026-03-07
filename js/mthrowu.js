@@ -48,6 +48,7 @@ import { NEED_WEAPON, NEED_HTH_WEAPON, NEED_RANGED_WEAPON, P_BOW } from './const
 import { ammo_and_launcher, multishot_class_bonus } from './dothrow.js';
 import { breaks, harmless_missile } from './dothrow.js';
 import { should_mulch_missile } from './dothrow.js';
+import { breaktest } from './dothrow.js';
 import { find_mac } from './worn.js';
 import { nhgetch } from './input.js';
 import {
@@ -362,7 +363,12 @@ export async function drop_throw(obj, ohit, x, y, map, player, game) {
         // C ref: dokick.c ship_object() nodrop gate for non-ladder routes.
         const nodrop = (obj === player?.uball) || (obj === player?.uchain)
             || (toloc !== MIGR_LADDER_UP && rn2(3));
-        if (!nodrop) return true;
+        if (!nodrop) {
+            // C ref: dokick.c ship_object() runs breaktest() before migration.
+            // This preserves obj_resists() RNG even when object leaves the level.
+            breaktest(obj);
+            return true;
+        }
     }
     if (await flooreffects(obj, x, y, 'fall', player, map)) {
         return true;

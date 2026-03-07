@@ -3193,3 +3193,16 @@ hard-won wisdom:
   - `seed325` frontier unchanged at step `309`
   - `seed327`/`seed328` unchanged
   - failing suite remained `27/34` passing, `7` failing
+
+## Lesson: mthrowu drop-through path must preserve ship_object breaktest RNG
+
+- `seed325` at step `309` showed C `rn2(100)` from `obj_resists(zap.c)` while JS
+  advanced to the next movement-roll RNG.
+- Root cause: JS `mthrowu.drop_throw()` returned early for down-gate migration
+  (`!nodrop`) without calling `breaktest()`, while C `ship_object()` always runs
+  `breaktest()` before migration.
+- Fix: in JS `drop_throw()`, call `breaktest(obj)` on the migration path before
+  returning (to preserve `obj_resists()` RNG consumption and break semantics).
+- Impact:
+  - `seed325` first RNG/event divergence moved later from step `309` to `365`
+  - failing suite remained `27/34` passing, `7` failing (no regression in count)
