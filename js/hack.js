@@ -27,7 +27,7 @@ import { COLNO, ROWNO, STONE, DOOR, CORR, SDOOR, SCORR, STAIRS, LADDER, FOUNTAIN
 import { SQKY_BOARD, SLP_GAS_TRAP, FIRE_TRAP, PIT, SPIKED_PIT, ANTI_MAGIC, TELEP_TRAP,
          ARROW_TRAP, DART_TRAP, ROCKTRAP } from './const.js';
 import { defsyms, trap_to_defsym, PASSES_WALLS, M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
-import { rn2, rnd, rnl, d, c_d } from './rng.js';
+import { rn2, rnd, rn1, rnl, d, c_d } from './rng.js';
 import { exercise, registerNearCapacity } from './attrib_exercise.js';
 import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
          TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
@@ -2361,10 +2361,10 @@ export function slippery_ice_fumbling(player, map) {
     if (player.levitating) return;
     const loc = map.at(player.x, player.y);
     if (!loc || loc.typ !== ICE) return;
-    // Cold-resistant or flying heroes don't fumble
-    if (player.coldResistant || player.flying) return;
+    // C: snow boots, flying, floater/clinger/whirly exempt from ice fumbling
+    if (player.flying) return;
+    // C: Cold_resistance reduces chance (rn2(3) vs rn2(2)) but doesn't exempt
     if (!rn2(player.coldResistant ? 3 : 2)) {
-        // Fumbling flag would be set here in full implementation
         player.fumbling = true;
     }
 }
@@ -3328,7 +3328,7 @@ export async function dosinkfall(player, map, display) {
     }
     if (display) await display.putstr_message('You crash to the floor!');
     const con = acurr(player, A_CON);
-    const dmg = rn2(8) + Math.max(1, 25 - con); // rn1(8, 25-CON)
+    const dmg = rn1(8, 25 - con); // C: rn1(8, 25-ACURR(A_CON))
     if (typeof player.takeDamage === 'function') {
         player.takeDamage(dmg, 'fell onto a sink');
     }
