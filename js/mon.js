@@ -115,7 +115,7 @@ import { PIT, SPIKED_PIT, HOLE, S_poisoncloud, M_AP_NOTHING, M_AP_FURNITURE, M_A
 import { m_harmless_trap } from './trap.js';
 import { dist2, distmin, in_rooms } from './hack.js';
 import { monmoveTrace, monmoveStepLabel } from './monmove.js';
-import { monsterAtWithSegments } from './worm.js';
+import { monsterAtWithSegments, worm_cross } from './worm.js';
 import { ansimpleoname } from './objnam.js';
 import { game as _gstate } from './gstate.js';
 import { sengr_at, del_engr_at } from './engrave.js';
@@ -601,6 +601,17 @@ export function mfndpos(mon, map, player, flag) {
                 // C ref: rogue level diagonal check — no diagonal movement
                 const isRogueLevel = !!(map?.flags?.is_rogue || map?.flags?.roguelike || map?.flags?.is_rogue_lev);
                 if (isRogueLevel) continue;
+                // C ref: mon.c:2222-2225 — don't pass diagonally between
+                // adjacent long worm segments (unless attacking hero square).
+                const sideMonA = monsterAtWithSegments(map, omx, ny);
+                const sideMonB = monsterAtWithSegments(map, nx, omy);
+                const diagMon = monsterAtWithSegments(map, nx, ny);
+                if (sideMonA && sideMonB
+                    && worm_cross(omx, omy, nx, ny, map)
+                    && !diagMon
+                    && !(nx === player.x && ny === player.y)) {
+                    continue;
+                }
             }
 
             // C ref: mon.c:2236-2237 — LAVAWALL needs lavaok AND ALLOW_WALL
