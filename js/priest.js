@@ -656,12 +656,12 @@ export async function priest_talk(priest, map, player, display) {
 // mk_roamer — cf. priest.c:688
 // Creates an aligned cleric or angel minion at (x,y) with given alignment.
 // ============================================================================
-export function mk_roamer(ptr, alignment, x, y, peaceful, depth, map, player) {
+export async function mk_roamer(ptr, alignment, x, y, peaceful, depth, map, player) {
     const coaligned = ((player ? player.alignment : 0) || 0) === alignment;
 
     if (map && map.monsterAt && map.monsterAt(x, y)) {
         const existing = map.monsterAt(x, y);
-        if (existing) rloc(existing, RLOC_NOMSG, map, player);
+        if (existing) await rloc(existing, RLOC_NOMSG, map, player);
     }
 
     const roamer = makemon(ptr, x, y, MM_ADJACENTOK | MM_EMIN | MM_NOMSG, depth, map);

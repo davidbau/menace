@@ -1348,8 +1348,8 @@ export function meatcorpse(mon, map) {
 
 // C ref: mon.c:928 minliquid() — check if monster drowns/burns in liquid
 // Returns: 0 = survived, 1 = died
-export function minliquid(mon, map, player) {
-    return minliquid_core(mon, map, player);
+export async function minliquid(mon, map, player) {
+    return await minliquid_core(mon, map, player);
 }
 
 function split_mon_clone(mon, map, player) {
@@ -1396,7 +1396,7 @@ function split_mon_clone(mon, map, player) {
 }
 
 // C ref: mon.c:943 minliquid_core() — guts of minliquid
-function minliquid_core(mon, map, player) {
+async function minliquid_core(mon, map, player) {
     if (!mon || !map) return 0;
     const loc = map.at(mon.mx, mon.my);
     if (!loc) return 0;
@@ -1433,7 +1433,7 @@ function minliquid_core(mon, map, player) {
         if (!is_clinger(mdat) && !likes_lava(mdat)) {
             // Try teleport escape
             if (can_teleport(mdat) && !tele_restrict(mon, map)) {
-                if (rloc(mon, 0, map, player)) return 0;
+                if (await rloc(mon, 0, map, player)) return 0;
             }
             if (!resists_fire(mon)) {
                 // Burns to death
@@ -1453,7 +1453,7 @@ function minliquid_core(mon, map, player) {
         if (!is_clinger(mdat) && !cant_drown(mdat)) {
             // Try teleport escape
             if (can_teleport(mdat) && !tele_restrict(mon, map)) {
-                if (rloc(mon, 0, map, player)) return 0;
+                if (await rloc(mon, 0, map, player)) return 0;
             }
             // Drowns
             mondied(mon, map, player);
@@ -1620,20 +1620,20 @@ export function mon_givit(mon, ptr) {
 //   - flee timeout: in allmain.js
 //   - shapeshift: in allmain.js via runtimeDecideToShapeshift
 // This function handles the remaining blind/frozen timeouts.
-export function mcalcdistress(map, player) {
+export async function mcalcdistress(map, player) {
     if (!map || !Array.isArray(map.monsters)) return;
     for (const mon of map.monsters) {
         if (mon.dead) continue;
-        m_calcdistress(mon, map, player);
+        await m_calcdistress(mon, map, player);
     }
 }
 
 // C ref: mon.c:1162 m_calcdistress() — per-monster distress
-function m_calcdistress(mon, map, player) {
+async function m_calcdistress(mon, map, player) {
     // Non-moving monsters need liquid check
     const mdat = mon.data || mon.type || {};
     if ((mdat.mmove || 0) === 0) {
-        if (minliquid(mon, map, player)) return;
+        if (await minliquid(mon, map, player)) return;
     }
 
     // Blind timeout
@@ -1708,7 +1708,7 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                 `peace=${mon.peaceful ? 1 : 0}`,
                 `conf=${mon.confused ? 1 : 0}`);
             // C ref: mon.c:1250-1251 — minliquid() before gear/hider logic.
-            if (minliquid(mon, map, player)) continue;
+            if (await minliquid(mon, map, player)) continue;
             // C ref: mon.c:1254-1267 — monster may spend turn equipping gear (I_SPECIAL check)
             const I_SPECIAL = 0x20000000;
             if (mon.misc_worn_check & I_SPECIAL) {
@@ -2009,11 +2009,11 @@ export function ok_to_obliterate(mtmp, player) {
 }
 
 // Autotranslated from mon.c:3997
-export function maybe_mnexto(mtmp, player) {
+export async function maybe_mnexto(mtmp, player) {
   let mm = {x: 0, y: 0}, ptr = mtmp.data, diagok = !NODIAG(ptr - mons), tryct = 20;
   do {
     if (!enexto( mm, player.x, player.y, ptr)) return;
-    if (couldsee(mm.x, mm.y)   && (diagok || mm.x === mtmp.mx || mm.y === mtmp.my)) { rloc_to(mtmp, mm.x, mm.y); return; }
+    if (couldsee(mm.x, mm.y)   && (diagok || mm.x === mtmp.mx || mm.y === mtmp.my)) { await rloc_to(mtmp, mm.x, mm.y); return; }
   } while (--tryct > 0);
 }
 

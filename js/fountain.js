@@ -197,7 +197,7 @@ async function gush(x, y, poolcnt, player, map, display, fov) {
 
     const mtmp = map.monsterAt ? map.monsterAt(x, y) : null;
     if (mtmp)
-        minliquid(mtmp, map, player);
+        await minliquid(mtmp, map, player);
     else
         newsym(x, y);
 }

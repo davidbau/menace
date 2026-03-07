@@ -890,7 +890,7 @@ async function overexert_hp(game) {
         player.uhp -= 1;
     } else {
         await pline('You pass out from exertion!');
-        exercise(player, A_CON, false);
+        await exercise(player, A_CON, false);
         // fall_asleep(-10, false) — sleep timeout not fully ported
         // TODO: wire fall_asleep when available
     }

@@ -586,7 +586,7 @@ export async function make_familiar(otmp, x, y, quietly) {
     }
   } while (!mtmp && --trycnt > 0);
   if (!mtmp) return  0;
-  if (is_pool(mtmp.mx, mtmp.my) && minliquid(mtmp)) return  0;
+  if (is_pool(mtmp.mx, mtmp.my) && await minliquid(mtmp)) return  0;
   if (otmp) {
     chance = rn2(10);
     if (chance > 2) chance = otmp.blessed ? 0 : !otmp.cursed ? 1 : 2;
