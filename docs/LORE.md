@@ -3791,3 +3791,21 @@ hard-won wisdom:
     - `seed032_manual_direct` remained at prior first drift window (`step 89`).
   - These are correctness cleanups that close C/JS semantic gaps even though
     the remaining seed031 first drift is unchanged.
+
+### remove duplicate seer RNG scheduling in `run_command()` turn wrappers (2026-03-07)
+
+- Root cause:
+  - JS had `seerTurn` scheduling (`rn1(31,15)`) in multiple layers:
+    - canonical location in `moveloop_core()`,
+    - duplicated again in `run_command()` timed-turn wrappers.
+- C ref:
+  - `allmain.c` performs seer scheduling once in `moveloop_core()` after
+    turn advancement; command wrappers do not reschedule it.
+- Fix:
+  - removed duplicate `seerTurn` updates from `run_command()` prompt-timed and
+    `advanceTimedTurn()` paths, keeping seer scheduling solely in
+    `moveloop_core()`.
+- Validation:
+  - `node scripts/test-unit-core.mjs` passes;
+  - `./scripts/run-and-report.sh --failures` remains stable at `31/34`
+    passing (same failing trio).

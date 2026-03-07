@@ -573,10 +573,6 @@ export async function run_command(game, ch, opts = {}) {
                 const coreOpts = {};
                 if (skipMonsterMove) coreOpts.skipMonsterMove = true;
                 await moveloop_core(game, coreOpts);
-                const moves = game.turnCount + 1;
-                if (moves >= game.seerTurn) {
-                    game.seerTurn = moves + rn1(31, 15);
-                }
                 find_ac(game.u || game.player);
                 see_monsters(game.map);
                 if (onTimedTurn) {
@@ -665,12 +661,6 @@ export async function run_command(game, ch, opts = {}) {
     // Process one timed turn of world updates after a command consumed time.
     const advanceTimedTurn = async () => {
         await moveloop_core(game, coreOpts);
-        // C ref: allmain.c once-per-hero-took-time seer_turn scheduling.
-        // Keep moves offset consistent with existing turn counter semantics.
-        const moves = game.turnCount + 1;
-        if (moves >= game.seerTurn) {
-            game.seerTurn = moves + rn1(31, 15);
-        }
         // C ref: allmain.c:459-474 — "once-per-player-input" section.
         find_ac(game.u || game.player);
         // After monsters move, update display at every monster position.
