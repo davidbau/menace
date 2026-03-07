@@ -207,7 +207,7 @@ export function remove_mon_from_bones(map) {
         // C ref: bones.c:171 — remove temple priests (ispriest)
         if (mon.ispriest) return false;
         // C ref: bones.c:180 — remove unique monsters
-        if (mon.type && (mon.type.geno & 0x8000)) return false; // G_UNIQ
+        if ((mon.data || mon.type) && ((mon.data || mon.type).geno & 0x8000)) return false; // G_UNIQ
         return true;
     });
 }
