@@ -59,7 +59,7 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
          FREE_ACTION, SLOW_DIGESTION,
          TELEPORT, TELEPORT_CONTROL, POLYMORPH, POLYMORPH_CONTROL,
          PROT_FROM_SHAPE_CHANGERS,
-         DRAIN_RES, SICK_RES, STONE_RES, INFRAVISION,
+         DRAIN_RES, SICK_RES, STONE_RES, INFRAVISION, ANTIMAGIC,
          TIMEOUT, TT_BEARTRAP, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL } from './const.js';
 import { set_itimeout, incr_itimeout } from './potion.js';
 import { float_down } from './trap.js';
@@ -272,7 +272,8 @@ function Cloak_on(player) {
         }
         break;
     case CLOAK_OF_MAGIC_RESISTANCE:
-        // Magic resistance is passive — no uprops tracking needed yet
+        // C ref: EAntimagic (extrinsic ANTIMAGIC while worn)
+        toggle_extrinsic(player, ANTIMAGIC, true);
         break;
     case CLOAK_OF_PROTECTION:
         // C ref: makeknown(player.cloak->otyp);
@@ -302,6 +303,8 @@ function Cloak_off(player) {
         }
         break;
     case CLOAK_OF_MAGIC_RESISTANCE:
+        // C ref: remove EAntimagic when cloak is taken off
+        toggle_extrinsic(player, ANTIMAGIC, false);
         break;
     case CLOAK_OF_PROTECTION:
         break;

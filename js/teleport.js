@@ -19,9 +19,9 @@ import {
     NO_MM_FLAGS, MM_IGNOREWATER, MM_IGNORELAVA,
     GP_CHECKSCARY, GP_ALLOW_U, GP_AVOID_MONPOS, GP_ALLOW_XY,
     RLOC_NONE, RLOC_NOMSG, RLOC_MSG, RLOC_TELE, RLOC_ERR,
-    TELEDS_TELEPORT,
+    TELEDS_TELEPORT, ANTIMAGIC,
 } from './const.js';
-import { BOULDER } from './objects.js';
+import { BOULDER, CLOAK_OF_MAGIC_RESISTANCE } from './objects.js';
 import { M1_SWIM, M1_AMPHIBIOUS, M1_FLY, M1_WALLWALK, M1_AMORPHOUS, M2_ROCKTHROW, S_EEL } from './monsters.js';
 import { rn2, rnd, rn1 } from './rng.js';
 import { is_pool, is_lava, is_waterwall } from './dbridge.js';
@@ -59,6 +59,14 @@ export function noteleport_level(mon, map) {
     // Simplified: check map.flags.noteleport
     if (map && map.flags && map.flags.noteleport) return true;
     return false;
+}
+
+function hasAntimagic(player) {
+    if (!player) return false;
+    const prop = player.uprops?.[ANTIMAGIC];
+    return !!(player.antimagic || player.Antimagic
+        || prop?.intrinsic || prop?.extrinsic
+        || player?.cloak?.otyp === CLOAK_OF_MAGIC_RESISTANCE);
 }
 
 // ============================================================================
@@ -750,8 +758,8 @@ export async function safe_teleds(flags, game) {
 // ============================================================================
 
 // Autotranslated from teleport.c:836
-export async function tele() {
-  await scrolltele( 0);
+export async function tele(game) {
+  await scrolltele(0, game);
 }
 
 // ============================================================================
@@ -882,7 +890,7 @@ export async function tele_trap(trap, game) {
 
     try {
         // cf. teleport.c:1497 — endgame or antimagic resistance
-        if (player.antimagic) {
+        if (hasAntimagic(player)) {
             await pline("You feel a wrenching sensation.");
             return;
         }
@@ -897,16 +905,20 @@ export async function tele_trap(trap, game) {
         }
 
         // cf. teleport.c:1507 — fixed-destination teleport
-        if (isok(trap.teledest_x, trap.teledest_y)) {
-            const mtmp = map.monsterAt(trap.teledest_x, trap.teledest_y);
+        const tx = Number.isInteger(trap?.teledest_x) ? trap.teledest_x
+            : (Number.isInteger(trap?.teledest?.x) ? trap.teledest.x : -1);
+        const ty = Number.isInteger(trap?.teledest_y) ? trap.teledest_y
+            : (Number.isInteger(trap?.teledest?.y) ? trap.teledest.y : -1);
+        if (isok(tx, ty)) {
+            const mtmp = map.monsterAt(tx, ty);
             if (mtmp) {
                 const dest = enexto(mtmp.mx, mtmp.my, mtmp.data, map, player);
                 if (dest.found) {
                     await rloc_to(mtmp, dest.x, dest.y, map, player);
                 }
             }
-            if (!map.monsterAt(trap.teledest_x, trap.teledest_y)) {
-                await teleds(trap.teledest_x, trap.teledest_y, TELEDS_TELEPORT, game);
+            if (!map.monsterAt(tx, ty)) {
+                await teleds(tx, ty, TELEDS_TELEPORT, game);
             }
             return;
         }
@@ -930,7 +942,7 @@ export async function level_tele_trap(trap, trflags, game) {
     await pline("You step onto a level teleport trap!");
 
     // cf. teleport.c:1545 — antimagic resistance
-    if (player.antimagic && !intentional) {
+    if (hasAntimagic(player) && !intentional) {
         await pline("You feel a wrenching sensation.");
         return;
     }

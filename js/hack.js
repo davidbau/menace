@@ -56,8 +56,7 @@ import { drag_ball as drag_ball_core } from './ball.js';
 import { pline, Norep, You, You_feel, You_cant, You_hear, set_msg_xy } from './pline.js';
 import { look_here, dfeature_at } from './invent.js';
 import { maybe_unhide_at } from './mon.js';
-import { safe_teleds } from './teleport.js';
-import { TELEDS_ALLOW_DRAG, TELEDS_TELEPORT } from './const.js';
+import { tele_trap } from './teleport.js';
 import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP } from './const.js';
 import { MZ_LARGE, PM_GRID_BUG, PM_ANGEL, G_UNIQ, AT_WEAP } from './monsters.js';
 import { stackobj } from './invent.js';
@@ -65,7 +64,7 @@ import { thitu } from './mthrowu.js';
 import { dmgval } from './weapon.js';
 import { poisoned, acurr, acurrstr } from './attrib.js';
 import { intemple } from './priest.js';
-import { t_missile, seetrap, conjoined_pits, adj_nonconjoined_pit, into_vs_onto,
+import { t_missile, seetrap, conjoined_pits, adj_nonconjoined_pit, into_vs_onto, floor_trigger,
        } from './trap.js';
 import { envFlag } from './runtime_env.js';
 import { autokey, pick_lock } from './lock.js';
@@ -914,6 +913,11 @@ export async function domove_core(dir, player, map, display, game) {
         if (!trap) return null;
         const wasSeen = !!trap.tseen;
         const trapType = trap.ttyp;
+        const teleDestX = Number.isInteger(trap?.teledest_x) ? trap.teledest_x
+            : (Number.isInteger(trap?.teledest?.x) ? trap.teledest.x : -1);
+        const teleDestY = Number.isInteger(trap?.teledest_y) ? trap.teledest_y
+            : (Number.isInteger(trap?.teledest?.y) ? trap.teledest.y : -1);
+        const forceTrap = (trapType === TELEP_TRAP) && isok(teleDestX, teleDestY);
         // C ref: trap.c dotrap() seen-trap escape gate (trap.c:2962-2970).
         // Without this, JS can apply full trap effects (e.g. teleport) where C
         // spends rn2(5) and escapes the trap instead.
@@ -925,9 +929,26 @@ export async function domove_core(dir, player, map, display, game) {
         const youdata = player.youmonst
             ? (player.youmonst.type || mons[player.youmonst.mndx]) : null;
         const clinging = !!(youdata && is_clinger(youdata));
-        if (wasSeen && !fumbling && !undestroyable && trapType !== ANTI_MAGIC
-            && !conjPit && !adjPit
-            && (!rn2(5) || (is_pit(trapType) && clinging))) {
+        const lev = !!(player?.Levitation || player?.levitating);
+        const fly = !!(player?.Flying || player?.flying);
+        if (!forceTrap && (lev || fly) && floor_trigger(trapType)) {
+            if (wasSeen) {
+                const det = (trapType === ARROW_TRAP && !trap.madeby_u) ? 'an'
+                    : (trap.madeby_u ? 'your' : 'that');
+                const trapDesc = defsyms[trap_to_defsym(trapType)]?.explanation
+                    || defsyms[trap_to_defsym(trapType)]?.desc
+                    || 'trap';
+                await You(`${fly ? 'fly' : 'float'} over ${det} ${trapDesc}.`);
+            }
+            return trap;
+        }
+        let seenEscapeRoll = null;
+        if (!forceTrap && wasSeen && !fumbling && !undestroyable && trapType !== ANTI_MAGIC
+            && !conjPit && !adjPit) {
+            seenEscapeRoll = rn2(5);
+        }
+        if (seenEscapeRoll !== null
+            && (seenEscapeRoll === 0 || (is_pit(trapType) && clinging))) {
             const trapDesc = defsyms[trap_to_defsym(trapType)]?.explanation
                 || defsyms[trap_to_defsym(trapType)]?.desc
                 || 'trap';
@@ -1073,7 +1094,7 @@ export async function domove_core(dir, player, map, display, game) {
         }
         // C ref: trap.c dotrap() TELEP_TRAP -> teleds/safe_teleds path.
         else if (trap.ttyp === TELEP_TRAP) {
-            await safe_teleds(TELEDS_ALLOW_DRAG | TELEDS_TELEPORT, game);
+            await tele_trap(trap, game);
             return 'teleported';
         }
         // C ref: trap.c dotrap() -> fall_through(TRUE, ...)

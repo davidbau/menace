@@ -1000,7 +1000,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
     // C ref: dogmove.c:1024-1030 — dog_invent before dog_goal
     // When dog_invent returns 1 (ate), C does goto newdogpos.
     // Since nix==omx at that point, no movement occurs — return MMOVE_MOVED.
-    if (edog) {
+    if (edogRaw) {
         const invResult = await dog_invent(mon, edog, udist, map, turnCount, display, player, fov);
         if (invResult === 1) return 1; // ate — C: goto newdogpos, no movement
         if (invResult === 2) return 0; // died
@@ -1149,7 +1149,11 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
             // C ref: dogmove.c:575-578 — approach check
             const playerLoc = map.at(player.x, player.y);
             const playerInRoom = playerLoc && IS_ROOM(playerLoc.typ);
-            if (!playerInRoom || !rn2(4) || whappr
+            let followRoll = null;
+            if (playerInRoom) {
+                followRoll = rn2(4);
+            }
+            if (!playerInRoom || !followRoll || whappr
                 || (dogHasMinvent && rn2(edog.apport))) {
                 appr = 1;
             }
