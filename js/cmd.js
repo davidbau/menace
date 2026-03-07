@@ -10,7 +10,7 @@ import { A_STR, A_DEX, A_CON, A_WIS, STATUS_ROW_1,
 import { rn2, rnl } from './rng.js';
 import { handleWizLoadDes, wizLevelChange, wizMap, wizTeleport, wizGenesis, wizWish } from './wizcmds.js';
 import { handleThrow, handleFire } from './dothrow.js';
-import { handleKnownSpells } from './spell.js';
+import { handleKnownSpells, docast } from './spell.js';
 import { handleEngrave } from './engrave.js';
 import { handleApply } from './apply.js';
 import { COIN_CLASS } from './objects.js';
@@ -462,6 +462,12 @@ export async function rhack(ch, game) {
     // C ref: spell.c dovspell()
     if (c === '+') {
         return await handleKnownSpells(player, display);
+    }
+
+    // Cast spell (Z)
+    // C ref: spell.c docast()
+    if (c === 'Z') {
+        return await docast(player, display, map);
     }
 
     // Version (v)

@@ -111,6 +111,7 @@ function putCursor(display, x, y) {
     const { col, row } = screenPosForMap(display, x, y);
     const prev = getCell(display, col, row);
     if (typeof display?.setCell === 'function') display.setCell(col, row, 'X', 14, 0);
+    if (typeof display?.setCursor === 'function') display.setCursor(col, row);
     flush_screen(0); // C ref: getpos.c:660,854,863,1149 — flush tty after cursor move
     return { col, row, prev };
 }
@@ -125,6 +126,9 @@ function restoreCursor(display, cursorState) {
             cursorState.prev.color,
             cursorState.prev.attr || 0
         );
+    }
+    if (typeof display?.setCursor === 'function') {
+        display.setCursor(cursorState.col, cursorState.row);
     }
     flush_screen(0); // C ref: getpos.c:660,854,863,1149 — flush tty after cursor move
 }
@@ -511,6 +515,8 @@ async function getpos_cycle_target(display, map, gloc, cx, cy, dir, ctx) {
 export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
     const runtimeCtx = normalizeGetposContext(ctx);
     const display = runtimeCtx.display;
+    const flags = runtimeCtx.flags || {};
+    const player = runtimeCtx.player || null;
     if (!ccp || typeof ccp !== 'object') return -1;
 
     let cx = Number.isInteger(ccp.x) ? ccp.x : 1;
@@ -520,9 +526,23 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
         cy = 0;
     }
 
+    let showGoalMsg = false;
+    let verbosePrefix = '';
     if (typeof display?.putstr_message === 'function') {
-        const promptGoal = goal || runtimeCtx.goalPrompt || 'desired location';
-        await display.putstr_message(`Move cursor to ${promptGoal}:`);
+        // C ref: getpos.c emits one-time tip + verbose instructions before the
+        // goal prompt; this ordering creates real --More-- boundaries in replay.
+        if (player) {
+            player._tipsShown = player._tipsShown || {};
+            if (!player._tipsShown.getpos) {
+                player._tipsShown.getpos = true;
+                await display.putstr_message('Tip: Farlooking or selecting a map location');
+                showGoalMsg = true;
+            }
+        }
+        if (flags.verbose) {
+            verbosePrefix = "(For instructions type a '?')  ";
+            showGoalMsg = true;
+        }
     }
     if (getpos_hilitefunc && getpos_hilite_state === HiliteGoodposSymbol && !hiliteOn) {
         callHilite(true);
@@ -534,6 +554,14 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
     let targetFilter = 'all';
     try {
         for (;;) {
+            if (showGoalMsg && typeof display?.putstr_message === 'function') {
+                const promptGoal = goal || runtimeCtx.goalPrompt || 'desired location';
+                await display.putstr_message(`${verbosePrefix}Move cursor to ${promptGoal}:`);
+                verbosePrefix = '';
+                restoreCursor(display, cursorState);
+                cursorState = putCursor(display, cx, cy);
+                showGoalMsg = false;
+            }
             const ch = await nhgetch();
             const c = String.fromCharCode(ch);
 
@@ -669,6 +697,8 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 }
                 if (typeof display?.putstr_message === 'function') {
                     await display.putstr_message(`Can't find dungeon feature '${c}'.`);
+                    restoreCursor(display, cursorState);
+                    cursorState = putCursor(display, cx, cy);
                 }
                 continue;
             }

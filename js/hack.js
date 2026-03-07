@@ -1707,8 +1707,8 @@ export async function dotravel(game) {
 
     await display.putstr_message('Where do you want to travel to?');
     const cc = { x: player.x, y: player.y };
-    const result = await getpos_async(cc, true, 'travel to', {
-        map, display, flags: game.flags, goalPrompt: 'travel to', player
+    const result = await getpos_async(cc, true, 'the desired destination', {
+        map, display, flags: game.flags, goalPrompt: 'the desired destination', player
     });
     if (result < 0) {
         await display.putstr_message('Travel cancelled.');
@@ -1722,6 +1722,15 @@ export async function dotravel(game) {
     game.travelY = cursorY;
     ctx.travel = 1;
     ctx.travel1 = 1;
+
+    // C ref: cmd.c dotravel_target() early u_at(iflags.travelcc) check.
+    // If destination is current hero position, do not enter travel mode.
+    if (cursorX === player.x && cursorY === player.y) {
+        await display.putstr_message('You are already here.');
+        ctx.travel = 0;
+        ctx.travel1 = 0;
+        return { moved: false, tookTime: false };
+    }
 
     // C-style travel setup: first strict travel mode, then guess mode.
     if (!await findtravelpath(TRAVP_TRAVEL, game) && !await findtravelpath(TRAVP_GUESS, game)) {
