@@ -38,7 +38,7 @@ import { hcolor, hliquid, rndmonnam, Monnam } from './do_name.js';
 import { an } from './objnam.js';
 import { body_part } from './polyself.js';
 import { FACE, HAND, LEG, STOMACH } from './const.js';
-import { IS_SINK, IS_ALTAR } from './const.js';
+import { IS_SINK, IS_ALTAR, AM_NONE, Align2amask } from './const.js';
 import { newsym, mark_vision_dirty, vision_recalc } from './display.js';
 import { digests, touch_petrifies, is_rider, is_reviver, throws_rocks, passes_walls, is_whirly } from './mondata.js';
 import { mons, S_ZOMBIE, NON_PM, PM_DEATH, PM_PESTILENCE, PM_FAMINE,
@@ -467,8 +467,10 @@ export async function polymorph_sink(player, map) {
         break;
     case 2: {
         loc.typ = ALTAR;
-        const algn = rn2(3) - 1; // -1, 0, or +1
-        loc.altarmask = algn + 1; // simplified alignment mask
+        // C ref: do.c:431-438 — rn2(3)-1 for alignment, second rn2(3) in Gehennom
+        const algn = rn2(3) - 1; // -1 (A_Cha) or 0 (A_Neu) or +1 (A_Law)
+        const inhell = !!(map && map.flags && map.flags.inhell);
+        loc.altarmask = (inhell && rn2(3)) ? AM_NONE : Align2amask(algn);
         await pline_The("sink transforms into an altar!");
         break;
     }
