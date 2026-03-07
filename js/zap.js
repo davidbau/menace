@@ -360,9 +360,11 @@ function zhitm(mon, type, nd, map) {
         }
         tmp = d(nd, 6);
         if (mdat.mresists & MR_COLD) tmp += 7; // cold-resistant takes extra fire
-        // C ref: if (burnarmor(mtmp) || rn2(3)) { destroy_items }
-        if (burnarmor(mon) || rn2(3)) {
-            // destroy_items — stub: rn2(3) consumed for fire damage
+        // C ref: if (burnarmor(mtmp)) { if (!rn2(3)) { destroy_items } }
+        if (burnarmor(mon)) {
+            if (!rn2(3)) {
+                // destroy_items — stub: item destruction not ported
+            }
         }
         break;
     case ZT_COLD:
@@ -1191,7 +1193,8 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
       // C ref: zap.c:4938-4993 — beam bounce off walls
       if (loc && (IS_WALL(loc.typ) || IS_DOOR(loc.typ))) {
         // Bounce logic
-        const bchance = IS_WALL(loc.typ) ? 75 : 75;
+        // C ref: STONE→10, mine walls→20, else→75
+        const bchance = (loc.typ === 0 /*STONE*/) ? 10 : IS_WALL(loc.typ) ? 75 : 75;
         if (!dx || !dy || !rn2(bchance)) {
           dx = -dx;
           dy = -dy;

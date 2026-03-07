@@ -34,6 +34,7 @@ import { DISP_ALWAYS, DISP_END } from './const.js';
 import { mark_vision_dirty } from './vision.js';
 import { float_up, float_down } from './trap.js';
 import { float_vs_flight } from './polyself.js';
+import { rndexp } from './exper.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
 import { trycall } from './do.js';
 
@@ -636,7 +637,8 @@ export async function peffect_gain_level(player, otmp, display) {
     player.ulevel = (player.ulevel || 1) + 1;
     await You_feel("more experienced.");
     // C: blessed also calls rndexp(TRUE) to randomize experience
-    // (deferred: rndexp not yet implemented)
+    if (otmp.blessed)
+        player.uexp = rndexp(player, true);
     return false;
 }
 
