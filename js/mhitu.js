@@ -61,6 +61,7 @@ import { rloc, tele_restrict } from './teleport.js';
 import { RLOC_MSG } from './const.js';
 import { s_suffix } from './hacklib.js';
 import { find_ac } from './do_wear.js';
+import { done_in_by } from './end.js';
 
 const PIERCE = 1;
 
@@ -1207,30 +1208,12 @@ export async function mattacku(monster, player, display, game = null, opts = {})
             const died = player.takeDamage(mhm.damage, x_monnam(monster));
 
             if (died) {
-                if (player.wizard) {
-                    // cf. end.c savelife() for wizard/discover survival path.
-                    const con = Number.isInteger(player.attributes?.[A_CON])
-                        ? player.attributes[A_CON]
-                        : 10;
-                    const givehp = 50 + 10 * Math.floor(con / 2);
-                    player.uhp = Math.min(player.uhpmax || givehp, givehp);
-                    if (display) {
-                        if (typeof display.clearRow === 'function') display.clearRow(0);
-                        display.topMessage = null;
-                        display.messageNeedsMore = false;
-                        await display.putstr_message('OK, so you don\'t die.');
-                    }
-                    if (game) {
-                        game.nomovemsg = 'You survived that attempt on your life.';
-                        game.multi = -1;
-                        game._stopMoveloopAfterLifesave = true;
-                        game.multi_reason = 'attempting to cheat Death';
-                        game._suppressMonsterHitMessagesThisTurn = true;
-                    }
-                } else {
-                    player.deathCause = `killed by a ${x_monnam(monster)}`;
-                    await display.putstr_message('You die...');
+                player.deathCause = `killed by a ${x_monnam(monster)}`;
+                await display.putstr_message('You die...');
+                if (game) {
+                    game.playerDied = true;
                 }
+                await done_in_by(monster, 0, game);
                 break;
             }
         }
@@ -1872,27 +1855,12 @@ export async function mdamageu(mtmp, n, player, display, game = null) {
     if (n > 0 && player.takeDamage) {
         const died = player.takeDamage(n, x_monnam(mtmp));
         if (died) {
-            if (player.wizard) {
-                // Wizard mode survival
-                const con = (player.attributes && player.attributes[A_CON]) || 10;
-                const givehp = 50 + 10 * Math.floor(con / 2);
-                player.uhp = Math.min(player.uhpmax || givehp, givehp);
-                if (display) {
-                    if (typeof display.clearRow === 'function') display.clearRow(0);
-                    display.topMessage = null;
-                    display.messageNeedsMore = false;
-                    await display.putstr_message('OK, so you don\'t die.');
-                }
-                if (game) {
-                    game.nomovemsg = 'You survived that attempt on your life.';
-                    game.multi = -1;
-                    game._stopMoveloopAfterLifesave = true;
-                    game.multi_reason = 'attempting to cheat Death';
-                }
-            } else {
-                player.deathCause = `killed by a ${x_monnam(mtmp)}`;
-                if (display) await display.putstr_message('You die...');
+            player.deathCause = `killed by a ${x_monnam(mtmp)}`;
+            if (display) await display.putstr_message('You die...');
+            if (game) {
+                game.playerDied = true;
             }
+            await done_in_by(mtmp, 0, game);
         }
     }
 }

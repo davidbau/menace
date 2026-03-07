@@ -145,6 +145,11 @@ export async function moveloop_core(game, opts = {}) {
                     game._stopMoveloopAfterLifesave = false;
                     break;
                 }
+                if (game?.playerDied) {
+                    forceStopMoveLoop = true;
+                    monscanmove = false;
+                    break;
+                }
                 if (player.umovement >= NORMAL_SPEED)
                     break; /* it's now your turn */
             } while (monscanmove);
@@ -155,10 +160,13 @@ export async function moveloop_core(game, opts = {}) {
             await deferred_goto(player, game);
             monscanmove = false;
         }
-        if (!monscanmove && player.umovement < NORMAL_SPEED && !forceStopMoveLoop) {
+        if (!monscanmove
+            && player.umovement < NORMAL_SPEED
+            && !forceStopMoveLoop
+            && !(game?.playerDied)) {
             await moveloop_turnend(game);
         }
-    } while (player.umovement < NORMAL_SPEED && !forceStopMoveLoop);
+    } while (player.umovement < NORMAL_SPEED && !forceStopMoveLoop && !(game?.playerDied));
 
     // C ref: vision_full_recalc set during monster turns (digs, door breaks, etc.) —
     // fire vision_recalc now so the display is current before screen capture.
@@ -175,12 +183,10 @@ export async function moveloop_core(game, opts = {}) {
     }
 
     // C ref: allmain.c end of moveloop_core — check for player death
-    if (player.isDead || player.uhp <= 0) {
+    if ((player.isDead || player.uhp <= 0) && game.gameOver) {
         if (!player.deathCause) {
             player.deathCause = 'died';
         }
-        game.gameOver = true;
-        game.gameOverReason = 'killed';
         if (typeof savebones === 'function') {
             savebones(game);
         }

@@ -3248,3 +3248,21 @@ hard-won wisdom:
   - `seed327_priest_wizard_gameplay`: RNG parity improved from `390/429` to
     `429/429` (now event/screen-only divergence frontier).
   - gameplay failures remained stable at `6` total.
+
+## Lesson: route monster-lethal flow through `end.c` path, not ad-hoc wizard bypass
+
+- C uses `done_in_by(..., DIED)`/`done()` death flow; wizard mode asks
+  `Die? [yn] (n)` instead of unconditional immediate survival.
+- JS had duplicated ad-hoc wizard bypass in `mhitu.js` (`OK, so you don't die.`),
+  which bypassed the canonical death flow and made turn-boundary control fragile.
+- Fixes:
+  - `js/mhitu.js`: lethal monster damage now calls `done_in_by(..., DIED, game)`.
+  - `js/end.js`: wizard death now installs a pending `Die? [yn] (n)` prompt.
+  - `js/end.js`: `savelife()` sets `_stopMoveloopAfterLifesave` so the current
+    movement loop halts after survival, mirroring C's stop-after-savelife behavior.
+  - `js/allmain.js`: `savebones()` is gated behind actual `game.gameOver` state,
+    avoiding premature death-side effects while prompt resolution is pending.
+- Validation impact:
+  - failing-session count remained stable (`28/34` passing, `6` failing).
+  - `seed331` frontier remains in monster-move divergence (`dochug` at late step),
+    so this was architectural correctness cleanup, not the final parity fix.

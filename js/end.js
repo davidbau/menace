@@ -359,6 +359,7 @@ function savelife(how, game) {
     game.multi_reason = (player.roleIndex === roles.findIndex(r => r?.name === 'Tourist'))
         ? "being toyed with by Fate"
         : "attempting to cheat Death";
+    game._stopMoveloopAfterLifesave = true;
 
     player.ugrave_arise = -1; // NON_PM
 }
@@ -427,12 +428,29 @@ export async function done(how, game) {
         }
     }
 
-    // Wizard/discover mode: offer to not die
-    // (In JS, we skip the paranoid_query and just let wizard mode survive)
+    // Wizard/discover mode: offer to not die.
     if (!survive && game.wizard && how <= GENOCIDED) {
-        await pline("OK, so you don't %s.", (how === CHOKING) ? "choke" : "die");
-        savelife(how, game);
-        survive = true;
+        await pline(`Die? [yn] (n)`);
+        game.pendingPrompt = {
+            type: 'wizard_die_confirm',
+            onKey: async (chCode, gameCtx) => {
+                if (chCode === 121 || chCode === 89) { // y/Y
+                    gameCtx.pendingPrompt = null;
+                    really_done(how, gameCtx);
+                    return { handled: true, moved: false, tookTime: false };
+                }
+                // default answer is "n": survive.
+                gameCtx.pendingPrompt = null;
+                savelife(how, gameCtx);
+                if (Object.hasOwn(gameCtx, 'playerDied')) {
+                    gameCtx.playerDied = false;
+                }
+                killer.name = '';
+                killer.format = KILLED_BY_AN;
+                return { handled: true, moved: false, tookTime: false };
+            },
+        };
+        return;
     }
 
     if (survive) {
