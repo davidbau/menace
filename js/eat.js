@@ -51,7 +51,7 @@ import { game as _gstate } from './gstate.js';
 import { applyMonflee } from './mhitu.js';
 import { obj_resists } from './objdata.js';
 import { compactInvletPromptChars } from './invent.js';
-import { pline, You, Your, You_feel, You_cant, pline_The, You_hear } from './pline.js';
+import { pline, You, Your, You_feel, You_cant, pline_The, You_hear, impossible } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, ensureAttrArrays, gainstr } from './attrib.js';
 import { nomul, end_running, near_capacity } from './hack.js';

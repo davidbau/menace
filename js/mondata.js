@@ -376,7 +376,7 @@ export function is_pet_type(ptr) {
 // C ref: mtmp->data = &mons[mtmp->mnum]
 export function monsdat(mon) {
     if (!mon) return null;
-    if (mon.type) return mon.type;
+    if (mon.data || mon.type) return mon.data || mon.type;
     if (Number.isInteger(mon.mndx)) return mons[mon.mndx] || null;
     if (Number.isInteger(mon.mnum)) return mons[mon.mnum] || null;
     return null;

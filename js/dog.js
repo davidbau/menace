@@ -31,6 +31,7 @@ import { obj_resists, is_organic, is_metallic, is_rustprone, hasPoisonTrapBit } 
 import {
     carnivorous, herbivorous, is_undead, is_elf,
     is_humanoid, acidic, poisonous, is_metallivore,
+    canseemon,
 } from './mondata.js';
 import { rn2, rn1 } from './rng.js';
 import { isok, ACCESSIBLE, COLNO, ROWNO, IS_DOOR, D_CLOSED, D_LOCKED,
@@ -45,6 +46,9 @@ import { NO_MINVENT, MAXMONNO } from './const.js';
 import { mksobj } from './mkobj.js';
 import { mpickobj } from './steal.js';
 import { mark_vision_dirty } from './display.js';
+import { pline, pline_The, pline_mon, You, impossible } from './pline.js';
+import { Monnam } from './do_name.js';
+import { s_suffix } from './hacklib.js';
 
 // Re-export dogmove.c functions that were previously defined here
 export { can_carry, dog_eat } from './dogmove.js';
