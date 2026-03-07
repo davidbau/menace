@@ -4172,3 +4172,20 @@ hard-won wisdom:
     - `AD_LEGS attack sets wounded legs state`
   - `node --test test/unit/combat.test.js` passes.
   - `./scripts/run-and-report.sh --failures` remains stable at `31/34` (no regression).
+
+### pager quick-look pre-getpos prompt now matches C (2026-03-07)
+
+- Divergence context:
+  - `seed033_manual_direct` showed farlook/getpos boundary drift where JS entered getpos without the C pre-prompt.
+  - This let subsequent space key handling drift (`Can't find dungeon feature ' '` path) and amplified later screen/RNG skew.
+- C behavior:
+  - in `pager.c do_look()`, screen look mode prints:
+    - verbose: `Please move the cursor to ...`
+    - non-verbose/quick: `Pick ...`
+  - then calls `getpos(...)` with verbose suppressed for quick mode.
+- Fix in [`js/pager.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/pager.js):
+  - always emits the C-style pre-getpos prompt in `from_screen` mode.
+  - passes `flags.verbose && !quick` into getpos context to mirror C quick-mode suppression.
+- Validation:
+  - added replay unit test [`test/unit/pager_quicklook_prompt.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/pager_quicklook_prompt.test.js) asserting `seed033` step-61 topline.
+  - failures sweep remains stable at `31/34` gameplay sessions passing (no regression vs baseline).

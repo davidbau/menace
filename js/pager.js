@@ -221,11 +221,19 @@ export async function do_look(game, mode = 0, click_cc = null) {
     do {
         if (from_screen || clicklook) {
             if (from_screen) {
-                if (!quick && flags?.verbose) {
-                    await display.putstr_message('Please move the cursor to a monster, object or location.');
-                }
-                ans = await getpos_async(cc, quick, 'a monster, object or location', {
-                    map, display, flags, goalPrompt: 'a monster, object or location', player
+                const whatIsALocation = 'a monster, object or location';
+                const getposVerbose = !!(flags?.verbose && !quick);
+                await display.putstr_message(
+                    getposVerbose
+                        ? `Please move the cursor to ${whatIsALocation}.`
+                        : `Pick ${whatIsALocation}.`
+                );
+                ans = await getpos_async(cc, quick, whatIsALocation, {
+                    map,
+                    display,
+                    flags: { ...(flags || {}), verbose: getposVerbose },
+                    goalPrompt: whatIsALocation,
+                    player
                 });
                 if (ans < 0 || cc.x < 0 || cc.y < 0) break;
             }
