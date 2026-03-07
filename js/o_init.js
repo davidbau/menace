@@ -7,6 +7,9 @@ import { strchr } from './hacklib.js';
 // randomize_gem_colors (3 rn2 calls), shuffle_all, WAN_NOTHING direction (1 rn2 call).
 
 import { rn2 } from './rng.js';
+import { exercise } from './attrib_exercise.js';
+import { A_WIS } from './const.js';
+import { game as _gstate } from './gstate.js';
 import { resetIdentCounter, doname } from './mkobj.js';
 import { nhgetch } from './input.js';
 import {
@@ -469,8 +472,24 @@ export function discoverObject(otyp, markAsKnown, markAsEncountered) {
         pushDisco(otyp);
         if (markAsEncountered) ocEncountered[otyp] = true;
         if (!ocNameKnown[otyp] && markAsKnown) ocNameKnown[otyp] = true;
-        // TODO: C ref: o_init.c:477 — exercise(A_WIS, TRUE) on object discovery
-        // Needs C-faithful guard: only when mark_as_known && ct>0 (class has other known items)
+        // C ref: o_init.c:477 — exercise(A_WIS, TRUE) on object discovery
+        // C guard: credit_clue && ct<NUM_OBJECTS (another item in class already known).
+        // JS: markAsKnown maps to C's mark_as_known; C's ini_inv passes credit_clue=FALSE
+        // so exercise never fires during chargen. We approximate with turnCount>0.
+        if (markAsKnown && _gstate && _gstate.turnCount > 0) {
+            const od = objectData[otyp];
+            if (od) {
+                const cls = od.oc_class;
+                // Check if any OTHER item in this class is already name-known
+                const classItems = discoByClass.get(cls);
+                const hasOtherKnown = classItems && classItems.some(
+                    t => t !== otyp && ocNameKnown[t]);
+                if (hasOtherKnown) {
+                    const player = _gstate.u || _gstate.player;
+                    if (player) exercise(player, A_WIS, true);
+                }
+            }
+        }
     }
 }
 
