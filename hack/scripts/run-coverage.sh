@@ -18,5 +18,9 @@ npx c8 \
   --include='hack/js/**' \
   node hack/test/replay_test.mjs --all hack/test/sessions/
 
+echo "Applying NetHack theme..."
+cp rogue/scripts/nethack.css hack/coverage/nethack.css
+node rogue/scripts/nethack-theme.mjs hack/coverage
+
 echo ""
 echo "Coverage report written to: hack/coverage/index.html"

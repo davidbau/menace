@@ -1,0 +1,121 @@
+/*
+ * nethack.css — Dark terminal theme for Istanbul coverage reports.
+ * Overlaid on top of base.css via a post-processing step.
+ */
+
+/* ── Base terminal look ──────────────────────────────────────────── */
+body, html {
+  background: #0a0a0a;
+  color: #c8c8c8;
+}
+body {
+  font-family: 'Courier New', Courier, 'Liberation Mono', monospace;
+  font-size: 14px;
+}
+h1 { color: #e0e0e0; letter-spacing: 0.05em; }
+h2 { color: #aaa; }
+a { color: #5bc8fa; }
+a:hover { color: #99e0ff; }
+.footer { color: #555; background: #0a0a0a; border-top: 1px solid #222; }
+.footer a { color: #888; }
+
+/* ── Status / wrapper ────────────────────────────────────────────── */
+.wrapper { background: #0a0a0a; }
+.pad1 { border-bottom: 1px solid #1e1e1e; }
+
+/* ── Stats header numbers ────────────────────────────────────────── */
+.strong { color: #e8e8e8; }
+.quiet  { color: #666; }
+.fraction {
+  background: #1a1a1a;
+  color: #888;
+  border: 1px solid #333;
+}
+
+/* ── Coverage table ──────────────────────────────────────────────── */
+.coverage-summary { color: #c8c8c8; }
+.coverage-summary tr { border-bottom: 1px solid #222; }
+.coverage-summary tbody { border: 1px solid #333; }
+.coverage-summary td { border-right: 1px solid #222; }
+.coverage-summary th { color: #888; border-bottom: 2px solid #333; }
+.keyline-all { border: 1px solid #333; }
+
+/* ── High / Medium / Low tiers ───────────────────────────────────── */
+
+/* High: dark-terminal green */
+.high, .cline-yes             { background: #071a07; color: #c8c8c8; }
+.status-line.high,
+.high .cover-fill             { background: #1a7a1a; }
+.high .chart                  { border: 1px solid #1a7a1a; }
+.cstat-yes                    { background: #0d3d0d; }
+td.high                       { color: #5ddc5d; }
+td.high a                     { color: #5ddc5d; }
+
+/* Medium: amber */
+.medium                       { background: #1a1400; color: #c8c8c8; }
+.status-line.medium,
+.medium .cover-fill           { background: #c88000; }
+.medium .chart                { border: 1px solid #c88000; }
+td.medium                     { color: #e0a030; }
+td.medium a                   { color: #e0a030; }
+
+/* Low: dim red */
+.low, .cline-no               { background: #1a0404; color: #c8c8c8; }
+.status-line.low,
+.low .cover-fill              { background: #8b1a1a; }
+.red.solid, .highlighted      { background: #8b1a1a !important; }
+.low .chart                   { border: 1px solid #8b1a1a; }
+.cstat-no, .fstat-no          { background: #3d0d0d; }
+.cbranch-no                   { background: #555500 !important; color: #ffff00; }
+td.low                        { color: #cc4040; }
+td.low a                      { color: #cc4040; }
+
+/* ── Progress bar ────────────────────────────────────────────────── */
+.cover-empty { background: #1a1a1a; }
+.chart { background: #1a1a1a; }
+
+/* ── Per-file source view ────────────────────────────────────────── */
+pre, pre.prettyprint { background: #0d0d0d; color: #c8c8c8; }
+.com { color: #555 !important; }
+.str { color: #8ec07c !important; }
+.kwd { color: #5bc8fa !important; }
+.typ { color: #98c379 !important; }
+.lit { color: #d19a66 !important; }
+.pun { color: #abb2bf !important; }
+span.cline-neutral { background: #111; }
+
+/* missing branch markers */
+.missing-if-branch {
+  background: #4a4a00;
+  color: #ffff00;
+}
+
+/* ── Search filter ────────────────────────────────────────────────── */
+#fileSearch {
+  background: #111;
+  border: 1px solid #444;
+  color: #c8c8c8;
+  padding: 3px 6px;
+  border-radius: 2px;
+}
+
+/* ── Fortune box ─────────────────────────────────────────────────── */
+.nh-fortune {
+  display: inline-block;
+  margin: 6px 0 4px 0;
+  padding: 4px 10px;
+  border: 1px solid #333;
+  border-radius: 2px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  font-style: italic;
+  white-space: pre-wrap;
+}
+.nh-bracket { font-style: normal; opacity: 0.5; }
+
+.nh-fortune.nh-perfect   { color: #5ddc5d; border-color: #1a7a1a; background: #071a07; }
+.nh-fortune.nh-excellent { color: #7dcf7d; border-color: #2a5a2a; background: #061206; }
+.nh-fortune.nh-good      { color: #c8c8c8; border-color: #336633; background: #0c120c; }
+.nh-fortune.nh-mediocre  { color: #e0a030; border-color: #6a5000; background: #120f00; }
+.nh-fortune.nh-poor      { color: #cc7040; border-color: #6a3020; background: #150800; }
+.nh-fortune.nh-dire      { color: #cc4040; border-color: #6a1a1a; background: #150404; }
