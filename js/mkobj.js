@@ -1566,8 +1566,8 @@ export function free_omonst(otmp) {
     let m = OMONST(otmp);
     if (m) {
       if (m.mextra) dealloc_mextra(m);
-      (m, 0);
-      OMONST(otmp) =  0;
+      // C: free(m) — JS garbage collects
+      OMONST(otmp) = null;
     }
   }
 }

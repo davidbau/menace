@@ -1271,7 +1271,7 @@ export async function handler_change_autocompletions() {
   let win, any, i, n, picks = null, clr = NO_COLOR, ec, buf;
   win = create_nhwindow(NHW_MENU);
   start_menu(win, MENU_BEHAVE_STANDARD);
-  any = cg.zeroany;
+  any = { a_int: 0 };
   for (i = 0; i < extcmdlist_length; i++) {
     ec = extcmdlist;
     if ((ec.flags & (INTERNALCMD|CMD_NOT_AVAILABLE)) !== 0) {
@@ -1517,7 +1517,7 @@ export async function readchar(player) {
 // Autotranslated from cmd.c:5511
 export function yn_func_menu_opt(win, key, text, def) {
   let any;
-  any = cg.zeroany;
+  any = { a_int: 0 };
   any.a_char = key;
   add_menu(win, nul_glyphinfo, any, key, 0, ATR_NONE, NO_COLOR, text, (def === key) ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
 }

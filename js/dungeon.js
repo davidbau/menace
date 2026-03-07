@@ -5121,7 +5121,7 @@ export function tport_menu(win, entry, lchoices, lvl_p, cannotreach) {
   lchoices.lev = lvl_p.dlevel;
   lchoices.dgn = lvl_p.dnum;
   lchoices.playerlev = depth(lvl_p);
-  any = cg.zeroany;
+  any = { a_int: 0 };
   if (cannotreach) { tmpbuf = ` ${entry}`; entry = tmpbuf; }
   else { any.a_int = lchoices.idx + 1; }
   add_menu(win, nul_glyphinfo, any, lchoices.menuletter, 0, ATR_NONE, clr, entry, MENU_ITEMFLAGS_NONE);

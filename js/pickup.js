@@ -915,7 +915,7 @@ export async function in_or_out_menu(prompt, obj, outokay, inokay, alreadyused, 
   let lootchars = "_:oibrsnq", abc_chars = "_:abcdenq", win, any, pick_list;
   let buf, n, menuselector = game.flags.lootabc ? abc_chars : lootchars;
   let clr = NO_COLOR;
-  any = cg.zeroany;
+  any = { a_int: 0 };
   win = create_nhwindow(NHW_MENU);
   start_menu(win, MENU_BEHAVE_STANDARD);
   any.a_int = 1;

@@ -238,7 +238,7 @@ export function exp_percentage(player) {
     else {
       let curval, maxval;
       curval.anytype = maxval.anytype = ANY_LONG;
-      curval.a = maxval.a = cg.zeroany;
+      curval.a = maxval.a = { a_int: 0 };
       curval.a.a_long = exp_val;
       maxval.a.a_long = nxt_exp_val;
       curval.fld = maxval.fld = BL_EXP;
@@ -297,7 +297,7 @@ export async function query_arrayvalue(querystr, arr, arrmin, arrmax) {
     if (!arr) {
       continue;
     }
-    any = cg.zeroany;
+    any = { a_int: 0 };
     any.a_int = i + adj;
     add_menu(tmpwin, nul_glyphinfo, any, 0, 0, ATR_NONE, clr, arr, MENU_ITEMFLAGS_NONE);
   }
@@ -333,7 +333,7 @@ export async function query_conditions() {
   tmpwin = create_nhwindow(NHW_MENU);
   start_menu(tmpwin, MENU_BEHAVE_STANDARD);
   for (i = 0; i < SIZE(conditions); i++) {
-    any = cg.zeroany;
+    any = { a_int: 0 };
     any.a_ulong = conditions[i].mask;
     add_menu(tmpwin, nul_glyphinfo, any, 0, 0, ATR_NONE, clr, conditions[i].text, MENU_ITEMFLAGS_NONE);
   }
@@ -485,7 +485,7 @@ export async function status_hilite_menu_choose_field(game) {
     if (initblstats[i].fld === BL_SCORE && !game.gb.blstats[0][BL_SCORE].thresholds) {
       continue;
     }
-    any = cg.zeroany;
+    any = { a_int: 0 };
     any.a_int = (i + 1);
     add_menu(tmpwin, nul_glyphinfo, any, 0, 0, ATR_NONE, clr, initblstats[i].fldname, MENU_ITEMFLAGS_NONE);
   }
@@ -505,46 +505,46 @@ export async function status_hilite_menu_choose_behavior(fld) {
   tmpwin = create_nhwindow(NHW_MENU);
   start_menu(tmpwin, MENU_BEHAVE_STANDARD);
   if (fld !== BL_CONDITION) {
-    any = cg.zeroany;
+    any = { a_int: 0 };
     any.a_int = onlybeh = BL_TH_ALWAYS_HILITE;
     buf = `Always highlight ${initblstats[fld].fldname}`;
     add_menu(tmpwin, nul_glyphinfo, any, 'a', 0, ATR_NONE, clr, buf, MENU_ITEMFLAGS_NONE);
     nopts++;
   }
   if (fld === BL_CONDITION) {
-    any = cg.zeroany;
+    any = { a_int: 0 };
     any.a_int = onlybeh = BL_TH_CONDITION;
     add_menu(tmpwin, nul_glyphinfo, any, 'b', 0, ATR_NONE, clr, "Bitmask of conditions", MENU_ITEMFLAGS_NONE);
     nopts++;
   }
   if (fld !== BL_CONDITION && fld !== BL_VERS) {
-    any = cg.zeroany;
+    any = { a_int: 0 };
     any.a_int = onlybeh = BL_TH_UPDOWN;
     buf = `${initblstats[fld].fldname} value changes`;
     add_menu(tmpwin, nul_glyphinfo, any, 'c', 0, ATR_NONE, clr, buf, MENU_ITEMFLAGS_NONE);
     nopts++;
   }
   if (fld !== BL_CAP && fld !== BL_HUNGER && (at === ANY_INT || at === ANY_LONG)) {
-    any = cg.zeroany;
+    any = { a_int: 0 };
     any.a_int = onlybeh = BL_TH_VAL_ABSOLUTE;
     add_menu(tmpwin, nul_glyphinfo, any, 'n', 0, ATR_NONE, clr, "Number threshold", MENU_ITEMFLAGS_NONE);
     nopts++;
   }
   if (initblstats[fld].idxmax >= 0) {
-    any = cg.zeroany;
+    any = { a_int: 0 };
     any.a_int = onlybeh = BL_TH_VAL_PERCENTAGE;
     add_menu(tmpwin, nul_glyphinfo, any, 'p', 0, ATR_NONE, clr, "Percentage threshold", MENU_ITEMFLAGS_NONE);
     nopts++;
   }
   if (fld === BL_HP) {
-    any = cg.zeroany;
+    any = { a_int: 0 };
     any.a_int = onlybeh = BL_TH_CRITICALHP;
     buf = `Highlight critically low ${initblstats[fld].fldname}`;
     add_menu(tmpwin, nul_glyphinfo, any, 'C', 0, ATR_NONE, clr, buf, MENU_ITEMFLAGS_NONE);
     nopts++;
   }
   if (initblstats[fld].anytype === ANY_STR || fld === BL_CAP || fld === BL_HUNGER) {
-    any = cg.zeroany;
+    any = { a_int: 0 };
     any.a_int = onlybeh = BL_TH_TEXTMATCH;
     buf = `${initblstats[fld].fldname} text match`;
     add_menu(tmpwin, nul_glyphinfo, any, 't', 0, ATR_NONE, clr, buf, MENU_ITEMFLAGS_NONE);
@@ -575,12 +575,12 @@ export async function status_hilite_menu_choose_updownboth(fld, str, ltok, gtok)
     else {
       buf = "Value goes down";
     }
-    any = cg.zeroany;
+    any = { a_int: 0 };
     any.a_int = 10 + LT_VALUE;
     add_menu(tmpwin, nul_glyphinfo, any, 0, 0, ATR_NONE, clr, buf, MENU_ITEMFLAGS_NONE);
     if (str) {
       buf = `${str} or ${(fld === BL_AC) ? "better (lower)" : "less"}`;
-      any = cg.zeroany;
+      any = { a_int: 0 };
       any.a_int = 10 + LE_VALUE;
       add_menu(tmpwin, nul_glyphinfo, any, 0, 0, ATR_NONE, clr, buf, MENU_ITEMFLAGS_NONE);
     }
@@ -591,13 +591,13 @@ export async function status_hilite_menu_choose_updownboth(fld, str, ltok, gtok)
   else {
     buf = "Value changes";
   }
-  any = cg.zeroany;
+  any = { a_int: 0 };
   any.a_int = 10 + EQ_VALUE;
   add_menu(tmpwin, nul_glyphinfo, any, 0, 0, ATR_NONE, clr, buf, MENU_ITEMFLAGS_NONE);
   if (gtok) {
     if (str) {
       buf = `${str} or ${(fld === BL_AC) ? "worse (higher)" : "more"}`;
-      any = cg.zeroany;
+      any = { a_int: 0 };
       any.a_int = 10 + GE_VALUE;
       add_menu(tmpwin, nul_glyphinfo, any, 0, 0, ATR_NONE, clr, buf, MENU_ITEMFLAGS_NONE);
     }
@@ -607,7 +607,7 @@ export async function status_hilite_menu_choose_updownboth(fld, str, ltok, gtok)
     else {
       buf = "Value goes up";
     }
-    any = cg.zeroany;
+    any = { a_int: 0 };
     any.a_int = 10 + GT_VALUE;
     add_menu(tmpwin, nul_glyphinfo, any, 0, 0, ATR_NONE, clr, buf, MENU_ITEMFLAGS_NONE);
   }

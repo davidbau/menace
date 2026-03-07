@@ -335,7 +335,7 @@ export async function choose_disco_sort(mode, game) {
   let tmpwin, selected, any, i, n, choice, clr = NO_COLOR;
   tmpwin = create_nhwindow(NHW_MENU);
   start_menu(tmpwin, MENU_BEHAVE_STANDARD);
-  any = cg.zeroany;
+  any = { a_int: 0 };
   for (i = 0; disco_orders_descr; ++i) {
     any.a_int = disco_order_let;
     add_menu(tmpwin, nul_glyphinfo, any,  any.a_int, 0, ATR_NONE, clr, disco_orders_descr, (disco_order_let === game.flags.discosort) ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);

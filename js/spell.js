@@ -1448,7 +1448,7 @@ export async function dowizcast() {
   let win, selected, any, i, n;
   win = create_nhwindow(NHW_MENU);
   start_menu(win, MENU_BEHAVE_STANDARD);
-  any = cg.zeroany;
+  any = { a_int: 0 };
   for (i = 0; i < MAXSPELL; i++) {
     n = (SPE_DIG + i);
     if (n >= SPE_BLANK_PAPER) {
@@ -1462,7 +1462,7 @@ export async function dowizcast() {
   destroy_nhwindow(win);
   if (n > 0) {
     i = selected[0].item.a_int;
-    (selected, 0);
+    // C: free(selected) — JS garbage collects
     return spelleffects(i, false, true);
   }
   return ECMD_OK;
@@ -1583,7 +1583,7 @@ export async function spellsortmenu() {
   let tmpwin, selected, any, let_, i, n, choice, clr = NO_COLOR;
   tmpwin = create_nhwindow(NHW_MENU);
   start_menu(tmpwin, MENU_BEHAVE_STANDARD);
-  any = cg.zeroany;
+  any = { a_int: 0 };
   for (i = 0; i < SIZE(spl_sortchoices); i++) {
     if (i === SORTRETAINORDER) { let_ = 'z'; add_menu_str(tmpwin, ""); }
     else { let_ = 'a' + i; }
@@ -1596,7 +1596,7 @@ export async function spellsortmenu() {
   if (n > 0) {
     choice = selected[0].item.a_int - 1;
     if (n > 1 && choice === gs.spl_sortmode) choice = selected[1].item.a_int - 1;
-    (selected, 0);
+    // C: free(selected) — JS garbage collects
     gs.spl_sortmode = choice;
     return true;
   }

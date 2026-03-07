@@ -61,7 +61,7 @@ export function item_reading_classification(obj, outbuf) {
 // Autotranslated from iactions.c:126
 export function ia_addmenu(win, act, let_, txt) {
   let any, clr = NO_COLOR;
-  any = cg.zeroany;
+  any = { a_int: 0 };
   any.a_int = act;
   add_menu(win, nul_glyphinfo, any, let_, 0, ATR_NONE, clr, txt, MENU_ITEMFLAGS_NONE);
 }

@@ -863,7 +863,7 @@ export function sortloot(objList, mode, filterfunc) {
 // C ref: invent.c unsortloot() — no-op in JS (GC handles it)
 // Autotranslated from invent.c:646
 export function unsortloot(loot_array_p) {
-  if ( loot_array_p) (loot_array_p, 0), loot_array_p =  0;
+  // C: free(loot_array_p) — JS garbage collects
 }
 
 // C ref: invent.c reorder_invent() — sort inventory by invlet

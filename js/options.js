@@ -856,7 +856,7 @@ export async function handler_pickup_burden(game) {
   let burden_pick = null, clr = NO_COLOR;
   tmpwin = create_nhwindow(NHW_MENU);
   start_menu(tmpwin, MENU_BEHAVE_STANDARD);
-  any = cg.zeroany;
+  any = { a_int: 0 };
   for (i = 0; i < SIZE(burdentype); i++) {
     burden_name = burdentype;
     any.a_int = i + 1;
@@ -963,7 +963,7 @@ export async function query_msgtype() {
   let tmpwin, any, i, pick_cnt, picks = null, clr = NO_COLOR;
   tmpwin = create_nhwindow(NHW_MENU);
   start_menu(tmpwin, MENU_BEHAVE_STANDARD);
-  any = cg.zeroany;
+  any = { a_int: 0 };
   for (i = 0; i < SIZE(msgtype_names); i++) {
     if (msgtype_names[i].descr) {
       any.a_int = msgtype_names[i].msgtyp + 1;
@@ -1223,7 +1223,7 @@ export function doset_add_menu(win, option, fmtstr, idx, indexoffset) {
   let value = "unknown", indent, buf, buf2, any, i = idx, reslt = optn_err;
   let clr = NO_COLOR;
   buf2 = '\0';
-  any = cg.zeroany;
+  any = { a_int: 0 };
   if (i >= 0 && i < OPTCOUNT && allopt[i].name && allopt[i].optfn) {
     any.a_int = (indexoffset === 0) ? 0 : i + 1 + indexoffset;
     if (allopt[i].optfn) reslt = ( allopt[i].optfn)(allopt[i].idx, get_val, false, buf2, empty_optstr);
@@ -1396,7 +1396,7 @@ export async function handler_disclose(game) {
   let clr = NO_COLOR;
   tmpwin = create_nhwindow(NHW_MENU);
   start_menu(tmpwin, MENU_BEHAVE_STANDARD);
-  any = cg.zeroany;
+  any = { a_int: 0 };
   for (i = 0; i < NUM_DISCLOSURE_OPTIONS; i++) {
     buf = `${disclosure_names[i].toString().padEnd(12)}[${game.flags.end_disclose[i]}${disclosure_options[i]}]`;
     any.a_int = i + 1;
@@ -1420,7 +1420,7 @@ export async function handler_disclose(game) {
       buf = `Disclosure options for ${disclosure_names[i]}:`;
       tmpwin = create_nhwindow(NHW_MENU);
       start_menu(tmpwin, MENU_BEHAVE_STANDARD);
-      any = cg.zeroany;
+      any = { a_int: 0 };
       any.a_char = DISCLOSE_NO_WITHOUT_PROMPT;
       add_menu(tmpwin, nul_glyphinfo, any, 0, any.a_char, ATR_NONE, clr, "Never disclose, without prompting", (c === any.a_char) ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
       any.a_char = DISCLOSE_YES_WITHOUT_PROMPT;
