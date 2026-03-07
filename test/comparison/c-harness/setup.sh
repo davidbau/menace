@@ -7,8 +7,14 @@
 # Idempotent: safe to re-run. Will skip clone if source exists at correct commit.
 #
 # Prerequisites:
-#   Linux: gcc, make, bison, flex, ncurses-dev
+#   Linux: clang, make, bison, flex, ncurses-dev
 #   macOS: Xcode command-line tools (xcode-select --install)
+#
+# NOTE: clang is required on all platforms for deterministic cross-platform
+# behavior. GCC and clang differ in function argument evaluation order
+# (unspecified in C), which causes RNG log ordering differences in code like
+# set_wounded_legs(rn2(2) ? RIGHT_SIDE : LEFT_SIDE, rn1(10, 10));
+# Using clang on both Linux and macOS ensures identical RNG streams.
 #
 # Usage:
 #   cd test/comparison/c-harness && bash setup.sh
@@ -38,6 +44,30 @@ case "$OS" in
         ;;
 esac
 echo "    OS detected: $OS"
+
+# --- Compiler: require clang ---
+# Clang is required for cross-platform determinism. GCC evaluates function
+# arguments in a different order than clang (both are valid per C spec), which
+# causes RNG log differences between macOS (clang) and Linux (gcc) builds.
+if ! command -v clang &>/dev/null; then
+    echo ""
+    echo "[FAIL] clang is required but not found."
+    echo ""
+    echo "  clang is needed to match macOS builds for deterministic RNG streams."
+    echo "  GCC evaluates function arguments in a different order than clang,"
+    echo "  which causes RNG log mismatches in session recordings."
+    echo ""
+    echo "  Install clang:"
+    echo "    Ubuntu/Debian:  sudo apt install clang"
+    echo "    Fedora/RHEL:    sudo dnf install clang"
+    echo "    Arch:           sudo pacman -S clang"
+    echo "    macOS:          xcode-select --install  (clang is included)"
+    echo ""
+    exit 1
+fi
+CC=clang
+export CC
+echo "    Compiler: $(clang --version | head -1)"
 
 # --- Configuration ---
 NETHACK_REPO="https://github.com/NetHack/NetHack.git"
@@ -158,11 +188,11 @@ echo ""
 echo "[...] Building NetHack (TTY-only, $OS)"
 cd "$NETHACK_DIR"
 # Build Lua first (avoids parallel build race condition)
-( cd lib/lua-5.4.8/src && make CC='cc' SYSCFLAGS="$LUA_SYSCFLAGS" a 2>&1 ) | tail -3
+( cd lib/lua-5.4.8/src && make CC=clang SYSCFLAGS="$LUA_SYSCFLAGS" a 2>&1 ) | tail -3
 mkdir -p lib/lua
 cp -f lib/lua-5.4.8/src/liblua.a lib/lua/liblua-5.4.8.a 2>/dev/null || true
-# Now build the rest
-make -j"$NPROC" 2>&1 | tail -5
+# Now build the rest (CC=clang for cross-platform determinism)
+CC=clang make -j"$NPROC" 2>&1 | tail -5
 echo ""
 
 # --- Step 6: Install (copies data files to HACKDIR) ---

@@ -41,6 +41,25 @@ Wizard of Yendor while the Riders watch — dramatic, but unproductive.
 
 ## RNG Parity
 
+### Clang required for cross-platform determinism
+
+C does not specify the evaluation order of function arguments. GCC and Clang
+evaluate them in different orders, which causes RNG log differences when
+multiple RNG calls appear as arguments to a single function. Example from
+`trap.c`:
+
+```c
+set_wounded_legs(rn2(2) ? RIGHT_SIDE : LEFT_SIDE, rn1(10, 10));
+```
+
+Clang (macOS default) evaluates left-to-right: `rn2(2)` then `rn1(10,10)`.
+GCC (Linux default) evaluates right-to-left: `rn1(10,10)` then `rn2(2)`.
+Both produce identical game behavior but log the RNG calls in swapped order,
+breaking session recording portability.
+
+Fix: build the C harness with `CC=clang` on all platforms. `setup.sh` enforces
+this and prints install instructions if clang is missing.
+
 ### Repro harness datetime should be explicit and selectable
 
 Some sessions are sensitive to calendar-dependent behavior (moon phase, Friday
