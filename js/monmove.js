@@ -52,7 +52,8 @@ import { can_teleport, noeyes, perceives, nohands,
          passes_walls, corpse_eater, amorphous,
          passes_bars, is_human, canseemon, monsdat,
          webmaker, tunnels, needspick,
-         dmgtype, is_metallivore } from './mondata.js';
+         dmgtype, is_metallivore,
+         can_track, likes_gold } from './mondata.js';
 import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons,
          PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER,
          PM_TENGU,
@@ -60,7 +61,7 @@ import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons,
          PM_DISPLACER_BEAST,
          PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN,
          PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS,
-         PM_HEZROU, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER,
+         PM_HEZROU, PM_VROCK, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER,
          AT_WEAP, AT_BREA, AT_SPIT, AT_MAGC,
          AD_SPEL, AD_CLRC, AD_RUST, AD_CORR,
          S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL,
@@ -277,10 +278,24 @@ export async function monflee(mon, fleetime, first, fleemsg, player, display, fo
         if (!mon.mflee && fleemsg && canseemon(mon, player, fov)) {
             if (!mon.mcanmove || !((mon.data || mon.type)?.mmove)) {
                 await display?.putstr_message(`${YMonnam(mon)} seems to flinch.`);
+            } else if (flees_light(mon, null, player)) {
+                // C ref: monmove.c:499 — rn2(10) for light-flee message variant
+                if (rn2(10) || !!(player?.deaf || player?.Deaf)) {
+                    await display?.putstr_message(`${Monnam(mon)} flees from the painful light.`);
+                } else {
+                    await display?.putstr_message(`"Bright light!"`);
+                }
             } else {
                 await display?.putstr_message(`${YMonnam(mon)} turns to flee.`);
             }
         }
+
+        // C ref: monmove.c:521-524 — Vrock gas cloud on flee
+        if (mon.mndx === PM_VROCK && !mon.mspec_used) {
+            mon.mspec_used = 75 + rn2(25);
+            create_gas_cloud(mon.mx, mon.my, 5, 8);
+        }
+
         mon.mflee = true;
     }
     mon_track_clear(mon);
@@ -1810,32 +1825,43 @@ export async function m_move(mon, map, player, display = null, fov = null) {
 
     const monLoc = map.at(omx, omy);
     const playerLoc = map.at(ggx, ggy);
+
+    // C ref: monmove.c:1857-1888 — appr logic with || short-circuit chain.
+    // engulfing_u: player is engulfed by this specific monster.
+    const engulfingU = !!(player.uswallow && player.ustuck === mon);
+    // C ref: should_see is inside the else branch in C, but we need it for tracing.
     const should_see = couldsee(map, player, omx, omy)
-        && (playerLoc && playerLoc.lit || !(monLoc && monLoc.lit))
+        && ((playerLoc && playerLoc.lit) || !(monLoc && monLoc.lit))
         && (dist2(omx, omy, ggx, ggy) <= 36);
+    if (mon_is_confused(mon) || engulfingU) {
+        appr = 0;
+    } else {
+        const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false);
+        const heroInvis = !!(player.Invis || player.invisible);
+        // C ref: monmove.c:1864-1871 — || chain with short-circuit evaluation.
+        // Each condition is only evaluated if all prior conditions were false.
+        if (!monCanSee
+            || (should_see && heroInvis && !perceives(ptr) && rn2(11))
+            || !!(player.uundetected)
+            || (mon_is_peaceful(mon) && !mon.isshk)
+            || ((mon.mndx === PM_STALKER || ptr.mlet === S_BAT
+                 || ptr.mlet === S_LIGHT) && !rn2(3))) {
+            appr = 0;
+        }
 
-    if (mon_is_confused(mon)) {
-        appr = 0;
-    }
-    if (mon_is_peaceful(mon)) {
-        appr = 0;
-    }
-    // C ref: monmove.c m_move() random hesitation for stalkers, bats, lights.
-    // This consumes rn2(3) only when prior short-circuit gates didn't force appr=0.
-    if (appr !== 0
-        && (mon.mndx === PM_STALKER || ptr.mlet === S_BAT || ptr.mlet === S_LIGHT)
-        && !rn2(3)) {
-        appr = 0;
-    }
-    if (appr === 1 && leppie_avoidance(mon, player)) {
-        appr = -1;
-    }
+        if (appr === 1 && leppie_avoidance(mon, player)) {
+            appr = -1;
+        }
 
-    if (!should_see && !noeyes(mon.data || mon.type || {})) {
-        const cp = gettrack(omx, omy);
-        if (cp) {
-            ggx = cp.x;
-            ggy = cp.y;
+        // C ref: monmove.c:1877 — ranged monster approaching avoidance.
+        appr = m_balks_at_approaching(appr, mon, player);
+
+        if (!should_see && can_track(ptr)) {
+            const cp = gettrack(omx, omy);
+            if (cp) {
+                ggx = cp.x;
+                ggy = cp.y;
+            }
         }
     }
 
