@@ -901,6 +901,8 @@ async function run_dochug_postmove_pipeline_current_js(
                     } else if (display) {
                         if (canSeeDoor && canSeeMon) {
                             await display.putstr_message(`${Monnam(mon)} unlocks and opens a door.`);
+                        } else if (canSeeDoor) {
+                            await display.putstr_message('You see a door unlock and open.');
                         } else if (!canSeeDoor) {
                             await display.putstr_message('You hear a door unlock and open.');
                         }
@@ -912,6 +914,8 @@ async function run_dochug_postmove_pipeline_current_js(
                     } else if (display) {
                         if (canSeeDoor && canSeeMon) {
                             await display.putstr_message(`${Monnam(mon)} opens a door.`);
+                        } else if (canSeeDoor) {
+                            await display.putstr_message('You see a door open.');
                         } else if (!canSeeDoor) {
                             await display.putstr_message('You hear a door open.');
                         }
