@@ -96,27 +96,28 @@ export const foodnam = [
 ];
 
 // C ref: hack.vars char *wepnam[]
+// C ref: hack.vars char *wepnam[] — indices match otyp for ')' items
 export const wepnam = [
-  'arrow',
-  'dart',
-  'rock',
-  'dagger',
-  'short sword',
-  'broad sword',
-  'long sword',
-  'two-handed sword',
-  'spear',
-  'mace',
-  'morning star',
-  'flail',
-  'war hammer',
-  'battle-axe',
+  'arrow',       // 0 — WARROW
+  'sling bullet',// 1
+  'crossbow bolt',// 2
+  'dart',        // 3 — WDART
+  'mace',        // 4
+  'axe',         // 5
+  'flail',       // 6
+  'long sword',  // 7
+  'two handed sword', // 8
+  'dagger',      // 9
+  'spear',       // 10
+  'bow',         // 11
+  'sling',       // 12
+  'crossbow',    // 13
 ];
 
 // C ref: hack.vars char wsdam[], wldam[]
-// Small/large damage by weapon type
-export const wsdam = [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1 ];
-export const wldam = [ 1, 1, 1, 2, 2, 3, 3, 4, 3, 3, 3, 3, 3, 3 ];
+// Small/large damage by weapon type (die size for rnd())
+export const wsdam = [ 6, 4, 4, 3, 6, 6, 6, 8, 10, 4, 6, 4, 6, 4 ];
+export const wldam = [ 6, 6, 6, 2, 6, 4, 4, 12, 6, 3, 8, 6, 6, 6 ];
 
 // C ref: hack.vars char mlarge[]
 // Monsters that are "large" (take more damage from large weapons)

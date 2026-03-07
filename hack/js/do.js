@@ -15,29 +15,41 @@ import { savelev, getlev, mkobj } from './lev.js';
 import { docrt } from './pri.js';
 
 // C ref: getobj(filter, verb) — prompt player to select an item from inventory
-// Returns the selected item, or null if cancelled.
+// Matches C hack.c getobj() exactly: loops until valid selection or ESC.
 async function getobj(filter, verb) {
-  if (!game.invent) { await pline('You have nothing to %s.', verb); return null; }
-  await pline('What do you want to %s? [inventory letter or ?]', verb);
-  const ch = await game.input.getKey();
-  if (ch === '\x1b' || ch === '\r') return null;
-  if (ch === '?') {
-    // Show inventory
-    await doinv(null);
-    await pline('What do you want to %s?', verb);
-    const ch2 = await game.input.getKey();
-    if (ch2 === '\x1b') return null;
-    return findInvByLetter(ch2);
+  // Count matching items
+  let foo = 0;
+  for (let obj = game.invent; obj; obj = obj.nobj)
+    if (!filter || filter.includes(obj.olet)) foo++;
+  if (!game.invent || (filter && filter[0] !== ')' && !foo)) {
+    await pline("You don't have anything to %s.", verb);
+    return null;
   }
-  return findInvByLetter(ch);
-}
-
-function findInvByLetter(ch) {
-  let i = ch.charCodeAt(0) - 'a'.charCodeAt(0);
-  if (i < 0 || i > 25) return null;
-  let obj = game.invent;
-  while (obj && i-- > 0) obj = obj.nobj;
-  return obj;
+  for (;;) {
+    await pline('%s what (* for list)?', verb);
+    game.flags.topl = 1;  // suppress --More-- on next pline
+    const iletRaw = await game.input.getKey();
+    if (iletRaw === '\x1b') return null;
+    if (iletRaw === '*') {
+      if (!filter || foo > 1) await doinv(filter);
+      else {
+        for (let obj = game.invent; obj; obj = obj.nobj)
+          if (!filter || filter.includes(obj.olet)) await prinv(obj);
+      }
+      continue;
+    }
+    // Convert letter to index (A-Z = 26-51, a-z = 0-25)
+    let ilet;
+    if (iletRaw >= 'A' && iletRaw <= 'Z') ilet = 26 + iletRaw.charCodeAt(0) - 'A'.charCodeAt(0);
+    else ilet = iletRaw.charCodeAt(0) - 'a'.charCodeAt(0);
+    let otmp = game.invent;
+    while (otmp && ilet !== 0) { ilet--; otmp = otmp.nobj; }
+    if (!otmp) { await pline(DONTH); continue; }
+    if (filter && filter[0] !== ')' && !filter.includes(otmp.olet)) {
+      await pline("You can't %s that.", verb); return null;
+    }
+    return otmp;
+  }
 }
 
 // C ref: doinv() — list inventory

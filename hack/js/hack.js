@@ -319,6 +319,11 @@ export function pow2(num) {
   return tmp;
 }
 
+// C ref: setan(str) — prefix "a " or "an " based on first vowel
+function setan(str) {
+  return 'aeiouAEIOU'.includes(str[0]) ? `an ${str}` : `a ${str}`;
+}
+
 // C ref: doname(obj,buf) — return item description string
 export function doname(obj) {
   const u = game.u;
@@ -328,10 +333,18 @@ export function doname(obj) {
       return obj.quan > 1 ? `${obj.quan} ${foodnam[obj.otyp]}s.` : `a ${foodnam[obj.otyp]}.`;
     case ')': {
       const nm = wepnam[obj.otyp] || 'weapon';
-      let s = obj.quan > 1 ? `${obj.quan} ${nm}s` : `a ${nm}`;
-      if (obj.spe) s += obj.minus ? ` (-${obj.spe})` : ` (+${obj.spe})`;
-      if (obj.cursed) s += ' {cursed}';
-      return s + '.';
+      let s;
+      if (obj.known) {
+        const sign = obj.minus ? '-' : '+';
+        if (obj.quan > 1) s = `${obj.quan} ${sign}${obj.spe} ${nm}s`;
+        else s = `a ${sign}${obj.spe} ${nm}`;
+      } else {
+        if (obj.quan > 1) s = `${obj.quan} ${nm}s`;
+        else s = setan(nm);
+      }
+      s += '.';
+      if (obj === game.uwep) s += '  (weapon in hand)';
+      return s;
     }
     case '[': {
       // C: "a suit of ±N X armor" if known, else "a suit of X armor"; + "(being worn)"
@@ -392,60 +405,136 @@ export async function parse() {
   return cmd;
 }
 
-// C ref: amon(mtmp,otmp,range) — player attacks monster
-// otmp=null means unarmed/fists; range<0 means thrown weapon bonus
-export async function amon(mtmp, otmp, range) {
-  const u = game.u;
-  const mdat = mtmp.data;
-  let tmp = 0;
-
-  // Determine if we hit
-  let hitBonus = u.ulevel + u.udaminc;
-  if (otmp) hitBonus += otmp.spe;
-  const hit = rnd(20) + hitBonus >= mdat.ac + 10;
-
-  if (!hit) {
-    // Miss
-    const missIdx = rn2(3);
-    const missMsg = ['You miss %s%s.', 'You almost hit %s%s.', 'You badly miss %s%s.'];
-    const art = vowelStart(mdat.mname) ? 'an ' : 'a ';
-    await pline(missMsg[missIdx], art, mdat.mname);
-    return;
-  }
-
-  // Hit — compute damage
-  let dam = 0;
-  if (otmp) {
-    const isLarge = mlarge.includes(mdat.mlet);
-    const dmgBase = isLarge ? wldam[otmp.otyp] || 1 : wsdam[otmp.otyp] || 1;
-    dam = rnd(dmgBase * 6) + u.udaminc;
-    if (otmp.spe && !otmp.minus) dam += otmp.spe;
-    if (range < 0) { // thrown — half damage
-      dam = Math.max(1, Math.floor(dam / 2));
-    }
-  } else {
-    // Unarmed
-    dam = rnd(u.udaminc + 1) + 1;
-  }
-
-  const hitIdx = rn2(3);
-  const hitMsg = ['You hit %s%s!', 'You score an excelent hit on %s%s!', 'You barely hit %s%s!'];
-  const art = vowelStart(mdat.mname) ? 'an ' : 'a ';
-  await pline(hitMsg[hitIdx], art, mdat.mname);
-
-  mtmp.mhp -= dam;
-  if (mtmp.mhp < 1) {
-    await killed(mtmp);
-    return;
-  }
-  // Wake the monster
-  if (mtmp.mstat === 2) mtmp.mstat = 0; // SLEEP -> MNORM
+// C ref: abon() — strength bonus to hit
+function abon() {
+  const str = game.u.ustr;
+  if (str === 3) return -4;
+  if (str < 6) return -3;
+  if (str < 8) return -2;
+  if (str < 17) return -1;
+  if (str < 69) return 0;   // up to 18/50
+  if (str < 118) return 1;
+  return 2;
 }
 
-// C ref: attmon(mtmp,otmp,range) — attack while swallowed
-export async function attmon(mtmp, otmp, range) {
-  // Inside a swallowing monster — attack it
-  await amon(mtmp, otmp, range);
+// C ref: k1(str,arg) — pline helper matching mon.js k1
+async function k1(fmt, name, ...rest) {
+  if (game.u.ublind) {
+    const it = fmt[0] === '%' ? 'It' : 'it';
+    await pline(fmt, '', it, ...rest);
+  } else {
+    const article = fmt[0] === '%' ? 'The ' : 'the ';
+    await pline(fmt, article, name, ...rest);
+  }
+}
+
+const MISS_MSG = ['You miss %s%s.', 'You almost hit %s%s.', 'You badly miss %s%s.'];
+const HIT_MSG  = ['You hit %s%s!', 'You score an excelent hit on %s%s!', 'You barely hit %s%s!'];
+
+// C ref: amon(mtmp,obj,tmp) — player attacks monster (melee or thrown)
+// C: tmp += ulevel + mdat.ac + abon() + weapon/status bonuses; hit if tmp >= rnd(20)
+export async function amon(mtmp, obj, range) {
+  const mdat = mtmp.data;
+  let tmp = game.u.ulevel + mdat.ac + abon();
+
+  if (obj) {
+    if (obj.olet === '/' && obj.otyp === 3) tmp += 3;  // wand of striking
+    else if (obj.olet === ')') {
+      if (obj.minus) tmp -= obj.spe;
+      else tmp += obj.spe;
+      if (obj.otyp === 8) tmp--;   // two-handed sword: -1
+      else if (obj.otyp === 9) tmp += 2;  // dagger: +2
+    }
+  }
+
+  if (mtmp.mstat === 2) { mtmp.mstat = 0; tmp += 2; }  // sleeping: wake + bonus
+  if (mtmp.mstat === 3) { tmp += 4; if (!rn2(16)) mtmp.mstat = 0; }  // frozen: bonus + maybe wake
+  if (mtmp.mstat === 1) tmp += 2;  // fleeing: bonus
+
+  if (tmp >= rnd(20)) {
+    await attmon(mtmp, obj, range);
+  } else {
+    // Miss
+    if (obj && obj !== game.uwep && obj.olet === ')') {
+      // Thrown weapon miss: "The mace misses the rat."
+      const wn = wepnam[obj.otyp] || 'weapon';
+      if (!game.levl[mtmp.mx][mtmp.my].cansee) await pline('The %s misses it.', wn);
+      else await pline('The %s misses the %s.', wn, mdat.mname);
+    } else {
+      await k1(MISS_MSG[rn2(3)], mdat.mname);
+    }
+  }
+  return 0;
+}
+
+// C ref: attmon(mtmp,obj) — deal damage after a hit
+// Called from amon() when hit, or from within swallowed context
+export async function attmon(mtmp, obj, range) {
+  const mdat = mtmp.data;
+  let tmp;
+
+  if (obj) {
+    if (obj.olet === '/' && obj.otyp === 3) {
+      tmp = rn1(6, 4);  // wand of striking: d6+4
+    } else if (obj.olet === ')') {
+      if (mlarge.includes(mdat.mlet)) {
+        tmp = rnd(wldam[obj.otyp] || 1);
+        if (obj.otyp === 8) tmp += d(2, 6);   // two-handed sword vs large
+        else if (obj.otyp === 6) tmp += rnd(4); // spear vs large
+      } else {
+        tmp = rnd(wsdam[obj.otyp] || 1);
+        if (obj.otyp === 6 || obj.otyp === 4) tmp++;  // spear or mace: +1 vs small
+      }
+      if (obj.minus) tmp -= obj.spe;
+      else tmp += obj.spe;
+    } else {
+      tmp = rnd(3);  // non-weapon object
+    }
+  } else {
+    tmp = rnd(3);  // unarmed
+  }
+
+  tmp += game.u.udaminc;
+
+  // Swallowed by purple worm — reduced damage
+  if (game.u.uswallow && mdat.mlet === 'P' && (tmp -= game.u.uswldtim) < 1) {
+    await k1(HIT_MSG[rn2(3)], mdat.mname);
+    return;
+  }
+
+  if (tmp < 1) tmp = 1;
+  mtmp.mhp -= tmp;
+
+  if (mtmp.mhp < 1) {
+    await killed(mtmp);
+    return 0;
+  }
+
+  // Hit message
+  if (!obj || obj === game.uwep || obj.olet !== ')') {
+    await k1(HIT_MSG[rn2(3)], mdat.mname);
+  } else {
+    // Thrown weapon hit: "The mace hits the rat."
+    const wn = wepnam[obj.otyp] || 'weapon';
+    if (!game.levl[mtmp.mx][mtmp.my].cansee) await pline('The %s hits it.', wn);
+    else await pline('The %s hits the %s.', wn, mdat.mname);
+  }
+
+  // Monster flees if badly hurt
+  if (!rn2(25) && mtmp.mhp < mtmp.orig_hp / 2) {
+    mtmp.mstat = 1;  // FLEE
+    if (game.u.ustuck === mtmp) game.u.ustuck = null;
+  }
+
+  // Confusion effect
+  if (game.u.umconf) {
+    await pline('Your hands stop glowing blue.');
+    if (game.levl[mtmp.mx][mtmp.my].cansee) await pline('The %s appears confused.', mdat.mname);
+    mtmp.mstat = 4;  // MCONF
+    game.u.umconf = 0;
+  }
+
+  return 0;
 }
 
 function vowelStart(s) { return 'aeiou'.includes(s[0].toLowerCase()); }
