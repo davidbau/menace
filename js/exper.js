@@ -130,15 +130,15 @@ export async function losexp(player, display, drainer) {
         // Can't lose a level below 1; C would kill the hero
         return;
     }
-    // cf. exper.c:230 — lose HP: normally role-dependent via uhpinc array;
-    // simplified: rnd(10) as placeholder (matches C's newhp typical range).
-    const hpLoss = rnd(10);
+    // C: HP loss = u.uhpinc[u.ulevel] (stored increment, NO RNG consumed)
+    const uhpinc = player.uhpinc || [];
+    const hpLoss = uhpinc[player.ulevel] || 0;
     player.uhpmax = Math.max(1, player.uhpmax - hpLoss);
     player.uhp = Math.min(player.uhp, player.uhpmax);
 
-    // cf. exper.c:250 — lose PW: normally role-dependent via ueninc array;
-    // simplified: rn2(5) placeholder (matches C's newpw typical range).
-    const pwLoss = rn2(5);
+    // C: PW loss = u.ueninc[u.ulevel] (stored increment, NO RNG consumed)
+    const ueninc = player.ueninc || [];
+    const pwLoss = ueninc[player.ulevel] || 0;
     player.pwmax = Math.max(0, player.pwmax - pwLoss);
     player.pw = Math.min(player.pw, player.pwmax);
 

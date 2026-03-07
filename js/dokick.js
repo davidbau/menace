@@ -1352,7 +1352,7 @@ export async function watchman_door_damage(mtmp, x, y, map) {
 // Autotranslated from dokick.c:863
 export async function kick_dumb(x, y, map, player) {
   await exercise(player, A_DEX, false);
-  if (martial() || ACURR(A_DEX) >= 16 || rn2(3)) { await You("kick at empty space."); if (Blind) feel_location(x, y); }
+  if (martial(player) || ACURR(player, A_DEX) >= 16 || rn2(3)) { await You("kick at empty space."); }
   else {
     await pline("Dumb move! You strain a muscle.");
     await exercise(player, A_STR, false);
