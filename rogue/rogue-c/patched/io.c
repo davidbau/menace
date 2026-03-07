@@ -114,14 +114,21 @@ step_ok(ch)
  *	getchar.
  */
 
+/* readchar — in HARNESS mode renamed to readchar_harness by harness_rename.h.
+ * harness_main.c exports harness_next_key() which does key injection + capture. */
 readchar()
 {
+#ifdef HARNESS
+    extern int harness_next_key(void);
+    return harness_next_key();
+#else
     char c;
 
     fflush(stdout);
     while (read(0, &c, 1) < 0)
 	continue;
     return c;
+#endif
 }
 
 #if 0

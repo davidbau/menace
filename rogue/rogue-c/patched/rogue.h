@@ -475,9 +475,16 @@ struct linked_list *find_mons(), *find_obj(), *get_item(), *new_item();
 struct linked_list *new_thing(), *wake_monster();
 
 # undef unctrl
+/* Harness: removed old-style declarations of malloc/strcpy/strcat that
+ * conflict with modern system headers included by rogue_patch.h */
+#ifndef HARNESS
 char *malloc(), *getenv(), /* *unctrl(),*/ *tr_name(), *new();
 char *vowelstr(), *inv_name(), *strcpy(), *strcat(), *sbrk(), *brk();
 char *ctime(), *num(), *ring_num();
+#else
+/* In HARNESS mode, these are declared with proper prototypes in rogue_patch.h */
+char *getenv();
+#endif
 
 struct room *roomin();
 
@@ -490,7 +497,9 @@ int tstp(), unconfuse(), unsee(), rollwand(), stomach(), sight();
 int checkout();
 #endif
 
+#ifndef HARNESS
 long lseek();
+#endif
 
 struct trap *trap_at();
 #define cfree(x) free(x)

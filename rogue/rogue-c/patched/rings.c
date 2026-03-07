@@ -7,7 +7,9 @@
  * @(#)rings.c	3.17 (Berkeley) 6/15/81
  */
 
+#ifndef HARNESS
 char *malloc();
+#endif
 
 ring_on()
 {

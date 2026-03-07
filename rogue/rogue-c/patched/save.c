@@ -18,7 +18,9 @@ extern char /* *sys_errlist[],*/ version[], encstr[];
 //extern bool _endwin;
 extern int errno;
 
+#ifndef HARNESS
 char *sbrk();
+#endif
 
 STAT sbuf;
 

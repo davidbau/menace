@@ -1,104 +1,55 @@
-#
-# Makefile for rogue
-# %W% (Berkeley) %G%
-#
-HDRS=	rogue.h machdep.h
-OBJS=	vers.o armor.o chase.o command.o daemon.o daemons.o fight.o \
-	init.o io.o list.o main.o misc.o monsters.o move.o newlevel.o \
-	options.o pack.o passages.o potions.o rings.o rip.o rooms.o \
-	save.o scrolls.o sticks.o things.o weapons.o wizard.o
-POBJS=	vers.po armor.po chase.po command.po daemon.po daemons.po fight.po \
-	init.po io.po list.po main.po misc.po monsters.po move.po newlevel.po \
-	options.po pack.po passages.po potions.po rings.po rip.po rooms.po \
-	save.po scrolls.po sticks.po things.po weapons.po wizard.po
-CFILES=	vers.c armor.c chase.c command.c daemon.c daemons.c fight.c \
-	init.c io.c list.c main.c misc.c monsters.c move.c newlevel.c \
-	options.c pack.c passages.c potions.c rings.c rip.c rooms.c \
-	save.c scrolls.c sticks.c things.c weapons.c wizard.c
-CFLAGS= -O -g
-PROFLAGS= -p -O
-#LDFLAGS=-i	# For PDP-11's
-LDFLAGS=	# For VAXes
-VGRIND=/usr/ucb/vgrind
-CRLIB=	-lcurses
-#CRLIB=	/ra/csr/arnold/=lib/=curses/crlib
-#CRLIB=	/ra/csr/toy/_nc/crlib
-PCRLIB= -lcurses
-MISC=	Makefile TODO
-# for sites without sccs front end, GET= get
-#GET=	sccs get
-GET=	get
-INSTDIR= /usr/sheriff/jpo/games
+# Makefile for Rogue 3.6 harness
+# Builds rogue_harness — deterministic binary with seed control and JSON output
 
-.SUFFIXES: .po
+CC = gcc
 
-.c.po:
-	@echo $(CC) -c $(PROFLAGS) $?
-	@rm -f x.c
-	@ln $? x.c
-	@$(CC) -c $(PROFLAGS) x.c
-	@mv x.o $*.po
+# Suppress old-style C warnings (Rogue 3.6 is K&R C)
+BASE_CFLAGS = -g -O0 \
+    -Wno-implicit-function-declaration \
+    -Wno-implicit-int \
+    -Wno-return-type \
+    -Wno-int-conversion \
+    -Wno-incompatible-pointer-types \
+    -Wno-deprecated-non-prototype \
+    -Wno-builtin-redeclaration \
+    -Wno-format \
+    -Wno-unused-result \
+    -Wno-pointer-sign
 
-.DEFAULT:
-	$(GET) $@
+# Flags for game source files: inject rogue_patch.h (rand/srand/exit overrides)
+# Also inject harness_rename.h to rename main->game_main and readchar->readchar_harness
+GAME_CFLAGS = $(BASE_CFLAGS) \
+    -DHARNESS \
+    -include rogue_patch.h \
+    -include harness_rename.h
 
-a.out: $(HDRS) $(OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) $(CRLIB) -lcrypt # -ltermlib
-	size a.out
+# Harness infrastructure files (compiled WITHOUT game patch macros)
+HARNESS_SRCS = harness_main.c hack_curses.c rng_log.c
+HARNESS_OBJS = $(HARNESS_SRCS:.c=.o)
 
-k.out: $(HDRS) $(OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) $(CRLIB) -ltermlib -o k.out
+# Game source files
+GAME_SRCS = vers.c armor.c chase.c command.c daemon.c daemons.c fight.c \
+    init.c io.c list.c main.c misc.c monsters.c move.c newlevel.c \
+    options.c pack.c passages.c potions.c rings.c rip.c rooms.c \
+    save.c scrolls.c sticks.c things.c weapons.c wizard.c
+GAME_OBJS = $(GAME_SRCS:.c=.o)
 
-rogue:  a.out
-	cp a.out rogue
-	strip rogue
+ALL_OBJS = $(HARNESS_OBJS) $(GAME_OBJS)
 
-install: rogue
-	 install -s rogue $(INSTDIR)/rogue3.6
-#	cp rogue $(DESTDIR)/usr/games/rogue
+all: rogue_harness
 
-p.out:	$(HDRS) $(POBJS)
-	@rm -f x.c
-	$(CC) $(PROFLAGS) $(LDFLAGS) $(POBJS) $(PCRLIB) -ltermlib -o p.out
-	size p.out
+rogue_harness: $(ALL_OBJS)
+	$(CC) $(BASE_CFLAGS) -o $@ $^
 
-newvers:
-	$(GET) -e vers.c
-	sccs delta -y vers.c
+# Harness files: no game patch macros
+$(HARNESS_OBJS): %.o: %.c
+	$(CC) $(BASE_CFLAGS) -c -o $@ $<
 
-main.o rip.o: machdep.h
-
-tags: $(HDRS) $(CFILES)
-	ctags -u $?
-	ed - tags < :ctfix
-	sort tags -o tags
-
-lint:
-	lint -hxbc $(CFILES) -lcurses > linterrs
+# Game files: inject rogue_patch.h + harness_rename.h
+$(GAME_OBJS): %.o: %.c rogue_patch.h harness_rename.h curses.h
+	$(CC) $(GAME_CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(POBJS) $(OBJS) core rogue make.out ? rogue.tar vgrind.*
+	rm -f $(ALL_OBJS) rogue_harness
 
-count:
-	wc -l $(HDRS) $(CFILES)
-
-realcount:
-	cc -E $(CFILES) | ssp - | wc -l
-
-update:
-	ar uv .SAVE $(CFILES) $(HDRS) Makefile
-
-dist:
-	cp $(CFILES) $(HDRS) Makefile /ra/csr/toy/_dist
-
-xtar: $(CFILES) $(HDRS) $(MISC)
-	rm -f rogue.tar
-	tar cf rogue.tar $? :ctfix
-	touch xtar
-
-vgrind:
-	@csh $(VGRIND) -t -h "Rogue Version 3.7" $(HDRS) *.c > vgrind.out
-	@ctags -v $(HDRS) *.c > index
-	@csh $(VGRIND) -t -x index > vgrind.out.tbl
-
-cfiles: $(CFILES)
+.PHONY: all clean

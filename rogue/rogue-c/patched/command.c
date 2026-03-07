@@ -590,7 +590,9 @@ call()
     register struct linked_list *item;
     register char **guess, *elsewise;
     register bool *know;
+#ifndef HARNESS
     char *malloc();
+#endif
 
     item = get_item("call", CALLABLE);
     /*

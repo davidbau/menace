@@ -105,5 +105,6 @@ int size;
     if (space == NULL)
 	fatal(sprintf(prbuf, "Rogue ran out of memory (%d).  Fatal error!", sbrk(0)));
     total++;
+    memset(space, 0, size);  /* zero-initialise to prevent use of stale group numbers */
     return space;
 }
