@@ -1562,7 +1562,7 @@ export function set_lit(x, y, val, map) {
   let mtmp, gremlin;
   if (val) {
     map.locations[x][y].lit = 1;
-    if ((mtmp = m_at(x, y)) != null && mtmp.data === mons[PM_GREMLIN]) {
+    if ((mtmp = m_at(x, y, map)) != null && mtmp.data === mons[PM_GREMLIN]) {
       gremlin =  alloc(gremlin.length);
       gremlin.mon = mtmp;
       gremlin.nxt = gremlins;

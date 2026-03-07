@@ -509,7 +509,7 @@ export async function mtele_trap(mtmp, trap, in_sight, map, player, display, fov
     const monname = Monnam(mtmp);
 
     if (trap?.once) {
-        await mvault_tele(mtmp);
+        await mvault_tele(mtmp, map, player);
     } else if (isok(trap?.teledest?.x ?? -1, trap?.teledest?.y ?? -1)) {
         const tx = trap.teledest.x;
         const ty = trap.teledest.y;
@@ -1006,8 +1006,8 @@ export function stairway_find_forwiz(isladder, up, map) {
 }
 
 // Autotranslated from teleport.c:1931
-export async function mvault_tele(mtmp) {
+export async function mvault_tele(mtmp, map, player) {
   let croom = search_special(VAULT), c;
-  if (croom && somexyspace(croom, c) && goodpos(c.x, c.y, mtmp, 0)) { await rloc_to(mtmp, c.x, c.y); return; }
-  await rloc(mtmp, RLOC_NONE);
+  if (croom && somexyspace(croom, c) && goodpos(c.x, c.y, mtmp, 0)) { await rloc_to(mtmp, c.x, c.y, map, player); return; }
+  await rloc(mtmp, RLOC_NONE, map, player);
 }

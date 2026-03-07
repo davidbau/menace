@@ -1452,7 +1452,7 @@ export function there_cmd_menu_next2u(win, x, y, mod, act, map, player) {
     mcmd_addmenu(win, MCMD_MOVE_DIR, "Move on the trap"), ++K;
   }
   if (map.locations[x][y].glyph === objnum_to_glyph(BOULDER)) mcmd_addmenu(win, MCMD_MOVE_DIR, "Push the boulder"), ++K;
-  mtmp = m_at(x, y);
+  mtmp = m_at(x, y, map);
   if (mtmp && !canspotmon(mtmp)) mtmp = null;
   if (mtmp && which_armor(mtmp, W_SADDLE)) {
     let mnam = x_monnam(mtmp, ARTICLE_THE,  0, SUPPRESS_SADDLE, false);
