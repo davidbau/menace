@@ -164,12 +164,7 @@ export async function wipe_engr_at(map, x, y, cnt, magical = false) {
     if (!map || !Array.isArray(map.engravings)) return;
     const step = Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?';
     await withRngTag('wipe_engr_at(engrave.js:139)', () => {
-        // C harness parity: emit wipe-call event at function entry so event
-        // streams align with callsite ordering even when no engraving is present.
-        pushRngLogEntry(`^wipe[${x},${y}]`);
-
-        // C ref: engrave.c core mutation path only applies when engraving
-        // exists and is wipeable.
+        // C ref: engrave.c:276 — event_log only when ep && !HEADSTONE && !nowipeout
         const idx = map.engravings.findIndex((e) => e && e.x === x && e.y === y);
         if (idx < 0) {
             engrTrace(`step=${step}`, `wipe_at(${x},${y})`, `cnt=${cnt}`, `magical=${magical ? 1 : 0}`, 'engr=none');
@@ -181,6 +176,7 @@ export async function wipe_engr_at(map, x, y, cnt, magical = false) {
                 `engr=${engr ? engr.type : 'null'}`, `nowipeout=${engr?.nowipeout ? 1 : 0}`, 'skip=1');
             return;
         }
+        pushRngLogEntry(`^wipe[${x},${y}]`);  // C ref: engrave.c:277 — only when engraving found and wipeable
         engrTrace(`step=${step}`, `wipe_at(${x},${y})`, `cnt=${cnt}`, `magical=${magical ? 1 : 0}`,
             `engr=${engr.type}`, `len=${String(engr.text || '').length}`);
         const beforeText = String(engr.text || '');
