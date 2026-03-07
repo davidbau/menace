@@ -141,7 +141,10 @@ export async function were_change(mon, ctx) {
 
     if (isHumanWereForm(mon.mndx)) {
         // Human form: chance to change into animal form
-        // Full implementation would use night() and flags.moonphase
+        // C ref: were.c:16 — threshold depends on night() and flags.moonphase
+        // Using rn2(50) as stable default; night()/moonphase depend on wall-clock
+        // time which differs between C recording and JS replay, causing divergence.
+        // TODO: freeze replay time to match C session recording time
         if (protectedFromShifters) return;
         if (rn2(50) !== 0) return;
 
