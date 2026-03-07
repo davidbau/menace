@@ -10,7 +10,9 @@ function rand() {
   const hi = (game.rngSeed >>> 16)   * 1103515245;
   let next = ((hi << 16) + lo + 12345) | 0;
   game.rngSeed = next >>> 0;  // keep as unsigned 32-bit
-  return (game.rngSeed >> 16) & 0x7fff;
+  const v = (game.rngSeed >> 16) & 0x7fff;
+  if (game.rawRngLog !== null) game.rawRngLog.push(v);
+  return v;
 }
 
 // C ref: rn1(x,y) — returns rand()%x + y
@@ -48,4 +50,10 @@ export function d(n, x) {
 // Seed the RNG — called once at game start
 export function seedRng(seed) {
   game.rngSeed = seed >>> 0;
+}
+
+// Log a named event into the RNG stream for parity comparison.
+// Events appear inline as "^tag" strings alongside numeric rand() values.
+export function logEvent(tag) {
+  if (game.rawRngLog !== null) game.rawRngLog.push('^' + tag);
 }

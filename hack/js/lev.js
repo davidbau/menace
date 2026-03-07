@@ -62,7 +62,7 @@ export function getlev(data) {
 
   // Restore stolen items list
   if (data.fstole) {
-    for (const s of [...data.fstole].reverse()) {
+    for (const s of data.fstole) {
       const stmp = makeStole(null, null, s.sgold);
       if (s.smon_key) {
         // Reconnect smon after monsters are restored (done below)
@@ -71,7 +71,7 @@ export function getlev(data) {
       stmp.nstole = game.fstole;
       game.fstole = stmp;
       // Restore stolen objects
-      for (const o of [...(s.sobj || [])].reverse()) {
+      for (const o of (s.sobj || [])) {
         const otmp = Object.assign(makeObj(), o);
         otmp.nobj = stmp.sobj;
         stmp.sobj = otmp;
@@ -83,7 +83,7 @@ export function getlev(data) {
 
   // Restore monsters
   if (data.fmon) {
-    for (const m of [...data.fmon].reverse()) {
+    for (const m of data.fmon) {
       if (omoves) {
         if (m.data_key) {
           const [tier, idx] = m.data_key;
@@ -121,7 +121,7 @@ export function getlev(data) {
 
   // Restore gold
   if (data.fgold) {
-    for (const g of [...data.fgold].reverse()) {
+    for (const g of data.fgold) {
       const gtmp = makeGen(g.gx, g.gy, g.gflag);
       gtmp.ngen = game.fgold;
       game.fgold = gtmp;
@@ -130,7 +130,7 @@ export function getlev(data) {
 
   // Restore traps
   if (data.ftrap) {
-    for (const g of [...data.ftrap].reverse()) {
+    for (const g of data.ftrap) {
       const gtmp = makeGen(g.gx, g.gy, g.gflag);
       gtmp.ngen = game.ftrap;
       game.ftrap = gtmp;
@@ -139,7 +139,7 @@ export function getlev(data) {
 
   // Restore objects
   if (data.fobj) {
-    for (const o of [...data.fobj].reverse()) {
+    for (const o of data.fobj) {
       const otmp = Object.assign(makeObj(), o);
       otmp.nobj = game.fobj;
       game.fobj = otmp;
@@ -152,6 +152,13 @@ export function getlev(data) {
 // C ref: mklev() — generate a new level via the mklev process
 // In JS: call generatelevel() directly, then store in savedLevels
 export function mklev() {
+  // C ref: mklev is a forked process — it re-seeds its RNG with getpid() which
+  // the harness overrides to the game's initial seed. The fork means mklev's rand()
+  // calls don't advance the main game's RNG, but in the harness they DO appear in the
+  // same step rng log. We match this by resetting rngSeed to initialSeed before mklev
+  // and letting the seed advance through mklev (not restoring it after).
+  game.rngSeed = game.initialSeed;
+
   const tspe = game.dlevel === game.flags.maze ? 'b' :
                game.dlevel === game.flags.maze - 1 ? 'n' : 'a';
   const lvdata = generatelevel(game.dlevel);

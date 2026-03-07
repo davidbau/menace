@@ -180,7 +180,9 @@ export class GameState {
 
     // RNG state
     this.rngSeed = 0;
-    this.rngLog = [];   // for parity testing
+    this.initialSeed = 0;  // saved at game start for mklev reseeding (C: srand(getpid()))
+    this.rngLog = [];     // structured RNG log (for debugging)
+    this.rawRngLog = null; // set to [] to enable raw rand() value logging
 
     // Shuffled name arrays (set up in main.js)
     this.wannam   = null;

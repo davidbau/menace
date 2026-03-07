@@ -24,7 +24,11 @@ int done1(),done2();	/* various ways of quitting */
 #endif
 
 #define cl_end() fputs(CE,stdout)
+#ifndef mfree
+/* mfree: harness overrides this with a no-op (hack_patch.h) to match
+   original VAX/PDP-11 sbrk() behavior where freed memory stays accessible. */
 #define mfree(ptr) free(ptr)
+#endif
 
 #define MNORM 0	/* used in both */
 
@@ -53,12 +57,12 @@ int done1(),done2();	/* various ways of quitting */
 #define RINN 8
 
 struct rm {
-	int scrsym:7;
-	int typ:3;
-	int new:1;
-	int seen:1;
-	int lit:1;
-	int cansee:1;
+	unsigned int scrsym:7;
+	unsigned int typ:3;
+	unsigned int new:1;
+	unsigned int seen:1;
+	unsigned int lit:1;
+	unsigned int cansee:1;
 };
 extern struct rm levl[80][22];
 
@@ -70,13 +74,13 @@ extern struct permonst mon[8][7];
 struct monst {
 	struct monst *nmon;
 	char mx,my;
-	int sinv:1;	/* special invisible */
-	int invis:1;	/* invisible */
-	int cham:1;	/* shape-changer */
-	int mspeed:2;
-	int mstat:2;
-	int mcan:1;	/* has been canceled */
-	int mstuck:1;	/* you are stuck to this */
+	unsigned int sinv:1;	/* special invisible */
+	unsigned int invis:1;	/* invisible */
+	unsigned int cham:1;	/* shape-changer */
+	unsigned int mspeed:2;
+	unsigned int mstat:2;
+	unsigned int mcan:1;	/* has been canceled */
+	unsigned int mstuck:1;	/* you are stuck to this */
 	struct permonst *data;
 	char mhp,orig_hp;
 };
@@ -101,11 +105,11 @@ struct gen *g_at();
 struct obj {
 	struct obj *nobj;
 	char ox,oy,olet;
-	int spe:6;
-	int quan:7;
-	int minus:1;
-	int known:1;
-	int cursed:1;
+	unsigned int spe:6;
+	unsigned int quan:7;
+	unsigned int minus:1;
+	unsigned int known:1;
+	unsigned int cursed:1;
 	char otyp;
 };
 extern struct obj *fobj,*invent,*uwep,*uarm,*uleft,*uright;

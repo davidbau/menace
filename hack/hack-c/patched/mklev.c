@@ -133,6 +133,7 @@ g_at(xdnstair,ydnstair,ftrap));
 	} while(croom==troom);
 	levl[xupstair][yupstair].scrsym='<';
 #ifdef HARNESS
+	harness_log_event("mklev_up[x=%d,y=%d]",xupstair,yupstair);
 	harness_log_event("mklev_up");
 #endif
 #ifdef DEBUG
@@ -149,6 +150,9 @@ g_at(xdnstair,ydnstair,ftrap));
 				fmon->mx=somex();
 				fmon->my=somey();
 			} while(xupstair==fmon->mx && yupstair==fmon->my);
+#ifdef HARNESS
+			harness_log_event("mon_pos[tier=%d,idx=%d,mx=%d,my=%d]",fmon->mhp,fmon->orig_hp,fmon->mx,fmon->my);
+#endif
 #ifdef DEBUG
 			out("Monster @%d %d\n",fmon->mx,fmon->my);
 #endif
@@ -216,8 +220,16 @@ g_at(xdnstair,ydnstair,ftrap));
 	out("begin mkpos\n");
 #endif
 	mkpos();
-	do makecor(x+dx,y+dy);
-	while (croom->hx>0 && troom->hx>0);
+	{
+		int _cor_iter = 0;
+		do {
+			makecor(x+dx,y+dy);
+			if (++_cor_iter > 200000) {
+				harness_log_event("mklev_stuck");
+				break;
+			}
+		} while (croom->hx>0 && troom->hx>0);
+	}
 #ifdef HARNESS
 	harness_log_event("mklev_corridors");
 #endif
@@ -317,7 +329,9 @@ comp(x,y)
 register struct mkroom *x,*y;
 {
 	if(x->lx<y->lx) return(-1);
-	return(x->lx>y->lx);
+	if(x->lx>y->lx) return(1);
+	if(x->ly<y->ly) return(-1);
+	return(x->ly>y->ly);
 }
 mkpos()
 {
@@ -573,7 +587,7 @@ savelev()
 	register struct obj *otmp;
 
 	if((fd=fopen(tfile,"w"))==0) panic("Cannot create %s\n",tfile);
-	bwrite(fd,levl,3520);
+	bwrite(fd,levl,sizeof(levl));
 	bwrite(fd,nul,2);
 	bwrite(fd,&xupstair,1);
 	bwrite(fd,&yupstair,1);

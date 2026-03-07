@@ -208,10 +208,12 @@ function mkobj_lev() {
   return otmp;
 }
 
-// C ref: comp(x,y) — qsort comparator for rooms by lx
+// C ref: comp(x,y) — qsort comparator for rooms by lx, then ly as tiebreaker
 function comp(a, b) {
   if (a.lx < b.lx) return -1;
-  return a.lx > b.lx ? 1 : 0;
+  if (a.lx > b.lx) return 1;
+  if (a.ly < b.ly) return -1;
+  return a.ly > b.ly ? 1 : 0;
 }
 
 // C ref: dodoor(x,y)
@@ -311,17 +313,16 @@ function makecor(nx, ny) {
     lev_x = nx; lev_y = ny;
     return;
   }
-  // NOTE: No CORR advance branch — C's int:3 bitfield stores CORR=4 as -4,
-  // so crm->typ==CORR is always false. CORR cells act as obstacles like WALL.
+  if (crm.typ === CORR) { lev_x = nx; lev_y = ny; return; }
   if (nx === lev_tx && ny === lev_ty) { dodoor(nx, ny); newloc(); return; }
   if (lev_x + lev_dx !== nx || lev_y + lev_dy !== ny) { logEvent(`makecor[stop,nx=${nx},ny=${ny},crm=${crm.typ},x=${lev_x},y=${lev_y},dx=${lev_dx},dy=${lev_dy}]`); return; }
   if (lev_dx) {
-    // C: ROOM check always false (ROOM=5 stored as -3 in int:3), so always dy=-1
-    lev_dy = -1;
+    if (lev_ty < ny) lev_dy = -1;
+    else lev_dy = lev_levl[nx + lev_dx][ny - 1].typ === ROOM ? 1 : -1;
     lev_dx = 0;
   } else {
-    // C: ROOM check always false, so always dx=-1
-    lev_dx = -1;
+    if (lev_tx < nx) lev_dx = -1;
+    else lev_dx = lev_levl[nx - 1][ny + lev_dy].typ === ROOM ? 1 : -1;
     lev_dy = 0;
   }
   logEvent(`makecor[redir,nx=${nx},ny=${ny},crm=${crm.typ},x=${lev_x},y=${lev_y},dx=${lev_dx},dy=${lev_dy}]`);
@@ -538,14 +539,17 @@ function _generatelevel_attempt(dlevel) {
 
   logEvent('mklev_dn');
   // Place upstairs (in a different room)
+  // C ref: somex/somey called INSIDE do-while — must match C behavior
   const troom_save = lev_croom;
+  let upx, upy;
   do {
     lev_croom = lev_room[rn2(lev_nroom)];
+    upx = somex(); upy = somey();
   } while (lev_croom === troom_save);
-  const upx = somex(); const upy = somey();
   lev_levl[upx][upy].scrsym = '<';
   lev_xupstair = upx; lev_yupstair = upy;
 
+  logEvent(`mklev_up[x=${upx},y=${upy}]`);
   logEvent('mklev_up');
   // Populate rooms
   for (let ri = 0; ri < lev_nroom; ri++) {

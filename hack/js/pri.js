@@ -242,7 +242,7 @@ export function bot() {
                `Hp ${String(u.uhp).padStart(3)}(${u.uhpmax})`;
     if (u.uhpmax < 10) line += '  ';
     else if (u.uhpmax < 100) line += ' ';
-    line += `  Ac ${String(u.uac).padEnd(2)}  Str `;
+    line += `Ac ${String(u.uac).padEnd(2)}  Str `;
     disp.moveCursor(1, 24); game.curx = 1; game.cury = 24;
     disp.putString(line); game.curx += line.length;
     prustr();

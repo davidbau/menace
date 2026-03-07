@@ -3,7 +3,7 @@
   "steps": [
     {
       "key": "h",
-      "rng": [17689,22911,19418,4684,5610,21420,14156,13086,23965,11818,19756,4267,349,18586,4473,23605,10751,7970,5910,20705,14250,29344,26969,19542,17474,14507,594,21785,24729,3918,23003,10923,30804,12419,22884,15199,2207,8561,16507,7165,5520,6501,17950,23833,2652,23698,705,23088,28732,1673,28445,24199,10269,118,959,15300,4874,7968,17740,11849,21850,17689,22911,19418,4684,5610,21420,14156,13086,23965,11818,19756,4267,349,18586,4473,23605,10751,7970,5910,20705,14250,29344,26969,19542,17474,14507,594,21785,24729,3918,23003,10923,30804,12419,22884,15199,2207,8561,16507,7165,5520,6501,17950,23833,2652,23698,705,23088,28732,1673,28445,24199,10269,118,959,15300,4874,7968,17740,11849,21850,9374,18836,11092,8345,8666,350,29912,12343,29639,21230,3864,25843,22626,20822,29705,11013,22378,7298,8293,5902,31454,13825,22159,26048,4923,22163,13098,19021,882,4216,28535,14224,20651,19059,28018,4094,29116,24480,27052,26699,6760,28667,28391,18652,32344,11692,26483,6639,18393,13076,26699,9868,15963,11672,4590,25131,22693,26928,8959,23842,14041,2222,6300,5077,16428,30415,30846,1180,24673,23555,8405,14450,8458,9468,14817,10851,6782,26104,9552,14772,30873,9935,1883,4815,3894,25532,17823,15093,14957,20203,6075,10914,1677,7878,1455,8895,23512,29951,28655,10378,10753,10845,32074,21573,20326,2888,2686,24226,14349,20755,30615,6377,28768,25611,28428,15343,10153,12867,663,14775,24140,10013,14808,32229,15302,3993,28328,18663,18537,30557,4926,4577,1748,19080,15876,7004,10548,18487,5943,9903,24126,4563,1089,29225,29160,25377,11478,28163,15850,16135,13776,21513],
+      "rng": [17689,22911,19418,4684,5610,21420,14156,13086,23965,11818,19756,4267,349,18586,4473,23605,10751,7970,5910,20705,14250,29344,26969,19542,17474,14507,594,21785,24729,3918,23003,10923,30804,12419,22884,15199,2207,8561,16507,7165,5520,6501,17950,23833,2652,23698,705,23088,28732,1673,28445,24199,10269,118,959,15300,4874,7968,17740,11849,21850,17689,22911,19418,4684,5610,21420,14156,13086,23965,11818,19756,4267,349,18586,4473,23605,10751,7970,5910,20705,14250,29344,26969,19542,17474,14507,594,21785,24729,3918,23003,10923,30804,12419,22884,15199,2207,8561,16507,7165,5520,6501,17950,23833,2652,23698,705,"^mklev_rooms",23088,28732,1673,"^mklev_dn",28445,24199,10269,"^mklev_up[x=30,y=7]","^mklev_up",118,959,15300,4874,7968,17740,11849,21850,9374,18836,11092,8345,8666,350,29912,12343,29639,21230,3864,25843,22626,20822,29705,11013,22378,7298,8293,5902,31454,13825,22159,26048,4923,22163,13098,19021,882,4216,28535,14224,20651,"^mon_pos[tier=0,idx=3,mx=13,my=7]",19059,28018,4094,29116,24480,27052,26699,6760,28667,28391,18652,32344,11692,26483,6639,18393,13076,26699,9868,15963,11672,4590,25131,22693,26928,8959,"^mon_pos[tier=0,idx=6,mx=50,my=15]",23842,14041,2222,"^mklev_populate","^rooms[0:3-9,4-8|1:3-5,13-16|2:13-15,4-8|3:20-31,6-10|4:36-46,10-15|5:50-59,14-17|6:63-70,4-9|7:67-70,13-16]",6300,5077,"^mkpos[x=3,y=9,dx=0,dy=1,tx=4,ty=12]",16428,"^makecor[stop,nx=3,ny=12,crm=1,x=3,y=11,dx=1,dy=0]",30415,"^newloc[seq,ci=1,ti=2]",30846,1180,"^mkpos[x=6,y=13,dx=1,dy=0,tx=12,ty=4]",24673,"^makecor[redir,nx=7,ny=9,crm=1,x=7,y=10,dx=1,dy=0]","^makecor[redir,nx=8,ny=9,crm=1,x=8,y=10,dx=1,dy=0]","^makecor[redir,nx=9,ny=9,crm=1,x=9,y=10,dx=1,dy=0]","^makecor[redir,nx=10,ny=9,crm=1,x=10,y=10,dx=1,dy=0]",23555,"^newloc[seq,ci=2,ti=3]",8405,14450,"^mkpos[x=16,y=5,dx=1,dy=0,tx=19,ty=8]",8458,"^makecor[stop,nx=19,ny=7,crm=1,x=18,y=7,dx=0,dy=1]",9468,"^newloc[seq,ci=3,ti=4]",14817,10851,"^mkpos[x=32,y=7,dx=1,dy=0,tx=35,ty=11]",6782,"^makecor[stop,nx=35,ny=10,crm=1,x=34,y=10,dx=0,dy=1]",26104,"^newloc[seq,ci=4,ti=5]",9552,14772,"^mkpos[x=47,y=12,dx=1,dy=0,tx=49,ty=14]",30873,9935,"^newloc[seq,ci=5,ti=6]",1883,4815,"^mkpos[x=60,y=16,dx=1,dy=0,tx=62,ty=4]",3894,25532,"^newloc[seq,ci=6,ti=7]",17823,15093,"^mkpos[x=64,y=10,dx=0,dy=1,tx=67,ty=12]",14957,20203,6075,10914,1677,"^newloc[pick,nxcor=1,limit=7,a=2,b=5]",7878,1455,"^mkpos[x=16,y=6,dx=1,dy=0,tx=49,ty=14]",8895,23512,29951,"^newloc[pick,nxcor=2,limit=11,a=0,b=7]",28655,10378,"^mkpos[x=10,y=7,dx=1,dy=0,tx=66,ty=14]",10753,10845,32074,"^newloc[pick,nxcor=3,limit=5,a=5,b=2]",21573,20326,"^mkpos[x=50,y=13,dx=0,dy=-1,tx=13,ty=9]",2888,2686,24226,14349,20755,"^makecor[dead_end,nx=47,ny=12]",30615,6377,28768,"^newloc[pick,nxcor=4,limit=11,a=1,b=0]",25611,28428,"^mkpos[x=4,y=12,dx=0,dy=-1,tx=3,ty=9]",15343,10153,12867,"^newloc[pick,nxcor=5,limit=11,a=1,b=3]",663,14775,"^mkpos[x=6,y=13,dx=1,dy=0,tx=19,ty=9]",24140,10013,14808,"^newloc[pick,nxcor=6,limit=8,a=5,b=0]",32229,15302,"^mkpos[x=50,y=13,dx=0,dy=-1,tx=5,ty=9]",3993,"^newloc[sentinel,nxcor=6,limit=5]","^mklev_corridors",28328,18663,"^turn[moves=0]","^movemon[n=2]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",18537],
       "screen": [
         "",
         "",
@@ -33,7 +33,7 @@
     },
     {
       "key": "j",
-      "rng": [9720,7455,19915,3586,7100,25597],
+      "rng": ["^turn[moves=1]","^movemon[n=2]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",30557],
       "screen": [
         "",
         "",
@@ -63,7 +63,7 @@
     },
     {
       "key": "k",
-      "rng": [26496,5860,26261,15425,15842],
+      "rng": ["^turn[moves=2]","^movemon[n=2]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",4926],
       "screen": [
         "",
         "",
@@ -93,7 +93,7 @@
     },
     {
       "key": "l",
-      "rng": [17081,11026,2139,32250,6479,28205],
+      "rng": ["^turn[moves=3]","^movemon[n=2]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",4577],
       "screen": [
         "",
         "",
@@ -123,7 +123,7 @@
     },
     {
       "key": " ",
-      "rng": [3361,12931,12194,4167,5906,19781],
+      "rng": ["^turn[moves=4]","^movemon[n=2]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",1748],
       "screen": [
         "",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "h",
-      "rng": [11274,31719,10344,27186,24869,1074],
+      "rng": ["^turn[moves=5]","^movemon[n=2]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",19080,15876,7004,10548,18487,5943,9903,24126,4563,1089],
       "screen": [
         "",
         "",
@@ -164,7 +164,7 @@
         "                  --------------",
         "                  |............|",
         "                  |..........@.+",
-        "                  +............|",
+        "                  +..K.........|",
         "                  |............|",
         "                  |............|",
         "                  --------------",
@@ -183,7 +183,7 @@
     },
     {
       "key": "j",
-      "rng": [31711,10306,11138,12074,26696,13326],
+      "rng": ["^turn[moves=6]","^movemon[n=3]","^dochug[mlet=K,mstat=0,cansee=1]",29225,"^m_move_debug[mlet=K,mx=22,my=8,dx=1,dy=-1,rfree=1,cell_typ=5,gat=-,ux=29,uy=7]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",29160,25377,11478,28163,15850,16135],
       "screen": [
         "",
         "",
@@ -193,7 +193,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |.........@<.+",
+        "                  |...K.....@<.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",
@@ -213,7 +213,7 @@
     },
     {
       "key": "k",
-      "rng": [32274,26535,28876,24622,18767],
+      "rng": ["^turn[moves=7]","^movemon[n=4]","^dochug[mlet=L,mstat=0,cansee=0]",13776,"^m_move_debug[mlet=L,mx=67,my=6,dx=-1,dy=1,rfree=1,cell_typ=5,gat=-,ux=29,uy=8]","^dochug[mlet=K,mstat=0,cansee=1]",21513,"^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",9720,7455,19915,3586,7100,25597,26496,5860],
       "screen": [
         "",
         "",
@@ -223,7 +223,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |..........<.+",
+        "                  |...K......<.+",
         "                  +.........@..|",
         "                  |............|",
         "                  |............|",
@@ -243,7 +243,7 @@
     },
     {
       "key": "l",
-      "rng": [21269,3585,26452,10537,18163,31662],
+      "rng": ["^turn[moves=8]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",26261,15425,"^m_move_debug[mlet=B,mx=10,my=10,dx=1,dy=-1,rfree=1,cell_typ=4,gat=-,ux=29,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",15842,"^m_move_debug[mlet=L,mx=66,my=7,dx=-1,dy=0,rfree=1,cell_typ=5,gat=-,ux=29,uy=7]","^dochug[mlet=K,mstat=0,cansee=1]",17081,"^m_move_debug[mlet=K,mx=23,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=29,uy=7]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",11026],
       "screen": [
         "",
         "",
@@ -253,7 +253,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |.........@<.+",
+        "                  |....K....@<.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",
@@ -273,7 +273,7 @@
     },
     {
       "key": " ",
-      "rng": [13349,1461,6663,5982,19163,4757],
+      "rng": ["^turn[moves=9]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",2139,32250,6479,28205,"^m_move_debug[mlet=B,mx=11,my=9,dx=1,dy=1,rfree=0,cell_typ=0,gat=-,ux=30,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",3361,"^m_move_debug[mlet=L,mx=65,my=7,dx=-1,dy=0,rfree=1,cell_typ=5,gat=-,ux=30,uy=7]","^dochug[mlet=K,mstat=0,cansee=1]",12931,"^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",12194],
       "screen": [
         "",
         "",
@@ -283,7 +283,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |..........@.+",
+        "                  |....K.....@.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",
@@ -303,7 +303,7 @@
     },
     {
       "key": "h",
-      "rng": [19809,7079,12443,22821,18711,17464],
+      "rng": ["^turn[moves=10]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",4167,5906,"^m_move_debug[mlet=B,mx=11,my=10,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=30,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",19781,"^m_move_debug[mlet=L,mx=64,my=7,dx=-1,dy=0,rfree=1,cell_typ=5,gat=-,ux=30,uy=7]","^dochug[mlet=K,mstat=0,cansee=1]",11274,"^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",31719],
       "screen": [
         "",
         "",
@@ -313,7 +313,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |..........@.+",
+        "                  |....K.....@.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",
@@ -333,7 +333,7 @@
     },
     {
       "key": "j",
-      "rng": [27799,14699,10426,9892,32484,3515],
+      "rng": ["^turn[moves=11]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",10344,27186,24869,1074,"^m_move_debug[mlet=B,mx=11,my=9,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=29,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",31711,"^m_move_debug[mlet=L,mx=63,my=7,dx=-1,dy=0,rfree=0,cell_typ=1,gat=-,ux=29,uy=7]",10306,11138,"^dochug[mlet=K,mstat=0,cansee=1]",12074,"^m_move_debug[mlet=K,mx=24,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=29,uy=7]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",26696],
       "screen": [
         "",
         "",
@@ -343,7 +343,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |.........@<.+",
+        "                  |.....K...@<.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",
@@ -363,7 +363,7 @@
     },
     {
       "key": "k",
-      "rng": [21402,19440,26904,23853,23742],
+      "rng": ["^turn[moves=12]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",13326,32274,26535,28876,"^m_move_debug[mlet=B,mx=11,my=8,dx=-1,dy=0,rfree=0,cell_typ=1,gat=-,ux=29,uy=8]",24622,18767,"^dochug[mlet=L,mstat=0,cansee=0]",21269,"^m_move_debug[mlet=L,mx=63,my=7,dx=-1,dy=1,rfree=0,cell_typ=1,gat=-,ux=29,uy=8]","^dochug[mlet=K,mstat=0,cansee=1]",3585,"^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",26452],
       "screen": [
         "",
         "",
@@ -373,7 +373,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |..........<.+",
+        "                  |.....K....<.+",
         "                  +.........@..|",
         "                  |............|",
         "                  |............|",
@@ -393,7 +393,7 @@
     },
     {
       "key": "l",
-      "rng": [22237,9387,18624,26274,17143,8971],
+      "rng": ["^turn[moves=13]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",10537,18163,"^m_move_debug[mlet=B,mx=11,my=8,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=29,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",31662,"^m_move_debug[mlet=L,mx=63,my=8,dx=-1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=29,uy=7]","^dochug[mlet=K,mstat=0,cansee=1]",13349,"^m_move_debug[mlet=K,mx=25,my=7,dx=1,dy=0,rfree=1,cell_typ=5,gat=-,ux=29,uy=7]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",1461],
       "screen": [
         "",
         "",
@@ -403,7 +403,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |.........@<.+",
+        "                  |......K..@<.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",
@@ -423,7 +423,7 @@
     },
     {
       "key": "w",
-      "rng": [8011,1710,2138,13180,17447,25723],
+      "rng": ["^turn[moves=14]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",6663,5982,19163,4757,"^m_move_debug[mlet=B,mx=11,my=7,dx=1,dy=1,rfree=0,cell_typ=1,gat=-,ux=30,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",19809,"^m_move_debug[mlet=L,mx=63,my=7,dx=-1,dy=0,rfree=0,cell_typ=1,gat=-,ux=30,uy=7]",7079,"^dochug[mlet=K,mstat=0,cansee=1]",12443,"^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",22821],
       "screen": [
         "",
         "",
@@ -433,7 +433,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |..........@.+",
+        "                  |......K...@.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",
@@ -463,7 +463,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |..........@.+",
+        "                  |......K...@.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",
@@ -483,9 +483,9 @@
     },
     {
       "key": " ",
-      "rng": [12359,27318,21662,4293,9834,26684],
+      "rng": ["^turn[moves=15]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",18711,17464,"^m_move_debug[mlet=B,mx=11,my=8,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=30,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",27799,"^m_move_debug[mlet=L,mx=63,my=8,dx=-1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=30,uy=7]","^dochug[mlet=K,mstat=0,cansee=1]",14699,"^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",10426],
       "screen": [
-        "b - a +-1 mace.  (weapon in hand)",
+        "b - a +1 mace.  (weapon in hand)",
         "",
         "",
         "",
@@ -493,7 +493,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |..........@.+",
+        "                  |......K...@.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",
@@ -513,7 +513,7 @@
     },
     {
       "key": "h",
-      "rng": [14354,20526,21225,5502,1773,21944],
+      "rng": ["^turn[moves=16]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",9892,32484,3515,21402,"^m_move_debug[mlet=B,mx=11,my=7,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=30,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",19440,"^m_move_debug[mlet=L,mx=63,my=7,dx=-1,dy=0,rfree=0,cell_typ=1,gat=-,ux=30,uy=7]",26904,"^dochug[mlet=K,mstat=0,cansee=1]",23853,"^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",23742],
       "screen": [
         "",
         "",
@@ -523,7 +523,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |..........@.+",
+        "                  |......K...@.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",
@@ -543,7 +543,7 @@
     },
     {
       "key": "j",
-      "rng": [18732,15022,29772,10496,5999,1378],
+      "rng": ["^turn[moves=17]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",22237,9387,18624,26274,"^m_move_debug[mlet=B,mx=11,my=6,dx=-1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=29,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",17143,"^m_move_debug[mlet=L,mx=63,my=6,dx=-1,dy=1,rfree=0,cell_typ=1,gat=-,ux=29,uy=7]","^dochug[mlet=K,mstat=0,cansee=1]",8971,"^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",8011],
       "screen": [
         "",
         "",
@@ -553,7 +553,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |.........@<.+",
+        "                  |......K..@<.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",
@@ -573,7 +573,7 @@
     },
     {
       "key": "k",
-      "rng": [9834,13371,777,23790,10702],
+      "rng": ["^turn[moves=18]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",1710,2138,"^m_move_debug[mlet=B,mx=11,my=5,dx=1,dy=1,rfree=0,cell_typ=1,gat=-,ux=29,uy=8]","^dochug[mlet=L,mstat=0,cansee=0]",13180,"^m_move_debug[mlet=L,mx=63,my=7,dx=-1,dy=1,rfree=0,cell_typ=1,gat=-,ux=29,uy=8]","^dochug[mlet=K,mstat=0,cansee=1]",17447,"^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",25723],
       "screen": [
         "",
         "",
@@ -583,7 +583,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |..........<.+",
+        "                  |......K...<.+",
         "                  +.........@..|",
         "                  |............|",
         "                  |............|",
@@ -603,7 +603,7 @@
     },
     {
       "key": "l",
-      "rng": [13810,15737,8319,27445,4733,24117],
+      "rng": ["^turn[moves=19]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",12359,27318,21662,4293,"^m_move_debug[mlet=B,mx=11,my=6,dx=1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=29,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",9834,"^m_move_debug[mlet=L,mx=63,my=8,dx=-1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=29,uy=7]","^dochug[mlet=K,mstat=0,cansee=1]",26684,"^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",14354],
       "screen": [
         "",
         "",
@@ -613,7 +613,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |.........@<.+",
+        "                  |......K..@<.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",
@@ -633,7 +633,7 @@
     },
     {
       "key": " ",
-      "rng": [11000,25661,16705,11571,14476,26326],
+      "rng": ["^turn[moves=20]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",20526,21225,5502,1773,"^m_move_debug[mlet=B,mx=11,my=5,dx=-1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=30,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",21944,"^m_move_debug[mlet=L,mx=63,my=7,dx=-1,dy=0,rfree=0,cell_typ=1,gat=-,ux=30,uy=7]",18732,"^dochug[mlet=K,mstat=0,cansee=1]",15022,"^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",29772],
       "screen": [
         "",
         "",
@@ -643,7 +643,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |..........@.+",
+        "                  |......K...@.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",
@@ -663,7 +663,7 @@
     },
     {
       "key": "h",
-      "rng": [20905,2612,2592,13160,17381,31955],
+      "rng": ["^turn[moves=21]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",10496,5999,"^m_move_debug[mlet=B,mx=11,my=4,dx=1,dy=1,rfree=0,cell_typ=1,gat=-,ux=30,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",1378,"^m_move_debug[mlet=L,mx=63,my=6,dx=-1,dy=1,rfree=0,cell_typ=1,gat=-,ux=30,uy=7]","^dochug[mlet=K,mstat=0,cansee=1]",9834,"^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",13371],
       "screen": [
         "",
         "",
@@ -673,7 +673,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |..........@.+",
+        "                  |......K...@.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",
@@ -693,7 +693,7 @@
     },
     {
       "key": "j",
-      "rng": [25182,17860,12645,14673,14489,1229],
+      "rng": ["^turn[moves=22]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",777,23790,10702,13810,"^m_move_debug[mlet=B,mx=12,my=4,dx=0,dy=0,rfree=0,cell_typ=3,gat=B,ux=29,uy=7]",15737,"^dochug[mlet=L,mstat=0,cansee=0]",8319,"^m_move_debug[mlet=L,mx=63,my=7,dx=-1,dy=0,rfree=0,cell_typ=1,gat=-,ux=29,uy=7]",27445,4733,"^dochug[mlet=K,mstat=0,cansee=1]",24117,"^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",11000],
       "screen": [
         "",
         "",
@@ -703,7 +703,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |.........@<.+",
+        "                  |......K..@<.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",
@@ -723,7 +723,7 @@
     },
     {
       "key": "k",
-      "rng": [276,9757,15716,16611,9045],
+      "rng": ["^turn[moves=23]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",25661,16705,"^m_move_debug[mlet=B,mx=13,my=4,dx=1,dy=1,rfree=1,cell_typ=5,gat=-,ux=29,uy=8]","^dochug[mlet=L,mstat=0,cansee=0]",11571,"^m_move_debug[mlet=L,mx=63,my=7,dx=-1,dy=1,rfree=0,cell_typ=1,gat=-,ux=29,uy=8]","^dochug[mlet=K,mstat=0,cansee=1]",14476,"^m_move_debug[mlet=K,mx=26,my=7,dx=1,dy=1,rfree=1,cell_typ=5,gat=-,ux=29,uy=8]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",26326],
       "screen": [
         "",
         "",
@@ -734,7 +734,7 @@
         "                  --------------",
         "                  |............|",
         "                  |..........<.+",
-        "                  +.........@..|",
+        "                  +.......K.@..|",
         "                  |............|",
         "                  |............|",
         "                  --------------",
@@ -753,7 +753,7 @@
     },
     {
       "key": "l",
-      "rng": [11814,3312,11538,4542,27617,11049],
+      "rng": ["^turn[moves=24]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",20905,2612,"^m_move_debug[mlet=B,mx=14,my=5,dx=1,dy=1,rfree=1,cell_typ=5,gat=-,ux=29,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",2592,"^m_move_debug[mlet=L,mx=63,my=8,dx=-1,dy=-1,rfree=0,cell_typ=1,gat=-,ux=29,uy=7]","^dochug[mlet=K,mstat=0,cansee=1]",13160,"^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",17381],
       "screen": [
         "",
         "",
@@ -764,7 +764,7 @@
         "                  --------------",
         "                  |............|",
         "                  |.........@<.+",
-        "                  +............|",
+        "                  +.......K....|",
         "                  |............|",
         "                  |............|",
         "                  --------------",
@@ -783,7 +783,7 @@
     },
     {
       "key": "Q",
-      "rng": [16127,3735,31001,9616,8590,24592],
+      "rng": ["^turn[moves=25]","^movemon[n=5]","^dochug[mlet=B,mstat=0,cansee=0]",31955,25182,17860,12645,"^m_move_debug[mlet=B,mx=15,my=6,dx=0,dy=-1,rfree=1,cell_typ=5,gat=-,ux=30,uy=7]","^dochug[mlet=L,mstat=0,cansee=0]",14673,"^m_move_debug[mlet=L,mx=63,my=7,dx=-1,dy=0,rfree=0,cell_typ=1,gat=-,ux=30,uy=7]",14489,"^dochug[mlet=K,mstat=0,cansee=1]",1229,"^m_move_debug[mlet=K,mx=27,my=8,dx=1,dy=-1,rfree=1,cell_typ=5,gat=-,ux=30,uy=7]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",276],
       "screen": [
         "",
         "",
@@ -793,7 +793,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |..........@.+",
+        "                  |........K.@.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",
@@ -823,7 +823,7 @@
         "",
         "                  --------------",
         "                  |............|",
-        "                  |..........@.+",
+        "                  |........K.@.+",
         "                  +............|",
         "                  |............|",
         "                  |............|",

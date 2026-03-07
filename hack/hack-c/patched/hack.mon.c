@@ -19,7 +19,10 @@ char *kmsg[4]= {
 movemon()
 {
 	register struct monst *mtmp;
-
+#ifdef HARNESS
+	{ int n=0; for(mtmp=fmon;mtmp;mtmp=mtmp->nmon) n++;
+	  harness_log_event("movemon[n=%d]",n); }
+#endif
 	for(mtmp=fmon;mtmp;mtmp=mtmp->nmon) {
 		if(mtmp->mspeed!=MSLOW || !(moves%2)) dochug(mtmp);
 		if(mtmp->mspeed==MFAST) dochug(mtmp);
@@ -56,6 +59,10 @@ register struct monst *mtmp;
 {
 	register struct permonst *mdat;
 	register tmp;
+#ifdef HARNESS
+	harness_log_event("dochug[mlet=%c,mstat=%d,cansee=%d]",
+		mtmp->data->mlet, mtmp->mstat, levl[mtmp->mx][mtmp->my].cansee);
+#endif
 	char mdix,mdiy;
 	struct stole *stmp;
 
@@ -452,6 +459,14 @@ register struct monst *mtmp;
 		pline("You are confused!");
 		u.uconfused=d(3,4);
 	}
+#ifdef HARNESS
+	{ int _dbx=mtmp->mx+dx, _dby=mtmp->my+dy;
+	  harness_log_event("m_move_debug[mlet=%c,mx=%d,my=%d,dx=%d,dy=%d,rfree=%d,cell_typ=%d,gat=%c,ux=%d,uy=%d]",
+		mtmp->data->mlet,mtmp->mx,mtmp->my,dx,dy,r_free(_dbx,_dby),
+		levl[_dbx][_dby].typ,
+		g_at(_dbx,_dby,fmon) ? ((struct monst*)g_at(_dbx,_dby,fmon))->data->mlet : '-',
+		u.ux,u.uy); }
+#endif
 	if(!r_free(mtmp->mx+dx,mtmp->my+dy)) {
 		if(!dx) dx=rn1(3,-1);
 		else if(!dy) dy=rn1(3,-1);

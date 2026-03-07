@@ -1,6 +1,6 @@
 // C ref: hack.main.c — game loop, initialization, shufl, losestr, glo
 import { HP, STR, DHS, GOLD, AC, HPM, ULV, UEX } from './const.js';
-import { rn1, rn2, rnd, d, seedRng } from './rng.js';
+import { rn1, rn2, rnd, d, seedRng, logEvent } from './rng.js';
 import { game } from './gstate.js';
 import { makeObj } from './game.js';
 import { pline, bot, nscr, cls, panic, losehp } from './pri.js';
@@ -182,15 +182,17 @@ export function setRhack(fn) { _rhack_fn = fn; }
 export async function gameLoop(seed) {
   // Initialize RNG
   seedRng(seed || Date.now() & 0x7fffffff);
+  // Save initial seed — mklev re-seeds with this (C: srand(getpid()) overridden to game seed)
+  game.initialSeed = game.rngSeed;
+
+  // C ref: hack.main.c initialization order — maze first, then shuffles
+  game.flags.maze = rn1(5, 25);
 
   // Initialize shuffled name arrays (copies)
   game.wannam  = [...wannam];  shufl(game.wannam, game.wannam.length);
   game.potcol  = [...potcol];  shufl(game.potcol, game.potcol.length);
   game.rinnam  = [...rinnam];  shufl(game.rinnam, game.rinnam.length);
   game.scrnam  = [...scrnam];  shufl(game.scrnam, game.scrnam.length);
-
-  // Set maze level
-  game.flags.maze = rn1(5, 25);
 
   // Starting inventory: 2 food rations, short sword, leather armor
   const food = makeObj();
@@ -230,6 +232,7 @@ export async function gameLoop(seed) {
   for (;;) {
     if (game.flags.move) {
       // Monster turn
+      logEvent(`turn[moves=${game.moves}]`);
       if (!game.u.ufast || game.moves % 2 === 0) {
         if (game.fmon) await movemon();
         if (!rn2(60)) { makemon(null); if (game.fmon) { game.fmon.mx = 0; game.fmon.my = 0; rloc(game.fmon); } }

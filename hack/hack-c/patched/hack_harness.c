@@ -400,6 +400,16 @@ static void emit_session_json(FILE *out, unsigned int seed) {
 /* ===== real-stderr debug (for game code debug) ===== */
 void harness_debug(const char *msg) {
   fputs(msg, stderr);
+  fputs("\n", stderr);
+  fflush(stderr);
+}
+
+void harness_debug_fmt(const char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  va_end(ap);
+  fputs("\n", stderr);
   fflush(stderr);
 }
 

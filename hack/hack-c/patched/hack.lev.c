@@ -17,42 +17,59 @@ register FILE *fp;
 	struct stole *stmp;
 
 	if(fp==0) panic("Bad save\n");
-	bwrite(fp,levl,3520);
+	bwrite(fp,levl,sizeof(levl));
 	bwrite(fp,&moves,2);
 	bwrite(fp,&xupstair,1);
 	bwrite(fp,&yupstair,1);
 	bwrite(fp,&xdnstair,1);
 	bwrite(fp,&ydnstair,1);
-	for(stmp=fstole;stmp;stmp=stmp->nstole) {
+	for(stmp=fstole;stmp;) {
+		struct stole *_snxt = stmp->nstole;
 		bwrite(fp,stmp,sizeof(struct stole));
 		bwrite(fp,stmp->smon,sizeof(struct monst));
 		delmon(stmp->smon);
-		for(otmp=stmp->sobj;otmp;otmp=otmp->nobj) {
+		for(otmp=stmp->sobj;otmp;) {
+			struct obj *_onxt = otmp->nobj;
 			bwrite(fp,otmp,sizeof(struct obj));
 			mfree(otmp);
+			otmp = _onxt;
 		}
 		bwrite(fp,nul,sizeof(struct obj));
 		mfree(stmp);
+		stmp = _snxt;
 	}
 	bwrite(fp,nul,sizeof(struct stole));
-	for(mtmp=fmon;mtmp;mtmp=mtmp->nmon) {
+	/* Save next pointer BEFORE bwrite to avoid compiler alias confusion:
+	   bwrite(mtmp,...) passes mtmp as const void*, which can confuse
+	   alias analysis into thinking mtmp->nmon is unchanged, but the
+	   ARM64 code generation reads nmon at the wrong offset after the call.
+	   Saving next before the write is the safe pattern. */
+	for(mtmp=fmon;mtmp;) {
+		struct monst *_nxt = mtmp->nmon;
 		bwrite(fp,mtmp,sizeof(struct monst));
 		mfree(mtmp);
+		mtmp = _nxt;
 	}
 	bwrite(fp,nul,sizeof(struct monst));
-	for(gtmp=fgold;gtmp;gtmp=gtmp->ngen) {
+	for(gtmp=fgold;gtmp;) {
+		struct gen *_nxt = gtmp->ngen;
 		bwrite(fp,gtmp,sizeof(struct gen));
 		mfree(gtmp);
+		gtmp = _nxt;
 	}
 	bwrite(fp,nul,sizeof(struct gen));
-	for(gtmp=ftrap;gtmp;gtmp=gtmp->ngen) {
+	for(gtmp=ftrap;gtmp;) {
+		struct gen *_nxt = gtmp->ngen;
 		bwrite(fp,gtmp,sizeof(struct gen));
 		mfree(gtmp);
+		gtmp = _nxt;
 	}
 	bwrite(fp,nul,sizeof(struct gen));
-	for(otmp=fobj;otmp;otmp=otmp->nobj) {
+	for(otmp=fobj;otmp;) {
+		struct obj *_nxt = otmp->nobj;
 		bwrite(fp,otmp,sizeof(struct obj));
 		mfree(otmp);
+		otmp = _nxt;
 	}
 	bwrite(fp,nul,sizeof(struct obj));
 	fstole=0; fobj=0; fgold=0; fmon=0; ftrap=0;
@@ -67,7 +84,7 @@ register FILE *fp;
 	register unsigned tmoves;
 	unsigned omoves = 0;
 
-	if(fp==0 || fread(levl,1,3520,fp)!=3520) return(1);
+	if(fp==0 || fread(levl,1,sizeof(levl),fp)!=(int)sizeof(levl)) return(1);
 	mread(fp,&omoves,2);
 	mread(fp,&xupstair,1);
 	mread(fp,&yupstair,1);

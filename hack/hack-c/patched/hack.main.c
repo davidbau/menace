@@ -136,41 +136,23 @@ main()
 	} else {
 #endif
 		flags.maze=rn1(5,25);
-#ifdef HARNESS
-		harness_debug("[debug] before shufl\n");
-#endif
 		shufl(wannam,WANDNUM);
 		shufl(potcol,GEMNUM);
 		shufl(rinnam,RINGNUM);
 		shufl(scrnam,SCRNUM);
-#ifdef HARNESS
-		harness_debug("[debug] after shufl, before alloc\n");
-#endif
 		invent=alloc(sizeof(struct obj));
-#ifdef HARNESS
-		harness_debug("[debug] after invent alloc\n");
-#endif
 		invent->olet='%';
 		invent->otyp=0;
 		invent->quan=2;
 		invent->nobj=uwep=alloc(sizeof(struct obj));
-#ifdef HARNESS
-		harness_debug("[debug] after uwep alloc\n");
-#endif
 		uwep->olet=')';
 		uwep->otyp=4;
 		uwep->nobj=uarm=alloc(sizeof(struct obj));
-#ifdef HARNESS
-		harness_debug("[debug] after uarm alloc\n");
-#endif
 		uarm->olet='[';
 		uarm->otyp=3;
 		uarm->spe=uwep->spe=uarm->quan=uwep->quan=uarm->known=
 uwep->known=1;
 		uarm->nobj=uarm->cursed=uarm->minus=uwep->cursed=uwep->minus=0;
-#ifdef HARNESS
-		harness_debug("[debug] after item setup\n");
-#endif
 		u.uac=6;
 		u.ulevel=1;
 		u.uhunger=900;
@@ -182,9 +164,6 @@ uwep->known=1;
 		flags.move=flags.one=1;
 #else
 		flags.move=1;
-#endif
-#ifdef HARNESS
-		harness_debug("[debug] before glo+mklev\n");
 #endif
 		glo(1);
 		mklev();
@@ -201,6 +180,9 @@ uwep->known=1;
 #endif
 	for(;;) {
 		if(flags.move) {
+#ifdef HARNESS
+			harness_log_event("turn[moves=%u]",moves);
+#endif
 			if(!u.ufast || moves%2==0) {
 				if(fmon) movemon();
 				if(!rn2(60)) {

@@ -1,6 +1,6 @@
 // C ref: hack.mon.c — monster AI, combat, movement
-import { MNORM, FLEE, SLEEP, MFROZ, MCONF, MSLOW, MFAST, SEEN, HP } from './const.js';
-import { rn1, rn2, rnd, d } from './rng.js';
+import { MNORM, FLEE, SLEEP, MFROZ, MCONF, MSLOW, MFAST, SEEN, HP, DOOR, COLNO, ROWNO } from './const.js';
+import { rn1, rn2, rnd, d, logEvent } from './rng.js';
 import { game } from './gstate.js';
 import { makeMonst, makeStole } from './game.js';
 import { mon, mregen, CRUSH, NOBLUE, RUST, NOCOLD, mlarge } from './data.js';
@@ -45,6 +45,8 @@ export function g_at_mon(x, y, ptr) {
 
 // C ref: movemon() — move all monsters
 export async function movemon() {
+  let n = 0; for (let m = game.fmon; m; m = m.nmon) n++;
+  logEvent(`movemon[n=${n}]`);
   for (let mtmp = game.fmon; mtmp; mtmp = mtmp.nmon) {
     if (mtmp.mspeed !== MSLOW || !(game.moves % 2)) await dochug(mtmp);
     if (mtmp.mspeed === MFAST) await dochug(mtmp);
@@ -84,16 +86,14 @@ async function k1(fmt, name, ...rest) {
 
 // C ref: dochug(mtmp) — one monster's action
 export async function dochug(mtmp) {
+  logEvent(`dochug[mlet=${mtmp.data.mlet},mstat=${mtmp.mstat},cansee=${game.levl[mtmp.mx][mtmp.my].cansee}]`);
   if (mtmp.cham && !rn2(6) && _newcham) _newcham(mtmp, mon[rn1(6, 2)][rn2(8)]);
   const mdat = mtmp.data;
   // Regenerate monsters
   if ((!game.moves % 20 || mregen.includes(mdat.mlet)) && mtmp.mhp < mtmp.orig_hp)
     mtmp.mhp++;
   if (mtmp.mstat === MFROZ || mtmp.sinv) return;
-  // C parity: SLEEP=2 stored as -2 in signed 2-bit bitfield; mstat==SLEEP (-2==2)
-  // is always false, so C never enters this block. Sleeping monsters fall through
-  // to movement code just like awake ones.
-  if (false && mtmp.mstat === SLEEP) {
+  if (mtmp.mstat === SLEEP) {
     if (game.levl[mtmp.mx][mtmp.my].cansee && !game.u.ustelth &&
         (!rn2(7) || game.u.uagmon)) mtmp.mstat = MNORM;
     else return;
@@ -328,53 +328,89 @@ export function hitu(ac_check, dam, name) {
   return 0;
 }
 
-// C ref: m_move(mtmp) — move monster one step toward/away from player
+// C ref: r_free(x,y) — check if cell is free for monster movement
+function r_free(x, y) {
+  if (x < 0 || x >= COLNO || y < 0 || y >= ROWNO) return false;
+  const cell = game.levl[x][y];
+  if (cell.typ < DOOR) return false;
+  if (g_at_mon(x, y, game.fmon)) return false;
+  if (x === game.u.ux && y === game.u.uy) return false;
+  return true;
+}
+
+// C ref: m_move(mtmp) — move monster one step; returns 1 on success, 0 if stuck
 export function m_move(mtmp) {
   const mdat = mtmp.data;
-  let nx = mtmp.mx, ny = mtmp.my;
-  let moves = 0;
 
-  // Compute direction toward/away from player
-  let ddx = 0, ddy = 0;
-  const distx = game.u.ux - mtmp.mx;
-  const disty = game.u.uy - mtmp.my;
+  if (game.u.uswallow) return 1;
 
-  if (mtmp.mstat === FLEE) {
-    // Move away from player
-    if (distx > 0) ddx = -1; else if (distx < 0) ddx = 1;
-    if (disty > 0) ddy = -1; else if (disty < 0) ddy = 1;
+  // Teleporter: might teleport instead of walk
+  if (mdat.mlet === 't' && !rn2(19)) {
+    if (rn2(2)) {
+      const ox = mtmp.mx, oy = mtmp.my;
+      _mnexto && _mnexto(mtmp);
+      if (game.levl[ox][oy].scrsym === 't') newsym(ox, oy);
+    } else { _rloc && _rloc(mtmp); }
+    return 1;
+  }
+
+  // Primary direction toward player (sgn)
+  const ux = game.u.ux, uy = game.u.uy;
+  let dx = ux > mtmp.mx ? 1 : ux < mtmp.mx ? -1 : 0;
+  let dy = uy > mtmp.my ? 1 : uy < mtmp.my ? -1 : 0;
+
+  // Confused/invisible player/certain monsters: move randomly
+  // C: mstat==MCONF (==1==FLEE) || u.uinvis || (index("BI",mlet) && !rn2(3))
+  if (mtmp.mstat === MCONF || game.u.uinvis || ('BI'.includes(mdat.mlet) && !rn2(3))) {
+    dx = rn1(3, -1);
+    dy = rn1(3, -1);
+  }
+
+  // Dragon: check breath range (inrange — not yet implemented, no RNG)
+  // if (mdat.mlet === 'D' && !mtmp.mcan) inrange(mtmp);
+
+  // Unicorn: might confuse player
+  if (!game.u.uconfused && mdat.mlet === 'U' && !mtmp.mcan &&
+      game.levl[mtmp.mx][mtmp.my].cansee && !rn2(8)) {
+    pline('You are confused!');
+    game.u.uconfused = d(3, 4);
+  }
+
+  const omx = mtmp.mx, omy = mtmp.my;
+
+  // DEBUG: log primary direction and r_free result
+  const _pdfree = r_free(mtmp.mx + dx, mtmp.my + dy);
+  const _dbgX = mtmp.mx + dx, _dbgY = mtmp.my + dy;
+  const _dbgCell = (game.levl[_dbgX] && game.levl[_dbgX][_dbgY]) || null;
+  const _dbgMon = g_at_mon(_dbgX, _dbgY, game.fmon);
+  logEvent(`m_move_debug[mlet=${mdat.mlet},mx=${mtmp.mx},my=${mtmp.my},dx=${dx},dy=${dy},rfree=${_pdfree},cell_typ=${_dbgCell ? _dbgCell.typ : 'oob'},gat=${_dbgMon ? _dbgMon.data.mlet : 'none'},ux=${game.u.ux},uy=${game.u.uy}]`);
+
+  // If primary direction blocked, randomize one axis
+  if (!_pdfree) {
+    if (!dx) dx = rn1(3, -1);
+    else if (!dy) dy = rn1(3, -1);
+  }
+
+  const nix = mtmp.mx + dx, niy = mtmp.my + dy;
+
+  // Try diagonal/straight move; don't move diagonally through/from doors
+  if (r_free(nix, niy) && !(dx && dy &&
+      (game.levl[omx][omy].typ === DOOR || game.levl[nix][niy].typ === DOOR))) {
+    mtmp.mx = nix; mtmp.my = niy;
+  } else if (dx && r_free(nix, mtmp.my)) {
+    mtmp.mx = nix;
+  } else if (dy && r_free(mtmp.mx, niy)) {
+    mtmp.my = niy;
   } else {
-    // Move toward player
-    if (distx > 0) ddx = 1; else if (distx < 0) ddx = -1;
-    if (disty > 0) ddy = 1; else if (disty < 0) ddy = -1;
+    if (!rn2(10) && 'tNL'.includes(mdat.mlet)) _rloc && _rloc(mtmp);
+    return 0;
   }
 
-  // Try to move
-  const candidates = [];
-  if (ddx && ddy) candidates.push([ddx, ddy], [ddx, 0], [0, ddy]);
-  else if (ddx) candidates.push([ddx, 0], [ddx, 1], [ddx, -1]);
-  else candidates.push([0, ddy], [1, ddy], [-1, ddy]);
-
-  for (const [cdx, cdy] of candidates) {
-    const nx2 = mtmp.mx + cdx, ny2 = mtmp.my + cdy;
-    if (nx2 < 0 || nx2 >= 80 || ny2 < 0 || ny2 >= 22) continue;
-    const cell = game.levl[nx2][ny2];
-    if (cell.typ < 3) continue; // can't enter WALL/SDOOR/impassable
-    if (nx2 === game.u.ux && ny2 === game.u.uy) continue; // player
-    if (g_at_mon(nx2, ny2, game.fmon)) continue; // occupied
-    // Teleporter monster: 't' teleports others
-    if (mdat.mlet === 't' && !rn2(5) && _rloc) { _rloc(mtmp); return 1; }
-    nx = nx2; ny = ny2;
-    moves = 1;
-    break;
-  }
-
-  if (moves) {
-    if (game.levl[mtmp.mx][mtmp.my].cansee) newsym(mtmp.mx, mtmp.my);
-    mtmp.mx = nx; mtmp.my = ny;
-    if (game.levl[nx][ny].cansee) pmon(mtmp);
-  }
-  return moves;
+  // Update display
+  if (game.levl[omx][omy].scrsym === mdat.mlet) newsym(omx, omy);
+  if ((game.u.ucinvis || !mtmp.invis) && game.levl[mtmp.mx][mtmp.my].cansee)
+    atl(mtmp.mx, mtmp.my, mdat.mlet);
+  return 1;
 }
 
 // C ref: makemon(pmonst) — create a new monster

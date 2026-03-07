@@ -28,18 +28,18 @@ export function setsee() {
     pru();
     return;
   }
-  // In a lit room — find room bounds
+  // In a lit room — find room bounds (C: expand while lit, no ±1 expansion)
   let lx = u.ux, hx = u.ux, ly = u.uy, hy = u.uy;
-  while (lx > 0 && levl[lx-1][u.uy].lit && levl[lx-1][u.uy].typ !== CORR) lx--;
-  while (hx < 79 && levl[hx+1][u.uy].lit && levl[hx+1][u.uy].typ !== CORR) hx++;
-  while (ly > 0 && levl[u.ux][ly-1].lit && levl[u.ux][ly-1].typ !== CORR) ly--;
-  while (hy < 21 && levl[u.ux][hy+1].lit && levl[u.ux][hy+1].typ !== CORR) hy++;
-  game.seelx = lx - 1; game.seehx = hx + 1;
-  game.seely = ly - 1; game.seehy = hy + 1;
-  for (let x = game.seelx; x <= game.seehx; x++)
-    for (let y = game.seely; y <= game.seehy; y++)
-      prl(x, y);
-  pru();
+  while (levl[lx-1][u.uy].lit) lx--;
+  while (levl[hx+1][u.uy].lit) hx++;
+  while (levl[u.ux][ly-1].lit) ly--;
+  while (levl[u.ux][hy+1].lit) hy++;
+  game.seelx = lx; game.seehx = hx;
+  game.seely = ly; game.seehy = hy;
+  for (let y = game.seely; y <= game.seehy; y++)
+    for (let x = game.seelx; x <= game.seehx; x++)
+      if (x === u.ux && y === u.uy) pru();
+      else prl(x, y);
 }
 
 // C ref: unsee() — mark all currently-visible cells as not cansee

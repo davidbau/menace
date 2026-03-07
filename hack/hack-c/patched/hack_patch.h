@@ -39,6 +39,8 @@ void harness_getlin(char *buf);
 
 int harness_do_fork(void);
 void harness_debug(const char *msg);  /* write to real stderr */
+void harness_debug_fmt(const char *fmt, ...);  /* write formatted to real stderr */
+void harness_log_event(const char *fmt, ...);  /* log event into rng stream */
 
 /* ===== Replace system calls ===== */
 #define getchar()    harness_getchar()
@@ -110,8 +112,12 @@ static inline char *harness_getlogin(void) { return "hplayer"; }
 #define cbout()  ((void)0)
 /* getlin: let game's own getlin() run using harness_getchar() */
 
-/* mfree: the game uses mfree() as free() */
-#define mfree(ptr) free(ptr)
+/* mfree: the game uses mfree() as free() but original alloc() used sbrk(),
+   where freed memory stayed accessible in the address space. Modern malloc()
+   may scramble freed memory immediately (e.g. macOS guard allocator), causing
+   use-after-free crashes in savelev() which reads mtmp->nmon after mfree(mtmp).
+   No-op matches original VAX/PDP-11 behavior. */
+#define mfree(ptr) ((void)(ptr))
 
 /* pow: game defines pow(n) = 2^n, conflicts with math.h pow(x,y).
    Rename the game's pow to avoid the clash. */
