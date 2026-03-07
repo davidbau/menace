@@ -2210,7 +2210,7 @@ async function trapeffect_rocktrap_you(trap, trflags, player, game, map) {
     place_object(otmp, player.x, player.y, map);
     await pline('A trap door in the ceiling opens and a rock falls on your head!');
     // C: helmet check, passes_rocks check — simplified
-    const uarmh = player.uarmh || player.helmet;
+    const uarmh = player.helmet;
     let harmless = false;
     if (!uarmh) {
         // C: passes_rocks check
@@ -2320,30 +2320,30 @@ async function trapeffect_rust_trap_you(trap, trflags, player, game, map) {
     switch (rn2(5)) {
     case 0:
         await pline('%s you on the head!', A_gush_of_water_hits);
-        water_damage(player.uarmh || player.helmet, 'helmet', true);
+        water_damage(player.helmet, 'helmet', true);
         break;
     case 1:
         await pline('%s your left arm!', A_gush_of_water_hits);
-        if (water_damage(player.uarms || player.shield, 'shield', true) !== ER_NOTHING)
+        if (water_damage(player.shield, 'shield', true) !== ER_NOTHING)
             break;
-        if (player.twoweap && player.uswapwep)
-            water_damage(player.uswapwep, null, true);
-        water_damage(player.uarmg || player.gloves, 'gloves', true);
+        if (player.twoweap && player.swapWeapon)
+            water_damage(player.swapWeapon, null, true);
+        water_damage(player.gloves, 'gloves', true);
         break;
     case 2:
         await pline('%s your right arm!', A_gush_of_water_hits);
         water_damage(player.weapon, null, true);
-        water_damage(player.uarmg || player.gloves, 'gloves', true);
+        water_damage(player.gloves, 'gloves', true);
         break;
     default:
         await pline('%s you!', A_gush_of_water_hits);
         // C: splash lit items, then armor chain
-        if (player.uarmc || player.cloak)
-            water_damage(player.uarmc || player.cloak, 'cloak', true);
-        else if (player.uarm || player.armor)
-            water_damage(player.uarm || player.armor, 'armor', true);
-        else if (player.uarmu || player.shirt)
-            water_damage(player.uarmu || player.shirt, 'shirt', true);
+        if (player.cloak)
+            water_damage(player.cloak, 'cloak', true);
+        else if (player.armor)
+            water_damage(player.armor, 'armor', true);
+        else if (player.shirt)
+            water_damage(player.shirt, 'shirt', true);
         break;
     }
     // C: update_inventory()

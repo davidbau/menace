@@ -231,13 +231,13 @@ function find_roll_to_hit(player, mtmp, aatyp, weapon) {
         // C monk handling is specific:
         // - body armor (uarm) applies spell-armor roll penalty
         // - unarmed + no shield grants monk hit bonus
-        const bodyArmor = !!(player.uarm || player.armor || player.suit);
+        const bodyArmor = !!player.armor;
         if (bodyArmor) {
             const monkArmorPenalty = Number.isFinite(player?.spelarmr)
                 ? Number(player.spelarmr)
                 : 20;
             tmp -= monkArmorPenalty;
-        } else if (!weapon && !(player.uarms || player.shield)) {
+        } else if (!weapon && !player.shield) {
             tmp += Math.floor((player.ulevel || 1) / 3) + 2;
         }
     }

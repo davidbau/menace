@@ -295,8 +295,8 @@ export async function monflee(mon, fleetime, first, fleemsg, player, display, fo
 // C: uwep->lamplit && artifact_light(uwep) || uarm->lamplit && artifact_light(uarm)
 function flees_light(mon, map, player) {
     if ((mon.data || mon.type || {}).mndx !== PM_GREMLIN) return false;
-    const uwep = player.weapon || player.uwep;
-    const uarm = player.armor || player.uarm;
+    const uwep = player.weapon;
+    const uarm = player.armor;
     if (!((uwep && uwep.lamplit && artifact_light(uwep))
             || (uarm && uarm.lamplit && artifact_light(uarm)))) return false;
     if (mon.mcansee === 0 || mon.mcansee === false) return false;

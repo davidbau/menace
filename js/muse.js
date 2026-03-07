@@ -1475,8 +1475,8 @@ export async function find_offensive(mtmp, map, player) {
     if (player.uswallow) return false;
     if (onscary(map, mtmp.mx, mtmp.my, mtmp)) return false;
     if (dmgtype(mdat, 11 /* AD_HEAL */)
-        && !player.weapon && !player.uarmu && !player.uarm && !player.uarmh
-        && !player.uarms && !player.uarmg && !player.uarmc && !player.uarmf) {
+        && !player.weapon && !player.shirt && !player.armor && !player.helmet
+        && !player.shield && !player.gloves && !player.cloak && !player.boots) {
         return false;
     }
 

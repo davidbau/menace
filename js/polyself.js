@@ -466,7 +466,7 @@ export async function skinback(player, silently) {
         if (!silently) {
             await Your("skin returns to its original form.");
         }
-        player.uarm = player.uskin;
+        player.armor = player.uskin;
         player.uskin = null;
     }
 }
@@ -654,11 +654,11 @@ async function check_strangling(player, on) {
     if (on) {
         // on -- maybe resume strangling
         const was_strangled = !!(player.strangled);
-        if (player.uamul && player.uamul.otyp === AMULET_OF_STRANGULATION
+        if (player.amulet && player.amulet.otyp === AMULET_OF_STRANGULATION
             && can_be_strangled(player.type || mons[PM_HUMAN])) {
             player.strangled = 6;
             await Your("%s %s your %s!",
-                player.uamul.oname || "amulet",
+                player.amulet.oname || "amulet",
                 was_strangled ? "still constricts" : "begins constricting",
                 body_part(NECK, player));
         }
@@ -908,7 +908,7 @@ async function newman(player) {
     // encumber_msg, retouch_equipment, selftouch
     if (player.encumber_msg) await player.encumber_msg();
     if (player.retouch_equipment) player.retouch_equipment(2);
-    if (!player.uarmg && player.selftouch) {
+    if (!player.gloves && player.selftouch) {
         player.selftouch("No longer petrify-resistant, you");
     }
 }
@@ -932,8 +932,8 @@ export async function polyself(player, psflags, map) {
     const low_control = !!(psflags & POLY_LOW_CTRL);
     let monsterpoly = !!(psflags & POLY_MONSTER);
     const formrevert = !!(psflags & POLY_REVERT);
-    const draconian = !!(player.uarm && player.uarm.otyp !== undefined
-                         && armor_to_dragon(player.uarm.otyp) !== NON_PM);
+    const draconian = !!(player.armor && player.armor.otyp !== undefined
+                         && armor_to_dragon(player.armor.otyp) !== NON_PM);
     const iswere = (player.ulycn !== undefined && player.ulycn >= LOW_PM);
     const isvamp = player.type ? (is_vampire(player.type)) : false;
     const polyControl = player.polyControl || false;
@@ -991,10 +991,10 @@ export async function polyself(player, psflags, map) {
         // special changes that don't require polyok()
         if (draconian) {
             // Dragon scale merge
-            mntmp = armor_to_dragon(player.uarm.otyp);
+            mntmp = armor_to_dragon(player.armor.otyp);
             await You("merge with your scaly armor.");
-            player.uskin = player.uarm;
-            player.uarm = null;
+            player.uskin = player.armor;
+            player.armor = null;
         } else if (iswere) {
             const Upolyd = player.mtimedone > 0;
             if (Upolyd) {
@@ -1296,7 +1296,7 @@ export async function polymon(player, mntmp, map) {
     // Encumbrance, retouch equipment, selftouch
     if (player.encumber_msg) await player.encumber_msg();
     if (player.retouch_equipment) player.retouch_equipment(2);
-    if (!player.uarmg && player.selftouch) {
+    if (!player.gloves && player.selftouch) {
         player.selftouch("No longer petrify-resistant, you");
     }
 
@@ -1389,7 +1389,7 @@ export async function rehumanize(player) {
     }
 
     if (player.retouch_equipment) player.retouch_equipment(2);
-    if (!player.uarmg && player.selftouch) {
+    if (!player.gloves && player.selftouch) {
         player.selftouch("No longer petrify-resistant, you");
     }
 }
@@ -1416,51 +1416,51 @@ export async function break_armor(player) {
 
     if (breakarm(uptr)) {
         // Large form breaks out of armor
-        if (player.uarm) {
+        if (player.armor) {
             await You("break out of your armor!");
             await exercise('A_STR', false);
             if (player.Armor_gone) player.Armor_gone();
-            if (player.useup) player.useup(player.uarm);
-            player.uarm = null;
+            if (player.useup) player.useup(player.armor);
+            player.armor = null;
         }
-        if (player.uarmc) {
+        if (player.cloak) {
             // Mummy wrapping adapts to some sizes — skip if allowed
             await pline_The("clasp on your cloak breaks open!");
             removeArmor('uarmc', 'Cloak_off');
         }
-        if (player.uarmu) {
+        if (player.shirt) {
             await Your("shirt rips to shreds!");
-            if (player.useup) player.useup(player.uarmu);
-            player.uarmu = null;
+            if (player.useup) player.useup(player.shirt);
+            player.shirt = null;
         }
     } else if (sliparm(uptr)) {
         // Small/slimy form slips out of armor
-        if (player.uarm) {
+        if (player.armor) {
             await Your("armor falls around you!");
             if (player.Armor_gone) player.Armor_gone();
-            if (player.dropp) player.dropp(player.uarm);
-            player.uarm = null;
+            if (player.dropp) player.dropp(player.armor);
+            player.armor = null;
         }
-        if (player.uarmc) {
+        if (player.cloak) {
             if (is_whirly(uptr))
                 await Your("cloak falls, unsupported!");
             else
                 await You("shrink out of your cloak!");
             removeArmor('uarmc', 'Cloak_off');
         }
-        if (player.uarmu) {
+        if (player.shirt) {
             if (is_whirly(uptr))
                 await You("seep right through your shirt!");
             else
                 await You("become much too small for your shirt!");
-            if (player.dropp) player.dropp(player.uarmu);
-            player.uarmu = null;
+            if (player.dropp) player.dropp(player.shirt);
+            player.shirt = null;
         }
     }
 
     // Horns pierce/knock off helmet
     if (has_horns(uptr)) {
-        if (player.uarmh) {
+        if (player.helmet) {
             await Your("helmet falls to the ground!");
             removeArmor('uarmh', 'Helmet_off');
         }
@@ -1468,16 +1468,16 @@ export async function break_armor(player) {
 
     // No hands or very small — lose gloves, shield, helmet
     if (nohands(uptr) || (uptr.msize !== undefined && uptr.msize <= MZ_SMALL)) {
-        if (player.uarmg) {
+        if (player.gloves) {
             await You("drop your gloves%s!", player.weapon ? " and weapon" : "");
             await drop_weapon(player, 0);
             removeArmor('uarmg', 'Gloves_off');
         }
-        if (player.uarms) {
+        if (player.shield) {
             await You("can no longer hold your shield!");
             removeArmor('uarms', 'Shield_off');
         }
-        if (player.uarmh) {
+        if (player.helmet) {
             await Your("helmet falls to the ground!");
             removeArmor('uarmh', 'Helmet_off');
         }
@@ -1486,7 +1486,7 @@ export async function break_armor(player) {
     // No hands, very small, slithy, or centaur — lose boots
     if (nohands(uptr) || (uptr.msize !== undefined && uptr.msize <= MZ_SMALL)
         || slithy(uptr) || uptr.mlet === S_CENTAUR) {
-        if (player.uarmf) {
+        if (player.boots) {
             if (is_whirly(uptr))
                 await Your("boots fall away!");
             else
@@ -1520,9 +1520,9 @@ export async function drop_weapon(player, alone) {
                 await You("find you must drop your weapon!");
             }
             // Handle twoweapon: drop swap weapon first
-            if (player.twoweap && player.uswapwep) {
-                const swapwep = player.uswapwep;
-                player.uswapwep = null;
+            if (player.twoweap && player.swapWeapon) {
+                const swapwep = player.swapWeapon;
+                player.swapWeapon = null;
                 if (player.dropx) await player.dropx(swapwep);
             }
             const wep = player.weapon;

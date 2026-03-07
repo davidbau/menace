@@ -841,11 +841,11 @@ function status_enlightenment(mode, final, game) {
 // cf. insight.c:1247 [static] — weapon_insight(final, game)
 export function weapon_insight(final, game) {
     const player = (game.u || game.player);
-    const uwep = player.uwep || player.weapon;
+    const uwep = player.weapon;
 
     if (!uwep) {
         // empty-handed
-        if (player.uarmg || player.gloves)
+        if (player.gloves)
             you_are(final, 'empty handed (with gloves)', '');
         else
             you_are(final, 'empty handed', '');

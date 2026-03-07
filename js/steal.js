@@ -29,17 +29,6 @@ function isWornForSteal(obj, player) {
         || obj === player.leftRing
         || obj === player.rightRing
         || obj === player.amulet
-        // Legacy aliases still used in some paths.
-        || obj === player.uarm
-        || obj === player.uarmc
-        || obj === player.uarmh
-        || obj === player.uarmg
-        || obj === player.uarmf
-        || obj === player.uarms
-        || obj === player.uarmu
-        || obj === player.uleft
-        || obj === player.uright
-        || obj === player.uamul
         ;
 }
 

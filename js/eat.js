@@ -230,36 +230,36 @@ async function gethungry(player) {
         case 0:
             // Slow digestion from armor (not ring) still burns nutrition
             if (slowDigestion
-                && (!player.uright || player.uright.otyp !== RIN_SLOW_DIGESTION)
-                && (!player.uleft || player.uleft.otyp !== RIN_SLOW_DIGESTION))
+                && (!player.rightRing || player.rightRing.otyp !== RIN_SLOW_DIGESTION)
+                && (!player.leftRing || player.leftRing.otyp !== RIN_SLOW_DIGESTION))
                 player.hunger--;
             break;
         case 4: {
             // C: EProtection = u.uprops[PROTECTION].extrinsic
             const eProt = (player.uprops && player.uprops[PROTECTION])
                 ? player.uprops[PROTECTION].extrinsic : 0;
-            if (player.uleft && player.uleft.otyp !== MEAT_RING
-                && (player.uleft.spe
-                    || !objectData[player.uleft.otyp].oc_charged
-                    || (player.uleft.otyp === RIN_PROTECTION
+            if (player.leftRing && player.leftRing.otyp !== MEAT_RING
+                && (player.leftRing.spe
+                    || !objectData[player.leftRing.otyp].oc_charged
+                    || (player.leftRing.otyp === RIN_PROTECTION
                         && ((eProt & ~W_RINGL) === 0
                             || ((eProt & ~W_RINGL) === W_RINGR
-                                && player.uright && player.uright.otyp === RIN_PROTECTION
-                                && !player.uright.spe)))))
+                                && player.rightRing && player.rightRing.otyp === RIN_PROTECTION
+                                && !player.rightRing.spe)))))
                 player.hunger--;
             break;
         }
         case 8:
-            if (player.uamul && player.uamul.otyp !== FAKE_AMULET_OF_YENDOR)
+            if (player.amulet && player.amulet.otyp !== FAKE_AMULET_OF_YENDOR)
                 player.hunger--;
             break;
         case 12: {
             const eProt = (player.uprops && player.uprops[PROTECTION])
                 ? player.uprops[PROTECTION].extrinsic : 0;
-            if (player.uright && player.uright.otyp !== MEAT_RING
-                && (player.uright.spe
-                    || !objectData[player.uright.otyp].oc_charged
-                    || (player.uright.otyp === RIN_PROTECTION
+            if (player.rightRing && player.rightRing.otyp !== MEAT_RING
+                && (player.rightRing.spe
+                    || !objectData[player.rightRing.otyp].oc_charged
+                    || (player.rightRing.otyp === RIN_PROTECTION
                         && ((eProt & ~W_RINGR) === 0))))
                 player.hunger--;
         }
