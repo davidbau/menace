@@ -33,6 +33,8 @@ import { DISP_ALWAYS, DISP_END } from './const.js';
 import { mark_vision_dirty } from './vision.js';
 import { float_up, float_down } from './trap.js';
 import { float_vs_flight } from './polyself.js';
+import { discoverObject, isObjectNameKnown } from './o_init.js';
+import { trycall } from './do.js';
 
 
 // ============================================================
@@ -417,7 +419,15 @@ async function handleQuaff(player, map, display) {
     if (item) {
         player.removeFromInventory(item);
         replacePromptMessage();
-        await peffects(player, item, display);
+        item.in_use = true;
+        const potionUnknown = !!(await peffects(player, item, display));
+        if (item.dknown && !isObjectNameKnown(item.otyp)) {
+            if (!potionUnknown) {
+                discoverObject(item.otyp, true, true);
+            } else {
+                trycall(item);
+            }
+        }
         return { moved: false, tookTime: true };
     }
 

@@ -21,7 +21,7 @@ import { is_mindless, touch_petrifies, resists_ston,
          webmaker, grounded, is_flyer, is_floater, breathless,
          resists_fire, resists_sleep, attacktype, strongmonst,
          extra_nasty, flaming, acidic, completelyrusts,
-         canseemon
+         canseemon, stagger
        } from './mondata.js';
 import { mon_knows_traps, mon_learns_traps, mons_see_trap } from './mondata.js';
 import { mondead, helpless as monHelpless, monkilled, m_in_air, setmangry } from './mon.js';
@@ -72,7 +72,7 @@ import { Monnam, mon_nam } from './do_name.js';
 import { dist2, losehp } from './hack.js';
 import { an, xname, the, Tobjnam } from './objnam.js';
 import { float_vs_flight } from './polyself.js';
-import { LEVITATION, TIMEOUT, HALLUC } from './const.js';
+import { LEVITATION, TIMEOUT, HALLUC, STUNNED } from './const.js';
 import { fall_asleep } from './timeout.js';
 import { thitu } from './mthrowu.js';
 import { exercise } from './attrib_exercise.js';
@@ -87,6 +87,7 @@ const a_your = ['a', 'your'];
 const A_Your = ['A', 'Your'];
 const tower_of_flame = 'tower of flame';
 const A_gush_of_water_hits = 'A gush of water hits';
+const blindgas = ["humid", "odorless", "bad smelling", "chilling", "acrid", "biting"];
 
 // C ref: trap.c:2990 trapnote() — return note name string with "an/a" prefix
 const tnnames = [
@@ -1743,10 +1744,28 @@ export async function chest_trap(obj, bodypart, disarm, game = null, playerArg =
       case 2:
       case 1:
       case 0:
-        await pline(`A cloud of ${rndcolor()} gas billows from ${the(xname(obj))}.`);
-        // Keep RNG/order parity from C status-duration rolls.
-        rn1(7, 16);
-        rn1(5, 16);
+        await pline(`A cloud of ${(player.Blind ? blindgas[rn2(blindgas.length)] : rndcolor())} gas billows from ${the(xname(obj))}.`);
+        const oldStun = typeof player?.getPropTimeout === 'function'
+          ? (player.getPropTimeout(STUNNED) || 0)
+          : ((player.HStun & TIMEOUT) || 0);
+        const oldHall = typeof player?.getPropTimeout === 'function'
+          ? (player.getPropTimeout(HALLUC) || 0)
+          : ((player.HHallucination & TIMEOUT) || 0);
+        if (!oldStun) {
+          if (player.Hallucination) {
+            await pline("What a groovy feeling!");
+          } else {
+            const blur = player.Halluc_resistance
+              ? ""
+              : (player.Blind ? " and get dizzy" : " and your vision blurs");
+            const yourData = player.data || game?.youmonst?.data || null;
+            await You("%s%s...", yourData ? stagger(yourData, "stagger") : "stagger", blur);
+          }
+        }
+        // trap.c chest_trap(): apply both statuses after message branch.
+        const { make_stunned, make_hallucinated } = await import('./potion.js');
+        await make_stunned(player, oldStun + rn1(7, 16), false);
+        await make_hallucinated(player, oldHall + rn1(5, 16), false, 0);
         break;
       default:
         break;
