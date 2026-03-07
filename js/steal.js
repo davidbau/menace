@@ -272,7 +272,7 @@ export async function steal(mon, player, display, map = null) {
 
     if (display) {
         // C ref: steal.c:600-604 — nymph theft after worn-item removal uses "She".
-        const thiefName = (wasWorn && mon?.type?.mlet === S_NYMPH) ? 'She' : Some_Monnam(mon);
+        const thiefName = (wasWorn && (mon?.data?.mlet ?? mon?.type?.mlet) === S_NYMPH) ? 'She' : Some_Monnam(mon);
         await display.putstr_message(`${thiefName} stole ${doname(otmp, player)}.`);
     }
 

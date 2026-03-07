@@ -1601,7 +1601,7 @@ export function weaponDamageSides(weapon, monster) {
     if (weapon.wsdam) return weapon.wsdam;
     const info = objectData[weapon.otyp];
     if (!info) return 0;
-    const isLarge = (monster?.type?.msize ?? MZ_TINY) >= MZ_LARGE;
+    const isLarge = (monster?.data?.msize ?? monster?.type?.msize ?? MZ_TINY) >= MZ_LARGE;
     return isLarge ? (info.oc_wldam || 0) : (info.oc_wsdam || 0);
 }
 

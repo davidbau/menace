@@ -2923,7 +2923,7 @@ function kops_gone(silent) {
     if (!map) return;
     for (const mon of (map.monsters || [])) {
         if (!mon || mon.dead) continue;
-        const n = String(mon?.type?.mname || mon?.name || '').toLowerCase();
+        const n = String(mon?.data?.mname || mon?.type?.mname || mon?.name || '').toLowerCase();
         if (n.includes('kop')) {
             mon.fleeing = true;
         }

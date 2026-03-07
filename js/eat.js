@@ -2032,7 +2032,7 @@ async function handleEat(player, display, game) {
             if (eatenItem.otyp === CLOVE_OF_GARLIC && map) {
                 for (const mon of map.monsters) {
                     if (mon.dead) continue;
-                    const sym = mon.type?.mlet ?? (mons[mon.mndx]?.mlet);
+                    const sym = mon.data?.mlet ?? mon.type?.mlet ?? (mons[mon.mndx]?.mlet);
                     // cf. mondata.c olfaction() — golems, eyes, jellies, puddings,
                     // blobs, vortexes, elementals, fungi, and lights lack olfaction.
                     if (sym === S_GOLEM || sym === S_EYE || sym === S_JELLY
