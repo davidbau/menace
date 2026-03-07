@@ -2442,7 +2442,7 @@ export async function prayer_done(player, map) {
     if (p_type === -2) {
         await You("%s diabolical laughter all around you...",
             !Deaf(player) ? "hear" : "intuit");
-        wake_nearby(player, map);
+        wake_nearby(false, player, map);
         adjalign(player, -2);
         await exercise(player, A_WIS, false);
         if (!Inhell(player)) {

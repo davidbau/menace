@@ -1189,7 +1189,7 @@ export function dig(map, player) {
             break;
         case 1:
             // "Bang! You hit with the broad side!"
-            wake_nearby(false, player);
+            wake_nearby(false, player, map);
             break;
         default:
             // "Your swing misses its mark."
@@ -1398,7 +1398,7 @@ export function dig(map, player) {
         const d_target = ['', 'rock', 'statue', 'boulder', 'door', 'tree'];
         if (!_gstate?.did_dig_msg) {
             _gstate?.display?.putstr_message?.(`You hit the ${d_target[dig_target] || 'rock'} with all your might.`);
-            wake_nearby(false, player);
+            wake_nearby(false, player, map);
             _gstate.did_dig_msg = true;
         }
     }

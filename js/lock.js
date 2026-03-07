@@ -465,7 +465,7 @@ async function makeForcelockOccupation(game) {
             }
         } else {
             // blunt — wake nearby monsters
-            wake_nearby(player, map);
+            wake_nearby(false, player, map);
         }
 
         if (rn2(100) >= xlock.chance) {

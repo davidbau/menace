@@ -1487,7 +1487,7 @@ export async function blow_up_landmine(trap, map) {
   old_typ = lev.typ;
   scatter(x, y, 4, MAY_DESTROY | MAY_HIT | MAY_FRACTURE | VIS_EFFECTS,  0);
   del_engr_at(x, y);
-  wake_nearto(x, y, 400);
+  wake_nearto(x, y, 400, map);
   if (IS_DOOR(lev.typ)) lev.flags = D_BROKEN;
   if (lev.typ === DRAWBRIDGE_DOWN || is_drawbridge_wall(x, y) >= 0) {
     dbx = x, dby = y;

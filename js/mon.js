@@ -965,15 +965,17 @@ export function wake_nearto_core(x, y, distance, petcall, map) {
 }
 
 // C ref: mon.c wake_nearto() — wrapper
-// Autotranslated from mon.c:4400
-export function wake_nearto(x, y, distance) {
-  wake_nearto_core(x, y, distance, false);
+// C ref: mon.c:4396-4399
+export function wake_nearto(x, y, distance, map) {
+  if (!map) map = _gstate?.map || _gstate?.lev;
+  wake_nearto_core(x, y, distance, false, map);
 }
 
 // C ref: mon.c wake_nearby() — wake all near hero
-// Autotranslated from mon.c:4365
-export function wake_nearby(petcall, player) {
-  wake_nearto_core(player.x, player.y, player.ulevel * 20, petcall);
+// C ref: mon.c:4361-4364
+export function wake_nearby(petcall, player, map) {
+  if (!map) map = _gstate?.map || _gstate?.lev;
+  wake_nearto_core(player.x, player.y, player.ulevel * 20, petcall, map);
 }
 
 // C ref: mon.c setmangry() — make peaceful monster hostile

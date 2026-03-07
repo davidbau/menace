@@ -1380,7 +1380,7 @@ export async function kick_ouch(x, y, kickobjnam, game, map, player) {
       find_drawbridge( x, y);
       game.maploc = map.locations[x][y];
     }
-    wake_nearto(x, y, 5 * 5);
+    wake_nearto(x, y, 5 * 5, map);
   }
   if (!rn2(3)) set_wounded_legs(RIGHT_SIDE, 5 + rnd(5));
   dmg = rnd(ACURR(A_CON) > 15 ? 3 : 5);
@@ -1778,7 +1778,7 @@ export async function dokick(player, map, display, game) {
         }
     }
 
-    wake_nearby(player, map);
+    wake_nearby(false, player, map);
     await u_wipe_engr(2);
 
     if (!isok(x, y)) {
