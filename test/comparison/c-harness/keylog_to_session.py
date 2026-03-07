@@ -44,6 +44,7 @@ quit_game = _session.quit_game
 compact_session_json = _session.compact_session_json
 fixed_datetime_env = _session.fixed_datetime_env
 capture_cursor = _session.capture_cursor
+collect_mapdump_checkpoints = _session.collect_mapdump_checkpoints
 
 
 def parse_args():
@@ -319,6 +320,8 @@ def run_from_keylog(
 
     tmpdir = tempfile.mkdtemp(prefix='webhack-keylog-session-')
     rng_log_file = os.path.join(tmpdir, 'rnglog.txt')
+    mapdump_dir = os.path.join(tmpdir, 'mapdumps')
+    os.makedirs(mapdump_dir, exist_ok=True)
     session_name = f'webhack-keylog-{seed}-{os.getpid()}'
     keylog_moves_base = int(events[0].get('moves', 0))
 
@@ -335,6 +338,7 @@ def run_from_keylog(
             f'{datetime_env}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
+            f'NETHACK_MAPDUMP_DIR={mapdump_dir} '
             f'HOME={RESULTS_DIR} '
             f'TERM=xterm-256color '
             f'{NETHACK_BINARY} {name_flag}{wiz_flag}; '
@@ -462,6 +466,15 @@ def run_from_keylog(
                 print(f'  replayed {i + 1}/{len(events)} events')
 
         quit_game(session_name)
+
+        # Collect auto-mapdump checkpoints from NETHACK_MAPDUMP_DIR
+        all_rng = []
+        for step in session_data.get('steps', []):
+            all_rng.extend(step.get('rng', []))
+        checkpoints = collect_mapdump_checkpoints(mapdump_dir, all_rng)
+        if checkpoints:
+            session_data['checkpoints'] = checkpoints
+            print(f'  Collected {len(checkpoints)} map checkpoint(s): {", ".join(sorted(checkpoints.keys()))}')
 
         os.makedirs(os.path.dirname(output_json), exist_ok=True)
         with open(output_json, 'w') as f:
