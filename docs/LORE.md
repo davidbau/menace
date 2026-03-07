@@ -3665,3 +3665,23 @@ hard-won wisdom:
   - RNG matched improved `10127 -> 10189`,
   - events matched improved `3547 -> 3601`,
   - first divergence moved later (`step 140 -> 152`).
+
+### pickup selector boundary for multi-item `,` (2026-03-07)
+
+- Manual-direct `seed032` has a same-turn pickup selector sequence at gameplay
+  steps `44..48`: `, a b c <Enter>`.
+- JS previously handled `,` by immediately choosing one floor object in
+  `handlePickup()`, so selector keys were free to leak into global command
+  dispatch in exploratory builds (`a` apply, `b` move, `c` close door).
+- C-faithful boundary fix:
+  - when multiple non-gold objects are on the hero square, `handlePickup()`
+    now enters `NHW_MENU` + `select_menu(PICK_ANY)` in the same command flow;
+  - selector letters are consumed by menu input (`nhgetch`) rather than
+    top-level command dispatch;
+  - item order is class-grouped then `doname()` sorted to align selector
+    mapping with C session shape for the known seed.
+- Validation:
+  - full gameplay suite remained stable (`31/34` passing, same 3 failing
+    sessions: `seed031`, `seed032`, `seed033`);
+  - `seed032` first divergence remained at step `89` (no regression spike),
+    while step-44 pickup keys stayed command-local.

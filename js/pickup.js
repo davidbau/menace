@@ -36,6 +36,8 @@ import { christen_monst, Monnam, mon_nam, x_monnam } from './do_name.js';
 import { ARTICLE_THE, SUPPRESS_SADDLE } from './const.js';
 import { revive as revive_corpse } from './zap.js';
 import { near_capacity, max_capacity, calc_capacity } from './hack.js';
+import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu } from './windows.js';
+import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ANY, ATR_NONE } from './const.js';
 
 // pickup.js -- Autopickup, floor object pickup, container looting
 // Ported from NetHack pickup.c
@@ -1127,6 +1129,45 @@ async function handlePickup(player, map, display, game = null) {
         player.addToInventory(gold);
         map.removeObject(gold);
         await display.putstr_message(formatGoldPickupMessage(gold, player));
+        return { moved: false, tookTime: true };
+    }
+
+    const nonGoldObjs = objs.filter((o) => o.oclass !== COIN_CLASS);
+    // C-faithful command boundary: ',' on a multi-object pile enters a
+    // selector flow (same command) where letter keys are not global commands.
+    if (nonGoldObjs.length > 1) {
+        const choiceObjs = [...nonGoldObjs].sort((a, b) => {
+            // C-like pickup menu ordering: group by class, then by displayed name.
+            const ac = Number(a?.oclass || 0);
+            const bc = Number(b?.oclass || 0);
+            if (ac !== bc) return ac - bc;
+            const an = String(doname(a) || '');
+            const bn = String(doname(b) || '');
+            const byName = an.localeCompare(bn);
+            if (byName !== 0) return byName;
+            return Number(a?.o_id || 0) - Number(b?.o_id || 0);
+        });
+        const win = create_nhwindow(NHW_MENU);
+        start_menu(win, MENU_BEHAVE_STANDARD);
+        for (const obj of choiceObjs) {
+            // Use auto-assigned selector letters so C-like a/b/c keys work.
+            add_menu(win, null, obj, 0, 0, ATR_NONE, 0, doname(obj), 0);
+        }
+        end_menu(win, 'Pick up what?');
+        const picks = await select_menu(win, PICK_ANY);
+        destroy_nhwindow(win);
+
+        if (!Array.isArray(picks) || picks.length === 0) {
+            return { moved: false, tookTime: false };
+        }
+
+        for (const pick of picks) {
+            const obj = pick?.identifier;
+            if (!obj || !map.objects.includes(obj)) continue;
+            observeObject(obj);
+            player.addToInventory(obj, { withMeta: true });
+            map.removeObject(obj);
+        }
         return { moved: false, tookTime: true };
     }
 
