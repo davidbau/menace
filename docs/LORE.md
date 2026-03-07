@@ -4260,3 +4260,24 @@ hard-won wisdom:
   - `node --test test/unit/command_extended_command_case.test.js` passes.
   - `./scripts/run-and-report.sh --failures` remains `31/34` gameplay sessions passing.
   - `seed032_manual_direct` first screen mismatch advanced from step `66` to step `155`.
+
+### gold pickup singular article: `a gold piece` with running-total suffix (2026-03-07)
+
+- Divergence context:
+  - `seed031_manual_direct` first screen divergence at step `252` showed:
+    - JS: `$ - 1 gold piece (7 in total).`
+    - C:  `$ - a gold piece (7 in total).`
+- C behavior:
+  - singular gold pickup line uses the article form (`a gold piece`) rather than
+    numeric `1 gold piece`, while plural remains numeric.
+- Fix:
+  - In [`js/do.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/do.js),
+    `formatGoldPickupMessage()` now emits `a gold piece` when quantity is `1`,
+    preserving existing plural and running-total wording.
+  - Added unit tests in
+    [`test/unit/gold_pickup_message.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/gold_pickup_message.test.js)
+    for singular/article and plural/numeric forms.
+- Validation:
+  - `node --test test/unit/gold_pickup_message.test.js` passes.
+  - `./scripts/run-and-report.sh --failures` remains `31/34` gameplay sessions passing.
+  - `seed031_manual_direct` first screen mismatch advanced from step `252` to step `538`.
