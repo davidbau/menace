@@ -110,7 +110,6 @@
       box-shadow: 0 4px 12px var(--color-shadow), 0 2px 4px rgba(0,0,0,0.1);
       border-radius: 4px;
       font-family: var(--font-mono);
-      min-width: calc(80ch + 16px);
       max-width: 100%;
       overflow: auto;
     }
@@ -120,24 +119,17 @@
       box-shadow: 0 4px 12px var(--color-shadow), 0 0 0 2px rgba(107,44,44,0.2);
     }
 
-    #hack-screen {
-      display: block;
-    }
-
     #hack-container * {
       user-select: none;
       -webkit-user-select: none;
     }
 
-    /* Loading message */
+    /* Loading message — hidden once game screen appears */
     #loading {
       color: var(--color-text-muted);
       font-family: var(--font-serif);
       font-size: 15px;
       padding: 20px;
-      display: grid;
-      place-items: center;
-      min-height: calc(24 * 16px * 1.2 + 16px);
       font-weight: 500;
       letter-spacing: 0.02em;
       text-align: center;
@@ -359,9 +351,9 @@
 <body>
   <div id="page">
     <nav id="nav" role="navigation">
-      <a href="../">NetHack</a>
-      <a href="../rogue/">Rogue 1980</a>
-      <a href="#about" id="about-link">About Hack 1982</a>
+      <a href="#about" id="about-link">About Hack (1982)</a>
+      <a href="../">Play NetHack</a>
+      <a href="../rogue/">Play Rogue (1980)</a>
     </nav>
     <main id="main">
       <div id="hack-container">
@@ -392,6 +384,21 @@
   <button id="docs-close" title="Return to game" aria-label="Close documentation">&times;</button>
 
   <script>
+  /* Remove loading div once the game screen appears */
+  (function() {
+    var container = document.getElementById('hack-container');
+    if (!container) return;
+    var observer = new MutationObserver(function() {
+      var screen = document.getElementById('hack-screen');
+      if (screen) {
+        var loading = document.getElementById('loading');
+        if (loading) loading.remove();
+        observer.disconnect();
+      }
+    });
+    observer.observe(container, { childList: true });
+  })();
+
   /* Nav spacer — keeps game vertically centered */
   (function() {
     var nav = document.getElementById('nav');
@@ -411,14 +418,13 @@
     var aboutLink = document.getElementById('about-link');
     var page = document.getElementById('page');
     var loaded = false;
+    var docsOpen = false;
 
     function renderMarkdown(md) {
-      // Minimal markdown-to-HTML: headings, paragraphs, links, bold, italic,
-      // blockquotes, code blocks, inline code, images, hrs, lists
       var html = '';
       var lines = md.split('\n');
-      var inPre = false, inList = false, inBlockquote = false;
-      var bqLines = [];
+      var inPre = false, inList = false;
+      var bqLines = [], inBlockquote = false;
 
       function flushBq() {
         if (bqLines.length) {
@@ -429,91 +435,37 @@
       }
 
       function processInline(text) {
-        // images
         text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img alt="$1" src="$2">');
-        // links
         text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-        // bold+italic
         text = text.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-        // bold
         text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        // italic
         text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
-        // inline code
         text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
         return text;
       }
 
       for (var i = 0; i < lines.length; i++) {
         var line = lines[i];
-
-        // Code blocks
         if (line.match(/^```/)) {
-          if (!inPre) {
-            flushBq();
-            if (inList) { html += '</ul>\n'; inList = false; }
-            html += '<pre><code>';
-            inPre = true;
-          } else {
-            html += '</code></pre>\n';
-            inPre = false;
-          }
+          if (!inPre) { flushBq(); if (inList) { html += '</ul>\n'; inList = false; } html += '<pre><code>'; inPre = true; }
+          else { html += '</code></pre>\n'; inPre = false; }
           continue;
         }
-        if (inPre) {
-          html += line.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '\n';
-          continue;
-        }
-
-        // Blank line
-        if (line.trim() === '') {
-          flushBq();
-          if (inList) { html += '</ul>\n'; inList = false; }
-          continue;
-        }
-
-        // Blockquote
+        if (inPre) { html += line.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '\n'; continue; }
+        if (line.trim() === '') { flushBq(); if (inList) { html += '</ul>\n'; inList = false; } continue; }
         if (line.match(/^>\s?/)) {
           inBlockquote = true;
           var bqText = line.replace(/^>\s?/, '');
-          if (bqText.trim() === '') {
-            flushBq();
-          } else {
-            bqLines.push(bqText);
-          }
+          if (bqText.trim() === '') { flushBq(); } else { bqLines.push(bqText); }
           continue;
-        } else if (inBlockquote) {
-          flushBq();
-        }
-
-        // Headings
+        } else if (inBlockquote) { flushBq(); }
         var hMatch = line.match(/^(#{1,6})\s+(.+)/);
-        if (hMatch) {
-          if (inList) { html += '</ul>\n'; inList = false; }
-          var level = hMatch[1].length;
-          html += '<h' + level + '>' + processInline(hMatch[2]) + '</h' + level + '>\n';
-          continue;
-        }
-
-        // HR
-        if (line.match(/^---+\s*$/)) {
-          if (inList) { html += '</ul>\n'; inList = false; }
-          html += '<hr>\n';
-          continue;
-        }
-
-        // Unordered list
-        if (line.match(/^[-*]\s+/)) {
-          if (!inList) { html += '<ul>\n'; inList = true; }
-          html += '<li>' + processInline(line.replace(/^[-*]\s+/, '')) + '</li>\n';
-          continue;
-        }
-
-        // Paragraph
+        if (hMatch) { if (inList) { html += '</ul>\n'; inList = false; } html += '<h' + hMatch[1].length + '>' + processInline(hMatch[2]) + '</h' + hMatch[1].length + '>\n'; continue; }
+        if (line.match(/^---+\s*$/)) { if (inList) { html += '</ul>\n'; inList = false; } html += '<hr>\n'; continue; }
+        if (line.match(/^[-*]\s+/)) { if (!inList) { html += '<ul>\n'; inList = true; } html += '<li>' + processInline(line.replace(/^[-*]\s+/, '')) + '</li>\n'; continue; }
         if (inList) { html += '</ul>\n'; inList = false; }
         html += '<p>' + processInline(line) + '</p>\n';
       }
-
       if (inPre) html += '</code></pre>\n';
       if (inList) html += '</ul>\n';
       flushBq();
@@ -525,49 +477,45 @@
         content.innerHTML = '<p style="color:#888;">Loading...</p>';
         fetch('HISTORY.md')
           .then(function(r) { return r.text(); })
-          .then(function(md) {
-            content.innerHTML = renderMarkdown(md);
-            loaded = true;
-          })
-          .catch(function() {
-            content.innerHTML = '<p>Could not load history. <a href="HISTORY.md">View directly</a>.</p>';
-          });
+          .then(function(md) { content.innerHTML = renderMarkdown(md); loaded = true; })
+          .catch(function() { content.innerHTML = '<p>Could not load history. <a href="HISTORY.md">View directly</a>.</p>'; });
       }
       overlay.classList.add('open');
       document.body.classList.add('docs-mode');
       overlay.scrollTop = 0;
+      docsOpen = true;
       history.replaceState(null, '', '#about');
     }
 
     function closeDocs() {
       overlay.classList.remove('open');
       document.body.classList.remove('docs-mode');
+      docsOpen = false;
       history.replaceState(null, '', window.location.pathname);
-      // Refocus game
       var screen = document.getElementById('hack-screen');
       if (screen) screen.focus();
     }
 
     aboutLink.addEventListener('click', function(e) {
       e.preventDefault();
-      openDocs();
+      e.stopPropagation();
+      if (docsOpen) closeDocs(); else openDocs();
     });
 
-    closeBtn.addEventListener('click', closeDocs);
-
-    // Click minimap to return to game
-    page.addEventListener('click', function() {
-      if (document.body.classList.contains('docs-mode')) closeDocs();
+    closeBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      closeDocs();
     });
 
-    // Escape key closes docs
+    page.addEventListener('click', function(e) {
+      if (docsOpen) { e.stopPropagation(); closeDocs(); }
+    });
+
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && document.body.classList.contains('docs-mode')) closeDocs();
-    });
+      if (e.key === 'Escape' && docsOpen) { e.preventDefault(); e.stopImmediatePropagation(); closeDocs(); }
+    }, true);  // capture phase so we beat the game's input handler
 
-    // Open on load if hash is #about
     if (window.location.hash === '#about') {
-      // Small delay to let game start loading
       setTimeout(openDocs, 100);
     }
   })();
