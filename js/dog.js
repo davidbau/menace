@@ -120,7 +120,6 @@ export function dogfood(mon, obj, moves) {
     if (!mptr) return APPORT;
     const carni = carnivorous(mptr);
     const herbi = herbivorous(mptr);
-
     if (hasPoisonTrapBit(obj) && !resists_poison(mon))
         return POISON;
 

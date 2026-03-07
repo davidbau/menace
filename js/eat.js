@@ -1872,28 +1872,18 @@ async function handleEat(player, display, game) {
             }
         }
 
-        let corpseTasteIdx = null;
-        // cf. eat.c eatcorpse() RNG used by taint/rotting checks.
-        if (eatenItem.otyp === CORPSE) {
-            const cnum = Number.isInteger(eatenItem.corpsenm) ? eatenItem.corpsenm : -1;
-            const nonrotting = (cnum === PM_LIZARD || cnum === PM_LICHEN);
-            if (!nonrotting) {
-                rn2(20); // rotted denominator
-                rn2(7);  // rottenfood gate (when no prior taste effect triggered)
-            }
-            rn2(10); // palatable taste gate
-            if (cnum >= 0 && cnum < mons.length && vegetarian(mons[cnum])) {
-                corpseTasteIdx = 0; // C: vegetarian corpses use fixed "okay" index.
-            } else {
-                corpseTasteIdx = rn2(5);  // palatable message choice index
-            }
-        }
         const od = objectData[eatenItem.otyp];
         const cnum = Number.isInteger(eatenItem.corpsenm) ? eatenItem.corpsenm : -1;
         const isCorpse = eatenItem.otyp === CORPSE && cnum >= 0 && cnum < mons.length;
+        let corpseOutcome = null;
+        if (isCorpse) {
+            // Use eatcorpse() for corpse-specific RNG/messages instead of
+            // synthetic pre-consumption; this keeps call order faithful to C.
+            corpseOutcome = await eatcorpse(player, eatenItem);
+        }
         // cf. eat.c eatcorpse() overrides reqtime to 3 + (corpse weight >> 6).
         const reqtime = isCorpse
-            ? (3 + ((mons[cnum].cwt || 0) >> 6))
+            ? Math.max(1, Number(corpseOutcome?.reqtime ?? (3 + ((mons[cnum].cwt || 0) >> 6))))
             : Math.max(1, (od ? od.oc_delay : 1));
         const baseNutr = isCorpse
             ? (mons[cnum].cnutrit || (od ? od.oc_nutrition : 200))
@@ -1957,6 +1947,10 @@ async function handleEat(player, display, game) {
                 player.removeFromInventory(eatingFromStack ? eatenItem : item);
             }
         };
+        if (isCorpse && Number(corpseOutcome?.retcode) === 2) {
+            consumeInventoryItem();
+            return { moved: false, tookTime: true };
+        }
 
         if (reqtime > 1) {
             const finishEating = async (gameCtx) => {
@@ -1967,15 +1961,7 @@ async function handleEat(player, display, game) {
                 if (game && game.svc && game.svc.context && game.svc.context.victual) {
                     game.svc.context.victual.eating = 0;
                 }
-                if (isCorpse && corpseTasteIdx !== null) {
-                    const tastes = ['okay', 'stringy', 'gamey', 'fatty', 'tough'];
-                    const idx = Math.max(0, Math.min(tastes.length - 1, corpseTasteIdx));
-                    const verb = idx === 0 ? 'tastes' : 'is';
-                    await display.putstr_message(
-                        `This ${eatenItem.name} ${verb} ${tastes[idx]}.  `
-                        + `You finish eating the ${eatenItem.name}.--More--`
-                    );
-                } else if (game && game.nomovemsg) {
+                if (game && game.nomovemsg) {
                     await display.putstr_message(game.nomovemsg);
                     game.nomovemsg = null;
                 } else {
@@ -2035,6 +2021,9 @@ async function handleEat(player, display, game) {
                 txt: `eating ${eatenItem.name}`,
                 xtime: reqtime,
             };
+            if (isCorpse && !game.nomovemsg) {
+                game.nomovemsg = `You finish eating the ${eatenItem.name}.`;
+            }
         } else {
             // Single-turn food — eat instantly
             consumeInventoryItem();
