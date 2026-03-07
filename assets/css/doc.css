@@ -7,7 +7,7 @@
 
 :root {
   --font-body: 'EB Garamond', 'Garamond', 'Georgia', serif;
-  --font-mono: "Courier New", "Liberation Mono", monospace;
+  --font-mono: "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace;
   --color-text: #1a1a1a;
   --color-bg: #fffff8;
   --color-accent: #6b2c2c;

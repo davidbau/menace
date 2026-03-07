@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/fonts/dejavu-sans-mono.css">
 
     <!-- Open Graph / Social Media -->
     <meta property="og:type" content="website">
@@ -40,7 +41,7 @@
             --spacing-lg: 1.5em;
 
             /* Typography */
-            --font-mono: "Courier New", "Liberation Mono", monospace;
+            --font-mono: "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace;
             --font-serif: 'EB Garamond', Georgia, serif;
             --font-size-sm: 13px;
             --font-size-md: 16px;
@@ -1177,7 +1178,7 @@
             var ref = 100;
             var testEl = document.createElement('span');
             testEl.style.cssText = 'position:fixed;visibility:hidden;' +
-                'font-family:"Courier New","Liberation Mono",monospace;' +
+                'font-family:"DejaVu Sans Mono","Bitstream Vera Sans Mono","Liberation Mono",monospace;' +
                 'font-size:' + ref + 'px;line-height:1;';
             testEl.textContent = '0';
             document.body.appendChild(testEl);

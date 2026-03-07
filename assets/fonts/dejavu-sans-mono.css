@@ -1,0 +1,18 @@
+/* DejaVu Sans Mono — self-hosted web font (regular + bold) */
+/* License: Bitstream Vera / DejaVu (free, permits embedding) */
+
+@font-face {
+  font-family: "DejaVu Sans Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("DejaVuSansMono-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "DejaVu Sans Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("DejaVuSansMono-Bold.woff2") format("woff2");
+}
