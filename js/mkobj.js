@@ -1799,7 +1799,7 @@ export function extract_nexthere(obj, head_ptr) {
 // Autotranslated from mkobj.c:2647
 export function add_to_minv(mon, obj) {
   let otmp;
-  if (obj.where !== OBJ_FREE) panic("add_to_minv: obj where=%d, not free", obj.where);
+  if (obj.where !== OBJ_FREE) console.error("add_to_minv: obj where=%d, not free", obj.where);
   for (otmp = mon.minvent; otmp; otmp = otmp.nobj) {
     if (merged( otmp, obj)) return 1;
   }
@@ -1813,7 +1813,7 @@ export function add_to_minv(mon, obj) {
 // Autotranslated from mkobj.c:2675
 export function add_to_container(container, obj) {
   let otmp;
-  if (obj.where !== OBJ_FREE) panic("add_to_container: obj where=%d, not free", obj.where);
+  if (obj.where !== OBJ_FREE) console.error("add_to_container: obj where=%d, not free", obj.where);
   if (container.where !== 'OBJ_INVENT' && container.where !== 'OBJ_MINVENT') obj_no_longer_held(obj);
   for (otmp = container.cobj; otmp; otmp = otmp.nobj) {
     if (merged( otmp, obj)) return otmp;
@@ -1827,7 +1827,7 @@ export function add_to_container(container, obj) {
 
 // Autotranslated from mkobj.c:2697
 export function add_to_migration(obj, game, map) {
-  if (obj.where !== OBJ_FREE) panic("add_to_migration: obj where=%d, not free", obj.where);
+  if (obj.where !== OBJ_FREE) console.error("add_to_migration: obj where=%d, not free", obj.where);
   if (obj.unpaid) impossible("unpaid object migrating to another level? [%s]", simpleonames(obj));
   obj.no_charge = 0;
   if (Is_container(obj)) maybe_reset_pick(obj);

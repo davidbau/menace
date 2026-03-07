@@ -25,6 +25,7 @@ import { hasGivenName, type_is_pname, is_mplayer,
          is_animal, is_mindless, is_humanoid } from './mondata.js';
 import { flush_screen } from './display.js';
 import { nhgetch, getlin } from './input.js';
+import { impossible } from './pline.js';
 import { doname } from './mkobj.js';
 import { objectData,
          AMULET_CLASS, SCROLL_CLASS, POTION_CLASS, WAND_CLASS, RING_CLASS,

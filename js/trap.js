@@ -67,7 +67,7 @@ import { stackobj } from './invent.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_FLASH, DISP_END, xdir, ydir, N_DIRS, DIR_180, DIR_ERR } from './const.js';
 import { cansee, couldsee } from './vision.js';
-import { pline, You, pline_mon, You_hear, You_feel } from './pline.js';
+import { pline, You, pline_mon, You_hear, You_feel, impossible } from './pline.js';
 import { Monnam, mon_nam } from './do_name.js';
 import { dist2, losehp } from './hack.js';
 import { an, xname, the, Tobjnam } from './objnam.js';

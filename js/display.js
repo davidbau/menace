@@ -1605,6 +1605,7 @@ export function fn_cmap_to_glyph(cmap) {
 // ========================================================================
 
 import { game as _gstate } from './gstate.js';
+import { impossible } from './pline.js';
 
 function _getDisplayCtx() {
     if (!_gstate) return null;

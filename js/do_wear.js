@@ -47,7 +47,7 @@ import {
 } from './worn.js';
 import { useup, renderOverlayMenuUntilDismiss, silly_thing } from './invent.js';
 import { discoverObject } from './o_init.js';
-import { pline, You, Your, You_cant, You_feel, updateLastPlineMessage } from './pline.js';
+import { pline, You, Your, You_cant, You_feel, updateLastPlineMessage, impossible } from './pline.js';
 import { retouch_object } from './artifact.js';
 import { rn2, rnd } from './rng.js';
 import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
