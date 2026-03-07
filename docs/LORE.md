@@ -4086,22 +4086,14 @@ hard-won wisdom:
     - and nearby sleepers are awakened while distant sleepers remain asleep.
   - `seed033_manual_direct` first divergence remains step `54` (no frontier regression from this correctness fix).
 
-### wipe_engr_at event-call parity: emit `^wipe` at function entry (2026-03-07)
+### wipe_engr_at event-call parity hypothesis was invalid (2026-03-07)
 
-- Divergence:
-  - after latest upstream pull, `seed033_manual_direct` showed an early event-channel drift at step `5`/event index `40` while RNG remained aligned until step `54`.
-  - C emitted `^wipe[x,y]` at wipe call sites where JS emitted nothing when no engraving existed.
-- Root cause:
-  - JS `wipe_engr_at()` emitted `^wipe[...]` only inside the "engraving exists and is wipeable" mutation path.
-  - C harness semantics treat `^wipe` as a call-entry event, not a mutation-only event.
-- Fix in [`js/engrave.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/engrave.js):
-  - moved `pushRngLogEntry(^wipe[x,y])` to function entry.
-  - preserved mutation behavior gating for actual engraving state.
-- Validation:
-  - added unit coverage in [`test/unit/engrave_wipe_event.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/engrave_wipe_event.test.js) to assert event emission with no engraving present.
-  - `seed033_manual_direct` returned to expected boundary (`events=504/12750`, first event divergence back to step `48` rather than step `5`).
-  - `seed032_manual_direct` improved from `rng=4574/7702` to `rng=4665/7832` (first RNG divergence moved from step `442` to `447`).
-  - `seed031_manual_direct` first divergence remained unchanged at step `166`.
+- Follow-up correction:
+  - A local experiment moved `^wipe[x,y]` logging in `wipe_engr_at()` to unconditional function entry.
+  - That caused broad event regressions (`31/34` event-green -> `2/34` event-green), with many seeds diverging on `^wipe` ordering.
+- Conclusion:
+  - Unconditional `^wipe` call-entry logging is not C-faithful for current parity harness behavior.
+  - The change was reverted; keep `^wipe` emission gated to real wipeable-engraving mutation paths.
 
 ### Diagnostic: detect stale manual-direct sessions via wipe/movemon skew (2026-03-07)
 
@@ -4109,7 +4101,7 @@ hard-won wisdom:
   - Recent parity triage repeatedly hit early event drift on `seed031/032/033_manual_direct` with C-side `^wipe[...]` floods that are not present in modern green sessions.
   - This made it slow to distinguish recorder-era artifacts from real gameplay port regressions.
 - Added non-masking audit tool:
-  - [`scripts/audit-wipe-skew.mjs`](/share/u/davidbau/git/mazesofmenace/game/scripts/audit-wipe-skew.mjs)
+  - [`scripts/audit-wipe-skew.mjs`](/share/u/davidbau/git/mazesofmenace/mazes/scripts/audit-wipe-skew.mjs)
   - Reads latest (or specified) `.comparison.json` run and reports:
     - `^wipe` and `^movemon_turn` counts per side,
     - wipe/move ratios,
@@ -4151,3 +4143,16 @@ hard-won wisdom:
 - Validation:
   - new unit test [`test/unit/input_boundary_diagnostics.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/input_boundary_diagnostics.test.js)
   - replay-core and headless replay contract tests remain green.
+
+### dothrow object-prompt parity: include swap weapon path and `--More--` flow (2026-03-07)
+
+- Divergence context:
+  - `seed100_multidigit_gameplay` had a throw-prompt ordering mismatch.
+  - Prompt behavior also differed on invalid object letters by skipping the C-style `--More--` acknowledgement flow.
+- Fix in [`js/dothrow.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dothrow.js):
+  - throw candidate filtering now excludes worn armor/accessories via equipment slots and `owornmask` while still allowing weapon-slot semantics.
+  - invalid throw-letter path now emits `You don't have that object.--More--` and requires an acknowledge key before reprompting.
+- Validation:
+  - added replay-based unit test [`test/unit/dothrow_prompt.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/dothrow_prompt.test.js) asserting `seed031` step-9 prompt text.
+  - `seed100_multidigit_gameplay` now passes fully (`rng/events/screens = 100%`).
+  - failures sweep at this checkpoint: `31/34` gameplay sessions passing (remaining: `seed031/032/033_manual_direct`).
