@@ -57,7 +57,7 @@ import { pline, Norep, You, You_feel, You_cant, You_hear, set_msg_xy } from './p
 import { look_here, dfeature_at } from './invent.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap } from './teleport.js';
-import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP } from './const.js';
+import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS } from './const.js';
 import { MZ_LARGE, PM_GRID_BUG, PM_ANGEL, G_UNIQ, AT_WEAP } from './monsters.js';
 import { stackobj } from './invent.js';
 import { thitu } from './mthrowu.js';
@@ -685,9 +685,12 @@ export async function domove_core(dir, player, map, display, game) {
         return { moved: false, tookTime: false };
     }
     slippery_ice_fumbling(player, map);
-    if (impaired_movement(player, map)) {
+    const impDest = { x: nx, y: ny };
+    if (impaired_movement(player, map, impDest, game)) {
         return { moved: false, tookTime: false };
     }
+    nx = impDest.x;
+    ny = impDest.y;
 
     const tDest = { x: nx, y: ny };
     if (await water_turbulence(player, map, display, tDest)) {
@@ -2346,12 +2349,33 @@ export function u_maybe_impaired(player) {
     return !!(player.stunned || (player.confused && !rn2(5)));
 }
 
-// C ref: hack.c impaired_movement() — randomize movement if impaired
-export function impaired_movement(player, _map) {
-    // Full implementation requires confdir() which randomizes direction
-    // Stub: returns false (movement proceeds normally)
+// C ref: cmd.c:4411 confdir() — randomize movement direction if impaired
+// dirs_ord: cardinals first, then diagonals (C decl.c:81)
+const dirs_ord = [0, 2, 4, 6, 1, 3, 5, 7]; // W, N, E, S, NW, NE, SE, SW
+export function confdir(force_impairment, player) {
+    if (force_impairment || u_maybe_impaired(player)) {
+        const kmax = (player.umonnum === PM_GRID_BUG) ? (N_DIRS / 2) : N_DIRS;
+        const k = dirs_ord[rn2(kmax)];
+        player.dx = xdir[k];
+        player.dy = ydir[k];
+    }
+}
+
+// C ref: hack.c:2403 impaired_movement() — randomize direction if impaired
+// Returns true if movement is impossible (50 retries failed), false otherwise.
+// Modifies dest.x/dest.y to reflect the new randomized direction.
+export function impaired_movement(player, map, dest, game) {
     if (u_maybe_impaired(player)) {
-        // In full implementation, direction would be randomized
+        let tries = 0;
+        do {
+            if (tries++ > 50) {
+                nomul(0, game);
+                return true;
+            }
+            confdir(true, player);
+            dest.x = player.x + player.dx;
+            dest.y = player.y + player.dy;
+        } while (!isok(dest.x, dest.y) || bad_rock(player.youmonst?.data || null, dest.x, dest.y, map));
     }
     return false;
 }

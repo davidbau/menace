@@ -5,7 +5,8 @@
 import { A_STR, A_DEX, A_CON, A_WIS, STATUS_ROW_1,
          PM_CAVEMAN, PM_ROGUE, RACE_ORC, SQKY_BOARD,
          DART_TRAP, ARROW_TRAP,
-         DIRECTION_KEYS, RUN_KEYS, CQ_REPEAT, P_NUM_SKILLS } from './const.js';
+         DIRECTION_KEYS, RUN_KEYS, CQ_REPEAT, P_NUM_SKILLS,
+         xdir, ydir, N_DIRS, N_DIRS_Z } from './const.js';
 import { rn2, rnl } from './rng.js';
 import { handleWizLoadDes, wizLevelChange, wizMap, wizTeleport, wizGenesis, wizWish } from './wizcmds.js';
 import { handleThrow, handleFire } from './dothrow.js';
@@ -43,6 +44,7 @@ import { pline, impossible } from './pline.js';
 import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
          performWaitSearch, dist2 } from './hack.js';
 import { cnv_trap_obj } from './trap.js';
+import { PM_GRID_BUG } from './monsters.js';
 
 
 function t_at(x, y, map) {
@@ -1352,23 +1354,22 @@ export function rnd_extcmd_idx() {
   return rn2(extcmdlist_length + 1) - 1;
 }
 
-// Autotranslated from cmd.c:3960
+// C ref: cmd.c:3960 xytod() — convert dx,dy to direction index
 export function xytod(x, y) {
-  let dd;
-  for (dd = 0; dd < N_DIRS; dd++) {
-    if (x === xdir[dd] && y === ydir) return dd;
+  for (let dd = 0; dd < N_DIRS; dd++) {
+    if (x === xdir[dd] && y === ydir[dd]) return dd;
   }
   return DIR_ERR;
 }
 
-// Autotranslated from cmd.c:3972
+// C ref: cmd.c:3972 dtoxy() — convert direction index to dx,dy
 export function dtoxy(cc, dd) {
-  if (dd > DIR_ERR && dd < N_DIRS_Z) { cc.x = xdir; cc.y = ydir; }
+  if (dd > DIR_ERR && dd < N_DIRS_Z) { cc.x = xdir[dd]; cc.y = ydir[dd]; }
 }
 
-// Autotranslated from cmd.c:4014
+// C ref: cmd.c:4014 dxdy_moveok() — clear diagonal if NODIAG monster
 export function dxdy_moveok(player) {
-  if (player.dx && player.dy && NODIAG(player.umonnum)) player.dx = player.dy = 0;
+  if (player.dx && player.dy && player.umonnum === PM_GRID_BUG) player.dx = player.dy = 0;
   return player.dx || player.dy;
 }
 
@@ -1409,21 +1410,13 @@ export async function show_direction_keys(win, centerchar, nodiag) {
   }
 }
 
-// Autotranslated from cmd.c:4411
-export function confdir(force_impairment, player) {
-  if (force_impairment || u_maybe_impaired()) {
-    let kmax = NODIAG(player.umonnum) ? (N_DIRS / 2) : N_DIRS, k =  dirs_ord;
-    player.dx = xdir;
-    player.dy = ydir;
-  }
-  return;
-}
+// confdir() moved to hack.js (near u_maybe_impaired/impaired_movement)
 
-// Autotranslated from cmd.c:4424
+// C ref: cmd.c:4424 directionname() — direction index to name string
 export function directionname(dir) {
-  let dirnames = [ "west", "northwest", "north", "northeast", "east", "southeast", "south", "southwest", "down", "up", ];
+  const dirnames = [ "west", "northwest", "north", "northeast", "east", "southeast", "south", "southwest", "down", "up", ];
   if (dir < 0 || dir >= N_DIRS_Z) return "invalid";
-  return dirnames;
+  return dirnames[dir];
 }
 
 // Autotranslated from cmd.c:4437
