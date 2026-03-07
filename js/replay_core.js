@@ -95,12 +95,20 @@ function replayPendingTrace(...args) {
     console.log('[REPLAY_PENDING_TRACE]', ...args);
 }
 
-function replayMoreState(display) {
-    if (!display) return 'more=na';
-    const pending = !!display._pendingMore;
-    const needs = !!display.messageNeedsMore;
-    const queueLen = Array.isArray(display._messageQueue) ? display._messageQueue.length : 0;
-    return `more=${pending ? 1 : 0} needs=${needs ? 1 : 0} q=${queueLen}`;
+function replayBoundaryState(game, inputRuntime) {
+    const boundary = (typeof game?.getInputBoundaryState === 'function')
+        ? game.getInputBoundaryState()
+        : null;
+    if (boundary) {
+        return [
+            `boundary=${String(boundary.boundaryKind || 'none')}`,
+            `waiting=${boundary.waitingForInput ? 1 : 0}`,
+            `ack=${boundary.ackRequired ? 1 : 0}`,
+            `pending=${Number(boundary.pendingCount || 0)}`,
+        ].join(' ');
+    }
+    const waiting = !!(typeof inputRuntime?.isWaitingInput === 'function' && inputRuntime.isWaitingInput());
+    return `boundary=unknown waiting=${waiting ? 1 : 0}`;
 }
 
 function pendingWaitSite(inputRuntime) {
@@ -208,15 +216,15 @@ export async function replaySession(seed, opts, keys) {
                 `step=${i + 1}`,
                 `key=${JSON.stringify(String.fromCharCode(ch))}`,
                 'mode=resume',
-                replayMoreState(game.display)
+                replayBoundaryState(game, game.input)
             );
             pushInput(ch);
             const settled = await drainUntilInput(pendingCommand, game.input);
             if (settled.done) {
                 pendingCommand = null;
-                replayPendingTrace(`step=${i + 1}`, 'resume=done', replayMoreState(game.display));
+                replayPendingTrace(`step=${i + 1}`, 'resume=done', replayBoundaryState(game, game.input));
             } else {
-                replayPendingTrace(`step=${i + 1}`, 'resume=waiting', replayMoreState(game.display));
+                replayPendingTrace(`step=${i + 1}`, 'resume=waiting', replayBoundaryState(game, game.input));
             }
         } else {
             const commandPromise = (ch === 1)
@@ -231,7 +239,7 @@ export async function replaySession(seed, opts, keys) {
                     'mode=start',
                     'start=waiting',
                     pendingWaitSite(game.input),
-                    replayMoreState(game.display)
+                    replayBoundaryState(game, game.input)
                 );
             } else {
                 replayPendingTrace(
@@ -239,7 +247,7 @@ export async function replaySession(seed, opts, keys) {
                     `key=${JSON.stringify(String.fromCharCode(ch))}`,
                     'mode=start',
                     'start=done',
-                    replayMoreState(game.display)
+                    replayBoundaryState(game, game.input)
                 );
             }
         }

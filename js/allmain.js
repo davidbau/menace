@@ -513,6 +513,10 @@ export async function run_command(game, ch, opts = {}) {
 
     const chCode = typeof ch === 'number' ? ch
         : (typeof ch === 'string' && ch.length > 0) ? ch.charCodeAt(0) : 0;
+    game?.emitDiagnosticEvent?.('command.start', {
+        key: chCode,
+        boundary: game?.getInputBoundaryState?.() || null,
+    });
 
     // C ref: readchar() / flush_screen — if --More-- is pending on the
     // topline, this key dismisses it rather than being processed as a
@@ -523,13 +527,25 @@ export async function run_command(game, ch, opts = {}) {
         // Space, Esc, or Enter dismisses --More--; other keys are ignored.
         const dismissesMore = (chCode === 32 || chCode === 27 || chCode === 10 || chCode === 13 || chCode === 16);
         if (!dismissesMore) {
+            game?.emitDiagnosticEvent?.('boundary.more.ignored-key', {
+                key: chCode,
+                boundary: game?.getInputBoundaryState?.() || null,
+            });
             return { tookTime: false };
         }
+        game?.emitDiagnosticEvent?.('boundary.more.dismiss-key', {
+            key: chCode,
+            boundary: game?.getInputBoundaryState?.() || null,
+        });
         const prevMoreBlocking = game.display._moreBlockingEnabled;
         if (typeof prevMoreBlocking === 'boolean') {
             game.display._moreBlockingEnabled = false;
         }
         await game.display._clearMore();
+        game?.emitDiagnosticEvent?.('boundary.more.dismissed', {
+            key: chCode,
+            boundary: game?.getInputBoundaryState?.() || null,
+        });
         if (typeof prevMoreBlocking === 'boolean') {
             game.display._moreBlockingEnabled = prevMoreBlocking;
         }
@@ -573,6 +589,10 @@ export async function run_command(game, ch, opts = {}) {
     // Prompt handlers (e.g., eat.c "Continue eating? [yn]") consume input
     // without advancing time until a terminating answer is provided.
     if (game.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
+        game?.emitDiagnosticEvent?.('boundary.prompt.key', {
+            key: chCode,
+            boundary: game?.getInputBoundaryState?.() || null,
+        });
         const promptResult = await Promise.resolve(game.pendingPrompt.onKey(chCode, game));
         if (promptResult && promptResult.handled) {
             if (game._pendingPromptTask) {
@@ -1106,6 +1126,10 @@ export class NetHackGame {
         this.cmdKey = 0;
         this.lastCommand = null;
         this._repeatPrefixChainActive = false;
+        this._diagSeq = 0;
+        this._diagMax = 512;
+        this._diagEvents = [];
+        this._diagListeners = new Set();
         this._namePromptEcho = '';
         this._rngAccessors = { getRngState, setRngState, getRngCallCount, setRngCallCount };
         this.rfilter = {
@@ -1195,6 +1219,70 @@ export class NetHackGame {
         if (this.display) {
             initAnimation(this.display, { mode: 'headless', skipDelays: true });
         }
+    }
+
+    emitDiagnosticEvent(type, details = {}) {
+        const event = {
+            seq: ++this._diagSeq,
+            type: String(type || 'diagnostic'),
+            turn: Number.isFinite(this.turnCount) ? this.turnCount : 0,
+            step: Number.isFinite(this.map?._replayStepIndex) ? this.map._replayStepIndex + 1 : null,
+            details: details || {},
+        };
+        this._diagEvents.push(event);
+        if (this._diagEvents.length > this._diagMax) {
+            this._diagEvents.splice(0, this._diagEvents.length - this._diagMax);
+        }
+        for (const listener of this._diagListeners) {
+            try {
+                listener(event);
+            } catch (_err) {
+                // Keep diagnostics side-channel non-fatal.
+            }
+        }
+        return event;
+    }
+
+    _emitDiagnostic(type, details = {}) {
+        return this.emitDiagnosticEvent(type, details);
+    }
+
+    subscribeDiagnostics(listener) {
+        if (typeof listener !== 'function') return () => {};
+        this._diagListeners.add(listener);
+        return () => {
+            this._diagListeners.delete(listener);
+        };
+    }
+
+    getRecentDiagnostics(limit = 50) {
+        const cap = Math.max(0, Number(limit) || 0);
+        if (!cap) return [];
+        const start = Math.max(0, this._diagEvents.length - cap);
+        return this._diagEvents.slice(start);
+    }
+
+    getInputBoundaryState() {
+        const display = this.display || null;
+        const input = this.input || null;
+        const promptActive = !!(this.pendingPrompt && typeof this.pendingPrompt.onKey === 'function');
+        const morePending = !!display?._pendingMore;
+        const menuActive = !!hasActiveTextPopupWindow();
+        const waitingRaw = !!(input && typeof input.isWaitingInput === 'function' && input.isWaitingInput());
+        const queueLen = Array.isArray(display?._messageQueue) ? display._messageQueue.length : 0;
+        const ackRequired = !!display?.messageNeedsMore;
+        let boundaryKind = 'none';
+        if (morePending) boundaryKind = 'more';
+        else if (promptActive) boundaryKind = 'prompt';
+        else if (menuActive) boundaryKind = 'menu';
+        else if (waitingRaw) boundaryKind = 'input';
+        return {
+            waitingForInput: morePending || promptActive || menuActive || waitingRaw,
+            boundaryKind,
+            source: boundaryKind,
+            pendingCount: queueLen,
+            ackRequired,
+        };
     }
 
     // Emit lifecycle event

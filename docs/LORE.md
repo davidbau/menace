@@ -4137,3 +4137,17 @@ hard-won wisdom:
   - hotspot around steps 47-49 showed resume waits at `mattacku` with
     `more=0 needs=1 q=0` at resume completion, narrowing investigation to
     message-boundary semantics rather than missing prompt waits.
+
+### Runtime-owned boundary diagnostics API (2026-03-07)
+
+- Architectural cleanup:
+  - moved replay diagnostics off direct display internals and onto runtime API surface.
+- Added on [`NetHackGame` in `js/allmain.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/allmain.js):
+  - `getInputBoundaryState()` -> `{ waitingForInput, boundaryKind, source, pendingCount, ackRequired }`
+  - `emitDiagnosticEvent(type, details)` for structured runtime diagnostics
+  - `subscribeDiagnostics(listener)` and `getRecentDiagnostics(limit)` for event stream/ring-buffer access
+- Replay integration:
+  - [`js/replay_core.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/replay_core.js) now logs boundary state via `game.getInputBoundaryState()` and no longer reads `_pendingMore` / `_messageQueue` directly.
+- Validation:
+  - new unit test [`test/unit/input_boundary_diagnostics.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/input_boundary_diagnostics.test.js)
+  - replay-core and headless replay contract tests remain green.
