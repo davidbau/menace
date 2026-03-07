@@ -142,7 +142,9 @@ function discard(item) {
  * initGame(seed, display, input): initialize the game state and start.
  */
 export async function initGame(seed, display, input_obj) {
-  const g = new GameState(display, input_obj);
+  const g = new GameState();
+  g.display = display;
+  g.input = input_obj;
   setGame(g);
 
   // Set up dependencies between modules

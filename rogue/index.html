@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rogue 3.6</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #000;
+      color: #ccc;
+      font-family: "Courier New", Courier, monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 8px;
+    }
+    #rogue-container {
+      display: inline-block;
+      outline: 1px solid #333;
+    }
+    #help-bar {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #555;
+      text-align: center;
+    }
+    #help-bar a { color: #777; text-decoration: none; }
+    #help-bar a:hover { color: #aaa; }
+  </style>
+</head>
+<body>
+  <div id="rogue-container"></div>
+  <div id="help-bar">
+    hjklyubn move · e eat · q drink potion · r read scroll · w wield · W wear · t throw · i inv · d drop · &gt; down stairs · Q quit
+  </div>
+  <script type="module" src="js/browser_main.js"></script>
+</body>
+</html>
