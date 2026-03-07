@@ -3703,3 +3703,19 @@ hard-won wisdom:
     to step `152`;
   - `./scripts/run-and-report.sh --failures` remained stable at `31/34`
     passing (same failing trio: `seed031`, `seed032`, `seed033`).
+
+### potion quaff dispatch fixed from name-heuristic to `otyp` dispatcher (2026-03-07)
+
+- Root cause in `seed031` window after locked-box trap handling:
+  - C quaff path executed `peffect_healing` (`d(4,4)` + `exercise(A_CON,TRUE)`),
+  - JS quaff path in `handleQuaff()` still used legacy string matching on `item.oname`,
+    which can classify a real potion as water (`\"Hmm, that tasted like water.\"`).
+- Fix in [`js/potion.js`](/share/u/davidbau/git/mazesofmenace/game/js/potion.js):
+  - removed legacy `oname`-based effect branching in `handleQuaff()`;
+  - route selected potion through `peffects(player, item, display)` (C-style `otyp` dispatch).
+- Validation:
+  - `seed031_manual_direct` improved again:
+    - RNG matched `10189 -> 10277`
+    - colors matched `6110 -> 6156`
+    - first divergence index moved `10149 -> 10150`.
+  - Remaining earliest mismatch is one subsequent missing `exercise` roll before `distfleeck`.

@@ -370,20 +370,6 @@ export function drink_ok(obj) {
 // Implemented: fountain check, inventory selection, healing effects.
 // TODO: unkn/otmp bookkeeping, BUC message path, potion identification, peffects dispatch
 async function handleQuaff(player, map, display) {
-    const bcsign = (obj) => (obj?.blessed ? 1 : (obj?.cursed ? -1 : 0));
-
-    // cf. potion.c healup() — overflow healing can increase max HP (partial)
-    // TODO: cure blindness, sickness, hallucination when appropriate
-    const healup = (nhp, nxtra = 0) => {
-        if (!Number.isFinite(nhp) || nhp <= 0) return;
-        player.uhp += nhp;
-        if (player.uhp > player.uhpmax) {
-            const extra = Math.max(0, Number(nxtra) || 0);
-            player.uhpmax += extra;
-            player.uhp = player.uhpmax;
-        }
-    };
-
     // cf. potion.c dodrink():540-550 — check for fountain first
     const loc = map.at(player.x, player.y);
     if (loc && loc.typ === FOUNTAIN) {
@@ -430,48 +416,8 @@ async function handleQuaff(player, map, display) {
     const item = potions.find(p => p.invlet === c);
     if (item) {
         player.removeFromInventory(item);
-        const potionName = String(item.oname || '').toLowerCase();
-        // Simple potion effects
-        // cf. potion.c peffect_full_healing() (partial)
-        if (potionName.includes('full healing')) {
-            replacePromptMessage();
-            await healup(400, 4 + 4 * bcsign(item));
-            await exercise(player, A_CON, true);
-            await exercise(player, A_STR, true);
-            await display.putstr_message('You feel completely healed.');
-        // cf. potion.c peffect_extra_healing() (partial)
-        } else if (potionName.includes('extra healing')) {
-            replacePromptMessage();
-            const heal = 16 + c_d(4 + (2 * bcsign(item)), 8);
-            const nxtra = item.blessed ? 5 : (!item.cursed ? 2 : 0);
-            await healup(heal, nxtra);
-            await exercise(player, A_CON, true);
-            await exercise(player, A_STR, true);
-            await display.putstr_message('You feel much better.');
-        // cf. potion.c peffect_healing() (partial)
-        } else if (potionName.includes('healing')) {
-            replacePromptMessage();
-            const heal = 8 + c_d(4 + (2 * bcsign(item)), 4);
-            await healup(heal, !item.cursed ? 1 : 0);
-            await exercise(player, A_CON, true);
-            await display.putstr_message('You feel better.');
-        // cf. potion.c peffect_gain_level() — gain (or lose) an experience level
-        // pluslvl(FALSE): increments u.ulevel; for blessed also sets u.uexp = rndexp(TRUE).
-        // RNG note: newhp() is 0 for Archeologist below xlev; newpw()'s rn1() and rndexp()
-        // appear in a different step's delta due to harness timing, so JS emits no RNG here.
-        } else if (potionName.includes('gain level')) {
-            replacePromptMessage();
-            if (item.cursed) {
-                if (player.ulevel > 1) player.ulevel -= 1;
-                await display.putstr_message('You feel less experienced.');
-            } else {
-                player.ulevel += 1;
-                await display.putstr_message('You feel more experienced.');
-            }
-        } else {
-            replacePromptMessage();
-            await display.putstr_message("Hmm, that tasted like water.");
-        }
+        replacePromptMessage();
+        await peffects(player, item, display);
         return { moved: false, tookTime: true };
     }
 
