@@ -27,7 +27,7 @@ import {
 } from './mkmaze.js';
 import { count_level_features, create_subroom, topologize } from './mklev.js';
 import { somex, somey, somexy } from './mkroom.js';
-import { make_engr_at, del_engr } from './engrave.js';
+import { make_engr_at, del_engr, make_grave } from './engrave.js';
 import { random_epitaph_text } from './rumors.js';
 import { seedFromMT } from './xoshiro256.js';
 import {
@@ -5597,9 +5597,10 @@ export function grave(x_or_opts, y, text) {
     levelState.map.locations[xabs][yabs].typ = GRAVE;
     markSpLevTouched(xabs, yabs);
 
-    if (!Array.isArray(levelState.map.engravings)) levelState.map.engravings = [];
+    // C ref: sp_lev.c lspo_grave() calls make_grave(), which writes a
+    // HEADSTONE engraving (not a generic ENGRAVE with nowipeout).
     const epitaph = (gtext !== undefined) ? gtext : random_epitaph_text();
-    make_engr_at(levelState.map, xabs, yabs, epitaph, 'engrave', { nowipeout: true });
+    make_grave(levelState.map, xabs, yabs, epitaph);
 }
 
 /**

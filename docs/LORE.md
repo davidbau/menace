@@ -3704,6 +3704,21 @@ hard-won wisdom:
   - `./scripts/run-and-report.sh --failures` remained stable at `31/34`
     passing (same failing trio: `seed031`, `seed032`, `seed033`).
 
+### des.grave now uses true HEADSTONE engraving path (2026-03-07)
+
+- C ref: `sp_lev.c:lspo_grave()` calls `make_grave(...)`, and `make_grave()`
+  writes engraving type `HEADSTONE`.
+- JS had `des.grave()` write a generic `'engrave'` with `nowipeout: true`,
+  which is not equivalent to C type semantics.
+- Fix in `js/sp_lev.js`:
+  - import and call `make_grave(levelState.map, xabs, yabs, epitaph)` from
+    `engrave.js` instead of manual `make_engr_at(..., 'engrave', nowipeout)`.
+- Validation:
+  - `./scripts/run-and-report.sh --failures` stayed stable at `31/34` passing
+    with the same failing trio (`seed031_manual_direct`,
+    `seed032_manual_direct`, `seed033_manual_direct`), so this was a
+    correctness cleanup without regression.
+
 ### potion quaff dispatch fixed from name-heuristic to `otyp` dispatcher (2026-03-07)
 
 - Root cause in `seed031` window after locked-box trap handling:
