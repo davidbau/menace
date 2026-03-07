@@ -4102,3 +4102,23 @@ hard-won wisdom:
   - `seed033_manual_direct` returned to expected boundary (`events=504/12750`, first event divergence back to step `48` rather than step `5`).
   - `seed032_manual_direct` improved from `rng=4574/7702` to `rng=4665/7832` (first RNG divergence moved from step `442` to `447`).
   - `seed031_manual_direct` first divergence remained unchanged at step `166`.
+
+### Diagnostic: detect stale manual-direct sessions via wipe/movemon skew (2026-03-07)
+
+- Problem:
+  - Recent parity triage repeatedly hit early event drift on `seed031/032/033_manual_direct` with C-side `^wipe[...]` floods that are not present in modern green sessions.
+  - This made it slow to distinguish recorder-era artifacts from real gameplay port regressions.
+- Added non-masking audit tool:
+  - [`scripts/audit-wipe-skew.mjs`](/share/u/davidbau/git/mazesofmenace/game/scripts/audit-wipe-skew.mjs)
+  - Reads latest (or specified) `.comparison.json` run and reports:
+    - `^wipe` and `^movemon_turn` counts per side,
+    - wipe/move ratios,
+    - `SEVERE`/`MODERATE` skew flags.
+- Current evidence (latest run):
+  - `seed031_manual_direct`: JS `0/322` vs C `273/268` (`SEVERE`)
+  - `seed032_manual_direct`: JS `5/567` vs C `357/354` (`SEVERE`)
+  - `seed033_manual_direct`: JS `1/1136` vs C `1121/1108` (`SEVERE`)
+  - Green gameplay sessions show near-equal wipe/movemon counts between JS and C.
+- Impact:
+  - Faster triage routing: treat severe wipe-skew sessions as likely stale-recording artifacts first, then debug true shared RNG/state drift windows.
+  - Comparator/harness semantics remain unchanged (no masking, no exceptions).
