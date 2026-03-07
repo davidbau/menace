@@ -1008,6 +1008,6 @@ export function stairway_find_forwiz(isladder, up, map) {
 // Autotranslated from teleport.c:1931
 export async function mvault_tele(mtmp) {
   let croom = search_special(VAULT), c;
-  if (croom && somexyspace(croom, c) && goodpos(c.x, c.y, mtmp, 0)) { rloc_to(mtmp, c.x, c.y); return; }
+  if (croom && somexyspace(croom, c) && goodpos(c.x, c.y, mtmp, 0)) { await rloc_to(mtmp, c.x, c.y); return; }
   await rloc(mtmp, RLOC_NONE);
 }

@@ -1367,7 +1367,7 @@ export function hole_destination(dst, map) {
 
 // Autotranslated from trap.c:908
 export function activate_statue_trap(trap, x, y, shatter) {
-  let mtmp =  0, otmp = sobj_at(STATUE, x, y), fail_reason;
+  let mtmp = null, otmp = sobj_at(STATUE, x, y), fail_reason;
   deltrap(trap);
   while (otmp) {
     mtmp = animate_statue(otmp, x, y, shatter ? ANIMATE_SHATTER : ANIMATE_NORMAL, fail_reason);

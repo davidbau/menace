@@ -2856,7 +2856,8 @@ export function clone_mon(mon, x, y, game, player) {
   }
   else if (m2.mtame) {
     m2.mtame = 0;
-    if (tamedog(m2,  0, false)) { assert(has_edog(m2) && has_edog(mon)); EDOG(m2) = EDOG(mon); }
+    // TODO: tamedog not yet ported to JS
+    // if (tamedog(m2, 0, false)) { assert(has_edog(m2) && has_edog(mon)); EDOG(m2) = EDOG(mon); }
   }
   set_malign(m2);
   newsym(m2.mx, m2.my);

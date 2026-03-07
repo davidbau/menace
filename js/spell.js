@@ -1425,7 +1425,8 @@ export async function deadbook_pacify_undead(mtmp, game, player) {
     if (sgn(mtmp.data.maligntyp) === sgn(player.ualigame.gn.type) && mdistu(mtmp) < 4) {
       if (mtmp.mtame) { if (mtmp.mtame < 20) mtmp.mtame++; }
       else {
-        tamedog(mtmp,  0, true);
+        // TODO: tamedog not yet ported to JS
+        // tamedog(mtmp, 0, true);
       }
     }
     else {

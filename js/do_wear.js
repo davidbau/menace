@@ -1326,7 +1326,7 @@ async function select_off(player, otmp, display) {
 // cf. do_wear.c do_takeoff() — execute removal of one item
 // Autotranslated from do_wear.c:2818
 export async function do_takeoff(game, player) {
-  let otmp =  0, was_twoweap = player.twoweap;
+  let otmp = null, was_twoweap = player.twoweap;
   let doff =  game.svc.context.takeoff;
   game.svc.context.takeoff.mask |= I_SPECIAL;
   if (doff.what === W_WEP) {
