@@ -4,6 +4,7 @@
 
 import { rn2, rnd, d, c_d } from './rng.js';
 import { exercise } from './attrib_exercise.js';
+import { acurr } from './attrib.js';
 import { corpse_chance } from './mon.js';
 import { m_move } from './monmove.js';
 import {
@@ -209,8 +210,9 @@ function find_roll_to_hit(player, mtmp, aatyp, weapon) {
     // cf. uhitm.c:375 — base formula:
     //   tmp = 1 + abon() + find_mac(mtmp) + u.uhitinc
     //         + Luck_bonus + u.ulevel
-    const str = player.attributes?.[A_STR] ?? 10;
-    const dex = player.attributes?.[A_DEX] ?? 10;
+    // C ref: uhitm.c find_roll_to_hit — uses ACURR(A_STR), ACURR(A_DEX)
+    const str = acurr(player, A_STR);
+    const dex = acurr(player, A_DEX);
     let tmp = 1 + abon(str, dex, player.ulevel)
         + find_mac(mtmp)
         + (player.uhitinc || 0) // rings of increase accuracy etc.
@@ -541,7 +543,7 @@ export function hmon_hitmon_dmg_recalc(hmd, obj, player) {
     let dmgbonus = 0;
     if (hmd.get_dmg_bonus) {
         // Strength bonus
-        dmgbonus += dbon(player.attributes?.[A_STR] ?? 10);
+        dmgbonus += dbon(acurr(player, A_STR));
         // udaminc (ring of increase damage) — not yet tracked
         dmgbonus += (player.udaminc || 0);
     }
@@ -1663,7 +1665,7 @@ async function hitMonsterWithPotion(player, monster, display, weapon) {
     }
 
     // cf. potion.c:1893 — distance<3 && !rn2((1+DEX)/2) gate for potionbreathe()
-    const dex = player.attributes?.[A_DEX] ?? 10;
+    const dex = acurr(player, A_DEX);
     const breatheDenom = Math.max(1, Math.floor((1 + dex) / 2));
     rn2(breatheDenom);
 }
@@ -1953,7 +1955,7 @@ export async function do_attack_core(player, monster, display, map, game = null)
 
     // cf. uhitm.c:1414 hmon_hitmon_dmg_recalc() — add strength and skill bonuses
     if (!rangedMelee) {
-        damage += dbon(player.attributes?.[A_STR] ?? 10);
+        damage += dbon(acurr(player, A_STR));
         damage += weapon_dam_bonus(player.weapon); // skill-based (stub: returns 0)
         // cf. uhitm.c — artifact damage bonus
         if (player.weapon && player.weapon.oartifact) {

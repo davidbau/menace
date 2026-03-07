@@ -573,10 +573,15 @@ function Amulet_off(player) {
     }
 }
 
-// Helper: adjust attribute bonus — C ref: do_wear.c adj_abon()
+// C ref: do_wear.c:3254 adj_abon(otmp, delta) — adjust attribute bonus
+// Modifies player.abon[] (attribute bonus array), NOT base attributes.
 export function adj_abon(player, obj, attr, delta) {
     if (!delta) return;
-    player.attributes[attr] = Math.max(3, Math.min(25, player.attributes[attr] + delta));
+    // Ensure abon array exists
+    if (!player.abon || player.abon.length < 7) {
+        player.abon = new Array(7).fill(0);
+    }
+    player.abon[attr] = (player.abon[attr] || 0) + delta;
 }
 
 // Helper: learn ring type from wearing effects — C ref: do_wear.c learnring()
