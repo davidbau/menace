@@ -835,15 +835,6 @@ async function m_respond(mon, map, player, display = null, game = null) {
 // mind_blast — C ref: monmove.c:582-646
 // Mind flayer psychic blast. RNG-faithful implementation.
 // ========================================================================
-function maybe_postmove_hideunder(mon, map, player, fov, display = null) {
-    const mdat = mon?.type || {};
-    if (!(hides_under(mdat) || mdat.mlet === S_EEL)) return;
-    if (mon.mundetected || (!helpless(mon) && rn2(5))) {
-        hideunder(mon, map, player, fov, display);
-    }
-    newsym(mon.mx, mon.my);
-}
-
 // Shared dochug post-move block for both pet and non-pet movement paths.
 // Preserves current JS sequencing: m_postmove_effect on displacement, then mintrap.
 async function apply_dochug_postmove(mon, map, player, display, fov, game, omx, omy) {
@@ -968,11 +959,20 @@ async function run_dochug_postmove_tail_current_js(
         await maybe_spin_web(mon, map);
     }
 
-    // C ref: monmove.c postmov() applies hides-under reevaluation
-    // whenever status is MMOVE_MOVED or MMOVE_DONE, even if the
-    // monster ended up staying on the same square.
     if (!mon.dead && (moveStatus === MMOVE_MOVED || moveStatus === MMOVE_DONE)) {
-        maybe_postmove_hideunder(mon, map, player, fov, display);
+        // C ref: monmove.c postmov():
+        // if (hides_under(ptr) || ptr->mlet == S_EEL) {
+        //   if (mtmp->mundetected || (!helpless(mtmp) && rn2(5)))
+        //     (void) hideunder(mtmp);
+        //   newsym(mtmp->mx, mtmp->my);
+        // }
+        const mdat = mon?.type || {};
+        if (hides_under(mdat) || mdat.mlet === S_EEL) {
+            if (mon.mundetected || (!helpless(mon) && rn2(5))) {
+                await hideunder(mon, map, player, fov, display);
+            }
+            newsym(mon.mx, mon.my);
+        }
     }
 
     if (!mon.dead && mon.isshk && (moveStatus === MMOVE_MOVED || moveStatus === MMOVE_DONE)) {

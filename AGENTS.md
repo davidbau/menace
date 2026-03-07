@@ -170,6 +170,7 @@ Set `RNG_LOG_TAGS=0` to disable caller tags when you need lower-overhead runs.
 1. Agents that support skills should use repo skills from `skills/<skill-name>/SKILL.md` when relevant.
 2. Current repo skills:
    - `skills/parity-rng-triage/SKILL.md`
+   - `skills/topline-async-boundary/SKILL.md`
 3. `AGENTS.md` remains the source of truth for non-negotiable policy.
 4. If skill loading is unavailable in a client, follow the workflow and guardrails from the referenced `SKILL.md` manually.
 5. Skill guardrails are mandatory when applicable, including:

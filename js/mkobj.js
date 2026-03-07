@@ -1294,11 +1294,16 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
         break;
     case FOOD_CLASS:
         if (obj.otyp === CORPSE) {
-            const corpseIdx = Number.isInteger(obj.corpsenm) ? obj.corpsenm : obj.corpsem;
-            if (Number.isInteger(corpseIdx) && mons[corpseIdx]) {
-                base = `${mons[corpseIdx].mname} corpse`;
-            } else {
+            // C ref: objnam.c xname() -- unidentified corpses are generic.
+            if (!dknown) {
                 base = 'corpse';
+            } else {
+                const corpseIdx = Number.isInteger(obj.corpsenm) ? obj.corpsenm : obj.corpsem;
+                if (Number.isInteger(corpseIdx) && mons[corpseIdx]) {
+                    base = `${mons[corpseIdx].mname} corpse`;
+                } else {
+                    base = 'corpse';
+                }
             }
         } else if (obj.otyp === TIN && known) {
             // C ref: eat.c tin_details() — show content when obj->known is set

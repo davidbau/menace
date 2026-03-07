@@ -97,6 +97,7 @@ import { monmoveTrace, monmoveStepLabel } from './monmove.js';
 import { monsterAtWithSegments } from './worm.js';
 import { ansimpleoname } from './objnam.js';
 import { game as _gstate } from './gstate.js';
+import { envFlag, writeStderr } from './runtime_env.js';
 
 // ========================================================================
 // Monster speed constants — C ref: include/monsym.h
@@ -1042,7 +1043,7 @@ export function maybe_unhide_at(x, y, map) {
 }
 
 // C ref: mon.c:4721 hideunder() — monster tries to hide under something
-export function hideunder(mon, map, player = null, fov = null, display = null) {
+export async function hideunder(mon, map, player = null, fov = null, display = null) {
     if (!mon || !map) return false;
     const mdat = mon.data || mon.type || {};
     const x = mon.mx, y = mon.my;
@@ -1082,12 +1083,32 @@ export function hideunder(mon, map, player = null, fov = null, display = null) {
 
     const old = !!mon.mundetected;
     mon.mundetected = undetected;
+    const hideDebug = envFlag('WEBHACK_HIDEUNDER_DEBUG');
+    if (hideDebug) {
+        writeStderr(
+            `[HIDEUNDER] m_id=${Number(mon?.m_id || 0)} ndx=${Number(mon?.mndx ?? -1)}`
+            + ` pos=${x},${y} old=${old ? 1 : 0} new=${undetected ? 1 : 0}`
+            + ` seeit=${seeit ? 1 : 0} seenobj=${seenobj ? 1 : 0}\n`
+        );
+    }
     if (undetected && seeit && seenobj && display) {
         const seenmon = y_monnam(mon);
         const movement = locomo || locomotion(mdat, 'hide');
-        display.putstr_message(`You see ${seenmon} ${movement} under ${seenobj}.`);
+        if (hideDebug) {
+            writeStderr(
+                `[HIDEUNDER] message m_id=${Number(mon?.m_id || 0)}`
+                + ` text="You see ${seenmon} ${movement} under ${seenobj}."\n`
+            );
+        }
+        await display.putstr_message(`You see ${seenmon} ${movement} under ${seenobj}.`);
     }
     if (undetected !== old) {
+        if (hideDebug) {
+            writeStderr(
+                `[HIDEUNDER] newsym m_id=${Number(mon?.m_id || 0)}`
+                + ` pos=${x},${y} old=${old ? 1 : 0} new=${undetected ? 1 : 0}\n`
+            );
+        }
         newsym(x, y);
     }
     return undetected;
@@ -1724,7 +1745,7 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                 && (mon.mflee || distmin(mon.mx, mon.my, player.x, player.y) > 1)
                 && !canseemon(mon, player, fov)
                 && !rn2(4)) {
-                if (hideunder(mon, map, player, fov, display))
+                if (await hideunder(mon, map, player, fov, display))
                     continue;
             }
             // TODO: fightm() — Conflict not implemented

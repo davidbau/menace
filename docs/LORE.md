@@ -3042,6 +3042,19 @@ hard-won wisdom:
 
 - C's `done_eating()` (eat.c:562-565) dispatches to `cpostfx()` for corpses
   and `fpostfx()` for non-corpse food after eating completes.
+
+### Seed328 hideunder boundary + corpse naming fidelity (2026-03-07)
+- After fixing the hideunder/topline async boundary (awaiting message emission),
+  the `%` vs `s` transient-map mismatch disappeared, but a message-text mismatch
+  remained at step 232:
+  - JS: `You see the centipede hide under a little dog corpse.`
+  - C/session: `You see the centipede hide under a corpse.`
+- Root cause: JS `xname_for_doname()` in `mkobj.js` always expanded corpse
+  species name from `corpsenm`, even when `dknown` was false.
+- C-faithful fix: for `FOOD_CLASS` `CORPSE`, when `!dknown`, emit generic
+  `"corpse"`; only include `<monster> corpse` when `dknown`.
+- Result: `seed328_ranger_wizard_gameplay` now fully matches
+  (`rng/events/screens/colors/cursor = 100%`).
 - JS had these functions defined but never called from the eating completion paths.
   Multi-turn eating used inline PM_NEWT-only logic; single-turn eating had none.
 - Missing `fpostfx()` meant fortune cookie `outrumor()` (rn2(2) + rn2(chunksize))

@@ -213,6 +213,7 @@ export class Display {
         this._pendingMoreNoCursor = false;
         this._messageQueue = [];
         this._topMessageRow1 = undefined; // set when message wraps to row 1
+        this._moreBlockingEnabled = false;
 
         this._createDOM();
     }
@@ -331,7 +332,7 @@ span.nh-cursor {
 
     // Display a message on the top line
     // C ref: winprocs.h win_putstr for NHW_MESSAGE
-    putstr_message(msg) {
+    async putstr_message(msg) {
         // Add to message history
         if (msg.trim()) {
             this.messages.push(msg);
@@ -367,11 +368,17 @@ span.nh-cursor {
                 this.setCursor(Math.min(combined.length, this.cols - 1), 0);
                 return;
             }
-            // Overflow: show --More-- and queue the new message for later.
+            // Overflow: show --More--. In blocking mode, wait for a key
+            // immediately (headless parity path); otherwise queue for later.
             this.renderMoreMarker();
-            this._pendingMore = true;
-            this._messageQueue.push(msg);
-            return;
+            if (this._moreBlockingEnabled && this._nhgetch) {
+                await this._nhgetch();
+                // Continue to display this message fresh after dismissal.
+            } else {
+                this._pendingMore = true;
+                this._messageQueue.push(msg);
+                return;
+            }
         }
 
         // Display message, wrapping to row 1 if needed.
@@ -396,7 +403,29 @@ span.nh-cursor {
             this.topMessage = row0;
 
             if (row1rest.length > 0) {
-                // Write as much as fits on row 1, queue any remainder.
+                if (this._moreBlockingEnabled && this._nhgetch) {
+                    // Blocking mode: page via row 1 + --More--, then continue
+                    // with any remaining text recursively.
+                    const row1 = row1rest.substring(0, this.cols);
+                    this.clearRow(MESSAGE_ROW + 1);
+                    this.putstr(0, MESSAGE_ROW + 1, row1, CLR_WHITE);
+                    this._topMessageRow1 = row1;
+                    this.messageNeedsMore = true;
+                    this.renderMoreMarker();
+                    await this._nhgetch();
+                    this.clearRow(MESSAGE_ROW);
+                    this.clearRow(MESSAGE_ROW + 1);
+                    this._topMessageRow1 = undefined;
+                    this.messageNeedsMore = false;
+                    this.topMessage = null;
+                    const row1overflow = row1rest.substring(this.cols).trimStart();
+                    if (row1overflow.length > 0) {
+                        await this.putstr_message(row1overflow);
+                    }
+                    return;
+                }
+
+                // Non-blocking mode: write row 1 and queue any remainder.
                 const row1 = row1rest.substring(0, this.cols);
                 this.clearRow(MESSAGE_ROW + 1);
                 this.putstr(0, MESSAGE_ROW + 1, row1, CLR_WHITE);
