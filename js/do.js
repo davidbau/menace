@@ -74,12 +74,12 @@ function strchr(s, ch) {
 
 export function formatGoldPickupMessage(gold, player) {
     const count = gold?.quan || 1;
-    const plural = count === 1 ? '' : 's';
+    const pieceText = (count === 1) ? 'a gold piece' : `${count} gold pieces`;
     const total = player?.gold || count;
     if (total !== count) {
-        return `$ - ${count} gold piece${plural} (${total} in total).`;
+        return `$ - ${pieceText} (${total} in total).`;
     }
-    return `$ - ${count} gold piece${plural}.`;
+    return `$ - ${pieceText}.`;
 }
 
 export function formatInventoryPickupMessage(pickedObj, inventoryObj, player) {
