@@ -1351,11 +1351,11 @@ export async function watchman_door_damage(mtmp, x, y, map) {
 // ============================================================================
 // Autotranslated from dokick.c:863
 export async function kick_dumb(x, y, map, player) {
-  await exercise(A_DEX, false);
+  await exercise(player, A_DEX, false);
   if (martial() || ACURR(A_DEX) >= 16 || rn2(3)) { await You("kick at empty space."); if (Blind) feel_location(x, y); }
   else {
     await pline("Dumb move! You strain a muscle.");
-    await exercise(A_STR, false);
+    await exercise(player, A_STR, false);
     set_wounded_legs(RIGHT_SIDE, 5 + rnd(5));
   }
   if ((Is_airlevel(player.uz) || player.levitating) && rn2(2)) {
@@ -1371,8 +1371,8 @@ export async function kick_dumb(x, y, map, player) {
 export async function kick_ouch(x, y, kickobjnam, game, map, player) {
   let dmg, buf;
   await pline("Ouch! That hurts!");
-  await exercise(A_DEX, false);
-  await exercise(A_STR, false);
+  await exercise(player, A_DEX, false);
+  await exercise(player, A_STR, false);
   if (isok(x, y)) {
     if (Blind) feel_location(x, y);
     if (is_drawbridge_wall(x, y) >= 0) {
@@ -1465,8 +1465,8 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
     if (!Levitation && rn2(30) < avrg_attrib) {
       cvt_sdoor_to_door(game.maploc);
       await pline("Crash! %s a secret door!",   (((game.maploc.flags || 0) & (D_LOCKED | D_TRAPPED)) === D_LOCKED) ? "Your kick uncovers" : "You kick open");
-      await exercise(A_DEX, true);
-      if ((game.maploc.flags || 0) & D_TRAPPED) { game.maploc.flags = D_NODOOR; await b_trapped("door", FOOT); }
+      await exercise(player, A_DEX, true);
+      if ((game.maploc.flags || 0) & D_TRAPPED) { game.maploc.flags = D_NODOOR; await b_trapped("door", FOOT, player, map); }
       else if (game.maploc.flags !== D_NODOOR && !((game.maploc.flags || 0) & D_LOCKED)) game.maploc.flags = D_ISOPEN;
       feel_newsym(x, y);
       if (game.maploc.flags === D_ISOPEN || game.maploc.flags === D_NODOOR) unblock_point(x, y);
@@ -1477,7 +1477,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
   if (game.maploc.typ === SCORR) {
     if (!Levitation && rn2(30) < avrg_attrib) {
       await pline("Crash! You kick open a secret passage!");
-      await exercise(A_DEX, true);
+      await exercise(player, A_DEX, true);
       game.maploc.typ = CORR;
       feel_newsym(x, y);
       unblock_point(x, y);
@@ -1494,7 +1494,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       mkgold( rnd(200), x, y);
       if (Blind) await pline("CRASH! You destroy it.");
       else { await pline("CRASH! You destroy the throne."); newsym(x, y); }
-      await exercise(A_DEX, true);
+      await exercise(player, A_DEX, true);
       return ECMD_TIME;
     }
     else if (Luck > 0 && !rn2(3) && !game.maploc.looted) {
@@ -1524,7 +1524,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
     await You("kick %s.", (Blind ? something : "the altar"));
     await altar_wrath(x, y);
     if (!rn2(3)) { await kick_ouch(x, y, ""); return ECMD_TIME; }
-    await exercise(A_DEX, true);
+    await exercise(player, A_DEX, true);
     return ECMD_TIME;
   }
   if (IS_FOUNTAIN(game.maploc.typ)) {
@@ -1534,7 +1534,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
     if (uarmf && rn2(3)) {
       if (water_damage(uarmf, "metal boots", true) === ER_NOTHING) { await Your("boots get wet."); }
     }
-    await exercise(A_DEX, true);
+    await exercise(player, A_DEX, true);
     return ECMD_TIME;
   }
   if (IS_GRAVE(game.maploc.typ)) {
@@ -1542,7 +1542,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
     else if (rn2(4)) { await kick_ouch(x, y, ""); }
     else if (!game.maploc.disturbed && !rn2(2)) { await disturb_grave(x, y); }
     else {
-      await exercise(A_WIS, false);
+      await exercise(player, A_WIS, false);
       if (Role_if(PM_ARCHEOLOGIST) || Role_if(PM_SAMURAI) || (player.ualign.type === A_LAWFUL && player.ualign.record > -10)) adjalign(-sgn(player.ualign.type));
       game.maploc.typ = ROOM;
       game.maploc.emptygrave = 0;
@@ -1577,8 +1577,8 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
         await pline("%ld %s got caught in the branches.", nfruit - nfall, xname(treefruit));
         dealloc_obj(treefruit);
       }
-      await exercise(A_DEX, true);
-      await exercise(A_WIS, true);
+      await exercise(player, A_DEX, true);
+      await exercise(player, A_WIS, true);
       newsym(x, y);
       game.maploc.looted |= TREE_LOOTED;
       return ECMD_TIME;
@@ -1608,7 +1608,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       else {
         await pline("Klunk!");
       }
-      await exercise(A_DEX, true);
+      await exercise(player, A_DEX, true);
       return ECMD_TIME;
     }
     else if (!(game.maploc.looted & S_LPUDDING) && !rn2(3) && !(game.mvitals[PM_BLACK_PUDDING].mvflags & G_GONE)) {
@@ -1617,7 +1617,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
         await pline("A %s ooze gushes up from the drain!", hcolor(NH_BLACK));
       }
       makemon( mons[PM_BLACK_PUDDING], x, y, MM_NOMSG);
-      await exercise(A_DEX, true);
+      await exercise(player, A_DEX, true);
       newsym(x, y);
       game.maploc.looted |= S_LPUDDING;
       return ECMD_TIME;
@@ -1626,7 +1626,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       await pline("%s returns!", (Blind ? Something : "The dish washer"));
       if (makemon( mons[PM_AMOROUS_DEMON], x, y, MM_NOMSG | ((gend === 1 || (gend === 2 && rn2(2))) ? MM_MALE : MM_FEMALE))) newsym(x, y);
       game.maploc.looted |= S_LDWASHER;
-      await exercise(A_DEX, true);
+      await exercise(player, A_DEX, true);
       return ECMD_TIME;
     }
     else if (!rn2(3)) { await sink_backs_up(x, y); return ECMD_TIME; }

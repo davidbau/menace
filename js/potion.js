@@ -1467,7 +1467,7 @@ export async function peffect_enlightenment(otmp) {
   if (otmp.cursed) {
     gp.potion_unkn++;
     await You("have an uneasy feeling...");
-    await exercise(A_WIS, false);
+    await exercise(player, A_WIS, false);
   }
   else {
     if (otmp.blessed) { await adjattrib(A_INT, 1, false); await adjattrib(A_WIS, 1, false); }
@@ -1500,14 +1500,14 @@ export async function peffect_monster_detection(otmp, map, player) {
     }
   }
   if (await monster_detect(otmp, 0)) return 1;
-  await exercise(A_WIS, true);
+  await exercise(player, A_WIS, true);
   return 0;
 }
 
 // Autotranslated from potion.c:950
-export async function peffect_object_detection(otmp) {
+export async function peffect_object_detection(otmp, player) {
   if (await object_detect(otmp, 0)) return 1;
-  await exercise(A_WIS, true);
+  await exercise(player, A_WIS, true);
   return 0;
 }
 

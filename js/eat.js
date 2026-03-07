@@ -561,7 +561,7 @@ export async function choke(food, player) {
         if (player.ualign) player.ualign.record = (player.ualign.record || 0) - 1;
         await You_feel("like a glutton!");
     }
-    await exercise(A_CON, false);
+    await exercise(player, A_CON, false);
 
     // C: Breathless || Hunger || (!Strangled && !rn2(20))
     // Breathless: M1_BREATHLESS from polymorph form; false for normal player

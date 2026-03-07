@@ -407,7 +407,7 @@ export async function ugolemeffects(damtype, dam, game, player) {
     if (player.mh > player.mhmax) player.mh = player.mhmax;
     game.disp.botl = true;
     await pline("Strangely, you feel better than before.");
-    await exercise(A_STR, true);
+    await exercise(player, A_STR, true);
   }
 }
 

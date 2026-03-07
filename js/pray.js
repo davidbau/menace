@@ -1833,7 +1833,7 @@ export async function consume_offering(otmp, player) {
   else {
     useupf(otmp, 1);
   }
-  await exercise(A_WIS, true);
+  await exercise(player, A_WIS, true);
 }
 
 // ================================================================

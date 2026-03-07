@@ -1659,7 +1659,7 @@ export async function disarm_box(box, force, confused, player) {
       more_experienced(8, 0);
       await newexplevel();
     }
-    await exercise(A_DEX, true);
+    await exercise(player, A_DEX, true);
   }
   else { await pline("That %s was not trapped.", xname(box)); box.tknown = 0; }
 }
@@ -1673,7 +1673,7 @@ export async function untrap_box(box, force, confused, player) {
     }
     box.tknown = 1;
     observe_object(box);
-    if (!confused) await exercise(A_WIS, true);
+    if (!confused) await exercise(player, A_WIS, true);
     if (ynq("Disarm it?") === 'y') await disarm_box(box, force, confused);
   }
   else { await You("find no traps on %s.", the(xname(box))); }
@@ -1762,13 +1762,13 @@ export async function delfloortrap(ttmp, player) {
 }
 
 // Autotranslated from trap.c:6602
-export async function b_trapped(item, bodypart) {
+export async function b_trapped(item, bodypart, player) {
   let lvl = level_difficulty(), dmg = rnd(5 + (lvl < 5 ? lvl : 2 + Math.floor(lvl / 2)));
   await pline("KABOOM!! %s was booby-trapped!", The(item));
   wake_nearby(false);
   await losehp(Maybe_Half_Phys(dmg), "explosion", KILLED_BY_AN);
-  await exercise(A_STR, false);
-  if (bodypart !== NO_PART) await exercise(A_CON, false);
+  await exercise(player, A_STR, false);
+  if (bodypart !== NO_PART) await exercise(player, A_CON, false);
   await make_stunned((HStun & TIMEOUT) +  dmg, true);
 }
 
