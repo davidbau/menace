@@ -74,7 +74,7 @@ function mon_in_room(mon, rmtyp, map) {
 
 // cf. sounds.c:29 — throne_mon_sound(mtmp): throne room ambient sound
 export async function throne_mon_sound(mtmp, hallu, game) {
-    const ptr = mtmp.type;
+    const ptr = mtmp.data || mtmp.type;
     if ((mtmp.msleeping || is_lord(ptr) || is_prince(ptr))
         && !is_animal(ptr)
         && mon_in_room(mtmp, COURT, (game.lev || game.map))) {
@@ -100,7 +100,7 @@ export async function throne_mon_sound(mtmp, hallu, game) {
 
 // cf. sounds.c:61 — beehive_mon_sound(mtmp): beehive ambient sound
 export async function beehive_mon_sound(mtmp, hallu, game) {
-    const ptr = mtmp.type;
+    const ptr = mtmp.data || mtmp.type;
     if ((ptr.mlet === S_ANT && is_flyer(ptr))
         && mon_in_room(mtmp, BEEHIVE, (game.lev || game.map))) {
         switch (rn2(2) + hallu) {
@@ -123,7 +123,7 @@ export async function beehive_mon_sound(mtmp, hallu, game) {
 
 // cf. sounds.c:88 — morgue_mon_sound(mtmp): morgue ambient sound
 export async function morgue_mon_sound(mtmp, hallu, game) {
-    const ptr = mtmp.type;
+    const ptr = mtmp.data || mtmp.type;
     if (is_undead(ptr) && mon_in_room(mtmp, MORGUE, (game.lev || game.map))) {
         switch (rn2(2) + hallu) {
         case 0:
@@ -143,7 +143,7 @@ export async function morgue_mon_sound(mtmp, hallu, game) {
 
 // cf. sounds.c:114 — zoo_mon_sound(mtmp): zoo ambient sound
 export async function zoo_mon_sound(mtmp, hallu, game) {
-    const ptr = mtmp.type;
+    const ptr = mtmp.data || mtmp.type;
     if ((mtmp.sleeping || is_animal(ptr))
         && mon_in_room(mtmp, ZOO, (game.lev || game.map))) {
         const zoo_msg = [
@@ -175,7 +175,7 @@ export async function temple_priest_sound(mtmp, hallu, game) {
             'a strident plea for donations.',   // C: *a strident plea...
         ];
         const msgCount = temple_msg.length;
-        const speechless = (mtmp.type?.msound ?? 0) <= MS_ANIMAL;
+        const speechless = ((mtmp.data || mtmp.type).msound || 0) <= MS_ANIMAL;
         const in_sight = canseemon(mtmp); // simplified: C also checks cansee(altar)
         let trycount = 0;
         let msgIdx;
@@ -197,7 +197,7 @@ export async function temple_priest_sound(mtmp, hallu, game) {
 
 // cf. sounds.c:180 — oracle_sound(mtmp): oracle ambient sound
 export async function oracle_sound(mtmp, hallu, game) {
-    if (mtmp.type !== mons[PM_ORACLE]) return false;
+    if (mtmp.data || mtmp.type !== mons[PM_ORACLE]) return false;
 
     if (hallu || !canseemon(mtmp, (game.u || game.player), game.fov)) {
         const ora_msg = [
@@ -325,7 +325,7 @@ export async function dosounds(game) {
         let count = 0;
         for (const mtmp of map.monsters) {
             if (mtmp.dead) continue;
-            if (is_mercenary(mtmp.type)
+            if (is_mercenary(mtmp.data || mtmp.type)
                 && mon_in_room(mtmp, BARRACKS, map)
                 && (mtmp.sleeping || ++count > 5)) {
                 await game.display.putstr_message(`You hear ${barracks_msg[rn2(3) + hallu]}`);
@@ -404,7 +404,7 @@ export async function dosounds(game) {
 
 // cf. sounds.c:350 — growl_sound(mtmp): return growl verb string
 export function growl_sound(mtmp) {
-    const ptr = mtmp.type || mtmp;
+    const ptr = mtmp.data || mtmp.type || mtmp;
     switch (ptr.msound) {
     case MS_MEW:
     case MS_HISS:
@@ -444,7 +444,7 @@ export function growl_sound(mtmp) {
 // cf. sounds.c:401 — growl(mtmp): seriously abused pet growls at hero
 export async function growl(mtmp, game) {
     if ((mtmp.sleeping || mtmp.paralyzed || mtmp.stunned)
-        || mtmp.type.msound === MS_SILENT)
+        || (mtmp.data || mtmp.type).msound === MS_SILENT)
         return;
 
     let verb;
@@ -458,7 +458,7 @@ export async function growl(mtmp, game) {
         // C: vtense — add "s" for 3rd person singular
         const verbed = verb.endsWith('s') ? `${verb}es` : `${verb}s`;
         await game.display.putstr_message(`${name} ${verbed}!`);
-        wake_nearto(mtmp.x, mtmp.y, (mtmp.type.mlevel || 0) * 18, (game.lev || game.map));
+        wake_nearto(mtmp.x, mtmp.y, ((mtmp.data || mtmp.type).mlevel || 0) * 18, (game.lev || game.map));
     }
 }
 
@@ -468,14 +468,14 @@ export async function growl(mtmp, game) {
 
 // cf. sounds.c:426 — yelp(mtmp): mistreated pet yelps
 export async function yelp(mtmp, game) {
-    if ((mtmp.sleeping || mtmp.paralyzed) || !mtmp.type.msound)
+    if ((mtmp.sleeping || mtmp.paralyzed) || !(mtmp.data || mtmp.type).msound)
         return;
 
     let verb = null;
     if ((game.u || game.player)?.hallucinating) {
         verb = h_sounds[rn2(h_sounds.length)];
     } else {
-        switch (mtmp.type.msound) {
+        switch ((mtmp.data || mtmp.type).msound) {
         case MS_MEW:
             verb = 'yowl';
             break;
@@ -501,7 +501,7 @@ export async function yelp(mtmp, game) {
         const name = x_monnam(mtmp);
         const verbed = verb.endsWith('s') ? `${verb}es` : `${verb}s`;
         await game.display.putstr_message(`${name} ${verbed}!`);
-        wake_nearto(mtmp.x, mtmp.y, (mtmp.type.mlevel || 0) * 12, (game.lev || game.map));
+        wake_nearto(mtmp.x, mtmp.y, ((mtmp.data || mtmp.type).mlevel || 0) * 12, (game.lev || game.map));
     }
 }
 
@@ -511,14 +511,14 @@ export async function yelp(mtmp, game) {
 
 // cf. sounds.c:478 — whimper(mtmp): distressed pet whimpers
 export async function whimper(mtmp, game) {
-    if ((mtmp.sleeping || mtmp.paralyzed) || !mtmp.type.msound)
+    if ((mtmp.sleeping || mtmp.paralyzed) || !(mtmp.data || mtmp.type).msound)
         return;
 
     let verb = null;
     if ((game.u || game.player)?.hallucinating) {
         verb = h_sounds[rn2(h_sounds.length)];
     } else {
-        switch (mtmp.type.msound) {
+        switch ((mtmp.data || mtmp.type).msound) {
         case MS_MEW:
         case MS_GROWL:
             verb = 'whimper';
@@ -535,7 +535,7 @@ export async function whimper(mtmp, game) {
         const name = x_monnam(mtmp);
         const verbed = verb.endsWith('s') ? `${verb}es` : `${verb}s`;
         await game.display.putstr_message(`${name} ${verbed}.`);
-        wake_nearto(mtmp.x, mtmp.y, (mtmp.type.mlevel || 0) * 6, (game.lev || game.map));
+        wake_nearto(mtmp.x, mtmp.y, ((mtmp.data || mtmp.type).mlevel || 0) * 6, (game.lev || game.map));
     }
 }
 
@@ -546,12 +546,12 @@ export async function whimper(mtmp, game) {
 // cf. sounds.c:518 — beg(mtmp): hungry pet begs for food
 export async function beg(mtmp, game) {
     if ((mtmp.sleeping || mtmp.paralyzed)
-        || !(carnivorous(mtmp.type) || herbivorous(mtmp.type)))
+        || !(carnivorous(mtmp.data || mtmp.type) || herbivorous(mtmp.data || mtmp.type)))
         return;
 
-    if (!is_silent(mtmp.type) && mtmp.type.msound <= MS_ANIMAL) {
+    if (!is_silent(mtmp.data || mtmp.type) && (mtmp.data || mtmp.type).msound <= MS_ANIMAL) {
         await domonnoise(mtmp, game);
-    } else if (mtmp.type.msound >= MS_HUMANOID) {
+    } else if ((mtmp.data || mtmp.type).msound >= MS_HUMANOID) {
         await game.display.putstr_message(`"I'm hungry."`);
     } else {
         const name = x_monnam(mtmp);
@@ -567,7 +567,7 @@ export async function beg(mtmp, game) {
 const Exclam = ['Gasp!', 'Uh-oh.', 'Oh my!', 'What?', 'Why?'];
 
 export function maybe_gasp(mon) {
-    const ptr = mon.type;
+    const ptr = mon.data || mon.type;
     let msound = ptr.msound;
     let dogasp = false;
 
@@ -622,7 +622,7 @@ export function maybe_gasp(mon) {
 
 // cf. sounds.c:616 — cry_sound(mtmp): sound verb for a hatching egg
 export function cry_sound(mtmp) {
-    const ptr = mtmp.type || mtmp;
+    const ptr = mtmp.data || mtmp.type || mtmp;
     switch (ptr.msound) {
     default:
     case MS_SILENT:
@@ -651,8 +651,8 @@ export function cry_sound(mtmp) {
 
 // cf. sounds.c:658 — mon_is_gecko(mon): check if monster appears as gecko
 export function mon_is_gecko(mon) {
-    if (mon.type === mons[PM_GECKO]) return true;
-    if (mon.type === mons[PM_LONG_WORM]) return false;
+    if ((mon.data || mon.type) === mons[PM_GECKO]) return true;
+    if ((mon.data || mon.type) === mons[PM_LONG_WORM]) return false;
     // Simplified: would need glyph_at/glyph_to_mon for hallucination check
     return false;
 }
@@ -666,7 +666,7 @@ export function mon_is_gecko(mon) {
 // quest_chat, shk_chat, demon_talk) are not yet ported. We still consume
 // RNG in the correct order for all cases that use it.
 export async function domonnoise(mtmp, game) {
-    const ptr = mtmp.type;
+    const ptr = mtmp.data || mtmp.type;
     let msound = ptr.msound;
     let pline_msg = null;
     let verbl_msg = null;
