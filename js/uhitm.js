@@ -38,7 +38,7 @@ import {
     POT_RESTORE_ABILITY, POT_GAIN_ABILITY,
     BOULDER, HEAVY_IRON_BALL, IRON_CHAIN, MIRROR, CLOVE_OF_GARLIC,
     SILVER, IRON, METAL, VEGGY, PAPER,
-    WEAPON_CLASS, GEM_CLASS, SPBOOK_CLASS, COIN_CLASS,
+    WEAPON_CLASS, GEM_CLASS, TOOL_CLASS, SPBOOK_CLASS, COIN_CLASS,
 } from './objects.js';
 import { mkobj, mkcorpstat, next_ident, xname } from './mkobj.js';
 import { hitval as weapon_hitval, dmgval, abon, dbon, weapon_hit_bonus, weapon_dam_bonus } from './weapon.js';
@@ -78,6 +78,15 @@ function exclam(force) {
 function martial_bonus(player) {
     const role = Number(player?.roleIndex);
     return role === PM_MONK || role === PM_SAMURAI;
+}
+
+function miscMeleeObjectBaseDamage(obj) {
+    const w = Math.max(0, Number(obj?.owt) || 0);
+    let sides = Math.floor((w + 99) / 100);
+    if (sides <= 1) return 1;
+    let dmg = rnd(sides);
+    if (dmg > 6) dmg = 6;
+    return dmg;
 }
 
 async function abuse_dog_like_c(mon, display = null) {
@@ -1940,12 +1949,26 @@ export async function do_attack_core(player, monster, display, map, game = null)
     // Hit! Calculate damage
     // cf. uhitm.c hmon_hitmon() → hmon_hitmon_weapon_melee() / weapon_ranged / barehands
     let damage = 0;
+    const wepInfo = player.weapon ? objectData[player.weapon.otyp] : null;
+    const weaponLike = !!player.weapon && (
+        player.weapon.oclass === WEAPON_CLASS
+        || wepInfo?.weptool
+        || player.weapon.oclass === GEM_CLASS
+    );
     const rangedMelee = usesRangedMeleeDamage(player.weapon);
     if (player.weapon && rangedMelee) {
         // cf. uhitm.c:884 hmon_hitmon_weapon_ranged() — rnd(2) base
         damage = rnd(2);
-    } else if (player.weapon) {
+    } else if (player.weapon && weaponLike) {
         // cf. uhitm.c:919 hmon_hitmon_weapon_melee() → dmgval()
+        damage = dmgval(player.weapon, monster);
+    } else if (player.weapon && player.weapon.oclass === TOOL_CLASS) {
+        // cf. uhitm.c:1330-1335 hmon_hitmon_misc_obj() base damage:
+        // non-weapon melee uses weight-based random damage, capped at 6.
+        damage = miscMeleeObjectBaseDamage(player.weapon);
+    } else if (player.weapon) {
+        // Keep existing behavior for non-tool non-weapon wieldables until
+        // broader slot/wield-state audit lands.
         damage = dmgval(player.weapon, monster);
     } else {
         // Bare-handed combat
@@ -1956,9 +1979,11 @@ export async function do_attack_core(player, monster, display, map, game = null)
     // cf. uhitm.c:1414 hmon_hitmon_dmg_recalc() — add strength and skill bonuses
     if (!rangedMelee) {
         damage += dbon(acurr(player, A_STR));
-        damage += weapon_dam_bonus(player.weapon); // skill-based (stub: returns 0)
+        if (weaponLike) {
+            damage += weapon_dam_bonus(player.weapon); // skill-based (stub: returns 0)
+        }
         // cf. uhitm.c — artifact damage bonus
-        if (player.weapon && player.weapon.oartifact) {
+        if (weaponLike && player.weapon && player.weapon.oartifact) {
             const [bonus] = spec_dbon(player.weapon, monster, damage);
             damage += bonus;
         }

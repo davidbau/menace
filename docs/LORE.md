@@ -3979,3 +3979,37 @@ hard-won wisdom:
   - C-side mapdump parity still does not fully align for early steps on some sessions despite replay-key alignment; keep treating `--c-side` as secondary evidence until further harness-step alignment work lands.
 - Parity safety check after tool-only work:
   - `./scripts/run-and-report.sh --failures` remains at gameplay `31/34` passing (`seed031`, `seed032`, `seed033` only).
+
+### uhitm non-weapon melee ordering: tool-class misc damage parity (2026-03-07)
+
+- Context:
+  - `seed032_manual_direct` first RNG divergence at step 22 showed missing
+    `mhitm_knockback` RNG pair (`rn2(3)`, `rn2(6)`) before flee check.
+  - dbgmapdump adjacent diffs localized transition at `21 -> 22` in monster state (`M/N`).
+- Root cause:
+  - JS melee path treated wielded non-weapon tools like ordinary `dmgval()` weapon
+    hits, underestimating base damage for tool bashing and skipping knockback gate
+    in this window.
+- Fix in [`js/uhitm.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/uhitm.js):
+  - Added C-like tool misc melee base damage helper:
+    - `sides = (owt + 99) / 100`, no RNG when `sides <= 1`, else `rnd(sides)`, capped at `6`.
+  - Routed wielded `TOOL_CLASS` melee through that misc-object base path.
+  - Kept weapon-skill/artifact damage bonus application restricted to weapon-like items.
+  - Left non-tool non-weapon behavior unchanged for now to avoid broad regressions until
+    wider wield-state audit is complete.
+- Validation:
+  - `seed032_manual_direct` RNG frontier improved from step `22` to step `159`.
+  - Full failures view remains stable at the core trio (`seed031`, `seed032`, `seed033`) with no new standing regression set.
+
+### New Skill: dbgmapdump-parity (2026-03-07)
+
+- Added skill:
+  - [`skills/dbgmapdump-parity/SKILL.md`](/share/u/davidbau/git/mazesofmenace/mazes/skills/dbgmapdump-parity/SKILL.md)
+- Purpose:
+  - Teaches agents when and how to use `dbgmapdump` effectively for parity triage.
+- Includes:
+  - trigger conditions,
+  - canonical capture commands (`--first-divergence`, `--window`, `--adjacent-diff`),
+  - section-to-callchain mapping,
+  - interpretation heuristics,
+  - guardrails aligned with parity policy.
