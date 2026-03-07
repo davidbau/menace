@@ -311,6 +311,15 @@ function thrownObjectName(obj, player) {
     return doname(oneShot, player);
 }
 
+function stairFallMessage(obj, player, toloc) {
+    const base = thrownObjectName(obj, player).replace(/^(a|an)\s+/i, '');
+    if (toloc === MIGR_LADDER_UP) return `The ${base} falls down the ladder.`;
+    if (toloc === MIGR_STAIRS_UP || toloc === MIGR_SSTAIRS) {
+        return `The ${base} falls down the stairs.`;
+    }
+    return '';
+}
+
 // C ref: zap.c exclam(force)
 function exclam(force) {
     if (force < 0) return '?';
@@ -403,6 +412,10 @@ export async function drop_throw(obj, ohit, x, y, map, player, game) {
             // C ref: dokick.c ship_object() runs breaktest() before migration.
             // This preserves obj_resists() RNG even when object leaves the level.
             breaktest(obj);
+            const msg = stairFallMessage(obj, player, toloc);
+            if (msg && game?.display && couldsee(map, player, x, y)) {
+                await game.display.putstr_message(msg);
+            }
             return true;
         }
     }
