@@ -1081,6 +1081,8 @@ async function fix_worst_trouble(trouble, player, map) {
         if (await safe_teleds(0, { player, map })) {
             await Your("surroundings change.");
         } else {
+            // C: set_itimeout(&HPasses_walls, d(4,4)+4) — confer phasing
+            d(4, 4); // consume RNG for passes_walls timeout
             await You_feel("much slimmer.");
         }
         break;
