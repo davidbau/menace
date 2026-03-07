@@ -1739,13 +1739,13 @@ export function save_mtraits(obj, mtmp) {
 
 // Autotranslated from mkobj.c:2198
 export function get_mtraits(obj, copyof) {
-  let mtmp =  0, mnew =  0;
+  let mtmp = null, mnew = null;
   if (has_omonst(obj)) mtmp = OMONST(obj);
   if (mtmp) {
     if (copyof) {
-      mnew = newmonst();
-      Object.assign(mnew, mtmp); // C: *mnew = *mtmp (struct copy)
-      mnew.mextra =  0;
+      // C: mnew = newmonst(); *mnew = *mtmp; (alloc + struct copy)
+      mnew = Object.assign({}, mtmp);
+      mnew.mextra = null;
       if (mtmp.mextra) copy_mextra(mnew, mtmp);
     }
     else { mnew = mtmp; }

@@ -1273,7 +1273,7 @@ export async function handler_change_autocompletions() {
   start_menu(win, MENU_BEHAVE_STANDARD);
   any = { a_int: 0 };
   for (i = 0; i < extcmdlist_length; i++) {
-    ec = extcmdlist;
+    ec = extcmdlist[i];
     if ((ec.flags & (INTERNALCMD|CMD_NOT_AVAILABLE)) !== 0) {
       continue;
     }
@@ -1290,7 +1290,7 @@ export async function handler_change_autocompletions() {
     let j;
     for (i = 0; i < extcmdlist_length; i++) {
       let setit = false;
-      ec = extcmdlist;
+      ec = extcmdlist[i];
       if ((ec.flags & (INTERNALCMD|CMD_NOT_AVAILABLE)) !== 0) {
         continue;
       }

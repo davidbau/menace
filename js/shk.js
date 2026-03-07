@@ -3158,9 +3158,11 @@ export function find_oid(id, map = _gstate?.map, player = _gstate?.player) {
 
 // Autotranslated from shk.c:3200
 export function unpaid_cost(unp_obj, cost_type, player) {
-  let bp =  0, shkp = 0, shop, amt = 0;
-  for (shop = player.ushops;  shop; shop++) {
-    if ((shkp = shop_keeper( shop)) != null) {
+  let bp = null, shkp = null, amt = 0;
+  const shops = player.ushops || '';
+  for (let si = 0; si < shops.length; si++) {
+    const shop = shops[si];
+    if ((shkp = shop_keeper(shop)) != null) {
       if ((bp = onbill(unp_obj, shkp, true))) {
         amt = bp.price;
         if (cost_type !== COST_SINGLEOBJ) { amt *= unp_obj.quan; }

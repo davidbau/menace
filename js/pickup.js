@@ -846,7 +846,7 @@ export async function mbag_item_gone(held, item, silent, player) {
 // cf. pickup.c:2820 — observe_quantum_cat(box, makecat, givemsg)
 // Autotranslated from pickup.c:2819
 export async function observe_quantum_cat(box, makecat, givemsg, game) {
-  let sc = "Schroedinger's Cat", deadcat, livecat = 0, ox, oy;
+  let sc = "Schroedinger's Cat", deadcat, livecat = null, ox, oy;
   let itsalive = !rn2(2);
   { const loc = get_obj_location(box, 0); if (loc.found) { box.ox = loc.x; box.oy = loc.y; } }
   deadcat = box.cobj;

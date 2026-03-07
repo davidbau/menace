@@ -822,7 +822,7 @@ export function safe_oname(obj) {
 
 // Autotranslated from do_name.c:198
 export async function do_mgivenname(player) {
-  let buf, monnambuf, qbuf, cc, cx, cy, mtmp = 0, do_swallow = false;
+  let buf, monnambuf, qbuf, cc = { x: 0, y: 0 }, cx, cy, mtmp = null, do_swallow = false;
   if ((player?.Hallucination || player?.hallucinating || false)) { await You("would never recognize it anyway."); return; }
   cc.x = player.x;
   cc.y = player.y;
