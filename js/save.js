@@ -216,14 +216,14 @@ export function saveobj(nhfp, otmp) {
     if (buflen > 0) {
       Sfo_char(nhfp, ONAME(otmp), "obj-oname", buflen);
     }
-    if (OMONST(otmp)) { savemon(nhfp, OMONST(otmp)); }
+    if (otmp.oextra?.omonst) { savemon(nhfp, otmp.oextra.omonst); }
     else { Sfo_int(nhfp, zerobuf, "obj-omonst_length"); }
-    buflen = OMAILCMD(otmp) ?  OMAILCMD(otmp).length + 1 : 0;
+    buflen = otmp.oextra?.omailcmd ?  otmp.oextra.omailcmd.length + 1 : 0;
     Sfo_int(nhfp, buflen, "obj-omailcmd_length");
     if (buflen > 0) {
-      Sfo_char(nhfp, OMAILCMD(otmp), "obj-omailcmd", buflen);
+      Sfo_char(nhfp, otmp.oextra.omailcmd, "obj-omailcmd", buflen);
     }
-    Sfo_unsigned(nhfp, OMID(otmp), "obj-omid");
+    Sfo_unsigned(nhfp, otmp.oextra?.omid || 0, "obj-omid");
   }
 }
 

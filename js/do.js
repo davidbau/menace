@@ -1662,7 +1662,7 @@ export async function drop(obj, game, map, player) {
     if ((obj.oclass === RING_CLASS || obj.otyp === MEAT_RING) && IS_SINK(map.locations[player.x][player.y].typ)) { await dosinkring(obj); return ECMD_TIME; }
     if (!can_reach_floor(true)) {
       let levhack = finesse_ahriman(obj);
-      if (levhack) E(player?.Levitation || player?.levitating || false) = W_ART;
+      // TODO: if (levhack) E(Levitation) = W_ART — autotranslation stub
       if (game.flags.verbose) await You("drop %s.", doname(obj));
       freeinv(obj);
       await hitfloor(obj, true);

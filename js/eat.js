@@ -175,10 +175,10 @@ function obj_nutrition(otmp) {
 // cf. eat.c init_uhunger() — initialize hunger state at game start
 // Autotranslated from eat.c:125
 export async function init_uhunger(game, player) {
-  game.disp.botl = (player.uhs !== NOT_HUNGRY || ATEMP(A_STR) < 0);
+  game.disp.botl = (player.uhs !== NOT_HUNGRY || player.atemp[A_STR] < 0);
   player.uhunger = 900;
   player.uhs = NOT_HUNGRY;
-  if (ATEMP(A_STR) < 0) { ATEMP(A_STR) = 0; await encumber_msg(); }
+  if (player.atemp[A_STR] < 0) { player.atemp[A_STR] = 0; await encumber_msg(); }
 }
 
 

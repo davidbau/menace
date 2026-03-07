@@ -807,12 +807,12 @@ export function noveltitle(novidx = null) {
 
 // Autotranslated from do_name.c:50
 export function free_mgivenname(mon) {
-  if (has_mgivenname(mon)) { MGIVENNAME(mon) = 0; } // JS: no free() needed
+  if (has_mgivenname(mon)) { if (mon.mextra) mon.mextra.mgivenname = null; mon.mgivenname = null; }
 }
 
 // Autotranslated from do_name.c:80
 export function free_oname(obj) {
-  if (has_oname(obj)) { ONAME(obj) = 0; } // JS: no free() needed
+  if (has_oname(obj) && obj.oextra) { obj.oextra.oname = null; } // JS: no free() needed
 }
 
 // Autotranslated from do_name.c:94
@@ -872,7 +872,7 @@ export async function oname(obj, name, oflgs, player) {
   if (obj.oartifact || (lth && exist_artifact(obj.otyp, name))) return obj;
   new_oname(obj, lth);
   if (lth) {
-    ONAME(obj) = name;
+    if (obj.oextra) obj.oextra.oname = name;
   }
   if (lth) artifact_exists(obj, name, true, oflgs);
   if (obj.oartifact) {

@@ -523,11 +523,11 @@ export function size_obj(otmp) {
     if (ONAME(otmp)) {
       sz +=  ONAME(otmp).length + 1;
     }
-    if (OMONST(otmp)) {
-      sz += size_monst(OMONST(otmp), false);
+    if (otmp.oextra?.omonst) {
+      sz += size_monst(otmp.oextra.omonst, false);
     }
-    if (OMAILCMD(otmp)) {
-      sz +=  OMAILCMD(otmp).length + 1;
+    if (otmp.oextra?.omailcmd) {
+      sz +=  otmp.oextra.omailcmd.length + 1;
     }
   }
   return sz;

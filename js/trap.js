@@ -1386,7 +1386,7 @@ export function keep_saddle_with_steedcorpse(steed_mid, objchn, saddle) {
   if (!saddle) return false;
   while (objchn) {
     if (objchn.otyp === CORPSE && has_omonst(objchn)) {
-      let mtmp = OMONST(objchn);
+      let mtmp = objchn.oextra?.omonst;
       if (mtmp.m_id === steed_mid) {
         const loc = get_obj_location(objchn, 0);
         if (loc.found) {

@@ -181,7 +181,7 @@ export function restmon(nhfp, mtmp) {
     Sfi_int(nhfp, buflen, "monst-ebones_length");
     if (buflen > 0) { newebones(mtmp); Sfi_ebones(nhfp, EBONES(mtmp), "monst-ebones"); }
     Sfi_int(nhfp, mc, "monst-mcorpsenm");
-    MCORPSENM(mtmp) = mc;
+    if (mtmp.mextra) mtmp.mextra.mcorpsenm = mc;
   }
 }
 
@@ -269,13 +269,13 @@ export function reset_oattached_mids(ghostly) {
   let otmp, oldid, nid;
   for (otmp = fobj; otmp; otmp = otmp.nobj) {
     if (ghostly && has_omonst(otmp)) {
-      let mtmp = OMONST(otmp);
+      let mtmp = otmp.oextra?.omonst;
       mtmp.m_id = 0;
       mtmp.mpeaceful = mtmp.mtame = 0;
     }
     if (ghostly && has_omid(otmp)) {
-      oldid = OMID(otmp);
-      if (lookup_id_mapping(oldid, nid)) OMID(otmp) = nid;
+      oldid = otmp.oextra?.omid;
+      if (lookup_id_mapping(oldid, nid)) { if (otmp.oextra) otmp.oextra.omid = nid; }
       else {
         free_omid(otmp);
       }

@@ -282,13 +282,15 @@ export async function onquest(game) {
 // cf. quest.c:107 — nemdead(): nemesis was killed
 // Autotranslated from quest.c:106
 export async function nemdead() {
-  if (!Qstat(killed_nemesis)) { Qstat(killed_nemesis) = true; await qt_pager("killed_nemesis"); }
+  // TODO: Qstat accessor needs game param; stub for now
+  // if (!game.quest_status?.killed_nemesis) { game.quest_status.killed_nemesis = true; await qt_pager("killed_nemesis"); }
 }
 
 // cf. quest.c:116 — leaddead(): quest leader was killed
 // Autotranslated from quest.c:115
 export function leaddead() {
-  if (!Qstat(killed_leader)) { Qstat(killed_leader) = true; }
+  // TODO: Qstat accessor needs game param; stub for now
+  // if (!game.quest_status?.killed_leader) { game.quest_status.killed_leader = true; }
 }
 
 // cf. quest.c:125 — artitouch(obj): player first touches quest artifact
@@ -480,7 +482,7 @@ export async function nemesis_speaks(player) {
     else if (Qstat(made_goal) < 7) await qt_pager("nemesis_other");
     else if (!rn2(5)) await qt_pager("discourage");
     if (Qstat(made_goal) < 7) Qstat(made_goal)++;
-    Qstat(met_nemesis) = true;
+    // TODO: game.quest_status.met_nemesis = true;
   }
   else if (!rn2(5)) await qt_pager("discourage");
 }

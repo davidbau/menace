@@ -1551,21 +1551,21 @@ export function dealloc_oextra(o) {
 // Autotranslated from mkobj.c:114
 export function newomonst(otmp) {
   if (!otmp.oextra) otmp.oextra = newoextra();
-  if (!OMONST(otmp)) {
+  if (!otmp.oextra.omonst) {
     // C ref: m = newmonst(); *m = cg.zeromonst; (alloc + zero-init)
     // JS: empty object suffices; C's zeromonst is all-zeros.
-    OMONST(otmp) = {};
+    otmp.oextra.omonst = {};
   }
 }
 
 // Autotranslated from mkobj.c:128
 export function free_omonst(otmp) {
   if (otmp.oextra) {
-    let m = OMONST(otmp);
+    let m = otmp.oextra.omonst;
     if (m) {
       if (m.mextra) dealloc_mextra(m);
       // C: free(m) — JS garbage collects
-      OMONST(otmp) = null;
+      otmp.oextra.omonst = null;
     }
   }
 }
@@ -1573,24 +1573,24 @@ export function free_omonst(otmp) {
 // Autotranslated from mkobj.c:143
 export function newomid(otmp) {
   if (!otmp.oextra) otmp.oextra = newoextra();
-  OMID(otmp) = 0;
+  otmp.oextra.omid = 0;
 }
 
 // Autotranslated from mkobj.c:151
 export function free_omid(otmp) {
-  OMID(otmp) = 0;
+  if (otmp.oextra) otmp.oextra.omid = 0;
 }
 
 // Autotranslated from mkobj.c:157
 export function new_omailcmd(otmp, response_cmd) {
   if (!otmp.oextra) otmp.oextra = newoextra();
-  if (OMAILCMD(otmp)) free_omailcmd(otmp);
-  OMAILCMD(otmp) = dupstr(response_cmd);
+  if (otmp.oextra.omailcmd) free_omailcmd(otmp);
+  otmp.oextra.omailcmd = dupstr(response_cmd);
 }
 
 // Autotranslated from mkobj.c:167
 export function free_omailcmd(otmp) {
-  if (otmp.oextra && OMAILCMD(otmp)) { OMAILCMD(otmp) = 0; } // JS: no free() needed
+  if (otmp.oextra && otmp.oextra.omailcmd) { otmp.oextra.omailcmd = null; } // JS: no free() needed
 }
 
 // Autotranslated from mkobj.c:238
@@ -1708,7 +1708,7 @@ export function corpse_revive_type(obj) {
 export function obj_attach_mid(obj, mid) {
   if (!mid || !obj) return  0;
   newomid(obj);
-  OMID(obj) = mid;
+  obj.oextra.omid = mid;
   return obj;
 }
 
@@ -1717,7 +1717,7 @@ export function save_mtraits(obj, mtmp) {
   if (mtmp.ispriest) forget_temple_entry(mtmp);
   if (!has_omonst(obj)) newomonst(obj);
   if (has_omonst(obj)) {
-    let baselevel = mtmp.data.mlevel, mtmp2 = OMONST(obj);
+    let baselevel = mtmp.data.mlevel, mtmp2 = obj.oextra.omonst;
     Object.assign(mtmp2, mtmp); // C: *mtmp2 = *mtmp (struct copy into omonst storage)
     mtmp2.mextra =  0;
     mtmp2.mnum = monsndx(mtmp.data);
@@ -1738,7 +1738,7 @@ export function save_mtraits(obj, mtmp) {
 // Autotranslated from mkobj.c:2198
 export function get_mtraits(obj, copyof) {
   let mtmp = null, mnew = null;
-  if (has_omonst(obj)) mtmp = OMONST(obj);
+  if (has_omonst(obj)) mtmp = obj.oextra.omonst;
   if (mtmp) {
     if (copyof) {
       // C: mnew = newmonst(); *mnew = *mtmp; (alloc + struct copy)

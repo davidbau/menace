@@ -2230,41 +2230,35 @@ export function can_carry(mtmp, otmp, player) {
 export function copy_mextra(mtmp2, mtmp1) {
   if (!mtmp2 || !mtmp1 || !mtmp1.mextra) return;
   if (!mtmp2.mextra) mtmp2.mextra = newmextra();
-  if (MGIVENNAME(mtmp1)) {
-    new_mgivenname(mtmp2, MGIVENNAME(mtmp1).length + 1);
-    MGIVENNAME(mtmp2) = MGIVENNAME(mtmp1);
+  if (mtmp1.mextra.mgivenname) {
+    new_mgivenname(mtmp2, mtmp1.mextra.mgivenname.length + 1);
+    mtmp2.mextra.mgivenname = mtmp1.mextra.mgivenname;
   }
-  if (EGD(mtmp1)) {
-    if (!EGD(mtmp2)) newegd(mtmp2);
-    assert(has_egd(mtmp2));
-     EGD(mtmp2) = EGD(mtmp1);
+  if (mtmp1.mextra.egd) {
+    if (!mtmp2.mextra.egd) newegd(mtmp2);
+    mtmp2.mextra.egd = { ...mtmp1.mextra.egd };
   }
-  if (EPRI(mtmp1)) {
-    if (!EPRI(mtmp2)) newepri(mtmp2);
-    assert(has_epri(mtmp2));
-     EPRI(mtmp2) = EPRI(mtmp1);
+  if (mtmp1.mextra.epri) {
+    if (!mtmp2.mextra.epri) newepri(mtmp2);
+    mtmp2.mextra.epri = { ...mtmp1.mextra.epri };
   }
-  if (ESHK(mtmp1)) {
-    if (!ESHK(mtmp2)) neweshk(mtmp2);
-    assert(has_eshk(mtmp2));
-     ESHK(mtmp2) = ESHK(mtmp1);
+  if (mtmp1.mextra.eshk) {
+    if (!mtmp2.mextra.eshk) neweshk(mtmp2);
+    mtmp2.mextra.eshk = { ...mtmp1.mextra.eshk };
   }
-  if (EMIN(mtmp1)) {
-    if (!EMIN(mtmp2)) newemin(mtmp2);
-    assert(has_emin(mtmp2));
-     EMIN(mtmp2) = EMIN(mtmp1);
+  if (mtmp1.mextra.emin) {
+    if (!mtmp2.mextra.emin) newemin(mtmp2);
+    mtmp2.mextra.emin = { ...mtmp1.mextra.emin };
   }
-  if (EDOG(mtmp1)) {
-    if (!EDOG(mtmp2)) newedog(mtmp2);
-    assert(has_edog(mtmp2));
-     EDOG(mtmp2) = EDOG(mtmp1);
+  if (mtmp1.mextra.edog) {
+    if (!mtmp2.mextra.edog) newedog(mtmp2);
+    mtmp2.mextra.edog = { ...mtmp1.mextra.edog };
   }
-  if (EBONES(mtmp1)) {
-    if (!EBONES(mtmp2)) newebones(mtmp2);
-    assert(has_ebones(mtmp2));
-     EBONES(mtmp2) = EBONES(mtmp1);
+  if (mtmp1.mextra.ebones) {
+    if (!mtmp2.mextra.ebones) newebones(mtmp2);
+    mtmp2.mextra.ebones = { ...mtmp1.mextra.ebones };
   }
-  if (has_mcorpsenm(mtmp1)) MCORPSENM(mtmp2) = MCORPSENM(mtmp1);
+  if (has_mcorpsenm(mtmp1)) mtmp2.mextra.mcorpsenm = mtmp1.mextra.mcorpsenm;
 }
 
 // Autotranslated from mon.c:2633

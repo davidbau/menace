@@ -633,7 +633,7 @@ export async function add_one_tobill(obj, dummy, shkp, player) {
   if (obj.globby) {
     bp.price *= get_pricing_units(obj);
     newomid(obj);
-    OMID(obj) = obj.owt;
+    if (obj.oextra) obj.oextra.omid = obj.owt;
   }
   eshkp.billct++;
   obj.unpaid = 1;
@@ -866,7 +866,7 @@ export function rile_shk(shkp) {
 // C ref: shk.c pacify_shk() -- make shopkeeper peaceful, optionally remove surcharge
 // Autotranslated from shk.c:1284
 export function pacify_shk(shkp, clear_surcharge) {
-  NOTANGRY(shkp) = true;
+  shkp.mpeaceful = true; // C: NOTANGRY(shkp) = true
   if (clear_surcharge && ESHK(shkp).surcharge) {
     const eshkp = ESHK(shkp);
     eshkp.surcharge = false;

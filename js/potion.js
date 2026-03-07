@@ -1556,8 +1556,8 @@ export async function peffect_levitation(otmp, map, player) {
   }
   if (otmp.cursed) {
     let stway;
-    H(player?.Levitation || player?.levitating || false) &= ~I_SPECIAL;
-    if (B(player?.Levitation || player?.levitating || false)) {
+    // TODO: H(Levitation) &= ~I_SPECIAL — autotranslation stub, needs intrinsic property system
+    if (false) { // TODO: B(Levitation) check
     }
     else if ((stway = await stairway_at(player.x, player.y)) != null && stway.up) { doup(); gp.potion_nothing = 0; }
     else if (has_ceiling(map.uz)) {
@@ -1569,7 +1569,7 @@ export async function peffect_levitation(otmp, map, player) {
   }
   else if (otmp.blessed) {
     incr_itimeout( H(player?.Levitation || player?.levitating || false), rn1(50, 250));
-    H(player?.Levitation || player?.levitating || false) |= I_SPECIAL;
+    // TODO: H(Levitation) |= I_SPECIAL — autotranslation stub
   }
   else {
     incr_itimeout( H(player?.Levitation || player?.levitating || false), rn1(140, 10));

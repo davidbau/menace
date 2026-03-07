@@ -340,5 +340,5 @@ export function goodfruit(id) {
 
 // Autotranslated from bones.c:822
 export function free_ebones(mtmp) {
-  if (mtmp.mextra && EBONES(mtmp)) { EBONES(mtmp) = 0; } // JS: no free() needed
+  if (mtmp.mextra && mtmp.mextra.ebones) { mtmp.mextra.ebones = null; } // JS: no free() needed
 }

@@ -2749,12 +2749,12 @@ export function set_malign(mtmp, game, player) {
 // Autotranslated from makemon.c:2364
 export function newmcorpsenm(mtmp) {
   if (!mtmp.mextra) mtmp.mextra = newmextra();
-  MCORPSENM(mtmp) = NON_PM;
+  mtmp.mextra.mcorpsenm = NON_PM;
 }
 
 // Autotranslated from makemon.c:2373
 export function freemcorpsenm(mtmp) {
-  if (has_mcorpsenm(mtmp)) MCORPSENM(mtmp) = NON_PM;
+  if (has_mcorpsenm(mtmp)) mtmp.mextra.mcorpsenm = NON_PM;
 }
 
 // Autotranslated from makemon.c:2548
@@ -2847,9 +2847,9 @@ export function clone_mon(mon, x, y, game, player) {
     let atyp;
     newemin(m2);
     assert(has_emin(m2) && has_emin(mon));
-     EMIN(m2) = EMIN(mon);
-    atyp = EMIN(m2).min_align;
-    EMIN(m2).renegade = (atyp !== player.ualign.type) ^ !m2.mpeaceful;
+     m2.mextra.emin = { ...mon.mextra.emin };
+    atyp = m2.mextra.emin.min_align;
+    m2.mextra.emin.renegade = (atyp !== player.ualign.type) ^ !m2.mpeaceful;
   }
   else if (m2.mtame) {
     m2.mtame = 0;
