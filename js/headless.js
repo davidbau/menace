@@ -619,7 +619,7 @@ export class HeadlessDisplay {
             if (this._moreBlockingEnabled && this._nhgetch) {
                 // True blocking: await a keypress to dismiss --More--,
                 // matching C's xwaitforspace() behavior.
-                await this._nhgetch();
+                await this._waitForMoreDismissKey(this._nhgetch);
                 // Fall through to display the new message fresh.
             } else {
                 // Non-blocking fallback: queue message for later display.
@@ -667,7 +667,7 @@ export class HeadlessDisplay {
             this.putstr(moreCol, 1, moreStr);
             // C ref: win/tty/topl.c more() — cursor lands after --More-- on row 1.
             this.setCursor(Math.min(moreCol + moreStr.length, this.cols - 1), 1);
-            await this._nhgetch();
+            await this._waitForMoreDismissKey(this._nhgetch);
             this.clearRow(0);
             this.messageNeedsMore = false;
             this.topMessage = null;
@@ -713,9 +713,26 @@ export class HeadlessDisplay {
         // Keep topline text stable during replay; C harness snapshots don't
         // expose the transient "--More--" marker for most callers.
         // Use renderMoreMarker() before this call when C does show the marker.
-        await nhgetch();
+        await this._waitForMoreDismissKey(nhgetch);
         this.clearRow(0);
         this.messageNeedsMore = false;
+    }
+
+    _isMoreDismissKey(ch) {
+        const code = typeof ch === 'number'
+            ? ch
+            : (typeof ch === 'string' && ch.length > 0 ? ch.charCodeAt(0) : 0);
+        return code === 32 || code === 27; // ' ' or ESC
+    }
+
+    // C ref: xwaitforspace("\033 ") in win/tty/topl.c.
+    // Ignore non-dismissal keys while waiting at --More--.
+    async _waitForMoreDismissKey(nhgetch) {
+        if (typeof nhgetch !== 'function') return;
+        for (;;) {
+            const ch = await nhgetch();
+            if (this._isMoreDismissKey(ch)) return;
+        }
     }
 
     // Matches Display.renderChargenMenu() — always clears screen, applies offset

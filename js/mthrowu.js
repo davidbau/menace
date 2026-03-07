@@ -62,6 +62,7 @@ import { DISP_FLASH, DISP_TETHER, DISP_END, BACKTRACK } from './const.js';
 import { flooreffects } from './do.js';
 import { stairway_at } from './stairs.js';
 import { t_at } from './trap.js';
+import { envFlag, getEnv, writeStderr } from './runtime_env.js';
 
 const hallublasts = [
     'bubbles', 'butterflies', 'dust specks', 'flowers', 'glitter',
@@ -76,6 +77,37 @@ function objectTmpGlyph(otmp) {
     const NUMMONS = Array.isArray(mons) ? mons.length : 0;
     const GLYPH_OBJ_OFF = (9 * NUMMONS) + 1;
     return GLYPH_OBJ_OFF + otyp;
+}
+
+function shouldThrowTrace(map) {
+    if (!envFlag('WEBHACK_THROW_TRACE')) return false;
+    const raw = getEnv('WEBHACK_THROW_TRACE_STEP', '');
+    if (!raw) return true;
+    const want = Number.parseInt(raw, 10);
+    if (!Number.isInteger(want) || want <= 0) return true;
+    const step = (Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex : -1) + 1;
+    return step === want;
+}
+
+function throwTrace(map, display, label, extra = '') {
+    if (!shouldThrowTrace(map)) return;
+    const step = (Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex : -1) + 1;
+    const lines = (display && typeof display.getScreenLines === 'function')
+        ? (display.getScreenLines() || [])
+        : [];
+    const top = String(lines[0] || '');
+    const row3 = String(lines[3] || '');
+    const pendingMore = !!display?._pendingMore;
+    const topMsg = String(display?.topMessage || '');
+    writeStderr(
+        `[MTHROW step=${step}] ${label}`
+        + ` pendingMore=${pendingMore ? 1 : 0}`
+        + ` top=${JSON.stringify(top)}`
+        + ` topMsg=${JSON.stringify(topMsg)}`
+        + ` r3=${JSON.stringify(row3)}`
+        + (extra ? ` ${extra}` : '')
+        + '\n'
+    );
 }
 
 async function down_gate_for_throw(x, y, map, player) {
@@ -325,8 +357,10 @@ export async function thitu(tlev, dam, objp, name, player, display, game, mon = 
             } else {
                 msg = `You are almost hit by ${name || thrownObjectName(obj, player)}.`;
             }
+            throwTrace(game?.map || null, display, 'thitu:miss:before_putstr', `msg=${JSON.stringify(msg)}`);
             await maybeFlushToplineBeforeMessage(display, msg, game);
             await display.putstr_message(msg);
+            throwTrace(game?.map || null, display, 'thitu:miss:after_putstr', `msg=${JSON.stringify(msg)}`);
         }
         return 0;
     }
@@ -335,8 +369,10 @@ export async function thitu(tlev, dam, objp, name, player, display, game, mon = 
         const text = name || thrownObjectName(obj, player);
         const punct = exclam(Number.isFinite(dam) ? dam : 0);
         const msg = `You are hit by ${text}${punct}`;
+        throwTrace(game?.map || null, display, 'thitu:hit:before_putstr', `msg=${JSON.stringify(msg)}`);
         await maybeFlushToplineBeforeMessage(display, msg, game);
         await display.putstr_message(msg);
+        throwTrace(game?.map || null, display, 'thitu:hit:after_putstr', `msg=${JSON.stringify(msg)}`);
     }
     if (player.takeDamage) player.takeDamage(dam, mon ? x_monnam(mon) : 'an object');
     else player.uhp -= dam;
@@ -506,18 +542,22 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
 
     if (display && canSeeMonsterForMap(mon, map, player, game?.fov)) {
         const targetName = mtarg ? ` at the ${x_monnam(mtarg)}` : '';
+        throwTrace(map, display, 'monshoot:before_throws_msg');
         await display.putstr_message(`The ${x_monnam(mon)} throws ${thrownObjectName(otmp, player)}${targetName}!`);
+        throwTrace(map, display, 'monshoot:after_throws_msg');
     }
 
     const ddx = Math.sign(tx - mon.mx);
     const ddy = Math.sign(ty - mon.my);
     for (let i = 0; i < shots; i++) {
+        throwTrace(map, display, 'monshoot:loop:before_m_throw_timed', `shot=${i + 1}/${shots}`);
         const projectile = { ...otmp, quan: 1, ox: mon.mx, oy: mon.my, invlet: null };
         m_useup(mon, otmp);
         const result = await m_throw_timed(
             mon, mon.mx, mon.my, ddx, ddy, dm, projectile, map, player, display, game,
             { tethered_weapon }
         );
+        throwTrace(map, display, 'monshoot:loop:after_m_throw_timed', `shot=${i + 1}/${shots}`);
         if (result?.hitPlayer) hitPlayer = true;
         if (result?.promptedForTopline) promptedForTopline = true;
         if (tethered_weapon && result?.returnFlight) {
@@ -586,6 +626,7 @@ export async function m_throw_timed(
 
     const projGlyph = objectTmpGlyph(weapon);
     tmp_at(tethered_weapon ? DISP_TETHER : DISP_FLASH, projGlyph);
+    throwTrace(map, display, 'm_throw:tmp_at:start', `projGlyph=${projGlyph}`);
     while (range-- > 0) {
         x += dx;
         y += dy;
@@ -690,15 +731,18 @@ export async function m_throw_timed(
             break;
         }
 
+        throwTrace(map, display, 'm_throw:tmp_at:flight', `x=${x} y=${y} range=${range}`);
         tmp_at(x, y);
         await nh_delay_output();
     }
+    throwTrace(map, display, 'm_throw:tmp_at:end', `x=${x} y=${y}`);
     tmp_at(x, y);
     await nh_delay_output();
     if (tethered_weapon) {
         await tmp_at_end_async(BACKTRACK);
         return { drop: false, returnFlight: true, x: mon.mx, y: mon.my, hitPlayer, promptedForTopline };
     }
+    throwTrace(map, display, 'm_throw:tmp_at:clear');
     tmp_at(DISP_END, 0);
     flush_screen(1); // C ref: dothrow.c:1015 — flush after monster throw animation
     return { drop: !dropHandledInImpact, x: dropX, y: dropY, hitPlayer, promptedForTopline };

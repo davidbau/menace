@@ -372,7 +372,7 @@ span.nh-cursor {
             // immediately (headless parity path); otherwise queue for later.
             this.renderMoreMarker();
             if (this._moreBlockingEnabled && this._nhgetch) {
-                await this._nhgetch();
+                await this._waitForMoreDismissKey(this._nhgetch);
                 // Continue to display this message fresh after dismissal.
             } else {
                 this._pendingMore = true;
@@ -412,7 +412,7 @@ span.nh-cursor {
                     this._topMessageRow1 = row1;
                     this.messageNeedsMore = true;
                     this.renderMoreMarker();
-                    await this._nhgetch();
+                    await this._waitForMoreDismissKey(this._nhgetch);
                     this.clearRow(MESSAGE_ROW);
                     this.clearRow(MESSAGE_ROW + 1);
                     this._topMessageRow1 = undefined;
@@ -514,8 +514,25 @@ span.nh-cursor {
     // C ref: tty_display_nhwindow for message window
     async morePrompt(nhgetch) {
         this.renderMoreMarker();
-        await nhgetch();
+        await this._waitForMoreDismissKey(nhgetch);
         this.clearRow(MESSAGE_ROW);
+    }
+
+    _isMoreDismissKey(ch) {
+        const code = typeof ch === 'number'
+            ? ch
+            : (typeof ch === 'string' && ch.length > 0 ? ch.charCodeAt(0) : 0);
+        return code === 32 || code === 27; // ' ' or ESC
+    }
+
+    // C ref: xwaitforspace("\033 ") in win/tty/topl.c.
+    // Ignore non-dismissal keys while waiting at --More--.
+    async _waitForMoreDismissKey(nhgetch) {
+        if (typeof nhgetch !== 'function') return;
+        for (;;) {
+            const ch = await nhgetch();
+            if (this._isMoreDismissKey(ch)) return;
+        }
     }
 
     // Render the map from game state
