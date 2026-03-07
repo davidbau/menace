@@ -14,6 +14,7 @@ import {
     W_ARMF, W_ARMS, W_AMUL, W_TOOL, W_RING, W_RINGL, W_RINGR,
     TT_NONE,
     MELT_ICE_AWAY,
+    HALLUC,
 } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
@@ -1099,6 +1100,12 @@ function beamTempGlyph(type, dx, dy) {
 async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
   const fltyp = zaptype(type);
   const damgtype = fltyp % 10;
+  // C: int hdmgtype = Hallucination ? rn2(6) : damgtype;
+  // rn2(6) consumed when hallucinating (display only, but RNG matters)
+  const halluc = player?.uprops?.[HALLUC];
+  if (halluc && (halluc.intrinsic || halluc.extrinsic)) {
+    rn2(6); // hallucination beam color randomization
+  }
   let range = rn1(7, 7); // C ref: zap.c:4763
   if (dx === 0 && dy === 0) range = 1;
 
