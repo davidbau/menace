@@ -1947,7 +1947,7 @@ export function trap_sanity_check() {
 
 // C ref: trap.c:3028 steedintrap() — apply trap effects to player's steed
 // Returns Trap_Killed_Mon if steed died, 1 if steed was hit, 0 otherwise.
-function steedintrap(trap, otmp, player, game, map) {
+async function steedintrap(trap, otmp, player, game, map) {
     const steed = player?.usteed;
     if (!steed || !trap) return Trap_Effect_Finished;
     const tt = trap.ttyp;
@@ -1971,7 +1971,7 @@ function steedintrap(trap, otmp, player, game, map) {
         if (!resists_sleep(steed) && !breathless(mons[steed.mndx] || {})
                 && !helpless(steed)) {
             if (sleep_monst(steed, rnd(25), -1))
-                pline('%s suddenly falls asleep!', Monnam(steed));
+                await pline('%s suddenly falls asleep!', Monnam(steed));
         }
         steedhit = true;
         break;
@@ -2151,7 +2151,7 @@ async function trapeffect_arrow_trap_you(trap, trflags, player, game, map) {
     seetrap(trap);
     await pline('An arrow shoots out at you!');
     const otmp = t_missile(ARROW, trap);
-    if (player.usteed && !rn2(2) && steedintrap(trap, otmp, player, game, map)) {
+    if (player.usteed && !rn2(2) && await steedintrap(trap, otmp, player, game, map)) {
         /* steed was hit — nothing more */
     } else if (await thitu(8, dmgval(otmp, player), otmp, 'arrow',
                            player, game?.display, game)) {
@@ -2178,7 +2178,7 @@ async function trapeffect_dart_trap_you(trap, trflags, player, game, map) {
     await pline('A little dart shoots out at you!');
     const otmp = t_missile(DART, trap);
     if (!rn2(6)) otmp.opoisoned = 1;
-    if (player.usteed && !rn2(2) && steedintrap(trap, otmp, player, game, map)) {
+    if (player.usteed && !rn2(2) && await steedintrap(trap, otmp, player, game, map)) {
         /* steed was hit */
     } else if (await thitu(7, dmgval(otmp, player), otmp, 'little dart',
                            player, game?.display, game)) {
@@ -2309,7 +2309,7 @@ async function trapeffect_slp_gas_trap_you(trap, trflags, player, game, map) {
         await pline('A cloud of gas puts you to sleep!');
         fall_asleep(-rnd(25), true);
     }
-    steedintrap(trap, null, player, game, map);
+    await steedintrap(trap, null, player, game, map);
     return Trap_Effect_Finished;
 }
 
@@ -2430,7 +2430,7 @@ async function trapeffect_pit_you(trap, trflags, player, game, map) {
                       conj_pit ? 'step' : 'land');
     }
     set_utrap(rn1(6, 2), TT_PIT, game, player);
-    if (!steedintrap(trap, null, player, game, map)) {
+    if (!await steedintrap(trap, null, player, game, map)) {
         if (ttype === SPIKED_PIT) {
             const oldumort = player.umortality || 0;
             const spdmg = conj_pit ? rnd(4) : adj_pit ? rnd(6) : rnd(10);
@@ -2562,7 +2562,7 @@ async function trapeffect_magic_trap_you(trap, trflags, player, game, map) {
         return Trap_Effect_Finished;
     }
     await domagictrap(player, game, map);
-    steedintrap(trap, null, player, game, map);
+    await steedintrap(trap, null, player, game, map);
     return Trap_Effect_Finished;
 }
 
@@ -2620,7 +2620,7 @@ async function trapeffect_poly_trap_you(trap, trflags, player, game, map) {
     if (antimagic || unchanging) {
         await pline('You feel momentarily different.');
     } else {
-        steedintrap(trap, null, player, game, map);
+        await steedintrap(trap, null, player, game, map);
         deltrap(map, trap);
         newsym(player.x, player.y);
         await pline('You feel a change coming over you.');
@@ -2653,7 +2653,7 @@ async function trapeffect_landmine_you(trap, trflags, player, game, map) {
         feeltrap(trap);
         await pline('KAABLAMM!!!  You triggered %s land mine!',
                     a_your[trap.madeby_u ? 1 : 0]);
-        if (player.usteed) steedintrap(trap, null, player, game, map);
+        if (player.usteed) await steedintrap(trap, null, player, game, map);
         set_wounded_legs(0 /*LEFT_SIDE*/, rn1(35, 41), player);
         set_wounded_legs(1 /*RIGHT_SIDE*/, rn1(35, 41), player);
         await exercise(player, A_DEX, false);
