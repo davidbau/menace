@@ -20,6 +20,7 @@ import { TIMEOUT, INTRINSIC, FROMOUTSIDE,
          TIMER_KIND, TIMER_FUNC, MELT_ICE_AWAY,
          NO_MINVENT, MM_NOMSG } from './const.js';
 import { exercise } from './attrib_exercise.js';
+import { acurr } from './attrib.js';
 import { mons } from './monsters.js';
 import { big_to_little } from './mondata.js';
 import { enexto } from './teleport.js';
@@ -559,7 +560,7 @@ async function _fireExpiryEffect(player, prop) {
     case SICK:
         // C ref: hero might recover from food poisoning if good CON
         if ((player.usick_type & SICK_NONVOMITABLE) === 0
-            && rn2(100) < (player.attributes?.[A_CON] || 10)) {
+            && rn2(100) < acurr(player, A_CON)) {
             await You("have recovered from your illness.");
             if (fns.make_sick) await fns.make_sick(player, 0, null, false, 0xFF);
             await exercise(player, A_CON, false);

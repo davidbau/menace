@@ -41,6 +41,7 @@ import { AMULET_OF_LIFE_SAVING, AMULET_CLASS, GEM_CLASS,
          objectData } from './objects.js';
 import { Is_container, xname, doname } from './mkobj.js';
 import { arti_cost, artiname } from './artifact.js';
+import { acurr } from './attrib.js';
 import { currency } from './invent.js';
 import { d } from './rng.js';
 import { roles } from './player.js';
@@ -340,7 +341,7 @@ function fixup_death(how, game) {
 // cf. end.c:706 [static] — savelife(how): life-saving amulet restoration
 function savelife(how, game) {
     const player = (game.u || game.player);
-    const givehp = 50 + 10 * Math.floor(player.attributes[A_CON] / 2);
+    const givehp = 50 + 10 * Math.floor(acurr(player, A_CON) / 2);
 
     if (player.ulevel < 1) player.ulevel = 1;
     // C: uhpmin = minuhpmax(10) — ensure hpmax >= 10

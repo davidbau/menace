@@ -2326,8 +2326,8 @@ export async function Ring_off_or_gone(obj, gone, game, player) {
 }
 
 // Autotranslated from do_wear.c:1449
-export async function Ring_gone(obj) {
-  await Ring_off_or_gone(obj, true);
+export async function Ring_gone(obj, game, player) {
+  await Ring_off_or_gone(obj, true, game, player);
 }
 
 // Autotranslated from do_wear.c:1868

@@ -361,7 +361,7 @@ function strategy(mtmp, map, player) {
 // ============================================================================
 
 export function choose_stairs(sx_out, sy_out, dir, map) {
-    const stdir = builds_up() ? dir : !dir;
+    const stdir = builds_up(map) ? dir : !dir;
 
     // Look for stairs in preferred direction, then fallback
     let stway = null;
