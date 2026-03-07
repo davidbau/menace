@@ -3055,6 +3055,18 @@ hard-won wisdom:
   `"corpse"`; only include `<monster> corpse` when `dknown`.
 - Result: `seed328_ranger_wizard_gameplay` now fully matches
   (`rng/events/screens/colors/cursor = 100%`).
+
+### `doname(corpse)` must include monster type even when `xname(corpse)` is generic (2026-03-07)
+- C `objnam.c` keeps `xname(CORPSE)` generic (`"corpse"`), but `doname_base()`
+  has a dedicated CORPSE branch that routes through `corpse_xname(...)`, which
+  includes monster type (for example `"newt corpse"`).
+- JS regression symptom: pet-eating lines drifted to `"eats a corpse"` where C
+  and sessions had `"eats a newt corpse"` / `"eats a gnome corpse"`.
+- Fix: in `mkobj.js` `doname()`, apply a CORPSE-specific base-name override to
+  include `mons[corpsenm].mname`, while leaving `xname()` generic behavior
+  unchanged.
+- Validation: this restored parity for `seed301`, `seed303`, and `seed306`
+  while keeping `seed328` green.
 - JS had these functions defined but never called from the eating completion paths.
   Multi-turn eating used inline PM_NEWT-only logic; single-turn eating had none.
 - Missing `fpostfx()` meant fortune cookie `outrumor()` (rn2(2) + rn2(chunksize))

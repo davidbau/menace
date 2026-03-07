@@ -1438,6 +1438,15 @@ export function doname(obj, player) {
     }
 
     let baseName = xname_for_doname(obj, dknown, known, bknown);
+    // C ref: objnam.c doname_base() CORPSE path routes through corpse_xname(),
+    // so doname includes monster type even though xname() stays generic.
+    if (obj.otyp === CORPSE) {
+        const corpseIdx = Number.isInteger(obj.corpsenm) ? obj.corpsenm : obj.corpsem;
+        if (Number.isInteger(corpseIdx) && mons[corpseIdx]) {
+            baseName = `${mons[corpseIdx].mname} corpse`;
+            if (quan !== 1) baseName = pluralizeName(baseName);
+        }
+    }
     // C ref: objnam.c Japanese_item_name() usage for Samurai inventory display.
     if (player?.roleIndex === PM_SAMURAI && obj.otyp === SHORT_SWORD && baseName === 'short sword') {
         baseName = 'wakizashi';
