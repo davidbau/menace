@@ -1,7 +1,8 @@
 import { strchr } from './hacklib.js';
 import { THRONE, SINK, GRAVE, FOUNTAIN, STAIRS, ALTAR, IS_DOOR, D_ISOPEN,
          IS_POOL, IS_LAVA, isok, SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER,
-         EXT_ENCUMBER, A_WIS, STONE, MM_ADJACENTOK, MM_NOMSG } from './const.js';
+         EXT_ENCUMBER, A_WIS, STONE, MM_ADJACENTOK, MM_NOMSG,
+         AUTOUNLOCK_UNTRAP, AUTOUNLOCK_APPLY_KEY } from './const.js';
 import { objectData, COIN_CLASS, CORPSE, ICE_BOX, LARGE_BOX, CHEST,
          BAG_OF_HOLDING, BAG_OF_TRICKS, WAN_CANCELLATION, LOADSTONE,
          BOULDER, STATUE, AMULET_OF_YENDOR, CANDELABRUM_OF_INVOCATION,
@@ -80,6 +81,17 @@ function SchroedingersBox(obj) {
 
 function carried(obj) {
     return obj.where === 'OBJ_INVENT' || obj.where === 'invent';
+}
+
+function autounlock_has_action(flags, actionName, actionBit) {
+    const raw = flags?.autounlock;
+    if (typeof raw === 'number') {
+        return !!(raw & actionBit);
+    }
+    const text = String(raw ?? '').trim();
+    if (!text) return actionName === 'apply-key';
+    if (text === 'none') return false;
+    return text.split(/[,\s]+/).includes(actionName);
 }
 
 function age_is_relative(obj) {
@@ -1743,7 +1755,28 @@ async function handleLoot(game) {
         let tookTime = false;
         for (const container of floorContainers) {
             if (container.olocked && !container.obroken) {
-                await display.putstr_message('Hmmm, it seems to be locked.');
+                if (container.lknown) {
+                    await pline(`${doname(container)} is locked.`);
+                } else {
+                    await pline(`Hmmm, ${xname(container)} turns out to be locked.`);
+                }
+                container.lknown = true;
+
+                const flags = game?.flags || {};
+                const tryApplyKey = autounlock_has_action(flags, 'apply-key', AUTOUNLOCK_APPLY_KEY);
+                const tryUntrap = autounlock_has_action(flags, 'untrap', AUTOUNLOCK_UNTRAP);
+                if (tryApplyKey || tryUntrap) {
+                    // C pickup.c do_loot_cont(): clear stale vertical direction before pick_lock().
+                    player.dz = 0;
+                    const { autokey, pick_lock } = await import('./lock.js');
+                    const unlocktool = tryApplyKey ? autokey(player, true) : null;
+                    if (unlocktool || tryUntrap) {
+                        const ox = container.ox || player.x;
+                        const oy = container.oy || player.y;
+                        const res = await pick_lock(game, unlocktool, ox, oy, container);
+                        if (res !== 0) tookTime = true;
+                    }
+                }
                 continue;
             }
             const result = await containerMenu(game, container);

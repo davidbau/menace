@@ -3632,3 +3632,19 @@ hard-won wisdom:
     - `test/unit/command_run_prefix_invalid.test.js`
     - `test/unit/command_run_timing.test.js`
     both pass.
+
+### locked `#loot` autounlock parity in pickup path (2026-03-07)
+
+- `handleLoot()` previously diverged from C `do_loot_cont()` for locked floor containers:
+  - emitted simplified `"Hmmm, it seems to be locked."`;
+  - skipped C autounlock key/untrap path (`pick_lock(..., ox, oy, cobj)`).
+- Fix in `js/pickup.js`:
+  - use C-like locked messaging (`lknown`-aware) and set `container.lknown = true`;
+  - parse `flags.autounlock` in both numeric-bit and token-string forms;
+  - for `apply-key` / `untrap`, clear stale vertical dir (`player.dz = 0`),
+    select key via `autokey(...)`, and call `pick_lock(game, unlocktool, ox, oy, container)`;
+  - account for returned time usage (`res !== 0`).
+- Result:
+  - `seed031_manual_direct` now reaches the C lock occupation/trapped-chest area.
+  - first RNG divergence moved to `chest_trap(trap.c:6220)` vs missing JS trapped-box handling in `picklock_fn`,
+    giving a tighter next implementation target.
