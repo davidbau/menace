@@ -535,7 +535,11 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
             player._tipsShown = player._tipsShown || {};
             if (!player._tipsShown.getpos) {
                 player._tipsShown.getpos = true;
-                await display.putstr_message('Tip: Farlooking or selecting a map location');
+                await display.putstr_message('          Tip: Farlooking or selecting a map location');
+                // C TIP_GETPOS is shown in its own window before the getpos
+                // "Move cursor..." prompt appears; consume one acknowledgement
+                // boundary here so the prompt doesn't concatenate onto the tip.
+                await nhgetch();
                 showGoalMsg = true;
             }
         }

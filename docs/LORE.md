@@ -4189,3 +4189,16 @@ hard-won wisdom:
 - Validation:
   - added replay unit test [`test/unit/pager_quicklook_prompt.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/pager_quicklook_prompt.test.js) asserting `seed033` step-61 topline.
   - failures sweep remains stable at `31/34` gameplay sessions passing (no regression vs baseline).
+
+### getpos TIP_GETPOS boundary: separate tip acknowledgement from goal prompt (2026-03-07)
+
+- Divergence context:
+  - `seed033_manual_direct` step-62 had `Tip: Farlooking or selecting a map location--More--` in JS, while C showed the tip as a separate frame before `Move cursor to ...`.
+- C behavior:
+  - `getpos.c` sets `show_goal_msg` after `handle_tip(TIP_GETPOS)`; tip display/ack happens before the goal prompt loop continues.
+- Fix in [`js/getpos.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/getpos.js):
+  - after first-tip topline emission, add an explicit `nhgetch()` acknowledgement boundary before showing `Move cursor to ...`.
+  - align tip first line padding to C capture (`"          Tip: ..."`).
+- Validation:
+  - `./scripts/run-and-report.sh --failures` stays stable at `31/34` gameplay sessions passing (no regressions in failing set).
+  - `seed033` step-62 first-line mismatch is removed; remaining mismatch now points at missing multi-line tip body rendering.
