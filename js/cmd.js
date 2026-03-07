@@ -952,7 +952,8 @@ async function handleExtendedCommandUntrap(game) {
     const ty = player.y + dir[1];
     const trap = map?.trapAt?.(tx, ty);
     if (!trap) {
-        await display.putstr_message('You cannot disable that trap.');
+        // C ref: trap.c untrap(): no floor trap and no adjacent door trap path.
+        await display.putstr_message('You know of no traps there.');
         return { moved: false, tookTime: false };
     }
 

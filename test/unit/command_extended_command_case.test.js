@@ -65,6 +65,19 @@ test('#l autocompletes to loot (C prefix-completion parity)', async () => {
     assert.equal(game.display.topMessage, "You don't find anything here to loot.");
 });
 
+test('#untrap on current square with no trap uses C no-trap wording', async () => {
+    clearInputQueue();
+    const game = makeGame();
+    for (const ch of 'untrap') pushInput(ch.charCodeAt(0));
+    pushInput('\n'.charCodeAt(0));
+    pushInput('.'.charCodeAt(0));
+
+    const result = await rhack('#'.charCodeAt(0), game);
+
+    assert.equal(result.tookTime, false);
+    assert.equal(game.display.messages.at(-1), 'You know of no traps there.');
+});
+
 test('#name object-type path rejects non-callable inventory item with C wording', async () => {
     clearInputQueue();
     const game = makeGame();

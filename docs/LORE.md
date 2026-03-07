@@ -4239,3 +4239,24 @@ hard-won wisdom:
     expectations for the C-faithful message ordering.
   - `./scripts/run-and-report.sh --failures` remains `31/34` gameplay sessions passing.
   - `seed032_manual_direct` first screen mismatch moved from step `10` to step `66`.
+
+### `#untrap` no-target wording should be `You know of no traps there.` (2026-03-07)
+
+- Divergence context:
+  - In `seed032_manual_direct`, `#untrap` + `.` on a non-trap square diverged:
+    JS printed `You cannot disable that trap.`, C printed
+    `You know of no traps there.`.
+  - This mismatch was the first screen divergence at step `66`.
+- C behavior:
+  - `trap.c:untrap()` uses `You("know of no traps there.");` when there is no
+    trap/door-trap path at the selected location.
+- Fix:
+  - In [`js/cmd.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/cmd.js),
+    `handleExtendedCommandUntrap()` now emits C wording for the no-trap branch.
+  - Added unit test in
+    [`test/unit/command_extended_command_case.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/command_extended_command_case.test.js)
+    for `#untrap` + `.` on current square.
+- Validation:
+  - `node --test test/unit/command_extended_command_case.test.js` passes.
+  - `./scripts/run-and-report.sh --failures` remains `31/34` gameplay sessions passing.
+  - `seed032_manual_direct` first screen mismatch advanced from step `66` to step `155`.
