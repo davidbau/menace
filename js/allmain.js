@@ -479,6 +479,7 @@ export async function run_command(game, ch, opts = {}) {
         skipMonsterMove,
         skipTurnEnd = false,
         skipRepeatRecord = false,
+        renderAfterCommand = false,
     } = opts;
 
     const chCode = typeof ch === 'number' ? ch
@@ -527,6 +528,9 @@ export async function run_command(game, ch, opts = {}) {
         }
         const _player = game.u || game.player;
         if (game.display && _player) {
+            if (renderAfterCommand && typeof game.docrt === 'function') {
+                game.docrt();
+            }
             if (typeof game.display.renderStatus === 'function') {
                 game.display.renderStatus(_player);
             }
@@ -700,6 +704,9 @@ export async function run_command(game, ch, opts = {}) {
     // moveloop turn, and curs_on_u() runs before waiting for the next key.
     const _player = game.u || game.player;
     if (game.display && _player) {
+        if (renderAfterCommand && typeof game.docrt === 'function') {
+            game.docrt();
+        }
         if (typeof game.display.renderStatus === 'function') {
             game.display.renderStatus(_player);
         }

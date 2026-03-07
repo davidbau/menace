@@ -3370,3 +3370,19 @@ hard-won wisdom:
   - `seed331_tourist_wizard_gameplay` now passes fully for gameplay channels:
     RNG `18493/18493`, Events `3708/3708`, Screen `389/389`, Colors `9336/9336`.
   - gameplay-suite pass count improved from `28/34` to `29/34` (5 failures remain).
+
+## Lesson: replay should not own generic per-key rerender policy
+
+- `replay_core` previously forced a generic `docrt`-style rerender after most
+  settled commands; this created replay-specific rendering policy to maintain.
+- Refactor direction: command runtime owns render completion, replay only feeds
+  keys and captures the resulting screen/cursor.
+- Implementation slice:
+  - `run_command(..., { renderAfterCommand: true })` now performs runtime-side
+    final render work for replay-driven commands.
+  - removed generic per-step rerender branch from `js/replay_core.js`.
+  - retained one narrow compatibility hook for active pending text popups:
+    `docrt()` + popup redraw while command is input-blocked.
+- Validation impact:
+  - targeted seeds (`seed301`, `seed306`, `seed331`) pass in this configuration.
+  - full failure burndown remained non-regressing at `29/34` passing (`5` failing).

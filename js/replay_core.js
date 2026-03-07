@@ -86,18 +86,6 @@ function captureCursor(display) {
     return (typeof display.getCursor === 'function') ? display.getCursor() : null;
 }
 
-function rerenderLikeMainLoop(game) {
-    if (typeof game?.docrt === 'function') {
-        game.docrt();
-        return;
-    }
-    if (!game?.fov || !game?.map || !game?.player || !game?.display) return;
-    game.fov.compute(game.map, game.player.x, game.player.y);
-    game.display.renderMap(game.map, game.player, game.fov, game.flags);
-    game.display.renderStatus(game.player);
-    game.display.cursorOnPlayer(game.player);
-}
-
 function replayPendingTraceEnabled() {
     return envFlag('WEBHACK_REPLAY_PENDING_TRACE');
 }
@@ -180,8 +168,6 @@ export async function replaySession(seed, opts, keys) {
         if (preMap) preMap._replayStepIndex = i;
         const prevCount = getRngLog().length;
         const ch = keys.charCodeAt(i);
-        let commandSettled = false;
-        let commandResult = null;
         // Expose current replay step to runtime diagnostics (run/monmove traces).
         // This is debug-only metadata and does not affect game logic.
         if (game?.map) game.map._replayStepIndex = i;
@@ -193,16 +179,14 @@ export async function replaySession(seed, opts, keys) {
             const settled = await drainUntilInput(pendingCommand, game.input);
             if (settled.done) {
                 pendingCommand = null;
-                commandSettled = true;
-                commandResult = settled.value;
                 replayPendingTrace(`step=${i + 1}`, 'resume=done');
             } else {
                 replayPendingTrace(`step=${i + 1}`, 'resume=waiting');
             }
         } else {
             const commandPromise = (ch === 1)
-                ? execute_repeat_command(game)
-                : run_command(game, ch);
+                ? execute_repeat_command(game, { renderAfterCommand: true })
+                : run_command(game, ch, { renderAfterCommand: true });
             const settled = await drainUntilInput(commandPromise, game.input);
             if (!settled.done) {
                 pendingCommand = commandPromise;
@@ -212,19 +196,17 @@ export async function replaySession(seed, opts, keys) {
                     'mode=start',
                     'start=waiting'
                 );
-            } else {
-                commandSettled = true;
-                commandResult = settled.value;
             }
         }
 
-        // C ref: allmain.c handleInput loop re-renders after each consumed key.
-        // Replay normally rerenders after settled commands. For pending commands,
-        // rerender only when a NHW text popup is active and redraw that popup.
-        if (commandSettled && !commandResult?.prompt) {
-            rerenderLikeMainLoop(game);
-        } else if (pendingCommand && hasActiveTextPopupWindow()) {
-            rerenderLikeMainLoop(game);
+        // Rendering ownership lives in run_command/game runtime paths.
+        // Replay captures the already-rendered screen after each consumed key.
+        // Compatibility hook: while a command is pending input and a text popup
+        // is active, redraw the popup surface so capture reflects tty overlay.
+        if (pendingCommand && hasActiveTextPopupWindow()) {
+            if (typeof game?.docrt === 'function') {
+                game.docrt();
+            }
             redrawActiveTextPopupWindows();
         }
         const postMap = game.lev || game.map || null;
