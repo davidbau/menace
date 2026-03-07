@@ -223,7 +223,7 @@ export async function mdig_tunnel(mtmp, map, player) {
             // C: if (flags.verbose) { if (!Unaware && !rn2(3)) draft_message(TRUE); }
             if (_gstate?.flags?.verbose && !(player?.Unaware || player?.unaware)) {
                 if (!rn2(3)) {
-                    draft_message(true, player);
+                    await draft_message(true, player);
                 }
             }
         }
@@ -233,7 +233,7 @@ export async function mdig_tunnel(mtmp, map, player) {
         here.flags = 0;
         unblock_point(mtmp.mx, mtmp.my);
         newsym(mtmp.mx, mtmp.my);
-        draft_message(false, player);
+        await draft_message(false, player);
         return false;
     } else if (!IS_OBSTRUCTED(here.typ) && !IS_TREE(here.typ)) {
         // No dig — nothing to tunnel through
@@ -615,7 +615,7 @@ export function dig_up_grave(cc, map, player) {
 // Since hallucination detection requires player state, this is a light stub.
 // ============================================================================
 
-export function draft_message(unexpected, player = null) {
+export async function draft_message(unexpected, player = null) {
     // C ref: dig.c draft_message(): includes Hallucination branches which
     // consume RNG. Preserve those RNG calls for parity.
     const display = _gstate?.display || null;
@@ -624,7 +624,7 @@ export function draft_message(unexpected, player = null) {
 
     if (unexpected) {
         if (!Hallucination) {
-            display.putstr_message('You feel an unexpected draft.');
+            await display.putstr_message('You feel an unexpected draft.');
         } else {
             const weakAttr = (player?.acurrstr ?? 10) < 6
                 || (player?.acurrdex ?? 10) < 6
@@ -632,13 +632,13 @@ export function draft_message(unexpected, player = null) {
                 || (player?.acurrcha ?? 10) < 6
                 || (player?.acurrint ?? 10) < 6
                 || (player?.acurrwis ?? 10) < 6;
-            display.putstr_message(`You feel like you are ${weakAttr ? '4-F' : '1-A'}.`);
+            await display.putstr_message(`You feel like you are ${weakAttr ? '4-F' : '1-A'}.`);
         }
         return;
     }
 
     if (!Hallucination) {
-        display.putstr_message('You feel a draft.');
+        await display.putstr_message('You feel a draft.');
         return;
     }
 
@@ -651,7 +651,7 @@ export function draft_message(unexpected, player = null) {
     }
     if (dridx < 0) dridx = 0;
     if (dridx >= draft_reaction.length) dridx = draft_reaction.length - 1;
-    display.putstr_message(`You feel like ${draft_reaction[dridx]}.`);
+    await display.putstr_message(`You feel like ${draft_reaction[dridx]}.`);
 }
 
 
