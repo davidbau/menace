@@ -286,7 +286,7 @@ function m_canseeu(mon, player) {
     return mon.mcansee !== false && !mon.blind;
 }
 function helpless(mon) {
-    return !!(mon.mfrozen || mon.msleeping || !mon.mcanmove);
+    return !!(mon.mfrozen || mon.msleeping || mon.mcanmove === false || mon.mcanmove === 0);
 }
 function resist_conflict(mon) {
     // C: resist(mon, RING_CLASS, 0, 0)

@@ -234,7 +234,7 @@ const MUSE_MISC_BAG = 10;
 function DEADMONSTER(mon) { return mon && mon.mhp <= 0; }
 
 // C ref: helpless(mon) — asleep, frozen, paralyzed, can't move
-function helpless(mon) { return !!(mon.sleeping || mon.msleeping || mon.mfrozen || !mon.mcanmove); }
+function helpless(mon) { return !!(mon.sleeping || mon.msleeping || mon.mfrozen || mon.mcanmove === false || mon.mcanmove === 0); }
 
 // C ref: mindless(ptr) — M1_MINDLESS
 function mindless(ptr) { return is_mindless(ptr); }
