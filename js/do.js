@@ -1,7 +1,7 @@
 // do.js -- Miscellaneous player actions
 // cf. do.c — dodrop, dodown, doup, flooreffects, goto_level, donull, dowipe
 
-import { nhgetch, ynFunction } from './input.js';
+import { nhgetch, ynFunction, getlin } from './input.js';
 import { COLNO, ROWNO, STAIRS,
          CORR, ROOM, AIR, A_DEX,
          IS_FURNITURE, IS_LAVA, IS_POOL, MAGIC_PORTAL, VIBRATING_SQUARE,
@@ -721,36 +721,98 @@ export async function handleDrop(player, map, display) {
 
         const item = player.inventory.find(o => o.invlet === c);
         if (!item) continue;
+        return await dropSelectedItem(item, player, map, display);
+    }
+}
 
-        const isWornArmor =
-            player.armor === item
-            || player.shield === item
-            || player.helmet === item
-            || player.gloves === item
-            || player.boots === item
-            || player.cloak === item
-            || player.amulet === item;
-        if (isWornArmor) {
-            replacePromptMessage();
-            await display.putstr_message('You cannot drop something you are wearing.');
-            return { moved: false, tookTime: false };
-        }
-
-        // Unequip weapon slots if dropping the item.
-        if (player.weapon === item) uwepgone(player);
-        if (player.swapWeapon === item) uswapwepgone(player);
-        if (player.quiver === item) uqwepgone(player);
-
-        player.removeFromInventory(item);
-        item.ox = player.x;
-        item.oy = player.y;
-        placeFloorObject(map, item);
+async function dropSelectedItem(item, player, map, display) {
+    const isWornArmor =
+        player.armor === item
+        || player.shield === item
+        || player.helmet === item
+        || player.gloves === item
+        || player.boots === item
+        || player.cloak === item
+        || player.amulet === item;
+    if (isWornArmor) {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
         display.messageNeedsMore = false;
-        await display.putstr_message(`You drop ${doname(item, null)}.`);
-        return { moved: false, tookTime: true };
+        await display.putstr_message('You cannot drop something you are wearing.');
+        return { moved: false, tookTime: false };
     }
+
+    // Unequip weapon slots if dropping the item.
+    if (player.weapon === item) uwepgone(player);
+    if (player.swapWeapon === item) uswapwepgone(player);
+    if (player.quiver === item) uqwepgone(player);
+
+    player.removeFromInventory(item);
+    item.ox = player.x;
+    item.oy = player.y;
+    placeFloorObject(map, item);
+    if (typeof display.clearRow === 'function') display.clearRow(0);
+    display.topMessage = null;
+    display.messageNeedsMore = false;
+    await display.putstr_message(`You drop ${doname(item, null)}.`);
+    return { moved: false, tookTime: true };
+}
+
+async function showDropCandidates(candidates, display) {
+    if (!Array.isArray(candidates) || candidates.length === 0) return;
+    const forceMoreOnSingle = candidates.length === 1;
+    for (let i = 0; i < candidates.length; i++) {
+        const item = candidates[i];
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        display.topMessage = null;
+        display.messageNeedsMore = false;
+        const isLast = i === candidates.length - 1;
+        const needsMore = forceMoreOnSingle || !isLast;
+        const suffix = needsMore ? '.--More--' : '.';
+        await display.putstr_message(`${item.invlet} - ${doname(item, null)}${suffix}`);
+        if (needsMore) {
+            if (typeof display.renderMoreMarker === 'function') {
+                display.renderMoreMarker();
+                display._pendingMore = true;
+            }
+            await nhgetch();
+        }
+    }
+}
+
+// C ref: do.c doddrop() — drop by class/category.
+// Focused path used by parity sessions: class query + invlet selection.
+export async function handleDropTypes(player, map, display) {
+    if (!player?.inventory || player.inventory.length === 0) {
+        await display.putstr_message("You don't have anything to drop.");
+        return { moved: false, tookTime: false };
+    }
+
+    const cls = await getlin('Drop what type of items?', display);
+    if (cls == null) return { moved: false, tookTime: false };
+    const trimmed = String(cls).trim();
+    if (!trimmed) return { moved: false, tookTime: false };
+
+    let candidates = [];
+    if (trimmed.includes('u')) {
+        candidates = player.inventory.filter((obj) => !!obj?.unpaid && !!obj?.invlet);
+    }
+    if (candidates.length === 0) {
+        return { moved: false, tookTime: false };
+    }
+
+    // C getobj-style letter selection for filtered inventory.
+    const sel = await nhgetch();
+    if (sel === 27 || sel === 10 || sel === 13 || sel === 32) {
+        return { moved: false, tookTime: false };
+    }
+    const invlet = String.fromCharCode(sel);
+    const picked = candidates.find((o) => o.invlet === invlet);
+    if (!picked) {
+        await showDropCandidates(candidates, display);
+        return { moved: false, tookTime: false };
+    }
+    return await dropSelectedItem(picked, player, map, display);
 }
 
 

@@ -22,7 +22,7 @@ import { handleQuaff } from './potion.js';
 import { handleRead } from './read.js';
 import { handleWear, handlePutOn, handleTakeOff, handleRemove, handleRemoveAll } from './do_wear.js';
 import { handleWield, handleSwapWeapon, handleQuiver } from './wield.js';
-import { handleDownstairs, handleUpstairs, handleDrop, dowipe } from './do.js';
+import { handleDownstairs, handleUpstairs, handleDrop, handleDropTypes, dowipe } from './do.js';
 import { handleInventory, currency, doorganize } from './invent.js';
 import { dopray, doturn, dosacrifice } from './pray.js';
 import { dodip } from './potion.js';
@@ -390,6 +390,12 @@ export async function rhack(ch, game) {
     // Drop
     if (c === 'd') {
         return await handleDrop(player, map, display);
+    }
+
+    // Drop by class/category
+    // C ref: cmd.c binds 'D' to doddrop().
+    if (c === 'D') {
+        return await handleDropTypes(player, map, display);
     }
 
     // Eat
