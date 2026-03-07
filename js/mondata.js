@@ -939,7 +939,7 @@ export function levl_follower(mon, player) {
     // C: return (mtmp->data->mflags2 & M2_STALK) && (!mtmp->mflee || u.uhave.amulet)
     const playerHasAmulet = player && Array.isArray(player.inventory)
         && player.inventory.some(o => o?.otyp === AMULET_OF_YENDOR);
-    return !!(mon.type?.mflags2 & M2_STALK) && (!mon.mflee || !!playerHasAmulet);
+    return !!((mon.data || mon.type)?.mflags2 & M2_STALK) && (!mon.mflee || !!playerHasAmulet);
 }
 
 // ========================================================================
