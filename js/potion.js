@@ -455,17 +455,12 @@ export async function healup(player, nhp, nxtra, curesick, cureblind) {
 
 // cf. potion.c peffect_confusion()
 export async function peffect_confusion(player, otmp, display) {
-    if (!player.getPropTimeout(CONFUSION)) {
-        if (otmp.blessed) {
-            await You_feel("less confused.");
-            await make_confused(player, 0, false);
-            return false;
-        }
-    }
-    const duration = otmp.blessed ? 0 : (itimeout_incr(player.getPropTimeout(CONFUSION),
-        rnd(5) + 3 * rn1(otmp.cursed ? 3 : 1, 1)));
-    await make_confused(player, duration, true);
-    return !otmp.blessed;
+    // C ref: potion.c:1012-1022 — always calls rn1(7, 16-8*bcsign)
+    const bcsign = otmp.blessed ? 1 : (otmp.cursed ? -1 : 0);
+    const duration = itimeout_incr(player.getPropTimeout(CONFUSION),
+        rn1(7, 16 - 8 * bcsign));
+    await make_confused(player, duration, false);
+    return true;
 }
 
 // cf. potion.c peffect_blindness()
@@ -477,17 +472,22 @@ export async function peffect_blindness(otmp) {
 
 // cf. potion.c peffect_speed()
 export async function peffect_speed(player, otmp, display) {
-    if (otmp.cursed) {
-        await pline("You feel rather sluggish.");
-        return true;
-    }
+    // C ref: potion.c:1053-1056 — Wounded_legs early return (not ported)
+    // C ref: potion.c:1059 — speed_up(rn1(10, 100 + 60*bcsign)) for ALL BUC states
+    const bcsign = otmp.blessed ? 1 : (otmp.cursed ? -1 : 0);
+    const duration = rn1(10, 100 + 60 * bcsign);
+    // C ref: potion.c:2907-2913 speed_up() — message + exercise + incr_itimeout
     if (player.fast) {
         await You("speed up.");
     } else {
-        await You("are suddenly moving faster.");
+        await You("are suddenly moving %sfaster.", player.fast ? "" : "much ");
     }
-    incr_itimeout(player, FAST, rnd(10) + (otmp.blessed ? 20 : 10));
     await exercise(player, A_DEX, true);
+    incr_itimeout(player, FAST, duration);
+    // C ref: potion.c:1062-1065 — non-cursed grants intrinsic speed
+    if (!otmp.cursed) {
+        await Your("quickness feels very natural.");
+    }
     return !otmp.blessed;
 }
 
