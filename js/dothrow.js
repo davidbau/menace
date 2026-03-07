@@ -43,7 +43,7 @@ import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
        } from './objects.js';
 import { compactInvletPromptChars, renderOverlayMenuUntilDismiss } from './invent.js';
 import { doname, next_ident, xname, is_crackable } from './mkobj.js';
-import { x_monnam, is_unicorn, nohands, notake } from './mondata.js';
+import { x_monnam, is_unicorn, nohands, notake, throws_rocks } from './mondata.js';
 import { obj_resists } from './objdata.js';
 import { uwepgone, uswapwepgone, uqwepgone, handleSwapWeapon, setuqwep } from './wield.js';
 import { placeFloorObject } from './invent.js';
@@ -311,20 +311,20 @@ export async function handleThrow(player, map, display) {
         display.topMessage = null;
         display.messageNeedsMore = false;
     };
-    const equippedItems = new Set([
-        player.armor, player.shield, player.helmet,
-        player.gloves, player.boots, player.cloak,
-        player.amulet, player.leftRing, player.rightRing,
-    ].filter(Boolean));
     const invSorted = [...(player.inventory || [])]
         .filter((o) => o?.invlet)
         .sort((a, b) => String(a.invlet).localeCompare(String(b.invlet)));
     const uslinging = !!(player.weapon && player.weapon.otyp === SLING);
     const promptItems = invSorted.filter((o) => {
-        if (!o || o.owornmask || equippedItems.has(o)) return false;
+        if (!o) return false;
+        const isWielded = o === player.weapon;
+        const isSwapWielded = o === player.secondaryWeapon && !!player.twoweap;
+        // C ref: dothrow.c throw_ok() downplays a single wielded/swap-wielded item.
+        if ((isWielded || isSwapWielded) && (o.quan || 1) === 1) return false;
         if (o.oclass === COIN_CLASS) return true;
-        if (!uslinging && o.oclass === WEAPON_CLASS && o !== player.weapon) return true;
+        if (!uslinging && o.oclass === WEAPON_CLASS) return true;
         if (uslinging && o.oclass === GEM_CLASS) return true;
+        if (o.otyp === BOULDER && throws_rocks(player.data || {})) return true;
         return false;
     });
     const throwLetters = promptItems.map((o) => String(o.invlet)).join('');
@@ -377,7 +377,10 @@ export async function handleThrow(player, map, display) {
             return { moved: false, tookTime: false };
         }
         const selItem = player.inventory.find(o => o.invlet === c);
-        if (!selItem) continue;
+        if (!selItem) {
+            await display.putstr_message("You don't have that object.");
+            continue;
+        }
         return await promptDirectionAndThrowItem(player, map, display, selItem);
     }
 }
