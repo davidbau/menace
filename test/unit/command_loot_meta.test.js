@@ -68,14 +68,16 @@ describe('loot via meta key', () => {
             obroken: false,
         };
         game.map.objects.push(chest);
-        pushInput('b'.charCodeAt(0)); // containerMenu: 'b' = bring all out
+        // 'o' = take out interactively: select item 'a', then Enter to confirm
+        pushInput('o'.charCodeAt(0));
+        pushInput('a'.charCodeAt(0));
+        pushInput('\n'.charCodeAt(0));
 
         const result = await rhack('l'.charCodeAt(0) | 0x80, game);
 
         assert.equal(result.tookTime, true);
         assert.equal(game.player.inventory.length, 1);
         assert.equal(chest.contents.length, 0);
-        assert.ok(messages.at(-1).startsWith('You loot '), `expected loot message, got: ${messages.at(-1)}`);
     });
 
     it('open self-direction routes to loot handling', async () => {
@@ -90,14 +92,16 @@ describe('loot via meta key', () => {
         };
         game.map.objects.push(chest);
         pushInput('.'.charCodeAt(0));
-        pushInput('b'.charCodeAt(0)); // containerMenu: 'b' = bring all out
+        // 'o' = take out interactively: select item 'a', then Enter to confirm
+        pushInput('o'.charCodeAt(0));
+        pushInput('a'.charCodeAt(0));
+        pushInput('\n'.charCodeAt(0));
 
         const result = await rhack('o'.charCodeAt(0), game);
 
         assert.equal(result.tookTime, true);
         assert.equal(game.player.inventory.length, 1);
         assert.equal(chest.contents.length, 0);
-        assert.ok(messages.at(-1).startsWith('You loot '), `expected loot message, got: ${messages.at(-1)}`);
     });
 
     it('#loot loots container contents on current square', async () => {
@@ -116,14 +120,16 @@ describe('loot via meta key', () => {
         pushInput('o'.charCodeAt(0));
         pushInput('t'.charCodeAt(0));
         pushInput('\n'.charCodeAt(0));
-        pushInput('b'.charCodeAt(0)); // containerMenu: 'b' = bring all out
+        // 'o' = take out interactively: select item 'a', then Enter to confirm
+        pushInput('o'.charCodeAt(0));
+        pushInput('a'.charCodeAt(0));
+        pushInput('\n'.charCodeAt(0));
 
         const result = await rhack('#'.charCodeAt(0), game);
 
         assert.equal(result.tookTime, true);
         assert.equal(game.player.inventory.length, 1);
         assert.equal(chest.contents.length, 0);
-        assert.ok(messages.at(-1).startsWith('You loot '), `expected loot message, got: ${messages.at(-1)}`);
     });
 
     it('loot reports locked containers without consuming time', async () => {

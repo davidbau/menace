@@ -400,7 +400,9 @@ export function vault_summon_gd(player) {
 // Returns the room character if so, '\0' otherwise.
 // ========================================================================
 export function vault_occupied(array, map) {
-    if (!array || !map || !map.rooms) return '\0';
+    // C returns '\0' for "not in vault" which is falsy in C but truthy in JS.
+    // Return null instead for proper JS falsy semantics.
+    if (!array || !map || !map.rooms) return null;
     for (let i = 0; i < array.length; i++) {
         const ch = array.charCodeAt(i);
         const roomIdx = ch - ROOMOFFSET;
@@ -409,7 +411,7 @@ export function vault_occupied(array, map) {
                 return String.fromCharCode(ch);
         }
     }
-    return '\0';
+    return null;
 }
 
 // ========================================================================

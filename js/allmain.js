@@ -62,6 +62,7 @@ import { movebubbles } from './mkmaze.js';
 import { initAnimation, configureAnimation, setAnimationMode } from './animation.js';
 import { phase_of_the_moon, friday_13th } from './calendar.js';
 import { change_luck, acurr } from './attrib.js';
+import { invault } from './vault.js';
 import { dosounds } from './sounds.js';
 import { find_ac } from './do_wear.js';
 
@@ -363,6 +364,9 @@ export async function moveloop_turnend(game) {
 
     // C ref: attrib.c exerchk()
     await exerchk((game.u || game.player), moves);
+
+    // C ref: allmain.c:362 — invault() between exerchk and u_wipe_engr
+    await invault((game.lev || game.map), (game.u || game.player), game.fov || FOV);
 
     // C ref: allmain.c:359 — engrave wipe check
     const dex = (game.u || game.player).attributes ? (game.u || game.player).attributes[A_DEX] : 14;
@@ -2018,16 +2022,6 @@ export async function moveloop(resuming) {
   }
 }
 
-// Autotranslated from allmain.c:604
-export async function regen_pw(wtcap, game, player) {
-  if (player.uen < player.uenmax && ((wtcap < MOD_ENCUMBER && (!((Number(game?.moves) || 0) % ((MAXULEV + 8 - player.ulevel) * (Role_if(PM_WIZARD) ? 3 : 4) / 6)))) || Energy_regeneration)) {
-    let upper =  (acurr(player,A_WIS) + acurr(player,A_INT)) / 15 + 1;
-    player.uen += rn1(upper, 1);
-    if (player.uen > player.uenmax) player.uen = player.uenmax;
-    game.disp.botl = true;
-    if (player.uen === player.uenmax) await interrupt_multi("You feel full of energy.");
-  }
-}
 
 // Autotranslated from allmain.c:955
 export async function interrupt_multi(msg, game) {

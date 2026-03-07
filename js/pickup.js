@@ -46,10 +46,8 @@ let bucx_filter = false;           // gb.bucx_filter
 let shop_filter = false;           // gs.shop_filter
 let picked_filter = false;         // gp.picked_filter
 let val_for_n_or_more = 0;         // gv.val_for_n_or_more
-let abort_looting = false;         // ga.abort_looting
 let pickup_encumbrance = 0;        // gp.pickup_encumbrance
 let oldcap = 0;                    // go.oldcap
-let loot_reset_justpicked = false; // gl.loot_reset_justpicked
 
 // ---------------------------------------------------------------------------
 // Helper predicates (not exported from other modules)
@@ -601,128 +599,6 @@ export function mon_beside(x, y) {
   return false;
 }
 
-// cf. pickup.c:2082 — do_loot_cont(cobjp, cindex, ccount)
-async function do_loot_cont(cobj, cindex, ccount, player, map, display) {
-    if (!cobj)
-        return 0;
-    if (cobj.olocked) {
-        if (cobj.lknown)
-            await pline("%s is locked.", xname(cobj));
-        else
-            await pline("Hmmm, %s turns out to be locked.", xname(cobj));
-        cobj.lknown = 1;
-        return 0;
-    }
-    cobj.lknown = 1;
-
-    if (cobj.otyp === BAG_OF_TRICKS) {
-        await You("carefully open %s...", xname(cobj));
-        await pline("It develops a huge set of teeth and bites you!");
-        const tmp = rnd(10);
-        // losehp stub: damage not yet applied
-        abort_looting = true;
-        return 1;
-    }
-    return await use_container_simple(cobj, false, cindex < ccount, player, map, display);
-}
-
-// cf. pickup.c:2160 — doloot()
-async function doloot(player, map, display) {
-    loot_reset_justpicked = true;
-    const res = await doloot_core(player, map, display);
-    loot_reset_justpicked = false;
-    return res;
-}
-
-// cf. pickup.c:2172 — doloot_core()
-async function doloot_core(player, map, display) {
-    let c = -1;
-    let timepassed = 0;
-    abort_looting = false;
-
-    if (nohands(player.data || {})) {
-        await You("have no hands!");
-        return 0;
-    }
-    if (player.Confusion) {
-        // cf. pickup.c:2197 — RNG: rn2(6) then rn2(2)
-        if (rn2(6) && await reverse_loot(player, map, display))
-            return 1;
-        if (rn2(2)) {
-            await pline("Being confused, you find nothing to loot.");
-            return 1;
-        }
-    }
-
-    const x = player.x, y = player.y;
-    const num_conts = container_at(x, y, true, map);
-    if (num_conts > 0) {
-        if (!await able_to_loot(x, y, true, player, map))
-            return 0;
-
-        const floorObjs = map.objectsAt(x, y) || [];
-        for (const cobj of floorObjs) {
-            if (Is_container(cobj)) {
-                timepassed |= await do_loot_cont(cobj, 1, 1, player, map, display);
-                if (abort_looting)
-                    return timepassed ? 1 : 0;
-            }
-        }
-        if (timepassed)
-            c = 'y';
-    }
-
-    if (c !== 'y') {
-        await You("don't find anything here to loot.");
-    }
-    return timepassed ? 1 : 0;
-}
-
-// cf. pickup.c:2344 — reverse_loot()
-async function reverse_loot(player, map, display) {
-    // cf. pickup.c:2351 — RNG: rn2(3)
-    if (!rn2(3)) {
-        // n objects: 1/(n+1) chance per object
-        const inv = player.inventory || [];
-        let n = inv.length;
-        for (const otmp of inv) {
-            // cf. pickup.c:2355 — RNG: rn2(n+1) for each item
-            if (!rn2(n + 1)) {
-                await pline("You find old loot: %s", doname(otmp, player));
-                return true;
-            }
-            n--;
-        }
-        return false;
-    }
-
-    // find gold to mess with
-    const inv = player.inventory || [];
-    let goldob = null;
-    for (const otmp of inv) {
-        if (otmp.oclass === COIN_CLASS) {
-            goldob = otmp;
-            // cf. pickup.c:2365 — RNG: rnd(5)
-            const contribution = Math.floor((rnd(5) * otmp.quan + 4) / 5);
-            if (contribution < otmp.quan)
-                goldob = splitobj(otmp, contribution);
-            break;
-        }
-    }
-    if (!goldob)
-        return false;
-
-    // Simplified: just drop gold on floor
-    await pline("Ok, now there is loot here.");
-    return true;
-}
-
-// cf. pickup.c:2425 — loot_mon(mtmp, passed_info, prev_loot)
-// Stub: saddle removal not yet fully ported
-function loot_mon(mtmp, passed_info, prev_loot, player) {
-    return 0;
-}
-
 // cf. pickup.c:2482 — mbag_explodes(obj, depthin)
 // Autotranslated from pickup.c:2481
 export function mbag_explodes(obj, depthin) {
@@ -981,60 +857,6 @@ export async function stash_ok(obj) {
   if (!obj) return GETOBJ_EXCLUDE;
   if (!ck_bag(obj)) return GETOBJ_EXCLUDE_SELECTABLE;
   return GETOBJ_SUGGEST;
-}
-
-// cf. pickup.c:2951 — use_container (simplified)
-async function use_container_simple(obj, held, more_containers, player, map, display) {
-    // Simplified use_container for the JS port
-    // Just handles basic open-and-loot for floor containers
-    current_container = obj;
-    let used = 0;
-
-    if (!await u_handsy(player)) {
-        current_container = null;
-        return 0;
-    }
-
-    if (!obj.lknown) {
-        obj.lknown = 1;
-    }
-    if (obj.olocked) {
-        await pline("%s is locked.", xname(obj));
-        current_container = null;
-        return 0;
-    }
-
-    // Check for Schroedinger's cat
-    if (SchroedingersBox(current_container)) {
-        await observe_quantum_cat(current_container, true, true, player, map);
-        used = 1;
-    }
-
-    // Cursed magic bag losses
-    if (Is_mbag(current_container) && current_container.cursed
-        && Has_contents(current_container)) {
-        const loss = await boh_loss(current_container, held);
-        if (loss) {
-            used = 1;
-            await You("owe %d %s for lost merchandise.", loss, currency(loss));
-            current_container.owt = weight(current_container);
-        }
-    }
-
-    current_container = null;
-    return used;
-}
-
-// cf. pickup.c:3210 — traditional_loot(put_in)
-// Stub: askchain/query_classes not yet ported
-function traditional_loot(_put_in) {
-    return 0;
-}
-
-// cf. pickup.c:3245 — menu_loot(retry, put_in)
-// Stub: query_objlist/query_category not yet ported
-function menu_loot(_retry, _put_in) {
-    return 0;
 }
 
 // cf. pickup.c:3376 — in_or_out_menu(prompt, obj, outokay, inokay, alreadyused, more_containers)
@@ -1460,6 +1282,8 @@ async function announceLootedItems(display, player, items, verb) {
 async function containerMenu(game, container) {
     const { player, display } = game;
     let tookTime = false;
+    let pendingAction = null; // For 'r'/'b': auto-trigger next phase
+    let chainedAction = null; // For 'b': chain 'i' after 'o' completes
     const clearMenuOptionRows = () => {
         if (typeof display?.clearRow !== 'function') return;
         for (let r = 2; r <= 10; r++) display.clearRow(r);
@@ -1508,10 +1332,17 @@ async function containerMenu(game, container) {
             drawMenuOptionLine(pad, 10, '(end)');
         }
 
-        const ch = await nhgetch();
-        const c = String.fromCharCode(ch);
+        let c;
+        if (pendingAction) {
+            c = pendingAction;
+            pendingAction = chainedAction;
+            chainedAction = null;
+        } else {
+            const ch = await nhgetch();
+            c = String.fromCharCode(ch);
+        }
 
-        if (ch === 27 || c === 'q') break;
+        if (c === '\x1b' || c === 'q') break;
 
         if (c === ':') {
             // Look inside — show contents then loop back to menu.
@@ -1527,19 +1358,11 @@ async function containerMenu(game, container) {
                 container.cknown = true;
             }
         } else if (c === 'b') {
-            // 'b' = bring all out — takes everything, exits menu.
-            // cf. pickup.c use_container() 'b' case.
-            if (!hasContents) {
-                await display.putstr_message('It is empty.');
-                container.cknown = true;
-                continue;
-            }
-            const taken = [...contents];
-            for (const item of taken) { player.addToInventory(item); observeObject(item); }
-            setContainerContents(container, []);
-            await announceLootedItems(display, player, taken, 'loot');
-            tookTime = true;
-            break; // exit menu after bringing all (C behavior)
+            // 'b' = both: take out interactively, then put in interactively.
+            // cf. pickup.c use_container() 'b' case: menu_loot(FALSE) then menu_loot(TRUE).
+            pendingAction = 'o';
+            chainedAction = 'i';
+            continue;
         } else if (c === 'o') {
             // 'o' = take out — per-item selection loop.
             // cf. pickup.c traditional_loot(FALSE): first asks class filter,
@@ -1681,7 +1504,7 @@ async function containerMenu(game, container) {
                 });
                 if (!visible.length) break;
                 const available = letters.slice(0, visible.length);
-                await putMenuPrompt(`Take out what? [${available} or ?*]`);
+                await putMenuPrompt('Take out what?');
                 const tch = await nhgetch();
                 if (tch === 27) break; // ESC → back to "Do what?" menu
                 const tchar = String.fromCharCode(tch).toLowerCase();
@@ -1792,7 +1615,63 @@ async function containerMenu(game, container) {
                 await display.putstr_message(`You put ${doname(item, player)} into the ${cname}.`);
                 tookTime = true;
             }
-            if (tookTime) break; // C exits menu after putting things in
+            // C: after menu_loot(TRUE), always returns regardless of items moved
+            return { moved: false, tookTime };
+        } else if (c === 'r') {
+            // 'r' = reversed: put in first, then take out.
+            // cf. pickup.c use_container() 'r' case: loot_in_first = TRUE.
+            // Run the 'i' flow inline, then set flag to auto-trigger 'o'.
+            const inv = (player.inventory || []).filter(
+                (o) => o && o.invlet && o !== container);
+            if (inv.length) {
+                const seenClasses = new Set();
+                for (const o of inv) {
+                    const sym = CLASS_SYMBOLS[o.oclass];
+                    if (sym) seenClasses.add(sym);
+                }
+                let selectedClasses = null;
+                let oneByOne = false;
+                if (seenClasses.size > 1) {
+                    const classStr = [...seenClasses].join('');
+                    const prompt = `What kinds of things do you want to put in? [${classStr} a A]`;
+                    const userInput = await getlin(prompt, display);
+                    if (userInput === null || userInput.trim() === '\x1b') {
+                        // ESC on class prompt → skip put-in, still do take-out
+                    } else {
+                        const trimmed = userInput.trim();
+                        if (trimmed === '' || trimmed.includes('a')) {
+                            selectedClasses = null;
+                        } else if (trimmed.includes('A')) {
+                            selectedClasses = null;
+                            oneByOne = true;
+                        } else {
+                            selectedClasses = new Set(trimmed.split('').filter((ch) => seenClasses.has(ch)));
+                            if (selectedClasses.size === 0) selectedClasses = null;
+                        }
+                        const candidates = inv.filter((o) => {
+                            if (selectedClasses === null) return true;
+                            return selectedClasses.has(CLASS_SYMBOLS[o.oclass]);
+                        });
+                        for (const item of candidates) {
+                            if (oneByOne) {
+                                const ans = await ynFunction(
+                                    `Put in ${doname(item, player)}?`, 'ynaq', 'n'.charCodeAt(0), display);
+                                const ansC = String.fromCharCode(ans);
+                                if (ansC === 'q') break;
+                                if (ansC === 'n') continue;
+                            }
+                            player.inventory = player.inventory.filter((o) => o !== item);
+                            const cur = getContainerContents(container);
+                            setContainerContents(container, [...cur, item]);
+                            await display.putstr_message(`You put ${doname(item, player)} into the ${cname}.`);
+                            tookTime = true;
+                        }
+                    }
+                }
+            }
+            // Set pending action to auto-trigger 'o' (take out) on next iteration.
+            pendingAction = 'o';
+            continue;
         } else if (c === '?') {
             await display.putstr_message(
                 'Container actions: : look, o take out, i put in, b bring all, s stash one, q quit');
@@ -1809,12 +1688,7 @@ async function handleLoot(game) {
     const floorContainers = (map.objectsAt(player.x, player.y) || [])
         .filter((obj) => !!objectData[obj?.otyp]?.container);
 
-    // Check inventory containers the player is carrying.
-    // cf. pickup.c doloot_core() — also offers to loot carried containers.
-    const invContainers = (player.inventory || [])
-        .filter((obj) => obj && !!objectData[obj?.otyp]?.container);
-
-    if (floorContainers.length === 0 && invContainers.length === 0) {
+    if (floorContainers.length === 0) {
         // cf. pickup.c doloot_core(): when adjacent monsters are present,
         // C asks directional loot target before reporting no loot.
         if (monsterBeside(map, player.x, player.y)) {
@@ -1860,66 +1734,23 @@ async function handleLoot(game) {
         return { moved: false, tookTime: false };
     }
 
-    // Loot floor container first (C behavior: floor takes priority).
-    // cf. pickup.c use_container() — show interactive "Do what?" menu.
+    // Loot floor containers (C behavior: loop through all).
+    // cf. pickup.c doloot_core() — iterates all Is_container objects at player position.
     if (floorContainers.length > 0) {
-        const container = floorContainers[0];
-        if (container.olocked && !container.obroken) {
-            await display.putstr_message('Hmmm, it seems to be locked.');
-            return { moved: false, tookTime: false };
-        }
-        return await containerMenu(game, container);
-    }
-
-    // Loot an inventory container (take things out).
-    // cf. pickup.c doloot_core() — "Do you want to take things out?"
-    // If only one inventory container, offer it directly; else prompt for letter.
-    let container;
-    if (invContainers.length === 1) {
-        container = invContainers[0];
-    } else {
-        // Build letter prompt from inventory letters.
-        const letters = invContainers.map((o) => o.invlet).filter(Boolean).join('');
-        const prompt = letters
-            ? `Loot which container? [${letters} or ?*]`
-            : 'Loot which container? [?*]';
-        while (true) {
-            await display.putstr_message(prompt);
-            const ch = await nhgetch();
-            const c = String.fromCharCode(ch);
-            if (ch === 27 || ch === 10 || ch === 13 || ch === 32) {
-                display.topMessage = null;
-                await display.putstr_message('Never mind.');
-                return { moved: false, tookTime: false };
+        let tookTime = false;
+        for (const container of floorContainers) {
+            if (container.olocked && !container.obroken) {
+                await display.putstr_message('Hmmm, it seems to be locked.');
+                continue;
             }
-            container = invContainers.find((o) => o.invlet === c);
-            if (container) break;
+            const result = await containerMenu(game, container);
+            if (result.tookTime) tookTime = true;
         }
-        display.topMessage = null;
+        return { moved: false, tookTime };
     }
 
-    // cf. pickup.c doloot_core() — "Do you want to take things out of <x>? [yn]"
-    const containerName = doname(container, player);
-    await display.putstr_message(`Do you want to take things out of your ${containerName}? [yn] `);
-    const ans = await nhgetch();
-    display.topMessage = null;
-    if (String.fromCharCode(ans) !== 'y') {
-        await display.putstr_message('Never mind.');
-        return { moved: false, tookTime: false };
-    }
-
-    const contents = getContainerContents(container);
-    if (contents.length === 0) {
-        await display.putstr_message("It's empty.");
-        return { moved: false, tookTime: true };
-    }
-    for (const item of contents) {
-        player.addToInventory(item);
-        observeObject(item);
-    }
-    setContainerContents(container, []);
-    await announceLootedItems(display, player, contents, 'take out');
-    return { moved: false, tookTime: true };
+    await display.putstr_message("You don't find anything here to loot.");
+    return { moved: false, tookTime: false };
 }
 
 // C ref: shk.c dopay()
@@ -1955,4 +1786,4 @@ async function handleTogglePickup(game) {
     return { moved: false, tookTime: false };
 }
 
-export { handlePickup, handleLoot, handlePay, handleTogglePickup, fatal_corpse_mistake, force_decor, deferred_decor, describe_decor, check_here, n_or_more, menu_class_present, add_valid_menu_class, allow_category, allow_cat_no_uchain, check_autopickup_exceptions, autopick_testobj, carry_count, lift_object, pickup_object, pickup_prinv, encumber_msg, container_at, able_to_loot, do_loot_cont, doloot, doloot_core, reverse_loot, loot_mon, do_boh_explosion, in_container, ck_bag, out_container, container_gone, explain_container_prompt, u_handsy, use_container_simple, traditional_loot, menu_loot, choose_tip_container_menu, dotip, tipcontainer, tipcontainer_gettarget, tipcontainer_checks, collect_obj_classes, count_unpaid, count_buc };
+export { handlePickup, handleLoot, handlePay, handleTogglePickup, fatal_corpse_mistake, force_decor, deferred_decor, describe_decor, check_here, n_or_more, menu_class_present, add_valid_menu_class, allow_category, allow_cat_no_uchain, check_autopickup_exceptions, autopick_testobj, carry_count, lift_object, pickup_object, pickup_prinv, encumber_msg, container_at, able_to_loot, do_boh_explosion, in_container, ck_bag, out_container, container_gone, explain_container_prompt, u_handsy, choose_tip_container_menu, dotip, tipcontainer, tipcontainer_gettarget, tipcontainer_checks, collect_obj_classes, count_unpaid, count_buc };

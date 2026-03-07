@@ -278,10 +278,10 @@ export async function dosounds(game) {
     // --- Vault (rn2(200)) ---
     if (f.has_vault && !rn2(200)) {
         // C sounds.c:244: if (gd_sound()) — skip sounds if vault occupied or guard exists
-        // vault_occupied returns '\0' for "not in vault" (truthy in JS!), non-null char for "in vault"
+        // vault_occupied returns null for "not in vault", room char for "in vault"
         const player = game.u || game.player;
         const vaultOcc = vault_occupied(player?.urooms || '', map);
-        const gdSound = !((vaultOcc && vaultOcc !== '\0') || findgd(map, player));
+        const gdSound = !(vaultOcc || findgd(map, player));
         if (gdSound)
         switch (rn2(2) + hallu) {
         case 1:

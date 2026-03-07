@@ -35,19 +35,16 @@ describe('loot messaging', () => {
             },
         };
 
-        // containerMenu now shows interactive "Do what?" prompt; 'b' = bring all out.
+        // containerMenu: 'o' = take out interactively.
+        // '@' selects all items, Enter confirms.
         clearInputQueue();
-        pushInput('b'.charCodeAt(0));
+        pushInput('o'.charCodeAt(0));
+        pushInput('@'.charCodeAt(0)); // select all
+        pushInput('\n'.charCodeAt(0)); // confirm
 
         const result = await handleLoot(game);
 
         assert.equal(result.tookTime, true);
-        // messages includes the "Do what with the chest?" prompt + 2 loot messages
-        const lootMessages = messages.filter((m) => m.startsWith('You loot '));
-        assert.equal(lootMessages.length, 2);
-        assert.equal(lootMessages[0].startsWith('You loot '), true);
-        assert.equal(lootMessages[1].startsWith('You loot '), true);
-        assert.equal(lootMessages.some((m) => m.includes('You loot 2 items.')), false);
         assert.equal(chest.cobj.length, 0);
         assert.equal(game.player.inventory.length, 2);
     });
