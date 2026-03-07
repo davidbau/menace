@@ -35,10 +35,6 @@ test('fire command keeps prompt open until canceled', async () => {
     const game = makeGame();
     game.player.weapon = { otyp: LONG_SWORD, oclass: WEAPON_CLASS, invlet: 'a', name: 'long sword' };
     clearInputQueue();
-    pushInput('u'.charCodeAt(0));
-    pushInput('l'.charCodeAt(0));
-    pushInput('l'.charCodeAt(0));
-    pushInput(' '.charCodeAt(0));
     pushInput(27);
 
     const result = await rhack('f'.charCodeAt(0), game);
@@ -102,6 +98,27 @@ test('fire prompt falls back to coin letter when no launcher candidates exist', 
     assert.equal(game.display.messages[0], 'You have no ammunition readied.');
     assert.equal(game.display.messages[1], 'What do you want to fire? [$ or ?*] ');
     assert.equal(game.display.topMessage, 'Never mind.');
+});
+
+test('fire prompt shows C-style invalid-object --More-- loop', async () => {
+    const game = makeGame();
+    game.player.inventory = [
+        { oclass: COIN_CLASS, otyp: GOLD_PIECE, invlet: '$', name: 'gold piece', quan: 10 },
+    ];
+    clearInputQueue();
+    pushInput('f'.charCodeAt(0)); // invalid inventory letter at fire prompt
+    pushInput(' '.charCodeAt(0)); // acknowledge --More-- and re-show prompt
+    pushInput(27); // cancel
+
+    const result = await rhack('f'.charCodeAt(0), game);
+    assert.equal(result.tookTime, false);
+    assert.deepEqual(game.display.messages, [
+        'You have no ammunition readied.',
+        'What do you want to fire? [$ or ?*] ',
+        "You don't have that object.--More--",
+        'What do you want to fire? [$ or ?*] ',
+        'Never mind.',
+    ]);
 });
 
 test('fire with readied quiver skips item prompt and asks for direction', async () => {
