@@ -4217,3 +4217,25 @@ hard-won wisdom:
 - Validation:
   - failures sweep remains `31/34` gameplay sessions passing (no regression in failing set).
   - `seed032_manual_direct` screen frontier improved from step `1` to step `10` while preserving existing RNG/event frontier (`447/678`, `21/678`).
+
+### `dofire` no-quiver path must show `You have no ammunition readied.` before prompt (2026-03-07)
+
+- Divergence context:
+  - `seed032_manual_direct` captures show an early `f` boundary:
+    `You have no ammunition readied.--More--`, then the fire item prompt.
+  - JS previously went straight to `What do you want to fire?...`, causing
+    first screen mismatch at step 10.
+- C behavior (`dothrow.c dofire()`):
+  - if `uquiver == NULL` and `flags.autoquiver` is off: print
+    `You have no ammunition readied.` then run fire selection (`doquiver_core("fire")`).
+  - if `flags.autoquiver` is on and filling fails: print
+    `You have nothing appropriate for your quiver.` before selection.
+- Fix in [`js/dothrow.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dothrow.js):
+  - in `handleFire`, added the no-quiver message before fire selection and
+    staged a real topline `--More--` boundary via `renderMoreMarker` + `_pendingMore`.
+  - added `autoquiver(player)` attempt for `flags.autoquiver`, with C text on failure.
+- Validation:
+  - `node --test test/unit/command_fire_prompt.test.js` passes after updating
+    expectations for the C-faithful message ordering.
+  - `./scripts/run-and-report.sh --failures` remains `31/34` gameplay sessions passing.
+  - `seed032_manual_direct` first screen mismatch moved from step `10` to step `66`.

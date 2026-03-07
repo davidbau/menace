@@ -475,6 +475,30 @@ export async function handleFire(player, map, display, game) {
         }
         return throwResult;
     }
+    const autoquiverEnabled = !!game?.flags?.autoquiver;
+    if (!autoquiverEnabled) {
+        // C ref: dothrow.c dofire(): when no quiver and autoquiver is off,
+        // emit this message before prompting for what to fire.
+        await display.putstr_message('You have no ammunition readied.');
+        if (typeof display?.renderMoreMarker === 'function') {
+            display.renderMoreMarker();
+            display._pendingMore = true;
+        }
+    } else {
+        autoquiver(player);
+        if (player.quiver && inventory.includes(player.quiver)) {
+            const throwResult = await promptDirectionAndThrowItem(player, map, display, player.quiver, { fromFire: true });
+            if (deferredTimedTurn && !throwResult?.tookTime) {
+                return { ...(throwResult || { moved: false, tookTime: false }), tookTime: true };
+            }
+            return throwResult;
+        }
+        await display.putstr_message('You have nothing appropriate for your quiver.');
+        if (typeof display?.renderMoreMarker === 'function') {
+            display.renderMoreMarker();
+            display._pendingMore = true;
+        }
+    }
     const isLauncher = (o) => {
         if (o.oclass !== WEAPON_CLASS) return false;
         const sk = objectData[o.otyp]?.oc_subtyp ?? 0;

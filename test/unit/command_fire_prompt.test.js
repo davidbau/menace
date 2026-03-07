@@ -42,7 +42,8 @@ test('fire command keeps prompt open until canceled', async () => {
 
     const result = await rhack('f'.charCodeAt(0), game);
     assert.equal(result.tookTime, false);
-    assert.equal(game.display.messages[0], 'What do you want to fire? [*] ');
+    assert.equal(game.display.messages[0], 'You have no ammunition readied.');
+    assert.equal(game.display.messages[1], 'What do you want to fire? [*] ');
     assert.equal(game.display.topMessage, 'Never mind.');
 });
 
@@ -67,7 +68,8 @@ test('fire prompt includes C-style candidate letters for non-wielded weapon plus
 
     const result = await rhack('f'.charCodeAt(0), game);
     assert.equal(result.tookTime, false);
-    assert.equal(game.display.messages[0], 'What do you want to fire? [bh or ?*] ');
+    assert.equal(game.display.messages[0], 'You have no ammunition readied.');
+    assert.equal(game.display.messages[1], 'What do you want to fire? [bh or ?*] ');
     assert.equal(game.display.topMessage, 'Never mind.');
 });
 
@@ -82,7 +84,7 @@ test('fire prompt shows count after second digit prefix', async () => {
 
     const result = await rhack('f'.charCodeAt(0), game);
     assert.equal(result.tookTime, false);
-    assert.equal(game.display.messages[1], 'Count: 14');
+    assert.equal(game.display.messages[2], 'Count: 14');
     assert.equal(game.display.topMessage, 'Never mind.');
 });
 
@@ -96,7 +98,8 @@ test('fire prompt falls back to coin letter when no launcher candidates exist', 
 
     const result = await rhack('f'.charCodeAt(0), game);
     assert.equal(result.tookTime, false);
-    assert.equal(game.display.messages[0], 'What do you want to fire? [$ or ?*] ');
+    assert.equal(game.display.messages[0], 'You have no ammunition readied.');
+    assert.equal(game.display.messages[1], 'What do you want to fire? [$ or ?*] ');
     assert.equal(game.display.topMessage, 'Never mind.');
 });
 
@@ -190,7 +193,7 @@ test('fire accepts manual inventory letters then asks direction', async () => {
 
     const result = await rhack('f'.charCodeAt(0), game);
     assert.equal(result.tookTime, false);
-    assert.equal(game.display.messages[1], 'In what direction? ');
+    assert.equal(game.display.messages[2], 'In what direction? ');
     assert.equal(game.display.topMessage, null);
     assert.equal(game.player.quiver, readied);
 });
