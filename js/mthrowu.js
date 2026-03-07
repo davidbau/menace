@@ -397,7 +397,7 @@ export async function drop_throw(obj, ohit, x, y, map, player, game) {
         || (ohit && obj.otyp === EGG)) {
         broken = true;
     } else {
-        broken = !!(ohit && should_mulch_missile(obj));
+        broken = !!(ohit && should_mulch_missile(obj, true));
     }
     if (broken) return true;
     if (!isok(x, y)) return true;

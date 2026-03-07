@@ -25,7 +25,7 @@ import { IS_SOFT, ZAP_POS, S_boomleft, S_boomright, defsyms,
          PM_WIZARD, PM_CAVEMAN, PM_HEALER, PM_TOURIST,
          PM_MONK, PM_RANGER, PM_ROGUE, PM_SAMURAI,
          RACE_ELF, RACE_ORC } from './const.js';
-import { rn2, rnd } from './rng.js';
+import { rn2, rnd, rnl } from './rng.js';
 import { nhgetch } from './input.js';
 import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
          ARMOR_CLASS, POTION_CLASS, SCROLL_CLASS, VENOM_CLASS,
@@ -1163,15 +1163,16 @@ export async function tmiss(obj, mon, maybe_wakeup, player, map) {
     if (maybe_wakeup && !rn2(3)) wakeup(mon, true, map, player);
 }
 
-// cf. dothrow.c:1975 -- should_mulch_missile(obj)
-export function should_mulch_missile(obj) {
+// cf. dothrow.c:1975 -- should_mulch_missile(obj, mon_moving, luck)
+export function should_mulch_missile(obj, mon_moving = false, luck = 0) {
     if (!obj) return false;
     if (!(is_ammo(obj) || is_missile(obj))) return false;
     if (obj.otyp === BOOMERANG) return false;
     if (objectData[obj.otyp]?.magic) return false;
     let chance = 3 + greatest_erosion(obj) - (obj.spe || 0);
     let broken = chance > 1 ? !!rn2(chance) : !rn2(4);
-    if (obj.blessed && !rn2(4)) broken = false;
+    // C ref: dothrow.c:1992 — mon_moving uses rn2(3), player uses rnl(4)
+    if (obj.blessed && (mon_moving ? !rn2(3) : !rnl(4, luck))) broken = false;
     if (((obj.oclass === GEM_CLASS && objectData[obj.otyp]?.tough)
          || obj.otyp === FLINT) && !rn2(2))
         broken = false;
@@ -1225,7 +1226,7 @@ export async function thitmonst(mon, obj, player, map, game) {
             const dmg = dmgval(obj, mon);
             if (mon.mhp !== undefined) mon.mhp -= dmg;
             await exercise(player, 3, true);
-            if (should_mulch_missile(obj)) return 1;
+            if (should_mulch_missile(obj, false, player.luck || 0)) return 1;
         } else {
             await tmiss(obj, mon, true, player, map);
         }
