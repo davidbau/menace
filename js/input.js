@@ -171,6 +171,19 @@ export function getInputRuntime() {
     return activeInputRuntime;
 }
 
+// Reset module-level input/command-queue state.
+// Needed for deterministic multi-session replay in long-lived workers.
+export function resetInputModuleState() {
+    activeInputRuntime = defaultInputRuntime;
+    if (typeof defaultInputRuntime.clearInputQueue === 'function') {
+        defaultInputRuntime.clearInputQueue();
+    }
+    cmdqInputModeDoAgain = false;
+    cmdqRepeatRecordMode = false;
+    _cmdQueues[CQ_CANNED] = null;
+    _cmdQueues[CQ_REPEAT] = null;
+}
+
 export function setCmdqInputMode(inDoAgain) {
     cmdqInputModeDoAgain = !!inDoAgain;
 }

@@ -21,6 +21,10 @@ import {
     disableRngLog,
 } from '../../js/rng.js';
 import { DEFAULT_FLAGS } from '../../js/storage.js';
+import { resetInputModuleState } from '../../js/input.js';
+import { resetNoisesState } from '../../js/mhitm.js';
+import { stairway_free_all } from '../../js/stairs.js';
+import { setGame } from '../../js/gstate.js';
 import {
     compareRng,
     compareGrids,
@@ -225,6 +229,17 @@ function ensureSessionGlobals() {
         writable: true,
     });
     return storage;
+}
+
+function resetSessionRuntimeState() {
+    // Worker threads can process multiple sessions; clear module statics first.
+    resetInputModuleState();
+    resetNoisesState();
+    stairway_free_all();
+    setGame(null);
+    if (globalThis?.gs && typeof globalThis.gs === 'object') {
+        globalThis.gs.stairs = null;
+    }
 }
 
 async function replayInterfaceSession(session) {
@@ -707,6 +722,7 @@ async function runSpecialResult(session) {
 export async function runSessionResult(session) {
     return withSessionFixedDatetime(session, async () => {
         ensureSessionGlobals();
+        resetSessionRuntimeState();
         if (session.meta.type === 'chargen') return runChargenResult(session);
         if (session.meta.type === 'interface' && session.meta.regen?.subtype === 'chargen') {
             return runChargenResult(session);
