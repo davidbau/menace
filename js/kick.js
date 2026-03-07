@@ -3,7 +3,8 @@
 
 import { IS_DOOR, D_LOCKED, D_CLOSED, D_ISOPEN, D_BROKEN, D_NODOOR,
          IRONBARS, TREE, THRONE, ALTAR, FOUNTAIN, GRAVE, SINK,
-         IS_WALL, A_STR, A_DEX, A_CON, SHOPBASE, ROOMOFFSET } from './const.js';
+         IS_WALL, A_STR, A_DEX, A_CON, SHOPBASE, ROOMOFFSET,
+         RIGHT_SIDE } from './const.js';
 import { rn2, rnd, rnl } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { Luck, acurr } from './attrib.js';
@@ -14,6 +15,7 @@ import { newsym } from './display.js';
 import { nhgetch } from './input.js';
 import { DIRECTION_KEYS } from './const.js';
 import { u_wipe_engr } from './engrave.js';
+import { set_wounded_legs } from './do.js';
 import { recalc_block_point, couldsee } from './vision.js';
 import { add_damage, pay_for_damage } from './shk.js';
 import { in_town } from './hack.js';
@@ -136,14 +138,9 @@ export async function handleKick(player, map, display, game) {
         await exercise(player, A_STR, false);
         // C ref: dokick.c kick_ouch() wakes nearby monsters before wound-roll.
         wake_nearto(nx, ny, 5 * 5, map);
-        // C ref: if (!rn2(3)) set_wounded_legs(..., 5 + rnd(5))
+        // C ref: if (!rn2(3)) set_wounded_legs(RIGHT_SIDE, 5 + rnd(5))
         if (rn2(3) === 0) {
-            const timeout = 5 + rnd(5);
-            const alreadyWounded = (player.woundedLegsTimeout || 0) > 0;
-            player.woundedLegsTimeout = timeout;
-            if (!alreadyWounded && player.attributes) {
-                player.attributes[A_DEX] = Math.max(1, player.attributes[A_DEX] - 1);
-            }
+            set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
         }
         // C ref: dmg = rnd(ACURR(A_CON) > 15 ? 3 : 5)
         const con = acurr(player, A_CON);
@@ -161,7 +158,7 @@ export async function handleKick(player, map, display, game) {
     } else {
         await display.putstr_message("Dumb move!  You strain a muscle.");
         await exercise(player, A_STR, false);
-        rnd(5); // set_wounded_legs timeout component
+        set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
     }
     return { moved: false, tookTime: true };
 }

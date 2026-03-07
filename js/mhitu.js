@@ -62,6 +62,7 @@ import { RLOC_MSG, A_CHA } from './const.js';
 import { s_suffix } from './hacklib.js';
 import { find_ac } from './do_wear.js';
 import { done_in_by } from './end.js';
+import { nomul } from './hack.js';
 
 const PIERCE = 1;
 
@@ -1214,6 +1215,8 @@ export async function mattacku(monster, player, display, game = null, opts = {})
                 const just = (toHit === dieRoll) ? 'just ' : '';
                 await display.putstr_message(`The ${x_monnam(monster)} ${just}misses!`);
             }
+            // C ref: missmu() calls stop_occupation() at end (mhitu.c:99)
+            nomul(0, game);
             sum[i] = M_ATTK_MISS;
             continue;
         }
@@ -1292,19 +1295,16 @@ export async function mattacku(monster, player, display, game = null, opts = {})
             }
         }
 
-        // cf. mhitu.c hitmu() end — stop_occupation() is called at the END
-        // of hitmu, AFTER damage application and passive effects.
-        // This means the attack message ("The X bites!") appears BEFORE
-        // the occupation stop message ("You stop searching.").
-        // The pre-attack stop (e.g., monster approaching within range)
-        // is handled by the dochugw approach check in mon.js movemon().
+        // cf. mhitu.c hitmu() end — stop_occupation() (mhitu.c:1260)
+        // C's stop_occupation clears occupation AND calls nomul(0) which
+        // calls end_running(TRUE), stopping running/travel.
         if (game && game.occupation) {
             if (typeof game.stopOccupation === 'function') await game.stopOccupation();
             else {
                 game.occupation = null;
-                game.multi = 0;
             }
         }
+        nomul(0, game);
         // C ref: hitmu() returns M_ATTK_HIT for successful contact even when
         // post-effect damage is 0 (for example, rust/corrode touch attacks).
         sum[i] = mhm.hitflags || M_ATTK_HIT;

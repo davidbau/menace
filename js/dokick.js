@@ -1668,7 +1668,7 @@ export async function dokick(player, map, display, game) {
         await You("kick %s.", mon_nam(player.usteed));
         await kick_steed(player, map, display);
         return { moved: false, tookTime: true };
-    } else if (player.woundedLegLeft || player.woundedLegRight) {
+    } else if (player.woundedLegs) {
         await legs_in_no_shape("kicking", false, player);
         no_kick = true;
     } else if (near_capacity(player) > SLT_ENCUMBER) {
