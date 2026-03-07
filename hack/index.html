@@ -270,6 +270,70 @@
     }
 
     /* ============================================================
+       Dark Mode
+       ============================================================ */
+    body.dark-mode {
+      --color-bg: #111;
+      --color-text: #aaa;
+      --color-text-muted: #888;
+      --color-accent: #555;
+      --color-accent-dark: #888;
+      --color-shadow: rgba(0, 0, 0, 0.4);
+    }
+
+    body.dark-mode #controls button {
+      background: #222;
+    }
+
+    body.dark-mode #controls button:hover {
+      background: #333;
+      border-color: #666;
+    }
+
+    body.dark-mode #hamburger-menu {
+      background: #222;
+    }
+
+    body.dark-mode #hamburger-menu .hm-item {
+      background: #222;
+      color: #888;
+    }
+
+    body.dark-mode #hamburger-menu .hm-item:hover:not(:disabled) {
+      background: #444;
+      color: #ccc;
+    }
+
+    body.dark-mode .hm-divider {
+      border-top-color: #444;
+    }
+
+    body.dark-mode #docs-overlay {
+      background: #1a1a1a;
+    }
+
+    /* ============================================================
+       Fullscreen Mode
+       ============================================================ */
+    body.fullscreen-mode {
+      background: #000;
+      overflow: hidden;
+    }
+
+    body.fullscreen-mode #nav,
+    body.fullscreen-mode #nav-spacer,
+    body.fullscreen-mode #help-bar,
+    body.fullscreen-mode #controls {
+      display: none;
+    }
+
+    body.fullscreen-mode #hack-container {
+      border: none;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    /* ============================================================
        Docs Overlay
        ============================================================ */
     #docs-overlay {
@@ -492,6 +556,7 @@
         <button class="hm-item" id="hm-rogue"><span class="hm-check"></span>Play Rogue (1980)</button>
         <div class="hm-divider"></div>
         <button class="hm-item" id="hm-fullscreen"><span class="hm-check"></span>Fullscreen</button>
+        <button class="hm-item" id="hm-darkmode"><span class="hm-check"></span>Dark mode</button>
       </div>
     </div>
     <div id="nav-spacer" aria-hidden="true"></div>
@@ -543,6 +608,39 @@
     window.addEventListener('resize', sync);
   })();
 
+  /* Dark mode — shared state via menace-options localStorage */
+  (function() {
+    function getColorScheme() {
+      try {
+        var opts = JSON.parse(localStorage.getItem('menace-options')) || {};
+        if ('darkmode' in opts) return String(opts.darkmode) || 'system';
+        var legacy = localStorage.getItem('menace-theme');
+        return legacy === 'dark' ? 'dark' : legacy === 'light' ? 'light' : 'system';
+      } catch(e) { return 'system'; }
+    }
+    function applyColorScheme(scheme) {
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.body.classList.toggle('dark-mode',
+        scheme === 'dark' || (scheme === 'system' && prefersDark));
+    }
+    applyColorScheme(getColorScheme());
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+        if (getColorScheme() === 'system') applyColorScheme('system');
+      });
+    }
+    window._toggleDarkMode = function() {
+      var isDark = document.body.classList.contains('dark-mode');
+      var next = isDark ? 'light' : 'dark';
+      applyColorScheme(next);
+      try {
+        var opts = JSON.parse(localStorage.getItem('menace-options')) || {};
+        opts.darkmode = next;
+        localStorage.setItem('menace-options', JSON.stringify(opts));
+      } catch(e) {}
+    };
+  })();
+
   /* Font size controls — shared with other games via localStorage */
   (function() {
     function applyFontSize(size) {
@@ -552,6 +650,7 @@
       var screen = document.getElementById('hack-screen');
       if (screen) screen.style.fontSize = size + 'px';
     }
+    window._applyFontSize = applyFontSize;
 
     document.getElementById('font-smaller').addEventListener('click', function() {
       var size = 16;
@@ -587,6 +686,9 @@
 
       var isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
       document.querySelector('#hm-fullscreen .hm-check').textContent = isFs ? '\u2713' : '';
+
+      var isDark = document.body.classList.contains('dark-mode');
+      document.querySelector('#hm-darkmode .hm-check').textContent = isDark ? '\u2713' : '';
 
       if (!menuBackdrop) {
         menuBackdrop = document.createElement('div');
@@ -632,16 +734,71 @@
       closeMenu();
     });
 
+    // Dark mode
+    document.getElementById('hm-darkmode').addEventListener('click', function() {
+      if (window._toggleDarkMode) window._toggleDarkMode();
+      closeMenu();
+    });
+
     // Fullscreen
     document.getElementById('hm-fullscreen').addEventListener('click', function() {
       closeMenu();
-      var el = document.documentElement;
-      if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement) {
-        (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen).call(document);
+      if (window._toggleFullscreen) window._toggleFullscreen();
+    });
+  })();
+
+  /* Fullscreen — refit font to fill screen */
+  (function() {
+    var preFontSize = null;
+
+    function computeFullscreenFontSize() {
+      var vw = window.innerWidth, vh = window.innerHeight;
+      var ref = 100;
+      var testEl = document.createElement('span');
+      testEl.style.cssText = 'position:fixed;visibility:hidden;' +
+        'font-family:"DejaVu Sans Mono","Bitstream Vera Sans Mono","Liberation Mono",monospace;' +
+        'font-size:' + ref + 'px;line-height:1;';
+      testEl.textContent = '0';
+      document.body.appendChild(testEl);
+      var chWidth = testEl.offsetWidth;
+      document.body.removeChild(testEl);
+      var fromW = Math.floor(vw * ref / (80 * chWidth));
+      var fromH = Math.floor(vh / (24 * 1.2));
+      return Math.max(8, Math.min(fromW, fromH));
+    }
+
+    function onFullscreenChange() {
+      var fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+      if (fsEl) {
+        document.body.classList.add('fullscreen-mode');
+        if (window._applyFontSize) window._applyFontSize(computeFullscreenFontSize());
       } else {
-        (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen).call(el);
+        document.body.classList.remove('fullscreen-mode');
+        if (window._applyFontSize && preFontSize) window._applyFontSize(preFontSize);
+        preFontSize = null;
+      }
+    }
+
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
+    window.addEventListener('resize', function() {
+      if (document.body.classList.contains('fullscreen-mode') && window._applyFontSize) {
+        window._applyFontSize(computeFullscreenFontSize());
       }
     });
+
+    window._toggleFullscreen = function() {
+      var fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+      if (fsEl) {
+        (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen).call(document);
+      } else {
+        try { preFontSize = parseInt(localStorage.getItem('menace-font-size')) || 16; } catch(e) {}
+        var el = document.documentElement;
+        var req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+        if (req) req.call(el).catch(function() {});
+      }
+    };
   })();
 
   /* Docs overlay — fetch HISTORY.md, render as HTML, minimap the game */
