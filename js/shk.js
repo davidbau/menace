@@ -3406,12 +3406,12 @@ export function makekops(mm, game, map) {
 }
 
 // Autotranslated from shk.c:6035
-export async function use_unpaid_trapobj(otmp, x, y) {
+export async function use_unpaid_trapobj(otmp, x, y, player) {
   if (otmp.unpaid) {
     if (!Deaf) {
       let shkp = find_objowner(otmp, x, y);
       if (shkp && !muteshk(shkp)) { await verbalize("You set it, you buy it!"); }
     }
-    bill_dummy_object(otmp);
+    bill_dummy_object(otmp, player);
   }
 }

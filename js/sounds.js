@@ -967,7 +967,7 @@ export async function domonnoise(mtmp, game) {
             verbl_msg = "I can't see!";
         else if (mtmp.trapped)
             verbl_msg = "I'm trapped!";
-        else if (mtmp.hp < (mtmp.hpmax || 1) / 2)
+        else if (mtmp.hp < Math.floor((mtmp.hpmax || 1) / 2))
             pline_msg = 'asks for a potion of healing.';
         else if (mtmp.tame && !mtmp.isminion
                  && mtmp.edog && game.turnCount > mtmp.edog.hungrytime)

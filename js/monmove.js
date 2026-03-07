@@ -2400,7 +2400,7 @@ export async function m_break_boulder(mtmp, x, y, player) {
       mtmp.mspec_used += rn1(20, 10);
     }
     if (cansee(x, y)) { set_msg_xy(x, y); await pline_The("boulder falls apart."); }
-    if (otmp.unpaid) { bill_dummy_object(otmp); }
+    if (otmp.unpaid) { bill_dummy_object(otmp, player); }
     fracture_rock(otmp);
   }
 }
