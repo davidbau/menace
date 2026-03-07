@@ -45,7 +45,7 @@ import { place_object } from './mkobj.js';
 import { xname, an, The } from './objnam.js';
 import { hliquid, m_monnam } from './do_name.js';
 import { dosearch0 } from './detect.js';
-import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap } from './display.js';
+import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap } from './display.js';
 import { helpless, monnear } from './mon.js';
 import { monflee } from './monmove.js';
 import { ynFunction } from './input.js';
@@ -1429,10 +1429,11 @@ export async function lookaround(map, player, fov, dir, runStyle = 'run', displa
             if (!isok(x, y) || (x === ux && y === uy)) continue;
 
             const mon = map.monsterAt(x, y);
-            if (mon && !mon.dead
+            const monVisible = !!(mon && !mon.dead
                 && mon.m_ap_type !== M_AP_FURNITURE
                 && mon.m_ap_type !== M_AP_OBJECT
-                && fov.canSee(mon.mx, mon.my)) {
+                && canSeeMonsterForMap(mon, map, player, fov));
+            if (monVisible) {
                 const isSafeMon = !!(mon.tame || mon.peaceful || mon.mpeaceful);
                 if ((runMode !== 1 && !isSafeMon) || (infront && !travel)) {
                     return { stopReason: infront ? 'monster-in-front' : 'hostile-nearby' };

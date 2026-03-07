@@ -230,7 +230,9 @@ export async function rhack(ch, game) {
 
     // Run keys (capital letter = run in that direction)
     if (RUN_KEYS[c]) {
-        return do_run(RUN_KEYS[c], player, map, display, fov, game);
+        // C ref: do_run_<dir>() uses set_move_cmd(dir, 1), which differs from
+        // #run/G prefix semantics (context.run=3). Preserve that distinct mode.
+        return do_run(RUN_KEYS[c], player, map, display, fov, game, 'shiftRun');
     }
 
     function clearTopline() {

@@ -4044,3 +4044,27 @@ hard-won wisdom:
   - First RNG divergence moved later: `step 212 -> step 435`.
   - `seed031_manual_direct` unchanged at first divergence (`step 166`) and no metric regression.
   - `seed033_manual_direct` unchanged at first divergence (`step 47`) and no metric regression.
+
+### run-mode parity: uppercase direction run uses `context.run=1` (2026-03-07)
+
+- Divergence:
+  - `seed033_manual_direct` first divergence had JS stopping too early during
+    an uppercase run command (`L`), with JS frontier at step 47.
+  - C continued additional run iterations before stopping, so RNG/event streams
+    stayed aligned longer.
+- Root cause:
+  - JS treated uppercase run-direction keys (`RUN_KEYS`) like `#run`/`G` mode
+    (`context.run=3` semantics).
+  - In C, uppercase directional run commands call `set_move_cmd(dir, 1)`, which
+    has different `lookaround()` stop behavior (notably hostile-nearby handling).
+- Fix:
+  - In [`js/cmd.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/cmd.js),
+    route `RUN_KEYS` through `do_run(..., 'shiftRun')` so they use mode `1`.
+  - In [`js/hack.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/hack.js),
+    align lookaround monster-visibility gating to `canSeeMonsterForMap(...)`
+    instead of raw `fov.canSee(...)` to better match C `mon_visible` semantics.
+- Validation:
+  - `seed033_manual_direct` improved from:
+    - `rng=3680/14973`, `events=482/10678`, first RNG divergence at step `47`
+  - to:
+    - `rng=3744/17510`, `events=508/13503`, first RNG divergence at step `54`.
