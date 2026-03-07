@@ -12,7 +12,7 @@ import { newsym, newsym as newsym_fn } from './pri.js';
 import { setRhack, gameLoop, GameOver, losestr, ndaminc, dodown, doup } from './main.js';
 import { rhack } from './do.js';
 import { killed, rloc, mnexto, newcham, poisoned } from './mon.js';
-import { dosearch } from './do1.js';
+import { dosearch, dorecover } from './do1.js';
 import { docrt } from './pri.js';
 
 async function startGame() {
@@ -69,6 +69,21 @@ async function startGame() {
   document.title = 'Hack 1982';
 
   try {
+    // Offer save restore if one exists
+    if (localStorage.getItem('hack_save')) {
+      display.moveCursor(1, 1);
+      display.putString('Restore saved game? [yn] (n)');
+      display.flush();
+      const ans = await input.getKey();
+      display.clearScreen();
+      display.flush();
+      if (ans === 'y' || ans === 'Y') {
+        if (await dorecover()) {
+          await gameLoop(seed, /*skipInit=*/true);
+          return;
+        }
+      }
+    }
     await gameLoop(seed);
   } catch (e) {
     if (e instanceof GameOver) {

@@ -3,8 +3,10 @@ import { DOOR, CORR, ROOM, SDOOR, SEEN, HP, AC, STR } from './const.js';
 import { rn1, rn2, rnd, d } from './rng.js';
 import { game } from './gstate.js';
 import { mon } from './data.js';
-import { pline, atl, newsym, on } from './pri.js';
+import { pline, atl, newsym, on, docrt } from './pri.js';
 import { g_at_gen, g_at_mon, killed, delmon, makemon, mnexto } from './mon.js';
+import { savelev, getlev } from './lev.js';
+import { makeObj } from './game.js';
 
 const fl = [
   'magic missile',
@@ -226,28 +228,152 @@ function traps_name(n) {
   return t[n] || 'unknown trap';
 }
 
+// ===== Inventory list helpers =====
+
+function serializeInvent(head) {
+  const items = [];
+  for (let o = head; o !== null; o = o.nobj) {
+    items.push({
+      ox: o.ox, oy: o.oy,
+      olet: o.olet,
+      spe: o.spe,
+      quan: o.quan,
+      minus: o.minus,
+      known: o.known,
+      cursed: o.cursed,
+      otyp: o.otyp,
+    });
+  }
+  return items;
+}
+
+function deserializeInvent(items) {
+  if (!items || items.length === 0) return null;
+  let head = null, tail = null;
+  for (const d of items) {
+    const o = Object.assign(makeObj(), d);
+    o.nobj = null;
+    if (tail) tail.nobj = o;
+    else head = o;
+    tail = o;
+  }
+  return head;
+}
+
+function inventToArray(head) {
+  const arr = [];
+  for (let o = head; o !== null; o = o.nobj) arr.push(o);
+  return arr;
+}
+
+function findInventIdx(arr, ref) {
+  if (!ref) return -1;
+  for (let i = 0; i < arr.length; i++) if (arr[i] === ref) return i;
+  return -1;
+}
+
 // C ref: dosave() — save game to localStorage
 export async function dosave() {
-  await pline('Saving...');
+  await pline('Really save? [yn] (n)');
+  const ch = await game.input.getKey();
+  if (ch !== 'y' && ch !== 'Y') {
+    game.flags.move = false;
+    return;
+  }
+
   try {
-    const state = JSON.stringify({
+    // Save current level into savedLevels before serializing
+    savelev();
+
+    const inventArr = inventToArray(game.invent);
+    const state = {
+      version: 2,
       dlevel: game.dlevel,
       moves: game.moves,
-      u: game.u,
-      flags: game.flags,
+      multi: game.multi,
       rngSeed: game.rngSeed,
-    });
-    localStorage.setItem('hack_save', state);
+      initialSeed: game.initialSeed,
+      u: Object.assign({}, game.u, { ustuck: null }),  // strip monster pointer
+      flags: Object.assign({}, game.flags),
+      savedLevels: game.savedLevels,
+      invent: serializeInvent(game.invent),
+      uwep_idx:   findInventIdx(inventArr, game.uwep),
+      uarm_idx:   findInventIdx(inventArr, game.uarm),
+      uleft_idx:  findInventIdx(inventArr, game.uleft),
+      uright_idx: findInventIdx(inventArr, game.uright),
+      xupstair: game.xupstair, yupstair: game.yupstair,
+      xdnstair: game.xdnstair, ydnstair: game.ydnstair,
+      buf: game.buf, killer: game.killer,
+      wannam:   game.wannam,  potcol:   game.potcol,
+      rinnam:   game.rinnam,  scrnam:   game.scrnam,
+      potcall:  game.potcall, scrcall:  game.scrcall,
+      wandcall: game.wandcall, ringcall: game.ringcall,
+    };
+    localStorage.setItem('hack_save', JSON.stringify(state));
     await pline('Game saved. Be seeing you...');
+    // In browser, user can refresh to continue; stop the loop
+    game.flags.move = false;
+    game.multi = 0;
   } catch (e) {
     await pline('Save failed: %s', e.message);
   }
 }
 
 // C ref: dorecover(fp) — restore from save
-export async function dorecover(data) {
-  // STUB: full implementation in Phase 5
-  await pline('Restore not yet implemented.');
+// Called from firsthack.js if save exists on startup.
+export async function dorecover() {
+  const raw = localStorage.getItem('hack_save');
+  if (!raw) return false;
+  let s;
+  try { s = JSON.parse(raw); } catch (e) { return false; }
+  if (!s || s.version !== 2) return false;
+
+  localStorage.removeItem('hack_save');
+
+  // Restore scalars
+  game.dlevel     = s.dlevel;
+  game.moves      = s.moves;
+  game.multi      = s.multi || 0;
+  game.rngSeed    = s.rngSeed;
+  game.initialSeed = s.initialSeed || s.rngSeed;
+  game.xupstair   = s.xupstair; game.yupstair = s.yupstair;
+  game.xdnstair   = s.xdnstair; game.ydnstair = s.ydnstair;
+  game.buf        = s.buf || '';
+  game.killer     = s.killer || '';
+
+  // Restore player
+  Object.assign(game.u, s.u);
+  game.u.ustuck = null;
+
+  // Restore flags
+  Object.assign(game.flags, s.flags);
+
+  // Restore name arrays
+  if (s.wannam)   game.wannam   = s.wannam;
+  if (s.potcol)   game.potcol   = s.potcol;
+  if (s.rinnam)   game.rinnam   = s.rinnam;
+  if (s.scrnam)   game.scrnam   = s.scrnam;
+  if (s.potcall)  game.potcall  = s.potcall;
+  if (s.scrcall)  game.scrcall  = s.scrcall;
+  if (s.wandcall) game.wandcall = s.wandcall;
+  if (s.ringcall) game.ringcall = s.ringcall;
+
+  // Restore inventory
+  game.invent = deserializeInvent(s.invent);
+  const inventArr = inventToArray(game.invent);
+  game.uwep   = s.uwep_idx  >= 0 ? (inventArr[s.uwep_idx]  || null) : null;
+  game.uarm   = s.uarm_idx  >= 0 ? (inventArr[s.uarm_idx]  || null) : null;
+  game.uleft  = s.uleft_idx >= 0 ? (inventArr[s.uleft_idx] || null) : null;
+  game.uright = s.uright_idx >= 0 ? (inventArr[s.uright_idx] || null) : null;
+
+  // Restore savedLevels and load current level
+  game.savedLevels = s.savedLevels || {};
+  getlev(game.savedLevels[game.dlevel]);
+
+  // Redraw
+  await docrt();
+
+  return true;
 }
 
 // Forward ref: nomul is in main.js, imported by browser_main

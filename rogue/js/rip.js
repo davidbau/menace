@@ -6,6 +6,7 @@
 import { game } from './gstate.js';
 import { clear, draw, mvwaddstr } from './curses.js';
 import { wait_for } from './io.js';
+import { addScore, showScores } from './score.js';
 import {
   FOOD, WEAPON, ARMOR, AMULET, SCROLL, POTION, RING, STICK,
   MACE, SWORD, BOW, ARROW, DAGGER, ROCK, TWOSWORD, SLING, DART,
@@ -88,6 +89,8 @@ export async function death(monst) {
   mvwaddstr(g.stdscr, LINES - 1, 0, '--Press space to continue--');
   draw(g.stdscr);
   await wait_for(' ');
+  addScore(g.purse, g.level, false);
+  await showScores();
   g.playing = false;
 }
 
@@ -187,5 +190,7 @@ export async function total_winner() {
   mvwaddstr(g.stdscr, LINES - 1, 0, `Total worth: ${totalWorth} Au  --Press space to continue--`);
   draw(g.stdscr);
   await wait_for(' ');
+  addScore(totalWorth, g.level, true);
+  await showScores();
   g.playing = false;
 }

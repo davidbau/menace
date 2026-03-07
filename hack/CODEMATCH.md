@@ -116,8 +116,8 @@ divergence is a known open issue under investigation.
 | `at_buzz(x,y,ch)` | `at_buzz(x,y,ch)` | `[x]` | ray animation helper |
 | `zhit(mon,type)` | `zhit(mon,type)` | `[x]` | ray damage per monster type |
 | `dosearch()` | `dosearch()` | `[x]` | search adjacent cells for traps/doors |
-| `dosave()` | `dosave()` | `[x]` | save to localStorage |
-| `dorecover(fp)` | `dorecover(data)` | `[s]` | stub: prints "not yet implemented" (Phase 5) |
+| `dosave()` | `dosave()` | `[x]` | full game state to localStorage (v2 format) |
+| `dorecover(fp)` | `dorecover()` | `[x]` | full restore from localStorage; offered on page load |
 
 ---
 
@@ -221,7 +221,7 @@ divergence is a known open issue under investigation.
 | `hack.main.c` | `main.js` | 12 | 0 | Complete |
 | `hack.c` | `hack.js` | 17 | 0 | Complete |
 | `hack.do.c` | `do.js` | 25 | 0 | Complete |
-| `hack.do1.c` | `do1.js` | 11 | 1 (dorecover) | Near-complete |
+| `hack.do1.c` | `do1.js` | 11 | 0 | Complete |
 | `hack.mon.c` | `mon.js` | 21 | 0 | Complete |
 | `hack.pri.c` | `pri.js` | 21 | 0 | Complete |
 | `hack.lev.c` | `lev.js` | 4 | 0 | Complete |
@@ -229,7 +229,7 @@ divergence is a known open issue under investigation.
 
 **Not applicable** (browser game replaces these):
 - `hack.term.c` / terminal I/O — handled by `display.js` + `input.js`
-- `hack.save.c` / file save — `dosave()` uses localStorage; `dorecover()` stubbed
+- `hack.save.c` / file save — `dosave()`/`dorecover()` use localStorage (full state v2 format)
 - Signal handlers, `setuid`, `getpwuid` — not applicable in browser
 
 **Parity status** (as of Phase 4):

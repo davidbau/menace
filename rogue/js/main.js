@@ -35,6 +35,9 @@ import { quaff, _setPotionsDeps } from './potions.js';
 import { read_scroll, _setScrollsDeps } from './scrolls.js';
 import { death, total_winner, killname } from './rip.js';
 import { pack_char } from './pack.js';
+import { option, loadOptions } from './options.js';
+import { saveGame, loadGameState, hasSave, clearSave, registerDaemon } from './save.js';
+import { wizard_cmds, _setWizardDeps } from './wizard.js';
 
 // ===== Private helper functions =====
 
@@ -153,6 +156,17 @@ export async function giveStartingEquipment(g) {
  * Exported so test infrastructure can use it directly.
  */
 export function wireGameDeps(g) {
+  // Register daemon functions for save/restore
+  registerDaemon('doctor',    doctor);
+  registerDaemon('swander',   swander);
+  registerDaemon('rollwand',  rollwand);
+  registerDaemon('unconfuse', unconfuse);
+  registerDaemon('unsee',     unsee);
+  registerDaemon('sight',     sight);
+  registerDaemon('nohaste',   nohaste);
+  registerDaemon('stomach',   stomach);
+  registerDaemon('runners',   runners);
+
   _setRoomsDeps(new_monster, randmonster, new_thing);
 
   _setMonsterDeps({
@@ -234,16 +248,22 @@ export function wireGameDeps(g) {
     roomin, cansee, killed,
   });
 
+  _setWizardDeps({
+    msg, new_thing, add_pack, check_level, teleport,
+    new_level, light, look, status, inv_name,
+  });
+
   _setCommandDeps({
     msg, addmsg, readchar, status, look, do_move, do_run, fight, pick_up,
     inventory, picky_inven, drop, quaff, read_scroll,
     eat, wield, wear, take_off,
     ring_on, ring_off,
-    option: async () => {},
+    option,
     get_item, total_winner,
     d_level, u_level, help, identify, search, do_zap,
     get_dir, missile, teleport, new_level, draw, ISRING, quit,
-    save_game: async () => false,
+    save_game: saveGame,
+    wizard_cmds,
   });
 }
 
@@ -302,6 +322,36 @@ export async function initGame(seed, display, input_obj) {
   setGame(g);
 
   wireGameDeps(g);
+
+  // Check URL params for wizard mode
+  const params = new URLSearchParams(window.location?.search || '');
+  if (params.get('wizard') !== null) {
+    g.wizard = true;
+    g.waswizard = true;
+  }
+
+  // Load saved options (name, fruit, terse, etc.)
+  loadOptions();
+
+  // Offer save restore if one exists
+  if (hasSave()) {
+    await msg('Restore saved game? (y/n) ');
+    draw(g.cw);
+    const ch = await readchar();
+    await msg('');
+    if (ch === 'y' || ch === 'Y') {
+      resetStatus(); resetGrpnum(); resetBetween();
+      if (loadGameState(g)) {
+        draw(g.cw);
+        clearSave();
+        await playit();
+        return;
+      }
+      // If restore failed, fall through to new game
+      await msg('Restore failed, starting new game.');
+    }
+  }
+
   await startGameState(g, seed);
   await playit();
 }

@@ -224,19 +224,17 @@ Tracks the mapping between C source (`rogue-c/patched/`) and JavaScript (`js/`).
 
 ---
 
-## options.c → (no JS file)
+## options.c → js/options.js
 
-Options/settings system not ported — not applicable to browser-based play.
-
-| C function | Status |
-|------------|--------|
-| `option()` | `[ ]` |
-| `get_bool()` | `[ ]` |
-| `get_str()` | `[ ]` |
-| `put_bool()` | `[ ]` |
-| `put_str()` | `[ ]` |
-| `parse_opts()` | `[ ]` |
-| `strucpy()` | `[ ]` |
+| C function | JS location | Status | Notes |
+|------------|-------------|--------|-------|
+| `option()` | options.js | `[x]` | interactive options screen, localStorage persist |
+| `get_bool()` | options.js | `[x]` | inline in option() |
+| `get_str()` | options.js | `[x]` | inline in option() |
+| `put_bool()` | options.js | `[x]` | inline in option() |
+| `put_str()` | options.js | `[x]` | inline in option() |
+| `parse_opts()` | — | `[~]` | URL params supported (wizard=); no env var parsing |
+| `strucpy()` | — | `[p]` | JS string copy is implicit |
 
 ---
 
@@ -288,7 +286,7 @@ Options/settings system not ported — not applicable to browser-based play.
 | C function | JS location | Status | Notes |
 |------------|-------------|--------|-------|
 | `death(monst)` | rip.js | `[x]` | RIP gravestone art, waits for space |
-| `score()` | — | `[ ]` | high-score file; not applicable in browser |
+| `score()` | score.js | `[x]` | localStorage top-10 leaderboard; shown after death/win |
 | `total_winner()` | rip.js | `[x]` | win banner + item tally |
 | `killname()` | rip.js | `[x]` | returns monster/weapon name |
 
@@ -308,18 +306,16 @@ Options/settings system not ported — not applicable to browser-based play.
 
 ---
 
-## save.c → (no JS file)
+## save.c → js/save.js
 
-Save/restore not implemented — browser sessions are ephemeral.
-
-| C function | Status |
-|------------|--------|
-| `save_game()` | `[ ]` |
-| `auto_save()` | `[ ]` |
-| `save_file()` | `[ ]` |
-| `restore()` | `[ ]` |
-| `encwrite()` | `[ ]` |
-| `encread()` | `[ ]` |
+| C function | JS location | Status | Notes |
+|------------|-------------|--------|-------|
+| `save_game()` | save.js `saveGame()` | `[x]` | localStorage JSON; full state including screens, daemons, pack |
+| `auto_save()` | — | `[p]` | press 'S' to save (no auto on signal) |
+| `save_file()` | — | `[p]` | localStorage key 'rogue-save' |
+| `restore()` | save.js `loadGameState()` | `[x]` | offered on page load if save exists |
+| `encwrite()` | — | `[p]` | no encryption needed for localStorage |
+| `encread()` | — | `[p]` | no encryption needed for localStorage |
 
 ---
 
@@ -370,16 +366,16 @@ Save/restore not implemented — browser sessions are ephemeral.
 
 ---
 
-## wizard.c → (no JS file)
+## wizard.c → js/wizard.js
 
-Wizard mode not implemented.
+Wizard mode activated via URL param `?wizard`.
 
 | C function | JS location | Status | Notes |
 |------------|-------------|--------|-------|
 | `teleport()` | main.js | `[x]` | general teleport, not wizard-specific |
-| `whatis()` | — | `[ ]` | identify-by-pointing |
-| `create_obj()` | — | `[ ]` | wish/create item |
-| `passwd()` | — | `[ ]` | wizard mode password |
+| `whatis()` | wizard.js `'w'` cmd | `[~]` | shows player stats; not item-identify-by-pointing |
+| `create_obj()` | wizard.js `'c'` cmd | `[x]` | creates random item |
+| `passwd()` | — | `[p]` | wizard via URL param instead |
 
 ---
 
@@ -401,16 +397,16 @@ Wizard mode not implemented.
 | `monsters.c` | `[x]` complete |
 | `move.c` | `[x]` complete |
 | `newlevel.c` | `[x]` complete |
-| `options.c` | `[ ]` not applicable in browser |
+| `options.c` | `[x]` complete (localStorage, interactive screen) |
 | `pack.c` | `[x]` complete |
 | `passages.c` | `[x]` complete |
 | `potions.c` | `[x]` complete |
 | `rings.c` | `[x]` complete |
-| `rip.c` | `[x]` complete (score/high-score list N/A in browser) |
+| `rip.c` | `[x]` complete (score via localStorage leaderboard) |
 | `rooms.c` | `[x]` complete |
-| `save.c` | `[ ]` not applicable in browser |
+| `save.c` | `[x]` complete (localStorage JSON, full state) |
 | `scrolls.c` | `[x]` complete |
 | `sticks.c` | `[x]` complete |
 | `things.c` | `[x]` complete |
 | `weapons.c` | `[x]` complete |
-| `wizard.c` | `[ ]` wizard mode not implemented |
+| `wizard.c` | `[x]` complete (?wizard URL param, c/+/>/p/w/m/f cmds) |

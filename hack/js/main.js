@@ -175,54 +175,57 @@ let _rhack_fn = null;
 export function setRhack(fn) { _rhack_fn = fn; }
 
 // C ref: main() → gameLoop() — the main game loop
-export async function gameLoop(seed) {
-  // Initialize RNG
-  seedRng(seed || Date.now() & 0x7fffffff);
-  // Save initial seed — mklev re-seeds with this (C: srand(getpid()) overridden to game seed)
-  game.initialSeed = game.rngSeed;
+// skipInit=true: state already restored by dorecover(), skip initialization
+export async function gameLoop(seed, skipInit = false) {
+  if (!skipInit) {
+    // Initialize RNG
+    seedRng(seed || Date.now() & 0x7fffffff);
+    // Save initial seed — mklev re-seeds with this (C: srand(getpid()) overridden to game seed)
+    game.initialSeed = game.rngSeed;
 
-  // C ref: hack.main.c initialization order — maze first, then shuffles
-  game.flags.maze = rn1(5, 25);
+    // C ref: hack.main.c initialization order — maze first, then shuffles
+    game.flags.maze = rn1(5, 25);
 
-  // Initialize shuffled name arrays (copies)
-  game.wannam  = [...wannam];  shufl(game.wannam, game.wannam.length);
-  game.potcol  = [...potcol];  shufl(game.potcol, game.potcol.length);
-  game.rinnam  = [...rinnam];  shufl(game.rinnam, game.rinnam.length);
-  game.scrnam  = [...scrnam];  shufl(game.scrnam, game.scrnam.length);
+    // Initialize shuffled name arrays (copies)
+    game.wannam  = [...wannam];  shufl(game.wannam, game.wannam.length);
+    game.potcol  = [...potcol];  shufl(game.potcol, game.potcol.length);
+    game.rinnam  = [...rinnam];  shufl(game.rinnam, game.rinnam.length);
+    game.scrnam  = [...scrnam];  shufl(game.scrnam, game.scrnam.length);
 
-  // Starting inventory: 2 food rations, short sword, leather armor
-  const food = makeObj();
-  food.olet = '%'; food.otyp = 0; food.quan = 2; food.spe = food.known = 1;
-  const sword = makeObj();
-  sword.olet = ')'; sword.otyp = 4; sword.quan = 1; sword.spe = sword.known = 1;
-  const armor = makeObj();
-  armor.olet = '['; armor.otyp = 3; armor.quan = 1; armor.spe = armor.known = 1;
-  armor.cursed = armor.minus = false; sword.cursed = sword.minus = false;
+    // Starting inventory: 2 food rations, short sword, leather armor
+    const food = makeObj();
+    food.olet = '%'; food.otyp = 0; food.quan = 2; food.spe = food.known = 1;
+    const sword = makeObj();
+    sword.olet = ')'; sword.otyp = 4; sword.quan = 1; sword.spe = sword.known = 1;
+    const armor = makeObj();
+    armor.olet = '['; armor.otyp = 3; armor.quan = 1; armor.spe = armor.known = 1;
+    armor.cursed = armor.minus = false; sword.cursed = sword.minus = false;
 
-  food.nobj = sword; sword.nobj = armor; armor.nobj = null;
-  game.invent = food;
-  game.uwep = sword;
-  game.uarm = armor;
+    food.nobj = sword; sword.nobj = armor; armor.nobj = null;
+    game.invent = food;
+    game.uwep = sword;
+    game.uarm = armor;
 
-  game.u.uac = 6;
-  game.u.ulevel = 1;
-  game.u.uhunger = 900;
-  game.u.uhpmax = game.u.uhp = 12;
-  if (!rn2(20)) game.u.ustrmax = game.u.ustr = rn1(20, 14);
-  else game.u.ustrmax = game.u.ustr = 16;
-  ndaminc();
-  game.flags.move = true;
-  game.flags.one = true;
+    game.u.uac = 6;
+    game.u.ulevel = 1;
+    game.u.uhunger = 900;
+    game.u.uhpmax = game.u.uhp = 12;
+    if (!rn2(20)) game.u.ustrmax = game.u.ustr = rn1(20, 14);
+    else game.u.ustrmax = game.u.ustr = 16;
+    ndaminc();
+    game.flags.move = true;
+    game.flags.one = true;
 
-  // Generate first level
-  glo(1);
-  mklev();
-  getlev(game.savedLevels[game.dlevel]);
-  game.u.ux = game.xupstair;
-  game.u.uy = game.yupstair;
+    // Generate first level
+    glo(1);
+    mklev();
+    getlev(game.savedLevels[game.dlevel]);
+    game.u.ux = game.xupstair;
+    game.u.uy = game.yupstair;
 
-  await cls(); setsee();
-  game.flags.botl = 1;
+    await cls(); setsee();
+    game.flags.botl = 1;
+  }
 
   // Main game loop
   for (;;) {

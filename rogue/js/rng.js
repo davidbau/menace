@@ -31,6 +31,9 @@ export function rand() {
   return _seed;  // Return FULL value (used by rnd() for modulo)
 }
 
+export function getRngSeed() { return _seed; }
+export function setRngSeed(s) { _seed = Number(s) >>> 0; if (_seed === 0) _seed = 1; }
+
 // rnd(range): 0 to range-1
 // C: rand() % range — uses full Park-Miller value, NOT masked to 15 bits
 export function rnd(range) {
