@@ -4156,3 +4156,19 @@ hard-won wisdom:
   - added replay-based unit test [`test/unit/dothrow_prompt.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/dothrow_prompt.test.js) asserting `seed031` step-9 prompt text.
   - `seed100_multidigit_gameplay` now passes fully (`rng/events/screens = 100%`).
   - failures sweep at this checkpoint: `31/34` gameplay sessions passing (remaining: `seed031/032/033_manual_direct`).
+
+### mhitu AD_LEGS now applies wounded-legs state (2026-03-07)
+
+- Root cause:
+  - `mhitu_ad_legs()` consumed the `rnd(60 - ACURR(A_DEX))` roll but did not call `set_wounded_legs()`.
+  - This was a known C-faithfulness gap in the monster-vs-hero `AD_LEGS` branch.
+- Fix:
+  - in [`js/mhitu.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mhitu.js), `AD_LEGS` now:
+    - chooses side bit via C-style `rn2(2) ? RIGHT_SIDE : LEFT_SIDE`,
+    - calls `set_wounded_legs(side, rnd(60 - ACURR(A_DEX)), player)`,
+    - preserves existing exercise side effects.
+- Validation:
+  - added unit coverage in [`test/unit/combat.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/combat.test.js):
+    - `AD_LEGS attack sets wounded legs state`
+  - `node --test test/unit/combat.test.js` passes.
+  - `./scripts/run-and-report.sh --failures` remains stable at `31/34` (no regression).

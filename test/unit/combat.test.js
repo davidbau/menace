@@ -8,7 +8,7 @@ import { Player, roles } from '../../js/player.js';
 import { do_attack } from '../../js/uhitm.js';
 import { mattacku } from '../../js/mhitu.js';
 import { POTION_CLASS, POT_HEALING, ORCISH_DAGGER, WEAPON_CLASS } from '../../js/objects.js';
-import { AT_WEAP, M1_HUMANOID } from '../../js/monsters.js';
+import { AT_WEAP, AT_BITE, AD_LEGS, M1_HUMANOID } from '../../js/monsters.js';
 
 // Mock display object
 const mockDisplay = {
@@ -167,6 +167,29 @@ describe('Combat system', () => {
         await mattacku(mon, p, display, game);
 
         assert.equal(messages[0], 'The goblin thrusts her crude dagger.');
+    });
+
+    it('AD_LEGS attack sets wounded legs state', async () => {
+        initRng(42);
+        const p = new Player();
+        p.initRole(0);
+        p.ac = 10;
+        p.x = 5;
+        p.y = 5;
+        p.boots = null;
+
+        const mon = makeMonster({
+            attacks: [{ aatyp: AT_BITE, adtyp: AD_LEGS, damn: 1, damd: 1 }],
+            mx: 6, my: 5,
+        });
+
+        for (let i = 0; i < 200 && !p.woundedLegs; i++) {
+            await mattacku(mon, p, mockDisplay);
+        }
+
+        assert.ok(p.woundedLegs, 'AD_LEGS should set wounded legs');
+        assert.ok((p.eWoundedLegs || 0) !== 0, 'wounded leg side bits should be set');
+        assert.ok((p.hWoundedLegs || 0) > 0, 'wounded leg timeout should be set');
     });
 
 

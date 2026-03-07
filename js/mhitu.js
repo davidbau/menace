@@ -9,6 +9,7 @@ import {
     FIRE_RES, COLD_RES, SHOCK_RES, SLEEP_RES, POISON_RES, DRAIN_RES,
     ACID_RES, FREE_ACTION, FAST, SICK_RES, STONE_RES, REFLECTING,
     MALE, FEMALE, DISPLACED,
+    LEFT_SIDE, RIGHT_SIDE,
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     XKILL_NOMSG,
     ERODE_RUST, ERODE_CORRODE, ERODE_ROT, EF_GREASE, EF_VERBOSE, ER_NOTHING, ER_DAMAGED, ER_DESTROYED,
@@ -45,6 +46,7 @@ import { thrwmu, spitmu, breamu } from './mthrowu.js';
 import { castmu, buzzmu } from './mcastu.js';
 import { exercise } from './attrib_exercise.js';
 import { poisoned, acurr } from './attrib.js';
+import { set_wounded_legs } from './do.js';
 import { make_confused, make_stunned, make_blinded, make_hallucinated } from './potion.js';
 import { losexp } from './exper.js';
 import { stealgold, steal } from './steal.js';
@@ -767,7 +769,8 @@ async function mhitu_ad_heal(monster, attack, player, mhm, ctx) {
 async function mhitu_ad_legs(monster, attack, player, mhm, ctx) {
     const display = ctx.display;
     // C ref: uhitm.c:4420 — rn2(2) for left/right side (always consumed)
-    const side = rn2(2) ? 'right' : 'left';
+    const sideBit = rn2(2) ? RIGHT_SIDE : LEFT_SIDE;
+    const side = (sideBit === RIGHT_SIDE) ? 'right' : 'left';
     const mname = x_monnam(monster);
 
     // C ref: uhitm.c:4428-4430 — flying/levitating/mounted: can't reach
@@ -800,8 +803,7 @@ async function mhitu_ad_legs(monster, attack, player, mhm, ctx) {
         }
 
         // C ref: uhitm.c:4453-4455 — wound + exercise
-        // set_wounded_legs not ported; consume the rnd for RNG parity
-        rnd(Math.max(1, 60 - acurr(player, A_DEX)));
+        set_wounded_legs(sideBit, rnd(Math.max(1, 60 - acurr(player, A_DEX))), player);
         await exercise(player, A_STR, false);
         await exercise(player, A_DEX, false);
     }
