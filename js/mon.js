@@ -57,10 +57,13 @@ import { stackobj } from './invent.js';
 import { water_damage_chain, fire_damage_chain } from './trap.js';
 import { rloc, tele_restrict, enexto } from './teleport.js';
 import { in_your_sanctuary, inhistemple, p_coaligned } from './priest.js';
+import { create_gas_cloud } from './region.js';
+import { makemon } from './makemon.js';
 
 import { rn2, rnd, rnl, d, pushRngLogEntry, withRngTag } from './rng.js';
 import { BOULDER, COIN_CLASS, SCR_SCARE_MONSTER, CLOVE_OF_GARLIC,
-         AMULET_OF_STRANGULATION, RIN_SLOW_DIGESTION } from './objects.js';
+         AMULET_OF_STRANGULATION, RIN_SLOW_DIGESTION,
+         ROCK_CLASS } from './objects.js';
 import { couldsee, m_cansee } from './vision.js';
 import { is_hider, hides_under, is_mindless, is_displacer, perceives,
          is_human, is_elf, is_dwarf, is_gnome, is_orc, is_shapeshifter,
@@ -97,6 +100,7 @@ import { PM_ANGEL, PM_GRID_BUG, PM_FIRE_ELEMENTAL, PM_SALAMANDER,
          PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN,
          PM_LONG_WORM,
          PM_GRAY_OOZE, PM_BROWN_PUDDING, PM_BLACK_PUDDING,
+         PM_STEAM_VORTEX,
          NON_PM, NUMMONS,
          mons,
          AT_NONE, AT_BOOM, AT_ENGL, AT_HUGS, AD_PHYS, AD_ACID, AD_ENCH, AD_STCK,
@@ -933,6 +937,36 @@ export function mondead_full(mon, map, player) {
     lifesaved_monster(mon);
     if (mon.mhp > 0) return; // life-saved
 
+    const mdat = mon.data || mon.type || {};
+
+    // C ref: mon.c:3098-3099 — Steam Vortex creates harmless gas cloud on death
+    if (mon.mndx === PM_STEAM_VORTEX) {
+        create_gas_cloud(mon.mx, mon.my, rn2(10) + 5, 0, map, player, _gstate);
+    }
+
+    // C ref: mon.c:3142-3160 — Dead Kops may come back
+    if (mdat.mlet === S_KOP) {
+        // Find downstairs synchronously (stairway_find_type_dir is async, avoid that)
+        const gs = globalThis.gs || {};
+        let stway = null;
+        for (let tmp = gs.stairs; tmp; tmp = tmp.next) {
+            if (!tmp.isladder && !tmp.up) { stway = tmp; break; }
+        }
+        switch (rnd(5)) {
+        case 1: // returns near the stairs
+            if (stway) {
+                makemon(mdat, stway.sx, stway.sy, 0, _gstate?.depth, map);
+                break;
+            }
+            // FALLTHROUGH
+        case 2: // randomly
+            makemon(mdat, 0, 0, 0, _gstate?.depth, map);
+            break;
+        default:
+            break;
+        }
+    }
+
     // Log death event and process (delegating to monutil.mondead)
     mondead(mon, map, player);
 }
@@ -1673,6 +1707,8 @@ export function meatobj(mon, map) {
         if (otmp.otyp === SCR_SCARE_MONSTER) continue;
         // C ref: is_boulder(otmp) — gelatinous cubes can't eat boulders
         if (otmp.otyp === BOULDER) continue;
+        // C ref: mon.c:1556 — skip ROCK_CLASS items entirely (statues, etc.)
+        if (otmp.oclass === ROCK_CLASS) continue;
 
         // Petrifying corpses — skip if not resistant
         if (otmp.otyp === CORPSE && otmp.corpsenm >= 0 && otmp.corpsenm < NUMMONS) {
