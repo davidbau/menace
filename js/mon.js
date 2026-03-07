@@ -29,7 +29,7 @@ import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, ACCESSIBLE,
          W_AMUL, W_ARMG, W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMF, W_ARMU, W_WEP,
          BOLT_LIM, LS_MONSTER,
          RANDOM_CLASS, FOOD_CLASS, M2_COLLECT, IS_ALTAR,
-         STRAT_WAITMASK } from './const.js';
+         STRAT_WAITMASK, A_CHAOTIC, A_NONE, MS_NEMESIS, MS_GUARDIAN } from './const.js';
 import { NORMAL_SPEED } from './monsters.js';
 import { AMULET_OF_LIFE_SAVING, CORPSE, FIGURINE, STATUE, objectData,
          GRAY_DRAGON_SCALES, UNICORN_HORN, WORM_TOOTH,
@@ -119,8 +119,11 @@ import { monsterAtWithSegments } from './worm.js';
 import { ansimpleoname } from './objnam.js';
 import { game as _gstate } from './gstate.js';
 import { sengr_at, del_engr_at } from './engrave.js';
-import { adjalign } from './attrib.js';
+import { adjalign, change_luck } from './attrib.js';
 import { envFlag, writeStderr } from './runtime_env.js';
+import { experience, more_experienced, newexplevel } from './exper.js';
+import { sgn } from './hacklib.js';
+import { always_hostile } from './mondata.js';
 
 // ========================================================================
 // Monster speed constants — C ref: include/monsym.h
@@ -988,6 +991,59 @@ export function xkilled(mon, xkill_flags, map, player) {
         if (loc && (ACCESSIBLE(loc.typ) || IS_POOL(loc.typ))) {
             make_corpse(mon, 0, map);
             newsym(x, y);
+        }
+    }
+
+    // C ref: mon.c:3638-3668 — cleanup: punish bad behavior, give experience
+    if (player) {
+        // Murder penalty: killing non-hostile humans (excluding role monsters and PM_HUMAN)
+        if (is_human(mdat)
+            && (!always_hostile(mdat) && (mon.malign || 0) <= 0)
+            && (mndx < PM_ARCHEOLOGIST || mndx > PM_WIZARD)
+            && mndx !== PM_HUMAN
+            && (player.ualign?.type ?? 0) !== A_CHAOTIC) {
+            // HTelepat &= ~INTRINSIC; // TODO: intrinsic telepathy loss
+            change_luck(-2, player);
+            // You("murderer!"); // cosmetic
+        }
+        // Peaceful/tame luck penalty — rn2(2) is RNG-consuming
+        if ((mon.peaceful && !rn2(2)) || mon.mtame)
+            change_luck(-1, player);
+        // Unicorn guilt — same alignment
+        if (is_unicorn(mdat) && sgn(player.ualign?.type ?? 0) === sgn(mdat.maligntyp || 0)) {
+            change_luck(-5, player);
+            // You_feel("guilty..."); // cosmetic
+        }
+
+        // Give experience points
+        const game = _gstate;
+        const tmp = experience(mon, game?.mvitals?.[mndx]?.died || 0);
+        more_experienced(tmp, 0, game, player);
+        // newexplevel is async but non-RNG; skip for now
+
+        // Alignment adjustments for special monsters
+        const msound = mdat.msound ?? 0;
+        if (game?.quest_status?.leader_m_id && mon.m_id === game.quest_status.leader_m_id) {
+            // REAL BAD! Killed quest leader
+            adjalign(player, -((player.ualign?.record || 0) + Math.floor(14 / 2)));
+            // u.ugangr += 7; // TODO: god anger
+            change_luck(-20, player);
+        } else if (msound === MS_NEMESIS) {
+            // Real good! (only if leader not killed)
+            if (!game?.quest_status?.killed_leader)
+                adjalign(player, Math.floor(14 / 4)); // ALIGNLIM/4
+        } else if (msound === MS_GUARDIAN) {
+            adjalign(player, -Math.floor(14 / 8)); // -ALIGNLIM/8
+            // u.ugangr++; // TODO: god anger
+            change_luck(-4, player);
+        } else if (mon.ispriest) {
+            adjalign(player, p_coaligned(mon, player) ? -2 : 2);
+            if (p_coaligned(mon, player))
+                player.ublessed = 0;
+            if ((mdat.maligntyp || 0) === A_NONE)
+                adjalign(player, Math.floor(14 / 4)); // ALIGNLIM/4
+        } else if (mon.mtame) {
+            adjalign(player, -15);
         }
     }
 }
