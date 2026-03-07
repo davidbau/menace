@@ -884,6 +884,23 @@ export async function handleApply(player, map, display, game) {
     };
     const resolveApplySelection = async (selected) => {
         replacePromptMessage();
+        if (selected.otyp === OIL_LAMP || selected.otyp === MAGIC_LAMP
+            || selected.otyp === BRASS_LANTERN) {
+            await use_lamp(selected);
+            return { moved: false, tookTime: true };
+        }
+        if (selected.otyp === WAX_CANDLE || selected.otyp === TALLOW_CANDLE) {
+            await use_candle(selected);
+            return { moved: false, tookTime: true };
+        }
+        if (selected.otyp === CANDELABRUM_OF_INVOCATION) {
+            await use_candelabrum(selected);
+            return { moved: false, tookTime: true };
+        }
+        if (selected.otyp === POT_OIL) {
+            await light_cocktail(selected);
+            return { moved: false, tookTime: true };
+        }
         if (isApplyChopWeapon(selected)) {
             await display.putstr_message('In what direction do you want to chop? [>] ');
             await nhgetch();

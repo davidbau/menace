@@ -4026,3 +4026,21 @@ hard-won wisdom:
 - Validation:
   - `seed032_manual_direct`: improved from `rng=4165/9127, screens=164/678, events=1233/5854` to `rng=4188/8237, screens=197/678, events=1220/5832` (first shared divergence still step 212).
   - `seed031_manual_direct`: no regression at first divergence (still step 166), with improved totals (`rng total 9132 -> 9122`, `events total 3335 -> 3320`).
+
+### apply dispatch gap fixed: lamp/candle paths now wired in doapply (2026-03-07)
+
+- Root cause discovered via replay-step inspection:
+  - In `seed032_manual_direct`, `#apply` selection `e` correctly referred to an oil lamp, but `handleApply()` fell through to `"Sorry, I don't know how to use that."` because lamp/candle/candelabrum/oil branches were not connected in `resolveApplySelection()`.
+  - The handler functions (`use_lamp`, `use_candle`, `use_candelabrum`, `light_cocktail`) already existed; dispatch wiring was missing.
+- Fix:
+  - Added explicit dispatch branches in [`js/apply.js`](/share/u/davidbau/git/mazesofmenace/game/js/apply.js) for:
+    - `OIL_LAMP` / `MAGIC_LAMP` / `BRASS_LANTERN` -> `use_lamp`
+    - `WAX_CANDLE` / `TALLOW_CANDLE` -> `use_candle`
+    - `CANDELABRUM_OF_INVOCATION` -> `use_candelabrum`
+    - `POT_OIL` -> `light_cocktail`
+  - All return `tookTime: true` to match apply-turn semantics.
+- Validation:
+  - `seed032_manual_direct` improved from `rng=4188/8237, screens=197/678, events=1220/5832` to `rng=4531/10083, screens=201/678, events=1635/6858`.
+  - First RNG divergence moved later: `step 212 -> step 435`.
+  - `seed031_manual_direct` unchanged at first divergence (`step 166`) and no metric regression.
+  - `seed033_manual_direct` unchanged at first divergence (`step 47`) and no metric regression.
