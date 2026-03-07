@@ -883,7 +883,9 @@ async function run_dochug_postmove_pipeline_current_js(
             // Gate-3 semantic slice: align non-pet moved-cell order toward C postmov:
             // door/bars handling before tunneling; tail effects (web) after.
             const here = map.at(mon.mx, mon.my);
-            if (here && IS_DOOR(here.typ)) {
+            const mdat = mon.data || mon.type || mons[mon.mndx] || {};
+            const canTunnel = !!(allowflags & ALLOW_DIG);
+            if (here && IS_DOOR(here.typ) && !passes_walls(mdat) && !canTunnel) {
                 const canSeeDoor = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
                 const canSeeMon = canSpotMonsterForMap(mon, map, player, fov);
                 const wasLocked = !!(here.flags & D_LOCKED);
@@ -941,7 +943,6 @@ async function run_dochug_postmove_pipeline_current_js(
                 }
             } else if (here && here.typ === IRONBARS) {
                 // C ref: monmove.c postmov() bars handling (before mdig_tunnel()).
-                const mdat = mon.data || mon.type || mons[mon.mndx] || {};
                 const wallInfo = Number(here.wall_info ?? 0);
                 const canEatBars = !(wallInfo & W_NONDIGGABLE)
                     && (dmgtype(mdat, AD_RUST) || dmgtype(mdat, AD_CORR) || is_metallivore(mdat));

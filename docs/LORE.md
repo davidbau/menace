@@ -3512,3 +3512,15 @@ hard-won wisdom:
 - Validation:
   - `seed327_priest_wizard_gameplay` now passes;
   - gameplay burndown improved from `28/34` to `29/34` passing.
+
+### postmov parity slice: door branch gated by `!passes_walls && !can_tunnel` (2026-03-07)
+
+- Tightened shared non-pet postmov door branch to mirror C guard conditions:
+  door logic now runs only when the monster does not pass walls and is not in
+  tunnel mode (`ALLOW_DIG`).
+- This keeps door handling semantics aligned with C’s postmov branch partition
+  before bars/dig handling.
+- Validation stayed stable:
+  - `seed325`/`seed327` RNG+event full-match unchanged;
+  - `seed328` full pass unchanged;
+  - failure suite remains `28/34` passing (`6` failing).
