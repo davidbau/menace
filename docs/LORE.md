@@ -3897,3 +3897,20 @@ hard-won wisdom:
     unchanged (`5430/29894`, first divergence still step 89);
   - `./scripts/run-and-report.sh --failures` unchanged (31/34 passing,
     failing: `seed031`, `seed032`, `seed033`).
+
+### pending wait-site now resolves to gameplay frames (2026-03-07)
+
+- Diagnostic refinement in
+  [`js/replay_core.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/replay_core.js):
+  - `pendingWaitSite()` now prefers non-internal `/js/` frames and skips
+    runtime plumbing/internal frames (`input.js`, `headless.js`,
+    `replay_core.js`, `node:internal`), so traces identify the actual
+    gameplay callsite.
+- Result:
+  - seed032 trap-confirm wait now reports:
+    `step=72 ... start=waiting at async domove_core (js/hack.js:880:21)`
+    instead of a generic tick frame.
+- Interpretation:
+  - replay-core wait-boundary detection is working for the trap `yn` flow;
+    remaining seed032 mismatch is downstream gameplay parity, not an
+    undetected blocked-input boundary.

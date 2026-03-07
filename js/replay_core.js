@@ -100,11 +100,22 @@ function pendingWaitSite(inputRuntime) {
     const raw = String(st?.waitContext || st?.waitStack || '');
     if (!raw) return '';
     const lines = raw.split('\n').map((s) => s.trim()).filter(Boolean);
-    const useful = lines.slice(1).find((line) => (
+    const frames = lines.slice(1);
+    const jsFrame = frames.find((line) => (
+        line.includes('/js/')
+        && !line.includes('/js/headless.js')
+        && !line.includes('/js/input.js')
+        && !line.includes('/js/replay_core.js')
+        && !line.includes('node:internal')
+    ));
+    if (jsFrame) return jsFrame;
+    const nonInternal = frames.find((line) => (
         !line.includes('/js/headless.js')
         && !line.includes('/js/input.js')
+        && !line.includes('/js/replay_core.js')
+        && !line.includes('node:internal')
     ));
-    return useful || lines[2] || lines[1] || '';
+    return nonInternal || frames[1] || frames[0] || '';
 }
 
 // ---------------------------------------------------------------------------
