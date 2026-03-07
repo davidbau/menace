@@ -62,10 +62,11 @@
     }
 
     #nav-spacer {
-      visibility: hidden;
-      pointer-events: none;
       flex-shrink: 0;
       width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     /* ============================================================
@@ -152,18 +153,20 @@
        Help Bar
        ============================================================ */
     #help-bar {
-      margin-top: 0.3em;
       font-size: calc(var(--game-font-size) * 0.8);
       color: var(--color-text-muted);
       text-align: center;
       font-family: var(--font-serif);
-      order: 1;
     }
 
     .help-key {
       font-family: var(--font-mono);
       font-size: calc(var(--game-font-size) * 0.75);
       color: var(--color-text);
+    }
+
+    .sep {
+      padding: 0 0.3em;
     }
 
     /* ============================================================
@@ -322,7 +325,6 @@
 
     body.fullscreen-mode #nav,
     body.fullscreen-mode #nav-spacer,
-    body.fullscreen-mode #help-bar,
     body.fullscreen-mode #controls {
       display: none;
     }
@@ -506,7 +508,6 @@
 
     body.docs-mode #nav,
     body.docs-mode #nav-spacer,
-    body.docs-mode #help-bar,
     body.docs-mode #controls {
       display: none;
     }
@@ -530,19 +531,6 @@
         <div id="loading">Loading Rogue...</div>
       </div>
     </main>
-    <div id="help-bar">
-      <span class="help-key">hjklyubn</span> move &middot;
-      <span class="help-key">e</span> eat &middot;
-      <span class="help-key">q</span> quaff &middot;
-      <span class="help-key">r</span> read &middot;
-      <span class="help-key">w</span> wield &middot;
-      <span class="help-key">W</span> wear &middot;
-      <span class="help-key">t</span> throw &middot;
-      <span class="help-key">i</span> inv &middot;
-      <span class="help-key">d</span> drop &middot;
-      <span class="help-key">&gt;</span> descend &middot;
-      <span class="help-key">Q</span> quit
-    </div>
     <div id="controls">
       <button id="font-smaller" title="Decrease font size" aria-label="Decrease font size" tabindex="-1"><span class="mono-char">A</span>&#x2212;</button>
       <button id="font-larger" title="Increase font size" aria-label="Increase font size" tabindex="-1"><span class="mono-char">A</span>+</button>
@@ -558,7 +546,21 @@
         <button class="hm-item" id="hm-darkmode"><span class="hm-check"></span>Dark mode</button>
       </div>
     </div>
-    <div id="nav-spacer" aria-hidden="true"></div>
+    <div id="nav-spacer">
+      <div id="help-bar">
+        <span class="help-key">hjklyubn</span> move <span class="sep">&middot;</span>
+        <span class="help-key">e</span> eat <span class="sep">&middot;</span>
+        <span class="help-key">q</span> quaff <span class="sep">&middot;</span>
+        <span class="help-key">r</span> read <span class="sep">&middot;</span>
+        <span class="help-key">w</span> wield <span class="sep">&middot;</span>
+        <span class="help-key">W</span> wear <span class="sep">&middot;</span>
+        <span class="help-key">t</span> throw <span class="sep">&middot;</span>
+        <span class="help-key">i</span> inv <span class="sep">&middot;</span>
+        <span class="help-key">d</span> drop <span class="sep">&middot;</span>
+        <span class="help-key">&gt;</span> descend <span class="sep">&middot;</span>
+        <span class="help-key">Q</span> quit
+      </div>
+    </div>
   </div>
 
   <!-- Documentation overlay -->
