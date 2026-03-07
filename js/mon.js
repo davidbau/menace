@@ -1493,8 +1493,8 @@ export function meatmetal(mon, map) {
         if (mon.dead || (mon.mhp || 0) <= 0) return 2;
         // Maybe leave a rock behind
         if (rnd(25) < 3) {
-            // C ref: mksobj_at(ROCK, ...) — simplified
-            // Rock creation not yet wired
+            // C ref: mon.c:1498-1499 — leave a rock behind
+            mksobj_at(OBJ_ROCK, mon.mx, mon.my, true, false);
         }
         newsym(mon.mx, mon.my);
         return 1;
