@@ -133,16 +133,6 @@ export async function rhack(ch, game) {
         ch = queued.key;
     }
 
-    if (game?.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
-        const promptResult = await game.pendingPrompt.onKey(ch, game);
-        if (promptResult?.handled) {
-            return {
-                moved: !!promptResult.moved,
-                tookTime: !!promptResult.tookTime,
-            };
-        }
-    }
-
     const c = String.fromCharCode(ch);
     const isMetaKey = ch >= 128 && ch <= 255;
     const metaBaseChar = isMetaKey ? String.fromCharCode(ch & 0x7f).toLowerCase() : '';
