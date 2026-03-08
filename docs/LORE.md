@@ -4506,3 +4506,21 @@ hard-won wisdom:
     - `seed033_manual_direct` still first-diverges on early RNG context.
   - Unit suite remains clean:
     - `node scripts/test-unit-core.mjs` => `2514/2514` pass.
+
+### C harness setup: fail-fast checks for critical instrumentation markers (2026-03-08)
+
+- Problem:
+  - When `nethack-c/patched` drifts between rebuilds, missing instrumentation in
+    `engrave.c`/`allmain.c` can silently degrade parity diagnostics.
+- Change:
+  - Added post-patch marker assertions to
+    [`test/comparison/c-harness/setup.sh`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/c-harness/setup.sh):
+    - `event_log("wipe[%d,%d]", x, y);`
+    - `event_log("engr[%d,%d,%d]", ep->engr_type, x, y);`
+    - `event_log("dengr[%d,%d]", ep->engr_x, ep->engr_y);`
+    - `event_log("mapdump[%s]", dump_id);`
+  - Setup now exits immediately with a clear failure if any marker is absent.
+- Validation:
+  - `bash -n test/comparison/c-harness/setup.sh`
+  - `./scripts/run-and-report.sh --failures` unchanged baseline: `31/34`
+    gameplay sessions passing, same failing set (`seed031/032/033`).

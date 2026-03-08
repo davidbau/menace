@@ -156,6 +156,28 @@ for patch in "$PATCHES_DIR"/*.patch; do
 done
 echo ""
 
+# --- Step 2b: Verify critical instrumentation hooks ---
+# These checks fail fast if source drift causes a patch hunk to stop applying.
+require_marker() {
+    local file="$1"
+    local pattern="$2"
+    local label="$3"
+    if ! grep -Fq "$pattern" "$file"; then
+        echo "[FAIL] Missing required instrumentation marker: $label"
+        echo "       File: $file"
+        echo "       Pattern: $pattern"
+        echo "       Re-run setup after fixing patch drift in $PATCHES_DIR."
+        exit 1
+    fi
+}
+
+require_marker "src/engrave.c" 'event_log("wipe[%d,%d]", x, y);' "engrave wipe event"
+require_marker "src/engrave.c" 'event_log("engr[%d,%d,%d]", ep->engr_type, x, y);' "engrave create event"
+require_marker "src/engrave.c" 'event_log("dengr[%d,%d]", ep->engr_x, ep->engr_y);' "engrave delete event"
+require_marker "src/allmain.c" 'event_log("mapdump[%s]", dump_id);' "mapdump trigger event"
+echo "[OK] Critical instrumentation hooks present"
+echo ""
+
 # --- Step 3: Configure build system ---
 cd "$NETHACK_DIR"
 # On macOS, install our minimal hints file (no macosx-minimal in upstream)
