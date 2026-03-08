@@ -747,7 +747,8 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                     restoreCursor(display, cursorState);
                     cx = nx;
                     cy = ny;
-                    cursorState = putCursor(display, cx, cy);
+                    // C ref: auto_describe() calls custompline THEN curs(WIN_MAP,cx,cy).
+                    // Display the description first, then reposition cursor on map.
                     const desc = await describeCursorWithContext(display, runtimeCtx, cx, cy);
                     if (desc && typeof display?.putstr_message === 'function') {
                         let message = desc;
@@ -769,6 +770,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                         if (runtimeCtx.travelMode) replaceToplineMessage();
                         await display.putstr_message(message);
                     }
+                    cursorState = putCursor(display, cx, cy);
                 }
                 continue;
             }
