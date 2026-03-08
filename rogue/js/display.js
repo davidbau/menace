@@ -115,7 +115,16 @@ export class Display {
   _render() {
     let lines = [];
     for (let r = 1; r <= this.ROWS; r++) {
-      let line = this.grid[r].slice(1).join('');
+      const raw = this.grid[r].slice(1).join('');
+      let line = '';
+      for (let i = 0; i < raw.length; i++) {
+        if (raw[i] === '\t') {
+          const nextStop = (Math.floor(line.length / 8) + 1) * 8;
+          while (line.length < nextStop && line.length < this.COLS) line += ' ';
+        } else {
+          line += raw[i];
+        }
+      }
       lines.push(line);
     }
     this._pre.textContent = lines.join('\n');
