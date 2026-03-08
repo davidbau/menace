@@ -593,9 +593,10 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
         }
         // C ref: getpos.c:843-846 — verbose "(For instructions...)" is shown
         // BEFORE the loop as a separate pline, NOT combined with the goal message.
-        // This allows it to concatenate with whatever topline message exists
-        // (e.g. "Where do you want to travel to?") without overflow.
-        if (flags.verbose) {
+        // Only show when a tip was just displayed (tip clears the topline, so no
+        // concatenation risk). When callers like dotravel() already include the
+        // instructions in their prompt, showing it again would overflow.
+        if (flags.verbose && tipShownThisCall) {
             await display.putstr_message("(For instructions type a '?')");
         }
     }
