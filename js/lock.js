@@ -268,7 +268,7 @@ export async function obstructed(x, y, quietly, map) {
 // cf. lock.c:660 — u_have_forceable_weapon(void): check for force weapon
 // Autotranslated from lock.c:659
 export function u_have_forceable_weapon() {
-  if (!uwep /* proper type test */ || ((uwep.oclass === WEAPON_CLASS || is_weptool(uwep)) ? (objects[uwep.otyp].oc_skill < P_DAGGER || objects[uwep.otyp].oc_skill === P_FLAIL || objects[uwep.otyp].oc_skill > P_LANCE) : uwep.oclass !== ROCK_CLASS)) return false;
+  if (!uwep /* proper type test */ || ((uwep.oclass === WEAPON_CLASS || is_weptool(uwep)) ? (objectData[uwep.otyp].oc_skill < P_DAGGER || objectData[uwep.otyp].oc_skill === P_FLAIL || objectData[uwep.otyp].oc_skill > P_LANCE) : uwep.oclass !== ROCK_CLASS)) return false;
   return true;
 }
 

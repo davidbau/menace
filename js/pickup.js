@@ -1009,7 +1009,7 @@ export async function in_or_out_menu(prompt, obj, outokay, inokay, alreadyused, 
 export function tip_ok(obj) {
   if (!obj || obj.oclass === COIN_CLASS) return GETOBJ_EXCLUDE;
   if (Is_container(obj)) { return GETOBJ_SUGGEST; }
-  if (obj.otyp === HORN_OF_PLENTY && obj.dknown && objects[obj.otyp].oc_name_known) return GETOBJ_SUGGEST;
+  if (obj.otyp === HORN_OF_PLENTY && obj.dknown && objectData[obj.otyp].oc_name_known) return GETOBJ_SUGGEST;
   return GETOBJ_DOWNPLAY;
 }
 

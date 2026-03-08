@@ -186,10 +186,10 @@ export function o_in(obj, oclass) {
 // Autotranslated from detect.c:229
 export function o_material(obj, material) {
   let otmp, temp;
-  if (objects[obj.otyp].oc_material === material) return obj;
+  if (objectData[obj.otyp].oc_material === material) return obj;
   if (Has_contents(obj)) {
     for (otmp = obj.cobj; otmp; otmp = otmp.nobj) {
-      if (objects[otmp.otyp].oc_material === material) return otmp;
+      if (objectData[otmp.otyp].oc_material === material) return otmp;
       else if (Has_contents(otmp) && (temp = o_material(otmp, material)) != null) return temp;
     }
   }

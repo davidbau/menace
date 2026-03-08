@@ -15,6 +15,10 @@
 // based on whether names already exist.
 // TODO: iactions.c:46 — item_naming_classification(): item name menu text
 
+import { objectData, SCROLL_CLASS, SPBOOK_CLASS, FORTUNE_COOKIE,
+         T_SHIRT, ALCHEMY_SMOCK, HAWAIIAN_SHIRT,
+         SCR_BLANK_PAPER, SPE_NOVEL, SPE_BLANK_PAPER, SPE_BOOK_OF_THE_DEAD } from './objects.js';
+
 // cf. iactions.c:85 [static] — item_reading_classification(obj, outbuf): item reading menu text
 // Generates appropriate menu text for reading an item based on its type
 // (scrolls, spellbooks, fortune cookies, etc.).
@@ -47,11 +51,11 @@ export function item_reading_classification(obj, outbuf) {
     outbuf = "Look at the pattern on the shirt";
   }
   else if (obj.oclass === SCROLL_CLASS) {
-    let magic = ((obj.dknown    && (otyp !== SCR_BLANK_PAPER || !objects[otyp].oc_name_known)) ? " to activate its magic" : "");
+    let magic = ((obj.dknown    && (otyp !== SCR_BLANK_PAPER || !objectData[otyp].oc_name_known)) ? " to activate its magic" : "");
     outbuf = `Read this scroll${magic}`;
   }
   else if (obj.oclass === SPBOOK_CLASS) {
-    let novel = (otyp === SPE_NOVEL), blank = (otyp === SPE_BLANK_PAPER && objects[otyp].oc_name_known), tome = (otyp === SPE_BOOK_OF_THE_DEAD && objects[otyp].oc_name_known);
+    let novel = (otyp === SPE_NOVEL), blank = (otyp === SPE_BLANK_PAPER && objectData[otyp].oc_name_known), tome = (otyp === SPE_BOOK_OF_THE_DEAD && objectData[otyp].oc_name_known);
     outbuf = `${(novel || blank) ? "Read" : tome ? "Examine" : "Study"} this ${novel ? simpleonames(obj)   : tome ? "tome" : "spellbook"}`;
   }
   else { res = IA_NONE; }

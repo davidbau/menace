@@ -448,9 +448,9 @@ export function set_cost(obj, shkp, player) {
   else {
     divisor *= 2;
   }
-  if (!obj.dknown || !objects[obj.otyp].oc_name_known) {
+  if (!obj.dknown || !objectData[obj.otyp].oc_name_known) {
     if (obj.oclass === GEM_CLASS) {
-      if (objects[obj.otyp].oc_material === GEMSTONE || objects[obj.otyp].oc_material === GLASS) {
+      if (objectData[obj.otyp].oc_material === GEMSTONE || objectData[obj.otyp].oc_material === GLASS) {
         tmp = ((obj.otyp - FIRST_REAL_GEM) % (6 - shkp.m_id % 3));
         tmp = (tmp + 3) * obj.quan;
         divisor = 1;
@@ -3262,7 +3262,7 @@ export function stolen_container(obj, shkp, price, ininv) {
 
 // Autotranslated from shk.c:4253
 export function getprice(obj, shk_buying, player) {
-  let tmp =  objects[obj.otyp].oc_cost;
+  let tmp =  objectData[obj.otyp].oc_cost;
   if (obj.oartifact) {
     tmp = arti_cost(obj);
     if (shk_buying) {
@@ -3290,7 +3290,7 @@ export function getprice(obj, shk_buying, player) {
         }
     break;
     case TOOL_CLASS:
-      if (Is_candle(obj) && obj.age < 20 *  objects[obj.otyp].oc_cost) {
+      if (Is_candle(obj) && obj.age < 20 *  objectData[obj.otyp].oc_cost) {
         tmp /= 2;
       }
     break;

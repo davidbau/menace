@@ -1851,12 +1851,12 @@ export function rnd_class(first, last) {
   let i, x, sum = 0;
   if (last > first) {
     for (i = first; i <= last; i++) {
-      sum += objects[i].oc_prob;
+      sum += objectData[i].oc_prob;
     }
     if (!sum) return rn1(last - first + 1, first);
     x = rnd(sum);
     for (i = first; i <= last; i++) {
-      if ((x -= objects[i].oc_prob) <= 0) return i;
+      if ((x -= objectData[i].oc_prob) <= 0) return i;
     }
   }
   return (first === last) ? first : STRANGE_OBJECT;
