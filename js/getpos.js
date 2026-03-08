@@ -552,7 +552,6 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
     }
 
     let showGoalMsg = false;
-    let verbosePrefix = '';
     let tipShownThisCall = false;
     if (typeof display?.putstr_message === 'function') {
         // C ref: getpos.c emits one-time tip + verbose instructions before the
@@ -592,9 +591,12 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 showGoalMsg = true;
             }
         }
-        if (flags.verbose && tipShownThisCall) {
-            verbosePrefix = "(For instructions type a '?')  ";
-            showGoalMsg = true;
+        // C ref: getpos.c:843-846 — verbose "(For instructions...)" is shown
+        // BEFORE the loop as a separate pline, NOT combined with the goal message.
+        // This allows it to concatenate with whatever topline message exists
+        // (e.g. "Where do you want to travel to?") without overflow.
+        if (flags.verbose) {
+            await display.putstr_message("(For instructions type a '?')");
         }
     }
     if (getpos_hilitefunc && getpos_hilite_state === HiliteGoodposSymbol && !hiliteOn) {
@@ -615,10 +617,12 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
         };
 
         for (;;) {
+            // C ref: getpos.c:860 — show_goal_msg is only TRUE when handle_tip
+            // displayed a tip (overwriting the topline). Show "Move cursor to..."
+            // to restore the prompt.
             if (showGoalMsg && typeof display?.putstr_message === 'function') {
                 const promptGoal = goal || runtimeCtx.goalPrompt || 'desired location';
-                await display.putstr_message(`${verbosePrefix}Move cursor to ${promptGoal}:`);
-                verbosePrefix = '';
+                await display.putstr_message(`Move cursor to ${promptGoal}:`);
                 restoreCursor(display, cursorState);
                 cursorState = putCursor(display, cx, cy);
                 showGoalMsg = false;
