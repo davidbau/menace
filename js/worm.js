@@ -15,7 +15,7 @@ import { newsym } from './display.js';
 import { isok, xdir, ydir, N_DIRS, NORMAL_SPEED } from './const.js';
 import { mcalcmove } from './mon.js';
 import { mon_nam, Monnam } from './do_name.js';
-import { s_suffix, distmin } from './hacklib.js';
+import { s_suffix, distmin, distu } from './hacklib.js';
 import { PM_LONG_WORM, mons } from './monsters.js';
 import { goodpos } from './teleport.js';
 import { cansee } from './vision.js';
@@ -61,13 +61,6 @@ function m_at(map, x, y) {
 // C-faithful m_at-style lookup for callers outside worm.js.
 export function monsterAtWithSegments(map, x, y) {
     return m_at(map, x, y);
-}
-
-// C ref: hack.h distu(x,y) = dist2(u.ux, u.uy, x, y)
-function distu(player, x, y) {
-    var dx = player.x - x;
-    var dy = player.y - y;
-    return dx * dx + dy * dy;
 }
 
 // ========================================================================

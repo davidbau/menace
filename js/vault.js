@@ -34,7 +34,7 @@ import { rloc } from './teleport.js';
 import { Monnam, noit_Monnam, noit_mon_nam, Some_Monnam, x_monnam,
          Mgender, pmname, mon_nam } from './do_name.js';
 import { m_carrying } from './weapon.js';
-import { upstart, dist2 } from './hacklib.js';
+import { upstart, dist2, distu } from './hacklib.js';
 import { currency } from './invent.js';
 import { placeFloorObject } from './invent.js';
 import { deltrap } from './dungeon.js';
@@ -100,10 +100,6 @@ function um_dist(x, y, n, player) {
     return (Math.abs(player.x - x) <= n && Math.abs(player.y - y) <= n);
 }
 
-// C ref: distu(x, y) — squared distance from hero
-function distu(x, y, player) {
-    return dist2(player.x, player.y, x, y);
-}
 
 // C ref: in_rooms(x, y, typewanted) — check if (x,y) is in a room of given type
 // Returns a string of room chars (like urooms), or '' if none.
@@ -630,7 +626,7 @@ async function gd_pick_corridor_gold(grd, goldx, goldy, map, player, fov) {
         const gold = g_at(goldx, goldy, map);
         if (!gold) return;
         const guardx = grd.mx, guardy = grd.my;
-        const gdelta = distu(guardx, guardy, player);
+        const gdelta = distu(player, guardx, guardy);
 
         if (gdelta > 2 && see_it) {
             // Try to move guard closer

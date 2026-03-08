@@ -46,7 +46,7 @@ import { mpickobj } from './steal.js';
 import { enexto, rloc, rloc_to } from './teleport.js';
 import { helpless as monHelpless, healmon, wake_nearto } from './mon.js';
 import { monster_census, msummon } from './minion.js';
-import { sgn, dist2 } from './hacklib.js';
+import { sgn, dist2, distu } from './hacklib.js';
 import { is_quest_artifact } from './objdata.js';
 import { rndcurse } from './sit.js';
 import { builds_up, In_endgame, In_W_tower, In_hell } from './dungeon.js';
@@ -123,11 +123,6 @@ const random_malediction = [
 // ROLL_FROM(arr) — C macro: arr[rn2(SIZE(arr))]
 function ROLL_FROM(arr) {
     return arr[rn2(arr.length)];
-}
-
-// distu(player, x, y) — squared distance from player to (x,y)
-function distu(player, x, y) {
-    return dist2(player.x, player.y, x, y);
 }
 
 // m_next2u(mtmp, player) — is monster adjacent to player?

@@ -22,6 +22,7 @@ import { findgold } from './steal.js';
 import { observeObject } from './o_init.js';
 import { unblock_point, recalc_block_point, do_clear_area } from './vision.js';
 import { body_part } from './polyself.js';
+import { distu } from './hacklib.js';
 import { Is_box, Has_contents } from './objnam.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_FLASH, DISP_CHANGE, DISP_END } from './const.js';
@@ -55,10 +56,6 @@ function helpless(mon) {
 }
 function u_at(player, x, y) {
     return player.x === x && player.y === y;
-}
-function distu(player, x, y) {
-    const dx = player.x - x, dy = player.y - y;
-    return dx * dx + dy * dy;
 }
 function closed_door(map, x, y) {
     const loc = map.at(x, y);

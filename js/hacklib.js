@@ -486,6 +486,11 @@ export function dist2(x0, y0, x1, y1) {
   return dx * dx + dy * dy;
 }
 
+// C ref: hack.h distu() — squared distance from player to (x,y)
+export function distu(player, x, y) {
+  return dist2(player.x, player.y, x, y);
+}
+
 // hacklib.c:746 — integer square root (floor(sqrt(val))); not in C comment block
 // Autotranslated from hacklib.c:745
 export function isqrt(val) {
