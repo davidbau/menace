@@ -455,16 +455,17 @@ async function handleWield(player, display) {
         if (!item) {
             replacePromptMessage(display);
             await display.putstr_message("You don't have that object.");
-            if (typeof display?.morePrompt === 'function') {
-                await display.morePrompt(nhgetch);
-            } else if (typeof display?.renderMoreMarker === 'function') {
+            if (typeof display?.renderMoreMarker === 'function') {
                 display.renderMoreMarker();
                 if (typeof display?.markMorePending === 'function') {
                     display.markMorePending({ source: 'wield.invalid-invlet' });
                 }
-                await nhgetch();
+                // Keep C/getobj timing: prompt appears after --More-- dismiss.
+                await display.putstr_message(wieldPrompt);
+            } else if (typeof display?.morePrompt === 'function') {
+                await display.morePrompt(nhgetch);
+                await display.putstr_message(wieldPrompt);
             }
-            await display.putstr_message(wieldPrompt);
             continue;
         }
 

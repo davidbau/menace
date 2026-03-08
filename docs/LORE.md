@@ -4478,3 +4478,31 @@ hard-won wisdom:
   - `node --test test/unit/mapdump_extensions.test.js` passes.
   - `dbgmapdump --help` reflects `E` support and section defaults.
   - C-side compare now cleanly distinguishes missing vs empty `E` data.
+
+### Overlay/getobj `--More--` boundary and cursor parity tightening (2026-03-08)
+
+- Problem:
+  - `seed031_manual_direct` had full PRNG/screen parity but persistent cursor
+    drift in inventory overlay/getobj flows (`?/*` menu and invalid-invlet
+    `You don't have that object.` paths).
+- Fixes:
+  - `js/invent.js`:
+    - `renderOverlayMenuUntilDismiss()` now sets cursor to the tty-faithful
+      "after last rendered menu line" position.
+  - `js/wield.js`, `js/do.js`:
+    - invalid-invlet paths now use non-blocking `--More--` boundary timing
+      (`renderMoreMarker()` + `markMorePending(...)`) instead of immediate
+      blocking `morePrompt(nhgetch)` / ad-hoc key consumption.
+    - drop prompt redraw skips topline clearing while `_pendingMore` is active,
+      preserving visible `--More--` until dismiss key.
+  - `js/dothrow.js`:
+    - `"Ready it instead? [ynq] (q)"` prompt now includes the trailing space
+      present in tty prompt formatting, fixing a 1-column cursor offset.
+- Validation:
+  - `seed031_manual_direct` cursor parity improved from `1236/1365` to
+    `1365/1365` while keeping `rng=9079/9079` and `screens=1365/1365`.
+  - Nearby checks remain stable:
+    - `seed032_manual_direct` still first-diverges at farlook tip line.
+    - `seed033_manual_direct` still first-diverges on early RNG context.
+  - Unit suite remains clean:
+    - `node scripts/test-unit-core.mjs` => `2514/2514` pass.

@@ -587,7 +587,7 @@ export async function handleFire(player, map, display, game) {
         if (selected) {
             if (selected === player.weapon) {
                 replacePromptMessage();
-                await display.putstr_message('You are wielding that.  Ready it instead? [ynq] (q)');
+                await display.putstr_message('You are wielding that.  Ready it instead? [ynq] (q) ');
                 while (true) {
                     const ans = await nhgetch();
                     const a = String.fromCharCode(ans).toLowerCase();

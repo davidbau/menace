@@ -675,7 +675,9 @@ export async function handleDrop(player, map, display) {
         display.messageNeedsMore = false;
     };
     while (true) {
-        replacePromptMessage();
+        if (!display?._pendingMore) {
+            replacePromptMessage();
+        }
         if (countMode && countDigits.length > 1) {
             await display.putstr_message(`Count: ${countDigits}`);
         } else {
@@ -710,14 +712,13 @@ export async function handleDrop(player, map, display) {
         if (!item) {
             replacePromptMessage();
             await display.putstr_message("You don't have that object.");
-            if (typeof display?.morePrompt === 'function') {
-                await display.morePrompt(nhgetch);
-            } else if (typeof display?.renderMoreMarker === 'function') {
+            if (typeof display?.renderMoreMarker === 'function') {
                 display.renderMoreMarker();
                 if (typeof display?.markMorePending === 'function') {
                     display.markMorePending({ source: 'do.drop-invalid-invlet' });
                 }
-                await nhgetch();
+            } else if (typeof display?.morePrompt === 'function') {
+                await display.morePrompt(nhgetch);
             }
             continue;
         }

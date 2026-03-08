@@ -249,6 +249,17 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
     } else {
         menuOffx = display.renderChargenMenu(lines, false);
     }
+    // C tty parity: when a menu window is shown, cursor sits after the last
+    // rendered menu line (typically "(end)" or "(x of y)"), not at topline.
+    if (typeof display?.setCursor === 'function' && Number.isInteger(menuOffx) && lines.length > 0) {
+        const cols = Number.isInteger(display.cols) ? display.cols : COLNO;
+        const displayRows = Number.isInteger(display.rows) ? display.rows : STATUS_ROW_2;
+        const fullScreen = lines.length >= displayRows || menuOffx === 1;
+        const menuRows = Math.min(lines.length, fullScreen ? displayRows : STATUS_ROW_1);
+        const lastRow = Math.max(0, menuRows - 1);
+        const lastLine = String(lines[lastRow] || '');
+        display.setCursor(Math.min(menuOffx + lastLine.length + 1, cols - 1), lastRow);
+    }
 
     let selection = null;
     while (true) {
