@@ -33,7 +33,9 @@ import {
 import { rankOf } from './player.js';
 import { do_lookat, format_do_look_html } from './pager.js';
 import { isok, SEE_INVIS, DETECT_MONSTERS, TELEPAT, INFRAVISION, WARNING, WARN_OF_MON,
-         BOLT_LIM } from './const.js';
+         BOLT_LIM,
+         MONSEEN_NORMAL, MONSEEN_SEEINVIS, MONSEEN_INFRAVIS, MONSEEN_TELEPAT,
+         MONSEEN_XRAYVIS, MONSEEN_DETECT, MONSEEN_WARNMON } from './const.js';
 import { cansee, couldsee, clear_vision_full_recalc } from './vision.js';
 import { do_light_sources } from './light.js';
 import { emits_light, infravisible, is_mindless, monsndx } from './mondata.js';
@@ -2014,4 +2016,69 @@ export function senseMonsterForMap(mon, map, player) {
 export function canSpotMonsterForMap(mon, map, player, fov) {
     return canSeeMonsterForMap(mon, map, player, fov)
         || senseMonsterForMap(mon, map, player);
+}
+
+function telepathySensesMonsterForMap(mon, player) {
+    if (!mon || !player) return false;
+    const telepathy = hasPlayerProp(player, TELEPAT, 'telepathy', 'Telepathy');
+    if (!telepathy) return false;
+    const mdat = mon.data || mon.type || null;
+    if (!mdat || is_mindless(mdat)) return false;
+    const blindTelepathic = playerBlind(player);
+    const unblindRange = Number(player?.unblind_telepat_range
+        || player?.unblindTelepathRange
+        || BOLT_LIM);
+    if (blindTelepathic) return true;
+    const dx = (player.x | 0) - (mon.mx | 0);
+    const dy = (player.y | 0) - (mon.my | 0);
+    return (dx * dx + dy * dy) <= (unblindRange * unblindRange);
+}
+
+// C ref: vision.c:2141 howmonseen()
+export function howmonseen(mon, ctxOrMap = null, playerArg = null, fovArg = null) {
+    if (!mon) return 0;
+    const explicitCtx = (ctxOrMap && typeof ctxOrMap === 'object'
+        && (ctxOrMap.map || ctxOrMap.player || ctxOrMap.fov))
+        ? ctxOrMap
+        : null;
+    const ctx = explicitCtx || _resolveDisplayCtx(ctxOrMap);
+    const map = ctx?.map || null;
+    const player = playerArg || ctx?.player || null;
+    const fov = fovArg || ctx?.fov || null;
+    if (!map || !player) return 0;
+
+    const useemon = canSeeMonsterForMap(mon, map, player, fov);
+    const xraydist = (Number.isFinite(player?.xray_range) && player.xray_range >= 0)
+        ? (player.xray_range * player.xray_range)
+        : -1;
+    let how_seen = 0;
+
+    const normalPosVisible = mon.wormno
+        ? worm_known(mon, map, player, fov)
+        : (cansee(map, player, fov, mon.mx, mon.my)
+            && couldsee(map, player, mon.mx, mon.my));
+    if (normalPosVisible && monVisibleForMap(mon, player) && !mon.minvis) {
+        how_seen |= MONSEEN_NORMAL;
+    }
+    if (useemon && mon.minvis) how_seen |= MONSEEN_SEEINVIS;
+    if ((!mon.minvis || playerCanSeeInvisible(player))
+        && seeWithInfraredForMap(mon, map, player)) {
+        how_seen |= MONSEEN_INFRAVIS;
+    }
+    if (telepathySensesMonsterForMap(mon, player)) {
+        how_seen |= MONSEEN_TELEPAT;
+    }
+    if (useemon && xraydist > 0) {
+        const dx = (player.x | 0) - (mon.mx | 0);
+        const dy = (player.y | 0) - (mon.my | 0);
+        if ((dx * dx + dy * dy) <= xraydist) how_seen |= MONSEEN_XRAYVIS;
+    }
+    if (hasPlayerProp(player, DETECT_MONSTERS, 'detectMonsters', 'Detect_monsters')) {
+        how_seen |= MONSEEN_DETECT;
+    }
+    if (hasPlayerProp(player, WARNING, 'warning', 'Warning')
+        || hasPlayerProp(player, WARN_OF_MON, 'warnOfMon', 'Warn_of_mon')) {
+        how_seen |= MONSEEN_WARNMON;
+    }
+    return how_seen;
 }

@@ -153,7 +153,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[N/A]` | utf8map.c | — | UTF-8 glyph mapping for terminal |
 | `[p]` | vault.c | vault.js | Vault guard system. `newegd`/`free_egd`, `in_fcorridor`, `restfakecorr`, `parkguard`, `grddead`, `findgd`, `vault_summon_gd`, `vault_occupied`, `uleftvault` (gold corridor patrol with Croesus dialog — full sentence prompts, drop-gold, bribe, leave options), `gd_mv_monaway`, `gd_letknow`, `invault`, `gd_move` (guard movement AI), `paygd`, `hidden_gold`, `gd_sound`, `vault_gd_watching` — all 18 functions present and implemented. |
 | `[N/A]` | version.c | — | Version info |
-| `[a]` | vision.c | vision.js | FOV / LOS. Core algorithm (view_from, right_side, left_side, clear_path, do_clear_area) matches C, including block/dig/unblock pointer maintenance and rogue vision path; remaining notable gap: `howmonseen`. |
+| `[a]` | vision.c | vision.js | FOV / LOS. Core algorithm (view_from, right_side, left_side, clear_path, do_clear_area) matches C, including block/dig/unblock pointer maintenance, rogue vision path, and `howmonseen` mapping (in `display.js`). |
 | `[a]` | weapon.c | weapon.js | Weapon skills, hit/damage bonuses, monster weapon AI. select_hwep, select_rwep (full), mon_wield_item, possibly_unwield, mwepgone, setmnotwielded, oselect, monmightthrowwep, autoreturn_weapon, weapon_type, skill_level_name, skill_name, wet/dry_a_towel implemented. weapon_hit/dam_bonus gated (returns 0). Skill system infrastructure (P_* constants, weapon_check state machine) complete. skill_init/enhance/advance and role tables TODO |
 | `[a]` | were.c | were.js | Lycanthropy. 6 of 8 functions aligned; you_were/you_unwere TODO (need polymon/rehumanize) |
 | `[a]` | wield.c | wield.js | Wielding weapons. setuwep/setuswapwep/setuqwep, uwepgone/uswapwepgone/uqwepgone, welded/weldmsg, ready_weapon, handleWield/handleSwapWeapon/handleQuiver. will_weld, mwelded, erodeable_wep, empty_handed, can_twoweapon (full), set_twoweap, untwoweapon, drop_uswapwep, handleTwoWeapon (dotwoweapon), chwepon, wield_tool, cant_wield_corpse implemented. finish_splitting/ready_ok/wield_ok TODO |
@@ -5546,7 +5546,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 1040 | `fill_point` | vision.js:571 | Implemented |
 | 274 | `get_unused_cs` | vision.js:137 | Implemented |
 | 105 | `get_viz_clear` | vision.js:112 | Implemented |
-| 2141 | `howmonseen` | - | Missing |
+| 2141 | `howmonseen` | display.js:2038 | Implemented |
 | 1847 | `left_side` | vision.js:401 | Implemented |
 | 414 | `new_angle` | vision.js:958 | Implemented (inlined in `FOV.compute` seenv update) |
 | 900 | `recalc_block_point` | vision.js:699 | Implemented |

@@ -4926,3 +4926,22 @@ hard-won wisdom:
     `howmonseen`.
 - Validation:
   - No runtime code changes in this slice; ledger correction only.
+
+### vision.c `howmonseen` closure slice (2026-03-08)
+
+- Problem:
+  - `vision.c -> vision.js` still had one functional gameplay gap in CODEMATCH:
+    `howmonseen` was missing.
+- Fix:
+  - Implemented `howmonseen` in
+    [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js),
+    colocated with existing monster-visibility helpers (`canSeeMonsterForMap`,
+    `monVisibleForMap`, `seeWithInfraredForMap`).
+  - Added focused unit coverage:
+    [`test/unit/display_howmonseen.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/display_howmonseen.test.js)
+    covering normal, see-invisible, telepathy, xray, detect, and warning bits.
+  - Updated CODEMATCH row for `vision.c:howmonseen` to implemented.
+- Validation:
+  - `node --test test/unit/display_howmonseen.test.js` passes.
+  - `node scripts/test-unit-core.mjs` remains at known baseline
+    (`2526 pass / 5 fail`, same pre-existing input-queue failures).
