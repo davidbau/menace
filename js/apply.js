@@ -1046,11 +1046,7 @@ export async function handleApply(player, map, display, game) {
                     await display.morePrompt(nhgetch);
                 } else if (typeof display?.renderMoreMarker === 'function') {
                     display.renderMoreMarker();
-                    if (typeof display.markMorePending === 'function') {
-                        display.markMorePending({ source: 'apply.inventory-list' });
-                    } else {
-                        display._pendingMore = true;
-                    }
+                    display.markMorePending({ source: 'apply.inventory-list' });
                     await nhgetch();
                 }
             }
@@ -1071,11 +1067,7 @@ export async function handleApply(player, map, display, game) {
                 await display.morePrompt(nhgetch);
             } else if (typeof display?.renderMoreMarker === 'function') {
                 display.renderMoreMarker();
-                if (typeof display.markMorePending === 'function') {
-                    display.markMorePending({ source: 'apply.invalid-invlet' });
-                } else {
-                    display._pendingMore = true;
-                }
+                display.markMorePending({ source: 'apply.invalid-invlet' });
                 await nhgetch();
             }
             await showApplyPrompt();

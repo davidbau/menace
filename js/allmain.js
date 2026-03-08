@@ -1752,11 +1752,7 @@ export class NetHackGame {
             const plname = this.wizard ? 'wizard' : (this.u || this.player).name;
             const welcomeMsg = `${greeting} ${plname}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
 
-            if (typeof this.display.markMorePending === 'function') {
-                this.display.markMorePending({ source: 'lore-startup' });
-            } else {
-                this.display._pendingMore = true;
-            }
+            this.display.markMorePending({ source: 'lore-startup' });
             this.display._messageQueue.push(welcomeMsg);
         }
 

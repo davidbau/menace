@@ -775,11 +775,7 @@ async function showDropCandidates(candidates, display) {
         if (needsMore) {
             if (typeof display.renderMoreMarker === 'function') {
                 display.renderMoreMarker();
-                if (typeof display.markMorePending === 'function') {
-                    display.markMorePending({ source: 'do.drop-candidates' });
-                } else {
-                    display._pendingMore = true;
-                }
+                display.markMorePending({ source: 'do.drop-candidates' });
             }
             await nhgetch();
         }
@@ -831,11 +827,7 @@ async function waitForStairMessageAck(display, player = null) {
     // preserve key-boundary behavior without forcing visible --More-- marker
     // or cursor relocation on the topline.
     if (!display?._moreBlockingEnabled) return;
-    if (typeof display.markMorePending === 'function') {
-        display.markMorePending({ source: 'do.stair-ack' });
-    } else {
-        display._pendingMore = true;
-    }
+    display.markMorePending({ source: 'do.stair-ack' });
     display._pendingMoreNoCursor = true;
     void player;
     return;
