@@ -842,20 +842,22 @@ export async function run_command(game, ch, opts = {}) {
     // mobile light sources) and full map rendering.
     const _player = game.u || game.player;
     if (game.display && _player) {
-        if (renderAfterCommand && typeof game.docrt === 'function') {
-            game.docrt();
-        }
-        if (typeof game.display.renderStatus === 'function') {
-            game.display.renderStatus(_player);
-        }
         // C ref: parse() / get_count() — while accumulating a count prefix that
         // has been displayed ("Count: N"), the cursor stays on the topline.
-        // putstr_message() already positioned it there; skip cursorOnPlayer.
-        const holdToplineCursor = !!game.display._nonBlockingMore;
-        if (typeof game.display.cursorOnPlayer === 'function'
-            && !result?.isCountDigitWithDisplay
-            && !holdToplineCursor) {
-            game.display.cursorOnPlayer(_player);
+        // putstr_message() already positioned it there; skip docrt+cursorOnPlayer
+        // because docrt() internally calls cursorOnPlayer which would clobber it.
+        if (!result?.isCountDigitWithDisplay) {
+            if (renderAfterCommand && typeof game.docrt === 'function') {
+                game.docrt();
+            }
+            if (typeof game.display.renderStatus === 'function') {
+                game.display.renderStatus(_player);
+            }
+            const holdToplineCursor = !!game.display._nonBlockingMore;
+            if (typeof game.display.cursorOnPlayer === 'function'
+                && !holdToplineCursor) {
+                game.display.cursorOnPlayer(_player);
+            }
         }
     }
 

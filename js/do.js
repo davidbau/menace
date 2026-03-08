@@ -907,6 +907,11 @@ async function promptDropTypeClass(display, player) {
             display.putstr(promptCol, row++, 'U - Items known to be Uncursed');
         }
         display.putstr(promptCol, row, '(end)');
+        // C ref: process_text_window places cursor at end of "(end)" marker.
+        // C's 1-based cursor yields column offx + strlen("(end)") + 1 (0-based).
+        if (typeof display?.setCursor === 'function') {
+            display.setCursor(promptCol + 5 + 1, row);
+        }
     } else if (typeof display?.putstr_message === 'function') {
         await display.putstr_message(`${' '.repeat(promptCol)}${prompt}`);
     }
