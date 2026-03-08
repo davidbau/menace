@@ -193,7 +193,7 @@ export function end_menu(win, prompt) {
 }
 
 // Build the lines array that will be shown in a menu overlay.
-function buildMenuLines(w) {
+function buildMenuLines(w, selected = null) {
     const lines = [];
     if (w.prompt) lines.push(w.prompt);
     lines.push('');
@@ -203,7 +203,10 @@ function buildMenuLines(w) {
         if (item.id === null) {
             lines.push(item.str);          // add_menu_str equivalent: raw text, no prefix
         } else {
-            const sel = item.ch ? String.fromCharCode(item.ch) + ' - ' : '    ';
+            const picked = !!(selected && item.ch && selected.has(item.ch));
+            const sel = item.ch
+                ? `${String.fromCharCode(item.ch)} ${picked ? '+' : '-'} `
+                : '    ';
             lines.push(sel + item.str);
         }
     }
@@ -247,12 +250,27 @@ export async function select_menu(win, how) {
     if (!w) return null;
     w.how = how;
 
-    const lines = buildMenuLines(w);
-    if (_display) {
-        if (typeof _display.renderChargenMenu === 'function') {
-            _display.renderChargenMenu(lines, false);
+    const renderMenu = (selected = null) => {
+        const lines = buildMenuLines(w, selected);
+        if (_display) {
+            let offx = 0;
+            const isPickupMenu = typeof w.prompt === 'string' && w.prompt === 'Pick up what?';
+            if (typeof _display.renderOverlayMenu === 'function') {
+                offx = isPickupMenu
+                    ? (_display.renderOverlayMenu(lines, { capHalf: true }) || 0)
+                    : (_display.renderOverlayMenu(lines) || 0);
+            } else if (typeof _display.renderChargenMenu === 'function') {
+                offx = _display.renderChargenMenu(lines, false) || 0;
+            }
+            if (typeof _display.setCursor === 'function') {
+                const lastRow = Math.max(0, lines.length - 1);
+                const lastLine = lines[lastRow] || '';
+                const col = Math.min((_display.cols || 80) - 1, offx + lastLine.length + 1);
+                _display.setCursor(col, lastRow);
+            }
         }
-    }
+    };
+    renderMenu(null);
 
     if (how === PICK_NONE) {
         await _nhgetch();
@@ -302,6 +320,7 @@ export async function select_menu(win, how) {
                     else selected.add(item.ch);
                 }
             }
+            renderMenu(selected);
         }
     }
 

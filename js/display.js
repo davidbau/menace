@@ -1032,7 +1032,7 @@ span.nh-cursor {
     }
 
     // Display a right-side menu overlay while preserving existing left-side map.
-    renderOverlayMenu(lines) {
+    renderOverlayMenu(lines, opts = null) {
         const isCategoryHeader = (line) => {
             const text = String(line || '').trimStart();
             if (/^(Weapons|Armor|Rings|Amulets|Tools|Comestibles|Potions|Scrolls|Spellbooks|Wands|Coins|Gems\/Stones|Other)\b/.test(text)) {
@@ -1050,6 +1050,9 @@ span.nh-cursor {
         // C's maxcol includes +2 padding (space + end), so for JS
         // (where maxcol is the raw longest line length) we use -2.
         let offx = Math.max(10, this.cols - maxcol - 2);
+        if (opts?.capHalf) {
+            offx = Math.min(offx, Math.floor(this.cols / 2) + 1);
+        }
 
         // C ref: wintty.c line 1926 — force full-screen when offx hits the
         // minimum (10) or menu fills the terminal height (maxrow >= rows).

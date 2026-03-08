@@ -4380,3 +4380,29 @@ hard-won wisdom:
 - Usage:
   - `node scripts/event_shift_diff.mjs test/comparison/sessions/seed031_manual_direct.session.json`
   - `node scripts/event_shift_diff.mjs test/comparison/sessions/seed032_manual_direct.session.json`
+
+### two-weapon `--More--` boundary needed deferred turn after dismissal (2026-03-08)
+
+- Divergence context:
+  - While auditing post-help/apply weapon flows in `seed031_manual_direct`, we
+    reached a plateau around step `680` where JS and C diverged in monster/pet
+    state immediately after a two-weapon status `--More--` message.
+  - Earlier attempts that only changed message text/cursor handling improved UI
+    alignment but left gameplay RNG/state divergence at the same boundary.
+- Key finding:
+  - This boundary is not just a topline rendering issue; it also gates when the
+    world turn advances.
+  - In this path, C behavior matched "show `--More--`, then run deferred timed
+    turn processing on dismissal", not "show message only".
+- Fix:
+  - In [`js/wield.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/wield.js),
+    when entering two-weapon mode with a secondary weapon message:
+    - keep C-style `--More--` message semantics
+    - schedule `game._pendingDeferredTurnAfterMore = true` so timed turn logic
+      runs at the command-boundary dismissal hook.
+- Validation:
+  - `./scripts/run-and-report.sh --failures` remains `31/34` gameplay sessions passing.
+  - `seed031_manual_direct` improved from roughly `680/1365` to
+    `684/1365` (screen) with PRNG frontier jumping to `1159/1365`.
+  - This exposed the next concrete apply/getobj boundary mismatch for follow-up
+    work rather than masking it.

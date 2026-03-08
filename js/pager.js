@@ -484,6 +484,32 @@ async function _showPagerCore(display, text, title) {
     }
 }
 
+async function showMoreTextPages(display, text) {
+    const lines = String(text || '').split('\n');
+    const pageRows = TERMINAL_ROWS - 1;
+    const canSaveRestore = !!display?.grid;
+    const saved = canSaveRestore ? saveTerminal(display) : null;
+    let topLine = 0;
+    while (true) {
+        for (let r = 0; r < TERMINAL_ROWS; r++) {
+            if (typeof display.clearRow === 'function') display.clearRow(r);
+        }
+        for (let r = 0; r < pageRows; r++) {
+            const idx = topLine + r;
+            const line = idx < lines.length ? lines[idx] : '';
+            if (line) await display.putstr(0, r, line.substring(0, TERMINAL_COLS), CLR_GRAY);
+        }
+        await display.putstr(0, TERMINAL_ROWS - 1, '--More--', CLR_GRAY);
+        if (typeof display.setCursor === 'function') {
+            display.setCursor(8, TERMINAL_ROWS - 1);
+        }
+        await nhgetch();
+        topLine += pageRows;
+        if (topLine >= lines.length) break;
+    }
+    if (saved) restoreTerminal(display, saved);
+}
+
 // Wrap text to fit terminal width
 function wrapText(text, width) {
     const rawLines = text.split('\n');
@@ -706,14 +732,19 @@ export async function handleHelp(game) {
     add_menu(win, null, 'd', 'd'.charCodeAt(0), 0, ATR_NONE, 0, 'Concise history of NetHack.', 0);
     add_menu(win, null, 'e', 'e'.charCodeAt(0), 0, ATR_NONE, 0, 'Info on a character in the game display.', 0);
     add_menu(win, null, 'f', 'f'.charCodeAt(0), 0, ATR_NONE, 0, 'Info on what a given key does.', 0);
-    add_menu(win, null, 'g', 'g'.charCodeAt(0), 0, ATR_NONE, 0, 'Longer explanation of game options.', 0);
-    add_menu(win, null, 'h', 'h'.charCodeAt(0), 0, ATR_NONE, 0, 'Full list of keyboard commands.', 0);
-    add_menu(win, null, 'i', 'i'.charCodeAt(0), 0, ATR_NONE, 0, 'List of extended commands.', 0);
-    add_menu(win, null, 'j', 'j'.charCodeAt(0), 0, ATR_NONE, 0, 'The NetHack Guidebook.', 0);
+    add_menu(win, null, 'g', 'g'.charCodeAt(0), 0, ATR_NONE, 0, 'List of game options.', 0);
+    add_menu(win, null, 'h', 'h'.charCodeAt(0), 0, ATR_NONE, 0, 'Longer explanation of game options.', 0);
+    add_menu(win, null, 'i', 'i'.charCodeAt(0), 0, ATR_NONE, 0, "Using the '#optionsfull' or 'm O' command to set options.", 0);
+    add_menu(win, null, 'j', 'j'.charCodeAt(0), 0, ATR_NONE, 0, 'Full list of keyboard commands.', 0);
+    add_menu(win, null, 'k', 'k'.charCodeAt(0), 0, ATR_NONE, 0, 'List of extended commands.', 0);
+    add_menu(win, null, 'l', 'l'.charCodeAt(0), 0, ATR_NONE, 0, 'List menu control keys.', 0);
+    add_menu(win, null, 'm', 'm'.charCodeAt(0), 0, ATR_NONE, 0, "Description of NetHack's command line.", 0);
+    add_menu(win, null, 'n', 'n'.charCodeAt(0), 0, ATR_NONE, 0, 'The NetHack license.', 0);
+    add_menu(win, null, 'o', 'o'.charCodeAt(0), 0, ATR_NONE, 0, 'Support information.', 0);
     if (game.wizard) {
         add_menu(win, null, 'w', 'w'.charCodeAt(0), 0, ATR_NONE, 0, 'List of wizard-mode commands.', 0);
     }
-    end_menu(win, ' Select one item:');
+    end_menu(win, 'Select one item:');
     const sel = await select_menu(win, PICK_ONE);
     destroy_nhwindow(win);
 
@@ -742,11 +773,30 @@ export async function handleHelp(game) {
         if (text) await showPager(display, text, 'Game Options');
         else await display.putstr_message('Failed to load options help.');
     } else if (c === 'h') {
-        await showPager(display, keyHelpText, 'Key Bindings');
+        const text = await fetchDataFile('dat/opthelp.txt');
+        if (text) await showPager(display, text, 'Game Options');
+        else await display.putstr_message('Failed to load options help.');
     } else if (c === 'i') {
-        await showPager(display, extendedCommandsText, 'Extended Commands');
+        await showMoreTextPages(display, OPTIONS_FULL_COMMAND_HELP_TEXT);
+        if (typeof game.docrt === 'function') {
+            game.docrt();
+        }
     } else if (c === 'j') {
-        await showGuidebook(display);
+        await showPager(display, keyHelpText, 'Key Bindings');
+    } else if (c === 'k') {
+        await showPager(display, extendedCommandsText, 'Extended Commands');
+    } else if (c === 'l') {
+        await showPager(display, MENU_CONTROL_KEYS_TEXT, 'Menu Control Keys');
+    } else if (c === 'm') {
+        await showPager(display, COMMAND_LINE_DESCRIPTION_TEXT, 'Command Line');
+    } else if (c === 'n') {
+        const text = await fetchDataFile('dat/license');
+        if (text) await showPager(display, text, 'License');
+        else await display.putstr_message('Failed to load license.');
+    } else if (c === 'o') {
+        const text = await fetchDataFile('dat/portshelp');
+        if (text) await showPager(display, text, 'Support Information');
+        else await display.putstr_message('Failed to load support information.');
     } else if (c === 'w' && game.wizard) {
         const text = await fetchDataFile('dat/wizhelp.txt');
         if (text) await showPager(display, text, 'Wizard Mode Commands');
@@ -812,6 +862,69 @@ const extendedCommandsText = [
     ' #map           reveal entire map (debug mode)',
     ' #teleport      teleport to coordinates (debug mode)',
     ' #genesis       create a monster by name (debug mode)',
+].join('\n');
+
+const MENU_CONTROL_KEYS_TEXT = [
+    'Menu control keys:',
+    '',
+    '  a-z or A-Z  Select menu entries by letter.',
+    '  .           Select all entries.',
+    '  -           Unselect all entries.',
+    '  Space       Toggle selections or confirm where applicable.',
+    '  Enter       Finish menu selection.',
+    '  Esc or q    Cancel menu selection.',
+].join('\n');
+
+const COMMAND_LINE_DESCRIPTION_TEXT = [
+    'NetHack command line options',
+    '',
+    'Most players use options set in config files or in-game option menus.',
+    "Use '#optionsfull' (or 'm O') for interactive option management.",
+].join('\n');
+
+const OPTIONS_FULL_COMMAND_HELP_TEXT = [
+    ' How dynamically setting options works:',
+    '',
+    ' The simple options menu shows a relatively small subset of options',
+    ' and operates on each choice you make immediately, then is put back',
+    ' up to allow further changes.',
+    '',
+    ' The full options menu shows the current value for all options and',
+    " lets you pick ones that you'd like to change.  Picking them doesn't",
+    ' make any changes though.  That will take place once you close the',
+    " menu.  For most of NetHack's interfaces, closing the menu is done",
+    ' by pressing the <enter> key or <return> key; others might require',
+    ' clicking on [ok].  Pressing the <escape> key or clicking on [cancel]',
+    ' will close the menu and discard any pending changes.',
+    '',
+    " The options menu is too long to fit on one screen.  Some interfaces",
+    " paginate menus; use the '>' key to advance a page or '<' to back",
+    ' up.  They typically re-use selection letters (a-z) on each page.',
+    ' Others use one long page and you need to use a scrollbar; once past',
+    " a-z and A-Z they'll have entries without selection letters.  Those",
+    ' can be selected by clicking on them.',
+    '',
+    ' For toggling boolean (True/False or On/Off) options, selecting them',
+    ' is all that is needed.  For compound options (which take a number,',
+    ' a choice of several particular values, or something more complex,',
+    ' and are listed in a second section after the boolean ones), you will',
+    ' be prompted to supply a new value.',
+    '',
+    ' At the start of each of the two sections are the values of some',
+    ' unselectable options which can only be set before the game starts.',
+    ' After the compound section are some "other" options which take a set',
+    ' of multiple values and tend to be more complicated to deal with.',
+    '',
+    ' Some changes will only last until you save (or quit) the current',
+    ' game.  Usually those are for things that might not be appropriate',
+    ' if you were to restore the saved game on another computer with',
+    " different capabilities.  Other options will be included in this",
+    " game's save file and retain their settings after restore.  None set",
+    ' in the options menu will affect other games, either already saved or',
+    ' new ones.  For that, you need to update your run-time configuration',
+    ' file and specify the desired options settings there.  Even then,',
+    ' restoring existing games that contain saved option values will use',
+    ' those saved ones.',
 ].join('\n');
 
 // Handle & (whatdoes) command

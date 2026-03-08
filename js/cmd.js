@@ -21,7 +21,7 @@ import { handleEat } from './eat.js';
 import { handleQuaff } from './potion.js';
 import { handleRead } from './read.js';
 import { handleWear, handlePutOn, handleTakeOff, handleRemove, handleRemoveAll } from './do_wear.js';
-import { handleWield, handleSwapWeapon, handleQuiver } from './wield.js';
+import { handleWield, handleSwapWeapon, handleQuiver, handleTwoWeapon } from './wield.js';
 import { handleDownstairs, handleUpstairs, handleDrop, handleDropTypes, dowipe } from './do.js';
 import { handleInventory, currency, doorganize } from './invent.js';
 import { dopray, doturn, dosacrifice } from './pray.js';
@@ -331,9 +331,15 @@ export async function rhack(ch, game) {
         return await handleWield(player, display);
     }
 
+    // Toggle two-weapon combat
+    // C ref: wield.c dotwoweapon()
+    if (c === 'x') {
+        return await handleTwoWeapon(player, display, game);
+    }
+
     // Swap primary/secondary weapon
     // C ref: wield.c doswapweapon()
-    if (c === 'x') {
+    if (c === 'X') {
         return await handleSwapWeapon(player, display);
     }
 

@@ -1491,8 +1491,12 @@ export function doname(obj, player) {
                 result += useWielded ? ' (wielded)' : ` (weapon in ${dominantHand} hand)`;
             }
         } else if (player.swapWeapon === obj) {
-            // C ref: objnam.c plur(obj->quan) for alternate weapon(s)
-            result += ` (alternate weapon${quan !== 1 ? 's' : ''}; not wielded)`;
+            if (player.twoweap) {
+                result += ' (weapon in left hand)';
+            } else {
+                // C ref: objnam.c plur(obj->quan) for alternate weapon(s)
+                result += ` (alternate weapon${quan !== 1 ? 's' : ''}; not wielded)`;
+            }
         } else if (player.quiver === obj) {
             if (obj.otyp === FLINT || obj.otyp === ROCK) {
                 result += ' (in quiver pouch)';

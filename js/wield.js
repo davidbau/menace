@@ -180,7 +180,7 @@ async function drop_uswapwep(player, display) {
 }
 
 // cf. wield.c:836 — dotwoweapon(): #twoweapon command
-async function handleTwoWeapon(player, display) {
+async function handleTwoWeapon(player, display, game = null) {
     // Can always toggle off
     if (player.twoweap) {
         await display.putstr_message('You switch to your primary weapon.');
@@ -188,12 +188,36 @@ async function handleTwoWeapon(player, display) {
         return { moved: false, tookTime: false };
     }
     if (await can_twoweapon(player, display)) {
-        await display.putstr_message('You begin two-weapon combat.');
         set_twoweap(player, true);
-        // C ref: wield.c:852 — rnd(20) > ACURR(A_DEX) → takes time
-        const dex = player.dexterity || player.attributes?.[4] || 10;
-        const tookTime = rnd(20) > dex;
-        return { moved: false, tookTime };
+        if (player.swapWeapon) {
+            const moreMsg = `${player.swapWeapon.invlet} - ${doname(player.swapWeapon, player)}.`;
+            await display.putstr_message(
+                moreMsg
+            );
+            if (Array.isArray(display._messageQueue) && player.weapon && player.weapon !== player.swapWeapon) {
+                const primaryName = doname(player.weapon, player)
+                    .replace(/\s+\(weapon in [^)]+ hand\)$/, '')
+                    .replace(/\s+\(wielded\)$/, '');
+                display._messageQueue.push(
+                    `${player.weapon.invlet || '-'} - ${primaryName} (alternate weapon; not wielded).`
+                );
+            }
+            if (Object.hasOwn(display, '_pendingMore')) {
+                display._pendingMore = true;
+            }
+            if (Object.hasOwn(display, '_nonBlockingMore')) {
+                display._nonBlockingMore = true;
+            }
+            if (game) {
+                game._pendingDeferredTurnAfterMore = true;
+            }
+            if (typeof display.setCursor === 'function') {
+                display.setCursor(Math.min((display.cols || 80) - 1, moreMsg.length + '--More--'.length), 0);
+            }
+        } else {
+            await display.putstr_message('You begin two-weapon combat.');
+        }
+        return { moved: false, tookTime: false };
     }
     return { moved: false, tookTime: false };
 }

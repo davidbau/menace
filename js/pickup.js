@@ -1183,7 +1183,14 @@ async function handlePickup(player, map, display, game = null) {
         });
         const win = create_nhwindow(NHW_MENU);
         start_menu(win, MENU_BEHAVE_STANDARD);
+        let lastClass = null;
         for (const obj of choiceObjs) {
+            const cls = Number(obj?.oclass || 0);
+            if (cls !== lastClass) {
+                const sym = CLASS_SYMBOLS[cls] || '*';
+                add_menu(win, null, null, 0, 0, ATR_NONE, 0, classSymbolLabel(sym), 0);
+                lastClass = cls;
+            }
             // Use auto-assigned selector letters so C-like a/b/c keys work.
             add_menu(win, null, obj, 0, 0, ATR_NONE, 0, doname(obj), 0);
         }
@@ -1199,8 +1206,13 @@ async function handlePickup(player, map, display, game = null) {
             const obj = pick?.identifier;
             if (!obj || !map.objects.includes(obj)) continue;
             observeObject(obj);
-            player.addToInventory(obj, { withMeta: true });
+            const addResult = player.addToInventory(obj, { withMeta: true });
             map.removeObject(obj);
+            await pline(
+                "%s - %s.",
+                addResult?.item?.invlet || obj.invlet || '-',
+                doname(addResult?.item || obj, player)
+            );
         }
         return { moved: false, tookTime: true };
     }
