@@ -864,6 +864,11 @@ export async function run_command(game, ch, opts = {}) {
                     ctx.move = 0;
                     break;
                 }
+                // C ref: hack.c domove() can call end_running() internally
+                // (e.g. when findtravelpath exhausts the path), which clears
+                // ctx.run.  Save the run mode before domove so we can detect
+                // travel-end afterward.
+                const savedRun = ctx.run;
                 if (game.multi < COLNO && !--game.multi) {
                     end_running(true, game);
                 }
@@ -873,13 +878,13 @@ export async function run_command(game, ch, opts = {}) {
                 const moveResult = await domove([0, 0], _p, _map, _display, game);
                 game.advanceRunTurn = null;
                 if (!moveResult || !moveResult.tookTime) {
-                    // C ref: allmain.c moveloop — C's movemon runs BEFORE domove.
-                    // When domove fails during travel (findtravelpath's nomul(0)
-                    // cleared multi but context.move stayed 1), C still runs
-                    // one more movemon at the top of the next iteration before
-                    // exiting.  JS's post-domove model needs an explicit extra
-                    // advanceTimedTurn to match.
-                    if (ctx.run === 8 && ctx.travel === 0 && game.multi === 0) {
+                    // C ref: allmain.c moveloop — when travel ends via
+                    // findtravelpath exhausting the path, C's context.move
+                    // stays 1 from the prior successful domove (hack.c u_at()
+                    // path doesn't clear it).  The next moveloop_core runs
+                    // one more movemon before discovering multi=0 and exiting.
+                    // JS's post-domove model needs an explicit advanceTimedTurn.
+                    if (savedRun === 8) {
                         await advanceTimedTurn();
                     }
                     break;
