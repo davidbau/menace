@@ -8,10 +8,12 @@ NetHack 3.7 is the most ambitious update in the game's 38-year history.
 Development has been continuous on GitHub since the 3.6.0 release in
 December 2015, and the community plays 3.7 on public servers, but as
 of early 2026, the DevTeam still hasn't shipped it. This port puts
-the unreleased version in your browser. It was written entirely by
-AI coding agents. 182,000+ lines of JavaScript, 141 modules mirroring
-the C source structure, bit-identical PRNG, 89 golden C-comparison
-test sessions. One month, 3,700+ commits.
+the unreleased version in your browser.
+
+The version of the game you find here is a complete reimplementation
+written entirely by AI coding agents. 182,000+ lines of JavaScript,
+141 modules mirroring the C source structure, bit-identical PRNG,
+89 golden C-comparison test sessions. One month, 3,700+ commits.
 
 Open the page, pick a role, descend.
 
