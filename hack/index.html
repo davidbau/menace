@@ -357,24 +357,27 @@
     #minimap-dismiss {
       position: fixed;
       z-index: 103;
-      width: 22px;
-      height: 22px;
-      font-size: 14px;
-      line-height: 22px;
+      width: 26px;
+      height: 26px;
+      font-size: 16px;
+      line-height: 26px;
       text-align: center;
-      background: rgba(0,0,0,0.55);
-      color: #fff;
-      border: none;
+      background: #fffff8;
+      color: #1a1a1a;
+      border: 1px solid rgba(0,0,0,0.25);
       border-radius: 50%;
       cursor: pointer;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s ease, background 0.15s ease;
       display: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      font-weight: 600;
     }
 
     #minimap-dismiss:hover {
-      background: rgba(0,0,0,0.75);
+      background: #f0ebe0;
+      border-color: rgba(0,0,0,0.4);
     }
 
     body.docs-mode.minimap-hover #minimap-dismiss {
