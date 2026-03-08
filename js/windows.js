@@ -29,6 +29,10 @@ const TOPLINE_EMPTY     = 0;
 const TOPLINE_NON_EMPTY = 1;
 // const TOPLINE_NEED_MORE = 2;  // reserved for future use
 
+function isDismissKey(ch) {
+    return ch === 32 || ch === 10 || ch === 13 || ch === 27 || ch === 16;
+}
+
 let _display          = null;
 let _nhgetch          = defaultNhgetch;
 let _rerenderCallback = null;
@@ -107,10 +111,9 @@ export async function display_nhwindow(win, blocking) {
         // for messages sent via display.putstr_message() directly (not through putstr()).
         if (blocking && (ttyDisplay.toplin === TOPLINE_NON_EMPTY || _display?.messageNeedsMore)) {
             if (_display?.renderMoreMarker) _display.renderMoreMarker();
-            // C ref: xwaitforspace() — only accept space/enter/ESC/^P to dismiss.
             while (true) {
                 const ch = await _nhgetch();
-                if (ch === 32 || ch === 10 || ch === 13 || ch === 27 || ch === 16) break;
+                if (isDismissKey(ch)) break;
             }
             // Clear row 0 after --More-- dismissal (C: more() clears the topline).
             if (_display?.clearRow) _display.clearRow(0);
@@ -127,9 +130,15 @@ export async function display_nhwindow(win, blocking) {
             // only specific keys dismiss --More-- style windows.
             while (true) {
                 const ch = await _nhgetch();
-                if (ch === 32 || ch === 10 || ch === 13 || ch === 27 || ch === 16) {
-                    break;
-                }
+                if (isDismissKey(ch)) break;
+            }
+            // C ref: dismissing text/menu windows restores underlying map area
+            // (erase_menu_or_text -> docorner/docrt).
+            if (w.type === NHW_TEXT && typeof _display?.clearTextPopup === 'function') {
+                _display.clearTextPopup();
+            }
+            if (_rerenderCallback && (w.type === NHW_TEXT || w.type === NHW_MENU)) {
+                _rerenderCallback();
             }
         }
     }

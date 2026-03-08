@@ -549,6 +549,7 @@ export class HeadlessDisplay {
         this._pendingMoreNoCursor = false;
         this._messageQueue = [];
         this._moreBlockingEnabled = false;
+        this._lastTextPopup = null;
     }
 
     setNhgetch(fn) { this._nhgetch = fn; }
@@ -1003,6 +1004,25 @@ export class HeadlessDisplay {
         // For "(end)", C's 1-based cursor lands 1 past the 0-based end.
         const cursorCol = (opts.isTextWindow && !isMore) ? markerEnd + 1 : markerEnd;
         this.setCursor(Math.min(cursorCol, this.cols - 1), lastRow);
+        this._lastTextPopup = {
+            offx,
+            rows: menuRows,
+            hasMoreLine: isMore,
+        };
+    }
+
+    clearTextPopup() {
+        const popup = this._lastTextPopup;
+        if (!popup) return;
+        const left = popup.hasMoreLine ? Math.max(0, popup.offx - 1) : popup.offx;
+        for (let r = 0; r < popup.rows && r < this.rows; r++) {
+            for (let c = left; c < this.cols; c++) {
+                this.grid[r][c] = ' ';
+                this.colors[r][c] = CLR_GRAY;
+                this.attrs[r][c] = 0;
+            }
+        }
+        this._lastTextPopup = null;
     }
 
     // Return 24-line string array matching C TTY screen format

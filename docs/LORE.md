@@ -4680,3 +4680,28 @@ hard-won wisdom:
     - before: first RNG/event divergence at step `268`
     - after: first event divergence at step `361`, first RNG divergence at step `416`
       (`seed033` now fails later: `rng=416/1417`, `events=361/1417`).
+
+### seed033 farlook/getpos headless description path (2026-03-08)
+
+- Problem:
+  - In headless replay, `getpos` movement descriptions depended on
+    `display.cellInfo`, but headless does not maintain that metadata like the
+    browser display path.
+  - This kept the generic getpos prompt stuck on row 0 instead of emitting
+    terrain/location descriptions during cursor motion, causing early screen
+    drift in `seed033`.
+- Fix:
+  - Updated
+    [`js/getpos.js`](/share/u/davidbau/git/mazesofmenace/game/js/getpos.js)
+    cursor description path to derive labels from map state directly:
+    `floor of a room`, `wall`, `open/closed door`, `corridor`,
+    `unexplored area`.
+  - On getpos ESC exit, clear stale topline state explicitly.
+  - At getpos teardown, rerender map/status/message window from last map state
+    to prevent stale boundary artifacts carrying forward.
+  - Added headless/window text-popup cleanup plumbing for NHW_TEXT dismissal.
+- Validation:
+  - `./scripts/run-and-report.sh` remains `33/34` gameplay sessions passing.
+  - `seed031` and `seed032` remain green.
+  - `seed033` first screen divergence moved later (`64 -> 222`) while keeping
+    current first event/RNG divergences at `361/416`.

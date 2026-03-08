@@ -2,7 +2,7 @@
 // cf. getpos.c -- getpos_sethilite(), getpos_toggle_hilite_state(),
 // getpos_refresh(), getpos() lifecycle.
 
-import { MAP_ROW_START, COLNO, ROWNO, DOOR, ROOM, CORR, isok } from './const.js';
+import { MAP_ROW_START, COLNO, ROWNO, DOOR, ROOM, CORR, SDOOR, IS_WALL, isok } from './const.js';
 import { nhgetch } from './input.js';
 import { flush_screen } from './display.js';
 import {
@@ -124,6 +124,14 @@ function restoreCursor(display, cursorState) {
     flush_screen(0); // C ref: getpos.c:660,854,863,1149 — flush tty after cursor move
 }
 
+function rerenderAfterGetpos(display) {
+    const last = display?._lastMapState;
+    if (!last?.gameMap || typeof display?.renderMap !== 'function') return;
+    display.renderMap(last.gameMap, last.player, last.fov, last.flags || display.flags || {});
+    if (typeof display.renderStatus === 'function') display.renderStatus(last.player);
+    if (typeof display.renderMessageWindow === 'function') display.renderMessageWindow();
+}
+
 function moveDeltaForChar(c) {
     switch (c) {
     case 'h': return [-1, 0];
@@ -144,7 +152,17 @@ function clampMove(cx, cy, dx, dy) {
     return [nx, ny];
 }
 
-function cursorDesc(display, x, y) {
+function cursorDesc(display, map, x, y) {
+    if (map?.at) {
+        const loc = map.at(x, y);
+        if (loc) {
+            if (!loc.seenv) return 'unexplored area';
+            if (IS_WALL(loc.typ) || loc.typ === SDOOR) return 'wall';
+            if (loc.typ === DOOR) return (loc.flags > 0) ? 'open door' : 'closed door';
+            if (loc.typ === ROOM) return 'floor of a room';
+            if (loc.typ === CORR) return 'corridor';
+        }
+    }
     const { col, row } = screenPosForMap(display, x, y);
     const info = display?.cellInfo?.[row]?.[col];
     return info?.name || '';
@@ -583,6 +601,11 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
             const c = String.fromCharCode(ch);
 
             if (ch === 27) {
+                if (typeof display?.clearRow === 'function') display.clearRow(0);
+                if (display) {
+                    display.topMessage = null;
+                    display.messageNeedsMore = false;
+                }
                 ccp.x = -10;
                 ccp.y = -10;
                 return -1;
@@ -695,7 +718,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                     cx = nx;
                     cy = ny;
                     cursorState = putCursor(display, cx, cy);
-                    const desc = cursorDesc(display, cx, cy);
+                    const desc = cursorDesc(display, runtimeCtx.map, cx, cy);
                     if (desc && typeof display?.putstr_message === 'function') {
                         await display.putstr_message(desc);
                     }
@@ -728,6 +751,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
         }
     } finally {
         restoreCursor(display, cursorState);
+        rerenderAfterGetpos(display);
         clearHiliteIfNeeded();
         getpos_hilitefunc = null;
         getpos_getvalid = null;
