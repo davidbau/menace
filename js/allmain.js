@@ -563,45 +563,7 @@ export async function run_command(game, ch, opts = {}) {
         };
     };
 
-    // Boundary owner stack: active top boundary gets first chance to consume key.
-    const topBoundary = (typeof game?.peekInputBoundary === 'function')
-        ? game.peekInputBoundary()
-        : null;
-    if (topBoundary
-        && topBoundary.owner !== 'more'
-        && topBoundary.owner !== 'prompt'
-        && typeof topBoundary.onKey === 'function') {
-        game?.emitDiagnosticEvent?.('boundary.stack.key', {
-            key: chCode,
-            owner: topBoundary.owner || null,
-            boundary: game?.getInputBoundaryState?.() || null,
-        });
-        const boundaryResult = await Promise.resolve(topBoundary.onKey(chCode, game));
-        const handled = boundaryResult === true || !!(boundaryResult && boundaryResult.handled);
-        if (handled) {
-            return {
-                tookTime: !!(boundaryResult && boundaryResult.tookTime),
-                moved: !!(boundaryResult && boundaryResult.moved),
-                boundary: true,
-            };
-        }
-    } else if (topBoundary
-        && topBoundary.owner === 'prompt'
-        && typeof topBoundary.onKey === 'function') {
-        game?.emitDiagnosticEvent?.('boundary.prompt.key', {
-            key: chCode,
-            boundary: game?.getInputBoundaryState?.() || null,
-        });
-        const promptResult = await Promise.resolve(topBoundary.onKey(chCode, game));
-        const finalized = await handlePromptResult(promptResult);
-        if (finalized) return finalized;
-    }
-
-    // C ref: readchar() / flush_screen — if --More-- is pending on the
-    // topline, this key dismisses it rather than being processed as a
-    // command.  This handles --More-- for turns where nhgetch is not
-    // called (normal combat/movement turns without prompts).
-    if (game.display && game.display._pendingMore) {
+    const handleMoreBoundaryKey = async () => {
         // C ref: win/tty/topl.c more() -> xwaitforspace("\033 "):
         // Space, Esc, or Enter dismisses --More--; other keys are ignored.
         const dismissesMore = (chCode === 32 || chCode === 27 || chCode === 10 || chCode === 13 || chCode === 16);
@@ -663,6 +625,59 @@ export async function run_command(game, ch, opts = {}) {
             }
         }
         return { tookTime: false };
+    };
+
+    // Boundary owner stack: active top boundary gets first chance to consume key.
+    const topBoundary = (typeof game?.peekInputBoundary === 'function')
+        ? game.peekInputBoundary()
+        : null;
+    if (topBoundary
+        && topBoundary.owner !== 'more'
+        && topBoundary.owner !== 'prompt'
+        && typeof topBoundary.onKey === 'function') {
+        game?.emitDiagnosticEvent?.('boundary.stack.key', {
+            key: chCode,
+            owner: topBoundary.owner || null,
+            boundary: game?.getInputBoundaryState?.() || null,
+        });
+        const boundaryResult = await Promise.resolve(topBoundary.onKey(chCode, game));
+        const handled = boundaryResult === true || !!(boundaryResult && boundaryResult.handled);
+        if (handled) {
+            return {
+                tookTime: !!(boundaryResult && boundaryResult.tookTime),
+                moved: !!(boundaryResult && boundaryResult.moved),
+                boundary: true,
+            };
+        }
+    } else if (topBoundary
+        && topBoundary.owner === 'more'
+        && typeof topBoundary.onKey === 'function') {
+        game?.emitDiagnosticEvent?.('boundary.stack.key', {
+            key: chCode,
+            owner: 'more',
+            boundary: game?.getInputBoundaryState?.() || null,
+        });
+        return await handleMoreBoundaryKey();
+    } else if (topBoundary
+        && topBoundary.owner === 'prompt'
+        && typeof topBoundary.onKey === 'function') {
+        game?.emitDiagnosticEvent?.('boundary.prompt.key', {
+            key: chCode,
+            boundary: game?.getInputBoundaryState?.() || null,
+        });
+        const promptResult = await Promise.resolve(topBoundary.onKey(chCode, game));
+        const finalized = await handlePromptResult(promptResult);
+        if (finalized) return finalized;
+    }
+
+    // Fallback for legacy/manual _pendingMore states with no registered
+    // boundary owner (should be rare during migration).
+    if (game.display && game.display._pendingMore) {
+        game?.emitDiagnosticEvent?.('boundary.more.fallback-no-owner', {
+            key: chCode,
+            boundary: game?.getInputBoundaryState?.() || null,
+        });
+        return await handleMoreBoundaryKey();
     }
 
     // C ref: tty_display_nhwindow(WIN_MESSAGE, FALSE) — at the start of
