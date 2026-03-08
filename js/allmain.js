@@ -19,6 +19,8 @@ import { movemon, settrack, mon_regen } from './monmove.js';
 import { savebones } from './bones.js';
 import { setGame } from './gstate.js';
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
+import { beginCommandExec, endCommandExec } from './exec_guard.js';
+import { awaitInput, awaitMore } from './suspend.js';
 import { nh_timeout, do_storms } from './timeout.js';
 import { pline } from './pline.js';
 import { runtimeDecideToShapeshift, makemon, withMakemonPlayerOverrideAsync } from './makemon.js';
@@ -503,11 +505,14 @@ export async function run_command(game, ch, opts = {}) {
         key: chCode,
         boundary: game?.getInputBoundaryState?.() || null,
     });
+    const execToken = beginCommandExec(game, { site: 'run_command', key: chCode });
+
+    try {
 
     const handlePromptResult = async (promptResult) => {
         if (!(promptResult && promptResult.handled)) return null;
         if (game._pendingPromptTask) {
-            await game._pendingPromptTask;
+            await awaitInput(game, game._pendingPromptTask, { site: 'run_command.handlePromptResult.pendingTask' });
             game._pendingPromptTask = null;
         }
         const promptTookTime = !!promptResult.tookTime;
@@ -569,7 +574,7 @@ export async function run_command(game, ch, opts = {}) {
         if (typeof prevMoreBlocking === 'boolean') {
             game.display._moreBlockingEnabled = false;
         }
-        await game.display._clearMore();
+        await awaitMore(game, game.display._clearMore(), { site: 'run_command.handleMoreBoundaryKey.clearMore' });
         game?.emitDiagnosticEvent?.('boundary.more.dismissed', {
             key: chCode,
             boundary: game?.getInputBoundaryState?.() || null,
@@ -641,7 +646,10 @@ export async function run_command(game, ch, opts = {}) {
             owner: topBoundary.owner || null,
             boundary: game?.getInputBoundaryState?.() || null,
         });
-        const boundaryResult = await Promise.resolve(topBoundary.onKey(chCode, game));
+        const boundaryResult = await awaitInput(game, Promise.resolve(topBoundary.onKey(chCode, game)), {
+            site: 'run_command.stackBoundary.onKey',
+            owner: topBoundary.owner || null,
+        });
         const handled = boundaryResult === true || !!(boundaryResult && boundaryResult.handled);
         if (handled) {
             return {
@@ -666,7 +674,9 @@ export async function run_command(game, ch, opts = {}) {
             key: chCode,
             boundary: game?.getInputBoundaryState?.() || null,
         });
-        const promptResult = await Promise.resolve(topBoundary.onKey(chCode, game));
+        const promptResult = await awaitInput(game, Promise.resolve(topBoundary.onKey(chCode, game)), {
+            site: 'run_command.promptBoundary.onKey',
+        });
         const finalized = await handlePromptResult(promptResult);
         if (finalized) return finalized;
         // Strict owner semantics: while prompt boundary owns input, a key does
@@ -862,6 +872,9 @@ export async function run_command(game, ch, opts = {}) {
     }
 
     return result;
+    } finally {
+        endCommandExec(game, execToken, { site: 'run_command', key: chCode });
+    }
 }
 
 // C ref: cmd.c do_repeat() queue payload decode.
