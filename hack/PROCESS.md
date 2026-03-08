@@ -286,4 +286,108 @@ The direct `dochug(mtmp)` + unlimited keys pattern is the correct approach.
 
 ---
 
-*[Document continues as work proceeds]*
+## Retrospective: The Full Autonomous Vibe Coding Experience
+
+*March 8, 2026*
+
+### How Long Did It Take?
+
+From first commit to final coverage push:
+
+| Phase | Timestamp | Duration |
+|-------|-----------|----------|
+| Phase 0: C harness built | March 6, 11:35 AM | — |
+| Phase 1–3: Full JS port | March 6, noon – ~8 PM | ~8 hrs calendar |
+| Phase 4: Parity debugging | March 6, 8 PM – midnight | ~4 hrs calendar |
+| Sessions extended, 22/22 passing | March 6, midnight | **~12 hrs total** |
+| Coverage work starts (62.4%) | March 8, 7:47 AM | — |
+| Coverage Wave 1 (82.6%) | March 8, 7:47 AM | ~0 min elapsed |
+| Coverage Waves 2–5 (92.6%) | March 8, 8:47 AM | ~1 hr |
+| Coverage Wave 6 (96.84%) | March 8, 10:37 AM | ~2 hrs |
+
+**Total calendar time**: roughly **15 hours** from a blank directory to a verified, 97%-covered JS port of a 6,200-line C game. Agent compute time was considerably less — most calendar time was human review, context switching, and the gaps between sessions. The actual agent execution time across all sessions was probably 3–4 hours.
+
+For comparison: the Rogue 3.6 port (a *larger* game, 8,400 lines) was done in 85 minutes of agent time because the methodology was already proven.
+
+---
+
+### What Was Most Effective?
+
+**1. The reference harness as oracle.**
+The single best decision was building the C harness first. Every correctness question reduces to: *does the JS screen match the C screen?* There is no ambiguity, no specification to interpret, no debate about "correct" behavior. The C binary defines it. This turned a hard AI/reasoning problem into a hard but tractable diff problem.
+
+**2. The direct test pattern for probabilistic code.**
+The `runWith(seed, setupFn, keys)` pattern worked well for deterministic paths. But for probabilistic code — monster special attacks that fire ~10% of the time — it failed silently: the tests ran, claimed coverage, but left lines uncovered because of the `--More--` key consumption problem. The breakthrough was recognizing this and switching to `dochug(mtmp)` + `getKey = async () => ' '` (unlimited keys). This is the right pattern for any async-gated probabilistic code in a game engine.
+
+**3. Wave-based coverage escalation.**
+Rather than trying to write all tests at once, each wave targeted the lowest-covered file, got it up, then moved on. This gave quick wins and kept momentum. The coverage tool (`c8 --reporter=text`) made the feedback loop fast enough to iterate in real time.
+
+**4. Dependency injection from day one.**
+Every module uses `_setXxxDeps()` for cross-module references. This meant tests could wire up exactly the dependencies they needed — real `poisoned()`, mock `getKey()` — without fighting import cycles or DOM dependencies. If this weren't done during the port, the coverage work would have been much harder.
+
+**5. Writing down what was learned.**
+LORE.md, PARITY.md, and PROCESS.md were maintained throughout. When a context window ended and a new session started, the prior session's findings were immediately available. Without these documents, each session would have rediscovered the same bugs. With them, each session could build on the last.
+
+---
+
+### What Didn't Work?
+
+**1. Wizard mode as the coverage path.**
+The original plan called for enabling C wizard mode to create items from thin air and generate richer sessions. This was abandoned after reading the actual wizard mode code: Hack 1982's wizard mode is monster-focused (create monster, show trap location) and doesn't have item creation. Two hours of planning for a path that didn't exist.
+
+**2. Long exploration sessions for coverage.**
+The fallback plan was 300–500 keystroke sessions of exploration. Items appear naturally, eventually. This was also abandoned: it would have taken time to generate, the coverage gains would have been unpredictable, and the direct JS test approach was strictly better — faster to write, easier to target specific lines, no C harness dependency.
+
+**3. Game loop tests for monster special attacks.**
+Tests like `testSnakeFight` and `testOwlbearFight` ran correctly and seemed reasonable. They passed. They just didn't cover what they were supposed to cover, because of the `--More--` barrier. This was a silent failure — the tests appeared to work, coverage didn't move, and diagnosing why required understanding the async control flow at depth. The fix was correct once found, but the time spent diagnosing it was a tax on the wrong initial approach.
+
+**4. Single-seed probabilistic tests.**
+`testOwlbearFight` used seed 5 and fired 9 attacks. With a 10% grab probability, there's a 39% chance of zero grabs in 9 attacks. One seed is not enough for probabilistic paths. The fix — 30 seeds × 50 dochug calls — is obviously more robust in hindsight.
+
+**5. Not reading the monster table before writing tests.**
+`testDisenchanterBuzzDirect` initially used `mon[6][6]` (a giant, `mlet='w'`). The test ran without error because `hitu()` accepted any monster. It just wasn't testing a disenchanter. This kind of silent mis-targeting is easy when monster indices aren't checked against the actual data table. The lesson: always verify `mdat.mlet` in the test output or a quick debug print before committing.
+
+---
+
+### How Much Human Guidance Was Needed?
+
+Very little. The human interaction for the coverage phase (March 8) amounted to:
+
+1. **"What's the plan?"** — reading PROCESS.md (which the agent had written)
+2. **One direction**: "do the coverage improvements" (implicit in the task)
+3. **End-of-session review** (this retrospective)
+
+The parity debugging phase (March 6–7) required more: the human approved each significant approach and reviewed commits. But the debugging itself — identifying divergent rand() calls, tracing to C source, proposing and testing fixes — was fully autonomous.
+
+The Hack port as a whole required human guidance at three points:
+- **"Build a C harness and port Hack to JS"** — the initial task
+- **"Improve coverage"** — the second task
+- **"Write the retrospective"** — this
+
+Everything in between was autonomous: architecture decisions, bug discovery, bug fixing, session design, test writing, documentation, git commits.
+
+---
+
+### Numbers
+
+| Metric | Value |
+|--------|-------|
+| Original C source | ~6,200 lines, 9 files |
+| JS port | ~6,800 lines, 12 files |
+| Calendar time (port + parity) | ~12 hours |
+| Calendar time (coverage) | ~3 hours |
+| Reference sessions | 22 |
+| Final coverage | 96.84% statements |
+| Estimated dead/unreachable code | ~1.5% |
+| Practical ceiling | ~98.5% |
+| Bugs found during coverage work | 4 (rn1 import, fstole serialization, disenchanter wrong index, leprechaun rloc OOM) |
+| Human code written | 0 lines |
+| Human decisions made | ~5 |
+
+---
+
+### The Main Lesson
+
+The bottleneck in this kind of autonomous porting work is not *writing* code — that is fast. The bottleneck is *verifying* code. The reference harness + session replay + coverage tool created a tight verification loop. Every change had an immediate, objective answer: does the screen match? Did coverage move?
+
+Without that loop, the agent would have been writing code and hoping. With it, the agent was running experiments. The difference in productivity is enormous — probably 10×. The investment in the reference harness on day one paid for itself many times over by day two.
