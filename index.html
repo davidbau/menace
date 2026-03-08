@@ -1204,14 +1204,18 @@
             if (exit) exit.call(document).catch(function() {});
         }
 
+        var supportsKeyboardLock = ('keyboard' in navigator) && ('lock' in navigator.keyboard);
+
         function onFullscreenChange() {
             var fsEl = document.fullscreenElement || document.webkitFullscreenElement
                     || document.mozFullScreenElement;
             if (fsEl) {
                 document.body.classList.add('fullscreen-mode');
+                if (supportsKeyboardLock) navigator.keyboard.lock(['Escape']).catch(function() {});
                 if (window._applyFontSize) window._applyFontSize(computeFullscreenFontSize());
             } else {
                 document.body.classList.remove('fullscreen-mode');
+                if (supportsKeyboardLock) navigator.keyboard.unlock();
                 if (window._applyFontSize && preFontSize) window._applyFontSize(preFontSize);
                 preFontSize = null;
             }
