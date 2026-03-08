@@ -567,7 +567,6 @@ export async function run_command(game, ch, opts = {}) {
     const topBoundary = (typeof game?.peekInputBoundary === 'function')
         ? game.peekInputBoundary()
         : null;
-    const stackPromptHandled = !!(topBoundary && topBoundary.owner === 'prompt');
     if (topBoundary
         && topBoundary.owner !== 'more'
         && topBoundary.owner !== 'prompt'
@@ -664,19 +663,6 @@ export async function run_command(game, ch, opts = {}) {
             }
         }
         return { tookTime: false };
-    }
-
-    // Prompt handlers (e.g., eat.c "Continue eating? [yn]") consume input
-    // without advancing time until a terminating answer is provided.
-    if (!stackPromptHandled
-        && game.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
-        game?.emitDiagnosticEvent?.('boundary.prompt.key', {
-            key: chCode,
-            boundary: game?.getInputBoundaryState?.() || null,
-        });
-        const promptResult = await Promise.resolve(game.pendingPrompt.onKey(chCode, game));
-        const finalized = await handlePromptResult(promptResult);
-        if (finalized) return finalized;
     }
 
     // C ref: tty_display_nhwindow(WIN_MESSAGE, FALSE) — at the start of
