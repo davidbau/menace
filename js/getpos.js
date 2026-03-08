@@ -135,14 +135,6 @@ function restoreCursor(display, cursorState) {
     flush_screen(0); // C ref: getpos.c:660,854,863,1149 — flush tty after cursor move
 }
 
-function rerenderAfterGetpos(display) {
-    const last = display?._lastMapState;
-    if (!last?.gameMap || typeof display?.renderMap !== 'function') return;
-    display.renderMap(last.gameMap, last.player, last.fov, last.flags || display.flags || {});
-    if (typeof display.renderStatus === 'function') display.renderStatus(last.player);
-    if (typeof display.renderMessageWindow === 'function') display.renderMessageWindow();
-}
-
 function moveDeltaForChar(c) {
     switch (c) {
     case 'h': return [-1, 0];
@@ -810,7 +802,6 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
         }
     } finally {
         restoreCursor(display, cursorState);
-        rerenderAfterGetpos(display);
         clearHiliteIfNeeded();
         getpos_hilitefunc = null;
         getpos_getvalid = null;

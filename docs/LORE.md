@@ -4962,3 +4962,25 @@ hard-won wisdom:
 - Validation:
   - `node scripts/test-unit-core.mjs` unchanged baseline
     (`2526 pass / 5 fail`, same known input-queue failures).
+
+### seed033 travel/getpos boundary localization + getpos cleanup (2026-03-08)
+
+- Problem:
+  - `seed033_manual_direct` remains the lone gameplay failure (`33/34` overall).
+  - First screen divergence is at step 935 (`##@` vs `###`), with nearby event
+    drift starting at `dog_invent_decision ud=1` (JS) vs `ud=2` (C).
+- Confirmed findings:
+  - A non-C full-map repaint existed at getpos exit in JS (`rerenderAfterGetpos`).
+    C `getpos.c` exits by restoring cursor/hilite only; no extra repaint.
+  - The early `@` paint at the failing boundary is not from `docrt()`.
+    It is written by `newsym()` calls reached from:
+    - `domove_core` (direct movement update), and
+    - `see_monsters` during `advanceTimedTurn`.
+  - Event mismatch cluster around first divergence shows coupled branch change
+    in dog AI (`dog_goal_end`/`dog_move_choice`) after that boundary.
+- Fix:
+  - Removed JS `rerenderAfterGetpos(...)` and its call in `getpos_async` finalizer
+    to match C behavior.
+- Validation:
+  - `scripts/run-and-report.sh --failures` stays at `33/34` (no regression).
+  - The known `seed033` frontier remains (`event ~467`, `screen ~935`, `rng ~942`).
