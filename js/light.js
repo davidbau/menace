@@ -19,7 +19,7 @@
 //   snuff_light_source(): extinguish light at a location.
 //   save/restore_light_sources: persistence (N/A in JS, uses storage.js).
 
-import { COLNO, ROWNO, isok, LS_OBJECT, LS_MONSTER } from './const.js';
+import { COLNO, ROWNO, isok, LS_OBJECT, LS_MONSTER, OBJ_INVENT, OBJ_CONTAINED, OBJ_MINVENT } from './const.js';
 import {
     CANDELABRUM_OF_INVOCATION, TALLOW_CANDLE, WAX_CANDLE,
     BRASS_LANTERN, OIL_LAMP, MAGIC_LAMP, POT_OIL,
@@ -132,7 +132,7 @@ export function do_light_sources(cs_rows, map, player) {
             } else if (ls.id) {
                 // Try to get object location
                 const obj = ls.id;
-                const loc = get_obj_light_location(obj, map);
+                const loc = get_obj_light_location(obj, map, player);
                 if (loc) {
                     ls.x = loc.x;
                     ls.y = loc.y;
@@ -189,17 +189,54 @@ export function do_light_sources(cs_rows, map, player) {
 }
 
 // Helper: get object location for light source tracking
-function get_obj_light_location(obj, map) {
+function get_obj_light_location(obj, map, player, depth = 0) {
     if (!obj) return null;
+    if (depth > 8) return null;
+    if (player && Number.isFinite(player.x) && Number.isFinite(player.y)
+        && objectInContainerTree(obj, player.inventory)) {
+        return { x: player.x, y: player.y };
+    }
     // Object on floor
-    if (typeof obj.ox === 'number' && typeof obj.oy === 'number'
+    if ((obj.where == null || obj.where === 1)
+        && typeof obj.ox === 'number' && typeof obj.oy === 'number'
         && obj.ox > 0) {
         return { x: obj.ox, y: obj.oy };
     }
-    // Object in inventory — use player position (handled by caller)
-    // Object in monster inventory — use monster position
-    // TODO: full get_obj_location port for all obj.where cases
+    // Object in hero inventory.
+    if (obj.where === OBJ_INVENT || obj.where === 'inventory') {
+        if (player && Number.isFinite(player.x) && Number.isFinite(player.y)) {
+            return { x: player.x, y: player.y };
+        }
+        return null;
+    }
+    // Object inside another object/container.
+    if (obj.where === OBJ_CONTAINED || obj.where === 'contained') {
+        if (obj.ocontainer) return get_obj_light_location(obj.ocontainer, map, player, depth + 1);
+        return null;
+    }
+    // Object carried by a monster.
+    if (obj.where === OBJ_MINVENT || obj.where === 'minvent') {
+        const mon = obj.ocarry;
+        if (mon && Number.isFinite(mon.mx) && Number.isFinite(mon.my) && mon.mx > 0) {
+            return { x: mon.mx, y: mon.my };
+        }
+        return null;
+    }
+    // Fallback for loose objects with map coordinates.
+    if (typeof obj.ox === 'number' && typeof obj.oy === 'number' && obj.ox > 0) {
+        return { x: obj.ox, y: obj.oy };
+    }
     return null;
+}
+
+function objectInContainerTree(target, list, depth = 0) {
+    if (!target || !Array.isArray(list) || depth > 12) return false;
+    for (const obj of list) {
+        if (obj === target) return true;
+        const cobj = obj?.cobj;
+        if (Array.isArray(cobj) && objectInContainerTree(target, cobj, depth + 1)) return true;
+    }
+    return false;
 }
 
 // Circle data for range-limited scans (matches vision.js CIRCLE_DATA/CIRCLE_START)

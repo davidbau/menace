@@ -111,24 +111,13 @@ function getCell(display, col, row) {
 
 function putCursor(display, x, y) {
     const { col, row } = screenPosForMap(display, x, y);
-    const prev = getCell(display, col, row);
-    if (typeof display?.setCell === 'function') display.setCell(col, row, 'X', 14, 0);
     if (typeof display?.setCursor === 'function') display.setCursor(col, row);
     flush_screen(0); // C ref: getpos.c:660,854,863,1149 — flush tty after cursor move
-    return { col, row, prev };
+    return { col, row };
 }
 
 function restoreCursor(display, cursorState) {
     if (!cursorState) return;
-    if (typeof display?.setCell === 'function') {
-        display.setCell(
-            cursorState.col,
-            cursorState.row,
-            cursorState.prev.ch,
-            cursorState.prev.color,
-            cursorState.prev.attr || 0
-        );
-    }
     if (typeof display?.setCursor === 'function') {
         display.setCursor(cursorState.col, cursorState.row);
     }

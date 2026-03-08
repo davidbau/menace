@@ -18,12 +18,15 @@ import { TIMEOUT, INTRINSIC, FROMOUTSIDE,
          FIRE_RES, STONE_RES, DETECT_MONSTERS, PROT_FROM_SHAPE_CHANGERS,
          SICK_NONVOMITABLE, A_CON, A_DEX, A_STR, ACCESSIBLE,
          TIMER_KIND, TIMER_FUNC, MELT_ICE_AWAY,
-         NO_MINVENT, MM_NOMSG } from './const.js';
+         NO_MINVENT, MM_NOMSG,
+         LS_OBJECT, OBJ_INVENT, OBJ_FLOOR, OBJ_CONTAINED } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { mons } from './monsters.js';
+import { POT_OIL, TALLOW_CANDLE, WAX_CANDLE, CANDELABRUM_OF_INVOCATION } from './objects.js';
 import { big_to_little } from './mondata.js';
 import { enexto } from './teleport.js';
+import { new_light_source, del_light_source, candle_light_range } from './light.js';
 
 const OBJ_TIMER_KIND = TIMER_KIND.SHORT;
 
@@ -871,6 +874,12 @@ export function begin_burn(obj, _alreadyLit = false) {
     obj.lamplit = true;
     const timer = start_timer(obj.age, TIMER_KIND.SHORT, TIMER_FUNC.BURN_OBJECT, obj);
     obj._burnTimer = timer;
+    if (!_alreadyLit) {
+        const loc = _resolveBurnObjectLocation(obj);
+        if (loc) {
+            new_light_source(loc.x, loc.y, _burnLightRadius(obj), LS_OBJECT, obj);
+        }
+    }
     return timer;
 }
 
@@ -889,6 +898,7 @@ export function cleanup_burn(arg, expireTime) {
 
 export function end_burn(obj, timerAttached = false) {
     if (!obj) return false;
+    del_light_source(LS_OBJECT, obj);
     const removed = stop_timer(TIMER_FUNC.BURN_OBJECT, obj);
     if (obj._burnTimer) delete obj._burnTimer;
     if (removed && timerAttached) {
@@ -896,6 +906,35 @@ export function end_burn(obj, timerAttached = false) {
     }
     obj.lamplit = false;
     return removed;
+}
+
+function _burnLightRadius(obj) {
+    if (!obj) return 3;
+    if (obj.otyp === POT_OIL) return 1;
+    if (obj.otyp === TALLOW_CANDLE || obj.otyp === WAX_CANDLE || obj.otyp === CANDELABRUM_OF_INVOCATION) {
+        return candle_light_range(obj);
+    }
+    return 3;
+}
+
+function _resolveBurnObjectLocation(obj, depth = 0) {
+    if (!obj || depth > 8) return null;
+    if (obj.where === OBJ_INVENT || (!Number.isFinite(obj.where) && !Number.isFinite(obj.ox) && !Number.isFinite(obj.oy))) {
+        const p = _timeoutContext.player;
+        if (p && Number.isFinite(p.x) && Number.isFinite(p.y)) return { x: p.x, y: p.y };
+    }
+    if (obj.where === OBJ_FLOOR && Number.isFinite(obj.ox) && Number.isFinite(obj.oy)) {
+        return { x: obj.ox, y: obj.oy };
+    }
+    if (obj.where === OBJ_CONTAINED && obj.ocontainer) {
+        return _resolveBurnObjectLocation(obj.ocontainer, depth + 1);
+    }
+    if (Number.isFinite(obj.ox) && Number.isFinite(obj.oy)) {
+        return { x: obj.ox, y: obj.oy };
+    }
+    const p = _timeoutContext.player;
+    if (p && Number.isFinite(p.x) && Number.isFinite(p.y)) return { x: p.x, y: p.y };
+    return null;
 }
 
 export function do_storms() {

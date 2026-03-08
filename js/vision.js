@@ -819,6 +819,13 @@ export class FOV {
     // Recompute field of view from player position
     // C ref: vision.c:511-846 vision_recalc()
     compute(gameMap, px, py, lightFn, playerState = null) {
+        if (!lightFn && this._lightFn) {
+            lightFn = this._lightFn;
+            if (!playerState) playerState = this._lightPlayer || null;
+        } else if (lightFn) {
+            this._lightFn = lightFn;
+            this._lightPlayer = playerState || null;
+        }
         // Build lookup tables (once per level, or rebuild each time for simplicity)
         this.visionReset(gameMap);
         activeFov = this;
@@ -895,7 +902,7 @@ export class FOV {
             }
 
             // C ref: vision.c:703 — do_light_sources(next_array) marks TEMP_LIT
-            if (lightFn) lightFn(cs, gameMap, { x: px, y: py });
+            if (lightFn) lightFn(cs, gameMap, playerState || { x: px, y: py });
 
             // Lighting loop: COULD_SEE + (lit | TEMP_LIT) → IN_SIGHT
             // C ref: vision.c:727-829

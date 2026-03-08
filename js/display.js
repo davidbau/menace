@@ -198,6 +198,7 @@ export class Display {
         this.messages = [];
         this.topMessage = null;
         this.messageNeedsMore = false; // C ref: TOPLINE_NEED_MORE - true if message not acknowledged by keypress
+        this.messageCursorCol = 0;
 
         // Game flags (updated by game, used for display options)
         this.flags = {};
@@ -402,7 +403,8 @@ span.nh-cursor {
                 this.clearRow(MESSAGE_ROW);
                 this.putstr(0, MESSAGE_ROW, combined, CLR_WHITE);
                 this.topMessage = combined;
-                this.setCursor(Math.min(combined.length, this.cols - 1), 0);
+                this.messageCursorCol = Math.min(combined.length, this.cols - 1);
+                this.setCursor(this.messageCursorCol, 0);
                 return;
             }
             // C ref: win/tty/topl.c update_topl():
@@ -427,6 +429,7 @@ span.nh-cursor {
         if (msg.length <= this.cols) {
             this.putstr(0, MESSAGE_ROW, msg, CLR_WHITE);
             this.topMessage = msg;
+            this.messageCursorCol = Math.min(msg.length, this.cols - 1);
         } else {
             // Break at word boundary near cols (C uses CO-1 as scan start).
             let breakPoint = msg.lastIndexOf(' ', this.cols - 1);
@@ -439,6 +442,7 @@ span.nh-cursor {
 
             this.putstr(0, MESSAGE_ROW, row0, CLR_WHITE);
             this.topMessage = row0;
+            this.messageCursorCol = Math.min(row0.length, this.cols - 1);
 
             if (row1rest.length > 0) {
                 if (this._moreBlockingEnabled && this._nhgetch) {
@@ -486,7 +490,7 @@ span.nh-cursor {
             this.renderMoreMarker();
             this.markMorePending({ source: 'display.death-final' });
         }
-        this.setCursor(Math.min(msg.length, this.cols - 1), 0);
+        this.setCursor(this.messageCursorCol, 0);
     }
 
     // Dismiss the --More-- prompt and display queued messages.

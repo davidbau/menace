@@ -27,7 +27,7 @@ import { COIN_CLASS, RING_CLASS, POTION_CLASS,
          RIN_POLYMORPH, RIN_POLYMORPH_CONTROL,
          RIN_INVISIBILITY, RIN_SEE_INVISIBLE,
          RIN_PROTECTION_FROM_SHAPE_CHAN,
-         objectData } from './objects.js';
+         objectData, CLASS_SYMBOLS } from './objects.js';
 import { doname, xname, splitobj, set_bknown, set_corpsenm } from './mkobj.js';
 import { placeFloorObject } from './invent.js';
 import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
@@ -807,6 +807,89 @@ async function showDropCandidates(candidates, display) {
     }
 }
 
+function dropClassLabel(sym) {
+    switch (sym) {
+        case ')': return 'Weapons';
+        case '[': return 'Armor';
+        case '=': return 'Rings';
+        case '"': return 'Amulets';
+        case '(': return 'Tools';
+        case '%': return 'Comestibles';
+        case '!': return 'Potions';
+        case '?': return 'Scrolls';
+        case '+': return 'Spellbooks';
+        case '/': return 'Wands';
+        case '$': return 'Coins';
+        case '*': return 'Gems/Stones';
+        default: return 'Objects';
+    }
+}
+
+async function promptDropTypeClass(display, player) {
+    const prompt = 'Drop what type of items?';
+    const promptCol = 23;
+    if (typeof display?.clearRow === 'function') {
+        display.clearRow(0);
+        display.clearRow(2);
+        display.clearRow(3);
+    }
+    if (typeof display?.putstr === 'function') {
+        display.putstr(promptCol, 0, prompt, undefined, 1);
+        display.putstr(promptCol, 2, 'A - Auto-select every relevant item');
+        display.putstr(promptCol + 4, 3, '(ignored unless some other choices are also picked)');
+        let row = 5;
+        display.putstr(promptCol, row++, 'a - All types');
+        const inventory = Array.isArray(player?.inventory) ? player.inventory : [];
+        const classSet = new Set();
+        for (const obj of inventory) {
+            const sym = CLASS_SYMBOLS?.[obj?.oclass];
+            if (typeof sym === 'string' && sym.length > 0) classSet.add(sym);
+        }
+        const order = [')', '[', '%', '(', '=', '"', '!', '?', '+', '/', '$', '*'];
+        let accel = 'b'.charCodeAt(0);
+        for (const sym of order) {
+            if (!classSet.has(sym)) continue;
+            const key = String.fromCharCode(accel++);
+            display.putstr(promptCol, row++, `${key} - ${dropClassLabel(sym)}`);
+        }
+        const hasKnownUncursed = inventory.some((obj) => obj?.bknown && !obj?.blessed && !obj?.cursed);
+        if (hasKnownUncursed) {
+            row++;
+            display.putstr(promptCol, row++, 'U - Items known to be Uncursed');
+        }
+        display.putstr(promptCol, row, '(end)');
+    } else if (typeof display?.putstr_message === 'function') {
+        await display.putstr_message(`${' '.repeat(promptCol)}${prompt}`);
+    }
+    let input = '';
+    while (true) {
+        const ch = await nhgetch();
+        if (ch === 10 || ch === 13) {
+            if (typeof display?.clearRow === 'function') {
+                display.clearRow(0);
+                display.clearRow(2);
+                display.clearRow(3);
+            }
+            return input;
+        }
+        if (ch === 27) {
+            if (typeof display?.clearRow === 'function') {
+                display.clearRow(0);
+                display.clearRow(2);
+                display.clearRow(3);
+            }
+            return null;
+        }
+        if (ch === 8 || ch === 127) {
+            if (input.length > 0) input = input.slice(0, -1);
+            continue;
+        }
+        if (ch >= 32 && ch < 127) {
+            input += String.fromCharCode(ch);
+        }
+    }
+}
+
 // C ref: do.c doddrop() — drop by class/category.
 // Focused path used by parity sessions: class query + invlet selection.
 export async function handleDropTypes(player, map, display) {
@@ -815,7 +898,7 @@ export async function handleDropTypes(player, map, display) {
         return { moved: false, tookTime: false };
     }
 
-    const cls = await getlin('Drop what type of items?', display);
+    const cls = await promptDropTypeClass(display, player);
     if (cls == null) return { moved: false, tookTime: false };
     const trimmed = String(cls).trim();
     if (!trimmed) return { moved: false, tookTime: false };

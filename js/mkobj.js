@@ -1473,6 +1473,11 @@ export function doname(obj, player) {
         result += ` named ${objGivenName}`;
     }
 
+    // C ref: objnam.c doname() appends "(lit)" for lit light sources.
+    if (obj.lamplit) {
+        result += ' (lit)';
+    }
+
     // Suffix: worn/wielded/charges
     if (player) {
         if (player.weapon === obj) {
