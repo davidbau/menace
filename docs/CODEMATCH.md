@@ -168,12 +168,12 @@ don't follow the same 1:1 C→JS mapping pattern.
 ### Summary
 
 - **Total C files**: 129
-- **N/A (system/platform)**: 22
-- **Game logic files**: 107
+- **N/A (system/platform)**: 21
+- **Game logic files**: 108
 - **Complete (`[x]`)**: 4
-- **Aligned (`[a]`)**: 53
-- **Present (`[p]`)**: 7
-- **Needs alignment (`[~]`)**: 43
+- **Aligned (`[a]`)**: 51
+- **Present (`[p]`)**: 9
+- **Needs alignment (`[~]`)**: 44
 - **No JS file yet (`[ ]`)**: 0
 
 ### JS Files With Non-Strict C Mapping
@@ -296,6 +296,21 @@ Browser entry point only.  Reads URL params, constructs `Display` and browser in
 ## Function-Level Details
 
 This section is generated from source symbol tables and includes function rows for every C file in this document.
+
+### Function-Level Metrics
+
+- **Raw rows (all files)**: `5000` total, `3681` missing (**73.62% left**)
+- **Gameplay rows only**: `4335` total, `3060` missing (**70.59% left**)
+- **Excluded non-gameplay rows**: `665` rows under `[N/A]` files
+
+### Non-Gameplay Blacklist (Excluded From Gameplay %)
+
+Rows under these `[N/A]` C files are non-gameplay/system and should not count against gameplay CODEMATCH burndown:
+
+`alloc.c`, `cfgfiles.c`, `coloratt.c`, `date.c`, `dlb.c`, `files.c`, `mail.c`,
+`mdlib.c`, `nhlobj.c`, `nhlsel.c`, `nhlua.c`, `nhmd4.c`, `report.c`, `sfbase.c`,
+`sfstruct.c`, `strutil.c`, `symbols.c`, `sys.c`, `utf8map.c`, `version.c`,
+`windows.c`.
 
 ### allmain.c -> allmain.js
 | C Line | C Function | JS Line | Alignment |
