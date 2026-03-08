@@ -241,7 +241,8 @@ function isMenuDismissKey(ch) {
     return ch === 32 || ch === 27 || ch === 10 || ch === 13;
 }
 
-export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelectionChars = '') {
+export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelectionChars = '', options = null) {
+    const allowCountPrefix = !!(options && options.allowCountPrefix);
     const allowedSelections = new Set((allowedSelectionChars || '').split(''));
     let menuOffx = null;
     if (typeof display.renderOverlayMenu === 'function') {
@@ -262,10 +263,15 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
     }
 
     let selection = null;
+    let countDigits = '';
     while (true) {
         const ch = await nhgetch();
         if (isMenuDismissKey(ch)) break;
         const c = String.fromCharCode(ch);
+        if (allowCountPrefix && c >= '0' && c <= '9') {
+            countDigits += c;
+            continue;
+        }
         if (allowedSelections.has(c)) {
             selection = c;
             break;
@@ -299,7 +305,12 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
         }
     }
 
-    return selection;
+    if (!allowCountPrefix) return selection;
+    const parsedCount = countDigits.length > 0 ? parseInt(countDigits, 10) : null;
+    return {
+        selection,
+        count: Number.isFinite(parsedCount) ? parsedCount : null,
+    };
 }
 
 // Handle inventory display

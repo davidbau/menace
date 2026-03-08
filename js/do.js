@@ -703,9 +703,24 @@ export async function handleDrop(player, map, display) {
         if (c === '?' || c === '*') {
             replacePromptMessage();
             const invLines = buildInventoryOverlayLines(player);
-            const selection = await renderOverlayMenuUntilDismiss(display, invLines, dropChoices);
+            const selectionResult = await renderOverlayMenuUntilDismiss(
+                display,
+                invLines,
+                dropChoices,
+                { allowCountPrefix: true }
+            );
+            const selection = (selectionResult && typeof selectionResult === 'object')
+                ? selectionResult.selection
+                : selectionResult;
+            const requestedCount = (selectionResult && typeof selectionResult === 'object')
+                ? selectionResult.count
+                : null;
             if (!selection) continue;
             c = selection;
+            if (requestedCount && requestedCount > 0) {
+                countMode = true;
+                countDigits = String(requestedCount);
+            }
         }
 
         const item = player.inventory.find(o => o.invlet === c);
@@ -721,6 +736,17 @@ export async function handleDrop(player, map, display) {
                 await display.morePrompt(nhgetch);
             }
             continue;
+        }
+        if (countMode && countDigits.length > 0) {
+            const requestedCount = parseInt(countDigits, 10);
+            const stackCount = Number(item.quan || 1);
+            countMode = false;
+            countDigits = '';
+            if (Number.isFinite(requestedCount) && requestedCount > stackCount) {
+                replacePromptMessage();
+                await display.putstr_message(`You don't have that many!  You have only ${stackCount}.--More--`);
+                continue;
+            }
         }
         return await dropSelectedItem(item, player, map, display);
     }

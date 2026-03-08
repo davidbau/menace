@@ -4654,3 +4654,29 @@ hard-won wisdom:
     advances first divergence from step `108` to step `268`.
   - `./scripts/run-and-report.sh --failures` remains `32/34` gameplay sessions
     passing overall, with `seed033` now failing later (`268/1417`).
+
+### seed033 drop/getobj count boundary: `* 10 d` now follows C count path (2026-03-08)
+
+- Problem:
+  - `seed033` divergence at step `268` traced to earlier drop/getobj handling:
+    the `d * 1 0 d` sequence should trigger C's count-aware "too many" path
+    (`"You don't have that many!  You have only 1.--More--"`), but JS
+    previously ignored numeric prefix inside overlay selection and dropped
+    the item directly.
+- Fix:
+  - Updated
+    [`js/invent.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js)
+    `renderOverlayMenuUntilDismiss(...)` to optionally capture numeric count
+    prefix digits before selection (`options.allowCountPrefix`).
+  - Updated
+    [`js/do.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/do.js)
+    `handleDrop(...)` to pass `allowCountPrefix` for `*` inventory overlay,
+    propagate returned count, and emit the C-faithful overcount message
+    (`"You don't have that many!  You have only N.--More--"`).
+- Validation:
+  - `node scripts/test-unit-core.mjs` passes.
+  - `./scripts/run-and-report.sh --failures` remains `32/34` passing.
+  - `seed033` frontier advances:
+    - before: first RNG/event divergence at step `268`
+    - after: first event divergence at step `361`, first RNG divergence at step `416`
+      (`seed033` now fails later: `rng=416/1417`, `events=361/1417`).
