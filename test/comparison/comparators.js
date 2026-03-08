@@ -559,6 +559,10 @@ function isIgnorableEventEntry(entry) {
             || entry.startsWith('^wipe[') || entry.startsWith('^tmp_at_'));
 }
 
+function isTestMoveEvent(entry) {
+    return typeof entry === 'string' && entry.startsWith('^test_move[');
+}
+
 // Strip JS caller context (` @ caller <= parent`) appended by pushRngLogEntry.
 function stripEventContext(entry) {
     if (typeof entry !== 'string') return entry;
@@ -567,12 +571,20 @@ function stripEventContext(entry) {
 }
 
 export function compareEvents(jsRng = [], sessionRng = []) {
-    const js = (Array.isArray(jsRng) ? jsRng : [])
+    let js = (Array.isArray(jsRng) ? jsRng : [])
         .filter(isEventEntry)
         .filter((entry) => !isIgnorableEventEntry(entry));
-    const session = (Array.isArray(sessionRng) ? sessionRng : [])
+    let session = (Array.isArray(sessionRng) ? sessionRng : [])
         .filter(isEventEntry)
         .filter((entry) => !isIgnorableEventEntry(entry));
+    // Backward compatibility: old sessions were recorded before test_move
+    // instrumentation existed. If either side lacks it entirely, ignore it.
+    const jsHasTestMove = js.some(isTestMoveEvent);
+    const sessionHasTestMove = session.some(isTestMoveEvent);
+    if (jsHasTestMove !== sessionHasTestMove) {
+        js = js.filter((entry) => !isTestMoveEvent(entry));
+        session = session.filter((entry) => !isTestMoveEvent(entry));
+    }
     const total = Math.max(js.length, session.length);
 
     let matched = 0;

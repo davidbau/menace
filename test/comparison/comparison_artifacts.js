@@ -81,6 +81,70 @@ function normalizeChannel(sessionLike, { eventsOnly = false } = {}) {
     return { raw, normalized, rawIndexMap, stepEnds };
 }
 
+function boundedSlice(arr, center, radius = 64) {
+    const list = Array.isArray(arr) ? arr : [];
+    if (!Number.isInteger(center) || center < 0 || list.length === 0) {
+        return { start: 0, end: -1, entries: [] };
+    }
+    const safeRadius = Math.max(0, radius | 0);
+    const start = Math.max(0, center - safeRadius);
+    const endExcl = Math.min(list.length, center + safeRadius + 1);
+    return {
+        start,
+        end: endExcl - 1,
+        entries: list.slice(start, endExcl),
+    };
+}
+
+function summarizeChannelForArtifact(channel, firstDivergence, {
+    fullLimit = 20000,
+    contextRadius = 80,
+    edgeSize = 256,
+} = {}) {
+    const ch = channel || {};
+    const raw = Array.isArray(ch.raw) ? ch.raw : [];
+    const normalized = Array.isArray(ch.normalized) ? ch.normalized : [];
+    const rawIndexMap = Array.isArray(ch.rawIndexMap) ? ch.rawIndexMap : [];
+    const stepEnds = Array.isArray(ch.stepEnds) ? ch.stepEnds : [];
+
+    if (normalized.length <= fullLimit && raw.length <= fullLimit) {
+        return {
+            mode: 'full',
+            raw,
+            normalized,
+            rawIndexMap,
+            stepEnds,
+        };
+    }
+
+    const divNorm = Number.isInteger(firstDivergence?.index) ? firstDivergence.index : null;
+    const divRaw = (divNorm !== null && divNorm >= 0 && divNorm < rawIndexMap.length)
+        ? rawIndexMap[divNorm]
+        : null;
+
+    const normWindow = boundedSlice(normalized, divNorm, contextRadius);
+    const rawWindow = boundedSlice(raw, divRaw, contextRadius);
+
+    return {
+        mode: 'windowed',
+        totals: {
+            raw: raw.length,
+            normalized: normalized.length,
+        },
+        firstDivergence: {
+            normalizedIndex: divNorm,
+            rawIndex: divRaw,
+        },
+        normalizedWindow: normWindow,
+        rawWindow,
+        normalizedHead: normalized.slice(0, edgeSize),
+        normalizedTail: edgeSize > 0 ? normalized.slice(-edgeSize) : [],
+        rawHead: raw.slice(0, edgeSize),
+        rawTail: edgeSize > 0 ? raw.slice(-edgeSize) : [],
+        stepEnds: stepEnds.length <= fullLimit ? stepEnds : stepEnds.slice(0, 4096),
+    };
+}
+
 function safeComparisonFilename(sessionFile) {
     const base = basename(sessionFile || 'unknown.session.json');
     if (base.endsWith('.session.json')) return base.replace(/\.session\.json$/, '.comparison.json');
@@ -201,15 +265,15 @@ export function buildComparisonArtifact(session, replay, cmp, result) {
                 matched: cmp?.rng?.matched ?? 0,
                 total: cmp?.rng?.total ?? 0,
                 firstDivergence: cmp?.rng?.firstDivergence || null,
-                js: jsRng,
-                session: cRng,
+                js: summarizeChannelForArtifact(jsRng, cmp?.rng?.firstDivergence),
+                session: summarizeChannelForArtifact(cRng, cmp?.rng?.firstDivergence),
             },
             event: {
                 matched: cmp?.event?.matched ?? 0,
                 total: cmp?.event?.total ?? 0,
                 firstDivergence: cmp?.event?.firstDivergence || null,
-                js: jsEvents,
-                session: cEvents,
+                js: summarizeChannelForArtifact(jsEvents, cmp?.event?.firstDivergence),
+                session: summarizeChannelForArtifact(cEvents, cmp?.event?.firstDivergence),
             },
         },
     };

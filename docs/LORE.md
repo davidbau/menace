@@ -4777,3 +4777,43 @@ hard-won wisdom:
   - `./scripts/run-and-report.sh --failures` restored to `33/34` (seed032 regression cleared).
   - `seed033_manual_direct` remains improved at first divergence step `470`.
   - `node scripts/test-unit-core.mjs` passes (`2515/2515`).
+
+### Added unconditional `test_move` event instrumentation in both C and JS (2026-03-08)
+
+- Problem:
+  - `test_move()` is a high-frequency branch point in travel/run/movement flow,
+    but we had no direct event marker for it in session parity logs.
+  - This made movement-path diagnosis rely on indirect RNG/screen clues.
+- Fix:
+  - JS now logs `^test_move[mode=... from=... dir=... to=... rv=...]` on every
+    return path in [`js/hack.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/hack.js).
+  - C harness now adds matching logging in `src/hack.c` via
+    [`020-test-move-events.patch`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/c-harness/patches/020-test-move-events.patch).
+  - Harness setup now verifies the hook with a `require_marker` in
+    [`test/comparison/c-harness/setup.sh`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/c-harness/setup.sh).
+  - Event comparator treats `^test_move[...]` as optional for backward
+    compatibility with old sessions that predate this instrumentation.
+- Validation:
+  - Full C patch stack reapplied cleanly including patch `020`.
+  - Comparator sanity check confirms no false event divergence when only one
+    side has `^test_move` entries.
+
+### `^test_move` instrumentation moved to opt-in + per-session rerecord env (2026-03-08)
+
+- Problem:
+  - Unconditional `^test_move` logging is very high-volume and can overwhelm
+    general parity runs.
+- Fix:
+  - JS `test_move` event emission is now gated by
+    `WEBHACK_EVENT_TEST_MOVE=1` (default off).
+  - C harness `test_move` event emission is now gated by
+    `NETHACK_EVENT_TEST_MOVE=1` (default off) in patch
+    [`020-test-move-events.patch`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/c-harness/patches/020-test-move-events.patch).
+  - `rerecord.py` now accepts sanitized per-session env overrides via
+    `regen.env` (or `regen.extra_env`) for `NETHACK_*/WEBHACK_*` keys.
+  - `run_session.py` forwards `NETHACK_EVENT_TEST_MOVE` into the spawned C
+    binary and persists it back into `regen.env` for reproducible rerecords.
+- Usage:
+  - Keep global runs default-off.
+  - For targeted debugging (e.g., `seed033`), set
+    `regen.env.NETHACK_EVENT_TEST_MOVE=1` in the session and rerecord.

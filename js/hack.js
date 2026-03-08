@@ -28,7 +28,7 @@ import { SQKY_BOARD, SLP_GAS_TRAP, FIRE_TRAP, PIT, SPIKED_PIT, ANTI_MAGIC, TELEP
          ARROW_TRAP, DART_TRAP, ROCKTRAP } from './const.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
 import { PASSES_WALLS, M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
-import { rn2, rnd, rn1, rnl, d, c_d } from './rng.js';
+import { rn2, rnd, rn1, rnl, d, c_d, pushRngLogEntry } from './rng.js';
 import { exercise, registerNearCapacity } from './attrib_exercise.js';
 import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
          TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
@@ -84,6 +84,10 @@ function runTraceEnabled() {
 function runTrace(...args) {
     if (!runTraceEnabled()) return;
     console.log('[RUN_TRACE]', ...args);
+}
+
+function testMoveEventEnabled() {
+    return envFlag('WEBHACK_EVENT_TEST_MOVE');
 }
 
 function engrTraceEnabled() {
@@ -659,6 +663,18 @@ export async function domove_core(dir, player, map, display, game) {
     const flags = game.flags || {};
     const oldX = player.x;
     const oldY = player.y;
+    const domoveNotime = (reason) => {
+        if (!runTraceEnabled()) return;
+        runTrace(
+            `step=${replayStepLabel(map)}`,
+            'domove_notime',
+            reason,
+            `from=${oldX},${oldY}`,
+            `dir=${moveDir?.[0] ?? 0},${moveDir?.[1] ?? 0}`,
+            `run=${Number(ctx.run || 0)}`,
+            `travel=${ctx.travel ? 1 : 0}`,
+        );
+    };
     // Preserve pre-move coordinates for C-style URETREATING checks.
     game.ux0 = oldX;
     game.uy0 = oldY;
@@ -674,6 +690,7 @@ export async function domove_core(dir, player, map, display, game) {
             // No path found — stop traveling.
             // C ref: hack.c domove() when findtravelpath fails to set dx/dy.
             end_running(true, game);
+            domoveNotime('travel.no-path');
             return { moved: false, tookTime: false };
         }
     }
@@ -689,14 +706,17 @@ export async function domove_core(dir, player, map, display, game) {
     ctx.move = 0;
 
     if (await carrying_too_much(player, map, display)) {
+        domoveNotime('carrying-too-much');
         return { moved: false, tookTime: false };
     }
     if (await air_turbulence(player, map, display)) {
+        domoveNotime('air-turbulence');
         return { moved: false, tookTime: false };
     }
     slippery_ice_fumbling(player, map);
     const impDest = { x: nx, y: ny };
     if (impaired_movement(player, map, impDest, game)) {
+        domoveNotime('impaired-movement');
         return { moved: false, tookTime: false };
     }
     nx = impDest.x;
@@ -704,6 +724,7 @@ export async function domove_core(dir, player, map, display, game) {
 
     const tDest = { x: nx, y: ny };
     if (await water_turbulence(player, map, display, tDest)) {
+        domoveNotime('water-turbulence');
         return { moved: false, tookTime: false };
     }
     nx = tDest.x;
@@ -715,14 +736,19 @@ export async function domove_core(dir, player, map, display, game) {
         }
     }
     if (await move_out_of_bounds(nx, ny, display, flags)) {
+        ctx.move = 0;
+        nomul(0, game);
+        domoveNotime('out-of-bounds');
         return { moved: false, tookTime: false };
     }
     if (await avoid_running_into_trap_or_liquid(nx, ny, player, map, display, ctx.run)) {
+        domoveNotime('avoid-run-trap-liquid');
         return { moved: false, tookTime: false };
     }
 
     if (!isok(nx, ny)) {
         await display.putstr_message("You can't move there.");
+        domoveNotime('invalid-destination');
         return { moved: false, tookTime: false };
     }
 
@@ -802,6 +828,7 @@ export async function domove_core(dir, player, map, display, game) {
     if (sobj_at(BOULDER, nx, ny, map) && (sokoban || !player?.passesWalls)) {
         const moved = await moverock(nx, ny, moveDir[0], moveDir[1], player, map, display, game);
         if (moved < 0) {
+            domoveNotime('moverock-refused');
             return { moved: false, tookTime: false };
         }
     }
@@ -838,12 +865,14 @@ export async function domove_core(dir, player, map, display, game) {
                         return { moved: false, tookTime: res !== 0 };
                     }
                 }
+                domoveNotime('locked-door-autoopen-no-tool');
                 return { moved: false, tookTime: false };
             }
             // Without autoopen path, C movement prints "That door is closed."
             // (or bump text for low dexterity/stunned/blind); keep existing
             // locked-door wording for now for branch-local parity.
             await pline("This door is locked.");
+            domoveNotime('locked-door');
             return { moved: false, tookTime: false };
         }
         const str = acurr(player, A_STR);
@@ -868,15 +897,18 @@ export async function domove_core(dir, player, map, display, game) {
             ctx.move = 0;
             nomul(0, game);
         }
+        domoveNotime('test-move-failed');
         return { moved: false, tookTime: false };
     }
     if (await swim_move_danger(nx, ny, player, map, display)) {
         // C ref: hack.c:2833-2836 — swim_move_danger sets move=0, nomul(0)
         ctx.move = 0;
         nomul(0, game);
+        domoveNotime('swim-move-danger');
         return { moved: false, tookTime: false };
     }
-    if (await u_rooted(player, display)) {
+    if (await u_rooted(player, display, game)) {
+        domoveNotime('u-rooted');
         return { moved: false, tookTime: false };
     }
     if (player.utrap) {
@@ -904,6 +936,7 @@ export async function domove_core(dir, player, map, display, game) {
             display
         );
         if (ans !== 'y'.charCodeAt(0)) {
+            domoveNotime('paranoid-trap-cancel');
             return { moved: false, tookTime: false };
         }
     }
@@ -1837,12 +1870,13 @@ export async function dotravel(game) {
         ? "Where do you want to travel to?  (For instructions type a '?')"
         : 'Where do you want to travel to?';
     await display.putstr_message(travelPrompt);
-    // C ref: cmd.c:5424-5430 — start from last travel destination if set,
-    // otherwise from player's current position.
-    const cc = {
-        x: (game.travelX && game.travelY) ? game.travelX : player.x,
-        y: (game.travelX && game.travelY) ? game.travelY : player.y,
-    };
+    // C ref: cmd.c dotravel() starts getpos from cached travel destination
+    // when available; otherwise from current hero location.
+    const hasCachedTravel = (Number.isInteger(game.travelX) && Number.isInteger(game.travelY)
+        && !(game.travelX === 0 && game.travelY === 0));
+    const cc = hasCachedTravel
+        ? { x: game.travelX, y: game.travelY }
+        : { x: player.x, y: player.y };
     const isTravelPathValid = async (x, y) => {
         const prevX = game.travelX;
         const prevY = game.travelY;
@@ -2276,11 +2310,17 @@ export async function test_move(ux, uy, dx, dy, mode, player, map, display, game
     const x = ux + dx;
     const y = uy + dy;
     const flags = map.flags || {};
+    const testMoveResult = (rv) => {
+        if (testMoveEventEnabled()) {
+            pushRngLogEntry(`^test_move[mode=${mode} from=${ux},${uy} dir=${dx},${dy} to=${x},${y} rv=${rv ? 1 : 0}]`);
+        }
+        return rv;
+    };
 
-    if (!isok(x, y)) return false;
+    if (!isok(x, y)) return testMoveResult(false);
 
     const loc = map.at(x, y);
-    if (!loc) return false;
+    if (!loc) return testMoveResult(false);
 
     // Check for physical obstacles at destination
     if (IS_OBSTRUCTED(loc.typ) || loc.typ === IRONBARS) {
@@ -2289,7 +2329,7 @@ export async function test_move(ux, uy, dx, dy, mode, player, map, display, game
             if (mode === DO_MOVE && flags.mention_walls) {
                 if (display) await display.putstr_message('You cannot pass through the bars.');
             }
-            return false;
+            return testMoveResult(false);
         }
         // Wall/rock
         if (mode === DO_MOVE) {
@@ -2297,7 +2337,7 @@ export async function test_move(ux, uy, dx, dy, mode, player, map, display, game
                 if (display) await display.putstr_message("It's a wall.");
             }
         }
-        return false;
+        return testMoveResult(false);
     } else if (IS_DOOR(loc.typ)) {
         if (closed_door(x, y, map)) {
             // Closed door blocks movement
@@ -2309,9 +2349,9 @@ export async function test_move(ux, uy, dx, dy, mode, player, map, display, game
             } else if (mode === TEST_TRAV || mode === TEST_TRAP) {
                 // Fall through to diagonal check
             } else {
-                return false;
+                return testMoveResult(false);
             }
-            if (mode !== TEST_TRAV && mode !== TEST_TRAP) return false;
+            if (mode !== TEST_TRAV && mode !== TEST_TRAP) return testMoveResult(false);
         }
         // Diagonal into intact doorway
         if (dx && dy && !doorless_door(x, y, map)) {
@@ -2320,7 +2360,7 @@ export async function test_move(ux, uy, dx, dy, mode, player, map, display, game
                     if (display) await display.putstr_message("You can't move diagonally into an intact doorway.");
                 }
             }
-            return false;
+            return testMoveResult(false);
         }
     }
 
@@ -2339,7 +2379,7 @@ export async function test_move(ux, uy, dx, dy, mode, player, map, display, game
                     if (display) await display.putstr_message('You cannot pass that way.');
                 }
             }
-            return false;
+            return testMoveResult(false);
         }
     }
 
@@ -2350,14 +2390,14 @@ export async function test_move(ux, uy, dx, dy, mode, player, map, display, game
         && (runMode === 8 || travelMode)) {
         const trap = map.trapAt ? map.trapAt(x, y) : null;
         if (trap && trap.tseen && trap.ttyp !== VIBRATING_SQUARE) {
-            return mode === TEST_TRAP;
+            return testMoveResult(mode === TEST_TRAP);
         }
         const seen = !!(map.at(x, y)?.seenv);
         if (seen && is_pool_or_lava(x, y, map)) {
-            return mode === TEST_TRAP;
+            return testMoveResult(mode === TEST_TRAP);
         }
     }
-    if (mode === TEST_TRAP) return false;
+    if (mode === TEST_TRAP) return testMoveResult(false);
 
     // Diagonal out of intact doorway
     const fromLoc = map.at(ux, uy);
@@ -2366,13 +2406,13 @@ export async function test_move(ux, uy, dx, dy, mode, player, map, display, game
         if (mode === DO_MOVE && flags.mention_walls) {
             if (display) await display.putstr_message("You can't move diagonally out of an intact doorway.");
         }
-        return false;
+        return testMoveResult(false);
     }
 
     // Boulder check
     if (sobj_at(BOULDER, x, y, map)) {
         const inSokoban = !!(map?.flags?.is_sokoban || map?.flags?.in_sokoban || game?.flags?.sokoban);
-        if (mode !== TEST_TRAV && mode !== DO_MOVE) return false;
+        if (mode !== TEST_TRAV && mode !== DO_MOVE) return testMoveResult(false);
         if (mode !== TEST_TRAV
             && runMode >= 2
             && !player?.blind && !player?.hallucinating
@@ -2380,18 +2420,18 @@ export async function test_move(ux, uy, dx, dy, mode, player, map, display, game
             if (mode === DO_MOVE && flags.mention_walls) {
                 if (display) await display.putstr_message('A boulder blocks your path.');
             }
-            return false;
+            return testMoveResult(false);
         }
         if (mode === TEST_TRAV) {
-            if (inSokoban) return false;
+            if (inSokoban) return testMoveResult(false);
             if (sobj_at(BOULDER, ux, uy, map)
                 && !could_move_onto_boulder(ux, uy, player, map)) {
-                return false;
+                return testMoveResult(false);
             }
         }
     }
 
-    return true;
+    return testMoveResult(true);
 }
 
 // C ref: hack.c carrying_too_much() — can hero move?
@@ -2414,10 +2454,11 @@ export async function carrying_too_much(player, map, display) {
 }
 
 // C ref: hack.c u_rooted() — is hero rooted in place?
-export async function u_rooted(player, display) {
+export async function u_rooted(player, display, game = null) {
     // Only applies when polymorphed into an immobile form
     if (player.polyData && player.polyData.mmove === 0) {
         if (display) await display.putstr_message('You are rooted to the ground.');
+        if (game) nomul(0, game);
         return true;
     }
     return false;

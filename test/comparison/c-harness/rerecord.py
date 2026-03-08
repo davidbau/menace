@@ -19,6 +19,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -58,6 +59,9 @@ CHARACTER_PRESETS = {
 DEFAULT_CHARACTER = {
     'name': 'Wizard', 'role': 'Valkyrie', 'race': 'human', 'gender': 'female', 'align': 'neutral',
 }
+
+_ENV_KEY_RE = re.compile(r'^[A-Z_][A-Z0-9_]*$')
+_ALLOWED_REGEN_ENV_PREFIXES = ('NETHACK_', 'WEBHACK_')
 
 
 def clear_runtime_state():
@@ -243,6 +247,35 @@ def _extract_step_key_delay_overrides(steps):
     return out
 
 
+def _normalize_regen_env(regen):
+    """Return sanitized env overrides from regen metadata."""
+    raw = regen.get('env')
+    if raw is None:
+        raw = regen.get('extra_env')
+    if not isinstance(raw, dict):
+        return []
+
+    out = []
+    for key in sorted(raw.keys()):
+        if not isinstance(key, str):
+            continue
+        if not _ENV_KEY_RE.match(key):
+            continue
+        if not key.startswith(_ALLOWED_REGEN_ENV_PREFIXES):
+            continue
+        value = raw.get(key)
+        if value is None:
+            continue
+        if isinstance(value, bool):
+            value = '1' if value else '0'
+        elif isinstance(value, (int, float, str)):
+            value = str(value)
+        else:
+            continue
+        out.append(f'{key}={value}')
+    return out
+
+
 def _build_gameplay(seed, output, regen, options, steps, force_record_more_spaces=False):
     moves = regen.get('moves', '...........')
     cmd = ['python3', RUN_SESSION, str(seed), output, moves]
@@ -292,6 +325,7 @@ def _build_gameplay(seed, output, regen, options, steps, force_record_more_space
     if final_capture_delay_s is not None:
         # Optional final-step settle before capturing the last screen.
         env_prefix.append(f'NETHACK_FINAL_CAPTURE_DELAY_S={final_capture_delay_s}')
+    env_prefix.extend(_normalize_regen_env(regen))
     if env_prefix:
         cmd = ['env', *env_prefix] + cmd
 
@@ -340,6 +374,10 @@ def _build_from_steps(seed, output, data, options, force_record_more_spaces=Fals
     if force_record_more_spaces:
         cmd.append('--record-more-spaces')
     cmd = _append_character_and_mode_flags(cmd, options)
+    regen = data.get('regen') if isinstance(data, dict) else None
+    env_prefix = _normalize_regen_env(regen if isinstance(regen, dict) else {})
+    if env_prefix:
+        cmd = ['env', *env_prefix] + cmd
     return cmd, f'gameplay raw-from-steps seed={seed} keys={len(keys)}'
 
 

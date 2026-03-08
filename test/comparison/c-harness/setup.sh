@@ -175,6 +175,7 @@ require_marker "src/engrave.c" 'event_log("wipe[%d,%d]", x, y);' "engrave wipe e
 require_marker "src/engrave.c" 'event_log("engr[%d,%d,%d]", ep->engr_type, x, y);' "engrave create event"
 require_marker "src/engrave.c" 'event_log("dengr[%d,%d]", ep->engr_x, ep->engr_y);' "engrave delete event"
 require_marker "src/mklev.c" 'event_log("mapdump[%s]", dump_id);' "mapdump trigger event"
+require_marker "src/hack.c" 'event_log("test_move[mode=%d from=%d,%d dir=%d,%d to=%d,%d rv=%d]",' "test_move event"
 echo "[OK] Critical instrumentation hooks present"
 echo ""
 

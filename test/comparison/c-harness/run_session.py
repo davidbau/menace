@@ -190,6 +190,11 @@ def no_delay_env():
         return 'NETHACK_NO_DELAY=1 '
     return '' if v == '0' else f'NETHACK_NO_DELAY={v} '
 
+def test_move_event_env():
+    """Pass NETHACK_EVENT_TEST_MOVE through to the C binary if set."""
+    v = os.environ.get('NETHACK_EVENT_TEST_MOVE', '')
+    return f'NETHACK_EVENT_TEST_MOVE={v} ' if v else ''
+
 
 def collect_mapdump_checkpoints(mapdump_dir, all_rng_entries):
     """Scan RNG entries for ^mapdump[id] markers and read corresponding dump files.
@@ -1920,6 +1925,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             f'{fixed_datetime_env()}'
             f'{diag_events_env()}'
             f'{no_delay_env()}'
+            f'{test_move_event_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'NETHACK_DUMPMAP={dumpmap_file} '
@@ -2017,6 +2023,9 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             session_data['regen']['key_delays_s'] = key_delay_overrides
         if final_capture_delay_s > 0.0:
             session_data['regen']['final_capture_delay_s'] = final_capture_delay_s
+        test_move_ev = os.environ.get('NETHACK_EVENT_TEST_MOVE')
+        if test_move_ev:
+            session_data['regen']['env'] = {'NETHACK_EVENT_TEST_MOVE': test_move_ev}
         if record_more_spaces:
             session_data['regen']['record_more_spaces'] = True
 
