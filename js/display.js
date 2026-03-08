@@ -38,6 +38,7 @@ import { cansee, couldsee, clear_vision_full_recalc } from './vision.js';
 import { do_light_sources } from './light.js';
 import { emits_light, infravisible, is_mindless, monsndx } from './mondata.js';
 import { worm_known } from './worm.js';
+import { awaitInput, awaitMore } from './suspend.js';
 export { mark_vision_dirty } from './vision.js';
 
 // Re-export color constants from the canonical source (render.js)
@@ -582,7 +583,9 @@ span.nh-cursor {
     async _waitForMoreDismissKey(nhgetch) {
         if (typeof nhgetch !== 'function') return;
         for (;;) {
-            const ch = await nhgetch();
+            const ch = await awaitMore(null, nhgetch(), {
+                site: 'display.more.dismiss',
+            });
             if (this._isMoreDismissKey(ch)) return;
         }
     }
@@ -986,7 +989,9 @@ span.nh-cursor {
 
         // Wait for selection
         this.putstr_message('(end) ');
-        const ch = await nhgetch();
+        const ch = await awaitInput(null, nhgetch(), {
+            site: 'display.showMenu.select',
+        });
 
         // Restore map
         for (let r = startRow; r < startRow + maxItems + 2; r++) {

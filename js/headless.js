@@ -53,6 +53,7 @@ import {
     LAVAWALL, ICE, DRAWBRIDGE_UP, DRAWBRIDGE_DOWN, AIR, CLOUD, TREE,
     D_ISOPEN, D_CLOSED, D_LOCKED,
 } from './const.js';
+import { awaitMore } from './suspend.js';
 
 
 const DEFAULT_GAME_FLAGS = {
@@ -806,7 +807,9 @@ export class HeadlessDisplay {
     async _waitForMoreDismissKey(nhgetch) {
         if (typeof nhgetch !== 'function') return;
         for (;;) {
-            const ch = await nhgetch();
+            const ch = await awaitMore(null, nhgetch(), {
+                site: 'headless.more.dismiss',
+            });
             if (this._isMoreDismissKey(ch)) return;
         }
     }
