@@ -674,6 +674,18 @@ export async function handleDrop(player, map, display) {
         display.topMessage = null;
         display.messageNeedsMore = false;
     };
+    const showToplineErrorWithMore = async (message, sourceTag) => {
+        replacePromptMessage();
+        await display.putstr_message(message);
+        if (typeof display?.renderMoreMarker === 'function') {
+            display.renderMoreMarker();
+            if (typeof display?.markMorePending === 'function') {
+                display.markMorePending({ source: sourceTag });
+            }
+        } else if (typeof display?.morePrompt === 'function') {
+            await display.morePrompt(nhgetch);
+        }
+    };
     while (true) {
         if (!display?._pendingMore) {
             replacePromptMessage();
@@ -725,16 +737,7 @@ export async function handleDrop(player, map, display) {
 
         const item = player.inventory.find(o => o.invlet === c);
         if (!item) {
-            replacePromptMessage();
-            await display.putstr_message("You don't have that object.");
-            if (typeof display?.renderMoreMarker === 'function') {
-                display.renderMoreMarker();
-                if (typeof display?.markMorePending === 'function') {
-                    display.markMorePending({ source: 'do.drop-invalid-invlet' });
-                }
-            } else if (typeof display?.morePrompt === 'function') {
-                await display.morePrompt(nhgetch);
-            }
+            await showToplineErrorWithMore("You don't have that object.", 'do.drop-invalid-invlet');
             continue;
         }
         if (countMode && countDigits.length > 0) {
@@ -743,8 +746,10 @@ export async function handleDrop(player, map, display) {
             countMode = false;
             countDigits = '';
             if (Number.isFinite(requestedCount) && requestedCount > stackCount) {
-                replacePromptMessage();
-                await display.putstr_message(`You don't have that many!  You have only ${stackCount}.--More--`);
+                await showToplineErrorWithMore(
+                    `You don't have that many!  You have only ${stackCount}.`,
+                    'do.drop-too-many'
+                );
                 continue;
             }
         }
@@ -828,10 +833,63 @@ function dropClassLabel(sym) {
 async function promptDropTypeClass(display, player) {
     const prompt = 'Drop what type of items?';
     const promptCol = 23;
+    const inventory = Array.isArray(player?.inventory) ? player.inventory : [];
+    const classSet = new Set();
+    for (const obj of inventory) {
+        const sym = CLASS_SYMBOLS?.[obj?.oclass];
+        if (typeof sym === 'string' && sym.length > 0) classSet.add(sym);
+    }
+    const order = [')', '[', '%', '(', '=', '"', '!', '?', '+', '/', '$', '*'];
+    const typeEntries = [];
+    for (const sym of order) {
+        if (!classSet.has(sym)) continue;
+        typeEntries.push(dropClassLabel(sym));
+    }
+    const hasKnownUncursed = inventory.some((obj) => obj?.bknown && !obj?.blessed && !obj?.cursed);
+    const menuLastRow = 6 + typeEntries.length + (hasKnownUncursed ? 2 : 0);
+    const restoreAfterPrompt = () => {
+        const last = display?._lastMapState;
+        if (last?.gameMap && typeof display?.renderMap === 'function') {
+            display.renderMap(last.gameMap, last.player, last.fov, last.flags || display.flags || {});
+            if (typeof display?.renderStatus === 'function') {
+                display.renderStatus(last.player);
+            }
+            if (typeof display?.renderMessageWindow === 'function') {
+                display.renderMessageWindow();
+            }
+            return;
+        }
+        if (typeof display?.setCell === 'function'
+            && Number.isInteger(display?.cols)
+            && Number.isInteger(display?.rows)) {
+            const lastRow = Math.min(menuLastRow, display.rows - 1);
+            for (let r = 0; r <= lastRow; r++) {
+                for (let c = promptCol; c < display.cols; c++) {
+                    display.setCell(c, r, ' ', 7, 0);
+                }
+            }
+            return;
+        }
+        if (typeof display?.clearRow === 'function') {
+            display.clearRow(0);
+            display.clearRow(2);
+            display.clearRow(3);
+        }
+    };
     if (typeof display?.clearRow === 'function') {
         display.clearRow(0);
         display.clearRow(2);
         display.clearRow(3);
+    }
+    if (typeof display?.setCell === 'function'
+        && Number.isInteger(display?.cols)
+        && Number.isInteger(display?.rows)) {
+        const maxRow = Math.min(menuLastRow, display.rows - 1);
+        for (let r = 4; r <= maxRow; r++) {
+            for (let c = promptCol; c < display.cols; c++) {
+                display.setCell(c, r, ' ', 7, 0);
+            }
+        }
     }
     if (typeof display?.putstr === 'function') {
         display.putstr(promptCol, 0, prompt, undefined, 1);
@@ -839,20 +897,11 @@ async function promptDropTypeClass(display, player) {
         display.putstr(promptCol + 4, 3, '(ignored unless some other choices are also picked)');
         let row = 5;
         display.putstr(promptCol, row++, 'a - All types');
-        const inventory = Array.isArray(player?.inventory) ? player.inventory : [];
-        const classSet = new Set();
-        for (const obj of inventory) {
-            const sym = CLASS_SYMBOLS?.[obj?.oclass];
-            if (typeof sym === 'string' && sym.length > 0) classSet.add(sym);
-        }
-        const order = [')', '[', '%', '(', '=', '"', '!', '?', '+', '/', '$', '*'];
         let accel = 'b'.charCodeAt(0);
-        for (const sym of order) {
-            if (!classSet.has(sym)) continue;
+        for (const label of typeEntries) {
             const key = String.fromCharCode(accel++);
-            display.putstr(promptCol, row++, `${key} - ${dropClassLabel(sym)}`);
+            display.putstr(promptCol, row++, `${key} - ${label}`);
         }
-        const hasKnownUncursed = inventory.some((obj) => obj?.bknown && !obj?.blessed && !obj?.cursed);
         if (hasKnownUncursed) {
             row++;
             display.putstr(promptCol, row++, 'U - Items known to be Uncursed');
@@ -865,19 +914,11 @@ async function promptDropTypeClass(display, player) {
     while (true) {
         const ch = await nhgetch();
         if (ch === 10 || ch === 13) {
-            if (typeof display?.clearRow === 'function') {
-                display.clearRow(0);
-                display.clearRow(2);
-                display.clearRow(3);
-            }
+            restoreAfterPrompt();
             return input;
         }
         if (ch === 27) {
-            if (typeof display?.clearRow === 'function') {
-                display.clearRow(0);
-                display.clearRow(2);
-                display.clearRow(3);
-            }
+            restoreAfterPrompt();
             return null;
         }
         if (ch === 8 || ch === 127) {

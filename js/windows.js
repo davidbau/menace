@@ -134,7 +134,8 @@ export async function display_nhwindow(win, blocking) {
             }
             // C ref: dismissing text/menu windows restores underlying map area
             // (erase_menu_or_text -> docorner/docrt).
-            if (w.type === NHW_TEXT && typeof _display?.clearTextPopup === 'function') {
+            if ((w.type === NHW_TEXT || w.type === NHW_MENU)
+                && typeof _display?.clearTextPopup === 'function') {
                 _display.clearTextPopup();
             }
             if (_rerenderCallback && (w.type === NHW_TEXT || w.type === NHW_MENU)) {
