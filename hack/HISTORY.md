@@ -10,7 +10,7 @@ That game was Hack. Its direct descendant, NetHack, is still under active develo
 
 ## Lincoln-Sudbury
 
-In 1979, [Brian Harvey](https://en.wikipedia.org/wiki/Brian_Harvey_(lecturer)) was hired as Computer Director at [Lincoln-Sudbury Regional High School](https://en.wikipedia.org/wiki/Lincoln-Sudbury_Regional_High_School) in Sudbury, Massachusetts. The school had a [PDP-8](https://en.wikipedia.org/wiki/PDP-8) run by the math department. Harvey had grander ambitions. He wanted to create an environment "as similar as possible" to the MIT and Stanford AI labs: a powerful computer system, lots of software tools, an informal community spirit.
+The story of the high school computer users society began when [Brian Harvey](https://en.wikipedia.org/wiki/Brian_Harvey_(lecturer)) was hired as Computer Director at [Lincoln-Sudbury Regional High School](https://en.wikipedia.org/wiki/Lincoln-Sudbury_Regional_High_School) in Sudbury, Massachusetts in 1979. The school had a [PDP-8](https://en.wikipedia.org/wiki/PDP-8) run by the math department. Harvey had grander ambitions. He wanted to create an environment "as similar as possible" to the MIT and Stanford AI labs: a powerful computer system, lots of software tools, an informal community spirit.
 
 He obtained a [PDP-11/70](https://en.wikipedia.org/wiki/PDP-11) running [Version 7 Unix](https://en.wikipedia.org/wiki/Version_7_Unix), funded 75% by a grant from [Digital Equipment Corporation](https://en.wikipedia.org/wiki/Digital_Equipment_Corporation) and 25% by a school bond issue. DEC's headquarters was in Maynard, Massachusetts, a few miles down the road, and its co-founder [Ken Olsen](https://en.wikipedia.org/wiki/Ken_Olsen) had come out of MIT Lincoln Laboratory. The geography helped.
 
