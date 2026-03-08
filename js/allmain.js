@@ -2251,7 +2251,7 @@ export class NetHackGame {
                     await this.display.putstr_message(
                         `Program in disorder! Please report to the Menace team. (${e?.message || e})`
                     );
-                    await nhgetch();
+                    await awaitInput(this, nhgetch(), { site: 'gameLoop.error-recovery.wait-key' });
                     this.fov.compute(this.map, this.player.x, this.player.y);
                     this.display.renderMap(this.map, this.player, this.fov, this.flags);
                     this.display.renderStatus(this.player);
@@ -2284,7 +2284,7 @@ export class NetHackGame {
         }
 
         // Get player input with optional count prefix
-        const firstCh = await nhgetch();
+        const firstCh = await awaitInput(this, nhgetch(), { site: 'gameLoop.read-first-key' });
         let ch;
         let countPrefix = 0;
 
@@ -2302,7 +2302,7 @@ export class NetHackGame {
                     if (this.shouldInterruptMulti()) {
                         this.multi = 0;
                         await this.display.putstr_message('--More--');
-                        await nhgetch();
+                        await awaitInput(this, nhgetch(), { site: 'gameLoop.repeat.interrupt-more' });
                     }
                 },
             });
@@ -2344,7 +2344,7 @@ export class NetHackGame {
                 if (this.shouldInterruptMulti()) {
                     this.multi = 0;
                     await this.display.putstr_message('--More--');
-                    await nhgetch();
+                    await awaitInput(this, nhgetch(), { site: 'gameLoop.multi.interrupt-more' });
                 }
             },
         });
