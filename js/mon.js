@@ -93,6 +93,12 @@ import { always_hostile, monsndx, is_vampshifter, is_vampire } from './mondata.j
 const MSLOW = 1;
 const MFAST = 2;
 
+// C ref: monst.h DEADMONSTER(mon) — true if monster has non-positive HP
+function DEADMONSTER(mon) { return mon && mon.mhp <= 0; }
+
+// C ref: monst.h NODIAG(mndx) — only grid bugs move non-diagonally
+function NODIAG(mndx) { return mndx === PM_GRID_BUG; }
+
 // ========================================================================
 // mcalcmove — C ref: mon.c mcalcmove()
 // Calculate monster's movement budget for a turn.

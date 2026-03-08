@@ -333,7 +333,7 @@ function hard_helmet(obj) {
 }
 
 // C ref: MON_WEP(mon) — wielded weapon
-function MON_WEP(mon) {
+export function MON_WEP(mon) {
     if (mon.weapon) return mon.weapon;
     if (!mon.minvent) return null;
     for (const obj of mon.minvent) {

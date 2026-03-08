@@ -37,7 +37,7 @@ import {
     PM_GARGOYLE, PM_WINGED_GARGOYLE,
     PM_SAMURAI
 } from './monsters.js';
-import { TIMER_KIND, TIMER_FUNC, TAINT_AGE } from './const.js';
+import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP } from './const.js';
 import { lays_eggs, monsndx } from './mondata.js';
 import { start_timer, stop_timer, attach_egg_hatch_timeout } from './timeout.js';
 
@@ -1846,6 +1846,19 @@ export function add_to_migration(obj, game, map) {
 export function dealloc_obj_real(obj) {
   if (obj.oextra) dealloc_oextra(obj);
   // C: *obj = cg.zeroobj; free(obj); — JS garbage collects
+}
+
+// C ref: monst.h DEADMONSTER(mon)
+function DEADMONSTER(mon) { return mon && mon.mhp <= 0; }
+
+// C ref: MON_WEP(mon) — wielded weapon (local copy to avoid circular import with muse.js)
+function MON_WEP(mon) {
+    if (mon.weapon) return mon.weapon;
+    if (!mon.minvent) return null;
+    for (const obj of mon.minvent) {
+        if (obj.owornmask && (obj.owornmask & W_WEP)) return obj;
+    }
+    return null;
 }
 
 // Autotranslated from mkobj.c:3203
