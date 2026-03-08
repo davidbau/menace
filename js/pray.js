@@ -43,6 +43,7 @@ import { S_LICH, S_GHOST, S_VAMPIRE, S_WRAITH, S_MUMMY, S_ZOMBIE, S_HUMAN,
          PM_CLERIC, PM_KNIGHT, PM_WIZARD, PM_MONK,
          AT_ENGL, AD_BLND } from './monsters.js';
 import { Role_if } from './role.js';
+import { makeplural } from './objnam.js';
 import { CORPSE, STATUE, AMULET_OF_YENDOR, FAKE_AMULET_OF_YENDOR,
          POT_WATER, POTION_CLASS, LOADSTONE, LEVITATION_BOOTS, FUMBLE_BOOTS,
          GAUNTLETS_OF_FUMBLING, HELM_OF_OPPOSITE_ALIGNMENT,
@@ -470,16 +471,7 @@ function your_race(ptr, player) {
 function has_omonst(obj) { return obj && obj.omonst; }
 function get_mtraits(obj) { return obj.omonst || null; }
 
-// Helper: makeplural
-function makeplural(s) {
-    if (!s) return s;
-    if (s.endsWith('s') || s.endsWith('x') || s.endsWith('z') ||
-        s.endsWith('sh') || s.endsWith('ch')) return s + 'es';
-    if (s.endsWith('y') && !'aeiou'.includes(s[s.length - 2])) return s.slice(0, -1) + 'ies';
-    if (s === 'foot') return 'feet';
-    if (s === 'tooth') return 'teeth';
-    return s + 's';
-}
+// makeplural imported from objnam.js
 
 // Helper: vtense -- verb tense adjustment for singular/plural subject
 function vtense(subj, verb) {

@@ -92,7 +92,7 @@ import { is_art } from './artifact.js';
 import { sink_backs_up } from './fountain.js';
 import { altar_wrath } from './pray.js';
 import { del_engr_at, disturb_grave } from './engrave.js';
-import { rnd_class } from './objnam.js';
+import { rnd_class, makeplural } from './objnam.js';
 import { kick_steed } from './steed.js';
 import { legs_in_no_shape } from './do.js';
 import { nhgetch } from './input.js';
@@ -292,16 +292,7 @@ function money_cnt(inv) {
     return total;
 }
 
-// makeplural — simple pluralizer
-function makeplural(word) {
-    if (!word) return "";
-    if (word.endsWith("s") || word.endsWith("x") || word.endsWith("z")
-        || word.endsWith("sh") || word.endsWith("ch"))
-        return word + "es";
-    if (word.endsWith("y") && !"aeiou".includes(word[word.length - 2]))
-        return word.slice(0, -1) + "ies";
-    return word + "s";
-}
+// makeplural imported from objnam.js
 
 // something/Something
 const something = "something";

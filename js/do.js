@@ -35,7 +35,7 @@ import { observeObject } from './o_init.js';
 import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { pline, pline_The, You, Your, You_hear, You_see, You_feel, There, Norep } from './pline.js';
 import { hcolor, hliquid, rndmonnam, Monnam } from './do_name.js';
-import { an } from './objnam.js';
+import { an, makeplural } from './objnam.js';
 import { body_part } from './polyself.js';
 import { FACE, HAND, LEG, STOMACH } from './const.js';
 import { IS_SINK, IS_ALTAR, AM_NONE, Align2amask, NON_PM } from './const.js';
@@ -142,22 +142,7 @@ export async function canletgo(obj, word, player) {
     return true;
 }
 
-// Simple makeplural for body part strings
-function makeplural(word) {
-    if (!word) return word;
-    if (word.endsWith('s') || word.endsWith('x') || word.endsWith('z') ||
-        word.endsWith('sh') || word.endsWith('ch'))
-        return word + 'es';
-    if (word.endsWith('y') && !'aeiou'.includes(word[word.length - 2]))
-        return word.slice(0, -1) + 'ies';
-    if (word.endsWith('f'))
-        return word.slice(0, -1) + 'ves';
-    if (word.endsWith('foot'))
-        return word.slice(0, -4) + 'feet';
-    if (word.endsWith('tooth'))
-        return word.slice(0, -5) + 'teeth';
-    return word + 's';
-}
+// makeplural imported from objnam.js (canonical C-faithful port)
 
 // cf. do.c obj_no_longer_held() — cleanup when object leaves inventory.
 // Things that must change when not held; recurse into containers.

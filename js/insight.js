@@ -36,6 +36,7 @@ import { find_mac } from './worn.js';
 import { pline } from './pline.js';
 import { showPager } from './pager.js';
 import { is_pool_or_lava } from './dbridge.js';
+import { makeplural } from './objnam.js';
 import { TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, SICK, LOW_PM } from './const.js';
 // Window system imports available for future use (e.g., menu-based display)
 // import { create_nhwindow, destroy_nhwindow, putstr, start_menu, add_menu,
@@ -1358,16 +1359,7 @@ function vanqsort_cmp(indx1, indx2, sortmode, mvitals) {
     return res;
 }
 
-// Simple pluralization helper (for vanquished names)
-function makeplural(word) {
-    if (!word) return 's';
-    if (/(s|x|z|ch|sh)$/i.test(word)) return word + 'es';
-    if (/[^aeiou]y$/i.test(word)) return word.slice(0, -1) + 'ies';
-    if (/man$/i.test(word)) return word.slice(0, -3) + 'men';
-    if (/f$/i.test(word)) return word.slice(0, -1) + 'ves';
-    if (/fe$/i.test(word)) return word.slice(0, -2) + 'ves';
-    return word + 's';
-}
+// makeplural imported from objnam.js
 
 // ============================================================================
 // num_genocides
