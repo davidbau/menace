@@ -366,7 +366,7 @@
             /* font-family must match terminal so ch unit is computed correctly */
             font-family: var(--font-mono);
             min-width: calc(80ch + 16px);  /* 80 chars + padding */
-            min-height: calc(24 * var(--game-font-size) * 1.125 + 16px);  /* 24 rows × line-height + padding */
+            min-height: calc(24 * var(--game-font-size) * 1.125 + 18px);  /* 24 rows × line-height + padding(12) + border(6) */
             max-width: 100%;
             overflow: auto;
         }
@@ -377,6 +377,7 @@
             font-family: var(--font-mono);
             font-size: var(--font-size-md);
             line-height: 1.125;
+            margin: 0;
             background: var(--color-terminal-bg);
             color: #fff;
         }
