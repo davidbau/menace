@@ -137,7 +137,7 @@ export function t_at(x, y, map) {
     return null;
 }
 
-function m_at(x, y, map) {
+export function m_at(x, y, map) {
     if (!map) return null;
     if (typeof map.monsterAt === 'function') return map.monsterAt(x, y);
     if (Array.isArray(map.monsters)) {

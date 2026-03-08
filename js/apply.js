@@ -95,6 +95,7 @@ import { dry_a_towel } from './weapon.js';
 import { is_wet_towel } from './objnam.js';
 import { useupall, update_inventory, sobj_at } from './invent.js';
 import { cansee } from './vision.js';
+import { t_at, m_at } from './trap.js';
 
 // -- Inline helpers --
 
@@ -111,24 +112,6 @@ const DIRECTION_KEYS = {
 
 function _nothing_happens() { return "Nothing happens."; }
 
-function t_at(x, y, map) {
-    if (!map || !Array.isArray(map.traps)) return null;
-    for (const t of map.traps) {
-        if (t && t.tx === x && t.ty === y) return t;
-    }
-    return null;
-}
-
-function m_at(x, y, map) {
-    if (!map) return null;
-    if (typeof map.monsterAt === 'function') return map.monsterAt(x, y);
-    if (Array.isArray(map.monsters)) {
-        for (const mon of map.monsters) {
-            if (mon && mon.mx === x && mon.my === y) return mon;
-        }
-    }
-    return null;
-}
 
 function u_at(player, x, y) {
     return !!(player && player.x === x && player.y === y);

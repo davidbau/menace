@@ -33,7 +33,7 @@ import { sleep_monst, slept_monst } from './mhitm.js';
 import { newsym } from './display.js';
 import { dist2, highc, mungspaces } from './hacklib.js';
 import { consume_obj_charge, sobj_at } from './invent.js';
-import { selftouch, mselftouch } from './trap.js';
+import { selftouch, mselftouch, t_at, m_at } from './trap.js';
 import { losehp } from './hack.js';
 import { in_rooms } from './hack.js';
 import { maketrap, In_sokoban, In_V_tower } from './dungeon.js';
@@ -73,15 +73,6 @@ function mdistu(mon, player) {
 function u_at(x, y, player) {
     return x === player.x && y === player.y;
 }
-
-function m_at(x, y, map) {
-    return map.monsterAt ? map.monsterAt(x, y) : null;
-}
-
-function t_at(x, y, map) {
-    return map.trapAt ? map.trapAt(x, y) : null;
-}
-
 
 function has_mgivenname(mon) {
     if (mon?.mgivenname) return true;

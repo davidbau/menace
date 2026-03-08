@@ -103,7 +103,7 @@ import { set_apparxy } from './monmove.js';
 import { maybe_unhide_at } from './mon.js';
 import { finish_meating } from './dogmove.js';
 import { is_watch } from './mondata.js';
-import { water_damage, mintrap_postmove, instapetrify } from './trap.js';
+import { water_damage, mintrap_postmove, instapetrify, t_at } from './trap.js';
 
 // ============================================================================
 // Constants
@@ -187,15 +187,6 @@ const M_AP_MONSTER = 3; // C: M_AP_MONSTER=3 (2 is M_AP_OBJECT)
 function OBJ_AT(x, y, map) {
     const objs = map.objectsAt ? map.objectsAt(x, y) : [];
     return objs && objs.length > 0;
-}
-
-// t_at — find trap at position
-function t_at(x, y, map) {
-    if (!map.traps) return null;
-    for (const t of map.traps) {
-        if (t.tx === x && t.ty === y) return t;
-    }
-    return null;
 }
 
 // closed_door helper

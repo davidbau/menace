@@ -43,28 +43,10 @@ import { handleSet } from './options.js';
 import { pline, impossible } from './pline.js';
 import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
          performWaitSearch, dist2 } from './hack.js';
-import { cnv_trap_obj } from './trap.js';
+import { cnv_trap_obj, t_at, m_at } from './trap.js';
 import { PM_GRID_BUG } from './monsters.js';
 
 
-function t_at(x, y, map) {
-    if (!map || !Array.isArray(map.traps)) return null;
-    for (const t of map.traps) {
-        if (t && t.tx === x && t.ty === y) return t;
-    }
-    return null;
-}
-
-function m_at(x, y, map) {
-    if (!map) return null;
-    if (typeof map.monsterAt === 'function') return map.monsterAt(x, y);
-    if (Array.isArray(map.monsters)) {
-        for (const mon of map.monsters) {
-            if (mon && mon.mx === x && mon.my === y) return mon;
-        }
-    }
-    return null;
-}
 
 function u_at(player, x, y) {
     return !!(player && player.x === x && player.y === y);

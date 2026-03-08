@@ -22,6 +22,7 @@ import { xname } from './objnam.js';
 import { HEAVY_IRON_BALL, IRON_CHAIN } from './objects.js';
 import { exercise } from './attrib_exercise.js';
 import { maybe_unhide_at } from './mon.js';
+import { t_at } from './trap.js';
 
 // cf. ball.c:17 — static restriction state
 let bcrestriction = 0;
@@ -67,15 +68,6 @@ function Maybe_Half_Phys(n, player) {
 
 // Helper: Soundeffect stub
 function Soundeffect() { }
-
-// Helper: t_at — find trap at position
-function t_at(x, y, map) {
-    if (!map || !map.traps) return null;
-    for (const t of map.traps) {
-        if (t.tx === x && t.ty === y) return t;
-    }
-    return null;
-}
 
 // Helper: is_pool
 function is_pool(x, y, map) {

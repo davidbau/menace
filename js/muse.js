@@ -92,6 +92,7 @@ import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
 import { resists_magm, monsndx, is_vampshifter, DEADMONSTER } from './mondata.js';
 import { Has_contents, Is_mbag } from './objnam.js';
+import { t_at, m_at } from './trap.js';
 
 const STRAT_WAITFORU = 0x20000000; // C ref: mon.h
 
@@ -263,16 +264,6 @@ function u_at(x, y, player) {
 // C ref: canspotmon(mon) — can hero see or sense the monster?
 function canspotmon(mon, player, map, fov) {
     return canSpotMonsterForMap(mon, map, player, fov);
-}
-
-// C ref: m_at(x, y) — monster at position
-function m_at(x, y, map) {
-    return map.monsterAt ? map.monsterAt(x, y) : null;
-}
-
-// C ref: t_at(x, y) — trap at position
-function t_at(x, y, map) {
-    return map.trapAt ? map.trapAt(x, y) : null;
 }
 
 // C ref: accessible(x, y) — can walk there
