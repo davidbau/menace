@@ -5,7 +5,7 @@
   font-family: "DejaVu Sans Mono";
   font-style: normal;
   font-weight: 400;
-  font-display: swap;
+  font-display: block;
   src: url("DejaVuSansMono-Regular.woff2") format("woff2");
 }
 
@@ -13,6 +13,6 @@
   font-family: "DejaVu Sans Mono";
   font-style: normal;
   font-weight: 700;
-  font-display: swap;
+  font-display: block;
   src: url("DejaVuSansMono-Bold.woff2") format("woff2");
 }
