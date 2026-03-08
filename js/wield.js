@@ -203,7 +203,11 @@ async function handleTwoWeapon(player, display, game = null) {
                 );
             }
             if (Object.hasOwn(display, '_pendingMore')) {
-                display._pendingMore = true;
+                if (typeof display.markMorePending === 'function') {
+                    display.markMorePending({ source: 'wield.twoweapon' });
+                } else {
+                    display._pendingMore = true;
+                }
             }
             if (Object.hasOwn(display, '_nonBlockingMore')) {
                 display._nonBlockingMore = true;

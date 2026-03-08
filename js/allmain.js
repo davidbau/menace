@@ -517,6 +517,29 @@ export async function run_command(game, ch, opts = {}) {
         boundary: game?.getInputBoundaryState?.() || null,
     });
 
+    // Boundary owner stack: active top boundary gets first chance to consume key.
+    const topBoundary = (typeof game?.peekInputBoundary === 'function')
+        ? game.peekInputBoundary()
+        : null;
+    if (topBoundary
+        && topBoundary.owner !== 'more'
+        && typeof topBoundary.onKey === 'function') {
+        game?.emitDiagnosticEvent?.('boundary.stack.key', {
+            key: chCode,
+            owner: topBoundary.owner || null,
+            boundary: game?.getInputBoundaryState?.() || null,
+        });
+        const boundaryResult = await Promise.resolve(topBoundary.onKey(chCode, game));
+        const handled = boundaryResult === true || !!(boundaryResult && boundaryResult.handled);
+        if (handled) {
+            return {
+                tookTime: !!(boundaryResult && boundaryResult.tookTime),
+                moved: !!(boundaryResult && boundaryResult.moved),
+                boundary: true,
+            };
+        }
+    }
+
     // C ref: readchar() / flush_screen — if --More-- is pending on the
     // topline, this key dismisses it rather than being processed as a
     // command.  This handles --More-- for turns where nhgetch is not
@@ -1129,6 +1152,8 @@ export class NetHackGame {
         this._diagMax = 512;
         this._diagEvents = [];
         this._diagListeners = new Set();
+        this._inputBoundarySeq = 0;
+        this._inputBoundaryStack = [];
         this._namePromptEcho = '';
         this._rngAccessors = { getRngState, setRngState, getRngCallCount, setRngCallCount };
         this.rfilter = {
@@ -1261,9 +1286,41 @@ export class NetHackGame {
         return this._diagEvents.slice(start);
     }
 
+    withInputBoundary(owner, onKey, meta = null) {
+        if (typeof onKey !== 'function') return null;
+        const token = ++this._inputBoundarySeq;
+        this._inputBoundaryStack.push({
+            token,
+            owner: owner ? String(owner) : 'boundary',
+            onKey,
+            meta: meta && typeof meta === 'object' ? meta : null,
+        });
+        return token;
+    }
+
+    clearInputBoundary(token) {
+        if (!Number.isInteger(token)) return false;
+        for (let i = this._inputBoundaryStack.length - 1; i >= 0; i--) {
+            if (this._inputBoundaryStack[i].token === token) {
+                this._inputBoundaryStack.splice(i, 1);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    peekInputBoundary() {
+        if (!Array.isArray(this._inputBoundaryStack) || this._inputBoundaryStack.length === 0) {
+            return null;
+        }
+        return this._inputBoundaryStack[this._inputBoundaryStack.length - 1];
+    }
+
     getInputBoundaryState() {
         const display = this.display || null;
         const input = this.input || null;
+        const topBoundary = this.peekInputBoundary();
+        const boundaryDepth = Array.isArray(this._inputBoundaryStack) ? this._inputBoundaryStack.length : 0;
         const promptActive = !!(this.pendingPrompt && typeof this.pendingPrompt.onKey === 'function');
         const morePending = !!display?._pendingMore;
         const menuActive = !!hasActiveTextPopupWindow();
@@ -1274,13 +1331,16 @@ export class NetHackGame {
         if (morePending) boundaryKind = 'more';
         else if (promptActive) boundaryKind = 'prompt';
         else if (menuActive) boundaryKind = 'menu';
+        else if (topBoundary) boundaryKind = 'stack';
         else if (waitingRaw) boundaryKind = 'input';
         return {
-            waitingForInput: morePending || promptActive || menuActive || waitingRaw,
+            waitingForInput: morePending || promptActive || menuActive || !!topBoundary || waitingRaw,
             boundaryKind,
             source: boundaryKind,
             pendingCount: queueLen,
             ackRequired,
+            stackOwner: topBoundary?.owner || null,
+            stackDepth: boundaryDepth,
         };
     }
 
@@ -1403,6 +1463,13 @@ export class NetHackGame {
         // on --More-- when message overflow occurs (C ref: topl.c more()).
         if (this.display && typeof this.display.setNhgetch === 'function') {
             this.display.setNhgetch(nhgetch);
+        }
+        if (this.display && typeof this.display.setInputBoundaryRuntime === 'function') {
+            this.display.setInputBoundaryRuntime({
+                withInputBoundary: (owner, onKey, meta) => this.withInputBoundary(owner, onKey, meta),
+                clearInputBoundary: (token) => this.clearInputBoundary(token),
+                peekInputBoundary: () => this.peekInputBoundary(),
+            });
         }
 
         // Dynamically import chargen functions from nethack.js to avoid circular deps
@@ -1631,7 +1698,11 @@ export class NetHackGame {
             const plname = this.wizard ? 'wizard' : (this.u || this.player).name;
             const welcomeMsg = `${greeting} ${plname}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
 
-            this.display._pendingMore = true;
+            if (typeof this.display.markMorePending === 'function') {
+                this.display.markMorePending({ source: 'lore-startup' });
+            } else {
+                this.display._pendingMore = true;
+            }
             this.display._messageQueue.push(welcomeMsg);
         }
 

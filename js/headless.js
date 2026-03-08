@@ -543,6 +543,8 @@ export class HeadlessDisplay {
         this.cursorRow = 0;
         this.cursorVisible = 1;
         this._nhgetch = null;
+        this._inputBoundaryRuntime = null;
+        this._moreBoundaryToken = null;
         this._pendingMore = false;
         this._pendingMoreNoCursor = false;
         this._messageQueue = [];
@@ -550,6 +552,21 @@ export class HeadlessDisplay {
     }
 
     setNhgetch(fn) { this._nhgetch = fn; }
+    setInputBoundaryRuntime(runtime) { this._inputBoundaryRuntime = runtime || null; }
+
+    markMorePending(meta = null) {
+        this._pendingMore = true;
+        if (this._moreBoundaryToken) return;
+        const runtime = this._inputBoundaryRuntime;
+        if (!runtime || typeof runtime.withInputBoundary !== 'function') return;
+        this._moreBoundaryToken = runtime.withInputBoundary('more', async (ch) => {
+            if (!this._isMoreDismissKey(ch)) {
+                return { handled: true, tookTime: false };
+            }
+            await this._clearMore();
+            return { handled: true, tookTime: false };
+        }, meta || { source: 'headless.putstr_message' });
+    }
 
     setCell(col, row, ch, color = CLR_GRAY, attr = 0) {
         if (row >= 0 && row < this.rows && col >= 0 && col < this.cols) {
@@ -625,7 +642,7 @@ export class HeadlessDisplay {
         // message is pending acknowledgement, force a --More-- boundary first.
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
             this.renderMoreMarker();
-            this._pendingMore = true;
+            this.markMorePending({ source: 'headless.death-staging' });
             this._messageQueue.push(msg);
             return;
         }
@@ -661,7 +678,7 @@ export class HeadlessDisplay {
                 // Fall through to display the new message fresh.
             } else {
                 // Non-blocking fallback: queue message for later display.
-                this._pendingMore = true;
+                this.markMorePending({ source: 'headless.concat-overflow' });
                 this._messageQueue.push(msg);
                 return;
             }
@@ -674,7 +691,7 @@ export class HeadlessDisplay {
             this.messageNeedsMore = true;
             if (isDeathMessage) {
                 this.renderMoreMarker();
-                this._pendingMore = true;
+                this.markMorePending({ source: 'headless.death-final' });
             }
             this.setCursor(Math.min(msg.length, this.cols - 1), 0);
             return;
@@ -719,7 +736,7 @@ export class HeadlessDisplay {
             return;
         }
 
-        this._pendingMore = true;
+        this.markMorePending({ source: 'headless.wrap-overflow' });
         this._messageQueue.push(wrapped);
     }
 
@@ -728,6 +745,12 @@ export class HeadlessDisplay {
     // or run_command).  Resume at most one queued message per dismissal
     // so prompt/message progression remains explicit.
     async _clearMore() {
+        if (this._moreBoundaryToken
+            && this._inputBoundaryRuntime
+            && typeof this._inputBoundaryRuntime.clearInputBoundary === 'function') {
+            this._inputBoundaryRuntime.clearInputBoundary(this._moreBoundaryToken);
+            this._moreBoundaryToken = null;
+        }
         this._pendingMore = false;
         this._pendingMoreNoCursor = false;
         this.clearRow(0);

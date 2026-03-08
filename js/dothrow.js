@@ -483,7 +483,11 @@ export async function handleFire(player, map, display, game) {
         await display.putstr_message('You have no ammunition readied.');
         if (typeof display?.renderMoreMarker === 'function') {
             display.renderMoreMarker();
-            display._pendingMore = true;
+            if (typeof display.markMorePending === 'function') {
+                display.markMorePending({ source: 'dothrow.no-quiver' });
+            } else {
+                display._pendingMore = true;
+            }
         }
     } else {
         autoquiver(player);
@@ -497,7 +501,11 @@ export async function handleFire(player, map, display, game) {
         await display.putstr_message('You have nothing appropriate for your quiver.');
         if (typeof display?.renderMoreMarker === 'function') {
             display.renderMoreMarker();
-            display._pendingMore = true;
+            if (typeof display.markMorePending === 'function') {
+                display.markMorePending({ source: 'dothrow.no-autoquiver' });
+            } else {
+                display._pendingMore = true;
+            }
         }
     }
     const isLauncher = (o) => {

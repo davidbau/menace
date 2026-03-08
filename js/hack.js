@@ -1121,7 +1121,11 @@ export async function domove_core(dir, player, map, display, game) {
             // before the level transition redraw.
             if (display && typeof display.renderMoreMarker === 'function') {
                 display.renderMoreMarker();
-                display._pendingMore = true;
+                if (typeof display.markMorePending === 'function') {
+                    display.markMorePending({ source: 'hack.fall-through' });
+                } else {
+                    display._pendingMore = true;
+                }
                 if (game) game._pendingDeferredTurnAfterMore = true;
             }
             const currentDepth = Number.isInteger(player?.dungeonLevel)

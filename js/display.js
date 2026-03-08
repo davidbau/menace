@@ -210,6 +210,8 @@ export class Display {
         this.cursorVisible = 1;
         this._cursorSpan = null; // currently highlighted <span>
         this._nhgetch = null;
+        this._inputBoundaryRuntime = null;
+        this._moreBoundaryToken = null;
         this._pendingMore = false;
         this._pendingMoreNoCursor = false;
         this._messageQueue = [];
@@ -220,6 +222,21 @@ export class Display {
     }
 
     setNhgetch(fn) { this._nhgetch = fn; }
+    setInputBoundaryRuntime(runtime) { this._inputBoundaryRuntime = runtime || null; }
+
+    markMorePending(meta = null) {
+        this._pendingMore = true;
+        if (this._moreBoundaryToken) return;
+        const runtime = this._inputBoundaryRuntime;
+        if (!runtime || typeof runtime.withInputBoundary !== 'function') return;
+        this._moreBoundaryToken = runtime.withInputBoundary('more', async (ch) => {
+            if (!this._isMoreDismissKey(ch)) {
+                return { handled: true, tookTime: false };
+            }
+            await this._clearMore();
+            return { handled: true, tookTime: false };
+        }, meta || { source: 'display.putstr_message' });
+    }
 
     _createDOM() {
         // Create the pre element
@@ -361,7 +378,7 @@ span.nh-cursor {
         // message is pending acknowledgement, force a --More-- boundary first.
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
             this.renderMoreMarker();
-            this._pendingMore = true;
+            this.markMorePending({ source: 'display.death-staging' });
             this._messageQueue.push(msg);
             return;
         }
@@ -386,7 +403,7 @@ span.nh-cursor {
                 await this._waitForMoreDismissKey(this._nhgetch);
                 // Continue to display this message fresh after dismissal.
             } else {
-                this._pendingMore = true;
+                this.markMorePending({ source: 'display.concat-overflow' });
                 this._messageQueue.push(msg);
                 return;
             }
@@ -443,7 +460,7 @@ span.nh-cursor {
                 this._topMessageRow1 = row1;
                 this.messageNeedsMore = true;
                 this.renderMoreMarker();
-                this._pendingMore = true;
+                this.markMorePending({ source: 'display.wrap-overflow' });
                 const row1overflow = row1rest.substring(this.cols).trimStart();
                 if (row1overflow.length > 0) {
                     this._messageQueue.push(row1overflow);
@@ -457,13 +474,19 @@ span.nh-cursor {
         this.messageNeedsMore = true;
         if (isDeathMessage) {
             this.renderMoreMarker();
-            this._pendingMore = true;
+            this.markMorePending({ source: 'display.death-final' });
         }
         this.setCursor(Math.min(msg.length, this.cols - 1), 0);
     }
 
     // Dismiss the --More-- prompt and display queued messages.
     _clearMore() {
+        if (this._moreBoundaryToken
+            && this._inputBoundaryRuntime
+            && typeof this._inputBoundaryRuntime.clearInputBoundary === 'function') {
+            this._inputBoundaryRuntime.clearInputBoundary(this._moreBoundaryToken);
+            this._moreBoundaryToken = null;
+        }
         this._pendingMore = false;
         this._pendingMoreNoCursor = false;
         this.clearRow(MESSAGE_ROW);

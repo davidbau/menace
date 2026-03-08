@@ -1046,7 +1046,11 @@ export async function handleApply(player, map, display, game) {
                     await display.morePrompt(nhgetch);
                 } else if (typeof display?.renderMoreMarker === 'function') {
                     display.renderMoreMarker();
-                    display._pendingMore = true;
+                    if (typeof display.markMorePending === 'function') {
+                        display.markMorePending({ source: 'apply.inventory-list' });
+                    } else {
+                        display._pendingMore = true;
+                    }
                     await nhgetch();
                 }
             }
@@ -1065,13 +1069,16 @@ export async function handleApply(player, map, display, game) {
             await display.putstr_message("You don't have that object.");
             if (typeof display?.morePrompt === 'function') {
                 await display.morePrompt(nhgetch);
-                await showApplyPrompt();
-            } else {
-                if (typeof display?.renderMoreMarker === 'function') {
-                    display.renderMoreMarker();
+            } else if (typeof display?.renderMoreMarker === 'function') {
+                display.renderMoreMarker();
+                if (typeof display.markMorePending === 'function') {
+                    display.markMorePending({ source: 'apply.invalid-invlet' });
+                } else {
                     display._pendingMore = true;
                 }
+                await nhgetch();
             }
+            await showApplyPrompt();
             continue;
         }
         return await resolveApplySelection(selected);
