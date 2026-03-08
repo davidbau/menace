@@ -517,10 +517,57 @@ export async function run_command(game, ch, opts = {}) {
         boundary: game?.getInputBoundaryState?.() || null,
     });
 
+    const handlePromptResult = async (promptResult) => {
+        if (!(promptResult && promptResult.handled)) return null;
+        if (game._pendingPromptTask) {
+            await game._pendingPromptTask;
+            game._pendingPromptTask = null;
+        }
+        const promptTookTime = !!promptResult.tookTime;
+        const promptMoved = !!promptResult.moved;
+        if (promptTookTime && !skipTurnEnd && !game._pendingDeferredTurnAfterMore) {
+            const coreOpts = {};
+            if (skipMonsterMove) coreOpts.skipMonsterMove = true;
+            await moveloop_core(game, coreOpts);
+            find_ac(game.u || game.player);
+            see_monsters(game.map);
+            if (onTimedTurn) {
+                await onTimedTurn();
+            }
+            await _drainOccupation(game, coreOpts, onTimedTurn);
+        }
+        if (!game.pendingPrompt && game._pendingTutorialStrip
+            && typeof game._applyTutorialStrip === 'function') {
+            game._applyTutorialStrip();
+            game._pendingTutorialStrip = false;
+        }
+        // If a prompt was completed by this key, restore normal status/cursor
+        // positioning for the next command frame (C tty command boundary).
+        if (!game.pendingPrompt
+            && !game.gameOver
+            && !(game.display && game.display._pendingMore)) {
+            const p = game.u || game.player;
+            if (game.display && p) {
+                if (typeof game.display.renderStatus === 'function') {
+                    game.display.renderStatus(p);
+                }
+                if (typeof game.display.cursorOnPlayer === 'function') {
+                    game.display.cursorOnPlayer(p);
+                }
+            }
+        }
+        return {
+            tookTime: promptTookTime,
+            moved: promptMoved,
+            prompt: true,
+        };
+    };
+
     // Boundary owner stack: active top boundary gets first chance to consume key.
     const topBoundary = (typeof game?.peekInputBoundary === 'function')
         ? game.peekInputBoundary()
         : null;
+    const stackPromptHandled = !!(topBoundary && topBoundary.owner === 'prompt');
     if (topBoundary
         && topBoundary.owner !== 'more'
         && topBoundary.owner !== 'prompt'
@@ -539,6 +586,16 @@ export async function run_command(game, ch, opts = {}) {
                 boundary: true,
             };
         }
+    } else if (topBoundary
+        && topBoundary.owner === 'prompt'
+        && typeof topBoundary.onKey === 'function') {
+        game?.emitDiagnosticEvent?.('boundary.prompt.key', {
+            key: chCode,
+            boundary: game?.getInputBoundaryState?.() || null,
+        });
+        const promptResult = await Promise.resolve(topBoundary.onKey(chCode, game));
+        const finalized = await handlePromptResult(promptResult);
+        if (finalized) return finalized;
     }
 
     // C ref: readchar() / flush_screen — if --More-- is pending on the
@@ -611,56 +668,15 @@ export async function run_command(game, ch, opts = {}) {
 
     // Prompt handlers (e.g., eat.c "Continue eating? [yn]") consume input
     // without advancing time until a terminating answer is provided.
-    if (game.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
+    if (!stackPromptHandled
+        && game.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
         game?.emitDiagnosticEvent?.('boundary.prompt.key', {
             key: chCode,
             boundary: game?.getInputBoundaryState?.() || null,
         });
         const promptResult = await Promise.resolve(game.pendingPrompt.onKey(chCode, game));
-        if (promptResult && promptResult.handled) {
-            if (game._pendingPromptTask) {
-                await game._pendingPromptTask;
-                game._pendingPromptTask = null;
-            }
-            const promptTookTime = !!promptResult.tookTime;
-            const promptMoved = !!promptResult.moved;
-            if (promptTookTime && !skipTurnEnd && !game._pendingDeferredTurnAfterMore) {
-                const coreOpts = {};
-                if (skipMonsterMove) coreOpts.skipMonsterMove = true;
-                await moveloop_core(game, coreOpts);
-                find_ac(game.u || game.player);
-                see_monsters(game.map);
-                if (onTimedTurn) {
-                    await onTimedTurn();
-                }
-                await _drainOccupation(game, coreOpts, onTimedTurn);
-            }
-            if (!game.pendingPrompt && game._pendingTutorialStrip
-                && typeof game._applyTutorialStrip === 'function') {
-                game._applyTutorialStrip();
-                game._pendingTutorialStrip = false;
-            }
-            // If a prompt was completed by this key, restore normal status/cursor
-            // positioning for the next command frame (C tty command boundary).
-            if (!game.pendingPrompt
-                && !game.gameOver
-                && !(game.display && game.display._pendingMore)) {
-                const p = game.u || game.player;
-                if (game.display && p) {
-                    if (typeof game.display.renderStatus === 'function') {
-                        game.display.renderStatus(p);
-                    }
-                    if (typeof game.display.cursorOnPlayer === 'function') {
-                        game.display.cursorOnPlayer(p);
-                    }
-                }
-            }
-            return {
-                tookTime: promptTookTime,
-                moved: promptMoved,
-                prompt: true,
-            };
-        }
+        const finalized = await handlePromptResult(promptResult);
+        if (finalized) return finalized;
     }
 
     // C ref: tty_display_nhwindow(WIN_MESSAGE, FALSE) — at the start of
