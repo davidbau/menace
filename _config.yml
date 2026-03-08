@@ -60,4 +60,6 @@ exclude:
   - "guidebook/guidebook.md"
   - "guidebook/guidebook-base.md"
   - "guidebook/menace-supplement.md"
-  - "spoilers/guide.md"
+  - "spoilers/companion.md"
+  - "hack/HISTORY.md"
+  - "rogue/HISTORY.md"
