@@ -4815,5 +4815,52 @@ hard-won wisdom:
     binary and persists it back into `regen.env` for reproducible rerecords.
 - Usage:
   - Keep global runs default-off.
-  - For targeted debugging (e.g., `seed033`), set
-    `regen.env.NETHACK_EVENT_TEST_MOVE=1` in the session and rerecord.
+- For targeted debugging (e.g., `seed033`), set
+  `regen.env.NETHACK_EVENT_TEST_MOVE=1` in the session and rerecord.
+
+### Browser/headless `--More--` drift audit: async queue resume mismatch (2026-03-08)
+
+- Problem:
+  - Real browser gameplay reported stale messages reappearing many turns later.
+  - Audit found browser
+    [`Display._clearMore()`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js)
+    diverged from
+    [`HeadlessDisplay._clearMore()`](/share/u/davidbau/git/mazesofmenace/mazes/js/headless.js):
+  - browser path called async `putstr_message(...)` without `await`
+  - browser path drained the full queue in one dismissal, while headless resumes
+    one queued message per dismiss key.
+- Why this is risky:
+  - Un-awaited `putstr_message` can leave background continuations that complete
+    later on unrelated input.
+  - Full-queue drain differs from C-style explicit prompt progression and from
+    replay/headless behavior.
+- Fix:
+  - Made browser `_clearMore()` async and awaited queued `putstr_message`.
+  - Aligned semantics with headless: resume at most one queued message per
+    dismissal key.
+  - Tightened browser `morePrompt()` cleanup to clear row-1 spillover state and
+    reset `messageNeedsMore` after dismissal.
+  - Added unit coverage:
+    [`test/unit/display_more_clear_queue.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/display_more_clear_queue.test.js)
+    verifies one-message resume and async await behavior.
+- Validation:
+  - `node --test test/unit/display_more_clear_queue.test.js` passes.
+  - `node scripts/test-unit-core.mjs` passes.
+- Target parity fixture (`seed033_manual_direct`) unchanged at current
+  frontier (no new regression from this runtime fix).
+
+### Dig failure messaging boundary: missing `await` in occupation path (2026-03-08)
+
+- Problem:
+  - In
+    [`js/dig.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dig.js),
+    dig failure/status messages in `dig()` and `digcheck_fail_message()` were
+    emitted without `await`.
+  - These are topline writes that can hit `--More--` boundaries, so fire-and-
+    forget message calls can reorder subsequent state and input handling.
+- Fix:
+  - Made `dig()` async and awaited failure-path message emissions.
+  - Made `digcheck_fail_message()` async and awaited each `putstr_message(...)`.
+- Validation:
+  - `node scripts/test-unit-core.mjs` passes.
+  - No change to current seed033 parity frontier from this boundary correction.

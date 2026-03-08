@@ -1122,7 +1122,7 @@ export function use_pick_axe2(obj, map, player) {
 // RNG: rn2(3) for fumbling check, rn2(3) for fumble type, rnd(5) for legs,
 //      rn2(5)+10+abon+spe-erosion+udaminc for effort, rn2(3)/rn2(5) treefruit,
 //      rn2(2) for earth elemental type, etc.
-export function dig(map, player) {
+export async function dig(map, player) {
     if (!player || !player.context || !player.context.digging) return 0;
     const ctx = player.context.digging;
     const dpx = ctx.pos.x, dpy = ctx.pos.y;
@@ -1156,18 +1156,18 @@ export function dig(map, player) {
     if (ctx.down) {
         dcresult = dig_check(BY_YOU, player.x, player.y, map, player);
         if (dcresult >= DIGCHECK_FAILED) {
-            digcheck_fail_message(dcresult, BY_YOU, player.x, player.y, player);
+            await digcheck_fail_message(dcresult, BY_YOU, player.x, player.y, player);
             return 0;
         }
     } else {
         if (IS_TREE(lev.typ) && !may_dig(dpx, dpy, map)
             && dig_typ(uwep, dpx, dpy, map) === DIGTYP_TREE) {
-            _gstate?.display?.putstr_message?.('This tree seems to be petrified.');
+            await _gstate?.display?.putstr_message?.('This tree seems to be petrified.');
             return 0;
         }
         if (IS_OBSTRUCTED(lev.typ) && !may_dig(dpx, dpy, map)
             && dig_typ(uwep, dpx, dpy, map) === DIGTYP_ROCK) {
-            _gstate?.display?.putstr_message?.(
+            await _gstate?.display?.putstr_message?.(
                 `This ${is_drawbridge_wall(dpx, dpy, map) >= 0 ? 'drawbridge' : 'wall'} is too hard to ${verb}.`
             );
             return 0;
@@ -1973,7 +1973,7 @@ export function pick_can_reach(pick, x, y, player, map = null) {
 }
 
 // Autotranslated from dig.c:254
-export function digcheck_fail_message(digresult, madeby, x, y, player = null) {
+export async function digcheck_fail_message(digresult, madeby, x, y, player = null) {
     if (digresult < DIGCHECK_FAILED) return;
     const d = _gstate?.display || null;
     if (!d?.putstr_message) return;
@@ -1981,30 +1981,30 @@ export function digcheck_fail_message(digresult, madeby, x, y, player = null) {
     const verb = (madeby === BY_YOU && uwep && (uwep.otyp === AXE || uwep.otyp === BATTLE_AXE)) ? "chop" : "dig in";
     switch (digresult) {
     case DIGCHECK_FAIL_AIRLEVEL:
-        d.putstr_message(`You cannot ${verb} thin air.`);
+        await d.putstr_message(`You cannot ${verb} thin air.`);
         break;
     case DIGCHECK_FAIL_ALTAR:
-        d.putstr_message("The altar is too hard to break apart.");
+        await d.putstr_message("The altar is too hard to break apart.");
         break;
     case DIGCHECK_FAIL_BOULDER:
-        d.putstr_message(`There isn't enough room to ${verb} here.`);
+        await d.putstr_message(`There isn't enough room to ${verb} here.`);
         break;
     case DIGCHECK_FAIL_ONLADDER:
-        d.putstr_message("The ladder resists your effort.");
+        await d.putstr_message("The ladder resists your effort.");
         break;
     case DIGCHECK_FAIL_ONSTAIRS:
-        d.putstr_message(`The stairs are too hard to ${verb}.`);
+        await d.putstr_message(`The stairs are too hard to ${verb}.`);
         break;
     case DIGCHECK_FAIL_THRONE:
-        d.putstr_message("The throne is too hard to break apart.");
+        await d.putstr_message("The throne is too hard to break apart.");
         break;
     case DIGCHECK_FAIL_CANTDIG:
     case DIGCHECK_FAIL_TOOHARD:
     case DIGCHECK_FAIL_UNDESTROYABLETRAP:
-        d.putstr_message(`The surface here is too hard to ${verb}.`);
+        await d.putstr_message(`The surface here is too hard to ${verb}.`);
         break;
     case DIGCHECK_FAIL_WATERLEVEL:
-        d.putstr_message("The water splashes and subsides.");
+        await d.putstr_message("The water splashes and subsides.");
         break;
     default:
         break;

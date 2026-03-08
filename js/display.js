@@ -494,8 +494,11 @@ span.nh-cursor {
         this.setCursor(this.messageCursorCol, 0);
     }
 
-    // Dismiss the --More-- prompt and display queued messages.
-    _clearMore() {
+    // Dismiss the --More-- prompt and resume queued fallback messages.
+    // Called when a key is consumed for --More-- dismissal (from nhgetch
+    // or run_command). Resume at most one queued message per dismissal so
+    // prompt/message progression remains explicit.
+    async _clearMore() {
         if (this._moreBoundaryToken
             && this._inputBoundaryRuntime
             && typeof this._inputBoundaryRuntime.clearInputBoundary === 'function') {
@@ -511,9 +514,9 @@ span.nh-cursor {
         }
         this.messageNeedsMore = false;
         this.topMessage = null;
-        while (this._messageQueue.length > 0 && !this._pendingMore) {
+        if (this._messageQueue.length > 0) {
             const queued = this._messageQueue.shift();
-            this.putstr_message(queued);
+            await this.putstr_message(queued);
         }
     }
 
@@ -569,6 +572,11 @@ span.nh-cursor {
         this.renderMoreMarker();
         await this._waitForMoreDismissKey(nhgetch);
         this.clearRow(MESSAGE_ROW);
+        if (this._topMessageRow1 !== undefined) {
+            this.clearRow(MESSAGE_ROW + 1);
+            this._topMessageRow1 = undefined;
+        }
+        this.messageNeedsMore = false;
     }
 
     _isMoreDismissKey(ch) {
