@@ -8,7 +8,7 @@ import { rnd } from './rng.js';
 import { mvaddch, wmove, waddch, wprintw, waddstr, waddch as wch, wclear, mvwaddstr } from './curses.js';
 import {
   GOLD, POTION, SCROLL, FOOD, WEAPON, ARMOR, RING, AMULET, STICK,
-  FLOOR, PASSAGE, LINES, S_SCARE, CALLABLE, ESCAPE, MAXPACK,
+  FLOOR, PASSAGE, LINES, S_SCARE, CALLABLE, ESCAPE, MAXPACK, ISFOUND,
 } from './const.js';
 import { new_item, _attach } from './list.js';
 import { roomin } from './rooms.js';
@@ -88,13 +88,13 @@ export async function add_pack(item, silent) {
 
   // Handle scare monster scroll
   if (obj.o_type === SCROLL && obj.o_which === S_SCARE) {
-    if (obj.o_flags & 0x40 /* ISFOUND */) {
+    if (obj.o_flags & ISFOUND) {
       await _msg('The scroll turns to dust as you pick it up.');
       if (_detach) _detach(item);
       mvaddch(g.player.t_pos.y, g.player.t_pos.x, FLOOR);
       return;
     } else {
-      obj.o_flags |= 0x40; // ISFOUND
+      obj.o_flags |= ISFOUND;
     }
   }
 
