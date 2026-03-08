@@ -36,7 +36,7 @@ import { game, setGame } from '../js/gstate.js';
 import { _setPriDeps, newsym } from '../js/pri.js';
 import { _setMonDeps, g_at_mon, g_at_gen, g_at_obj, killed, rloc, mnexto, newcham, poisoned } from '../js/mon.js';
 import { _setHackDeps, setsee, tele, nomul, amon, attmon } from '../js/hack.js';
-import { _setDo1Deps, dosearch, buzz } from '../js/do1.js';
+import { _setDo1Deps, dosearch, buzz, findit, hit, miss } from '../js/do1.js';
 import { setRhack, gameLoop, GameOver, losestr, ndaminc, dodown, doup } from '../js/main.js';
 import { rhack } from '../js/do.js';
 import { docrt } from '../js/pri.js';
@@ -547,6 +547,60 @@ async function testKillerBeeFight() {
     g.u.upres = false;
   }, 'lllll ');
   console.log('testKillerBeeFight: PASS (killer bee poison covered)');
+}
+
+// ===== do1.js uncovered paths =====
+
+// findit() — never called from game commands; call directly (lines 84-113 in do1.js)
+async function testFindit() {
+  await runWith(42, async (g) => {
+    // Add an SDOOR (value 3 typ) adjacent to player so findit finds it
+    // Place in player's room; findit scans the current room
+    const ux = g.u.ux, uy = g.u.uy;
+    const SDOOR = 3;
+    // Set one adjacent cell to SDOOR so findit() converts it to DOOR
+    if (g.levl[ux+1] && g.levl[ux+1][uy]) g.levl[ux+1][uy].typ = SDOOR;
+    await findit();
+  }, '');
+  console.log('testFindit: PASS (findit() covered)');
+}
+
+// hit()/miss() with !cansee — covers lines 78-80 in do1.js
+// Place monster at non-visible cell, then fire wand in that direction
+async function testHitMissNotCansee() {
+  await runWith(42, (g) => {
+    const mdat = mon[0][3]; // jackal
+    const ROOM = 5;
+    // Place monster to the right, but set cansee=false on its cell
+    g.levl[g.u.ux + 1][g.u.uy].typ = ROOM;
+    const mtmp = makeMonst(mdat);
+    mtmp.mx = g.u.ux + 1; mtmp.my = g.u.uy;
+    mtmp.mhp = 200; mtmp.orig_hp = 200;
+    mtmp.nmon = g.fmon; g.fmon = mtmp;
+    g.levl[g.u.ux + 1][g.u.uy].cansee = false; // monster NOT visible
+    // Add bolt wand (otyp 12 = cold bolt) pointing right
+    const wand = makeObj('/');
+    wand.otyp = 12; wand.spe = 10; wand.known = true;
+    wand.nobj = g.invent; g.invent = wand;
+  }, 'pl ');  // zap ('p'), select 'a' wand, fire right ('l')
+  console.log('testHitMissNotCansee: PASS (hit/miss !cansee covered)');
+}
+
+// ringoff() strength > 18 path — lines 43-51 in do1.js
+async function testRingoffHighStrength() {
+  // Test ring removal when ustr > 18 (ring of strength otyp 13)
+  // Ring.minus=false means ring ADDS strength, removing it decreases
+  // Ring.minus=true means ring REDUCES strength, removing it increases
+  await runWith(42, (g) => {
+    // Put on a +3 ring of gain strength
+    const ring = makeObj('=');
+    ring.otyp = 13; // ring of gain strength
+    ring.spe = 3; ring.minus = false; ring.known = true;
+    ring.nobj = g.invent; g.invent = ring;
+    g.u.ustr = 20; g.u.ustrmax = 20; // strength > 18
+    g.uleft = ring; // ring is on left hand
+  }, 'Ra ');  // Remove ring 'a'
+  console.log('testRingoffHighStrength: PASS (ringoff high-strength covered)');
 }
 
 // ===== lev.js uncovered paths =====
@@ -1086,6 +1140,9 @@ await testVioletFungiFight();
 await testFloatingEyeFight();
 await testSnakeFight();
 await testKillerBeeFight();
+await testFindit();
+await testHitMissNotCansee();
+await testRingoffHighStrength();
 await testMkobj();
 await testSaveFstole();
 await testConfusedMovement();
