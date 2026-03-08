@@ -63,7 +63,7 @@ function teleport() {
     rnd_pos(g.rooms[rm], pos);
   } while (winat(pos.y, pos.x) !== FLOOR);
   const oldpos = { x: g.player.t_pos.x, y: g.player.t_pos.y };
-  mvwaddch(g.cw, oldpos.y, oldpos.x, g.cw[oldpos.y][oldpos.x]);
+  mvwaddch(g.cw, oldpos.y, oldpos.x, g.stdscr[oldpos.y][oldpos.x]);
   g.player.t_pos.x = pos.x; g.player.t_pos.y = pos.y;
   light(g.player.t_pos);
   mvwaddch(g.cw, pos.y, pos.x, PLAYER);

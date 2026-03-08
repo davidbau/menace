@@ -348,7 +348,7 @@ export async function get_dir() {
   return true;
 }
 
-const ISHUH = 0x20;
+const ISHUH = 0o001000; // must match const.js ISHUH
 const ISDARK_FLAG = 0o002;
 
 /**
