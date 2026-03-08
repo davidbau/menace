@@ -1399,7 +1399,7 @@ function in_town(x, y, map) {
 // Autotranslated from dokick.c:973
 export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
   if (game.maploc.typ === SDOOR) {
-    if (!Levitation && rn2(30) < avrg_attrib) {
+    if (!player.levitating && rn2(30) < avrg_attrib) {
       cvt_sdoor_to_door(game.maploc);
       await pline("Crash! %s a secret door!",   (((game.maploc.flags || 0) & (D_LOCKED | D_TRAPPED)) === D_LOCKED) ? "Your kick uncovers" : "You kick open");
       await exercise(player, A_DEX, true);
@@ -1412,7 +1412,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
     else { await kick_ouch(x, y, ""); return ECMD_TIME; }
   }
   if (game.maploc.typ === SCORR) {
-    if (!Levitation && rn2(30) < avrg_attrib) {
+    if (!player.levitating && rn2(30) < avrg_attrib) {
       await pline("Crash! You kick open a secret passage!");
       await exercise(player, A_DEX, true);
       game.maploc.typ = CORR;
@@ -1424,7 +1424,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
   }
   if (IS_THRONE(game.maploc.typ)) {
     let i;
-    if (Levitation) { await kick_dumb(x, y); return ECMD_TIME; }
+    if (player.levitating) { await kick_dumb(x, y); return ECMD_TIME; }
     if ((Luck < 0 || game.maploc.looted) && !rn2(3)) {
       game.maploc.looted = 0;
       game.maploc.typ = ROOM;
@@ -1457,7 +1457,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
     return ECMD_TIME;
   }
   if (IS_ALTAR(game.maploc.typ)) {
-    if (Levitation) { await kick_dumb(x, y); return ECMD_TIME; }
+    if (player.levitating) { await kick_dumb(x, y); return ECMD_TIME; }
     await You("kick %s.", (player.Blind ? something : "the altar"));
     await altar_wrath(x, y);
     if (!rn2(3)) { await kick_ouch(x, y, ""); return ECMD_TIME; }
@@ -1465,7 +1465,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
     return ECMD_TIME;
   }
   if (IS_FOUNTAIN(game.maploc.typ)) {
-    if (Levitation) { await kick_dumb(x, y); return ECMD_TIME; }
+    if (player.levitating) { await kick_dumb(x, y); return ECMD_TIME; }
     await You("kick %s.", (player.Blind ? something : "the fountain"));
     if (!rn2(3)) { await kick_ouch(x, y, ""); return ECMD_TIME; }
     if (uarmf && rn2(3)) {
@@ -1475,7 +1475,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
     return ECMD_TIME;
   }
   if (IS_GRAVE(game.maploc.typ)) {
-    if (Levitation) { await kick_dumb(x, y); }
+    if (player.levitating) { await kick_dumb(x, y); }
     else if (rn2(4)) { await kick_ouch(x, y, ""); }
     else if (!game.maploc.disturbed && !rn2(2)) { await disturb_grave(x, y); }
     else {
@@ -1537,7 +1537,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
   }
   if (IS_SINK(game.maploc.typ)) {
     let gend = poly_gender();
-    if (Levitation) { await kick_dumb(x, y); return ECMD_TIME; }
+    if (player.levitating) { await kick_dumb(x, y); return ECMD_TIME; }
     if (rn2(5)) {
       if (!player.Deaf) await pline("Klunk! The pipes vibrate noisily.");
       else {

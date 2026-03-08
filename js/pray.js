@@ -1689,7 +1689,7 @@ export async function gods_upset(g_align, player) {
 // ================================================================
 // Autotranslated from pray.c:1445
 export async function consume_offering(otmp, player) {
-  if (Hallucination) {
+  if (player.Hallucination) {
     switch (rn2(3)) {
       case 0:
         await Your("sacrifice sprouts wings and a propeller and roars away!");
