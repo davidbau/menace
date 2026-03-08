@@ -148,3 +148,28 @@ test('clearInputBoundariesByOwner removes all matching owner entries', () => {
     assert.equal(removed, 2);
     assert.equal(game.peekInputBoundary().owner, 'prompt');
 });
+
+test('pendingPrompt assignment clears stale prompt-owner boundaries', () => {
+    const game = makeGame();
+    game.withInputBoundary('prompt', () => ({ handled: false }));
+    game.withInputBoundary('prompt', () => ({ handled: false }));
+    game.withInputBoundary('more', () => ({ handled: false }));
+
+    let calls = 0;
+    game.pendingPrompt = {
+        onKey() {
+            calls += 1;
+            return { handled: true, tookTime: false };
+        },
+    };
+    const top = game.peekInputBoundary();
+    assert.equal(top?.owner, 'prompt');
+
+    const removedMore = game.clearInputBoundariesByOwner('more');
+    assert.equal(removedMore, 1);
+
+    // Only one prompt boundary should remain after assignment.
+    const removedPrompt = game.clearInputBoundariesByOwner('prompt');
+    assert.equal(removedPrompt, 1);
+    assert.equal(calls, 0);
+});

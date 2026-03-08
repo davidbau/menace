@@ -1290,6 +1290,7 @@ export class NetHackGame {
             enumerable: true,
             get: () => this._pendingPrompt,
             set: (handler) => {
+                this.clearInputBoundariesByOwner('prompt');
                 if (this._pendingPromptBoundaryToken) {
                     this.clearInputBoundary(this._pendingPromptBoundaryToken);
                     this._pendingPromptBoundaryToken = null;
