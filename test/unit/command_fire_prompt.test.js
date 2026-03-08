@@ -216,8 +216,9 @@ test('fire accepts manual inventory letters then asks direction', async () => {
 
     const result = await rhack('f'.charCodeAt(0), game);
     assert.equal(result.tookTime, false);
-    assert.equal(game.display.messages[2], 'In what direction? ');
-    assert.equal(game.display.topMessage, null);
+    // C's setuqwep prints the readied item before direction prompt
+    assert.equal(game.display.messages[2], 'You ready: e - a strange object.');
+    assert.equal(game.display.messages[3], 'In what direction? ');
     assert.equal(game.player.quiver, readied);
 });
 

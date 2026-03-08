@@ -56,6 +56,8 @@ describe('input runtime primitives', () => {
         pushInput('x'.charCodeAt(0));
         clearInputQueue();
 
+        // Disable throw-on-empty so nhgetch blocks instead of throwing
+        setThrowOnEmptyInput(false);
         let settled = false;
         const p = nhgetch().then(() => {
             settled = true;
@@ -65,6 +67,7 @@ describe('input runtime primitives', () => {
 
         pushInput('y'.charCodeAt(0));
         await p;
+        setThrowOnEmptyInput(true);
     });
 
     it('ynFunction uses runtime display when explicit display is omitted', async () => {
