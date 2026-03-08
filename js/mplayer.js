@@ -120,6 +120,12 @@ export function mk_mplayer_armor(mon, typ) {
   mpickobj(mon, obj);
 }
 
+// TODO: mplayer.c:117 — mk_mplayer(): create one player-character monster (stub)
+export function mk_mplayer(ptr, x, y, special) {
+  // Not yet implemented — needs full player-monster equipment generation
+  return null;
+}
+
 // Autotranslated from mplayer.c:326
 export function create_mplayers(num, special) {
   let pm, x, y, fakemon;

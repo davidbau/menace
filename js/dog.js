@@ -32,7 +32,7 @@ import { obj_resists, is_organic, is_metallic, is_rustprone, hasPoisonTrapBit, i
 import {
     carnivorous, herbivorous, is_undead, is_elf,
     is_humanoid, acidic, poisonous, is_metallivore,
-    canseemon, slimeproof,
+    canseemon, slimeproof, DEADMONSTER,
 } from './mondata.js';
 import { rn2, rn1 } from './rng.js';
 import { isok, ACCESSIBLE, COLNO, ROWNO, IS_DOOR, D_CLOSED, D_LOCKED,
