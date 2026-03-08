@@ -7,13 +7,15 @@ import { nhgetch } from './input.js';
 import { flush_screen } from './display.js';
 import {
     create_nhwindow,
+    putstr,
+    display_nhwindow,
     start_menu,
     add_menu,
     end_menu,
     select_menu,
     destroy_nhwindow,
 } from './windows.js';
-import { NHW_MENU, PICK_ONE, ATR_NONE } from './const.js';
+import { NHW_MENU, NHW_TEXT, PICK_ONE, ATR_NONE } from './const.js';
 
 const HiliteNormalMap = 0;
 const HiliteGoodposSymbol = 1;
@@ -535,11 +537,33 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
             player._tipsShown = player._tipsShown || {};
             if (!player._tipsShown.getpos) {
                 player._tipsShown.getpos = true;
-                await display.putstr_message('          Tip: Farlooking or selecting a map location');
-                // C TIP_GETPOS is shown in its own window before the getpos
-                // "Move cursor..." prompt appears; consume one acknowledgement
-                // boundary here so the prompt doesn't concatenate onto the tip.
-                await nhgetch();
+                // C ref: getpos.c TIP_GETPOS — multi-line tip shown in a
+                // NHW_TEXT window before the getpos "Move cursor..." prompt.
+                // Flush any pending --More-- BEFORE creating the NHW_TEXT
+                // window; otherwise renderInputBlockedState() detects the
+                // window and prematurely renders the popup while the
+                // dismiss-key loop is still waiting for input.
+                if (display.messageNeedsMore) {
+                    display.renderMoreMarker();
+                    while (true) {
+                        const ch = await nhgetch();
+                        if (ch === 32 || ch === 10 || ch === 13 || ch === 27 || ch === 16) break;
+                    }
+                    display.clearRow(0);
+                    display.messageNeedsMore = false;
+                    display.topMessage = null;
+                }
+                const tipWin = create_nhwindow(NHW_TEXT);
+                putstr(tipWin, 0, 'Tip: Farlooking or selecting a map location');
+                putstr(tipWin, 0, '');
+                putstr(tipWin, 0, 'You are now in a "farlook" mode - the movement keys move the cursor,');
+                putstr(tipWin, 0, 'not your character.  Game time does not advance.  This mode is used');
+                putstr(tipWin, 0, 'to look around the map, or to select a location on it.');
+                putstr(tipWin, 0, '');
+                putstr(tipWin, 0, 'When in this mode, you can press ESC to return to normal game mode,');
+                putstr(tipWin, 0, 'and pressing ? will show the key help.');
+                await display_nhwindow(tipWin, true);
+                destroy_nhwindow(tipWin);
                 showGoalMsg = true;
             }
         }

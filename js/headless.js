@@ -928,13 +928,22 @@ export class HeadlessDisplay {
     // C ref: tty_display_nhwindow process_text_window / process_menu_window
     // Renders a text popup as a right-side overlay on the map.
     // Used by look_here() for "Things that are here:" and similar displays.
-    renderTextPopup(lines) {
+    renderTextPopup(lines, opts = {}) {
         // Filter out trailing empty lines from the data
         while (lines.length > 0 && lines[lines.length - 1] === '') {
             lines = lines.slice(0, -1);
         }
         const fullScreenText = lines.length >= this.rows - 2;
-        const moreMarker = fullScreenText ? '--More--' : ' --More--';
+        // C ref: process_text_window uses "(end)" for last/only page;
+        // process_menu_window uses " --More--" for non-fullscreen popups.
+        let moreMarker;
+        if (fullScreenText) {
+            moreMarker = '--More--';
+        } else if (opts.isTextWindow) {
+            moreMarker = '(end)';
+        } else {
+            moreMarker = ' --More--';
+        }
         const linesWithMore = [...lines, moreMarker];
 
         let maxcol = 0;
@@ -954,8 +963,16 @@ export class HeadlessDisplay {
         if (fullScreenText) {
             offx = 0;
         } else {
-            const halfCols = Math.floor(this.cols / 2) + 1;
-            offx = Math.min(halfCols, this.cols - maxcol - 1);
+            // C ref: process_menu_window/process_text_window offx calculation.
+            // NHW_TEXT (process_text_window) uses cols - maxcol - 2 empirically;
+            // NHW_MENU (process_menu_window) uses cols - maxcol - 1 with +1 half.
+            if (opts.isTextWindow) {
+                const halfCols = Math.floor(this.cols / 2);
+                offx = Math.min(Math.min(82, halfCols), this.cols - maxcol - 2);
+            } else {
+                const halfCols = Math.floor(this.cols / 2) + 1;
+                offx = Math.min(halfCols, this.cols - maxcol - 1);
+            }
         }
         // Clear the popup area
         for (let r = 0; r < menuRows; r++) {
@@ -969,15 +986,18 @@ export class HeadlessDisplay {
         for (let i = 0; i < menuRows; i++) {
             const line = renderLines[i] || '';
             const isMoreLine = (i === menuRows - 1) && line.endsWith('--More--');
+            // C ref: "--More--" marker is rendered 1 col left (with leading space);
+            // "(end)" is rendered at the same offx as text lines.
             const col = isMoreLine ? Math.max(0, offx - 1) : offx;
             this.putstr(col, i, line, CLR_GRAY, 0);
         }
-        // Position cursor at end of "--More--" on the last row
+        // Position cursor at end of marker on the last row
         const lastRow = menuRows - 1;
         const lastLine = renderLines[lastRow] || '';
-        const moreCol = lastLine.endsWith('--More--') ? Math.max(0, offx - 1) : offx;
-        const moreEnd = moreCol + lastLine.length;
-        this.setCursor(Math.min(moreEnd, this.cols - 1), lastRow);
+        const isMore = lastLine.endsWith('--More--');
+        const markerCol = isMore ? Math.max(0, offx - 1) : offx;
+        const markerEnd = markerCol + lastLine.length;
+        this.setCursor(Math.min(markerEnd, this.cols - 1), lastRow);
     }
 
     // Return 24-line string array matching C TTY screen format

@@ -107,15 +107,20 @@ export async function display_nhwindow(win, blocking) {
         // for messages sent via display.putstr_message() directly (not through putstr()).
         if (blocking && (ttyDisplay.toplin === TOPLINE_NON_EMPTY || _display?.messageNeedsMore)) {
             if (_display?.renderMoreMarker) _display.renderMoreMarker();
-            await _nhgetch();
+            // C ref: xwaitforspace() — only accept space/enter/ESC/^P to dismiss.
+            while (true) {
+                const ch = await _nhgetch();
+                if (ch === 32 || ch === 10 || ch === 13 || ch === 27 || ch === 16) break;
+            }
             // Clear row 0 after --More-- dismissal (C: more() clears the topline).
             if (_display?.clearRow) _display.clearRow(0);
             ttyDisplay.toplin = TOPLINE_EMPTY;
             if (_display) { _display.messageNeedsMore = false; _display.topMessage = null; }
         }
         const lines = w.data.map(d => typeof d === 'string' ? d : d.str);
+        const popupOpts = { isTextWindow: w.type === NHW_TEXT };
         if (_display?.renderTextPopup) {
-            _display.renderTextPopup(lines);
+            _display.renderTextPopup(lines, popupOpts);
         }
         if (blocking) {
             // C ref: tty_more() semantics for text/menu blocking prompts:
@@ -239,7 +244,7 @@ export function redrawActiveTextPopupWindows() {
     if (!_display?.renderTextPopup) return;
     forEachActiveTextPopupWindow((w) => {
         const lines = w.data.map((d) => (typeof d === 'string' ? d : d.str));
-        _display.renderTextPopup(lines);
+        _display.renderTextPopup(lines, { isTextWindow: w.type === NHW_TEXT });
     });
 }
 
