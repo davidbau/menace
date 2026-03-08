@@ -523,6 +523,7 @@ export async function run_command(game, ch, opts = {}) {
         : null;
     if (topBoundary
         && topBoundary.owner !== 'more'
+        && topBoundary.owner !== 'prompt'
         && typeof topBoundary.onKey === 'function') {
         game?.emitDiagnosticEvent?.('boundary.stack.key', {
             key: chCode,
@@ -1139,7 +1140,8 @@ export class NetHackGame {
         this.wizard = false;
         this.seerTurn = 0;
         this.occupation = null;
-        this.pendingPrompt = null;
+        this._pendingPrompt = null;
+        this._pendingPromptBoundaryToken = null;
         this.pendingDeferredTimedTurn = false;
         this.seed = 0;
         this.multi = 0;
@@ -1240,6 +1242,29 @@ export class NetHackGame {
         this.svc.context.travel = 0;
         this.svc.context.run = 0;
         this.input = deps.input || null;
+        Object.defineProperty(this, 'pendingPrompt', {
+            configurable: true,
+            enumerable: true,
+            get: () => this._pendingPrompt,
+            set: (handler) => {
+                if (this._pendingPromptBoundaryToken) {
+                    this.clearInputBoundary(this._pendingPromptBoundaryToken);
+                    this._pendingPromptBoundaryToken = null;
+                }
+                this._pendingPrompt = handler || null;
+                if (!this._pendingPrompt || typeof this._pendingPrompt.onKey !== 'function') return;
+                this._pendingPromptBoundaryToken = this.withInputBoundary(
+                    'prompt',
+                    async (ch, game) => {
+                        if (!this._pendingPrompt || typeof this._pendingPrompt.onKey !== 'function') {
+                            return { handled: false };
+                        }
+                        return await Promise.resolve(this._pendingPrompt.onKey(ch, game));
+                    },
+                    { source: 'game.pendingPrompt' }
+                );
+            },
+        });
         if (this.display) {
             initAnimation(this.display, { mode: 'headless', skipDelays: true });
         }
