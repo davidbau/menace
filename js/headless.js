@@ -991,13 +991,18 @@ export class HeadlessDisplay {
             const col = isMoreLine ? Math.max(0, offx - 1) : offx;
             this.putstr(col, i, line, CLR_GRAY, 0);
         }
-        // Position cursor at end of marker on the last row
+        // Position cursor at end of marker on the last row.
+        // C ref: process_text_window places cursor at strlen("(end)")
+        // via tty_curs(window, strlen("(end)"), maxrow) which adds offx,
+        // yielding column offx + strlen + 1 (1-based → 0-based conversion).
         const lastRow = menuRows - 1;
         const lastLine = renderLines[lastRow] || '';
         const isMore = lastLine.endsWith('--More--');
         const markerCol = isMore ? Math.max(0, offx - 1) : offx;
         const markerEnd = markerCol + lastLine.length;
-        this.setCursor(Math.min(markerEnd, this.cols - 1), lastRow);
+        // For "(end)", C's 1-based cursor lands 1 past the 0-based end.
+        const cursorCol = (opts.isTextWindow && !isMore) ? markerEnd + 1 : markerEnd;
+        this.setCursor(Math.min(cursorCol, this.cols - 1), lastRow);
     }
 
     // Return 24-line string array matching C TTY screen format
