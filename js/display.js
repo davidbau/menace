@@ -1384,20 +1384,30 @@ export function unmap_invisible(x, y, map) {
 }
 
 // Autotranslated from display.c:481
-export function show_mon_or_warn(x, y, monglyph, map) {
-  const ctx = _resolveDisplayCtx(map);
+export function show_glyph(x, y, glyph, ctxOrMap = null) {
+  const ctx = _resolveDisplayCtx(ctxOrMap);
   const gameMap = ctx?.map;
   const display = ctx?.display;
   if (!gameMap || !display || !isok(x, y)) return;
   const loc = gameMap.at(x, y);
-  if (loc && loc.mem_invis) loc.mem_invis = false;
-  let cell = monglyph;
-  if (typeof monglyph === 'number') {
-    cell = tempGlyphToCell(monglyph);
+  let cell = glyph;
+  if (typeof glyph === 'number') {
+    cell = tempGlyphToCell(glyph);
+    if (loc) loc.glyph = glyph;
   }
   if (!cell || typeof cell.ch !== 'string' || cell.ch.length === 0) return;
   const mapOffset = ctx?.flags?.msg_window ? 3 : MAP_ROW_START;
   display.setCell(x - 1, y + mapOffset, cell.ch[0], Number.isInteger(cell.color) ? cell.color : CLR_GRAY);
+}
+
+// Autotranslated from display.c:481
+export function show_mon_or_warn(x, y, monglyph, map) {
+  const ctx = _resolveDisplayCtx(map);
+  const gameMap = ctx?.map;
+  if (!gameMap || !isok(x, y)) return;
+  const loc = gameMap.at(x, y);
+  if (loc && loc.mem_invis) loc.mem_invis = false;
+  show_glyph(x, y, monglyph, ctx);
 }
 
 // Autotranslated from display.c:633

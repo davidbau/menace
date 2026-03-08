@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { display_warning, warning_of, mon_warning, newsym, senseMonsterForMap } from '../../js/display.js';
+import { display_warning, warning_of, mon_warning, newsym, senseMonsterForMap, show_glyph } from '../../js/display.js';
 import { setGame } from '../../js/gstate.js';
 import { ROOM } from '../../js/const.js';
 
@@ -111,4 +111,28 @@ test('senseMonsterForMap: WARNING senses hostile monsters', () => {
     const mon = { mx: 12, my: 10, m_lev: 8, mhp: 12, mpeaceful: 0, mtame: 0 };
     const map = { at: () => ({ typ: ROOM }) };
     assert.equal(senseMonsterForMap(mon, map, player), true);
+});
+
+test('show_glyph accepts numeric glyph and writes one cell', () => {
+    const cells = [];
+    const loc = { typ: ROOM };
+    const display = { setCell: (x, y, ch, color) => cells.push({ x, y, ch, color }) };
+    const map = { at: () => loc };
+    const ctx = { display, map, player: { x: 10, y: 10 }, fov: null, flags: { msg_window: false } };
+    const glyph = 0;
+    show_glyph(12, 10, glyph, ctx);
+    assert.equal(cells.length, 1);
+    assert.equal(cells[0].x, 11);
+    assert.equal(cells[0].y, 11);
+    assert.equal(typeof cells[0].ch, 'string');
+    assert.equal(loc.glyph, glyph);
+});
+
+test('show_glyph accepts pre-decoded cell objects', () => {
+    const cells = [];
+    const display = { setCell: (x, y, ch, color) => cells.push({ x, y, ch, color }) };
+    const map = { at: () => ({ typ: ROOM }) };
+    const ctx = { display, map, player: { x: 10, y: 10 }, fov: null, flags: { msg_window: false } };
+    show_glyph(12, 10, { ch: '@', color: 15 }, ctx);
+    assert.deepEqual(cells, [{ x: 11, y: 11, ch: '@', color: 15 }]);
 });

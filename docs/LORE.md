@@ -5052,3 +5052,26 @@ hard-won wisdom:
   - `node --test test/unit/display_warning_runtime.test.js` passes.
   - `node scripts/test-unit-core.mjs` at `2531 pass / 5 fail`
     (same known failing set; pass count increased due new coverage).
+
+### display.c `show_glyph` runtime closure (2026-03-08)
+
+- Problem:
+  - `display.js` had many callsites to `show_glyph(...)` (shield effects,
+    swallowed overlays, underwater rendering) but no concrete JS implementation.
+  - This left a fragile gap in the display helper callchain.
+- Fix:
+  - Implemented context-aware `show_glyph(x, y, glyph, ctxOrMap)` in
+    [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js):
+    - accepts numeric C-style glyph ids via `tempGlyphToCell`
+    - accepts pre-decoded `{ch,color}` cells
+    - writes map cell through display context and stores numeric glyph on tile
+      memory when provided.
+  - Routed `show_mon_or_warn` through `show_glyph` for a single rendering path.
+  - Added focused tests in
+    [`test/unit/display_warning_runtime.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/display_warning_runtime.test.js):
+    - numeric glyph path
+    - pre-decoded cell path.
+- Validation:
+  - `node --test test/unit/display_warning_runtime.test.js` passes.
+  - `node scripts/test-unit-core.mjs` baseline unchanged:
+    `2533 pass / 5 fail` (same known 5 input-queue failures).
