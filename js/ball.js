@@ -26,6 +26,8 @@ import { t_at } from './trap.js';
 
 // cf. ball.c:17 — static restriction state
 let bcrestriction = 0;
+// cf. hack.h: enum bcargs { override_restriction = -1 }
+const override_restriction = -1;
 
 // cf. ball.c:107-109 — bc position constants
 const BCPOS_DIFFER = 0; // ball & chain at different positions
