@@ -4,6 +4,7 @@ import { join, relative } from 'node:path';
 
 const ROOT = process.cwd();
 const JS_DIR = join(ROOT, 'js');
+const strict = process.argv.includes('--strict');
 
 function walk(dir) {
   const out = [];
@@ -81,4 +82,14 @@ if (allmainRaw === 0) {
   console.log('allmain.js core-loop guardrail status: CLEAN');
 } else {
   console.log(`allmain.js core-loop guardrail status: RAW_WAITS_PRESENT (${allmainRaw})`);
+}
+
+if (strict) {
+  const totalFindings = checks.reduce((sum, c) => sum + (report[c.key]?.total || 0), 0);
+  if (totalFindings > 0) {
+    console.error(`SYNCLOCK strict audit failed: ${totalFindings} finding(s).`);
+    process.exitCode = 1;
+  } else {
+    console.log('SYNCLOCK strict audit status: PASS');
+  }
 }
