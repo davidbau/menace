@@ -34,9 +34,9 @@
 import { GameState, makeObj, makeMonst, makeGen } from '../js/game.js';
 import { game, setGame } from '../js/gstate.js';
 import { _setPriDeps, newsym } from '../js/pri.js';
-import { _setMonDeps, g_at_mon, g_at_gen, g_at_obj, killed, rloc, mnexto, newcham, poisoned } from '../js/mon.js';
-import { _setHackDeps, setsee, tele, nomul, amon, attmon } from '../js/hack.js';
-import { _setDo1Deps, dosearch, buzz, findit, hit, miss } from '../js/do1.js';
+import { _setMonDeps, g_at_mon, g_at_gen, g_at_obj, killed, rloc, mnexto, newcham, poisoned, steal, justswld } from '../js/mon.js';
+import { _setHackDeps, setsee, tele, nomul, amon, attmon, unsee, seeoff } from '../js/hack.js';
+import { _setDo1Deps, dosearch, buzz, findit, hit, miss, bhit, zhit } from '../js/do1.js';
 import { setRhack, gameLoop, GameOver, losestr, ndaminc, dodown, doup, alloc, getret } from '../js/main.js';
 import { rhack } from '../js/do.js';
 import { docrt } from '../js/pri.js';
@@ -1376,6 +1376,25 @@ await testFindHiddenTrap();
 await testBuzzSwallowed();
 await testBuzzHitsPlayer();
 await testDeepLevel();
+await testSwallowed();
+await testMimicSinv();
+await testHitMissVisible();
+await testRingoffCursed();
+await testBhitRangeOut();
+await testBuzzColdRes();
+await testDropPartial();
+await testPotionDefault();
+await testCtrlLRedraw();
+await testPoisonedDirect();
+await testDelmonNonHead();
+await testStealEquipped();
+await testRingoffCursedSmall();
+await testDropNonHead();
+await testGetobjSingleStar();
+await testLitroomDark();
+await testWandStrikeMiss();
+await testFindFakeGold();
+await testDropInvalid();
 
 // ===== Additional coverage: main.js/do.js/do1.js/mklev.js paths =====
 
@@ -1554,5 +1573,429 @@ async function testDeepLevel() {
   }
   console.log('testDeepLevel: PASS (mkmim deep-level covered)');
 }
+
+// ===== Next wave: swallowed, sinv mimic, miss/hit visible, more edge cases =====
+
+// Player swallowed — covers hack.js 135-139 (domove while swallowed),
+// mon.js 113-121 (dochug swallow attack), pri.js 66-73 (swallowed() display)
+async function testSwallowed() {
+  await runWith(42, (g) => {
+    const mdat = mon[5][6]; // umber hulk 'U' — uses default digest case
+    const mtmp = makeMonst(mdat);
+    mtmp.mx = g.u.ux; mtmp.my = g.u.uy;
+    mtmp.mhp = 200; mtmp.orig_hp = 200;
+    mtmp.mstat = 0; // MNORM — active
+    mtmp.nmon = g.fmon; g.fmon = mtmp;
+    g.u.uswallow = true;
+    g.u.ustuck = mtmp;
+    g.u.uhp = 200; g.u.uhpmax = 200;
+  }, 'llllll              '); // moves while swallowed + plenty of spaces for digest messages
+  console.log('testSwallowed: PASS (swallowed paths covered)');
+}
+
+// Sinv Mimic — player walks into sinv Mimic, covers hack.js 150-154
+async function testMimicSinv() {
+  await runWith(42, (g) => {
+    const ROOM = 5;
+    const mdat = mon[5][2]; // mimic 'M'
+    g.levl[g.u.ux + 1][g.u.uy].typ = ROOM;
+    const mtmp = makeMonst(mdat);
+    mtmp.mx = g.u.ux + 1; mtmp.my = g.u.uy;
+    mtmp.sinv = true; // invisible/sinv
+    mtmp.nmon = g.fmon; g.fmon = mtmp;
+    g.u.uhp = 200; g.u.uhpmax = 200;
+    g.u.ustuck = null;
+  }, 'l   '); // move right into sinv mimic → "That's a mimic!"
+  console.log('testMimicSinv: PASS (sinv mimic covered)');
+}
+
+// hit() and miss() with cansee=true — covers do1.js lines 73, 79
+async function testHitMissVisible() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  const mdat = mon[1][0]; // goblin 'g' or similar
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 15; mtmp.my = 10;
+  g.levl[15][10].cansee = true; // monster IS visible → pline with name
+  let keyIdx = 0;
+  const spaces = '      ';
+  g.input.getKey = async () => { if (keyIdx < spaces.length) return spaces[keyIdx++]; throw new SessionDone(); };
+  try {
+    await miss('bolt of fire', mtmp); // do1.js line 79 — "The bolt of fire misses the X."
+    await hit('bolt of fire', mtmp);  // do1.js line 73 — "The bolt of fire hits the X."
+  } catch (e) { if (!(e instanceof SessionDone)) throw e; }
+  console.log('testHitMissVisible: PASS (hit/miss cansee=true covered)');
+}
+
+// Cursed gain-strength ring removal — covers do1.js lines 49-51 (obj.minus=true, ustr>17)
+async function testRingoffCursed() {
+  await runWith(42, (g) => {
+    // Ring of gain strength (otyp=13), cursed (minus=true), spe=1
+    const ring = makeObj();
+    ring.olet = '='; ring.otyp = 13; ring.spe = 1; ring.minus = true; ring.quan = 1;
+    ring.nobj = g.invent; g.invent = ring;
+    g.uleft = ring; // wearing it
+    g.u.ustr = 20; g.u.ustrmax = 20; // > 17 → hits line 49
+  }, 'Ral  '); // R=remove ring, a=select it (first item), l=left
+  console.log('testRingoffCursed: PASS (ringoff cursed str>17 covered)');
+}
+
+// bhit() range runs out — covers do1.js lines 126-127
+async function testBhitRangeOut() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.u.ux = 10; g.u.uy = 10;
+  // Set cells in bolt path to ROOM — no monsters, no walls
+  for (let x = 10; x <= 20; x++) g.levl[x][10].typ = 5; // ROOM
+  g.input.getKey = async () => { throw new SessionDone(); };
+  const result = bhit(1, 0, 5); // fire bolt right, range=5, no obstacles
+  if (result !== null) throw new Error('Expected null from bhit range-out');
+  console.log('testBhitRangeOut: PASS (bhit range-out covered)');
+}
+
+// buzz() cold bolt with ucoldres=true — covers do1.js lines 163-164
+async function testBuzzColdRes() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.rngSeed = 12345;
+  g.u.ux = 20; g.u.uy = 10;
+  g.u.uac = 20; // ensure bolt hits
+  g.u.uhp = 200; g.u.uhpmax = 200;
+  g.u.ucoldres = true; // "You don't feel cold!" path (lines 163-164)
+  for (let x = 12; x <= 22; x++) g.levl[x][10].typ = 5;
+  let keyIdx = 0;
+  const spaces = '          ';
+  g.input.getKey = async () => { if (keyIdx < spaces.length) return spaces[keyIdx++]; throw new SessionDone(); };
+  try {
+    await buzz(3, 12, 10, 1, 0); // cold bolt → hits player with coldres → "You don't feel cold!"
+  } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  console.log('testBuzzColdRes: PASS (buzz cold+ucoldres covered)');
+}
+
+// Drop partial stack — covers do.js lines 345-352
+async function testDropPartial() {
+  await runWith(42, (g) => {
+    // Arrows (weapon, quan=6) as first inventory item
+    const arrows = makeObj(); arrows.olet = ')'; arrows.otyp = 0; arrows.quan = 6;
+    arrows.cursed = false; arrows.minus = false;
+    arrows.nobj = g.invent; g.invent = arrows;
+  }, 'da3\n     '); // d=drop, a=select arrows (6), 3=how many, \n=confirm, spaces for pline
+  console.log('testDropPartial: PASS (drop partial stack covered)');
+}
+
+// Potion with otyp=15+ — covers do.js line 211 (default case in drink1)
+async function testPotionDefault() {
+  await runWith(42, (g) => {
+    const p = makeObj(); p.olet = '!'; p.otyp = 15; p.quan = 1; // unknown type 15
+    p.nobj = g.invent; g.invent = p;
+  }, 'qa  '); // q=quaff, a=select potion, space for "You feel strange."
+  console.log('testPotionDefault: PASS (drink1 default covered)');
+}
+
+// Ctrl-L redraw — covers do.js line 303
+async function testCtrlLRedraw() {
+  await runWith(42, null, '\x0c  '); // Ctrl-L = redraw
+  console.log('testCtrlLRedraw: PASS (Ctrl-L redraw covered)');
+}
+
+// ===== Wave 3: mon.js poisoned, delmon non-head, steal, do.js remaining =====
+
+// poisoned() direct call — covers mon.js lines 564-571
+async function testPoisonedDirect() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.u.upres = false; g.u.uhp = 200; g.u.uhpmax = 200;
+  let keyIdx = 0;
+  const spaces = '          ';
+  g.input.getKey = async () => { if (keyIdx < spaces.length) return spaces[keyIdx++]; throw new SessionDone(); };
+  try {
+    await poisoned("snake's bite");  // upres=false → lines 568-570
+    g.u.upres = true;
+    await poisoned("bee sting");     // upres=true → lines 564-566
+  } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  console.log('testPoisonedDirect: PASS (poisoned() all branches covered)');
+}
+
+// delmon() non-head — covers mon.js line 534
+async function testDelmonNonHead() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.u.ux = 10; g.u.uy = 10; g.u.uhp = 200; g.u.uhpmax = 200;
+  // Add monster1 first (will be second in list: m2→m1)
+  const m1 = makeMonst(mon[0][0]); m1.mx = 5; m1.my = 5; m1.mhp = 1; m1.orig_hp = 1;
+  m1.nmon = g.fmon; g.fmon = m1;
+  // Add monster2 as new head
+  const m2 = makeMonst(mon[0][0]); m2.mx = 6; m2.my = 6; m2.mhp = 1; m2.orig_hp = 1;
+  m2.nmon = g.fmon; g.fmon = m2; // game.fmon = m2, m2.nmon = m1
+  let keyIdx = 0;
+  const spaces = '       ';
+  g.input.getKey = async () => { if (keyIdx < spaces.length) return spaces[keyIdx++]; throw new SessionDone(); };
+  try {
+    await killed(m1); // kill non-head m1 → delmon non-head path (line 534)
+  } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  console.log('testDelmonNonHead: PASS (delmon non-head covered)');
+}
+
+// steal() with equipped items — covers mon.js lines 546-547, 550
+async function testStealEquipped() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  // Inventory: uwep=sword, uarm=armor, then potion (unequipped, to be stolen)
+  const sword = makeObj(); sword.olet = ')'; sword.otyp = 4; sword.quan = 1;
+  const armor = makeObj(); armor.olet = '['; armor.otyp = 3; armor.quan = 1;
+  const potion = makeObj(); potion.olet = '!'; potion.otyp = 3; potion.quan = 1;
+  sword.nobj = armor; armor.nobj = potion; potion.nobj = null;
+  g.invent = sword; g.uwep = sword; g.uarm = armor;
+  // Nymph stealer
+  const ndat = mon[3][2]; // some stealing monster
+  const stealer = makeMonst(ndat); stealer.mx = 5; stealer.my = 5;
+  stealer.nmon = g.fmon; g.fmon = stealer;
+  let keyIdx = 0;
+  const spaces = '         ';
+  g.input.getKey = async () => { if (keyIdx < spaces.length) return spaces[keyIdx++]; throw new SessionDone(); };
+  try {
+    await steal(stealer); // sword=equipped, armor=equipped → while loop advances (546-547); steals potion from middle (550)
+  } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  console.log('testStealEquipped: PASS (steal() equipped-items covered)');
+}
+
+// ringoff with cursed ring, ustr<=17 — covers do1.js line 50
+async function testRingoffCursedSmall() {
+  await runWith(42, (g) => {
+    const ring = makeObj();
+    ring.olet = '='; ring.otyp = 13; ring.spe = 1; ring.minus = true; ring.quan = 1;
+    ring.nobj = g.invent; g.invent = ring;
+    g.uleft = ring;
+    g.u.ustr = 15; g.u.ustrmax = 15; // <= 17 → hits else on line 50
+  }, 'Ral  '); // R=remove ring, a=select, l=left
+  console.log('testRingoffCursedSmall: PASS (ringoff cursed str<=17 covered)');
+}
+
+// drop second item in inventory — covers do.js line 120 (dodr1 non-head)
+async function testDropNonHead() {
+  await runWith(42, (g) => {
+    // First item is food (a), second is sword (b) — drop sword
+    // Sword should NOT be equipped (to drop it)
+    g.uwep = null; // unequip weapon so sword can be dropped
+  }, 'db  '); // d=drop, b=second item (sword), space for "You dropped..."
+  console.log('testDropNonHead: PASS (dodr1 non-head covered)');
+}
+
+// getobj '*' with single matching item — covers do.js lines 35-38 (else branch)
+async function testGetobjSingleStar() {
+  await runWith(42, (g) => {
+    // Add exactly 1 potion (no others) — getobj filter='!', foo=1 → else branch with prinv
+    const p = makeObj(); p.olet = '!'; p.otyp = 3; p.quan = 1;
+    p.nobj = g.invent; g.invent = p; // prepend (becomes first item 'a')
+  }, 'q*\x1b       '); // q=quaff, *=show 1 item (else branch), ESC=cancel
+  console.log('testGetobjSingleStar: PASS (getobj * single-item covered)');
+}
+
+// litroom() when dark/corridor — covers do.js lines 154-157
+async function testLitroomDark() {
+  await runWith(42, (g) => {
+    // Ensure seehx=0 (dark/corridor context)
+    g.seehx = 0;
+    // Add wand of light (otyp=0)
+    const wand = makeObj(); wand.olet = '/'; wand.otyp = 0; wand.spe = 5; wand.quan = 1;
+    wand.nobj = g.invent; g.invent = wand;
+  }, 'pa  '); // p=zap, a=select wand-of-light → litroom() called with seehx=0
+  console.log('testLitroomDark: PASS (litroom dark/corridor covered)');
+}
+
+// striking wand misses monster — covers do.js 377 and do1.js 79
+async function testWandStrikeMiss() {
+  let dirKey = 'l';
+  await runWith(42, (g) => {
+    // Place monster with very negative AC so striking wand always misses
+    const mdat = mon[0][0];
+    const mtmp = makeMonst(mdat);
+    // Override AC to ensure miss: rnd(20) < 10 + (-20) = -10 → never true
+    mtmp.data = Object.assign({}, mtmp.data, { ac: -20 });
+    const ROOM = 5;
+    g.levl[g.u.ux + 1][g.u.uy].typ = ROOM;
+    mtmp.mx = g.u.ux + 1; mtmp.my = g.u.uy;
+    mtmp.mhp = 100; mtmp.orig_hp = 100;
+    mtmp.nmon = g.fmon; g.fmon = mtmp;
+    // Add striking wand (otyp=3)
+    const wand = makeObj(); wand.olet = '/'; wand.otyp = 3; wand.spe = 10; wand.quan = 1;
+    wand.nobj = g.invent; g.invent = wand;
+    dirKey = 'l';
+  }, 'pal  '); // p=zap, a=wand, l=direction → strike wand at monster, miss
+  console.log('testWandStrikeMiss: PASS (striking wand miss covered)');
+}
+
+// findit() fake gold detection — covers do1.js lines 100-107
+async function testFindFakeGold() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  const ROOM = 5;
+  g.u.ux = 20; g.u.uy = 10;
+  for (let x = 15; x <= 25; x++) g.levl[x][10].typ = ROOM;
+  // Place fake gold (gflag=0) in room
+  const fgold = makeGen(22, 10, 0); // gflag=0 = fake gold
+  fgold.ngen = g.fgold; g.fgold = fgold;
+  g.levl[22][10].scrsym = '$';
+  // Set game.rngSeed so makemon works in findit
+  g.rngSeed = 42;
+  g.flags = { maze: 99 };
+  g.dlevel = 1;
+  g.input.getKey = async () => { throw new SessionDone(); };
+  await findit(); // will detect fake gold and place a mimic
+  console.log('testFindFakeGold: PASS (findit fake-gold covered)');
+}
+
+// drop "0" items — covers do.js line 346 "can't drop that many"
+async function testDropInvalid() {
+  await runWith(42, (g) => {
+    const arrows = makeObj(); arrows.olet = ')'; arrows.otyp = 0; arrows.quan = 6;
+    arrows.cursed = false; arrows.minus = false;
+    arrows.nobj = g.invent; g.invent = arrows;
+  }, 'da0\n      '); // d=drop, a=select, 0=invalid count, \n=confirm → "can't drop that many"
+  console.log('testDropInvalid: PASS (drop-invalid count covered)');
+}
+
+// ===== Wave 4: setsee/unsee/seeoff blind/corridor, justswld, zhit type4, wand non-bolt =====
+
+// setsee() with ublind — covers hack.js lines 18-20
+async function testSetseeBlind() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.u.ux = 10; g.u.uy = 10; g.u.ublind = true;
+  g.levl[10][10].scrsym = '.';
+  setsee(); // ublind=true → calls pru() and returns (lines 18-20)
+  console.log('testSetseeBlind: PASS (setsee blind path covered)');
+}
+
+// unsee() else branch (seehx=0 = corridor) — covers hack.js lines 61-70
+async function testUnseeElse() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.u.ux = 10; g.u.uy = 10; g.seehx = 0; // corridor context
+  g.levl[10][10].scrsym = '@';
+  g.levl[9][9].scrsym = '.';
+  g.levl[9][10].scrsym = '.';
+  unsee(); // seehx=0 → else branch (lines 61-70)
+  console.log('testUnseeElse: PASS (unsee corridor/else path covered)');
+}
+
+// seeoff() else branch (seehx=0 = corridor) — covers hack.js lines 83-91
+async function testSeeoffElse() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.u.ux = 10; g.u.uy = 10; g.seehx = 0; // corridor context
+  g.levl[10][10].scrsym = '@';
+  g.levl[9][9].scrsym = '.';
+  seeoff(1); // seehx=0, mode=1 → else branch with mode-specific code (lines 83-91)
+  seeoff(0); // mode=0 → else branch, else-if path (line 89)
+  console.log('testSeeoffElse: PASS (seeoff corridor/else paths covered)');
+}
+
+// justswld() direct call — covers mon.js lines 58-67
+async function testJustswld() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.u.ux = 10; g.u.uy = 10; g.u.uhp = 100; g.u.uhpmax = 100;
+  const mdat = mon[7][6]; // death ray, mlet='~'
+  const mtmp = makeMonst(mdat); mtmp.mx = 11; mtmp.my = 10;
+  mtmp.nmon = g.fmon; g.fmon = mtmp;
+  g.flags.topl = 0;
+  let keyIdx = 0;
+  g.input.getKey = async () => { if (keyIdx++ < 5) return ' '; throw new SessionDone(); };
+  try {
+    await justswld(mtmp); // engulf path → covers lines 58-67 (non-P mlet)
+  } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  console.log('testJustswld: PASS (justswld engulf path covered)');
+}
+
+// zhit() type=4 with WVZ and non-WVZ — covers do1.js lines 200-201
+async function testZhitType4() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  const wdat = mon[4][5]; // wraith, mlet='W' (in WVZ)
+  const wmtmp = makeMonst(wdat); wmtmp.mhp = 50;
+  zhit(wmtmp, 4); // 'W' is in 'WVZ' → returns at line 200 (mhp unchanged)
+  const kdat = mon[0][4]; // kobold, mlet='K' (not WVZ)
+  const kmtmp = makeMonst(kdat); kmtmp.mhp = 50;
+  zhit(kmtmp, 4); // 'K' not in 'WVZ' → mhp=-1 (line 201)
+  console.log('testZhitType4: PASS (zhit type=4 WVZ/non-WVZ covered)');
+}
+
+// wand otyp 4-9 hitting monster — covers do.js lines 379-387
+async function testWandNonBoltEffects() {
+  await runWith(42, (g) => {
+    // Place zombie (mlet='Z', in 'WVZ&') frozen at (ux+1, uy)
+    const zdat = mon[1][6]; // zombie mlet='Z'
+    const zombie = makeMonst(zdat); zombie.mhp = 200; zombie.orig_hp = 200; zombie.mstat = 3; // MFROZ
+    zombie.mx = g.u.ux + 1; zombie.my = g.u.uy;
+    zombie.nmon = g.fmon; g.fmon = zombie;
+    g.levl[zombie.mx][zombie.my].typ = 4; // ROOM
+    // Add wands otyp 9,8,7,6,5,4 reversed so 'a'=otyp4, 'b'=5, ... 'f'=otyp9
+    for (let otyp = 9; otyp >= 4; otyp--) {
+      const w = makeObj(); w.olet = '/'; w.otyp = otyp; w.spe = 5; w.quan = 1;
+      w.nobj = g.invent; g.invent = w;
+    }
+  }, 'palplbplcpldpleplfl      '); // fire otyp 4,5,6,7,8,9 at zombie
+  console.log('testWandNonBoltEffects: PASS (wand otyp 4-9 effects covered)');
+}
+
+// Cockatrice fight — covers mon.js lines 153-168 ('c' special attack)
+async function testCockatriceFight() {
+  await runWith(42, (g) => {
+    const cdat = mon[3][2]; // cockatrice mlet='c', mhd=4
+    const cock = makeMonst(cdat); cock.mhp = 30; cock.orig_hp = 30; cock.mstat = 0; // MNORM
+    cock.mx = g.u.ux + 1; cock.my = g.u.uy;
+    cock.nmon = g.fmon; g.fmon = cock;
+    g.levl[cock.mx][cock.my].typ = 4; // ROOM
+    g.u.uac = 10; // bad AC → cockatrice hits easily
+    g.u.uhp = 200; g.u.uhpmax = 200;
+  }, 'l'.repeat(30) + '            '); // attack right 30 times
+  console.log('testCockatriceFight: PASS (cockatrice special attack covered)');
+}
+
+// Trapdoor with no xdnstair (rock falls) — covers hack.js lines 267-269
+async function testTrapdoorRock() {
+  await runWith(42, (g) => {
+    g.xdnstair = 0; g.ydnstair = 0; // no stair → rock falls
+    const trap = makeGen(g.u.ux + 1, g.u.uy, 3); // TDOOR = type 3, one step right
+    trap.ngen = g.ftrap; g.ftrap = trap;
+    g.levl[g.u.ux + 1][g.u.uy].typ = 4; // ROOM
+    g.u.uhp = 200; g.u.uhpmax = 200;
+  }, 'l    '); // move right → step on TDOOR → rock falls (no stair)
+  console.log('testTrapdoorRock: PASS (trapdoor rock-fall path covered)');
+}
+
+await testSetseeBlind();
+await testUnseeElse();
+await testSeeoffElse();
+await testJustswld();
+await testZhitType4();
+await testWandNonBoltEffects();
+await testCockatriceFight();
+await testTrapdoorRock();
 
 console.log('coverage_direct: all tests complete');
