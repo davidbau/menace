@@ -5,9 +5,9 @@
 *You feel a strange vibration under your feet.*
 
 NetHack 3.7 is the most ambitious update in the game's 38-year history.
-The source has been available since 2020 and the community plays it on
-public servers, but as of early 2026, the DevTeam still hasn't shipped
-it. This project is a faithful JavaScript port, written almost entirely
+Development has been continuous on GitHub since the 3.6.0 release in
+December 2015, and the community plays 3.7 on public servers, but as
+of early 2026, the DevTeam still hasn't shipped it. This project is a faithful JavaScript port, written almost entirely
 through conversation with AI agents. 182,000+ lines of JavaScript,
 141 modules mirroring the C source structure, bit-identical PRNG,
 89 golden C-comparison test sessions. One month, 3,700+ commits.
@@ -84,10 +84,11 @@ The tradition goes back to Usenet.
 
 **The release schedule.** NetHack is maintained by a volunteer group known
 as the DevTeam, whose policy is: *"When it's ready."* After releasing 3.4.3
-in December 2003, they went silent for twelve years. Then 3.6.0 appeared.
-The 3.7 source has been public and actively developed since 2020; the
-community plays it on [Hardfought](https://www.hardfought.org/nethack/)
-and variants have forked from it. Everyone waits. The DevTeam thinks of
+in December 2003, they went silent for twelve years. Then 3.6.0 appeared
+in December 2015, and development moved to a public GitHub repository.
+The 3.7 branch has been actively developed since then; the community
+plays it on [Hardfought](https://www.hardfought.org/nethack/) and
+variants have forked from it. Everyone waits. The DevTeam thinks of
 everything, except telling you when.
 
 ---
