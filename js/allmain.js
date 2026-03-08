@@ -213,26 +213,6 @@ export async function moveloop_turnend(game) {
     // still observe the pre-increment move count.
     game.moves = game.turnCount;
 
-    // Minimal C-faithful wounded-legs timer (set_wounded_legs): while active,
-    // DEX stays penalized; recover when timeout expires.
-    if (((game.u || game.player).woundedLegsTimeout || 0) > 0) {
-        (game.u || game.player).woundedLegsTimeout--;
-        if ((game.u || game.player).woundedLegsTimeout <= 0 && (game.u || game.player).attributes) {
-            (game.u || game.player).woundedLegsTimeout = 0;
-            (game.u || game.player).attributes[A_DEX] = Math.min(25, (game.u || game.player).attributes[A_DEX] + 1);
-            (game.u || game.player).justHealedLegs = true;
-        }
-    }
-    // C ref: allmain.c repeat loop behavior for repeated searching.
-    // When wounded legs heal during repeated search, interrupt the repeat.
-    if ((game.u || game.player).justHealedLegs
-        && game.multi > 0
-        && game.cmdKey === 's'.charCodeAt(0)) {
-        (game.u || game.player).justHealedLegs = false;
-        game.multi = 0;
-        await game.display.putstr_message('Your leg feels better.');
-    }
-
     // C ref: mon.c m_calcdistress() — per-monster distress timers.
     for (const mon of (game.lev || game.map).monsters) {
         if (mon.dead) continue;
@@ -306,6 +286,7 @@ export async function moveloop_turnend(game) {
         player: (game.u || game.player),
         map: (game.lev || game.map),
         display: game.display,
+        game,
     });
 
     // C ref: allmain.c:295-301 — regen_hp(mvl_wtcap)

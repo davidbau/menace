@@ -5,7 +5,7 @@ import { nhgetch, ynFunction, getlin } from './input.js';
 import { COLNO, ROWNO, STAIRS,
          CORR, ROOM, AIR, A_DEX,
          IS_FURNITURE, IS_LAVA, IS_POOL, MAGIC_PORTAL, VIBRATING_SQUARE,
-         I_SPECIAL, TIMEOUT,
+         I_SPECIAL, TIMEOUT, WOUNDED_LEGS,
          W_ARMOR, W_ACCESSORY, W_SADDLE } from './const.js';
 import { rn1, rn2, rnd, c_d } from './rng.js';
 import { deltrap, enexto, mklev, assign_level, resolveBranchDestinationForStair } from './dungeon.js';
@@ -1595,6 +1595,13 @@ export function set_wounded_legs(side, timex, player) {
 
     if (!player.woundedLegs || (player.hWoundedLegs || 0) < timex)
         player.hWoundedLegs = timex;
+    if (typeof player.ensureUProp === 'function') {
+        const entry = player.ensureUProp(WOUNDED_LEGS);
+        const oldTimeout = Number(entry?.intrinsic || 0) & TIMEOUT;
+        if (oldTimeout < timex) {
+            entry.intrinsic = ((Number(entry?.intrinsic || 0) & ~TIMEOUT) | (timex & TIMEOUT));
+        }
+    }
     player.eWoundedLegs = (player.eWoundedLegs || 0) | side;
     player.woundedLegs = true;
 }
@@ -1623,6 +1630,10 @@ export async function heal_legs(how, player) {
         player.hWoundedLegs = 0;
         player.eWoundedLegs = 0;
         player.woundedLegs = false;
+        if (typeof player.ensureUProp === 'function') {
+            const entry = player.ensureUProp(WOUNDED_LEGS);
+            entry.intrinsic = Number(entry?.intrinsic || 0) & ~TIMEOUT;
+        }
     }
 }
 

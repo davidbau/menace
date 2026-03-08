@@ -453,9 +453,12 @@ export async function nh_timeout(context = {}) {
             if (timeout > 0) {
                 const newTimeout = timeout - 1;
                 entry.intrinsic = (entry.intrinsic & ~TIMEOUT) | newTimeout;
+                if (prop === WOUNDED_LEGS) {
+                    player.hWoundedLegs = newTimeout;
+                }
                 // On reaching zero, fire expiry effects
                 if (newTimeout === 0) {
-                    await _fireExpiryEffect(player, prop);
+                    await _fireExpiryEffect(player, prop, context);
                 }
             }
         }
@@ -536,7 +539,7 @@ async function getStatusFns() {
 
 // Fire expiry effect when an intrinsic timeout reaches zero.
 // C ref: timeout.c nh_timeout() — the big switch on each prop (lines 690-940)
-async function _fireExpiryEffect(player, prop) {
+async function _fireExpiryEffect(player, prop, context = {}) {
     const fns = await getStatusFns();
     const entry = player.uprops[prop];
 
@@ -659,9 +662,18 @@ async function _fireExpiryEffect(player, prop) {
         break;
 
     case WOUNDED_LEGS:
-        // C ref: heal_legs(0);
-        await You_feel("better.");
+    {
+        // C ref: timeout.c case WOUNDED_LEGS — heal_legs(0); stop_occupation();
+        const { heal_legs } = await import('./do.js');
+        await heal_legs(0, player);
+        const game = context.game || _gstate;
+        if (game && typeof game.stop_occupation === 'function') {
+            await game.stop_occupation();
+        } else if (game && typeof game.stopOccupation === 'function') {
+            await game.stopOccupation();
+        }
         break;
+    }
 
     case GLIB:
         if (fns.make_glib) fns.make_glib(player, 0, false);

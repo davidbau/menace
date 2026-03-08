@@ -4621,3 +4621,36 @@ hard-won wisdom:
     matched RNG prefix improves `3976 -> 4151`.
   - `./scripts/run-and-report.sh --failures` remains `32/34` passing overall
     (`seed032` screen-only, `seed033` now diverging later at step 108).
+
+### seed033 step-108 occupation/timeout boundary: wounded-legs timeout now follows C path (2026-03-08)
+
+- Problem:
+  - `seed033` first RNG divergence at step `108` showed JS consuming
+    `rn2(2)` from `exerper()` while C consumed `rn2(88)` from the
+    `u_wipe_engr` gate.
+  - C raw window included `stop_occupation()` between spawn (`rn2(70)`) and
+    regen (`rn2(100)`), but JS did not.
+- Root cause:
+  - JS had an ad-hoc wounded-legs timer shim in `moveloop_turnend`
+    (`woundedLegsTimeout/justHealedLegs`) that was not the C timeout path.
+  - `set_wounded_legs()` did not populate `u.uprops[WOUNDED_LEGS]` timeout,
+    and timeout expiry for `WOUNDED_LEGS` did not call `heal_legs(0)` or
+    `stop_occupation()`.
+- Fix:
+  - Removed the ad-hoc wounded-legs turn-end shim from
+    [`js/allmain.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/allmain.js).
+  - Wired wounded-legs to canonical property timeout bits in
+    [`js/do.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/do.js):
+    `set_wounded_legs()` now updates `WOUNDED_LEGS` timeout,
+    `heal_legs()` now clears it.
+  - Updated [`js/timeout.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/timeout.js)
+    to track `hWoundedLegs` from the decremented timeout and to run C-order
+    expiry semantics for `WOUNDED_LEGS`: `heal_legs(0)` then `stop_occupation()`.
+  - Passed `game` into `nh_timeout()` call site so timeout expiry can invoke
+    `stop_occupation()` through runtime API.
+- Validation:
+  - `node scripts/test-unit-core.mjs` passes.
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed033_manual_direct.session.json`
+    advances first divergence from step `108` to step `268`.
+  - `./scripts/run-and-report.sh --failures` remains `32/34` gameplay sessions
+    passing overall, with `seed033` now failing later (`268/1417`).
