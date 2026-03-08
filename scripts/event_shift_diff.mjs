@@ -3,11 +3,11 @@ import { loadAllSessions } from '../test/comparison/session_loader.js';
 import { recordGameplaySessionFromInputs } from '../test/comparison/session_recorder.js';
 
 function usage() {
-  console.log('Usage: node scripts/event_shift_diff.mjs <session-path> [--lookahead N] [--limit N]');
+  console.log('Usage: node scripts/event_shift_diff.mjs <session-path> [--lookahead N] [--limit N] [--with-test-move|--no-test-move]');
 }
 
 function parseArgs(argv) {
-  const out = { sessionPath: null, lookahead: 24, limit: 30 };
+  const out = { sessionPath: null, lookahead: 24, limit: 30, testMoveMode: 'auto' };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     if (!out.sessionPath && !a.startsWith('--')) {
@@ -20,6 +20,14 @@ function parseArgs(argv) {
     }
     if (a === '--limit' && i + 1 < argv.length) {
       out.limit = Number.parseInt(argv[++i], 10) || out.limit;
+      continue;
+    }
+    if (a === '--with-test-move') {
+      out.testMoveMode = 'on';
+      continue;
+    }
+    if (a === '--no-test-move') {
+      out.testMoveMode = 'off';
       continue;
     }
   }
@@ -50,6 +58,28 @@ function collectEvents(trace) {
   const steps = Array.isArray(trace?.steps) ? trace.steps : [];
   for (let i = 0; i < steps.length; i++) pushStep(i + 1, steps[i]?.rng || []);
   return out;
+}
+
+function hasTestMoveEvents(events) {
+  return events.some((row) => row?.norm?.startsWith('^test_move['));
+}
+
+function shouldEnableJsTestMove(mode, cEvents) {
+  if (mode === 'on') return true;
+  if (mode === 'off') return false;
+  return hasTestMoveEvents(cEvents);
+}
+
+async function withJsTestMove(enabled, fn) {
+  const prev = process.env.WEBHACK_EVENT_TEST_MOVE;
+  if (enabled) process.env.WEBHACK_EVENT_TEST_MOVE = '1';
+  else delete process.env.WEBHACK_EVENT_TEST_MOVE;
+  try {
+    return await fn();
+  } finally {
+    if (prev == null) delete process.env.WEBHACK_EVENT_TEST_MOVE;
+    else process.env.WEBHACK_EVENT_TEST_MOVE = prev;
+  }
 }
 
 function alignEvents(js, c, lookahead = 24) {
@@ -120,12 +150,16 @@ async function main() {
     process.exit(2);
   }
 
-  const replay = await recordGameplaySessionFromInputs(session);
   const cEvents = collectEvents(session);
+  const enableJsTestMove = shouldEnableJsTestMove(args.testMoveMode, cEvents);
+  const replay = await withJsTestMove(enableJsTestMove, async () => (
+    await recordGameplaySessionFromInputs(session)
+  ));
   const jsEvents = collectEvents(replay);
   const out = alignEvents(jsEvents, cEvents, args.lookahead);
 
   console.log(`Session: ${session.file}`);
+  console.log(`test_move mode=${args.testMoveMode} js_test_move=${enableJsTestMove ? 'on' : 'off'} c_has_test_move=${hasTestMoveEvents(cEvents) ? 'yes' : 'no'}`);
   console.log(`Events JS=${out.jsTotal} C=${out.cTotal} matched(aligned)=${out.matched}`);
   console.log(`Shifts=${out.shifts.length} hardDiffs=${out.diffs.length}`);
 
