@@ -8,6 +8,7 @@ import {
     CQ_CANNED, CQ_REPEAT,
 } from './const.js';
 import { envFlag } from './runtime_env.js';
+import { awaitInput } from './suspend.js';
 
 function ynTraceEnabled() {
     return envFlag('WEBHACK_YN_TRACE');
@@ -552,7 +553,7 @@ export async function getlin(prompt, display) {
     await updateDisplay();
 
     while (true) {
-        const ch = await nhgetch();
+        const ch = await awaitInput(null, nhgetch(), { site: 'input.getlin.read' });
         if (ch === 13 || ch === 10) { // Enter
             // C-style prompt cleanup after accepting typed input.
             if (disp) {
@@ -606,7 +607,7 @@ export async function ynFunction(query, choices, def, display) {
     const preserveCase = !!(choices && /[A-Z]/.test(choices));
 
     while (true) {
-        const ch = await nhgetch();
+        const ch = await awaitInput(null, nhgetch(), { site: 'input.ynFunction.read' });
         ynTrace('key', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
         // C quitchars handling for yn prompts: Space/CR/LF use default.
         if ((ch === 32 || ch === 13 || ch === 10) && def) {
@@ -654,7 +655,7 @@ export async function getCount(firstKey, maxCount, display) {
     while (true) {
         // If we don't have a key yet, read one
         if (!key) {
-            key = await nhgetch();
+            key = await awaitInput(null, nhgetch(), { site: 'input.getCount.read' });
         }
 
         if (isDigit(key)) {

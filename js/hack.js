@@ -74,6 +74,7 @@ import { t_missile, seetrap, conjoined_pits, adj_nonconjoined_pit, into_vs_onto,
        } from './trap.js';
 import { envFlag } from './runtime_env.js';
 import { autokey, pick_lock } from './lock.js';
+import { awaitInput } from './suspend.js';
 
 function runTraceEnabled() {
     return envFlag('WEBHACK_RUN_TRACE');
@@ -3507,7 +3508,7 @@ export { dosearch0 as search_demand };
 // mentioned in the task. Uses DIRECTION_KEYS from dothrow.js.
 export async function getdir(prompt, display) {
     if (display && prompt) await display.putstr_message(prompt);
-    const ch = await nhgetch();
+    const ch = await awaitInput(null, nhgetch(), { site: 'hack.getdir.read' });
     const c = String.fromCharCode(ch);
     const dir = DIRECTION_KEYS[c.toLowerCase()];
     if (dir) return { dx: dir[0], dy: dir[1], dz: 0 };

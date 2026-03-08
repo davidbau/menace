@@ -16,6 +16,7 @@ import {
     destroy_nhwindow,
 } from './windows.js';
 import { NHW_MENU, NHW_TEXT, PICK_ONE, ATR_NONE } from './const.js';
+import { awaitInput } from './suspend.js';
 
 const HiliteNormalMap = 0;
 const HiliteGoodposSymbol = 1;
@@ -569,7 +570,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 if (display.messageNeedsMore) {
                     display.renderMoreMarker();
                     while (true) {
-                        const ch = await nhgetch();
+                        const ch = await awaitInput(null, nhgetch(), { site: 'getpos.tip.moreDismiss' });
                         if (ch === 32 || ch === 10 || ch === 13 || ch === 27 || ch === 16) break;
                     }
                     display.clearRow(0);
@@ -628,7 +629,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 cursorState = putCursor(display, cx, cy);
                 showGoalMsg = false;
             }
-            const ch = await nhgetch();
+            const ch = await awaitInput(null, nhgetch(), { site: 'getpos.getpos_async.loop' });
             const c = String.fromCharCode(ch);
 
             if (ch === 27) {

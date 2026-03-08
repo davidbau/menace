@@ -65,6 +65,7 @@ import { done, setKillerName, setKillerFormat } from './end.js';
 import { outrumor } from './rumors.js';
 import { stop_occupation } from './allmain.js';
 import { pluslvl } from './exper.js';
+import { awaitInput } from './suspend.js';
 import { is_rider, is_giant, acidic, poisonous, flesh_petrifies,
          vegan, vegetarian, carnivorous, herbivorous,
          is_humanoid, is_undead, attacktype, dmgtype,
@@ -1795,7 +1796,9 @@ async function handleEat(player, display, game) {
         const floorName = floorDescribed.replace(/^(?:an?|the)\s+/i, '');
         const article = /^[aeiou]/i.test(floorName) ? 'an' : 'a';
         await display.putstr_message(`There is ${article} ${floorName} here; eat it? [ynq] (n)`);
-        const ans = String.fromCharCode(await nhgetch()).toLowerCase();
+        const ans = String.fromCharCode(
+            await awaitInput(game, nhgetch(), { site: 'eat.handleEat.floorPrompt' })
+        ).toLowerCase();
         if (ans === 'q') {
             // cf. eat.c floorfood() — 'q' exits immediately
             await display.putstr_message('Never mind.');
@@ -1824,7 +1827,7 @@ async function handleEat(player, display, game) {
             display.messageNeedsMore = false;
             const eatPrompt = `What do you want to eat? [${eatChoices} or ?*] `;
             await display.putstr_message(eatPrompt);
-            const ch = await nhgetch();
+            const ch = await awaitInput(game, nhgetch(), { site: 'eat.handleEat.inventorySelect' });
             const c = String.fromCharCode(ch);
 
             if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
@@ -1854,7 +1857,7 @@ async function handleEat(player, display, game) {
                 if (!player.wizard) {
                     await display.putstr_message("You don't have that object.--More--");
                     while (true) {
-                        const moreCh = await nhgetch();
+                        const moreCh = await awaitInput(game, nhgetch(), { site: 'eat.handleEat.moreDismiss' });
                         if (moreCh === 32 || moreCh === 10 || moreCh === 13 || moreCh === 27) break;
                     }
                 }

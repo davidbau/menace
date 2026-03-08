@@ -112,6 +112,7 @@ import { attach_egg_hatch_timeout } from './timeout.js';
 import { impossible, You_feel } from './pline.js';
 import { acurr } from './attrib.js';
 import { noit_Monnam } from './do_name.js';
+import { awaitInput } from './suspend.js';
 
 // Direction vectors matching cmd.js DIRECTION_KEYS
 const DIRECTION_KEYS = {
@@ -525,7 +526,7 @@ export async function handleZap(player, map, display, game) {
 
     const zapPrompt = `What do you want to zap? [${wands.map(w => w.invlet).join('')} or ?*] `;
     await display.putstr_message(zapPrompt);
-    const itemCh = await nhgetch();
+    const itemCh = await awaitInput(game, nhgetch(), { site: 'zap.handleZap.selectWand' });
     const itemChar = String.fromCharCode(itemCh);
     const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);

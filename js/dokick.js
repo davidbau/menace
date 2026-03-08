@@ -104,6 +104,7 @@ import { maybe_unhide_at } from './mon.js';
 import { finish_meating } from './dogmove.js';
 import { is_watch } from './mondata.js';
 import { water_damage, mintrap_postmove, instapetrify, t_at } from './trap.js';
+import { awaitInput } from './suspend.js';
 
 // ============================================================================
 // Constants
@@ -1644,7 +1645,7 @@ export async function dokick(player, map, display, game) {
 
     // Get direction
     if (display) await display.putstr_message('In what direction? ');
-    const dirCh = await nhgetch();
+    const dirCh = await awaitInput(game, nhgetch(), { site: 'dokick.dokick.direction' });
     if (display) display.topMessage = null;
     const c = String.fromCharCode(dirCh);
     const dir = DIRECTION_KEYS[c];
