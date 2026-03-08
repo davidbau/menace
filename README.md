@@ -28,10 +28,13 @@ Also playable: [Hack (1982)](https://mazesofmenace.net/hack/) and
 the sweet output of The Hive.
 
 NetHack has ~420,000 lines of C, headers, and Lua across ~8,600
-functions. Thirty-eight years of accretionary development have produced
-a combinatorial state surface where any object can interact with any
-monster, terrain, or status effect. The codebase is not large because
-it is complex; it is complex because every edge case got a rule.
+functions. For reference, the original Doom is ~40,000 lines, Quake
+~80,000, and Civilization III ~130,000. NetHack dwarfs them all
+despite rendering nothing but text. Thirty-eight years of accretionary
+development have produced a combinatorial state surface where any
+object can interact with any monster, terrain, or status effect.
+The codebase is not large because it is complex; it is complex
+because every edge case got a rule.
 The question is whether AI agents, with human direction, can produce a
 faithful port: not a prototype, but a playable, parity-correct
 reimplementation that matches the C behavior down to the random number
