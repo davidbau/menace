@@ -860,9 +860,19 @@ export async function domove_core(dir, player, map, display, game) {
         return { moved: false, tookTime: false };
     }
     if (!await test_move(player.x, player.y, moveDir[0], moveDir[1], DO_MOVE, player, map, display, game)) {
+        // C ref: hack.c:2824-2829 — when test_move fails, C sets
+        // context.move = 0 and calls nomul(0) (unless door_opened).
+        // nomul(0) clears multi, which stops travel and running.
+        if (!ctx.door_opened) {
+            ctx.move = 0;
+            nomul(0, game);
+        }
         return { moved: false, tookTime: false };
     }
     if (await swim_move_danger(nx, ny, player, map, display)) {
+        // C ref: hack.c:2833-2836 — swim_move_danger sets move=0, nomul(0)
+        ctx.move = 0;
+        nomul(0, game);
         return { moved: false, tookTime: false };
     }
     if (await u_rooted(player, display)) {
