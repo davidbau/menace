@@ -127,6 +127,10 @@ export async function rhack(ch, game) {
         ch = queued.key;
     }
 
+    // C ref: cmd.c rhack() clears travel state before handling most commands.
+    context.travel = 0;
+    context.travel1 = 0;
+
     const c = String.fromCharCode(ch);
     const isMetaKey = ch >= 128 && ch <= 255;
     const metaBaseChar = isMetaKey ? String.fromCharCode(ch & 0x7f).toLowerCase() : '';
