@@ -38,8 +38,12 @@ import { rndexp } from './exper.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
 import { trycall } from './do.js';
 import { monster_detect, object_detect } from './detect.js';
-import { spoteffects } from './hack.js';
+import { spoteffects, losehp } from './hack.js';
 import { stairway_at } from './stairs.js';
+import { has_ceiling, ceiling } from './dungeon.js';
+import { hard_helmet } from './do_wear.js';
+import { body_part } from './polyself.js';
+import { HEAD, KILLED_BY } from './const.js';
 
 
 // ============================================================
@@ -1562,11 +1566,14 @@ export async function peffect_levitation(otmp, map, player) {
     // TODO: H(Levitation) &= ~I_SPECIAL — autotranslation stub, needs intrinsic property system
     if (false) { // TODO: B(Levitation) check
     }
-    else if ((stway = await stairway_at(player.x, player.y)) != null && stway.up) { doup(); gp.potion_nothing = 0; }
-    else if (has_ceiling(map.uz)) {
+    else if ((stway = await stairway_at(player.x, player.y)) != null && stway.up) { /* doup() not yet ported */ gp.potion_nothing = 0; }
+    else if (has_ceiling(map.uz || map)) {
+      const uarmh = player.helmet;
       let dmg = rnd(!uarmh ? 10 : !hard_helmet(uarmh) ? 6 : 3);
-      await You("hit your %s on the %s.", body_part(HEAD), ceiling(player.x, player.y));
-      await losehp(Maybe_Half_Phys(dmg), "colliding with the ceiling", KILLED_BY);
+      // C: Maybe_Half_Phys — halves damage if half physical damage
+      if (player.halfPhysDamage) dmg = Math.max(1, Math.floor(dmg / 2));
+      await You("hit your %s on the %s.", body_part(HEAD), ceiling(player.x, player.y, map));
+      await losehp(dmg, "colliding with the ceiling", KILLED_BY, player);
       gp.potion_nothing = 0;
     }
   }
