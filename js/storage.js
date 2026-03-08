@@ -483,6 +483,7 @@ export function deleteSave() {
 
 let _autosaveInFlight = false;
 let _autosavePending = null;
+let _autosaveCancelled = false;  // set by deleteAutosave() to abort an in-flight gzip write
 
 // Compress a string using the built-in CompressionStream API (gzip).
 // Returns a base64-encoded string, or null if CompressionStream is unavailable.
@@ -542,17 +543,21 @@ async function _runAutosave(snapshot) {
         if (s) {
             const json = JSON.stringify(snapshot);
             const compressed = await _gzipToBase64(json);
-            if (compressed) {
-                s.setItem(AUTOSAVE_KEY, 'gz:' + compressed);
-            } else {
-                s.setItem(AUTOSAVE_KEY, json);
+            // Re-check after the async gap: deleteAutosave() may have run while
+            // compression was in progress and already removed the key.
+            if (!_autosaveCancelled) {
+                if (compressed) {
+                    s.setItem(AUTOSAVE_KEY, 'gz:' + compressed);
+                } else {
+                    s.setItem(AUTOSAVE_KEY, json);
+                }
             }
         }
     } catch (e) {
         // Silently ignore autosave failures (storage full, etc.)
     } finally {
         _autosaveInFlight = false;
-        if (_autosavePending) {
+        if (_autosavePending && !_autosaveCancelled) {
             const next = _autosavePending;
             _autosavePending = null;
             _runAutosave(next);
@@ -565,6 +570,7 @@ async function _runAutosave(snapshot) {
 export function scheduleAutosave(game) {
     if (!storage()) return;               // no-op in headless/Node.js tests
     if (game.flags?.autosave === false) return;  // explicitly disabled
+    _autosaveCancelled = false;           // re-arm after any prior deleteAutosave()
     const snapshot = buildSaveData(game);
     if (_autosaveInFlight) {
         _autosavePending = snapshot;      // replace any queued snapshot
@@ -596,8 +602,11 @@ export async function loadAutosave() {
 }
 
 // Delete the autosave. Must be called synchronously on death, before any await.
+// Sets _autosaveCancelled so any in-flight gzip compression does not write back
+// after it completes (the async gap between compress and setItem is the race).
 export function deleteAutosave() {
     _autosavePending = null;              // drop any queued snapshot
+    _autosaveCancelled = true;            // abort any in-flight compression write
     const s = storage();
     if (!s) return;
     try { s.removeItem(AUTOSAVE_KEY); } catch (e) { /* ignore */ }
