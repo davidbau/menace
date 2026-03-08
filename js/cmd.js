@@ -61,8 +61,19 @@ export async function rhack(ch, game) {
     const svc = game.svc || (game.svc = {});
     const context = svc.context || (svc.context = {});
     const getRunMode = () => {
-        if (Number.isInteger(context.run)) return Number(context.run || 0);
-        if (Number.isInteger(game.runMode)) return Number(game.runMode || 0);
+        // Prefix parser state is only rush/run (2/3). C uses many non-prefix
+        // context.run values during movement/travel (for example 8), which
+        // must not be interpreted as pending g/G prefixes.
+        if (Number.isInteger(game.runMode)) {
+            const mode = Number(game.runMode || 0);
+            if (mode === 2 || mode === 3) return mode;
+            return 0;
+        }
+        if (Number.isInteger(context.run)) {
+            const mode = Number(context.run || 0);
+            if (mode === 2 || mode === 3) return mode;
+            return 0;
+        }
         return 0;
     };
     const getMenuRequested = () => {
