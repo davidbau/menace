@@ -190,3 +190,23 @@ test('pendingPrompt assignment clears stale prompt-owner boundaries', () => {
     assert.equal(removedPrompt, 1);
     assert.equal(calls, 0);
 });
+
+test('getInputBoundaryState exposes command execution token/depth during run_command', async () => {
+    const game = makeGame();
+    let seenState = null;
+    game.pendingPrompt = {
+        onKey(_ch, g) {
+            seenState = g.getInputBoundaryState();
+            return { handled: true, tookTime: false };
+        },
+    };
+
+    await run_command(game, 'a'.charCodeAt(0));
+    assert.ok(seenState);
+    assert.equal(Number.isInteger(seenState.commandExecToken), true);
+    assert.equal(seenState.commandExecDepth >= 1, true);
+
+    const after = game.getInputBoundaryState();
+    assert.equal(after.commandExecToken, null);
+    assert.equal(after.commandExecDepth, 0);
+});

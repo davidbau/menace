@@ -19,7 +19,7 @@ import { movemon, settrack, mon_regen } from './monmove.js';
 import { savebones } from './bones.js';
 import { setGame } from './gstate.js';
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
-import { beginCommandExec, endCommandExec } from './exec_guard.js';
+import { beginCommandExec, endCommandExec, getCommandExecState } from './exec_guard.js';
 import { awaitInput, awaitMore, awaitAnim } from './suspend.js';
 import { nh_timeout, do_storms } from './timeout.js';
 import { pline } from './pline.js';
@@ -1416,6 +1416,7 @@ export class NetHackGame {
         const waitingRaw = !!(input && typeof input.isWaitingInput === 'function' && input.isWaitingInput());
         const queueLen = Array.isArray(display?._messageQueue) ? display._messageQueue.length : 0;
         const ackRequired = !!display?.messageNeedsMore;
+        const execState = getCommandExecState(this);
         let boundaryKind = 'none';
         if (morePending) boundaryKind = 'more';
         else if (promptActive) boundaryKind = 'prompt';
@@ -1430,6 +1431,8 @@ export class NetHackGame {
             ackRequired,
             stackOwner: topBoundary?.owner || null,
             stackDepth: boundaryDepth,
+            commandExecToken: execState?.activeToken ?? null,
+            commandExecDepth: Number(execState?.depth || 0),
         };
     }
 

@@ -130,3 +130,12 @@ export function afterTypedSuspend(game, snapshot, details = {}) {
     }
 }
 
+export function getCommandExecState(game) {
+    const st = gameState(game);
+    if (!st) return { activeToken: null, depth: 0, seq: 0 };
+    return {
+        activeToken: st.activeToken,
+        depth: st.depth,
+        seq: st.seq,
+    };
+}
