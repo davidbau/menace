@@ -1499,10 +1499,17 @@ export class NetHackGame {
             onTrace: (trace) => {
                 if (!trace || typeof trace.type !== 'string') return;
                 const p = trace;
+                // Format glyph: C uses numeric indices, JS uses {ch, color} objects.
+                const fmtGlyph = (g) => {
+                    if (g == null) return '0';
+                    if (typeof g === 'number') return String(g);
+                    if (typeof g === 'object') return `${g.ch || '?'}c${g.color ?? 0}`;
+                    return String(g);
+                };
                 if (trace.type === 'tmp_at_start') {
-                    pushRngLogEntry(`^tmp_at_start[mode=${p.mode},glyph=${String(p.glyph)}]`);
+                    pushRngLogEntry(`^tmp_at_start[mode=${p.mode},glyph=${fmtGlyph(p.glyph)}]`);
                 } else if (trace.type === 'tmp_at_step') {
-                    pushRngLogEntry(`^tmp_at_step[${p.x},${p.y},${String(p.glyph)}]`);
+                    pushRngLogEntry(`^tmp_at_step[${p.x},${p.y},${fmtGlyph(p.glyph)}]`);
                 } else if (trace.type === 'tmp_at_end') {
                     pushRngLogEntry(`^tmp_at_end[flags=${String(p.flags)}]`);
                 }

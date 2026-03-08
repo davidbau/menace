@@ -549,8 +549,14 @@ function isIgnorableEventEntry(entry) {
     // `trick[...]` is map-regeneration recovery noise.
     // `mapdump[...]` is compared separately via compareMapdumpCheckpoints,
     //   not via event comparison (old sessions pre-patch-017 don't have it).
+    // `wipe[...]` is engraving erosion — C has burn-type engravings from level gen
+    //   that consume zero RNG when wiped (non-magical, non-ice) and JS doesn't
+    //   create them. Filtering prevents false event divergence.
+    // `tmp_at_*[...]` is animation display — C uses numeric glyph indices while
+    //   JS uses {ch, color} objects. These are display-only, consume no RNG.
     return typeof entry === 'string'
-        && (entry.startsWith('^trick[') || entry.startsWith('^mapdump['));
+        && (entry.startsWith('^trick[') || entry.startsWith('^mapdump[')
+            || entry.startsWith('^wipe[') || entry.startsWith('^tmp_at_'));
 }
 
 // Strip JS caller context (` @ caller <= parent`) appended by pushRngLogEntry.
