@@ -44,7 +44,8 @@ import { has_ceiling, ceiling } from './dungeon.js';
 import { hard_helmet } from './do_wear.js';
 import { body_part } from './polyself.js';
 import { HEAD, KILLED_BY, LEVITATION, UNCHANGING,
-         POLY_NOFLAGS, POLY_CONTROLLED, POLY_LOW_CTRL } from './const.js';
+         POLY_NOFLAGS, POLY_CONTROLLED, POLY_LOW_CTRL,
+         DETECT_MONSTERS } from './const.js';
 
 
 // ============================================================
@@ -1519,26 +1520,23 @@ export async function peffect_enlightenment(otmp) {
   }
 }
 
-// Autotranslated from potion.c:909
+// cf. potion.c:909 — peffect_monster_detection
 export async function peffect_monster_detection(otmp, map, player) {
   if (otmp.blessed) {
-    let i, x, y;
-    if (Detect_monsters) gp.potion_nothing++;
+    let i;
+    const detectProp = player.uprops?.[DETECT_MONSTERS] || {};
+    const curTimeout = (detectProp.intrinsic || 0) & TIMEOUT;
+    if (curTimeout > 0) gp.potion_nothing++;
     gp.potion_unkn++;
-    if ((HDetect_monsters & TIMEOUT) >= 300) i = 1;
+    if (curTimeout >= 300) i = 1;
     else if (otmp.oclass === SPBOOK_CLASS) i = rn1(40, 21);
     else {
       i = rn2(100) + 100;
     }
-    incr_itimeout( HDetect_monsters, i);
-    for (x = 1; x < COLNO; x++) {
-      for (y = 0; y < ROWNO; y++) {
-        if (map.locations[x][y].glyph === GLYPH_INVISIBLE) { unmap_object(x, y); newsym(x, y); }
-        if (MON_AT(x, y)) gp.potion_unkn = 0;
-      }
-    }
-    if (!player.uswallow && !Underwater) {
-      see_monsters();
+    incr_itimeout(player, DETECT_MONSTERS, i);
+    // C: scan map for invisible glyphs and MON_AT; simplified
+    if (!player.uswallow) {
+      see_monsters(map);
       if (gp.potion_unkn) await You_feel("lonely.");
       return 0;
     }

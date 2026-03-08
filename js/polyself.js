@@ -546,7 +546,7 @@ export function set_uasmon(player) {
     propset(REFLECTING, (mdat === mons[PM_SILVER_DRAGON]));
     propset(BLINDED, !haseyes(mdat));
 
-    float_vs_flight(player);
+    float_vs_flight({ disp: {} }, player);
     polysense(player);
     mark_vision_dirty(); // SEE_INVIS, INFRAVISION, TELEPAT, BLINDED may have changed
 }

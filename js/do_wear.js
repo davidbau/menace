@@ -2285,7 +2285,7 @@ export async function Ring_off_or_gone(obj, gone, game, player) {
     case RIN_SEE_INVISIBLE:
       // C: if (!See_invisible) { set_mimic_blocking(); see_monsters(); }
       // Intrinsic property tracking not fully wired; conservative no-op
-      set_mimic_blocking(); see_monsters();
+      set_mimic_blocking(); see_monsters(game?.map);
       mark_vision_dirty();
     break;
     case RIN_INVISIBILITY:
@@ -2317,7 +2317,7 @@ export async function Ring_off_or_gone(obj, gone, game, player) {
     case RIN_PROTECTION:
       observable = (obj.spe !== 0);
     learnring(obj, observable);
-    if (obj.spe) find_ac();
+    if (obj.spe) find_ac(player);
     break;
     case RIN_PROTECTION_FROM_SHAPE_CHAN:
       // C: restartcham() — restart chameleon mimicking when protection removed
