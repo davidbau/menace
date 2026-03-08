@@ -111,6 +111,8 @@ function getCell(display, col, row) {
 
 function putCursor(display, x, y) {
     const { col, row } = screenPosForMap(display, x, y);
+    // C ref: curs(WIN_MAP, cx, cy) — only repositions the terminal cursor,
+    // does NOT overwrite the cell content. The underlying glyph stays visible.
     if (typeof display?.setCursor === 'function') display.setCursor(col, row);
     flush_screen(0); // C ref: getpos.c:660,854,863,1149 — flush tty after cursor move
     return { col, row };
@@ -118,6 +120,7 @@ function putCursor(display, x, y) {
 
 function restoreCursor(display, cursorState) {
     if (!cursorState) return;
+    // C ref: curs() — cursor was only repositioned, no cell content to restore.
     if (typeof display?.setCursor === 'function') {
         display.setCursor(cursorState.col, cursorState.row);
     }

@@ -473,9 +473,10 @@ export async function domove_swap_with_pet(mon, nx, ny, dir, player, map, displa
     player.displacedPetThisTurn = true;
     await maybeHandleShopEntryMessage(game, oldPlayerX, oldPlayerY);
 
-    // C ref: player moved — mark FOV dirty; vision_recalc fires at start of moveloop_core
+    // C ref: player moved — recompute FOV immediately (see domove_core comment).
     if (game.fov) {
         mark_vision_dirty();
+        vision_recalc();
         newsym(oldPlayerX, oldPlayerY);  // show pet at old player position
         newsym(player.x, player.y);      // show '@' at new player position
         display.renderStatus(player);
@@ -906,9 +907,13 @@ export async function domove_core(dir, player, map, display, game) {
     clear_forcefight_prefix(game, ctx);
     await maybeHandleShopEntryMessage(game, oldX, oldY);
 
-    // C ref: player moved — mark FOV dirty; vision_recalc fires at start of moveloop_core
+    // C ref: player moved — recompute FOV immediately so newsym sees correct visibility.
+    // In C, vision_recalc(0) fires at the top of the next moveloop iteration, BEFORE
+    // nhgetch blocks (so the screen is correct when captured). In JS, screen capture
+    // happens between moveloop_core calls, so we must recalc here.
     if (game.fov) {
         mark_vision_dirty();
+        vision_recalc();
         newsym(oldX, oldY);          // update old player position (show terrain)
         newsym(player.x, player.y);  // update new player position (show '@')
         display.renderStatus(player);

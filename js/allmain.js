@@ -41,6 +41,7 @@ import { rhack } from './cmd.js';
 import { FOV, get_vision_full_recalc } from './vision.js';
 import { monsterNearby, nomul, unmul, near_capacity } from './hack.js';
 import { see_monsters, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY } from './display.js';
+import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
          rankOf, greetingForRole, roleNameForGender, alignName } from './player.js';
 import { mklev, setGameSeed, isBranchLevelToDnum, at_dgn_entrance } from './dungeon.js';
@@ -171,8 +172,13 @@ export async function moveloop_core(game, opts = {}) {
         }
     } while (player.umovement < NORMAL_SPEED && !forceStopMoveLoop && !(game?.playerDied));
 
-    // C ref: vision_full_recalc set during monster turns (digs, door breaks, etc.) —
-    // fire vision_recalc now so the display is current before screen capture.
+    // C ref: In C, vision_recalc(0) fires at the top of the NEXT moveloop iteration,
+    // BEFORE nhgetch blocks — so the screen capture always has fresh FOV.
+    // In JS, screen capture happens between moveloop_core calls, so we must
+    // recalc here unconditionally. This catches:
+    //   (a) player movement setting mark_vision_dirty via domove_core
+    //   (b) monster actions (digs, door breaks, etc.) during movemon
+    //   (c) any topology changes during end-of-turn processing
     if (game.fov && get_vision_full_recalc()) {
         vision_recalc();
     }
@@ -832,6 +838,8 @@ export async function run_command(game, ch, opts = {}) {
     // C ref: bot() + curs_on_u() — update status line and cursor position
     // after all command processing.  In C, bot() runs at the end of each
     // moveloop turn, and curs_on_u() runs before waiting for the next key.
+    // docrt() handles FOV recomputation (including do_light_sources for
+    // mobile light sources) and full map rendering.
     const _player = game.u || game.player;
     if (game.display && _player) {
         if (renderAfterCommand && typeof game.docrt === 'function') {
@@ -1968,7 +1976,10 @@ export class NetHackGame {
 
     // Render current screen state
     docrt() {
-        this.fov.compute(this.map, this.player.x, this.player.y);
+        // C ref: docrt() calls vision_recalc() which passes do_light_sources
+        // to mark TEMP_LIT tiles for mobile light sources (lanterns, candles, etc.).
+        // Without this, corridors adjacent to the player's light radius stay dark.
+        this.fov.compute(this.map, this.player.x, this.player.y, do_light_sources, this.player);
         this.display.renderMap(this.map, this.player, this.fov, this.flags);
         this.display.renderStatus(this.player);
         // C ref: docrt() puts cursor on player, but if a --More-- is pending
