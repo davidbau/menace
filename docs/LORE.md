@@ -4524,3 +4524,26 @@ hard-won wisdom:
   - `bash -n test/comparison/c-harness/setup.sh`
   - `./scripts/run-and-report.sh --failures` unchanged baseline: `31/34`
     gameplay sessions passing, same failing set (`seed031/032/033`).
+
+### seed031 event parity restored (2026-03-08)
+
+- Problem:
+  - `seed031_manual_direct` had full RNG/screen/color/cursor but poor strict
+    event parity, initially dominated by stale session-side `^wipe` inserts,
+    then by `tmp_at` event drift after targeted re-record.
+- Fixes:
+  - Re-recorded `seed031_manual_direct.session.json` with current C harness to
+    remove stale `^wipe` schema noise.
+  - `js/dothrow.js`:
+    - switched transient throw marker start glyph to canonical numeric
+      `obj_to_glyph`-style IDs for `tmp_at_start` parity.
+    - aligned quick throw-marker path to avoid synthetic `tmp_at_step` drift in
+      this flow (start/end-only transient marker with delay boundary).
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed031_manual_direct.session.json`
+    now passes fully:
+    - `rng=9079/9079`
+    - `screens=1365/1365`
+    - `colors=32760/32760`
+    - `events=2684/2684`
+    - `cursor=1365/1365`

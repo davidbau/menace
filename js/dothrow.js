@@ -69,7 +69,6 @@ import {
     tmp_at, tmp_at_end_async, nh_delay_output,
 } from './animation.js';
 import { DISP_FLASH, DISP_TETHER, DISP_END, BACKTRACK } from './const.js';
-import { objectMapGlyph } from './display_rng.js';
 import { u_wipe_engr } from './engrave.js';
 import { shop_keeper, in_rooms, costly_spot, is_unpaid,
          stolen_value, contained_gold, subfrombill, donate_gold, sellobj } from './shk.js';
@@ -92,6 +91,15 @@ const P_CROSSBOW = 22;
 const P_DART = 23;
 const P_SHURIKEN = 24;
 const P_BOOMERANG = 25;
+
+// C ref: include/display.h GLYPH_OBJ_OFF/obj_to_glyph().
+// tmp_at event payloads are numeric glyph ids in C harness logs.
+function objectTmpGlyph(otmp) {
+    const otyp = Number.isInteger(otmp?.otyp) ? otmp.otyp : 0;
+    const NUMMONS = Array.isArray(mons) ? mons.length : 0;
+    const GLYPH_OBJ_OFF = (9 * NUMMONS) + 1;
+    return GLYPH_OBJ_OFF + otyp;
+}
 
 // Direction flags (cf. objclass.h)
 const PIERCE = 1;
@@ -265,15 +273,12 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
     }
     // C-style visual parity hook: show transient projectile flight frame.
     if (isok(targetX, targetY)) {
-        const projGlyph = objectMapGlyph(thrownItem, false, {
-            player,
-            x: player.x,
-            y: player.y,
-            observe: false,
-        });
+        const projGlyph = objectTmpGlyph(thrownItem);
         tmp_at(DISP_FLASH, projGlyph);
         try {
-            tmp_at(targetX, targetY);
+            // C ref: throw_obj() immediate direction-target throw path doesn't
+            // guarantee a visible bhit() flight frame before resolution.
+            // Keep a start/end-only transient marker here.
             await nh_delay_output();
         } finally {
             tmp_at(DISP_END, 0);
@@ -1157,12 +1162,7 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
     let hitMon = null;
     const dx = player.dx || 0, dy = player.dy || 0;
     let bx = player.x, by = player.y;
-    const projGlyph = objectMapGlyph(obj, false, {
-        player,
-        x: player.x,
-        y: player.y,
-        observe: false,
-    });
+    const projGlyph = objectTmpGlyph(obj);
     let animationClosed = false;
     tmp_at(tethered_weapon ? DISP_TETHER : DISP_FLASH, projGlyph);
     try {
@@ -1172,10 +1172,11 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
             const loc = typeof map.at === 'function' ? map.at(nx, ny) : null;
             if (!loc || !ZAP_POS(loc.typ)) break;
             bx = nx; by = ny;
-            tmp_at(bx, by);
-            await nh_delay_output();
+            // C ref: zap.c bhit() checks monster hit before tmp_at(x,y).
             const mon = map.monsterAt ? map.monsterAt(bx, by) : null;
             if (mon) { hitMon = mon; break; }
+            tmp_at(bx, by);
+            await nh_delay_output();
         }
     } finally {
         if (!animationClosed) tmp_at(DISP_END, 0);
