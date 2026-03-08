@@ -386,6 +386,11 @@ async function main() {
             stdio: 'inherit',
         });
         if ((annotationCheck.status ?? 1) !== 0) process.exit(annotationCheck.status ?? 1);
+        const synclockAudit = spawnSync(process.execPath, ['scripts/synclock_audit.mjs', '--strict'], {
+            cwd: projectRoot,
+            stdio: 'inherit',
+        });
+        if ((synclockAudit.status ?? 1) !== 0) process.exit(synclockAudit.status ?? 1);
 
         // 1. Unit tests (estimate file count for progress)
         const unitResults = await runUnitTests();
