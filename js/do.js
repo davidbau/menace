@@ -2,6 +2,7 @@
 // cf. do.c — dodrop, dodown, doup, flooreffects, goto_level, donull, dowipe
 
 import { nhgetch, ynFunction, getlin } from './input.js';
+import { awaitInput } from './suspend.js';
 import { COLNO, ROWNO, STAIRS,
          CORR, ROOM, AIR, A_DEX,
          IS_FURNITURE, IS_LAVA, IS_POOL, MAGIC_PORTAL, VIBRATING_SQUARE,
@@ -683,7 +684,9 @@ export async function handleDrop(player, map, display) {
                 display.markMorePending({ source: sourceTag });
             }
         } else if (typeof display?.morePrompt === 'function') {
-            await display.morePrompt(nhgetch);
+            await display.morePrompt(() => awaitInput(null, nhgetch(), {
+                site: 'do.handleDrop.morePrompt',
+            }));
         }
     };
     while (true) {
@@ -696,7 +699,9 @@ export async function handleDrop(player, map, display) {
             const dropPrompt = `What do you want to drop? [${dropChoices} or ?*] `;
             await display.putstr_message(dropPrompt);
         }
-        const ch = await nhgetch();
+        const ch = await awaitInput(null, nhgetch(), {
+            site: 'do.handleDrop.select',
+        });
         let c = String.fromCharCode(ch);
         if (ch === 22) { // Ctrl+V
             countMode = true;
@@ -807,7 +812,9 @@ async function showDropCandidates(candidates, display) {
                 display.renderMoreMarker();
                 display.markMorePending({ source: 'do.drop-candidates' });
             }
-            await nhgetch();
+            await awaitInput(null, nhgetch(), {
+                site: 'do.showDropCandidates.more',
+            });
         }
     }
 }
@@ -917,7 +924,9 @@ async function promptDropTypeClass(display, player) {
     }
     let input = '';
     while (true) {
-        const ch = await nhgetch();
+        const ch = await awaitInput(null, nhgetch(), {
+            site: 'do.promptDropTypeClass.input',
+        });
         if (ch === 10 || ch === 13) {
             restoreAfterPrompt();
             return input;
@@ -958,7 +967,9 @@ export async function handleDropTypes(player, map, display) {
     }
 
     // C getobj-style letter selection for filtered inventory.
-    const sel = await nhgetch();
+    const sel = await awaitInput(null, nhgetch(), {
+        site: 'do.handleDropTypes.select',
+    });
     if (sel === 27 || sel === 10 || sel === 13 || sel === 32) {
         return { moved: false, tookTime: false };
     }

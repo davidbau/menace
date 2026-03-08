@@ -2,6 +2,7 @@
 // cf. do_wear.c — dowear, doputon, dotakeoff, doremring, doddoremarm, find_ac
 
 import { nhgetch } from './input.js';
+import { awaitInput } from './suspend.js';
 import { ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
          WEAPON_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
          WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS,
@@ -1843,7 +1844,9 @@ async function putOnSelectedItem(player, display, game, item) {
             await display.putstr_message(fingerQ);
             let mask = null;
             while (!mask) {
-                const fc = await nhgetch();
+                const fc = await awaitInput(game, nhgetch(), {
+                    site: 'do_wear.putOnSelectedItem.ringFinger',
+                });
                 const fs = String.fromCharCode(fc);
                 // C yn_function(..., rightleftchars, '\0', ...) cancels on
                 // ESC and Enter (default '\0').
@@ -2087,7 +2090,9 @@ async function handleWear(player, display, game = null) {
         : 'What do you want to wear? [*] ';
     resetTopline(display);
     await display.putstr_message(wearPrompt);
-    const ch = await nhgetch();
+    const ch = await awaitInput(game, nhgetch(), {
+        site: 'do_wear.handleWear.select',
+    });
     const c = String.fromCharCode(ch);
 
     const selected = (player.inventory || []).find((o) => o.invlet === c);
@@ -2140,7 +2145,9 @@ async function handlePutOn(player, display, game = null) {
         resetTopline(display);
         await display.putstr_message(putOnPrompt);
     }
-    const ch = await nhgetch();
+    const ch = await awaitInput(game, nhgetch(), {
+        site: 'do_wear.handlePutOn.select',
+    });
     const c = String.fromCharCode(ch);
 
     const selected = (player.inventory || []).find((o) => o.invlet === c);
@@ -2186,7 +2193,9 @@ async function handleTakeOff(player, display, game = null) {
                     : 'What do you want to take off? [*] '
             );
         }
-        const ch = await nhgetch();
+        const ch = await awaitInput(game, nhgetch(), {
+            site: 'do_wear.handleTakeOff.select',
+        });
         const c = String.fromCharCode(ch);
         item = wornAll.find((a) => a.invlet === c);
         if (!item) {
@@ -2222,7 +2231,9 @@ async function handleRemove(player, display, game = null) {
                     : 'What do you want to remove? [*] '
             );
         }
-        const ch = await nhgetch();
+        const ch = await awaitInput(game, nhgetch(), {
+            site: 'do_wear.handleRemove.select',
+        });
         const c = String.fromCharCode(ch);
         item = wornAll.find((a) => a.invlet === c);
         if (!item) {
