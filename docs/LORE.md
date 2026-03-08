@@ -4567,3 +4567,23 @@ hard-won wisdom:
   - Gameplay baseline unchanged after reverting temporary fixture rerecords:
     `./scripts/run-and-report.sh --failures` remains `31/34` with failing
     seeds `031/032/033`.
+
+### seed032 event parity recovery via fresh harness rerecord (2026-03-08)
+
+- Problem:
+  - `seed032_manual_direct` first event divergence was early
+    `^distfleeck` vs `^wipe`, consistent with stale harness-era event capture.
+- Change:
+  - Re-recorded
+    [`test/comparison/sessions/seed032_manual_direct.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/seed032_manual_direct.session.json)
+    using rebuilt current C harness patch stack.
+- Result:
+  - `seed032` event parity is now full (`events=678/678` in PES summary).
+  - Remaining `seed032` divergence is screen-only (farlook tip line at step 155),
+    not event-order drift.
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed032_manual_direct.session.json`
+    shows `events=2748/2748`.
+  - `./scripts/run-and-report.sh --failures` now reports gameplay `32/34` with:
+    - `seed032_manual_direct`: screen-only divergence
+    - `seed033_manual_direct`: early RNG/event divergence.
