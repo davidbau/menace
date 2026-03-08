@@ -4864,3 +4864,46 @@ hard-won wisdom:
 - Validation:
   - `node scripts/test-unit-core.mjs` passes.
   - No change to current seed033 parity frontier from this boundary correction.
+
+### CODEMATCH invent.c surface closure: `display_pickinv`/`display_inventory`/`ddoinv` (2026-03-08)
+
+- Problem:
+  - `invent.js` had C-name rows marked missing in CODEMATCH and a dead stub:
+    `ddoinv()` called undefined `dispinv_with_action` / `display_pickinv`.
+- Fix:
+  - Added callable C-name surfaces in
+    [`js/invent.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js):
+    - `display_pickinv(...)` (approximate inventory menu wrapper)
+    - `display_inventory(...)` (wrapper over `display_pickinv`)
+    - `dispinv_with_action(...)` (return-code compatible placeholder)
+    - `ddoinv(...)` now async and wired to `dispinv_with_action(...)`
+  - Upgraded `display_inventory_items(...)` from placeholder to real lets/invlet
+    filtering used by those wrappers.
+  - Updated CODEMATCH rows for these functions plus `compactify`.
+  - Added unit coverage:
+    [`test/unit/invent_display_inventory.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/invent_display_inventory.test.js).
+- Validation:
+  - `node --test test/unit/invent_display_inventory.test.js` passes.
+  - Existing 5-direction-prompt failures in apply/open tests reproduce even with
+    these files stashed out (pre-existing on current `main`).
+
+### CODEMATCH invent.c ledger accuracy pass + C-name wrappers (2026-03-08)
+
+- Problem:
+  - `docs/CODEMATCH.md` still marked many `invent.c` functions as Missing even
+    though exact-name implementations already existed in `js/invent.js`.
+  - `getobj`/`ggetobj` had only helper names (`getobj_simple` /
+    `ggetobj_count`), so C-name table rows could not map cleanly.
+- Fix:
+  - Added exact C-name wrappers in
+    [`js/invent.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js):
+    - `getobj(...)` (approx wrapper over `getobj_simple(...)`)
+    - `ggetobj(...)` (approx wrapper over `ggetobj_count(...)`)
+  - Performed a focused `invent.c -> invent.js` table correction in
+    [`docs/CODEMATCH.md`](/share/u/davidbau/git/mazesofmenace/mazes/docs/CODEMATCH.md),
+    flipping already-present functions from Missing to Implemented with current
+    `invent.js` line references.
+- Validation:
+  - `node --test test/unit/invent_display_inventory.test.js` passes.
+  - `node scripts/test-unit-core.mjs` remains at `2521 pass / 5 fail` with the
+    same pre-existing direction-prompt failures.

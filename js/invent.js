@@ -12,7 +12,8 @@ import { COLNO, STATUS_ROW_1, STATUS_ROW_2, A_STR, A_CON, A_WIS,
          BUC_BLESSED, BUC_UNCURSED, BUC_CURSED, BUC_UNKNOWN,
          GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_INACCESS,
          GETOBJ_EXCLUDE_SELECTABLE, GETOBJ_EXCLUDE_NONINVENT,
-         GETOBJ_ALLOWCNT, GETOBJ_PROMPT, GETOBJ_NOFLAGS } from './const.js';
+         GETOBJ_ALLOWCNT, GETOBJ_PROMPT, GETOBJ_NOFLAGS,
+         ECMD_OK } from './const.js';
 import { objectData, WEAPON_CLASS, FOOD_CLASS, WAND_CLASS, SPBOOK_CLASS,
          FLINT, ROCK, SLING, MAGIC_MARKER, COIN_CLASS, ARMOR_CLASS,
          RING_CLASS, AMULET_CLASS, TOOL_CLASS, POTION_CLASS, SCROLL_CLASS,
@@ -1577,11 +1578,24 @@ export function getobj_simple(word, obj_ok, player) {
     return null;
 }
 
+// C ref: invent.c getobj() — C-name wrapper over simplified selector
+export function getobj(word, obj_ok, _flags = 0, player = null) {
+    const p = player || _gstate?.player || null;
+    if (!p || typeof obj_ok !== 'function') return null;
+    return getobj_simple(word, obj_ok, p);
+}
+
 // C ref: invent.c ggetobj() — get object with class filter
 // Simplified: just returns count of suggested items
 export function ggetobj_count(word, player) {
     if (!player.inventory || !player.inventory.length) return 0;
     return player.inventory.length;
+}
+
+// C ref: invent.c ggetobj() — C-name wrapper over simplified count helper
+export function ggetobj(word, _fn, _mx, _word = null, player = null) {
+    const p = player || _gstate?.player || null;
+    return ggetobj_count(word, p || { inventory: [] });
 }
 
 // C ref: invent.c safeq_xprname() / safeq_shortxprname() — safe name for prompts
@@ -1767,10 +1781,108 @@ export function find_unpaid(list, last_found_ref) {
     return null;
 }
 
-// C ref: invent.c display_inventory() — placeholder; actual UI is in handleInventory
 export function display_inventory_items(lets, player) {
-    // Actual display is handled by buildInventoryOverlayLines / handleInventory
-    return buildInventoryOverlayLines(player);
+    const inventory = Array.isArray(player?.inventory) ? player.inventory : [];
+    const letsText = (typeof lets === 'string') ? lets : '';
+    const hasLetsFilter = letsText.length > 0;
+    return inventory.filter((obj) => {
+        if (!hasLetsFilter) return true;
+        const invlet = String(obj?.invlet || '');
+        const oclassSym = String(CLASS_SYMBOLS[obj?.oclass] || '');
+        return letsText.includes(invlet) || letsText.includes(oclassSym);
+    });
+}
+
+function selectionFromInventoryResult(result) {
+    if (result == null) return '\0';
+    if (typeof result === 'string') return result;
+    if (typeof result === 'object' && typeof result.selection === 'string') {
+        return result.selection;
+    }
+    return '\0';
+}
+
+function countFromInventoryResult(result) {
+    if (!result || typeof result !== 'object') return null;
+    const count = Number(result.count);
+    return Number.isFinite(count) ? count : null;
+}
+
+// C ref: invent.c display_pickinv() — inventory menu helper for display/getobj.
+export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_reply, out_cnt,
+    player = null, display = null) {
+    const p = player || _gstate?.player || null;
+    const d = display || _gstate?.display || null;
+    if (!p || !d) return '\0';
+
+    const objects = display_inventory_items(lets, p);
+    const lines = [];
+    const choices = [];
+    const choiceSet = new Set();
+
+    if (typeof query === 'string' && query.length > 0) {
+        lines.push(query);
+    }
+
+    for (const obj of objects) {
+        const invlet = String(obj?.invlet || '');
+        if (!invlet) continue;
+        const line = xprname(obj, null, invlet, true, 0, 0, p);
+        lines.push(line);
+        if (!choiceSet.has(invlet)) {
+            choiceSet.add(invlet);
+            choices.push(invlet);
+        }
+    }
+
+    const allowExtraChoice = !!(allowxtra && xtra_choice);
+    if (allowExtraChoice) {
+        lines.push(`- - ${String(xtra_choice)}`);
+        if (!choiceSet.has('-')) {
+            choiceSet.add('-');
+            choices.push('-');
+        }
+    }
+
+    if (lines.length === 0) {
+        await d.putstr_message('Not carrying anything.');
+        if (out_cnt && typeof out_cnt === 'object') out_cnt.value = -1;
+        return '\0';
+    }
+
+    const result = await renderOverlayMenuUntilDismiss(
+        d,
+        lines,
+        want_reply ? choices.join('') : '',
+        { allowCountPrefix: !!want_reply }
+    );
+    const selection = selectionFromInventoryResult(result);
+    const count = countFromInventoryResult(result);
+    if (out_cnt && typeof out_cnt === 'object') {
+        out_cnt.value = Number.isFinite(count) ? count : -1;
+    }
+    return selection;
+}
+
+// C ref: invent.c display_inventory()
+export async function display_inventory(lets, want_reply, player = null, display = null) {
+    const p = player || _gstate?.player || null;
+    return await display_pickinv(lets, null, null, false, !!want_reply, null, p, display);
+}
+
+// C ref: invent.c dispinv_with_action()
+export async function dispinv_with_action(lets, use_inuse_ordering, alt_label, game = null) {
+    const g = game || _gstate || null;
+    const p = g?.player || _gstate?.player || null;
+    const d = g?.display || _gstate?.display || null;
+    const len = typeof lets === 'string' ? lets.length : 0;
+    const menumode = (len !== 1) || !!g?.flags?.menu_requested;
+    const c = await display_inventory(lets || '', menumode, p, d);
+    if (c && c !== '\x1b') {
+        // itemactions() is not fully ported yet; keep C-compatible return code.
+        return ECMD_OK;
+    }
+    return ECMD_OK;
 }
 
 // C ref: invent.c invdisp_nothing() — display "nothing" message
@@ -2274,8 +2386,8 @@ export function ckunpaid(otmp) {
 }
 
 // Autotranslated from invent.c:3005
-export function ddoinv() {
-  return dispinv_with_action( 0, false, null);
+export async function ddoinv(game = null) {
+  return await dispinv_with_action('', false, null, game);
 }
 
 // Autotranslated from invent.c:3455
