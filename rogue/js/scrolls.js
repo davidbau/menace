@@ -286,34 +286,34 @@ export async function read_scroll() {
  * Player selects a pack item; we mark its type as known.
  */
 async function whatis(g) {
-  await _msg('What do you want identified? ');
-  const ch = await _readchar();
-  g.mpos = 0;
-
-  if (ch === '\x1b') {
-    await _msg('');
-    return;
-  }
-
-  // Find the item in pack with that letter
-  let slot = 0;
-  for (let ip = g.pack; ip !== null; ip = ip.l_next) {
-    const letter = String.fromCharCode('a'.charCodeAt(0) + slot);
-    if (letter === ch) {
-      const obj = ip.l_data;
-      switch (obj.o_type) {
-        case SCROLL:  g.s_know[obj.o_which] = true; break;
-        case '!':     g.p_know[obj.o_which] = true; break;  // POTION
-        case '=':     g.r_know[obj.o_which] = true; break;  // RING
-        case '/':     g.ws_know[obj.o_which] = true; break; // STICK
-      }
+  const item = await _get_item('identify', 0);
+  if (item === null) return;
+  const obj = item.l_data;
+  switch (obj.o_type) {
+    case SCROLL:
+      g.s_know[obj.o_which] = true;
+      if (g.s_guess[obj.o_which]) g.s_guess[obj.o_which] = null;
+      break;
+    case '!':  // POTION
+      g.p_know[obj.o_which] = true;
+      if (g.p_guess[obj.o_which]) g.p_guess[obj.o_which] = null;
+      break;
+    case '/':  // STICK
+      g.ws_know[obj.o_which] = true;
       obj.o_flags |= 0o000002; // ISKNOW
-      await _msg(_inv_name(obj, false));
-      return;
-    }
-    slot++;
+      if (g.ws_guess[obj.o_which]) g.ws_guess[obj.o_which] = null;
+      break;
+    case ')':  // WEAPON
+    case ']':  // ARMOR
+      obj.o_flags |= 0o000002; // ISKNOW
+      break;
+    case '=':  // RING
+      g.r_know[obj.o_which] = true;
+      obj.o_flags |= 0o000002; // ISKNOW
+      if (g.r_guess[obj.o_which]) g.r_guess[obj.o_which] = null;
+      break;
   }
-  await _msg("You don't have that.");
+  await _msg(_inv_name(obj, false));
 }
 
 async function get_str(readchar) {
