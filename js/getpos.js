@@ -643,10 +643,9 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 return -1;
             }
             if (c === '.' || c === ',' || c === ';' || c === ':' || ch === 13 || ch === 10) {
-                if (runtimeCtx.travelMode && typeof runtimeCtx.isTravelPathValid === 'function') {
-                    const valid = await runtimeCtx.isTravelPathValid(cx, cy);
-                    if (!valid) continue;
-                }
+                // C ref: getpos.c:929-935 — pick keys always accept the current
+                // cursor location. Travel path validity is not enforced here; it
+                // is handled later by travel execution.
                 ccp.x = cx;
                 ccp.y = cy;
                 if (c === ',') return 1;
