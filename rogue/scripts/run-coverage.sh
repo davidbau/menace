@@ -16,7 +16,7 @@ npx c8 \
   $REPORTERS \
   --report-dir=rogue/coverage \
   --include='rogue/js/**' \
-  node rogue/test/replay_test.mjs --all rogue/test/sessions/
+  node rogue/test/coverage_all.mjs --all rogue/test/sessions/
 
 echo "Applying NetHack theme..."
 cp rogue/scripts/nethack.css rogue/coverage/nethack.css

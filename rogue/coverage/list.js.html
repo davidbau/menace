@@ -31,9 +31,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">83.33% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>7/7</span>
+                <span class='fraction'>5/6</span>
             </div>
         
             
@@ -145,8 +145,8 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">3205x</span>
-<span class="cline-any cline-yes">3205x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -157,11 +157,11 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">2056x</span>
-<span class="cline-any cline-yes">2056x</span>
-<span class="cline-any cline-yes">2056x</span>
-<span class="cline-any cline-yes">2056x</span>
-<span class="cline-any cline-yes">2056x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -178,8 +178,8 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">560x</span>
-<span class="cline-any cline-yes">560x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
  * list.js — Linked list operations for Rogue JS port.
  *
@@ -202,7 +202,7 @@
  * @param {object} data - optional data to attach (defaults to {})
  */
 export function new_item(data) {
-  return { l_next: null, l_prev: null, l_data: data !== undefined ? data : {} };
+  return { l_next: null, l_prev: null, l_data: data !== undefined ? data <span class="branch-0 cbranch-no" title="branch not covered" >: {} </span>};
 }
 &nbsp;
 export <span class="fstat-no" title="function not covered" >function ldata(ptr) { return ptr.l_data; }</span>
@@ -243,7 +243,7 @@ export function _free_list(listp) {
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Coverage divined by the Oracle of Istanbul
-                at 2026-03-08T08:34:04.178Z
+                at 2026-03-08T09:19:42.949Z
             </div>
         <script src="prettify.js"></script>
         <script>
