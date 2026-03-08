@@ -964,8 +964,7 @@
     });
 
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && docsOpen) { e.preventDefault(); e.stopImmediatePropagation(); closeDocs(); }
-      else if (docsOpen) { document.body.classList.remove('minimap-hover'); }
+      if (docsOpen) { document.body.classList.remove('minimap-hover'); }
     }, true);
 
     window.addEventListener('resize', function() {

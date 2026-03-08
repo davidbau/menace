@@ -2025,13 +2025,9 @@
             dismissMinimap();
         });
 
-        // Escape key to close docs (not in standalone mode — user navigated away from game)
-        // Any other key hides the dismiss button until next mouse hover
+        // Any key hides the dismiss button until next mouse hover
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && document.body.classList.contains('docs-mode')
-                    && !document.body.classList.contains('docs-standalone')) {
-                closeDocs(true);
-            } else if (document.body.classList.contains('docs-mode')) {
+            if (document.body.classList.contains('docs-mode')) {
                 document.body.classList.remove('minimap-hover');
             }
         });
