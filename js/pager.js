@@ -767,6 +767,10 @@ const COMMAND_DESCRIPTIONS = {
     'W': 'Wear armor.',
 };
 
+const COMMAND_DESCRIPTIONS_C_STYLE = {
+    e: 'eat something (#eat)',
+};
+
 // Handle help (?)
 // C ref: pager.c dohelp() -> help_menu_items[]
 export async function handleHelp(game) {
@@ -978,9 +982,20 @@ const OPTIONS_FULL_COMMAND_HELP_TEXT = [
 
 // Handle & (whatdoes) command
 // C ref: pager.c dowhatdoes()
+let whatdoesIntroShown = false;
 export async function handleWhatdoes(game) {
     const { display } = game;
 
+    if (!whatdoesIntroShown) {
+        await display.putstr_message("Ask about '&' or '?' to get more info.");
+        if (!display?._pendingMore && typeof display?.renderMoreMarker === 'function') {
+            display.renderMoreMarker();
+            if (typeof display?.markMorePending === 'function') {
+                display.markMorePending({ source: 'pager.whatdoes-intro' });
+            }
+        }
+        whatdoesIntroShown = true;
+    }
     await display.putstr_message('What command?');
     const ch = await nhgetch();
 
@@ -1010,12 +1025,16 @@ export async function handleWhatdoes(game) {
         }
         desc = ctrlDescs[ctrlChar];
         if (desc) {
-            await display.putstr_message(`${ctrlChar}: ${desc}`);
+            await display.putstr_message(`${ctrlChar.padEnd(8)}${desc}`);
         } else {
             await display.putstr_message(`${ctrlChar}: unknown command.`);
         }
     } else if (COMMAND_DESCRIPTIONS[c]) {
-        await display.putstr_message(`'${c}': ${COMMAND_DESCRIPTIONS[c]}`);
+        const override = COMMAND_DESCRIPTIONS_C_STYLE[c];
+        const normalized = override || `${COMMAND_DESCRIPTIONS[c]}`
+            .replace(/\.$/, '')
+            .replace(/^./, (ch0) => ch0.toLowerCase());
+        await display.putstr_message(`${c.padEnd(8)}${normalized}.`);
     } else {
         await display.putstr_message(`'${c}': unknown command.`);
     }
