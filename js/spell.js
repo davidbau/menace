@@ -34,6 +34,7 @@ import {
 import { is_metallic } from './objdata.js';
 import { is_undead, is_vampshifter } from './mondata.js';
 import { nhgetch } from './input.js';
+import { awaitInput } from './suspend.js';
 import { create_nhwindow, destroy_nhwindow } from './windows.js';
 import { NHW_MENU } from './const.js';
 import { rn2, rnd, rn1, rnl } from './rng.js';
@@ -445,7 +446,9 @@ export async function handleKnownSpells(player, display) {
     }
 
     while (true) {
-        const ch = await nhgetch();
+        const ch = await awaitInput(null, nhgetch(), {
+            site: 'spell.handleKnownSpells.dismiss',
+        });
         if (ch === 32 || ch === 27 || ch === 10 || ch === 13) break;
     }
     if (typeof display.clearRow === 'function') display.clearRow(0);
@@ -1042,7 +1045,9 @@ export async function getspell(prompt, player, display) {
 
     // Wait for a valid spell letter
     while (true) {
-        const ch = await nhgetch();
+        const ch = await awaitInput(null, nhgetch(), {
+            site: 'spell.getspell.select',
+        });
         if (ch === 27 || ch === 32) { // ESC or space = cancel
             if (display) {
                 if (typeof display.clearRow === 'function') display.clearRow(0);
