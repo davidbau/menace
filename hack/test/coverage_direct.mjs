@@ -639,6 +639,71 @@ async function testSaveFstole() {
   console.log('testSaveFstole: PASS (fstole save/restore covered)');
 }
 
+// ===== Trap trigger tests (hack.js lines 254-296) =====
+
+// Place a trap at the player's next step and walk into it
+function placeTrap(g, ttype, seen) {
+  const ROOM = 5;
+  const x = g.u.ux + 1, y = g.u.uy;
+  g.levl[x][y].typ = ROOM;
+  let gflag = ttype;
+  if (seen) gflag |= 0x40; // SEEN flag
+  const trap = makeGen(x, y, gflag);
+  trap.ngen = g.ftrap;
+  g.ftrap = trap;
+}
+
+async function testSlpTrap() {
+  await runWith(42, (g) => {
+    placeTrap(g, 6); // sleeping gas trap (ttype=6)
+    g.u.uhp = 200; g.u.uhpmax = 200;
+  }, 'l  ');
+  console.log('testSlpTrap: PASS (sleeping gas trap covered)');
+}
+
+async function testArrowTrap() {
+  await runWith(42, (g) => {
+    placeTrap(g, 1); // arrow trap (ttype=1)
+    g.u.uhp = 200; g.u.uhpmax = 200; g.u.ulevel = 1;
+  }, 'l  ');
+  console.log('testArrowTrap: PASS (arrow trap covered)');
+}
+
+async function testDartTrap() {
+  await runWith(42, (g) => {
+    placeTrap(g, 2); // dart trap (ttype=2)
+    g.u.uhp = 200; g.u.uhpmax = 200; g.u.ulevel = 1; g.u.upres = false;
+  }, 'l  ');
+  console.log('testDartTrap: PASS (dart trap covered)');
+}
+
+async function testTeleTrap() {
+  await runWith(42, (g) => {
+    placeTrap(g, 4); // teleport trap (ttype=4)
+    g.u.uhp = 200; g.u.uhpmax = 200;
+  }, 'l  ');
+  console.log('testTeleTrap: PASS (teleport trap covered)');
+}
+
+async function testPitTrap() {
+  await runWith(42, (g) => {
+    placeTrap(g, 5); // pit trap (ttype=5)
+    g.u.uhp = 200; g.u.uhpmax = 200;
+    g.u.ufloat = false;
+  }, 'l  ');
+  console.log('testPitTrap: PASS (pit trap covered)');
+}
+
+async function testEscapeTrap() {
+  // Escape a SEEN trap (gflag has SEEN bit, rn2(6)=0 sometimes)
+  // Try with many rounds to trigger the escape path
+  await runWith(3, (g) => {
+    placeTrap(g, 5, true); // seen pit trap
+    g.u.uhp = 200; g.u.uhpmax = 200;
+  }, 'lllll      ');
+  console.log('testEscapeTrap: PASS (escape known trap covered)');
+}
+
 // ===== hack.js uncovered paths =====
 
 // Confused movement — randomizes dx/dy (lines 128-130 in hack.js)
@@ -1145,6 +1210,12 @@ await testHitMissNotCansee();
 await testRingoffHighStrength();
 await testMkobj();
 await testSaveFstole();
+await testSlpTrap();
+await testArrowTrap();
+await testDartTrap();
+await testTeleTrap();
+await testPitTrap();
+await testEscapeTrap();
 await testConfusedMovement();
 await testStuckEscape();
 await testBlindMovement();
