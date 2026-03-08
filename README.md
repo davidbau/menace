@@ -28,7 +28,7 @@ Also playable: [Hack (1982)](https://mazesofmenace.net/hack/) and
 the sweet output of The Hive.
 
 NetHack has ~420,000 lines of C, headers, and Lua across ~8,600 functions.
-The question was whether AI agents, with human direction, could produce a
+The question is whether AI agents, with human direction, can produce a
 faithful port: not a prototype, but a playable, parity-correct
 reimplementation that matches the C behavior down to the random number
 generator.
@@ -37,10 +37,10 @@ The human set direction. The agents wrote the code, the tests, and the
 documentation. No C was copied or transpiled. Every function was ported by
 hand (the agents' hands, such as they are).
 
-The term comes from Andrej Karpathy, who coined "vibe coding" in February
-2025. By 2026 the practice had matured into something more structured:
-directing AI agents to produce real software requires genuine skill and
-judgment. This project is a test of that at scale.
+The term comes from Andrej Karpathy, who coined "vibe coding" in
+February 2025. By 2026 the practice had matured into something more
+structured: directing AI agents to produce real software requires
+genuine skill and judgment. This project is a test of that at scale.
 
 ---
 

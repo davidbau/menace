@@ -533,29 +533,31 @@
             border: none;
         }
 
-        #docs-close {
+        #minimap-dismiss {
             position: fixed;
-            top: 10px;
-            right: 10px;
-            z-index: 101;
-            background: var(--color-accent);
+            z-index: 103;
+            width: 22px;
+            height: 22px;
+            font-size: 14px;
+            line-height: 22px;
+            text-align: center;
+            background: rgba(0,0,0,0.55);
             color: #fff;
             border: none;
-            width: 36px;
-            height: 36px;
-            font-size: 20px;
             border-radius: 50%;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 8px var(--color-shadow);
-            transition: transform var(--transition-fast), background-color var(--transition-fast);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, background 0.15s ease;
+            display: none;
         }
 
-        #docs-close:hover {
-            background: var(--color-accent-dark);
-            transform: scale(1.1);
+        #minimap-dismiss:hover {
+            background: rgba(0,0,0,0.75);
+        }
+
+        body.docs-mode.minimap-hover #minimap-dismiss {
+            opacity: 1;
         }
 
         /* Docs mode: two-phase animation
@@ -607,8 +609,8 @@
 
         /* docs-standalone: game is dismissed, iframe fills page like a real docs page */
         body.docs-standalone #page,
-        body.docs-standalone #docs-close {
-            display: none;
+        body.docs-standalone #minimap-dismiss {
+            display: none !important;
         }
 
         /* ============================================================
@@ -637,7 +639,7 @@
         /* In fullscreen, hide docs overlay (iframe stays loaded so scroll is preserved)
            and reset the minimap inline styles so the game shows normally */
         body.fullscreen-mode #docs-overlay,
-        body.fullscreen-mode #docs-close {
+        body.fullscreen-mode #minimap-dismiss {
             display: none !important;
         }
 
@@ -903,8 +905,8 @@
     <!-- Documentation iframe overlay (hidden by default) -->
     <div id="docs-overlay">
         <iframe id="docs-frame" title="Documentation"></iframe>
-        <button id="docs-close" title="Return to game" aria-label="Close documentation">✕</button>
     </div>
+    <button id="minimap-dismiss" title="Dismiss game preview" aria-label="Dismiss minimap">&times;</button>
 
     <script>
     /* ============================================================
@@ -1537,11 +1539,11 @@
     (function() {
         const docsOverlay = document.getElementById('docs-overlay');
         const docsFrame = document.getElementById('docs-frame');
-        const docsClose = document.getElementById('docs-close');
+        const dismissBtn = document.getElementById('minimap-dismiss');
         const page = document.getElementById('page');
         const nav = document.getElementById('nav');
 
-        if (!docsOverlay || !docsFrame || !docsClose || !nav) return;
+        if (!docsOverlay || !docsFrame || !dismissBtn || !nav) return;
 
         // Map of hash keys to iframe sources
         const docsRoutes = {
@@ -1789,18 +1791,32 @@
             var scale = page.scrollWidth ? bcrW / page.scrollWidth : MM_DEFAULT_SCALE;
             mmSave(parseFloat(page.style.left) || 0, parseFloat(page.style.top) || 0, scale);
             mmState = null;
+            positionDismissBtn();
         });
 
         // Reposition minimap when viewport is resized
         window.addEventListener('resize', function() {
-            if (document.body.classList.contains('docs-mode')) mmApply(mmRestore(), true);
+            if (document.body.classList.contains('docs-mode')) {
+                mmApply(mmRestore(), true);
+                positionDismissBtn();
+            }
         });
 
         // ── end minimap ───────────────────────────────────────────────────────
 
+        function positionDismissBtn() {
+            if (!document.body.classList.contains('docs-mode')) return;
+            var rect = page.getBoundingClientRect();
+            dismissBtn.style.display = 'block';
+            dismissBtn.style.pointerEvents = 'auto';
+            dismissBtn.style.left = (rect.right - 6) + 'px';
+            dismissBtn.style.top = (rect.top - 26) + 'px';
+        }
+
         function openDocs(src, hash, animate) {
             // Use replace() so the iframe doesn't push its own entry into the joint session history
             try { docsFrame.contentWindow.location.replace(src); } catch(e) { docsFrame.src = src; }
+            document.body.classList.remove('docs-standalone');
 
             if (animate) {
                 // Capture the game terminal's rect BEFORE any layout changes.
@@ -1842,6 +1858,7 @@
                 ignoreHashChange = true;
                 window.location.hash = '#' + hash;
             }
+            requestAnimationFrame(positionDismissBtn);
         }
 
         function mmClearStyles() {
@@ -1906,11 +1923,41 @@
                 mmClearStyles();
             }
 
+            document.body.classList.remove('docs-standalone');
+            document.body.classList.remove('minimap-hover');
+            dismissBtn.style.display = 'none';
             docsFrame.src = 'about:blank';
             if (window.location.hash) {
                 history.replaceState(null, '', window.location.pathname + window.location.search);
             }
         }
+
+        function dismissMinimap() {
+            document.body.classList.add('docs-standalone');
+            document.body.classList.remove('minimap-hover');
+            var hash = window.location.hash.replace('#', '');
+            var src = docsRoutes[hash];
+            if (src) {
+                history.replaceState(null, '', src);
+            }
+        }
+
+        // Hover detection for dismiss button near minimap
+        page.addEventListener('mouseenter', function() {
+            if (!document.body.classList.contains('docs-mode')) return;
+            positionDismissBtn();
+            document.body.classList.add('minimap-hover');
+        });
+        page.addEventListener('mouseleave', function(e) {
+            if (e.relatedTarget === dismissBtn) return;
+            document.body.classList.remove('minimap-hover');
+        });
+        dismissBtn.addEventListener('mouseenter', function() {
+            document.body.classList.add('minimap-hover');
+        });
+        dismissBtn.addEventListener('mouseleave', function() {
+            document.body.classList.remove('minimap-hover');
+        });
 
         // Intercept nav link clicks (let modified clicks open in new tab)
         nav.addEventListener('click', function(e) {
@@ -1934,31 +1981,10 @@
             }
         });
 
-        // Close button — plain click returns to game; Cmd/Ctrl+click dismisses game, shows docs full-screen
-        docsClose.addEventListener('click', function(e) {
-            if (e.metaKey || e.ctrlKey) {
-                var iframeHref = docsFrame.contentWindow.location.href;
-                document.body.classList.add('docs-standalone');
-                history.pushState(null, '', iframeHref);
-            } else {
-                closeDocs(true);
-            }
-            this.blur();
-        });
-
-        // Update close button tooltip when modifier keys are held
-        docsClose.addEventListener('mouseenter', function(e) {
-            docsClose.title = (e.metaKey || e.ctrlKey) ? 'Leave to docs page' : 'Return to game';
-        });
-        document.addEventListener('keydown', function(e) {
-            if ((e.metaKey || e.ctrlKey) && docsClose.matches(':hover')) {
-                docsClose.title = 'Leave to docs page';
-            }
-        });
-        document.addEventListener('keyup', function(e) {
-            if (!e.metaKey && !e.ctrlKey && docsClose.matches(':hover')) {
-                docsClose.title = 'Return to game';
-            }
+        // Dismiss button — dismisses minimap, shows docs full-screen
+        dismissBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dismissMinimap();
         });
 
         // Escape key to close docs (not in standalone mode — user navigated away from game)

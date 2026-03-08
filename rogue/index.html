@@ -354,33 +354,36 @@
       visibility: visible;
     }
 
-    #docs-close {
+    #minimap-dismiss {
       position: fixed;
-      top: 10px;
-      right: 10px;
-      z-index: 101;
-      background: var(--color-accent);
+      z-index: 103;
+      width: 22px;
+      height: 22px;
+      font-size: 14px;
+      line-height: 22px;
+      text-align: center;
+      background: rgba(0,0,0,0.55);
       color: #fff;
       border: none;
-      width: 36px;
-      height: 36px;
-      font-size: 20px;
       border-radius: 50%;
       cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, background 0.15s ease;
       display: none;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 8px var(--color-shadow);
-      transition: transform var(--transition-fast), background var(--transition-fast);
     }
 
-    #docs-close:hover {
-      background: var(--color-accent-dark);
-      transform: scale(1.1);
+    #minimap-dismiss:hover {
+      background: rgba(0,0,0,0.75);
     }
 
-    #docs-overlay.open ~ #docs-close {
-      display: flex;
+    body.docs-mode.minimap-hover #minimap-dismiss {
+      opacity: 1;
+    }
+
+    body.docs-standalone #page,
+    body.docs-standalone #minimap-dismiss {
+      display: none !important;
     }
 
     #docs-content {
@@ -575,7 +578,7 @@
   <div id="docs-overlay">
     <div id="docs-content"></div>
   </div>
-  <button id="docs-close" title="Return to game" aria-label="Close documentation">&times;</button>
+  <button id="minimap-dismiss" title="Dismiss game preview" aria-label="Dismiss minimap">&times;</button>
 
   <script>
   /* Apply saved font size to container immediately so min-width/min-height use correct ch/em */
@@ -814,7 +817,7 @@
   (function() {
     var overlay = document.getElementById('docs-overlay');
     var content = document.getElementById('docs-content');
-    var closeBtn = document.getElementById('docs-close');
+    var dismissBtn = document.getElementById('minimap-dismiss');
     var aboutLink = document.getElementById('about-link');
     var page = document.getElementById('page');
     var loaded = false;
@@ -843,7 +846,7 @@
       }
 
       function processInline(text) {
-        text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img alt="$1" src="$2">');
+        text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<figure><img alt="$1" src="$2"><figcaption>$1</figcaption></figure>');
         text = text.replace(/\[([^\]]+)\]\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
         text = text.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
         text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
@@ -883,6 +886,15 @@
       return html;
     }
 
+    function positionDismissBtn() {
+      if (!docsOpen) return;
+      var rect = page.getBoundingClientRect();
+      dismissBtn.style.display = 'block';
+      dismissBtn.style.pointerEvents = 'auto';
+      dismissBtn.style.left = (rect.right - 6) + 'px';
+      dismissBtn.style.top = (rect.top - 26) + 'px';
+    }
+
     function openDocs() {
       if (!loaded) {
         content.innerHTML = '<p style="color:#888;">Loading...</p>';
@@ -891,19 +903,49 @@
           .then(function(md) { content.innerHTML = renderMarkdown(md); loaded = true; })
           .catch(function() { content.innerHTML = '<p>Could not load history. <a href="HISTORY.md">View directly</a>.</p>'; });
       }
+      document.body.classList.remove('docs-standalone');
       overlay.classList.add('open');
       document.body.classList.add('docs-mode');
       overlay.scrollTop = 0;
       docsOpen = true;
       history.replaceState(null, '', '#about');
+      requestAnimationFrame(positionDismissBtn);
     }
 
     function closeDocs() {
       overlay.classList.remove('open');
       document.body.classList.remove('docs-mode');
+      document.body.classList.remove('docs-standalone');
+      document.body.classList.remove('minimap-hover');
+      dismissBtn.style.display = 'none';
       docsOpen = false;
       history.replaceState(null, '', window.location.pathname);
+      var screen = document.getElementById('rogue-screen');
+      if (screen) screen.focus();
     }
+
+    function dismissMinimap() {
+      document.body.classList.add('docs-standalone');
+      document.body.classList.remove('minimap-hover');
+      history.replaceState(null, '', 'HISTORY');
+    }
+
+    // Hover detection for dismiss button near minimap
+    page.addEventListener('mouseenter', function() {
+      if (!docsOpen) return;
+      positionDismissBtn();
+      document.body.classList.add('minimap-hover');
+    });
+    page.addEventListener('mouseleave', function(e) {
+      if (e.relatedTarget === dismissBtn) return;
+      document.body.classList.remove('minimap-hover');
+    });
+    dismissBtn.addEventListener('mouseenter', function() {
+      document.body.classList.add('minimap-hover');
+    });
+    dismissBtn.addEventListener('mouseleave', function() {
+      document.body.classList.remove('minimap-hover');
+    });
 
     aboutLink.addEventListener('click', function(e) {
       e.preventDefault();
@@ -911,9 +953,9 @@
       if (docsOpen) closeDocs(); else openDocs();
     });
 
-    closeBtn.addEventListener('click', function(e) {
+    dismissBtn.addEventListener('click', function(e) {
       e.stopPropagation();
-      closeDocs();
+      dismissMinimap();
     });
 
     page.addEventListener('click', function(e) {
@@ -922,7 +964,18 @@
 
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && docsOpen) { e.preventDefault(); e.stopImmediatePropagation(); closeDocs(); }
-    }, true);  // capture phase so we beat the game's input handler
+    }, true);
+
+    window.addEventListener('resize', function() {
+      if (docsOpen) positionDismissBtn();
+    });
+
+    window.addEventListener('popstate', function() {
+      if (document.body.classList.contains('docs-standalone')) {
+        document.body.classList.remove('docs-standalone');
+        closeDocs();
+      }
+    });
 
     if (window.location.hash === '#about') {
       setTimeout(openDocs, 100);

@@ -42,6 +42,14 @@ defaults:
       path: "docs"
     values:
       layout: doc
+  - scope:
+      path: "hack"
+    values:
+      layout: doc
+  - scope:
+      path: "rogue"
+    values:
+      layout: doc
 
 # Exclude development directories and pandoc source files from Jekyll processing.
 # The guidebook/ and spoilers/ index.html files are still served as static files;
@@ -61,5 +69,3 @@ exclude:
   - "guidebook/guidebook-base.md"
   - "guidebook/menace-supplement.md"
   - "spoilers/companion.md"
-  - "hack/HISTORY.md"
-  - "rogue/HISTORY.md"
