@@ -33,10 +33,13 @@ export class GameState {
     this.mw = [];
     // cw: player's view (24×80), 0-indexed [y][x] — what gets displayed
     this.cw = [];
+    // hw: help/inventory overlay window (24×80), drawn on top of all when active
+    this.hw = [];
     for (let r = 0; r < 24; r++) {
       this.stdscr[r] = new Array(80).fill(' ');
       this.mw[r] = new Array(80).fill(' ');
       this.cw[r] = new Array(80).fill(' ');
+      this.hw[r] = new Array(80).fill(' ');
     }
 
     // ---- Player ----

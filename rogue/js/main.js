@@ -261,6 +261,7 @@ export function wireGameDeps(g) {
     new_level, status, inv_name, readchar,
     fix_stick, init_weapon,
     a_class: game().a_class,
+    inventory, get_item,
   });
 
   _setCommandDeps({

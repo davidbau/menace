@@ -6,7 +6,8 @@
 import { game } from './gstate.js';
 import { mvwaddch, draw } from './curses.js';
 import { PLAYER, WEAPON, ARMOR, RING, STICK, ISCURSED,
-         R_PROTECT, R_ADDSTR, R_ADDHIT, R_ADDDAM } from './const.js';
+         R_PROTECT, R_ADDSTR, R_ADDHIT, R_ADDDAM,
+         TWOSWORD, SWORD, PLATE_MAIL, ISKNOW } from './const.js';
 import { rnd } from './rng.js';
 import { new_item, _attach } from './list.js';
 
@@ -22,6 +23,8 @@ let _readchar = null;
 let _fix_stick = null;
 let _init_weapon = null;
 let _a_class = null;   // armor base AC array
+let _inventory = null;
+let _get_item = null;
 
 export function _setWizardDeps(deps) {
   _msg = deps.msg;
@@ -35,6 +38,8 @@ export function _setWizardDeps(deps) {
   _fix_stick = deps.fix_stick;
   _init_weapon = deps.init_weapon;
   _a_class = deps.a_class;
+  _inventory = deps.inventory;
+  _get_item = deps.get_item;
 }
 
 /**
@@ -102,77 +107,109 @@ async function create_obj() {
 
 /**
  * wizard_cmds(ch): handle wizard-mode keystrokes.
+ * Matches C command.c wizard switch exactly.
  */
 export async function wizard_cmds(ch) {
   const g = game();
   switch (ch) {
+    case '@': {
+      // Show hero position
+      await _msg(`@ ${g.player.t_pos.y},${g.player.t_pos.x}`);
+      break;
+    }
+
     case 'C': {
       // Create an item interactively — matches C wizard.c create_obj()
       await create_obj();
       break;
     }
 
-    case '+': {
-      // Raise experience level
-      g.player.t_stats.s_exp = g.player.t_stats.s_exp * 2 + 1;
-      if (_check_level) _check_level();
-      if (_status) _status();
-      await _msg('You feel much more experienced!');
+    case '\x09': {
+      // Ctrl-I: inventory of floor items
+      if (_inventory) await _inventory(g.lvl_obj, 0);
       break;
     }
 
-    case '>': {
-      // Go to next dungeon level
+    case '\x04': {
+      // Ctrl-D: go down one dungeon level
       g.level++;
       if (_new_level) await _new_level();
       break;
     }
 
-    case 'p': {
-      // Teleport to random position
+    case '\x15': {
+      // Ctrl-U: go up one dungeon level
+      g.level--;
+      if (_new_level) await _new_level();
+      break;
+    }
+
+    case '\x18': {
+      // Ctrl-X: show all monsters on mw
+      draw(g.mw);
+      break;
+    }
+
+    case '\x14': {
+      // Ctrl-T: teleport to random position
       if (_teleport) _teleport();
       break;
     }
 
-    case 'w': {
-      // Show player's complete status
-      const ps = g.player.t_stats;
-      await _msg(`S:${ps.s_str.st_str}/${ps.s_str.st_add} X:${ps.s_exp} L:${ps.s_lvl} A:${ps.s_arm} H:${ps.s_hpt}/${g.max_hp}`);
+    case '\x05': {
+      // Ctrl-E: show food_left
+      await _msg(`food left: ${g.food_left}`);
       break;
     }
 
-    case 'm': {
-      // Reveal all monsters on current map
-      for (let node = g.mlist; node !== null; node = node.l_next) {
-        const m = node.l_data;
-        mvwaddch(g.cw, m.t_pos.y, m.t_pos.x, m.t_type);
+    case '\x01': {
+      // Ctrl-A: show pack item count
+      await _msg(`${g.inpack} things in your pack`);
+      break;
+    }
+
+    case '\x0e': {
+      // Ctrl-N: charge a stick to 10000
+      if (_get_item) {
+        const item = await _get_item('charge', STICK);
+        if (item !== null) item.l_data.o_charges = 10000;
       }
-      if (_status) _status();
-      draw(g.cw);
       break;
     }
 
-    case 'i': {
-      // List items on floor
-      let count = 0;
-      for (let node = g.lvl_obj; node !== null; node = node.l_next) {
-        count++;
+    case '\x08': {
+      // Ctrl-H: raise 9 levels + give two-handed sword and plate mail
+      for (let i = 0; i < 9; i++) {
+        if (_check_level) _check_level();
       }
-      await _msg(`${count} item(s) on floor.`);
-      break;
-    }
-
-    case 'f': {
-      // Food cheat: reset food_left
-      g.food_left = 1700;
-      g.hungry_state = 0;
-      if (_status) _status();
-      await _msg('You feel full.');
+      // Two-handed sword (+1,+1)
+      {
+        const item = new_item();
+        const obj = item.l_data;
+        obj.o_type = WEAPON;
+        obj.o_which = TWOSWORD;
+        if (_init_weapon) _init_weapon(obj, SWORD);
+        obj.o_hplus = 1;
+        obj.o_dplus = 1;
+        if (_add_pack) await _add_pack(item, true);
+        g.cur_weapon = obj;
+      }
+      // Plate mail (AC -5)
+      {
+        const item = new_item();
+        const obj = item.l_data;
+        obj.o_type = ARMOR;
+        obj.o_which = PLATE_MAIL;
+        obj.o_ac = -5;
+        obj.o_flags |= ISKNOW;
+        g.cur_armor = obj;
+        if (_add_pack) await _add_pack(item, true);
+      }
       break;
     }
 
     default:
-      await _msg(`Unknown wizard command '${ch}'.`);
+      await _msg(`Illegal command '${ch}'.`);
       break;
   }
 }

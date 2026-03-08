@@ -10,6 +10,20 @@
  *   // steps[i] = { key, rng: [...], screen: [...24 strings] }
  */
 
+// localStorage mock — must be installed before any game module is imported,
+// since save.js/score.js/options.js reference localStorage at module load time.
+if (typeof globalThis.localStorage === 'undefined') {
+  const _store = new Map();
+  globalThis.localStorage = {
+    getItem(key)        { return _store.has(key) ? _store.get(key) : null; },
+    setItem(key, value) { _store.set(key, String(value)); },
+    removeItem(key)     { _store.delete(key); },
+    clear()             { _store.clear(); },
+    get length()        { return _store.size; },
+    key(i)              { return [..._store.keys()][i] ?? null; },
+  };
+}
+
 import { GameState } from '../js/game.js';
 import { game, setGame } from '../js/gstate.js';
 import { command } from '../js/command.js';

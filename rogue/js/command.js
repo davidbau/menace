@@ -5,7 +5,8 @@
 
 import { game } from './gstate.js';
 import { rnd } from './rng.js';
-import { wmove, wclrtoeol, mvwaddstr, draw, wclear } from './curses.js';
+import { wmove, wclrtoeol, mvwaddstr, waddstr, wprintw, draw, wclear } from './curses.js';
+import { helpstr } from './data.js';
 import {
   BEFORE, AFTER, LEFT, RIGHT, R_SEARCH, R_TELEPORT, ISHASTE, LINES,
   CALLABLE, RING, POTION, SCROLL, STICK,
@@ -386,7 +387,6 @@ export async function help() {
 
   if (helpch !== '*') {
     wmove(g.cw, 0, 0);
-    const helpstr = g.helpstr || [];
     for (const entry of helpstr) {
       if (entry.h_ch === helpch) {
         await _msg(`${unctrl(entry.h_ch)}${entry.h_desc}`);
@@ -399,15 +399,13 @@ export async function help() {
 
   wclear(g.hw);
   let cnt = 0;
-  const helpstr = g.helpstr || [];
   for (const entry of helpstr) {
+    if (!entry.h_ch) break;  // sentinel: h_ch === 0
     mvwaddstr(g.hw, cnt % 23, cnt > 22 ? 40 : 0, unctrl(entry.h_ch));
-    const { waddstr } = await import('./curses.js');
     waddstr(g.hw, entry.h_desc);
     cnt++;
   }
   wmove(g.hw, LINES - 1, 0);
-  const { wprintw } = await import('./curses.js');
   wprintw(g.hw, '--Press space to continue--');
   draw(g.hw);
   const { wait_for } = await import('./io.js');
@@ -466,13 +464,31 @@ async function call_item() {
 }
 
 async function get_line(readchar, initial) {
-  let buf = initial;
+  const g = game();
+  const { wmove, wclrtoeol, draw, waddstr } = await import('./curses.js');
+  // Position cursor at end of prompt (g.mpos tracks where message ended)
+  const startX = g.mpos;
+  // C's get_str() starts with empty buffer (does not pre-show initial value)
+  let buf = '';
   for (;;) {
     const ch = await readchar();
-    if (ch === '\r' || ch === '\n') return buf;
+    if (ch === '\r' || ch === '\n') return buf || initial;
     if (ch === '\x1b') return null;
-    if (ch === '\x7f' || ch === '\x08') { if (buf.length > 0) buf = buf.slice(0, -1); }
-    else buf += ch;
+    if (ch === '\x7f' || ch === '\x08') {
+      if (buf.length > 0) {
+        buf = buf.slice(0, -1);
+        wmove(g.cw, 0, startX);
+        wclrtoeol(g.cw);
+        waddstr(g.cw, buf);
+        draw(g.cw);
+      }
+    } else {
+      buf += ch;
+      wmove(g.cw, 0, startX);
+      wclrtoeol(g.cw);
+      waddstr(g.cw, buf);
+      draw(g.cw);
+    }
   }
 }
 

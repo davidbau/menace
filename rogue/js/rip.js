@@ -54,7 +54,7 @@ export function killname(monst) {
  */
 export async function death(monst) {
   const g = game();
-  const year = new Date().getFullYear() % 100;
+  const year = new Date().getFullYear() - 1900;  // matches C's tm_year (years since 1900)
   const killer = killname(monst);
   const vowel = /^[aeiou]/i.test(killer) ? 'n' : '';
 

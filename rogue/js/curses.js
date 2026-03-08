@@ -25,13 +25,14 @@ import { LINES, COLS } from './const.js';
 export const _stdscrState = { y: 0, x: 0 };
 export const _cwState = { y: 0, x: 0 };
 export const _mwState = { y: 0, x: 0 };
+export const _hwState = { y: 0, x: 0 };
 
 function _arr(win) {
   const g = game();
   if (!win || win === 'cw' || win === g.cw) return g.cw;
   if (win === 'mw' || win === g.mw) return g.mw;
   if (win === 'stdscr' || win === g.stdscr) return g.stdscr;
-  if (win === 'hw') return g.hw || g.cw; // hw = help window, use cw for simplicity
+  if (win === 'hw' || win === g.hw) return g.hw;
   return win;
 }
 
@@ -40,7 +41,7 @@ function _state(win) {
   if (!win || win === 'cw' || win === g.cw) return _cwState;
   if (win === 'mw' || win === g.mw) return _mwState;
   if (win === 'stdscr' || win === g.stdscr) return _stdscrState;
-  if (win === 'hw') return _cwState;
+  if (win === 'hw' || win === g.hw) return _hwState;
   return _stdscrState;
 }
 
@@ -107,15 +108,31 @@ export function mvaddch(y, x, ch) {
 
 // ---- Writing to specific windows ----
 
-// waddch(win, ch): add char at current cursor of win, advance x for cw/stdscr
+// waddch(win, ch): add char at current cursor of win, advance x for cw/stdscr/hw
 export function waddch(win, ch) {
   const g = game();
   const arr = _arr(win);
   const st = _state(win);
+  if (ch === '\n') {
+    // Newline: advance to next row, column 0 (for hw and stdscr output)
+    st.y++;
+    st.x = 0;
+    return;
+  }
+  if (ch === '\t') {
+    // Tab: expand to next 8-column boundary (matches C curses behavior)
+    const nextTab = (Math.floor(st.x / 8) + 1) * 8;
+    while (st.x < nextTab && st.x < COLS) {
+      if (st.y >= 0 && st.y < LINES) arr[st.y][st.x] = ' ';
+      st.x++;
+    }
+    return;
+  }
   const y = st.y, x = st.x;
   if (y >= 0 && y < LINES && x >= 0 && x < COLS) arr[y][x] = ch;
-  // Advance x for cw and stdscr (mw uses mvwaddch exclusively so no advance)
-  if (win === g.cw || win === 'cw' || win === g.stdscr || win === 'stdscr' || win === 'hw') {
+  // Advance x for cw, stdscr, and hw
+  if (win === g.cw || win === 'cw' || win === g.stdscr || win === 'stdscr' ||
+      win === 'hw' || win === g.hw) {
     st.x++;
   }
 }
@@ -213,6 +230,19 @@ export function draw(win) {
   if (win === g.mw || win === 'mw') return;
 
   const display = g.display;
+
+  // hw (help/inventory window) is drawn as a full overlay (like C's touchwin+draw(hw))
+  if (win === g.hw) {
+    for (let r = 0; r < LINES; r++) {
+      for (let c = 0; c < COLS; c++) {
+        display.putChar(c + 1, r + 1, g.hw[r][c]);
+      }
+    }
+    display.moveCursor(_cwState.x + 1, _cwState.y + 1);
+    display.flush();
+    return;
+  }
+
   for (let r = 0; r < LINES; r++) {
     for (let c = 0; c < COLS; c++) {
       // Layer 1: stdscr base (dungeon map, all rooms)
