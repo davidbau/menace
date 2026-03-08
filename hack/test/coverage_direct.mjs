@@ -37,12 +37,14 @@ import { _setPriDeps, newsym } from '../js/pri.js';
 import { _setMonDeps, g_at_mon, g_at_gen, g_at_obj, killed, rloc, mnexto, newcham, poisoned } from '../js/mon.js';
 import { _setHackDeps, setsee, tele, nomul, amon, attmon } from '../js/hack.js';
 import { _setDo1Deps, dosearch, buzz, findit, hit, miss } from '../js/do1.js';
-import { setRhack, gameLoop, GameOver, losestr, ndaminc, dodown, doup } from '../js/main.js';
+import { setRhack, gameLoop, GameOver, losestr, ndaminc, dodown, doup, alloc, getret } from '../js/main.js';
 import { rhack } from '../js/do.js';
 import { docrt } from '../js/pri.js';
 import { mon } from '../js/data.js';
 import { mkobj } from '../js/lev.js';
 import { makeStole } from '../js/game.js';
+import { generatelevel } from '../js/mklev.js';
+import { seedRng } from '../js/rng.js';
 
 import { MockDisplay } from './mock_display.mjs';
 import { MockInput } from './mock_input.mjs';
@@ -603,6 +605,51 @@ async function testRingoffHighStrength() {
   console.log('testRingoffHighStrength: PASS (ringoff high-strength covered)');
 }
 
+// ===== Additional hack.js uncovered paths =====
+
+// Confusion effect on hit (umconf) — lines 530-535 in hack.js
+async function testUmconfHit() {
+  await runWith(42, (g) => {
+    const mdat = mon[0][3]; // jackal (easy to kill)
+    placeMonsterAdjacent(g, mdat, 200);
+    g.u.ulevel = 20; g.u.uhp = 200; g.u.uhpmax = 200;
+    g.u.umconf = 1; // hands glow blue, next hit confuses monster
+  }, 'lll  ');
+  console.log('testUmconfHit: PASS (confusion effect covered)');
+}
+
+// gobj() with empty inventory — lines 584-586 in hack.js
+async function testPickupEmptyInvent() {
+  await runWith(42, (g) => {
+    // Place an item on the floor at player's position
+    const food = makeObj('%');
+    food.otyp = 0; food.quan = 1;
+    food.ox = g.u.ux; food.oy = g.u.uy;
+    food.nobj = g.fobj; g.fobj = food;
+    // Remove inventory so gobj goes to empty invent path
+    g.invent = null; g.uwep = null; g.uarm = null; g.uleft = null; g.uright = null;
+    // Also give some armor/weapon so game is stable
+  }, ' ');  // wait one turn — item is on floor, player moves onto it
+  console.log('testPickupEmptyInvent: PASS (gobj empty invent covered)');
+}
+
+// gobj() weapon ammo stacking — lines 593-596 in hack.js (quan + stacking for arrows)
+async function testPickupAmmoStack() {
+  await runWith(42, (g) => {
+    // Player already has some arrows (otyp=0 weapon, quan=5)
+    const arrows1 = makeObj(')');
+    arrows1.otyp = 0; arrows1.quan = 5; arrows1.spe = 0; arrows1.minus = false;
+    arrows1.nobj = null; g.invent = arrows1;
+    // Place more arrows on floor
+    const arrows2 = makeObj(')');
+    arrows2.otyp = 0; arrows2.quan = 3; arrows2.spe = 0; arrows2.minus = false;
+    arrows2.ox = g.u.ux; arrows2.oy = g.u.uy;
+    arrows2.nobj = g.fobj; g.fobj = arrows2;
+    g.uwep = null; g.uarm = null;
+  }, ' ');  // wait — pick up arrows automatically on tile
+  console.log('testPickupAmmoStack: PASS (gobj ammo stack covered)');
+}
+
 // ===== lev.js uncovered paths =====
 
 // mkobj() and _mkobj_fill() — covers all item type branches (lines 184-236 in lev.js)
@@ -642,65 +689,109 @@ async function testSaveFstole() {
 // ===== Trap trigger tests (hack.js lines 254-296) =====
 
 // Place a trap at the player's next step and walk into it
+// Returns the direction key to step onto the trap
 function placeTrap(g, ttype, seen) {
   const ROOM = 5;
-  const x = g.u.ux + 1, y = g.u.uy;
-  g.levl[x][y].typ = ROOM;
-  let gflag = ttype;
-  if (seen) gflag |= 0x40; // SEEN flag
-  const trap = makeGen(x, y, gflag);
-  trap.ngen = g.ftrap;
-  g.ftrap = trap;
+  const SEEN_BIT = 32;
+  // Try all 4 directions to find an accessible cell
+  const dirs = [{key:'l',dx:1,dy:0},{key:'h',dx:-1,dy:0},{key:'j',dx:0,dy:1},{key:'k',dx:0,dy:-1}];
+  for (const dir of dirs) {
+    const x = g.u.ux + dir.dx, y = g.u.uy + dir.dy;
+    if (x < 1 || x >= 79 || y < 1 || y >= 21) continue;
+    // Remove any monster at this position
+    let prev = null;
+    for (let m = g.fmon; m; m = m.nmon) {
+      if (m.mx === x && m.my === y) {
+        if (!prev) g.fmon = m.nmon; else prev.nmon = m.nmon;
+        break;
+      }
+      prev = m;
+    }
+    g.levl[x][y].typ = ROOM;
+    let gflag = ttype;
+    if (seen) gflag |= SEEN_BIT;
+    const trap = makeGen(x, y, gflag);
+    trap.ngen = g.ftrap; g.ftrap = trap;
+    return dir.key;
+  }
+  return 'l'; // fallback
 }
 
 async function testSlpTrap() {
+  let dir = 'l';
   await runWith(42, (g) => {
-    placeTrap(g, 6); // sleeping gas trap (ttype=6)
+    dir = placeTrap(g, 6); // sleeping gas trap (ttype=6)
     g.u.uhp = 200; g.u.uhpmax = 200;
-  }, 'l  ');
+  }, dir + '  ');
   console.log('testSlpTrap: PASS (sleeping gas trap covered)');
 }
 
 async function testArrowTrap() {
+  let dir = 'l';
   await runWith(42, (g) => {
-    placeTrap(g, 1); // arrow trap (ttype=1)
+    dir = placeTrap(g, 1); // arrow trap (ttype=1)
     g.u.uhp = 200; g.u.uhpmax = 200; g.u.ulevel = 1;
-  }, 'l  ');
+  }, dir + '  ');
   console.log('testArrowTrap: PASS (arrow trap covered)');
 }
 
 async function testDartTrap() {
+  let dir = 'l';
   await runWith(42, (g) => {
-    placeTrap(g, 2); // dart trap (ttype=2)
+    dir = placeTrap(g, 2); // dart trap (ttype=2)
     g.u.uhp = 200; g.u.uhpmax = 200; g.u.ulevel = 1; g.u.upres = false;
-  }, 'l  ');
+  }, dir + '  ');
   console.log('testDartTrap: PASS (dart trap covered)');
 }
 
 async function testTeleTrap() {
+  let dir = 'l';
   await runWith(42, (g) => {
-    placeTrap(g, 4); // teleport trap (ttype=4)
+    dir = placeTrap(g, 4); // teleport trap (ttype=4)
     g.u.uhp = 200; g.u.uhpmax = 200;
-  }, 'l  ');
+  }, dir + '  ');
   console.log('testTeleTrap: PASS (teleport trap covered)');
 }
 
 async function testPitTrap() {
+  let dir = 'l';
   await runWith(42, (g) => {
-    placeTrap(g, 5); // pit trap (ttype=5)
+    dir = placeTrap(g, 5); // pit trap (ttype=5)
     g.u.uhp = 200; g.u.uhpmax = 200;
     g.u.ufloat = false;
-  }, 'l  ');
+  }, dir + '  ');
   console.log('testPitTrap: PASS (pit trap covered)');
 }
 
-async function testEscapeTrap() {
-  // Escape a SEEN trap (gflag has SEEN bit, rn2(6)=0 sometimes)
-  // Try with many rounds to trigger the escape path
-  await runWith(3, (g) => {
-    placeTrap(g, 5, true); // seen pit trap
+async function testBearTrap() {
+  let dir = 'l';
+  await runWith(42, (g) => {
+    dir = placeTrap(g, 0); // bear trap (ttype=0)
     g.u.uhp = 200; g.u.uhpmax = 200;
-  }, 'lllll      ');
+  }, dir + '   ');
+  console.log('testBearTrap: PASS (bear trap covered)');
+}
+
+async function testTrapdoor() {
+  let dir = 'l';
+  await runWith(42, (g) => {
+    dir = placeTrap(g, 3); // trapdoor (ttype=3) — calls dodown()/docrt_fn()
+    g.u.uhp = 200; g.u.uhpmax = 200;
+    // game.xdnstair must be set for the trapdoor-fall path (vs rock-fall path)
+    // It should already be set by the game generator
+  }, dir + '   ');
+  console.log('testTrapdoor: PASS (trapdoor/dodown covered)');
+}
+
+async function testEscapeTrap() {
+  // Escape a SEEN trap (SEEN=32 bit set; rn2(6)=0 for escape)
+  // Step on trap multiple times to trigger escape path
+  let dir = 'l', opp = 'h';
+  await runWith(3, (g) => {
+    dir = placeTrap(g, 5, true); // seen pit trap (ttype=5, SEEN set)
+    opp = {l:'h',h:'l',j:'k',k:'j'}[dir];
+    g.u.uhp = 200; g.u.uhpmax = 200;
+  }, (dir + opp).repeat(10) + '      ');  // step back and forth many times
   console.log('testEscapeTrap: PASS (escape known trap covered)');
 }
 
@@ -1210,11 +1301,16 @@ await testHitMissNotCansee();
 await testRingoffHighStrength();
 await testMkobj();
 await testSaveFstole();
+await testUmconfHit();
+await testPickupEmptyInvent();
+await testPickupAmmoStack();
 await testSlpTrap();
 await testArrowTrap();
 await testDartTrap();
 await testTeleTrap();
 await testPitTrap();
+await testBearTrap();
+await testTrapdoor();
 await testEscapeTrap();
 await testConfusedMovement();
 await testStuckEscape();
@@ -1268,5 +1364,195 @@ await testArmor();
 await testSave();
 await testRestore();
 await testQuit();
+await testAlloc();
+await testGetret();
+await testNdamincExtreme();
+await testGetobjStar();
+await testGetobjWrongType();
+await testThrowWearing();
+await testLoseoneStack();
+await testFindSdoor();
+await testFindHiddenTrap();
+await testBuzzSwallowed();
+await testBuzzHitsPlayer();
+await testDeepLevel();
+
+// ===== Additional coverage: main.js/do.js/do1.js/mklev.js paths =====
+
+// alloc() — exported but never called in game; covers main.js lines 43-44
+async function testAlloc() {
+  const obj = alloc();
+  if (typeof obj !== 'object') throw new Error('alloc should return an object');
+  console.log('testAlloc: PASS (alloc() covered)');
+}
+
+// getret() — covers main.js lines 61-64
+async function testGetret() {
+  wireDeps();
+  const display = new MockDisplay();
+  const input = new MockInput();
+  const g = new GameState();
+  g.display = display; g.input = input; g.rawRngLog = [];
+  setGame(g);
+  let keyIdx = 0;
+  const keys = '  '; // two spaces — first triggers --More-- from pline, second confirms
+  input.getKey = async () => { if (keyIdx < keys.length) return keys[keyIdx++]; throw new SessionDone(); };
+  try { await getret(); } catch (e) { if (!(e instanceof SessionDone)) throw e; }
+  console.log('testGetret: PASS (getret() covered)');
+}
+
+// ndaminc with extreme strength (str >= 103) — covers main.js line 27
+async function testNdamincExtreme() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.u.ustr = 103; // extreme strength — triggers `else inc = 7` branch
+  ndaminc();
+  console.log('testNdamincExtreme: PASS (ndaminc extreme str covered)');
+}
+
+// getobj with '*' key — shows inventory list (do.js lines 34-40)
+async function testGetobjStar() {
+  await runWith(42, (g) => {
+    // Add 2 potions so doinv(filter) branch runs (foo > 1 for '!' filter)
+    const p1 = makeObj(); p1.olet = '!'; p1.otyp = 3; p1.quan = 1;
+    const p2 = makeObj(); p2.olet = '!'; p2.otyp = 5; p2.quan = 1;
+    p1.nobj = g.invent; g.invent = p1;
+    p2.nobj = g.invent; g.invent = p2;
+  }, 'q*\x1b       '); // 'q'=quaff, '*'=list all, ESC=cancel
+  console.log('testGetobjStar: PASS (getobj * branch covered)');
+}
+
+// getobj with wrong item type — "You can't wear that" (do.js lines 49-50)
+async function testGetobjWrongType() {
+  await runWith(42, (g) => {
+    // Remove existing armor so player can wear something; player starts with leather armor
+    // 'W' tries to wear armor ('['), but 'a' selects food ('%') — wrong type
+    g.uarm = null; // allow wearing
+  }, 'Wa  '); // W=wear, a=select food (wrong type), space=clear pline
+  console.log('testGetobjWrongType: PASS (getobj wrong-type covered)');
+}
+
+// Throw a worn ring — "You can't throw something you're wearing!" (do.js line 328)
+async function testThrowWearing() {
+  await runWith(42, (g) => {
+    // Add a ring as first inventory item and wear it on left hand
+    const ring = makeObj(); ring.olet = '='; ring.otyp = 0; ring.quan = 1;
+    ring.nobj = g.invent; g.invent = ring;
+    g.uleft = ring; // ring is 'a' in inventory, worn on left
+  }, 'tal  '); // t=throw, a=select ring, l=direction → WEARI message
+  console.log('testThrowWearing: PASS (throw-wearing covered)');
+}
+
+// loseone with quan>1 — separate weapon from stack (do.js lines 130-134)
+async function testLoseoneStack() {
+  await runWith(42, (g) => {
+    // Add arrows (weapon ')', quan=6) as first inventory item
+    const arrows = makeObj(); arrows.olet = ')'; arrows.otyp = 0; arrows.quan = 6;
+    arrows.cursed = false; arrows.minus = false;
+    arrows.nobj = g.invent; g.invent = arrows;
+  }, 'tal  '); // t=throw, a=select arrows (stack), l=direction
+  console.log('testLoseoneStack: PASS (loseone quan>1 covered)');
+}
+
+// findit() with SDOOR in room — covers do1.js line 94
+async function testFindSdoor() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  const ROOM = 5, SDOOR = 2;
+  // Set player position and room context
+  g.u.ux = 20; g.u.uy = 10;
+  // Set room cells around player to ROOM type
+  for (let x = 15; x <= 25; x++) g.levl[x][10].typ = ROOM;
+  // Place SDOOR within the room scan area
+  g.levl[23][10].typ = SDOOR;
+  await findit();
+  // SDOOR should now be DOOR (3)
+  console.log('testFindSdoor: PASS (findit SDOOR conversion covered)');
+}
+
+// findit() with hidden trap (no SEEN bit) — covers do1.js lines 96-98
+async function testFindHiddenTrap() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  const ROOM = 5;
+  g.u.ux = 20; g.u.uy = 10;
+  for (let x = 15; x <= 25; x++) g.levl[x][10].typ = ROOM;
+  // Place hidden trap (no SEEN bit) in room
+  const trap = makeGen(22, 10, 5); // pit trap, no SEEN flag
+  trap.ngen = g.ftrap; g.ftrap = trap;
+  await findit();
+  // Trap should now have SEEN bit set
+  console.log('testFindHiddenTrap: PASS (findit hidden trap covered)');
+}
+
+// buzz() while swallowed — covers do1.js lines 133-137
+async function testBuzzSwallowed() {
+  await runWith(42, (g) => {
+    const mdat = mon[5][6]; // umber hulk 'U' (large monster, survives bolt)
+    const mtmp = makeMonst(mdat);
+    mtmp.mx = g.u.ux; mtmp.my = g.u.uy;
+    mtmp.mhp = 200; mtmp.orig_hp = 200;
+    mtmp.nmon = g.fmon; g.fmon = mtmp;
+    g.u.uswallow = true;
+    g.u.ustuck = mtmp;
+    g.u.uhp = 200; g.u.uhpmax = 200;
+    // Add bolt wand (otyp=11 → buzz type 0, fire) as first item
+    const wand = makeObj(); wand.olet = '/'; wand.otyp = 11; wand.spe = 20; wand.quan = 1;
+    wand.nobj = g.invent; g.invent = wand;
+  }, 'pal     '); // p=zap, a=select wand, l=direction → buzz-swallowed fires
+  console.log('testBuzzSwallowed: PASS (buzz-while-swallowed covered)');
+}
+
+// buzz() hitting player — covers do1.js lines 152-169
+async function testBuzzHitsPlayer() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.rngSeed = 12345;
+  g.u.ux = 20; g.u.uy = 10;
+  g.u.uac = 20; // terrible armor → bolt almost always hits
+  g.u.uhp = 200; g.u.uhpmax = 200;
+  g.u.ufireres = true; // covers "You don't feel hot!" line (type=1)
+  // Set cells between start and player to ROOM
+  for (let x = 12; x <= 22; x++) g.levl[x][10].typ = 5;
+  let keyIdx = 0;
+  const spaces = '                    '; // 20 spaces for --More-- prompts
+  g.input.getKey = async () => { if (keyIdx < spaces.length) return spaces[keyIdx++]; throw new SessionDone(); };
+  try {
+    // type=0 (fire): player hit, takes damage (lines 155-157)
+    await buzz(0, 12, 10, 1, 0);
+    // type=1 (fire bolt) with ufireres: "You don't feel hot!" (lines 159-160)
+    g.u.uhp = 200; // restore HP
+    await buzz(1, 12, 10, 1, 0);
+    // type=0 with low AC (miss path): "The bolt wizzes by you!" (line 169)
+    g.u.uac = -10; // excellent armor → almost always miss
+    await buzz(0, 12, 10, 1, 0);
+  } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  console.log('testBuzzHitsPlayer: PASS (buzz hits/misses player covered)');
+}
+
+// mklev.js deep level (dlevel>8) — covers mkmim() lines 84-126
+async function testDeepLevel() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.flags.maze = 99; // no maze at these levels
+  g.dlevel = 9;      // deep enough for mktrap→mkmim (dlevel > 8)
+  g.rngSeed = 1;
+  // Generate many levels to ensure mkmim is called (12.5% per trap placed)
+  for (let attempt = 0; attempt < 30; attempt++) {
+    g.rngSeed = attempt + 1;
+    generatelevel(9);
+  }
+  console.log('testDeepLevel: PASS (mkmim deep-level covered)');
+}
 
 console.log('coverage_direct: all tests complete');
