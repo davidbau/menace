@@ -1027,6 +1027,12 @@ export async function handleDownstairs(player, map, display, game) {
         return { moved: false, tookTime: false };
     }
 
+    // C ref: do.c goto_level() — clear travel destination cache on level change.
+    if (game) {
+        game.travelX = 0;
+        game.travelY = 0;
+    }
+
     // C ref: do.c goto_level() ordinary descent message when verbose.
     await display.putstr_message('You descend the stairs.');
     await waitForStairMessageAck(display, player);
@@ -1074,6 +1080,12 @@ export async function handleUpstairs(player, map, display, game) {
             await display.putstr_message('You escape the dungeon...');
         }
         return { moved: false, tookTime: false };
+    }
+
+    // C ref: do.c goto_level() — clear travel destination cache on level change.
+    if (game) {
+        game.travelX = 0;
+        game.travelY = 0;
     }
 
     // C ref: do.c goto_level() ordinary ascent message when verbose.

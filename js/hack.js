@@ -1837,7 +1837,12 @@ export async function dotravel(game) {
         ? "Where do you want to travel to?  (For instructions type a '?')"
         : 'Where do you want to travel to?';
     await display.putstr_message(travelPrompt);
-    const cc = { x: player.x, y: player.y };
+    // C ref: cmd.c:5424-5430 — start from last travel destination if set,
+    // otherwise from player's current position.
+    const cc = {
+        x: (game.travelX && game.travelY) ? game.travelX : player.x,
+        y: (game.travelX && game.travelY) ? game.travelY : player.y,
+    };
     const isTravelPathValid = async (x, y) => {
         const prevX = game.travelX;
         const prevY = game.travelY;
