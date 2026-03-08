@@ -604,7 +604,7 @@ export async function attrcurse(player, display) {
                 await Your("senses fail!");
             } else if (propId === SEE_INVIS) {
                 // Special message for see invisible
-                await You(player.hallucinating
+                await You(player.Hallucination
                     ? "tawt you taw a puttie tat"
                     : "thought you saw something");
             } else if (msg) {

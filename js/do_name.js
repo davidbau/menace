@@ -19,6 +19,7 @@ import { hasGivenName, type_is_pname, is_mplayer,
 import { flush_screen } from './display.js';
 import { nhgetch, getlin } from './input.js';
 import { impossible } from './pline.js';
+import { discoverObject, undiscoverObject } from './o_init.js';
 import { doname } from './mkobj.js';
 import { objectData,
          AMULET_CLASS, SCROLL_CLASS, POTION_CLASS, WAND_CLASS, RING_CLASS,
@@ -929,8 +930,8 @@ export async function docall(obj) {
   if (!name_from_player(buf, qbuf, uname_p)) return;
   if ( uname_p) { had_name = true; (uname_p, 0), uname_p = null; }
   mungspaces(buf);
-  if (!buf) { if (had_name) undiscover_object(obj.otyp); }
-  else { uname_p = dupstr(buf); discover_object(obj.otyp, false, true, true); }
+  if (!buf) { if (had_name) undiscoverObject(obj.otyp); }
+  else { uname_p = dupstr(buf); discoverObject(obj.otyp, false, true); }
   if (obj.where === 'OBJ_INVENT' || carrying(obj.otyp)) update_inventory();
 }
 

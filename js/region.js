@@ -170,15 +170,11 @@ export function add_mon_to_reg(reg, mon) {
 // ========================================================================
 // cf. region.c:191 — remove_mon_from_reg(reg, mon): remove monster from region
 // ========================================================================
-// Autotranslated from region.c:191
 export function remove_mon_from_reg(reg, mon) {
-  let i;
-  for (i = 0; i < reg.n_monst; i++) {
-    if (reg.monsters[i] === mon.m_id) {
-      reg.n_monst--;
-      reg.monsters[i] = reg.monsters[reg.n_monst];
-      return;
-    }
+  if (!reg || !reg.monsters) return;
+  const idx = reg.monsters.indexOf(mon.m_id);
+  if (idx >= 0) {
+    reg.monsters.splice(idx, 1);
   }
 }
 
@@ -849,13 +845,12 @@ export async function region_safety(map, player, game) {
     }
 }
 
-// Autotranslated from region.c:262
+// cf. region.c:262 — free_region: JS GC handles memory; just null fields
 export function free_region(reg) {
   if (reg) {
-    if (reg.rects) (reg.rects, 0);
-    if (reg.monsters) (reg.monsters, 0);
-    if (reg.enter_msg) (reg.enter_msg, 0);
-    if (reg.leave_msg) (reg.leave_msg, 0);
-    (reg, 0);
+    reg.rects = null;
+    reg.monsters = null;
+    reg.enter_msg = null;
+    reg.leave_msg = null;
   }
 }
