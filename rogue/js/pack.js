@@ -8,7 +8,7 @@ import { rnd } from './rng.js';
 import { mvaddch, wmove, waddch, wprintw, waddstr, waddch as wch, wclear, mvwaddstr } from './curses.js';
 import {
   GOLD, POTION, SCROLL, FOOD, WEAPON, ARMOR, RING, AMULET, STICK,
-  FLOOR, PASSAGE, LINES, S_SCARE, CALLABLE, ESCAPE,
+  FLOOR, PASSAGE, LINES, S_SCARE, CALLABLE, ESCAPE, MAXPACK,
 } from './const.js';
 import { new_item, _attach } from './list.js';
 import { roomin } from './rooms.js';
@@ -81,7 +81,7 @@ export async function add_pack(item, silent) {
   }
 
   // Check pack limit
-  if (g.inpack === g.MAXPACK - 1) {
+  if (g.inpack === MAXPACK - 1) {
     await _msg("You can't carry anything else.");
     return;
   }
