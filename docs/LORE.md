@@ -4338,3 +4338,45 @@ hard-won wisdom:
   - `node --test test/unit/command_fire_prompt.test.js` passes.
   - `./scripts/run-and-report.sh --failures` remains `31/34` gameplay sessions passing.
   - `seed031_manual_direct` screen frontier advanced from `595/1365` to `628/1365`.
+
+### seed031 menu-boundary parity pass: pickup selection/menu rendering/help-`?` item list (2026-03-08)
+
+- Divergence context:
+  - `seed031_manual_direct` had an early shared screen boundary mismatch around
+    pickup and help menus (`Pick up what?`, then `?` help menu), which then
+    cascaded into earlier RNG drift.
+- C-faithful fixes:
+  - `pickup` multi-select menu now includes class headers and live `+` markers
+    for selected rows in `PICK_ANY`, and emits pickup messages on confirm.
+  - `?` help menu option list was aligned to C/session item order and labels
+    (`a..o`, including support/license/options entries used in captures).
+  - Help option `i` now uses fixed paged text-window output with `--More--`
+    style dismissal keys and post-page map restoration/redraw.
+- Validation:
+  - `seed031_manual_direct` improved from first screen mismatch step `628` to
+    `649`, and first RNG mismatch moved later to step `716`.
+  - Rechecked `seed032_manual_direct` to ensure no new earlier mismatch there
+    from these menu/help changes.
+
+### event-parity unblinding: shift-aware event stream diagnostic (2026-03-08)
+
+- Problem:
+  - Strict event-index parity for `seed031`/`seed032` looked much worse than
+    screen/RNG progress because one early event mismatch causes a long cascade.
+- Evidence:
+  - A shift-aware inspection of raw event streams showed many early C-side
+    `^wipe[...]` entries with matching gameplay otherwise, which shifts strict
+    event alignment quickly.
+  - This appears as instrumentation-era event noise in recorded sessions rather
+    than a direct gameplay-state mismatch signal at those exact positions.
+- Improvement:
+  - Added `scripts/event_shift_diff.mjs` to compare C vs JS event streams with
+    bounded-lookahead resynchronization and report:
+    - aligned matches
+    - `c_extra` vs `js_extra` shift counts
+    - first shift window
+    - first hard (non-resyncable) diff
+  - This is diagnostics-only; no comparator masking or pass/fail behavior was changed.
+- Usage:
+  - `node scripts/event_shift_diff.mjs test/comparison/sessions/seed031_manual_direct.session.json`
+  - `node scripts/event_shift_diff.mjs test/comparison/sessions/seed032_manual_direct.session.json`
