@@ -61,6 +61,8 @@ function usage() {
         + '  --adjacent-diff           Compare each captured JS step to the previous captured JS step\n'
         + '                            and report first differing section (uses --sections)\n'
         + '  --c-side                  Also capture C-side snapshots for selected steps\n\n'
+        + '  --with-test-move          Force-enable ^test_move event stream in JS/C replay\n'
+        + '  --no-test-move            Force-disable ^test_move event stream in JS/C replay\n\n'
         + 'Compare options:\n'
         + '  --compare <DIR>           Compare JS mapdumps against mapdumps in DIR\n'
         + '                            If --c-side is set and --compare omitted, compares against <out-dir>/c\n'
@@ -98,6 +100,7 @@ function parseArgs(argv) {
         context: 8,
         sessionPath: '',
         cSide: false,
+        testMoveMode: 'auto',
         firstDivergence: false,
         adjacentDiff: false,
     };
@@ -118,6 +121,8 @@ function parseArgs(argv) {
         else if (a === '--context') out.context = Number.parseInt(argv[++i] || '8', 10) || 8;
         else if (a.startsWith('--context=')) out.context = Number.parseInt(a.slice('--context='.length), 10) || 8;
         else if (a === '--c-side') out.cSide = true;
+        else if (a === '--with-test-move') out.testMoveMode = 'on';
+        else if (a === '--no-test-move') out.testMoveMode = 'off';
         else if (a === '--first-divergence') out.firstDivergence = true;
         else if (a === '--adjacent-diff') out.adjacentDiff = true;
         else if (a === '--help' || a === '-h') out.help = true;
@@ -412,6 +417,32 @@ function runCStepCapture(sessionPath, rawStep, outJson, fixedDatetime = null, ke
     }
 }
 
+function sessionHasTestMove(rawSession) {
+    const steps = Array.isArray(rawSession?.steps) ? rawSession.steps : [];
+    for (const step of steps) {
+        const rng = Array.isArray(step?.rng) ? step.rng : [];
+        for (const e of rng) {
+            const text = String(e || '');
+            if (text.startsWith('^test_move[')) return true;
+        }
+    }
+    return false;
+}
+
+function getCurrentNethackCCommitShort() {
+    try {
+        const res = spawnSync(
+            'git',
+            ['-C', resolve('nethack-c', 'upstream'), 'rev-parse', '--short', 'HEAD'],
+            { encoding: 'utf8', stdio: 'pipe' }
+        );
+        if (res.status === 0) return String(res.stdout || '').trim();
+    } catch {
+        // ignore
+    }
+    return null;
+}
+
 async function inferFirstDivergenceStep(sessionPath) {
     const bundle = await runSessionBundle({
         sessionPath,
@@ -439,6 +470,11 @@ async function main() {
     const session = loadSession(sessionPath);
     const sectionSet = parseSectionSet(args.sections, ALL_SECTIONS);
     const compareSectionSet = parseSectionSet(args.compareSections, DEFAULT_COMPARE_SECTIONS);
+    const recordedNethackC = session?.raw?.recorded_with?.nethack_c || null;
+    const currentNethackC = getCurrentNethackCCommitShort();
+    const cHasTestMove = sessionHasTestMove(session?.raw);
+    const enableTestMove = (args.testMoveMode === 'on')
+        || (args.testMoveMode === 'auto' && cHasTestMove);
 
     const flags = { ...DEFAULT_FLAGS, bgcolors: true, customcolors: true };
     if (session.meta.options?.autopickup === false) flags.pickup = false;
@@ -503,13 +539,26 @@ async function main() {
     };
 
     const prevDatetime = process.env.NETHACK_FIXED_DATETIME;
+    const prevWebhackTestMove = process.env.WEBHACK_EVENT_TEST_MOVE;
+    const prevNethackTestMove = process.env.NETHACK_EVENT_TEST_MOVE;
     if (fixedDatetime) process.env.NETHACK_FIXED_DATETIME = fixedDatetime;
+    if (enableTestMove) {
+        process.env.WEBHACK_EVENT_TEST_MOVE = '1';
+        process.env.NETHACK_EVENT_TEST_MOVE = '1';
+    } else {
+        delete process.env.WEBHACK_EVENT_TEST_MOVE;
+        delete process.env.NETHACK_EVENT_TEST_MOVE;
+    }
     let replay = null;
     try {
         replay = await replaySession(replayArgs.seed, replayArgs.opts, replayArgs.keys);
     } finally {
         if (prevDatetime == null) delete process.env.NETHACK_FIXED_DATETIME;
         else process.env.NETHACK_FIXED_DATETIME = prevDatetime;
+        if (prevWebhackTestMove == null) delete process.env.WEBHACK_EVENT_TEST_MOVE;
+        else process.env.WEBHACK_EVENT_TEST_MOVE = prevWebhackTestMove;
+        if (prevNethackTestMove == null) delete process.env.NETHACK_EVENT_TEST_MOVE;
+        else process.env.NETHACK_EVENT_TEST_MOVE = prevNethackTestMove;
     }
 
     captures.sort((a, b) => a.sessionStep - b.sessionStep);
@@ -524,12 +573,20 @@ async function main() {
             const outJson = join(cDir, `step${String(c.sessionStep).padStart(4, '0')}.snapshot.json`);
             runCStepCapture(sessionPath, c.rawStep, outJson, fixedDatetime, keysJsonPath);
             const capture = JSON.parse(readFileSync(outJson, 'utf8'));
+            c.cSnapshotPath = outJson;
+            c.cCheckpointMatchedPhase = capture?.checkpointMatchedPhase === true;
+            c.cCheckpointPhase = capture?.checkpoint?.phase || null;
+            if (!c.cCheckpointMatchedPhase) {
+                // Avoid comparing stale checkpoints (typically startup after_map)
+                // when #dumpsnap failed to run at the requested replay phase.
+                c.cCaptureError = `phase-mismatch expected=${capture?.phaseTag || 'n/a'} got=${c.cCheckpointPhase || 'none'}`;
+                continue;
+            }
             const cPayloadFull = buildCompactMapdumpFromCSnapshot(capture, sectionSet);
             const cPayload = filterMapdumpSections(cPayloadFull, sectionSet);
             const cMapdumpPath = join(cDir, `step${String(c.sessionStep).padStart(4, '0')}.mapdump`);
             writeFileSync(cMapdumpPath, cPayload, 'utf8');
             c.cPath = cMapdumpPath;
-            c.cSnapshotPath = outJson;
             c.cSignature = mapdumpSignature(parseCompactMapdump(cPayload));
         }
     }
@@ -583,6 +640,11 @@ async function main() {
             sections: [...sectionSet],
             compareSections: [...compareSectionSet],
             cSide: args.cSide,
+            recordedNethackC,
+            currentNethackC,
+            testMoveMode: args.testMoveMode,
+            testMoveEnabled: enableTestMove,
+            cHasTestMove,
             compareDir: compareDir || null,
             context: args.context,
             firstDivergence: args.firstDivergence,
@@ -601,8 +663,17 @@ async function main() {
     for (const c of captures) {
         console.log(`  step ${c.sessionStep} raw=${c.rawStep} sig=${c.signature}`);
     }
+    console.log(`test_move mode=${args.testMoveMode} enabled=${enableTestMove ? 'yes' : 'no'} c_has_test_move=${cHasTestMove ? 'yes' : 'no'}`);
     if (args.cSide) {
         console.log(`Captured ${captures.length} C snapshot mapdump(s) -> ${cDir}`);
+        if (recordedNethackC && currentNethackC && recordedNethackC !== currentNethackC) {
+            console.log(`WARNING: session recorded_with.nethack_c=${recordedNethackC} differs from local nethack-c=${currentNethackC}; c-side diffs may reflect C-version skew.`);
+        }
+        for (const c of captures) {
+            if (c.cCaptureError) {
+                console.log(`  step ${c.sessionStep}: C capture unavailable (${c.cCaptureError})`);
+            }
+        }
     }
     if (compareDir) {
         const ok = comparisons.filter((c) => c.ok).length;

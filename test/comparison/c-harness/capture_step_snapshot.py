@@ -27,6 +27,9 @@ from run_session import (
     read_checkpoint_entries,
     read_rng_log,
     setup_home,
+    no_delay_env,
+    diag_events_env,
+    test_move_event_env,
     tmux_capture,
     tmux_send,
     tmux_send_special,
@@ -77,14 +80,28 @@ def send_char(session_name, ch):
 
 def replay_steps(session_name, keys, step_index):
     target = min(step_index + 1, len(keys))
+    key_delay_s = float(os.environ.get("NETHACK_KEY_DELAY_S", "0.02"))
     for idx in range(target):
         key = keys[idx]
         # Session gameplay keys are expected to be single-char, but handle
         # multi-char defensively for compatibility with hand-edited traces.
         for ch in key:
             send_char(session_name, ch)
-            time.sleep(0.003)
+            time.sleep(max(0.0, key_delay_s))
     return target
+
+
+def wait_for_checkpoint_phase(checkpoint_file, expected_phase, baseline_count, timeout_s=3.0):
+    """Poll dumpsnap file until a checkpoint with expected phase appears."""
+    deadline = time.time() + timeout_s
+    while time.time() < deadline:
+        checkpoints, _ = read_checkpoint_entries(checkpoint_file, 0)
+        if len(checkpoints) > baseline_count:
+            for cp in reversed(checkpoints):
+                if cp.get("phase") == expected_phase:
+                    return cp, len(checkpoints)
+        time.sleep(0.05)
+    return None, baseline_count
 
 
 def run_capture(session_path, step_index, output_path, phase_tag=None, keys_override=None):
@@ -108,6 +125,9 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
         cmd = (
             f"NETHACKDIR={INSTALL_DIR} "
             f"{fixed_datetime_env()}"
+            f"{diag_events_env()}"
+            f"{no_delay_env()}"
+            f"{test_move_event_env()}"
             f"{monmove_debug_env}"
             f"NETHACK_SEED={seed} "
             f"NETHACK_RNGLOG={rng_log_file} "
@@ -125,13 +145,19 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
 
         wait_for_game_ready(session_name, rng_log_file)
         time.sleep(0.02)
-        clear_more_prompts(session_name)
-        time.sleep(0.02)
+        # When replaying explicit keys from dbgmapdump (--keys-json), those keys
+        # are gameplay-only and expect startup lore/prompt boundaries to be
+        # already dismissed. Clear startup --More-- only in that mode.
+        if keys_override is not None:
+            clear_more_prompts(session_name)
+            time.sleep(0.02)
 
         replayed_steps = replay_steps(session_name, keys, step_index)
         pre_snapshot_screen = tmux_capture(session_name)
 
         tag = phase_tag or f"manual_step_{step_index}"
+        checkpoints_before, _ = read_checkpoint_entries(checkpoint_file, 0)
+        baseline_count = len(checkpoints_before)
         tmux_send(session_name, "#", 0.2)
         tmux_send(session_name, "dumpsnap", 0.2)
         tmux_send_special(session_name, "Enter", 0.2)
@@ -139,8 +165,11 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
         tmux_send_special(session_name, "Enter", 0.2)
         clear_more_prompts(session_name)
 
+        matched_checkpoint, checkpoint_count = wait_for_checkpoint_phase(
+            checkpoint_file, tag, baseline_count
+        )
         checkpoints, _ = read_checkpoint_entries(checkpoint_file, 0)
-        last = checkpoints[-1] if checkpoints else None
+        last = matched_checkpoint if matched_checkpoint else (checkpoints[-1] if checkpoints else None)
         rng_count, _ = read_rng_log(rng_log_file)
 
         payload = {
@@ -150,7 +179,8 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
             "replayedSteps": replayed_steps,
             "phaseTag": tag,
             "rngCallCount": rng_count,
-            "checkpointCount": len(checkpoints),
+            "checkpointCount": checkpoint_count if matched_checkpoint else len(checkpoints),
+            "checkpointMatchedPhase": bool(matched_checkpoint),
             "checkpoint": last,
             "preSnapshotScreen": pre_snapshot_screen,
             "screen": tmux_capture(session_name),
