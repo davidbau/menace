@@ -683,8 +683,53 @@ async function fetchDataFile(filename) {
         const text = await resp.text();
         dataFileCache[filename] = text;
         return text;
-    } catch (e) {
-        return null;
+    } catch (_e) {
+        try {
+            const { readFile } = await import('node:fs/promises');
+            const text = await readFile(filename, 'utf8');
+            dataFileCache[filename] = text;
+            return text;
+        } catch (_readErr) {
+            return null;
+        }
+    }
+}
+
+async function showTextWindowFile(display, text) {
+    const lines = String(text || '').split('\n');
+    const pageRows = Math.max(1, TERMINAL_ROWS - 1);
+    let top = 0;
+    const isDismissKey = (ch) => (
+        ch === 32 || ch === 10 || ch === 13 || ch === 27 || ch === 16
+    );
+
+    while (true) {
+        if (typeof display?.clearScreen === 'function') {
+            display.clearScreen();
+        }
+        for (let r = 0; r < pageRows; r++) {
+            if (typeof display?.clearRow === 'function') display.clearRow(r);
+            const line = lines[top + r];
+            if (line) await display.putstr(0, r, line.substring(0, TERMINAL_COLS));
+        }
+
+        const hasMore = (top + pageRows) < lines.length;
+        if (typeof display?.clearRow === 'function') display.clearRow(TERMINAL_ROWS - 1);
+        await display.putstr(0, TERMINAL_ROWS - 1, '--More--');
+
+        while (true) {
+            const ch = await nhgetch();
+            if (!isDismissKey(ch)) continue;
+            if (hasMore && (ch === 32 || ch === 10 || ch === 13)) {
+                top += pageRows;
+                break;
+            }
+            if (typeof display?.clearScreen === 'function') display.clearScreen();
+            if (typeof display?.clearRow === 'function') display.clearRow(TERMINAL_ROWS - 1);
+            display.topMessage = null;
+            display.messageNeedsMore = false;
+            return;
+        }
     }
 }
 
@@ -762,7 +807,7 @@ export async function handleHelp(game) {
         else await display.putstr_message('Failed to load command list.');
     } else if (c === 'd') {
         const text = await fetchDataFile('dat/history.txt');
-        if (text) await showPager(display, text, 'History of NetHack');
+        if (text) await showTextWindowFile(display, text);
         else await display.putstr_message('Failed to load history.');
     } else if (c === 'e') {
         return await dowhatis(game);
@@ -980,7 +1025,7 @@ export async function handleHistory(game) {
     const { display } = game;
     const text = await fetchDataFile('dat/history.txt');
     if (text) {
-        await showPager(display, text, 'History of NetHack');
+        await showTextWindowFile(display, text);
     } else {
         await display.putstr_message('Failed to load history.');
     }

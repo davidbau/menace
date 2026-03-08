@@ -900,22 +900,30 @@ export class HeadlessDisplay {
         while (lines.length > 0 && lines[lines.length - 1] === '') {
             lines = lines.slice(0, -1);
         }
-        // C tty text popups use a leading space before --More--.
-        lines = [...lines, ' --More--'];
+        const fullScreenText = lines.length >= this.rows - 2;
+        const moreMarker = fullScreenText ? '--More--' : ' --More--';
+        const linesWithMore = [...lines, moreMarker];
 
         let maxcol = 0;
-        for (const line of lines) {
+        for (const line of linesWithMore) {
             if (line.length > maxcol) maxcol = line.length;
         }
 
+        const menuRows = Math.min(linesWithMore.length, fullScreenText ? this.rows : (this.rows - 2));
+        const renderLines = linesWithMore.length > menuRows
+            ? [...linesWithMore.slice(0, menuRows - 1), moreMarker]
+            : linesWithMore;
         // C ref: process_menu_window offx calculation:
         // offx = min(min(82, cols/2), cols - maxcol - 1)
         // Empirically, for 80 cols this produces offx=41 (0-indexed) because
         // C adds cw->offx to the 1-based cursor x, yielding offx+1 screen col.
-        const halfCols = Math.floor(this.cols / 2) + 1;
-        const offx = Math.min(halfCols, this.cols - maxcol - 1);
-
-        const menuRows = Math.min(lines.length, this.rows - 2);
+        let offx;
+        if (fullScreenText) {
+            offx = 0;
+        } else {
+            const halfCols = Math.floor(this.cols / 2) + 1;
+            offx = Math.min(halfCols, this.cols - maxcol - 1);
+        }
         // Clear the popup area
         for (let r = 0; r < menuRows; r++) {
             for (let c = Math.max(0, offx); c < this.cols; c++) {
@@ -926,14 +934,16 @@ export class HeadlessDisplay {
         }
         // Render each line
         for (let i = 0; i < menuRows; i++) {
-            const isMoreLine = (i === menuRows - 1) && lines[i].endsWith('--More--');
+            const line = renderLines[i] || '';
+            const isMoreLine = (i === menuRows - 1) && line.endsWith('--More--');
             const col = isMoreLine ? Math.max(0, offx - 1) : offx;
-            this.putstr(col, i, lines[i], CLR_GRAY, 0);
+            this.putstr(col, i, line, CLR_GRAY, 0);
         }
         // Position cursor at end of "--More--" on the last row
         const lastRow = menuRows - 1;
-        const moreCol = lines[lastRow].endsWith('--More--') ? Math.max(0, offx - 1) : offx;
-        const moreEnd = moreCol + lines[lastRow].length;
+        const lastLine = renderLines[lastRow] || '';
+        const moreCol = lastLine.endsWith('--More--') ? Math.max(0, offx - 1) : offx;
+        const moreEnd = moreCol + lastLine.length;
         this.setCursor(Math.min(moreEnd, this.cols - 1), lastRow);
     }
 

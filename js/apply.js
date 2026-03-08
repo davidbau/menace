@@ -872,12 +872,16 @@ export async function handleApply(player, map, display, game) {
     const prompt = letters.length > 0
         ? `What do you want to use or apply? [${letters} or ?*] `
         : 'What do you want to use or apply? [*] ';
-    await display.putstr_message(prompt);
     const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
         display.messageNeedsMore = false;
     };
+    const showApplyPrompt = async () => {
+        replacePromptMessage();
+        await display.putstr_message(prompt);
+    };
+    await showApplyPrompt();
     const resolveApplySelection = async (selected) => {
         replacePromptMessage();
         if (selected.otyp === OIL_LAMP || selected.otyp === MAGIC_LAMP
@@ -1022,19 +1026,31 @@ export async function handleApply(player, map, display, game) {
             return { moved: false, tookTime: false };
         }
         if (c === '?' || c === '*') {
-            const showList = c === '*'
-                ? inventory.filter((item) => item?.invlet)
-                : candidates;
+            let showList;
+            if (c === '*') {
+                showList = inventory.filter((item) => item?.invlet);
+            } else if (candidates.length === 0) {
+                showList = inventory.filter((item) => item?.invlet && isApplyDownplay(item));
+                if (showList.length === 0) {
+                    showList = inventory.filter((item) => item?.invlet);
+                }
+            } else {
+                showList = candidates;
+            }
+            showList.sort((a, b) => String(a.invlet).charCodeAt(0) - String(b.invlet).charCodeAt(0));
             for (const item of showList) {
                 replacePromptMessage();
                 await display.putstr_message(
                     `${item.invlet} - ${doname(item, player)}.`);
-                if (typeof display?.renderMoreMarker === 'function') {
+                if (typeof display?.morePrompt === 'function') {
+                    await display.morePrompt(nhgetch);
+                } else if (typeof display?.renderMoreMarker === 'function') {
                     display.renderMoreMarker();
                     display._pendingMore = true;
+                    await nhgetch();
                 }
-                await nhgetch();
             }
+            await showApplyPrompt();
             continue;
         }
 
@@ -1043,12 +1059,18 @@ export async function handleApply(player, map, display, game) {
             // C ref: getobj() invalid invlet path used by doapply():
             // emit "You don't have that object.", pause at --More--, then
             // continue prompting within this same doapply command.
-            // Keep current prompt state so topline concatenation/--More--
-            // behavior matches C getobj() overflow handling.
+            // Keep this boundary explicit here so the dismiss key doesn't
+            // get consumed together with the next command key.
+            replacePromptMessage();
             await display.putstr_message("You don't have that object.");
-            if (typeof display?.renderMoreMarker === 'function') {
-                display.renderMoreMarker();
-                display._pendingMore = true;
+            if (typeof display?.morePrompt === 'function') {
+                await display.morePrompt(nhgetch);
+                await showApplyPrompt();
+            } else {
+                if (typeof display?.renderMoreMarker === 'function') {
+                    display.renderMoreMarker();
+                    display._pendingMore = true;
+                }
             }
             continue;
         }
