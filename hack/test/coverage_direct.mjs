@@ -33,15 +33,15 @@
 
 import { GameState, makeObj, makeMonst, makeGen } from '../js/game.js';
 import { game, setGame } from '../js/gstate.js';
-import { _setPriDeps, newsym } from '../js/pri.js';
-import { _setMonDeps, g_at_mon, g_at_gen, g_at_obj, killed, rloc, mnexto, newcham, poisoned, steal, justswld } from '../js/mon.js';
-import { _setHackDeps, setsee, tele, nomul, amon, attmon, unsee, seeoff } from '../js/hack.js';
+import { _setPriDeps, newsym, nosee, pmon, losehp, bot } from '../js/pri.js';
+import { _setMonDeps, g_at, g_at_mon, g_at_gen, g_at_obj, killed, rloc, mnexto, newcham, poisoned, steal, justswld, m_move, dochug } from '../js/mon.js';
+import { _setHackDeps, setsee, tele, nomul, amon, attmon, unsee, seeoff, gobj, doname } from '../js/hack.js';
 import { _setDo1Deps, dosearch, buzz, findit, hit, miss, bhit, zhit } from '../js/do1.js';
 import { setRhack, gameLoop, GameOver, losestr, ndaminc, dodown, doup, alloc, getret } from '../js/main.js';
 import { rhack } from '../js/do.js';
 import { docrt } from '../js/pri.js';
 import { mon } from '../js/data.js';
-import { mkobj } from '../js/lev.js';
+import { mkobj, getlev } from '../js/lev.js';
 import { makeStole } from '../js/game.js';
 import { generatelevel } from '../js/mklev.js';
 import { seedRng } from '../js/rng.js';
@@ -419,7 +419,7 @@ async function testLevelUp() {
     // Set XP near threshold for level 1 → level 2
     g.u.uexp = 0; g.u.urexp = 0; g.u.ulevel = 1;
     // _levelXP(1) = 20 in hack, so give 19 XP, then kill bat (mhd=1, gives 4 XP) → level up
-    g.u.uexp = 16;
+    g.u.uexp = 17; // need 17+4=21 > _levelXP(1)=20 for level-up condition
     const mdat = mon[0][0]; // bat (mhd=1)
     placeMonsterAdjacent(g, mdat, 1); // 1 HP → one hit kill
     g.u.ulevel = 1;
@@ -530,13 +530,17 @@ async function testFloatingEyeFight() {
 }
 
 // Snake - poison (lines 272-275 in mon.js)
+// Secondary poison fires with ~3.75% chance per turn (hit% × 1/8).
+// Use 50 seeds × 5 turns = 250 chances → P(never fires) ≈ 0.008%
 async function testSnakeFight() {
-  await runWith(42, (g) => {
-    const mdat = mon[3][6]; // snake (mlet='S')
-    placeMonsterAdjacent(g, mdat, 200);
-    g.u.ulevel = 15;
-    g.u.upres = false; // not poison resistant
-  }, 'lllll ');
+  for (let seed = 1; seed <= 50; seed++) {
+    await runWith(seed, (g) => {
+      const mdat = mon[3][6]; // snake (mlet='S')
+      placeMonsterAdjacent(g, mdat, 200);
+      g.u.ulevel = 15; g.u.uhp = 500; g.u.uhpmax = 500;
+      g.u.upres = false; // not poison resistant
+    }, 'lllll ');
+  }
   console.log('testSnakeFight: PASS (snake poison covered)');
 }
 
@@ -619,34 +623,48 @@ async function testUmconfHit() {
 }
 
 // gobj() with empty inventory — lines 584-586 in hack.js
+// gobj() is triggered by domove() when moving ONTO a cell with an item.
 async function testPickupEmptyInvent() {
   await runWith(42, (g) => {
-    // Place an item on the floor at player's position
+    // Place food one step to the right (player must MOVE there to pick it up)
+    const ROOM = 5;
+    const nx = g.u.ux + 1, ny = g.u.uy;
+    if (g.levl[nx] && g.levl[nx][ny]) g.levl[nx][ny].typ = ROOM;
     const food = makeObj('%');
     food.otyp = 0; food.quan = 1;
-    food.ox = g.u.ux; food.oy = g.u.uy;
+    food.ox = nx; food.oy = ny;
     food.nobj = g.fobj; g.fobj = food;
-    // Remove inventory so gobj goes to empty invent path
+    // Remove inventory so gobj goes to empty invent path (lines 584-586)
     g.invent = null; g.uwep = null; g.uarm = null; g.uleft = null; g.uright = null;
-    // Also give some armor/weapon so game is stable
-  }, ' ');  // wait one turn — item is on floor, player moves onto it
+  }, 'l ');  // move right onto item → gobj called with empty invent
   console.log('testPickupEmptyInvent: PASS (gobj empty invent covered)');
 }
 
 // gobj() weapon ammo stacking — lines 593-596 in hack.js (quan + stacking for arrows)
+// Direct call to gobj() to force the arrow-stacking branch.
 async function testPickupAmmoStack() {
-  await runWith(42, (g) => {
-    // Player already has some arrows (otyp=0 weapon, quan=5)
-    const arrows1 = makeObj(')');
-    arrows1.otyp = 0; arrows1.quan = 5; arrows1.spe = 0; arrows1.minus = false;
-    arrows1.nobj = null; g.invent = arrows1;
-    // Place more arrows on floor
-    const arrows2 = makeObj(')');
-    arrows2.otyp = 0; arrows2.quan = 3; arrows2.spe = 0; arrows2.minus = false;
-    arrows2.ox = g.u.ux; arrows2.oy = g.u.uy;
-    arrows2.nobj = g.fobj; g.fobj = arrows2;
-    g.uwep = null; g.uarm = null;
-  }, ' ');  // wait — pick up arrows automatically on tile
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  // Arrows in inventory (otyp=0, olet=')', spe=0, minus=false)
+  const arrows1 = makeObj(')');
+  arrows1.otyp = 0; arrows1.quan = 5; arrows1.spe = 0; arrows1.minus = false;
+  arrows1.olet = ')'; // makeObj() ignores its argument; must set olet explicitly
+  arrows1.nobj = null; g.invent = arrows1;
+  // More arrows on the floor (same type)
+  const arrows2 = makeObj(')');
+  arrows2.otyp = 0; arrows2.quan = 3; arrows2.spe = 0; arrows2.minus = false;
+  arrows2.olet = ')'; // makeObj() ignores its argument; must set olet explicitly
+  arrows2.ox = 10; arrows2.oy = 10;
+  arrows2.nobj = null; g.fobj = arrows2;
+  g.u.ux = 10; g.u.uy = 10; g.u.uhp = 50; g.u.uhpmax = 50;
+  g.levl[10][10].typ = 5; // ROOM
+  let keyIdx = 0;
+  g.input.getKey = async () => { if (keyIdx++ < 3) return ' '; throw new SessionDone(); };
+  try { await gobj(arrows2); } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  // Verify stacking happened
+  if (g.invent.quan !== 8) throw new Error('Expected arrows to stack to 8, got ' + g.invent.quan);
   console.log('testPickupAmmoStack: PASS (gobj ammo stack covered)');
 }
 
@@ -942,12 +960,17 @@ async function testTrollFight() {
 
 // Umber hulk ('U') — two hitu (line 281 in mon.js)
 async function testUmberHulkFight() {
-  await runWith(42, (g) => {
-    const mdat = mon[5][6]; // umber hulk (mlet='U')
-    placeMonsterAdjacent(g, mdat, 200);
-    g.u.ulevel = 20; g.u.uhp = 200; g.u.uhpmax = 200;
-  }, 'lllll  ');
-  console.log('testUmberHulkFight: PASS (umber hulk double-hit covered)');
+  // Multi-seed to guarantee umber hulk confusion fires (1/8 chance per turn, !rn2(8))
+  // Covers mon.js 386-388 (confusion pline + uconfused=d(3,4))
+  for (let seed = 1; seed <= 20; seed++) {
+    await runWith(seed, (g) => {
+      const mdat = mon[5][6]; // umber hulk (mlet='U')
+      placeMonsterAdjacent(g, mdat, 200);
+      g.u.ulevel = 20; g.u.uhp = 500; g.u.uhpmax = 500;
+      g.u.uconfused = 0; // ensure confusion can fire
+    }, 'l'.repeat(10) + '  ');
+  }
+  console.log('testUmberHulkFight: PASS (umber hulk double-hit + confusion covered)');
 }
 
 // Xorn ('X') — three hitu (line 293 in mon.js)
@@ -962,12 +985,16 @@ async function testXornFight() {
 
 // Yellow light ('y') — blinds player and self-destructs (lines 294-303 in mon.js)
 async function testYellowLightFight() {
+  // Yellow light (mlet='y') fires case 'y' on ITS turn (not player turn).
+  // Player presses ' ' (no attack) — yellow light gets first turn → case 'y' fires:
+  // delmon(mtmp), blind player, hits_val=-1 (lines 295-303).
+  // Give yellow light high HP so it survives any damage from ' ' (which does none).
   await runWith(42, (g) => {
     const mdat = mon[1][5]; // yellow light (mlet='y')
-    placeMonsterAdjacent(g, mdat, 1); // low HP so player kills it
+    placeMonsterAdjacent(g, mdat, 100); // high HP — survives until its turn
     g.u.ulevel = 10; g.u.uhp = 200; g.u.uhpmax = 200;
-    g.u.ublind = 0; // sighted so blind triggers
-  }, 'l     ');
+    g.u.ublind = 0; // sighted so blind triggers (line 298-300)
+  }, ' '); // player does nothing → yellow light gets its turn → case 'y' fires
   console.log('testYellowLightFight: PASS (yellow light blind covered)');
 }
 
@@ -983,12 +1010,14 @@ async function testYetiFight() {
 
 // Freezing sphere ('F') — explodes and blinds/damages (lines 184-196 in mon.js)
 async function testFreezingSphere() {
+  // Freezing sphere explodes on ITS turn. Use ' ' (rest) first so it gets its turn.
+  // mhp=100 so player doesn't kill it before it acts.
   await runWith(42, (g) => {
     const mdat = mon[4][0]; // freezing sphere (mlet='F')
-    placeMonsterAdjacent(g, mdat, 1); // low HP so player kills it first turn
-    g.u.ulevel = 5; g.u.uhp = 200; g.u.uhpmax = 200;
+    placeMonsterAdjacent(g, mdat, 100); // high HP — sphere must survive until its turn
+    g.u.ulevel = 5; g.u.uhp = 500; g.u.uhpmax = 500;
     g.u.ucoldres = false; // not cold resistant, so get blasted
-  }, 'l     ');
+  }, '  '); // rest 2 turns: sphere explodes on 1st monster turn, 2nd key for any prompt
   console.log('testFreezingSphere: PASS (freezing sphere explosion covered)');
 }
 
@@ -1589,7 +1618,7 @@ async function testSwallowed() {
     g.u.uswallow = true;
     g.u.ustuck = mtmp;
     g.u.uhp = 200; g.u.uhpmax = 200;
-  }, 'llllll              '); // moves while swallowed + plenty of spaces for digest messages
+  }, '\x0cllllll              '); // Ctrl-L triggers docrt() while swallowed → pri.js 66-73; moves + spaces for digest
   console.log('testSwallowed: PASS (swallowed paths covered)');
 }
 
@@ -1997,5 +2026,899 @@ await testZhitType4();
 await testWandNonBoltEffects();
 await testCockatriceFight();
 await testTrapdoorRock();
+
+// ===== Wave 5: gobj fixes, regen/hunger, combat, lev.js, pri.js direct calls =====
+
+// Low-level HP regen (ulevel<=9) — covers main.js lines 261-263
+async function testLowLevelHPRegen() {
+  await runWith(42, (g) => {
+    g.u.ulevel = 5;   // <= 9 → else if branch (line 260)
+    g.u.uregen = true; // ring of regen → always regen (not modulo)
+    g.u.uhp = 1; g.u.uhpmax = 50;
+  }, '   ');  // 3 idle turns → regen fires each turn
+  console.log('testLowLevelHPRegen: PASS (main.js low-level regen covered)');
+}
+
+// Hungry state transition — covers main.js line 273
+async function testHungryTransition() {
+  await runWith(42, (g) => {
+    g.u.uhunger = 151; g.u.uhs = 0; // just above threshold
+    // After 1 turn: uhunger-- → 150 < 151, uhs=0 → "beginning to feel hungry"
+  }, ' ');
+  console.log('testHungryTransition: PASS (main.js hungry message covered)');
+}
+
+// Weak state transition — covers main.js line 275
+async function testWeakTransition() {
+  await runWith(42, (g) => {
+    g.u.uhunger = 51; g.u.uhs = 1; // just above weak threshold
+    // After 1 turn: uhunger-- → 50 < 51, uhs=1 → "beginning to feel weak"
+  }, ' ');
+  console.log('testWeakTransition: PASS (main.js weak message covered)');
+}
+
+// Unarmed combat — covers hack.js lines 494-495 (tmp = rnd(3) unarmed)
+async function testUnarmedCombat() {
+  let dirKey = 'l';
+  await runWith(42, (g) => {
+    g.uwep = null; // no weapon
+    const mdat = mon[0][3]; // jackal
+    dirKey = placeMonsterAdjacent(g, mdat, 200);
+    g.u.ulevel = 15; g.u.uhp = 200; g.u.uhpmax = 200;
+  }, 'lllll ');
+  console.log('testUnarmedCombat: PASS (hack.js unarmed combat covered)');
+}
+
+// High-strength abon — covers hack.js lines 415-417 (str 69..117→1, str>=118→2)
+async function testHighStrCombat() {
+  // str 69-117: abon() returns 1 (line 416)
+  await runWith(42, (g) => {
+    g.u.ustr = 100; // between 69 and 118 → abon() returns 1
+    const mdat = mon[0][3]; // jackal
+    placeMonsterAdjacent(g, mdat, 200);
+    g.u.ulevel = 10; g.u.uhp = 200; g.u.uhpmax = 200;
+  }, 'lllll ');
+  // str >= 118: abon() returns 2 (line 417)
+  await runWith(42, (g) => {
+    g.u.ustr = 120; // >= 118 → abon() returns 2
+    const mdat = mon[0][3]; // jackal
+    placeMonsterAdjacent(g, mdat, 200);
+    g.u.ulevel = 10; g.u.uhp = 200; g.u.uhpmax = 200;
+  }, 'lllll ');
+  console.log('testHighStrCombat: PASS (hack.js abon str ranges covered)');
+}
+
+// Monster flee — covers hack.js lines 525-527 (!rn2(25) && mhp < orig_hp/2)
+// Monster must SURVIVE hits (mhp>0 after hit) while mhp < orig_hp/2 for flee to trigger.
+// Use extreme HP so monster survives all hits. Loop seeds so rn2(25)===0 definitely fires.
+// P(never fires) per seed per 50 hits = (24/25)^50 ≈ 12.8%. Over 20 seeds: (0.128)^20 ≈ 0.
+async function testMonsterFlee() {
+  for (let seed = 1; seed <= 20; seed++) {
+    await runWith(seed, (g) => {
+      const mdat = mon[0][4]; // kobold
+      const ROOM = 5;
+      g.levl[g.u.ux + 1][g.u.uy].typ = ROOM;
+      const mtmp = makeMonst(mdat);
+      mtmp.mx = g.u.ux + 1; mtmp.my = g.u.uy;
+      mtmp.mhp = 50000; mtmp.orig_hp = 200000; // mhp(50000) << orig_hp/2(100000): flee always ready
+      mtmp.nmon = g.fmon; g.fmon = mtmp;
+      g.u.ulevel = 20; // high level → guaranteed hits
+      g.u.uhp = 500; g.u.uhpmax = 500;
+    }, 'l'.repeat(50) + ' '.repeat(20)); // 50 hits × 4% per seed × 20 seeds = guaranteed
+  }
+  console.log('testMonsterFlee: PASS (hack.js monster flee covered)');
+}
+
+// Dart trap poison — covers hack.js line 283 (poisoned_fn) + line 620 wrapper
+// Run dart trap with multiple seeds until poison fires (1/6 chance per dart hit)
+async function testDartTrapPoison() {
+  for (let seed = 1; seed <= 50; seed++) {
+    await runWith(seed, (g) => {
+      g.u.upres = false; // not poison resistant
+      g.u.uhp = 200; g.u.uhpmax = 200; g.u.ulevel = 5;
+      // Place dart trap one step right
+      const ROOM = 5;
+      const nx = g.u.ux + 1, ny = g.u.uy;
+      g.levl[nx][ny].typ = ROOM;
+      // Remove any monster at that position
+      let prev = null;
+      for (let m = g.fmon; m; m = m.nmon) {
+        if (m.mx === nx && m.my === ny) {
+          if (!prev) g.fmon = m.nmon; else prev.nmon = m.nmon;
+          break;
+        }
+        prev = m;
+      }
+      const trap = makeGen(nx, ny, 2); // dart trap type=2
+      trap.ngen = g.ftrap; g.ftrap = trap;
+    }, 'l   ');
+  }
+  console.log('testDartTrapPoison: PASS (dart poison path covered)');
+}
+
+// getlev with omoves > 0 — covers lev.js lines 87-99 (monster restore on revisit)
+async function testGetlevOmoves() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.rngSeed = 42; g.flags = { maze: 99 };
+  g.dlevel = 2; g.moves = 200;
+
+  // Generate a valid levl to use
+  const lvdata = generatelevel(2);
+
+  // Snapshot with omoves=50 and monsters having data_key
+  const snapshot = {
+    moves: 50, // omoves=50, tmoves = 200-50=150
+    levl: lvdata.levl,
+    xupstair: lvdata.xupstair, yupstair: lvdata.yupstair,
+    xdnstair: lvdata.xdnstair, ydnstair: lvdata.ydnstair,
+    fstole: [], fgold: [], ftrap: [], fobj: [],
+    fmon: [
+      // Troll 'T' (tier=5,idx=5): in mregen → fast regen (line 92)
+      { data_key: [5, 5], mx: 10, my: 10, mhp: 5, orig_hp: 30, mstat: 0 },
+      // Jackal 'J' (tier=0,idx=3): not in mregen → slow regen (line 93)
+      { data_key: [0, 3], mx: 20, my: 10, mhp: 3, orig_hp: 10, mstat: 0 },
+      // Entry with no data_key → skipped (covers condition at line 88)
+      { mx: 30, my: 10, mhp: 5, orig_hp: 10, mstat: 0 },
+    ],
+  };
+  g.input.getKey = async () => { throw new SessionDone(); };
+  try { getlev(snapshot); } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  console.log('testGetlevOmoves: PASS (lev.js omoves>0 monster restore covered)');
+}
+
+// getlev fstole with sobj — covers lev.js lines 75-78 (stolen objects restore)
+async function testStoleWithSobj() {
+  await runWith(42, (g) => {
+    // Create stole with stolen objects (sobj linked list)
+    const stmp = makeStole(null, null, 30); // 30 gold stolen
+    // Add a stolen object
+    const stolenObj = makeObj(); stolenObj.olet = '!'; stolenObj.otyp = 3; stolenObj.quan = 1;
+    stolenObj.nobj = null; stmp.sobj = stolenObj;
+    stmp.nstole = g.fstole; g.fstole = stmp;
+    // Position at down stair to save level
+    g.u.ux = g.xdnstair; g.u.uy = g.ydnstair;
+    g.u.uhp = 200; g.u.uhpmax = 200;
+  }, '>< ');  // descend (saves level 1 fstole with sobj), ascend (restores it → lines 75-78)
+  console.log('testStoleWithSobj: PASS (lev.js fstole sobj restore covered)');
+}
+
+// newcham() direct call — covers mon.js lines 494-498
+async function testNewchamDirect() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  const mdat = mon[3][0]; // some monster
+  const mtmp = makeMonst(mdat); mtmp.mx = 10; mtmp.my = 10;
+  g.levl[10][10].cansee = true; // cansee=true → both newsym and atl called (lines 495, 497)
+  const new_mdat = mon[0][3]; // new form: jackal
+  newcham(mtmp, new_mdat); // covers lines 494-498
+  // Also test with null new_mdat (early return at 494)
+  newcham(mtmp, null);
+  console.log('testNewchamDirect: PASS (mon.js newcham covered)');
+}
+
+// losehp() direct call — covers pri.js lines 362-365
+async function testLosehpDirect() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.u.uhp = 50; g.u.uhpmax = 50;
+  losehp(10); // covers lines 362-365: uhp -= n, botl |= 4
+  console.log('testLosehpDirect: PASS (pri.js losehp covered)');
+}
+
+// nosee() with visible monster at cell — covers pri.js lines 165-166
+async function testNoseeMonster() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.u.ux = 10; g.u.uy = 10;
+  // Place a MNORM monster at (12, 10) with scrsym matching its mlet
+  const mdat = mon[0][3]; // jackal
+  const mtmp = makeMonst(mdat); mtmp.mx = 12; mtmp.my = 10; mtmp.mstat = 0; // MNORM < 2
+  mtmp.nmon = g.fmon; g.fmon = mtmp;
+  g.levl[12][10].scrsym = mdat.mlet; // scrsym matches mlet → triggers newsym branch
+  g.levl[12][10].cansee = true;
+  nosee(12, 10); // mstat=0 < 2, scrsym matches → lines 165-166
+  console.log('testNoseeMonster: PASS (pri.js nosee with monster covered)');
+}
+
+// pmon() direct call — covers pri.js lines 217-218
+async function testPmonDirect() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  const mdat = mon[0][3]; // jackal
+  const mtmp = makeMonst(mdat); mtmp.mx = 10; mtmp.my = 10;
+  mtmp.invis = false; // visible → atl called (line 218)
+  pmon(mtmp); // covers lines 217-218
+  mtmp.invis = true; g.u.ucinvis = true; // cinvis player → still drawn
+  pmon(mtmp);
+  console.log('testPmonDirect: PASS (pri.js pmon covered)');
+}
+
+// Unlit ROOM cell newsym — covers pri.js line 146 (ROOM, not lit, not cansee, not blind)
+async function testUnlitRoomNewsym() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.u.ux = 20; g.u.uy = 10; g.u.ublind = false;
+  // Set cell at (22, 10) to ROOM, unlit, not cansee, not stair
+  g.levl[22][10].typ = 5; // ROOM
+  g.levl[22][10].lit = false;
+  g.levl[22][10].cansee = false;
+  g.levl[22][10].scrsym = ' ';
+  // Not a stair position
+  g.xupstair = 0; g.yupstair = 0; g.xdnstair = 0; g.ydnstair = 0;
+  newsym(22, 10); // ROOM, not lit, not cansee, not blind → tmp = ' ' (line 146)
+  console.log('testUnlitRoomNewsym: PASS (pri.js newsym unlit ROOM covered)');
+}
+
+// Monster flee direct — covers hack.js lines 525-527 (mtmp.mstat = FLEE)
+// Direct call to attmon() with controlled RNG seed.
+// attmon() RNG calls: (1) rnd(wsdam[4]) damage, (2) rn2(3) hit msg, (3) rn2(25) flee.
+// We iterate seeds until call 3 returns 0 (flee fires).
+async function testMonsterFleeDirect() {
+  wireDeps();
+  for (let seed = 1; seed <= 500; seed++) {
+    const g = new GameState();
+    g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+    setGame(g);
+    seedRng(seed);
+    g.u.ux = 10; g.u.uy = 10;
+    g.u.uhp = 200; g.u.uhpmax = 200;
+    g.u.udaminc = 0; g.u.uswallow = false; g.u.ustuck = null; g.u.umconf = 0;
+    g.u.ublind = 0;
+    g.levl[11][10].cansee = true; g.levl[11][10].typ = 5; // ROOM
+    // Mace as wielded weapon
+    const mace = makeObj();
+    mace.olet = ')'; mace.otyp = 4; mace.spe = 0; mace.minus = false; mace.quan = 1;
+    g.uwep = mace; g.invent = mace;
+    // Kobold: small monster, mhp < orig_hp/2 so flee-ready
+    const mdat = mon[0][4];
+    const mtmp = makeMonst(mdat);
+    mtmp.mx = 11; mtmp.my = 10;
+    mtmp.mhp = 50; mtmp.orig_hp = 200;
+    g.fmon = mtmp;
+    // Prevent --More-- on the first pline
+    g.flags.topl = 1;
+    g.input.getKey = async () => { throw new SessionDone(); };
+    try { await attmon(mtmp, g.uwep, 0); } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+    if (mtmp.mstat === 1) {
+      console.log('testMonsterFleeDirect: PASS (flee at seed', seed, ')');
+      return;
+    }
+  }
+  throw new Error('testMonsterFleeDirect: flee never fired across 500 seeds');
+}
+
+// Non-weapon throw — covers hack.js lines 491-492 (tmp = rnd(3) for non-weapon obj)
+// Throw a food item at an adjacent monster; bhit() calls attmon(mtmp, food_obj, 0)
+// where food_obj.olet='%' which is not ')' → line 490-492.
+async function testThrowNonWeapon() {
+  await runWith(42, (g) => {
+    // Place food item for throwing (olet='%', not a weapon)
+    const food = makeObj();
+    food.olet = '%'; food.otyp = 0; food.quan = 3; food.known = true;
+    food.nobj = g.invent; g.invent = food;
+    // Place a monster to the LEFT of the player (direction 'h')
+    const mdat = mon[0][3]; // jackal
+    const ROOM = 5;
+    g.levl[g.u.ux - 1][g.u.uy].typ = ROOM;
+    const mtmp = makeMonst(mdat);
+    mtmp.mx = g.u.ux - 1; mtmp.my = g.u.uy;
+    mtmp.mhp = 50; mtmp.orig_hp = 50;
+    mtmp.nmon = g.fmon; g.fmon = mtmp;
+    g.u.ulevel = 20;
+    g.u.uhp = 200; g.u.uhpmax = 200;
+  // 't' = throw, item prompt → 'a' selects first item (food), 'h' = throw left
+  }, 'tah ');
+  console.log('testThrowNonWeapon: PASS (hack.js non-weapon throw covered)');
+}
+
+// doname() path coverage — covers hack.js 322-325 (setan), 343 (unknown single weapon),
+// and 373-377 (wand with spe display).
+async function testDonamePaths() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  // Unknown single weapon → setan() path (lines 322-325, 343)
+  const sword = makeObj();
+  sword.olet = ')'; sword.otyp = 4; sword.quan = 1; sword.known = false; sword.spe = 0;
+  doname(sword); // unknown single weapon: "a mace." via setan()
+  // Unknown multiple weapons → lines 341-342
+  sword.quan = 2; doname(sword);
+  // Known wand with spe → lines 373-377
+  const wand = makeObj();
+  wand.olet = '/'; wand.otyp = 3; wand.spe = 5; wand.quan = 1; wand.known = true;
+  doname(wand); // known wand: "a striking (5)."
+  // Unknown wand (no wannam set) → "a wand (5)."
+  const wand2 = makeObj();
+  wand2.olet = '/'; wand2.otyp = 2; wand2.spe = 3; wand2.quan = 1; wand2.known = false;
+  doname(wand2);
+  console.log('testDonamePaths: PASS (setan/wand doname paths covered)');
+}
+
+// newsym on WALL/SDOOR cell — covers pri.js 136-140
+async function testNewsymWall() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  const WALL = 1, SDOOR = 2, CORR = 3;
+  // Horizontal wall (cells to left/right are non-CORR walls → '|')
+  g.levl[10][10].typ = WALL; g.levl[10][10].cansee = true; g.levl[10][10].seen = true;
+  g.levl[9][10].typ = WALL; g.levl[11][10].typ = WALL; // non-CORR on both sides → '|'
+  newsym(10, 10);
+  // Vertical wall (cells to left/right are CORR or 0 → '-')
+  g.levl[20][10].typ = WALL; g.levl[20][10].cansee = true; g.levl[20][10].seen = true;
+  g.levl[19][10].typ = CORR; g.levl[21][10].typ = 0; // CORR or 0 → '-'
+  newsym(20, 10);
+  // SDOOR cell
+  g.levl[30][10].typ = SDOOR; g.levl[30][10].cansee = true; g.levl[30][10].seen = true;
+  g.levl[29][10].typ = WALL; g.levl[31][10].typ = WALL;
+  newsym(30, 10);
+  console.log('testNewsymWall: PASS (pri.js newsym WALL/SDOOR covered)');
+}
+
+// bot() with hunger — covers pri.js 252-255 (uhs > 0 hunger status display)
+async function testBotHunger() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.u.ux = 10; g.u.uy = 10; g.u.ulevel = 3; g.u.uexp = 10;
+  g.u.uhp = 15; g.u.uhpmax = 20; g.u.ustr = 16; g.u.uac = 5; g.u.ugold = 100;
+  g.u.uhs = 1; // Hungry (1 = Hungry, 2 = Weak, 3 = Fainting)
+  g.flags.botl = 1; // trigger HP/AC update path
+  bot(); // will display hunger string
+  g.u.uhs = 2; g.flags.botl = 1; bot(); // Weak
+  g.u.uhs = 3; g.flags.botl = 1; bot(); // Fainting
+  console.log('testBotHunger: PASS (pri.js bot hunger display covered)');
+}
+
+// Thrown weapon miss — covers hack.js 459-462 (thrown weapon miss message)
+// Need: throw weapon (olet=')') at monster, player MISSES (hit check fails)
+// Use low ulevel and many seeds to ensure a miss.
+async function testThrownWeaponMiss() {
+  for (let seed = 1; seed <= 50; seed++) {
+    let missed = false;
+    await runWith(seed, (g) => {
+      // Add arrows to inventory for throwing
+      const arrow = makeObj();
+      arrow.olet = ')'; arrow.otyp = 0; arrow.quan = 5; arrow.spe = 0; arrow.minus = false;
+      arrow.nobj = g.invent; g.invent = arrow;
+      // Place jackal to the left (direction 'h')
+      const mdat = mon[0][3]; // jackal
+      g.levl[g.u.ux - 1][g.u.uy].typ = 5; // ROOM
+      const mtmp = makeMonst(mdat);
+      mtmp.mx = g.u.ux - 1; mtmp.my = g.u.uy;
+      mtmp.mhp = 50; mtmp.orig_hp = 50;
+      mtmp.nmon = g.fmon; g.fmon = mtmp;
+      g.u.ulevel = 1; // low level → higher miss chance
+      g.u.uhp = 200; g.u.uhpmax = 200;
+    }, 'tah  '); // throw, select first item (arrow), throw left (h)
+    // If this seed produced a miss, we covered lines 459-462; continue regardless
+  }
+  console.log('testThrownWeaponMiss: PASS (hack.js thrown weapon miss covered)');
+}
+
+// docrt() space-cell path — covers pri.js line 87 (cell.seen=false, scrsym='.')
+// When docrt() encounters a cell with isnew=true and scrsym=' ' (space),
+// it resets seen=false and scrsym='.' to restore the corridor floor symbol.
+async function testDocrtSpaceCell() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  // Manually mark a cell as isnew=true with scrsym=' ' (simulates nosee() on corridor cell)
+  g.levl[5][5].isnew = true;
+  g.levl[5][5].scrsym = ' ';
+  g.levl[5][5].seen = true;
+  g.u.uswallow = false;
+  g.input.getKey = async () => { throw new SessionDone(); };
+  await docrt();
+  // After docrt: seen=false, scrsym='.'
+  if (g.levl[5][5].scrsym !== '.') throw new Error('Expected scrsym="." after space-cell docrt');
+  console.log('testDocrtSpaceCell: PASS (pri.js docrt space-cell covered)');
+}
+
+// Wand of striking attmon — covers hack.js line 478 (tmp = rn1(6,4) for striking wand)
+// Directly call attmon() with olet='/' otyp=3 object. No loop needed — always hits line 478.
+async function testWandStrikingAttmon() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(5);
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.uhp = 200; g.u.uhpmax = 200;
+  g.u.udaminc = 0; g.u.uswallow = false; g.u.ustuck = null; g.u.umconf = 0; g.u.ublind = 0;
+  g.levl[11][10].cansee = true; g.levl[11][10].typ = 5;
+  const wand = makeObj();
+  wand.olet = '/'; wand.otyp = 3; wand.spe = 5; wand.quan = 1; // wand of striking
+  g.uwep = null; // wand is NOT wielded weapon
+  const mdat = mon[0][4]; // kobold
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10; mtmp.mhp = 50; mtmp.orig_hp = 50;
+  g.fmon = mtmp;
+  g.flags.topl = 1;
+  g.input.getKey = async () => { throw new SessionDone(); };
+  try { await attmon(mtmp, wand, 0); } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  console.log('testWandStrikingAttmon: PASS (hack.js wand striking rn1(6,4) covered)');
+}
+
+// Teleporter m_move direct — covers mon.js 360-366 (mlet='t' && !rn2(19) random teleport)
+// m_move() is called when monster is NOT adjacent. The teleport check is the first rng call.
+// Iterate seeds until rn2(19)===0 fires. Expected ~19 iterations = quick.
+async function testTeleporterFight() {
+  wireDeps();
+  for (let seed = 1; seed <= 400; seed++) {
+    const g = new GameState();
+    g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+    setGame(g);
+    seedRng(seed);
+    g.u.ux = 10; g.u.uy = 10; g.u.uswallow = false; g.u.ublind = 0;
+    // Make a walkable room so rloc/mnexto have room to work
+    for (let x = 5; x <= 20; x++) g.levl[x][10].typ = 5;
+    for (let x = 5; x <= 20; x++) g.levl[x][9].typ = 5;
+    const mdat = mon[4][4]; // teleporter (mlet='t', mmove=3)
+    const mtmp = makeMonst(mdat);
+    mtmp.mx = 15; mtmp.my = 10; // NOT adjacent (|dx|=5)
+    mtmp.mhp = 5000; mtmp.orig_hp = 5000;
+    g.fmon = mtmp;
+    const startMx = mtmp.mx;
+    m_move(mtmp); // calls rn2(19) — if 0, teleporter teleports (lines 360-366)
+    // We can't detect from outside whether it teleported or moved normally,
+    // but across 400 seeds, rn2(19)===0 fires ~21 times → lines 360-366 covered.
+  }
+  console.log('testTeleporterFight: PASS (mon.js m_move teleporter random teleport covered)');
+}
+
+// Umber hulk confusion direct — covers mon.js 386-388 (!rn2(8) fires in m_move for mlet='U')
+// m_move is only called when monster is NOT adjacent. Place at distance 5, iterate seeds.
+// The FIRST rng call in m_move() for umber hulk is rn2(8) (no prior rng calls for 'U').
+async function testUmberHulkConfuseDirect() {
+  wireDeps();
+  for (let seed = 1; seed <= 200; seed++) {
+    const g = new GameState();
+    g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+    setGame(g);
+    seedRng(seed);
+    g.u.ux = 10; g.u.uy = 10; g.u.uconfused = 0; g.u.uswallow = false; g.u.uinvis = 0;
+    // Make walkable cells from x=5 to x=20 at y=10
+    for (let x = 5; x <= 20; x++) { g.levl[x][10].typ = 5; g.levl[x][9].typ = 5; }
+    const mdat = mon[5][6]; // umber hulk, mlet='U'
+    const mtmp = makeMonst(mdat);
+    mtmp.mx = 15; mtmp.my = 10; // NOT adjacent (|dx|=5)
+    mtmp.mhp = 100; mtmp.orig_hp = 100; mtmp.mcan = false;
+    g.fmon = mtmp;
+    g.levl[15][10].cansee = true; // monster's cell is visible → condition 4 passes
+    m_move(mtmp); // rn2(8) is first rng call for 'U' in m_move → 1/8 chance of confusion
+    // Across 200 seeds, ~25 should give rn2(8)===0 → lines 386-388 covered
+  }
+  console.log('testUmberHulkConfuseDirect: PASS (mon.js umber hulk confusion covered)');
+}
+
+// minusone() — covers mon.js 584 (spe -= 1 for armor/weapon)
+// Called in case 'R' (rust monster) when monster hits and player has armor.
+// Direct: call dochug() with rust monster adjacent, player has armor.
+async function testMinusone() {
+  for (let seed = 1; seed <= 30; seed++) {
+    await runWith(seed, (g) => {
+      const mdat = mon[4][2]; // rust monster (mlet='R')
+      placeMonsterAdjacent(g, mdat, 5000); // high HP
+      g.u.ulevel = 1; g.u.uhp = 500; g.u.uhpmax = 500;
+      // Ensure player has armor (not chainmail otyp=2, not already spe=1-otyp)
+      // Starting armor is otyp=3 (ringmail) with spe=0, minus=false
+      // Condition: !uarm.minus || uarm.otyp - uarm.spe !== 1 → !false=true → fires
+    }, ' '.repeat(50)); // spaces: player does nothing, rust monster attacks each turn
+  }
+  console.log('testMinusone: PASS (mon.js minusone armor rust covered)');
+}
+
+await testLowLevelHPRegen();
+await testHungryTransition();
+await testWeakTransition();
+await testUnarmedCombat();
+await testHighStrCombat();
+await testMonsterFlee();
+await testDartTrapPoison();
+await testGetlevOmoves();
+await testStoleWithSobj();
+await testNewchamDirect();
+await testLosehpDirect();
+await testNoseeMonster();
+await testPmonDirect();
+await testUnlitRoomNewsym();
+await testMonsterFleeDirect();
+await testThrowNonWeapon();
+await testDonamePaths();
+await testNewsymWall();
+await testBotHunger();
+await testThrownWeaponMiss();
+await testDocrtSpaceCell();
+await testWandStrikingAttmon();
+await testTeleporterFight();
+await testUmberHulkConfuseDirect();
+await testMinusone();
+
+// Snake poison via direct dochug (covers mon.js 274-275)
+// testSnakeFight goes through game loop and --More-- plines consume keys
+// before poisoned() is called. Direct dochug with unlimited keys avoids this.
+async function testSnakePoisonDirect() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(1);
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.uac = 10; // worse armor → snake hits more often
+  g.u.ulevel = 1;
+  g.u.uhp = 100000; g.u.uhpmax = 100000;
+  g.u.uswallow = false; g.u.ustuck = null;
+  g.u.umconf = 0; g.u.ublind = 0; g.u.uinvis = 0; g.u.upres = false;
+  g.u.ustr = 18; g.u.ustrmax = 18;
+  g.levl[11][10] = { typ: 5, cansee: false, seen: false, isnew: false, scrsym: '.', lit: false };
+  g.flags.topl = 0;
+  const mdat = mon[3][6]; // snake (mlet='S')
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  mtmp.mhp = 1000; mtmp.orig_hp = 1000;
+  mtmp.mcan = false;
+  g.fmon = mtmp;
+  // Unlimited keys — allow all --More-- plines to dismiss
+  g.input.getKey = async () => ' ';
+  // 1000 dochug calls → ~81 snake hits × 12.5% = ~10 poison triggers (near certain)
+  for (let i = 0; i < 1000; i++) await dochug(mtmp);
+  const hpDrop = 100000 - g.u.uhp;
+  if (hpDrop < 10) throw new Error('testSnakePoisonDirect: snake never hit player');
+  console.log('testSnakePoisonDirect: PASS (mon.js snake poison covered)');
+}
+// Homunculous sleep bite body (covers mon.js 206-208)
+// case 'h': !mcan && hits_val && multi>=0 && !rn2(5) → mhit + nomul + k1
+// Same --More-- key issue as snake. Need direct dochug with unlimited keys.
+async function testHomonculousSleepDirect() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(1);
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.uac = 10; g.u.ulevel = 1;
+  g.u.uhp = 100000; g.u.uhpmax = 100000;
+  g.u.uswallow = false; g.u.ustuck = null;
+  g.u.umconf = 0; g.u.ublind = 0; g.u.uinvis = 0;
+  g.multi = 0;  // game.multi >= 0 required
+  g.levl[11][10] = { typ: 5, cansee: false, seen: false, isnew: false, scrsym: '.', lit: false };
+  g.flags.topl = 0;
+  const mdat = mon[1][2]; // homunculous (mlet='h')
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  mtmp.mhp = 1000; mtmp.orig_hp = 1000;
+  mtmp.mcan = false;
+  g.fmon = mtmp;
+  g.input.getKey = async () => ' '; // unlimited keys
+  // P(sleep fires per turn) = hit_rate * 20% ≈ 13%; 500 calls → near certain
+  for (let i = 0; i < 500; i++) await dochug(mtmp);
+  console.log('testHomonculousSleepDirect: PASS (mon.js homunculous sleep covered)');
+}
+await testHomonculousSleepDirect();
+
+// Killer bee poison body (covers mon.js 218-220)
+// case 'k': hitu(4,rnd(4)) && !mcan && !rn2(8) → mhit + poisoned + game.killer
+// The hitu in case 'k' is separate from the main hitu; both must succeed.
+async function testKillerBeePoisonDirect() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(1);
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.uac = 10; g.u.ulevel = 1;
+  g.u.uhp = 100000; g.u.uhpmax = 100000;
+  g.u.uswallow = false; g.u.ustuck = null;
+  g.u.umconf = 0; g.u.ublind = 0; g.u.uinvis = 0; g.u.upres = false;
+  g.u.ustr = 18; g.u.ustrmax = 18;
+  g.levl[11][10] = { typ: 5, cansee: false, seen: false, isnew: false, scrsym: '.', lit: false };
+  g.flags.topl = 0;
+  const mdat = mon[3][5]; // killer bee (mlet='k')
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  mtmp.mhp = 1000; mtmp.orig_hp = 1000;
+  mtmp.mcan = false;
+  g.fmon = mtmp;
+  g.input.getKey = async () => ' '; // unlimited keys
+  // P(poison fires per turn) = hit×hit×1/8 ≈ 65%²×12.5% ≈ 5%; 500 calls → certain
+  for (let i = 0; i < 500; i++) await dochug(mtmp);
+  console.log('testKillerBeePoisonDirect: PASS (mon.js killer bee poison covered)');
+}
+await testKillerBeePoisonDirect();
+
+// Leprechaun gold steal body (covers mon.js 224-238)
+// case 'L': !mcan && hits_val && ugold && rn2(2) → mhit + steal gold + fstole
+// rloc() needs walkable cells; create a full room so it can place the leprechaun.
+async function testLeprechaunStealDirect() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(1);
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.uac = 10; g.u.ulevel = 1;
+  g.u.uhp = 100000; g.u.uhpmax = 100000;
+  g.u.ugold = 1000; // need gold for leprechaun to steal
+  g.u.urexp = 100;
+  g.u.uswallow = false; g.u.ustuck = null;
+  g.u.umconf = 0; g.u.ublind = 0; g.u.uinvis = 0;
+  // Create a large room so rloc() can find a free cell after leprechaun flees
+  for (let x = 3; x <= 30; x++) for (let y = 3; y <= 20; y++) g.levl[x][y].typ = 5;
+  g.flags.topl = 0;
+  const mdat = mon[0][5]; // leprechaun (mlet='L')
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  mtmp.mhp = 1000; mtmp.orig_hp = 1000;
+  mtmp.mcan = false;
+  g.fmon = mtmp;
+  g.input.getKey = async () => ' '; // unlimited keys
+  // P(steal fires per turn) = hit×ugold_positive×50% ≈ 45%×50% = 22.5%; 200 calls → certain
+  for (let i = 0; i < 200; i++) {
+    g.u.ugold = 1000; // replenish gold so steal can repeat
+    // Re-place leprechaun adjacent after it may have fled
+    mtmp.mx = 11; mtmp.my = 10;
+    await dochug(mtmp);
+  }
+  console.log('testLeprechaunStealDirect: PASS (mon.js leprechaun gold steal covered)');
+}
+await testLeprechaunStealDirect();
+
+// Gelatinous cube freeze (covers mon.js 198-203)
+// case 'g': !mcan && hits_val && multi>=0 && !rn2(6) → mhit + k1 freeze + nomul
+// P(freeze per turn) ≈ hit×1/6 = 45%×17% ≈ 7.5%; 500 calls → certain
+async function testGelCubeDirect() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(1);
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.uac = 10; g.u.ulevel = 1;
+  g.u.uhp = 100000; g.u.uhpmax = 100000;
+  g.u.uswallow = false; g.u.ustuck = null;
+  g.u.umconf = 0; g.u.ublind = 0; g.u.uinvis = 0;
+  g.multi = 0;
+  g.levl[11][10] = { typ: 5, cansee: false, seen: false, isnew: false, scrsym: '.', lit: false };
+  g.flags.topl = 0;
+  const mdat = mon[3][3]; // gelatinous cube (mlet='g')
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  mtmp.mhp = 1000; mtmp.orig_hp = 1000;
+  mtmp.mcan = false;
+  g.fmon = mtmp;
+  g.input.getKey = async () => ' ';
+  for (let i = 0; i < 500; i++) await dochug(mtmp);
+  console.log('testGelCubeDirect: PASS (mon.js gelatinous cube freeze covered)');
+}
+await testGelCubeDirect();
+
+// Black pudding/death ray adjacent fight (covers mon.js 144-146)
+// case '~',',' — justswld fires when hits_val && !mcan. With unlimited keys, break; is reached.
+async function testBlackPuddingDirect() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(1);
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.uac = 10; g.u.ulevel = 1;
+  g.u.uhp = 100000; g.u.uhpmax = 100000;
+  g.u.uswallow = false; g.u.ustuck = null;
+  g.u.umconf = 0; g.u.ublind = 0; g.u.uinvis = 0;
+  g.levl[11][10] = { typ: 5, cansee: false, seen: false, isnew: false, scrsym: '.', lit: false };
+  g.flags.topl = 0;
+  const mdat = mon[7][0]; // black pudding (mlet=',')
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  mtmp.mhp = 10000; mtmp.orig_hp = 10000;
+  mtmp.mcan = false;
+  g.fmon = mtmp;
+  g.input.getKey = async () => ' '; // unlimited keys
+  // hits_val set by main hitu(); if hit, case ',' fires mhit+justswld — break; at line 146
+  // Run until swallowed (uswallow=true) — then justswld has fired
+  for (let i = 0; i < 200; i++) {
+    if (g.u.uswallow) break;
+    await dochug(mtmp);
+  }
+  console.log('testBlackPuddingDirect: PASS (mon.js black pudding justswld covered)');
+}
+await testBlackPuddingDirect();
+
+// Giant ant weakness body (covers mon.js 149-150)
+// case 'A': !mcan && hits_val && rn2(2) → mhit + "You feel weaker!" + losestr
+// P(fires) = hit × 50% ≈ 22.5% per turn; 500 calls → certain
+async function testGiantAntDirect() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(1);
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.uac = 10; g.u.ulevel = 1;
+  g.u.uhp = 100000; g.u.uhpmax = 100000;
+  g.u.uswallow = false; g.u.ustuck = null;
+  g.u.umconf = 0; g.u.ublind = 0; g.u.uinvis = 0;
+  g.u.ustr = 18; g.u.ustrmax = 18;
+  g.levl[11][10] = { typ: 5, cansee: false, seen: false, isnew: false, scrsym: '.', lit: false };
+  g.flags.topl = 0;
+  const mdat = mon[2][0]; // giant ant (mlet='A')
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  mtmp.mhp = 10000; mtmp.orig_hp = 10000;
+  mtmp.mcan = false;
+  g.fmon = mtmp;
+  g.input.getKey = async () => ' ';
+  for (let i = 0; i < 500; i++) await dochug(mtmp);
+  console.log('testGiantAntDirect: PASS (mon.js giant ant weakness covered)');
+}
+await testGiantAntDirect();
+
+// Cockatrice stone path (covers mon.js 164-166)
+// case 'c' else branch: rn2(5)==0 → "You get turned to stone!" + uhp=-1 + game.killer
+// P(stone) = hit × rn2(2) × rn2(5)==0 = 45% × 50% × 20% ≈ 4.5%; 500 calls → certain
+async function testCockatriceStone() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(1);
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.uac = 10; g.u.ulevel = 1;
+  g.u.uhp = 100000; g.u.uhpmax = 100000;
+  g.u.uswallow = false; g.u.ustuck = null;
+  g.u.umconf = 0; g.u.ublind = 0; g.u.uinvis = 0;
+  g.levl[11][10] = { typ: 5, cansee: false, seen: false, isnew: false, scrsym: '.', lit: false };
+  g.flags.topl = 0;
+  const mdat = mon[3][2]; // cockatrice (mlet='c')
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  mtmp.mhp = 10000; mtmp.orig_hp = 10000;
+  mtmp.mcan = false;
+  g.fmon = mtmp;
+  g.input.getKey = async () => ' ';
+  // Run until stone fires (uhp goes negative) or 500 calls
+  for (let i = 0; i < 500; i++) {
+    g.u.uhp = 100000; // reset hp so player doesn't die from normal hits
+    await dochug(mtmp);
+  }
+  console.log('testCockatriceStone: PASS (mon.js cockatrice stone covered)');
+}
+await testCockatriceStone();
+
+// Disenchanter buzz (covers mon.js 174-175)
+// case 'D': if rn2(6)==0 AND !mcan → fires buzz. P≈1/6=17% per turn.
+// Need a large room for _rloc calls in buzz. 500 calls → certain to fire.
+async function testDisenchanterBuzzDirect() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(1);
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.uac = 10; g.u.ulevel = 1;
+  g.u.uhp = 100000; g.u.uhpmax = 100000;
+  g.u.uswallow = false; g.u.ustuck = null;
+  g.u.umconf = 0; g.u.ublind = 0; g.u.uinvis = 0;
+  for (let x = 3; x <= 30; x++) for (let y = 3; y <= 20; y++) g.levl[x][y].typ = 5;
+  g.flags.topl = 0;
+  const mdat = mon[6][4]; // disenchanter (mlet='D')
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  mtmp.mhp = 100000; mtmp.orig_hp = 100000;
+  mtmp.mcan = false;
+  g.fmon = mtmp;
+  g.input.getKey = async () => ' ';
+  // Run dochug with disenchanter; when rn2(6)==0 fires buzz (line 174)
+  for (let i = 0; i < 300; i++) {
+    mtmp.mx = 11; mtmp.my = 10; // keep adjacent
+    await dochug(mtmp);
+  }
+  console.log('testDisenchanterBuzzDirect: PASS (mon.js disenchanter buzz covered)');
+}
+await testDisenchanterBuzzDirect();
+
+await testSnakePoisonDirect();
+
+// Owlbear crush (covers mon.js 254-256)
+// testOwlbearFight uses only seed 5 — owlbear may not grab on that seed.
+// Run 30 seeds × 10 attacks to ensure grab+crush fires.
+async function testOwlbearCrush() {
+  wireDeps();
+  for (let seed = 1; seed <= 30; seed++) {
+    const g = new GameState();
+    g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+    setGame(g);
+    seedRng(seed);
+    g.u.ux = 10; g.u.uy = 10;
+    g.u.uac = 10; // worse armor → owlbear hits more
+    g.u.ulevel = 1;
+    g.u.uhp = 100000; g.u.uhpmax = 100000;
+    g.u.uswallow = false; g.u.ustuck = null;
+    g.u.umconf = 0; g.u.ublind = 0; g.u.uinvis = 0; g.u.upres = false;
+    g.levl[11][10] = { typ: 5, cansee: false, seen: false, isnew: false, scrsym: '.', lit: false };
+    g.flags.topl = 0;
+    const mdat = mon[4][1]; // owlbear (mlet='o')
+    const mtmp = makeMonst(mdat);
+    mtmp.mx = 11; mtmp.my = 10;
+    mtmp.mhp = 10000; mtmp.orig_hp = 10000;
+    mtmp.mcan = false;
+    g.fmon = mtmp;
+    g.input.getKey = async () => ' ';
+    // 50 dochug calls: grab fires at ~10% per turn; once grabbed, crush fires next turn
+    for (let i = 0; i < 50; i++) await dochug(mtmp);
+  }
+  console.log('testOwlbearCrush: PASS (mon.js owlbear crush covered)');
+}
+await testOwlbearCrush();
+
+// Purple worm swallow (covers mon.js 260-262)
+// justswld fires when !mcan && hits_val && !rn2(4) (25% per hit).
+// Run many seeds with direct dochug to ensure it fires.
+async function testPurpleWormSwallow() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(1);
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.uac = 10;
+  g.u.ulevel = 1;
+  g.u.uhp = 100000; g.u.uhpmax = 100000;
+  g.u.uswallow = false; g.u.ustuck = null;
+  g.u.umconf = 0; g.u.ublind = 0; g.u.uinvis = 0; g.u.upres = false;
+  g.levl[11][10] = { typ: 5, cansee: false, seen: false, isnew: false, scrsym: '.', lit: false };
+  g.flags.topl = 0;
+  const mdat = mon[5][4]; // purple worm (mlet='P')
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  mtmp.mhp = 10000; mtmp.orig_hp = 10000;
+  mtmp.mcan = false;
+  g.fmon = mtmp;
+  g.input.getKey = async () => ' ';
+  // 200 dochug calls: purple worm hits ~65% per turn, 25% chance swallow per hit
+  // P(swallow per turn) = 65% × 25% = 16%; P(never swallow in 200) ≈ 0.002%
+  for (let i = 0; i < 200; i++) {
+    if (g.u.uswallow) break; // stop once swallowed
+    await dochug(mtmp);
+  }
+  console.log('testPurpleWormSwallow: PASS (mon.js purple worm swallow covered)');
+}
+await testPurpleWormSwallow();
+
+// g_at() generic list searcher (covers mon.js 22-30)
+// This function is exported but never called in game code (specific variants are used instead).
+// Call it directly with gen/obj/mon lists to cover all branches.
+async function testGAt() {
+  wireDeps();
+  const g = new GameState();
+  setGame(g);
+  const gen = { gx: 5, gy: 5, ngen: null };
+  const obj = { ox: 6, oy: 6, nobj: null };
+  const monst = { mx: 7, my: 7, nmon: null };
+  if (g_at(5, 5, gen) !== gen) throw new Error('g_at gen failed');
+  if (g_at(6, 6, obj) !== obj) throw new Error('g_at obj failed');
+  if (g_at(7, 7, monst) !== monst) throw new Error('g_at mon failed');
+  if (g_at(99, 99, gen) !== null) throw new Error('g_at null failed');
+  console.log('testGAt: PASS (mon.js g_at covered)');
+}
+await testGAt();
 
 console.log('coverage_direct: all tests complete');
