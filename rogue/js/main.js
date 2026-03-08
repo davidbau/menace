@@ -21,7 +21,7 @@ import { fight, attack, swing, check_level, save, save_throw, raise_level, is_ma
 import { inv_name, new_thing, money, drop, dropcheck, _setThingsDeps } from './things.js';
 import { add_pack, inventory, pick_up, picky_inven, get_item, _setPackDeps } from './pack.js';
 import { init_weapon, fall, fallpos, missile, do_motion, hit_monster, wield, newgrp, resetGrpnum, _setWeaponsDeps } from './weapons.js';
-import { daemon, kill_daemon, fuse, lengthen, extinguish, do_fuses } from './daemon.js';
+import { daemon, kill_daemon, fuse, lengthen, extinguish, do_fuses, do_daemons } from './daemon.js';
 import { doctor, swander, rollwand, unconfuse, unsee, sight, nohaste, stomach,
          resetBetween, _setDaemonsDeps } from './daemons.js';
 import { command, quit, d_level, u_level, help, identify, _setCommandDeps } from './command.js';
@@ -70,7 +70,15 @@ function teleport() {
   g.running = false;
 }
 
-async function waste_time() {}
+async function waste_time() {
+  // Matches C armor.c waste_time(): run daemons/fuses for BEFORE and AFTER
+  // This is called by dropcheck() when removing armor and by wear() when putting on armor.
+  // runners() is an AFTER daemon, so monsters move during waste_time.
+  await do_daemons(BEFORE);
+  await do_fuses(BEFORE);
+  await do_daemons(AFTER);
+  await do_fuses(AFTER);
+}
 
 
 function detach_from_pack(item) {
