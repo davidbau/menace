@@ -26,7 +26,8 @@ import { COLNO, ROWNO, STONE, DOOR, CORR, SDOOR, SCORR, STAIRS, LADDER, FOUNTAIN
          TRAVP_TRAVEL, TRAVP_GUESS, TRAVP_VALID } from './const.js';
 import { SQKY_BOARD, SLP_GAS_TRAP, FIRE_TRAP, PIT, SPIKED_PIT, ANTI_MAGIC, TELEP_TRAP,
          ARROW_TRAP, DART_TRAP, ROCKTRAP } from './const.js';
-import { defsyms, trap_to_defsym, PASSES_WALLS, M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
+import { defsyms, trap_to_defsym } from './symbols.js';
+import { PASSES_WALLS, M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
 import { rn2, rnd, rn1, rnl, d, c_d } from './rng.js';
 import { exercise, registerNearCapacity } from './attrib_exercise.js';
 import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,

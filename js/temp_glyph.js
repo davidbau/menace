@@ -16,10 +16,13 @@ import {
     CLR_ORANGE,
     CLR_RED,
     CLR_WHITE,
-    def_monsyms,
     def_warnsyms,
-    defsyms,
     MAXTCHARS,
+    WARNCOUNT,
+} from './const.js';
+import {
+    def_monsyms,
+    defsyms,
     S_altar,
     S_arrow_trap,
     S_brdnladder,
@@ -35,8 +38,7 @@ import {
     S_vbeam,
     S_vwall,
     S_invisible,
-    WARNCOUNT,
-} from './const.js';
+} from './symbols.js';
 
 const NUM_ZAP = 8;
 const MAXEXPCHARS = (S_expl_br - S_expl_tl) + 1;

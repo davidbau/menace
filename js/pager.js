@@ -6,8 +6,8 @@ import {
     TERMINAL_COLS, TERMINAL_ROWS, VERSION_STRING,
     STAIRS, LADDER, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE, POOL, LAVAPOOL,
     DOOR, IRONBARS, TREE, CORR, SCORR, ICE,
-    def_monsyms,
 } from './const.js';
+import { def_monsyms } from './symbols.js';
 import { nhgetch } from './input.js';
 import { CLR_GRAY, CLR_WHITE, CLR_GREEN, CLR_CYAN } from './display.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,

@@ -37,7 +37,7 @@ import { is_pool, is_lava } from './dbridge.js';
 import { safe_teleds } from './teleport.js';
 import { losehp } from './hack.js';
 import { dist2 } from './hacklib.js';
-import { S_poisoncloud, S_cloud } from './const.js';
+import { S_poisoncloud, S_cloud } from './symbols.js';
 import { AD_DRST } from './monsters.js';
 import { PM_FOG_CLOUD } from './monsters.js';
 import { PM_LONG_WORM } from './monsters.js';

@@ -62,7 +62,7 @@ import {
     A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, Align2amask,
     NO_MM_FLAGS,
     MKTRAP_SEEN, MKTRAP_MAZEFLAG, MKTRAP_NOSPIDERONWEB, MKTRAP_NOVICTIM,
-    MAXNROFROOMS, ROOMOFFSET, MAXMCLASSES,
+    MAXNROFROOMS, ROOMOFFSET,
     PM_PRIEST as ROLE_PRIEST,
     MM_NOGRP, MM_ADJACENTOK, MM_IGNOREWATER, MM_NOCOUNTBIRTH,
     GEHENNOM,
@@ -74,6 +74,7 @@ import {
     SCR_EARTH, objectData, GOLD_PIECE, STATUE, CORPSE, EGG, TIN, FIGURINE
 } from './objects.js';
 import { mons, M2_FEMALE, M2_MALE, G_NOGEN, G_IGNORE, PM_MINOTAUR, PM_ARCHEOLOGIST, PM_WIZARD, MR_STONE, S_EEL } from './monsters.js';
+import { MAXMCLASSES } from './symbols.js';
 import { poly_when_stoned } from './mondata.js';
 import { getSpecialLevel, findSpecialLevelByName } from './special_levels.js';
 import { placeFloorObject, stackobj } from './invent.js';

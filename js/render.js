@@ -22,7 +22,7 @@ import {
     SV0, SV1, SV2, SV3, SV4, SV5, SV6, SV7,
     WM_MASK, WM_C_OUTER, WM_C_INNER,
 } from './const.js';
-import { defsyms, trap_to_defsym } from './const.js';
+import { defsyms, trap_to_defsym } from './symbols.js';
 
 // Re-export shared render constants from const.js for existing imports.
 export {

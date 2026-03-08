@@ -6,7 +6,7 @@ import { game as _gstate } from './gstate.js';
 import { envFlag, getEnv } from './runtime_env.js';
 import { rn2, rnd, rn1, d, c_d, getRngLog, getRngCallCount, pushRngLogEntry } from './rng.js';
 import { mksobj, mkobj, next_ident, weight, place_object, set_corpsenm } from './mkobj.js';
-import { def_monsyms } from './const.js';
+import { def_monsyms } from './symbols.js';
 import { m_dowear, mon_break_armor } from './worn.js';
 import {
     SHOPBASE, ROOMOFFSET, IS_POOL, IS_LAVA, IS_STWALL, IS_DOOR, IS_WALL, ACCESSIBLE,

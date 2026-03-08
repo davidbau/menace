@@ -7,8 +7,8 @@ import { COLNO, ROWNO, IS_ROOM, IS_DOOR, IS_POOL, IS_LAVA,
          POOL, STAIRS, LADDER, isok,
          DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT, UNDEF,
          W_ARMS, W_WEP,
-         M_AP_FURNITURE, M_AP_OBJECT, M_AP_MONSTER,
-         S_sink } from './const.js';
+         M_AP_FURNITURE, M_AP_OBJECT, M_AP_MONSTER } from './const.js';
+import { S_sink } from './symbols.js';
 import { rn2, rnd, pushRngLogEntry } from './rng.js';
 import { getEnv } from './runtime_env.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED } from './const.js';

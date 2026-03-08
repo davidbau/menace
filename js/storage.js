@@ -19,7 +19,7 @@
 
 import { ynFunction } from './input.js';
 import { mons } from './monsters.js';
-import { def_monsyms } from './const.js';
+import { def_monsyms } from './symbols.js';
 import { CLASS_SYMBOLS } from './objects.js';
 import { COLNO, ROWNO } from './const.js';
 import { Player } from './player.js';

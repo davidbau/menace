@@ -33,8 +33,8 @@ DEFSYM_H = _pick_existing(
     os.path.join(SCRIPT_DIR, "..", "..", "nethack-c", "patched", "include", "defsym.h"),
     os.path.join(SCRIPT_DIR, "..", "..", "nethack-c", "include", "defsym.h"),
 )
-OUTPUT_PATH = os.path.join(SCRIPT_DIR, "..", "..", "js", "const.js")
-MARKER = MarkerSpec("CONST_SYMBOLS")
+OUTPUT_PATH = os.path.join(SCRIPT_DIR, "..", "..", "js", "symbols.js")
+MARKER = MarkerSpec("SYMBOLS")
 
 
 def _read(path: str) -> str:
@@ -253,6 +253,12 @@ def emit_js() -> str:
     out.append("// Auto-generated symbol constants/tables from include/defsym.h")
     out.append("// DO NOT EDIT — regenerate with: python3 scripts/generators/gen_symbols.py")
     out.append("")
+
+    # Collect color names used in PCHAR_DRAWING and emit import from const.js
+    color_names = sorted(set(row["color"] for row in pchars))
+    if color_names:
+        out.append(f'import {{ {", ".join(color_names)} }} from "./const.js";')
+        out.append("")
 
     out.append("// 1) PCHAR_S_ENUM")
     for row in pchars:

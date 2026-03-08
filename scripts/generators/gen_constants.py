@@ -112,10 +112,14 @@ ROOT_BLOCKER_OWNER_HINTS: dict[str, str] = {
     "LAST_SPELL": "objects.js",
     # artifacts.js generated constants
     "AFTER_LAST_ARTIFACT": "artifacts.js",
-    # symbol-system groups from defsym expansion in const.js
-    "GLYPH_ALTAR_OFF": "const.js (symbols)",
-    "GLYPH_ZAP_OFF": "const.js (symbols)",
-    "GLYPH_SWALLOW_OFF": "const.js (symbols)",
+    # symbols.js generated constants
+    "MAXPCHARS": "symbols.js",
+    "MAXMCLASSES": "symbols.js",
+    "GLYPH_ALTAR_OFF": "symbols.js",
+    "GLYPH_ZAP_OFF": "symbols.js",
+    "GLYPH_SWALLOW_OFF": "symbols.js",
+    # objects.js
+    "MAXOCLASSES": "objects.js",
 }
 
 # Platform compatibility defaults for curses-ish environments (Ubuntu/ncurses).

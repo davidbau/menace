@@ -8,7 +8,7 @@ import {
     POTION_CLASS, FIRST_REAL_GEM, LAST_GLASS_GEM, FIRST_SPELL, LAST_SPELL,
 } from './objects.js';
 import { observeObject } from './o_init.js';
-import { def_monsyms } from './const.js';
+import { def_monsyms } from './symbols.js';
 
 function randomMonsterGlyph() {
     if (!Array.isArray(mons) || mons.length === 0) {

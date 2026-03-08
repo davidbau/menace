@@ -17,9 +17,9 @@ import {
     WAX_CANDLE, TALLOW_CANDLE, BRASS_LANTERN, OIL_LAMP, MAGIC_LAMP,
     WAN_LIGHT, SCR_LIGHT, SPE_LIGHT,
     SCR_FOOD_DETECTION, LUMP_OF_ROYAL_JELLY,
-    RANDOM_CLASS,
+    RANDOM_CLASS, MAXOCLASSES,
 } from './objects.js';
-import { MAXOCLASSES, ROOM, SHOPBASE, ROOMOFFSET, SDOOR, DOOR, CORR,
+import { ROOM, SHOPBASE, ROOMOFFSET, SDOOR, DOOR, CORR,
          D_NODOOR, D_ISOPEN, D_TRAPPED, D_LOCKED, NO_MM_FLAGS } from './const.js';
 import { makemon, mkclass, mongets } from './makemon.js';
 import { mksobj, mkobj } from './mkobj.js';
