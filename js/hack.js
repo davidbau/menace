@@ -1774,8 +1774,6 @@ export async function dotravel(game) {
         ctx.travel1 = 0;
         return { moved: false, tookTime: false };
     }
-    await display.putstr_message(`Traveling... (${game.travelPath.length} steps)`);
-
     // Execute first step
     return dotravel_target(game);
 }
@@ -3320,6 +3318,15 @@ export async function is_valid_travelpt(x, y, player, map) {
     if (!isok(x, y)) return false;
     const loc = map.at(x, y);
     if (!loc) return false;
+    // C parity: ordinary heroes cannot path onto wall cells as travel points.
+    if (IS_WALL(loc.typ) || loc.typ === SDOOR) {
+        const canPassWalls = !!(
+            player?.passesWalls
+            || player?.passWalls
+            || (player?.data && passes_walls(player.data))
+        );
+        if (!canPassWalls) return false;
+    }
     // Stone that hasn't been seen is not a valid travel point
     if (loc.typ === STONE && !loc.seenv) return false;
     // Check if we can path there via C-style findtravelpath validation mode.

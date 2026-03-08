@@ -173,6 +173,17 @@ function cursorDesc(display, map, x, y) {
     return info?.name || '';
 }
 
+async function describeCursorWithContext(display, runtimeCtx, x, y) {
+    const base = cursorDesc(display, runtimeCtx?.map, x, y);
+    if (!base) return '';
+    const parts = [base];
+    if (runtimeCtx?.travelMode && typeof runtimeCtx?.isTravelPathValid === 'function') {
+        const validTravel = await runtimeCtx.isTravelPathValid(x, y);
+        if (!validTravel) parts.push('(no travel path)');
+    }
+    return parts.join(' ');
+}
+
 const TARGET_FILTERS = ['all', 'monster', 'object', 'valid'];
 const GLOC_ALL = 'all';
 const GLOC_MONS = 'monster';
@@ -737,7 +748,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                     cx = nx;
                     cy = ny;
                     cursorState = putCursor(display, cx, cy);
-                    const desc = cursorDesc(display, runtimeCtx.map, cx, cy);
+                    const desc = await describeCursorWithContext(display, runtimeCtx, cx, cy);
                     if (desc && typeof display?.putstr_message === 'function') {
                         let message = desc;
                         if (runtimeCtx.travelMode) {
