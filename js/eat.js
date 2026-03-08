@@ -871,8 +871,9 @@ async function maybe_cannibal(player, pm, allowmsg) {
 // Autotranslated from eat.c:866
 export async function fix_petrification() {
   let buf;
-  if (Hallucination) {
-    buf = `What a pity--you just ruined a future piece of ${ACURR(A_CHA) > 15 ? "fine " : ""}art!`;
+  const player = _gstate?.player;
+  if (player?.Hallucination) {
+    buf = `What a pity--you just ruined a future piece of ${acurr(player, A_CHA) > 15 ? "fine " : ""}art!`;
   }
   else {
     buf = "You feel limber!";
