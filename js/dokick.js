@@ -14,7 +14,7 @@
 //   ghitm(): gold/object thrown at monster with shop interaction.
 
 import { rn2, rnd, rnl } from './rng.js';
-import { In_endgame } from './dungeon.js';
+import { In_endgame, Is_botlevel, Is_stronghold, Is_airlevel, Is_waterlevel, In_mines } from './dungeon.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr as ACURR, acurrstr as ACURRSTR, change_luck, adjalign } from './attrib.js';
 import {
@@ -504,11 +504,7 @@ function remove_worn_item(obj, osync) {
 // Dungeon level helpers (stubs for single-level)
 // ============================================================================
 // In_endgame imported from dungeon.js
-function Is_botlevel(uz) { return false; }
-function Is_stronghold(uz) { return false; }
-function Is_airlevel(uz) { return false; }
-function Is_waterlevel(uz) { return false; }
-function In_mines(uz) { return false; }
+// Is_botlevel, Is_stronghold, Is_airlevel, Is_waterlevel, In_mines imported from dungeon.js
 function on_level(uz1, uz2) {
     return uz1 && uz2 && uz1.dnum === uz2.dnum && uz1.dlevel === uz2.dlevel;
 }

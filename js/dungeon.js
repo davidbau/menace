@@ -719,19 +719,24 @@ export function Is_stronghold(lev) {
     return String(special?.name || '').toLowerCase() === 'castle';
 }
 
-function Is_earthlevel(lev) {
+export function Is_earthlevel(lev) {
     const { dnum, dlevel } = _coerceLevelArg(lev);
     return dnum === ELEMENTAL_PLANES && dlevel === 1;
 }
 
-function Is_waterlevel(lev) {
+export function Is_waterlevel(lev) {
     const { dnum, dlevel } = _coerceLevelArg(lev);
     return dnum === ELEMENTAL_PLANES && dlevel === 2;
 }
 
-function Is_firelevel(lev) {
+export function Is_firelevel(lev) {
     const { dnum, dlevel } = _coerceLevelArg(lev);
     return dnum === ELEMENTAL_PLANES && dlevel === 4;
+}
+
+export function Is_airlevel(lev) {
+    const { dnum, dlevel } = _coerceLevelArg(lev);
+    return dnum === ELEMENTAL_PLANES && dlevel === 3;
 }
 
 export function Invocation_lev(lev) {

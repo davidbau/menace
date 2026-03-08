@@ -49,7 +49,7 @@ import { monster_census, msummon } from './minion.js';
 import { sgn, dist2 } from './hacklib.js';
 import { is_quest_artifact } from './objdata.js';
 import { rndcurse } from './sit.js';
-import { builds_up, In_endgame } from './dungeon.js';
+import { builds_up, In_endgame, In_W_tower, In_hell } from './dungeon.js';
 
 // Strategy constants imported from const.js (monst.h)
 
@@ -136,11 +136,8 @@ function m_next2u(mtmp, player) {
         && Math.abs(mtmp.my - player.y) <= 1;
 }
 
-// In_W_tower — stub: Wizard's Tower not tracked yet
-function In_W_tower(/*x, y*/) { return false; }
-
-// Inhell — stub
-function Inhell() { return false; }
+// In_W_tower, In_hell imported from dungeon.js
+const Inhell = In_hell;
 
 // In_endgame imported from dungeon.js
 
