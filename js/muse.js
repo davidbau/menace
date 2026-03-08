@@ -86,7 +86,8 @@ import { is_pool, is_lava, is_ice, find_drawbridge, destroy_drawbridge,
          is_drawbridge_wall } from './dbridge.js';
 import { trycall } from './do.js';
 import { pushRngLogEntry } from './rng.js';
-import { Can_dig_down, Can_fall_thru, Can_rise_up, In_endgame } from './dungeon.js';
+import { Can_dig_down, Can_fall_thru, Can_rise_up, In_endgame,
+         Is_earthlevel, On_W_tower_level, In_V_tower } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
 import { resists_magm, monsndx, is_vampshifter } from './mondata.js';
@@ -315,9 +316,6 @@ function Inhell(map) { return !!(map && map.flags && map.flags.inhell); }
 function Is_botlevel(map) { return !!(map && map.flags && map.flags.is_botlevel); }
 function Sokoban(map) { return !!(map && map.flags && map.flags.sokoban); }
 function Is_rogue_level(map) { return !!(map && map.flags && map.flags.is_rogue); }
-function Is_earthlevel(map) { return false; }
-function On_W_tower_level(map) { return false; }
-function In_V_tower(map) { return false; }
 
 // C ref: is_Vlad(mtmp) — is this monster Vlad?
 function is_Vlad(mtmp) { return !!((mtmp.data || mtmp.type) && (mtmp.data || mtmp.type).mname === 'Vlad the Impaler'); }

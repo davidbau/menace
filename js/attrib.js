@@ -26,7 +26,7 @@ import { DUNCE_CAP, GAUNTLETS_OF_POWER, HELM_OF_OPPOSITE_ALIGNMENT, LUCKSTONE } 
 import { PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVE_DWELLER, PM_HEALER,
          PM_KNIGHT, PM_MONK, PM_CLERIC, PM_ROGUE, PM_RANGER,
          PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD } from './monsters.js';
-import { confers_luck } from './artifact.js';
+import { confers_luck, retouch_equipment } from './artifact.js';
 import { add_weapon_skill, lose_weapon_skill } from './weapon.js';
 
 // C ref: attrib.c bitmask values for intrinsic source tracking
@@ -342,10 +342,6 @@ function adj_erinys(_abuse) {
     // Adjust erinys tracking; not yet implemented
 }
 
-// Stub for retouch_equipment
-function retouch_equipment_stub(_flags) {
-    // Retouch equipment after alignment change
-}
 
 // --- Poison effect messages ---
 const poiseff = [
@@ -1247,7 +1243,7 @@ export async function uchangealign(player, newalign, reason) {
     }
     if (player.alignment !== oldalign) {
         player.alignmentRecord = 0;
-        retouch_equipment_stub(0);
+        retouch_equipment(0, player);
     }
 }
 

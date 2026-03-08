@@ -28,11 +28,11 @@ import {
     AMULET_OF_STRANGULATION, RIN_SLOW_DIGESTION,
 } from './objects.js';
 
-import { obj_resists, is_organic, is_metallic, is_rustprone, hasPoisonTrapBit } from './objdata.js';
+import { obj_resists, is_organic, is_metallic, is_rustprone, hasPoisonTrapBit, is_quest_artifact } from './objdata.js';
 import {
     carnivorous, herbivorous, is_undead, is_elf,
     is_humanoid, acidic, poisonous, is_metallivore,
-    canseemon,
+    canseemon, slimeproof,
 } from './mondata.js';
 import { rn2, rn1 } from './rng.js';
 import { isok, ACCESSIBLE, COLNO, ROWNO, IS_DOOR, D_CLOSED, D_LOCKED,
@@ -96,7 +96,6 @@ function resists_acid(mon)   { return !!(monPtr(mon)?.mresists & MR_ACID); }
 function resists_ston(mon)   { return !!(monPtr(mon)?.mresists & MR_STONE); }
 function likes_fire(ptr) { return !!(ptr.mresists & MR_FIRE); }
 function polyfood(obj) { return false; }
-function slimeproof(ptr) { return false; }
 
 function mon_hates_silver(mon) {
     const ptr = monPtr(mon);
@@ -112,7 +111,6 @@ function same_race(ptr1, ptr2) {
     return !!(ptr1.mflags2 & ptr2.mflags2 & race_flags);
 }
 
-function is_quest_artifact(obj) { return false; }
 function peek_at_iced_corpse_age(obj) { return obj.age || 0; }
 
 // ========================================================================

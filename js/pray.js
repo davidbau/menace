@@ -43,7 +43,7 @@ import { S_LICH, S_GHOST, S_VAMPIRE, S_WRAITH, S_MUMMY, S_ZOMBIE, S_HUMAN,
          PM_CLERIC, PM_KNIGHT, PM_WIZARD, PM_MONK,
          AT_ENGL, AD_BLND } from './monsters.js';
 import { Role_if } from './role.js';
-import { makeplural, is_weptool } from './objnam.js';
+import { makeplural, is_weptool, corpse_xname } from './objnam.js';
 import { CORPSE, STATUE, AMULET_OF_YENDOR, FAKE_AMULET_OF_YENDOR,
          POT_WATER, POTION_CLASS, LOADSTONE, LEVITATION_BOOTS, FUMBLE_BOOTS,
          GAUNTLETS_OF_FUMBLING, HELM_OF_OPPOSITE_ALIGNMENT,
@@ -59,7 +59,7 @@ import { mksobj, mkobj, bless as bless_obj, uncurse, xname } from './mkobj.js';
 import { hcolor } from './do_name.js';
 import { mon_nam, Monnam } from './do_name.js';
 import { is_undead, is_demon, is_human, is_unicorn, nohands, throws_rocks,
-         can_chant, attacktype_fordmg } from './mondata.js';
+         can_chant, attacktype_fordmg, monstseesu, monstunseesu } from './mondata.js';
 import { exercise } from './attrib_exercise.js';
 import { upstart, s_suffix, sgn } from './hacklib.js';
 import { body_part, rehumanize } from './polyself.js';
@@ -72,13 +72,25 @@ import { summon_minion, dlord } from './minion.js';
 import { makemon } from './makemon.js';
 import { weapon_type, unrestrict_weapon_skill, add_weapon_skill } from './weapon.js';
 import { monflee } from './monmove.js';
-import { newsym } from './display.js';
+import { newsym, shieldeff, see_monsters, warning_of } from './display.js';
 import { couldsee } from './vision.js';
 import { aggravate } from './wizard.js';
-import { spelleffects } from './spell.js';
+import { spelleffects, spell_skilltype } from './spell.js';
 import { buried_ball_to_freedom } from './dig.js';
 import { resist } from './zap.js';
 import { Luck } from './attrib.js';
+import { findpriest, temple_occupied, p_coaligned } from './priest.js';
+import { set_itimeout, make_glib } from './potion.js';
+import { feel_cockatrice, sobj_at } from './invent.js';
+import { destroy_arm } from './do_wear.js';
+import { record_achievement } from './insight.js';
+import { dist2 } from './hack.js';
+import { obfree } from './shk.js';
+import { region_danger, region_safety } from './region.js';
+import { observe_object } from './o_init.js';
+import { get_mtraits } from './mkobj.js';
+import { rider_corpse_revival } from './pickup.js';
+import { ureflects } from './muse.js';
 
 // cf. pray.c:58 -- Moloch constant
 const Moloch = "Moloch";
@@ -413,9 +425,6 @@ function setuhpmax(player, newmax, alwaysSetBase) {
     }
 }
 
-// Helper: region_danger / region_safety stubs
-function region_danger() { return false; }
-function region_safety() { }
 
 // Helper: reset_utrap
 function reset_utrap(player, _talk) {
@@ -426,33 +435,10 @@ function reset_utrap(player, _talk) {
 // Helper: rescued_from_terrain stub
 function rescued_from_terrain() { }
 
-// Helper: set_itimeout -- set intrinsic timeout
-function set_itimeout(player, prop, val) {
-    // Stub: set property timeout
-}
-
-// Helper: make_glib
-function make_glib(player, duration) {
-    // Stub: slippery gloves
-}
-
-// Helper: shieldeff stub
-function shieldeff() { }
-
-// Helper: observe_object stub
-function observe_object() { }
 
 // Helper: makeknown stub
 function makeknown() { }
 
-// Helper: feel_cockatrice stub -- would cause stoning
-function feel_cockatrice() { return false; }
-
-// Helper: rider_corpse_revival stub
-function rider_corpse_revival() { return false; }
-
-// Helper: corpse_xname stub
-function corpse_xname(obj) { return xname(obj); }
 
 // Helper: your_race check
 function your_race(ptr, player) {
@@ -462,9 +448,8 @@ function your_race(ptr, player) {
     return false;
 }
 
-// Helper: has_omonst / get_mtraits stubs
+// Helper: has_omonst
 function has_omonst(obj) { return obj && obj.omonst; }
-function get_mtraits(obj) { return obj.omonst || null; }
 
 // makeplural imported from objnam.js
 
@@ -553,12 +538,6 @@ function uhim(player) {
     return player.female ? "her" : "him";
 }
 
-// Helper: dist2
-function dist2(x1, y1, x2, y2) {
-    const dx = x2 - x1, dy = y2 - y1;
-    return dx * dx + dy * dy;
-}
-
 // Helper: mdistu
 function mdistu(mon, player) {
     return dist2(player.x, player.y, mon.mx, mon.my);
@@ -567,14 +546,6 @@ function mdistu(mon, player) {
 // Helper: angry_priest stub
 function angry_priest() { }
 
-// Helper: findpriest stub
-function findpriest() { return null; }
-
-// Helper: temple_occupied stub
-function temple_occupied() { return null; }
-
-// Helper: p_coaligned stub
-function p_coaligned() { return false; }
 
 // Helper: is_pool_or_lava -- checks if tile is pool or lava
 function is_pool_or_lava(x, y, map) {
@@ -583,12 +554,6 @@ function is_pool_or_lava(x, y, map) {
     return loc.typ === POOL || loc.typ === LAVAPOOL;
 }
 
-// Helper: sobj_at -- checks if object type is at location
-function sobj_at(otyp, x, y, map) {
-    const loc = map.at(x, y);
-    if (!loc.objects) return false;
-    return loc.objects.some(o => o.otyp === otyp);
-}
 
 // Helper: set_malign
 function set_malign(mon) {
@@ -597,9 +562,6 @@ function set_malign(mon) {
 
 // Helper: Sokoban check
 function in_sokoban() { return false; }
-
-// Helper: record_achievement stub
-function record_achievement() { }
 
 // Helper: display_nhwindow stub
 function display_nhwindow() { }
@@ -613,8 +575,6 @@ function oname_obj(obj, name) {
     return obj;
 }
 
-// Helper: see_monsters stub
-function see_monsters() { }
 
 // Helper: align_str
 function align_str(alignment) {
@@ -718,18 +678,6 @@ function resists_disint(mon) {
     return !!(mon.data.mresists & 0x20); // MR_DISINT
 }
 
-// Helper: ureflects stub
-function ureflects() { return false; }
-
-// Helper: monstseesu / monstunseesu stubs
-function monstseesu() { }
-function monstunseesu() { }
-
-// Helper: destroy_arm stub
-function destroy_arm() { }
-
-// Helper: obfree stub
-function obfree(obj) { /* discard temporary object */ }
 
 // Helper: p_type storage -- prayer state (module-level, set by can_pray)
 let p_aligntyp = A_NONE;
@@ -741,8 +689,6 @@ function peek_at_iced_corpse_age(otmp) {
     return otmp.age || 0;
 }
 
-// Helper: spell_skilltype stub
-function spell_skilltype() { return 0; }
 
 // Helper: P_RESTRICTED stub
 function P_RESTRICTED() { return false; }

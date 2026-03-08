@@ -31,6 +31,7 @@ import { s_suffix, sgn } from './hacklib.js';
 import { body_part } from './polyself.js';
 import { a_gname_at, halu_gname } from './pray.js';
 import { adjalign } from './attrib.js';
+import { record_achievement } from './insight.js';
 import { rloc } from './teleport.js';
 import { RLOC_NOMSG, SPINE } from './const.js';
 import { buzz } from './zap.js';
@@ -290,7 +291,6 @@ function helpless(mon) {
     return !!(mon.mfrozen || mon.msleeping || mon.mcanmove === false || mon.mcanmove === 0);
 }
 // resist_conflict imported from mondata.js
-function record_achievement(/*achidx, player*/) { /* stub */ }
 function mapseen_temple(/*priest*/) { /* stub */ }
 function nomul(player, turns) {
     // Simplified stub: set multi-turn counter

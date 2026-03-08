@@ -15,6 +15,7 @@ import { pline, You, Your, You_feel, You_see, pline_The,
 import {
     map_invisible, newsym, flush_screen,
     canSpotMonsterForMap, senseMonsterForMap,
+    warning_of, feel_newsym, docrt,
 } from './display.js';
 import { helpless as monHelpless } from './mon.js';
 import { findgold } from './steal.js';
@@ -93,7 +94,6 @@ function M_AP_TYPE(mtmp) {
 function Is_rogue_level() { return false; }
 function random_object(rn2func) { return rn2func(400) || 1; }
 function random_monster(rn2func) { return rn2func(400); }
-function warning_of() { return false; }
 function seemimic_local(mtmp) {
     if (mtmp && mtmp.m_ap_type) mtmp.m_ap_type = 0;
 }
@@ -141,8 +141,6 @@ async function flash_glyph_at(x, y, glyph, repeatCount = 1) {
     tmp_at(DISP_END, 0);
 }
 function feel_location() {}
-function feel_newsym() {}
-function docrt() {}
 // flush_screen imported from display.js
 async function strange_feeling(sobj, msg, player, display) {
     if (display && msg) await display.putstr_message(msg);
