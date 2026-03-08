@@ -8,10 +8,10 @@ NetHack 3.7 is the most ambitious update in the game's 38-year history.
 Development has been continuous on GitHub since the 3.6.0 release in
 December 2015, and the community plays 3.7 on public servers, but as
 of early 2026, the DevTeam still hasn't shipped it. This port puts
-the unreleased version in your browser. It was written almost entirely
-through conversation with AI agents. 182,000+ lines of JavaScript,
-141 modules mirroring the C source structure, bit-identical PRNG,
-89 golden C-comparison test sessions. One month, 3,700+ commits.
+the unreleased version in your browser. It was written entirely by
+AI coding agents. 182,000+ lines of JavaScript, 141 modules mirroring
+the C source structure, bit-identical PRNG, 89 golden C-comparison
+test sessions. One month, 3,700+ commits.
 
 Open the page, pick a role, descend.
 
@@ -26,30 +26,34 @@ Also playable: [Hack (1982)](https://mazesofmenace.net/hack/) and
 
 *You hear a low buzzing.*
 
-**Royal Jelly** is the codename. The name refers to the port itself,
-the sweet output of The Hive.
+The codename *Royal Jelly* refers to the port itself, the sweet
+output of The Hive.
 
 NetHack has ~420,000 lines of C, headers, and Lua across ~8,600
 functions. For reference, the original Doom is ~40,000 lines, Quake
 ~80,000, and Civilization III ~130,000. NetHack dwarfs them all
 despite rendering nothing but text. Thirty-eight years of accretionary
-development have produced a combinatorial state surface where any
-object can interact with any monster, terrain, or status effect.
-The codebase is not large because it is complex; it is complex
-because every edge case got a rule.
-The question is whether AI agents, with human direction, can produce a
-faithful port: not a prototype, but a playable, parity-correct
-reimplementation that matches the C behavior down to the random number
-generator.
+development have produced a codebase where any object can interact
+with any monster, terrain, or status effect. It is complex because
+it covers every edge case with a rule.
 
-The human set direction. The agents wrote the code, the tests, and the
-documentation. No C was copied or transpiled. Every function was ported by
-hand (the agents' hands, such as they are).
+Our question: can AI agents, with light human supervision, produce
+a faithful port? Not a prototype, but a playable, fully faithful
+reimplementation that matches the C behavior down to the random
+number generator.
 
-The term comes from Andrej Karpathy, who coined "vibe coding" in
-February 2025. By 2026 the practice had matured into something more
-structured: directing AI agents to produce real software requires
-genuine skill and judgment. This project is a test of that at scale.
+This project contains no human-written code. AI agents wrote every
+line of code, every test, and all the documentation. No C was copied
+or transpiled. Every function was ported by hand -- the agents' hands,
+such as they are.
+
+We describe this process as "vibe coding," though it is very different
+from Andrej Karpathy's original observation of copy-and-paste LLM
+coding. The human effort here has been setting strategy, goals,
+orchestration, and environment for a swarm of Codex and Claude coding
+agents. Clearing a path for 24/7 automated agent software production
+requires genuine skill and judgment, and the development of new
+engineering techniques. This project is a test of that at scale.
 
 ---
 
@@ -311,10 +315,10 @@ ported, which is both the hard part and the point.
 
 NHPL (NetHack General Public License)
 
-The JavaScript source is an independent rewrite with no C code copied or
+The JavaScript source is an independent rewrite; no C was copied or
 transpiled. The game data, generated definitions, and converted special
-levels are derived from NetHack's creative work, so NHPL is the appropriate
-license. This project exists in gratitude to the DevTeam and the NetHack
-community, not in competition with them.
+levels are derived from NetHack's creative work, so NHPL is the
+appropriate license. This project exists in gratitude to the DevTeam
+and the NetHack community, not in competition with them.
 
 *Do you want your possessions identified?*
