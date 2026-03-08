@@ -47,6 +47,7 @@ import { xname, an, The } from './objnam.js';
 import { hliquid, m_monnam } from './do_name.js';
 import { dosearch0 } from './detect.js';
 import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap } from './display.js';
+import { couldsee } from './vision.js';
 import { helpless, monnear } from './mon.js';
 import { monflee } from './monmove.js';
 import { ynFunction } from './input.js';
@@ -1650,7 +1651,10 @@ export async function findtravelpath(mode, game) {
                 const key = `${nx},${ny}`;
                 if (dist.has(key)) continue;
                 if (!await test_move(x, y, nx - x, ny - y, TEST_TRAV, player, map, null, game)) continue;
-                const seen = !!(map.at(nx, ny)?.seenv);
+                // C ref: hack.c:1377-1378 — cell must be previously seen OR
+                // currently in line of sight (if not blind).
+                const seen = !!(map.at(nx, ny)?.seenv)
+                    || (!player.blind && couldsee(map, player, nx, ny));
                 if (!seen) continue;
                 // C ref: hack.c:1378 — early termination when hero found.
                 if (earlyGoalX != null && nx === earlyGoalX && ny === earlyGoalY) {
@@ -1727,64 +1731,100 @@ export async function findtravelpath(mode, game) {
 
     if (mode !== TRAVP_GUESS) return false;
 
-    // Guess mode: find visible point near target that is reachable.
-    // C ref: hack.c findtravelpath() GUESS mode — uses distmin() (Chebyshev)
-    // as primary metric, then travel distance, then dist2 (Euclidean²) as tiebreaker.
-    let bestGoal = null;
-    let bestDist = Number.POSITIVE_INFINITY;
-    let bestTravel = Number.POSITIVE_INFINITY;
-    let bestD2 = Number.POSITIVE_INFINITY;
-    for (let x = 1; x < COLNO; x++) {
-        for (let y = 0; y < ROWNO; y++) {
-            const seen = !!(map.at(x, y)?.seenv);
-            if (!seen) continue;
-            // C ref: distmin() = max(abs(dx), abs(dy)) — Chebyshev distance.
-            const d0 = Math.max(Math.abs(tx - x), Math.abs(ty - y));
-            if (d0 > bestDist) continue;
-            const tw = await reverseWave(x, y);
-            const ct = tw.dist.get(heroKey) || 0;
-            if (!ct) continue;
-            const d2 = (tx - x) * (tx - x) + (ty - y) * (ty - y);
-            const better = d0 < bestDist
-                || (d0 === bestDist && ct < bestTravel)
-                || (d0 === bestDist && ct === bestTravel && d2 < bestD2);
-            if (!better) continue;
-            bestDist = d0;
-            bestTravel = ct;
-            bestD2 = d2;
-            bestGoal = [x, y];
+    // C ref: hack.c findtravelpath() GUESS mode.
+    // Phase 1: BFS from hero outward, building travel distance map.
+    // C swaps tx/ty and ux/uy for GUESS mode (BFS from hero, goal=target).
+    // Only expand through couldsee cells (C line 1354).
+    async function heroWave() {
+        const dist = new Map();
+        const q = [[heroX, heroY]];
+        dist.set(`${heroX},${heroY}`, 1);
+        while (q.length) {
+            const [x, y] = q.shift();
+            const r = dist.get(`${x},${y}`) || 1;
+            for (const [ddx, ddy] of dirs) {
+                const nx = x + ddx;
+                const ny = y + ddy;
+                if (!isok(nx, ny)) continue;
+                // C ref: hack.c:1354 — GUESS mode skips cells not couldsee.
+                if (!couldsee(map, player, nx, ny)) continue;
+                const key = `${nx},${ny}`;
+                if (dist.has(key)) continue;
+                if (!await test_move(x, y, nx - x, ny - y, TEST_TRAV, player, map, null, game)) continue;
+                const seen = !!(map.at(nx, ny)?.seenv)
+                    || (!player.blind && couldsee(map, player, nx, ny));
+                if (!seen) continue;
+                dist.set(key, r + 1);
+                q.push([nx, ny]);
+            }
+        }
+        return dist;
+    }
+
+    const guessDist = await heroWave();
+
+    // Phase 2: Pick best reachable+couldsee cell closest to target.
+    // C ref: hack.c:1433-1460. Uses distmin as primary, then prefers
+    // BOTH lower travel distance AND lower dist2 (AND condition, not OR).
+    let px = heroX, py = heroY;
+    let bestDist = Math.max(Math.abs(tx - heroX), Math.abs(ty - heroY)); // distmin(target, hero)
+    let bestD2 = (tx - heroX) * (tx - heroX) + (ty - heroY) * (ty - heroY);
+    let bestTravel = COLNO * ROWNO;
+    for (let cx = 1; cx < COLNO; cx++) {
+        for (let cy = 0; cy < ROWNO; cy++) {
+            // C ref: hack.c:1442 — only consider couldsee cells with travel > 0.
+            if (!couldsee(map, player, cx, cy)) continue;
+            const ctrav = guessDist.get(`${cx},${cy}`) || 0;
+            if (ctrav <= 0) continue;
+            const nxtdist = Math.max(Math.abs(tx - cx), Math.abs(ty - cy));
+            if (nxtdist === bestDist && ctrav < bestTravel) {
+                // C ref: hack.c:1444-1451 — same distmin, lower travel, check dist2.
+                const nd2 = (tx - cx) * (tx - cx) + (ty - cy) * (ty - cy);
+                if (nd2 < bestD2) {
+                    px = cx;
+                    py = cy;
+                    bestD2 = nd2;
+                    bestTravel = ctrav;
+                }
+            } else if (nxtdist < bestDist) {
+                // C ref: hack.c:1453-1459 — closer to target, always take.
+                px = cx;
+                py = cy;
+                bestDist = nxtdist;
+                bestD2 = (tx - cx) * (tx - cx) + (ty - cy) * (ty - cy);
+                bestTravel = ctrav;
+            }
         }
     }
-    if (!bestGoal) return false;
 
-    // BFS from bestGoal with early termination to find first step.
-    const { dist: fallback, earlyDir: guessDir } = await reverseWave(
-        bestGoal[0], bestGoal[1], heroX, heroY);
+    // C ref: hack.c:1462-1471 — if best guess is hero's own position.
+    if (px === heroX && py === heroY) {
+        const sdx = Math.sign(tx - heroX);
+        const sdy = Math.sign(ty - heroY);
+        if (sdx || sdy) {
+            if (await test_move(heroX, heroY, sdx, sdy, TEST_MOVE, player, map, null, game)) {
+                const travelVisited = game._travelVisited || (game._travelVisited = new Set());
+                travelVisited.add(`${heroX},${heroY}`);
+                game.travelPath = [[sdx, sdy]];
+                game.travelStep = 0;
+                return true;
+            }
+        }
+        // C ref: hack.c:1499-1503 "found:" label — no path, stop travel.
+        nomul(0, game);
+        return false;
+    }
+
+    // C ref: hack.c:1487-1494 "goto noguess" — re-run TRAVEL BFS from best cell.
+    const { earlyDir: guessDir } = await reverseWave(px, py, heroX, heroY);
     if (guessDir) {
         game.travelPath = [guessDir];
         game.travelStep = 0;
         return true;
     }
-    // Fallback: full wave, min-distance selection.
-    let best = null;
-    let bestR = Number.POSITIVE_INFINITY;
-    for (const [dx, dy] of dirs) {
-        const nx = heroX + dx;
-        const ny = heroY + dy;
-        if (!isok(nx, ny)) continue;
-        const r = fallback.get(`${nx},${ny}`) || 0;
-        if (!r) continue;
-        if (!await test_move(heroX, heroY, dx, dy, TEST_MOVE, player, map, null, game)) continue;
-        if (r < bestR) {
-            bestR = r;
-            best = [dx, dy];
-        }
-    }
-    if (!best) return false;
-    if (mode === TRAVP_VALID) return true;
-    game.travelPath = [best];
-    game.travelStep = 0;
-    return true;
+    // Fallback if reverseWave didn't find hero (shouldn't happen).
+    nomul(0, game);
+    return false;
 }
 
 // C ref: cmd.c dotravel()

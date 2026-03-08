@@ -359,7 +359,6 @@ export async function distfleeck(mon, map, player, display, fov) {
         await monflee(mon, rnd(rn2(7) ? 10 : 100), true, true, player, display, fov);
     }
     pushRngLogEntry(`^distfleeck[${mon.mndx}@${mon.mx},${mon.my} in=${inrange ? 1 : 0} near=${nearby ? 1 : 0} scare=${scared} brave=${bravegremlin ? 1 : 0} saw=${sawscary} light=${fleeLight} sanct=${sanctuary}]`);
-
     monmoveTrace('distfleeck',
         `step=${monmoveStepLabel(map)}`,
         `id=${mon.m_id ?? '?'}`,
