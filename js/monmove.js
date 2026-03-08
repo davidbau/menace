@@ -31,7 +31,7 @@ import { rn2, rnd, d, c_d, pushRngLogEntry } from './rng.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED } from './const.js';
 import { NORMAL_SPEED } from './const.js';
 import { wipe_engr_at } from './engrave.js';
-import { mattacku } from './mhitu.js';
+import { mattacku, ranged_attk_available } from './mhitu.js';
 import { makemon } from './makemon.js';
 import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          WEAPON_CLASS, ARMOR_CLASS, GEM_CLASS,
@@ -52,7 +52,7 @@ import { can_teleport, noeyes, perceives, nohands,
          passes_walls, corpse_eater, amorphous,
          passes_bars, is_human, canseemon, monsdat,
          webmaker, tunnels, needspick,
-         dmgtype, is_metallivore,
+         dmgtype, attacktype, is_metallivore,
          can_track, likes_gold,
          is_vampshifter, DEADMONSTER } from './mondata.js';
 import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons, PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER, PM_TENGU, PM_XORN, PM_RUST_MONSTER, PM_GELATINOUS_CUBE, PM_DISPLACER_BEAST, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS, PM_HEZROU, PM_VROCK, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER, AT_WEAP, AT_BREA, AT_SPIT, AT_MAGC, AD_SPEL, AD_CLRC, AD_RUST, AD_CORR, S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID, M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC, MZ_TINY, MZ_HUMAN, M2_WANDER, MS_LEADER, MS_SHRIEK } from './monsters.js';
@@ -121,7 +121,7 @@ const MMOVE_NOMOVES = 4;
 // Re-export mthrowu.c functions
 import { hasWeaponAttack, maybeMonsterWieldBeforeAttack, linedUpToPlayer } from './mthrowu.js';
 import { m_carrying } from './mthrowu.js';
-import { find_defensive, use_defensive, find_misc, use_misc, searches_for_item } from './muse.js';
+import { find_defensive, use_defensive, find_misc, use_misc, find_offensive, searches_for_item } from './muse.js';
 
 // ========================================================================
 // movemon — wrapper that binds dochug into mon.js movemon
@@ -1576,9 +1576,16 @@ async function dochug(mon, map, player, display, fov, game = null) {
                     await mattacku(mon, player, display, game, { map });
                 }
             } else {
-                // At range: route through mattacku with range2=true
-                // so it iterates the attack table and calls thrwmu for AT_WEAP.
-                await mattacku(mon, player, display, game, { range2: true, map });
+                // C ref: monmove.c:945-949 — MMOVE_MOVED + !nearby: only proceed
+                // to Phase 4 if monster has ranged attacks or offensive items.
+                // find_offensive may consume RNG (obj_resists checks).
+                const mdat = mon.data || mon.type || {};
+                if (!mmoved
+                    || ranged_attk_available(mon)
+                    || attacktype(mdat, AT_WEAP)
+                    || await find_offensive(mon, map, player)) {
+                    await mattacku(mon, player, display, game, { range2: true, map });
+                }
             }
         }
     }

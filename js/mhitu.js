@@ -39,7 +39,7 @@ import {
     dmgtype, dmgtype_fromattack,
     get_atkdam_type, cvt_adtyp_to_mseenres, DISTANCE_ATTK_TYPE,
 } from './mondata.js';
-import { m_seenres } from './muse.js';
+import { m_seenres, find_offensive, use_offensive } from './muse.js';
 import {
     weaponEnchantment, weaponDamageSides,
     mhitm_mgc_atk_negated,
@@ -1139,6 +1139,13 @@ export async function mattacku(monster, player, display, game = null, opts = {})
     const map = opts.map || null;
     const sum = new Array(6).fill(M_ATTK_MISS); // C NATTK == 6
 
+    // C ref: mhitu.c:755-761 — Unlike defensive stuff, don't let them use item _and_ attack.
+    if (map && await find_offensive(monster, map, player)) {
+        const offended = await use_offensive(monster, map, player);
+        if (offended !== 0)
+            return offended === 1 ? true : undefined;
+    }
+
     for (let i = 0; i < 6; i++) {
         if (opts.range2 === undefined && i > 0) {
             const vars = calc_mattacku_vars(monster, player);
@@ -2187,9 +2194,12 @@ export async function mayberem(mon, seducer, obj, str, player) {
 
 // Autotranslated from mhitu.c:2403
 export function ranged_attk_available(mtmp) {
-  let i, typ = -1, ptr = mtmp.data;
+  let i, typ = -1, ptr = mtmp.data || mtmp.type || {};
+  const mattk = ptr.mattk;
+  if (!mattk) return false;
   for (i = 0; i < NATTK; i++) {
-    if (DISTANCE_ATTK_TYPE(ptr.mattk[i].aatyp) && (typ = get_atkdam_type(ptr.mattk[i].adtyp)) >= 0 && m_seenres(mtmp, cvt_adtyp_to_mseenres(typ)) === 0) return true;
+    if (!mattk[i]) break;
+    if (DISTANCE_ATTK_TYPE(mattk[i].aatyp) && (typ = get_atkdam_type(mattk[i].adtyp)) >= 0 && m_seenres(mtmp, cvt_adtyp_to_mseenres(typ)) === 0) return true;
   }
   return false;
 }
