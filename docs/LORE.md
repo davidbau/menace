@@ -4587,3 +4587,17 @@ hard-won wisdom:
   - `./scripts/run-and-report.sh --failures` now reports gameplay `32/34` with:
     - `seed032_manual_direct`: screen-only divergence
     - `seed033_manual_direct`: early RNG/event divergence.
+
+### stop_occupation boundary await correctness (2026-03-08)
+
+- Problem:
+  - `stop_occupation()` emitted `"You stop <activity>."` without awaiting
+    `display.putstr_message(...)`, allowing message boundary state to race with
+    subsequent command/input handling.
+- Fix:
+  - `js/allmain.js` now awaits that message emission:
+    - `await game.display?.putstr_message?.(...)`
+- Validation:
+  - `node scripts/test-unit-core.mjs` passes.
+  - `./scripts/run-and-report.sh --failures` remains at `32/34` gameplay
+    sessions passing (`seed032` screen-only, `seed033` RNG/event).

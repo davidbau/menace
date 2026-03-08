@@ -432,7 +432,7 @@ export async function stop_occupation(game) {
         if (!finishedMeal) {
             const occtxt = occ.occtxt || occ.txt;
             if (typeof occtxt === 'string' && occtxt.length > 0) {
-                game.display?.putstr_message?.(`You stop ${occtxt}.`);
+                await game.display?.putstr_message?.(`You stop ${occtxt}.`);
             }
         }
         game.occupation = null;
