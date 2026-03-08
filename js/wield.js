@@ -641,40 +641,10 @@ async function handleQuiver(player, display) {
 
 export { setuwep, uwepgone, will_weld, erodeable_wep, can_twoweapon, drop_uswapwep, empty_handed, wield_tool, ready_weapon, handleWield, handleSwapWeapon, handleQuiver, handleTwoWeapon };
 
-// Autotranslated from wield.c:325
+// C ref: wield.c:325 — wield_ok(obj): filter for getobj wielding prompt
 export function wield_ok(obj) {
-  if (!obj) return GETOBJ_SUGGEST;
-  if (obj.oclass === COIN_CLASS) return GETOBJ_EXCLUDE;
-  if (obj.oclass === WEAPON_CLASS || is_weptool(obj)) return GETOBJ_SUGGEST;
-  return GETOBJ_DOWNPLAY;
-}
-
-// Autotranslated from wield.c:340
-export async function finish_splitting(obj, player, parentObj = null) {
-  if (!obj || !player) return;
-  const { freeinv, addinv_nomerge } = await import('./invent.js');
-  freeinv(obj, player);
-  await addinv_nomerge(obj, player);
-}
-
-// Autotranslated from wield.c:499
-export function dowieldquiver() {
-  return doquiver_core("ready");
-}
-
-// Autotranslated from wield.c:835
-export async function dotwoweapon(player) {
-  if (player.twoweap) {
-    await You("switch to your primary weapon.");
-    set_twoweap(false);
-    update_inventory();
-    return ECMD_OK;
-  }
-  if (await can_twoweapon()) {
-    await You("begin two-weapon combat.");
-    set_twoweap(true);
-    update_inventory();
-    return (rnd(20) > acurr(player,A_DEX)) ? ECMD_TIME : ECMD_OK;
-  }
-  return ECMD_OK;
+  if (!obj) return 1; // GETOBJ_SUGGEST
+  if (obj.oclass === 17) return 0; // COIN_CLASS → GETOBJ_EXCLUDE
+  if (obj.oclass === WEAPON_CLASS || obj.oclass === TOOL_CLASS) return 1; // GETOBJ_SUGGEST
+  return 2; // GETOBJ_DOWNPLAY
 }

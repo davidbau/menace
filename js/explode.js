@@ -139,17 +139,17 @@ export function scatter(sx, sy, blastforce, scflags, obj, map) {
 }
 
 // cf. explode.c:959 — splatter_burning_oil(x, y, diluted_oil)
-// Autotranslated from explode.c:959
+const ZT_SPELL_O_FIRE = 11; // C: explode.c:965 local #define
 export async function splatter_burning_oil(x, y, diluted_oil) {
   let dmg = d(diluted_oil ? 3 : 4, 4);
   await explode(x, y, ZT_SPELL_O_FIRE, dmg, BURNING_OIL, EXPL_FIERY);
 }
 
 // cf. explode.c:971 — explode_oil(obj, x, y)
-export async function explode_oil(obj, x, y, map, player) {
+export async function explode_oil(obj, x, y) {
   if (obj && obj.lamplit) {
     obj.lamplit = false;
-    await splatter_burning_oil(x, y, obj.odiluted || false, map, player);
+    await splatter_burning_oil(x, y, obj.odiluted || false);
   }
 }
 
