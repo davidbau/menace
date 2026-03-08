@@ -10,7 +10,8 @@
  */
 
 // localStorage mock (required by save.js/score.js/options.js)
-if (typeof globalThis.localStorage === 'undefined') {
+// Always override — Node.js 25.x has a built-in localStorage stub that lacks getItem/setItem.
+{
   const _store = new Map();
   globalThis.localStorage = {
     getItem(key)        { return _store.has(key) ? _store.get(key) : null; },
@@ -26,6 +27,7 @@ import { GameState } from '../js/game.js';
 import { setGame } from '../js/gstate.js';
 import { wireGameDeps, startGameState } from '../js/main.js';
 import { death, total_winner } from '../js/rip.js';
+import { saveGame, loadGameState, hasSave, clearSave } from '../js/save.js';
 
 import { MockDisplay } from './mock_display.mjs';
 import { MockInput } from './mock_input.mjs';
@@ -134,9 +136,31 @@ async function testWinner() {
   console.log('testWinner: PASS (total_winner covered)');
 }
 
+/**
+ * Test saveGame() + loadGameState() — covers save.js lines 181-516.
+ */
+async function testSaveLoad() {
+  const { g, input } = await setupGame(42);
+
+  // Inject 'y' to confirm the save, then ' ' to clear the "Saved." --More-- prompt
+  input.inject('y');
+  input.inject(' ');
+
+  clearSave();
+  const saved = await saveGame();
+  console.log('testSaveLoad saveGame:', saved !== false ? 'saved' : 'failed');
+
+  // Now load it back into a new game state
+  const { g: g2 } = await setupGame(99); // use different seed to distinguish
+  const loaded = loadGameState(g2);
+  console.log('testSaveLoad loadGameState:', loaded ? 'PASS (save/load covered)' : 'FAIL (load returned false)');
+  clearSave();
+}
+
 // Run all coverage tests
 await testDeath();
 await testDeathArrow();
 await testWinner();
+await testSaveLoad();
 
 console.log('coverage_extra: all tests complete');

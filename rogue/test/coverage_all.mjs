@@ -12,8 +12,9 @@
 import path from 'path';
 import { readFileSync, readdirSync } from 'fs';
 
-// localStorage mock — must come before any game module imports
-if (typeof globalThis.localStorage === 'undefined') {
+// localStorage mock — must come before any game module imports.
+// Always override — Node.js 25.x has a built-in localStorage stub that lacks getItem/setItem.
+{
   const _store = new Map();
   globalThis.localStorage = {
     getItem(key)        { return _store.has(key) ? _store.get(key) : null; },
@@ -30,6 +31,7 @@ import { death, total_winner } from '../js/rip.js';
 import { GameState } from '../js/game.js';
 import { setGame } from '../js/gstate.js';
 import { wireGameDeps, startGameState } from '../js/main.js';
+import { saveGame, loadGameState, clearSave } from '../js/save.js';
 import { MockDisplay } from './mock_display.mjs';
 import { MockInput } from './mock_input.mjs';
 
@@ -177,6 +179,18 @@ async function testWinner() {
   await total_winner();
 }
 
+async function testSaveLoad() {
+  const { g, input } = await setupGame(42);
+  input.inject('y');
+  input.inject(' ');
+  clearSave();
+  await saveGame();
+  // Load into a fresh game state
+  const { g: g2 } = await setupGame(99);
+  loadGameState(g2);
+  clearSave();
+}
+
 // ===== Main =====
 
 const args = process.argv.slice(2);
@@ -197,3 +211,4 @@ if (allIdx >= 0 && allIdx + 1 < args.length) {
 await testDeath();
 await testDeathArrow();
 await testWinner();
+await testSaveLoad();

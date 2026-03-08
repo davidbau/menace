@@ -12,7 +12,8 @@
 
 // localStorage mock — must be installed before any game module is imported,
 // since save.js/score.js/options.js reference localStorage at module load time.
-if (typeof globalThis.localStorage === 'undefined') {
+// Always override — Node.js 25.x has a built-in localStorage stub that lacks getItem/setItem.
+{
   const _store = new Map();
   globalThis.localStorage = {
     getItem(key)        { return _store.has(key) ? _store.get(key) : null; },
