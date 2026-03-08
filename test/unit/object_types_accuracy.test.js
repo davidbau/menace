@@ -12,6 +12,7 @@ import {
   AMULET_CLASS, TOOL_CLASS, FOOD_CLASS, POTION_CLASS,
   SCROLL_CLASS, SPBOOK_CLASS, WAND_CLASS, COIN_CLASS,
   GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS, VENOM_CLASS,
+  RANDOM_CLASS, MAXOCLASSES,
   // Material types
   LIQUID, WAX, VEGGY, FLESH, PAPER, CLOTH, LEATHER, WOOD, BONE,
   DRAGON_HIDE, IRON, METAL, COPPER, SILVER, GOLD, PLATINUM,
@@ -22,28 +23,28 @@ describe('Object Class and Material Type Accuracy', () => {
   describe('Object Class Constants', () => {
     it('should have correct values matching C NetHack', () => {
       // C ref: include/objclass.h object class definitions
-      assert.strictEqual(ILLOBJ_CLASS, 0, 'ILLOBJ_CLASS should be 0');
-      assert.strictEqual(WEAPON_CLASS, 1, 'WEAPON_CLASS should be 1');
-      assert.strictEqual(ARMOR_CLASS, 2, 'ARMOR_CLASS should be 2');
-      assert.strictEqual(RING_CLASS, 3, 'RING_CLASS should be 3');
-      assert.strictEqual(AMULET_CLASS, 4, 'AMULET_CLASS should be 4');
-      assert.strictEqual(TOOL_CLASS, 5, 'TOOL_CLASS should be 5');
-      assert.strictEqual(FOOD_CLASS, 6, 'FOOD_CLASS should be 6');
-      assert.strictEqual(POTION_CLASS, 7, 'POTION_CLASS should be 7');
-      assert.strictEqual(SCROLL_CLASS, 8, 'SCROLL_CLASS should be 8');
-      assert.strictEqual(SPBOOK_CLASS, 9, 'SPBOOK_CLASS should be 9');
-      assert.strictEqual(WAND_CLASS, 10, 'WAND_CLASS should be 10');
-      assert.strictEqual(COIN_CLASS, 11, 'COIN_CLASS should be 11');
-      assert.strictEqual(GEM_CLASS, 12, 'GEM_CLASS should be 12');
-      assert.strictEqual(ROCK_CLASS, 13, 'ROCK_CLASS should be 13');
-      assert.strictEqual(BALL_CLASS, 14, 'BALL_CLASS should be 14');
-      assert.strictEqual(CHAIN_CLASS, 15, 'CHAIN_CLASS should be 15');
-      assert.strictEqual(VENOM_CLASS, 16, 'VENOM_CLASS should be 16');
+      assert.strictEqual(ILLOBJ_CLASS, 1, 'ILLOBJ_CLASS should be 1');
+      assert.strictEqual(WEAPON_CLASS, 2, 'WEAPON_CLASS should be 2');
+      assert.strictEqual(ARMOR_CLASS, 3, 'ARMOR_CLASS should be 3');
+      assert.strictEqual(RING_CLASS, 4, 'RING_CLASS should be 4');
+      assert.strictEqual(AMULET_CLASS, 5, 'AMULET_CLASS should be 5');
+      assert.strictEqual(TOOL_CLASS, 6, 'TOOL_CLASS should be 6');
+      assert.strictEqual(FOOD_CLASS, 7, 'FOOD_CLASS should be 7');
+      assert.strictEqual(POTION_CLASS, 8, 'POTION_CLASS should be 8');
+      assert.strictEqual(SCROLL_CLASS, 9, 'SCROLL_CLASS should be 9');
+      assert.strictEqual(SPBOOK_CLASS, 10, 'SPBOOK_CLASS should be 10');
+      assert.strictEqual(WAND_CLASS, 11, 'WAND_CLASS should be 11');
+      assert.strictEqual(COIN_CLASS, 12, 'COIN_CLASS should be 12');
+      assert.strictEqual(GEM_CLASS, 13, 'GEM_CLASS should be 13');
+      assert.strictEqual(ROCK_CLASS, 14, 'ROCK_CLASS should be 14');
+      assert.strictEqual(BALL_CLASS, 15, 'BALL_CLASS should be 15');
+      assert.strictEqual(CHAIN_CLASS, 16, 'CHAIN_CLASS should be 16');
+      assert.strictEqual(VENOM_CLASS, 17, 'VENOM_CLASS should be 17');
     });
 
-    it('object classes should be sequential from 0-16', () => {
+    it('object classes should be sequential from 0-17', () => {
       const classes = [
-        ILLOBJ_CLASS, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS,
+        RANDOM_CLASS, ILLOBJ_CLASS, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS,
         AMULET_CLASS, TOOL_CLASS, FOOD_CLASS, POTION_CLASS,
         SCROLL_CLASS, SPBOOK_CLASS, WAND_CLASS, COIN_CLASS,
         GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS, VENOM_CLASS
@@ -53,19 +54,19 @@ describe('Object Class and Material Type Accuracy', () => {
       }
     });
 
-    it('ILLOBJ_CLASS should be 0 (illegal/invalid object)', () => {
-      assert.strictEqual(ILLOBJ_CLASS, 0, 'ILLOBJ_CLASS is 0 (invalid)');
+    it('ILLOBJ_CLASS should be 1 (illegal/invalid object)', () => {
+      assert.strictEqual(ILLOBJ_CLASS, 1, 'ILLOBJ_CLASS is 1 (invalid)');
     });
 
     it('all object classes should be unique', () => {
       const classes = [
-        ILLOBJ_CLASS, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS,
+        RANDOM_CLASS, ILLOBJ_CLASS, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS,
         AMULET_CLASS, TOOL_CLASS, FOOD_CLASS, POTION_CLASS,
         SCROLL_CLASS, SPBOOK_CLASS, WAND_CLASS, COIN_CLASS,
         GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS, VENOM_CLASS
       ];
       const unique = new Set(classes);
-      assert.strictEqual(unique.size, 17, 'All 17 object classes should be unique');
+      assert.strictEqual(unique.size, 18, 'All 18 object classes should be unique');
     });
   });
 
@@ -114,24 +115,24 @@ describe('Object Class and Material Type Accuracy', () => {
 
   describe('Object Class Ordering', () => {
     it('WEAPON_CLASS should come first after ILLOBJ', () => {
-      assert.strictEqual(WEAPON_CLASS, 1, 'Weapons are first real class');
+      assert.strictEqual(WEAPON_CLASS, ILLOBJ_CLASS + 1, 'Weapons are first real class');
     });
 
     it('equipment should be early (weapons, armor, rings, amulets)', () => {
-      assert(WEAPON_CLASS < 5, 'WEAPON_CLASS early');
-      assert(ARMOR_CLASS < 5, 'ARMOR_CLASS early');
-      assert(RING_CLASS < 5, 'RING_CLASS early');
-      assert(AMULET_CLASS < 5, 'AMULET_CLASS early');
+      assert(WEAPON_CLASS < 6, 'WEAPON_CLASS early');
+      assert(ARMOR_CLASS < 6, 'ARMOR_CLASS early');
+      assert(RING_CLASS < 6, 'RING_CLASS early');
+      assert(AMULET_CLASS < 6, 'AMULET_CLASS early');
     });
 
     it('consumables should be in middle (food, potions, scrolls)', () => {
-      assert(FOOD_CLASS > 5 && FOOD_CLASS < 10, 'FOOD_CLASS middle');
-      assert(POTION_CLASS > 5 && POTION_CLASS < 10, 'POTION_CLASS middle');
-      assert(SCROLL_CLASS > 5 && SCROLL_CLASS < 10, 'SCROLL_CLASS middle');
+      assert(FOOD_CLASS > 6 && FOOD_CLASS < 11, 'FOOD_CLASS middle');
+      assert(POTION_CLASS > 6 && POTION_CLASS < 11, 'POTION_CLASS middle');
+      assert(SCROLL_CLASS > 6 && SCROLL_CLASS < 11, 'SCROLL_CLASS middle');
     });
 
     it('VENOM_CLASS should be last', () => {
-      assert.strictEqual(VENOM_CLASS, 16, 'VENOM_CLASS is last (16)');
+      assert.strictEqual(VENOM_CLASS, 17, 'VENOM_CLASS is last (17)');
     });
   });
 
@@ -148,7 +149,7 @@ describe('Object Class and Material Type Accuracy', () => {
       }
     });
 
-    it('all object classes should be in valid range [0, 16]', () => {
+    it('all object classes should be in valid range [0, 17]', () => {
       const classes = [
         ILLOBJ_CLASS, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS,
         AMULET_CLASS, TOOL_CLASS, FOOD_CLASS, POTION_CLASS,
@@ -156,7 +157,7 @@ describe('Object Class and Material Type Accuracy', () => {
         GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS, VENOM_CLASS
       ];
       for (const cls of classes) {
-        assert(cls >= 0 && cls <= 16, `Class ${cls} should be in [0, 16]`);
+        assert(cls >= 0 && cls <= 17, `Class ${cls} should be in [0, 16]`);
       }
     });
   });
@@ -313,18 +314,18 @@ describe('Object Class and Material Type Accuracy', () => {
   describe('Constant Relationships', () => {
     it('POTION_CLASS and SCROLL_CLASS should match tested values', () => {
       // These were already tested in potion_scroll_accuracy.test.js
-      assert.strictEqual(POTION_CLASS, 7, 'POTION_CLASS is 7');
-      assert.strictEqual(SCROLL_CLASS, 8, 'SCROLL_CLASS is 8');
+      assert.strictEqual(POTION_CLASS, 8, 'POTION_CLASS is 8');
+      assert.strictEqual(SCROLL_CLASS, 9, 'SCROLL_CLASS is 9');
     });
 
     it('SPBOOK_CLASS should match tested value', () => {
       // This was already tested in spell_accuracy.test.js
-      assert.strictEqual(SPBOOK_CLASS, 9, 'SPBOOK_CLASS is 9');
+      assert.strictEqual(SPBOOK_CLASS, 10, 'SPBOOK_CLASS is 10');
     });
 
-    it('should have exactly 17 object classes', () => {
+    it('should have exactly 18 object classes', () => {
       // ILLOBJ_CLASS(0) through VENOM_CLASS(16) = 17 classes
-      assert.strictEqual(VENOM_CLASS - ILLOBJ_CLASS + 1, 17, '17 object classes');
+      assert.strictEqual(VENOM_CLASS - RANDOM_CLASS + 1, 18, '18 object classes');
     });
 
     it('should have exactly 21 material types', () => {
@@ -376,20 +377,20 @@ describe('Object Class and Material Type Accuracy', () => {
   });
 
   describe('Critical Constant Values', () => {
-    it('ILLOBJ_CLASS should be 0 (invalid object marker)', () => {
-      assert.strictEqual(ILLOBJ_CLASS, 0, 'ILLOBJ_CLASS must be 0');
+    it('ILLOBJ_CLASS should be 1 (invalid object marker)', () => {
+      assert.strictEqual(ILLOBJ_CLASS, 1, 'ILLOBJ_CLASS must be 1');
     });
 
-    it('WEAPON_CLASS should be 1 (first valid class)', () => {
-      assert.strictEqual(WEAPON_CLASS, 1, 'WEAPON_CLASS must be 1');
+    it('WEAPON_CLASS should be 2 (first valid class)', () => {
+      assert.strictEqual(WEAPON_CLASS, 2, 'WEAPON_CLASS must be 2');
     });
 
     it('LIQUID should be 1 (first material)', () => {
       assert.strictEqual(LIQUID, 1, 'LIQUID must be 1');
     });
 
-    it('VENOM_CLASS should be 16 (last object class)', () => {
-      assert.strictEqual(VENOM_CLASS, 16, 'VENOM_CLASS must be 16');
+    it('VENOM_CLASS should be 17 (last object class)', () => {
+      assert.strictEqual(VENOM_CLASS, 17, 'VENOM_CLASS must be 17');
     });
 
     it('MINERAL should be 21 (last material type)', () => {

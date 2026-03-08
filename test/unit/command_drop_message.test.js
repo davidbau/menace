@@ -1,10 +1,10 @@
-import { beforeEach, describe, it } from 'node:test';
+import { beforeEach, describe, it, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
-import { clearInputQueue, pushInput } from '../../js/input.js';
+import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import { LONG_SWORD, SMALL_SHIELD } from '../../js/objects.js';
 import { mksobj } from '../../js/mkobj.js';
 
@@ -46,6 +46,7 @@ function makeGame() {
 
 describe('drop message formatting', () => {
     beforeEach(() => {
+        setThrowOnEmptyInput(true);
         clearInputQueue();
     });
 

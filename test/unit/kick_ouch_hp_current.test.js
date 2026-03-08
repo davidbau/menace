@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { handleKick } from '../../js/kick.js';
-import { setInputRuntime, createInputQueue, resetInputModuleState } from '../../js/input.js';
+import { setInputRuntime, createInputQueue, resetInputModuleState, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import { A_STR, A_DEX, A_CON, A_INT, A_WIS, A_CHA, ROOM, TREE } from '../../js/const.js';
 
 function makeDisplay() {

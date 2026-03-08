@@ -364,10 +364,7 @@ export const LUNG = 16;
 export const NOSE = 17;
 export const STOMACH = 18;
 
-// Object class selector for random-class generation (include/objclass.h)
-// Runtime fields:
-// - mkobj/mksobj/random object generation `oclass` selector args
-export const RANDOM_CLASS = 0;
+// RANDOM_CLASS is exported from objects.js (canonical home for _CLASS constants)
 
 // Room fill policy enum for mkroom/mklev generation (src/mkroom.c)
 // Runtime fields: room.needfill on room structs.

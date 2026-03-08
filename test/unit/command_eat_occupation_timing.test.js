@@ -1,10 +1,11 @@
-import { beforeEach, describe, it } from 'node:test';
+import { beforeEach, describe, it, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
-import { clearInputQueue, pushInput } from '../../js/input.js';
+import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
+import { FOOD_CLASS } from '../../js/objects.js';
 
 function makeGame({ quan = 1 } = {}) {
     const map = new GameMap();
@@ -14,7 +15,7 @@ function makeGame({ quan = 1 } = {}) {
     player.y = 10;
     const ration = {
         invlet: 'd',
-        oclass: 6,
+        oclass: FOOD_CLASS,
         otyp: 291, // FOOD_RATION
         name: 'food ration',
         quan,
@@ -39,6 +40,7 @@ function makeGame({ quan = 1 } = {}) {
 
 describe('eat occupation timing', () => {
     beforeEach(() => {
+        setThrowOnEmptyInput(true);
         clearInputQueue();
     });
 

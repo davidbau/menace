@@ -1,8 +1,8 @@
-import { test } from 'node:test';
+import { test, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import { handleWizLoadDes } from '../../js/wizcmds.js';
-import { clearInputQueue, pushInput } from '../../js/input.js';
+import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 
 test('#wizloaddes prompt matches C wording', async () => {
     clearInputQueue();

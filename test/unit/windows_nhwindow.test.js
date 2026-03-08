@@ -1,7 +1,7 @@
-import { beforeEach, describe, it } from 'node:test';
+import { beforeEach, describe, it, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
-import { clearInputQueue, pushInput } from '../../js/input.js';
+import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import {
     init_nhwindows, create_nhwindow, destroy_nhwindow, clear_nhwindow,
     display_nhwindow,
@@ -16,7 +16,7 @@ import {
 import { handleInventory } from '../../js/invent.js';
 import { handleKnownSpells } from '../../js/spell.js';
 import { Player } from '../../js/player.js';
-import { SPE_HEALING } from '../../js/objects.js';
+import { SPE_HEALING, WEAPON_CLASS } from '../../js/objects.js';
 
 function makeDisplay() {
     return {
@@ -29,6 +29,7 @@ function makeDisplay() {
 
 describe('nhwindow infrastructure (windows.js)', () => {
     beforeEach(() => {
+        setThrowOnEmptyInput(true);
         clearInputQueue();
         // Reset module state before each test
         init_nhwindows(null, null, null);
@@ -453,7 +454,7 @@ describe('nhwindow infrastructure (windows.js)', () => {
 
             const player = new Player();
             player.initRole(11);
-            player.inventory = [{ invlet: 'a', oclass: 1, otyp: 1, quan: 1,
+            player.inventory = [{ invlet: 'a', oclass: WEAPON_CLASS, otyp: 1, quan: 1,
                 known: true, dknown: true, bknown: true, name: 'long sword',
                 blessed: false, cursed: false, spe: 0 }];
 

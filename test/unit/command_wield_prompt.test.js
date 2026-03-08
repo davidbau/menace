@@ -1,13 +1,18 @@
-import { describe, test } from 'node:test';
+import { describe, test, beforeEach, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
-import { clearInputQueue, pushInput } from '../../js/input.js';
+import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import { DAGGER, WEAPON_CLASS, GEM_CLASS } from '../../js/objects.js';
 
 describe('wield prompt', () => {
+
+    beforeEach(() => {
+        clearInputQueue();
+        setThrowOnEmptyInput(true);
+    });
 
 function makeGame() {
     const map = new GameMap();

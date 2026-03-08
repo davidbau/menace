@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { Player, roles, races, initialAlignmentRecordForRole } from '../../js/player.js';
 import { initRng } from '../../js/rng.js';
 import { M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC } from '../../js/monsters.js';
-import { POT_HEALING, POTION_CLASS } from '../../js/objects.js';
+import { ARMOR_CLASS, POT_HEALING, POTION_CLASS, SCROLL_CLASS, WEAPON_CLASS } from '../../js/objects.js';
 
 describe('Player', () => {
     it('creates a player with default values', () => {
@@ -114,11 +114,11 @@ describe('Player', () => {
 
     it('addToInventory does not immediately reuse removed letters', () => {
         const p = new Player();
-        const a = p.addToInventory({ name: 'dagger', oclass: 1, otyp: 1 });
-        const b = p.addToInventory({ name: 'arrow', oclass: 1, otyp: 2 });
-        const c = p.addToInventory({ name: 'armor', oclass: 2, otyp: 3 });
+        const a = p.addToInventory({ name: 'dagger', oclass: WEAPON_CLASS, otyp: 1 });
+        const b = p.addToInventory({ name: 'arrow', oclass: WEAPON_CLASS, otyp: 2 });
+        const c = p.addToInventory({ name: 'armor', oclass: ARMOR_CLASS, otyp: 3 });
         p.removeFromInventory(b);
-        const next = p.addToInventory({ name: 'scroll', oclass: 8, otyp: 4 });
+        const next = p.addToInventory({ name: 'scroll', oclass: SCROLL_CLASS, otyp: 4 });
         assert.equal(a.invlet, 'a');
         assert.equal(c.invlet, 'c');
         assert.equal(next.invlet, 'd');
@@ -126,12 +126,12 @@ describe('Player', () => {
 
     it('addToInventory preserves dropped item invlet when that letter is free', () => {
         const p = new Player();
-        const dropped = p.addToInventory({ name: 'dagger', oclass: 1, otyp: 1 });
-        p.addToInventory({ name: 'arrow', oclass: 1, otyp: 2 });
-        p.addToInventory({ name: 'armor', oclass: 2, otyp: 3 });
+        const dropped = p.addToInventory({ name: 'dagger', oclass: WEAPON_CLASS, otyp: 1 });
+        p.addToInventory({ name: 'arrow', oclass: WEAPON_CLASS, otyp: 2 });
+        p.addToInventory({ name: 'armor', oclass: ARMOR_CLASS, otyp: 3 });
         p.removeFromInventory(dropped);
 
-        const pickedBack = p.addToInventory({ name: 'dagger', oclass: 1, otyp: 1, invlet: 'a' });
+        const pickedBack = p.addToInventory({ name: 'dagger', oclass: WEAPON_CLASS, otyp: 1, invlet: 'a' });
         assert.equal(pickedBack.invlet, 'a');
         assert.equal(p.lastInvlet, 2);
     });
@@ -140,11 +140,11 @@ describe('Player', () => {
         const p = new Player();
         const items = [];
         for (let i = 0; i < 52; i++) {
-            items.push(p.addToInventory({ name: `item${i}`, oclass: 1, otyp: i + 1 }));
+            items.push(p.addToInventory({ name: `item${i}`, oclass: WEAPON_CLASS, otyp: i + 1 }));
         }
         const removed = items.find((it) => it.invlet === 'b');
         p.removeFromInventory(removed);
-        const wrapped = p.addToInventory({ name: 'replacement', oclass: 1, otyp: 999 });
+        const wrapped = p.addToInventory({ name: 'replacement', oclass: WEAPON_CLASS, otyp: 999 });
         assert.equal(wrapped.invlet, 'b');
     });
 

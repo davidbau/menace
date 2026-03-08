@@ -1,4 +1,4 @@
-import { describe, it, beforeEach } from 'node:test';
+import { describe, it, beforeEach, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
@@ -22,14 +22,15 @@ import {
     cmdq_peek,
     cmdq_clear,
     setCmdqInputMode,
-    setCmdqRepeatRecordMode,
-} from '../../js/input.js';
+    setCmdqRepeatRecordMode,, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import { CMDQ_KEY, CMDQ_INT, CMDQ_DIR, CMDQ_USER_INPUT, CQ_CANNED, CQ_REPEAT } from '../../js/const.js';
 import { mapBrowserKeyToNhCode } from '../../js/browser_input.js';
 import { createHeadlessInput } from '../../js/headless.js';
 
 describe('input runtime primitives', () => {
     beforeEach(() => {
+        clearInputQueue();
+        setThrowOnEmptyInput(true);
         setInputRuntime(createInputQueue());
     });
 

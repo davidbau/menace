@@ -7,7 +7,7 @@ import {
     WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
     TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS,
     SPBOOK_CLASS, WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS
-} from '../../js/const.js';
+} from '../../js/objects.js';
 
 describe('pickup types', () => {
 

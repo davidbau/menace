@@ -70,12 +70,12 @@ describe('Potion and Scroll Accuracy', () => {
   describe('Object Class Constants', () => {
     it('POTION_CLASS should be 7', () => {
       // C ref: include/objclass.h POTION_CLASS
-      assert.strictEqual(POTION_CLASS, 7, 'POTION_CLASS should be 7');
+      assert.strictEqual(POTION_CLASS, 8, 'POTION_CLASS should be 8');
     });
 
     it('SCROLL_CLASS should be 8', () => {
       // C ref: include/objclass.h SCROLL_CLASS
-      assert.strictEqual(SCROLL_CLASS, 8, 'SCROLL_CLASS should be 8');
+      assert.strictEqual(SCROLL_CLASS, 9, 'SCROLL_CLASS should be 9');
     });
 
     it('scrolls should come after potions', () => {

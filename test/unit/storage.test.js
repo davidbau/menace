@@ -8,7 +8,7 @@ import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.
 import { makemon } from '../../js/makemon.js';
 import { mksobj } from '../../js/mkobj.js';
 import { mons, PM_GHOST } from '../../js/monsters.js';
-import { objectData, SCR_EARTH } from '../../js/objects.js';
+import { ARMOR_CLASS, objectData, SCR_EARTH, WEAPON_CLASS } from '../../js/objects.js';
 import { COLNO, ROWNO, ACCESSIBLE, NO_MM_FLAGS } from '../../js/const.js';
 import { Player, roles } from '../../js/player.js';
 import { GameMap } from '../../js/game.js';
@@ -183,7 +183,7 @@ describe('Monster save/restore (saveMon/restMon)', () => {
     });
 
     it('saveMonChn properly strips displayChar from minvent items', () => {
-        const item = { name: 'dagger', oclass: 1, otyp: 5, displayChar: ')' };
+        const item = { name: 'dagger', oclass: WEAPON_CLASS, otyp: 5, displayChar: ')' };
         const mon = {
             mndx: 0, name: 'test', mx: 5, my: 5, mhp: 10, mhpmax: 10,
             mlevel: 1, mac: 10, speed: 12, movement: 0,
@@ -318,9 +318,9 @@ describe('Player save/restore (saveYou/restYou)', () => {
         p.initRole(11); // Valkyrie
 
         // Add items to inventory
-        const dagger = { name: 'dagger', oclass: 1, otyp: 5, owt: 10, spe: 0,
+        const dagger = { name: 'dagger', oclass: WEAPON_CLASS, otyp: 5, owt: 10, spe: 0,
                          blessed: false, cursed: false, displayChar: ')' };
-        const armor = { name: 'leather armor', oclass: 2, otyp: 100, owt: 150, spe: 0,
+        const armor = { name: 'leather armor', oclass: ARMOR_CLASS, otyp: 100, owt: 150, spe: 0,
                         blessed: false, cursed: false, displayChar: '[' };
         p.addToInventory(dagger);
         p.addToInventory(armor);
@@ -554,7 +554,7 @@ describe('Save/load game (localStorage, v2 format)', () => {
         player.y = 7;
         player.name = 'SaveTest';
         player.gold = 50;
-        const dagger = { name: 'dagger', oclass: 1, otyp: 5, owt: 10, spe: 0,
+        const dagger = { name: 'dagger', oclass: WEAPON_CLASS, otyp: 5, owt: 10, spe: 0,
                          blessed: false, cursed: false, displayChar: ')' };
         player.addToInventory(dagger);
         player.weapon = dagger;
@@ -985,7 +985,7 @@ describe('saveGameState/restGameState round-trip', () => {
         player.name = 'TestHero';
         player.gold = 100;
 
-        const dagger = { name: 'dagger', oclass: 1, otyp: 5, owt: 10, spe: 0,
+        const dagger = { name: 'dagger', oclass: WEAPON_CLASS, otyp: 5, owt: 10, spe: 0,
                          blessed: false, cursed: false, displayChar: ')' };
         player.addToInventory(dagger);
         player.weapon = dagger;

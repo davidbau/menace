@@ -1,10 +1,10 @@
-import { beforeEach, describe, it } from 'node:test';
+import { beforeEach, describe, it, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
-import { clearInputQueue, pushInput } from '../../js/input.js';
+import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 
 function makeGame(verbose = true) {
     const map = new GameMap();
@@ -37,6 +37,7 @@ function makeGame(verbose = true) {
 
 describe('direction prompt cancel flow', () => {
     beforeEach(() => {
+        setThrowOnEmptyInput(true);
         clearInputQueue();
     });
 

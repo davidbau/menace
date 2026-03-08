@@ -12,7 +12,6 @@ import {
     FIRE_RES, COLD_RES, SHOCK_RES, ACID_RES, FREE_ACTION,
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE, EF_GREASE, EF_VERBOSE,
-    RANDOM_CLASS,
 } from './const.js';
 import { spec_dbon } from './artifact.js';
 import {
@@ -38,7 +37,7 @@ import {
     POT_RESTORE_ABILITY, POT_GAIN_ABILITY,
     BOULDER, HEAVY_IRON_BALL, IRON_CHAIN, MIRROR, CLOVE_OF_GARLIC,
     SILVER, IRON, METAL, VEGGY, PAPER,
-    WEAPON_CLASS, GEM_CLASS, TOOL_CLASS, SPBOOK_CLASS, COIN_CLASS,
+    WEAPON_CLASS, GEM_CLASS, TOOL_CLASS, SPBOOK_CLASS, COIN_CLASS, RANDOM_CLASS,
 } from './objects.js';
 import { mkobj, mkcorpstat, next_ident, xname } from './mkobj.js';
 import { hitval as weapon_hitval, dmgval, abon, dbon, weapon_hit_bonus, weapon_dam_bonus } from './weapon.js';

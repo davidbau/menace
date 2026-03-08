@@ -1,11 +1,11 @@
-import { beforeEach, describe, it } from 'node:test';
+import { beforeEach, describe, it, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
-import { clearInputQueue, pushInput } from '../../js/input.js';
-import { POT_EXTRA_HEALING, POTION_CLASS } from '../../js/objects.js';
+import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
+import { POT_EXTRA_HEALING, POTION_CLASS, WEAPON_CLASS } from '../../js/objects.js';
 import { setGame } from '../../js/gstate.js';
 
 function makeGame() {
@@ -15,9 +15,9 @@ function makeGame() {
     player.x = 10;
     player.y = 10;
     player.inventory = [
-        { invlet: 'a', oclass: 1, name: 'dagger' },
-        { invlet: 'd', oclass: 7, name: 'potion of healing' },
-        { invlet: 'e', oclass: 7, name: 'potion of healing' },
+        { invlet: 'a', oclass: WEAPON_CLASS, name: 'dagger' },
+        { invlet: 'd', oclass: POTION_CLASS, name: 'potion of healing' },
+        { invlet: 'e', oclass: POTION_CLASS, name: 'potion of healing' },
     ];
 
     const display = {
@@ -38,6 +38,7 @@ function makeGame() {
 
 describe('quaff prompt', () => {
     beforeEach(() => {
+        setThrowOnEmptyInput(true);
         clearInputQueue();
     });
 

@@ -1,8 +1,8 @@
-import { describe, it } from 'node:test';
+import { describe, it, beforeEach, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import { NetHackGame } from '../../js/chargen.js';
-import { createInputQueue } from '../../js/input.js';
+import { createInputQueue, clearInputQueue, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import { createHeadlessGame, HeadlessDisplay } from '../../js/headless.js';
 import { COLNO, ROWNO, STONE } from '../../js/const.js';
 
@@ -14,6 +14,11 @@ function queueLine(input, text) {
 }
 
 describe('wizard mode init and commands', () => {
+    beforeEach(() => {
+        clearInputQueue();
+        setThrowOnEmptyInput(true);
+    });
+
     it('NetHackGame init honors wizard option from init options', async () => {
         const input = createInputQueue();
         const game = new NetHackGame({

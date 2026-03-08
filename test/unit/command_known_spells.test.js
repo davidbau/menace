@@ -1,11 +1,11 @@
-import { beforeEach, describe, it } from 'node:test';
+import { beforeEach, describe, it, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
-import { clearInputQueue, pushInput } from '../../js/input.js';
-import { SPE_HEALING, SPE_STONE_TO_FLESH } from '../../js/objects.js';
+import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
+import { SPBOOK_CLASS, SPE_HEALING, SPE_STONE_TO_FLESH, WEAPON_CLASS } from '../../js/objects.js';
 
 function makeGame() {
     const map = new GameMap();
@@ -39,12 +39,13 @@ function makeGame() {
 
 describe('known spells command', () => {
     beforeEach(() => {
+        setThrowOnEmptyInput(true);
         clearInputQueue();
     });
 
     it('reports when no spells are known', async () => {
         const game = makeGame();
-        game.player.inventory = [{ invlet: 'a', oclass: 1, otyp: 1, name: 'long sword' }];
+        game.player.inventory = [{ invlet: 'a', oclass: WEAPON_CLASS, otyp: 1, name: 'long sword' }];
         const result = await rhack('+'.charCodeAt(0), game);
         assert.equal(result.tookTime, false);
         assert.equal(game.display.topMessage, "You don't know any spells right now.");
@@ -56,12 +57,12 @@ describe('known spells command', () => {
         game.player.turns = 6;
         game.player.inventory = [{
             invlet: 'g',
-            oclass: 9, // SPBOOK_CLASS
+            oclass: SPBOOK_CLASS,
             otyp: SPE_HEALING,
             name: 'healing',
         }, {
             invlet: 'h',
-            oclass: 9,
+            oclass: SPBOOK_CLASS,
             otyp: SPE_STONE_TO_FLESH,
             name: 'stone to flesh',
         }];

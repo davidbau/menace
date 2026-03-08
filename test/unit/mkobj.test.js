@@ -4,9 +4,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { initRng } from '../../js/rng.js';
-import { ACCESSIBLE, RANDOM_CLASS } from '../../js/const.js';
+import { ACCESSIBLE } from '../../js/const.js';
 import { mksobj, mkobj } from '../../js/mkobj.js';
-import { objectData, NUM_OBJECTS,
+import { objectData, NUM_OBJECTS, RANDOM_CLASS,
     WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS, COIN_CLASS, WAND_CLASS,
 } from '../../js/objects.js';
 import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';

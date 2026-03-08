@@ -1,12 +1,12 @@
-import { beforeEach, describe, it } from 'node:test';
+import { beforeEach, describe, it, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
-import { clearInputQueue, pushInput } from '../../js/input.js';
+import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import { ROOM } from '../../js/const.js';
-import { FLINT, GEM_CLASS, ORCISH_DAGGER } from '../../js/objects.js';
+import { ARMOR_CLASS, COIN_CLASS, FLINT, GEM_CLASS, ORCISH_DAGGER, POTION_CLASS, WEAPON_CLASS } from '../../js/objects.js';
 
 function makeGame() {
     const map = new GameMap();
@@ -20,8 +20,8 @@ function makeGame() {
     player.x = 10;
     player.y = 10;
     player.inventory = [
-        { invlet: 'b', oclass: 1, otyp: ORCISH_DAGGER, name: 'dagger' },
-        { invlet: 'd', oclass: 7, name: 'potion of healing' },
+        { invlet: 'b', oclass: WEAPON_CLASS, otyp: ORCISH_DAGGER, name: 'dagger' },
+        { invlet: 'd', oclass: POTION_CLASS, name: 'potion of healing' },
     ];
 
     const display = {
@@ -44,6 +44,7 @@ function makeGame() {
 
 describe('throw prompt behavior', () => {
     beforeEach(() => {
+        setThrowOnEmptyInput(true);
         clearInputQueue();
     });
 
@@ -90,9 +91,9 @@ describe('throw prompt behavior', () => {
     it('falls back to coin letter when only wielded weapon plus coins remain', async () => {
         const game = makeGame();
         game.player.inventory = [
-            { invlet: 'a', oclass: 1, name: 'scalpel' },
-            { invlet: '$', oclass: 11, name: 'gold piece', quan: 50 },
-            { invlet: 'e', oclass: 7, name: 'potion of extra healing', quan: 4 },
+            { invlet: 'a', oclass: WEAPON_CLASS, name: 'scalpel' },
+            { invlet: '$', oclass: COIN_CLASS, name: 'gold piece', quan: 50 },
+            { invlet: 'e', oclass: POTION_CLASS, name: 'potion of extra healing', quan: 4 },
         ];
         game.player.weapon = game.player.inventory[0];
         game.player.quiver = game.player.inventory[2];
@@ -132,7 +133,7 @@ describe('throw prompt behavior', () => {
 
     it('asks direction before rejecting worn item throw', async () => {
         const game = makeGame();
-        const worn = { invlet: 'e', oclass: 2, name: 'leather armor' };
+        const worn = { invlet: 'e', oclass: ARMOR_CLASS, name: 'leather armor' };
         game.player.inventory.push(worn);
         game.player.armor = worn;
         pushInput('e'.charCodeAt(0));

@@ -1,12 +1,18 @@
-import { describe, test } from 'node:test';
+import { describe, test, beforeEach, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
-import { clearInputQueue, pushInput } from '../../js/input.js';
+import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
+import { ARMOR_CLASS, WEAPON_CLASS } from '../../js/objects.js';
 
 describe('drop count prompt', () => {
+
+    beforeEach(() => {
+        clearInputQueue();
+        setThrowOnEmptyInput(true);
+    });
 
 function makeGame() {
     const map = new GameMap();
@@ -15,8 +21,8 @@ function makeGame() {
     player.x = 10;
     player.y = 10;
     player.inventory = [
-        { invlet: 'b', oclass: 1, name: 'short sword' },
-        { invlet: 'c', oclass: 2, name: 'ring mail' },
+        { invlet: 'b', oclass: WEAPON_CLASS, name: 'short sword' },
+        { invlet: 'c', oclass: ARMOR_CLASS, name: 'ring mail' },
     ];
     const display = {
         topMessage: null,

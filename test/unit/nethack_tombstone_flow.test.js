@@ -1,8 +1,8 @@
-import { describe, it } from 'node:test';
+import { describe, it, beforeEach, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import { NetHackGame } from '../../js/chargen.js';
-import { createInputQueue, setInputRuntime } from '../../js/input.js';
+import { createInputQueue, setInputRuntime, clearInputQueue, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import { RACE_HUMAN, FEMALE, A_NEUTRAL } from '../../js/const.js';
 
 function makeStorage() {
@@ -54,6 +54,11 @@ function seedPlayer(game) {
 }
 
 describe('NetHackGame showGameOver tombstone flow', () => {
+    beforeEach(() => {
+        clearInputQueue();
+        setThrowOnEmptyInput(true);
+    });
+
     it('renders tombstone and waits for keypress when enabled', async () => {
         globalThis.localStorage = makeStorage();
         const input = createInputQueue();

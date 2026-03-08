@@ -91,7 +91,7 @@ import {
     AD_STCK, AD_FIRE, AD_DGST, AD_WRAP,
     G_UNIQ,
 } from '../../js/monsters.js';
-import { AMULET_OF_YENDOR, FOOD_CLASS, BANANA, CORPSE, TRIPE_RATION,
+import { AMULET_CLASS, AMULET_OF_YENDOR, FOOD_CLASS, BANANA, CORPSE, TRIPE_RATION,
          CARROT } from '../../js/objects.js';
 
 // ========================================================================
@@ -1372,7 +1372,7 @@ describe('befriend_with_obj', () => {
     });
 
     it('little dog is NOT befriended by non-food', () => {
-        const obj = { otyp: AMULET_OF_YENDOR, oclass: 0 };
+        const obj = { otyp: AMULET_OF_YENDOR, oclass: AMULET_CLASS };
         assert.equal(befriend_with_obj(mons[PM_LITTLE_DOG], obj), false);
     });
 

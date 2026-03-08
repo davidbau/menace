@@ -10,36 +10,37 @@ import {
   ILLOBJ_CLASS, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
   TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
   WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS,
-  VENOM_CLASS
+  VENOM_CLASS, RANDOM_CLASS, MAXOCLASSES
 } from '../../js/objects.js';
 
 describe('Object System Accuracy', () => {
   describe('Object Class Constants', () => {
     it('should match C NetHack object classes', () => {
       // C ref: objclass.h object class definitions
-      assert.strictEqual(ILLOBJ_CLASS, 0, 'ILLOBJ_CLASS should be 0');
-      assert.strictEqual(WEAPON_CLASS, 1, 'WEAPON_CLASS should be 1');
-      assert.strictEqual(ARMOR_CLASS, 2, 'ARMOR_CLASS should be 2');
-      assert.strictEqual(RING_CLASS, 3, 'RING_CLASS should be 3');
-      assert.strictEqual(AMULET_CLASS, 4, 'AMULET_CLASS should be 4');
-      assert.strictEqual(TOOL_CLASS, 5, 'TOOL_CLASS should be 5');
-      assert.strictEqual(FOOD_CLASS, 6, 'FOOD_CLASS should be 6');
-      assert.strictEqual(POTION_CLASS, 7, 'POTION_CLASS should be 7');
-      assert.strictEqual(SCROLL_CLASS, 8, 'SCROLL_CLASS should be 8');
-      assert.strictEqual(SPBOOK_CLASS, 9, 'SPBOOK_CLASS should be 9');
-      assert.strictEqual(WAND_CLASS, 10, 'WAND_CLASS should be 10');
-      assert.strictEqual(COIN_CLASS, 11, 'COIN_CLASS should be 11');
-      assert.strictEqual(GEM_CLASS, 12, 'GEM_CLASS should be 12');
-      assert.strictEqual(ROCK_CLASS, 13, 'ROCK_CLASS should be 13');
-      assert.strictEqual(BALL_CLASS, 14, 'BALL_CLASS should be 14');
-      assert.strictEqual(CHAIN_CLASS, 15, 'CHAIN_CLASS should be 15');
-      assert.strictEqual(VENOM_CLASS, 16, 'VENOM_CLASS should be 16');
+      assert.strictEqual(RANDOM_CLASS, 0, 'RANDOM_CLASS should be 0');
+      assert.strictEqual(ILLOBJ_CLASS, 1, 'ILLOBJ_CLASS should be 1');
+      assert.strictEqual(WEAPON_CLASS, 2, 'WEAPON_CLASS should be 2');
+      assert.strictEqual(ARMOR_CLASS, 3, 'ARMOR_CLASS should be 3');
+      assert.strictEqual(RING_CLASS, 4, 'RING_CLASS should be 4');
+      assert.strictEqual(AMULET_CLASS, 5, 'AMULET_CLASS should be 5');
+      assert.strictEqual(TOOL_CLASS, 6, 'TOOL_CLASS should be 6');
+      assert.strictEqual(FOOD_CLASS, 7, 'FOOD_CLASS should be 7');
+      assert.strictEqual(POTION_CLASS, 8, 'POTION_CLASS should be 8');
+      assert.strictEqual(SCROLL_CLASS, 9, 'SCROLL_CLASS should be 9');
+      assert.strictEqual(SPBOOK_CLASS, 10, 'SPBOOK_CLASS should be 10');
+      assert.strictEqual(WAND_CLASS, 11, 'WAND_CLASS should be 11');
+      assert.strictEqual(COIN_CLASS, 12, 'COIN_CLASS should be 12');
+      assert.strictEqual(GEM_CLASS, 13, 'GEM_CLASS should be 13');
+      assert.strictEqual(ROCK_CLASS, 14, 'ROCK_CLASS should be 14');
+      assert.strictEqual(BALL_CLASS, 15, 'BALL_CLASS should be 15');
+      assert.strictEqual(CHAIN_CLASS, 16, 'CHAIN_CLASS should be 16');
+      assert.strictEqual(VENOM_CLASS, 17, 'VENOM_CLASS should be 17');
     });
 
     it('should have sequential class values', () => {
-      // C ref: Object classes are sequential from 0 to 16
+      // C ref: Object classes are sequential from 0 to 17
       const classes = [
-        ILLOBJ_CLASS, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
+        RANDOM_CLASS, ILLOBJ_CLASS, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
         TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
         WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS,
         CHAIN_CLASS, VENOM_CLASS
@@ -54,8 +55,8 @@ describe('Object System Accuracy', () => {
 
   describe('Object Class Semantics', () => {
     it('ILLOBJ_CLASS should be first (invalid object)', () => {
-      assert.strictEqual(ILLOBJ_CLASS, 0,
-        'ILLOBJ_CLASS (illegal object) should be 0');
+      assert.strictEqual(ILLOBJ_CLASS, 1,
+        'ILLOBJ_CLASS (illegal object) should be 1');
     });
 
     it('WEAPON_CLASS should come before ARMOR_CLASS', () => {
@@ -73,7 +74,7 @@ describe('Object System Accuracy', () => {
 
     it('COIN_CLASS should be distinct', () => {
       // Coins/gold are special
-      assert.strictEqual(COIN_CLASS, 11, 'COIN_CLASS should be 11');
+      assert.strictEqual(COIN_CLASS, 12, 'COIN_CLASS should be 12');
       assert(COIN_CLASS > WAND_CLASS, 'Coins come after wands');
       assert(COIN_CLASS < GEM_CLASS, 'Coins come before gems');
     });
@@ -101,10 +102,10 @@ describe('Object System Accuracy', () => {
       }
     });
 
-    it('should have exactly 17 object classes', () => {
-      // C ref: NetHack has 17 object classes (0-16)
-      assert.strictEqual(VENOM_CLASS, 16,
-        'VENOM_CLASS (last class) should be 16');
+    it('should have exactly 18 object classes (including RANDOM_CLASS)', () => {
+      // C ref: NetHack has 18 object classes (0-17, including RANDOM_CLASS)
+      assert.strictEqual(VENOM_CLASS, 17,
+        'VENOM_CLASS (last class) should be 17');
     });
   });
 
@@ -179,35 +180,35 @@ describe('Object System Accuracy', () => {
   describe('Special Object Handling', () => {
     it('ILLOBJ_CLASS should never be used for real objects', () => {
       // ILLOBJ_CLASS (0) represents invalid/illegal objects
-      assert.strictEqual(ILLOBJ_CLASS, 0,
-        'ILLOBJ_CLASS is 0 (falsy value for validation)');
+      assert.strictEqual(ILLOBJ_CLASS, 1,
+        'ILLOBJ_CLASS is 1');
     });
 
     it('COIN_CLASS should be special', () => {
       // Coins/gold have unique stacking and display
-      assert.strictEqual(COIN_CLASS, 11, 'Coins are class 11');
+      assert.strictEqual(COIN_CLASS, 12, 'Coins are class 12');
       assert(COIN_CLASS !== ILLOBJ_CLASS, 'Coins are valid objects');
     });
 
     it('VENOM_CLASS should be last', () => {
       // Venom is added late in NetHack development
-      assert.strictEqual(VENOM_CLASS, 16, 'VENOM_CLASS is highest (16)');
+      assert.strictEqual(VENOM_CLASS, 17, 'VENOM_CLASS is highest (17)');
     });
   });
 
   describe('Object Class Documentation', () => {
     it('class values should match C objclass.h comments', () => {
       // C ref: objclass.h has specific class ordering and values
-      // ILLOBJ=0, WEAPON=1, ARMOR=2, RING=3, AMULET=4, TOOL=5,
-      // FOOD=6, POTION=7, SCROLL=8, SPBOOK=9, WAND=10, COIN=11,
-      // GEM=12, ROCK=13, BALL=14, CHAIN=15, VENOM=16
+      // RANDOM=0, ILLOBJ=1, WEAPON=2, ARMOR=3, RING=4, AMULET=5, TOOL=6,
+      // FOOD=7, POTION=8, SCROLL=9, SPBOOK=10, WAND=11, COIN=12,
+      // GEM=13, ROCK=14, BALL=15, CHAIN=16, VENOM=17
 
       const expected = {
-        ILLOBJ_CLASS: 0, WEAPON_CLASS: 1, ARMOR_CLASS: 2, RING_CLASS: 3,
-        AMULET_CLASS: 4, TOOL_CLASS: 5, FOOD_CLASS: 6, POTION_CLASS: 7,
-        SCROLL_CLASS: 8, SPBOOK_CLASS: 9, WAND_CLASS: 10, COIN_CLASS: 11,
-        GEM_CLASS: 12, ROCK_CLASS: 13, BALL_CLASS: 14, CHAIN_CLASS: 15,
-        VENOM_CLASS: 16
+        RANDOM_CLASS: 0, ILLOBJ_CLASS: 1, WEAPON_CLASS: 2, ARMOR_CLASS: 3,
+        RING_CLASS: 4, AMULET_CLASS: 5, TOOL_CLASS: 6, FOOD_CLASS: 7,
+        POTION_CLASS: 8, SCROLL_CLASS: 9, SPBOOK_CLASS: 10, WAND_CLASS: 11,
+        COIN_CLASS: 12, GEM_CLASS: 13, ROCK_CLASS: 14, BALL_CLASS: 15,
+        CHAIN_CLASS: 16, VENOM_CLASS: 17
       };
 
       assert.strictEqual(ILLOBJ_CLASS, expected.ILLOBJ_CLASS);

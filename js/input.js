@@ -182,6 +182,7 @@ export function resetInputModuleState() {
     cmdqRepeatRecordMode = false;
     _cmdQueues[CQ_CANNED] = null;
     _cmdQueues[CQ_REPEAT] = null;
+    _throwOnEmptyInput = false;
 }
 
 export function setCmdqInputMode(inDoAgain) {
@@ -200,6 +201,19 @@ export function clearInputQueue() {
     if (typeof activeInputRuntime.clearInputQueue === 'function') {
         activeInputRuntime.clearInputQueue();
     }
+}
+
+export function getInputQueueLength() {
+    if (typeof activeInputRuntime.getInputState === 'function') {
+        return activeInputRuntime.getInputState().queueLength;
+    }
+    return 0;
+}
+
+let _throwOnEmptyInput = false;
+
+export function setThrowOnEmptyInput(enabled) {
+    _throwOnEmptyInput = !!enabled;
 }
 
 const _cmdQueues = {
@@ -450,6 +464,14 @@ function _getRawKey() {
             ynTrace('raw=replay', key, String.fromCharCode(key));
             recordKey(key);
             return Promise.resolve(key);
+        }
+    }
+
+    if (_throwOnEmptyInput) {
+        const state = typeof activeInputRuntime.getInputState === 'function'
+            ? activeInputRuntime.getInputState() : null;
+        if (!state || state.queueLength === 0) {
+            throw new Error('Input queue empty - test may be missing keystrokes');
         }
     }
 

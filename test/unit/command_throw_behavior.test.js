@@ -1,10 +1,11 @@
-import { beforeEach, describe, it } from 'node:test';
+import { beforeEach, describe, it, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
-import { clearInputQueue, pushInput } from '../../js/input.js';
+import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
+import { ARMOR_CLASS, WEAPON_CLASS } from '../../js/objects.js';
 
 function makeBaseGame() {
     const map = new GameMap();
@@ -34,6 +35,7 @@ function makeBaseGame() {
 
 describe('throw behavior parity', () => {
     beforeEach(() => {
+        setThrowOnEmptyInput(true);
         clearInputQueue();
     });
 
@@ -42,7 +44,7 @@ describe('throw behavior parity', () => {
         const darts = {
             invlet: 'b',
             quan: 3,
-            oclass: 1,
+            oclass: WEAPON_CLASS,
             otyp: 0,
             name: 'dart',
         };
@@ -65,7 +67,7 @@ describe('throw behavior parity', () => {
         const armor = {
             invlet: 'a',
             quan: 1,
-            oclass: 2,
+            oclass: ARMOR_CLASS,
             otyp: 0,
             name: 'ring mail',
         };

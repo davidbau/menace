@@ -68,12 +68,12 @@ describe('Spell System Accuracy', () => {
   describe('Spellbook Class Constant', () => {
     it('SPBOOK_CLASS should be 9', () => {
       // C ref: include/objclass.h SPBOOK_CLASS
-      assert.strictEqual(SPBOOK_CLASS, 9, 'SPBOOK_CLASS should be 9');
+      assert.strictEqual(SPBOOK_CLASS, 10, 'SPBOOK_CLASS should be 10');
     });
 
     it('SPBOOK_CLASS should come after SCROLL_CLASS', () => {
-      // SPBOOK_CLASS=9 follows SCROLL_CLASS=8
-      assert.strictEqual(SPBOOK_CLASS, 9, 'Spellbooks follow scrolls');
+      // SPBOOK_CLASS=10 follows SCROLL_CLASS=9
+      assert.strictEqual(SPBOOK_CLASS, 10, 'Spellbooks follow scrolls');
     });
   });
 

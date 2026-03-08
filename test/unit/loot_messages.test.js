@@ -1,11 +1,16 @@
-import { describe, it } from 'node:test';
+import { describe, it, beforeEach, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import { handleLoot } from '../../js/pickup.js';
 import { objectData, CHEST, APPLE, CARROT } from '../../js/objects.js';
-import { clearInputQueue, pushInput } from '../../js/input.js';
+import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 
 describe('loot messaging', () => {
+    beforeEach(() => {
+        clearInputQueue();
+        setThrowOnEmptyInput(true);
+    });
+
     it('shows each looted item instead of only a summary count', async () => {
         const apple = { otyp: APPLE, oclass: objectData[APPLE].oc_class, quan: 1, dknown: true };
         const carrot = { otyp: CARROT, oclass: objectData[CARROT].oc_class, quan: 1, dknown: true };

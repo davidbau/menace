@@ -1,7 +1,7 @@
 // Test autopickup option behavior
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { POTION_CLASS, SCROLL_CLASS, WEAPON_CLASS, RING_CLASS } from '../../js/const.js';
+import { POTION_CLASS, SCROLL_CLASS, WEAPON_CLASS, RING_CLASS } from '../../js/objects.js';
 
 test('autopickup option behavior', () => {
     // Mock player, map, display, game
@@ -14,7 +14,7 @@ test('autopickup option behavior', () => {
         }
     };
 
-    const testObj = { name: 'a dagger', oclass: 10, invlet: 'a' };
+    const testObj = { name: 'a dagger', oclass: WEAPON_CLASS, invlet: 'a' };
     const objects = [testObj];
 
     const map = {

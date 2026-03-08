@@ -1,10 +1,10 @@
-import { beforeEach, describe, it } from 'node:test';
+import { beforeEach, describe, it, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
-import { clearInputQueue, pushInput } from '../../js/input.js';
+import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import {
     COIN_CLASS, GOLD_PIECE, TOOL_CLASS, STETHOSCOPE, WEAPON_CLASS, SCALPEL,
     SPBOOK_CLASS, OIL_LAMP, ARMOR_CLASS, SMALL_SHIELD, SPE_HEALING, FLINT, SLING,
@@ -94,11 +94,20 @@ function addInventoryItems(player, count, oclass = WEAPON_CLASS) {
 
 describe('inventory modal dismissal', () => {
     beforeEach(() => {
+        setThrowOnEmptyInput(true);
         clearInputQueue();
+    });
+
+    afterEach(() => {
+        const remaining = getInputQueueLength();
+        setThrowOnEmptyInput(false);
+        clearInputQueue();
+        assert.equal(remaining, 0, `Test did not consume all pushed inputs (${remaining} remaining)`);
     });
 
     it('keeps inventory open on non-dismiss keys and closes on space', async () => {
         const { game } = makeGame();
+        setThrowOnEmptyInput(false); // staged input: keys pushed after rhack starts
         pushInput('o'.charCodeAt(0));
 
         const pending = rhack('i'.charCodeAt(0), game);
@@ -330,6 +339,7 @@ describe('inventory modal dismissal', () => {
 
     it('keeps item action menu open on invalid keys, then allows c-name flow', async () => {
         const { game } = makeGame();
+        setThrowOnEmptyInput(false); // staged input: keys pushed after rhack starts
         const scalpel = {
             oclass: WEAPON_CLASS,
             otyp: SCALPEL,

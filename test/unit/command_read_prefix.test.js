@@ -1,12 +1,18 @@
-import { describe, test } from 'node:test';
+import { describe, test, beforeEach, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
-import { clearInputQueue, pushInput } from '../../js/input.js';
+import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
+import { POTION_CLASS, SPBOOK_CLASS } from '../../js/objects.js';
 
 describe('read prefix', () => {
+
+    beforeEach(() => {
+        clearInputQueue();
+        setThrowOnEmptyInput(true);
+    });
 
 function makeGame() {
     const map = new GameMap();
@@ -57,7 +63,7 @@ test('double m-prefix cancels silently', async () => {
 
 test('read command rejects non-readable inventory items with C wording', async () => {
     const game = makeGame();
-    game.player.inventory = [{ invlet: 'a', oclass: 7, name: 'potion of healing' }];
+    game.player.inventory = [{ invlet: 'a', oclass: POTION_CLASS, name: 'potion of healing' }];
     clearInputQueue();
     pushInput('a'.charCodeAt(0));
 
@@ -69,9 +75,9 @@ test('read command rejects non-readable inventory items with C wording', async (
 test('read prompt includes readable inventory letters in C format', async () => {
     const game = makeGame();
     game.player.inventory = [
-        { invlet: 'g', oclass: 9, name: 'healing' },
-        { invlet: 'h', oclass: 9, name: 'extra healing' },
-        { invlet: 'i', oclass: 9, name: 'stone to flesh' },
+        { invlet: 'g', oclass: SPBOOK_CLASS, name: 'healing' },
+        { invlet: 'h', oclass: SPBOOK_CLASS, name: 'extra healing' },
+        { invlet: 'i', oclass: SPBOOK_CLASS, name: 'stone to flesh' },
     ];
     clearInputQueue();
     pushInput(' '.charCodeAt(0));
@@ -86,7 +92,7 @@ test('reading a spellbook prompts for memory refresh', async () => {
     const game = makeGame();
     const SPE_STONE_TO_FLESH = 403;
     game.player.inventory = [
-        { invlet: 'i', oclass: 9, otyp: SPE_STONE_TO_FLESH, name: 'stone to flesh' },
+        { invlet: 'i', oclass: SPBOOK_CLASS, otyp: SPE_STONE_TO_FLESH, name: 'stone to flesh' },
     ];
     // Player already knows the spell well (sp_know > SPELL_KEEN/10 = 2000)
     game.player.spells = [

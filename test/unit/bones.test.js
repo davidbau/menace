@@ -9,6 +9,7 @@ import { initRng, rn2 } from '../../js/rng.js';
 import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 import { mons, PM_GHOST } from '../../js/monsters.js';
 import { COLNO, ROWNO, ACCESSIBLE } from '../../js/const.js';
+import { WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS, GEM_CLASS, TOOL_CLASS } from '../../js/objects.js';
 import { Player } from '../../js/player.js';
 import { GameMap } from '../../js/game.js';
 import { saveLev, saveBones, loadBones, deleteBones } from '../../js/storage.js';
@@ -114,8 +115,8 @@ describe('canMakeBones', () => {
 describe('setGhostlyObjlist', () => {
     it('marks all objects as ghostly', () => {
         const objs = [
-            { name: 'dagger', oclass: 0 },
-            { name: 'shield', oclass: 1 },
+            { name: 'dagger', oclass: WEAPON_CLASS },
+            { name: 'shield', oclass: ARMOR_CLASS },
         ];
         setGhostlyObjlist(objs);
         assert.equal(objs[0].ghostly, true);
@@ -123,8 +124,8 @@ describe('setGhostlyObjlist', () => {
     });
 
     it('recurses into container contents', () => {
-        const inner = { name: 'gem', oclass: 9 };
-        const bag = { name: 'sack', oclass: 7, contents: [inner] };
+        const inner = { name: 'gem', oclass: GEM_CLASS };
+        const bag = { name: 'sack', oclass: TOOL_CLASS, contents: [inner] };
         setGhostlyObjlist([bag]);
         assert.equal(bag.ghostly, true);
         assert.equal(inner.ghostly, true);
@@ -141,8 +142,8 @@ describe('setGhostlyObjlist', () => {
 describe('resetobjs', () => {
     it('restore mode: rebuilds displayChar from oclass', () => {
         const objs = [
-            { name: 'dagger', oclass: 1 },   // WEAPON_CLASS -> ')'
-            { name: 'food', oclass: 6 },      // FOOD_CLASS -> '%'
+            { name: 'dagger', oclass: WEAPON_CLASS },
+            { name: 'food', oclass: FOOD_CLASS },
         ];
         resetobjs(objs, true);
         assert.equal(objs[0].displayChar, ')');
@@ -150,14 +151,14 @@ describe('resetobjs', () => {
     });
 
     it('save mode: clears timed flag', () => {
-        const objs = [{ name: 'corpse', oclass: 5, timed: true }];
+        const objs = [{ name: 'corpse', oclass: FOOD_CLASS, timed: true }];
         resetobjs(objs, false);
         assert.equal(objs[0].timed, false);
     });
 
     it('recurses into container contents', () => {
-        const inner = { name: 'gem', oclass: 9 };
-        const bag = { name: 'sack', oclass: 7, contents: [inner] };
+        const inner = { name: 'gem', oclass: GEM_CLASS };
+        const bag = { name: 'sack', oclass: TOOL_CLASS, contents: [inner] };
         resetobjs([bag], true);
         assert.ok(bag.displayChar);
         assert.ok(inner.displayChar);
@@ -288,8 +289,8 @@ describe('dropUponDeath', () => {
         const player = new Player();
         player.x = 10;
         player.y = 10;
-        const sword = { name: 'sword', oclass: 0 };
-        const food = { name: 'food ration', oclass: 5 };
+        const sword = { name: 'sword', oclass: WEAPON_CLASS };
+        const food = { name: 'food ration', oclass: FOOD_CLASS };
         player.addToInventory(sword);
         player.addToInventory(food);
         player.weapon = sword;
@@ -311,7 +312,7 @@ describe('dropUponDeath', () => {
         const player = new Player();
         player.x = 10;
         player.y = 10;
-        const armor = { name: 'plate mail', oclass: 1 };
+        const armor = { name: 'plate mail', oclass: ARMOR_CLASS };
         player.addToInventory(armor);
         player.armor = armor;
         player.shield = { name: 'shield' };
@@ -342,7 +343,7 @@ describe('savebones (full pipeline)', () => {
 
     it('saves bones on death at depth > 1', async () => {
         const game = await makeTestGame(3);
-        const sword = { name: 'sword', oclass: 0 };
+        const sword = { name: 'sword', oclass: WEAPON_CLASS };
         game.player.addToInventory(sword);
         game.player.weapon = sword;
 
@@ -485,7 +486,7 @@ describe('getbones (full pipeline)', () => {
         const origMap = await makelevel(3);
         wallification(origMap);
         // Add an object to the map
-        origMap.objects.push({ name: 'dagger', oclass: 0, ox: 10, oy: 5, displayChar: ')' });
+        origMap.objects.push({ name: 'dagger', oclass: WEAPON_CLASS, ox: 10, oy: 5, displayChar: ')' });
         const mapData = saveLev(origMap);
         mapData.isBones = true;
         saveBones(3, mapData, 'Ghost', 10, 5, 1, []);

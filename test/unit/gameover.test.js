@@ -2,13 +2,13 @@
 // Verifies that deathCause is set in all death paths (combat, quit, escape, starvation)
 // and that the game-over score calculation and text wrapping work correctly.
 
-import { describe, it, beforeEach } from 'node:test';
+import { describe, it, beforeEach, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 import { initRng } from '../../js/rng.js';
 import { Player, roles, races, rankOf, roleNameForGender } from '../../js/player.js';
 import { mattacku } from '../../js/mhitu.js';
 import { rhack } from '../../js/cmd.js';
-import { pushInput, clearInputQueue } from '../../js/input.js';
+import { pushInput, clearInputQueue, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import { FEMALE, MALE, A_NEUTRAL, A_CHAOTIC, A_LAWFUL, RACE_HUMAN, STAIRS } from '../../js/const.js';
 
 // Mock display that captures messages
@@ -138,6 +138,7 @@ describe('Death cause: monster attack', () => {
 // ========================================================================
 describe('Death cause: quit', () => {
     beforeEach(() => {
+        setThrowOnEmptyInput(true);
         clearInputQueue();
     });
 

@@ -1,14 +1,20 @@
-import { describe, test } from 'node:test';
+import { describe, test, beforeEach, afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { setGame } from '../../js/gstate.js';
 import { Player } from '../../js/player.js';
-import { clearInputQueue, pushInput } from '../../js/input.js';
+import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
+import { ARMOR_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, WEAPON_CLASS } from '../../js/objects.js';
 import { ALTAR } from '../../js/const.js';
 
 describe('extended command case', () => {
+
+    beforeEach(() => {
+        clearInputQueue();
+        setThrowOnEmptyInput(true);
+    });
 
 function makeGame() {
     const map = new GameMap();
@@ -82,12 +88,12 @@ test('#name object-type path rejects non-callable inventory item with C wording'
     clearInputQueue();
     const game = makeGame();
     game.player.inventory = [
-        { invlet: 'a', oclass: 1, otyp: 27, name: 'spear', dknown: true, bknown: true, known: true },
-        { invlet: 'b', oclass: 1, otyp: 34, name: 'dagger', dknown: true, bknown: true, known: true },
-        { invlet: 'c', oclass: 2, otyp: 150, name: 'small shield', dknown: true, bknown: true, known: true },
-        { invlet: 'd', oclass: 6, otyp: 291, name: 'food ration', dknown: true, bknown: true, known: false },
-        { invlet: 'e', oclass: 7, otyp: 299, name: 'paralysis', dknown: true, bknown: false, known: false },
-        { invlet: 'g', oclass: 8, otyp: 334, name: 'identify', dknown: true, bknown: false, known: false },
+        { invlet: 'a', oclass: WEAPON_CLASS, otyp: 27, name: 'spear', dknown: true, bknown: true, known: true },
+        { invlet: 'b', oclass: WEAPON_CLASS, otyp: 34, name: 'dagger', dknown: true, bknown: true, known: true },
+        { invlet: 'c', oclass: ARMOR_CLASS, otyp: 150, name: 'small shield', dknown: true, bknown: true, known: true },
+        { invlet: 'd', oclass: FOOD_CLASS, otyp: 291, name: 'food ration', dknown: true, bknown: true, known: false },
+        { invlet: 'e', oclass: POTION_CLASS, otyp: 299, name: 'paralysis', dknown: true, bknown: false, known: false },
+        { invlet: 'g', oclass: SCROLL_CLASS, otyp: 334, name: 'identify', dknown: true, bknown: false, known: false },
     ];
 
     for (const ch of 'name') pushInput(ch.charCodeAt(0));
@@ -274,8 +280,8 @@ test('#adjust swaps inventory letters', async () => {
     clearInputQueue();
     const game = makeGame();
     game.player.inventory = [
-        { invlet: 'a', oclass: 1, otyp: 27, quan: 1, name: 'spear' },
-        { invlet: 'b', oclass: 1, otyp: 34, quan: 1, name: 'dagger' },
+        { invlet: 'a', oclass: WEAPON_CLASS, otyp: 27, quan: 1, name: 'spear' },
+        { invlet: 'b', oclass: WEAPON_CLASS, otyp: 34, quan: 1, name: 'dagger' },
     ];
     for (const ch of 'adjust') pushInput(ch.charCodeAt(0));
     pushInput('\n'.charCodeAt(0));
