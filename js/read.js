@@ -28,6 +28,7 @@ import { resist } from './zap.js';
 import { monflee } from './monmove.js';
 import { Yobjnam2, Yname2, makeplural, an } from './objnam.js';
 import { hcolor } from './do_name.js';
+import { t_at, m_at } from './trap.js';
 import { scrolltele, level_tele } from './teleport.js';
 import { gold_detect, food_detect, trap_detect, do_mapping, cvt_sdoor_to_door } from './detect.js';
 import { explode } from './explode.js';
@@ -43,17 +44,6 @@ import { identify_pack } from './invent.js';
 const SPELL_KEEN = 20000; // cf. spell.c KEEN
 const MAX_SPELL_STUDY = 3; // cf. spell.h MAX_SPELL_STUDY
 const STINKING_CLOUD_TARGET_DIST = 6;
-
-function m_at(x, y, map) {
-    if (!map) return null;
-    if (typeof map.monsterAt === 'function') return map.monsterAt(x, y);
-    if (Array.isArray(map.monsters)) {
-        for (const mon of map.monsters) {
-            if (mon && mon.mx === x && mon.my === y) return mon;
-        }
-    }
-    return null;
-}
 
 
 // ============================================================

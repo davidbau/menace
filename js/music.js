@@ -24,7 +24,7 @@ import { Role_if } from './role.js';
 import { Tobjnam, yname, Yname2, xname, thesimpleoname, an, the } from './objnam.js';
 import { unique_corpstat, is_mindless, canseemon, is_mercenary,
          is_flyer, is_clinger, is_humanoid, slithy, nolimbs,
-         ceiling_hider, can_blow, DEADMONSTER } from './mondata.js';
+         ceiling_hider, can_blow, DEADMONSTER, mdistu } from './mondata.js';
 import { mons, PM_GUARD, S_SNAKE, S_NYMPH, PM_ARCHEOLOGIST } from './monsters.js';
 import { onscary, wakeup, seemimic, xkilled } from './mon.js';
 import { monflee } from './monmove.js';
@@ -66,9 +66,6 @@ import { getlin, ynFunction } from './input.js';
 
 const STRAT_WAITMASK = 0x30000000; // STRAT_CLOSE | STRAT_WAITFORU
 
-function mdistu(mon, player) {
-    return dist2(player.x, player.y, mon.mx, mon.my);
-}
 
 function u_at(x, y, player) {
     return x === player.x && y === player.y;

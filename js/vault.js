@@ -41,6 +41,7 @@ import { deltrap } from './dungeon.js';
 import { add_to_minv } from './mkobj.js';
 import { makemon } from './makemon.js';
 import { cansee, couldsee, block_point, unblock_point, recalc_block_point } from './vision.js';
+import { t_at } from './trap.js';
 
 // ---------- Constants ----------
 const FCSIZ = ROWNO + COLNO;
@@ -73,15 +74,6 @@ function sobj_at(otyp, x, y, map) {
     for (const obj of objects) {
         if (!obj || obj.buried) continue;
         if (obj.otyp === otyp) return obj;
-    }
-    return null;
-}
-
-// C ref: t_at(x, y) — find trap at location
-function t_at(x, y, map) {
-    if (!map || !map.traps) return null;
-    for (const trap of map.traps) {
-        if (trap && trap.tx === x && trap.ty === y) return trap;
     }
     return null;
 }

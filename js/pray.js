@@ -60,7 +60,7 @@ import { mksobj, mkobj, bless as bless_obj, uncurse, xname } from './mkobj.js';
 import { hcolor } from './do_name.js';
 import { mon_nam, Monnam } from './do_name.js';
 import { is_undead, is_demon, is_human, is_unicorn, nohands, throws_rocks,
-         can_chant, attacktype_fordmg, monstseesu, monstunseesu } from './mondata.js';
+         can_chant, attacktype_fordmg, monstseesu, monstunseesu, mdistu } from './mondata.js';
 import { exercise } from './attrib_exercise.js';
 import { upstart, s_suffix, sgn } from './hacklib.js';
 import { body_part, rehumanize } from './polyself.js';
@@ -489,10 +489,6 @@ function uhim(player) {
     return player.female ? "her" : "him";
 }
 
-// Helper: mdistu
-function mdistu(mon, player) {
-    return dist2(player.x, player.y, mon.mx, mon.my);
-}
 
 // Helper: angry_priest stub
 function angry_priest() { }

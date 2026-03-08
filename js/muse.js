@@ -90,7 +90,7 @@ import { Can_dig_down, Can_fall_thru, Can_rise_up, In_endgame,
          Is_earthlevel, On_W_tower_level, In_V_tower } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
-import { resists_magm, monsndx, is_vampshifter, DEADMONSTER } from './mondata.js';
+import { resists_magm, monsndx, is_vampshifter, DEADMONSTER, mdistu } from './mondata.js';
 import { Has_contents, Is_mbag } from './objnam.js';
 import { t_at, m_at } from './trap.js';
 
@@ -251,10 +251,6 @@ function m_next2u(mtmp, player) {
 // MFAST speed constant
 const MFAST = 2;
 
-// C ref: mdistu(mon) — squared distance from hero to monster
-function mdistu(mon, player) {
-    return dist2(player.x, player.y, mon.mx, mon.my);
-}
 
 // C ref: u_at(x, y) — is hero at (x, y)?
 function u_at(x, y, player) {

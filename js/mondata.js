@@ -1406,6 +1406,12 @@ export function olfaction(mdat) {
 // C ref: monst.h DEADMONSTER(mon) — true if monster has non-positive HP
 export function DEADMONSTER(mon) { return mon && mon.mhp <= 0; }
 
+// C ref: mondata.h mdistu(mtmp) — squared distance from player to monster
+export function mdistu(mon, player) {
+    const dx = player.x - mon.mx, dy = player.y - mon.my;
+    return dx * dx + dy * dy;
+}
+
 // C ref: monst.h ROLL_FROM(arr) — pick a random element
 function ROLL_FROM(arr) { return arr[rn2(arr.length)]; }
 
