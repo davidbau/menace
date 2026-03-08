@@ -1665,23 +1665,34 @@
             if (instant) { page.offsetHeight; page.style.transition = ''; }
         }
 
-        // Update cursor based on mouse position over the minimap
-        function mmUpdateCursor(e) {
-            if (mmState) return;
+        // Detect which resize edges (if any) the pointer is on
+        function mmEdges(e) {
             var rect = page.getBoundingClientRect();
             var x = e.clientX - rect.left, y = e.clientY - rect.top;
             var w = rect.width, h = rect.height;
-            var L = x < MM_EDGE, R = x > w - MM_EDGE;
-            var T = y < MM_EDGE, B = y > h - MM_EDGE;
-            if      (L && T) page.style.cursor = 'nw-resize';
-            else if (R && T) page.style.cursor = 'ne-resize';
-            else if (L && B) page.style.cursor = 'sw-resize';
-            else if (R && B) page.style.cursor = 'se-resize';
-            else if (L)      page.style.cursor = 'w-resize';
-            else if (R)      page.style.cursor = 'e-resize';
-            else if (T)      page.style.cursor = 'n-resize';
-            else if (B)      page.style.cursor = 's-resize';
-            else             page.style.cursor = 'grab';
+            return {
+                L: x < MM_EDGE, R: x > w - MM_EDGE,
+                T: y < MM_EDGE, B: y > h - MM_EDGE,
+                rect: rect, w: w, h: h
+            };
+        }
+
+        function mmCursorForEdges(ed) {
+            if      (ed.L && ed.T) return 'nw-resize';
+            else if (ed.R && ed.T) return 'ne-resize';
+            else if (ed.L && ed.B) return 'sw-resize';
+            else if (ed.R && ed.B) return 'se-resize';
+            else if (ed.L)         return 'w-resize';
+            else if (ed.R)         return 'e-resize';
+            else if (ed.T)         return 'n-resize';
+            else if (ed.B)         return 's-resize';
+            else                   return 'grab';
+        }
+
+        // Update cursor based on mouse position over the minimap
+        function mmUpdateCursor(e) {
+            if (mmState) return;
+            page.style.cursor = mmCursorForEdges(mmEdges(e));
         }
 
         page.addEventListener('mousemove', function(e) {
@@ -1694,27 +1705,23 @@
             // Reclaim keyboard focus from the docs iframe so game keys work
             window.focus();
 
-            var rect  = page.getBoundingClientRect();
-            var x = e.clientX - rect.left, y = e.clientY - rect.top;
-            var w = rect.width, h = rect.height;
-            var L = x < MM_EDGE, R = x > w - MM_EDGE;
-            var T = y < MM_EDGE, B = y > h - MM_EDGE;
-            var onEdge = L || R || T || B;
-            var scale = page.scrollWidth ? w / page.scrollWidth : MM_DEFAULT_SCALE;
+            var ed = mmEdges(e);
+            var onEdge = ed.L || ed.R || ed.T || ed.B;
+            var scale = page.scrollWidth ? ed.w / page.scrollWidth : MM_DEFAULT_SCALE;
 
             mmState = {
                 mode:   onEdge ? 'resize' : 'drag',
-                edges:  { L: L, R: R, T: T, B: B },
+                edges:  ed,
                 mx0: e.clientX, my0: e.clientY,
-                left0: rect.left, top0: rect.top,
-                w0: w, h0: h, scale0: scale,
+                left0: ed.rect.left, top0: ed.rect.top,
+                w0: ed.w, h0: ed.h, scale0: scale,
                 nw: page.scrollWidth, nh: page.scrollHeight,
-                anchor: computeAnchor(rect.left, rect.top, w, h),
+                anchor: computeAnchor(ed.rect.left, ed.rect.top, ed.w, ed.h),
             };
             mmDidMove = false;
 
             // Overlay captures mouse events even when over the iframe
-            var cur = onEdge ? page.style.cursor : 'grabbing';
+            var cur = onEdge ? mmCursorForEdges(ed) : 'grabbing';
             mmOverlay = document.createElement('div');
             mmOverlay.style.cssText = 'position:fixed;inset:0;z-index:9999;cursor:' + cur;
             document.body.appendChild(mmOverlay);
@@ -1810,7 +1817,7 @@
             var rect = page.getBoundingClientRect();
             dismissBtn.style.display = 'flex';
             dismissBtn.style.pointerEvents = 'auto';
-            dismissBtn.style.left = (rect.right - 26) + 'px';
+            dismissBtn.style.left = (rect.right - 30) + 'px';
             dismissBtn.style.top = (rect.top + 4) + 'px';
         }
 
