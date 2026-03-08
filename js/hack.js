@@ -1762,7 +1762,9 @@ export async function findtravelpath(mode, game) {
         }
     }
 
-    if (mode !== TRAVP_GUESS) return false;
+    if (mode !== TRAVP_GUESS) {
+        return false;
+    }
 
     // C ref: hack.c findtravelpath() GUESS mode.
     // Phase 1: BFS from hero outward, building travel distance map.
@@ -1949,8 +1951,7 @@ export async function dotravel_target(game) {
     player.last_str_turn = 0;
 
     // First travel step — domove_core will call findtravelpath internally.
-    const result = await domove([0, 0], player, map, display, game);
-    return result;
+    return domove([0, 0], player, map, display, game);
 }
 
 // Wait/search safety warning and execution helpers for rhack()

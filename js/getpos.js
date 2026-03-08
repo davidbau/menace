@@ -109,6 +109,11 @@ function screenPosForMap(display, x, y) {
 function getCell(display, col, row) {
     const cell = display?.grid?.[row]?.[col];
     if (!cell) return { ch: ' ', color: 7, attr: 0 };
+    // HeadlessDisplay stores grid cells as plain characters (strings),
+    // while Display stores them as objects {ch, color, attr}.
+    if (typeof cell === 'string') {
+        return { ch: cell, color: display?.colors?.[row]?.[col] ?? 7, attr: display?.attrs?.[row]?.[col] ?? 0 };
+    }
     return { ch: cell.ch, color: cell.color, attr: cell.attr || 0 };
 }
 
