@@ -21,6 +21,7 @@
 #include <stdarg.h>
 
 /* ===== Shared with rng_log.c ===== */
+#include "harness_events.h"
 extern int harness_rng_buf[];
 extern int harness_rng_count;
 void harness_srand(unsigned int seed);
@@ -48,6 +49,9 @@ typedef struct {
     char screen[SCRROWS][SCRCOLS + 1];
     int  rng[MAX_RNG_PER_STEP];
     int  rng_count;
+    int  event_pos[MAX_EVENTS_PER_STEP];
+    char event_name[MAX_EVENTS_PER_STEP][MAX_EVENT_NAME];
+    int  event_count;
 } HarnessStep;
 
 static HarnessStep harness_steps[MAX_STEPS];
@@ -87,11 +91,27 @@ static void emit_session_json(FILE *out, unsigned int seed)
         else if (k >= 32 && k < 127) { fputc(k, out); }
         else                 { fprintf(out, "\\u%04x", (unsigned char)k); }
         fprintf(out, "\",\n");
-        /* rng */
+        /* rng — interleave event strings with integer RNG values */
         fprintf(out, "      \"rng\": [");
-        for (j = 0; j < s->rng_count; j++) {
-            if (j > 0) fputc(',', out);
-            fprintf(out, "%d", s->rng[j]);
+        {
+            int ei = 0, first = 1;
+            for (j = 0; j < s->rng_count; j++) {
+                while (ei < s->event_count && s->event_pos[ei] == j) {
+                    if (!first) fputc(',', out);
+                    first = 0;
+                    json_escape_str(out, s->event_name[ei]);
+                    ei++;
+                }
+                if (!first) fputc(',', out);
+                first = 0;
+                fprintf(out, "%d", s->rng[j]);
+            }
+            while (ei < s->event_count) {
+                if (!first) fputc(',', out);
+                first = 0;
+                json_escape_str(out, s->event_name[ei]);
+                ei++;
+            }
         }
         fprintf(out, "],\n");
         /* screen */
@@ -129,6 +149,13 @@ static void capture_step(char key)
     memcpy(s->rng, harness_rng_buf, n * sizeof(int));
     s->rng_count = n;
     harness_rng_count = 0;
+    /* copy and reset event buffer */
+    int ne = harness_event_count;
+    if (ne > MAX_EVENTS_PER_STEP) ne = MAX_EVENTS_PER_STEP;
+    memcpy(s->event_pos, harness_event_pos, ne * sizeof(int));
+    memcpy(s->event_name, harness_event_name, ne * sizeof(harness_event_name[0]));
+    s->event_count = ne;
+    harness_event_count = 0;
 }
 
 /* ===== harness_next_key ===== */
@@ -177,6 +204,9 @@ void harness_exit(int code)
 /* game_main is the renamed main() from main.c */
 extern void game_main(int argc, char **argv, char **envp);
 
+/* wizard is a global bool in rogue.h / main.c */
+extern int wizard;
+
 int main(int argc, char **argv)
 {
     unsigned int seed_val = 42;
@@ -202,6 +232,8 @@ int main(int argc, char **argv)
             keys = argv[++i];
         else if (strcmp(argv[i], "--out") == 0 && i + 1 < argc)
             outfile = argv[++i];
+        else if (strcmp(argv[i], "--wizard") == 0)
+            wizard = 1;
     }
 
     harness_keys = keys;

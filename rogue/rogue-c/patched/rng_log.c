@@ -10,11 +10,17 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "harness_events.h"
 
 /* Per-step RNG accumulation buffer */
 #define MAX_RNG_PER_STEP 8192
 int harness_rng_buf[MAX_RNG_PER_STEP];
 int harness_rng_count = 0;
+
+/* Per-step event log (position in rng stream + name string) */
+int  harness_event_count = 0;
+int  harness_event_pos[MAX_EVENTS_PER_STEP];
+char harness_event_name[MAX_EVENTS_PER_STEP][MAX_EVENT_NAME];
 
 /* Seed tracking */
 static unsigned int g_seed = 0;
@@ -57,4 +63,14 @@ void harness_log_rand(int val)
 {
     if (harness_rng_count < MAX_RNG_PER_STEP)
         harness_rng_buf[harness_rng_count++] = val;
+}
+
+void harness_log_event(const char *name)
+{
+    if (harness_event_count < MAX_EVENTS_PER_STEP) {
+        harness_event_pos[harness_event_count] = harness_rng_count;
+        strncpy(harness_event_name[harness_event_count], name, MAX_EVENT_NAME - 1);
+        harness_event_name[harness_event_count][MAX_EVENT_NAME - 1] = '\0';
+        harness_event_count++;
+    }
 }

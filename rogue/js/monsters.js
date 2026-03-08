@@ -79,6 +79,7 @@ export function new_monster(item, type, cp) {
   mvwaddch(g.mw, cp.y, cp.x, type);
 
   const mp = g.monsters[type.charCodeAt(0) - 65];
+  if (!tp.t_stats) tp.t_stats = {};
   tp.t_stats.s_hpt = roll(mp.m_stats.s_lvl, 8);
   tp.t_stats.s_lvl = mp.m_stats.s_lvl;
   tp.t_stats.s_arm = mp.m_stats.s_arm;

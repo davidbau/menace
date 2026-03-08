@@ -5,6 +5,11 @@
 
 import { game } from './gstate.js';
 import { rnd } from './rng.js';
+
+function logEvent(name) {
+  const g = game();
+  if (g && g.rawRngLog) g.rawRngLog.push(`^{${name}}[]`);
+}
 import { wclear, clear, mvaddch, mvwaddch, wmove, waddch, winat } from './curses.js';
 import {
   FLOOR, STAIRS, TRAP, TRAPDOOR, BEARTRAP, SLEEPTRAP,
@@ -48,10 +53,14 @@ export async function new_level() {
   _free_list(mlistRef);
   g.mlist = mlistRef.val;
 
+  logEvent('do_rooms');
   _do_rooms();
+  logEvent('do_passages');
   _do_passages();
   g.no_food++;
+  logEvent('put_things');
   put_things();
+  logEvent('stairs');
 
   // Place stairs
   let rm, stairs = { x: 0, y: 0 };
@@ -60,6 +69,7 @@ export async function new_level() {
     rnd_pos(g.rooms[rm], stairs);
   } while (winat(stairs.y, stairs.x) !== FLOOR);
   mvaddch(stairs.y, stairs.x, STAIRS);
+  logEvent('traps');
 
   // Place traps
   if (rnd(10) < g.level) {
@@ -85,6 +95,7 @@ export async function new_level() {
       g.traps[i] = { tr_type: ch, tr_flags: 0, tr_pos: { x: stairs.x, y: stairs.y } };
     }
   }
+  logEvent('hero');
 
   // Place hero
   let hero = { x: 0, y: 0 };

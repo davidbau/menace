@@ -155,7 +155,7 @@ export const w_names = [
   "arrow",
   "dagger",
   "rock",
-  "two-handed sword",
+  "two handed sword",
   "sling",
   "dart",
   "crossbow",

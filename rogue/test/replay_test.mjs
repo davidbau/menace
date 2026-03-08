@@ -65,7 +65,8 @@ function compareRng(jsRng, cRng) {
 
 async function replaySession(sessionFile, opts = {}) {
   const session = JSON.parse(readFileSync(sessionFile, 'utf8'));
-  const cSteps = session.steps || [];
+  // Strip C harness sentinel \x00 step (always added as final step by C harness)
+  const cSteps = (session.steps || []).filter(s => s.key !== '\x00');
   const seed = session.seed;
   const name = basename(sessionFile, '.json');
 
@@ -74,10 +75,11 @@ async function replaySession(sessionFile, opts = {}) {
   }
 
   const keys = cSteps.map(s => s.key).join('');
+  const runOpts = { wizard: !!session.wizard };
 
   let jsSteps;
   try {
-    jsSteps = await runSession(seed, keys);
+    jsSteps = await runSession(seed, keys, runOpts);
   } catch (e) {
     return { session: name, seed, passed: false, total_steps: cSteps.length, screen_pct: 0, rng_pct: 0, error: e.message };
   }

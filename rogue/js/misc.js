@@ -15,6 +15,7 @@ import {
 import { roomin, inroom } from './rooms.js';
 import { find_mons } from './monsters.js';
 import { trap_at, show } from './move.js';
+import { runto } from './chase.js';
 
 // Injected deps
 let _msg = null;
@@ -279,7 +280,6 @@ export function chg_str(amt) {
  */
 export function aggravate() {
   const g = game();
-  const { runto } = require('./chase.js');
   for (let mi = g.mlist; mi !== null; mi = mi.l_next) {
     runto(mi.l_data.t_pos, g.player.t_pos);
   }

@@ -1,6 +1,12 @@
 /* 11-23-81 Aw01 Try different rooms when trying to find some FLOOR */
 #include "curses.h"
 #include "rogue.h"
+#ifdef HARNESS
+extern void harness_log_event(const char *name);
+#define LOG_EVENT(name) harness_log_event("^{" name "}[]")
+#else
+#define LOG_EVENT(name) ((void)0)
+#endif
 
 /*
  * new_level:
@@ -25,13 +31,17 @@ new_level()
      * Free up the monsters on the last level
      */
     free_list(mlist);
+    LOG_EVENT("do_rooms");
     do_rooms();				/* Draw rooms */
+    LOG_EVENT("do_passages");
     do_passages();			/* Draw passages */
     no_food++;
+    LOG_EVENT("put_things");
     put_things();			/* Place objects (if any) */
     /*
      * Place the staircase down.
      */
+    LOG_EVENT("stairs");
     do {
         rm = rnd_room();
 	rnd_pos(&rooms[rm], &stairs);
@@ -40,6 +50,7 @@ new_level()
     /*
      * Place the traps
      */
+    LOG_EVENT("traps");
     if (rnd(10) < level)
     {
 	ntraps = rnd(level/4)+1;
@@ -68,6 +79,7 @@ new_level()
 	    traps[i].tr_pos = stairs;
 	}
     }
+    LOG_EVENT("hero");
     do
     {
 	rm = rnd_room();

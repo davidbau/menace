@@ -24,6 +24,7 @@ def main():
     p.add_argument("--keys", type=str, required=True, help="Keystroke sequence")
     p.add_argument("--out", type=str, required=True, help="Output JSON file path")
     p.add_argument("--timeout", type=float, default=30.0, help="Timeout in seconds")
+    p.add_argument("--wizard", action="store_true", help="Enable wizard mode")
     args = p.parse_args()
 
     harness = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rogue_harness")
@@ -37,9 +38,13 @@ def main():
     env["HARNESS_KEYS"] = args.keys
     env["HARNESS_OUT"] = args.out
 
+    cmd = [harness]
+    if args.wizard:
+        cmd.append("--wizard")
+
     try:
         result = subprocess.run(
-            [harness],
+            cmd,
             env=env,
             capture_output=True,
             timeout=args.timeout,
