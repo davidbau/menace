@@ -3147,7 +3147,7 @@ export const WM_C_INNER = 2;
 export const MAXNROFROOMS = 40;
 export const MAXDUNGEON = 16;
 export const MAXLEVEL = 32;
-export const MAXOCLASSES = 18;
+export const MAXOCLASSES = 18; // canonical home: objects.js (objclass.h); duplicated here to avoid circular dependency
 // MAXMCLASSES: canonical definition in CONST_SYMBOLS section (gen_symbols.py from defsym.h)
 export const ROOMOFFSET = 3;
 
