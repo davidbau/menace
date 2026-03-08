@@ -48,7 +48,7 @@ import {
     nonliving, x_monnam, y_monnam, is_undead, is_demon,
     magic_negation, attacktype,
     resists_fire, resists_cold, resists_elec, resists_acid,
-    resists_poison, resists_sleep, resists_ston,
+    resists_poison, resists_sleep, resists_ston, resists_drli,
     thick_skinned, mon_hates_silver, mon_hates_light,
     noncorporeal, amorphous, unsolid, haseyes, dmgtype, is_orc,
 } from './mondata.js';
@@ -1039,7 +1039,7 @@ export function mhitm_ad_wrap(magr, mattk, mdef, mhm) {
 // cf. uhitm.c:2423 — level drain handler
 // m-vs-m branch: uhitm.c:2467-2495
 export function mhitm_ad_drli(magr, mattk, mdef, mhm) {
-    if (!rn2(3) && !resists_ston(mdef) /* resists_drli in C, using ston as proxy */
+    if (!rn2(3) && !resists_drli(mdef)
         && !mhitm_mgc_atk_negated(magr, mdef)) {
         mhm.damage = c_d(2, 6);
         const mlev = mdef.m_lev || 0;

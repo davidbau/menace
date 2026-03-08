@@ -85,6 +85,7 @@ import {
     passes_walls, pm_invisible, is_swimmer,
     can_teleport, control_teleport, likes_lava,
     poly_when_stoned,
+    attacktype_fordmg,
 } from './mondata.js';
 import { pline, You, Your, You_cant, You_feel, pline_The } from './pline.js';
 import { Monnam, mon_nam } from './do_name.js';
@@ -96,16 +97,7 @@ import { AMULET_OF_STRANGULATION } from './objects.js';
 import { were_summon } from './were.js';
 import { FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES, ACID_RES, STONE_RES, DRAIN_RES, SICK_RES, ANTIMAGIC, STUNNED, BLINDED, HALLUC_RES, SEE_INVIS, TELEPAT, INFRAVISION, INVIS, TELEPORT, TELEPORT_CONTROL, LEVITATION, FLYING, SWIMMING, PASSES_WALLS, REGENERATION, REFLECTING, FROM_FORM, FROM_RACE, FROMOUTSIDE, I_SPECIAL, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, TT_BEARTRAP, ARM, EYE, FACE, FINGER, FINGERTIP, FOOT, HAND, HANDED, HEAD, LEG, LIGHT_HEADED, NECK, SPINE, TOE, HAIR, BLOOD, LUNG, NOSE, STOMACH, BOLT_LIM, LOW_PM, NON_PM } from './const.js';
 
-// Local helper: cf. C attacktype_fordmg() — find attack with given type and damage type
-// Attack objects are canonicalized to C field names: aatyp/adtyp/damn/damd.
-function attacktype_fordmg(ptr, atyp, adtyp) {
-    if (!ptr.mattk) return null;
-    for (const atk of ptr.mattk) {
-        if (atk.aatyp === atyp && (adtyp === AD_ANY || atk.adtyp === adtyp))
-            return atk;
-    }
-    return null;
-}
+// attacktype_fordmg imported from mondata.js
 
 // C's humanoid() macro is M1_HUMANOID check, same as JS's is_humanoid()
 const humanoid = is_humanoid;

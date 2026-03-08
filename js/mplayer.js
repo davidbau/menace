@@ -98,6 +98,15 @@
 // Uses SetVoice(mtmp, 0, 80, 0) + verbalize().
 // TODO: mplayer.c:355 — mplayer_talk(): rival adventurer chat
 
+import { set_mon_data } from './mondata.js';
+import { rn1, rn2, rnd } from './rng.js';
+import { mksobj, bless, curse } from './mkobj.js';
+import { mpickobj } from './steal.js';
+import { mons, PM_WIZARD, PM_ARCHEOLOGIST } from './monsters.js';
+import { COLNO, ROWNO } from './const.js';
+import { STRANGE_OBJECT } from './objects.js';
+import { goodpos } from './teleport.js';
+
 // Autotranslated from mplayer.c:94
 export function mk_mplayer_armor(mon, typ) {
   let obj;

@@ -89,7 +89,7 @@ import { pushRngLogEntry } from './rng.js';
 import { Can_dig_down, Can_fall_thru, Can_rise_up } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
-import { resists_magm } from './trap.js';
+import { resists_magm, monsndx, is_vampshifter } from './mondata.js';
 
 const STRAT_WAITFORU = 0x20000000; // C ref: mon.h
 
@@ -240,23 +240,7 @@ function verysmall(ptr) { return (ptr.msize || 0) < MZ_SMALL; }
 // C ref: NODIAG(mndx) — only grid bugs
 function NODIAG(mndx) { return mndx === PM_GRID_BUG; }
 
-// C ref: mon.h is_vampshifter() — true if mon's cham form is a vampire type
-// Not exported from mondata.js; defined locally (also local in end.js, makemon.js).
-function is_vampshifter(mtmp) {
-    if (mtmp.cham == null || mtmp.cham < 0) return false;
-    const chamData = mons[mtmp.cham];
-    return chamData && chamData.mlet === S_VAMPIRE;
-}
-
-// C ref: monsndx(ptr) — get monster index from permonst pointer
-function monsndx(ptr) {
-    if (typeof ptr.mndx === 'number') return ptr.mndx;
-    // Search mons array as last resort
-    for (let i = 0; i < mons.length; i++) {
-        if (mons[i] === ptr) return i;
-    }
-    return 0;
-}
+// monsndx and is_vampshifter imported from mondata.js
 
 // C ref: m_next2u(mtmp) — is monster adjacent to hero?
 function m_next2u(mtmp, player) {

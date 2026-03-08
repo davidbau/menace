@@ -23,7 +23,8 @@ import { is_mindless, touch_petrifies, resists_ston,
          extra_nasty, flaming, acidic, completelyrusts,
          canseemon, stagger
        } from './mondata.js';
-import { mon_knows_traps, mon_learns_traps, mons_see_trap } from './mondata.js';
+import { mon_knows_traps, mon_learns_traps, mons_see_trap,
+         resists_magm, defended } from './mondata.js';
 import { mondead, helpless as monHelpless, monkilled, m_in_air, setmangry } from './mon.js';
 import { newsym } from './display.js';
 import { sleep_monst } from './mhitm.js';
@@ -104,14 +105,7 @@ function metallivorous(mptr) {
     return ndx === PM_RUST_MONSTER || ndx === PM_XORN;
 }
 
-// C ref: resists_magm — approximation since full version not ported
-export function resists_magm(mon) {
-    const mdat = mon?.type || mons[mon?.mndx] || {};
-    return (mdat.mr || 0) > 50;
-}
-
-// C ref: defended(mon, adtype) — item-based defense; not ported
-function defended(/* mon, adtype */) { return false; }
+// resists_magm and defended imported from mondata.js
 
 // C ref: DEADMONSTER macro
 function DEADMONSTER(mon) { return mon && mon.mhp <= 0; }

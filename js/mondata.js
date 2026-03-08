@@ -3,15 +3,19 @@
 // These operate on a permonst pointer (ptr), which in JS is the mons[] entry.
 // Monster instances have a .mnum field indexing into mons[].
 
-import { mons, M1_FLY, M1_SWIM, M1_AMORPHOUS, M1_WALLWALK, M1_CLING, M1_TUNNEL, M1_NEEDPICK, M1_CONCEAL, M1_HIDE, M1_AMPHIBIOUS, M1_BREATHLESS, M1_NOTAKE, M1_NOEYES, M1_NOHANDS, M1_NOLIMBS, M1_NOHEAD, M1_MINDLESS, M1_HUMANOID, M1_ANIMAL, M1_SLITHY, M1_UNSOLID, M1_THICK_HIDE, M1_OVIPAROUS, M1_REGEN, M1_SEE_INVIS, M1_TPORT, M1_TPORT_CNTRL, M1_ACID, M1_POIS, M1_CARNIVORE, M1_HERBIVORE, M1_OMNIVORE, M1_METALLIVORE, M2_NOPOLY, M2_UNDEAD, M2_WERE, M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC, M2_DEMON, M2_MERC, M2_LORD, M2_PRINCE, M2_MINION, M2_GIANT, M2_SHAPESHIFTER, M2_MALE, M2_FEMALE, M2_NEUTER, M2_PNAME, M2_HOSTILE, M2_PEACEFUL, M2_DOMESTIC, M2_WANDER, M2_STALK, M2_NASTY, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_COLLECT, M2_MAGIC, M3_WANTSAMUL, M3_WANTSBELL, M3_WANTSBOOK, M3_WANTSCAND, M3_WANTSARTI, M3_WANTSALL, M3_WAITFORU, M3_CLOSE, M3_COVETOUS, M3_WAITMASK, M3_INFRAVISION, M3_INFRAVISIBLE, M3_DISPLACES, S_DOG, S_FELINE, S_GOLEM, S_GHOST, S_IMP, S_RODENT, S_VAMPIRE, S_VORTEX, S_ELEMENTAL, S_KOBOLD, S_OGRE, S_NYMPH, S_CENTAUR, S_DRAGON, S_NAGA, S_ZOMBIE, S_MUMMY, S_LICH, S_WRAITH, S_UNICORN, S_EYE, S_LIGHT, S_TROLL, S_MIMIC, S_FUNGUS, S_JELLY, S_BLOB, S_PUDDING, S_BAT, MZ_TINY, MZ_SMALL, MZ_MEDIUM, MZ_LARGE, AT_ANY, AT_NONE, AT_BOOM, AT_SPIT, AT_GAZE, AT_MAGC, AT_ENGL, AT_HUGS, AT_BREA, AT_WEAP, AD_ANY, AD_PHYS, AD_FIRE, AD_COLD, AD_ELEC, AD_ACID, AD_STCK, AD_WRAP, AD_DGST, MR_FIRE, MR_COLD, MR_SLEEP, MR_DISINT, MR_ELEC, MR_POISON, MR_ACID, MR_STONE, G_UNIQ, PM_SHADE, PM_TENGU, PM_ROCK_MOLE, PM_WOODCHUCK, PM_PONY, PM_HORSE, PM_WARHORSE, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_KI_RIN, PM_HORNED_DEVIL, PM_MINOTAUR, PM_ASMODEUS, PM_BALROG, PM_MARILITH, PM_WINGED_GARGOYLE, PM_AIR_ELEMENTAL, PM_GREMLIN, PM_STONE_GOLEM, PM_FIRE_VORTEX, PM_FLAMING_SPHERE, PM_SHOCKING_SPHERE, PM_SALAMANDER, PM_FIRE_ELEMENTAL, PM_CYCLOPS, PM_FLOATING_EYE, PM_ROPE_GOLEM, PM_WOOD_GOLEM, PM_FLESH_GOLEM, PM_LEATHER_GOLEM, PM_PAPER_GOLEM, PM_STRAW_GOLEM, PM_IRON_GOLEM, PM_STALKER, PM_GREEN_SLIME, PM_BLACK_PUDDING, PM_BLACK_LIGHT, PM_MEDUSA, PM_GHOUL, PM_PIRANHA, PM_GIANT, PM_HUMAN, PM_VAMPIRE_BAT, PM_HEZROU, PM_VROCK, MS_SILENT, MS_BUZZ, MS_BURBLE, S_EEL, // For grownups table (little_to_big / big_to_little / same_race)
+import { mons, M1_FLY, M1_SWIM, M1_AMORPHOUS, M1_WALLWALK, M1_CLING, M1_TUNNEL, M1_NEEDPICK, M1_CONCEAL, M1_HIDE, M1_AMPHIBIOUS, M1_BREATHLESS, M1_NOTAKE, M1_NOEYES, M1_NOHANDS, M1_NOLIMBS, M1_NOHEAD, M1_MINDLESS, M1_HUMANOID, M1_ANIMAL, M1_SLITHY, M1_UNSOLID, M1_THICK_HIDE, M1_OVIPAROUS, M1_REGEN, M1_SEE_INVIS, M1_TPORT, M1_TPORT_CNTRL, M1_ACID, M1_POIS, M1_CARNIVORE, M1_HERBIVORE, M1_OMNIVORE, M1_METALLIVORE, M2_NOPOLY, M2_UNDEAD, M2_WERE, M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC, M2_DEMON, M2_MERC, M2_LORD, M2_PRINCE, M2_MINION, M2_GIANT, M2_SHAPESHIFTER, M2_MALE, M2_FEMALE, M2_NEUTER, M2_PNAME, M2_HOSTILE, M2_PEACEFUL, M2_DOMESTIC, M2_WANDER, M2_STALK, M2_NASTY, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_COLLECT, M2_MAGIC, M3_WANTSAMUL, M3_WANTSBELL, M3_WANTSBOOK, M3_WANTSCAND, M3_WANTSARTI, M3_WANTSALL, M3_WAITFORU, M3_CLOSE, M3_COVETOUS, M3_WAITMASK, M3_INFRAVISION, M3_INFRAVISIBLE, M3_DISPLACES, S_DOG, S_FELINE, S_GOLEM, S_GHOST, S_IMP, S_RODENT, S_VAMPIRE, S_VORTEX, S_ELEMENTAL, S_KOBOLD, S_OGRE, S_NYMPH, S_CENTAUR, S_DRAGON, S_NAGA, S_ZOMBIE, S_MUMMY, S_LICH, S_WRAITH, S_UNICORN, S_EYE, S_LIGHT, S_TROLL, S_MIMIC, S_FUNGUS, S_JELLY, S_BLOB, S_PUDDING, S_BAT, MZ_TINY, MZ_SMALL, MZ_MEDIUM, MZ_LARGE, AT_ANY, AT_NONE, AT_BOOM, AT_SPIT, AT_GAZE, AT_MAGC, AT_ENGL, AT_HUGS, AT_BREA, AT_WEAP, AD_ANY, AD_PHYS, AD_FIRE, AD_COLD, AD_ELEC, AD_ACID, AD_STCK, AD_WRAP, AD_DGST, AD_MAGM, AD_DRLI, AD_RBRE, AD_BLND, MR_FIRE, MR_COLD, MR_SLEEP, MR_DISINT, MR_ELEC, MR_POISON, MR_ACID, MR_STONE, G_UNIQ, PM_SHADE, PM_TENGU, PM_ROCK_MOLE, PM_WOODCHUCK, PM_PONY, PM_HORSE, PM_WARHORSE, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_KI_RIN, PM_HORNED_DEVIL, PM_MINOTAUR, PM_ASMODEUS, PM_BALROG, PM_MARILITH, PM_WINGED_GARGOYLE, PM_AIR_ELEMENTAL, PM_GREMLIN, PM_STONE_GOLEM, PM_FIRE_VORTEX, PM_FLAMING_SPHERE, PM_SHOCKING_SPHERE, PM_SALAMANDER, PM_FIRE_ELEMENTAL, PM_CYCLOPS, PM_FLOATING_EYE, PM_ROPE_GOLEM, PM_WOOD_GOLEM, PM_FLESH_GOLEM, PM_LEATHER_GOLEM, PM_PAPER_GOLEM, PM_STRAW_GOLEM, PM_IRON_GOLEM, PM_STALKER, PM_GREEN_SLIME, PM_BLACK_PUDDING, PM_BLACK_LIGHT, PM_MEDUSA, PM_GHOUL, PM_PIRANHA, PM_GIANT, PM_HUMAN, PM_VAMPIRE_BAT, PM_HEZROU, PM_VROCK, PM_FOG_CLOUD, MS_SILENT, MS_BUZZ, MS_BURBLE, S_EEL, // For grownups table (little_to_big / big_to_little / same_race)
     PM_CHICKATRICE, PM_COCKATRICE, PM_LITTLE_DOG, PM_DOG, PM_LARGE_DOG, PM_HELL_HOUND_PUP, PM_HELL_HOUND, PM_WINTER_WOLF_CUB, PM_WINTER_WOLF, PM_KITTEN, PM_HOUSECAT, PM_LARGE_CAT, PM_KOBOLD, PM_LARGE_KOBOLD, PM_KOBOLD_LEADER, PM_GNOME, PM_GNOME_LEADER, PM_GNOME_RULER, PM_DWARF, PM_DWARF_LEADER, PM_DWARF_RULER, PM_MIND_FLAYER, PM_MASTER_MIND_FLAYER, PM_ORC, PM_HILL_ORC, PM_MORDOR_ORC, PM_URUK_HAI, PM_ORC_CAPTAIN, PM_SEWER_RAT, PM_GIANT_RAT, PM_CAVE_SPIDER, PM_GIANT_SPIDER, PM_OGRE, PM_OGRE_LEADER, PM_OGRE_TYRANT, PM_ELF, PM_WOODLAND_ELF, PM_GREEN_ELF, PM_GREY_ELF, PM_ELF_NOBLE, PM_ELVEN_MONARCH, PM_LICH, PM_DEMILICH, PM_MASTER_LICH, PM_ARCH_LICH, PM_VAMPIRE, PM_VAMPIRE_LEADER, PM_BAT, PM_GIANT_BAT, PM_BABY_GRAY_DRAGON, PM_GRAY_DRAGON, PM_BABY_GOLD_DRAGON, PM_GOLD_DRAGON, PM_BABY_SILVER_DRAGON, PM_SILVER_DRAGON, PM_BABY_RED_DRAGON, PM_RED_DRAGON, PM_BABY_WHITE_DRAGON, PM_WHITE_DRAGON, PM_BABY_ORANGE_DRAGON, PM_ORANGE_DRAGON, PM_BABY_BLACK_DRAGON, PM_BLACK_DRAGON, PM_BABY_BLUE_DRAGON, PM_BLUE_DRAGON, PM_BABY_GREEN_DRAGON, PM_GREEN_DRAGON, PM_BABY_YELLOW_DRAGON, PM_YELLOW_DRAGON, PM_RED_NAGA_HATCHLING, PM_RED_NAGA, PM_BLACK_NAGA_HATCHLING, PM_BLACK_NAGA, PM_GOLDEN_NAGA_HATCHLING, PM_GOLDEN_NAGA, PM_GUARDIAN_NAGA_HATCHLING, PM_GUARDIAN_NAGA, PM_SMALL_MIMIC, PM_LARGE_MIMIC, PM_GIANT_MIMIC, PM_BABY_LONG_WORM, PM_LONG_WORM, PM_LONG_WORM_TAIL, PM_BABY_PURPLE_WORM, PM_PURPLE_WORM, PM_BABY_CROCODILE, PM_CROCODILE, PM_SOLDIER, PM_SERGEANT, PM_LIEUTENANT, PM_CAPTAIN, PM_WATCHMAN, PM_WATCH_CAPTAIN, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC, PM_STUDENT, PM_ARCHEOLOGIST, PM_ATTENDANT, PM_HEALER, PM_PAGE, PM_KNIGHT, PM_ACOLYTE, PM_CLERIC, PM_APPRENTICE, PM_WIZARD, PM_MANES, PM_LEMURE, PM_KEYSTONE_KOP, PM_KOP_SERGEANT, PM_KOP_LIEUTENANT, PM_KOP_KAPTAIN, PM_GARGOYLE, PM_KILLER_BEE, PM_QUEEN_BEE, PM_DEATH, PM_FAMINE, PM_PESTILENCE, PM_KOBOLD_ZOMBIE, PM_KOBOLD_MUMMY, PM_MONKEY, PM_APE, PM_LICHEN } from './monsters.js';
 import { m_cansee } from './vision.js';
 
 import { AMULET_OF_YENDOR, AMULET_OF_GUARDING, FOOD_CLASS, VEGGY, CORPSE, BANANA,
+         GRAY_DRAGON_SCALES, ARMOR_CLASS,
          objectData } from './objects.js';
-import { ALL_TRAPS, NO_TRAP, W_ARMOR, W_AMUL, LOW_PM } from './const.js';
+import { ALL_TRAPS, NO_TRAP, W_ARMOR, W_AMUL, LOW_PM, A_CHA, ANTIMAGIC } from './const.js';
 import { dist2 } from './hack.js';
 import { highc } from './hacklib.js';
+import { defends, defends_when_carried } from './artifact.js';
+import { rnd } from './rng.js';
+import { acurr } from './attrib.js';
 
 const NATTK = 6;
 
@@ -244,13 +248,9 @@ export function is_displacer(ptr) { return !!(ptr.mflags3 & M3_DISPLACES); }
 // Note: in our JS, tame is a boolean; in C it's a value (tameness level)
 export function is_pet(mon) { return !!mon.tame; }
 
-// C ref: #define attacktype(ptr, atyp) — check if monster has this attack type
+// C ref: attacktype(ptr, atyp) — delegates to attacktype_fordmg
 export function attacktype(ptr, atyp) {
-    if (!ptr || !ptr.mattk) return false;
-    for (const atk of ptr.mattk) {
-        if (atk.aatyp === atyp) return true;
-    }
-    return false;
+    return !!attacktype_fordmg(ptr, atyp, AD_ANY);
 }
 
 // C ref: #define can_breathe(ptr)   attacktype(ptr, AT_BREA)
@@ -875,6 +875,146 @@ export function resists_acid(mon) { return !!((_mdat(mon)?.mresists || 0) & MR_A
 
 // C ref: #define resists_ston(mon) — stoning resistance
 export function resists_ston(mon) { return !!((_mdat(mon)?.mresists || 0) & MR_STONE); }
+
+// ========================================================================
+// monsndx — C ref: mondata.c:monsndx / mon.h macro
+// Get the mons[] array index for a permonst pointer.
+// ========================================================================
+export function monsndx(ptr) {
+    if (ptr == null) return -1;
+    if (typeof ptr.mndx === 'number') return ptr.mndx;
+    const idx = mons.indexOf(ptr);
+    return idx >= 0 ? idx : -1;
+}
+
+// ========================================================================
+// set_mon_data — C ref: mondata.c:13
+// Assign new permonst pointer to a monster, prorating movement if slower.
+// ========================================================================
+export function set_mon_data(mon, ptr) {
+    const old_speed = mon.data ? mon.data.mmove : 0;
+    mon.data = ptr;
+    mon.mnum = monsndx(ptr);
+
+    if (mon.movement) {
+        const new_speed = ptr.mmove;
+        if (new_speed < old_speed && old_speed > 0) {
+            mon.movement = Math.floor(mon.movement * new_speed / old_speed);
+        }
+    }
+}
+
+// ========================================================================
+// attacktype_fordmg — C ref: mondata.c:42
+// Returns the attack entry matching atyp+dtyp, or null.
+// ========================================================================
+export function attacktype_fordmg(ptr, atyp, dtyp) {
+    if (!ptr || !ptr.mattk) return null;
+    for (const a of ptr.mattk) {
+        if (a.aatyp === atyp && (dtyp === AD_ANY || a.adtyp === dtyp))
+            return a;
+    }
+    return null;
+}
+
+// ========================================================================
+// is_vampshifter — C ref: mon.h
+// True if mon's cham form is a vampire type.
+// ========================================================================
+export function is_vampshifter(mtmp) {
+    if (mtmp.cham == null || mtmp.cham < 0) return false;
+    const chamData = mons[mtmp.cham];
+    return chamData && chamData.mlet === S_VAMPIRE;
+}
+
+// ========================================================================
+// defended — C ref: mondata.c:91
+// Is monster protected against damage type via wielded artifact or dragon armor?
+// ========================================================================
+export function defended(mon, adtyp) {
+    if (!mon) return false;
+    // Check wielded artifact
+    const wep = mon.weapon || mon.mw || null;
+    if (wep && wep.oartifact && defends(adtyp, wep))
+        return true;
+
+    // Check if monster IS an adult dragon (treat as wearing own scales)
+    const mndx = monsndx(mon.data || mon);
+    if (mndx >= PM_GRAY_DRAGON && mndx <= PM_GRAY_DRAGON + 9) {
+        // Simulate dragon scales object for defends() check
+        const fakeObj = { oclass: ARMOR_CLASS, otyp: GRAY_DRAGON_SCALES + (mndx - PM_GRAY_DRAGON) };
+        if (defends(adtyp, fakeObj))
+            return true;
+    } else {
+        // Check worn body armor (W_ARM slot)
+        const inv = mon.minvent;
+        if (inv) {
+            for (let o = inv; o; o = o.nobj) {
+                if ((o.owornmask & W_ARMOR) && o.oartifact && defends(adtyp, o))
+                    return true;
+                // Dragon scales/mail check
+                if ((o.owornmask & W_ARMOR) && o.otyp >= GRAY_DRAGON_SCALES
+                    && o.otyp <= GRAY_DRAGON_SCALES + 19 // scales + mail variants
+                    && defends(adtyp, o))
+                    return true;
+            }
+        }
+    }
+    return false;
+}
+
+// ========================================================================
+// resists_magm — C ref: mondata.c:215
+// True if monster is magic-missile (general magic) resistant.
+// ========================================================================
+export function resists_magm(mon) {
+    const ptr = _mdat(mon);
+    if (!ptr) return false;
+    // Gray dragons, Angels, Oracle, Yeenoghu (AD_MAGM), Chromatic Dragon (AD_RBRE)
+    if (dmgtype(ptr, AD_MAGM) || ptr === mons[PM_BABY_GRAY_DRAGON]
+        || dmgtype(ptr, AD_RBRE))
+        return true;
+    // Check wielded artifact
+    const wep = mon.weapon || mon.mw || null;
+    if (wep && wep.oartifact && defends(AD_MAGM, wep))
+        return true;
+    // Check worn/carried items for ANTIMAGIC property
+    if (mon.minvent) {
+        for (let o = mon.minvent; o; o = o.nobj) {
+            if ((o.owornmask & (W_ARMOR | W_AMUL))
+                && objectData[o.otyp]?.oc_oprop === ANTIMAGIC)
+                return true;
+            if (o.oartifact && defends_when_carried(AD_MAGM, o))
+                return true;
+        }
+    }
+    return false;
+}
+
+// ========================================================================
+// resists_drli — C ref: mondata.c:201
+// True if monster is drain-life resistant.
+// ========================================================================
+export function resists_drli(mon) {
+    const ptr = _mdat(mon);
+    if (!ptr) return false;
+    if (is_undead(ptr) || is_demon(ptr) || is_were(ptr)
+        || is_vampshifter(mon))
+        return true;
+    return defended(mon, AD_DRLI);
+}
+
+// ========================================================================
+// resist_conflict — C ref: mondata.c:1607
+// Returns true if monster resists Conflict effect.
+// ========================================================================
+export function resist_conflict(mtmp, player) {
+    const m_lev = mtmp.m_lev || (mtmp.data || mtmp.type || {}).mlevel || 0;
+    const cha = player ? acurr(player, A_CHA) : 10;
+    const ulevel = player?.ulevel || 1;
+    const resist_chance = Math.min(19, cha - m_lev + ulevel);
+    return rnd(20) > resist_chance;
+}
 
 // ========================================================================
 // Magic negation — C ref: mhitu.c:1085 magic_negation()

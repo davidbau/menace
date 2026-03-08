@@ -40,7 +40,8 @@ import { IS_OBSTRUCTED, POOL, LAVAPOOL, M_AP_FURNITURE } from './const.js';
 import { mark_vision_dirty } from './vision.js';
 import { S_LICH, S_GHOST, S_VAMPIRE, S_WRAITH, S_MUMMY, S_ZOMBIE, S_HUMAN,
          mons, PM_ACID_BLOB, PM_WRAITH,
-         PM_CLERIC, PM_KNIGHT, PM_WIZARD, PM_MONK } from './monsters.js';
+         PM_CLERIC, PM_KNIGHT, PM_WIZARD, PM_MONK,
+         AT_ENGL, AD_BLND } from './monsters.js';
 import { Role_if } from './role.js';
 import { CORPSE, STATUE, AMULET_OF_YENDOR, FAKE_AMULET_OF_YENDOR,
          POT_WATER, POTION_CLASS, LOADSTONE, LEVITATION_BOOTS, FUMBLE_BOOTS,
@@ -57,7 +58,7 @@ import { mksobj, mkobj, bless as bless_obj, uncurse, xname } from './mkobj.js';
 import { hcolor } from './do_name.js';
 import { mon_nam, Monnam } from './do_name.js';
 import { is_undead, is_demon, is_human, is_unicorn, nohands, throws_rocks,
-         can_chant } from './mondata.js';
+         can_chant, attacktype_fordmg } from './mondata.js';
 import { exercise } from './attrib_exercise.js';
 import { upstart, s_suffix, sgn } from './hacklib.js';
 import { body_part, rehumanize } from './polyself.js';
@@ -899,7 +900,7 @@ export function in_trouble(player, map) {
     }
     if (player.blind && !(player.uswallow
             && player.ustuck && player.ustuck.data
-            && false /* attacktype_fordmg not yet ported */))
+            && attacktype_fordmg(player.ustuck.data, AT_ENGL, AD_BLND)))
         return TROUBLE_BLIND;
     if (player.deaf)
         return TROUBLE_BLIND; // deafness cured with blindness

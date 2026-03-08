@@ -17,7 +17,7 @@ import { pline, pline_The, verbalize, You, Your, You_feel,
 import { mons, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC, PM_ANGEL,
          PM_GHOST, MS_LEADER } from './monsters.js';
 import { mon_nam, Monnam, mon_pmname, rndmonnam, hcolor } from './do_name.js';
-import { is_minion, is_rider, canseemon, mon_learns_traps } from './mondata.js';
+import { is_minion, is_rider, canseemon, mon_learns_traps, resist_conflict } from './mondata.js';
 import { newsym } from './display.js';
 import { dist2 } from './hack.js';
 import { COIN_CLASS, GOLD_PIECE } from './objects.js';
@@ -288,10 +288,7 @@ function m_canseeu(mon, player) {
 function helpless(mon) {
     return !!(mon.mfrozen || mon.msleeping || mon.mcanmove === false || mon.mcanmove === 0);
 }
-function resist_conflict(mon) {
-    // C: resist(mon, RING_CLASS, 0, 0)
-    return false;
-}
+// resist_conflict imported from mondata.js
 function record_achievement(/*achidx, player*/) { /* stub */ }
 function mapseen_temple(/*priest*/) { /* stub */ }
 function nomul(player, turns) {
@@ -359,7 +356,7 @@ export async function pri_move(priest, map, player, display, fov) {
     let avoid = true;
 
     if (!priest.mpeaceful
-        || (player.conflict && !resist_conflict(priest))) {
+        || (player.conflict && !resist_conflict(priest, player))) {
         if (monnear(priest, player.x, player.y)) {
             if (player.displaced) {
                 await Your("displaced image doesn't fool %s!", mon_nam(priest));

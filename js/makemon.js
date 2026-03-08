@@ -72,7 +72,7 @@ import { roles, races, initialAlignmentRecordForRole } from './player.js';
 import { mpickobj } from './steal.js';
 import { dist2 } from './hack.js';
 import { newsym, senseMonsterForMap } from './display.js';
-import { canseemon, mon_learns_traps, emits_light } from './mondata.js';
+import { canseemon, mon_learns_traps, emits_light, set_mon_data } from './mondata.js';
 import { Amonnam } from './do_name.js';
 import { vtense } from './objnam.js';
 import { Norep, set_msg_xy } from './pline.js';
