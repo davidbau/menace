@@ -101,3 +101,19 @@ When starting SYNCLOCK work, keep unvalidated parity experiments out of `main`:
 2. Land only validated, non-regressive increments.
 3. Record stash/patch identifier in issue updates so work is recoverable.
 
+## Status (2026-03-08)
+Landed S0 increments on `main`:
+1. `de90d1ff`
+   - added `js/exec_guard.js`
+   - added `js/suspend.js`
+   - wired `run_command` begin/end guard and boundary-owned typed waits
+   - added `test/unit/synclock_exec_guard.test.js`
+2. `b013b590`
+   - routed direct `await nhgetch()` waits in `js/allmain.js` through `awaitInput(...)`
+3. `08277834`
+   - classified frame-yield `setTimeout(0)` waits in `js/allmain.js` as `awaitAnim(...)`
+
+Validation snapshot after these increments:
+- `seed031_manual_direct`: pass
+- `seed032_manual_direct`: pass
+- `seed033_manual_direct`: known fail window unchanged (non-regressive)
