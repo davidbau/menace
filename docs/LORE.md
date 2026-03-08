@@ -5102,3 +5102,32 @@ hard-won wisdom:
   - `node --test test/unit/display_howmonseen.test.js` passes (`3/3`).
   - `node scripts/test-unit-core.mjs` baseline unchanged:
     `2537 pass / 5 fail` (same known 5 input-queue failures).
+
+### display.c unmap callchain closure (`unmap_invisible`/`unmap_object`) (2026-03-08)
+
+- Problem:
+  - `display.js` exported `unmap_invisible()` but called undefined
+    `unmap_object()` and depended on glyph-only invisible checks that did not
+    match JS map memory (`mem_invis`).
+  - This left invisible-map clearing behavior partially broken and prevented
+    CODEMATCH closure for `display.c:401` and `display.c:422`.
+- Fix:
+  - Implemented `unmap_object(x, y, ctxOrMap)` in
+    [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js)
+    with C-faithful ordering:
+    - no-op when `hero_memory` is disabled
+    - clear mapped invisibility marker
+    - prefer remembered seen trap
+    - otherwise restore remembered engraving/terrain background
+    - darken unlit remembered room squares
+  - Updated `unmap_invisible()` to:
+    - detect mapped invisibility via `mem_invis` (and legacy glyph check)
+    - call `unmap_object(..., map)` with explicit context
+    - redraw with `newsym`.
+  - Added targeted tests in
+    [`test/unit/display_unmap_object.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/display_unmap_object.test.js).
+- Validation:
+  - `node --test test/unit/display_unmap_object.test.js` passes (`4/4`).
+  - `node --test test/unit/display_warning_runtime.test.js` passes (`11/11`).
+  - `node scripts/test-unit-core.mjs` baseline unchanged:
+    `2541 pass / 5 fail` (same known 5 input-queue failures).

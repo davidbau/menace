@@ -1114,8 +1114,8 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 759 | `feel_location` | - | Missing |
 | 739 | `feel_newsym` | - | Missing |
 | 1309 | `flash_glyph_at` | - | Missing |
-| 2226 | `flush_screen` | - | Missing |
-| 3815 | `fn_cmap_to_glyph` | - | Missing |
+| 2226 | `flush_screen` | display.js:2088 | Implemented |
+| 3815 | `fn_cmap_to_glyph` | display.js:1819 | Implemented |
 | 2525 | `get_bkglyph_and_framecolor` | - | Missing |
 | 2496 | `glyph_at` | - | Missing |
 | 2505 | `glyphinfo_at` | - | Missing |
@@ -1125,7 +1125,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 279 | `map_background` | - | Missing |
 | 313 | `map_engraving` | - | Missing |
 | 2612 | `map_glyphinfo` | - | Missing |
-| 391 | `map_invisible` | - | Missing |
+| 391 | `map_invisible` | display.js:1868 | Implemented |
 | 488 | `map_location` | - | Missing |
 | 333 | `map_object` | - | Missing |
 | 296 | `map_trap` | - | Missing |
@@ -1134,8 +1134,8 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 187 | `mon_visible` | display.js:1357 | Implemented |
 | 180 | `mon_warning` | display.js:1340 | Implemented |
 | 3165 | `more_than_one` | - | Missing |
-| 931 | `newsym` | - | Missing |
-| 1865 | `newsym_force` | - | Missing |
+| 931 | `newsym` | display.js:1878 | Implemented |
+| 1865 | `newsym_force` | display.js:1725 | Implemented |
 | 1780 | `redraw_map` | - | Missing |
 | 1820 | `reglyph_darkroom` | - | Missing |
 | 2757 | `reset_glyphmap` | - | Missing |
@@ -1165,8 +1165,8 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 3126 | `type_to_name` | - | Missing |
 | 1449 | `under_ground` | - | Missing |
 | 1399 | `under_water` | - | Missing |
-| 401 | `unmap_invisible` | - | Missing |
-| 422 | `unmap_object` | - | Missing |
+| 401 | `unmap_invisible` | display.js:1417 | Implemented |
+| 422 | `unmap_object` | display.js:1431 | Implemented |
 | 3402 | `unset_seenv` | - | Missing |
 | 3531 | `wall_angle` | - | Missing |
 | 667 | `warning_of` | display.js:1427 | Implemented |

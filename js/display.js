@@ -1415,12 +1415,74 @@ export function is_safemon(mon, playerArg = null, fovArg = null, ctxOrMap = null
 
 // Autotranslated from display.c:387
 export function unmap_invisible(x, y, map) {
-  if (isok(x,y) && glyph_is_invisible(map.locations[x][y].glyph)) {
-    unmap_object(x, y);
+  if (!map || !isok(x, y)) return false;
+  const loc = map.at(x, y);
+  const mappedInvisible = !!(loc?.mem_invis
+      || (loc && glyph_is_invisible(loc.glyph)));
+  if (mappedInvisible) {
+    unmap_object(x, y, map);
     newsym(x, y);
     return true;
   }
   return false;
+}
+
+// Autotranslated from display.c:422
+export function unmap_object(x, y, ctxOrMap = null) {
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const map = ctx?.map;
+  const player = ctx?.player;
+  const fov = ctx?.fov;
+  if (!map || !isok(x, y)) return;
+  if (map.flags?.hero_memory === false) return;
+  const loc = map.at(x, y);
+  if (!loc) return;
+  loc.mem_invis = false;
+
+  const covered = coversObjectsAt(loc, player);
+  const trap = (typeof map.trapAt === 'function') ? map.trapAt(x, y) : null;
+  if (trap && trap.tseen && !covered) {
+    const tg = trapGlyph(trap.ttyp);
+    loc.mem_trap = tg.ch;
+    loc.mem_trap_color = tg.color;
+    loc.mem_obj = 0;
+    loc.mem_obj_color = 0;
+    return;
+  }
+
+  loc.mem_trap = 0;
+  loc.mem_trap_color = 0;
+  if (loc.seenv) {
+    const engr = (typeof map.engravingAt === 'function') ? map.engravingAt(x, y) : null;
+    if (spotShowsEngravings(loc) && engr && !covered) {
+      if (fov?.canSee?.(x, y)) engr.erevealed = true;
+      const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
+      loc.mem_obj = engrCh;
+      loc.mem_obj_color = CLR_BRIGHT_BLUE;
+      return;
+    }
+    loc.mem_obj = 0;
+    loc.mem_obj_color = 0;
+    if (IS_WALL(loc.typ) && !wallIsVisible(loc.typ, loc.seenv, loc.flags)) {
+      loc.mem_terrain_ch = ' ';
+      loc.mem_terrain_color = CLR_GRAY;
+      return;
+    }
+    const sym = renderTerrainSymbol(loc, map, x, y, ctx?.flags || null);
+    const rememberedColor = (loc.typ === ROOM) ? NO_COLOR : sym.color;
+    loc.mem_terrain_ch = sym.ch;
+    loc.mem_terrain_color = rememberedColor;
+    if (!loc.waslit && loc.typ === ROOM) {
+      loc.mem_terrain_ch = ' ';
+      loc.mem_terrain_color = CLR_GRAY;
+    }
+    return;
+  }
+
+  loc.mem_obj = 0;
+  loc.mem_obj_color = 0;
+  loc.mem_terrain_ch = ' ';
+  loc.mem_terrain_color = CLR_GRAY;
 }
 
 // Autotranslated from display.c:481
