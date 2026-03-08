@@ -716,6 +716,10 @@ async function showTextWindowFile(display, text) {
         const hasMore = (top + pageRows) < lines.length;
         if (typeof display?.clearRow === 'function') display.clearRow(TERMINAL_ROWS - 1);
         await display.putstr(0, TERMINAL_ROWS - 1, '--More--');
+        if (typeof display?.setCursor === 'function') {
+            // C tty text window: cursor rests at end of "--More--" on bottom row.
+            display.setCursor(8, TERMINAL_ROWS - 1);
+        }
 
         while (true) {
             const ch = await nhgetch();

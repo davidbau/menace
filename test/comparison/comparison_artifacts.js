@@ -94,25 +94,28 @@ export function isComparisonArtifactsEnabled() {
     return !(v === '0' || v.toLowerCase?.() === 'false');
 }
 
-function buildStepScreenContext(session, replay, result) {
+function buildStepScreenContext(session, replay, result, targetStep = null) {
     const first = result?.firstDivergence || null;
     const fds = result?.firstDivergences || {};
     const screenLike = first?.channel === 'screen'
         || first?.channel === 'color'
         || first?.channel === 'screenWindow'
         || first?.channel === 'colorWindow'
+        || first?.channel === 'cursor'
         || !!fds.screen
         || !!fds.color
         || !!fds.screenWindow
-        || !!fds.colorWindow;
+        || !!fds.colorWindow
+        || !!fds.cursor;
     if (!screenLike) return null;
 
-    const preferred = first?.step
+    const preferred = Number.isInteger(targetStep) ? targetStep : (first?.step
         ?? fds.screen?.step
         ?? fds.color?.step
         ?? fds.screenWindow?.step
         ?? fds.colorWindow?.step
-        ?? null;
+        ?? fds.cursor?.step
+        ?? null);
     const center = Number.isInteger(preferred) ? preferred : null;
     if (!center || center < 1) return null;
 
@@ -214,6 +217,11 @@ export function buildComparisonArtifact(session, replay, cmp, result) {
     if (envEnabled('WEBHACK_COMPARISON_INCLUDE_SCREENS')) {
         const context = buildStepScreenContext(session, replay, result);
         if (context) artifact.screenContext = context;
+        const cursorStep = result?.firstDivergences?.cursor?.step;
+        if (Number.isInteger(cursorStep)) {
+            const cursorContext = buildStepScreenContext(session, replay, result, cursorStep);
+            if (cursorContext) artifact.cursorContext = cursorContext;
+        }
     }
 
     return artifact;
