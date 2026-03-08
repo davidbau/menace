@@ -4431,3 +4431,31 @@ hard-won wisdom:
 - Validation:
   - `./scripts/run-and-report.sh --failures` remains non-regressive
     (`31/34`, same failing set) while ownership semantics become explicit.
+
+### Mapdump engraving section (`E`) for provenance debugging (2026-03-08)
+
+- Problem:
+  - `seed031/032` first event drift is `^distfleeck` vs expected `^wipe`, and
+    direct engraving traces showed many `wipe_engr_at(...)` calls with
+    `engr=none`. We lacked compact mapdump visibility into engraving state.
+- Change:
+  - Added optional compact mapdump section `E` (engravings) across tooling:
+    - JS mapdump emitter (`js/dungeon.js`)
+    - mapdump parser/comparator (`test/comparison/session_loader.js`,
+      `test/comparison/comparators.js`)
+    - debug mapdump tool section model/help
+      (`test/comparison/dbgmapdump.js`, `docs/DBGMAPDUMP_TOOL.md`)
+    - C harness mapdump patch (`test/comparison/c-harness/patches/017-auto-mapdump.patch`)
+    - session format docs (`docs/SESSION_FORMAT_V3.md`)
+  - Encoding:
+    - `E` row entries are sparse tuples:
+      `x,y,type,textLen,nowipeout,guardobjects`.
+  - Comparison remains backward-compatible:
+    - `E` is only compared when both sides provide it.
+- Validation:
+  - `node --test test/unit/mapdump_extensions.test.js` passes.
+  - `./scripts/run-and-report.sh --failures` remains stable at `31/34`.
+  - `dbgmapdump` smoke check:
+    - `node test/comparison/dbgmapdump.js test/comparison/sessions/seed031_manual_direct.session.json --steps 15 --sections E,U,M ...`
+    - produced `E66,10,4,70,0,0`, confirming only one engraving is present in
+      JS at this step, which supports the engraving-provenance gap hypothesis.

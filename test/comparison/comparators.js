@@ -680,9 +680,10 @@ export function compareMapdumpCheckpoints(jsCheckpoints = null, sessionCheckpoin
             ['objectDetails', 'Q'],
             ['monsterDetails', 'N'],
             ['trapDetails', 'J'],
+            ['engravings', 'E'],
         ];
         for (const [field, section] of sparseSections) {
-            if ((section === 'Q' || section === 'N' || section === 'J')
+            if ((section === 'Q' || section === 'N' || section === 'J' || section === 'E')
                 && !(hasMapdumpSection(jParsed, section) && hasMapdumpSection(sParsed, section))) {
                 continue;
             }

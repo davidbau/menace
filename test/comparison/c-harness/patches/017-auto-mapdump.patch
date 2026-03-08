@@ -95,6 +95,7 @@ diff --git a/src/mklev.c b/src/mklev.c
 +    struct obj *otmp;
 +    struct monst *mtmp;
 +    struct trap *ttmp;
++    struct engr *ep;
 +    boolean first;
 +
 +    (void) fputc('O', fp);
@@ -194,6 +195,23 @@ diff --git a/src/mklev.c b/src/mklev.c
 +                       ttmp->once ? 1 : 0,
 +                       ttmp->madeby_u ? 1 : 0,
 +                       (int) ttmp->teledest.x, (int) ttmp->teledest.y);
++        first = FALSE;
++    }
++    (void) fputc('\n', fp);
++
++    (void) fputc('E', fp);
++    first = TRUE;
++    for (ep = head_engr; ep; ep = ep->nxt_engr) {
++        if (!isok(ep->engr_x, ep->engr_y))
++            continue;
++        (void) fprintf(fp, "%s%d,%d,%d,%u,%d,%d",
++                       first ? "" : ";",
++                       (int) ep->engr_x, (int) ep->engr_y,
++                       (int) ep->engr_type,
++                       (unsigned) (ep->engr_txt[actual_text]
++                                   ? strlen(ep->engr_txt[actual_text]) : 0),
++                       ep->nowipeout ? 1 : 0,
++                       ep->guardobjects ? 1 : 0);
 +        first = FALSE;
 +    }
 +    (void) fputc('\n', fp);

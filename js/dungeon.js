@@ -347,6 +347,14 @@ function buildHarnessMapdumpGrid(map, which) {
 }
 
 function buildHarnessMapdumpPayload(map, options = {}) {
+    const engrTypeToNum = {
+        dust: 1,
+        engrave: 2,
+        burn: 3,
+        mark: 4,
+        blood: 5,
+        headstone: 6,
+    };
     const lines = [];
     lines.push(`T${buildHarnessMapdumpGrid(map, 0)}`);
     lines.push(`F${buildHarnessMapdumpGrid(map, 1)}`);
@@ -483,6 +491,21 @@ function buildHarnessMapdumpPayload(map, options = {}) {
     }
     trapDetailParts.sort();
     lines.push(`J${trapDetailParts.join(';')}`);
+
+    const engravingParts = [];
+    for (const engr of (Array.isArray(map?.engravings) ? map.engravings : [])) {
+        const ex = Number(engr?.x);
+        const ey = Number(engr?.y);
+        if (!isok(ex, ey)) continue;
+        const etype = typeof engr?.type === 'string' ? (engr.type.toLowerCase()) : '';
+        const etypeNum = Number.isFinite(engr?.type) ? Math.trunc(engr.type) : (engrTypeToNum[etype] || 0);
+        const textLen = String(engr?.text || '').length | 0;
+        const nowipeout = engr?.nowipeout ? 1 : 0;
+        const guardobjects = engr?.guardobjects ? 1 : 0;
+        engravingParts.push(`${ex},${ey},${etypeNum},${textLen},${nowipeout},${guardobjects}`);
+    }
+    engravingParts.sort();
+    lines.push(`E${engravingParts.join(';')}`);
 
     return `${lines.join('\n')}\n`;
 }

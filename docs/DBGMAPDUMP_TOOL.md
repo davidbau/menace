@@ -21,7 +21,7 @@ node test/comparison/dbgmapdump.js --help
 - `--steps <spec>`: gameplay step selector (`89`, `88-92`, `88-92,140`)
 - `--first-divergence`: auto-pick first divergence step (RNG, then event, then screen)
 - `--window <N>`: expand selected steps by `+/- N`
-- `--sections <list>`: restrict written sections (`T,F,H,L,R,W,U,A,O,Q,M,N,K,J`)
+- `--sections <list>`: restrict written sections (`T,F,H,L,R,W,U,A,O,Q,M,N,K,J,E`)
 - `--context <N>`: include RNG/event context around each captured raw replay step
 - `--adjacent-diff`: compare each captured JS step to the previous captured JS step
 - `--c-side`: also capture C-side snapshots via `capture_step_snapshot.py`
@@ -53,7 +53,7 @@ node test/comparison/dbgmapdump.js \
 ```bash
 node test/comparison/dbgmapdump.js \
   test/comparison/sessions/seed031_manual_direct.session.json \
-  --steps 164-167 --c-side --compare-sections M,N,O,Q,K,J,T,F,W
+  --steps 164-167 --c-side --compare-sections M,N,O,Q,K,J,E,T,F,W
 ```
 
 3. Focus only on a subset of state sections:

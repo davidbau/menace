@@ -456,7 +456,7 @@ Session files may also include top-level compact mapdump checkpoints:
 ```json
 {
   "checkpoints": {
-    "d0l1_001": "T...\\nF...\\nH...\\nL...\\nR...\\nW...\\nU...\\nA...\\nO...\\nQ...\\nM...\\nN...\\nK...\\nJ...\\n"
+    "d0l1_001": "T...\\nF...\\nH...\\nL...\\nR...\\nW...\\nU...\\nA...\\nO...\\nQ...\\nM...\\nN...\\nK...\\nJ...\\nE...\\n"
   }
 }
 ```
@@ -480,6 +480,7 @@ Extended sections (new writers should emit; comparison is backward-compatible if
 - `Q` object detail sparse list
 - `N` monster detail sparse list
 - `J` trap detail sparse list
+- `E` engraving sparse list (`x,y,type,textLen,nowipeout,guardobjects`)
 
 ## Terrain Type Grid
 

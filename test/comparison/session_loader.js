@@ -239,7 +239,7 @@ function parseCompactSparseListVariable(str, minFieldCount = 1) {
 
 /**
  * Parse a compact mapdump file content string into a structured checkpoint.
- * Returns { typGrid, flagsGrid, horizontalGrid, litGrid, roomnoGrid, objects, monsters, traps }.
+ * Returns parsed compact mapdump sections (grids, sparse lists, vectors).
  */
 export function parseCompactMapdump(content) {
     if (!content) return null;
@@ -264,6 +264,7 @@ export function parseCompactMapdump(content) {
             case 'Q': result.objectDetails = parseCompactSparseListVariable(data, 4); break;
             case 'N': result.monsterDetails = parseCompactSparseListVariable(data, 4); break;
             case 'J': result.trapDetails = parseCompactSparseListVariable(data, 3); break;
+            case 'E': result.engravings = parseCompactSparseListVariable(data, 3); break;
         }
     }
     return result;

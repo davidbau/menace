@@ -18,9 +18,9 @@ import { findFirstGridDiff } from './comparators.js';
 
 const GRID_SECTIONS = new Set(['T', 'F', 'H', 'L', 'R', 'W']);
 const VECTOR_SECTIONS = new Set(['U', 'A']);
-const SPARSE_SECTIONS = new Set(['O', 'Q', 'M', 'N', 'K', 'J']);
+const SPARSE_SECTIONS = new Set(['O', 'Q', 'M', 'N', 'K', 'J', 'E']);
 const ALL_SECTIONS = [...GRID_SECTIONS, ...VECTOR_SECTIONS, ...SPARSE_SECTIONS];
-const DEFAULT_COMPARE_SECTIONS = ['U', 'A', 'O', 'Q', 'M', 'N', 'K', 'J', 'T', 'F', 'W'];
+const DEFAULT_COMPARE_SECTIONS = ['U', 'A', 'O', 'Q', 'M', 'N', 'K', 'J', 'E', 'T', 'F', 'W'];
 
 function usage() {
     const sectionLegend = [
@@ -38,6 +38,7 @@ function usage() {
         'N monster details sparse',
         'K trap sparse',
         'J trap details sparse',
+        'E engraving sparse',
     ].join(', ');
     console.log(
         'dbgmapdump: capture step-targeted JS mapdumps, optional C snapshots, and section-aware diffs.\n\n'
@@ -306,6 +307,20 @@ function buildCompactMapdumpFromCSnapshot(capture, sectionSet) {
         const rows = traps.map((t) => `${(t.tx ?? t.x) | 0},${(t.ty ?? t.y) | 0},${(t.ttyp ?? t.type ?? 0) | 0},${t.tseen ? 1 : 0},${t.once ? 1 : 0},${t.madeby_u ? 1 : 0},-1,-1`);
         lines.push(`J${toSparse(rows)}`);
     }
+    if (sectionSet.has('E')) {
+        const engrs = Array.isArray(cp.engravings) ? cp.engravings : [];
+        const rows = engrs.map((e) => {
+            const x = (e.engr_x ?? e.x ?? 0) | 0;
+            const y = (e.engr_y ?? e.y ?? 0) | 0;
+            const etype = (e.engr_type ?? e.type ?? 0) | 0;
+            const text = e.engr_txt?.actual_text ?? e.text ?? '';
+            const textLen = String(text).length | 0;
+            const nowipeout = e.nowipeout ? 1 : 0;
+            const guardobjects = e.guardobjects ? 1 : 0;
+            return `${x},${y},${etype},${textLen},${nowipeout},${guardobjects}`;
+        }).sort();
+        lines.push(`E${toSparse(rows)}`);
+    }
     return `${lines.join('\n')}\n`;
 }
 
@@ -337,6 +352,7 @@ function sectionField(section) {
         T: 'typGrid', F: 'flagsGrid', H: 'horizontalGrid', L: 'litGrid', R: 'roomnoGrid', W: 'wallInfoGrid',
         U: 'hero', A: 'anchor',
         O: 'objects', Q: 'objectDetails', M: 'monsters', N: 'monsterDetails', K: 'traps', J: 'trapDetails',
+        E: 'engravings',
     })[section];
 }
 

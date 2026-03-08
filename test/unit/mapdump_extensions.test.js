@@ -32,6 +32,7 @@ describe('mapdump extensions', () => {
             'Q1,39,4,7,1,1,0,0,10,97,0,0,0,0',
             'N44,64,11,32,12,12,0,0,0,0,1,0,0,0,0',
             'J39,4,15,1,0,0,-1,-1',
+            'E39,4,4,12,0,0',
             'O39,4,7,1',
             'M64,11,32,12',
             'K39,4,15',
@@ -45,6 +46,7 @@ describe('mapdump extensions', () => {
         assert.equal(parsed.objectDetails.length, 1);
         assert.equal(parsed.monsterDetails.length, 1);
         assert.equal(parsed.trapDetails.length, 1);
+        assert.equal(parsed.engravings.length, 1);
     });
 
     it('keeps comparison backward-compatible when optional sections are absent on one side', () => {
@@ -60,6 +62,7 @@ describe('mapdump extensions', () => {
             'Q1,39,4,7,1,1,0,0,10,97,0,0,0,0',
             'N44,64,11,32,12,12,0,0,0,0,1,0,0,0,0',
             'J39,4,15,1,0,0,-1,-1',
+            'E39,4,4,12,0,0',
             'O39,4,7,1',
             'M64,11,32,12',
             'K39,4,15',
@@ -83,6 +86,7 @@ describe('mapdump extensions', () => {
             'R~80,0',
             'W~80,0',
             'U39,4,12,12,8,8,0,0,0,1,123,0,0,0,0,0',
+            'E',
             'O',
             'M',
             'K',
@@ -96,6 +100,7 @@ describe('mapdump extensions', () => {
             'R~80,0',
             'W~80,0',
             'U40,4,12,12,8,8,0,0,0,1,123,0,0,0,0,0',
+            'E',
             'O',
             'M',
             'K',
@@ -119,6 +124,7 @@ describe('mapdump extensions', () => {
             'L~80,0',
             'R~80,0',
             'Q',
+            'E',
             'O',
             'M',
             'K',
@@ -131,6 +137,7 @@ describe('mapdump extensions', () => {
             'L~80,0',
             'R~80,0',
             'Q1,39,4,7,1,1,0,0,10,97,0,0,0,0',
+            'E39,4,4,12,0,0',
             'O',
             'M',
             'K',
@@ -144,5 +151,40 @@ describe('mapdump extensions', () => {
         assert.equal(cmp.total, 1);
         assert.equal(cmp.firstDivergence?.kind, 'sparse');
         assert.equal(cmp.firstDivergence?.section, 'Q');
+    });
+
+    it('compares optional engraving section when both sides provide it', () => {
+        const left = [
+            'T~80,0',
+            'F~80,0',
+            'H~80,0',
+            'L~80,0',
+            'R~80,0',
+            'E39,4,4,12,0,0',
+            'O',
+            'M',
+            'K',
+            '',
+        ].join('\n');
+        const right = [
+            'T~80,0',
+            'F~80,0',
+            'H~80,0',
+            'L~80,0',
+            'R~80,0',
+            'E39,4,4,11,0,0',
+            'O',
+            'M',
+            'K',
+            '',
+        ].join('\n');
+        const cmp = compareMapdumpCheckpoints(
+            { d0l1_001: left },
+            { d0l1_001: right }
+        );
+        assert.equal(cmp.matched, 0);
+        assert.equal(cmp.total, 1);
+        assert.equal(cmp.firstDivergence?.kind, 'sparse');
+        assert.equal(cmp.firstDivergence?.section, 'E');
     });
 });
