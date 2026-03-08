@@ -4601,3 +4601,23 @@ hard-won wisdom:
   - `node scripts/test-unit-core.mjs` passes.
   - `./scripts/run-and-report.sh --failures` remains at `32/34` gameplay
     sessions passing (`seed032` screen-only, `seed033` RNG/event).
+
+### seed033 occupation boundary advance: missmu now stops occupation (2026-03-08)
+
+- Problem:
+  - In `mhitu.c`, `missmu()` calls `stop_occupation()`; JS miss path only did
+    `nomul(0)`, leaving occupation semantics and search interruption out of sync.
+  - Symptom in `seed033`: missing/late `"You stop searching."` behavior and early
+    RNG/event divergence around the step-104 occupation boundary.
+- Fix:
+  - Updated miss path in
+    [`js/mhitu.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mhitu.js)
+    to call `game.stopOccupation()` (or clear occupation fallback) before
+    `nomul(0)`, matching C `missmu()` end behavior.
+- Validation:
+  - `node scripts/test-unit-core.mjs` passes.
+  - `node test/comparison/session_test_runner.js test/comparison/sessions/seed033_manual_direct.session.json`
+    now advances first RNG divergence from step `104` to step `108`, and
+    matched RNG prefix improves `3976 -> 4151`.
+  - `./scripts/run-and-report.sh --failures` remains `32/34` passing overall
+    (`seed032` screen-only, `seed033` now diverging later at step 108).

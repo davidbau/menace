@@ -1221,7 +1221,12 @@ export async function mattacku(monster, player, display, game = null, opts = {})
                 const just = (toHit === dieRoll) ? 'just ' : '';
                 await display.putstr_message(`The ${x_monnam(monster)} ${just}misses!`);
             }
-            // C ref: missmu() calls stop_occupation() at end (mhitu.c:99)
+            // C ref: missmu() ends with stop_occupation() (mhitu.c:99),
+            // which also clears multi/running via nomul(0).
+            if (game && game.occupation) {
+                if (typeof game.stopOccupation === 'function') await game.stopOccupation();
+                else game.occupation = null;
+            }
             nomul(0, game);
             sum[i] = M_ATTK_MISS;
             continue;
