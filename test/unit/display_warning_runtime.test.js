@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { display_warning, warning_of, mon_warning } from '../../js/display.js';
+import { display_warning, warning_of, mon_warning, newsym } from '../../js/display.js';
+import { setGame } from '../../js/gstate.js';
+import { ROOM } from '../../js/const.js';
 
 function makeCtx(overrides = {}) {
     const cells = [];
@@ -45,4 +47,54 @@ test('display_warning writes a warning glyph cell without throwing', () => {
     assert.equal(typeof cells[0].ch, 'string');
     assert.equal(cells[0].ch.length, 1);
     assert.equal(loc.mem_invis, false);
+});
+
+test('newsym uses warning glyph (not monster glyph) for warning-only sensing', () => {
+    const cells = [];
+    const display = {
+        setCell: (x, y, ch, color) => cells.push({ x, y, ch, color }),
+    };
+    const loc = {
+        typ: ROOM,
+        mem_invis: false,
+        seenv: 1,
+        flags: 0,
+        waslit: true,
+    };
+    const mon = {
+        mx: 12,
+        my: 10,
+        m_lev: 8,
+        mhp: 12,
+        mpeaceful: 0,
+        mtame: 0,
+        minvis: true, // not visible without see-invisible
+        mundetected: 0,
+    };
+    const player = {
+        x: 10,
+        y: 10,
+        warning: true,
+    };
+    const map = {
+        at: () => loc,
+        monsterAt: () => mon,
+        objectsAt: () => [],
+        trapAt: () => null,
+        engravingAt: () => null,
+    };
+    const fov = { canSee: () => true };
+    setGame({ display, map, player, fov, flags: { msg_window: false } });
+    try {
+        newsym(12, 10);
+    } finally {
+        setGame(null);
+    }
+    assert.equal(cells.length > 0, true);
+    const cell = cells[cells.length - 1];
+    assert.equal(cell.x, 11);
+    assert.equal(cell.y, 11);
+    // C-faithful behavior: warning-only sensing draws warning glyph path
+    // and should not mark monster as physically displayed/seen.
+    assert.notEqual(mon.meverseen, 1);
 });

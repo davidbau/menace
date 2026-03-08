@@ -5008,3 +5008,28 @@ hard-won wisdom:
   - `node --test test/unit/display_warning_runtime.test.js` passes.
   - `node scripts/test-unit-core.mjs` unchanged known baseline
     (`2528 pass / 5 fail` after adding 2 new passing tests).
+
+### display.c newsym warning-vs-monster glyph parity fix (2026-03-08)
+
+- Problem:
+  - JS `newsym` path was allowing WARNING-based sensing to flow through the
+    monster-glyph branch because `monsterShownOnMap()` treated WARNING like
+    telepathy/detect/warn_of_mon.
+  - In C (`display.c`), WARNING is a separate fallback branch
+    (`display_warning(mon)`), while monster glyphs are for visible monsters or
+    `tp_sensemon`/`MATCH_WARN_OF_MON`/`Detect_monsters`.
+- Fix:
+  - Tightened `monsterShownOnMap()` so monster glyphs are promoted only by:
+    `mon_visible`, telepathy, `warn_of_mon`, or `detect_monsters` (not plain
+    WARNING).
+  - Added explicit warning branch in `newsym` after monster-glyph check:
+    `if (mon && mon_warning(...)) display_warning(...)`.
+  - When monster glyph is rendered through this path, set `mon.meverseen = 1`
+    (matching C `display_monster` behavior).
+  - Added regression coverage in
+    [`test/unit/display_warning_runtime.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/display_warning_runtime.test.js):
+    warning-only sensing should not mark monster as `meverseen`.
+- Validation:
+  - `node --test test/unit/display_warning_runtime.test.js` passes.
+  - `node scripts/test-unit-core.mjs` baseline unchanged:
+    `2529 pass / 5 fail` (same known input-queue failures).

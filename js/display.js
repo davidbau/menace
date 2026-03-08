@@ -99,8 +99,8 @@ function coversObjectsAt(loc, player) {
 }
 
 // C ref: display.c newsym() — see_it logic (lines 1004-1006)
-// A monster is shown if mon_visible (not mimic/undetected/invisible)
-// OR sensed via telepathy/warning/detect_monsters.
+// A monster glyph is shown if mon_visible OR sensed via telepathy/warn_of_mon
+// or detect_monsters. Plain WARNING uses warning glyphs, not monster glyphs.
 function monsterShownOnMap(mon, player, map) {
     if (!mon) return false;
     const ap = mon.m_ap_type;
@@ -110,8 +110,9 @@ function monsterShownOnMap(mon, player, map) {
     const monVisible = !mon.mundetected
         && !(mon.minvis && !playerCanSeeInvisible(player));
     if (monVisible) return true;
-    // Even if not directly visible, player may sense via telepathy/warning/detect
-    return senseMonsterForMap(mon, map, player);
+    const detectMonsters = hasPlayerProp(player, DETECT_MONSTERS, 'detectMonsters', 'Detect_monsters');
+    const warnOfMon = hasPlayerProp(player, WARN_OF_MON, 'warnOfMon', 'Warn_of_mon');
+    return detectMonsters || warnOfMon || telepathySensesMonsterForMap(mon, player);
 }
 
 
@@ -1865,6 +1866,11 @@ export function newsym(x, y, ctxOrMap = null) {
         const hallu = !!player?.hallucinating;
         const glyph = monsterMapGlyph(mon, hallu);
         display.setCell(col, row, glyph.ch, glyph.color);
+        mon.meverseen = 1;
+        return;
+    }
+    if (mon && mon_warning(mon, player, ctx)) {
+        display_warning(mon, player, ctx);
         return;
     }
     if (loc.mem_invis) {
