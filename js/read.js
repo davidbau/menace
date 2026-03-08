@@ -39,7 +39,7 @@ import { getpos_sethilite, getpos_async } from './getpos.js';
 import { pline, impossible } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
 import { newsym } from './display.js';
-import { identify_pack } from './invent.js';
+import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { engulfing_u } from './mondata.js';
 
 const SPELL_KEEN = 20000; // cf. spell.c KEEN
@@ -295,19 +295,17 @@ async function handleRead(player, display, game) {
     };
     const isDismissKey = (code) => code === 27 || code === 10 || code === 13 || code === 32;
     const showReadableHelpList = async () => {
-        if (!readable.length) return;
-        for (const item of readable) {
-            const entry = `${item.invlet} - ${doname(item, player)}.--More--`;
-            while (true) {
-                replacePromptMessage();
-                await display.putstr_message(entry);
-                const ack = await nhgetch();
-                if (isDismissKey(ack)) break;
-            }
-        }
+        // Match C TTY getobj('?/*') behavior: inventory window owns the topline
+        // while visible, not an overprint on the existing read prompt.
+        replacePromptMessage();
+        const lines = buildInventoryOverlayLines(player);
+        await renderOverlayMenuUntilDismiss(display, lines);
     };
-    while (true) {
+    const showReadPrompt = async () => {
         await display.putstr_message(prompt);
+    };
+    await showReadPrompt();
+    while (true) {
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
         if (isDismissKey(ch)) {
@@ -319,6 +317,7 @@ async function handleRead(player, display, game) {
             // C tty keeps read prompt pending while '?/*' item-list help is
             // acknowledged with modal --More-- screens.
             await showReadableHelpList();
+            await showReadPrompt();
             continue;
         }
         const anyItem = (player.inventory || []).find((o) => o && o.invlet === c);
@@ -452,7 +451,22 @@ async function handleRead(player, display, game) {
             await display.putstr_message('That is a silly thing to read.');
             return { moved: false, tookTime: false };
         }
-        // Keep waiting for a supported selection.
+        // C/getobj-style invalid invlet boundary:
+        // show error, block at --More--, then reveal prompt again.
+        replacePromptMessage();
+        await display.putstr_message("You don't have that object.");
+        if (typeof display?.renderMoreMarker === 'function') {
+            display.renderMoreMarker();
+            if (typeof display?.markMorePending === 'function') {
+                display.markMorePending({ source: 'read.invalid-invlet' });
+            }
+            await display.putstr_message(prompt);
+            continue;
+        }
+        if (typeof display?.morePrompt === 'function') {
+            await display.morePrompt(nhgetch);
+            await showReadPrompt();
+        }
     }
 }
 
