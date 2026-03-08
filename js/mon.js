@@ -2635,7 +2635,7 @@ export function replmon(mtmp, mtmp2, game, player) {
 // Autotranslated from mon.c:6021
 export async function see_nearby_monsters(game, player) {
   let mtmp, mndx, x, y;
-  if (Hallucination || (Blind && !Blind_telepat)) return;
+  if (player.Hallucination || (player.Blind && !player.Blind_telepat)) return;
   for (x = player.x - 1; x <= player.x + 1; x++) {
     for (y = player.y - 1; y <= player.y + 1; y++) {
       if (!isok(x, y)) {

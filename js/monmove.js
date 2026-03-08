@@ -106,7 +106,7 @@ import { mon_wield_item } from './weapon.js';
 import { NEED_PICK_AXE, NEED_AXE, NEED_PICK_OR_AXE } from './const.js';
 import { choose_magic_spell, choose_clerical_spell, cast_wizard_spell, cast_cleric_spell } from './mcastu.js';
 import { tele_restrict, rloc, enexto, rloc_to } from './teleport.js';
-import { MGC_CLONE_WIZ, MGC_SUMMON_MONS, MGC_AGGRAVATION, MGC_DISAPPEAR, MGC_HASTE_SELF, MGC_CURE_SELF, CLC_INSECTS, CLC_CURE_SELF, WT_HUMAN } from './const.js';
+import { MGC_CLONE_WIZ, MGC_SUMMON_MONS, MGC_AGGRAVATION, MGC_DISAPPEAR, MGC_HASTE_SELF, MGC_CURE_SELF, CLC_INSECTS, CLC_CURE_SELF, WT_HUMAN, PROT_FROM_SHAPE_CHANGERS } from './const.js';
 
 // C ref: monst.h strategy bits used by monmove.c:717 early dochug gate
 const STRAT_WAITFORU = 0x20000000;
@@ -2534,7 +2534,8 @@ export function can_ooze(mtmp) {
 
 // Autotranslated from monmove.c:2367
 export function can_fog(mtmp, game) {
-  if (!(game.mvitals[PM_FOG_CLOUD].mvflags & G_GENOD) && is_vampshifter(mtmp) && !Protection_from_shape_changers && !stuff_prevents_passage(mtmp)) return true;
+  const _p = game?.player;
+  if (!(game.mvitals[PM_FOG_CLOUD].mvflags & G_GENOD) && is_vampshifter(mtmp) && !(_p?.uprops?.[PROT_FROM_SHAPE_CHANGERS]?.extrinsic || _p?.uprops?.[PROT_FROM_SHAPE_CHANGERS]?.intrinsic) && !stuff_prevents_passage(mtmp)) return true;
   return false;
 }
 

@@ -46,7 +46,7 @@ import { dist2, distmin, monnear, mfndpos, mon_allowflags,
          mondead, mpickobj, mdrop_obj,
          mon_track_add,
          should_displace } from './monmove.js';
-import { ALLOW_M, ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U, MTSZ, SQSRCHRADIUS, FARAWAY } from './const.js';
+import { ALLOW_M, ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U, MTSZ, SQSRCHRADIUS, FARAWAY, PROT_FROM_SHAPE_CHANGERS } from './const.js';
 import { newsym } from './display.js';
 
 // ========================================================================
@@ -1617,7 +1617,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
 // Autotranslated from dogmove.c:1473
 export async function quickmimic(mtmp, player) {
   let idx = 0, trycnt = 5, spotted, seeloc, was_leashed = mtmp.mleashed;
-  if (Protection_from_shape_changers || !mtmp.meating) return;
+  if ((player?.uprops?.[PROT_FROM_SHAPE_CHANGERS]?.extrinsic || player?.uprops?.[PROT_FROM_SHAPE_CHANGERS]?.intrinsic) || !mtmp.meating) return;
   if (mtmp === player.usteed) await dismount_steed(DISMOUNT_POLY);
   do {
     idx = rn2(qm.length);

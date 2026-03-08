@@ -2326,7 +2326,7 @@ export async function Ring_off_or_gone(obj, gone, game, player) {
     if (obj.spe) find_ac();
     break;
     case RIN_PROTECTION_FROM_SHAPE_CHAN:
-      if (!Protection_from_shape_changers) restartcham();
+      if (!(player.uprops?.[PROT_FROM_SHAPE_CHANGERS]?.extrinsic || player.uprops?.[PROT_FROM_SHAPE_CHANGERS]?.intrinsic)) restartcham();
     break;
   }
 }

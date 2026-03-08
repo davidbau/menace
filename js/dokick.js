@@ -1311,7 +1311,7 @@ export async function kick_ouch(x, y, kickobjnam, game, map, player) {
   await exercise(player, A_DEX, false);
   await exercise(player, A_STR, false);
   if (isok(x, y)) {
-    if (Blind) feel_location(x, y);
+    if (player.Blind) feel_location(x, y);
     if (is_drawbridge_wall(x, y) >= 0) {
       await pline_The("drawbridge is unaffected.");
       find_drawbridge( x, y);
@@ -1429,7 +1429,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       game.maploc.looted = 0;
       game.maploc.typ = ROOM;
       mkgold( rnd(200), x, y);
-      if (Blind) await pline("CRASH! You destroy it.");
+      if (player.Blind) await pline("CRASH! You destroy it.");
       else { await pline("CRASH! You destroy the throne."); newsym(x, y); }
       await exercise(player, A_DEX, true);
       return ECMD_TIME;
@@ -1441,7 +1441,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       while (i--) {
         mksobj_at( rnd_class(DILITHIUM_CRYSTAL, LUCKSTONE - 1), x, y, false, true);
       }
-      if (Blind) await You("kick %s loose!", something);
+      if (player.Blind) await You("kick %s loose!", something);
       else {
         await You("kick loose some ornamental coins and gems!");
         newsym(x, y);
@@ -1458,7 +1458,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
   }
   if (IS_ALTAR(game.maploc.typ)) {
     if (Levitation) { await kick_dumb(x, y); return ECMD_TIME; }
-    await You("kick %s.", (Blind ? something : "the altar"));
+    await You("kick %s.", (player.Blind ? something : "the altar"));
     await altar_wrath(x, y);
     if (!rn2(3)) { await kick_ouch(x, y, ""); return ECMD_TIME; }
     await exercise(player, A_DEX, true);
@@ -1466,7 +1466,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
   }
   if (IS_FOUNTAIN(game.maploc.typ)) {
     if (Levitation) { await kick_dumb(x, y); return ECMD_TIME; }
-    await You("kick %s.", (Blind ? something : "the fountain"));
+    await You("kick %s.", (player.Blind ? something : "the fountain"));
     if (!rn2(3)) { await kick_ouch(x, y, ""); return ECMD_TIME; }
     if (uarmf && rn2(3)) {
       if (water_damage(uarmf, "metal boots", true) === ER_NOTHING) { await Your("boots get wet."); }
@@ -1486,7 +1486,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       game.maploc.disturbed = 0;
       mksobj_at(ROCK, x, y, true, false);
       del_engr_at(x, y);
-      if (Blind) { await pline("Crack! %s broke!", Something); }
+      if (player.Blind) { await pline("Crack! %s broke!", Something); }
       else { await pline_The("headstone topples over and breaks!"); newsym(x, y); }
     }
     return ECMD_TIME;
@@ -1539,7 +1539,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
     let gend = poly_gender();
     if (Levitation) { await kick_dumb(x, y); return ECMD_TIME; }
     if (rn2(5)) {
-      if (!Deaf) await pline("Klunk! The pipes vibrate noisily.");
+      if (!player.Deaf) await pline("Klunk! The pipes vibrate noisily.");
       else {
         await pline("Klunk!");
       }
@@ -1547,7 +1547,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       return ECMD_TIME;
     }
     else if (!(game.maploc.looted & S_LPUDDING) && !rn2(3) && !(game.mvitals[PM_BLACK_PUDDING].mvflags & G_GONE)) {
-      if (Blind) { if (!Deaf) await You_hear("a gushing sound."); }
+      if (player.Blind) { if (!player.Deaf) await You_hear("a gushing sound."); }
       else {
         await pline("A %s ooze gushes up from the drain!", hcolor(NH_BLACK));
       }
@@ -1558,7 +1558,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       return ECMD_TIME;
     }
     else if (!(game.maploc.looted & S_LDWASHER) && !rn2(3) && !(game.mvitals[PM_AMOROUS_DEMON].mvflags & G_GONE)) {
-      await pline("%s returns!", (Blind ? Something : "The dish washer"));
+      await pline("%s returns!", (player.Blind ? Something : "The dish washer"));
       if (makemon( mons[PM_AMOROUS_DEMON], x, y, MM_NOMSG | ((gend === 1 || (gend === 2 && rn2(2))) ? MM_MALE : MM_FEMALE))) newsym(x, y);
       game.maploc.looted |= S_LDWASHER;
       await exercise(player, A_DEX, true);
