@@ -41,7 +41,7 @@ import { maybe_finished_meal, gethungry } from './eat.js';
 import { exerchk } from './attrib_exercise.js';
 import { rhack } from './cmd.js';
 import { FOV, get_vision_full_recalc } from './vision.js';
-import { monsterNearby, nomul, unmul, near_capacity } from './hack.js';
+import { monsterNearby, nomul, unmul, near_capacity, domove, lookaround, end_running } from './hack.js';
 import { see_monsters, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY } from './display.js';
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
@@ -821,27 +821,58 @@ export async function run_command(game, ch, opts = {}) {
         await _drainOccupation(game, coreOpts, onTimedTurn);
 
         // Multi-repeat loop
+        // C ref: allmain.c:519-535 — when context.mv is set (movement/travel),
+        // C calls domove() directly instead of rhack(). This is critical for
+        // travel: dotravel_target sets multi=max(COLNO,ROWNO) and context.mv,
+        // so the entire travel run executes within one command boundary.
         while (game.multi > 0) {
             if (onBeforeRepeat) {
                 await onBeforeRepeat();
             }
             if (game.multi <= 0) break; // hook may have cleared multi
 
-            game.multi--;
-            game.advanceRunTurn = async () => {
+            const ctx = game.context || {};
+            if (ctx.mv) {
+                // C ref: allmain.c:527-530 — movement/travel multi repeat.
+                // lookaround() can abort running by clearing multi.
+                const _p = game.u || game.player;
+                const _map = game.map;
+                const _fov = FOV;
+                const _display = game.display;
+                await lookaround(_map, _p, _fov, [_p.dx || 0, _p.dy || 0], 'run', _display, game);
+                if (game.multi <= 0) {
+                    ctx.move = 0;
+                    break;
+                }
+                if (game.multi < COLNO && !--game.multi) {
+                    end_running(true, game);
+                }
+                game.advanceRunTurn = async () => {
+                    await advanceTimedTurn();
+                };
+                const moveResult = await domove([0, 0], _p, _map, _display, game);
+                game.advanceRunTurn = null;
+                if (!moveResult || !moveResult.tookTime) break;
+                if (!moveResult.moved) break;
                 await advanceTimedTurn();
-            };
-            const repeated = await rhack(game.cmdKey, game);
-            game.advanceRunTurn = null;
+                await _drainOccupation(game, coreOpts, onTimedTurn);
+            } else {
+                game.multi--;
+                game.advanceRunTurn = async () => {
+                    await advanceTimedTurn();
+                };
+                const repeated = await rhack(game.cmdKey, game);
+                game.advanceRunTurn = null;
 
-            if (!repeated || !repeated.tookTime) break;
-            await advanceTimedTurn();
-            if (typeof repeated.onAfterTurn === 'function') {
-                await repeated.onAfterTurn(game);
+                if (!repeated || !repeated.tookTime) break;
+                await advanceTimedTurn();
+                if (typeof repeated.onAfterTurn === 'function') {
+                    await repeated.onAfterTurn(game);
+                }
+
+                // Drain occupation from repeated command
+                await _drainOccupation(game, coreOpts, onTimedTurn);
             }
-
-            // Drain occupation from repeated command
-            await _drainOccupation(game, coreOpts, onTimedTurn);
         }
     }
 

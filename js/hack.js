@@ -668,6 +668,11 @@ export async function domove_core(dir, player, map, display, game) {
         ctx.travel1 = 0;
         if (Array.isArray(game.travelPath) && game.travelPath.length > 0) {
             moveDir = game.travelPath[0];
+        } else {
+            // No path found — stop traveling.
+            // C ref: hack.c domove() when findtravelpath fails to set dx/dy.
+            end_running(true, game);
+            return { moved: false, tookTime: false };
         }
     }
     let nx = player.x + moveDir[0];
@@ -1638,7 +1643,7 @@ export async function findtravelpath(mode, game) {
                 if (!seen) continue;
                 // C ref: hack.c:1378 — early termination when hero found.
                 if (earlyGoalX != null && nx === earlyGoalX && ny === earlyGoalY) {
-                    return { dist, earlyDir: [x - earlyGoalX, y - earlyGoalY] };
+                    return { dist, earlyDir: [x - earlyGoalX, y - earlyGoalY], parentX: x, parentY: y };
                 }
                 dist.set(key, r + 1);
                 q.push([nx, ny]);
@@ -1651,12 +1656,33 @@ export async function findtravelpath(mode, game) {
     // wave-expansion tiebreaking (first frontier cell to reach hero wins).
     const heroX = player.x, heroY = player.y;
     const useEarly = (mode === TRAVP_TRAVEL || mode === TRAVP_VALID);
-    const { dist: travel, earlyDir } = await reverseWave(tx, ty,
+    const waveResult = await reverseWave(tx, ty,
         useEarly ? heroX : undefined, useEarly ? heroY : undefined);
+    const travel = waveResult.dist;
+    const earlyDir = waveResult.earlyDir;
 
     if (earlyDir) {
         // C early termination found the hero.
         if (mode === TRAVP_VALID) return true;
+
+        // C ref: hack.c:1384-1395 — check if parent cell is the target
+        // or was already visited in travelmap. If so, stop travel.
+        const parentX = waveResult.parentX ?? (heroX + earlyDir[0]);
+        const parentY = waveResult.parentY ?? (heroY + earlyDir[1]);
+        const travelVisited = game._travelVisited || (game._travelVisited = new Set());
+        const parentIsTarget = (parentX === tx && parentY === ty);
+        const parentWasVisited = travelVisited.has(`${parentX},${parentY}`);
+        if (mode === TRAVP_TRAVEL && (parentIsTarget || parentWasVisited)) {
+            nomul(0, game);
+            ctx.run = 8; // C ref: hack.c:1389
+            if (parentWasVisited) {
+                await pline('You stop, unsure which way to go.');
+            } else {
+                game.travelX = 0;
+                game.travelY = 0;
+            }
+        }
+        travelVisited.add(`${heroX},${heroY}`);
         game.travelPath = [earlyDir];
         game.travelStep = 0;
         return true;
@@ -1691,20 +1717,31 @@ export async function findtravelpath(mode, game) {
     if (mode !== TRAVP_GUESS) return false;
 
     // Guess mode: find visible point near target that is reachable.
+    // C ref: hack.c findtravelpath() GUESS mode — uses distmin() (Chebyshev)
+    // as primary metric, then travel distance, then dist2 (Euclidean²) as tiebreaker.
     let bestGoal = null;
     let bestDist = Number.POSITIVE_INFINITY;
+    let bestTravel = Number.POSITIVE_INFINITY;
+    let bestD2 = Number.POSITIVE_INFINITY;
     for (let x = 1; x < COLNO; x++) {
         for (let y = 0; y < ROWNO; y++) {
             const seen = !!(map.at(x, y)?.seenv);
             if (!seen) continue;
-            const d0 = Math.abs(tx - x) + Math.abs(ty - y);
+            // C ref: distmin() = max(abs(dx), abs(dy)) — Chebyshev distance.
+            const d0 = Math.max(Math.abs(tx - x), Math.abs(ty - y));
             if (d0 > bestDist) continue;
             const tw = await reverseWave(x, y);
-            if (!tw.dist.get(heroKey)) continue;
-            if (d0 < bestDist) {
-                bestDist = d0;
-                bestGoal = [x, y];
-            }
+            const ct = tw.dist.get(heroKey) || 0;
+            if (!ct) continue;
+            const d2 = (tx - x) * (tx - x) + (ty - y) * (ty - y);
+            const better = d0 < bestDist
+                || (d0 === bestDist && ct < bestTravel)
+                || (d0 === bestDist && ct === bestTravel && d2 < bestD2);
+            if (!better) continue;
+            bestDist = d0;
+            bestTravel = ct;
+            bestD2 = d2;
+            bestGoal = [x, y];
         }
     }
     if (!bestGoal) return false;
@@ -1781,69 +1818,48 @@ export async function dotravel(game) {
     const cursorX = cc.x;
     const cursorY = cc.y;
 
-    // Store travel destination
+    // C ref: cmd.c:5107-5108 — store travel destination.
     game.travelX = cursorX;
     game.travelY = cursorY;
-    ctx.travel = 1;
-    ctx.travel1 = 1;
+    // C ref: gt.travelmap — tracks visited cells to detect oscillation.
+    game._travelVisited = new Set();
 
-    // C ref: cmd.c dotravel_target() early u_at(iflags.travelcc) check.
-    // If destination is current hero position, do not enter travel mode.
-    if (cursorX === player.x && cursorY === player.y) {
-        await display.putstr_message('You are already here.');
-        ctx.travel = 0;
-        ctx.travel1 = 0;
-        return { moved: false, tookTime: false };
-    }
-
-    // C-style travel setup: first strict travel mode, then guess mode.
-    if (!await findtravelpath(TRAVP_TRAVEL, game) && !await findtravelpath(TRAVP_GUESS, game)) {
-        await display.putstr_message('No path to that location.');
-        ctx.travel = 0;
-        ctx.travel1 = 0;
-        return { moved: false, tookTime: false };
-    }
-    if (!Array.isArray(game.travelPath) || game.travelPath.length === 0) {
-        await display.putstr_message('You are already there.');
-        ctx.travel = 0;
-        ctx.travel1 = 0;
-        return { moved: false, tookTime: false };
-    }
-    // Execute first step
+    // C ref: cmd.c:5110 — dotravel_target() handles all validation and setup.
     return dotravel_target(game);
 }
 
 // C ref: cmd.c dotravel_target()
+// C sets context.run=8, multi=max(COLNO,ROWNO), context.mv=TRUE, nopick=1,
+// then calls domove() once. The moveloop_core multi loop repeats domove()
+// for up to ~80 travel steps, with monster turns between each step.
 export async function dotravel_target(game) {
     const { player, map, display } = game;
     const ctx = ensure_context(game);
 
-    if (!game.travelPath || game.travelStep >= game.travelPath.length) {
-        // Travel complete
-        game.travelPath = null;
-        game.travelStep = 0;
-        ctx.travel = 0;
-        ctx.travel1 = 0;
-        await display.putstr_message('You arrive at your destination.');
+    if (!isok(game.travelX, game.travelY)) {
+        await pline('No travel destination set.');
+        return { moved: false, tookTime: false };
+    }
+    if (player.x === game.travelX && player.y === game.travelY) {
+        await You('are already here.');
+        game.travelX = 0;
+        game.travelY = 0;
         return { moved: false, tookTime: false };
     }
 
-    const [dx, dy] = game.travelPath[game.travelStep];
-    game.travelStep++;
-    ctx.travel1 = 0;
-
-    // Execute movement
-    const result = await domove([dx, dy], player, map, display, game);
-
-    // If movement failed, stop traveling
-    if (!result.moved) {
-        game.travelPath = null;
-        game.travelStep = 0;
-        ctx.travel = 0;
-        ctx.travel1 = 0;
-        await display.putstr_message('Travel interrupted.');
+    // C ref: cmd.c:5131-5140
+    ctx.travel = 1;
+    ctx.travel1 = 1;
+    ctx.run = 8;
+    ctx.nopick = 1;
+    ctx.mv = true;
+    if (!game.multi) {
+        game.multi = Math.max(COLNO, ROWNO);
     }
+    player.last_str_turn = 0;
 
+    // First travel step — domove_core will call findtravelpath internally.
+    const result = await domove([0, 0], player, map, display, game);
     return result;
 }
 
@@ -2567,8 +2583,10 @@ export function end_running(and_travel, game) {
     if (and_travel) {
         game.travelPath = null;
         game.travelStep = 0;
+        game._travelVisited = null;
         ctx.travel = 0;
         ctx.travel1 = 0;
+        ctx.mv = false;
     }
     if (game.multi > 0) game.multi = 0;
 }
