@@ -229,6 +229,16 @@ export class Display {
         if (this._moreBoundaryToken) return;
         const runtime = this._inputBoundaryRuntime;
         if (!runtime || typeof runtime.withInputBoundary !== 'function') return;
+        const topBoundary = (typeof runtime.peekInputBoundary === 'function')
+            ? runtime.peekInputBoundary()
+            : null;
+        if (topBoundary && topBoundary.owner === 'more' && Number.isInteger(topBoundary.token)) {
+            this._moreBoundaryToken = topBoundary.token;
+            return;
+        }
+        if (typeof runtime.clearInputBoundariesByOwner === 'function') {
+            runtime.clearInputBoundariesByOwner('more');
+        }
         this._moreBoundaryToken = runtime.withInputBoundary('more', async (ch) => {
             if (!this._isMoreDismissKey(ch)) {
                 return { handled: true, tookTime: false };

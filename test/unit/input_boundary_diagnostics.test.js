@@ -136,3 +136,15 @@ test('run_command fallback sync upgrades pendingMore-without-owner to owner=more
     assert.equal(syncCalls, 1);
     assert.equal(game.display._pendingMore, false);
 });
+
+test('clearInputBoundariesByOwner removes all matching owner entries', () => {
+    const game = makeGame();
+    game.withInputBoundary('more', () => ({ handled: false }));
+    game.withInputBoundary('prompt', () => ({ handled: false }));
+    game.withInputBoundary('more', () => ({ handled: false }));
+    assert.equal(game.peekInputBoundary().owner, 'more');
+
+    const removed = game.clearInputBoundariesByOwner('more');
+    assert.equal(removed, 2);
+    assert.equal(game.peekInputBoundary().owner, 'prompt');
+});

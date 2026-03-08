@@ -1377,6 +1377,14 @@ export class NetHackGame {
         return false;
     }
 
+    clearInputBoundariesByOwner(owner) {
+        const target = owner ? String(owner) : '';
+        if (!target) return 0;
+        const before = this._inputBoundaryStack.length;
+        this._inputBoundaryStack = this._inputBoundaryStack.filter((entry) => entry.owner !== target);
+        return before - this._inputBoundaryStack.length;
+    }
+
     peekInputBoundary() {
         if (!Array.isArray(this._inputBoundaryStack) || this._inputBoundaryStack.length === 0) {
             return null;
@@ -1536,6 +1544,7 @@ export class NetHackGame {
             this.display.setInputBoundaryRuntime({
                 withInputBoundary: (owner, onKey, meta) => this.withInputBoundary(owner, onKey, meta),
                 clearInputBoundary: (token) => this.clearInputBoundary(token),
+                clearInputBoundariesByOwner: (owner) => this.clearInputBoundariesByOwner(owner),
                 peekInputBoundary: () => this.peekInputBoundary(),
             });
         }
