@@ -4749,3 +4749,31 @@ hard-won wisdom:
   - `seed033` frontier moved later:
   - before: first RNG/event divergence at `416`, screen at `394`
   - after: first RNG/event divergence at `470`, screen at `460`
+
+### travel/getpos prompt boundary: tip-aware verbose sequencing + invalid-target hold (2026-03-08)
+
+- Problem:
+  - Travel target selection (`_` -> `getpos`) diverged across two seed patterns:
+  - First-time tip flow expected C sequence:
+    `Where do you want to travel to?--More--` -> tip window -> `"(For instructions...) Move cursor ..."`
+  - Post-tip flow expected C sequence:
+    `Where do you want to travel to?  (For instructions type a '?')`
+    with cursor-move descriptions replacing row 0 and invalid locations marked
+    with `(no travel path)`.
+  - JS had inconsistent prompt layering, occasionally forcing stale `--More--`
+    or accepting invalid travel targets on `.`.
+- Fix:
+  - Updated
+    [`js/hack.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/hack.js)
+    `dotravel()` prompt composition:
+  - include `(For instructions...)` suffix only when getpos tip was already seen.
+  - pass travel-mode context into getpos (`travelMode`, `isTravelPathValid`).
+  - Updated
+    [`js/getpos.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/getpos.js):
+  - verbose `Move cursor...` prompt now appears only during first-time tip flow.
+  - in travel mode, wall/unexplored cursor descriptions append `(no travel path)`.
+  - travel confirm keys now ignore invalid targets (remain in getpos).
+- Validation:
+  - `./scripts/run-and-report.sh --failures` restored to `33/34` (seed032 regression cleared).
+  - `seed033_manual_direct` remains improved at first divergence step `470`.
+  - `node scripts/test-unit-core.mjs` passes (`2515/2515`).

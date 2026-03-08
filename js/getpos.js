@@ -33,6 +33,8 @@ const defaultGetposContext = {
     flags: null,
     goalPrompt: null,
     player: null,
+    travelMode: false,
+    isTravelPathValid: null,
 };
 
 function normalizeGetposContext(ctx = null) {
@@ -540,6 +542,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
 
     let showGoalMsg = false;
     let verbosePrefix = '';
+    let tipShownThisCall = false;
     if (typeof display?.putstr_message === 'function') {
         // C ref: getpos.c emits one-time tip + verbose instructions before the
         // goal prompt; this ordering creates real --More-- boundaries in replay.
@@ -574,10 +577,11 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 putstr(tipWin, 0, 'and pressing ? will show the key help.');
                 await display_nhwindow(tipWin, true);
                 destroy_nhwindow(tipWin);
+                tipShownThisCall = true;
                 showGoalMsg = true;
             }
         }
-        if (flags.verbose) {
+        if (flags.verbose && tipShownThisCall) {
             verbosePrefix = "(For instructions type a '?')  ";
             showGoalMsg = true;
         }
@@ -591,6 +595,14 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
     const homeY = cy;
     let targetFilter = 'all';
     try {
+        const replaceToplineMessage = () => {
+            if (!display) return;
+            if (typeof display.clearRow === 'function') display.clearRow(0);
+            if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
+            if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+            if (Object.hasOwn(display, '_nonBlockingMore')) display._nonBlockingMore = false;
+        };
+
         for (;;) {
             if (showGoalMsg && typeof display?.putstr_message === 'function') {
                 const promptGoal = goal || runtimeCtx.goalPrompt || 'desired location';
@@ -614,6 +626,10 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 return -1;
             }
             if (c === '.' || c === ',' || c === ';' || c === ':' || ch === 13 || ch === 10) {
+                if (runtimeCtx.travelMode && typeof runtimeCtx.isTravelPathValid === 'function') {
+                    const valid = await runtimeCtx.isTravelPathValid(cx, cy);
+                    if (!valid) continue;
+                }
                 ccp.x = cx;
                 ccp.y = cy;
                 if (c === ',') return 1;
@@ -723,7 +739,24 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                     cursorState = putCursor(display, cx, cy);
                     const desc = cursorDesc(display, runtimeCtx.map, cx, cy);
                     if (desc && typeof display?.putstr_message === 'function') {
-                        await display.putstr_message(desc);
+                        let message = desc;
+                        if (runtimeCtx.travelMode) {
+                            // C travel cursor feedback explicitly marks wall and
+                            // unexplored squares as non-travelable.
+                            if ((message === 'wall' || message === 'unexplored area')
+                                && !message.includes('(no travel path)')) {
+                                message = `${message} (no travel path)`;
+                            } else if (typeof runtimeCtx.isTravelPathValid === 'function') {
+                                const valid = await runtimeCtx.isTravelPathValid(cx, cy);
+                                if (!valid && !message.includes('(no travel path)')) {
+                                    message = `${message} (no travel path)`;
+                                }
+                            }
+                        }
+                        // Travel-mode getpos updates cursor descriptions as
+                        // replacements on the message row.
+                        if (runtimeCtx.travelMode) replaceToplineMessage();
+                        await display.putstr_message(message);
                     }
                 }
                 continue;

@@ -1709,10 +1709,35 @@ export async function dotravel(game) {
     const { player, map, display } = game;
     const ctx = ensure_context(game);
 
-    await display.putstr_message('Where do you want to travel to?');
+    const getposTipSeen = !!player?._tipsShown?.getpos;
+    const travelPrompt = (game?.flags?.verbose && getposTipSeen)
+        ? "Where do you want to travel to?  (For instructions type a '?')"
+        : 'Where do you want to travel to?';
+    await display.putstr_message(travelPrompt);
     const cc = { x: player.x, y: player.y };
+    const isTravelPathValid = async (x, y) => {
+        const prevX = game.travelX;
+        const prevY = game.travelY;
+        const prevTravel1 = ctx.travel1;
+        try {
+            game.travelX = x;
+            game.travelY = y;
+            ctx.travel1 = 1;
+            return !!(await findtravelpath(TRAVP_VALID, game));
+        } finally {
+            game.travelX = prevX;
+            game.travelY = prevY;
+            ctx.travel1 = prevTravel1;
+        }
+    };
     const result = await getpos_async(cc, true, 'the desired destination', {
-        map, display, flags: game.flags, goalPrompt: 'the desired destination', player
+        map,
+        display,
+        flags: game.flags,
+        goalPrompt: 'the desired destination',
+        player,
+        travelMode: true,
+        isTravelPathValid,
     });
     if (result < 0) {
         await display.putstr_message('Travel cancelled.');
