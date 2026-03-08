@@ -1932,18 +1932,24 @@
             }
         }
 
-        // Canonical standalone URLs (may differ from iframe src)
-        var standaloneUrls = {
-            'guidebook': 'guidebook/',
-            'spoilers': 'spoilers/',
-            'readme': 'README'
-        };
-
         function dismissMinimap() {
             document.body.classList.add('docs-standalone');
             document.body.classList.remove('minimap-hover');
-            var hash = window.location.hash.replace('#', '');
-            var url = standaloneUrls[hash];
+            // Use the iframe's current location so in-frame navigation
+            // (e.g. README → docs/TESTING.md) produces the right URL.
+            var url = '';
+            try {
+                var iframePath = docsFrame.contentWindow.location.pathname;
+                // Strip origin prefix to get site-relative path, then
+                // drop .html suffix for a clean canonical URL.
+                var base = window.location.pathname.replace(/\/[^/]*$/, '/');
+                url = iframePath.startsWith(base) ? iframePath.slice(base.length) : iframePath;
+                url = url.replace(/\.html$/, '').replace(/\/index$/, '/');
+            } catch(e) {
+                // Cross-origin or blank iframe — fall back to hash route
+                var hash = window.location.hash.replace('#', '');
+                url = docsRoutes[hash] || '';
+            }
             if (url) {
                 history.replaceState(null, '', url);
             }
