@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { display_warning, warning_of, mon_warning, newsym } from '../../js/display.js';
+import { display_warning, warning_of, mon_warning, newsym, senseMonsterForMap } from '../../js/display.js';
 import { setGame } from '../../js/gstate.js';
 import { ROOM } from '../../js/const.js';
 
@@ -97,4 +97,18 @@ test('newsym uses warning glyph (not monster glyph) for warning-only sensing', (
     // C-faithful behavior: warning-only sensing draws warning glyph path
     // and should not mark monster as physically displayed/seen.
     assert.notEqual(mon.meverseen, 1);
+});
+
+test('senseMonsterForMap: WARNING does not sense peaceful monsters', () => {
+    const player = { x: 10, y: 10, warning: true };
+    const mon = { mx: 12, my: 10, m_lev: 8, mhp: 12, mpeaceful: 1, mtame: 0 };
+    const map = { at: () => ({ typ: ROOM }) };
+    assert.equal(senseMonsterForMap(mon, map, player), false);
+});
+
+test('senseMonsterForMap: WARNING senses hostile monsters', () => {
+    const player = { x: 10, y: 10, warning: true };
+    const mon = { mx: 12, my: 10, m_lev: 8, mhp: 12, mpeaceful: 0, mtame: 0 };
+    const map = { at: () => ({ typ: ROOM }) };
+    assert.equal(senseMonsterForMap(mon, map, player), true);
 });

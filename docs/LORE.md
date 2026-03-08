@@ -5033,3 +5033,22 @@ hard-won wisdom:
   - `node --test test/unit/display_warning_runtime.test.js` passes.
   - `node scripts/test-unit-core.mjs` baseline unchanged:
     `2529 pass / 5 fail` (same known input-queue failures).
+
+### display.c warning sense gating refinement (2026-03-08)
+
+- Problem:
+  - `senseMonsterForMap()` treated plain WARNING as sensing all monsters.
+    In C behavior, WARNING should track warning-eligible hostile targets
+    (`mon_warning`), not peaceful/tame monsters.
+- Fix:
+  - Gated WARNING sensing in `senseMonsterForMap()` through
+    `mon_warning(mon, player, ...)`, while preserving `warn_of_mon`,
+    telepathy, and detect-monsters paths.
+  - Added tests in
+    [`test/unit/display_warning_runtime.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/display_warning_runtime.test.js):
+    - WARNING does not sense peaceful monsters.
+    - WARNING does sense hostile monsters.
+- Validation:
+  - `node --test test/unit/display_warning_runtime.test.js` passes.
+  - `node scripts/test-unit-core.mjs` at `2531 pass / 5 fail`
+    (same known failing set; pass count increased due new coverage).

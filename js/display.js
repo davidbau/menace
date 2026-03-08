@@ -2065,7 +2065,7 @@ export function senseMonsterForMap(mon, map, player) {
     }
     const warning = hasPlayerProp(player, WARNING, 'warning', 'Warning');
     const warnOfMon = hasPlayerProp(player, WARN_OF_MON, 'warnOfMon', 'Warn_of_mon');
-    const warnSense = warning || warnOfMon;
+    const warnSense = warnOfMon || (warning && mon_warning(mon, player, { map, player }));
     return detectMonsters || tpSense || warnSense;
 }
 
