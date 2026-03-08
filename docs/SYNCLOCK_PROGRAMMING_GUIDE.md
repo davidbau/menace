@@ -72,6 +72,9 @@ Expected strict-zero metrics:
 Tracking metric (S1 centralization):
 
 1. `direct_moreprompt_calls`
+2. Session result counters:
+   - `boundary.more.owner-missing`
+   - `boundary.more.fallback-no-owner`
 
 ## Testing Workflow
 

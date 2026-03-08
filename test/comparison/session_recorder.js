@@ -163,5 +163,8 @@ export async function recordGameplaySessionFromInputs(session, opts = {}) {
         checkpoints: (jsSession?.checkpoints && typeof jsSession.checkpoints === 'object')
             ? jsSession.checkpoints
             : null,
+        synclockDiagnostics: (jsSession?.synclockDiagnostics && typeof jsSession.synclockDiagnostics === 'object')
+            ? jsSession.synclockDiagnostics
+            : null,
     };
 }

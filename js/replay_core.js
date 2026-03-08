@@ -155,6 +155,22 @@ export async function replaySession(seed, opts, keys) {
     const display = new HeadlessDisplay();
     const input = createHeadlessInput();
     const game = new NetHackGame({ display, input });
+    const synclockDiagTypes = [
+        'boundary.more.owner-missing',
+        'boundary.more.fallback-no-owner',
+        'boundary.more.fallback-synced',
+        'boundary.more.clear-missing',
+    ];
+    const synclockDiagCounts = Object.fromEntries(synclockDiagTypes.map((type) => [type, 0]));
+    let synclockDiagTotal = 0;
+    const unsubscribeDiagnostics = (typeof game.subscribeDiagnostics === 'function')
+        ? game.subscribeDiagnostics((ev) => {
+            const type = String(ev?.type || '');
+            if (!Object.hasOwn(synclockDiagCounts, type)) return;
+            synclockDiagCounts[type] += 1;
+            synclockDiagTotal += 1;
+        })
+        : null;
 
     // Pre-push chargen keys if provided.
     if (Array.isArray(opts.chargenKeys)) {
@@ -296,6 +312,7 @@ export async function replaySession(seed, opts, keys) {
     disableRngLog();
 
     const checkpoints = consumeHarnessMapdumpPayloads();
+    if (typeof unsubscribeDiagnostics === 'function') unsubscribeDiagnostics();
 
     return {
         version: 3,
@@ -303,5 +320,9 @@ export async function replaySession(seed, opts, keys) {
         source: 'js',
         steps,
         checkpoints,
+        synclockDiagnostics: {
+            total: synclockDiagTotal,
+            counts: synclockDiagCounts,
+        },
     };
 }

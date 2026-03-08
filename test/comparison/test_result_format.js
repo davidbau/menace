@@ -310,6 +310,12 @@ export function createResultsBundle(results, options = {}) {
             (r.metrics?.screenWindow?.earlyOnlyCount || 0) > 0
             || (r.metrics?.colorWindow?.earlyOnlyCount || 0) > 0
         );
+        const moreOwnerMissingSessions = gameplayResults.filter((r) =>
+            Number(r.synclockDiagnostics?.counts?.['boundary.more.owner-missing'] || 0) > 0
+        );
+        const moreFallbackSessions = gameplayResults.filter((r) =>
+            Number(r.synclockDiagnostics?.counts?.['boundary.more.fallback-no-owner'] || 0) > 0
+        );
         bundle.summary.gameplayParity = {
             sessions: gameplayResults.length,
             rngComparable: rngComparable.length,
@@ -325,6 +331,8 @@ export function createResultsBundle(results, options = {}) {
             rngFullButEventsNot: rngFullButEventsNot.length,
             eventsFullButRngNot: eventsFullButRngNot.length,
             rerecordCandidates: rerecordCandidates.length,
+            moreOwnerMissingSessions: moreOwnerMissingSessions.length,
+            moreFallbackSessions: moreFallbackSessions.length,
         };
     }
 
@@ -363,6 +371,14 @@ export function formatResult(result) {
     if (m.mapdump) parts.push(`mapdump=${m.mapdump.matched}/${m.mapdump.total}`);
     if (m.animationBoundaries) parts.push(`anim=${m.animationBoundaries.matched}/${m.animationBoundaries.total}`);
     if (m.cursor) parts.push(`cursor=${m.cursor.matched}/${m.cursor.total}`);
+    const synclockCounts = result.synclockDiagnostics?.counts || null;
+    if (synclockCounts) {
+        const ownerMissing = Number(synclockCounts['boundary.more.owner-missing'] || 0);
+        const fallbackNoOwner = Number(synclockCounts['boundary.more.fallback-no-owner'] || 0);
+        if (ownerMissing > 0 || fallbackNoOwner > 0) {
+            parts.push(`moreOwner(ownerMissing=${ownerMissing},fallback=${fallbackNoOwner})`);
+        }
+    }
     if (result.error) parts.push(`error: ${result.error}`);
 
     return parts.join(' ');
@@ -389,7 +405,9 @@ export function formatBundleSummary(bundle) {
             + `cursorFull=${g.cursorFull || 0}/${g.cursorComparable || 0}, `
             + `rngFull&&eventsNot=${g.rngFullButEventsNot}, `
             + `eventsFull&&rngNot=${g.eventsFullButRngNot}, `
-            + `rerecordCandidates=${g.rerecordCandidates || 0}`
+            + `rerecordCandidates=${g.rerecordCandidates || 0}, `
+            + `moreOwnerMissing=${g.moreOwnerMissingSessions || 0}, `
+            + `moreFallback=${g.moreFallbackSessions || 0}`
         );
     }
     return lines.join('\n');

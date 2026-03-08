@@ -149,3 +149,6 @@ Latest snapshot (post-S1/S2 migration + enforcement hardening):
 - `run_command` reports owner-missing diagnostics for no-owner pending
   `--More--`; strict mode (`WEBHACK_STRICT_MORE_OWNER=1`) ignores the key,
   while default mode keeps compatibility auto-sync.
+- Replay/session tooling now carries per-session SYNCLOCK boundary counters
+  (`boundary.more.owner-missing`, `boundary.more.fallback-no-owner`) so
+  owner violations are visible in session result summaries.

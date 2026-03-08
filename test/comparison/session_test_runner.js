@@ -401,6 +401,9 @@ async function runGameplayResult(session) {
             setDuration(result, Date.now() - start);
             return result;
         }
+        if (replay.synclockDiagnostics && typeof replay.synclockDiagnostics === 'object') {
+            result.synclockDiagnostics = replay.synclockDiagnostics;
+        }
         const cmp = compareRecordedGameplaySession(sessionForCmp, replay);
 
         if (cmp.rng.total > 0) {
