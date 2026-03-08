@@ -5075,3 +5075,30 @@ hard-won wisdom:
   - `node --test test/unit/display_warning_runtime.test.js` passes.
   - `node scripts/test-unit-core.mjs` baseline unchanged:
     `2533 pass / 5 fail` (same known 5 input-queue failures).
+
+### display.h visibility helper wrappers closure (2026-03-08)
+
+- Problem:
+  - `display.js` still exported unresolved wrapper stubs for
+    `sensemon`, `mon_visible`, `see_with_infrared`, `canseemon`,
+    `knowninvisible`, and `is_safemon` that called undefined `_...` helpers.
+  - This left display parity callchain gaps and prevented CODEMATCH closure.
+- Fix:
+  - Replaced wrappers with context-aware implementations backed by existing
+    faithful helpers (`senseMonsterForMap`, `monVisibleForMap`,
+    `seeWithInfraredForMap`, `canSeeMonsterForMap`, `canSpotMonsterForMap`).
+  - Implemented C-style `knowninvisible` logic:
+    `minvis` gate + visible/detected spot path + non-blind telepathic range path.
+  - Implemented C-style `is_safemon` logic:
+    `safe_dog`/`safe_pet` gate + peaceful + `canspotmon` equivalent
+    + confusion/hallucination/stun suppression.
+  - Hardened `_resolveDisplayCtx` to accept partial context objects (`map`,
+    `player`, `fov`, `flags`) and merge them with global display context.
+  - Added tests in
+    [`test/unit/display_warning_runtime.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/display_warning_runtime.test.js)
+    for `knowninvisible` and `is_safemon`.
+- Validation:
+  - `node --test test/unit/display_warning_runtime.test.js` passes (`11/11`).
+  - `node --test test/unit/display_howmonseen.test.js` passes (`3/3`).
+  - `node scripts/test-unit-core.mjs` baseline unchanged:
+    `2537 pass / 5 fail` (same known 5 input-queue failures).

@@ -1329,13 +1329,18 @@ span.nh-cursor {
 }
 
 // Autotranslated from display.c:165
-export function tp_sensemon(mon) {
-  return _tp_sensemon(mon);
+export function tp_sensemon(mon, playerArg = null, ctxOrMap = null) {
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const player = playerArg || ctx?.player || null;
+  return telepathySensesMonsterForMap(mon, player);
 }
 
 // Autotranslated from display.c:172
-export function sensemon(mon) {
-  return _sensemon(mon);
+export function sensemon(mon, playerArg = null, ctxOrMap = null) {
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const map = ctx?.map || null;
+  const player = playerArg || ctx?.player || null;
+  return senseMonsterForMap(mon, map, player);
 }
 
 // Autotranslated from display.c:179
@@ -1349,28 +1354,63 @@ export function mon_warning(mon, player = null, ctxOrMap = null) {
 }
 
 // Autotranslated from display.c:186
-export function mon_visible(mon) {
-  return _mon_visible(mon);
+export function mon_visible(mon, playerArg = null, ctxOrMap = null) {
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const player = playerArg || ctx?.player || null;
+  return monVisibleForMap(mon, player);
 }
 
 // Autotranslated from display.c:193
-export function see_with_infrared(mon) {
-  return _see_with_infrared(mon);
+export function see_with_infrared(mon, playerArg = null, ctxOrMap = null) {
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const map = ctx?.map || null;
+  const player = playerArg || ctx?.player || null;
+  return seeWithInfraredForMap(mon, map, player);
 }
 
 // Autotranslated from display.c:200
-export function canseemon(mon) {
-  return _canseemon(mon);
+export function canseemon(mon, playerArg = null, fovArg = null, ctxOrMap = null) {
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const map = ctx?.map || null;
+  const player = playerArg || ctx?.player || null;
+  const fov = fovArg || ctx?.fov || null;
+  return canSeeMonsterForMap(mon, map, player, fov);
 }
 
 // Autotranslated from display.c:207
-export function knowninvisible(mon) {
-  return _knowninvisible(mon);
+export function knowninvisible(mon, playerArg = null, fovArg = null, ctxOrMap = null) {
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const map = ctx?.map || null;
+  const player = playerArg || ctx?.player || null;
+  const fov = fovArg || ctx?.fov || null;
+  if (!mon || !player || !mon.minvis) return false;
+  const canSeeSpot = !!(map && cansee(map, player, fov, mon.mx, mon.my));
+  const hasSeeInvis = hasPlayerProp(player, SEE_INVIS, 'seeInvisible', 'See_invisible');
+  const hasDetectMonsters = hasPlayerProp(player, DETECT_MONSTERS, 'detectMonsters', 'Detect_monsters');
+  if (canSeeSpot && (hasSeeInvis || hasDetectMonsters)) return true;
+  if (playerBlind(player)) return false;
+  const telepathicFromNonIntrinsic = !!(player?.uprops?.[TELEPAT]?.extrinsic
+      || player?.unblind_telepat_range
+      || player?.unblindTelepathRange);
+  if (!telepathicFromNonIntrinsic) return false;
+  const range = Number(player?.unblind_telepat_range || player?.unblindTelepathRange || BOLT_LIM);
+  const dx = (player.x | 0) - (mon.mx | 0);
+  const dy = (player.y | 0) - (mon.my | 0);
+  return (dx * dx + dy * dy) <= (range * range);
 }
 
 // Autotranslated from display.c:214
-export function is_safemon(mon) {
-  return _is_safemon(mon);
+export function is_safemon(mon, playerArg = null, fovArg = null, ctxOrMap = null) {
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const flags = ctx?.flags || null;
+  const player = playerArg || ctx?.player || null;
+  const safeDog = !!(flags?.safe_dog ?? flags?.safe_pet ?? true);
+  if (!safeDog || !mon?.mpeaceful) return false;
+  if (!canSpotMonsterForMap(mon, ctx?.map || null, player, fovArg || ctx?.fov || null)) return false;
+  const confused = !!(player?.confused || player?.Confusion);
+  const hallucinating = !!(player?.hallucinating || player?.Hallucination);
+  const stunned = !!(player?.stunned || player?.Stunned);
+  return !(confused || hallucinating || stunned);
 }
 
 // Autotranslated from display.c:387
@@ -1750,7 +1790,10 @@ function playerCanSeeInvisible(player) {
 
 function _resolveDisplayCtx(ctxOrMap) {
     if (ctxOrMap && typeof ctxOrMap === 'object') {
-        if (ctxOrMap.display) return ctxOrMap;
+        if (ctxOrMap.display || ctxOrMap.map || ctxOrMap.player || ctxOrMap.fov || ctxOrMap.flags) {
+            const base = _getDisplayCtx() || {};
+            return { ...base, ...ctxOrMap };
+        }
         if (typeof ctxOrMap.at === 'function') {
             const base = _getDisplayCtx() || {};
             return { ...base, map: ctxOrMap };

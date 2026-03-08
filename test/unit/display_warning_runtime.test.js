@@ -1,7 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { display_warning, warning_of, mon_warning, newsym, senseMonsterForMap, show_glyph } from '../../js/display.js';
+import {
+    display_warning,
+    warning_of,
+    mon_warning,
+    newsym,
+    senseMonsterForMap,
+    show_glyph,
+    knowninvisible,
+    is_safemon,
+} from '../../js/display.js';
 import { setGame } from '../../js/gstate.js';
 import { ROOM } from '../../js/const.js';
 
@@ -135,4 +144,38 @@ test('show_glyph accepts pre-decoded cell objects', () => {
     const ctx = { display, map, player: { x: 10, y: 10 }, fov: null, flags: { msg_window: false } };
     show_glyph(12, 10, { ch: '@', color: 15 }, ctx);
     assert.deepEqual(cells, [{ x: 11, y: 11, ch: '@', color: 15 }]);
+});
+
+test('knowninvisible: true when invisible monster is in sight and detected', () => {
+    const mon = { mx: 12, my: 10, minvis: true };
+    const player = { x: 10, y: 10, detectMonsters: true };
+    const map = { at: () => ({ typ: ROOM }) };
+    const fov = { canSee: () => true };
+    assert.equal(knowninvisible(mon, player, fov, map), true);
+});
+
+test('knowninvisible: false when monster is not invisible', () => {
+    const mon = { mx: 12, my: 10, minvis: false };
+    const player = { x: 10, y: 10, detectMonsters: true };
+    const map = { at: () => ({ typ: ROOM }) };
+    const fov = { canSee: () => true };
+    assert.equal(knowninvisible(mon, player, fov, map), false);
+});
+
+test('is_safemon: true for peaceful visible monster when safe_dog enabled', () => {
+    const mon = { mx: 12, my: 10, mpeaceful: 1, minvis: 0, mundetected: 0 };
+    const player = { x: 10, y: 10 };
+    const map = { at: () => ({ typ: ROOM }) };
+    const fov = { canSee: () => true };
+    const ctx = { map, player, fov, flags: { safe_dog: true } };
+    assert.equal(is_safemon(mon, player, fov, ctx), true);
+});
+
+test('is_safemon: false when player is confused', () => {
+    const mon = { mx: 12, my: 10, mpeaceful: 1, minvis: 0, mundetected: 0 };
+    const player = { x: 10, y: 10, confused: true };
+    const map = { at: () => ({ typ: ROOM }) };
+    const fov = { canSee: () => true };
+    const ctx = { map, player, fov, flags: { safe_dog: true } };
+    assert.equal(is_safemon(mon, player, fov, ctx), false);
 });

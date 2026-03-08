@@ -1099,7 +1099,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 2305 | `back_to_glyph` | - | Missing |
-| 201 | `canseemon` | - | Missing |
+| 201 | `canseemon` | display.js:1372 | Implemented |
 | 3148 | `check_pos` | - | Missing |
 | 2125 | `clear_glyph_buffer` | - | Missing |
 | 2207 | `cls` | - | Missing |
@@ -1119,8 +1119,8 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2525 | `get_bkglyph_and_framecolor` | - | Missing |
 | 2496 | `glyph_at` | - | Missing |
 | 2505 | `glyphinfo_at` | - | Missing |
-| 215 | `is_safemon` | - | Missing |
-| 208 | `knowninvisible` | - | Missing |
+| 215 | `is_safemon` | display.js:1403 | Implemented |
+| 208 | `knowninvisible` | display.js:1381 | Implemented |
 | 233 | `magic_map_background` | - | Missing |
 | 279 | `map_background` | - | Missing |
 | 313 | `map_engraving` | - | Missing |
@@ -1131,7 +1131,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 296 | `map_trap` | - | Missing |
 | 1534 | `mimic_light_blocking` | - | Missing |
 | 681 | `mon_overrides_region` | display.js:1451 | Implemented (simplified helper) |
-| 187 | `mon_visible` | - | Missing |
+| 187 | `mon_visible` | display.js:1357 | Implemented |
 | 180 | `mon_warning` | display.js:1340 | Implemented |
 | 3165 | `more_than_one` | - | Missing |
 | 931 | `newsym` | - | Missing |
@@ -1144,8 +1144,8 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1578 | `see_nearby_objects` | - | Missing |
 | 1560 | `see_objects` | - | Missing |
 | 1613 | `see_traps` | - | Missing |
-| 194 | `see_with_infrared` | - | Missing |
-| 173 | `sensemon` | - | Missing |
+| 194 | `see_with_infrared` | display.js:1364 | Implemented |
+| 173 | `sensemon` | display.js:1339 | Implemented |
 | 3226 | `set_corn` | - | Missing |
 | 3258 | `set_crosswall` | - | Missing |
 | 1550 | `set_mimic_blocking` | - | Missing |
