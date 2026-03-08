@@ -85,7 +85,7 @@ import { set_itimeout, make_glib } from './potion.js';
 import { feel_cockatrice, sobj_at } from './invent.js';
 import { destroy_arm } from './do_wear.js';
 import { record_achievement, align_str } from './insight.js';
-import { dist2 } from './hack.js';
+import { dist2 } from './hacklib.js';
 import { obfree } from './shk.js';
 import { region_danger, region_safety } from './region.js';
 import { observe_object } from './o_init.js';

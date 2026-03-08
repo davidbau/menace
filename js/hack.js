@@ -3468,15 +3468,9 @@ export function monster_nearby(player) {
 // Functions moved from monutil.js — C ref: hack.h / hack.c
 // ========================================================================
 
-// C ref: hack.h dist2() — squared distance
-export function dist2(x1, y1, x2, y2) {
-    return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
-}
-
-// C ref: hack.h distmin()
-export function distmin(x1, y1, x2, y2) {
-    return Math.max(Math.abs(x1 - x2), Math.abs(y1 - y2));
-}
+// dist2/distmin: canonical definitions in hacklib.js
+import { dist2, distmin } from './hacklib.js';
+export { dist2, distmin };
 
 function onscary(map, x, y, mon = null) {
     if (!map) return false;

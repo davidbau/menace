@@ -68,7 +68,7 @@ import { envFlag } from './runtime_env.js';
 import { add_damage, after_shk_move, shk_move } from './shk.js';
 
 // Shared utilities — re-exported for consumers
-import { dist2, distmin } from './hack.js';
+import { dist2, distmin } from './hacklib.js';
 import { monnear, helpless, mondead, unstuck, meatmetal, meatobj, meatcorpse } from './mon.js';
 import { attackVerb } from './mhitm.js';
 import { monAttackName } from './do_name.js';

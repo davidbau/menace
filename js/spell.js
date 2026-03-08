@@ -851,9 +851,7 @@ export async function cast_protection(player) {
     }
 }
 
-function distmin(x0, y0, x1, y1) {
-    return Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
-}
+import { distmin } from './hacklib.js';
 export function can_center_spell_location(player, map, x, y) {
     if (!player || !map) return false;
     if (distmin(player.x, player.y, x, y) > SPELL_TARGET_DIST) return false;

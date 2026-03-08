@@ -90,7 +90,7 @@ import {
 import { pline, You, Your, You_cant, You_feel, pline_The } from './pline.js';
 import { Monnam, mon_nam } from './do_name.js';
 import { s_suffix } from './hacklib.js';
-import { dist2 } from './hack.js';
+import { dist2 } from './hacklib.js';
 import { killed, wakeup, setmangry } from './mon.js';
 import { mksobj } from './mkobj.js';
 import { AMULET_OF_STRANGULATION } from './objects.js';

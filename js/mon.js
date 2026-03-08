@@ -75,7 +75,8 @@ import { PM_ANGEL, PM_GRID_BUG, PM_FIRE_ELEMENTAL, PM_SALAMANDER, PM_FLOATING_EY
 import { PIT, SPIKED_PIT, HOLE, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, M_AP_MONSTER, TAINT_AGE, NON_PM } from './const.js';
 import { S_poisoncloud } from './symbols.js';
 import { m_harmless_trap } from './trap.js';
-import { dist2, distmin, in_rooms } from './hack.js';
+import { dist2, distmin } from './hacklib.js';
+import { in_rooms } from './hack.js';
 import { monmoveTrace, monmoveStepLabel } from './monmove.js';
 import { monsterAtWithSegments, worm_cross } from './worm.js';
 import { ansimpleoname } from './objnam.js';

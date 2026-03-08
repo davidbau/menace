@@ -19,7 +19,7 @@ import { mons, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC, PM_ANGEL,
 import { mon_nam, Monnam, mon_pmname, rndmonnam, hcolor } from './do_name.js';
 import { is_minion, is_rider, canseemon, mon_learns_traps, resist_conflict } from './mondata.js';
 import { newsym } from './display.js';
-import { dist2 } from './hack.js';
+import { dist2 } from './hacklib.js';
 import { In_endgame } from './dungeon.js';
 import { COIN_CLASS, GOLD_PIECE } from './objects.js';
 import { move_special } from './monmove.js';

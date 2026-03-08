@@ -70,7 +70,7 @@ import {
 } from './objects.js';
 import { roles, races, initialAlignmentRecordForRole } from './player.js';
 import { mpickobj } from './steal.js';
-import { dist2 } from './hack.js';
+import { dist2 } from './hacklib.js';
 import { newsym, senseMonsterForMap } from './display.js';
 import { canseemon, mon_learns_traps, emits_light, set_mon_data, monsndx, is_golem, nonliving } from './mondata.js';
 import { Amonnam } from './do_name.js';

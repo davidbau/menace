@@ -48,7 +48,7 @@ import {
 } from './const.js';
 import { which_armor } from './worn.js';
 import { spec_abon, artifact_light } from './artifact.js';
-import { dist2 } from './hack.js';
+import { dist2 } from './hacklib.js';
 import { couldsee } from './vision.js';
 import { game as _gstate } from './gstate.js';
 

@@ -16,8 +16,7 @@ import { ALL_TRAPS, NO_TRAP, W_ARMOR, W_AMUL, LOW_PM, A_CHA, ANTIMAGIC,
     REFLECTING, INTRINSIC,
     M_SEEN_NOTHING, M_SEEN_MAGR, M_SEEN_FIRE, M_SEEN_COLD, M_SEEN_SLEEP,
     M_SEEN_DISINT, M_SEEN_ELEC, M_SEEN_POISON, M_SEEN_ACID, M_SEEN_REFL } from './const.js';
-import { dist2 } from './hack.js';
-import { highc } from './hacklib.js';
+import { dist2, highc } from './hacklib.js';
 import { defends, defends_when_carried } from './artifact.js';
 import { rn2, rnd } from './rng.js';
 import { acurr } from './attrib.js';

@@ -38,7 +38,7 @@ import {
     mons, AT_WEAP, G_NOCORPSE, AD_ACID, AD_BLND, AD_DRST,
     AD_MAGM, AD_FIRE, AD_COLD, AD_SLEE, AD_DISN, AD_ELEC, MZ_TINY, MZ_HUMAN, MZ_LARGE,
 } from './monsters.js';
-import { distmin, dist2 } from './hack.js';
+import { distmin, dist2 } from './hacklib.js';
 import { mondead, corpse_chance } from './mon.js';
 import { flush_screen, canSeeMonsterForMap } from './display.js';
 import { placeFloorObject } from './invent.js';
