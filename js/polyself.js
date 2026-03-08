@@ -578,14 +578,11 @@ export function float_vs_flight(game, player) {
 // steed_vs_stealth() — cf. polyself.c:158
 // ============================================================================
 
-// Autotranslated from polyself.c:157
+// cf. polyself.c:157 — riding blocks stealth
+// C uses BStealth (blocked-stealth intrinsic); JS intrinsic system not fully wired
 export function steed_vs_stealth(player) {
-  if (player.usteed && !Flying && !Levitation) {
-    BStealth |= FROMOUTSIDE;
-  }
-  else {
-    BStealth &= ~FROMOUTSIDE;
-  }
+  // Stub: when player property system is complete, this should toggle
+  // blocked-stealth FROMOUTSIDE based on riding + flying/levitation state
 }
 
 // ============================================================================

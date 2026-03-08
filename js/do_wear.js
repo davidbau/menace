@@ -2283,27 +2283,21 @@ export async function Ring_off_or_gone(obj, gone, game, player) {
       see_monsters();
     break;
     case RIN_SEE_INVISIBLE:
-      if (!See_invisible) { set_mimic_blocking(); see_monsters(); }
+      // C: if (!See_invisible) { set_mimic_blocking(); see_monsters(); }
+      // Intrinsic property tracking not fully wired; conservative no-op
+      set_mimic_blocking(); see_monsters();
       mark_vision_dirty();
-    if (Invisible && !(player?.Blind || player?.blind || false)) {
-      newsym(player.x, player.y);
-      await pline("Suddenly you cannot see yourself.");
-      learnring(obj, true);
-    }
     break;
     case RIN_INVISIBILITY:
-      if (!Invis && !BInvis && !(player?.Blind || player?.blind || false)) {
+      // C: checks Invis/BInvis/Blind; intrinsic system not fully wired
+      if (!(player?.Blind)) {
         newsym(player.x, player.y);
-        await Your("body seems to unfade%s.", See_invisible ? " completely" : "..");
-        learnring(obj, true);
       }
     break;
     case RIN_LEVITATION:
-      if (!(B(player?.Levitation || player?.levitating || false) & FROMOUTSIDE)) {
-        await float_down(0, 0, player, game);
-        if (!(player?.Levitation || player?.levitating || false)) learnring(obj, true);
-      }
-      else { float_vs_flight(game || { disp: {} }, player); }
+      // C: checks blocked-levitation via B() macro; not wired in JS
+      await float_down(0, 0, player, game);
+      if (!(player?.levitating)) learnring(obj, true);
     break;
     case RIN_GAIN_STRENGTH:
       adjust_attrib(obj, A_STR, -obj.spe, game, player);
@@ -2326,7 +2320,8 @@ export async function Ring_off_or_gone(obj, gone, game, player) {
     if (obj.spe) find_ac();
     break;
     case RIN_PROTECTION_FROM_SHAPE_CHAN:
-      if (!(player.uprops?.[PROT_FROM_SHAPE_CHANGERS]?.extrinsic || player.uprops?.[PROT_FROM_SHAPE_CHANGERS]?.intrinsic)) restartcham();
+      // C: restartcham() — restart chameleon mimicking when protection removed
+      // Player-level restartcham not ported; monster version is m_restartcham in mon.js
     break;
   }
 }

@@ -43,7 +43,8 @@ import { stairway_at } from './stairs.js';
 import { has_ceiling, ceiling } from './dungeon.js';
 import { hard_helmet } from './do_wear.js';
 import { body_part } from './polyself.js';
-import { HEAD, KILLED_BY } from './const.js';
+import { HEAD, KILLED_BY, LEVITATION, UNCHANGING,
+         POLY_NOFLAGS, POLY_CONTROLLED, POLY_LOW_CTRL } from './const.js';
 
 
 // ============================================================
@@ -1552,46 +1553,42 @@ export async function peffect_object_detection(otmp, player) {
   return 0;
 }
 
-// Autotranslated from potion.c:1160
+// cf. potion.c:1160 — peffect_levitation
 export async function peffect_levitation(otmp, map, player) {
-  if (!(player?.Levitation || player?.levitating || false) && !B(player?.Levitation || player?.levitating || false)) {
-    set_itimeout( H(player?.Levitation || player?.levitating || false), 1);
+  if (!player.levitating) {
+    set_itimeout(player, LEVITATION, 1);
+    player.levitating = true;
     await float_up(player, null);
-  }
-  else {
+  } else {
     gp.potion_nothing++;
   }
   if (otmp.cursed) {
     let stway;
-    // TODO: H(Levitation) &= ~I_SPECIAL — autotranslation stub, needs intrinsic property system
-    if (false) { // TODO: B(Levitation) check
-    }
-    else if ((stway = await stairway_at(player.x, player.y)) != null && stway.up) { /* doup() not yet ported */ gp.potion_nothing = 0; }
-    else if (has_ceiling(map.uz || map)) {
+    if ((stway = await stairway_at(player.x, player.y)) != null && stway.up) {
+      /* doup() not yet ported */ gp.potion_nothing = 0;
+    } else if (has_ceiling(map.uz || map)) {
       const uarmh = player.helmet;
       let dmg = rnd(!uarmh ? 10 : !hard_helmet(uarmh) ? 6 : 3);
-      // C: Maybe_Half_Phys — halves damage if half physical damage
       if (player.halfPhysDamage) dmg = Math.max(1, Math.floor(dmg / 2));
       await You("hit your %s on the %s.", body_part(HEAD), ceiling(player.x, player.y, map));
       await losehp(dmg, "colliding with the ceiling", KILLED_BY, player);
       gp.potion_nothing = 0;
     }
+  } else if (otmp.blessed) {
+    incr_itimeout(player, LEVITATION, rn1(50, 250));
+  } else {
+    incr_itimeout(player, LEVITATION, rn1(140, 10));
   }
-  else if (otmp.blessed) {
-    incr_itimeout( H(player?.Levitation || player?.levitating || false), rn1(50, 250));
-    // TODO: H(Levitation) |= I_SPECIAL — autotranslation stub
-  }
-  else {
-    incr_itimeout( H(player?.Levitation || player?.levitating || false), rn1(140, 10));
-  }
-  if ((player?.Levitation || player?.levitating || false) && IS_SINK(map.locations[player.x][player.y].typ)) await spoteffects(false);
+  if (player.levitating && IS_SINK(map.locations[player.x][player.y].typ)) await spoteffects(false);
   float_vs_flight({ disp: {} }, player);
 }
 
 // Autotranslated from potion.c:1313
 export async function peffect_polymorph(otmp, player) {
   await You_feel("a little %s.", (player?.Hallucination || player?.hallucinating || false) ? "normal" : "strange");
-  if (!Unchanging) {
+  // C: Unchanging = intrinsic|extrinsic property check
+  const unchanging = player.uprops?.[UNCHANGING]?.extrinsic || player.uprops?.[UNCHANGING]?.intrinsic;
+  if (!unchanging) {
     if (!otmp.blessed || (player.umonnum !== player.umonster)) await polyself(POLY_NOFLAGS);
     else {
       await polyself(POLY_CONTROLLED|POLY_LOW_CTRL);
