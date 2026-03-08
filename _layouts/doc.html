@@ -33,11 +33,14 @@
   }
 })();
 
-// External links open in a new tab so they don't break the iframe overlay.
-// Same-site absolute links (mazesofmenace.net) target _top to navigate the
-// parent frame rather than opening a redundant tab.
+// Link targeting for docs pages (especially when loaded inside the iframe overlay).
+// - External links: new tab (_blank)
+// - Same-site absolute links (mazesofmenace.net): parent frame (_top)
+// - Relative links to game pages (hack/, rogue/, or root /): parent frame (_top)
+// - Other relative links (docs, anchors): stay in iframe (default)
 (function() {
   var siteHost = 'mazesofmenace.net';
+  var inIframe = (window !== window.top);
   document.querySelectorAll('a[href]').forEach(function(a) {
     var href = a.getAttribute('href');
     if (!href) return;
@@ -54,6 +57,9 @@
         a.setAttribute('target', '_blank');
         a.setAttribute('rel', 'noopener noreferrer');
       }
+    } else if (inIframe && /^(hack|rogue)(\/|$)/.test(href)) {
+      // Game page links should navigate the parent, not load inside the iframe
+      a.setAttribute('target', '_top');
     }
   });
 })();
