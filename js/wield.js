@@ -452,7 +452,21 @@ async function handleWield(player, display) {
         }
 
         const item = inventory.find((o) => o.invlet === c);
-        if (!item) continue;
+        if (!item) {
+            replacePromptMessage(display);
+            await display.putstr_message("You don't have that object.");
+            if (typeof display?.morePrompt === 'function') {
+                await display.morePrompt(nhgetch);
+            } else if (typeof display?.renderMoreMarker === 'function') {
+                display.renderMoreMarker();
+                if (typeof display?.markMorePending === 'function') {
+                    display.markMorePending({ source: 'wield.invalid-invlet' });
+                }
+                await nhgetch();
+            }
+            await display.putstr_message(wieldPrompt);
+            continue;
+        }
 
         // C ref: wield.c dowield() — selecting current weapon is a no-op failure.
         if (player.weapon && item === player.weapon) {

@@ -189,7 +189,10 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         display.topMessage = null;
         display.messageNeedsMore = false;
     };
-    replacePromptMessage();
+    const pendingMoreAtStart = !!display?._pendingMore;
+    if (!pendingMoreAtStart) {
+        replacePromptMessage();
+    }
     await display.putstr_message('In what direction? ');
     const dirCh = await nhgetch();
     const dch = String.fromCharCode(dirCh);
@@ -201,10 +204,20 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         replacePromptMessage();
         return { moved: false, tookTime: false };
     }
+    let dx = dir[0];
+    let dy = dir[1];
+    // C ref: dothrow.c throwit() cursed/greased slip check consumes rn2(7)
+    // before trajectory resolution.
+    if ((item?.cursed || item?.greased) && (dx || dy)) {
+        if (!rn2(7)) {
+            dx = rn2(3) - 1;
+            dy = rn2(3) - 1;
+        }
+    }
     // C ref: throw/firing direction commands smudge floor engravings before resolve.
     await u_wipe_engr(player, map, 2);
-    const targetX = player.x + dir[0];
-    const targetY = player.y + dir[1];
+    const targetX = player.x + dx;
+    const targetY = player.y + dy;
     const targetMonster = map.monsterAt(targetX, targetY);
     let throwMessage = null;
     let landingX = targetX;
@@ -481,9 +494,12 @@ export async function handleFire(player, map, display, game) {
         // C ref: dothrow.c dofire(): when no quiver and autoquiver is off,
         // emit this message before prompting for what to fire.
         await display.putstr_message('You have no ammunition readied.');
-        if (typeof display?.renderMoreMarker === 'function') {
+        if (typeof display?.morePrompt === 'function') {
+            await display.morePrompt(nhgetch);
+        } else if (typeof display?.renderMoreMarker === 'function') {
             display.renderMoreMarker();
             display.markMorePending({ source: 'dothrow.no-quiver' });
+            await nhgetch();
         }
     } else {
         autoquiver(player);
@@ -585,7 +601,21 @@ export async function handleFire(player, map, display, game) {
                     if (a === 'y') break;
                 }
             }
+            const replacingQuiver = (player.quiver !== selected);
             setuqwep(player, selected);
+            if (replacingQuiver) {
+                const savedQuiver = player.quiver;
+                player.quiver = null;
+                const readyName = doname(selected, player);
+                player.quiver = savedQuiver;
+                await display.putstr_message(`You ready: ${selected.invlet} - ${readyName}.`);
+                if (typeof display?.renderMoreMarker === 'function') {
+                    display.renderMoreMarker();
+                    if (typeof display?.markMorePending === 'function') {
+                        display.markMorePending({ source: 'dothrow.ready-from-fire' });
+                    }
+                }
+            }
             return await promptDirectionAndThrowItem(player, map, display, selected, { fromFire: true });
         }
         await display.putstr_message("You don't have that object.--More--");

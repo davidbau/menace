@@ -162,6 +162,13 @@ export async function food_xname(food, the_pfx) {
 
 // cf. eat.c foodword() — word for eating action
 function foodword(otmp) {
+    if (otmp?.otyp === CORPSE) {
+        const cnum = Number.isInteger(otmp.corpsenm) ? otmp.corpsenm : -1;
+        if (cnum >= 0 && cnum < mons.length) {
+            return `${mons[cnum].mname} corpse`;
+        }
+        return 'corpse';
+    }
     if (otmp.oclass === FOOD_CLASS) return 'food';
     return 'food'; // simplified; C version indexes by material
 }
@@ -2008,7 +2015,7 @@ async function handleEat(player, display, game) {
                                     || chCode === 27 || chCode === 32) {
                                     gameCtx.pendingPrompt = null;
                                     gameCtx.occupation = null;
-                                    await display.putstr_message(`You stop eating the ${eatenItem.name}.`);
+                                    await display.putstr_message(`You stop eating the ${foodword(eatenItem)}.`);
                                     return { handled: true, continueEating: false };
                                 }
                                 // Ignore unrelated keys while prompt is active.
@@ -2026,7 +2033,7 @@ async function handleEat(player, display, game) {
                 xtime: reqtime,
             };
             if (isCorpse && !game.nomovemsg) {
-                game.nomovemsg = `You finish eating the ${eatenItem.name}.`;
+                game.nomovemsg = `You finish eating the ${foodword(eatenItem)}.`;
             }
         } else {
             // Single-turn food — eat instantly

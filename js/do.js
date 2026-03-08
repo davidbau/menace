@@ -722,7 +722,20 @@ export async function handleDrop(player, map, display) {
         }
 
         const item = player.inventory.find(o => o.invlet === c);
-        if (!item) continue;
+        if (!item) {
+            replacePromptMessage();
+            await display.putstr_message("You don't have that object.");
+            if (typeof display?.morePrompt === 'function') {
+                await display.morePrompt(nhgetch);
+            } else if (typeof display?.renderMoreMarker === 'function') {
+                display.renderMoreMarker();
+                if (typeof display?.markMorePending === 'function') {
+                    display.markMorePending({ source: 'do.drop-invalid-invlet' });
+                }
+                await nhgetch();
+            }
+            continue;
+        }
         return await dropSelectedItem(item, player, map, display);
     }
 }

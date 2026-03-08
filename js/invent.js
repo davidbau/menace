@@ -261,18 +261,30 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
         }
     }
 
-    const menuRows = Math.min(lines.length, STATUS_ROW_1);
-    if (typeof display.setCell === 'function'
-        && Number.isInteger(display.cols)
-        && Number.isInteger(menuOffx)) {
-        for (let r = 0; r < menuRows; r++) {
-            for (let col = menuOffx; col < display.cols; col++) {
-                display.setCell(col, r, ' ', 7, 0);
-            }
+    const last = display?._lastMapState;
+    if (last?.gameMap && typeof display.renderMap === 'function') {
+        // C tty parity: closing a menu restores map/status/message display.
+        display.renderMap(last.gameMap, last.player, last.fov, last.flags || display.flags || {});
+        if (typeof display.renderStatus === 'function') {
+            display.renderStatus(last.player);
         }
-    } else if (typeof display.clearRow === 'function') {
-        for (let r = 0; r < menuRows; r++) {
-            display.clearRow(r);
+        if (typeof display.renderMessageWindow === 'function') {
+            display.renderMessageWindow();
+        }
+    } else {
+        const menuRows = Math.min(lines.length, STATUS_ROW_1);
+        if (typeof display.setCell === 'function'
+            && Number.isInteger(display.cols)
+            && Number.isInteger(menuOffx)) {
+            for (let r = 0; r < menuRows; r++) {
+                for (let col = menuOffx; col < display.cols; col++) {
+                    display.setCell(col, r, ' ', 7, 0);
+                }
+            }
+        } else if (typeof display.clearRow === 'function') {
+            for (let r = 0; r < menuRows; r++) {
+                display.clearRow(r);
+            }
         }
     }
 
