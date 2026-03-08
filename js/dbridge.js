@@ -279,7 +279,8 @@ export function e_survives_at(etmp, x, y, map) {
 // cf. dbridge.c:463 — automiss: entity is never hit by drawbridge
 // Autotranslated from dbridge.c:463
 export function automiss(etmp) {
-  return  ((is_u(etmp) ? Passes_walls : passes_walls(etmp.edata)) || noncorporeal(etmp.edata));
+  // C: Passes_walls (capital P) is player macro; use passes_walls(edata) for both
+  return  (passes_walls(etmp.edata) || noncorporeal(etmp.edata));
 }
 
 // cf. dbridge.c:473 — e_missed: does falling drawbridge/portcullis miss?

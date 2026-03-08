@@ -3,11 +3,16 @@
 
 import { rn1, rn2, rnd } from './rng.js';
 import { roles, races } from './player.js';
-import { A_CON, A_WIS } from './const.js';
+import { A_CON, A_WIS, NORMAL_SPEED, NATTK } from './const.js';
 import { mons, PM_ACID_BLOB,
          PM_CLERIC, PM_WIZARD, PM_HEALER, PM_KNIGHT,
-         PM_BARBARIAN, PM_VALKYRIE } from './monsters.js';
+         PM_BARBARIAN, PM_VALKYRIE,
+         AT_BUTT, AT_WEAP, AT_MAGC,
+         AD_PHYS, AD_BLND, AD_DRLI, AD_STON, AD_SLIM, AD_WRAP,
+         S_EEL } from './monsters.js';
 import { Role_if } from './role.js';
+import { find_mac } from './worn.js';
+import { extra_nasty } from './mondata.js';
 
 const MAXULEV = 30;
 
@@ -252,7 +257,8 @@ export function experience(mtmp, nk) {
     if (Math.trunc(ptr.mattk[i].damd * ptr.mattk[i].damn) > 23) {
       tmp += mtmp.m_lev;
     }
-    if (tmp2 === AD_WRAP && ptr.mlet === S_EEL && !Amphibious) {
+    // C: Amphibious is a player property; use false as conservative fallback
+    if (tmp2 === AD_WRAP && ptr.mlet === S_EEL) {
       tmp += 1000;
     }
   }
@@ -278,8 +284,8 @@ export function experience(mtmp, nk) {
 // Autotranslated from exper.c:168
 export function more_experienced(exper, rexp, game, player) {
   let oldexp = player.uexp, oldrexp = player.urexp, newexp = oldexp + exper, rexpincr = 4 * exper + rexp, newrexp = oldrexp + rexpincr;
-  if (newexp < 0 && exper > 0) newexp = LONG_MAX;
-  if (newrexp < 0 && rexpincr > 0) newrexp = LONG_MAX;
+  if (newexp < 0 && exper > 0) newexp = Number.MAX_SAFE_INTEGER;
+  if (newrexp < 0 && rexpincr > 0) newrexp = Number.MAX_SAFE_INTEGER;
   if (newexp !== oldexp) {
     player.uexp = newexp;
     if (game.flags.showexp) game.disp.botl = true;
