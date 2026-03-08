@@ -15,7 +15,7 @@
 
 import { rn2, rnd, rn1, d, rnl } from './rng.js';
 import { exercise } from './attrib_exercise.js';
-import { ACURR } from './attrib.js';
+import { acurr as ACURR } from './attrib.js';
 import { pline, pline_The, You, Your, You_hear, You_feel, You_cant,
          Norep, impossible } from './pline.js';
 import { Monnam, mon_nam, a_monnam, x_monnam, Amonnam } from './do_name.js';

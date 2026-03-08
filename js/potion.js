@@ -37,6 +37,9 @@ import { float_vs_flight } from './polyself.js';
 import { rndexp } from './exper.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
 import { trycall } from './do.js';
+import { monster_detect, object_detect } from './detect.js';
+import { spoteffects } from './hack.js';
+import { stairway_at } from './stairs.js';
 
 
 // ============================================================

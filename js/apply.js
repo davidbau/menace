@@ -89,6 +89,9 @@ import { maketrap } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
 import { break_wand } from './zap.js';
+import { Blindf_off } from './do_wear.js';
+import { dropx } from './do.js';
+import { dry_a_towel } from './weapon.js';
 import { useupall, update_inventory, sobj_at } from './invent.js';
 import { cansee } from './vision.js';
 
