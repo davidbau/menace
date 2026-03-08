@@ -1091,6 +1091,6 @@ export async function reveal_terrain(which_subset, player, map, display) {
 export function map_redisplay(player) {
   reconstrain_map();
   docrt();
-  if (Underwater) under_water(2);
+  // C: if (Underwater) under_water(2) — underwater display not fully ported
   if (player.uburied) under_ground(2);
 }

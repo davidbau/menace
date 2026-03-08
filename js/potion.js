@@ -473,11 +473,13 @@ export async function peffect_confusion(player, otmp, display) {
     return true;
 }
 
-// cf. potion.c peffect_blindness()
-// Autotranslated from potion.c:1068
-export async function peffect_blindness(otmp) {
-  if (Blind || ((HBlinded || EBlinded) && BBlinded)) gp.potion_nothing++;
-  await make_blinded(itimeout_incr(BlindedTimeout, rn1(200, 250 - 125 * bcsign(otmp))),  !Blind);
+// cf. potion.c:1068 — peffect_blindness
+export async function peffect_blindness(player, otmp, display) {
+  if (player.Blind) gp.potion_nothing++;
+  const bcsign = otmp.blessed ? 1 : (otmp.cursed ? -1 : 0);
+  const oldTimeout = (player.uprops?.[BLINDED]?.intrinsic || 0) & TIMEOUT;
+  const newTimeout = itimeout_incr(oldTimeout, rn1(200, 250 - 125 * bcsign));
+  await make_blinded(player, newTimeout, !player.Blind);
 }
 
 // cf. potion.c peffect_speed()

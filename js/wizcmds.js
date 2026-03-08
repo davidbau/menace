@@ -639,7 +639,7 @@ export async function you_sanity_check(player) {
 // Autotranslated from wizcmds.c:1443
 export function levl_sanity_check(map) {
   let x, y;
-  if (Underwater) return;
+  // C: if (Underwater) return — underwater state check not fully ported
   for (y = 0; y < ROWNO; y++) {
     for (x = 1; x < COLNO; x++) {
       if ((does_block(x, y, map.locations[x][y]) ? 1 : 0) !== get_viz_clear(x, y)) impossible("map.locations[%i][%i] vision blocking", x, y);
