@@ -433,7 +433,7 @@ function breakchestlock(box, destroyit, game, player) {
     if (box) box.olocked = false;
 }
 
-import { touch_petrifies } from './mondata.js';
+import { touch_petrifies, engulfing_u } from './mondata.js';
 
 // ============================================================================
 // is_unpaid helper
@@ -527,7 +527,7 @@ function couldsee(x, y) {
 function glyph_at(x, y) { return 0; }
 function glyph_is_invisible(g) { return false; }
 function show_glyph(x, y, g) { /* stub */ }
-function engulfing_u(mon) { return false; }
+// engulfing_u imported from mondata.js
 
 // ============================================================================
 // distant_name helper

@@ -40,6 +40,7 @@ import { pline, impossible } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
 import { newsym } from './display.js';
 import { identify_pack } from './invent.js';
+import { engulfing_u } from './mondata.js';
 
 const SPELL_KEEN = 20000; // cf. spell.c KEEN
 const MAX_SPELL_STUDY = 3; // cf. spell.h MAX_SPELL_STUDY

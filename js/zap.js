@@ -150,10 +150,6 @@ function SchroedingersBox(obj) {
   return !!(obj && obj.spe === 1 && Is_container(obj));
 }
 
-function engulfing_u(player) {
-  return !!player?.uswallow;
-}
-
 function t_at(x, y, map) {
   if (!map || !Array.isArray(map.traps)) return null;
   for (const t of map.traps) {

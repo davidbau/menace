@@ -20,6 +20,7 @@ import { dist2, highc } from './hacklib.js';
 import { defends, defends_when_carried } from './artifact.js';
 import { rn2, rnd } from './rng.js';
 import { acurr } from './attrib.js';
+import { game as _gstate } from './gstate.js';
 
 const NATTK = 6;
 
@@ -1286,6 +1287,13 @@ export function pm_invisible(ptr) {
 // C ref: #define likes_fire(ptr) (PM_FIRE_VORTEX || PM_FLAMING_SPHERE || likes_lava(ptr))
 export function likes_fire(ptr) {
     return ptr === mons[PM_FIRE_VORTEX] || ptr === mons[PM_FLAMING_SPHERE] || likes_lava(ptr);
+}
+
+// C ref: monst.h #define engulfing_u(mon) (u.uswallow && (u.ustuck == (mon)))
+// Accesses player from gstate like C accesses global u
+export function engulfing_u(mon) {
+    const player = _gstate?.player;
+    return !!(player && player.uswallow && player.ustuck === mon);
 }
 
 // C ref: #define touch_petrifies(ptr) (PM_COCKATRICE || PM_CHICKATRICE)
