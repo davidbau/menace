@@ -9,7 +9,7 @@ import {
 } from './const.js';
 import { def_monsyms } from './symbols.js';
 import { nhgetch, ynFunction } from './input.js';
-import { awaitInput, awaitMore } from './suspend.js';
+import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
 import { CLR_GRAY, CLR_WHITE, CLR_GREEN, CLR_CYAN } from './display.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
        } from './windows.js';
@@ -352,8 +352,9 @@ export async function dolook(game) {
             if (sensed) {
                 await display.putstr_message(typeMsg);
                 if (typeof display.renderMoreMarker === 'function') display.renderMoreMarker();
-                const readMoreKey = () => awaitInput(null, nhgetch(), { site: 'pager.handleLook.readEngraving.moreKey' });
-                await awaitMore(null, display.morePrompt(readMoreKey), { site: 'pager.handleLook.readEngraving.morePrompt' });
+                await awaitDisplayMorePrompt(null, display, () => nhgetch(), {
+                    site: 'pager.handleLook.readEngraving.morePrompt',
+                });
                 const et = ep.text;
                 const endpunct = (et.length >= 2 && '.!?'.includes(et[et.length - 1])) ? '' : '.';
                 await display.putstr_message(`You ${blind ? 'feel the words' : 'read'}: "${et}"${endpunct}`);

@@ -10,7 +10,7 @@ import { NORMAL_SPEED } from './const.js';
 import { initRng, rn2, rnd, rn1, getRngState, setRngState, getRngCallCount, setRngCallCount, pushRngLogEntry } from './rng.js';
 import { CLR_GRAY } from './display.js';
 import { nhgetch, getCount, getlin, setInputRuntime } from './input.js';
-import { awaitInput, awaitMore } from './suspend.js';
+import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
 import { FOV } from './vision.js';
 import { Player, roles, races, validRacesForRole, validAlignsForRoleRace,
          needsGenderMenu, rankOf, godForRoleAlign, isGoddess, greetingForRole,
@@ -251,9 +251,9 @@ export async function enterTutorial(game, opts = {}) {
     const { direct = false, deferRender = false } = opts;
     if (!direct) {
         await game.display.putstr_message('Entering the tutorial.');
-        await awaitMore(game, game.display.morePrompt(() => awaitInput(game, nhgetch(), {
-            site: 'chargen.enterTutorial.more',
-        })), { site: 'chargen.enterTutorial.morePrompt' });
+        await awaitDisplayMorePrompt(game, game.display, () => nhgetch(), {
+            site: 'chargen.enterTutorial.morePrompt',
+        });
     }
 
     const player = game.u || game.player;

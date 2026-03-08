@@ -63,7 +63,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, FOOD_CLASS, SPBOOK_CLASS,
          WAN_UNDEAD_TURNING, WAN_DIGGING, WAN_CREATE_MONSTER, WAN_LIGHT,
          WAN_SECRET_DOOR_DETECTION, WAN_ENLIGHTENMENT } from './objects.js';
 import { nhgetch, ynFunction } from './input.js';
-import { awaitInput, awaitMore } from './suspend.js';
+import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
 import { doname, xname, splitobj, set_bknown } from './mkobj.js';
 import { IS_DOOR, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          A_STR, A_DEX, A_CON, A_CHA,
@@ -1051,9 +1051,9 @@ export async function handleApply(player, map, display, game) {
                 await display.putstr_message(
                     `${item.invlet} - ${doname(item, player)}.`);
                 if (typeof display?.morePrompt === 'function') {
-                    await awaitMore(game, display.morePrompt(() => awaitInput(game, nhgetch(), {
-                        site: 'apply.inventory-list.more',
-                    })), { site: 'apply.inventory-list.morePrompt' });
+                    await awaitDisplayMorePrompt(game, display, () => nhgetch(), {
+                        site: 'apply.inventory-list.morePrompt',
+                    });
                 } else if (typeof display?.renderMoreMarker === 'function') {
                     display.renderMoreMarker();
                     display.markMorePending({ source: 'apply.inventory-list' });
@@ -1084,9 +1084,9 @@ export async function handleApply(player, map, display, game) {
                 // key reveals it on the next captured step (C/getobj timing).
                 await display.putstr_message(prompt);
             } else if (typeof display?.morePrompt === 'function') {
-                await awaitMore(game, display.morePrompt(() => awaitInput(game, nhgetch(), {
-                    site: 'apply.invalid-invlet.more',
-                })), { site: 'apply.invalid-invlet.morePrompt' });
+                await awaitDisplayMorePrompt(game, display, () => nhgetch(), {
+                    site: 'apply.invalid-invlet.morePrompt',
+                });
                 await showApplyPrompt();
             }
             continue;

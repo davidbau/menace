@@ -47,6 +47,7 @@ const checks = [
     key: 'direct_moreprompt_calls',
     re: /\.morePrompt\s*\(/,
     note: 'direct more-prompt callsites (S1 centralization target)',
+    ignoreFiles: new Set(['js/suspend.js']),
   },
 ];
 
@@ -54,12 +55,14 @@ const report = {};
 for (const c of checks) report[c.key] = { total: 0, files: [] };
 
 for (const file of files) {
+  const relFile = relative(ROOT, file);
   for (const c of checks) {
+    if (c.ignoreFiles && c.ignoreFiles.has(relFile)) continue;
     const hits = findMatches(file, c.re);
     if (hits.length) {
       report[c.key].total += hits.length;
       report[c.key].files.push({
-        file: relative(ROOT, file),
+        file: relFile,
         count: hits.length,
         hits,
       });
