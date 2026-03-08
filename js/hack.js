@@ -63,6 +63,7 @@ import { look_here, dfeature_at } from './invent.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap } from './teleport.js';
 import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS } from './const.js';
+import { couldsee } from './vision.js';
 import { MZ_LARGE, PM_GRID_BUG, PM_ANGEL, G_UNIQ, AT_WEAP,
          PM_WIZARD, PM_VALKYRIE } from './monsters.js';
 import { stackobj } from './invent.js';
@@ -72,7 +73,7 @@ import { poisoned, acurr, acurrstr } from './attrib.js';
 import { intemple } from './priest.js';
 import { t_missile, seetrap, conjoined_pits, adj_nonconjoined_pit, into_vs_onto, floor_trigger,
        } from './trap.js';
-import { envFlag } from './runtime_env.js';
+import { envFlag, getEnv } from './runtime_env.js';
 import { autokey, pick_lock } from './lock.js';
 
 function runTraceEnabled() {
@@ -100,6 +101,21 @@ function replayStepLabel(map) {
 
 function travelTmpAtDebugEnabled() {
     return envFlag('WEBHACK_TRAVEL_TMP_AT_DEBUG');
+}
+
+function travelTraceStepMatches(map) {
+    const target = getEnv('WEBHACK_TRAVEL_TRACE_STEP');
+    if (!target) return false;
+    const step = replayStepLabel(map);
+    return target === '*' || target === step;
+}
+
+function travelTrace(map, ...args) {
+    if (!travelTraceStepMatches(map)) return;
+    const stack = (new Error().stack || '').split('\n');
+    const self = stack[2]?.trim() || '';
+    const caller = stack[3]?.trim() || '';
+    console.log('[TRAVEL_TRACE]', `step=${replayStepLabel(map)}`, self, caller, ...args);
 }
 
 function debug_travel_tmp_at(path, startX, startY) {
@@ -662,7 +678,7 @@ export async function domove_core(dir, player, map, display, game) {
     game.uy0 = oldY;
     let moveDir = dir;
     if (ctx.travel) {
-        if (!await findtravelpath(TRAVP_TRAVEL, game)) {
+        if (!await findtravelpath(TRAVP_TRAVEL, game) && ctx.travel) {
             await findtravelpath(TRAVP_GUESS, game);
         }
         ctx.travel1 = 0;
@@ -1594,9 +1610,10 @@ export async function findtravelpath(mode, game) {
     if (!Number.isInteger(tx) || !Number.isInteger(ty) || !isok(tx, ty)) return false;
 
     const noDiag = !!player?.noDiag;
-    const dirs = noDiag
-        ? [[0, -1], [0, 1], [-1, 0], [1, 0]]
-        : [[0, -1], [0, 1], [-1, 0], [1, 0], [-1, -1], [1, -1], [-1, 1], [1, 1]];
+    // C ref: decl.c dirs_ord[] = W,N,E,S,NW,NE,SE,SW.
+    const dirsOrd = [0, 2, 4, 6, 1, 3, 5, 7];
+    const dirs = (noDiag ? dirsOrd.slice(0, 4) : dirsOrd)
+        .map((dir) => [xdir[dir], ydir[dir]]);
 
     // Adjacent target uses normal move legality with restricted diagonal handling.
     if ((mode === TRAVP_TRAVEL || mode === TRAVP_VALID)
@@ -1604,6 +1621,12 @@ export async function findtravelpath(mode, game) {
         && Math.max(Math.abs(tx - player.x), Math.abs(ty - player.y)) === 1
         && crawl_destination(tx, ty, player, map)) {
         const ok = await test_move(player.x, player.y, tx - player.x, ty - player.y, TEST_MOVE, player, map, null, game);
+        travelTrace(map,
+            `mode=${mode}`,
+            `hero=${player.x},${player.y}`,
+            `target=${tx},${ty}`,
+            `adjacent=1`,
+            `ok=${ok ? 1 : 0}`);
         if (ok && mode === TRAVP_TRAVEL) {
             game.travelPath = [[tx - player.x, ty - player.y]];
             game.travelStep = 0;
@@ -1615,6 +1638,7 @@ export async function findtravelpath(mode, game) {
         const dist = new Map();
         const q = [[goalX, goalY]];
         dist.set(`${goalX},${goalY}`, 1);
+        const heroBlind = !!(player?.blind || player?.Blind);
         while (q.length) {
             const [x, y] = q.shift();
             const r = dist.get(`${x},${y}`) || 1;
@@ -1626,7 +1650,7 @@ export async function findtravelpath(mode, game) {
                 if (dist.has(key)) continue;
                 if (!await test_move(x, y, nx - x, ny - y, TEST_TRAV, player, map, null, game)) continue;
                 const seen = !!(map.at(nx, ny)?.seenv);
-                if (!seen) continue;
+                if (!seen && (heroBlind || !couldsee(map, player, nx, ny))) continue;
                 dist.set(key, r + 1);
                 q.push([nx, ny]);
             }
@@ -1634,28 +1658,60 @@ export async function findtravelpath(mode, game) {
         return dist;
     }
 
+    // C-faithful first-step selection: return the parent-cell direction from
+    // BFS discovery order rather than "minimum neighbor distance" tie-break.
+    async function firstStepToward(goalX, goalY, restrictToCouldSee = false) {
+        const q = [[goalX, goalY]];
+        const seenCells = new Set([`${goalX},${goalY}`]);
+        const heroBlind = !!(player?.blind || player?.Blind);
+        while (q.length) {
+            const [x, y] = q.shift();
+            for (const [dx, dy] of dirs) {
+                const nx = x + dx;
+                const ny = y + dy;
+                if (!isok(nx, ny)) continue;
+                const key = `${nx},${ny}`;
+                if (seenCells.has(key)) continue;
+                if (restrictToCouldSee && !couldsee(map, player, nx, ny)) continue;
+                if (!await test_move(x, y, nx - x, ny - y, TEST_TRAV, player, map, null, game)) continue;
+                const seen = !!(map.at(nx, ny)?.seenv);
+                if (!seen && (heroBlind || !couldsee(map, player, nx, ny))) continue;
+                if (nx === player.x && ny === player.y) {
+                    return { step: [x - player.x, y - player.y], parentX: x, parentY: y };
+                }
+                seenCells.add(key);
+                q.push([nx, ny]);
+            }
+        }
+        return null;
+    }
+
     const travel = await reverseWave(tx, ty);
     const heroKey = `${player.x},${player.y}`;
     const ctrav = travel.get(heroKey) || 0;
     if (ctrav > 0) {
-        // choose first step by selecting adjacent cell with smallest distance.
-        let best = null;
-        let bestR = Number.POSITIVE_INFINITY;
-        for (const [dx, dy] of dirs) {
-            const nx = player.x + dx;
-            const ny = player.y + dy;
-            if (!isok(nx, ny)) continue;
-            const r = travel.get(`${nx},${ny}`) || 0;
-            if (!r) continue;
-            if (!await test_move(player.x, player.y, dx, dy, TEST_MOVE, player, map, null, game)) continue;
-            if (r < bestR) {
-                bestR = r;
-                best = [dx, dy];
-            }
-        }
+        const best = await firstStepToward(tx, ty);
+        travelTrace(map,
+            `mode=${mode}`,
+            `hero=${player.x},${player.y}`,
+            `target=${tx},${ty}`,
+            `ctrav=${ctrav}`,
+            `pick=${best ? `${best.step[0]},${best.step[1]}` : 'none'}`);
         if (best) {
             if (mode === TRAVP_VALID) return true;
-            game.travelPath = [best];
+            const travelVisited = game.travelVisited || (game.travelVisited = new Set());
+            const parentKey = `${best.parentX},${best.parentY}`;
+            const revisit = mode === TRAVP_TRAVEL && travelVisited.has(parentKey);
+            travelVisited.add(`${player.x},${player.y}`);
+            if (revisit) {
+                game.travelPath = null;
+                game.travelStep = 0;
+                game.travelVisited = null;
+                ctx.travel = 0;
+                ctx.travel1 = 0;
+                return false;
+            }
+            game.travelPath = [best.step];
             game.travelStep = 0;
             return true;
         }
@@ -1666,40 +1722,60 @@ export async function findtravelpath(mode, game) {
     // Guess mode: find visible point near target that is reachable.
     let bestGoal = null;
     let bestDist = Number.POSITIVE_INFINITY;
+    let bestTravel = Number.POSITIVE_INFINITY;
+    let bestD2 = Number.POSITIVE_INFINITY;
     for (let x = 1; x < COLNO; x++) {
         for (let y = 0; y < ROWNO; y++) {
             const seen = !!(map.at(x, y)?.seenv);
-            if (!seen) continue;
-            const d0 = Math.abs(tx - x) + Math.abs(ty - y);
-            if (d0 > bestDist) continue;
+            const heroBlind = !!(player?.blind || player?.Blind);
+            if (!seen && (heroBlind || !couldsee(map, player, x, y))) continue;
             const tw = await reverseWave(x, y);
-            if (!tw.get(heroKey)) continue;
-            if (d0 < bestDist) {
-                bestDist = d0;
-                bestGoal = [x, y];
-            }
+            const ctrav = tw.get(heroKey) || 0;
+            if (!ctrav) continue;
+            const d0 = Math.max(Math.abs(tx - x), Math.abs(ty - y)); // C distmin()
+            const d2 = (tx - x) * (tx - x) + (ty - y) * (ty - y);
+            const better = d0 < bestDist
+                || (d0 === bestDist && ctrav < bestTravel)
+                || (d0 === bestDist && ctrav === bestTravel && d2 < bestD2);
+            if (!better) continue;
+            bestDist = d0;
+            bestTravel = ctrav;
+            bestD2 = d2;
+            bestGoal = [x, y];
         }
     }
     if (!bestGoal) return false;
+    travelTrace(map,
+        `mode=${mode}`,
+        `hero=${player.x},${player.y}`,
+        `target=${tx},${ty}`,
+        `guessGoal=${bestGoal[0]},${bestGoal[1]}`,
+        `guessDist=${bestDist}`,
+        `guessTravel=${bestTravel}`,
+        `guessD2=${bestD2}`);
 
-    const fallback = await reverseWave(bestGoal[0], bestGoal[1]);
-    let best = null;
-    let bestR = Number.POSITIVE_INFINITY;
-    for (const [dx, dy] of dirs) {
-        const nx = player.x + dx;
-        const ny = player.y + dy;
-        if (!isok(nx, ny)) continue;
-        const r = fallback.get(`${nx},${ny}`) || 0;
-        if (!r) continue;
-        if (!await test_move(player.x, player.y, dx, dy, TEST_MOVE, player, map, null, game)) continue;
-        if (r < bestR) {
-            bestR = r;
-            best = [dx, dy];
-        }
-    }
+    const best = await firstStepToward(bestGoal[0], bestGoal[1], true);
+    travelTrace(map,
+        `mode=${mode}`,
+        `hero=${player.x},${player.y}`,
+        `target=${tx},${ty}`,
+        `guessGoal=${bestGoal[0]},${bestGoal[1]}`,
+        `pick=${best ? `${best.step[0]},${best.step[1]}` : 'none'}`);
     if (!best) return false;
     if (mode === TRAVP_VALID) return true;
-    game.travelPath = [best];
+    const travelVisited = game.travelVisited || (game.travelVisited = new Set());
+    const parentKey = `${best.parentX},${best.parentY}`;
+    const revisit = mode === TRAVP_TRAVEL && travelVisited.has(parentKey);
+    travelVisited.add(`${player.x},${player.y}`);
+    if (revisit) {
+        game.travelPath = null;
+        game.travelStep = 0;
+        game.travelVisited = null;
+        ctx.travel = 0;
+        ctx.travel1 = 0;
+        return false;
+    }
+    game.travelPath = [best.step];
     game.travelStep = 0;
     return true;
 }
@@ -1715,6 +1791,7 @@ export async function dotravel(game) {
         : 'Where do you want to travel to?';
     await display.putstr_message(travelPrompt);
     const cc = { x: player.x, y: player.y };
+    travelTrace(map, `dotravel_enter`, `start=${cc.x},${cc.y}`);
     const isTravelPathValid = async (x, y) => {
         const prevX = game.travelX;
         const prevY = game.travelY;
@@ -1739,6 +1816,7 @@ export async function dotravel(game) {
         travelMode: true,
         isTravelPathValid,
     });
+    travelTrace(map, `dotravel_getpos`, `result=${result}`, `cc=${cc.x},${cc.y}`);
     if (result < 0) {
         await display.putstr_message('Travel cancelled.');
         return { moved: false, tookTime: false };
@@ -1749,6 +1827,7 @@ export async function dotravel(game) {
     // Store travel destination
     game.travelX = cursorX;
     game.travelY = cursorY;
+    game.travelVisited = new Set();
     ctx.travel = 1;
     ctx.travel1 = 1;
 
@@ -1774,7 +1853,6 @@ export async function dotravel(game) {
         ctx.travel1 = 0;
         return { moved: false, tookTime: false };
     }
-    await display.putstr_message(`Traveling... (${game.travelPath.length} steps)`);
 
     // Execute first step
     return dotravel_target(game);
@@ -1789,6 +1867,7 @@ export async function dotravel_target(game) {
         // Travel complete
         game.travelPath = null;
         game.travelStep = 0;
+        game.travelVisited = null;
         ctx.travel = 0;
         ctx.travel1 = 0;
         await display.putstr_message('You arrive at your destination.');
@@ -1806,6 +1885,7 @@ export async function dotravel_target(game) {
     if (!result.moved) {
         game.travelPath = null;
         game.travelStep = 0;
+        game.travelVisited = null;
         ctx.travel = 0;
         ctx.travel1 = 0;
         await display.putstr_message('Travel interrupted.');
@@ -2534,6 +2614,7 @@ export function end_running(and_travel, game) {
     if (and_travel) {
         game.travelPath = null;
         game.travelStep = 0;
+        game.travelVisited = null;
         ctx.travel = 0;
         ctx.travel1 = 0;
     }

@@ -16,6 +16,7 @@ import {
     destroy_nhwindow,
 } from './windows.js';
 import { NHW_MENU, NHW_TEXT, PICK_ONE, ATR_NONE } from './const.js';
+import { getEnv } from './runtime_env.js';
 
 const HiliteNormalMap = 0;
 const HiliteGoodposSymbol = 1;
@@ -36,6 +37,23 @@ const defaultGetposContext = {
     travelMode: false,
     isTravelPathValid: null,
 };
+
+function getposStepLabel(runtimeCtx) {
+    const idx = runtimeCtx?.map?._replayStepIndex;
+    return Number.isInteger(idx) ? String(idx + 1) : '?';
+}
+
+function getposTraceEnabled(runtimeCtx) {
+    const target = getEnv('WEBHACK_GETPOS_TRACE_STEP');
+    if (!target) return false;
+    const step = getposStepLabel(runtimeCtx);
+    return target === '*' || target === step;
+}
+
+function getposTrace(runtimeCtx, ...args) {
+    if (!getposTraceEnabled(runtimeCtx)) return;
+    console.log('[GETPOS_TRACE]', `step=${getposStepLabel(runtimeCtx)}`, ...args);
+}
 
 function normalizeGetposContext(ctx = null) {
     return {
@@ -594,6 +612,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
     const homeX = cx;
     const homeY = cy;
     let targetFilter = 'all';
+    getposTrace(runtimeCtx, `enter force=${force ? 1 : 0}`, `goal=${goal || runtimeCtx.goalPrompt || ''}`, `cursor=${cx},${cy}`);
     try {
         const replaceToplineMessage = () => {
             if (!display) return;
@@ -614,6 +633,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
             }
             const ch = await nhgetch();
             const c = String.fromCharCode(ch);
+            getposTrace(runtimeCtx, `key=${JSON.stringify(c)}`, `code=${ch}`, `cursor=${cx},${cy}`);
 
             if (ch === 27) {
                 if (typeof display?.clearRow === 'function') display.clearRow(0);
@@ -623,15 +643,13 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 }
                 ccp.x = -10;
                 ccp.y = -10;
+                getposTrace(runtimeCtx, 'return=cancel', `cursor=${ccp.x},${ccp.y}`);
                 return -1;
             }
             if (c === '.' || c === ',' || c === ';' || c === ':' || ch === 13 || ch === 10) {
-                if (runtimeCtx.travelMode && typeof runtimeCtx.isTravelPathValid === 'function') {
-                    const valid = await runtimeCtx.isTravelPathValid(cx, cy);
-                    if (!valid) continue;
-                }
                 ccp.x = cx;
                 ccp.y = cy;
+                getposTrace(runtimeCtx, `return=confirm(${JSON.stringify(c)})`, `cursor=${ccp.x},${ccp.y}`);
                 if (c === ',') return 1;
                 if (c === ';') return 2;
                 if (c === ':') return 3;
@@ -736,6 +754,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                     restoreCursor(display, cursorState);
                     cx = nx;
                     cy = ny;
+                    getposTrace(runtimeCtx, `move=${delta[0]},${delta[1]}`, `steps=${steps}`, `cursor=${cx},${cy}`);
                     cursorState = putCursor(display, cx, cy);
                     const desc = cursorDesc(display, runtimeCtx.map, cx, cy);
                     if (desc && typeof display?.putstr_message === 'function') {
