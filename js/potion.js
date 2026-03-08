@@ -48,6 +48,9 @@ import { HEAD, KILLED_BY, LEVITATION, UNCHANGING,
          DETECT_MONSTERS } from './const.js';
 
 
+// Module-level state for potion-quaffing flow (C globals: potion_nothing, potion_unkn)
+const gp = { potion_nothing: 0, potion_unkn: 0 };
+
 // ============================================================
 // 1. Intrinsic timeouts
 // ============================================================
@@ -1487,38 +1490,8 @@ async function split_mon(mon, mtmp, map, player) {
 
 export { handleQuaff, peffects, make_stunned, make_blinded, make_sick, make_hallucinated, make_deaf, make_slimed, bottlename, H2Opotion_dip, potionhit, potionbreathe, hold_potion, dodip, dip_potion_explosion, potion_dip, djinni_from_bottle, split_mon };
 
-// Autotranslated from potion.c:617
-export async function dopotion(otmp, player) {
-  let retval;
-  otmp.in_use = true;
-  gp.potion_nothing = gp.potion_unkn = 0;
-  if ((retval = await peffects(otmp)) >= 0) return retval ? ECMD_TIME : ECMD_OK;
-  if (gp.potion_nothing) {
-    gp.potion_unkn++;
-    await You("have a %s feeling for a moment, then it passes.", (player?.Hallucination || player?.hallucinating || false) ? "normal" : "peculiar");
-  }
-  if (otmp.dknown && !objectData[otmp.otyp].oc_name_known) {
-    if (!gp.potion_unkn) { makeknown(otmp.otyp); more_experienced(0, 10); }
-    else {
-      trycall(otmp);
-    }
-  }
-  useup(otmp);
-  return ECMD_TIME;
-}
-
-// Autotranslated from potion.c:791
-export async function peffect_enlightenment(otmp) {
-  if (otmp.cursed) {
-    gp.potion_unkn++;
-    await You("have an uneasy feeling...");
-    await exercise(player, A_WIS, false);
-  }
-  else {
-    if (otmp.blessed) { await adjattrib(A_INT, 1, false); await adjattrib(A_WIS, 1, false); }
-    await do_enlightenment_effect();
-  }
-}
+// dopotion and peffect_enlightenment: broken autotranslated stubs removed.
+// The real quaffing path is handleQuaff → peffects (line ~437/797).
 
 // cf. potion.c:909 — peffect_monster_detection
 export async function peffect_monster_detection(otmp, map, player) {
