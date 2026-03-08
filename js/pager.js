@@ -756,6 +756,14 @@ async function showTextWindowFile(display, text) {
 // Command descriptions for & (whatdoes)
 // C ref: pager.c dowhatdoes() / dat/cmdhelp
 const COMMAND_DESCRIPTIONS = {
+    'y': 'move northwest (screen upper left) (#movenorthwest)',
+    'k': 'move north (screen up) (#movenorth)',
+    'u': 'move northeast (screen upper right) (#movenortheast)',
+    'h': 'move west (screen left) (#movewest)',
+    'l': 'move east (screen right) (#moveeast)',
+    'b': 'move southwest (screen lower left) (#movesouthwest)',
+    'j': 'move south (screen down) (#movesouth)',
+    'n': 'move southeast (screen lower right) (#movesoutheast)',
     '?': 'display one of several informative help texts',
     '/': 'tell what a map symbol represents',
     '&': 'tell what a command does',
