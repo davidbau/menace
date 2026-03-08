@@ -203,3 +203,7 @@ The source code leak around June 1981 set off a chain reaction. At [Lincoln-Sudb
 - [Hack HISTORY.md](../hack/HISTORY.md) -- Jay Fenlason's 1982 Hack
 - Wikipedia, ["NetHack"](https://en.wikipedia.org/wiki/NetHack)
 - The Rogue Archive, [britzl.github.io/roguearchive](https://britzl.github.io/roguearchive/)
+
+---
+
+Part of the [Mazes of Menace](../#readme) project.

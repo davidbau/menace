@@ -149,7 +149,7 @@ In December 1984, [Andries Brouwer](https://en.wikipedia.org/wiki/Andries_Brouwe
 The response was overwhelming. Variants proliferated: Don Kneller's PC Hack for MS-DOS, R. Black's ST Hack for the Atari ST, and others.
 ([NetHack Wiki](https://nethackwiki.com/wiki/Game_history))
 
-Mike Stephenson merged the variants, collaborating with Izchak Miller and Janet Walz over the Internet, and published [NetHack](https://en.wikipedia.org/wiki/NetHack) version 1.4 on July 28, 1987. They called themselves the [DevTeam](https://nethackwiki.com/wiki/DevTeam). The name "NetHack" reflected their collaboration over the nascent Internet. Nearly four decades later, NetHack remains under active development, with the 3.7 branch still unreleased as of 2026.
+Mike Stephenson merged the variants, collaborating with Izchak Miller and Janet Walz over the Internet, and published [NetHack](https://en.wikipedia.org/wiki/NetHack) version 1.4 on July 28, 1987. They called themselves the [DevTeam](https://nethackwiki.com/wiki/DevTeam). The name "NetHack" reflected their collaboration over the nascent Internet. Nearly four decades later, NetHack remains under active development, with the 3.7 branch still unreleased as of 2026. You can play our JavaScript port of NetHack 3.7 in your browser [here](../).
 
 ### Jay Fenlason
 
@@ -230,3 +230,7 @@ Less is known about the subsequent careers of Kenny Woodland and Mike Thome. The
 - [NetHack license history](https://www.nethack.org/download/LICENSE_HISTORY.html)
 - [Hack on RogueBasin](https://www.roguebasin.com/index.php/Hack)
 - [The CRPG Addict: Game 186: Hack (1984)](http://crpgaddict.blogspot.com/2015/04/game-186-hack-1984.html)
+
+---
+
+Part of the [Mazes of Menace](../#readme) project.
