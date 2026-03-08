@@ -1614,10 +1614,16 @@ export async function findtravelpath(mode, game) {
         return ok;
     }
 
-    async function reverseWave(goalX, goalY) {
+    // C ref: hack.c findtravelpath() — BFS from target toward hero.
+    // earlyGoalX/Y: if set, terminates when this cell is discovered.
+    // C terminates immediately when the hero cell is found; the direction
+    // is parent_cell - hero_pos (the first frontier cell to reach the hero
+    // determines the travel step via implicit wave-expansion tiebreaking).
+    async function reverseWave(goalX, goalY, earlyGoalX, earlyGoalY) {
         const dist = new Map();
         const q = [[goalX, goalY]];
         dist.set(`${goalX},${goalY}`, 1);
+        let earlyResult = null;
         while (q.length) {
             const [x, y] = q.shift();
             const r = dist.get(`${x},${y}`) || 1;
@@ -1630,27 +1636,45 @@ export async function findtravelpath(mode, game) {
                 if (!await test_move(x, y, nx - x, ny - y, TEST_TRAV, player, map, null, game)) continue;
                 const seen = !!(map.at(nx, ny)?.seenv);
                 if (!seen) continue;
+                // C ref: hack.c:1378 — early termination when hero found.
+                if (earlyGoalX != null && nx === earlyGoalX && ny === earlyGoalY) {
+                    return { dist, earlyDir: [x - earlyGoalX, y - earlyGoalY] };
+                }
                 dist.set(key, r + 1);
                 q.push([nx, ny]);
             }
         }
-        return dist;
+        return { dist, earlyDir: null };
     }
 
-    const travel = await reverseWave(tx, ty);
-    const heroKey = `${player.x},${player.y}`;
+    // For TRAVP_TRAVEL/VALID, use early termination to match C's implicit
+    // wave-expansion tiebreaking (first frontier cell to reach hero wins).
+    const heroX = player.x, heroY = player.y;
+    const useEarly = (mode === TRAVP_TRAVEL || mode === TRAVP_VALID);
+    const { dist: travel, earlyDir } = await reverseWave(tx, ty,
+        useEarly ? heroX : undefined, useEarly ? heroY : undefined);
+
+    if (earlyDir) {
+        // C early termination found the hero.
+        if (mode === TRAVP_VALID) return true;
+        game.travelPath = [earlyDir];
+        game.travelStep = 0;
+        return true;
+    }
+
+    // Fallback: full wave completed. Use min-distance selection.
+    const heroKey = `${heroX},${heroY}`;
     const ctrav = travel.get(heroKey) || 0;
     if (ctrav > 0) {
-        // choose first step by selecting adjacent cell with smallest distance.
         let best = null;
         let bestR = Number.POSITIVE_INFINITY;
         for (const [dx, dy] of dirs) {
-            const nx = player.x + dx;
-            const ny = player.y + dy;
+            const nx = heroX + dx;
+            const ny = heroY + dy;
             if (!isok(nx, ny)) continue;
             const r = travel.get(`${nx},${ny}`) || 0;
             if (!r) continue;
-            if (!await test_move(player.x, player.y, dx, dy, TEST_MOVE, player, map, null, game)) continue;
+            if (!await test_move(heroX, heroY, dx, dy, TEST_MOVE, player, map, null, game)) continue;
             if (r < bestR) {
                 bestR = r;
                 best = [dx, dy];
@@ -1676,7 +1700,7 @@ export async function findtravelpath(mode, game) {
             const d0 = Math.abs(tx - x) + Math.abs(ty - y);
             if (d0 > bestDist) continue;
             const tw = await reverseWave(x, y);
-            if (!tw.get(heroKey)) continue;
+            if (!tw.dist.get(heroKey)) continue;
             if (d0 < bestDist) {
                 bestDist = d0;
                 bestGoal = [x, y];
@@ -1685,16 +1709,24 @@ export async function findtravelpath(mode, game) {
     }
     if (!bestGoal) return false;
 
-    const fallback = await reverseWave(bestGoal[0], bestGoal[1]);
+    // BFS from bestGoal with early termination to find first step.
+    const { dist: fallback, earlyDir: guessDir } = await reverseWave(
+        bestGoal[0], bestGoal[1], heroX, heroY);
+    if (guessDir) {
+        game.travelPath = [guessDir];
+        game.travelStep = 0;
+        return true;
+    }
+    // Fallback: full wave, min-distance selection.
     let best = null;
     let bestR = Number.POSITIVE_INFINITY;
     for (const [dx, dy] of dirs) {
-        const nx = player.x + dx;
-        const ny = player.y + dy;
+        const nx = heroX + dx;
+        const ny = heroY + dy;
         if (!isok(nx, ny)) continue;
         const r = fallback.get(`${nx},${ny}`) || 0;
         if (!r) continue;
-        if (!await test_move(player.x, player.y, dx, dy, TEST_MOVE, player, map, null, game)) continue;
+        if (!await test_move(heroX, heroY, dx, dy, TEST_MOVE, player, map, null, game)) continue;
         if (r < bestR) {
             bestR = r;
             best = [dx, dy];
