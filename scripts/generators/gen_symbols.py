@@ -287,9 +287,10 @@ def emit_js() -> str:
         out.append(f"export const DEF_{row['basename']} = '{ch}'.charCodeAt(0);")
     out.append("")
 
-    out.append("// 5) MONSYMS_S_ENUM")
-    for row in monsyms:
-        out.append(f'export const {row["sym"]} = {row["idx"]};')
+    # 5) MONSYMS_S_ENUM — SKIPPED: S_* constants owned by monsters.js (gen_monsters.py)
+    # Emit import for S_* and MAXMCLASSES from monsters.js
+    monsym_names = [row["sym"] for row in monsyms]
+    out.append(f'import {{ {", ".join(monsym_names)}, MAXMCLASSES }} from "./monsters.js";')
     out.append("")
 
     out.append("// 6) MONSYMS_DRAWING")
@@ -332,7 +333,7 @@ def emit_js() -> str:
         out.append(f"    {{ sym: '{ch}', name: \"{name}\", explain: \"{explain}\" }}, // {row['class']}")
     out.append("];")
     out.append(f"export const MAXPCHARS = {pchars[-1]['idx'] + 1};")
-    out.append(f"export const MAXMCLASSES = {monsyms[-1]['idx'] + 1};")
+    # MAXMCLASSES — SKIPPED: owned by monsters.js (gen_monsters.py)
     # MAXOCLASSES — SKIPPED: owned by objects.js (gen_objects.py)
     out.append("")
 

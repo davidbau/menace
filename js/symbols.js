@@ -397,67 +397,7 @@ export const DEF_LIZARD = ':'.charCodeAt(0);
 export const DEF_WORM_TAIL = '~'.charCodeAt(0);
 export const DEF_MIMIC_DEF = ']'.charCodeAt(0);
 
-// 5) MONSYMS_S_ENUM
-export const S_ANT = 1;
-export const S_BLOB = 2;
-export const S_COCKATRICE = 3;
-export const S_DOG = 4;
-export const S_EYE = 5;
-export const S_FELINE = 6;
-export const S_GREMLIN = 7;
-export const S_HUMANOID = 8;
-export const S_IMP = 9;
-export const S_JELLY = 10;
-export const S_KOBOLD = 11;
-export const S_LEPRECHAUN = 12;
-export const S_MIMIC = 13;
-export const S_NYMPH = 14;
-export const S_ORC = 15;
-export const S_PIERCER = 16;
-export const S_QUADRUPED = 17;
-export const S_RODENT = 18;
-export const S_SPIDER = 19;
-export const S_TRAPPER = 20;
-export const S_UNICORN = 21;
-export const S_VORTEX = 22;
-export const S_WORM = 23;
-export const S_XAN = 24;
-export const S_LIGHT = 25;
-export const S_ZRUTY = 26;
-export const S_ANGEL = 27;
-export const S_BAT = 28;
-export const S_CENTAUR = 29;
-export const S_DRAGON = 30;
-export const S_ELEMENTAL = 31;
-export const S_FUNGUS = 32;
-export const S_GNOME = 33;
-export const S_GIANT = 34;
-export const S_invisible = 35;
-export const S_JABBERWOCK = 36;
-export const S_KOP = 37;
-export const S_LICH = 38;
-export const S_MUMMY = 39;
-export const S_NAGA = 40;
-export const S_OGRE = 41;
-export const S_PUDDING = 42;
-export const S_QUANTMECH = 43;
-export const S_RUSTMONST = 44;
-export const S_SNAKE = 45;
-export const S_TROLL = 46;
-export const S_UMBER = 47;
-export const S_VAMPIRE = 48;
-export const S_WRAITH = 49;
-export const S_XORN = 50;
-export const S_YETI = 51;
-export const S_ZOMBIE = 52;
-export const S_HUMAN = 53;
-export const S_GHOST = 54;
-export const S_GOLEM = 55;
-export const S_DEMON = 56;
-export const S_EEL = 57;
-export const S_LIZARD = 58;
-export const S_WORM_TAIL = 59;
-export const S_MIMIC_DEF = 60;
+import { S_ANT, S_BLOB, S_COCKATRICE, S_DOG, S_EYE, S_FELINE, S_GREMLIN, S_HUMANOID, S_IMP, S_JELLY, S_KOBOLD, S_LEPRECHAUN, S_MIMIC, S_NYMPH, S_ORC, S_PIERCER, S_QUADRUPED, S_RODENT, S_SPIDER, S_TRAPPER, S_UNICORN, S_VORTEX, S_WORM, S_XAN, S_LIGHT, S_ZRUTY, S_ANGEL, S_BAT, S_CENTAUR, S_DRAGON, S_ELEMENTAL, S_FUNGUS, S_GNOME, S_GIANT, S_invisible, S_JABBERWOCK, S_KOP, S_LICH, S_MUMMY, S_NAGA, S_OGRE, S_PUDDING, S_QUANTMECH, S_RUSTMONST, S_SNAKE, S_TROLL, S_UMBER, S_VAMPIRE, S_WRAITH, S_XORN, S_YETI, S_ZOMBIE, S_HUMAN, S_GHOST, S_GOLEM, S_DEMON, S_EEL, S_LIZARD, S_WORM_TAIL, S_MIMIC_DEF, MAXMCLASSES } from "./monsters.js";
 
 // 6) MONSYMS_DRAWING
 export const def_monsyms = [
@@ -648,7 +588,6 @@ export const def_oc_syms = [
     { sym: '.', name: "venoms", explain: "splash of venom" }, // VENOM_CLASS
 ];
 export const MAXPCHARS = 105;
-export const MAXMCLASSES = 61;
 
 // 12) OBJCLASS_PARSE
 export const OBJCLASS_PARSE_ROWS = Object.freeze([

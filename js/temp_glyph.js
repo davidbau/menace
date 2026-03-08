@@ -37,8 +37,8 @@ import {
     S_trwall,
     S_vbeam,
     S_vwall,
-    S_invisible,
 } from './symbols.js';
+import { S_invisible } from './monsters.js';
 
 const NUM_ZAP = 8;
 const MAXEXPCHARS = (S_expl_br - S_expl_tl) + 1;

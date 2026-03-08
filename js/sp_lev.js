@@ -73,8 +73,7 @@ import {
     GEM_CLASS, SPBOOK_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS, VENOM_CLASS,
     SCR_EARTH, objectData, GOLD_PIECE, STATUE, CORPSE, EGG, TIN, FIGURINE
 } from './objects.js';
-import { mons, M2_FEMALE, M2_MALE, G_NOGEN, G_IGNORE, PM_MINOTAUR, PM_ARCHEOLOGIST, PM_WIZARD, MR_STONE, S_EEL } from './monsters.js';
-import { MAXMCLASSES } from './symbols.js';
+import { mons, M2_FEMALE, M2_MALE, G_NOGEN, G_IGNORE, PM_MINOTAUR, PM_ARCHEOLOGIST, PM_WIZARD, MR_STONE, S_EEL, MAXMCLASSES } from './monsters.js';
 import { poly_when_stoned } from './mondata.js';
 import { getSpecialLevel, findSpecialLevelByName } from './special_levels.js';
 import { placeFloorObject, stackobj } from './invent.js';
