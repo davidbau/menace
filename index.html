@@ -1932,13 +1932,20 @@
             }
         }
 
+        // Canonical standalone URLs (may differ from iframe src)
+        var standaloneUrls = {
+            'guidebook': 'guidebook/',
+            'spoilers': 'spoilers/',
+            'readme': 'README'
+        };
+
         function dismissMinimap() {
             document.body.classList.add('docs-standalone');
             document.body.classList.remove('minimap-hover');
             var hash = window.location.hash.replace('#', '');
-            var src = docsRoutes[hash];
-            if (src) {
-                history.replaceState(null, '', src);
+            var url = standaloneUrls[hash];
+            if (url) {
+                history.replaceState(null, '', url);
             }
         }
 
