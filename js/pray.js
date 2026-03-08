@@ -43,7 +43,8 @@ import { S_LICH, S_GHOST, S_VAMPIRE, S_WRAITH, S_MUMMY, S_ZOMBIE, S_HUMAN,
          PM_CLERIC, PM_KNIGHT, PM_WIZARD, PM_MONK,
          AT_ENGL, AD_BLND } from './monsters.js';
 import { Role_if } from './role.js';
-import { makeplural, is_weptool, corpse_xname } from './objnam.js';
+import { makeplural, is_weptool, corpse_xname,
+         vtense, otense, An, an, yname, Yobjnam2, ansimpleoname } from './objnam.js';
 import { CORPSE, STATUE, AMULET_OF_YENDOR, FAKE_AMULET_OF_YENDOR,
          POT_WATER, POTION_CLASS, LOADSTONE, LEVITATION_BOOTS, FUMBLE_BOOTS,
          GAUNTLETS_OF_FUMBLING, HELM_OF_OPPOSITE_ALIGNMENT,
@@ -69,7 +70,7 @@ import { losexp } from './exper.js';
 import { rndcurse, attrcurse } from './sit.js';
 import { safe_teleds } from './teleport.js';
 import { summon_minion, dlord } from './minion.js';
-import { makemon } from './makemon.js';
+import { makemon, set_malign } from './makemon.js';
 import { weapon_type, unrestrict_weapon_skill, add_weapon_skill } from './weapon.js';
 import { monflee } from './monmove.js';
 import { newsym, shieldeff, see_monsters, warning_of } from './display.js';
@@ -83,13 +84,14 @@ import { findpriest, temple_occupied, p_coaligned } from './priest.js';
 import { set_itimeout, make_glib } from './potion.js';
 import { feel_cockatrice, sobj_at } from './invent.js';
 import { destroy_arm } from './do_wear.js';
-import { record_achievement } from './insight.js';
+import { record_achievement, align_str } from './insight.js';
 import { dist2 } from './hack.js';
 import { obfree } from './shk.js';
 import { region_danger, region_safety } from './region.js';
 import { observe_object } from './o_init.js';
 import { get_mtraits } from './mkobj.js';
 import { rider_corpse_revival } from './pickup.js';
+import { In_sokoban } from './dungeon.js';
 import { ureflects } from './muse.js';
 
 // cf. pray.c:58 -- Moloch constant
@@ -451,57 +453,6 @@ function your_race(ptr, player) {
 // Helper: has_omonst
 function has_omonst(obj) { return obj && obj.omonst; }
 
-// makeplural imported from objnam.js
-
-// Helper: vtense -- verb tense adjustment for singular/plural subject
-function vtense(subj, verb) {
-    // Simplified: if subject appears plural, use base form; else add 's'
-    if (subj && (subj.endsWith('s') || subj === 'you')) return verb;
-    if (verb === 'are') return 'is';
-    if (verb === 'have') return 'has';
-    if (verb === 'drop') return 'drops';
-    if (verb === 'land') return 'lands';
-    if (verb === 'appear') return 'appears';
-    if (verb === 'feel') return 'feels';
-    if (verb === 'look') return 'looks';
-    return verb + 's';
-}
-
-// Helper: otense -- object tense
-function otense(obj, verb) {
-    return vtense(xname(obj), verb);
-}
-
-// Helper: An -- "A" or "An" + str
-function An(str) {
-    if (!str) return "A thing";
-    const first = str[0].toLowerCase();
-    const article = 'aeiou'.includes(first) ? "An" : "A";
-    return article + " " + str;
-}
-
-// Helper: an -- "a" or "an" + str
-function an(str) {
-    if (!str) return "a thing";
-    const first = str[0].toLowerCase();
-    const article = 'aeiou'.includes(first) ? "an" : "a";
-    return article + " " + str;
-}
-
-// Helper: Yobjnam2 -- "Your <obj> <verb>"
-function Yobjnam2(obj, verb) {
-    return "Your " + xname(obj) + " " + verb;
-}
-
-// Helper: yname
-function yname(obj) {
-    return "your " + xname(obj);
-}
-
-// Helper: ansimpleoname
-function ansimpleoname(obj) {
-    return an(xname(obj));
-}
 
 // Helper: known_spell
 function known_spell(player, otyp) {
@@ -555,13 +506,7 @@ function is_pool_or_lava(x, y, map) {
 }
 
 
-// Helper: set_malign
-function set_malign(mon) {
-    // Stub
-}
-
-// Helper: Sokoban check
-function in_sokoban() { return false; }
+const in_sokoban = In_sokoban;
 
 // Helper: display_nhwindow stub
 function display_nhwindow() { }
@@ -576,12 +521,6 @@ function oname_obj(obj, name) {
 }
 
 
-// Helper: align_str
-function align_str(alignment) {
-    if (alignment > 0) return "lawful";
-    if (alignment < 0) return "chaotic";
-    return "neutral";
-}
 
 // Helper: ismnum -- check if lycanthrope type is valid
 function ismnum(n) { return n != null && n >= 0; }
