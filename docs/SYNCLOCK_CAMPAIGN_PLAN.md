@@ -117,3 +117,14 @@ Validation snapshot after these increments:
 - `seed031_manual_direct`: pass
 - `seed032_manual_direct`: pass
 - `seed033_manual_direct`: known fail window unchanged (non-regressive)
+
+S0 hygiene audit baseline (`node scripts/synclock_audit.mjs`):
+- `raw_await_nhgetch`: 94 (outside `allmain.js` core loop)
+- `raw_settimeout0_await`: 0
+- `display_moreprompt_nhgetch`: 10
+- `allmain.js core-loop guardrail status`: `CLEAN`
+
+Interpretation:
+- The command loop (`allmain.js`) is now typed-wait clean.
+- Remaining raw waits are concentrated in gameplay/UI modules and are the
+  migration set for S1/S2 (do not convert by masking or replay compensation).
