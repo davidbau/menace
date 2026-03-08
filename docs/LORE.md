@@ -4984,3 +4984,27 @@ hard-won wisdom:
 - Validation:
   - `scripts/run-and-report.sh --failures` stays at `33/34` (no regression).
   - The known `seed033` frontier remains (`event ~467`, `screen ~935`, `rng ~942`).
+
+### display.c warning/monster helper runtime closure (2026-03-08)
+
+- Problem:
+  - `display.js` had legacy helper surfaces (`show_mon_or_warn`,
+    `display_warning`, `warning_of`, `mon_warning`) that still referenced
+    undefined global helpers/signatures (`show_glyph`, `glyph_is_invisible`,
+    `MATCH_WARN_OF_MON`, `warning_to_glyph`, etc.).
+  - Those functions were effectively unsafe/dead for runtime use and blocked
+    faithful callchain work in `display.c`/mapglyph parity.
+- Fix:
+  - Replaced these with context-aware implementations based on existing JS
+    display primitives (`setCell`, `monsterMapGlyph`, `tempGlyphToCell`,
+    `hasPlayerProp`).
+  - Added callable helper implementations for `display_monster` and
+    `mon_overrides_region` so `display.c` callchains now have concrete JS
+    counterparts (with explicit simplified status for region override logic).
+  - Added unit tests:
+    [`test/unit/display_warning_runtime.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/display_warning_runtime.test.js)
+    validating warning level mapping and warning-cell rendering path.
+- Validation:
+  - `node --test test/unit/display_warning_runtime.test.js` passes.
+  - `node scripts/test-unit-core.mjs` unchanged known baseline
+    (`2528 pass / 5 fail` after adding 2 new passing tests).

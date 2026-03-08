@@ -52,7 +52,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[~]` | decl.c | decl.js | Global variable declarations. JS: spread across modules |
 | `[a]` | detect.c | detect.js | Detection spells and scrolls. dosearch0 and map_redisplay implemented (RNG-parity + C-faithful redisplay/reconstrain path); ~40 functions TODO |
 | `[~]` | dig.c | dig.js | Digging mechanics. `zap_dig()` wand traversal now uses awaited `nh_delay_output()` boundaries in interactive mode (headless still skips delays) |
-| `[~]` | display.c | display.js | Display/rendering. `tmp_at()`/`nh_delay_output` lifecycle now follows C `display.c` semantics more closely (DISP_FLASH vs DISP_ALWAYS visibility, per-step flush, BACKTRACK cleanup timing, map-overlay restore path). Transient numeric glyph decoding now follows C `display.h` glyph ranges (monster/object/cmap/zap/swallow/explosion/warning) via `temp_glyph.js`; explosion glyph blocks decode with per-explosion-type color phases and zap glyph blocks now decode per zap-type color groups (magic/fire/cold/sleep/death/lightning/poison/acid) rather than a single shared beam color. Headless overlay handling mirrors browser stack semantics for nested temp glyphs. Remaining divergence is full mapglyph/windowport detail (pet/infravision/status overlays and tty/windowport edge behavior) |
+| `[~]` | display.c | display.js | Display/rendering. `tmp_at()`/`nh_delay_output` lifecycle now follows C `display.c` semantics more closely (DISP_FLASH vs DISP_ALWAYS visibility, per-step flush, BACKTRACK cleanup timing, map-overlay restore path). Transient numeric glyph decoding now follows C `display.h` glyph ranges (monster/object/cmap/zap/swallow/explosion/warning) via `temp_glyph.js`; explosion glyph blocks decode with per-explosion-type color phases and zap glyph blocks now decode per zap-type color groups (magic/fire/cold/sleep/death/lightning/poison/acid) rather than a single shared beam color. Headless overlay handling mirrors browser stack semantics for nested temp glyphs. `display_monster`/`display_warning`/`warning_of`/`show_mon_or_warn`/`mon_overrides_region` now wired as callable display helpers (context-aware, no undefined globals). Remaining divergence is full mapglyph/windowport detail (pet/infravision/status overlays and tty/windowport edge behavior) |
 | `[N/A]` | dlb.c | — | Data librarian (file bundling). Not needed in JS |
 | `[a]` | do.c | do.js | Miscellaneous actions. handleDrop/handleDownstairs/handleUpstairs (dodrop/dodown/doup); stair transitions now reproduce C's blocking `--More--` acknowledgment via `waitForStairMessageAck()` (`goto_level()` → `docrt()` → `display_nhwindow(WIN_MESSAGE,TRUE)`); ~45 functions TODO |
 | `[~]` | do_name.c | do_name.js | Naming things (docallcmd, do_mgivenname) |
@@ -1105,8 +1105,8 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2207 | `cls` | - | Missing |
 | 2717 | `cmap_to_roguecolor` | - | Missing |
 | 1689 | `curs_on_u` | - | Missing |
-| 527 | `display_monster` | - | Missing |
-| 647 | `display_warning` | - | Missing |
+| 527 | `display_monster` | display.js:1440 | Implemented (helper) |
+| 647 | `display_warning` | display.js:1403 | Implemented |
 | 1704 | `docrt` | - | Missing |
 | 1711 | `docrt_flags` | - | Missing |
 | 1696 | `doredraw` | - | Missing |
@@ -1130,9 +1130,9 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 333 | `map_object` | - | Missing |
 | 296 | `map_trap` | - | Missing |
 | 1534 | `mimic_light_blocking` | - | Missing |
-| 681 | `mon_overrides_region` | - | Missing |
+| 681 | `mon_overrides_region` | display.js:1451 | Implemented (simplified helper) |
 | 187 | `mon_visible` | - | Missing |
-| 180 | `mon_warning` | - | Missing |
+| 180 | `mon_warning` | display.js:1340 | Implemented |
 | 3165 | `more_than_one` | - | Missing |
 | 931 | `newsym` | - | Missing |
 | 1865 | `newsym_force` | - | Missing |
@@ -1155,7 +1155,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 3348 | `set_wall_state` | - | Missing |
 | 1114 | `shieldeff` | - | Missing |
 | 1879 | `show_glyph` | - | Missing |
-| 495 | `show_mon_or_warn` | - | Missing |
+| 495 | `show_mon_or_warn` | display.js:1386 | Implemented |
 | 728 | `suppress_map_output` | - | Missing |
 | 2455 | `swallow_to_glyph` | - | Missing |
 | 1336 | `swallowed` | - | Missing |
@@ -1169,7 +1169,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 422 | `unmap_object` | - | Missing |
 | 3402 | `unset_seenv` | - | Missing |
 | 3531 | `wall_angle` | - | Missing |
-| 667 | `warning_of` | - | Missing |
+| 667 | `warning_of` | display.js:1427 | Implemented |
 | 3294 | `xy_set_wall_state` | - | Missing |
 | 2479 | `zapdir_to_glyph` | - | Missing |
 

@@ -35,12 +35,14 @@ import { do_lookat, format_do_look_html } from './pager.js';
 import { isok, SEE_INVIS, DETECT_MONSTERS, TELEPAT, INFRAVISION, WARNING, WARN_OF_MON,
          BOLT_LIM,
          MONSEEN_NORMAL, MONSEEN_SEEINVIS, MONSEEN_INFRAVIS, MONSEEN_TELEPAT,
-         MONSEEN_XRAYVIS, MONSEEN_DETECT, MONSEEN_WARNMON } from './const.js';
+         MONSEEN_XRAYVIS, MONSEEN_DETECT, MONSEEN_WARNMON,
+         def_warnsyms, WARNCOUNT } from './const.js';
 import { cansee, couldsee, clear_vision_full_recalc } from './vision.js';
 import { do_light_sources } from './light.js';
 import { emits_light, infravisible, is_mindless, monsndx } from './mondata.js';
 import { worm_known } from './worm.js';
 import { awaitInput, awaitMore } from './suspend.js';
+import { rn2 } from './rng.js';
 export { mark_vision_dirty } from './vision.js';
 
 // Re-export color constants from the canonical source (render.js)
@@ -1336,8 +1338,13 @@ export function sensemon(mon) {
 }
 
 // Autotranslated from display.c:179
-export function mon_warning(mon) {
-  return _mon_warning(mon);
+export function mon_warning(mon, player = null, ctxOrMap = null) {
+  const activePlayer = player || _resolveDisplayCtx(ctxOrMap)?.player;
+  if (!mon || !activePlayer) return false;
+  if (!hasPlayerProp(activePlayer, WARNING, 'warning', 'Warning')) return false;
+  if ((mon.mhp | 0) <= 0) return false;
+  if (mon.mpeaceful || mon.mtame) return false;
+  return true;
 }
 
 // Autotranslated from display.c:186
@@ -1377,37 +1384,81 @@ export function unmap_invisible(x, y, map) {
 
 // Autotranslated from display.c:481
 export function show_mon_or_warn(x, y, monglyph, map) {
-  let o;
-  if (glyph_is_invisible(map.locations[x][y].glyph)) {
-    unmap_object(x, y);
-    if (cansee(x, y) && (o = vobj_at(x, y)) != null) map_object(o, false);
+  const ctx = _resolveDisplayCtx(map);
+  const gameMap = ctx?.map;
+  const display = ctx?.display;
+  if (!gameMap || !display || !isok(x, y)) return;
+  const loc = gameMap.at(x, y);
+  if (loc && loc.mem_invis) loc.mem_invis = false;
+  let cell = monglyph;
+  if (typeof monglyph === 'number') {
+    cell = tempGlyphToCell(monglyph);
   }
-  show_glyph(x, y, monglyph);
+  if (!cell || typeof cell.ch !== 'string' || cell.ch.length === 0) return;
+  const mapOffset = ctx?.flags?.msg_window ? 3 : MAP_ROW_START;
+  display.setCell(x - 1, y + mapOffset, cell.ch[0], Number.isInteger(cell.color) ? cell.color : CLR_GRAY);
 }
 
 // Autotranslated from display.c:633
-export function display_warning(mon, player) {
+export function display_warning(mon, player = null, ctxOrMap = null) {
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const gameMap = ctx?.map;
+  const activePlayer = player || ctx?.player;
+  if (!mon || !activePlayer || !gameMap) return;
   let x = mon.mx, y = mon.my, glyph;
-  if (mon_warning(mon)) {
-    let wl = (player?.Hallucination || player?.hallucinating || false) ? rn2_on_display_rng(WARNCOUNT - 1) + 1 : warning_of(mon);
-    glyph = warning_to_glyph(wl);
+  if (mon_warning(mon, activePlayer, ctx)) {
+    let wl = (activePlayer?.Hallucination || activePlayer?.hallucinating || false)
+      ? rn2(WARNCOUNT - 1) + 1
+      : warning_of(mon, activePlayer, ctx);
+    wl = Math.max(0, Math.min(WARNCOUNT - 1, wl | 0));
+    const ws = def_warnsyms[wl];
+    glyph = {
+      ch: (ws?.ch && ws.ch.length > 0) ? ws.ch[0] : '?',
+      color: Number.isInteger(ws?.color) ? ws.color : CLR_WHITE,
+    };
   }
-  else if (MATCH_WARN_OF_MON(mon)) { glyph = mon_to_glyph(mon, rn2_on_display_rng); }
-  else {
-    impossible("display_warning did not match warning type?");
-    return;
-  }
-  show_mon_or_warn(x, y, glyph);
+  else if (hasPlayerProp(activePlayer, WARN_OF_MON, 'warnOfMon', 'Warn_of_mon')) {
+    glyph = monsterMapGlyph(mon, !!(activePlayer?.Hallucination || activePlayer?.hallucinating));
+  } else return;
+  show_mon_or_warn(x, y, glyph, ctx);
 }
 
 // Autotranslated from display.c:653
-export function warning_of(mon) {
+export function warning_of(mon, player = null, ctxOrMap = null) {
+  const activePlayer = player || _resolveDisplayCtx(ctxOrMap)?.player;
+  if (!activePlayer) return 0;
   let wl = 0, tmp = 0;
-  if (mon_warning(mon)) {
+  if (mon_warning(mon, activePlayer, ctxOrMap)) {
     tmp = Math.trunc(mon.m_lev / 4);
     wl = (tmp > WARNCOUNT - 1) ? WARNCOUNT - 1 : tmp;
   }
   return wl;
+}
+
+// C ref: display.c display_monster()/newsym() helper; full mimic glyph variants
+// are still handled by newsym's broader map logic.
+export function display_monster(x, y, mon, sightflags = 0, worm_tail = false, ctxOrMap = null) {
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const gameMap = ctx?.map;
+  const player = ctx?.player;
+  if (!mon || !gameMap || !player || !isok(x, y)) return;
+  const glyph = monsterMapGlyph(mon, !!(player?.Hallucination || player?.hallucinating));
+  show_mon_or_warn(x, y, glyph, ctx);
+  mon.meverseen = 1;
+}
+
+// C ref: display.c mon_overrides_region(); simplified region override decision.
+export function mon_overrides_region(mon, mx, my, ctxOrMap = null) {
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const gameMap = ctx?.map;
+  const player = ctx?.player;
+  const fov = ctx?.fov;
+  if (!mon || !gameMap || !player) return false;
+  if (mx === mon.mx && my === mon.my && senseMonsterForMap(mon, gameMap, player)) return true;
+  const dx = Math.abs((player.x | 0) - (mx | 0));
+  const dy = Math.abs((player.y | 0) - (my | 0));
+  if (Math.max(dx, dy) <= 1 && canSeeMonsterForMap(mon, gameMap, player, fov)) return true;
+  return false;
 }
 
 // Autotranslated from display.c:725
