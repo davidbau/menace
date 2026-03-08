@@ -92,6 +92,7 @@ import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
 import { break_wand } from './zap.js';
 import { Blindf_off } from './do_wear.js';
 import { dropx } from './do.js';
+import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { dry_a_towel } from './weapon.js';
 import { is_wet_towel } from './objnam.js';
 import { useupall, update_inventory, sobj_at } from './invent.js';
@@ -901,13 +902,25 @@ export async function handleApply(player, map, display, game) {
         if (selected.otyp === CREDIT_CARD || selected.otyp === LOCK_PICK
             || selected.otyp === SKELETON_KEY) {
             await display.putstr_message('In what direction? ');
-            const dirCh = await awaitInput(game, nhgetch(), {
-                site: 'apply.lockpick.direction',
-            });
-            const dch = String.fromCharCode(dirCh);
-            const dir = DIRECTION_KEYS[dch];
-            if (!dir) {
+            let dir = null;
+            while (!dir) {
+                const dirCh = await awaitInput(game, nhgetch(), {
+                    site: 'apply.lockpick.direction',
+                });
+                if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
+                    replacePromptMessage();
+                    await display.putstr_message('Never mind.');
+                    return { moved: false, tookTime: false };
+                }
+                const dch = String.fromCharCode(dirCh);
+                dir = DIRECTION_KEYS[dch] || null;
+                if (dir) break;
                 replacePromptMessage();
+                if (game?.flags?.cmdassist !== false) {
+                    await show_invalid_direction_cmdassist_help(display);
+                    await display.putstr_message('In what direction? ');
+                    continue;
+                }
                 if (!player?.wizard)
                     await display.putstr_message('What a strange direction!  Never mind.');
                 return { moved: false, tookTime: false };
@@ -971,13 +984,25 @@ export async function handleApply(player, map, display, game) {
             || selected.otyp === EXPENSIVE_CAMERA || selected.otyp === MIRROR
             || selected.otyp === FIGURINE || isApplyPolearm(selected)) {
             await display.putstr_message('In what direction? ');
-            const dirCh = await awaitInput(game, nhgetch(), {
-                site: 'apply.use-directional.direction',
-            });
-            const dch = String.fromCharCode(dirCh);
-            const dir = DIRECTION_KEYS[dch];
-            if (!dir) {
+            let dir = null;
+            while (!dir) {
+                const dirCh = await awaitInput(game, nhgetch(), {
+                    site: 'apply.use-directional.direction',
+                });
+                if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
+                    replacePromptMessage();
+                    await display.putstr_message('Never mind.');
+                    return { moved: false, tookTime: false };
+                }
+                const dch = String.fromCharCode(dirCh);
+                dir = DIRECTION_KEYS[dch] || null;
+                if (dir) break;
                 replacePromptMessage();
+                if (game?.flags?.cmdassist !== false) {
+                    await show_invalid_direction_cmdassist_help(display);
+                    await display.putstr_message('In what direction? ');
+                    continue;
+                }
                 if (!player?.wizard)
                     await display.putstr_message('What a strange direction!  Never mind.');
                 return { moved: false, tookTime: false };

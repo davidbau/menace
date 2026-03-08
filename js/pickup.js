@@ -95,7 +95,7 @@ function age_is_relative(obj) {
 }
 
 // C ref: cmd.c help_dir() text for invalid directional input with cmdassist.
-async function show_invalid_direction_cmdassist_help(display) {
+export async function show_invalid_direction_cmdassist_help(display) {
     const lines = [
         'cmdassist: Invalid direction key!',
         '',

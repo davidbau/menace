@@ -32,7 +32,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, ROCK_CLASS, POTION_CLASS,
        } from './objects.js';
 import { doname, xname } from './mkobj.js';
 import { DIRECTION_KEYS, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
-import { handleLoot } from './pickup.js';
+import { handleLoot, show_invalid_direction_cmdassist_help } from './pickup.js';
 import { pline, pline_The, You, You_cant, You_hear, There, set_msg_xy,
          verbalize } from './pline.js';
 import { acurr, acurrstr } from './attrib.js';
@@ -947,22 +947,28 @@ export async function handleForce(game) {
 // C ref: lock.c doopen() / doopen_indir()
 export async function handleOpen(player, map, display, game) {
     await display.putstr_message('In what direction? ');
-    const dirCh = await awaitInput(game, nhgetch(), {
-        site: 'lock.handleOpen.direction',
-    });
-    // Prompt should not concatenate with outcome message.
-    display.topMessage = null;
-    const c = String.fromCharCode(dirCh);
-    let dir = DIRECTION_KEYS[c];
-    if (!dir && (dirCh === 10 || dirCh === 13)) dir = DIRECTION_KEYS.j;
-    // C ref: getdir() accepts self-direction ('.' and 's').
-    if (!dir && (c === '.' || c === 's')) {
-        dir = [0, 0];
-    }
-    if (!dir) {
-        // C ref: getdir() + get_adjacent_loc() — wizard sessions (cmdassist on)
-        // silently fail with just "Never mind."; non-wizard sessions emit
-        // "What a strange direction!" before the caller's "Never mind."
+    let dir = null;
+    while (!dir) {
+        const dirCh = await awaitInput(game, nhgetch(), {
+            site: 'lock.handleOpen.direction',
+        });
+        // Prompt should not concatenate with outcome message.
+        display.topMessage = null;
+        if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
+            await display.putstr_message('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+        const c = String.fromCharCode(dirCh);
+        dir = DIRECTION_KEYS[c] || null;
+        // C ref: getdir() accepts self-direction ('.' and 's').
+        if (!dir && (c === '.' || c === 's')) {
+            dir = [0, 0];
+        }
+        if (dir) break;
+        if (game?.flags?.cmdassist !== false) {
+            await show_invalid_direction_cmdassist_help(display);
+            continue;
+        }
         if (game?.player?.wizard) {
             await display.putstr_message('Never mind.');
         } else {
