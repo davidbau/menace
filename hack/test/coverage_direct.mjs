@@ -41,6 +41,8 @@ import { setRhack, gameLoop, GameOver, losestr, ndaminc, dodown, doup } from '..
 import { rhack } from '../js/do.js';
 import { docrt } from '../js/pri.js';
 import { mon } from '../js/data.js';
+import { mkobj } from '../js/lev.js';
+import { makeStole } from '../js/game.js';
 
 import { MockDisplay } from './mock_display.mjs';
 import { MockInput } from './mock_input.mjs';
@@ -547,6 +549,42 @@ async function testKillerBeeFight() {
   console.log('testKillerBeeFight: PASS (killer bee poison covered)');
 }
 
+// ===== lev.js uncovered paths =====
+
+// mkobj() and _mkobj_fill() — covers all item type branches (lines 184-236 in lev.js)
+async function testMkobj() {
+  wireDeps();
+  const display = new MockDisplay();
+  const input = new MockInput();
+  const g = new GameState();
+  g.display = display; g.input = input; g.rawRngLog = [];
+  setGame(g);
+  // Initialize minimal state for mkobj
+  g.fobj = null;
+  // Call mkobj with each item type letter to cover all branches
+  for (const ch of [')', '*', '[', '!', '?', '/', '=', '%']) {
+    mkobj(ch);
+  }
+  // Also call mkobj(null) for random roll
+  for (let i = 0; i < 20; i++) mkobj(null);
+  console.log('testMkobj: PASS (mkobj/mkobj_fill all branches covered)');
+}
+
+// fstole save/restore — covers serializeStoles() and getlev fstole path (lines 66-79, 262-265)
+async function testSaveFstole() {
+  await runWith(42, (g) => {
+    // Create a stole entry with stolen gold to test serializeStoles
+    const stmp = makeStole(null, null, 50); // monster=null, obj=null, gold=50
+    stmp.nstole = g.fstole;
+    g.fstole = stmp;
+    // Position player at down stair to descend then ascend
+    g.u.ux = g.xdnstair;
+    g.u.uy = g.ydnstair;
+    g.u.uhp = 200; g.u.uhpmax = 200;
+  }, '>< ');
+  console.log('testSaveFstole: PASS (fstole save/restore covered)');
+}
+
 // ===== hack.js uncovered paths =====
 
 // Confused movement — randomizes dx/dy (lines 128-130 in hack.js)
@@ -1048,6 +1086,8 @@ await testVioletFungiFight();
 await testFloatingEyeFight();
 await testSnakeFight();
 await testKillerBeeFight();
+await testMkobj();
+await testSaveFstole();
 await testConfusedMovement();
 await testStuckEscape();
 await testBlindMovement();

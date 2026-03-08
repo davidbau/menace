@@ -1,6 +1,6 @@
 // C ref: hack.lev.c — level save/load, mklev wrapper, mkobj
 import { COLNO, ROWNO } from './const.js';
-import { rn2, rnd, d } from './rng.js';
+import { rn1, rn2, rnd, d } from './rng.js';
 import { game } from './gstate.js';
 import { makeCell, makeMonst, makeObj, makeGen, makeStole } from './game.js';
 import { mon, mregen } from './data.js';
