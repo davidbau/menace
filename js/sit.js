@@ -11,14 +11,14 @@ import { ROOM, THRONE, SINK, ALTAR, GRAVE, STAIRS, LADDER,
          FAST, STEALTH, PROTECTION, AGGRAVATE_MONSTER,
          isok, W_SADDLE,
          TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL,
-         PIT, SPIKED_PIT, S_DRAGON } from './const.js';
+         PIT, SPIKED_PIT } from './const.js';
 import { COIN_CLASS, SADDLE } from './objects.js';
 import { pline, You, Your, You_feel, You_cant, pline_The,
          verbalize } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { adjattrib } from './attrib.js';
 import { is_pool, is_lava, is_ice } from './dbridge.js';
-import { PM_TRAPPER } from './monsters.js';
+import { PM_TRAPPER, S_DRAGON } from './monsters.js';
 import { is_prince, slithy, is_hider, lays_eggs, likes_lava,
          amorphous, is_humanoid, eggs_in_water, sticks } from './mondata.js';
 import { which_armor } from './worn.js';

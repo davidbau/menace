@@ -8,7 +8,7 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          CONFUSION, STUNNED, BLINDED, HALLUC, HALLUC_RES, SICK, FAST,
          TIMEOUT, INTRINSIC, SICK_VOMITABLE, SICK_NONVOMITABLE } from './const.js';
 import { objectData, COIN_CLASS, FOOD_CLASS } from './objects.js';
-import { NORMAL_SPEED } from './monsters.js';
+import { NORMAL_SPEED } from './const.js';
 import { weight } from './mkobj.js';
 import { skill_init, skills_for_role } from './weapon.js';
 

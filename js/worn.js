@@ -11,13 +11,13 @@ import { nohands, is_animal, is_mindless, cantweararm, slithy, has_horns,
          attacktype, canseemon,
        } from './mondata.js';
 import {
-    S_MUMMY, S_CENTAUR,
     W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMG, W_ARMF, W_ARMU, W_ARMOR,
     W_WEP, W_QUIVER, W_SWAPWEP, W_WEAPONS,
     W_AMUL, W_RINGL, W_RINGR, W_RING, W_TOOL, W_ACCESSORY,
     W_SADDLE, W_BALL, W_CHAIN,
 } from './const.js';
-import { PM_SKELETON, PM_HOBBIT, MZ_TINY, MZ_SMALL, MZ_HUMAN, MZ_HUGE,
+import { S_MUMMY, S_CENTAUR,
+         PM_SKELETON, PM_HOBBIT, MZ_TINY, MZ_SMALL, MZ_HUMAN, MZ_HUGE,
          AT_WEAP,
        } from './monsters.js';
 import { mons } from './monsters.js';

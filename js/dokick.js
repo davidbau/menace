@@ -48,18 +48,7 @@ import {
     likes_gold, is_mercenary, is_flyer, is_floater, is_giant,
     can_teleport, canseemon,
 } from './mondata.js';
-import {
-    mons,
-    PM_SHADE, PM_SASQUATCH,
-    PM_SOLDIER, PM_SERGEANT, PM_LIEUTENANT, PM_CAPTAIN,
-    PM_KILLER_BEE, PM_BLACK_PUDDING, PM_AMOROUS_DEMON, PM_STONE_GOLEM,
-    PM_ARCHEOLOGIST, PM_SAMURAI,
-    S_EEL, S_LIZARD, NON_PM,
-    AT_KICK, AT_NONE, AD_NONE,
-    MZ_SMALL, MZ_LARGE, MZ_HUMAN,
-    M2_UNDEAD, M2_WERE, M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC, M2_DEMON, M2_GIANT, M2_MERC,
-    NATTK,
-} from './monsters.js';
+import { mons, PM_SHADE, PM_SASQUATCH, PM_SOLDIER, PM_SERGEANT, PM_LIEUTENANT, PM_CAPTAIN, PM_KILLER_BEE, PM_BLACK_PUDDING, PM_AMOROUS_DEMON, PM_STONE_GOLEM, PM_ARCHEOLOGIST, PM_SAMURAI, S_EEL, S_LIZARD, AT_KICK, AT_NONE, AD_NONE, MZ_SMALL, MZ_LARGE, MZ_HUMAN, M2_UNDEAD, M2_WERE, M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC, M2_DEMON, M2_GIANT, M2_MERC } from './monsters.js';
 import {
     COIN_CLASS, GEM_CLASS, GLASS,
     BOULDER, EGG, MIRROR, CORPSE, ROCK, EXPENSIVE_CAMERA,
@@ -1641,7 +1630,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
 }
 
 // A_LAWFUL import
-import { A_LAWFUL } from './const.js';
+import { A_LAWFUL, NATTK, NON_PM } from './const.js';
 
 // ============================================================================
 // 15. dokick — the #kick command handler

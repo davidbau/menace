@@ -12,11 +12,11 @@
 import { rn2, rnd, rn1, d } from './rng.js';
 import { pline, impossible, You } from './pline.js';
 import { newsym } from './display.js';
-import { isok, xdir, ydir, N_DIRS } from './const.js';
+import { isok, xdir, ydir, N_DIRS, NORMAL_SPEED } from './const.js';
 import { mcalcmove } from './mon.js';
 import { mon_nam, Monnam } from './do_name.js';
 import { s_suffix, distmin } from './hacklib.js';
-import { PM_LONG_WORM, mons, NORMAL_SPEED } from './monsters.js';
+import { PM_LONG_WORM, mons } from './monsters.js';
 import { goodpos } from './teleport.js';
 import { cansee } from './vision.js';
 

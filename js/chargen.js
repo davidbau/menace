@@ -6,7 +6,7 @@ import { A_DEX, A_CON,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
          FEMALE, MALE, TERMINAL_COLS, ROOMOFFSET, SHOPBASE,
          TUTORIAL } from './const.js';
-import { NORMAL_SPEED } from './monsters.js';
+import { NORMAL_SPEED } from './const.js';
 import { initRng, rn2, rnd, rn1, getRngState, setRngState, getRngCallCount, setRngCallCount, pushRngLogEntry } from './rng.js';
 import { CLR_GRAY } from './display.js';
 import { nhgetch, getCount, getlin, setInputRuntime } from './input.js';

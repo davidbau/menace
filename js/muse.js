@@ -32,13 +32,7 @@ import { is_animal, is_mindless, nohands, is_mercenary, is_unicorn,
          unsolid, resists_fire, resists_acid, dmgtype, attacktype,
          can_blow, x_monnam, canseemon, needspick,
          dmgtype_fromattack, is_bat, nonliving } from './mondata.js';
-import { mons, PM_GHOST, PM_DJINNI, PM_GUARD, PM_PESTILENCE,
-         PM_KI_RIN, PM_LIZARD, PM_GIANT_EEL, PM_CROCODILE,
-         PM_ACID_BLOB, PM_SILVER_DRAGON, PM_CHROMATIC_DRAGON,
-         PM_STALKER, PM_GRID_BUG,
-         AT_EXPL, AT_GAZE, AT_NONE, AT_BREA, G_UNIQ, G_NOCORPSE,
-         S_GHOST, S_KOP, S_EYE, S_LIGHT, S_VAMPIRE,
-         NON_PM, MZ_SMALL } from './monsters.js';
+import { mons, PM_GHOST, PM_DJINNI, PM_GUARD, PM_PESTILENCE, PM_KI_RIN, PM_LIZARD, PM_GIANT_EEL, PM_CROCODILE, PM_ACID_BLOB, PM_SILVER_DRAGON, PM_CHROMATIC_DRAGON, PM_STALKER, PM_GRID_BUG, AT_EXPL, AT_GAZE, AT_NONE, AT_BREA, G_UNIQ, G_NOCORPSE, S_GHOST, S_KOP, S_EYE, S_LIGHT, S_VAMPIRE, MZ_SMALL } from './monsters.js';
 import { CORPSE, TIN, EGG, BOULDER,
          POTION_CLASS, WAND_CLASS, SCROLL_CLASS, FOOD_CLASS,
          AMULET_CLASS, TOOL_CLASS, WEAPON_CLASS,
@@ -94,7 +88,7 @@ import { trycall } from './do.js';
 import { pushRngLogEntry } from './rng.js';
 import { Can_dig_down, Can_fall_thru, Can_rise_up } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_BEAM, DISP_END } from './const.js';
+import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
 import { resists_magm } from './trap.js';
 
 const STRAT_WAITFORU = 0x20000000; // C ref: mon.h
@@ -2283,7 +2277,6 @@ export async function use_misc(mon, map, player) {
     }
     return 0;
 }
-
 
 // ========================================================================
 // rnd_misc_item — C ref: muse.c:2619

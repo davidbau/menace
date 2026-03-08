@@ -80,18 +80,14 @@ import { nohands, nolimbs, has_head, unsolid, haseyes, breathless,
          is_vampire, is_unicorn, is_humanoid, is_demon, perceives,
          slithy, strongmonst, can_blow, is_rider, touch_petrifies,
          poly_when_stoned } from './mondata.js';
-import { mons, PM_LONG_WORM, PM_FLOATING_EYE, PM_MEDUSA, PM_UMBER_HULK,
-         PM_AMOROUS_DEMON, PM_QUEEN_BEE, PM_KILLER_BEE,
-         PM_WOOD_NYMPH, PM_WATER_NYMPH, PM_MOUNTAIN_NYMPH,
-         S_VAMPIRE, S_GHOST, S_NYMPH, S_MIMIC, S_EEL,
-         MZ_LARGE, MZ_SMALL, MS_SILENT, NON_PM } from './monsters.js';
+import { mons, PM_LONG_WORM, PM_FLOATING_EYE, PM_MEDUSA, PM_UMBER_HULK, PM_AMOROUS_DEMON, PM_QUEEN_BEE, PM_KILLER_BEE, PM_WOOD_NYMPH, PM_WATER_NYMPH, PM_MOUNTAIN_NYMPH, S_VAMPIRE, S_GHOST, S_NYMPH, S_MIMIC, S_EEL, MZ_LARGE, MZ_SMALL, MS_SILENT } from './monsters.js';
 import { dist2, s_suffix, upstart, isqrt, sgn } from './hacklib.js';
 import { setnotworn } from './worn.js';
 import { begin_burn, end_burn, obj_has_timer,
          kill_egg, attach_egg_hatch_timeout } from './timeout.js';
 import { maketrap } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_BEAM, DISP_END } from './const.js';
+import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
 import { break_wand } from './zap.js';
 import { useupall, update_inventory, sobj_at } from './invent.js';
 import { cansee } from './vision.js';

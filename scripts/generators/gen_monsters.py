@@ -410,7 +410,10 @@ out.append('// NetHack 3.7 Monster Data - auto-generated from monsters.h')
 out.append('// Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985.')
 out.append('// NetHack may be freely redistributed.  See license for details.')
 out.append('')
-# (canonicalizeAttackFields import removed — attacks now use canonical C field names)
+# Collect CLR_*/HI_* color names used in monster data for import from const.js
+_used_colors = sorted(set(mon['color'] for mon in monsters if mon['color'] in CLR))
+if _used_colors:
+    out.append(f'import {{ {", ".join(_used_colors)} }} from "./const.js";')
 out.append('')
 
 # Monster symbol classes
@@ -601,28 +604,11 @@ for name, val in mz_sizes:
     out.append(f'export const {name} = {val};')
 out.append('')
 
-# Colors
-out.append('// Colors (from color.h)')
-for name, val in sorted(CLR.items(), key=lambda x: x[1]):
-    out.append(f'export const {name} = {val};')
-out.append('')
-
-# Weight constants
-out.append('// Weight constants (from weight.h)')
-for name, val in WT.items():
-    out.append(f'export const {name} = {val};')
-out.append('')
-
 # PM_ constants
 out.append('// Monster index constants (PM_*)')
 for idx, mon in enumerate(monsters):
     out.append(f'export const PM_{mon["bn"]} = {idx};')
 out.append(f'export const NUMMONS = {len(monsters)};')
-out.append(f'export const NON_PM = -1;')
-out.append(f'export const LOW_PM = 0;')
-out.append('export const LEAVESTATUE = NON_PM - 1;')  # permonst.h
-out.append('export const NATTK = 6;')  # permonst.h
-out.append('export const NORMAL_SPEED = 12;')  # permonst.h
 out.append(f'export const HIGH_PM = {len(monsters) - 2};')  # C: NUMMONS-2 (last non-quest-leader)
 # Find LONG_WORM_TAIL index
 lwt_idx = None

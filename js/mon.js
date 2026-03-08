@@ -28,9 +28,9 @@ import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, ACCESSIBLE,
          M_POISONGAS_OK, M_POISONGAS_MINOR, M_POISONGAS_BAD,
          W_AMUL, W_ARMG, W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMF, W_ARMU, W_WEP,
          BOLT_LIM, LS_MONSTER,
-         M2_COLLECT, IS_ALTAR,
-         STRAT_WAITMASK, A_CHAOTIC, A_NONE, MS_NEMESIS, MS_GUARDIAN } from './const.js';
-import { NORMAL_SPEED } from './monsters.js';
+         IS_ALTAR,
+         STRAT_WAITMASK, A_CHAOTIC, A_NONE, NORMAL_SPEED } from './const.js';
+import { M2_COLLECT, MS_NEMESIS, MS_GUARDIAN } from './monsters.js';
 import { AMULET_OF_LIFE_SAVING, CORPSE, FIGURINE, STATUE, objectData,
          GRAY_DRAGON_SCALES, UNICORN_HORN, WORM_TOOTH,
          IRON_CHAIN, ROCK as OBJ_ROCK, FIRST_GLASS_GEM, NUM_GLASS_GEMS,
@@ -71,51 +71,8 @@ import { is_hider, hides_under, is_mindless, is_displacer, perceives,
          is_giant, is_undead, is_unicorn, is_minion, throws_rocks,
          is_golem, is_rider, is_mplayer, canseemon } from './mondata.js';
 import { y_monnam, locomotion, Monnam, is_watch } from './mondata.js';
-import { PM_ANGEL, PM_GRID_BUG, PM_FIRE_ELEMENTAL, PM_SALAMANDER,
-         PM_FLOATING_EYE, PM_MINOTAUR,
-         PM_PURPLE_WORM, PM_BABY_PURPLE_WORM, PM_SHRIEKER,
-         PM_GHOUL, PM_SKELETON,
-         PM_DEATH, PM_PESTILENCE, PM_FAMINE,
-         PM_LIZARD, PM_VLAD_THE_IMPALER,
-         PM_DISPLACER_BEAST,
-         PM_KOBOLD, PM_DWARF, PM_GNOME, PM_ORC, PM_ELF, PM_HUMAN,
-         PM_GIANT, PM_ETTIN, PM_VAMPIRE, PM_VAMPIRE_LEADER,
-         PM_KOBOLD_ZOMBIE, PM_DWARF_ZOMBIE, PM_GNOME_ZOMBIE, PM_ORC_ZOMBIE,
-         PM_ELF_ZOMBIE, PM_HUMAN_ZOMBIE, PM_GIANT_ZOMBIE, PM_ETTIN_ZOMBIE,
-         PM_KOBOLD_MUMMY, PM_DWARF_MUMMY, PM_GNOME_MUMMY, PM_ORC_MUMMY,
-         PM_ELF_MUMMY, PM_HUMAN_MUMMY, PM_GIANT_MUMMY, PM_ETTIN_MUMMY,
-         PM_STUDENT, PM_CHIEFTAIN, PM_NEANDERTHAL, PM_ATTENDANT,
-         PM_PAGE, PM_ABBOT, PM_ACOLYTE, PM_HUNTER, PM_THUG,
-         PM_ROSHI, PM_GUIDE, PM_WARRIOR, PM_APPRENTICE,
-         PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVE_DWELLER, PM_HEALER,
-         PM_KNIGHT, PM_MONK, PM_CLERIC, PM_RANGER, PM_ROGUE,
-         PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD,
-         PM_IRON_GOLEM, PM_GLASS_GOLEM, PM_CLAY_GOLEM, PM_WOOD_GOLEM,
-         PM_ROPE_GOLEM, PM_LEATHER_GOLEM, PM_GOLD_GOLEM, PM_PAPER_GOLEM,
-         PM_GREMLIN, PM_GELATINOUS_CUBE, PM_RUST_MONSTER,
-         PM_STALKER, PM_GREEN_SLIME,
-         PM_GRAY_DRAGON, PM_GOLD_DRAGON, PM_SILVER_DRAGON,
-         PM_RED_DRAGON, PM_ORANGE_DRAGON, PM_WHITE_DRAGON,
-         PM_BLACK_DRAGON, PM_BLUE_DRAGON, PM_GREEN_DRAGON, PM_YELLOW_DRAGON,
-         PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN,
-         PM_LONG_WORM,
-         PM_GRAY_OOZE, PM_BROWN_PUDDING, PM_BLACK_PUDDING,
-         PM_STEAM_VORTEX,
-         NON_PM, NUMMONS,
-         mons,
-         AT_NONE, AT_BOOM, AT_ENGL, AT_HUGS, AD_PHYS, AD_ACID, AD_ENCH, AD_STCK,
-         M1_FLY, M1_SWIM, M1_AMPHIBIOUS, M1_AMORPHOUS, M1_WALLWALK,
-         M1_BREATHLESS, M1_TUNNEL, M1_NEEDPICK,
-         M1_SLITHY, M1_UNSOLID,
-         MZ_TINY, MZ_MEDIUM, MZ_LARGE, MZ_HUMAN,
-         MR_FIRE, MR_COLD, MR_SLEEP, MR_DISINT, MR_ELEC, MR_POISON,
-         G_FREQ, G_NOCORPSE, G_UNIQ,
-         S_EYE, S_LIGHT, S_EEL, S_PIERCER, S_MIMIC, S_UNICORN,
-         S_ZOMBIE, S_LICH, S_KOBOLD, S_ORC, S_GIANT, S_HUMANOID, S_GNOME, S_KOP,
-         S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, S_VAMPIRE,
-         PM_FLESH_GOLEM, PM_STONE_GOLEM, PM_ERINYS } from './monsters.js';
-import { PIT, SPIKED_PIT, HOLE, S_poisoncloud, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, M_AP_MONSTER,
-         TAINT_AGE } from './const.js';
+import { PM_ANGEL, PM_GRID_BUG, PM_FIRE_ELEMENTAL, PM_SALAMANDER, PM_FLOATING_EYE, PM_MINOTAUR, PM_PURPLE_WORM, PM_BABY_PURPLE_WORM, PM_SHRIEKER, PM_GHOUL, PM_SKELETON, PM_DEATH, PM_PESTILENCE, PM_FAMINE, PM_LIZARD, PM_VLAD_THE_IMPALER, PM_DISPLACER_BEAST, PM_KOBOLD, PM_DWARF, PM_GNOME, PM_ORC, PM_ELF, PM_HUMAN, PM_GIANT, PM_ETTIN, PM_VAMPIRE, PM_VAMPIRE_LEADER, PM_KOBOLD_ZOMBIE, PM_DWARF_ZOMBIE, PM_GNOME_ZOMBIE, PM_ORC_ZOMBIE, PM_ELF_ZOMBIE, PM_HUMAN_ZOMBIE, PM_GIANT_ZOMBIE, PM_ETTIN_ZOMBIE, PM_KOBOLD_MUMMY, PM_DWARF_MUMMY, PM_GNOME_MUMMY, PM_ORC_MUMMY, PM_ELF_MUMMY, PM_HUMAN_MUMMY, PM_GIANT_MUMMY, PM_ETTIN_MUMMY, PM_STUDENT, PM_CHIEFTAIN, PM_NEANDERTHAL, PM_ATTENDANT, PM_PAGE, PM_ABBOT, PM_ACOLYTE, PM_HUNTER, PM_THUG, PM_ROSHI, PM_GUIDE, PM_WARRIOR, PM_APPRENTICE, PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVE_DWELLER, PM_HEALER, PM_KNIGHT, PM_MONK, PM_CLERIC, PM_RANGER, PM_ROGUE, PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD, PM_IRON_GOLEM, PM_GLASS_GOLEM, PM_CLAY_GOLEM, PM_WOOD_GOLEM, PM_ROPE_GOLEM, PM_LEATHER_GOLEM, PM_GOLD_GOLEM, PM_PAPER_GOLEM, PM_GREMLIN, PM_GELATINOUS_CUBE, PM_RUST_MONSTER, PM_STALKER, PM_GREEN_SLIME, PM_GRAY_DRAGON, PM_GOLD_DRAGON, PM_SILVER_DRAGON, PM_RED_DRAGON, PM_ORANGE_DRAGON, PM_WHITE_DRAGON, PM_BLACK_DRAGON, PM_BLUE_DRAGON, PM_GREEN_DRAGON, PM_YELLOW_DRAGON, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_LONG_WORM, PM_GRAY_OOZE, PM_BROWN_PUDDING, PM_BLACK_PUDDING, PM_STEAM_VORTEX, NUMMONS, mons, AT_NONE, AT_BOOM, AT_ENGL, AT_HUGS, AD_PHYS, AD_ACID, AD_ENCH, AD_STCK, M1_FLY, M1_SWIM, M1_AMPHIBIOUS, M1_AMORPHOUS, M1_WALLWALK, M1_BREATHLESS, M1_TUNNEL, M1_NEEDPICK, M1_SLITHY, M1_UNSOLID, MZ_TINY, MZ_MEDIUM, MZ_LARGE, MZ_HUMAN, MR_FIRE, MR_COLD, MR_SLEEP, MR_DISINT, MR_ELEC, MR_POISON, G_FREQ, G_NOCORPSE, G_UNIQ, S_EYE, S_LIGHT, S_EEL, S_PIERCER, S_MIMIC, S_UNICORN, S_ZOMBIE, S_LICH, S_KOBOLD, S_ORC, S_GIANT, S_HUMANOID, S_GNOME, S_KOP, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, S_VAMPIRE, PM_FLESH_GOLEM, PM_STONE_GOLEM, PM_ERINYS } from './monsters.js';
+import { PIT, SPIKED_PIT, HOLE, S_poisoncloud, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, M_AP_MONSTER, TAINT_AGE, NON_PM } from './const.js';
 import { m_harmless_trap } from './trap.js';
 import { dist2, distmin, in_rooms } from './hack.js';
 import { monmoveTrace, monmoveStepLabel } from './monmove.js';
@@ -1410,7 +1367,6 @@ export function setmangry(mon, via_attack, map, player) {
     }
 }
 
-
 // ========================================================================
 // Monster state & visibility — C ref: mon.c Phase C
 // ========================================================================
@@ -1576,7 +1532,6 @@ export function can_hide_under_obj_at(map, x, y) {
     return true;
 }
 
-
 // ========================================================================
 // Monster turn processing — C ref: mon.c Phase A
 // ========================================================================
@@ -1617,7 +1572,6 @@ export function meatbox(mon, otmp, map) {
         }
     }
 }
-
 
 // C ref: mon.c:1377 m_consume_obj() — monster consumes an object
 // Simplified: handles healing, container contents, corpse intrinsics.
@@ -1690,7 +1644,6 @@ export function meatmetal(mon, map) {
     }
     return 0;
 }
-
 
 // C ref: mon.c:1518 meatobj() — gelatinous cube eats pile of objects
 // Returns: 0 = nothing, 1 = ate/engulfed, 2 = died
@@ -2081,7 +2034,6 @@ async function m_calcdistress(mon, map, player) {
     // Flee timeout is handled in allmain.js
     // Shapeshift is handled in allmain.js
 }
-
 
 // ========================================================================
 // movemon — C ref: mon.c movemon()

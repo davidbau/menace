@@ -28,23 +28,11 @@ import {
     nonliving, sticks, attacktype, dmgtype, is_whirly,
 } from './mondata.js';
 import { erode_obj } from './trap.js';
-import {
-    AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG,
-    AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA,
-    AT_SPIT, AT_BOOM, G_NOCORPSE,
-    AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE,
-    AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_RUST, AD_CORR,
-    MZ_HUGE, NON_PM, PM_GRID_BUG,
-} from './monsters.js';
+import { AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG, AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA, AT_SPIT, AT_BOOM, G_NOCORPSE, AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE, AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_RUST, AD_CORR, MZ_HUGE, PM_GRID_BUG } from './monsters.js';
 import { corpse_chance, zombie_maker, zombie_form } from './mon.js';
 import { mkcorpstat, xname } from './mkobj.js';
 import { CORPSE, WEAPON_CLASS, objectData } from './objects.js';
-import {
-    M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
-    W_ARMG, W_ARMF, W_ARMH,
-    ERODE_RUST, ERODE_CORRODE, ERODE_BURN, EF_GREASE, EF_VERBOSE,
-    NEED_WEAPON, NEED_HTH_WEAPON,
-} from './const.js';
+import { M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE, W_ARMG, W_ARMF, W_ARMH, ERODE_RUST, ERODE_CORRODE, ERODE_BURN, EF_GREASE, EF_VERBOSE, NEED_WEAPON, NEED_HTH_WEAPON, NON_PM } from './const.js';
 import {
     mhitm_adtyping,
 } from './uhitm.js';
@@ -76,7 +64,6 @@ function DEADMONSTER(mon) {
 }
 
 // cf. worn.c:707 — find_mac(mon): accounts for worn armor via m_dowear.
-
 
 // ============================================================================
 // noises, pre_mm_attack, missmm — display helpers
@@ -156,7 +143,6 @@ async function missmm(magr, mdef, mattk, display, vis, map, ctx) {
     }
 }
 
-
 // ============================================================================
 // failed_grab — grab feasibility check
 // ============================================================================
@@ -171,7 +157,6 @@ export function failed_grab(magr, mdef, mattk) {
     }
     return false;
 }
-
 
 // ============================================================================
 // attk_protection — armor slot for attack type
@@ -194,7 +179,6 @@ export function attk_protection(aatyp) {
         return 0;
     }
 }
-
 
 // ============================================================================
 // paralyze_monst, sleep_monst — status effect helpers
@@ -252,7 +236,6 @@ export function rustm(mdef, obj) {
         erode_obj(obj, null, dmgtyp, EF_GREASE | EF_VERBOSE);
 }
 
-
 // ============================================================================
 // xdrainenergym — monster energy drain
 // ============================================================================
@@ -263,7 +246,6 @@ export function xdrainenergym(mon, vis) {
         mon.mspec_used = (mon.mspec_used || 0) + c_d(2, 2);
     }
 }
-
 
 // ============================================================================
 // passivemm — passive counterattack (defender retaliates)
@@ -385,7 +367,6 @@ export function passivemm(magr, mdef, mhitb, mdead, mwep, map) {
     return (mdead | mhit);
 }
 
-
 // ============================================================================
 // hitmm — process a successful physical hit
 // ============================================================================
@@ -416,7 +397,6 @@ async function hitmm(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx) {
     return await mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx);
 }
 
-
 // ============================================================================
 // gazemm — gaze attack on monster
 // ============================================================================
@@ -430,7 +410,6 @@ async function gazemm(magr, mdef, mattk, display, vis, map, ctx) {
     // For blinding gaze (Archon), delegate to adtyping
     return await mdamagem(magr, mdef, mattk, null, 0, display, vis, map, ctx);
 }
-
 
 // ============================================================================
 // explmm — explosion attack (e.g., gas spore)
@@ -452,7 +431,6 @@ export async function explmm(magr, mdef, mattk, display, vis, map, ctx) {
     }
     return result;
 }
-
 
 // ============================================================================
 // mhitm_knockback — mon-vs-mon knockback eligibility (RNG faithful)
@@ -522,7 +500,6 @@ async function mhitm_knockback_mm(magr, mdef, mattk, mwep, vis, display, map, ct
     }
     return kbFlags;
 }
-
 
 // ============================================================================
 // mdamagem — apply damage and special effects
@@ -631,7 +608,6 @@ async function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx
     return (mhm.hitflags === M_ATTK_AGR_DIED) ? M_ATTK_AGR_DIED : M_ATTK_HIT;
 }
 
-
 // ============================================================================
 // mattackm — main monster-vs-monster attack sequence
 // ============================================================================
@@ -646,7 +622,6 @@ export async function mattackm(magr, mdef, display, vis, map, ctx) {
     const pa = magr.data || magr.type || {};
     const pd = mdef.data || mdef.type || {};
     const attacks = pa.attacks || [];
-
 
     // C ref: mhitm.c:316 — grid bugs can't attack diagonally
     // (Skipped for simplicity — rare edge case)
@@ -815,7 +790,6 @@ export async function mattackm(magr, mdef, display, vis, map, ctx) {
     return struck ? M_ATTK_HIT : M_ATTK_MISS;
 }
 
-
 // ============================================================================
 // fightm — monster fights other monsters (conflict)
 // ============================================================================
@@ -838,7 +812,6 @@ export async function fightm(mtmp, map, display, vis) {
     }
     return 0;
 }
-
 
 // ============================================================================
 // mdisplacem — attacker displaces defender
@@ -883,7 +856,6 @@ export function mdisplacem(magr, mdef, quietly, map) {
     return M_ATTK_HIT;
 }
 
-
 // ============================================================================
 // mon_poly — polymorph attack on monster
 // ============================================================================
@@ -920,7 +892,6 @@ export function mon_poly(magr, mdef, dmg) {
     if (magr) magr.mspec_used = (magr.mspec_used || 0) + rnd(2);
     return dmg;
 }
-
 
 // ============================================================================
 // mswingsm — weapon swing message

@@ -13,9 +13,9 @@ import { Monnam, mon_nam } from './do_name.js';
 import { is_humanoid, slithy, amorphous, noncorporeal, is_whirly,
          unsolid, is_swimmer, is_floater, is_flyer,
          grounded } from './mondata.js';
-import { MZ_MEDIUM, MZ_SMALL, MZ_LARGE } from './monsters.js';
-import { S_QUADRUPED, S_UNICORN, S_ANGEL, S_CENTAUR, S_DRAGON,
-         S_JABBERWOCK } from './const.js';
+import { MZ_MEDIUM, MZ_SMALL, MZ_LARGE,
+         S_QUADRUPED, S_UNICORN, S_ANGEL, S_CENTAUR, S_DRAGON,
+         S_JABBERWOCK } from './monsters.js';
 import { which_armor } from './worn.js';
 import { SADDLE } from './objects.js';
 

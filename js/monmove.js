@@ -29,7 +29,7 @@ import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM } from './const.js';
 import { rn2, rnd, d, c_d, pushRngLogEntry } from './rng.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED } from './const.js';
-import { NORMAL_SPEED } from './monsters.js';
+import { NORMAL_SPEED } from './const.js';
 import { wipe_engr_at } from './engrave.js';
 import { mattacku } from './mhitu.js';
 import { makemon } from './makemon.js';
@@ -54,23 +54,7 @@ import { can_teleport, noeyes, perceives, nohands,
          webmaker, tunnels, needspick,
          dmgtype, is_metallivore,
          can_track, likes_gold } from './mondata.js';
-import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons,
-         PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER,
-         PM_TENGU,
-         PM_XORN, PM_RUST_MONSTER, PM_GELATINOUS_CUBE,
-         PM_DISPLACER_BEAST,
-         PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN,
-         PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS,
-         PM_HEZROU, PM_VROCK, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER,
-         AT_WEAP, AT_BREA, AT_SPIT, AT_MAGC,
-         AD_SPEL, AD_CLRC, AD_RUST, AD_CORR,
-         S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL,
-         S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN,
-         M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID,
-         M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC,
-         MZ_TINY, MZ_HUMAN, WT_HUMAN,
-         M2_WANDER,
-         MS_LEADER, MS_SHRIEK } from './monsters.js';
+import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons, PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER, PM_TENGU, PM_XORN, PM_RUST_MONSTER, PM_GELATINOUS_CUBE, PM_DISPLACER_BEAST, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS, PM_HEZROU, PM_VROCK, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER, AT_WEAP, AT_BREA, AT_SPIT, AT_MAGC, AD_SPEL, AD_CLRC, AD_RUST, AD_CORR, S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID, M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC, MZ_TINY, MZ_HUMAN, M2_WANDER, MS_LEADER, MS_SHRIEK } from './monsters.js';
 import { create_gas_cloud, visible_region_at } from './region.js';
 import { dog_move, could_reach_item } from './dogmove.js';
 import { initrack, settrack, gettrack } from './track.js';
@@ -121,10 +105,7 @@ import { mon_wield_item } from './weapon.js';
 import { NEED_PICK_AXE, NEED_AXE, NEED_PICK_OR_AXE } from './const.js';
 import { choose_magic_spell, choose_clerical_spell, cast_wizard_spell, cast_cleric_spell } from './mcastu.js';
 import { tele_restrict, rloc, enexto, rloc_to } from './teleport.js';
-import {
-    MGC_CLONE_WIZ, MGC_SUMMON_MONS, MGC_AGGRAVATION, MGC_DISAPPEAR, MGC_HASTE_SELF, MGC_CURE_SELF,
-    CLC_INSECTS, CLC_CURE_SELF
-} from './const.js';
+import { MGC_CLONE_WIZ, MGC_SUMMON_MONS, MGC_AGGRAVATION, MGC_DISAPPEAR, MGC_HASTE_SELF, MGC_CURE_SELF, CLC_INSECTS, CLC_CURE_SELF, WT_HUMAN } from './const.js';
 
 // C ref: monst.h strategy bits used by monmove.c:717 early dochug gate
 const STRAT_WAITFORU = 0x20000000;
@@ -1239,7 +1220,6 @@ async function maybeCastUndirectedPreMove(mon, mdat, player, map) {
 // dochug — C ref: monmove.c:690
 // ========================================================================
 
-
 async function dochug(mon, map, player, display, fov, game = null) {
     if ((mon.data || mon.type) && (mon.data || mon.type).mlet === S_MIMIC) {
         return;
@@ -2222,7 +2202,6 @@ export function set_apparxy(mon, map, player) {
         `new=(${mon.mux},${mon.muy})`,
     );
 }
-
 
 // ========================================================================
 // Monster Movement Behaviors — Phase H

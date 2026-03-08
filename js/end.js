@@ -21,18 +21,9 @@
 //   renderTombstone → display.js:1135 (PARTIAL — tombstone rendering)
 //   renderTopTen → display.js:1186 (PARTIAL — high score display)
 
-import {
-    A_CON, isok,
-    DIED, CHOKING, POISONING, STARVING, DROWNING, BURNING, DISSOLVED,
-    CRUSHING, STONING, TURNED_SLIME, GENOCIDED, PANICKED, TRICKED, QUIT,
-    ESCAPED, ASCENDED,
-    KILLED_BY_AN, KILLED_BY, NO_KILLER_PREFIX,
-} from './const.js';
+import { A_CON, isok, DIED, CHOKING, POISONING, STARVING, DROWNING, BURNING, DISSOLVED, CRUSHING, STONING, TURNED_SLIME, GENOCIDED, PANICKED, TRICKED, QUIT, ESCAPED, ASCENDED, KILLED_BY_AN, KILLED_BY, NO_KILLER_PREFIX, NON_PM } from './const.js';
 import { pline, You, Your, You_feel, pline_The, impossible } from './pline.js';
-import { mons, G_UNIQ, PM_GHOST, PM_HIGH_CLERIC, PM_WRAITH,
-         PM_VAMPIRE, PM_GHOUL, S_WRAITH, S_MUMMY, S_VAMPIRE,
-         M2_PNAME, PM_TOURIST, PM_HUMAN, PM_GREEN_SLIME, PM_HOUSECAT,
-         NON_PM } from './monsters.js';
+import { mons, G_UNIQ, PM_GHOST, PM_HIGH_CLERIC, PM_WRAITH, PM_VAMPIRE, PM_GHOUL, S_WRAITH, S_MUMMY, S_VAMPIRE, M2_PNAME, PM_TOURIST, PM_HUMAN, PM_GREEN_SLIME, PM_HOUSECAT } from './monsters.js';
 import { x_monnam, hasGivenName } from './mondata.js';
 import { AMULET_OF_LIFE_SAVING, AMULET_CLASS, GEM_CLASS,
          FIRST_AMULET, FIRST_REAL_GEM, LAST_REAL_GEM, LAST_GLASS_GEM,

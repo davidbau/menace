@@ -17,7 +17,7 @@ import {
 } from './rng.js';
 import { rankOf, roles } from './player.js';
 import { initrack } from './monmove.js';
-import { NORMAL_SPEED } from './monsters.js';
+import { NORMAL_SPEED } from './const.js';
 import { FOV } from './vision.js';
 import { monsterNearby } from './hack.js';
 import { newsym } from './display.js';

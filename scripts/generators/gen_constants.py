@@ -90,6 +90,9 @@ HEADER_OWNED_BY_LEAF: set[str] = {
     "display.h",   # owned by symbols.js
     "permonst.h",  # owned by monsters.js
     "objclass.h",  # owned by objects.js
+    "monattk.h",   # owned by monsters.js (AD_*, AT_*)
+    "monsym.h",    # owned by monsters.js (S_*)
+    "monflag.h",   # owned by monsters.js (M1_*, M2_*, M3_*, G_*, MZ_*, MS_*)
 }
 
 # Root blocker ownership hints for deferred constants.

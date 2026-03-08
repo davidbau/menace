@@ -6,6 +6,7 @@
 // Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985.
 // NetHack may be freely redistributed.  See license for details.
 
+import { CLR_BLACK, CLR_BLUE, CLR_BRIGHT_BLUE, CLR_BRIGHT_GREEN, CLR_BRIGHT_MAGENTA, CLR_BROWN, CLR_CYAN, CLR_GRAY, CLR_GREEN, CLR_MAGENTA, CLR_ORANGE, CLR_RED, CLR_WHITE, CLR_YELLOW, DRAGON_SILVER, HI_DOMESTIC, HI_GOLD, HI_LEATHER, HI_LORD, HI_METAL, HI_OVERLORD, HI_PAPER, HI_WOOD, HI_ZAP } from "./const.js";
 
 // Monster symbol classes (from defsym.h)
 export const S_ANT = 1;
@@ -312,48 +313,6 @@ export const MZ_HUMAN = 2;
 export const MZ_LARGE = 3;
 export const MZ_HUGE = 4;
 export const MZ_GIGANTIC = 7;
-
-// Colors (from color.h)
-export const CLR_BLACK = 0;
-export const CLR_RED = 1;
-export const CLR_GREEN = 2;
-export const CLR_BROWN = 3;
-export const HI_LEATHER = 3;
-export const HI_CLOTH = 3;
-export const HI_ORGANIC = 3;
-export const HI_WOOD = 3;
-export const CLR_BLUE = 4;
-export const CLR_MAGENTA = 5;
-export const HI_LORD = 5;
-export const CLR_CYAN = 6;
-export const HI_METAL = 6;
-export const CLR_GRAY = 7;
-export const HI_SILVER = 7;
-export const HI_MINERAL = 7;
-export const CLR_ORANGE = 9;
-export const CLR_BRIGHT_GREEN = 10;
-export const CLR_YELLOW = 11;
-export const HI_COPPER = 11;
-export const HI_GOLD = 11;
-export const CLR_BRIGHT_BLUE = 12;
-export const HI_ZAP = 12;
-export const CLR_BRIGHT_MAGENTA = 13;
-export const HI_OVERLORD = 13;
-export const CLR_BRIGHT_CYAN = 14;
-export const HI_GLASS = 14;
-export const DRAGON_SILVER = 14;
-export const CLR_WHITE = 15;
-export const HI_DOMESTIC = 15;
-export const HI_PAPER = 15;
-
-// Weight constants (from weight.h)
-export const WT_ETHEREAL = 0;
-export const WT_JELLY = 50;
-export const WT_NYMPH = 600;
-export const WT_ELF = 800;
-export const WT_HUMAN = 1450;
-export const WT_BABY_DRAGON = 1500;
-export const WT_DRAGON = 4500;
 
 // Monster index constants (PM_*)
 export const PM_GIANT_ANT = 0;
@@ -740,11 +699,6 @@ export const PM_GUIDE = 380;
 export const PM_WARRIOR = 381;
 export const PM_APPRENTICE = 382;
 export const NUMMONS = 383;
-export const NON_PM = -1;
-export const LOW_PM = 0;
-export const LEAVESTATUE = NON_PM - 1;
-export const NATTK = 6;
-export const NORMAL_SPEED = 12;
 export const HIGH_PM = 381;
 export const SPECIAL_PM = PM_LONG_WORM_TAIL; // 330
 
