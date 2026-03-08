@@ -840,6 +840,8 @@
                 <div class="hm-divider"></div>
                 <button class="hm-item" id="hm-del-bones"><span class="hm-check"></span>Delete bones</button>
                 <button class="hm-item" id="hm-reset-opts"><span class="hm-check"></span>Reset options</button>
+                <button class="hm-item hm-dev" id="hm-download-save" style="display:none"><span class="hm-check"></span>Download save</button>
+                <button class="hm-item hm-dev" id="hm-download-keylog" style="display:none"><span class="hm-check"></span>Download keylog</button>
                 <div class="hm-divider"></div>
                 <button class="hm-item" id="hm-nethack" disabled><span class="hm-check">&#x2713;</span>Play NetHack</button>
                 <button class="hm-item" id="hm-hack"><span class="hm-check"></span>Play Hack (1982)</button>
@@ -1284,7 +1286,7 @@
 
         function isOpen() { return menu.classList.contains('open'); }
 
-        function openMenu() {
+        function openMenu(dev) {
             // Block during docs-mode transition
             if (document.body.classList.contains('docs-fixed')) return;
 
@@ -1292,6 +1294,16 @@
             var inGame = document.body.classList.contains('gameplay-active');
             document.getElementById('hm-save-quit').disabled = !inGame;
             document.getElementById('hm-new-game').disabled = false;
+
+            // Dev items: visible only when Ctrl/Cmd held
+            var hasSave = false;
+            try { hasSave = !!(localStorage.getItem('menace-autosave') || localStorage.getItem('menace-save')); } catch(e) {}
+            var dlSave = document.getElementById('hm-download-save');
+            dlSave.style.display = (dev && hasSave) ? '' : 'none';
+            dlSave.disabled = !hasSave;
+            var dlKeylog = document.getElementById('hm-download-keylog');
+            dlKeylog.style.display = (dev && inGame) ? '' : 'none';
+            dlKeylog.disabled = !inGame;
 
             // Checkmark toggles
             var isDark = document.body.classList.contains('dark-mode');
@@ -1340,15 +1352,11 @@
             panelToggle.classList.remove('menu-open');
         }
 
-        // Toggle menu on hamburger click; Ctrl/Cmd+click saves keylog
+        // Toggle menu on hamburger click; Ctrl/Cmd+click opens dev menu
         panelToggle.addEventListener('click', function(e) {
-            if (e.ctrlKey || e.metaKey) {
-                e.preventDefault();
-                e.stopPropagation();
-                if (window.save_keylog) window.save_keylog();
-                return;
-            }
-            if (isOpen()) closeMenu(); else openMenu();
+            var dev = e.ctrlKey || e.metaKey;
+            if (isOpen()) closeMenu();
+            else { openMenu(dev); }
             this.blur();
         });
 
@@ -1424,6 +1432,54 @@
                 keys.forEach(function(k) { localStorage.removeItem(k); });
             } catch(e) {}
             closeMenu();
+        });
+
+        document.getElementById('hm-download-keylog').addEventListener('click', function() {
+            if (this.disabled) return;
+            closeMenu();
+            if (window.save_keylog) window.save_keylog();
+        });
+
+        document.getElementById('hm-download-save').addEventListener('click', async function() {
+            if (this.disabled) return;
+            closeMenu();
+            try {
+                // Prefer autosave (most recent state), fall back to explicit save
+                var raw = localStorage.getItem('menace-autosave') || localStorage.getItem('menace-save');
+                if (!raw) return;
+                var json;
+                if (raw.startsWith('gz:')) {
+                    // Decompress gzipped autosave
+                    var binary = atob(raw.slice(3));
+                    var bytes = new Uint8Array(binary.length);
+                    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                    var ds = new DecompressionStream('gzip');
+                    var writer = ds.writable.getWriter();
+                    writer.write(bytes); writer.close();
+                    var chunks = [], reader = ds.readable.getReader();
+                    for (;;) { var r = await reader.read(); if (r.done) break; chunks.push(r.value); }
+                    var total = chunks.reduce(function(n, c) { return n + c.length; }, 0);
+                    var merged = new Uint8Array(total); var off = 0;
+                    chunks.forEach(function(c) { merged.set(c, off); off += c.length; });
+                    json = new TextDecoder().decode(merged);
+                } else {
+                    json = raw;
+                }
+                // Pretty-print and download
+                var data = JSON.parse(json);
+                var pretty = JSON.stringify(data, null, 2);
+                var blob = new Blob([pretty], { type: 'application/json' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                var name = (data.gameState && data.gameState.you && data.gameState.you.name) || 'save';
+                var depth = data.currentDepth || 0;
+                a.download = 'menace-' + name + '-d' + depth + '.json';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch(e) {
+                console.error('Download save failed:', e);
+            }
         });
     })();
 
