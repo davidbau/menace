@@ -32,6 +32,10 @@ From then on they played each other's games. Of course it was never any fun to p
 
 The university had a [DEC VAX 11/780](https://en.wikipedia.org/wiki/VAX-11) minicomputer that all users shared. Wichman [never even saw the machine](https://spillhistorie.no/2024/07/14/the-story-of-rogue/) — it was underground, a kilometer away. Everyone worked on terminals: a screen and keyboard sharing time on a single minicomputer. Toy and Wichman set up an [ADM-3a terminal](https://en.wikipedia.org/wiki/ADM-3A) in their apartment and used a 300-baud modem to dial into the VAX. The vast majority of Rogue was written from the comfort of that apartment.
 
+![Michael Toy in the apartment he shared with Glenn Wichman during their time at UCSC, posing with the ADM-3a terminal and 300-baud modem they used to dial in to the VAX 11/780.](images/mtoy1-adm3a-apartment.jpg)
+
+![Toy and Wichman entertain friends in the apartment kitchen. From left to right: Wichman (bottom), Toy, Ken Hickman, and Kipp Hickman.](images/mtoy2-wichman-toy-hickmans.jpg)
+
 ---
 
 ## Curses: The Key Innovation
