@@ -77,6 +77,23 @@ test('run_command consumes prompt boundary exactly once per key', async () => {
     assert.equal(result?.tookTime, false);
 });
 
+test('prompt boundary does not fall through to command parser on unhandled key', async () => {
+    const game = makeGame();
+    let calls = 0;
+    game.pendingPrompt = {
+        onKey() {
+            calls += 1;
+            return { handled: false };
+        },
+    };
+
+    const result = await run_command(game, 'a'.charCodeAt(0));
+    assert.equal(calls, 1);
+    assert.equal(result?.prompt, true);
+    assert.equal(result?.tookTime, false);
+    assert.notEqual(game.cmdKey, 'a'.charCodeAt(0));
+});
+
 test('run_command re-syncs missing prompt boundary owner before consuming key', async () => {
     const game = makeGame();
     let calls = 0;

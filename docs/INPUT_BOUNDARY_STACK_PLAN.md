@@ -138,6 +138,9 @@ Compare:
 - Completed:
   - Phase 0 API + diagnostics (`withInputBoundary/clearInputBoundary/peekInputBoundary`).
   - Prompt boundary stack ownership with single-layer `run_command` prompt handling.
+  - Prompt-owner strict consumption in `run_command`: when top owner is `prompt`,
+    non-handled prompt keys are ignored at the boundary and do not fall through
+    to command parsing.
   - More boundary stack ownership in `run_command`, plus fallback auto-sync.
   - Core callsites migrated to `markMorePending(...)` helpers.
   - Unit invariants added in `test/unit/input_boundary_diagnostics.test.js`.

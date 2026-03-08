@@ -4678,7 +4678,7 @@ hard-won wisdom:
   - `./scripts/run-and-report.sh --failures` remains `32/34` passing.
   - `seed033` frontier advances:
     - before: first RNG/event divergence at step `268`
-    - after: first event divergence at step `361`, first RNG divergence at step `416`
+  - after: first event divergence at step `361`, first RNG divergence at step `416`
       (`seed033` now fails later: `rng=416/1417`, `events=361/1417`).
 
 ### seed033 farlook/getpos headless description path (2026-03-08)
@@ -4705,3 +4705,23 @@ hard-won wisdom:
   - `seed031` and `seed032` remain green.
   - `seed033` first screen divergence moved later (`64 -> 222`) while keeping
     current first event/RNG divergences at `361/416`.
+
+### Input boundary stack hardening: prompt owner is strict key consumer (2026-03-08)
+
+- Problem:
+  - Boundary ownership was stack-backed, but `run_command()` still allowed
+    parser fallthrough if top `prompt` handler returned non-handled.
+  - That violates owner semantics and can leak prompt keys into gameplay
+    command parsing at boundary edges.
+- Fix:
+  - In [`js/allmain.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/allmain.js),
+    `run_command()` now treats top-owner `prompt` as authoritative:
+    if prompt handling does not finalize, the key is ignored at the prompt
+    boundary and does not fall through to command parsing.
+  - Added unit guard in
+    [`test/unit/input_boundary_diagnostics.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/input_boundary_diagnostics.test.js)
+    to lock this invariant.
+- Validation:
+  - `node scripts/test-unit-core.mjs` passes.
+  - `./scripts/run-and-report.sh --failures` remains non-regressive at `33/34`
+    gameplay sessions passing (same frontier: `seed033`).

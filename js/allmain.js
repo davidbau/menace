@@ -663,6 +663,14 @@ export async function run_command(game, ch, opts = {}) {
         const promptResult = await Promise.resolve(topBoundary.onKey(chCode, game));
         const finalized = await handlePromptResult(promptResult);
         if (finalized) return finalized;
+        // Strict owner semantics: while prompt boundary owns input, a key does
+        // not fall through into command parsing even if prompt handler returns
+        // non-handled (for example during transient prompt state updates).
+        game?.emitDiagnosticEvent?.('boundary.prompt.ignored-key', {
+            key: chCode,
+            boundary: game?.getInputBoundaryState?.() || null,
+        });
+        return { tookTime: false, moved: false, prompt: true };
     }
 
     // Fallback for legacy/manual _pendingMore states with no registered
