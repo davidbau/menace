@@ -69,3 +69,5 @@ node test/comparison/dbgmapdump.js \
 - Step indices are gameplay/session steps (1-based), not raw replay key indices.
 - The tool is diagnostic only; it does not modify fixtures or comparator logic.
 - C-side capture uses session-aligned fixed datetime for determinism.
+- `E` (engraving) is emitted for C-side only when the C snapshot includes
+  engraving records; absent `E` means unavailable data, not necessarily zero.

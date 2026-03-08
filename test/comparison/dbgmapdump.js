@@ -307,8 +307,8 @@ function buildCompactMapdumpFromCSnapshot(capture, sectionSet) {
         const rows = traps.map((t) => `${(t.tx ?? t.x) | 0},${(t.ty ?? t.y) | 0},${(t.ttyp ?? t.type ?? 0) | 0},${t.tseen ? 1 : 0},${t.once ? 1 : 0},${t.madeby_u ? 1 : 0},-1,-1`);
         lines.push(`J${toSparse(rows)}`);
     }
-    if (sectionSet.has('E')) {
-        const engrs = Array.isArray(cp.engravings) ? cp.engravings : [];
+    if (sectionSet.has('E') && Array.isArray(cp.engravings)) {
+        const engrs = cp.engravings;
         const rows = engrs.map((e) => {
             const x = (e.engr_x ?? e.x ?? 0) | 0;
             const y = (e.engr_y ?? e.y ?? 0) | 0;
@@ -329,7 +329,8 @@ function mapdumpSignature(parsed) {
     const monCount = Array.isArray(parsed?.monsters) ? parsed.monsters.length : 0;
     const objCount = Array.isArray(parsed?.objects) ? parsed.objects.length : 0;
     const trapCount = Array.isArray(parsed?.traps) ? parsed.traps.length : 0;
-    return `u=(${hero[0] ?? '?'},${hero[1] ?? '?'}) hp=${hero[2] ?? '?'} mons=${monCount} objs=${objCount} traps=${trapCount}`;
+    const engrCount = Array.isArray(parsed?.engravings) ? parsed.engravings.length : 0;
+    return `u=(${hero[0] ?? '?'},${hero[1] ?? '?'}) hp=${hero[2] ?? '?'} mons=${monCount} objs=${objCount} traps=${trapCount} engr=${engrCount}`;
 }
 
 function sparseCompare(aList = [], bList = []) {

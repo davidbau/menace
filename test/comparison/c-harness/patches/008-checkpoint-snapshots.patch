@@ -62,6 +62,7 @@ index d77454878..843e21f50 100644
 +    struct trap *ttmp;
 +    struct obj *otmp;
 +    struct monst *mtmp;
++    struct engr *ep;
 +    struct mkroom *croom;
 +    stairway *stway;
 +
@@ -158,6 +159,23 @@ index d77454878..843e21f50 100644
 +                        x, y, otmp->otyp, otmp->oclass, otmp->quan,
 +                        otmp->no_charge ? 1 : 0, otmp->cursed ? 1 : 0);
 +            }
++    fputc(']', fp);
++
++    /* engravings, deterministic list order */
++    fputs(",\"engravings\":[", fp);
++    first = 1;
++    for (ep = head_engr; ep; ep = ep->nxt_engr) {
++        if (!first)
++            fputc(',', fp);
++        first = 0;
++        fprintf(fp,
++                "{\"engr_x\":%d,\"engr_y\":%d,\"engr_type\":%d,"
++                "\"text\":\"",
++                (int) ep->engr_x, (int) ep->engr_y, (int) ep->engr_type);
++        json_write_escaped(fp, ep->engr_txt[actual_text] ? ep->engr_txt[actual_text] : "");
++        fprintf(fp, "\",\"nowipeout\":%d,\"guardobjects\":%d}",
++                ep->nowipeout ? 1 : 0, ep->guardobjects ? 1 : 0);
++    }
 +    fputc(']', fp);
 +
 +    /* monsters, deterministic scan order by y/x */

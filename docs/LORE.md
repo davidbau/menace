@@ -4459,3 +4459,22 @@ hard-won wisdom:
     - `node test/comparison/dbgmapdump.js test/comparison/sessions/seed031_manual_direct.session.json --steps 15 --sections E,U,M ...`
     - produced `E66,10,4,70,0,0`, confirming only one engraving is present in
       JS at this step, which supports the engraving-provenance gap hypothesis.
+
+### dbgmapdump C-side `E` accuracy tightening + snapshot source upgrade (2026-03-08)
+
+- Problem:
+  - `dbgmapdump --c-side --sections E` was synthesizing `E` as empty when C
+    checkpoint JSON lacked engraving data, which could be misread as
+    "C has zero engravings" instead of "engraving data unavailable."
+- Fixes:
+  - `test/comparison/dbgmapdump.js` now emits C-side `E` only when
+    `checkpoint.engravings` exists; otherwise `E` is omitted and compare reports
+    `section=E kind=missing`.
+  - Signature output now includes engraving count (`engr=<n>`) for quick scans.
+  - `test/comparison/c-harness/patches/008-checkpoint-snapshots.patch` now
+    includes explicit `engravings` array in checkpoint JSON:
+    `engr_x, engr_y, engr_type, text, nowipeout, guardobjects`.
+- Validation:
+  - `node --test test/unit/mapdump_extensions.test.js` passes.
+  - `dbgmapdump --help` reflects `E` support and section defaults.
+  - C-side compare now cleanly distinguishes missing vs empty `E` data.
