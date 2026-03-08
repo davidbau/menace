@@ -1121,14 +1121,14 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2505 | `glyphinfo_at` | - | Missing |
 | 215 | `is_safemon` | display.js:1403 | Implemented |
 | 208 | `knowninvisible` | display.js:1381 | Implemented |
-| 233 | `magic_map_background` | - | Missing |
-| 279 | `map_background` | - | Missing |
-| 313 | `map_engraving` | - | Missing |
+| 233 | `magic_map_background` | display.js:1489 | Implemented (shared map background path) |
+| 279 | `map_background` | display.js:1489 | Implemented |
+| 313 | `map_engraving` | display.js:1516 | Implemented |
 | 2612 | `map_glyphinfo` | - | Missing |
 | 391 | `map_invisible` | display.js:1868 | Implemented |
-| 488 | `map_location` | - | Missing |
-| 333 | `map_object` | - | Missing |
-| 296 | `map_trap` | - | Missing |
+| 488 | `map_location` | display.js:1568 | Implemented |
+| 333 | `map_object` | display.js:1532 | Implemented |
+| 296 | `map_trap` | display.js:1551 | Implemented |
 | 1534 | `mimic_light_blocking` | - | Missing |
 | 681 | `mon_overrides_region` | display.js:1451 | Implemented (simplified helper) |
 | 187 | `mon_visible` | display.js:1357 | Implemented |

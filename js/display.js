@@ -1485,6 +1485,111 @@ export function unmap_object(x, y, ctxOrMap = null) {
   loc.mem_terrain_color = CLR_GRAY;
 }
 
+// Autotranslated from display.c:233
+export function map_background(xOrMap, yOrX, showOrY = 0, ctxOrShow = null) {
+  let x = xOrMap, y = yOrX, show = showOrY, ctxOrMap = ctxOrShow;
+  if (typeof xOrMap === 'object' && Number.isInteger(yOrX) && Number.isInteger(showOrY)) {
+    ctxOrMap = xOrMap;
+    x = yOrX;
+    y = showOrY;
+    show = Number(ctxOrShow) || 0;
+  }
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const map = ctx?.map;
+  if (!map || !isok(x, y)) return;
+  const loc = map.at(x, y);
+  if (!loc) return;
+  if (IS_WALL(loc.typ) && !wallIsVisible(loc.typ, loc.seenv, loc.flags)) {
+    loc.mem_terrain_ch = ' ';
+    loc.mem_terrain_color = CLR_GRAY;
+    if (show) show_glyph(x, y, { ch: ' ', color: CLR_GRAY }, ctx);
+    return;
+  }
+  const sym = renderTerrainSymbol(loc, map, x, y, ctx?.flags || null);
+  const rememberedColor = (loc.typ === ROOM) ? NO_COLOR : sym.color;
+  loc.mem_terrain_ch = sym.ch;
+  loc.mem_terrain_color = rememberedColor;
+  if (show) show_glyph(x, y, { ch: sym.ch, color: sym.color }, ctx);
+}
+
+// Autotranslated from display.c:313
+export function map_engraving(engr, show = 0, ctxOrMap = null) {
+  if (!engr) return;
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const map = ctx?.map;
+  if (!map || !isok(engr.engr_x, engr.engr_y)) return;
+  const x = engr.engr_x;
+  const y = engr.engr_y;
+  const loc = map.at(x, y);
+  if (!loc) return;
+  const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
+  loc.mem_obj = engrCh;
+  loc.mem_obj_color = CLR_BRIGHT_BLUE;
+  if (show) show_glyph(x, y, { ch: engrCh, color: CLR_BRIGHT_BLUE }, ctx);
+}
+
+// Autotranslated from display.c:333
+export function map_object(obj, show = 0, ctxOrMap = null) {
+  if (!obj || !Number.isInteger(obj.ox) || !Number.isInteger(obj.oy)) return;
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const map = ctx?.map;
+  const player = ctx?.player;
+  if (!map || !isok(obj.ox, obj.oy)) return;
+  const loc = map.at(obj.ox, obj.oy);
+  if (!loc) return;
+  const hallu = !!(player?.Hallucination || player?.hallucinating);
+  const glyph = objectMapGlyph(obj, hallu, { player, x: obj.ox, y: obj.oy });
+  const memGlyph = hallu
+      ? objectMapGlyph(obj, false, { player, x: obj.ox, y: obj.oy, observe: false })
+      : glyph;
+  loc.mem_obj = memGlyph.ch || 0;
+  loc.mem_obj_color = Number.isInteger(memGlyph.color) ? memGlyph.color : CLR_GRAY;
+  if (show) show_glyph(obj.ox, obj.oy, glyph, ctx);
+}
+
+// Autotranslated from display.c:296
+export function map_trap(trap, show = 0, ctxOrMap = null) {
+  if (!trap) return;
+  const x = trap.tx;
+  const y = trap.ty;
+  if (!Number.isInteger(x) || !Number.isInteger(y)) return;
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const map = ctx?.map;
+  if (!map || !isok(x, y)) return;
+  const loc = map.at(x, y);
+  if (!loc) return;
+  const tg = trapGlyph(trap.ttyp);
+  loc.mem_trap = tg.ch;
+  loc.mem_trap_color = tg.color;
+  if (show) show_glyph(x, y, { ch: tg.ch, color: tg.color }, ctx);
+}
+
+// Autotranslated from display.c:488
+export function map_location(x, y, show = 0, ctxOrMap = null) {
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const map = ctx?.map;
+  if (!map || !isok(x, y)) return;
+  const loc = map.at(x, y);
+  if (!loc) return;
+  const covered = coversObjectsAt(loc, ctx?.player);
+  const objs = (!covered && typeof map.objectsAt === 'function') ? map.objectsAt(x, y) : [];
+  if (objs && objs.length > 0) {
+    map_object(objs[objs.length - 1], show, ctx);
+    return;
+  }
+  const trap = (typeof map.trapAt === 'function') ? map.trapAt(x, y) : null;
+  if (trap && trap.tseen && !covered) {
+    map_trap(trap, show, ctx);
+    return;
+  }
+  const engr = (typeof map.engravingAt === 'function') ? map.engravingAt(x, y) : null;
+  if (spotShowsEngravings(loc) && engr && engr.erevealed && !covered) {
+    map_engraving(engr, show, ctx);
+    return;
+  }
+  map_background(x, y, show, ctx);
+}
+
 // Autotranslated from display.c:481
 export function show_glyph(x, y, glyph, ctxOrMap = null) {
   const ctx = _resolveDisplayCtx(ctxOrMap);

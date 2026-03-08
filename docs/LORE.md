@@ -5131,3 +5131,32 @@ hard-won wisdom:
   - `node --test test/unit/display_warning_runtime.test.js` passes (`11/11`).
   - `node scripts/test-unit-core.mjs` baseline unchanged:
     `2541 pass / 5 fail` (same known 5 input-queue failures).
+
+### display.c map-location callchain closure (`map_object`/`map_trap`/`map_background`) (2026-03-08)
+
+- Problem:
+  - `detect.js` still used local no-op stubs for `map_object`, `map_trap`,
+    and `map_background`, so detection flows did not execute the real display
+    memory/render path.
+  - CODEMATCH rows for `map_location` and supporting `map_*` functions
+    remained missing despite related runtime usage.
+- Fix:
+  - Implemented in
+    [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js):
+    - `map_background`
+    - `map_engraving`
+    - `map_object`
+    - `map_trap`
+    - `map_location`
+  - Updated
+    [`js/detect.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/detect.js)
+    to import and use display implementations instead of local no-op stubs.
+  - Added focused runtime tests in
+    [`test/unit/display_map_location_runtime.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/display_map_location_runtime.test.js)
+    covering object/trap/background memory updates and map-location precedence.
+- Validation:
+  - `node --test test/unit/display_map_location_runtime.test.js` passes (`4/4`).
+  - `node --test test/unit/display_unmap_object.test.js` passes (`4/4`).
+  - `node --test test/unit/display_warning_runtime.test.js` passes (`11/11`).
+  - `node scripts/test-unit-core.mjs` baseline unchanged:
+    `2545 pass / 5 fail` (same known 5 input-queue failures).

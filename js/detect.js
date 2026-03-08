@@ -13,7 +13,8 @@ import { is_hider, hides_under, DEADMONSTER } from './mondata.js';
 import { pline, You, Your, You_feel, You_see, pline_The,
          Norep, There, set_msg_xy } from './pline.js';
 import {
-    map_invisible, newsym, flush_screen,
+    map_invisible, map_object, map_trap, map_background,
+    newsym, flush_screen,
     canSpotMonsterForMap, senseMonsterForMap,
     warning_of, feel_newsym, docrt, under_water, under_ground,
 } from './display.js';
@@ -114,10 +115,7 @@ function trapDiscoveryName(ttyp) {
 function cls() {}
 function browse_map() {}
 export function map_monst() {}
-function map_object() {}
-function map_trap() {}
 function display_self() {}
-function map_background() {}
 function show_glyph(x, y, glyph) {
     if (!isok(x, y)) return;
     tmp_at(DISP_CHANGE, glyph);
