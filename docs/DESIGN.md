@@ -54,6 +54,27 @@ Inside `moveloop_core()`:
 The loop is **synchronous and blocking** in C. `nhgetch()` stops the process until
 a key arrives. This is the single most consequential structural fact for the JS port.
 
+### SYNCLOCK Execution Contract (Current Architecture)
+
+To preserve C-faithful single-thread command ordering in an async JS runtime, the
+port uses SYNCLOCK guardrails:
+
+1. Command execution tokens:
+   `run_command()` opens/closes a command execution token (`exec_guard.js`).
+2. Typed suspension classes only:
+   gameplay waits are categorized as `input`, `more`, or `anim` via `suspend.js`.
+3. Boundary ownership stack:
+   input boundaries are explicit owners (`prompt`, `more`, etc.) via
+   `withInputBoundary()/clearInputBoundary()/peekInputBoundary()` in `allmain.js`.
+4. Message `--More--` ownership:
+   display/headless set pending state and register owner=`more` boundaries;
+   command loop consumes dismissal keys through boundary ownership.
+
+Practical effect:
+- no raw gameplay `await nhgetch()` sites;
+- no direct `display.morePrompt(nhgetch)` callbacks in gameplay modules;
+- boundary violations are observable through diagnostics events.
+
 ### Major C subsystems
 
 | Subsystem | Key C files | What it does |

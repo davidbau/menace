@@ -467,5 +467,41 @@ Issue [#143](https://github.com/davidbau/menace/issues/143).
 
 ---
 
+## Decision 14: SYNCLOCK Boundary Ownership Over Fallback Auto-Sync
+
+> *"You hear a click as the boundary lock engages."*
+
+**Context:** The JS port uses async I/O, but NetHack C is single-threaded and
+blocking. During migration, `run_command()` had a compatibility fallback that
+would auto-sync legacy `_pendingMore` state into a synthetic owner=`more`
+boundary. This reduced breakage but obscured ownership bugs and made ordering
+errors harder to diagnose.
+
+**Choice:** Move no-owner handling to a strict-mode contract while preserving a
+default compatibility path. If `_pendingMore` is set with no owner=`more`
+boundary, emit `boundary.more.owner-missing`; in strict mode
+(`WEBHACK_STRICT_MORE_OWNER=1`) ignore the key, otherwise perform compatibility
+auto-sync.
+
+**Rationale:**
+1. Ownership bugs should fail loudly at the boundary, not be repaired silently.
+2. Deterministic replay/parity debugging is faster when boundary violations are explicit.
+3. Strict mode (`WEBHACK_STRICT_MORE_OWNER=1`) prevents accidental key
+   consumption reordering and exposes latent ownership bugs.
+
+**Implementation shape:**
+- Typed waits use `awaitInput/awaitMore/awaitAnim` wrappers.
+- Gameplay-side `morePrompt` waits are centralized via
+  `awaitDisplayMorePrompt(...)` in `suspend.js`.
+- `scripts/synclock_audit.mjs --strict` guards against regression to raw waits.
+
+**Tradeoff:** Strict mode surfaces latent boundary defects earlier; default mode
+keeps compatibility while migration completes.
+
+**See also:** `docs/SYNCLOCK_CAMPAIGN_PLAN.md`,
+`docs/SYNCLOCK_PROGRAMMING_GUIDE.md`, Issue `#277`.
+
+---
+
 > *"You have reached the bottom of the decision log. There are more decisions
 > to come. The strident call of the DevTeam echoes in the distance."*

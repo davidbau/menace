@@ -131,27 +131,22 @@ test('run_command uses owner=more stack boundary dismissal path', async () => {
     assert.equal(game.display._pendingMore, false);
 });
 
-test('run_command fallback sync upgrades pendingMore-without-owner to owner=more', async () => {
+test('run_command reports owner-missing when pendingMore has no more boundary owner', async () => {
     const game = makeGame();
-    let syncCalls = 0;
+    const seen = [];
+    game.subscribeDiagnostics((ev) => seen.push(ev.type));
     game.display._pendingMore = true;
     game.display._moreBlockingEnabled = false;
     game.display._nonBlockingMore = false;
-    game.display._clearMore = async () => {
-        game.display._pendingMore = false;
-    };
     game.display.renderStatus = () => {};
     game.display.cursorOnPlayer = () => {};
     game.player = { x: 1, y: 1 };
-    game.display.markMorePending = () => {
-        syncCalls += 1;
-        game.withInputBoundary('more', async () => ({ handled: false }));
-    };
 
     const result = await run_command(game, 32);
+    assert.equal(result?.boundary, true);
     assert.equal(result?.tookTime, false);
-    assert.equal(syncCalls, 1);
-    assert.equal(game.display._pendingMore, false);
+    assert.equal(game.display._pendingMore, true);
+    assert.ok(seen.includes('boundary.more.owner-missing'));
 });
 
 test('clearInputBoundariesByOwner removes all matching owner entries', () => {

@@ -88,6 +88,11 @@ const QUEST_PORTAL_INFO_BY_ROLE = {
     Wiz: { leader: 'Neferet the Green', homebase: 'the Lonely Tower' },
 };
 
+function strictMoreOwnerMode() {
+    const raw = String(getEnv('WEBHACK_STRICT_MORE_OWNER', '0') || '').trim().toLowerCase();
+    return raw === '1' || raw === 'true' || raw === 'on';
+}
+
 function questPortalInfoForPlayer(player) {
     const role = Number.isInteger(player?.roleIndex) ? roles[player.roleIndex] : null;
     const abbr = role?.abbr || '';
@@ -574,7 +579,15 @@ export async function run_command(game, ch, opts = {}) {
         if (typeof prevMoreBlocking === 'boolean') {
             game.display._moreBlockingEnabled = false;
         }
-        await awaitMore(game, game.display._clearMore(), { site: 'run_command.handleMoreBoundaryKey.clearMore' });
+        if (typeof game.display._clearMore === 'function') {
+            await awaitMore(game, game.display._clearMore(), { site: 'run_command.handleMoreBoundaryKey.clearMore' });
+        } else {
+            game?.emitDiagnosticEvent?.('boundary.more.clear-missing', {
+                key: chCode,
+                boundary: game?.getInputBoundaryState?.() || null,
+            });
+            return { tookTime: false, boundary: true };
+        }
         game?.emitDiagnosticEvent?.('boundary.more.dismissed', {
             key: chCode,
             boundary: game?.getInputBoundaryState?.() || null,
@@ -689,9 +702,16 @@ export async function run_command(game, ch, opts = {}) {
         return { tookTime: false, moved: false, prompt: true };
     }
 
-    // Fallback for legacy/manual _pendingMore states with no registered
-    // boundary owner (should be rare during migration).
+    // SYNCLOCK S1: no-owner pending --More-- is an ownership violation.
+    // Strict mode fails loud; default mode keeps compatibility auto-sync.
     if (game.display && game.display._pendingMore) {
+        game?.emitDiagnosticEvent?.('boundary.more.owner-missing', {
+            key: chCode,
+            boundary: game?.getInputBoundaryState?.() || null,
+        });
+        if (strictMoreOwnerMode()) {
+            return { tookTime: false, moved: false, boundary: true };
+        }
         game?.emitDiagnosticEvent?.('boundary.more.fallback-no-owner', {
             key: chCode,
             boundary: game?.getInputBoundaryState?.() || null,

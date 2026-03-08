@@ -497,8 +497,8 @@ export function nhgetch() {
     const display = getRuntimeDisplay();
 
     // C ref: readchar() / flush_screen — if --More-- is pending on the
-    // topline, consume one key to dismiss it, drain queued messages, then
-    // recurse to get the actual key the caller wants.
+    // topline, consume dismissal key(s), drain queued messages, then return
+    // the next command key. Keep this iterative to avoid recursive fallback.
     if (display && display._pendingMore) {
         const isMoreDismissKey = (ch) => (
             ch === 10     // '\n'
@@ -507,14 +507,20 @@ export function nhgetch() {
             || ch === 32  // space
             || ch === 16  // ^P (tty dismiss_more)
         );
-        const waitForMoreDismiss = () => _getRawKey().then(async (ch) => {
-            if (isMoreDismissKey(ch)) {
-                await display._clearMore();
-                return nhgetch();
+        const waitForMoreDismiss = async () => {
+            while (display && display._pendingMore) {
+                const ch = await _getRawKey();
+                if (isMoreDismissKey(ch)) {
+                    await display._clearMore();
+                    continue;
+                }
+                // C ref: tty xwaitforspace() ignores non-dismiss keys (and beeps).
             }
-            // C ref: tty xwaitforspace() ignores non-dismiss keys (and beeps).
-            return waitForMoreDismiss();
-        });
+            if (display) {
+                display.messageNeedsMore = false;
+            }
+            return _getRawKey();
+        };
         return waitForMoreDismiss();
     }
 

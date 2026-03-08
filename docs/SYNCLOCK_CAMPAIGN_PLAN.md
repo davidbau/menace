@@ -82,6 +82,17 @@ Validation gate:
 - No pass-count drop in session suite.
 - Strict mode emits zero illegal suspension violations on baseline parity runs.
 
+### Phase S4: Architecture Documentation and Team Guidance
+Deliverables:
+- Add SYNCLOCK architecture notes to `docs/DESIGN.md`.
+- Add a durable decision record to `docs/DECISIONS.md`.
+- Add a dedicated programming guide: `docs/SYNCLOCK_PROGRAMMING_GUIDE.md`.
+- Link issue/campaign status to these docs for handoff clarity.
+
+Validation gate:
+- Docs accurately match current implementation (`allmain/input/display/headless/suspend`).
+- Examples in guide use current APIs (`withInputBoundary`, `awaitInput`, `awaitMore`, `awaitAnim`, `awaitDisplayMorePrompt`).
+
 ## Risks and Mitigations
 1. Risk: behavior change from boundary ownership refactor.
    - Mitigation: phase-gated, seed031/032/033 first-divergence checks each step.
@@ -128,3 +139,13 @@ Interpretation:
 - The command loop (`allmain.js`) is now typed-wait clean.
 - Remaining raw waits are concentrated in gameplay/UI modules and are the
   migration set for S1/S2 (do not convert by masking or replay compensation).
+
+Latest snapshot (post-S1/S2 migration + enforcement hardening):
+- `raw_await_nhgetch`: 0
+- `raw_settimeout0_await`: 0
+- `display_moreprompt_nhgetch`: 0
+- `direct_moreprompt_calls`: 0 (outside centralized helper)
+- `allmain.js core-loop guardrail status`: `CLEAN`
+- `run_command` reports owner-missing diagnostics for no-owner pending
+  `--More--`; strict mode (`WEBHACK_STRICT_MORE_OWNER=1`) ignores the key,
+  while default mode keeps compatibility auto-sync.
