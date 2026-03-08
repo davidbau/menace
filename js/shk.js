@@ -2919,10 +2919,10 @@ function cad(altusage) {
 export async function call_kops(shkp, nearshop, game, player) {
   let nokops;
   if (!shkp) return;
-  if (!Deaf) await pline("An alarm sounds!");
+  if (!player.Deaf) await pline("An alarm sounds!");
   nokops = ((game.mvitals[PM_KEYSTONE_KOP].mvflags & G_GONE) && (game.mvitals[PM_KOP_SERGEANT].mvflags & G_GONE) && (game.mvitals[PM_KOP_LIEUTENANT].mvflags & G_GONE) && (game.mvitals[PM_KOP_KAPTAIN].mvflags & G_GONE));
-  if (!await angry_guards(!!Deaf) && nokops) {
-    if (game.flags.verbose && !Deaf) await pline("But no one seems to respond to it.");
+  if (!await angry_guards(!!player.Deaf) && nokops) {
+    if (game.flags.verbose && !player.Deaf) await pline("But no one seems to respond to it.");
     return;
   }
   if (nokops) return;
@@ -3442,7 +3442,7 @@ export function makekops(mm, game, map) {
 // Autotranslated from shk.c:6035
 export async function use_unpaid_trapobj(otmp, x, y, player) {
   if (otmp.unpaid) {
-    if (!Deaf) {
+    if (!player.Deaf) {
       let shkp = find_objowner(otmp, x, y);
       if (shkp && !muteshk(shkp)) { await verbalize("You set it, you buy it!"); }
     }
