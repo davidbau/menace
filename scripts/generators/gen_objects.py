@@ -40,15 +40,31 @@ COLORS = {
     'HI_ZAP': 9, 'DRAGON_SILVER': 7,
 }
 
-# ── Object class constants ───────────────────────────────────────────
-OC_CLASSES = {
-    'ILLOBJ_CLASS': 0, 'WEAPON_CLASS': 1, 'ARMOR_CLASS': 2,
-    'RING_CLASS': 3, 'AMULET_CLASS': 4, 'TOOL_CLASS': 5,
-    'FOOD_CLASS': 6, 'POTION_CLASS': 7, 'SCROLL_CLASS': 8,
-    'SPBOOK_CLASS': 9, 'WAND_CLASS': 10, 'COIN_CLASS': 11,
-    'GEM_CLASS': 12, 'ROCK_CLASS': 13, 'BALL_CLASS': 14,
-    'CHAIN_CLASS': 15, 'VENOM_CLASS': 16,
-}
+# ── Object class constants (parsed from defsym.h) ───────────────────
+def _parse_oc_classes():
+    """Parse OBJCLASS/OBJCLASS2 macros from defsym.h to get canonical C values."""
+    defsym_candidates = [
+        os.path.join(os.path.dirname(p), 'defsym.h')
+        for p in _OBJECTS_H_CANDIDATES
+    ]
+    defsym_path = next((p for p in defsym_candidates if os.path.exists(p)), None)
+    if not defsym_path:
+        raise FileNotFoundError("Cannot find defsym.h alongside objects.h")
+    with open(defsym_path, 'r') as f:
+        text = f.read()
+    classes = {}
+    syms = {}
+    # Match OBJCLASS( idx, 'ch', BASENAME, ...) and OBJCLASS2( idx, 'ch', BASENAME, ...)
+    for m in re.finditer(
+            r"OBJCLASS2?\(\s*(\d+)\s*,\s*'(.)'\s*,\s*(\w+)\s*,", text):
+        idx, ch, basename = int(m.group(1)), m.group(2), m.group(3)
+        classes[f'{basename}_CLASS'] = idx
+        syms[idx] = ch
+    if not classes:
+        raise ValueError("No OBJCLASS entries found in " + defsym_path)
+    return classes, syms
+
+OC_CLASSES, OC_CLASS_SYMS = _parse_oc_classes()
 
 # ── Material constants ───────────────────────────────────────────────
 MATERIALS = {
@@ -832,26 +848,8 @@ def process_calls(calls):
 
 def emit_js():
     """Generate the JavaScript output."""
-    # Class symbols
-    class_syms = {
-        0: '?',   # ILLOBJ
-        1: ')',   # WEAPON
-        2: '[',   # ARMOR
-        3: '=',   # RING
-        4: '"',   # AMULET
-        5: '(',   # TOOL
-        6: '%',   # FOOD
-        7: '!',   # POTION
-        8: '?',   # SCROLL
-        9: '+',   # SPBOOK
-        10: '/',  # WAND
-        11: '$',  # COIN
-        12: '*',  # GEM
-        13: '`',  # ROCK
-        14: '0',  # BALL
-        15: '_',  # CHAIN
-        16: '.',  # VENOM
-    }
+    # Class symbols (parsed from defsym.h alongside OC_CLASSES)
+    class_syms = OC_CLASS_SYMS
 
     # Reverse maps for readable class names
     class_names = {v: k for k, v in OC_CLASSES.items()}
@@ -864,7 +862,8 @@ def emit_js():
     lines.append('// DO NOT EDIT BY HAND — regenerate with: python3 scripts/generators/gen_objects.py')
     lines.append('')
     lines.append('// ── Object Class Constants ─────────────────────────────────────')
-    lines.append('// C ref: objclass.h')
+    lines.append('// C ref: defsym.h OBJCLASS macros → objclass.h enum objclass_classes')
+    lines.append('export const RANDOM_CLASS = 0;')
     for name, val in sorted(OC_CLASSES.items(), key=lambda x: x[1]):
         lines.append(f'export const {name} = {val};')
     lines.append('// C ref: objclass.h -- mkobj-only pseudo-class for spellbooks excluding SPE_NOVEL.')
@@ -977,11 +976,12 @@ def emit_js():
 
     lines.append(f'// Total objects: {len(objects)}')
     lines.append('')
-    lines.append('const MAXOCLASSES_OBJ = 17; // 0..16 inclusive (local to avoid import issues)')
+    maxoclasses = max(OC_CLASSES.values()) + 1
+    lines.append(f'export const MAXOCLASSES = {maxoclasses}; // C ref: objclass.h enum objclass_classes')
     lines.append('')
     lines.append('// Computed at init: first object index for each class, probability totals')
-    lines.append('export const bases = new Array(MAXOCLASSES_OBJ + 2).fill(0);')
-    lines.append('export const oclass_prob_totals = new Array(MAXOCLASSES_OBJ).fill(0);')
+    lines.append('export const bases = new Array(MAXOCLASSES + 2).fill(0);')
+    lines.append('export const oclass_prob_totals = new Array(MAXOCLASSES).fill(0);')
     lines.append('')
     # Emit setAliasPair helper + normalizeObjectFields
     lines.append('// Bidirectional alias helper: creates getter/setter so writes propagate between names.')
@@ -1033,9 +1033,9 @@ def emit_js():
 
     lines.append('// C ref: o_init.c init_objects() — compute bases[] and oclass_prob_totals[]')
     lines.append('export function initObjectData() {')
-    lines.append('    // C ref: skip generic objects (indices 0..MAXOCLASSES), scan from MAXOCLASSES+1')
-    lines.append('    for (let i = 0; i <= MAXOCLASSES_OBJ + 1; i++) bases[i] = 0;')
-    lines.append('    let first = MAXOCLASSES_OBJ + 1; // skip all generic objects (indices 0..17)')
+    lines.append('    // C ref: o_init.c — bases[0..MAXOCLASSES] = 0, first = MAXOCLASSES (= FIRST_OBJECT)')
+    lines.append('    for (let i = 0; i <= MAXOCLASSES; i++) bases[i] = 0;')
+    lines.append('    let first = MAXOCLASSES; // skip generic objects (indices 0..MAXOCLASSES-1)')
     lines.append('    let prevOclass = -1;')
     lines.append('    while (first < objectData.length) {')
     lines.append('        const oclass = objectData[first].oc_class;')
@@ -1050,14 +1050,14 @@ def emit_js():
     lines.append('        first = last;')
     lines.append('    }')
     lines.append('    // C: bases[MAXOCLASSES] = NUM_OBJECTS')
-    lines.append('    bases[MAXOCLASSES_OBJ] = objectData.length;')
-    lines.append('    bases[MAXOCLASSES_OBJ + 1] = objectData.length;')
+    lines.append('    bases[MAXOCLASSES] = objectData.length;')
+    lines.append('    bases[MAXOCLASSES + 1] = objectData.length;')
     lines.append('    // Fill gaps: if a class has no objects, point to next class')
-    lines.append('    for (let i = MAXOCLASSES_OBJ - 1; i >= 0; i--) {')
+    lines.append('    for (let i = MAXOCLASSES - 1; i >= 0; i--) {')
     lines.append('        if (!bases[i]) bases[i] = bases[i + 1];')
     lines.append('    }')
     lines.append('    // Compute probability totals per class')
-    lines.append('    for (let oc = 0; oc < MAXOCLASSES_OBJ; oc++) {')
+    lines.append('    for (let oc = 0; oc < MAXOCLASSES; oc++) {')
     lines.append('        let sum = 0;')
     lines.append('        for (let i = bases[oc]; i < bases[oc + 1]; i++) {')
     lines.append('            sum += objectData[i].prob || 0;')

@@ -17,13 +17,12 @@ import {
     WAX_CANDLE, TALLOW_CANDLE, BRASS_LANTERN, OIL_LAMP, MAGIC_LAMP,
     WAN_LIGHT, SCR_LIGHT, SPE_LIGHT,
     SCR_FOOD_DETECTION, LUMP_OF_ROYAL_JELLY,
+    RANDOM_CLASS,
 } from './objects.js';
 import { MAXOCLASSES, ROOM, SHOPBASE, ROOMOFFSET, SDOOR, DOOR, CORR,
-         D_NODOOR, D_ISOPEN, D_TRAPPED, D_LOCKED } from './const.js';
+         D_NODOOR, D_ISOPEN, D_TRAPPED, D_LOCKED, NO_MM_FLAGS } from './const.js';
 import { makemon, mkclass, mongets } from './makemon.js';
-import { NO_MM_FLAGS } from './const.js';
 import { mksobj, mkobj } from './mkobj.js';
-import { RANDOM_CLASS } from './const.js';
 import { PM_SHOPKEEPER, S_MIMIC } from './monsters.js';
 import { placeFloorObject } from './invent.js';
 

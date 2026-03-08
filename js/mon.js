@@ -28,7 +28,7 @@ import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, ACCESSIBLE,
          M_POISONGAS_OK, M_POISONGAS_MINOR, M_POISONGAS_BAD,
          W_AMUL, W_ARMG, W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMF, W_ARMU, W_WEP,
          BOLT_LIM, LS_MONSTER,
-         RANDOM_CLASS, FOOD_CLASS, M2_COLLECT, IS_ALTAR,
+         M2_COLLECT, IS_ALTAR,
          STRAT_WAITMASK, A_CHAOTIC, A_NONE, MS_NEMESIS, MS_GUARDIAN } from './const.js';
 import { NORMAL_SPEED } from './monsters.js';
 import { AMULET_OF_LIFE_SAVING, CORPSE, FIGURINE, STATUE, objectData,
@@ -63,7 +63,7 @@ import { makemon } from './makemon.js';
 import { rn2, rnd, rnl, d, pushRngLogEntry, withRngTag } from './rng.js';
 import { BOULDER, COIN_CLASS, SCR_SCARE_MONSTER, CLOVE_OF_GARLIC,
          AMULET_OF_STRANGULATION, RIN_SLOW_DIGESTION,
-         ROCK_CLASS } from './objects.js';
+         ROCK_CLASS, RANDOM_CLASS, FOOD_CLASS, ARMOR_CLASS } from './objects.js';
 import { couldsee, m_cansee } from './vision.js';
 import { is_hider, hides_under, is_mindless, is_displacer, perceives,
          is_human, is_elf, is_dwarf, is_gnome, is_orc, is_shapeshifter,
@@ -2150,7 +2150,7 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                     for (const obj of (mon.minvent || [])) {
                         if (obj.owornmask) continue; // already worn/wielded
                         const ocls = obj.oclass ?? obj.oc_class;
-                        if (ocls === 2 /* ARMOR_CLASS */) {
+                        if (ocls === ARMOR_CLASS) {
                             const sub = obj.sub ?? 0;
                             const bit = (sub >= 0 && sub < armorSubMask.length) ? armorSubMask[sub] : 0;
                             if (bit && !(mon.misc_worn_check & bit)) {

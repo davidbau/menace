@@ -2,7 +2,10 @@
 // cf. do_wear.c — dowear, doputon, dotakeoff, doremring, doddoremarm, find_ac
 
 import { nhgetch } from './input.js';
-import { ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS, objectData,
+import { ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
+         WEAPON_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
+         WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS,
+         objectData,
          ARM_SUIT, ARM_SHIELD, ARM_HELM, ARM_GLOVES, ARM_BOOTS, ARM_CLOAK, ARM_SHIRT,
          SPEED_BOOTS, ELVEN_BOOTS, LEVITATION_BOOTS, FUMBLE_BOOTS,
          ELVEN_CLOAK, CLOAK_OF_PROTECTION, CLOAK_OF_INVISIBILITY,
@@ -1449,12 +1452,15 @@ export async function handleRemoveAll(player, display, _game) {
 
     // Build category menu (cf. C query_category with WORN_TYPES|ALL_TYPES|BUCX_TYPES)
     const CLASS_LABEL = {
-        1: 'Weapons', 2: 'Armor', 3: 'Rings', 4: 'Amulets',
-        5: 'Tools', 6: 'Comestibles', 7: 'Potions', 8: 'Scrolls',
-        9: 'Spellbooks', 10: 'Wands', 11: 'Coins', 12: 'Gems/Stones',
+        [WEAPON_CLASS]: 'Weapons', [ARMOR_CLASS]: 'Armor', [RING_CLASS]: 'Rings',
+        [AMULET_CLASS]: 'Amulets', [TOOL_CLASS]: 'Tools', [FOOD_CLASS]: 'Comestibles',
+        [POTION_CLASS]: 'Potions', [SCROLL_CLASS]: 'Scrolls', [SPBOOK_CLASS]: 'Spellbooks',
+        [WAND_CLASS]: 'Wands', [COIN_CLASS]: 'Coins', [GEM_CLASS]: 'Gems/Stones',
     };
     // Mirrors C def_inv_order (COIN, AMULET, WEAPON, ARMOR, FOOD, SCROLL, SPBOOK, POTION, RING, WAND, TOOL, GEM, ROCK, BALL, CHAIN)
-    const INV_ORDER = [11, 4, 1, 2, 6, 8, 9, 7, 3, 10, 5, 12, 13, 14, 15];
+    const INV_ORDER = [COIN_CLASS, AMULET_CLASS, WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS,
+        SCROLL_CLASS, SPBOOK_CLASS, POTION_CLASS, RING_CLASS, WAND_CLASS, TOOL_CLASS,
+        GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS];
 
     const lines = ["What type of things do you want to take off?", ""];
     lines.push("a - All worn and wielded types");

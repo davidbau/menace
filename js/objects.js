@@ -8,24 +8,25 @@
 // DO NOT EDIT BY HAND — regenerate with: python3 scripts/generators/gen_objects.py
 
 // ── Object Class Constants ─────────────────────────────────────
-// C ref: objclass.h
-export const ILLOBJ_CLASS = 0;
-export const WEAPON_CLASS = 1;
-export const ARMOR_CLASS = 2;
-export const RING_CLASS = 3;
-export const AMULET_CLASS = 4;
-export const TOOL_CLASS = 5;
-export const FOOD_CLASS = 6;
-export const POTION_CLASS = 7;
-export const SCROLL_CLASS = 8;
-export const SPBOOK_CLASS = 9;
-export const WAND_CLASS = 10;
-export const COIN_CLASS = 11;
-export const GEM_CLASS = 12;
-export const ROCK_CLASS = 13;
-export const BALL_CLASS = 14;
-export const CHAIN_CLASS = 15;
-export const VENOM_CLASS = 16;
+// C ref: defsym.h OBJCLASS macros → objclass.h enum objclass_classes
+export const RANDOM_CLASS = 0;
+export const ILLOBJ_CLASS = 1;
+export const WEAPON_CLASS = 2;
+export const ARMOR_CLASS = 3;
+export const RING_CLASS = 4;
+export const AMULET_CLASS = 5;
+export const TOOL_CLASS = 6;
+export const FOOD_CLASS = 7;
+export const POTION_CLASS = 8;
+export const SCROLL_CLASS = 9;
+export const SPBOOK_CLASS = 10;
+export const WAND_CLASS = 11;
+export const COIN_CLASS = 12;
+export const GEM_CLASS = 13;
+export const ROCK_CLASS = 14;
+export const BALL_CLASS = 15;
+export const CHAIN_CLASS = 16;
+export const VENOM_CLASS = 17;
 // C ref: objclass.h -- mkobj-only pseudo-class for spellbooks excluding SPE_NOVEL.
 export const SPBOOK_no_NOVEL = -SPBOOK_CLASS;
 
@@ -75,23 +76,23 @@ export const WHACK = 4;
 // ── Object Class Symbols ───────────────────────────────────────
 // C ref: defsym.h — OBJCLASS section
 export const CLASS_SYMBOLS = {
-    [0]: '?', // ILLOBJ_CLASS
-    [1]: ')', // WEAPON_CLASS
-    [2]: '[', // ARMOR_CLASS
-    [3]: '=', // RING_CLASS
-    [4]: '\"', // AMULET_CLASS
-    [5]: '(', // TOOL_CLASS
-    [6]: '%', // FOOD_CLASS
-    [7]: '!', // POTION_CLASS
-    [8]: '?', // SCROLL_CLASS
-    [9]: '+', // SPBOOK_CLASS
-    [10]: '/', // WAND_CLASS
-    [11]: '$', // COIN_CLASS
-    [12]: '*', // GEM_CLASS
-    [13]: '`', // ROCK_CLASS
-    [14]: '0', // BALL_CLASS
-    [15]: '_', // CHAIN_CLASS
-    [16]: '.', // VENOM_CLASS
+    [1]: ']', // ILLOBJ_CLASS
+    [2]: ')', // WEAPON_CLASS
+    [3]: '[', // ARMOR_CLASS
+    [4]: '=', // RING_CLASS
+    [5]: '\"', // AMULET_CLASS
+    [6]: '(', // TOOL_CLASS
+    [7]: '%', // FOOD_CLASS
+    [8]: '!', // POTION_CLASS
+    [9]: '?', // SCROLL_CLASS
+    [10]: '+', // SPBOOK_CLASS
+    [11]: '/', // WAND_CLASS
+    [12]: '$', // COIN_CLASS
+    [13]: '*', // GEM_CLASS
+    [14]: '`', // ROCK_CLASS
+    [15]: '0', // BALL_CLASS
+    [16]: '_', // CHAIN_CLASS
+    [17]: '.', // VENOM_CLASS
 };
 
 // ── Object Enum Constants ──────────────────────────────────────
@@ -600,8 +601,8 @@ export const objectData = [
     { // [0] STRANGE_OBJECT
         oc_name: "strange object",
         oc_descr: null,
-        oc_class: 0, // ILLOBJ_CLASS
-        symbol: '?',
+        oc_class: 1, // ILLOBJ_CLASS
+        symbol: ']',
         oc_color: 0,
         oc_prob: 0,
         oc_delay: 0,
@@ -618,8 +619,8 @@ export const objectData = [
     { // [1] GENERIC_ILLOBJ
         oc_name: "generic strange",
         oc_descr: "strange",
-        oc_class: 0, // ILLOBJ_CLASS
-        symbol: '?',
+        oc_class: 1, // ILLOBJ_CLASS
+        symbol: ']',
         oc_color: 7,
         oc_prob: 0,
         oc_delay: 0,
@@ -636,7 +637,7 @@ export const objectData = [
     { // [2] GENERIC_WEAPON
         oc_name: "generic weapon",
         oc_descr: "weapon",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 7,
         oc_prob: 0,
@@ -654,7 +655,7 @@ export const objectData = [
     { // [3] GENERIC_ARMOR
         oc_name: "generic armor",
         oc_descr: "armor",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 7,
         oc_prob: 0,
@@ -672,7 +673,7 @@ export const objectData = [
     { // [4] GENERIC_RING
         oc_name: "generic ring",
         oc_descr: "ring",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 7,
         oc_prob: 0,
@@ -690,7 +691,7 @@ export const objectData = [
     { // [5] GENERIC_AMULET
         oc_name: "generic amulet",
         oc_descr: "amulet",
-        oc_class: 4, // AMULET_CLASS
+        oc_class: 5, // AMULET_CLASS
         symbol: '"',
         oc_color: 7,
         oc_prob: 0,
@@ -708,7 +709,7 @@ export const objectData = [
     { // [6] GENERIC_TOOL
         oc_name: "generic tool",
         oc_descr: "tool",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 7,
         oc_prob: 0,
@@ -726,7 +727,7 @@ export const objectData = [
     { // [7] GENERIC_FOOD
         oc_name: "generic food",
         oc_descr: "food",
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 7,
         oc_prob: 0,
@@ -744,7 +745,7 @@ export const objectData = [
     { // [8] GENERIC_POTION
         oc_name: "generic potion",
         oc_descr: "potion",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 7,
         oc_prob: 0,
@@ -762,7 +763,7 @@ export const objectData = [
     { // [9] GENERIC_SCROLL
         oc_name: "generic scroll",
         oc_descr: "scroll",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 7,
         oc_prob: 0,
@@ -780,7 +781,7 @@ export const objectData = [
     { // [10] GENERIC_SPBOOK
         oc_name: "generic spellbook",
         oc_descr: "spellbook",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 7,
         oc_prob: 0,
@@ -798,7 +799,7 @@ export const objectData = [
     { // [11] GENERIC_WAND
         oc_name: "generic wand",
         oc_descr: "wand",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 7,
         oc_prob: 0,
@@ -816,7 +817,7 @@ export const objectData = [
     { // [12] GENERIC_COIN
         oc_name: "generic coin",
         oc_descr: "coin",
-        oc_class: 11, // COIN_CLASS
+        oc_class: 12, // COIN_CLASS
         symbol: '$',
         oc_color: 7,
         oc_prob: 0,
@@ -834,7 +835,7 @@ export const objectData = [
     { // [13] GENERIC_GEM
         oc_name: "generic gem",
         oc_descr: "gem",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 7,
         oc_prob: 0,
@@ -852,7 +853,7 @@ export const objectData = [
     { // [14] GENERIC_ROCK
         oc_name: "generic large rock",
         oc_descr: "large rock",
-        oc_class: 13, // ROCK_CLASS
+        oc_class: 14, // ROCK_CLASS
         symbol: '`',
         oc_color: 7,
         oc_prob: 0,
@@ -870,7 +871,7 @@ export const objectData = [
     { // [15] GENERIC_BALL
         oc_name: "generic iron ball",
         oc_descr: "iron ball",
-        oc_class: 14, // BALL_CLASS
+        oc_class: 15, // BALL_CLASS
         symbol: '0',
         oc_color: 7,
         oc_prob: 0,
@@ -888,7 +889,7 @@ export const objectData = [
     { // [16] GENERIC_CHAIN
         oc_name: "generic iron chain",
         oc_descr: "iron chain",
-        oc_class: 15, // CHAIN_CLASS
+        oc_class: 16, // CHAIN_CLASS
         symbol: '_',
         oc_color: 7,
         oc_prob: 0,
@@ -906,7 +907,7 @@ export const objectData = [
     { // [17] GENERIC_VENOM
         oc_name: "generic venom",
         oc_descr: "venom",
-        oc_class: 16, // VENOM_CLASS
+        oc_class: 17, // VENOM_CLASS
         symbol: '.',
         oc_color: 7,
         oc_prob: 0,
@@ -924,7 +925,7 @@ export const objectData = [
     { // [18] ARROW
         oc_name: "arrow",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 55,
@@ -942,7 +943,7 @@ export const objectData = [
     { // [19] ELVEN_ARROW
         oc_name: "elven arrow",
         oc_descr: "runed arrow",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 3,
         oc_prob: 20,
@@ -960,7 +961,7 @@ export const objectData = [
     { // [20] ORCISH_ARROW
         oc_name: "orcish arrow",
         oc_descr: "crude arrow",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 0,
         oc_prob: 20,
@@ -978,7 +979,7 @@ export const objectData = [
     { // [21] SILVER_ARROW
         oc_name: "silver arrow",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 7,
         oc_prob: 12,
@@ -996,7 +997,7 @@ export const objectData = [
     { // [22] YA
         oc_name: "ya",
         oc_descr: "bamboo arrow",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 15,
@@ -1014,7 +1015,7 @@ export const objectData = [
     { // [23] CROSSBOW_BOLT
         oc_name: "crossbow bolt",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 55,
@@ -1032,7 +1033,7 @@ export const objectData = [
     { // [24] DART
         oc_name: "dart",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 60,
@@ -1050,7 +1051,7 @@ export const objectData = [
     { // [25] SHURIKEN
         oc_name: "shuriken",
         oc_descr: "throwing star",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 35,
@@ -1068,7 +1069,7 @@ export const objectData = [
     { // [26] BOOMERANG
         oc_name: "boomerang",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 3,
         oc_prob: 15,
@@ -1086,7 +1087,7 @@ export const objectData = [
     { // [27] SPEAR
         oc_name: "spear",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 50,
@@ -1104,7 +1105,7 @@ export const objectData = [
     { // [28] ELVEN_SPEAR
         oc_name: "elven spear",
         oc_descr: "runed spear",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 3,
         oc_prob: 10,
@@ -1122,7 +1123,7 @@ export const objectData = [
     { // [29] ORCISH_SPEAR
         oc_name: "orcish spear",
         oc_descr: "crude spear",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 0,
         oc_prob: 13,
@@ -1140,7 +1141,7 @@ export const objectData = [
     { // [30] DWARVISH_SPEAR
         oc_name: "dwarvish spear",
         oc_descr: "stout spear",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 12,
@@ -1158,7 +1159,7 @@ export const objectData = [
     { // [31] SILVER_SPEAR
         oc_name: "silver spear",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 7,
         oc_prob: 2,
@@ -1176,7 +1177,7 @@ export const objectData = [
     { // [32] JAVELIN
         oc_name: "javelin",
         oc_descr: "throwing spear",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 10,
@@ -1194,7 +1195,7 @@ export const objectData = [
     { // [33] TRIDENT
         oc_name: "trident",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 8,
@@ -1212,7 +1213,7 @@ export const objectData = [
     { // [34] DAGGER
         oc_name: "dagger",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 30,
@@ -1230,7 +1231,7 @@ export const objectData = [
     { // [35] ELVEN_DAGGER
         oc_name: "elven dagger",
         oc_descr: "runed dagger",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 3,
         oc_prob: 10,
@@ -1248,7 +1249,7 @@ export const objectData = [
     { // [36] ORCISH_DAGGER
         oc_name: "orcish dagger",
         oc_descr: "crude dagger",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 0,
         oc_prob: 12,
@@ -1266,7 +1267,7 @@ export const objectData = [
     { // [37] SILVER_DAGGER
         oc_name: "silver dagger",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 7,
         oc_prob: 3,
@@ -1284,7 +1285,7 @@ export const objectData = [
     { // [38] ATHAME
         oc_name: "athame",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 0,
@@ -1302,7 +1303,7 @@ export const objectData = [
     { // [39] SCALPEL
         oc_name: "scalpel",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 0,
@@ -1320,7 +1321,7 @@ export const objectData = [
     { // [40] KNIFE
         oc_name: "knife",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 20,
@@ -1338,7 +1339,7 @@ export const objectData = [
     { // [41] STILETTO
         oc_name: "stiletto",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 5,
@@ -1356,7 +1357,7 @@ export const objectData = [
     { // [42] WORM_TOOTH
         oc_name: "worm tooth",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 15,
         oc_prob: 0,
@@ -1374,7 +1375,7 @@ export const objectData = [
     { // [43] CRYSKNIFE
         oc_name: "crysknife",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 15,
         oc_prob: 0,
@@ -1392,7 +1393,7 @@ export const objectData = [
     { // [44] AXE
         oc_name: "axe",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 40,
@@ -1410,7 +1411,7 @@ export const objectData = [
     { // [45] BATTLE_AXE
         oc_name: "battle-axe",
         oc_descr: "double-headed axe",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 10,
@@ -1428,7 +1429,7 @@ export const objectData = [
     { // [46] SHORT_SWORD
         oc_name: "short sword",
         oc_descr: "wakizashi",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 8,
@@ -1446,7 +1447,7 @@ export const objectData = [
     { // [47] ELVEN_SHORT_SWORD
         oc_name: "elven short sword",
         oc_descr: "runed short sword",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 3,
         oc_prob: 2,
@@ -1464,7 +1465,7 @@ export const objectData = [
     { // [48] ORCISH_SHORT_SWORD
         oc_name: "orcish short sword",
         oc_descr: "crude short sword",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 0,
         oc_prob: 3,
@@ -1482,7 +1483,7 @@ export const objectData = [
     { // [49] DWARVISH_SHORT_SWORD
         oc_name: "dwarvish short sword",
         oc_descr: "broad short sword",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 2,
@@ -1500,7 +1501,7 @@ export const objectData = [
     { // [50] SCIMITAR
         oc_name: "scimitar",
         oc_descr: "curved sword",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 15,
@@ -1518,7 +1519,7 @@ export const objectData = [
     { // [51] SILVER_SABER
         oc_name: "silver saber",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 7,
         oc_prob: 6,
@@ -1536,7 +1537,7 @@ export const objectData = [
     { // [52] BROADSWORD
         oc_name: "broadsword",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 8,
@@ -1554,7 +1555,7 @@ export const objectData = [
     { // [53] ELVEN_BROADSWORD
         oc_name: "elven broadsword",
         oc_descr: "runed broadsword",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 3,
         oc_prob: 4,
@@ -1572,7 +1573,7 @@ export const objectData = [
     { // [54] LONG_SWORD
         oc_name: "long sword",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 50,
@@ -1590,7 +1591,7 @@ export const objectData = [
     { // [55] TWO_HANDED_SWORD
         oc_name: "two-handed sword",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 22,
@@ -1608,7 +1609,7 @@ export const objectData = [
     { // [56] KATANA
         oc_name: "katana",
         oc_descr: "samurai sword",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 4,
@@ -1626,7 +1627,7 @@ export const objectData = [
     { // [57] TSURUGI
         oc_name: "tsurugi",
         oc_descr: "long samurai sword",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 0,
@@ -1644,7 +1645,7 @@ export const objectData = [
     { // [58] RUNESWORD
         oc_name: "runesword",
         oc_descr: "runed broadsword",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 0,
         oc_prob: 0,
@@ -1662,7 +1663,7 @@ export const objectData = [
     { // [59] PARTISAN
         oc_name: "partisan",
         oc_descr: "vulgar polearm",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 5,
@@ -1680,7 +1681,7 @@ export const objectData = [
     { // [60] RANSEUR
         oc_name: "ranseur",
         oc_descr: "hilted polearm",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 5,
@@ -1698,7 +1699,7 @@ export const objectData = [
     { // [61] SPETUM
         oc_name: "spetum",
         oc_descr: "forked polearm",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 5,
@@ -1716,7 +1717,7 @@ export const objectData = [
     { // [62] GLAIVE
         oc_name: "glaive",
         oc_descr: "single-edged polearm",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 8,
@@ -1734,7 +1735,7 @@ export const objectData = [
     { // [63] HALBERD
         oc_name: "halberd",
         oc_descr: "angled poleaxe",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 8,
@@ -1752,7 +1753,7 @@ export const objectData = [
     { // [64] BARDICHE
         oc_name: "bardiche",
         oc_descr: "long poleaxe",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 4,
@@ -1770,7 +1771,7 @@ export const objectData = [
     { // [65] VOULGE
         oc_name: "voulge",
         oc_descr: "pole cleaver",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 4,
@@ -1788,7 +1789,7 @@ export const objectData = [
     { // [66] FAUCHARD
         oc_name: "fauchard",
         oc_descr: "pole sickle",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 6,
@@ -1806,7 +1807,7 @@ export const objectData = [
     { // [67] GUISARME
         oc_name: "guisarme",
         oc_descr: "pruning hook",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 6,
@@ -1824,7 +1825,7 @@ export const objectData = [
     { // [68] BILL_GUISARME
         oc_name: "bill-guisarme",
         oc_descr: "hooked polearm",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 4,
@@ -1842,7 +1843,7 @@ export const objectData = [
     { // [69] LUCERN_HAMMER
         oc_name: "lucern hammer",
         oc_descr: "pronged polearm",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 5,
@@ -1860,7 +1861,7 @@ export const objectData = [
     { // [70] BEC_DE_CORBIN
         oc_name: "bec de corbin",
         oc_descr: "beaked polearm",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 4,
@@ -1878,7 +1879,7 @@ export const objectData = [
     { // [71] DWARVISH_MATTOCK
         oc_name: "dwarvish mattock",
         oc_descr: "broad pick",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 13,
@@ -1896,7 +1897,7 @@ export const objectData = [
     { // [72] LANCE
         oc_name: "lance",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 4,
@@ -1914,7 +1915,7 @@ export const objectData = [
     { // [73] MACE
         oc_name: "mace",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 40,
@@ -1932,7 +1933,7 @@ export const objectData = [
     { // [74] SILVER_MACE
         oc_name: "silver mace",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 7,
         oc_prob: 2,
@@ -1950,7 +1951,7 @@ export const objectData = [
     { // [75] MORNING_STAR
         oc_name: "morning star",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 12,
@@ -1968,7 +1969,7 @@ export const objectData = [
     { // [76] WAR_HAMMER
         oc_name: "war hammer",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 15,
@@ -1986,7 +1987,7 @@ export const objectData = [
     { // [77] CLUB
         oc_name: "club",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 3,
         oc_prob: 12,
@@ -2004,7 +2005,7 @@ export const objectData = [
     { // [78] RUBBER_HOSE
         oc_name: "rubber hose",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 3,
         oc_prob: 0,
@@ -2022,7 +2023,7 @@ export const objectData = [
     { // [79] QUARTERSTAFF
         oc_name: "quarterstaff",
         oc_descr: "staff",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 3,
         oc_prob: 11,
@@ -2040,7 +2041,7 @@ export const objectData = [
     { // [80] AKLYS
         oc_name: "aklys",
         oc_descr: "thonged club",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 8,
@@ -2058,7 +2059,7 @@ export const objectData = [
     { // [81] FLAIL
         oc_name: "flail",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 6,
         oc_prob: 40,
@@ -2076,7 +2077,7 @@ export const objectData = [
     { // [82] BULLWHIP
         oc_name: "bullwhip",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 3,
         oc_prob: 2,
@@ -2094,7 +2095,7 @@ export const objectData = [
     { // [83] BOW
         oc_name: "bow",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 3,
         oc_prob: 24,
@@ -2112,7 +2113,7 @@ export const objectData = [
     { // [84] ELVEN_BOW
         oc_name: "elven bow",
         oc_descr: "runed bow",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 3,
         oc_prob: 12,
@@ -2130,7 +2131,7 @@ export const objectData = [
     { // [85] ORCISH_BOW
         oc_name: "orcish bow",
         oc_descr: "crude bow",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 0,
         oc_prob: 12,
@@ -2148,7 +2149,7 @@ export const objectData = [
     { // [86] YUMI
         oc_name: "yumi",
         oc_descr: "long bow",
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 3,
         oc_prob: 0,
@@ -2166,7 +2167,7 @@ export const objectData = [
     { // [87] SLING
         oc_name: "sling",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 3,
         oc_prob: 40,
@@ -2184,7 +2185,7 @@ export const objectData = [
     { // [88] CROSSBOW
         oc_name: "crossbow",
         oc_descr: null,
-        oc_class: 1, // WEAPON_CLASS
+        oc_class: 2, // WEAPON_CLASS
         symbol: ')',
         oc_color: 3,
         oc_prob: 45,
@@ -2202,7 +2203,7 @@ export const objectData = [
     { // [89] ELVEN_LEATHER_HELM
         oc_name: "elven leather helm",
         oc_descr: "leather hat",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 6,
@@ -2220,7 +2221,7 @@ export const objectData = [
     { // [90] ORCISH_HELM
         oc_name: "orcish helm",
         oc_descr: "iron skull cap",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 0,
         oc_prob: 6,
@@ -2238,7 +2239,7 @@ export const objectData = [
     { // [91] DWARVISH_IRON_HELM
         oc_name: "dwarvish iron helm",
         oc_descr: "hard hat",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 6,
         oc_prob: 6,
@@ -2256,7 +2257,7 @@ export const objectData = [
     { // [92] FEDORA
         oc_name: "fedora",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 0,
@@ -2274,7 +2275,7 @@ export const objectData = [
     { // [93] CORNUTHAUM
         oc_name: "cornuthaum",
         oc_descr: "conical hat",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 4,
         oc_prob: 3,
@@ -2292,7 +2293,7 @@ export const objectData = [
     { // [94] DUNCE_CAP
         oc_name: "dunce cap",
         oc_descr: "conical hat",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 4,
         oc_prob: 3,
@@ -2310,7 +2311,7 @@ export const objectData = [
     { // [95] DENTED_POT
         oc_name: "dented pot",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 0,
         oc_prob: 2,
@@ -2328,7 +2329,7 @@ export const objectData = [
     { // [96] HELM_OF_BRILLIANCE
         oc_name: "helm of brilliance",
         oc_descr: "crystal helmet",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 15,
         oc_prob: 3,
@@ -2346,7 +2347,7 @@ export const objectData = [
     { // [97] HELMET
         oc_name: "helmet",
         oc_descr: "plumed helmet",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 6,
         oc_prob: 10,
@@ -2364,7 +2365,7 @@ export const objectData = [
     { // [98] HELM_OF_CAUTION
         oc_name: "helm of caution",
         oc_descr: "etched helmet",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 2,
         oc_prob: 3,
@@ -2382,7 +2383,7 @@ export const objectData = [
     { // [99] HELM_OF_OPPOSITE_ALIGNMENT
         oc_name: "helm of opposite alignment",
         oc_descr: "crested helmet",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 6,
         oc_prob: 6,
@@ -2400,7 +2401,7 @@ export const objectData = [
     { // [100] HELM_OF_TELEPATHY
         oc_name: "helm of telepathy",
         oc_descr: "visored helmet",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 6,
         oc_prob: 2,
@@ -2418,7 +2419,7 @@ export const objectData = [
     { // [101] GRAY_DRAGON_SCALE_MAIL
         oc_name: "gray dragon scale mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 7,
         oc_prob: 0,
@@ -2436,7 +2437,7 @@ export const objectData = [
     { // [102] GOLD_DRAGON_SCALE_MAIL
         oc_name: "gold dragon scale mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 11,
         oc_prob: 0,
@@ -2454,7 +2455,7 @@ export const objectData = [
     { // [103] SILVER_DRAGON_SCALE_MAIL
         oc_name: "silver dragon scale mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 7,
         oc_prob: 0,
@@ -2472,7 +2473,7 @@ export const objectData = [
     { // [104] RED_DRAGON_SCALE_MAIL
         oc_name: "red dragon scale mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 1,
         oc_prob: 0,
@@ -2490,7 +2491,7 @@ export const objectData = [
     { // [105] WHITE_DRAGON_SCALE_MAIL
         oc_name: "white dragon scale mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 15,
         oc_prob: 0,
@@ -2508,7 +2509,7 @@ export const objectData = [
     { // [106] ORANGE_DRAGON_SCALE_MAIL
         oc_name: "orange dragon scale mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 9,
         oc_prob: 0,
@@ -2526,7 +2527,7 @@ export const objectData = [
     { // [107] BLACK_DRAGON_SCALE_MAIL
         oc_name: "black dragon scale mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 0,
         oc_prob: 0,
@@ -2544,7 +2545,7 @@ export const objectData = [
     { // [108] BLUE_DRAGON_SCALE_MAIL
         oc_name: "blue dragon scale mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 4,
         oc_prob: 0,
@@ -2562,7 +2563,7 @@ export const objectData = [
     { // [109] GREEN_DRAGON_SCALE_MAIL
         oc_name: "green dragon scale mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 2,
         oc_prob: 0,
@@ -2580,7 +2581,7 @@ export const objectData = [
     { // [110] YELLOW_DRAGON_SCALE_MAIL
         oc_name: "yellow dragon scale mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 11,
         oc_prob: 0,
@@ -2598,7 +2599,7 @@ export const objectData = [
     { // [111] GRAY_DRAGON_SCALES
         oc_name: "gray dragon scales",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 7,
         oc_prob: 0,
@@ -2616,7 +2617,7 @@ export const objectData = [
     { // [112] GOLD_DRAGON_SCALES
         oc_name: "gold dragon scales",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 11,
         oc_prob: 0,
@@ -2634,7 +2635,7 @@ export const objectData = [
     { // [113] SILVER_DRAGON_SCALES
         oc_name: "silver dragon scales",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 7,
         oc_prob: 0,
@@ -2652,7 +2653,7 @@ export const objectData = [
     { // [114] RED_DRAGON_SCALES
         oc_name: "red dragon scales",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 1,
         oc_prob: 0,
@@ -2670,7 +2671,7 @@ export const objectData = [
     { // [115] WHITE_DRAGON_SCALES
         oc_name: "white dragon scales",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 15,
         oc_prob: 0,
@@ -2688,7 +2689,7 @@ export const objectData = [
     { // [116] ORANGE_DRAGON_SCALES
         oc_name: "orange dragon scales",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 9,
         oc_prob: 0,
@@ -2706,7 +2707,7 @@ export const objectData = [
     { // [117] BLACK_DRAGON_SCALES
         oc_name: "black dragon scales",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 0,
         oc_prob: 0,
@@ -2724,7 +2725,7 @@ export const objectData = [
     { // [118] BLUE_DRAGON_SCALES
         oc_name: "blue dragon scales",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 4,
         oc_prob: 0,
@@ -2742,7 +2743,7 @@ export const objectData = [
     { // [119] GREEN_DRAGON_SCALES
         oc_name: "green dragon scales",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 2,
         oc_prob: 0,
@@ -2760,7 +2761,7 @@ export const objectData = [
     { // [120] YELLOW_DRAGON_SCALES
         oc_name: "yellow dragon scales",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 11,
         oc_prob: 0,
@@ -2778,7 +2779,7 @@ export const objectData = [
     { // [121] PLATE_MAIL
         oc_name: "plate mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 6,
         oc_prob: 44,
@@ -2796,7 +2797,7 @@ export const objectData = [
     { // [122] CRYSTAL_PLATE_MAIL
         oc_name: "crystal plate mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 15,
         oc_prob: 10,
@@ -2814,7 +2815,7 @@ export const objectData = [
     { // [123] BRONZE_PLATE_MAIL
         oc_name: "bronze plate mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 11,
         oc_prob: 25,
@@ -2832,7 +2833,7 @@ export const objectData = [
     { // [124] SPLINT_MAIL
         oc_name: "splint mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 6,
         oc_prob: 62,
@@ -2850,7 +2851,7 @@ export const objectData = [
     { // [125] BANDED_MAIL
         oc_name: "banded mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 6,
         oc_prob: 72,
@@ -2868,7 +2869,7 @@ export const objectData = [
     { // [126] DWARVISH_MITHRIL_COAT
         oc_name: "dwarvish mithril-coat",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 7,
         oc_prob: 10,
@@ -2886,7 +2887,7 @@ export const objectData = [
     { // [127] ELVEN_MITHRIL_COAT
         oc_name: "elven mithril-coat",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 7,
         oc_prob: 15,
@@ -2904,7 +2905,7 @@ export const objectData = [
     { // [128] CHAIN_MAIL
         oc_name: "chain mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 6,
         oc_prob: 72,
@@ -2922,7 +2923,7 @@ export const objectData = [
     { // [129] ORCISH_CHAIN_MAIL
         oc_name: "orcish chain mail",
         oc_descr: "crude chain mail",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 0,
         oc_prob: 20,
@@ -2940,7 +2941,7 @@ export const objectData = [
     { // [130] SCALE_MAIL
         oc_name: "scale mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 6,
         oc_prob: 72,
@@ -2958,7 +2959,7 @@ export const objectData = [
     { // [131] STUDDED_LEATHER_ARMOR
         oc_name: "studded leather armor",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 72,
@@ -2976,7 +2977,7 @@ export const objectData = [
     { // [132] RING_MAIL
         oc_name: "ring mail",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 6,
         oc_prob: 72,
@@ -2994,7 +2995,7 @@ export const objectData = [
     { // [133] ORCISH_RING_MAIL
         oc_name: "orcish ring mail",
         oc_descr: "crude ring mail",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 0,
         oc_prob: 20,
@@ -3012,7 +3013,7 @@ export const objectData = [
     { // [134] LEATHER_ARMOR
         oc_name: "leather armor",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 82,
@@ -3030,7 +3031,7 @@ export const objectData = [
     { // [135] LEATHER_JACKET
         oc_name: "leather jacket",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 0,
         oc_prob: 12,
@@ -3048,7 +3049,7 @@ export const objectData = [
     { // [136] HAWAIIAN_SHIRT
         oc_name: "Hawaiian shirt",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 5,
         oc_prob: 8,
@@ -3066,7 +3067,7 @@ export const objectData = [
     { // [137] T_SHIRT
         oc_name: "T-shirt",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 15,
         oc_prob: 2,
@@ -3084,7 +3085,7 @@ export const objectData = [
     { // [138] MUMMY_WRAPPING
         oc_name: "mummy wrapping",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 7,
         oc_prob: 0,
@@ -3102,7 +3103,7 @@ export const objectData = [
     { // [139] ELVEN_CLOAK
         oc_name: "elven cloak",
         oc_descr: "faded pall",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 0,
         oc_prob: 8,
@@ -3120,7 +3121,7 @@ export const objectData = [
     { // [140] ORCISH_CLOAK
         oc_name: "orcish cloak",
         oc_descr: "coarse mantelet",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 0,
         oc_prob: 8,
@@ -3138,7 +3139,7 @@ export const objectData = [
     { // [141] DWARVISH_CLOAK
         oc_name: "dwarvish cloak",
         oc_descr: "hooded cloak",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 8,
@@ -3156,7 +3157,7 @@ export const objectData = [
     { // [142] OILSKIN_CLOAK
         oc_name: "oilskin cloak",
         oc_descr: "slippery cloak",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 8,
@@ -3174,7 +3175,7 @@ export const objectData = [
     { // [143] ROBE
         oc_name: "robe",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 1,
         oc_prob: 3,
@@ -3192,7 +3193,7 @@ export const objectData = [
     { // [144] ALCHEMY_SMOCK
         oc_name: "alchemy smock",
         oc_descr: "apron",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 15,
         oc_prob: 9,
@@ -3210,7 +3211,7 @@ export const objectData = [
     { // [145] LEATHER_CLOAK
         oc_name: "leather cloak",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 8,
@@ -3228,7 +3229,7 @@ export const objectData = [
     { // [146] CLOAK_OF_PROTECTION
         oc_name: "cloak of protection",
         oc_descr: "tattered cape",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 9,
@@ -3246,7 +3247,7 @@ export const objectData = [
     { // [147] CLOAK_OF_INVISIBILITY
         oc_name: "cloak of invisibility",
         oc_descr: "opera cloak",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 13,
         oc_prob: 10,
@@ -3264,7 +3265,7 @@ export const objectData = [
     { // [148] CLOAK_OF_MAGIC_RESISTANCE
         oc_name: "cloak of magic resistance",
         oc_descr: "ornamental cope",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 15,
         oc_prob: 2,
@@ -3282,7 +3283,7 @@ export const objectData = [
     { // [149] CLOAK_OF_DISPLACEMENT
         oc_name: "cloak of displacement",
         oc_descr: "piece of cloth",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 10,
@@ -3300,7 +3301,7 @@ export const objectData = [
     { // [150] SMALL_SHIELD
         oc_name: "small shield",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 6,
@@ -3318,7 +3319,7 @@ export const objectData = [
     { // [151] ELVEN_SHIELD
         oc_name: "elven shield",
         oc_descr: "blue and green shield",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 2,
         oc_prob: 2,
@@ -3336,7 +3337,7 @@ export const objectData = [
     { // [152] URUK_HAI_SHIELD
         oc_name: "Uruk-hai shield",
         oc_descr: "white-handed shield",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 6,
         oc_prob: 2,
@@ -3354,7 +3355,7 @@ export const objectData = [
     { // [153] ORCISH_SHIELD
         oc_name: "orcish shield",
         oc_descr: "red-eyed shield",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 1,
         oc_prob: 2,
@@ -3372,7 +3373,7 @@ export const objectData = [
     { // [154] LARGE_SHIELD
         oc_name: "large shield",
         oc_descr: null,
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 6,
         oc_prob: 7,
@@ -3390,7 +3391,7 @@ export const objectData = [
     { // [155] DWARVISH_ROUNDSHIELD
         oc_name: "dwarvish roundshield",
         oc_descr: "large round shield",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 6,
         oc_prob: 4,
@@ -3408,7 +3409,7 @@ export const objectData = [
     { // [156] SHIELD_OF_REFLECTION
         oc_name: "shield of reflection",
         oc_descr: "polished silver shield",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 7,
         oc_prob: 3,
@@ -3426,7 +3427,7 @@ export const objectData = [
     { // [157] LEATHER_GLOVES
         oc_name: "leather gloves",
         oc_descr: "old gloves",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 16,
@@ -3444,7 +3445,7 @@ export const objectData = [
     { // [158] GAUNTLETS_OF_FUMBLING
         oc_name: "gauntlets of fumbling",
         oc_descr: "padded gloves",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 8,
@@ -3462,7 +3463,7 @@ export const objectData = [
     { // [159] GAUNTLETS_OF_POWER
         oc_name: "gauntlets of power",
         oc_descr: "riding gloves",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 8,
@@ -3480,7 +3481,7 @@ export const objectData = [
     { // [160] GAUNTLETS_OF_DEXTERITY
         oc_name: "gauntlets of dexterity",
         oc_descr: "fencing gloves",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 8,
@@ -3498,7 +3499,7 @@ export const objectData = [
     { // [161] LOW_BOOTS
         oc_name: "low boots",
         oc_descr: "walking shoes",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 25,
@@ -3516,7 +3517,7 @@ export const objectData = [
     { // [162] IRON_SHOES
         oc_name: "iron shoes",
         oc_descr: "hard shoes",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 6,
         oc_prob: 7,
@@ -3534,7 +3535,7 @@ export const objectData = [
     { // [163] HIGH_BOOTS
         oc_name: "high boots",
         oc_descr: "jackboots",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 15,
@@ -3552,7 +3553,7 @@ export const objectData = [
     { // [164] SPEED_BOOTS
         oc_name: "speed boots",
         oc_descr: "combat boots",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 12,
@@ -3570,7 +3571,7 @@ export const objectData = [
     { // [165] WATER_WALKING_BOOTS
         oc_name: "water walking boots",
         oc_descr: "jungle boots",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 12,
@@ -3588,7 +3589,7 @@ export const objectData = [
     { // [166] JUMPING_BOOTS
         oc_name: "jumping boots",
         oc_descr: "hiking boots",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 12,
@@ -3606,7 +3607,7 @@ export const objectData = [
     { // [167] ELVEN_BOOTS
         oc_name: "elven boots",
         oc_descr: "mud boots",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 12,
@@ -3624,7 +3625,7 @@ export const objectData = [
     { // [168] KICKING_BOOTS
         oc_name: "kicking boots",
         oc_descr: "buckled boots",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 12,
@@ -3642,7 +3643,7 @@ export const objectData = [
     { // [169] FUMBLE_BOOTS
         oc_name: "fumble boots",
         oc_descr: "riding boots",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 12,
@@ -3660,7 +3661,7 @@ export const objectData = [
     { // [170] LEVITATION_BOOTS
         oc_name: "levitation boots",
         oc_descr: "snow boots",
-        oc_class: 2, // ARMOR_CLASS
+        oc_class: 3, // ARMOR_CLASS
         symbol: '[',
         oc_color: 3,
         oc_prob: 12,
@@ -3678,7 +3679,7 @@ export const objectData = [
     { // [171] RIN_ADORNMENT
         oc_name: "adornment",
         oc_descr: "wooden",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 3,
         oc_prob: 1,
@@ -3696,7 +3697,7 @@ export const objectData = [
     { // [172] RIN_GAIN_STRENGTH
         oc_name: "gain strength",
         oc_descr: "granite",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 7,
         oc_prob: 1,
@@ -3714,7 +3715,7 @@ export const objectData = [
     { // [173] RIN_GAIN_CONSTITUTION
         oc_name: "gain constitution",
         oc_descr: "opal",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 7,
         oc_prob: 1,
@@ -3732,7 +3733,7 @@ export const objectData = [
     { // [174] RIN_INCREASE_ACCURACY
         oc_name: "increase accuracy",
         oc_descr: "clay",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 1,
         oc_prob: 1,
@@ -3750,7 +3751,7 @@ export const objectData = [
     { // [175] RIN_INCREASE_DAMAGE
         oc_name: "increase damage",
         oc_descr: "coral",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 9,
         oc_prob: 1,
@@ -3768,7 +3769,7 @@ export const objectData = [
     { // [176] RIN_PROTECTION
         oc_name: "protection",
         oc_descr: "black onyx",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 0,
         oc_prob: 1,
@@ -3786,7 +3787,7 @@ export const objectData = [
     { // [177] RIN_REGENERATION
         oc_name: "regeneration",
         oc_descr: "moonstone",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 7,
         oc_prob: 1,
@@ -3804,7 +3805,7 @@ export const objectData = [
     { // [178] RIN_SEARCHING
         oc_name: "searching",
         oc_descr: "tiger eye",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 3,
         oc_prob: 1,
@@ -3822,7 +3823,7 @@ export const objectData = [
     { // [179] RIN_STEALTH
         oc_name: "stealth",
         oc_descr: "jade",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 2,
         oc_prob: 1,
@@ -3840,7 +3841,7 @@ export const objectData = [
     { // [180] RIN_SUSTAIN_ABILITY
         oc_name: "sustain ability",
         oc_descr: "bronze",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 11,
         oc_prob: 1,
@@ -3858,7 +3859,7 @@ export const objectData = [
     { // [181] RIN_LEVITATION
         oc_name: "levitation",
         oc_descr: "agate",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 1,
         oc_prob: 1,
@@ -3876,7 +3877,7 @@ export const objectData = [
     { // [182] RIN_HUNGER
         oc_name: "hunger",
         oc_descr: "topaz",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 6,
         oc_prob: 1,
@@ -3894,7 +3895,7 @@ export const objectData = [
     { // [183] RIN_AGGRAVATE_MONSTER
         oc_name: "aggravate monster",
         oc_descr: "sapphire",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 4,
         oc_prob: 1,
@@ -3912,7 +3913,7 @@ export const objectData = [
     { // [184] RIN_CONFLICT
         oc_name: "conflict",
         oc_descr: "ruby",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 1,
         oc_prob: 1,
@@ -3930,7 +3931,7 @@ export const objectData = [
     { // [185] RIN_WARNING
         oc_name: "warning",
         oc_descr: "diamond",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 15,
         oc_prob: 1,
@@ -3948,7 +3949,7 @@ export const objectData = [
     { // [186] RIN_POISON_RESISTANCE
         oc_name: "poison resistance",
         oc_descr: "pearl",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 15,
         oc_prob: 1,
@@ -3966,7 +3967,7 @@ export const objectData = [
     { // [187] RIN_FIRE_RESISTANCE
         oc_name: "fire resistance",
         oc_descr: "iron",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 6,
         oc_prob: 1,
@@ -3984,7 +3985,7 @@ export const objectData = [
     { // [188] RIN_COLD_RESISTANCE
         oc_name: "cold resistance",
         oc_descr: "brass",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 11,
         oc_prob: 1,
@@ -4002,7 +4003,7 @@ export const objectData = [
     { // [189] RIN_SHOCK_RESISTANCE
         oc_name: "shock resistance",
         oc_descr: "copper",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 11,
         oc_prob: 1,
@@ -4020,7 +4021,7 @@ export const objectData = [
     { // [190] RIN_FREE_ACTION
         oc_name: "free action",
         oc_descr: "twisted",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 6,
         oc_prob: 1,
@@ -4038,7 +4039,7 @@ export const objectData = [
     { // [191] RIN_SLOW_DIGESTION
         oc_name: "slow digestion",
         oc_descr: "steel",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 6,
         oc_prob: 1,
@@ -4056,7 +4057,7 @@ export const objectData = [
     { // [192] RIN_TELEPORTATION
         oc_name: "teleportation",
         oc_descr: "silver",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 7,
         oc_prob: 1,
@@ -4074,7 +4075,7 @@ export const objectData = [
     { // [193] RIN_TELEPORT_CONTROL
         oc_name: "teleport control",
         oc_descr: "gold",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 11,
         oc_prob: 1,
@@ -4092,7 +4093,7 @@ export const objectData = [
     { // [194] RIN_POLYMORPH
         oc_name: "polymorph",
         oc_descr: "ivory",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 15,
         oc_prob: 1,
@@ -4110,7 +4111,7 @@ export const objectData = [
     { // [195] RIN_POLYMORPH_CONTROL
         oc_name: "polymorph control",
         oc_descr: "emerald",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 10,
         oc_prob: 1,
@@ -4128,7 +4129,7 @@ export const objectData = [
     { // [196] RIN_INVISIBILITY
         oc_name: "invisibility",
         oc_descr: "wire",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 6,
         oc_prob: 1,
@@ -4146,7 +4147,7 @@ export const objectData = [
     { // [197] RIN_SEE_INVISIBLE
         oc_name: "see invisible",
         oc_descr: "engagement",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 6,
         oc_prob: 1,
@@ -4164,7 +4165,7 @@ export const objectData = [
     { // [198] RIN_PROTECTION_FROM_SHAPE_CHAN
         oc_name: "protection from shape changers",
         oc_descr: "shiny",
-        oc_class: 3, // RING_CLASS
+        oc_class: 4, // RING_CLASS
         symbol: '=',
         oc_color: 14,
         oc_prob: 1,
@@ -4182,7 +4183,7 @@ export const objectData = [
     { // [199] AMULET_OF_ESP
         oc_name: "amulet of ESP",
         oc_descr: "circular",
-        oc_class: 4, // AMULET_CLASS
+        oc_class: 5, // AMULET_CLASS
         symbol: '"',
         oc_color: 6,
         oc_prob: 120,
@@ -4200,7 +4201,7 @@ export const objectData = [
     { // [200] AMULET_OF_LIFE_SAVING
         oc_name: "amulet of life saving",
         oc_descr: "spherical",
-        oc_class: 4, // AMULET_CLASS
+        oc_class: 5, // AMULET_CLASS
         symbol: '"',
         oc_color: 6,
         oc_prob: 75,
@@ -4218,7 +4219,7 @@ export const objectData = [
     { // [201] AMULET_OF_STRANGULATION
         oc_name: "amulet of strangulation",
         oc_descr: "oval",
-        oc_class: 4, // AMULET_CLASS
+        oc_class: 5, // AMULET_CLASS
         symbol: '"',
         oc_color: 6,
         oc_prob: 115,
@@ -4236,7 +4237,7 @@ export const objectData = [
     { // [202] AMULET_OF_RESTFUL_SLEEP
         oc_name: "amulet of restful sleep",
         oc_descr: "triangular",
-        oc_class: 4, // AMULET_CLASS
+        oc_class: 5, // AMULET_CLASS
         symbol: '"',
         oc_color: 6,
         oc_prob: 115,
@@ -4254,7 +4255,7 @@ export const objectData = [
     { // [203] AMULET_VERSUS_POISON
         oc_name: "amulet versus poison",
         oc_descr: "pyramidal",
-        oc_class: 4, // AMULET_CLASS
+        oc_class: 5, // AMULET_CLASS
         symbol: '"',
         oc_color: 6,
         oc_prob: 115,
@@ -4272,7 +4273,7 @@ export const objectData = [
     { // [204] AMULET_OF_CHANGE
         oc_name: "amulet of change",
         oc_descr: "square",
-        oc_class: 4, // AMULET_CLASS
+        oc_class: 5, // AMULET_CLASS
         symbol: '"',
         oc_color: 6,
         oc_prob: 115,
@@ -4290,7 +4291,7 @@ export const objectData = [
     { // [205] AMULET_OF_UNCHANGING
         oc_name: "amulet of unchanging",
         oc_descr: "concave",
-        oc_class: 4, // AMULET_CLASS
+        oc_class: 5, // AMULET_CLASS
         symbol: '"',
         oc_color: 6,
         oc_prob: 60,
@@ -4308,7 +4309,7 @@ export const objectData = [
     { // [206] AMULET_OF_REFLECTION
         oc_name: "amulet of reflection",
         oc_descr: "hexagonal",
-        oc_class: 4, // AMULET_CLASS
+        oc_class: 5, // AMULET_CLASS
         symbol: '"',
         oc_color: 6,
         oc_prob: 75,
@@ -4326,7 +4327,7 @@ export const objectData = [
     { // [207] AMULET_OF_MAGICAL_BREATHING
         oc_name: "amulet of magical breathing",
         oc_descr: "octagonal",
-        oc_class: 4, // AMULET_CLASS
+        oc_class: 5, // AMULET_CLASS
         symbol: '"',
         oc_color: 6,
         oc_prob: 75,
@@ -4344,7 +4345,7 @@ export const objectData = [
     { // [208] AMULET_OF_GUARDING
         oc_name: "amulet of guarding",
         oc_descr: "perforated",
-        oc_class: 4, // AMULET_CLASS
+        oc_class: 5, // AMULET_CLASS
         symbol: '"',
         oc_color: 6,
         oc_prob: 75,
@@ -4362,7 +4363,7 @@ export const objectData = [
     { // [209] AMULET_OF_FLYING
         oc_name: "amulet of flying",
         oc_descr: "cubical",
-        oc_class: 4, // AMULET_CLASS
+        oc_class: 5, // AMULET_CLASS
         symbol: '"',
         oc_color: 6,
         oc_prob: 60,
@@ -4380,7 +4381,7 @@ export const objectData = [
     { // [210] FAKE_AMULET_OF_YENDOR
         oc_name: null,
         oc_descr: null,
-        oc_class: 4, // AMULET_CLASS
+        oc_class: 5, // AMULET_CLASS
         symbol: '"',
         oc_color: 6,
         oc_prob: 0,
@@ -4398,7 +4399,7 @@ export const objectData = [
     { // [211] AMULET_OF_YENDOR
         oc_name: null,
         oc_descr: null,
-        oc_class: 4, // AMULET_CLASS
+        oc_class: 5, // AMULET_CLASS
         symbol: '"',
         oc_color: 6,
         oc_prob: 0,
@@ -4416,7 +4417,7 @@ export const objectData = [
     { // [212] LARGE_BOX
         oc_name: "large box",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 3,
         oc_prob: 40,
@@ -4434,7 +4435,7 @@ export const objectData = [
     { // [213] CHEST
         oc_name: "chest",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 3,
         oc_prob: 35,
@@ -4452,7 +4453,7 @@ export const objectData = [
     { // [214] ICE_BOX
         oc_name: "ice box",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 15,
         oc_prob: 5,
@@ -4470,7 +4471,7 @@ export const objectData = [
     { // [215] SACK
         oc_name: "sack",
         oc_descr: "bag",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 3,
         oc_prob: 35,
@@ -4488,7 +4489,7 @@ export const objectData = [
     { // [216] OILSKIN_SACK
         oc_name: "oilskin sack",
         oc_descr: "bag",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 3,
         oc_prob: 5,
@@ -4506,7 +4507,7 @@ export const objectData = [
     { // [217] BAG_OF_HOLDING
         oc_name: "bag of holding",
         oc_descr: "bag",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 3,
         oc_prob: 20,
@@ -4524,7 +4525,7 @@ export const objectData = [
     { // [218] BAG_OF_TRICKS
         oc_name: "bag of tricks",
         oc_descr: "bag",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 3,
         oc_prob: 20,
@@ -4542,7 +4543,7 @@ export const objectData = [
     { // [219] SKELETON_KEY
         oc_name: "skeleton key",
         oc_descr: "key",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 6,
         oc_prob: 80,
@@ -4559,7 +4560,7 @@ export const objectData = [
     { // [220] LOCK_PICK
         oc_name: "lock pick",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 6,
         oc_prob: 60,
@@ -4577,7 +4578,7 @@ export const objectData = [
     { // [221] CREDIT_CARD
         oc_name: "credit card",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 15,
         oc_prob: 15,
@@ -4595,7 +4596,7 @@ export const objectData = [
     { // [222] TALLOW_CANDLE
         oc_name: "tallow candle",
         oc_descr: "candle",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 15,
         oc_prob: 20,
@@ -4613,7 +4614,7 @@ export const objectData = [
     { // [223] WAX_CANDLE
         oc_name: "wax candle",
         oc_descr: "candle",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 15,
         oc_prob: 5,
@@ -4631,7 +4632,7 @@ export const objectData = [
     { // [224] BRASS_LANTERN
         oc_name: "brass lantern",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 11,
         oc_prob: 30,
@@ -4649,7 +4650,7 @@ export const objectData = [
     { // [225] OIL_LAMP
         oc_name: "oil lamp",
         oc_descr: "lamp",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 11,
         oc_prob: 45,
@@ -4666,7 +4667,7 @@ export const objectData = [
     { // [226] MAGIC_LAMP
         oc_name: "magic lamp",
         oc_descr: "lamp",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 11,
         oc_prob: 15,
@@ -4684,7 +4685,7 @@ export const objectData = [
     { // [227] EXPENSIVE_CAMERA
         oc_name: "expensive camera",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 0,
         oc_prob: 15,
@@ -4702,7 +4703,7 @@ export const objectData = [
     { // [228] MIRROR
         oc_name: "mirror",
         oc_descr: "looking glass",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 7,
         oc_prob: 45,
@@ -4719,7 +4720,7 @@ export const objectData = [
     { // [229] CRYSTAL_BALL
         oc_name: "crystal ball",
         oc_descr: "glass orb",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 14,
         oc_prob: 15,
@@ -4737,7 +4738,7 @@ export const objectData = [
     { // [230] LENSES
         oc_name: "lenses",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 14,
         oc_prob: 5,
@@ -4755,7 +4756,7 @@ export const objectData = [
     { // [231] BLINDFOLD
         oc_name: "blindfold",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 0,
         oc_prob: 50,
@@ -4773,7 +4774,7 @@ export const objectData = [
     { // [232] TOWEL
         oc_name: "towel",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 5,
         oc_prob: 50,
@@ -4791,7 +4792,7 @@ export const objectData = [
     { // [233] SADDLE
         oc_name: "saddle",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 3,
         oc_prob: 5,
@@ -4809,7 +4810,7 @@ export const objectData = [
     { // [234] LEASH
         oc_name: "leash",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 3,
         oc_prob: 65,
@@ -4827,7 +4828,7 @@ export const objectData = [
     { // [235] STETHOSCOPE
         oc_name: "stethoscope",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 6,
         oc_prob: 25,
@@ -4845,7 +4846,7 @@ export const objectData = [
     { // [236] TINNING_KIT
         oc_name: "tinning kit",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 6,
         oc_prob: 15,
@@ -4863,7 +4864,7 @@ export const objectData = [
     { // [237] TIN_OPENER
         oc_name: "tin opener",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 6,
         oc_prob: 35,
@@ -4881,7 +4882,7 @@ export const objectData = [
     { // [238] CAN_OF_GREASE
         oc_name: "can of grease",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 6,
         oc_prob: 15,
@@ -4899,7 +4900,7 @@ export const objectData = [
     { // [239] FIGURINE
         oc_name: "figurine",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 7,
         oc_prob: 25,
@@ -4917,7 +4918,7 @@ export const objectData = [
     { // [240] MAGIC_MARKER
         oc_name: "magic marker",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 1,
         oc_prob: 15,
@@ -4935,7 +4936,7 @@ export const objectData = [
     { // [241] LAND_MINE
         oc_name: "land mine",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 1,
         oc_prob: 0,
@@ -4953,7 +4954,7 @@ export const objectData = [
     { // [242] BEARTRAP
         oc_name: "beartrap",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 6,
         oc_prob: 0,
@@ -4971,7 +4972,7 @@ export const objectData = [
     { // [243] TIN_WHISTLE
         oc_name: "tin whistle",
         oc_descr: "whistle",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 6,
         oc_prob: 100,
@@ -4988,7 +4989,7 @@ export const objectData = [
     { // [244] MAGIC_WHISTLE
         oc_name: "magic whistle",
         oc_descr: "whistle",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 6,
         oc_prob: 30,
@@ -5006,7 +5007,7 @@ export const objectData = [
     { // [245] WOODEN_FLUTE
         oc_name: "wooden flute",
         oc_descr: "flute",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 3,
         oc_prob: 4,
@@ -5023,7 +5024,7 @@ export const objectData = [
     { // [246] MAGIC_FLUTE
         oc_name: "magic flute",
         oc_descr: "flute",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 3,
         oc_prob: 2,
@@ -5041,7 +5042,7 @@ export const objectData = [
     { // [247] TOOLED_HORN
         oc_name: "tooled horn",
         oc_descr: "horn",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 15,
         oc_prob: 5,
@@ -5058,7 +5059,7 @@ export const objectData = [
     { // [248] FROST_HORN
         oc_name: "frost horn",
         oc_descr: "horn",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 15,
         oc_prob: 2,
@@ -5076,7 +5077,7 @@ export const objectData = [
     { // [249] FIRE_HORN
         oc_name: "fire horn",
         oc_descr: "horn",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 15,
         oc_prob: 2,
@@ -5094,7 +5095,7 @@ export const objectData = [
     { // [250] HORN_OF_PLENTY
         oc_name: "horn of plenty",
         oc_descr: "horn",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 15,
         oc_prob: 2,
@@ -5112,7 +5113,7 @@ export const objectData = [
     { // [251] WOODEN_HARP
         oc_name: "wooden harp",
         oc_descr: "harp",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 3,
         oc_prob: 4,
@@ -5129,7 +5130,7 @@ export const objectData = [
     { // [252] MAGIC_HARP
         oc_name: "magic harp",
         oc_descr: "harp",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 3,
         oc_prob: 2,
@@ -5147,7 +5148,7 @@ export const objectData = [
     { // [253] BELL
         oc_name: "bell",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 11,
         oc_prob: 2,
@@ -5165,7 +5166,7 @@ export const objectData = [
     { // [254] BUGLE
         oc_name: "bugle",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 11,
         oc_prob: 4,
@@ -5183,7 +5184,7 @@ export const objectData = [
     { // [255] LEATHER_DRUM
         oc_name: "leather drum",
         oc_descr: "drum",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 3,
         oc_prob: 4,
@@ -5200,7 +5201,7 @@ export const objectData = [
     { // [256] DRUM_OF_EARTHQUAKE
         oc_name: "drum of earthquake",
         oc_descr: "drum",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 3,
         oc_prob: 2,
@@ -5218,7 +5219,7 @@ export const objectData = [
     { // [257] PICK_AXE
         oc_name: "pick-axe",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 6,
         oc_prob: 20,
@@ -5236,7 +5237,7 @@ export const objectData = [
     { // [258] GRAPPLING_HOOK
         oc_name: "grappling hook",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 6,
         oc_prob: 5,
@@ -5254,7 +5255,7 @@ export const objectData = [
     { // [259] UNICORN_HORN
         oc_name: "unicorn horn",
         oc_descr: null,
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 15,
         oc_prob: 0,
@@ -5272,7 +5273,7 @@ export const objectData = [
     { // [260] CANDELABRUM_OF_INVOCATION
         oc_name: "Candelabrum of Invocation",
         oc_descr: "candelabrum",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 11,
         oc_prob: 0,
@@ -5290,7 +5291,7 @@ export const objectData = [
     { // [261] BELL_OF_OPENING
         oc_name: "Bell of Opening",
         oc_descr: "silver bell",
-        oc_class: 5, // TOOL_CLASS
+        oc_class: 6, // TOOL_CLASS
         symbol: '(',
         oc_color: 7,
         oc_prob: 0,
@@ -5308,7 +5309,7 @@ export const objectData = [
     { // [262] TRIPE_RATION
         oc_name: "tripe ration",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 3,
         oc_prob: 140,
@@ -5326,7 +5327,7 @@ export const objectData = [
     { // [263] CORPSE
         oc_name: "corpse",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 3,
         oc_prob: 0,
@@ -5344,7 +5345,7 @@ export const objectData = [
     { // [264] EGG
         oc_name: "egg",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 15,
         oc_prob: 85,
@@ -5362,7 +5363,7 @@ export const objectData = [
     { // [265] MEATBALL
         oc_name: "meatball",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 3,
         oc_prob: 0,
@@ -5380,7 +5381,7 @@ export const objectData = [
     { // [266] MEAT_STICK
         oc_name: "meat stick",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 3,
         oc_prob: 0,
@@ -5398,7 +5399,7 @@ export const objectData = [
     { // [267] ENORMOUS_MEATBALL
         oc_name: "enormous meatball",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 3,
         oc_prob: 0,
@@ -5416,7 +5417,7 @@ export const objectData = [
     { // [268] MEAT_RING
         oc_name: "meat ring",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 3,
         oc_prob: 0,
@@ -5434,7 +5435,7 @@ export const objectData = [
     { // [269] GLOB_OF_GRAY_OOZE
         oc_name: "glob of gray ooze",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 7,
         oc_prob: 0,
@@ -5452,7 +5453,7 @@ export const objectData = [
     { // [270] GLOB_OF_BROWN_PUDDING
         oc_name: "glob of brown pudding",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 3,
         oc_prob: 0,
@@ -5470,7 +5471,7 @@ export const objectData = [
     { // [271] GLOB_OF_GREEN_SLIME
         oc_name: "glob of green slime",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 2,
         oc_prob: 0,
@@ -5488,7 +5489,7 @@ export const objectData = [
     { // [272] GLOB_OF_BLACK_PUDDING
         oc_name: "glob of black pudding",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 0,
         oc_prob: 0,
@@ -5506,7 +5507,7 @@ export const objectData = [
     { // [273] KELP_FROND
         oc_name: "kelp frond",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 2,
         oc_prob: 0,
@@ -5524,7 +5525,7 @@ export const objectData = [
     { // [274] EUCALYPTUS_LEAF
         oc_name: "eucalyptus leaf",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 2,
         oc_prob: 3,
@@ -5542,7 +5543,7 @@ export const objectData = [
     { // [275] APPLE
         oc_name: "apple",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 1,
         oc_prob: 15,
@@ -5560,7 +5561,7 @@ export const objectData = [
     { // [276] ORANGE
         oc_name: "orange",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 9,
         oc_prob: 10,
@@ -5578,7 +5579,7 @@ export const objectData = [
     { // [277] PEAR
         oc_name: "pear",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 10,
         oc_prob: 10,
@@ -5596,7 +5597,7 @@ export const objectData = [
     { // [278] MELON
         oc_name: "melon",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 10,
         oc_prob: 10,
@@ -5614,7 +5615,7 @@ export const objectData = [
     { // [279] BANANA
         oc_name: "banana",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 11,
         oc_prob: 10,
@@ -5632,7 +5633,7 @@ export const objectData = [
     { // [280] CARROT
         oc_name: "carrot",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 9,
         oc_prob: 15,
@@ -5650,7 +5651,7 @@ export const objectData = [
     { // [281] SPRIG_OF_WOLFSBANE
         oc_name: "sprig of wolfsbane",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 2,
         oc_prob: 7,
@@ -5668,7 +5669,7 @@ export const objectData = [
     { // [282] CLOVE_OF_GARLIC
         oc_name: "clove of garlic",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 15,
         oc_prob: 7,
@@ -5686,7 +5687,7 @@ export const objectData = [
     { // [283] SLIME_MOLD
         oc_name: "slime mold",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 3,
         oc_prob: 75,
@@ -5704,7 +5705,7 @@ export const objectData = [
     { // [284] LUMP_OF_ROYAL_JELLY
         oc_name: "lump of royal jelly",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 11,
         oc_prob: 0,
@@ -5722,7 +5723,7 @@ export const objectData = [
     { // [285] CREAM_PIE
         oc_name: "cream pie",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 15,
         oc_prob: 25,
@@ -5740,7 +5741,7 @@ export const objectData = [
     { // [286] CANDY_BAR
         oc_name: "candy bar",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 12,
         oc_prob: 13,
@@ -5758,7 +5759,7 @@ export const objectData = [
     { // [287] FORTUNE_COOKIE
         oc_name: "fortune cookie",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 11,
         oc_prob: 55,
@@ -5776,7 +5777,7 @@ export const objectData = [
     { // [288] PANCAKE
         oc_name: "pancake",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 11,
         oc_prob: 25,
@@ -5794,7 +5795,7 @@ export const objectData = [
     { // [289] LEMBAS_WAFER
         oc_name: "lembas wafer",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 15,
         oc_prob: 20,
@@ -5812,7 +5813,7 @@ export const objectData = [
     { // [290] CRAM_RATION
         oc_name: "cram ration",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 3,
         oc_prob: 20,
@@ -5830,7 +5831,7 @@ export const objectData = [
     { // [291] FOOD_RATION
         oc_name: "food ration",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 3,
         oc_prob: 380,
@@ -5848,7 +5849,7 @@ export const objectData = [
     { // [292] K_RATION
         oc_name: "K-ration",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 3,
         oc_prob: 0,
@@ -5866,7 +5867,7 @@ export const objectData = [
     { // [293] C_RATION
         oc_name: "C-ration",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 3,
         oc_prob: 0,
@@ -5884,7 +5885,7 @@ export const objectData = [
     { // [294] TIN
         oc_name: "tin",
         oc_descr: null,
-        oc_class: 6, // FOOD_CLASS
+        oc_class: 7, // FOOD_CLASS
         symbol: '%',
         oc_color: 6,
         oc_prob: 75,
@@ -5902,7 +5903,7 @@ export const objectData = [
     { // [295] POT_GAIN_ABILITY
         oc_name: "gain ability",
         oc_descr: "ruby",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 1,
         oc_prob: 40,
@@ -5920,7 +5921,7 @@ export const objectData = [
     { // [296] POT_RESTORE_ABILITY
         oc_name: "restore ability",
         oc_descr: "pink",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 13,
         oc_prob: 40,
@@ -5938,7 +5939,7 @@ export const objectData = [
     { // [297] POT_CONFUSION
         oc_name: "confusion",
         oc_descr: "orange",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 9,
         oc_prob: 40,
@@ -5956,7 +5957,7 @@ export const objectData = [
     { // [298] POT_BLINDNESS
         oc_name: "blindness",
         oc_descr: "yellow",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 11,
         oc_prob: 30,
@@ -5974,7 +5975,7 @@ export const objectData = [
     { // [299] POT_PARALYSIS
         oc_name: "paralysis",
         oc_descr: "emerald",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 10,
         oc_prob: 40,
@@ -5992,7 +5993,7 @@ export const objectData = [
     { // [300] POT_SPEED
         oc_name: "speed",
         oc_descr: "dark green",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 2,
         oc_prob: 40,
@@ -6010,7 +6011,7 @@ export const objectData = [
     { // [301] POT_LEVITATION
         oc_name: "levitation",
         oc_descr: "cyan",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 6,
         oc_prob: 40,
@@ -6028,7 +6029,7 @@ export const objectData = [
     { // [302] POT_HALLUCINATION
         oc_name: "hallucination",
         oc_descr: "sky blue",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 6,
         oc_prob: 30,
@@ -6046,7 +6047,7 @@ export const objectData = [
     { // [303] POT_INVISIBILITY
         oc_name: "invisibility",
         oc_descr: "brilliant blue",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 12,
         oc_prob: 40,
@@ -6064,7 +6065,7 @@ export const objectData = [
     { // [304] POT_SEE_INVISIBLE
         oc_name: "see invisible",
         oc_descr: "magenta",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 5,
         oc_prob: 40,
@@ -6082,7 +6083,7 @@ export const objectData = [
     { // [305] POT_HEALING
         oc_name: "healing",
         oc_descr: "purple-red",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 5,
         oc_prob: 115,
@@ -6100,7 +6101,7 @@ export const objectData = [
     { // [306] POT_EXTRA_HEALING
         oc_name: "extra healing",
         oc_descr: "puce",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 1,
         oc_prob: 45,
@@ -6118,7 +6119,7 @@ export const objectData = [
     { // [307] POT_GAIN_LEVEL
         oc_name: "gain level",
         oc_descr: "milky",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 15,
         oc_prob: 20,
@@ -6136,7 +6137,7 @@ export const objectData = [
     { // [308] POT_ENLIGHTENMENT
         oc_name: "enlightenment",
         oc_descr: "swirly",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 3,
         oc_prob: 20,
@@ -6154,7 +6155,7 @@ export const objectData = [
     { // [309] POT_MONSTER_DETECTION
         oc_name: "monster detection",
         oc_descr: "bubbly",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 15,
         oc_prob: 40,
@@ -6172,7 +6173,7 @@ export const objectData = [
     { // [310] POT_OBJECT_DETECTION
         oc_name: "object detection",
         oc_descr: "smoky",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 7,
         oc_prob: 40,
@@ -6190,7 +6191,7 @@ export const objectData = [
     { // [311] POT_GAIN_ENERGY
         oc_name: "gain energy",
         oc_descr: "cloudy",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 15,
         oc_prob: 40,
@@ -6208,7 +6209,7 @@ export const objectData = [
     { // [312] POT_SLEEPING
         oc_name: "sleeping",
         oc_descr: "effervescent",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 7,
         oc_prob: 40,
@@ -6226,7 +6227,7 @@ export const objectData = [
     { // [313] POT_FULL_HEALING
         oc_name: "full healing",
         oc_descr: "black",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 0,
         oc_prob: 10,
@@ -6244,7 +6245,7 @@ export const objectData = [
     { // [314] POT_POLYMORPH
         oc_name: "polymorph",
         oc_descr: "golden",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 11,
         oc_prob: 10,
@@ -6262,7 +6263,7 @@ export const objectData = [
     { // [315] POT_BOOZE
         oc_name: "booze",
         oc_descr: "brown",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 3,
         oc_prob: 40,
@@ -6280,7 +6281,7 @@ export const objectData = [
     { // [316] POT_SICKNESS
         oc_name: "sickness",
         oc_descr: "fizzy",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 6,
         oc_prob: 40,
@@ -6298,7 +6299,7 @@ export const objectData = [
     { // [317] POT_FRUIT_JUICE
         oc_name: "fruit juice",
         oc_descr: "dark",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 0,
         oc_prob: 40,
@@ -6316,7 +6317,7 @@ export const objectData = [
     { // [318] POT_ACID
         oc_name: "acid",
         oc_descr: "white",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 15,
         oc_prob: 10,
@@ -6334,7 +6335,7 @@ export const objectData = [
     { // [319] POT_OIL
         oc_name: "oil",
         oc_descr: "murky",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 3,
         oc_prob: 30,
@@ -6352,7 +6353,7 @@ export const objectData = [
     { // [320] POT_WATER
         oc_name: "water",
         oc_descr: "clear",
-        oc_class: 7, // POTION_CLASS
+        oc_class: 8, // POTION_CLASS
         symbol: '!',
         oc_color: 6,
         oc_prob: 80,
@@ -6370,7 +6371,7 @@ export const objectData = [
     { // [321] SCR_ENCHANT_ARMOR
         oc_name: "enchant armor",
         oc_descr: "ZELGO MER",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 63,
@@ -6388,7 +6389,7 @@ export const objectData = [
     { // [322] SCR_DESTROY_ARMOR
         oc_name: "destroy armor",
         oc_descr: "JUYED AWK YACC",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 45,
@@ -6406,7 +6407,7 @@ export const objectData = [
     { // [323] SCR_CONFUSE_MONSTER
         oc_name: "confuse monster",
         oc_descr: "NR 9",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 53,
@@ -6424,7 +6425,7 @@ export const objectData = [
     { // [324] SCR_SCARE_MONSTER
         oc_name: "scare monster",
         oc_descr: "XIXAXA XOXAXA XUXAXA",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 35,
@@ -6442,7 +6443,7 @@ export const objectData = [
     { // [325] SCR_REMOVE_CURSE
         oc_name: "remove curse",
         oc_descr: "PRATYAVAYAH",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 65,
@@ -6460,7 +6461,7 @@ export const objectData = [
     { // [326] SCR_ENCHANT_WEAPON
         oc_name: "enchant weapon",
         oc_descr: "DAIYEN FOOELS",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 80,
@@ -6478,7 +6479,7 @@ export const objectData = [
     { // [327] SCR_CREATE_MONSTER
         oc_name: "create monster",
         oc_descr: "LEP GEX VEN ZEA",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 45,
@@ -6496,7 +6497,7 @@ export const objectData = [
     { // [328] SCR_TAMING
         oc_name: "taming",
         oc_descr: "PRIRUTSENIE",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 15,
@@ -6514,7 +6515,7 @@ export const objectData = [
     { // [329] SCR_GENOCIDE
         oc_name: "genocide",
         oc_descr: "ELBIB YLOH",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 15,
@@ -6532,7 +6533,7 @@ export const objectData = [
     { // [330] SCR_LIGHT
         oc_name: "light",
         oc_descr: "VERR YED HORRE",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 90,
@@ -6550,7 +6551,7 @@ export const objectData = [
     { // [331] SCR_TELEPORTATION
         oc_name: "teleportation",
         oc_descr: "VENZAR BORGAVVE",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 55,
@@ -6568,7 +6569,7 @@ export const objectData = [
     { // [332] SCR_GOLD_DETECTION
         oc_name: "gold detection",
         oc_descr: "THARR",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 33,
@@ -6586,7 +6587,7 @@ export const objectData = [
     { // [333] SCR_FOOD_DETECTION
         oc_name: "food detection",
         oc_descr: "YUM YUM",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 25,
@@ -6604,7 +6605,7 @@ export const objectData = [
     { // [334] SCR_IDENTIFY
         oc_name: "identify",
         oc_descr: "KERNOD WEL",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 180,
@@ -6622,7 +6623,7 @@ export const objectData = [
     { // [335] SCR_MAGIC_MAPPING
         oc_name: "magic mapping",
         oc_descr: "ELAM EBOW",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 45,
@@ -6640,7 +6641,7 @@ export const objectData = [
     { // [336] SCR_AMNESIA
         oc_name: "amnesia",
         oc_descr: "DUAM XNAHT",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 35,
@@ -6658,7 +6659,7 @@ export const objectData = [
     { // [337] SCR_FIRE
         oc_name: "fire",
         oc_descr: "ANDOVA BEGARIN",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 30,
@@ -6676,7 +6677,7 @@ export const objectData = [
     { // [338] SCR_EARTH
         oc_name: "earth",
         oc_descr: "KIRJE",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 18,
@@ -6694,7 +6695,7 @@ export const objectData = [
     { // [339] SCR_PUNISHMENT
         oc_name: "punishment",
         oc_descr: "VE FORBRYDERNE",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 15,
@@ -6712,7 +6713,7 @@ export const objectData = [
     { // [340] SCR_CHARGING
         oc_name: "charging",
         oc_descr: "HACKEM MUCHE",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 15,
@@ -6730,7 +6731,7 @@ export const objectData = [
     { // [341] SCR_STINKING_CLOUD
         oc_name: "stinking cloud",
         oc_descr: "VELOX NEB",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 15,
@@ -6748,7 +6749,7 @@ export const objectData = [
     { // [342] SC01
         oc_name: null,
         oc_descr: "FOOBIE BLETCH",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -6766,7 +6767,7 @@ export const objectData = [
     { // [343] SC02
         oc_name: null,
         oc_descr: "TEMOV",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -6784,7 +6785,7 @@ export const objectData = [
     { // [344] SC03
         oc_name: null,
         oc_descr: "GARVEN DEH",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -6802,7 +6803,7 @@ export const objectData = [
     { // [345] SC04
         oc_name: null,
         oc_descr: "READ ME",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -6820,7 +6821,7 @@ export const objectData = [
     { // [346] SC05
         oc_name: null,
         oc_descr: "ETAOIN SHRDLU",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -6838,7 +6839,7 @@ export const objectData = [
     { // [347] SC06
         oc_name: null,
         oc_descr: "LOREM IPSUM",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -6856,7 +6857,7 @@ export const objectData = [
     { // [348] SC07
         oc_name: null,
         oc_descr: "FNORD",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -6874,7 +6875,7 @@ export const objectData = [
     { // [349] SC08
         oc_name: null,
         oc_descr: "KO BATE",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -6892,7 +6893,7 @@ export const objectData = [
     { // [350] SC09
         oc_name: null,
         oc_descr: "ABRA KA DABRA",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -6910,7 +6911,7 @@ export const objectData = [
     { // [351] SC10
         oc_name: null,
         oc_descr: "ASHPD SODALG",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -6928,7 +6929,7 @@ export const objectData = [
     { // [352] SC11
         oc_name: null,
         oc_descr: "ZLORFIK",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -6946,7 +6947,7 @@ export const objectData = [
     { // [353] SC12
         oc_name: null,
         oc_descr: "GNIK SISI VLE",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -6964,7 +6965,7 @@ export const objectData = [
     { // [354] SC13
         oc_name: null,
         oc_descr: "HAPAX LEGOMENON",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -6982,7 +6983,7 @@ export const objectData = [
     { // [355] SC14
         oc_name: null,
         oc_descr: "EIRIS SAZUN IDISI",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -7000,7 +7001,7 @@ export const objectData = [
     { // [356] SC15
         oc_name: null,
         oc_descr: "PHOL ENDE WODAN",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -7018,7 +7019,7 @@ export const objectData = [
     { // [357] SC16
         oc_name: null,
         oc_descr: "GHOTI",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -7036,7 +7037,7 @@ export const objectData = [
     { // [358] SC17
         oc_name: null,
         oc_descr: "MAPIRO MAHAMA DIROMAT",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -7054,7 +7055,7 @@ export const objectData = [
     { // [359] SC18
         oc_name: null,
         oc_descr: "VAS CORP BET MANI",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -7072,7 +7073,7 @@ export const objectData = [
     { // [360] SC19
         oc_name: null,
         oc_descr: "XOR OTA",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -7090,7 +7091,7 @@ export const objectData = [
     { // [361] SC20
         oc_name: null,
         oc_descr: "STRC PRST SKRZ KRK",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -7108,7 +7109,7 @@ export const objectData = [
     { // [362] SCR_MAIL
         oc_name: "mail",
         oc_descr: "stamped",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 0,
@@ -7126,7 +7127,7 @@ export const objectData = [
     { // [363] SCR_BLANK_PAPER
         oc_name: "blank paper",
         oc_descr: "unlabeled",
-        oc_class: 8, // SCROLL_CLASS
+        oc_class: 9, // SCROLL_CLASS
         symbol: '?',
         oc_color: 15,
         oc_prob: 28,
@@ -7144,7 +7145,7 @@ export const objectData = [
     { // [364] SPE_DIG
         oc_name: "dig",
         oc_descr: "parchment",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 3,
         oc_prob: 20,
@@ -7162,7 +7163,7 @@ export const objectData = [
     { // [365] SPE_MAGIC_MISSILE
         oc_name: "magic missile",
         oc_descr: "vellum",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 3,
         oc_prob: 45,
@@ -7180,7 +7181,7 @@ export const objectData = [
     { // [366] SPE_FIREBALL
         oc_name: "fireball",
         oc_descr: "ragged",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 15,
         oc_prob: 20,
@@ -7198,7 +7199,7 @@ export const objectData = [
     { // [367] SPE_CONE_OF_COLD
         oc_name: "cone of cold",
         oc_descr: "dog eared",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 15,
         oc_prob: 10,
@@ -7216,7 +7217,7 @@ export const objectData = [
     { // [368] SPE_SLEEP
         oc_name: "sleep",
         oc_descr: "mottled",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 15,
         oc_prob: 30,
@@ -7234,7 +7235,7 @@ export const objectData = [
     { // [369] SPE_FINGER_OF_DEATH
         oc_name: "finger of death",
         oc_descr: "stained",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 15,
         oc_prob: 5,
@@ -7252,7 +7253,7 @@ export const objectData = [
     { // [370] SPE_LIGHT
         oc_name: "light",
         oc_descr: "cloth",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 3,
         oc_prob: 45,
@@ -7270,7 +7271,7 @@ export const objectData = [
     { // [371] SPE_DETECT_MONSTERS
         oc_name: "detect monsters",
         oc_descr: "leathery",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 3,
         oc_prob: 43,
@@ -7288,7 +7289,7 @@ export const objectData = [
     { // [372] SPE_HEALING
         oc_name: "healing",
         oc_descr: "white",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 15,
         oc_prob: 40,
@@ -7306,7 +7307,7 @@ export const objectData = [
     { // [373] SPE_KNOCK
         oc_name: "knock",
         oc_descr: "pink",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 13,
         oc_prob: 25,
@@ -7324,7 +7325,7 @@ export const objectData = [
     { // [374] SPE_FORCE_BOLT
         oc_name: "force bolt",
         oc_descr: "red",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 1,
         oc_prob: 30,
@@ -7342,7 +7343,7 @@ export const objectData = [
     { // [375] SPE_CONFUSE_MONSTER
         oc_name: "confuse monster",
         oc_descr: "orange",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 9,
         oc_prob: 49,
@@ -7360,7 +7361,7 @@ export const objectData = [
     { // [376] SPE_CURE_BLINDNESS
         oc_name: "cure blindness",
         oc_descr: "yellow",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 11,
         oc_prob: 25,
@@ -7378,7 +7379,7 @@ export const objectData = [
     { // [377] SPE_DRAIN_LIFE
         oc_name: "drain life",
         oc_descr: "velvet",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 5,
         oc_prob: 10,
@@ -7396,7 +7397,7 @@ export const objectData = [
     { // [378] SPE_SLOW_MONSTER
         oc_name: "slow monster",
         oc_descr: "light green",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 10,
         oc_prob: 30,
@@ -7414,7 +7415,7 @@ export const objectData = [
     { // [379] SPE_WIZARD_LOCK
         oc_name: "wizard lock",
         oc_descr: "dark green",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 2,
         oc_prob: 25,
@@ -7432,7 +7433,7 @@ export const objectData = [
     { // [380] SPE_CREATE_MONSTER
         oc_name: "create monster",
         oc_descr: "turquoise",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 14,
         oc_prob: 35,
@@ -7450,7 +7451,7 @@ export const objectData = [
     { // [381] SPE_DETECT_FOOD
         oc_name: "detect food",
         oc_descr: "cyan",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 6,
         oc_prob: 30,
@@ -7468,7 +7469,7 @@ export const objectData = [
     { // [382] SPE_CAUSE_FEAR
         oc_name: "cause fear",
         oc_descr: "light blue",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 12,
         oc_prob: 25,
@@ -7486,7 +7487,7 @@ export const objectData = [
     { // [383] SPE_CLAIRVOYANCE
         oc_name: "clairvoyance",
         oc_descr: "dark blue",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 4,
         oc_prob: 15,
@@ -7504,7 +7505,7 @@ export const objectData = [
     { // [384] SPE_CURE_SICKNESS
         oc_name: "cure sickness",
         oc_descr: "indigo",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 4,
         oc_prob: 32,
@@ -7522,7 +7523,7 @@ export const objectData = [
     { // [385] SPE_CHARM_MONSTER
         oc_name: "charm monster",
         oc_descr: "magenta",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 5,
         oc_prob: 20,
@@ -7540,7 +7541,7 @@ export const objectData = [
     { // [386] SPE_HASTE_SELF
         oc_name: "haste self",
         oc_descr: "purple",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 5,
         oc_prob: 33,
@@ -7558,7 +7559,7 @@ export const objectData = [
     { // [387] SPE_DETECT_UNSEEN
         oc_name: "detect unseen",
         oc_descr: "violet",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 5,
         oc_prob: 20,
@@ -7576,7 +7577,7 @@ export const objectData = [
     { // [388] SPE_LEVITATION
         oc_name: "levitation",
         oc_descr: "tan",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 3,
         oc_prob: 20,
@@ -7594,7 +7595,7 @@ export const objectData = [
     { // [389] SPE_EXTRA_HEALING
         oc_name: "extra healing",
         oc_descr: "plaid",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 2,
         oc_prob: 27,
@@ -7612,7 +7613,7 @@ export const objectData = [
     { // [390] SPE_RESTORE_ABILITY
         oc_name: "restore ability",
         oc_descr: "light brown",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 3,
         oc_prob: 25,
@@ -7630,7 +7631,7 @@ export const objectData = [
     { // [391] SPE_INVISIBILITY
         oc_name: "invisibility",
         oc_descr: "dark brown",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 3,
         oc_prob: 20,
@@ -7648,7 +7649,7 @@ export const objectData = [
     { // [392] SPE_DETECT_TREASURE
         oc_name: "detect treasure",
         oc_descr: "gray",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 7,
         oc_prob: 20,
@@ -7666,7 +7667,7 @@ export const objectData = [
     { // [393] SPE_REMOVE_CURSE
         oc_name: "remove curse",
         oc_descr: "wrinkled",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 15,
         oc_prob: 25,
@@ -7684,7 +7685,7 @@ export const objectData = [
     { // [394] SPE_MAGIC_MAPPING
         oc_name: "magic mapping",
         oc_descr: "dusty",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 15,
         oc_prob: 18,
@@ -7702,7 +7703,7 @@ export const objectData = [
     { // [395] SPE_IDENTIFY
         oc_name: "identify",
         oc_descr: "bronze",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 11,
         oc_prob: 20,
@@ -7720,7 +7721,7 @@ export const objectData = [
     { // [396] SPE_TURN_UNDEAD
         oc_name: "turn undead",
         oc_descr: "copper",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 11,
         oc_prob: 16,
@@ -7738,7 +7739,7 @@ export const objectData = [
     { // [397] SPE_POLYMORPH
         oc_name: "polymorph",
         oc_descr: "silver",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 7,
         oc_prob: 10,
@@ -7756,7 +7757,7 @@ export const objectData = [
     { // [398] SPE_TELEPORT_AWAY
         oc_name: "teleport away",
         oc_descr: "gold",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 11,
         oc_prob: 15,
@@ -7774,7 +7775,7 @@ export const objectData = [
     { // [399] SPE_CREATE_FAMILIAR
         oc_name: "create familiar",
         oc_descr: "glittering",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 15,
         oc_prob: 10,
@@ -7792,7 +7793,7 @@ export const objectData = [
     { // [400] SPE_CANCELLATION
         oc_name: "cancellation",
         oc_descr: "shining",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 15,
         oc_prob: 15,
@@ -7810,7 +7811,7 @@ export const objectData = [
     { // [401] SPE_PROTECTION
         oc_name: "protection",
         oc_descr: "dull",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 15,
         oc_prob: 18,
@@ -7828,7 +7829,7 @@ export const objectData = [
     { // [402] SPE_JUMPING
         oc_name: "jumping",
         oc_descr: "thin",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 15,
         oc_prob: 20,
@@ -7846,7 +7847,7 @@ export const objectData = [
     { // [403] SPE_STONE_TO_FLESH
         oc_name: "stone to flesh",
         oc_descr: "thick",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 15,
         oc_prob: 15,
@@ -7864,7 +7865,7 @@ export const objectData = [
     { // [404] SPE_CHAIN_LIGHTNING
         oc_name: "chain lightning",
         oc_descr: "checkered",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 7,
         oc_prob: 25,
@@ -7882,7 +7883,7 @@ export const objectData = [
     { // [405] SPE_BLANK_PAPER
         oc_name: "blank paper",
         oc_descr: "plain",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 15,
         oc_prob: 18,
@@ -7899,7 +7900,7 @@ export const objectData = [
     { // [406] SPE_NOVEL
         oc_name: "novel",
         oc_descr: "paperback",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 12,
         oc_prob: 1,
@@ -7917,7 +7918,7 @@ export const objectData = [
     { // [407] SPE_BOOK_OF_THE_DEAD
         oc_name: "Book of the Dead",
         oc_descr: "papyrus",
-        oc_class: 9, // SPBOOK_CLASS
+        oc_class: 10, // SPBOOK_CLASS
         symbol: '+',
         oc_color: 15,
         oc_prob: 0,
@@ -7935,7 +7936,7 @@ export const objectData = [
     { // [408] WAN_LIGHT
         oc_name: "light",
         oc_descr: "glass",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 14,
         oc_prob: 95,
@@ -7953,7 +7954,7 @@ export const objectData = [
     { // [409] WAN_SECRET_DOOR_DETECTION
         oc_name: "secret door detection",
         oc_descr: "balsa",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 3,
         oc_prob: 50,
@@ -7971,7 +7972,7 @@ export const objectData = [
     { // [410] WAN_ENLIGHTENMENT
         oc_name: "enlightenment",
         oc_descr: "crystal",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 14,
         oc_prob: 15,
@@ -7989,7 +7990,7 @@ export const objectData = [
     { // [411] WAN_CREATE_MONSTER
         oc_name: "create monster",
         oc_descr: "maple",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 3,
         oc_prob: 45,
@@ -8007,7 +8008,7 @@ export const objectData = [
     { // [412] WAN_WISHING
         oc_name: "wishing",
         oc_descr: "pine",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 3,
         oc_prob: 5,
@@ -8025,7 +8026,7 @@ export const objectData = [
     { // [413] WAN_NOTHING
         oc_name: "nothing",
         oc_descr: "oak",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 3,
         oc_prob: 25,
@@ -8043,7 +8044,7 @@ export const objectData = [
     { // [414] WAN_STRIKING
         oc_name: "striking",
         oc_descr: "ebony",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 3,
         oc_prob: 75,
@@ -8061,7 +8062,7 @@ export const objectData = [
     { // [415] WAN_MAKE_INVISIBLE
         oc_name: "make invisible",
         oc_descr: "marble",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 7,
         oc_prob: 45,
@@ -8079,7 +8080,7 @@ export const objectData = [
     { // [416] WAN_SLOW_MONSTER
         oc_name: "slow monster",
         oc_descr: "tin",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 6,
         oc_prob: 50,
@@ -8097,7 +8098,7 @@ export const objectData = [
     { // [417] WAN_SPEED_MONSTER
         oc_name: "speed monster",
         oc_descr: "brass",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 11,
         oc_prob: 50,
@@ -8115,7 +8116,7 @@ export const objectData = [
     { // [418] WAN_UNDEAD_TURNING
         oc_name: "undead turning",
         oc_descr: "copper",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 11,
         oc_prob: 50,
@@ -8133,7 +8134,7 @@ export const objectData = [
     { // [419] WAN_POLYMORPH
         oc_name: "polymorph",
         oc_descr: "silver",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 7,
         oc_prob: 45,
@@ -8151,7 +8152,7 @@ export const objectData = [
     { // [420] WAN_CANCELLATION
         oc_name: "cancellation",
         oc_descr: "platinum",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 15,
         oc_prob: 45,
@@ -8169,7 +8170,7 @@ export const objectData = [
     { // [421] WAN_TELEPORTATION
         oc_name: "teleportation",
         oc_descr: "iridium",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 14,
         oc_prob: 45,
@@ -8187,7 +8188,7 @@ export const objectData = [
     { // [422] WAN_OPENING
         oc_name: "opening",
         oc_descr: "zinc",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 6,
         oc_prob: 25,
@@ -8205,7 +8206,7 @@ export const objectData = [
     { // [423] WAN_LOCKING
         oc_name: "locking",
         oc_descr: "aluminum",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 6,
         oc_prob: 25,
@@ -8223,7 +8224,7 @@ export const objectData = [
     { // [424] WAN_PROBING
         oc_name: "probing",
         oc_descr: "uranium",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 6,
         oc_prob: 30,
@@ -8241,7 +8242,7 @@ export const objectData = [
     { // [425] WAN_DIGGING
         oc_name: "digging",
         oc_descr: "iron",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 6,
         oc_prob: 55,
@@ -8259,7 +8260,7 @@ export const objectData = [
     { // [426] WAN_MAGIC_MISSILE
         oc_name: "magic missile",
         oc_descr: "steel",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 6,
         oc_prob: 50,
@@ -8277,7 +8278,7 @@ export const objectData = [
     { // [427] WAN_FIRE
         oc_name: "fire",
         oc_descr: "hexagonal",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 6,
         oc_prob: 40,
@@ -8295,7 +8296,7 @@ export const objectData = [
     { // [428] WAN_COLD
         oc_name: "cold",
         oc_descr: "short",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 6,
         oc_prob: 40,
@@ -8313,7 +8314,7 @@ export const objectData = [
     { // [429] WAN_SLEEP
         oc_name: "sleep",
         oc_descr: "runed",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 6,
         oc_prob: 50,
@@ -8331,7 +8332,7 @@ export const objectData = [
     { // [430] WAN_DEATH
         oc_name: "death",
         oc_descr: "long",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 6,
         oc_prob: 5,
@@ -8349,7 +8350,7 @@ export const objectData = [
     { // [431] WAN_LIGHTNING
         oc_name: "lightning",
         oc_descr: "curved",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 6,
         oc_prob: 40,
@@ -8367,7 +8368,7 @@ export const objectData = [
     { // [432] WAN1
         oc_name: null,
         oc_descr: "forked",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 3,
         oc_prob: 0,
@@ -8385,7 +8386,7 @@ export const objectData = [
     { // [433] WAN2
         oc_name: null,
         oc_descr: "spiked",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 6,
         oc_prob: 0,
@@ -8403,7 +8404,7 @@ export const objectData = [
     { // [434] WAN3
         oc_name: null,
         oc_descr: "jeweled",
-        oc_class: 10, // WAND_CLASS
+        oc_class: 11, // WAND_CLASS
         symbol: '/',
         oc_color: 7,
         oc_prob: 0,
@@ -8421,7 +8422,7 @@ export const objectData = [
     { // [435] GOLD_PIECE
         oc_name: "gold piece",
         oc_descr: null,
-        oc_class: 11, // COIN_CLASS
+        oc_class: 12, // COIN_CLASS
         symbol: '$',
         oc_color: 11,
         oc_prob: 1000,
@@ -8439,7 +8440,7 @@ export const objectData = [
     { // [436] DILITHIUM_CRYSTAL
         oc_name: "dilithium crystal",
         oc_descr: "white",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 15,
         oc_prob: 2,
@@ -8457,7 +8458,7 @@ export const objectData = [
     { // [437] DIAMOND
         oc_name: "diamond",
         oc_descr: "white",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 15,
         oc_prob: 3,
@@ -8475,7 +8476,7 @@ export const objectData = [
     { // [438] RUBY
         oc_name: "ruby",
         oc_descr: "red",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 1,
         oc_prob: 4,
@@ -8493,7 +8494,7 @@ export const objectData = [
     { // [439] JACINTH
         oc_name: "jacinth",
         oc_descr: "orange",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 9,
         oc_prob: 3,
@@ -8511,7 +8512,7 @@ export const objectData = [
     { // [440] SAPPHIRE
         oc_name: "sapphire",
         oc_descr: "blue",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 4,
         oc_prob: 4,
@@ -8529,7 +8530,7 @@ export const objectData = [
     { // [441] BLACK_OPAL
         oc_name: "black opal",
         oc_descr: "black",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 0,
         oc_prob: 3,
@@ -8547,7 +8548,7 @@ export const objectData = [
     { // [442] EMERALD
         oc_name: "emerald",
         oc_descr: "green",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 2,
         oc_prob: 5,
@@ -8565,7 +8566,7 @@ export const objectData = [
     { // [443] TURQUOISE
         oc_name: "turquoise",
         oc_descr: "green",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 2,
         oc_prob: 6,
@@ -8583,7 +8584,7 @@ export const objectData = [
     { // [444] CITRINE
         oc_name: "citrine",
         oc_descr: "yellow",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 11,
         oc_prob: 4,
@@ -8601,7 +8602,7 @@ export const objectData = [
     { // [445] AQUAMARINE
         oc_name: "aquamarine",
         oc_descr: "green",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 2,
         oc_prob: 6,
@@ -8619,7 +8620,7 @@ export const objectData = [
     { // [446] AMBER
         oc_name: "amber",
         oc_descr: "yellowish brown",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 3,
         oc_prob: 8,
@@ -8637,7 +8638,7 @@ export const objectData = [
     { // [447] TOPAZ
         oc_name: "topaz",
         oc_descr: "yellowish brown",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 3,
         oc_prob: 10,
@@ -8655,7 +8656,7 @@ export const objectData = [
     { // [448] JET
         oc_name: "jet",
         oc_descr: "black",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 0,
         oc_prob: 6,
@@ -8673,7 +8674,7 @@ export const objectData = [
     { // [449] OPAL
         oc_name: "opal",
         oc_descr: "white",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 15,
         oc_prob: 12,
@@ -8691,7 +8692,7 @@ export const objectData = [
     { // [450] CHRYSOBERYL
         oc_name: "chrysoberyl",
         oc_descr: "yellow",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 11,
         oc_prob: 8,
@@ -8709,7 +8710,7 @@ export const objectData = [
     { // [451] GARNET
         oc_name: "garnet",
         oc_descr: "red",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 1,
         oc_prob: 12,
@@ -8727,7 +8728,7 @@ export const objectData = [
     { // [452] AMETHYST
         oc_name: "amethyst",
         oc_descr: "violet",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 5,
         oc_prob: 14,
@@ -8745,7 +8746,7 @@ export const objectData = [
     { // [453] JASPER
         oc_name: "jasper",
         oc_descr: "red",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 1,
         oc_prob: 15,
@@ -8763,7 +8764,7 @@ export const objectData = [
     { // [454] FLUORITE
         oc_name: "fluorite",
         oc_descr: "violet",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 5,
         oc_prob: 15,
@@ -8781,7 +8782,7 @@ export const objectData = [
     { // [455] OBSIDIAN
         oc_name: "obsidian",
         oc_descr: "black",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 0,
         oc_prob: 9,
@@ -8799,7 +8800,7 @@ export const objectData = [
     { // [456] AGATE
         oc_name: "agate",
         oc_descr: "orange",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 9,
         oc_prob: 12,
@@ -8817,7 +8818,7 @@ export const objectData = [
     { // [457] JADE
         oc_name: "jade",
         oc_descr: "green",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 2,
         oc_prob: 10,
@@ -8835,7 +8836,7 @@ export const objectData = [
     { // [458] WORTHLESS_WHITE_GLASS
         oc_name: "worthless piece of white glass",
         oc_descr: "white",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 15,
         oc_prob: 77,
@@ -8853,7 +8854,7 @@ export const objectData = [
     { // [459] WORTHLESS_BLUE_GLASS
         oc_name: "worthless piece of blue glass",
         oc_descr: "blue",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 4,
         oc_prob: 77,
@@ -8871,7 +8872,7 @@ export const objectData = [
     { // [460] WORTHLESS_RED_GLASS
         oc_name: "worthless piece of red glass",
         oc_descr: "red",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 1,
         oc_prob: 77,
@@ -8889,7 +8890,7 @@ export const objectData = [
     { // [461] WORTHLESS_YELLOWBROWN_GLASS
         oc_name: "worthless piece of yellowish brown glass",
         oc_descr: "yellowish brown",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 3,
         oc_prob: 77,
@@ -8907,7 +8908,7 @@ export const objectData = [
     { // [462] WORTHLESS_ORANGE_GLASS
         oc_name: "worthless piece of orange glass",
         oc_descr: "orange",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 9,
         oc_prob: 76,
@@ -8925,7 +8926,7 @@ export const objectData = [
     { // [463] WORTHLESS_YELLOW_GLASS
         oc_name: "worthless piece of yellow glass",
         oc_descr: "yellow",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 11,
         oc_prob: 77,
@@ -8943,7 +8944,7 @@ export const objectData = [
     { // [464] WORTHLESS_BLACK_GLASS
         oc_name: "worthless piece of black glass",
         oc_descr: "black",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 0,
         oc_prob: 76,
@@ -8961,7 +8962,7 @@ export const objectData = [
     { // [465] WORTHLESS_GREEN_GLASS
         oc_name: "worthless piece of green glass",
         oc_descr: "green",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 2,
         oc_prob: 77,
@@ -8979,7 +8980,7 @@ export const objectData = [
     { // [466] WORTHLESS_VIOLET_GLASS
         oc_name: "worthless piece of violet glass",
         oc_descr: "violet",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 5,
         oc_prob: 77,
@@ -8997,7 +8998,7 @@ export const objectData = [
     { // [467] LUCKSTONE
         oc_name: "luckstone",
         oc_descr: "gray",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 7,
         oc_prob: 10,
@@ -9010,12 +9011,12 @@ export const objectData = [
         oc_material: 21,
         oc_oprop: 0,
         merge: 1, magic: 1,
-        oc_dir: 0, oc_subtyp: 0,
+        oc_dir: 0, oc_subtyp: -21,
     },
     { // [468] LOADSTONE
         oc_name: "loadstone",
         oc_descr: "gray",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 7,
         oc_prob: 10,
@@ -9028,12 +9029,12 @@ export const objectData = [
         oc_material: 21,
         oc_oprop: 0,
         merge: 1, magic: 1,
-        oc_dir: 0, oc_subtyp: 0,
+        oc_dir: 0, oc_subtyp: -21,
     },
     { // [469] TOUCHSTONE
         oc_name: "touchstone",
         oc_descr: "gray",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 7,
         oc_prob: 8,
@@ -9046,12 +9047,12 @@ export const objectData = [
         oc_material: 21,
         oc_oprop: 0,
         merge: 1, magic: 1,
-        oc_dir: 0, oc_subtyp: 0,
+        oc_dir: 0, oc_subtyp: -21,
     },
-    { // [470] FLINT — C: ROCK macro sets oc_skill = -P_SLING
+    { // [470] FLINT
         oc_name: "flint",
         oc_descr: "gray",
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 7,
         oc_prob: 10,
@@ -9066,10 +9067,10 @@ export const objectData = [
         merge: 1,
         oc_dir: 0, oc_subtyp: -21,
     },
-    { // [471] ROCK — C: ROCK macro sets oc_skill = -P_SLING
+    { // [471] ROCK
         oc_name: "rock",
         oc_descr: null,
-        oc_class: 12, // GEM_CLASS
+        oc_class: 13, // GEM_CLASS
         symbol: '*',
         oc_color: 7,
         oc_prob: 100,
@@ -9087,7 +9088,7 @@ export const objectData = [
     { // [472] BOULDER
         oc_name: "boulder",
         oc_descr: null,
-        oc_class: 13, // ROCK_CLASS
+        oc_class: 14, // ROCK_CLASS
         symbol: '`',
         oc_color: 7,
         oc_prob: 100,
@@ -9105,7 +9106,7 @@ export const objectData = [
     { // [473] STATUE
         oc_name: "statue",
         oc_descr: null,
-        oc_class: 13, // ROCK_CLASS
+        oc_class: 14, // ROCK_CLASS
         symbol: '`',
         oc_color: 15,
         oc_prob: 900,
@@ -9123,7 +9124,7 @@ export const objectData = [
     { // [474] HEAVY_IRON_BALL
         oc_name: "heavy iron ball",
         oc_descr: null,
-        oc_class: 14, // BALL_CLASS
+        oc_class: 15, // BALL_CLASS
         symbol: '0',
         oc_color: 6,
         oc_prob: 1000,
@@ -9141,7 +9142,7 @@ export const objectData = [
     { // [475] IRON_CHAIN
         oc_name: "iron chain",
         oc_descr: null,
-        oc_class: 15, // CHAIN_CLASS
+        oc_class: 16, // CHAIN_CLASS
         symbol: '_',
         oc_color: 6,
         oc_prob: 1000,
@@ -9159,7 +9160,7 @@ export const objectData = [
     { // [476] BLINDING_VENOM
         oc_name: "splash of blinding venom",
         oc_descr: "splash of venom",
-        oc_class: 16, // VENOM_CLASS
+        oc_class: 17, // VENOM_CLASS
         symbol: '.',
         oc_color: 3,
         oc_prob: 500,
@@ -9177,7 +9178,7 @@ export const objectData = [
     { // [477] ACID_VENOM
         oc_name: "splash of acid venom",
         oc_descr: "splash of venom",
-        oc_class: 16, // VENOM_CLASS
+        oc_class: 17, // VENOM_CLASS
         symbol: '.',
         oc_color: 3,
         oc_prob: 500,
@@ -9196,11 +9197,11 @@ export const objectData = [
 
 // Total objects: 478
 
-const MAXOCLASSES_OBJ = 17; // 0..16 inclusive (local to avoid import issues)
+export const MAXOCLASSES = 18; // C ref: objclass.h enum objclass_classes
 
 // Computed at init: first object index for each class, probability totals
-export const bases = new Array(MAXOCLASSES_OBJ + 2).fill(0);
-export const oclass_prob_totals = new Array(MAXOCLASSES_OBJ).fill(0);
+export const bases = new Array(MAXOCLASSES + 2).fill(0);
+export const oclass_prob_totals = new Array(MAXOCLASSES).fill(0);
 
 // Bidirectional alias helper: creates getter/setter so writes propagate between names.
 // objectData is mutable (shuffled at init), so static-value aliases would diverge.
@@ -9250,9 +9251,9 @@ for (let i = 0; i < objectData.length; i++) normalizeObjectFields(objectData[i])
 
 // C ref: o_init.c init_objects() — compute bases[] and oclass_prob_totals[]
 export function initObjectData() {
-    // C ref: skip generic objects (indices 0..MAXOCLASSES), scan from MAXOCLASSES+1
-    for (let i = 0; i <= MAXOCLASSES_OBJ + 1; i++) bases[i] = 0;
-    let first = MAXOCLASSES_OBJ + 1; // skip all generic objects (indices 0..17)
+    // C ref: o_init.c — bases[0..MAXOCLASSES] = 0, first = MAXOCLASSES (= FIRST_OBJECT)
+    for (let i = 0; i <= MAXOCLASSES; i++) bases[i] = 0;
+    let first = MAXOCLASSES; // skip generic objects (indices 0..MAXOCLASSES-1)
     let prevOclass = -1;
     while (first < objectData.length) {
         const oclass = objectData[first].oc_class;
@@ -9267,14 +9268,14 @@ export function initObjectData() {
         first = last;
     }
     // C: bases[MAXOCLASSES] = NUM_OBJECTS
-    bases[MAXOCLASSES_OBJ] = objectData.length;
-    bases[MAXOCLASSES_OBJ + 1] = objectData.length;
+    bases[MAXOCLASSES] = objectData.length;
+    bases[MAXOCLASSES + 1] = objectData.length;
     // Fill gaps: if a class has no objects, point to next class
-    for (let i = MAXOCLASSES_OBJ - 1; i >= 0; i--) {
+    for (let i = MAXOCLASSES - 1; i >= 0; i--) {
         if (!bases[i]) bases[i] = bases[i + 1];
     }
     // Compute probability totals per class
-    for (let oc = 0; oc < MAXOCLASSES_OBJ; oc++) {
+    for (let oc = 0; oc < MAXOCLASSES; oc++) {
         let sum = 0;
         for (let i = bases[oc]; i < bases[oc + 1]; i++) {
             sum += objectData[i].prob || 0;

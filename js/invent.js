@@ -83,11 +83,14 @@ export function currency(amount) {
 // C ref: invent.c display_inventory() / display_pickinv()
 export function buildInventoryOverlayLines(player) {
     const CLASS_NAMES = {
-        1: 'Weapons', 2: 'Armor', 3: 'Rings', 4: 'Amulets',
-        5: 'Tools', 6: 'Comestibles', 7: 'Potions', 8: 'Scrolls',
-        9: 'Spellbooks', 10: 'Wands', 11: 'Coins', 12: 'Gems/Stones',
+        [WEAPON_CLASS]: 'Weapons', [ARMOR_CLASS]: 'Armor', [RING_CLASS]: 'Rings',
+        [AMULET_CLASS]: 'Amulets', [TOOL_CLASS]: 'Tools', [FOOD_CLASS]: 'Comestibles',
+        [POTION_CLASS]: 'Potions', [SCROLL_CLASS]: 'Scrolls', [SPBOOK_CLASS]: 'Spellbooks',
+        [WAND_CLASS]: 'Wands', [COIN_CLASS]: 'Coins', [GEM_CLASS]: 'Gems/Stones',
     };
-    const INV_ORDER = [11, 4, 1, 2, 6, 8, 9, 7, 3, 10, 5, 12, 13, 14, 15];
+    const INV_ORDER = [COIN_CLASS, AMULET_CLASS, WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS,
+        SCROLL_CLASS, SPBOOK_CLASS, POTION_CLASS, RING_CLASS, WAND_CLASS, TOOL_CLASS,
+        GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS];
 
     const groups = {};
     for (const item of player.inventory || []) {
@@ -99,7 +102,7 @@ export function buildInventoryOverlayLines(player) {
 
     const lines = [];
     for (const cls of INV_ORDER) {
-        if (cls === 11 && !groups[cls] && (player.gold || 0) > 0) {
+        if (cls === COIN_CLASS && !groups[cls] && (player.gold || 0) > 0) {
             const gold = player.gold || 0;
             const goldLabel = gold === 1 ? 'gold piece' : 'gold pieces';
             lines.push('Coins');
@@ -2047,7 +2050,7 @@ export async function doprinuse(player) {
 
 // C ref: invent.c let_to_name() — convert class to name string
 export function let_to_name(let_char, unpaid, showsym) {
-    const oclass = (typeof let_char === 'number' && let_char >= 1 && let_char <= 16)
+    const oclass = (typeof let_char === 'number' && let_char >= 1 && let_char <= VENOM_CLASS)
         ? let_char : 0;
     let name;
     if (oclass) {

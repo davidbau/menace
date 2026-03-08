@@ -411,7 +411,7 @@ async function handleQuaff(player, map, display) {
 
     // cf. potion.c drink_ok() — non-potion rejection (partial)
     const selected = player.inventory.find((obj) => obj.invlet === c);
-    if (selected && selected.oclass !== 7) {
+    if (selected && selected.oclass !== POTION_CLASS) {
         replacePromptMessage();
         await display.putstr_message('That is a silly thing to drink.');
         return { moved: false, tookTime: false };

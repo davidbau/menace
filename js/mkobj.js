@@ -6,7 +6,7 @@ import { strchr } from './hacklib.js';
 import { rn2, rnd, rn1, rne, rnz, d, getRngCallCount, pushRngLogEntry } from './rng.js';
 import { isObjectNameKnown } from './o_init.js';
 import {
-    objectData, bases, oclass_prob_totals, mkobjprobs, NUM_OBJECTS,
+    objectData, bases, oclass_prob_totals, mkobjprobs, NUM_OBJECTS, RANDOM_CLASS,
     ILLOBJ_CLASS, WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
     TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
     SPBOOK_no_NOVEL,
@@ -1081,7 +1081,7 @@ export function mkobj(oclass, artif, skipErosion) {
     }
 
     // RANDOM_CLASS selection
-    if (oclass === 0) { // RANDOM_CLASS = 0 in C, but our ILLOBJ_CLASS = 0
+    if (oclass === RANDOM_CLASS) {
         // Use mkobjprobs table
         let tprob = rnd(100);
         for (const ip of mkobjprobs) {

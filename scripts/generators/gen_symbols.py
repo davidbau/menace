@@ -309,10 +309,7 @@ def emit_js() -> str:
         out.append(f"export const {row['defchar']} = '{ch}'.charCodeAt(0);")
     out.append("")
 
-    out.append("// 9) OBJCLASS_CLASS_ENUM")
-    for row in objclasses:
-        out.append(f'export const {row["class"]} = {row["idx"]};')
-    out.append("")
+    # 9) OBJCLASS_CLASS_ENUM — SKIPPED: _CLASS constants owned by objects.js (gen_objects.py)
 
     out.append("// 10) OBJCLASS_S_ENUM")
     for row in objclasses:
@@ -330,7 +327,7 @@ def emit_js() -> str:
     out.append("];")
     out.append(f"export const MAXPCHARS = {pchars[-1]['idx'] + 1};")
     out.append(f"export const MAXMCLASSES = {monsyms[-1]['idx'] + 1};")
-    out.append(f"export const MAXOCLASSES = {objclasses[-1]['idx'] + 1};")
+    # MAXOCLASSES — SKIPPED: owned by objects.js (gen_objects.py)
     out.append("")
 
     out.append("// 12) OBJCLASS_PARSE")

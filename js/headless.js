@@ -23,6 +23,9 @@ import { monsterNearby } from './hack.js';
 import { newsym } from './display.js';
 import { getArrivalPosition, changeLevel as changeLevelCore } from './do.js';
 import { doname } from './mkobj.js';
+import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
+         FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS, WAND_CLASS,
+         COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS } from './objects.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
 import { tempGlyphToCell } from './temp_glyph.js';
 import { NetHackGame } from './allmain.js';
@@ -74,12 +77,15 @@ const SELFPLAY_GAME_FLAGS = {
 };
 
 const INVENTORY_CLASS_NAMES = {
-    1: 'Weapons', 2: 'Armor', 3: 'Rings', 4: 'Amulets',
-    5: 'Tools', 6: 'Comestibles', 7: 'Potions', 8: 'Scrolls',
-    9: 'Spellbooks', 10: 'Wands', 11: 'Coins', 12: 'Gems/Stones',
+    [WEAPON_CLASS]: 'Weapons', [ARMOR_CLASS]: 'Armor', [RING_CLASS]: 'Rings',
+    [AMULET_CLASS]: 'Amulets', [TOOL_CLASS]: 'Tools', [FOOD_CLASS]: 'Comestibles',
+    [POTION_CLASS]: 'Potions', [SCROLL_CLASS]: 'Scrolls', [SPBOOK_CLASS]: 'Spellbooks',
+    [WAND_CLASS]: 'Wands', [COIN_CLASS]: 'Coins', [GEM_CLASS]: 'Gems/Stones',
 };
 
-const INVENTORY_ORDER = [11, 4, 1, 2, 6, 8, 9, 7, 3, 10, 5, 12, 13, 14, 15];
+const INVENTORY_ORDER = [COIN_CLASS, AMULET_CLASS, WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS,
+    SCROLL_CLASS, SPBOOK_CLASS, POTION_CLASS, RING_CLASS, WAND_CLASS, TOOL_CLASS,
+    GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS];
 
 const ROLE_INDEX = {};
 for (let i = 0; i < roles.length; i++) ROLE_INDEX[roles[i].name] = i;
@@ -147,7 +153,7 @@ export function buildInventoryLines(player) {
 
     const lines = [];
     for (const cls of INVENTORY_ORDER) {
-        if (cls === 11 && !groups[cls] && (player.gold || 0) > 0) {
+        if (cls === COIN_CLASS && !groups[cls] && (player.gold || 0) > 0) {
             const gold = player.gold || 0;
             const goldLabel = gold === 1 ? 'gold piece' : 'gold pieces';
             lines.push('Coins');

@@ -60,8 +60,8 @@ function isGenericObject(obj) {
 
 function genericObjectGlyph(obj) {
     const classIdx = Number.isInteger(obj?.oclass) ? obj.oclass : 0;
-    // This port keeps ILLOBJ_CLASS at 0, but generic slots start at index 1.
-    const generic = objectData[classIdx + 1] || objectData[classIdx] || {};
+    // Generic object for class C is at objectData[C] (C matches _CLASS constant).
+    const generic = objectData[classIdx] || objectData[0] || {};
     return {
         ch: generic.symbol || obj?.displayChar || '?',
         color: Number.isInteger(generic.color) ? generic.color : 7,

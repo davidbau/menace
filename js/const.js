@@ -3687,7 +3687,7 @@ export const MAXNROFROOMS = 40;
 export const MAXDUNGEON = 16;
 export const MAXLEVEL = 32;
 export const MAXOCLASSES = 18;
-export const MAXMCLASSES = 34;
+// MAXMCLASSES: canonical definition in CONST_SYMBOLS section (gen_symbols.py from defsym.h)
 export const ROOMOFFSET = 3;
 
 // Check if position is within map bounds
@@ -4109,377 +4109,785 @@ export const HI_MINERAL         = CLR_GRAY;
 export const DRAGON_SILVER      = CLR_BRIGHT_CYAN;
 export const HI_ZAP             = CLR_BRIGHT_BLUE;
 
-// ==========================================================================
-// 2. PCHAR Symbol Enum Constants (S_*) (from include/defsym.h, lines 90-247)
-//    Matches enum cmap_symbols in include/sym.h
-// ==========================================================================
+// AUTO-IMPORT-BEGIN: CONST_SYMBOLS
+// Auto-generated symbol constants/tables from include/defsym.h
+// DO NOT EDIT — regenerate with: python3 scripts/generators/gen_symbols.py
 
-// Dungeon features: walls, stone
-export const S_stone            = 0;
-export const S_vwall            = 1;
-export const S_hwall            = 2;
-export const S_tlcorn           = 3;
-export const S_trcorn           = 4;
-export const S_blcorn           = 5;
-export const S_brcorn           = 6;
-export const S_crwall           = 7;
-export const S_tuwall           = 8;
-export const S_tdwall           = 9;
-export const S_tlwall           = 10;
-export const S_trwall           = 11;
-
-// Doors, bars, trees, rooms, corridors (cmap A)
-export const S_ndoor            = 12;
-export const S_vodoor           = 13;
-export const S_hodoor           = 14;
-export const S_vcdoor           = 15;
-export const S_hcdoor           = 16;
-export const S_bars             = 17;
-export const S_tree             = 18;
-export const S_room             = 19;
-export const S_darkroom         = 20;
-export const S_engroom          = 21;
-export const S_corr             = 22;
-export const S_litcorr          = 23;
-export const S_engrcorr         = 24;
-
-// Stairs and ladders
-export const S_upstair          = 25;
-export const S_dnstair          = 26;
-export const S_upladder         = 27;
-export const S_dnladder         = 28;
-export const S_brupstair        = 29;
-export const S_brdnstair        = 30;
-export const S_brupladder       = 31;
-export const S_brdnladder       = 32;
-
-// Altar
-export const S_altar            = 33;
-
-// Furniture (cmap B)
-export const S_grave            = 34;
-export const S_throne           = 35;
-export const S_sink             = 36;
-export const S_fountain         = 37;
-
-// Water, lava, ice, drawbridges, air, cloud
-export const S_pool             = 38;
-export const S_ice              = 39;
-export const S_lava             = 40;
-export const S_lavawall         = 41;
-export const S_vodbridge        = 42;
-export const S_hodbridge        = 43;
-export const S_vcdbridge        = 44;
-export const S_hcdbridge        = 45;
-export const S_air              = 46;
-export const S_cloud            = 47;
-export const S_water            = 48;
-
-// Traps (defsym.h lines 157-183)
-export const S_arrow_trap       = 49;
-export const S_dart_trap        = 50;
+// 1) PCHAR_S_ENUM
+export const S_stone = 0;
+export const S_vwall = 1;
+export const S_hwall = 2;
+export const S_tlcorn = 3;
+export const S_trcorn = 4;
+export const S_blcorn = 5;
+export const S_brcorn = 6;
+export const S_crwall = 7;
+export const S_tuwall = 8;
+export const S_tdwall = 9;
+export const S_tlwall = 10;
+export const S_trwall = 11;
+export const S_ndoor = 12;
+export const S_vodoor = 13;
+export const S_hodoor = 14;
+export const S_vcdoor = 15;
+export const S_hcdoor = 16;
+export const S_bars = 17;
+export const S_tree = 18;
+export const S_room = 19;
+export const S_darkroom = 20;
+export const S_engroom = 21;
+export const S_corr = 22;
+export const S_litcorr = 23;
+export const S_engrcorr = 24;
+export const S_upstair = 25;
+export const S_dnstair = 26;
+export const S_upladder = 27;
+export const S_dnladder = 28;
+export const S_brupstair = 29;
+export const S_brdnstair = 30;
+export const S_brupladder = 31;
+export const S_brdnladder = 32;
+export const S_altar = 33;
+export const S_grave = 34;
+export const S_throne = 35;
+export const S_sink = 36;
+export const S_fountain = 37;
+export const S_pool = 38;
+export const S_ice = 39;
+export const S_lava = 40;
+export const S_lavawall = 41;
+export const S_vodbridge = 42;
+export const S_hodbridge = 43;
+export const S_vcdbridge = 44;
+export const S_hcdbridge = 45;
+export const S_air = 46;
+export const S_cloud = 47;
+export const S_water = 48;
+export const S_arrow_trap = 49;
+export const S_dart_trap = 50;
 export const S_falling_rock_trap = 51;
-export const S_squeaky_board    = 52;
-export const S_bear_trap        = 53;
-export const S_land_mine        = 54;
+export const S_squeaky_board = 52;
+export const S_bear_trap = 53;
+export const S_land_mine = 54;
 export const S_rolling_boulder_trap = 55;
 export const S_sleeping_gas_trap = 56;
-export const S_rust_trap        = 57;
-export const S_fire_trap        = 58;
-export const S_pit              = 59;
-export const S_spiked_pit       = 60;
-export const S_hole             = 61;
-export const S_trap_door        = 62;
+export const S_rust_trap = 57;
+export const S_fire_trap = 58;
+export const S_pit = 59;
+export const S_spiked_pit = 60;
+export const S_hole = 61;
+export const S_trap_door = 62;
 export const S_teleportation_trap = 63;
 export const S_level_teleporter = 64;
-export const S_magic_portal     = 65;
-export const S_web              = 66;
-export const S_statue_trap      = 67;
-export const S_magic_trap       = 68;
-export const S_anti_magic_trap  = 69;
-export const S_polymorph_trap   = 70;
+export const S_magic_portal = 65;
+export const S_web = 66;
+export const S_statue_trap = 67;
+export const S_magic_trap = 68;
+export const S_anti_magic_trap = 69;
+export const S_polymorph_trap = 70;
 export const S_vibrating_square = 71;
-export const S_trapped_door     = 72;
-export const S_trapped_chest    = 73;
+export const S_trapped_door = 72;
+export const S_trapped_chest = 73;
+export const S_vbeam = 74;
+export const S_hbeam = 75;
+export const S_lslant = 76;
+export const S_rslant = 77;
+export const S_digbeam = 78;
+export const S_flashbeam = 79;
+export const S_boomleft = 80;
+export const S_boomright = 81;
+export const S_ss1 = 82;
+export const S_ss2 = 83;
+export const S_ss3 = 84;
+export const S_ss4 = 85;
+export const S_poisoncloud = 86;
+export const S_goodpos = 87;
+export const S_sw_tl = 88;
+export const S_sw_tc = 89;
+export const S_sw_tr = 90;
+export const S_sw_ml = 91;
+export const S_sw_mr = 92;
+export const S_sw_bl = 93;
+export const S_sw_bc = 94;
+export const S_sw_br = 95;
+export const S_expl_tl = 96;
+export const S_expl_tc = 97;
+export const S_expl_tr = 98;
+export const S_expl_ml = 99;
+export const S_expl_mc = 100;
+export const S_expl_mr = 101;
+export const S_expl_bl = 102;
+export const S_expl_bc = 103;
+export const S_expl_br = 104;
 
-// Special effects: beams (defsym.h lines 190-197)
-export const S_vbeam            = 74;
-export const S_hbeam            = 75;
-export const S_lslant           = 76;
-export const S_rslant           = 77;
-
-// Special effects: other (cmap C, defsym.h lines 194-207)
-export const S_digbeam          = 78;
-export const S_flashbeam        = 79;
-export const S_boomleft         = 80;
-export const S_boomright        = 81;
-
-// Magic shield symbols
-export const S_ss1              = 82;
-export const S_ss2              = 83;
-export const S_ss3              = 84;
-export const S_ss4              = 85;
-
-export const S_poisoncloud      = 86;
-export const S_goodpos          = 87;
-
-// Swallow symbols (defsym.h lines 221-228)
-export const S_sw_tl            = 88;
-export const S_sw_tc            = 89;
-export const S_sw_tr            = 90;
-export const S_sw_ml            = 91;
-export const S_sw_mr            = 92;
-export const S_sw_bl            = 93;
-export const S_sw_bc            = 94;
-export const S_sw_br            = 95;
-
-// Explosion symbols (defsym.h lines 239-247)
-export const S_expl_tl          = 96;
-export const S_expl_tc          = 97;
-export const S_expl_tr          = 98;
-export const S_expl_ml          = 99;
-export const S_expl_mc          = 100;
-export const S_expl_mr          = 101;
-export const S_expl_bl          = 102;
-export const S_expl_bc          = 103;
-export const S_expl_br          = 104;
-
-export const MAXPCHARS          = 105;
-
-// ==========================================================================
-// 2b. defsyms[] array (from defsym.h PCHAR_DRAWING expansion + drawing.c)
-//     Each entry: { ch, desc (explanation), color }
-//     PCHAR(idx, ch, sym, desc, clr)  => { ch, desc, clr }
-//     PCHAR2(idx, ch, sym, tilenm, desc, clr) => { ch, desc, clr }
-// ==========================================================================
-
+// 2) PCHAR_DRAWING
 export const defsyms = [
-    // idx  0: S_stone
-    { ch: ' ',  desc: "dark part of a room",           color: NO_COLOR },
-    // idx  1: S_vwall
-    { ch: '|',  desc: "vertical wall",                 color: CLR_GRAY },
-    // idx  2: S_hwall
-    { ch: '-',  desc: "horizontal wall",               color: CLR_GRAY },
-    // idx  3: S_tlcorn
-    { ch: '-',  desc: "top left corner wall",          color: CLR_GRAY },
-    // idx  4: S_trcorn
-    { ch: '-',  desc: "top right corner wall",         color: CLR_GRAY },
-    // idx  5: S_blcorn
-    { ch: '-',  desc: "bottom left corner wall",       color: CLR_GRAY },
-    // idx  6: S_brcorn
-    { ch: '-',  desc: "bottom right corner wall",      color: CLR_GRAY },
-    // idx  7: S_crwall
-    { ch: '-',  desc: "cross wall",                    color: CLR_GRAY },
-    // idx  8: S_tuwall
-    { ch: '-',  desc: "tuwall",                        color: CLR_GRAY },
-    // idx  9: S_tdwall
-    { ch: '-',  desc: "tdwall",                        color: CLR_GRAY },
-    // idx 10: S_tlwall
-    { ch: '|',  desc: "tlwall",                        color: CLR_GRAY },
-    // idx 11: S_trwall
-    { ch: '|',  desc: "trwall",                        color: CLR_GRAY },
-    // --- start cmap A ---
-    // idx 12: S_ndoor
-    { ch: '.',  desc: "no door",                       color: CLR_GRAY },
-    // idx 13: S_vodoor
-    { ch: '-',  desc: "vertical open door",            color: CLR_BROWN },
-    // idx 14: S_hodoor
-    { ch: '|',  desc: "horizontal open door",          color: CLR_BROWN },
-    // idx 15: S_vcdoor
-    { ch: '+',  desc: "vertical closed door",          color: CLR_BROWN },
-    // idx 16: S_hcdoor
-    { ch: '+',  desc: "horizontal closed door",        color: CLR_BROWN },
-    // idx 17: S_bars
-    { ch: '#',  desc: "iron bars",                     color: HI_METAL },
-    // idx 18: S_tree
-    { ch: '#',  desc: "tree",                          color: CLR_GREEN },
-    // idx 19: S_room
-    { ch: '.',  desc: "floor of a room",               color: CLR_GRAY },
-    // idx 20: S_darkroom
-    { ch: '.',  desc: "dark part of a room",           color: CLR_BLACK },
-    // idx 21: S_engroom
-    { ch: '`',  desc: "engraving in a room",           color: CLR_BRIGHT_BLUE },
-    // idx 22: S_corr
-    { ch: '#',  desc: "dark corridor",                 color: CLR_GRAY },
-    // idx 23: S_litcorr
-    { ch: '#',  desc: "lit corridor",                  color: CLR_GRAY },
-    // idx 24: S_engrcorr
-    { ch: '#',  desc: "engraving in a corridor",       color: CLR_BRIGHT_BLUE },
-    // idx 25: S_upstair
-    { ch: '<',  desc: "up stairs",                     color: CLR_GRAY },
-    // idx 26: S_dnstair
-    { ch: '>',  desc: "down stairs",                   color: CLR_GRAY },
-    // idx 27: S_upladder
-    { ch: '<',  desc: "up ladder",                     color: CLR_BROWN },
-    // idx 28: S_dnladder
-    { ch: '>',  desc: "down ladder",                   color: CLR_BROWN },
-    // idx 29: S_brupstair
-    { ch: '<',  desc: "branch staircase up",           color: CLR_YELLOW },
-    // idx 30: S_brdnstair
-    { ch: '>',  desc: "branch staircase down",         color: CLR_YELLOW },
-    // idx 31: S_brupladder
-    { ch: '<',  desc: "branch ladder up",              color: CLR_YELLOW },
-    // idx 32: S_brdnladder
-    { ch: '>',  desc: "branch ladder down",            color: CLR_YELLOW },
-    // --- end cmap A ---
-    // idx 33: S_altar
-    { ch: '_',  desc: "altar",                         color: CLR_GRAY },
-    // --- start cmap B ---
-    // idx 34: S_grave
-    { ch: '|',  desc: "grave",                         color: CLR_WHITE },
-    // idx 35: S_throne
-    { ch: '\\', desc: "throne",                        color: HI_GOLD },
-    // idx 36: S_sink
-    { ch: '{',  desc: "sink",                          color: CLR_WHITE },
-    // idx 37: S_fountain
-    { ch: '{',  desc: "fountain",                      color: CLR_BRIGHT_BLUE },
-    // idx 38: S_pool (used for both POOL terrain and MOAT terrain)
-    { ch: '}',  desc: "pool",                          color: CLR_BLUE },
-    // idx 39: S_ice
-    { ch: '.',  desc: "ice",                           color: CLR_CYAN },
-    // idx 40: S_lava
-    { ch: '}',  desc: "molten lava",                   color: CLR_RED },
-    // idx 41: S_lavawall
-    { ch: '}',  desc: "wall of lava",                  color: CLR_ORANGE },
-    // idx 42: S_vodbridge
-    { ch: '.',  desc: "vertical open drawbridge",      color: CLR_BROWN },
-    // idx 43: S_hodbridge
-    { ch: '.',  desc: "horizontal open drawbridge",    color: CLR_BROWN },
-    // idx 44: S_vcdbridge
-    { ch: '#',  desc: "vertical closed drawbridge",    color: CLR_BROWN },
-    // idx 45: S_hcdbridge
-    { ch: '#',  desc: "horizontal closed drawbridge",  color: CLR_BROWN },
-    // idx 46: S_air
-    { ch: ' ',  desc: "air",                           color: CLR_CYAN },
-    // idx 47: S_cloud
-    { ch: '#',  desc: "cloud",                         color: CLR_GRAY },
-    // idx 48: S_water (WATER terrain: wall of water / Plane of Water)
-    { ch: '}',  desc: "water",                         color: CLR_BRIGHT_BLUE },
-    // --- end dungeon characters, begin traps ---
-    // idx 49: S_arrow_trap
-    { ch: '^',  desc: "arrow trap",                    color: HI_METAL },
-    // idx 50: S_dart_trap
-    { ch: '^',  desc: "dart trap",                     color: HI_METAL },
-    // idx 51: S_falling_rock_trap
-    { ch: '^',  desc: "falling rock trap",             color: CLR_GRAY },
-    // idx 52: S_squeaky_board
-    { ch: '^',  desc: "squeaky board",                 color: CLR_BROWN },
-    // idx 53: S_bear_trap
-    { ch: '^',  desc: "bear trap",                     color: HI_METAL },
-    // idx 54: S_land_mine
-    { ch: '^',  desc: "land mine",                     color: CLR_RED },
-    // idx 55: S_rolling_boulder_trap
-    { ch: '^',  desc: "rolling boulder trap",          color: CLR_GRAY },
-    // idx 56: S_sleeping_gas_trap
-    { ch: '^',  desc: "sleeping gas trap",             color: HI_ZAP },
-    // idx 57: S_rust_trap
-    { ch: '^',  desc: "rust trap",                     color: CLR_BLUE },
-    // idx 58: S_fire_trap
-    { ch: '^',  desc: "fire trap",                     color: CLR_ORANGE },
-    // idx 59: S_pit
-    { ch: '^',  desc: "pit",                           color: CLR_BLACK },
-    // idx 60: S_spiked_pit
-    { ch: '^',  desc: "spiked pit",                    color: CLR_BLACK },
-    // idx 61: S_hole
-    { ch: '^',  desc: "hole",                          color: CLR_BROWN },
-    // idx 62: S_trap_door
-    { ch: '^',  desc: "trap door",                     color: CLR_BROWN },
-    // idx 63: S_teleportation_trap
-    { ch: '^',  desc: "teleportation trap",            color: CLR_MAGENTA },
-    // idx 64: S_level_teleporter
-    { ch: '^',  desc: "level teleporter",              color: CLR_MAGENTA },
-    // idx 65: S_magic_portal
-    { ch: '^',  desc: "magic portal",                  color: CLR_BRIGHT_MAGENTA },
-    // idx 66: S_web
-    { ch: '"',  desc: "web",                           color: CLR_GRAY },
-    // idx 67: S_statue_trap
-    { ch: '^',  desc: "statue trap",                   color: CLR_GRAY },
-    // idx 68: S_magic_trap
-    { ch: '^',  desc: "magic trap",                    color: HI_ZAP },
-    // idx 69: S_anti_magic_trap
-    { ch: '^',  desc: "anti magic trap",               color: HI_ZAP },
-    // idx 70: S_polymorph_trap
-    { ch: '^',  desc: "polymorph trap",                color: CLR_BRIGHT_GREEN },
-    // idx 71: S_vibrating_square
-    { ch: '~',  desc: "vibrating square",              color: CLR_MAGENTA },
-    // idx 72: S_trapped_door
-    { ch: '^',  desc: "trapped door",                  color: CLR_ORANGE },
-    // idx 73: S_trapped_chest
-    { ch: '^',  desc: "trapped chest",                 color: CLR_ORANGE },
-    // --- end traps, end cmap B ---
-    // --- begin special effects ---
-    // idx 74: S_vbeam (zap colors changed by reset_glyphmap)
-    { ch: '|',  desc: "vertical beam",                 color: CLR_GRAY },
-    // idx 75: S_hbeam
-    { ch: '-',  desc: "horizontal beam",               color: CLR_GRAY },
-    // idx 76: S_lslant
-    { ch: '\\', desc: "left slant beam",               color: CLR_GRAY },
-    // idx 77: S_rslant
-    { ch: '/',  desc: "right slant beam",              color: CLR_GRAY },
-    // --- start cmap C ---
-    // idx 78: S_digbeam
-    { ch: '*',  desc: "dig beam",                      color: CLR_WHITE },
-    // idx 79: S_flashbeam
-    { ch: '!',  desc: "flash beam",                    color: CLR_WHITE },
-    // idx 80: S_boomleft
-    { ch: ')',  desc: "boom left",                     color: HI_WOOD },
-    // idx 81: S_boomright
-    { ch: '(',  desc: "boom right",                    color: HI_WOOD },
-    // idx 82: S_ss1 (magic shield)
-    { ch: '0',  desc: "shield1",                       color: HI_ZAP },
-    // idx 83: S_ss2
-    { ch: '#',  desc: "shield2",                       color: HI_ZAP },
-    // idx 84: S_ss3
-    { ch: '@',  desc: "shield3",                       color: HI_ZAP },
-    // idx 85: S_ss4
-    { ch: '*',  desc: "shield4",                       color: HI_ZAP },
-    // idx 86: S_poisoncloud
-    { ch: '#',  desc: "poison cloud",                  color: CLR_BRIGHT_GREEN },
-    // idx 87: S_goodpos
-    { ch: '$',  desc: "valid position",                color: HI_ZAP },
-    // --- end cmap C ---
-    // --- swallow symbols (do NOT separate) ---
-    // Order: 1 2 3 / 4 5 6 / 7 8 9
-    // idx 88: S_sw_tl  (1)
-    { ch: '/',  desc: "swallow top left",              color: CLR_GREEN },
-    // idx 89: S_sw_tc  (2)
-    { ch: '-',  desc: "swallow top center",            color: CLR_GREEN },
-    // idx 90: S_sw_tr  (3)
-    { ch: '\\', desc: "swallow top right",             color: CLR_GREEN },
-    // idx 91: S_sw_ml  (4)
-    { ch: '|',  desc: "swallow middle left",           color: CLR_GREEN },
-    // idx 92: S_sw_mr  (6)
-    { ch: '|',  desc: "swallow middle right",          color: CLR_GREEN },
-    // idx 93: S_sw_bl  (7)
-    { ch: '\\', desc: "swallow bottom left",           color: CLR_GREEN },
-    // idx 94: S_sw_bc  (8)
-    { ch: '-',  desc: "swallow bottom center",         color: CLR_GREEN },
-    // idx 95: S_sw_br  (9)
-    { ch: '/',  desc: "swallow bottom right",          color: CLR_GREEN },
-    // --- explosion symbols ---
-    // idx 96: S_expl_tl
-    { ch: '/',  desc: "explosion top left",            color: CLR_ORANGE },
-    // idx 97: S_expl_tc
-    { ch: '-',  desc: "explosion top center",          color: CLR_ORANGE },
-    // idx 98: S_expl_tr
-    { ch: '\\', desc: "explosion top right",           color: CLR_ORANGE },
-    // idx 99: S_expl_ml
-    { ch: '|',  desc: "explosion middle left",         color: CLR_ORANGE },
-    // idx 100: S_expl_mc
-    { ch: ' ',  desc: "explosion middle center",       color: CLR_ORANGE },
-    // idx 101: S_expl_mr
-    { ch: '|',  desc: "explosion middle right",        color: CLR_ORANGE },
-    // idx 102: S_expl_bl
-    { ch: '\\', desc: "explosion bottom left",         color: CLR_ORANGE },
-    // idx 103: S_expl_bc
-    { ch: '-',  desc: "explosion bottom center",       color: CLR_ORANGE },
-    // idx 104: S_expl_br
-    { ch: '/',  desc: "explosion bottom right",        color: CLR_ORANGE },
+    { ch: ' ', desc: "stone", color: NO_COLOR }, // S_stone
+    { ch: '|', desc: "wall", color: CLR_GRAY }, // S_vwall
+    { ch: '-', desc: "wall", color: CLR_GRAY }, // S_hwall
+    { ch: '-', desc: "wall", color: CLR_GRAY }, // S_tlcorn
+    { ch: '-', desc: "wall", color: CLR_GRAY }, // S_trcorn
+    { ch: '-', desc: "wall", color: CLR_GRAY }, // S_blcorn
+    { ch: '-', desc: "wall", color: CLR_GRAY }, // S_brcorn
+    { ch: '-', desc: "wall", color: CLR_GRAY }, // S_crwall
+    { ch: '-', desc: "wall", color: CLR_GRAY }, // S_tuwall
+    { ch: '-', desc: "wall", color: CLR_GRAY }, // S_tdwall
+    { ch: '|', desc: "wall", color: CLR_GRAY }, // S_tlwall
+    { ch: '|', desc: "wall", color: CLR_GRAY }, // S_trwall
+    { ch: '.', desc: "doorway", color: CLR_GRAY }, // S_ndoor
+    { ch: '-', desc: "open door", color: CLR_BROWN }, // S_vodoor
+    { ch: '|', desc: "open door", color: CLR_BROWN }, // S_hodoor
+    { ch: '+', desc: "closed door", color: CLR_BROWN }, // S_vcdoor
+    { ch: '+', desc: "closed door", color: CLR_BROWN }, // S_hcdoor
+    { ch: '#', desc: "iron bars", color: HI_METAL }, // S_bars
+    { ch: '#', desc: "tree", color: CLR_GREEN }, // S_tree
+    { ch: '.', desc: "floor of a room", color: CLR_GRAY }, // S_room
+    { ch: '.', desc: "dark part of a room", color: CLR_BLACK }, // S_darkroom
+    { ch: '`', desc: "engraving", color: CLR_BRIGHT_BLUE }, // S_engroom
+    { ch: '#', desc: "corridor", color: CLR_GRAY }, // S_corr
+    { ch: '#', desc: "lit corridor", color: CLR_GRAY }, // S_litcorr
+    { ch: '#', desc: "engraving", color: CLR_BRIGHT_BLUE }, // S_engrcorr
+    { ch: '<', desc: "staircase up", color: CLR_GRAY }, // S_upstair
+    { ch: '>', desc: "staircase down", color: CLR_GRAY }, // S_dnstair
+    { ch: '<', desc: "ladder up", color: CLR_BROWN }, // S_upladder
+    { ch: '>', desc: "ladder down", color: CLR_BROWN }, // S_dnladder
+    { ch: '<', desc: "branch staircase up", color: CLR_YELLOW }, // S_brupstair
+    { ch: '>', desc: "branch staircase down", color: CLR_YELLOW }, // S_brdnstair
+    { ch: '<', desc: "branch ladder up", color: CLR_YELLOW }, // S_brupladder
+    { ch: '>', desc: "branch ladder down", color: CLR_YELLOW }, // S_brdnladder
+    { ch: '_', desc: "altar", color: CLR_GRAY }, // S_altar
+    { ch: '|', desc: "grave", color: CLR_WHITE }, // S_grave
+    { ch: '\\', desc: "opulent throne", color: HI_GOLD }, // S_throne
+    { ch: '{', desc: "sink", color: CLR_WHITE }, // S_sink
+    { ch: '{', desc: "fountain", color: CLR_BRIGHT_BLUE }, // S_fountain
+    { ch: '}', desc: "water", color: CLR_BLUE }, // S_pool
+    { ch: '.', desc: "ice", color: CLR_CYAN }, // S_ice
+    { ch: '}', desc: "molten lava", color: CLR_RED }, // S_lava
+    { ch: '}', desc: "wall of lava", color: CLR_ORANGE }, // S_lavawall
+    { ch: '.', desc: "lowered drawbridge", color: CLR_BROWN }, // S_vodbridge
+    { ch: '.', desc: "lowered drawbridge", color: CLR_BROWN }, // S_hodbridge
+    { ch: '#', desc: "raised drawbridge", color: CLR_BROWN }, // S_vcdbridge
+    { ch: '#', desc: "raised drawbridge", color: CLR_BROWN }, // S_hcdbridge
+    { ch: ' ', desc: "air", color: CLR_CYAN }, // S_air
+    { ch: '#', desc: "cloud", color: CLR_GRAY }, // S_cloud
+    { ch: '}', desc: "water", color: CLR_BRIGHT_BLUE }, // S_water
+    { ch: '^', desc: "arrow trap", color: HI_METAL }, // S_arrow_trap
+    { ch: '^', desc: "dart trap", color: HI_METAL }, // S_dart_trap
+    { ch: '^', desc: "falling rock trap", color: CLR_GRAY }, // S_falling_rock_trap
+    { ch: '^', desc: "squeaky board", color: CLR_BROWN }, // S_squeaky_board
+    { ch: '^', desc: "bear trap", color: HI_METAL }, // S_bear_trap
+    { ch: '^', desc: "land mine", color: CLR_RED }, // S_land_mine
+    { ch: '^', desc: "rolling boulder trap", color: CLR_GRAY }, // S_rolling_boulder_trap
+    { ch: '^', desc: "sleeping gas trap", color: HI_ZAP }, // S_sleeping_gas_trap
+    { ch: '^', desc: "rust trap", color: CLR_BLUE }, // S_rust_trap
+    { ch: '^', desc: "fire trap", color: CLR_ORANGE }, // S_fire_trap
+    { ch: '^', desc: "pit", color: CLR_BLACK }, // S_pit
+    { ch: '^', desc: "spiked pit", color: CLR_BLACK }, // S_spiked_pit
+    { ch: '^', desc: "hole", color: CLR_BROWN }, // S_hole
+    { ch: '^', desc: "trap door", color: CLR_BROWN }, // S_trap_door
+    { ch: '^', desc: "teleportation trap", color: CLR_MAGENTA }, // S_teleportation_trap
+    { ch: '^', desc: "level teleporter", color: CLR_MAGENTA }, // S_level_teleporter
+    { ch: '^', desc: "magic portal", color: CLR_BRIGHT_MAGENTA }, // S_magic_portal
+    { ch: '"', desc: "web", color: CLR_GRAY }, // S_web
+    { ch: '^', desc: "statue trap", color: CLR_GRAY }, // S_statue_trap
+    { ch: '^', desc: "magic trap", color: HI_ZAP }, // S_magic_trap
+    { ch: '^', desc: "anti-magic field", color: HI_ZAP }, // S_anti_magic_trap
+    { ch: '^', desc: "polymorph trap", color: CLR_BRIGHT_GREEN }, // S_polymorph_trap
+    { ch: '~', desc: "vibrating square", color: CLR_MAGENTA }, // S_vibrating_square
+    { ch: '^', desc: "trapped door", color: CLR_ORANGE }, // S_trapped_door
+    { ch: '^', desc: "trapped chest", color: CLR_ORANGE }, // S_trapped_chest
+    { ch: '|', desc: "", color: CLR_GRAY }, // S_vbeam
+    { ch: '-', desc: "", color: CLR_GRAY }, // S_hbeam
+    { ch: '\\', desc: "", color: CLR_GRAY }, // S_lslant
+    { ch: '/', desc: "", color: CLR_GRAY }, // S_rslant
+    { ch: '*', desc: "", color: CLR_WHITE }, // S_digbeam
+    { ch: '!', desc: "", color: CLR_WHITE }, // S_flashbeam
+    { ch: ')', desc: "", color: HI_WOOD }, // S_boomleft
+    { ch: '(', desc: "", color: HI_WOOD }, // S_boomright
+    { ch: '0', desc: "", color: HI_ZAP }, // S_ss1
+    { ch: '#', desc: "", color: HI_ZAP }, // S_ss2
+    { ch: '@', desc: "", color: HI_ZAP }, // S_ss3
+    { ch: '*', desc: "", color: HI_ZAP }, // S_ss4
+    { ch: '#', desc: "poison cloud", color: CLR_BRIGHT_GREEN }, // S_poisoncloud
+    { ch: '$', desc: "valid position", color: HI_ZAP }, // S_goodpos
+    { ch: '/', desc: "", color: CLR_GREEN }, // S_sw_tl
+    { ch: '-', desc: "", color: CLR_GREEN }, // S_sw_tc
+    { ch: '\\', desc: "", color: CLR_GREEN }, // S_sw_tr
+    { ch: '|', desc: "", color: CLR_GREEN }, // S_sw_ml
+    { ch: '|', desc: "", color: CLR_GREEN }, // S_sw_mr
+    { ch: '\\', desc: "", color: CLR_GREEN }, // S_sw_bl
+    { ch: '-', desc: "", color: CLR_GREEN }, // S_sw_bc
+    { ch: '/', desc: "", color: CLR_GREEN }, // S_sw_br
+    { ch: '/', desc: "", color: CLR_ORANGE }, // S_expl_tl
+    { ch: '-', desc: "", color: CLR_ORANGE }, // S_expl_tc
+    { ch: '\\', desc: "", color: CLR_ORANGE }, // S_expl_tr
+    { ch: '|', desc: "", color: CLR_ORANGE }, // S_expl_ml
+    { ch: ' ', desc: "", color: CLR_ORANGE }, // S_expl_mc
+    { ch: '|', desc: "", color: CLR_ORANGE }, // S_expl_mr
+    { ch: '\\', desc: "", color: CLR_ORANGE }, // S_expl_bl
+    { ch: '-', desc: "", color: CLR_ORANGE }, // S_expl_bc
+    { ch: '/', desc: "", color: CLR_ORANGE }, // S_expl_br
 ];
 
-// Derived constants (from include/sym.h, lines 91-94)
-export const MAXDCHARS = S_water - S_stone + 1;            // mapped dungeon characters
-export const MAXECHARS = S_expl_br - S_vbeam + 1;          // mapped effects characters
+// 3) PCHAR_PARSE
+export const PCHAR_PARSE_ROWS = Object.freeze([
+    ["S_stone", S_stone],
+    ["S_vwall", S_vwall],
+    ["S_hwall", S_hwall],
+    ["S_tlcorn", S_tlcorn],
+    ["S_trcorn", S_trcorn],
+    ["S_blcorn", S_blcorn],
+    ["S_brcorn", S_brcorn],
+    ["S_crwall", S_crwall],
+    ["S_tuwall", S_tuwall],
+    ["S_tdwall", S_tdwall],
+    ["S_tlwall", S_tlwall],
+    ["S_trwall", S_trwall],
+    ["S_ndoor", S_ndoor],
+    ["S_vodoor", S_vodoor],
+    ["S_hodoor", S_hodoor],
+    ["S_vcdoor", S_vcdoor],
+    ["S_hcdoor", S_hcdoor],
+    ["S_bars", S_bars],
+    ["S_tree", S_tree],
+    ["S_room", S_room],
+    ["S_darkroom", S_darkroom],
+    ["S_engroom", S_engroom],
+    ["S_corr", S_corr],
+    ["S_litcorr", S_litcorr],
+    ["S_engrcorr", S_engrcorr],
+    ["S_upstair", S_upstair],
+    ["S_dnstair", S_dnstair],
+    ["S_upladder", S_upladder],
+    ["S_dnladder", S_dnladder],
+    ["S_brupstair", S_brupstair],
+    ["S_brdnstair", S_brdnstair],
+    ["S_brupladder", S_brupladder],
+    ["S_brdnladder", S_brdnladder],
+    ["S_altar", S_altar],
+    ["S_grave", S_grave],
+    ["S_throne", S_throne],
+    ["S_sink", S_sink],
+    ["S_fountain", S_fountain],
+    ["S_pool", S_pool],
+    ["S_ice", S_ice],
+    ["S_lava", S_lava],
+    ["S_lavawall", S_lavawall],
+    ["S_vodbridge", S_vodbridge],
+    ["S_hodbridge", S_hodbridge],
+    ["S_vcdbridge", S_vcdbridge],
+    ["S_hcdbridge", S_hcdbridge],
+    ["S_air", S_air],
+    ["S_cloud", S_cloud],
+    ["S_water", S_water],
+    ["S_arrow_trap", S_arrow_trap],
+    ["S_dart_trap", S_dart_trap],
+    ["S_falling_rock_trap", S_falling_rock_trap],
+    ["S_squeaky_board", S_squeaky_board],
+    ["S_bear_trap", S_bear_trap],
+    ["S_land_mine", S_land_mine],
+    ["S_rolling_boulder_trap", S_rolling_boulder_trap],
+    ["S_sleeping_gas_trap", S_sleeping_gas_trap],
+    ["S_rust_trap", S_rust_trap],
+    ["S_fire_trap", S_fire_trap],
+    ["S_pit", S_pit],
+    ["S_spiked_pit", S_spiked_pit],
+    ["S_hole", S_hole],
+    ["S_trap_door", S_trap_door],
+    ["S_teleportation_trap", S_teleportation_trap],
+    ["S_level_teleporter", S_level_teleporter],
+    ["S_magic_portal", S_magic_portal],
+    ["S_web", S_web],
+    ["S_statue_trap", S_statue_trap],
+    ["S_magic_trap", S_magic_trap],
+    ["S_anti_magic_trap", S_anti_magic_trap],
+    ["S_polymorph_trap", S_polymorph_trap],
+    ["S_vibrating_square", S_vibrating_square],
+    ["S_trapped_door", S_trapped_door],
+    ["S_trapped_chest", S_trapped_chest],
+    ["S_vbeam", S_vbeam],
+    ["S_hbeam", S_hbeam],
+    ["S_lslant", S_lslant],
+    ["S_rslant", S_rslant],
+    ["S_digbeam", S_digbeam],
+    ["S_flashbeam", S_flashbeam],
+    ["S_boomleft", S_boomleft],
+    ["S_boomright", S_boomright],
+    ["S_ss1", S_ss1],
+    ["S_ss2", S_ss2],
+    ["S_ss3", S_ss3],
+    ["S_ss4", S_ss4],
+    ["S_poisoncloud", S_poisoncloud],
+    ["S_goodpos", S_goodpos],
+    ["S_sw_tl", S_sw_tl],
+    ["S_sw_tc", S_sw_tc],
+    ["S_sw_tr", S_sw_tr],
+    ["S_sw_ml", S_sw_ml],
+    ["S_sw_mr", S_sw_mr],
+    ["S_sw_bl", S_sw_bl],
+    ["S_sw_bc", S_sw_bc],
+    ["S_sw_br", S_sw_br],
+    ["S_expl_tl", S_expl_tl],
+    ["S_expl_tc", S_expl_tc],
+    ["S_expl_tr", S_expl_tr],
+    ["S_expl_ml", S_expl_ml],
+    ["S_expl_mc", S_expl_mc],
+    ["S_expl_mr", S_expl_mr],
+    ["S_expl_bl", S_expl_bl],
+    ["S_expl_bc", S_expl_bc],
+    ["S_expl_br", S_expl_br],
+]);
+
+// 4) MONSYMS_DEFCHAR_ENUM
+export const DEF_ANT = 'a'.charCodeAt(0);
+export const DEF_BLOB = 'b'.charCodeAt(0);
+export const DEF_COCKATRICE = 'c'.charCodeAt(0);
+export const DEF_DOG = 'd'.charCodeAt(0);
+export const DEF_EYE = 'e'.charCodeAt(0);
+export const DEF_FELINE = 'f'.charCodeAt(0);
+export const DEF_GREMLIN = 'g'.charCodeAt(0);
+export const DEF_HUMANOID = 'h'.charCodeAt(0);
+export const DEF_IMP = 'i'.charCodeAt(0);
+export const DEF_JELLY = 'j'.charCodeAt(0);
+export const DEF_KOBOLD = 'k'.charCodeAt(0);
+export const DEF_LEPRECHAUN = 'l'.charCodeAt(0);
+export const DEF_MIMIC = 'm'.charCodeAt(0);
+export const DEF_NYMPH = 'n'.charCodeAt(0);
+export const DEF_ORC = 'o'.charCodeAt(0);
+export const DEF_PIERCER = 'p'.charCodeAt(0);
+export const DEF_QUADRUPED = 'q'.charCodeAt(0);
+export const DEF_RODENT = 'r'.charCodeAt(0);
+export const DEF_SPIDER = 's'.charCodeAt(0);
+export const DEF_TRAPPER = 't'.charCodeAt(0);
+export const DEF_UNICORN = 'u'.charCodeAt(0);
+export const DEF_VORTEX = 'v'.charCodeAt(0);
+export const DEF_WORM = 'w'.charCodeAt(0);
+export const DEF_XAN = 'x'.charCodeAt(0);
+export const DEF_LIGHT = 'y'.charCodeAt(0);
+export const DEF_ZRUTY = 'z'.charCodeAt(0);
+export const DEF_ANGEL = 'A'.charCodeAt(0);
+export const DEF_BAT = 'B'.charCodeAt(0);
+export const DEF_CENTAUR = 'C'.charCodeAt(0);
+export const DEF_DRAGON = 'D'.charCodeAt(0);
+export const DEF_ELEMENTAL = 'E'.charCodeAt(0);
+export const DEF_FUNGUS = 'F'.charCodeAt(0);
+export const DEF_GNOME = 'G'.charCodeAt(0);
+export const DEF_GIANT = 'H'.charCodeAt(0);
+export const DEF_INVISIBLE = 'I'.charCodeAt(0);
+export const DEF_JABBERWOCK = 'J'.charCodeAt(0);
+export const DEF_KOP = 'K'.charCodeAt(0);
+export const DEF_LICH = 'L'.charCodeAt(0);
+export const DEF_MUMMY = 'M'.charCodeAt(0);
+export const DEF_NAGA = 'N'.charCodeAt(0);
+export const DEF_OGRE = 'O'.charCodeAt(0);
+export const DEF_PUDDING = 'P'.charCodeAt(0);
+export const DEF_QUANTMECH = 'Q'.charCodeAt(0);
+export const DEF_RUSTMONST = 'R'.charCodeAt(0);
+export const DEF_SNAKE = 'S'.charCodeAt(0);
+export const DEF_TROLL = 'T'.charCodeAt(0);
+export const DEF_UMBER = 'U'.charCodeAt(0);
+export const DEF_VAMPIRE = 'V'.charCodeAt(0);
+export const DEF_WRAITH = 'W'.charCodeAt(0);
+export const DEF_XORN = 'X'.charCodeAt(0);
+export const DEF_YETI = 'Y'.charCodeAt(0);
+export const DEF_ZOMBIE = 'Z'.charCodeAt(0);
+export const DEF_HUMAN = '@'.charCodeAt(0);
+export const DEF_GHOST = ' '.charCodeAt(0);
+export const DEF_GOLEM = '\''.charCodeAt(0);
+export const DEF_DEMON = '&'.charCodeAt(0);
+export const DEF_EEL = ';'.charCodeAt(0);
+export const DEF_LIZARD = ':'.charCodeAt(0);
+export const DEF_WORM_TAIL = '~'.charCodeAt(0);
+export const DEF_MIMIC_DEF = ']'.charCodeAt(0);
+
+// 5) MONSYMS_S_ENUM
+export const S_ANT = 1;
+export const S_BLOB = 2;
+export const S_COCKATRICE = 3;
+export const S_DOG = 4;
+export const S_EYE = 5;
+export const S_FELINE = 6;
+export const S_GREMLIN = 7;
+export const S_HUMANOID = 8;
+export const S_IMP = 9;
+export const S_JELLY = 10;
+export const S_KOBOLD = 11;
+export const S_LEPRECHAUN = 12;
+export const S_MIMIC = 13;
+export const S_NYMPH = 14;
+export const S_ORC = 15;
+export const S_PIERCER = 16;
+export const S_QUADRUPED = 17;
+export const S_RODENT = 18;
+export const S_SPIDER = 19;
+export const S_TRAPPER = 20;
+export const S_UNICORN = 21;
+export const S_VORTEX = 22;
+export const S_WORM = 23;
+export const S_XAN = 24;
+export const S_LIGHT = 25;
+export const S_ZRUTY = 26;
+export const S_ANGEL = 27;
+export const S_BAT = 28;
+export const S_CENTAUR = 29;
+export const S_DRAGON = 30;
+export const S_ELEMENTAL = 31;
+export const S_FUNGUS = 32;
+export const S_GNOME = 33;
+export const S_GIANT = 34;
+export const S_invisible = 35;
+export const S_JABBERWOCK = 36;
+export const S_KOP = 37;
+export const S_LICH = 38;
+export const S_MUMMY = 39;
+export const S_NAGA = 40;
+export const S_OGRE = 41;
+export const S_PUDDING = 42;
+export const S_QUANTMECH = 43;
+export const S_RUSTMONST = 44;
+export const S_SNAKE = 45;
+export const S_TROLL = 46;
+export const S_UMBER = 47;
+export const S_VAMPIRE = 48;
+export const S_WRAITH = 49;
+export const S_XORN = 50;
+export const S_YETI = 51;
+export const S_ZOMBIE = 52;
+export const S_HUMAN = 53;
+export const S_GHOST = 54;
+export const S_GOLEM = 55;
+export const S_DEMON = 56;
+export const S_EEL = 57;
+export const S_LIZARD = 58;
+export const S_WORM_TAIL = 59;
+export const S_MIMIC_DEF = 60;
+
+// 6) MONSYMS_DRAWING
+export const def_monsyms = [
+    { sym: '\\0', name: "", explain: "" },
+    { sym: 'a', name: "", explain: "ant or other insect" }, // S_ANT
+    { sym: 'b', name: "", explain: "blob" }, // S_BLOB
+    { sym: 'c', name: "", explain: "cockatrice" }, // S_COCKATRICE
+    { sym: 'd', name: "", explain: "dog or other canine" }, // S_DOG
+    { sym: 'e', name: "", explain: "eye or sphere" }, // S_EYE
+    { sym: 'f', name: "", explain: "cat or other feline" }, // S_FELINE
+    { sym: 'g', name: "", explain: "gremlin" }, // S_GREMLIN
+    { sym: 'h', name: "", explain: "humanoid" }, // S_HUMANOID
+    { sym: 'i', name: "", explain: "imp or minor demon" }, // S_IMP
+    { sym: 'j', name: "", explain: "jelly" }, // S_JELLY
+    { sym: 'k', name: "", explain: "kobold" }, // S_KOBOLD
+    { sym: 'l', name: "", explain: "leprechaun" }, // S_LEPRECHAUN
+    { sym: 'm', name: "", explain: "mimic" }, // S_MIMIC
+    { sym: 'n', name: "", explain: "nymph" }, // S_NYMPH
+    { sym: 'o', name: "", explain: "orc" }, // S_ORC
+    { sym: 'p', name: "", explain: "piercer" }, // S_PIERCER
+    { sym: 'q', name: "", explain: "quadruped" }, // S_QUADRUPED
+    { sym: 'r', name: "", explain: "rodent" }, // S_RODENT
+    { sym: 's', name: "", explain: "arachnid or centipede" }, // S_SPIDER
+    { sym: 't', name: "", explain: "trapper or lurker above" }, // S_TRAPPER
+    { sym: 'u', name: "", explain: "unicorn or horse" }, // S_UNICORN
+    { sym: 'v', name: "", explain: "vortex" }, // S_VORTEX
+    { sym: 'w', name: "", explain: "worm" }, // S_WORM
+    { sym: 'x', name: "", explain: "xan or other mythical/fantastic insect" }, // S_XAN
+    { sym: 'y', name: "", explain: "light" }, // S_LIGHT
+    { sym: 'z', name: "", explain: "zruty" }, // S_ZRUTY
+    { sym: 'A', name: "", explain: "angelic being" }, // S_ANGEL
+    { sym: 'B', name: "", explain: "bat or bird" }, // S_BAT
+    { sym: 'C', name: "", explain: "centaur" }, // S_CENTAUR
+    { sym: 'D', name: "", explain: "dragon" }, // S_DRAGON
+    { sym: 'E', name: "", explain: "elemental" }, // S_ELEMENTAL
+    { sym: 'F', name: "", explain: "fungus or mold" }, // S_FUNGUS
+    { sym: 'G', name: "", explain: "gnome" }, // S_GNOME
+    { sym: 'H', name: "", explain: "giant humanoid" }, // S_GIANT
+    { sym: 'I', name: "", explain: "invisible monster" }, // S_invisible
+    { sym: 'J', name: "", explain: "jabberwock" }, // S_JABBERWOCK
+    { sym: 'K', name: "", explain: "Keystone Kop" }, // S_KOP
+    { sym: 'L', name: "", explain: "lich" }, // S_LICH
+    { sym: 'M', name: "", explain: "mummy" }, // S_MUMMY
+    { sym: 'N', name: "", explain: "naga" }, // S_NAGA
+    { sym: 'O', name: "", explain: "ogre" }, // S_OGRE
+    { sym: 'P', name: "", explain: "pudding or ooze" }, // S_PUDDING
+    { sym: 'Q', name: "", explain: "quantum mechanic" }, // S_QUANTMECH
+    { sym: 'R', name: "", explain: "rust monster or disenchanter" }, // S_RUSTMONST
+    { sym: 'S', name: "", explain: "snake" }, // S_SNAKE
+    { sym: 'T', name: "", explain: "troll" }, // S_TROLL
+    { sym: 'U', name: "", explain: "umber hulk" }, // S_UMBER
+    { sym: 'V', name: "", explain: "vampire" }, // S_VAMPIRE
+    { sym: 'W', name: "", explain: "wraith" }, // S_WRAITH
+    { sym: 'X', name: "", explain: "xorn" }, // S_XORN
+    { sym: 'Y', name: "", explain: "apelike creature" }, // S_YETI
+    { sym: 'Z', name: "", explain: "zombie" }, // S_ZOMBIE
+    { sym: '@', name: "", explain: "human or elf" }, // S_HUMAN
+    { sym: ' ', name: "", explain: "ghost" }, // S_GHOST
+    { sym: '\'', name: "", explain: "golem" }, // S_GOLEM
+    { sym: '&', name: "", explain: "major demon" }, // S_DEMON
+    { sym: ';', name: "", explain: "sea monster" }, // S_EEL
+    { sym: ':', name: "", explain: "lizard" }, // S_LIZARD
+    { sym: '~', name: "", explain: "long worm tail" }, // S_WORM_TAIL
+    { sym: ']', name: "", explain: "mimic" }, // S_MIMIC_DEF
+];
+
+// 7) MONSYMS_PARSE
+export const MONSYMS_PARSE_ROWS = Object.freeze([
+    ["S_ANT", S_ANT],
+    ["S_BLOB", S_BLOB],
+    ["S_COCKATRICE", S_COCKATRICE],
+    ["S_DOG", S_DOG],
+    ["S_EYE", S_EYE],
+    ["S_FELINE", S_FELINE],
+    ["S_GREMLIN", S_GREMLIN],
+    ["S_HUMANOID", S_HUMANOID],
+    ["S_IMP", S_IMP],
+    ["S_JELLY", S_JELLY],
+    ["S_KOBOLD", S_KOBOLD],
+    ["S_LEPRECHAUN", S_LEPRECHAUN],
+    ["S_MIMIC", S_MIMIC],
+    ["S_NYMPH", S_NYMPH],
+    ["S_ORC", S_ORC],
+    ["S_PIERCER", S_PIERCER],
+    ["S_QUADRUPED", S_QUADRUPED],
+    ["S_RODENT", S_RODENT],
+    ["S_SPIDER", S_SPIDER],
+    ["S_TRAPPER", S_TRAPPER],
+    ["S_UNICORN", S_UNICORN],
+    ["S_VORTEX", S_VORTEX],
+    ["S_WORM", S_WORM],
+    ["S_XAN", S_XAN],
+    ["S_LIGHT", S_LIGHT],
+    ["S_ZRUTY", S_ZRUTY],
+    ["S_ANGEL", S_ANGEL],
+    ["S_BAT", S_BAT],
+    ["S_CENTAUR", S_CENTAUR],
+    ["S_DRAGON", S_DRAGON],
+    ["S_ELEMENTAL", S_ELEMENTAL],
+    ["S_FUNGUS", S_FUNGUS],
+    ["S_GNOME", S_GNOME],
+    ["S_GIANT", S_GIANT],
+    ["S_invisible", S_invisible],
+    ["S_JABBERWOCK", S_JABBERWOCK],
+    ["S_KOP", S_KOP],
+    ["S_LICH", S_LICH],
+    ["S_MUMMY", S_MUMMY],
+    ["S_NAGA", S_NAGA],
+    ["S_OGRE", S_OGRE],
+    ["S_PUDDING", S_PUDDING],
+    ["S_QUANTMECH", S_QUANTMECH],
+    ["S_RUSTMONST", S_RUSTMONST],
+    ["S_SNAKE", S_SNAKE],
+    ["S_TROLL", S_TROLL],
+    ["S_UMBER", S_UMBER],
+    ["S_VAMPIRE", S_VAMPIRE],
+    ["S_WRAITH", S_WRAITH],
+    ["S_XORN", S_XORN],
+    ["S_YETI", S_YETI],
+    ["S_ZOMBIE", S_ZOMBIE],
+    ["S_HUMAN", S_HUMAN],
+    ["S_GHOST", S_GHOST],
+    ["S_GOLEM", S_GOLEM],
+    ["S_DEMON", S_DEMON],
+    ["S_EEL", S_EEL],
+    ["S_LIZARD", S_LIZARD],
+    ["S_WORM_TAIL", S_WORM_TAIL],
+    ["S_MIMIC_DEF", S_MIMIC_DEF],
+]);
+
+// 8) OBJCLASS_DEFCHAR_ENUM
+export const ILLOBJ_SYM = ']'.charCodeAt(0);
+export const WEAPON_SYM = ')'.charCodeAt(0);
+export const ARMOR_SYM = '['.charCodeAt(0);
+export const RING_SYM = '='.charCodeAt(0);
+export const AMULET_SYM = '"'.charCodeAt(0);
+export const TOOL_SYM = '('.charCodeAt(0);
+export const FOOD_SYM = '%'.charCodeAt(0);
+export const POTION_SYM = '!'.charCodeAt(0);
+export const SCROLL_SYM = '?'.charCodeAt(0);
+export const SPBOOK_SYM = '+'.charCodeAt(0);
+export const WAND_SYM = '/'.charCodeAt(0);
+export const GOLD_SYM = '$'.charCodeAt(0);
+export const GEM_SYM = '*'.charCodeAt(0);
+export const ROCK_SYM = '`'.charCodeAt(0);
+export const BALL_SYM = '0'.charCodeAt(0);
+export const CHAIN_SYM = '_'.charCodeAt(0);
+export const VENOM_SYM = '.'.charCodeAt(0);
+
+// 10) OBJCLASS_S_ENUM
+export const S_strange_obj = 1;
+export const S_weapon = 2;
+export const S_armor = 3;
+export const S_ring = 4;
+export const S_amulet = 5;
+export const S_tool = 6;
+export const S_food = 7;
+export const S_potion = 8;
+export const S_scroll = 9;
+export const S_book = 10;
+export const S_wand = 11;
+export const S_coin = 12;
+export const S_gem = 13;
+export const S_rock = 14;
+export const S_ball = 15;
+export const S_chain = 16;
+export const S_venom = 17;
+
+// 11) OBJCLASS_DRAWING
+export const def_oc_syms = [
+    { sym: '\\0', name: "", explain: "" },
+    { sym: ']', name: "illegal objects", explain: "strange object" }, // ILLOBJ_CLASS
+    { sym: ')', name: "weapons", explain: "weapon" }, // WEAPON_CLASS
+    { sym: '[', name: "armor", explain: "suit or piece of armor" }, // ARMOR_CLASS
+    { sym: '=', name: "rings", explain: "ring" }, // RING_CLASS
+    { sym: '"', name: "amulets", explain: "amulet" }, // AMULET_CLASS
+    { sym: '(', name: "tools", explain: "useful item (pick-axe, key, lamp...)" }, // TOOL_CLASS
+    { sym: '%', name: "food", explain: "piece of food" }, // FOOD_CLASS
+    { sym: '!', name: "potions", explain: "potion" }, // POTION_CLASS
+    { sym: '?', name: "scrolls", explain: "scroll" }, // SCROLL_CLASS
+    { sym: '+', name: "spellbooks", explain: "spellbook" }, // SPBOOK_CLASS
+    { sym: '/', name: "wands", explain: "wand" }, // WAND_CLASS
+    { sym: '$', name: "coins", explain: "pile of coins" }, // COIN_CLASS
+    { sym: '*', name: "rocks", explain: "gem or rock" }, // GEM_CLASS
+    { sym: '`', name: "large stones", explain: "boulder or statue" }, // ROCK_CLASS
+    { sym: '0', name: "iron balls", explain: "iron ball" }, // BALL_CLASS
+    { sym: '_', name: "chains", explain: "iron chain" }, // CHAIN_CLASS
+    { sym: '.', name: "venoms", explain: "splash of venom" }, // VENOM_CLASS
+];
+export const MAXPCHARS = 105;
+export const MAXMCLASSES = 61;
+
+// 12) OBJCLASS_PARSE
+export const OBJCLASS_PARSE_ROWS = Object.freeze([
+    ["S_strange_obj", S_strange_obj],
+    ["S_weapon", S_weapon],
+    ["S_armor", S_armor],
+    ["S_ring", S_ring],
+    ["S_amulet", S_amulet],
+    ["S_tool", S_tool],
+    ["S_food", S_food],
+    ["S_potion", S_potion],
+    ["S_scroll", S_scroll],
+    ["S_book", S_book],
+    ["S_wand", S_wand],
+    ["S_coin", S_coin],
+    ["S_gem", S_gem],
+    ["S_rock", S_rock],
+    ["S_ball", S_ball],
+    ["S_chain", S_chain],
+    ["S_venom", S_venom],
+]);
+
+// 13) PCHAR_TILES
+export const PCHAR_TILES_ROWS = Object.freeze([
+    [S_stone, "dark part of a room", "stone"],
+    [S_vwall, "vertical wall", "wall"],
+    [S_hwall, "horizontal wall", "wall"],
+    [S_tlcorn, "top left corner wall", "wall"],
+    [S_trcorn, "top right corner wall", "wall"],
+    [S_blcorn, "bottom left corner wall", "wall"],
+    [S_brcorn, "bottom right corner wall", "wall"],
+    [S_crwall, "cross wall", "wall"],
+    [S_tuwall, "tuwall", "wall"],
+    [S_tdwall, "tdwall", "wall"],
+    [S_tlwall, "tlwall", "wall"],
+    [S_trwall, "trwall", "wall"],
+    [S_ndoor, "no door", "doorway"],
+    [S_vodoor, "vertical open door", "open door"],
+    [S_hodoor, "horizontal open door", "open door"],
+    [S_vcdoor, "vertical closed door", "closed door"],
+    [S_hcdoor, "horizontal closed door", "closed door"],
+    [S_bars, "iron bars", "iron bars"],
+    [S_tree, "tree", "tree"],
+    [S_room, "floor of a room", "floor of a room"],
+    [S_darkroom, "dark part of a room", "dark part of a room"],
+    [S_engroom, "engraving in a room", "engraving"],
+    [S_corr, "dark corridor", "corridor"],
+    [S_litcorr, "lit corridor", "lit corridor"],
+    [S_engrcorr, "engraving in a corridor", "engraving"],
+    [S_upstair, "up stairs", "staircase up"],
+    [S_dnstair, "down stairs", "staircase down"],
+    [S_upladder, "up ladder", "ladder up"],
+    [S_dnladder, "down ladder", "ladder down"],
+    [S_brupstair, "branch staircase up", "branch staircase up"],
+    [S_brdnstair, "branch staircase down", "branch staircase down"],
+    [S_brupladder, "branch ladder up", "branch ladder up"],
+    [S_brdnladder, "branch ladder down", "branch ladder down"],
+    [S_altar, "altar", "altar"],
+    [S_grave, "grave", "grave"],
+    [S_throne, "throne", "opulent throne"],
+    [S_sink, "sink", "sink"],
+    [S_fountain, "fountain", "fountain"],
+    [S_pool, "pool", "water"],
+    [S_ice, "ice", "ice"],
+    [S_lava, "molten lava", "molten lava"],
+    [S_lavawall, "wall of lava", "wall of lava"],
+    [S_vodbridge, "vertical open drawbridge", "lowered drawbridge"],
+    [S_hodbridge, "horizontal open drawbridge", "lowered drawbridge"],
+    [S_vcdbridge, "vertical closed drawbridge", "raised drawbridge"],
+    [S_hcdbridge, "horizontal closed drawbridge", "raised drawbridge"],
+    [S_air, "air", "air"],
+    [S_cloud, "cloud", "cloud"],
+    [S_water, "water", "water"],
+    [S_arrow_trap, "arrow trap", "arrow trap"],
+    [S_dart_trap, "dart trap", "dart trap"],
+    [S_falling_rock_trap, "falling rock trap", "falling rock trap"],
+    [S_squeaky_board, "squeaky board", "squeaky board"],
+    [S_bear_trap, "bear trap", "bear trap"],
+    [S_land_mine, "land mine", "land mine"],
+    [S_rolling_boulder_trap, "rolling boulder trap", "rolling boulder trap"],
+    [S_sleeping_gas_trap, "sleeping gas trap", "sleeping gas trap"],
+    [S_rust_trap, "rust trap", "rust trap"],
+    [S_fire_trap, "fire trap", "fire trap"],
+    [S_pit, "pit", "pit"],
+    [S_spiked_pit, "spiked pit", "spiked pit"],
+    [S_hole, "hole", "hole"],
+    [S_trap_door, "trap door", "trap door"],
+    [S_teleportation_trap, "teleportation trap", "teleportation trap"],
+    [S_level_teleporter, "level teleporter", "level teleporter"],
+    [S_magic_portal, "magic portal", "magic portal"],
+    [S_web, "web", "web"],
+    [S_statue_trap, "statue trap", "statue trap"],
+    [S_magic_trap, "magic trap", "magic trap"],
+    [S_anti_magic_trap, "anti magic trap", "anti-magic field"],
+    [S_polymorph_trap, "polymorph trap", "polymorph trap"],
+    [S_vibrating_square, "vibrating square", "vibrating square"],
+    [S_trapped_door, "trapped door", "trapped door"],
+    [S_trapped_chest, "trapped chest", "trapped chest"],
+    [S_vbeam, "vertical beam", ""],
+    [S_hbeam, "horizontal beam", ""],
+    [S_lslant, "left slant beam", ""],
+    [S_rslant, "right slant beam", ""],
+    [S_digbeam, "dig beam", ""],
+    [S_flashbeam, "flash beam", ""],
+    [S_boomleft, "boom left", ""],
+    [S_boomright, "boom right", ""],
+    [S_ss1, "shield1", ""],
+    [S_ss2, "shield2", ""],
+    [S_ss3, "shield3", ""],
+    [S_ss4, "shield4", ""],
+    [S_poisoncloud, "poison cloud", "poison cloud"],
+    [S_goodpos, "valid position", "valid position"],
+    [S_sw_tl, "swallow top left", ""],
+    [S_sw_tc, "swallow top center", ""],
+    [S_sw_tr, "swallow top right", ""],
+    [S_sw_ml, "swallow middle left", ""],
+    [S_sw_mr, "swallow middle right", ""],
+    [S_sw_bl, "swallow bottom left", ""],
+    [S_sw_bc, "swallow bottom center", ""],
+    [S_sw_br, "swallow bottom right", ""],
+    [S_expl_tl, "explosion top left", ""],
+    [S_expl_tc, "explosion top center", ""],
+    [S_expl_tr, "explosion top right", ""],
+    [S_expl_ml, "explosion middle left", ""],
+    [S_expl_mc, "explosion middle center", ""],
+    [S_expl_mr, "explosion middle right", ""],
+    [S_expl_bl, "explosion bottom left", ""],
+    [S_expl_bc, "explosion bottom center", ""],
+    [S_expl_br, "explosion bottom right", ""],
+]);
+
+// Derived constants that depend on PCHAR symbol ordinals
+export const MAXDCHARS = S_water - S_stone + 1;
+export const MAXECHARS = S_expl_br - S_vbeam + 1;
+// AUTO-IMPORT-END: CONST_SYMBOLS
+
 export const MAXEXPCHARS = 9;                               // number of explosion characters
 
 // ==========================================================================
@@ -4502,310 +4910,6 @@ export function IS_GRAVE(typ)      { return typ === GRAVE; }
 export function IS_ALTAR(typ)      { return typ === ALTAR; }
 export function IS_AIR(typ)        { return typ === AIR || typ === CLOUD; }
 export function IS_SOFT(typ)       { return typ === AIR || typ === CLOUD || IS_POOL(typ); }
-
-// Door flags (from include/rm.h, lines 220-227)
-
-// ==========================================================================
-// 4. Monster Class Symbols (from include/defsym.h, lines 295-367)
-//    MONSYM(idx, ch, basename, sym, desc)
-//    Drawing form: { DEF_basename, "", desc }
-//    We store: { sym (character), name (empty string), explain (desc) }
-// ==========================================================================
-
-// Monster class S_* enum values (from MONSYMS_S_ENUM)
-export const S_ANT         = 1;
-export const S_BLOB        = 2;
-export const S_COCKATRICE  = 3;
-export const S_DOG         = 4;
-export const S_EYE         = 5;
-export const S_FELINE      = 6;
-export const S_GREMLIN     = 7;
-export const S_HUMANOID    = 8;
-export const S_IMP         = 9;
-export const S_JELLY       = 10;
-export const S_KOBOLD      = 11;
-export const S_LEPRECHAUN  = 12;
-export const S_MIMIC       = 13;
-export const S_NYMPH       = 14;
-export const S_ORC         = 15;
-export const S_PIERCER     = 16;
-export const S_QUADRUPED   = 17;
-export const S_RODENT      = 18;
-export const S_SPIDER      = 19;
-export const S_TRAPPER     = 20;
-export const S_UNICORN     = 21;
-export const S_VORTEX      = 22;
-export const S_WORM        = 23;
-export const S_XAN         = 24;
-export const S_LIGHT       = 25;
-export const S_ZRUTY       = 26;
-export const S_ANGEL       = 27;
-export const S_BAT         = 28;
-export const S_CENTAUR     = 29;
-export const S_DRAGON      = 30;
-export const S_ELEMENTAL   = 31;
-export const S_FUNGUS      = 32;
-export const S_GNOME       = 33;
-export const S_GIANT       = 34;
-export const S_invisible   = 35;
-export const S_JABBERWOCK  = 36;
-export const S_KOP         = 37;
-export const S_LICH        = 38;
-export const S_MUMMY       = 39;
-export const S_NAGA        = 40;
-export const S_OGRE        = 41;
-export const S_PUDDING     = 42;
-export const S_QUANTMECH   = 43;
-export const S_RUSTMONST   = 44;
-export const S_SNAKE       = 45;
-export const S_TROLL       = 46;
-export const S_UMBER       = 47;
-export const S_VAMPIRE     = 48;
-export const S_WRAITH      = 49;
-export const S_XORN        = 50;
-export const S_YETI        = 51;
-export const S_ZOMBIE      = 52;
-export const S_HUMAN       = 53;
-export const S_GHOST       = 54;
-export const S_GOLEM       = 55;
-export const S_DEMON       = 56;
-export const S_EEL         = 57;
-export const S_LIZARD      = 58;
-export const S_WORM_TAIL   = 59;
-export const S_MIMIC_DEF   = 60;
-
-// The def_monsyms[] array (from drawing.c lines 32-37 + defsym.h MONSYMS)
-// Each entry: { sym, name, explain }
-// Index 0 is the placeholder for "random class"
-export const def_monsyms = [
-    // idx  0: placeholder
-    { sym: '\0', name: "",  explain: "" },
-    // idx  1: S_ANT
-    { sym: 'a',  name: "",  explain: "ant or other insect" },
-    // idx  2: S_BLOB
-    { sym: 'b',  name: "",  explain: "blob" },
-    // idx  3: S_COCKATRICE
-    { sym: 'c',  name: "",  explain: "cockatrice" },
-    // idx  4: S_DOG
-    { sym: 'd',  name: "",  explain: "dog or other canine" },
-    // idx  5: S_EYE
-    { sym: 'e',  name: "",  explain: "eye or sphere" },
-    // idx  6: S_FELINE
-    { sym: 'f',  name: "",  explain: "cat or other feline" },
-    // idx  7: S_GREMLIN
-    { sym: 'g',  name: "",  explain: "gremlin" },
-    // idx  8: S_HUMANOID (hobbit, dwarf)
-    { sym: 'h',  name: "",  explain: "humanoid" },
-    // idx  9: S_IMP
-    { sym: 'i',  name: "",  explain: "imp or minor demon" },
-    // idx 10: S_JELLY
-    { sym: 'j',  name: "",  explain: "jelly" },
-    // idx 11: S_KOBOLD
-    { sym: 'k',  name: "",  explain: "kobold" },
-    // idx 12: S_LEPRECHAUN
-    { sym: 'l',  name: "",  explain: "leprechaun" },
-    // idx 13: S_MIMIC
-    { sym: 'm',  name: "",  explain: "mimic" },
-    // idx 14: S_NYMPH
-    { sym: 'n',  name: "",  explain: "nymph" },
-    // idx 15: S_ORC
-    { sym: 'o',  name: "",  explain: "orc" },
-    // idx 16: S_PIERCER
-    { sym: 'p',  name: "",  explain: "piercer" },
-    // idx 17: S_QUADRUPED (excludes horses)
-    { sym: 'q',  name: "",  explain: "quadruped" },
-    // idx 18: S_RODENT
-    { sym: 'r',  name: "",  explain: "rodent" },
-    // idx 19: S_SPIDER
-    { sym: 's',  name: "",  explain: "arachnid or centipede" },
-    // idx 20: S_TRAPPER
-    { sym: 't',  name: "",  explain: "trapper or lurker above" },
-    // idx 21: S_UNICORN (unicorn, horses)
-    { sym: 'u',  name: "",  explain: "unicorn or horse" },
-    // idx 22: S_VORTEX
-    { sym: 'v',  name: "",  explain: "vortex" },
-    // idx 23: S_WORM
-    { sym: 'w',  name: "",  explain: "worm" },
-    // idx 24: S_XAN
-    { sym: 'x',  name: "",  explain: "xan or other mythical/fantastic insect" },
-    // idx 25: S_LIGHT (yellow light, black light)
-    { sym: 'y',  name: "",  explain: "light" },
-    // idx 26: S_ZRUTY
-    { sym: 'z',  name: "",  explain: "zruty" },
-    // idx 27: S_ANGEL
-    { sym: 'A',  name: "",  explain: "angelic being" },
-    // idx 28: S_BAT
-    { sym: 'B',  name: "",  explain: "bat or bird" },
-    // idx 29: S_CENTAUR
-    { sym: 'C',  name: "",  explain: "centaur" },
-    // idx 30: S_DRAGON
-    { sym: 'D',  name: "",  explain: "dragon" },
-    // idx 31: S_ELEMENTAL (includes invisible stalker)
-    { sym: 'E',  name: "",  explain: "elemental" },
-    // idx 32: S_FUNGUS
-    { sym: 'F',  name: "",  explain: "fungus or mold" },
-    // idx 33: S_GNOME
-    { sym: 'G',  name: "",  explain: "gnome" },
-    // idx 34: S_GIANT (giant, ettin, minotaur)
-    { sym: 'H',  name: "",  explain: "giant humanoid" },
-    // idx 35: S_invisible
-    { sym: 'I',  name: "",  explain: "invisible monster" },
-    // idx 36: S_JABBERWOCK
-    { sym: 'J',  name: "",  explain: "jabberwock" },
-    // idx 37: S_KOP
-    { sym: 'K',  name: "",  explain: "Keystone Kop" },
-    // idx 38: S_LICH
-    { sym: 'L',  name: "",  explain: "lich" },
-    // idx 39: S_MUMMY
-    { sym: 'M',  name: "",  explain: "mummy" },
-    // idx 40: S_NAGA
-    { sym: 'N',  name: "",  explain: "naga" },
-    // idx 41: S_OGRE
-    { sym: 'O',  name: "",  explain: "ogre" },
-    // idx 42: S_PUDDING
-    { sym: 'P',  name: "",  explain: "pudding or ooze" },
-    // idx 43: S_QUANTMECH
-    { sym: 'Q',  name: "",  explain: "quantum mechanic" },
-    // idx 44: S_RUSTMONST
-    { sym: 'R',  name: "",  explain: "rust monster or disenchanter" },
-    // idx 45: S_SNAKE
-    { sym: 'S',  name: "",  explain: "snake" },
-    // idx 46: S_TROLL
-    { sym: 'T',  name: "",  explain: "troll" },
-    // idx 47: S_UMBER
-    { sym: 'U',  name: "",  explain: "umber hulk" },
-    // idx 48: S_VAMPIRE
-    { sym: 'V',  name: "",  explain: "vampire" },
-    // idx 49: S_WRAITH
-    { sym: 'W',  name: "",  explain: "wraith" },
-    // idx 50: S_XORN
-    { sym: 'X',  name: "",  explain: "xorn" },
-    // idx 51: S_YETI (apelike creature includes owlbear, monkey)
-    { sym: 'Y',  name: "",  explain: "apelike creature" },
-    // idx 52: S_ZOMBIE
-    { sym: 'Z',  name: "",  explain: "zombie" },
-    // idx 53: S_HUMAN
-    { sym: '@',  name: "",  explain: "human or elf" },
-    // idx 54: S_GHOST
-    { sym: ' ',  name: "",  explain: "ghost" },
-    // idx 55: S_GOLEM
-    { sym: '\'', name: "",  explain: "golem" },
-    // idx 56: S_DEMON
-    { sym: '&',  name: "",  explain: "major demon" },
-    // idx 57: S_EEL (fish/sea monster)
-    { sym: ';',  name: "",  explain: "sea monster" },
-    // idx 58: S_LIZARD (reptiles)
-    { sym: ':',  name: "",  explain: "lizard" },
-    // idx 59: S_WORM_TAIL
-    { sym: '~',  name: "",  explain: "long worm tail" },
-    // idx 60: S_MIMIC_DEF
-    { sym: ']',  name: "",  explain: "mimic" },
-];
-
-// ==========================================================================
-// 5. Object Class Symbols (from include/defsym.h, lines 466-484)
-//    OBJCLASS(idx, ch, basename, sym, name, explain)
-//    Drawing form: { basename_SYM, name, explain }
-// ==========================================================================
-
-// Object class S_* enum values (from OBJCLASS_S_ENUM)
-export const S_strange_obj = 1;
-export const S_weapon      = 2;
-export const S_armor       = 3;
-export const S_ring        = 4;
-export const S_amulet      = 5;
-export const S_tool        = 6;
-export const S_food        = 7;
-export const S_potion      = 8;
-export const S_scroll      = 9;
-export const S_book        = 10;
-export const S_wand        = 11;
-export const S_coin        = 12;
-export const S_gem         = 13;
-export const S_rock        = 14;
-export const S_ball        = 15;
-export const S_chain       = 16;
-export const S_venom       = 17;
-
-// Object class *_CLASS enum values (from OBJCLASS_CLASS_ENUM)
-export const ILLOBJ_CLASS   = 1;
-export const WEAPON_CLASS   = 2;
-export const ARMOR_CLASS    = 3;
-export const RING_CLASS     = 4;
-export const AMULET_CLASS   = 5;
-export const TOOL_CLASS     = 6;
-export const FOOD_CLASS     = 7;
-export const POTION_CLASS   = 8;
-export const SCROLL_CLASS   = 9;
-export const SPBOOK_CLASS   = 10;
-export const WAND_CLASS     = 11;
-export const COIN_CLASS     = 12;
-export const GEM_CLASS      = 13;
-export const ROCK_CLASS     = 14;
-export const BALL_CLASS     = 15;
-export const CHAIN_CLASS    = 16;
-export const VENOM_CLASS    = 17;
-
-// Default character symbols for object classes (from OBJCLASS_DEFCHAR_ENUM)
-export const ILLOBJ_SYM = ']'.charCodeAt(0);
-export const WEAPON_SYM = ')'.charCodeAt(0);
-export const ARMOR_SYM  = '['.charCodeAt(0);
-export const RING_SYM   = '='.charCodeAt(0);
-export const AMULET_SYM = '"'.charCodeAt(0);
-export const TOOL_SYM   = '('.charCodeAt(0);
-export const FOOD_SYM   = '%'.charCodeAt(0);
-export const POTION_SYM = '!'.charCodeAt(0);
-export const SCROLL_SYM = '?'.charCodeAt(0);
-export const SPBOOK_SYM = '+'.charCodeAt(0);
-export const WAND_SYM   = '/'.charCodeAt(0);
-export const GOLD_SYM   = '$'.charCodeAt(0);  // OBJCLASS2 special case
-export const GEM_SYM    = '*'.charCodeAt(0);
-export const ROCK_SYM   = '`'.charCodeAt(0);
-export const BALL_SYM   = '0'.charCodeAt(0);
-export const CHAIN_SYM  = '_'.charCodeAt(0);
-export const VENOM_SYM  = '.'.charCodeAt(0);
-
-// The def_oc_syms[] array (from drawing.c lines 24-29 + defsym.h OBJCLASS_DRAWING)
-// Each entry: { sym, name, explain }
-// Index 0 is the placeholder for the "random class"
-export const def_oc_syms = [
-    // idx  0: placeholder for "random class"
-    { sym: '\0', name: "",               explain: "" },
-    // idx  1: ILLOBJ_CLASS
-    { sym: ']',  name: "illegal objects", explain: "strange object" },
-    // idx  2: WEAPON_CLASS
-    { sym: ')',  name: "weapons",         explain: "weapon" },
-    // idx  3: ARMOR_CLASS
-    { sym: '[',  name: "armor",           explain: "suit or piece of armor" },
-    // idx  4: RING_CLASS
-    { sym: '=',  name: "rings",           explain: "ring" },
-    // idx  5: AMULET_CLASS
-    { sym: '"',  name: "amulets",         explain: "amulet" },
-    // idx  6: TOOL_CLASS
-    { sym: '(',  name: "tools",           explain: "useful item (pick-axe, key, lamp...)" },
-    // idx  7: FOOD_CLASS
-    { sym: '%',  name: "food",            explain: "piece of food" },
-    // idx  8: POTION_CLASS
-    { sym: '!',  name: "potions",         explain: "potion" },
-    // idx  9: SCROLL_CLASS
-    { sym: '?',  name: "scrolls",         explain: "scroll" },
-    // idx 10: SPBOOK_CLASS
-    { sym: '+',  name: "spellbooks",      explain: "spellbook" },
-    // idx 11: WAND_CLASS
-    { sym: '/',  name: "wands",           explain: "wand" },
-    // idx 12: COIN_CLASS (uses GOLD_SYM)
-    { sym: '$',  name: "coins",           explain: "pile of coins" },
-    // idx 13: GEM_CLASS
-    { sym: '*',  name: "rocks",           explain: "gem or rock" },
-    // idx 14: ROCK_CLASS
-    { sym: '`',  name: "large stones",    explain: "boulder or statue" },
-    // idx 15: BALL_CLASS
-    { sym: '0',  name: "iron balls",      explain: "iron ball" },
-    // idx 16: CHAIN_CLASS
-    { sym: '_',  name: "chains",          explain: "iron chain" },
-    // idx 17: VENOM_CLASS
-    { sym: '.',  name: "venoms",          explain: "splash of venom" },
-];
 
 // ==========================================================================
 // 6. Trap Type Constants (from include/trap.h, lines 57-94)
