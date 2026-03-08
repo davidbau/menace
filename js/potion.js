@@ -3,6 +3,7 @@
 
 import { rn2, rn1, rnd, d, c_d } from './rng.js';
 import { nhgetch } from './input.js';
+import { awaitInput } from './suspend.js';
 import { POTION_CLASS, POT_WATER,
          POT_CONFUSION, POT_BLINDNESS, POT_PARALYSIS, POT_SPEED,
          POT_SLEEPING, POT_SICKNESS, POT_HALLUCINATION,
@@ -390,7 +391,9 @@ async function handleQuaff(player, map, display) {
     const loc = map.at(player.x, player.y);
     if (loc && loc.typ === FOUNTAIN) {
         await display.putstr_message('Drink from the fountain?');
-        const ans = await nhgetch();
+        const ans = await awaitInput(null, nhgetch(), {
+            site: 'potion.handleQuaff.fountainConfirm',
+        });
         display.topMessage = null;
         if (String.fromCharCode(ans) === 'y') {
             await drinkfountain(player, map, display);
@@ -407,7 +410,9 @@ async function handleQuaff(player, map, display) {
 
     const drinkPrompt = `What do you want to drink? [${potions.map(p => p.invlet).join('')} or ?*] `;
     await display.putstr_message(drinkPrompt);
-    const ch = await nhgetch();
+    const ch = await awaitInput(null, nhgetch(), {
+        site: 'potion.handleQuaff.select',
+    });
     const c = String.fromCharCode(ch);
     const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
