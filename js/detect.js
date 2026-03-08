@@ -9,7 +9,7 @@ import { objectData, FOOD_CLASS, POTION_CLASS, COIN_CLASS, ROCK_CLASS,
          SCROLL_CLASS, SPBOOK_CLASS,
          GOLD_PIECE, CHEST, LARGE_BOX, BOULDER, GOLD } from './objects.js';
 import { PM_GOLD_GOLEM, PM_LONG_WORM, S_EEL, S_WORM_TAIL } from './monsters.js';
-import { is_hider, hides_under } from './mondata.js';
+import { is_hider, hides_under, DEADMONSTER } from './mondata.js';
 import { pline, You, Your, You_feel, You_see, pline_The,
          Norep, There, set_msg_xy } from './pline.js';
 import {
@@ -49,9 +49,6 @@ const OTRAP_THERE = 2;
 // Has_contents imported from objnam.js
 function SchroedingersBox(obj) {
     return !!(obj && obj.spe === 1 && obj.otrapped);
-}
-function DEADMONSTER(mon) {
-    return !!(mon && (mon.dead || (mon.mhp != null && mon.mhp <= 0)));
 }
 function helpless(mon) {
     return !!mon && monHelpless(mon);

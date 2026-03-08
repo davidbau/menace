@@ -24,7 +24,7 @@ import { Role_if } from './role.js';
 import { Tobjnam, yname, Yname2, xname, thesimpleoname, an, the } from './objnam.js';
 import { unique_corpstat, is_mindless, canseemon, is_mercenary,
          is_flyer, is_clinger, is_humanoid, slithy, nolimbs,
-         ceiling_hider, can_blow } from './mondata.js';
+         ceiling_hider, can_blow, DEADMONSTER } from './mondata.js';
 import { mons, PM_GUARD, S_SNAKE, S_NYMPH, PM_ARCHEOLOGIST } from './monsters.js';
 import { onscary, wakeup, seemimic, xkilled } from './mon.js';
 import { monflee } from './monmove.js';
@@ -82,9 +82,6 @@ function t_at(x, y, map) {
     return map.trapAt ? map.trapAt(x, y) : null;
 }
 
-function DEADMONSTER(mon) {
-    return mon.mhp <= 0;
-}
 
 function has_mgivenname(mon) {
     if (mon?.mgivenname) return true;

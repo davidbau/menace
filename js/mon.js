@@ -45,7 +45,7 @@ import { nonliving, resists_ston, resists_fire, resists_poison,
          likes_lava, cant_drown, can_teleport, vegan as vegan_mondata,
          mon_hates_silver, touch_petrifies, flesh_petrifies,
          is_male, is_female, is_neuter,
-         dmgtype, attacktype } from './mondata.js';
+         dmgtype, attacktype, DEADMONSTER } from './mondata.js';
 import { mkcorpstat, weight, is_rustprone, mkobj, mksobj_at, mkgold, place_object } from './mkobj.js';
 import { impossible, pline_mon } from './pline.js';
 import { next_ident } from './mkobj.js';
@@ -93,8 +93,6 @@ import { always_hostile, monsndx, is_vampshifter, is_vampire } from './mondata.j
 const MSLOW = 1;
 const MFAST = 2;
 
-// C ref: monst.h DEADMONSTER(mon) — true if monster has non-positive HP
-function DEADMONSTER(mon) { return mon && mon.mhp <= 0; }
 
 // C ref: monst.h NODIAG(mndx) — only grid bugs move non-diagonally
 function NODIAG(mndx) { return mndx === PM_GRID_BUG; }

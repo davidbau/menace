@@ -90,7 +90,7 @@ import { Can_dig_down, Can_fall_thru, Can_rise_up, In_endgame,
          Is_earthlevel, On_W_tower_level, In_V_tower } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
-import { resists_magm, monsndx, is_vampshifter } from './mondata.js';
+import { resists_magm, monsndx, is_vampshifter, DEADMONSTER } from './mondata.js';
 import { Has_contents, Is_mbag } from './objnam.js';
 
 const STRAT_WAITFORU = 0x20000000; // C ref: mon.h
@@ -227,8 +227,6 @@ const MUSE_MISC_BAG = 10;
 // Local helpers — small utility functions used by multiple muse functions
 // ========================================================================
 
-// C ref: #define DEADMONSTER(mon) ((mon)->mhp <= 0)
-function DEADMONSTER(mon) { return mon && mon.mhp <= 0; }
 
 // C ref: helpless(mon) — asleep, frozen, paralyzed, can't move
 function helpless(mon) { return !!(mon.sleeping || mon.msleeping || mon.mfrozen || mon.mcanmove === false || mon.mcanmove === 0); }

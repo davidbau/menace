@@ -38,7 +38,7 @@ import {
     PM_SAMURAI
 } from './monsters.js';
 import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP } from './const.js';
-import { lays_eggs, monsndx } from './mondata.js';
+import { lays_eggs, monsndx, DEADMONSTER } from './mondata.js';
 import { start_timer, stop_timer, attach_egg_hatch_timeout } from './timeout.js';
 
 // Named object indices we need (exported from objects.js)
@@ -1848,8 +1848,6 @@ export function dealloc_obj_real(obj) {
   // C: *obj = cg.zeroobj; free(obj); — JS garbage collects
 }
 
-// C ref: monst.h DEADMONSTER(mon)
-function DEADMONSTER(mon) { return mon && mon.mhp <= 0; }
 
 // C ref: MON_WEP(mon) — wielded weapon (local copy to avoid circular import with muse.js)
 function MON_WEP(mon) {

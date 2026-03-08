@@ -37,7 +37,7 @@ import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
 import { nhgetch } from './input.js';
 import { do_attack } from './uhitm.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage, schedule_goto } from './do.js';
-import { x_monnam, y_monnam, YMonnam, Monnam, mon_nam, canseemon, passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_human, is_rider, is_clinger } from './mondata.js';
+import { x_monnam, y_monnam, YMonnam, Monnam, mon_nam, canseemon, passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_human, is_rider, is_clinger, DEADMONSTER } from './mondata.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, u_wipe_engr } from './engrave.js';
 import { gethungry } from './eat.js';
 import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop, inhishop } from './shk.js';
@@ -116,10 +116,6 @@ function debug_travel_tmp_at(path, startX, startY) {
     tmp_at(DISP_END, 0);
 }
 
-// C macro compat used by translated helper candidates.
-function DEADMONSTER(mon) {
-    return !!(mon && (mon.dead || mon.mhp <= 0));
-}
 
 function M_AP_TYPE(mon) {
     return Number(mon?.m_ap_type || mon?.mappearanceType || 0);

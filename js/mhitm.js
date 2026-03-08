@@ -26,6 +26,7 @@ import {
     x_monnam, touch_petrifies, unsolid, resists_fire, resists_cold,
     resists_elec, resists_acid, resists_sleep, resists_ston,
     nonliving, sticks, attacktype, dmgtype, is_whirly,
+    DEADMONSTER,
 } from './mondata.js';
 import { erode_obj } from './trap.js';
 import { AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG, AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA, AT_SPIT, AT_BOOM, G_NOCORPSE, AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE, AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_RUST, AD_CORR, MZ_HUGE, PM_GRID_BUG } from './monsters.js';
@@ -59,9 +60,6 @@ export function resetNoisesState() {
 // Helper predicates
 // ============================================================================
 
-function DEADMONSTER(mon) {
-    return !mon || mon.dead || (mon.mhp != null && mon.mhp <= 0);
-}
 
 // cf. worn.c:707 — find_mac(mon): accounts for worn armor via m_dowear.
 

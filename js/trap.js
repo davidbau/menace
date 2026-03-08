@@ -24,7 +24,7 @@ import { is_mindless, touch_petrifies, resists_ston,
          canseemon, stagger
        } from './mondata.js';
 import { mon_knows_traps, mon_learns_traps, mons_see_trap,
-         resists_magm, defended } from './mondata.js';
+         resists_magm, defended, DEADMONSTER } from './mondata.js';
 import { mondead, helpless as monHelpless, monkilled, m_in_air, setmangry } from './mon.js';
 import { newsym } from './display.js';
 import { sleep_monst } from './mhitm.js';
@@ -107,8 +107,6 @@ function metallivorous(mptr) {
 
 // resists_magm and defended imported from mondata.js
 
-// C ref: DEADMONSTER macro
-function DEADMONSTER(mon) { return mon && mon.mhp <= 0; }
 
 // C ref: helpless(mon) — mon is asleep/paralyzed/etc
 function helpless(mon) {
