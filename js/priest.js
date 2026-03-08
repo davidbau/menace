@@ -126,11 +126,10 @@ export function histemple_at(priest, x, y, map) {
 // inhistemple — cf. priest.c:161
 // Checks that priest is in his temple room and shrine is properly aligned.
 // ============================================================================
-// Autotranslated from priest.c:160
-export function inhistemple(priest) {
+export function inhistemple(priest, map) {
   if (!priest || !priest.ispriest) return false;
-  if (!histemple_at(priest, priest.mx, priest.my)) return false;
-  return has_shrine(priest);
+  if (!histemple_at(priest, priest.mx, priest.my, map)) return false;
+  return has_shrine(priest, map);
 }
 
 // ============================================================================

@@ -193,7 +193,7 @@ export function onscary(map, x, y, mon = null) {
                 if (rooms.includes(roomno)) return false;
             }
         }
-        if (mon.ispriest && inhistemple(mon)) return false;
+        if (mon.ispriest && inhistemple(mon, map)) return false;
     }
 
     if (auditory_scare) return true;
