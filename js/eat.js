@@ -54,6 +54,7 @@ import { RACE_ORC, RACE_ELF, RACE_DWARF,
 import { game as _gstate } from './gstate.js';
 import { applyMonflee } from './mhitu.js';
 import { obj_resists } from './objdata.js';
+import { costly_spot } from './shk.js';
 import { compactInvletPromptChars } from './invent.js';
 import { pline, You, Your, You_feel, You_cant, pline_The, You_hear, impossible, livelog_printf } from './pline.js';
 import { exercise } from './attrib_exercise.js';

@@ -40,14 +40,14 @@ import {
 import { mon_nam, Monnam, a_monnam } from './do_name.js';
 import { hcolor, hliquid } from './do_name.js';
 import {
-    xname, doname, splitobj, mksobj,
+    xname, doname, splitobj, mksobj, Is_container,
 } from './mkobj.js';
 import { Doname2, Tobjnam, otense, killer_xname, corpse_xname } from './objnam.js';
 import { placeFloorObject, stackobj } from './invent.js';
 import {
     thick_skinned, nolimbs, slithy, nohands, haseyes, attacktype,
     likes_gold, is_mercenary, is_flyer, is_floater, is_giant,
-    can_teleport, canseemon,
+    can_teleport, canseemon, poly_when_stoned,
 } from './mondata.js';
 import { mons, PM_SHADE, PM_SASQUATCH, PM_SOLDIER, PM_SERGEANT, PM_LIEUTENANT, PM_CAPTAIN, PM_KILLER_BEE, PM_BLACK_PUDDING, PM_AMOROUS_DEMON, PM_STONE_GOLEM, PM_ARCHEOLOGIST, PM_SAMURAI, S_EEL, S_LIZARD, AT_KICK, AT_NONE, MZ_SMALL, MZ_LARGE, MZ_HUMAN, M2_UNDEAD, M2_WERE, M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC, M2_DEMON, M2_GIANT, M2_MERC } from './monsters.js';
 import {
@@ -67,7 +67,7 @@ import { near_capacity, inv_weight, weight_cap, overexertion, feel_location, fee
 import { in_rooms } from './hack.js';
 import { is_pool, is_ice, is_drawbridge_wall, find_drawbridge } from './dbridge.js';
 import { noteleport_level, goodpos, rloco } from './teleport.js';
-import { body_part, poly_gender } from './polyself.js';
+import { body_part, poly_gender, polymon } from './polyself.js';
 import { LEG, FOOT } from './const.js';
 import { set_wounded_legs } from './do.js';
 import { flooreffects } from './do.js';
@@ -92,7 +92,7 @@ import { is_art } from './artifact.js';
 import { sink_backs_up } from './fountain.js';
 import { altar_wrath } from './pray.js';
 import { del_engr_at, disturb_grave } from './engrave.js';
-import { rnd_class, makeplural, Is_box, Has_contents } from './objnam.js';
+import { rnd_class, makeplural, Is_box, Has_contents, Is_mbag } from './objnam.js';
 import { kick_steed } from './steed.js';
 import { legs_in_no_shape } from './do.js';
 import { nhgetch } from './input.js';
@@ -103,7 +103,7 @@ import { set_apparxy } from './monmove.js';
 import { maybe_unhide_at } from './mon.js';
 import { finish_meating } from './dogmove.js';
 import { is_watch } from './mondata.js';
-import { water_damage, mintrap_postmove } from './trap.js';
+import { water_damage, mintrap_postmove, instapetrify } from './trap.js';
 
 // ============================================================================
 // Constants
@@ -442,35 +442,7 @@ function breakchestlock(box, destroyit, game, player) {
     if (box) box.olocked = false;
 }
 
-// ============================================================================
-// poly_when_stoned / polymon / instapetrify stubs
-// ============================================================================
-function poly_when_stoned(data) { return false; }
-function polymon(pm, player) { return false; }
-async function instapetrify(kname, player) {
-    // TODO: implement petrification
-    await pline("You turn to stone...");
-}
-
-// ============================================================================
-// touch_petrifies
-// ============================================================================
 import { touch_petrifies } from './mondata.js';
-
-// ============================================================================
-// Is_container / Has_contents / Is_mbag / Is_box helpers
-// ============================================================================
-function Is_container(obj) {
-    // Large box, chest, ice box, bag of holding, etc.
-    const oc = objectData[obj.otyp];
-    return oc && oc.oc_class === 'containers';
-}
-// Has_contents imported from objnam.js
-function Is_mbag(obj) {
-    // Bag of holding / bag of tricks — check by otyp
-    return false; // simplified
-}
-// Is_box imported from objnam.js
 
 // ============================================================================
 // is_unpaid helper

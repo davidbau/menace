@@ -23,7 +23,7 @@ import {
     GRAY_DRAGON_SCALES, YELLOW_DRAGON_SCALES,
     GRAY_DRAGON_SCALE_MAIL, YELLOW_DRAGON_SCALE_MAIL,
     SMALL_SHIELD,
-    LARGE_BOX, CHEST, TOWEL,
+    LARGE_BOX, CHEST, TOWEL, BAG_OF_HOLDING,
     ELVEN_LEATHER_HELM, FEDORA, CORNUTHAUM, DUNCE_CAP,
 } from './objects.js';
 import {
@@ -690,6 +690,11 @@ export function Has_contents(obj) {
 export function Is_box(obj) {
     const otyp = obj.otyp;
     return otyp === LARGE_BOX || otyp === CHEST;
+}
+
+// C ref: obj.h Is_mbag(o) — magical bag (bag of holding)
+export function Is_mbag(obj) {
+    return obj && obj.otyp === BAG_OF_HOLDING;
 }
 
 // ============================================================================

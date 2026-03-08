@@ -38,7 +38,7 @@ import { revive as revive_corpse } from './zap.js';
 import { near_capacity, max_capacity, calc_capacity } from './hack.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu } from './windows.js';
 import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ANY, ATR_NONE } from './const.js';
-import { Is_box, Has_contents } from './objnam.js';
+import { Is_box, Has_contents, Is_mbag } from './objnam.js';
 
 // pickup.js -- Autopickup, floor object pickup, container looting
 // Ported from NetHack pickup.c
@@ -65,10 +65,6 @@ function bigmonst(ptr) {
     return (ptr.msize || 0) >= MZ_LARGE;
 }
 
-// cf. C macro: Is_mbag(obj) — bag of holding, sack, or oilskin sack type
-function Is_mbag(obj) {
-    return obj.otyp === BAG_OF_HOLDING;
-}
 
 
 // Is_box imported from objnam.js

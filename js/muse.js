@@ -90,7 +90,7 @@ import { Can_dig_down, Can_fall_thru, Can_rise_up, In_endgame } from './dungeon.
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
 import { resists_magm, monsndx, is_vampshifter } from './mondata.js';
-import { Has_contents } from './objnam.js';
+import { Has_contents, Is_mbag } from './objnam.js';
 
 const STRAT_WAITFORU = 0x20000000; // C ref: mon.h
 
@@ -358,12 +358,6 @@ function welded(obj) { return !!(obj && obj.cursed && (obj.owornmask & W_WEP)); 
 // C ref: is_plural(obj)
 function is_plural(obj) { return (obj.quan || 1) > 1; }
 
-// Container helpers
-function Is_mbag(obj) {
-    if (!obj) return false;
-    const od = objectData[obj.otyp];
-    return od && od.oc_name && /bag of holding/i.test(od.oc_name);
-}
 function SchroedingersBox(obj) {
     return !!(obj && obj.spe === 1 && obj.otyp === LARGE_BOX);
 }

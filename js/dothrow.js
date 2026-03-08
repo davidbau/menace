@@ -69,6 +69,9 @@ import {
 import { DISP_FLASH, DISP_TETHER, DISP_END, BACKTRACK } from './const.js';
 import { objectMapGlyph } from './display_rng.js';
 import { u_wipe_engr } from './engrave.js';
+import { shop_keeper, in_rooms, costly_spot, is_unpaid,
+         stolen_value, contained_gold, subfrombill, donate_gold, sellobj } from './shk.js';
+import { SHOPBASE } from './const.js';
 
 // ============================================================================
 // C macro equivalents -- weapon classification helpers
@@ -920,25 +923,25 @@ export async function mhurtle(mon, dx, dy, range, map, player) {
 
 // cf. dothrow.c:1180 [static] -- check_shop_obj(obj, x, y, broken)
 // Autotranslated from dothrow.c:1180
-export async function check_shop_obj(obj, x, y, broken, player) {
-  let costly_xy, shkp = shop_keeper( player.ushops);
+export async function check_shop_obj(obj, x, y, broken, player, map) {
+  let costly_xy, shkp = shop_keeper(map, player.ushops);
   if (!shkp) return;
-  costly_xy = costly_spot(x, y);
-  if (broken || !costly_xy || in_rooms(x, y, SHOPBASE) !== player.ushops) {
+  costly_xy = costly_spot(x, y, map);
+  if (broken || !costly_xy || in_rooms(map, x, y, SHOPBASE) !== player.ushops) {
     if (is_unpaid(obj)) {
-      await stolen_value(obj, player.x, player.y,  shkp.mpeaceful, false);
+      await stolen_value(obj, player.x, player.y, shkp.mpeaceful, false, map);
     }
     if (broken) obj.no_charge = 1;
   }
   else if (costly_xy) {
-    let oshops = in_rooms(x, y, SHOPBASE);
+    let oshops = in_rooms(map, x, y, SHOPBASE);
     if ( oshops === player.ushops || oshops === player.ushops0) {
       if (is_unpaid(obj)) {
         let gtg = Has_contents(obj) ? contained_gold(obj, true) : 0;
         subfrombill(obj, shkp);
         if (gtg > 0) await donate_gold(gtg, shkp, true);
       }
-      else if (x !== shkp.mx || y !== shkp.my) { sellobj(obj, x, y); }
+      else if (x !== shkp.mx || y !== shkp.my) { sellobj(obj, x, y, map); }
     }
   }
 }
@@ -1432,7 +1435,7 @@ export async function breakobj(obj, x, y, hero_caused, from_invent, player, map)
     case BOULDER: fracture = true; break;
     default: break;
     }
-    if (hero_caused && (from_invent || obj.unpaid)) await check_shop_obj(obj, x, y, true);
+    if (hero_caused && (from_invent || obj.unpaid)) await check_shop_obj(obj, x, y, true, player, map);
     if (!fracture) {
         if (typeof map.removeFloorObject === 'function') map.removeFloorObject(obj);
         obj._deleted = true;
