@@ -20,6 +20,7 @@ import { mon_nam, Monnam, mon_pmname, rndmonnam, hcolor } from './do_name.js';
 import { is_minion, is_rider, canseemon, mon_learns_traps, resist_conflict } from './mondata.js';
 import { newsym } from './display.js';
 import { dist2 } from './hack.js';
+import { In_endgame } from './dungeon.js';
 import { COIN_CLASS, GOLD_PIECE } from './objects.js';
 import { move_special } from './monmove.js';
 import { newemin, bribe } from './minion.js';
@@ -259,7 +260,7 @@ export function priestname(mon, article, reveal_high_priest, player) {
 // Stubs for functions not yet available in the JS port
 function Is_astralevel() { return false; }
 function Is_sanctum() { return false; }
-function In_endgame() { return false; }
+// In_endgame imported from dungeon.js
 
 // set_malign — cf. makemon.c:2316
 // Not exported from any module; define locally.

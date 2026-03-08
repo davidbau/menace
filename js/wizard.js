@@ -49,7 +49,7 @@ import { monster_census, msummon } from './minion.js';
 import { sgn, dist2 } from './hacklib.js';
 import { is_quest_artifact } from './objdata.js';
 import { rndcurse } from './sit.js';
-import { builds_up } from './dungeon.js';
+import { builds_up, In_endgame } from './dungeon.js';
 
 // Strategy constants imported from const.js (monst.h)
 
@@ -142,8 +142,7 @@ function In_W_tower(/*x, y*/) { return false; }
 // Inhell — stub
 function Inhell() { return false; }
 
-// In_endgame — stub
-function In_endgame() { return false; }
+// In_endgame imported from dungeon.js
 
 // Is_astralevel — stub
 function Is_astralevel() { return false; }

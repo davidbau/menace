@@ -11,8 +11,12 @@ import { objectData, FOOD_CLASS, COIN_CLASS, CORPSE, TRIPE_RATION, CLOVE_OF_GARL
          CARROT, K_RATION, C_RATION, SLIME_MOLD,
          RIN_SLOW_DIGESTION, RIN_PROTECTION,
          FAKE_AMULET_OF_YENDOR, AMULET_OF_STRANGULATION,
-         FLESH, VEGGY } from './objects.js';
-import { doname, next_ident } from './mkobj.js';
+         FLESH, VEGGY,
+         BALL_CLASS, CHAIN_CLASS, WEAPON_CLASS, SCR_MAIL,
+         WAX, PAPER, LEATHER, BONE, DRAGON_HIDE } from './objects.js';
+import { doname, next_ident, xname, weight } from './mkobj.js';
+import { corpse_xname, singular, the, an, obj_is_pname } from './objnam.js';
+import { ART_ORB_OF_DETECTION } from './artifacts.js';
 import { mons, PM_LIZARD, PM_LICHEN, PM_NEWT,
          PM_ACID_BLOB, PM_COCKATRICE, PM_CHICKATRICE,
          PM_LITTLE_DOG, PM_DOG, PM_LARGE_DOG,
@@ -46,14 +50,14 @@ import { RACE_ORC, RACE_ELF, RACE_DWARF,
          W_RINGL, W_RINGR, W_ARTI, W_WEP, FROMFORM,
          CHOKING, A_LAWFUL,
          STARVING, KILLED_BY, KILLED_BY_AN,
-         BY_COOKIE } from './const.js';
+         BY_COOKIE, LL_CONDUCT, ECMD_TIME } from './const.js';
 import { game as _gstate } from './gstate.js';
 import { applyMonflee } from './mhitu.js';
 import { obj_resists } from './objdata.js';
 import { compactInvletPromptChars } from './invent.js';
-import { pline, You, Your, You_feel, You_cant, pline_The, You_hear, impossible } from './pline.js';
+import { pline, You, Your, You_feel, You_cant, pline_The, You_hear, impossible, livelog_printf } from './pline.js';
 import { exercise } from './attrib_exercise.js';
-import { acurr, ensureAttrArrays, gainstr } from './attrib.js';
+import { acurr, ensureAttrArrays, gainstr, poison_strdmg } from './attrib.js';
 import { nomul, end_running, near_capacity } from './hack.js';
 import { incr_itimeout } from './potion.js';
 import { done, setKillerName, setKillerFormat } from './end.js';
@@ -148,7 +152,7 @@ function is_edible(obj) {
 export async function food_xname(food, the_pfx) {
   let result;
   if (food.otyp === CORPSE) {
-    result = corpse_xname(food,  0, CXN_SINGULAR | (the_pfx ? CXN_PFX_THE : 0));
+    result = corpse_xname(food, 0, { singular: true, thePrefix: !!the_pfx });
     if (type_is_pname( mons[food.corpsenm])) the_pfx = false;
   }
   else { result = await singular(food, xname); }
@@ -1545,7 +1549,7 @@ export async function doeat_nonfood(otmp, game, player) {
   if (otmp.oclass === COIN_CLASS) basenutrit = ((otmp.quan > 200000) ? 2000 : Math.trunc(otmp.quan / 100));
   else if (otmp.oclass === BALL_CLASS || otmp.oclass === CHAIN_CLASS) basenutrit = weight(otmp);
   else {
-    basenutrit = objects[otmp.otyp].oc_nutrition;
+    basenutrit = objectData[otmp.otyp].oc_nutrition;
   }
   if (otmp.otyp === SCR_MAIL) { basenutrit = 0; nodelicious = true; }
   game.svc.context.victual.nmod = basenutrit;
@@ -1554,7 +1558,7 @@ export async function doeat_nonfood(otmp, game, player) {
     ll_conduct++;
     livelog_printf(LL_CONDUCT, "ate for the first time (%s)", await food_xname(otmp, false));
   }
-  material = objects[otmp.otyp].oc_material;
+  material = objectData[otmp.otyp].oc_material;
   if (material === LEATHER || material === BONE || material === DRAGON_HIDE || material === WAX) {
     if (!player.uconduct.unvegan++ && !ll_conduct) {
       livelog_printf(LL_CONDUCT, "consumed animal products for the first time, by eating %s", an(await food_xname(otmp, false)));
@@ -1566,10 +1570,10 @@ export async function doeat_nonfood(otmp, game, player) {
     }
   }
   if (otmp.cursed) { await rottenfood(otmp); nodelicious = true; }
-  else if (objects[otmp.otyp].oc_material === PAPER) nodelicious = true;
+  else if (objectData[otmp.otyp].oc_material === PAPER) nodelicious = true;
   if (otmp.oclass === WEAPON_CLASS && otmp.opoisoned) {
     await pline("Ecch - that must have been poisonous!");
-    if (!Poison_resistance) {
+    if (!player.hasProp?.(POISON_RES)) {
       await poison_strdmg(rnd(4), rnd(15), xname(otmp), KILLED_BY_AN);
     }
     else {

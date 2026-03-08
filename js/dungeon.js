@@ -689,7 +689,7 @@ function Is_wiz1_level(lev) {
     return dnum === GEHENNOM && dlevel === 1;
 }
 
-function In_endgame(lev) {
+export function In_endgame(lev) {
     const { dnum } = _coerceLevelArg(lev);
     return dnum === ELEMENTAL_PLANES;
 }

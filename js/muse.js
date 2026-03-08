@@ -31,7 +31,8 @@ import { is_animal, is_mindless, nohands, is_mercenary, is_unicorn,
          resists_ston, touch_petrifies, amorphous, noncorporeal,
          unsolid, resists_fire, resists_acid, dmgtype, attacktype,
          can_blow, x_monnam, canseemon, needspick,
-         dmgtype_fromattack, is_bat, nonliving } from './mondata.js';
+         dmgtype_fromattack, is_bat, nonliving,
+         mon_knows_traps, mon_learns_traps } from './mondata.js';
 import { mons, PM_GHOST, PM_DJINNI, PM_GUARD, PM_PESTILENCE, PM_KI_RIN, PM_LIZARD, PM_GIANT_EEL, PM_CROCODILE, PM_ACID_BLOB, PM_SILVER_DRAGON, PM_CHROMATIC_DRAGON, PM_STALKER, PM_GRID_BUG, AT_EXPL, AT_GAZE, AT_NONE, AT_BREA, G_UNIQ, G_NOCORPSE, S_GHOST, S_KOP, S_EYE, S_LIGHT, S_VAMPIRE, MZ_SMALL } from './monsters.js';
 import { CORPSE, TIN, EGG, BOULDER,
          POTION_CLASS, WAND_CLASS, SCROLL_CLASS, FOOD_CLASS,
@@ -63,7 +64,6 @@ import { which_armor, extract_from_minvent,
          mon_set_minvis, mon_adjust_speed } from './worn.js';
 import { find_mac } from './worn.js';
 import { noteleport_level, tele_restrict, rloc, enexto } from './teleport.js';
-import { mon_knows_traps, mon_learns_traps } from './mondata.js';
 import { mon_has_amulet, mon_has_special } from './wizard.js';
 import { onscary, healmon, mongone, monkilled, xkilled,
          wakeup, seemimic } from './mon.js';
@@ -86,7 +86,7 @@ import { is_pool, is_lava, is_ice, find_drawbridge, destroy_drawbridge,
          is_drawbridge_wall } from './dbridge.js';
 import { trycall } from './do.js';
 import { pushRngLogEntry } from './rng.js';
-import { Can_dig_down, Can_fall_thru, Can_rise_up } from './dungeon.js';
+import { Can_dig_down, Can_fall_thru, Can_rise_up, In_endgame } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
 import { resists_magm, monsndx, is_vampshifter } from './mondata.js';
@@ -310,7 +310,7 @@ function monstunseesu(_flag) { }
 // Stub level/dungeon predicates — JS levels are single-dungeon currently
 function Is_knox(map) { return !!(map && map.flags && map.flags.is_knox); }
 function Inhell(map) { return !!(map && map.flags && map.flags.inhell); }
-function In_endgame(map) { return !!(map && map.flags && map.flags.endgame); }
+// In_endgame imported from dungeon.js
 function Is_botlevel(map) { return !!(map && map.flags && map.flags.is_botlevel); }
 function Sokoban(map) { return !!(map && map.flags && map.flags.sokoban); }
 function Is_rogue_level(map) { return !!(map && map.flags && map.flags.is_rogue); }
