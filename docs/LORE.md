@@ -4907,3 +4907,22 @@ hard-won wisdom:
   - `node --test test/unit/invent_display_inventory.test.js` passes.
   - `node scripts/test-unit-core.mjs` remains at `2521 pass / 5 fail` with the
     same pre-existing direction-prompt failures.
+
+### CODEMATCH vision.c ledger correction slice (2026-03-08)
+
+- Problem:
+  - `docs/CODEMATCH.md` had `vision.c -> vision.js` rows marked Missing for
+    many functions that were already implemented (including private helpers and
+    inlined `new_angle` behavior), which inflated gameplay missing counts.
+- Fix:
+  - Updated `vision.c -> vision.js` table entries for implemented functions:
+    `_q1/_q2/_q3/_q4_path`, `block_point`, `unblock_point`,
+    `recalc_block_point`, `fill_point`, `dig_point`, `view_from`,
+    `left_side`, `right_side`, `clear_path`, `do_clear_area`,
+    `vision_init`, `vision_reset`, `view_init`, `get_viz_clear`,
+    `get_unused_cs`, `does_block`, `rogue_vision`, `vision_recalc` (mapped to
+    `display.js`), and `new_angle` (mapped as inlined in `FOV.compute`).
+  - Updated the top-level `vision.c` note to reflect the real remaining gap:
+    `howmonseen`.
+- Validation:
+  - No runtime code changes in this slice; ledger correction only.
