@@ -55,7 +55,7 @@ import { game as _gstate } from './gstate.js';
 import { applyMonflee } from './mhitu.js';
 import { obj_resists } from './objdata.js';
 import { costly_spot } from './shk.js';
-import { compactInvletPromptChars } from './invent.js';
+import { compactInvletPromptChars, useup, useupf } from './invent.js';
 import { pline, You, Your, You_feel, You_cant, pline_The, You_hear, impossible, livelog_printf } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, ensureAttrArrays, gainstr, poison_strdmg } from './attrib.js';
@@ -76,6 +76,9 @@ import { is_rider, is_giant, acidic, poisonous, flesh_petrifies,
 // ============================================================
 // 1. Data / constants
 // ============================================================
+
+// C macro: #define carried(o) ((o)->where == OBJ_INVENT)
+function carried(obj) { return obj && obj.where === 'OBJ_INVENT'; }
 
 // Hunger states (hack.h)
 const SATIATED = 0;

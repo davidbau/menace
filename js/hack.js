@@ -3450,20 +3450,6 @@ export function drag_ball(_x, _y, _player, _map) {
     return true;
 }
 
-// Autotranslated from hack.c:3990
-export function monster_nearby(player) {
-  let x, y, mtmp;
-  for (x = player.x - 1; x <= player.x + 1; x++) {
-    for (y = player.y - 1; y <= player.y + 1; y++) {
-      if (!isok(x, y) || u_at(x, y)) {
-        continue;
-      }
-      if ((mtmp = m_at(x, y)) != null && M_AP_TYPE(mtmp) !== M_AP_FURNITURE && M_AP_TYPE(mtmp) !== M_AP_OBJECT && (Hallucination || (!mtmp.mpeaceful && !noattacks(mtmp.data))) && (!is_hider(mtmp.data) || !mtmp.mundetected) && !helpless(mtmp) && !onscary(player.x, player.y, mtmp) && canspotmon(mtmp)) return 1;
-    }
-  }
-  return 0;
-}
-
 // ========================================================================
 // Functions moved from monutil.js — C ref: hack.h / hack.c
 // ========================================================================
