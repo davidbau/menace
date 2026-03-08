@@ -198,13 +198,13 @@ export async function do_zap(gotdir) {
     }
 
     case WS_MISSILE: {
-      const bolt = { o_pos: { y: 0, x: 0 }, o_damage: '1d4', o_hplus: 0, o_dplus: 0 };
+      const bolt = { o_pos: { y: 0, x: 0 }, o_hurldmg: '1d4', o_damage: null, o_hplus: 100, o_dplus: 1, o_flags: 0 };
       await _do_motion(bolt, g.delta.y, g.delta.x);
       const bmon = mvwinch(g.mw, bolt.o_pos.y, bolt.o_pos.x);
       if (bmon >= 'A' && bmon <= 'Z') {
         const bitem = _find_mons(bolt.o_pos.y, bolt.o_pos.x);
         if (!_save_throw(3 /* VS_MAGIC */, bitem.l_data)) {
-          await _hit_monster(bolt.o_pos.y, bolt.o_pos.x, bolt);
+          await _hit_monster({ y: bolt.o_pos.y, x: bolt.o_pos.x }, bolt);
         } else if (bmon !== 'M' || mvwinch(g.cw, bolt.o_pos.y, bolt.o_pos.x) === 'M') {
           if (g.terse) await _msg('Missle vanishes');
           else await _msg('The missle vanishes with a puff of smoke');
@@ -291,8 +291,8 @@ export async function do_zap(gotdir) {
             if (!bounced && ch >= 'A' && ch <= 'Z') {
               const bitem = _find_mons(pos.y, pos.x);
               if (!_save_throw(3 /* VS_MAGIC */, bitem.l_data)) {
-                const bolt = { o_pos: { y: pos.y, x: pos.x }, o_damage: '6d6', o_hplus: 0, o_dplus: 0 };
-                await _hit_monster(pos.y, pos.x, bolt);
+                const bolt = { o_pos: { y: pos.y, x: pos.x }, o_hurldmg: '6d6', o_damage: null, o_hplus: 100, o_dplus: 0, o_flags: 0 };
+                await _hit_monster({ y: pos.y, x: pos.x }, bolt);
                 used = true;
               } else if (ch !== 'M' || mvwinch(g.cw, pos.y, pos.x) === 'M') {
                 if (g.terse) await _msg(`${name} misses`);

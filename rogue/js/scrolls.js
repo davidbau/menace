@@ -96,7 +96,7 @@ export async function read_scroll() {
       } else {
         _addmsg('The room is lit');
         if (!g.terse) _addmsg(' by a shimmering blue light.');
-        _endmsg();
+        await _endmsg();
         rp.r_flags &= ~ISDARK;
         _light(g.player.t_pos);
         mvwaddch(g.cw, g.player.t_pos.y, g.player.t_pos.x, PLAYER);

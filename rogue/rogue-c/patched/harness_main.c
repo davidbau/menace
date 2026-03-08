@@ -196,7 +196,7 @@ void harness_exit(int code)
     if (!out) out = stdout;
     emit_session_json(out, g_harness_seed);
     if (harness_outfile && out != stdout) fclose(out);
-    exit(0);
+    _exit(0);  /* skip atexit handlers that may crash on game teardown */
 }
 
 /* ===== main ===== */
