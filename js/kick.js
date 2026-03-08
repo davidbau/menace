@@ -19,7 +19,7 @@ import { set_wounded_legs, legs_in_no_shape } from './do.js';
 import { recalc_block_point, couldsee } from './vision.js';
 import { add_damage, pay_for_damage } from './shk.js';
 import { in_town } from './hack.js';
-import { awaitInput } from './suspend.js';
+import { awaitInput, awaitMore } from './suspend.js';
 
 function hasMartialBonus(player) {
     const roleName = String(player?.role || '').toLowerCase();
@@ -45,7 +45,10 @@ export async function handleKick(player, map, display, game) {
         // C ref: dokick.c:1314 — display_nhwindow(WIN_MESSAGE, TRUE)
         // Consume a key for --More-- to match C's step boundary.
         if (display?.renderMoreMarker) display.renderMoreMarker();
-        if (display?.morePrompt) await display.morePrompt(nhgetch);
+        if (display?.morePrompt) {
+            const readMoreKey = () => awaitInput(game, nhgetch(), { site: 'kick.handleKick.woundedLegs.moreKey' });
+            await awaitMore(game, display.morePrompt(readMoreKey), { site: 'kick.handleKick.woundedLegs.morePrompt' });
+        }
         return { moved: false, tookTime: false };
     }
     await display.putstr_message('In what direction? ');

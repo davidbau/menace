@@ -63,6 +63,7 @@ import { flooreffects } from './do.js';
 import { stairway_at } from './stairs.js';
 import { t_at } from './trap.js';
 import { envFlag, getEnv, writeStderr } from './runtime_env.js';
+import { awaitInput, awaitMore } from './suspend.js';
 
 const hallublasts = [
     'bubbles', 'butterflies', 'dust specks', 'flowers', 'glitter',
@@ -341,7 +342,8 @@ async function maybeFlushToplineBeforeMessage(display, msg, game) {
     if (typeof display.renderMoreMarker === 'function') {
         display.renderMoreMarker();
     }
-    await display.morePrompt(nhgetch);
+    const readMoreKey = () => awaitInput(game, nhgetch(), { site: 'mthrowu.maybeFlushToplineBeforeMessage.moreKey' });
+    await awaitMore(game, display.morePrompt(readMoreKey), { site: 'mthrowu.maybeFlushToplineBeforeMessage.morePrompt' });
     if (Object.hasOwn(display, 'noConcatenateMessages')) {
         display.noConcatenateMessages = true;
         if (game) game._tempNoConcatMessages = true;
@@ -660,7 +662,8 @@ export async function m_throw_timed(
                     && typeof display.renderMoreMarker === 'function'
                     && (display.topMessage || '').includes('  ')) {
                     display.renderMoreMarker();
-                    await display.morePrompt(nhgetch);
+                    const readMoreKey = () => awaitInput(game, nhgetch(), { site: 'mthrowu.m_throw.impact.moreKey' });
+                    await awaitMore(game, display.morePrompt(readMoreKey), { site: 'mthrowu.m_throw.impact.morePrompt' });
                     if (Object.hasOwn(display, 'noConcatenateMessages')) {
                         display.noConcatenateMessages = true;
                         if (game) game._tempNoConcatMessages = true;
