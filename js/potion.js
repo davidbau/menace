@@ -45,7 +45,7 @@ import { hard_helmet } from './do_wear.js';
 import { body_part } from './polyself.js';
 import { HEAD, KILLED_BY, LEVITATION, UNCHANGING,
          POLY_NOFLAGS, POLY_CONTROLLED, POLY_LOW_CTRL,
-         DETECT_MONSTERS } from './const.js';
+         DETECT_MONSTERS, IS_SINK } from './const.js';
 
 
 // Module-level state for potion-quaffing flow (C globals: potion_nothing, potion_unkn)
