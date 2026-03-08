@@ -29,7 +29,7 @@ import { MZ_LARGE, S_EEL, S_SNAKE, S_XORN, S_DRAGON, S_JABBERWOCK,
          S_NAGA, S_WORM_TAIL, S_KOP, S_GIANT,
          PM_BALROG, AT_WEAP,
        } from './monsters.js';
-import { mons } from './monsters.js';
+import { mons, PM_MONK, PM_SAMURAI, PM_HEALER, PM_CLERIC, PM_WIZARD } from './monsters.js';
 import {
     W_ARMS, W_ARMG, W_WEP,
     P_NONE, P_DAGGER, P_KNIFE, P_AXE, P_PICK_AXE, P_SHORT_SWORD, P_BROAD_SWORD,
@@ -260,8 +260,8 @@ export function weapon_hit_bonus(weapon) {
         }
     } else if (type === P_BARE_HANDED_COMBAT) {
         // C ref: weapon.c:1596-1609 — bare-handed / martial arts
-        const roleIndex = player?.roleIndex;
-        const martial = (roleIndex === 5 || roleIndex === 9); // PM_MONK or PM_SAMURAI
+        const roleMnum = player?.roleMnum;
+        const martial = (roleMnum === PM_MONK || roleMnum === PM_SAMURAI);
         bonus = Math.max(level, P_UNSKILLED) - 1;
         bonus = Math.floor((bonus + 2) * (martial ? 2 : 1) / 2);
     }
@@ -308,8 +308,8 @@ export function weapon_dam_bonus(weapon) {
         }
     } else if (type === P_BARE_HANDED_COMBAT) {
         // C ref: weapon.c:1691-1704
-        const roleIndex = player?.roleIndex;
-        const martial = (roleIndex === 5 || roleIndex === 9); // PM_MONK or PM_SAMURAI
+        const roleMnum = player?.roleMnum;
+        const martial = (roleMnum === PM_MONK || roleMnum === PM_SAMURAI);
         bonus = Math.max(level, P_UNSKILLED) - 1;
         bonus = Math.floor((bonus + 1) * (martial ? 3 : 1) / 2);
     }
@@ -860,7 +860,7 @@ export function skill_init(_class_skill) {
 // C ref: weapon.c:1745-1784 — Set P_BASIC for weapon skills matching
 // inventory items and role-specific magic skills.
 // Called after starting inventory is created.
-export function skill_init_from_inventory(inventory, roleIndex) {
+export function skill_init_from_inventory(inventory, roleMnum) {
     if (!skillSystemActive) return;
     // C ref: weapon.c:1746-1756 — inventory weapon skills → P_BASIC
     if (inventory) {
@@ -873,11 +873,11 @@ export function skill_init_from_inventory(inventory, roleIndex) {
         }
     }
     // C ref: weapon.c:1759-1766 — magic skills by role
-    if (roleIndex === 3 /* PM_HEALER */ || roleIndex === 5 /* PM_MONK */) {
+    if (roleMnum === PM_HEALER || roleMnum === PM_MONK) {
         heroSkill[P_HEALING_SPELL] = P_BASIC;
-    } else if (roleIndex === 6 /* PM_PRIEST */) {
+    } else if (roleMnum === PM_CLERIC) {
         heroSkill[P_CLERIC_SPELL] = P_BASIC;
-    } else if (roleIndex === 12 /* PM_WIZARD */) {
+    } else if (roleMnum === PM_WIZARD) {
         heroSkill[P_ATTACK_SPELL] = P_BASIC;
         heroSkill[P_ENCHANTMENT_SPELL] = P_BASIC;
     }

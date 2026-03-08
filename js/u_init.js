@@ -1203,7 +1203,7 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
     equipInitialGear(player);
     // C ref: weapon.c:1745-1784 — skill_init reads inventory to set P_BASIC
     // for weapon skills matching starting items. Must happen after all ini_inv.
-    skill_init_from_inventory(player.inventory || [], player.roleIndex);
+    skill_init_from_inventory(player.inventory || [], player.roleMnum);
     applyRolePreknowledge(player);
     applyStartupDiscoveries(player);
     //    c+d. init_attr(75) + vary_init_attr()
