@@ -28,6 +28,12 @@ Also playable: [Hack (1982)](https://mazesofmenace.net/hack/) and
 the sweet output of The Hive.
 
 NetHack has ~420,000 lines of C, headers, and Lua across ~8,600 functions.
+That is roughly the size of SQLite or the Git version control system,
+larger than the original Doom and Quake combined, and an order of
+magnitude beyond any other roguelike. Most of those lines are
+interaction rules: what happens when you dip a unicorn horn into a
+potion, or kick a sink while polymorphed into a black dragon. The
+codebase has been accumulating edge cases since 1987.
 The question is whether AI agents, with human direction, can produce a
 faithful port: not a prototype, but a playable, parity-correct
 reimplementation that matches the C behavior down to the random number
