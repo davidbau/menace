@@ -1593,10 +1593,13 @@ export async function findtravelpath(mode, game) {
     const ty = game.travelY;
     if (!Number.isInteger(tx) || !Number.isInteger(ty) || !isok(tx, ty)) return false;
 
+    // C ref: decl.c dirs_ord[] — cardinals first: W, N, E, S, NW, NE, SE, SW.
+    // Direction iteration order matters: when multiple adjacent cells have equal
+    // BFS distance, the first one encountered becomes the preferred travel step.
     const noDiag = !!player?.noDiag;
     const dirs = noDiag
-        ? [[0, -1], [0, 1], [-1, 0], [1, 0]]
-        : [[0, -1], [0, 1], [-1, 0], [1, 0], [-1, -1], [1, -1], [-1, 1], [1, 1]];
+        ? [[-1, 0], [0, -1], [1, 0], [0, 1]]
+        : [[-1, 0], [0, -1], [1, 0], [0, 1], [-1, -1], [1, -1], [1, 1], [-1, 1]];
 
     // Adjacent target uses normal move legality with restricted diagonal handling.
     if ((mode === TRAVP_TRAVEL || mode === TRAVP_VALID)
