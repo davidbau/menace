@@ -21,6 +21,7 @@ import { findgold } from './steal.js';
 import { observeObject } from './o_init.js';
 import { unblock_point, recalc_block_point, do_clear_area } from './vision.js';
 import { body_part } from './polyself.js';
+import { Is_box } from './objnam.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_FLASH, DISP_CHANGE, DISP_END } from './const.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
@@ -43,9 +44,7 @@ const OTRAP_THERE = 2;
 // ========================================================================
 // Local helpers
 // ========================================================================
-function Is_box(obj) {
-    return obj && (obj.otyp === CHEST || obj.otyp === LARGE_BOX);
-}
+// Is_box imported from objnam.js
 function Has_contents(obj) {
     return obj && Array.isArray(obj.cobj) && obj.cobj.length > 0;
 }

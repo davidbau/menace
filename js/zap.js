@@ -91,7 +91,7 @@ import {
   xname, an, The, simpleonames,
   suit_simple_name, cloak_simple_name, helm_simple_name,
   gloves_simple_name, boots_simple_name, shield_simple_name,
-  shirt_simple_name,
+  shirt_simple_name, Is_box,
 } from './objnam.js';
 import { hold_another_object, prinv } from './invent.js';
 import { findit } from './detect.js';
@@ -2217,9 +2217,7 @@ export function item_what(_osym_or_dmgtyp, maybe_dmgtyp = null, maybe_player = n
   return what ? `by your ${what}` : '';
 }
 
-function Is_box(otmp) {
-  return !!otmp && (otmp.otyp === CHEST || otmp.otyp === LARGE_BOX);
-}
+// Is_box imported from objnam.js
 
 function is_magical_trap(ttyp) {
   return ttyp === MAGIC_TRAP || ttyp === ANTI_MAGIC || ttyp === POLY_TRAP

@@ -43,7 +43,7 @@ import { S_LICH, S_GHOST, S_VAMPIRE, S_WRAITH, S_MUMMY, S_ZOMBIE, S_HUMAN,
          PM_CLERIC, PM_KNIGHT, PM_WIZARD, PM_MONK,
          AT_ENGL, AD_BLND } from './monsters.js';
 import { Role_if } from './role.js';
-import { makeplural } from './objnam.js';
+import { makeplural, is_weptool } from './objnam.js';
 import { CORPSE, STATUE, AMULET_OF_YENDOR, FAKE_AMULET_OF_YENDOR,
          POT_WATER, POTION_CLASS, LOADSTONE, LEVITATION_BOOTS, FUMBLE_BOOTS,
          GAUNTLETS_OF_FUMBLING, HELM_OF_OPPOSITE_ALIGNMENT,
@@ -228,12 +228,7 @@ function unchanger(player) {
     return null;
 }
 
-// Helper: is_weptool check
-function is_weptool(obj) {
-    if (!obj) return false;
-    const od = objectData[obj.otyp];
-    return od && od.oclass === TOOL_CLASS && od.oc_skill;
-}
+// is_weptool imported from objnam.js
 
 
 // Helper: u_wield_art check

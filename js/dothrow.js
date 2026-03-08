@@ -56,6 +56,7 @@ import { MZ_MEDIUM, MZ_HUGE, PM_HOMUNCULUS, PM_IMP, mons,
 import { hitval, dmgval, weapon_hit_bonus, weapon_type } from './weapon.js';
 import { find_mac } from './worn.js';
 import { spec_abon } from './artifact.js';
+import { is_weptool } from './objnam.js';
 import { erode_obj } from './trap.js';
 import { goodpos } from './teleport.js';
 import { mpickobj } from './steal.js';
@@ -126,11 +127,7 @@ function is_sword(otmp) {
     return sk >= P_SHORT_SWORD && sk <= P_SABER;
 }
 
-// cf. obj.h: is_weptool(o)
-function is_weptool(o) {
-    if (!o || o.oclass !== TOOL_CLASS) return false;
-    return (objectData[o.otyp]?.oc_subtyp ?? 0) !== 0;
-}
+// is_weptool imported from objnam.js
 
 // cf. obj.h: matching_launcher(a, l)
 function matching_launcher(a, l) {

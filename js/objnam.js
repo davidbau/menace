@@ -648,7 +648,7 @@ export function mshot_xname(obj) {
 // cf. objnam.c:1778
 // ============================================================================
 
-function is_weptool(obj) {
+export function is_weptool(obj) {
     return obj.oclass === TOOL_CLASS && (objectData[obj.otyp]?.oc_subtyp || 0) !== 0;
 }
 
@@ -677,7 +677,7 @@ export function not_fully_identified(otmp) {
     return is_damageable(otmp);
 }
 
-function Is_box(obj) {
+export function Is_box(obj) {
     const otyp = obj.otyp;
     return otyp === LARGE_BOX || otyp === CHEST;
 }

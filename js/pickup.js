@@ -38,6 +38,7 @@ import { revive as revive_corpse } from './zap.js';
 import { near_capacity, max_capacity, calc_capacity } from './hack.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu } from './windows.js';
 import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ANY, ATR_NONE } from './const.js';
+import { Is_box } from './objnam.js';
 
 // pickup.js -- Autopickup, floor object pickup, container looting
 // Ported from NetHack pickup.c
@@ -73,9 +74,7 @@ function Has_contents(obj) {
     return obj.cobj != null && (Array.isArray(obj.cobj) ? obj.cobj.length > 0 : !!obj.cobj);
 }
 
-function Is_box(obj) {
-    return obj.otyp === LARGE_BOX || obj.otyp === CHEST;
-}
+// Is_box imported from objnam.js
 
 function SchroedingersBox(obj) {
     return obj.spe === 1 && Is_box(obj);

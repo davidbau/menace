@@ -45,6 +45,7 @@ import { add_damage } from './shk.js';
 import { mon_nam, some_mon_nam } from './do_name.js';
 import { canseemon } from './mondata.js';
 import { chest_trap } from './trap.js';
+import { is_weptool, Is_box } from './objnam.js';
 
 // ============================================================================
 // Local helpers (cf. obj.h macros)
@@ -68,16 +69,10 @@ function is_pick(otmp) {
     return otmp && (otmp.otyp === PICK_AXE || otmp.otyp === DWARVISH_MATTOCK);
 }
 
-// cf. obj.h: is_weptool(o)
-function is_weptool(o) {
-    if (!o || o.oclass !== TOOL_CLASS) return false;
-    return (objectData[o.otyp]?.oc_subtyp ?? 0) !== 0;
-}
+// is_weptool imported from objnam.js
 
 // cf. obj.h: Is_box(obj)
-function Is_box(obj) {
-    return obj.otyp === LARGE_BOX || obj.otyp === CHEST;
-}
+// Is_box imported from objnam.js
 
 // cf. obj.h: greatest_erosion(obj)
 function greatest_erosion(obj) {
