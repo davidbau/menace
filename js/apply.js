@@ -1025,6 +1025,18 @@ export async function handleApply(player, map, display, game) {
                 showList = candidates;
             }
             showList.sort((a, b) => String(a.invlet).charCodeAt(0) - String(b.invlet).charCodeAt(0));
+            if (showList.length === 1 && typeof display?.renderMoreMarker === 'function') {
+                const item = showList[0];
+                replacePromptMessage();
+                await display.putstr_message(`${item.invlet} - ${doname(item, player)}.`);
+                display.renderMoreMarker();
+                if (typeof display?.markMorePending === 'function') {
+                    display.markMorePending({ source: 'apply.inventory-list.single' });
+                }
+                // Queue prompt to appear immediately after --More-- dismissal.
+                await display.putstr_message(prompt);
+                continue;
+            }
             for (const item of showList) {
                 replacePromptMessage();
                 await display.putstr_message(
