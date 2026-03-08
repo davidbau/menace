@@ -1586,8 +1586,6 @@ export function setup_algnmenu(filtering, rolenum, racenum, gendnum, game) {
 }
 
 // ============================================================================
-// Additional exports for constants used by other modules
-export { RS_ROLE, RS_RACE, RS_GENDER, RS_ALGNMNT, RS_filter };
 export { alignData, genderData, racePMIndex };
 export { alignIndexToValue, alignValueToIndex };
 

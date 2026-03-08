@@ -74,7 +74,7 @@ import { monAttackName } from './do_name.js';
 import { canSpotMonsterForMap, map_invisible, newsym } from './display.js';
 import { addToMonsterInventory, canMergeMonsterInventoryObj } from './invent.js';
 import { mpickobj, mdrop_obj } from './steal.js';
-export { dist2, distmin, monnear, attackVerb, monAttackName, canSpotMonsterForMap, map_invisible, addToMonsterInventory, canMergeMonsterInventoryObj, mondead, mpickobj, mdrop_obj, MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM };
+export { dist2, distmin, monnear, attackVerb, monAttackName, canSpotMonsterForMap, map_invisible, addToMonsterInventory, canMergeMonsterInventoryObj, mondead, mpickobj, mdrop_obj };
 
 // Re-export track functions (track.c)
 export { initrack, settrack };
@@ -90,7 +90,7 @@ import { ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U, ALLOW_M, ALLOW_TM, ALLOW_ALL,
          NOTONL, OPENDOOR, UNLOCKDOOR, BUSTDOOR, ALLOW_ROCK, ALLOW_WALL,
          ALLOW_DIG, ALLOW_BARS, ALLOW_SANCT, ALLOW_SSM, NOGARLIC } from './const.js';
 import { mattackm } from './mhitm.js';
-export { mfndpos, onscary, corpse_chance, ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U, ALLOW_M, ALLOW_TM, ALLOW_ALL, NOTONL, OPENDOOR, UNLOCKDOOR, BUSTDOOR, ALLOW_ROCK, ALLOW_WALL, ALLOW_DIG, ALLOW_BARS, ALLOW_SANCT, ALLOW_SSM, NOGARLIC };
+export { mfndpos, onscary, corpse_chance };
 // mon_allowflags is exported from its definition below
 
 // Re-export trap.c functions

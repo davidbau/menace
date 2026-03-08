@@ -1255,6 +1255,6 @@ export async function uchangealign(player, newalign, reason) {
 
 export { ensureAttrArrays };
 export { STR18, STR19 };
-export { AVAL, LUCKMIN, LUCKMAX, LUCKADD };
+export { AVAL };
 export { FROM_NONE, FROM_ROLE_REASON, FROM_RACE_REASON, FROM_INTR, FROM_EXP, FROM_FORM_REASON, FROM_LYCN };
 export { attrname, plusattr, minusattr };

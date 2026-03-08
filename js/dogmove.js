@@ -43,10 +43,9 @@ import { dist2, distmin, monnear, mfndpos, mon_allowflags,
          monmoveTrace, monmoveStepLabel,
          canSpotMonsterForMap,
          mondead, mpickobj, mdrop_obj,
-         MTSZ, SQSRCHRADIUS, FARAWAY,
          mon_track_add,
-         ALLOW_M, ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U,
          should_displace } from './monmove.js';
+import { ALLOW_M, ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U, MTSZ, SQSRCHRADIUS, FARAWAY } from './const.js';
 import { newsym } from './display.js';
 
 // ========================================================================

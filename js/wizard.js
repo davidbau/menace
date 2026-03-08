@@ -6,7 +6,10 @@
 import { rn2, rnd, rn1 } from './rng.js';
 import { pline, You, You_feel, verbalize } from './pline.js';
 import { makemon } from './makemon.js';
-import { NO_MM_FLAGS, RLOC_MSG, BOLT_LIM, MAGIC_PORTAL, M_AP_MONSTER } from './const.js';
+import { NO_MM_FLAGS, RLOC_MSG, BOLT_LIM, MAGIC_PORTAL, M_AP_MONSTER,
+         STRAT_APPEARMSG, STRAT_WAITFORU, STRAT_CLOSE, STRAT_WAITMASK,
+         STRAT_HEAL, STRAT_GROUND, STRAT_MONSTR, STRAT_PLAYER,
+         STRAT_NONE, STRAT_STRATMASK, STRAT_GOAL } from './const.js';
 import { mksobj, doname, add_to_minv } from './mkobj.js';
 import {
     AMULET_OF_YENDOR, FAKE_AMULET_OF_YENDOR,
@@ -48,21 +51,7 @@ import { is_quest_artifact } from './objdata.js';
 import { rndcurse } from './sit.js';
 import { builds_up } from './dungeon.js';
 
-// ============================================================================
-// Strategy constants (cf. monst.h)
-// ============================================================================
-
-const STRAT_APPEARMSG = 0x80000000;
-const STRAT_WAITFORU  = 0x20000000;
-const STRAT_CLOSE     = 0x10000000;
-const STRAT_WAITMASK  = (STRAT_CLOSE | STRAT_WAITFORU);
-const STRAT_HEAL      = 0x08000000;
-const STRAT_GROUND    = 0x04000000;
-const STRAT_MONSTR    = 0x02000000;
-const STRAT_PLAYER    = 0x01000000;
-const STRAT_NONE      = 0x00000000;
-const STRAT_STRATMASK = 0x0f000000;
-const STRAT_GOAL      = 0x000000ff;
+// Strategy constants imported from const.js (monst.h)
 
 const MAXNASTIES = 10;
 const MM_NOWAIT = 0x00000002;
@@ -968,4 +957,4 @@ export async function cuss(mtmp, map, player) {
 // Exports of constants and internal functions for use by other modules
 // ============================================================================
 
-export { STRAT_APPEARMSG, STRAT_WAITFORU, STRAT_CLOSE, STRAT_WAITMASK, STRAT_HEAL, STRAT_GROUND, STRAT_MONSTR, STRAT_PLAYER, STRAT_NONE, STRAT_STRATMASK, STRAT_GOAL, nasties, wizapp, which_arti, strategy };
+export { nasties, wizapp, which_arti, strategy };

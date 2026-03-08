@@ -4,9 +4,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { initRng, enableRngLog, disableRngLog, getRngLog } from '../../js/rng.js';
-import { COLNO, ROWNO, ROOM, STONE, HWALL, WATER, W_WEP } from '../../js/const.js';
+import { COLNO, ROWNO, ROOM, STONE, HWALL, WATER, W_WEP, MTSZ } from '../../js/const.js';
 import { GameMap } from '../../js/game.js';
-import { movemon, mon_track_add, mon_track_clear, monhaskey, m_can_break_boulder, MTSZ } from '../../js/monmove.js';
+import { movemon, mon_track_add, mon_track_clear, monhaskey, m_can_break_boulder } from '../../js/monmove.js';
 import { Player } from '../../js/player.js';
 import { GOLD_PIECE, COIN_CLASS, WEAPON_CLASS, ARMOR_CLASS, ORCISH_DAGGER, ORCISH_HELM,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD, PICK_AXE, DWARVISH_MATTOCK } from '../../js/objects.js';
