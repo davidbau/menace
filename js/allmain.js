@@ -852,8 +852,21 @@ export async function run_command(game, ch, opts = {}) {
                 };
                 const moveResult = await domove([0, 0], _p, _map, _display, game);
                 game.advanceRunTurn = null;
-                if (!moveResult || !moveResult.tookTime) break;
-                if (!moveResult.moved) break;
+                if (!moveResult || !moveResult.tookTime) {
+                    // C ref: allmain.c moveloop — C's movemon runs BEFORE domove.
+                    // When domove fails during travel (findtravelpath's nomul(0)
+                    // cleared multi but context.move stayed 1), C still runs
+                    // one more movemon at the top of the next iteration before
+                    // exiting.  JS's post-domove model needs an explicit extra
+                    // advanceTimedTurn to match.
+                    if (ctx.run === 8 && ctx.travel === 0 && game.multi === 0) {
+                        await advanceTimedTurn();
+                    }
+                    break;
+                }
+                if (!moveResult.moved) {
+                    break;
+                }
                 await advanceTimedTurn();
                 await _drainOccupation(game, coreOpts, onTimedTurn);
             } else {
