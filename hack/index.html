@@ -1073,7 +1073,7 @@
       dismissBtn.style.top = (rect.top + 4) + 'px';
     }
 
-    function openDocs() {
+    function openDocs(animate) {
       if (!loaded) {
         content.innerHTML = '<p style="color:#888;">Loading...</p>';
         fetch('HISTORY.md')
@@ -1083,11 +1083,36 @@
       }
       document.body.classList.remove('docs-standalone');
       overlay.classList.add('open');
-      document.body.classList.add('docs-mode');
       overlay.scrollTop = 0;
       docsOpen = true;
       history.replaceState(null, '', '#about');
-      mmApply(mmRestore(), true);
+
+      if (animate) {
+        // FLIP: capture game position before layout change
+        var fromRect = page.getBoundingClientRect();
+
+        document.body.classList.add('docs-mode');
+        var target = mmRestore();
+        mmApply(target, true);
+
+        // Invert: transform so it visually stays at fromRect
+        var nw = page.scrollWidth;
+        var dx = fromRect.left - target.left;
+        var dy = fromRect.top - target.top;
+        var si = nw > 0 ? fromRect.width / nw : 1;
+
+        page.style.transition = 'none';
+        page.style.transform =
+            'translate(' + dx + 'px,' + dy + 'px) scale(' + si + ')';
+        page.offsetHeight; // force layout
+
+        // Animate to final minimap position
+        page.style.transition = '';
+        page.style.transform = 'scale(' + target.scale + ')';
+      } else {
+        document.body.classList.add('docs-mode');
+        mmApply(mmRestore(), true);
+      }
       requestAnimationFrame(positionDismissBtn);
     }
 
@@ -1147,7 +1172,7 @@
     aboutLink.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
-      if (docsOpen) closeDocs(); else openDocs();
+      if (docsOpen) closeDocs(); else openDocs(true);
     });
 
     dismissBtn.addEventListener('click', function(e) {
