@@ -72,10 +72,13 @@ import { roles, races, initialAlignmentRecordForRole } from './player.js';
 import { mpickobj } from './steal.js';
 import { dist2 } from './hacklib.js';
 import { newsym, senseMonsterForMap } from './display.js';
-import { canseemon, mon_learns_traps, emits_light, set_mon_data, monsndx, is_golem, nonliving } from './mondata.js';
-import { Amonnam } from './do_name.js';
-import { vtense } from './objnam.js';
-import { Norep, set_msg_xy } from './pline.js';
+import { canseemon, mon_learns_traps, emits_light, set_mon_data, monsndx,
+         is_golem, nonliving, is_humanoid, is_shapeshifter } from './mondata.js';
+import { Amonnam, Mgender, pmname, YMonnam, mon_nam } from './do_name.js';
+import { vtense, an } from './objnam.js';
+import { pline, Norep, set_msg_xy, pline_mon } from './pline.js';
+import { mondied } from './mon.js';
+import { update_inventory } from './invent.js';
 import { get_wormno, initworm, place_worm_tail_randomly } from './worm.js';
 import { new_light_source } from './light.js';
 import { PIT, SPIKED_PIT, LOW_PM } from './const.js';
@@ -86,6 +89,13 @@ import { In_sokoban, Is_stronghold } from './dungeon.js';
 // ========================================================================
 
 // Check helpers
+// C ref: canspotmon — can hero spot the monster?
+function canspotmon(mtmp) { return canseemon(mtmp); }
+// C ref: mhe(mtmp) — pronoun for monster
+function mhe(mtmp) { return mtmp?.female ? 'she' : 'he'; }
+// C ref: humanoid(ptr) — alias for is_humanoid
+const humanoid = is_humanoid;
+
 function is_mercenary(ptr) { return !!(ptr.mflags2 & M2_MERC); }
 function is_lord(ptr) { return !!(ptr.mflags2 & M2_LORD); }
 function is_prince(ptr) { return !!(ptr.mflags2 & M2_PRINCE); }
