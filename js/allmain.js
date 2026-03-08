@@ -677,6 +677,18 @@ export async function run_command(game, ch, opts = {}) {
             key: chCode,
             boundary: game?.getInputBoundaryState?.() || null,
         });
+        if (typeof game.display.markMorePending === 'function') {
+            game.display.markMorePending({ source: 'run_command.fallback-sync' });
+            const syncedBoundary = (typeof game?.peekInputBoundary === 'function')
+                ? game.peekInputBoundary()
+                : null;
+            if (syncedBoundary && syncedBoundary.owner === 'more') {
+                game?.emitDiagnosticEvent?.('boundary.more.fallback-synced', {
+                    key: chCode,
+                    boundary: game?.getInputBoundaryState?.() || null,
+                });
+            }
+        }
         return await handleMoreBoundaryKey();
     }
 
