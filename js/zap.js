@@ -2620,6 +2620,7 @@ export async function bhit(ddx, ddy, range, weapon, fhitm_fn, fhito_fn, obj, map
 
 // ============================================================
 // cf. zap.c resists_blnd() — blindness resistance
+// TODO: should eventually move to mondata.js, but kept here to avoid circular deps with mondata
 // ============================================================
 export function resists_blnd(mon) {
   // Check if monster resists blindness

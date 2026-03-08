@@ -36,7 +36,7 @@ import { isok, SEE_INVIS, DETECT_MONSTERS, TELEPAT, INFRAVISION, WARNING, WARN_O
          BOLT_LIM } from './const.js';
 import { cansee, couldsee, clear_vision_full_recalc } from './vision.js';
 import { do_light_sources } from './light.js';
-import { emits_light, infravisible, is_mindless } from './mondata.js';
+import { emits_light, infravisible, is_mindless, monsndx } from './mondata.js';
 import { worm_known } from './worm.js';
 export { mark_vision_dirty } from './vision.js';
 

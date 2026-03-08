@@ -38,7 +38,7 @@ import {
     PM_SAMURAI
 } from './monsters.js';
 import { TIMER_KIND, TIMER_FUNC, TAINT_AGE } from './const.js';
-import { lays_eggs } from './mondata.js';
+import { lays_eggs, monsndx } from './mondata.js';
 import { start_timer, stop_timer, attach_egg_hatch_timeout } from './timeout.js';
 
 // Named object indices we need (exported from objects.js)

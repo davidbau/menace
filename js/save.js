@@ -24,6 +24,7 @@
 import { tmp_at } from './animation.js';
 import { DISP_FREEMEM } from './const.js';
 import { pushRngLogEntry } from './rng.js';
+import { monsndx } from './mondata.js';
 
 // cf. save.c:42 — dosave(): player-facing #save command
 // Prompts player to confirm; calls dosave0(); handles quit-to-save logic.

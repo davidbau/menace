@@ -32,6 +32,7 @@ import {
     SPE_BLANK_PAPER, SPE_NOVEL, SPE_BOOK_OF_THE_DEAD,
 } from './objects.js';
 import { is_metallic } from './objdata.js';
+import { is_undead, is_vampshifter } from './mondata.js';
 import { nhgetch } from './input.js';
 import { create_nhwindow, destroy_nhwindow } from './windows.js';
 import { NHW_MENU } from './const.js';
