@@ -1810,6 +1810,22 @@
             }
         });
 
+        // Reposition minimap when #page content dimensions change
+        // (e.g. game terminal loads and scrollHeight increases)
+        var mmLastSH = 0;
+        if (typeof ResizeObserver !== 'undefined') {
+            new ResizeObserver(function() {
+                if (!document.body.classList.contains('docs-mode')) return;
+                if (mmState) return;  // don't interfere with active drag
+                var sh = page.scrollHeight;
+                if (sh !== mmLastSH) {
+                    mmLastSH = sh;
+                    mmApply(mmRestore(), true);
+                    positionDismissBtn();
+                }
+            }).observe(page);
+        }
+
         // ── end minimap ───────────────────────────────────────────────────────
 
         function positionDismissBtn() {
