@@ -1809,8 +1809,8 @@
             var rect = page.getBoundingClientRect();
             dismissBtn.style.display = 'block';
             dismissBtn.style.pointerEvents = 'auto';
-            dismissBtn.style.left = (rect.right - 6) + 'px';
-            dismissBtn.style.top = (rect.top - 26) + 'px';
+            dismissBtn.style.left = (rect.right - 26) + 'px';
+            dismissBtn.style.top = (rect.top + 4) + 'px';
         }
 
         function openDocs(src, hash, animate) {
@@ -1988,10 +1988,13 @@
         });
 
         // Escape key to close docs (not in standalone mode — user navigated away from game)
+        // Any other key hides the dismiss button until next mouse hover
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && document.body.classList.contains('docs-mode')
                     && !document.body.classList.contains('docs-standalone')) {
                 closeDocs(true);
+            } else if (document.body.classList.contains('docs-mode')) {
+                document.body.classList.remove('minimap-hover');
             }
         });
 

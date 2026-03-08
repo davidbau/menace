@@ -904,8 +904,8 @@
       var rect = page.getBoundingClientRect();
       dismissBtn.style.display = 'block';
       dismissBtn.style.pointerEvents = 'auto';
-      dismissBtn.style.left = (rect.right - 6) + 'px';
-      dismissBtn.style.top = (rect.top - 26) + 'px';
+      dismissBtn.style.left = (rect.right - 26) + 'px';
+      dismissBtn.style.top = (rect.top + 4) + 'px';
     }
 
     function openDocs() {
@@ -977,6 +977,7 @@
 
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && docsOpen) { e.preventDefault(); e.stopImmediatePropagation(); closeDocs(); }
+      else if (docsOpen) { document.body.classList.remove('minimap-hover'); }
     }, true);
 
     window.addEventListener('resize', function() {
