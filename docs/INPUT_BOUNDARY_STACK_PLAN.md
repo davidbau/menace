@@ -4,10 +4,11 @@ Issue: #274
 
 ## Problem
 Input-boundary ownership is split across multiple layers:
-- `run_command()` has a top-level `_pendingMore` consume path.
+- `run_command()` historically had independent top-level `_pendingMore` and
+  `pendingPrompt` branches separate from boundary ownership.
 - `nhgetch()` recursively consumes `--More--` via `_clearMore()`.
-- `pendingPrompt` is an independent path (`run_command` and `cmd.js` branches).
-- Several callsites set `display._pendingMore = true` directly.
+- Legacy/raw `_pendingMore` states can still appear if ownership tokens are
+  dropped or bypassed.
 
 This creates ambiguous key ownership and boundary timing drift during session replay.
 
@@ -52,12 +53,8 @@ Primary (`putstr_message` paths):
 - `js/headless.js`
 
 Direct manual writers outside display module:
-- `js/allmain.js` (lore startup path)
-- `js/do.js`
-- `js/dothrow.js`
-- `js/wield.js`
-- `js/hack.js`
-- `js/apply.js`
+- Migrated to `markMorePending(...)` in current codebase for core paths
+  (`allmain`, `do`, `dothrow`, `wield`, `hack`, `apply`).
 
 ### `_clearMore()` consumers
 - `js/allmain.js` (`run_command` branch)
@@ -71,8 +68,7 @@ Direct manual writers outside display module:
 - `js/allmain.js` (tutorial flow)
 
 ### `pendingPrompt` readers/consumers
-- `js/allmain.js` (`run_command` prompt branch)
-- `js/cmd.js`
+- `js/allmain.js` (stack owner `prompt` path)
 - `js/chargen.js`
 
 ## Phases and Gates
@@ -92,7 +88,7 @@ Gate:
   - `_clearMoreBoundaryToken()` internal helper.
 - Update display/headless `putstr_message` non-blocking paths to call `markMorePending`.
 - Update direct `_pendingMore` writers to use helper where accessible.
-- Keep existing `_pendingMore` checks in `run_command`/`nhgetch` as compatibility fallback.
+- Keep narrow compatibility fallback in `run_command`/`nhgetch` for migration safety.
 
 Gate:
 - No regressions in first divergence index for `seed031/032/033`.
@@ -100,15 +96,14 @@ Gate:
 - Diagnostics show owner=`more` active on `--More--` frames.
 
 ### Phase 2: prompt ownership migration
-- Add `setPendingPrompt(handler)` wrapper that binds prompt to owner=`prompt` boundary.
-- Convert current `pendingPrompt = ...` writes to wrapper.
-- Collapse duplicate prompt handling branches after stability.
+- Bind `pendingPrompt` property to owner=`prompt` boundary token.
+- Remove duplicate prompt interception paths after stability.
 
 Gate:
 - No prompt deadlocks; no early event regressions in manual-direct seeds.
 
 ### Phase 3: cleanup
-- Remove redundant fallback branches only after parity confidence.
+- Remove/limit redundant fallback branches only after parity confidence.
 - Keep compatibility shims if any uncertain callsites remain.
 
 Gate:
@@ -138,3 +133,16 @@ Compare:
   - Mitigation: callsite inventory + helper migration + diagnostic owner checks.
 - Risk: prompt path regressions from broad migration.
   - Mitigation: phase split; prompt migration deferred until `more` path stable.
+
+## Current Status (2026-03-08)
+- Completed:
+  - Phase 0 API + diagnostics (`withInputBoundary/clearInputBoundary/peekInputBoundary`).
+  - Prompt boundary stack ownership with single-layer `run_command` prompt handling.
+  - More boundary stack ownership in `run_command`, plus fallback auto-sync.
+  - Core callsites migrated to `markMorePending(...)` helpers.
+  - Unit invariants added in `test/unit/input_boundary_diagnostics.test.js`.
+- Remaining:
+  - Decide whether to remove `run_command` no-owner more fallback once diagnostics
+    confirm it is not hit in normal gameplay replays.
+  - Evaluate whether `nhgetch` fallback recursion can be reduced without changing
+    prompt-blocking semantics outside command loop paths.

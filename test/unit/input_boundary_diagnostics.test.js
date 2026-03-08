@@ -113,3 +113,26 @@ test('run_command uses owner=more stack boundary dismissal path', async () => {
     assert.equal(result?.tookTime, false);
     assert.equal(game.display._pendingMore, false);
 });
+
+test('run_command fallback sync upgrades pendingMore-without-owner to owner=more', async () => {
+    const game = makeGame();
+    let syncCalls = 0;
+    game.display._pendingMore = true;
+    game.display._moreBlockingEnabled = false;
+    game.display._nonBlockingMore = false;
+    game.display._clearMore = async () => {
+        game.display._pendingMore = false;
+    };
+    game.display.renderStatus = () => {};
+    game.display.cursorOnPlayer = () => {};
+    game.player = { x: 1, y: 1 };
+    game.display.markMorePending = () => {
+        syncCalls += 1;
+        game.withInputBoundary('more', async () => ({ handled: false }));
+    };
+
+    const result = await run_command(game, 32);
+    assert.equal(result?.tookTime, false);
+    assert.equal(syncCalls, 1);
+    assert.equal(game.display._pendingMore, false);
+});
