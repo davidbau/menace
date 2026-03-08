@@ -4547,3 +4547,23 @@ hard-won wisdom:
     - `colors=32760/32760`
     - `events=2684/2684`
     - `cursor=1365/1365`
+### C harness mapdump `W` correctness + setup marker correction (2026-03-08)
+
+- Problem:
+  - During event-parity triage for `seed031/032`, fresh C rerecords exposed
+    checkpoint mapdump `W` mismatches caused by harness auto-mapdump emitting
+    `W` from flags instead of `wall_info`.
+  - Setup marker validation also initially checked the wrong source file for
+    mapdump event logging.
+- Fixes:
+  - `test/comparison/c-harness/patches/017-auto-mapdump.patch`
+    - `harness_mapdump_rle_grid()` adds explicit `wall_info` case.
+    - `W` row now emits from that `wall_info` case instead of flags.
+  - `test/comparison/c-harness/setup.sh`
+    - mapdump marker check now targets `src/mklev.c`
+      (`event_log("mapdump[%s]", dump_id);`), matching patch `017`.
+- Validation:
+  - `bash test/comparison/c-harness/setup.sh` succeeds with marker checks.
+  - Gameplay baseline unchanged after reverting temporary fixture rerecords:
+    `./scripts/run-and-report.sh --failures` remains `31/34` with failing
+    seeds `031/032/033`.

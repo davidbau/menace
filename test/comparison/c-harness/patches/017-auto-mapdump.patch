@@ -22,7 +22,7 @@ diff --git a/src/mklev.c b/src/mklev.c
      reseed_random(rn2);
      reseed_random(rn2_on_display_rng);
  }
-@@ -2918,4 +2924,128 @@ mk_knox_portal(coordxy x, coordxy y)
+@@ -2918,4 +2924,129 @@ mk_knox_portal(coordxy x, coordxy y)
      debugpline0("Made knox portal.");
      place_branch(br, x, y);
  }
@@ -72,6 +72,7 @@ diff --git a/src/mklev.c b/src/mklev.c
 +            case 2: v = loc->horizontal ? 1 : 0; break;
 +            case 3: v = loc->lit ? 1 : 0; break;
 +            case 4: v = ((int) loc->roomno) & 0x3f; break;
++            case 5: v = ((int) loc->wall_info) & 0x1f; break;
 +            default: v = 0; break;
 +            }
 +            if (runlen == 0) {
@@ -256,7 +257,7 @@ diff --git a/src/mklev.c b/src/mklev.c
 +    (void) fputc('H', fp); harness_mapdump_rle_grid(fp, 2); (void) fputc('\n', fp);
 +    (void) fputc('L', fp); harness_mapdump_rle_grid(fp, 3); (void) fputc('\n', fp);
 +    (void) fputc('R', fp); harness_mapdump_rle_grid(fp, 4); (void) fputc('\n', fp);
-+    (void) fputc('W', fp); harness_mapdump_rle_grid(fp, 1); (void) fputc('\n', fp);
++    (void) fputc('W', fp); harness_mapdump_rle_grid(fp, 5); (void) fputc('\n', fp);
 +    (void) fprintf(fp, "U%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%ld,%d,%d,%d,%d,%d\n",
 +                   (int) u.ux, (int) u.uy,
 +                   (int) u.uhp, (int) u.uhpmax,
