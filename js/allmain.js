@@ -20,7 +20,7 @@ import { savebones } from './bones.js';
 import { setGame } from './gstate.js';
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
 import { beginCommandExec, endCommandExec } from './exec_guard.js';
-import { awaitInput, awaitMore } from './suspend.js';
+import { awaitInput, awaitMore, awaitAnim } from './suspend.js';
 import { nh_timeout, do_storms } from './timeout.js';
 import { pline } from './pline.js';
 import { runtimeDecideToShapeshift, makemon, withMakemonPlayerOverrideAsync } from './makemon.js';
@@ -2296,7 +2296,9 @@ export class NetHackGame {
                     this.display.renderMap(this.map, this.player, this.fov, this.flags);
                     this.display.renderStatus(this.player);
                     this.display.cursorOnPlayer(this.player);
-                    await new Promise(r => setTimeout(r, 0));
+                    await awaitAnim(this, new Promise(r => setTimeout(r, 0)), {
+                        site: 'gameLoop.repeat.onTimedTurn.yield',
+                    });
                 },
                 onBeforeRepeat: async () => {
                     if (this.shouldInterruptMulti()) {
@@ -2338,7 +2340,9 @@ export class NetHackGame {
                 this.display.renderMap(this.map, this.player, this.fov, this.flags);
                 this.display.renderStatus(this.player);
                 this.display.cursorOnPlayer(this.player);
-                await new Promise(r => setTimeout(r, 0));
+                await awaitAnim(this, new Promise(r => setTimeout(r, 0)), {
+                    site: 'gameLoop.onTimedTurn.yield',
+                });
             },
             onBeforeRepeat: async () => {
                 if (this.shouldInterruptMulti()) {
