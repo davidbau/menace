@@ -9,7 +9,7 @@ import { COIN_CLASS, RING_CLASS, POTION_CLASS, LONG_SWORD, BOULDER,
 import { pline, You, Your, You_feel, You_hear, You_see, pline_The,
          verbalize } from './pline.js';
 import { exercise } from './attrib_exercise.js';
-import { adjattrib, poison_strdmg } from './attrib.js';
+import { adjattrib, poison_strdmg, acurr } from './attrib.js';
 import { makemon } from './makemon.js';
 import { mons, PM_WATER_MOCCASIN, PM_WATER_DEMON, PM_WATER_NYMPH,
          PM_WATER_ELEMENTAL, PM_SEWER_RAT, PM_KNIGHT } from './monsters.js';
@@ -714,7 +714,7 @@ export async function drinksink(player, map, display, fov) {
     case 9:
         await pline("Gaggg... this tastes like sewage!  You vomit.");
         {
-            const con = player.acon || player.con || 10;
+            const con = acurr(player, A_CON);
             rn1(30 - con, 11); // morehungry(rn1(30 - ACURR(A_CON), 11)) -- RNG consumed
         }
         // vomit() -- not ported

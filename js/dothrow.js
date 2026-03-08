@@ -63,6 +63,8 @@ import { mpickobj } from './steal.js';
 import { newsym, flush_screen, canSeeMonsterForMap } from './display.js';
 import { makemon } from './makemon.js';
 import { exercise } from './attrib_exercise.js';
+import { acurr } from './attrib.js';
+import { A_STR, A_DEX } from './const.js';
 import {
     tmp_at, tmp_at_end_async, nh_delay_output,
 } from './animation.js';
@@ -660,7 +662,7 @@ export function throw_obj(player, obj, shotlimit) {
         const weakmultishot = (roleMnum === PM_WIZARD || roleMnum === PM_CAVE_DWELLER
             || (roleMnum === PM_HEALER && skill !== P_KNIFE)
             || (roleMnum === PM_TOURIST && skill !== -P_DART)
-            || (player.dex || 10) <= 6);
+            || acurr(player, A_DEX) <= 6);
         const pskill = player.skills?.[weapon_type(obj)] || 0;
         if (pskill >= 4) { multishot++; if (!weakmultishot) multishot++; }
         else if (pskill >= 3) { if (!weakmultishot) multishot++; }
@@ -671,7 +673,7 @@ export function throw_obj(player, obj, shotlimit) {
             else if (race === RACE_ORC && obj.otyp === ORCISH_ARROW && uwep && uwep.otyp === ORCISH_BOW) multishot++;
         }
         if (multishot > 1 && skill === -P_CROSSBOW
-            && ammo_and_launcher(obj, uwep) && (player.str || 10) < 18)
+            && ammo_and_launcher(obj, uwep) && acurr(player, A_STR) < 18)
             multishot = rnd(multishot);
         multishot = rnd(multishot);
         if (multishot > (obj.quan || 1)) multishot = obj.quan || 1;
@@ -1138,7 +1140,7 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
     }
 
     const crossbowing = ammo_and_launcher(obj, uwep) && weapon_type(uwep) === P_CROSSBOW;
-    let urange = (crossbowing ? 18 : (player.str || 10)) >> 1;
+    let urange = (crossbowing ? 18 : acurr(player, A_STR)) >> 1;
     let range;
     if (obj.otyp === HEAVY_IRON_BALL) range = urange - Math.floor((obj.owt || 0) / 100);
     else range = urange - Math.floor((obj.owt || 0) / 40);
@@ -1280,7 +1282,7 @@ export async function thitmonst(mon, obj, player, map, game) {
     const otyp = obj.otyp;
     const data = mon.data || (mons ? mons[mon.mndx] : null) || {};
     let tmp = -1 + (player.luck || 0) + find_mac(mon) + (player.uhitinc || 0) + (player.ulevel || 1);
-    const dex = player.dex || 10;
+    const dex = acurr(player, A_DEX);
     if (dex < 4) tmp -= 3;
     else if (dex < 6) tmp -= 2;
     else if (dex < 8) tmp -= 1;
@@ -1497,7 +1499,7 @@ export async function throw_gold(obj, player, map, _game) {
     if (dz) {
         if (dz < 0) await pline("The gold hits the ceiling, then falls back on top of your head.");
     } else {
-        const range = Math.max(1, Math.floor((player.str || 10) / 2 - (obj.owt || 0) / 40));
+        const range = Math.max(1, Math.floor(acurr(player, A_STR) / 2 - (obj.owt || 0) / 40));
         const odx = player.x + dx, ody = player.y + dy;
         if (isok(odx, ody)) {
             for (let i = 0; i < range; i++) {

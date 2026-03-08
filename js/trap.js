@@ -61,7 +61,7 @@ import { LEVITATION, TIMEOUT, HALLUC, STUNNED, WT_ELF } from './const.js';
 import { fall_asleep } from './timeout.js';
 import { thitu } from './mthrowu.js';
 import { exercise } from './attrib_exercise.js';
-import { poisoned } from './attrib.js';
+import { poisoned, acurr } from './attrib.js';
 import { sgn } from './hacklib.js';
 import { wake_nearby } from './mon.js';
 import { set_wounded_legs } from './do.js';
@@ -2517,7 +2517,7 @@ async function trapeffect_web_you(trap, trflags, player, game, map) {
     set_utrap(1, TT_WEB, game, player);
 
     // Time in web depends on strength
-    const str = player.ACURR_STR || player.str || 10;
+    const str = acurr(player, A_STR);
     let tim;
     if (str <= 3)      tim = rn1(6, 6);
     else if (str < 6)  tim = rn1(6, 4);
