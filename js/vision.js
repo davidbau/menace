@@ -6,7 +6,7 @@
 import { COLNO, ROWNO, DOOR, SDOOR, POOL,
          IS_WALL, IS_DOOR, isok,
          D_CLOSED, D_LOCKED, D_TRAPPED,
-         WATER, CLOUD, LAVAWALL, MOAT, ROOMOFFSET, PM_ROGUE,
+         WATER, CLOUD, LAVAWALL, MOAT, ROOMOFFSET,
          CROSSWALL, TRWALL } from './const.js';
 import { BOULDER } from './objects.js';
 import { TT_PIT } from './const.js';

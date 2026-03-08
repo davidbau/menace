@@ -146,20 +146,9 @@ export const RACE_DWARF = 2;
 export const RACE_GNOME = 3;
 export const RACE_ORC = 4;
 
-// Roles (role.c) - just the basic set for initial implementation
-export const PM_ARCHEOLOGIST = 0;
-export const PM_BARBARIAN = 1;
-export const PM_CAVEMAN = 2;
-export const PM_HEALER = 3;
-export const PM_KNIGHT = 4;
-export const PM_MONK = 5;
-export const PM_PRIEST = 6;
-export const PM_ROGUE = 7;  // Swapped with Ranger to match roles array order
-export const PM_RANGER = 8;
-export const PM_SAMURAI = 9;
-export const PM_TOURIST = 10;
-export const PM_VALKYRIE = 11;
-export const PM_WIZARD = 12;
+// PM_* role constants removed — use real C monster-table PM_* from monsters.js
+// player.roleMnum stores the monster-table index (matching C's urole.mnum)
+// player.roleIndex remains as the roles[] array index (0-12) for chargen/iteration
 
 // Monster spell ids (src/mcastu.c: choose_magic_spell/choose_clerical_spell)
 export const MGC_PSI_BOLT = 0;

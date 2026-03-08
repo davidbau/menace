@@ -3,7 +3,7 @@
 // Maps keyboard input to game actions.
 
 import { A_STR, A_DEX, A_CON, A_WIS, STATUS_ROW_1,
-         PM_CAVEMAN, PM_ROGUE, RACE_ORC, SQKY_BOARD,
+         RACE_ORC, SQKY_BOARD,
          DART_TRAP, ARROW_TRAP,
          DIRECTION_KEYS, RUN_KEYS, CQ_REPEAT, P_NUM_SKILLS,
          xdir, ydir, N_DIRS, N_DIRS_Z } from './const.js';

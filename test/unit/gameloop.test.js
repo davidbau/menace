@@ -9,7 +9,7 @@ import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.
 import { Player, roles } from '../../js/player.js';
 import { simulatePostLevelInit } from '../../js/u_init.js';
 import { A_DEX } from '../../js/const.js';
-import { NORMAL_SPEED } from '../../js/monsters.js';
+import { NORMAL_SPEED } from '../../js/const.js';
 
 // Minimal game-like object for testing simulateTurnEnd
 async function setupTestGame() {

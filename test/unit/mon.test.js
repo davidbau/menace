@@ -25,8 +25,8 @@ import {
     PM_KNIGHT, PM_MONK, PM_CLERIC, PM_RANGER, PM_ROGUE,
     PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD,
     PM_LITTLE_DOG,
-    NON_PM,
 } from '../../js/monsters.js';
+import { NON_PM } from '../../js/const.js';
 
 // ========================================================================
 // zombie_maker

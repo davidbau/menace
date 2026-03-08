@@ -14,6 +14,7 @@ import {
     PM_GELATINOUS_CUBE, PM_RUST_MONSTER,
     PM_DEATH, PM_PESTILENCE, PM_FAMINE, PM_LIZARD, PM_LICHEN,
     PM_LITTLE_DOG, PM_KITTEN, PM_PONY,
+    PM_CAVE_DWELLER, PM_SAMURAI, PM_BARBARIAN, PM_RANGER,
 } from './monsters.js';
 
 import {
@@ -35,7 +36,7 @@ import {
 } from './mondata.js';
 import { rn2, rn1 } from './rng.js';
 import { isok, ACCESSIBLE, COLNO, ROWNO, IS_DOOR, D_CLOSED, D_LOCKED,
-         POOL, LAVAPOOL, PM_CAVEMAN, PM_SAMURAI, PM_BARBARIAN, PM_RANGER,
+         POOL, LAVAPOOL,
          MM_EDOG, MM_NOMSG, MM_IGNOREWATER, MM_FEMALE, MM_MALE,
          DOGFOOD, CADAVER, ACCFOOD, MANFOOD, APPORT, POISON, UNDEF, TABU,
          MON_ARRIVE_WITH_YOU } from './const.js';
@@ -280,10 +281,10 @@ export function makedog(map, player, depth) {
     const pmIdx = pet_type(player.roleIndex);
     let petName = '';
     if (pmIdx === PM_LITTLE_DOG) {
-        if (player.roleIndex === PM_CAVEMAN) petName = 'Slasher';
-        else if (player.roleIndex === PM_SAMURAI) petName = 'Hachi';
-        else if (player.roleIndex === PM_BARBARIAN) petName = 'Idefix';
-        else if (player.roleIndex === PM_RANGER) petName = 'Sirius';
+        if (player.roleMnum === PM_CAVE_DWELLER) petName = 'Slasher';
+        else if (player.roleMnum === PM_SAMURAI) petName = 'Hachi';
+        else if (player.roleMnum === PM_BARBARIAN) petName = 'Idefix';
+        else if (player.roleMnum === PM_RANGER) petName = 'Sirius';
     }
 
     const pet = makemon(pmIdx, player.x, player.y, MM_EDOG | NO_MINVENT | MM_NOMSG, depth, map);

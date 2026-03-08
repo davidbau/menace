@@ -10,7 +10,9 @@
 //   getspell(): prompt user to select a spell.
 //   dospellmenu(): display spell menu UI.
 
-import { A_INT, A_WIS, A_STR, PM_KNIGHT, PM_WIZARD, IS_STWALL, IS_OBSTRUCTED } from './const.js';
+import { A_INT, A_WIS, A_STR, IS_STWALL, IS_OBSTRUCTED } from './const.js';
+import { PM_KNIGHT, PM_WIZARD } from './monsters.js';
+import { Role_if } from './role.js';
 import { mark_vision_dirty } from './vision.js';
 import {
     objectData, ROBE, QUARTERSTAFF, SMALL_SHIELD, LENSES,
@@ -278,7 +280,7 @@ function percent_success(player, spell_idx) {
     const heroLevel = Math.max(1, Number(player.ulevel || 1));
 
     // C ref: Role_if(PM_KNIGHT) && skilltype == P_CLERIC_SPELL
-    const paladinBonus = player.roleIndex === PM_KNIGHT && category === SPELL_CATEGORY_CLERICAL;
+    const paladinBonus = player.roleMnum === PM_KNIGHT && category === SPELL_CATEGORY_CLERICAL;
     const armor = player.armor || null;
     const cloak = player.cloak || null;
     const shield = player.shield || null;
@@ -342,7 +344,7 @@ function estimateSpellFailPercent(player, spellName, spellLevel, category) {
     const heroLevel = Math.max(1, Number(player.ulevel || 1));
     const spellLvl = Math.max(1, Number(spellLevel || 1));
 
-    const paladinBonus = player.roleIndex === PM_KNIGHT && category === SPELL_CATEGORY_CLERICAL;
+    const paladinBonus = player.roleMnum === PM_KNIGHT && category === SPELL_CATEGORY_CLERICAL;
     const armor = player.armor || null;
     const cloak = player.cloak || null;
     const shield = player.shield || null;
@@ -1519,7 +1521,7 @@ export async function spelleffects_check(spell, res, energy, game, player) {
   else {
     if (spellid(spell) !== SPE_DETECT_FOOD) {
       let hungr =  energy * 2, intell = acurr(player, A_INT);
-      if (!Role_if(PM_WIZARD)) intell = 10;
+      if (!Role_if(player, PM_WIZARD)) intell = 10;
       switch (intell) {
         case 25:
           case 24:

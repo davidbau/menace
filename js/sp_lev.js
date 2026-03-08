@@ -63,7 +63,6 @@ import {
     NO_MM_FLAGS,
     MKTRAP_SEEN, MKTRAP_MAZEFLAG, MKTRAP_NOSPIDERONWEB, MKTRAP_NOVICTIM,
     MAXNROFROOMS, ROOMOFFSET,
-    PM_PRIEST as ROLE_PRIEST,
     MM_NOGRP, MM_ADJACENTOK, MM_IGNOREWATER, MM_NOCOUNTBIRTH,
     GEHENNOM,
 } from './const.js';
@@ -73,7 +72,8 @@ import {
     GEM_CLASS, SPBOOK_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS, VENOM_CLASS,
     SCR_EARTH, objectData, GOLD_PIECE, STATUE, CORPSE, EGG, TIN, FIGURINE
 } from './objects.js';
-import { mons, M2_FEMALE, M2_MALE, G_NOGEN, G_IGNORE, PM_MINOTAUR, PM_ARCHEOLOGIST, PM_WIZARD, MR_STONE, S_EEL, MAXMCLASSES } from './monsters.js';
+import { mons, M2_FEMALE, M2_MALE, G_NOGEN, G_IGNORE, PM_MINOTAUR, PM_ARCHEOLOGIST, PM_WIZARD, PM_CLERIC, MR_STONE, S_EEL, MAXMCLASSES } from './monsters.js';
+import { roles } from './role.js';
 import { poly_when_stoned } from './mondata.js';
 import { getSpecialLevel, findSpecialLevelByName } from './special_levels.js';
 import { placeFloorObject, stackobj } from './invent.js';
@@ -1283,7 +1283,7 @@ async function fixupSpecialLevel() {
     // Role_if(PM_CLERIC) && In_quest(&u.uz) => level.flags.graveyard = 1
     // In JS, role context is tracked via makemon role context; quest dnum is 3.
     const roleIndex = Number.isInteger(ctx.roleIndex) ? ctx.roleIndex : getMakemonRoleIndex();
-    if (roleIndex === ROLE_PRIEST && ctx.dnum === 3) {
+    if (roles[roleIndex]?.mnum === PM_CLERIC && ctx.dnum === 3) {
         levelState.map.flags.graveyard = true;
     }
     // C ref: mkmaze.c fixup_special():

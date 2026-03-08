@@ -14,11 +14,12 @@ import {
   COLNO, ROWNO, TERMINAL_COLS, TERMINAL_ROWS,
   MESSAGE_ROW, MAP_ROW_START,
   // Dungeon limits
-  MAXNROFROOMS, MAXDUNGEON, MAXLEVEL, MAXOCLASSES,
+  MAXNROFROOMS, MAXDUNGEON, MAXLEVEL,
   // Encumbrance levels
   UNENCUMBERED, SLT_ENCUMBER, MOD_ENCUMBER,
   HVY_ENCUMBER, EXT_ENCUMBER, OVERLOADED
 } from '../../js/const.js';
+import { MAXOCLASSES } from '../../js/objects.js';
 
 describe('System Limits and Game Mechanics Accuracy', () => {
   describe('Version Constants', () => {

@@ -40,9 +40,8 @@ import { IS_OBSTRUCTED, POOL, LAVAPOOL, M_AP_FURNITURE } from './const.js';
 import { mark_vision_dirty } from './vision.js';
 import { S_LICH, S_GHOST, S_VAMPIRE, S_WRAITH, S_MUMMY, S_ZOMBIE, S_HUMAN,
          mons, PM_ACID_BLOB, PM_WRAITH,
-         PM_CLERIC as MONS_PM_CLERIC, PM_KNIGHT as MONS_PM_KNIGHT,
-         PM_WIZARD as MONS_PM_WIZARD, PM_MONK as MONS_PM_MONK } from './monsters.js';
-import { PM_PRIEST, PM_KNIGHT, PM_WIZARD, PM_MONK } from './const.js';
+         PM_CLERIC, PM_KNIGHT, PM_WIZARD, PM_MONK } from './monsters.js';
+import { Role_if } from './role.js';
 import { CORPSE, STATUE, AMULET_OF_YENDOR, FAKE_AMULET_OF_YENDOR,
          POT_WATER, POTION_CLASS, LOADSTONE, LEVITATION_BOOTS, FUMBLE_BOOTS,
          GAUNTLETS_OF_FUMBLING, HELM_OF_OPPOSITE_ALIGNMENT,
@@ -234,10 +233,6 @@ function is_weptool(obj) {
     return od && od.oclass === TOOL_CLASS && od.oc_skill;
 }
 
-// Helper: Role_if check
-function Role_if(player, pm) {
-    return player.roleIndex === pm;
-}
 
 // Helper: u_wield_art check
 function u_wield_art(player, artid) {
@@ -2566,7 +2561,7 @@ async function maybe_turn_mon_iter(mtmp, player, map) {
 // cf. pray.c:2414 -- doturn(player, map)
 // ================================================================
 export async function doturn(player, map) {
-    if (!Role_if(player, PM_PRIEST) && !Role_if(player, PM_KNIGHT)) {
+    if (!Role_if(player, PM_CLERIC) && !Role_if(player, PM_KNIGHT)) {
         if (known_spell(player, SPE_TURN_UNDEAD) >= 0)
             return await spelleffects(SPE_TURN_UNDEAD, false, player, map);
         await You("don't know how to turn undead!");

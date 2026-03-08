@@ -15,8 +15,9 @@
 
 import { IS_DOOR, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN, D_TRAPPED,
          SDOOR, DOOR, A_STR, A_DEX, A_CON, A_WIS,
-         SHOPBASE, FINGER,
-         PM_ROGUE, PM_WIZARD } from './const.js';
+         SHOPBASE, FINGER } from './const.js';
+import { PM_ROGUE, PM_WIZARD } from './monsters.js';
+import { Role_if } from './role.js';
 import { rn2, rnl, rnd } from './rng.js';
 import { nhgetch, ynFunction } from './input.js';
 import { exercise } from './attrib_exercise.js';
@@ -84,9 +85,6 @@ function greatest_erosion(obj) {
 }
 
 // cf. role check
-function Role_if(player, pm) {
-    return player.roleIndex === pm;
-}
 
 // cf. obj.h: carried(obj)
 function carried(obj) {

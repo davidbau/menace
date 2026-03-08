@@ -11,11 +11,12 @@ import {
   DIR_W, DIR_NW, DIR_N, DIR_NE,
   DIR_E, DIR_SE, DIR_S, DIR_SW,
   DIR_UP, DIR_DOWN,
-  // Player role constants
-  PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVEMAN, PM_HEALER,
-  PM_KNIGHT, PM_MONK, PM_PRIEST, PM_ROGUE, PM_RANGER,
-  PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD
 } from '../../js/const.js';
+
+// Role array indices (0-12), NOT monster table PM_* values
+const PM_ARCHEOLOGIST = 0, PM_BARBARIAN = 1, PM_CAVEMAN = 2, PM_HEALER = 3,
+      PM_KNIGHT = 4, PM_MONK = 5, PM_PRIEST = 6, PM_ROGUE = 7, PM_RANGER = 8,
+      PM_SAMURAI = 9, PM_TOURIST = 10, PM_VALKYRIE = 11, PM_WIZARD = 12;
 
 describe('Movement and Role Constants Accuracy', () => {
   describe('Direction Constants', () => {

@@ -66,7 +66,6 @@ import { nhgetch, ynFunction } from './input.js';
 import { doname, xname, splitobj, set_bknown } from './mkobj.js';
 import { IS_DOOR, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          A_STR, A_DEX, A_CON, A_CHA,
-         PM_ROGUE, PM_HEALER, PM_ARCHEOLOGIST,
          isok, COLNO, ROWNO, IS_OBSTRUCTED,
          SICK, BLINDED, HALLUC, VOMITING, CONFUSION, STUNNED, DEAF,
          TIMEOUT } from './const.js';
@@ -80,7 +79,8 @@ import { nohands, nolimbs, has_head, unsolid, haseyes, breathless,
          is_vampire, is_unicorn, is_humanoid, is_demon, perceives,
          slithy, strongmonst, can_blow, is_rider, touch_petrifies,
          poly_when_stoned } from './mondata.js';
-import { mons, PM_LONG_WORM, PM_FLOATING_EYE, PM_MEDUSA, PM_UMBER_HULK, PM_AMOROUS_DEMON, PM_QUEEN_BEE, PM_KILLER_BEE, PM_WOOD_NYMPH, PM_WATER_NYMPH, PM_MOUNTAIN_NYMPH, S_VAMPIRE, S_GHOST, S_NYMPH, S_MIMIC, S_EEL, MZ_LARGE, MZ_SMALL, MS_SILENT } from './monsters.js';
+import { mons, PM_LONG_WORM, PM_FLOATING_EYE, PM_MEDUSA, PM_UMBER_HULK, PM_AMOROUS_DEMON, PM_QUEEN_BEE, PM_KILLER_BEE, PM_WOOD_NYMPH, PM_WATER_NYMPH, PM_MOUNTAIN_NYMPH, S_VAMPIRE, S_GHOST, S_NYMPH, S_MIMIC, S_EEL, MZ_LARGE, MZ_SMALL, MS_SILENT,
+         PM_ROGUE, PM_HEALER, PM_ARCHEOLOGIST } from './monsters.js';
 import { dist2, s_suffix, upstart, isqrt, sgn } from './hacklib.js';
 import { setnotworn } from './worn.js';
 import { begin_burn, end_burn, obj_has_timer,
@@ -950,7 +950,7 @@ export async function handleApply(player, map, display, game) {
             if (String.fromCharCode(ans) !== 'y')
                 return { moved: false, tookTime: false };
             const dex = acurr(player, A_DEX);
-            const isRogue = (player.roleIndex === PM_ROGUE) ? 1 : 0;
+            const isRogue = (player.roleMnum === PM_ROGUE) ? 1 : 0;
             let chance;
             if (selected.otyp === CREDIT_CARD) chance = 2 * dex + 20 * isRogue;
             else if (selected.otyp === LOCK_PICK) chance = 3 * dex + 30 * isRogue;

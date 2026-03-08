@@ -8,13 +8,14 @@ import { acurr } from './attrib.js';
 import { corpse_chance } from './mon.js';
 import { m_move } from './monmove.js';
 import {
-    A_STR, A_DEX, PM_MONK, PM_SAMURAI, PM_BARBARIAN,
+    A_STR, A_DEX,
     FIRE_RES, COLD_RES, SHOCK_RES, ACID_RES, FREE_ACTION,
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE, EF_GREASE, EF_VERBOSE,
 } from './const.js';
 import { spec_dbon } from './artifact.js';
 import {
+    PM_MONK, PM_SAMURAI, PM_BARBARIAN,
     G_FREQ, G_NOCORPSE, MZ_TINY, MZ_HUMAN, MZ_LARGE, M2_COLLECT,
     S_ZOMBIE, S_MUMMY, S_VAMPIRE, S_WRAITH, S_LICH, S_GHOST, S_DEMON, S_KOP,
     S_LIGHT, S_MIMIC, S_NYMPH, S_GOLEM, S_LEPRECHAUN,
@@ -75,8 +76,8 @@ function exclam(force) {
 }
 
 function martial_bonus(player) {
-    const role = Number(player?.roleIndex);
-    return role === PM_MONK || role === PM_SAMURAI;
+    const roleMnum = Number(player?.roleMnum);
+    return roleMnum === PM_MONK || roleMnum === PM_SAMURAI;
 }
 
 function miscMeleeObjectBaseDamage(obj) {
@@ -235,7 +236,7 @@ function find_roll_to_hit(player, mtmp, aatyp, weapon) {
 
     // cf. uhitm.c:396-404 — role/race adjustments
     // Monk: bonus when unarmed; heavy penalty if armored.
-    if (player.roleIndex === PM_MONK) {
+    if (player.roleMnum === PM_MONK) {
         // C monk handling is specific:
         // - body armor (uarm) applies spell-armor roll penalty
         // - unarmed + no shield grants monk hit bonus
@@ -2045,7 +2046,7 @@ export async function do_attack_core(player, monster, display, map, game = null)
         return killed;
     } else {
         // cf. uhitm.c -- various hit messages
-        const hitVerb = (player?.roleIndex === PM_BARBARIAN) ? 'smite' : 'hit';
+        const hitVerb = (player?.roleMnum === PM_BARBARIAN) ? 'smite' : 'hit';
         await display.putstr_message(`You ${hitVerb} the ${x_monnam(monster)}${exclam(damage)}`);
         // cf. uhitm.c hmon_hitmon_core():
         // For armed melee hits with damage > 1: mhitm_knockback().

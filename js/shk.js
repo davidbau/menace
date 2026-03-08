@@ -3,8 +3,10 @@
 // Handles shop pricing, billing, entry messages, shopkeeper queries,
 // payment, selling, damage tracking, and shopkeeper movement hooks.
 
-import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, A_WIS, isok, PM_TOURIST,
+import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, A_WIS, isok,
          COST_CONTENTS, COST_SINGLEOBJ, OBJ_ONBILL, OBJ_CONTAINED } from './const.js';
+import { PM_TOURIST } from './monsters.js';
+import { Role_if } from './role.js';
 import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_CLASS,
          COIN_CLASS, GEM_CLASS, FOOD_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
          BALL_CLASS, CHAIN_CLASS, RING_CLASS, AMULET_CLASS,
@@ -400,7 +402,7 @@ function getCost(obj, player, shkp) {
     if (player?.helmet?.otyp === DUNCE_CAP) {
         multiplier *= 4;
         divisor *= 3;
-    } else if (player?.roleIndex === PM_TOURIST && Number(player.ulevel || 1) < 15) {
+    } else if (player?.roleMnum === PM_TOURIST && Number(player.ulevel || 1) < 15) {
         multiplier *= 4;
         divisor *= 3;
     }
@@ -440,7 +442,7 @@ export function set_cost(obj, shkp, player) {
   if (player.helmet && player.helmet.otyp === DUNCE_CAP) {
     divisor *= 3;
   }
-  else if ((Role_if(PM_TOURIST) && player.ulevel < (MAXULEV / 2)) || (player.shirt && !player.armor && !player.cloak)) {
+  else if ((Role_if(player, PM_TOURIST) && player.ulevel < (MAXULEV / 2)) || (player.shirt && !player.armor && !player.cloak)) {
     divisor *= 3;
   }
   else {

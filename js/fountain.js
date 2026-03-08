@@ -1,6 +1,6 @@
 import { rn2, rnd, rn1 } from './rng.js';
 import { FOUNTAIN, SINK, ROOM, POOL, A_STR, A_DEX, A_CON, A_WIS, A_LAWFUL,
-         isok, PM_KNIGHT } from './const.js';
+         isok } from './const.js';
 import { COIN_CLASS, RING_CLASS, POTION_CLASS, LONG_SWORD, BOULDER,
          DILITHIUM_CRYSTAL, LUCKSTONE,
          POT_POLYMORPH, POT_OIL, POT_ACID, POT_LEVITATION,
@@ -12,7 +12,7 @@ import { exercise } from './attrib_exercise.js';
 import { adjattrib, poison_strdmg } from './attrib.js';
 import { makemon } from './makemon.js';
 import { mons, PM_WATER_MOCCASIN, PM_WATER_DEMON, PM_WATER_NYMPH,
-         PM_WATER_ELEMENTAL, PM_SEWER_RAT } from './monsters.js';
+         PM_WATER_ELEMENTAL, PM_SEWER_RAT, PM_KNIGHT } from './monsters.js';
 import { mksobj, mkobj, bless, curse, uncurse, xname } from './mkobj.js';
 import { rnd_class } from './objnam.js';
 import { newsym, mark_vision_dirty } from './display.js';
@@ -432,7 +432,7 @@ export async function dipfountain(obj, player, map, display, fov) {
 
     // Excalibur check
     if (obj && obj.otyp === LONG_SWORD && (player.ulevel || 1) >= 5
-        && !rn2(player.roleIndex === PM_KNIGHT ? 6 : 30)
+        && !rn2(player.roleMnum === PM_KNIGHT ? 6 : 30)
         && (obj.quan || 1) === 1 && !obj.oartifact
         && !exist_artifact(LONG_SWORD, artiname(ART_EXCALIBUR))) {
 

@@ -3,7 +3,6 @@ import assert from 'node:assert';
 import { mons } from '../../js/monsters.js';
 import { DAGGER, objectData } from '../../js/objects.js';
 import {
-    MAXTCHARS,
     S_arrow_trap,
     S_brdnladder,
     S_digbeam,
@@ -16,9 +15,12 @@ import {
     S_trwall,
     S_vbeam,
     S_vwall,
+    defsyms,
+} from '../../js/symbols.js';
+import {
+    MAXTCHARS,
     WARNCOUNT,
     def_warnsyms,
-    defsyms,
 } from '../../js/const.js';
 import { tempGlyphToCell } from '../../js/temp_glyph.js';
 

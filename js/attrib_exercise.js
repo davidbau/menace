@@ -3,8 +3,9 @@
 
 import { rn2, rn1 } from './rng.js';
 import { A_STR, A_INT, A_CHA, A_DEX, A_CON, A_WIS,
-    MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, PM_MONK,
+    MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER,
     CLAIRVOYANT, REGENERATION, INTRINSIC, TIMEOUT } from './const.js';
+import { PM_MONK } from './monsters.js';
 import { acurr, adjattrib, AVAL } from './attrib.js';
 import { sgn } from './hacklib.js';
 import { You } from './pline.js';
@@ -144,7 +145,7 @@ export async function exerper(player, moves) {
         if (player.hunger > 1000) {
             await exercise(player, A_DEX, false);
             // C ref: attrib.c exerper() — monks meditate poorly when satiated.
-            if (player.roleIndex === PM_MONK) {
+            if (player.roleMnum === PM_MONK) {
                 await exercise(player, A_WIS, false);
             }
         } else if (player.hunger > 150) {
@@ -154,7 +155,7 @@ export async function exerper(player, moves) {
         } else if (player.hunger > 0) {
             await exercise(player, A_STR, false);
             // C ref: attrib.c exerper() — hungry monks gain wisdom discipline.
-            if (player.roleIndex === PM_MONK) {
+            if (player.roleMnum === PM_MONK) {
                 await exercise(player, A_WIS, true);
             }
         } else {

@@ -9,7 +9,8 @@ import { mons, NUMMONS,
          S_ANT, S_DOG, S_FELINE, S_HUMANOID, S_KOBOLD, S_ORC,
          AT_BITE, AT_CLAW, AT_KICK, AT_STNG, AT_WEAP,
          AD_PHYS, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST,
-         CLR_RED, CLR_BROWN, CLR_YELLOW } from '../../js/monsters.js';
+         } from '../../js/monsters.js';
+import { CLR_RED, CLR_BROWN, CLR_YELLOW } from '../../js/const.js';
 const monsterData = mons;
 
 describe('Monsters database', () => {

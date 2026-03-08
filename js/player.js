@@ -37,6 +37,7 @@ export class Player {
         // Identity
         this.name = 'Adventurer';
         this.roleIndex = 0;
+        this.roleMnum = 0;  // C ref: urole.mnum — monster table PM_* index
         this.race = RACE_HUMAN;
         this.gender = 0;
         this.alignment = A_NEUTRAL;
@@ -144,6 +145,7 @@ export class Player {
         this.roleIndex = roleIndex;
         const role = roles[roleIndex];
         if (!role) return;
+        this.roleMnum = role.mnum;
 
         this.attributes[A_STR] = role.str;
         this.attributes[A_INT] = role.int;

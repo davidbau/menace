@@ -15,7 +15,7 @@ import { simulatePostLevelInit } from '../../js/u_init.js';
 import { movemon } from '../../js/monmove.js';
 import { FOV } from '../../js/vision.js';
 import { dosearch0 } from '../../js/detect.js';
-import { NORMAL_SPEED } from '../../js/monsters.js';
+import { NORMAL_SPEED } from '../../js/const.js';
 import {
     COLNO, ROWNO, A_DEX, A_CON,
     STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,

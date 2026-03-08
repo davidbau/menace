@@ -34,10 +34,12 @@ import {
   S_sw_tc, S_sw_ml, S_sw_mr, S_sw_bc,
   S_expl_tl, S_expl_tc, S_expl_tr, S_expl_ml, S_expl_mc, S_expl_mr,
   S_expl_bl, S_expl_bc, S_expl_br,
-  // Miscellaneous (monster symbols - uppercase!)
+  MAXPCHARS,
+} from '../../js/symbols.js';
+import {
+  // Monster class symbols (uppercase S_*)
   S_GOLEM, S_DEMON, S_HUMAN, S_GHOST,
-  MAXPCHARS
-} from '../../js/const.js';
+} from '../../js/monsters.js';
 
 describe('Symbol System Accuracy', () => {
   describe('Wall Symbol Constants', () => {

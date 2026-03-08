@@ -34,9 +34,10 @@ import {
     PM_LIZARD, PM_LICHEN, S_TROLL, MS_RIDER,
     M2_DWARF, S_KOBOLD, S_ORC, S_GIANT, S_HUMAN, S_KOP, S_GNOME, S_HUMANOID,
     PM_SCORPIUS, PM_SCORPION, PM_KILLER_BEE, PM_QUEEN_BEE,
-    PM_GARGOYLE, PM_WINGED_GARGOYLE
+    PM_GARGOYLE, PM_WINGED_GARGOYLE,
+    PM_SAMURAI
 } from './monsters.js';
-import { PM_SAMURAI, TIMER_KIND, TIMER_FUNC, TAINT_AGE } from './const.js';
+import { TIMER_KIND, TIMER_FUNC, TAINT_AGE } from './const.js';
 import { lays_eggs } from './mondata.js';
 import { start_timer, stop_timer, attach_egg_hatch_timeout } from './timeout.js';
 
@@ -1448,7 +1449,7 @@ export function doname(obj, player) {
         }
     }
     // C ref: objnam.c Japanese_item_name() usage for Samurai inventory display.
-    if (player?.roleIndex === PM_SAMURAI && obj.otyp === SHORT_SWORD && baseName === 'short sword') {
+    if (player?.roleMnum === PM_SAMURAI && obj.otyp === SHORT_SWORD && baseName === 'short sword') {
         baseName = 'wakizashi';
     }
     const erosionPrefix = erosion_words(obj);

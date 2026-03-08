@@ -26,10 +26,10 @@ import { getArrivalPosition } from './do.js';
 import { mksobj, mkobj, weight, setStartupInventoryMode, Is_container } from './mkobj.js';
 import { NUM_ATTRS,
          A_STR, A_CON,
-         PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVEMAN, PM_HEALER,
-         PM_KNIGHT, PM_MONK, PM_PRIEST, PM_RANGER, PM_ROGUE,
-         PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC } from './const.js';
+import { PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVE_DWELLER, PM_HEALER,
+         PM_KNIGHT, PM_MONK, PM_CLERIC, PM_RANGER, PM_ROGUE,
+         PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD } from './monsters.js';
 import {
     // Weapons
     LONG_SWORD, LANCE, SPEAR, DAGGER, SHORT_SWORD, AXE, BULLWHIP,
@@ -368,7 +368,7 @@ const ROLE_ALLOWED_SPELL_DISCIPLINES = {
         SPELL_DISCIPLINE.ATTACK,
         SPELL_DISCIPLINE.ESCAPE,
     ]),
-    [PM_CAVEMAN]: new Set([
+    [PM_CAVE_DWELLER]: new Set([
         SPELL_DISCIPLINE.ATTACK,
         SPELL_DISCIPLINE.MATTER,
     ]),
@@ -389,7 +389,7 @@ const ROLE_ALLOWED_SPELL_DISCIPLINES = {
         SPELL_DISCIPLINE.ESCAPE,
         SPELL_DISCIPLINE.MATTER,
     ]),
-    [PM_PRIEST]: new Set([
+    [PM_CLERIC]: new Set([
         SPELL_DISCIPLINE.HEALING,
         SPELL_DISCIPLINE.DIVINATION,
         SPELL_DISCIPLINE.CLERIC,
@@ -429,8 +429,8 @@ const ROLE_ALLOWED_SPELL_DISCIPLINES = {
     ]),
 };
 
-function spellDisciplineForRole(otyp, roleIndex) {
-    if (roleIndex === PM_PRIEST && otyp === SPE_LIGHT) {
+function spellDisciplineForRole(otyp, roleMnum) {
+    if (roleMnum === PM_CLERIC && otyp === SPE_LIGHT) {
         // C ref: role.c role_init() remaps light to cleric skill for priests.
         return SPELL_DISCIPLINE.CLERIC;
     }
@@ -438,17 +438,17 @@ function spellDisciplineForRole(otyp, roleIndex) {
     return SPELL_DISCIPLINE_BY_NAME[name] || null;
 }
 export 
-function restricted_spell_discipline(otyp, roleIndex) {
-    const discipline = spellDisciplineForRole(otyp, roleIndex);
+function restricted_spell_discipline(otyp, roleMnum) {
+    const discipline = spellDisciplineForRole(otyp, roleMnum);
     if (!discipline) return false;
-    const allowed = ROLE_ALLOWED_SPELL_DISCIPLINES[roleIndex];
+    const allowed = ROLE_ALLOWED_SPELL_DISCIPLINES[roleMnum];
     if (!allowed) return false;
     return !allowed.has(discipline);
 }
 
 // ---- UNDEF_TYP Item Filter ----
 // C ref: u_init.c ini_inv_mkobj_filter() — create random object, reject dangerous items
-export function ini_inv_mkobj_filter(oclass, gotSp1, roleIndex, race) {
+export function ini_inv_mkobj_filter(oclass, gotSp1, roleMnum, race) {
     let trycnt = 0;
     while (true) {
         if (++trycnt > 1000) break; // fallback (shouldn't happen)
@@ -464,11 +464,11 @@ export function ini_inv_mkobj_filter(oclass, gotSp1, roleIndex, race) {
             || otyp === SCR_BLANK_PAPER || otyp === SPE_BLANK_PAPER
             || otyp === RIN_AGGRAVATE_MONSTER || otyp === RIN_HUNGER
             || otyp === WAN_NOTHING
-            || (otyp === SCR_ENCHANT_WEAPON && roleIndex === PM_MONK)
-            || (otyp === SPE_FORCE_BOLT && roleIndex === PM_WIZARD)
+            || (otyp === SCR_ENCHANT_WEAPON && roleMnum === PM_MONK)
+            || (otyp === SPE_FORCE_BOLT && roleMnum === PM_WIZARD)
             || (oclass === SPBOOK_CLASS
                 && ((objectData[otyp].oc_oc2 || 0) > (gotSp1 ? 3 : 1)
-                    || restricted_spell_discipline(otyp, roleIndex)))
+                    || restricted_spell_discipline(otyp, roleMnum)))
             || otyp === SPE_NOVEL) {
             continue; // reject, try again
         }
@@ -505,7 +505,7 @@ export function ini_inv(player, table) {
             otyp = trop.otyp;
         } else {
             // Random item: mkobj with filter
-            obj = ini_inv_mkobj_filter(trop.oclass, gotSp1, player.roleIndex, player.race);
+            obj = ini_inv_mkobj_filter(trop.oclass, gotSp1, player.roleMnum, player.race);
             otyp = obj.otyp;
             // C ref: u_init.c:1318-1337 — nocreate tracking
             switch (otyp) {
@@ -588,7 +588,7 @@ export function ini_inv(player, table) {
             // C ref: mkobj.c ARMOR_CLASS init -- "simulate lacquered armor for samurai".
             // During startup inventory creation, samurai splint mail is rustproof and
             // that rustproof status is known.
-            if (player.roleIndex === PM_SAMURAI && obj.otyp === SPLINT_MAIL) {
+            if (player.roleMnum === PM_SAMURAI && obj.otyp === SPLINT_MAIL) {
                 obj.oerodeproof = true;
                 obj.rknown = true;
             }
@@ -630,7 +630,7 @@ function u_init_role(player) {
     nocreate = nocreate2 = nocreate3 = nocreate4 = 0;
     player.umoney0 = 0;
 
-    switch (player.roleIndex) {
+    switch (player.roleMnum) {
         case PM_ARCHEOLOGIST:
             ini_inv(player, Archeologist_inv);
             if (!rn2(10)) ini_inv(player, Tinopener_inv);
@@ -645,7 +645,7 @@ function u_init_role(player) {
             }
             if (!rn2(6)) ini_inv(player, Lamp_inv);
             break;
-        case PM_CAVEMAN:
+        case PM_CAVE_DWELLER:
             ini_inv(player, Caveman_inv);
             break;
         case PM_HEALER:
@@ -662,7 +662,7 @@ function u_init_role(player) {
             if (!rn2(4)) ini_inv(player, Magicmarker_inv);
             else if (!rn2(10)) ini_inv(player, Lamp_inv);
             break;
-        case PM_PRIEST:
+        case PM_CLERIC:
             ini_inv(player, Priest_inv);
             if (!rn2(5)) ini_inv(player, Magicmarker_inv);
             else if (!rn2(10)) ini_inv(player, Lamp_inv);
@@ -696,7 +696,7 @@ function u_init_role(player) {
             if (!rn2(5)) ini_inv(player, Blindfold_inv);
             break;
         default:
-            throw new Error(`u_init_role: unknown role index ${player.roleIndex}`);
+            throw new Error(`u_init_role: unknown role index ${player.roleMnum}`);
     }
 }
 
@@ -707,7 +707,7 @@ function u_init_race(player) {
             break;
         case RACE_ELF:
             // Elf Cleric/Wizard gets a random instrument
-            if (player.roleIndex === PM_PRIEST || player.roleIndex === PM_WIZARD) {
+            if (player.roleMnum === PM_CLERIC || player.roleMnum === PM_WIZARD) {
                 const instruments = [WOODEN_FLUTE, TOOLED_HORN, WOODEN_HARP,
                                      BELL, BUGLE, LEATHER_DRUM];
                 const instrTyp = instruments[rn2(6)];
@@ -723,7 +723,7 @@ function u_init_race(player) {
             break;
         case RACE_ORC:
             // Compensate for generally inferior equipment
-            if (player.roleIndex !== PM_WIZARD) {
+            if (player.roleMnum !== PM_WIZARD) {
                 ini_inv(player, Xtra_food);
             }
             break;
@@ -1070,19 +1070,19 @@ function discoverClassByRule(oclass, shouldKnow) {
     }
 }
 
-function discoverWeaponClassForRole(roleIndex) {
+function discoverWeaponClassForRole(roleMnum) {
     discoverClassByRule(WEAPON_CLASS, (od) => {
         const skill = Number(od.oc_subtyp || 0);
-        if (roleIndex !== PM_KNIGHT && roleIndex !== PM_SAMURAI
+        if (roleMnum !== PM_KNIGHT && roleMnum !== PM_SAMURAI
             && skill === WEAPON_SKILL_POLEARM) {
             return false; // C: knows_class(WEAPON_CLASS) excludes polearms
         }
-        if (roleIndex === PM_RANGER) {
+        if (roleMnum === PM_RANGER) {
             return isLauncherSkill(skill)
                 || isAmmoSkill(skill)
                 || skill === WEAPON_SKILL_SPEAR;
         }
-        if (roleIndex === PM_ROGUE) {
+        if (roleMnum === PM_ROGUE) {
             return skill === WEAPON_SKILL_DAGGER;
         }
         return true;
@@ -1090,7 +1090,7 @@ function discoverWeaponClassForRole(roleIndex) {
 }
 
 function applyRolePreknowledge(player) {
-    switch (player.roleIndex) {
+    switch (player.roleMnum) {
         case PM_ARCHEOLOGIST:
             discoverObject(SACK, true, false);
             discoverObject(TOUCHSTONE, true, false);
@@ -1099,7 +1099,7 @@ function applyRolePreknowledge(player) {
         case PM_KNIGHT:
         case PM_SAMURAI:
         case PM_VALKYRIE:
-            discoverWeaponClassForRole(player.roleIndex);
+            discoverWeaponClassForRole(player.roleMnum);
             discoverClassByRule(ARMOR_CLASS);
             break;
         case PM_MONK:
@@ -1109,15 +1109,15 @@ function applyRolePreknowledge(player) {
         case PM_HEALER:
             discoverObject(POT_FULL_HEALING, true, false);
             break;
-        case PM_PRIEST:
+        case PM_CLERIC:
             discoverObject(POT_WATER, true, false);
             break;
         case PM_RANGER:
-            discoverWeaponClassForRole(player.roleIndex);
+            discoverWeaponClassForRole(player.roleMnum);
             break;
         case PM_ROGUE:
             discoverObject(SACK, true, false);
-            discoverWeaponClassForRole(player.roleIndex);
+            discoverWeaponClassForRole(player.roleMnum);
             break;
         default:
             break;
@@ -1173,7 +1173,7 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
     // Startup pet-generation alignment context has role-specific behavior in
     // captured C runs; Caveman uses 0 here while normal gameplay keeps role
     // init record.
-    const petAlignmentRecord = (player.roleIndex === PM_CAVEMAN)
+    const petAlignmentRecord = (player.roleMnum === PM_CAVE_DWELLER)
         ? 0
         : (Number.isInteger(player.alignmentRecord) ? player.alignmentRecord : 0);
     const pet = withMakemonPlayerOverride(
@@ -1213,12 +1213,12 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
 
     // C ref: attrib.c role ability tables — level 1 intrinsics.
     // Monks and samurai gain intrinsic Speed (Fast) at level 1.
-    if (player.roleIndex === PM_MONK || player.roleIndex === PM_SAMURAI) {
+    if (player.roleMnum === PM_MONK || player.roleMnum === PM_SAMURAI) {
         player.fast = true;
     }
     // C ref: attrib.c arc_abil/ran_abil — Archeologists and Rangers get
     // intrinsic Searching at level 1.
-    if (player.roleIndex === PM_ARCHEOLOGIST || player.roleIndex === PM_RANGER) {
+    if (player.roleMnum === PM_ARCHEOLOGIST || player.roleMnum === PM_RANGER) {
         player.searching = true;
     }
 

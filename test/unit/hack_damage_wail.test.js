@@ -7,7 +7,6 @@ import {
     losehp,
 } from '../../js/hack.js';
 import {
-    PM_WIZARD,
     RACE_HUMAN,
     TELEPORT,
     SEE_INVIS,
@@ -15,6 +14,7 @@ import {
     COLD_RES,
     INTRINSIC,
 } from '../../js/const.js';
+import { PM_WIZARD } from '../../js/monsters.js';
 
 function makeDisplayLog() {
     const messages = [];
@@ -30,7 +30,7 @@ test('maybe_wail uses power-count warning for wizard/valk/elf roles', () => {
     const display = makeDisplayLog();
     const player = {
         hp: 2,
-        roleIndex: PM_WIZARD,
+        roleMnum: PM_WIZARD,
         roleName: 'Wizard',
         raceIndex: RACE_HUMAN,
         uprops: {
@@ -49,7 +49,7 @@ test('maybe_wail uses life-force message when intrinsic count is low', () => {
     const display = makeDisplayLog();
     const player = {
         hp: 2,
-        roleIndex: PM_WIZARD,
+        roleMnum: PM_WIZARD,
         roleName: 'Wizard',
         raceIndex: RACE_HUMAN,
         uprops: {

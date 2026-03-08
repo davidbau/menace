@@ -3,10 +3,11 @@
 
 import { rn1, rn2, rnd } from './rng.js';
 import { roles, races } from './player.js';
-import { A_CON, A_WIS,
-         PM_PRIEST, PM_WIZARD, PM_HEALER, PM_KNIGHT,
-         PM_BARBARIAN, PM_VALKYRIE } from './const.js';
-import { mons, PM_ACID_BLOB } from './monsters.js';
+import { A_CON, A_WIS } from './const.js';
+import { mons, PM_ACID_BLOB,
+         PM_CLERIC, PM_WIZARD, PM_HEALER, PM_KNIGHT,
+         PM_BARBARIAN, PM_VALKYRIE } from './monsters.js';
+import { Role_if } from './role.js';
 
 const MAXULEV = 30;
 
@@ -22,9 +23,9 @@ export function newuexp(lev) {
 }
 
 // cf. exper.c:25 — enermod(): role-dependent energy modifier for level-up
-export function enermod(en, roleIndex) {
-    switch (roleIndex) {
-    case PM_PRIEST:
+export function enermod(en, roleMnum) {
+    switch (roleMnum) {
+    case PM_CLERIC:
     case PM_WIZARD:
         return (2 * en);
     case PM_HEALER:
@@ -67,7 +68,7 @@ export function newpw(player) {
             enrnd = enrndWis + roleEnadv.hirnd + raceEnadv.hirnd;
             enfix = roleEnadv.hifix + raceEnadv.hifix;
         }
-        en = enermod(rn1(enrnd, enfix), player.roleIndex);
+        en = enermod(rn1(enrnd, enfix), player.roleMnum);
     }
     if (en <= 0) en = 1;
     return en;
@@ -285,7 +286,7 @@ export function more_experienced(exper, rexp, game, player) {
     if (!game.disp.botl && exp_percent_changing()) game.disp.botl = true;
   }
   if (newrexp !== oldrexp) { player.urexp = newrexp; }
-  if (player.urexp >= (Role_if(PM_WIZARD) ? 1000 : 2000)) game.flags.beginner = false;
+  if (player.urexp >= (Role_if(player, PM_WIZARD) ? 1000 : 2000)) game.flags.beginner = false;
 }
 
 // C helper: new level on sufficient XP (formerly in combat.js shim).

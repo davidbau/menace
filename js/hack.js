@@ -12,7 +12,7 @@ import { COLNO, ROWNO, STONE, DOOR, CORR, SDOOR, SCORR, STAIRS, LADDER, FOUNTAIN
          IS_STWALL, IS_ROCK, IS_ROOM, IS_FURNITURE, IS_POOL, IS_LAVA, IS_WATERWALL,
          WATER, LAVAWALL, AIR, MOAT, DRAWBRIDGE_UP, DRAWBRIDGE_DOWN,
          isok, A_STR, A_DEX, A_CON, A_WIS, A_INT, A_CHA,
-         PM_WIZARD, PM_VALKYRIE, RACE_ELF,
+         RACE_ELF,
          TELEPORT, SEE_INVIS, POISON_RES, COLD_RES, SHOCK_RES, FIRE_RES,
          SLEEP_RES, DISINT_RES, TELEPORT_CONTROL, STEALTH, FAST, INVIS, INTRINSIC,
          ROOMOFFSET, SHOPBASE, OROOM, COURT, SWAMP, VAULT, BEEHIVE, MORGUE,
@@ -63,7 +63,8 @@ import { look_here, dfeature_at } from './invent.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap } from './teleport.js';
 import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS } from './const.js';
-import { MZ_LARGE, PM_GRID_BUG, PM_ANGEL, G_UNIQ, AT_WEAP } from './monsters.js';
+import { MZ_LARGE, PM_GRID_BUG, PM_ANGEL, G_UNIQ, AT_WEAP,
+         PM_WIZARD, PM_VALKYRIE } from './monsters.js';
 import { stackobj } from './invent.js';
 import { thitu } from './mthrowu.js';
 import { dmgval } from './weapon.js';
@@ -3049,10 +3050,10 @@ export async function maybe_wail(player, game, display) {
     game.wailmsg = moves;
     const heroHp = Number.isFinite(player?.uhp) ? player.uhp : (player?.hp || 0);
 
-    const role = player.roleIndex ?? player.role;
+    const roleMnum = player.roleMnum;
     const race = player.raceIndex ?? player.race;
-    const isWizard = role === PM_WIZARD || role === 'Wizard';
-    const isValkyrie = role === PM_VALKYRIE || role === 'Valkyrie';
+    const isWizard = roleMnum === PM_WIZARD;
+    const isValkyrie = roleMnum === PM_VALKYRIE;
     const isElf = race === RACE_ELF || race === 'Elf';
 
     if (isWizard || isElf || isValkyrie) {

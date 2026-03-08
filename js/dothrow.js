@@ -22,8 +22,6 @@ import { ACCESSIBLE, isok, xdir, ydir, W_WEP, W_QUIVER, W_SWAPWEP,
          ERODE_CRACK, EF_DESTROY, EF_VERBOSE, ER_DESTROYED,
          DIRECTION_KEYS } from './const.js';
 import { IS_SOFT, ZAP_POS,
-         PM_WIZARD, PM_CAVEMAN, PM_HEALER, PM_TOURIST,
-         PM_MONK, PM_RANGER, PM_ROGUE, PM_SAMURAI,
          RACE_ELF, RACE_ORC } from './const.js';
 import { S_boomleft, S_boomright, defsyms } from './symbols.js';
 import { rn2, rnd, rnl } from './rng.js';
@@ -52,7 +50,9 @@ import { pline } from './pline.js';
 import { sgn, distmin } from './hacklib.js';
 import { Monnam, a_monnam, mon_nam } from './do_name.js';
 import { wakeup, setmangry } from './mon.js';
-import { MZ_MEDIUM, MZ_HUGE, PM_HOMUNCULUS, PM_IMP, mons } from './monsters.js';
+import { MZ_MEDIUM, MZ_HUGE, PM_HOMUNCULUS, PM_IMP, mons,
+         PM_WIZARD, PM_CAVE_DWELLER, PM_HEALER, PM_TOURIST,
+         PM_MONK, PM_RANGER, PM_ROGUE, PM_SAMURAI } from './monsters.js';
 import { hitval, dmgval, weapon_hit_bonus, weapon_type } from './weapon.js';
 import { find_mac } from './worn.js';
 import { spec_abon } from './artifact.js';
@@ -602,7 +602,7 @@ export function multishot_class_bonus(pm, ammo, launcher) {
     let multishot = 0;
     const skill = objectData[ammo.otyp]?.oc_subtyp ?? 0;
     switch (pm) {
-    case PM_CAVEMAN:
+    case PM_CAVE_DWELLER:
         if (skill === -P_SLING || skill === P_SPEAR) multishot++;
         break;
     case PM_MONK:
@@ -630,15 +630,15 @@ export function throw_obj(player, obj, shotlimit) {
     const uwep = player.weapon;
     if ((obj.quan || 1) > 1
         && (is_ammo(obj) ? matching_launcher(obj, uwep) : obj.oclass === WEAPON_CLASS)) {
-        const role = player.roleIndex ?? 0;
-        const weakmultishot = (role === PM_WIZARD || role === PM_CAVEMAN
-            || (role === PM_HEALER && skill !== P_KNIFE)
-            || (role === PM_TOURIST && skill !== -P_DART)
+        const roleMnum = player.roleMnum ?? 0;
+        const weakmultishot = (roleMnum === PM_WIZARD || roleMnum === PM_CAVE_DWELLER
+            || (roleMnum === PM_HEALER && skill !== P_KNIFE)
+            || (roleMnum === PM_TOURIST && skill !== -P_DART)
             || (player.dex || 10) <= 6);
         const pskill = player.skills?.[weapon_type(obj)] || 0;
         if (pskill >= 4) { multishot++; if (!weakmultishot) multishot++; }
         else if (pskill >= 3) { if (!weakmultishot) multishot++; }
-        multishot += multishot_class_bonus(role, obj, uwep);
+        multishot += multishot_class_bonus(roleMnum, obj, uwep);
         if (!weakmultishot) {
             const race = player.race ?? 0;
             if (race === RACE_ELF && obj.otyp === ELVEN_ARROW && uwep && uwep.otyp === ELVEN_BOW) multishot++;

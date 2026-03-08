@@ -3,7 +3,7 @@
 
 import { rn2, rnd, rn1 } from './rng.js';
 import {
-    isok, A_WIS, A_DEX, A_CHA, W_SADDLE, PM_KNIGHT, ROOM, CORR,
+    isok, A_WIS, A_DEX, A_CHA, W_SADDLE, ROOM, CORR,
     DISMOUNT_BYCHOICE, DISMOUNT_THROWN, DISMOUNT_KNOCKED, DISMOUNT_FELL,
     DISMOUNT_POLY, DISMOUNT_ENGULFED, DISMOUNT_BONES, DISMOUNT_GENERIC,
 } from './const.js';
@@ -15,7 +15,7 @@ import { is_humanoid, slithy, amorphous, noncorporeal, is_whirly,
          grounded } from './mondata.js';
 import { MZ_MEDIUM, MZ_SMALL, MZ_LARGE,
          S_QUADRUPED, S_UNICORN, S_ANGEL, S_CENTAUR, S_DRAGON,
-         S_JABBERWOCK } from './monsters.js';
+         S_JABBERWOCK, PM_KNIGHT } from './monsters.js';
 import { which_armor } from './worn.js';
 import { SADDLE } from './objects.js';
 
@@ -180,7 +180,7 @@ export async function mount_steed(mtmp, force, player, map, display) {
     }
 
     // Tameness decrement for non-knight
-    if (!force && player.roleIndex !== PM_KNIGHT && mtmp.mtame) {
+    if (!force && player.roleMnum !== PM_KNIGHT && mtmp.mtame) {
         mtmp.mtame--;
         if (!mtmp.mtame) {
             await pline("%s resists!", Monnam(mtmp));

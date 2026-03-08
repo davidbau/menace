@@ -10,9 +10,6 @@
 import { rn2, rnd, rn1, d } from './rng.js';
 import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
-         PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVEMAN, PM_HEALER,
-         PM_KNIGHT, PM_MONK, PM_PRIEST, PM_ROGUE, PM_RANGER,
-         PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD,
          FAST, STEALTH, SEARCHING, SEE_INVIS, WARNING, JUMPING,
          FIRE_RES, COLD_RES, SHOCK_RES, POISON_RES, SLEEP_RES,
          TELEPORT_CONTROL, INFRAVISION, DRAIN_RES,
@@ -26,6 +23,9 @@ import { roles, races } from './player.js';
 import { pline, You, Your, You_feel, pline_The, livelog_printf } from './pline.js';
 import { sgn, strstri } from './hacklib.js';
 import { DUNCE_CAP, GAUNTLETS_OF_POWER, HELM_OF_OPPOSITE_ALIGNMENT, LUCKSTONE } from './objects.js';
+import { PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVE_DWELLER, PM_HEALER,
+         PM_KNIGHT, PM_MONK, PM_CLERIC, PM_ROGUE, PM_RANGER,
+         PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD } from './monsters.js';
 import { confers_luck } from './artifact.js';
 import { add_weapon_skill, lose_weapon_skill } from './weapon.js';
 
@@ -706,7 +706,7 @@ async function exerper(player) {
         switch (hs) {
         case 0: // SATIATED
             await exercise(player, A_DEX, false);
-            if (player.roleIndex === PM_MONK)
+            if (player.roleMnum === PM_MONK)
                 await exercise(player, A_WIS, false);
             break;
         case 1: // NOT_HUNGRY
@@ -714,7 +714,7 @@ async function exerper(player) {
             break;
         case 3: // WEAK
             await exercise(player, A_STR, false);
-            if (player.roleIndex === PM_MONK)
+            if (player.roleMnum === PM_MONK)
                 await exercise(player, A_WIS, true);
             break;
         case 4: // FAINTING
@@ -909,11 +909,11 @@ export function role_abil(r) {
     const roleabils = {
         [PM_ARCHEOLOGIST]: arc_abil,
         [PM_BARBARIAN]: bar_abil,
-        [PM_CAVEMAN]: cav_abil,
+        [PM_CAVE_DWELLER]: cav_abil,
         [PM_HEALER]: hea_abil,
         [PM_KNIGHT]: kni_abil,
         [PM_MONK]: mon_abil,
-        [PM_PRIEST]: pri_abil,
+        [PM_CLERIC]: pri_abil,
         [PM_RANGER]: ran_abil,
         [PM_ROGUE]: rog_abil,
         [PM_SAMURAI]: sam_abil,
@@ -929,7 +929,7 @@ function check_innate_abil(player, propid, frommask) {
     let abil = null;
 
     if (frommask === FROMEXPER) {
-        abil = role_abil(player.roleIndex);
+        abil = role_abil(player.roleMnum);
     } else if (frommask === FROMRACE) {
         switch (player.race) {
         case RACE_DWARF: abil = dwa_abil; break;
@@ -975,7 +975,7 @@ export function is_innate(player, propidx) {
         return FROM_NONE;
     if ((innateness = innately(player, propidx)) !== FROM_NONE)
         return innateness;
-    if (propidx === JUMPING && player.roleIndex === PM_KNIGHT
+    if (propidx === JUMPING && player.roleMnum === PM_KNIGHT
         && !getExtrinsic(player, propidx))
         return FROM_ROLE_REASON;
     return FROM_NONE;
@@ -1005,7 +1005,7 @@ export function from_what(player, propidx) {
 
 // cf. attrib.c:1003 — adjabil(oldlevel, newlevel)
 export async function adjabil(player, oldlevel, newlevel) {
-    let abil = role_abil(player.roleIndex);
+    let abil = role_abil(player.roleMnum);
     let rabil = null;
 
     switch (player.race) {

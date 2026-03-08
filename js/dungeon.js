@@ -26,8 +26,6 @@ import {
     VIBRATING_SQUARE, TRAPPED_DOOR, TRAPPED_CHEST, TRAPNUM,
     is_pit, is_hole,
     MKTRAP_NOFLAGS, MKTRAP_SEEN, MKTRAP_MAZEFLAG, MKTRAP_NOSPIDERONWEB, MKTRAP_NOVICTIM,
-    PM_ARCHEOLOGIST as ROLE_ARCHEOLOGIST, PM_WIZARD as ROLE_WIZARD,
-    PM_PRIEST as ROLE_PRIEST,
     A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, DUNGEON_ALIGN_BY_DNUM,
     MM_NOGRP, FILL_NONE, FILL_NORMAL, RUMOR_PAD_LENGTH, TAINT_AGE,
     XLIM, YLIM,
@@ -60,6 +58,7 @@ import {
     PM_OGRE_TYRANT, PM_ELVEN_MONARCH, PM_DWARF_RULER, PM_GNOME_RULER,
     M2_PRINCE, M2_LORD, M2_DEMON, M2_HOSTILE, M2_PEACEFUL,
     MS_LEADER,
+    PM_CLERIC,
 } from './monsters.js';
 import { init_objects, setgemprobs } from './o_init.js';
 import { roles } from './player.js';
@@ -4128,12 +4127,13 @@ export function init_dungeons(roleIndex, wizard = true) {
     // nemesis lacks M2_MALE/M2_FEMALE/M2_NEUTER flags.
     // C ref: role.c:2060 — only Archeologist (Minion of Huhetotl) and
     // Wizard (Dark One) need this call; all other nemeses have explicit gender.
-    if (roleIndex === ROLE_ARCHEOLOGIST || roleIndex === ROLE_WIZARD) {
+    const roleMnum = roles[roleIndex]?.mnum;
+    if (roleMnum === PM_ARCHEOLOGIST || roleMnum === PM_WIZARD) {
         rn2(100);
     }
     // C ref: role.c randrole() — priests pick a random pantheon role.
     // This consumes rn2(SIZE(roles)) before dungeon initialization.
-    if (roleIndex === ROLE_PRIEST) {
+    if (roleMnum === PM_CLERIC) {
         rn2(roles.length);
     }
 

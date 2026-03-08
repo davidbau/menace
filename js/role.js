@@ -30,6 +30,9 @@ import {
 } from './const.js';
 import { rn2, rn2_on_display_rng } from './rng.js';
 import { PM_HUMAN, PM_ELF, PM_DWARF, PM_GNOME, PM_ORC,
+         PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVE_DWELLER, PM_HEALER,
+         PM_KNIGHT, PM_MONK, PM_CLERIC, PM_ROGUE, PM_RANGER,
+         PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD,
          M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC } from './monsters.js';
 
 
@@ -40,7 +43,7 @@ import { PM_HUMAN, PM_ELF, PM_DWARF, PM_GNOME, PM_ORC,
 // ========================================================================
 
 export const roles = [
-    { name: 'Archeologist', abbr: 'Arc', str: 7, int: 10, wis: 10, dex: 7, con: 7, cha: 7,
+    { name: 'Archeologist', abbr: 'Arc', mnum: PM_ARCHEOLOGIST, str: 7, int: 10, wis: 10, dex: 7, con: 7, cha: 7,
       startingHP: 11, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: null,
       hpadv: {infix:11, inrnd:0, lofix:0, lornd:8, hifix:1, hirnd:0},
       enadv_full: {infix:1, inrnd:0, lofix:0, lornd:1, hifix:0, hirnd:1},
@@ -59,7 +62,7 @@ export const roles = [
       ],
       greeting: 'Hello',
       menuChar: 'a', menuArticle: 'an' },
-    { name: 'Barbarian', abbr: 'Bar', str: 16, int: 7, wis: 7, dex: 15, con: 16, cha: 6,
+    { name: 'Barbarian', abbr: 'Bar', mnum: PM_BARBARIAN, str: 16, int: 7, wis: 7, dex: 15, con: 16, cha: 6,
       startingHP: 14, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: null,
       hpadv: {infix:14, inrnd:0, lofix:0, lornd:10, hifix:2, hirnd:0},
       enadv_full: {infix:1, inrnd:0, lofix:0, lornd:1, hifix:0, hirnd:1},
@@ -78,7 +81,7 @@ export const roles = [
       ],
       greeting: 'Hello',
       menuChar: 'b', menuArticle: 'a' },
-    { name: 'Caveman', abbr: 'Cav', str: 10, int: 7, wis: 7, dex: 7, con: 8, cha: 6,
+    { name: 'Caveman', abbr: 'Cav', mnum: PM_CAVE_DWELLER, str: 10, int: 7, wis: 7, dex: 7, con: 8, cha: 6,
       startingHP: 14, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: 'dog',
       hpadv: {infix:14, inrnd:0, lofix:0, lornd:8, hifix:2, hirnd:0},
       enadv_full: {infix:1, inrnd:0, lofix:0, lornd:1, hifix:0, hirnd:1},
@@ -97,7 +100,7 @@ export const roles = [
       ],
       greeting: 'Hello',
       menuChar: 'c', menuArticle: 'a' },
-    { name: 'Healer', abbr: 'Hea', str: 7, int: 7, wis: 13, dex: 7, con: 11, cha: 16,
+    { name: 'Healer', abbr: 'Hea', mnum: PM_HEALER, str: 7, int: 7, wis: 13, dex: 7, con: 11, cha: 16,
       startingHP: 11, startingPW: 1, enadv: 4, align: A_NEUTRAL, petType: null,
       hpadv: {infix:11, inrnd:0, lofix:0, lornd:8, hifix:1, hirnd:0},
       enadv_full: {infix:1, inrnd:4, lofix:0, lornd:1, hifix:0, hirnd:2},
@@ -116,7 +119,7 @@ export const roles = [
       ],
       greeting: 'Hello',
       menuChar: 'h', menuArticle: 'a' },
-    { name: 'Knight', abbr: 'Kni', str: 13, int: 7, wis: 14, dex: 8, con: 10, cha: 17,
+    { name: 'Knight', abbr: 'Kni', mnum: PM_KNIGHT, str: 13, int: 7, wis: 14, dex: 8, con: 10, cha: 17,
       startingHP: 14, startingPW: 1, enadv: 4, align: A_LAWFUL, petType: 'pony',
       hpadv: {infix:14, inrnd:0, lofix:0, lornd:8, hifix:2, hirnd:0},
       enadv_full: {infix:1, inrnd:4, lofix:0, lornd:1, hifix:0, hirnd:2},
@@ -135,7 +138,7 @@ export const roles = [
       ],
       greeting: 'Salutations',
       menuChar: 'k', menuArticle: 'a' },
-    { name: 'Monk', abbr: 'Mon', str: 10, int: 7, wis: 8, dex: 8, con: 7, cha: 7,
+    { name: 'Monk', abbr: 'Mon', mnum: PM_MONK, str: 10, int: 7, wis: 8, dex: 8, con: 7, cha: 7,
       startingHP: 12, startingPW: 2, enadv: 2, align: A_NEUTRAL, petType: null,
       hpadv: {infix:12, inrnd:0, lofix:0, lornd:8, hifix:1, hirnd:0},
       enadv_full: {infix:2, inrnd:2, lofix:0, lornd:2, hifix:0, hirnd:2},
@@ -154,7 +157,7 @@ export const roles = [
       ],
       greeting: 'Hello',
       menuChar: 'm', menuArticle: 'a' },
-    { name: 'Priest', abbr: 'Pri', str: 7, int: 7, wis: 10, dex: 7, con: 7, cha: 7,
+    { name: 'Priest', abbr: 'Pri', mnum: PM_CLERIC, str: 7, int: 7, wis: 10, dex: 7, con: 7, cha: 7,
       startingHP: 12, startingPW: 4, enadv: 3, align: A_NEUTRAL, petType: null,
       hpadv: {infix:12, inrnd:0, lofix:0, lornd:8, hifix:1, hirnd:0},
       enadv_full: {infix:4, inrnd:3, lofix:0, lornd:2, hifix:0, hirnd:2},
@@ -173,7 +176,7 @@ export const roles = [
       ],
       greeting: 'Hello',
       menuChar: 'p', menuArticle: 'a' },
-    { name: 'Rogue', abbr: 'Rog', str: 7, int: 7, wis: 7, dex: 10, con: 7, cha: 6,
+    { name: 'Rogue', abbr: 'Rog', mnum: PM_ROGUE, str: 7, int: 7, wis: 7, dex: 10, con: 7, cha: 6,
       startingHP: 10, startingPW: 1, enadv: 0, align: A_CHAOTIC, petType: null,
       hpadv: {infix:10, inrnd:0, lofix:0, lornd:8, hifix:1, hirnd:0},
       enadv_full: {infix:1, inrnd:0, lofix:0, lornd:1, hifix:0, hirnd:1},
@@ -192,7 +195,7 @@ export const roles = [
       ],
       greeting: 'Hello',
       menuChar: 'r', menuArticle: 'a' },
-    { name: 'Ranger', abbr: 'Ran', str: 13, int: 13, wis: 13, dex: 9, con: 13, cha: 7,
+    { name: 'Ranger', abbr: 'Ran', mnum: PM_RANGER, str: 13, int: 13, wis: 13, dex: 9, con: 13, cha: 7,
       startingHP: 13, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: 'dog',
       hpadv: {infix:13, inrnd:0, lofix:0, lornd:6, hifix:1, hirnd:0},
       enadv_full: {infix:1, inrnd:0, lofix:0, lornd:1, hifix:0, hirnd:1},
@@ -211,7 +214,7 @@ export const roles = [
       ],
       greeting: 'Hello',
       menuChar: 'R', menuArticle: 'a' },
-    { name: 'Samurai', abbr: 'Sam', str: 10, int: 8, wis: 7, dex: 10, con: 17, cha: 6,
+    { name: 'Samurai', abbr: 'Sam', mnum: PM_SAMURAI, str: 10, int: 8, wis: 7, dex: 10, con: 17, cha: 6,
       startingHP: 13, startingPW: 1, enadv: 0, align: A_LAWFUL, petType: 'dog',
       hpadv: {infix:13, inrnd:0, lofix:0, lornd:8, hifix:1, hirnd:0},
       enadv_full: {infix:1, inrnd:0, lofix:0, lornd:1, hifix:0, hirnd:1},
@@ -230,7 +233,7 @@ export const roles = [
       ],
       greeting: 'Konnichi wa',
       menuChar: 's', menuArticle: 'a' },
-    { name: 'Tourist', abbr: 'Tou', str: 7, int: 10, wis: 6, dex: 7, con: 7, cha: 10,
+    { name: 'Tourist', abbr: 'Tou', mnum: PM_TOURIST, str: 7, int: 10, wis: 6, dex: 7, con: 7, cha: 10,
       startingHP: 8, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: null,
       hpadv: {infix:8, inrnd:0, lofix:0, lornd:8, hifix:0, hirnd:0},
       enadv_full: {infix:1, inrnd:0, lofix:0, lornd:1, hifix:0, hirnd:1},
@@ -249,7 +252,7 @@ export const roles = [
       ],
       greeting: 'Hello',
       menuChar: 't', menuArticle: 'a' },
-    { name: 'Valkyrie', abbr: 'Val', str: 10, int: 7, wis: 7, dex: 7, con: 10, cha: 7,
+    { name: 'Valkyrie', abbr: 'Val', mnum: PM_VALKYRIE, str: 10, int: 7, wis: 7, dex: 7, con: 10, cha: 7,
       startingHP: 14, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: null,
       hpadv: {infix:14, inrnd:0, lofix:0, lornd:8, hifix:2, hirnd:0},
       enadv_full: {infix:1, inrnd:0, lofix:0, lornd:1, hifix:0, hirnd:1},
@@ -268,7 +271,7 @@ export const roles = [
       ],
       greeting: 'Velkommen',
       menuChar: 'v', menuArticle: 'a' },
-    { name: 'Wizard', abbr: 'Wiz', str: 7, int: 10, wis: 7, dex: 7, con: 7, cha: 7,
+    { name: 'Wizard', abbr: 'Wiz', mnum: PM_WIZARD, str: 7, int: 10, wis: 7, dex: 7, con: 7, cha: 7,
       startingHP: 10, startingPW: 4, enadv: 3, align: A_NEUTRAL, petType: 'cat',
       hpadv: {infix:10, inrnd:0, lofix:0, lornd:8, hifix:1, hirnd:0},
       enadv_full: {infix:4, inrnd:3, lofix:0, lornd:2, hifix:0, hirnd:3},
@@ -288,6 +291,12 @@ export const roles = [
       greeting: 'Hello',
       menuChar: 'w', menuArticle: 'a' },
 ];
+
+// C ref: you.h Role_if/Role_switch macros
+// Role_if(pm) → player.roleMnum === pm  (matches C's urole.mnum == pm)
+// Role_switch → player.roleMnum  (matches C's urole.mnum)
+export function Role_if(player, pm) { return player.roleMnum === pm; }
+export function Role_switch(player) { return player.roleMnum; }
 
 // Races table -- from role.c
 // C ref: src/role.c races[] array

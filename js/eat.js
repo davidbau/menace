@@ -33,9 +33,9 @@ import { mons, PM_LIZARD, PM_LICHEN, PM_NEWT,
          S_ELEMENTAL, S_FUNGUS, S_LIGHT, S_MIMIC,
          AT_MAGC, AD_STUN, AD_HALU,
          MR_FIRE, MR_COLD, MR_SLEEP, MR_DISINT, MR_ELEC,
-         MR_POISON, MR_ACID, MR_STONE } from './monsters.js';
-import { PM_CAVEMAN, PM_VALKYRIE, PM_WIZARD,
-         RACE_ORC, RACE_ELF, RACE_DWARF,
+         MR_POISON, MR_ACID, MR_STONE,
+         PM_CAVE_DWELLER, PM_VALKYRIE, PM_WIZARD, PM_KNIGHT, PM_MONK } from './monsters.js';
+import { RACE_ORC, RACE_ELF, RACE_DWARF,
          A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
          FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES,
          POISON_RES, ACID_RES, STONE_RES,
@@ -44,7 +44,7 @@ import { PM_CAVEMAN, PM_VALKYRIE, PM_WIZARD,
          SLT_ENCUMBER, DEAF,
          REGENERATION, CONFLICT, PROTECTION, HUNGER, STRANGLED, CONFUSION,
          W_RINGL, W_RINGR, W_ARTI, W_WEP, FROMFORM,
-         CHOKING, A_LAWFUL, PM_KNIGHT, PM_MONK,
+         CHOKING, A_LAWFUL,
          STARVING, KILLED_BY, KILLED_BY_AN,
          BY_COOKIE } from './const.js';
 import { game as _gstate } from './gstate.js';
@@ -115,7 +115,7 @@ const TTSZ = tintxts.length;
 
 // cf. eat.c CANNIBAL_ALLOWED()
 function CANNIBAL_ALLOWED(player) {
-    return player.roleIndex === PM_CAVEMAN || player.race === RACE_ORC;
+    return player.roleMnum === PM_CAVE_DWELLER || player.race === RACE_ORC;
 }
 
 // cf. eat.c nonrotting_corpse()
@@ -468,11 +468,11 @@ async function newuhs(player, incr) {
             if (player.hallucinating) {
                 await pline(!incr ? "You still have the munchies."
                     : "The munchies are interfering with your motor capabilities.");
-            } else if (incr && (player.roleIndex === PM_WIZARD
+            } else if (incr && (player.roleMnum === PM_WIZARD
                 || player.race === RACE_ELF
-                || player.roleIndex === PM_VALKYRIE)) {
-                const name = (player.roleIndex === PM_WIZARD
-                    || player.roleIndex === PM_VALKYRIE)
+                || player.roleMnum === PM_VALKYRIE)) {
+                const name = (player.roleMnum === PM_WIZARD
+                    || player.roleMnum === PM_VALKYRIE)
                     ? (player.roleName || "Adventurer") : "Elf";
                 await pline("%s needs food, badly!", name);
             } else {
@@ -555,7 +555,7 @@ export async function choke(food, player) {
     // C: only happens if you were satiated
     if (player.uhs !== SATIATED) {
         if (!food || food.otyp !== AMULET_OF_STRANGULATION) return;
-    } else if (player.roleIndex === PM_KNIGHT
+    } else if (player.roleMnum === PM_KNIGHT
                && player.ualign && player.ualign.type === A_LAWFUL) {
         // C: adjalign(-1) — gluttony is unchivalrous
         if (player.ualign) player.ualign.record = (player.ualign.record || 0) - 1;
@@ -1038,7 +1038,7 @@ export async function eating_conducts(pd, player) {
 export async function violated_vegetarian(player) {
   if (!player.uconduct) player.uconduct = {};
   player.uconduct.unvegetarian = (player.uconduct.unvegetarian || 0) + 1;
-  if (player.roleIndex === PM_MONK) {
+  if (player.roleMnum === PM_MONK) {
       await You_feel("guilty.");
       if (player.ualign) player.ualign.record = (player.ualign.record || 0) - 1;
   }

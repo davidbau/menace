@@ -4,7 +4,7 @@ import {
     COLNO, ROWNO, STONE, HWALL, DOOR, CROSSWALL, LAVAWALL, LAVAPOOL, IRONBARS, WATER, SDOOR,
     CORR, ROOM, AIR, CLOUD, MAGIC_PORTAL, VIBRATING_SQUARE, MKTRAP_MAZEFLAG,
     POOL, TLWALL, TRWALL, TUWALL, TDWALL, BRCORNER, BLCORNER, TRCORNER, TLCORNER,
-    IS_WALL, IS_POOL, isok, PM_PRIEST as ROLE_PRIEST,
+    IS_WALL, IS_POOL, isok,
     QUEST, GNOMISH_MINES,
     W_NONDIGGABLE,
 } from './const.js';
@@ -27,7 +27,8 @@ import { mkobj, mksobj, mkcorpstat, set_corpsenm, weight } from './mkobj.js';
 import { GEM_CLASS, RANDOM_CLASS, BOULDER, GOLD_PIECE, STATUE } from './objects.js';
 import { makemon, rndmonnum, getMakemonRoleIndex } from './makemon.js';
 import { NO_MM_FLAGS } from './const.js';
-import { mons, PM_MINOTAUR, PM_ARCHEOLOGIST, PM_WIZARD, MR_STONE } from './monsters.js';
+import { mons, PM_MINOTAUR, PM_ARCHEOLOGIST, PM_WIZARD, PM_CLERIC, MR_STONE } from './monsters.js';
+import { roles } from './role.js';
 import {
     occupied,
     mkstairs,
@@ -841,7 +842,7 @@ export async function fixup_special(map, opts = {}) {
         map.flags = map.flags || {};
         map.flags.is_medusa_level = true;
         medusa_fixup(map, Number.isFinite(opts.depth) ? opts.depth : 1);
-    } else if (roleIndex === ROLE_PRIEST && dnum === QUEST) {
+    } else if (roles[roleIndex]?.mnum === PM_CLERIC && dnum === QUEST) {
         map.flags = map.flags || {};
         map.flags.graveyard = true;
     } else if (specialName === 'castle') {

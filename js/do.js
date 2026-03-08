@@ -5,7 +5,7 @@ import { nhgetch, ynFunction, getlin } from './input.js';
 import { COLNO, ROWNO, STAIRS,
          CORR, ROOM, AIR, A_DEX,
          IS_FURNITURE, IS_LAVA, IS_POOL, MAGIC_PORTAL, VIBRATING_SQUARE,
-         PM_TOURIST, I_SPECIAL, TIMEOUT,
+         I_SPECIAL, TIMEOUT,
          W_ARMOR, W_ACCESSORY, W_SADDLE } from './const.js';
 import { rn1, rn2, rnd, c_d } from './rng.js';
 import { deltrap, enexto, mklev, assign_level, resolveBranchDestinationForStair } from './dungeon.js';
@@ -42,7 +42,7 @@ import { IS_SINK, IS_ALTAR, AM_NONE, Align2amask, NON_PM } from './const.js';
 import { newsym, mark_vision_dirty, vision_recalc } from './display.js';
 import { digests, touch_petrifies, is_rider, is_reviver, throws_rocks, passes_walls, is_whirly } from './mondata.js';
 import { mons, S_ZOMBIE, PM_DEATH, PM_PESTILENCE, PM_FAMINE,
-         PM_GREEN_SLIME, PM_WRAITH, PM_NURSE } from './monsters.js';
+         PM_GREEN_SLIME, PM_WRAITH, PM_NURSE, PM_TOURIST } from './monsters.js';
 import { zombie_form } from './mon.js';
 import { revive } from './zap.js';
 import { cansee } from './vision.js';
@@ -1392,7 +1392,7 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     // first entry to a new level, which can immediately trigger level-up.
     if (Number.isInteger(previousDepth) && depth !== previousDepth) {
         const player = (game.u || game.player);
-        if (player?.roleIndex === PM_TOURIST) {
+        if (player?.roleMnum === PM_TOURIST) {
             const lev = {
                 dnum: Number.isInteger(game.dnum) ? game.dnum : 0,
                 dlevel: Number.isInteger(player.dungeonLevel) ? player.dungeonLevel : 1,

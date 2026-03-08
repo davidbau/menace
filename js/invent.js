@@ -4,7 +4,7 @@
 import { nhgetch, getlin } from './input.js';
 import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_putstr } from './windows.js';
 import { NHW_MENU } from './const.js';
-import { COLNO, STATUS_ROW_1, STATUS_ROW_2, PM_ARCHEOLOGIST, A_STR, A_CON, A_WIS,
+import { COLNO, STATUS_ROW_1, STATUS_ROW_2, A_STR, A_CON, A_WIS,
          UNENCUMBERED, OVERLOADED,
          STAIRS, LADDER, FOUNTAIN, THRONE, SINK, GRAVE, ALTAR, TREE,
          IS_DOOR, D_NODOOR, D_BROKEN, D_ISOPEN, D_CLOSED, D_LOCKED,
@@ -29,7 +29,7 @@ import { promptDirectionAndThrowItem, ammoAndLauncher } from './dothrow.js';
 import { pline, You, Your } from './pline.js';
 import { rn2, pushRngLogEntry } from './rng.js';
 import { touch_petrifies } from './mondata.js';
-import { mons } from './monsters.js';
+import { mons, PM_ARCHEOLOGIST } from './monsters.js';
 import { newsym } from './display.js';
 import { observeObject, discoverObject, isObjectNameKnown } from './o_init.js';
 import { exercise } from './attrib_exercise.js';
@@ -1008,7 +1008,7 @@ export async function addinv_core2(obj, player) {
     // confers_luck check would go here
     // C ref: invent.c addinv_core2() — archeologists can decipher scroll labels.
     if (player
-        && player.roleIndex === PM_ARCHEOLOGIST
+        && player.roleMnum === PM_ARCHEOLOGIST
         && obj?.oclass === SCROLL_CLASS
         && obj?.otyp !== SCR_BLANK_PAPER
         && !player.blind
