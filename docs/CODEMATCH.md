@@ -50,7 +50,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[N/A]` | date.c | — | Build date/version stamps |
 | `[~]` | dbridge.c | dbridge.js | Drawbridge mechanics |
 | `[~]` | decl.c | decl.js | Global variable declarations. JS: spread across modules |
-| `[a]` | detect.c | detect.js | Detection spells and scrolls. dosearch0 implemented (RNG-parity); ~40 functions TODO |
+| `[a]` | detect.c | detect.js | Detection spells and scrolls. dosearch0 and map_redisplay implemented (RNG-parity + C-faithful redisplay/reconstrain path); ~40 functions TODO |
 | `[~]` | dig.c | dig.js | Digging mechanics. `zap_dig()` wand traversal now uses awaited `nh_delay_output()` boundaries in interactive mode (headless still skips delays) |
 | `[~]` | display.c | display.js | Display/rendering. `tmp_at()`/`nh_delay_output` lifecycle now follows C `display.c` semantics more closely (DISP_FLASH vs DISP_ALWAYS visibility, per-step flush, BACKTRACK cleanup timing, map-overlay restore path). Transient numeric glyph decoding now follows C `display.h` glyph ranges (monster/object/cmap/zap/swallow/explosion/warning) via `temp_glyph.js`; explosion glyph blocks decode with per-explosion-type color phases and zap glyph blocks now decode per zap-type color groups (magic/fire/cold/sleep/death/lightning/poison/acid) rather than a single shared beam color. Headless overlay handling mirrors browser stack semantics for nested temp glyphs. Remaining divergence is full mapglyph/windowport detail (pet/infravision/status overlays and tty/windowport edge behavior) |
 | `[N/A]` | dlb.c | — | Data librarian (file bundling). Not needed in JS |
@@ -1029,7 +1029,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 336 | `gold_detect` | - | Missing |
 | 1143 | `level_distance` | - | Missing |
 | 123 | `map_monst` | - | Missing |
-| 95 | `map_redisplay` | - | Missing |
+| 95 | `map_redisplay` | detect.js:1090 | Implemented |
 | 1966 | `mfind0` | - | Missing |
 | 799 | `monster_detect` | - | Missing |
 | 202 | `o_in` | - | Missing |

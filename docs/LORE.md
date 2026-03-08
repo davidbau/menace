@@ -4945,3 +4945,20 @@ hard-won wisdom:
   - `node --test test/unit/display_howmonseen.test.js` passes.
   - `node scripts/test-unit-core.mjs` remains at known baseline
     (`2526 pass / 5 fail`, same pre-existing input-queue failures).
+
+### detect.c `map_redisplay` wiring closure (2026-03-08)
+
+- Problem:
+  - `detect.js` still routed browse-map exits through `map_redisplay_stub()`
+    and manual `reconstrain_map(player)` calls, diverging from C
+    `detect.c:map_redisplay()` sequencing.
+- Fix:
+  - Removed `map_redisplay_stub()` callsites and switched all browse-map
+    exits in detect flows (`gold_detect`, `food_detect`, `object_detect`,
+    `monster_detect`, `display_trap_map`, `reveal_terrain`) to:
+    `await map_redisplay(player, map)`.
+  - Made `map_redisplay` async and C-faithful:
+    `reconstrain_map(player)` -> `await docrt()` -> underwater/buried overlays.
+- Validation:
+  - `node scripts/test-unit-core.mjs` unchanged baseline
+    (`2526 pass / 5 fail`, same known input-queue failures).

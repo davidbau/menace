@@ -15,7 +15,7 @@ import { pline, You, Your, You_feel, You_see, pline_The,
 import {
     map_invisible, newsym, flush_screen,
     canSpotMonsterForMap, senseMonsterForMap,
-    warning_of, feel_newsym, docrt,
+    warning_of, feel_newsym, docrt, under_water, under_ground,
 } from './display.js';
 import { helpless as monHelpless } from './mon.js';
 import { findgold } from './steal.js';
@@ -113,7 +113,6 @@ function trapDiscoveryName(ttyp) {
 // ========================================================================
 function cls() {}
 function browse_map() {}
-function map_redisplay_stub() {}
 export function map_monst() {}
 function map_object() {}
 function map_trap() {}
@@ -326,7 +325,7 @@ async function _gold_detect_outgoldmap(sobj, player, map, display) {
     if (!ugold) newsym(player.x, player.y);
     await You_feel("very greedy, and sense gold!");
     await exercise(player, A_WIS, true);
-    browse_map(); map_redisplay_stub(); reconstrain_map(player);
+    browse_map(); await map_redisplay(player, map);
     return 0;
 }
 
@@ -398,7 +397,7 @@ export async function food_detect(sobj, player, map, display, game) {
             } else await Your("%s tingles and you smell %s.", body_part(NOSE, player), what);
         } else await You("sense %s.", what);
         await exercise(player, A_WIS, true);
-        browse_map(); map_redisplay_stub(); reconstrain_map(player);
+        browse_map(); await map_redisplay(player, map);
     }
     return 0;
 }
@@ -474,7 +473,7 @@ export async function object_detect(detector, oclass, player, map, display, game
     }
     newsym(player.x, player.y);
     await You("detect the %s of %s.", ct ? 'presence' : 'absence', stuff);
-    browse_map(); map_redisplay_stub(); reconstrain_map(player);
+    browse_map(); await map_redisplay(player, map);
     return 0;
 }
 
@@ -514,7 +513,7 @@ export async function monster_detect(otmp, mclass, player, map, display, game) {
         if (!swallowed) display_self();
         await You("sense the presence of monsters.");
         if (woken) await pline("Monsters sense the presence of you.");
-        browse_map(); map_redisplay_stub(); reconstrain_map(player);
+        browse_map(); await map_redisplay(player, map);
     }
     return 0;
 }
@@ -588,7 +587,7 @@ async function display_trap_map(cursed_src, player, map, display) {
     }
     newsym(player.x, player.y);
     await You_feel("%s.", cursed_src ? 'very greedy' : 'entrapped');
-    browse_map(); map_redisplay_stub(); reconstrain_map(player);
+    browse_map(); await map_redisplay(player, map);
 }
 
 // ========================================================================
@@ -1084,13 +1083,13 @@ export async function reveal_terrain(which_subset, player, map, display) {
             show_map_spot(x, y, false, map);
     flush_screen(1);
     await pline("Showing terrain only...");
-    browse_map(); map_redisplay_stub(); reconstrain_map(player);
+    browse_map(); await map_redisplay(player, map);
 }
 
 // Autotranslated from detect.c:94
-export function map_redisplay(player) {
-  reconstrain_map();
-  docrt();
-  // C: if (Underwater) under_water(2) — underwater display not fully ported
-  if (player.uburied) under_ground(2);
+export async function map_redisplay(player, map) {
+  reconstrain_map(player);
+  await docrt();
+  if (player.uinwater) await under_water(2, map, player);
+  if (player.uburied) await under_ground(2, player);
 }
