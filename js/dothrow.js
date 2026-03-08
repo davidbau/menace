@@ -491,12 +491,11 @@ export async function handleFire(player, map, display, game) {
         // C ref: dothrow.c dofire(): when no quiver and autoquiver is off,
         // emit this message before prompting for what to fire.
         await display.putstr_message('You have no ammunition readied.');
-        if (typeof display?.morePrompt === 'function') {
-            await display.morePrompt(nhgetch);
-        } else if (typeof display?.renderMoreMarker === 'function') {
+        if (typeof display?.renderMoreMarker === 'function') {
             display.renderMoreMarker();
-            display.markMorePending({ source: 'dothrow.no-quiver' });
-            await nhgetch();
+            if (typeof display?.markMorePending === 'function') {
+                display.markMorePending({ source: 'dothrow.no-quiver' });
+            }
         }
     } else {
         autoquiver(player);
