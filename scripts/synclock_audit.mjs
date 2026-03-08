@@ -43,6 +43,11 @@ const checks = [
     re: /\.morePrompt\s*\(\s*nhgetch\s*\)/,
     note: 'direct more-prompt wait via nhgetch callback',
   },
+  {
+    key: 'direct_moreprompt_calls',
+    re: /\.morePrompt\s*\(/,
+    note: 'direct more-prompt callsites (S1 centralization target)',
+  },
 ];
 
 const report = {};
@@ -85,7 +90,14 @@ if (allmainRaw === 0) {
 }
 
 if (strict) {
-  const totalFindings = checks.reduce((sum, c) => sum + (report[c.key]?.total || 0), 0);
+  const strictKeys = new Set([
+    'raw_await_nhgetch',
+    'raw_settimeout0_await',
+    'display_moreprompt_nhgetch',
+  ]);
+  const totalFindings = checks
+    .filter(c => strictKeys.has(c.key))
+    .reduce((sum, c) => sum + (report[c.key]?.total || 0), 0);
   if (totalFindings > 0) {
     console.error(`SYNCLOCK strict audit failed: ${totalFindings} finding(s).`);
     process.exitCode = 1;

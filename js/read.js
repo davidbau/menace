@@ -3,7 +3,7 @@
 
 import { rn2, rn1, rnd, d } from './rng.js';
 import { nhgetch } from './input.js';
-import { awaitInput } from './suspend.js';
+import { awaitInput, awaitMore } from './suspend.js';
 import {
     objectData, SCROLL_CLASS, SPBOOK_CLASS, WEAPON_CLASS, COIN_CLASS,
     SPE_BLANK_PAPER, SPE_NOVEL, SPE_BOOK_OF_THE_DEAD,
@@ -469,9 +469,9 @@ async function handleRead(player, display, game) {
             continue;
         }
         if (typeof display?.morePrompt === 'function') {
-            await display.morePrompt(() => awaitInput(game, nhgetch(), {
+            await awaitMore(game, display.morePrompt(() => awaitInput(game, nhgetch(), {
                 site: 'read.handleRead.invalidInvletMore',
-            }));
+            })), { site: 'read.handleRead.invalidInvletMorePrompt' });
             await showReadPrompt();
         }
     }

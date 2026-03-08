@@ -2,7 +2,7 @@
 // cf. wield.c — setuwep, dowield, doswapweapon, chwepon, welded, twoweapon
 
 import { nhgetch, ynFunction } from './input.js';
-import { awaitInput } from './suspend.js';
+import { awaitInput, awaitMore } from './suspend.js';
 import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, ARMOR_CLASS,
          RING_CLASS, AMULET_CLASS, HEAVY_IRON_BALL, IRON_CHAIN, TIN_OPENER,
          WORM_TOOTH, CRYSKNIFE, LOADSTONE } from './objects.js';
@@ -466,9 +466,9 @@ async function handleWield(player, display) {
                 // Keep C/getobj timing: prompt appears after --More-- dismiss.
                 await display.putstr_message(wieldPrompt);
             } else if (typeof display?.morePrompt === 'function') {
-                await display.morePrompt(() => awaitInput(null, nhgetch(), {
+                await awaitMore(null, display.morePrompt(() => awaitInput(null, nhgetch(), {
                     site: 'wield.handleWield.invalidInvletMore',
-                }));
+                })), { site: 'wield.handleWield.invalidInvletMorePrompt' });
                 await display.putstr_message(wieldPrompt);
             }
             continue;

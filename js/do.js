@@ -2,7 +2,7 @@
 // cf. do.c — dodrop, dodown, doup, flooreffects, goto_level, donull, dowipe
 
 import { nhgetch, ynFunction, getlin } from './input.js';
-import { awaitInput } from './suspend.js';
+import { awaitInput, awaitMore } from './suspend.js';
 import { COLNO, ROWNO, STAIRS,
          CORR, ROOM, AIR, A_DEX,
          IS_FURNITURE, IS_LAVA, IS_POOL, MAGIC_PORTAL, VIBRATING_SQUARE,
@@ -684,9 +684,9 @@ export async function handleDrop(player, map, display) {
                 display.markMorePending({ source: sourceTag });
             }
         } else if (typeof display?.morePrompt === 'function') {
-            await display.morePrompt(() => awaitInput(null, nhgetch(), {
+            await awaitMore(null, display.morePrompt(() => awaitInput(null, nhgetch(), {
                 site: 'do.handleDrop.morePrompt',
-            }));
+            })), { site: 'do.handleDrop.moreBoundary' });
         }
     };
     while (true) {
