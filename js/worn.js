@@ -24,6 +24,7 @@ import { mons } from './monsters.js';
 import { newsym } from './display.js';
 import { You_hear } from './pline.js';
 import { placeFloorObject } from './invent.js';
+import { Has_contents } from './objnam.js';
 
 // Armor category constants — cf. objclass.h
 const ARM_SUIT   = 0;

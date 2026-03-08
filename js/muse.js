@@ -90,6 +90,7 @@ import { Can_dig_down, Can_fall_thru, Can_rise_up, In_endgame } from './dungeon.
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
 import { resists_magm, monsndx, is_vampshifter } from './mondata.js';
+import { Has_contents } from './objnam.js';
 
 const STRAT_WAITFORU = 0x20000000; // C ref: mon.h
 
@@ -299,7 +300,7 @@ function stairway_at(x, y, map) {
 
 // Stub for m_seenres — monster memory of hero resistances
 // Not yet tracked in JS; always returns 0 (monster has not seen)
-function m_seenres(_mon, _flag) { return 0; }
+export function m_seenres(_mon, _flag) { return 0; }
 
 // Stub for monstseesu — monster notes hero has resistance
 function monstseesu(_flag) { }
@@ -362,9 +363,6 @@ function Is_mbag(obj) {
     if (!obj) return false;
     const od = objectData[obj.otyp];
     return od && od.oc_name && /bag of holding/i.test(od.oc_name);
-}
-function Has_contents(obj) {
-    return obj && Array.isArray(obj.cobj) && obj.cobj.length > 0;
 }
 function SchroedingersBox(obj) {
     return !!(obj && obj.spe === 1 && obj.otyp === LARGE_BOX);

@@ -21,7 +21,7 @@ import { findgold } from './steal.js';
 import { observeObject } from './o_init.js';
 import { unblock_point, recalc_block_point, do_clear_area } from './vision.js';
 import { body_part } from './polyself.js';
-import { Is_box } from './objnam.js';
+import { Is_box, Has_contents } from './objnam.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_FLASH, DISP_CHANGE, DISP_END } from './const.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
@@ -45,9 +45,7 @@ const OTRAP_THERE = 2;
 // Local helpers
 // ========================================================================
 // Is_box imported from objnam.js
-function Has_contents(obj) {
-    return obj && Array.isArray(obj.cobj) && obj.cobj.length > 0;
-}
+// Has_contents imported from objnam.js
 function SchroedingersBox(obj) {
     return !!(obj && obj.spe === 1 && obj.otrapped);
 }

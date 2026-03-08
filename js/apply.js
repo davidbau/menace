@@ -92,6 +92,7 @@ import { break_wand } from './zap.js';
 import { Blindf_off } from './do_wear.js';
 import { dropx } from './do.js';
 import { dry_a_towel } from './weapon.js';
+import { is_wet_towel } from './objnam.js';
 import { useupall, update_inventory, sobj_at } from './invent.js';
 import { cansee } from './vision.js';
 

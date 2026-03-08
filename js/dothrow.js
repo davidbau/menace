@@ -56,7 +56,7 @@ import { MZ_MEDIUM, MZ_HUGE, PM_HOMUNCULUS, PM_IMP, mons,
 import { hitval, dmgval, weapon_hit_bonus, weapon_type } from './weapon.js';
 import { find_mac } from './worn.js';
 import { spec_abon } from './artifact.js';
-import { is_weptool } from './objnam.js';
+import { is_weptool, Has_contents } from './objnam.js';
 import { erode_obj } from './trap.js';
 import { goodpos } from './teleport.js';
 import { mpickobj } from './steal.js';
@@ -150,10 +150,7 @@ function change_luck(player, delta) {
     player.luck = (player.luck || 0) + delta;
 }
 
-// Helper: Has_contents(obj)
-function Has_contents(obj) {
-    return obj && Array.isArray(obj.cobj) && obj.cobj.length > 0;
-}
+// Has_contents imported from objnam.js
 
 // Breakflags constants (cf. hack.h)
 const BRK_FROM_INV = 1;

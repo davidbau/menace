@@ -92,7 +92,7 @@ import { is_art } from './artifact.js';
 import { sink_backs_up } from './fountain.js';
 import { altar_wrath } from './pray.js';
 import { del_engr_at, disturb_grave } from './engrave.js';
-import { rnd_class, makeplural, Is_box } from './objnam.js';
+import { rnd_class, makeplural, Is_box, Has_contents } from './objnam.js';
 import { kick_steed } from './steed.js';
 import { legs_in_no_shape } from './do.js';
 import { nhgetch } from './input.js';
@@ -465,9 +465,7 @@ function Is_container(obj) {
     const oc = objectData[obj.otyp];
     return oc && oc.oc_class === 'containers';
 }
-function Has_contents(obj) {
-    return obj.cobj && obj.cobj.length > 0;
-}
+// Has_contents imported from objnam.js
 function Is_mbag(obj) {
     // Bag of holding / bag of tricks — check by otyp
     return false; // simplified

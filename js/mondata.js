@@ -472,6 +472,11 @@ export function noattacks(ptr) {
   return true;
 }
 
+// C ref: muse.h DISTANCE_ATTK_TYPE(aatyp) macro
+export function DISTANCE_ATTK_TYPE(aatyp) {
+    return aatyp === AT_SPIT || aatyp === AT_BREA || aatyp === AT_MAGC || aatyp === AT_GAZE;
+}
+
 // C ref: mondata.c ranged_attk(ptr)
 // Returns true if monster has any distance attack (DISTANCE_ATTK_TYPE macro).
 // DISTANCE_ATTK_TYPE = AT_SPIT || AT_BREA || AT_MAGC || AT_GAZE

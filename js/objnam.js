@@ -23,7 +23,7 @@ import {
     GRAY_DRAGON_SCALES, YELLOW_DRAGON_SCALES,
     GRAY_DRAGON_SCALE_MAIL, YELLOW_DRAGON_SCALE_MAIL,
     SMALL_SHIELD,
-    LARGE_BOX, CHEST,
+    LARGE_BOX, CHEST, TOWEL,
     ELVEN_LEATHER_HELM, FEDORA, CORNUTHAUM, DUNCE_CAP,
 } from './objects.js';
 import {
@@ -648,6 +648,11 @@ export function mshot_xname(obj) {
 // cf. objnam.c:1778
 // ============================================================================
 
+// C ref: obj.h is_wet_towel(o) — towel with wetness
+export function is_wet_towel(obj) {
+    return obj && obj.otyp === TOWEL && (obj.spe || 0) > 0;
+}
+
 export function is_weptool(obj) {
     return obj.oclass === TOOL_CLASS && (objectData[obj.otyp]?.oc_subtyp || 0) !== 0;
 }
@@ -675,6 +680,11 @@ export function not_fully_identified(otmp) {
             && !is_weptool(otmp) && otmp.oclass !== BALL_CLASS))
         return false;
     return is_damageable(otmp);
+}
+
+// C ref: obj.h Has_contents(o) — container with objects inside
+export function Has_contents(obj) {
+    return obj && obj.cobj != null && (Array.isArray(obj.cobj) ? obj.cobj.length > 0 : !!obj.cobj);
 }
 
 export function Is_box(obj) {

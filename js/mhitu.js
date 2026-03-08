@@ -37,7 +37,9 @@ import {
     sticks, unsolid, attacktype, is_demon, is_were, is_human,
     is_animal, digests, enfolds, is_whirly, haseyes, perceives,
     dmgtype, dmgtype_fromattack,
+    get_atkdam_type, cvt_adtyp_to_mseenres, DISTANCE_ATTK_TYPE,
 } from './mondata.js';
+import { m_seenres } from './muse.js';
 import {
     weaponEnchantment, weaponDamageSides,
     mhitm_mgc_atk_negated,
@@ -60,11 +62,13 @@ import { new_were, were_summon } from './were.js';
 import { Mgender, Monnam, pmname } from './do_name.js';
 import { resists_blnd } from './zap.js';
 import { rloc, tele_restrict } from './teleport.js';
-import { RLOC_MSG, A_CHA } from './const.js';
+import { RLOC_MSG, A_CHA, HAIR } from './const.js';
 import { s_suffix } from './hacklib.js';
 import { find_ac } from './do_wear.js';
 import { done_in_by } from './end.js';
 import { nomul } from './hack.js';
+import { body_part } from './polyself.js';
+import { is_wet_towel } from './objnam.js';
 
 const PIERCE = 1;
 
