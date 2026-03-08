@@ -511,17 +511,18 @@ async function handleSwapWeapon(player, display) {
     }
 
     const oldwep = player.weapon || null;
-    if (!player.swapWeapon) {
-        if (!player.weapon) {
-            await display.putstr_message(`You are already ${empty_handed(player)}.`);
-            return { moved: false, tookTime: false };
-        }
-        await display.putstr_message('You have no secondary weapon readied.');
-        // C ref: doswapweapon() consumes a turn even when swap slot is empty.
-        return { moved: false, tookTime: true };
+    const oldswap = player.swapWeapon || null;
+
+    // C ref: wield.c doswapweapon() — clear secondary, ready old secondary as
+    // new primary, then place old primary into secondary slot.
+    setuswapwep(player, null);
+    const result = await ready_weapon(player, display, oldswap);
+    if (player.weapon === oldwep) {
+        // Wield failed/cancelled for some reason: restore previous secondary.
+        setuswapwep(player, oldswap);
+    } else {
+        setuswapwep(player, oldwep);
     }
-    setuwep(player, player.swapWeapon);
-    setuswapwep(player, oldwep);
     if (player.swapWeapon) {
         await display.putstr_message(`${player.swapWeapon.invlet} - ${doname(player.swapWeapon, player)}.`);
     } else {
@@ -531,7 +532,7 @@ async function handleSwapWeapon(player, display) {
     if (player.twoweap && !await can_twoweapon(player, null)) {
         await untwoweapon(player, display);
     }
-    return { moved: false, tookTime: true };
+    return { moved: false, tookTime: !!result?.tookTime };
 }
 
 // cf. wield.c:499+507 — dowieldquiver() / doquiver_core(): Q command
