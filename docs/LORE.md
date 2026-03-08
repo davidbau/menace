@@ -4725,3 +4725,27 @@ hard-won wisdom:
   - `node scripts/test-unit-core.mjs` passes.
   - `./scripts/run-and-report.sh --failures` remains non-regressive at `33/34`
     gameplay sessions passing (same frontier: `seed033`).
+
+### seed033 whatdoes parity: intro `--More--` boundary + C-style response formatting (2026-03-08)
+
+- Problem:
+  - `seed033` diverged around `?` help -> `f` whatdoes flow.
+  - JS `handleWhatdoes()` skipped C's first-use intro boundary behavior and
+    printed ad-hoc response text (`'e': Eat something.`), while C holds at
+    `Ask about '&' or '?' to get more info.--More--` and formats responses as
+    `key + padded spacing + extcmd description`.
+- Fix:
+  - Updated
+    [`js/pager.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/pager.js)
+    `handleWhatdoes()` to match C `dowhatdoes()` flow:
+  - First-use intro line is emitted once and explicitly blocks at `--More--`
+    until a dismiss key (C `xwaitforspace` behavior; non-dismiss keys ignored).
+  - Query key now goes through `ynFunction("What command?", ...)`.
+  - Whatdoes output now uses C-style formatted lines (`<key-text>.padEnd(8) + desc + '.'`)
+    and C-style unknown-command text with char code/octal/hex fields.
+- Validation:
+  - `node scripts/test-unit-core.mjs` passes.
+  - `./scripts/run-and-report.sh --failures` remains `33/34` gameplay sessions passing.
+  - `seed033` frontier moved later:
+  - before: first RNG/event divergence at `416`, screen at `394`
+  - after: first RNG/event divergence at `470`, screen at `460`

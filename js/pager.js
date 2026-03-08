@@ -8,7 +8,7 @@ import {
     DOOR, IRONBARS, TREE, CORR, SCORR, ICE,
 } from './const.js';
 import { def_monsyms } from './symbols.js';
-import { nhgetch } from './input.js';
+import { nhgetch, ynFunction } from './input.js';
 import { CLR_GRAY, CLR_WHITE, CLR_GREEN, CLR_CYAN } from './display.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
        } from './windows.js';
@@ -17,6 +17,7 @@ import { getpos_async } from './getpos.js';
 import { x_monnam } from './mondata.js';
 import { engr_at, can_reach_floor } from './engrave.js';
 import { objectData, STRANGE_OBJECT } from './objects.js';
+import { visctrl } from './hacklib.js';
 
 // -----------------------------------------------------------------------
 // Look / whatis core (merged from look.js)
@@ -740,31 +741,31 @@ async function showTextWindowFile(display, text) {
 // Command descriptions for & (whatdoes)
 // C ref: pager.c dowhatdoes() / dat/cmdhelp
 const COMMAND_DESCRIPTIONS = {
-    '?': 'Display one of several informative help texts.',
-    '/': 'Tell what a map symbol represents.',
-    '&': 'Tell what a command does.',
-    '<': 'Go up a staircase.',
-    '>': 'Go down a staircase.',
-    '.': 'Rest, do nothing for one turn.',
-    ',': 'Pick up things at the current location.',
-    ':': 'Look at what is here.',
-    ';': 'Look at what is somewhere else.',
-    '\\': 'Show what types of objects have been discovered.',
-    '#': 'Perform an extended command.',
-    'a': 'Apply (use) a tool.',
-    'c': 'Close a door.',
-    'd': 'Drop an item. d7a: drop seven items of object a.',
-    'e': 'Eat something.',
-    'i': 'Show your inventory.',
-    'o': 'Open a door.',
-    'q': 'Drink (quaff) a potion.',
-    'P': 'Put on a ring or other accessory.',
-    's': 'Search for secret doors and traps around you.',
-    'w': 'Wield a weapon. w- means wield bare hands.',
-    'S': 'Save the game.',
-    'T': 'Take off armor.',
-    'V': 'Display the version and history of the game.',
-    'W': 'Wear armor.',
+    '?': 'display one of several informative help texts',
+    '/': 'tell what a map symbol represents',
+    '&': 'tell what a command does',
+    '<': 'go up a staircase',
+    '>': 'go down a staircase',
+    '.': 'rest, do nothing for one turn',
+    ',': 'pick up things at the current location',
+    ':': 'look at what is here',
+    ';': 'look at what is somewhere else',
+    '\\': 'show what types of objects have been discovered',
+    '#': 'perform an extended command',
+    'a': 'apply (use) a tool',
+    'c': 'close a door',
+    'd': 'drop an item',
+    'e': 'eat something (#eat)',
+    'i': 'show your inventory',
+    'o': 'open a door',
+    'q': 'drink (quaff) a potion',
+    'P': 'put on a ring or other accessory',
+    's': 'search for secret doors and traps around you',
+    'w': 'wield a weapon',
+    'S': 'save the game',
+    'T': 'take off armor',
+    'V': 'display the version and history of the game',
+    'W': 'wear armor',
 };
 
 const COMMAND_DESCRIPTIONS_C_STYLE = {
@@ -983,60 +984,52 @@ const OPTIONS_FULL_COMMAND_HELP_TEXT = [
 // Handle & (whatdoes) command
 // C ref: pager.c dowhatdoes()
 let whatdoesIntroShown = false;
+
+function whatdoesKeyText(c) {
+    if (c === ' ') return '<space>';
+    if (c === '\x1b') return '<esc>';
+    if (c === '\n' || c === '\r') return '<enter>';
+    if (c === '\x7f') return '<del>';
+    return visctrl(c);
+}
+
 export async function handleWhatdoes(game) {
     const { display } = game;
 
     if (!whatdoesIntroShown) {
         await display.putstr_message("Ask about '&' or '?' to get more info.");
-        if (!display?._pendingMore && typeof display?.renderMoreMarker === 'function') {
+        if (typeof display?.renderMoreMarker === 'function') {
             display.renderMoreMarker();
-            if (typeof display?.markMorePending === 'function') {
-                display.markMorePending({ source: 'pager.whatdoes-intro' });
+        }
+        if (typeof display?._waitForMoreDismissKey === 'function') {
+            await display._waitForMoreDismissKey(nhgetch);
+            if (typeof display?._clearMore === 'function') {
+                await display._clearMore();
+            } else {
+                if (typeof display?.clearRow === 'function') display.clearRow(0);
+                if (Object.hasOwn(display || {}, 'messageNeedsMore')) display.messageNeedsMore = false;
+                if (Object.hasOwn(display || {}, 'topMessage')) display.topMessage = null;
             }
         }
         whatdoesIntroShown = true;
     }
-    await display.putstr_message('What command?');
-    const ch = await nhgetch();
+
+    const ch = await ynFunction('What command?', null, 0, display);
 
     if (ch === 27) {
         return { moved: false, tookTime: false };
     }
 
     const c = String.fromCharCode(ch);
-    let desc;
-
-    // Check for control characters
-    if (ch < 32) {
-        const ctrlChar = '^' + String.fromCharCode(ch + 64);
-        const ctrlDescs = {
-            '^C': 'Quit the game.',
-            '^D': 'Kick something (usually a door).',
-            '^P': 'Repeat previous message (consecutive ^P\'s show earlier ones).',
-            '^R': 'Redraw the screen.',
-        };
-        if (game.wizard) {
-            ctrlDescs['^F'] = 'Map the level (wizard mode).';
-            ctrlDescs['^G'] = 'Create a monster (wizard mode).';
-            ctrlDescs['^I'] = 'Identify items in pack (wizard mode).';
-            ctrlDescs['^T'] = 'Teleport (wizard mode).';
-            ctrlDescs['^V'] = 'Level teleport (wizard mode).';
-            ctrlDescs['^W'] = 'Wish (wizard mode).';
-        }
-        desc = ctrlDescs[ctrlChar];
-        if (desc) {
-            await display.putstr_message(`${ctrlChar.padEnd(8)}${desc}`);
-        } else {
-            await display.putstr_message(`${ctrlChar}: unknown command.`);
-        }
-    } else if (COMMAND_DESCRIPTIONS[c]) {
-        const override = COMMAND_DESCRIPTIONS_C_STYLE[c];
-        const normalized = override || `${COMMAND_DESCRIPTIONS[c]}`
-            .replace(/\.$/, '')
-            .replace(/^./, (ch0) => ch0.toLowerCase());
-        await display.putstr_message(`${c.padEnd(8)}${normalized}.`);
+    const desc = COMMAND_DESCRIPTIONS_C_STYLE[c] || COMMAND_DESCRIPTIONS[c];
+    if (desc) {
+        const keyText = whatdoesKeyText(c);
+        await display.putstr_message(`${String(keyText).padEnd(8)}${desc}.`);
     } else {
-        await display.putstr_message(`'${c}': unknown command.`);
+        const uchar = ch & 0xff;
+        const oct = uchar.toString(8).padStart(3, '0');
+        const hex = uchar.toString(16).padStart(2, '0');
+        await display.putstr_message(`No such command '${visctrl(c)}', char code ${uchar} (0${oct} or 0x${hex}).`);
     }
 
     return { moved: false, tookTime: false };
