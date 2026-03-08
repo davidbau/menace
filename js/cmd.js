@@ -321,16 +321,16 @@ export async function rhack(ch, game) {
         return await handleWield(player, display);
     }
 
-    // Toggle two-weapon combat
-    // C ref: wield.c dotwoweapon()
-    if (c === 'x') {
-        return await handleTwoWeapon(player, display, game);
-    }
-
     // Swap primary/secondary weapon
     // C ref: wield.c doswapweapon()
-    if (c === 'X') {
+    if (c === 'x') {
         return await handleSwapWeapon(player, display);
+    }
+
+    // Toggle two-weapon combat
+    // C ref: wield.c dotwoweapon()
+    if (c === 'X') {
+        return await handleTwoWeapon(player, display, game);
     }
 
     // Throw item

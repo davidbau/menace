@@ -7,9 +7,11 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, ARMOR_CLASS,
          WORM_TOOTH, CRYSKNIFE, LOADSTONE } from './objects.js';
 import { doname, weight, splitobj, xname } from './mkobj.js';
 import { rn2, rnd } from './rng.js';
-import { W_WEP } from './const.js';
+import { W_WEP, A_DEX } from './const.js';
 import { is_plural, otense } from './objnam.js';
 import { Shk_Your } from './shk.js';
+import { renderOverlayMenuUntilDismiss } from './invent.js';
+import { acurr } from './attrib.js';
 
 // ============================================================
 // 1. Slot setters
@@ -181,6 +183,7 @@ async function drop_uswapwep(player, display) {
 
 // cf. wield.c:836 — dotwoweapon(): #twoweapon command
 async function handleTwoWeapon(player, display, game = null) {
+    void game;
     // Can always toggle off
     if (player.twoweap) {
         await display.putstr_message('You switch to your primary weapon.');
@@ -189,35 +192,8 @@ async function handleTwoWeapon(player, display, game = null) {
     }
     if (await can_twoweapon(player, display)) {
         set_twoweap(player, true);
-        if (player.swapWeapon) {
-            const moreMsg = `${player.swapWeapon.invlet} - ${doname(player.swapWeapon, player)}.`;
-            await display.putstr_message(
-                moreMsg
-            );
-            if (Array.isArray(display._messageQueue) && player.weapon && player.weapon !== player.swapWeapon) {
-                const primaryName = doname(player.weapon, player)
-                    .replace(/\s+\(weapon in [^)]+ hand\)$/, '')
-                    .replace(/\s+\(wielded\)$/, '');
-                display._messageQueue.push(
-                    `${player.weapon.invlet || '-'} - ${primaryName} (alternate weapon; not wielded).`
-                );
-            }
-            if (Object.hasOwn(display, '_pendingMore')) {
-                display.markMorePending({ source: 'wield.twoweapon' });
-            }
-            if (Object.hasOwn(display, '_nonBlockingMore')) {
-                display._nonBlockingMore = true;
-            }
-            if (game) {
-                game._pendingDeferredTurnAfterMore = true;
-            }
-            if (typeof display.setCursor === 'function') {
-                display.setCursor(Math.min((display.cols || 80) - 1, moreMsg.length + '--More--'.length), 0);
-            }
-        } else {
-            await display.putstr_message('You begin two-weapon combat.');
-        }
-        return { moved: false, tookTime: false };
+        await display.putstr_message('You begin two-weapon combat.');
+        return { moved: false, tookTime: rnd(20) > acurr(player, A_DEX) };
     }
     return { moved: false, tookTime: false };
 }
@@ -392,6 +368,37 @@ function splittableLikeC(obj, player) {
     return true;
 }
 
+function buildWieldMenuLines(player, inventory) {
+    const lines = [];
+    lines.push('Miscellaneous');
+    lines.push('- - your bare hands');
+
+    const weapons = [];
+    const tools = [];
+    for (const obj of inventory) {
+        if (!obj || obj.invlet === '$') continue;
+        if (obj.oclass === WEAPON_CLASS) {
+            weapons.push(obj);
+            continue;
+        }
+        const od = objectData[obj.otyp];
+        if (obj.oclass === TOOL_CLASS && (od?.oc_subtyp || 0) !== 0) {
+            tools.push(obj);
+        }
+    }
+
+    if (weapons.length) {
+        lines.push('Weapons');
+        for (const obj of weapons) lines.push(`${obj.invlet} - ${doname(obj, player)}`);
+    }
+    if (tools.length) {
+        lines.push('Tools');
+        for (const obj of tools) lines.push(`${obj.invlet} - ${doname(obj, player)}`);
+    }
+    lines.push('(end)');
+    return lines;
+}
+
 // cf. wield.c:350 — dowield(): #wield command
 // Moved from cmd.js handleWield
 async function handleWield(player, display) {
@@ -425,7 +432,18 @@ async function handleWield(player, display) {
             await display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
-        if (c === '?' || c === '*') continue;
+        if (c === '?' || c === '*') {
+            replacePromptMessage(display);
+            const menuLines = buildWieldMenuLines(player, inventory);
+            const allowed = `-${inventory.map((o) => o?.invlet || '').join('')}`;
+            const picked = await renderOverlayMenuUntilDismiss(display, menuLines, allowed);
+            if (picked) {
+                c = picked;
+            } else {
+                await display.putstr_message(wieldPrompt);
+                continue;
+            }
+        }
 
         if (c === '-') {
             replacePromptMessage(display);
