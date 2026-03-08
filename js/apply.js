@@ -1050,14 +1050,18 @@ export async function handleApply(player, map, display, game) {
             // get consumed together with the next command key.
             replacePromptMessage();
             await display.putstr_message("You don't have that object.");
-            if (typeof display?.morePrompt === 'function') {
-                await display.morePrompt(nhgetch);
-            } else if (typeof display?.renderMoreMarker === 'function') {
+            if (typeof display?.renderMoreMarker === 'function') {
                 display.renderMoreMarker();
-                display.markMorePending({ source: 'apply.invalid-invlet' });
-                await nhgetch();
+                if (typeof display?.markMorePending === 'function') {
+                    display.markMorePending({ source: 'apply.invalid-invlet' });
+                }
+                // Queue the prompt behind the pending --More-- so the dismiss
+                // key reveals it on the next captured step (C/getobj timing).
+                await display.putstr_message(prompt);
+            } else if (typeof display?.morePrompt === 'function') {
+                await display.morePrompt(nhgetch);
+                await showApplyPrompt();
             }
-            await showApplyPrompt();
             continue;
         }
         return await resolveApplySelection(selected);
