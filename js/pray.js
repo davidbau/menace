@@ -683,7 +683,7 @@ function blocked_boulder(dx, dy, player, map) {
         // FALLTHRU
     default: return true;
     }
-    if (dx && dy && in_sokoban()) return true;
+    if (dx && dy && in_sokoban(map)) return true;
     if (!isok(nx, ny)) return true;
     if (IS_OBSTRUCTED(map.at(nx, ny).typ)) return true;
     if (sobj_at(BOULDER, nx, ny, map)) return true;
@@ -2072,7 +2072,7 @@ export async function eval_offering(otmp, altaralign, player) {
     let unicalign = sgn(ptr.maligntyp);
     if (unicalign === altaralign) {
       await pline("Such an action is an insult to %s!", (unicalign === A_CHAOTIC) ? "chaos" : unicalign ? "law" : "balance");
-      await adjattrib(A_WIS, -1, true);
+      await adjattrib(player, A_WIS, -1, true);
       return -1;
     }
     else if (player.ualign.type === altaralign) {
@@ -2080,7 +2080,7 @@ export async function eval_offering(otmp, altaralign, player) {
       else {
         await You_feel("you are thoroughly on the right path.");
       }
-      adjalign(5);
+      adjalign(player, 5);
       value += 3;
     }
     else if (unicalign === player.ualign.type) { player.ualign.record = -1; value = 1; }
@@ -2507,8 +2507,8 @@ function a_align(x, y, map) {
 
 // cf. pray.c:2507 -- a_gname(): name of altar's deity at player position
 // Autotranslated from pray.c:2506
-export function a_gname(player) {
-  return a_gname_at(player.x, player.y);
+export function a_gname(player, map) {
+  return a_gname_at(player.x, player.y, player, map);
 }
 
 // cf. pray.c:2514 -- a_gname_at(x, y): name of altar's deity at position

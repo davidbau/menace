@@ -721,13 +721,13 @@ export function engr_stats(map) {
 // cf. engrave.c:1666 — rloc_engr(ep): relocate engraving randomly
 // Moves engraving to a new valid location on the level.
 // Autotranslated from engrave.c:1668
-export function rloc_engr(ep) {
+export function rloc_engr(map, ep) {
   let tx, ty, tryct = 200;
   do {
     if (--tryct < 0) return;
     tx = rn1(COLNO - 3, 2);
     ty = rn2(ROWNO);
-  } while (engr_at(tx, ty) || !goodpos(tx, ty,  0, 0));
+  } while (engr_at(map, tx, ty) || !goodpos(tx, ty, 0, 0));
   ep.engr_x = tx;
   ep.engr_y = ty;
   newsym(tx, ty);
