@@ -51,7 +51,7 @@ import { movebubbles } from './mkmaze.js';
 import { newuexp, pluslvl } from './exper.js';
 import { setCurrentLevelStairs } from './stairs.js';
 import { float_down } from './trap.js';
-import { W_ART, W_ARTI } from './artifact.js';
+import { W_ART, W_ARTI } from './const.js';
 
 // Translator-compat globals used by some C-emitted helper candidates.
 const gd = {};

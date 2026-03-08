@@ -77,8 +77,7 @@ import {
 } from './worn.js';
 import { erode_obj } from './trap.js';
 import { game as _gstate } from './gstate.js';
-import { ERODE_BURN, EF_GREASE } from './const.js';
-import { W_ART } from './artifact.js';
+import { ERODE_BURN, EF_GREASE, W_ART } from './const.js';
 import { sleep_monst, slept_monst } from './mhitm.js';
 import { mstatusline, run_magic_enlightenment_effect } from './insight.js';
 import { display_minventory, sobj_at, update_inventory } from './invent.js';
