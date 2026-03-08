@@ -20,6 +20,7 @@ import { PM_ROGUE, PM_WIZARD } from './monsters.js';
 import { Role_if } from './role.js';
 import { rn2, rnl, rnd } from './rng.js';
 import { nhgetch, ynFunction } from './input.js';
+import { awaitInput } from './suspend.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, WEAPON_CLASS, TOOL_CLASS, ROCK_CLASS, POTION_CLASS,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
@@ -515,7 +516,9 @@ export async function pick_lock(game, pick, rx, ry, container) {
     } else {
         // Prompt for direction
         await display.putstr_message('In what direction? ');
-        const dirCh = await nhgetch();
+        const dirCh = await awaitInput(game, nhgetch(), {
+            site: 'lock.pick_lock.direction',
+        });
         display.topMessage = null;
         const c = String.fromCharCode(dirCh);
         let dir = DIRECTION_KEYS[c];
@@ -944,7 +947,9 @@ export async function handleForce(game) {
 // C ref: lock.c doopen() / doopen_indir()
 export async function handleOpen(player, map, display, game) {
     await display.putstr_message('In what direction? ');
-    const dirCh = await nhgetch();
+    const dirCh = await awaitInput(game, nhgetch(), {
+        site: 'lock.handleOpen.direction',
+    });
     // Prompt should not concatenate with outcome message.
     display.topMessage = null;
     const c = String.fromCharCode(dirCh);
@@ -1032,7 +1037,9 @@ export async function handleOpen(player, map, display, game) {
 // C ref: lock.c doclose()
 export async function handleClose(player, map, display, game) {
     await display.putstr_message('In what direction? ');
-    const dirCh = await nhgetch();
+    const dirCh = await awaitInput(game, nhgetch(), {
+        site: 'lock.handleClose.direction',
+    });
     display.topMessage = null;
     display.messageNeedsMore = false;
     const c = String.fromCharCode(dirCh);
@@ -1102,4 +1109,3 @@ export async function handleClose(player, map, display, game) {
 
     return { moved: false, tookTime: true };
 }
-
