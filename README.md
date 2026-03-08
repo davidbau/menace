@@ -5,9 +5,9 @@
 *You feel a strange vibration under your feet.*
 
 NetHack 3.7 is the most ambitious update in the game's 38-year history.
-It has been in public development on GitHub since 2018, played on
-community servers, forked into variants, and as of early 2026, still
-hasn't shipped. This project is a
+It has been under active development since 2018, played on community
+servers and forked into variants, and as of early 2026, still hasn't
+shipped. This project is a
 faithful JavaScript port of it, written almost entirely through conversation
 with AI agents. 182,000+ lines of JavaScript, 141 modules mirroring the C
 source structure, bit-identical PRNG, 89 golden C-comparison test sessions.
