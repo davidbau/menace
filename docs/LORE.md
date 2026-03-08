@@ -4406,3 +4406,28 @@ hard-won wisdom:
     `684/1365` (screen) with PRNG frontier jumping to `1159/1365`.
   - This exposed the next concrete apply/getobj boundary mismatch for follow-up
     work rather than masking it.
+
+### input-boundary ownership: stack-first prompt/more + regression guard tests (2026-03-08)
+
+- Problem:
+  - Input blocking ownership was split across prompt checks, `_pendingMore`
+    branches, and ad-hoc callsites, making command/message boundary behavior
+    hard to reason about.
+- Architectural shift:
+  - `run_command` now treats input boundaries as owner-stack first:
+    - `owner=prompt` handled via stack prompt path.
+    - `owner=more` handled via stack more-dismiss path.
+  - Legacy `_pendingMore` command branch remains only as narrow fallback for
+    rare no-owner states and auto-syncs back to `markMorePending(...)`.
+- Cleanup:
+  - Removed duplicate prompt interception in `cmd.js` so prompt key handling is
+    single-layer at command boundary.
+  - Replaced direct `_pendingMore=true` writes at core callsites with
+    `markMorePending(...)`.
+- Guardrails added:
+  - `test/unit/input_boundary_diagnostics.test.js` now verifies:
+    - prompt boundary consumed once per key in `run_command`
+    - `owner=more` stack dismissal path clears pending more state.
+- Validation:
+  - `./scripts/run-and-report.sh --failures` remains non-regressive
+    (`31/34`, same failing set) while ownership semantics become explicit.
