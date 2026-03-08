@@ -628,9 +628,23 @@ export async function run_command(game, ch, opts = {}) {
     };
 
     // Boundary owner stack: active top boundary gets first chance to consume key.
-    const topBoundary = (typeof game?.peekInputBoundary === 'function')
+    let topBoundary = (typeof game?.peekInputBoundary === 'function')
         ? game.peekInputBoundary()
         : null;
+    if (game?.pendingPrompt
+        && typeof game.pendingPrompt.onKey === 'function'
+        && (!topBoundary || topBoundary.owner !== 'prompt')) {
+        game?.emitDiagnosticEvent?.('boundary.prompt.fallback-sync', {
+            key: chCode,
+            boundary: game?.getInputBoundaryState?.() || null,
+        });
+        // Re-apply prompt through property setter to restore prompt boundary owner.
+        const activePrompt = game.pendingPrompt;
+        game.pendingPrompt = activePrompt;
+        topBoundary = (typeof game?.peekInputBoundary === 'function')
+            ? game.peekInputBoundary()
+            : null;
+    }
     if (topBoundary
         && topBoundary.owner !== 'more'
         && topBoundary.owner !== 'prompt'

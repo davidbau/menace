@@ -77,6 +77,25 @@ test('run_command consumes prompt boundary exactly once per key', async () => {
     assert.equal(result?.tookTime, false);
 });
 
+test('run_command re-syncs missing prompt boundary owner before consuming key', async () => {
+    const game = makeGame();
+    let calls = 0;
+    game.pendingPrompt = {
+        onKey() {
+            calls += 1;
+            return { handled: true, tookTime: false };
+        },
+    };
+    const promptBoundary = game.peekInputBoundary();
+    assert.equal(promptBoundary?.owner, 'prompt');
+    game.clearInputBoundary(promptBoundary.token);
+    assert.equal(game.peekInputBoundary(), null);
+
+    const result = await run_command(game, 'a'.charCodeAt(0));
+    assert.equal(calls, 1);
+    assert.equal(result?.prompt, true);
+});
+
 test('run_command uses owner=more stack boundary dismissal path', async () => {
     const game = makeGame();
     game.display._pendingMore = true;
