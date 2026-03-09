@@ -33,6 +33,7 @@ import {
     CLR_WHITE, HI_METAL, HI_WOOD, HI_GOLD, HI_ZAP,
 } from './render.js';
 import { rankOf } from './player.js';
+import { update_inventory } from './invent.js';
 import { do_lookat, format_do_look_html } from './pager.js';
 import { isok, SEE_INVIS, DETECT_MONSTERS, TELEPAT, INFRAVISION, WARNING, WARN_OF_MON,
          BOLT_LIM,

@@ -11,7 +11,7 @@
 //                 rndcolor, rndorcname, christen_orc, lookup_novel
 
 import { rn2, rn1, rn2_on_display_rng } from './rng.js';
-import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
+import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, update_inventory } from './invent.js';
 import { mons, SPECIAL_PM, G_NOGEN, G_UNIQ, PM_GHOST, PM_WIZARD_OF_YENDOR, PM_SHOPKEEPER } from './monsters.js';
 import { highc, upstart, s_suffix } from './hacklib.js';
 import { CLR_MAX, NO_COLOR, ARTICLE_NONE, ARTICLE_THE, ARTICLE_A, ARTICLE_YOUR, SUPPRESS_IT, SUPPRESS_INVISIBLE, SUPPRESS_HALLUCINATION, SUPPRESS_SADDLE, SUPPRESS_MAPPEARANCE, SUPPRESS_NAME, AUGMENT_IT, EXACT_NAME, LOW_PM } from './const.js';

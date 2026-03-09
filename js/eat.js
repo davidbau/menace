@@ -14,7 +14,7 @@ import { objectData, FOOD_CLASS, COIN_CLASS, CORPSE, TRIPE_RATION, CLOVE_OF_GARL
          FLESH, VEGGY,
          BALL_CLASS, CHAIN_CLASS, WEAPON_CLASS, SPBOOK_CLASS, SCR_MAIL,
          WAX, PAPER, LEATHER, BONE, DRAGON_HIDE } from './objects.js';
-import { doname, next_ident, xname, weight } from './mkobj.js';
+import { doname, next_ident, xname, weight, costly_alteration } from './mkobj.js';
 import { corpse_xname, singular, the, an, obj_is_pname } from './objnam.js';
 import { ART_ORB_OF_DETECTION } from './artifacts.js';
 import { mons, PM_LIZARD, PM_LICHEN, PM_NEWT,

@@ -1315,9 +1315,10 @@ export function relinkTimers() {
 }
 
 // Autotranslated from timeout.c:1192
-export function learn_egg_type(mnum, game) {
+export async function learn_egg_type(mnum, game) {
   mnum = little_to_big(mnum);
   game.mvitals[mnum].mvflags |= MV_KNOWS_EGG;
+  const { update_inventory } = await import('./invent.js');
   update_inventory();
 }
 
