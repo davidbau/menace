@@ -35,8 +35,8 @@ export class Display {
     pre.id = 'hack-screen';
     pre.style.cssText = [
       'font-family: "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace',
-      'font-size: 16px',
-      'line-height: 1.2',
+      'font-size: ' + (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--game-font-size')) || 16) + 'px',
+      'line-height: ' + (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--game-line-height')) || 1.1875),
       'background: #000',
       'color: #ccc',
       'margin: 0',

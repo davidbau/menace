@@ -148,9 +148,9 @@ function monsterShownOnMap(mon, player, map) {
  * @returns {number} line-height as a unitless ratio (e.g. 1.125)
  */
 function computeTerminalLineHeight(fontSize, fontFamily) {
-    // Default: for DejaVu Sans Mono, (usWinAscent=1901 + usWinDescent=483)
-    // / unitsPerEm=2048 ≈ 1.164. Rounded to whole pixels at 16px: 1.125.
-    const DEFAULT_LINE_HEIGHT = 1.125;
+    // Default: Chrome's fontBoundingBoxAscent+Descent for DejaVu Sans Mono at 16px
+    // gives 19px (not 18px from usWinAscent/usWinDescent), so floor(19)/16 = 1.1875.
+    const DEFAULT_LINE_HEIGHT = 1.1875;
     if (typeof document === 'undefined') return DEFAULT_LINE_HEIGHT;
     try {
         const canvas = document.createElement('canvas');
@@ -265,7 +265,9 @@ export class Display {
         const pre = document.createElement('pre');
         pre.id = 'terminal';
         const fontFamily = '"DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace';
-        const fontSize = 16;
+        // Read the current font size from the CSS variable (may differ from 16 if user changed it).
+        const fontSize = parseFloat(getComputedStyle(document.documentElement)
+            .getPropertyValue('--game-font-size')) || 16;
         const lineHeight = computeTerminalLineHeight(fontSize, fontFamily);
         pre.style.cssText = `
             font-family: ${fontFamily};

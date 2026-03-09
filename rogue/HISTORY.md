@@ -4,7 +4,7 @@
 
 In the fall of 1980, two UC Santa Cruz undergraduates wrote a game in their apartment using a borrowed terminal and a 300-baud modem. The game generated its own dungeon, which meant it could surprise even them. They shared it with the twenty or so friends they figured would play it.
 
-The game was Rogue. The word "roguelike" now appears on hundreds of Steam titles. The @ sign is still descending.
+The game was Rogue. Instead of describing the dungeon in words, it drew a map, with corridors, rooms, monsters, and treasure rendered in ASCII characters. Your hero, `@`, explored by walking. It was the first of a genre, and today hundreds of games are described as "roguelikes." The `@` sign is still descending.
 
 This document draws primarily on Glenn Wichman's own [account](https://web.archive.org/web/20070622153327/http://www.wichman.org/roguehistory.html), supplemented by interviews and historical sources cited throughout.
 

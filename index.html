@@ -46,6 +46,7 @@
             --font-size-sm: 13px;
             --font-size-md: 16px;
             --game-font-size: 16px;
+            --game-line-height: 1.1875; /* Updated by script after font loads; 19px rows at 16px */
 
             /* Transitions */
             --transition-fast: 0.2s;
@@ -366,7 +367,7 @@
             /* font-family must match terminal so ch unit is computed correctly */
             font-family: var(--font-mono);
             min-width: calc(80ch + 16px);  /* 80 chars + padding */
-            min-height: calc(24 * var(--game-font-size) * 1.125 + 18px);  /* 24 rows × line-height + padding(12) + border(6) */
+            min-height: calc(24 * var(--game-font-size) * var(--game-line-height) + 18px);  /* 24 rows × line-height + padding(12) + border(6) */
             max-width: 100%;
             overflow: auto;
         }
@@ -376,7 +377,7 @@
             /* These styles are set in JS but we provide fallbacks */
             font-family: var(--font-mono);
             font-size: var(--font-size-md);
-            line-height: 1.125;
+            line-height: var(--game-line-height);
             margin: 0;
             background: var(--color-terminal-bg);
             color: #fff;
@@ -396,7 +397,7 @@
             /* Center in the pre-sized container */
             display: grid;
             place-items: center;
-            min-height: calc(24 * var(--game-font-size) * 1.125 + 16px - 40px);  /* Match game height minus padding */
+            min-height: calc(24 * var(--game-font-size) * var(--game-line-height) + 16px - 40px);  /* Match game height minus padding */
             font-weight: 500;
             letter-spacing: 0.02em;
             text-align: center;
@@ -914,6 +915,50 @@
 
     <script>
     /* ============================================================
+       Game line-height pre-computation
+       Measures the actual font metrics so #game min-height matches
+       the terminal height exactly, eliminating layout pop on load.
+       Re-runs whenever font size changes (ratio varies due to floor()).
+       ============================================================ */
+    (function() {
+        var FONT_FAMILY = '"DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", monospace';
+
+        function measureLineHeight(fontSize) {
+            try {
+                var canvas = document.createElement('canvas');
+                var ctx = canvas.getContext('2d');
+                ctx.font = fontSize + 'px ' + FONT_FAMILY;
+                var m = ctx.measureText('\u2502');
+                if (m.fontBoundingBoxAscent != null && m.fontBoundingBoxDescent != null) {
+                    var h = Math.floor(m.fontBoundingBoxAscent + m.fontBoundingBoxDescent);
+                    return Math.max(h / fontSize, 1.0);
+                }
+            } catch (e) {}
+            return 1.1875;
+        }
+
+        // Read current --game-font-size from CSS (may be overridden by user preference).
+        function currentFontSize() {
+            return parseFloat(getComputedStyle(document.documentElement)
+                .getPropertyValue('--game-font-size')) || 16;
+        }
+
+        function applyLineHeight() {
+            var lh = measureLineHeight(currentFontSize());
+            document.documentElement.style.setProperty('--game-line-height', lh);
+        }
+
+        // Measure immediately (may use fallback font if DejaVu not yet loaded).
+        applyLineHeight();
+        // Re-measure after fonts load to get exact DejaVu metrics.
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(applyLineHeight);
+        }
+        // Expose so applyFontSize() can re-measure when font size changes.
+        window._applyLineHeight = applyLineHeight;
+    })();
+
+    /* ============================================================
        Welcome Message & Keyboard Shortcuts Hint
        ============================================================ */
     (function() {
@@ -1102,6 +1147,9 @@
             if (terminal) {
                 terminal.style.fontSize = size + 'px';
             }
+
+            // Recompute line-height ratio for this font size (floor() means ratio varies).
+            if (window._applyLineHeight) window._applyLineHeight();
 
             // Re-check panel fit synchronously: getComputedStyle returns updated ch-based
             // min-width immediately after fontSize is set, so panels are shown/hidden
