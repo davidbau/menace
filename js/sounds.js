@@ -1200,6 +1200,138 @@ export function tiphat(game) {
 }
 
 // ============================================================================
+// Sound backend compatibility surface (cf. sounds.c NOSOUND/soundlib helpers)
+// ============================================================================
+
+const _soundMappings = [];
+const _soundLibs = ['nosound', 'browser'];
+let _activeSoundLib = 'browser';
+
+// cf. sounds.c:1257 — dochat(): historical alias of dotalk()
+export async function dochat(game) {
+    return await dotalk(game);
+}
+
+// cf. sounds.c:1629 — sound_matches_message()
+export function sound_matches_message(message, pattern) {
+    const msg = String(message ?? '').toLowerCase();
+    const pat = String(pattern ?? '').toLowerCase();
+    if (!pat) return false;
+    return msg.includes(pat);
+}
+
+// cf. sounds.c:1556 — add_sound_mapping()
+export function add_sound_mapping(pattern, soundName) {
+    if (!pattern || !soundName) return 0;
+    _soundMappings.push({ pattern: String(pattern), soundName: String(soundName) });
+    return 1;
+}
+
+// cf. sounds.c:1676 — release_sound_mappings()
+export function release_sound_mappings() {
+    _soundMappings.length = 0;
+}
+
+// cf. sounds.c:1642 — play_sound_for_message()
+export function play_sound_for_message(message, game = null) {
+    for (const m of _soundMappings) {
+        if (sound_matches_message(message, m.pattern)) {
+            maybe_play_sound(m.soundName, game);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+// cf. sounds.c:1659 — maybe_play_sound()
+export function maybe_play_sound(soundName, game = null) {
+    const lib = String(_activeSoundLib || '').toLowerCase();
+    if (lib === 'nosound') return 0;
+    if (game && typeof game.playSound === 'function') {
+        game.playSound(soundName);
+        return 1;
+    }
+    return 0;
+}
+
+// cf. sounds.c:2084 — base_soundname_to_filename()
+export function base_soundname_to_filename(baseName) {
+    const base = String(baseName ?? '').trim();
+    if (!base) return '';
+    return `sounds/${base}.ogg`;
+}
+
+// cf. sounds.c:1995 — get_sound_effect_filename()
+export function get_sound_effect_filename(effectName) {
+    return base_soundname_to_filename(effectName);
+}
+
+// cf. sounds.c:1981 — initialize_semap_basenames()
+export function initialize_semap_basenames() {
+    return;
+}
+
+// cf. sounds.c:1883 — soundlib_id_from_opt()
+export function soundlib_id_from_opt(opt) {
+    const key = String(opt ?? '').toLowerCase();
+    const idx = _soundLibs.findIndex((n) => n === key);
+    return idx >= 0 ? idx : 0;
+}
+
+// cf. sounds.c:1864 — get_soundlib_name()
+export function get_soundlib_name(idx) {
+    if (!Number.isInteger(idx) || idx < 0 || idx >= _soundLibs.length) return _soundLibs[0];
+    return _soundLibs[idx];
+}
+
+// cf. sounds.c:1809 — choose_soundlib()
+export function choose_soundlib(nameOrId) {
+    if (Number.isInteger(nameOrId)) {
+        _activeSoundLib = get_soundlib_name(nameOrId);
+    } else {
+        const id = soundlib_id_from_opt(nameOrId);
+        _activeSoundLib = get_soundlib_name(id);
+    }
+    return _activeSoundLib;
+}
+
+// cf. sounds.c:1798 — assign_soundlib()
+export function assign_soundlib(nameOrId) {
+    return choose_soundlib(nameOrId);
+}
+
+// cf. sounds.c:1779 — activate_chosen_soundlib()
+export function activate_chosen_soundlib() {
+    return _activeSoundLib;
+}
+
+// cf. sounds.c NOSOUND hooks
+export function nosound_init_nhsound() {
+    return 1;
+}
+export function nosound_exit_nhsound() {
+    return;
+}
+export function nosound_soundeffect(_effect) {
+    return 0;
+}
+export function nosound_hero_playnotes(_notes) {
+    return 0;
+}
+export function nosound_play_usersound(_name) {
+    return 0;
+}
+export function nosound_verbal(_who, _what) {
+    return 0;
+}
+export function nosound_achievement(_key) {
+    return 0;
+}
+export function nosound_ambience(_key) {
+    return 0;
+}
+
+// ============================================================================
 // Sound library stubs (N/A for browser port)
 // ============================================================================
 

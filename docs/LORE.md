@@ -5738,3 +5738,30 @@ hard-won wisdom:
     passed (`11/11`).
   - `rnd.c` missing count reduced from `14` to `0`.
   - Gameplay CODEMATCH missing total reduced from `468` to `454`.
+
+### CODEMATCH sounds.c backend surface closure (2026-03-09)
+
+- Problem:
+  - `sounds.c` still had 22 missing backend/helper symbols in CODEMATCH
+    despite browser/NOSOUND-compatible behavior already being representable.
+- Change:
+  - Implemented/ported sound backend compatibility surface in `js/sounds.js`,
+    including:
+    - `dochat` alias to live `dotalk` path,
+    - message-to-sound mapping lifecycle
+      (`add_sound_mapping`, `release_sound_mappings`,
+      `sound_matches_message`, `play_sound_for_message`, `maybe_play_sound`),
+    - soundlib selection helpers
+      (`soundlib_id_from_opt`, `get_soundlib_name`, `choose_soundlib`,
+      `assign_soundlib`, `activate_chosen_soundlib`),
+    - NOSOUND hooks (`nosound_*`) with deterministic no-op semantics,
+    - filename helpers (`base_soundname_to_filename`,
+      `get_sound_effect_filename`, `initialize_semap_basenames`).
+  - Added focused tests:
+    - `test/unit/sounds_backend_surface.test.js`.
+  - Updated all `sounds.c` CODEMATCH rows to `Implemented`.
+- Validation:
+  - `node --test test/unit/sounds_backend_surface.test.js test/unit/rng_c_surface_wrappers.test.js`
+    passed (`6/6`).
+  - `sounds.c` missing count reduced from `22` to `0`.
+  - Gameplay CODEMATCH missing total reduced from `454` to `432`.
