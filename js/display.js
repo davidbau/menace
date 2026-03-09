@@ -421,6 +421,11 @@ span.nh-cursor {
             // C ref: win/tty/topl.c update_topl():
             // - concat overflow triggers more()
             // - "You die..." also forces more() before the new message
+            // C ref: topl.c more() → flush_screen(1) → bot() before xwaitforspace().
+            // Update status line so HP/Pw reflect current state at the --More-- prompt.
+            if (this._lastMapState?.player) {
+                this.renderStatus(this._lastMapState.player);
+            }
             this.renderMoreMarker();
             if (this._moreBlockingEnabled && this._nhgetch) {
                 await this._waitForMoreDismissKey(this._nhgetch);
@@ -566,12 +571,12 @@ span.nh-cursor {
             // append on the same row.
             const row1Len = this._topMessageRow1.length;
             const col = Math.min(row1Len, this.cols - moreStr.length);
-            this.putstr(col, MESSAGE_ROW + 1, moreStr, CLR_GREEN);
+            this.putstr(col, MESSAGE_ROW + 1, moreStr, CLR_GRAY);
             this.setCursor(Math.min(col + moreStr.length, this.cols - 1), MESSAGE_ROW + 1);
         } else {
             const msgLen = (this.topMessage || '').length;
             const col = Math.min(msgLen, this.cols - moreStr.length);
-            this.putstr(col, MESSAGE_ROW, moreStr, CLR_GREEN);
+            this.putstr(col, MESSAGE_ROW, moreStr, CLR_GRAY);
             this.setCursor(Math.min(col + moreStr.length, this.cols - 1), MESSAGE_ROW);
         }
     }

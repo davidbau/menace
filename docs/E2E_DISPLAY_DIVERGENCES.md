@@ -101,6 +101,21 @@ reflect actual browser behavior, and vice versa.
   `cursorVisible` before adding the class, and `cursSet()` updates the DOM.
 - **Impact**: Cursor now correctly hides when `cursSet(0)` is called.
 
+### 12. `--More--` Marker Color (FIXED)
+- **Severity**: Low (cosmetic)
+- **Status**: FIXED — browser now uses `CLR_GRAY` matching headless/C
+- **Details**: C's `more()` uses `putsyms(defmorestr)` in the default terminal
+  foreground color (CLR_GRAY). Browser was using `CLR_GREEN`. Headless was correct.
+- **Impact**: --More-- marker now renders in the correct color.
+
+### 13. `renderStatus()` Before `--More--` on Concat Overflow (FIXED)
+- **Severity**: Low
+- **Status**: FIXED — browser now calls `renderStatus()` before `--More--` on concat overflow
+- **Details**: C's `more()` calls `flush_screen(1)` → `bot()` before `xwaitforspace()`,
+  which updates the status line so HP/Pw reflect current state at the --More-- prompt.
+  Headless had this correct. Browser was not updating status before the --More-- pause.
+- **Impact**: Status line now shows current stats when --More-- is displayed.
+
 ## Test Coverage
 
 Tests in `test/e2e/display_divergence.e2e.test.js` (15 tests):
@@ -122,6 +137,19 @@ Tests in `test/e2e/display_divergence.e2e.test.js` (15 tests):
 | Chargen menus | Overlay rendering | Pass |
 | Menu cycle (no JS errors) | All menu paths | Pass |
 | Arrow key movement | Browser keyboard mapping | Pass |
+
+Additional tests in `test/e2e/display_method_parity.e2e.test.js` (8 tests):
+
+| Test | Targets Gap | Status |
+|------|------------|--------|
+| putstr grid output | Core rendering | Pass |
+| renderTextPopup (NHW_MENU) | #1 | Pass |
+| renderTextPopup (NHW_TEXT) | #1 | Pass |
+| renderOverlayMenu (chars+attrs+offx) | #6 | Pass |
+| renderChargenMenu grid content | Chargen | Pass |
+| clearTextPopup restore | #1 | Pass |
+| renderMoreMarker grid and color | #12 | Pass |
+| renderStatus status lines | Status | Pass |
 
 Additional tests in `test/e2e/headless_browser_parity.e2e.test.js` (5 tests):
 

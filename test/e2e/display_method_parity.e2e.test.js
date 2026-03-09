@@ -479,6 +479,63 @@ describe('E2E: Display method parity (browser vs headless)', () => {
     });
 
     // -------------------------------------------------------------------
+    // renderMoreMarker: --More-- marker at same position and color
+    // -------------------------------------------------------------------
+    it('renderMoreMarker produces identical grid and color', async () => {
+        const page = await browser.newPage();
+        try {
+            await page.goto(`${serverInfo.url}?seed=99`, { waitUntil: 'networkidle0' });
+            await page.waitForFunction(
+                () => document.querySelectorAll('#terminal span').length >= 1920,
+                { timeout: 15000 }
+            );
+
+            // Set up a message on row 0 then render --More--
+            const browserResult = await page.evaluate(() => {
+                const d = window.gameDisplay;
+                d.clearScreen();
+                d.topMessage = 'You see a door.';
+                d.putstr(0, 0, 'You see a door.', 7);
+                d.renderMoreMarker();
+                const grid = [];
+                const colors = [];
+                for (let c = 0; c < 80; c++) {
+                    grid.push(d.grid[0][c].ch);
+                    colors.push(d.grid[0][c].color);
+                }
+                return { grid: grid.join('').replace(/ +$/, ''), colors };
+            });
+
+            const hd = await getHeadlessDisplay();
+            hd.clearScreen();
+            hd.topMessage = 'You see a door.';
+            hd.putstr(0, 0, 'You see a door.', 7);
+            hd.renderMoreMarker();
+            const headlessRow = hd.getScreenLines()[0];
+            const headlessColors = [];
+            for (let c = 0; c < 80; c++) {
+                headlessColors.push(hd.colors[0][c]);
+            }
+
+            assert.equal(rtrim(browserResult.grid), rtrim(headlessRow),
+                `--More-- row should match: browser="${rtrim(browserResult.grid)}" headless="${rtrim(headlessRow)}"`);
+
+            // Check --More-- marker color (should be CLR_GRAY=7 in both, matching C)
+            const moreStart = browserResult.grid.indexOf('--More--');
+            if (moreStart >= 0) {
+                const browserColor = browserResult.colors[moreStart];
+                const headlessColor = headlessColors[moreStart];
+                assert.equal(browserColor, headlessColor,
+                    `--More-- color should match: browser=${browserColor} headless=${headlessColor} (CLR_GRAY=7)`);
+                assert.equal(browserColor, 7,
+                    `--More-- should be CLR_GRAY (7), got ${browserColor}`);
+            }
+        } finally {
+            await page.close();
+        }
+    });
+
+    // -------------------------------------------------------------------
     // renderStatus: same player object produces same status lines
     // -------------------------------------------------------------------
     it('renderStatus produces identical status lines', async () => {
