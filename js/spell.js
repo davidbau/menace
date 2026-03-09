@@ -33,7 +33,7 @@ import {
 } from './objects.js';
 import { is_metallic } from './objdata.js';
 import { is_undead, is_vampshifter } from './mondata.js';
-import { nhgetch_wrap } from './input.js';
+import { nhgetch_raw, nhgetch_wrap } from './input.js';
 import { awaitInput } from './suspend.js';
 import { create_nhwindow, destroy_nhwindow } from './windows.js';
 import { NHW_MENU } from './const.js';
@@ -446,7 +446,7 @@ export async function handleKnownSpells(player, display) {
     }
 
     while (true) {
-        const ch = await awaitInput(null, nhgetch_wrap(), {
+        const ch = await awaitInput(null, nhgetch_raw(), {
             site: 'spell.handleKnownSpells.dismiss',
         });
         if (ch === 32 || ch === 27 || ch === 10 || ch === 13) break;
