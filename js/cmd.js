@@ -720,6 +720,13 @@ export async function rhack(ch, game) {
 async function handleExtendedCommand(game) {
     const { player, display } = game;
     const input = await readExtendedCommandLine(game, display);
+    if (input !== null && (game?.cmdKey | 0) === '#'.charCodeAt(0)
+        && typeof game.emitRunstep === 'function') {
+        // C ref: moveloop_core() emits RUNSTEP_EVENT("fresh_cmd", 0) in the
+        // command cycle where #<extcmd> is finalized (Enter), not on the
+        // initial '#' prefix key.
+        game.emitRunstep(0, 'fresh_cmd', game.cmdKey | 0);
+    }
     if (input === null || input.trim() === '') {
         return { moved: false, tookTime: false };
     }

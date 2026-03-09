@@ -758,6 +758,8 @@ export async function run_command(game, ch, opts = {}) {
     // window after the final command key is read (parse():4914).
     const _isCountDigit = (chCode >= 49 && chCode <= 57)
         || (chCode === 48 && game.countAccum != null);
+    const _isExtCmdPrefix = (chCode === '#'.charCodeAt(0));
+    const _suppressFreshRunstep = _isCountDigit || _isExtCmdPrefix;
     if (!_isCountDigit && game.display && game.display.topMessage && !game.display._pendingMore) {
         game.display.clearRow(0);
         game.display.topMessage = null;
@@ -791,7 +793,7 @@ export async function run_command(game, ch, opts = {}) {
         ? countPrefix
         : ((game.countAccum != null) ? (game.countAccum | 0) : 0);
     game.commandCount = effectiveCountPrefix;
-    if (!_isCountDigit) {
+    if (!_suppressFreshRunstep) {
         emitRunstep(game, 0, 'fresh_cmd', chCode);
     }
     if (effectiveCountPrefix > 0) {
@@ -1299,6 +1301,9 @@ export class NetHackGame {
         this.inDoAgain = false;
         this.commandCount = 0;
         this.cmdKey = 0;
+        this.emitRunstep = (keyarg, path, cmdOverride = null) => {
+            emitRunstep(this, keyarg, path, cmdOverride);
+        };
         this.lastCommand = null;
         this._repeatPrefixChainActive = false;
         this._diagSeq = 0;

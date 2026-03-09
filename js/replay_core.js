@@ -308,9 +308,19 @@ export async function replaySession(seed, opts, keys) {
             const settled = await drainUntilInput(pendingCommand, game.input);
             if (settled.done) {
                 pendingCommand = null;
-                replayPendingTrace(`step=${i + 1}`, 'resume=done', replayBoundaryState(game, game.input));
+                replayPendingTrace(
+                    `step=${i + 1}`,
+                    'resume=done',
+                    pendingWaitSite(game.input),
+                    replayBoundaryState(game, game.input)
+                );
             } else {
-                replayPendingTrace(`step=${i + 1}`, 'resume=waiting', replayBoundaryState(game, game.input));
+                replayPendingTrace(
+                    `step=${i + 1}`,
+                    'resume=waiting',
+                    pendingWaitSite(game.input),
+                    replayBoundaryState(game, game.input)
+                );
             }
         } else {
             const commandPromise = (ch === 1)
