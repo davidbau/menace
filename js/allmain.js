@@ -1449,10 +1449,6 @@ export class NetHackGame {
         return event;
     }
 
-    _emitDiagnostic(type, details = {}) {
-        return this.emitDiagnosticEvent(type, details);
-    }
-
     subscribeDiagnostics(listener) {
         if (typeof listener !== 'function') return () => {};
         this._diagListeners.add(listener);

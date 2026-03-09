@@ -188,12 +188,15 @@ async function settleStartupInputBoundaries(game) {
             continue;
         }
 
-        // Handle tutorial/prompt leftovers so first replay key reaches gameplay.
-        if (topBoundary && topBoundary.owner === 'prompt' && typeof topBoundary.onKey === 'function') {
+        // Handle replay-startup tutorial prompt leftovers so the first replay
+        // key reaches gameplay. Do not auto-answer arbitrary prompt boundaries.
+        const replayStartupPrompt = !!(game?.pendingPrompt?.isReplayStartupPrompt);
+        if (replayStartupPrompt
+            && topBoundary && topBoundary.owner === 'prompt' && typeof topBoundary.onKey === 'function') {
             await Promise.resolve(topBoundary.onKey('n'.charCodeAt(0), game));
             continue;
         }
-        if (game?.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
+        if (replayStartupPrompt && game?.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
             await Promise.resolve(game.pendingPrompt.onKey('n'.charCodeAt(0), game));
             continue;
         }
