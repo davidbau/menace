@@ -1626,8 +1626,8 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 ### eat.c -> eat.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 141 | `Bitfield` | - | Missing |
-| 142 | `Bitfield` | - | Missing |
+| 141 | `Bitfield` | - | N/A (C struct bitfield macro — JS uses object properties) |
+| 142 | `Bitfield` | - | N/A (C struct bitfield macro — JS uses object properties) |
 | 3956 | `Finish_digestion` | eat.js:1756 | Implemented |
 | 1796 | `Hear_again` | eat.js:528 | Implemented |
 | 3915 | `Popeye` | eat.js:1750 | Implemented |
@@ -1646,7 +1646,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 422 | `do_reset_eat` | eat.js:638 | Implemented |
 | 2812 | `doeat` | eat.js:handleEat | Implemented |
 | 2729 | `doeat_nonfood` | eat.js:1555 | Implemented |
-| 544 | `done_eating` | - | Missing |
+| 544 | `done_eating` | eat.js:2143 | Implemented |
 | 603 | `eat_brains` | eat.js:1762 | Implemented |
 | 3512 | `eat_ok` | eat.js:1616 | Implemented |
 | 2260 | `eataccessory` | eat.js:1432 | Implemented |
@@ -1655,9 +1655,9 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 519 | `eatfood` | eat.js:2094 | Implemented |
 | 576 | `eating_conducts` | eat.js:1035 | Implemented |
 | 475 | `eating_dangerous_corpse` | eat.js:1604 | Implemented |
-| 2073 | `eating_glob` | - | Missing |
-| 163 | `eatmdone` | - | Missing |
-| 181 | `eatmupdate` | - | Missing |
+| 2073 | `eating_glob` | eat.js:2230 | Implemented |
+| 163 | `eatmdone` | eat.js:202 | Implemented |
+| 181 | `eatmupdate` | eat.js:218 | Implemented |
 | 2409 | `eatspecial` | eat.js:1438 | Implemented |
 | 2622 | `edibility_prompts` | eat.js:1548 | Implemented |
 | 1103 | `eye_of_newt_buzz` | eat.js:800 | Implemented |
@@ -1676,10 +1676,10 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 890 | `intrinsic_possible` | eat.js:672 | Implemented |
 | 91 | `is_edible` | eat.js:148 | Implemented |
 | 3342 | `is_fainted` | eat.js:559 | Implemented |
-| 2604 | `leather_cover` | - | Missing |
+| 2604 | `leather_cover` | eat.js:2238 | Implemented (C has #if 0) |
 | 3284 | `lesshungry` | eat.js:301 | Implemented |
 | 758 | `maybe_cannibal` | eat.js:859 | Implemented |
-| 500 | `maybe_extend_timed_resist` | - | Missing |
+| 500 | `maybe_extend_timed_resist` | eat.js:242 | Implemented (C has #if 0) |
 | 3872 | `maybe_finished_meal` | eat.js:1730 | Implemented |
 | 3276 | `morehungry` | eat.js:295 | Implemented |
 | 3357 | `newuhs` | eat.js:362 | Implemented |
@@ -1692,10 +1692,10 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1808 | `rottenfood` | eat.js:1072 | Implemented |
 | 1461 | `set_tin_variety` | eat.js:1470 | Implemented |
 | 961 | `should_givit` | eat.js:690 | Implemented |
-| 2017 | `start_eating` | - | Missing |
+| 2017 | `start_eating` | eat.js:2183 | Implemented |
 | 1718 | `start_tin` | eat.js:1537 | Implemented |
 | 992 | `temp_givit` | eat.js:718 | Implemented |
-| 453 | `temp_resist` | - | Missing |
+| 453 | `temp_resist` | eat.js:227 | Implemented |
 | 1428 | `tin_details` | eat.js:1463 | Implemented |
 | 3556 | `tin_ok` | eat.js:1635 | Implemented |
 | 1489 | `tin_variety` | eat.js:1494 | Implemented |

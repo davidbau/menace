@@ -36,8 +36,8 @@ Rules
 | S20 | [#300](https://github.com/davidbau/menace/issues/300) | apply.c tools family A parity | `Done` (get_mleash, check_jump, is_valid_jump_pos) |
 | S21 | [#301](https://github.com/davidbau/menace/issues/301) | apply.c tools family B parity | `Done` (jump, dojump) |
 | S22 | [#302](https://github.com/davidbau/menace/issues/302) | apply.c tools family C parity | `Done` (doapply → handleApply) |
-| S23 | [#303](https://github.com/davidbau/menace/issues/303) | eat.c edible resolution parity | `Ready` |
-| S24 | [#304](https://github.com/davidbau/menace/issues/304) | eat.c tin/tinning parity | `Ready` |
+| S23 | [#303](https://github.com/davidbau/menace/issues/303) | eat.c edible resolution parity | `Done` (done_eating, start_eating, eating_glob, eatmdone, eatmupdate, temp_resist, maybe_extend_timed_resist, leather_cover) |
+| S24 | [#304](https://github.com/davidbau/menace/issues/304) | eat.c tin/tinning parity | `Done` (no remaining Missing) |
 | S25 | [#305](https://github.com/davidbau/menace/issues/305) | potion.c dodrink->peffects parity | `Ready` |
 | S26 | [#307](https://github.com/davidbau/menace/issues/307) | potion.c throw/dip/mix parity | `Ready` |
 | S27 | [#308](https://github.com/davidbau/menace/issues/308) | read.c integration parity | `Ready` |
@@ -68,5 +68,5 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 26
-- Completed slices: 24 (S09, S12, S17, S18, S19, S20, S21, S22, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S48)
+- Open slices: 24
+- Completed slices: 26 (S09, S12, S17, S18, S19, S20, S21, S22, S23, S24, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S48)

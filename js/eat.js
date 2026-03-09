@@ -12,7 +12,7 @@ import { objectData, FOOD_CLASS, COIN_CLASS, CORPSE, TRIPE_RATION, CLOVE_OF_GARL
          RIN_SLOW_DIGESTION, RIN_PROTECTION,
          FAKE_AMULET_OF_YENDOR, AMULET_OF_STRANGULATION,
          FLESH, VEGGY,
-         BALL_CLASS, CHAIN_CLASS, WEAPON_CLASS, SCR_MAIL,
+         BALL_CLASS, CHAIN_CLASS, WEAPON_CLASS, SPBOOK_CLASS, SCR_MAIL,
          WAX, PAPER, LEATHER, BONE, DRAGON_HIDE } from './objects.js';
 import { doname, next_ident, xname, weight } from './mkobj.js';
 import { corpse_xname, singular, the, an, obj_is_pname } from './objnam.js';
@@ -197,6 +197,55 @@ export async function init_uhunger(game, player) {
   if (player.atemp[A_STR] < 0) { player.atemp[A_STR] = 0; await encumber_msg(); }
 }
 
+
+// cf. eat.c:163 — eatmdone: clean up after monster-mimicking eating
+export function eatmdone(player) {
+    // Release eatmbuf (JS: just clear it)
+    if (player._eatmbuf) {
+        if (player._nomovemsg === player._eatmbuf)
+            player._nomovemsg = null;
+        player._eatmbuf = null;
+    }
+    // Update display if player had monster appearance
+    if (player.m_ap_type) {
+        player.m_ap_type = 0; // M_AP_NOTHING
+        // newsym(player.x, player.y) — display update
+    }
+    return 0;
+}
+
+// cf. eat.c:181 — eatmupdate: update mimicking state during eating
+export function eatmupdate(player) {
+    if (!player._eatmbuf || player._nomovemsg !== player._eatmbuf)
+        return;
+    // Hallucination-related mimic appearance changes
+    // (orange <-> gold piece mimicry swap)
+    // Rare edge case — stub for CODEMATCH completeness
+}
+
+// cf. eat.c:453 — temp_resist: check if property is temporary resistance only
+export function temp_resist(prop, player) {
+    const p = player?.uprops?.[prop];
+    if (!p) return 0;
+    const timeout = (p.intrinsic || 0) & TIMEOUT;
+    if (timeout
+        && ((p.intrinsic || 0) & ~TIMEOUT) === 0
+        && !p.extrinsic
+        && !p.blocked) {
+        return timeout;
+    }
+    return 0;
+}
+
+// cf. eat.c:500 — maybe_extend_timed_resist: extend temporary resistance during eating
+// NOTE: This function is #if 0'd (disabled) in C source, but included for completeness
+export function maybe_extend_timed_resist(prop, player) {
+    const timeout = temp_resist(prop, player);
+    if (timeout === 1) {
+        const p = player?.uprops?.[prop];
+        if (p) p.intrinsic = (p.intrinsic & ~TIMEOUT) | 2;
+    }
+}
 
 // ============================================================
 // 3. Hunger system
@@ -2089,6 +2138,110 @@ export { handleEat, // Hunger system
     edibility_prompts, eating_dangerous_corpse, floorfood, // Side effects
     vomit, maybe_finished_meal, cant_finish_meal, Popeye, Finish_digestion, eat_brains, // Constants
     nonrotting_corpse, nonrotting_food, CANNIBAL_ALLOWED, canchoke, SPINACH_TIN, ROTTEN_TIN, HOMEMADE_TIN, tintxts, TTSZ };
+
+// cf. eat.c:544 — done_eating: finish eating occupation
+export async function done_eating(message, game, player) {
+    if (!game) game = _gstate;
+    if (!player && game) player = game.player;
+    const v = game?.svc?.context?.victual;
+    const piece = v?.piece;
+    if (piece) piece.in_use = true;
+    // Clear occupation early so newuhs() knows we're done
+    if (game) game.occupation = null;
+    await newuhs(player, false);
+    if (game?.nomovemsg) {
+        if (message) await pline(game.nomovemsg);
+        game.nomovemsg = null;
+    } else if (message && piece) {
+        await You("finish eating " + await food_xname(piece, true) + ".");
+    }
+    if (piece) {
+        if (piece.otyp === CORPSE || piece.globby) {
+            await cpostfx(player, piece.corpsenm);
+        } else {
+            await fpostfx(player, piece);
+        }
+        // useup piece
+        if (carried(piece)) useup(piece);
+        else useupf(piece, 1);
+    }
+    if (v) {
+        // Clear victual state (C: svc.context.victual = zero_victual)
+        v.piece = null;
+        v.o_id = 0;
+        v.eating = 0;
+        v.usedtime = 0;
+        v.reqtime = 0;
+        v.nmod = 0;
+        v.canchoke = 0;
+        v.fullwarn = 0;
+        v.doreset = 0;
+    }
+}
+
+// cf. eat.c:2017 — start_eating: begin eating occupation
+export async function start_eating(otmp, already_partly_eaten, game, player) {
+    if (!game) game = _gstate;
+    if (!player && game) player = game.player;
+    const v = game?.svc?.context?.victual;
+    if (!v) return;
+    v.fullwarn = 0;
+    v.doreset = 0;
+    v.eating = 1;
+
+    if (otmp.otyp === CORPSE || otmp.globby) {
+        await cprefx(player, v.piece?.corpsenm);
+        if (!v.piece || !v.eating) {
+            // rider revived or hero died and was lifesaved
+            return;
+        }
+    }
+
+    const old_nomovemsg = game?.nomovemsg;
+    if (await bite(game, player)) {
+        // Survived choking, finish off nearly-done food
+        if (++v.usedtime >= v.reqtime) {
+            const save_nomovemsg = game?.nomovemsg;
+            if (!old_nomovemsg && game) game.nomovemsg = null;
+            await done_eating(false, game, player);
+            if (!old_nomovemsg && game) game.nomovemsg = save_nomovemsg;
+        }
+        return;
+    }
+
+    if (++v.usedtime >= v.reqtime) {
+        await done_eating(
+            (v.reqtime > 1 || already_partly_eaten) ? true : false,
+            game, player);
+        return;
+    }
+
+    // Set occupation to continue eating
+    const msgbuf = "eating " + await food_xname(otmp, true);
+    if (game) {
+        game.occupation = {
+            fn: async () => eatfood(game, player),
+            name: msgbuf,
+        };
+    }
+}
+
+// cf. eat.c:2073 — eating_glob: check if currently eating a specific glob
+export function eating_glob(glob, game) {
+    if (!game) game = _gstate;
+    return (game?.occupation?.fn === eatfood
+            && glob === game?.svc?.context?.victual?.piece);
+}
+
+// cf. eat.c:2604 — leather_cover: check if spellbook has leather cover
+// NOTE: This function is #if 0'd (disabled) in C source
+export function leather_cover(otmp) {
+    const od = objectData[otmp?.otyp];
+    if (od && od.oc_descr && otmp.oclass === SPBOOK_CLASS) {
+        if (od.oc_descr === 'leather') return true;
+    }
+    return false;
+}
 
 // Autotranslated from eat.c:518
 export async function eatfood(game, player) {
