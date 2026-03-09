@@ -57,7 +57,7 @@ Rules
 | S41 | [#322](https://github.com/davidbau/menace/issues/322) | mhitm.c monster-vs-monster parity | `Done` (ledger) |
 | S42 | [#323](https://github.com/davidbau/menace/issues/323) | mthrowu+mcastu ranged parity | `Done` (ledger) |
 | S43 | [#324](https://github.com/davidbau/menace/issues/324) | muse.c item-use AI parity | `Done` (ledger) |
-| S44 | [#325](https://github.com/davidbau/menace/issues/325) | dungeon.c graph/branch parity | `Ready` |
+| S44 | [#325](https://github.com/davidbau/menace/issues/325) | dungeon.c graph/branch parity | `Done` (4 more resolved: mapseen_temple stub, fixup_level_locations/init_level/insert_branch N/A; 20 remain Missing: mapseen system, level_difficulty, overview) |
 | S45 | [#326](https://github.com/davidbau/menace/issues/326) | mklev+mkroom generation parity | `Done` (ledger) |
 | S46 | [#327](https://github.com/davidbau/menace/issues/327) | mkmaze+mkmap generation parity | `Done` (ledger) |
 | S47 | [#328](https://github.com/davidbau/menace/issues/328) | display.c mapglyph/windowport parity | `Done` (all 28 Missing→Implemented/N/A: 17 implemented, 11 N/A tty/debug/glyph-table) |
@@ -68,5 +68,5 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 5
-- Completed slices: 45 (S01, S06, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S25, S26, S27, S28, S29, S30, S31, S32, S33, S34, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S47, S48, S49, S50)
+- Open slices: 4
+- Completed slices: 46 (S01, S06, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S25, S26, S27, S28, S29, S30, S31, S32, S33, S34, S35, S36, S37, S38, S39, S40, S41, S42, S43, S44, S45, S46, S47, S48, S49, S50)

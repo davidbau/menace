@@ -1554,7 +1554,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 300 | `find_level` | dungeon.js:536 | Aligned |
 | 2632 | `find_mapseen` | dungeon.js:5337 | Implemented |
 | 2644 | `find_mapseen_by_str` | dungeon.js:5348 | Implemented |
-| 1122 | `fixup_level_locations` | - | Missing |
+| 1122 | `fixup_level_locations` | - | N/A — save/restore level fixup |
 | 2574 | `free_exclusions` | dungeon.js:5293 | Implemented |
 | 1185 | `free_proto_dungeon` | - | N/A (C memory management) |
 | 2472 | `get_annotation` | dungeon.js:5274 | Implemented |
@@ -1572,9 +1572,9 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 960 | `init_dungeon_set_depth` | dungeon.js:3597 | Aligned |
 | 933 | `init_dungeon_set_entry` | dungeon.js:3570 | Aligned |
 | 1205 | `init_dungeons` | dungeon.js:3735 | Aligned |
-| 566 | `init_level` | - | Missing |
+| 566 | `init_level` | - | N/A — C dungeon init, JS uses different startup path |
 | 2827 | `init_mapseen` | - | Missing |
-| 463 | `insert_branch` | - | Missing |
+| 463 | `insert_branch` | - | N/A — C linked list insertion, JS uses add_branch |
 | 2872 | `interest_mapseen` | - | Missing |
 | 1376 | `ledger_no` | dungeon.js:311 | Aligned |
 | 1422 | `ledger_to_dlev` | dungeon.js:335 | Aligned |
@@ -1584,7 +1584,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 380 | `level_range` | - | Missing |
 | 2609 | `load_exclusions` | dungeon.js:5321 | Implemented |
 | 2713 | `load_mapseen` | - | Missing |
-| 3259 | `mapseen_temple` | - | Missing |
+| 3259 | `mapseen_temple` | priest.js:293 | STUB |
 | 1392 | `maxledgerno` | dungeon.js:314 | Aligned |
 | 1497 | `next_level` | dungeon.js:5157 | Implemented |
 | 1439 | `on_level` | dungeon.js:340 | Aligned |
