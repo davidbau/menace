@@ -3,7 +3,7 @@
 // getpos_refresh(), getpos() lifecycle.
 
 import { MAP_ROW_START, COLNO, ROWNO, DOOR, ROOM, CORR, SDOOR, IS_WALL, isok } from './const.js';
-import { nhgetch_wrap } from './input.js';
+import { nhgetch_wrap, readBoundaryKey } from './input.js';
 import { flush_screen } from './display.js';
 import {
     create_nhwindow,
@@ -625,7 +625,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 cursorState = putCursor(display, cx, cy);
                 showGoalMsg = false;
             }
-            const ch = await awaitInput(null, nhgetch_wrap(), { site: 'getpos.getpos_async.loop' });
+            const ch = await readBoundaryKey(display, 'getpos.getpos_async.loop');
             const c = String.fromCharCode(ch);
 
             if (ch === 27) {

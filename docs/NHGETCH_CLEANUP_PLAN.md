@@ -158,6 +158,9 @@ Required validation per phase:
    "What do you want to fire?"); migration must stay callsite-first.
 8. 2026-03-09: Migrated fire/zap prompt paths to explicit boundary reads
    (`dothrow.js`, `zap.js`) via `readBoundaryKey(...)`.
+9. 2026-03-09: Continued callsite-first migration to boundary reads in UI/prompt
+   paths (`potion.js`, `pager.js`, `getpos.js` main loop), keeping
+   `consumePendingMore(...)` centralized in boundary helper layers.
 
 ## Decision Log
 
