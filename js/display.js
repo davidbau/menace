@@ -228,6 +228,7 @@ export class Display {
         this._messageQueue = [];
         this._topMessageRow1 = undefined; // set when message wraps to row 1
         this._moreBlockingEnabled = false;
+        this._lastTextPopup = null;
 
         this._createDOM();
     }
@@ -1144,6 +1145,87 @@ span.nh-cursor {
                 this.setCell(c, i, ' ', CLR_GRAY);
             }
         }
+    }
+
+    // Render a text popup (e.g. "Things that are here:", NHW_TEXT windows)
+    // C ref: tty_display_nhwindow → process_text_window / process_menu_window
+    renderTextPopup(lines, opts = {}) {
+        // Filter out trailing empty lines
+        while (lines.length > 0 && lines[lines.length - 1] === '') {
+            lines = lines.slice(0, -1);
+        }
+        const fullScreenText = lines.length >= this.rows - 2;
+        let moreMarker;
+        if (fullScreenText) {
+            moreMarker = '--More--';
+        } else if (opts.isTextWindow) {
+            moreMarker = '(end)';
+        } else {
+            moreMarker = ' --More--';
+        }
+        const linesWithMore = [...lines, moreMarker];
+
+        let maxcol = 0;
+        for (const line of linesWithMore) {
+            if (line.length > maxcol) maxcol = line.length;
+        }
+
+        const menuRows = Math.min(linesWithMore.length, fullScreenText ? this.rows : (this.rows - 2));
+        const renderLines = linesWithMore.length > menuRows
+            ? [...linesWithMore.slice(0, menuRows - 1), moreMarker]
+            : linesWithMore;
+
+        let offx;
+        if (fullScreenText) {
+            offx = 0;
+        } else {
+            if (opts.isTextWindow) {
+                const halfCols = Math.floor(this.cols / 2);
+                offx = Math.min(Math.min(82, halfCols), this.cols - maxcol - 2);
+            } else {
+                const halfCols = Math.floor(this.cols / 2) + 1;
+                offx = Math.min(halfCols, this.cols - maxcol - 1);
+            }
+        }
+
+        // Clear the popup area
+        for (let r = 0; r < menuRows; r++) {
+            for (let c = Math.max(0, offx); c < this.cols; c++) {
+                this.setCell(c, r, ' ', CLR_GRAY);
+            }
+        }
+        // Render each line
+        for (let i = 0; i < menuRows; i++) {
+            const line = renderLines[i] || '';
+            const isMoreLine = (i === menuRows - 1) && line.endsWith('--More--');
+            const col = isMoreLine ? Math.max(0, offx - 1) : offx;
+            this.putstr(col, i, line, CLR_GRAY, 0);
+        }
+        // Position cursor at end of marker
+        const lastRow = menuRows - 1;
+        const lastLine = renderLines[lastRow] || '';
+        const isMore = lastLine.endsWith('--More--');
+        const markerCol = isMore ? Math.max(0, offx - 1) : offx;
+        const markerEnd = markerCol + lastLine.length;
+        const cursorCol = (opts.isTextWindow && !isMore) ? markerEnd + 1 : markerEnd;
+        this.setCursor(Math.min(cursorCol, this.cols - 1), lastRow);
+        this._lastTextPopup = {
+            offx,
+            rows: menuRows,
+            hasMoreLine: isMore,
+        };
+    }
+
+    clearTextPopup() {
+        const popup = this._lastTextPopup;
+        if (!popup) return;
+        const left = popup.hasMoreLine ? Math.max(0, popup.offx - 1) : popup.offx;
+        for (let r = 0; r < popup.rows && r < this.rows; r++) {
+            for (let c = left; c < this.cols; c++) {
+                this.setCell(c, r, ' ', CLR_GRAY);
+            }
+        }
+        this._lastTextPopup = null;
     }
 
     // Place cursor on the player
