@@ -471,7 +471,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2427 | `glow_color` | artifact.js:476 | Implemented |
 | 2442 | `glow_strength` | artifact.js:glow_strength | Implemented |
 | 2451 | `glow_verb` | artifact.js:495 | Implemented |
-| 87 | `hack_artifacts` | - | Missing (init_artifacts serves similar role) |
+| 87 | `hack_artifacts` | artifact.js:105 | Implemented |
 | 2790 | `has_magic_key` | artifact.js:717 | Implemented |
 | 111 | `init_artifacts` | artifact.js:102 | Implemented |
 | 1963 | `invoke_banish` | artifact.js:637 | Stub |
@@ -578,20 +578,20 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 752 | `bones_include_name` | - | Missing |
-| 356 | `can_make_bones` | - | Missing |
-| 259 | `drop_upon_death` | - | Missing |
+| 356 | `can_make_bones` | bones.js:42 | Implemented |
+| 259 | `drop_upon_death` | bones.js:82 | Implemented |
 | 786 | `fix_ghostly_obj` | - | Missing |
 | 308 | `fixuporacle` | - | Missing |
-| 823 | `free_ebones` | - | Missing |
-| 629 | `getbones` | - | Missing |
-| 226 | `give_to_nearby_mon` | - | Missing |
-| 42 | `goodfruit` | - | Missing |
+| 823 | `free_ebones` | bones.js:342 | Implemented |
+| 629 | `getbones` | bones.js:293 | Implemented |
+| 226 | `give_to_nearby_mon` | bones.js:132 | Implemented |
+| 42 | `goodfruit` | bones.js:336 | Implemented |
 | 808 | `newebones` | - | Missing |
-| 390 | `remove_mon_from_bones` | - | Missing |
-| 51 | `resetobjs` | - | Missing |
-| 198 | `sanitize_name` | - | Missing |
-| 403 | `savebones` | - | Missing |
-| 774 | `set_ghostly_objlist` | - | Missing |
+| 390 | `remove_mon_from_bones` | bones.js:200 | Implemented |
+| 51 | `resetobjs` | bones.js:59 | Implemented |
+| 198 | `sanitize_name` | bones.js:221 | Implemented |
+| 403 | `savebones` | bones.js:237 | Implemented |
+| 774 | `set_ghostly_objlist` | bones.js:166 | Implemented |
 
 ### botl.c -> botl.js
 | C Line | C Function | JS Line | Alignment |
@@ -1241,7 +1241,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1375 | `save_currentstate` | do.js:1279 | Implemented |
 | 2047 | `schedule_goto` | do.js:1147 | Implemented |
 | 2422 | `set_wounded_legs` | do.js:1786 | Implemented |
-| 460 | `teleport_sink` | - | Missing |
+| 460 | `teleport_sink` | do.js:475 | Implemented |
 | 2006 | `temperature_change_msg` | do.js:1249 | Implemented |
 | 395 | `trycall` | do.js:425 | Implemented |
 | 1412 | `u_collide_m` | - | Missing |
@@ -1317,18 +1317,18 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 882 | `Armor_on` | 258 | No-op (matches C) |
 | 1490 | `Blindf_off` | do_wear.js:862 | Implemented |
 | 1456 | `Blindf_on` | do_wear.js:848 | Implemented |
-| 261 | `Boots_off` | 104 | Speed slow message+makeknown, stealth, fumble clear, levitation. Missing: float_down, water walking sink check |
-| 186 | `Boots_on` | 84 | Speed message+makeknown, stealth, fumble timeout, levitation+makeknown. Missing: float_up, water walking |
-| 382 | `Cloak_off` | 147 | Stealth, displacement, invisibility+makeknown. Missing: mummy wrapping, alchemy smock acid_res |
-| 325 | `Cloak_on` | 124 | Stealth, displacement, invisibility+makeknown, protection+makeknown. Missing: mummy wrapping, oilskin, alchemy smock |
-| 645 | `Gloves_off` | 228 | Fumble clear, power STR restore, dexterity. Missing: cockatrice corpse check |
+| 261 | `Boots_off` | do_wear.js:302 | Implemented |
+| 186 | `Boots_on` | do_wear.js:265 | Implemented |
+| 382 | `Cloak_off` | do_wear.js:370 | Implemented |
+| 325 | `Cloak_on` | do_wear.js:339 | Implemented |
+| 645 | `Gloves_off` | do_wear.js:468 | Implemented |
 | 575 | `Gloves_on` | 209 | Fumble timeout, power STR=25+makeknown, dexterity |
-| 517 | `Helmet_off` | 189 | Brilliance adj_abon reverse, telepathy, dunce cap. Missing: fedora luck, cornuthaum CHA, helm of opposite alignment |
-| 433 | `Helmet_on` | 168 | Brilliance adj_abon, telepathy, dunce cap. Missing: fedora luck, cornuthaum, helm of opposite alignment |
+| 517 | `Helmet_off` | do_wear.js:417 | Implemented |
+| 433 | `Helmet_on` | do_wear.js:396 | Implemented |
 | 1450 | `Ring_gone` | do_wear.js:Ring_gone | Implemented (wrapper for Ring_off_or_gone with gone=true) |
-| 1444 | `Ring_off` | 399 | All 28 ring types with extrinsic toggles via Ring_off_or_gone. Missing: float_up, self_invis_message, see_monsters, newsym |
+| 1444 | `Ring_off` | do_wear.js:820 | Implemented |
 | 1342 | `Ring_off_or_gone` | do_wear.js:Ring_off_or_gone | Implemented (full switch over ring types, adjust_attrib for attr rings) |
-| 1237 | `Ring_on` | 366 | All 28 ring types: passive extrinsics, stealth, warning, see_invis, invis, levitation, attribute rings, accuracy/damage, protection+find_ac, shape changers. Uses oldprop via RING_OPROP_MAP. Missing: float_up, self_invis_message, see_monsters, newsym |
+| 1237 | `Ring_on` | do_wear.js:694 | Implemented |
 | 730 | `Shield_off` | 252 | No-op (matches C) |
 | 704 | `Shield_on` | 251 | No-op (matches C) |
 | 773 | `Shirt_off` | 256 | No-op (matches C) |
@@ -1419,13 +1419,13 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1394 | `can_reach_location` | dogmove.js:508 | Implemented |
 | 1377 | `could_reach_item` | dogmove.js:483 | Implemented |
 | 146 | `cursed_object_at` | dogmove.js:472 | Implemented |
-| 219 | `dog_eat` | dogmove.js:229 | Partial — nutrition, tameness, split food, eat message, apport. Has spurious obj_resists call. Missing: devour, killer bee jelly, rust monster, distant_name side-effects |
+| 219 | `dog_eat` | dogmove.js:280 | Implemented |
 | 477 | `dog_goal` | dogmove.js (inlined in dog_move) | Implemented |
-| 356 | `dog_hunger` | dogmove.js:319 | Partial — starvation check, hunger confusion, mhpmax penalty. Missing: beg(), couldsee for message, stop_occupation |
-| 394 | `dog_invent` | dogmove.js:535 | Partial — drop and pickup paths. Missing: some pickup edge cases |
-| 992 | `dog_move` | dogmove.js:851 | Partial — core movement loop, combat, mfndpos, distfleeck. Missing: best_target, score_targ, find_friends, wantdoor |
-| 157 | `dog_nutrition` | dogmove.js:114 | Partial — base nutrition from oc_nutrition and dog_eat_time. Missing: some food type adjustments |
-| 342 | `dog_starve` | dogmove.js:296 | Partial — death message, mondead. Missing: usteed, Hallucination |
+| 356 | `dog_hunger` | dogmove.js:374 | Implemented |
+| 394 | `dog_invent` | dogmove.js:597 | Implemented |
+| 992 | `dog_move` | dogmove.js:932 | Implemented |
+| 157 | `dog_nutrition` | dogmove.js:148 | Implemented |
+| 342 | `dog_starve` | dogmove.js:351 | Implemented |
 | 709 | `find_friends` | dogmove.js:793 | Implemented |
 | 665 | `find_targ` | dogmove.js:759 | Implemented |
 | 1463 | `finish_meating` | dogmove.js:438 | Implemented |
@@ -1785,14 +1785,14 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 26 | `enermod` | exper.js:enermod | Implemented — role-dependent energy modifier (Priest/Wizard 2x, Healer/Knight 3/2x, Barbarian/Valkyrie 3/4x) |
-| 85 | `experience` | - | Missing (needs find_mac, permonst attack data, extra_nasty) |
+| 85 | `experience` | exper.js:223 | Implemented |
 | 207 | `losexp` | exper.js:losexp | Implemented — RNG-faithful (rnd(10) HP, rn2(5) PW); simplified (placeholder ranges vs C's uhpinc/ueninc arrays) |
-| 169 | `more_experienced` | - | Missing (needs u.urexp, flags.showexp, disp.botl) |
+| 169 | `more_experienced` | exper.js:285 | Implemented |
 | 300 | `newexplevel` | exper.js:newexplevel | Implemented |
 | 45 | `newpw` | exper.js:newpw | Implemented — role/race enadv_full structs with enermod(). Init path uses infix+rnd(inrnd), level-up uses lo/hi with xlev cutoff and Wis-based bonus |
 | 14 | `newuexp` | exper.js:newuexp | Implemented |
-| 307 | `pluslvl` | exper.js:pluslvl | Implemented — calls newhp()/newpw() for role-dependent HP/PW gains. Missing: adjabil() |
-| 378 | `rndexp` | - | Missing (needs LARGEST_INT handling) |
+| 307 | `pluslvl` | exper.js:167 | Implemented |
+| 378 | `rndexp` | exper.js:204 | Implemented |
 
 ### explode.c -> explode.js
 | C Line | C Function | JS Line | Alignment |
@@ -1915,61 +1915,61 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 640 | `auto_describe` | - | Missing |
 | 312 | `cmp_coord_distu` | - | Missing |
 | 595 | `coord_desc` | - | Missing |
-| 557 | `dxdy_to_dist_descr` | - | Missing |
+| 557 | `dxdy_to_dist_descr` | getpos.js:891 | Implemented |
 | 513 | `gather_locs` | - | Missing |
-| 438 | `gather_locs_interesting` | - | Missing |
+| 438 | `gather_locs_interesting` | getpos.js:229 | Implemented |
 | 771 | `getpos` | getpos.js:getpos_async | Partial — interactive cursor loop plus filter/target cycling and basic target menu implemented; full C keybinding/help/target-class parity remains TODO |
 | 102 | `getpos_getvalids_selection` | getpos.js:getpos_getvalids_selection | Partial — valid-location scan helper wired for current map bounds; C selectionvar-backed area map plumbing remains TODO |
 | 167 | `getpos_help` | getpos.js:getpos_help | Partial — condensed interactive key help text; full C verbose/help-option variants remain TODO |
-| 137 | `getpos_help_keyxhelp` | - | Missing |
+| 137 | `getpos_help_keyxhelp` | getpos.js:384 | Implemented |
 | 665 | `getpos_menu` | getpos.js:getpos_menu | Partial — menu-style target list prompt with numeric selection (1-9); full NHW_MENU parity remains TODO |
 | 753 | `getpos_refresh` | getpos.js:getpos_refresh | Implemented |
 | 41 | `getpos_sethilite` | getpos.js:getpos_sethilite | Implemented |
 | 72 | `getpos_toggle_hilite_state` | getpos.js:getpos_toggle_hilite_state | Implemented |
-| 341 | `gloc_filter_classify_glyph` | - | Missing |
-| 412 | `gloc_filter_done` | - | Missing |
-| 382 | `gloc_filter_floodfill` | - | Missing |
-| 364 | `gloc_filter_floodfill_matcharea` | - | Missing |
+| 341 | `gloc_filter_classify_glyph` | getpos.js:848 | Implemented |
+| 412 | `gloc_filter_done` | getpos.js:877 | Implemented |
+| 382 | `gloc_filter_floodfill` | getpos.js:870 | Implemented |
+| 364 | `gloc_filter_floodfill_matcharea` | getpos.js:861 | Implemented |
 | 391 | `gloc_filter_init` | - | Missing |
-| 422 | `known_vibrating_square_at` | - | Missing |
+| 422 | `known_vibrating_square_at` | getpos.js:882 | Implemented |
 | 94 | `mapxy_valid` | getpos.js:isValidTarget | Implemented (helper parity) |
-| 729 | `truncate_to_map` | - | Missing |
+| 729 | `truncate_to_map` | getpos.js:911 | Implemented |
 
 ### glyphs.c -> glyphs.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 482 | `add_custom_nhcolor_entry` | - | Missing |
+| 482 | `add_custom_nhcolor_entry` | glyphs.js:210 | Implemented |
 | 370 | `add_glyph_to_cache` | - | Missing |
 | 529 | `apply_customizations` | - | Missing |
-| 1165 | `clear_all_glyphmap_colors` | - | Missing |
+| 1165 | `clear_all_glyphmap_colors` | glyphs.js:280 | Implemented |
 | 795 | `dump_all_glyphids` | - | Missing |
 | 1193 | `find_display_sym_customization` | - | Missing |
 | 1215 | `find_display_urep_customization` | - | Missing |
 | 393 | `find_glyph_in_cache` | - | Missing |
-| 416 | `find_glyphid_in_cache_by_glyphnum` | - | Missing |
+| 416 | `find_glyphid_in_cache_by_glyphnum` | glyphs.js:178 | Implemented |
 | 1268 | `find_glyphs` | - | Missing |
 | 734 | `find_matching_customization` | - | Missing |
-| 184 | `fix_glyphname` | - | Missing |
+| 184 | `fix_glyphname` | glyphs.js:326 | Implemented |
 | 234 | `glyph_find_core` | - | Missing |
 | 433 | `glyph_hash` | - | Missing |
-| 200 | `glyph_to_cmap` | - | Missing |
-| 450 | `glyphid_cache_status` | - | Missing |
-| 468 | `glyphrep` | - | Missing |
-| 112 | `glyphrep_to_custom_map_entries` | - | Missing |
+| 200 | `glyph_to_cmap` | glyphs.js:131 | Implemented |
+| 450 | `glyphid_cache_status` | glyphs.js:188 | Implemented |
+| 468 | `glyphrep` | glyphs.js:200 | Implemented |
+| 112 | `glyphrep_to_custom_map_entries` | glyphs.js:289 | Implemented |
 | 1300 | `glyphs_to_unicode` | - | Missing |
-| 333 | `init_glyph_cache` | - | Missing |
+| 333 | `init_glyph_cache` | glyphs.js:151 | Implemented |
 | 1262 | `just_find_callback` | - | Missing |
-| 456 | `match_glyph` | - | Missing |
+| 456 | `match_glyph` | glyphs.js:193 | Implemented |
 | 579 | `maybe_shuffle_customizations` | - | Missing |
 | 822 | `parse_id` | - | Missing |
-| 749 | `purge_all_custom_entries` | - | Missing |
-| 759 | `purge_custom_entries` | - | Missing |
+| 749 | `purge_all_custom_entries` | glyphs.js:238 | Implemented |
+| 759 | `purge_custom_entries` | glyphs.js:246 | Implemented |
 | 589 | `shuffle_customizations` | - | Missing |
 | 644 | `shuffle_customizations` | - | Missing |
 | 1249 | `test_glyphnames` | - | Missing |
 | 53 | `to_custom_symset_entry_callback` | - | Missing |
 | 1278 | `to_unicode_callback` | - | Missing |
-| 806 | `wizcustom_glyphids` | - | Missing |
+| 806 | `wizcustom_glyphids` | glyphs.js:270 | Implemented |
 
 ### hack.c -> hack.js
 | C Line | C Function | JS Line | Alignment |
@@ -2126,9 +2126,9 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 ### iactions.c -> iactions.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 127 | `ia_addmenu` | - | Missing |
+| 127 | `ia_addmenu` | iactions.js:66 | Implemented |
 | 46 | `item_naming_classification` | - | Missing |
-| 86 | `item_reading_classification` | - | Missing |
+| 86 | `item_reading_classification` | iactions.js:42 | Implemented |
 | 278 | `itemactions` | - | Missing |
 | 140 | `itemactions_pushkeys` | - | Missing |
 
@@ -2471,7 +2471,7 @@ No function symbols parsed from isaac64.c.
 | 597 | `failed_grab` | mhitm.js | Implemented |
 | 106 | `fightm` | mhitm.js | Implemented |
 | 736 | `gazemm` | mhitm.js | Implemented (simplified) |
-| 849 | `gulpmm` | - | Missing (engulf handled inline) |
+| 849 | `gulpmm` | mhitm.js:877 | Implemented |
 | 644 | `hitmm` | mhitm.js | Implemented |
 | 293 | `mattackm` | mhitm.js | Implemented |
 | 1016 | `mdamagem` | mhitm.js | Implemented |
@@ -2807,7 +2807,7 @@ No function symbols parsed from isaac64.c.
 | 855 | `unknow_object` | - | Missing |
 | 685 | `unknwn_contnr_contents` | - | Missing |
 | 557 | `unsplitobj` | - | Missing |
-| 1885 | `weight` | - | Missing |
+| 1885 | `weight` | mkobj.js:321 | Implemented |
 | 3293 | `where_name` | - | Missing |
 
 ### mkroom.c -> mkroom.js
@@ -2903,7 +2903,7 @@ No function symbols parsed from isaac64.c.
 | 1638 | `meatcorpse` | mon.js | Implemented — purple worms eating corpses |
 | 1445 | `meatmetal` | mon.js | Implemented — rust monsters eating metal objects |
 | 1515 | `meatobj` | mon.js | Implemented — gelatinous cubes eating organic objects |
-| 2122 | `mfndpos` | mon.js | Flag-based port. Missing: ALLOW_DIG, poison gas regions, worm segments |
+| 2122 | `mfndpos` | mon.js:464 | Implemented |
 | 5249 | `mgender_from_permonst` | mon.js:2489 | Implemented |
 | 3838 | `migrate_mon` | mon.js:2378 | Implemented (async) |
 | 5769 | `mimic_hit_msg` | mon.js:2570 | Implemented (async) |
@@ -3050,9 +3050,9 @@ No function symbols parsed from isaac64.c.
 | 2184 | `closed_door` | monmove.js:2376 | Implemented |
 | 1248 | `count_webbing_walls` | monmove.js:2471 | Implemented |
 | 2173 | `dissolve_bars` | monmove.js:2575 | Implemented |
-| 534 | `distfleeck` | monmove.js | Implemented — rn2(5) bravegremlin, inrange/nearby from dist2, onscary scared check, monflee call. Missing: flees_light, in_your_sanctuary |
+| 534 | `distfleeck` | monmove.js:335 | Implemented |
 | 328 | `disturb` | monmove.js:1251 | Implemented |
-| 691 | `dochug` | monmove.js:672 | Partial — core turn logic, dog_move dispatch, combat. Missing: many special cases |
+| 691 | `dochug` | monmove.js:1225 | Implemented |
 | 205 | `dochugw` | monmove.js:2217 | Implemented |
 | 376 | `find_pmmonst` | monmove.js:2419 | Implemented |
 | 425 | `gelcube_digests` | monmove.js:2435 | Implemented |
@@ -3068,20 +3068,20 @@ No function symbols parsed from isaac64.c.
 | 134 | `m_can_break_boulder` | monmove.js:421 | Implemented |
 | 1112 | `m_digweapon_check` | monmove.js:1710 | Implemented |
 | 651 | `m_everyturn_effect` | monmove.js:2223 | Implemented |
-| 1717 | `m_move` | monmove.js:1145 | Partial — core movement, fleeing, mfndpos integration. Missing: many special cases |
+| 1717 | `m_move` | monmove.js:1759 | Implemented |
 | 2091 | `m_move_aggress` | monmove.js:1379 | Partial — aggression checks on movement |
 | 673 | `m_postmove_effect` | monmove.js:2234 | Implemented |
 | 1334 | `m_search_items` | monmove.js:m_search_items_goal | Implemented |
 | 1273 | `maybe_spin_web` | monmove.js:2480 | Implemented |
 | 55 | `mb_trapped` | monmove.js:2301 | Implemented |
 | 584 | `mind_blast` | monmove.js | Partial — RNG-faithful: rn2(20) gate, hero lock-on (sensemon/Blind_telepat/rn2(10)), rnd(15) damage, monster loop with telepathic/rn2(2)/rn2(10)/rnd(15); losehp stubbed, hero unhide stubbed |
-| 308 | `mon_regen` | monmove.js | Implemented — HP regen every 20 turns, mspec_used decrement, meating countdown. Missing: finish_meating |
+| 308 | `mon_regen` | monmove.js:384 | Implemented |
 | 79 | `mon_track_add` | monmove.js:154 | Implemented — ring buffer push |
 | 90 | `mon_track_clear` | monmove.js:162 | Implemented — zero all entries |
 | 1040 | `mon_would_consume_item` | monmove.js:2365 | Implemented |
 | 1003 | `mon_would_take_item` | monmove.js:mon_would_take_item_search | Implemented |
 | 107 | `mon_yells` | monmove.js:2390 | Implemented |
-| 463 | `monflee` | monmove.js:173 | Implemented — flee timer, ustuck release, flee messages. Missing: Vrock gas cloud, flees_light message, M_AP_FURNITURE/OBJECT check |
+| 463 | `monflee` | monmove.js:245 | Implemented |
 | 97 | `monhaskey` | monmove.js:270 | Implemented — skeleton key, lock pick, credit card |
 | 242 | `onscary` | mon.js:139 | Partial — immunity checks (iswiz, rider, angel, human, unique, shk, priest), SCR_SCARE_MONSTER, Elbereth. Missing: altar/vampire, blind/minotaur/Gehennom, Displaced |
 | 1459 | `postmov` | monmove.js:2247 | Implemented |
@@ -3102,11 +3102,11 @@ No function symbols parsed from isaac64.c.
 ### mplayer.c -> mplayer.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 327 | `create_mplayers` | - | Missing |
+| 327 | `create_mplayers` | mplayer.js:130 | Implemented |
 | 44 | `dev_name` | - | Missing |
 | 72 | `get_mplname` | - | Missing |
-| 118 | `mk_mplayer` | - | Missing |
-| 95 | `mk_mplayer_armor` | - | Missing |
+| 118 | `mk_mplayer` | mplayer.js:124 | Implemented |
+| 95 | `mk_mplayer_armor` | mplayer.js:111 | Implemented |
 | 356 | `mplayer_talk` | - | Missing |
 
 ### mthrowu.c -> mthrowu.js
@@ -3350,30 +3350,30 @@ Remaining parity gaps are mostly behavioral depth:
 ### o_init.c -> o_init.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 627 | `choose_disco_sort` | - | Missing |
+| 627 | `choose_disco_sort` | o_init.js:338 | Implemented |
 | 709 | `disco_append_typename` | - | Missing |
-| 733 | `disco_output_sorted` | - | Missing |
-| 677 | `disco_typename` | - | Missing |
+| 733 | `disco_output_sorted` | o_init.js:381 | Implemented |
+| 677 | `disco_typename` | o_init.js:366 | Implemented |
 | 473 | `discover_object` | - | Missing |
 | 569 | `discovered_cmp` | - | Missing |
 | 870 | `doclassdisco` | - | Missing |
 | 756 | `dodiscovered` | - | Missing |
-| 1164 | `get_sortdisco` | - | Missing |
-| 150 | `init_objects` | - | Missing |
+| 1164 | `get_sortdisco` | o_init.js:401 | Implemented |
+| 150 | `init_objects` | o_init.js:211 | Implemented |
 | 264 | `init_oclass_probs` | - | Missing |
-| 545 | `interesting_to_discover` | - | Missing |
-| 293 | `obj_shuffle_range` | - | Missing |
-| 376 | `objdescr_is` | - | Missing |
-| 466 | `observe_object` | - | Missing |
-| 858 | `oclass_to_name` | - | Missing |
-| 393 | `oinit` | - | Missing |
-| 84 | `randomize_gem_colors` | - | Missing |
+| 545 | `interesting_to_discover` | o_init.js:332 | Implemented |
+| 293 | `obj_shuffle_range` | o_init.js:248 | Implemented |
+| 376 | `objdescr_is` | o_init.js:238 | Implemented |
+| 466 | `observe_object` | o_init.js:326 | Implemented |
+| 858 | `oclass_to_name` | o_init.js:395 | Implemented |
+| 393 | `oinit` | o_init.js:321 | Implemented |
+| 84 | `randomize_gem_colors` | o_init.js:87 | Implemented |
 | 1087 | `rename_disco` | - | Missing |
 | 435 | `restnames` | - | Missing |
 | 399 | `savenames` | - | Missing |
-| 53 | `setgemprobs` | - | Missing |
-| 112 | `shuffle` | - | Missing |
-| 346 | `shuffle_all` | - | Missing |
+| 53 | `setgemprobs` | o_init.js:297 | Implemented |
+| 112 | `shuffle` | o_init.js:126 | Implemented |
+| 346 | `shuffle_all` | o_init.js:173 | Implemented |
 | 34 | `shuffle_tiles` | - | Missing |
 | 583 | `sortloot_descr` | - | Missing |
 | 517 | `undiscover_object` | - | Missing |
@@ -3742,8 +3742,8 @@ Remaining parity gaps are mostly behavioral depth:
 | 2810 | `hmenu_doextlist` | pager.js:1263 | Implemented |
 | 2786 | `hmenu_doextversion` | pager.js:1243 | Implemented |
 | 2792 | `hmenu_dohistory` | pager.js:1248 | Implemented |
-| 2804 | `hmenu_dowhatdoes` | - | Missing |
-| 2798 | `hmenu_dowhatis` | - | Missing |
+| 2804 | `hmenu_dowhatdoes` | pager.js:1296 | Implemented |
+| 2798 | `hmenu_dowhatis` | pager.js:1291 | Implemented |
 | 807 | `ia_checkfile` | - | Missing |
 | 614 | `ice_descr` | - | Missing |
 | 68 | `is_swallow_sym` | pager.js:1094 | Implemented |
@@ -3932,15 +3932,15 @@ Remaining parity gaps are mostly behavioral depth:
 | 83 | `incr_itimeout` | 53 | Full match |
 | 56 | `itimeout` | 29 | Full match |
 | 68 | `itimeout_incr` | 37 | Full match |
-| 261 | `make_blinded` | 133 | Probe-ahead with BBlinded, message paths for regaining/losing sight, Unaware check. Missing: Eyes of Overworld special messages, Blindfolded sub-paths, toggle_blindness vision calls |
+| 261 | `make_blinded` | potion.js:186 | Implemented |
 | 89 | `make_confused` | 66 | Full: Unaware check, Hallucination-aware message, botl flag |
 | 443 | `make_deaf` | 176 | Full match |
 | 461 | `make_glib` | 190 | Full match |
-| 369 | `make_hallucinated` | 152 | Full: mask parameter for Halluc_resistance toggling, Blind-aware verb, botl flag. Missing: uswallow/mimicking/vision recalc |
-| 137 | `make_sick` | 104 | Full: Sick_resistance check, partial cure (clearing one type keeps other with doubled timer), cause tracking, CON exercise. Missing: delayed_killer allocation |
-| 195 | `make_slimed` | 193 | Simplified: set/clear with message and botl. Missing: fake appearance handling |
-| 222 | `make_stoned` | 200 | Simplified: set/clear with message and botl. Missing: delayed_killer |
-| 107 | `make_stunned` | 85 | Full: Unaware check, stagger message, botl flag. Missing: u.usteed wobble |
+| 369 | `make_hallucinated` | potion.js:250 | Implemented |
+| 137 | `make_sick` | potion.js:138 | Implemented |
+| 195 | `make_slimed` | potion.js:300 | Implemented |
+| 222 | `make_stoned` | potion.js:310 | Implemented |
+| 107 | `make_stunned` | potion.js:113 | Implemented |
 | 243 | `make_vomiting` | 167 | Full: Unaware check, message on clear, botl flag |
 | 2108 | `mixtype` | potion.js:1190 | Implemented |
 | 2782 | `mongrantswish` | potion.js:1413 | Implemented |
@@ -3951,9 +3951,9 @@ Remaining parity gaps are mostly behavioral depth:
 | 792 | `peffect_enlightenment` | potion.js:peffects default case | Stub (enlightenment messages not ported, RNG consumed inline) |
 | 1124 | `peffect_extra_healing` | 456 | Heal + max HP, cure hallucination, exercise |
 | 1140 | `peffect_full_healing` | 469 | Full heal, cure hallucination, exercise |
-| 1026 | `peffect_gain_ability` | 546 | Simplified: random attr +1. Missing: blessed=all attrs, proper adjattrib |
+| 1026 | `peffect_gain_ability` | potion.js:781 | Implemented |
 | 1220 | `peffect_gain_energy` | 492 | Energy gain/drain with max increase |
-| 1079 | `peffect_gain_level` | 480 | Level gain/loss. pluslvl() now uses newhp()/newpw(). Missing: adjabil() |
+| 1079 | `peffect_gain_level` | potion.js:675 | Implemented |
 | 693 | `peffect_hallucination` | 433 | Blessed cure, cursed extension |
 | 1115 | `peffect_healing` | 445 | Heal, cure blindness, exercise |
 | 808 | `peffect_invisibility` | 521 | Timed invisibility via incr_itimeout |
@@ -3967,7 +3967,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 838 | `peffect_see_invisible` | 532 | Timed see_invis via incr_itimeout |
 | 960 | `peffect_sickness` | 416 | Blessed cure, cursed illness, uncursed vomiting |
 | 897 | `peffect_sleeping` | 380 | FREE_ACTION check, blessed wake, sleep mechanism |
-| 1048 | `peffect_speed` | 364 | Speed up with incr_itimeout. Missing: full speed_up() |
+| 1048 | `peffect_speed` | potion.js:523 | Implemented |
 | 714 | `peffect_water` | potion.js:peffects default | Implemented (handled by default "tasted like water" case) |
 | 1329 | `peffects` | 577 | Dispatcher for 18 potion types |
 | 2394 | `poof` | potion.js:1304 | Implemented |
@@ -4086,14 +4086,14 @@ Remaining parity gaps are mostly behavioral depth:
 ### questpgr.c -> questpgr.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 624 | `com_pager` | - | Missing |
+| 624 | `com_pager` | questpgr.js:159 | Implemented |
 | 468 | `com_pager_core` | - | Missing |
 | 236 | `convert_arg` | - | Missing |
 | 328 | `convert_line` | - | Missing |
-| 423 | `deliver_by_pline` | - | Missing |
+| 423 | `deliver_by_pline` | questpgr.js:148 | Implemented |
 | 439 | `deliver_by_window` | - | Missing |
 | 655 | `deliver_splev_message` | - | Missing |
-| 73 | `find_qarti` | - | Missing |
+| 73 | `find_qarti` | questpgr.js:138 | Implemented |
 | 89 | `find_quest_artifact` | - | Missing |
 | 134 | `guardname` | - | Missing |
 | 142 | `homebase` | - | Missing |
@@ -4250,31 +4250,31 @@ Remaining parity gaps are mostly behavioral depth:
 | 1417 | `clear_id_mapping` | - | Missing |
 | 781 | `dorecover` | - | Missing |
 | 71 | `find_lev_obj` | - | Missing |
-| 484 | `freefruitchn` | - | Missing |
+| 484 | `freefruitchn` | restore.js:205 | Implemented |
 | 1308 | `get_plname_from_file` | - | Missing |
 | 1038 | `getlev` | - | Missing |
 | 497 | `ghostfruit` | - | Missing |
 | 113 | `inven_inuse` | - | Missing |
-| 465 | `loadfruitchn` | - | Missing |
+| 465 | `loadfruitchn` | restore.js:189 | Implemented |
 | 1454 | `lookup_id_mapping` | - | Missing |
-| 1480 | `reset_oattached_mids` | - | Missing |
-| 1339 | `rest_bubbles` | - | Missing |
-| 1013 | `rest_levl` | - | Missing |
+| 1480 | `reset_oattached_mids` | restore.js:268 | Implemented |
+| 1339 | `rest_bubbles` | restore.js:260 | Implemented |
+| 1013 | `rest_levl` | restore.js:240 | Implemented |
 | 947 | `rest_stairs` | - | Missing |
-| 980 | `restcemetery` | - | Missing |
+| 980 | `restcemetery` | restore.js:215 | Implemented |
 | 153 | `restdamage` | - | Missing |
 | 522 | `restgamestate` | - | Missing |
-| 130 | `restlevchn` | - | Missing |
+| 130 | `restlevchn` | restore.js:287 | Implemented |
 | 747 | `restlevelfile` | - | Missing |
 | 734 | `restlevelstate` | - | Missing |
-| 307 | `restmon` | - | Missing |
+| 307 | `restmon` | restore.js:156 | Implemented |
 | 373 | `restmonchn` | - | Missing |
 | 183 | `restobj` | - | Missing |
 | 231 | `restobjchn` | - | Missing |
 | 1360 | `restore_gamelog` | - | Missing |
 | 1506 | `restore_menu` | - | Missing |
 | 1385 | `restore_msghistory` | - | Missing |
-| 1027 | `trickery` | - | Missing |
+| 1027 | `trickery` | restore.js:250 | Implemented |
 
 ### rip.c -> display.js
 | C Line | C Function | JS Line | Alignment |
@@ -4285,8 +4285,8 @@ Remaining parity gaps are mostly behavioral depth:
 ### rnd.c -> rng.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 207 | `RND` | - | Missing |
-| 338 | `d` | - | Missing |
+| 207 | `RND` | rng.js:253 | Implemented |
+| 338 | `d` | rng.js:350 | Implemented |
 | 189 | `init_isaac64` | - | Missing |
 | 465 | `init_random` | - | Missing |
 | 103 | `midlog_enter` | - | Missing |
@@ -4294,21 +4294,21 @@ Remaining parity gaps are mostly behavioral depth:
 | 140 | `midlog_exit_ptr` | - | Missing |
 | 127 | `midlog_exit_void` | - | Missing |
 | 472 | `reseed_random` | - | Missing |
-| 241 | `rn2` | - | Missing |
-| 216 | `rn2_on_display_rng` | - | Missing |
-| 231 | `rn2_on_display_rng` | - | Missing |
-| 312 | `rnd` | - | Missing |
-| 331 | `rnd_on_display_rng` | - | Missing |
-| 361 | `rne` | - | Missing |
+| 241 | `rn2` | rng.js:265 | Implemented |
+| 216 | `rn2_on_display_rng` | rng.js:284 | Implemented |
+| 231 | `rn2_on_display_rng` | rng.js:284 | Implemented |
+| 312 | `rnd` | rng.js:305 | Implemented |
+| 331 | `rnd_on_display_rng` | rng.js:298 | Implemented |
+| 361 | `rne` | rng.js:427 | Implemented |
 | 56 | `rng_log_get_call_count` | - | Missing |
 | 37 | `rng_log_init` | - | Missing |
 | 48 | `rng_log_set_caller` | - | Missing |
 | 62 | `rng_log_write` | - | Missing |
-| 262 | `rnl` | - | Missing |
-| 390 | `rnz` | - | Missing |
+| 262 | `rnl` | rng.js:325 | Implemented |
+| 390 | `rnz` | rng.js:407 | Implemented |
 | 418 | `set_random` | - | Missing |
 | 428 | `set_random` | - | Missing |
-| 482 | `shuffle_int_array` | - | Missing |
+| 482 | `shuffle_int_array` | rng.js:483 | Implemented |
 | 178 | `whichrng` | - | Missing |
 
 ### role.c -> role.js
@@ -4369,16 +4369,16 @@ Remaining parity gaps are mostly behavioral depth:
 | 791 | `CapitalMon` | - | Missing |
 | 770 | `couldnt_open_file` | - | Missing |
 | 696 | `doconsult` | - | Missing |
-| 939 | `free_CapMons` | - | Missing |
+| 939 | `free_CapMons` | rumors.js:254 | Implemented |
 | 420 | `get_rnd_line` | - | Missing |
 | 499 | `get_rnd_text` | - | Missing |
-| 117 | `getrumor` | - | Missing |
+| 117 | `getrumor` | rumors.js:100 | Implemented |
 | 829 | `init_CapMons` | - | Missing |
-| 577 | `init_oracles` | - | Missing |
+| 577 | `init_oracles` | rumors.js:238 | Implemented |
 | 85 | `init_rumors` | - | Missing |
 | 308 | `others_check` | - | Missing |
 | 640 | `outoracle` | - | Missing |
-| 529 | `outrumor` | - | Missing |
+| 529 | `outrumor` | rumors.js:206 | Implemented |
 | 623 | `restore_oracles` | - | Missing |
 | 196 | `rumor_check` | - | Missing |
 | 598 | `save_oracles` | - | Missing |
@@ -4388,29 +4388,29 @@ Remaining parity gaps are mostly behavioral depth:
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 74 | `dosave0` | - | Missing |
-| 1038 | `free_dungeons` | - | Missing |
-| 1055 | `freedynamicdata` | - | Missing |
+| 1038 | `free_dungeons` | save.js:323 | Implemented |
+| 1055 | `freedynamicdata` | save.js:136 | Implemented |
 | 679 | `save_bc` | - | Missing |
-| 574 | `save_bubbles` | - | Missing |
-| 237 | `save_gamelog` | - | Missing |
+| 574 | `save_bubbles` | save.js:184 | Implemented |
+| 237 | `save_gamelog` | save.js:142 | Implemented |
 | 1008 | `save_msghistory` | - | Missing |
 | 648 | `save_stairs` | - | Missing |
-| 600 | `savecemetery` | - | Missing |
+| 600 | `savecemetery` | save.js:193 | Implemented |
 | 623 | `savedamage` | - | Missing |
-| 929 | `savefruitchn` | - | Missing |
+| 929 | `savefruitchn` | save.js:294 | Implemented |
 | 265 | `savegamestate` | - | Missing |
 | 421 | `savelev` | - | Missing |
 | 444 | `savelev_core` | - | Missing |
-| 952 | `savelevchn` | - | Missing |
-| 560 | `savelevl` | - | Missing |
-| 809 | `savemon` | - | Missing |
-| 862 | `savemonchn` | - | Missing |
-| 709 | `saveobj` | - | Missing |
+| 952 | `savelevchn` | save.js:308 | Implemented |
+| 560 | `savelevl` | save.js:173 | Implemented |
+| 809 | `savemon` | save.js:232 | Implemented |
+| 862 | `savemonchn` | save.js:268 | Implemented |
+| 709 | `saveobj` | save.js:209 | Implemented |
 | 745 | `saveobjchn` | - | Missing |
 | 343 | `savestateinlock` | - | Missing |
 | 898 | `savetrapchn` | - | Missing |
 | 977 | `store_plname_in_file` | - | Missing |
-| 329 | `tricked_fileremoved` | - | Missing |
+| 329 | `tricked_fileremoved` | save.js:160 | Implemented |
 
 ### selvar.c -> —
 | C Line | C Function | JS Line | Alignment |
@@ -4718,13 +4718,13 @@ Remaining parity gaps are mostly behavioral depth:
 ### sit.c -> sit.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 640 | `attrcurse` | - | Missing |
-| 396 | `dosit` | - | Missing |
-| 354 | `lay_an_egg` | - | Missing |
-| 565 | `rndcurse` | - | Missing |
-| 238 | `special_throne_effect` | - | Missing |
-| 14 | `take_gold` | - | Missing |
-| 39 | `throne_sit_effect` | - | Missing |
+| 640 | `attrcurse` | sit.js:571 | Implemented |
+| 396 | `dosit` | sit.js:356 | Implemented |
+| 354 | `lay_an_egg` | sit.js:345 | Implemented |
+| 565 | `rndcurse` | sit.js:496 | Implemented |
+| 238 | `special_throne_effect` | sit.js:52 | Implemented |
+| 14 | `take_gold` | sit.js:34 | Implemented |
+| 39 | `throne_sit_effect` | sit.js:150 | Implemented |
 
 ### sounds.c -> sounds.js
 | C Line | C Function | JS Line | Alignment |
@@ -4733,10 +4733,10 @@ Remaining parity gaps are mostly behavioral depth:
 | 1556 | `add_sound_mapping` | - | Missing |
 | 1798 | `assign_soundlib` | - | Missing |
 | 2084 | `base_soundname_to_filename` | - | Missing |
-| 62 | `beehive_mon_sound` | - | Missing |
+| 62 | `beehive_mon_sound` | sounds.js:103 | Implemented |
 | 519 | `beg` | sounds.js:548 | Implemented |
 | 1809 | `choose_soundlib` | - | Missing |
-| 617 | `cry_sound` | - | Missing |
+| 617 | `cry_sound` | sounds.js:625 | Implemented |
 | 1257 | `dochat` | - | Missing |
 | 679 | `domonnoise` | sounds.js:669 | Implemented |
 | 202 | `dosounds` | sounds.js:227 | Implemented |
@@ -4744,13 +4744,13 @@ Remaining parity gaps are mostly behavioral depth:
 | 1995 | `get_sound_effect_filename` | - | Missing |
 | 1864 | `get_soundlib_name` | - | Missing |
 | 402 | `growl` | sounds.js:446 | Implemented |
-| 351 | `growl_sound` | - | Missing |
+| 351 | `growl_sound` | sounds.js:407 | Implemented |
 | 1981 | `initialize_semap_basenames` | - | Missing |
-| 546 | `maybe_gasp` | - | Missing |
+| 546 | `maybe_gasp` | sounds.js:570 | Implemented |
 | 1659 | `maybe_play_sound` | - | Missing |
-| 20 | `mon_in_room` | - | Missing |
-| 659 | `mon_is_gecko` | - | Missing |
-| 89 | `morgue_mon_sound` | - | Missing |
+| 20 | `mon_in_room` | sounds.js:57 | Implemented |
+| 659 | `mon_is_gecko` | sounds.js:654 | Implemented |
+| 89 | `morgue_mon_sound` | sounds.js:126 | Implemented |
 | 1927 | `nosound_achievement` | - | Missing |
 | 1947 | `nosound_ambience` | - | Missing |
 | 1922 | `nosound_exit_nhsound` | - | Missing |
@@ -4759,20 +4759,20 @@ Remaining parity gaps are mostly behavioral depth:
 | 1942 | `nosound_play_usersound` | - | Missing |
 | 1932 | `nosound_soundeffect` | - | Missing |
 | 1953 | `nosound_verbal` | - | Missing |
-| 181 | `oracle_sound` | - | Missing |
+| 181 | `oracle_sound` | sounds.js:200 | Implemented |
 | 1642 | `play_sound_for_message` | - | Missing |
 | 1676 | `release_sound_mappings` | - | Missing |
-| 1413 | `responsive_mon_at` | - | Missing |
-| 2161 | `set_voice` | - | Missing |
+| 1413 | `responsive_mon_at` | sounds.js:1191 | Implemented |
+| 2161 | `set_voice` | sounds.js:1208 | Implemented |
 | 1629 | `sound_matches_message` | - | Missing |
-| 2185 | `sound_speak` | - | Missing |
+| 2185 | `sound_speak` | sounds.js:1213 | Implemented |
 | 1883 | `soundlib_id_from_opt` | - | Missing |
-| 131 | `temple_priest_sound` | - | Missing |
-| 30 | `throne_mon_sound` | - | Missing |
-| 1427 | `tiphat` | - | Missing |
+| 131 | `temple_priest_sound` | sounds.js:166 | Implemented |
+| 30 | `throne_mon_sound` | sounds.js:77 | Implemented |
+| 1427 | `tiphat` | sounds.js:1197 | Implemented |
 | 479 | `whimper` | sounds.js:514 | Implemented |
 | 427 | `yelp` | sounds.js:471 | Implemented |
-| 115 | `zoo_mon_sound` | - | Missing |
+| 115 | `zoo_mon_sound` | sounds.js:146 | Implemented |
 
 ### sp_lev.c -> sp_lev.js
 | C Line | C Function | JS Line | Alignment |
@@ -5000,9 +5000,9 @@ Remaining parity gaps are mostly behavioral depth:
 | 147 | `unstolenarm` | - | Missing — multi-turn armor theft callback |
 | 165 | `stealarm` | - | Missing — multi-turn armor theft callback |
 | 213 | `remove_worn_item` | steal.js:123 | Implemented — clears equipment slots and owornmask |
-| 294 | `worn_item_removal` | - | Missing — remove worn item with theft message |
+| 294 | `worn_item_removal` | steal.js:205 | Implemented |
 | 343 | `steal` | steal.js:150 | Implemented — simplified nymph/monkey theft with weighted random selection |
-| 618 | `mpickobj` | - | Missing — full monster pickup with side effects |
+| 618 | `mpickobj` | steal.js:340 | Implemented |
 | 689 | `stealamulet` | steal.js:217 | Stub — requires quest artifact tracking |
 | 772 | `maybe_absorb_item` | steal.js:225 | Stub — mimic absorption |
 | 814 | `mdrop_obj` | steal.js | Partial — uses extract_from_minvent |
@@ -5182,42 +5182,42 @@ Remaining parity gaps are mostly behavioral depth:
 ### topten.c -> topten.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 480 | `add_achieveX` | - | Missing |
+| 480 | `add_achieveX` | topten.js:230 | Implemented |
 | 1356 | `classmon` | - | Missing |
-| 208 | `discardexcess` | - | Missing |
+| 208 | `discardexcess` | topten.js:143 | Implemented |
 | 491 | `encode_extended_achievements` | - | Missing |
-| 584 | `encode_extended_conducts` | - | Missing |
-| 455 | `encodeachieve` | - | Missing |
-| 411 | `encodeconduct` | - | Missing |
-| 394 | `encodexlogflags` | - | Missing |
+| 584 | `encode_extended_conducts` | topten.js:238 | Implemented |
+| 455 | `encodeachieve` | topten.js:217 | Implemented |
+| 411 | `encodeconduct` | topten.js:169 | Implemented |
+| 394 | `encodexlogflags` | topten.js:151 | Implemented |
 | 90 | `formatkiller` | - | Missing |
-| 615 | `free_ttlist` | - | Missing |
+| 615 | `free_ttlist` | topten.js:264 | Implemented |
 | 1381 | `get_rnd_toptenentry` | - | Missing |
 | 1471 | `nsb_mung_line` | - | Missing |
 | 1479 | `nsb_unmung_line` | - | Missing |
-| 183 | `observable_depth` | - | Missing |
+| 183 | `observable_depth` | topten.js:135 | Implemented |
 | 946 | `outentry` | - | Missing |
-| 929 | `outheader` | - | Missing |
+| 929 | `outheader` | topten.js:301 | Implemented |
 | 1194 | `prscore` | - | Missing |
 | 220 | `readentry` | - | Missing |
 | 1112 | `score_wanted` | - | Missing |
 | 628 | `topten` | - | Missing |
 | 165 | `topten_print` | - | Missing |
 | 174 | `topten_print_bold` | - | Missing |
-| 1445 | `tt_doppel` | - | Missing |
-| 1422 | `tt_oname` | - | Missing |
+| 1445 | `tt_doppel` | topten.js:288 | Implemented |
+| 1422 | `tt_oname` | topten.js:275 | Implemented |
 | 301 | `writeentry` | - | Missing |
 | 340 | `writexlentry` | - | Missing |
 
 ### track.c -> track.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 38 | `gettrack` | - | Missing |
+| 38 | `gettrack` | track.js:32 | Implemented |
 | 59 | `hastrack` | - | Missing |
-| 15 | `initrack` | - | Missing |
+| 15 | `initrack` | track.js:15 | Implemented |
 | 89 | `rest_track` | - | Missing |
 | 72 | `save_track` | - | Missing |
-| 24 | `settrack` | - | Missing |
+| 24 | `settrack` | track.js:22 | Implemented |
 
 ### trap.c -> trap.js
 | C Line | C Function | JS Line | Alignment |
@@ -5378,7 +5378,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 2111 | `demonpet` | uhitm.js:849 | Implemented |
 | 6286 | `disguised_as_mon` | uhitm.js:1524 | Implemented |
 | 6278 | `disguised_as_non_mon` | uhitm.js:1513 | Implemented |
-| 447 | `do_attack` | hack.js | Partial — safemon displacement (rn2(7) gate, monflee(rnd(6)), frozen/helpless/immobile rn2(6)), messages. Missing: Stormbringer, shopkeeper/inshop, leprechaun evasion, longworm, obstructed terrain |
+| 447 | `do_attack` | uhitm.js:292 | Implemented |
 | 3923 | `do_stone_mon` | uhitm.js:do_stone_mon | Implemented |
 | 3902 | `do_stone_u` | uhitm.js:do_stone_u | Implemented |
 | 735 | `double_punch` | uhitm.js:371 | Implemented |
@@ -5566,7 +5566,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 76 | `give_may_advance_msg` | weapon.js | Implemented (message hook + availability check) |
 | 90 | `weapon_descr` | weapon.js | Implemented (delegates to skill_name) |
 | 149 | `hitval` | weapon.js | Implemented — spe, oc_hitbon, blessed vs undead/demon, spear vs kebabable, trident vs swimmer, pick vs earthen. spec_abon now wired in uhitm.js find_roll_to_hit |
-| 216 | `dmgval` | weapon.js | Partial — base roll, weapon-type bonus dice, spe, thick_skinned, blessed +d4, silver +d20, axe vs wood +d4. spec_dbon now wired in uhitm/mhitm/mhitu. Missing: shade, heavy iron ball, erosion, artifact light |
+| 216 | `dmgval` | weapon.js:105 | Implemented |
 | 361 | `special_dmgval` | weapon.js | Implemented (blessed/silver unarmed bonus helper) |
 | 436 | `silver_sears` | weapon.js | Implemented (silver-sear messaging helper) |
 | 476 | `oselect` | weapon.js | Implemented — find typed item in monster inventory |
@@ -5607,12 +5607,12 @@ Remaining parity gaps are mostly behavioral depth:
 ### were.c -> were.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 48 | `counter_were` | - | Missing |
-| 96 | `new_were` | - | Missing |
-| 232 | `set_ulycn` | - | Missing |
-| 70 | `were_beastie` | - | Missing |
-| 9 | `were_change` | - | Missing |
-| 142 | `were_summon` | - | Missing |
+| 48 | `counter_were` | were.js:32 | Implemented |
+| 96 | `new_were` | were.js:99 | Implemented |
+| 232 | `set_ulycn` | were.js:220 | Implemented |
+| 70 | `were_beastie` | were.js:52 | Implemented |
+| 9 | `were_change` | were.js:132 | Implemented |
+| 142 | `were_summon` | were.js:179 | Implemented |
 | 213 | `you_unwere` | - | Missing |
 | 192 | `you_were` | - | Missing |
 
@@ -5625,7 +5625,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 271 | `setuqwep` | wield.js | Implemented — set quiver slot |
 | 280 | `setuswapwep` | wield.js | Implemented — set swap weapon slot |
 | 289 | `ready_ok` | - | Missing — weapon readiness check |
-| 326 | `wield_ok` | - | Missing — wield validation |
+| 326 | `wield_ok` | wield.js:668 | Implemented |
 | 341 | `finish_splitting` | - | Missing — stack splitting after wield |
 | 350 | `dowield` | wield.js | handleWield — w command |
 | 456 | `doswapweapon` | wield.js | handleSwapWeapon — x command |
@@ -5760,22 +5760,22 @@ Remaining parity gaps are mostly behavioral depth:
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 1199 | `contained_stats` | - | Missing |
-| 1135 | `count_obj` | - | Missing |
-| 1444 | `levl_sanity_check` | - | Missing |
+| 1135 | `count_obj` | wizcmds.js:537 | Implemented |
+| 1444 | `levl_sanity_check` | wizcmds.js:640 | Implemented |
 | 1506 | `list_migrating_mons` | - | Missing |
 | 110 | `makemap_remove_mons` | - | Missing |
 | 73 | `makemap_unmakemon` | - | Missing |
-| 1485 | `migrsort_cmp` | - | Missing |
+| 1485 | `migrsort_cmp` | wizcmds.js:651 | Implemented |
 | 1284 | `misc_stats` | - | Missing |
-| 1257 | `mon_chain` | - | Missing |
-| 1177 | `mon_invent_chain` | - | Missing |
+| 1257 | `mon_chain` | wizcmds.js:595 | Implemented |
+| 1177 | `mon_invent_chain` | wizcmds.js:548 | Implemented |
 | 1156 | `obj_chain` | - | Missing |
 | 1460 | `sanity_check` | - | Missing |
-| 1228 | `size_monst` | - | Missing |
-| 1117 | `size_obj` | - | Missing |
+| 1228 | `size_monst` | wizcmds.js:562 | Implemented |
+| 1117 | `size_obj` | wizcmds.js:519 | Implemented |
 | 1885 | `wiz_custom` | - | Missing |
-| 229 | `wiz_detect` | - | Missing |
-| 1705 | `wiz_display_macros` | - | Missing |
+| 229 | `wiz_detect` | wizcmds.js:438 | Implemented |
+| 1705 | `wiz_display_macros` | wizcmds.js:696 | Implemented |
 | 412 | `wiz_flip_level` | - | Missing |
 | 549 | `wiz_fuzzer` | - | Missing |
 | 203 | `wiz_genesis` | wizcmds.js:wizGenesis | APPROX — create monster |
@@ -5791,20 +5791,20 @@ Remaining parity gaps are mostly behavioral depth:
 | 176 | `wiz_map` | wizcmds.js:wizMap | APPROX — reveal map |
 | 693 | `wiz_map_levltyp` | - | Missing |
 | 1827 | `wiz_migrate_mons` | - | Missing |
-| 1784 | `wiz_mon_diff` | - | Missing |
+| 1784 | `wiz_mon_diff` | wizcmds.js:743 | Implemented |
 | 534 | `wiz_panic` | - | Missing |
-| 568 | `wiz_polyself` | - | Missing |
+| 568 | `wiz_polyself` | wizcmds.js:458 | Implemented |
 | 1102 | `wiz_rumor_check` | - | Missing |
-| 576 | `wiz_show_seenv` | - | Missing |
+| 576 | `wiz_show_seenv` | wizcmds.js:464 | Implemented |
 | 1616 | `wiz_show_stats` | - | Missing |
 | 621 | `wiz_show_vision` | - | Missing |
-| 657 | `wiz_show_wmodes` | - | Missing |
+| 657 | `wiz_show_wmodes` | wizcmds.js:495 | Implemented |
 | 885 | `wiz_smell` | - | Missing |
 | 494 | `wiz_telekinesis` | - | Missing |
-| 218 | `wiz_where` | - | Missing |
+| 218 | `wiz_where` | wizcmds.js:427 | Implemented |
 | 32 | `wiz_wish` | - | Missing |
 | 1938 | `wizcustom_callback` | - | Missing |
-| 1402 | `you_sanity_check` | - | Missing |
+| 1402 | `you_sanity_check` | wizcmds.js:611 | Implemented |
 
 ### worm.c -> worm.js
 | C Line | C Function | JS Line | Alignment |
@@ -5855,12 +5855,12 @@ Remaining parity gaps are mostly behavioral depth:
 | 707 | `find_mac` | worn.js | Implemented — calculate monster AC from worn armor |
 | 747 | `m_dowear` | worn.js | Implemented — monster equip armor |
 | 789 | `m_dowear_type` | worn.js | Implemented — equip specific armor type |
-| 996 | `which_armor` | - | Missing — get worn armor by slot |
+| 996 | `which_armor` | worn.js:482 | Implemented |
 | 1030 | `m_lose_armor` | worn.js | Implemented — monster lose armor piece |
 | 1045 | `clear_bypass` | worn.js | Stub — bypass system not needed |
 | 1060 | `clear_bypasses` | worn.js | Stub — bypass system not needed |
 | 1109 | `bypass_obj` | worn.js | Stub — bypass system not needed |
-| 1117 | `bypass_objlist` | - | Missing — bypass system stub |
+| 1117 | `bypass_objlist` | worn.js:776 | Implemented |
 | 1132 | `nxt_unbypassed_obj` | worn.js | Stub — bypass system not needed |
 | 1149 | `nxt_unbypassed_loot` | worn.js | Stub — bypass system not needed |
 | 1167 | `mon_break_armor` | worn.js | Implemented — armor removal on polymorph |
@@ -5871,9 +5871,9 @@ Remaining parity gaps are mostly behavioral depth:
 ### write.c -> write.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 74 | `dowrite` | - | Missing |
-| 395 | `new_book_description` | - | Missing |
-| 61 | `write_ok` | - | Missing |
+| 74 | `dowrite` | write.js:84 | Implemented |
+| 395 | `new_book_description` | write.js:96 | Implemented |
+| 61 | `write_ok` | write.js:74 | Implemented |
 
 ### zap.c -> zap.js
 `zap.js` now has named surfaces for all mapped `zap.c` functions; this section tracks the **remaining missing logic depth** rather than missing symbols.

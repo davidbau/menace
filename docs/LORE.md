@@ -5700,3 +5700,19 @@ hard-won wisdom:
   - Fully closed (0 Missing): `music.c`, `minion.c`, `fountain.c`, `rect.c`.
   - Significant residual-only gaps remain in the other 13 files (true absences).
   - Gameplay CODEMATCH missing total reduced from `1032` to `667`.
+
+### CODEMATCH conservative repo-wide stale-ledger pass (2026-03-09)
+
+- Problem:
+  - After large file-cluster sweeps, many remaining `Missing` rows were still
+    stale but spread across many files.
+- Change:
+  - Applied a conservative reconciliation pass across gameplay files:
+    - updated a row only when a same-named JS function declaration exists,
+    - and the nearby function body does not match common stub markers
+      (`UNIMPLEMENTED`, `throw new Error`, `not implemented`, stub TODOs).
+  - Total rows updated in this pass: `199`.
+- Result:
+  - Gameplay CODEMATCH missing total reduced from `667` to `468`.
+  - Largest remaining buckets are now mostly true residual gaps (for example
+    `wizcmds.c`, `sounds.c`, `glyphs.c`, `rnd.c`, `topten.c`).
