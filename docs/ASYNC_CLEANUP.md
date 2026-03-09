@@ -600,6 +600,67 @@ replay driver loop.
 play a few turns, verify --More-- works, menus work, direction prompts work,
 travel renders intermediate frames.
 
+## Risk Analysis
+
+### Where the risk is concentrated
+
+**Phases 1 and 2 are low risk.** Phase 1 is done. Phase 2 uses
+expand–migrate–contract: new code is created alongside old code (2b), then
+callsites are migrated one file at a time with tests after each (2c), then
+old code is deleted only after zero callsites remain (2d). At no point is
+functionality removed before its replacement is working.
+
+**Phase 3a–3c are low risk.** Phase 3a just adds an assertion to confirm
+boundaries are never pushed (if the assertion fires, something was missed in
+Phase 2 — fix it before proceeding). Phase 3b deletes confirmed-dead code.
+Phase 3c simplifies `run_command` by removing branches that are already
+unreachable.
+
+**Phase 3d is the only high-risk step.** It inverts the control flow:
+
+- **Before**: The harness/browser calls `run_command(game, key)` per
+  keystroke. The caller controls when keys enter the game.
+- **After**: The game loop runs as a long-lived coroutine pulling keys via
+  `await nhgetch()`. The harness/browser feeds keys via `pushInput()`.
+
+This is a fundamental change in who drives the loop. The risks:
+
+1. **Replay harness breakage.** All 34 gameplay session tests depend on
+   `replay_core.js` driving the game. The harness must switch from calling
+   `run_command` to calling `pushInput` + waiting for the next `nhgetch()`
+   suspension. The `waitForInputWait`/`isWaitingInput` detection API already
+   exists and should work, but the timing of when the game loop starts vs
+   when the first key is fed must be correct. If the game loop hasn't
+   reached its first `await nhgetch()` before the harness calls `pushInput`,
+   the key is buffered (fine — the input queue handles this). But if the
+   harness waits for `isWaitingInput` before feeding the first key, and the
+   game loop hasn't started yet, it deadlocks.
+
+2. **Game loop lifecycle.** The game loop is a single long-lived async
+   function. Errors inside it (uncaught exceptions in commands) would
+   previously be caught per-`run_command` call. In the target architecture,
+   an uncaught error kills the game loop coroutine entirely. The `try/catch`
+   inside `run_command` must be robust, or the game loop needs its own
+   top-level error handler that logs and continues.
+
+3. **Browser tab close / game over.** When the game ends or the tab closes,
+   the game loop is suspended at `await nhgetch()` with a Promise that will
+   never resolve. This is fine for tab close (the page is gone) and for game
+   over (set `gameOver = true` and resolve the pending `nhgetch` to break
+   the loop). But the shutdown path must be implemented explicitly.
+
+### Mitigations
+
+- **Do Phase 3d in two sub-steps**: First, change the replay harness to use
+  `pushInput` while keeping the browser game loop using the old
+  `run_command` path. Run all 34 sessions. Then change the browser game
+  loop. This isolates replay-harness risk from browser-UI risk.
+- **Add a game-loop error handler** that catches, logs, and continues (or
+  re-throws fatal errors). Do not let one bad command kill the loop.
+- **Add a `shutdown()` method** that resolves the pending `nhgetch` Promise
+  with a sentinel value (e.g., `null` or a special EOF character) so the
+  game loop can exit cleanly.
+
 **QC checks**:
 - `grep -r 'withInputBoundary\|clearInputBoundary\|peekInputBoundary\|InputBoundary' js/`
   returns zero hits.
