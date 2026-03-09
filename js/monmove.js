@@ -58,8 +58,8 @@ import { can_teleport, noeyes, perceives, nohands,
          webmaker, tunnels, needspick,
          dmgtype, attacktype, is_metallivore,
          can_track, likes_gold,
-         is_vampshifter, DEADMONSTER } from './mondata.js';
-import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons, PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER, PM_TENGU, PM_XORN, PM_RUST_MONSTER, PM_GELATINOUS_CUBE, PM_DISPLACER_BEAST, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS, PM_HEZROU, PM_VROCK, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER, PM_QUEEN_BEE, AT_WEAP, AT_BREA, AT_SPIT, AT_MAGC, AD_SPEL, AD_CLRC, AD_RUST, AD_CORR, S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID, M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC, MZ_TINY, MZ_HUMAN, M2_WANDER, MS_LEADER, MS_SHRIEK } from './monsters.js';
+         is_vampshifter, DEADMONSTER, noattacks } from './mondata.js';
+import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons, PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER, PM_TENGU, PM_XORN, PM_RUST_MONSTER, PM_GELATINOUS_CUBE, PM_DISPLACER_BEAST, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS, PM_HEZROU, PM_VROCK, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER, PM_QUEEN_BEE, AT_WEAP, AT_BREA, AT_SPIT, AT_MAGC, AD_SPEL, AD_CLRC, AD_RUST, AD_CORR, S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID, M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC, MZ_TINY, MZ_HUMAN, M2_WANDER, MS_LEADER, MS_SHRIEK, MS_CUSS } from './monsters.js';
 import { create_gas_cloud, visible_region_at } from './region.js';
 import { dog_move, could_reach_item } from './dogmove.js';
 import { initrack, settrack, gettrack } from './track.js';
@@ -69,6 +69,7 @@ import { in_your_sanctuary } from './priest.js';
 import { artifact_light } from './artifact.js';
 import { has_magic_key } from './artifact.js';
 import { envFlag } from './runtime_env.js';
+import { cuss } from './wizard.js';
 import { add_damage, after_shk_move, shk_move } from './shk.js';
 
 // Shared utilities — re-exported for consumers
@@ -1522,8 +1523,10 @@ async function dochug(mon, map, player, display, fov, game = null) {
             if (!trappedNoMove) {
                 const omx = mon.mx, omy = mon.my;
                 moveStatus = await m_move(mon, map, player, display, fov);
-                const movedThisTurn = !mon.dead && (mon.mx !== omx || mon.my !== omy);
-                if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
+                if (moveStatus === MMOVE_DIED || mon.dead) {
+                    trapDied = true;
+                    moveStatus = MMOVE_DIED;
+                } else if (!mon.dead && (mon.mx !== omx || mon.my !== omy)) {
                     const postmoveStatus = await run_dochug_postmove_pipeline_current_js(
                         mon, map, player, display, fov, game, omx, omy
                     );
@@ -1566,7 +1569,8 @@ async function dochug(mon, map, player, display, fov, game = null) {
     // C ref: monmove.c:983-989 — Phase 4 is gated by status/peacefulness
     // (and Conflict handling), not by mtmp->mflee.
     if (phase4Allowed && !mon_is_peaceful(mon) && !mon.dead) {
-        if (inrange || panicattk) {
+        // C ref: monmove.c:985 — ((inrange && !scared) || panicattk) && !noattacks(mdat)
+        if (((inrange && !scared) || panicattk) && !noattacks(mdat)) {
             if (nearby) {
                 // C ref: monmove.c:938-959 — MMOVE_MOVED returns 0 (skip Phase 4
                 // melee), but MMOVE_NOTHING/MMOVE_NOMOVES fall through to Phase 4.
@@ -1591,6 +1595,12 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 }
             }
         }
+    }
+
+    // C ref: monmove.c:1000-1002 — vile monster cussing after Phase 4
+    if (inrange && mdat.msound === MS_CUSS && !mon_is_peaceful(mon)
+        && couldsee(map, player, mon.mx, mon.my) && !mon.minvis && !rn2(5)) {
+        await cuss(mon, map, player);
     }
 }
 
