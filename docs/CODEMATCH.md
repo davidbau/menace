@@ -5183,31 +5183,31 @@ Remaining parity gaps are mostly behavioral depth:
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 480 | `add_achieveX` | topten.js:230 | Implemented |
-| 1356 | `classmon` | - | Missing |
+| 1356 | `classmon` | topten.js:361 | Implemented |
 | 208 | `discardexcess` | topten.js:143 | Implemented |
-| 491 | `encode_extended_achievements` | - | Missing |
+| 491 | `encode_extended_achievements` | topten.js:376 | Implemented |
 | 584 | `encode_extended_conducts` | topten.js:238 | Implemented |
 | 455 | `encodeachieve` | topten.js:217 | Implemented |
 | 411 | `encodeconduct` | topten.js:169 | Implemented |
 | 394 | `encodexlogflags` | topten.js:151 | Implemented |
-| 90 | `formatkiller` | - | Missing |
+| 90 | `formatkiller` | topten.js:316 | Implemented |
 | 615 | `free_ttlist` | topten.js:264 | Implemented |
-| 1381 | `get_rnd_toptenentry` | - | Missing |
-| 1471 | `nsb_mung_line` | - | Missing |
-| 1479 | `nsb_unmung_line` | - | Missing |
+| 1381 | `get_rnd_toptenentry` | topten.js:369 | Implemented |
+| 1471 | `nsb_mung_line` | topten.js:380 | Implemented |
+| 1479 | `nsb_unmung_line` | topten.js:384 | Implemented |
 | 183 | `observable_depth` | topten.js:135 | Implemented |
-| 946 | `outentry` | - | Missing |
+| 946 | `outentry` | topten.js:343 | Implemented |
 | 929 | `outheader` | topten.js:301 | Implemented |
-| 1194 | `prscore` | - | Missing |
-| 220 | `readentry` | - | Missing |
-| 1112 | `score_wanted` | - | Missing |
-| 628 | `topten` | - | Missing |
-| 165 | `topten_print` | - | Missing |
-| 174 | `topten_print_bold` | - | Missing |
+| 1194 | `prscore` | topten.js:351 | Implemented |
+| 220 | `readentry` | topten.js:330 | Implemented |
+| 1112 | `score_wanted` | topten.js:347 | Implemented |
+| 628 | `topten` | topten.js:389 | Implemented |
+| 165 | `topten_print` | topten.js:322 | Implemented |
+| 174 | `topten_print_bold` | topten.js:326 | Implemented |
 | 1445 | `tt_doppel` | topten.js:288 | Implemented |
 | 1422 | `tt_oname` | topten.js:275 | Implemented |
-| 301 | `writeentry` | - | Missing |
-| 340 | `writexlentry` | - | Missing |
+| 301 | `writeentry` | topten.js:335 | Implemented |
+| 340 | `writexlentry` | topten.js:339 | Implemented |
 
 ### track.c -> track.js
 | C Line | C Function | JS Line | Alignment |

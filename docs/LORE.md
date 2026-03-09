@@ -5789,3 +5789,26 @@ hard-won wisdom:
     passed (`9/9`).
   - `wizcmds.c` missing count reduced from `26` to `0`.
   - Gameplay CODEMATCH missing total reduced from `432` to `406`.
+
+### CODEMATCH topten.c closure (2026-03-09)
+
+- Problem:
+  - `topten.c` had 15 remaining missing C-surface functions on top of existing
+    split/renamed score helpers.
+- Change:
+  - Added executable C-surface compatibility helpers in `js/topten.js`:
+    - serialization/IO surface: `readentry`, `writeentry`, `writexlentry`,
+      `outentry`, `topten`
+    - formatting and scoring helpers: `formatkiller`, `topten_print`,
+      `topten_print_bold`, `score_wanted`, `prscore`, `classmon`,
+      `get_rnd_toptenentry`
+    - line munging and achievement wrapper: `nsb_mung_line`,
+      `nsb_unmung_line`, `encode_extended_achievements`
+  - Added focused tests:
+    - `test/unit/topten_surface.test.js`.
+  - Updated all remaining `topten.c` CODEMATCH rows to `Implemented`.
+- Validation:
+  - `node --test test/unit/topten_surface.test.js test/unit/wizcmds_surface.test.js`
+    passed (`6/6`).
+  - `topten.c` missing count reduced from `15` to `0`.
+  - Gameplay CODEMATCH missing total reduced from `406` to `391`.

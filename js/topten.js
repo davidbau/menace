@@ -308,3 +308,85 @@ export function outheader() {
   bp = "Hp [max]";
   topten_print(linebuf);
 }
+
+// --------------------------------------------------------------------------
+// C-surface compatibility entrypoints (topten.c)
+// --------------------------------------------------------------------------
+
+export function formatkiller(entryOrCause) {
+    if (!entryOrCause) return 'died';
+    if (typeof entryOrCause === 'string') return entryOrCause;
+    return String(entryOrCause.death || entryOrCause.deathCause || 'died');
+}
+
+export function topten_print(line) {
+    return String(line ?? '');
+}
+
+export function topten_print_bold(line) {
+    return `**${String(line ?? '')}**`;
+}
+
+export function readentry(line) {
+    if (typeof line !== 'string' || !line.trim()) return null;
+    try { return JSON.parse(line); } catch (_err) { return null; }
+}
+
+export function writeentry(entry) {
+    return JSON.stringify(entry || {});
+}
+
+export function writexlentry(entry) {
+    return writeentry(entry);
+}
+
+export function outentry(entry, rank = 1) {
+    return formatTopTenEntry(entry || {}, rank);
+}
+
+export function score_wanted(_entry, _flags = 0) {
+    return true;
+}
+
+export function prscore(limit = 10) {
+    const scores = loadScores();
+    const n = Math.max(0, Math.min(Number(limit) || 0, scores.length));
+    const lines = [formatTopTenHeader()];
+    for (let i = 0; i < n; i++) {
+        lines.push(...formatTopTenEntry(scores[i], i + 1));
+    }
+    return lines;
+}
+
+export function classmon(roleAbbr) {
+    const key = String(roleAbbr || '').toUpperCase();
+    // Lightweight deterministic mapping for score surfaces.
+    const roles = ['ARC', 'BAR', 'CAV', 'HEA', 'KNI', 'MON', 'PRI', 'RAN', 'ROG', 'SAM', 'TOU', 'VAL', 'WIZ'];
+    const idx = roles.indexOf(key);
+    return idx >= 0 ? idx : 0;
+}
+
+export function get_rnd_toptenentry() {
+    const scores = loadScores();
+    if (!scores.length) return null;
+    const idx = Math.floor(Math.random() * scores.length);
+    return scores[idx] || null;
+}
+
+export function encode_extended_achievements(secondlong, player) {
+    return encodeachieve(!!secondlong, player || { uachieved: [] });
+}
+
+export function nsb_mung_line(line) {
+    return Buffer.from(String(line ?? ''), 'utf8').toString('base64');
+}
+
+export function nsb_unmung_line(line) {
+    try { return Buffer.from(String(line ?? ''), 'base64').toString('utf8'); }
+    catch (_err) { return String(line ?? ''); }
+}
+
+export function topten(entry = null) {
+    if (entry) saveScore(entry);
+    return loadScores();
+}
