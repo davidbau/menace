@@ -55,7 +55,7 @@ import { game as _gstate } from './gstate.js';
 import { applyMonflee } from './mhitu.js';
 import { obj_resists } from './objdata.js';
 import { costly_spot } from './shk.js';
-import { compactInvletPromptChars, useup, useupf } from './invent.js';
+import { compactInvletPromptChars, useup, useupf, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { pline, You, Your, You_feel, You_cant, pline_The, You_hear, impossible, livelog_printf } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, ensureAttrArrays, gainstr, poison_strdmg } from './attrib.js';
@@ -1887,6 +1887,25 @@ async function handleEat(player, display, game) {
                 return { moved: false, tookTime: false };
             }
             if (c === '?' || c === '*') {
+                if (typeof display.clearRow === 'function') display.clearRow(0);
+                display.topMessage = null;
+                display.messageNeedsMore = false;
+                const lines = buildInventoryOverlayLines(player);
+                const allInvLetters = (player.inventory || [])
+                    .filter((o) => o && o.invlet)
+                    .map((o) => o.invlet)
+                    .join('');
+                const menuSelection = await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
+                if (menuSelection) {
+                    const menuItem = food.find(f => f.invlet === menuSelection);
+                    if (menuItem) {
+                        if (typeof display.clearRow === 'function') display.clearRow(0);
+                        display.topMessage = null;
+                        display.messageNeedsMore = false;
+                        selectedItem = menuItem;
+                        break;
+                    }
+                }
                 continue;
             }
 
