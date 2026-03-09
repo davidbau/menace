@@ -4195,13 +4195,13 @@ Remaining parity gaps are mostly behavioral depth:
 | 284 | `add_region` | region.js:194 | Implemented |
 | 660 | `any_visible_region` | region.js:456 | Implemented |
 | 394 | `clear_regions` | region.js:264 | Implemented |
-| 227 | `clone_region` | - | Missing |
-| 1003 | `create_force_field` | - | Missing |
+| 227 | `clone_region` | region.js:194 | Implemented |
+| 1003 | `create_force_field` | - | N/A — compile-disabled force-field path in C (`#if 0`) |
 | 1213 | `create_gas_cloud` | region.js:694 | Implemented |
 | 1313 | `create_gas_cloud_selection` | region.js:765 | Implemented |
-| 955 | `create_msg_region` | - | Missing |
+| 955 | `create_msg_region` | - | N/A — compile-disabled message-region path in C (`#if 0`) |
 | 79 | `create_region` | region.js:108 | Implemented |
-| 983 | `enter_force_field` | - | Missing |
+| 983 | `enter_force_field` | - | N/A — compile-disabled force-field callback path in C (`#if 0`) |
 | 1046 | `expire_gas_cloud` | region.js:535 | Implemented |
 | 263 | `free_region` | region.js:849 | Implemented |
 | 480 | `in_out_region` | region.js:321 | Implemented |
@@ -4217,13 +4217,13 @@ Remaining parity gaps are mostly behavioral depth:
 | 1368 | `region_safety` | region.js:805 | Implemented |
 | 899 | `region_stats` | region.js:509 | Implemented |
 | 192 | `remove_mon_from_reg` | region.js:173 | Implemented |
-| 638 | `remove_mon_from_regions` | - | Missing |
+| 638 | `remove_mon_from_regions` | region.js:282 | Implemented |
 | 344 | `remove_region` | region.js:229 | Implemented |
-| 622 | `replace_mon_regions` | - | Missing |
+| 622 | `replace_mon_regions` | region.js:270 | Implemented |
 | 928 | `reset_region_mids` | region.js:518 | Implemented |
-| 799 | `rest_regions` | - | Missing |
+| 799 | `rest_regions` | region.js:546 | Implemented |
 | 414 | `run_regions` | region.js:271 | Implemented |
-| 741 | `save_regions` | - | Missing |
+| 741 | `save_regions` | region.js:536 | Implemented |
 | 732 | `show_region` | region.js:499 | Implemented |
 | 598 | `update_monster_region` | region.js:431 | Implemented |
 | 582 | `update_player_regions` | region.js:417 | Implemented |

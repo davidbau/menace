@@ -5874,3 +5874,22 @@ hard-won wisdom:
 - Validation:
   - `npm test -- test/unit/kick_ouch_hp_current.test.js` passed (gate run).
   - `dokick.c` missing count reduced from `20` to `0` (ledger correction only).
+
+### CODEMATCH region.c wrapper closure + force-field N/A classification (2026-03-09)
+
+- Problem:
+  - `region.c` still had 8 missing rows; five were straightforward JS region
+    lifecycle wrappers and three were C compile-disabled force-field/message
+    paths.
+- Change:
+  - Implemented missing runtime wrappers in `js/region.js`:
+    - `clone_region`, `remove_mon_from_regions`, `replace_mon_regions`,
+      `save_regions`, `rest_regions`.
+  - Added focused unit coverage:
+    - `test/unit/region_surface.test.js`.
+  - Reclassified compile-disabled C paths as explicit `N/A`:
+    - `create_force_field`, `create_msg_region`, `enter_force_field`.
+  - Updated `docs/CODEMATCH.md` row mappings accordingly.
+- Validation:
+  - `npm test -- test/unit/region_surface.test.js` passed (gate run).
+  - `region.c` missing count reduced from `8` to `0` (5 implemented, 3 N/A).

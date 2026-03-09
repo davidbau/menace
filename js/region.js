@@ -189,6 +189,19 @@ export function mon_in_region(reg, mon) {
 }
 
 // ========================================================================
+// cf. region.c:226 — clone_region(reg): deep clone region structure
+// ========================================================================
+export function clone_region(reg) {
+    if (!reg) return null;
+    return {
+        ...reg,
+        bounding_box: reg.bounding_box ? { ...reg.bounding_box } : { lx: 0, ly: 0, hx: 0, hy: 0 },
+        rects: Array.isArray(reg.rects) ? reg.rects.map(r => ({ ...r })) : [],
+        monsters: Array.isArray(reg.monsters) ? [...reg.monsters] : [],
+    };
+}
+
+// ========================================================================
 // cf. region.c:283 — add_region(reg): activate a new region
 // ========================================================================
 export function add_region(reg, map, player) {
@@ -255,6 +268,28 @@ export function remove_region(reg, map, player) {
                 }
             }
         }
+    }
+}
+
+// ========================================================================
+// cf. region.c:621 — replace_mon_regions(mon): refresh per-region membership
+// ========================================================================
+export function replace_mon_regions(mon, map) {
+    remove_mon_from_regions(mon, map);
+    const regions = get_regions(map);
+    for (let i = 0; i < regions.length; i++) {
+        if (inside_region(regions[i], mon.mx, mon.my))
+            add_mon_to_reg(regions[i], mon);
+    }
+}
+
+// ========================================================================
+// cf. region.c:637 — remove_mon_from_regions(mon): unlink monster from all regions
+// ========================================================================
+export function remove_mon_from_regions(mon, map) {
+    const regions = get_regions(map);
+    for (let i = 0; i < regions.length; i++) {
+        remove_mon_from_reg(regions[i], mon);
     }
 }
 
@@ -509,6 +544,27 @@ export function show_region(reg, x, y, map) {
 export function region_stats(map) {
     const regions = get_regions(map);
     return { count: regions.length };
+}
+
+// ========================================================================
+// cf. region.c:740 — save_regions(nhfp): save active regions
+// JS runtime equivalent: serialize to plain data for storage layer.
+// ========================================================================
+export function save_regions(map) {
+    const regions = get_regions(map);
+    return regions.map(clone_region);
+}
+
+// ========================================================================
+// cf. region.c:798 — rest_regions(nhfp): restore active regions
+// JS runtime equivalent: restore from serialized region data.
+// ========================================================================
+export function rest_regions(saved, map, player) {
+    const restored = Array.isArray(saved) ? saved.map(clone_region).filter(Boolean) : [];
+    map.regions = restored;
+    for (const reg of restored) {
+        reset_region_mids(reg, map, player);
+    }
 }
 
 // ========================================================================
