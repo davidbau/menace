@@ -53,7 +53,7 @@ import {
     LAVAWALL, ICE, DRAWBRIDGE_UP, DRAWBRIDGE_DOWN, AIR, CLOUD, TREE,
     D_ISOPEN, D_CLOSED, D_LOCKED,
 } from './const.js';
-import { awaitMore } from './suspend.js';
+import { isMoreDismissKey, waitForMoreDismissKey } from './more_keys.js';
 
 
 const DEFAULT_GAME_FLAGS = {
@@ -572,7 +572,7 @@ export class HeadlessDisplay {
             runtime.clearInputBoundariesByOwner('more');
         }
         this._moreBoundaryToken = runtime.withInputBoundary('more', async (ch) => {
-            if (!this._isMoreDismissKey(ch)) {
+            if (!isMoreDismissKey(ch)) {
                 return { handled: true, tookTime: false };
             }
             await this._clearMore();
@@ -795,23 +795,10 @@ export class HeadlessDisplay {
         this.messageNeedsMore = false;
     }
 
-    _isMoreDismissKey(ch) {
-        const code = typeof ch === 'number'
-            ? ch
-            : (typeof ch === 'string' && ch.length > 0 ? ch.charCodeAt(0) : 0);
-        return code === 32 || code === 27 || code === 10 || code === 13 || code === 16; // ' ', ESC, LF, CR, ^P
-    }
-
     // C ref: xwaitforspace("\033 ") in win/tty/topl.c.
     // Ignore non-dismissal keys while waiting at --More--.
     async _waitForMoreDismissKey(nhgetch) {
-        if (typeof nhgetch !== 'function') return;
-        for (;;) {
-            const ch = await awaitMore(null, nhgetch(), {
-                site: 'headless.more.dismiss',
-            });
-            if (this._isMoreDismissKey(ch)) return;
-        }
+        return waitForMoreDismissKey(nhgetch, { game: null, site: 'headless.more.dismiss' });
     }
 
     // Matches Display.renderChargenMenu() — always clears screen, applies offset

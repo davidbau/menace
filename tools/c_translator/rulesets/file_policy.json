@@ -389,6 +389,11 @@
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."
     },
     {
+      "path": "js/more_keys.js",
+      "policy": "manual_only",
+      "reason": "Input boundary helper module; manually maintained architecture glue."
+    },
+    {
       "path": "js/nethack.js",
       "policy": "manual_only",
       "reason": "Runtime/platform/infrastructure boundary; keep manual control."

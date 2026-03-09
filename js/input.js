@@ -9,6 +9,7 @@ import {
 } from './const.js';
 import { envFlag } from './runtime_env.js';
 import { awaitInput } from './suspend.js';
+import { isMoreDismissKey } from './more_keys.js';
 
 function ynTraceEnabled() {
     return envFlag('WEBHACK_YN_TRACE');
@@ -503,13 +504,6 @@ export function nhgetch_wrap() {
     // topline, consume dismissal key(s), drain queued messages, then return
     // the next command key. Keep this iterative to avoid recursive fallback.
     if (display && display._pendingMore) {
-        const isMoreDismissKey = (ch) => (
-            ch === 10     // '\n'
-            || ch === 13  // '\r'
-            || ch === 27  // ESC
-            || ch === 32  // space
-            || ch === 16  // ^P (tty dismiss_more)
-        );
         const waitForMoreDismiss = async () => {
             while (display && display._pendingMore) {
                 const ch = await readUnifiedKey();

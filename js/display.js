@@ -43,9 +43,10 @@ import { cansee, couldsee, clear_vision_full_recalc } from './vision.js';
 import { do_light_sources } from './light.js';
 import { emits_light, infravisible, is_mindless, monsndx } from './mondata.js';
 import { worm_known } from './worm.js';
-import { awaitInput, awaitMore } from './suspend.js';
+import { awaitInput } from './suspend.js';
 import { rn2 } from './rng.js';
 import { set_wall_state as dungeonSetWallState, xy_set_wall_state as dungeonXySetWallState } from './dungeon.js';
+import { isMoreDismissKey, waitForMoreDismissKey } from './more_keys.js';
 export { mark_vision_dirty } from './vision.js';
 
 // Re-export color constants from the canonical source (render.js)
@@ -250,7 +251,7 @@ export class Display {
             runtime.clearInputBoundariesByOwner('more');
         }
         this._moreBoundaryToken = runtime.withInputBoundary('more', async (ch) => {
-            if (!this._isMoreDismissKey(ch)) {
+            if (!isMoreDismissKey(ch)) {
                 return { handled: true, tookTime: false };
             }
             await this._clearMore();
@@ -587,23 +588,10 @@ span.nh-cursor {
         this.messageNeedsMore = false;
     }
 
-    _isMoreDismissKey(ch) {
-        const code = typeof ch === 'number'
-            ? ch
-            : (typeof ch === 'string' && ch.length > 0 ? ch.charCodeAt(0) : 0);
-        return code === 32 || code === 27 || code === 10 || code === 13 || code === 16; // ' ', ESC, LF, CR, ^P
-    }
-
     // C ref: xwaitforspace("\033 ") in win/tty/topl.c.
     // Ignore non-dismissal keys while waiting at --More--.
     async _waitForMoreDismissKey(nhgetch_wrap) {
-        if (typeof nhgetch_wrap !== 'function') return;
-        for (;;) {
-            const ch = await awaitMore(null, nhgetch_wrap(), {
-                site: 'display.more.dismiss',
-            });
-            if (this._isMoreDismissKey(ch)) return;
-        }
+        return waitForMoreDismissKey(nhgetch_wrap, { game: null, site: 'display.more.dismiss' });
     }
 
     // Render the map from game state
