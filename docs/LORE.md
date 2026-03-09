@@ -5565,3 +5565,21 @@ hard-won wisdom:
   - Focus run on seed033 (`1397-1399`) shows actionable signal:
     - JS `C/G` reports pickup enabled while C reports pickup disabled,
       matching the suspicious step-1398 item removal path.
+
+### Milestone checkpoint: `seed031/032/033` all green at `48a9f0da` (2026-03-09)
+
+- Result:
+  - Commit `48a9f0da` is a full-green checkpoint for the manual-direct trio:
+    - `seed031_manual_direct`
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
+  - All three now match on RNG, events, screens, colors, cursor, and mapdump.
+- Metrics captured on this checkpoint:
+  - `seed031`: `rng=9079/9079`, `events=2682/2682`, `screens=1365/1365`, `mapdump=1/1`
+  - `seed032`: `rng=5900/5900`, `events=2748/2748`, `screens=678/678`, `mapdump=1/1`
+  - `seed033`: `rng=14973/14973`, `events=9557/9557`, `screens=1417/1417`, `mapdump=1/1`
+- Key fixes in this checkpoint:
+  - C-faithful mapdump `W` projection in JS (including border/stair flag semantics).
+  - Oracle supply chest lock-state parity (`olocked = !!rn2(6)`).
+  - `makeniche()` trap `once` parity for non-`ROCKTRAP` traps.
+  - Early mklev hero-vector parity (`U/A`) via C-field sourcing and hero-seq baseline.
