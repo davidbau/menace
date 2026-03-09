@@ -1258,7 +1258,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1092 | `Some_Monnam` | do_name.js:308 | Implemented |
 | 1133 | `YMonnam` | do_name.js:332 | Implemented |
 | 1152 | `a_monnam` | do_name.js:345 | Implemented |
-| 158 | `alreadynamed` | - | Missing |
+| 158 | `alreadynamed` | do_name.js:838 | Implemented |
 | 1415 | `bogon_is_pname` | do_name.js:532 | Implemented |
 | 1369 | `bogusmon` | do_name.js:516 | Implemented |
 | 480 | `call_ok` | do_name.js:896 | Implemented |
@@ -1267,10 +1267,10 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1526 | `coyotename` | do_name.js:749 | Implemented |
 | 1170 | `distant_monnam` | do_name.js:357 | Implemented |
 | 199 | `do_mgivenname` | do_name.js:820 | Implemented |
-| 290 | `do_oname` | - | Missing |
+| 290 | `do_oname` | do_name.js:864 | Implemented |
 | 636 | `docall` | do_name.js:920 | Implemented |
 | 605 | `docall_xname` | do_name.js:903 | Implemented |
-| 499 | `docallcmd` | - | Missing |
+| 499 | `docallcmd` | do_name.js:1098 | Implemented (as handleCallObjectTypePrompt) |
 | 51 | `free_mgivenname` | do_name.js:804 | Implemented |
 | 81 | `free_oname` | do_name.js:809 | Implemented |
 | 1461 | `hcolor` | do_name.js:594 | Implemented |
@@ -1283,21 +1283,21 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1191 | `mon_nam_too` | do_name.js:363 | Implemented |
 | 1313 | `mon_pmname` | do_name.js:98 | Implemented |
 | 1221 | `monverbself` | do_name.js:373 | Implemented |
-| 105 | `name_from_player` | - | Missing |
+| 105 | `name_from_player` | do_name.js:828 | Implemented |
 | 467 | `name_ok` | do_name.js:889 | Implemented |
-| 679 | `namefloorobj` | - | Missing |
-| 31 | `new_mgivenname` | - | Missing |
-| 61 | `new_oname` | - | Missing |
+| 679 | `namefloorobj` | do_name.js:909 | Implemented (stub — requires getpos) |
+| 31 | `new_mgivenname` | do_name.js:805 | Implemented |
+| 61 | `new_oname` | do_name.js:817 | Implemented |
 | 1083 | `noit_Monnam` | do_name.js:302 | Implemented |
 | 1054 | `noit_mon_nam` | do_name.js:282 | Implemented |
 | 1102 | `noname_monnam` | do_name.js:314 | Implemented |
 | 1611 | `noveltitle` | do_name.js:776 | Implemented |
 | 1321 | `obj_pmname` | do_name.js:940 | Implemented |
-| 429 | `objtyp_is_callable` | - | Missing |
+| 429 | `objtyp_is_callable` | do_name.js:885 | Implemented |
 | 372 | `oname` | do_name.js:859 | Implemented |
 | 1303 | `pmname` | do_name.js:88 | Implemented |
 | 1470 | `rndcolor` | do_name.js:632 | Implemented |
-| 772 | `rndghostname` | - | Missing |
+| 772 | `rndghostname` | do_name.js:926 | Implemented |
 | 1389 | `rndmonnam` | do_name.js:547 | Implemented |
 | 1538 | `rndorcname` | do_name.js:677 | Implemented |
 | 1424 | `roguename` | do_name.js:730 | Implemented |

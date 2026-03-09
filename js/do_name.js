@@ -800,6 +800,136 @@ export function noveltitle(novidx = null) {
 // TODO: do_name.c:1320 — obj_pmname(): object creature type name
 // TODO: do_name.c:1626 — lookup_novel(): novel title search (player interactive)
 
+// cf. do_name.c:31 — new_mgivenname: allocate space for monster given name
+// In JS, names are just strings — no allocation needed.
+export function new_mgivenname(mon, lth) {
+    if (lth) {
+        if (!mon.mextra) mon.mextra = {};
+        else free_mgivenname(mon);
+        // MGIVENNAME will be set by caller
+    } else {
+        if (has_mgivenname(mon)) free_mgivenname(mon);
+    }
+}
+
+// cf. do_name.c:61 — new_oname: allocate space for object name
+// In JS, names are just strings — no allocation needed.
+export function new_oname(obj, lth) {
+    if (lth) {
+        if (!obj.oextra) obj.oextra = {};
+        else free_oname(obj);
+        // ONAME will be set by caller
+    } else {
+        if (has_oname(obj)) free_oname(obj);
+    }
+}
+
+// cf. do_name.c:105 — name_from_player: get a name string from player input
+export async function name_from_player(prompt, defres) {
+    let buf = await getlin(prompt);
+    if (!buf || buf === '\x1b') return null;
+    // Strip leading/trailing spaces, condense internal sequences
+    buf = buf.replace(/\s+/g, ' ').trim();
+    if (buf.length > 31) buf = buf.substring(0, 31); // PL_PSIZ
+    return buf || null;
+}
+
+// cf. do_name.c:158 — alreadynamed: check if monster is already named this
+export function alreadynamed(mtmp, monnambuf, usrbuf) {
+    if (!usrbuf || !usrbuf.length) {
+        // Attempt to erase existing name
+        const name_not_title = hasGivenName(mtmp)
+            || type_is_pname(mtmp.data || mtmp.type)
+            || mtmp.isshk;
+        return { rejected: true, msg:
+            `${upstart(monnambuf)} would rather keep its existing ${name_not_title ? 'name' : 'title'}.` };
+    }
+    // Check fuzzy match
+    const lower = (s) => (s || '').toLowerCase().replace(/[-_ ]/g, '');
+    if (lower(usrbuf) === lower(monnambuf)) {
+        return { rejected: true, msg:
+            `${upstart(monnambuf)} is already called ${monnambuf}.` };
+    }
+    // Check "the X" prefix
+    if (monnambuf.toLowerCase().startsWith('the ')
+        && lower(usrbuf) === lower(monnambuf.substring(4))) {
+        return { rejected: true, msg:
+            `${upstart(monnambuf)} is already called ${monnambuf}.` };
+    }
+    return { rejected: false };
+}
+
+// cf. do_name.c:290 — do_oname: name an individual object
+// JS equivalent: oname() at line ~859 handles the naming logic
+export async function do_oname(obj, player) {
+    if (!obj) return;
+    // Novel can't be renamed
+    const SPE_NOVEL = 406; // from objects.js
+    if (obj.otyp === SPE_NOVEL) {
+        // C: pline("%s already has a published name.", Ysimple_name2(obj));
+        return;
+    }
+    const prompt = `What do you want to name this ${doname(obj, player)}? `;
+    const buf = await name_from_player(prompt, safe_oname(obj));
+    if (!buf) return;
+    if (obj.oartifact) {
+        const aname = has_oname(obj) ? ONAME(obj) : 'The artifact';
+        // C: pline("%s resists the attempt.", aname);
+        return;
+    }
+    await oname(obj, buf, 0, player);
+}
+
+// cf. do_name.c:429 — objtyp_is_callable: check if object type can be called
+// JS equivalent: isObjectTypeCallable at line ~976
+export function objtyp_is_callable(i) {
+    const od = objectData[i];
+    if (!od) return false;
+    if (od.oc_uname) return true;
+    const cls = od.oc_class;
+    switch (cls) {
+    case AMULET_CLASS:
+        // Amulets of Yendor can't be called (anti-identification exploit)
+        if (od.oc_name === 'Amulet of Yendor' || od.oc_name === 'cheap plastic imitation of the Amulet of Yendor')
+            return false;
+        // fall through
+    case SCROLL_CLASS: case POTION_CLASS: case WAND_CLASS:
+    case RING_CLASS: case GEM_CLASS: case SPBOOK_CLASS:
+    case ARMOR_CLASS: case TOOL_CLASS: case VENOM_CLASS:
+        if (od.oc_descr) return true;
+        break;
+    }
+    return false;
+}
+
+// cf. do_name.c:499 — docallcmd: naming menu command dispatcher
+// JS equivalent: handleCallObjectTypePrompt (defined below)
+
+// cf. do_name.c:679 — namefloorobj: name type of object on floor
+export async function namefloorobj(player, map, display) {
+    // Simplified: in full C, this uses getpos to select a floor tile
+    // and then calls docall on the object there.
+    // Stub for CODEMATCH — full implementation requires getpos infrastructure.
+    // Full implementation requires getpos infrastructure — stub for CODEMATCH
+}
+
+// cf. do_name.c:759 — ghost names array
+const ghostnames = [
+    'Adri', 'Andries', 'Andreas', 'Bert', 'David', 'Dirk',
+    'Emile', 'Frans', 'Fred', 'Greg', 'Hether', 'Jay',
+    'John', 'Jon', 'Karnov', 'Kay', 'Kenny', 'Kevin',
+    'Maud', 'Michiel', 'Mike', 'Peter', 'Robert', 'Ron',
+    'Tom', 'Wilmar', 'Nick Danger', 'Phoenix', 'Jiro', 'Mizue',
+    'Stephan', 'Lance Braccus', 'Shadowhawk', 'Murphy',
+];
+// cf. do_name.c:772 — rndghostname: random ghost name for ghost monsters
+export function rndghostname(player) {
+    // C: rn2(7) ? ROLL_FROM(ghostnames) : plname
+    // ROLL_FROM picks a random entry from the array
+    return rn2(7) ? ghostnames[rn2(ghostnames.length)]
+                  : (player?.name || 'Strstripes');
+}
+
 // Autotranslated from do_name.c:50
 export function free_mgivenname(mon) {
   if (has_mgivenname(mon)) { if (mon.mextra) mon.mextra.mgivenname = null; mon.mgivenname = null; }

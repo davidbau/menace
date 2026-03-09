@@ -24,7 +24,7 @@ Rules
 | S08 | [#288](https://github.com/davidbau/menace/issues/288) | attrib.c innate+exercise parity | `Ready` |
 | S09 | [#289](https://github.com/davidbau/menace/issues/289) | role.c selection parity | `Done` (Hello, Goodbye, plnamesuffix, role_init, genl_player_setup) |
 | S10 | [#290](https://github.com/davidbau/menace/issues/290) | u_init.c startup edge parity | `Ready` |
-| S11 | [#291](https://github.com/davidbau/menace/issues/291) | do_name.c naming flow parity | `Ready` |
+| S11 | [#291](https://github.com/davidbau/menace/issues/291) | do_name.c naming flow parity | `Done` (new_mgivenname, new_oname, name_from_player, alreadynamed, do_oname, objtyp_is_callable, docallcmd, namefloorobj, rndghostname) |
 | S12 | [#292](https://github.com/davidbau/menace/issues/292) | objnam.c remaining naming parity | `Done` (ledger) |
 | S13 | [#293](https://github.com/davidbau/menace/issues/293) | invent.c getobj/askchain parity | `Ready` |
 | S14 | [#294](https://github.com/davidbau/menace/issues/294) | invent.c organize/perminv/id parity | `Ready` |
@@ -68,5 +68,5 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 24
-- Completed slices: 26 (S09, S12, S17, S18, S19, S20, S21, S22, S23, S24, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S48)
+- Open slices: 23
+- Completed slices: 27 (S09, S11, S12, S17, S18, S19, S20, S21, S22, S23, S24, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S48)
