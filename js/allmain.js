@@ -56,6 +56,7 @@ import { startRecording } from './keylog.js';
 import { nhgetch_wrap, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
          cmdq_copy, cmdq_peek, cmdq_restore, setCmdqInputMode,
          setCmdqRepeatRecordMode } from './input.js';
+import { consumePendingMore } from './more_keys.js';
 import { CQ_CANNED, CQ_REPEAT, CMDQ_INT, CMDQ_KEY } from './const.js';
 import {
     init_nhwindows, create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
@@ -2336,6 +2337,27 @@ export class NetHackGame {
         this._emitGameOver();
     }
 
+    async _consumePendingMoreBoundary(site) {
+        if (!(this.display && this.display._pendingMore)) return;
+        await consumePendingMore(
+            this.display,
+            () => awaitInput(this, nhgetch_wrap({ handleMore: false }), {
+                site: `${site}.read`,
+            }),
+            () => this.display._clearMore(),
+            {
+                game: this,
+                site: `${site}.consume`,
+            }
+        );
+        if (this.display) this.display.messageNeedsMore = false;
+    }
+
+    async _readCommandLoopKey(site) {
+        await this._consumePendingMoreBoundary(`${site}.pre-more`);
+        return await awaitInput(this, nhgetch_wrap({ handleMore: false }), { site });
+    }
+
     // Main game loop — browser path
     // C ref: allmain.c moveloop() -> moveloop_core()
     async gameLoop() {
@@ -2351,7 +2373,7 @@ export class NetHackGame {
                     await this.display.putstr_message(
                         `Program in disorder! Please report to the Menace team. (${e?.message || e})`
                     );
-                    await awaitInput(this, nhgetch_wrap(), { site: 'gameLoop.error-recovery.wait-key' });
+                    await this._readCommandLoopKey('gameLoop.error-recovery.wait-key');
                     this.fov.compute(this.map, this.player.x, this.player.y);
                     this.display.renderMap(this.map, this.player, this.fov, this.flags);
                     this.display.renderStatus(this.player);
@@ -2384,7 +2406,7 @@ export class NetHackGame {
         }
 
         // Get player input with optional count prefix
-        const firstCh = await awaitInput(this, nhgetch_wrap(), { site: 'gameLoop.read-first-key' });
+        const firstCh = await this._readCommandLoopKey('gameLoop.read-first-key');
         let ch;
         let countPrefix = 0;
 
@@ -2404,7 +2426,7 @@ export class NetHackGame {
                     if (this.shouldInterruptMulti()) {
                         this.multi = 0;
                         await this.display.putstr_message('--More--');
-                        await awaitInput(this, nhgetch_wrap(), { site: 'gameLoop.repeat.interrupt-more' });
+                        await this._consumePendingMoreBoundary('gameLoop.repeat.interrupt-more');
                     }
                 },
             });
@@ -2448,7 +2470,7 @@ export class NetHackGame {
                 if (this.shouldInterruptMulti()) {
                     this.multi = 0;
                     await this.display.putstr_message('--More--');
-                    await awaitInput(this, nhgetch_wrap(), { site: 'gameLoop.multi.interrupt-more' });
+                    await this._consumePendingMoreBoundary('gameLoop.multi.interrupt-more');
                 }
             },
         });

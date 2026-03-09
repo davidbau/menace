@@ -8,7 +8,7 @@ describe('synclock allmain boundary hygiene', () => {
         const src = readFileSync(resolve('js/allmain.js'), 'utf8');
         assert.equal(/await\s+nhgetch_wrap\s*\(/.test(src), false);
         // Ensure typed wrapper is present for loop-input waits.
-        assert.equal(src.includes('await awaitInput(this, nhgetch_wrap()'), true);
+        assert.equal(src.includes('nhgetch_wrap({ handleMore: false })'), true);
     });
 
     it('does not use raw setTimeout(0) awaits in allmain command loop paths', () => {

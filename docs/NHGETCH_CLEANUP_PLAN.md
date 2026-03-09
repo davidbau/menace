@@ -89,7 +89,7 @@ Required validation per phase:
 ### Phase 2: Move `--More--` waiting out of wrapper
 
 - [x] Add shared helper to consume pending `--More--` using shared primitives.
-- [ ] Route command loop (`allmain`/boundary owner path) through boundary helper.
+- [x] Route command loop (`allmain`/boundary owner path) through boundary helper.
 - [ ] Route prompt/readchar-equivalent paths through same boundary helper.
 - [ ] Remove `--More--` dismissal loop from `nhgetch_wrap`.
 - [ ] Verify no regressions in parity channels.
@@ -146,6 +146,9 @@ Required validation per phase:
 4. 2026-03-09: Introduced reusable `consumePendingMore(...)` helper and wired
    `nhgetch_wrap` through it (Phase 2a). This is still wrapper-owned behavior,
    but isolates logic for later ownership transfer.
+5. 2026-03-09: Command-loop key reads in `allmain` now pre-consume pending
+   `--More--` via `consumePendingMore(...)` and read keys via
+   `nhgetch_wrap({ handleMore: false })`.
 
 ## Decision Log
 

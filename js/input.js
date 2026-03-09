@@ -459,7 +459,8 @@ export function nhgetch_raw() {
 // Get a character of input (async)
 // This is the JS equivalent of C's nhgetch().
 // C ref: winprocs.h win_nhgetch
-export function nhgetch_wrap() {
+export function nhgetch_wrap(opts = {}) {
+    const handleMore = opts?.handleMore !== false;
     const readUnifiedKey = async () => {
         const queuedKey = popQueuedInputKey(cmdqInputModeDoAgain);
         if (Number.isFinite(queuedKey)) {
@@ -503,7 +504,7 @@ export function nhgetch_wrap() {
     // C ref: readchar() / flush_screen — if --More-- is pending on the
     // topline, consume dismissal key(s), drain queued messages, then return
     // the next command key. Keep this iterative to avoid recursive fallback.
-    if (display && display._pendingMore) {
+    if (handleMore && display && display._pendingMore) {
         const waitForMoreDismiss = async () => {
             await consumePendingMore(
                 display,
