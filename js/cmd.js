@@ -7,7 +7,7 @@ import { A_STR, A_DEX, A_CON, A_WIS, STATUS_ROW_1,
          DART_TRAP, ARROW_TRAP,
          DIRECTION_KEYS, RUN_KEYS, CQ_REPEAT, P_NUM_SKILLS,
          xdir, ydir, N_DIRS, N_DIRS_Z } from './const.js';
-import { rn2, rnl } from './rng.js';
+import { rn2, rnl, midlog_enter, midlog_exit_int } from './rng.js';
 import { handleWizLoadDes, wizLevelChange, wizMap, wizTeleport, wizGenesis, wizWish } from './wizcmds.js';
 import { handleThrow, handleFire } from './dothrow.js';
 import { handleKnownSpells, docast } from './spell.js';
@@ -1063,11 +1063,11 @@ export function doprev_message() {
 // Autotranslated from cmd.c:415
 export function timed_occupation(game) {
   let result;
-  midlog_enter("timed_occupation", __FILE__, __LINE__, __func__);
+  midlog_enter("timed_occupation", "cmd.js", 0, "timed_occupation");
   timed_occ_fn();
   if (game.multi > 0) game.multi--;
   result = game.multi > 0;
-  midlog_exit_int("timed_occupation", result, __FILE__, __LINE__, __func__);
+  midlog_exit_int("timed_occupation", result, "cmd.js", 0, "timed_occupation");
   return result;
 }
 

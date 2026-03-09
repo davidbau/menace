@@ -8,6 +8,8 @@ import { getEnv, getEnvObject, envFlag } from './runtime_env.js';
 
 let coreCtx = null; // CORE ISAAC64 context (C rn2)
 let dispCtx = null; // DISP ISAAC64 context (C rn2_on_display_rng)
+const CORE = 0;
+const DISP = 1;
 
 // --- PRNG call logging ---
 // When enabled, every rn2/rnd/rnl/d call is logged in the same format
@@ -95,6 +97,46 @@ export function disableRngLog() {
     rngTagOverride = null;
     rngTagCache.clear();
     rngEventTagCache.clear();
+}
+
+// C ref: rnd.c:37 rng_log_init()
+export function rng_log_init(withTags = true) {
+    enableRngLog(withTags);
+}
+
+// C ref: rnd.c:48 rng_log_set_caller()
+export function rng_log_set_caller(tag) {
+    rngTagOverride = (typeof tag === 'string' && tag.length > 0) ? tag : null;
+}
+
+// C ref: rnd.c:56 rng_log_get_call_count()
+export function rng_log_get_call_count() {
+    return getRngCallCount();
+}
+
+// C ref: rnd.c:62 rng_log_write()
+export function rng_log_write(entry) {
+    pushRngLogEntry(String(entry ?? ''));
+}
+
+// C ref: rnd.c:103 midlog_enter()
+export function midlog_enter(_name, _file, _line, _func) {
+    return;
+}
+
+// C ref: rnd.c:114 midlog_exit_int()
+export function midlog_exit_int(_name, _result, _file, _line, _func) {
+    return;
+}
+
+// C ref: rnd.c:127 midlog_exit_void()
+export function midlog_exit_void(_name, _file, _line, _func) {
+    return;
+}
+
+// C ref: rnd.c:140 midlog_exit_ptr()
+export function midlog_exit_ptr(_name, _result, _file, _line, _func) {
+    return;
 }
 
 // Hot-path helper: avoid per-call stack parsing by supplying explicit tag context.
@@ -246,6 +288,61 @@ export function initRng(seed) {
         rngLog.length = 0;
         rngCallCount = 0;
     }
+}
+
+// C ref: rnd.c:178 whichrng()
+export function whichrng(fn) {
+    if (fn === rn2) return CORE;
+    if (fn === rn2_on_display_rng) return DISP;
+    return -1;
+}
+
+// C ref: rnd.c:189 init_isaac64(seed, fn)
+export function init_isaac64(seed, fn = rn2) {
+    // If contexts are uninitialized, seed both streams first for deterministic startup.
+    if (!coreCtx || !dispCtx) {
+        initRng(seed);
+        return;
+    }
+    const s = BigInt(seed) & 0xFFFFFFFFFFFFFFFFn;
+    const bytes = new Uint8Array(8);
+    let tmp = s;
+    for (let i = 0; i < 8; i++) {
+        bytes[i] = Number(tmp & 0xFFn);
+        tmp >>= 8n;
+    }
+    const which = whichrng(fn);
+    if (which === DISP) {
+        dispCtx = isaac64_init(bytes);
+    } else {
+        coreCtx = isaac64_init(bytes);
+    }
+}
+
+// C ref: rnd.c:418 set_random(seed, fn)
+export function set_random(seed, fn = rn2) {
+    init_isaac64(seed, fn);
+}
+
+function sys_random_seed() {
+    const forced = getEnv('NETHACK_SEED');
+    if (forced != null && forced !== '') {
+        const parsed = Number.parseInt(forced, 10);
+        if (Number.isFinite(parsed)) return parsed >>> 0;
+    }
+    return (Date.now() >>> 0);
+}
+
+// C ref: rnd.c:465 init_random(fn)
+export function init_random(fn = rn2) {
+    set_random(sys_random_seed(), fn);
+}
+
+// C ref: rnd.c:472 reseed_random(fn)
+export function reseed_random(fn = rn2) {
+    // JS/browser runtime does not model has_strong_rngseed; keep deterministic
+    // behavior by sharing init path.
+    init_random(fn);
 }
 
 // Raw 64-bit value, modulo x -- matches C's RND(x) macro

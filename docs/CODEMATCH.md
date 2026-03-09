@@ -4287,29 +4287,29 @@ Remaining parity gaps are mostly behavioral depth:
 |--------|------------|---------|-----------|
 | 207 | `RND` | rng.js:253 | Implemented |
 | 338 | `d` | rng.js:350 | Implemented |
-| 189 | `init_isaac64` | - | Missing |
-| 465 | `init_random` | - | Missing |
-| 103 | `midlog_enter` | - | Missing |
-| 114 | `midlog_exit_int` | - | Missing |
-| 140 | `midlog_exit_ptr` | - | Missing |
-| 127 | `midlog_exit_void` | - | Missing |
-| 472 | `reseed_random` | - | Missing |
+| 189 | `init_isaac64` | rng.js:301 | Implemented |
+| 465 | `init_random` | rng.js:337 | Implemented |
+| 103 | `midlog_enter` | rng.js:123 | Implemented |
+| 114 | `midlog_exit_int` | rng.js:128 | Implemented |
+| 140 | `midlog_exit_ptr` | rng.js:138 | Implemented |
+| 127 | `midlog_exit_void` | rng.js:133 | Implemented |
+| 472 | `reseed_random` | rng.js:342 | Implemented |
 | 241 | `rn2` | rng.js:265 | Implemented |
 | 216 | `rn2_on_display_rng` | rng.js:284 | Implemented |
 | 231 | `rn2_on_display_rng` | rng.js:284 | Implemented |
 | 312 | `rnd` | rng.js:305 | Implemented |
 | 331 | `rnd_on_display_rng` | rng.js:298 | Implemented |
 | 361 | `rne` | rng.js:427 | Implemented |
-| 56 | `rng_log_get_call_count` | - | Missing |
-| 37 | `rng_log_init` | - | Missing |
-| 48 | `rng_log_set_caller` | - | Missing |
-| 62 | `rng_log_write` | - | Missing |
+| 56 | `rng_log_get_call_count` | rng.js:113 | Implemented |
+| 37 | `rng_log_init` | rng.js:103 | Implemented |
+| 48 | `rng_log_set_caller` | rng.js:108 | Implemented |
+| 62 | `rng_log_write` | rng.js:118 | Implemented |
 | 262 | `rnl` | rng.js:325 | Implemented |
 | 390 | `rnz` | rng.js:407 | Implemented |
-| 418 | `set_random` | - | Missing |
-| 428 | `set_random` | - | Missing |
+| 418 | `set_random` | rng.js:323 | Implemented |
+| 428 | `set_random` | rng.js:323 | Implemented |
 | 482 | `shuffle_int_array` | rng.js:483 | Implemented |
-| 178 | `whichrng` | - | Missing |
+| 178 | `whichrng` | rng.js:294 | Implemented |
 
 ### role.c -> role.js
 | C Line | C Function | JS Line | Alignment |

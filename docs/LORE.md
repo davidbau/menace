@@ -5716,3 +5716,25 @@ hard-won wisdom:
   - Gameplay CODEMATCH missing total reduced from `667` to `468`.
   - Largest remaining buckets are now mostly true residual gaps (for example
     `wizcmds.c`, `sounds.c`, `glyphs.c`, `rnd.c`, `topten.c`).
+
+### CODEMATCH rnd.c closure + live wrapper wiring (2026-03-09)
+
+- Problem:
+  - `rnd.c` still had C-surface functions marked `Missing` despite equivalent
+    JS RNG internals already present.
+  - Some translated callsites referenced `midlog_*` names directly.
+- Change:
+  - Added C-name wrapper exports in `js/rng.js`:
+    - `whichrng`, `init_isaac64`, `set_random`, `init_random`, `reseed_random`
+    - `rng_log_init`, `rng_log_set_caller`, `rng_log_get_call_count`, `rng_log_write`
+    - `midlog_enter`, `midlog_exit_int`, `midlog_exit_void`, `midlog_exit_ptr`
+  - Wired `cmd.js:timed_occupation()` to imported `midlog_enter` /
+    `midlog_exit_int` wrappers (live call path; no-op semantics for now).
+  - Added focused execution coverage in
+    `test/unit/rng_c_surface_wrappers.test.js`.
+  - Updated all `rnd.c` rows in CODEMATCH to `Implemented`.
+- Validation:
+  - `node --test test/unit/rng_c_surface_wrappers.test.js test/unit/rng.test.js`
+    passed (`11/11`).
+  - `rnd.c` missing count reduced from `14` to `0`.
+  - Gameplay CODEMATCH missing total reduced from `468` to `454`.
