@@ -346,7 +346,7 @@ export async function handleInventory(player, display, game) {
     // C tty/menu parity: inventory stays up until an explicit dismissal key.
     // Non-dismiss keys can be consumed without closing the menu frame.
     while (true) {
-        const ch = await awaitInput(game, nhgetch_wrap(), {
+        const ch = await awaitInput(game, nhgetch_raw(), {
             site: 'invent.handleInventory.loop',
         });
         // C tty parity: space advances pages when present; otherwise it

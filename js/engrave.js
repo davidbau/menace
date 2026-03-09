@@ -596,7 +596,7 @@ export async function handleEngrave(player, display) {
         : 'What do you want to write with? [- or ?*] ';
     await display.putstr_message(writePrompt);
     while (true) {
-        const ch = await awaitInput(null, nhgetch_wrap(), { site: 'engrave.handleEngrave.stylusPrompt' });
+        const ch = await awaitInput(null, nhgetch_raw(), { site: 'engrave.handleEngrave.stylusPrompt' });
         let c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
