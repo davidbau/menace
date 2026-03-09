@@ -5510,3 +5510,22 @@ hard-won wisdom:
   - The `^remove[291,45,6]` event is emitted in JS step `1398` (key `l`) at
     the start of step processing, indicating a step-boundary work distribution
     mismatch (JS one move ahead) rather than a standalone pickup filter bug.
+
+### runstep diagnostics: include pickup/nopick/travel state (2026-03-09)
+
+- Problem:
+  - `^runstep` was missing explicit autopickup/boundary state, making it
+    harder to prove whether a suspicious pickup happened with autopickup
+    enabled or suppressed by prefixes.
+- Fixes:
+  - [`js/allmain.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/allmain.js):
+    - `emitRunstep()` now logs:
+      - `pickup` (`flags.pickup`)
+      - `nopick` (`context.nopick`)
+      - `travel` (`context.travel`)
+  - [`test/comparison/c-harness/patches/021-runstep-events.patch`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/c-harness/patches/021-runstep-events.patch):
+    - C patch updated to emit the same fields for cross-runtime diagnostics.
+- Validation:
+  - With `WEBHACK_EVENT_RUNSTEP=1`, seed033 steps 1397-1399 now include:
+    - `pickup=1 nopick=0 travel=0`
+  - Gameplay parity unchanged (`33/34` passing, only seed033 failing).

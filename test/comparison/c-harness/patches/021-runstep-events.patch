@@ -21,11 +21,12 @@ diff --git a/src/allmain.c b/src/allmain.c
 +#define RUNSTEP_EVENT(pathstr, keyarg)                                         \
 +    do {                                                                       \
 +        if (runstep_event_enabled())                                           \
-+            event_log("runstep[path=%s keyarg=%d cmd=%d cc=%d moves=%ld multi=%d run=%d mv=%d move=%d occ=%d umoved=%d ux=%d uy=%d]", \
++            event_log("runstep[path=%s keyarg=%d cmd=%d cc=%d moves=%ld multi=%d run=%d mv=%d move=%d occ=%d pickup=%d nopick=%d travel=%d umoved=%d ux=%d uy=%d]", \
 +                      (pathstr), (int) (keyarg), gc.cmd_key, gc.command_count, \
 +                      svm.moves, gm.multi, svc.context.run, svc.context.mv,    \
-+                      svc.context.move, go.occupation ? 1 : 0, u.umoved ? 1 : 0, \
-+                      u.ux, u.uy);                                             \
++                      svc.context.move, go.occupation ? 1 : 0, flags.pickup ? 1 : 0, \
++                      svc.context.nopick ? 1 : 0, svc.context.travel ? 1 : 0,  \
++                      u.umoved ? 1 : 0, u.ux, u.uy);                           \
 +    } while (0)
  
  void
