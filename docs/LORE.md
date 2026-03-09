@@ -5603,3 +5603,18 @@ hard-won wisdom:
     - `auto_key` did not track replay depth reliably.
   - Tool now consistently captures deterministic input-boundary snapshots and
     still exposes real C/JS state differences (for example pickup flag drift).
+
+### CODEMATCH do.c ledger accuracy pass (2026-03-09)
+
+- Problem:
+  - `docs/CODEMATCH.md` had stale `do.c -> do.js` rows marked `Missing`
+    despite same-named exported implementations already present in `js/do.js`.
+- Change:
+  - Updated `do.c` rows to point at concrete `do.js:<line>` implementations
+    for 37 functions already present.
+  - Left genuinely absent entries unchanged as `Missing`:
+    `doddrop`, `dodown`, `doup`, `goto_level`, `menu_drop`,
+    `teleport_sink`, `u_collide_m`.
+- Result:
+  - `do.c` missing count reduced from `44` to `7`.
+  - Gameplay CODEMATCH missing total reduced from `1192` to `1156`.
