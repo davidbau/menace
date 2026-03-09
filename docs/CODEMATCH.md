@@ -1061,7 +1061,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1935 | `buried_ball_to_punishment` | dig.js:1583 | Implemented |
 | 1984 | `bury_an_obj` | dig.js:1628 | Implemented |
 | 2193 | `bury_monst` | dig.js:1801 | Implemented |
-| 2273 | `bury_obj` | - | Missing |
+| 2273 | `bury_obj` | dig.js:bury_obj | Implemented |
 | 2050 | `bury_objs` | dig.js:1686 | Implemented |
 | 2212 | `bury_you` | dig.js:1820 | Implemented |
 | 300 | `dig` | dig.js:1125 | Implemented |
@@ -1092,7 +1092,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1162 | `use_pick_axe2` | dig.js:983 | Implemented |
 | 1377 | `watch_dig` | dig.js:663 | Implemented |
 | 1362 | `watchman_canseeu` | dig.js:watchman_canseeu | Implemented |
-| 2288 | `wiz_debug_cmd_bury` | - | Missing |
+| 2288 | `wiz_debug_cmd_bury` | dig.js:wiz_debug_cmd_bury | Implemented |
 | 1548 | `zap_dig` | dig.js:715 | Implemented |
 
 ### display.c -> display.js
@@ -4278,8 +4278,8 @@ Remaining parity gaps are mostly behavioral depth:
 ### rip.c -> display.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 75 | `center` | - | Missing |
-| 85 | `genl_outrip` | - | Missing |
+| 75 | `center` | rip.js:center | Implemented |
+| 85 | `genl_outrip` | rip.js:genl_outrip | Implemented |
 
 ### rnd.c -> rng.js
 | C Line | C Function | JS Line | Alignment |
