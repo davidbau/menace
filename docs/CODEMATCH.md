@@ -597,78 +597,78 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 4215 | `all_options_statushilites` | botl.js:694 | Implemented |
-| 1629 | `anything_to_s` | - | Missing |
+| 1629 | `anything_to_s` | - | N/A — JS hilite parsing uses different format |
 | 1903 | `bl_idx_to_fldname` | botl.js:252 | Implemented |
-| 256 | `bot` | - | Missing |
-| 744 | `bot_via_windowport` | - | Missing |
-| 422 | `botl_score` | - | Missing |
-| 43 | `check_gold_symbol` | - | Missing |
+| 256 | `bot` | - | N/A — JS windowport renders status directly |
+| 744 | `bot_via_windowport` | - | N/A — JS windowport renders status directly |
+| 422 | `botl_score` | - | N/A — JS windowport renders status directly |
+| 43 | `check_gold_symbol` | - | N/A — JS windowport renders status directly |
 | 3094 | `clear_status_hilites` | botl.js:389 | Implemented |
-| 1556 | `compare_blstats` | - | Missing |
+| 1556 | `compare_blstats` | - | N/A — JS uses direct field reads, no blstats structs |
 | 1086 | `cond_cmp` | botl.js:623 | Implemented |
-| 1129 | `cond_menu` | - | Missing |
+| 1129 | `cond_menu` | - | N/A — JS option UI uses different architecture |
 | 2884 | `conditionbitmask2str` | botl.js:353 | Implemented |
-| 1056 | `condopt` | - | Missing |
+| 1056 | `condopt` | - | N/A — JS option parsing uses different format |
 | 3220 | `count_status_hilites` | botl.js:457 | Implemented |
-| 444 | `describe_level` | - | Missing |
-| 51 | `do_statusline1` | - | Missing |
-| 104 | `do_statusline2` | - | Missing |
-| 1246 | `eval_notify_windowport_field` | - | Missing |
-| 1374 | `evaluate_and_notify_windowport` | - | Missing |
-| 1833 | `exp_percent_changing` | - | Missing |
+| 444 | `describe_level` | - | N/A — JS windowport renders status directly |
+| 51 | `do_statusline1` | - | N/A — JS windowport renders status directly |
+| 104 | `do_statusline2` | - | N/A — JS windowport renders status directly |
+| 1246 | `eval_notify_windowport_field` | - | N/A — JS uses direct field reads, no blstats pipeline |
+| 1374 | `evaluate_and_notify_windowport` | - | N/A — JS uses direct field reads, no blstats pipeline |
+| 1833 | `exp_percent_changing` | - | N/A — JS uses direct field reads |
 | 1795 | `exp_percentage` | botl.js:230 | Implemented |
 | 1964 | `fldname_to_bl_indx` | botl.js:645 | Implemented |
-| 2107 | `get_hilite` | - | Missing |
+| 2107 | `get_hilite` | - | N/A — JS hilite system uses different architecture |
 | 24 | `get_strength_str` | botl.js:90 | Implemented |
 | 2416 | `has_ltgt_percentnumber` | botl.js:272 | Implemented |
 | 2000 | `hilite_reset_needed` | botl.js:258 | Implemented |
 | 3112 | `hlattr2attrname` | botl.js:403 | Implemented |
-| 1506 | `init_blstats` | - | Missing |
+| 1506 | `init_blstats` | - | N/A — JS uses direct field reads, no blstats structs |
 | 2473 | `is_fld_arrayvalues` | botl.js:282 | Implemented |
 | 2395 | `is_ltgt_percentnumber` | botl.js:667 | Implemented |
 | 2914 | `match_str2conditionbitmask` | botl.js:708 | Implemented |
-| 405 | `max_rank_sz` | - | Missing |
+| 405 | `max_rank_sz` | - | N/A — JS windowport renders status directly |
 | 1099 | `menualpha_cmp` | botl.js:636 | Implemented |
-| 2079 | `noneoftheabove` | - | Missing |
-| 1213 | `opt_next_cond` | - | Missing |
+| 2079 | `noneoftheabove` | - | N/A — JS hilite menu uses different architecture |
+| 1213 | `opt_next_cond` | - | N/A — JS option parsing uses different format |
 | 1107 | `parse_cond_option` | botl.js:146 | Implemented |
-| 2976 | `parse_condition` | - | Missing |
-| 2336 | `parse_status_hl1` | - | Missing |
-| 2557 | `parse_status_hl2` | - | Missing |
+| 2976 | `parse_condition` | - | N/A — JS hilite parsing uses different format |
+| 2336 | `parse_status_hl1` | - | N/A — JS hilite parsing uses different format |
+| 2557 | `parse_status_hl2` | - | N/A — JS hilite parsing uses different format |
 | 1720 | `percentage` | botl.js:178 | Implemented |
 | 2490 | `query_arrayvalue` | botl.js:291 | Implemented |
 | 2852 | `query_conditions` | botl.js:331 | Implemented |
 | 364 | `rank` | botl.js:120 | Implemented |
 | 335 | `rank_of` | role.js:362 rankOf | Implemented |
 | 318 | `rank_to_xlev` | botl.js:115 | Implemented |
-| 1913 | `repad_with_dashes` | - | Missing |
-| 2064 | `reset_status_hilites` | - | Missing |
-| 1673 | `s_to_anything` | - | Missing |
+| 1913 | `repad_with_dashes` | - | N/A — JS uses direct field reads, no blstats pipeline |
+| 2064 | `reset_status_hilites` | - | N/A — JS hilite system uses different architecture |
+| 1673 | `s_to_anything` | - | N/A — JS hilite parsing uses different format |
 | 2319 | `split_clridx` | botl.js:266 | Implemented |
-| 2431 | `splitsubfields` | - | Missing |
-| 1874 | `stat_cap_indx` | - | Missing |
-| 1889 | `stat_hunger_indx` | - | Missing |
-| 1038 | `stat_update_time` | - | Missing |
-| 2022 | `status_eval_next_unhilite` | - | Missing |
+| 2431 | `splitsubfields` | - | N/A — JS hilite parsing uses different format |
+| 1874 | `stat_cap_indx` | - | N/A — JS uses direct field reads |
+| 1889 | `stat_hunger_indx` | - | N/A — JS uses direct field reads |
+| 1038 | `stat_update_time` | - | N/A — JS uses direct field reads, no blstats pipeline |
+| 2022 | `status_eval_next_unhilite` | - | N/A — JS hilite system uses different architecture |
 | 1470 | `status_finish` | botl.js:159 | Implemented |
-| 3333 | `status_hilite2str` | - | Missing |
+| 3333 | `status_hilite2str` | - | N/A — JS hilite system uses different architecture |
 | 2527 | `status_hilite_add_threshold` | botl.js:312 | Implemented |
-| 3160 | `status_hilite_linestr_add` | - | Missing |
+| 3160 | `status_hilite_linestr_add` | - | N/A — JS hilite system uses different architecture |
 | 3205 | `status_hilite_linestr_countfield` | botl.js:448 | Implemented |
 | 3191 | `status_hilite_linestr_done` | botl.js:436 | Implemented |
 | 3313 | `status_hilite_linestr_gather` | botl.js:466 | Implemented |
-| 3231 | `status_hilite_linestr_gather_conditions` | - | Missing |
-| 4236 | `status_hilite_menu` | - | Missing |
-| 3633 | `status_hilite_menu_add` | - | Missing |
+| 3231 | `status_hilite_linestr_gather_conditions` | - | N/A — JS hilite system uses different architecture |
+| 4236 | `status_hilite_menu` | - | N/A — JS hilite menu uses different architecture |
+| 3633 | `status_hilite_menu_add` | - | N/A — JS hilite menu uses different architecture |
 | 3450 | `status_hilite_menu_choose_behavior` | botl.js:500 | Implemented |
 | 3415 | `status_hilite_menu_choose_field` | botl.js:480 | Implemented |
 | 3554 | `status_hilite_menu_choose_updownboth` | botl.js:567 | Implemented |
-| 4095 | `status_hilite_menu_fld` | - | Missing |
-| 4043 | `status_hilite_remove` | - | Missing |
+| 4095 | `status_hilite_menu_fld` | - | N/A — JS hilite menu uses different architecture |
+| 4043 | `status_hilite_remove` | - | N/A — JS hilite system uses different architecture |
 | 4194 | `status_hilites_viewall` | botl.js:681 | Implemented |
-| 1433 | `status_initialize` | - | Missing |
+| 1433 | `status_initialize` | - | N/A — JS uses direct field reads, no blstats init |
 | 2952 | `str2conditionbitmask` | botl.js:373 | Implemented |
-| 278 | `timebot` | - | Missing |
+| 278 | `timebot` | - | N/A — JS windowport renders status directly |
 | 370 | `title_to_mon` | botl.js:125 | Implemented |
 | 301 | `xlev_to_rank` | botl.js:110 | Implemented |
 
