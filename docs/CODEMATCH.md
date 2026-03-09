@@ -42,7 +42,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | attrib.c | attrib.js | Attribute system. All 28 public C functions implemented across attrib.js + attrib_exercise.js. acurr/acurrstr/adjattrib/gainstr/losestr/poisoned/restore_attrib/exercise/exerchk etc. RNG-faithful. Stubs for cross-cutting concerns (see_monsters, done, losehp) handled elsewhere |
 | `[a]` | ball.c | ball.js | Ball & chain handling. 12/16 C functions present: ballrelease/ballfall/placebc/unplacebc/set_bc/move_bc/bc_order/bc_sanity_check etc. Missing: BREADCRUMBS-mode debug variants (Placebc/Unplacebc/covet wrappers) |
 | `[a]` | bones.c | bones.js | Bones file save/load. All 9 functions aligned; 3 static TODO (no_bones_level, goodfruit, fixuporacle) |
-| `[~]` | botl.c | botl.js | Bottom status line. 35/65 C functions present — hilite menu/condition utilities implemented. Core display (do_statusline1/2, bot, bot_via_windowport) delegated to display.js renderStatus(). Missing: rank_of, describe_level, init_blstats, status_eval_next_unhilite, parse_status_hl1, get_hilite |
+| `[a]` | botl.c | botl.js | Bottom status line. 38 exports. Core rendering (bot/do_statusline1/2) delegated to display.js renderStatus(). rank_of, rank, title_to_mon, max_rank_sz, describe_level, xlev_to_rank, rank_to_xlev all implemented. Status hilite utilities: parse_cond_option, count_status_hilites, clear_status_hilites, conditionbitmask2str, str2conditionbitmask, etc. Many C functions N/A (blstats pipeline, windowport field tracking) |
 | `[x]` | calendar.c | calendar.js | Time, moon phase, Friday 13th, night/midnight. Affects gameplay |
 | `[N/A]` | cfgfiles.c | — | Config file parsing. JS: `storage.js` handles config differently |
 | `[a]` | cmd.c | cmd.js | Command dispatch. rhack() dispatches all key/command input; handleExtendedCommand (doextcmd); prefix commands (m/F/G/g). `input.js` handles low-level input and cmdq primitives (`cmdq_add_*`, `cmdq_pop/peek/copy/clear`, `cmdq_shift/reverse`) with `allmain.execute_repeat_command()` wired for `CQ_REPEAT` replay (`Ctrl+A`/`#repeat`). ~140 C functions remain N/A (mostly key binding/mouse) |
@@ -171,9 +171,9 @@ don't follow the same 1:1 C→JS mapping pattern.
 - **N/A (system/platform)**: 21
 - **Game logic files**: 108
 - **Complete (`[x]`)**: 4
-- **Aligned (`[a]`)**: 95
+- **Aligned (`[a]`)**: 96
 - **Present (`[p]`)**: 2
-- **Needs alignment (`[~]`)**: 7
+- **Needs alignment (`[~]`)**: 6
 - **No JS file yet (`[ ]`)**: 0
 
 ### JS Files With Non-Strict C Mapping
@@ -611,7 +611,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2884 | `conditionbitmask2str` | botl.js:353 | Implemented |
 | 1056 | `condopt` | - | N/A — JS option parsing uses different format |
 | 3220 | `count_status_hilites` | botl.js:457 | Implemented |
-| 444 | `describe_level` | - | N/A — JS windowport renders status directly |
+| 444 | `describe_level` | botl.js:92 | Implemented (Dlvl/Home/End Game formatting) |
 | 51 | `do_statusline1` | - | N/A — JS windowport renders status directly |
 | 104 | `do_statusline2` | - | N/A — JS windowport renders status directly |
 | 1246 | `eval_notify_windowport_field` | - | N/A — JS uses direct field reads, no blstats pipeline |
@@ -628,7 +628,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2473 | `is_fld_arrayvalues` | botl.js:282 | Implemented |
 | 2395 | `is_ltgt_percentnumber` | botl.js:667 | Implemented |
 | 2914 | `match_str2conditionbitmask` | botl.js:708 | Implemented |
-| 405 | `max_rank_sz` | - | N/A — JS windowport renders status directly |
+| 405 | `max_rank_sz` | botl.js:74 | Implemented |
 | 1099 | `menualpha_cmp` | botl.js:636 | Implemented |
 | 2079 | `noneoftheabove` | - | N/A — JS hilite menu uses different architecture |
 | 1213 | `opt_next_cond` | - | N/A — JS option parsing uses different format |
@@ -640,7 +640,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2490 | `query_arrayvalue` | botl.js:291 | Implemented |
 | 2852 | `query_conditions` | botl.js:331 | Implemented |
 | 364 | `rank` | botl.js:120 | Implemented |
-| 335 | `rank_of` | role.js:362 rankOf | Implemented |
+| 335 | `rank_of` | botl.js:56 | Implemented (role lookup, rank array, gender-aware) |
 | 318 | `rank_to_xlev` | botl.js:115 | Implemented |
 | 1913 | `repad_with_dashes` | - | N/A — JS uses direct field reads, no blstats pipeline |
 | 2064 | `reset_status_hilites` | - | N/A — JS hilite system uses different architecture |

@@ -1,4 +1,6 @@
 import { strchr } from './hacklib.js';
+import { roles } from './role.js';
+import { depth, dunlev, In_quest, In_endgame } from './dungeon.js';
 // botl.js -- Bottom status line: HP, AC, experience, conditions
 // cf. botl.c — get_strength_str, check_gold_symbol, do_statusline1, do_statusline2,
 //              bot, timebot, xlev_to_rank, rank_to_xlev, rank_of, rank,
@@ -51,28 +53,61 @@ import { strchr } from './hacklib.js';
 // TODO: botl.c:317 — rank_to_xlev(): rank to level conversion
 
 // cf. botl.c:334 — rank_of(lev, monnum, female): character rank string
-// Returns role rank/title string for given level, monster type, and gender.
-// TODO: botl.c:334 — rank_of(): character rank title
+export function rank_of(lev, monnum, female) {
+    // Find the role by mnum
+    let role = roles.find(r => r.mnum === monnum);
+    if (!role) role = roles[0]; // fallback to first role
+    // Find the rank
+    for (let i = xlev_to_rank(lev); i >= 0; i--) {
+        if (female && role.ranks[i] && role.ranks[i].f)
+            return role.ranks[i].f;
+        if (role.ranks[i] && role.ranks[i].m)
+            return role.ranks[i].m;
+    }
+    // Try the role name instead
+    if (female && role.namef)
+        return role.namef;
+    if (role.name)
+        return role.name;
+    return "Player";
+}
 
-// cf. botl.c:363 [static] — rank(void): current player rank
-// Returns current player rank using current level and role.
-// TODO: botl.c:363 — rank(): current rank lookup
-
-// cf. botl.c:369 — title_to_mon(str, rank_indx, title_length): parse rank title
-// Parses a rank title string and returns matching role/monster number.
-// TODO: botl.c:369 — title_to_mon(): rank title parsing
-
-// cf. botl.c:404 — max_rank_sz(void): max rank title length
-// Calculates maximum length of all rank titles for current role.
-// TODO: botl.c:404 — max_rank_sz(): rank title max length
+// cf. botl.c:404 — max_rank_sz(): max rank title length for current role
+export function max_rank_sz(player) {
+    const role = roles.find(r => r.mnum === player?.roleMnum) || roles[0];
+    let maxr = 0;
+    for (let i = 0; i < 9; i++) {
+        if (role.ranks[i]?.m && role.ranks[i].m.length > maxr)
+            maxr = role.ranks[i].m.length;
+        if (role.ranks[i]?.f && role.ranks[i].f.length > maxr)
+            maxr = role.ranks[i].f.length;
+    }
+    return maxr;
+}
 
 // cf. botl.c:421 — botl_score(void): compute display score
 // Computes total score from XP, gold, and dungeon depth for SCORE_ON_BOTL.
 // TODO: botl.c:421 — botl_score(): status line score computation
 
-// cf. botl.c:443 — describe_level(buf, dflgs): format dungeon level
-// Formats current dungeon level description with optional branch name.
-// TODO: botl.c:443 — describe_level(): dungeon level description
+// cf. botl.c:443 — describe_level(uz, dflgs): format dungeon level
+export function describe_level(uz, dflgs) {
+    const addspace = (dflgs & 1) !== 0;
+    let addbranch = (dflgs & 2) !== 0;
+    let buf;
+    if (In_quest(uz)) {
+        buf = `Home ${dunlev(uz)}`;
+    } else if (In_endgame(uz)) {
+        buf = `End Game`;
+        addbranch = false;
+    } else {
+        if (!addbranch)
+            buf = `Dlvl:${depth(uz)}`;
+        else
+            buf = `level ${depth(uz)}`;
+    }
+    if (addspace) buf += ' ';
+    return buf;
+}
 
 // cf. botl.c:744 [static] — bot_via_windowport(void): update via windowport
 // Updates individual status fields through the windowport field tracking system.
@@ -116,30 +151,27 @@ export function rank_to_xlev(rank) {
   return (rank < 1) ? 1 : (rank < 2) ? 3 : (rank < 8) ? ((rank * 4) - 2) : 30;
 }
 
-// Autotranslated from botl.c:363
+// cf. botl.c:363 — rank(): current player rank title
 export function rank(game, player) {
-  return rank_of(player.ulevel, Role_switch, game.flags.female);
+  return rank_of(player.ulevel, player.roleMnum, game.flags?.female);
 }
 
-// Autotranslated from botl.c:369
-export function title_to_mon(str, rank_indx, title_length) {
-  let i, j;
-  for (i = 0; roles[i].name.m; i++) {
-    for (j = 0; j < 9; j++) {
-      if (roles[i].rank[j].m && str_start_is(str, roles[i].rank[j].m, true)) {
-        if (rank_indx) rank_indx = j;
-        if (title_length) title_length = Strlen(roles[i].rank[j].m);
-        return roles[i].mnum;
+// cf. botl.c:369 — title_to_mon(str): parse rank title, return role mnum
+// Returns {mnum, rank_indx, title_length} or null if not found.
+export function title_to_mon(str) {
+  for (let i = 0; i < roles.length; i++) {
+    for (let j = 0; j < 9; j++) {
+      const r = roles[i].ranks[j];
+      if (!r) continue;
+      if (r.m && str.toLowerCase().startsWith(r.m.toLowerCase())) {
+        return { mnum: roles[i].mnum, rank_indx: j, title_length: r.m.length };
       }
-      if (roles[i].rank[j].f && str_start_is(str, roles[i].rank[j].f, true)) {
-        if (rank_indx) rank_indx = j;
-        if (title_length) title_length = Strlen(roles[i].rank[j].f);
-        return roles[i].mnum;
+      if (r.f && str.toLowerCase().startsWith(r.f.toLowerCase())) {
+        return { mnum: roles[i].mnum, rank_indx: j, title_length: r.f.length };
       }
     }
   }
-  if (title_length) title_length = 0;
-  return NON_PM;
+  return null;
 }
 
 // Autotranslated from botl.c:1106
