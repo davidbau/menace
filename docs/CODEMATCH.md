@@ -5139,7 +5139,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 1009 | `kill_egg` | 492 | Aligned |
 | 1995 | `kind_name` | 130 | Aligned |
 | 1360 | `lantern_message` | 593 | Stub (no-op) |
-| 1193 | `learn_egg_type` | - | Missing |
+| 1193 | `learn_egg_type` | timeout.js:learn_egg_type | Implemented |
 | 353 | `levitation_dialogue` | 585 | Stub (no-op) |
 | 2619 | `maybe_write_timer` | - | N/A (save/restore) |
 | 2576 | `mon_is_local` | - | N/A (save/restore) |
