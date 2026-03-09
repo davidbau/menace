@@ -64,6 +64,8 @@ function usage() {
         + '  --screens                 Also capture per-step JS/session screen rows for selected steps\n\n'
         + '  --with-test-move          Force-enable ^test_move event stream in JS/C replay\n'
         + '  --no-test-move            Force-disable ^test_move event stream in JS/C replay\n\n'
+        + '  --with-runstep           Force-enable ^runstep event stream in JS/C replay (default: on)\n'
+        + '  --no-runstep             Force-disable ^runstep event stream in JS/C replay\n\n'
         + 'Compare options:\n'
         + '  --compare <DIR>           Compare JS mapdumps against mapdumps in DIR\n'
         + '                            If --c-side is set and --compare omitted, compares against <out-dir>/c\n'
@@ -102,6 +104,7 @@ function parseArgs(argv) {
         sessionPath: '',
         cSide: false,
         testMoveMode: 'auto',
+        runstepMode: 'on',
         firstDivergence: false,
         adjacentDiff: false,
         screens: false,
@@ -125,6 +128,8 @@ function parseArgs(argv) {
         else if (a === '--c-side') out.cSide = true;
         else if (a === '--with-test-move') out.testMoveMode = 'on';
         else if (a === '--no-test-move') out.testMoveMode = 'off';
+        else if (a === '--with-runstep') out.runstepMode = 'on';
+        else if (a === '--no-runstep') out.runstepMode = 'off';
         else if (a === '--first-divergence') out.firstDivergence = true;
         else if (a === '--adjacent-diff') out.adjacentDiff = true;
         else if (a === '--screens') out.screens = true;
@@ -466,6 +471,18 @@ function sessionHasTestMove(rawSession) {
     return false;
 }
 
+function sessionHasRunstep(rawSession) {
+    const steps = Array.isArray(rawSession?.steps) ? rawSession.steps : [];
+    for (const step of steps) {
+        const rng = Array.isArray(step?.rng) ? step.rng : [];
+        for (const e of rng) {
+            const text = String(e || '');
+            if (text.startsWith('^runstep[')) return true;
+        }
+    }
+    return false;
+}
+
 function getCurrentNethackCCommitShort() {
     try {
         const res = spawnSync(
@@ -510,8 +527,10 @@ async function main() {
     const recordedNethackC = session?.raw?.recorded_with?.nethack_c || null;
     const currentNethackC = getCurrentNethackCCommitShort();
     const cHasTestMove = sessionHasTestMove(session?.raw);
+    const cHasRunstep = sessionHasRunstep(session?.raw);
     const enableTestMove = (args.testMoveMode === 'on')
         || (args.testMoveMode === 'auto' && cHasTestMove);
+    const enableRunstep = args.runstepMode !== 'off';
 
     const flags = { ...DEFAULT_FLAGS, bgcolors: true, customcolors: true };
     if (session.meta.options?.autopickup === false) flags.pickup = false;
@@ -590,6 +609,8 @@ async function main() {
     const prevDatetime = process.env.NETHACK_FIXED_DATETIME;
     const prevWebhackTestMove = process.env.WEBHACK_EVENT_TEST_MOVE;
     const prevNethackTestMove = process.env.NETHACK_EVENT_TEST_MOVE;
+    const prevWebhackRunstep = process.env.WEBHACK_EVENT_RUNSTEP;
+    const prevNethackRunstep = process.env.NETHACK_EVENT_RUNSTEP;
     if (fixedDatetime) process.env.NETHACK_FIXED_DATETIME = fixedDatetime;
     if (enableTestMove) {
         process.env.WEBHACK_EVENT_TEST_MOVE = '1';
@@ -597,6 +618,13 @@ async function main() {
     } else {
         delete process.env.WEBHACK_EVENT_TEST_MOVE;
         delete process.env.NETHACK_EVENT_TEST_MOVE;
+    }
+    if (enableRunstep) {
+        process.env.WEBHACK_EVENT_RUNSTEP = '1';
+        process.env.NETHACK_EVENT_RUNSTEP = '1';
+    } else {
+        delete process.env.WEBHACK_EVENT_RUNSTEP;
+        delete process.env.NETHACK_EVENT_RUNSTEP;
     }
     let replay = null;
     try {
@@ -608,6 +636,10 @@ async function main() {
         else process.env.WEBHACK_EVENT_TEST_MOVE = prevWebhackTestMove;
         if (prevNethackTestMove == null) delete process.env.NETHACK_EVENT_TEST_MOVE;
         else process.env.NETHACK_EVENT_TEST_MOVE = prevNethackTestMove;
+        if (prevWebhackRunstep == null) delete process.env.WEBHACK_EVENT_RUNSTEP;
+        else process.env.WEBHACK_EVENT_RUNSTEP = prevWebhackRunstep;
+        if (prevNethackRunstep == null) delete process.env.NETHACK_EVENT_RUNSTEP;
+        else process.env.NETHACK_EVENT_RUNSTEP = prevNethackRunstep;
     }
 
     captures.sort((a, b) => a.sessionStep - b.sessionStep);
@@ -694,6 +726,9 @@ async function main() {
             testMoveMode: args.testMoveMode,
             testMoveEnabled: enableTestMove,
             cHasTestMove,
+            runstepMode: args.runstepMode,
+            runstepEnabled: enableRunstep,
+            cHasRunstep,
             compareDir: compareDir || null,
             context: args.context,
             firstDivergence: args.firstDivergence,
@@ -721,6 +756,7 @@ async function main() {
         );
     }
     console.log(`test_move mode=${args.testMoveMode} enabled=${enableTestMove ? 'yes' : 'no'} c_has_test_move=${cHasTestMove ? 'yes' : 'no'}`);
+    console.log(`runstep mode=${args.runstepMode} enabled=${enableRunstep ? 'yes' : 'no'} c_has_runstep=${cHasRunstep ? 'yes' : 'no'}`);
     if (args.cSide) {
         console.log(`Captured ${captures.length} C snapshot mapdump(s) -> ${cDir}`);
         if (recordedNethackC && currentNethackC && recordedNethackC !== currentNethackC) {
