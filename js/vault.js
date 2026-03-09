@@ -197,7 +197,7 @@ export function in_fcorridor(grd, x, y) {
 // cf. vault.c:103 [static] — blackout(x, y)
 // Sets stone locations around (x,y) to unlit.
 // ========================================================================
-function blackout(map, x, y) {
+export function blackout(map, x, y) {
     for (let i = x - 1; i <= x + 1; ++i) {
         for (let j = y - 1; j <= y + 1; ++j) {
             if (!isok(i, j)) continue;
@@ -217,7 +217,7 @@ function blackout(map, x, y) {
 // Restores fake corridor cells back to original terrain type.
 // Returns true if corridor fully cleared, false if blocked.
 // ========================================================================
-async function clear_fcorr(grd, forceshow, map, player, fov) {
+export async function clear_fcorr(grd, forceshow, map, player, fov) {
     const egrd = grd.egd;
     if (!egrd) return true;
 
@@ -431,7 +431,7 @@ export async function uleftvault(grd, map, player, fov) {
 // Finds corridor destination for guard to approach hero.
 // Returns {x, y} or null on failure.
 // ========================================================================
-function find_guard_dest(guard, map, player) {
+export function find_guard_dest(guard, map, player) {
     for (let dd = 2; dd < ROWNO || dd < COLNO; dd++) {
         let incr_radius = false;
         for (let y = player.y - dd; y <= player.y + dd; y++) {
@@ -469,7 +469,7 @@ function find_guard_dest(guard, map, player) {
 // Moves gold from its current position to inside the vault.
 // Consumes rn2(2) twice for placement coordinates.
 // ========================================================================
-function move_gold(gold, vroom, map) {
+export function move_gold(gold, vroom, map) {
     if (!gold || !map || !map.rooms) return;
     const room = map.rooms[vroom];
     if (!room) return;
@@ -489,7 +489,7 @@ function move_gold(gold, vroom, map) {
 // cf. vault.c:296 [static] — wallify_vault(grd)
 // Closes vault walls behind guard.
 // ========================================================================
-async function wallify_vault(grd, map, player, fov) {
+export async function wallify_vault(grd, map, player, fov) {
     const egrd = grd.egd;
     if (!egrd || !map || !map.rooms) return;
 
@@ -616,7 +616,7 @@ export async function gd_mv_monaway(grd, nx, ny, map, player, fov) {
 // cf. vault.c:751 [static] — gd_pick_corridor_gold(grd, goldx, goldy)
 // Have guard pick gold off the floor.
 // ========================================================================
-async function gd_pick_corridor_gold(grd, goldx, goldy, map, player, fov) {
+export async function gd_pick_corridor_gold(grd, goldx, goldy, map, player, fov) {
     const under_u = (player.x === goldx && player.y === goldy);
     const see_it = cansee(map, player, fov, goldx, goldy);
     const egrd = grd.egd;
@@ -690,7 +690,7 @@ export async function gd_letknow(grd, map, player, fov) {
 // Post-move guard cleanup.
 // Returns: 1=guard moved, -2=died
 // ========================================================================
-async function gd_move_cleanup(grd, semi_dead, disappear_msg_seen, map, player, fov) {
+export async function gd_move_cleanup(grd, semi_dead, disappear_msg_seen, map, player, fov) {
     const x = grd.mx, y = grd.my;
     const see_guard = canspotmon(grd, map, player, fov);
     parkguard(grd, map);

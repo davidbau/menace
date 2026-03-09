@@ -880,7 +880,7 @@ export function doattributes() {
 // Main enlightenment display function.
 // ============================================================================
 
-async function enlightenment(mode, final, game) {
+export async function enlightenment(mode, final, game) {
     const player = (game.u || game.player);
     _enl_lines = [];
 
@@ -1529,6 +1529,24 @@ export async function doborn(game) {
         await showPager(game.display, lines.join('\n'), 'Monsters Born');
     }
     return 0; // ECMD_OK
+}
+
+// cf. insight.c:2516 — achieve_rank
+export function achieve_rank(rank) {
+    // rank is 1..8; returns signed achievement index (negative for female)
+    let achidx = (rank - 1) + ACH_RNK1;
+    if (globalThis.gs?.player?.flags?.female) achidx = -achidx;
+    return achidx;
+}
+
+// cf. insight.c:2027 — youhiding
+// Reports hiding/mimicking status for enlightenment or topline
+export function youhiding(via_enlightenment, msgflag) {
+    // Stub: full mimic/hiding logic requires U_AP_TYPE and
+    // apparence infrastructure not yet ported.
+    // When fully implemented, this will report:
+    // - "hiding" if hero is hidden
+    // - "mimicking <object>" if hero is using mimic appearance
 }
 
 // Autotranslated from insight.c:1444

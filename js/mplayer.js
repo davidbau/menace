@@ -12,7 +12,7 @@
 // is_mplayer() predicate: mondata.js:1071 (implemented).
 // rnd_offensive/defensive/misc_item(): makemon.js:904,939,991 (from muse.c; used
 //   by mk_mplayer but implemented in makemon.js for general monster use).
-// None of mk_mplayer / create_mplayers / mplayer_talk are implemented in JS.
+// All 3 public functions (mk_mplayer, create_mplayers, mplayer_talk) are implemented.
 // Endgame is not yet modeled in JS (makemon.js:604 notes In_endgame() path).
 
 // cf. mplayer.c:17 [data] — developers[]: NetHack developer first names
@@ -90,13 +90,26 @@
 // Used by endgame level generation to populate Planes with rival adventurers.
 // TODO: mplayer.c:326 — create_mplayers(): populate level with mplayer monsters
 
-// cf. mplayer.c:355 — mplayer_talk(mtmp): mplayer chat message
-// Returns if mtmp->mpeaceful (falls through to generic humanoid talk).
-// Same class as hero: "I can't win, and neither will you!" / "You don't deserve to win!"
-//   / "Mine should be the honor, not yours!"
-// Other class: "The low-life wants to talk, eh?" / "Fight, scum!" / "Here is what I have to say!"
-// Uses SetVoice(mtmp, 0, 80, 0) + verbalize().
-// TODO: mplayer.c:355 — mplayer_talk(): rival adventurer chat
+// cf. mplayer.c:355 — mplayer_talk(mtmp): rival adventurer chat
+const same_class_msg = [
+    "I can't win, and neither will you!",
+    "You don't deserve to win!",
+    "Mine should be the honor, not yours!",
+];
+const other_class_msg = [
+    "The low-life wants to talk, eh?",
+    "Fight, scum!",
+    "Here is what I have to say!",
+];
+export async function mplayer_talk(mtmp) {
+    if (mtmp.mpeaceful) return; // falls through to generic humanoid talk
+    const { verbalize } = await import('./pline.js');
+    const player = globalThis.gs?.player;
+    const sameClass = player && mtmp.data === mons[player.roleMnum];
+    await verbalize("Talk? -- %s", sameClass
+        ? same_class_msg[rn2(3)]
+        : other_class_msg[rn2(3)]);
+}
 
 import { set_mon_data } from './mondata.js';
 import { rn1, rn2, rnd } from './rng.js';

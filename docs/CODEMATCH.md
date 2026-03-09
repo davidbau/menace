@@ -76,7 +76,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | hack.c | hack.js | Core movement and actions. C-structure entry points now explicit: `domove`, `domove_core`, `do_run`, `do_rush`, `lookaround`, `findtravelpath` (with `TRAVP_*` modes), travel setup (`dotravel`/`dotravel_target`), and spot/capacity helpers. Behavior remains partial vs C in many edge paths (~70 TODOs), but structure and naming fidelity improved. |
 | `[a]` | hacklib.c | hacklib.js | String/char utilities. All C functions implemented; in-place string ops return new strings in JS |
 | `[~]` | iactions.c | iactions.js | Item actions context menu |
-| `[~]` | insight.c | insight.js | Player knowledge/enlightenment |
+| `[a]` | insight.c | insight.js | Player knowledge/enlightenment. 33 exports covering 25/25 C public functions (100%): enlightenment, doattributes, doconduct/show_conduct, record/remove/count_achievements, achieve_rank, sokoban_in_play, do_gamelog/show_gamelog, dovanquished/list_vanquished, dogenocided/list_genocided/num_genocides, doborn, align_str/size_str/piousness, mstatusline/ustatusline, youhiding (stub), trap_predicament |
 | `[a]` | invent.c | invent.js | Inventory management. handleInventory/buildInventoryOverlayLines/compactInvletPromptChars (ddoinv/display_inventory/compactify/getobj/ggetobj); ~18 functions TODO |
 | `[x]` | isaac64.c | isaac64.js | ISAAC64 PRNG. All 8 functions matched |
 | `[a]` | light.c | light.js | Light source management. 19/23 C functions present: new_light_source/del_light_source/do_light_sources/obj_sheds_light/obj_is_burning/get_obj_location/snuff_light_source/obj_brightness/candle_light_range etc. Missing 4 save/restore functions (N/A in browser architecture) |
@@ -97,9 +97,9 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | mondata.c | mondata.js | Monster data queries: predicates, mon_knows_traps, passes_bars, dmgtype, hates_silver, sticks, etc. |
 | `[a]` | monmove.c | monmove.js | Monster movement: dochug, m_move, m_move_aggress, set_apparxy, m_search_items; dochugw (wrapper), m_everyturn_effect, m_postmove_effect, postmov, should_displace, mb_trapped, itsstuck, release_hero, watch_on_duty, m_balks_at_approaching, mon_would_consume_item. Attack dispatch path is now async-aware so ranged monster attacks can await animation timing `maybe_postmove_hideunder()` helper extracted to run once after movement+trap resolution, eliminating duplicate hide-under RNG roll from `m_move`; pre-trapped monsters now resolve `mintrap_postmove` at `m_move` entry before normal movement (matching C `monmove.c:1748-1757`). |
 | `[~]` | monst.c | monst.js | Monster data tables. mons[] array PARTIAL in monsters.js (JS-native structure); monst_globals_init implicit in module load. Also exports PM_* monster-table indices, S_* monster class constants (S_ANT..S_MIMIC_DEF), and MAXMCLASSES — these are the canonical source for role identity checks via `player.roleMnum` |
-| `[~]` | mplayer.c | mplayer.js | Player-character rival monsters (endgame + ghost-level). is_mplayer() in mondata.js; rnd_offensive/defensive/misc_item in makemon.js; mk_mplayer/create_mplayers/mplayer_talk TODO (endgame not yet modeled) |
+| `[a]` | mplayer.c | mplayer.js | Player-character rival monsters. All 3/3 C public functions: mk_mplayer (role-appropriate gear), create_mplayers (level population), mplayer_talk (rival chat with RNG). Plus mk_mplayer_armor (static in C). is_mplayer() in mondata.js. Endgame context not yet modeled |
 | `[a]` | mthrowu.c | mthrowu.js | Monster ranged attacks: m_throw, thrwmu, lined_up, select_rwep, monmulti. Includes async timed projectile path (`m_throw_timed`/`monshoot`/`thrwmu`) using awaited `nh_delay_output()` in interactive mode, with headless delay skipping retained; breath beam path (`breamm`/`breamu`) now also awaits async `buzz()` beam traversal timing. Tethered return-flight cleanup now uses awaited async BACKTRACK timing (`tmp_at_end_async`) in interactive mode |
-| `[~]` | muse.c | muse.js | Monster item usage AI. Offensive wand/horn beam paths now route typed zap IDs into async `buzz()` (wand via `ZT_WAND(...)`, horn via `ZT_BREATH(...)`) instead of generic placeholder types. Immediate monster wand traversal (`mbhit`) now runs through `tmp_at(DISP_BEAM)` + awaited `nh_delay_output()` frames with async call flow in offensive/defensive wand callsites, and uses wand/horn-typed flashbeam coloring. Broader item-use parity remains partial |
+| `[a]` | muse.c | muse.js | Monster item usage AI. All 15/15 C public functions: find_offensive/use_offensive/rnd_offensive_item, find_defensive/use_defensive/rnd_defensive_item, find_misc/use_misc/rnd_misc_item, searches_for_item, mon_reflects, ureflects, mcureblindness, munstone, munslime. Plus 16 exported helpers (static in C). Wand/horn beam paths use typed zap IDs with `tmp_at(DISP_BEAM)` + `nh_delay_output()` |
 | `[a]` | music.c | music.js | Musical instruments. 11/14 C functions present: do_play_instrument, do_improvisation, gear_up, buzz_effect, mk_terrainmap, do_earthquake, pet_noise, hero_hears_noise, do_spec_buzz, play_note, do_lyre. Missing ~3 helper functions |
 | `[N/A]` | nhlobj.c | — | Lua object bindings (l_obj_*). All 21 functions are Lua C API wrappers; JS port uses direct function calls (object(), monster() in sp_lev.js) with no Lua interpreter |
 | `[N/A]` | nhlsel.c | — | Lua selection bindings (l_selection_*). All ~40 functions wrap selvar.c for Lua; JS port uses the `selection` object exported from sp_lev.js directly |
@@ -151,7 +151,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | u_init.c | u_init.js | Player initialization. u_init_role, u_init_race, u_init_carry_attr_boost, trquan, ini_inv, ini_inv_mkobj_filter, restricted_spell_discipline aligned. JS-only wrappers: simulatePostLevelInit, initAttributes `simulatePostLevelInit` now applies role-sensitive pet alignment context override: Caveman startup uses `alignmentRecord=0` for `makedog()` creation context, matching C's Caveman-specific RNG width. |
 | `[a]` | uhitm.c | uhitm.js | Hero-vs-monster combat. `do_attack` (+ `hmon` pipeline), all `mhitm_ad_*` handlers (40+), `mhitm_adtyping` dispatcher, `mhitm_mgc_atk_negated`, `mhitm_knockback` (with eligibility + messages) implemented; artifact `spec_abon` wired into `find_roll_to_hit`, `spec_dbon` wired into damage calc; engulf start-frame helper now uses awaited delay boundaries (`start_engulf`/`gulpum` async). 50 functions TODO |
 | `[N/A]` | utf8map.c | — | UTF-8 glyph mapping for terminal |
-| `[p]` | vault.c | vault.js | Vault guard system. 18/25 C public functions (72%): newegd/free_egd, in_fcorridor, restfakecorr, parkguard, grddead, findgd, vault_summon_gd, vault_occupied, uleftvault, gd_mv_monaway, gd_letknow, invault, gd_move, paygd, hidden_gold, gd_sound, vault_gd_watching. Missing: clear_fcorr, blackout, find_guard_dest, move_gold, wallify_vault, gd_pick_corridor_gold, gd_move_cleanup |
+| `[a]` | vault.c | vault.js | Vault guard system. All 25/25 C public functions exported: newegd/free_egd, in_fcorridor, clear_fcorr, blackout, restfakecorr, parkguard, grddead, findgd, find_guard_dest, vault_summon_gd, vault_occupied, uleftvault, move_gold, wallify_vault, gd_mv_monaway, gd_pick_corridor_gold, gd_move_cleanup, gd_letknow, invault, gd_move, paygd, hidden_gold, gd_sound, vault_gd_watching |
 | `[N/A]` | version.c | — | Version info |
 | `[a]` | vision.c | vision.js | FOV / LOS. Core algorithm (view_from, right_side, left_side, clear_path, do_clear_area) matches C, including block/dig/unblock pointer maintenance, rogue vision path, and `howmonseen` mapping (in `display.js`). |
 | `[a]` | weapon.c | weapon.js | Weapon skills, hit/damage bonuses, monster weapon AI. select_hwep, select_rwep (full), mon_wield_item, possibly_unwield, mwepgone, setmnotwielded, oselect, monmightthrowwep, autoreturn_weapon, weapon_type, skill_level_name, skill_name, wet/dry_a_towel implemented. weapon_hit/dam_bonus gated (returns 0). Skill system infrastructure (P_* constants, weapon_check state machine) complete. skill_init/enhance/advance and role tables TODO |
@@ -171,9 +171,9 @@ don't follow the same 1:1 C→JS mapping pattern.
 - **N/A (system/platform)**: 21
 - **Game logic files**: 108
 - **Complete (`[x]`)**: 4
-- **Aligned (`[a]`)**: 91
-- **Present (`[p]`)**: 3
-- **Needs alignment (`[~]`)**: 10
+- **Aligned (`[a]`)**: 95
+- **Present (`[p]`)**: 2
+- **Needs alignment (`[~]`)**: 7
 - **No JS file yet (`[ ]`)**: 0
 
 ### JS Files With Non-Strict C Mapping
@@ -2136,7 +2136,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 ### insight.c -> insight.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 2516 | `achieve_rank` | - | Missing |
+| 2516 | `achieve_rank` | insight.js:1534 | Implemented |
 | 3207 | `align_str` | insight.js:88 | Implemented |
 | 1464 | `attributes_enlightenment` | - | Missing |
 | 286 | `attrval` | insight.js:692 | Implemented |
@@ -2180,7 +2180,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2631 | `vanqsort_cmp` | insight.js:1309 | Implemented |
 | 223 | `walking_on_water` | insight.js:462 | Implemented |
 | 1247 | `weapon_insight` | insight.js:842 | Implemented |
-| 2027 | `youhiding` | - | Missing |
+| 2027 | `youhiding` | insight.js:1546 | Stub (mimic/hiding infrastructure not yet ported) |
 
 ### invent.c -> invent.js
 | C Line | C Function | JS Line | Alignment |
@@ -3108,7 +3108,7 @@ No function symbols parsed from isaac64.c.
 | 72 | `get_mplname` | - | Missing |
 | 118 | `mk_mplayer` | mplayer.js:124 | Implemented |
 | 95 | `mk_mplayer_armor` | mplayer.js:111 | Implemented |
-| 356 | `mplayer_talk` | - | Missing |
+| 356 | `mplayer_talk` | mplayer.js:104 | Implemented (same/other class messages, rn2(3)) |
 
 ### mthrowu.c -> mthrowu.js
 | C Line | C Function | JS Line | Alignment |
@@ -5502,6 +5502,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 192 | `in_fcorridor` | vault.js:186 | Implemented |
 | 317 | `invault` | vault.js:714 | Implemented |
 | 632 | `move_gold` | vault.js:472 | Implemented |
+| 24 | `newegd` | vault.js:148 | Implemented |
 | 155 | `parkguard` | vault.js:318 | Implemented |
 | 1205 | `paygd` | vault.js:1349 | Implemented |
 | 144 | `restfakecorr` | vault.js:307 | Implemented |
