@@ -4,6 +4,7 @@
 import { rn2, rn1, rnd, d, c_d } from './rng.js';
 import { nhgetch } from './input.js';
 import { awaitInput } from './suspend.js';
+import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { POTION_CLASS, POT_WATER,
          POT_CONFUSION, POT_BLINDNESS, POT_PARALYSIS, POT_SPEED,
          POT_SLEEPING, POT_SICKNESS, POT_HALLUCINATION,
@@ -409,50 +410,77 @@ async function handleQuaff(player, map, display) {
     }
 
     const drinkPrompt = `What do you want to drink? [${potions.map(p => p.invlet).join('')} or ?*] `;
-    await display.putstr_message(drinkPrompt);
-    const ch = await awaitInput(null, nhgetch(), {
-        site: 'potion.handleQuaff.select',
-    });
-    const c = String.fromCharCode(ch);
     const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
         display.messageNeedsMore = false;
     };
-
-    if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
+    const isDismissKey = (code) => code === 27 || code === 10 || code === 13 || code === 32;
+    // All inventory letters — C's getobj PICK_ONE menu accepts any inventory
+    // letter as an accelerator.
+    const allInvLetters = (player.inventory || [])
+        .filter((o) => o && o.invlet)
+        .map((o) => o.invlet)
+        .join('');
+    const showQuaffHelpList = async () => {
         replacePromptMessage();
-        await display.putstr_message('Never mind.');
-        return { moved: false, tookTime: false };
-    }
+        const lines = buildInventoryOverlayLines(player);
+        return await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
+    };
+    const showQuaffPrompt = async () => {
+        await display.putstr_message(drinkPrompt);
+    };
+    await showQuaffPrompt();
+    while (true) {
+        const ch = await awaitInput(null, nhgetch(), {
+            site: 'potion.handleQuaff.select',
+        });
+        let c = String.fromCharCode(ch);
 
-    // cf. potion.c drink_ok() — non-potion rejection (partial)
-    const selected = player.inventory.find((obj) => obj.invlet === c);
-    if (selected && selected.oclass !== POTION_CLASS) {
-        replacePromptMessage();
-        await display.putstr_message('That is a silly thing to drink.');
-        return { moved: false, tookTime: false };
-    }
-
-    const item = potions.find(p => p.invlet === c);
-    if (item) {
-        player.removeFromInventory(item);
-        replacePromptMessage();
-        item.in_use = true;
-        const potionUnknown = !!(await peffects(player, item, display));
-        if (item.dknown && !isObjectNameKnown(item.otyp)) {
-            if (!potionUnknown) {
-                discoverObject(item.otyp, true, true);
+        if (isDismissKey(ch)) {
+            replacePromptMessage();
+            await display.putstr_message('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+        if (c === '?' || c === '*') {
+            const menuSelection = await showQuaffHelpList();
+            if (menuSelection) {
+                c = menuSelection;
+                // Fall through to item processing below.
             } else {
-                trycall(item);
+                await showQuaffPrompt();
+                continue;
             }
         }
-        return { moved: false, tookTime: true };
-    }
 
-    replacePromptMessage();
-    await display.putstr_message("Never mind.");
-    return { moved: false, tookTime: false };
+        // cf. potion.c drink_ok() — non-potion rejection (partial)
+        const selected = player.inventory.find((obj) => obj.invlet === c);
+        if (selected && selected.oclass !== POTION_CLASS) {
+            replacePromptMessage();
+            await display.putstr_message('That is a silly thing to drink.');
+            return { moved: false, tookTime: false };
+        }
+
+        const item = potions.find(p => p.invlet === c);
+        if (item) {
+            player.removeFromInventory(item);
+            replacePromptMessage();
+            item.in_use = true;
+            const potionUnknown = !!(await peffects(player, item, display));
+            if (item.dknown && !isObjectNameKnown(item.otyp)) {
+                if (!potionUnknown) {
+                    discoverObject(item.otyp, true, true);
+                } else {
+                    trycall(item);
+                }
+            }
+            return { moved: false, tookTime: true };
+        }
+
+        replacePromptMessage();
+        await display.putstr_message("Never mind.");
+        return { moved: false, tookTime: false };
+    }
 }
 
 // ============================================================

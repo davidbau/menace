@@ -304,13 +304,14 @@ async function handleRead(player, display, game) {
         display.messageNeedsMore = false;
     };
     const isDismissKey = (code) => code === 27 || code === 10 || code === 13 || code === 32;
+    // All inventory letters — C's getobj PICK_ONE menu accepts any inventory
+    // letter as an accelerator.  Non-matching keys are consumed silently by
+    // the menu loop (matching C TTY page-advance / dismiss behavior).
     const allInvLetters = (player.inventory || [])
         .filter((o) => o && typeof o.invlet === 'string' && o.invlet.length > 0)
         .map((o) => o.invlet)
         .join('');
     const showReadableHelpList = async () => {
-        // Match C TTY getobj('?/*') behavior: inventory window owns the topline
-        // while visible, not an overprint on the existing read prompt.
         replacePromptMessage();
         const lines = buildInventoryOverlayLines(player);
         return await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
@@ -330,8 +331,7 @@ async function handleRead(player, display, game) {
             return { moved: false, tookTime: false };
         }
         if (c === '?' || c === '*') {
-            // C tty keeps read prompt pending while '?/*' item-list help is
-            // acknowledged with modal --More-- screens.
+            // C's PICK_ONE menu returns the selected inventory letter directly.
             const menuSelection = await showReadableHelpList();
             if (!menuSelection) {
                 await showReadPrompt();
