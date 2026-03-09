@@ -1102,14 +1102,14 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 201 | `canseemon` | display.js:1372 | Implemented |
 | 3148 | `check_pos` | - | Missing |
 | 2125 | `clear_glyph_buffer` | - | Missing |
-| 2207 | `cls` | - | Missing |
+| 2207 | `cls` | display.js:1848 | Implemented |
 | 2717 | `cmap_to_roguecolor` | - | Missing |
-| 1689 | `curs_on_u` | - | Missing |
+| 1689 | `curs_on_u` | display.js:1814 | Implemented |
 | 527 | `display_monster` | display.js:1440 | Implemented (helper) |
 | 647 | `display_warning` | display.js:1403 | Implemented |
-| 1704 | `docrt` | - | Missing |
-| 1711 | `docrt_flags` | - | Missing |
-| 1696 | `doredraw` | - | Missing |
+| 1704 | `docrt` | display.js:1843 | Implemented |
+| 1711 | `docrt_flags` | display.js:1830 | Implemented |
+| 1696 | `doredraw` | display.js:1819 | Implemented |
 | 3132 | `error4` | - | Missing |
 | 759 | `feel_location` | - | Missing |
 | 739 | `feel_newsym` | - | Missing |

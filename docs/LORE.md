@@ -5160,3 +5160,29 @@ hard-won wisdom:
   - `node --test test/unit/display_warning_runtime.test.js` passes (`11/11`).
   - `node scripts/test-unit-core.mjs` baseline unchanged:
     `2545 pass / 5 fail` (same known 5 input-queue failures).
+
+### display.c redraw entrypoint closure (`docrt_flags`/`docrt`/`cls`) (2026-03-08)
+
+- Problem:
+  - `display.js` exported `docrt()`/`doredraw()` surfaces but they called
+    missing symbols (`docrt_flags`, `docrtRecalc`, `cls`, `ECMD_OK` import),
+    so parity redraw paths could crash when invoked.
+  - `detect.js` also kept a local `cls()` stub instead of using display logic.
+- Fix:
+  - Implemented in
+    [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js):
+    - `docrt_flags(recalc, ctxOrMap)` map repaint loop via `newsym`
+    - `docrtRecalc(ctx)` using `vision_recalc`
+    - `cls(ctxOrMap)` full terminal clear (row-optimized when available)
+  - Added missing `ECMD_OK` import for `doredraw()` return value.
+  - Updated
+    [`js/detect.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/detect.js)
+    to import and use display `cls` (removed local stub).
+  - Added focused runtime tests in
+    [`test/unit/display_docrt_cls_runtime.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/display_docrt_cls_runtime.test.js).
+- Validation:
+  - `node --test test/unit/display_docrt_cls_runtime.test.js` passes (`2/2`).
+  - `node --test test/unit/display_map_location_runtime.test.js` passes (`4/4`).
+  - `node --test test/unit/display_warning_runtime.test.js` passes (`11/11`).
+  - `node scripts/test-unit-core.mjs` baseline unchanged:
+    `2547 pass / 5 fail` (same known 5 input-queue failures).

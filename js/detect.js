@@ -14,6 +14,7 @@ import { pline, You, Your, You_feel, You_see, pline_The,
          Norep, There, set_msg_xy } from './pline.js';
 import {
     map_invisible, map_object, map_trap, map_background,
+    cls,
     newsym, flush_screen,
     canSpotMonsterForMap, senseMonsterForMap,
     warning_of, feel_newsym, docrt, under_water, under_ground,
@@ -112,7 +113,6 @@ function trapDiscoveryName(ttyp) {
 // ========================================================================
 // Display stubs
 // ========================================================================
-function cls() {}
 function browse_map() {}
 export function map_monst() {}
 function display_self() {}

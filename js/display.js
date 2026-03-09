@@ -36,7 +36,7 @@ import { isok, SEE_INVIS, DETECT_MONSTERS, TELEPAT, INFRAVISION, WARNING, WARN_O
          BOLT_LIM,
          MONSEEN_NORMAL, MONSEEN_SEEINVIS, MONSEEN_INFRAVIS, MONSEEN_TELEPAT,
          MONSEEN_XRAYVIS, MONSEEN_DETECT, MONSEEN_WARNMON,
-         def_warnsyms, WARNCOUNT } from './const.js';
+         def_warnsyms, WARNCOUNT, ECMD_OK } from './const.js';
 import { cansee, couldsee, clear_vision_full_recalc } from './vision.js';
 import { do_light_sources } from './light.js';
 import { emits_light, infravisible, is_mindless, monsndx } from './mondata.js';
@@ -1821,9 +1821,43 @@ export async function doredraw() {
   return ECMD_OK;
 }
 
+function docrtRecalc(ctx) {
+  if (!ctx?.map || !ctx?.player) return;
+  vision_recalc(ctx.fov || null, ctx.map, ctx.player);
+}
+
+// Autotranslated from display.c:1704
+export async function docrt_flags(recalc = null, ctxOrMap = null) {
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  if (!ctx?.display || !ctx?.map) return;
+  if (typeof recalc === 'function') recalc(ctx);
+  for (let x = 1; x < COLNO; x++) {
+    for (let y = 0; y < ROWNO; y++) {
+      newsym(x, y, ctx);
+    }
+  }
+  flush_screen(0);
+}
+
 // Autotranslated from display.c:1690
 export async function docrt() {
   await docrt_flags(docrtRecalc);
+}
+
+// Autotranslated from display.c:2207
+export async function cls(ctxOrMap = null) {
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  const display = ctx?.display;
+  if (!display) return;
+  if (typeof display.clearRow === 'function') {
+    for (let r = 0; r < display.rows; r++) display.clearRow(r);
+    return;
+  }
+  for (let r = 0; r < (display.rows || TERMINAL_ROWS); r++) {
+    for (let c = 0; c < (display.cols || TERMINAL_COLS); c++) {
+      display.setCell?.(c, r, ' ', CLR_GRAY);
+    }
+  }
 }
 
 // Autotranslated from display.c:1851
