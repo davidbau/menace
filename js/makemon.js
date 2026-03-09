@@ -66,7 +66,7 @@ import {
     RIN_INVISIBILITY,
     AMULET_OF_LIFE_SAVING, AMULET_OF_YENDOR,
     CANDELABRUM_OF_INVOCATION, BELL_OF_OPENING, SPE_BOOK_OF_THE_DEAD,
-    CORPSE, LARGE_BOX, LUCKSTONE, objectData,
+    CORPSE, LARGE_BOX, LUCKSTONE, MAXOCLASSES, objectData,
 } from './objects.js';
 import { roles, races, initialAlignmentRecordForRole } from './player.js';
 import { mpickobj } from './steal.js';
@@ -1448,7 +1448,7 @@ function m_initinv(mon, mndx, depth, m_lev, map) {
 // take the default "else" branch: ROLL_FROM(syms) → rn2(17).
 // ========================================================================
 
-const MAXOCLASSES = 18; // C ref: config.h
+// MAXOCLASSES imported from objects.js
 
 // C ref: makemon.c:2378 — syms[] array for mimic appearance
 const mimic_syms = [

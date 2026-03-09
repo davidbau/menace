@@ -6,7 +6,7 @@ import { isok, COLNO, ROWNO, SDOOR, SCORR, DOOR, CORR, STONE,
 import { rn2, rnd, rnl } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, FOOD_CLASS, POTION_CLASS, COIN_CLASS, ROCK_CLASS,
-         SCROLL_CLASS, SPBOOK_CLASS,
+         SCROLL_CLASS, SPBOOK_CLASS, MAXOCLASSES,
          GOLD_PIECE, CHEST, LARGE_BOX, BOULDER, GOLD } from './objects.js';
 import { PM_GOLD_GOLEM, PM_LONG_WORM, S_EEL, S_WORM_TAIL } from './monsters.js';
 import { is_hider, hides_under, DEADMONSTER } from './mondata.js';
@@ -36,7 +36,7 @@ import { defsyms, trap_to_defsym } from './symbols.js';
 // ========================================================================
 // Constants
 // ========================================================================
-const ALL_CLASSES = 18 + 1; // MAXOCLASSES + 1
+const ALL_CLASSES = MAXOCLASSES + 1;
 const FOOT = 12;
 const TOE = 18;
 const NOSE = 19;
@@ -401,7 +401,7 @@ export async function food_detect(sobj, player, map, display, game) {
 // cf. detect.c:603 -- object_detect
 // ========================================================================
 export async function object_detect(detector, oclass, player, map, display, game) {
-    if (oclass < 0 || oclass >= 18) oclass = 0;
+    if (oclass < 0 || oclass >= MAXOCLASSES) oclass = 0;
     const is_cursed = detector && detector.cursed;
     const do_dknown = detector && objectData[detector.otyp]
         && (objectData[detector.otyp].oc_class === POTION_CLASS
