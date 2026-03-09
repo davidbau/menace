@@ -3,7 +3,7 @@
 // getpos_refresh(), getpos() lifecycle.
 
 import { MAP_ROW_START, COLNO, ROWNO, DOOR, ROOM, CORR, SDOOR, IS_WALL, isok } from './const.js';
-import { nhgetch_wrap } from './input.js';
+import { nhgetch_raw, nhgetch_wrap } from './input.js';
 import { flush_screen } from './display.js';
 import {
     create_nhwindow,
@@ -813,7 +813,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                     if (typeof display.renderMoreMarker === 'function') {
                         display.renderMoreMarker();
                     }
-                    await awaitDisplayMorePrompt(null, display, () => nhgetch_wrap(), {
+                    await awaitDisplayMorePrompt(null, display, () => nhgetch_raw(), {
                         site: 'getpos.forcefalse.unknown.more',
                     });
                     display.topMessage = null;

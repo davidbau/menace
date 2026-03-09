@@ -62,7 +62,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, FOOD_CLASS, SPBOOK_CLASS,
          WAN_STRIKING, WAN_CANCELLATION, WAN_POLYMORPH, WAN_TELEPORTATION,
          WAN_UNDEAD_TURNING, WAN_DIGGING, WAN_CREATE_MONSTER, WAN_LIGHT,
          WAN_SECRET_DOOR_DETECTION, WAN_ENLIGHTENMENT } from './objects.js';
-import { nhgetch_wrap, ynFunction } from './input.js';
+import { nhgetch_raw, nhgetch_wrap, ynFunction } from './input.js';
 import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
 import { doname, xname, splitobj, set_bknown } from './mkobj.js';
 import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
@@ -1219,7 +1219,7 @@ export async function handleApply(player, map, display, game) {
                     if (typeof display.renderMoreMarker === 'function') {
                         display.renderMoreMarker();
                     }
-                    await awaitDisplayMorePrompt(game, display, () => nhgetch_wrap(), {
+                    await awaitDisplayMorePrompt(game, display, () => nhgetch_raw(), {
                         site: 'apply.inventory-list.morePrompt',
                     });
                 } else if (typeof display?.renderMoreMarker === 'function') {
@@ -1255,7 +1255,7 @@ export async function handleApply(player, map, display, game) {
                 if (typeof display.renderMoreMarker === 'function') {
                     display.renderMoreMarker();
                 }
-                await awaitDisplayMorePrompt(game, display, () => nhgetch_wrap(), {
+                await awaitDisplayMorePrompt(game, display, () => nhgetch_raw(), {
                     site: 'apply.invalid-invlet.morePrompt',
                 });
                 await showApplyPrompt();

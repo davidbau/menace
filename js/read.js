@@ -496,7 +496,7 @@ async function handleRead(player, display, game) {
             continue;
         }
         if (typeof display?.morePrompt === 'function') {
-            await awaitDisplayMorePrompt(game, display, () => nhgetch_wrap(), {
+            await awaitDisplayMorePrompt(game, display, () => nhgetch_raw(), {
                 site: 'read.handleRead.invalidInvletMorePrompt',
             });
             await showReadPrompt();
