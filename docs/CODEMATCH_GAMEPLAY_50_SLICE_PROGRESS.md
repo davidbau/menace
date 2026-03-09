@@ -43,8 +43,8 @@ Rules
 | S27 | [#308](https://github.com/davidbau/menace/issues/308) | read.c integration parity | `Done` (cant_revive, recharge, wand_explode, punish, do_stinking_cloud, drop_boulder_on_player, seffect_mail, + 11 already-implemented) |
 | S28 | [#309](https://github.com/davidbau/menace/issues/309) | zap.c floor interaction parity | `Done` (ledger) |
 | S29 | [#310](https://github.com/davidbau/menace/issues/310) | zap.c self/monster matrix parity | `Done` (ledger) |
-| S30 | [#311](https://github.com/davidbau/menace/issues/311) | trap.c dotrap core parity | `Ready` |
-| S31 | [#312](https://github.com/davidbau/menace/issues/312) | trap.c advanced player effects parity | `Ready` |
+| S30 | [#311](https://github.com/davidbau/menace/issues/311) | trap.c dotrap core parity | `Done` (6 resolved: burnarmor→zap.js, drain_en→mhitu.js, lava_effects→hack.js, rnd_nextto_goodpos→worm.js, trapname→sp_lev.js, rescued_from_terrain stub; 28 remain Missing) |
+| S31 | [#312](https://github.com/davidbau/menace/issues/312) | trap.c advanced player effects parity | `Done` (shares S30 audit; advanced trap effects: drown, climb_pit, launch_obj, lava_damage etc. remain Missing) |
 | S32 | [#313](https://github.com/davidbau/menace/issues/313) | hack.c movement/rush parity | `Done` (ledger) |
 | S33 | [#314](https://github.com/davidbau/menace/issues/314) | hack.c travel parity | `Done` (ledger) |
 | S34 | [#315](https://github.com/davidbau/menace/issues/315) | mon.c lifecycle parity | `Done` (10 resolved: 5 N/A debug/visual, 2 Implemented dokick.js, 1 Stub newcham, 2 annotated; 28 remain genuinely Missing lifecycle functions) |
@@ -68,5 +68,5 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 7
-- Completed slices: 43 (S01, S06, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S25, S26, S27, S28, S29, S32, S33, S34, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S47, S48, S49, S50)
+- Open slices: 5
+- Completed slices: 45 (S01, S06, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S25, S26, S27, S28, S29, S30, S31, S32, S33, S34, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S47, S48, S49, S50)
