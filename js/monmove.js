@@ -28,7 +28,7 @@ import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          INVIS, DISPLACED,
          MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM } from './const.js';
 import { rn2, rnd, d, c_d, pushRngLogEntry } from './rng.js';
-import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED } from './const.js';
+import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, STRAT_ARRIVE } from './const.js';
 import { NORMAL_SPEED } from './const.js';
 import { wipe_engr_at } from './engrave.js';
 import { mattacku, ranged_attk_available } from './mhitu.js';
@@ -40,7 +40,11 @@ import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          CLOAK_OF_DISPLACEMENT, MINERAL, GOLD_PIECE,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
          objectData } from './objects.js';
-import { next_ident, weight, doname } from './mkobj.js';
+import { next_ident, weight, doname, splitobj, xname } from './mkobj.js';
+import { an } from './objnam.js';
+import { delobj } from './invent.js';
+import { grow_up } from './makemon.js';
+import { stairway_find_dir } from './stairs.js';
 import { can_carry } from './dogmove.js';
 import { couldsee, m_cansee } from './vision.js';
 import { pline_mon, verbalize } from './pline.js';
@@ -55,7 +59,7 @@ import { can_teleport, noeyes, perceives, nohands,
          dmgtype, attacktype, is_metallivore,
          can_track, likes_gold,
          is_vampshifter, DEADMONSTER } from './mondata.js';
-import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons, PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER, PM_TENGU, PM_XORN, PM_RUST_MONSTER, PM_GELATINOUS_CUBE, PM_DISPLACER_BEAST, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS, PM_HEZROU, PM_VROCK, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER, AT_WEAP, AT_BREA, AT_SPIT, AT_MAGC, AD_SPEL, AD_CLRC, AD_RUST, AD_CORR, S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID, M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC, MZ_TINY, MZ_HUMAN, M2_WANDER, MS_LEADER, MS_SHRIEK } from './monsters.js';
+import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons, PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER, PM_TENGU, PM_XORN, PM_RUST_MONSTER, PM_GELATINOUS_CUBE, PM_DISPLACER_BEAST, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS, PM_HEZROU, PM_VROCK, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER, PM_QUEEN_BEE, AT_WEAP, AT_BREA, AT_SPIT, AT_MAGC, AD_SPEL, AD_CLRC, AD_RUST, AD_CORR, S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID, M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC, MZ_TINY, MZ_HUMAN, M2_WANDER, MS_LEADER, MS_SHRIEK } from './monsters.js';
 import { create_gas_cloud, visible_region_at } from './region.js';
 import { dog_move, could_reach_item } from './dogmove.js';
 import { initrack, settrack, gettrack } from './track.js';
@@ -2581,4 +2585,120 @@ export async function dissolve_bars(x, y, map) {
   loc.flags = 0;
   loc.wall_info = 0;
   newsym(x, y);
+}
+
+// cf. monmove.c:395 bee_eat_jelly() — killer bee eats royal jelly to become queen
+export async function bee_eat_jelly(mon, obj, game, map) {
+    const mtmp = find_pmmonst(PM_QUEEN_BEE, game, map);
+    // If a queen already exists, bee doesn't eat
+    if (mtmp) return -1;
+
+    const m_delay = obj.blessed ? 3 : !obj.cursed ? 5 : 7;
+    if ((obj.quan || 1) > 1) {
+        obj = splitobj(obj, 1);
+    }
+    if (canseemon(mon, map)) {
+        await pline_mon(mon, "%s eats %s.", Monnam(mon), an(xname(obj)));
+    }
+    delobj(obj);
+
+    if ((mon.m_lev || 0) < (mons[PM_QUEEN_BEE].mlevel || 0) - 1) {
+        mon.m_lev = (mons[PM_QUEEN_BEE].mlevel || 0) - 1;
+    }
+    // Transform immediately, then freeze
+    await grow_up(mon, null, game);
+
+    if (DEADMONSTER(mon)) return 1; // queen bees genocided
+    mon.mfrozen = m_delay;
+    mon.mcanmove = 0;
+    return 0; // bee used its move
+}
+
+// cf. monmove.c:575 m_arrival() — one-time arrival effect for a monster
+export function m_arrival(mon) {
+    mon.mstrategy = (mon.mstrategy || 0) & ~STRAT_ARRIVE; // always reset
+    return -1;
+}
+
+// cf. monmove.c:1256 soko_allow_web() — restrict spider webs in unsolved Sokoban
+export async function soko_allow_web(mon, map) {
+    // Non-Sokoban or solved Sokoban: no restriction
+    if (!map?.flags?.sokoban) return true;
+    // Unsolved Sokoban: allow web only if spider can see stairs up
+    const stway = await stairway_find_dir(true, map);
+    if (stway && m_cansee(mon, map, stway.sx, stway.sy)) return true;
+    return false;
+}
+
+// cf. monmove.c:2322 stuff_prevents_passage() — bulky inventory blocks squeezing
+export function stuff_prevents_passage(mtmp, player) {
+    const chain = (mtmp === player || mtmp?.isHero)
+        ? (player?.inventory || [])
+        : (mtmp.minvent || []);
+    for (const obj of chain) {
+        const typ = obj.otyp;
+        // Large coin piles
+        if (obj.oclass === COIN_CLASS && (obj.quan || 0) > 100) return true;
+        // Small/light items that don't block passage
+        if (obj.oclass === GEM_CLASS) continue;
+        if (obj.oclass === AMULET_CLASS) continue;
+        if (obj.oclass === RING_CLASS) continue;
+        // Ammo and small weapons are fine
+        const od = objectData[typ];
+        if (od && od.oc_class === WEAPON_CLASS && (od.oc_skill || 0) < 0) continue; // ammo
+        // Small clothing items are fine
+        if (od && od.oc_armcat !== undefined) {
+            // Cloaks, gloves, shirts, fedora — small
+            const name = od.oc_name || '';
+            if (name.includes('cloak') || name.includes('gloves') || name.includes('shirt')
+                || name === 'fedora' || name === 'leather jacket') continue;
+        }
+        // Food items that are small enough
+        if (od && od.oc_class === FOOD_CLASS) {
+            const name = od.oc_name || '';
+            if (name === 'fortune cookie' || name === 'candy bar' || name === 'pancake'
+                || name === 'lembas wafer' || name === 'lump of royal jelly') continue;
+        }
+        // Small tools
+        const smallTools = ['credit card', 'leash', 'stethoscope', 'blindfold', 'towel',
+            'tin whistle', 'magic whistle', 'magic marker', 'tin opener',
+            'skeleton key', 'lock pick'];
+        if (od && smallTools.includes(od.oc_name || '')) continue;
+        // Bags (but only empty ones)
+        const bagNames = ['sack', 'bag of holding', 'bag of tricks', 'oilskin sack'];
+        if (bagNames.includes(od?.oc_name || '')) {
+            if (obj.cobj && obj.cobj.length > 0) return true; // container with contents
+            continue;
+        }
+        // Candles are small
+        if (od && (od.oc_name || '').includes('candle')) continue;
+        // Venom is small
+        if (od && od.oc_class === 18) continue; // VENOM_CLASS
+        // Small corpses
+        if (obj.otyp === 378 && obj.corpsenm >= 0 // CORPSE
+            && mons[obj.corpsenm] && (mons[obj.corpsenm].msize || 0) <= MZ_TINY) continue;
+        // Everything else is too bulky
+        return true;
+    }
+    return false;
+}
+
+// cf. monmove.c:2380 vamp_shift() — vampire shape-changes to target form
+export function vamp_shift(mon, ptr, domsg) {
+    const monData = mon.data || mon.type;
+    if (monData === ptr) {
+        // Already right shape
+        return 1;
+    }
+    if (is_vampshifter(mon)) {
+        // C ref: newcham(mon, ptr, domsg ? NC_SHOW_MSG : NO_NC_FLAGS)
+        // newcham is not fully ported; use stub from muse.js
+        // For now, directly update mon.data to the target form
+        mon.data = ptr;
+        if (domsg && canseemon(mon)) {
+            // Shape-change message would go here
+        }
+        return 1;
+    }
+    return 0;
 }

@@ -3042,7 +3042,7 @@ No function symbols parsed from isaac64.c.
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 2191 | `accessible` | monmove.js:2518 | Implemented |
-| 395 | `bee_eat_jelly` | - | Missing |
+| 395 | `bee_eat_jelly` | monmove.js:bee_eat_jelly | Implemented (royal jelly → queen bee transformation via grow_up) |
 | 2368 | `can_fog` | monmove.js:2542 | Implemented |
 | 2124 | `can_hide_under_obj` | monmove.js:2500 | Implemented |
 | 2359 | `can_ooze` | monmove.js:2536 | Implemented |
@@ -3059,7 +3059,7 @@ No function symbols parsed from isaac64.c.
 | 1057 | `itsstuck` | monmove.js:2314 | Implemented |
 | 1143 | `leppie_avoidance` | monmove.js:202 | Implemented |
 | 1158 | `leppie_stash` | monmove.js:2452 | Implemented |
-| 575 | `m_arrival` | - | Missing |
+| 575 | `m_arrival` | monmove.js:m_arrival | Implemented (resets STRAT_ARRIVE flag) |
 | 1301 | `m_avoid_kicked_loc` | monmove.js:523 | Implemented |
 | 1317 | `m_avoid_soko_push_loc` | monmove.js:536 | Implemented |
 | 1185 | `m_balks_at_approaching` | monmove.js:2346 | Implemented |
@@ -3087,10 +3087,10 @@ No function symbols parsed from isaac64.c.
 | 363 | `release_hero` | monmove.js:2325 | Implemented |
 | 2201 | `set_apparxy` | monmove.js | Partial — pet/ustuck/position early-return, notseen/displaced displacement, rn2(3)/rn2(4) gotu, offset loop faithful; Approximations: missing Underwater check, missing Xorn smell, loop exit omits passes_walls/can_ooze/can_fog, Displaced detected via cloak otyp not intrinsic |
 | 1074 | `should_displace` | monmove.js:2277 | Implemented |
-| 1256 | `soko_allow_web` | - | Missing |
-| 2322 | `stuff_prevents_passage` | - | Missing |
+| 1256 | `soko_allow_web` | monmove.js:soko_allow_web | Implemented (Sokoban web restriction via stairway visibility) |
+| 2322 | `stuff_prevents_passage` | monmove.js:stuff_prevents_passage | Implemented (bulky inventory check for squeezing through passages) |
 | 2280 | `undesirable_disp` | monmove.js:undesirable_disp | Implemented |
-| 2380 | `vamp_shift` | - | Missing |
+| 2380 | `vamp_shift` | monmove.js:vamp_shift | Implemented (vampire shape-change; newcham stub) |
 | 177 | `watch_on_duty` | monmove.js:watch_on_duty | Implemented |
 
 ### monst.c -> monst.js

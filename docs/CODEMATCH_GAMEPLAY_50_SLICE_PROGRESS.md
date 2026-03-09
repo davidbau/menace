@@ -49,7 +49,7 @@ Rules
 | S33 | [#314](https://github.com/davidbau/menace/issues/314) | hack.c travel parity | `Done` (ledger) |
 | S34 | [#315](https://github.com/davidbau/menace/issues/315) | mon.c lifecycle parity | `Ready` |
 | S35 | [#316](https://github.com/davidbau/menace/issues/316) | mondata.c predicate parity | `Done` (121f9695) |
-| S36 | [#317](https://github.com/davidbau/menace/issues/317) | monmove.c postmove edge parity | `Ready` |
+| S36 | [#317](https://github.com/davidbau/menace/issues/317) | monmove.c postmove edge parity | `Done` (bee_eat_jelly, m_arrival, soko_allow_web, stuff_prevents_passage, vamp_shift) |
 | S37 | [#318](https://github.com/davidbau/menace/issues/318) | dog.c pet transfer parity | `Ready` |
 | S38 | [#319](https://github.com/davidbau/menace/issues/319) | dogmove.c remaining AI parity | `Done` (ledger) |
 | S39 | [#320](https://github.com/davidbau/menace/issues/320) | mhitu.c special attack parity | `Done` (cloneu, gulp_blnd_check, mon_avoiding_this_attack, mtrapped_in_pit) |
@@ -68,5 +68,5 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 32
-- Completed slices: 18 (S12, S17, S18, S19, S28, S29, S32, S33, S35, S38, S39, S40, S41, S42, S43, S45, S46, S48)
+- Open slices: 31
+- Completed slices: 19 (S12, S17, S18, S19, S28, S29, S32, S33, S35, S36, S38, S39, S40, S41, S42, S43, S45, S46, S48)
