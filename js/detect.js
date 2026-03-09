@@ -110,10 +110,10 @@ function trapDiscoveryName(ttyp) {
 // ========================================================================
 // Display stubs
 // ========================================================================
-function browse_map() {}
+export function browse_map() {}
 export function map_monst() {}
-function display_self() {}
-function show_glyph(x, y, glyph) {
+export function display_self() {}
+export function show_glyph(x, y, glyph) {
     if (!isok(x, y)) return;
     tmp_at(DISP_CHANGE, glyph);
     tmp_at(x, y);
@@ -130,14 +130,14 @@ async function flash_glyph_at(x, y, glyph, repeatCount = 1) {
 }
 function feel_location() {}
 // flush_screen imported from display.js
-async function strange_feeling(sobj, msg, player, display) {
+export async function strange_feeling(sobj, msg, player, display) {
     if (display && msg) await display.putstr_message(msg);
 }
 
 // ========================================================================
 // cf. detect.c:70 -- unconstrain_map / reconstrain_map
 // ========================================================================
-function unconstrain_map(player) {
+export function unconstrain_map(player) {
     const res = !!(player.uinwater || player.uburied || player.uswallow);
     player._save_uinwater = player.uinwater;
     player._save_uburied = player.uburied;
@@ -145,7 +145,7 @@ function unconstrain_map(player) {
     player.uinwater = 0; player.uburied = 0; player.uswallow = 0;
     return res;
 }
-function reconstrain_map(player) {
+export function reconstrain_map(player) {
     player.uinwater = player._save_uinwater || 0;
     player.uburied = player._save_uburied || 0;
     player.uswallow = player._save_uswallow || 0;
@@ -196,7 +196,7 @@ export function observe_recursively(obj) {
 // ========================================================================
 // cf. detect.c:262/318 -- check_map_spot / clear_stale_map
 // ========================================================================
-function check_map_spot() { return false; }
+export function check_map_spot() { return false; }
 export function clear_stale_map(oclass, material, map) {
     let change = false;
     for (let zx = 1; zx < COLNO; zx++)
@@ -532,7 +532,7 @@ export function sense_trap(trap, x, y, src_cursed, player, map, display) {
 // ========================================================================
 // cf. detect.c:907 -- detect_obj_traps
 // ========================================================================
-function detect_obj_traps(objlist, show_them, how, ft, player, map, display) {
+export function detect_obj_traps(objlist, show_them, how, ft, player, map, display) {
     let result = OTRAP_NONE;
     for (const otmp of (objlist || [])) {
         let x = 0, y = 0;

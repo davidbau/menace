@@ -711,7 +711,7 @@ export function change_sex(player) {
 // Full port: consumes RNG to match C behavior order.
 // ============================================================================
 
-async function newman(player) {
+export async function newman(player) {
     // cf. polyself.c:332 — newman()
     // Transform player into a "new" human form with level/stat changes.
     if (!player) return;
@@ -2072,7 +2072,7 @@ export function livelog_newform(viapoly, oldgend, newgend) {
 }
 
 // golemhp — duplicate of makemon.js local function, needed for polymon
-function golemhp(mndx) {
+export function golemhp(mndx) {
     switch (mndx) {
     case PM_STRAW_GOLEM:    return 20;
     case PM_PAPER_GOLEM:    return 20;
