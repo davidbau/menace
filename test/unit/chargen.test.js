@@ -324,9 +324,13 @@ describe('Chargen: Greeting strings', () => {
         assert.equal(greetingForRole(PM_KNIGHT), 'Salutations');
     });
 
+    it('Tourist greeting: Aloha', () => {
+        assert.equal(greetingForRole(PM_TOURIST), 'Aloha');
+    });
+
     it('Most roles greeting: Hello', () => {
         const helloRoles = [PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVEMAN, PM_HEALER,
-                            PM_MONK, PM_PRIEST, PM_RANGER, PM_ROGUE, PM_TOURIST, PM_WIZARD];
+                            PM_MONK, PM_PRIEST, PM_RANGER, PM_ROGUE, PM_WIZARD];
         for (const ri of helloRoles) {
             assert.equal(greetingForRole(ri), 'Hello', `${roles[ri].name} should greet with Hello`);
         }

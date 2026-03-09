@@ -28,7 +28,7 @@ import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_C
 import { isObjectNameKnown } from './o_init.js';
 import { doname, xname, splitobj, next_ident, weight, Is_container, add_to_minv } from './mkobj.js';
 import { currency, o_on } from './invent.js';
-import { greetingForRole } from './player.js';
+import { greetingForRole, Hello } from './player.js';
 import { shtypes, shkname, Shknam, saleable, is_izchak } from './shknam.js';
 import { rn2, rnd } from './rng.js';
 import { pline, You, Your, You_hear, You_feel, You_cant, pline_The, There,
@@ -1581,7 +1581,8 @@ export async function maybeHandleShopEntryMessage(game, oldX, oldY) {
     }
 
     const visitct = Number(shkp.visitct || 0);
-    const greeting = greetingForRole(player.roleIndex);
+    // C ref: shk.c — uses Hello(shkp) which gives Samurai "Irasshaimase" for shopkeepers
+    const greeting = Hello(shkp, player.roleIndex);
     await display.putstr_message(`"${greeting}, ${plname}!  Welcome${visitct ? ' again' : ''} to ${sSuffix(shkName)} ${shopTypeName}!"`);
     shkp.visitct = visitct + 1;
 }

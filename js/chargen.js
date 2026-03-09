@@ -14,7 +14,7 @@ import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
 import { FOV } from './vision.js';
 import { Player, roles, races, validRacesForRole, validAlignsForRoleRace,
          needsGenderMenu, rankOf, godForRoleAlign, isGoddess, greetingForRole,
-         roleNameForGender, alignName, formatLoreText } from './player.js';
+         Goodbye, roleNameForGender, alignName, formatLoreText } from './player.js';
 import { GameMap } from './game.js';
 import { initLevelGeneration, mklev, setGameSeed, isBranchLevelToDnum } from './dungeon.js';
 import { runWithSplevPlayerSnapshot } from './sp_lev.js';
@@ -201,7 +201,7 @@ export async function showGameOver(game) {
     row = Math.min(row + 1, game.display.rows - 3);
     const female = p.gender === FEMALE;
     const roleName = roleNameForGender(p.roleIndex, female);
-    const farewell = `Goodbye ${p.name} the ${roleName}...`;
+    const farewell = `${Goodbye(p.roleIndex)} ${p.name} the ${roleName}...`;
     await game.display.putstr(0, row++, farewell, 14);
 
     // Play again prompt

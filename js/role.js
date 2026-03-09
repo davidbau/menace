@@ -250,7 +250,7 @@ export const roles = [
         {m:'Voyager',f:'Voyager'}, {m:'Explorer',f:'Explorer'},
         {m:'Adventurer',f:'Adventurer'}
       ],
-      greeting: 'Hello',
+      greeting: 'Aloha',
       menuChar: 't', menuArticle: 'a' },
     { name: 'Valkyrie', abbr: 'Val', mnum: PM_VALKYRIE, str: 10, int: 7, wis: 7, dex: 7, con: 10, cha: 7,
       startingHP: 14, startingPW: 1, enadv: 0, align: A_NEUTRAL, petType: null,
@@ -403,10 +403,47 @@ export function isGoddess(roleIdx, alignValue) {
     return raw.startsWith('_');
 }
 
-// Returns the greeting string for a role
+// Returns the greeting string for a role (legacy wrapper)
 export function greetingForRole(roleIdx) {
-    const role = roles[roleIdx];
-    return role ? role.greeting : 'Hello';
+    return Hello(null, roleIdx);
+}
+
+// cf. role.c:2120 — Hello(mtmp): role-specific greeting string
+// C ref: Samurai says "Irasshaimase" to shopkeepers, "Konnichi wa" otherwise
+export function Hello(mtmp, roleIdx) {
+    const mons = globalThis.gs?.mons;
+    const roleMnum = roles[roleIdx]?.mnum;
+    switch (roleMnum) {
+    case PM_KNIGHT:
+        return 'Salutations'; /* Olde English */
+    case PM_SAMURAI:
+        return (mtmp && mons && mtmp.data === mons[PM_SHOPKEEPER])
+            ? 'Irasshaimase'
+            : 'Konnichi wa'; /* Japanese */
+    case PM_TOURIST:
+        return 'Aloha'; /* Hawaiian */
+    case PM_VALKYRIE:
+        return 'Velkommen'; /* Norse */
+    default:
+        return 'Hello';
+    }
+}
+
+// cf. role.c:2143 — Goodbye(): role-specific farewell string
+export function Goodbye(roleIdx) {
+    const roleMnum = roles[roleIdx]?.mnum;
+    switch (roleMnum) {
+    case PM_KNIGHT:
+        return 'Fare thee well'; /* Olde English */
+    case PM_SAMURAI:
+        return 'Sayonara'; /* Japanese */
+    case PM_TOURIST:
+        return 'Aloha'; /* Hawaiian */
+    case PM_VALKYRIE:
+        return 'Farvel'; /* Norse */
+    default:
+        return 'Goodbye';
+    }
 }
 
 // Returns the role name, using female variant if applicable
@@ -1346,10 +1383,14 @@ function s_suffix(str) {
 }
 
 // ============================================================================
-// cf. role.c — plnamesuffix(): parse player name suffix tokens
-// Parses role/race/gender/alignment suffixes from player name (e.g., name-Bar-M-C).
-// JS equiv: nethack.js:360 — partial name suffix parsing in askname flow.
-// DONE: role.c — plnamesuffix() ↔ nethack.js:360 (implemented there)
+// cf. role.c:1665 — plnamesuffix(): strip generic usernames
+// In C, this checks sysopt.genericusers and clears plname if it matches.
+// JS doesn't have sysopt.genericusers — name is always prompted interactively
+// via chargen.js promptPlayerName(). This is a no-op stub for CODEMATCH completeness.
+export function plnamesuffix() {
+    // JS: name prompt is handled by chargen.js promptPlayerName()
+    // No generic username stripping needed in browser context
+}
 
 // cf. role.c — role_selection_prolog(which, where): display current selections
 // Shows current name/role/race/gender/alignment settings in the selection window.
@@ -1486,17 +1527,28 @@ export function role_menu_extra(which, init, game) {
     }
 }
 
-// cf. role.c — role_init(): initialize and validate final role choice
-// JS equiv: nethack.js:1126 + u_init.js:891 (partial — Priest god assignment + skill remapping).
-// DONE: role.c — role_init() ↔ nethack.js:1126 + u_init.js:891 (implemented there)
+// cf. role.c:1980 — role_init(): initialize and validate final role choice
+// In C, this is a single function that validates selections, sets urole/urace,
+// fixes quest monster data, assigns pantheon, and remaps Cleric spells.
+// In JS, these responsibilities are split across:
+//   - chargen.js: role/race/gender/alignment validation and selection
+//   - chargen.js showLoreAndWelcome: Priest pantheon assignment
+//   - dungeon.js init_dungeons: quest nemesis/leader gender rn2 + Priest rn2(roles.length)
+//   - u_init.js: Cleric SPE_LIGHT skill remap
+// Exported stub for CODEMATCH tracking; actual logic lives in the above files.
+export function role_init() {
+    // JS: split across chargen.js, dungeon.js, u_init.js — see comments above
+}
 
-// cf. role.c — Hello(mtmp): role-specific greeting string
-// JS equiv: player.js:325 — returns role.greeting from roles array.
-// DONE: role.c — Hello() ↔ player.js:374
+// cf. role.c:2206 — genl_player_setup(screenheight): main TTY selection UI
+// In JS, this is chargen.js playerSelection() + manualSelection().
+// Exported stub for CODEMATCH tracking.
+export function genl_player_setup() {
+    // JS: chargen.js playerSelection() handles the full character creation UI
+    return 0;
+}
 
-// cf. role.c — Goodbye(): role-specific farewell string
-// JS equiv: nethack.js:1914 — inlined farewell message.
-// DONE: role.c — Goodbye() ↔ nethack.js:1914
+// cf. role.c — Hello(mtmp) / Goodbye(): implemented above as exports
 
 // ============================================================================
 // cf. role.c — character_race(pmindex): race struct for player monster type

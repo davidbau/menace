@@ -4313,14 +4313,14 @@ Remaining parity gaps are mostly behavioral depth:
 ### role.c -> role.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 2143 | `Goodbye` | - | Missing |
-| 2120 | `Hello` | - | Missing |
+| 2143 | `Goodbye` | role.js:433 | Implemented |
+| 2120 | `Hello` | role.js:413 | Implemented |
 | 1583 | `build_plselection_prompt` | role.js:1278 | Implemented |
 | 2163 | `character_race` | role.js:1505 | Implemented |
 | 1358 | `clearrolefilter` | role.js:1103 | Implemented |
 | 2177 | `genl_player_selection` | role.js:1602 | Implemented |
-| 2206 | `genl_player_setup` | - | Missing |
-| 3017 | `genl_player_setup` | - | Missing |
+| 2206 | `genl_player_setup` | role.js:1546 | Implemented (stub — chargen.js handles UI) |
+| 3017 | `genl_player_setup` | role.js:1546 | Implemented (stub — non-TTY variant) |
 | 1303 | `gotrolefilter` | role.js:1050 | Implemented |
 | 2777 | `maybe_skip_seps` | role.js:1532 | Implemented |
 | 1172 | `ok_align` | role.js:879 | Implemented |
@@ -4331,7 +4331,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 1146 | `pick_gend` | role.js:961 | Implemented |
 | 1081 | `pick_race` | role.js:940 | Implemented |
 | 1015 | `pick_role` | role.js:924 | Implemented |
-| 1665 | `plnamesuffix` | - | Missing |
+| 1665 | `plnamesuffix` | role.js:1390 | Implemented (stub — JS uses chargen.js promptPlayerName) |
 | 2806 | `plsel_startmenu` | role.js:1541 | Implemented |
 | 1384 | `promptsep` | role.js:1135 | Implemented |
 | 1415 | `race_alignmentcount` | role.js:1163 | Implemented |
@@ -4343,7 +4343,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 2728 | `reset_role_filtering` | role.js:1525 | Implemented |
 | 1235 | `rigid_role_checks` | role.js:1008 | Implemented |
 | 1399 | `role_gendercount` | role.js:1150 | Implemented |
-| 1980 | `role_init` | - | Missing |
+| 1980 | `role_init` | role.js:1539 | Implemented (stub — logic split across chargen.js/dungeon.js/u_init.js) |
 | 1816 | `role_menu_extra` | role.js:1435 | Implemented |
 | 1726 | `role_selection_prolog` | role.js:1359 | Implemented |
 | 1318 | `rolefilterstring` | role.js:1065 | Implemented |

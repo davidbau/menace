@@ -16,12 +16,14 @@ import { skill_init, skills_for_role } from './weapon.js';
 import { roles, races,
          validRacesForRole, validAlignsForRoleRace, needsGenderMenu,
          rankOf, godForRoleAlign, isGoddess, greetingForRole,
+         Hello, Goodbye,
          roleNameForGender, alignName, initialAlignmentRecordForRole,
          formatLoreText } from './role.js';
 // Re-export for backward compatibility during migration
 export { roles, races,
          validRacesForRole, validAlignsForRoleRace, needsGenderMenu,
          rankOf, godForRoleAlign, isGoddess, greetingForRole,
+         Hello, Goodbye,
          roleNameForGender, alignName, initialAlignmentRecordForRole,
          formatLoreText };
 
