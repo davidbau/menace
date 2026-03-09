@@ -5893,3 +5893,30 @@ hard-won wisdom:
 - Validation:
   - `npm test -- test/unit/region_surface.test.js` passed (gate run).
   - `region.c` missing count reduced from `8` to `0` (5 implemented, 3 N/A).
+
+### CODEMATCH selvar.c compatibility-surface closure (2026-03-09)
+
+- Problem:
+  - `selvar.c` was still mapped to `—` with 26 missing rows even though
+    selection geometry/runtime lived in `sp_lev.js`.
+- Change:
+  - Added explicit `selvar.c` compatibility exports in `js/sp_lev.js`:
+    - geometry helpers: `line_dist_coord`, `selection_do_line`,
+      `selection_do_randline`, `selection_do_ellipse`,
+      `selection_do_gradient`, `selection_do_grow`
+    - selection lifecycle/accessors: `selection_new`, `selection_free`,
+      `selection_clear`, `selection_clone`, `selection_getbounds`,
+      `selection_recalc_bounds`, `selection_getpoint`, `selection_setpoint`,
+      `selection_not`, `selection_rndcoord`, `selection_iterate`,
+      `selection_is_irregular`, `selection_size_description`
+    - floodfill/selectors: `set_selection_floodfillchk`,
+      `selection_floodfill`, `selection_filter_percent`,
+      `selection_filter_mapchar`, `sel_flood_havepoint`,
+      `selection_from_mkroom`, `selection_force_newsyms`
+  - Updated CODEMATCH mapping to `selvar.c -> sp_lev.js` and row-level
+    line references.
+  - Added focused coverage:
+    - `test/unit/selvar_surface.test.js`.
+- Validation:
+  - `npm test -- test/unit/selvar_surface.test.js` passed (gate run).
+  - `selvar.c` missing count reduced from `26` to `0`.

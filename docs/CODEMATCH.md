@@ -128,7 +128,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[~]` | role.c | role.js | Role/race/gender/alignment selection. roles[]/races[] data now in `role.js` (includes hpadv/enadv_full/xlev structs for all roles, hpadv/enadv for all races, `mnum` field mapping each role to its C PM_* monster-table index) and re-exported by `player.js`; `Role_if(player, pm)` and `Role_switch(player)` exported (matching C macros `Role_if`/`Role_switch` which compare `urole.mnum`); ok_role/ok_race/ok_align PARTIAL in chargen.js; role_init PARTIAL in chargen.js+u_init.js; Hello() in player.js; all others TODO |
 | `[~]` | rumors.c | rumors.js | Rumor/oracle/CapitalMon system. JS: `rumor_data.js` (data); unpadline/init_rumors/get_rnd_line in `hacklib.js`; getrumor inlined in `dungeon.js`; outoracle/doconsult/CapitalMon TODO |
 | `[a]` | save.c | save.js, storage.js | Game state serialization. Active JS path is `storage.js` (`buildSaveData`/`saveGameState`/`saveLev`/`saveObjChn`/`saveTrapChn`/`handleSave`); binary NHFILE helpers in `save.c` are N/A in browser/localStorage architecture. `freedynamicdata()` mirrors C `tmp_at(DISP_FREEMEM,0)` cleanup |
-| `[a]` | selvar.c | — | Selection geometry. JS: `selection` object in `sp_lev.js`. All major geometry functions aligned including ellipse/gradient/is_irregular/size_description |
+| `[a]` | selvar.c | sp_lev.js | Selection geometry. JS selection engine and selvar compatibility surface live in `sp_lev.js` |
 | `[N/A]` | sfbase.c | — | Save file base I/O routines |
 | `[N/A]` | sfstruct.c | — | Save file structure definitions |
 | `[a]` | shk.c | shk.js | Shopkeeper behavior. describeGroundObjectForPlayer (xname-based), maybeHandleShopEntryMessage, getprice/getCost/getShopQuoteForFloorObject (pricing approximations); shknam.js has naming. ~90 functions TODO |
@@ -4413,35 +4413,35 @@ Remaining parity gaps are mostly behavioral depth:
 | 977 | `store_plname_in_file` | - | N/A (C binary save header/player-name suffix format; JS stores structured `you` fields directly) |
 | 329 | `tricked_fileremoved` | save.js:160 | Implemented |
 
-### selvar.c -> —
+### selvar.c -> sp_lev.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 542 | `line_dist_coord` | - | Missing |
-| 379 | `sel_flood_havepoint` | - | Missing |
-| 48 | `selection_clear` | - | Missing |
-| 65 | `selection_clone` | - | Missing |
-| 456 | `selection_do_ellipse` | - | Missing |
-| 570 | `selection_do_gradient` | - | Missing |
-| 321 | `selection_do_grow` | - | Missing |
-| 626 | `selection_do_line` | - | Missing |
-| 683 | `selection_do_randline` | - | Missing |
-| 248 | `selection_filter_mapchar` | - | Missing |
-| 224 | `selection_filter_percent` | - | Missing |
-| 395 | `selection_floodfill` | - | Missing |
-| 802 | `selection_force_newsyms` | - | Missing |
-| 33 | `selection_free` | - | Missing |
-| 781 | `selection_from_mkroom` | - | Missing |
-| 77 | `selection_getbounds` | - | Missing |
-| 168 | `selection_getpoint` | - | Missing |
-| 747 | `selection_is_irregular` | - | Missing |
-| 726 | `selection_iterate` | - | Missing |
-| 15 | `selection_new` | - | Missing |
-| 211 | `selection_not` | - | Missing |
-| 99 | `selection_recalc_bounds` | - | Missing |
-| 284 | `selection_rndcoord` | - | Missing |
-| 181 | `selection_setpoint` | - | Missing |
-| 764 | `selection_size_description` | - | Missing |
-| 372 | `set_selection_floodfillchk` | - | Missing |
+| 542 | `line_dist_coord` | sp_lev.js:8261 | Implemented |
+| 379 | `sel_flood_havepoint` | sp_lev.js:8279 | Implemented |
+| 48 | `selection_clear` | sp_lev.js:8289 | Implemented |
+| 65 | `selection_clone` | sp_lev.js:8295 | Implemented |
+| 456 | `selection_do_ellipse` | sp_lev.js:8329 | Implemented |
+| 570 | `selection_do_gradient` | sp_lev.js:8338 | Implemented |
+| 321 | `selection_do_grow` | sp_lev.js:8313 | Implemented |
+| 626 | `selection_do_line` | sp_lev.js:8347 | Implemented |
+| 683 | `selection_do_randline` | sp_lev.js:8356 | Implemented |
+| 248 | `selection_filter_mapchar` | sp_lev.js:8309 | Implemented |
+| 224 | `selection_filter_percent` | sp_lev.js:8307 | Implemented |
+| 395 | `selection_floodfill` | sp_lev.js:8317 | Implemented |
+| 802 | `selection_force_newsyms` | sp_lev.js:8378 | Implemented |
+| 33 | `selection_free` | sp_lev.js:8287 | Implemented |
+| 781 | `selection_from_mkroom` | sp_lev.js:8367 | Implemented |
+| 77 | `selection_getbounds` | sp_lev.js:8297 | Implemented |
+| 168 | `selection_getpoint` | sp_lev.js:8301 | Implemented |
+| 747 | `selection_is_irregular` | sp_lev.js:8363 | Implemented |
+| 726 | `selection_iterate` | sp_lev.js:8361 | Implemented |
+| 15 | `selection_new` | sp_lev.js:8285 | Implemented |
+| 211 | `selection_not` | sp_lev.js:8305 | Implemented |
+| 99 | `selection_recalc_bounds` | sp_lev.js:8299 | Implemented |
+| 284 | `selection_rndcoord` | sp_lev.js:8311 | Implemented |
+| 181 | `selection_setpoint` | sp_lev.js:8303 | Implemented |
+| 764 | `selection_size_description` | sp_lev.js:8365 | Implemented |
+| 372 | `set_selection_floodfillchk` | sp_lev.js:8315 | Implemented |
 
 ### sfbase.c -> —
 | C Line | C Function | JS Line | Alignment |

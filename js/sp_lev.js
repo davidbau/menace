@@ -8251,6 +8251,138 @@ function sel_clone(sel) {
     return out;
 }
 
+// -----------------------------------------------------------------------
+// selvar.c compatibility surface
+// -----------------------------------------------------------------------
+
+let _selectionFloodfillChk = null;
+
+// C ref: selvar.c:542
+export function line_dist_coord(lx1, ly1, lx2, ly2, px, py) {
+    const pvx = lx2 - lx1;
+    const pvy = ly2 - ly1;
+    const s = pvx * pvx + pvy * pvy;
+    if (s === 0) {
+        const dx = lx1 - px;
+        const dy = ly1 - py;
+        return dx * dx + dy * dy;
+    }
+    let lu = ((px - lx1) * pvx + (py - ly1) * pvy) / s;
+    if (lu > 1) lu = 1;
+    else if (lu < 0) lu = 0;
+    const cx = lx1 + lu * pvx - px;
+    const cy = ly1 + lu * pvy - py;
+    return Math.trunc(cx * cx + cy * cy);
+}
+
+// C ref: selvar.c:379
+export function sel_flood_havepoint(sel, x, y) {
+    const abs = selection._toAbsoluteCoord(x, y);
+    return sel_has_coord(sel, abs.x, abs.y);
+}
+
+// C ref: selvar.c:15
+export function selection_new() { return selection.new(); }
+// C ref: selvar.c:33
+export function selection_free(_sel) { return; }
+// C ref: selvar.c:48
+export function selection_clear(sel) {
+    if (!sel || !Array.isArray(sel.coords)) return sel || selection.new();
+    sel.coords.length = 0;
+    return sel;
+}
+// C ref: selvar.c:65
+export function selection_clone(sel) { return sel_clone(sel); }
+// C ref: selvar.c:77
+export function selection_getbounds(sel) { return sel?.bounds ? sel.bounds() : { lx: 0, ly: 0, hx: 0, hy: 0 }; }
+// C ref: selvar.c:99
+export function selection_recalc_bounds(sel) { return selection_getbounds(sel); }
+// C ref: selvar.c:168
+export function selection_getpoint(x, y, sel) { return l_selection_getpoint(sel, x, y); }
+// C ref: selvar.c:181
+export function selection_setpoint(x, y, sel, val = true) { return l_selection_setpoint(sel, x, y, val); }
+// C ref: selvar.c:211
+export function selection_not(sel) { return selection.negate(sel); }
+// C ref: selvar.c:224
+export function selection_filter_percent(sel, pct = 100) { return selection.percentage(sel, pct); }
+// C ref: selvar.c:248
+export function selection_filter_mapchar(sel, ch) { return l_selection_filter_mapchar(sel, ch); }
+// C ref: selvar.c:284
+export function selection_rndcoord(sel, rm = false) { return selection.rndcoord(sel, rm); }
+// C ref: selvar.c:321
+export function selection_do_grow(sel, n = 1) { return selection.grow(sel, n); }
+// C ref: selvar.c:372
+export function set_selection_floodfillchk(fn) { _selectionFloodfillChk = fn; }
+// C ref: selvar.c:395
+export function selection_floodfill(sel, x, y, _allowdiag = false) {
+    const match = _selectionFloodfillChk
+        ? (loc, cx, cy) => !!_selectionFloodfillChk(cx, cy, loc)
+        : (() => true);
+    const out = selection.floodfill(x, y, (loc) => match(loc, x, y));
+    const target = sel || selection.new();
+    selection_clear(target);
+    for (const c of out?.coords || [])
+        target.set(c.x, c.y, true);
+    return target;
+}
+// C ref: selvar.c:456
+export function selection_do_ellipse(sel, xc, yc, a, b, filled = false) {
+    const out = selection.ellipse(xc, yc, a, b, filled);
+    if (!sel) return out;
+    selection_clear(sel);
+    for (const c of out?.coords || [])
+        sel.set(c.x, c.y, true);
+    return sel;
+}
+// C ref: selvar.c:570
+export function selection_do_gradient(sel, x1, y1, x2, y2, gtyp = 0, mind = 0, maxd = 0) {
+    const out = selection.gradient(x1, y1, x2, y2, gtyp, mind, maxd);
+    if (!sel) return out;
+    selection_clear(sel);
+    for (const c of out?.coords || [])
+        sel.set(c.x, c.y, true);
+    return sel;
+}
+// C ref: selvar.c:626
+export function selection_do_line(sel, x1, y1, x2, y2) {
+    const out = selection.line(x1, y1, x2, y2);
+    if (!sel) return Array.isArray(out) ? { coords: out } : out;
+    selection_clear(sel);
+    const coords = Array.isArray(out) ? out : (out?.coords || []);
+    for (const c of coords)
+        sel.set(c.x, c.y, true);
+    return sel;
+}
+// C ref: selvar.c:683
+export function selection_do_randline(sel, x1, y1, x2, y2, roughness = 0) {
+    const out = selection.randline(sel || selection.new(), x1, y1, x2, y2, roughness);
+    return out;
+}
+// C ref: selvar.c:726
+export async function selection_iterate(sel, fn) { if (sel?.iterate) await sel.iterate(fn); return sel; }
+// C ref: selvar.c:747
+export function selection_is_irregular(sel) { return sel?.is_irregular ? sel.is_irregular() : false; }
+// C ref: selvar.c:764
+export function selection_size_description(sel) { return sel?.size_description ? sel.size_description() : 'empty'; }
+// C ref: selvar.c:781
+export function selection_from_mkroom(room) {
+    if (!room) return selection.new();
+    const out = selection.new();
+    for (let y = room.ly; y <= room.hy; y++) {
+        for (let x = room.lx; x <= room.hx; x++) {
+            out.set(x, y, true);
+        }
+    }
+    return out;
+}
+// C ref: selvar.c:802
+export function selection_force_newsyms(sel) {
+    if (!sel || !Array.isArray(sel.coords)) return;
+    for (const c of sel.coords) {
+        if (isok(c.x, c.y)) newsym(c.x, c.y);
+    }
+}
+
 // C ref: nhlua.c get_table_boolean_opt()/get_table_boolean()
 export function get_table_boolean_opt(opts = {}, name, defval = false) {
     const v = opts?.[name];
