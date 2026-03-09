@@ -4,7 +4,7 @@
 // records RNG traces and display state after each keystroke.
 // Returns a V3-format session object (source: 'js').
 
-import { enableRngLog, getRngLog, disableRngLog } from './rng.js';
+import { enableRngLog, getRngLog, disableRngLog, pushRngLogEntry } from './rng.js';
 import { pushInput } from './input.js';
 import { NetHackGame, run_command, execute_repeat_command } from './allmain.js';
 import { HeadlessDisplay, createHeadlessInput } from './headless.js';
@@ -163,6 +163,17 @@ function pendingWaitSite(inputRuntime) {
     return nonInternal || frames[1] || frames[0] || '';
 }
 
+function emitStartupRunstepIfEnabled(game) {
+    if (!envFlag('WEBHACK_EVENT_RUNSTEP')) return;
+    const ctx = game?.context || {};
+    const p = game?.u || game?.player || {};
+    const ux = Number.isFinite(Number(p?.x)) ? Number(p.x) : Number(p?.ux || 0);
+    const uy = Number.isFinite(Number(p?.y)) ? Number(p.y) : Number(p?.uy || 0);
+    pushRngLogEntry(
+        `^runstep[path=fresh_cmd keyarg=0 cmd=0 cc=0 moves=${(game?.moves | 0)} multi=${(game?.multi | 0)} run=${(ctx?.run | 0)} mv=${ctx?.mv ? 1 : 0} move=1 occ=${game?.occupation ? 1 : 0} umoved=${p?.umoved ? 1 : 0} ux=${ux | 0} uy=${uy | 0}]`
+    );
+}
+
 async function settleStartupInputBoundaries(game) {
     const maxIterations = 32;
     for (let i = 0; i < maxIterations; i++) {
@@ -241,6 +252,7 @@ export async function replaySession(seed, opts, keys) {
     const initOpts = { seed, ...(opts.initOpts || {}) };
     await game.init(initOpts);
     await settleStartupInputBoundaries(game);
+    emitStartupRunstepIfEnabled(game);
 
     // Enable --More-- blocking now that chargen is complete.
     if (game.display && typeof game.display._moreBlockingEnabled !== 'undefined') {

@@ -5304,3 +5304,24 @@ hard-won wisdom:
     `^runstep[...]` entries in captured session RNG/event stream.
   - Replayed through JS session runner; stream wiring works end-to-end and
     legacy sessions remain unaffected when the env flag is not enabled.
+
+### `^runstep` ordering refinement for seed033 event parity (2026-03-09)
+
+- Problem:
+  - After enabling runstep in `seed033_manual_direct`, JS emitted runstep
+    boundaries too early in the command lifecycle (before command effects),
+    causing event-order mismatch against C around early movement keys.
+- Fix:
+  - In [`js/allmain.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/allmain.js),
+    changed `fresh_cmd` runstep emission from command-entry to command-exit,
+    preserving C-like ordering where movement/test-move events can occur
+    before the next command-boundary marker.
+  - Kept `repeat_mv`/`repeat_cmd` explicit emission in the multi-loop path.
+  - In [`js/replay_core.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/replay_core.js),
+    added startup runstep emission when `WEBHACK_EVENT_RUNSTEP=1` so startup
+    boundary shape matches C capture sessions.
+- Validation:
+  - `seed033_manual_direct`: event matched prefix improved from `59` to `1572`
+    (same core first RNG divergence at step `942`).
+  - `seed100_multidigit_gameplay`: full pass unchanged (`rng/events/screens` all match).
+  - `interface_startup`: full pass unchanged.

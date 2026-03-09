@@ -98,14 +98,15 @@ function runstepEventEnabled() {
     return raw === '1' || raw === 'true' || raw === 'on';
 }
 
-function emitRunstep(game, keyarg, path) {
+function emitRunstep(game, keyarg, path, cmdOverride = null) {
     if (!runstepEventEnabled()) return;
     const ctx = game?.context || {};
     const p = game?.u || game?.player || {};
     const ux = Number.isFinite(Number(p?.x)) ? Number(p.x) : Number(p?.ux || 0);
     const uy = Number.isFinite(Number(p?.y)) ? Number(p.y) : Number(p?.uy || 0);
+    const cmd = (cmdOverride == null) ? (game?.cmdKey | 0) : (cmdOverride | 0);
     pushRngLogEntry(
-        `^runstep[path=${path} keyarg=${keyarg | 0} cmd=${(game?.cmdKey | 0)} cc=${(game?.commandCount | 0)} moves=${(game?.moves | 0)} multi=${(game?.multi | 0)} run=${(ctx?.run | 0)} mv=${ctx?.mv ? 1 : 0} move=1 occ=${game?.occupation ? 1 : 0} umoved=${p?.umoved ? 1 : 0} ux=${ux | 0} uy=${uy | 0}]`
+        `^runstep[path=${path} keyarg=${keyarg | 0} cmd=${cmd} cc=${(game?.commandCount | 0)} moves=${(game?.moves | 0)} multi=${(game?.multi | 0)} run=${(ctx?.run | 0)} mv=${ctx?.mv ? 1 : 0} move=1 occ=${game?.occupation ? 1 : 0} umoved=${p?.umoved ? 1 : 0} ux=${ux | 0} uy=${uy | 0}]`
     );
 }
 
@@ -526,7 +527,11 @@ export async function run_command(game, ch, opts = {}) {
         ? ((game?.context?.mv) ? 'repeat_mv' : 'repeat_cmd')
         : (game?.multi === 0 ? 'fresh_cmd' : 'other');
     const runstepKeyarg = game?.multi > 0 ? (game?.cmdKey | 0) : 0;
-    emitRunstep(game, runstepKeyarg, runstepPath);
+    const runstepCmd = game?.multi > 0 ? (game?.cmdKey | 0) : chCode;
+    const deferFreshRunstep = runstepPath === 'fresh_cmd';
+    if (!deferFreshRunstep) {
+        emitRunstep(game, runstepKeyarg, runstepPath, runstepCmd);
+    }
     game?.emitDiagnosticEvent?.('command.start', {
         key: chCode,
         boundary: game?.getInputBoundaryState?.() || null,
@@ -839,9 +844,6 @@ export async function run_command(game, ch, opts = {}) {
         game.advanceRunTurn = null;
         return await execute_repeat_command(game, opts);
     }
-    if (result && !result.tookTime) {
-        emitRunstep(game, 0, 'fresh_cmd');
-    }
     if (!skipRepeatRecord && !game.inDoAgain) {
         game._repeatPrefixChainActive = !!(result && !result.tookTime && isPrefixKey);
     }
@@ -877,6 +879,7 @@ export async function run_command(game, ch, opts = {}) {
 
             const ctx = game.context || {};
             if (ctx.mv) {
+                emitRunstep(game, game?.cmdKey | 0, 'repeat_mv', game?.cmdKey | 0);
                 // C ref: allmain.c:527-530 — movement/travel multi repeat.
                 // lookaround() can abort running by clearing multi.
                 const _p = game.u || game.player;
@@ -919,6 +922,7 @@ export async function run_command(game, ch, opts = {}) {
                 await advanceTimedTurn();
                 await _drainOccupation(game, coreOpts, onTimedTurn);
             } else {
+                emitRunstep(game, game?.cmdKey | 0, 'repeat_cmd', game?.cmdKey | 0);
                 game.multi--;
                 game.advanceRunTurn = async () => {
                     await advanceTimedTurn();
@@ -964,6 +968,9 @@ export async function run_command(game, ch, opts = {}) {
         }
     }
 
+    if (deferFreshRunstep) {
+        emitRunstep(game, 0, 'fresh_cmd', game?.cmdKey | 0);
+    }
     return result;
     } finally {
         endCommandExec(game, execToken, { site: 'run_command', key: chCode });
