@@ -16,7 +16,8 @@ import {
     destroy_nhwindow,
 } from './windows.js';
 import { NHW_MENU, NHW_TEXT, PICK_ONE, ATR_NONE } from './const.js';
-import { awaitInput } from './suspend.js';
+import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
+import { visctrl } from './hacklib.js';
 
 const HiliteNormalMap = 0;
 const HiliteGoodposSymbol = 1;
@@ -590,11 +591,9 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
             }
         }
         // C ref: getpos.c:843-846 — verbose "(For instructions...)" is shown
-        // BEFORE the loop as a separate pline, NOT combined with the goal message.
-        // Only show when a tip was just displayed (tip clears the topline, so no
-        // concatenation risk). When callers like dotravel() already include the
-        // instructions in their prompt, showing it again would overflow.
-        if (flags.verbose && tipShownThisCall) {
+        // before the loop. Keep normal prompts unchanged unless caller
+        // explicitly requests this pre-loop line.
+        if (flags.verbose && (tipShownThisCall || runtimeCtx.forceVerbosePrompt)) {
             await display.putstr_message("(For instructions type a '?')");
         }
     }
@@ -639,7 +638,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 ccp.y = -10;
                 return -1;
             }
-            if (c === '.' || c === ',' || c === ';' || c === ':' || ch === 13 || ch === 10) {
+            if (c === '.' || c === ',' || c === ';' || c === ':') {
                 // C ref: getpos.c:929-935 — pick keys always accept the current
                 // cursor location. Travel path validity is not enforced here; it
                 // is handled later by travel execution.
@@ -734,6 +733,8 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 continue;
             }
 
+            const isQuitChar = (ch === 32 || ch === 13 || ch === 10 || ch === 27);
+
             const lower = c.toLowerCase();
             const delta = moveDeltaForChar(lower);
             if (delta) {
@@ -795,9 +796,31 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
             }
 
             if (!force) {
-                ccp.x = cx;
-                ccp.y = cy;
+                let hadUnknownDirection = false;
+                if (!isQuitChar && typeof display?.putstr_message === 'function') {
+                    await display.putstr_message(`Unknown direction: '${visctrl(c)}' (aborted).`);
+                    hadUnknownDirection = true;
+                }
+                if (typeof display?.putstr_message === 'function') {
+                    await display.putstr_message('Done.');
+                }
+                // C getpos(force=FALSE) can leave these two plines pending at
+                // --More-- before returning to normal command flow.
+                if (hadUnknownDirection && display?.messageNeedsMore) {
+                    await awaitDisplayMorePrompt(null, display, () => nhgetch(), {
+                        site: 'getpos.forcefalse.unknown.more',
+                    });
+                    display.topMessage = null;
+                }
+                ccp.x = -1;
+                ccp.y = 0;
                 return 0;
+            }
+
+            if (isQuitChar) {
+                restoreCursor(display, cursorState);
+                cursorState = putCursor(display, cx, cy);
+                continue;
             }
         }
     } finally {

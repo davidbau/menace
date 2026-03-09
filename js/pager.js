@@ -6,7 +6,7 @@ import {
     TERMINAL_COLS, TERMINAL_ROWS, VERSION_STRING,
     STAIRS, LADDER, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE, POOL, LAVAPOOL,
     DOOR, IRONBARS, TREE, CORR, SCORR, ICE,
-    STONE, ROOM, COLNO, ROWNO, MAP_ROW_START, CLR_GRAY, NO_COLOR, IS_WALL,
+    STONE, ROOM, COLNO, ROWNO, MAP_ROW_START, CLR_GRAY, NO_COLOR, IS_WALL, TER_MAP,
 } from './const.js';
 import { def_monsyms } from './symbols.js';
 import { nhgetch, ynFunction } from './input.js';
@@ -693,7 +693,22 @@ export async function handleViewMapPrompt(game) {
         display.renderStatus(player);
     }
     if (selected > 0) {
-        await display.putstr_message("Showing known terrain only...  (For instructions type a '?')");
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        display.topMessage = null;
+        display.messageNeedsMore = false;
+        await display.putstr_message("Showing known terrain only...");
+        const cc = { x: player.x, y: player.y };
+        const gpFlags = { ...(flags || {}), autodescribe: true, terrainmode: TER_MAP };
+        await getpos_async(cc, false, 'anything of interest', {
+            map,
+            display,
+            flags: gpFlags,
+            goalPrompt: 'anything of interest',
+            player,
+            forceVerbosePrompt: true,
+        });
+        gpFlags.terrainmode = 0;
+        if (typeof display.renderStatus === 'function') display.renderStatus(player);
     } else {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
