@@ -27,6 +27,8 @@ import { spec_ability } from './artifact.js';
 import { ART_MAGICBANE, SPFX_INTEL } from './artifacts.js';
 import { make_confused, make_blinded, make_glib } from './potion.js';
 import { makemon } from './makemon.js';
+import { courtmon } from './mkroom.js';
+import { level_difficulty } from './dungeon.js';
 import { unbless, curse as curseObj } from './mkobj.js';
 import { mark_vision_dirty } from './vision.js';
 import { do_mapping } from './detect.js';
@@ -239,9 +241,7 @@ async function throne_sit_effect(player, map, display) {
                 await verbalize("Thine audience hath been summoned, %s!",
                           player.gender === 1 ? "Dame" : "Sire");
                 for (let i = 0; i < cnt; i++) {
-                    // TODO: courtmon() — select appropriate court monster
-                    // RNG consumed by makemon for each monster
-                    makemon(null, tx, ty, 0, 0, map);
+                    makemon(courtmon(level_difficulty(map)), tx, ty, 0, 0, map);
                 }
             }
             break;
