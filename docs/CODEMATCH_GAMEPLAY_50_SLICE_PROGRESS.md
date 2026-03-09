@@ -48,7 +48,7 @@ Rules
 | S32 | [#313](https://github.com/davidbau/menace/issues/313) | hack.c movement/rush parity | `Ready` |
 | S33 | [#314](https://github.com/davidbau/menace/issues/314) | hack.c travel parity | `Ready` |
 | S34 | [#315](https://github.com/davidbau/menace/issues/315) | mon.c lifecycle parity | `Ready` |
-| S35 | [#316](https://github.com/davidbau/menace/issues/316) | mondata.c predicate parity | `Ready` |
+| S35 | [#316](https://github.com/davidbau/menace/issues/316) | mondata.c predicate parity | `Done` (121f9695) |
 | S36 | [#317](https://github.com/davidbau/menace/issues/317) | monmove.c postmove edge parity | `Ready` |
 | S37 | [#318](https://github.com/davidbau/menace/issues/318) | dog.c pet transfer parity | `Ready` |
 | S38 | [#319](https://github.com/davidbau/menace/issues/319) | dogmove.c remaining AI parity | `Ready` |
@@ -68,6 +68,6 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 50
-- Completed slices: 0
+- Open slices: 49
+- Completed slices: 1 (S35)
 

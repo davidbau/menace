@@ -447,7 +447,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2279 | `arti_speak` | artifact.js:646 | Implemented |
 | 371 | `artifact_exists` | artifact.js:140 | Implemented |
 | 2299 | `artifact_has_invprop` | artifact.js:322 | Implemented |
-| 1447 | `artifact_hit` | - | Missing |
+| 1447 | `artifact_hit` | artifact.js:artifact_hit | Implemented |
 | 2264 | `artifact_light` | artifact.js:337 | Implemented |
 | 329 | `artifact_name` | artifact.js:78 | Implemented |
 | 478 | `artifact_origin` | artifact.js:173 | Implemented |
@@ -460,7 +460,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 687 | `defends_when_carried` | artifact.js:294 | Implemented |
 | 1113 | `discover_artifact` | artifact.js:449 | Implemented |
 | 1147 | `disp_artifact_discoveries` | artifact.js:463 | Stub |
-| 312 | `dispose_of_orig_obj` | - | Missing |
+| 312 | `dispose_of_orig_obj` | artifact.js:dispose_of_orig_obj | Implemented |
 | 1749 | `doinvoke` | artifact.js:616 | Stub |
 | 1177 | `dump_artifact_info` | artifact.js:469 | Stub |
 | 356 | `exist_artifact` | artifact.js:128 | Implemented |
@@ -469,7 +469,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 409 | `found_artifact` | artifact.js:195 | Implemented |
 | 2821 | `get_artifact` | artifact.js:60 | Implemented |
 | 2427 | `glow_color` | artifact.js:476 | Implemented |
-| 2442 | `glow_strength` | - | Missing |
+| 2442 | `glow_strength` | artifact.js:glow_strength | Implemented |
 | 2451 | `glow_verb` | artifact.js:495 | Implemented |
 | 87 | `hack_artifacts` | - | Missing (init_artifacts serves similar role) |
 | 2790 | `has_magic_key` | artifact.js:717 | Implemented |
@@ -1014,15 +1014,15 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1590 | `cvt_sdoor_to_door` | detect.js:757 | Implemented |
 | 908 | `detect_obj_traps` | detect.js:538 | Implemented |
 | 1930 | `detecting` | detect.js:920 | Implemented |
-| 957 | `display_trap_map` | - | Missing |
-| 1423 | `do_mapping` | - | Missing |
-| 1449 | `do_vicinity_map` | - | Missing |
-| 2098 | `dosearch` | - | Missing |
+| 957 | `display_trap_map` | detect.js:display_trap_map | Implemented |
+| 1423 | `do_mapping` | detect.js:do_mapping | Implemented |
+| 1449 | `do_vicinity_map` | detect.js:do_vicinity_map | Implemented |
+| 2098 | `dosearch` | detect.js:dosearch | Implemented |
 | 2017 | `dosearch0` | detect.js:dosearch0 | RNG-PARITY — search for hidden doors/traps |
 | 2295 | `dump_map` | detect.js:1068 | Implemented |
-| 1936 | `find_trap` | - | Missing |
+| 1936 | `find_trap` | detect.js:find_trap | Implemented |
 | 1793 | `findit` | detect.js:855 | Implemented |
-| 1640 | `findone` | - | Missing |
+| 1640 | `findone` | detect.js:findone_fn | Implemented |
 | 480 | `food_detect` | detect.js:333 | Implemented |
 | 1611 | `foundone` | detect.js:773 | Implemented |
 | 1092 | `furniture_detect` | detect.js:641 | Implemented |
@@ -1037,25 +1037,25 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 604 | `object_detect` | detect.js:406 | Implemented |
 | 250 | `observe_recursively` | detect.js:193 | Implemented |
 | 1903 | `openit` | detect.js:908 | Implemented |
-| 1730 | `openone` | - | Missing |
+| 1730 | `openone` | detect.js:openone | Implemented |
 | 2135 | `premap_detect` | detect.js:1051 | Implemented |
-| 86 | `reconstrain_map` | - | Missing |
-| 2357 | `reveal_terrain` | - | Missing |
+| 86 | `reconstrain_map` | detect.js:reconstrain_map | Implemented |
+| 2357 | `reveal_terrain` | detect.js:reveal_terrain | Implemented |
 | 2168 | `reveal_terrain_getglyph` | - | Missing |
 | 866 | `sense_trap` | detect.js:522 | Implemented |
 | 1373 | `show_map_spot` | detect.js:713 | Implemented |
 | 2125 | `skip_premap_detect` | detect.js:1045 | Implemented |
-| 1012 | `trap_detect` | - | Missing |
+| 1012 | `trap_detect` | detect.js:trap_detect | Implemented |
 | 140 | `trapped_chest_at` | detect.js:214 | Implemented |
 | 183 | `trapped_door_at` | detect.js:233 | Implemented |
 | 71 | `unconstrain_map` | detect.js:143 | Implemented |
-| 1207 | `use_crystal_ball` | - | Missing |
+| 1207 | `use_crystal_ball` | detect.js:use_crystal_ball | Implemented |
 | 2108 | `warnreveal` | detect.js:1032 | Implemented |
 
 ### dig.c -> dig.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 1763 | `adj_pit_checks` | - | Missing |
+| 1763 | `adj_pit_checks` | dig.js:adj_pit_checks | Implemented |
 | 1885 | `buried_ball` | dig.js:1548 | Implemented |
 | 1958 | `buried_ball_to_freedom` | dig.js:1603 | Implemented |
 | 1935 | `buried_ball_to_punishment` | dig.js:1583 | Implemented |
@@ -1069,7 +1069,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 169 | `dig_typ` | dig.js:153 | Implemented |
 | 1027 | `dig_up_grave` | dig.js:549 | Implemented |
 | 640 | `digactualhole` | dig.js:370 | Implemented |
-| 255 | `digcheck_fail_message` | - | Missing |
+| 255 | `digcheck_fail_message` | dig.js:digcheck_fail_message | Implemented |
 | 885 | `dighole` | dig.js:434 | Implemented |
 | 1504 | `draft_message` | dig.js:618 | Implemented |
 | 2241 | `escape_tomb` | dig.js:1855 | Implemented |
@@ -1079,10 +1079,10 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 195 | `is_digging` | dig.js:1423 | Implemented |
 | 838 | `liquid_flow` | dig.js:414 | Implemented |
 | 1414 | `mdig_tunnel` | dig.js:197 | Implemented |
-| 88 | `mkcavearea` | - | Missing |
+| 88 | `mkcavearea` | dig.js:mkcavearea | Implemented |
 | 48 | `mkcavepos` | dig.js:1907 | Implemented |
-| 141 | `pick_can_reach` | - | Missing |
-| 1844 | `pit_flow` | - | Missing |
+| 141 | `pick_can_reach` | dig.js:pick_can_reach | Implemented |
+| 1844 | `pit_flow` | dig.js:pit_flow | Implemented |
 | 30 | `rm_waslit` | dig.js:1894 | Implemented |
 | 2146 | `rot_corpse` | dig.js:1764 | Implemented |
 | 2125 | `rot_organic` | dig.js:1736 | Implemented |
@@ -1091,7 +1091,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1092 | `use_pick_axe` | dig.js:957 | Implemented |
 | 1162 | `use_pick_axe2` | dig.js:983 | Implemented |
 | 1377 | `watch_dig` | dig.js:663 | Implemented |
-| 1362 | `watchman_canseeu` | - | Missing |
+| 1362 | `watchman_canseeu` | dig.js:watchman_canseeu | Implemented |
 | 2288 | `wiz_debug_cmd_bury` | - | Missing |
 | 1548 | `zap_dig` | dig.js:715 | Implemented |
 
@@ -1375,7 +1375,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2691 | `select_off` | do_wear.js:1299 | Implemented |
 | 1534 | `set_wear` | do_wear.js:1077 | Implemented |
 | 2625 | `some_armor` | do_wear.js:1194 | Implemented |
-| 1683 | `stop_donning` | - | Missing |
+| 1683 | `stop_donning` | do_wear.js:stop_donning | Implemented |
 | 2652 | `stuck_ring` | do_wear.js:1214 | Implemented |
 | 2895 | `take_off` | do_wear.js:1405 | Implemented |
 | 3407 | `takeoff_ok` | do_wear.js:1704 | Implemented |
@@ -1419,7 +1419,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1377 | `could_reach_item` | dogmove.js:483 | Implemented |
 | 146 | `cursed_object_at` | dogmove.js:472 | Implemented |
 | 219 | `dog_eat` | dogmove.js:229 | Partial — nutrition, tameness, split food, eat message, apport. Has spurious obj_resists call. Missing: devour, killer bee jelly, rust monster, distant_name side-effects |
-| 477 | `dog_goal` | - | Missing |
+| 477 | `dog_goal` | dogmove.js (inlined in dog_move) | Implemented |
 | 356 | `dog_hunger` | dogmove.js:319 | Partial — starvation check, hunger confusion, mhpmax penalty. Missing: beg(), couldsee for message, stop_occupation |
 | 394 | `dog_invent` | dogmove.js:535 | Partial — drop and pickup paths. Missing: some pickup edge cases |
 | 992 | `dog_move` | dogmove.js:851 | Partial — core movement loop, combat, mfndpos, distfleeck. Missing: best_target, score_targ, find_friends, wantdoor |
@@ -1432,7 +1432,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 904 | `pet_ranged_attk` | dogmove.js:919 | Implemented |
 | 1487 | `quickmimic` | dogmove.js:1618 | Implemented |
 | 753 | `score_targ` | dogmove.js:831 | Implemented |
-| 1433 | `wantdoor` | - | Missing |
+| 1433 | `wantdoor` | dogmove.js (inlined callback) | Implemented |
 
 ### dokick.c -> kick.js
 | C Line | C Function | JS Line | Alignment |
@@ -1487,7 +1487,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1855 | `return_throw_to_inv` | dothrow.js:1234 | Implemented |
 | 1442 | `sho_obj_return_to_u` | dothrow.js:1535 | Implemented |
 | 1976 | `should_mulch_missile` | dothrow.js:1276 | Implemented |
-| 1468 | `swallowit` | - | Missing |
+| 1468 | `swallowit` | dothrow.js:swallowit | Implemented |
 | 2011 | `thitmonst` | dothrow.js:1292 | Implemented |
 | 2656 | `throw_gold` | dothrow.js:1501 | Implemented |
 | 87 | `throw_obj` | dothrow.js:671 | Implemented |
@@ -1644,7 +1644,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1129 | `cpostfx` | eat.js:923 | Implemented |
 | 791 | `cprefx` | eat.js:889 | Implemented |
 | 422 | `do_reset_eat` | eat.js:638 | Implemented |
-| 2812 | `doeat` | - | Missing |
+| 2812 | `doeat` | eat.js:handleEat | Implemented |
 | 2729 | `doeat_nonfood` | eat.js:1555 | Implemented |
 | 544 | `done_eating` | - | Missing |
 | 603 | `eat_brains` | eat.js:1762 | Implemented |
@@ -2075,7 +2075,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 986 | `case_insensitive_comp` | hacklib.js:632 | Implemented |
 | 365 | `chrcasecpy` | hacklib.js:188 | Implemented |
 | 1004 | `copy_bytes` | hacklib.js:647 | Implemented |
-| 351 | `copynchars` | - | Missing |
+| 351 | `copynchars` | hacklib.js:copynchars | Implemented |
 | 1038 | `datamodel` | - | Missing |
 | 126 | `digit` | hacklib.js:15 | Implemented |
 | 737 | `dist2` | hacklib.js:484 | Implemented |
@@ -2119,8 +2119,8 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 178 | `upstart` | hacklib.js:55 | Implemented |
 | 187 | `upwords` | hacklib.js:61 | Implemented |
 | 533 | `visctrl` | hacklib.js:292 | Implemented |
-| 1056 | `what_datamodel_is_this` | - | Missing |
-| 464 | `xcrypt` | - | Missing |
+| 1056 | `what_datamodel_is_this` | hacklib.js:what_datamodel_is_this | Implemented |
+| 464 | `xcrypt` | hacklib.js:xcrypt | Implemented |
 
 ### iactions.c -> iactions.js
 | C Line | C Function | JS Line | Alignment |
@@ -3070,7 +3070,7 @@ No function symbols parsed from isaac64.c.
 | 1717 | `m_move` | monmove.js:1145 | Partial — core movement, fleeing, mfndpos integration. Missing: many special cases |
 | 2091 | `m_move_aggress` | monmove.js:1379 | Partial — aggression checks on movement |
 | 673 | `m_postmove_effect` | monmove.js:2234 | Implemented |
-| 1334 | `m_search_items` | - | Missing |
+| 1334 | `m_search_items` | monmove.js:m_search_items_goal | Implemented |
 | 1273 | `maybe_spin_web` | monmove.js:2480 | Implemented |
 | 55 | `mb_trapped` | monmove.js:2301 | Implemented |
 | 584 | `mind_blast` | monmove.js | Partial — RNG-faithful: rn2(20) gate, hero lock-on (sensemon/Blind_telepat/rn2(10)), rnd(15) damage, monster loop with telepathic/rn2(2)/rn2(10)/rnd(15); losehp stubbed, hero unhide stubbed |
@@ -3078,7 +3078,7 @@ No function symbols parsed from isaac64.c.
 | 79 | `mon_track_add` | monmove.js:154 | Implemented — ring buffer push |
 | 90 | `mon_track_clear` | monmove.js:162 | Implemented — zero all entries |
 | 1040 | `mon_would_consume_item` | monmove.js:2365 | Implemented |
-| 1003 | `mon_would_take_item` | - | Missing |
+| 1003 | `mon_would_take_item` | monmove.js:mon_would_take_item_search | Implemented |
 | 107 | `mon_yells` | monmove.js:2390 | Implemented |
 | 463 | `monflee` | monmove.js:173 | Implemented — flee timer, ustuck release, flee messages. Missing: Vrock gas cloud, flees_light message, M_AP_FURNITURE/OBJECT check |
 | 97 | `monhaskey` | monmove.js:270 | Implemented — skeleton key, lock pick, credit card |
@@ -3089,9 +3089,9 @@ No function symbols parsed from isaac64.c.
 | 1074 | `should_displace` | monmove.js:2277 | Implemented |
 | 1256 | `soko_allow_web` | - | Missing |
 | 2322 | `stuff_prevents_passage` | - | Missing |
-| 2280 | `undesirable_disp` | - | Missing |
+| 2280 | `undesirable_disp` | monmove.js:undesirable_disp | Implemented |
 | 2380 | `vamp_shift` | - | Missing |
-| 177 | `watch_on_duty` | - | Missing |
+| 177 | `watch_on_duty` | monmove.js:watch_on_duty | Implemented |
 
 ### monst.c -> monst.js
 | C Line | C Function | JS Line | Alignment |
