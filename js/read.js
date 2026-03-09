@@ -304,12 +304,16 @@ async function handleRead(player, display, game) {
         display.messageNeedsMore = false;
     };
     const isDismissKey = (code) => code === 27 || code === 10 || code === 13 || code === 32;
+    const allInvLetters = (player.inventory || [])
+        .filter((o) => o && typeof o.invlet === 'string' && o.invlet.length > 0)
+        .map((o) => o.invlet)
+        .join('');
     const showReadableHelpList = async () => {
         // Match C TTY getobj('?/*') behavior: inventory window owns the topline
         // while visible, not an overprint on the existing read prompt.
         replacePromptMessage();
         const lines = buildInventoryOverlayLines(player);
-        await renderOverlayMenuUntilDismiss(display, lines);
+        return await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
     };
     const showReadPrompt = async () => {
         await display.putstr_message(prompt);
@@ -319,7 +323,7 @@ async function handleRead(player, display, game) {
         const ch = await awaitInput(game, nhgetch(), {
             site: 'read.handleRead.select',
         });
-        const c = String.fromCharCode(ch);
+        let c = String.fromCharCode(ch);
         if (isDismissKey(ch)) {
             replacePromptMessage();
             await display.putstr_message('Never mind.');
@@ -328,9 +332,22 @@ async function handleRead(player, display, game) {
         if (c === '?' || c === '*') {
             // C tty keeps read prompt pending while '?/*' item-list help is
             // acknowledged with modal --More-- screens.
-            await showReadableHelpList();
-            await showReadPrompt();
-            continue;
+            const menuSelection = await showReadableHelpList();
+            if (!menuSelection) {
+                await showReadPrompt();
+                continue;
+            }
+            if (menuSelection === '?' || menuSelection === '*') {
+                await showReadPrompt();
+                continue;
+            }
+            // C getobj/display_pickinv parity: a letter chosen from the
+            // inventory overlay becomes the active item selection.
+            if (!(player.inventory || []).some((o) => o && o.invlet === menuSelection)) {
+                await showReadPrompt();
+                continue;
+            }
+            c = menuSelection;
         }
         const anyItem = (player.inventory || []).find((o) => o && o.invlet === c);
         if (anyItem) {
