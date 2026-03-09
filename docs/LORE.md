@@ -5854,3 +5854,23 @@ hard-won wisdom:
     wrapper code for architecture-mismatched file-format internals.
 - Validation:
   - `npm test -- test/unit/storage.test.js` passed (gate run).
+
+### CODEMATCH dokick.c stale-ledger closure (2026-03-09)
+
+- Problem:
+  - `dokick.c` still showed 20 `Missing` rows, but those functions already
+    existed in `js/dokick.js`; the ledger was still keyed to `kick.js` only.
+- Change:
+  - Updated CODEMATCH file mapping to `dokick.c -> dokick.js, kick.js`.
+  - Updated JS file map section to list `dokick.js` explicitly as the
+    C-structured kick/object-migration callchain.
+  - Flipped stale `Missing` rows to implemented with concrete `dokick.js`
+    line mappings for:
+    `maybe_kick_monster`, `kick_monster`, `ghitm`, `container_impact_dmg`,
+    `kick_object`, `really_kick_object`, `kickstr`, `watchman_thief_arrest`,
+    `watchman_door_damage`, `kick_dumb`, `kick_ouch`, `kick_door`,
+    `kick_nondoor`, `drop_to`, `impact_drop`, `ship_object`, `obj_delivery`,
+    `deliver_obj_to_mon`, `otransit_msg`, `down_gate`.
+- Validation:
+  - `npm test -- test/unit/kick_ouch_hp_current.test.js` passed (gate run).
+  - `dokick.c` missing count reduced from `20` to `0` (ledger correction only).
